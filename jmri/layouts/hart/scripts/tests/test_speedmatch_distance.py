@@ -19,6 +19,12 @@ from test_speedmatch import SM, analyze, lr, make_job, mover  # noqa: E402
 sys.path.insert(0, str(SM.parent))
 import infer_block_lengths as ibl  # noqa: E402
 
+
+def read_rows(path, **kw):
+    """The CSV's rows, with the file closed after reading."""
+    with open(path, **kw) as f:
+        return list(csv.DictReader(f))
+
 RUNBOOK = SM.parents[4] / "docs/jmri/speedmatching/RUNBOOK.md"
 ORDER1 = analyze.route_order("loop1")
 LEN1 = {s: 1500.0 for s in ORDER1}
@@ -419,7 +425,7 @@ class AnalyzeDistance(unittest.TestCase):
                            (16, steady(ORDER1, ORDER1[0], 500.0, LEN1, 12, t0=500.0))])
         d = Path(tempfile.mkdtemp())
         analyze.write_outputs(analyze.latest_runs(sm), None, d, sm)
-        rows = list(csv.DictReader(open(d / "profile.csv")))
+        rows = read_rows(d / "profile.csv")
         self.assertEqual([(r["step"], r["median_mm_s"], r["settled"]) for r in rows],
                          [("8", "250.0", "True"), ("16", "500.0", "True")])
 
@@ -432,7 +438,7 @@ class AnalyzeDistance(unittest.TestCase):
         self.assertAlmostEqual(row["median"], 56.0, delta=0.01)
         d = Path(tempfile.mkdtemp())
         analyze.write_outputs(analyze.latest_runs(sm), None, d, sm)
-        self.assertEqual(list(csv.DictReader(open(d / "profile.csv")))[0]["settled"], "True")
+        self.assertEqual(read_rows(d / "profile.csv")[0]["settled"], "True")
         import correct as corr
         got, skipped = corr.read_profile(d / "profile.csv", "CSX 2121", "forward")
         self.assertIn(8, got)

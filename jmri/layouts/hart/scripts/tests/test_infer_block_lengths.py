@@ -7,6 +7,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import infer_block_lengths as m  # noqa: E402
 
+
+def read_rows(path, **kw):
+    """The CSV's rows, with the file closed after reading."""
+    with open(path, **kw) as f:
+        return list(csv.DictReader(f))
+
 BLOCKS = ["R", "A", "B"]
 
 
@@ -51,7 +57,7 @@ class Apply(unittest.TestCase):
         import tempfile, os
         d = tempfile.mkdtemp()
         p = os.path.join(d, "bl.csv")
-        rows = list(csv.DictReader(open(m.CSV, newline="")))
+        rows = read_rows(m.CSV, newline="")
         with open(p, "w", newline="") as f:
             w = csv.DictWriter(f, fieldnames=list(rows[0]), lineterminator="\n")
             w.writeheader(); w.writerows(rows)
@@ -60,12 +66,12 @@ class Apply(unittest.TestCase):
         self.assertAlmostEqual(mm["Track East Lead"], 1000.0, delta=3)
         self.assertAlmostEqual(mm["Track K-2"], 1000.0, delta=3)
         # nothing written yet
-        self.assertEqual(list(csv.DictReader(open(p, newline=""))), rows)
+        self.assertEqual(read_rows(p, newline=""), rows)
 
 
 class RecordedRuns(unittest.TestCase):
     def test_2026_11_08_lengths_sum_to_plan_loop(self):
-        rows = list(csv.DictReader(open(m.EVENTS, newline="")))
+        rows = read_rows(m.EVENTS, newline="")
         out = m.infer(rows)
         self.assertEqual(set(out), set(m.SENSOR_ROWS))
         total = sum(v[0] for v in out.values())
@@ -75,7 +81,7 @@ class RecordedRuns(unittest.TestCase):
 
 
     def test_pinned_puts_turnouts_on_the_plan_and_keeps_the_loop(self):
-        rows = list(csv.DictReader(open(m.EVENTS, newline="")))
+        rows = read_rows(m.EVENTS, newline="")
         out = m.pinned(m.infer(rows))
         self.assertAlmostEqual(sum(v[0] for v in out.values()), m.PLAN_LOOP_MM, delta=1)
         # the route starts where Switch 5's section starts, which is before Switch 5's points

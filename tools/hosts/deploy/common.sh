@@ -135,6 +135,33 @@ deploy_facts() {
     HART_DEPLOY_REDEPLOY_FROM="$DEPLOY_REDEPLOY_FROM" HART_DEPLOY_DATE="$DEPLOY_DATE" HART_DEPLOY_FROM="$DEPLOY_FROM"
 }
 
+# check_on_main: a deploy to a host ships a commit that is on origin/main, as a rollback does (redeploy_commit.sh),
+# so the hosts run what was merged. It fetches origin/main first and refuses with nothing sent when HEAD is not on it.
+# HART_ALLOW_UNMERGED=1 deploys another commit (a test on the hosts, a fix that cannot wait); the stamp names its
+# branch. A redeploy is not checked here: redeploy_commit.sh checked the commit before it ran this one.
+# HART_MAIN_REF names another ref to check against, and skips the fetch (the tests).
+check_on_main() {
+  [[ -z "${HART_REDEPLOY_FROM:-}" ]] || return 0
+  if [[ "${HART_ALLOW_UNMERGED:-0}" == 1 ]]; then
+    echo "HART_ALLOW_UNMERGED=1: deploying ${DEPLOY_COMMIT:0:12} ($DEPLOY_BRANCH) without checking it is on origin/main." >&2
+    return 0
+  fi
+  local ref="${HART_MAIN_REF:-}"
+  if [[ -z "$ref" ]]; then
+    ref=refs/remotes/origin/main
+    GIT_TERMINAL_PROMPT=0 git -C "$ROOT" fetch -q origin main 2>/dev/null \
+      || echo "note: git fetch origin main failed; checking against the origin/main this checkout has." >&2
+  fi
+  if ! git -C "$ROOT" rev-parse --verify -q "$ref^{commit}" >/dev/null; then
+    echo "STOP: no $ref here to check ${DEPLOY_COMMIT:0:12} against; git fetch first, or HART_ALLOW_UNMERGED=1 to deploy it anyway. Nothing was sent to any host." >&2
+    return 1
+  fi
+  if ! git -C "$ROOT" merge-base --is-ancestor HEAD "$ref"; then
+    echo "STOP: ${DEPLOY_COMMIT:0:12} ($DEPLOY_BRANCH) is not on origin/main. Merge it and deploy from the updated main, or HART_ALLOW_UNMERGED=1 to deploy it anyway (say so in the report). Nothing was sent to any host." >&2
+    return 1
+  fi
+}
+
 # tables_facts WARN: the tables.xml shipped (hash) and whether it differs from the committed file. The Digicon boot
 # rule is applied by the generator and only checked by the gate, so the hosts get exactly the committed bytes:
 # nothing here rewrites tables.xml. With WARN=1 an uncommitted difference is a warning, not a stop.

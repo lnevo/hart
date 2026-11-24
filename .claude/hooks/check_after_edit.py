@@ -31,7 +31,7 @@ CHECKS = [  # (name, argv) as in tools/check.sh; test_guards checks each one is 
     ("sml-invariants", ["python3", "tools/audit/check_sml_invariants.py"]),
     ("mqtt-static", ["python3", "tools/audit/check_mqtt_no_static_lists.py"]),
     ("wiring-crosswalk", ["python3", "tools/audit/check_wiring_crosswalk.py"]),
-    ("unit-jmri", ["python3", "-m", "unittest", "discover", "-q", "-s", "jmri/layouts/hart/scripts/tests"]),
+    ("unit-jmri", ["python3", "-m", "unittest", "discover", "-b", "-q", "-s", "jmri/layouts/hart/scripts/tests"]),
 ]
 UNIT_JMRI = "unit-jmri"
 SIBLING = re.compile(r"(?<=jmri/scripts/)sml_[a-z_]+\.py$")
@@ -89,7 +89,7 @@ def checks_for(root, path):
     narrowed = []
     for test in tests:
         folder, file = os.path.split(test)
-        narrowed.append((f"unit {test}", ["python3", "-m", "unittest", "discover", "-q", "-s", folder, "-p", file]))
+        narrowed.append((f"unit {test}", ["python3", "-m", "unittest", "discover", "-b", "-q", "-s", folder, "-p", file]))
     narrowed += [check for check in CHECKS if check[0] != UNIT_JMRI]
     return narrowed, f"ran the {len(tests)} test file(s) that name {name}, not the whole {UNIT_JMRI} job: " + ", ".join(tests)
 

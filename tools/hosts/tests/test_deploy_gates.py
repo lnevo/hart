@@ -282,6 +282,42 @@ class EveryGateStopsBeforeAnythingShips(GateHarness):
         self.assertFalse((self.tmp / "tables_check.log").exists())
 
 
+class OnlyMergedCommitsShip(GateHarness):
+    """G0b (check_on_main, common.sh): a real deploy to a host ships a commit on origin/main, as a rollback does.
+    HART_MAIN_REF=HEAD~1 stands in for an origin/main the checkout's HEAD is not on (CI fetches two commits)."""
+
+    def test_a_commit_not_on_main_stops_before_any_ssh(self) -> None:
+        self.env["HART_MAIN_REF"] = "HEAD~1"
+        for flags in (("--pi",), ("--win",), ("--pi", "--win")):
+            with self.subTest(flags=flags):
+                done = self.deploy(*flags)
+                self.assertIn("is not on origin/main", done.stderr)
+                self.assertIn("HART_ALLOW_UNMERGED=1", done.stderr)
+                self.assert_nothing_shipped(done)
+                self.assertEqual([], self.calls())
+
+    def test_no_main_ref_stops(self) -> None:
+        self.env["HART_MAIN_REF"] = "refs/remotes/nowhere/main"
+        done = self.deploy("--pi", "--win")
+        self.assertIn("STOP: no refs/remotes/nowhere/main here", done.stderr)
+        self.assert_nothing_shipped(done)
+
+    def test_the_override_ships_and_says_so(self) -> None:
+        self.env.update(HART_MAIN_REF="HEAD~1", HART_ALLOW_UNMERGED="1")
+        self.hosts_ok()
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(0, done.returncode, done.stderr[-2000:])
+        self.assertIn("HART_ALLOW_UNMERGED=1: deploying", done.stderr)
+        self.assertIn("Pi deploy done.", done.stdout)
+
+    def test_dry_runs_check_only_and_the_mac_alone_are_not_held(self) -> None:
+        self.env["HART_MAIN_REF"] = "HEAD~1"
+        for flags in (("--pi", "--win", "--dry-run"), ("--check-only", "--pi"), ()):
+            with self.subTest(flags=flags):
+                done = self.deploy(*flags)
+                self.assertNotIn("is not on origin/main", done.stderr)
+
+
 class PiChangedSinceLastDeploy(GateHarness):
     """The Pi's Operations Pro files or tables.xml changed since the last deploy or pull: stop before anything
     is sent, and name the way out. HART_NO_AUTOPULL=1 here: the plain stop (the gate's own pull is below)."""
