@@ -323,6 +323,11 @@
       "alt": "The car-cards review page with three photos from the plugin's tests: a flatcar, a CSX hopper and a CSX locomotive, each with fields to correct.",
       "from": "screenshot of review.html from cards review on the plugin's test photos (www/assets/behind/car-cards/review-page.png)"
     },
+    "library/schematic-maps-article.html": {
+      "image": "assets/share/library-schematic-maps-article.jpg",
+      "alt": "A schematic sheet drawn by the plugin: a yard with ladders either side of a main line, switch numbers beside each turnout.",
+      "from": "plugin sheet for AnyRail example D12 (www/assets/behind/schematic-maps/sheets/D12.svg), rendered and cropped"
+    },
     "library/coke-making-in-beehive-ovens.html": {
       "image": "assets/share/library-coke-making-in-beehive-ovens.jpg",
       "alt": "A bank of beehive coke ovens with arched doors, in a still from the film.",

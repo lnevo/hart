@@ -80,6 +80,7 @@
         "behind-opspro",
         "behind-opspro-guide",
         "behind-car-cards",
+        "behind-schematic-maps",
         "behind-repo",
         "behind-pipeline-map",
         "build",
@@ -193,6 +194,12 @@
       }
     ],
     "behind-car-cards": [
+      {
+        "label": "Tools to take home",
+        "href": "behind/index.html#tools"
+      }
+    ],
+    "behind-schematic-maps": [
       {
         "label": "Tools to take home",
         "href": "behind/index.html#tools"
