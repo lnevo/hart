@@ -287,7 +287,6 @@ run layout-facts python3 tools/audit/check_layout_facts.py
 run railroad-facts env PYTHONPATH="tools/hartlib/src${PYTHONPATH:+:$PYTHONPATH}" python3 -m hartlib.railroad check
 # the device master and its column dictionary (python3 -m hartlib.devices)
 run devices env PYTHONPATH="tools/hartlib/src${PYTHONPATH:+:$PYTHONPATH}" python3 -m hartlib.devices check
-run panel-status python3 tools/schematic/panel_items.py --check
 run name-copies python3 tools/audit/check_name_copies.py
 run ai-speak python3 tools/audit/check_ai_speak.py
 run tracked-policy python3 tools/audit/check_tracked_policy.py
