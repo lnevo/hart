@@ -9,7 +9,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -293,6 +293,8 @@ LEFT_OUT = {
                                      "(docs/pipeline-map/) alters; the site copy is the pipeline-map-site check",
     "unit-guards test_pipeline_map_coverage": "the agent docs it checks are .claude/ and AGENTS.md files: full path",
     "unit-guards test_docs_index": "builds fake docs trees; the real index is the docs-index check",
+    "unit-guards test_agent_docs_map": "its one test on the real wiki (the committed graph is current) is what the "
+                                       "pipeline-map-site check's build_pipeline_map.py --check also fails on",
     "unit-guards test_publish_draft": "reads docs/ops/ drawings and JSON, no Markdown",
     "unit-guards test_write_inventory": "reads docs/wiring/ CSV, no Markdown",
     "unit-hosts test_live_paths": "reads the docs/ paths the deploy scripts name, not Markdown text",
@@ -317,12 +319,26 @@ def docs_unit_tests() -> dict[str, re.Match]:
 
 
 def covers_markdown_docs(patterns: tuple[str, ...]) -> bool:
-    """Whether a stamp declaration covers a Markdown file under docs/ or wiki/."""
+    """Whether a stamp declaration covers a Markdown file under docs/ or wiki/, matched by the stamps' own rule
+    (panel_stamps._glob_match). Each docs/ or wiki/ pattern is probed with a path made from its own segments, a
+    wildcard segment named "x" and the last one "x.md"."""
     probes = {"docs/x.md", "wiki/x.md"}
     for p in patterns:
         if p.startswith(("docs/", "wiki/")):
-            probes.add(p if p.endswith(".md") else p.split("*", 1)[0].rstrip("/") + "/x.md")
-    return any(PurePosixPath(probe).full_match(p) for p in patterns for probe in probes)
+            parts = ["x" if "*" in part else part for part in p.split("/")]
+            if not parts[-1].endswith(".md"):
+                parts[-1] = "x.md"
+            probes.add("/".join(parts))
+    return any(check_stamps.ps._glob_match(probe, p) for p in patterns for probe in probes)
+
+
+def check_sh_list(name: str) -> set[str]:
+    """The names in one of check.sh's space-separated lists (SLOW, BY_CLASS, LE_TESTS), every assignment added up."""
+    text = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
+    found = re.findall(rf'^\s*(?:\[\[[^\]]*\]\]\s*\|\|\s*)?{name}\+?="([^"]*)"', text, re.M)
+    if not found:
+        raise AssertionError(f"tools/check.sh: no {name}= list")
+    return {w for words in found for w in words.split()}
 
 
 class DocsUnitTests(unittest.TestCase):
@@ -330,7 +346,7 @@ class DocsUnitTests(unittest.TestCase):
 
     def test_each_listed_test_is_declared_on_docs_and_named_for_its_file(self) -> None:
         tests = docs_unit_tests()
-        self.assertGreaterEqual(len(tests), 3)
+        self.assertGreaterEqual(len(tests), 2)
         for stamp, m in tests.items():
             with self.subTest(stamp):
                 self.assertTrue((ROOT / m["dir"] / m["file"]).is_file())
@@ -339,6 +355,20 @@ class DocsUnitTests(unittest.TestCase):
                 self.assertIsNotNone(extra, f"{stamp}: check_stamps.EXTRA does not say it reads docs or the wiki")
                 self.assertTrue(covers_markdown_docs(extra), f"{stamp}: its declaration covers no Markdown doc")
                 self.assertNotIn(stamp, LEFT_OUT)
+                # check.sh runs these files under another job name (the Layout Editor job, one job per class)
+                self.assertNotIn(m["file"].removesuffix(".py"), check_sh_list("LE_TESTS"))
+                self.assertNotIn(m["file"], check_sh_list("BY_CLASS"))
+
+    def test_each_k_filter_names_a_test_class_of_its_file(self) -> None:
+        for stamp, m in docs_unit_tests().items():
+            if m["k"] is None:
+                continue
+            with self.subTest(stamp):
+                done = subprocess.run([sys.executable, str(ROOT / "tools/audit/test_classes.py"),
+                                       str(ROOT / m["dir"] / m["file"])], capture_output=True, text=True, timeout=60)
+                self.assertEqual(0, done.returncode, done.stderr)
+                classes = {c.split(".")[-1] for c in done.stdout.split()}
+                self.assertIn(m["k"].split(".")[0], classes, f"-k {m['k']} names no test class of {m['file']}")
 
     def test_every_declaration_on_markdown_docs_is_run_or_left_out_with_a_reason(self) -> None:
         declared = {**check_stamps.BY_KIND, **check_stamps.EXTRA}
@@ -354,6 +384,15 @@ class DocsUnitTests(unittest.TestCase):
         self.assertTrue(covers_markdown_docs(("docs/INDEX.md",)))
         self.assertFalse(covers_markdown_docs(("**/*.py", "www/**/*", "tools/**/*")))
         self.assertFalse(covers_markdown_docs(("docs/x.json",)))
+        self.assertTrue(covers_markdown_docs(("docs/jmri/*/**/*",)))     # a wildcard segment in the middle
+        self.assertTrue(covers_markdown_docs(("wiki/*/notes/*.md",)))
+
+    def test_check_sh_lists_are_read(self) -> None:
+        self.assertIn("test_build_layout_le", check_sh_list("LE_TESTS"))
+        self.assertIn("test_worktrees.py", check_sh_list("BY_CLASS"))
+        self.assertIn("test_deploy_gates.py", check_sh_list("BY_CLASS"))
+        with self.assertRaisesRegex(AssertionError, "no NOPE= list"):
+            check_sh_list("NOPE")
 
     def test_a_unit_line_in_another_form_fails_the_guard(self) -> None:
         bad = "check x python3 -m unittest tools/audit/tests/test_name_copies.py\n"
