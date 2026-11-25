@@ -46,6 +46,12 @@ def doc_files() -> list[str]:
     return [p for p in paths if not p.startswith(SKIP) and not p.endswith(TOOLING)]
 
 
+def untracked() -> list[str]:
+    """The files doc_files() lists that git does not track yet."""
+    out = subprocess.check_output(["git", "ls-files", "-z", "--others", "--exclude-standard", "docs"], cwd=ROOT, text=True)
+    return sorted(p for p in out.split("\0") if p and not p.startswith(SKIP) and not p.endswith(TOOLING))
+
+
 def is_asset(path: str) -> bool:
     return path.lower().endswith(ASSETS)
 
@@ -204,9 +210,16 @@ def repeated(text: str) -> list[tuple[str, str]]:
 
 
 def check(strict: bool = False) -> int:
-    """0 when docs/INDEX.md lists exactly the documents in docs/ (tracked or new) (and asset counts). Missing summaries are a warning,
-    or a failure with strict."""
+    """0 when docs/INDEX.md lists exactly the documents in docs/, tracked or new, and the asset counts.
+
+    Missing summaries are a warning, or a failure with strict. New files are named, since CI sees them only once committed.
+    """
     paths = doc_files()
+    if new := untracked():
+        print("build_docs_index.py: note: the index counts these new docs/ files; commit them with docs/INDEX.md, "
+              "or remove them and rebuild it:", file=sys.stderr)
+        for path in new[:10]:
+            print(f"  new: {path}", file=sys.stderr)
     index = ROOT / "docs/INDEX.md"
     text = index.read_text(encoding="utf-8") if index.is_file() else ""
     have, want = listed(text), listed(rendered := render(paths))

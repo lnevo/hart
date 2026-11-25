@@ -130,7 +130,8 @@ class Tree(unittest.TestCase):
             (self.root / name).parent.mkdir(parents=True, exist_ok=True)
             (self.root / name).write_text(body)
         for patch in (mock.patch.object(INDEX, "ROOT", self.root),
-                      mock.patch.object(INDEX, "doc_files", return_value=sorted(self.FILES))):
+                      mock.patch.object(INDEX, "doc_files", return_value=sorted(self.FILES)),
+                      mock.patch.object(INDEX, "untracked", return_value=[])):
             patch.start()
             self.addCleanup(patch.stop)
 
@@ -316,23 +317,31 @@ class DocFiles(unittest.TestCase):
     """doc_files(): tracked and new files under docs/, without ignored or deleted ones, so a local run matches CI's."""
 
     def test_new_untracked_doc_is_listed_and_deleted_or_ignored_are_not(self) -> None:
+        import os
         import subprocess
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            git = ["git", "-c", "user.email=t@t", "-c", "user.name=t"]
-            subprocess.run([*git, "init", "-q"], cwd=root, check=True)
+            env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}  # a hook's GIT_DIR must not leak in
+            git = ["git", "-c", "user.email=t@t", "-c", "user.name=t", "-c", "commit.gpgsign=false",
+                   "-c", "core.hooksPath=/dev/null"]
+
+            def run(*args: str) -> None:
+                subprocess.run([*git, *args], cwd=root, check=True, env=env)
+
+            run("init", "-q")
             (root / "docs").mkdir()
             for name in ("kept.md", "gone.md"):
                 (root / "docs" / name).write_text("# T\n\nText.\n")
-            subprocess.run([*git, "add", "docs"], cwd=root, check=True)
-            subprocess.run([*git, "commit", "-q", "-m", "x"], cwd=root, check=True)
+            run("add", "docs")
+            run("commit", "-q", "-m", "x")
             (root / "docs" / "gone.md").unlink()
             (root / "docs" / "new.md").write_text("# T\n\nText.\n")
             (root / ".gitignore").write_text("docs/ignored.md\n")
             (root / "docs" / "ignored.md").write_text("# T\n")
-            with mock.patch.object(INDEX, "ROOT", root):
+            with mock.patch.object(INDEX, "ROOT", root), mock.patch.dict(os.environ, env, clear=True):
                 self.assertEqual(INDEX.doc_files(), ["docs/kept.md", "docs/new.md"])
+                self.assertEqual(INDEX.untracked(), ["docs/new.md"])
 
 
 if __name__ == "__main__":
