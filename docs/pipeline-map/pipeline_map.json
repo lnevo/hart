@@ -3785,6 +3785,16 @@
    "gen": "manifest"
   },
   {
+   "id": "tools/ops/check_locos.py",
+   "label": "check_locos.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Checks that every engine in both Operations Pro engine rosters and every engine in the train list is a row of the loco master locos.csv, keyed on roster_id (ADR-039).",
+   "path": "tools/ops/check_locos.py",
+   "gen": "manifest"
+  },
+  {
    "id": "tools/audit/check_py_sizes.py",
    "label": "check_py_sizes",
    "kind": "generator",
@@ -8771,6 +8781,41 @@
    "from": "ops/hart-ops/data/HART_Spot_Waybills.csv",
    "to": "tools/ops/check_data.py",
    "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/locos.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/locos.csv",
+   "to": "tools/ops/check_locos.py",
+   "label": "master",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/operations",
+   "to": "tools/ops/check_locos.py",
+   "label": "engine roster",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/OperationsEngineRoster.xml",
+   "to": "tools/ops/check_locos.py",
+   "label": "snapshot roster",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/ops/check_locos.py",
+   "to": "tools/check.sh",
+   "label": "check loco-refs",
    "side": "check",
    "gen": "manifest"
   },

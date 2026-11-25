@@ -28,6 +28,15 @@
 #   STALL0, STALL_CAP, STALL_SKIP_BELOW   as in step_runner.py
 # Needs liverule.py and jobkit.py in front of it (make_job.py pastes them); the route listener
 # SL and the waits (pause) come from jobkit.py.
+# Never runs: the names make_job.py puts in front of this file (its settings, liverule.py and jobkit.py), listed for pyflakes
+# (ruff's undefined-name rule) so a misspelt name fails the check. job_settings stands for the settings.
+if False:
+    import time, threading, os, java
+    from jobkit import (HOOK, L, SL, ab, check_guards, claim, end_job, last, lock, pause, request_throttle, scan,
+        set_direction, why)
+    from liverule import DistanceStep, STALL_CAP, SpanReader, aggregate, next_stall, settle_time, stall_action
+    from job_settings import (CV3, CV4, FUNCS, GUARD, LENGTHS, MAX_S, MID, MIN_BLOCKS, ORDER, P_FWD, P_ID,
+        REL, ROUTE, STALL0, STALL_SKIP_BELOW, STEPS_LIST, TARGET_MM, WARM_S, WARM_STEP)
 import json
 reader = SpanReader(ORDER, LENGTHS, 0, True)   # whole blocks, one steady direction
 phase = ["idle"]     # idle, warmup, settle or measure
@@ -126,8 +135,8 @@ def run():
             stall = next_stall(STALL0, STALL_CAP, interval)
             prev = st
         why[0] = "all steps complete"
-    except java.lang.Throwable, e: L("ERROR %s" % e)
-    except Exception, e: L("ERROR %s" % e)
+    except java.lang.Throwable as e: L("ERROR %s" % e)
+    except Exception as e: L("ERROR %s" % e)
     finally:
         phase[0] = "idle"
         end_job(t, tl, FUNCS)

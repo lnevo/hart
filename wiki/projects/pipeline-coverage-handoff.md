@@ -62,6 +62,8 @@ Agent: `general-purpose`. `/code-review medium`.
 
 ## D. Speed matching meets the repo's standards (M)
 
+**Done** in #1149, with the speed-matching part of lane C. `speedmatch.py` (also `make speedmatch`) runs every step. `pom --send` goes through `drop_job.sh`'s gates, and `pom_write.py` holds `/tmp/speedrun.active` while it writes. The 2026-11-08 raw logs are not in the Pi backups (they were in the Pi's `/tmp`), so that session stays as its CSVs.
+
 - One `speedmatch` CLI with subcommands: `job` (`make_job.py`), `drop` (`drop_job.sh`), `pom` (`pom_write.py`), `compare` (`preflight_compare.py`, `stoptest_compare.py`), `to-roster` (`profile_to_roster.py`), `lengths` (`infer_block_lengths.py`) and `rename-ext` (`rename_extension_tracks.py`).
 - `pom` replaces the hand procedure in `POM_GUARD.md` (lines 150 to 168), which skips the operating-flag gate and the "runner active" check.
 - `stage.sh` ships the 2026-11-08 `speed_by_step.csv` from `docs/`. That becomes a named data file under `jmri/layouts/hart/data/`.
@@ -74,16 +76,16 @@ Agent: `general-purpose`. `/code-review medium`.
 
 ## E. Remove duplicate checks (S to M each)
 
-Before any removal, sample the last 30 days of CI runs to see which checks have failed.
+CI sample (2,456 runs, 2026-10-31 to 11-25): 138 failed; 93 real faults, 29 stale generated files, 12 flaky or no log, 4 unclassified. 26 of the 39 manifest checks never failed, which alone is no reason to remove one.
 
 | # | Duplicate | Change |
 |---|---|---|
 | 1 | `.claude/hooks/check_after_edit.py` keeps its own list of 8 checks; `test_guards.py` keeps it matched to the manifest | Mark the steps in `checks.toml`; the hook reads the manifest; the matching test goes |
-| 2 | `check_device_master.py` and `railroad-facts` both run `device_row_problems` | `railroad-facts` keeps it. First confirm that `make panels` still stops on a bad row (`schematic-builder`, `/code-review high`) |
+| 2 | `check_device_master.py` and `railroad-facts` both run `device_row_problems` | **Kept** (checked 2026-11-25): the guard is the only place `make panels` runs it; without it a duplicate DCC address or a block with no occupancy row reaches the CATS desks |
 | 3 | Tests that pin the exact text of `check.sh` and the workflow (`test_check_sh_tables.py`, `test_check_docs_only.py`) | A run test for each, or drop it where one exists |
 | 4 | The docs-only unit-test list in `docs_checks.sh`, kept by four guard tests | Generated from the stamps declarations |
 | 5 | `desks` (`validate_cats_panel.py`) | Removed with its `make desks` call; the desks are generated and byte-checked |
-| 6 | `phase02` may repeat `check_layout_facts.py` (not confirmed) | `finding-verifier` first; if confirmed, its two rules of its own go to `panel-contracts` |
+| 6 | `phase02` may repeat `check_layout_facts.py` | **Kept** (checked 2026-11-25): it alone catches an OS block in the master with no `switches.csv` row, a missing secondary OS block, and a repeated block name in a Store candidate |
 
 Checked and needed: the two `tables.xml` checks that look like repeats (they cover Store candidates and the deploy gate), CI's second panels run on a plugin bump, the stamps machinery, and the map checks.
 

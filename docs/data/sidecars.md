@@ -45,6 +45,7 @@ It finds sidecars with `git ls-files` (tracked, or untracked and not ignored) an
 - `ops/hart-ops/data/industries.columns.csv`: `industries.csv`, the industry master. Key: `industry_id`.
 - `ops/hart-ops/data/spot_assignments.columns.csv`: `spot_assignments.csv`, the spot master. Key: `industry_id` and `Spot #`. `industry_id` must be in `industries.csv`.
 - `ops/hart-ops/data/HART_Spot_Waybills.columns.csv`: `HART_Spot_Waybills.csv`. Key: `card_id`. `traffic` is `industry` or `interchange` (a car going straight between Scully Yard and Demmler Yard); `industry_id` is required on industry traffic and must be in `industries.csv`, and `usage` must be a usage in `spot_assignments.csv`.
+- `ops/hart-ops/data/locos.columns.csv`: the loco master `locos.csv`. Key: `road_name` and `road_number`. `roster_id` is formatted from them (`CSX 2121`, `locos.loco_roster_id`), and the check fails one that is not. `loco_type` is `Diesel`, `Steam` or `Electric`. `tools/ops/check_locos.py` (the `loco-refs` step) checks that both Operations Pro engine rosters and the train list name only locos in it.
 
 `www/scripts/tests/test_industry_ids.py` checks what a ref cannot: that each spot and waybill's name matches its `industry_id`, that a waybill's spots are spots of its industry, and that `www/data/industries.json` lists each industry once, under its `public_name`, `slug` and `blurb`, with the waybill count and commodities of its waybills. Its one interchange entry has no `industry_id` and carries `category: "interchange"`.
 
