@@ -755,35 +755,41 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
 WRITER = "build_device_map.py"
 
 
-def owned_rows(rows, parts, files: devices.Files | None = None) -> list[dict]:
-    """The main and upper rows of build() (`rows`, the device-map form; `parts`, already master rows) in the master's
-    form, each with the owner's values over it (device_map_rows.owner_over: the field row of its id in
-    devices_field.csv, hartlib.devices.KEY), as staging's are: on every level the owner's name and values go over the
-    generated ones the same way (naming-layers step 7). The cells that name a renamed block (a part's part_of, a
-    detector's blocks, a mast's facing and protects) follow the owner's name (hartlib.devices.follow_renames); the
-    virtual JMRI names stay the generated ones (hartlib.level_devices), as a device's identity. A row with no field
-    row is as build() gave it."""
+def owned_rows(rows, parts, files: devices.Files | None = None) -> tuple[list[dict], list[dict]]:
+    """(the main and upper rows with the owner's values over them, the same rows as generated): build()'s `rows`
+    (the device-map form) and `parts` (already master rows) in the master's form, each with the field row of its id
+    in devices_field.csv over it (device_map_rows.owner_over, hartlib.devices.KEY), as staging's are: on every level
+    the owner's name and values go over the generated ones the same way (naming-layers step 7). A virtual JMRI name
+    stays the generated one (hartlib.level_devices) unless the owner's row gives a jmri_name (a device swapped in by
+    its row, ADR-028). A row with no field row is as build() gave it. master_outputs follows renames over both."""
     field = devices.field_index(files or device_files())
     made = [devices.master_row(o, WRITER) for o in rows] + [dict(p) for p in parts]
     out = []
     for r in made:
         f = field.get(devices.key_of(r))
         out.append(owner_over(r, f) if f is not None else r)
-    return [dict(r) for r in devices.follow_renames(out, made)]
+    return out, made
 
 
 def master_outputs(bands, joined, runs, rows, parts, files: devices.Files | None = None, warn=None,
                    check: bool = False) -> dict[Path, str]:
     """{path: text} of the device master once this script has written every level's rows: main and upper's
     (build()'s `rows` and `parts`, owned_rows) and staging's (staging_rows, staging_wired_rows), all generated from
-    the plan with the owner's values over them, in `files` (default device_files()). `warn` and `check`:
-    hartlib.devices.outputs_after's. MapError, DevicesError (a FactsError) as those stop."""
+    the plan with the owner's values over them, in `files` (default device_files()). The cells that name a block the
+    owner renamed (a part's part_of, a detector's blocks, a mast's facing and protects) follow the new name on every
+    level at once (hartlib.devices.follow_renames: a main mast facing a renamed staging helix block too). `warn` and
+    `check`: hartlib.devices.outputs_after's. MapError, DevicesError (a FactsError) as those stop."""
     f = files or device_files()
-    staging = staging_rows(bands, joined, runs, f)
+    drawn: dict[str, str] = {}
+    staging = staging_rows(bands, joined, runs, f, drawn=drawn)
     wired = staging_wired_rows(f)
     check_switch_ids(staging + wired)
-    return devices.outputs_after(WRITER, [], f, master_rows=owned_rows(rows, parts, f) + staging + wired, warn=warn,
-                                 check=check)
+    main, made = owned_rows(rows, parts, f)
+    # every block as generated (its drawn name), for follow_renames to see which ones the owner renamed
+    generated = made + [dict(r, user_name=drawn[r["id"]]) if r["layer"] == "block" and r["id"] in drawn else r
+                        for r in staging]
+    every = [dict(r) for r in devices.follow_renames(main + staging + wired, generated)]
+    return devices.outputs_after(WRITER, [], f, master_rows=every, warn=warn, check=check)
 
 
 def check_switch_ids(rows) -> None:

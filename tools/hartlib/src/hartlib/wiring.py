@@ -156,6 +156,21 @@ class _Names:
 
     def __init__(self, path: Path, given, files=None):
         self.path, self.given, self.files, self.field, self.merged = path, given, files, None, None
+        self._plan = None
+
+    def plan_switches(self) -> set[str]:
+        """The switch numbers of the staging plan graph (track_names.plan_switches): the schematic folder beside the
+        wiring file when it has the plan, else the repo's. Read once, only when a row needs it."""
+        if self._plan is None:
+            from . import layer_files, track_names
+            beside = Path(self.path).parent / "schematic"
+            folder = beside if (beside / track_names.PLAN_GRAPHS["staging"]).is_file() else track_names.SCHEMATIC
+            try:
+                self._plan = set(track_names.plan_switches(
+                    "staging", layer_files.read("plan_overrides", "staging", folder), folder))
+            except (track_names.TrackNameError, layer_files.LayerFileError) as exc:
+                raise _LoadFailed(str(exc)) from None
+        return self._plan
 
     def __call__(self, level: str, ident: str, where: str) -> str:
         from . import devices
@@ -180,6 +195,10 @@ class _Names:
             for pattern, form in GENERATED_NAMES:
                 m = pattern.fullmatch(ident)
                 if m:
+                    if name is None and m.group(1) not in self.plan_switches():
+                        raise FactsError(f"{where}: {ident} is no level {level} device of the device master (the "
+                                         f"staging plan has no switch {m.group(1)}: the ID is mistyped, or a new "
+                                         "export dropped it)")
                     return form.format(*m.groups())
             if name is not None:
                 raise FactsError(f"{where}: {ident}'s row in {devices.FIELD_FILE} has no user_name: give it its name")

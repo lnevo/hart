@@ -71,7 +71,8 @@ class OneRowPath(RepoReadOnly, unittest.TestCase):
         files = self.copy()
         out = bdm.master_outputs(self.bands, self.joined, self.runs, self.main_rows, self.parts, files,
                                  warn=lambda line: None)
-        self.assertEqual(out[files.master], files.master.read_text(encoding="utf-8"))
+        # the generated file as it is, written again as hartlib.devices writes it
+        self.assertEqual(out[files.master], devices.master_text(devices.generated_rows(files)))
 
     def test_a_staging_turnout_with_no_field_row_is_generated(self):
         """Switch 9's field row taken out: its turnout row is generated from the plan and wiring.csv (it stopped,
@@ -110,6 +111,38 @@ class OneRowPath(RepoReadOnly, unittest.TestCase):
         # the next build over the written files gives the block the same numbers (the builder's name memory)
         again = self.write(files)[("1", "block:7A-13C")]
         self.assertEqual((again["jmri_name"], again["layout_block"]), (got["jmri_name"], got["layout_block"]))
+
+    def test_a_renamed_block_with_no_bean_names_keeps_its_numbers(self):
+        """Code review of step 7: a field row giving Track Barn's name but no bean names gets the builder's numbers,
+        and keeps them when the owner renames it (the memory is by id)."""
+        def strip(name):
+            def edit(rows):
+                r = next(r for r in rows if (r["level"], r["id"]) == ("1", "block:7A-13C"))
+                r.update(user_name=name, system_name="", jmri_name="", layout_block="", assignment="")
+                return rows
+            return edit
+        files = self.copy(strip("Track Barn"))
+        first = self.write(files)[("1", "block:7A-13C")]
+        renamed = strip("Track Barn Lead")([dict(r) for r in devices.field_rows(files)])
+        files.field.write_text(devices.master_text(renamed), encoding="utf-8")
+        again = self.write(files)[("1", "block:7A-13C")]
+        self.assertEqual((again["user_name"], again["jmri_name"], again["layout_block"]),
+                         ("Track Barn Lead", first["jmri_name"], first["layout_block"]))
+        self.assertRegex(first["jmri_name"], r"^IB:AUTO:\d{4}$")
+
+    def test_a_main_row_naming_a_staging_block_follows_its_rename(self):
+        """Code review of step 7: renames are followed over every level at once. Today a main mast that faces a
+        staging helix block faces main's own row of it (named from the same store), so a main row is made to name a
+        staging-only block here (Mast 132RA facing Track East Ext): the owner's rename of that block reaches it."""
+        def name(rows):
+            next(r for r in rows if (r["level"], r["id"]) == ("1", "block:5B-7A"))["user_name"] = "Track East Spur"
+            return rows
+        files = self.copy(name)
+        main = [dict(r, facing="Track East Ext") if r["user_name"] == "Mast 132RA" else r for r in self.main_rows]
+        out = bdm.master_outputs(self.bands, self.joined, self.runs, main, self.parts, files, warn=lambda line: None)
+        devices.write_all(files, out)
+        mast = next(r for r in devices.load(files) if r["level"] == "2" and r["user_name"] == "Mast 132RA")
+        self.assertEqual(mast["facing"], "Track East Spur")
 
     def test_a_main_or_upper_device_takes_the_owners_name(self):
         """A field row naming main's Track 103 Spur (block:103BB-end) "Track Coal Spur": the builder takes the name

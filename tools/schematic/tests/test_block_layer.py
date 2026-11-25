@@ -656,6 +656,26 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         self.assertRegex(new["jmri_name"] + " " + new["layout_block"], r"^IB:AUTO:00(\d\d) ILB\1$")
         self.assertEqual(got[("occupancy", "BS Barn")], want[("occupancy", "BS Barn")])
 
+    def test_a_block_whose_field_row_gives_no_bean_names_is_numbered(self):
+        """Code review of step 7: a field row with the owner's name and words but no bean names (jmri_name,
+        layout_block) gets the builder's numbers; a row with one of the two stops."""
+        def edit(rows):
+            r = self.field(rows, "Track Barn")
+            r.update(user_name="Track Barn Lead", system_name="", jmri_name="", layout_block="", assignment="")
+            return rows
+        files = self.pair(edit)
+        got = self.by(self.rows(files=files))[("block", "Track Barn Lead")]
+        self.assertEqual(got["assignment"], "virtual")
+        self.assertRegex(got["jmri_name"] + " " + got["layout_block"], r"^IB:AUTO:00(\d\d) ILB\1$")
+        self.assertTrue(got["jmri_comment"].startswith("Lead Switch 7 to Switch 13; occupancy Block 13-1"))
+
+        def half(rows):
+            self.field(rows, "Track Barn")["layout_block"] = ""
+            return rows
+        with self.assertRaisesRegex(bdm.MapError, r"Track Barn \(id block:7A-13C\): it gives jmri_name but not "
+                                                  "layout_block"):
+            self.rows(half)
+
     def test_a_field_row_the_drawing_has_no_block_for_stops(self):
         def add(rows):
             extra = dict(self.field(rows, "Track Barn"), user_name="Track Nowhere", system_name="IB:AUTO:9999",
@@ -777,12 +797,25 @@ class StagingWiredRows(RepoReadOnly, unittest.TestCase):
             self.field_copy({"switch:23": {"user_name": "Switch East", "jmri_name": "Switch East"}}))}
         self.assertEqual((got["switch:23"]["user_name"], got["switch:23"]["jmri_name"]), ("Switch East", "Switch East"))
 
+    def test_a_feedback_bound_by_its_old_name_stops(self):
+        """Code review of step 7: the binding check holds a feedback row too, after the owner's values go over it."""
+        with self.assertRaisesRegex(bdm.MapError, r"staging fb FB Switch 1 N \(id fb:1:N\): its jmri_name 'FB Old' "
+                                                  r"binds it by its old user name"):
+            bdm.staging_wired_rows(self.field_copy({"fb:1:N": {"jmri_name": "FB Old"}}))
+
+    def test_an_alias_with_no_dcc_address_stops(self):
+        """Code review of step 7: an alias field row whose switch has no DCC address anywhere stops (it would be a
+        broken alias, system name MTT)."""
+        with self.assertRaisesRegex(bdm.MapError, r"\(id dcc:1\): an LCC alias needs a DCC address"):
+            bdm.staging_wired_rows(self.field_copy({"dcc:1": {"dcc": "", "system_name": "", "jmri_name": ""},
+                                                    "switch:1": {"dcc": ""}}))
+
     def test_rows_that_do_not_match_stop(self):
         for edit, msg in ((lambda t: t.replace('1,turnout,switch:1,,,,,,4,0,OU1,"1,2",wired,\n', ""),
                            "staging turnout Switch 1: no turnout row for switch:1 in wiring.csv"),
                           # wiring.csv keys a turnout by its id: one the device master lacks is refused as it is read
                           (lambda t: t + '1,turnout,switch:999,,,,,,5,0,OU1,"1,2",wired,\n',
-                           "staging turnout switch:999 names no switch of the plan"),
+                           "switch:999 is no level 1 device of the device master"),
                           (lambda t: t.replace('1,turnout,switch:13,,,,,,4,3,', '1,turnout,switch:13,,,,,,41,3,'),
                            "turnout Switch 13 is on node 41, no staging node")):
             with self.subTest(msg=msg), self.assertRaisesRegex(bdm.MapError, msg):

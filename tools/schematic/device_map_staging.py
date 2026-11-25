@@ -332,6 +332,11 @@ def staging_wired_rows(files: devices.Files | None = None, path: Path | None = N
         seen |= set(wires)
         w = wires[("turnout", tid)]
         dcc = (f_turnout or {}).get("dcc") or (f_alias or {}).get("dcc") or ""
+        if f_alias is not None and not dcc:
+            bad.append(f"{devices.FIELD_FILE}: staging turnout {f_alias['user_name'] or 'DCC Switch ' + s} (id {aid}): "
+                       f"an LCC alias needs a DCC address, and neither its row nor {tid}'s gives one: give dcc, or "
+                       "remove the alias row")
+            continue
         made = switch_device_rows(
             STAGING_LEVEL, cp_of.get(s, ""), s, labels, Wired(w.address, w.node, w.wiring_text),
             {nr: Wired(wires[("fb", device_ids.fb_id(s, nr))].address, wires[("fb", device_ids.fb_id(s, nr))].node,
@@ -342,18 +347,22 @@ def staging_wired_rows(files: devices.Files | None = None, path: Path | None = N
         # text holds none (a JMRI comment's "DCC: n" group is the dcc column's)
         rows = {r["id"]: dict(devices.master_row(dict(r, dcc=""), WRITER), dcc=str(r["dcc"])) for r in made}
         turnout = owner_over(rows[tid], f_turnout)
-        if turnout["jmri_name"] not in (w.address, turnout["user_name"]):
-            # a turnout the panels bind by its user name (Q13): a rename moves the binding, so the owner changes
+        fbs = [owner_over(rows[device_ids.fb_id(s, nr)], f_fb[nr]) for nr in "NR"]
+        unbound = [(r, wires[(r["layer"], r["id"])].address) for r in [turnout] + fbs
+                   if r["jmri_name"] not in (wires[(r["layer"], r["id"])].address, r["user_name"])]
+        for r, address in unbound:
+            # a device the panels bind by its user name (Q13): a rename moves the binding, so the owner changes
             # both cells together; the build does not rewrite the binding
-            bad.append(f"{devices.FIELD_FILE}: staging turnout {turnout['user_name']} (id {tid}): its jmri_name "
-                       f"{turnout['jmri_name']!r} binds it by its old user name; change jmri_name and user_name "
-                       f"together, or clear jmri_name to bind it by its address {w.address}")
+            bad.append(f"{devices.FIELD_FILE}: staging {r['layer']} {r['user_name']} (id {r['id']}): its jmri_name "
+                       f"{r['jmri_name']!r} binds it by its old user name; change jmri_name and user_name "
+                       f"together, or clear jmri_name to bind it by its address {address}")
+        if unbound:
             continue
         got = [turnout]
         if aid in rows:
             alias = dict(rows[aid], notes=alias_note(turnout["user_name"], w.address))
             got.append(owner_over(alias, f_alias))
-        got += [owner_over(rows[device_ids.fb_id(s, nr)], f_fb[nr]) for nr in "NR"]
+        got += fbs
         for r in got:
             r["description"] = devices.describe(r)
         out += got
@@ -405,9 +414,9 @@ def staging_part_names(files: devices.Files | None = None) -> tuple[dict, set]:
     there), and every name taken (taken_bean_names) so a new number is free."""
     bdm = builder()
     f = files or bdm.device_files()
-    mine = {u: (r["jmri_name"], r["layout_block"])
-            for u, r in devices.allocated_names((STAGING_LEVEL,), "block", None, f).items()
-            if r["jmri_name"] or r["layout_block"]}
+    mine = {r["id"]: (r["jmri_name"], r["layout_block"])
+            for r in devices.allocated_names((STAGING_LEVEL,), "block", None, f).values()
+            if r["jmri_name"] and r["layout_block"]}
     # both files as written, not their merge: a field row the owner just removed leaves a generated row that no
     # longer merges, and this build is what writes it again
     return mine, taken_bean_names(list(devices.generated_rows(f)) + list(devices.field_rows(f)))
@@ -415,7 +424,8 @@ def staging_part_names(files: devices.Files | None = None) -> tuple[dict, set]:
 
 def staging_rows(bands, joined, runs, files: devices.Files | None = None,
                  exceptions: Path | None = None, pins: Path | None = None,
-                 places: Places | None = None, part_names: tuple[dict, set] | None = None) -> list[dict]:
+                 places: Places | None = None, part_names: tuple[dict, set] | None = None,
+                 drawn: dict | None = None) -> list[dict]:
     """Staging's block and occupancy rows of the master: the one block process's blocks and parts of the staging
     band (staging_layer), each block row and its occupancy row generated (device_map_rows.device_row: its role from
     its id or its track's ends, an OS block's cp its interlocking's, a comment marking its detector, a detector's
@@ -429,7 +439,8 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
     or a block that is now a part), each row "unused Block <n>-<k>" (new_spare); `pins` (default the committed file).
     A helix block's occupancy row is the level of its helix switch's (main or upper), not staging's: the block is one
     across levels. A part's beans keep the numbers this script gave them (`part_names`, default staging_part_names),
-    and so does a block with no field row. MapError on a field row the drawing has no block for, a block that is now
+    and so does a block whose field row gives no bean names. `drawn`, when given, gets {block id: generated name}.
+    MapError on a field row the drawing has no block for, a block that is now
     a part while its field rows stand (the owner's cells would be lost: remove them), a detector block with no pin, or
     a pin whose block staging does not
     have or is a helix block."""
@@ -446,9 +457,24 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
     # field row for, carry their block names here, where main and upper's take theirs from the Layout Editor build
     # (le_tables numbering)
     mine, taken = staging_part_names(f) if part_names is None else part_names
-    unowned = [n for n in blocks if n in ids and ("block", ids[n]) not in prior]
+    # a block is numbered here when the owner gives it no bean names: no field row, or one with neither jmri_name nor
+    # layout_block (a row with one of the two stops: the other would not match it)
+    unnamed = []
+    for n in sorted(blocks, key=natural):
+        fr = prior.get(("block", ids.get(n, "")))
+        if n not in ids or (fr is not None and fr["jmri_name"] and fr["layout_block"]):
+            continue
+        if fr is not None and (fr["jmri_name"] or fr["layout_block"]):
+            bad.append(f"{devices.FIELD_FILE}: staging block {fr['user_name'] or n} (id {ids[n]}): it gives "
+                       f"{'jmri_name' if fr['jmri_name'] else 'layout_block'} but not "
+                       f"{'layout_block' if fr['jmri_name'] else 'jmri_name'}; give both, or neither for the "
+                       "builder's numbers")
+            continue
+        unnamed.append(n)
+    numbered = list(lay.parts) + unnamed
     try:
-        beans = part_bean_names(list(lay.parts) + unowned, mine, taken)
+        # the memory is by device ID (staging_part_names), so a block the owner renames keeps its numbers
+        beans = part_bean_names(numbered, {n: mine[ids[n]] for n in numbered if ids.get(n) in mine}, taken)
     except MapError as exc:
         raise MapError(f"staging parts: {exc}") from None
     cp_of = staging_cps()
@@ -472,7 +498,7 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
         owner's values over it (device_map_rows.owner_over: the field row of its id, if any, hartlib.devices.KEY)."""
         row = devices.master_row(generated, WRITER)
         mine = prior.pop((row["layer"], row["id"]), None)
-        if mine is None and row["layer"] == "block":        # numbered here, as a part is (part_bean_names)
+        if row["layer"] == "block" and row["user_name"] in beans:   # numbered here, as a part is (part_bean_names)
             row.update(assignment="virtual", jmri_name=beans[row["user_name"]][0],
                        layout_block=beans[row["user_name"]][1])
         row = owner_over(row, mine)
@@ -542,6 +568,8 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
                            f"{devices.OCCUPANCY_MARK}, but no {PINS.name} pin wires it")
             out.append(row)
             named[name] = row
+            if drawn is not None:
+                drawn[did] = name           # its generated name: the caller follows the owner's rename on every level
     block_rows = {n: r for n, r in named.items() if r["role"] != "part"}
     for name, r in named.items():   # a part's JMRI comment: where it is, and its block's detector (its occupancy sensor)
         if r["role"] == "part":

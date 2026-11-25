@@ -69,13 +69,19 @@ def owner_over(row: Mapping[str, str], field: Mapping[str, str] | None) -> dict:
     """Generated master row `row` with the owner's values over it: each non-empty cell of its field row
     (devices_field.csv, hartlib.devices.FIELD_COLUMNS) replaces the generated one, as hartlib.devices.merge does, so
     the builder gives what readers will see (a user name included: the owner's name is the device's on every level).
-    A jmri_comment with hartlib.devices.OCCUPANCY_MARK is taken as it is, for the caller to fill. The description is
-    written again from the result (devices.describe). `row` as it is (a copy) when `field` is None."""
+    A jmri_comment with hartlib.devices.OCCUPANCY_MARK is the builder's to fill: the generated cell stands when it
+    is already the field text with the mark filled (as devices.merge takes it), else the field text is taken as it is
+    for the caller to fill (staging_rows' wire_block). The description is written again from the result
+    (devices.describe). `row` as it is (a copy) when `field` is None."""
     out = dict(row)
     if field is None:
         return out
     for c in devices.FIELD_COLUMNS:
-        if field[c]:
-            out[c] = field[c]
+        v = field[c]
+        if not v:
+            continue
+        if c == "jmri_comment" and devices.OCCUPANCY_MARK in v and devices.is_templated(v, out[c]):
+            continue
+        out[c] = v
     out["description"] = devices.describe(out)
     return out

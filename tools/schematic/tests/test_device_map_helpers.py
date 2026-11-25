@@ -291,6 +291,20 @@ class RowMakers(unittest.TestCase):
         self.assertEqual({c for c in got if got[c] != gen[c]}, {"user_name", "description"})   # empty: no override
         self.assertIn("Track Coal Spur", got["description"])
 
+    def test_a_templated_owner_comment_keeps_the_filled_generated_one(self):
+        """Code review of step 7: a field jmri_comment with {occupancy} is the builder's to fill: when the generated
+        cell already follows it, it stands (as devices.merge takes it); else the field text goes over it, for the
+        caller to fill."""
+        import device_map_rows as rm
+        gen = dict.fromkeys(devices.COLUMNS, "")
+        gen.update(level="2", layer="block", role="track", id="block:x", user_name="Track X",
+                   jmri_comment="Lead; occupancy Block 13-1 / M2S1300")
+        field = dict.fromkeys(devices.COLUMNS, "")
+        field.update(level="2", layer="block", id="block:x", jmri_comment=f"Lead; {devices.OCCUPANCY_MARK}")
+        self.assertEqual(rm.owner_over(gen, field)["jmri_comment"], "Lead; occupancy Block 13-1 / M2S1300")
+        self.assertEqual(rm.owner_over(dict(gen, jmri_comment="Track X"), field)["jmri_comment"],
+                         f"Lead; {devices.OCCUPANCY_MARK}")
+
 
 if __name__ == "__main__":
     unittest.main()

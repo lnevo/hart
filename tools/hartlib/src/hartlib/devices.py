@@ -266,7 +266,7 @@ def check_generated(rows: Iterable[Mapping[str, str]], name: str = GENERATED_FIL
         raise DevicesError("; ".join(bad))
 
 
-def _templated(field_cell: str, generated_cell: str) -> bool:
+def is_templated(field_cell: str, generated_cell: str) -> bool:
     """Whether `generated_cell` is the field text `field_cell` with its OCCUPANCY_MARK filled in."""
     head, _, tail = field_cell.partition(OCCUPANCY_MARK)
     return bool(re.fullmatch(re.escape(head) + OCCUPANCY_TEXT + re.escape(tail), generated_cell))
@@ -309,7 +309,7 @@ def merge(generated: Iterable[Mapping[str, str]], field: Iterable[Mapping[str, s
             if not v:
                 continue
             if c == "jmri_comment" and OCCUPANCY_MARK in v:
-                if not _templated(v, g[c]):
+                if not is_templated(v, g[c]):
                     bad.append(f"{fname}: {row_text(f)}: jmri_comment {v!r} needs its {OCCUPANCY_MARK} filled from "
                                f"wiring.csv, but {gname} has {g[c]!r} (run make panels)")
                 continue
@@ -420,7 +420,7 @@ def unmerge(rows: Iterable[Mapping[str, str]], field: Iterable[Mapping[str, str]
                                    "name for this device; remove the field row's user_name to keep the generated one")
                     continue
                 if c == "jmri_comment" and OCCUPANCY_MARK in v:
-                    if not _templated(v, row[c]):
+                    if not is_templated(v, row[c]):
                         bad.append(f"{writer} gives {row_text(r)} jmri_comment {row[c]!r}, which is not "
                                    f"{FIELD_FILE}'s {v!r} with its {OCCUPANCY_MARK} filled")
                 elif row[c] != v:

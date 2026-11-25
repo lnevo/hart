@@ -289,6 +289,12 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 - **Outputs byte-identical:** `devices_generated.csv` unchanged, `make panels CHECK=1 FULL=1` all current,
   `check_approved.py --check` all matching, `test_blocks_every_level` and `test_bean_goldens` pass. No main or upper
   change.
+- **Code review (medium), fixed:** a staging block whose field row gives no bean names is numbered (memory by
+  id, so a rename keeps the numbers; one of the two names alone stops); `owner_over` keeps a filled generated
+  comment over a templated field one; the binding check holds feedback rows too; an alias with no DCC address
+  anywhere stops; `wiring.read` stops on a staging turnout or feedback id whose switch the staging plan lacks;
+  renames are followed over every level's rows at once (`master_outputs`). My call (main and upper): an owner's
+  `jmri_name` goes over a virtual one, as a swap is one row edit (ADR-028).
 - **Open, for later steps:** staging's masts and heads are still `build_masts.py`'s, its two field rows matched by
   name (step 12). A main or upper turnout or block given an owner's name passes the builder, but
   `railroad.check_virtual_names` and the `device-map` invariant still read a switch number and a block's sensor from
