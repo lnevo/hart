@@ -23,7 +23,7 @@ manifest = check_stamps.pm      # tools/pipeline/manifest.py, as the stamps load
 
 # check.sh's variables that pick a path; the tests start each run without them.
 PATH_VARS = ("CI", "FULL", "CHECK_ONLY", "CHECK_AUDIT", "HART_TABLES", "PORTAL_CHECK", "CHECK_RECORD_TO",
-             "CHECK_SKIP_FROM", "CHECK_SKIP_NOTE", "PYTHONPATH")
+             "CHECK_SKIP_FROM", "CHECK_SKIP_NOTE", "CHECK_STAMPS_DIR", "PYTHONPATH")
 # Stand-ins for what check.sh calls before and on the docs path: the plugin pin guard (STUB_PIN stops the run there,
 # before any job, so a full-path run ends at once) and the docs checks (they print what they were given).
 GUARD_STUB = 'hart_plugin_pin_problem() { echo "${STUB_PIN:-}"; }\n'
