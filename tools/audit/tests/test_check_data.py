@@ -73,22 +73,22 @@ class Types(Base):
 class Required(Base):
     def test_yes(self) -> None:
         self.passes("a,x,,yes,,,\n", "a\n1\n")
-        self.fails("a,x,,yes,,,\n", "a\n1\n\"\"\n", r"a is required: row 3")
+        self.fails("a,x,,yes,,,\n", "a\n1\n\"\"\n", r"a is required: t.csv line 3")
 
     def test_condition(self) -> None:
         rows = "lv,x,,,,,\nh,x,,lv=2;3,,,\n"
         self.passes(rows, "lv,h\n1,\n2,x\n3,y\n")
-        self.fails(rows, "lv,h\n1,\n3,\n", r"h is required where lv is 2\|3: row 3")
+        self.fails(rows, "lv,h\n1,\n3,\n", r"h is required where lv is 2\|3: t.csv line 3")
 
     def test_condition_on_an_empty_value(self) -> None:
-        self.fails("lv,x,,,,,\nh,x,,lv=,,,\n", "lv,h\n,\n1,\n", r"where lv is : row 2")
+        self.fails("lv,x,,,,,\nh,x,,lv=,,,\n", "lv,h\n,\n1,\n", r"where lv is : t.csv line 2")
 
 
 class Keys(Base):
     def test_one_column(self) -> None:
         self.passes("id,x,,,yes,,\n", "id\na\nb\n")
         self.fails("id,x,,,yes,,\n", "id\na\na\n", r"key id is not unique: a")
-        self.fails("id,x,,,yes,,\n", "id\na\n\"\"\n", r"key id is empty: row 3")
+        self.fails("id,x,,,yes,,\n", "id\na\n\"\"\n", r"key id is empty: t.csv line 3")
 
     def test_composite_key_with_a_condition(self) -> None:
         rows = "lv,x,,,lv=1;2,,\nid,x,,,lv=1;2,,\n"
@@ -121,6 +121,11 @@ class Refs(Base):
             self.passes("p,x,id-list,,,a.csv:n;b.csv:m,\n", "p\nx;y\n")
             self.fails("p,x,,,,a.csv:n;b.csv:m,\n", "p\nz\n", r"'z'")
             self.assertRaisesRegex(C.DataError, "no column q", self.problems, "p,x,,,,a.csv:q,\n", "p\nx\n")
+            self.write("empty.csv", "n\n")
+            self.assertRaisesRegex(C.DataError, "no column q", self.problems, "p,x,,,,empty.csv:q,\n", "p\nx\n")
+            self.write("gappy.csv", "n\nx\n\ny\n")
+            self.assertRaisesRegex(C.DataError, "gappy.csv line 3: 0 fields", self.problems, "p,x,,,,gappy.csv:n,\n",
+                                   "p\nx\n")
         finally:
             C.ROOT = old
 
@@ -163,7 +168,7 @@ class Pair(Base):
         self.write("dev_field.csv", "level,id,role,name\n1,x,a,\n,,,Loose\n")
         checker = C.Checker()
         self.assertEqual(checker.check(side), [])
-        _, rows = checker.master(side)
+        _, _, rows, _ = checker.master(side)
         self.assertEqual([(r["level"], r["role"], r["name"]) for r in rows], [("1", "a", "X"), ("2", "b", "X2"),
                                                                               ("", "", "Loose")])
 
@@ -172,6 +177,20 @@ class Pair(Base):
         self.write("dev_generated.csv", "level,id,role,name\n1,x,,X\n")
         self.write("dev_field.csv", "level,id,role,name\n1,x,c,\n")
         self.assertRegex(" | ".join(C.Checker().check(side)), r"role \(enum\): 1/x/X 'c'")
+
+    def test_a_stale_field_row_is_an_error(self) -> None:
+        side = self.write("dev.columns.csv", self.RULES)
+        self.write("dev_generated.csv", "level,id,role,name\n1,x,a,X\n")
+        self.write("dev_field.csv", "level,id,role,name\n1,gone,a,\n")
+        self.assertRaisesRegex(C.DataError, r"field rows with no dev_generated.csv row: dev_field.csv line 2 \(1/gone\)",
+                               C.Checker().check, side)
+
+    def test_a_problem_names_the_file_and_line_of_its_row(self) -> None:
+        side = self.write("dev.columns.csv", self.RULES.replace("name,field,x,,yes,level=,,", "name,field,x,,yes,,,"))
+        self.write("dev_generated.csv", "level,id,role,name\n1,x,a,X\n")
+        self.write("dev_field.csv", "level,id,role,name\n,,,\n,,,\n")
+        found = " | ".join(C.Checker().check(side))
+        self.assertIn("name is required: dev_field.csv line 2; dev_field.csv line 3", found)
 
     def test_refs_to_the_pair_read_the_merged_view(self) -> None:
         self.write("dev.columns.csv", self.RULES)
@@ -195,6 +214,9 @@ class Glob(Base):
         self.write(".gitignore", "ignored/\n")
         subprocess.run(["git", "init", "-q"], cwd=self.tmp, check=True)
         subprocess.run(["git", "add", "a/x.columns.csv"], cwd=self.tmp, check=True)     # tracked and untracked alike
+        self.write("gone.columns.csv", "column,description\n")
+        subprocess.run(["git", "add", "gone.columns.csv"], cwd=self.tmp, check=True)
+        (self.tmp / "gone.columns.csv").unlink()                                        # deleted, not staged
         found = [p.relative_to(self.tmp).as_posix() for p in C.find_sidecars(self.tmp)]
         self.assertEqual(found, ["a/b/y.columns.csv", "a/x.columns.csv", "tools/v.columns.csv"])
 
@@ -235,6 +257,10 @@ class TheRepo(unittest.TestCase):
     def test_hartlib_reads_the_device_dictionary(self) -> None:
         D = self.hartlib_devices()
         self.assertEqual(set(D.read_dictionary(D.Files.here().dictionary)), set(D.COLUMNS))
+        with tempfile.TemporaryDirectory() as d:                    # an empty one is its error, not a crash
+            (Path(d) / "x.csv").write_text("", encoding="utf-8")
+            self.assertRaisesRegex(D.DevicesError, "the header is column,file,description", D.read_dictionary,
+                                   Path(d) / "x.csv")
 
     def test_the_switch_dictionary_names_the_columns_in_order(self) -> None:
         with (ROOT / "jmri/layouts/hart/data/switches.columns.csv").open(newline="", encoding="utf-8") as fh:

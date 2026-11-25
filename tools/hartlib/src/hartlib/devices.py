@@ -692,7 +692,7 @@ def read_dictionary(path: Path) -> dict[str, str]:
             rows = list(csv.reader(fh))
     except OSError as exc:
         raise DevicesError(f"{path}: cannot read it ({exc.strerror})") from None
-    if not rows or ",".join(rows[0]) not in ((head := "column,file,description"), head + ",type,required,key,refs,values"):
+    if ",".join(next(iter(rows), [])) not in ((head := "column,file,description"), head + ",type,required,key,refs,values"):
         raise DevicesError(f"{path.name}: the header is {head}, alone or with type,required,key,refs,values")
     out, bad = {}, []
     for line, r in enumerate(rows[1:], 2):

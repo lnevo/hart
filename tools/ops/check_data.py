@@ -14,7 +14,8 @@ An empty rule cell means no rule. Only `column` and `description` must be there.
 
 The master is `<name>.csv` beside the sidecar. When there is none, it is the pair `<name>_generated.csv` (every row
 the builders make) and `<name>_field.csv` (the owner's cells), merged as hartlib.devices merges them: a field row is
-matched to the generated row with the same key, and its non-empty cells win; a field row with no match is added.
+matched to the generated row with the same key, and its non-empty cells win; a field row with no match is added
+when its key keys no generated row (a Store's level-less rows), and is an error otherwise (a stale field row).
 A refs path names a master the same way, so `devices.csv:user_name` reads the merged device pair.
 
 Sidecars are the files git lists for SCAN_GLOBS, tracked or untracked but not ignored, leaving out SKIP and folders
@@ -60,7 +61,7 @@ def find_sidecars(root: Path = ROOT) -> list[Path]:
         raise DataError(f"git ls-files could not run: {exc}") from None
     if done.returncode:
         raise DataError(f"git ls-files failed: {done.stderr.strip() or f'exit {done.returncode}'}")
-    rels = sorted({p for p in done.stdout.split("\0") if p})
+    rels = sorted({p for p in done.stdout.split("\0") if p and (root / p).is_file()})   # not one deleted, unstaged
     return [root / p for p in rels
             if not any(p == s or p.startswith(f"{s}/") for s in SKIP) and not any(d.startswith(".") for d in p.split("/"))]
 
@@ -157,31 +158,45 @@ def _row_key(row: dict[str, str], groups: dict[str, list[str]], names: list[str]
     return None
 
 
-def load_master(files: list[Path], spec: list[dict[str, str]]) -> list[dict[str, str]]:
-    """The master's rows; a pair merged (module docstring). DataError when a header is not the sidecar's columns."""
+def read_table(path: Path, names: list[str] | None = None) -> tuple[list[str], list[dict[str, str]], list[str]]:
+    """(header, rows, where each row is: "file line N") of one CSV; DataError when the header is not `names` (when
+    given) or a row has the wrong number of fields (a blank line is one with none)."""
+    table = _read_csv(path)
+    if not table or (names is not None and table[0] != names):
+        raise DataError(f"{_rel(path)}: the header is not the sidecar's columns in order")
+    head = table[0]
+    bad = [i for i, r in enumerate(table[1:], 2) if len(r) != len(head)]
+    if bad:
+        raise DataError(f"{_rel(path)} line {bad[0]}: {len(table[bad[0] - 1])} fields, expected {len(head)}")
+    return head, [dict(zip(head, r)) for r in table[1:]], [f"{path.name} line {i}" for i in range(2, len(table) + 1)]
+
+
+def load_master(files: list[Path], spec: list[dict[str, str]]) -> tuple[list[dict[str, str]], list[str]]:
+    """(rows, where each row is) of the master; a pair merged (module docstring). DataError when a header is not the
+    sidecar's columns, or a field row has no generated row under a key that keys generated rows (a stale field row;
+    only a key no generated row has, such as a Store's level-less rows, may add rows)."""
     names = [r["column"] for r in spec]
-    tables = []
-    for f in files:
-        rows = _read_csv(f)
-        if not rows or rows[0] != names:
-            raise DataError(f"{_rel(f)}: the header is not the sidecar's columns in order")
-        bad = [i for i, r in enumerate(rows[1:], 2) if len(r) != len(names)]
-        if bad:
-            raise DataError(f"{_rel(f)} line {bad[0]}: {len(rows[bad[0] - 1])} fields, expected {len(names)}")
-        tables.append([dict(zip(names, r)) for r in rows[1:]])
-    merged = tables[0]
-    if len(tables) == 2:
+    _, merged, where = read_table(files[0], names)
+    if len(files) == 2:
         groups = _key_groups(spec)
         if not groups:
             raise DataError(f"{_rel(files[1])}: a pair master needs a key in its sidecar")
         by_key = {k: r for r in merged if (k := _row_key(r, groups, names)) is not None}
-        for frow in tables[1]:
-            grow = by_key.get(_row_key(frow, groups, names))
-            if grow is None:
-                merged.append(frow)
+        generated_groups = {k[0] for k in by_key}
+        _, field, field_where = read_table(files[1], names)
+        stale = []
+        for frow, fwhere in zip(field, field_where):
+            key = _row_key(frow, groups, names)
+            if key in by_key:
+                by_key[key].update({c: v for c, v in frow.items() if v})
+            elif key is not None and key[0] in generated_groups:
+                stale.append(f"{fwhere} ({'/'.join(key[1:])})")
             else:
-                grow.update({c: v for c, v in frow.items() if v})
-    return merged
+                merged.append(frow)
+                where.append(fwhere)
+        if stale:
+            raise DataError(f"{files[1].name}: field rows with no {files[0].name} row: {'; '.join(stale)}")
+    return merged, where
 
 
 def _items(rule: dict[str, str], value: str) -> list[str]:
@@ -211,29 +226,31 @@ class Checker:
     """Checks sidecars; caches each master it loads, so refs to one master read it once."""
 
     def __init__(self) -> None:
-        self._masters: dict[Path, tuple[list[str], list[dict[str, str]]]] = {}
+        self._masters: dict[Path, tuple[list[str], list[str], list[dict[str, str]], list[str]]] = {}
 
-    def master(self, sidecar_or_csv: Path) -> tuple[list[str], list[dict[str, str]]]:
-        """(file names for messages, merged rows) of the master a sidecar or a refs path names."""
+    def master(self, sidecar_or_csv: Path) -> tuple[list[str], list[str], list[dict[str, str]], list[str]]:
+        """(file names, header, merged rows, where each row is) of the master a sidecar or a refs path names."""
         p = sidecar_or_csv.resolve()
         if p not in self._masters:
             base = p.name[:-len(SUFFIX)] if p.name.endswith(SUFFIX) else p.name[:-len(".csv")]
             side = p.parent / f"{base}{SUFFIX}"
             files = master_files(p)
             if side.is_file():
-                rows = load_master(files, read_sidecar(side))
+                spec = read_sidecar(side)
+                head = [r["column"] for r in spec]
+                rows, where = load_master(files, spec)
             else:
-                rows = [dict(zip(t[0], r)) for t in [_read_csv(files[0])] if t for r in t[1:]]
-            self._masters[p] = ([f.name for f in files], rows)
+                head, rows, where = read_table(files[0])
+            self._masters[p] = ([f.name for f in files], head, rows, where)
         return self._masters[p]
 
     def ref_values(self, ref: str, where: str) -> set[str]:
         path, _, col = ref.rpartition(":")
         try:
-            _, rows = self.master(ROOT / path)
+            _, head, rows, _ = self.master(ROOT / path)
         except DataError as exc:
             raise DataError(f"{where}: refs {ref}: {exc}") from None
-        if rows and col not in rows[0]:
+        if col not in head:
             raise DataError(f"{where}: refs {ref}: no column {col}")
         return {r[col] for r in rows}
 
@@ -241,8 +258,9 @@ class Checker:
         """The problems of one sidecar and its master, each a line; DataError when they cannot be read."""
         spec = read_sidecar(sidecar)
         names = [r["column"] for r in spec]
-        files, rows = self.master(sidecar)
+        files, _, rows, wheres = self.master(sidecar)
         label = " + ".join(files)
+        line_of = {id(r): w for r, w in zip(rows, wheres)}
         problems: list[str] = []
 
         def report(what: str, found: list[str]) -> None:
@@ -252,7 +270,7 @@ class Checker:
 
         def at(row: dict[str, str]) -> str:
             keys = [row[c] for cols in _key_groups(spec).values() for c in cols if row[c]]
-            return "/".join(keys) or f"row {rows.index(row) + 2}"
+            return "/".join(keys) or line_of[id(row)]
 
         for rule in spec:
             col = rule["column"]

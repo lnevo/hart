@@ -25,7 +25,7 @@ A condition is `col=v1;v2`: the rows whose `col` is one of the values. `col=` pi
 
 ## Which file is the master
 
-The master is `<name>.csv` beside the sidecar. When there is none, it is the pair `<name>_generated.csv` and `<name>_field.csv`, merged as `hartlib.devices` merges the device master: each field row is matched by its key to a generated row and its non-empty cells win, and a field row with no match is added. The rules run on the merged rows.
+The master is `<name>.csv` beside the sidecar. When there is none, it is the pair `<name>_generated.csv` and `<name>_field.csv`, merged as `hartlib.devices` merges the device master: each field row is matched by its key to a generated row and its non-empty cells win, and a field row with no match is added. A field row is added only under a key that no generated row has, such as a Store's level-less rows. Under any other key it is a stale row, and the check fails. The rules run on the merged rows.
 
 A `refs` path names a master the same way: `jmri/layouts/hart/data/devices.csv:user_name` reads the merged device pair, so a name the owner gave in `devices_field.csv` counts.
 
