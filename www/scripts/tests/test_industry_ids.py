@@ -2,7 +2,7 @@
 
 check_data.py checks each industry_id exists. This checks what a single-column ref cannot: that a row's name
 matches its id's row, that a waybill's spots are spots of its industry, and that the site's industries.json
-carries each industry once, under its public name and slug, with the waybill count and commodities the waybill
+carries each industry once, under its public name, slug and blurb, with the waybill count and commodities the waybill
 list gives.
 """
 import csv
@@ -73,7 +73,8 @@ class IndustryCopies(unittest.TestCase):
         self.assertEqual(sorted(ids), sorted(self.master))
         for e in self.site:
             row = self.master[e["industry_id"]]
-            self.assertEqual((e["name"], e["spot"]), (row["public_name"], row["slug"]), e["industry_id"])
+            self.assertEqual((e["name"], e["spot"], e["blurb"]), (row["public_name"], row["slug"], row["blurb"]),
+                             e["industry_id"])
 
     def test_site_counts_and_commodities_follow_the_waybills(self):
         for e in self.site:

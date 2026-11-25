@@ -2006,7 +2006,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "ops",
-   "desc": "Industry master (ADR-039): industry_id, the name the cards print, the public name and the site slug. Spots, waybills and industries.json refer to industry_id.",
+   "desc": "Industry master (ADR-039): industry_id, the name the cards print, the public name, the site slug and the public blurb. Spots, waybills and industries.json refer to industry_id.",
    "path": "ops/hart-ops/data/industries.csv"
   },
   {

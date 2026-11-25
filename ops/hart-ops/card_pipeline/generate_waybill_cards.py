@@ -147,6 +147,8 @@ def load_spot_groups() -> list[dict]:
             industry_id = _norm(row.get("industry_id"))
             industry = _norm(row.get("Industry"))
             usage = _norm(row.get("Usage"))
+            if industry and not industry_id:
+                raise ValueError(f"{SPOT_CSV.name}: {industry} spot {row.get('Spot #', '')} has no industry_id")
             if not industry_id or not industry or not usage:
                 continue
             if usage.lower() in SKIP_USAGES:

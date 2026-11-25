@@ -521,7 +521,7 @@ def sort_deck_by_industry(deck: list[dict]) -> list[dict]:
 def _card_to_csv_row(card: dict, card_id: int) -> dict[str, str]:
     return {
         "card_id": str(card_id),
-        "industry_id": card.get("IndustryId", ""),
+        "industry_id": card["IndustryId"],  # every card builder sets it; a missing one fails here
         "industry": card.get("Industry", ""),
         "card_kind": _card_kind(card),
         "usage": card.get("Usage", ""),
