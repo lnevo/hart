@@ -4,7 +4,7 @@
 Write docs/INDEX.md: every document under docs/ grouped by folder, each Markdown file with a one-line summary.
 
     python3 tools/ops/build_docs_index.py            write it
-    python3 tools/ops/build_docs_index.py --check    exit 1 when it lists other documents than the tracked ones;
+    python3 tools/ops/build_docs_index.py --check    exit 1 when it lists other documents than those in docs/ (tracked or new);
                                                      Markdown files with no summary are a warning
     python3 tools/ops/build_docs_index.py --check --strict    the missing summaries fail too
 
@@ -33,10 +33,23 @@ OVERRIDE_LINES = 10
 USAGE = "build_docs_index.py [--check [--strict]]"
 
 
-def tracked() -> list[str]:
-    """Tracked files under docs/ that are documents or assets (not tooling, not the index itself)."""
-    out = subprocess.check_output(["git", "ls-files", "-z", "docs"], cwd=ROOT, text=True)
-    return [p for p in out.split("\0") if p and not p.startswith(SKIP) and not p.endswith(TOOLING)]
+def doc_files() -> list[str]:
+    """Files under docs/ that are documents or assets (not tooling, not the index itself).
+
+    Tracked files plus new ones git does not ignore, less tracked files already deleted, so the index
+    built before a commit matches the one CI builds after it (a new doc, not yet staged, was once left out).
+    """
+    out = subprocess.check_output(
+        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "docs"], cwd=ROOT, text=True
+    )
+    paths = sorted({p for p in out.split("\0") if p and (ROOT / p).is_file()})
+    return [p for p in paths if not p.startswith(SKIP) and not p.endswith(TOOLING)]
+
+
+def untracked() -> list[str]:
+    """The files doc_files() lists that git does not track yet."""
+    out = subprocess.check_output(["git", "ls-files", "-z", "--others", "--exclude-standard", "docs"], cwd=ROOT, text=True)
+    return sorted(p for p in out.split("\0") if p and not p.startswith(SKIP) and not p.endswith(TOOLING))
 
 
 def is_asset(path: str) -> bool:
@@ -197,9 +210,16 @@ def repeated(text: str) -> list[tuple[str, str]]:
 
 
 def check(strict: bool = False) -> int:
-    """0 when docs/INDEX.md lists exactly the tracked documents (and asset counts). Missing summaries are a warning,
-    or a failure with strict."""
-    paths = tracked()
+    """0 when docs/INDEX.md lists exactly the documents in docs/, tracked or new, and the asset counts.
+
+    Missing summaries are a warning, or a failure with strict. New files are named, since CI sees them only once committed.
+    """
+    paths = doc_files()
+    if new := untracked():
+        print("build_docs_index.py: note: the index counts these new docs/ files; commit them with docs/INDEX.md, "
+              "or remove them and rebuild it:", file=sys.stderr)
+        for path in new[:10]:
+            print(f"  new: {path}", file=sys.stderr)
     index = ROOT / "docs/INDEX.md"
     text = index.read_text(encoding="utf-8") if index.is_file() else ""
     have, want = listed(text), listed(rendered := render(paths))
@@ -219,7 +239,7 @@ def check(strict: bool = False) -> int:
     if have != want:
         status = 1
         print("build_docs_index.py: docs/INDEX.md is out of date; run python3 tools/ops/build_docs_index.py and commit it", file=sys.stderr)
-        for label, rows in (("missing", want - have), ("not tracked", have - want)):
+        for label, rows in (("missing", want - have), ("not in docs/", have - want)):
             for area, row in sorted(rows)[:10]:
                 print(f"  {label}: {area}: {row}", file=sys.stderr)
             if len(rows) > 10:
@@ -251,7 +271,7 @@ def main(argv: list[str]) -> int:
         else:
             print(f"build_docs_index.py: unknown argument {bad!r}; options are --check and --check --strict (--help for more)", file=sys.stderr)
         return 2
-    paths = tracked()
+    paths = doc_files()
     (ROOT / "docs/INDEX.md").write_text(render(paths), encoding="utf-8")
     print(f"wrote docs/INDEX.md: {len(paths)} files")
     return 0
