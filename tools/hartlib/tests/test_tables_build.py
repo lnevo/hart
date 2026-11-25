@@ -167,7 +167,7 @@ class MasterBeans(unittest.TestCase):
 
     def test_a_turnout_without_its_feedback_stops(self) -> None:
         bad = [r for r in rows() if r["user_name"] != "FB Switch 1 R"]
-        with self.assertRaisesRegex(tb.TablesBuildError, "Switch 1.*one feedback row gives a bean and fb:1:R none"):
+        with self.assertRaisesRegex(tb.TablesBuildError, "Switch 1.*no feedback bean fb:1:R"):
             tb.base(bad, lengths=LENGTHS)
 
     def test_a_block_with_no_length_or_layout_block_stops(self) -> None:
@@ -338,8 +338,11 @@ class ShapeByColumn(unittest.TestCase):
         return {tables.system_name(e): e for e in beans.get(key, [])}
 
     def test_a_field_row_is_its_system_name_and_any_other_its_jmri_name(self) -> None:
-        self.assertEqual("M2T1308", tb.bean_name(blank(assignment="field", system_name="M2T1308",
+        self.assertEqual("M2T1308", tb.bean_name(blank(layer="turnout", assignment="field", system_name="M2T1308",
                                                        jmri_name="Switch 7")))
+        # any other field row is its jmri_name, the device tables.xml uses; system_name may be a draft (ADR-028)
+        self.assertEqual("IS:X", tb.bean_name(blank(layer="occupancy", assignment="field", system_name="M2S4101",
+                                                    jmri_name="IS:X")))
         self.assertEqual("IT:HART:C3:101", tb.bean_name(main_rows()[0]))      # system_name is the planned M2T3408
         turnouts = self.named(self.beans(), tb.INTERNAL_TURNOUTS)
         self.assertEqual(["IT:HART:C3:101"], list(turnouts))
@@ -352,10 +355,36 @@ class ShapeByColumn(unittest.TestCase):
                          (staging.get("feedback"), staging.get("sensor1"), staging.get("sensor2")))
         main = self.named(beans, tb.INTERNAL_TURNOUTS)["IT:HART:C3:101"]
         self.assertEqual({"feedback": "DIRECT", "inverted": "false", "automate": "Off"}, dict(main.attrib))
-        one = [dict(r, assignment="virtual", jmri_name="IS:HART:C3:FB101N") if r["id"] == "fb:101:N" else r
-               for r in main_rows()]
-        with self.assertRaisesRegex(tb.TablesBuildError, "Switch 101'.*fb:101:R none"):
+        one = [dict(r, assignment="virtual", jmri_name="IS:HART:C3:FB101N", jmri_comment="x")
+               if r["id"] == "fb:101:N" else r for r in main_rows()]
+        with self.assertRaisesRegex(tb.TablesBuildError, "Switch 101'.*no feedback bean fb:101:R"):
             tb.master_beans(one, ALL_LENGTHS, ("2",))
+
+    def test_a_field_turnout_with_no_feedback_beans_stops(self) -> None:
+        """Staging must match exactly: only a virtual turnout is DIRECT."""
+        for gone in ("none", "drop"):
+            with self.subTest(gone=gone):
+                bad = [r if r["layer"] != "fb" else dict(r, assignment="none") for r in rows()
+                       if gone == "none" or r["layer"] != "fb"]
+                with self.assertRaisesRegex(tb.TablesBuildError, "'Switch 1'.*no feedback bean fb:1:R, fb:1:N"):
+                    tb.master_beans(bad, LENGTHS)
+
+    def test_an_alias_whose_turnout_row_is_missing_or_gives_no_bean_stops(self) -> None:
+        gone = [r for r in main_rows() if r["id"] != "switch:101"]
+        with self.assertRaisesRegex(tb.TablesBuildError, "DCC Switch 101'.*no turnout row switch:101 on level 2"):
+            tb.master_beans(gone, ALL_LENGTHS, ("2",))
+        none = [dict(r, assignment="none") if r["id"] == "switch:101" else r for r in main_rows()]
+        with self.assertRaisesRegex(tb.TablesBuildError, "DCC Switch 101'.*switch:101, whose assignment is none"):
+            tb.master_beans(none, ALL_LENGTHS, ("2",))
+
+    def test_a_detector_binds_only_its_own_levels_block_but_a_helix_one(self) -> None:
+        """A main detector naming a block a staging block shares the name of does not bind it; a helix one does."""
+        twin = blank(level="2", layer="occupancy", role="os", id="det:os:1", user_name="BS Twin",
+                     assignment="virtual", jmri_name="IS:HART:C3:B:Twin", blocks="OS Switch 1", start="inactive",
+                     bean_comment="x")
+        beans = self.beans([twin])
+        full = {tables.system_name(b): b.findtext("occupancysensor") for b in beans[tb.BLOCKS]}
+        self.assertEqual(("BS Switch 1", "BS Helix Outer"), (full["IB:AUTO:0033"], full["IB23"]))
 
     def test_feedback_rows_are_found_on_the_turnouts_own_level(self) -> None:
         """A main switch numbered like a staging one would not take staging's feedback rows."""

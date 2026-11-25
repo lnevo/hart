@@ -293,13 +293,13 @@ the name map's copy (2026-11-21): their facts are in `cp`, `system_name`, `dcc`,
 - `base()`: the template with the staging beans of the device master (`master_beans`), each section in JMRI's
   system-name order (`jmri_order`). `build_layout_le.py` draws on it.
 - `master_beans(rows, lengths, levels=GENERATED_LEVELS)`: each row's beans from its columns alone (naming-layers step
-  10): its layer gives which (`LAYER_BEANS`), `bean_name` the system name (`system_name` on a field row, else
-  `jmri_name`), `row_comment` the comment (`bean_comment` where set, else the wiring columns' `bean_comment()`),
+  10): its layer gives which (`LAYER_BEANS`), `bean_name` the system name (`system_name` on a field turnout, else
+  `jmri_name`, ADR-028), `row_comment` the comment (`bean_comment` where set, else the wiring columns' `bean_comment()`),
   `turnout_feedback` TWOSENSOR on the turnout's two `fb:<n>:R|N` rows of its level when both give beans and DIRECT
-  when neither does, `alias_is_turnout` no bean for an LCC alias that names its turnout's bean, and `start_actions`
+  when neither does on a virtual turnout (a field turnout stops), `alias_is_turnout` no bean for an LCC alias that names its turnout's bean (no turnout row stops), and `start_actions`
   an ActionSensor or ActionTurnout (`start_action`, the shape `le_tables.add_level_clear` uses) for each virtual row
-  with a `start`, under `START_ACTIONS`. A block takes the detector that names it on any level run, so a helix block
-  is bound to its main or upper sensor. `build_tables.py` still runs staging alone (`GENERATED_LEVELS`); run over
+  with a `start`, under `START_ACTIONS`. A block takes the detector of its own level that names it; a helix detector
+  binds staging's helix block (`HELIX_LEVEL`). `build_tables.py` still runs staging alone (`GENERATED_LEVELS`); run over
   every level, it makes every main and upper bean of `tables.xml` but the startup LogixNG's frame
   (`test_bean_goldens.MasterBeansOnEveryLevel`), which step 11 adds.
 - `read_discovered()` / `discovered_from_store()` / `write_discovered()` / `merge_discovered()`:

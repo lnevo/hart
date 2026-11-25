@@ -96,6 +96,7 @@ VIRTUAL_MAST_CLASS = "jmri.implementation.configurexml.VirtualSignalMastXml"
 VIRTUAL_HEAD_NOTE = "internal, not wired"      # a staging head on an internal name: no field head drives it
 LAYOUT_BLOCK_ATTRS = (("occupiedsense", "2"), ("trackcolor", "gray"), ("occupiedcolor", "red"),
                       ("extracolor", "white"))
+HELIX_LEVEL = "1"               # the helix blocks' beans are staging's; a main or upper helix detector binds them
 GENERATED_LEVELS = ("1",)       # the master rows whose beans this module writes; 2 and 3 are the Layout Editor build's
 _LCOS_HEAD = re.compile(r"\(IH\d+\)")
 
@@ -569,9 +570,10 @@ MALE_ACTION = "jmri.jmrit.logixng.implementation.configurexml.DefaultMaleDigital
 
 
 def bean_name(r: Mapping[str, str]) -> str:
-    """The system name of a row's bean: its system_name for a field row (the device on the layout), else its
-    jmri_name (a virtual stand-in, a spare detector)."""
-    return r["system_name"] if r["assignment"] == "field" else r["jmri_name"]
+    """The system name of a row's bean: a field turnout's system_name (its jmri_name may be its user name, bound by
+    name, Q13), every other row's jmri_name. jmri_name is the device tables.xml uses and system_name a main or upper
+    row's planned draft (ADR-028), so a swap is a jmri_name edit."""
+    return r["system_name"] if r["assignment"] == "field" and r["layer"] == "turnout" else r["jmri_name"]
 
 
 def row_comment(r: Mapping[str, str], places: Mapping[str, str] | None = None) -> str:
@@ -587,27 +589,41 @@ def _switch_number(r: Mapping[str, str], at: str) -> str:
     return number
 
 
+def _gives_bean(row: Mapping[str, str] | None) -> bool:
+    return row is not None and row["assignment"] != "none"
+
+
 def turnout_feedback(r: Mapping[str, str], by_id: Mapping[str, Mapping[str, str]], at: str) -> dict[str, str]:
     """A turnout's (or its LCC alias's) feedback attributes: TWOSENSOR on its two feedback rows (fb:<n>:R as sensor1,
-    fb:<n>:N as sensor2, by user name) when both are in `by_id` (its level's rows that give beans, by id), DIRECT
-    when neither is. TablesBuildError when only one is."""
+    fb:<n>:N as sensor2, by user name) when both give beans (`by_id`: every row of its level, by id); DIRECT when
+    neither does and the turnout is not a field row (a virtual stand-in). TablesBuildError when only one does, or a
+    field turnout has none (staging's are wired with both)."""
     number = _switch_number(r, at)
-    fb = [by_id.get(f"fb:{number}:{pos}") for pos in ("R", "N")]
-    if not any(fb):
+    ids = [f"fb:{number}:{pos}" for pos in ("R", "N")]
+    fb = [by_id.get(i) for i in ids]
+    lost = [i for i, f in zip(ids, fb) if not _gives_bean(f)]
+    if len(lost) == 2 and r["assignment"] != "field":
         return {"feedback": "DIRECT", "inverted": "false", "automate": "Off"}
-    lost = [f"fb:{number}:{pos}" for pos, f in zip(("R", "N"), fb) if f is None]
     if lost:
-        raise TablesBuildError(f"the device master: {at}: one feedback row gives a bean and {', '.join(lost)} none; "
-                               "a turnout has two or none")
+        raise TablesBuildError(f"the device master: {at}: no feedback bean {', '.join(lost)}; a field turnout has "
+                               "two, a virtual one two or none")
     return {"feedback": "TWOSENSOR", "sensor1": fb[0]["user_name"], "sensor2": fb[1]["user_name"],
             "inverted": "false", "automate": "Off"}
 
 
 def alias_is_turnout(r: Mapping[str, str], by_id: Mapping[str, Mapping[str, str]], at: str) -> bool:
     """Whether LCC alias row `r` names its turnout's bean (a virtual turnout's alias, main and upper today): it then
-    gives no bean of its own. `by_id`: as turnout_feedback's."""
-    turnout = by_id.get(f"switch:{_switch_number(r, at)}")
-    return turnout is not None and bean_name(turnout) == bean_name(r)
+    gives no bean of its own. `by_id`: as turnout_feedback's. TablesBuildError when its level has no switch:<n> row,
+    or that row gives no bean while the alias names it."""
+    tid = f"switch:{_switch_number(r, at)}"
+    turnout = by_id.get(tid)
+    if turnout is None:
+        raise TablesBuildError(f"the device master: {at}: no turnout row {tid} on level {r['level']}")
+    if bean_name(turnout) != bean_name(r):
+        return False
+    if not _gives_bean(turnout):
+        raise TablesBuildError(f"the device master: {at}: names the bean of {tid}, whose assignment is none")
+    return True
 
 
 def male_socket(el: ET.Element) -> None:
@@ -709,17 +725,20 @@ def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, railro
     no bean for, a turnout with one feedback row, a block with no length, no layout block or two detectors, or a
     start the startup LogixNG cannot set."""
     levels = tuple(levels)
-    rows = [r for r in rows if r["level"] in levels and r["assignment"] != "none"]
+    every = [r for r in rows if r["level"] in levels]
+    rows = [r for r in every if r["assignment"] != "none"]
     by_id: dict[str, dict[str, Mapping[str, str]]] = {}
-    for r in rows:
+    for r in every:
         if r["id"]:
             by_id.setdefault(r["level"], {})[r["id"]] = r
     places = mast_places(rows)
-    detector: dict[str, list[str]] = {}
+    detector: dict[tuple[str, str], list[str]] = {}       # {(level, block): detectors}
     for r in rows:
         if r["layer"] == "occupancy":
+            # a helix detector binds staging's helix block, the one block that climbs through the levels
+            level = HELIX_LEVEL if r["role"] == "helix" else r["level"]
             for b in filter(None, (x.strip() for x in r["blocks"].split(";"))):
-                detector.setdefault(b, []).append(r["user_name"])
+                detector.setdefault((level, b), []).append(r["user_name"])
     out: dict[tuple, list[ET.Element]] = {}
     bad: list[str] = []
 
@@ -744,7 +763,7 @@ def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, railro
             elif layer == "mast":
                 el = mast_bean(name, user, row_comment(r))
                 if el is None:
-                    bad.append(f"{at}: jmri_name {name!r} is neither a head mast (IF$shsm:) nor a virtual one (IF$vsm:)")
+                    bad.append(f"{at}: bean name {name!r} is neither a head mast (IF$shsm:) nor a virtual one (IF$vsm:)")
                     continue
                 add(MASTS, el)
             elif layer == "block":
@@ -755,7 +774,7 @@ def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, railro
                 if not r["layout_block"]:
                     bad.append(f"{at}: no layout_block")
                     continue
-                sensors = detector.get(r["part_of"] or user, [])       # a part: its block's sensor
+                sensors = detector.get((r["level"], r["part_of"] or user), [])       # a part: its block's sensor
                 if len(sensors) > 1:
                     bad.append(f"{at}: detected by {len(sensors)} occupancy rows ({', '.join(sensors)})")
                     continue
@@ -795,7 +814,7 @@ def base(rows: Iterable[Mapping[str, str]] | None = None, template: Path = TEMPL
         raise TablesBuildError(f"the device master: {len(beans[START_ACTIONS])} staging rows have a start; the startup "
                                "LogixNG is the main and upper one (le_tables.add_level_clear) until naming-layers "
                                "step 11")
-    made ={n for els in beans.values() for el in els for n in (tables.system_name(el), tables.user_name(el)) if n}
+    made = {n for els in beans.values() for el in els for n in (tables.system_name(el), tables.user_name(el)) if n}
     kept = kept_beans(rows)
     twice = sorted({tables.system_name(el) for key, els in kept.items() if key[0] != "blocks-names" for el in els
                     if tables.system_name(el) in made})

@@ -365,12 +365,12 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 ## Step 10 findings (2026-11-25)
 
 - **Shapes by column.** `tables_build.master_beans(rows, lengths, levels=GENERATED_LEVELS)` makes each bean from its
-  row: `bean_name` (`system_name` on a field row, else `jmri_name`), `row_comment` (`bean_comment` where set, else the
+  row: `bean_name` (`system_name` on a field turnout, else `jmri_name`), `row_comment` (`bean_comment` where set, else the
   wiring columns), `turnout_feedback` (TWOSENSOR on the two `fb:<n>:R|N` rows of the turnout's level when both give
-  beans, DIRECT when neither does, a stop on one), `alias_is_turnout` (an LCC alias naming its turnout's bean gives
+  beans, DIRECT when neither does on a virtual turnout, a stop on one or on a field turnout with none), `alias_is_turnout` (an LCC alias naming its turnout's bean gives
   none) and `start_actions` (an ActionSensor or ActionTurnout per virtual row with a `start`, under `START_ACTIONS`,
-  in the LogixNG's socket order). Which beans a layer gives is `LAYER_BEANS`. A block takes the detector that names it
-  on any level run, so staging's helix blocks bind to the main and upper sensors with no special case.
+  in the LogixNG's socket order). Which beans a layer gives is `LAYER_BEANS`. A block takes the detector of its own level
+  that names it; a helix detector (role helix) binds staging's helix block (`HELIX_LEVEL`).
   `le_tables.add_level_clear` builds its actions with the same `start_action`.
 - **Still staging only:** `build_tables.py` and `base()` run `GENERATED_LEVELS`; `base()` stops on a staging row with
   a `start` until step 11 makes the LogixNG frame there.
@@ -382,9 +382,12 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   diff is the change to `device_map_rows.bean_cells`' words. Staging's beans over every level are the staging-only
   ones but for the two helix blocks' and layout blocks' sensor.
 - **My calls (owner's rule of 2026-11-25):** feedback and aliases are found by id (`switch:<n>`, `dcc:<n>`,
-  `fb:<n>:R|N`) on the turnout's own level, not by user name; a turnout row with no such id stops. A staging turnout
-  with no feedback rows would now be DIRECT instead of stopping; every staging turnout has both today. A `start` on a
-  row that is not virtual stops (a field device reports its own state).
+  `fb:<n>:R|N`) on the turnout's own level among every row, not by user name; a turnout row with no such id, or an alias with no
+  turnout row, stops. A `start` on a row that is not virtual stops (a field device reports its own state).
+- **Code review (medium), fixed:** a field turnout with no feedback beans stops, as before; `bean_name` keeps the old
+  rule (system_name only for a field turnout), since ADR-028 makes a swap a `jmri_name` edit and `system_name` stays
+  the main and upper draft; the block-to-detector map is keyed by level and only a helix detector crosses levels; an
+  alias whose turnout row is missing or has assignment none stops; the mast message says bean name.
 - **Tests:** `test_tables_build.ShapeByColumn` (a rule each, on a small main level run with staging);
   `test_tables_build`'s staging fixture rows got their ids.
 - **Outputs byte-identical:** `make panels CHECK=1 FULL=1` all current, `check_approved.py --check` all matching,
