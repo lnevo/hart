@@ -6,13 +6,13 @@ HART never commands field sensors over MQTT.
 |-------|------|
 | `track/sensor/{addr}` | **Status** (ACTIVE / INACTIVE), often retained — field → JMRI |
 | `track/cmd/sensor/{addr}` | **Forbidden** on the field |
-| `_discard/cmd/sensor/{addr}` | **Retired sink** — do not use; clear retain if it reappears |
+| `_discard/cmd/sensor/{addr}` | **Retired sink** — no longer set anywhere; clear retain if it reappears |
 | bare `{addr}` at broker root | **Bug artifact** — empty JMRI send template published here |
 
 ## JMRI
 
 - Option **11.5** (receive): `track/sensor/{0}`
-- Option **11.3** (send): keep `_discard/cmd/sensor/{0}` so `MqttSensor.setKnownState` cannot hit LCOS. Do **not** empty it: JMRI then publishes `ACTIVE`/`INACTIVE` to bare `{addr}` at the broker root.
+- Option **11.3** (send): JMRI stock, `track/sensor/{0}` (owner, 2026-11-24). The Mac was the only host with the old `_discard/cmd/sensor/{0}` sink; it went back to stock because no current reason for it was found. If a case turns up that needs a non-stock send topic, record the reason here.
 - Publishes to this sink never reach the field.
 - Never `setKnownState` for MQTT sensors from scripts.
 
@@ -29,4 +29,4 @@ make mqtt-watch    # python3 tools/mqtt/watch_discard.py: read-only, Ctrl-C stop
 
 `mqtt-clean` clears `track/cmd/sensor/#`, bare numeric ACTIVE/INACTIVE roots, leftover `_discard/cmd/sensor/#`, legacy `track/signalhead/IH*` leaves and `track/sensor/<non-digit>` topics. It leaves numeric `track/sensor/{addr}` and `track/turnout/{addr}` status retain alone. The hooks block it for subagents and while the operating flag is set.
 
-`mqtt-watch` prints each `_discard` message with its time, marked `stored` (already on the broker when the watch started) or `NEW` (written while watching). Run it while testing CATS, PanelPro or the mimic to see which action writes them (owner, 2026-11-21). No startup or deploy wrote any on 2026-11-21; the writer is still unknown.
+`mqtt-watch` prints each `_discard` message with its time, marked `stored` (already on the broker when the watch started) or `NEW` (written while watching). Run it while testing CATS, PanelPro or the mimic to see which action writes them (owner, 2026-11-21). No startup or deploy wrote any on 2026-11-21; the writer is still unknown. Since 2026-11-24 nothing should write new `_discard` topics; a new one means a profile still has the old 11.3 value.

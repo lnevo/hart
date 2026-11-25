@@ -21,6 +21,8 @@ cats/scripts/install_jmri_web_override.sh
 cats/scripts/rewrite_button_icon_paths.py
 cats/scripts/patch_jmri_startup.py
 cats/scripts/install_ops_files.sh
+tools/jmri/mqtt_overlay/hart-mqtt-race-fix.jar
+tools/jmri/mqtt_overlay/install_overlay.py
 tools/hosts/pi
 tools/hosts/windows
 jmri/resources/buttons

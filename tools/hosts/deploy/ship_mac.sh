@@ -154,5 +154,9 @@ install_ops_local
 install_cats_panels_local
 install_ctc_icons_local
 install_jython_scripts
+# JMRI's MQTT startup race overlay for PanelPro.app and every other JMRI app on this Mac (ADR-034).
+python3 "$ROOT/tools/jmri/mqtt_overlay/install_overlay.py" \
+  --jar "$ROOT/tools/jmri/mqtt_overlay/hart-mqtt-race-fix.jar" \
+  --settings-dir "${HOME}/Library/Preferences/JMRI" --jmri-home "${JMRI_HOME:-/Applications/JMRI}"
 write_deploy_stamp "${HOME}/JMRI_UserFiles/cats/deploy_stamp.txt" mac
 echo "deploy stamp -> ${HOME}/JMRI_UserFiles/cats/deploy_stamp.txt"

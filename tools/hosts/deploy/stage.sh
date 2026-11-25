@@ -79,6 +79,10 @@ stage_package() {
     "$ROOT/cats/scripts/patch_jmri_startup.py" \
     "$ROOT/cats/scripts/install_ops_files.sh" \
     "$stage/cats/scripts/"
+  # JMRI's MQTT race overlay until JMRI/JMRI#16004 reaches a release the hosts run (ADR-034).
+  mkdir -p "$stage/jmri/mqtt_overlay"
+  cp -f "$ROOT/tools/jmri/mqtt_overlay/hart-mqtt-race-fix.jar" \
+    "$ROOT/tools/jmri/mqtt_overlay/install_overlay.py" "$stage/jmri/mqtt_overlay/"
 
   for f in "${HART_JYTHON_SCRIPTS[@]}"; do
     [[ -f "$ROOT/$f" ]] && cp -f "$ROOT/$f" "$stage/$(dirname "$f")/"

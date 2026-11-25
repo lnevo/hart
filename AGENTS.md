@@ -35,7 +35,7 @@ Each row is the command; the linked skill or doc has the detail. `make` lists th
 
 1. **Wiki.** A changed decision or railroad state goes in `wiki/STATUS.md` (one or two sentences: fact, owner, date, link; history in `wiki/STATUS_LOG.md`), with an ADR if it is a decision. A new or changed `docs/*.md` has a one-sentence summary under its H1; rerun the index. A hand-off or project page carries `Status: active | parked | done (YYYY-MM-DD)`, matched by the active list in `wiki/home.md`. What the owner said not to list goes in `wiki/not-pending.md`.
 2. **Commit** in your own worktree (`make wt`), never in the main checkout. Conventional one- or two-sentence message (why, not a file list). Stage files by name, never `git add -A`. Never commit `.env.local`, credentials or `tools/cats/src-repo/`.
-3. **Push** (`git push -u origin HEAD`). Never push to `main` or force-push. Merge your own PR once its required check passes, never with `--admin`. Before merging a code change, run `/code-review medium` and fix what it confirms; skip it for docs, wiki, `tables.xml`, CSV and JSON data and images. Cursor has no `/code-review`, so a Cursor agent leaves the merge to the owner.
+3. **Push** (`git push -u origin HEAD`). Never push to `main` or force-push. Merge your own PR once its required check passes, never with `--admin`. Before merging a code change, run `/code-review medium` once and fix what it confirms; use `high` when it touches signal logic, `tools/schematic/`, `tools/hartlib/`, the Layout Editor scripts or code that runs on the Pi or Windows. The review runs as a subagent on Sonnet (`CLAUDE_CODE_SUBAGENT_MODEL` in `.claude/settings.json`); skip it for docs, wiki, `tables.xml`, CSV and JSON data and images. Cursor has no `/code-review`, so a Cursor agent leaves the merge to the owner.
 4. **PanelPro test** when `tables.xml` or panels changed: quit the Mac's PanelPro, run `make panelpro-test` and report the result, including `SKIPPED`.
 5. **Deploy** when live artifacts changed (panels, the `tables.xml` bundle, Operations Pro files, signals, jython, web home, CATS resources): `--pi --win` as above. Website: `deploy_hartrailroad.sh`. Skip for docs, AGENTS or wiki only, and say so.
 6. **Report** commit hash, pushed or not, PanelPro test result, hosts deployed.
@@ -77,6 +77,8 @@ The owner may not name an agent, so match the task yourself:
 | Checking any text (docs, wiki, site, slides, commit or PR text) against the writing rules | `voice-reviewer` |
 
 - Call one without being asked for a single bounded job that would mean reading across many files, and say which you used. Suggest broad work (several agents, a staged rebuild) in one line and wait, unless the owner started a hand-off: that runs as parallel agents ([`handoff` skill](.claude/skills/handoff/SKILL.md)). Deploys, live hardware and a handful of tool calls stay in the main session.
+- Keep at most 8 Claude sessions active on this Mac at once: interactive and background sessions, subagents, forks and workflow agents all count. Before launching agents, count with `ListAgents` plus your own running agents; if the launch would pass 8, run the work in fewer agents or one after another, and say so.
+- Subagents without a `model:` line run on Sonnet (`CLAUDE_CODE_SUBAGENT_MODEL`), `general-purpose` included; pass `model: "opus"` for logic, data-model, refactor and tool code.
 - Launch any agent that edits files with `isolation: "worktree"`. Point their heavy checks at `make remote`. Use `general-purpose` only when none fits.
 - The `car-cards` and `operations-pro` plugins are off by default. For their tasks, `claude plugin enable <name>@model-railroad-skills --scope local`, reload, say so in the report, and disable it when done.
 
@@ -93,7 +95,7 @@ When a task changes or reuses a script of about 500 lines or more, or one with n
 - Command field turnouts or publish `track/cmd` from launch or “fix paint” scripts. Never pass an MQTT publish command through a shell, even as test input (`tools/audit/tests/test_guards.py` shows how).
 - Run `fit_panel_height`, `fit_panel_canvas`, `polish_layout_geometry` or 2× draw scale unless asked.
 - Store JMRI tables from a CATS session. PanelPro owns `tables.xml`.
-- Patch or wrap JMRI or CATS. Both are stock installs; fix the source data (`jmri/layouts/hart/data/devices_field.csv`, the builders' inputs) or the template.
+- Patch or wrap JMRI or CATS. Both are stock installs; fix the source data (`jmri/layouts/hart/data/devices_field.csv`, the builders' inputs) or the template. One exception: JMRI's `MqttAdapter` race fix in `tools/jmri/mqtt_overlay/`, until a JMRI release with JMRI/JMRI#16004 runs on the hosts ([ADR-034](wiki/decisions/ADR-034-jmri-mqtt-race-overlay.md)).
 - Leave the LCOS bridge (`serial_to_mqtt`) running detached. Start it only for a lab test, stop it before ending the turn, and ask the user to restart it (`.\run_serial_mqtt.cmd verbose`).
 - Edit `external/lcos-bridge/lcos/` or `reference/` (vendor source) without explicit instruction.
 - Stop a run with `pkill -f` on a shared script name. Use its PID or a pattern with your worktree path.

@@ -17,7 +17,7 @@ description: Use when the owner says go on a hand-off or a plan with several ind
 
 ## Model
 
-Agents in `.claude/agents/` carry their own model. For others: `haiku` for read-only sweeps (every file that names X, is a page stale); `sonnet` for bounded edits, regenerations and site work; the default model for logic, data-model, refactor and plugin or tool code. Say which agent and model got each item.
+Agents in `.claude/agents/` carry their own model. For others: `haiku` for read-only sweeps (every file that names X, is a page stale); `sonnet` for bounded edits, regenerations and site work; `opus` for logic, data-model, refactor and plugin or tool code, passed explicitly: unnamed subagents default to Sonnet (`CLAUDE_CODE_SUBAGENT_MODEL` in `.claude/settings.json`). Say which agent and model got each item.
 
 ## Brief
 
@@ -40,7 +40,8 @@ Checks: single tests while iterating; the full ./tools/check.sh once, through
   make remote CMD="./tools/check.sh" after pushing. Take timings from logs, not re-runs.
   Stop your own background jobs by PID or a pattern holding your worktree path, never
   pkill -f a shared script name: other sessions run the same scripts.
-Review (code only): after pushing, run /code-review medium on your branch while
+Review (code only): after pushing, run /code-review medium (high for the code AGENTS.md
+  step 3 names) on your branch while
   make remote runs, fix what it confirms with a test each, push again, and list
   its findings and what you did with each in the report.
 Close: commit (stage by name, conventional message), git push -u origin HEAD,
@@ -67,7 +68,7 @@ The main session merges, never with `--admin`. It queues GitHub auto-merge (`gh 
 
 `docs/pipeline-map/pipeline_map.json` merges itself locally (`tools/ops/merge_pipeline_map.py`, a git merge driver that `make wt` and the session-start hook set up); it stops only on two different edits to one box or link, or a link left pointing at a deleted box. GitHub never runs it, so a PR that shows a conflict there needs `origin/main` merged into the branch locally, then the map pages rebuilt (`python3 tools/ops/build_pipeline_map.py` and the `--public` site build the driver prints).
 
-1. Code PRs are reviewed by their own agent (brief, Review). Before merging, the main session runs `/code-review low` on the PR to catch what the fixes broke; when the agent could not run a review, it runs `/code-review medium` instead. Fix confirmed correctness bugs, check each unverified finding against the code, and leave performance and style for later unless trivial. Add a finding that recurs to the list in the brief's Quality line. After a review, check `git branch --show-current` before committing; it can leave a detached HEAD.
+1. Code PRs are reviewed once, by their own agent (brief, Review). The main session does not review them again: it checks that each confirmed finding was fixed, and runs `/code-review low` only when those fixes changed code beyond the finding's own lines. When the agent could not run a review, the main session runs the AGENTS.md step 3 review. Fix confirmed correctness bugs, check each unverified finding against the code, and leave performance and style for later unless trivial. Add a finding that recurs to the list in the brief's Quality line. After a review, check `git branch --show-current` before committing; it can leave a detached HEAD.
 2. Queue PRs that others build on first. When one merges, merge `origin/main` into each remaining one (no rebase: force-push is blocked), regenerate its generated files, and leave auto-merge to wait for CI again.
 3. Deploy once after the last merge if live artifacts changed (`deploy` skill).
 

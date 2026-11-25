@@ -105,6 +105,14 @@ rm -f "$HART/cats/scripts/windows/install_cats_masts.ps1"
 rm -rf "$HART/tools/jmri/patches"
 echo "Pi retired signal sets removed"
 
+# JMRI's MQTT startup race overlay, loaded by every JMRI app through ~/.jmri/jmri.conf (ADR-034).
+# It installs only over the JMRI build it was made from; on any other it takes itself out.
+if [[ -f "$HART/jmri/mqtt_overlay/install_overlay.py" ]]; then
+  python3 "$HART/jmri/mqtt_overlay/install_overlay.py" \
+    --jar "$HART/jmri/mqtt_overlay/hart-mqtt-race-fix.jar" \
+    --settings-dir "$HOME/.jmri" --jmri-home "${JMRI_HOME:-$HOME/JMRI}"
+fi
+
 # Panels and launchers replaced by HART_CTC.xml / HART_ABS.xml (ADR-012).
 rm -f "$HART"/cats/panels/HART_Master*.xml "$HART"/launch_hart_master*.sh
 
