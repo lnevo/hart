@@ -1,2 +1,2 @@
 order: 170
-**Data masters (owner, 2026-11-25, [ADR-039](../../decisions/ADR-039-data-masters-in-git.md)):** one master per kind of record in git, column sidecars checked by `check.sh`, stable keys, no spreadsheet as an input; phase 1 runs as parallel lanes ([plan](../../projects/data-masters.md)), phase 2 (drift reports, SQLite view) after.
+**Data masters (owner, 2026-11-25, [ADR-039](../../decisions/ADR-039-data-masters-in-git.md)):** one master per kind of record in git, column sidecars checked by `check.sh`, stable keys, no spreadsheet as an input; the signal split, v85 and the industry routing matrix are archived. Phase 1 runs as parallel lanes ([plan](../../projects/data-masters.md); the catalogue is in [`docs/data/`](../../../docs/data/README.md)), phase 2 after.
