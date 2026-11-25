@@ -87,7 +87,7 @@ A two-track cell is a turnout: the edge shared by both tracks carries
 
 ```bash
 make desks   # the live desks (generated)
-python3 cats/scripts/dump_cats_grid.py cats/panels/HART_CTC.xml   # inspect any panel
+python3 cats/scripts/cats_inspect.py grid cats/panels/HART_CTC.xml   # inspect any panel
 ```
 
 Cell map: [`DIGICON_SCHEMATIC.md`](DIGICON_SCHEMATIC.md).

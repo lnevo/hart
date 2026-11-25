@@ -279,7 +279,7 @@ class LayoutIndexSource(unittest.TestCase):
             done = subprocess.run([sys.executable, str(ROOT / "www/scripts/build_layout_index.py"), "--check"],
                                   env=env, capture_output=True, text=True, timeout=300)
         self.assertEqual(0, done.returncode, done.stderr)
-        self.assertRegex(done.stdout, re.compile(r"layout-index\.json is current"))
+        self.assertRegex(done.stdout, re.compile(r"layout-index\.json builds and passes its checks"))
 
 
 if __name__ == "__main__":

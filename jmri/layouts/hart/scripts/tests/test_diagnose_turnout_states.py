@@ -5,10 +5,10 @@ import sys
 import unittest
 from pathlib import Path
 
-SCRIPT = Path(__file__).resolve().parents[1] / "seed_default_thrown_turnouts.py"
+SCRIPT = Path(__file__).resolve().parents[1] / "diagnose_turnout_states.py"
 
 
-class SeedDefaultThrownReadOnlyTest(unittest.TestCase):
+class DiagnoseTurnoutStatesReadOnlyTest(unittest.TestCase):
     def test_write_mode_is_gone(self) -> None:
         result = subprocess.run(
             [sys.executable, str(SCRIPT), "--write"], capture_output=True, text=True

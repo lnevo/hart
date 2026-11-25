@@ -1,9 +1,10 @@
-#!/usr/bin/env python3
 """Build a stop-motion video of the Layout Editor panel evolution (May-Nov 2026).
 
 Sources are the le_panel_*.png screenshots in this folder (Desktop captures of
 the "HART Railroad" Layout Editor panel; the November frames are PanelPro painting the whole panel to a file). Each frame is fitted to the same
 canvas on the panel's light-blue background, with a caption under it.
+
+Run it with `python3 tools/ctc_history/films.py le`.
 """
 
 from __future__ import annotations
@@ -84,6 +85,3 @@ def main() -> None:
         )
     print(f"Wrote {OUT_MP4} and {OUT_POSTER}")
 
-
-if __name__ == "__main__":
-    main()
