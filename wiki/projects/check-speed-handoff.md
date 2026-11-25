@@ -1,6 +1,6 @@
 # Quicker local check.sh for small changes: hand-off (2026-11-24)
 
-Status: active
+Status: done (2026-11-24)
 
 Three changes that make `./tools/check.sh` quicker on the Mac for a small change, a wiki or ADR edit above all. A full run is already split well (368 s, bound by 2685 s of job time on 8 cores since #1075); this plan is about the runs that skip most jobs. About 3 PRs.
 
@@ -91,6 +91,20 @@ Why the first measurement counted 39 is not checked. A likely cause, unverified:
 | One line added to an ADR, after | 27 s | 7 (`static` 21 s, `public-text`, four guard tests, the placeholder) | 197 |
 
 The six jobs that always ran now record, and stay current on a no-change run: `test_ctc_signal_heads`, `test_patch_windows_mqtt`, `test_win_run`, `test_public_text`, `test_pi_ssh_scripts` and `test_redeploy_commit`. `test_redeploy_commit` still reruns whenever HEAD, `origin/main` or the shared `git worktree list` changes (its tests replay that command), so it reruns after any commit and often while other worktrees come and go. Not done: pruning `filehash.json` (parsed once per run now, 0.3 s). Every stamp, the panel steps' too, is new once after this change (the hook changed).
+
+## Result (2026-11-24, fresh main after #1082, the Mac, load 9 to 15)
+
+| `check.sh` run | Before | After | Jobs run after |
+|---|---|---|---|
+| Nothing changed | 62 s | 7 s | 1 (the hart-ops placeholder) |
+| One line added to an ADR | 110 s | 14 s, the docs-only path | the quick docs checks |
+
+Merged: #1078 (item 1), #1080 (item 2), #1082 (item 3b); item 3a measured only. The first run after #1082 on each host runs every job once (the trace hook changed every key: 258 s here), and the next no-change run still ran 31 jobs (62 s) before settling at 7 s; why that second run did not skip is not checked.
+
+**Left, not in this plan:**
+- `check_stamps.py audit-report` lists 7 jobs that read folders outside their declarations: test_agent_docs_cells, test_agent_docs_map, test_ai_speak, test_helix_stl_index, test_pipeline_map, test_public_text, test_status_merge (traced reads, so their stamps hold them; nothing gates on the report).
+- `test_deploy_stage` stages from a clone of the committed HEAD while its stamp hashes the working tree, so committing an edit already in the tree does not rerun it.
+- `test_redeploy_commit` reruns whenever a worktree is added or removed (its key holds `git worktree list`).
 
 ## Owner decisions (2026-11-24)
 
