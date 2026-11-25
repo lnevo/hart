@@ -39,7 +39,7 @@ from pathlib import Path
 
 import le_names as ln
 import mast_rule as mr
-import publish_draft as pd
+import publish_draft  # noqa: F401  imported for its side effect: it puts hartlib on the path before the hartlib import below
 from hartlib import hand_lists, level_masts
 
 RETIRED = hand_lists.RETIRED_MASTS             # the virtual masts dropped from a level (hartlib.hand_lists)

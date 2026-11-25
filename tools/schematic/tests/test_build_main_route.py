@@ -3,7 +3,6 @@ track as the 21 hops that were written by hand against plan part numbers, and st
 import copy
 import csv
 import io
-import json
 import sys
 import tempfile
 import unittest

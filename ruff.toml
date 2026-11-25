@@ -44,11 +44,3 @@ select = ["F"]
 "ops/hart-ops/card_pipeline/generate_card_template.py" = ["F401"]
 # A deliberate star import of main_level_geometry (its own noqa covers F403): the names it uses come from there.
 "tools/benchwork/main_level/plywood_cut_plan.py" = ["F405"]
-# naming-layers in flight; remove after merge. Files with findings that unmerged branches or open worktrees change
-# (2026-11-25): naming-step5-tests, and an agent worktree's uncommitted naming work.
-"tools/hartlib/src/hartlib/railroad_facts.py" = ["F"]
-"tools/schematic/build_staging_sets.py" = ["F"]
-"tools/schematic/mast_plan.py" = ["F"]
-"tools/schematic/tests/test_block_layer.py" = ["F"]
-"tools/schematic/tests/test_build_main_route.py" = ["F"]
-"tools/schematic/tests/test_masts_file.py" = ["F"]

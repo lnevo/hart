@@ -41,7 +41,6 @@ build with the file and line. --check regenerates in memory and exits 1 if a fil
 from __future__ import annotations
 
 import argparse
-import json
 import re
 import sys
 from dataclasses import dataclass

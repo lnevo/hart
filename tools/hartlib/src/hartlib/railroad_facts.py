@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import csv
-import json
 import re
 import xml.etree.ElementTree as ET
 from collections import Counter
@@ -846,7 +845,7 @@ def read_helix_tracks(path: Path) -> dict[str, HelixTrack]:
         own = {TRACK_LABELS: hand.get(TRACK_LABELS, {})}
         bad = track_names.pref_problems(own)            # a plan name put back is refused here too
         if bad:
-            raise FactsError(f"helix tracks: preferences.json[main_upper]: " + "; ".join(bad))
+            raise FactsError("helix tracks: preferences.json[main_upper]: " + "; ".join(bad))
         prefs = track_names.pref_section("main_upper", own, data=folder)
     except track_names.TrackNameError as exc:
         raise FactsError(f"helix tracks: {exc}") from None
