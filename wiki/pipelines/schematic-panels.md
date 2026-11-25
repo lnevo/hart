@@ -103,7 +103,7 @@ make panels CHECK=1   # check every output; names each stale one
 make desks            # only the CATS desks, then validate them
 ```
 
-`tools/schematic/build_panels.sh` runs the steps in the order they depend on each other:
+`tools/schematic/build_panels.sh` runs the steps of `tools/pipeline/panels.toml` (ADR-037), in its order, which the loader checks (each writer before the steps that read its file); the table below is checked against it (`tools/schematic/tests/test_build_panels.py`):
 
 | Step | Script | Writes |
 |------|--------|--------|

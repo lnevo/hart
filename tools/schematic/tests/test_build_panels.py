@@ -99,6 +99,8 @@ class Manifest(unittest.TestCase):
         self.assertRefused([entry(cmd=["python3", "tools/schematic/no_such.py"])], r"no_such.py is not a file")
         self.assertRefused([entry(), entry()], r"step 'a': name: also step 1's name")
         self.assertRefused([entry(inputs=[{"path": "x/../y"}])], r"inputs: x/\.\./y has an empty")
+        for bad in ([1], [{"path": 1}], [{"label": "x"}]):      # a bad item is a ManifestError, not a crash
+            self.assertRefused([entry(outputs=bad, updates=["a.csv"])], r"outputs: (1 is not a path|.*no path)")
         self.assertRefused([entry(outputs=[{"path": "a.csv", "written_later": ["b"]}])],
                            r"outputs: .*written_later not allowed here")
 

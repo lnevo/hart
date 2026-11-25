@@ -2,6 +2,8 @@
 left, the sml-current guard, and the audit that the trace sees at least what an independent audit hook sees."""
 from __future__ import annotations
 
+import contextlib
+import io
 import os
 import re
 import shutil
@@ -221,6 +223,27 @@ class UnstampableTest(unittest.TestCase):
         self.addCleanup(shutil.rmtree, tmp)
         with unittest.mock.patch.dict(os.environ, {"SCHEMATIC_PLUGIN": ""}):
             self.assertIn("not checked out", ps.unstampable(tmp))
+
+
+class BrokenManifestTest(unittest.TestCase):
+    """STEPS is read on first use: a broken panels.toml is a message and exit 2 from the commands that need it, and
+    forget (after a failed step) still drops the stamp."""
+
+    def test_forget_works_and_the_others_name_the_problem(self) -> None:
+        broken = unittest.mock.patch.object(ps, "steps", side_effect=ps.StepsError("panels.toml: step 'x': broken"))
+        err = io.StringIO()
+        with broken, unittest.mock.patch.object(ps, "forget") as forget, contextlib.redirect_stderr(err):
+            self.assertEqual(ps.main(["forget", "hands"]), 0)
+            forget.assert_called_once_with("hands")
+            self.assertEqual(ps.main(["current", "hands"]), 2)
+            self.assertEqual(ps.main(["forget", "../x"]), 2)
+        self.assertIn("panel_stamps.py: panels.toml: step 'x': broken", err.getvalue())
+
+    def test_importing_reads_no_manifest(self) -> None:
+        r = subprocess.run([sys.executable, "-c", "import sys; sys.path.insert(0, 'tools/schematic'); "
+                            "import panel_stamps as ps; print(ps._STEPS is None, 'pipeline_manifest' in sys.modules)"],
+                           cwd=REPO, capture_output=True, text=True, check=True)
+        self.assertEqual(r.stdout.split(), ["True", "False"])
 
 
 class ShellTest(unittest.TestCase):

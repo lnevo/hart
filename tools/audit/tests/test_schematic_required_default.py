@@ -17,7 +17,8 @@ def default_line(script: Path) -> int:
 
 class SchematicRequiredDefault(unittest.TestCase):
     def test_both_scripts_default_to_required_before_any_step_runs(self) -> None:
-        for rel, first_step in (("tools/check.sh", "later "), ("tools/schematic/build_panels.sh", "step ")):
+        # build_panels.sh runs each manifest step from one line of its loop over STEP_LINES: the call "${w[0]}" ...
+        for rel, first_step in (("tools/check.sh", "later "), ("tools/schematic/build_panels.sh", '"${w[0]}" ')):
             with self.subTest(script=rel):
                 script = ROOT / rel
                 lines = script.read_text(encoding="utf-8").splitlines()

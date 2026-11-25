@@ -610,7 +610,8 @@ def _panel_problems(entry: dict, where: Repo | None) -> list[str]:
                 out.append(f"box: {box} is not a tracked file")
     for key in PANEL_EDGE_KEYS:
         out += [f"{key}: {msg}" for msg in _panel_edge_problems(entry.get(key, []), key, where)]
-    outputs = {i if isinstance(i, str) else i.get("path") for i in entry.get("outputs", [])}
+    outputs = {i if isinstance(i, str) else i.get("path") for i in entry.get("outputs", [])
+               if isinstance(i, (str, dict))}       # any other item is named by _panel_edge_problems above
     updates = entry.get("updates", [])
     out += [f"updates: {msg}" for msg in _panel_paths_problems(updates, where)]
     out += [f"updates: {p} is not one of the step's outputs" for p in updates if isinstance(p, str) and p not in outputs]

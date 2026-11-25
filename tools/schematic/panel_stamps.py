@@ -32,6 +32,7 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import os
+import re
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -100,22 +101,37 @@ def _load_manifest():
     return sys.modules["pipeline_manifest"]
 
 
-def _steps() -> dict[str, Step]:
+class StepsError(Exception):
+    """The panels manifest does not load, or lists no step; the message says why."""
+
+
+_STEPS: dict[str, Step] | None = None
+
+
+def steps() -> dict[str, Step]:
     """The `step`s of the panels manifest (tools/pipeline/panels.toml; guards have no stamp), each with its outputs,
-    publish flag and programs; it stops naming the problem when the manifest does not load or lists no step."""
-    manifest = _load_manifest()
-    try:
-        steps = manifest.panel_steps()
-    except manifest.ManifestError as err:
-        sys.exit(f"panel_stamps.py: {err}")
-    found = {s.name: Step(tuple(o.path for o in s.outputs), s.publishes, {p: tuple(g) for p, g in s.programs})
-             for s in steps if s.mode == "step"}
-    if not found:
-        sys.exit(f"panel_stamps.py: {manifest.PANELS} lists no step")
-    return found
+    publish flag and programs, read on first use (importing this module reads nothing); StepsError when the manifest
+    does not load or lists no step."""
+    global _STEPS
+    if _STEPS is None:
+        manifest = _load_manifest()
+        try:
+            listed = manifest.panel_steps()
+        except manifest.ManifestError as err:
+            raise StepsError(str(err)) from None
+        found = {s.name: Step(tuple(o.path for o in s.outputs), s.publishes, {p: tuple(g) for p, g in s.programs})
+                 for s in listed if s.mode == "step"}
+        if not found:
+            raise StepsError(f"{manifest.PANELS} lists no step")
+        _STEPS = found
+    return _STEPS
 
 
-STEPS: dict[str, Step] = _steps()
+def __getattr__(name: str):
+    """STEPS, the module attribute, is steps()."""
+    if name == "STEPS":
+        return steps()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 SKIP_PARTS = {"__pycache__", ".DS_Store"}
 
@@ -131,7 +147,6 @@ def expand(patterns, root: Path = ROOT) -> list[Path]:
 
 
 def _glob_match(rel: str, pat: str) -> bool:
-    import re
     out, i = "", 0
     while i < len(pat):
         if pat.startswith("**/", i):
@@ -225,7 +240,7 @@ def digest(label: str, cmd, patterns, root: Path = ROOT, publishes: bool = False
 
 def allowed(name: str, programs: list[str]) -> tuple[list[str], list[str]]:
     """(the programs STEPS lets `name` run untraced, the ones it does not)."""
-    rules = STEPS[name].programs
+    rules = steps()[name].programs
     ok = [p for p in programs if any(k.lower() in p.lower() for k in rules)]
     return ok, [p for p in programs if p not in ok]
 
@@ -233,7 +248,7 @@ def allowed(name: str, programs: list[str]) -> tuple[list[str], list[str]]:
 def key(name: str, cmd, root: Path, programs: list[str], gits: list) -> str:
     """The stamp key: the step's command, outputs, code, plugin, interpreter and environment, the untraced programs it
     ran with the files STEPS says they read, and its git commands' output now."""
-    step = STEPS[name]
+    step = steps()[name]
     extra_pats = [pat for k, pats in step.programs.items() if any(k.lower() in p.lower() for p in programs)
                   for pat in pats]
     extra = f"programs={','.join(programs)}\ngit={','.join(traced.git_replay(gits, str(root)))}"
@@ -318,8 +333,19 @@ def main(argv: list[str] | None = None) -> int:
         print(__doc__.split("\n\n")[0], file=sys.stderr)
         return 2
     action, name, rest = argv[0], argv[1], argv[2:]
-    if name not in STEPS:
-        print(f"panel_stamps.py: no step {name!r} (known: {', '.join(STEPS)})", file=sys.stderr)
+    if action == "forget":      # needs no manifest: a failed step's stamp goes even when panels.toml is broken
+        if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", name):
+            print(f"panel_stamps.py: {name!r} is not a step name", file=sys.stderr)
+            return 2
+        forget(name)
+        return 0
+    try:
+        known = steps()
+    except StepsError as err:
+        print(f"panel_stamps.py: {err}", file=sys.stderr)
+        return 2
+    if name not in known:
+        print(f"panel_stamps.py: no step {name!r} (known: {', '.join(known)})", file=sys.stderr)
         return 2
     if action == "current":
         return 0 if is_current(name, rest) else 1
