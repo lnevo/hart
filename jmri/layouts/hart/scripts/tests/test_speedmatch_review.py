@@ -210,7 +210,7 @@ class MoveAndDrop(unittest.TestCase):
         for bad in FORBIDDEN_EVERYWHERE + ["eval(", "readCV", "writeCV", "F8"]:
             self.assertNotIn(bad, src, bad)
         self.assertIn("setSpeedSetting(0.0)", src)
-        self.assertIn("except Exception, e", src)
+        self.assertIn("except Exception as e", src)
 
     def test_drop_job_prints_usage_without_arguments(self):
         for args in ([], ["--fetch"]):

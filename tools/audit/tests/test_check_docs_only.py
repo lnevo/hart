@@ -300,7 +300,6 @@ LEFT_OUT = {
     "unit-hart-ops": "whole suite (car cards, publications); reads docs only in part",
     "unit-schematic": "whole suite; reads wiki/pipelines/ only in part",
     "unit-anyrail": "whole suite; reads docs/ only for the track plan article",
-    "unit-hosts test_deploy_stage": "stages a deploy (36 s); copies one docs/jmri/ CSV, reads no Markdown",
     "unit-guards test_check_stamps": "the stamp machinery's own tests (38 s); declared on its sample jobs' "
                                      "declarations (RUNS_JOBS), docs/ through unit-anyrail's",
     "unit-guards test_hart_tables_writers": "runs each table writer only to see it refuse to write under "

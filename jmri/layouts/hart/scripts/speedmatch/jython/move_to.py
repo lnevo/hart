@@ -19,6 +19,12 @@
 #   MAX_S       longest the run may take, seconds
 # Needs jobkit.py in front of it (make_job.py pastes it): L, NAMES, reg, why, ab, claim, scan,
 # check_guards, request_throttle, guard_hit, end_job.
+# Never runs: the names make_job.py puts in front of this file (its settings and jobkit.py), listed for pyflakes
+# (ruff's undefined-name rule) so a misspelt name fails the check. job_settings stands for the settings.
+if False:
+    import time, threading, os, java
+    from jobkit import (L, NAMES, ab, check_guards, claim, end_job, guard_hit, request_throttle, scan, set_direction, why)
+    from job_settings import FUNCS, GUARD, MAX_S, P_FWD, P_ID, P_STEP, UNTIL
 class SL(java.beans.PropertyChangeListener):
     def __init__(self, n, isg): self.n = n; self.isg = isg
     def propertyChange(self, e):
@@ -49,8 +55,8 @@ def run():
             else: ok = 0
             time.sleep(0.1)
         if not why[0]: why[0] = "time"
-    except java.lang.Throwable, e: L("ERROR %s" % e)
-    except Exception, e: L("ERROR %s" % e)
+    except java.lang.Throwable as e: L("ERROR %s" % e)
+    except Exception as e: L("ERROR %s" % e)
     finally:
         end_job(t, tl, FUNCS)
 th = threading.Thread(target=run); th.setDaemon(True); th.start()
