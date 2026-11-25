@@ -3765,6 +3765,16 @@
    "gen": "manifest"
   },
   {
+   "id": "tools/ops/check_data.py",
+   "label": "check_data.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Checks every master CSV against its <name>.columns.csv sidecar: types, enum values, required cells, unique keys and references into other masters (ADR-039).",
+   "path": "tools/ops/check_data.py",
+   "gen": "manifest"
+  },
+  {
    "id": "tools/audit/check_py_sizes.py",
    "label": "check_py_sizes",
    "kind": "generator",
@@ -8650,6 +8660,48 @@
    "from": "www/scripts/site_views.py",
    "to": "www/data/layout-index-cats.json",
    "label": "make site-data, local preview"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_field.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_generated.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/switches.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/stations.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "refs",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/interlockings.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "refs",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/ops/check_data.py",
+   "to": "tools/check.sh",
+   "label": "check data-schemas",
+   "side": "check",
+   "gen": "manifest"
   },
   {
    "from": ".claude/agents/archive-researcher.md",
