@@ -5,8 +5,6 @@ legs and stops hold for every level now. Small hand-written device rows (the mas
 file as a data check."""
 from __future__ import annotations
 
-import csv
-import io
 import sys
 import tempfile
 import unittest

@@ -1,6 +1,6 @@
 # Generated, then the owner's, then frozen wiring: hand-off (2026-11-24)
 
-Status: active
+Status: done (2026-11-25)
 
 The plan for [ADR-033](../decisions/ADR-033-generated-then-owner.md): one flow for every level, where the generator names every device, the owner's values always win, and frozen wiring stays fixed. It takes in the parked [builder merge](builder-merge.md) (one bean, row and mast process), which no longer waits for main and upper wiring, and puts every name and every read of layout data behind `hartlib`. About 14 PRs and 13 to 16 agent-days.
 
@@ -54,7 +54,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 | 11 | Every level through `master_beans` | 1 day | Builder merge step 5. **Done (2026-11-25), pending `make panelpro-test` and the deploy:** see [Step 11 findings](#step-11-findings); a listed diff of 399 main and upper comments |
 | 12 | One mast step | 1 to 1.5 days | Builder merge step 6. **Done (2026-11-25), pending the SML discovery and the owner's panel approval:** see [Step 12 findings](#step-12-findings); nine upper mast pairs swap letters |
 | 13 | One reader | 1 day | Builder merge step 7, first half: `le_names.level_names` and `staging_device_map.load` become one reader keyed by ID. **Done (2026-11-25):** see [Step 13 findings](#step-13-findings) |
-| 14 | Level tests to column tests, and a swap test | 1 day | Builder merge step 8. **Code done (2026-11-25):** see [Step 14 findings](#step-14-findings); a turnout and a detector swap by their field rows alone in a test copy. **Pending:** the main session's sandbox swap (`make panels`, `make panelpro-test`, then revert) |
+| 14 | Level tests to column tests, and a swap test | 1 day | Builder merge step 8. **Done (2026-11-25):** see [Step 14 findings](#step-14-findings). The sandbox swap of Switch 107 by its field row alone built, discovered and passed `make panelpro-test`, then was reverted |
 
 ## Step 1 findings (2026-11-24)
 
@@ -556,6 +556,27 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   `2,,occupancy,,det:block:107B-107C#1,,field,M2S3305,M2S3305,,,,,,,,,,,,,,,,,,,,`; then `make panels` (it rediscovers
   SML on the Mac, writes the desks, then stops at `approved-desks`; `approved-live` is not reached),
   `make panelpro-test`, then restore every changed file from git.
+
+### The sandbox swap (main session, 2026-11-25)
+
+- **A turnout swap is one row.** On main at 5599f8d3, in a scratch worktree, one `devices_field.csv` row (level 2,
+  turnout, `switch:107`, assignment field, `system_name` and `jmri_name` M2T3308) and `HART_TABLES_REVIEW=1 make
+  panels`: every step ran, the SML discovery included; `tables.xml` binds Switch 107 to M2T3308 with its two physical
+  feedback sensors (TWOSENSOR), and the startup LogixNG no longer sets it; the Layout Editor panel fingerprint is
+  unchanged and only the desk fingerprints change (their bindings). `make panelpro-test`: ok (98 masts, 97 block
+  sensors clear, main and upper turnouts 36 closed, 2 thrown). Reverted; nothing committed.
+- **A detector swap builds but fails the smoke test.** With a second row (`det:block:107B-107C#1` to M2S3305) every
+  build step passed, but `panelpro_smoke_test.py` (Jython, inside JMRI) stops: "main and upper blocks with no virtual
+  occupancy sensor: Track 107 Loop 1". It still expects every main and upper block to have a virtual sensor; it must
+  accept a block whose occupancy row is a field sensor before the first detector swap.
+
+## Left after the plan
+
+- `panelpro_smoke_test.py`: accept a swapped (field) main or upper detector (above).
+- A head swap: `level_masts.WIRED_LEVELS` and `wiring.digicon_rows` read the level, not the head row's assignment.
+- `publish_draft --check` does not key its drawing stamp on `hartlib` code (Step 3b findings).
+- A crossover half cannot be renamed: its half letter comes from its name.
+- `docs/ap/electrical/test_build_soq.py` counts 57 detected sections where its text says 43 (owner's call; not this plan's).
 
 ## How to run this
 
