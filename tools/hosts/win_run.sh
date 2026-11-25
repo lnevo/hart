@@ -110,7 +110,11 @@ cd "\$wt"
 want="\$(grep -E '^ruff==' requirements.txt || true)"
 if [[ -n "\$want" && "\$(ruff --version 2>/dev/null || true)" != "ruff \${want#ruff==}" ]]; then
   echo "win_run.sh: installing \$want into \$HOME/hart/.venv" >&2
-  flock "\$main/.git/win_run.lock" "\$HOME/hart/.venv/bin/python" -m pip install -q "\$want" >&2
+  # The venv there is made by uv (no pip in it); a venv with pip installs with pip.
+  py="\$HOME/hart/.venv/bin/python"
+  if "\$py" -m pip --version >/dev/null 2>&1; then installer=("\$py" -m pip install -q)
+  else installer=(uv pip install -q --python "\$py"); fi
+  flock "\$main/.git/win_run.lock" "\${installer[@]}" "\$want" >&2
 fi
 # --- slots (tests run this block alone)
 # At most $slots runs at once, each with its share of the CPUs: more runs only slow each other down (2026-11-21:
