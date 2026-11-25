@@ -39,11 +39,15 @@ hart-rc-1 marks the ADR Accepted and merges PR #1126. The migration then splits 
 
 ## C. ADR-037 stage 4b with the skip-chain gaps (M)
 
+Done 2026-11-25: #1136.
+
 - Split the single `static` job into one job per check, so an unchanged check skips after a commit and in CI.
 - Add `HART_CACHE_DIR` and `HART_GUARD_JMRI_RUNNING` to `check_stamps`' `KEY_ENV` (local runs only today).
 - In the weekly full run, fail when a job a skipping run left out fails in the full run, so a wrong skip shows within a week.
 
 ## D. Size guard and `railroad_facts.py` tests (M)
+
+Done 2026-11-25: the tests in #1134, the `py-sizes` guard in #1141.
 
 - A check, from the manifest, that fails when a `.py` file over 800 lines grows past its size in a committed list; shrinking updates the list.
 - Growth since 2026-11-22: `railroad_facts.py` 1240 to 1474 lines (no test file of its own), `build_device_map.py` 833 to 1063 (split in health round 2, item 2), `tables_build.py` 963 to 1185, `hartlib` `devices.py` 1057 to 1237.
@@ -51,7 +55,7 @@ hart-rc-1 marks the ADR Accepted and merges PR #1126. The migration then splits 
 
 ## E. ADR-037 stage 5: the panels step list (M to L)
 
-In flight (`agent/claude/manifest-stage5`; commit `ae1a7962` already fixes the masts comment and pins it with a test).
+Done 2026-11-25: #1135.
 
 The panels step list is kept by hand in six places (`build_panels.sh` list and header, `schematic-panels.md`, `test_build_panels.STEPS`, `panel_stamps.STEPS`, the map). Generate them from `panels.toml`. It also clears the stale comment at `tools/schematic/panel_stamps.py` (masts "writes devices_generated.csv"), repeated in the `build_panels.sh` header and a test. ADR-037 point 5 holds it until the naming work (ADR-033) is closed and unclaimed: the hand-off is done, so it waits only on step A's step 11 check.
 
