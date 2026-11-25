@@ -488,6 +488,7 @@ class DocsChecksShTest(unittest.TestCase):
                 '  [[ -z "${STUB_MANIFEST_FAIL:-}" ]] || { echo "manifest.py: stub error" >&2; exit 1; }\n'
                 '  printf %s "$STUB_DOCS"; exit 0\n'
                 'fi\n'
+                '[[ "$1" != tools/eat.py ]] || cat >/dev/null\n'    # a check that reads its stdin to the end
                 'echo "ran $*"\n')
             (bin_dir / "python3").chmod(0o755)
             full = {**os.environ, "PATH": f"{bin_dir}:{os.environ['PATH']}", "HOPS_PY": "python3", **env}
@@ -513,6 +514,12 @@ class DocsChecksShTest(unittest.TestCase):
                 self.assertEqual(2, done.returncode)
                 self.assertIn(said, done.stdout)
                 self.assertNotIn("ran ", done.stdout)
+
+    def test_a_check_that_reads_stdin_does_not_eat_the_lines_after_it(self) -> None:
+        done = self.run_docs(STUB_DOCS="eat python3 tools/eat.py\nnext python3 tools/next.py\n")
+        self.assertEqual(0, done.returncode, done.stdout + done.stderr)
+        self.assertIn("ran tools/eat.py", done.stdout)
+        self.assertIn("ran tools/next.py", done.stdout)
 
     def test_a_line_that_will_not_parse_is_a_failure(self) -> None:
         done = self.run_docs(STUB_DOCS="ok python3 tools/a.py\nbad python3 'unclosed\n")

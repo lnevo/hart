@@ -25,12 +25,13 @@ fi
 # parsed in a subshell first: a line that will not parse, eval'd here, leaves bash 3.2 unable to read the rest of
 # this file.
 check_line() { ( eval "set -- $1" ) || return 1; eval "check $1"; }
+# The lines come in on fd 3 and each check gets no stdin, so a check that reads stdin cannot eat the lines after it.
 ran=0
-while IFS= read -r line; do
+while IFS= read -r line <&3; do
   [[ -z "$line" ]] && continue
   ran=$((ran + 1))
-  check_line "$line" || failed+=("${line%% *} (its line from the manifest would not parse)")
-done <<<"$lines"
+  check_line "$line" </dev/null || failed+=("${line%% *} (its line from the manifest would not parse)")
+done 3<<<"$lines"
 if (( ran == 0 )); then
   echo "STOP: tools/pipeline/manifest.py jobs check --docs-only listed no check; no docs check ran"
   exit 2

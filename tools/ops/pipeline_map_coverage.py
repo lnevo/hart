@@ -316,8 +316,8 @@ def check(graph: Path, listing: list[str] | None = None) -> list[str]:
     # new files not yet added count too, so a check before the commit does not call them gone
     files = frozenset(_git_files() + _git_files("--others", "--exclude-standard"))
     scripts, outputs = scan(files, _submodules(), lambda f: (ROOT / f).read_text())
-    try:
-        steps = MANIFEST.load()
+    try:        # checked against this graph and the files scanned here, not a second git ls-files and map read
+        steps = MANIFEST.load(where=MANIFEST.repo_from(files, data))
     except MANIFEST.ManifestError as err:
         raise CoverageError(f"the step manifest check.sh runs its checks from cannot be read:\n{err}") from None
     for step in steps:
