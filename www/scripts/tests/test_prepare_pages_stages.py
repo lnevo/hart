@@ -410,7 +410,7 @@ class RefillFailures(unittest.TestCase):
             for rel in self.PAGES:
                 _write(root, str(rel))
             targets = {
-                "tables": (build.build_tables_browser, "write"),
+                "tables": (build.build_tables_browser, "write_page"),
                 "guide": (build.repo_guide_page, "write"),
                 "jmri": (build.jmri_additions_page, "write"),
             }

@@ -1,5 +1,7 @@
-#!/usr/bin/env python3
-"""Build stop-motion video of HART JMRI USS CTC panel evolution from history screenshots."""
+"""Build stop-motion video of HART JMRI USS CTC panel evolution from history screenshots.
+
+Run it with `python3 tools/ctc_history/films.py ctc`.
+"""
 
 from __future__ import annotations
 
@@ -342,6 +344,3 @@ def main() -> None:
     print(f"Wrote {OUT_GIF}")
     print(f"Frames: {len(FRAMES)}")
 
-
-if __name__ == "__main__":
-    main()

@@ -37,6 +37,11 @@ tools/env/hart.env
 # build writes its own copy, and check.sh and CI build them in memory (build_pipeline_map.py --check)
 /docs/pipeline-map/index.html
 /www/library/pipeline-map.html
+# the site's generated JSON (ADR-036, 2026-11-25): www/scripts/site_views.py builds them; the site build writes its
+# own copies, the local preview (serve_portal.py, make site-data) writes these, check.sh builds them in memory
+/www/data/tables-browser.json
+/www/data/layout-index.json
+/www/data/layout-index-cats.json
 # The status page, built from wiki/status/ by make status and the session-start hook (ADR-038)
 /wiki/STATUS.md
 
@@ -93,7 +98,7 @@ cats/panels/_qa_*.png
 cats/panels/*.png
 cats/panels/sheets/*.pre_*
 
-# Generated CTC evolution video (regenerate with make_ctc_evolution_video.py)
+# Generated CTC evolution video (regenerate with tools/ctc_history/films.py ctc)
 docs/ctc/history/CTC_Evolution_crops/
 docs/ctc/history/CTC_Panel_Evolution.gif
 docs/ctc/history/CTC_Panel_Evolution.mp4

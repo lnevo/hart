@@ -8,7 +8,13 @@ Emits clickable:
   - turnout plants (SWITCHPOINTS)
   - signal masts (SECSIGNAL)
 
-Joined to layout-index.json for MQTT / hardware when names match.
+Joined to the layout index (build_layout_index.py, built in memory) for MQTT / hardware when names match.
+
+    python3 www/scripts/build_cats_layout_index.py          # render the PNG, stamp it, write the local JSON
+    python3 www/scripts/build_cats_layout_index.py --check  # build in memory; exit 1 if a check fails
+
+www/data/layout-index-cats.json is built where it is used, not committed (ADR-036): the site build and the local
+preview call index_text() (site_views.py). The PNG stays committed with its render stamp (png_stamp.py).
 """
 
 from __future__ import annotations
@@ -22,13 +28,18 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import build_layout_index  # noqa: E402
+import png_stamp  # noqa: E402
+from build_layout_index import paths  # noqa: E402  (hartlib.paths, put on sys.path by build_layout_index)
+
 PORTAL = Path(__file__).resolve().parents[1]
 ROOT = PORTAL.parent
 PANEL = ROOT / "cats/panels/HART_CTC.xml"
 RENDER = ROOT / "cats/scripts/render_cats_panel.py"
 OUT_IMG = PORTAL / "assets/layout/HART_cats_digicon.png"
 OUT_JSON = PORTAL / "data/layout-index-cats.json"
-LE_JSON = PORTAL / "data/layout-index.json"
+BUILD = "python3 www/scripts/build_cats_layout_index.py"
 
 CELL = 60
 PAD_X = 60
@@ -70,19 +81,21 @@ HOTSPOT_OVERRIDE = {
 }
 
 
+class CatsIndexError(Exception):
+    """The CATS layout index cannot be built, or what was built fails a check; the message says why."""
+
+
 def render() -> None:
     OUT_IMG.parent.mkdir(parents=True, exist_ok=True)
-    subprocess.run(
-        [sys.executable, str(RENDER), str(PANEL), str(OUT_IMG)],
-        check=True,
-    )
+    if subprocess.run([sys.executable, str(RENDER), str(PANEL), str(OUT_IMG)]).returncode:
+        raise CatsIndexError(f"render failed: {RENDER.name} {PANEL}")
 
 
-def le_by_keys() -> dict[str, dict]:
-    if not LE_JSON.is_file():
-        return {}
-    data = json.loads(LE_JSON.read_text(encoding="utf-8"))
-    items = data.get("items") or []
+def le_by_keys(le_index: dict) -> dict[str, dict]:
+    """The layout index's items by every name a Digicon cell may use for them."""
+    items = le_index.get("items")
+    if not isinstance(items, list) or not items:
+        raise CatsIndexError("the layout index it joins to has no items")
     out: dict[str, dict] = {}
     # Names first; they are authoritative.
     for it in items:
@@ -164,7 +177,7 @@ EFFECTIVE = re.compile(r"Eff \d{4}-\d{2}-\d{2}")
 def render_inputs_sha256() -> str:
     """What the desk PNG is drawn from: the desk's TRACKPLAN (build date left out) and the renderer.
 
-    Recorded in the JSON so --check finds a PNG that needs re-rendering without drawing it.
+    Recorded in the PNG (png_stamp) and the JSON so --check finds a PNG that needs re-rendering without drawing it.
     """
     tp = ET.tostring(ET.parse(PANEL).getroot().find("TRACKPLAN"), encoding="unicode")
     h = hashlib.sha256(EFFECTIVE.sub("Eff DATE", tp).encode("utf-8"))
@@ -172,15 +185,34 @@ def render_inputs_sha256() -> str:
     return h.hexdigest()
 
 
-def build() -> dict:
+def build(le_index: dict | None = None) -> dict:
+    """The CATS index, joined to `le_index` (build_layout_index.build(), built now when None). CatsIndexError when a
+    source is missing or cannot be read."""
+    try:
+        return _build(le_index)
+    except (ET.ParseError, ValueError, OSError) as err:
+        raise CatsIndexError(f"cannot build the CATS index from its sources: {type(err).__name__}: {err}") from None
+
+
+def _build(le_index: dict | None) -> dict:
+    for path in (PANEL, RENDER, OUT_IMG):
+        if not path.is_file():
+            raise CatsIndexError(f"missing {paths.rel(path)}" + (f": run {BUILD}" if path == OUT_IMG else ""))
     root = ET.parse(PANEL).getroot()
     tp = root.find("TRACKPLAN")
+    if tp is None or not tp.findall("SECTION"):
+        raise CatsIndexError(f"{paths.rel(PANEL)} has no TRACKPLAN sections")
     sections = tp.findall("SECTION")
     xs = [int(s.get("X")) for s in sections]
     ys = [int(s.get("Y")) for s in sections]
     minx, miny = min(xs), min(ys)
 
-    by = le_by_keys()
+    if le_index is None:
+        try:
+            le_index = build_layout_index.build()
+        except build_layout_index.LayoutIndexError as err:
+            raise CatsIndexError(f"cannot build the layout index it joins to: {err}") from None
+    by = le_by_keys(le_index)
     items: list[dict] = []
 
     # (x, y) -> OS blocks / stations on that cell's edges, for switch cells that carry none.
@@ -297,9 +329,10 @@ def build() -> dict:
             }
         )
 
-    from PIL import Image
-
-    w, h = Image.open(OUT_IMG).size
+    try:
+        w, h = png_stamp.size(OUT_IMG)
+    except png_stamp.PngError as err:
+        raise CatsIndexError(str(err)) from None
     n_to = sum(1 for it in items if it["kind"] == "turnout")
     n_sig = sum(1 for it in items if it["kind"] == "signal")
     return {
@@ -327,33 +360,66 @@ def build() -> dict:
     }
 
 
+def problems(payload: dict) -> list[str]:
+    """What is wrong with a built index: no turnouts or signals, counts that do not add up, repeated ids, or a PNG
+    whose stamp is not the hash of what it is drawn from now (re-render it)."""
+    out = []
+    items = payload.get("items") or []
+    counts = payload.get("counts") or {}
+    for kind in ("turnout", "signal"):
+        if not counts.get(kind):
+            out.append(f"the index has no {kind} hotspots")
+    if counts.get("total") != len(items):
+        out.append(f"counts.total is {counts.get('total')}, the index has {len(items)} items")
+    ids = [it.get("id") for it in items]
+    if len(set(ids)) != len(ids):
+        out.append("repeated item ids: " + ", ".join(sorted({i for i in ids if ids.count(i) > 1}, key=str)[:10]))
+    want = (payload.get("image") or {}).get("inputs_sha256")
+    try:
+        have = png_stamp.stamp(OUT_IMG)
+    except png_stamp.PngError as err:
+        out.append(str(err))
+    else:
+        if have != want:
+            out.append(f"{paths.rel(OUT_IMG)} was drawn from other inputs (its stamp is {have}, they hash to "
+                       f"{want}): run {BUILD} and commit the PNG")
+    return out
+
+
+def index_text(payload: dict | None = None, le_index: dict | None = None) -> str:
+    """The checked layout-index-cats.json text of `payload` (built now, joined to `le_index`, when None).
+    CatsIndexError when it cannot be built or fails a check."""
+    payload = build(le_index) if payload is None else payload
+    bad = problems(payload)
+    if bad:
+        raise CatsIndexError(f"{paths.rel(OUT_JSON)} fails its checks:\n  " + "\n  ".join(bad))
+    return json.dumps(payload, indent=2) + "\n"
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--check", action="store_true",
-                    help="build without rendering or writing; exit 1 if layout-index-cats.json or the PNG "
-                         "(by its recorded render inputs) is stale")
+                    help="build in memory and write nothing; exit 1 if the index fails a check or the PNG "
+                         "(by its render stamp) is stale")
     args = ap.parse_args(argv)
-    if not PANEL.is_file():
-        raise SystemExit(f"missing {PANEL}")
-    if args.check:
-        want = json.dumps(build(), indent=2) + "\n"
-        have = OUT_JSON.read_text(encoding="utf-8") if OUT_JSON.is_file() else ""
-        if want != have:
-            print(f"{OUT_JSON.relative_to(ROOT)} or {OUT_IMG.relative_to(ROOT)} is stale: run python3 "
-                  "www/scripts/build_cats_layout_index.py (after build_layout_index.py) and commit both",
-                  file=sys.stderr)
-            return 1
-        print(f"{OUT_JSON.relative_to(ROOT)} is current")
-        return 0
-    render()
-    payload = build()
-    OUT_JSON.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-    c = payload["counts"]
-    print(
-        f"wrote {OUT_JSON.relative_to(ROOT)} "
-        f"to={c['turnout']} sig={c['signal']} mapped={c['mapped']} "
-        f"img={payload['image']['width']}x{payload['image']['height']}"
-    )
+    try:
+        if args.check:
+            text = index_text()
+            print(f"{paths.rel(OUT_JSON)} builds and passes its checks "
+                  f"({len(json.loads(text)['items'])} items, the PNG's render stamp is current)")
+            return 0
+        render()
+        payload = build()
+        png_stamp.write_stamp(OUT_IMG, payload["image"]["inputs_sha256"])
+        text = index_text(payload)
+        OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
+        OUT_JSON.write_text(text, encoding="utf-8")
+    except (CatsIndexError, png_stamp.PngError, OSError, ET.ParseError) as err:
+        print(err, file=sys.stderr)
+        return 1
+    c = json.loads(text)["counts"]
+    print(f"wrote {paths.rel(OUT_IMG)} (to commit) and {paths.rel(OUT_JSON)} (not committed) "
+          f"to={c['turnout']} sig={c['signal']} mapped={c['mapped']}")
     return 0
 
 
