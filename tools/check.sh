@@ -15,6 +15,30 @@ fi
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 export JMRI_LAYOUT=hart
+# ops/hart-ops/.venv's Python when there is one: it carries pypdf, for the public text check's PDF part.
+HOPS_PY=python3
+[[ -x ops/hart-ops/.venv/bin/python ]] && HOPS_PY=ops/hart-ops/.venv/bin/python
+# Docs-only path, the rule CI uses (tools/ci/changed_kind.py): when every path this checkout changes (the branch
+# against its merge base with origin/main, plus uncommitted and untracked files) is Markdown docs, run only the quick
+# docs checks (tools/ci/docs_checks.sh, CI's list) and stop. It runs no job and records no stamp, and it does not end
+# "ALL PASSED": it is not a pass of check.sh (owner, 2026-11-24). CI, FULL=1 and any run that asks for something
+# particular (CHECK_ONLY, CHECK_AUDIT, HART_TABLES, PORTAL_CHECK=1, the CI stamp folders) take the normal path.
+# When git cannot say what changed (no merge base: a shallow clone), the normal path runs and says why.
+DOCS_ONLY=0
+if [[ -z "${CI:-}" && "${FULL:-}" != 1 && -z "${CHECK_ONLY:-}" && -z "${CHECK_AUDIT:-}" && -z "${HART_TABLES:-}" \
+      && "${PORTAL_CHECK:-}" != 1 && -z "${CHECK_RECORD_TO:-}" && -z "${CHECK_SKIP_FROM:-}" ]]; then
+  if verdict="$(python3 tools/ci/changed_kind.py --git 2>&1)"; then
+    case "$verdict" in
+      docs:*) DOCS_ONLY=1
+              echo "Docs-only change (${verdict#docs: }): quick docs checks only, no stamps recorded, not a full pass (FULL=1 runs everything)" ;;
+      full:*) ;;
+      unknown:*) echo "Full checks: cannot tell what changed, ${verdict#unknown: }" ;;
+      *) echo "Full checks: tools/ci/changed_kind.py --git printed no verdict: $verdict" ;;
+    esac
+  else
+    echo "Full checks: tools/ci/changed_kind.py --git failed: $verdict"
+  fi
+fi
 # The caller's PYTHONPATH, before any job puts a hook on it: build_panels.sh runs with it (panel_stamps keys on it).
 CALLER_PYTHONPATH=()
 if [[ -n "${PYTHONPATH+set}" ]]; then CALLER_PYTHONPATH=(PYTHONPATH="$PYTHONPATH"); else CALLER_PYTHONPATH=(-u PYTHONPATH); fi
@@ -44,6 +68,14 @@ pin_problem="$(hart_plugin_pin_problem "$ROOT")"
 if [[ -n "$pin_problem" ]]; then
   echo "STOP: $pin_problem" >&2
   exit 2
+fi
+if (( DOCS_ONLY )); then
+  if HOPS_PY="$HOPS_PY" bash tools/ci/docs_checks.sh; then
+    echo "DOCS CHECKS PASSED (the docs-only path; FULL=1 runs check.sh in full)"
+    exit 0
+  fi
+  echo "FAILED"
+  exit 1
 fi
 # A schematic check that cannot load the plugin fails rather than printing SKIPPED and passing, as in CI (owner,
 # 2026-11-23): a checkout without the submodule must not report ALL PASSED. SCHEMATIC_REQUIRED=0 lets those checks skip.
@@ -375,9 +407,7 @@ unit unit-anyrail python3 -m unittest discover -b -q -s tools/anyrail/tests
 unit unit-portal python3 -m unittest discover -b -q -s www/scripts/tests
 # Car cards, intake and publications. Uses ops/hart-ops/.venv when it exists; a checkout
 # without it (a worktree) skips, CI installs ops/hart-ops/requirements-test.txt.
-HOPS_PY=python3
-[[ -x ops/hart-ops/.venv/bin/python ]] && HOPS_PY=ops/hart-ops/.venv/bin/python
-# The venv carries pypdf for the PDF part; plain python3 checks everything else.
+# HOPS_PY (set at the top) carries pypdf for the PDF part; plain python3 checks everything else.
 later public-text "$HOPS_PY" tools/audit/check_public_text.py
 if [[ -n "${CI:-}" ]] || "$HOPS_PY" -c "import numpy, scipy, docx, pytesseract" 2>/dev/null; then
   unit unit-hart-ops "$HOPS_PY" -m unittest discover -b -q -s ops/hart-ops/tests

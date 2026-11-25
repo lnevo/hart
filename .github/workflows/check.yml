@@ -156,17 +156,7 @@ jobs:
           echo "added $(find "$got" -maxdepth 1 -type f -name '*.pickle' | wc -l) entries from pull request #$number, run $run"
       - name: Quick docs checks
         if: steps.kind.outputs.kind == 'docs'
-        run: |
-          set -euo pipefail
-          python3 tools/ops/build_docs_index.py --check --strict
-          python3 tools/ops/status_counts.py --check
-          python3 tools/audit/check_ai_speak.py
-          python3 tools/audit/check_agent_docs.py
-          # the map's agent-doc lane is generated from the wiki and agent docs, so a docs-only change can leave it stale
-          python3 tools/ops/build_pipeline_map.py --public --out www/library/pipeline-map.html --back repository-guide.html --check
-          python3 tools/audit/check_public_text.py
-          python3 www/scripts/repo_guide_page.py --check
-          python3 www/scripts/jmri_additions_page.py --check
+        run: bash tools/ci/docs_checks.sh     # the one list, shared with tools/check.sh's docs-only path
       # A run whose plugin pin differs from its base's (a pull request that bumps the plugin, or main's push of its
       # merge) and whose exact cache key missed restores a cache solved with another plugin: it misses every entry,
       # and check.sh's parallel jobs would each solve the sheet cold at once (12-34 min runs). Every other run skips
