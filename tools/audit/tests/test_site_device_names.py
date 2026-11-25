@@ -37,7 +37,7 @@ class BlockKindFromTheMaster(unittest.TestCase):
     def test_a_level_less_block_is_a_plain_block(self) -> None:
         import tempfile
         import xml.etree.ElementTree as ET
-        from hartlib import devices, tables_build
+        from hartlib import tables_build
         el = ET.fromstring('<block systemName="IB999" length="0.0" curve="0"><systemName>IB999</systemName>'
                            '<userName>OS Store Added</userName><permissive>no</permissive></block>')
         row = {c: "" for c in devices.COLUMNS}

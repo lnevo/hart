@@ -805,15 +805,15 @@ class CommittedMainAndUpper(unittest.TestCase):
     def test_every_bound_name_is_in_the_tables(self):
         for key, e in self.bound["switches"].items():
             for leg in e["routes"].values():
-                for io in leg.values():
+                for pin in leg.values():
                     with self.subTest(switch=key):
-                        system = io["JMRIPREFIX"] + io["DECADDR"]
-                        self.assertEqual(self.turnouts.get(system), io["USER_NAME"])
+                        system = pin["JMRIPREFIX"] + pin["DECADDR"]
+                        self.assertEqual(self.turnouts.get(system), pin["USER_NAME"])
         for key, e in self.bound["blocks"].items():
             if "occupied" in e:
                 with self.subTest(block=key):
-                    io = e["occupied"]
-                    self.assertEqual(self.sensors.get(io["JMRIPREFIX"] + io["DECADDR"]), io["USER_NAME"])
+                    pin = e["occupied"]
+                    self.assertEqual(self.sensors.get(pin["JMRIPREFIX"] + pin["DECADDR"]), pin["USER_NAME"])
         self.assertLessEqual({e["name"] for e in self.bound["masts"].values()}, self.masts)
 
     def test_main_and_upper_turnouts_and_masts_are_bound(self):
