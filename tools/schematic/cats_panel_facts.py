@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  the pinned plugin and the sheet cache
 import mast_rule as mr  # noqa: E402  the helix tracks (plan_overrides.json)
 import staging_device_map as sdm  # noqa: E402  the staging tracks and their blocks (the staging rows of the device master)
-from hartlib import paths, railroad  # noqa: E402
+from hartlib import hand_lists, paths, railroad  # noqa: E402
 from hartlib.cats import appearance_templates, mast_templates  # noqa: E402
 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
@@ -73,6 +73,7 @@ class Facts:
     mast_system: dict = field(default_factory=dict)         # JMRI mast user name -> system name
     level_masts: list = field(default_factory=list)         # masts.csv rows of the device map's levels (hartlib.level_masts)
     helix: dict = field(default_factory=dict)       # plan helix track name -> its block (read_helix_tracks)
+    half_letters: dict = field(default_factory=dict)   # (level, crossover half's OS block ID) -> a or b (half_label)
 
 
 def staging_tracks() -> list[dict]:
@@ -98,8 +99,9 @@ def load_facts(rr: railroad.Railroad | None = None):
                      StagingTracks(staging_tracks()), mast_templates(systems=t.masts), set(t.masts),
                      rr.device_map,
                      t.sensors, t.turnouts, t.masts, [r for r in rr.masts if r["level"] in dm_levels],
-                     {plan: h["block"] for plan, h in mr.read_helix_tracks().items()})
-    except (railroad.FactsError, mr.MapError) as exc:
+                     {plan: h["block"] for plan, h in mr.read_helix_tracks().items()},
+                     hand_lists.half_letters(Path(pd.DATA) / hand_lists.OVERRIDES_NAME))
+    except (railroad.FactsError, mr.MapError, hand_lists.HandListError) as exc:
         raise SystemExit(f"build_cats_panel.py: {exc}") from None
 
 

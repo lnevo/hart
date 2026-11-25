@@ -378,6 +378,7 @@ class Leg:
     os_block: str
     closed: str
     thrown: str
+    os_id: str = ""             # its OS block's device ID (switches.csv os_id): a crossover half's letter is keyed by it
 
 
 @dataclass(frozen=True)
@@ -464,7 +465,7 @@ def staging_switches(rows: list[SwitchRow], path: Path, devices_csv: Path,
         out[n] = Switch(number=n, level=str(first.level), le_ident=first.le_ident,
                         cats_inverted=_yes(first.cats_inverted, where), ctc_is=ctc_is,
                         ctc_signals=_yes(first.ctc_signals, where),
-                        legs=tuple(Leg(r.os_block, r.closed_leg, r.thrown_leg) for r in rs), hand=first.hand,
+                        legs=tuple(Leg(r.os_block, r.closed_leg, r.thrown_leg, r.os_id) for r in rs), hand=first.hand,
                         hardware=nm.get("system_name", ""), dcc=nm.get("dcc", ""), cp=nm.get("cp", ""))
     return out
 
@@ -746,18 +747,22 @@ def read_desk_areas(path: Path, switches: Iterable[str] | None = None) -> list[D
 STATION_GROUP_COLUMNS = ("cp_id", "cp_name", "level", "switches", "notes", "code")
 
 
-def os_label(r: SwitchRow, where: Path) -> str:
+def os_label(r: SwitchRow, where: Path, letters=None) -> str:
     """The label a desk area gives a switch row's OS block: "19", or a crossover half's "7b", "23a". It is the OS
-    block's name less "OS Switch " while the name keeps that form; a renamed OS block of a switch with one (os_id
-    os:<n>) is its number. FactsError on a renamed crossover half: which half letter it is, the name said, and nothing
-    else holds it yet (naming-layers step 5, open)."""
+    block's name less "OS Switch " while the name keeps that form; a renamed OS block is its switch's number (os_id
+    os:<n>), or a crossover half's number and letter (os_id os:<n>:A-<end>), the letter by its ID from `letters`
+    ({(level, id): letter}, hartlib.hand_lists.half_letters; a callable that gives them, so the file is read only for
+    a renamed half). FactsError on a renamed half with no letter there."""
     m = OS_BLOCK.fullmatch(r.os_block)
     if m and int(m.group(1)) == r.switch:
         return r.os_block.removeprefix("OS Switch ")
     if r.os_id == f"os:{r.switch}":
         return str(r.switch)
-    raise FactsError(f"{_where(where, r.line)} (Switch {r.switch}): {r.os_id} is named {r.os_block!r}; a crossover "
-                     "half's name gives its half letter (OS Switch 7b), so it keeps that form for now")
+    letter = (letters() if callable(letters) else letters or {}).get((str(r.level), r.os_id))
+    if letter is None:
+        raise FactsError(f"{_where(where, r.line)} (Switch {r.switch}): {r.os_id} is named {r.os_block!r}, and no "
+                         "crossover_half row of block_overrides.csv gives its half letter")
+    return f"{r.switch}{letter}"
 
 
 def station_group_rows(stations: Path, switches: Path) -> list[dict[str, str]]:
@@ -765,13 +770,25 @@ def station_group_rows(stations: Path, switches: Path) -> list[dict[str, str]]:
     row carries its level, so a caller that wants one level filters on it) in the shape the older
     data/control_points.csv had, which this replaces (level-unification step 8): cp_id the name in lower case with
     underscores, level, code and notes the area's, and switches the OS block of each switch (a crossover by its
-    halves, 7 as 7,7b and 23 as 23a,23b, from the os_block of its switches.csv rows), "," between. Stops with
+    halves, 7 as 7,7b and 23 as 23a,23b, from the os_block of its switches.csv rows, os_label: a renamed half by
+    its number and its letter in block_overrides.csv beside `stations`), "," between. Stops with
     FactsError, naming the file, line and station, on what read_desk_areas or read_switch_rows stops on or a switch
     with no OS block."""
+    from . import hand_lists          # it imports this module
+    letters = {}
+
+    def half_letters():
+        if not letters:          # a renamed crossover half's letter, by its ID (os_label), from beside stations.csv
+            try:
+                letters.update(hand_lists.half_letters(Path(stations).parent / hand_lists.OVERRIDES_NAME))
+            except hand_lists.HandListError as exc:
+                raise FactsError(str(exc)) from None
+        return letters
+
     halves: dict[str, list[str]] = {}
     for r in read_switch_rows(switches):
         if r.os_block:
-            halves.setdefault(str(r.switch), []).append(os_label(r, switches))
+            halves.setdefault(str(r.switch), []).append(os_label(r, switches, half_letters))
     rows = read_stations(stations)
     inner = _innermost(rows, stations)
     out = []

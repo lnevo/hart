@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from hartlib import paths, railroad_facts as rf  # noqa: E402
+from hartlib import hand_lists, paths, railroad_facts as rf  # noqa: E402
 
 STATIONS = paths.LAYOUT_DATA / "schematic" / "stations.csv"
 SWITCHES = paths.LAYOUT_DATA / "switches.csv"
@@ -213,13 +213,21 @@ class StationGroupRows(Files):
 
     def test_a_renamed_os_block_is_listed_by_its_switch(self):
         """naming-layers step 5: a staging OS block is keyed by its id, so an owner's name for it (os_block is the
-        name store's label) still lists as its switch number; a renamed crossover half stops (its letter is the
-        name's)."""
+        name store's label) still lists as its switch number, and a renamed crossover half as its number and the
+        letter block_overrides.csv's crossover_half row gives its ID; with no such row it stops."""
         st, sw = self.files("1,X,5,,XX,\n", "1,5,OS Brick East\n")
         self.assertEqual(rf.station_group_rows(st, sw)[0]["switches"], "5")
         st, sw = self.files('1,X,"7",,XX,\n', "1,7,OS Barn West,os:7:A-13C\n1,7,OS Switch 7b,os:7:A-5B\n")
+        overrides = st.parent / hand_lists.OVERRIDES_NAME
+        overrides.write_text(",".join(hand_lists.OVERRIDE_COLUMNS) + "\n1,crossover_half,7,13,1,,os:7:A-13C,,,\n"
+                             "1,crossover_half,7,5,2,,os:7:A-5B,,,\n")
+        self.assertEqual(rf.station_group_rows(st, sw)[0]["switches"], "7a,7b")
+        overrides.write_text(",".join(hand_lists.OVERRIDE_COLUMNS) + "\n1,crossover_half,7,5,2,,os:7:A-5B,,,\n")
         with self.assertRaisesRegex(rf.FactsError, r"switches.csv line 2 \(Switch 7\): os:7:A-13C is named "
-                                                   r"'OS Barn West'; a crossover half's name gives its half letter"):
+                                                   r"'OS Barn West', and no crossover_half row"):
+            rf.station_group_rows(st, sw)
+        overrides.unlink()
+        with self.assertRaisesRegex(rf.FactsError, "cannot read"):
             rf.station_group_rows(st, sw)
 
 

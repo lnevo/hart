@@ -11,8 +11,10 @@ A second copy (step 5b, RenameInPreferencesAndStations) renames Track S-1 (block
 Track W-1 (block:3B-end), and checks that preferences.json and stations.csv, which name tracks by block ID, are left
 as they are while the merged preferences the plugin reads, the station's tracks (build_staging_sets, read_places)
 and the left end take the new names.
+A third (RenameCrossoverHalf) renames a staging crossover half, OS Switch 23a (os:23:A-1A), whose letter is its
+crossover_half row's, by its ID, and not its name's.
 The whole build on such a copy was run by hand for each step (wiki/projects/naming-layers-handoff.md, step 5 and 5b
-findings); this pins the readers without the schematic plugin.
+findings, and "Left after the plan"); this pins the readers without the schematic plugin.
 """
 from __future__ import annotations
 
@@ -186,6 +188,107 @@ class RenameInPreferencesAndStations(unittest.TestCase):
         self.assertEqual(next(s.tracks for s in sets if s.name == "West Yard"), ("Brick 1", "W-2"))
         places = device_map_inputs.read_places(stations)
         self.assertEqual(places.tracks, {"Track Brick 1": ["West Yard"], "Track W-2": ["West Yard"]})
+
+
+class RenameCrossoverHalf(unittest.TestCase):
+    """A staging crossover half's OS block (OS Switch 23a, os:23:A-1A) is renamed by its field row alone: its letter
+    is block_overrides.csv's crossover_half row's, by its ID, so the device master, the switch labels, the desk
+    areas, the desk's half label and plate and the staging beans of tables.xml take the new name, and nothing reads
+    a letter off it. The whole build on such a copy was run by hand (wiki/projects/naming-layers-handoff.md)."""
+
+    ID, NEW, OLD = "os:23:A-1A", "OS East West", "OS Switch 23a"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        from hartlib import track_names
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.data = Path(cls.tmp.name)
+        for name in (devices.GENERATED_FILE, devices.FIELD_FILE, "devices.columns.csv", "wiring.csv",
+                     "block_lengths.csv", "switches.csv"):
+            shutil.copy(paths.LAYOUT_DATA / name, cls.data / name)
+        cls.schematic = cls.data / "schematic"
+        shutil.copytree(paths.LAYOUT_DATA / "schematic", cls.schematic, symlinks=True)
+        track_names.repo_inputs(cls.schematic)
+        cls.before = {p.relative_to(cls.data): p.read_bytes() for p in cls.data.rglob("*") if p.is_file()}
+        field = devices.field_path(cls.data)
+        rows = list(csv.DictReader(io.StringIO(field.read_text(encoding="utf-8"))))
+        hit = [r for r in rows if (r["level"], r["id"]) == ("1", cls.ID)]
+        assert len(hit) == 1 and hit[0]["user_name"] == cls.OLD, hit
+        hit[0]["user_name"] = cls.NEW
+        field.write_text(devices.master_text(rows), encoding="utf-8")
+        cls.files = devices.Files.under(cls.data)
+        cls.names = devices.user_names(cls.files)
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.tmp.cleanup()
+
+    def relabelled_switches(self) -> Path:
+        """switches.csv with its labels from the renamed store, as the hands step writes it (build_hands.apply)."""
+        import build_hands
+        path = self.data / "switches.csv"
+        hands = {r.half: r.hand for r in railroad.read_switch_rows(path) if r.level in railroad.LEVEL_NUMBERS and r.hand}
+        out = self.data / "relabelled" / "switches.csv"
+        out.parent.mkdir(exist_ok=True)
+        out.write_text(build_hands.apply(path, hands, self.names), encoding="utf-8")
+        return out
+
+    def test_only_the_field_file_was_edited(self) -> None:
+        changed = {str(k) for k, v in self.before.items() if (self.data / k).read_bytes() != v}
+        self.assertEqual(changed, {devices.FIELD_FILE})
+
+    def test_the_merged_master_follows_the_rename(self) -> None:
+        rows = devices.load(self.files)
+        self.assertEqual(self.names[("1", self.ID)], self.NEW)
+        det = next(r for r in rows if (r["level"], r["id"]) == ("1", "det:" + self.ID))
+        self.assertEqual((det["user_name"], det["blocks"]), ("BS Switch 23a", self.NEW))
+        cells = [r[c] for r in rows for c in devices.BLOCK_REFS if r["level"] == "1"]
+        self.assertFalse([c for c in cells if self.OLD in c.split(devices.LIST)])
+        self.assertIn(self.NEW, [r["protects"] for r in rows if r["id"].startswith("mast:23:A-1A:")])
+
+    def test_the_letter_comes_from_the_overrides_by_id(self) -> None:
+        from hartlib import hand_lists
+        letters = hand_lists.half_letters(self.schematic / hand_lists.OVERRIDES_NAME)
+        self.assertEqual({k: v for k, v in letters.items() if k[1].startswith("os:23:")},
+                         {("1", "os:23:A-1A"): "a", ("1", "os:23:A-31B"): "b"})
+        rows = hand_lists.read_block_overrides(self.schematic / hand_lists.OVERRIDES_NAME, ("track",), self.names)
+        self.assertNotIn(self.NEW, {r["block"] for r in rows})    # a track row's OS block by its generated name
+
+    def test_switch_labels_and_desk_areas_follow(self) -> None:
+        from hartlib import railroad_facts
+        path = self.relabelled_switches()
+        rows = [r for r in railroad.read_switch_rows(path) if r.level == 1 and r.switch == 23]
+        self.assertEqual([(r.os_id, r.os_block) for r in rows],
+                         [("os:23:A-1A", self.NEW), ("os:23:A-31B", "OS Switch 23b")])
+        self.assertEqual(rows[1].thrown_leg, self.NEW)
+        stations = self.schematic / "stations.csv"
+        areas = {r["cp_name"]: r["switches"] for r in railroad_facts.station_group_rows(stations, path)}
+        self.assertIn("23a,23b", areas["East End"])
+
+    def test_the_desk_labels_and_plates_the_half_by_its_letter(self) -> None:
+        import cats_panel
+        from hartlib import hand_lists, railroad_facts
+        path = self.relabelled_switches()
+        sw = railroad_facts.staging_switches(railroad.read_switch_rows(path), path, self.files.master,
+                                             railroad_facts.read_staging_rows(self.files))[23]
+        letters = hand_lists.half_letters(self.schematic / hand_lists.OVERRIDES_NAME)
+        self.assertEqual([cats_panel.half_label(sw, leg, letters) for leg in sw.legs], ["23A", "23B"])
+
+        class F:
+            switches, half_letters = {23: sw}, letters
+        self.assertEqual(cats_panel.os_plates(F), {self.NEW: "23a", "OS Switch 23b": "23b"})
+
+    def test_the_staging_beans_take_the_new_name(self) -> None:
+        import plan_lengths
+        from hartlib import railroad_facts, tables_build
+        lengths_path = self.data / "relabelled" / "block_lengths.csv"
+        lengths_path.parent.mkdir(exist_ok=True)
+        lengths_path.write_text(plan_lengths.labelled(self.data / "block_lengths.csv", self.files), encoding="utf-8")
+        beans = tables_build.master_beans(devices.load(self.files), railroad_facts.read_block_lengths(lengths_path),
+                                          ("1",))
+        names = {(e.tag, e.findtext("userName")) for section in beans.values() for e in section}
+        self.assertIn(("block", self.NEW), names)
+        self.assertFalse([n for n in names if n[1] == self.OLD])
 
 
 class FollowAcrossLevels(unittest.TestCase):

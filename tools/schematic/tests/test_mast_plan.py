@@ -284,12 +284,14 @@ class BlockOverrides(unittest.TestCase):
 
     def test_rows_of_the_kinds_asked_for_with_their_lines(self):
         text = (HEAD + split(3, 227, 241, notes="the owner's choice") + "1,track,1,3,,1,os:1,12.5,,a\n"
-                + "1,crossover_half,7,13,,,OS Switch 7,,,b\n")
+                + "1,crossover_half,7,13,1,,os:7:A-13C,,,b\n")
         rows = self.read(text)
         self.assertEqual([(r["line"], r["kind"]) for r in rows], [(2, "split"), (3, "track"), (4, "crossover_half")])
         self.assertEqual(rows[1]["cm"], 12.5)
         # a track row's OS block comes back by its generated name, its id beside it
         self.assertEqual((rows[1]["block"], rows[1]["id"]), ("OS Switch 1", "os:1"))
+        # a crossover half's too, named by its letter (parallel 1 is a), which it carries as `half`
+        self.assertEqual((rows[2]["block"], rows[2]["id"], rows[2]["half"]), ("OS Switch 7a", "os:7:A-13C", "a"))
         self.assertIsNone(rows[0]["cm"])
         self.assertEqual(rows[0]["notes"], "the owner's choice")
         self.assertEqual([r["line"] for r in self.read(text, ("split",))], [2])
@@ -310,8 +312,11 @@ class BlockOverrides(unittest.TestCase):
                          ("1,track,9,11,,9,os:9,0,,\n", "cm '0' is a length in cm, more than 0"),
                          ("1,track,9,11,,9,os:9,abc,,\n", "cm 'abc' is a length"),
                          ("1,track,9,,,,os:9,,,\n", "a track between two switches"),
-                         ("1,crossover_half,7,13,,,OS Switch 7,,yes,\n", "with no parallel, end, cm or inside"),
-                         ("1,crossover_half,7,13,,,Track 7,,,\n", "is no OS block"),
+                         ("1,crossover_half,7,13,1,,os:7:A-13C,,yes,\n", "with no end, cm or inside"),
+                         ("1,crossover_half,7,13,3,,os:7:A-13C,,,\n", r"parallel 1 or 2 \(its letter a or b\)"),
+                         ("1,crossover_half,7,13,1,,os:7:A-5B,,,\n", "as its block ID has them"),
+                         ("1,crossover_half,7,13,1,,OS Switch 7,,,\n", "is no crossover half's OS block ID"),
+                         ("1,crossover_half,7,13,1,,os:7,,,\n", "is no crossover half's OS block ID"),
                          ("1,track,9,11\n", "block '' is no OS block"),        # short: its trailing fields empty
                          ("1,track,9,11,,,OS Switch 9,,,\n", "block 'OS Switch 9' is no OS block ID"),   # by name
                          ("1,track,9,11,,,os:9:A-13C,,,\n", "no crossover_half row of Switch 9 whose leg A runs to "
@@ -321,9 +326,18 @@ class BlockOverrides(unittest.TestCase):
                 self.read(HEAD + row)
 
     def test_a_short_row_reads_its_trailing_fields_as_empty(self):
-        rows = self.read(HEAD + "1,crossover_half,7,13,,,OS Switch 7\n" + split(3, 227, 241).replace(",,,,,\n", "\n"))
+        rows = self.read(HEAD + "1,crossover_half,7,13,2,,os:7:A-13C\n" + split(3, 227, 241).replace(",,,,,\n", "\n"))
         self.assertEqual([(r["kind"], r["block"], r["notes"], r["cm"]) for r in rows],
-                         [("crossover_half", "OS Switch 7", "", None), ("split", "", "", None)])
+                         [("crossover_half", "OS Switch 7b", "", None), ("split", "", "", None)])
+
+    def test_a_crossover_half_letter_is_given_once(self):
+        with self.assertRaisesRegex(mr.MapError, "line 3: Switch 7's half a is given on line 2 too"):
+            self.read(HEAD + "1,crossover_half,7,13,1,,os:7:A-13C\n1,crossover_half,7,5,1,,os:7:A-5B\n")
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / mr.OVERRIDES_NAME
+            path.write_text(HEAD + "1,crossover_half,7,13,1,,os:7:A-13C\n1,crossover_half,7,5,2,,os:7:A-5B\n")
+            self.assertEqual(mr.hand_lists.half_letters(path),
+                             {("1", "os:7:A-13C"): "a", ("1", "os:7:A-5B"): "b"})
 
     def test_an_unknown_kind_asked_for_stops(self):
         with self.assertRaisesRegex(mr.MapError, "no kind helix"):
