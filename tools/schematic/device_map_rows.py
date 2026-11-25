@@ -113,11 +113,17 @@ def follow_swaps(rows: list[Mapping[str, str]], field: Mapping[tuple, Mapping[st
     their system names (the planned pins, wired with the turnout); their descriptions written again. A detector
     swapped in the same way (an occupancy row whose assignment is field) is wired, not planned. A row whose own
     field row (`field`, {(level, id): row}) gives a jmri_name or an assignment (a detector: its detector) keeps the
-    owner's. So a swap is one row edit (naming-layers step 14); every other row as it is."""
+    owner's. A mast over a head swapped in the same way (a head row whose assignment is field) stands on its heads'
+    JMRI names (mast_on_heads). So a swap is one row edit (naming-layers step 14); every other row as it is."""
     turnouts = {(r["level"], r["id"].removeprefix("switch:")): r for r in rows
                 if r["layer"] == "turnout" and r["role"] == "turnout" and r["assignment"] == "field"}
+    heads = {(r["level"], r["id"]): r for r in rows if r["layer"] == "head"}
     out = []
     for r in rows:
+        if r["layer"] == "mast":
+            own = field.get((r["level"], r["id"])) or {}
+            out.append(r if own.get("jmri_name") or own.get("assignment") else mast_on_heads(r, heads))
+            continue
         if r["layer"] == "occupancy" and r["assignment"] == "field" and r["detector"] == "planned" and \
                 not (field.get((r["level"], r["id"])) or {}).get("detector"):
             r = dict(r, detector="wired")       # a detector swapped in is the wired one (railroad.read_device_map)
@@ -136,6 +142,29 @@ def follow_swaps(rows: list[Mapping[str, str]], field: Mapping[tuple, Mapping[st
         r["description"] = devices.describe(r)
         out.append(r)
     return out
+
+
+def mast_on_heads(mast: Mapping[str, str], heads: Mapping[tuple, Mapping[str, str]]) -> Mapping[str, str]:
+    """Master row `mast` standing on its heads' JMRI names when one of them is a field head (a head swapped in by its
+    own row, its assignment field): each head of its SignalHeadSignalMast name is found by ID, its mast's ID and its
+    place (hartlib.device_ids.head_place, top first), in `heads` ({(level, id): row}), and takes that row's
+    jmri_name; the assignment is the new name's and the description written again. A mast with no field head, a
+    hidden (IF$vsm) mast, or one whose heads are not all rows of `heads`, as it is."""
+    jmri = mast["jmri_name"]
+    names = mast_heads(jmri)
+    if not names or len(names) > 2 or not mast["id"].startswith("mast:"):
+        return mast
+    rows = [heads.get((mast["level"], device_ids.head_id(mast["id"], device_ids.head_place(i, len(names)))))
+            for i in range(len(names))]
+    if None in rows or not any(h["assignment"] == "field" for h in rows):
+        return mast
+    for old, h in zip(names, rows):
+        jmri = jmri.replace(f"({old})", f"({h['jmri_name']})", 1)
+    if jmri == mast["jmri_name"]:
+        return mast
+    r = dict(mast, jmri_name=jmri, assignment=devices.assignment_of(jmri))
+    r["description"] = devices.describe(r)
+    return r
 
 
 # ---------------------------------------------------------------- what a main or upper bean takes from its row

@@ -63,7 +63,11 @@ class ReadTest(unittest.TestCase):
         for h, level, refused in (("IH:HART:C3:108LA", 2, None), ("IH3332", 1, None),   # a wired head on staging
                                   ("IH:HART:C3:108LB", 2, "neither its internal name IH:HART:C3:108LA"),
                                   ("IH:HART:C1:108LA", 2, "neither its internal name IH:HART:C3:108LA"),
-                                  ("IH3332", 2, "is the wired LCOS head 'IH3332', but a level 2 head is internal")):
+                                  # a head swapped in by its row: the planned physical head at its place
+                                  ("IH3332", 2, None),
+                                  # a wired head that is not the planned one: refused on every level
+                                  ("IH4240", 2, "is the wired LCOS head 'IH4240', but a level 2 head is internal"),
+                                  ("IH4240", 1, "is the wired LCOS head 'IH4240', but a level 1 head is internal")):
             text = line(row.format(h=h), level)
             if level == 1:          # staging's internal prefix, so only the wired head is tried
                 text = text.replace("CP 107", "Brick")

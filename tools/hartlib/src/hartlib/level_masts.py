@@ -55,10 +55,11 @@ HEAD_PREFIXES = {1: "IH:HART:C1:", 2: HEAD_PREFIX, 3: HEAD_PREFIX}
 MAST_USER = re.compile(r"Mast (\d+[LR]?[A-Z]?|[AB]\d+)")
 HEAD_USER = re.compile(r"Head (\d+[LR]?[A-Z]?|[AB]\d+)(?: (Top|Bottom))?")
 WIRED_HEAD = re.compile(r"IH\d+")    # an LCOS head: signal_coordinator.py publishes IH and digits to MQTT
-# the levels whose masts.csv rows may name a wired (LCOS) head: staging, the field level. Main and upper's heads stay
-# internal until the wiring freeze swaps a physical one in through the device map (owner, 2026-11-17), so nothing of
-# theirs reaches MQTT; a wired head there stops the read
-WIRED_LEVELS = (1,)
+# A masts.csv row may name a wired (LCOS) head only where it is the row's planned physical head at its place (its
+# device_system_name's): a head swapped in by its device row, its assignment field (build_masts.file_rows checks the
+# row). Staging's rows are bound to their physical masts (device_system_name the same), and main and upper's heads stay
+# internal until such a swap (owner, 2026-11-17), so nothing else of theirs reaches MQTT: any other wired head stops
+# the read.
 SHSM = re.compile(r"IF\$shsm:(\w+):([\w-]+)((?:\(IH[^()]+\))+)")    # a SignalHeadSignalMast over its heads
 
 VIRTUAL = re.compile(r"IF\$vsm:basic:one-low\(\$(\d+)\)")
@@ -112,8 +113,8 @@ def head_name(user: str, level: int) -> str:
 
 def head_problem(system: str, user: str, level: int, wired_ok: bool) -> str | None:
     """What is wrong with a head of a level's mast (`system` its JMRI name, `user` its user name), None when it is its
-    internal name, or a wired LCOS head (IH and digits) where `wired_ok` (a field head: masts.csv's WIRED_LEVELS, a
-    device row's assignment field)."""
+    internal name, or a wired LCOS head (IH and digits) where `wired_ok` (a field head: a device row's assignment
+    field, or in masts.csv the row's planned physical head at its place, row_problems)."""
     try:
         internal = head_name(user, level)
     except ValueError as exc:
@@ -155,7 +156,8 @@ def read(path: Path = PATH, *, levels: tuple[int, ...] | None = None) -> list[di
     row, a level not in LEVELS, no mast name or one out of MAST_USER, a mast name a second time (on any level), a dir
     that is not east or west, a leg not in LEGS, a row with some plan facts and not all (or a run that is not two
     ends, or lengths that are not numbers), and on heads that are not system=user pairs of its system name's heads,
-    each its level's internal name or, on WIRED_LEVELS, a wired LCOS head. A virtual mast (IF$vsm) is in its level's thousand, has no
+    each its level's internal name or a wired LCOS head that is the row's planned physical head at its place (its
+    device_system_name's: a field head). A virtual mast (IF$vsm) is in its level's thousand, has no
     heads, the same device_system_name, no switch and no protected block."""
     from . import railroad                  # railroad imports this module, so not at the top
     if not isinstance(path, (str, Path)):           # read(levels) by position: say so, never guess
@@ -222,7 +224,9 @@ def row_problems(r: dict) -> str:
         return "a visible mast faces a block and protects one"
     if not heads or any(len(h) != 2 for h in heads) or [h for h, _u in heads] != mast_heads(r["system_name"]):
         return f"heads {r['head_system_names']!r} are not system=user pairs of its system name's heads"
-    bad = [p for p in (head_problem(h, u, level, level in WIRED_LEVELS) for h, u in heads) if p]
+    planned = mast_heads(r["device_system_name"])     # the planned physical mast's heads, in order
+    bad = [p for p in (head_problem(h, u, level, i < len(planned) and planned[i] == h)
+                       for i, (h, u) in enumerate(heads)) if p]
     return "; ".join(bad)
 
 

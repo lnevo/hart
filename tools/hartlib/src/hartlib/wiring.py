@@ -386,21 +386,61 @@ DIGICON_COLUMNS = ["port_id", "parent_node_id", "mqtt_node", "board_location", "
                    "device_type", "voltage_rail", "notes"]
 
 
-def digicon_rows(path: Path | None = None) -> list[dict[str, str]]:
-    """The wired Digicon searchlight heads (status wired, staging's: a main or upper head frozen in wiring.csv is
-    still a virtual head in JMRI until the device map swaps the physical one in), one row per lamp pin, in the columns the old
-    signal_wiring.csv had (DIGICON_COLUMNS), from wiring.csv's head rows: each head is one LCOS signal object, its
-    three ports R (Stop), Y (Approach) and G (Clear) in that order. A head named "Head <mast> Top" or "Bottom" is its
-    mast's top (T) or bottom (B) disc; a head with neither is the mast's one disc (S), its lamps "Head <mast> R".
-    board_location is the node's place in lcos_nodes.csv ("West - Staging"). FactsError on a head whose name is not
-    "Head <mast>[ Top| Bottom]"."""
+_HEAD_TEXT = re.compile(r"Node: (\d+) Signal: (\d+)((?: \| OU: [1-4] Ports: \d+(?:,\d+)*)+)")
+_HEAD_PORTS = re.compile(r"OU: ([1-4]) Ports: (\d+(?:,\d+)*)")
+
+
+def field_heads(files=None) -> list[Wire]:
+    """The main and upper heads swapped in by their device rows (a head row whose assignment is field, ADR-028), as
+    Wires from the row's node and wiring text ("Node: 33 Signal: 0 | OU: 3 Ports: 1,2,3": wiring.csv's frozen pins, or
+    the rule's), in the device master's order. `files` (a hartlib.devices.Files): the device master to read, default
+    the repo's. FactsError on such a row whose wiring text is not a head's, or whose jmri_name is not the LCOS head
+    that text gives."""
+    from . import devices
+    rows = list(devices.load(files))
+    masts = {(r["level"], r["id"]): r["user_name"] for r in rows if r["layer"] == "mast"}
+    out, bad = [], []
+    for r in rows:
+        if r["layer"] != "head" or r["level"] == STAGING_LEVEL or r["assignment"] != "field":
+            continue
+        m = _HEAD_TEXT.fullmatch(r["wiring"])
+        if not m:
+            bad.append(f"level {r['level']} head {r['user_name']}: wiring {r['wiring']!r} is not "
+                       "Node: <n> Signal: <i> | OU: <b> Ports: <p,p,p>")
+            continue
+        pins = [(f"OU{b}", int(p)) for b, ps in _HEAD_PORTS.findall(m.group(3)) for p in ps.split(",")]
+        w = Wire(0, int(r["level"]), "head", r["user_name"], "", "", "", "", int(m.group(1)), int(m.group(2)),
+                 pins[0][0], tuple(p for _b, p in pins), "wired", r["notes"], tuple(b for b, _p in pins), r["id"],
+                 masts.get((r["level"], r["id"].rsplit(":", 1)[0]), ""))
+        if w.address != r["jmri_name"]:
+            bad.append(f"level {r['level']} head {r['user_name']}: jmri_name {r['jmri_name']!r} is not the LCOS head "
+                       f"{w.address} its wiring gives")
+            continue
+        out.append(w)
+    if bad:
+        raise FactsError("the device master's field heads: " + "; ".join(bad))
+    return out
+
+
+def digicon_rows(path: Path | None = None, files=None) -> list[dict[str, str]]:
+    """The wired Digicon searchlight heads, one row per lamp pin, in the columns the old signal_wiring.csv had
+    (DIGICON_COLUMNS): staging's wiring.csv head rows of status wired (staging's heads are bound as built), and each
+    main or upper head whose device row's assignment is field (field_heads, from `files`, else the device master
+    beside the wiring file, else the repo's): a main or upper head frozen in wiring.csv is still a virtual head in JMRI
+    until its row swaps the physical one in. Each head is one LCOS signal object, its three ports R (Stop), Y
+    (Approach) and G (Clear) in that order. A head named "Head <mast> Top" or "Bottom" is its mast's top (T) or bottom
+    (B) disc; a head with neither is the mast's one disc (S), its lamps "Head <mast> R". board_location is the node's
+    place in lcos_nodes.csv ("West - Staging"). FactsError on a head whose name is not "Head <mast>[ Top| Bottom]"."""
+    from . import devices
     from .railroad_facts import read_lcos_nodes
     level_name = {1: "Staging", 2: "Main", 3: "Upper"}
     place = {n.node: f"{n.area} - {level_name[n.level]}" for n in read_lcos_nodes(NODES)}
+    if files is None:
+        data = Path(path or PATH).parent
+        files = devices.Files.under(data) if (data / devices.GENERATED_FILE).is_file() else None
+    staging = [w for w in read(path) if w.kind == "head" and w.status == "wired" and w.level == FIELD]
     out, bad = [], []
-    for w in read(path):
-        if w.kind != "head" or w.status != "wired" or w.level != 1:
-            continue
+    for w in staging + field_heads(files):
         # the mast and the place come from the head's id, not its name, so a renamed head keeps its lamps
         key = w.mast.removeprefix("Mast ")
         if not w.mast.startswith("Mast ") or not w.place:
