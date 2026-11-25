@@ -281,13 +281,15 @@ LEFT_OUT = {
     "static": "its checks that read docs are in docs_checks.sh's list; stays one job (owner, 2026-11-24)",
     "public-text": "check_public_text.py is in docs_checks.sh's list",
     "portal": "the portal build stays with the website deploy, as in CI (owner, 2026-11-24)",
-    "unit-portal": "whole suite of site builders (39 s); reads docs only as page sources",
+    "unit-portal": "whole suite of site builders (39 s); reads docs/ops and docs/wiring only as page sources",
     "unit-hart-ops": "whole suite (car cards, publications); reads docs only in part",
     "unit-schematic": "whole suite; reads wiki/pipelines/ only in part",
     "unit-anyrail": "whole suite; reads docs/ only for the track plan article",
-    "unit-hosts test_deploy_stage": "stages a copy of every file for a deploy (36 s); copies docs, does not read them",
-    "unit-guards test_check_stamps": "the stamp machinery's own tests; hashes every file (38 s)",
-    "unit-guards test_hart_tables_writers": "reads the repo's git status, not the wiki's text",
+    "unit-hosts test_deploy_stage": "stages a deploy (36 s); copies one docs/jmri/ CSV, reads no Markdown",
+    "unit-guards test_check_stamps": "the stamp machinery's own tests (38 s); declared on its sample jobs' "
+                                     "declarations (RUNS_JOBS), docs/ through unit-anyrail's",
+    "unit-guards test_hart_tables_writers": "runs each table writer only to see it refuse to write under "
+                                            "HART_TABLES; status_counts.py reads wiki/STATUS.md on the way",
     "unit-guards test_jmri_process_patterns": "reads the .sh, .ps1 and .py files git lists, docs/ included; no Markdown",
     "unit-guards test_pipeline_map": "its real-map tests read the graph and the pages, which only a full-path change "
                                      "(docs/pipeline-map/) alters; the site copy is the pipeline-map-site check",
@@ -371,7 +373,9 @@ class DocsUnitTests(unittest.TestCase):
                 self.assertIn(m["k"].split(".")[0], classes, f"-k {m['k']} names no test class of {m['file']}")
 
     def test_every_declaration_on_markdown_docs_is_run_or_left_out_with_a_reason(self) -> None:
-        declared = {**check_stamps.BY_KIND, **check_stamps.EXTRA}
+        # a job that runs other jobs (RUNS_JOBS) is declared on theirs too: its whole declaration
+        declared = {**check_stamps.BY_KIND, **check_stamps.EXTRA,
+                    **{k: check_stamps.declared(k) for k in check_stamps.RUNS_JOBS}}
         on_docs = {k for k, v in declared.items() if covers_markdown_docs(v)}
         handled = set(docs_unit_tests()) | set(LEFT_OUT)
         self.assertEqual([], sorted(on_docs - handled), "declared on docs/ or wiki/: run it in docs_checks.sh or "

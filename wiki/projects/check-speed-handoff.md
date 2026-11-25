@@ -47,6 +47,23 @@ Goal: for each job that reran on the one-line ADR edit, the reason, and a narrow
 - Tests: `tools/audit/tests/test_check_stamps.py` already checks that each job's declaration covers what the audit saw it read; extend it to any new or narrowed entry.
 - Report a table: job, reran on the wiki edit (yes or no, before and after), reason, change made.
 
+**Results (2026-11-24, 834b73d6 plus the change).** A one-line edit to `wiki/decisions/ADR-001-layout-identity.md`, uncommitted, in a worktree, after a no-change run; the reason from `check_stamps.py why` in check.sh's environment, the reads from `CHECK_AUDIT=DIR FULL=1 tools/check.sh` on the Windows box. 15 stampable jobs ran before the change and 11 after; 6 of the 11 run with nothing changed (item 3). The Mac was loaded (load average 12 to 17, other agents' runs), so the wall times (120 s before, 100 s after) are not a fair comparison; time it again on a quiet Mac.
+
+| Job | Reran before | After | Reason | Change |
+|---|---|---|---|---|
+| `static` | yes | yes | ran bash, so its declaration (every file) is in the key; it also reads 34 ADRs | none (owner: stays whole) |
+| `public-text` | yes | yes | read the ADR | none: it reads the wiki itself |
+| `unit-guards test_pipeline_map` | yes | yes | read the ADR (the agent-doc lane) | none |
+| `unit-guards test_agent_docs_map` | yes | yes | read the ADR | none |
+| `unit-guards test_agent_docs_cells` | yes | yes | read the ADR | none |
+| `unit-portal` | yes | no | ran node, so its declaration (`SITE`, with `wiki/`) was in the key; its Python read `www/`, `docs/` and listed `ops/`, and its node scripts read only `www/` | declared on `CODE`, `www/`, `docs/`, `ops/` |
+| `unit-hosts test_deploy_stage` | yes | no | ran bash and `git clone`, declared on every file; the deploy copies from `jmri/`, `cats/`, `tools/` and one CSV in `docs/jmri/`, and its Python read only `CODE` | declared on `CODE` and `docs/jmri/` |
+| `unit-guards test_check_stamps` | yes | no | ran bash (a check.sh of the sample jobs), declared on every file | declared on the sample jobs' declarations and `.gitmodules` (`RUNS_JOBS`, `AUDIT_SAMPLE` in `check_stamps.py`) |
+| `unit-guards test_hart_tables_writers` | yes | no | ran `git status` (it only compares the tree before and after), declared on `wiki/` | declared on `wiki/STATUS.md`, the one wiki file it reads |
+| `unit-hosts test_redeploy_commit`, `test_pi_ssh_scripts`, `test_win_run`, `test_patch_windows_mqtt`, `unit-jmri test_ctc_signal_heads`, `unit-guards test_public_text` | yes | yes | run with nothing changed too: no stamp recorded, or a key that differs every run | none here (item 3) |
+
+Why the first measurement counted 39 is not checked. A likely cause, unverified: the stamp store is shared, and another worktree's run had replaced some stamps just before; `unit-guards layout-editor` and 14 `unit-jmri` files ran in this item's own no-change run while another agent's check.sh ran, and not on the ADR edit. `check_stamps.py audit-report DIR -v` now works (it printed the usage line before).
+
 ### 3. Cut the no-change overhead
 
 **3a, measure (read-only, alongside 1 and 2).** Time a no-change `check.sh` on the Mac by phase: start-up before the first job, the stamp checks (one `check_stamps.py current` per job), the jobs that always run, and the wait for the last job. Say why each of the 8 jobs ran with nothing changed (traced reads of a file that changes every run, an untraceable program, or no stamp at all).
