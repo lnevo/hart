@@ -30,3 +30,5 @@ After level unification, several layout facts were still kept in a file per leve
 - A new level, or a level with real devices, adds rows and changes nothing else.
 - Writers and checks no longer branch on level beyond the values a row carries.
 - Each step is a pure refactor: `tables.xml`, the desks, the Layout Editor panel, the drawings and the approved fingerprints are byte-identical. The exceptions are generated keys and notes, each listed in its PR.
+
+**Amended by ADR-033, naming-layers step 11 (2026-11-25):** the beans are one process for every level too (`hartlib.tables_build.master_beans` over every row); the level says only where a band's names come from in the Layout Editor build (staging's from the staging device map, `le_common.STAGING_LEVELS`). Main and upper bean comments take staging's form (owner, 2026-11-23).

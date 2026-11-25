@@ -80,3 +80,5 @@ Decided by the owner on 2026-11-21, from the pipeline-efficiency review (T6a). B
 
 
 **Amended by ADR-033, naming-layers step 7 (2026-11-25):** a staging device no longer needs a field row. The builder makes every level's rows from the plan and puts each device's field row over its generated row by id, so the owner's values still win and a device with no field row keeps the generated values (a staging block is numbered as a part is, a staging turnout is bound to its address). A field row is the owner's cells only; the main and upper builder takes the owner's name the same way. `FIELD_LEVEL` is gone.
+
+**Amended by ADR-033, naming-layers step 11 (2026-11-25):** one bean process. `hartlib.tables_build.base` makes every level's beans from the device master (`master_beans`, and the startup LogixNG, `start_logixng`); the Layout Editor build adds only the panels and checks that every name they bind is a bean of the base. `GENERATED_LEVELS` and `le_tables.add_level_*` are gone, and with them the build's strip of its own beans from earlier tables (`strip_build_owned`): the build never starts from `tables.xml`.
