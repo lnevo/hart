@@ -597,12 +597,11 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   23A, 7A, 35B, and only the approvals (renamed labels; the Princess plate moved three cells) and the SML stamp went
   stale; reverted. `test_rename_by_id.RenameCrossoverHalf` pins the readers. Outputs on the committed data are
   byte-identical.
-- Still to run (main session, the Mac's PanelPro): `make panelpro-test` with a detector and a head swapped, in a
-  scratch worktree, the rows at the end of `devices_field.csv`:
-  `2,,occupancy,,det:block:107B-107C#1,,field,M2S3305,M2S3305,,,,,,,,,,,,,,,,,,,,`,
-  `2,,head,,mast:107:B:west:top,,field,IH3332,IH3332,,,,,,,,,,,,,,,,,,,,` and
-  `2,,head,,mast:107:B:west:bottom,,field,IH3333,IH3333,,,,,,,,,,,,,,,,,,,,` (in that order); then `HART_TABLES_REVIEW=1 make panels`,
-  `make panelpro-test`, and restore every changed file from git.
+- Done (2026-11-25, main session): in a scratch worktree on 67b6d185, a detector (`det:block:107B-107C#1` to
+  M2S3305) and Mast 108LA's two heads (IH3332, IH3333) swapped by three `devices_field.csv` rows alone: `HART_TABLES_REVIEW=1
+  make panels` ran through SML discovery (only the desk approvals changed, their bindings), the mast became
+  `two-searchlight(IH3332)(IH3333)`, and `make panelpro-test` passed (96 main and upper block sensors clear, the
+  swapped block on its field sensor). Reverted; nothing committed.
 - ~~`docs/ap/electrical/test_build_soq.py` counts 57 detected sections where its text says 43~~ Closed 2026-11-25: the SOQ is frozen and its tests are removed (owner); the layout documentation page reads its names by block ID from the device master.
 
 ## How to run this
