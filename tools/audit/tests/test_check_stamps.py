@@ -1011,8 +1011,8 @@ class DeclarationAuditTest(RepoCase):
     HAND = ["0\tb",
             "100\ts\t50\t\t1\tpython3\ttools/a.py",
             "100\tr\t{root}/data/in.csv",
-            "100\tr\t{root}/tools/lib/mod.py",                  # imported (its "c" line): code, not audited
-            "100\tc\t{root}/tools/lib/mod.py",
+            "100\tc\t{root}/tools/lib/mod.py",                  # imported (a "c" line): code, not audited
+            "100\tc\t{root}/jmri/scripts/x.py",                 # imported, and read as text below: audited
             "100\tr\t{root}/tools/levels/main.svg",             # data under tools/, and a .py read as text: audited
             "100\tr\t{root}/jmri/scripts/x.py",
             "100\tr\t{root}/.cache/hart/x.json",                # a shared cache: no input

@@ -719,7 +719,8 @@ inputs = [
   { path = "wiki/home.md", label = "check", side = "check" },
 ]
 # the agent docs and the wiki pages the cell rule covers (check_agent_docs.SCAN_GLOBS, less wiki/home.md and
-# wiki/AGENTS_GIT.md, drawn above with the boxes of the other agent docs)
+# wiki/AGENTS_GIT.md, drawn above with the boxes of the other agent docs). The script drops external/ (submodules,
+# whose files git does not list here), which **/AGENTS.md would also match
 quiet_inputs = ["**/AGENTS.md", ".cursor/**", ".claude/**", "wiki/**/*.md"]
 
 # Every Markdown document under docs/ needs a summary line (see summarize() in the script).

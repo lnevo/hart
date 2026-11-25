@@ -338,7 +338,8 @@ def _scan_problems(quiet: list[str], reads_all: str | None, where: Repo) -> list
     for p in quiet:      # one that matches nothing at all is _path_list_problems' to name
         if is_glob(p) and path_problem(p) is None and where.matches(p) and not where.matches_file(p):
             out.append(f"{p} matches tracked folders only, no file; a scan glob names the files the script reads")
-    whole = [p for p in quiet if p in WHOLE_REPO]
+    whole = [p for p in quiet if p in WHOLE_REPO or is_glob(p) and path_problem(p) is None
+             and all(glob_regex(p).fullmatch(f) for f in where.files)]          # **/** names every file too
     if whole and reads_all is None:
         out.append(f"{', '.join(whole)} is the whole repo: a step whose script reads every tracked file says why in "
                    f"reads_all; any other step lists the folders or suffixes it scans")

@@ -131,6 +131,7 @@ class ReadSetTest(unittest.TestCase):
             marked = {r for r in (traced.keep(p, str(self.root), ()) for p in t.code) if r and not os.path.isabs(r)}
             self.assertEqual(marked, {"job.py", "lib/mod.py", "lib/pkg/__init__.py", "lib/run.py", "lib/boom.py"})
             self.assertLessEqual(marked, reads)
+            self.assertNotIn(f"\tr\t{self.root}/job.py\n", self.log.read_text())    # a code open is no data read
             self.assertLessEqual({"lib/text.py", "lib/pkg/res.txt", "tools/levels/main.svg"}, reads - marked)
 
     def test_opened_as_code_reads_the_calling_frame(self) -> None:
@@ -142,6 +143,7 @@ class ReadSetTest(unittest.TestCase):
         self.assertFalse(traced._opened_as_code(frame("get_data", boot)))
         self.assertTrue(traced._opened_as_code(frame("_get_code_from_file", "/py/runpy.py")))
         self.assertTrue(traced._opened_as_code(frame("_get_code_from_file", "<frozen runpy>")))
+        self.assertTrue(traced._opened_as_code(frame("_read_directory", "<frozen zipimport>")))
         self.assertTrue(traced._opened_as_code(frame("open", "/py/tokenize.py", frame("updatecache", "/py/linecache.py"))))
         self.assertFalse(traced._opened_as_code(frame("open", "/py/tokenize.py", frame("main", "/repo/job.py"))))
         self.assertFalse(traced._opened_as_code(frame("<module>", "/repo/job.py")))

@@ -39,6 +39,15 @@ class HashCacheTest(unittest.TestCase):
         self.assertEqual(kept[str(live / "data/a.csv")][2], sha)
         self.assertEqual(cs.HashCache(store)(live / "data/a.csv"), sha)
 
+    def test_a_key_with_no_folder_part_is_kept(self) -> None:
+        store = self.tmp / "filehash.json"
+        store.write_text(json.dumps({"loose.txt": [1, 2, "x"]}))
+        cache = cs.HashCache(store)
+        (self.tmp / "a.csv").write_text("v1\n")
+        cache(self.tmp / "a.csv")
+        cache.save()
+        self.assertIn("loose.txt", json.loads(store.read_text()))
+
     def test_a_clean_cache_is_not_rewritten(self) -> None:
         store = self.tmp / "filehash.json"
         cs.HashCache(store).save()

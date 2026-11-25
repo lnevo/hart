@@ -354,7 +354,7 @@ class HashCache:
         so on the Windows box the file grew to 747k entries for 152 worktrees, 5.6k of them live, 2026-11-25)."""
         if not self.dirty:
             return
-        alive = {d: os.path.isdir(d) for d in {os.path.dirname(k) for k in self.data}}
+        alive = {d: not d or os.path.isdir(d) for d in {os.path.dirname(k) for k in self.data}}   # "": no folder part
         self.data = {k: v for k, v in self.data.items() if alive[os.path.dirname(k)]}
         self.path.parent.mkdir(parents=True, exist_ok=True)
         tmp = self.path.with_suffix(f".{os.getpid()}.tmp")
@@ -750,9 +750,9 @@ def step_reads(name: str, trace_log, root: Path, steps) -> dict:
     """Job `name`'s data reads, from its trace: {"steps": {step: [files]}, "unowned": {}, "absent": [the step, when
     Python runs it and the trace holds no process], "bash": [the step, when bash runs it, whose reads the trace cannot
     see]}. Every job of the manifest is one step (ADR-037 stage 4b), so every process in its trace is that step's.
-    Files are the repo paths its processes read as data: one the trace saw opened as code anywhere in it (its "c" lines:
-    imported, run, shown in a traceback) is left out. The shape is stage 4a's, so `audit` still reads those. Raises
-    AuditError when the job is not one step, or the trace cannot be read or holds no process."""
+    Files are the repo paths its processes read as data, the trace's "r" lines: an open as code (a "c" line: imported,
+    run, shown in a traceback) is not one, but the same file read as text is. The shape is stage 4a's, so `audit`
+    still reads those. Raises AuditError when the job is not one step, or the trace cannot be read or holds none."""
     if len(steps) != 1:
         raise AuditError(f"{name} has {len(steps)} steps in {MANIFEST.as_posix()}; each job is one step")
     (step,) = steps
@@ -761,7 +761,7 @@ def step_reads(name: str, trace_log, root: Path, steps) -> dict:
     except OSError as exc:
         raise AuditError(f"cannot read the trace of {name}: {exc}") from None
     skip = traced._skip_prefixes(str(root))
-    seen: dict[str, set[str]] = {"r": set(), "c": set()}
+    reads: set[str] = set()
     started = 0
     for line in text.splitlines():
         parts = line.split("\t")
@@ -770,15 +770,15 @@ def step_reads(name: str, trace_log, root: Path, steps) -> dict:
         kind, rest = parts[1], parts[2:]
         if kind == "s" and len(rest) >= 3:
             started += 1
-        elif kind in seen:
+        elif kind == "r":
             rel = traced.keep(rest[0], str(root), skip)
             if rel is not None and not os.path.isabs(rel):
-                seen[kind].add(rel)
+                reads.add(rel)
     if not started and step.python:
         raise AuditError(f"the trace of {name} ({trace_log}) holds no process start")
     if not step.python:
         return {"steps": {}, "unowned": {}, "absent": [], "bash": [step.name]}
-    return {"steps": {step.name: sorted(seen["r"] - seen["c"])}, "unowned": {}, "absent": [], "bash": []}
+    return {"steps": {step.name: sorted(reads)}, "unowned": {}, "absent": [], "bash": []}
 
 
 def audit_lines(name: str, audit: dict, steps, full: bool = False) -> tuple[list[str], int]:

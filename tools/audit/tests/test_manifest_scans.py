@@ -143,13 +143,14 @@ class ScanGlobRulesTest(unittest.TestCase):
         self.assertIn("quiet_inputs: dat? matches tracked folders only, no file", refused(quiet_inputs='["dat?"]'))
 
     def test_the_whole_repo_needs_reads_all_and_reads_all_needs_it(self) -> None:
-        for glob in M.WHOLE_REPO:
+        for glob in (*M.WHOLE_REPO, "**/**", "*/**/*.*"):      # the last two name every file of TRACKED too
             with self.subTest(glob=glob):
                 self.assertIn(f"quiet_inputs: {glob} is the whole repo", refused(quiet_inputs=f'["{glob}"]'))
                 self.assertEqual(refused(quiet_inputs=f'["{glob}"]', reads_all='"every file"'), "")
         self.assertIn("reads_all is set, so quiet_inputs must hold **/*",
                       refused(quiet_inputs='["data/x.csv"]', reads_all='"every file"'))
         self.assertIn("reads_all: must be a str with text", refused(quiet_inputs='["**/*"]', reads_all='""'))
+        self.assertEqual(refused(quiet_inputs='["**/*.csv"]'), "")      # most of the files, not all: a scan glob
 
 
 if __name__ == "__main__":

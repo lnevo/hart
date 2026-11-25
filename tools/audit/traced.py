@@ -9,8 +9,9 @@ appends one line per event to the log ("<pid>\\t<kind>\\t<data>"):
 
     s  a process started: ppid, the spawn token it inherited, start time (ns), argv[0]
     r  a file opened for reading (an import's .pyc counts as its source)      w  a file written, renamed or removed
-    c  that file was opened as code: imported, run as the main script or by runpy, or shown in a traceback (it
-       comes with its "r" line; the stamps hash it like any read, the declaration audit leaves it out)
+    c  a file opened for reading as code: imported, run as the main script or by runpy, or shown in a traceback.
+       The stamps hash it like an "r" read; the declaration audit takes only the "r" lines (a file read both ways
+       has both, so its data read is still audited)
     m  a file probed (opened or stat'ed) and not there                         p  a file or folder stat'ed and there
     d  a folder listed (listdir, scandir, glob)                                x  a subprocess spawned: token, cwd, argv
     h  a shutil.which lookup on the starting PATH: the name, what it found      k  a unittest skip: the test's id, reason
@@ -162,9 +163,7 @@ def _on_open(args) -> None:
             code = _opened_as_code()
             real = os.path.realpath(p)
             for q in (p, real) if real != p else (p,):    # a link (a .cache view of the data) reads its target too
-                _write("r", q)
-                if code:
-                    _write("c", q)
+                _write("c" if code else "r", q)
         else:
             _write("m", p)
 
@@ -176,10 +175,10 @@ _IMPORTLIB = ("<frozen importlib._bootstrap_external>", os.path.join("importlib"
 
 def _opened_as_code(frame=None) -> bool:
     """Whether the open being traced loads code, by the first frame above the hook (`frame`, for tests): none at all
-    (the interpreter opening the main script), importlib's get_data called by its get_code (an import: the source
-    or its .pyc), runpy reading a script it runs, or tokenize.open called by linecache (the source of a frame in a
-    traceback or a warning). Every other open reads the file as data: pkgutil.get_data and importlib.resources
-    included."""
+    (the interpreter opening the main script), zipimport (asking whether the script is a zip of code), importlib's
+    get_data called by its get_code (an import: the source or its .pyc), runpy reading a script it runs, or
+    tokenize.open called by linecache (the source of a frame in a traceback or a warning). Every other open reads the
+    file as data: pkgutil.get_data and importlib.resources included."""
     f = frame if frame is not None else sys._getframe(1)
     while frame is None and f is not None and f.f_code.co_filename == __file__:
         f = f.f_back
@@ -190,6 +189,8 @@ def _opened_as_code(frame=None) -> bool:
         return up is not None and up.f_code.co_filename.endswith(_IMPORTLIB) and up.f_code.co_name == "get_code"
     if name == "_get_code_from_file" and (file == "<frozen runpy>" or os.path.basename(file) == "runpy.py"):
         return True
+    if file == "<frozen zipimport>" or os.path.basename(file) == "zipimport.py":
+        return True         # the import system asks whether a script or a sys.path entry is a zip of code
     return (name == "open" and os.path.basename(file) == "tokenize.py" and up is not None
             and os.path.basename(up.f_code.co_filename) == "linecache.py")
 
@@ -375,7 +376,7 @@ class Trace:
 
     def __init__(self) -> None:
         self.reads: set[str] = set()
-        self.code: set[str] = set()                             # "c" lines: the reads that loaded code
+        self.code: set[str] = set()                             # "c" lines: reads (in reads too) that loaded code
         self.writes: set[str] = set()
         self.misses: set[str] = set()
         self.present: dict[str, str] = {}
@@ -432,8 +433,11 @@ def parse(log: str | os.PathLike) -> Trace:
             t.runner_ns.append(int(rest[0]))
         elif kind == "h" and len(rest) == 2:
             t.which.add((rest[0], rest[1]))
+        elif kind == "c" and rest:
+            t.reads.add(rest[0])        # code is read like data for the stamps; t.code says which
+            t.code.add(rest[0])
         elif rest:
-            {"r": t.reads, "c": t.code, "w": t.writes, "m": t.misses, "d": t.listed}.get(kind, set()).add(rest[0])
+            {"r": t.reads, "w": t.writes, "m": t.misses, "d": t.listed}.get(kind, set()).add(rest[0])
     return t
 
 
