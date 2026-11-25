@@ -47,18 +47,51 @@ def level_sensors(sensor_manager):
     return [s for s in sensor_manager.getNamedBeanSet() if s.getSystemName().startswith(LEVEL_SENSOR_PREFIX)]
 
 
+def field_detected(text):
+    """{block system name: sensor system name} from HART_FIELD_DETECTED ("<block> <sensor>;" per block):
+    the main and upper blocks on a field sensor, a detector swapped in by its device row (ADR-028).
+    run_panelpro_smoke_test.sh writes it from the tables.xml PanelPro loads (hartlib.level_devices.field_detected)."""
+    out = {}
+    for item in (text or "").split(";"):
+        parts = item.split()
+        if len(parts) == 2:
+            out[parts[0]] = parts[1]
+        elif parts:
+            raise ValueError("HART_FIELD_DETECTED: %r is not <block> <sensor>" % item)
+    return out
+
+
+def block_sensor_errors(blocks, field):
+    """What is wrong with the main and upper blocks' sensors: `blocks` is (display name, system name, the
+    occupancy sensor's system name or None) for each, `field` {block system name: sensor} (field_detected). A
+    block with no sensor fails; one in `field` must be on that sensor; every other on a virtual block sensor."""
+    out = []
+    none = sorted(d for d, _s, sensor in blocks if sensor is None)
+    if none:
+        out.append("main and upper blocks with no occupancy sensor: %s" % ", ".join(none))
+    wrong = sorted("%s (%s, not %s)" % (d, sensor, field[s]) for d, s, sensor in blocks
+                   if sensor is not None and s in field and sensor != field[s])
+    if wrong:
+        out.append("main and upper blocks not on their field sensor: %s" % ", ".join(wrong))
+    bad = sorted(d for d, s, sensor in blocks
+                 if sensor is not None and s not in field and not sensor.startswith(LEVEL_SENSOR_PREFIX))
+    if bad:
+        out.append("main and upper blocks with no virtual occupancy sensor: %s" % ", ".join(bad))
+    return out
+
+
 def level_block_errors(block_manager, sensor_manager):
-    """What waiting cannot fix: no virtual block sensor at all, or a main or upper block with no virtual sensor."""
+    """What waiting cannot fix: no virtual block sensor at all, no main and upper block, or a main or upper block
+    with no sensor or not on its own (block_sensor_errors)."""
     out = []
     if not level_sensors(sensor_manager):
         out.append("no main and upper virtual block sensor (%s*)" % LEVEL_SENSOR_PREFIX)
     blocks = [b for b in block_manager.getNamedBeanSet() if b.getSystemName().startswith(LEVEL_BLOCK_PREFIX)]
     if not blocks:
         out.append("no main and upper block (%s*)" % LEVEL_BLOCK_PREFIX)
-    bad = sorted(b.getDisplayName() for b in blocks
-                 if b.getSensor() is None or not b.getSensor().getSystemName().startswith(LEVEL_SENSOR_PREFIX))
-    if bad:
-        out.append("main and upper blocks with no virtual occupancy sensor: %s" % ", ".join(bad))
+    out.extend(block_sensor_errors(
+        [(b.getDisplayName(), b.getSystemName(), b.getSensor().getSystemName() if b.getSensor() is not None else None)
+         for b in blocks], field_detected(os.environ.get("HART_FIELD_DETECTED", ""))))
     return out
 
 
