@@ -650,14 +650,23 @@ class AuditTest(unittest.TestCase):
                     self.assertEqual(sorted(kept - set(st["files"])), [])
                     self.assertEqual(sorted(kept_dirs - set(st["dirs"]) - set(st["files"])), [])
             self.assertEqual(verified, len(wanted))
-            # the same jobs again, not audited: every one is current, checked in one stamp process and never started
+            # Two quick jobs again, not audited. CHECK_AUDIT is in the key (a test skips inside an audit run), so
+            # the first plain run runs them; the second finds them current, checked in one stamp process and never
+            # started.
             env.pop("CHECK_AUDIT")
-            again = subprocess.run(["bash", str(REPO / "tools/check.sh")], cwd=REPO, env=env, capture_output=True,
-                                   text=True, timeout=900)
-            self.assertEqual(again.returncode, 0, again.stdout[-3000:] + again.stderr[-2000:])
-            for name in wanted:
-                self.assertIn(f"{name}: current, skipped", again.stdout)
-            self.assertIn(f"{len(wanted)} of {len(wanted)} jobs current, skipped", again.stdout)
+            quick = ("unit-mimic", "unit-jmri test_speedmatch_distance")
+            env["CHECK_ONLY"] = "^(" + "|".join(quick) + ")$"
+            for run, want in ((1, "ran"), (2, "current")):
+                again = subprocess.run(["bash", str(REPO / "tools/check.sh")], cwd=REPO, env=env,
+                                       capture_output=True, text=True, timeout=900)
+                self.assertEqual(again.returncode, 0, again.stdout[-3000:] + again.stderr[-2000:])
+                for name in quick:
+                    with self.subTest(run=run, job=name):
+                        if want == "ran":
+                            self.assertRegex(again.stdout, rf"(?m)^--- {re.escape(name)} \(\d+s\)$")
+                        else:
+                            self.assertIn(f"{name}: current, skipped", again.stdout)
+            self.assertIn(f"{len(quick)} of {len(quick)} jobs current, skipped", again.stdout)
 
 
 if __name__ == "__main__":
