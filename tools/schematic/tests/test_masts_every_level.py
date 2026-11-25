@@ -131,19 +131,19 @@ MAIN_UPPER_VIRTUAL = (
     ("130LB", "", "Track 129 Spur 2", "", "west"),
     # upper (14)
     ("206L", "", "Track 205 Spur", "", "west"),
-    ("210LA", "", "Track 209 Spur 1", "", "west"),
-    ("210LB", "", "Track 209 Spur 2", "", "west"),
+    ("210LA", "", "Track 209 Spur 2", "", "west"),
+    ("210LB", "", "Track 209 Spur 1", "", "west"),
     ("214L", "", "Track 213 Spur", "", "west"),
-    ("216LA", "", "Track 215 Spur 1", "", "west"),
-    ("216LB", "", "Track 215 Spur 2", "", "west"),
+    ("216LA", "", "Track 215 Spur 2", "", "west"),
+    ("216LB", "", "Track 215 Spur 1", "", "west"),
     ("232L", "", "Track 231 Spur", "", "west"),
     ("236R", "", "Track 235 Spur", "", "east"),
     ("240L", "", "Track 239 Spur", "", "west"),
     ("242R", "", "Track 241 Spur", "", "east"),
-    ("244RA", "", "Track 243 Spur 1", "", "east"),
-    ("244RB", "", "Track 243 Spur 2", "", "east"),
-    ("246LA", "", "Track 245 Spur 1", "", "west"),
-    ("246LB", "", "Track 245 Spur 2", "", "west"),
+    ("244RA", "", "Track 243 Spur 2", "", "east"),
+    ("244RB", "", "Track 243 Spur 1", "", "east"),
+    ("246LA", "", "Track 245 Spur 2", "", "west"),
+    ("246LB", "", "Track 245 Spur 1", "", "west"),
 )
 INTERMEDIATES = {"67", "68", "A83", "A84", "B92", "B93"}
 # masts the rule must not place: 126L faces Track 121-125 into Switch 125, and every route it would clear ends at

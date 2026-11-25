@@ -36,7 +36,7 @@ UID = {"block": 0, "turnout": 8, "signal": 32, "sensor": 67}     # LCOS packed I
 
 # The hand lists name a track by the switches at its ends (switch_a, switch_b: lower number first; switch_b blank for a
 # spur, whose other end is a bumper; mast_rule.track_key), so a renumbered switch moves its row with it. `parallel`
-# (1, 2 from the top row) says which of two tracks between the same switches; `half` (1, 2) which half of a balloon
+# (1, 2 in mast_rule.plan_order) says which of two tracks between the same switches; `half` (1, 2) which half of a balloon
 # loop or split track, half 1 at the lower-numbered switch. A pin on a helix block, which the owner named
 # (plan_overrides.json), has its name in `device` and no switches (wiring.csv's detector rows).
 

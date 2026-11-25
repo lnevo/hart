@@ -1,7 +1,7 @@
 """The track and mast rule of the schematic levels, out of build_device_map.py so every level can use it.
 
 tracks() lists each track of a band between its ends (switch, helix or bumper), track_names() names them ("Track
-<a>-<b>", "Track <n> Spur", "Track <n> Loop", " 1"/" 2" for parallel tracks), and masts() places a home signal where a
+<a>-<b>", "Track <n> Spur", "Track <n> Loop", " 1"/" 2" for parallel tracks, in plan_order), and masts() places a home signal where a
 track from outside a control point meets one of its switches, unless no route it governs reaches another signal
 (reaches_signal; build_device_map.py's module text has the naming and head rules). band_level() maps a band title
 to its level by the `level` of its entry in a plan-overrides file (band_levels). The rules that replaced hand lists
@@ -106,6 +106,39 @@ def end_label(bands, joined, bi, node_id) -> str:
     return ""
 
 
+def end_leg(bands, joined, bi, end) -> str:
+    """A track end (node, port) by its plan switch label and leg ("103AB", "113C"; a moved switch's star dropped),
+    followed through a connector to the switch beyond it as end_ref does; "helix" at a helix end, "end" at any other
+    (a bumper). The same key staging_device_map.end_key gives a run's end, so it comes from the plan, not the drawing."""
+    band = bands[bi][1]
+    node, port = end
+    d = band["nodes"][node]
+    if d["kind"] in ("switch", "dx"):
+        return f"{(d.get('label') or '').rstrip('*')}{port}"
+    if d.get("sub") == "helix":
+        return "helix"
+    if d.get("sub") == "link" and (bi, node) in joined:
+        bj, m = joined[(bi, node)]
+        other = bands[bj][1]
+        sid = next(iter(list(other["nodes"][m]["ins"].values()) + list(other["nodes"][m]["outs"].values())))
+        s = other["strands"][sid]
+        return end_leg(bands, joined, bj, s["dst"] if s["src"][0] == m else s["src"])
+    return "end"
+
+
+def _leg_order(key: str):
+    m = re.fullmatch(r"(\d+)([A-Z]?)([A-D])", key)
+    return (0, int(m.group(1)), m.group(2), m.group(3)) if m else (1, 0, "", key)
+
+
+def plan_order(t: dict) -> tuple:
+    """The order of tracks that share their end switches (parallel tracks): by their ends' plan labels and legs, lower
+    end first (the order of their device IDs, block:103AB-105B before block:103BA-105C), so the numbers in "Track
+    103-105 1" and "2", and block_overrides.csv's `parallel`, come from the plan and not from the drawn rows (owner,
+    2026-11-24, naming-layers step 3)."""
+    return tuple(sorted((_leg_order(k) for k in t["plan_ends"]))) + (t["trial"],)
+
+
 def helix_tags(bands, overrides) -> dict[int, str]:
     """{level: "H1"|"H2"}: the helix tracks in the overrides' order, each on the band holding its switch."""
     relabel = next(e["map"] for e in overrides["edits"] if e["op"] == "relabel")
@@ -169,7 +202,8 @@ def tracks(bands, runs, joined, helix_tag, levels) -> list[dict]:
                 continue
             seen.add(key)
             ends = [(start[0], start[1]), (end[0], end[1])]
-            found.append(dict(level=lv, ends=(a, b), legs=ends, band=bi, cm=round(sum(edges.values()), 1),
+            found.append(dict(level=lv, ends=(a, b), legs=ends, band=bi,
+                              plan_ends=tuple(end_leg(bands, joined, bi, e) for e in ends), cm=round(sum(edges.values()), 1),
                               loop=start[0] == end[0] and a[0] == "sw",
                               main=any(strands[sid]["main"] for sid, _ in chain),
                               row=min(srow.get(sid, 0) for sid, _ in chain),
@@ -204,7 +238,8 @@ def track_names(found, helix=None) -> None:
             stem = "Track " + "-".join(sw + hx)
         groups[stem].append(t)
     for stem, ts in groups.items():
-        ts.sort(key=lambda t: (t["row"], t["trial"]))
+        if len(ts) > 1:
+            ts.sort(key=plan_order)
         for i, t in enumerate(ts, 1):
             t["name"] = stem if len(ts) == 1 else f"{stem} {i}"
 
@@ -234,7 +269,7 @@ def key_problem(row: dict) -> str:
     if b and natural(a) > natural(b):
         return f"switch_a {a} and switch_b {b} are in number order, lower first"
     if par and par not in ("1", "2", "3", "4"):
-        return f"parallel {par!r} is blank or the track's place from the top, 1 to 4"
+        return f"parallel {par!r} is blank or the track's place in plan order (plan_order), 1 to 4"
     return ""
 
 
@@ -324,9 +359,11 @@ def override_problem(r: dict) -> str:
 
 def resolve_track(row: dict, found: list[dict]) -> dict | None:
     """The one track entry of `found` the row's switches (and `parallel`) name, or None with the reason in
-    row["problem"]: no track, or several with no `parallel` to choose (the candidates named, in top-row order)."""
+    row["problem"]: no track, or several with no `parallel` to choose (the candidates named, in plan_order)."""
     key = (row["switch_a"], row["switch_b"])
-    same = sorted((t for t in found if track_key(t) == key), key=lambda t: (t["row"], t["trial"]))
+    same = [t for t in found if track_key(t) == key]
+    if len(same) > 1:
+        same.sort(key=plan_order)
     label = f"Switch {key[0]}" + (f" to Switch {key[1]}" if key[1] else " spur")
     if not same:
         near = sorted({t["name"] for t in found if track_key(t) and set(key[:1 + bool(key[1])]) & set(track_key(t))})
@@ -341,7 +378,7 @@ def resolve_track(row: dict, found: list[dict]) -> dict | None:
         return same[k - 1]
     if len(same) > 1:
         row["problem"] = (f"{len(same)} tracks run {label} ({', '.join(t['name'] for t in same)}): "
-                          "give parallel, 1 from the top row")
+                          "give parallel, 1 for the first by plan ends (mast_rule.plan_order)")
         return None
     return same[0]
 

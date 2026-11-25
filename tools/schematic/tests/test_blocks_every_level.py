@@ -220,8 +220,8 @@ MAIN_UPPER_TRIALS = (
     ('2', 'Track 101 Spur 2', 'Track 101BB-end'),
     ('2', 'Track 101-111', 'Track 101BA-111C'),
     ('2', 'Track 103 Spur', 'Track 103BB-end'),
-    ('2', 'Track 103-105 1', 'Track 103BA-105C'),
-    ('2', 'Track 103-105 2', 'Track 103AB-105B'),
+    ('2', 'Track 103-105 1', 'Track 103AB-105B'),
+    ('2', 'Track 103-105 2', 'Track 103BA-105C'),
     ('2', 'Track 107 Loop 1', 'Track 107B-107C #1'),
     ('2', 'Track 107 Loop 2', 'Track 107B-107C #2'),
     ('2', 'Track 107-109', 'Track 107A-109B'),
@@ -270,13 +270,13 @@ MAIN_UPPER_TRIALS = (
     ('3', 'Track 205 Spur', 'Track 205B-end'),
     ('3', 'Track 207-211', 'Track 207B-211AA'),
     ('3', 'Track 207-213', 'Track 207C-213A'),
-    ('3', 'Track 209 Spur 1', 'Track 209C-end'),
-    ('3', 'Track 209 Spur 2', 'Track 209B-end'),
+    ('3', 'Track 209 Spur 1', 'Track 209B-end'),
+    ('3', 'Track 209 Spur 2', 'Track 209C-end'),
     ('3', 'Track 211-217 1', 'Track 211AB-217BB'),
     ('3', 'Track 211-217 2', 'Track 211BA-217AA'),
     ('3', 'Track 213 Spur', 'Track 213C-end'),
-    ('3', 'Track 215 Spur 1', 'Track 215C-end'),
-    ('3', 'Track 215 Spur 2', 'Track 215B-end'),
+    ('3', 'Track 215 Spur 1', 'Track 215B-end'),
+    ('3', 'Track 215 Spur 2', 'Track 215C-end'),
     ('3', 'Track 217-219', 'Track 217BA-219C'),
     ('3', 'Track 217-221', 'Track 217AB-221BB'),
     ('3', 'Track 221-223', 'Track 221AB-223A'),
@@ -292,10 +292,10 @@ MAIN_UPPER_TRIALS = (
     ('3', 'Track 237-245', 'Track 237C-245BB'),
     ('3', 'Track 239 Spur', 'Track 239B-end'),
     ('3', 'Track 241 Spur', 'Track 241C-end'),
-    ('3', 'Track 243 Spur 1', 'Track 243BA-end'),
-    ('3', 'Track 243 Spur 2', 'Track 243AB-end'),
-    ('3', 'Track 245 Spur 1', 'Track 245BA-end'),
-    ('3', 'Track 245 Spur 2', 'Track 245AB-end'),
+    ('3', 'Track 243 Spur 1', 'Track 243AB-end'),
+    ('3', 'Track 243 Spur 2', 'Track 243BA-end'),
+    ('3', 'Track 245 Spur 1', 'Track 245AB-end'),
+    ('3', 'Track 245 Spur 2', 'Track 245BA-end'),
     ('3', 'Track Helix Inner', 'Track 131BB-helix'),
 )
 
@@ -367,7 +367,7 @@ STAGING_LAYER = {
 # jmri_bean (only ever set on a level-less row), id (test_device_ids pins it) and trial_name (pinned row by row
 # above, on every level), joined by
 # commas, one row a line, in file order
-DIGESTS = {"1": (90, 'fcb723b226464d86c120a15aba08dada9592f82296b95d1a9eecf8bfcc788d41'), "2": (76, 'a141be761f21526074ba3d258a81307a70fb762575ec1f9b6c8108665a9985c6'), "3": (118, 'dd9cf93711e686dd50f8450c457665db690f5844c0db7ca68e9543e0071a810e')}
+DIGESTS = {"1": (90, 'fcb723b226464d86c120a15aba08dada9592f82296b95d1a9eecf8bfcc788d41'), "2": (76, '62227d85579edaeb7e3b505dbbfc4ce239ea0f6ffc458d7ae5e695e865c69dec'), "3": (118, '21df617dd401a843a58f2e970d621af6b84926e155d51c0e696ed1e35727dfc4')}
 SKIP = {level: ("written_by", "trial_name", "part_of", "jmri_bean", "id") for level in "123"}
 
 
