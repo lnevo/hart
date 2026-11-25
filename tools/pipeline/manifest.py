@@ -25,6 +25,11 @@ step; each field has its type and no other field is set; names are unique; the c
 (no ./, ../, leading / or backslash) that names a tracked file or folder, or a map node marked "local"; the domain
 and every edge side are the map's (docs/pipeline-map/pipeline_map.json). Every problem is reported, each naming the
 file, the step and the field.
+
+The trace audit (ADR-037 stage 4a) reads the manifest through declarations(): each job's steps with the words their
+Python process runs with and every path they declare (inputs, quiet_inputs, outputs, programs). undeclared() names
+the reads a step's processes made that none of those cover, leaving code out (is_code). tools/audit/check_stamps.py
+does the attribution and the report; it warns only.
 """
 from __future__ import annotations
 

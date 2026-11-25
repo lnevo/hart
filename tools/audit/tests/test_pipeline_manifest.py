@@ -191,6 +191,84 @@ class EdgesTest(Refusing):
         self.assertRefused(step(programs='{ ruff = ["**/*.rs"] }'), "programs: ruff: **/*.rs names no tracked")
         self.assertRefused(step(programs='{ "Ru ff" = ["data/x.csv"] }'), "not a program name")
 
+    def test_quiet_inputs(self) -> None:
+        (s,) = parse(step(quiet_inputs='["data/x.csv", "data/sub"]'))
+        self.assertEqual(s.quiet_inputs, ("data/x.csv", "data/sub"))
+        self.assertEqual(s.inputs, ())
+        self.assertRefused(step(quiet_inputs='[{ path = "data/x.csv" }]'), "quiet_inputs: must be a list of paths")
+        self.assertRefused(step(quiet_inputs='["data/gone.csv"]'), "quiet_inputs: data/gone.csv names no tracked")
+        self.assertRefused(step(quiet_inputs='["./data/x.csv"]'), "quiet_inputs: ./data/x.csv has an empty")
+        self.assertRefused(step(quiet_inputs='"data/x.csv"'), "quiet_inputs: must be a list")
+        self.assertRefused(step(inputs='[{ path = "data/x.csv", label = "l" }]', quiet_inputs='["data/x.csv"]'),
+                           "quiet_inputs: data/x.csv also in inputs")
+
+
+class DeclarationsTest(unittest.TestCase):
+    """manifest.declarations, is_code, covers and undeclared: what the trace audit (check_stamps.step_reads) compares a
+    job's reads with."""
+    TEXT = (step(name='"a"', group='"static"', inputs='["data/sub", { path = "data/x.csv", label = "l" }]',
+                 outputs='["www/index.html"]', quiet_inputs='["lib/*.txt"]')
+            + step(name='"b"', group='"static"', cmd='["env", "PYTHONPATH=lib/src", "python3", "-m", "pkg.mod", "x"]')
+            + step(name='"p"', group='"static"', cmd='["bash", "tools/b.sh", "--check"]')
+            + step(name='"r"', cmd='["python3", "tools/r.py"]', programs='{ ruff = ["**/*.py", "ruff.toml"] }'))
+
+    def decls(self, text: str) -> dict:
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "checks.toml"
+            p.write_text(text, encoding="utf-8")
+            return M.declarations(p)
+
+    def test_jobs_steps_words_and_patterns(self) -> None:
+        d = self.decls(self.TEXT)
+        self.assertEqual(list(d), ["static", "r"])
+        a, b, p = d["static"]
+        self.assertEqual((a.words, a.python, a.script), (("tools/a.py",), True, "tools/a.py"))
+        self.assertEqual(a.patterns, ("data/sub", "data/x.csv", "www/index.html", "lib/*.txt"))
+        self.assertEqual((b.words, b.script), (("-m", "pkg.mod", "x"), "lib/src/pkg/mod.py"))
+        self.assertFalse(p.python)
+        self.assertEqual(d["r"][0].patterns, ("**/*.py", "ruff.toml"))
+
+    def test_undeclared(self) -> None:
+        a = self.decls(self.TEXT)["static"][0]
+        reads = ["data/sub/y.csv", "data/x.csv", "www/index.html", "lib/n.txt", "tools/fixture.json", "jmri/x.py",
+                 "data/subway.csv", "lib/deep/n.txt", "wiki/STATUS.md", "wiki/STATUS.md"]
+        self.assertEqual(M.undeclared(a, reads), ["data/subway.csv", "lib/deep/n.txt", "wiki/STATUS.md"])
+        self.assertTrue(M.is_code("tools/pipeline/checks.toml"))
+        self.assertTrue(M.is_code("www/scripts/x.py"))
+        self.assertFalse(M.is_code("www/scripts/published-files.json"))
+
+    def test_errors_are_manifest_errors(self) -> None:
+        for text, why in ((step(cmd='"python3 tools/a.py"'), "cmd: not a list of words"),
+                          (step(cmd='["python3"]'), "cmd: runs nothing"),
+                          (step(inputs='"data/x.csv"'), "inputs: not a list"),
+                          (step(outputs='[{ label = "x" }]'), "outputs: None is not a path"),
+                          (step(quiet_inputs='["/abs"]'), "quiet_inputs: /abs is not a path from the repo root"),
+                          (step(programs='{ ruff = "x" }'), "programs: not a table"),
+                          (step(programs='{ ruff = ["../x"] }'), "programs: ../x has an empty"),
+                          (step(name='"a"', group='"static"') + step(name='"b"', group='"static"'),
+                           "steps 'a' and 'b' run the same words"),
+                          ("", "no \\[\\[step\\]\\]")):
+            with self.subTest(why=why):
+                with self.assertRaisesRegex(M.ManifestError, why):
+                    self.decls(text)
+
+    def test_two_bash_steps_with_the_same_words_are_fine(self) -> None:
+        text = (step(name='"a"', group='"static"', cmd='["bash", "tools/b.sh"]')
+                + step(name='"b"', group='"static"', cmd='["bash", "tools/b.sh"]'))
+        self.assertEqual([s.name for s in self.decls(text)["static"]], ["a", "b"])
+
+    def test_this_repo(self) -> None:
+        d = M.declarations()
+        self.assertEqual(set(d), set(M.job_digests()))
+        steps = {s.name: s for s in M.load()}
+        for job, decls in d.items():
+            for s in decls:
+                with self.subTest(step=s.name):
+                    full = steps[s.name]
+                    self.assertEqual(s.script, full.script)
+                    self.assertEqual(set(s.patterns), {e.path for e in (*full.inputs, *full.outputs)}
+                                     | set(full.quiet_inputs) | {p for _, g in full.programs for p in g})
+
 
 class FileAndRepoTest(unittest.TestCase):
     def load_text(self, data: bytes) -> tuple:
@@ -530,6 +608,79 @@ class DocsChecksShTest(unittest.TestCase):
         self.assertEqual(1, done.returncode)
         self.assertIn("ran tools/a.py", done.stdout)
         self.assertIn("quick docs checks FAILED: bad (its line from the manifest would not parse)", done.stdout)
+
+
+# The scripts tools/check.sh may name itself: its own machinery (what changed, submodules, the manifest's lines, the
+# stamps, test classes, whether the portal runs, the docs-only list, the profile guard) and the unit test folders.
+# A read-only check goes in tools/pipeline/checks.toml, where the map lane and the stamps see it, not here.
+CHECK_SH_MACHINERY = {"tools/ci/changed_kind.py", "tools/hosts/profile_tables_guard.sh", "tools/agent/worktrees.py",
+                      "tools/ci/docs_checks.sh", "tools/pipeline/manifest.py", "tools/audit/check_stamps.py",
+                      "tools/audit/test_classes.py", "tools/audit/portal_inputs.py"}
+SCRIPT_RE = re.compile(r"[\w$\"{}./*-]*/[\w*.-]*\.(?:py|sh)\b")
+TEST_GLOB_RE = re.compile(r'(?:"\$JMRI_TESTS"|[\w/]+/tests)/test\*\.py')
+# the only `later` calls with a command of their own: unit()'s, the static job, the manifest's own lines and the
+# placeholders that run nothing (true)
+LATER_OK = re.compile(r'later "\$name" env -u HART_TABLES "\$@"$|later static static_checks$|eval "later \$line"$'
+                      r'|later "[^"]* skipped[^"]*" true$')
+RUN_OK = re.compile(r"""eval "run \$line"('.*')?$""")
+
+
+def check_sh_problems(text: str, manifest_scripts) -> list[str]:
+    """Why check.sh runs a check outside the step manifest's loop, or []: a script that is not its machinery or a
+    unit test folder, a `run` or `later` with a command of its own, a `unit` job that is no unittest run, or a step's
+    script named in check.sh itself."""
+    out = []
+    for n, raw in enumerate(text.splitlines(), 1):
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        for word in SCRIPT_RE.findall(line):
+            path = word.strip('"').removeprefix('"').replace('"$ROOT/', "").replace("$ROOT/", "")
+            if path not in CHECK_SH_MACHINERY and not TEST_GLOB_RE.fullmatch(word):
+                out.append(f"line {n}: names {path}, which is not check.sh's machinery: {line}")
+        if re.match(r"(eval\s+\"?)?run\s", line) and not RUN_OK.match(line):
+            out.append(f"line {n}: a run line outside the manifest's static loop: {line}")
+        if re.match(r"(eval\s+\"?)?later\s", line) and not LATER_OK.match(line):
+            out.append(f"line {n}: a later line with a command of its own: {line}")
+        if re.match(r"unit\s", line) and "-m unittest" not in line:
+            out.append(f"line {n}: a unit job that is not a unittest run: {line}")
+        for script in manifest_scripts:
+            if script in line:
+                out.append(f"line {n}: names {script}, a step of tools/pipeline/checks.toml: {line}")
+    return out
+
+
+class CheckShRunsOnlyTheManifestTest(unittest.TestCase):
+    """Stage 3 took check.sh out of map coverage (its checks are drawn from the manifest), so a check added to check.sh
+    by hand would be drawn nowhere and declared nowhere: check.sh may run read-only checks only from the manifest."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.text = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
+        cls.scripts = sorted({s.script for s in M.load()})
+
+    def test_check_sh_runs_its_checks_from_the_manifest_only(self) -> None:
+        self.assertEqual(check_sh_problems(self.text, self.scripts), [])
+
+    def test_the_guard_sees_what_it_looks_for(self) -> None:
+        self.assertIn("eval \"later $line\"", self.text)          # the patterns match the real lines, not nothing
+        self.assertTrue(any(RUN_OK.match(raw.strip()) for raw in self.text.splitlines()))
+        self.assertGreater(len(self.scripts), 30)
+
+    def test_a_check_added_by_hand_is_caught(self) -> None:
+        for added, why in (("run phase03 python3 jmri/scripts/check_x.py", "names jmri/scripts/check_x.py"),
+                           ("run phase03 python3 jmri/scripts/check_x.py", "a run line outside"),
+                           ('eval "run extra python3 tools/x.py"', "a run line outside"),
+                           ("later extra python3 tools/audit/check_x.py", "a later line with a command"),
+                           ("later extra true_check", "a later line with a command"),
+                           ('python3 tools/audit/check_x.py || fail=1', "names tools/audit/check_x.py"),
+                           ('bash "$ROOT/tools/x/check.sh"', "names tools/x/check.sh"),
+                           ("unit unit-x python3 tools/x/run_tests.py", "not a unittest run"),
+                           (f"  {self.scripts[0]} --check", f"names {self.scripts[0]}, a step")):
+            with self.subTest(added=added, why=why):
+                problems = check_sh_problems(self.text + "\n" + added + "\n", self.scripts)
+                self.assertTrue(any(why in p for p in problems), problems)
+        self.assertEqual(check_sh_problems(self.text + "\n# run x python3 tools/x.py\n", self.scripts), [])
 
 
 if __name__ == "__main__":

@@ -46,6 +46,12 @@ size and mtime stay.
 tests/test_check_stamps.py checks that a recorded read set holds everything an independent audit hook
 (tools/audit/stamp_audit/sitecustomize.py, CHECK_AUDIT) saw the same jobs open or list. What neither hook can see:
 the plugin's files (covered by its commit).
+
+The declaration audit (ADR-037 stage 4a): after a step-manifest job's traced pass, `record` sorts the files each of
+its Python processes read by the step that started the process (step_reads), keeps them in the stamp, and prints a
+WARNING naming each one its step does not declare in tools/pipeline/checks.toml; `audit` prints it again from the
+stamp against the manifest as it is now. It changes no key and no verdict; one that cannot run prints STAMP AUDIT
+FAILED. The CHECK_AUDIT hook and audit-report above check the unit jobs' BY_KIND declarations instead.
 """
 from __future__ import annotations
 

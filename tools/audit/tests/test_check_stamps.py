@@ -877,5 +877,173 @@ class AuditTest(unittest.TestCase):
             self.assertIn(f"{len(quick)} of {len(quick)} jobs current, skipped", again.stdout)
 
 
+class DeclarationAuditTest(RepoCase):
+    """The trace audit of a manifest job's declarations (ADR-037 stage 4a): each process's reads go to the step that
+    started it, code is left out, undeclared reads are warned about and kept in the stamp for `check_stamps.py audit`,
+    and nothing about it changes a key or a verdict. An audit that cannot run says so; it is never silent."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        patch = unittest.mock.patch.object(cs.ps, "unstampable", return_value=None)
+        patch.start()
+        self.addCleanup(patch.stop)
+
+    def trace(self, lines: list[str]) -> Path:
+        log = self.tmp / "hand.trace"
+        log.write_text("".join(line.replace("{root}", str(self.root)) + "\n" for line in lines))
+        return log
+
+    HAND = ["0\tb", "0\tb",
+            "100\ts\t50\t\t1\tpython3\ttools/a.py",
+            "100\tr\t{root}/data/in.csv",
+            "100\tr\t{root}/tools/lib/fixture.json",            # code: under tools/
+            "100\tr\t{root}/jmri/scripts/x.py",                 # code: a .py file
+            "100\tr\t{root}/.cache/hart/x.json",                # a shared cache: no input
+            "100\tr\t/usr/lib/python3/x.txt",                   # outside the repo
+            "100\tx\ttok1\t{root}\tbash\t-c\tpython3 helper.py",
+            "200\ts\t999\ttok1\t2\tpython3\thelper.py",          # a's grandchild, by the token it inherited
+            "200\tr\t{root}/data/helper.csv",
+            "300\ts\t100\t\t3\tpython3\ttools/b.py",            # a's child, by its parent, whatever it runs
+            "300\tr\t{root}/data/child.csv",
+            "300\ts\t300\tfork\t0\tfork",                       # its fork
+            "400\ts\t51\t\t4\tpython3\tstray.py",               # no step started it
+            "400\tr\t{root}/data/stray.csv",
+            "500\tr\t{root}/data/nostart.csv"]                  # no start line at all
+
+    def test_reads_go_to_the_step_that_started_the_process(self) -> None:
+        audit = cs.step_reads("static", self.trace(self.HAND), self.root, cs.manifest_steps("static", self.root))
+        self.assertEqual(audit["steps"], {"a": ["data/child.csv", "data/helper.csv", "data/in.csv"], "b": []})
+        self.assertEqual(audit["unowned"], {"pid 500, no start line": ["data/nostart.csv"],
+                                            "python3 stray.py": ["data/stray.csv"]})
+        self.assertEqual(audit["absent"], ["b"])
+        self.assertEqual(audit["bash"], [])
+
+    def test_a_job_of_one_step_owns_every_process(self) -> None:
+        audit = cs.step_reads("ruff", self.trace(self.HAND), self.root, cs.manifest_steps("ruff", self.root))
+        self.assertEqual(audit["steps"]["ruff"], ["data/child.csv", "data/helper.csv", "data/in.csv",
+                                                  "data/stray.csv"])
+        self.assertEqual(audit["unowned"], {"pid 500, no start line": ["data/nostart.csv"]})
+        self.assertEqual(audit["absent"], [])
+
+    def test_the_report_names_each_undeclared_read_and_how_to_see_it_again(self) -> None:
+        self.edit_step("a", 'inputs = ["data/in.csv"]\nquiet_inputs = ["data/helper.csv"]\n')
+        steps = cs.manifest_steps("static", self.root)
+        lines, count = cs.audit_lines("static", cs.step_reads("static", self.trace(self.HAND), self.root, steps), steps)
+        self.assertEqual(count, 4)          # child.csv, the stray and the startless process's reads, b absent
+        self.assertTrue(lines[0].startswith("WARNING: stamp audit: static: 4 read(s) not declared"), lines[0])
+        self.assertIn("warn only", lines[0])
+        self.assertIn("    a: data/child.csv", lines)
+        self.assertIn("    no step started this process (python3 stray.py): data/stray.csv", lines)
+        self.assertIn("    b: no process of it in the trace, so its reads are not audited", lines)
+        self.assertEqual(lines[-1], "    again: python3 tools/audit/check_stamps.py audit static")
+
+    def test_a_long_list_is_cut_in_the_run_and_whole_on_demand(self) -> None:
+        steps = cs.manifest_steps("ruff", self.root)
+        audit = {"steps": {"ruff": [f"data/{i:02}.csv" for i in range(12)]}, "unowned": {}, "absent": [], "bash": []}
+        short, _ = cs.audit_lines("ruff", audit, steps)
+        whole, count = cs.audit_lines("ruff", audit, steps, full=True)
+        self.assertEqual(count, 12)
+        self.assertIn("and 4 more", short[1])
+        self.assertIn("data/11.csv", whole[1])
+
+    def test_a_bash_step_is_named_as_not_audited(self) -> None:
+        self.edit_step("b", "", cmd='["bash", "tools/b.sh"]')
+        steps = cs.manifest_steps("static", self.root)
+        audit = cs.step_reads("static", self.trace(self.HAND[:4]), self.root, steps)
+        self.assertEqual((audit["bash"], audit["absent"]), (["b"], []))
+        lines, count = cs.audit_lines("static", audit, steps)
+        self.assertEqual(count, 1)
+        self.assertIn("    not audited: b (bash, which the trace cannot see)", lines)
+        self.edit_step("a", 'inputs = ["data/in.csv"]\n')
+        self.assertEqual(cs.audit_lines("static", audit, cs.manifest_steps("static", self.root)),
+                         (["stamp audit: static: every data read is declared in tools/pipeline/checks.toml "
+                           "(b: bash, which the trace cannot see, so not audited)"], 0))
+
+    def test_an_audit_that_cannot_run_says_so(self) -> None:
+        with self.assertRaisesRegex(cs.AuditError, "cannot read the trace of static"):
+            cs.step_reads("static", self.tmp / "gone.trace", self.root, cs.manifest_steps("static", self.root))
+        with self.assertRaisesRegex(cs.AuditError, "holds no process start"):
+            cs.step_reads("static", self.trace(["0\tb", "5\tr\t{root}/data/in.csv"]), self.root,
+                          cs.manifest_steps("static", self.root))
+        with self.assertRaisesRegex(cs.AuditError, "'unit-hartlib' is no job of"):
+            cs.manifest_steps("unit-hartlib", self.root)
+        self.assertEqual(cs.audit_trace("unit-hartlib", self.trace(self.HAND), self.root), ([], None))
+        lines, audit = cs.audit_trace("static", self.tmp / "gone.trace", self.root)
+        self.assertIsNone(audit)
+        self.assertEqual(len(lines), 1)
+        self.assertTrue(lines[0].startswith("STAMP AUDIT FAILED: static: cannot read the trace"), lines)
+        (self.root / cs.MANIFEST).write_text("[[step]\n")
+        lines, audit = cs.audit_trace("static", self.trace(self.HAND), self.root)
+        self.assertIsNone(audit)
+        self.assertIn("not valid TOML", lines[0])
+        self.assertTrue(lines[0].startswith("STAMP AUDIT FAILED: static:"))
+
+    def edit_step(self, name: str, fields: str, cmd: str | None = None) -> None:
+        path = self.root / cs.MANIFEST
+        text = path.read_text()
+        head = f'[[step]]\nname = "{name}"\n'
+        self.assertEqual(text.count(head), 1)
+        if cmd:
+            old = f'cmd = ["python3", "tools/{name}.py"]\n'
+            self.assertEqual(text.count(old), 1)
+            text = text.replace(old, f"cmd = {cmd}\n")
+        path.write_text(text.replace(head, head + fields))
+
+    def audit_cmd(self, *names: str) -> tuple[int, str, str]:
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            rc = cs.audit_stamp(list(names), self.root, self.store)
+        return rc, out.getvalue(), err.getvalue()
+
+    def test_the_stamp_keeps_the_audit_and_the_command_reads_it_against_the_manifest_now(self) -> None:
+        self.edit_step("b", "", cmd='["bash", "tools/b.sh"]')        # one traced step, one the trace cannot see
+        log = self.run_job("open('jmri/layouts/hart/data/switches.csv').read()\n", script="tools/a.py")
+        lines, audit = cs.audit_trace("static", log, self.root)
+        self.assertEqual(audit["steps"]["a"], ["jmri/layouts/hart/data/switches.csv"])
+        self.assertIn("    a: jmri/layouts/hart/data/switches.csv", lines)
+        self.assertIsNone(cs.record("static", log, self.root, self.store, audit=audit))
+        stamp = cs.traced.load(cs._file("static", self.store))
+        self.assertEqual(stamp["audit"], audit)
+        rc, out, _ = self.audit_cmd("static")
+        self.assertEqual(rc, 1)
+        self.assertIn("    a: jmri/layouts/hart/data/switches.csv", out)
+        self.edit_step("a", 'quiet_inputs = ["jmri/layouts/hart/data/switches.csv"]\n')
+        rc, out, _ = self.audit_cmd("static")
+        self.assertEqual(rc, 0, out)
+        self.assertIn("stamp audit: static: every data read is declared", out)
+
+    def test_the_audit_is_in_no_key_and_changes_no_verdict(self) -> None:
+        log = self.run_job("open('jmri/layouts/hart/data/switches.csv').read()\n", script="tools/a.py")
+        self.assertIsNone(cs.record("static", log, self.root, self.store))
+        plain = cs.traced.load(cs._file("static", self.store))
+        self.assertNotIn("audit", plain)
+        self.assertIsNone(cs.record("static", log, self.root, self.store, audit=cs.audit_trace("static", log,
+                                                                                                self.root)[1]))
+        audited = cs.traced.load(cs._file("static", self.store))
+        self.assertEqual(plain["key"], audited["key"])
+        self.assertEqual(plain["state"], audited["state"])
+        self.assertTrue(self.current("static"))
+
+    def test_the_command_says_why_it_cannot_audit(self) -> None:
+        rc, _, err = self.audit_cmd("static")
+        self.assertEqual(rc, 2)
+        self.assertIn("stamp audit: static: no stamp; a pass of the job records one", err)
+        self.assertIsNone(self.record("static", script="tools/a.py"))           # a stamp with no audit in it
+        rc, _, err = self.audit_cmd("static")
+        self.assertEqual(rc, 2)
+        self.assertIn("its stamp holds no audit", err)
+        rc, _, err = self.audit_cmd("unit-hartlib")
+        self.assertEqual(rc, 2)
+        self.assertIn("unit-hartlib: no job of tools/pipeline/checks.toml", err)
+        rc, _, err = self.audit_cmd()                                           # every manifest job: none stamped
+        self.assertEqual(rc, 2)
+        self.assertEqual(err.count("no stamp;") + err.count("holds no audit"), 4)
+        (self.root / cs.MANIFEST).write_text("[[step]\n")
+        rc, _, err = self.audit_cmd("static")
+        self.assertEqual(rc, 2)
+        self.assertIn("stamp audit: cannot run:", err)
+        self.assertIn("not valid TOML", err)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -21,6 +21,11 @@
 #               one of the map's edge sides ("check": a check or comparison reads it)
 #   outputs     what the step writes when run without --check (the map's edges out of its script)
 #   programs    a program the trace cannot see into, and the files it reads
+#   quiet_inputs  paths or globs the step reads that the map does not draw (tables.xml or the device master read
+#               through hartlib by many scripts); only the trace audit reads them. A path is in inputs or here, not both
+# After each traced pass of a job, tools/audit/check_stamps.py prints a WARNING naming each repo file a step read that
+# is in none of inputs, quiet_inputs, outputs and programs (code under tools/ and .py files left out);
+# `python3 tools/audit/check_stamps.py audit [job]` shows it again from the job's last stamp (ADR-037 stage 4a).
 # Every path is from the repo root and names a tracked file or folder, or a map node marked "local". Inputs and
 # outputs were filled once from the map's edges (2026-11-25): code the script imports or is called by is left out,
 # and a map node with no repo path (ext:...) is named in a comment instead.
