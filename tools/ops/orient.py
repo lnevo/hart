@@ -434,6 +434,35 @@ def summarize_deploy(out: str, code: int, err: str) -> list[str]:
     return lines
 
 
+def site_deploy_lines() -> list[str]:
+    """The website's last deploy from the main checkout's .deploy-manifest.json (ADR-040): commit, branch, time, and
+    whether origin/main has commits under www/ that the site lacks."""
+    path = ROOT_MAIN / ".deploy-manifest.json"
+    try:
+        record = json.loads(path.read_text(encoding="utf-8")).get("deploy")
+    except FileNotFoundError:
+        return ["website: no deploy record"]
+    except (OSError, ValueError) as err:
+        return [f"website: cannot read {path.name} ({err})"]
+    if not isinstance(record, dict) or not record.get("commit"):
+        return ["website: the last deploy kept counts only (before ADR-040)"]
+    commit = str(record["commit"])
+    where = short_path(str(record.get("worktree", "?")))
+    dirty = ", uncommitted changes" if record.get("dirty") else ""
+    lines = [f"website: {commit[:8]} at {record.get('finished', '?')} ({record.get('branch', '?')}, {where}{dirty})"]
+    code, out, err = run(["git", "rev-list", "--count", f"{commit}..{BASE}", "--", "www"], GIT_TIMEOUT)
+    if code != 0:
+        return lines + [f"  cannot compare the deployed commit with {BASE} ({first_line(err)})"]
+    if out.strip() not in ("", "0"):
+        lines.append(f"  {BASE} has {out.strip()} commit(s) under www/ that the site lacks")
+    code, _, err = run(["git", "merge-base", "--is-ancestor", commit, BASE], GIT_TIMEOUT)
+    if code == 1:
+        lines.append(f"  NOTE: the deployed commit is not on {BASE}")
+    elif code != 0:
+        lines.append(f"  cannot tell whether the deployed commit is on {BASE} ({first_line(err)})")
+    return lines
+
+
 # ---------------------------------------------------------------- output
 
 def tree_line(t: Tree, prs: dict[str, int], here: str) -> str:
@@ -498,6 +527,7 @@ def report(short: bool, here: str) -> list[str]:
                 f"{p.get('title', '')}" for p in prs]
     out.append("Last deploys (compared with this checkout):")
     out += ["  " + line for line in deploys]
+    out += ["  " + line for line in site_deploy_lines()]
     return out
 
 

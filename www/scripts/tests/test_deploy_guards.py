@@ -73,5 +73,23 @@ class PreviousManifestTest(unittest.TestCase):
         self.assertEqual(self._run("--allow-drop"), 0)
 
 
+class ManifestTest(unittest.TestCase):
+    def test_counts_pages_and_share_cards(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "assets" / "share").mkdir(parents=True)
+            (root / "assets" / "share" / "a.jpg").write_bytes(b"x")
+            (root / "index.html").write_text("x")
+            (root / "a" / "b.html").parent.mkdir()
+            (root / "a" / "b.html").write_text("x")
+            summary = check.manifest(root)
+            self.assertEqual((summary["files"], summary["html_pages"], summary["share_cards"]), (3, 2, 1))
+
+    def test_the_deploy_record_is_not_a_count(self):
+        old = {"html_pages": 100, "deploy": {"commit": "abc"}}
+        self.assertEqual(check.drops({"html_pages": 95}, old), [])
+        self.assertEqual(check.drops({"html_pages": 80}, old), ["html_pages: 100 → 80"])
+
+
 if __name__ == "__main__":
     unittest.main()
