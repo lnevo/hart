@@ -161,6 +161,11 @@ later() {
 # Every queued job's verdict from one check_stamps.py process (current-batch), which also saves each stampable job's
 # snapshot ($JOBS/<n>.stamp, taken before any job starts) and, on a pull request run, why each runs (<n>.stamplog).
 # A batch that fails, or answers for other jobs than were queued, makes every job run and record nothing, and says why.
+# The batch's files are dropped when its answers are not used: a reason it wrote for one job is not why that job runs.
+batch_failed() {
+  echo "$1, so every job runs and none records a stamp"
+  rm -f "$JOBS"/*.stamp "$JOBS"/*.stamplog
+}
 read_verdicts() {
   local i v n=0 total="${#names[@]}"
   for (( i = 0; i < total; i++ )); do verdicts[$i]=2; done
@@ -169,17 +174,17 @@ read_verdicts() {
   printf '%s\n' "${names[@]}" >"$JOBS/names"
   if ! env ${STAMP_ENV[@]+"${STAMP_ENV[@]}"} python3 tools/audit/check_stamps.py current-batch "$JOBS/names" "$JOBS" \
        ${STAMP_WHY[@]+"${STAMP_WHY[@]}"} >"$JOBS/batch.log" 2>&1; then
-    echo "stamp check failed, so every job runs and none records a stamp: $(tail -n 5 "$JOBS/batch.log")"
+    batch_failed "stamp check failed ($(tail -n 5 "$JOBS/batch.log"))"
     return 0
   fi
   if [[ ! -f "$JOBS/verdicts" ]]; then
-    echo "stamp check wrote no verdicts, so every job runs and none records a stamp: $(tail -n 5 "$JOBS/batch.log")"
+    batch_failed "stamp check wrote no verdicts ($(tail -n 5 "$JOBS/batch.log"))"
     return 0
   fi
   local got=()
   while IFS=$'\t' read -r i v; do
     if [[ ! "$i" =~ ^[0-9]+$ || ! "$v" =~ ^[012]$ ]] || (( i >= total )); then
-      echo "stamp check: \"$i	$v\" in its verdicts is no verdict of a queued job, so every job runs and none records a stamp"
+      batch_failed "stamp check: \"$i	$v\" in its verdicts is no verdict of a queued job"
       for (( i = 0; i < total; i++ )); do verdicts[$i]=2; done
       return 0
     fi
@@ -187,7 +192,7 @@ read_verdicts() {
     n=$((n + 1))
   done <"$JOBS/verdicts"
   if (( n != total || ${#got[@]} != total )); then
-    echo "stamp check: verdicts for ${#got[@]} of $total jobs in $n lines, so every job runs and none records a stamp"
+    batch_failed "stamp check: verdicts for ${#got[@]} of $total jobs in $n lines"
     return 0
   fi
   for (( i = 0; i < total; i++ )); do verdicts[$i]=${got[$i]}; done
@@ -219,7 +224,7 @@ start_jobs() {
         echo "$name" >"$CHECK_AUDIT/$n.name"
         export CHECK_AUDIT_LOG="$CHECK_AUDIT/$n.log" CHECK_AUDIT_ROOT="$ROOT" PYTHONPATH="$ROOT/tools/audit/stamp_audit${PYTHONPATH:+:$PYTHONPATH}"
       fi
-      unset HART_TRACE_LOG HART_TRACE_SPAWN
+      unset HART_TRACE_LOG HART_TRACE_SPAWN HART_TRACE_PATH
       if (( src == 1 )); then
         # the trace this job's stamp is recorded from; the job's own Python process (one per `run` in static) is
         # expected in it ("b" lines), so a process that dropped the hook leaves the trace short and records nothing
@@ -246,7 +251,7 @@ start_jobs() {
       if (( stampable )); then
         # with the environment the stamp check had (PYTHONPATH is in the key), untraced
         if [[ -n "$pp_set" ]]; then ppenv=(PYTHONPATH="$pp"); else ppenv=(-u PYTHONPATH); fi
-        env -u HART_TRACE_LOG -u HART_TRACE_SPAWN -u CHECK_AUDIT_LOG "${ppenv[@]}" ${STAMP_ENV[@]+"${STAMP_ENV[@]}"} python3 tools/audit/check_stamps.py record "$name" "$JOBS/$n.stamp" --trace "$HART_TRACE_LOG" ${skip_count[@]+"${skip_count[@]}"} >>"$JOBS/$n.stamplog" 2>&1
+        env -u HART_TRACE_LOG -u HART_TRACE_SPAWN -u HART_TRACE_PATH -u CHECK_AUDIT_LOG "${ppenv[@]}" ${STAMP_ENV[@]+"${STAMP_ENV[@]}"} python3 tools/audit/check_stamps.py record "$name" "$JOBS/$n.stamp" --trace "$HART_TRACE_LOG" ${skip_count[@]+"${skip_count[@]}"} >>"$JOBS/$n.stamplog" 2>&1
       fi
       if [[ -s "$JOBS/$n.stamplog" ]]; then { echo "--- stamps ($name):"; cat "$JOBS/$n.stamplog"; } >>"$JOBS/$n.log"; fi
       echo "$((SECONDS - start))" >"$JOBS/$n.time"

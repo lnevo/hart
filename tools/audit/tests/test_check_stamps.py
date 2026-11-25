@@ -60,6 +60,18 @@ class DeclarationTest(unittest.TestCase):
         for kind in cs.BY_KIND:
             self.assertIn("tools/check.sh", cs.declared(kind))
 
+    def test_a_pattern_with_a_question_mark_is_walked_like_a_star(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            for rel in ("tools/x/run1.py", "tools/x/run22.py", "tools/check.sh", "tools/__pycache__/m.pyc"):
+                (root / rel).parent.mkdir(parents=True, exist_ok=True)
+                (root / rel).write_text("x")
+            self.assertEqual([p.relative_to(root).as_posix() for p in cs.walk(("tools/x/run?.py",), root)],
+                             ["tools/x/run1.py"])
+            self.assertEqual([p.relative_to(root).as_posix() for p in cs.walk(("tools/check.sh", "tools/x/*"), root)],
+                             ["tools/check.sh", "tools/x/run1.py", "tools/x/run22.py"])
+            self.assertEqual(cs.walk(("tools/absent.sh",), root), [])
+
     def test_the_tables_are_consistent(self) -> None:
         cs.check_tables()
 
@@ -131,6 +143,36 @@ class DeclarationTest(unittest.TestCase):
                 with unittest.mock.patch("sys.stderr") as err:
                     self.assertEqual(cs.main(["declared", "unit-hartlib"]), 2)
                 self.assertIn("check_stamps", "".join(c.args[0] for c in err.write.call_args_list))
+
+
+class SkipConditionTest(unittest.TestCase):
+    def test_every_environment_variable_a_test_skips_on_is_in_the_key(self) -> None:
+        """A job whose tests skipped is stamped with the skips in its key; what they skip on must be in the key too.
+        An environment variable read in a skip decorator, or in the lines before a skipTest, is in KEY_ENV."""
+        tracked = subprocess.run(["git", "ls-files", "*tests/test*.py"], cwd=REPO, capture_output=True, text=True,
+                                 check=True).stdout.split()
+        read = re.compile(r"""os\.(?:environ\.get|getenv)\(\s*["']([A-Z_0-9]+)["']|os\.environ\[["']([A-Z_0-9]+)["']\]""")
+        found = {}
+        for rel in tracked:
+            if rel.startswith(("jmri/layouts/hart/parked/", "archive/")):
+                continue
+            lines = (REPO / rel).read_text(encoding="utf-8", errors="replace").splitlines()
+            for i, line in enumerate(lines):
+                if "skipIf" in line or "skipUnless" in line or "skipTest" in line or "SkipTest" in line:
+                    for near in lines[max(0, i - 3):i + 1]:
+                        for m in read.finditer(near):
+                            found.setdefault(m.group(1) or m.group(2), rel)
+        # SCHEMATIC_PLUGIN is in the key through the plugin's state (panel_stamps.plugin_state)
+        missing = {k: v for k, v in found.items() if k not in cs.KEY_ENV and k != "SCHEMATIC_PLUGIN"}
+        self.assertEqual(missing, {})
+        self.assertIn("CHECK_AUDIT", found, "the scan no longer sees test_check_stamps' own skip")
+
+    def test_the_environment_and_the_user_are_in_the_key(self) -> None:
+        ck = cs.Checker(Path(tempfile.mkdtemp()), Path(tempfile.mkdtemp()))
+        base = cs.outside_state("unit-mimic", ck)
+        self.assertRegex(base, r"(?m)^euid=\d+$")
+        with unittest.mock.patch.dict(os.environ, {"CHECK_AUDIT": "/x"}):
+            self.assertNotEqual(cs.outside_state("unit-mimic", ck), base)
 
 
 class StoreTest(unittest.TestCase):
@@ -357,7 +399,8 @@ class BatchTest(RepoCase):
         got = self.same([2, 2, 2, 2, 2, 2])
         self.assertTrue(all(v[2] is None for v in got))
 
-    def test_a_failure_part_way_gives_no_verdicts(self) -> None:
+    def test_a_job_whose_check_fails_runs_records_nothing_and_loses_its_stamp(self) -> None:
+        """Only that job: the others keep their verdicts; its stamp is dropped, so its next pass records afresh."""
         folder = Path(tempfile.mkdtemp(dir=self.tmp))
         real = cs.why_not_current
 
@@ -366,9 +409,17 @@ class BatchTest(RepoCase):
                 raise OSError("disk gone")
             return real(name, *args, **kwargs)
         with unittest.mock.patch.object(cs, "why_not_current", side_effect=fail_on_mimic):
-            with self.assertRaisesRegex(cs.BatchError, r"job 1 \(unit-mimic\): OSError: disk gone"):
-                cs.current_batch(self.NAMES, folder, False, self.root, self.store)
-        self.assertFalse((folder / "verdicts").exists())
+            codes = cs.current_batch(self.NAMES, folder, False, self.root, self.store)
+        self.assertEqual(codes, [0, 2, 0, 1, 0, 2])
+        self.assertIn("OSError: disk gone", (folder / "1.stamplog").read_text())
+        self.assertFalse((folder / "1.stamp").exists())
+        self.assertFalse(cs._file("unit-mimic", self.store).exists())
+        self.assertEqual(self.alone()[1][:2], (1, "no stamp"))
+
+    def test_a_batch_that_cannot_check_at_all_gives_no_verdicts(self) -> None:
+        folder = self.tmp / "absent"
+        with self.assertRaisesRegex(cs.BatchError, "is not a folder"):
+            cs.current_batch(self.NAMES, folder, False, self.root, self.store)
 
     def test_the_names_and_the_folder_are_checked_first(self) -> None:
         names = self.tmp / "names"
@@ -512,12 +563,15 @@ class CheckShVerdictsTest(unittest.TestCase):
     once for each queued job; anything else runs every job, records no stamp, and says why."""
 
     def verdicts(self, stub: str, stamps: str = "1") -> tuple[subprocess.CompletedProcess, str]:
-        start = CHECK_SH.index("read_verdicts() {")
-        block = CHECK_SH[start:CHECK_SH.index("\n}\n", start) + 3]
+        start = CHECK_SH.index("batch_failed() {")
+        end = CHECK_SH.index("\n}\n", CHECK_SH.index("read_verdicts() {")) + 3
+        block = CHECK_SH[start:end]
         with tempfile.TemporaryDirectory() as d:
             stub_dir = Path(d) / "bin"
             stub_dir.mkdir()
-            (stub_dir / "python3").write_text('#!/bin/bash\ncp "$3" "$4/names.seen"\n' + stub)
+            # the stand-in also leaves a reason for job 0, as a --why batch would
+            (stub_dir / "python3").write_text('#!/bin/bash\ncp "$3" "$4/names.seen"\necho "runs: x" >"$4/0.stamplog"\n'
+                                              + stub)
             (stub_dir / "python3").chmod(0o755)
             (Path(d) / "jobs").mkdir()
             script = (f"set -uo pipefail\nnames=(a 'b c' d)\nverdicts=()\nSTAMPS={stamps}\nRECORD={stamps}\n"
@@ -526,6 +580,7 @@ class CheckShVerdictsTest(unittest.TestCase):
             done = subprocess.run(["bash", "-c", script], env={**os.environ, "PATH": f"{stub_dir}:{os.environ['PATH']}"},
                                   capture_output=True, text=True, timeout=30)
             seen = Path(d) / "jobs/names.seen"
+            self.left = (Path(d) / "jobs/0.stamplog").exists()
             return done, seen.read_text() if seen.exists() else ""
 
     def test_a_good_batch_gives_each_job_its_verdict(self) -> None:
@@ -534,6 +589,7 @@ class CheckShVerdictsTest(unittest.TestCase):
         self.assertIn("VERDICTS=0 1 2", done.stdout)
         self.assertEqual(names, "a\nb c\nd\n")
         self.assertNotIn("every job runs", done.stdout)
+        self.assertTrue(self.left)
 
     def test_anything_else_runs_every_job_and_says_why(self) -> None:
         for stub, says in (("echo 'job 1 (b c): OSError: disk gone' >&2\nexit 3\n", "OSError: disk gone"),
@@ -547,6 +603,7 @@ class CheckShVerdictsTest(unittest.TestCase):
                 self.assertIn("VERDICTS=2 2 2", done.stdout)
                 self.assertIn(says, done.stdout)
                 self.assertIn("every job runs and none records a stamp", done.stdout)
+                self.assertFalse(self.left, "a reason the failed batch wrote for one job is left to be printed")
 
     def test_no_stamps_no_batch(self) -> None:
         done, names = self.verdicts("exit 3\n", stamps="0")

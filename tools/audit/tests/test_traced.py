@@ -292,6 +292,20 @@ class WhichAndSkipTest(unittest.TestCase):
         self.assertEqual(run_traced(self.root, code, self.log), 0)
         self.assertEqual(traced.parse(self.log).which, set())
 
+    def test_a_child_started_on_a_stub_path_notes_nothing(self) -> None:
+        """A test's Python child whose PATH puts a stub folder first finds the stub: no input of the job."""
+        self.install_tool()
+        code = ("import os, subprocess, sys\n"
+                f"env = dict(os.environ, PATH={str(self.bin)!r} + os.pathsep + '/usr/bin')\n"
+                "subprocess.run([sys.executable, '-c', 'import shutil; shutil.which(\"hart-no-such-tool\")'], env=env,"
+                " check=True)\n")
+        empty = self.root.parent / "empty-bin"
+        empty.mkdir()
+        stub_free = f"{empty}{os.pathsep}{os.environ['PATH'].split(os.pathsep, 1)[1]}"
+        with unittest.mock.patch.dict(os.environ, {"PATH": stub_free}):
+            self.assertEqual(run_traced(self.root, code, self.log), 0)
+        self.assertEqual(traced.parse(self.log).which, set())
+
     def write_tests(self) -> None:
         (self.root / "test_s.py").write_text(textwrap.dedent("""\
             import shutil, unittest

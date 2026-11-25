@@ -212,9 +212,12 @@ def walk(patterns, root: Path = ROOT) -> list[Path]:
     Linked folders (media/, ops/car-cards in a worktree) are walked through their links, whatever the pattern."""
     heads = set()
     for pat in patterns:
-        head = pat.split("*", 1)[0]
         # a literal pattern ("tools/check.sh") starts at itself, not at its folder: no walk of all of tools/ for it
-        heads.add(pat if "*" not in pat else (head.rsplit("/", 1)[0] if "/" in head else ""))
+        if not any(c in pat for c in "*?"):
+            heads.add(pat)
+            continue
+        head = pat.split("*", 1)[0].split("?", 1)[0]
+        heads.add(head.rsplit("/", 1)[0] if "/" in head else "")
     found: set[Path] = set()
     starts = {h for h in heads if not any(h != o and (h + "/").startswith(o + "/") for o in heads if o)}
     seen: set[str] = set()                          # real paths of the folders walked: a link back up ends there
@@ -353,6 +356,11 @@ REFS_OF: dict[str, tuple[str, ...]] = {
 }
 
 
+# The environment that picks other inputs, and what tests skip on (tests/test_check_stamps.py: every variable a
+# test's skip reads is here): CHECK_AUDIT (test_check_stamps inside an audit run), UPDATE_GOLDEN (golden files rewritten).
+KEY_ENV = ("ANYRAIL_PLAN", "JMRI_LAYOUT", "SCHEMATIC_CACHE", "SCHEMATIC_REQUIRED", "CHECK_AUDIT", "UPDATE_GOLDEN")
+
+
 def outside_state(name: str, ck: Checker, wide: bool = False) -> str:
     """What the jobs read from outside the traced files: the private AnyRail plan, the interpreters and their
     packages, the environment that picks other inputs, and the git refs REFS_OF names for the job. `wide` (a job that
@@ -367,7 +375,8 @@ def outside_state(name: str, ck: Checker, wide: bool = False) -> str:
         parts.append(f"hops={ck.venv(hops)}")
     for ref in REFS_OF.get(name) or REFS_OF.get(_test_key(name) or "", ()):
         parts.append(f"{ref}=" + ck.git(*GIT_REFS[ref]).strip())
-    parts += [f"{k}={os.environ.get(k, '')}" for k in ("ANYRAIL_PLAN", "JMRI_LAYOUT", "SCHEMATIC_CACHE", "SCHEMATIC_REQUIRED")]
+    parts += [f"{k}={os.environ.get(k, '')}" for k in KEY_ENV]
+    parts.append(f"euid={os.geteuid() if hasattr(os, 'geteuid') else ''}")    # test_operating skips as root
     return "\n".join(parts)
 
 
@@ -474,19 +483,26 @@ def read_names(path: Path) -> list[str]:
 def current_batch(names: list[str], out: Path, why: bool, root: Path = ROOT, store: Path = STORE) -> list[int]:
     """`current` for every job of one check.sh run in one process, with one Checker: job i (names[i]) gets out/i.stamp
     (the snapshot, for a stampable job) and, with `why`, out/i.stamplog ("runs: <why>"); out/verdicts gets "i<TAB>code"
-    per job once all are checked (written whole or not at all). Raises BatchError: then no job may be skipped."""
+    per job once all are checked (written whole or not at all). A job whose check raises gets 2 (run, record nothing),
+    its stamp is dropped so its next pass records afresh, and its stamplog says why. Raises BatchError when it cannot
+    check the batch at all (the folder): then no job may be skipped."""
     if not out.is_dir():
         raise BatchError(f"{out} is not a folder")
     ck = Checker(root, store)
     verdicts = []
     try:
         for i, name in enumerate(names):
+            log = out / f"{i}.stamplog"
             try:
                 code, reason = verdict(name, ck, out / f"{i}.stamp")
+            except Exception as exc:  # noqa: BLE001 - this job runs and records nothing; its stamp is dropped
+                code, why_now = 2, f"the stamp check failed: {type(exc).__name__}: {exc}; its stamp is dropped"
+                _file(name, ck.store).unlink(missing_ok=True)
+                (out / f"{i}.stamp").unlink(missing_ok=True)
+                log.write_text(f"runs: {why_now}\n")      # printed with the job's output, --why or not
+            else:
                 if why and reason:
-                    (out / f"{i}.stamplog").write_text(f"runs: {reason}\n")
-            except Exception as exc:  # noqa: BLE001 - any failure: no verdict for any job
-                raise BatchError(f"job {i} ({name}): {type(exc).__name__}: {exc}") from exc
+                    log.write_text(f"runs: {reason}\n")
             verdicts.append(code)
     finally:
         ck.cache.save()

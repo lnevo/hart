@@ -33,7 +33,7 @@ from __future__ import annotations
 import os
 import sys
 
-LOG_ENV, ROOT_ENV, TOKEN_ENV = "HART_TRACE_LOG", "HART_TRACE_ROOT", "HART_TRACE_SPAWN"
+LOG_ENV, ROOT_ENV, TOKEN_ENV, PATH_ENV = "HART_TRACE_LOG", "HART_TRACE_ROOT", "HART_TRACE_SPAWN", "HART_TRACE_PATH"
 VERSION = 1
 LITTER_NAMES = {"__pycache__", ".DS_Store"}
 
@@ -280,17 +280,18 @@ def _patch_stat() -> None:
 
 
 def _patch_which() -> None:
-    """shutil.which notes a lookup on the PATH the process started with ("h": the name, and what it found or nothing),
-    so a test that skips when a tool is missing (pwsh, flock) runs again once the tool is there. A lookup on another
-    PATH, with an explicit path or mode (a test's stub folder) is no input of the job and is not noted."""
+    """shutil.which notes a lookup on the PATH the job started with ("h": the name, and what it found or nothing),
+    so a test that skips when a tool is missing (pwsh, flock) runs again once the tool is there. The job's first
+    traced process hands its PATH to its children (HART_TRACE_PATH); a lookup on another PATH (a child started with a
+    test's stub folder on it), or with an explicit path or mode, is no input of the job and is not noted."""
     import shutil
-    real, start_path = shutil.which, os.environ.get("PATH")
+    real, start_path = shutil.which, os.environ.setdefault(PATH_ENV, os.environ.get("PATH", ""))
 
     def which(cmd, mode=os.F_OK | os.X_OK, path=None):
         found = real(cmd, mode, path)
         try:
             if path is None and mode == os.F_OK | os.X_OK and isinstance(cmd, str) \
-                    and os.environ.get("PATH") == start_path:
+                    and os.environ.get("PATH", "") == start_path:
                 _write("h", _words([cmd, found or ""]))
         except Exception:  # noqa: BLE001 - tracing must never break the traced program
             pass
