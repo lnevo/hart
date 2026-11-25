@@ -6,6 +6,12 @@
     stamp_gate.py decide DIR --base SHA [--pin-changed true|false] [--labels L1,L2] [--message-file F] < changed paths
                                               a pull request run: print "skip" or "full: <reason>"; exit 0 for skip
                                               (run check.sh with CHECK_SKIP_FROM=DIR), 3 for full
+    stamp_gate.py record-skips RESULTS --pr N --run ID --base SHA --head SHA --out FILE
+                                              a pull request run that passed: write FILE, the record of the jobs it
+                                              skipped on main's stamps, from check.sh's CHECK_RESULTS_TO file
+    stamp_gate.py check-skips RESULTS DIR     the weekly full run: exit 1 naming each job that failed in it and that
+                                              a pull request run recorded in DIR (any *.json below it) skipped; 2 when
+                                              the results or a record cannot be used
 
 .github/workflows/check.yml restores main's stamps by the pull request's merge base (the merge commit's first parent)
 from actions/cache, then asks `decide`. A skip means: a job whose stamp matches has inputs byte-identical to the ones
@@ -20,6 +26,12 @@ interpreter, the plugin and the environment). Any doubt is a full run, with the 
 - no stamp files next to the manifest.
 
 Stamps are only ever compared on the GitHub runner they were made on: check.sh refuses CHECK_SKIP_FROM off CI.
+
+A wrong skip (a stamp key that leaves an input out) lets a pull request pass with a job that would fail. Each pull
+request run that passed keeps the names of the jobs it skipped as an artifact (record-skips); the weekly full run of
+main downloads the records of the last week's runs and fails when a job one of them skipped fails in full
+(check-skips), so a wrong skip shows within a week, named as one, beside the job's own failure. A job failing in full
+that a pull request skipped is not proof that the skip was wrong (main moved since), only the place to look first.
 """
 from __future__ import annotations
 
@@ -52,6 +64,12 @@ MACHINERY = (
     "tools/audit/stamp_audit/",
 )
 SHA = re.compile(r"[0-9a-f]{40}")
+RESULTS = ("passed", "failed", "skipped")       # check.sh's CHECK_RESULTS_TO: "<job><TAB><result>" per queued job
+SKIPS_VERSION = 1
+
+
+class GateError(Exception):
+    """A results file or skip record that cannot be used; the message says which and why."""
 
 
 def _version(*cmd: str) -> str:
@@ -138,6 +156,84 @@ def decide(folder: Path, base: str, changed: list[str], pin_changed: bool = Fals
     return None
 
 
+def read_results(path: Path) -> dict[str, str]:
+    """check.sh's CHECK_RESULTS_TO file: job -> passed, failed or skipped, in its order. Raises GateError for a file
+    that cannot be read, holds no job (check.sh stopped before the end), a line that is not "<job><TAB><result>", or
+    a job named twice."""
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as e:
+        raise GateError(f"{path}: cannot read check.sh's results: {e}") from None
+    out: dict[str, str] = {}
+    for n, line in enumerate(text.splitlines(), 1):
+        name, tab, result = line.partition("\t")
+        if not tab or not name.strip() or name != name.strip() or result not in RESULTS:
+            raise GateError(f"{path} line {n}: {line!r} is not \"<job><TAB>{'|'.join(RESULTS)}\"")
+        if name in out:
+            raise GateError(f"{path} line {n}: job {name!r} is listed twice")
+        out[name] = result
+    if not out:
+        raise GateError(f"{path} names no job: check.sh stopped before its jobs were done, or did not write it")
+    return out
+
+
+def skip_record(results: dict[str, str], pr: int, run: int, base: str, head: str) -> dict:
+    """The record a passing pull request run keeps: which jobs it skipped on main's stamps for `base`. Raises GateError
+    when the run did not pass (a failed job in it), or a number or commit is not one."""
+    failed = sorted(job for job, r in results.items() if r == "failed")
+    if failed:
+        raise GateError(f"the run has failed jobs ({', '.join(failed[:5])}): a skip record is kept for a pass only")
+    if pr <= 0 or run <= 0:
+        raise GateError(f"pull request {pr} and run {run} must be positive numbers")
+    for what, sha in (("base", base), ("head", head)):
+        if not SHA.fullmatch(sha or ""):
+            raise GateError(f"--{what} {sha!r} is not a commit sha")
+    return {"version": SKIPS_VERSION, "pr": pr, "run": run, "base": base, "head": head,
+            "skipped": sorted(job for job, r in results.items() if r == "skipped"),
+            "ran": sum(r != "skipped" for r in results.values())}
+
+
+def read_record(path: Path) -> dict:
+    """One record-skips file. Raises GateError for one that is not JSON or not of that shape: a record that cannot be
+    read would hide the skips it holds."""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        raise GateError(f"{path}: not a skip record: {e}") from None
+    if not isinstance(data, dict) or data.get("version") != SKIPS_VERSION:
+        raise GateError(f"{path}: not a skip record of version {SKIPS_VERSION}")
+    skipped = data.get("skipped")
+    if (not isinstance(skipped, list) or not all(isinstance(j, str) and j for j in skipped)
+            or not all(isinstance(data.get(k), int) and data[k] > 0 for k in ("pr", "run"))
+            or not all(SHA.fullmatch(str(data.get(k))) for k in ("base", "head"))):
+        raise GateError(f"{path}: a skip record needs pr, run (numbers), base, head (commits) and skipped (job names)")
+    return data
+
+
+def wrong_skips(results: dict[str, str], records: list[dict]) -> tuple[list[str], list[str]]:
+    """The weekly full run's check: (one error line per job that failed in `results` and that a record skipped,
+    notes). Raises GateError when `results` is not a full run (a job in it was skipped)."""
+    skipped_now = sorted(job for job, r in results.items() if r == "skipped")
+    if skipped_now:
+        raise GateError(f"the results skip {len(skipped_now)} job(s) ({', '.join(skipped_now[:5])}): not a full run")
+    by_job: dict[str, list[dict]] = {}
+    for rec in records:
+        for job in rec["skipped"]:
+            by_job.setdefault(job, []).append(rec)
+    errors = []
+    for job in sorted(j for j, r in results.items() if r == "failed"):
+        for rec in sorted(by_job.get(job, []), key=lambda r: r["run"]):
+            errors.append(f"{job}: fails in this full run, and pull request #{rec['pr']} (run {rec['run']}, head "
+                          f"{rec['head'][:12]}) skipped it on main {rec['base'][:12]}'s stamps: check its stamp key "
+                          f"first (python3 tools/audit/check_stamps.py why {job})")
+    gone = sorted(set(by_job) - set(results))
+    notes = [f"{len(records)} skip record(s) from pull request runs, {sum(len(r['skipped']) for r in records)} skipped "
+             f"job(s); {sum(r == 'failed' for r in results.values())} of {len(results)} jobs failed in this run"]
+    if gone:
+        notes.append(f"skipped then, not run now (renamed or removed): {', '.join(gone[:10])}")
+    return errors, notes
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -150,7 +246,23 @@ def main(argv: list[str] | None = None) -> int:
     d.add_argument("--pin-changed", default="false", choices=("true", "false"))
     d.add_argument("--labels", default="")
     d.add_argument("--message-file", type=Path)
+    r = sub.add_parser("record-skips")
+    r.add_argument("results", type=Path)
+    for flag in ("--pr", "--run"):
+        r.add_argument(flag, type=int, required=True)
+    for flag in ("--base", "--head"):
+        r.add_argument(flag, required=True)
+    r.add_argument("--out", type=Path, required=True)
+    c = sub.add_parser("check-skips")
+    c.add_argument("results", type=Path)
+    c.add_argument("dir", type=Path)
     a = ap.parse_args(argv)
+    if a.cmd in ("record-skips", "check-skips"):
+        try:
+            return _skips(a)
+        except GateError as e:
+            print(f"stamp_gate.py {a.cmd}: {e}", file=sys.stderr)
+            return 2
     if a.cmd == "manifest":
         path = write_manifest(a.dir, a.sha)
         print(f"wrote {path}: {json.loads(path.read_text())['stamps']} stamps for {a.sha[:12]}")
@@ -163,6 +275,24 @@ def main(argv: list[str] | None = None) -> int:
     reason = decide(a.dir, a.base, sys.stdin.read().splitlines(), a.pin_changed == "true", a.labels.split(","), message)
     print("skip" if reason is None else f"full: {reason}")
     return 0 if reason is None else 3
+
+
+def _skips(a) -> int:
+    results = read_results(a.results)
+    if a.cmd == "record-skips":
+        rec = skip_record(results, a.pr, a.run, a.base, a.head)
+        a.out.parent.mkdir(parents=True, exist_ok=True)
+        a.out.write_text(json.dumps(rec, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+        print(f"wrote {a.out}: {len(rec['skipped'])} of {len(results)} jobs skipped on main {a.base[:12]}'s stamps")
+        return 0
+    if not a.dir.is_dir():
+        raise GateError(f"{a.dir} is not a folder (the downloaded skip records)")
+    records = [read_record(f) for f in sorted(a.dir.rglob("*.json"))]
+    errors, notes = wrong_skips(results, records)
+    print("\n".join(notes))
+    for line in errors:
+        print(f"::error::wrong skip? {line}")
+    return 1 if errors else 0
 
 
 if __name__ == "__main__":

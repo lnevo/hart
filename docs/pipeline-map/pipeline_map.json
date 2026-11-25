@@ -3490,7 +3490,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "extras",
-   "desc": "Loads and checks the step manifest against git and the map (names, commands, paths, lanes); prints each runner's job lines (jobs) and the steps (list); check.sh and docs_checks.sh run those lines, and the job stamps key on each job's entries (job_digests).",
+   "desc": "Loads and checks the step manifest against git and the map (names, commands, paths, lanes); prints each runner's job lines (jobs) and the steps (list); check.sh and docs_checks.sh run those lines, and the job stamps key on each job's entry and git refs (job_keys); every step is a job of its own.",
    "path": "tools/pipeline/manifest.py"
   },
   {

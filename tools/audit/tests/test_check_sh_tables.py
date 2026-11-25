@@ -145,12 +145,13 @@ class CheckShTables(unittest.TestCase):
 
 
 class StaticPanelChecks(unittest.TestCase):
-    """The static job checks the panel outputs through build_panels.sh --check, one list for check.sh and make panels,
-    and its run() puts that bash run into the job's trace as a program the hook cannot see."""
+    """The panels check covers the panel outputs through build_panels.sh --check, one list for check.sh and make
+    panels, and check.sh's run_check puts that bash run into its job's trace as a program the hook cannot see."""
 
     @staticmethod
     def static_steps() -> list:
-        """The static job's checks: the steps of the static group in tools/pipeline/checks.toml (check.sh runs them)."""
+        """The read-only checks: the steps of the static group in tools/pipeline/checks.toml (check.sh runs each as a
+        job of its own)."""
         spec = importlib.util.spec_from_file_location("check_sh_tables_manifest", ROOT / "tools/pipeline/manifest.py")
         manifest = importlib.util.module_from_spec(spec)
         with mock.patch.dict(sys.modules, {spec.name: manifest}):      # its dataclasses look their module up there
@@ -169,7 +170,7 @@ class StaticPanelChecks(unittest.TestCase):
     @staticmethod
     def static_body() -> str:
         text = CHECK.read_text(encoding="utf-8")
-        return text[text.index("\nstatic_lines() {\n"):text.index("\nlater static static_checks\n")]
+        return text[text.index("\nrun_line() {\n"):text.index("\n# The longest jobs start first")]
 
     def test_static_checks_the_panel_outputs_once_through_their_pipeline(self) -> None:
         steps = self.static_steps()
@@ -188,11 +189,14 @@ class StaticPanelChecks(unittest.TestCase):
         return text[start:text.index("\n", text.index('if [[ -n "${PYTHONPATH+set}" ]]', start)) + 1]
 
     def run_function(self, log: Path, *calls: str, **extra_env: str) -> subprocess.CompletedProcess:
-        """check.sh's run() as the static job has it, with `log` as the job's trace, then `calls`; prints static_rc."""
+        """check.sh's run_check as a check's job has it, with `log` as the job's trace, then `calls` (`run NAME CMD`
+        is run_check, with static_rc=1 when one fails); prints static_rc."""
         text = CHECK.read_text(encoding="utf-8")
-        start = text.index("\nrun() {\n") + 1
+        start = text.index("\nrun_check() {\n") + 1
         body = text[start:text.index("\n}\n", start) + 3]
-        script = f'ROOT="{ROOT}"\n{self.caller_block()}static_rc=0\n{body}' + "\n".join(calls) + '\necho "static_rc=$static_rc"\n'
+        shim = 'run() { run_check "$@" || static_rc=1; }\n'
+        script = (f'ROOT="{ROOT}"\n{self.caller_block()}static_rc=0\n{body}{shim}' + "\n".join(calls)
+                  + '\necho "static_rc=$static_rc"\n')
         env = {k: v for k, v in os.environ.items() if not k.startswith("HART_TRACE")}
         env.update(HART_TRACE_LOG=str(log), **extra_env)
         return subprocess.run(["bash", "-c", script], cwd=ROOT, env=env, capture_output=True, text=True, timeout=60)
@@ -206,6 +210,7 @@ class StaticPanelChecks(unittest.TestCase):
             self.assertIn("static_rc=0", done.stdout, done.stderr)
             t = traced.parse(log)
             self.assertEqual(1, t.expected_roots)
+            self.assertEqual(1, len(t.runner_ns), "the bash check says when it started")
             programs, gits = traced.untraced(t, str(ROOT))
             self.assertEqual((["bash"], []), (programs, gits))
 
@@ -219,7 +224,7 @@ class StaticPanelChecks(unittest.TestCase):
             marker = Path(d) / "ran"
             done = self.run_function(Path(d) / "trace.log", f"run other sh -c 'touch {marker}'")
             self.assertIn("static_rc=1", done.stdout)
-            self.assertIn("other: check.sh's run() takes python3, env VAR=... python3 or bash, not sh; not run", done.stdout)
+            self.assertIn("other: check.sh's run_check takes python3, env VAR=... python3 or bash, not sh; not run", done.stdout)
             self.assertFalse(marker.exists())
             self.assertFalse((Path(d) / "trace.log").exists(), "a refused check wrote to the trace")
 
@@ -247,7 +252,7 @@ class StaticPanelChecks(unittest.TestCase):
             log, marker = Path(d) / "trace.log", Path(d) / "ran"
             done = self.run_function(log, "run py env FOO=1 python3 -c pass",
                                      f"run sh env FOO=1 sh -c 'touch {marker}'")
-            self.assertIn("sh: check.sh's run() takes python3, env VAR=... python3 or bash, not env sh; not run",
+            self.assertIn("sh: check.sh's run_check takes python3, env VAR=... python3 or bash, not env sh; not run",
                           done.stdout)
             self.assertIn("static_rc=1", done.stdout)
             self.assertFalse(marker.exists())
@@ -259,9 +264,10 @@ class StaticPanelChecks(unittest.TestCase):
         body = self.static_body()
         self.assertIn("(( STAMPS )) || panels_full=(--full)", body)
         self.assertLess(text.index("if [[ -n \"${CI:-}\" || \"${FULL:-}\" == 1 || -n \"${CHECK_AUDIT:-}\" ]]; then STAMPS=0; fi"),
-                        text.index("\nstatic_lines() {\n"))
-        self.assertIn('[[ "${line%% *}" == panels ]]', body)
-        self.assertIn("eval \"run $line\"' ${panels_full[@]+\"${panels_full[@]}\"}'", body)
+                        text.index("\nrun_line() {\n"))
+        self.assertIn('[[ "${line%% *}" == panels ]] || continue', body)
+        self.assertIn('later panels run_line "$line" ${panels_full[@]+"${panels_full[@]}"}', body)
+        self.assertIn("eval \"run_check $line\"' ${1+\"$@\"}'", body)
 
 
 class LayoutIndexSource(unittest.TestCase):

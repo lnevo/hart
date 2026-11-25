@@ -19,7 +19,7 @@ names the reason:
 4. main's check stamps for SHA (the actions/cache entry check-stamps-SHA on refs/heads/main, which that run saves only
    after check.sh passed; tools/ci/stamp_gate.py "main's last full pass") are in CI's cache;
 5. the job's log shows a full run: the check.sh step recorded stamps (CHECK_RECORD_TO set), skipped none on older ones
-   (CHECK_SKIP_FROM empty), had no CHECK_ONLY, ended "ALL PASSED", ran the "static" job (not "current, skipped"),
+   (CHECK_SKIP_FROM empty), had no CHECK_ONLY, ended "ALL PASSED", ran the "panels" job (not "current, skipped"),
    and its "--- tables" check printed "ok: jmri/layouts/hart/output/tables.xml current" and no SKIPPED.
 
 The stamps themselves cannot be downloaded off a runner (GitHub has no API for a cache's contents), so the cache entry
@@ -240,8 +240,8 @@ def check_log(text: str) -> None:
     out = step[end_at + 1:]
     if "ALL PASSED" not in out:
         raise NoPass("its check.sh log has no ALL PASSED line")
-    if not any(line.startswith("--- static (") for line in out):
-        raise NoPass("its check.sh log shows no run of the static job")
+    if not any(line.startswith("--- panels (") for line in out):
+        raise NoPass("its check.sh log shows no run of the panels job")
     heads = [i for i, line in enumerate(out) if line == "--- tables"]
     if len(heads) != 1:
         raise NoPass(f"its check.sh log has {len(heads)} '--- tables' checks, not one")
