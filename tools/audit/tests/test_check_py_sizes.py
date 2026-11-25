@@ -40,9 +40,6 @@ class Scratch(unittest.TestCase):
         if track:
             subprocess.run(["git", "add", rel], cwd=self.root, check=True)
 
-    def listing(self, **rows: int) -> None:
-        self.sizes.write_text("path,lines\n" + "".join(f"{k.replace('__', '/')},{v}\n" for k, v in rows.items()))
-
     def run_main(self, *argv: str) -> tuple[int, str, str]:
         out, err = io.StringIO(), io.StringIO()
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
@@ -54,7 +51,6 @@ class Scratch(unittest.TestCase):
     def test_unchanged_sizes_pass(self) -> None:
         self.put("a/big.py", 900)
         self.put("a/small.py", 100)
-        self.listing(a__big_py=900)
         self.sizes.write_text("path,lines\na/big.py,900\n")
         self.assertEqual(self.run_main()[0], 0)
 
@@ -98,8 +94,25 @@ class Scratch(unittest.TestCase):
         self.assertEqual(self.run_main("--update")[0], 0)
         self.assertEqual(self.sizes.read_text(), "path,lines\n")
 
-    def test_untracked_and_excluded_files_are_not_measured(self) -> None:
-        self.put("a/scratch.py", 900, track=False)
+    def test_a_new_untracked_file_is_measured_but_an_ignored_one_is_not(self) -> None:
+        self.put("a/new.py", 900, track=False)
+        self.sizes.write_text("path,lines\n")
+        rc, out, _ = self.run_main()
+        self.assertEqual(rc, 1)
+        self.assertIn("a/new.py: 900 lines", out)
+        (self.root / ".gitignore").write_text("a/new.py\n")
+        self.assertEqual(self.run_main()[0], 0)
+
+    def test_lines_are_counted_as_wc_l_does(self) -> None:
+        p = self.root / "t.py"
+        p.write_text("a\fb\n\u2028c\n")       # form feed and a line separator are not new lines
+        self.assertEqual(CPS.count_lines(p), 2)
+        p.write_text("a\nb")                   # a last line with no newline counts
+        self.assertEqual(CPS.count_lines(p), 2)
+        p.write_text("")
+        self.assertEqual(CPS.count_lines(p), 0)
+
+    def test_excluded_files_are_not_measured(self) -> None:
         for rel in ("archive/old.py", "external/x/y.py", "docs/jmri/speedmatching/STRR_v1.py",
                     "jmri/layouts/hart/parked/p.py", "a/notes.txt"):
             self.put(rel, 900)
@@ -129,7 +142,7 @@ class Scratch(unittest.TestCase):
         self.put("a/big.py", 900)
         self.put("a/small.py", 100)
         self.sizes.write_text("path,lines\na/big.py,900\n")
-        for path, why in (("a/typo.py", "no tracked .py file"), ("a/small.py", "not over 800"),
+        for path, why in (("a/typo.py", "no .py file"), ("a/small.py", "not over 800"),
                           ("a/big.py", "did not grow")):
             rc, _, err = self.run_main("--update", "--accept", path)
             self.assertEqual(rc, 2, path)

@@ -12,7 +12,8 @@ shrank, fell to LIMIT or below, or is gone, so the list is tightened in the same
                                                      also take PATH's current size: growth, or a new file over LIMIT,
                                                      accepted by name, so the diff of SIZES shows it
 
-Lines are counted as `wc -l` would for a file that ends in a newline (str.splitlines).
+Lines are newlines, as `wc -l` counts them, plus a last line with no newline. Untracked .py files that git does not
+ignore are measured too, so a new file over LIMIT fails before it is staged.
 """
 from __future__ import annotations
 
@@ -50,21 +51,22 @@ def in_scope(path: str) -> bool:
 def tracked(root: Path | None = None) -> list[str]:
     root = root or ROOT
     try:
-        done = subprocess.run(["git", "ls-files", "-z", "--", "*.py"], cwd=root, capture_output=True, text=True,
-                              timeout=60)
+        done = subprocess.run(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "*.py"],
+                              cwd=root, capture_output=True, text=True, timeout=60)
     except (OSError, subprocess.SubprocessError) as e:
         raise SizeError(f"git ls-files could not run: {e}") from e
     if done.returncode != 0:
         raise SizeError(f"git ls-files failed: {done.stderr.strip() or f'exit {done.returncode}'}")
-    return sorted(p for p in done.stdout.split("\0") if p and in_scope(p))
+    return sorted({p for p in done.stdout.split("\0") if p and in_scope(p)})
 
 
 def count_lines(path: Path) -> int:
-    return len(path.read_text(encoding="utf-8", errors="replace").splitlines())
+    text = path.read_text(encoding="utf-8", errors="replace")
+    return text.count("\n") + (1 if text and not text.endswith("\n") else 0)
 
 
 def measure(root: Path | None = None) -> dict[str, int]:
-    """Lines of every in-scope tracked .py file that exists on disk (a deletion not yet staged counts as gone)."""
+    """Lines of every in-scope .py file git lists (tracked, or new and not ignored) that exists on disk."""
     root = root or ROOT
     return {p: count_lines(root / p) for p in tracked(root) if (root / p).is_file()}
 
@@ -118,7 +120,7 @@ def updated(now: dict[str, int], sizes: dict[str, int], accept: set[str]) -> dic
     only for paths in `accept`. A path in `accept` that does not need it is an error, so a typo is not ignored."""
     for path in sorted(accept):
         if path not in now:
-            raise SizeError(f"--accept {path}: no tracked .py file this check covers has that path")
+            raise SizeError(f"--accept {path}: no .py file this check covers has that path")
         if now[path] <= LIMIT:
             raise SizeError(f"--accept {path}: it is {now[path]} lines, not over {LIMIT}")
         if path in sizes and now[path] <= sizes[path]:
