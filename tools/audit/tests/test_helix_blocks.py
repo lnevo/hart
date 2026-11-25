@@ -6,13 +6,12 @@ import sys
 import tempfile
 import unittest
 import unittest.mock
-import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/schematic"))
 import build_device_map as bdm  # noqa: E402
-from hartlib import devices, wiring  # noqa: E402
+from hartlib import devices, paths, tables, wiring  # noqa: E402
 
 FIELD = devices.FIELD_FILE
 import le_tables as T  # noqa: E402
@@ -260,22 +259,16 @@ class LayoutEditor(unittest.TestCase):
         self.assertLess(order.index("Track 127-131 1"), order.index("Track 131-H1"))
         self.assertLess(order.index("Track 131-H2"), order.index("Track 201-203"))
 
-    def test_a_helix_blocks_detector_is_the_builds_own(self):
-        root = ET.fromstring(
-            "<layout-config><blocks><block systemName='IB24'><systemName>IB24</systemName>"
-            "<userName>Track Helix Inner</userName><permissive>no</permissive>"
-            "<occupancysensor>BS Helix Inner</occupancysensor></block>"
-            "<block systemName='IB1'><systemName>IB1</systemName><userName>Track K-1</userName>"
-            "<permissive>no</permissive><occupancysensor>BS K-1</occupancysensor></block></blocks>"
-            "<layoutblocks><layoutblock systemName='ILB77' occupancysensor='BS Helix Inner'>"
-            "<systemName>ILB77</systemName><userName>Track Helix Inner</userName></layoutblock></layoutblocks>"
-            "</layout-config>")
-        counts = T.strip_build_owned(root)
-        self.assertEqual(counts[T.STRIPPED[5]], 2)                   # the block and its layout block
-        self.assertIsNone(root.find("blocks/block[@systemName='IB24']/occupancysensor"))
-        self.assertIsNone(root.find("layoutblocks/layoutblock").get("occupancysensor"))
-        self.assertEqual(root.findtext("blocks/block[@systemName='IB1']/occupancysensor"), "BS K-1")
-
+    def test_a_helix_blocks_detector_is_the_main_or_upper_detectors(self):
+        """Staging's helix block bean is bound to the main or upper helix detector row's sensor (role helix:
+        hartlib.tables_build.master_beans, naming-layers step 11), in the committed tables too."""
+        root = tables.read(paths.TABLES_XML)
+        full = {tables.user_name(b): b for b in tables.blocks(root)}
+        layout = {tables.user_name(b): b for b in tables.layout_blocks(root)}
+        for block, sensor in (("Track Helix Inner", "BS Helix Inner"), ("Track Helix Outer", "BS Helix Outer")):
+            with self.subTest(block=block):
+                self.assertEqual(full[block].findtext("occupancysensor"), sensor)
+                self.assertEqual(layout[block].get("occupancysensor"), sensor)
 
 if __name__ == "__main__":
     unittest.main()

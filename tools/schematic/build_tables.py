@@ -12,11 +12,12 @@ tables.xml is an output; nothing reads it as a source. It is, in this order:
 1. the template, data/tables_template.xml: what PanelPro owns (settings, memories, the clock sensor, the "Hide windows
    on start" LogixNG), and the fixed envelope (hartlib.tables_build: no file history, "Written by" comment, clock
    time or memory values);
-2. the staging beans of the device master: turnouts, sensors, heads, masts, blocks (lengths from block_lengths.csv) and
-   layout blocks, their comments generated from the wiring columns (hartlib.tables_build.bean_comment), each section
-   in JMRI's system-name order (hartlib.tables_build.base);
-3. the Layout Editor build on that base (build_layout_le.build, levels all): the main and upper turnouts, blocks,
-   sensors, heads, masts and the startup LogixNG from the device master, and the "HART Railroad" panel (make panels
+2. every level's beans of the device master (naming-layers step 11): turnouts, sensors, heads, masts, blocks (lengths
+   from block_lengths.csv) and layout blocks, each from its row's columns (its jmri_name, its bean_comment or the
+   comment its wiring columns give), and the startup LogixNG that sets each virtual detector and turnout to its
+   row's start, each section in JMRI's system-name order (hartlib.tables_build.base);
+3. the Layout Editor build on that base (build_layout_le.build, levels all), which adds no bean: the "HART Railroad"
+   panel (make panels
    checks it against the owner-approved fingerprint after this writes it: check_approved.py le-panel), then the
    three band panels after it, "Staging Level", "Main Level" and "Upper Level": copies of that panel trimmed to one
    band each, joined by edge connectors where the full panel joins two bands (band_panels.add);
@@ -138,18 +139,18 @@ def discovery_digest(data: bytes) -> str:
 
 
 def check(root) -> None:
-    """The output's invariants: the envelope is the fixed one, no name is given twice, every staging bean of the
-    master is in it once, and every Digicon destination is disabled."""
+    """The output's invariants: the envelope is the fixed one, no name is given twice, every row of the master that
+    gives a bean (any level, assignment not none) has it in the output by its bean name (tb.bean_name), and every
+    Digicon destination is disabled."""
     held = tb.envelope_items(root)
     if held:
         raise tb.TablesBuildError(f"the output holds {', '.join(held)}")
     tb.check_names(root)
     names = {tables.system_name(el) for sec in tables.elements(root) for el in tables.elements(sec)}
-    want = {r["jmri_name"] if r["layer"] != "turnout" else r["system_name"] for r in devices.load()
-            if r["level"] in tb.GENERATED_LEVELS and r["assignment"] != "none"}
+    want = {tb.bean_name(r) for r in devices.load() if r["level"] and r["assignment"] != "none"}
     lost = sorted(want - names)
     if lost:
-        raise tb.TablesBuildError(f"staging beans of the device master missing from the output: {', '.join(lost[:8])}")
+        raise tb.TablesBuildError(f"beans of the device master missing from the output: {', '.join(lost[:8])}")
     still = tb.enabled_digicon(root, tb.digicon_masts(root))
     if still:
         raise tb.TablesBuildError(f"Digicon destinations still enabled: {still[:4]}")

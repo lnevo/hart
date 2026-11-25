@@ -31,13 +31,16 @@ if "dispatcher" in PARKED:
     SECTIONS = 0
     TRANSITS = 0
 
-# The main and upper blocks (internal IB:C3: blocks, build_layout_le.add_level_objects) and their virtual occupancy
-# sensors (add_level_sensors), which the LogixNG "Main and upper block sensors clear on start" sets INACTIVE when the
+# The main and upper blocks (internal IB:C3: blocks, hartlib.tables_build.master_beans) and their virtual occupancy
+# sensors (their detector rows), which the LogixNG "Main and upper block sensors clear on start" sets INACTIVE when the
 # tables load (owner, 2026-11-17). The prefixes are hartlib.level_devices' (Jython cannot import hartlib;
 # tools/hosts/tests/test_panelpro_wrappers.py checks they agree).
 LEVEL_BLOCK_PREFIX = "IB:C3:"
 LEVEL_SENSOR_PREFIX = "IS:HART:C3:B:"
 LEVEL_TURNOUT_PREFIX = "IT:HART:C3:"      # the same LogixNG sets each to its startup position (owner, 2026-11-19)
+# The prefix is the virtual turnouts' (hartlib.level_devices.TURNOUT_PREFIX), the ones the startup LogixNG sets: a
+# main or upper turnout swapped to a physical one (ADR-028) leaves the startup LogixNG and this check with it, as it
+# should, since a field turnout reports its own state (naming-layers step 11).
 
 
 def level_sensors(sensor_manager):

@@ -22,10 +22,9 @@ from hartlib import devices, level_devices, level_masts, parked, paths, railroad
 REPO_ROOT = paths.REPO_ROOT
 DEFAULT_SOURCES = (("deployment", paths.TABLES_XML),)
 MASTS = level_masts.PATH      # masts.csv, every level's masts (build_masts.py)
-# the levels whose beans the generator's base holds (staging: its field masts), and the levels the Layout Editor
-# build adds (main and upper, on virtual heads)
-BASE_LEVELS = tuple(int(v) for v in tables_build.GENERATED_LEVELS)
-ADDED_LEVELS = tuple(lv for lv in level_masts.LEVELS if lv not in BASE_LEVELS)
+# the staging level (its field masts), and the main and upper levels (on virtual heads)
+STAGING_LEVELS = (int(railroad_facts.STAGING_LEVEL),)
+ADDED_LEVELS = tuple(lv for lv in level_masts.LEVELS if lv not in STAGING_LEVELS)
 OCCUPANCY_BINDINGS = paths.CATS_DIR / "data" / "occupancy_bindings.csv"
 TRAININFO = paths.LAYOUT_DIR / "dispatcher" / "traininfo"
 DISPATCHER_START_SCRIPT = "program:jython/DispatcherSystem/Startup.py"
@@ -106,7 +105,7 @@ class SetupError(Exception):
 def load_staging_masts(path: Path | None = None) -> list[railroad_facts.Mast]:
     """The masts of the base levels (masts.csv's staging rows) the mast rule writes: the audit's expected set."""
     # stops on a file that breaks its rules (hartlib.level_masts.read)
-    return railroad_facts.read_masts(MASTS if path is None else path, levels=BASE_LEVELS)
+    return railroad_facts.read_masts(MASTS if path is None else path, levels=STAGING_LEVELS)
 
 
 def slots_index(panel: ET.Element):
@@ -423,7 +422,7 @@ def audit_nx_slots(root: ET.Element, problem) -> None:
 EXPECTED_SML = {False: 100, True: 177}    # True: stock discovery from an empty list on the 2026-11-20 one-mast-process candidate (virtual masts only as destinations on every level: staging 5, main 10, upper 14; Scale running track)
 # A generated panel before stock discovery (the three-level build as built, build_layout_le.build) carries the
 # Signal Mast Logic of the live tables.xml it was built on (owner, 2026-11-18), less every logic and destination that
-# names a main or upper object (strip_build_owned): exactly the live tables' destinations between staging masts
+# names a main or upper object: exactly the live tables' destinations between staging masts
 # (carried_destinations), allowed with a warning that discovery is still to run. Since the device-map switch-over
 # that is 104 of the 180 then, but the audit reads it from the live tables, so a later discovery moves it too. A
 # generated panel before its Stage 1 with the Dispatcher System unparked still carries the hand-drawn panel's graph

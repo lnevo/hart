@@ -13,17 +13,15 @@ import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths an
 import mast_rule  # noqa: E402  band_levels: a band's level from its plan-overrides section (after pd: hartlib's path)
 from hartlib import layer_files, railroad  # noqa: E402  the layer files; the railroad's facts, each read and checked once
 from hartlib import level_devices  # noqa: E402  the main and upper naming rule
-from hartlib import tables_build  # noqa: E402  GENERATED_LEVELS: the levels whose beans the base holds
 
 
 DEVICE_MAP = railroad.Sources.under().devices    # the device master: main and upper names (trial_name: the drawing's placeholder)
-# The levels whose turnouts, blocks, sensors and masts the generator's base holds (hartlib.tables_build's
-# GENERATED_LEVELS: the device master's level 1 rows): a band of one of them binds the base's beans and adds none, and its
-# candidate is the one the owner approves alone (the staging candidate). Every other level's beans the build adds,
-# virtual (le_tables.add_level_objects, add_level_signals).
-BASE_LEVELS = frozenset(int(v) for v in tables_build.GENERATED_LEVELS)
+# The staging level: its band's names are the staging device map's (staging_device_map.load) and every other band is
+# drawn under it; its candidate is the one the owner approves alone (the staging candidate). Every level's beans are
+# the generator's base's (hartlib.tables_build.base, naming-layers step 11), so the level says only where a band's
+# names come from.
+STAGING_LEVELS = frozenset({int(railroad.STAGING_LEVEL)})
 
-TURNOUT_SYS = level_devices.TURNOUT_PREFIX     # internal turnouts: nothing reaches the field
 BLOCK_SYS = level_devices.BLOCK_PREFIX
 LAYOUT_BLOCK_FIRST = level_devices.LAYOUT_BLOCK_FIRST
 
@@ -184,25 +182,25 @@ def find_band(bands, level: int, height=ANY, data: Path | None = None) -> int:
 
 
 def base_bands(bands) -> list[int]:
-    """The indexes of the bands of a level the base holds (BASE_LEVELS): the staging candidate's bands."""
-    return [i for i, lv in enumerate(band_levels(bands)) if lv in BASE_LEVELS]
+    """The indexes of the staging level's bands (STAGING_LEVELS): the staging candidate's bands."""
+    return [i for i, lv in enumerate(band_levels(bands)) if lv in STAGING_LEVELS]
 
 
 def base_band(bands) -> int:
-    """The index of the one band of a level the base holds (find_band at each of BASE_LEVELS): the staging
+    """The index of the one band of the staging level (find_band at each of STAGING_LEVELS): the staging
     candidate's band. BuildError when there is none, or more than one."""
     places = band_places(bands)
-    found = sorted(i for lv in BASE_LEVELS for i in _at(places, lv))
+    found = sorted(i for lv in STAGING_LEVELS for i in _at(places, lv))
     if len(found) != 1:
         if not found:
-            find_band(bands, min(BASE_LEVELS))       # stops, naming every band's place
-        raise BuildError(f"the base levels {sorted(BASE_LEVELS)} have {len(found)} bands ("
+            find_band(bands, min(STAGING_LEVELS))       # stops, naming every band's place
+        raise BuildError(f"the staging levels {sorted(STAGING_LEVELS)} have {len(found)} bands ("
                          + ", ".join(repr(bands[i][0]) for i in found) + "); the build draws one")
     return found[0]
 
 
 def base_keys(bands) -> set[str]:
-    """The plugin's keys (band_key) of the bands of a level the base holds (base_bands): the names le_names leaves
+    """The plugin's keys (band_key) of the staging level's bands (base_bands): the names le_names leaves
     to the staging device map."""
     return {band_key(bands[i][0]) for i in base_bands(bands)}
 

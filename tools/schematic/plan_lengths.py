@@ -436,7 +436,7 @@ def main_upper_lengths(plan: Path) -> dict:
     edge_in = main_edge_inches(graph, runs, threeway_bumper_inches(plan_parts))
     helix = {h["block"] for h in bdm.read_helix_tracks().values()}
     bands, joined, _runs, _corners = bdm.solve()
-    mine = [bi for bi, lv in enumerate(sdm.lc.band_levels(bands)) if lv not in sdm.lc.BASE_LEVELS]   # main, upper
+    mine = [bi for bi, lv in enumerate(sdm.lc.band_levels(bands)) if lv not in sdm.lc.STAGING_LEVELS]   # main, upper
     try:
         pieces = piece_edges({bi: bands[bi][1]["strands"] for bi in mine},
                              {bi: sdm.band_refs(bands, joined, bi) for bi in mine})

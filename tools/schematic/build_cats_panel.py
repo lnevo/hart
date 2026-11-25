@@ -24,7 +24,8 @@ Main and upper blocks are CTC on the CTC desk, as staging's are (owner, 2026-11-
 releases them, so a route set from staging up the helix stops at the first main or upper signal); the ABS twin
 turns them ABS with the rest. They take their names from the block rows of
 the main and upper rows of the device master (by the schematic tracks each holds). Their switches
-command and report their internal turnouts (LEVEL_TURNOUT: IT:HART:C3:<n>, closed on the drawn leg B, which is
+command and report the turnouts their device-master rows give (internal today, IT:HART:C3:<n>; cats_panel's
+split_system_name), closed on the drawn leg B, which is
 NORMAL; double crossover 225 too, its one turnout moving all four points, and a desk block per corner as in the
 Layout Editor, OS Switch 225a to d on their corners' detectors, with the middle of its X a block of its own and no
 detector: the plugin's `corners` binding, which opens a row between its tracks on the upper level; owner,
@@ -70,7 +71,7 @@ sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
 
 from cats_panel_facts import (DEVICE_MAP, DeviceMap, Facts, StagingTracks, load_device_map, load_facts,  # noqa: E402,F401
                               mast_type, staging_tracks, template_by_type)
-from cats_panel import (LEVEL_TURNOUT, LEVEL_TURNOUT_PREFIX, MAIN_UPPER_DISCIPLINE, block_bindings,  # noqa: E402,F401
+from cats_panel import (split_system_name, MAIN_UPPER_DISCIPLINE, block_bindings,  # noqa: E402,F401
                         dark_bindings, dest, device_name, half_label, helix_block, inside_os, intermediate_signal,
                         legs_of, level_bands, level_mast_bindings, level_signals, level_switch_bindings,
                         loop_half_edge, mast_bindings, name_loop_halves, os_blocks, plan_edge, placeholder,

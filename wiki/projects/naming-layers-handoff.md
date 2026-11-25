@@ -51,7 +51,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 | 8 | Block names into the rows | 0.5 day | Builder merge step 2 (`block_numbering.csv` stays the source of main and upper numbers, owner 2026-11-23). **Done (2026-11-25):** see [Step 8 findings](#step-8-findings) |
 | 9 | `start` column and comment data | 0.5 day | Builder merge step 3: main and upper rows carry `start` and `bean_comment`; `le_tables` reads them. **Done (2026-11-25):** see [Step 9 findings](#step-9-findings) |
 | 10 | Bean shapes by column | 1 day | Builder merge step 4. **Done (2026-11-25):** see [Step 10 findings](#step-10-findings) |
-| 11 | Every level through `master_beans` | 1 day | Builder merge step 5: deletes `add_level_*` and the `IT:HART:C3` patterns in `cats_panel.py` and `le_tables.py`, so the bean name is always the row's `jmri_name`. Listed comment diff (owner's 2026-11-23 answer), `make panelpro-test`, deploy |
+| 11 | Every level through `master_beans` | 1 day | Builder merge step 5. **Done (2026-11-25), pending `make panelpro-test` and the deploy:** see [Step 11 findings](#step-11-findings); a listed diff of 399 main and upper comments |
 | 12 | One mast step | 1 to 1.5 days | Builder merge step 6: `build_masts.py` part 1 into the builder, so one writer makes every level's mast and head rows; any main or upper mast change goes to panel approval |
 | 13 | One reader | 1 day | Builder merge step 7, first half: `le_names.level_names` and `staging_device_map.load` become one reader keyed by ID |
 | 14 | Level tests to column tests, and a swap test | 1 day | Builder merge step 8, then in the sandbox swap one main or upper turnout to a physical name by its owner row alone: `make panels`, `make panelpro-test`, then revert |
@@ -393,6 +393,48 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 - **Outputs byte-identical:** `make panels CHECK=1 FULL=1` all current, `check_approved.py --check` all matching,
   `build_tables.py --base-hash` the committed discovery stamp's, `test_bean_goldens`' fixture unchanged. No visible
   main or upper change.
+
+## Step 11 findings (2026-11-25)
+
+- **One bean process.** `tables_build.base` runs `master_beans` over every level's rows and wraps the startup actions
+  in the startup LogixNG (`start_logixng`, placed as `add_level_clear` placed it). The Layout Editor build adds no
+  bean: `le_tables.add_level_*`, `level_cells`, `level_sensors`, `strip_build_owned`, `GENERATED_LEVELS` and
+  `le_common.BASE_LEVELS` (now `STAGING_LEVELS`: the level says only where a band's names come from) are gone.
+  `check_bound` holds every band to the base; `check_level_blocks` keeps the numbering checks and stops on a drawn main
+  or upper block with no occupancy sensor. `is_level_bean` finds a main or upper bean by its rows
+  (`level_bean_names`), not by name grammar.
+- **No virtual-name pattern left** in `cats_panel.py` (a switch binds the turnout `tables.xml` holds for it,
+  `split_system_name`) or `le_tables.py`; `sync_signals.py` takes the bean classes from `tables_build`.
+- **Comments in staging's form, my wording (owner's rule):** " | " parts, place first (the row's `jmri_comment`),
+  `internal, not wired` on a bean no field device drives, then `planned <device> (draft)` or `not on a node yet`
+  (ADR-028); a block names its detector first. Before/after, Switch 107: "Main and upper level, internal until the
+  import (device map name; build_layout_le.py)" / "CP 107 | Switch 107 | internal, not wired | planned M2T3308
+  (draft)"; Track 107-109: same / "BS 107-109 / IS:HART:C3:B:107-109; CP 107"; BS 107-109: "Main and upper level
+  occupancy, virtual (device map; build_layout_le.py); planned M2S3306 (draft)" / "internal, not wired | planned
+  M2S3306 (draft)"; Mast 108LA: "CP 107 | Switch 107 | West | virtual (device map); planned IF$shsm:...(IH3332)(IH3333)"
+  / "CP 107 | Switch 107 | West | planned IF$shsm:...(IH3332)(IH3333) (draft)"; Head 108LA Top: "CP 107 | Switch 107 |
+  virtual (device map); planned IH3332" / "CP 107 | Switch 107 | internal, not wired | planned IH3332 (draft)". A
+  hidden mast with no cp gains its place ("Peninsula | buffer stop | East").
+- **My call:** `bean_cells` gives `start` only to a virtual row, so a swapped (field) row never asks the startup LogixNG
+  to set it.
+- **The diff, classified by a script over main's and this `tables.xml`:** 399 changed lines, every one a `<comment>`
+  line; 0 other differences (tree walk: same elements, attributes and texts but 399 bean comments): 120 blocks, 97
+  internal sensors, 76 heads, 44 head masts, 23 virtual masts, 39 internal turnouts, all main and upper. Staging's
+  beans are byte-identical. `devices_generated.csv`: 399 `bean_comment` cells only (Mast 120RC's text was already
+  this form). `build_tables.py --base-hash` unchanged (`b2fe5165...`), no SML rediscovery; `make panels CHECK=1
+  FULL=1` all current; `check_approved.py --check` all matching. The golden fixture is rewritten (the 399 lines).
+- **Tests:** `test_bean_goldens` (base() makes the fixture's beans; staging alone is the same but the helix sensor),
+  `test_le_tables` (`check_level_blocks`, `check_bound` on every band, `is_level_bean` by rows), `test_tables_build`
+  (`start_logixng`), `test_turnout_startup`, `test_level_signal_comments` (each kind's words),
+  `test_build_cats_panel_bindings` (a swapped turnout binds), `test_cats_panel`, `test_build_layout_le`,
+  `test_le_cutover`, `test_helix_blocks` follow.
+- **Code review (medium), fixed:** a swapped (not virtual) row's comment carries its wiring, not the note or a planned
+  device, and a mast whose planned name is its own is not "not on a node yet"; the CATS desk checks and the desk
+  build pick main and upper plants by the rows' turnouts (`tables_build.level_turnouts`), not the `IT` prefix;
+  `level_bean_names` names a row whose start has no action; `is_level_bean` takes its names; `with_direction` lost
+  its dead branch. No output changed. `panelpro_smoke_test.py` (Jython) keeps the virtual prefix: it checks the
+  turnouts the startup LogixNG sets, which a swapped turnout leaves.
+- **Open:** the main session runs `make panelpro-test` and the deploy (`--pi --win`).
 
 ## How to run this
 

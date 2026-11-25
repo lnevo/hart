@@ -1238,7 +1238,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "Library used by build_tables: fixed envelope, base beans from the device master (devices_generated.csv and devices_field.csv), block lengths, comments from wiring, SML merge.",
+   "desc": "Library used by build_tables: fixed envelope, every level's beans from the device master (devices_generated.csv and devices_field.csv) and the startup LogixNG from its start column, block lengths, comments from wiring or bean_comment, SML merge.",
    "path": "tools/hartlib/src/hartlib/tables_build.py"
   },
   {
@@ -1310,7 +1310,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "Library build_tables calls in memory: the three-level Layout Editor panel from the device master (devices_generated.csv and devices_field.csv) and the schematic; writes no file of its own.",
+   "desc": "Library build_tables calls in memory: the three-level Layout Editor panel from the device master (devices_generated.csv and devices_field.csv) and the schematic, on the base's beans (it adds none); writes no file of its own.",
    "path": "tools/schematic/build_layout_le.py"
   },
   {

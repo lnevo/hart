@@ -136,7 +136,7 @@ class LayoutFactsTest(unittest.TestCase):
         block's parts, a part as the block it is in), so a swapped plant is never hidden by a part's own name."""
         t = check.Tables(check.TABLES, parts=check.part_map(check.DEVICE_MAP))
         cells = check.trace.track_cells(check.parse(check.DESKS[0]).getroot().find("TRACKPLAN"))
-        plants = {os_name: (xy, points) for os_name, xy, points in check.trace.level_plants(cells)}
+        plants = {os_name: (xy, points) for os_name, xy, points in check.trace.level_plants(cells, check.level_turnouts())}
 
         def legs(os_name):
             xy, points = plants[os_name]
@@ -328,7 +328,7 @@ class LayoutFactsTest(unittest.TestCase):
         out = self.failures(desks=(self.write(tree),))
         self.assertTrue(any("commands Switch 111 (IT:HART:C3:999); tables.xml has IT:HART:C3:111" in m
                             for m in out), out)
-        self.assertNotIn("HART_CTC.xml: no plant commands internal turnout Switch 111", out)
+        self.assertNotIn("HART_CTC.xml: no plant commands main or upper turnout Switch 111", out)
 
     def test_a_staging_block_with_no_detector_is_still_held_to_the_tables(self) -> None:
         # only the device map's main and upper blocks may be missing from the Layout Editor (review, 2026-11-17)
@@ -403,10 +403,28 @@ class LayoutFactsTest(unittest.TestCase):
         out = self.failures(tables=tables)
         self.assertIn("HART_CTC.xml: block Track 101-111 is not a Layout Editor block in tables.xml", out)
 
-    def test_main_upper_tables_with_no_internal_turnouts_fail(self) -> None:
+    def test_main_upper_tables_with_other_turnout_names_fail(self) -> None:
+        """The main and upper turnouts are the device master's rows (not a name prefix): tables.xml giving them other
+        system names than the desk commands fails."""
         tables = self.copy(check.TABLES, lambda t: t.replace("IT:HART:C3:", "IT:HART:CX:"))
         out = self.failures(tables=tables)
-        self.assertTrue(any("holds main/upper blocks but no IT:HART:C3: turnout" in m for m in out), out)
+        self.assertTrue(any("commands Switch 111 (IT:HART:C3:111); tables.xml has IT:HART:CX:111" in m for m in out),
+                        out)
+
+    def test_main_upper_plants_are_picked_by_the_rows(self) -> None:
+        """A main or upper turnout swapped to a physical name (ADR-028) is still a level plant's: the plants follow
+        the rows' user names, not a prefix."""
+        import copy
+        cells = check.trace.track_cells(copy.deepcopy(check.parse(check.DESKS[0]).getroot()).find("TRACKPLAN"))
+        level = check.level_turnouts()
+        self.assertIn("Switch 111", level)
+        for io in cells[next(xy for _os, xy, _e in check.trace.level_plants(cells, level))].iter("IOSPEC"):
+            io.set("JMRIPREFIX", "M2T")
+            io.set("DECADDR", "3308")
+        self.assertEqual(len(check.trace.level_plants(cells, level)),
+                         len(check.trace.level_plants(check.trace.track_cells(
+                             check.parse(check.DESKS[0]).getroot().find("TRACKPLAN")), level)))
+        self.assertNotIn("OS Switch 111", check.trace.desk_plants(cells, bound=True, level_turnouts=level))
 
     def test_a_main_upper_turnout_with_no_plant_fails(self) -> None:
         for user in ("Switch 117", "Switch 225"):           # 225: a double crossover, four points on one turnout
@@ -416,12 +434,12 @@ class LayoutFactsTest(unittest.TestCase):
                 for parent in tree.getroot().iter():
                     for io in [i for i in parent.findall("IOSPEC") if i.get("USER_NAME") == user]:
                         parent.remove(io)
-                self.assertIn(f"HART_CTC.xml: no plant commands internal turnout {user}",
+                self.assertIn(f"HART_CTC.xml: no plant commands main or upper turnout {user}",
                               self.failures(desks=(self.write(tree),)))
 
     def test_the_double_crossover_commands_its_turnout_from_all_four_points(self) -> None:
         cells = check.trace.track_cells(check.parse(check.DESKS[0]).getroot().find("TRACKPLAN"))
-        points = [(os_name, xy, edge) for os_name, xy, edge in check.trace.level_plants(cells)
+        points = [(os_name, xy, edge) for os_name, xy, edge in check.trace.level_plants(cells, check.level_turnouts())
                   if os_name.startswith("OS Switch 225")]
         self.assertEqual(sorted(p[0] for p in points), [f"OS Switch 225{c}" for c in "abcd"])   # a point per corner
         for _os, xy, edge in points:

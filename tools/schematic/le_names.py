@@ -15,7 +15,7 @@ import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths an
 from hartlib import coordinator, devices, paths, railroad, tables  # noqa: E402
 from hartlib import level_masts as level_masts_lib  # noqa: E402  masts.csv and its virtual names
 from le_common import (  # noqa: E402
-    band_key, band_levels, bare, BASE_LEVELS, BuildError, DEVICE_MAP, main_upper_device_map,
+    band_key, band_levels, bare, STAGING_LEVELS, BuildError, DEVICE_MAP, main_upper_device_map,
 )
 
 
@@ -99,7 +99,7 @@ def plan_lengths() -> dict:
 MM_PER_INCH = 25.4
 MASTS = level_masts_lib.PATH      # masts.csv, every level's (build_masts.py)
 # the levels the build adds (main and upper), whose masts it draws on internal heads: every level the base holds none of
-ADDED_LEVELS = tuple(lv for lv in level_masts_lib.LEVELS if lv not in BASE_LEVELS)
+ADDED_LEVELS = tuple(lv for lv in level_masts_lib.LEVELS if lv not in STAGING_LEVELS)
 
 
 def read_level_masts(path: Path = MASTS) -> list[dict]:
@@ -201,7 +201,7 @@ def level_masts(names: dict, rows: list[dict], skip: set) -> None:
 # ---------------------------------------------------------------- main and upper placeholders
 
 def placeholder_names(bands, le_mod, page=None) -> tuple[dict, dict]:
-    """({band key: names}, {block: length mm}) for every band of a level the build adds (not BASE_LEVELS: the
+    """({band key: names}, {block: length mm}) for every band but staging's (not STAGING_LEVELS: the
     staging band, whose names are the staging device map's, by its level). `bands` are the solved sheet's, titles
     unchanged (build_layout_le passes the plugin's drawn_bands, which keep them): each band's level is found by its
     title in plan_overrides.json (le_common.band_levels), so a band the plan does not title stops with BuildError.
@@ -214,7 +214,7 @@ def placeholder_names(bands, le_mod, page=None) -> tuple[dict, dict]:
     import build_device_map as bdm
     out, lengths, counted = {}, defaultdict(float), set()
     for bi, ((title, band, _), level) in enumerate(zip(bands, band_levels(bands))):
-        if level in BASE_LEVELS:
+        if level in STAGING_LEVELS:
             continue
         key = band_key(title)
         nodes, strands = band["nodes"], band["strands"]
@@ -278,7 +278,7 @@ def device_names(path: Path = DEVICE_MAP) -> dict:
     101") is the placeholder placeholder_names gives. Stops on a row with no trial name, a trial name given twice, a
     turnout not named "Switch <n>" or a block not named "Track ..." or "OS Switch <n>". A part (the device master's part_of: a
     link inside an OS block) is a JMRI block of its own under its own name (owner, 2026-11-20), whose occupancy sensor
-    is its OS block's (le_tables.level_sensors); the block it names must be a main or upper block row."""
+    is its OS block's (hartlib.tables_build.master_beans); the block it names must be a main or upper block row."""
     out, bad = {}, []
     for r in main_upper_device_map(path).rows:         # read and checked by hartlib.railroad
         if r.layer not in ("turnout", "block"):
@@ -392,8 +392,8 @@ def named_bands(bands, names: dict, roles: dict[str, str] | None = None):
     Rocks for Helix Outer) in its place. A track block is a line block by its role (devices.LINE_ROLES, a part among
     them; an OS block or crossover corner is not) in `roles` (block_roles: default the main and upper rows of
     DEVICE_MAP, the map level_names reads by default; give block_roles(path) for names made from another map): a
-    block it does not hold stops with BuildError. A band of a
-    level the base holds (BASE_LEVELS: staging, by its level) is left as it is. `bands` are the solved sheet's,
+    block it does not hold stops with BuildError. A band of
+    the staging level (STAGING_LEVELS, by its level) is left as it is. `bands` are the solved sheet's,
     titles unchanged, as for placeholder_names: a band plan_overrides.json does not title stops with BuildError.
     The label options (preferences.json[main_upper]'s le_labels and le_band_labels, a name left off the panel among
     them: hidden_names) reach the plugin through each band's own preferences, unchanged here."""
@@ -407,7 +407,7 @@ def named_bands(bands, names: dict, roles: dict[str, str] | None = None):
         return roles[block] in devices.LINE_ROLES
 
     for (title, band, opts), level in zip(bands, band_levels(bands)):
-        if level in BASE_LEVELS:
+        if level in STAGING_LEVELS:
             out.append((title, band, opts))
             continue
         key = band_key(title)

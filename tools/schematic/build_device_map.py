@@ -54,13 +54,16 @@ Virtual names (owner, 2026-11-17), from each device's stable identity:
   not_wired or none), a mast row's `switch`, `facing` and `protects`; the notes and comment are text for people.
 - Head "Head <mast>[ Top|Bottom]": hartlib.level_devices.head_name (IH:HART:C3:108LA, IH:HART:C3:108R_Top); mast
   IF$shsm:basic:<type>(<head>)(<head>) over those heads.
-- Feedback rows have no JMRI device of their own (a turnout's feedback is DIRECT until the plant is wired).
+- Feedback rows have no JMRI device of their own (assignment none: a turnout's feedback is DIRECT until the plant is
+  wired).
 - Block "<name>" (parts too, not a helix block, whose beans are staging's): jmri_name IB:C3:<nnnn> and layout_block
   ILB<1000 + nnnn>, today's numbers copied from block_numbering.csv (hartlib.block_numbering; owner, 2026-11-23:
-  kept until the levels are wired for good); build_layout_le.py reads them off the rows (naming-layers step 8).
-- What the Layout Editor build reads off every main and upper row it makes a bean for (naming-layers step 9,
+  kept until the levels are wired for good); hartlib.tables_build.master_beans names the beans from the rows
+  (naming-layers steps 8 and 11).
+- What a main and upper bean takes from its row beyond its names (naming-layers steps 9 and 11,
   device_map_rows.bean_cells): `start`, inactive for a detector and closed or thrown for a turnout (startup_thrown:
-  thrown where the main route runs through leg C), and `bean_comment`, the bean's JMRI comment.
+  thrown where the main route runs through leg C), which the startup LogixNG sets, and `bean_comment`, the bean's
+  JMRI comment in staging's form.
 
 Naming rules (ADR-005 grammar, LCOS conventions):
 - Turnout "Switch <n>" (a crossover is one turnout), feedback "FB Switch <n> N|R", OS block "OS Switch <n>" (one per
@@ -87,7 +90,7 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   block (step 5 part 2, owner 2026-11-20): the lower-numbered switch's, or, where a home mast stands at a switch's
   points facing it, the OS block at its other end (the block boundary is at the mast). On main and upper a part is
   still a JMRI block and layout block of its own, drawn on the panel, whose occupancy sensor is its OS block's
-  (le_tables.level_sensors): no occupancy row or detector of its own. A double crossover's link is part of the corner
+  (hartlib.tables_build.master_beans): no occupancy row or detector of its own. A double crossover's link is part of the corner
   block of its leg; a part's row is on the level of its OS block's row (127-131 2, drawn on the upper band, in the
   main level's OS Switch 127).
 - Detection on the main line only (owner, 2026-11-15): main-route tracks and the OS blocks of control point
@@ -824,20 +827,20 @@ def master_outputs(bands, joined, runs, rows, parts, files: devices.Files | None
     generated = made + [dict(r, user_name=drawn[r["id"]]) if r["layer"] == "block" and r["id"] in drawn else r
                         for r in staging]
     every = [dict(r) for r in devices.follow_renames(main + staging + wired, generated)]
-    # what the Layout Editor build reads off a main or upper row: its start and bean comment (naming-layers step 9)
+    # what a main or upper bean takes from its row: its start and bean comment (naming-layers steps 9 and 11)
     every = bean_cells(every, startup_thrown(bands))
     return devices.outputs_after(WRITER, [], f, master_rows=every, warn=warn, check=check)
 
 
 def startup_thrown(bands) -> frozenset:
-    """The switch numbers of the levels the Layout Editor build adds (not le_common.BASE_LEVELS: the base's are the
+    """The switch numbers of the main and upper levels (not le_common.STAGING_LEVELS: staging's turnouts are the
     field's) whose virtual turnout starts Thrown: those whose main route runs through leg C and not leg B, so every
     virtual turnout lines the main line when the tables load (owner, 2026-11-19: 227 and 229 at the peninsula loop).
     A double crossover or a crossover half stays Closed (straight through). bean_cells writes it as the turnout
-    row's start, which the build reads (naming-layers step 9; build_layout_le.py held this rule before)."""
+    row's start, which hartlib.tables_build's startup LogixNG sets (naming-layers steps 9 and 11)."""
     out = set()
     for (_title, band, _opts), level in zip(bands, le_common.band_levels(bands)):
-        if level in le_common.BASE_LEVELS:
+        if level in le_common.STAGING_LEVELS:
             continue
         for d in band["nodes"].values():
             if d["kind"] != "switch":

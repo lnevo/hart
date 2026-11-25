@@ -1,5 +1,6 @@
-"""XML assembly of the Layout Editor build: the main and upper turnouts, blocks, sensors, signals and LogixNG added to
-the tables, and the panel put in place."""
+"""The tables side of the Layout Editor build: the panel put in place, the yard ladder retired, and the checks that
+every name the panel binds is a bean of the base (hartlib.tables_build.base, which holds every level's beans since
+naming-layers step 11) and that the main and upper blocks drawn are numbered as block_numbering.csv says."""
 from __future__ import annotations
 
 import copy
@@ -8,13 +9,10 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from hartlib import block_numbering, devices, paths, railroad, tables  # noqa: E402
-from hartlib import tables_build as tb  # noqa: E402  the startup actions' shape
-from hartlib import level_devices  # noqa: E402  the main and upper virtual names and the sensors-clear LogixNG
-from hartlib import level_masts as level_masts_lib  # noqa: E402  masts.csv and its virtual names
-from le_common import (  # noqa: E402
-    BLOCK_SYS, BuildError, DEVICE_MAP, LAYOUT_BLOCK_FIRST, main_upper_device_map, TURNOUT_SYS,
-)
+from le_common import BLOCK_SYS, BuildError, DEVICE_MAP  # noqa: E402  (and hartlib on the path)
+from hartlib import block_numbering, devices, paths, tables  # noqa: E402
+from hartlib import tables_build as tb  # noqa: E402  a row's bean name
+from hartlib import level_devices  # noqa: E402  the main and upper levels and the startup LogixNG's names
 
 
 # The main and upper blocks' numbers (IB:C3:<nnnn>, ILB<1000 + n>) are hartlib.block_numbering's: block_numbering.csv
@@ -55,7 +53,6 @@ def numbering() -> tuple[dict, tuple, tuple]:
     if not all(n in g for n in NUMBERING_NAMES):
         __getattr__(NUMBERING_NAMES[0])
     return tuple(g[n] for n in NUMBERING_NAMES)
-COMMENT = level_devices.LEVEL_COMMENT       # a turnout's and a block's; the rows' bean_comment carries it (step 9)
 
 
 # ---------------------------------------------------------------- tables
@@ -77,19 +74,6 @@ def place(parent: ET.Element, new: list[ET.Element], depth: int, after: ET.Eleme
         else:
             parent.text = pad
         new[-1].tail = tail
-
-
-def bean(tag: str, attrs: dict, sysname: str, user: str, *children) -> ET.Element:
-    el = ET.Element(tag, attrs)
-    ET.SubElement(el, "systemName").text = sysname
-    ET.SubElement(el, "userName").text = user
-    for t, v in children:
-        ET.SubElement(el, t).text = v
-    return el
-
-
-def r1(v: float) -> str:
-    return f"{round(v, 1):.1f}"
 
 
 block_sort = block_numbering.block_sort
@@ -125,15 +109,6 @@ def retire_yard_ladder(root: ET.Element) -> int:
     return gone
 
 
-def replace(parent: ET.Element, old: ET.Element, new: ET.Element, depth: int) -> None:
-    """Put `new` where `old` stands in `parent`, indented as JMRI writes."""
-    idx = list(parent).index(old)
-    ET.indent(new, space="  ", level=depth)
-    new.tail = old.tail
-    parent.remove(old)
-    parent.insert(idx, new)
-
-
 def canon(el: ET.Element) -> str:
     """An element as text without layout whitespace."""
     e = copy.deepcopy(el)
@@ -144,97 +119,39 @@ def canon(el: ET.Element) -> str:
     return ET.tostring(e, encoding="unicode")
 
 
-def is_level_bean(el: ET.Element) -> bool:
-    """A turnout, sensor, block, layout block, signal head or signal mast add_level_objects or add_level_signals adds
-    (by its internal system name; a layout block, whose system name JMRI could also give a block added in PanelPro, by
-    its user name, the block's, which follows the main and upper naming rule, level_devices.is_level_name)."""
-    sysname = (el.findtext("systemName") or el.get("systemName") or "").strip()
-    if el.tag == "signalhead":
-        return level_masts_lib.is_level_head(sysname)
-    if el.tag == "signalmast":
-        return level_masts_lib.is_level_mast(sysname)
-    if el.tag == "virtualsignalmast":
-        return level_masts_lib.is_level_virtual(sysname)
-    if el.tag == "turnout":
-        return sysname.startswith(TURNOUT_SYS)
-    if el.tag == "sensor":
-        return level_devices.is_block_sensor(sysname)
-    if el.tag in ("LogixNG", "ConditionalNG", "DigitalMany", "ActionSensor", "ActionTurnout"):
-        return bool(level_devices.CLEAR_PREFIX.match(sysname))
-    if el.tag == "block":
-        return sysname.startswith(BLOCK_SYS)
-    if el.tag == "layoutblock":
-        return sysname.startswith("ILB") and level_devices.is_level_name(tables.user_name(el))
-    return False
+def level_bean_names(path: Path = DEVICE_MAP, rows: list | None = None) -> set[str]:
+    """The system names of every bean the main and upper rows of the device master give (hartlib.tables_build
+    master_beans; `rows` in place of reading `path`): each row's bean name (bean_name; an LCC alias names its
+    turnout's) and a block row's layout block, and the startup LogixNG with its actions when a row has a start
+    (start_logixng). By the rows, not by a naming rule, so a main or upper row bound to a physical name is found too.
+    BuildError when the master does not load, or naming a row whose start the startup LogixNG has no action for."""
+    if rows is None:
+        try:
+            rows = devices.load(path)
+        except devices.DevicesError as exc:
+            raise BuildError(f"{paths.rel(path)}: {exc}") from None
+    out: set[str] = set()
+    bad = []
+    for r in rows:
+        if r["level"] not in level_devices.LEVELS or r["assignment"] == "none":
+            continue
+        out |= {tb.bean_name(r), r["layout_block"]} - {""}
+        if r["start"]:
+            action = level_devices.clear_action if r["layer"] == "occupancy" else level_devices.turnout_action
+            try:
+                out.add(action(tb.bean_name(r)))
+            except ValueError as exc:
+                bad.append(f"{r['layer']} {r['user_name']!r} (level {r['level']}): start {r['start']!r}: {exc}")
+            out |= {level_devices.CLEAR_LOGIXNG, level_devices.CLEAR_CONDITIONAL, level_devices.CLEAR_MANY}
+    if bad:
+        raise BuildError(f"{paths.rel(path)}: " + "; ".join(bad))
+    return out
 
 
-def level_names(root: ET.Element) -> set[str]:
-    """The system and user names of every main and upper object a build added to tables `root` (is_level_bean)."""
-    return {n for sec in tables.elements(root) for el in tables.elements(sec) if is_level_bean(el)
-            for n in (tables.system_name(el), tables.user_name(el)) if n}
-
-
-STRIPPED = ("main and upper objects", "Signal Mast Logic from a main or upper mast",
-            "Signal Mast Logic destinations naming a main or upper object",
-            "Signal Mast Logic left with no destination", "block paths naming a main or upper object",
-            "staging block detectors naming a main or upper sensor")
-
-
-def strip_build_owned(root: ET.Element) -> dict[str, int]:
-    """Take out of tables `root` (edited in place) what a build added and what stock JMRI derived from it, so a build
-    can start from tables a cut-over wrote (tables.xml): every main and upper object (is_level_bean: turnouts, block
-    sensors, blocks, layout blocks, heads, masts and the sensors-clear LogixNG); the Signal Mast Logic whose source is
-    one of their masts; each destination of another mast's logic that names one of them, and a logic left with none;
-    and each path of another block that names one of them, and the occupancy sensor of a staging block (or its layout
-    block) that is one of them: a helix block, whose detector the build binds (add_level_objects). "Names" is by the
-    fields where JMRI keeps a bean reference
-    (hartlib.tables.names_any), and a name counts when it is one of those objects' or follows the main and upper
-    naming rule (level_devices.is_level_name), so a reference to one that is no longer in the tables goes too. Stock
-    discovery and a PanelPro load derive the logic and the paths again from the panel the build draws. Everything else
-    stays as it is, the main panel too (the build replaces it), and so do the properties discovery sets on a staging
-    mast (intermediateSignal): discovery sets them again. Returns the counts
-    taken out, keyed by STRIPPED; stops when any of those references is left."""
-    names = level_names(root)
-    owned = lambda el: tables.names_any(el, names, level_devices.is_level_name)       # noqa: E731
-    counts = dict.fromkeys(STRIPPED, 0)
-    for sec in list(tables.elements(root)):
-        for el in [el for el in tables.elements(sec) if is_level_bean(el)]:
-            tables.remove_child(sec, el)
-            counts[STRIPPED[0]] += 1
-    for box in root.findall("signalmastlogics"):
-        for logic in list(box.findall("signalmastlogic")):
-            source = tables.text(logic, "sourceSignalMast") or (logic.get("source") or "").strip()
-            if source in names or level_devices.is_level_name(source):
-                tables.remove_child(box, logic)
-                counts[STRIPPED[1]] += 1
-                continue
-            gone = [d for d in logic.findall("destinationMast") if owned(d)]
-            for d in gone:
-                tables.remove_child(logic, d)
-                counts[STRIPPED[2]] += 1
-            if gone and logic.find("destinationMast") is None:
-                tables.remove_child(box, logic)
-                counts[STRIPPED[3]] += 1
-    for block in tables.blocks(root):
-        for path in [p for p in block.findall("path") if owned(p)]:
-            tables.remove_child(block, path)
-            counts[STRIPPED[4]] += 1
-    level_sensor = lambda n: n in names or level_devices.is_level_name(n)      # noqa: E731
-    for block in tables.blocks(root):
-        occ = block.find("occupancysensor")
-        if occ is not None and level_sensor((occ.text or "").strip()):
-            tables.remove_child(block, occ)
-            counts[STRIPPED[5]] += 1
-    for lb in tables.layout_blocks(root):
-        if level_sensor((lb.get("occupancysensor") or "").strip()):
-            del lb.attrib["occupancysensor"]
-            counts[STRIPPED[5]] += 1
-    left = sorted({sec.tag for sec in tables.elements(root) for el in tables.elements(sec) if is_level_bean(el)} |
-                  {"signalmastlogics" for logic in tables.mast_logics(root) if owned(logic)} |
-                  {"block paths" for b in tables.blocks(root) for p in b.findall("path") if owned(p)})
-    if left:
-        raise BuildError(f"taking out what an earlier build added left some of it in {', '.join(left)}")
-    return counts
+def is_level_bean(el: ET.Element, names: set[str]) -> bool:
+    """Whether bean `el` (a turnout, sensor, block, layout block, head, mast or startup LogixNG element) is one a main
+    or upper row gives: its system name is among `names` (level_bean_names, read once by the caller)."""
+    return (el.findtext("systemName") or el.get("systemName") or "").strip() in names
 
 
 def numbered_blocks(blocks, require_listed: bool = False) -> list:
@@ -293,199 +210,6 @@ def stale_block_beans(path: Path = DEVICE_MAP, numbering_path: Path = NUMBERING)
             if (r["jmri_name"], r["layout_block"]) != want[r["user_name"]]]
 
 
-def level_cells(path: Path = DEVICE_MAP) -> dict[tuple[str, str], tuple[str, str]]:
-    """{(layer, user name): (start, bean_comment)} of every main and upper row of the device master that has a
-    bean_comment: build_device_map.py writes them (device_map_rows.bean_cells, naming-layers step 9), and the build
-    gives each bean it makes its row's comment and startup state. The build reads it once (build_layout_le.build) and
-    hands it down. The build finds a bean's row by its user name alone (a panel's turnout or block name has no
-    level), so a layer and user name on both levels stops. BuildError when the master does not load, or on such a
-    pair."""
-    try:
-        rows = devices.load(path)
-    except devices.DevicesError as exc:
-        raise BuildError(f"{paths.rel(path)}: {exc}") from None
-    out, twice = {}, []
-    for r in rows:
-        if r["level"] not in level_devices.LEVELS or not r["bean_comment"]:
-            continue
-        key = (r["layer"], r["user_name"])
-        if key in out:
-            twice.append(f"{key[0]} {key[1]}")
-        out[key] = (r["start"], r["bean_comment"])
-    if twice:
-        raise BuildError(f"{paths.rel(path)}: main and upper rows named on both levels, so a bean's row is not one: "
-                         + ", ".join(twice))
-    return out
-
-
-def cell_of(cells: dict, layer: str, user: str, path: Path = DEVICE_MAP) -> tuple[str, str]:
-    """(start, bean_comment) of the main or upper `layer` row `user` in `cells` (level_cells); BuildError when it has
-    none: the rows are older than the build's rule, so build_device_map.py has to run."""
-    got = cells.get((layer, user))
-    if got is None:
-        raise BuildError(f"{paths.rel(path)}: the {layer} row {user!r} has no bean_comment; run build_device_map.py")
-    return got
-
-
-def level_sensors(path: Path = DEVICE_MAP, cells: dict | None = None) -> dict:
-    """{block: (sensor system name, sensor user name, comment)} for every main and upper block of the device map:
-    its occupancy row's virtual sensor (jmri_name, hartlib.level_devices.block_sensor) and the row's bean_comment (the
-    planned detector or why there is none, level_cells). A part (the device master's part_of: a link inside an OS
-    block) takes its OS block's sensor (owner, 2026-11-20). Stops on a block with no occupancy row, a row whose
-    jmri_name is not the block's, whose start is not inactive (the sensors-clear LogixNG clears every one) or that
-    has no bean_comment, or a part whose block has none. `cells`: level_cells of `path` (read here when not given)."""
-    device = main_upper_device_map(path)               # read and checked by hartlib.railroad
-    occ = device.occupancy                             # {block: the occupancy row serving it}, by its blocks column
-    cells = level_cells(path) if cells is None else cells
-    out, bad = {}, []
-    for block in device.blocks:
-        o = occ.get(block)
-        try:
-            want = level_devices.block_sensor(block)
-        except ValueError as exc:
-            bad.append(str(exc))
-            continue
-        if o is None or o.jmri_name != want:
-            bad.append(f"{block}: no occupancy row {level_devices.occupancy_user(block)} with jmri_name {want}")
-            continue
-        start, comment = cells.get(("occupancy", o.user_name), ("", ""))
-        if start != "inactive" or not comment:
-            bad.append(f"{o.user_name}: start {start or 'empty'} and bean_comment {comment or 'empty'}, not inactive "
-                       "and a comment; run build_device_map.py")
-            continue
-        out[block] = (want, o.user_name, comment)
-    try:
-        parts = devices.part_lines(level_devices.LEVELS, path)
-    except railroad.FactsError as exc:
-        raise BuildError(f"{paths.rel(path)}: {exc}") from None
-    for line, r in parts:
-        if r["part_of"] not in out:
-            bad.append(f"part {r['user_name']} (level {r['level']}) is part of {r['part_of']}, which has no occupancy "
-                       "sensor")
-            continue
-        out[r["user_name"]] = out[r["part_of"]]
-    if bad:
-        raise BuildError(f"{paths.rel(path)}: " + "; ".join(bad))
-    return out
-
-
-SENSOR_COMMENT = level_devices.SENSOR_COMMENT       # the words are hartlib.level_devices'; the rows carry the text
-
-
-def add_level_sensors(root: ET.Element, sensors: dict) -> int:
-    """Each main and upper block's virtual occupancy sensor (`sensors`: level_sensors) in the internal sensor
-    section, as staging's internal sensors are stored, and bound to its block and layout block by user name as
-    staging's are (<occupancysensor> after <permissive> in the block's full pass, the occupancysensor attribute after
-    systemName on the layout block). Only blocks in `root` are bound; stops on a sensor name already taken or a block
-    already bound. A sensor two blocks share (a part and its OS block) is added once. The system names of the sensors
-    added, in the order added."""
-    internal = next((s for s in root.findall("sensors") if "InternalSensorManager" in (s.get("class") or "")), None)
-    if internal is None:
-        raise BuildError("the tables have no internal sensor section")
-    blocks = {tables.user_name(b): b for b in tables.blocks(root)}
-    lbs = {tables.user_name(b): b for b in tables.layout_blocks(root)}
-    used = sorted(b for b in sensors if b in blocks)
-    taken = {x for s in tables.sensors(root) for x in (tables.system_name(s), tables.user_name(s))}
-    clash = sorted({x for b in used for x in sensors[b][:2]} & taken)
-    if clash:
-        raise BuildError(f"main and upper occupancy sensor names already in the tables: {clash}")
-    bound = sorted(b for b in used if blocks[b].find("occupancysensor") is not None or
-                   (b in lbs and lbs[b].get("occupancysensor")))
-    if bound:
-        raise BuildError(f"main and upper blocks already have an occupancy sensor: {bound}")
-    beans, once = [], {}
-    for b in sorted(used, key=lambda b: sensors[b][0]):
-        if sensors[b][0] in once:
-            continue
-        once[sensors[b][0]] = b
-        system, user, comment = sensors[b]
-        el = ET.Element("sensor", {"inverted": "false"})
-        for tag, text in (("systemName", system), ("userName", user), ("comment", comment)):
-            ET.SubElement(el, tag).text = text
-        beans.append(el)
-    place(internal, beans, 2)
-    for b in used:
-        el, user = blocks[b], sensors[b][1]
-        kids = list(el)
-        after = next((i for i, c in enumerate(kids) if c.tag == "permissive"), None)
-        if not after:                       # also 0: a full-pass block starts with its systemName
-            raise BuildError(f"block {b} has no <permissive> after its names to put its occupancy sensor after")
-        occ = ET.Element("occupancysensor")
-        occ.text = user
-        occ.tail = kids[after].tail                 # the sensor takes permissive's place in the indentation
-        kids[after].tail = kids[after - 1].tail
-        el.insert(after + 1, occ)
-        if b in lbs:
-            lb = lbs[b]
-            attrs = list(lb.attrib.items())
-            lb.attrib.clear()
-            for k, v in attrs[:1] + [("occupancysensor", user)] + attrs[1:]:
-                lb.set(k, v)
-    return list(once)
-
-
-# The main and upper virtual block sensors start clear (owner, 2026-11-17): a LogixNG in the tables, stock JMRI, sets
-# every one INACTIVE once when the tables load (a ConditionalNG executes at startup unless told not to:
-# DefaultLogixNG.execute, executeAtStartup defaults to yes), so the masts are not held at Stop by UNKNOWN blocks. The
-# internal sensor manager's default state stays as it is for the other internal sensors. Its names are
-# hartlib.level_devices' CLEAR_*.
-# The action shape (male_socket, start_action) is hartlib.tables_build's, which master_beans makes the actions with
-# (naming-layers step 10); the frame around them stays here until step 11.
-MALE_DEBUGGER = tb.MALE_DEBUGGER
-MALE_ACTION = tb.MALE_ACTION
-male_socket = tb.male_socket
-
-
-def add_level_clear(root: ET.Element, sensors: list[str], turnouts: dict[str, str] | None = None) -> None:
-    """The LogixNG that sets each of `sensors` (system names of the main and upper virtual block sensors) INACTIVE
-    when the tables load (hartlib.level_devices: LogixNG CLEAR_LOGIXNG, its ConditionalNG CLEAR_CONDITIONAL, a
-    DigitalMany CLEAR_MANY and an ActionSensor per sensor, clear_action), and each of `turnouts` ({virtual turnout:
-    "Closed" or "Thrown"}) to its startup position (an ActionTurnout, turnout_action), stored as PanelPro 5.16 stores
-    them. Stops when the tables have no LogixNG sections or hold these names already."""
-    secs = {tag: root.find(tag) for tag in ("LogixNGs", "LogixNGConditionalNGs", "LogixNGDigitalActions")}
-    if any(v is None for v in secs.values()):
-        raise BuildError(f"the tables have no {', '.join(k for k, v in secs.items() if v is None)} section")
-    if any(level_devices.CLEAR_PREFIX.match(e.findtext("systemName") or "") for v in secs.values() for e in v):
-        raise BuildError("the tables already hold the main and upper sensors-clear LogixNG")
-    sensors = sorted(sensors)
-    if not sensors or not all(level_devices.is_block_sensor(x) for x in sensors):
-        raise BuildError(f"sensors-clear LogixNG: not all main and upper virtual sensors: {sensors[:3]}")
-    lx = ET.Element("LogixNG", {"enabled": "yes", "inline": "no"})
-    ET.SubElement(lx, "systemName").text = level_devices.CLEAR_LOGIXNG
-    ET.SubElement(lx, "userName").text = level_devices.CLEAR_USER
-    ET.SubElement(ET.SubElement(lx, "ConditionalNGs"), "systemName").text = level_devices.CLEAR_CONDITIONAL
-    last = [e for e in secs["LogixNGs"] if e.tag == "LogixNG"]
-    place(secs["LogixNGs"], [lx], 2, last[-1] if last else None)
-    cn = ET.Element("ConditionalNG", {"enabled": "yes"})
-    ET.SubElement(cn, "systemName").text = level_devices.CLEAR_CONDITIONAL
-    ET.SubElement(cn, "userName").text = level_devices.CLEAR_USER
-    ET.SubElement(cn, "thread").text = "0"
-    sock = ET.SubElement(cn, "Socket")
-    ET.SubElement(sock, "socketName").text = "A"
-    ET.SubElement(sock, "systemName").text = level_devices.CLEAR_MANY
-    place(secs["LogixNGConditionalNGs"], [cn], 2)
-    many = ET.Element("DigitalMany", {"class": "jmri.jmrit.logixng.actions.configurexml.DigitalManyXml"})
-    ET.SubElement(many, "systemName").text = level_devices.CLEAR_MANY
-    acts = ET.SubElement(many, "Actions")
-    actions = []
-    for i, sensor in enumerate(sensors, 1):
-        name = level_devices.clear_action(sensor)
-        s = ET.SubElement(acts, "Socket")
-        ET.SubElement(s, "socketName").text = f"A{i}"
-        ET.SubElement(s, "systemName").text = name
-        actions.append(tb.start_action("occupancy", name, sensor, "Inactive"))
-    for i, (turnout, state) in enumerate(sorted((turnouts or {}).items()), len(sensors) + 1):
-        if state not in ("Closed", "Thrown"):
-            raise BuildError(f"startup position of {turnout}: {state!r}, not Closed or Thrown")
-        name = level_devices.turnout_action(turnout)
-        s = ET.SubElement(acts, "Socket")
-        ET.SubElement(s, "socketName").text = f"A{i}"
-        ET.SubElement(s, "systemName").text = name
-        actions.append(tb.start_action("turnout", name, turnout, state))
-    male_socket(many)
-    place(secs["LogixNGDigitalActions"], [many] + actions, 2)
-
-
 def band_blocks(nm: dict) -> set[str]:
     """Every block one band's names (`nm`: the plugin's names of a band) give its track: its OS blocks, a double
     crossover's corner blocks and each track's blocks."""
@@ -507,168 +231,56 @@ def drawn_blocks(P, bands: set[int]) -> set[str]:
         {b for t in P.turnouts if t.get("band") in bands for b in (t.get("blocks") or {}).values() if b}
 
 
-def check_bound(root: ET.Element, P, names: dict, base_keys: set, base_ix: set, base: dict, base_name: str) -> None:
-    """One check for every level once the build's beans are in tables `root`: each turnout, block and mast a band's
-    names bind (`names`: {band key: names}) is a bean, for a band of a level the base holds (`base_keys`) of the base
-    itself (`base`: bean_names of the tables before the build added any, `base_name`), for the rest of `root`; the
-    bands of those levels (`base_ix`, band indexes) draw only blocks their names hold; and each block the panel draws
-    (P.blocks) is a bean of `root`. BuildError names each by band."""
-    if base_keys - set(names):
-        raise BuildError(f"the base's bands {sorted(base_keys - set(names))} are not among the bands named "
-                         f"{sorted(names)}")
-    built = bean_names(root)
-    bad = []
-    for key, nm in names.items():
-        have = base if key in base_keys else built
-        lost = [f"turnouts {sorted(t for t in set(nm['turnouts'].values()) if t not in have['turnouts'])}",
-                f"blocks {sorted(b for b in band_blocks(nm) if b not in have['blocks'])}",
-                f"masts {sorted(m['mast'] for m in nm.get('masts', []) if m['mast'] not in have['masts'])}"]
-        lost = [x for x in lost if not x.endswith(" []")]
-        if lost:
-            bad.append(f"{key}: {', '.join(lost)}")
-    own = {b for k in base_keys for b in band_blocks(names[k])}
-    stray = sorted(drawn_blocks(P, base_ix) - own)
-    if stray:
-        bad.append(f"{', '.join(sorted(base_keys))} draws blocks its names do not hold: {stray}")
-    drawn = sorted(set(P.blocks) - built["blocks"])
-    if drawn:
-        bad.append(f"the panel draws blocks {drawn}")
-    if bad:
-        raise BuildError(f"names the panel binds that are no bean of {base_name} or of the levels the build adds: "
-                         + "; ".join(bad))
-
-
-def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, base_keys: set,
-                      cells: dict | None = None) -> None:
-    """The levels the build adds (every band in `names` but `base_keys`, the bands of a level the base holds:
-    le_common.BASE_LEVELS): their turnouts, blocks and layout blocks in the tables, under the device-map user names
-    (level_names) on internal system names (TURNOUT_SYS; a block's BLOCK_SYS and ILB names are its device-master
-    row's jmri_name and layout_block, level_block_beans), so nothing reaches MQTT or the field, and each block's
-    virtual occupancy sensor (add_level_sensors), set clear on load (add_level_clear); a base band's block the panel
-    draws on another level too (a helix block) is bound to the device map's sensor. Each turnout's and block's comment
-    and each turnout's startup position are its row's bean_comment and start (level_cells, naming-layers step 9).
-    `cells`: level_cells (read here when not given). Stops on a block the device map gives no sensor, or a turnout or
-    block row with no bean_comment."""
-    if not base_keys or base_keys - set(names):
-        raise BuildError(f"the base's bands {sorted(base_keys)} are not all among the bands named {sorted(names)}")
-    staging_blocks = {b for k in base_keys for b in band_blocks(names[k])}
-    new_turnouts = sorted({t for k, v in names.items() if k not in base_keys for t in v["turnouts"].values()},
-                          key=lambda s: block_sort("OS " + s))
+def check_level_blocks(root: ET.Element, P, staging_keys: set, names: dict) -> None:
+    """The numbering checks on the main and upper blocks the panel draws (every drawn block but the staging bands'
+    names', `staging_keys`), now that the base holds their beans (hartlib.tables_build.base): none is a retired block
+    drawn again (block_numbering.csv's retired rows), no block_numbering.csv row names a block not drawn (a stale row:
+    numbered_blocks), each has its device-master row's jmri_name and layout_block, current with the numbering
+    (level_block_beans), and each block bean of tables `root` is bound to an occupancy sensor (its detector row's,
+    or its OS block's for a part). BuildError names them."""
+    staging_blocks = {b for k in staging_keys for b in band_blocks(names[k])}
     drawn = {b for b in P.blocks if b not in staging_blocks}
     retired = set(numbering()[2])
     if drawn & retired:
         raise BuildError(f"retired blocks drawn again: {sorted(drawn & retired)}; take them out of "
                          f"{NUMBERING.name}'s retired rows")
     numbered_blocks(drawn | retired, require_listed=True)           # a stale block_numbering.csv row stops
-    # each block's names from its device-master row (build_device_map.py copies them from block_numbering.csv)
     beans = level_block_beans()
     unnamed = sorted(drawn - set(beans))
     if unnamed:
         raise BuildError(f"main and upper blocks whose device-master row gives no jmri_name and layout_block: "
                          f"{unnamed}; run build_device_map.py")
-    bad = sorted(b for b in drawn if not beans[b][0].startswith(BLOCK_SYS) or not beans[b][1].startswith("ILB"))
+    full = {tables.user_name(b): b for b in tables.blocks(root)}
+    unbound = sorted(b for b in drawn if b in full and not (full[b].findtext("occupancysensor") or "").strip())
+    if unbound:
+        raise BuildError(f"main and upper blocks with no occupancy sensor (no detector row names them in the device "
+                         f"map): {unbound}")
+
+
+def check_bound(root: ET.Element, P, names: dict, staging_keys: set, staging_ix: set, base_name: str) -> None:
+    """One check for every level, on the tables the panel is drawn on (`root`: the base, which holds every level's
+    beans, base_name names it): each turnout, block and mast a band's names bind (`names`: {band key: names}) is a
+    bean of `root`; the staging bands (`staging_keys`, band indexes `staging_ix`: their names are the staging device
+    map's) draw only blocks their names hold; and each block the panel draws (P.blocks) is a bean of `root`.
+    BuildError names each by band."""
+    if staging_keys - set(names):
+        raise BuildError(f"the staging bands {sorted(staging_keys - set(names))} are not among the bands named "
+                         f"{sorted(names)}")
+    have = bean_names(root)
+    bad = []
+    for key, nm in names.items():
+        lost = [f"turnouts {sorted(t for t in set(nm['turnouts'].values()) if t not in have['turnouts'])}",
+                f"blocks {sorted(b for b in band_blocks(nm) if b not in have['blocks'])}",
+                f"masts {sorted(m['mast'] for m in nm.get('masts', []) if m['mast'] not in have['masts'])}"]
+        lost = [x for x in lost if not x.endswith(" []")]
+        if lost:
+            bad.append(f"{key}: {', '.join(lost)}")
+    own = {b for k in staging_keys for b in band_blocks(names[k])}
+    stray = sorted(drawn_blocks(P, staging_ix) - own)
+    if stray:
+        bad.append(f"{', '.join(sorted(staging_keys))} draws blocks its names do not hold: {stray}")
+    drawn = sorted(set(P.blocks) - have["blocks"])
+    if drawn:
+        bad.append(f"the panel draws blocks {drawn}")
     if bad:
-        raise BuildError(f"main and upper blocks whose jmri_name is not {BLOCK_SYS}<n> or layout_block not ILB<n>: "
-                         + ", ".join(f"{b} ({beans[b][0]}, {beans[b][1]})" for b in bad))
-    new_blocks = sorted(drawn, key=lambda b: (beans[b][0], b))     # in system name order, as numbered
-    if set(new_blocks) - set(lengths):
-        raise BuildError(f"blocks with no source: {sorted(set(new_blocks) - set(lengths))}")
-    taken_users = {tables.user_name(b) for b in tables.turnouts(root) + tables.blocks(root, full=False)
-                   + tables.layout_blocks(root)}
-    taken_sys = {tables.system_name(b) for b in tables.turnouts(root) + tables.blocks(root, full=False)
-                 + tables.layout_blocks(root)}
-    turnout_sys = {t: TURNOUT_SYS + t.split(" ", 1)[1] for t in new_turnouts}
-    block_sys = {b: beans[b][0] for b in new_blocks}
-    lb_sys = {b: beans[b][1] for b in new_blocks}
-    new_users = new_turnouts + new_blocks
-    new_sys = list(turnout_sys.values()) + list(block_sys.values()) + list(lb_sys.values())
-    clash = sorted((set(new_users) & taken_users) | (set(new_sys) & taken_sys))
-    if clash or len(set(new_users)) != len(new_users) or len(set(new_sys)) != len(new_sys):
-        raise BuildError(f"names collide: {clash}")
-
-    cells = level_cells() if cells is None else cells
-    turnout_cell = {t: cell_of(cells, "turnout", t) for t in new_turnouts}
-    block_comment = {b: cell_of(cells, "block", b)[1] for b in new_blocks}
-    bad = sorted(t for t, (start, _c) in turnout_cell.items() if start not in ("closed", "thrown"))
-    if bad:
-        raise BuildError(f"main and upper turnout rows whose start is not closed or thrown: {bad}; run "
-                         "build_device_map.py")
-    internal = next(s for s in root.findall("turnouts") if "InternalTurnoutManager" in (s.get("class") or ""))
-    place(internal, [bean("turnout", {"feedback": "DIRECT", "inverted": "false", "automate": "Off"}, turnout_sys[t],
-                          t, ("comment", turnout_cell[t][1])) for t in new_turnouts], 2)
-    blocks_el = root.find("blocks")
-    short = tables.blocks(root, full=False)
-    if not short:
-        raise BuildError("the live tables have no names-only block pass to add to")
-    last_short = short[-1]
-    place(blocks_el, [bean("block", {"systemName": block_sys[b]}, block_sys[b], b) for b in new_blocks], 2, last_short)
-    place(blocks_el, [bean("block", {"systemName": block_sys[b], "length": r1(lengths[b]), "curve": "0"},
-                           block_sys[b], b, ("comment", block_comment[b]), ("permissive", "no")) for b in new_blocks], 2)
-    place(root.find("layoutblocks"),
-          [bean("layoutblock", {"systemName": lb_sys[b], "occupiedsense": "2", "trackcolor": "gray",
-                                "occupiedcolor": "red", "extracolor": "white"}, lb_sys[b], b) for b in new_blocks], 2)
-    sensors = level_sensors(cells=cells)
-    if set(new_blocks) - set(sensors):
-        raise BuildError(f"main and upper blocks with no occupancy row in the device map: "
-                         f"{sorted(set(new_blocks) - set(sensors))}")
-    # a helix block: the staging block drawn on a level too, bound to the device map's sensor (owner, 2026-11-20)
-    shared = sorted(b for b in staging_blocks & set(P.blocks) if b in sensors)
-    added = add_level_sensors(root, {b: sensors[b] for b in new_blocks + shared})
-    if sorted(added) != sorted({sensors[b][0] for b in new_blocks + shared}):
-        raise BuildError("main and upper blocks whose sensor was not added (no such block in the tables): "
-                         f"{sorted({sensors[b][0] for b in new_blocks + shared} - set(added))}")
-    # each virtual turnout to its row's start: closed, its normal leg B, except where the main route runs through leg
-    # C (build_device_map.startup_thrown)
-    add_level_clear(root, added, {turnout_sys[t]: level_devices.START_ENUM[turnout_cell[t][0]] for t in new_turnouts})
-
-
-SIGNAL_NOTE = level_devices.SIGNAL_NOTE            # the words are hartlib.level_devices'; the rows carry the text
-UNPLANNED_NOTE = level_devices.UNPLANNED_NOTE
-signal_note = level_devices.signal_note
-HEAD_CLASS = "jmri.implementation.configurexml.VirtualSignalHeadXml"
-MAST_CLASS = "jmri.implementation.configurexml.SignalHeadSignalMastXml"
-VIRTUAL_MAST_CLASS = "jmri.implementation.configurexml.VirtualSignalMastXml"
-
-
-def add_level_signals(root: ET.Element, rows: list[dict], cells: dict | None = None) -> None:
-    """Main and upper: each of their masts in masts.csv as a SignalHeadSignalMast over VirtualSignalHeads, under
-    the device map's user names on its virtual system names (jmri_name, from the head's user name; read_level_masts
-    checks them), so nothing reaches MQTT or the field; each comment is its device-master row's bean_comment (`cells`,
-    default level_cells(): its CP, switch, direction and the planned physical device, a draft, as
-    device_map_rows.bean_cells writes it). A virtual mast (a destination at a buffer stop, no heads) is a
-    VirtualSignalMast, unlit allowed, as staging's are. Stops on a name already in the tables or a row with no
-    bean_comment."""
-    cells = level_cells() if cells is None else cells
-    heads_el, masts_el = root.find("signalheads"), root.find("signalmasts")
-    if heads_el is None or masts_el is None:
-        raise BuildError("the live tables have no signalheads or signalmasts section")
-    present = heads_el.findall("signalhead") + masts_el.findall("signalmast") + masts_el.findall("virtualsignalmast")
-    taken = {tables.system_name(e) for e in present} | {tables.user_name(e) for e in present}
-    heads, masts = [], []
-    for r in rows:
-        if level_masts_lib.is_level_virtual(r["system_name"]):    # a hidden destination mast at a buffer stop
-            el = ET.Element("virtualsignalmast", {"class": VIRTUAL_MAST_CLASS})
-            ET.SubElement(el, "systemName").text = r["system_name"]
-            ET.SubElement(el, "userName").text = r["mast"]
-            ET.SubElement(el, "comment").text = cell_of(cells, "mast", r["mast"])[1]
-            ET.SubElement(el, "unlit", {"allowed": "yes"})
-            masts.append(el)
-            continue
-        for h, user in r["heads"]:
-            el = ET.Element("signalhead", {"class": HEAD_CLASS})
-            ET.SubElement(el, "systemName").text = h
-            ET.SubElement(el, "userName").text = user
-            ET.SubElement(el, "comment").text = cell_of(cells, "head", user)[1]
-            heads.append(el)
-        el = ET.Element("signalmast", {"class": MAST_CLASS})
-        ET.SubElement(el, "systemName").text = r["system_name"]
-        ET.SubElement(el, "userName").text = r["mast"]
-        ET.SubElement(el, "comment").text = cell_of(cells, "mast", r["mast"])[1]
-        ET.SubElement(el, "unlit", {"allowed": "no"})
-        masts.append(el)
-    new = [x for e in heads + masts for x in (e.findtext("systemName"), e.findtext("userName"))]
-    clash = sorted(set(new) & taken)
-    if clash or len(set(new)) != len(new):
-        raise BuildError(f"main and upper signal names collide: {clash or 'among themselves'}")
-    place(heads_el, heads, 2)
-    place(masts_el, masts, 2)
+        raise BuildError(f"names the panel binds that are no bean of {base_name}: " + "; ".join(bad))

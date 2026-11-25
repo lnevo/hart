@@ -4287,7 +4287,7 @@
       "cp": "",
       "hardware": "IB:C3:0001",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 101 / IS:HART:C3:B:OS101; Peninsula",
       "block": ""
     },
     {
@@ -4300,7 +4300,7 @@
       "cp": "",
       "hardware": "IB:C3:0002",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 103 / IS:HART:C3:B:OS103; Peninsula",
       "block": ""
     },
     {
@@ -4313,7 +4313,7 @@
       "cp": "",
       "hardware": "IB:C3:0003",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 105 / IS:HART:C3:B:OS105; West",
       "block": ""
     },
     {
@@ -4326,7 +4326,7 @@
       "cp": "",
       "hardware": "IB:C3:0004",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 107 / IS:HART:C3:B:OS107; CP 107",
       "block": ""
     },
     {
@@ -4339,7 +4339,7 @@
       "cp": "",
       "hardware": "IB:C3:0005",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 109 / IS:HART:C3:B:OS109; CP 107",
       "block": ""
     },
     {
@@ -4352,7 +4352,7 @@
       "cp": "",
       "hardware": "IB:C3:0006",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 111 / IS:HART:C3:B:OS111; CP 107",
       "block": ""
     },
     {
@@ -4365,7 +4365,7 @@
       "cp": "",
       "hardware": "IB:C3:0007",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 113 / IS:HART:C3:B:OS113; West",
       "block": ""
     },
     {
@@ -4378,7 +4378,7 @@
       "cp": "",
       "hardware": "IB:C3:0008",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 115 / IS:HART:C3:B:OS115; West",
       "block": ""
     },
     {
@@ -4391,7 +4391,7 @@
       "cp": "",
       "hardware": "IB:C3:0009",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 117 / IS:HART:C3:B:OS117; CP 107",
       "block": ""
     },
     {
@@ -4404,7 +4404,7 @@
       "cp": "",
       "hardware": "IB:C3:0010",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 119 / IS:HART:C3:B:OS119; CP 107",
       "block": ""
     },
     {
@@ -4417,7 +4417,7 @@
       "cp": "",
       "hardware": "IB:C3:0011",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 121 / IS:HART:C3:B:OS121; North",
       "block": ""
     },
     {
@@ -4430,7 +4430,7 @@
       "cp": "",
       "hardware": "IB:C3:0012",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 123 / IS:HART:C3:B:OS123; CP 123",
       "block": ""
     },
     {
@@ -4443,7 +4443,7 @@
       "cp": "",
       "hardware": "IB:C3:0013",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 125 / IS:HART:C3:B:OS125; CP 123",
       "block": ""
     },
     {
@@ -4456,7 +4456,7 @@
       "cp": "",
       "hardware": "IB:C3:0014",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 127 / IS:HART:C3:B:OS127; CP 127",
       "block": ""
     },
     {
@@ -4469,7 +4469,7 @@
       "cp": "",
       "hardware": "IB:C3:0015",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 129 / IS:HART:C3:B:OS129; North",
       "block": ""
     },
     {
@@ -4482,7 +4482,7 @@
       "cp": "",
       "hardware": "IB:C3:0016",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 131 / IS:HART:C3:B:OS131; CP 127",
       "block": ""
     },
     {
@@ -4495,7 +4495,7 @@
       "cp": "",
       "hardware": "IB:C3:0017",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 201 / IS:HART:C3:B:OS201; CP 201",
       "block": ""
     },
     {
@@ -4508,7 +4508,7 @@
       "cp": "",
       "hardware": "IB:C3:0018",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 203 / IS:HART:C3:B:OS203; CP 201",
       "block": ""
     },
     {
@@ -4521,7 +4521,7 @@
       "cp": "",
       "hardware": "IB:C3:0019",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 205 / IS:HART:C3:B:OS205; West",
       "block": ""
     },
     {
@@ -4534,7 +4534,7 @@
       "cp": "",
       "hardware": "IB:C3:0020",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 207 / IS:HART:C3:B:OS207; Peninsula",
       "block": ""
     },
     {
@@ -4547,7 +4547,7 @@
       "cp": "",
       "hardware": "IB:C3:0021",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 209 / IS:HART:C3:B:OS209; West",
       "block": ""
     },
     {
@@ -4560,7 +4560,7 @@
       "cp": "",
       "hardware": "IB:C3:0022",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 211 / IS:HART:C3:B:OS211; CP 211",
       "block": ""
     },
     {
@@ -4573,7 +4573,7 @@
       "cp": "",
       "hardware": "IB:C3:0023",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 213 / IS:HART:C3:B:OS213; Peninsula",
       "block": ""
     },
     {
@@ -4586,7 +4586,7 @@
       "cp": "",
       "hardware": "IB:C3:0024",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 215 / IS:HART:C3:B:OS215; Peninsula",
       "block": ""
     },
     {
@@ -4599,7 +4599,7 @@
       "cp": "",
       "hardware": "IB:C3:0025",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 217 / IS:HART:C3:B:OS217; CP 217",
       "block": ""
     },
     {
@@ -4612,7 +4612,7 @@
       "cp": "",
       "hardware": "IB:C3:0026",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 219 / IS:HART:C3:B:OS219; CP 201",
       "block": ""
     },
     {
@@ -4625,7 +4625,7 @@
       "cp": "",
       "hardware": "IB:C3:0027",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 221 / IS:HART:C3:B:OS221; CP 201",
       "block": ""
     },
     {
@@ -4638,7 +4638,7 @@
       "cp": "",
       "hardware": "IB:C3:0028",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 223 / IS:HART:C3:B:OS223; CP 223",
       "block": ""
     },
     {
@@ -4651,7 +4651,7 @@
       "cp": "",
       "hardware": "IB:C3:0029",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 225a / IS:HART:C3:B:OS225a; CP 225",
       "block": ""
     },
     {
@@ -4664,7 +4664,7 @@
       "cp": "",
       "hardware": "IB:C3:0030",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 227 / IS:HART:C3:B:OS227; CP 225",
       "block": ""
     },
     {
@@ -4677,7 +4677,7 @@
       "cp": "",
       "hardware": "IB:C3:0031",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 229 / IS:HART:C3:B:OS229; CP 225",
       "block": ""
     },
     {
@@ -4690,7 +4690,7 @@
       "cp": "",
       "hardware": "IB:C3:0032",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 231 / IS:HART:C3:B:OS231; Helix",
       "block": ""
     },
     {
@@ -4703,7 +4703,7 @@
       "cp": "",
       "hardware": "IB:C3:0033",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 233 / IS:HART:C3:B:OS233; Helix",
       "block": ""
     },
     {
@@ -4716,7 +4716,7 @@
       "cp": "",
       "hardware": "IB:C3:0034",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 235 / IS:HART:C3:B:OS235; Helix",
       "block": ""
     },
     {
@@ -4729,7 +4729,7 @@
       "cp": "",
       "hardware": "IB:C3:0035",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 237 / IS:HART:C3:B:OS237; Helix",
       "block": ""
     },
     {
@@ -4742,7 +4742,7 @@
       "cp": "",
       "hardware": "IB:C3:0036",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 239 / IS:HART:C3:B:OS239; Helix",
       "block": ""
     },
     {
@@ -4755,7 +4755,7 @@
       "cp": "",
       "hardware": "IB:C3:0037",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 241 / IS:HART:C3:B:OS241; Helix",
       "block": ""
     },
     {
@@ -4768,7 +4768,7 @@
       "cp": "",
       "hardware": "IB:C3:0038",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 243 / IS:HART:C3:B:OS243; Helix",
       "block": ""
     },
     {
@@ -4781,7 +4781,7 @@
       "cp": "",
       "hardware": "IB:C3:0039",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 245 / IS:HART:C3:B:OS245; Helix",
       "block": ""
     },
     {
@@ -4794,7 +4794,7 @@
       "cp": "",
       "hardware": "IB:C3:0040",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 103 Spur / IS:HART:C3:B:103_Spur",
       "block": ""
     },
     {
@@ -4807,7 +4807,7 @@
       "cp": "",
       "hardware": "IB:C3:0041",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 107 Loop 1 / IS:HART:C3:B:107_Loop_1; CP 107",
       "block": ""
     },
     {
@@ -4820,7 +4820,7 @@
       "cp": "",
       "hardware": "IB:C3:0042",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 115 Spur / IS:HART:C3:B:115_Spur",
       "block": ""
     },
     {
@@ -4833,7 +4833,7 @@
       "cp": "",
       "hardware": "IB:C3:0043",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 119 Spur / IS:HART:C3:B:119_Spur; CP 107",
       "block": ""
     },
     {
@@ -4846,7 +4846,7 @@
       "cp": "",
       "hardware": "IB:C3:0044",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 121 Spur / IS:HART:C3:B:121_Spur",
       "block": ""
     },
     {
@@ -4859,7 +4859,7 @@
       "cp": "",
       "hardware": "IB:C3:0045",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 205 Spur / IS:HART:C3:B:205_Spur",
       "block": ""
     },
     {
@@ -4872,7 +4872,7 @@
       "cp": "",
       "hardware": "IB:C3:0046",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 213 Spur / IS:HART:C3:B:213_Spur",
       "block": ""
     },
     {
@@ -4885,7 +4885,7 @@
       "cp": "",
       "hardware": "IB:C3:0047",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 231 Spur / IS:HART:C3:B:231_Spur",
       "block": ""
     },
     {
@@ -4898,7 +4898,7 @@
       "cp": "",
       "hardware": "IB:C3:0048",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 235 Spur / IS:HART:C3:B:235_Spur",
       "block": ""
     },
     {
@@ -4911,7 +4911,7 @@
       "cp": "",
       "hardware": "IB:C3:0049",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 239 Spur / IS:HART:C3:B:239_Spur",
       "block": ""
     },
     {
@@ -4924,7 +4924,7 @@
       "cp": "",
       "hardware": "IB:C3:0050",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 241 Spur / IS:HART:C3:B:241_Spur",
       "block": ""
     },
     {
@@ -4937,7 +4937,7 @@
       "cp": "",
       "hardware": "IB:C3:0051",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 101 Spur 1 / IS:HART:C3:B:101_Spur_1",
       "block": ""
     },
     {
@@ -4950,7 +4950,7 @@
       "cp": "",
       "hardware": "IB:C3:0052",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 103-105 1 / IS:HART:C3:B:103-105_1",
       "block": ""
     },
     {
@@ -4963,7 +4963,7 @@
       "cp": "",
       "hardware": "IB:C3:0053",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 113 Spur 1 / IS:HART:C3:B:113_Spur_1",
       "block": ""
     },
     {
@@ -4976,7 +4976,7 @@
       "cp": "",
       "hardware": "IB:C3:0054",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 127-131 1 / IS:HART:C3:B:127-131_1; CP 127",
       "block": ""
     },
     {
@@ -4989,7 +4989,7 @@
       "cp": "",
       "hardware": "IB:C3:0055",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 129 Spur 1 / IS:HART:C3:B:129_Spur_1",
       "block": ""
     },
     {
@@ -5002,7 +5002,7 @@
       "cp": "",
       "hardware": "IB:C3:0056",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 209 Spur 1 / IS:HART:C3:B:209_Spur_1",
       "block": ""
     },
     {
@@ -5015,7 +5015,7 @@
       "cp": "",
       "hardware": "IB:C3:0057",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 211-217 1 / IS:HART:C3:B:211-217_1; CP 211 / CP 217",
       "block": ""
     },
     {
@@ -5028,7 +5028,7 @@
       "cp": "",
       "hardware": "IB:C3:0058",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 215 Spur 1 / IS:HART:C3:B:215_Spur_1",
       "block": ""
     },
     {
@@ -5041,7 +5041,7 @@
       "cp": "",
       "hardware": "IB:C3:0059",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 223-225 1 / IS:HART:C3:B:223-225_1; CP 223 / CP 225",
       "block": ""
     },
     {
@@ -5054,7 +5054,7 @@
       "cp": "",
       "hardware": "IB:C3:0060",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 243 Spur 1 / IS:HART:C3:B:243_Spur_1",
       "block": ""
     },
     {
@@ -5067,7 +5067,7 @@
       "cp": "",
       "hardware": "IB:C3:0061",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 245 Spur 1 / IS:HART:C3:B:245_Spur_1",
       "block": ""
     },
     {
@@ -5080,7 +5080,7 @@
       "cp": "",
       "hardware": "IB:C3:0062",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 101 Spur 2 / IS:HART:C3:B:101_Spur_2",
       "block": ""
     },
     {
@@ -5093,7 +5093,7 @@
       "cp": "",
       "hardware": "IB:C3:0063",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 103-105 2 / IS:HART:C3:B:103-105_2",
       "block": ""
     },
     {
@@ -5106,7 +5106,7 @@
       "cp": "",
       "hardware": "IB:C3:0064",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 113 Spur 2 / IS:HART:C3:B:113_Spur_2",
       "block": ""
     },
     {
@@ -5119,7 +5119,7 @@
       "cp": "",
       "hardware": "IB:C3:0065",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 127 / IS:HART:C3:B:OS127; part of OS Switch 127",
       "block": ""
     },
     {
@@ -5132,7 +5132,7 @@
       "cp": "",
       "hardware": "IB:C3:0066",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 129 Spur 2 / IS:HART:C3:B:129_Spur_2",
       "block": ""
     },
     {
@@ -5145,7 +5145,7 @@
       "cp": "",
       "hardware": "IB:C3:0067",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 209 Spur 2 / IS:HART:C3:B:209_Spur_2",
       "block": ""
     },
     {
@@ -5158,7 +5158,7 @@
       "cp": "",
       "hardware": "IB:C3:0068",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 211-217 2 / IS:HART:C3:B:211-217_2; CP 211 / CP 217",
       "block": ""
     },
     {
@@ -5171,7 +5171,7 @@
       "cp": "",
       "hardware": "IB:C3:0069",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 215 Spur 2 / IS:HART:C3:B:215_Spur_2",
       "block": ""
     },
     {
@@ -5184,7 +5184,7 @@
       "cp": "",
       "hardware": "IB:C3:0070",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 223-225 2 / IS:HART:C3:B:223-225_2; CP 223 / CP 225",
       "block": ""
     },
     {
@@ -5197,7 +5197,7 @@
       "cp": "",
       "hardware": "IB:C3:0071",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 243 Spur 2 / IS:HART:C3:B:243_Spur_2",
       "block": ""
     },
     {
@@ -5210,7 +5210,7 @@
       "cp": "",
       "hardware": "IB:C3:0072",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 245 Spur 2 / IS:HART:C3:B:245_Spur_2",
       "block": ""
     },
     {
@@ -5223,7 +5223,7 @@
       "cp": "",
       "hardware": "IB:C3:0075",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 101 / IS:HART:C3:B:OS101; part of OS Switch 101",
       "block": ""
     },
     {
@@ -5236,7 +5236,7 @@
       "cp": "",
       "hardware": "IB:C3:0076",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 101-111 / IS:HART:C3:B:101-111; CP 107",
       "block": ""
     },
     {
@@ -5249,7 +5249,7 @@
       "cp": "",
       "hardware": "IB:C3:0077",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 105 / IS:HART:C3:B:OS105; part of OS Switch 105",
       "block": ""
     },
     {
@@ -5262,7 +5262,7 @@
       "cp": "",
       "hardware": "IB:C3:0078",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 107-109 / IS:HART:C3:B:107-109; CP 107",
       "block": ""
     },
     {
@@ -5275,7 +5275,7 @@
       "cp": "",
       "hardware": "IB:C3:0079",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 109 / IS:HART:C3:B:OS109; part of OS Switch 109",
       "block": ""
     },
     {
@@ -5288,7 +5288,7 @@
       "cp": "",
       "hardware": "IB:C3:0080",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 111 / IS:HART:C3:B:OS111; part of OS Switch 111",
       "block": ""
     },
     {
@@ -5301,7 +5301,7 @@
       "cp": "",
       "hardware": "IB:C3:0081",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 113 / IS:HART:C3:B:OS113; part of OS Switch 113",
       "block": ""
     },
     {
@@ -5314,7 +5314,7 @@
       "cp": "",
       "hardware": "IB:C3:0082",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 115 / IS:HART:C3:B:OS115; part of OS Switch 115",
       "block": ""
     },
     {
@@ -5327,7 +5327,7 @@
       "cp": "",
       "hardware": "IB:C3:0083",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 117 / IS:HART:C3:B:OS117; part of OS Switch 117",
       "block": ""
     },
     {
@@ -5340,7 +5340,7 @@
       "cp": "",
       "hardware": "IB:C3:0084",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 119-121 / IS:HART:C3:B:119-121; CP 107",
       "block": ""
     },
     {
@@ -5353,7 +5353,7 @@
       "cp": "",
       "hardware": "IB:C3:0085",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 119-123 / IS:HART:C3:B:119-123; CP 107 / CP 123",
       "block": ""
     },
     {
@@ -5366,7 +5366,7 @@
       "cp": "",
       "hardware": "IB:C3:0086",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 121 / IS:HART:C3:B:OS121; part of OS Switch 121",
       "block": ""
     },
     {
@@ -5379,7 +5379,7 @@
       "cp": "",
       "hardware": "IB:C3:0087",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 121-125 / IS:HART:C3:B:121-125; CP 123",
       "block": ""
     },
     {
@@ -5392,7 +5392,7 @@
       "cp": "",
       "hardware": "IB:C3:0088",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 123 / IS:HART:C3:B:OS123; part of OS Switch 123",
       "block": ""
     },
     {
@@ -5405,7 +5405,7 @@
       "cp": "",
       "hardware": "IB:C3:0089",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 125-127 / IS:HART:C3:B:125-127; CP 123 / CP 127",
       "block": ""
     },
     {
@@ -5418,7 +5418,7 @@
       "cp": "",
       "hardware": "IB:C3:0090",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 129 / IS:HART:C3:B:OS129; part of OS Switch 129",
       "block": ""
     },
     {
@@ -5431,7 +5431,7 @@
       "cp": "",
       "hardware": "IB:C3:0091",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 127-221 / IS:HART:C3:B:127-221; CP 127 / CP 201",
       "block": ""
     },
     {
@@ -5444,7 +5444,7 @@
       "cp": "",
       "hardware": "IB:C3:0092",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 201 / IS:HART:C3:B:OS201; part of OS Switch 201",
       "block": ""
     },
     {
@@ -5457,7 +5457,7 @@
       "cp": "",
       "hardware": "IB:C3:0093",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 205 / IS:HART:C3:B:OS205; part of OS Switch 205",
       "block": ""
     },
     {
@@ -5470,7 +5470,7 @@
       "cp": "",
       "hardware": "IB:C3:0094",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 201 / IS:HART:C3:B:OS201; part of OS Switch 201",
       "block": ""
     },
     {
@@ -5483,7 +5483,7 @@
       "cp": "",
       "hardware": "IB:C3:0095",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 203-207 / IS:HART:C3:B:203-207; CP 201",
       "block": ""
     },
     {
@@ -5496,7 +5496,7 @@
       "cp": "",
       "hardware": "IB:C3:0096",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 203-211 / IS:HART:C3:B:203-211; CP 201 / CP 211",
       "block": ""
     },
     {
@@ -5509,7 +5509,7 @@
       "cp": "",
       "hardware": "IB:C3:0097",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 205 / IS:HART:C3:B:OS205; part of OS Switch 205",
       "block": ""
     },
     {
@@ -5522,7 +5522,7 @@
       "cp": "",
       "hardware": "IB:C3:0098",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 207-211 / IS:HART:C3:B:207-211; CP 211",
       "block": ""
     },
     {
@@ -5535,7 +5535,7 @@
       "cp": "",
       "hardware": "IB:C3:0099",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 207-213 / IS:HART:C3:B:207-213",
       "block": ""
     },
     {
@@ -5548,7 +5548,7 @@
       "cp": "",
       "hardware": "IB:C3:0100",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 213 / IS:HART:C3:B:OS213; part of OS Switch 213",
       "block": ""
     },
     {
@@ -5561,7 +5561,7 @@
       "cp": "",
       "hardware": "IB:C3:0101",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 217-219 / IS:HART:C3:B:217-219; CP 201 / CP 217",
       "block": ""
     },
     {
@@ -5574,7 +5574,7 @@
       "cp": "",
       "hardware": "IB:C3:0102",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 217-221 / IS:HART:C3:B:217-221; CP 201 / CP 217",
       "block": ""
     },
     {
@@ -5587,7 +5587,7 @@
       "cp": "",
       "hardware": "IB:C3:0103",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 219 / IS:HART:C3:B:OS219; part of OS Switch 219",
       "block": ""
     },
     {
@@ -5600,7 +5600,7 @@
       "cp": "",
       "hardware": "IB:C3:0104",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 221-223 / IS:HART:C3:B:221-223; CP 201 / CP 223",
       "block": ""
     },
     {
@@ -5613,7 +5613,7 @@
       "cp": "",
       "hardware": "IB:C3:0105",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 225c / IS:HART:C3:B:OS225c; part of OS Switch 225c",
       "block": ""
     },
     {
@@ -5626,7 +5626,7 @@
       "cp": "",
       "hardware": "IB:C3:0106",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 225b / IS:HART:C3:B:OS225b; part of OS Switch 225b",
       "block": ""
     },
     {
@@ -5639,7 +5639,7 @@
       "cp": "",
       "hardware": "IB:C3:0107",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 231 / IS:HART:C3:B:OS231; part of OS Switch 231",
       "block": ""
     },
     {
@@ -5652,7 +5652,7 @@
       "cp": "",
       "hardware": "IB:C3:0108",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 227-241 1 / IS:HART:C3:B:227-241_1; CP 225",
       "block": ""
     },
     {
@@ -5665,7 +5665,7 @@
       "cp": "",
       "hardware": "IB:C3:0109",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 233 / IS:HART:C3:B:OS233; part of OS Switch 233",
       "block": ""
     },
     {
@@ -5678,7 +5678,7 @@
       "cp": "",
       "hardware": "IB:C3:0110",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 229-241 / IS:HART:C3:B:229-241; CP 225",
       "block": ""
     },
     {
@@ -5691,7 +5691,7 @@
       "cp": "",
       "hardware": "IB:C3:0111",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 231 / IS:HART:C3:B:OS231; part of OS Switch 231",
       "block": ""
     },
     {
@@ -5704,7 +5704,7 @@
       "cp": "",
       "hardware": "IB:C3:0112",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 233-235 / IS:HART:C3:B:233-235",
       "block": ""
     },
     {
@@ -5717,7 +5717,7 @@
       "cp": "",
       "hardware": "IB:C3:0113",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 233-243 / IS:HART:C3:B:233-243",
       "block": ""
     },
     {
@@ -5730,7 +5730,7 @@
       "cp": "",
       "hardware": "IB:C3:0114",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 235 / IS:HART:C3:B:OS235; part of OS Switch 235",
       "block": ""
     },
     {
@@ -5743,7 +5743,7 @@
       "cp": "",
       "hardware": "IB:C3:0115",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 237 / IS:HART:C3:B:OS237; part of OS Switch 237",
       "block": ""
     },
     {
@@ -5756,7 +5756,7 @@
       "cp": "",
       "hardware": "IB:C3:0116",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 237-245 / IS:HART:C3:B:237-245",
       "block": ""
     },
     {
@@ -5769,7 +5769,7 @@
       "cp": "",
       "hardware": "IB:C3:0117",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 239 / IS:HART:C3:B:OS239; part of OS Switch 239",
       "block": ""
     },
     {
@@ -5782,7 +5782,7 @@
       "cp": "",
       "hardware": "IB:C3:0118",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 107 Loop 2 / IS:HART:C3:B:107_Loop_2; CP 107",
       "block": ""
     },
     {
@@ -5795,7 +5795,7 @@
       "cp": "",
       "hardware": "IB:C3:0119",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 225b / IS:HART:C3:B:OS225b; CP 225",
       "block": ""
     },
     {
@@ -5808,7 +5808,7 @@
       "cp": "",
       "hardware": "IB:C3:0120",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 225c / IS:HART:C3:B:OS225c; CP 225",
       "block": ""
     },
     {
@@ -5821,7 +5821,7 @@
       "cp": "",
       "hardware": "IB:C3:0121",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS Switch 225d / IS:HART:C3:B:OS225d; CP 225",
       "block": ""
     },
     {
@@ -5834,7 +5834,7 @@
       "cp": "",
       "hardware": "IB:C3:0122",
       "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
+      "comment": "BS 227-241 2 / IS:HART:C3:B:227-241_2; CP 225",
       "block": ""
     }
   ],

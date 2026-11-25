@@ -351,7 +351,7 @@ def claimed_name(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) 
     names = [n for n in (key[4], tables.user_name(el)) if n]
     for name in names:
         if name.startswith(BUILD_PREFIXES) or level_devices.is_level_name(name):
-            return "the build's names (the Layout Editor build and hartlib.level_devices)"
+            return "the build's names (the device master's main and upper rows and hartlib.level_devices)"
         for feature, pattern in parked.SENSOR_PATTERNS.items():
             if pattern.match(name):
                 return f"the parked {parked.FEATURES[feature]}"
@@ -476,9 +476,9 @@ def _device_items(key: tuple, b: ET.Element | None, g: ET.Element, s: ET.Element
                 edits.append(Edit(devices.key_of(r), "jmri_name", old, new))
             out.append((p, tuple(edits), f"{who}: user_name" + (" and jmri_name" if len(edits) > 1 else "")))
         else:
-            if r["level"] not in tb.GENERATED_LEVELS:
-                out.append((p, None, "the Layout Editor build writes main and upper comments from the device master; "
-                                     "change the row's columns"))
+            if r["bean_comment"]:
+                out.append((p, None, "build_device_map.py writes this bean's comment (its bean_comment, a main or upper "
+                                     "row's) from the row's columns; change those"))
                 continue
             if r["wiring"] or not r["jmri_comment"]:
                 out.append((p, None, "the comment is generated from the row's wiring and dcc columns; change those"))

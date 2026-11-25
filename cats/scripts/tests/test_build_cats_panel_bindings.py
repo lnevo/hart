@@ -529,12 +529,16 @@ class LevelSwitches(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "double crossover 225: no corners found"):
             B.level_switch_bindings(level_bands(), level_facts(), 0, {})
 
-    def test_a_turnout_that_is_not_internal_stops(self):
-        for turnouts in ({}, {"Switch 109": "M2T1300"}):
-            with self.subTest(turnouts=turnouts), self.assertRaisesRegex(SystemExit, "no internal turnout Switch"):
-                f = level_facts()
-                f.turnouts = {k: v for k, v in f.turnouts.items() if k != "Switch 109"} | turnouts
-                B.level_switch_bindings(level_bands(), f, 0)
+    def test_a_switch_binds_the_turnout_tables_xml_holds_and_stops_on_none(self):
+        """The desk takes the turnout tables.xml holds for Switch <n>, its device-master row's bean (naming-layers
+        step 11): a row swapped to a physical turnout (ADR-028) binds that one; no turnout stops."""
+        f = level_facts()
+        f.turnouts = dict(f.turnouts, **{"Switch 109": "M2T1300"})
+        cmd = B.level_switch_bindings(level_bands(), f, 0)["109"]["routes"]["B"]["ROUTECOMMAND"]
+        self.assertEqual(("M2T", "1300"), (cmd["JMRIPREFIX"], cmd["DECADDR"]))
+        f.turnouts = {k: v for k, v in f.turnouts.items() if k != "Switch 109"}
+        with self.assertRaisesRegex(SystemExit, "tables.xml has no turnout Switch 109"):
+            B.level_switch_bindings(level_bands(), f, 0)
 
     def test_a_crossover_half_whose_thrown_leg_goes_elsewhere_stops(self):
         bands = level_bands()
@@ -814,9 +818,9 @@ class CommittedMainAndUpper(unittest.TestCase):
 
     def test_main_and_upper_turnouts_and_masts_are_bound(self):
         level = {k: e for k, e in self.bound["switches"].items()
-                 if e["routes"]["B"]["ROUTECOMMAND"]["JMRIPREFIX"] == B.LEVEL_TURNOUT_PREFIX}
+                 if e["routes"]["B"]["ROUTECOMMAND"]["JMRIPREFIX"] == "IT"}
         numbers = {B.bdm.base(k) for k in level}
-        internal = {u.removeprefix("Switch ") for s, u in self.turnouts.items() if s.startswith(B.LEVEL_TURNOUT)}
+        internal = {u.removeprefix("Switch ") for s, u in self.turnouts.items() if s.startswith(B.level_devices.TURNOUT_PREFIX)}
         self.assertEqual(numbers, internal)                         # double crossover 225 too
         self.assertEqual(len(numbers), 39)                         # 121 and 125: one crossover each (2026-11-19)
         # closed on leg B, but for the crossover halves the plan joins by their leg B: closed on leg C

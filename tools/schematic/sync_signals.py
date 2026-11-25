@@ -27,10 +27,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft  # noqa: E402,F401  puts hartlib on the path
-import le_tables  # noqa: E402  HEAD_CLASS, MAST_CLASS, place
+import le_tables  # noqa: E402  place
 from hartlib import devices, level_masts, paths, railroad, tables, tables_build  # noqa: E402
 
-VSM_CLASS = "jmri.implementation.configurexml.VirtualSignalMastXml"
+VSM_CLASS = tables_build.VIRTUAL_MAST_CLASS
 
 
 def is_mast(user: str) -> bool:
@@ -69,7 +69,7 @@ def sync(root: ET.Element, rows: list[dict], comments: dict) -> dict:
     gone = set()
     for user, el in have.items():
         r = want.get(user)
-        cls = VSM_CLASS if (r and r["system_name"].startswith("IF$vsm:")) else le_tables.MAST_CLASS
+        cls = VSM_CLASS if (r and r["system_name"].startswith("IF$vsm:")) else tables_build.MAST_CLASS
         if r and tables.system_name(el) == r["system_name"] and el.get("class") == cls:
             counts["masts kept"] += 1
             continue
@@ -94,7 +94,7 @@ def sync(root: ET.Element, rows: list[dict], comments: dict) -> dict:
                     raise SystemExit(f"head {h} is {tables.user_name(head_by_sys[h])!r} in tables.xml, "
                                      f"{user!r} in {level_masts.PATH.name}")
                 continue
-            el = ET.Element("signalhead", {"class": le_tables.HEAD_CLASS})
+            el = ET.Element("signalhead", {"class": tables_build.HEAD_CLASS})
             ET.SubElement(el, "systemName").text = h
             ET.SubElement(el, "userName").text = user
             ET.SubElement(el, "comment").text = comments.get(h, "")
@@ -104,7 +104,7 @@ def sync(root: ET.Element, rows: list[dict], comments: dict) -> dict:
         if r["mast"] in kept:
             continue
         vsm = r["system_name"].startswith("IF$vsm:")
-        el = ET.Element("virtualsignalmast" if vsm else "signalmast", {"class": VSM_CLASS if vsm else le_tables.MAST_CLASS})
+        el = ET.Element("virtualsignalmast" if vsm else "signalmast", {"class": VSM_CLASS if vsm else tables_build.MAST_CLASS})
         ET.SubElement(el, "systemName").text = r["system_name"]
         ET.SubElement(el, "userName").text = r["mast"]
         ET.SubElement(el, "comment").text = " | ".join(x for x in (r["cp"], f"Switch {r['switch']}" if r["switch"] else "") if x)

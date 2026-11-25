@@ -18,6 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import build_cats_panel as B  # noqa: E402
+from hartlib import level_devices  # noqa: E402
 
 BUILT = {}
 PLUGIN = B.pd.REPO / "external/model-railroad-skills/plugins/schematic-maps"     # where publish_draft.plugin looks
@@ -67,7 +68,7 @@ class Whole(unittest.TestCase):
                          sum(len(sw.legs) for sw in F.switches.values()))
         level = {B.bdm.base(key) for key, e in c["switches"].items() if not staging_turnout(e)}
         self.assertEqual(level, {u.removeprefix("Switch ") for u, sn in F.turnouts.items()
-                                 if sn.startswith(B.LEVEL_TURNOUT)})
+                                 if sn.startswith(level_devices.TURNOUT_PREFIX)})
         staging_masts = [sg for sg in k["bands"][k["bi"]][2].get("signals") or () if sg["kind"] != "virtual"]
         self.assertEqual(len(c["masts"]), len(staging_masts) + len(B.level_masts.visible_names(levels=(2, 3))))
 
@@ -210,8 +211,16 @@ class Blocks(unittest.TestCase):
     def test_main_upper_switches_are_the_committed_ones(self):
         want = {key: e for key, e in self.k["committed"]["switches"].items() if not staging_turnout(e)}
         self.assertEqual(self.level_switches(), want)
-        self.assertEqual({e["routes"]["B"]["ROUTECOMMAND"]["JMRIPREFIX"] for e in want.values()},
-                         {B.LEVEL_TURNOUT_PREFIX})
+        self.assertEqual({e["routes"]["B"]["ROUTECOMMAND"]["JMRIPREFIX"] for e in want.values()}, {"IT"})
+
+    def test_a_switch_takes_the_turnout_tables_xml_holds_for_it(self):
+        """A main or upper switch binds whatever turnout its row gives tables.xml (a swap to a physical turnout is
+        one row edit, ADR-028), split into the desk's JMRIPREFIX and DECADDR."""
+        self.assertEqual(("IT", ":HART:C3:107"), B.split_system_name("IT:HART:C3:107"))
+        self.assertEqual(("M2T", "3308"), B.split_system_name("M2T3308"))
+        self.assertEqual(("MT", "T100"), B.split_system_name("MTT100"))
+        with self.assertRaises(SystemExit):
+            B.split_system_name("Switch 107")
 
 
 class Masts(unittest.TestCase):

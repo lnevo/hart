@@ -28,13 +28,13 @@ le_window, which stays as it is; zoom to fit), each band's labels placed in roun
 labels_by_band), staging against the left edge (the plugin's band_align) and the main level below everything the
 staging drawing holds (the plugin's le_title_clear, with the panel items' bottom under staging as band_bottoms). The
 staging helix tracks run on to the main level, so their end bumpers become anchors, inside one block: each helix
-track is one block from staging up the helix, Track Helix Outer and Track Helix Inner (owner 2026-11-20); the build
-binds the staging block to the device map's sensor. Main
+track is one block from staging up the helix, Track Helix Outer and Track Helix Inner (owner 2026-11-20), bound to
+the device map's sensor of that helix track (the base: hartlib.tables_build.master_beans). Main
 and upper take the device map's names (device_names; a crossover's two halves are one turnout, drawn as one single
 crossover on one level, or as two Layout Editor turnouts on one turnout for 127 and 131, whose halves stand on two
 levels, and for 121 and 125, whose halves the plan joins leg C to leg B; each half is closed on the leg away from its
-other half), on internal system names, each block bound to its virtual occupancy sensor (IS:HART:C3:B:<block key>;
-level_sensors), which a LogixNG sets clear when the tables load (add_level_clear); their track names are the device
+other half), on the beans the device master's rows give them (each row's jmri_name: today internal, each block bound
+to its virtual occupancy sensor, which the startup LogixNG sets clear when the tables load); their track names are the device
 map's block names without "Track ", left out where there is no room (names_last); one block contents icon per block at
 12 px (staging keeps 13; preferences.json[main_upper]'s le_band_labels).
 
@@ -44,13 +44,14 @@ jmri/layouts/hart/parked/tables_parked.xml. The released tables are this build w
 stock discovery in a sandbox (jmri/layouts/hart/parked/README.md).
 
 The tables it builds on (ADR-029, R9c): the generator's base (hartlib.tables_build.base), the template
-(data/tables_template.xml) with the staging beans of the device master, never the live tables.xml, which is an output
-(tools/schematic/build_tables.py writes it from this build, the discovered Signal Mast Logic and the template). The
-base holds no panel and no Signal Mast Logic; the build adds the main and upper objects and the panel after the
-template's sections.
+(data/tables_template.xml) with every level's beans of the device master (naming-layers step 11), never the live
+tables.xml, which is an output (tools/schematic/build_tables.py writes it from this build, the discovered Signal Mast
+Logic and the template). The base holds no panel and no Signal Mast Logic; the build adds no bean, only the panel after
+the template's sections, once it has checked that every name the panel binds is a bean of the base (check_bound) and
+that the main and upper blocks drawn are numbered as block_numbering.csv says (check_level_blocks).
 
 Staging alone. levels "staging" draws the staging band alone: its helix tracks end at end bumpers, its rows le_row px
-apart (the page preference), and no main or upper object is added to the tables; the panel is the "HART Railroad"
+apart (the page preference); the panel is the "HART Railroad"
 panel under panel_items.json's attributes, sized by the le_window and opening at 0, 0. The three-level build takes
 its grid from it. Staging's turnouts
 keep their switches.csv idents; anchors, end bumpers and segments take generated idents (owner, 2026-11-17), which
@@ -80,8 +81,8 @@ import staging_device_map as sdm  # noqa: E402  the staging device map
 from hartlib import parked, paths, tables, tables_build  # noqa: E402
 # The build's parts: their names are re-exported below, so callers and tests read them here. Patch a name in the module that calls it (le_names.placeholder_names).
 from le_common import (  # noqa: E402,F401  re-exported: callers and tests read them here
-    staging_switches, DEVICE_MAP, TURNOUT_SYS, BLOCK_SYS, LAYOUT_BLOCK_FIRST, BuildError, plugin,
-    schematic, slots_module, band_key, bare, read_csv, BASE_LEVELS, band_levels, base_bands, base_band, base_keys,
+    staging_switches, DEVICE_MAP, BLOCK_SYS, LAYOUT_BLOCK_FIRST, BuildError, plugin,
+    schematic, slots_module, band_key, bare, read_csv, STAGING_LEVELS, band_levels, base_bands, base_band, base_keys,
     find_band, le_band_align, le_station_labels,
 )
 from le_names import (  # noqa: E402,F401  re-exported: callers and tests read them here
@@ -94,12 +95,9 @@ from le_checks import (  # noqa: E402,F401  re-exported: callers and tests read 
 )
 import le_tables  # noqa: E402  its numbering, read on first use (__getattr__)
 from le_tables import (  # noqa: E402,F401  re-exported: callers and tests read them here
-    NUMBERING, NUMBERING_NAMES, load_numbering, numbering, COMMENT, bean, r1, block_sort,
-    RETIRED_TURNOUT_PREFIX, retire_yard_ladder, replace, place, canon, is_level_bean, numbered_blocks, STRIPPED,
-    strip_build_owned,
-    level_sensors, SENSOR_COMMENT, add_level_sensors, MALE_DEBUGGER, MALE_ACTION, male_socket, add_level_clear,
-    add_level_objects, SIGNAL_NOTE, HEAD_CLASS, MAST_CLASS, add_level_signals, band_blocks, check_bound,
-    bean_names, drawn_blocks,
+    NUMBERING, NUMBERING_NAMES, load_numbering, numbering, block_sort,
+    RETIRED_TURNOUT_PREFIX, retire_yard_ladder, place, canon, level_bean_names, is_level_bean,
+    numbered_blocks, level_block_beans, band_blocks, check_level_blocks, check_bound, bean_names, drawn_blocks,
 )
 
 LEVELS = ("all", "staging")
@@ -131,8 +129,8 @@ BASE_NAME = "the generated base (data/tables_template.xml and the device master)
 
 
 def base_tables() -> bytes:
-    """The tables a build draws on: hartlib.tables_build.base, the template with the staging beans of the device master.
-    BuildError on anything that stops it, naming the file."""
+    """The tables a build draws on: hartlib.tables_build.base, the template with every level's beans of the device
+    master. BuildError on anything that stops it, naming the file."""
     try:
         return tables_build.base().tobytes()
     except (tables_build.TablesBuildError, tables_build.devices.DevicesError) as exc:
@@ -188,27 +186,27 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
     base = None             # for the three-level panel: staging drawn alone, whose grid it is drawn at
     if levels == "all":
         base = build(bands, "staging", True, page=page, base_data=base_data)
-    # One band of a level the base holds (BASE_LEVELS), drawn first: the staging band, which the staging device
-    # map names (staging_device_map.load reads that band, found by its level) and every level the build adds is
-    # drawn under. `staging` is its key, as the plugin keys the names and options given for it
+    # One band of the staging level (STAGING_LEVELS), drawn first: the staging band, which the staging device map
+    # names (staging_device_map.load reads that band, found by its level) and every other level is drawn under.
+    # `staging` is its key, as the plugin keys the names and options given for it
     levels_of = band_levels(bands)
     if base_bands(bands) != [0]:
-        raise BuildError(f"the schematic must draw one band of level {', '.join(map(str, sorted(BASE_LEVELS)))} "
-                         f"(the beans the base holds), first; its bands are "
+        raise BuildError(f"the schematic must draw one band of level {', '.join(map(str, sorted(STAGING_LEVELS)))} "
+                         f"(staging), first; its bands are "
                          + ", ".join(f"{t!r} (level {lv})" for (t, _b, _o), lv in zip(bands, levels_of)))
     staging = band_key(bands[base_band(bands)][0])
     if levels == "staging":
         bands, levels_of = bands[:1], levels_of[:1]
-    # whether the drawing holds a level whose beans this build adds (virtual: le_tables), or only the base's
-    adds = any(lv not in BASE_LEVELS for lv in levels_of)
+    # whether the drawing holds a level other than staging, whose names and masts come from the device master
+    adds = any(lv not in STAGING_LEVELS for lv in levels_of)
     doc = tables.loads(base_data)
     root = doc.root
     if root.find("LayoutEditor") is not None:
         raise BuildError(f"{BASE_NAME} holds a Layout Editor panel; the build adds the one panel")
     panel_name = TEMPLATE_PANEL
 
-    # the names and masts of the levels the build adds: from the device master and masts.csv
-    names, lengths = level_names(bands, le_mod, page=page) if adds else ({}, {})
+    # the names and masts of main and upper: from the device master and masts.csv
+    names, _lengths = level_names(bands, le_mod, page=page) if adds else ({}, {})
     level_rows = read_level_masts() if adds else []
     skip = base_keys(bands)             # the staging band's: its names are the staging device map's
     shared_turnouts(names, skip)
@@ -254,15 +252,13 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
     # every level's masts, each in the one slot its blocks fit, on its switch's turnout (one check for all levels)
     check_masts(P, {k: v.get("masts", []) for k, v in names.items()}, le_mod, mast_turnouts(level_rows))
 
-    # the beans of the levels the build adds (the base's levels' are the base's, from the device master), then one check
-    # for every level: each name the panel binds is a bean of the tables
-    base_ix = {i for i, lv in enumerate(levels_of) if lv in BASE_LEVELS}    # a hidden join has band None: in none
-    base_beans = bean_names(root)       # before the build adds any: a base level's names must be the base's own
+    # every level's beans are the base's (hartlib.tables_build.base, from the device master; naming-layers step 11):
+    # the main and upper blocks drawn are checked against block_numbering.csv, then one check for every level: each
+    # name the panel binds is a bean of the tables
+    base_ix = {i for i, lv in enumerate(levels_of) if lv in STAGING_LEVELS}    # a hidden join has band None: in none
     if adds:
-        cells = le_tables.level_cells()     # each main and upper row's start and bean_comment, read once
-        add_level_objects(root, P, names, lengths, skip, cells)
-        add_level_signals(root, level_rows, cells)
-    check_bound(root, P, names, skip, base_ix, base_beans, BASE_NAME)
+        check_level_blocks(root, P, skip, names)
+    check_bound(root, P, names, skip, base_ix, BASE_NAME)
 
     try:
         attrs, options = panel_items.panel_attributes(items)
