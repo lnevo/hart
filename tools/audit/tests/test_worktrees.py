@@ -508,6 +508,19 @@ class SubmodulePlanTest(unittest.TestCase):
             with mock.patch.object(WT, "process_start", return_value=None):
                 self.assertFalse(WT.lock_session_gone(reason))
 
+    def test_a_lock_written_in_utc_matches_a_local_ps_time(self):
+        """Claude Code records the session start in UTC; ps prints local time. The same moment is the same
+        session, so a live session's lock must not count as gone (it did, hours off, before 2026-11-25)."""
+        local = datetime(2026, 11, 24, 23, 8, 5)
+        utc = local.astimezone(timezone.utc).replace(tzinfo=None)
+        reason = f"claude agent agent-x (pid 333 start {utc:%a %b %d %H:%M:%S %Y})"
+        with mock.patch.object(WT, "pid_running", return_value=True), \
+                mock.patch.object(WT, "process_start", return_value=local):
+            self.assertFalse(WT.lock_session_gone(reason))
+        with mock.patch.object(WT, "pid_running", return_value=True), \
+                mock.patch.object(WT, "process_start", return_value=local + timedelta(minutes=7)):
+            self.assertTrue(WT.lock_session_gone(reason))
+
     def test_odd_pids_never_count_as_gone(self):
         self.assertFalse(WT.lock_session_gone("pid 99999999999999999999 start x"))  # too long for the pattern
         with mock.patch.object(WT.os, "kill", side_effect=OverflowError):

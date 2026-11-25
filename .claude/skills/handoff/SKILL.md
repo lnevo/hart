@@ -9,6 +9,7 @@ description: Use when the owner says go on a hand-off or a plan with several ind
 
 ## Split
 
+- Run `make orient` first: an item on a project page another branch has claimed, or in files a worktree in progress changes, waits or goes to that agent.
 - Up to 5 agents, launched in one message, one item each. Items that edit the same files go to one agent, or run one after another.
 - Generated files that several PRs regenerate (`docs/INDEX.md` and the like): each branch regenerates its own. On a rebase conflict, take main's copy and run the generator again (`python3 tools/ops/build_docs_index.py` for the index). Never merge a generated file by hand.
 - `isolation: "worktree"` branches from main, so an item that needs an unmerged branch waits for that merge.
@@ -24,6 +25,8 @@ Agents in `.claude/agents/` carry their own model. For others: `haiku` for read-
 ```
 Repo: <path>. Read AGENTS.md first and follow it.
 Worktree: create branch agent/claude/<topic> from origin/main (or make wt TOPIC=<topic>).
+Claim: <page in wiki/projects/, or none>. First, in your worktree:
+  python3 tools/ops/orient.py claim <page>; in your last commit, orient.py unclaim <page>.
 Goal: <one or two sentences>. Already ruled out: <...>.
 Scope: <paths you may change>. Do not touch: <paths other agents own>.
 Quality (code only): 1 clear domain errors, not raw exceptions; 2 no silent fallbacks

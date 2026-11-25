@@ -97,7 +97,8 @@ def process_start(pid: int) -> datetime | None:
 
 def lock_session_gone(reason: str) -> bool:
     """Whether the lock text names a session that has exited: its pid runs no process, or runs one that started
-    at another time than the lock records (the pid was reused). Unparseable text never counts as gone."""
+    at another time than the lock records (the pid was reused), read as local time or as UTC. Unparseable text
+    never counts as gone."""
     m = LOCK_PID.search(reason)
     if m is None:
         return False
@@ -112,7 +113,11 @@ def lock_session_gone(reason: str) -> bool:
     except ValueError:
         return False
     started = process_start(pid)
-    return started is not None and abs((started - recorded).total_seconds()) > 2
+    if started is None:
+        return False
+    # Claude Code writes the start time in UTC, ps prints local time; either reading of the same moment matches.
+    started_utc = started.astimezone(timezone.utc).replace(tzinfo=None)
+    return min(abs((t - recorded).total_seconds()) for t in (started, started_utc)) > 2
 
 
 def idle_since(path: str) -> datetime | None:
