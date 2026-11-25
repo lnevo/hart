@@ -139,9 +139,6 @@ RETIRED = ("static",)
 # site, the docs or the wiki. Every other file reads only code and data.
 EXTRA: dict[str, tuple[str, ...]] = {
     "unit-guards test_name_copies": EVERYTHING,
-    # the deploy scripts (bash, and a git clone of HEAD staged the same way) copy from jmri/, cats/, tools/ and one
-    # speed-matching CSV under docs/jmri/ (tools/hosts/deploy/stage.sh); their Python reads only CODE
-    "unit-hosts test_deploy_stage": ("docs/jmri/**/*",),
     # cs105_roster_sync.sh (bash) refuses when the submodule is not checked out, and the test skips on that answer
     "unit-hosts test_pi_ssh_scripts": ("external/jmri-cs105-roster-sync/**/*",),
     "unit-guards test_check_sh_tables": ("www/**/*",),
