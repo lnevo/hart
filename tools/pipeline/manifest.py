@@ -46,13 +46,19 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-if str(HERE) not in sys.path:       # the parts import each other by name, from any cwd and under any load name
+# The parts import each other by name, from any cwd and under any load name: this folder goes first on sys.path while
+# they are imported and comes off again after, so the importing process finds no other module here.
+_added = str(HERE) not in sys.path
+if _added:
     sys.path.insert(0, str(HERE))
-
-import manifest_base  # noqa: E402
-import manifest_checks  # noqa: E402
-import manifest_jobs  # noqa: E402
-import manifest_panels  # noqa: E402
+try:
+    import manifest_base
+    import manifest_checks
+    import manifest_jobs
+    import manifest_panels
+finally:
+    if _added:
+        sys.path.remove(str(HERE))
 from manifest_base import (MANIFEST, NAME_RE, PROGRAM_RE, ROOT, Edge, ManifestError,  # noqa: E402,F401
                            Repo, _shown, glob_regex, is_glob, path_problem, pipeline_map, read, repo, repo_from,
                            tracked_files)
@@ -66,7 +72,7 @@ from manifest_panels import (PANEL_BOX_TEXT, PANEL_EDGE_KEYS, PANEL_FIELDS, PANE
 
 PARTS = (manifest_base, manifest_checks, manifest_jobs, manifest_panels)
 _stray = [f"{m.__name__} from {m.__file__}" for m in PARTS if Path(m.__file__).resolve().parent != HERE]
-if _stray:      # another module of a part's name came first on sys.path: refuse it, never run a stranger's code
+if _stray:      # a part already imported from another folder (a second checkout in one process): never mix the two
     raise ImportError(f"manifest.py: its parts must be the files beside it in {HERE}, not {', '.join(_stray)}")
 # This file and its parts, from the repo root: an edit to any of them reruns every check.sh job (check_stamps.ALWAYS)
 FILES = tuple(Path(f).resolve().relative_to(ROOT).as_posix() for f in (__file__, *(m.__file__ for m in PARTS)))

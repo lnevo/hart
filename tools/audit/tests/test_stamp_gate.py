@@ -94,8 +94,12 @@ class DecideTest(unittest.TestCase):
         """manifest.py's FILES (it and the parts it imports) are each MACHINERY: a split part is no way around it."""
         spec = importlib.util.spec_from_file_location("stamp_gate_test_manifest", ROOT / "tools/pipeline/manifest.py")
         manifest = importlib.util.module_from_spec(spec)
+        path_before = list(sys.path)
         with mock.patch.dict(sys.modules, {spec.name: manifest}):  # its dataclasses look their module up there
             spec.loader.exec_module(manifest)
+        self.assertEqual(sys.path, path_before)         # tools/pipeline is on sys.path only while the parts import
+        on_disk = {p.relative_to(ROOT).as_posix() for p in (ROOT / "tools/pipeline").glob("manifest*.py")}
+        self.assertEqual(set(manifest.FILES), on_disk)  # a new manifest_*.py part must be in PARTS, so in FILES
         self.assertGreater(len(manifest.FILES), 1)
         for p in manifest.FILES:
             with self.subTest(p):
