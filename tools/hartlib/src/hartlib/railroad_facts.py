@@ -210,8 +210,12 @@ def read_staging_devices(path: Path, rows: list[tuple[int, dict[str, str]]] | No
 
 # ---------------------------------------------------------------- inputs: switches.csv, every level's switches (ADR-021)
 
-SWITCH_COLUMNS = ("level", "switch", "half", "os_block", "closed_leg", "thrown_leg", "hand", "hand_source", "area",
-                  "le_ident", "cats_inverted", "ctc_is", "ctc_signals", "notes")
+SWITCH_COLUMNS = ("level", "switch", "half", "os_block", "closed_leg", "thrown_leg", "os_id", "closed_id", "thrown_id",
+                  "hand", "hand_source", "area", "le_ident", "cats_inverted", "ctc_is", "ctc_signals", "notes")
+# A staging row's OS block and legs are keyed by their device IDs (os_id, closed_id, thrown_id; naming-layers step 5);
+# os_block, closed_leg and thrown_leg are their labels, the name store's, which build_hands.py (the hands step of make
+# panels) writes, so a rename in devices_field.csv relabels the row and every reader by name follows it.
+LEG_IDS = {"os_block": "os_id", "closed_leg": "closed_id", "thrown_leg": "thrown_id"}
 HAND_SOURCES = ("plan", "owner")        # plan: build_hands.py writes it from the plan graph; owner: hand-kept
 # Columns that hold a fact of the whole switch: given on its first row only (a crossover's later rows leave them blank)
 SWITCH_WIDE = ("area", "le_ident", "cats_inverted", "ctc_is", "ctc_signals", "notes")
@@ -240,6 +244,9 @@ class SwitchRow:
     ctc_is: str
     ctc_signals: str
     notes: str
+    os_id: str = ""             # the device IDs of the OS block and legs (LEG_IDS): staging's key
+    closed_id: str = ""
+    thrown_id: str = ""
 
     @property
     def key(self) -> str:
@@ -276,11 +283,20 @@ def read_switch_rows(path: Path) -> list[SwitchRow]:
             if not later:
                 raise FactsError(f"{where}: Switch {n} is also on line {ln}; a switch's rows go together")
         first_of.setdefault(n, (level, line))
-        if r["os_block"] or level == 1:
+        if level == 1:
+            if not re.fullmatch(rf"os:{n}(:[A-Z0-9-]+)?", r["os_id"]) or not r["closed_id"] or not r["thrown_id"]:
+                raise FactsError(f"{where}: a staging row gives the device IDs of its OS block (os_id os:{n}, or "
+                                 f"os:{n}:<half>) and of its legs (closed_id, thrown_id), not {r['os_id']!r}, "
+                                 f"{r['closed_id']!r}, {r['thrown_id']!r}")
+            if not r["os_block"]:
+                raise FactsError(f"{where}: os_block is empty; build_hands.py writes the label of {r['os_id']}")
+        elif r["os_block"]:
             m = OS_BLOCK.fullmatch(r["os_block"])
             if not m or int(m.group(1)) != n:
                 raise FactsError(f"{where}: os_block is OS Switch {n} or a half of it (OS Switch {n}b), "
                                  f"not {r['os_block']!r}")
+        if level != 1 and any(r[c] for c in LEG_IDS.values()):
+            raise FactsError(f"{where}: os_id, closed_id and thrown_id are staging's; main and upper leave them blank")
         if (bool(r["closed_leg"]) != bool(r["thrown_leg"]) or (r["closed_leg"] and not r["os_block"])
                 or (level == 1 and not r["closed_leg"])):
             raise FactsError(f"{where}: a row gives both legs (closed_leg, thrown_leg) with its os_block, or neither; "
@@ -660,6 +676,20 @@ def read_desk_areas(path: Path, switches: Iterable[str] | None = None) -> list[D
 STATION_GROUP_COLUMNS = ("cp_id", "cp_name", "level", "switches", "notes", "code")
 
 
+def os_label(r: SwitchRow, where: Path) -> str:
+    """The label a desk area gives a switch row's OS block: "19", or a crossover half's "7b", "23a". It is the OS
+    block's name less "OS Switch " while the name keeps that form; a renamed OS block of a switch with one (os_id
+    os:<n>) is its number. FactsError on a renamed crossover half: which half letter it is, the name said, and nothing
+    else holds it yet (naming-layers step 5, open)."""
+    m = OS_BLOCK.fullmatch(r.os_block)
+    if m and int(m.group(1)) == r.switch:
+        return r.os_block.removeprefix("OS Switch ")
+    if r.os_id == f"os:{r.switch}":
+        return str(r.switch)
+    raise FactsError(f"{_where(where, r.line)} (Switch {r.switch}): {r.os_id} is named {r.os_block!r}; a crossover "
+                     "half's name gives its half letter (OS Switch 7b), so it keeps that form for now")
+
+
 def station_group_rows(stations: Path, switches: Path) -> list[dict[str, str]]:
     """The desk areas of every level (staging's only so far: the drawings' brackets and the CATS desk names; each
     row carries its level, so a caller that wants one level filters on it) in the shape the older
@@ -671,7 +701,7 @@ def station_group_rows(stations: Path, switches: Path) -> list[dict[str, str]]:
     halves: dict[str, list[str]] = {}
     for r in read_switch_rows(switches):
         if r.os_block:
-            halves.setdefault(str(r.switch), []).append(r.os_block.removeprefix("OS Switch "))
+            halves.setdefault(str(r.switch), []).append(os_label(r, switches))
     rows = read_stations(stations)
     inner = _innermost(rows, stations)
     out = []
@@ -859,8 +889,11 @@ def read_plan_overrides(path: Path, sheet: str = PlanOverrides.SHEET) -> PlanOve
 # block_lengths.csv: each block's 5.3c plan length on every level (plan_in, written by tools/schematic/plan_lengths.py)
 # and, for a timed staging block, its measured length (measured_in; `source` timed, else plan). JMRI's block length,
 # the drawings and the signal rules use plan_in alone; the measured lengths serve speed profiling only (owner,
-# 2026-11-20, level unification step 5 part 2).
-BLOCK_LENGTH_COLUMNS = ("user_name", "occupancy_sensor", "plan_in", "measured_in", "source", "note")
+# 2026-11-20, level unification step 5 part 2). A row is keyed by its block's level and device ID (naming-layers step
+# 5), so a rename keeps its measured length; user_name is a label the build writes from the name store
+# (plan_lengths.py --labels, the length-labels step of make panels) for the readers that go by name (the speed-match
+# tools on the Pi, the documentation pages).
+BLOCK_LENGTH_COLUMNS = ("level", "id", "user_name", "occupancy_sensor", "plan_in", "measured_in", "source", "note")
 LENGTH_SOURCES = ("timed", "plan")
 
 
@@ -872,15 +905,23 @@ class BlockLength:
     plan_in: float              # the AnyRail plan 5.3c length
     measured_in: float | None   # the timed length; None unless source is "timed"
     source: str                 # LENGTH_SOURCES: timed when the block has a measured length (speed profiling)
+    level: str = ""             # the block's level and device ID: the row's key
+    id: str = ""
 
 
 def read_block_lengths(path: Path) -> dict[str, BlockLength]:
-    """{user name: BlockLength} from block_lengths.csv (BLOCK_LENGTH_COLUMNS). Stops on a name empty or given twice, a
-    plan length that is not a number above zero, a source not in LENGTH_SOURCES, or a measured length given on a row
-    whose source is not "timed" (or missing on one that is)."""
+    """{user name: BlockLength} from block_lengths.csv (BLOCK_LENGTH_COLUMNS). Stops on a level and id empty or given
+    twice, a name empty or given twice, a plan length that is not a number above zero, a source not in
+    LENGTH_SOURCES, or a measured length given on a row whose source is not "timed" (or missing on one that is). The
+    name is the row's label (user_name), which the build keeps the name store's (railroad_invariants checks it)."""
     out: dict[str, BlockLength] = {}
+    keys: set[tuple[str, str]] = set()
     for line, r in read_rows(path, BLOCK_LENGTH_COLUMNS):
         where = _where(path, line)
+        if r["level"] not in ("1", "2", "3") or not r["id"] or (r["level"], r["id"]) in keys:
+            raise FactsError(f"{where}: level {r['level']!r} and id {r['id']!r}: a level 1 to 3 and a device ID, "
+                             "once each")
+        keys.add((r["level"], r["id"]))
         if not r["user_name"] or r["user_name"] in out:
             raise FactsError(f"{where}: user_name {r['user_name']!r} is empty or given twice")
         if r["source"] not in LENGTH_SOURCES:
@@ -904,7 +945,7 @@ def read_block_lengths(path: Path) -> dict[str, BlockLength]:
             raise FactsError(f"{where}: source {r['source']} with measured_in {r['measured_in']!r}: a timed row "
                              "gives its measured length, any other none")
         out[r["user_name"]] = BlockLength(line, r["user_name"], r["occupancy_sensor"], lengths["plan_in"],
-                                          lengths["measured_in"], r["source"])
+                                          lengths["measured_in"], r["source"], r["level"], r["id"])
     return out
 
 

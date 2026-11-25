@@ -288,11 +288,14 @@ def read_block_overrides(path: Path, kinds: tuple[str, ...] = OVERRIDE_KINDS) ->
       is two blocks parted at its turnback. The OWNER'S CHOICE, not a rule (owner, 2026-11-20: a rule would catch
       every intermediate loop). No end, block, cm or inside.
     - track: the track switch_a to switch_b (as for split), or with `end` one of them the piece of it at that end, is
-      part of `block`, an OS block, where the field wiring (or, on main and upper, the owner) says so; `cm` the
-      piece's length, for a piece at one end whose track keeps the rest; `inside` yes keeps it inside its OS block
-      with no JMRI or layout block of its own. block_layer's module text has the rules.
+      part of `block`, an OS block by its device ID (os:15, a crossover half's os:35:A-39A; naming-layers step 5),
+      where the field wiring (or, on main and upper, the owner) says so; `cm` the piece's length, for a piece at one
+      end whose track keeps the rest; `inside` yes keeps it inside its OS block with no JMRI or layout block of its
+      own. block_layer's module text has the rules. The row comes back with `block` the OS block's generated name
+      (os_block_name) and `id` the ID, so an owner's rename of the OS block (devices_field.csv) changes no row here.
     - crossover_half: switch_a the crossover's number, switch_b the switch its half's leg A track runs to, `block` the
-      half's own OS block. No parallel, end, cm or inside.
+      half's own OS block's generated name (OS Switch 7b): the generator names the half from it, and the owner's name
+      for it goes in devices_field.csv. No parallel, end, cm or inside.
     MapError naming the file and line on columns not OVERRIDE_COLUMNS, a level not 1 to 3, a kind not
     OVERRIDE_KINDS, or a row not in its kind's shape."""
     import csv
@@ -307,7 +310,7 @@ def read_block_overrides(path: Path, kinds: tuple[str, ...] = OVERRIDE_KINDS) ->
         raise MapError(f"cannot read {path.name}: {exc}") from None
     if reader.fieldnames != OVERRIDE_COLUMNS:
         raise MapError(f"{path.name}: columns {reader.fieldnames}, not {OVERRIDE_COLUMNS}")
-    out, bad = [], []
+    out, bad, halves = [], [], {}
     for i, r in enumerate(rows, 2):
         if None in r:                       # a short row's missing trailing fields are empty, as csv reads them
             bad.append(f"line {i}: more fields than the header's {len(OVERRIDE_COLUMNS)}")
@@ -319,11 +322,39 @@ def read_block_overrides(path: Path, kinds: tuple[str, ...] = OVERRIDE_KINDS) ->
             bad.append(f"line {i} (level {r['level']}, kind {r['kind']}): {problem}")
             continue
         r["cm"] = float(r["cm"]) if r["cm"] else None
+        if r["kind"] == "crossover_half":         # every half, whichever kinds are asked for: a track row's OS block
+            halves[(r["level"], r["switch_a"], r["switch_b"])] = r["block"]
         if r["kind"] in kinds:
             out.append(r)
+    for r in out if not bad else ():
+        if r["kind"] == "track":
+            r["id"] = r["block"]
+            try:
+                r["block"] = os_block_name(r["level"], r["id"], halves)
+            except MapError as exc:
+                bad.append(f"line {r['line']}: {exc}")
     if bad:
         raise MapError(f"{path.name}: " + "; ".join(bad))
     return out
+
+
+OS_ID = re.compile(r"os:(?P<n>\d+)(?::A-(?P<to>\d+)[A-Z]?[A-D])?")
+
+
+def os_block_name(level: str, ident: str, halves: dict) -> str:
+    """The generated name of the OS block with device ID `ident`: os:<n> is OS Switch <n>; a crossover half,
+    os:<n>:A-<end>, is the half whose leg A runs to the end's switch, named by its crossover_half row (`halves`:
+    {(level, crossover, switch): name}). MapError on an ID of no OS block, or a half with no crossover_half row."""
+    m = OS_ID.fullmatch(ident)
+    if not m:
+        raise MapError(f"block {ident!r} is no OS block ID (os:<switch>, or a crossover half's os:<switch>:A-<end>)")
+    if not m.group("to"):
+        return f"OS Switch {m.group('n')}"
+    name = halves.get((level, m.group("n"), m.group("to")))
+    if name is None:
+        raise MapError(f"block {ident}: no crossover_half row of Switch {m.group('n')} whose leg A runs to Switch "
+                       f"{m.group('to')}")
+    return name
 
 
 def override_problem(r: dict) -> str:
@@ -335,8 +366,11 @@ def override_problem(r: dict) -> str:
         if r["end"] or r["block"] or r["cm"] or r["inside"]:
             return "a split is a track's switch_a, switch_b and parallel, with no end, block, cm or inside"
         return key_problem(r)
-    if not r["block"].startswith("OS Switch "):
-        return f"block {r['block']!r} is no OS block (a piece of track is part of a switch's OS block)"
+    if kind == "track" and not OS_ID.fullmatch(r["block"]):
+        return (f"block {r['block']!r} is no OS block ID (a piece of track is part of a switch's OS block: os:<switch>, "
+                "or a crossover half's os:<switch>:A-<end>)")
+    if kind == "crossover_half" and not r["block"].startswith("OS Switch "):
+        return f"block {r['block']!r} is no OS block (a crossover half's own OS block, OS Switch <n>[a-d])"
     if kind == "crossover_half":
         if not (SWITCH_NUMBER.fullmatch(r["switch_a"]) and SWITCH_NUMBER.fullmatch(r["switch_b"])) or \
                 r["parallel"] or r["end"] or r["cm"] or r["inside"]:

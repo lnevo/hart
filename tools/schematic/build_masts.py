@@ -520,6 +520,8 @@ def file_rows(master: list[dict], plan: dict) -> list[dict]:
     heads = {(r["level"], r["jmri_name"]): r for r in master if r["layer"] == "head"}
     physical = {(r["level"], r["system_name"]): r for r in master if r["layer"] == "head" and r["system_name"]}
     blocks = {(r["level"], r["user_name"]): r for r in master if r["layer"] == "block"}   # a protected block's role
+    os_of = {(r["level"], r["id"]): r["user_name"] for r in master if r["layer"] == "block" and r["id"].startswith("os:")}
+
     out, bad = [], []
     for r in (r for r in master if r["layer"] == "mast"):
         level, name, jmri, switch = r["level"], r["user_name"], r["jmri_name"], r["switch"]
@@ -569,7 +571,9 @@ def file_rows(master: list[dict], plan: dict) -> list[dict]:
             if not planned or planned.group(1, 2) != m.group(1, 2) or got != names:
                 bad.append(f"{where}: system_name {r['system_name']!r} is not the planned physical mast of "
                            f"{jmri!r} (its heads' rows give {got})")
-        out.append(dict(row, protects=protects[0] if protects else f"OS Switch {switch}",
+        # the OS block of its switch by its id (os:<n>), so an owner's name for it is the one written here
+        own = protects[0] if protects else os_of.get((level, f"os:{switch}"), f"OS Switch {switch}")
+        out.append(dict(row, protects=own,
                         head_system_names=level_masts.LIST.join(f"{h}={heads[(level, h)]['user_name']}"
                                                                 for h in names)))
     pairs = {}

@@ -1,11 +1,11 @@
 level,kind,switch_a,switch_b,parallel,end,block,cm,inside,notes
-1,track,1,3,,1,OS Switch 1,,,"Brick: the track from Switch 1 to Switch 3 is wired in two halves, the half at Switch 1 in OS Switch 1"
-1,track,1,3,,3,OS Switch 3,,,Brick: the half at Switch 3 in OS Switch 3
-1,track,13,15,,,OS Switch 15,,,"South Yard: the track from Switch 13 to Switch 15 is in OS Switch 15, not the lower-numbered switch's (the field wiring)"
-1,track,23,31,,,OS Switch 31,,,"East End: the track from Switch 23 to Switch 31 is in OS Switch 31, not the lower-numbered switch's (the field wiring)"
-1,track,35,37,,,OS Switch 35a,,,"Princess: the track from Switch 35 to Switch 37 is all OS Switch 35a, its gap at Switch 37's points (owner, 2026-11-19/20)"
-1,track,35,39,,35,OS Switch 35b,,yes,"Princess: the track from Switch 35 to Switch 39 is wired in two halves, the half at Switch 35 in OS Switch 35b; inside its OS block, no JMRI or layout block of its own (owner, 2026-11-20): as a block of its own it made Mast 36RB's route to Mast 68 5 blocks, one more than the wrong way round the Princess balloon (35-37, OS Switch 37, K-2), and JMRI's discovery dropped that pair"
-1,track,35,39,,39,OS Switch 39,,yes,"Princess: the half at Switch 39 in OS Switch 39; inside its OS block, no JMRI or layout block of its own (owner, 2026-11-20): as a block of its own it made Mast 36RB's route to Mast 68 5 blocks, one more than the wrong way round the Princess balloon (35-37, OS Switch 37, K-2), and JMRI's discovery dropped that pair"
+1,track,1,3,,1,os:1,,,"Brick: the track from Switch 1 to Switch 3 is wired in two halves, the half at Switch 1 in OS Switch 1"
+1,track,1,3,,3,os:3,,,Brick: the half at Switch 3 in OS Switch 3
+1,track,13,15,,,os:15,,,"South Yard: the track from Switch 13 to Switch 15 is in OS Switch 15, not the lower-numbered switch's (the field wiring)"
+1,track,23,31,,,os:31,,,"East End: the track from Switch 23 to Switch 31 is in OS Switch 31, not the lower-numbered switch's (the field wiring)"
+1,track,35,37,,,os:35:A-33A,,,"Princess: the track from Switch 35 to Switch 37 is all OS Switch 35a, its gap at Switch 37's points (owner, 2026-11-19/20)"
+1,track,35,39,,35,os:35:A-39A,,yes,"Princess: the track from Switch 35 to Switch 39 is wired in two halves, the half at Switch 35 in OS Switch 35b; inside its OS block, no JMRI or layout block of its own (owner, 2026-11-20): as a block of its own it made Mast 36RB's route to Mast 68 5 blocks, one more than the wrong way round the Princess balloon (35-37, OS Switch 37, K-2), and JMRI's discovery dropped that pair"
+1,track,35,39,,39,os:39,,yes,"Princess: the half at Switch 39 in OS Switch 39; inside its OS block, no JMRI or layout block of its own (owner, 2026-11-20): as a block of its own it made Mast 36RB's route to Mast 68 5 blocks, one more than the wrong way round the Princess balloon (35-37, OS Switch 37, K-2), and JMRI's discovery dropped that pair"
 1,crossover_half,7,13,,,OS Switch 7,,,Barn: the crossover half whose leg A runs to Switch 13 has its own detector (Block 13-3)
 1,crossover_half,7,5,,,OS Switch 7b,,,Barn: the crossover half whose leg A runs to Switch 5 has its own detector (Block 13-4)
 1,crossover_half,23,1,,,OS Switch 23a,,,East End: the crossover half whose leg A runs to Switch 1 has its own detector (Block 12-4)

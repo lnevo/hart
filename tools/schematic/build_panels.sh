@@ -14,6 +14,10 @@
 #                         rows) and the plan graph; staging's main flags and milepost_route, from its staging rows
 #   device-map            from the solved sheet; writes plan_overrides.json's main_upper section, which the schematic
 #                         reads, so it runs before publishing
+#   length-labels         block_lengths.csv's user_name labels, the name store's for each row's (level, id)
+#                         (plan_lengths.py --labels; no plan file needed), so a rename in devices_field.csv relabels the
+#                         row and plan-lengths, the readers by name and the Pi's speed-match copy follow it. After
+#                         device-map, which writes the generated names it reads
 #   plan-lengths          block_lengths.csv's plan_in (the AnyRail plan 5.3c lengths) is written by plan_lengths.py,
 #                         run by hand (it reads the private plan file): this only checks it (--check), in both modes.
 #                         After device-map, since it finds the OS blocks in the device master that device-map writes
@@ -204,6 +208,7 @@ step hands python3 tools/schematic/build_hands.py
 step staging-sets python3 tools/schematic/build_staging_sets.py
 step main-route python3 tools/schematic/build_main_route.py
 step device-map python3 tools/schematic/build_device_map.py
+step length-labels python3 tools/schematic/plan_lengths.py --labels
 guard plan-lengths python3 tools/schematic/plan_lengths.py --check
 step masts python3 tools/schematic/build_masts.py
 step panel-items python3 tools/schematic/panel_items.py
