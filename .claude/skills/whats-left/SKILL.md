@@ -7,7 +7,7 @@ description: Use when asked what is left, pending, next, or for a to-do or loose
 
 Build the list from the repo, not from memory.
 
-1. Read `wiki/STATUS.md` (Owed, In progress, Future goals).
+1. Read `wiki/STATUS.md` (Owed, In progress, Future goals). It is built from `wiki/status/` and not committed: run `make status` first if it is missing or older than the folder.
 2. Read the active hand-offs in `wiki/projects/`: files with `Status: active`. If none carries that line, use "Active projects" in `wiki/home.md`.
 3. Run `gh pr list` for open PRs and `git worktree list` for work in progress.
 4. Read `wiki/not-pending.md` and drop every item it excludes. Do not mention what you dropped.

@@ -1,0 +1,2 @@
+order: 400
+**Intermediate number clash (owner, 2026-11-22):** two intermediate pairs under a tenth of a mile apart would share a westward number (MP 6.6 and 6.7 both give 67); the lower milepost keeps it, the other takes the next number of its parity no intermediate holds or would hold, and the build prints the shift ([`mast_plan.assign_numbers`](../../../tools/schematic/mast_plan.py), [ADR-024](../../decisions/ADR-024-signals-by-rule.md)). No pair clashes today.

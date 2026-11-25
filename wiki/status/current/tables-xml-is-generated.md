@@ -1,0 +1,2 @@
+order: 30
+**tables.xml is generated (owner, 2026-11-20, [ADR-029](../../decisions/ADR-029-tables-xml-is-an-output.md)):** `tools/schematic/build_tables.py` writes it from the device master, the template, the Layout Editor build and the discovered SML; nothing edits it by hand. A pulled Store is split back with `split_store.py`, and deploys to its host wait for that split ([`tables-pull`](../../../.claude/skills/tables-pull/SKILL.md) skill).

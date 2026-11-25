@@ -1,0 +1,2 @@
+order: 120
+**Agent tooling (owner, 2026-11-25):** `make orient` shows claims, worktrees in progress, the operating flag, deploys and PRs; agents claim an active project page with `orient.py claim <page>` (#1106). ruff pyflakes rules run on each `.py` edit, in `check.sh` and in CI (`ruff.toml`, #1107).

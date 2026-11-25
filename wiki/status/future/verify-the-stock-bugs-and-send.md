@@ -1,0 +1,2 @@
+order: 50
+Verify the stock bugs and send fixes upstream if they hold: the JMRI `MqttAdapter` listener race, reported as [JMRI/JMRI#16003](https://github.com/JMRI/JMRI/issues/16003) and fixed in [JMRI/JMRI#16004](https://github.com/JMRI/JMRI/pull/16004), open until JMRI merges it ([hand-off](../../projects/mqtt-race-upstream-handoff.md)); the CATS items in [`CATS_OVERLAY_REVIEW.md`](../../../docs/ctc/CATS_OVERLAY_REVIEW.md). Apart from the MQTT overlay (ADR-034), JMRI stays stock.

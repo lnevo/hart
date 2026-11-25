@@ -22,7 +22,7 @@ Chat is a scratchpad. Decisions that count live here.
 **Parked (helix-join release, November 2026):** the USS CTC machine, the Dispatcher System and Entry/Exit (NX) are not in the active panel; data kept in `jmri/layouts/hart/parked/`. The CATS desks stay live.  
 **Dispatcher desks:** [CATS](../docs/ctc/DISPATCHER_GUIDE_CTC.md) · parked: [USS](../jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md), [auto](../jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md) · [LE / Dispatcher hoops](../jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md) · [Digicon schematic](../docs/ctc/DIGICON_SCHEMATIC.md)   · [Track lengths](../docs/jmri/TRACK_LENGTHS.md)
 **Wiring / LCOS inventory:** [`../docs/wiring/README.md`](../docs/wiring/README.md)  
-**Live status:** [`STATUS.md`](STATUS.md)  
+**Live status:** [`status/`](status/), one file per entry; `make status` builds `wiki/STATUS.md` (ADR-038)  
 **Not pending (never list these):** [`not-pending.md`](not-pending.md)
 
 ## For agents

@@ -1,0 +1,2 @@
+order: 30
+Speed matching (owner, 2026-11-21): read both decoders back on the programming track, the loop 2 lap survey, then measured profiles for the other 15 roster locos (CSX 2121 and CSX 2738 are done) ([`projects/speedmatching.md`](../../projects/speedmatching.md)).

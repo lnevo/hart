@@ -63,7 +63,8 @@ class ScanListsTest(unittest.TestCase):
         for job, scan in SCANS.items():
             with self.subTest(job=job):
                 globs = scan()
-                live = {g for g in globs if REPO.matches_file(g)}     # a glob in the manifest must match a file
+                # a path in the manifest must match a tracked file, or be a map node marked local (a built page)
+                live = {g for g in globs if REPO.matches_file(g) or g in REPO.local}
                 self.assertEqual(declared_scan(STEPS[job], globs), live,
                                  f"{job}: its quiet_inputs in tools/pipeline/checks.toml differ from its script's "
                                  f"scan list (globs that match a tracked file)")
