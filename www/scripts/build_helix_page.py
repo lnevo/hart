@@ -123,7 +123,6 @@ def main():
             rows_html += cells
             for i, (f, sz, ext) in enumerate(mdcells):
                 s = (f'[`{script}`](../helix/scripts/{script})' if script else 'none kept') if i == 0 else '″'
-                nt = note if i == 0 else '″'
 
     # Build status page, with backticked filenames linked to the published copies.
     text = open(os.path.join(DOCS, STATUS)).read()

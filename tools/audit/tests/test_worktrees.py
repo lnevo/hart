@@ -424,7 +424,7 @@ class MainCheckoutRules(Repo):
     def test_main_checkout_allows_staying_on_main(self) -> None:
         for cmd in ("git checkout main", "git switch main", "git checkout -- f.txt", "git checkout .gitignore",
                     "git pull --ff-only",
-                    "git status", f"git worktree add ../wt2 -b agent/claude/z"):
+                    "git status", "git worktree add ../wt2 -b agent/claude/z"):
             self.assertEqual(self.bash(cmd, self.main), 0, cmd)
 
     def test_worktree_commits_and_branches_pass(self) -> None:

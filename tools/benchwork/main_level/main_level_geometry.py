@@ -45,7 +45,6 @@ def conic(p0, c, p2, n=24):
 
 def outline(pts):
     """AnyRail shape: (x, y, flag) with flag 1 = control point; consecutive controls imply an on-curve midpoint."""
-    n = len(pts)
     start = next(i for i, p in enumerate(pts) if p[2] == 0)
     seq = pts[start:] + pts[:start] + [pts[start]]
     out = [seq[0][:2]]

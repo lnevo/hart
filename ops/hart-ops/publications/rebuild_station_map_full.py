@@ -13,7 +13,6 @@ Writes assets/station_map_full.png
 
 from __future__ import annotations
 
-import math
 import sys
 from pathlib import Path
 
@@ -27,7 +26,6 @@ from rebuild_local_station_maps import (  # noqa: E402
     BG,
     GEORGIA,
     GEORGIA_BOLD,
-    INK,
     SWNUM,
     _color_chip,
     _dot,

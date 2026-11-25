@@ -13,7 +13,6 @@ UPPER piece: cut 1/2 in off the bottom -> 1/4 in left.
 import numpy as np
 import trimesh
 from shapely.geometry import box
-from shapely.ops import unary_union
 from stl_text import text_polys, centered
 from stl_out import out_dir
 

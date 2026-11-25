@@ -44,7 +44,6 @@ Split point noted while writing these tests: stage 3 is inline in main(), so it 
 main() on a fixture tree (FullBuild below); the rest are called directly. The .cache/hart/web-jpeg path and SITE_URL are module state, patched here.
 """
 import contextlib
-import hashlib
 import io
 import json
 import os

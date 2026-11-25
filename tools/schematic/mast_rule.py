@@ -196,7 +196,7 @@ def tracks(bands, runs, joined, helix_tag, levels) -> list[dict]:
         lv = band_level(title, levels)
         if not lv:
             continue
-        nodes, strands, srow = band["nodes"], band["strands"], band["R"]["srow"]
+        strands, srow = band["strands"], band["R"]["srow"]
         for start, chain, end in runs(band):
             a = end_ref(bands, joined, bi, start[0], helix_tag, levels)
             b = end_ref(bands, joined, bi, end[0], helix_tag, levels)

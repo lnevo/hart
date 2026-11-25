@@ -8,7 +8,6 @@ is reached. HEAD is usually this branch's unmerged commit, hence --allow-unmerge
 from __future__ import annotations
 
 import filecmp
-import os
 import re
 import shutil
 import subprocess
@@ -199,7 +198,7 @@ class Refusals(unittest.TestCase):
     def test_the_stamp_is_found_in_either_file(self) -> None:
         """redeploy_commit.sh accepts write_deploy_stamp in the entry point (older commits) or in deploy/common.sh
         (since the split into steps); a commit with neither is refused (test_commit_before_the_stamp)."""
-        self.assertIn("write_deploy_stamp", git("show", f"HEAD:tools/hosts/deploy/common.sh").stdout)
+        self.assertIn("write_deploy_stamp", git("show", "HEAD:tools/hosts/deploy/common.sh").stdout)
         self.assertNotIn("write_deploy_stamp", git("show", f"HEAD:{SYNC_REL}").stdout)
         script = (ROOT / "tools/hosts/redeploy_commit.sh").read_text(encoding="utf-8")
         self.assertIn('"$SHA:$SYNC_REL"', script)

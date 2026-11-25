@@ -472,6 +472,9 @@ unit unit-portal python3 -m unittest discover -b -q -s www/scripts/tests
 # without it (a worktree) skips, CI installs ops/hart-ops/requirements-test.txt.
 # HOPS_PY (set at the top) carries pypdf for the PDF part; plain python3 checks everything else.
 later public-text "$HOPS_PY" tools/audit/check_public_text.py
+# Pyflakes (ruff's F rules, ruff.toml) over every .py file, with the ruff requirements.txt pins (tools/audit/check_ruff.py
+# says where it looks); the edit hook runs the same check on each edited file.
+later ruff python3 tools/audit/check_ruff.py
 if [[ -n "${CI:-}" ]] || "$HOPS_PY" -c "import numpy, scipy, docx, pytesseract" 2>/dev/null; then
   unit unit-hart-ops "$HOPS_PY" -m unittest discover -b -q -s ops/hart-ops/tests
 else

@@ -254,7 +254,7 @@ class SmlDiscovery(unittest.TestCase):
         dead = subprocess.run(["sh", "-c", "echo $$"], capture_output=True, text=True).stdout.strip()
         code, out, ran = self.run_script(lock_pid=int(dead))
         self.assertEqual(code, 0, out)
-        self.assertIn(f"taking over", out)
+        self.assertIn("taking over", out)
         self.assertEqual(self.scripts(ran).count("discover"), 1)
         self.assertFalse(self.lock_left)
         code, out, _ran = self.run_script(DISCOVER_FAIL="1")

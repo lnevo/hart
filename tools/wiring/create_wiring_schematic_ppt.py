@@ -11,7 +11,6 @@ from pptx.enum.text import PP_ALIGN
 from pptx.dml.color import RGBColor
 from collections import defaultdict
 import os
-import re
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 wiring_dir = os.path.normpath(os.path.join(script_dir, '..', '..', 'docs', 'wiring'))
@@ -638,7 +637,7 @@ prs.core_properties.last_modified_by = ""
 prs.save(output_ppt)
 print(f"\n✓ Saved presentation to {output_ppt}")
 print(f"✓ Created {len(prs.slides)} slides total")
-print(f"  - 1 summary slide")
+print("  - 1 summary slide")
 print(f"  - {len(sorted_nodes)} individual node slides")
 
 print("\n" + "=" * 80)

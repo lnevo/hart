@@ -71,7 +71,6 @@ System (jmri/layouts/hart/parked/staging_panel_lamps.json).
 """
 from __future__ import annotations
 
-import csv
 import re
 import sys
 from collections import defaultdict

@@ -556,7 +556,6 @@ def build_inventory(path: Path) -> tuple[dict, dict]:
 def build_splits(path: Path, ctx: dict) -> dict:
     wb = openpyxl.load_workbook(path, data_only=True)
     heads = ctx["heads"]
-    out_pins = ctx["out_pins"]
 
     def lamp_pins(sig: str):
         h = heads.get(sig)

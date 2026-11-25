@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
 
 from hartlib import devices  # noqa: E402
-from hartlib.railroad import DEVICE_COLUMNS, FactsError  # noqa: E402
+from hartlib.railroad import FactsError  # noqa: E402
 
 
 def load(name: str, rel: str):

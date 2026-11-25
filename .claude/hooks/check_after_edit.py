@@ -9,7 +9,13 @@ well under a second; a script no test file names gets the whole unit-jmri job, a
 says so. The slow parts of check.sh (portal build, the other unit suites) stay in
 ./tools/check.sh and CI. Edits made by Bash scripts (sed, a table generator) do not pass
 through this hook and are not caught.
+
+Every edited .py file of the checkout also gets pyflakes (ruff's F rules, ruff.toml) through
+tools/audit/check_ruff.py, check.sh's ruff job, on that one file. Findings block like a failed
+check; when ruff cannot run (not installed, another version than requirements.txt pins) the
+hook says so on one line and does not block.
 """
+import importlib.util
 import json
 import os
 import re
@@ -37,6 +43,7 @@ UNIT_JMRI = "unit-jmri"
 SIBLING = re.compile(r"(?<=jmri/scripts/)sml_[a-z_]+\.py$")
 # Folders whose test files are searched for the edited script's name; each is a unit job in tools/check.sh.
 TEST_DIRS = ["jmri/layouts/hart/scripts/tests", "jmri/scripts/tests", "cats/scripts/tests"]
+RUFF_CHECK = "tools/audit/check_ruff.py"
 BUDGET = 20.0
 MIN_LEFT = 5.0
 
@@ -94,6 +101,34 @@ def checks_for(root, path):
     return narrowed, f"ran the {len(tests)} test file(s) that name {name}, not the whole {UNIT_JMRI} job: " + ", ".join(tests)
 
 
+def ruff_problem(root, path):
+    """pyflakes on the edited .py file: its findings as a failure text, or "" (clean, excluded by ruff.toml or ignored
+    by git, as check.sh's whole-repo run leaves them, or a file outside root, which is not this checkout's). Paths are
+    compared resolved, as git gives root: a file reached through a symlink (/tmp on macOS) is still the checkout's.
+    When ruff cannot run, says why on stderr in one line and gives ""."""
+    root, full = os.path.realpath(root), os.path.realpath(path)
+    if os.path.commonpath([root, full]) != root:
+        return ""
+    script = os.path.join(root, RUFF_CHECK)
+    if not os.path.isfile(script):
+        print(f"check_after_edit: ruff not run on {os.path.basename(path)}: {root} has no {RUFF_CHECK}", file=sys.stderr)
+        return ""
+    try:
+        spec = importlib.util.spec_from_file_location("hart_check_ruff", script)
+        ruff = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(ruff)
+    except (Exception, SystemExit) as err:  # a broken check script is a failure to see, not a reason to pass
+        return f"--- ruff FAILED\n{RUFF_CHECK} did not load: {err!r}"
+    try:
+        count, out = ruff.run(root, [full])
+    except ruff.RuffSetupError as err:
+        print(f"check_after_edit: ruff not run on {os.path.basename(path)}: {err}", file=sys.stderr)
+        return ""
+    except ruff.RuffError as err:
+        return f"--- ruff FAILED\n{err}"
+    return f"--- ruff FAILED ({count} pyflakes finding(s); ruff.toml says what is ignored)\n{out}" if count else ""
+
+
 def toplevel(directory):
     try:
         done = subprocess.run(["git", "-C", directory, "rev-parse", "--show-toplevel"],
@@ -106,21 +141,34 @@ def toplevel(directory):
 def main():
     data = json.load(sys.stdin)
     path = data.get("tool_input", {}).get("file_path", "")
-    if not WATCHED.search(path.replace(os.sep, "/")):
+    watched = WATCHED.search(path.replace(os.sep, "/"))
+    if not (watched or path.endswith(".py")):
         return 0
     # Check the checkout that holds the edited file: agents often edit in a worktree,
     # and CLAUDE_PROJECT_DIR would test the main checkout instead.
     root = toplevel(os.path.dirname(os.path.abspath(path))) or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
+    failed = []
+    if path.endswith(".py"):
+        problem = ruff_problem(root, path)
+        if problem:
+            failed.append(problem)
+    if not watched:
+        if failed:
+            print(f"Quick checks failed after editing {os.path.basename(path)}:\n" + "\n".join(failed), file=sys.stderr)
+            return 2
+        return 0
     env = dict(os.environ, JMRI_LAYOUT="hart")
     try:
         checks, note = checks_for(root, path)
     except MatchError as err:
         print(f"Quick checks not run after editing {os.path.basename(path)}: {err}. Run ./tools/check.sh.",
               file=sys.stderr)
+        if failed:
+            print("\n".join(failed), file=sys.stderr)
         return 2
     if note:
         print(f"check_after_edit: {note}.", file=sys.stderr)
-    started, failed = time.monotonic(), []
+    started = time.monotonic()
     for name, argv in checks:
         left = BUDGET - (time.monotonic() - started)
         if left < MIN_LEFT:  # too little time to finish; a timeout here would look like a failure

@@ -7,7 +7,6 @@ Edit inventory in ``data/image_metadata.csv`` and rebuild via ``build_car_roster
 
 from __future__ import annotations
 
-import shutil
 from datetime import datetime
 from pathlib import Path
 

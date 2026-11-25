@@ -13,7 +13,6 @@ Print size matches the other local sheets: 8 in × 5 in (1600×1000 at 200 dpi).
 
 from __future__ import annotations
 
-import shutil
 import zipfile
 from io import BytesIO
 from pathlib import Path

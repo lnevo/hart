@@ -1067,7 +1067,6 @@ def _webp_companions(dest_root: Path) -> int:
         print("WARNING: Pillow is not installed, so no WebP companions were made", file=sys.stderr)
         return 0
     made: dict[Path, int] = {}      # JPEG -> bytes saved (0 when WebP did not pay)
-    saved = 0
     for page in sorted(dest_root.rglob("*.html")):
         text = page.read_text(encoding="utf-8")
         if "<img" not in text:

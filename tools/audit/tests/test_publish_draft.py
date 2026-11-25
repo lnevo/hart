@@ -186,7 +186,6 @@ class SignalsCheck(unittest.TestCase):
         self.assertRegex(self.bs.leg_problems(dict(row, leg="B"), plain)[0], "is no loop")
 
     def test_the_committed_loop_masts_name_their_legs(self) -> None:
-        import json
         rows = PD.layer_files.read("signals", "main_upper")["signals"]
         legs = {r["mast"]: r.get("leg") for r in rows if r["_edge"] == "e33"}
         self.assertEqual(legs, {"A83": "C", "A84": "B", "108LA": "B", "108LB": "C"})

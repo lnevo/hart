@@ -388,7 +388,7 @@ def main() -> None:
     _add_document_tail(doc.element.body)
     doc.save(OUTPUT)
     print(f"Wrote {OUTPUT}")
-    print(f"  9 cards · 3×3 sticker grid · mail-merge ready")
+    print("  9 cards · 3×3 sticker grid · mail-merge ready")
     if LOGO.exists():
         print(f"  Logo: {LOGO.name}")
 

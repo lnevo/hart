@@ -1217,7 +1217,7 @@ def stale(files: Files | None = None) -> list[str]:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python3 -m hartlib.devices", description=__doc__.split("\n")[0])
     ap.add_argument("action", choices=("check",))
-    args = ap.parse_args(argv)
+    ap.parse_args(argv)
     f = Files.here()
     try:
         problems = stale(f)

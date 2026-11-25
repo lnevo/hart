@@ -10,8 +10,6 @@ Prevents common issues like:
 """
 
 import openpyxl
-from openpyxl.styles import Font, PatternFill
-from collections import defaultdict
 import sys
 
 # Validation rules

@@ -12,7 +12,6 @@ at that throat; the Barn block is the rail between 7 and 13.
 
 from __future__ import annotations
 
-import shutil
 import zipfile
 from io import BytesIO
 from pathlib import Path

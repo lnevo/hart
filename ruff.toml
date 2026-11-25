@@ -1,0 +1,54 @@
+# Pyflakes rules only (ruff's F codes): undefined and unused names, unused imports, f-strings without
+# placeholders. No style or formatting rules (owner, 2026-11-25). tools/audit/check_ruff.py runs it in
+# tools/check.sh and .claude/hooks/check_after_edit.py runs it on each edited .py file; ruff is pinned in
+# requirements.txt.
+
+# Not checked at all:
+# - external/, reference/, tools/cats/src-repo/: vendored or submodule code.
+# - archive/ and jmri/layouts/hart/parked/: kept for the record, never run (docs/parked/UNPARK.md).
+# - The STRR speed-match scripts: third-party Jython 2 copies kept as reference.
+# - Jython 2 scripts ruff cannot parse: `print "..."` statements, and `latch.await(...)` (await is a keyword in
+#   Python 3, a plain Java method name in Jython). A syntax error cannot be ignored per rule, only per file.
+extend-exclude = [
+    "external",
+    "reference",
+    "tools/cats/src-repo",
+    "archive",
+    "jmri/layouts/hart/parked",
+    "docs/jmri/speedmatching/STRR_*.py",
+    "jmri/layouts/hart/scripts/run_dispatcher_stage1.py",
+    "jmri/layouts/hart/scripts/apply_dispatcher_roster_profiles.py",
+    "jmri/scripts/signal_coordinator.py",
+]
+# An excluded file named on the command line (the edit hook names one file) stays excluded.
+force-exclude = true
+
+[lint]
+select = ["F"]
+
+[lint.per-file-ignores]
+# Jython scripts that run inside JMRI: F821 (undefined name) misfires on them. JMRI's interpreter supplies
+# sensors, turnouts, ACTIVE and the like; Python 2 builtins (unicode, execfile) are real there; the speed-match
+# runners share one namespace through execfile (jobkit.py defines L, GUARD, P_ID for the rest); cs105_consist.py
+# gets ACTION, LOGF and the rest prepended by jmri_cmd_watcher.py, and its `except Exception, e:` (Python 2) parses
+# as a tuple of exceptions, so `e` looks undefined. Every other F rule still applies to them.
+"jmri/layouts/hart/scripts/speedmatch/jython/*.py" = ["F821"]
+"jmri/layouts/hart/scripts/speedmatch/pom_write.py" = ["F821"]
+"docs/jmri/speedmatching/profile-*/runner/*.py" = ["F821"]
+"jmri/layouts/hart/scripts/cs105_consist.py" = ["F821"]
+"jmri/layouts/hart/scripts/ctc_default_reverse_levers.py" = ["F821"]
+"jmri/layouts/hart/scripts/panel_status.py" = ["F821"]
+"jmri/layouts/hart/scripts/panelpro_smoke_test.py" = ["F821"]
+# Re-exports every name of car_paths, card_template_layout and card_template_docx for the card scripts that read
+# them as g.<NAME> (its own comment says so).
+"ops/hart-ops/card_pipeline/generate_card_template.py" = ["F401"]
+# A deliberate star import of main_level_geometry (its own noqa covers F403): the names it uses come from there.
+"tools/benchwork/main_level/plywood_cut_plan.py" = ["F405"]
+# naming-layers in flight; remove after merge. Files with findings that unmerged branches or open worktrees change
+# (2026-11-25): naming-step5-tests, and an agent worktree's uncommitted naming work.
+"tools/hartlib/src/hartlib/railroad_facts.py" = ["F"]
+"tools/schematic/build_staging_sets.py" = ["F"]
+"tools/schematic/mast_plan.py" = ["F"]
+"tools/schematic/tests/test_block_layer.py" = ["F"]
+"tools/schematic/tests/test_build_main_route.py" = ["F"]
+"tools/schematic/tests/test_masts_file.py" = ["F"]

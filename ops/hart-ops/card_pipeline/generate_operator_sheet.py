@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from pathlib import Path
 
 from docx import Document
 from docx.enum.table import WD_ALIGN_VERTICAL

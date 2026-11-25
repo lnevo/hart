@@ -107,3 +107,73 @@ class WinRunSlots(unittest.TestCase):
         done = self.run_block(3)
         self.assertEqual(-1, done.returncode)
         self.assertIn("waiting for a free slot", done.stderr)
+
+
+class WinRunRuff(unittest.TestCase):
+    """The block that installs the commit's ruff pin, once per version, and puts it first on PATH. Rendered with
+    --print-script and run alone in a fake checkout, with a fake python3 (the pin) and a fake uv (the install)."""
+
+    def setUp(self) -> None:
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.wt = self.tmp / "wt"
+        (self.wt / "tools/audit").mkdir(parents=True)
+        (self.wt / "tools/audit/check_ruff.py").write_text("")
+        self.bin = self.tmp / "bin"
+        self.bin.mkdir()
+        self.uv_log = self.tmp / "uv.log"
+        self.fake("python3", 'echo "${FAKE_PIN:-ruff==9.9.9}"; exit "${FAKE_PIN_RC:-0}"')
+        if not FLOCK:       # the Mac: the lock is not what these tests check
+            self.fake("flock", "exit 0")
+        # uv pip install -q --target <dir> <spec>: makes <dir>/bin/ruff, or fails with FAKE_UV_RC
+        self.fake("uv", f'echo "$@" >> {self.uv_log}; [ "${{FAKE_UV_RC:-0}}" = 0 ] || exit "$FAKE_UV_RC"\n'
+                        'mkdir -p "$5/bin" && printf "#!/bin/sh\\n" > "$5/bin/ruff" && chmod +x "$5/bin/ruff"')
+        env = dict(os.environ, HART_WIN_SSH="nobody@example.invalid")
+        script = subprocess.run(["bash", str(WIN_RUN), "--print-script", "--", "true"], cwd=ROOT, env=env,
+                                capture_output=True, text=True, timeout=60, check=True).stdout
+        block = script.split("# --- ruff", 1)[1].split("# --- end ruff", 1)[0]
+        self.block = self.tmp / "ruff.sh"
+        self.block.write_text(f'set -euo pipefail\ntrap "echo SETUP FAILED >&2; exit 3" ERR\n#{block}\necho "PATH=$PATH"\n')
+
+    def fake(self, name: str, body: str) -> None:
+        (self.bin / name).write_text(f"#!/bin/sh\n{body}\n")
+        (self.bin / name).chmod(0o755)
+
+    def run_block(self, **env: str) -> subprocess.CompletedProcess:
+        full = dict(os.environ, HOME=str(self.tmp / "home"), PATH=f"{self.bin}:{os.environ['PATH']}",
+                    **{f"FAKE_{k.upper()}": v for k, v in env.items()})
+        return subprocess.run(["bash", str(self.block)], cwd=self.wt, env=full, capture_output=True, text=True,
+                              timeout=30)
+
+    def test_the_pin_is_installed_once_and_put_first_on_path(self) -> None:
+        rdir = self.tmp / "home/.cache/hart/ruff/9.9.9"
+        for _ in range(2):
+            done = self.run_block()
+            self.assertEqual(0, done.returncode, done.stderr)
+            self.assertIn(f"PATH={rdir}/bin:", done.stdout)
+        self.assertEqual(1, len(self.uv_log.read_text().splitlines()))     # the second run reuses the install
+        self.assertTrue((rdir / "bin/ruff").is_file())
+        self.assertFalse(Path(f"{rdir}.tmp").exists())
+
+    def test_two_versions_get_two_folders(self) -> None:
+        self.assertEqual(0, self.run_block().returncode)
+        done = self.run_block(pin="ruff==8.0.0")
+        self.assertIn(f"PATH={self.tmp}/home/.cache/hart/ruff/8.0.0/bin:", done.stdout)
+        self.assertTrue((self.tmp / "home/.cache/hart/ruff/9.9.9/bin/ruff").is_file())
+
+    def test_a_failed_install_warns_and_the_run_goes_on(self) -> None:
+        done = self.run_block(uv_rc="1")
+        self.assertEqual(0, done.returncode, done.stderr)
+        self.assertNotIn("SETUP FAILED", done.stderr)
+        self.assertIn("could not install ruff==9.9.9", done.stderr)
+        self.assertNotIn(f"{self.tmp}/home/.cache/hart/ruff/", done.stdout)    # the caller's own PATH may hold one
+        self.assertFalse((self.tmp / "home/.cache/hart/ruff/9.9.9").exists())
+
+    def test_no_pin_warns_and_a_commit_without_the_check_installs_nothing(self) -> None:
+        done = self.run_block(pin="check_ruff: no pin", pin_rc="2")
+        self.assertEqual(0, done.returncode, done.stderr)
+        self.assertIn("no ruff pin (check_ruff: no pin)", done.stderr)
+        (self.wt / "tools/audit/check_ruff.py").unlink()
+        done = self.run_block()
+        self.assertEqual(("", 0), (done.stderr, done.returncode))
+        self.assertFalse(self.uv_log.exists())

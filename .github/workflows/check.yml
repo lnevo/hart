@@ -46,6 +46,13 @@ jobs:
           cache: pip
           cache-dependency-path: ops/hart-ops/requirements-test.txt
       - run: pip install -r ops/hart-ops/requirements-test.txt
+      # ruff for check.sh's pyflakes job, at the version requirements.txt pins (check_ruff.py --pin reads it the way
+      # the check does, and fails the step when there is no pin)
+      - if: steps.kind.outputs.kind != 'docs'
+        run: |
+          set -euo pipefail
+          pin="$(python3 tools/audit/check_ruff.py --pin)"
+          pip install "$pin"
       # The plugin commit this run pins, and whether it differs from the base's (a pull request's merge commit has
       # the base as its first parent; a push to main compares with the commit before it).
       - name: Plugin pin

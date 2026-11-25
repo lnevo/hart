@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 from shapely import affinity
-from shapely.geometry import LineString, MultiPolygon, Point, Polygon, box
+from shapely.geometry import LineString, Point, Polygon, box
 from shapely.ops import unary_union
 
 OUT = Path(sys.argv[1] if len(sys.argv) > 1 else "plywood_out")
@@ -293,7 +293,6 @@ def pack(level, order, pinned=()):
 def add_sheets(level, first_id, sheets, reserve_note):
     for i, sh in enumerate(sheets):
         sid = chr(ord(first_id) + i)
-        used = unary_union([q for _, q in sh])
         SHEETS.append(dict(id=sid, level=level, title=" · ".join(p for p, _ in sh),
                            placed=[(p, q, 0) for p, q in sh], reserve=None, reserve_label=None))
 
