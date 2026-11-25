@@ -2,7 +2,10 @@
 """After an edit to the tables or the signal files, run the quick checks from tools/check.sh.
 
 PostToolUse hook for Edit, Write and MultiEdit. A failing check exits 2 with its output on
-stderr, which Claude sees. The table checks take about a second together. The unit-jmri job
+stderr, which Claude sees. The table checks are the steps marked after_edit in the step
+manifest, tools/pipeline/checks.toml (ADR-037), read from the edited file's checkout without
+git or the map check; a manifest that does not load, or marks no step, stops the hook with
+exit 2 and the reason, as it stops check.sh. They take about a second together. The unit-jmri job
 (about 14 s) runs after an edit to a data file (tables.xml, the signal CSVs). After an edit
 to a script it is replaced by the test files that name that script (matching_tests), each
 well under a second; a script no test file names gets the whole unit-jmri job, and the hook
@@ -18,6 +21,7 @@ hook says so on one line and does not block.
 import importlib.util
 import json
 import os
+import pathlib
 import re
 import subprocess
 import sys
@@ -29,17 +33,10 @@ WATCHED = re.compile(
     r"|jmri/layouts/hart/output/signal_head_plan\.csv"
     r"|jmri/scripts/(signal_coordinator|sml_[a-z_]+)\.py)$"  # the script and the sibling modules it loads
 )
-CHECKS = [  # (name, argv) as tools/pipeline/checks.toml (unit-jmri: tools/check.sh) has them; test_guards checks they match
-    ("phase02", ["python3", "jmri/scripts/check_hart_phase02.py"]),
-    ("tables-browser", ["python3", "www/scripts/build_tables_browser.py", "--check"]),
-    ("track-lengths", ["python3", "jmri/layouts/hart/scripts/export_track_lengths.py", "--check"]),
-    ("panel-contracts", ["python3", "jmri/layouts/hart/scripts/audit_panel_contracts.py", "--strict"]),
-    ("sml-invariants", ["python3", "tools/audit/check_sml_invariants.py"]),
-    ("mqtt-static", ["python3", "tools/audit/check_mqtt_no_static_lists.py"]),
-    ("wiring-crosswalk", ["python3", "tools/audit/check_wiring_crosswalk.py"]),
-    ("unit-jmri", ["python3", "-m", "unittest", "discover", "-b", "-q", "-s", "jmri/layouts/hart/scripts/tests"]),
-]
+MANIFEST_PY = "tools/pipeline/manifest.py"
+# A unit-test job of tools/check.sh, so not a manifest step (ADR-037 point 4); test_guards checks check.sh has it.
 UNIT_JMRI = "unit-jmri"
+UNIT_JMRI_ARGV = ["python3", "-m", "unittest", "discover", "-b", "-q", "-s", "jmri/layouts/hart/scripts/tests"]
 SIBLING = re.compile(r"(?<=jmri/scripts/)sml_[a-z_]+\.py$")
 # Folders whose test files are searched for the edited script's name; each is a unit job in tools/check.sh.
 TEST_DIRS = ["jmri/layouts/hart/scripts/tests", "jmri/scripts/tests", "cats/scripts/tests"]
@@ -50,6 +47,53 @@ MIN_LEFT = 5.0
 
 class MatchError(Exception):
     """The test files could not be searched, so the hook cannot tell which ones match."""
+
+
+class ManifestLoadError(Exception):
+    """The step manifest could not be read, so the hook cannot tell which checks to run."""
+
+
+def manifest_checks(root, manifest_file=None):
+    """(name, argv) of each step of root's checks.toml marked after_edit, in file order.
+
+    Loads root's tools/pipeline/manifest.py by path (in sys.modules before it runs, for its dataclasses) and reads
+    the file with its read(): TOML only, no git and no map, so the hook stays quick. The full check of every field
+    is `manifest.py check`, which check.sh runs first. ManifestLoadError when it cannot load, a marked step has no
+    usable name or command, or no step is marked: never a hook that quietly checks nothing.
+    """
+    script = os.path.join(root, MANIFEST_PY)
+    name = "hart_after_edit_manifest"
+    try:
+        spec = importlib.util.spec_from_file_location(name, script)
+        if spec is None:
+            raise ImportError(f"no loader for {script}")
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+        data, shown = module.read(module.MANIFEST if manifest_file is None else pathlib.Path(manifest_file))
+    except (Exception, SystemExit) as err:  # a broken manifest is a failure to see, not a reason to pass
+        raise ManifestLoadError(f"{MANIFEST_PY} did not load the step manifest: {err}") from err
+    steps = data.get("step")
+    if not isinstance(steps, list) or not all(isinstance(s, dict) for s in steps):
+        raise ManifestLoadError(f"{shown}: no [[step]] tables")
+    out = []
+    for entry in steps:
+        if entry.get("after_edit") is not True:
+            continue
+        step, cmd = entry.get("name"), entry.get("cmd")
+        if not (isinstance(step, str) and step and isinstance(cmd, list) and cmd
+                and all(isinstance(w, str) and w and w != "{python}" for w in cmd)):
+            raise ManifestLoadError(f"{shown}: step {step!r} is marked after_edit but its name or cmd will not run "
+                                    f"here (manifest.py check names the problem)")
+        out.append((step, list(cmd)))
+    if not out:
+        raise ManifestLoadError(f"{shown}: no step is marked after_edit")
+    return out
+
+
+def quick_checks(root):
+    """The checks for an edit to a watched file: the manifest's after_edit steps, then the whole unit-jmri job."""
+    return manifest_checks(root) + [(UNIT_JMRI, UNIT_JMRI_ARGV)]
 
 
 def matching_tests(root, script):
@@ -84,20 +128,21 @@ def matching_tests(root, script):
 
 
 def checks_for(root, path):
-    """(checks, note) for an edit to path: CHECKS, with unit-jmri narrowed when path is a script."""
+    """(checks, note) for an edit to path: quick_checks, with unit-jmri narrowed when path is a script."""
+    checks = quick_checks(root)
     if not path.endswith(".py"):
-        return CHECKS, ""
+        return checks, ""
     # A module signal_coordinator.py loads is tested through the script: its tests name the script.
     tests = matching_tests(root, SIBLING.sub("signal_coordinator.py", path))
     name = os.path.basename(path)
     if not tests:
-        return CHECKS, f"no test file names {name}; ran the whole {UNIT_JMRI} job instead"
+        return checks, f"no test file names {name}; ran the whole {UNIT_JMRI} job instead"
     # The edited script's own tests go first so the time budget never skips them.
     narrowed = []
     for test in tests:
         folder, file = os.path.split(test)
         narrowed.append((f"unit {test}", ["python3", "-m", "unittest", "discover", "-b", "-q", "-s", folder, "-p", file]))
-    narrowed += [check for check in CHECKS if check[0] != UNIT_JMRI]
+    narrowed += [check for check in checks if check[0] != UNIT_JMRI]
     return narrowed, f"ran the {len(tests)} test file(s) that name {name}, not the whole {UNIT_JMRI} job: " + ", ".join(tests)
 
 
@@ -160,7 +205,7 @@ def main():
     env = dict(os.environ, JMRI_LAYOUT="hart")
     try:
         checks, note = checks_for(root, path)
-    except MatchError as err:
+    except (MatchError, ManifestLoadError) as err:
         print(f"Quick checks not run after editing {os.path.basename(path)}: {err}. Run ./tools/check.sh.",
               file=sys.stderr)
         if failed:

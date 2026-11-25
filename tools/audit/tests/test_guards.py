@@ -507,22 +507,34 @@ class PrivateNameAndTables(unittest.TestCase):
         finally:
             sys.stdin = saved
 
-    def test_after_edit_checks_match_check_sh(self) -> None:
+    def test_after_edit_reads_its_checks_from_the_manifest(self) -> None:
         after = load(ROOT / ".claude/hooks/check_after_edit.py", "hart_check_after_edit_test")
+        manifest = sys.modules["hart_after_edit_manifest"] if after.manifest_checks(str(ROOT)) else None
+        marked = {e["name"] for e in manifest.read()[0]["step"] if e.get("after_edit")}
+        want = [(s.name, list(s.cmd)) for s in manifest.load() if s.name in marked]   # load() checks every field
+        # Read without git: a hook that ran git, or the map check, here would cost seconds on every edit.
+        with mock.patch("subprocess.run", side_effect=AssertionError("the manifest read ran a process")):
+            got = after.manifest_checks(str(ROOT))
+        self.assertEqual((got, len(got) >= 7), (want, True))
+        self.assertEqual(after.quick_checks(str(ROOT))[-1], (after.UNIT_JMRI, after.UNIT_JMRI_ARGV))
+        # unit-jmri is a unit-test job, not a manifest step (ADR-037 point 4): check.sh runs it as the hook does.
         check_sh = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
-        spec = importlib.util.spec_from_file_location("hart_pipeline_manifest_guard_test",
-                                                      ROOT / "tools/pipeline/manifest.py")
-        manifest = importlib.util.module_from_spec(spec)
-        with mock.patch.dict(sys.modules, {spec.name: manifest}):      # its dataclasses look their module up there
-            spec.loader.exec_module(manifest)
-            steps = {s.name: s for s in manifest.load()}
-        for name, argv in after.CHECKS:
-            with self.subTest(name):
-                if "unittest" in argv:      # unit tests run through check.sh's `unit` (no HART_TABLES)
-                    self.assertIn(f"unit {name} " + " ".join(argv), check_sh)
-                else:                       # the table checks are steps of the static group, each its own job
-                    self.assertIn(name, steps)
-                    self.assertEqual((steps[name].group, list(steps[name].cmd)), ("static", argv))
+        self.assertIn(f"unit {after.UNIT_JMRI} " + " ".join(after.UNIT_JMRI_ARGV), check_sh)
+
+    def test_after_edit_manifest_problems_are_errors_not_an_empty_list(self) -> None:
+        after = load(ROOT / ".claude/hooks/check_after_edit.py", "hart_check_after_edit_broken_test")
+        step = '[[step]]\nname = "a"\ncmd = ["python3", "a.py"]\n'
+        with tempfile.TemporaryDirectory() as tmp:
+            for i, (text, why) in enumerate((("[[step]\n", "not valid TOML"), (step, "no step is marked after_edit"),
+                                             (step.replace("python3", "{python}") + "after_edit = true\n",
+                                              "but its name or cmd"), (None, "cannot read it"))):
+                path = Path(tmp, f"{i}.toml")
+                if text is not None:
+                    path.write_text(text, encoding="utf-8")
+                with self.subTest(why), self.assertRaisesRegex(after.ManifestLoadError, why):
+                    after.manifest_checks(str(ROOT), path)
+            with self.assertRaisesRegex(after.ManifestLoadError, "did not load"):   # a checkout with no manifest.py
+                after.manifest_checks(tmp)
 
     def test_real_signal_coordinator_edit_runs_its_own_test_files(self) -> None:
         after = load(ROOT / ".claude/hooks/check_after_edit.py", "hart_check_after_edit_real_test")
@@ -573,6 +585,8 @@ class AfterEditMatchingTests(unittest.TestCase):
         # The real hook watches one script; the made-up ones stand in for it here.
         self.after.WATCHED = re.compile(self.after.WATCHED.pattern.replace("signal_coordinator", "(one|many|lonely)"))
         self.after.toplevel = lambda directory: str(self.root)
+        self.after.manifest_checks = lambda root: [("one-check", ["python3", "tools/one.py"]),
+                                                   ("two-check", ["python3", "tools/two.py", "--check"])]
         self.ran: list[list[str]] = []
         self.fail_code = 0
 
@@ -598,7 +612,7 @@ class AfterEditMatchingTests(unittest.TestCase):
         return [argv[6:] for argv in self.ran if "unittest" in argv]
 
     def every_check(self) -> list[list[str]]:
-        return [argv for name, argv in self.after.CHECKS]
+        return [argv for name, argv in self.after.quick_checks(str(self.root))]
 
     def test_script_with_one_matching_test_file_runs_only_that_file(self) -> None:
         code, err = self.hook("jmri/scripts/one.py")
@@ -623,7 +637,7 @@ class AfterEditMatchingTests(unittest.TestCase):
         self.assertIn("no test file names lonely.py; ran the whole unit-jmri job", err)
 
     def test_tables_edit_runs_every_check_as_before(self) -> None:
-        self.assertIn("unit-jmri", [name for name, argv in self.after.CHECKS])
+        self.assertIn("unit-jmri", [name for name, argv in self.after.quick_checks(str(self.root))])
         for rel in ("jmri/layouts/hart/output/tables.xml", "jmri/layouts/hart/output/signal_head_plan.csv"):
             self.ran.clear()
             self.assertEqual(self.hook(rel), (0, ""), rel)
@@ -649,6 +663,14 @@ class AfterEditMatchingTests(unittest.TestCase):
         code, err = self.hook("jmri/scripts/one.py")
         self.assertEqual(code, 2)
         self.assertIn(f"cannot read {self.TESTS}/test_bad.py", err)
+        self.assertEqual(self.ran, [])
+
+    def test_a_manifest_that_does_not_load_stops_the_hook_with_a_reason(self) -> None:
+        self.after.manifest_checks = mock.Mock(side_effect=self.after.ManifestLoadError("checks.toml: not valid TOML"))
+        for rel in ("jmri/layouts/hart/output/tables.xml", "jmri/scripts/one.py"):
+            code, err = self.hook(rel)
+            self.assertEqual((code, "not run after editing" in err, "not valid TOML. Run ./tools/check.sh." in err),
+                             (2, True, True), err)
         self.assertEqual(self.ran, [])
 
     def test_unwatched_file_runs_nothing(self) -> None:
