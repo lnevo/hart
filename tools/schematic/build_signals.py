@@ -177,7 +177,7 @@ def main_upper_rows() -> list[dict]:
     import mast_rule as mr
     from hartlib import level_masts as lm
     bands, joined, runs, corners = bdm.solve()
-    ov = layer_files.read("plan_overrides", bdm.SHEET, bdm.OVERRIDES.parent)
+    ov = layer_files.merged(bdm.OVERRIDES.parent)[bdm.SHEET]        # its helix names are the name store's
     found = mr.tracks(bands, runs, joined, mr.helix_tags(bands, ov), mr.band_levels(ov))
     mr.track_names(found, mr.helix_blocks(ov))      # as build_device_map.py names them
     rr = railroad.Railroad(bdm.sources(), upto="inputs")

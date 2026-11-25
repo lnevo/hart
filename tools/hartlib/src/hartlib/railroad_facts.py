@@ -726,8 +726,8 @@ TRACK_LABELS = "track_labels"   # preferences.json[main_upper]: {plan name: labe
 
 def read_helix_tracks(path: Path) -> dict[str, HelixTrack]:
     """{plan helix track name: HelixTrack}, in the order of the main_upper `helix` map, from the plan overrides
-    `path` (plan_overrides.json) and the preferences beside it. A helix track is a staging `end` edit of kind helix
-    (its staging switch and plan name) and an entry of main_upper's `helix` map (its main or upper switch, the same
+    `path` (plan_overrides.json, as merged with its track names: layer_files.merged) and the preferences beside it. A
+    helix track is a staging `end` edit of kind helix (its staging switch, and its name from the name store) and an entry of main_upper's `helix` map (its main or upper switch, the same
     plan name); its block is "Track <plan name>", as every named track's is; its `shown` name is its label in
     preferences.json[main_upper] track_labels (the schematic-maps plugin's sheet-wide preference, which every output
     honours), else the plan name. Stops (FactsError, naming the file and section) on a helix end edit not of five
@@ -735,8 +735,9 @@ def read_helix_tracks(path: Path) -> dict[str, HelixTrack]:
     all, or track_labels not an object of non-empty strings."""
     folder = path.parent
     try:
-        staging = layer_files.read("plan_overrides", "staging", folder)
-        upper = layer_files.read("plan_overrides", "main_upper", folder)
+        whole = layer_files.merged(folder)     # the names of the staging helix ends are the name store's
+        staging = layer_files.section_of(whole, "staging", path.name)
+        upper = layer_files.section_of(whole, "main_upper", path.name)
         prefs = layer_files.read("preferences", "main_upper", folder)
     except layer_files.LayerFileError as exc:
         raise FactsError(f"helix tracks: {exc}") from None

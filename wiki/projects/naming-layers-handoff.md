@@ -43,7 +43,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 |---|---|---|---|
 | 1 | Tests first | 1 day | Builder merge step 1: golden tests of every main and upper bean `le_tables` makes, unit tests of `master_beans` per assignment, `build_masts.generate` on staging, and the device-master merge. **Done (2026-11-24):** see [Step 1 findings](#step-1-findings) |
 | 2 | `id` column | 0.5 day | The builders write an ID on every row (decision 1); `check_rows` holds it unique per level. Only `devices_generated.csv` changes. **Done (2026-11-24):** see [Step 2 findings](#step-2-findings) |
-| 3 | The name store | 1.5 days | Check first that the generator can name every track from the plan before the drawing (the end switches come from the plan graph). Then `hartlib` resolves every name (decision 2); the `name` and `end` edits move to the owner layer, keyed by ID; `layer_files.view` writes them for the plugin; `cats_panel.py` and `le_names.py` read names from the store instead of the drawing. A check fails if `plan_overrides.json` holds a name again. Drawings byte-identical |
+| 3 | The name store | 1.5 days | Generator names every track from the plan; `hartlib.track_names` keeps the owner's names by ID and gives them to the plugin; readers by ID; a check stops a name in `plan_overrides.json`. Drawings byte-identical. **3a done (2026-11-24):** [Step 3 findings](#step-3-findings); 3b (the readers by ID) next |
 | 4 | Owner file keyed by ID | 1 day | `devices_field.csv` rekeyed on `(level, id)`; `user_name` becomes an owner cell. The build prints new and gone IDs against the last generated file and stops as decision 3 says; a rename lists the Operations Pro copies (decision 5) and warns on a mast rename (decision 6) |
 | 5 | Files keyed by ID | 1.5 to 2 days | `block_lengths.csv`, `block_numbering.csv`, `wiring.csv`, `mast_cells.csv`, `masts.csv` (`facing`, `protects`), `block_overrides.csv` and `main_lines.csv` key on device IDs, so a rename touches no row. Frozen wiring rows keep their pins; their labels follow the name store |
 | 6 | Every read through `hartlib` | 1.5 days | `hartlib` readers for `block_overrides.csv`, `main_lines.csv` and `mast_cells.csv`; `layout_facts.py`, `write_inventory.py`, `check_hart_phase02.py` and `analyze.py` onto `hartlib.railroad` (was builder merge step 7, second half); mast rows read only through `hartlib.level_masts`. Then a check fails when a script outside `hartlib` opens a layout data file. Jython inside JMRI cannot import `hartlib` and reads only generated outputs; the check lists those scripts by name |
@@ -69,6 +69,31 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 - `hartlib.device_ids` holds the grammar: `switch:<n>`, `dcc:<n>`, `fb:<n>:N|R`; `block:<ends>` from the plan ends of its strands (`block:1B-3A:1/2`, `block:107B-107C#1`, `block:1C-5A#1+1C-5A#2`); `os:<n>`, a staging crossover half `os:<n>:A-<leg A end>` and the 225 corners by schematic leg (`os:225:D`); `det:<block id>`, `spare:<system name>`; a home mast `mast:<switch or half label>:<leg>:<dir>`, others `mast:<facing block id>:<dir>`; heads `<mast id>:top|bottom|single`; panel lamps `panel:status:<system name>` (they share one `panel_items.json` item). 772 IDs, unique per level; rows with no level have none.
 - **Open for step 7:** staging's turnout, alias and feedback rows still come from the owner's rows and `wiring.csv`, so their switch number is read from the user name (`wired_id`; `check_switch_ids` stops the build if a number has no staging OS block in the plan). Step 7 derives them from the plan.
 - **Open for step 12:** both halves of a staging crossover carry the label "7", so their home masts are `mast:7:A:west` and `mast:7:A:east`, unique only by direction; the uniqueness check stops a clash. Step 12 (one mast step) can key a half's mast like its OS block.
+
+## Step 3 findings (2026-11-24)
+
+- **The first check failed, then was fixed with the owner (2026-11-24).** Every track name came from the plan except
+  the numbers of parallel tracks (two tracks between the same switches): `mast_rule.track_names` ordered them by drawn
+  row. They are now ordered by their ends' plan labels and legs (`mast_rule.plan_order`, the order of their block IDs),
+  and so is `block_overrides.csv`'s `parallel` (no row uses it). Five main and upper pairs traded their 1 and 2
+  (Track 103-105, 209, 215, 243 and 245 Spur); staging has no such pair and is unchanged. The owner approved the
+  Layout Editor panel and both CATS desks with the new names (2026-11-24); main and upper names are not fixed yet.
+- **The name store is `hartlib.track_names`.** The owner layer is `devices_field.csv`: a block row with an `id` keeps
+  its track's name by it (22 staging rows: every named track, bumper and helix end). A field `id` must be the
+  generated one (`devices.merge` and `unmerge` stop otherwise: a track that moved in a new export, decision 3).
+  `plan_overrides.json` holds no name: `end` entries are `[switch, leg, kind, to]`, `left_end` is `block:3B-end`, and
+  every merge stops on a `name` edit or a named `end` entry (`hand_problems`). `layer_files.merged` makes the plugin's
+  `name` edit from the rows, each track found in the plan graph by its ID's switch labels and legs (no drawing), with
+  `name_main` now the runs of the staging main lines (`build_main_route.py`). The plugin's prepared staging graph was
+  compared edge by edge with the old one: no difference; the published draft is byte-identical.
+- **Main and upper generated names are not written to the plugin:** they are not drawn on the schematic, and drawing
+  them would change it. They stay `block_layer.name_tracks`' end-switch rule, now a function of the plan alone.
+- **Open for 3b:** `block_layer`, `cats_panel.py`, `build_masts.py` and `staging_device_map.py` still read staging names
+  off the drawn strands (which now carry the store's names through the plugin); 3b makes them look up the store by ID.
+- **Open for step 12:** a mast's letter (210LA, 210LB) is still ordered by drawn row, so after the renumbering Mast 210LA
+  faces Track 209 Spur 2. Mast names were left alone (a rename needs SML discovery and approval, decision 6).
+- **Open for step 5:** `main_lines.csv` and `milepost_route` still name staging tracks (`7@East Ext`), and
+  `stations.csv` station tracks (W-1, W-2) are names too.
 
 ## How to run this
 

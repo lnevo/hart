@@ -578,7 +578,9 @@ class CommittedPlan(RepoReadOnly, unittest.TestCase):
                          {"Track 119-121", "Track 121-123", "Track 211-217 1", "Track 217-219"})
 
     def test_running_track_on_staging_is_scale(self):
-        self.assertEqual(mr.running_tracks(self.bands, self.staging, self.staging_cp), {"Track 5-7 1"})
+        # staging's own rule names its two 5-7 tracks in plan order (mast_rule.plan_order): East Ext (5B-7A) is 1,
+        # Scale (5C-7B) is 2
+        self.assertEqual(mr.running_tracks(self.bands, self.staging, self.staging_cp), {"Track 5-7 2"})
 
     def test_exit_dwarfs_are_the_old_hand_list(self):
         self.assertEqual(mr.signalled_spurs(self.found, self.cp_of), {"Track 241 Spur"})

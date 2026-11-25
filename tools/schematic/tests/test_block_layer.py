@@ -23,7 +23,7 @@ from repo_read_only import RepoReadOnly  # noqa: E402
 
 HEAD = ",".join(BL.mr.OVERRIDE_COLUMNS) + "\n"
 # a piece of track at one end inside an OS block, its length given (the row OS Switch 7 had until step 5 part 2)
-SCALE_AT_7 = "1,track,5,7,1,7,OS Switch 7,23,,a test row\n"
+SCALE_AT_7 = "1,track,5,7,2,7,OS Switch 7,23,,a test row\n"
 # the 25 main and upper links (tracks between two switches under LINK_CM), each in the lower-numbered switch's OS
 # block (owner, 2026-11-20: LINK_CM 50 on every level; at a double crossover the corner block of its leg), but where a
 # home mast stands at a switch's points facing the link: then in the OS block at its other end (125-129, 201-205,

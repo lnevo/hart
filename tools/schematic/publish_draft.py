@@ -53,7 +53,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import layer_files, map_revision, paths  # noqa: E402
+from hartlib import devices, layer_files, map_revision, paths  # noqa: E402
 
 REPO = paths.REPO_ROOT
 CACHE = paths.cache_dir("schematic")      # <main checkout>/.cache/hart/schematic, shared by every worktree
@@ -212,7 +212,8 @@ def _tree(h, root, label):
 
 def check_digest(plugin_dir):
     """A hex digest of everything the --check drawing comparison reads: the plugin's code (the folder bin/schematic
-    runs from), every file in DATA (the layer files and the graphs in GRAPHS below it), the published SVG and the
+    runs from), every file in DATA (the layer files and the graphs in GRAPHS below it), devices_field.csv beside it
+    (the owner's track names, which the plugin's view carries), the published SVG and the
     station sheets it is compared with, this script, and the Python the plugin runs under (bin/schematic runs the
     python3 on PATH, the real file it names, with the caller's PYTHONPATH). The station map pages and the staging
     lengths are not in it: --check reads those each time. Raises OSError when a file cannot be read."""
@@ -222,6 +223,8 @@ def check_digest(plugin_dir):
     h.update(Path(__file__).read_bytes() + b"\0")
     _tree(h, Path(plugin_dir), "plugin")
     _tree(h, DATA, "data")
+    field = devices.field_path(DATA.parent)       # the owner's track names the view draws (hartlib.track_names)
+    h.update(b"field\0" + (field.read_bytes() if field.exists() else b"-") + b"\0")
     target = OUT / "schematic-system-draft.svg"
     h.update(b"target\0" + (b"+" + target.read_bytes() if target.exists() else b"-") + b"\0")
     if STATIONS.exists():

@@ -139,6 +139,27 @@ class TheUnmerge(unittest.TestCase):
         self.assertIn("notes 'same' is the generated value too", got[0])
 
 
+class TheId(unittest.TestCase):
+    """A field row may give its id: the key the owner's track name is kept by (hartlib.track_names, naming-layers
+    step 3). It must be the generated one, and the generated file keeps it."""
+
+    def test_a_field_id_equal_to_the_generated_one_merges_and_is_not_redundant(self):
+        got = merged([generated(id="switch:1")], [field(id="switch:1")])
+        self.assertEqual(got[0]["id"], "switch:1")
+        self.assertEqual(D.redundant([generated(id="switch:1")], [field(id="switch:1")]), [])
+
+    def test_a_field_id_the_plan_no_longer_gives_stops_the_merge(self):
+        with self.assertRaisesRegex(D.DevicesError, r"id 'switch:9' is not the plan's, 'switch:1'"):
+            D.merge([generated(id="switch:1")], [field(id="switch:9")])
+
+    def test_unmerge_keeps_the_id_and_refuses_another(self):
+        row = turnout(cp="Brick", id="switch:1", written_by="build_device_map.py")
+        self.assertEqual(D.unmerge([row], [field(id="switch:1")])[0]["id"], "switch:1")
+        with self.assertRaisesRegex(D.DevicesError, r"id 'switch:1', but devices_field.csv keeps its name by "
+                                                    r"'switch:9'"):
+            D.unmerge([row], [field(id="switch:9")])
+
+
 class KeyedMessages(unittest.TestCase):
     """A message names a row by its key and the file that holds it, never a line (the view is two files)."""
 

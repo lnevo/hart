@@ -166,7 +166,12 @@ of the owner's cells; `allocated_names()` its one read-back of its own output (t
 and `write_field` are the only text writers; `one_file_copy` and `pair_copy` make a test's copy.
 `devices.columns.csv` (`column,file,description`) describes every column and which file may hold it, and a test holds
 the two to each other both ways. Every row with a level carries an `id` (ADR-033): a key derived from the plan, not from
-its name, unique on its level (`hartlib.device_ids` holds the grammar; nothing keys on it yet). Staging, main and upper are one structure,
+its name, unique on its level (`hartlib.device_ids` holds the grammar). A field block row may carry the same `id`: it
+is the key the owner's track name is kept by, and the merge stops when it is not the generated row's (a track that
+moved in a new export). `hartlib.track_names` is the name store (ADR-033 decision 2, naming-layers step 3): those
+rows' names reach the schematic plugin's `name` and `end` edits and `left_end` when `layer_files.view` merges the
+plan view, each track found in the plan graph by its ID's switch labels and legs, so `plan_overrides.json` holds no
+track name (`track_names.hand_problems`, which every merge runs). Staging, main and upper are one structure,
 a level differs in column values only. Every reader gets its rows from here (R9b-2, 2026-11-20): `load()` (the
 master rows) and `device_map_lines` (the old device-map rows of some levels, plus `role`); `comment_of(row)` is a row's
 JMRI comment. The two device maps and `public_name_map.csv` are gone (R9e, 2026-11-20), and so are the six `pnm_`

@@ -67,7 +67,7 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   a keeps the switch's detector; b to d have none on a node until wired (NOT_WIRED). A mast at a double crossover
   protects its own leg's corner block ("home signal from Track X into OS Switch <n><corner>").
 - Track "Track <a>-<b>" from its end switches, "Track <n> Spur" to a bumper, "Track <n> Loop" back to the same
-  switch; parallel tracks between the same ends take " 1", " 2" from the top row. A track up the helix is its helix
+  switch; parallel tracks between the same ends take " 1", " 2" in plan order (mast_rule.plan_order: by their ends' plan legs). A track up the helix is its helix
   block (plan_overrides.json: Track Helix Outer from 131A, Track Helix Inner from 131B), one JMRI block with the staging
   track below it (owner, 2026-11-20): the staging device map names its staging piece, and the Layout Editor build
   binds this map's occupancy row to the one staging block. Its level_switch must be the switch the drawing gives, and
@@ -113,7 +113,7 @@ Naming rules (ADR-005 grammar, LCOS conventions):
 - Hand lists keyed by end switches (block_overrides.csv, with a level column, and wiring.csv's main and upper detectors; source-data row 5; running
   track and exit dwarfs are rules since 2026-11-20, mast_rule.running_tracks and signalled_spurs): columns switch_a,
   switch_b (the owner's switch numbers, lower first; switch_b blank for a spur, whose other end is a
-  bumper), `parallel` (1, 2 from the top row, only where two tracks run between the same switches) and, in the pins,
+  bumper), `parallel` (1, 2 in mast_rule.plan_order, only where two tracks run between the same switches) and, in the pins,
   `half` (1, 2: a balloon loop or split track, half 1 at the lower-numbered switch). Each row is resolved to the
   generated track at build time (mast_rule.resolve_track), so a renumber moves rows with their tracks; a pair that
   matches no track, or two tracks with no `parallel`, stops the build naming the file, line and candidates. A pin on a

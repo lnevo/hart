@@ -18,7 +18,8 @@ The master's values.
   system_name, if any, is the planned device), none (no JMRI name from this row), spare (a detector with no block).
 - role: what the device is (ROLES). Readers test it, never a name prefix.
 - id: the device's key from the plan, not its name (hartlib.device_ids, ADR-033): a generated column, set on every
-  row with a level and unique on its level; empty on a Store's level-less row. Nothing keys on it yet.
+  row with a level and unique on its level; empty on a Store's level-less row. A field row gives it only where the
+  owner's name is kept by it (a named track, hartlib.track_names), and then it is the generated row's.
 - written_by: the script that writes the row, one of WRITERS (the one place a later merge of builders changes);
   every row with a level has one, and only a Store's level-less device (the field file's) has none. A writer
   replaces only the rows that carry its name (outputs_after_rows), stops on a key another writer or a Store's device
@@ -86,7 +87,9 @@ KEY = ("level", "layer", "user_name")      # a row's key in both files
 # the master's previous rows before the split, so the owner's value lives in one place. A field row also gives a
 # staging device's identity (role, assignment): staging's devices are the owner's, so its rows come from here.
 FIELD_COLUMNS = ("role", "assignment", "cp", "system_name", "jmri_name", "node", "dcc", "jmri_comment", "trial_name",
-                 "notes", "detector", "stop", "layout_block")
+                 "notes", "detector", "stop", "layout_block", "id")
+# A field row's id is not the owner's value but the key the owner's name is kept by (hartlib.track_names, naming-layers
+# step 3): it must be the generated row's id, which merge checks.
 # In a field jmri_comment, where the builder puts the detector's wiring.csv text ("occupancy Block 4-2 / M2S401"): the
 # owner keeps the words around it, wiring.csv the pin, so a moved pin changes no hand file. The merged cell is the
 # generated one, which must be the field text with the mark filled in (merge checks it).
@@ -272,6 +275,10 @@ def merge(generated: Iterable[Mapping[str, str]], field: Iterable[Mapping[str, s
             v = f[c]
             if not v:
                 continue
+            if c == "id" and v != g[c]:
+                bad.append(f"{fname}: {key_text(k)}: id {v!r} is not the plan's, {g[c]!r} ({gname}): the track "
+                           "moved in a new export; give the row the new id, or remove it")
+                continue
             if c == "jmri_comment" and OCCUPANCY_MARK in v:
                 if not _templated(v, g[c]):
                     bad.append(f"{fname}: {key_text(k)}: jmri_comment {v!r} needs its {OCCUPANCY_MARK} filled from "
@@ -298,7 +305,7 @@ def redundant(generated: Iterable[Mapping[str, str]], field: Iterable[Mapping[st
         f = keyed.get(key_of(g))
         if f is not None:
             out += [f"{FIELD_FILE}: {key_text(key_of(g))}: {c} {f[c]!r} is the generated value too (redundant)"
-                    for c in FIELD_COLUMNS if f[c] and f[c] == g[c]]
+                    for c in FIELD_COLUMNS if c != "id" and f[c] and f[c] == g[c]]     # an id is in both on purpose
     return out
 
 
@@ -306,7 +313,7 @@ def unmerge(rows: Iterable[Mapping[str, str]], field: Iterable[Mapping[str, str]
             writer: str = "the builder") -> list[dict[str, str]]:
     """The generated form of merged rows `rows` (a builder's rows, as readers will see them): each row's cells the
     field file gives are left empty, so the owner's value lives in one place; a templated comment (OCCUPANCY_MARK)
-    stays, as the builder fills it. Level-less rows (the field file's own) are left out. DevicesError when a row
+    stays, as the builder fills it, and so does the id, the key the field row's name is kept by. Level-less rows (the field file's own) are left out. DevicesError when a row
     gives a field cell a value other than the field file's (the builder would override the owner)."""
     keyed = {key_of(r): r for r in field if r["level"]}
     out, bad = [], []
@@ -319,6 +326,11 @@ def unmerge(rows: Iterable[Mapping[str, str]], field: Iterable[Mapping[str, str]
             for c in FIELD_COLUMNS:
                 v = f[c]
                 if not v:
+                    continue
+                if c == "id":           # the generated file keeps every id; the field row's must be the same
+                    if row[c] != v:
+                        bad.append(f"{writer} gives {key_text(key_of(r))} id {row[c]!r}, but {FIELD_FILE} keeps its "
+                                   f"name by {v!r}: the track moved in a new export; give the field row the new id")
                     continue
                 if c == "jmri_comment" and OCCUPANCY_MARK in v:
                     if not _templated(v, row[c]):

@@ -68,11 +68,10 @@ class TheChecks(unittest.TestCase):
         self.assertIn("Mast 4LA (level 1, mast): id 'mast:block:9B-end:west' does not name the block it faces, "
                       "Track W-1 (id 'block:3B-end')", problems([block, dict(mast, id="mast:block:9B-end:west")]))
 
-    def test_a_field_row_may_not_hold_an_id(self):
+    def test_a_field_row_may_hold_its_id(self):
+        """The key the owner's track name is kept by (hartlib.track_names); merge holds it to the generated id."""
         from test_devices import blank
-        row = blank(level="1", layer="turnout", user_name="Switch 1", id="switch:1")
-        with self.assertRaisesRegex(D.DevicesError, "id set; a field row holds only"):
-            D.check_field([row])
+        D.check_field([blank(level="1", layer="block", user_name="Track S-1", id="block:17C-29C")])
 
 
 class Committed(unittest.TestCase):

@@ -33,7 +33,7 @@ block_overrides.csv (mast_rule.OVERRIDE_COLUMNS, read and checked for shape by m
 one reader of the file), every row the owner's fact, keyed by switch numbers so a new export moves rows with their
 tracks, a row of any level (1 staging, 2 main, 3 upper). Its kind split rows are split_edges' (mast_rule
 .read_block_splits); this module resolves the other two:
-- kind track: level, switch_a and switch_b (the track's end switches, lower first) and parallel (1, 2 from the top row
+- kind track: level, switch_a and switch_b (the track's end switches, lower first) and parallel (1, 2 in mast_rule.plan_order
   where two tracks run between them, mast_rule.resolve_track); `end` empty for the whole track or one of its end
   switches for the piece at that end; `block` the OS block it is part of, which must be the OS block at that end (at
   either end for a whole track); `cm` the piece's length, given only for a piece at one end whose track keeps the

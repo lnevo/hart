@@ -32,22 +32,6 @@
   },
   "103A-105": {
    "discipline": "CTC",
-   "name": "Track 103-105 2",
-   "occupied": {
-    "DECADDR": ":HART:C3:B:103-105_2",
-    "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 103-105 2",
-    "command": "close"
-   },
-   "station": "103-105",
-   "unoccupied": {
-    "DECADDR": ":HART:C3:B:103-105_2",
-    "JMRIPREFIX": "IS",
-    "command": "throw"
-   }
-  },
-  "103B-105": {
-   "discipline": "CTC",
    "name": "Track 103-105 1",
    "occupied": {
     "DECADDR": ":HART:C3:B:103-105_1",
@@ -58,6 +42,22 @@
    "station": "103-105",
    "unoccupied": {
     "DECADDR": ":HART:C3:B:103-105_1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
+  },
+  "103B-105": {
+   "discipline": "CTC",
+   "name": "Track 103-105 2",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:103-105_2",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 103-105 2",
+    "command": "close"
+   },
+   "station": "103-105",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:103-105_2",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
@@ -461,22 +461,6 @@
   },
   "209-end": {
    "discipline": "CTC",
-   "name": "Track 209 Spur 2",
-   "occupied": {
-    "DECADDR": ":HART:C3:B:209_Spur_2",
-    "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 209 Spur 2",
-    "command": "close"
-   },
-   "station": "209",
-   "unoccupied": {
-    "DECADDR": ":HART:C3:B:209_Spur_2",
-    "JMRIPREFIX": "IS",
-    "command": "throw"
-   }
-  },
-  "209-end 2": {
-   "discipline": "CTC",
    "name": "Track 209 Spur 1",
    "occupied": {
     "DECADDR": ":HART:C3:B:209_Spur_1",
@@ -487,6 +471,22 @@
    "station": "209",
    "unoccupied": {
     "DECADDR": ":HART:C3:B:209_Spur_1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
+  },
+  "209-end 2": {
+   "discipline": "CTC",
+   "name": "Track 209 Spur 2",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:209_Spur_2",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 209 Spur 2",
+    "command": "close"
+   },
+   "station": "209",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:209_Spur_2",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
@@ -568,22 +568,6 @@
   },
   "215-end": {
    "discipline": "CTC",
-   "name": "Track 215 Spur 2",
-   "occupied": {
-    "DECADDR": ":HART:C3:B:215_Spur_2",
-    "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 215 Spur 2",
-    "command": "close"
-   },
-   "station": "215",
-   "unoccupied": {
-    "DECADDR": ":HART:C3:B:215_Spur_2",
-    "JMRIPREFIX": "IS",
-    "command": "throw"
-   }
-  },
-  "215-end 2": {
-   "discipline": "CTC",
    "name": "Track 215 Spur 1",
    "occupied": {
     "DECADDR": ":HART:C3:B:215_Spur_1",
@@ -594,6 +578,22 @@
    "station": "215",
    "unoccupied": {
     "DECADDR": ":HART:C3:B:215_Spur_1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
+  },
+  "215-end 2": {
+   "discipline": "CTC",
+   "name": "Track 215 Spur 2",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:215_Spur_2",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 215 Spur 2",
+    "command": "close"
+   },
+   "station": "215",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:215_Spur_2",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
@@ -992,22 +992,6 @@
   },
   "243A-end": {
    "discipline": "CTC",
-   "name": "Track 243 Spur 2",
-   "occupied": {
-    "DECADDR": ":HART:C3:B:243_Spur_2",
-    "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 243 Spur 2",
-    "command": "close"
-   },
-   "station": "243",
-   "unoccupied": {
-    "DECADDR": ":HART:C3:B:243_Spur_2",
-    "JMRIPREFIX": "IS",
-    "command": "throw"
-   }
-  },
-  "243B-end": {
-   "discipline": "CTC",
    "name": "Track 243 Spur 1",
    "occupied": {
     "DECADDR": ":HART:C3:B:243_Spur_1",
@@ -1022,23 +1006,23 @@
     "command": "throw"
    }
   },
-  "245A-end": {
+  "243B-end": {
    "discipline": "CTC",
-   "name": "Track 245 Spur 2",
+   "name": "Track 243 Spur 2",
    "occupied": {
-    "DECADDR": ":HART:C3:B:245_Spur_2",
+    "DECADDR": ":HART:C3:B:243_Spur_2",
     "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 245 Spur 2",
+    "USER_NAME": "BS 243 Spur 2",
     "command": "close"
    },
-   "station": "245",
+   "station": "243",
    "unoccupied": {
-    "DECADDR": ":HART:C3:B:245_Spur_2",
+    "DECADDR": ":HART:C3:B:243_Spur_2",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
   },
-  "245B-end": {
+  "245A-end": {
    "discipline": "CTC",
    "name": "Track 245 Spur 1",
    "occupied": {
@@ -1050,6 +1034,22 @@
    "station": "245",
    "unoccupied": {
     "DECADDR": ":HART:C3:B:245_Spur_1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
+  },
+  "245B-end": {
+   "discipline": "CTC",
+   "name": "Track 245 Spur 2",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:245_Spur_2",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 245 Spur 2",
+    "command": "close"
+   },
+   "station": "245",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:245_Spur_2",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }

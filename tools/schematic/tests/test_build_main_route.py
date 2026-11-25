@@ -202,7 +202,7 @@ STAGING_COLUMNS = M.COLUMNS[1:]
 
 
 class StagingLines(unittest.TestCase):
-    """main_lines.csv's staging rows write the main flags of the `name` edit and the milepost_route; both match what was
+    """main_lines.csv's staging rows write the main runs (the name store flags them in the `name` edit) and the milepost_route; both match what was
     kept by hand (eight main tracks, seven milepost hops over the same track)."""
 
     @classmethod
@@ -216,34 +216,26 @@ class StagingLines(unittest.TestCase):
         cls.plan = M.Plan(cls.g, cls.node_ref)
         cls.rows = M.read_lines("staging")
 
-    def flagged(self, keys):
-        edit = next(e for e in self.overrides["edits"] if e["op"] == "name")
-        return sorted(t[2] or f"{t[0]}-{t[1]}" for i, t in enumerate(edit["tracks"]) if i in keys["name_main"])
-
     def test_the_file_holds_what_the_lines_give(self):
         have = M.layer_files.read(M.layer_files.GENERATED, "staging", M.pd.DATA)
         self.assertEqual({k: have[k] for k in M.staging_keys(self.overrides, self.plan, self.rows)},
                          M.staging_keys(self.overrides, self.plan, self.rows))
 
-    def test_the_hand_file_holds_no_main_flag(self):
-        edit = next(e for e in self.overrides["edits"] if e["op"] == "name")
-        self.assertFalse([t for t in edit["tracks"] if "main" in t[3:]])
+    def test_the_hand_file_holds_no_name_edit_and_no_milepost_route(self):
+        self.assertFalse([e for e in self.overrides["edits"] if e["op"] == "name"])
         self.assertNotIn("milepost_route", self.overrides)
 
-    def test_the_eight_hand_flagged_tracks_are_the_main_ones(self):
-        self.assertEqual(self.flagged(M.staging_keys(self.overrides, self.plan, self.rows)),
-                         sorted(["Main West", "West Ext", "East Lead", "Brick-Plane", "East Ext", "Main East",
-                                 "35@West Ext-39", "35@East Lead-37"]))
+    def test_the_eight_main_tracks_are_the_runs_the_hand_file_flagged(self):
+        """The eight tracks flagged main by hand before the lines were the source, by their runs (block IDs' ends):
+        Main West, Brick-Plane, West Ext, East Lead, the two tracks inside Switch 35's crossover to 37 and 39, East Ext
+        and Main East."""
+        self.assertEqual(M.staging_keys(self.overrides, self.plan, self.rows)["name_main"],
+                         ["1A-23A", "1C-5A", "23B-35B", "33A-35A", "35A-39A", "35B-37A", "5B-7A", "7B-33C"])
 
     def test_the_milepost_route_is_the_counted_lines_stops(self):
         hops = M.staging_keys(self.overrides, self.plan, self.rows)["milepost_route"]
         self.assertEqual(hops[0], ["1", "5"])
         self.assertEqual(hops[-2:], [["35@West Ext", "39"], ["39", "Helix Outer"]])
-
-    def test_the_keys_do_not_depend_on_flags_already_in_the_hand_section(self):
-        flagged = json.loads(json.dumps(self.overrides))
-        next(e for e in flagged["edits"] if e["op"] == "name")["tracks"][2].append("main")     # S-R
-        self.assertEqual(M.staging_keys(flagged, self.plan, self.rows), M.staging_keys(self.overrides, self.plan, self.rows))
 
     def test_a_stop_with_no_track_to_the_next_stops_with_the_line(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -263,13 +255,6 @@ class StagingLines(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaisesRegex(M.RouteError, "line 2 .*count is yes or blank"):
                 M.read_lines("staging", staging_file(tmp, ["A", "1", "", "5", "", "", "maybe", ""]))
-
-    def test_a_track_the_name_edit_does_not_name_stops(self):
-        over = json.loads(json.dumps(self.overrides))
-        edit = next(e for e in over["edits"] if e["op"] == "name")
-        edit["tracks"] = [t for t in edit["tracks"] if t[2] != "Brick-Plane"]
-        with self.assertRaisesRegex(M.RouteError, "does not name: (1 to 5|5 to 1)"):
-            M.staging_keys(over, self.plan, self.rows)
 
 
 

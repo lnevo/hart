@@ -81,8 +81,9 @@ class Pure(unittest.TestCase):
 
     def test_track_names(self):
         sw, hx, bump = (lambda n: ("sw", n)), (lambda h: ("helix", h)), ("bumper", None)
-        found = [dict(ends=(sw("101"), sw("105")), row=2, trial=["Track e2"]),
-                 dict(ends=(sw("105"), sw("101")), row=1, trial=["Track e1"]),
+        # parallel tracks are numbered by their ends' plan legs (mast_rule.plan_order), not by the drawn row
+        found = [dict(ends=(sw("101"), sw("105")), row=1, plan_ends=("101C", "105A"), trial=["Track e2"]),
+                 dict(ends=(sw("105"), sw("101")), row=2, plan_ends=("105B", "101B"), trial=["Track e1"]),
                  dict(ends=(sw("113"), bump), row=0, trial=["Track e3"]),
                  dict(ends=(sw("107"), sw("107")), row=0, trial=["Track e4"]),
                  dict(ends=(sw("135"), hx("H1")), row=0, trial=["Track e5"])]
@@ -537,10 +538,11 @@ class NoBoardRoomOnly(unittest.TestCase):
         self.assertEqual(len(north), 12)
 
 
-def track(name, a, b=None, row=0, trial=None, loop=False):
-    """An in-memory track entry as mast_rule.tracks gives them: between switches a and b, or a spur when b is None."""
+def track(name, a, b=None, row=0, trial=None, loop=False, legs=("B", "A")):
+    """An in-memory track entry as mast_rule.tracks gives them: between switches a and b, or a spur when b is None;
+    `legs` the legs it leaves a and b by (its plan_ends, which order parallel tracks)."""
     return dict(name=name, ends=(("sw", a), ("sw", b) if b else ("bumper", None)), row=row,
-                trial=trial or [f"Track e{row}"], loop=loop)
+                plan_ends=(a + legs[0], b + legs[1] if b else "end"), trial=trial or [f"Track e{row}"], loop=loop)
 
 
 class SwitchPairLists(unittest.TestCase):
@@ -568,7 +570,8 @@ class SwitchPairLists(unittest.TestCase):
         self.assertEqual(self.names("241,,,\n", found), {"Track 241 Spur"})
 
     def test_two_tracks_between_one_pair_need_parallel(self):
-        found = [track("Track 211-217 1", "211", "217", row=5), track("Track 211-217 2", "211", "217", row=6)]
+        found = [track("Track 211-217 2", "211", "217", row=5, legs=("C", "A")),
+                 track("Track 211-217 1", "211", "217", row=6, legs=("B", "B"))]
         with self.assertRaisesRegex(BD.MapError, r"list.csv: line 2: level 2: 2 tracks run Switch 211 to Switch 217 "
                                                   r"\(Track 211-217 1, Track 211-217 2\): give parallel"):
             self.names("211,217,,\n", found)
