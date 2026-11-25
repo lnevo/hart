@@ -1,0 +1,16 @@
+column,description,type,required,key,refs,values
+roster_id,"The loco's id: the road name and road number with a space between (CSX 2121), as DecoderPro names it. The row's key. The Operations Pro engine id is the same without the space or punctuation (CSX2121; locos.ops_id), and tools/ops/check_locos.py holds both engine rosters and the train list to it.",str,yes,yes,,
+road_name,"The road name as the rosters give it (BO, CR, CSX), not the display form on a card (B&O).",str,yes,,,
+road_number,"The road number, as text: NWR 06 keeps its leading zero.",str,yes,,,
+dcc_address,"The DCC address. Required only when bin/cars locos publish sends the loco to DecoderPro; for the locos it already has, the DecoderPro roster on the Pi holds it.",int,,,,
+long_address,"yes for a long (four-figure) address. Empty: publish decides from the address (over 127 is long).",bool,,,,
+mfg,"The builder (EMD, GE, ALCO). Empty: the cards take it from the model (engine_lookup.manufacturer_for_model).",str,,,,
+model,"The model as Operations Pro names it (GP38, SW1200).",str,,,,
+loco_type,"Diesel, Steam or Electric: the Operations Pro engine type.",enum,yes,,,Diesel;Steam;Electric
+length_ft,"Length in scale feet, as the engine roster gives it.",float,,,,
+weight_tons,"Weight in tons, as the engine roster gives it.",float,,,,
+hp,"Horsepower.",int,,,,
+decoder,"The decoder model.",str,,,,
+sound,"yes when the decoder has sound.",bool,,,,
+source_image,"The loco's photo in the car-card intake (IMG_9181.png, or an intake file name). The cards and the public gallery read it; the gallery adds a photo only once.",str,,,,
+notes,"Free text. publish sends it to DecoderPro as the entry's comment. A value that is the working answer to an owner question says so here.",str,,,,
