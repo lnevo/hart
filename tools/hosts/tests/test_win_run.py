@@ -166,7 +166,7 @@ class WinRunRuff(unittest.TestCase):
         self.assertEqual(0, done.returncode, done.stderr)
         self.assertNotIn("SETUP FAILED", done.stderr)
         self.assertIn("could not install ruff==9.9.9", done.stderr)
-        self.assertNotIn("/.cache/hart/ruff/", done.stdout)
+        self.assertNotIn(f"{self.tmp}/home/.cache/hart/ruff/", done.stdout)    # the caller's own PATH may hold one
         self.assertFalse((self.tmp / "home/.cache/hart/ruff/9.9.9").exists())
 
     def test_no_pin_warns_and_a_commit_without_the_check_installs_nothing(self) -> None:
