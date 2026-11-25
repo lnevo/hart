@@ -183,15 +183,12 @@ def _image_size(path: Path) -> tuple[int, int] | None:
 
 @functools.cache
 def built_pages() -> frozenset[str]:
-    """The pages the site build writes from their sources instead of copying (prepare_github_pages.BUILT_PAGES,
-    ADR-036): not in www/ unless someone built a local copy, yet published. Read from the builder's own SITE_REL
-    (tools/ops/build_pipeline_map.py, loaded once), so this does not import the whole site build."""
-    import importlib.util
+    """The files the site build writes from their sources instead of copying (prepare_github_pages.BUILT_PAGES,
+    site_views.VIEWS, ADR-036): not in www/ unless someone built a local copy, yet published. Read from site_views,
+    the one list, which loads the builders (hartlib and the map tool) but not the site build itself."""
+    import site_views
 
-    spec = importlib.util.spec_from_file_location("build_pipeline_map", PORTAL.parent / "tools/ops/build_pipeline_map.py")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return frozenset({module.SITE_REL})
+    return frozenset(site_views.VIEWS)
 
 
 def _is_page(page: str, portal: Path) -> bool:

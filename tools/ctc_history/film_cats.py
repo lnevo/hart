@@ -1,10 +1,11 @@
-#!/usr/bin/env python3
 """Build a stop-motion video of the CATS Dispatcher Panel evolution (Aug 8-26 2026).
 
 Sources are dated screenshots in media/screenshots (gitignored). Each frame is
 cropped to the panel itself, so browser and editor windows that happened to be
 on the desktop stay out of the picture. Every frame uses the same scale and is
 anchored top-left, so growth of the diagram is visible rather than rescaled.
+
+Run it with `python3 tools/ctc_history/films.py cats`.
 """
 
 from __future__ import annotations
@@ -98,6 +99,3 @@ def main() -> None:
         )
     print(f"Wrote {OUT_MP4} and {OUT_POSTER}")
 
-
-if __name__ == "__main__":
-    main()
