@@ -21,6 +21,11 @@
 #               one of the map's edge sides ("check": a check or comparison reads it)
 #   outputs     what the step writes when run without --check (the map's edges out of its script)
 #   programs    a program the trace cannot see into, and the files it reads
+#   quiet_inputs  paths or globs the step reads that the map does not draw (tables.xml or the device master read
+#               through hartlib by many scripts); only the trace audit reads them. A path is in inputs or here, not both
+# After each traced pass of a job, tools/audit/check_stamps.py prints a WARNING naming each repo file a step read that
+# is in none of inputs, quiet_inputs, outputs and programs (code under tools/ and .py files left out);
+# `python3 tools/audit/check_stamps.py audit [job]` shows it again from the job's last stamp (ADR-037 stage 4a).
 # Every path is from the repo root and names a tracked file or folder, or a map node marked "local". Inputs and
 # outputs were filled once from the map's edges (2026-11-25): code the script imports or is called by is left out,
 # and a map node with no repo path (ext:...) is named in a comment instead.
@@ -34,6 +39,8 @@ domain = "layout"
 label = "check_hart_phase02.py"
 desc = "Acceptance checks for phases 0-2: tables.xml against the device master (devices_generated.csv and devices_field.csv) and switches.csv (check.sh phase02)."
 inputs = [
+  { path = "jmri/layouts/hart/data/devices_field.csv", label = "device master", side = "check" },
+  { path = "jmri/layouts/hart/data/devices_generated.csv", label = "device master", side = "check" },
   { path = "jmri/layouts/hart/data/switches.csv", label = "staging rows, via hartlib.railroad" },
   { path = "jmri/layouts/hart/output/tables.xml", label = "checks", side = "check" },
 ]
@@ -50,8 +57,11 @@ inputs = [
   "jmri/layouts/hart/output/tables.xml",
 ]
 outputs = [
+  "www/behind/tables-file.html",
   "www/data/tables-browser.json",
 ]
+# read through hartlib, seen in the 2026-11-25 traced full run (ADR-037 stage 4a)
+quiet_inputs = ["jmri/layouts/hart/data/switches.csv", "jmri/layouts/hart/parked/tables_parked.xml"]
 
 [[step]]
 name = "repo-guide"
@@ -101,7 +111,10 @@ label = "pipeline_map_coverage.py"
 desc = "check.sh pipeline-map-coverage: fails when a script the Makefile, make panels or a deploy runs, or a file in an output folder or an agent doc, is not in pipeline_map.json (check.sh's checks are boxes by construction: the manifest lane)."
 inputs = [
   "docs/pipeline-map/pipeline_map.json",
+  { path = "www/scripts/deploy_hartrailroad.sh", label = "entry file" },
 ]
+# an entry file it scans for scripts; the map has no box for the Makefile
+quiet_inputs = ["Makefile"]
 
 [[step]]
 name = "jmri-additions"
@@ -113,6 +126,7 @@ label = "jmri_additions_page.py"
 desc = "Fills counts and host lists on behind/jmri-additions.html from tables.xml, the device master (devices_generated.csv and devices_field.csv) and host scripts; --check."
 docs_only = true
 inputs = [
+  "jmri/layouts/hart/data/devices_field.csv",
   "jmri/layouts/hart/data/devices_generated.csv",
   "jmri/layouts/hart/output/tables.xml",
 ]
@@ -137,6 +151,8 @@ outputs = [
   "www/data/layout-index.json",
   { path = "www/assets/layout", label = "schematic PNG" },
 ]
+# read through hartlib, seen in the 2026-11-25 traced full run (ADR-037 stage 4a)
+quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv", "jmri/layouts/hart/data/devices_generated.csv"]
 
 [[step]]
 name = "layout-docs"
@@ -157,6 +173,8 @@ inputs = [
 outputs = [
   "www/behind",
 ]
+# the page template the desc names; the map has no box for it
+quiet_inputs = ["www/scripts/layout_docs_template.html"]
 
 [[step]]
 name = "layout-index-cats"
@@ -198,6 +216,12 @@ cmd = ["python3", "jmri/layouts/hart/scripts/export_track_lengths.py", "--check"
 domain = "layout"
 label = "export_track_lengths.py"
 desc = "Track length export (check: track-lengths) reading levels data."
+inputs = [
+  { path = "jmri/layouts/hart/data/block_lengths.csv", label = "reads, via hartlib.railroad" },
+  { path = "jmri/layouts/hart/output/tables.xml", label = "block names" },
+]
+# read through hartlib, seen in the 2026-11-25 traced full run (ADR-037 stage 4a)
+quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv", "jmri/layouts/hart/data/devices_generated.csv"]
 
 [[step]]
 name = "speedmatch-routes"
@@ -214,6 +238,8 @@ inputs = [
 outputs = [
   "jmri/layouts/hart/scripts/speedmatch/routes.json",
 ]
+# read through hartlib, seen in the 2026-11-25 traced full run (ADR-037 stage 4a)
+quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv"]
 
 [[step]]
 name = "panel-contracts"
@@ -225,8 +251,12 @@ label = "audit_panel_contracts.py"
 desc = "Audits tables.xml panel contracts; also run at deploy."
 inputs = [
   { path = "jmri/layouts/hart/data/baselines", label = "compares", side = "check" },
+  { path = "jmri/layouts/hart/dispatcher/traininfo", label = "audit", side = "check" },
   { path = "jmri/layouts/hart/output/tables.xml", label = "audit", side = "check" },
 ]
+# read through hartlib, seen in the 2026-11-25 traced full run (ADR-037 stage 4a)
+quiet_inputs = ["cats/data/occupancy_bindings.csv", "jmri/layouts/hart/data/devices_field.csv",
+                "jmri/layouts/hart/data/devices_generated.csv", "jmri/layouts/hart/data/schematic/masts.csv"]
 
 [[step]]
 name = "baselines"
@@ -243,6 +273,8 @@ inputs = [
 outputs = [
   { path = "jmri/layouts/hart/data/baselines", label = "snapshot" },
 ]
+# read through hartlib.parked, seen in the 2026-11-25 traced full run (ADR-037 stage 4a)
+quiet_inputs = ["jmri/layouts/hart/parked/tables_parked.xml"]
 
 [[step]]
 name = "digicon-disabled"
@@ -255,6 +287,9 @@ desc = "Deploy gate: --check that Digicon masts' logic is stored disabled in tab
 inputs = [
   { path = "jmri/layouts/hart/output/tables.xml", label = "deploy check", side = "check" },
 ]
+# read through hartlib, seen in the 2026-11-25 traced full run (ADR-037 stage 4a)
+quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv", "jmri/layouts/hart/data/devices_generated.csv",
+                "jmri/layouts/hart/data/schematic/lcos_nodes.csv", "jmri/layouts/hart/data/wiring.csv"]
 
 [[step]]
 name = "status-counts"
@@ -309,6 +344,8 @@ desc = "Reads the .any plan and writes per-level SVGs and levels_meta.json; --ch
 outputs = [
   { path = "tools/anyrail/levels", label = "writes" },
 ]
+# read through hartlib.layer_files, seen in the 2026-11-25 traced full run (ADR-037 stage 4a)
+quiet_inputs = ["jmri/layouts/hart/data/schematic/plan_overrides.json"]
 
 [[step]]
 name = "levels-page"
@@ -322,10 +359,13 @@ inputs = [
   "jmri/layouts/hart/data/schematic/plan_overrides.json",
   "tools/anyrail/levels",
   { path = "jmri/layouts/hart/data/block_lengths.csv", label = "reads, via hartlib.railroad" },
+  { path = "jmri/layouts/hart/scripts/speedmatch/routes.json", label = "speedmatch routes" },
 ]
 outputs = [
   "www/build/track-plan.html",
 ]
+# read through hartlib, seen in the 2026-11-25 traced full run (ADR-037 stage 4a)
+quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv"]
 
 [[step]]
 name = "wiring-v86"
@@ -345,6 +385,8 @@ inputs = [
 outputs = [
   "docs/wiring/LCOS_Layout_Inventory_v86.xlsx",
 ]
+# read through hartlib, seen in the 2026-11-25 traced full run (ADR-037 stage 4a)
+quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv"]
 
 [[step]]
 name = "sml-invariants"
@@ -387,6 +429,7 @@ inputs = [
   { path = "jmri/scripts/sml_beans.py", label = "check", side = "check" },
   { path = "jmri/scripts/sml_claims.py", label = "check", side = "check" },
   { path = "jmri/scripts/sml_handoff.py", label = "check", side = "check" },
+  { path = "external/lcos-bridge/lcos_mqtt_bridge.cpp", label = "check", side = "check" },
 ]
 
 # No script outside hartlib reads a layout data file itself but the pairs it allows (naming-layers step 6).
@@ -412,6 +455,9 @@ inputs = [
   { path = "jmri/layouts/hart/data/wiring.csv", label = "check", side = "check" },
   { path = "jmri/layouts/hart/output/tables.xml", label = "check", side = "check" },
 ]
+# read through hartlib, seen in the 2026-11-25 traced full run (ADR-037 stage 4a)
+quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv", "jmri/layouts/hart/data/devices_generated.csv",
+                "jmri/layouts/hart/data/schematic/lcos_nodes.csv"]
 
 [[step]]
 name = "wiring-frozen"
@@ -424,6 +470,8 @@ desc = "Audits wiring.csv against the form the wiring freeze left it in; writes 
 inputs = [
   { path = "jmri/layouts/hart/data/wiring.csv", label = "audits, via hartlib.wiring", side = "check" },
 ]
+# read through hartlib, seen in the 2026-11-25 traced full run (ADR-037 stage 4a)
+quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv", "jmri/layouts/hart/data/devices_generated.csv"]
 
 [[step]]
 name = "layout-facts"
@@ -435,7 +483,9 @@ label = "check_layout_facts"
 desc = "Audit: switches.csv, the device master (devices_generated.csv and devices_field.csv), tables.xml and CATS desk panels agree."
 inputs = [
   { path = "cats/data/occupancy_bindings.csv", label = "check", side = "check" },
+  { path = "cats/panels/HART_ABS.xml", label = "check", side = "check" },
   { path = "cats/panels/HART_CTC.xml", label = "check", side = "check" },
+  { path = "jmri/layouts/hart/data/devices_field.csv", label = "check", side = "check" },
   { path = "jmri/layouts/hart/data/devices_generated.csv", label = "check", side = "check" },
   { path = "jmri/layouts/hart/data/switches.csv", label = "check", side = "check" },
   { path = "jmri/layouts/hart/output/tables.xml", label = "check", side = "check" },
@@ -451,6 +501,13 @@ cmd = ["env", "PYTHONPATH=tools/hartlib/src", "python3", "-m", "hartlib.railroad
 domain = "layout"
 label = "hartlib railroad.py"
 desc = "The fact files against each other (the device master, switches.csv, masts.csv, the tables file); KNOWN in hartlib.railroad lists what is reported and left."
+inputs = [
+  { path = "jmri/layouts/hart/data/devices_field.csv", label = "check", side = "check" },
+  { path = "jmri/layouts/hart/data/devices_generated.csv", label = "check", side = "check" },
+  { path = "jmri/layouts/hart/data/schematic/masts.csv", label = "check", side = "check" },
+  { path = "jmri/layouts/hart/data/switches.csv", label = "check", side = "check" },
+  { path = "jmri/layouts/hart/output/tables.xml", label = "check", side = "check" },
+]
 
 # the device master and its column dictionary (python3 -m hartlib.devices)
 [[step]]
@@ -463,6 +520,7 @@ label = "hartlib devices.py (and railroad*, wiring, layer_files)"
 desc = "Library that loads the device master (devices_generated.csv merged with devices_field.csv) and the layer files, enforces invariants; CLI python3 -m hartlib.devices check validates the master and public names."
 inputs = [
   { path = "jmri/layouts/hart/data/devices.columns.csv", label = "column dictionary" },
+  { path = "jmri/layouts/hart/data/devices_field.csv", label = "loads" },
   { path = "jmri/layouts/hart/data/devices_generated.csv", label = "loads" },
 ]
 
@@ -560,8 +618,11 @@ domain = "layout"
 label = "validate_cats_panel.py"
 desc = "Validates desks (make desks and check.sh); with cats_turnout_io and digicon_lib loaders."
 inputs = [
+  { path = "cats/panels/HART_ABS.xml", label = "make desks check", side = "check" },
   { path = "cats/panels/HART_CTC.xml", label = "make desks check", side = "check" },
 ]
+# the reference desk it validates too; the map has no box for it
+quiet_inputs = ["cats/panels/HART_chubb_magnet.xml"]
 
 [[step]]
 name = "public-text"

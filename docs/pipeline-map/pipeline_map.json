@@ -4078,6 +4078,13 @@
    "gen": "manifest"
   },
   {
+   "from": "cats/panels/HART_ABS.xml",
+   "to": "cats/scripts/validate_cats_panel.py",
+   "label": "make desks check",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
    "from": "cats/panels/HART_CTC.xml",
    "to": "host:cats",
    "label": "loaded"
@@ -5305,6 +5312,18 @@
    "gen": "manifest"
   },
   {
+   "from": "jmri/layouts/hart/data/block_lengths.csv",
+   "to": "jmri/layouts/hart/scripts/export_track_lengths.py",
+   "label": "reads, via hartlib.railroad",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/output/tables.xml",
+   "to": "jmri/layouts/hart/scripts/export_track_lengths.py",
+   "label": "block names",
+   "gen": "manifest"
+  },
+  {
    "from": "jmri/layouts/hart/scripts/gen_ctc_track_plan.py",
    "to": "jmri/layouts/hart/ctc",
    "label": "USS CTC plan"
@@ -5857,6 +5876,12 @@
    "gen": "manifest"
   },
   {
+   "from": "jmri/layouts/hart/scripts/speedmatch/routes.json",
+   "to": "tools/anyrail/levels_page.py",
+   "label": "speedmatch routes",
+   "gen": "manifest"
+  },
+  {
    "from": "tools/anyrail/levels_svg.py",
    "to": "tools/anyrail/levels",
    "label": "writes",
@@ -5906,6 +5931,13 @@
    "from": "tools/audit/check_mqtt_no_static_lists.py",
    "to": "tools/check.sh",
    "label": "check mqtt-static",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "external/lcos-bridge/lcos_mqtt_bridge.cpp",
+   "to": "tools/audit/check_mqtt_no_static_lists.py",
+   "label": "check",
    "side": "check",
    "gen": "manifest"
   },
@@ -5986,6 +6018,13 @@
    "from": "jmri/layouts/hart/scripts/audit_panel_contracts.py",
    "to": "tools/check.sh",
    "label": "check panel-contracts",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/dispatcher/traininfo",
+   "to": "jmri/layouts/hart/scripts/audit_panel_contracts.py",
+   "label": "audit",
    "side": "check",
    "gen": "manifest"
   },
@@ -6852,6 +6891,11 @@
    "gen": "manifest"
   },
   {
+   "from": "www/scripts/build_tables_browser.py",
+   "to": "www/behind/tables-file.html",
+   "gen": "manifest"
+  },
+  {
    "from": "www/scripts/build_wiring_json.py",
    "to": "tools/check.sh",
    "label": "check wiring-json",
@@ -7165,6 +7209,20 @@
    "gen": "manifest"
   },
   {
+   "from": "jmri/layouts/hart/data/devices_field.csv",
+   "to": "jmri/scripts/check_hart_phase02.py",
+   "label": "device master",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_generated.csv",
+   "to": "jmri/scripts/check_hart_phase02.py",
+   "label": "device master",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "jmri/layouts/hart/scripts/capture_public_name_baseline.py",
    "label": "names, bindings",
@@ -7370,6 +7428,12 @@
    "gen": "manifest"
   },
   {
+   "from": "www/scripts/deploy_hartrailroad.sh",
+   "to": "tools/ops/pipeline_map_coverage.py",
+   "label": "entry file",
+   "gen": "manifest"
+  },
+  {
    "from": "jmri/layouts/hart/scripts/speedmatch/routes.json",
    "to": "jmri/layouts/hart/scripts/speedmatch",
    "label": "analyze.py reads"
@@ -7419,6 +7483,12 @@
    "to": "tools/check.sh",
    "label": "check devices",
    "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_field.csv",
+   "to": "tools/hartlib/src/hartlib/devices.py",
+   "label": "loads",
    "gen": "manifest"
   },
   {
@@ -7476,6 +7546,11 @@
    "to": "tools/check.sh",
    "label": "check jmri-additions",
    "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_field.csv",
+   "to": "www/scripts/jmri_additions_page.py",
    "gen": "manifest"
   },
   {
@@ -8027,6 +8102,20 @@
    "label": "imports (layout_facts)"
   },
   {
+   "from": "cats/panels/HART_ABS.xml",
+   "to": "tools/audit/check_layout_facts.py",
+   "label": "check",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_field.csv",
+   "to": "tools/audit/check_layout_facts.py",
+   "label": "check",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
    "to": "jmri/layouts/hart/scripts/speedmatch/build_routes.py",
    "label": "route block names by ID (name store)",
@@ -8124,6 +8213,41 @@
    "from": "tools/hartlib/src/hartlib/railroad.py",
    "to": "tools/check.sh",
    "label": "check railroad-facts",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_field.csv",
+   "to": "tools/hartlib/src/hartlib/railroad.py",
+   "label": "check",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_generated.csv",
+   "to": "tools/hartlib/src/hartlib/railroad.py",
+   "label": "check",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/masts.csv",
+   "to": "tools/hartlib/src/hartlib/railroad.py",
+   "label": "check",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/switches.csv",
+   "to": "tools/hartlib/src/hartlib/railroad.py",
+   "label": "check",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/output/tables.xml",
+   "to": "tools/hartlib/src/hartlib/railroad.py",
+   "label": "check",
    "side": "check",
    "gen": "manifest"
   },
