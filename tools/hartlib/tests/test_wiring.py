@@ -58,6 +58,18 @@ class Read(unittest.TestCase):
         self.assertEqual([w.device for w in W.read(d / "wiring.csv", names)][:4],
                          ["Switch One", "FB Switch 1 N", "Head 6LB", "Track Barn Lead"])
 
+    def test_a_staging_turnout_with_no_field_row_is_named_by_its_id(self):
+        """Naming-layers step 7: the builder generates a staging turnout or feedback with no field row, so read names
+        it as the generator does (Switch <n>, FB Switch <n> N) when the staging plan has the switch (switch:2, which
+        it has not, stops: test_bad_rows)."""
+        from hartlib import devices
+        d = Path(tempfile.mkdtemp())
+        rows = [dict(r) for r in devices.field_rows() if r["id"] not in ("switch:1", "fb:1:N")]
+        (d / devices.FIELD_FILE).write_text(devices.master_text(rows), encoding="utf-8")
+        (d / "wiring.csv").write_text(GOOD, encoding="utf-8")
+        got = W.read(d / "wiring.csv")
+        self.assertEqual([(w.id, w.device) for w in got[:2]], [("switch:1", "Switch 1"), ("fb:1:N", "FB Switch 1 N")])
+
     def test_the_committed_file(self):
         rows = W.read()
         count = lambda lv, kind: sum(w.level == lv and w.kind == kind for w in rows)  # noqa: E731

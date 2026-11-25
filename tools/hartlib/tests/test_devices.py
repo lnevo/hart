@@ -559,8 +559,8 @@ class TheWriters(unittest.TestCase):
         self.assertEqual({rows[k]["assignment"] for k in keys}, {"field"})
 
     def test_a_writer_may_drop_a_main_or_upper_row_without_saying_so(self):
-        """Only staging's rows carry field facts over a rewrite (FIELD_LEVEL); a main or upper row is the rule's
-        alone, so its writer may drop it."""
+        """A writer may drop a row the field file holds no cells for (here a main level spur): the row is the
+        rule's alone."""
         held = [r for r in D.load(self.files) if r["written_by"] == "build_device_map.py" and r["level"] == "2"
                 and r["role"] == "spur"]
         gone = held[0]

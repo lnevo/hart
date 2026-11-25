@@ -232,10 +232,14 @@ the name map's copy (2026-11-21): their facts are in `cp`, `system_name`, `dcc`,
   The merge follows a block's rename in the field file into the generated cells that name it (`BLOCK_REFS`: part_of,
   blocks, facing, protects; `follow_renames`), so the view stays whole between the owner's edit and the next build.
 - `python3 -m hartlib.devices check`. Errors are `DevicesError` (a `FactsError`).
-- Staging (`FIELD_LEVEL`, level 1) is the field: each of its devices has a field row (its id, name, role and
-  assignment, and the owner's cells), the input its builder iterates and finds by id (`staging_field`); a turnout,
-  alias or feedback row's `wiring.csv` row is found by its id (an alias by its turnout's), so the owner may rename
-  it; a spare detector is `wiring.csv`'s alone. Main and upper builders do not take an owner's name yet (step 7).
+- One row path for every level (naming-layers step 7; `FIELD_LEVEL` is gone): the builder makes each device's row
+  from the plan (staging's switches from the plan graph, `track_names.plan_switches`) and puts the device's field row
+  over it by id (`device_map_rows.owner_over` in `tools/schematic/`), so the owner's name and values win on every
+  level and a device with no field row keeps the generated values (a staging block is numbered as a part is, a
+  staging turnout is bound to its address). A turnout, alias or feedback row's `wiring.csv` row is found by its id (an
+  alias by its turnout's), and `wiring.read` names a staging turnout or feedback with no owner's name by its id
+  (Switch <n>); a spare detector is `wiring.csv`'s alone. Staging's nodes are as built: a staging device with no
+  `wiring.csv` row stops. Staging's masts and heads are still `build_masts.py`'s, matched by name (step 12).
   A line block (`LINE_ROLES`) and its sensor list in `cp` the places it joins, `;` between (`build_device_map.line_cp`); any other row has one control point at most, and `check_rows` holds it.
 - A device's kind comes from its row, never from its name (hand-off row 8): `row_role(row, where)` is a row's `role`
   and stops with a `DevicesError` naming `where` (file and key) when the row has none; `is_os(row)` says whether a block

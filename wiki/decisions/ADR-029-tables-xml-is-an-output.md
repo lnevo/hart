@@ -78,3 +78,5 @@ Decided by the owner on 2026-11-21, from the pipeline-efficiency review (T6a). B
 
 **Acceptance:** the split is a pure refactor. `tables.xml`, the CATS desks, the Layout Editor panel and the approved fingerprints come out byte-identical, so the owner approves nothing again.
 
+
+**Amended by ADR-033, naming-layers step 7 (2026-11-25):** a staging device no longer needs a field row. The builder makes every level's rows from the plan and puts each device's field row over its generated row by id, so the owner's values still win and a device with no field row keeps the generated values (a staging block is numbered as a part is, a staging turnout is bound to its address). A field row is the owner's cells only; the main and upper builder takes the owner's name the same way. `FIELD_LEVEL` is gone.

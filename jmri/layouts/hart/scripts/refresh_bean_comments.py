@@ -24,7 +24,7 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths  # noqa: E402
 from hartlib import devices  # noqa: E402
-from hartlib.railroad_facts import FactsError  # noqa: E402
+from hartlib.railroad_facts import STAGING_LEVEL, FactsError  # noqa: E402
 from hartlib.names import jmri_comment  # noqa: E402
 
 ROOT = paths.REPO_ROOT
@@ -267,7 +267,7 @@ def stale_head_comments(files: devices.Files | None = None, path: Path | None = 
     rows' wiring from wiring.csv, so a line here means it has not been run since wiring.csv changed. DevicesError
     when the master cannot be read."""
     comments = load_wiring_head_comments(path)
-    heads = {r["user_name"]: r for r in devices.load(files) if r["level"] == devices.FIELD_LEVEL and r["layer"] == "head"}
+    heads = {r["user_name"]: r for r in devices.load(files) if r["level"] == STAGING_LEVEL and r["layer"] == "head"}
     out = [f"{name}: wiring.csv gives {want!r}, the device master has {heads[name]['wiring']!r}"
            for name, want in sorted(comments.items()) if name in heads and heads[name]["wiring"] != want]
     out += [f"{name}: in wiring.csv but no staging head row of the device master" for name in sorted(set(comments) - set(heads))]
@@ -747,7 +747,7 @@ def load_device_map_comments() -> tuple[dict[str, str], dict[tuple[str, str], st
     }
     for row in devices.load(path):
         layer, user = row["layer"], row["user_name"]
-        if row["level"] != devices.FIELD_LEVEL or layer not in layer_kind:
+        if row["level"] != STAGING_LEVEL or layer not in layer_kind:
             continue
         comment = public_comment(layer, user, devices.comment_of(row))
         if not comment:

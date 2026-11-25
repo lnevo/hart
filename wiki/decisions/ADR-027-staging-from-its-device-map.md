@@ -34,3 +34,5 @@ Every level of the "HART Railroad" panel is built from its device map (owner, 20
 - A changed mast set also needs `sync_signals.py`, stock discovery in a sandbox and the owner's approval (ADR-024).
 - A wired staging head goes in as a head row whose `jmri_name` is the wired head, as main and upper swap a device in (ADR-028).
 
+
+**Amended by ADR-033, naming-layers step 7 (2026-11-25):** staging's rows are generated like main and upper's: its turnouts, aliases and feedback for each switch of the staging plan graph, its blocks and detectors from the block layer, each with the owner's field row over it. Staging's devices keep their own system names through their field rows and `wiring.csv`; a device with no field row gets generated values instead of stopping the build.

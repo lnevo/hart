@@ -143,13 +143,14 @@ import mast_rule  # noqa: E402  read_block_splits, OVERRIDES_NAME
 import le_common  # noqa: E402  bare: a switch label as the plan prints it
 from hartlib import device_ids, devices, layer_files, level_devices, level_masts, railroad, wiring  # noqa: E402  names, facts, the master
 from device_map_inputs import (  # noqa: E402,F401  the readers; re-exported: callers read them from this module
-    CPS, FIELD_LEVEL, NODES, OS_BLOCK, PINS, SOURCES, STATIONS, UID, WIRING, Places, StagingPin, frozen_wires,
+    CPS, NODES, OS_BLOCK, PINS, SOURCES, STATIONS, UID, WIRING, Places, StagingPin, frozen_wires,
     helix_pins, loop_placeholder, read_places, read_staging_pins, staging_nodes, wiring_rows)
 from device_map_staging import (  # noqa: E402,F401  staging's rows; re-exported: callers read them from this module
     BEAN_NAME, FIELD_LAYERS, PART_BLOCK_FIRST, STAGING_SHEET, WIRED_LAYERS, alias_note, field_row, helix_ends,
     level_keys, level_trials, line_cp, new_spare, part_bean_names, part_row, piece_trials, staging_field, staging_layer,
-    staging_keys, staging_part_names, staging_rows, staging_trials, staging_wired_rows, taken_bean_names, wire_block,
-    wire_occupancy, wired_name)
+    staging_cps, staging_keys, staging_part_names, staging_rows, staging_switches, staging_trials, staging_wired_rows,
+    taken_bean_names, wire_block, wire_occupancy)
+from device_map_rows import Wired, device_row, owner_over, switch_device_rows  # noqa: E402,F401  every level's rows
 from device_map_schematic import (  # noqa: E402,F401  the drawing's tracks; re-exported: callers read them here
     block_overrides, check_helix_ends, corner_blocks_of, dx_corners, helix_tracks, home_and_posts,
     labels_by_level, line_role, loop_halves, main_upper_layer, named_tracks, overrides_keys, read_pins, split_edges,
@@ -500,11 +501,8 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
             ident, **facts):
         """A device-map row with the role (hartlib.devices.ROLES) its caller says it has: no role is read off a name;
         and its device ID (`ident`, hartlib.device_ids), from the plan facts its caller holds."""
-        rows.append(dict(level=level, cp=cp, layer=layer, id=ident, user_name=user, system_name=system,
-                         jmri_name=jmri, node=node, dcc=dcc, comment=comment, trial_name=trial, notes=notes,
-                         role=role, **{c: facts.pop(c, "") for c in railroad.DEVICE_FACTS}))
-        if facts:
-            raise MapError(f"{layer} {user}: unknown fact columns {sorted(facts)}")
+        rows.append(device_row(level, cp, layer, user, system, node, comment, trial, notes, dcc, jmri, role=role,
+                               ident=ident, **facts))
         if layer == "block":
             block_ids[(str(level), user)] = ident
 
@@ -531,23 +529,20 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
             k, packed = nodes.take(node, "turnout")
             where = f"Node: {node} Turnout: {k}"
         home[s], area_of[s] = node, (lv, area)
-        halves = sorted({lb for labels in by_level.values() for lb in labels if base(lb) == s}, key=natural)
-        add(lv, name, "turnout", f"Switch {s}", f"M2T{packed}", node, where,
-            ", ".join(f"Switch {lb}" for lb in halves), note, dcc[s], jmri=VIRTUAL_TURNOUT + s, role="turnout",
-            ident=device_ids.switch_id(s))
-        add(lv, name, "turnout", f"DCC Switch {s}", f"MTT{dcc[s]}", node, where,
-            notes="LCC alias of the MQTT turnout (ADR-005)", dcc=dcc[s], jmri=VIRTUAL_TURNOUT + s, role="lcc_alias",
-            ident=device_ids.dcc_id(s))
+        fbs = {}
         for nr in "NR":
             fb = nodes.take_frozen("fb", f"FB Switch {s} {nr}")
             if fb:
-                add(lv, name, "fb", f"FB Switch {s} {nr}", fb.address, fb.node, fb.wiring_text, role="fb",
-                    ident=device_ids.fb_id(s, nr))
+                fbs[nr] = Wired(fb.address, fb.node, fb.wiring_text)
                 continue
             fnode = nodes.pick(lv, area, "sensor", prefer=[node])
             kk, pp = nodes.take(fnode, "sensor")
-            add(lv, name, "fb", f"FB Switch {s} {nr}", f"M2S{pp}", fnode, f"Node: {fnode} Sensor: {kk}", role="fb",
-                ident=device_ids.fb_id(s, nr))
+            fbs[nr] = Wired(f"M2S{pp}", fnode, f"Node: {fnode} Sensor: {kk}")
+        # the one maker of a switch's rows (device_map_rows), as staging's; main and upper bind the virtual turnout
+        rows.extend(switch_device_rows(
+            lv, name, s, [lb for labels in by_level.values() for lb in labels if base(lb) == s],
+            Wired(f"M2T{packed}", node, where), fbs, dcc[s], jmri=VIRTUAL_TURNOUT + s, alias_jmri=VIRTUAL_TURNOUT + s,
+            alias_notes="LCC alias of the MQTT turnout (ADR-005)", notes=note))
 
     CORNER = "xover_corner"                     # a double crossover's corner block and its occupancy row
 
@@ -757,10 +752,51 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     return cp_keys, rows, part_rows
 
 
+WRITER = "build_device_map.py"
+
+
+def owned_rows(rows, parts, files: devices.Files | None = None) -> tuple[list[dict], list[dict]]:
+    """(the main and upper rows with the owner's values over them, the same rows as generated): build()'s `rows`
+    (the device-map form) and `parts` (already master rows) in the master's form, each with the field row of its id
+    in devices_field.csv over it (device_map_rows.owner_over, hartlib.devices.KEY), as staging's are: on every level
+    the owner's name and values go over the generated ones the same way (naming-layers step 7). A virtual JMRI name
+    stays the generated one (hartlib.level_devices) unless the owner's row gives a jmri_name (a device swapped in by
+    its row, ADR-028). A row with no field row is as build() gave it. master_outputs follows renames over both."""
+    field = devices.field_index(files or device_files())
+    made = [devices.master_row(o, WRITER) for o in rows] + [dict(p) for p in parts]
+    out = []
+    for r in made:
+        f = field.get(devices.key_of(r))
+        out.append(owner_over(r, f) if f is not None else r)
+    return out, made
+
+
+def master_outputs(bands, joined, runs, rows, parts, files: devices.Files | None = None, warn=None,
+                   check: bool = False) -> dict[Path, str]:
+    """{path: text} of the device master once this script has written every level's rows: main and upper's
+    (build()'s `rows` and `parts`, owned_rows) and staging's (staging_rows, staging_wired_rows), all generated from
+    the plan with the owner's values over them, in `files` (default device_files()). The cells that name a block the
+    owner renamed (a part's part_of, a detector's blocks, a mast's facing and protects) follow the new name on every
+    level at once (hartlib.devices.follow_renames: a main mast facing a renamed staging helix block too). `warn` and
+    `check`: hartlib.devices.outputs_after's. MapError, DevicesError (a FactsError) as those stop."""
+    f = files or device_files()
+    drawn: dict[str, str] = {}
+    staging = staging_rows(bands, joined, runs, f, drawn=drawn)
+    wired = staging_wired_rows(f)
+    check_switch_ids(staging + wired)
+    main, made = owned_rows(rows, parts, f)
+    # every block as generated (its drawn name), for follow_renames to see which ones the owner renamed
+    generated = made + [dict(r, user_name=drawn[r["id"]]) if r["layer"] == "block" and r["id"] in drawn else r
+                        for r in staging]
+    every = [dict(r) for r in devices.follow_renames(main + staging + wired, generated)]
+    return devices.outputs_after(WRITER, [], f, master_rows=every, warn=warn, check=check)
+
+
 def check_switch_ids(rows) -> None:
-    """Every switch number in a staging turnout, LCC alias or feedback ID (the field row's id, wired_name) is a
-    switch the plan draws: it has an OS block ID (os:<n>, or a crossover half's os:<n>:...) among `rows`. MapError
-    naming each that is not."""
+    """Every switch number in a staging turnout, LCC alias or feedback ID is a switch the drawing has: it has an OS
+    block ID (os:<n>, or a crossover half's os:<n>:...) among `rows`. staging_wired_rows makes those rows for the
+    switches of the plan graph (staging_switches), the drawing's blocks come from the solved plan: this holds the two
+    to each other. MapError naming each that is not."""
     drawn = {r["id"].split(":")[1] for r in rows if r["layer"] == "block" and r["id"].startswith("os:")}
     stray = sorted({r["id"] for r in rows if r["layer"] in ("turnout", "fb") and r["id"].split(":")[1] not in drawn},
                    key=natural)
@@ -858,12 +894,8 @@ def main(argv=None) -> int:
         print(f"build_device_map.py: {exc}", file=sys.stderr)
         return 2
     try:
-        staging = staging_rows(bands, joined, runs)
-        wired = staging_wired_rows()
-        check_switch_ids(staging + wired)
         want = {GENERATED: generated_text(cp_keys),
-                **devices.outputs_after("build_device_map.py", rows, device_files(),
-                                        master_rows=staging + wired + parts, check=args.check)}
+                **master_outputs(bands, joined, runs, rows, parts, check=args.check)}
     except (MapError, staging_map_error(), railroad.FactsError, layer_files.LayerFileError) as exc:
         # a DevicesError is a FactsError; a StagingMapError comes from staging's placeholder grammar
         print(f"build_device_map.py: {exc}", file=sys.stderr)
