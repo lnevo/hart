@@ -101,7 +101,7 @@ class LoadTest(Refusing):
         msg = self.assertRefused(step(domain='"ops"') + step(name='"two"', cmd='["python3", "tools/none.py"]'))
         self.assertEqual(msg.splitlines(), [
             "t.toml: step 'one': domain: 'ops' is not a map domain (layout, website)",
-            "t.toml: step 'two': cmd: tools/none.py is not a tracked file",
+            "t.toml: step 'two': cmd: tools/none.py is not a tracked file (a new script needs git add; a deleted one is gone)",
         ])
 
 
@@ -214,6 +214,15 @@ class FileAndRepoTest(unittest.TestCase):
             with self.assertRaisesRegex(M.ManifestError, "lists no file"):
                 M.repo()
 
+    def test_a_tracked_file_gone_from_the_checkout_does_not_count(self) -> None:
+        listed = subprocess.CompletedProcess(["git"], 0, "tools/check.sh\0tools/deleted_not_staged.py\0", "")
+        with mock.patch.object(M.subprocess, "run", return_value=listed):
+            where = M.repo()
+        self.assertEqual(where.files, {"tools/check.sh"})
+        with self.assertRaisesRegex(M.ManifestError, "deleted_not_staged.py is not a tracked file"):
+            M.parse(tomllib.loads(step(cmd='["python3", "tools/deleted_not_staged.py"]', domain='"extras"')),
+                    "t.toml", where)
+
     def test_a_broken_map_is_an_error(self) -> None:
         with mock.patch.object(M.MAP, "read", side_effect=M.MAP.GraphError("the graph is not valid JSON")):
             with self.assertRaisesRegex(M.ManifestError, "pipeline_map.json: the graph is not valid JSON"):
@@ -306,12 +315,12 @@ class TemporarySyncTest(unittest.TestCase):
         self.assertEqual(later, ["later " + M.shell_line(s) for s in M.select(self.steps, "check", ungrouped=True)])
 
     def test_docs_checks_sh_is_the_docs_only_steps_and_unit_tests(self) -> None:
+        # docs_checks.sh's order is its own (each check runs whatever the others do), so the lines are compared as a
+        # set; its unit-* lines are unit tests, which the manifest does not hold (design section 6)
         checks = [line for line in self.DOCS_SH.splitlines() if line.startswith("check ")]
         theirs = sorted(line for line in checks if not line.split()[1].startswith("unit-"))
         self.assertEqual(theirs, sorted("check " + M.shell_line(s) for s in M.select(self.steps, "check",
                                                                                       docs_only=True)))
-        # the rest are unit tests, which the manifest does not hold (design section 6)
-        self.assertEqual(len(checks) - len(theirs), 2)
 
 
 if __name__ == "__main__":

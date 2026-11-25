@@ -539,6 +539,8 @@ desc = "Pyflakes (ruff F rules, ruff.toml) over every .py file; the edit hook ru
 # ruff is a program the trace cannot see into: what it reads (check_stamps.BY_KIND["ruff"])
 programs = { ruff = ["**/*.py", "ruff.toml", "requirements.txt", ".gitignore", "**/.gitignore"] }
 
+# check.sh queues it only off CI and when tools/audit/portal_inputs.py does not exit 3 (no site input changed), or
+# with PORTAL_CHECK=1; the condition stays in check.sh (stage 2 keeps it around the line `jobs` gives)
 [[step]]
 name = "portal"
 runner = "check"

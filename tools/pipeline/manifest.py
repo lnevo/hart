@@ -133,7 +133,8 @@ def repo() -> Repo:
         raise ManifestError(f"git ls-files could not run in {ROOT}: {err}") from None
     if out.returncode != 0:
         raise ManifestError(f"git ls-files failed in {ROOT}: {out.stderr.strip() or f'exit {out.returncode}'}")
-    tracked = frozenset(filter(None, out.stdout.split("\0")))
+    # a tracked file deleted from the checkout but not yet from the index is gone for the runner: not counted
+    tracked = frozenset(p for p in out.stdout.split("\0") if p and (ROOT / p).exists())
     if not tracked:
         raise ManifestError(f"git ls-files lists no file in {ROOT}")
     try:
@@ -357,7 +358,7 @@ def _cmd_problems(cmd: list, grouped: bool, where: Repo) -> list[str]:
         elif not script.endswith(suffix):
             out.append(f"{prog} runs {script}, not a {suffix} file")
         elif script not in where.files:
-            out.append(f"{script} is not a tracked file")
+            out.append(f"{script} is not a tracked file (a new script needs git add; a deleted one is gone)")
     stray = [w for w in rest if w.startswith("{") and w.endswith("}")]
     if stray:
         out.append(f"{', '.join(stray)}: only {PYTHON} is a placeholder, and only as the program")
