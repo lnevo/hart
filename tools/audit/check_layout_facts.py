@@ -62,7 +62,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import devices, level_devices, level_masts, parked, paths, railroad, tables_build  # noqa: E402
+from hartlib import devices, level_devices, level_masts, parked, paths, railroad  # noqa: E402
 from hartlib import tables as hart_tables  # noqa: E402
 from hartlib.names import split_dcc  # noqa: E402
 
@@ -78,9 +78,9 @@ TABLES = paths.TABLES_XML
 GUI = HART / "ctc/GUIObjects.xml"
 DESKS = (ROOT / "cats/panels/HART_CTC.xml", ROOT / "cats/panels/HART_ABS.xml")
 MASTS = railroad.Sources.under().masts     # masts.csv: each mast's level, facing and protected blocks
-# the levels whose beans the generator's base holds (staging), and the levels the Layout Editor build adds
-BASE_LEVELS = tuple(int(v) for v in tables_build.GENERATED_LEVELS)
-ADDED_LEVELS = tuple(lv for lv in level_masts.LEVELS if lv not in BASE_LEVELS)
+# the staging level (its field masts and turnouts), and the main and upper levels (on virtual heads and turnouts)
+STAGING_LEVELS = (int(railroad.STAGING_LEVEL),)
+ADDED_LEVELS = tuple(lv for lv in level_masts.LEVELS if lv not in STAGING_LEVELS)
 OCCUPANCY = ROOT / "cats/data/occupancy_bindings.csv"
 DEVICE_MAP = railroad.Sources.under().devices     # the device master: the main and upper block names
 
@@ -721,12 +721,12 @@ def desk_mast_blocks(path: Path) -> dict[str, list[str | None]]:
 def protected_blocks(path: Path = MASTS) -> dict[str, str]:
     """Mast -> the block it protects (";" between several), from the staging masts (schematic/masts.csv's base level
     rows, hartlib.railroad.read_masts)."""
-    return {m.mast: ";".join(m.protects) for m in railroad.read_masts(path, levels=BASE_LEVELS) if m.protects}
+    return {m.mast: ";".join(m.protects) for m in railroad.read_masts(path, levels=STAGING_LEVELS) if m.protects}
 
 
 def staging_mast_rows(path: Path = MASTS) -> list[dict]:
     """masts.csv's base level (staging) rows (hartlib.level_masts.read, which checks the file)."""
-    return level_masts.read(path, levels=BASE_LEVELS)
+    return level_masts.read(path, levels=STAGING_LEVELS)
 
 
 def check_mast_cells(data: Path, rows: list[dict[str, str]], desks, t: Tables, r: Report) -> None:

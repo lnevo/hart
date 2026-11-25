@@ -10,11 +10,11 @@ tables.xml is an output. tools/schematic/build_tables.py writes it from:
                                                       blockrouting, logicDelay, the timebase), the memories, the clock
                                                       sensor, and the "Hide windows on start" LogixNG with its thread,
                                                       initialisation table and clipboard
-    The device master                the level 1 rows (staging and the panel status beans): turnouts,
-                                                      sensors, heads, masts, blocks and layout blocks (base). The main
-                                                      and upper rows are drawn into the tables by the Layout Editor
-                                                      build (tools/schematic/le_tables.py), on top of this base
-    jmri/layouts/hart/data/block_lengths.csv          each staging block's length (railroad.read_block_lengths)
+    The device master                every level's rows (naming-layers step 11): turnouts, sensors,
+                                                      heads, masts, blocks and layout blocks, and the startup LogixNG
+                                                      that sets each virtual detector and turnout when the tables load
+                                                      (base); the Layout Editor build adds only the panels on top
+    jmri/layouts/hart/data/block_lengths.csv          each block's length (railroad.read_block_lengths)
     jmri/layouts/hart/data/schematic/discovered_sml.xml   DISCOVERED: the Signal Mast Logic and the mast properties
                                                       (intermediateSignal) stock discovery wrote, taken from a
                                                       discovery Store by build_tables.py --discovered-from, the only
@@ -26,7 +26,7 @@ The envelope is fixed: PROLOG and EPILOG around the root, jmriversion as the tem
 Store writes each time (ENVELOPE_DROPS: the file history, the "Written by" comment, the clock's time, the memory
 values). strip_envelope takes those out of a Store.
 
-Order. Every section's beans, the template's, the master's and the Layout Editor build's together, stand in the
+Order. Every section's beans, the template's and the master's together, stand in the
 order a JMRI 5.16 Store writes them (jmri_sort: by system name, AlphanumComparator), so a load and Store gives the
 same bytes after normalise_store. The discovered logic keeps the order discovery wrote.
 
@@ -83,8 +83,8 @@ CONDITIONALNGS = ("LogixNGConditionalNGs", "jmri.jmrit.logixng.implementation.co
 DIGITAL_ACTIONS = ("LogixNGDigitalActions", "jmri.jmrit.logixng.implementation.configurexml.DefaultDigitalActionManagerXml")
 SECTIONS = (("jmriversion", None), MQTT_SENSORS, INTERNAL_SENSORS, LCC_TURNOUTS, INTERNAL_TURNOUTS, MQTT_TURNOUTS,
             MEMORIES, HEADS, MASTS, BLOCKS, LAYOUT_BLOCKS, LOGICS, TIMEBASE, LOGIXNGS, CONDITIONALNGS, DIGITAL_ACTIONS)
-# The sections whose beans come from the master and the Layout Editor build only: the template holds their settings
-# and no bean (read_template), so a block or mast never has two sources.
+# The sections whose beans come from the master only: the template holds their settings and no bean (read_template),
+# so a block or mast never has two sources.
 MASTER_SECTIONS = (MQTT_SENSORS, LCC_TURNOUTS, INTERNAL_TURNOUTS, MQTT_TURNOUTS, HEADS, MASTS, BLOCKS, LAYOUT_BLOCKS)
 # The manager section of a sensor or turnout, by the system name's prefix (the connection's).
 SENSOR_SECTIONS = (("M2S", MQTT_SENSORS), ("IS", INTERNAL_SENSORS))
@@ -93,11 +93,10 @@ TURNOUT_SECTIONS = (("M2T", MQTT_TURNOUTS), ("MTT", LCC_TURNOUTS), ("IT", INTERN
 HEAD_CLASS = "jmri.implementation.configurexml.VirtualSignalHeadXml"
 MAST_CLASS = "jmri.implementation.configurexml.SignalHeadSignalMastXml"
 VIRTUAL_MAST_CLASS = "jmri.implementation.configurexml.VirtualSignalMastXml"
-VIRTUAL_HEAD_NOTE = "internal, not wired"      # a staging head on an internal name: no field head drives it
+VIRTUAL_HEAD_NOTE = level_devices.VIRTUAL_NOTE  # a staging head on an internal name: no field head drives it
 LAYOUT_BLOCK_ATTRS = (("occupiedsense", "2"), ("trackcolor", "gray"), ("occupiedcolor", "red"),
                       ("extracolor", "white"))
-HELIX_LEVEL = "1"               # the helix blocks' beans are staging's; a main or upper helix detector binds them
-GENERATED_LEVELS = ("1",)       # the master rows whose beans this module writes; 2 and 3 are the Layout Editor build's
+HELIX_LEVEL = railroad.STAGING_LEVEL   # the helix blocks' beans are staging's; a main or upper helix detector binds them
 _LCOS_HEAD = re.compile(r"\(IH\d+\)")
 
 
@@ -185,7 +184,7 @@ def read_template(path: Path = TEMPLATE) -> tables.Tables:
              if section_key(sec) in MASTER_SECTIONS for el in tables.elements(sec) if tables.system_name(el)]
     if owned:
         raise TablesBuildError(f"{where}: holds {', '.join(owned[:6])}, but turnouts, MQTT sensors, heads, masts, "
-                               "blocks and layout blocks come from the device master and the Layout Editor build")
+                               "blocks and layout blocks come from the device master")
     return doc
 
 
@@ -552,11 +551,12 @@ def kept_beans(rows: Iterable[Mapping[str, str]]) -> dict[tuple, list[ET.Element
 
 # ---------------------------------------------------------------- a bean's shape, by its row's columns
 #
-# master_beans makes every bean from its row's columns alone (builder merge step 4, naming-layers step 10), so the
-# same function can make every level's beans (step 11): the bean's name (bean_name), its comment (row_comment), a
+# master_beans makes every level's beans from their rows' columns alone (builder merge steps 4 and 5, naming-layers
+# steps 10 and 11): the bean's name (bean_name), its comment (row_comment), a
 # turnout's feedback (turnout_feedback), whether an LCC alias is a bean of its own (alias_is_turnout), and the state a
 # virtual bean is set to when the tables load (start_actions). Which beans a row gives is its layer's (LAYER_BEANS);
-# on the main and upper rows they give the row-to-bean map of naming-layers step 1.
+# on the main and upper rows they give the row-to-bean map of naming-layers step 1. The startup LogixNG around the
+# actions is start_logixng's.
 
 LAYER_BEANS = {"turnout": "one turnout (an LCC alias none when it names its turnout's bean)",
                "fb": "one sensor", "occupancy": "one sensor", "sensor": "one sensor", "head": "one signal head",
@@ -715,17 +715,19 @@ def mast_bean(name: str, user: str, comment: str) -> ET.Element | None:
 
 
 def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, railroad.BlockLength],
-                 levels: Iterable[str] = GENERATED_LEVELS) -> dict[tuple, list[ET.Element]]:
-    """{section: [bean, ...]} of the master rows of `levels` (GENERATED_LEVELS, what build_tables.py writes; a test
-    runs every level), a block's names-only pass first under ("blocks-names", ...) and the startup actions under
-    START_ACTIONS (start_actions; staging has none). A row with assignment none gives no bean; every other row gives
+                 levels: Iterable[str] | None = None) -> dict[tuple, list[ET.Element]]:
+    """{section: [bean, ...]} of the master rows of `levels` (default every level a row has: what build_tables.py
+    writes; a level-less row's beans are its jmri_bean's, kept_beans), a block's names-only pass first under
+    ("blocks-names", ...) and the startup actions under START_ACTIONS (start_actions; staging has none, main and
+    upper one per virtual detector and turnout). A row with assignment none gives no bean; every other row gives
     its layer's beans (LAYER_BEANS), shaped by its columns: bean_name, row_comment, turnout_feedback and
     alias_is_turnout. A block takes the sensor of the detector whose blocks column names it, on any of `levels` (a
     helix block: the main or upper detector's); a part (part_of) its block's. TablesBuildError on a row the module has
     no bean for, a turnout with one feedback row, a block with no length, no layout block or two detectors, or a
     start the startup LogixNG cannot set."""
-    levels = tuple(levels)
-    every = [r for r in rows if r["level"] in levels]
+    rows = list(rows)
+    levels = tuple({r["level"] for r in rows if r["level"]} if levels is None else levels)
+    every = [r for r in rows if r["level"] and r["level"] in levels]
     rows = [r for r in every if r["assignment"] != "none"]
     by_id: dict[str, dict[str, Mapping[str, str]]] = {}
     for r in every:
@@ -800,9 +802,10 @@ def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, railro
 
 def base(rows: Iterable[Mapping[str, str]] | None = None, template: Path = TEMPLATE,
          lengths: Mapping[str, railroad.BlockLength] | None = None) -> tables.Tables:
-    """The template with the master's staging beans in it (master_beans), each section's beans in JMRI order: what
-    the Layout Editor build draws on. TablesBuildError when a master bean's system or user name is the template's
-    too, or two beans of one kind share a name (check_names)."""
+    """The template with every level's master beans in it (master_beans, naming-layers step 11) and the startup
+    LogixNG around their startup actions (start_logixng), each section's beans in JMRI order: what the Layout Editor
+    build draws its panels on, adding no bean. TablesBuildError when a master bean's system or user name is the
+    template's too, or two beans of one kind share a name (check_names)."""
     doc = read_template(template)
     rows = devices.load() if rows is None else list(rows)
     try:
@@ -810,10 +813,7 @@ def base(rows: Iterable[Mapping[str, str]] | None = None, template: Path = TEMPL
     except railroad.FactsError as exc:
         raise TablesBuildError(str(exc)) from None
     beans = master_beans(rows, lengths)
-    if START_ACTIONS in beans:
-        raise TablesBuildError(f"the device master: {len(beans[START_ACTIONS])} staging rows have a start; the startup "
-                               "LogixNG is the main and upper one (le_tables.add_level_clear) until naming-layers "
-                               "step 11")
+    actions = beans.pop(START_ACTIONS, [])
     made = {n for els in beans.values() for el in els for n in (tables.system_name(el), tables.user_name(el)) if n}
     kept = kept_beans(rows)
     twice = sorted({tables.system_name(el) for key, els in kept.items() if key[0] != "blocks-names" for el in els
@@ -837,9 +837,61 @@ def base(rows: Iterable[Mapping[str, str]] | None = None, template: Path = TEMPL
         if key == BLOCKS:
             continue                # with the names-only pass below
         _fill(sec, els, beans.get(BLOCKS, []) if key[0] == "blocks-names" else None)
+    if actions:
+        start_logixng(doc.root, actions)
     finish(doc.root)
     check_names(doc.root)
     return doc
+
+
+def _insert(parent: ET.Element, new: list[ET.Element], after: ET.Element | None = None) -> None:
+    """Put `new` into `parent` after `after` (default: at the end); finish indents them."""
+    at = list(parent).index(after) + 1 if after is not None else len(parent)
+    for k, el in enumerate(new):
+        parent.insert(at + k, el)
+
+
+def start_logixng(root: ET.Element, actions: list[ET.Element]) -> None:
+    """The LogixNG that runs `actions` (start_actions: an ActionSensor per virtual detector, an ActionTurnout per
+    virtual turnout) once when the tables load, into tables `root` (edited in place), as PanelPro 5.16 stores it
+    (hartlib.level_devices: LogixNG CLEAR_LOGIXNG after the template's LogixNGs, its ConditionalNG CLEAR_CONDITIONAL
+    with one socket naming the DigitalMany CLEAR_MANY, whose sockets A1, A2, ... name the actions in their order, the
+    DigitalMany and the actions after the template's digital actions). A ConditionalNG executes at startup unless told
+    not to (DefaultLogixNG.execute), so the masts are not held at Stop by UNKNOWN blocks (owner, 2026-11-17).
+    TablesBuildError when the template lacks a LogixNG section or holds these names."""
+    secs = {key: next((s for s in tables.elements(root) if section_key(s) == key), None)
+            for key in (LOGIXNGS, CONDITIONALNGS, DIGITAL_ACTIONS)}
+    gone = [k[0] for k, v in secs.items() if v is None]
+    if gone:
+        raise TablesBuildError(f"the template has no {', '.join(gone)} section for the startup LogixNG")
+    if any(level_devices.CLEAR_PREFIX.match(tables.system_name(e) or "") for v in secs.values()
+           for e in tables.elements(v)):
+        raise TablesBuildError("the template holds the startup LogixNG's names (hartlib.level_devices CLEAR_*); "
+                               "the device master's start column makes it")
+    logixngs, conditionals, digital = secs.values()
+    lx = ET.Element("LogixNG", {"enabled": "yes", "inline": "no"})
+    _sub(lx, "systemName", level_devices.CLEAR_LOGIXNG)
+    _sub(lx, "userName", level_devices.CLEAR_USER)
+    _sub(_sub(lx, "ConditionalNGs"), "systemName", level_devices.CLEAR_CONDITIONAL)
+    last = [e for e in logixngs if e.tag == "LogixNG"]
+    _insert(logixngs, [lx], last[-1] if last else None)
+    cn = ET.Element("ConditionalNG", {"enabled": "yes"})
+    _sub(cn, "systemName", level_devices.CLEAR_CONDITIONAL)
+    _sub(cn, "userName", level_devices.CLEAR_USER)
+    _sub(cn, "thread", "0")
+    sock = _sub(cn, "Socket")
+    _sub(sock, "socketName", "A")
+    _sub(sock, "systemName", level_devices.CLEAR_MANY)
+    _insert(conditionals, [cn])
+    many = ET.Element("DigitalMany", {"class": "jmri.jmrit.logixng.actions.configurexml.DigitalManyXml"})
+    _sub(many, "systemName", level_devices.CLEAR_MANY)
+    acts = _sub(many, "Actions")
+    for i, a in enumerate(actions, 1):
+        s = _sub(acts, "Socket")
+        _sub(s, "socketName", f"A{i}")
+        _sub(s, "systemName", tables.system_name(a))
+    male_socket(many)
+    _insert(digital, [many] + list(actions))
 
 
 def _fill(sec: ET.Element, beans: list[ET.Element], full_pass: list[ET.Element] | None) -> None:
@@ -1083,7 +1135,7 @@ def roundtrip_report(store: Path, counts: Path, generated: Path) -> tuple[bool, 
     except OSError as exc:
         return False, [f"cannot read {exc.filename}: {exc.strerror}"]
     staging = [r["jmri_name"] for r in devices.load()
-               if r["level"] in GENERATED_LEVELS and r["layer"] == "block" and r["assignment"] != "none"
+               if r["level"] == railroad.STAGING_LEVEL and r["layer"] == "block" and r["assignment"] != "none"
                and not r["part_of"]]
     none = [b for b in staging if paths_of.get(b, ("", 0))[1] == 0]
     total = sum(n for _u, n in paths_of.values())

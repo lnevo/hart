@@ -1,5 +1,5 @@
 """build_layout_le.py: the three-level build (levels all), drawn like the schematic, on the generator's
-base (hartlib.tables_build.base: the template and the staging beans of devices.csv; ADR-029). The all-levels viewing trial these tests once read
+base (hartlib.tables_build.base: the template and every level's beans of devices.csv; ADR-029, naming-layers step 11). The all-levels viewing trial these tests once read
 (tables_layout.xml) is retired (owner, 2026-11-17); its behaviour checks read the candidate, which test_le_cutover.py
 and test_le_mast_parity.py share."""
 from __future__ import annotations
@@ -77,20 +77,13 @@ def stripped() -> ET.Element:
     return tables.loads(_stripped_bytes()).root
 
 
+LEVEL_NAMES = B.level_bean_names()      # the system names of the beans the main and upper rows give
+
+
 def is_new(el) -> bool:
-    if el.tag == "LayoutEditor":            # the generated panel replaces the live one: no new panel
-        return False
-    sysname = tables.system_name(el) if el.find("systemName") is not None else (el.get("systemName") or "")
-    if el.tag == "turnout":
-        return sysname.startswith(B.TURNOUT_SYS)
-    if el.tag == "block":
-        return sysname.startswith(B.BLOCK_SYS)
-    if el.tag == "layoutblock":
-        return sysname.startswith("ILB") and sysname[3:].isdigit() and int(sysname[3:]) >= B.LAYOUT_BLOCK_FIRST
-    if el.tag in ("signalhead", "signalmast", "sensor", "LogixNG", "ConditionalNG", "DigitalMany", "ActionSensor",
-                  "ActionTurnout"):
-        return B.is_level_bean(el)
-    return False
+    """A main or upper bean (a bean a main or upper row of the device master gives: le_tables.level_bean_names), which
+    the base holds since naming-layers step 11; the generated panel is never one."""
+    return el.tag != "LayoutEditor" and B.is_level_bean(el, LEVEL_NAMES)
 
 
 def is_new_name(name) -> bool:
@@ -302,10 +295,6 @@ class Built(unittest.TestCase):
                 self.assertEqual(cn.findtext("Socket/systemName"), level_devices.CLEAR_MANY)
                 internal = next(s for s in root.findall("sensors") if "InternalSensorManager" in s.get("class"))
                 self.assertEqual(internal.findtext("defaultInitialState"), "unknown")   # the other lamps unchanged
-        with self.assertRaisesRegex(B.BuildError, "already hold"):
-            B.add_level_clear(tables.read(paths.TABLES_XML), ["IS:HART:C3:B:X"])
-        with self.assertRaisesRegex(B.BuildError, "not all main and upper virtual sensors"):
-            B.add_level_clear(stripped(), ["IS:SML_MODE"])
 
     def test_the_clear_logixng_reader_names_a_broken_action(self) -> None:
         root = tables.read(paths.TABLES_XML)
@@ -315,53 +304,14 @@ class Built(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, f"socket A1 names {re.escape(first)}, which is not an ActionSensor"):
             level_devices.clear_sensors(root)
 
-    def test_the_clear_logixng_takes_exactly_the_sensors_added(self) -> None:
-        """add_level_sensors returns the sensors it bound (only blocks in the tables); add_level_objects stops when
-        that is not every main and upper block's, so the LogixNG never names a sensor the tables lack."""
-        root = stripped()
-        sensors = B.level_sensors()
-        b = sorted(sensors)[0]
-        el = ET.SubElement(root.find("blocks"), "block", {"systemName": "IBX1"})
-        for tag, text in (("systemName", "IBX1"), ("userName", b), ("permissive", "no")):
-            ET.SubElement(el, tag).text = text
-        self.assertEqual(B.add_level_sensors(root, {x: sensors[x] for x in sorted(sensors)[:2]}), [sensors[b][0]])
-        with mock.patch.object(sys.modules["le_tables"], "add_level_sensors", return_value=[]), \
-                self.assertRaisesRegex(B.BuildError, "whose sensor was not added"):
-            with contextlib.redirect_stdout(io.StringIO()):
-                B.build(as_live=True)
-
-    def test_add_level_sensors_is_by_name_not_order(self) -> None:
-        """The sensors a block gets do not depend on the order blocks come in: a block added earlier in the drawing
-        changes no other block's sensor. A taken name or an already bound block stops."""
-        def run(order):
-            root = stripped()
-            sensors = B.level_sensors()
-            first = sorted(sensors)[:3]
-            for b in first:      # three stand-in blocks, bound to the device map's sensors
-                ET.SubElement(root.find("blocks"), "block", {"systemName": "IBX" + b}).extend(
-                    [ET.Element("systemName"), ET.Element("userName"), ET.Element("permissive")])
-                el = root.find("blocks")[-1]
-                el[0].text, el[1].text, el[2].text = "IBX" + b, b, "no"
-            B.add_level_sensors(root, {b: sensors[b] for b in order(first)})
-            return {tables.user_name(b): b.findtext("occupancysensor") for b in tables.blocks(root)
-                    if b.get("systemName", "").startswith("IBX")}, \
-                {tables.user_name(s): tables.system_name(s) for s in tables.sensors(root) if B.is_level_bean(s)}
-        self.assertEqual(run(lambda xs: xs), run(lambda xs: list(reversed(xs))))
-        root = stripped()
-        live = tables.blocks(root)[0]
-        with self.assertRaisesRegex(B.BuildError, "already in the tables"):
-            B.add_level_sensors(root, {tables.user_name(live): ("IS:SML_MODE", "BS X", "c")})
-        with self.assertRaisesRegex(B.BuildError, "already have an occupancy sensor"):
-            B.add_level_sensors(root, {tables.user_name(live): ("IS:HART:C3:B:X", "BS X", "c")})
-
     def test_blocks_match_track(self) -> None:
         new_lb = {tables.user_name(b) for b in tables.layout_blocks(self.root) if is_new(b)}
         new_b = {tables.user_name(b) for b in tables.blocks(self.root, full=False) if is_new(b)}
         full_b = {tables.user_name(b) for b in tables.blocks(self.root) if is_new(b)}
-        live_lb = {tables.user_name(b) for b in tables.layout_blocks(self.live)}
+        staging_lb = {tables.user_name(b) for b in tables.layout_blocks(self.live) if not is_new(b)}
         self.assertEqual(new_b, new_lb)
         self.assertEqual(full_b, new_lb)
-        self.assertEqual(used_blocks(self.le) - live_lb, new_lb)
+        self.assertEqual(used_blocks(self.le) - staging_lb, new_lb)
 
     # ---- the panel
     def test_no_dangling_connection_names(self) -> None:
@@ -459,10 +409,10 @@ class Built(unittest.TestCase):
         self.assertNotEqual(self.P.scale, (1.0, 1.0))         # the grid is scaled (staging's fit, stretched)
 
     # ---- the live file
-    def test_tables_unchanged_but_for_the_additions(self) -> None:
-        """With the main and upper objects taken out again, the candidate is the staging candidate it holds, parked
-        and its yard ladder retired as the build does, but for the panel (the staging guard compares the panels:
-        test_le_cutover.py)."""
+    def test_the_build_adds_no_bean(self) -> None:
+        """Every level's beans are the base's (naming-layers step 11): the three-level candidate is the staging
+        candidate, parked and its yard ladder retired as the build does, but for the panel (the staging guard compares
+        the panels: test_le_cutover.py)."""
         def no_panel(doc):
             """The tables without the panel, layout whitespace dropped (what is taken out leaves its own)."""
             doc.root.remove(tables.layout_editor(doc.root, LIVE_PANEL))
@@ -471,25 +421,21 @@ class Built(unittest.TestCase):
                 el.tail = None if el.tail is not None and not el.tail.strip() else el.tail
             return ET.tostring(doc.root)
         doc = tables.loads(self.data)
-        removed = B.strip_build_owned(doc.root)
         # turnouts, blocks (2 passes) and layout blocks, their sensors, the startup LogixNG (LogixNG, ConditionalNG,
-        # DigitalMany, an ActionSensor per block, an ActionTurnout per turnout), heads and masts; no logic or path:
-        # discovery adds them
+        # DigitalMany, an ActionSensor per block, an ActionTurnout per turnout), heads and masts
         objects = 39 + 3 * LEVEL_BLOCKS + LEVEL_SENSORS + 3 + LEVEL_SENSORS + 39 + LEVEL_HEADS + LEVEL_MASTS
-        # the helix blocks' binding (block and layout block each) goes too: they are staging's beans
-        self.assertEqual(removed, dict.fromkeys(B.STRIPPED, 0) | {B.STRIPPED[0]: objects, B.STRIPPED[5]: 4})
+        self.assertEqual(objects, sum(1 for sec in tables.elements(doc.root) for el in tables.elements(sec)
+                                      if is_new(el)))
         base = tables.loads(staging_alone()[0])
         B.parked.split(base.root, B.PARKED)
         B.retire_yard_ladder(base.root)
         self.assertEqual(no_panel(doc), no_panel(base))
 
     def test_no_name_collisions(self) -> None:
-        live_users = {tables.user_name(b) for b in tables.turnouts(self.live) + tables.blocks(self.live)
-                      + tables.layout_blocks(self.live)}
-        live_sys = {tables.system_name(b) for b in tables.turnouts(self.live) + tables.blocks(self.live)
-                    + tables.layout_blocks(self.live)}
-        new = [b for b in tables.turnouts(self.root) + tables.blocks(self.root, full=False)
-               + tables.layout_blocks(self.root) if is_new(b)]
+        beans = tables.turnouts(self.root) + tables.blocks(self.root, full=False) + tables.layout_blocks(self.root)
+        live_users = {tables.user_name(b) for b in beans if not is_new(b)}
+        live_sys = {tables.system_name(b) for b in beans if not is_new(b)}
+        new = [b for b in beans if is_new(b)]
         self.assertFalse({tables.user_name(b) for b in new} & live_users)
         self.assertFalse({tables.system_name(b) for b in new} & live_sys)
         for t in tables.turnouts(self.root):
@@ -560,23 +506,10 @@ class FactsReaders(unittest.TestCase):
             rows = list(devices.load(B.DEVICE_MAP))
             block = next(r for r in rows if r["level"] == "2" and r["layer"] == "block")
             bad = devices.write_one_file(rows + [block], Path(tmp) / devices.ONE_FILE)     # a block row twice
-            for read in (B.level_sensors, B.device_names):
+            for read in (B.device_names,):
                 with self.subTest(read=read.__name__), \
                         self.assertRaisesRegex(B.BuildError, r"^the device map: devices.csv: .*the same level, layer"):
                     read(bad)
-
-    def test_level_sensors_read_every_block(self) -> None:
-        from hartlib import railroad
-        device = railroad.read_device_map(B.DEVICE_MAP)
-        from hartlib import devices
-        sensors = B.level_sensors()
-        parts = {r["user_name"]: r["part_of"] for _n, r in devices.part_lines(("2", "3"), B.DEVICE_MAP)}
-        self.assertEqual(list(sensors), list(device.blocks) + list(parts))
-        for block, (system, user, _comment) in sensors.items():
-            occ = device.occupancy[parts.get(block, block)]          # a part: its OS block's row
-            self.assertEqual((occ.user_name, occ.jmri_name), (user, system))
-        for part, block in parts.items():          # a part is read with its OS block's sensor (step 5 part 2)
-            self.assertEqual(sensors[part], sensors[block])
 
 
 class DeviceNames(unittest.TestCase):
@@ -757,14 +690,6 @@ class ReviewFixes(unittest.TestCase):
                 "strands": {"a": {"src": ("t1", 0), "dst": ("t2", 0)}, "b": {"src": ("t2", 1), "dst": ("t1", 1)}}}
         with self.assertRaises(B.BuildError):
             B.runs(ring)
-
-    def test_tables_with_no_names_only_block_pass_stop(self) -> None:
-        doc = tables.loads(_stripped_bytes())
-        blocks_el = doc.root.find("blocks")
-        for b in tables.blocks(doc.root, full=False):
-            blocks_el.remove(b)
-        with contextlib.redirect_stdout(io.StringIO()), self.assertRaisesRegex(B.BuildError, "names-only"):
-            B.build(bands=Built.bands, as_live=True, base_data=doc.tobytes())
 
 
 class BaseNames(unittest.TestCase):

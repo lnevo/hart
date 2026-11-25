@@ -75,8 +75,7 @@ PART_BLOCK_FIRST = 52        # a new staging part's number: the first above stag
 
 
 def part_bean_names(parts: list[str], prior: dict, taken: set) -> dict[str, tuple[str, str]]:
-    """{part: (jmri_name, layout_block)} of the parts of a level whose beans the generator writes (staging,
-    tables_build.GENERATED_LEVELS), each a JMRI block of its own on its block's occupancy sensor (owner, 2026-11-20):
+    """{part: (jmri_name, layout_block)} of staging's parts, each a JMRI block of its own on its block's occupancy sensor (owner, 2026-11-20):
     the names its row has (`prior`: {part: (jmri_name, layout_block)}), else, in name order, the next number n from
     PART_BLOCK_FIRST up with neither IB:AUTO:<nnnn> nor ILB<n> in `taken` (every other bean's names), so a name never
     shifts. MapError on a row with one of the two names only, or a name another bean has."""
@@ -453,9 +452,8 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
     prior = staging_field(f)
     blocks = set(lay.bands[bi]["os"].values()) | set(lay.tracks)
     out, bad = [], []
-    # staging's beans are the generator's (tables_build.GENERATED_LEVELS), so its parts, and a block the owner has no
-    # field row for, carry their block names here, where main and upper's take theirs from the Layout Editor build
-    # (le_tables numbering)
+    # staging's parts, and a block the owner has no field row for, carry their block names here, where main and
+    # upper's take theirs from block_numbering.csv (build_device_map.block_beans)
     mine, taken = staging_part_names(f) if part_names is None else part_names
     # a block is numbered here when the owner gives it no bean names: no field row, or one with neither jmri_name nor
     # layout_block (a row with one of the two stops: the other would not match it)

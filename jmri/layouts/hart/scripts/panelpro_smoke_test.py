@@ -31,8 +31,8 @@ if "dispatcher" in PARKED:
     SECTIONS = 0
     TRANSITS = 0
 
-# The main and upper blocks (internal IB:C3: blocks, build_layout_le.add_level_objects) and their virtual occupancy
-# sensors (add_level_sensors), which the LogixNG "Main and upper block sensors clear on start" sets INACTIVE when the
+# The main and upper blocks (internal IB:C3: blocks, hartlib.tables_build.master_beans) and their virtual occupancy
+# sensors (their detector rows), which the LogixNG "Main and upper block sensors clear on start" sets INACTIVE when the
 # tables load (owner, 2026-11-17). The prefixes are hartlib.level_devices' (Jython cannot import hartlib;
 # tools/hosts/tests/test_panelpro_wrappers.py checks they agree).
 LEVEL_BLOCK_PREFIX = "IB:C3:"

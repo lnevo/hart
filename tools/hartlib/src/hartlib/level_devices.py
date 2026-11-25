@@ -10,11 +10,12 @@ device, so a physical device is later swapped in by that mapping alone.
 - Block "<name>": its occupancy sensor SENSOR_PREFIX + block_key (IS:HART:C3:B:107-109, IS:HART:C3:B:107_Loop_2,
   IS:HART:C3:B:OS225b), user name occupancy_user ("BS 107-109", "BS Switch 225b").
 - Head "Head <mast>[ Top|Bottom]": head_name (IH:HART:C3:108LA, IH:HART:C3:108R_Top).
-- The LogixNG that sets every block sensor INACTIVE when the tables load (CLEAR_*; build_layout_le.add_level_clear)
+- The LogixNG that sets every block sensor INACTIVE when the tables load (CLEAR_*; tables_build.start_logixng, from
+  each row's start)
   and its reader clear_sensors; the same LogixNG sets every virtual turnout to its startup position, Closed except
   where the main route runs through the diverging leg (owner, 2026-11-19), read by turnout_states.
 
-Used by tools/schematic/build_device_map.py, build_masts.py, build_layout_le.py, build_cats_panel.py,
+Used by tools/schematic/build_device_map.py, build_masts.py, hartlib.tables_build, build_cats_panel.py,
 hartlib.level_masts, tools/audit/check_layout_facts.py and www/scripts/tables_page.py.
 """
 from __future__ import annotations
@@ -46,25 +47,18 @@ CLEAR_PREFIX = re.compile(r"IQ(?:C|DA)?\$HART:C3:")
 # The JMRI word the startup LogixNG sets for a device-master row's start (hartlib.devices.START)
 START_ENUM = {"inactive": "Inactive", "closed": "Closed", "thrown": "Thrown"}
 
-# The comments the Layout Editor build gives the main and upper beans, which build_device_map.py writes into each
-# row's bean_comment (device_map_rows.bean_cells, naming-layers step 9) and le_tables reads back. Step 11 unifies
-# them with staging's (owner, 2026-11-23); until then these words are tables.xml's as it stands.
-LEVEL_COMMENT = "Main and upper level, internal until the import (device map name; build_layout_le.py)"  # turnout, block
-SENSOR_COMMENT = "Main and upper level occupancy, virtual (device map; build_layout_le.py)"
-SIGNAL_NOTE = "virtual (device map); planned"     # + the planned physical head or mast, a draft
-UNPLANNED_NOTE = "virtual (device map); not on a node yet"    # no board room on the draft plant (ADR-024)
+# The words of the main and upper beans' comments, which build_device_map.py writes into each row's bean_comment
+# (device_map_rows.bean_cells) and hartlib.tables_build.master_beans puts on the bean. Staging's form (owner,
+# 2026-11-23, naming-layers step 11): the parts joined by " | ", the place first; a bean no field device drives says
+# VIRTUAL_NOTE, as a staging head on an internal name does, then the planned physical device, a draft.
+VIRTUAL_NOTE = "internal, not wired"
+UNPLACED_NOTE = "not on a node yet"     # a head or mast with no board room on the draft plant (ADR-024, ADR-028)
 
 
-def sensor_comment(planned: str, notes: str) -> str:
-    """A main or upper block sensor's comment: the planned detector (`planned`, a draft M2S name), else why there is
-    none (the occupancy row's `notes`)."""
-    return f"{SENSOR_COMMENT}; " + (f"planned {planned} (draft)" if planned else notes)
-
-
-def signal_note(planned: str | None) -> str:
-    """A main or upper head's or mast's comment after its place: the planned physical device (the device map's
-    system name, a draft), or that it has none yet."""
-    return f"{SIGNAL_NOTE} {planned}" if planned else UNPLANNED_NOTE
+def planned_note(planned: str) -> str:
+    """The part of a main or upper comment that names the planned physical device (the device map's system name, a
+    draft): "planned M2T3308 (draft)"; for a head or mast with none, UNPLACED_NOTE."""
+    return f"planned {planned} (draft)" if planned else UNPLACED_NOTE
 
 
 def block_key(block: str) -> str:

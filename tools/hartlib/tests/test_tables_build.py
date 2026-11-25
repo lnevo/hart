@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from hartlib import devices as D, paths, railroad, tables  # noqa: E402
+from hartlib import devices as D, level_devices, paths, railroad, tables  # noqa: E402
 from hartlib import tables_build as tb  # noqa: E402
 
 
@@ -230,11 +230,15 @@ class MasterBeans(unittest.TestCase):
             with self.assertRaisesRegex(D.DevicesError, "role 'nonsense'"):
                 tb.base(D.load(p), lengths=LENGTHS)
 
-    def test_the_committed_staging_reads_into_a_base(self) -> None:
+    def test_the_committed_master_reads_into_a_base(self) -> None:
+        """Every level's blocks (naming-layers step 11): staging's 45 and its 14 parts (owner, 2026-11-20), and main
+        and upper's 120; and the startup LogixNG of the main and upper virtual detectors and turnouts."""
         root = tb.base().root
-        self.assertEqual(59, len(tables.blocks(root)))      # 45 and staging's 14 parts (owner, 2026-11-20)
+        self.assertEqual(59 + 120, len(tables.blocks(root)))
         self.assertIsNone(root.find("LayoutEditor"))
         self.assertEqual([], tables.mast_logics(root))
+        self.assertEqual(97, len(level_devices.clear_sensors(root)))
+        self.assertEqual(39, len(level_devices.turnout_states(root)))
 
 
 class MasterBeansByAssignment(unittest.TestCase):
@@ -276,18 +280,22 @@ class MasterBeansByAssignment(unittest.TestCase):
         self.assertIn("IS:TEST_LAMP", self.section(root, tb.INTERNAL_SENSORS))
         self.assertNotIn("IS:TEST_LAMP", self.section(root, tb.MQTT_SENSORS))
 
-    def test_a_main_or_upper_row_gives_no_bean_whatever_its_assignment(self) -> None:
-        """GENERATED_LEVELS: the Layout Editor build makes these today; step 11 of the naming plan moves them here."""
-        level = [blank(level="2", layer="turnout", role="turnout", user_name="Switch 101", assignment="virtual",
-                       jmri_name="IT:HART:C3:101"),
+    def test_a_main_or_upper_row_gives_its_bean_in_the_base(self) -> None:
+        """Every level's rows give beans (naming-layers step 11: GENERATED_LEVELS went), a virtual one on its
+        jmri_name with its row's bean_comment."""
+        level = [blank(level="2", layer="turnout", role="turnout", id="switch:101", user_name="Switch 101",
+                       assignment="virtual", system_name="M2T3408", jmri_name="IT:HART:C3:101", bean_comment="t"),
                  blank(level="2", layer="occupancy", role="track", user_name="BS 101-103", assignment="virtual",
-                       jmri_name="IS:HART:C3:B:101-103", blocks="Track 101-103"),
+                       jmri_name="IS:HART:C3:B:101-103", blocks="Track 101-103", bean_comment="s"),
                  blank(level="3", layer="mast", role="home", user_name="Mast 201R", assignment="virtual",
-                       jmri_name="IF$shsm:basic:one-searchlight(IH:HART:C3:201R)"),
+                       jmri_name="IF$shsm:basic:one-searchlight(IH:HART:C3:201R)", bean_comment="m"),
                  blank(level="3", layer="head", role="head", user_name="Head 201R", assignment="virtual",
-                       jmri_name="IH:HART:C3:201R")]
+                       jmri_name="IH:HART:C3:201R", bean_comment="h")]
         root = tb.base(rows() + level, lengths=LENGTHS).root
-        self.assertEqual(set(), {n for r in level for n in (r["user_name"], r["jmri_name"])} & tb.bean_names(root))
+        self.assertLessEqual({n for r in level for n in (r["user_name"], r["jmri_name"])}, tb.bean_names(root))
+        self.assertNotIn("M2T3408", tb.bean_names(root))         # a virtual turnout's planned name is a draft
+        self.assertEqual("t", next(t.findtext("comment") for t in tables.turnouts(root)
+                                   if tables.user_name(t) == "Switch 101"))
 
 
 def main_rows() -> list[dict]:
@@ -329,7 +337,7 @@ ALL_LENGTHS = dict(LENGTHS, **{n: railroad.BlockLength(2, n, "", 10.0, 10.0, "pl
 
 class ShapeByColumn(unittest.TestCase):
     """Each rule master_beans shapes a bean by (naming-layers step 10, builder merge step 4), on a small main level
-    run through it as step 11 will (levels 1 and 2) and on staging alone (GENERATED_LEVELS)."""
+    run through it with staging (levels 1 and 2, as base() runs every level) and on staging alone."""
 
     def beans(self, extra=(), levels=("1", "2")) -> dict:
         return tb.master_beans(rows() + [STAGING_HELIX] + main_rows() + list(extra), ALL_LENGTHS, levels)
@@ -428,7 +436,7 @@ class ShapeByColumn(unittest.TestCase):
         full = [b for b in beans[tb.BLOCKS] if tables.user_name(b) == "Track Helix Outer"]
         self.assertEqual([("IB23", "BS Helix Outer")], [(tables.system_name(b), b.findtext("occupancysensor"))
                                                         for b in full])
-        alone = tb.master_beans(rows() + [STAGING_HELIX] + main_rows(), ALL_LENGTHS)       # GENERATED_LEVELS
+        alone = tb.master_beans(rows() + [STAGING_HELIX] + main_rows(), ALL_LENGTHS, ("1",))      # staging alone
         full = [b for b in alone[tb.BLOCKS] if tables.user_name(b) == "Track Helix Outer"]
         self.assertEqual([None], [b.find("occupancysensor") for b in full])
         self.assertNotIn(tb.START_ACTIONS, alone)
@@ -450,11 +458,20 @@ class ShapeByColumn(unittest.TestCase):
         with self.assertRaisesRegex(tb.TablesBuildError, "not a main or upper virtual turnout"):
             tb.master_beans(odd, ALL_LENGTHS, ("2",))
 
-    def test_base_refuses_a_staging_start(self) -> None:
-        lamp = blank(layer="occupancy", role="os", id="det:x", user_name="BS X", assignment="virtual",
-                     jmri_name="IS:HART:C3:B:X", start="inactive", jmri_comment="x")
-        with self.assertRaisesRegex(tb.TablesBuildError, "staging rows have a start"):
-            tb.base(rows() + [lamp], lengths=LENGTHS)
+    def test_base_wraps_the_startup_actions_in_the_startup_logixng(self) -> None:
+        """base() puts the startup LogixNG around master_beans' actions (start_logixng, naming-layers step 11): its
+        DigitalMany's sockets A1, A2, ... name the actions in their order, and level_devices reads them back."""
+        root = tb.base(rows() + [STAGING_HELIX] + main_rows(), lengths=ALL_LENGTHS).root
+        self.assertEqual(["IS:HART:C3:B:Helix_Outer", "IS:HART:C3:B:OS101"], level_devices.clear_sensors(root))
+        self.assertEqual({"IT:HART:C3:101": "Closed"}, level_devices.turnout_states(root))
+        many = next(e for e in root.find("LogixNGDigitalActions") if e.tag == "DigitalMany")
+        self.assertEqual([("A1", "IQDA$HART:C3:B:Helix_Outer"), ("A2", "IQDA$HART:C3:B:OS101"),
+                          ("A3", "IQDA$HART:C3:T:101")],
+                         [(s.findtext("socketName"), s.findtext("systemName")) for s in many.find("Actions")])
+        lx = [e for e in root.find("LogixNGs") if e.tag == "LogixNG"]
+        self.assertEqual(level_devices.CLEAR_LOGIXNG, tables.system_name(lx[-1]))     # after the template's
+        self.assertIsNone(tb.base(rows(), lengths=LENGTHS).root.find(
+            f"LogixNGs/LogixNG[systemName='{level_devices.CLEAR_LOGIXNG}']"))         # no start: no LogixNG
 
     def test_every_layer_has_its_beans_named(self) -> None:
         self.assertEqual({"turnout", "fb", "occupancy", "sensor", "head", "mast", "block"}, set(tb.LAYER_BEANS))

@@ -23,7 +23,7 @@ SUB = "/opt/local/bin/mosquitto_sub"
 OUT = Path(__file__).resolve().parent
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import level_masts, paths, tables_build, tables as tables_mod  # noqa: E402
+from hartlib import level_masts, paths, railroad, tables as tables_mod  # noqa: E402
 from hartlib.hosts import jmri_json_url, mqtt_broker  # noqa: E402
 
 ROOT = paths.REPO_ROOT
@@ -118,9 +118,9 @@ def capture_baseline() -> dict:
 
 
 def load_live_masts(path: Path = level_masts.PATH) -> set[str]:
-    """The live level's visible masts (head masts, IF$shsm): masts.csv's rows of the levels whose beans the generated
-    tables hold (staging, hartlib.tables_build.GENERATED_LEVELS); the hidden virtual masts are left out."""
-    live = tuple(int(v) for v in tables_build.GENERATED_LEVELS)
+    """The live level's visible masts (head masts, IF$shsm): masts.csv's staging rows (hartlib.railroad
+    STAGING_LEVEL, the level the QA runs on); the hidden virtual masts are left out."""
+    live = (int(railroad.STAGING_LEVEL),)
     return {r["mast"] for r in level_masts.read(path, levels=live) if r["system_name"].startswith("IF$shsm:")}
 
 

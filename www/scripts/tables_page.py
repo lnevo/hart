@@ -246,7 +246,7 @@ def facts(raw: bytes, root) -> dict:
     f["logix"] = len(_direct(root, "logixs", "logix"))
 
     # Two LogixNGs: the one in the Initialization Table, its ConditionalNGs and their single actions; and the one
-    # that sets the main and upper virtual block sensors clear (build_layout_le.add_level_clear).
+    # that sets the main and upper virtual block sensors clear (hartlib.tables_build.start_logixng).
     init = [x.text for m in root.findall("LogixNGs") for it in m.findall("InitializationTable") for x in it.findall("LogixNG")]
     ngs = _direct(root, "LogixNGs", "LogixNG")
     ng = _one([n for n in ngs if n.findtext("systemName") in init], "LogixNG in the Initialization Table")

@@ -444,487 +444,487 @@
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:101-111</systemName>
       <userName>BS 101-111</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:101_Spur_1</systemName>
       <userName>BS 101 Spur 1</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:101_Spur_2</systemName>
       <userName>BS 101 Spur 2</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:103-105_1</systemName>
       <userName>BS 103-105 1</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:103-105_2</systemName>
       <userName>BS 103-105 2</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:103_Spur</systemName>
       <userName>BS 103 Spur</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:107-109</systemName>
       <userName>BS 107-109</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S3306 (draft)</comment>
+      <comment>internal, not wired | planned M2S3306 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:107_Loop_1</systemName>
       <userName>BS 107 Loop 1</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S3305 (draft)</comment>
+      <comment>internal, not wired | planned M2S3305 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:107_Loop_2</systemName>
       <userName>BS 107 Loop 2</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); detector planned, not wired yet: no node or input (owner, 2026-11-16)</comment>
+      <comment>internal, not wired | detector planned, not wired yet: no node or input (owner, 2026-11-16)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:113_Spur_1</systemName>
       <userName>BS 113 Spur 1</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:113_Spur_2</systemName>
       <userName>BS 113 Spur 2</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:115_Spur</systemName>
       <userName>BS 115 Spur</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:119-121</systemName>
       <userName>BS 119-121</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:119-123</systemName>
       <userName>BS 119-123</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S3307 (draft)</comment>
+      <comment>internal, not wired | planned M2S3307 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:119_Spur</systemName>
       <userName>BS 119 Spur</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:121-125</systemName>
       <userName>BS 121-125</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:121_Spur</systemName>
       <userName>BS 121 Spur</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:125-127</systemName>
       <userName>BS 125-127</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S4204 (draft)</comment>
+      <comment>internal, not wired | planned M2S4204 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:127-131_1</systemName>
       <userName>BS 127-131 1</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S4205 (draft)</comment>
+      <comment>internal, not wired | planned M2S4205 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:127-221</systemName>
       <userName>BS 127-221</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S2304 (draft)</comment>
+      <comment>internal, not wired | planned M2S2304 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:129_Spur_1</systemName>
       <userName>BS 129 Spur 1</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:129_Spur_2</systemName>
       <userName>BS 129 Spur 2</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:203-207</systemName>
       <userName>BS 203-207</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:203-211</systemName>
       <userName>BS 203-211</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S2305 (draft)</comment>
+      <comment>internal, not wired | planned M2S2305 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:205_Spur</systemName>
       <userName>BS 205 Spur</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:207-211</systemName>
       <userName>BS 207-211</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:207-213</systemName>
       <userName>BS 207-213</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:209_Spur_1</systemName>
       <userName>BS 209 Spur 1</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:209_Spur_2</systemName>
       <userName>BS 209 Spur 2</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:211-217_1</systemName>
       <userName>BS 211-217 1</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:211-217_2</systemName>
       <userName>BS 211-217 2</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S2402 (draft)</comment>
+      <comment>internal, not wired | planned M2S2402 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:213_Spur</systemName>
       <userName>BS 213 Spur</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:215_Spur_1</systemName>
       <userName>BS 215 Spur 1</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:215_Spur_2</systemName>
       <userName>BS 215 Spur 2</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:217-219</systemName>
       <userName>BS 217-219</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:217-221</systemName>
       <userName>BS 217-221</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S2403 (draft)</comment>
+      <comment>internal, not wired | planned M2S2403 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:221-223</systemName>
       <userName>BS 221-223</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S2306 (draft)</comment>
+      <comment>internal, not wired | planned M2S2306 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:223-225_1</systemName>
       <userName>BS 223-225 1</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S2201 (draft)</comment>
+      <comment>internal, not wired | planned M2S2201 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:223-225_2</systemName>
       <userName>BS 223-225 2</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S2202 (draft)</comment>
+      <comment>internal, not wired | planned M2S2202 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:227-241_1</systemName>
       <userName>BS 227-241 1</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S4102 (draft)</comment>
+      <comment>internal, not wired | planned M2S4102 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:227-241_2</systemName>
       <userName>BS 227-241 2</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S4103 (draft)</comment>
+      <comment>internal, not wired | planned M2S4103 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:229-241</systemName>
       <userName>BS 229-241</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S2103 (draft)</comment>
+      <comment>internal, not wired | planned M2S2103 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:231_Spur</systemName>
       <userName>BS 231 Spur</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:233-235</systemName>
       <userName>BS 233-235</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:233-243</systemName>
       <userName>BS 233-243</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:235_Spur</systemName>
       <userName>BS 235 Spur</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:237-245</systemName>
       <userName>BS 237-245</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:239_Spur</systemName>
       <userName>BS 239 Spur</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:241_Spur</systemName>
       <userName>BS 241 Spur</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:243_Spur_1</systemName>
       <userName>BS 243 Spur 1</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:243_Spur_2</systemName>
       <userName>BS 243 Spur 2</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:245_Spur_1</systemName>
       <userName>BS 245 Spur 1</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:245_Spur_2</systemName>
       <userName>BS 245 Spur 2</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:Helix_Inner</systemName>
       <userName>BS Helix Inner</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S4100 (draft)</comment>
+      <comment>internal, not wired | planned M2S4100 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:Helix_Outer</systemName>
       <userName>BS Helix Outer</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S4101 (draft)</comment>
+      <comment>internal, not wired | planned M2S4101 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS101</systemName>
       <userName>BS Switch 101</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS103</systemName>
       <userName>BS Switch 103</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS105</systemName>
       <userName>BS Switch 105</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS107</systemName>
       <userName>BS Switch 107</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S3300 (draft)</comment>
+      <comment>internal, not wired | planned M2S3300 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS109</systemName>
       <userName>BS Switch 109</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S3301 (draft)</comment>
+      <comment>internal, not wired | planned M2S3301 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS111</systemName>
       <userName>BS Switch 111</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S3302 (draft)</comment>
+      <comment>internal, not wired | planned M2S3302 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS113</systemName>
       <userName>BS Switch 113</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS115</systemName>
       <userName>BS Switch 115</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS117</systemName>
       <userName>BS Switch 117</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S3303 (draft)</comment>
+      <comment>internal, not wired | planned M2S3303 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS119</systemName>
       <userName>BS Switch 119</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S3304 (draft)</comment>
+      <comment>internal, not wired | planned M2S3304 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS121</systemName>
       <userName>BS Switch 121</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS123</systemName>
       <userName>BS Switch 123</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S4200 (draft)</comment>
+      <comment>internal, not wired | planned M2S4200 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS125</systemName>
       <userName>BS Switch 125</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S4201 (draft)</comment>
+      <comment>internal, not wired | planned M2S4201 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS127</systemName>
       <userName>BS Switch 127</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S4202 (draft)</comment>
+      <comment>internal, not wired | planned M2S4202 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS129</systemName>
       <userName>BS Switch 129</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS131</systemName>
       <userName>BS Switch 131</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S4203 (draft)</comment>
+      <comment>internal, not wired | planned M2S4203 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS201</systemName>
       <userName>BS Switch 201</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S2300 (draft)</comment>
+      <comment>internal, not wired | planned M2S2300 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS203</systemName>
       <userName>BS Switch 203</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S2301 (draft)</comment>
+      <comment>internal, not wired | planned M2S2301 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS205</systemName>
       <userName>BS Switch 205</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS207</systemName>
       <userName>BS Switch 207</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS209</systemName>
       <userName>BS Switch 209</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS211</systemName>
       <userName>BS Switch 211</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S2400 (draft)</comment>
+      <comment>internal, not wired | planned M2S2400 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS213</systemName>
       <userName>BS Switch 213</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS215</systemName>
       <userName>BS Switch 215</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS217</systemName>
       <userName>BS Switch 217</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S2401 (draft)</comment>
+      <comment>internal, not wired | planned M2S2401 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS219</systemName>
       <userName>BS Switch 219</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S2302 (draft)</comment>
+      <comment>internal, not wired | planned M2S2302 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS221</systemName>
       <userName>BS Switch 221</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S2303 (draft)</comment>
+      <comment>internal, not wired | planned M2S2303 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS223</systemName>
       <userName>BS Switch 223</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S2200 (draft)</comment>
+      <comment>internal, not wired | planned M2S2200 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS225a</systemName>
       <userName>BS Switch 225a</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S2100 (draft)</comment>
+      <comment>internal, not wired | planned M2S2100 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS225b</systemName>
       <userName>BS Switch 225b</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); detector planned, not wired yet: no node or input (owner, 2026-11-16)</comment>
+      <comment>internal, not wired | detector planned, not wired yet: no node or input (owner, 2026-11-16)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS225c</systemName>
       <userName>BS Switch 225c</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); detector planned, not wired yet: no node or input (owner, 2026-11-16)</comment>
+      <comment>internal, not wired | detector planned, not wired yet: no node or input (owner, 2026-11-16)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS225d</systemName>
       <userName>BS Switch 225d</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); detector planned, not wired yet: no node or input (owner, 2026-11-16)</comment>
+      <comment>internal, not wired | detector planned, not wired yet: no node or input (owner, 2026-11-16)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS227</systemName>
       <userName>BS Switch 227</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S2101 (draft)</comment>
+      <comment>internal, not wired | planned M2S2101 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS229</systemName>
       <userName>BS Switch 229</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S2102 (draft)</comment>
+      <comment>internal, not wired | planned M2S2102 (draft)</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS231</systemName>
       <userName>BS Switch 231</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS233</systemName>
       <userName>BS Switch 233</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS235</systemName>
       <userName>BS Switch 235</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS237</systemName>
       <userName>BS Switch 237</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS239</systemName>
       <userName>BS Switch 239</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS241</systemName>
       <userName>BS Switch 241</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS243</systemName>
       <userName>BS Switch 243</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS245</systemName>
       <userName>BS Switch 245</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
+      <comment>internal, not wired | no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:SML_MODE</systemName>
@@ -1062,197 +1062,197 @@
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:101</systemName>
       <userName>Switch 101</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>Switch 101 | internal, not wired | planned M2T3408 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:103</systemName>
       <userName>Switch 103</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>Switch 103 | internal, not wired | planned M2T3409 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:105</systemName>
       <userName>Switch 105</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>Switch 105 | internal, not wired | planned M2T3313 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:107</systemName>
       <userName>Switch 107</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>CP 107 | Switch 107 | internal, not wired | planned M2T3308 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:109</systemName>
       <userName>Switch 109</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>CP 107 | Switch 109 | internal, not wired | planned M2T3309 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:111</systemName>
       <userName>Switch 111</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>CP 107 | Switch 111 | internal, not wired | planned M2T3310 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:113</systemName>
       <userName>Switch 113</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>Switch 113 | internal, not wired | planned M2T3314 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:115</systemName>
       <userName>Switch 115</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>Switch 115 | internal, not wired | planned M2T3315 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:117</systemName>
       <userName>Switch 117</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>CP 107 | Switch 117 | internal, not wired | planned M2T3311 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:119</systemName>
       <userName>Switch 119</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>CP 107 | Switch 119 | internal, not wired | planned M2T3312 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:121</systemName>
       <userName>Switch 121</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>Switch 121 | internal, not wired | planned M2T4212 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:123</systemName>
       <userName>Switch 123</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>CP 123 | Switch 123 | internal, not wired | planned M2T4208 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:125</systemName>
       <userName>Switch 125</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>CP 123 | Switch 125 | internal, not wired | planned M2T4209 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:127</systemName>
       <userName>Switch 127</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>CP 127 | Switch 127 | internal, not wired | planned M2T4210 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:129</systemName>
       <userName>Switch 129</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>Switch 129 | internal, not wired | planned M2T4213 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:131</systemName>
       <userName>Switch 131</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>CP 127 | Switch 131 | internal, not wired | planned M2T4211 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:201</systemName>
       <userName>Switch 201</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>CP 201 | Switch 201 | internal, not wired | planned M2T2308 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:203</systemName>
       <userName>Switch 203</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>CP 201 | Switch 203 | internal, not wired | planned M2T2309 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:205</systemName>
       <userName>Switch 205</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>Switch 205 | internal, not wired | planned M2T2312 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:207</systemName>
       <userName>Switch 207</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>Switch 207 | internal, not wired | planned M2T2410 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:209</systemName>
       <userName>Switch 209</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>Switch 209 | internal, not wired | planned M2T2313 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:211</systemName>
       <userName>Switch 211</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>CP 211 | Switch 211 | internal, not wired | planned M2T2408 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:213</systemName>
       <userName>Switch 213</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>Switch 213 | internal, not wired | planned M2T2411 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:215</systemName>
       <userName>Switch 215</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>Switch 215 | internal, not wired | planned M2T2412 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:217</systemName>
       <userName>Switch 217</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>CP 217 | Switch 217 | internal, not wired | planned M2T2409 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:219</systemName>
       <userName>Switch 219</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>CP 201 | Switch 219 | internal, not wired | planned M2T2310 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:221</systemName>
       <userName>Switch 221</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>CP 201 | Switch 221 | internal, not wired | planned M2T2311 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:223</systemName>
       <userName>Switch 223</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>CP 223 | Switch 223 | internal, not wired | planned M2T2208 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:225</systemName>
       <userName>Switch 225</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>CP 225 | Switch 225 | internal, not wired | planned M2T2108 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:227</systemName>
       <userName>Switch 227</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>CP 225 | Switch 227 | internal, not wired | planned M2T2109 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:229</systemName>
       <userName>Switch 229</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>CP 225 | Switch 229 | internal, not wired | planned M2T2110 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:231</systemName>
       <userName>Switch 231</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>Switch 231 | internal, not wired | planned M2T2111 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:233</systemName>
       <userName>Switch 233</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>Switch 233 | internal, not wired | planned M2T2112 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:235</systemName>
       <userName>Switch 235</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>Switch 235 | internal, not wired | planned M2T2113 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:237</systemName>
       <userName>Switch 237</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>Switch 237 | internal, not wired | planned M2T2114 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:239</systemName>
       <userName>Switch 239</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>Switch 239 | internal, not wired | planned M2T2115 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:241</systemName>
       <userName>Switch 241</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>Switch 241 | internal, not wired | planned M2T4108 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:243</systemName>
       <userName>Switch 243</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>Switch 243 | internal, not wired | planned M2T4109 (draft)</comment>
     </turnout>
     <turnout feedback="DIRECT" inverted="false" automate="Off">
       <systemName>IT:HART:C3:245</systemName>
       <userName>Switch 245</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>Switch 245 | internal, not wired | planned M2T4110 (draft)</comment>
     </turnout>
   </turnouts>
   <turnouts class="jmri.jmrix.mqtt.configurexml.MqttTurnoutManagerXml">
@@ -1580,382 +1580,382 @@
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:108LA_Bottom</systemName>
       <userName>Head 108LA Bottom</userName>
-      <comment>CP 107 | Switch 107 | virtual (device map); planned IH3333</comment>
+      <comment>CP 107 | Switch 107 | internal, not wired | planned IH3333 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:108LA_Top</systemName>
       <userName>Head 108LA Top</userName>
-      <comment>CP 107 | Switch 107 | virtual (device map); planned IH3332</comment>
+      <comment>CP 107 | Switch 107 | internal, not wired | planned IH3332 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:108LB_Bottom</systemName>
       <userName>Head 108LB Bottom</userName>
-      <comment>CP 107 | Switch 107 | virtual (device map); planned IH3335</comment>
+      <comment>CP 107 | Switch 107 | internal, not wired | planned IH3335 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:108LB_Top</systemName>
       <userName>Head 108LB Top</userName>
-      <comment>CP 107 | Switch 107 | virtual (device map); planned IH3334</comment>
+      <comment>CP 107 | Switch 107 | internal, not wired | planned IH3334 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:110L_Bottom</systemName>
       <userName>Head 110L Bottom</userName>
-      <comment>CP 107 | Switch 109 | virtual (device map); planned IH4333</comment>
+      <comment>CP 107 | Switch 109 | internal, not wired | planned IH4333 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:110L_Top</systemName>
       <userName>Head 110L Top</userName>
-      <comment>CP 107 | Switch 109 | virtual (device map); planned IH4332</comment>
+      <comment>CP 107 | Switch 109 | internal, not wired | planned IH4332 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:112L_Bottom</systemName>
       <userName>Head 112L Bottom</userName>
-      <comment>CP 107 | Switch 111 | virtual (device map); planned IH4335</comment>
+      <comment>CP 107 | Switch 111 | internal, not wired | planned IH4335 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:112L_Top</systemName>
       <userName>Head 112L Top</userName>
-      <comment>CP 107 | Switch 111 | virtual (device map); planned IH4334</comment>
+      <comment>CP 107 | Switch 111 | internal, not wired | planned IH4334 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:118L_Bottom</systemName>
       <userName>Head 118L Bottom</userName>
-      <comment>CP 107 | Switch 117 | virtual (device map); planned IH4337</comment>
+      <comment>CP 107 | Switch 117 | internal, not wired | planned IH4337 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:118L_Top</systemName>
       <userName>Head 118L Top</userName>
-      <comment>CP 107 | Switch 117 | virtual (device map); planned IH4336</comment>
+      <comment>CP 107 | Switch 117 | internal, not wired | planned IH4336 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:120RA_Bottom</systemName>
       <userName>Head 120RA Bottom</userName>
-      <comment>CP 107 | Switch 119 | virtual (device map); planned IH4339</comment>
+      <comment>CP 107 | Switch 119 | internal, not wired | planned IH4339 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:120RA_Top</systemName>
       <userName>Head 120RA Top</userName>
-      <comment>CP 107 | Switch 119 | virtual (device map); planned IH4338</comment>
+      <comment>CP 107 | Switch 119 | internal, not wired | planned IH4338 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:120RB_Bottom</systemName>
       <userName>Head 120RB Bottom</userName>
-      <comment>CP 107 | Switch 119 | virtual (device map); not on a node yet</comment>
+      <comment>CP 107 | Switch 119 | internal, not wired | not on a node yet</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:120RB_Top</systemName>
       <userName>Head 120RB Top</userName>
-      <comment>CP 107 | Switch 119 | virtual (device map); not on a node yet</comment>
+      <comment>CP 107 | Switch 119 | internal, not wired | not on a node yet</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:124LA_Bottom</systemName>
       <userName>Head 124LA Bottom</userName>
-      <comment>CP 123 | Switch 123 | virtual (device map); planned IH4233</comment>
+      <comment>CP 123 | Switch 123 | internal, not wired | planned IH4233 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:124LA_Top</systemName>
       <userName>Head 124LA Top</userName>
-      <comment>CP 123 | Switch 123 | virtual (device map); planned IH4232</comment>
+      <comment>CP 123 | Switch 123 | internal, not wired | planned IH4232 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:124LB_Bottom</systemName>
       <userName>Head 124LB Bottom</userName>
-      <comment>CP 123 | Switch 123 | virtual (device map); planned IH4235</comment>
+      <comment>CP 123 | Switch 123 | internal, not wired | planned IH4235 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:124LB_Top</systemName>
       <userName>Head 124LB Top</userName>
-      <comment>CP 123 | Switch 123 | virtual (device map); planned IH4234</comment>
+      <comment>CP 123 | Switch 123 | internal, not wired | planned IH4234 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:126RA_Bottom</systemName>
       <userName>Head 126RA Bottom</userName>
-      <comment>CP 123 | Switch 125 | virtual (device map); planned IH5233</comment>
+      <comment>CP 123 | Switch 125 | internal, not wired | planned IH5233 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:126RA_Top</systemName>
       <userName>Head 126RA Top</userName>
-      <comment>CP 123 | Switch 125 | virtual (device map); planned IH5232</comment>
+      <comment>CP 123 | Switch 125 | internal, not wired | planned IH5232 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:126RB_Bottom</systemName>
       <userName>Head 126RB Bottom</userName>
-      <comment>CP 123 | Switch 125 | virtual (device map); planned IH5235</comment>
+      <comment>CP 123 | Switch 125 | internal, not wired | planned IH5235 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:126RB_Top</systemName>
       <userName>Head 126RB Top</userName>
-      <comment>CP 123 | Switch 125 | virtual (device map); planned IH5234</comment>
+      <comment>CP 123 | Switch 125 | internal, not wired | planned IH5234 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:128LA_Bottom</systemName>
       <userName>Head 128LA Bottom</userName>
-      <comment>CP 127 | Switch 127 | virtual (device map); planned IH5237</comment>
+      <comment>CP 127 | Switch 127 | internal, not wired | planned IH5237 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:128LA_Top</systemName>
       <userName>Head 128LA Top</userName>
-      <comment>CP 127 | Switch 127 | virtual (device map); planned IH5236</comment>
+      <comment>CP 127 | Switch 127 | internal, not wired | planned IH5236 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:128LB_Bottom</systemName>
       <userName>Head 128LB Bottom</userName>
-      <comment>CP 127 | Switch 127 | virtual (device map); planned IH5239</comment>
+      <comment>CP 127 | Switch 127 | internal, not wired | planned IH5239 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:128LB_Top</systemName>
       <userName>Head 128LB Top</userName>
-      <comment>CP 127 | Switch 127 | virtual (device map); planned IH5238</comment>
+      <comment>CP 127 | Switch 127 | internal, not wired | planned IH5238 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:132RA_Bottom</systemName>
       <userName>Head 132RA Bottom</userName>
-      <comment>CP 127 | Switch 131 | virtual (device map); not on a node yet</comment>
+      <comment>CP 127 | Switch 131 | internal, not wired | not on a node yet</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:132RA_Top</systemName>
       <userName>Head 132RA Top</userName>
-      <comment>CP 127 | Switch 131 | virtual (device map); not on a node yet</comment>
+      <comment>CP 127 | Switch 131 | internal, not wired | not on a node yet</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:132RB_Bottom</systemName>
       <userName>Head 132RB Bottom</userName>
-      <comment>CP 127 | Switch 131 | virtual (device map); not on a node yet</comment>
+      <comment>CP 127 | Switch 131 | internal, not wired | not on a node yet</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:132RB_Top</systemName>
       <userName>Head 132RB Top</userName>
-      <comment>CP 127 | Switch 131 | virtual (device map); not on a node yet</comment>
+      <comment>CP 127 | Switch 131 | internal, not wired | not on a node yet</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:202R_Bottom</systemName>
       <userName>Head 202R Bottom</userName>
-      <comment>CP 201 | Switch 201 | virtual (device map); planned IH2333</comment>
+      <comment>CP 201 | Switch 201 | internal, not wired | planned IH2333 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:202R_Top</systemName>
       <userName>Head 202R Top</userName>
-      <comment>CP 201 | Switch 201 | virtual (device map); planned IH2332</comment>
+      <comment>CP 201 | Switch 201 | internal, not wired | planned IH2332 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:204RA_Bottom</systemName>
       <userName>Head 204RA Bottom</userName>
-      <comment>CP 201 | Switch 203 | virtual (device map); planned IH2335</comment>
+      <comment>CP 201 | Switch 203 | internal, not wired | planned IH2335 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:204RA_Top</systemName>
       <userName>Head 204RA Top</userName>
-      <comment>CP 201 | Switch 203 | virtual (device map); planned IH2334</comment>
+      <comment>CP 201 | Switch 203 | internal, not wired | planned IH2334 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:204RB_Bottom</systemName>
       <userName>Head 204RB Bottom</userName>
-      <comment>CP 201 | Switch 203 | virtual (device map); planned IH1433</comment>
+      <comment>CP 201 | Switch 203 | internal, not wired | planned IH1433 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:204RB_Top</systemName>
       <userName>Head 204RB Top</userName>
-      <comment>CP 201 | Switch 203 | virtual (device map); planned IH1432</comment>
+      <comment>CP 201 | Switch 203 | internal, not wired | planned IH1432 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:212LA_Bottom</systemName>
       <userName>Head 212LA Bottom</userName>
-      <comment>CP 211 | Switch 211 | virtual (device map); planned IH2433</comment>
+      <comment>CP 211 | Switch 211 | internal, not wired | planned IH2433 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:212LA_Top</systemName>
       <userName>Head 212LA Top</userName>
-      <comment>CP 211 | Switch 211 | virtual (device map); planned IH2432</comment>
+      <comment>CP 211 | Switch 211 | internal, not wired | planned IH2432 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:212LB</systemName>
       <userName>Head 212LB</userName>
-      <comment>CP 211 | Switch 211 | virtual (device map); planned IH5436</comment>
+      <comment>CP 211 | Switch 211 | internal, not wired | planned IH5436 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:212RA</systemName>
       <userName>Head 212RA</userName>
-      <comment>CP 211 | Switch 211 | virtual (device map); planned IH5437</comment>
+      <comment>CP 211 | Switch 211 | internal, not wired | planned IH5437 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:212RB_Bottom</systemName>
       <userName>Head 212RB Bottom</userName>
-      <comment>CP 211 | Switch 211 | virtual (device map); planned IH2435</comment>
+      <comment>CP 211 | Switch 211 | internal, not wired | planned IH2435 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:212RB_Top</systemName>
       <userName>Head 212RB Top</userName>
-      <comment>CP 211 | Switch 211 | virtual (device map); planned IH2434</comment>
+      <comment>CP 211 | Switch 211 | internal, not wired | planned IH2434 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:218LA</systemName>
       <userName>Head 218LA</userName>
-      <comment>CP 217 | Switch 217 | virtual (device map); planned IH5438</comment>
+      <comment>CP 217 | Switch 217 | internal, not wired | planned IH5438 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:218LB_Bottom</systemName>
       <userName>Head 218LB Bottom</userName>
-      <comment>CP 217 | Switch 217 | virtual (device map); planned IH5433</comment>
+      <comment>CP 217 | Switch 217 | internal, not wired | planned IH5433 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:218LB_Top</systemName>
       <userName>Head 218LB Top</userName>
-      <comment>CP 217 | Switch 217 | virtual (device map); planned IH5432</comment>
+      <comment>CP 217 | Switch 217 | internal, not wired | planned IH5432 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:218RA_Bottom</systemName>
       <userName>Head 218RA Bottom</userName>
-      <comment>CP 217 | Switch 217 | virtual (device map); planned IH5435</comment>
+      <comment>CP 217 | Switch 217 | internal, not wired | planned IH5435 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:218RA_Top</systemName>
       <userName>Head 218RA Top</userName>
-      <comment>CP 217 | Switch 217 | virtual (device map); planned IH5434</comment>
+      <comment>CP 217 | Switch 217 | internal, not wired | planned IH5434 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:218RB</systemName>
       <userName>Head 218RB</userName>
-      <comment>CP 217 | Switch 217 | virtual (device map); planned IH5439</comment>
+      <comment>CP 217 | Switch 217 | internal, not wired | planned IH5439 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:220R_Bottom</systemName>
       <userName>Head 220R Bottom</userName>
-      <comment>CP 201 | Switch 219 | virtual (device map); planned IH1435</comment>
+      <comment>CP 201 | Switch 219 | internal, not wired | planned IH1435 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:220R_Top</systemName>
       <userName>Head 220R Top</userName>
-      <comment>CP 201 | Switch 219 | virtual (device map); planned IH1434</comment>
+      <comment>CP 201 | Switch 219 | internal, not wired | planned IH1434 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:222LA_Bottom</systemName>
       <userName>Head 222LA Bottom</userName>
-      <comment>CP 201 | Switch 221 | virtual (device map); planned IH1437</comment>
+      <comment>CP 201 | Switch 221 | internal, not wired | planned IH1437 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:222LA_Top</systemName>
       <userName>Head 222LA Top</userName>
-      <comment>CP 201 | Switch 221 | virtual (device map); planned IH1436</comment>
+      <comment>CP 201 | Switch 221 | internal, not wired | planned IH1436 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:222LB</systemName>
       <userName>Head 222LB</userName>
-      <comment>CP 201 | Switch 221 | virtual (device map); not on a node yet</comment>
+      <comment>CP 201 | Switch 221 | internal, not wired | not on a node yet</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:222R_Bottom</systemName>
       <userName>Head 222R Bottom</userName>
-      <comment>CP 201 | Switch 221 | virtual (device map); planned IH1439</comment>
+      <comment>CP 201 | Switch 221 | internal, not wired | planned IH1439 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:222R_Top</systemName>
       <userName>Head 222R Top</userName>
-      <comment>CP 201 | Switch 221 | virtual (device map); planned IH1438</comment>
+      <comment>CP 201 | Switch 221 | internal, not wired | planned IH1438 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:224LA</systemName>
       <userName>Head 224LA</userName>
-      <comment>CP 223 | Switch 223 | virtual (device map); planned IH2234</comment>
+      <comment>CP 223 | Switch 223 | internal, not wired | planned IH2234 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:224LB</systemName>
       <userName>Head 224LB</userName>
-      <comment>CP 223 | Switch 223 | virtual (device map); planned IH2235</comment>
+      <comment>CP 223 | Switch 223 | internal, not wired | planned IH2235 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:224R_Bottom</systemName>
       <userName>Head 224R Bottom</userName>
-      <comment>CP 223 | Switch 223 | virtual (device map); planned IH2233</comment>
+      <comment>CP 223 | Switch 223 | internal, not wired | planned IH2233 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:224R_Top</systemName>
       <userName>Head 224R Top</userName>
-      <comment>CP 223 | Switch 223 | virtual (device map); planned IH2232</comment>
+      <comment>CP 223 | Switch 223 | internal, not wired | planned IH2232 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:226RA_Bottom</systemName>
       <userName>Head 226RA Bottom</userName>
-      <comment>CP 225 | Switch 225 | virtual (device map); planned IH2133</comment>
+      <comment>CP 225 | Switch 225 | internal, not wired | planned IH2133 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:226RA_Top</systemName>
       <userName>Head 226RA Top</userName>
-      <comment>CP 225 | Switch 225 | virtual (device map); planned IH2132</comment>
+      <comment>CP 225 | Switch 225 | internal, not wired | planned IH2132 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:226RB_Bottom</systemName>
       <userName>Head 226RB Bottom</userName>
-      <comment>CP 225 | Switch 225 | virtual (device map); planned IH2135</comment>
+      <comment>CP 225 | Switch 225 | internal, not wired | planned IH2135 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:226RB_Top</systemName>
       <userName>Head 226RB Top</userName>
-      <comment>CP 225 | Switch 225 | virtual (device map); planned IH2134</comment>
+      <comment>CP 225 | Switch 225 | internal, not wired | planned IH2134 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:228RA_Bottom</systemName>
       <userName>Head 228RA Bottom</userName>
-      <comment>CP 225 | Switch 227 | virtual (device map); planned IH4133</comment>
+      <comment>CP 225 | Switch 227 | internal, not wired | planned IH4133 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:228RA_Top</systemName>
       <userName>Head 228RA Top</userName>
-      <comment>CP 225 | Switch 227 | virtual (device map); planned IH4132</comment>
+      <comment>CP 225 | Switch 227 | internal, not wired | planned IH4132 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:228RB_Bottom</systemName>
       <userName>Head 228RB Bottom</userName>
-      <comment>CP 225 | Switch 227 | virtual (device map); planned IH4135</comment>
+      <comment>CP 225 | Switch 227 | internal, not wired | planned IH4135 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:228RB_Top</systemName>
       <userName>Head 228RB Top</userName>
-      <comment>CP 225 | Switch 227 | virtual (device map); planned IH4134</comment>
+      <comment>CP 225 | Switch 227 | internal, not wired | planned IH4134 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:230LA_Bottom</systemName>
       <userName>Head 230LA Bottom</userName>
-      <comment>CP 225 | Switch 229 | virtual (device map); planned IH4137</comment>
+      <comment>CP 225 | Switch 229 | internal, not wired | planned IH4137 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:230LA_Top</systemName>
       <userName>Head 230LA Top</userName>
-      <comment>CP 225 | Switch 229 | virtual (device map); planned IH4136</comment>
+      <comment>CP 225 | Switch 229 | internal, not wired | planned IH4136 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:230LB_Bottom</systemName>
       <userName>Head 230LB Bottom</userName>
-      <comment>CP 225 | Switch 229 | virtual (device map); not on a node yet</comment>
+      <comment>CP 225 | Switch 229 | internal, not wired | not on a node yet</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:230LB_Top</systemName>
       <userName>Head 230LB Top</userName>
-      <comment>CP 225 | Switch 229 | virtual (device map); not on a node yet</comment>
+      <comment>CP 225 | Switch 229 | internal, not wired | not on a node yet</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:242L</systemName>
       <userName>Head 242L</userName>
-      <comment>Switch 241 | virtual (device map); not on a node yet</comment>
+      <comment>Helix | Switch 241 | internal, not wired | not on a node yet</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:A83</systemName>
       <userName>Head A83</userName>
-      <comment>CP 107 | intermediate | virtual (device map); not on a node yet</comment>
+      <comment>CP 107 | intermediate | internal, not wired | not on a node yet</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:A84</systemName>
       <userName>Head A84</userName>
-      <comment>CP 107 | intermediate | virtual (device map); not on a node yet</comment>
+      <comment>CP 107 | intermediate | internal, not wired | not on a node yet</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:B92</systemName>
       <userName>Head B92</userName>
-      <comment>CP 225 | intermediate | virtual (device map); not on a node yet</comment>
+      <comment>CP 225 | intermediate | internal, not wired | not on a node yet</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:B93</systemName>
       <userName>Head B93</userName>
-      <comment>CP 225 | intermediate | virtual (device map); not on a node yet</comment>
+      <comment>CP 225 | intermediate | internal, not wired | not on a node yet</comment>
     </signalhead>
   </signalheads>
   <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">
@@ -1986,7 +1986,7 @@
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-low(IH:HART:C3:242L)</systemName>
       <userName>Mast 242L</userName>
-      <comment>Switch 241 | West | virtual (device map); not on a node yet</comment>
+      <comment>Helix | Switch 241 | West | not on a node yet</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
@@ -2070,49 +2070,49 @@
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:212LB)</systemName>
       <userName>Mast 212LB</userName>
-      <comment>CP 211 | Switch 211 | West | virtual (device map); planned IF$shsm:basic:one-searchlight(IH5436)</comment>
+      <comment>CP 211 | Switch 211 | West | planned IF$shsm:basic:one-searchlight(IH5436) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:212RA)</systemName>
       <userName>Mast 212RA</userName>
-      <comment>CP 211 | Switch 211 | East | virtual (device map); planned IF$shsm:basic:one-searchlight(IH5437)</comment>
+      <comment>CP 211 | Switch 211 | East | planned IF$shsm:basic:one-searchlight(IH5437) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:218LA)</systemName>
       <userName>Mast 218LA</userName>
-      <comment>CP 217 | Switch 217 | West | virtual (device map); planned IF$shsm:basic:one-searchlight(IH5438)</comment>
+      <comment>CP 217 | Switch 217 | West | planned IF$shsm:basic:one-searchlight(IH5438) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:218RB)</systemName>
       <userName>Mast 218RB</userName>
-      <comment>CP 217 | Switch 217 | East | virtual (device map); planned IF$shsm:basic:one-searchlight(IH5439)</comment>
+      <comment>CP 217 | Switch 217 | East | planned IF$shsm:basic:one-searchlight(IH5439) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:222LB)</systemName>
       <userName>Mast 222LB</userName>
-      <comment>CP 201 | Switch 221 | West | virtual (device map); not on a node yet</comment>
+      <comment>CP 201 | Switch 221 | West | not on a node yet</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:224LA)</systemName>
       <userName>Mast 224LA</userName>
-      <comment>CP 223 | Switch 223 | West | virtual (device map); planned IF$shsm:basic:one-searchlight(IH2234)</comment>
+      <comment>CP 223 | Switch 223 | West | planned IF$shsm:basic:one-searchlight(IH2234) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:224LB)</systemName>
       <userName>Mast 224LB</userName>
-      <comment>CP 223 | Switch 223 | West | virtual (device map); planned IF$shsm:basic:one-searchlight(IH2235)</comment>
+      <comment>CP 223 | Switch 223 | West | planned IF$shsm:basic:one-searchlight(IH2235) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:A83)</systemName>
       <userName>Mast A83</userName>
-      <comment>CP 107 | intermediate | West | virtual (device map); not on a node yet</comment>
+      <comment>CP 107 | intermediate | West | not on a node yet</comment>
       <properties>
         <property>
           <key>intermediateSignal</key>
@@ -2124,7 +2124,7 @@
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:A84)</systemName>
       <userName>Mast A84</userName>
-      <comment>CP 107 | intermediate | East | virtual (device map); not on a node yet</comment>
+      <comment>CP 107 | intermediate | East | not on a node yet</comment>
       <properties>
         <property>
           <key>intermediateSignal</key>
@@ -2136,7 +2136,7 @@
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:B92)</systemName>
       <userName>Mast B92</userName>
-      <comment>CP 225 | intermediate | East | virtual (device map); not on a node yet</comment>
+      <comment>CP 225 | intermediate | East | not on a node yet</comment>
       <properties>
         <property>
           <key>intermediateSignal</key>
@@ -2148,7 +2148,7 @@
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:B93)</systemName>
       <userName>Mast B93</userName>
-      <comment>CP 225 | intermediate | West | virtual (device map); not on a node yet</comment>
+      <comment>CP 225 | intermediate | West | not on a node yet</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
@@ -2160,55 +2160,55 @@
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-low(IH:HART:C3:110L_Top)(IH:HART:C3:110L_Bottom)</systemName>
       <userName>Mast 110L</userName>
-      <comment>CP 107 | Switch 109 | West | virtual (device map); planned IF$shsm:basic:two-low(IH4332)(IH4333)</comment>
+      <comment>CP 107 | Switch 109 | West | planned IF$shsm:basic:two-low(IH4332)(IH4333) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-low(IH:HART:C3:112L_Top)(IH:HART:C3:112L_Bottom)</systemName>
       <userName>Mast 112L</userName>
-      <comment>CP 107 | Switch 111 | West | virtual (device map); planned IF$shsm:basic:two-low(IH4334)(IH4335)</comment>
+      <comment>CP 107 | Switch 111 | West | planned IF$shsm:basic:two-low(IH4334)(IH4335) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-low(IH:HART:C3:118L_Top)(IH:HART:C3:118L_Bottom)</systemName>
       <userName>Mast 118L</userName>
-      <comment>CP 107 | Switch 117 | West | virtual (device map); planned IF$shsm:basic:two-low(IH4336)(IH4337)</comment>
+      <comment>CP 107 | Switch 117 | West | planned IF$shsm:basic:two-low(IH4336)(IH4337) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-low(IH:HART:C3:126RB_Top)(IH:HART:C3:126RB_Bottom)</systemName>
       <userName>Mast 126RB</userName>
-      <comment>CP 123 | Switch 125 | East | virtual (device map); planned IF$shsm:basic:two-low(IH5234)(IH5235)</comment>
+      <comment>CP 123 | Switch 125 | East | planned IF$shsm:basic:two-low(IH5234)(IH5235) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-low(IH:HART:C3:202R_Top)(IH:HART:C3:202R_Bottom)</systemName>
       <userName>Mast 202R</userName>
-      <comment>CP 201 | Switch 201 | East | virtual (device map); planned IF$shsm:basic:two-low(IH2332)(IH2333)</comment>
+      <comment>CP 201 | Switch 201 | East | planned IF$shsm:basic:two-low(IH2332)(IH2333) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-low(IH:HART:C3:204RA_Top)(IH:HART:C3:204RA_Bottom)</systemName>
       <userName>Mast 204RA</userName>
-      <comment>CP 201 | Switch 203 | East | virtual (device map); planned IF$shsm:basic:two-low(IH2334)(IH2335)</comment>
+      <comment>CP 201 | Switch 203 | East | planned IF$shsm:basic:two-low(IH2334)(IH2335) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-low(IH:HART:C3:212LA_Top)(IH:HART:C3:212LA_Bottom)</systemName>
       <userName>Mast 212LA</userName>
-      <comment>CP 211 | Switch 211 | West | virtual (device map); planned IF$shsm:basic:two-low(IH2432)(IH2433)</comment>
+      <comment>CP 211 | Switch 211 | West | planned IF$shsm:basic:two-low(IH2432)(IH2433) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-low(IH:HART:C3:228RA_Top)(IH:HART:C3:228RA_Bottom)</systemName>
       <userName>Mast 228RA</userName>
-      <comment>CP 225 | Switch 227 | East | virtual (device map); planned IF$shsm:basic:two-low(IH4132)(IH4133)</comment>
+      <comment>CP 225 | Switch 227 | East | planned IF$shsm:basic:two-low(IH4132)(IH4133) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-low(IH:HART:C3:230LB_Top)(IH:HART:C3:230LB_Bottom)</systemName>
       <userName>Mast 230LB</userName>
-      <comment>CP 225 | Switch 229 | West | virtual (device map); not on a node yet</comment>
+      <comment>CP 225 | Switch 229 | West | not on a node yet</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
@@ -2268,139 +2268,139 @@
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:108LA_Top)(IH:HART:C3:108LA_Bottom)</systemName>
       <userName>Mast 108LA</userName>
-      <comment>CP 107 | Switch 107 | West | virtual (device map); planned IF$shsm:basic:two-searchlight(IH3332)(IH3333)</comment>
+      <comment>CP 107 | Switch 107 | West | planned IF$shsm:basic:two-searchlight(IH3332)(IH3333) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:108LB_Top)(IH:HART:C3:108LB_Bottom)</systemName>
       <userName>Mast 108LB</userName>
-      <comment>CP 107 | Switch 107 | West | virtual (device map); planned IF$shsm:basic:two-searchlight(IH3334)(IH3335)</comment>
+      <comment>CP 107 | Switch 107 | West | planned IF$shsm:basic:two-searchlight(IH3334)(IH3335) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:120RA_Top)(IH:HART:C3:120RA_Bottom)</systemName>
       <userName>Mast 120RA</userName>
-      <comment>CP 107 | Switch 119 | East | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4338)(IH4339)</comment>
+      <comment>CP 107 | Switch 119 | East | planned IF$shsm:basic:two-searchlight(IH4338)(IH4339) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:120RB_Top)(IH:HART:C3:120RB_Bottom)</systemName>
       <userName>Mast 120RB</userName>
-      <comment>CP 107 | Switch 119 | East | virtual (device map); not on a node yet</comment>
+      <comment>CP 107 | Switch 119 | East | not on a node yet</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:124LA_Top)(IH:HART:C3:124LA_Bottom)</systemName>
       <userName>Mast 124LA</userName>
-      <comment>CP 123 | Switch 123 | West | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4232)(IH4233)</comment>
+      <comment>CP 123 | Switch 123 | West | planned IF$shsm:basic:two-searchlight(IH4232)(IH4233) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:124LB_Top)(IH:HART:C3:124LB_Bottom)</systemName>
       <userName>Mast 124LB</userName>
-      <comment>CP 123 | Switch 123 | West | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4234)(IH4235)</comment>
+      <comment>CP 123 | Switch 123 | West | planned IF$shsm:basic:two-searchlight(IH4234)(IH4235) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:126RA_Top)(IH:HART:C3:126RA_Bottom)</systemName>
       <userName>Mast 126RA</userName>
-      <comment>CP 123 | Switch 125 | East | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5232)(IH5233)</comment>
+      <comment>CP 123 | Switch 125 | East | planned IF$shsm:basic:two-searchlight(IH5232)(IH5233) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:128LA_Top)(IH:HART:C3:128LA_Bottom)</systemName>
       <userName>Mast 128LA</userName>
-      <comment>CP 127 | Switch 127 | West | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5236)(IH5237)</comment>
+      <comment>CP 127 | Switch 127 | West | planned IF$shsm:basic:two-searchlight(IH5236)(IH5237) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:128LB_Top)(IH:HART:C3:128LB_Bottom)</systemName>
       <userName>Mast 128LB</userName>
-      <comment>CP 127 | Switch 127 | West | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5238)(IH5239)</comment>
+      <comment>CP 127 | Switch 127 | West | planned IF$shsm:basic:two-searchlight(IH5238)(IH5239) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:132RA_Top)(IH:HART:C3:132RA_Bottom)</systemName>
       <userName>Mast 132RA</userName>
-      <comment>CP 127 | Switch 131 | East | virtual (device map); not on a node yet</comment>
+      <comment>CP 127 | Switch 131 | East | not on a node yet</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:132RB_Top)(IH:HART:C3:132RB_Bottom)</systemName>
       <userName>Mast 132RB</userName>
-      <comment>CP 127 | Switch 131 | East | virtual (device map); not on a node yet</comment>
+      <comment>CP 127 | Switch 131 | East | not on a node yet</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:204RB_Top)(IH:HART:C3:204RB_Bottom)</systemName>
       <userName>Mast 204RB</userName>
-      <comment>CP 201 | Switch 203 | East | virtual (device map); planned IF$shsm:basic:two-searchlight(IH1432)(IH1433)</comment>
+      <comment>CP 201 | Switch 203 | East | planned IF$shsm:basic:two-searchlight(IH1432)(IH1433) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:212RB_Top)(IH:HART:C3:212RB_Bottom)</systemName>
       <userName>Mast 212RB</userName>
-      <comment>CP 211 | Switch 211 | East | virtual (device map); planned IF$shsm:basic:two-searchlight(IH2434)(IH2435)</comment>
+      <comment>CP 211 | Switch 211 | East | planned IF$shsm:basic:two-searchlight(IH2434)(IH2435) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:218LB_Top)(IH:HART:C3:218LB_Bottom)</systemName>
       <userName>Mast 218LB</userName>
-      <comment>CP 217 | Switch 217 | West | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5432)(IH5433)</comment>
+      <comment>CP 217 | Switch 217 | West | planned IF$shsm:basic:two-searchlight(IH5432)(IH5433) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:218RA_Top)(IH:HART:C3:218RA_Bottom)</systemName>
       <userName>Mast 218RA</userName>
-      <comment>CP 217 | Switch 217 | East | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5434)(IH5435)</comment>
+      <comment>CP 217 | Switch 217 | East | planned IF$shsm:basic:two-searchlight(IH5434)(IH5435) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:220R_Top)(IH:HART:C3:220R_Bottom)</systemName>
       <userName>Mast 220R</userName>
-      <comment>CP 201 | Switch 219 | East | virtual (device map); planned IF$shsm:basic:two-searchlight(IH1434)(IH1435)</comment>
+      <comment>CP 201 | Switch 219 | East | planned IF$shsm:basic:two-searchlight(IH1434)(IH1435) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:222LA_Top)(IH:HART:C3:222LA_Bottom)</systemName>
       <userName>Mast 222LA</userName>
-      <comment>CP 201 | Switch 221 | West | virtual (device map); planned IF$shsm:basic:two-searchlight(IH1436)(IH1437)</comment>
+      <comment>CP 201 | Switch 221 | West | planned IF$shsm:basic:two-searchlight(IH1436)(IH1437) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:222R_Top)(IH:HART:C3:222R_Bottom)</systemName>
       <userName>Mast 222R</userName>
-      <comment>CP 201 | Switch 221 | East | virtual (device map); planned IF$shsm:basic:two-searchlight(IH1438)(IH1439)</comment>
+      <comment>CP 201 | Switch 221 | East | planned IF$shsm:basic:two-searchlight(IH1438)(IH1439) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:224R_Top)(IH:HART:C3:224R_Bottom)</systemName>
       <userName>Mast 224R</userName>
-      <comment>CP 223 | Switch 223 | East | virtual (device map); planned IF$shsm:basic:two-searchlight(IH2232)(IH2233)</comment>
+      <comment>CP 223 | Switch 223 | East | planned IF$shsm:basic:two-searchlight(IH2232)(IH2233) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:226RA_Top)(IH:HART:C3:226RA_Bottom)</systemName>
       <userName>Mast 226RA</userName>
-      <comment>CP 225 | Switch 225 | East | virtual (device map); planned IF$shsm:basic:two-searchlight(IH2132)(IH2133)</comment>
+      <comment>CP 225 | Switch 225 | East | planned IF$shsm:basic:two-searchlight(IH2132)(IH2133) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:226RB_Top)(IH:HART:C3:226RB_Bottom)</systemName>
       <userName>Mast 226RB</userName>
-      <comment>CP 225 | Switch 225 | East | virtual (device map); planned IF$shsm:basic:two-searchlight(IH2134)(IH2135)</comment>
+      <comment>CP 225 | Switch 225 | East | planned IF$shsm:basic:two-searchlight(IH2134)(IH2135) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:228RB_Top)(IH:HART:C3:228RB_Bottom)</systemName>
       <userName>Mast 228RB</userName>
-      <comment>CP 225 | Switch 227 | East | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4134)(IH4135)</comment>
+      <comment>CP 225 | Switch 227 | East | planned IF$shsm:basic:two-searchlight(IH4134)(IH4135) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:230LA_Top)(IH:HART:C3:230LA_Bottom)</systemName>
       <userName>Mast 230LA</userName>
-      <comment>CP 225 | Switch 229 | West | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4136)(IH4137)</comment>
+      <comment>CP 225 | Switch 229 | West | planned IF$shsm:basic:two-searchlight(IH4136)(IH4137) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
@@ -2436,37 +2436,37 @@
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2001)</systemName>
       <userName>Mast 102RA</userName>
-      <comment>buffer stop | East</comment>
+      <comment>Peninsula | buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2002)</systemName>
       <userName>Mast 102RB</userName>
-      <comment>buffer stop | East</comment>
+      <comment>Peninsula | buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2003)</systemName>
       <userName>Mast 104R</userName>
-      <comment>buffer stop | East</comment>
+      <comment>Peninsula | buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2004)</systemName>
       <userName>Mast 114RA</userName>
-      <comment>buffer stop | East</comment>
+      <comment>West | buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2005)</systemName>
       <userName>Mast 114RB</userName>
-      <comment>buffer stop | East</comment>
+      <comment>West | buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2006)</systemName>
       <userName>Mast 116R</userName>
-      <comment>buffer stop | East</comment>
+      <comment>West | buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
@@ -2478,103 +2478,103 @@
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2008)</systemName>
       <userName>Mast 122R</userName>
-      <comment>buffer stop | East</comment>
+      <comment>North | buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2009)</systemName>
       <userName>Mast 130LA</userName>
-      <comment>buffer stop | West</comment>
+      <comment>North | buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2010)</systemName>
       <userName>Mast 130LB</userName>
-      <comment>buffer stop | West</comment>
+      <comment>North | buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3001)</systemName>
       <userName>Mast 206L</userName>
-      <comment>buffer stop | West</comment>
+      <comment>West | buffer stop</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3002)</systemName>
       <userName>Mast 210LA</userName>
-      <comment>buffer stop | West</comment>
+      <comment>West | buffer stop</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3003)</systemName>
       <userName>Mast 210LB</userName>
-      <comment>buffer stop | West</comment>
+      <comment>West | buffer stop</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3004)</systemName>
       <userName>Mast 214L</userName>
-      <comment>buffer stop | West</comment>
+      <comment>Peninsula | buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3005)</systemName>
       <userName>Mast 216LA</userName>
-      <comment>buffer stop | West</comment>
+      <comment>Peninsula | buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3006)</systemName>
       <userName>Mast 216LB</userName>
-      <comment>buffer stop | West</comment>
+      <comment>Peninsula | buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3007)</systemName>
       <userName>Mast 232L</userName>
-      <comment>buffer stop | West</comment>
+      <comment>Helix | buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3008)</systemName>
       <userName>Mast 236R</userName>
-      <comment>buffer stop | East</comment>
+      <comment>Helix | buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3009)</systemName>
       <userName>Mast 240L</userName>
-      <comment>buffer stop | West</comment>
+      <comment>Helix | buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3010)</systemName>
       <userName>Mast 242R</userName>
-      <comment>buffer stop | East</comment>
+      <comment>Helix | buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3011)</systemName>
       <userName>Mast 244RA</userName>
-      <comment>buffer stop | East</comment>
+      <comment>Helix | buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3012)</systemName>
       <userName>Mast 244RB</userName>
-      <comment>buffer stop | East</comment>
+      <comment>Helix | buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3013)</systemName>
       <userName>Mast 246LA</userName>
-      <comment>buffer stop | West</comment>
+      <comment>Helix | buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3014)</systemName>
       <userName>Mast 246LB</userName>
-      <comment>buffer stop | West</comment>
+      <comment>Helix | buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
   </signalmasts>
@@ -3712,840 +3712,840 @@
     <block systemName="IB:C3:0001" length="406.4" curve="0">
       <systemName>IB:C3:0001</systemName>
       <userName>OS Switch 101</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 101 / IS:HART:C3:B:OS101; Peninsula</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 101</occupancysensor>
     </block>
     <block systemName="IB:C3:0002" length="406.4" curve="0">
       <systemName>IB:C3:0002</systemName>
       <userName>OS Switch 103</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 103 / IS:HART:C3:B:OS103; Peninsula</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 103</occupancysensor>
     </block>
     <block systemName="IB:C3:0003" length="210.8" curve="0">
       <systemName>IB:C3:0003</systemName>
       <userName>OS Switch 105</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 105 / IS:HART:C3:B:OS105; West</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 105</occupancysensor>
     </block>
     <block systemName="IB:C3:0004" length="233.7" curve="0">
       <systemName>IB:C3:0004</systemName>
       <userName>OS Switch 107</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 107 / IS:HART:C3:B:OS107; CP 107</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 107</occupancysensor>
     </block>
     <block systemName="IB:C3:0005" length="210.8" curve="0">
       <systemName>IB:C3:0005</systemName>
       <userName>OS Switch 109</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 109 / IS:HART:C3:B:OS109; CP 107</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 109</occupancysensor>
     </block>
     <block systemName="IB:C3:0006" length="210.8" curve="0">
       <systemName>IB:C3:0006</systemName>
       <userName>OS Switch 111</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 111 / IS:HART:C3:B:OS111; CP 107</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 111</occupancysensor>
     </block>
     <block systemName="IB:C3:0007" length="210.8" curve="0">
       <systemName>IB:C3:0007</systemName>
       <userName>OS Switch 113</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 113 / IS:HART:C3:B:OS113; West</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 113</occupancysensor>
     </block>
     <block systemName="IB:C3:0008" length="210.8" curve="0">
       <systemName>IB:C3:0008</systemName>
       <userName>OS Switch 115</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 115 / IS:HART:C3:B:OS115; West</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 115</occupancysensor>
     </block>
     <block systemName="IB:C3:0009" length="233.7" curve="0">
       <systemName>IB:C3:0009</systemName>
       <userName>OS Switch 117</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 117 / IS:HART:C3:B:OS117; CP 107</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 117</occupancysensor>
     </block>
     <block systemName="IB:C3:0010" length="421.6" curve="0">
       <systemName>IB:C3:0010</systemName>
       <userName>OS Switch 119</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 119 / IS:HART:C3:B:OS119; CP 107</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 119</occupancysensor>
     </block>
     <block systemName="IB:C3:0011" length="421.6" curve="0">
       <systemName>IB:C3:0011</systemName>
       <userName>OS Switch 121</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 121 / IS:HART:C3:B:OS121; North</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 121</occupancysensor>
     </block>
     <block systemName="IB:C3:0012" length="210.8" curve="0">
       <systemName>IB:C3:0012</systemName>
       <userName>OS Switch 123</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 123 / IS:HART:C3:B:OS123; CP 123</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 123</occupancysensor>
     </block>
     <block systemName="IB:C3:0013" length="421.6" curve="0">
       <systemName>IB:C3:0013</systemName>
       <userName>OS Switch 125</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 125 / IS:HART:C3:B:OS125; CP 123</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 125</occupancysensor>
     </block>
     <block systemName="IB:C3:0014" length="467.4" curve="0">
       <systemName>IB:C3:0014</systemName>
       <userName>OS Switch 127</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 127 / IS:HART:C3:B:OS127; CP 127</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 127</occupancysensor>
     </block>
     <block systemName="IB:C3:0015" length="210.8" curve="0">
       <systemName>IB:C3:0015</systemName>
       <userName>OS Switch 129</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 129 / IS:HART:C3:B:OS129; North</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 129</occupancysensor>
     </block>
     <block systemName="IB:C3:0016" length="467.4" curve="0">
       <systemName>IB:C3:0016</systemName>
       <userName>OS Switch 131</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 131 / IS:HART:C3:B:OS131; CP 127</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 131</occupancysensor>
     </block>
     <block systemName="IB:C3:0017" length="233.7" curve="0">
       <systemName>IB:C3:0017</systemName>
       <userName>OS Switch 201</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 201 / IS:HART:C3:B:OS201; CP 201</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 201</occupancysensor>
     </block>
     <block systemName="IB:C3:0018" length="233.7" curve="0">
       <systemName>IB:C3:0018</systemName>
       <userName>OS Switch 203</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 203 / IS:HART:C3:B:OS203; CP 201</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 203</occupancysensor>
     </block>
     <block systemName="IB:C3:0019" length="210.8" curve="0">
       <systemName>IB:C3:0019</systemName>
       <userName>OS Switch 205</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 205 / IS:HART:C3:B:OS205; West</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 205</occupancysensor>
     </block>
     <block systemName="IB:C3:0020" length="233.7" curve="0">
       <systemName>IB:C3:0020</systemName>
       <userName>OS Switch 207</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 207 / IS:HART:C3:B:OS207; Peninsula</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 207</occupancysensor>
     </block>
     <block systemName="IB:C3:0021" length="210.8" curve="0">
       <systemName>IB:C3:0021</systemName>
       <userName>OS Switch 209</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 209 / IS:HART:C3:B:OS209; West</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 209</occupancysensor>
     </block>
     <block systemName="IB:C3:0022" length="467.4" curve="0">
       <systemName>IB:C3:0022</systemName>
       <userName>OS Switch 211</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 211 / IS:HART:C3:B:OS211; CP 211</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 211</occupancysensor>
     </block>
     <block systemName="IB:C3:0023" length="281.9" curve="0">
       <systemName>IB:C3:0023</systemName>
       <userName>OS Switch 213</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 213 / IS:HART:C3:B:OS213; Peninsula</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 213</occupancysensor>
     </block>
     <block systemName="IB:C3:0024" length="281.9" curve="0">
       <systemName>IB:C3:0024</systemName>
       <userName>OS Switch 215</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 215 / IS:HART:C3:B:OS215; Peninsula</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 215</occupancysensor>
     </block>
     <block systemName="IB:C3:0025" length="467.4" curve="0">
       <systemName>IB:C3:0025</systemName>
       <userName>OS Switch 217</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 217 / IS:HART:C3:B:OS217; CP 217</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 217</occupancysensor>
     </block>
     <block systemName="IB:C3:0026" length="233.7" curve="0">
       <systemName>IB:C3:0026</systemName>
       <userName>OS Switch 219</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 219 / IS:HART:C3:B:OS219; CP 201</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 219</occupancysensor>
     </block>
     <block systemName="IB:C3:0027" length="467.4" curve="0">
       <systemName>IB:C3:0027</systemName>
       <userName>OS Switch 221</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 221 / IS:HART:C3:B:OS221; CP 201</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 221</occupancysensor>
     </block>
     <block systemName="IB:C3:0028" length="233.7" curve="0">
       <systemName>IB:C3:0028</systemName>
       <userName>OS Switch 223</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 223 / IS:HART:C3:B:OS223; CP 223</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 223</occupancysensor>
     </block>
     <block systemName="IB:C3:0029" length="119.4" curve="0">
       <systemName>IB:C3:0029</systemName>
       <userName>OS Switch 225a</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 225a / IS:HART:C3:B:OS225a; CP 225</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 225a</occupancysensor>
     </block>
     <block systemName="IB:C3:0030" length="233.7" curve="0">
       <systemName>IB:C3:0030</systemName>
       <userName>OS Switch 227</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 227 / IS:HART:C3:B:OS227; CP 225</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 227</occupancysensor>
     </block>
     <block systemName="IB:C3:0031" length="233.7" curve="0">
       <systemName>IB:C3:0031</systemName>
       <userName>OS Switch 229</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 229 / IS:HART:C3:B:OS229; CP 225</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 229</occupancysensor>
     </block>
     <block systemName="IB:C3:0032" length="210.8" curve="0">
       <systemName>IB:C3:0032</systemName>
       <userName>OS Switch 231</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 231 / IS:HART:C3:B:OS231; Helix</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 231</occupancysensor>
     </block>
     <block systemName="IB:C3:0033" length="210.8" curve="0">
       <systemName>IB:C3:0033</systemName>
       <userName>OS Switch 233</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 233 / IS:HART:C3:B:OS233; Helix</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 233</occupancysensor>
     </block>
     <block systemName="IB:C3:0034" length="210.8" curve="0">
       <systemName>IB:C3:0034</systemName>
       <userName>OS Switch 235</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 235 / IS:HART:C3:B:OS235; Helix</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 235</occupancysensor>
     </block>
     <block systemName="IB:C3:0035" length="210.8" curve="0">
       <systemName>IB:C3:0035</systemName>
       <userName>OS Switch 237</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 237 / IS:HART:C3:B:OS237; Helix</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 237</occupancysensor>
     </block>
     <block systemName="IB:C3:0036" length="210.8" curve="0">
       <systemName>IB:C3:0036</systemName>
       <userName>OS Switch 239</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 239 / IS:HART:C3:B:OS239; Helix</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 239</occupancysensor>
     </block>
     <block systemName="IB:C3:0037" length="233.7" curve="0">
       <systemName>IB:C3:0037</systemName>
       <userName>OS Switch 241</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 241 / IS:HART:C3:B:OS241; Helix</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 241</occupancysensor>
     </block>
     <block systemName="IB:C3:0038" length="421.6" curve="0">
       <systemName>IB:C3:0038</systemName>
       <userName>OS Switch 243</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 243 / IS:HART:C3:B:OS243; Helix</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 243</occupancysensor>
     </block>
     <block systemName="IB:C3:0039" length="421.6" curve="0">
       <systemName>IB:C3:0039</systemName>
       <userName>OS Switch 245</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 245 / IS:HART:C3:B:OS245; Helix</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 245</occupancysensor>
     </block>
     <block systemName="IB:C3:0040" length="1051.6" curve="0">
       <systemName>IB:C3:0040</systemName>
       <userName>Track 103 Spur</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 103 Spur / IS:HART:C3:B:103_Spur</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 103 Spur</occupancysensor>
     </block>
     <block systemName="IB:C3:0041" length="3924.3" curve="0">
       <systemName>IB:C3:0041</systemName>
       <userName>Track 107 Loop 1</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 107 Loop 1 / IS:HART:C3:B:107_Loop_1; CP 107</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 107 Loop 1</occupancysensor>
     </block>
     <block systemName="IB:C3:0042" length="713.7" curve="0">
       <systemName>IB:C3:0042</systemName>
       <userName>Track 115 Spur</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 115 Spur / IS:HART:C3:B:115_Spur</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 115 Spur</occupancysensor>
     </block>
     <block systemName="IB:C3:0043" length="838.2" curve="0">
       <systemName>IB:C3:0043</systemName>
       <userName>Track 119 Spur</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 119 Spur / IS:HART:C3:B:119_Spur; CP 107</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 119 Spur</occupancysensor>
     </block>
     <block systemName="IB:C3:0044" length="1264.9" curve="0">
       <systemName>IB:C3:0044</systemName>
       <userName>Track 121 Spur</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 121 Spur / IS:HART:C3:B:121_Spur</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 121 Spur</occupancysensor>
     </block>
     <block systemName="IB:C3:0045" length="835.7" curve="0">
       <systemName>IB:C3:0045</systemName>
       <userName>Track 205 Spur</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 205 Spur / IS:HART:C3:B:205_Spur</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 205 Spur</occupancysensor>
     </block>
     <block systemName="IB:C3:0046" length="1320.8" curve="0">
       <systemName>IB:C3:0046</systemName>
       <userName>Track 213 Spur</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 213 Spur / IS:HART:C3:B:213_Spur</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 213 Spur</occupancysensor>
     </block>
     <block systemName="IB:C3:0047" length="1518.9" curve="0">
       <systemName>IB:C3:0047</systemName>
       <userName>Track 231 Spur</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 231 Spur / IS:HART:C3:B:231_Spur</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 231 Spur</occupancysensor>
     </block>
     <block systemName="IB:C3:0048" length="825.5" curve="0">
       <systemName>IB:C3:0048</systemName>
       <userName>Track 235 Spur</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 235 Spur / IS:HART:C3:B:235_Spur</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 235 Spur</occupancysensor>
     </block>
     <block systemName="IB:C3:0049" length="1061.7" curve="0">
       <systemName>IB:C3:0049</systemName>
       <userName>Track 239 Spur</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 239 Spur / IS:HART:C3:B:239_Spur</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 239 Spur</occupancysensor>
     </block>
     <block systemName="IB:C3:0050" length="911.9" curve="0">
       <systemName>IB:C3:0050</systemName>
       <userName>Track 241 Spur</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 241 Spur / IS:HART:C3:B:241_Spur</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 241 Spur</occupancysensor>
     </block>
     <block systemName="IB:C3:0051" length="596.9" curve="0">
       <systemName>IB:C3:0051</systemName>
       <userName>Track 101 Spur 1</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 101 Spur 1 / IS:HART:C3:B:101_Spur_1</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 101 Spur 1</occupancysensor>
     </block>
     <block systemName="IB:C3:0052" length="3423.9" curve="0">
       <systemName>IB:C3:0052</systemName>
       <userName>Track 103-105 1</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 103-105 1 / IS:HART:C3:B:103-105_1</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 103-105 1</occupancysensor>
     </block>
     <block systemName="IB:C3:0053" length="497.8" curve="0">
       <systemName>IB:C3:0053</systemName>
       <userName>Track 113 Spur 1</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 113 Spur 1 / IS:HART:C3:B:113_Spur_1</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 113 Spur 1</occupancysensor>
     </block>
     <block systemName="IB:C3:0054" length="619.8" curve="0">
       <systemName>IB:C3:0054</systemName>
       <userName>Track 127-131 1</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 127-131 1 / IS:HART:C3:B:127-131_1; CP 127</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 127-131 1</occupancysensor>
     </block>
     <block systemName="IB:C3:0055" length="640.1" curve="0">
       <systemName>IB:C3:0055</systemName>
       <userName>Track 129 Spur 1</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 129 Spur 1 / IS:HART:C3:B:129_Spur_1</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 129 Spur 1</occupancysensor>
     </block>
     <block systemName="IB:C3:0056" length="1755.1" curve="0">
       <systemName>IB:C3:0056</systemName>
       <userName>Track 209 Spur 1</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 209 Spur 1 / IS:HART:C3:B:209_Spur_1</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 209 Spur 1</occupancysensor>
     </block>
     <block systemName="IB:C3:0057" length="2893.1" curve="0">
       <systemName>IB:C3:0057</systemName>
       <userName>Track 211-217 1</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 211-217 1 / IS:HART:C3:B:211-217_1; CP 211 / CP 217</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 211-217 1</occupancysensor>
     </block>
     <block systemName="IB:C3:0058" length="843.3" curve="0">
       <systemName>IB:C3:0058</systemName>
       <userName>Track 215 Spur 1</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 215 Spur 1 / IS:HART:C3:B:215_Spur_1</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 215 Spur 1</occupancysensor>
     </block>
     <block systemName="IB:C3:0059" length="3073.4" curve="0">
       <systemName>IB:C3:0059</systemName>
       <userName>Track 223-225 1</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 223-225 1 / IS:HART:C3:B:223-225_1; CP 223 / CP 225</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 223-225 1</occupancysensor>
     </block>
     <block systemName="IB:C3:0060" length="510.5" curve="0">
       <systemName>IB:C3:0060</systemName>
       <userName>Track 243 Spur 1</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 243 Spur 1 / IS:HART:C3:B:243_Spur_1</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 243 Spur 1</occupancysensor>
     </block>
     <block systemName="IB:C3:0061" length="490.2" curve="0">
       <systemName>IB:C3:0061</systemName>
       <userName>Track 245 Spur 1</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 245 Spur 1 / IS:HART:C3:B:245_Spur_1</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 245 Spur 1</occupancysensor>
     </block>
     <block systemName="IB:C3:0062" length="932.2" curve="0">
       <systemName>IB:C3:0062</systemName>
       <userName>Track 101 Spur 2</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 101 Spur 2 / IS:HART:C3:B:101_Spur_2</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 101 Spur 2</occupancysensor>
     </block>
     <block systemName="IB:C3:0063" length="3073.4" curve="0">
       <systemName>IB:C3:0063</systemName>
       <userName>Track 103-105 2</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 103-105 2 / IS:HART:C3:B:103-105_2</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 103-105 2</occupancysensor>
     </block>
     <block systemName="IB:C3:0064" length="1026.2" curve="0">
       <systemName>IB:C3:0064</systemName>
       <userName>Track 113 Spur 2</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 113 Spur 2 / IS:HART:C3:B:113_Spur_2</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 113 Spur 2</occupancysensor>
     </block>
     <block systemName="IB:C3:0065" length="0.0" curve="0">
       <systemName>IB:C3:0065</systemName>
       <userName>Track 127-131 2</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 127 / IS:HART:C3:B:OS127; part of OS Switch 127</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 127</occupancysensor>
     </block>
     <block systemName="IB:C3:0066" length="650.2" curve="0">
       <systemName>IB:C3:0066</systemName>
       <userName>Track 129 Spur 2</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 129 Spur 2 / IS:HART:C3:B:129_Spur_2</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 129 Spur 2</occupancysensor>
     </block>
     <block systemName="IB:C3:0067" length="1666.2" curve="0">
       <systemName>IB:C3:0067</systemName>
       <userName>Track 209 Spur 2</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 209 Spur 2 / IS:HART:C3:B:209_Spur_2</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 209 Spur 2</occupancysensor>
     </block>
     <block systemName="IB:C3:0068" length="2474.0" curve="0">
       <systemName>IB:C3:0068</systemName>
       <userName>Track 211-217 2</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 211-217 2 / IS:HART:C3:B:211-217_2; CP 211 / CP 217</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 211-217 2</occupancysensor>
     </block>
     <block systemName="IB:C3:0069" length="909.3" curve="0">
       <systemName>IB:C3:0069</systemName>
       <userName>Track 215 Spur 2</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 215 Spur 2 / IS:HART:C3:B:215_Spur_2</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 215 Spur 2</occupancysensor>
     </block>
     <block systemName="IB:C3:0070" length="2844.8" curve="0">
       <systemName>IB:C3:0070</systemName>
       <userName>Track 223-225 2</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 223-225 2 / IS:HART:C3:B:223-225_2; CP 223 / CP 225</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 223-225 2</occupancysensor>
     </block>
     <block systemName="IB:C3:0071" length="302.3" curve="0">
       <systemName>IB:C3:0071</systemName>
       <userName>Track 243 Spur 2</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 243 Spur 2 / IS:HART:C3:B:243_Spur_2</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 243 Spur 2</occupancysensor>
     </block>
     <block systemName="IB:C3:0072" length="279.4" curve="0">
       <systemName>IB:C3:0072</systemName>
       <userName>Track 245 Spur 2</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 245 Spur 2 / IS:HART:C3:B:245_Spur_2</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 245 Spur 2</occupancysensor>
     </block>
     <block systemName="IB:C3:0075" length="0.0" curve="0">
       <systemName>IB:C3:0075</systemName>
       <userName>Track 101-103</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 101 / IS:HART:C3:B:OS101; part of OS Switch 101</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 101</occupancysensor>
     </block>
     <block systemName="IB:C3:0076" length="3868.4" curve="0">
       <systemName>IB:C3:0076</systemName>
       <userName>Track 101-111</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 101-111 / IS:HART:C3:B:101-111; CP 107</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 101-111</occupancysensor>
     </block>
     <block systemName="IB:C3:0077" length="109.2" curve="0">
       <systemName>IB:C3:0077</systemName>
       <userName>Track 105-109</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 105 / IS:HART:C3:B:OS105; part of OS Switch 105</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 105</occupancysensor>
     </block>
     <block systemName="IB:C3:0078" length="889.0" curve="0">
       <systemName>IB:C3:0078</systemName>
       <userName>Track 107-109</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 107-109 / IS:HART:C3:B:107-109; CP 107</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 107-109</occupancysensor>
     </block>
     <block systemName="IB:C3:0079" length="137.2" curve="0">
       <systemName>IB:C3:0079</systemName>
       <userName>Track 109-111</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 109 / IS:HART:C3:B:OS109; part of OS Switch 109</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 109</occupancysensor>
     </block>
     <block systemName="IB:C3:0080" length="0.0" curve="0">
       <systemName>IB:C3:0080</systemName>
       <userName>Track 111-117</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 111 / IS:HART:C3:B:OS111; part of OS Switch 111</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 111</occupancysensor>
     </block>
     <block systemName="IB:C3:0081" length="335.3" curve="0">
       <systemName>IB:C3:0081</systemName>
       <userName>Track 113-115</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 113 / IS:HART:C3:B:OS113; part of OS Switch 113</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 113</occupancysensor>
     </block>
     <block systemName="IB:C3:0082" length="129.5" curve="0">
       <systemName>IB:C3:0082</systemName>
       <userName>Track 115-117</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 115 / IS:HART:C3:B:OS115; part of OS Switch 115</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 115</occupancysensor>
     </block>
     <block systemName="IB:C3:0083" length="0.0" curve="0">
       <systemName>IB:C3:0083</systemName>
       <userName>Track 117-119</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 117 / IS:HART:C3:B:OS117; part of OS Switch 117</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 117</occupancysensor>
     </block>
     <block systemName="IB:C3:0084" length="1582.4" curve="0">
       <systemName>IB:C3:0084</systemName>
       <userName>Track 119-121</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 119-121 / IS:HART:C3:B:119-121; CP 107</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 119-121</occupancysensor>
     </block>
     <block systemName="IB:C3:0085" length="2308.9" curve="0">
       <systemName>IB:C3:0085</systemName>
       <userName>Track 119-123</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 119-123 / IS:HART:C3:B:119-123; CP 107 / CP 123</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 119-123</occupancysensor>
     </block>
     <block systemName="IB:C3:0086" length="144.8" curve="0">
       <systemName>IB:C3:0086</systemName>
       <userName>Track 121-123</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 121 / IS:HART:C3:B:OS121; part of OS Switch 121</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 121</occupancysensor>
     </block>
     <block systemName="IB:C3:0087" length="769.6" curve="0">
       <systemName>IB:C3:0087</systemName>
       <userName>Track 121-125</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 121-125 / IS:HART:C3:B:121-125; CP 123</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 121-125</occupancysensor>
     </block>
     <block systemName="IB:C3:0088" length="0.0" curve="0">
       <systemName>IB:C3:0088</systemName>
       <userName>Track 123-125</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 123 / IS:HART:C3:B:OS123; part of OS Switch 123</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 123</occupancysensor>
     </block>
     <block systemName="IB:C3:0089" length="756.9" curve="0">
       <systemName>IB:C3:0089</systemName>
       <userName>Track 125-127</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 125-127 / IS:HART:C3:B:125-127; CP 123 / CP 127</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 125-127</occupancysensor>
     </block>
     <block systemName="IB:C3:0090" length="0.0" curve="0">
       <systemName>IB:C3:0090</systemName>
       <userName>Track 125-129</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 129 / IS:HART:C3:B:OS129; part of OS Switch 129</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 129</occupancysensor>
     </block>
     <block systemName="IB:C3:0091" length="5217.2" curve="0">
       <systemName>IB:C3:0091</systemName>
       <userName>Track 127-221</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 127-221 / IS:HART:C3:B:127-221; CP 127 / CP 201</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 127-221</occupancysensor>
     </block>
     <block systemName="IB:C3:0092" length="0.0" curve="0">
       <systemName>IB:C3:0092</systemName>
       <userName>Track 201-203</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 201 / IS:HART:C3:B:OS201; part of OS Switch 201</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 201</occupancysensor>
     </block>
     <block systemName="IB:C3:0093" length="114.3" curve="0">
       <systemName>IB:C3:0093</systemName>
       <userName>Track 201-205</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 205 / IS:HART:C3:B:OS205; part of OS Switch 205</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 205</occupancysensor>
     </block>
     <block systemName="IB:C3:0094" length="114.3" curve="0">
       <systemName>IB:C3:0094</systemName>
       <userName>Track 201-219</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 201 / IS:HART:C3:B:OS201; part of OS Switch 201</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 201</occupancysensor>
     </block>
     <block systemName="IB:C3:0095" length="1346.2" curve="0">
       <systemName>IB:C3:0095</systemName>
       <userName>Track 203-207</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 203-207 / IS:HART:C3:B:203-207; CP 201</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 203-207</occupancysensor>
     </block>
     <block systemName="IB:C3:0096" length="2745.7" curve="0">
       <systemName>IB:C3:0096</systemName>
       <userName>Track 203-211</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 203-211 / IS:HART:C3:B:203-211; CP 201 / CP 211</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 203-211</occupancysensor>
     </block>
     <block systemName="IB:C3:0097" length="0.0" curve="0">
       <systemName>IB:C3:0097</systemName>
       <userName>Track 205-209</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 205 / IS:HART:C3:B:OS205; part of OS Switch 205</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 205</occupancysensor>
     </block>
     <block systemName="IB:C3:0098" length="759.5" curve="0">
       <systemName>IB:C3:0098</systemName>
       <userName>Track 207-211</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 207-211 / IS:HART:C3:B:207-211; CP 211</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 207-211</occupancysensor>
     </block>
     <block systemName="IB:C3:0099" length="617.2" curve="0">
       <systemName>IB:C3:0099</systemName>
       <userName>Track 207-213</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 207-213 / IS:HART:C3:B:207-213</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 207-213</occupancysensor>
     </block>
     <block systemName="IB:C3:0100" length="0.0" curve="0">
       <systemName>IB:C3:0100</systemName>
       <userName>Track 213-215</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 213 / IS:HART:C3:B:OS213; part of OS Switch 213</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 213</occupancysensor>
     </block>
     <block systemName="IB:C3:0101" length="1521.5" curve="0">
       <systemName>IB:C3:0101</systemName>
       <userName>Track 217-219</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 217-219 / IS:HART:C3:B:217-219; CP 201 / CP 217</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 217-219</occupancysensor>
     </block>
     <block systemName="IB:C3:0102" length="2263.1" curve="0">
       <systemName>IB:C3:0102</systemName>
       <userName>Track 217-221</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 217-221 / IS:HART:C3:B:217-221; CP 201 / CP 217</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 217-221</occupancysensor>
     </block>
     <block systemName="IB:C3:0103" length="0.0" curve="0">
       <systemName>IB:C3:0103</systemName>
       <userName>Track 219-221</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 219 / IS:HART:C3:B:OS219; part of OS Switch 219</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 219</occupancysensor>
     </block>
     <block systemName="IB:C3:0104" length="6400.8" curve="0">
       <systemName>IB:C3:0104</systemName>
       <userName>Track 221-223</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 221-223 / IS:HART:C3:B:221-223; CP 201 / CP 223</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 221-223</occupancysensor>
     </block>
     <block systemName="IB:C3:0105" length="0.0" curve="0">
       <systemName>IB:C3:0105</systemName>
       <userName>Track 225-227</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 225c / IS:HART:C3:B:OS225c; part of OS Switch 225c</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 225c</occupancysensor>
     </block>
     <block systemName="IB:C3:0106" length="0.0" curve="0">
       <systemName>IB:C3:0106</systemName>
       <userName>Track 225-229</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 225b / IS:HART:C3:B:OS225b; part of OS Switch 225b</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 225b</occupancysensor>
     </block>
     <block systemName="IB:C3:0107" length="94.0" curve="0">
       <systemName>IB:C3:0107</systemName>
       <userName>Track 227-231</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 231 / IS:HART:C3:B:OS231; part of OS Switch 231</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 231</occupancysensor>
     </block>
     <block systemName="IB:C3:0108" length="2677.2" curve="0">
       <systemName>IB:C3:0108</systemName>
       <userName>Track 227-241 1</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 227-241 1 / IS:HART:C3:B:227-241_1; CP 225</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 227-241 1</occupancysensor>
     </block>
     <block systemName="IB:C3:0109" length="370.8" curve="0">
       <systemName>IB:C3:0109</systemName>
       <userName>Track 229-233</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 233 / IS:HART:C3:B:OS233; part of OS Switch 233</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 233</occupancysensor>
     </block>
     <block systemName="IB:C3:0110" length="657.9" curve="0">
       <systemName>IB:C3:0110</systemName>
       <userName>Track 229-241</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 229-241 / IS:HART:C3:B:229-241; CP 225</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 229-241</occupancysensor>
     </block>
     <block systemName="IB:C3:0111" length="289.6" curve="0">
       <systemName>IB:C3:0111</systemName>
       <userName>Track 231-237</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 231 / IS:HART:C3:B:OS231; part of OS Switch 231</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 231</occupancysensor>
     </block>
     <block systemName="IB:C3:0112" length="652.8" curve="0">
       <systemName>IB:C3:0112</systemName>
       <userName>Track 233-235</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 233-235 / IS:HART:C3:B:233-235</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 233-235</occupancysensor>
     </block>
     <block systemName="IB:C3:0113" length="1071.9" curve="0">
       <systemName>IB:C3:0113</systemName>
       <userName>Track 233-243</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 233-243 / IS:HART:C3:B:233-243</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 233-243</occupancysensor>
     </block>
     <block systemName="IB:C3:0114" length="0.0" curve="0">
       <systemName>IB:C3:0114</systemName>
       <userName>Track 235-243</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 235 / IS:HART:C3:B:OS235; part of OS Switch 235</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 235</occupancysensor>
     </block>
     <block systemName="IB:C3:0115" length="45.7" curve="0">
       <systemName>IB:C3:0115</systemName>
       <userName>Track 237-239</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 237 / IS:HART:C3:B:OS237; part of OS Switch 237</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 237</occupancysensor>
     </block>
     <block systemName="IB:C3:0116" length="812.8" curve="0">
       <systemName>IB:C3:0116</systemName>
       <userName>Track 237-245</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 237-245 / IS:HART:C3:B:237-245</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 237-245</occupancysensor>
     </block>
     <block systemName="IB:C3:0117" length="353.1" curve="0">
       <systemName>IB:C3:0117</systemName>
       <userName>Track 239-245</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 239 / IS:HART:C3:B:OS239; part of OS Switch 239</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 239</occupancysensor>
     </block>
     <block systemName="IB:C3:0118" length="3924.3" curve="0">
       <systemName>IB:C3:0118</systemName>
       <userName>Track 107 Loop 2</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 107 Loop 2 / IS:HART:C3:B:107_Loop_2; CP 107</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 107 Loop 2</occupancysensor>
     </block>
     <block systemName="IB:C3:0119" length="119.4" curve="0">
       <systemName>IB:C3:0119</systemName>
       <userName>OS Switch 225b</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 225b / IS:HART:C3:B:OS225b; CP 225</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 225b</occupancysensor>
     </block>
     <block systemName="IB:C3:0120" length="119.4" curve="0">
       <systemName>IB:C3:0120</systemName>
       <userName>OS Switch 225c</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 225c / IS:HART:C3:B:OS225c; CP 225</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 225c</occupancysensor>
     </block>
     <block systemName="IB:C3:0121" length="119.4" curve="0">
       <systemName>IB:C3:0121</systemName>
       <userName>OS Switch 225d</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS Switch 225d / IS:HART:C3:B:OS225d; CP 225</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 225d</occupancysensor>
     </block>
     <block systemName="IB:C3:0122" length="2677.2" curve="0">
       <systemName>IB:C3:0122</systemName>
       <userName>Track 227-241 2</userName>
-      <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
+      <comment>BS 227-241 2 / IS:HART:C3:B:227-241_2; CP 225</comment>
       <permissive>no</permissive>
       <occupancysensor>BS 227-241 2</occupancysensor>
     </block>

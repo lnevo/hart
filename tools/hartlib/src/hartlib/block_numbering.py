@@ -17,7 +17,8 @@ any more, so its row gives the name it had (retired), and numbered_as is the nam
 name no block has now).
 
 The owner keeps today's numbers until those levels are wired for good (2026-11-23): build_device_map.py copies
-them into the block rows' jmri_name and layout_block, and the Layout Editor build (le_tables) reads them there.
+them into the block rows' jmri_name and layout_block, hartlib.tables_build.master_beans names the beans from them, and
+the Layout Editor build (le_tables.check_level_blocks) holds the drawn blocks to the numbering.
 """
 from __future__ import annotations
 

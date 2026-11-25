@@ -113,9 +113,9 @@ class Cutover(unittest.TestCase):
         self.assertTrue(0.7 < self.P.staging_fit[0] < 0.9, self.P.staging_fit)     # staging's own fit to le_window
 
     def test_no_placeholders_in_staging_mode(self) -> None:
-        self.assertFalse([t for t in tables.turnouts(self.root) if tables.system_name(t).startswith(B.TURNOUT_SYS)])
-        self.assertFalse([b for b in tables.blocks(self.root) if tables.system_name(b).startswith(B.BLOCK_SYS)])
-        live_lb = {tables.user_name(b) for b in tables.layout_blocks(self.live)}
+        """Staging drawn alone binds only staging's beans, though the base holds every level's (naming-layers step
+        11)."""
+        live_lb = {tables.user_name(b) for b in tables.layout_blocks(self.live) if not T.is_new(b)}
         self.assertLessEqual(T.used_blocks(self.le), live_lb)
         staging = set(self.names[staging_key(self.bands)]["os"].values()) | {
             b for v in self.names[staging_key(self.bands)]["blocks"].values() for b in v}
@@ -473,9 +473,9 @@ class ThreeLevels(unittest.TestCase):
         self.assertEqual(stations.station_display("Track East Lead"), "East End")
 
     def test_main_and_upper_objects_are_internal_with_device_map_names(self) -> None:
-        added_t = [t for t in tables.turnouts(self.root) if B.is_level_bean(t)]
-        added_lb = [b for b in tables.layout_blocks(self.root) if B.is_level_bean(b)]
-        added_b = {tables.user_name(b) for b in tables.blocks(self.root) if B.is_level_bean(b)}
+        added_t = [t for t in tables.turnouts(self.root) if T.is_new(t)]
+        added_lb = [b for b in tables.layout_blocks(self.root) if T.is_new(b)]
+        added_b = {tables.user_name(b) for b in tables.blocks(self.root) if T.is_new(b)}
         self.assertEqual(len(added_t), 39)
         self.assertTrue(all(tables.system_name(t).startswith("IT:HART:C3:") for t in added_t))
         self.assertEqual({tables.user_name(t) for t in added_t}, {v for k, v in self.device.items()
@@ -485,7 +485,7 @@ class ThreeLevels(unittest.TestCase):
         self.assertEqual(added_b, {tables.user_name(b) for b in added_lb})
         self.assertEqual(len(added_lb), T.LEVEL_BLOCKS)   # the 107 Loop's and 227-241's halves, 225's four corners
         self.assertTrue(all(tables.system_name(b).startswith("IB:C3:") for b in tables.blocks(self.root)
-                            if B.is_level_bean(b)))
+                            if T.is_new(b)))
 
     def test_main_and_upper_masts_and_no_sensors(self) -> None:
         """Main and upper: their masts (masts.csv: control-point masts and APB intermediates), each in the slot JMRI resolves to its
@@ -516,8 +516,8 @@ class ThreeLevels(unittest.TestCase):
                                       + [h for r in rows.values() for h, _u in r["heads"]]), [])
         self.assertEqual(B.lcos_named(["IH3332", "IF$shsm:basic:one-low(IH3332)", "IH:HART:C3:108LA"]),
                          ["IF$shsm:basic:one-low(IH3332)", "IH3332"])
-        heads = [h for h in self.root.find("signalheads") if B.is_level_bean(h)]
-        masts = [m for m in self.root.find("signalmasts") if B.is_level_bean(m)]
+        heads = [h for h in self.root.find("signalheads") if T.is_new(h)]
+        masts = [m for m in self.root.find("signalmasts") if T.is_new(m)]
         self.assertEqual((len(heads), len(masts)), (T.LEVEL_HEADS, T.LEVEL_MASTS))
         self.assertEqual({m.findtext("userName") for m in masts}, set(rows))
         written = {self.P.name(i) for i in level}
@@ -648,95 +648,6 @@ class Rebuilt(unittest.TestCase):
         with mock.patch.object(B.tables_build, "base", side_effect=err):
             with self.assertRaisesRegex(B.BuildError, "tables base: the device master: x"):
                 B.base_tables()
-
-
-class StripBuildOwned(unittest.TestCase):
-    """strip_build_owned on small tables: the build's own objects, and the logic and paths stock JMRI derived from
-    them, go; the rest stays, indentation and all."""
-    TABLES = """<layout-config>
-  <turnouts class="internal">
-    <turnout><systemName>IT:KEEP</systemName><userName>Kept</userName></turnout>
-    <turnout><systemName>IT:HART:C3:107</systemName><userName>Switch 107</userName></turnout>
-  </turnouts>
-  <signalheads class="h">
-    <signalhead><systemName>IH:HART:C3:136RA</systemName><userName>Head 136RA</userName></signalhead>
-  </signalheads>
-  <signalmasts class="m">
-    <signalmast><systemName>IF$shsm:basic:one-low(IH:HART:C3:136RA)</systemName><userName>Mast 136RA</userName>
-    </signalmast>
-    <virtualsignalmast><systemName>IF$vsm:basic:one-low($1)</systemName><userName>Mast 40RA</userName>
-    </virtualsignalmast>
-  </signalmasts>
-  <blocks class="b">
-    <block systemName="IB1"><systemName>IB1</systemName><userName>Track A</userName></block>
-    <block systemName="IB:C3:0001"><systemName>IB:C3:0001</systemName><userName>Track 135-H1</userName></block>
-    <block systemName="IB1"><systemName>IB1</systemName><userName>Track A</userName>
-      <path todir="16" fromdir="32" block="IB2" />
-      <path todir="96" fromdir="144" block="IB:C3:0001" />
-      <path todir="16" fromdir="32" block="IB:C3:0099" />
-    </block>
-  </blocks>
-  <layoutblocks class="lb">
-    <layoutblock systemName="ILB1001"><systemName>ILB1001</systemName><userName>Track 135-H1</userName></layoutblock>
-    <layoutblock systemName="ILB1126"><systemName>ILB1126</systemName><userName>Track Hand Added</userName>
-    </layoutblock>
-  </layoutblocks>
-  <signalmastlogics class="l">
-    <signalmastlogic source="Mast 136RA"><sourceSignalMast>Mast 136RA</sourceSignalMast>
-      <destinationMast destination="Mast 40RB"><destinationSignalMast>Mast 40RB</destinationSignalMast>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="Mast 40RA"><sourceSignalMast>Mast 40RA</sourceSignalMast>
-      <destinationMast destination="Mast 136RA"><destinationSignalMast>Mast 136RA</destinationSignalMast>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="Mast 38RA"><sourceSignalMast>Mast 38RA</sourceSignalMast>
-      <destinationMast destination="Mast 36L"><destinationSignalMast>Mast 36L</destinationSignalMast>
-        <comment>held for Switch 107 and Mast 136RA</comment>
-      </destinationMast>
-      <destinationMast destination="Mast 30L"><destinationSignalMast>Mast 30L</destinationSignalMast>
-        <turnouts><turnout><turnoutName>Switch 107</turnoutName><turnoutState>closed</turnoutState></turnout>
-        </turnouts>
-      </destinationMast>
-      <destinationMast destination="Mast 140RA"><destinationSignalMast>Mast 140RA</destinationSignalMast>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="Mast 150LA"><sourceSignalMast>Mast 150LA</sourceSignalMast>
-      <destinationMast destination="Mast 36L"><destinationSignalMast>Mast 36L</destinationSignalMast>
-      </destinationMast>
-    </signalmastlogic>
-  </signalmastlogics>
-  <memories class="m"><memory><systemName>IM1</systemName><comment>Switch 107</comment></memory></memories>
-</layout-config>"""
-
-    def test_the_builds_own_and_their_derived_references_go(self) -> None:
-        """Also a reference to a main or upper object no longer in the tables (Mast 140RA, Mast 150LA, IB:C3:0099:
-        by the naming rule), and a layout block by its user name, not its number: ILB1126, a block added in PanelPro,
-        stays. A staging destination whose comment names Switch 107 and Mast 136RA keeps: a comment is no
-        reference."""
-        root = ET.fromstring(self.TABLES)
-        counts = B.strip_build_owned(root)
-        self.assertEqual(counts, dict(zip(B.STRIPPED, (5, 2, 3, 1, 2, 0))))
-        self.assertEqual([tables.system_name(b) for b in tables.layout_blocks(root)], ["ILB1126"])
-        self.assertEqual([tables.system_name(t) for t in root.iter("turnout") if t.find("systemName") is not None],
-                         ["IT:KEEP"])
-        self.assertEqual([tables.user_name(m) for m in tables.masts(root)], ["Mast 40RA"])
-        self.assertEqual([p.get("block") for p in root.iter("path")], ["IB2"])
-        self.assertEqual({src: [d for _s, d, _e in tables.mast_logic_pairs(root) if _s == src]
-                          for src in tables.mast_logic_sources(root)}, {"Mast 38RA": ["Mast 36L"]})
-        self.assertEqual(root.find("memories/memory/comment").text, "Switch 107")    # not derived: carried
-        self.assertEqual(root.find(".//destinationMast[@destination='Mast 36L']/comment").text,
-                         "held for Switch 107 and Mast 136RA")
-        self.assertEqual(B.strip_build_owned(root), dict.fromkeys(B.STRIPPED, 0))
-        # what is left is indented as before: the section closes where it did
-        self.assertEqual(root.find("turnouts")[-1].tail, "\n  ")
-        self.assertEqual(root.find("signalheads").text, None)
-
-    def test_a_reference_left_behind_stops(self) -> None:
-        root = ET.fromstring(self.TABLES)
-        with mock.patch.object(B.tables, "remove_child"), \
-                self.assertRaisesRegex(B.BuildError, "left some of it in"):
-            B.strip_build_owned(root)
 
 
 class BuilderErrors(unittest.TestCase):

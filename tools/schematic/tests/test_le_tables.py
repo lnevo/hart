@@ -1,7 +1,7 @@
-"""le_tables and le_checks, the Layout Editor build's tables assembly and mast checks, on small made-up tables and panels
-(no plugin, no solve): which bands' turnouts and blocks the build adds as virtual beans, which panel elements the staging
-guard counts as the other levels', and what the mast checks stop on. These pin the behaviour the level unification
-(archive/wiki/projects/level-unification-handoff.md, step 4) keeps while it takes the level branches out.
+"""le_tables and le_checks, the Layout Editor build's tables checks and mast checks, on small made-up tables and panels
+(no plugin, no solve): what the build checks on the beans the base holds for every level (naming-layers step 11: the
+main and upper blocks drawn against block_numbering.csv, every name a band binds a bean), which beans are main and
+upper ones (by the rows), and what the mast checks stop on.
 """
 import os
 import sys
@@ -24,27 +24,6 @@ STAGING = "Staging"     # the made-up staging band's key in these tables (the bu
 INTERNAL_SENSORS = "jmri.jmrix.internal.configurexml.InternalSensorManagerXml"
 INTERNAL_TURNOUTS = "jmri.jmrix.internal.configurexml.InternalTurnoutManagerXml"
 
-
-def base_root() -> ET.Element:
-    """Tables holding one staging block (Track Helix Outer, the helix: a staging bean the levels draw too) and one
-    staging turnout, with the sections the build adds to."""
-    return ET.fromstring(
-        f'<layout-config><turnouts class="{INTERNAL_TURNOUTS}"><turnout><systemName>IT1</systemName>'
-        '<userName>T1</userName></turnout></turnouts>'
-        f'<sensors class="{INTERNAL_SENSORS}"><sensor><systemName>IS1</systemName><userName>S1</userName></sensor>'
-        '</sensors><blocks>'
-        '<block systemName="IB1"><systemName>IB1</systemName><userName>Track Helix Outer</userName></block>'
-        '<block systemName="IB1" length="1.0" curve="0"><systemName>IB1</systemName><userName>Track Helix Outer'
-        '</userName><permissive>no</permissive></block></blocks>'
-        '<layoutblocks><layoutblock systemName="ILB1"><systemName>ILB1</systemName>'
-        '<userName>Track Helix Outer</userName></layoutblock></layoutblocks>'
-        '<LogixNGs/><LogixNGConditionalNGs/><LogixNGDigitalActions/></layout-config>')
-
-
-def sensors_for(blocks) -> dict:
-    return {b: (level_devices.block_sensor(b), level_devices.occupancy_user(b), "c") for b in blocks}
-
-
 NAMES = {
     STAGING: dict(turnouts={"s1": "T1"}, os={"s1": "OS Switch 1"}, blocks={"e1": ["Track Helix Outer"]}),
     "Main": dict(turnouts={"n1": "Switch 105", "n2": "Switch 103"}, os={"n1": "OS Switch 105"},
@@ -52,108 +31,65 @@ NAMES = {
     "Upper": dict(turnouts={"n3": "Switch 201"}, os={"n3": "OS Switch 201"}, blocks={}),
 }
 LEVEL_BLOCKS = ["OS Switch 105", "OS Switch 201", "Track 105-109"]
-
-
-def cells_for(thrown) -> dict:
-    """level_cells as build_device_map.py writes them for NAMES: each turnout's start (thrown when in `thrown`) and
-    comment, each block's comment."""
-    turnouts = [t for k, v in NAMES.items() if k != STAGING for t in v["turnouts"].values()]
-    out = {("turnout", t): ("thrown" if t in thrown else "closed", level_devices.LEVEL_COMMENT) for t in turnouts}
-    out.update({("block", b): ("", level_devices.LEVEL_COMMENT) for b in LEVEL_BLOCKS})
-    return out
 # each level block's bean names as its device-master row gives them (build_device_map.py copies them from
 # block_numbering.csv; naming-layers step 8)
 BEANS = {b: (f"IB:C3:{i:04d}", f"ILB{1000 + i}") for i, b in enumerate(LEVEL_BLOCKS, 1)}
 
 
-class AddLevelObjects(unittest.TestCase):
-    """add_level_objects adds every band's turnouts but staging's, every drawn block staging does not hold, a sensor
-    for each and for a staging block the device map gives one (the helix), and the startup positions."""
+def base_root(unbound=()) -> ET.Element:
+    """Tables as the base holds them (hartlib.tables_build.base): one staging turnout and block (Track Helix Outer,
+    the helix: a staging bean the levels draw too), and the main and upper blocks of BEANS, each bound to its virtual
+    occupancy sensor but `unbound`."""
+    blocks = "".join(
+        f'<block systemName="{s}" length="1.0" curve="0"><systemName>{s}</systemName><userName>{b}</userName>'
+        f'<permissive>no</permissive>'
+        + ("" if b in unbound else f"<occupancysensor>{level_devices.occupancy_user(b)}</occupancysensor>")
+        + "</block>" for b, (s, _lb) in BEANS.items())
+    layout = "".join(f'<layoutblock systemName="{lb}"><systemName>{lb}</systemName><userName>{b}</userName>'
+                     "</layoutblock>" for b, (_s, lb) in BEANS.items())
+    return ET.fromstring(
+        f'<layout-config><turnouts class="{INTERNAL_TURNOUTS}"><turnout><systemName>IT1</systemName>'
+        '<userName>T1</userName></turnout></turnouts>'
+        f'<sensors class="{INTERNAL_SENSORS}"><sensor><systemName>IS1</systemName><userName>S1</userName></sensor>'
+        '</sensors><blocks>'
+        '<block systemName="IB1" length="1.0" curve="0"><systemName>IB1</systemName><userName>Track Helix Outer'
+        f'</userName><permissive>no</permissive></block>{blocks}</blocks>'
+        '<layoutblocks><layoutblock systemName="ILB1"><systemName>ILB1</systemName>'
+        f'<userName>Track Helix Outer</userName></layoutblock>{layout}</layoutblocks></layout-config>')
 
-    def run_it(self, names=NAMES, drawn=None, lengths=None, thrown=frozenset({"Switch 105"}), sensors=None,
-               beans=None, cells=None):
-        root = base_root()
+
+class CheckLevelBlocks(unittest.TestCase):
+    """check_level_blocks: the numbering checks le_tables keeps now that the base holds every level's beans. Each
+    main and upper block drawn has its row's names, current with block_numbering.csv, none is a retired block drawn
+    again, no numbering row names a block not drawn, and each is bound to an occupancy sensor."""
+
+    def run_it(self, drawn=None, beans=None, numbered_as=None, retired=(), unbound=()):
         P = SimpleNamespace(blocks=set(drawn if drawn is not None else LEVEL_BLOCKS + ["Track Helix Outer"]))
-        lengths = {b: 100.0 for b in LEVEL_BLOCKS} if lengths is None else lengths
-        sensors = sensors_for(LEVEL_BLOCKS + ["Track Helix Outer"]) if sensors is None else sensors
-        with mock.patch.multiple(le_tables, BLOCK_NUMBERED_AS={}, APPENDED_BLOCKS=(), RETIRED_BLOCKS=()), \
-                mock.patch.object(le_tables, "level_sensors", return_value=sensors), \
-                mock.patch.object(le_tables, "level_block_beans", return_value=BEANS if beans is None else beans), \
-                mock.patch.object(le_tables, "level_cells", return_value=cells_for(thrown) if cells is None else cells):
-            le_tables.add_level_objects(root, P, names, lengths, {STAGING})
-        return root
+        with mock.patch.multiple(le_tables, BLOCK_NUMBERED_AS=numbered_as or {}, APPENDED_BLOCKS=(),
+                                 RETIRED_BLOCKS=tuple(retired)), \
+                mock.patch.object(le_tables, "level_block_beans", return_value=BEANS if beans is None else beans):
+            le_tables.check_level_blocks(base_root(unbound), P, {STAGING}, NAMES)
 
-    def test_each_turnouts_and_blocks_comment_and_start_are_its_rows(self):
-        """The build gives each turnout and block its row's bean_comment and each turnout its row's start
-        (naming-layers step 9); a row with none, or a turnout start that is not closed or thrown, stops."""
-        cells = {**cells_for(frozenset()), ("block", "Track 105-109"): ("", "block words"),
-                 ("turnout", "Switch 103"): ("closed", "turnout words")}
-        root = self.run_it(cells=cells)
-        comments = {tables.user_name(b): b.findtext("comment") for b in tables.turnouts(root) + tables.blocks(root)}
-        self.assertEqual(comments["Track 105-109"], "block words")
-        self.assertEqual(comments["Switch 103"], "turnout words")
-        self.assertEqual(comments["Switch 105"], level_devices.LEVEL_COMMENT)
-        with self.assertRaisesRegex(BuildError, r"the turnout row 'Switch 201' has no bean_comment"):
-            self.run_it(cells={k: v for k, v in cells.items() if k != ("turnout", "Switch 201")})
-        with self.assertRaisesRegex(BuildError, r"the block row 'OS Switch 105' has no bean_comment"):
-            self.run_it(cells={k: v for k, v in cells.items() if k != ("block", "OS Switch 105")})
-        with self.assertRaisesRegex(BuildError, r"start is not closed or thrown: \['Switch 103'\]"):
-            self.run_it(cells={**cells, ("turnout", "Switch 103"): ("", "c")})
+    def test_the_drawn_blocks_pass(self):
+        self.run_it()
 
-    def test_the_other_levels_turnouts_and_blocks_are_added_virtual(self):
-        root = self.run_it()
-        turnouts = [(tables.system_name(t), tables.user_name(t)) for t in tables.turnouts(root)]
-        self.assertEqual(turnouts, [("IT1", "T1"), ("IT:HART:C3:103", "Switch 103"), ("IT:HART:C3:105", "Switch 105"),
-                                    ("IT:HART:C3:201", "Switch 201")])
-        full = {tables.user_name(b): b for b in tables.blocks(root)}
-        self.assertEqual(sorted(full), sorted(LEVEL_BLOCKS + ["Track Helix Outer"]))
-        self.assertEqual([tables.system_name(full[b]) for b in LEVEL_BLOCKS], ["IB:C3:0001", "IB:C3:0002",
-                                                                               "IB:C3:0003"])
-        self.assertEqual(full["Track 105-109"].get("length"), "100.0")
-        lbs = {tables.user_name(b): tables.system_name(b) for b in tables.layout_blocks(root)}
-        self.assertEqual(lbs["OS Switch 105"], f"ILB{le_tables.LAYOUT_BLOCK_FIRST}")
-
-    def test_a_staging_block_the_device_map_gives_a_sensor_is_bound(self):
-        root = self.run_it()
-        helix = next(b for b in tables.blocks(root) if tables.user_name(b) == "Track Helix Outer")
-        self.assertEqual(helix.findtext("occupancysensor"), level_devices.occupancy_user("Track Helix Outer"))
-        added = {tables.system_name(s) for s in tables.sensors(root)} - {"IS1"}
-        self.assertEqual(added, {level_devices.block_sensor(b) for b in LEVEL_BLOCKS + ["Track Helix Outer"]})
-        self.assertEqual(next(b for b in tables.layout_blocks(root) if tables.user_name(b) == "Track Helix Outer")
-                         .get("occupancysensor"), level_devices.occupancy_user("Track Helix Outer"))
-
-    def test_startup_positions_are_the_added_turnouts_only(self):
-        root = self.run_it()
-        states = {a.findtext("namedBean/name"): a.findtext("state/enum") for a in root.iter("ActionTurnout")}
-        self.assertEqual(states, {"IT:HART:C3:103": "Closed", "IT:HART:C3:105": "Thrown", "IT:HART:C3:201": "Closed"})
-        root = self.run_it(thrown=frozenset({"T1"}))       # a staging turnout's row is never read
-        self.assertNotIn("IT1", {a.findtext("namedBean/name") for a in root.iter("ActionTurnout")})
-
-    def test_a_block_with_no_length_or_sensor_stops(self):
-        with self.assertRaisesRegex(BuildError, r"blocks with no source: \['Track 105-109'\]"):
-            self.run_it(lengths={"OS Switch 105": 1.0, "OS Switch 201": 1.0})
-        with self.assertRaisesRegex(BuildError, r"no occupancy row in the device map: \['OS Switch 201'\]"):
-            self.run_it(sensors=sensors_for(["OS Switch 105", "Track 105-109"]))
-
-    def test_a_blocks_names_are_its_rows(self):
-        """The build numbers no block: it takes each block's jmri_name and layout_block from its row, so a row given
-        another number moves the bean to it, in system name order."""
-        beans = dict(BEANS, **{"OS Switch 105": ("IB:C3:0042", "ILB1042")})
-        root = self.run_it(beans=beans)
-        added = [(tables.system_name(b), tables.user_name(b)) for b in tables.blocks(root)
-                 if tables.system_name(b).startswith("IB:C3:")]
-        self.assertEqual(added, [("IB:C3:0002", "OS Switch 201"), ("IB:C3:0003", "Track 105-109"),
-                                 ("IB:C3:0042", "OS Switch 105")])
-        lbs = {tables.user_name(b): tables.system_name(b) for b in tables.layout_blocks(root)}
-        self.assertEqual(lbs["OS Switch 105"], "ILB1042")
-
-    def test_a_block_whose_row_has_no_names_or_bad_ones_stops(self):
+    def test_a_block_whose_row_has_no_names_stops(self):
         with self.assertRaisesRegex(BuildError, r"row gives no jmri_name and layout_block: \['Track 105-109'\]"):
             self.run_it(beans={b: v for b, v in BEANS.items() if b != "Track 105-109"})
-        with self.assertRaisesRegex(BuildError, r"Track 105-109 \(IB:AUTO:0003, ILB1003\)"):
-            self.run_it(beans=dict(BEANS, **{"Track 105-109": ("IB:AUTO:0003", "ILB1003")}))
-        with self.assertRaisesRegex(BuildError, "names collide"):
-            self.run_it(beans=dict(BEANS, **{"Track 105-109": BEANS["OS Switch 105"]}))
+
+    def test_a_retired_block_drawn_again_or_a_stale_numbering_row_stops(self):
+        with self.assertRaisesRegex(BuildError, r"retired blocks drawn again: \['Track 105-109'\]"):
+            self.run_it(retired=["Track 105-109"])
+        with self.assertRaisesRegex(BuildError, "names Track 999-998, which the main and upper levels no longer"):
+            self.run_it(numbered_as={"Track 999-998": "Track 105-109"})
+
+    def test_a_block_with_no_occupancy_sensor_stops(self):
+        with self.assertRaisesRegex(BuildError, r"no occupancy sensor .*\['OS Switch 201'\]"):
+            self.run_it(unbound={"OS Switch 201"})
+
+    def test_a_staging_block_is_not_a_main_or_upper_one(self):
+        """Track Helix Outer, drawn on staging's band too, is staging's: its row is never asked for."""
+        self.run_it(beans=BEANS)            # BEANS has no row for it, and nothing stops
 
     def test_the_rows_names_are_checked_against_the_numbering(self):
         """level_block_beans stops on a row whose layout block is not its block's pair, and on rows a
@@ -177,30 +113,10 @@ class AddLevelObjects(unittest.TestCase):
         stale = le_tables.stale_block_beans(numbering_path=path)
         self.assertIn("Track 227-241 1 (IB:C3:0108, not IB:C3:0122)", stale)
 
-    def test_level_cells_stop_on_a_name_given_on_both_levels(self):
-        """The build finds a bean's row by layer and user name, so the same pair on main and upper stops."""
-        rows = [dict(level=lv, layer="turnout", user_name="Switch 105", start="closed", bean_comment="c")
-                for lv in ("2", "3")]
-        with mock.patch.object(le_tables.devices, "load", return_value=rows[:1]):
-            self.assertEqual(le_tables.level_cells(), {("turnout", "Switch 105"): ("closed", "c")})
-        with mock.patch.object(le_tables.devices, "load", return_value=rows), \
-                self.assertRaisesRegex(BuildError, "named on both levels.*turnout Switch 105"):
-            le_tables.level_cells()
-
-    def test_a_staging_name_is_never_added(self):
-        names = dict(NAMES, **{STAGING: dict(NAMES[STAGING], turnouts={"s1": "Switch 999"})})
-        root = self.run_it(names=names)
-        self.assertNotIn("Switch 999", {tables.user_name(t) for t in tables.turnouts(root)})
-
-    def test_the_base_bands_must_be_named(self):
-        with mock.patch.object(le_tables, "level_sensors", return_value={}), \
-                self.assertRaisesRegex(BuildError, r"the base's bands \['Lower'\] are not all among"):
-            le_tables.add_level_objects(base_root(), SimpleNamespace(blocks=set()), NAMES, {}, {"Lower"})
-
 
 class CheckBound(unittest.TestCase):
-    """check_bound, one check for every level after the build's beans are added: each name a band binds, and each
-    block the panel draws, is a bean of the tables."""
+    """check_bound, one check for every level on the tables the panel is drawn on (the base, which holds every
+    level's beans): each name a band binds, and each block the panel draws, is a bean of the tables."""
 
     def root(self):
         root = base_root()
@@ -219,24 +135,31 @@ class CheckBound(unittest.TestCase):
         return SimpleNamespace(blocks=set(blocks), turnouts=[],
                                segments=[dict(ident=f"T{i}", block=b, band=0) for i, b in enumerate(base_drawn)])
 
-    def check(self, root, P, names, base=None):
-        base = le_tables.bean_names(root) if base is None else base
-        le_tables.check_bound(root, P, names, {STAGING}, {0}, base, "the base")
+    def check(self, root, P, names):
+        le_tables.check_bound(root, P, names, {STAGING}, {0}, "the base")
 
     def test_every_name_bound(self):
         self.check(self.root(), self.P(), self.names())
+
+    def test_every_levels_names_are_held_to_the_same_tables(self):
+        """A main band's names are beans of the base too: the build adds none (naming-layers step 11)."""
+        names = dict(self.names(), Main=dict(turnouts={}, os={"n1": "OS Switch 105"}, blocks={}))
+        self.check(self.root(), self.P(blocks={"Track Helix Outer", "OS Switch 105"}), names)
+        names["Main"]["turnouts"] = {"n1": "Switch 105"}
+        with self.assertRaisesRegex(BuildError, r"Main: turnouts \['Switch 105'\]"):
+            self.check(self.root(), self.P(), names)
 
     def test_a_missing_turnout_block_mast_or_drawn_block_is_named_by_band(self):
         for staging, want in ((dict(turnouts={"s1": "T9"}), r"Staging: turnouts \['T9'\]"),
                               (dict(os={"s1": "OS Switch 9"}), r"Staging: blocks \['OS Switch 9'\]"),
                               (dict(masts=[dict(mast="Mast 9L")]), r"Staging: masts \['Mast 9L'\]")):
-            with self.subTest(want=want), self.assertRaisesRegex(BuildError, "no bean of the base .*" + want):
+            with self.subTest(want=want), self.assertRaisesRegex(BuildError, "no bean of the base: .*" + want):
                 self.check(self.root(), self.P(), self.names(**staging))
         with self.assertRaisesRegex(BuildError, r"the panel draws blocks \['Track X'\]"):
             self.check(self.root(), self.P(blocks={"Track X"}, base_drawn=()), self.names())
 
-    def test_a_base_band_drawing_a_block_its_names_do_not_hold_stops(self):
-        """The staging panel draws only staging's blocks, even one the base's tables hold under another name list."""
+    def test_a_staging_band_drawing_a_block_its_names_do_not_hold_stops(self):
+        """The staging panel draws only staging's blocks, even one the tables hold under another name list."""
         root = self.root()
         blocks = root.find("layoutblocks")
         ET.SubElement(ET.SubElement(blocks, "layoutblock"), "userName").text = "Track W-9"
@@ -244,31 +167,48 @@ class CheckBound(unittest.TestCase):
             self.check(root, self.P(blocks={"Track Helix Outer", "Track W-9"},
                                     base_drawn=("Track Helix Outer", "Track W-9")), self.names())
 
-    def test_a_base_name_is_checked_against_the_base_before_the_build_adds_beans(self):
-        """A staging turnout named like a bean the build adds for another level is still missing from the base."""
-        root = self.root()
-        base = le_tables.bean_names(root)
-        sec = root.find("turnouts")
-        ET.SubElement(ET.SubElement(sec, "turnout"), "userName").text = "Switch 105"     # added for main
-        with self.assertRaisesRegex(BuildError, r"Staging: turnouts \['Switch 105'\]"):
-            self.check(root, self.P(), self.names(turnouts={"s1": "Switch 105"}), base)
-
 
 class IsLevelBean(unittest.TestCase):
-    def test_by_the_naming_rule(self):
-        def el(tag, sysname, user=""):
-            return ET.fromstring(f"<{tag}><systemName>{sysname}</systemName><userName>{user}</userName></{tag}>")
-        self.assertTrue(le_tables.is_level_bean(el("turnout", "IT:HART:C3:105")))
-        self.assertFalse(le_tables.is_level_bean(el("turnout", "M2T408")))
-        self.assertTrue(le_tables.is_level_bean(el("sensor", level_devices.block_sensor("Track 105-109"))))
-        self.assertTrue(le_tables.is_level_bean(el("block", "IB:C3:0001")))
-        self.assertTrue(le_tables.is_level_bean(el("layoutblock", "ILB1001", "Track 105-109")))
-        self.assertFalse(le_tables.is_level_bean(el("layoutblock", "ILB12", "Track W-1")))
+    """A main or upper bean is one whose system name a main or upper row gives (level_bean_names), not one whose name
+    follows a rule."""
+
+    ROWS = [dict(level="2", layer="turnout", assignment="virtual", system_name="M2T3408", jmri_name="IT:HART:C3:105",
+                 layout_block="", start="closed"),
+            dict(level="2", layer="block", assignment="virtual", system_name="", jmri_name="IB:C3:0001",
+                 layout_block="ILB1001", start=""),
+            dict(level="2", layer="occupancy", assignment="virtual", system_name="", jmri_name="IS:HART:C3:B:OS105",
+                 layout_block="", start="inactive"),
+            dict(level="2", layer="fb", assignment="none", system_name="M2S3467", jmri_name="", layout_block="",
+                 start=""),
+            dict(level="1", layer="turnout", assignment="field", system_name="M2T408", jmri_name="M2T408",
+                 layout_block="", start="")]
+
+    @staticmethod
+    def el(tag, sysname, user=""):
+        return ET.fromstring(f"<{tag}><systemName>{sysname}</systemName><userName>{user}</userName></{tag}>")
+
+    def test_by_the_rows(self):
+        names = le_tables.level_bean_names(rows=self.ROWS)
+        self.assertEqual(names, {"IT:HART:C3:105", "IB:C3:0001", "ILB1001", "IS:HART:C3:B:OS105",
+                                 level_devices.turnout_action("IT:HART:C3:105"),
+                                 level_devices.clear_action("IS:HART:C3:B:OS105"), level_devices.CLEAR_LOGIXNG,
+                                 level_devices.CLEAR_CONDITIONAL, level_devices.CLEAR_MANY})
+        self.assertTrue(le_tables.is_level_bean(self.el("turnout", "IT:HART:C3:105"), names))
+        self.assertFalse(le_tables.is_level_bean(self.el("turnout", "M2T408"), names))
+        self.assertTrue(le_tables.is_level_bean(self.el("layoutblock", "ILB1001", "Track 105-109"), names))
+        self.assertFalse(le_tables.is_level_bean(self.el("layoutblock", "ILB12", "Track W-1"), names))
+        self.assertFalse(le_tables.is_level_bean(self.el("sensor", "M2S3467"), names))     # no bean: assignment none
+
+    def test_a_swapped_turnout_is_still_a_main_or_upper_bean(self):
+        rows = [dict(self.ROWS[0], jmri_name="M2T3408", assignment="field", start="")]
+        names = le_tables.level_bean_names(rows=rows)
+        self.assertEqual(names, {"M2T3408"})
+        self.assertTrue(le_tables.is_level_bean(self.el("turnout", "M2T3408", "Switch 105"), names))
 
 
 class BandLevels(unittest.TestCase):
-    """A band's level is its plan-overrides section's (every section read), and the base levels are the ones the
-    generator's base writes beans for (hartlib.tables_build.GENERATED_LEVELS)."""
+    """A band's level is its plan-overrides section's (every section read), and the staging level is the one whose
+    band's names are the staging device map's (le_common.STAGING_LEVELS)."""
 
     def test_the_committed_bands(self):
         levels = le_common.plan_levels()
@@ -276,7 +216,7 @@ class BandLevels(unittest.TestCase):
         bands = sorted(((t, {}, {}) for t in levels), key=lambda b: levels[b[0]])
         self.assertEqual(le_common.band_levels(bands), [1, 2, 3])
         self.assertEqual(le_common.base_bands(bands), [0])
-        self.assertEqual(le_common.BASE_LEVELS, {1})
+        self.assertEqual(le_common.STAGING_LEVELS, {1})
 
     def test_the_levels_follow_the_data_folder(self):
         import json

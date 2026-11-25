@@ -7,7 +7,7 @@ One builder for all three levels. A band's level says where its facts come from,
   level      band                         switches and OS blocks              blocks                    masts
   bound (1)  bound_bi (staging)           switches.csv,                       occupancy_bindings.csv,   signals.json
                                           M2T turnouts (Facts.turnout_io)     M2S detectors             [staging]
-  2 and 3    level_band (bdm.band_level)  internal turnouts (LEVEL_TURNOUT),  the device master block rows,   main_upper_
+  2 and 3    level_band (bdm.band_level)  the rows' turnouts (tables.xml),    the device master block rows,   main_upper_
                                           the drawing's crossover halves      virtual sensors           masts.csv
 
 Every binding is made by the same helpers whatever its level: turnout_routes (a switch's NORMAL leg and its close
@@ -41,14 +41,25 @@ STAGING_DISCIPLINE = "CTC"
 # The staging turnouts and detectors: LCOS over MQTT (M2T, M2S)
 STAGING_TURNOUT_PREFIX = "M2T"
 STAGING_SENSOR_PREFIX = "M2S"
-# Main and upper turnouts are internal until the device-map import (owner, 2026-11-16): IT:HART:C3:<switch number>,
-# user name Switch <n>. On the desk each is commanded and reported by that internal turnout, closed on the drawn
-# leg B: the Layout Editor builder gives these levels no normal leg, so the plugin draws leg B as the route the
-# turnout's closed state sets (continuing 2 when leg B is Layout Editor leg B, 4 when it is leg C), as the desk's
-# NORMAL is leg B.
-LEVEL_TURNOUT_PREFIX = "IT"
-LEVEL_TURNOUT = LEVEL_TURNOUT_PREFIX + ":HART:C3:"
+# A main or upper switch is commanded and reported by the turnout tables.xml holds under its user name, Switch <n>:
+# its device-master row's bean (hartlib.tables_build.bean_name, the row's jmri_name; internal until the plant is
+# wired, hartlib.level_devices), so a swap to a physical turnout is one row edit (ADR-028) and the desk follows it.
+# It is closed on the drawn leg B: the Layout Editor builder gives these levels no normal leg, so the plugin draws leg
+# B as the route the turnout's closed state sets (continuing 2 when leg B is Layout Editor leg B, 4 when it is leg
+# C), as the desk's NORMAL is leg B.
 LEVEL_SENSOR_PREFIX = "IS"          # a main or upper block's virtual occupancy sensor (IS:HART:C3:B:...)
+# A JMRI system name: the connection's letter and digits and the type letter (IT, M2T: the desk's JMRIPREFIX), then
+# the rest (its DECADDR)
+_SYSTEM_NAME = re.compile(r"([A-Z]\d*[A-Z])(.+)")
+
+
+def split_system_name(system: str) -> tuple[str, str]:
+    """(JMRIPREFIX, DECADDR) of a JMRI system name: "IT:HART:C3:107" -> ("IT", ":HART:C3:107"), "M2T408" -> ("M2T",
+    "408"). SystemExit on a name of no such shape."""
+    m = _SYSTEM_NAME.fullmatch(system or "")
+    if not m:
+        raise SystemExit(f"{system!r} is not a JMRI system name (connection letter and digits, type letter, name)")
+    return m.group(1), m.group(2)
 
 
 # --- every level: the shapes of the bindings -------------------------------------------------------------------
@@ -525,8 +536,8 @@ def helix_block(key, helix, stored) -> str | None:
 
 def level_switch_bindings(bands, F, bound_bi, dx_corners=None):
     """({switch label: binding}, {label: why not bound}) for the main and upper switches: each switch or crossover
-    half drawn commands and reports its internal turnout (LEVEL_TURNOUT + number, user name Switch <n>, which
-    tables.xml must hold), closed on leg B (NORMAL) and thrown on leg C. A crossover's halves, on one band or two,
+    half drawn commands and reports the turnout tables.xml holds as Switch <n> (its device-master row's bean, by its
+    system name: split_system_name), closed on leg B (NORMAL) and thrown on leg C. A crossover's halves, on one band or two,
     each take the one turnout, and each half is closed on the leg away from its other half and thrown on the leg
     toward it: on one band, the link leg the plugin pairs it by (schematic.core.crossover_halves: leg C for most
     halves, leg B for 121B and 125B, which the plan joins by their leg B); on two bands, leg C, which must lead to
@@ -550,9 +561,9 @@ def level_switch_bindings(bands, F, bound_bi, dx_corners=None):
                 continue
             num = bdm.base(label)
             user = f"Switch {num}"
-            if F.turnouts.get(user) != LEVEL_TURNOUT + num:
-                raise SystemExit(f"switch {label}: tables.xml has no internal turnout {user} ({LEVEL_TURNOUT}{num}); "
-                                 f"it has {F.turnouts.get(user) or 'none'}")
+            system = F.turnouts.get(user)
+            if not system:
+                raise SystemExit(f"switch {label}: tables.xml has no turnout {user} (its device-master row's bean)")
             if label in out:
                 raise SystemExit(f"switch {label} is drawn twice on main and upper")
             thrown = half_legs.get(n, "C")      # a crossover half: its link leg toward the other half; else leg C
@@ -566,9 +577,8 @@ def level_switch_bindings(bands, F, bound_bi, dx_corners=None):
                                      "leg C does not lead to the link between the levels"
                                      + (f" ({'; '.join(why)})" if why else ""))
             closed = "C" if thrown == "B" else "B"
-            addr = LEVEL_TURNOUT[len(LEVEL_TURNOUT_PREFIX):] + num
-            out[label] = {"normal": closed,
-                          "routes": turnout_routes(LEVEL_TURNOUT_PREFIX, addr, user, closed, thrown)}
+            prefix, addr = split_system_name(system)
+            out[label] = {"normal": closed, "routes": turnout_routes(prefix, addr, user, closed, thrown)}
             if d["kind"] == "dx" and dx_corners is not None:
                 if num not in dx_corners:
                     raise SystemExit(f"double crossover {label}: no corners found for it")
