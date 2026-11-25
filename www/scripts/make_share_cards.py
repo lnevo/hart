@@ -29,6 +29,7 @@ import json
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import threading
 from pathlib import Path
@@ -432,7 +433,14 @@ def roster():
 
     brick = _panel().crop((228, 165, 528, 345))
     brick.resize((brick.width * 3, brick.height * 3), Image.LANCZOS).save(_tmp / "brick.png")
-    items = json.loads((PORTAL / "data/layout-index.json").read_text(encoding="utf-8"))["items"]
+    # the published index is built, not committed (ADR-036): build it here as the site build does
+    sys.path.insert(0, str(PORTAL / "scripts"))
+    import build_layout_index
+
+    try:
+        items = json.loads(build_layout_index.index_text())["items"]
+    except build_layout_index.LayoutIndexError as err:
+        raise SystemExit(f"roster-index: the layout index does not build:\n{err}") from None
     wanted = [("turnout", "Switch 1"), ("turnout", "Switch 3"), ("signal", "Mast 2L"), ("signal", "Mast 4RA"),
               ("occupancy", "OS Switch 1"), ("occupancy", "OS Switch 3")]
     by_name = {(i["kind"], i.get("publicName")): i for i in items}

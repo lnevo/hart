@@ -24,3 +24,10 @@ Nothing reads the map pages from git. People open `docs/pipeline-map/index.html`
 - The local site preview (`serve_portal.py`, which serves `www/` as it is) shows the map only after `make map`.
 - The deploy needs a current graph: when the agent-doc lane is stale, the deploy stops and says to run `make map` and commit the graph.
 - Further candidates, each needing a build step in the site build and the preview first: `www/data/tables-browser.json` (the site build already rebuilds it), `www/data/layout-index.json` and `layout-index-cats.json`, and the wiring JSON files.
+
+## Amendment (2026-11-25): the site's generated JSON
+
+- **Owner, 2026-11-25:** the next candidates follow, as a stage. `www/data/tables-browser.json`, `www/data/layout-index.json` and `www/data/layout-index-cats.json` are untracked and gitignored. `www/scripts/site_views.py` lists every file built this way (its `VIEWS`, with the map page), each with the builder that returns its checked text; the site build writes them into the build and stops when one cannot be built or a builder returns nothing. The local preview has them too: `serve_portal.py` builds them into `www/` when it starts and removes, and names, one it cannot build; `make site-data` builds them without the server. This replaces the dead link the preview had until `make map` ran.
+- Their checks keep their names (`tables-browser`, `layout-index`, `layout-index-cats`) and build the JSON in memory and run its own checks, comparing no committed bytes. The schematic and desk PNGs the layout indexes sit on stay committed; each carries a stamp of what it is drawn from (`www/scripts/png_stamp.py`), which the JSON used to hold, so a PNG drawn from older inputs still fails its check.
+- Every reader builds the file itself or is given it: the CATS index joins to the layout index built in memory (it read the file and joined to nothing when it was missing), and the share card recipe and `test_site_device_names` build the index as the site does.
+- `www/data/wiring-inventory.json` (the fourth file) follows in a later change, after the wiring scripts move to `hartlib.wiring` (ADR-039).

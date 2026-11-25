@@ -67,7 +67,7 @@ cmd = ["python3", "www/scripts/build_tables_browser.py", "--check"]
 git = ["head", "base"]
 domain = "website"
 label = "build_tables_browser.py"
-desc = "Writes tables-browser.json (allowlisted fields) and fills regions of behind/tables-file.html via tables_page.py; --check."
+desc = "Writes tables-browser.json (allowlisted fields; not committed, ADR-036: the site build and the preview build it through site_views.py) and fills regions of behind/tables-file.html via tables_page.py; --check builds the JSON in memory and runs its checks, and compares the committed page."
 inputs = [
   "jmri/layouts/hart/output/tables.xml",
 ]
@@ -174,7 +174,7 @@ cmd = ["python3", "www/scripts/build_layout_index.py", "--check"]
 git = ["head", "base"]
 domain = "website"
 label = "build_layout_index.py"
-desc = "Builds layout-index.json (hotspots, devices, MQTT, CPs) and the schematic PNG from tables.xml, stations.csv and LE geometry; --check."
+desc = "Builds layout-index.json (hotspots, devices, MQTT, CPs; not committed, ADR-036: the site build and the preview build it through site_views.py) and the schematic PNG, stamped with the hash of what it is drawn from, from tables.xml, stations.csv and LE geometry; --check builds the JSON in memory, runs its checks and compares the PNG's stamp."
 inputs = [
   "jmri/layouts/hart/data/schematic/stations.csv",
   "jmri/layouts/hart/data/switches.csv",
@@ -223,17 +223,21 @@ cmd = ["python3", "www/scripts/build_cats_layout_index.py", "--check"]
 git = ["head", "base"]
 domain = "website"
 label = "build_cats_layout_index.py"
-desc = "Builds Digicon/CATS device-map hotspots and panel PNG from HART_CTC.xml, joined to layout-index.json."
+desc = "Builds layout-index-cats.json (Digicon/CATS device-map hotspots; not committed, ADR-036: the site build and the preview build it through site_views.py) and the stamped panel PNG from HART_CTC.xml, joined to the layout index it builds in memory (build_layout_index.py); --check builds the JSON in memory, runs its checks and compares the PNG's stamp."
 inputs = [
   "cats/panels/HART_CTC.xml",
-  { path = "www/data/layout-index.json", label = "join MQTT/hw" },
+  { path = "jmri/layouts/hart/output/tables.xml", label = "join MQTT/hw, via build_layout_index in memory" },
 ]
 outputs = [
   "www/data/layout-index-cats.json",
   { path = "www/assets/layout", label = "digicon PNG" },
 ]
-# the renderer it runs to draw the PNG, hashed for the PNG's stamp (read as bytes; ADR-037 stage 4c)
-quiet_inputs = ["cats/scripts/render_cats_panel.py"]
+# the renderer it runs to draw the PNG, hashed for the PNG's stamp (read as bytes; ADR-037 stage 4c); and what the
+# layout index it joins to reads (the layout-index step's inputs and quiet_inputs), built in memory since 2026-11-25
+quiet_inputs = ["cats/scripts/render_cats_panel.py", "jmri/layouts/hart/data/schematic/stations.csv",
+                "jmri/layouts/hart/data/switches.csv", "jmri/layouts/hart/data/devices_field.csv",
+                "jmri/layouts/hart/data/devices_generated.csv", "jmri/layouts/hart/data/schematic/block_overrides.csv",
+                "jmri/layouts/hart/scripts/render_le_layout.py"]
 
 [[step]]
 name = "wiring-json"
@@ -802,8 +806,8 @@ inputs = [
 ]
 # The site build (prepare_github_pages.py) reads: the site tree; the sources www/scripts/published-files.json names,
 # as their folder and suffix; the files the site's data names outside www/ that it copies in (the operator logos,
-# the rolling stock photos: its _vendor_logo and MIRROR_PREFIXES); and what the four steps whose pages it builds read (tables-browser, repo-guide,
-# jmri-additions, pipeline-map: their inputs and quiet_inputs, in that order). tools/audit/tests/test_manifest_scans.py
+# the rolling stock photos: its _vendor_logo and MIRROR_PREFIXES); and what the six steps whose pages and data it builds read (tables-browser,
+# repo-guide, jmri-additions, pipeline-map, layout-index, layout-index-cats: their inputs and quiet_inputs, in that order). tools/audit/tests/test_manifest_scans.py
 # keeps this list equal to those.
 quiet_inputs = [
   "www/**",
@@ -824,4 +828,6 @@ quiet_inputs = [
   "wiki/not-pending.md", "wiki/STATUS.md", "docs/INDEX.md", "wiki/decisions/**", "wiki/pipelines/**",
   "wiki/projects/**", "wiki/status/**", ".cursor/**", ".claude/skills/*/SKILL.md", ".claude/agents/*.md",
   ".claude/commands/*.md", "*/AGENTS.md", "*/*/AGENTS.md", ".gitmodules",
+  "jmri/layouts/hart/data/schematic/stations.csv", "jmri/layouts/hart/data/schematic/block_overrides.csv",
+  "jmri/layouts/hart/scripts/render_le_layout.py", "cats/panels/HART_CTC.xml", "cats/scripts/render_cats_panel.py",
 ]

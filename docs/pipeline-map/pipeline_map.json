@@ -2459,8 +2459,9 @@
    "kind": "output",
    "status": "live",
    "domain": "website",
-   "desc": "Generated CATS Digicon hotspot index for the layout explorer.",
-   "path": "www/data/layout-index-cats.json"
+   "desc": "Generated CATS Digicon hotspot index for the layout explorer; not committed (ADR-036): the site build writes its own copy and the local preview builds this one (www/scripts/site_views.py, make site-data).",
+   "path": "www/data/layout-index-cats.json",
+   "local": true
   },
   {
    "id": "www/data/layout-index.json",
@@ -2468,8 +2469,9 @@
    "kind": "output",
    "status": "live",
    "domain": "website",
-   "desc": "Generated layout hotspot/device index read by roster and layout explorer.",
-   "path": "www/data/layout-index.json"
+   "desc": "Generated layout hotspot/device index read by roster and layout explorer; not committed (ADR-036): the site build writes its own copy and the local preview builds this one (www/scripts/site_views.py, make site-data).",
+   "path": "www/data/layout-index.json",
+   "local": true
   },
   {
    "id": "www/data/panels.json",
@@ -2522,8 +2524,9 @@
    "kind": "output",
    "status": "live",
    "domain": "website",
-   "desc": "Generated allowlisted tables rows for the tables browser.",
-   "path": "www/data/tables-browser.json"
+   "desc": "Generated allowlisted tables rows for the tables browser; not committed (ADR-036): the site build writes its own copy and the local preview builds this one (www/scripts/site_views.py, make site-data).",
+   "path": "www/data/tables-browser.json",
+   "local": true
   },
   {
    "id": "www/data/videos.json",
@@ -2675,7 +2678,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "website",
-   "desc": "Builds Digicon/CATS device-map hotspots and panel PNG from HART_CTC.xml, joined to layout-index.json.",
+   "desc": "Builds layout-index-cats.json (Digicon/CATS device-map hotspots; not committed, ADR-036: the site build and the preview build it through site_views.py) and the stamped panel PNG from HART_CTC.xml, joined to the layout index it builds in memory (build_layout_index.py); --check builds the JSON in memory, runs its checks and compares the PNG's stamp.",
    "path": "www/scripts/build_cats_layout_index.py",
    "gen": "manifest"
   },
@@ -2703,7 +2706,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "website",
-   "desc": "Builds layout-index.json (hotspots, devices, MQTT, CPs) and the schematic PNG from tables.xml, stations.csv and LE geometry; --check.",
+   "desc": "Builds layout-index.json (hotspots, devices, MQTT, CPs; not committed, ADR-036: the site build and the preview build it through site_views.py) and the schematic PNG, stamped with the hash of what it is drawn from, from tables.xml, stations.csv and LE geometry; --check builds the JSON in memory, runs its checks and compares the PNG's stamp.",
    "path": "www/scripts/build_layout_index.py",
    "gen": "manifest"
   },
@@ -2722,7 +2725,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "website",
-   "desc": "Writes tables-browser.json (allowlisted fields) and fills regions of behind/tables-file.html via tables_page.py; --check.",
+   "desc": "Writes tables-browser.json (allowlisted fields; not committed, ADR-036: the site build and the preview build it through site_views.py) and fills regions of behind/tables-file.html via tables_page.py; --check builds the JSON in memory and runs its checks, and compares the committed page.",
    "path": "www/scripts/build_tables_browser.py",
    "gen": "manifest"
   },
@@ -2817,7 +2820,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "website",
-   "desc": "Site build: tracked files only, skip lists, WebP and thumbs, mirror photo resize with cache, photo stages reused while their inputs are unchanged (--full runs them), logo vendoring, data scrubbing, search index, leak check.",
+   "desc": "Site build: tracked files only, skip lists, WebP and thumbs, mirror photo resize with cache, photo stages reused while their inputs are unchanged (--full runs them), logo vendoring, data scrubbing, search index, leak check, and the files built instead of committed (site_views.py, ADR-036).",
    "path": "www/scripts/prepare_github_pages.py"
   },
   {
@@ -3797,6 +3800,15 @@
    "domain": "ops",
    "desc": "Weekly: mirrors the Mac's gitignored data, the Pi snapshots and the AnyRail plans into WSL on the Windows box (ADR-035).",
    "path": "tools/hosts/backup_win_push.sh"
+  },
+  {
+   "id": "www/scripts/site_views.py",
+   "label": "site_views.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "The files the site publishes that are built, not committed (ADR-036): the pipeline map page and the generated JSON, each with the builder that returns its checked text. The site build writes them into the build; make site-data and serve_portal.py write them into www/ for the local preview, removing one that cannot be built.",
+   "path": "www/scripts/site_views.py"
   },
   {
    "id": ".claude/agents/archive-researcher.md",
@@ -6863,27 +6875,13 @@
    "label": "layout-explorer.js"
   },
   {
-   "from": "www/data/layout-index-cats.json",
-   "to": "www/scripts/prepare_github_pages.py"
-  },
-  {
    "from": "www/data/layout-index.json",
    "to": "www/layout/ and www/roster",
    "label": "roster.js"
   },
   {
    "from": "www/data/layout-index.json",
-   "to": "www/scripts/build_cats_layout_index.py",
-   "label": "join MQTT/hw",
-   "gen": "manifest"
-  },
-  {
-   "from": "www/data/layout-index.json",
    "to": "www/scripts/make_share_cards.py"
-  },
-  {
-   "from": "www/data/layout-index.json",
-   "to": "www/scripts/prepare_github_pages.py"
   },
   {
    "from": "www/data/panels.json",
@@ -6949,10 +6947,6 @@
    "from": "www/data/tables-browser.json",
    "to": "www/behind",
    "label": "tables-browser.js"
-  },
-  {
-   "from": "www/data/tables-browser.json",
-   "to": "www/scripts/prepare_github_pages.py"
   },
   {
    "from": "www/data/videos.json",
@@ -7288,6 +7282,12 @@
    "to": "tools/check.sh",
    "label": "check layout-index-cats",
    "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/output/tables.xml",
+   "to": "www/scripts/build_cats_layout_index.py",
+   "label": "join MQTT/hw, via build_layout_index in memory",
    "gen": "manifest"
   },
   {
@@ -8527,7 +8527,7 @@
   },
   {
    "from": "tools/ops/build_pipeline_map.py",
-   "to": "www/scripts/prepare_github_pages.py",
+   "to": "www/scripts/site_views.py",
    "label": "site_page(): library/pipeline-map.html"
   },
   {
@@ -8609,6 +8609,46 @@
    "label": "check py-sizes",
    "side": "check",
    "gen": "manifest"
+  },
+  {
+   "from": "www/scripts/build_tables_browser.py",
+   "to": "www/scripts/site_views.py",
+   "label": "view()"
+  },
+  {
+   "from": "www/scripts/build_layout_index.py",
+   "to": "www/scripts/site_views.py",
+   "label": "index_text(), built once"
+  },
+  {
+   "from": "www/scripts/build_cats_layout_index.py",
+   "to": "www/scripts/site_views.py",
+   "label": "index_text(), joined to the layout index"
+  },
+  {
+   "from": "www/scripts/site_views.py",
+   "to": "www/scripts/prepare_github_pages.py",
+   "label": "VIEWS: built into the site (stage 1b)"
+  },
+  {
+   "from": "www/scripts/site_views.py",
+   "to": "www/scripts/serve_portal.py",
+   "label": "built into www/ at start"
+  },
+  {
+   "from": "www/scripts/site_views.py",
+   "to": "www/data/tables-browser.json",
+   "label": "make site-data, local preview"
+  },
+  {
+   "from": "www/scripts/site_views.py",
+   "to": "www/data/layout-index.json",
+   "label": "make site-data, local preview"
+  },
+  {
+   "from": "www/scripts/site_views.py",
+   "to": "www/data/layout-index-cats.json",
+   "label": "make site-data, local preview"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

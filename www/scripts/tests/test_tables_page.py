@@ -1,4 +1,5 @@
 """The tables file page and its browser data follow tables.xml, and the check catches drift."""
+import json
 import re
 import shutil
 import sys
@@ -14,15 +15,15 @@ import tables_page  # noqa: E402
 
 
 class Copy(unittest.TestCase):
-    """A temp copy of the portal's two outputs and of tables.xml, to change freely."""
+    """A temp copy of the committed tables file page and of tables.xml, to change freely (the browser data is not
+    committed, ADR-036: it is built from tables.xml)."""
 
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp)
         self.www = self.tmp / "www"
-        for rel in (btb.OUT_REL, btb.PAGE_REL):
-            (self.www / rel).parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy(btb.WWW / rel, self.www / rel)
+        (self.www / btb.PAGE_REL).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(btb.WWW / btb.PAGE_REL, self.www / btb.PAGE_REL)
         self.src = self.tmp / "tables.xml"
         shutil.copy(btb.SRC, self.src)
         self.xml = self.src.read_text(encoding="utf-8")
@@ -120,7 +121,7 @@ class Words(unittest.TestCase):
 
 
 class CommittedPage(unittest.TestCase):
-    def test_committed_page_and_data_are_current(self):
+    def test_committed_page_is_current_and_the_data_builds(self):
         self.assertEqual(btb.stale(), [], "run python3 www/scripts/build_tables_browser.py")
 
     def test_fill_is_idempotent(self):
@@ -191,12 +192,46 @@ class Drift(Copy):
 
 
 class SiteBuild(Copy):
-    def test_site_build_refreshes_a_stale_page_and_data(self):
+    def test_site_build_refreshes_a_stale_page_and_leaves_the_data_to_the_built_pages(self):
         (self.www / btb.PAGE_REL).write_text(
             re.sub(r"(<!--tf:lines-->)(.*?)(<!--/tf-->)", r"\g<1>1\3", self.page()), encoding="utf-8")
-        (self.www / btb.OUT_REL).write_text("{}\n", encoding="utf-8")
         prepare_github_pages._refresh_tables_page(self.www)
         self.assertEqual(btb.stale(self.www), [])
+        self.assertFalse((self.www / btb.OUT_REL).exists(), "the data is a built page (_build_pages), written once")
+
+
+class BrowserData(Copy):
+    """The data is not committed (ADR-036): data_text() builds it and its checks stop a broken build."""
+
+    def test_the_view_is_the_data_the_page_reads(self):
+        data = json.loads(btb.view(self.src))
+        self.assertEqual(btb.problems(data), [])
+        self.assertGreater(data["meta"]["masts"], 50)
+
+    def test_a_tables_file_with_no_masts_fails_its_checks(self):
+        self.xml = re.sub(r"<signalmasts\b.*?</signalmasts>", "", self.xml, flags=re.S)
+        self.src.write_text(self.xml, encoding="utf-8")
+        with self.assertRaisesRegex(btb.BrowserDataError, "table 'masts' has no rows"):
+            btb.view(self.src)
+
+    def test_rows_or_counts_that_do_not_add_up_fail(self):
+        data = btb.build(btb.load(self.src)[1])
+        data["meta"]["sensors"] += 1
+        next(t for t in data["tables"] if t["id"] == "turnouts")["rows"][0].append("extra")
+        bad = "\n".join(btb.problems(data))
+        self.assertIn("meta.sensors is", bad)
+        self.assertIn("table 'turnouts': 1 rows are not", bad)
+
+    def test_a_missing_or_broken_tables_file_is_a_clear_error(self):
+        with self.assertRaisesRegex(btb.BrowserDataError, "cannot read the tables file"):
+            btb.view(self.tmp / "absent.xml")
+        self.src.write_text("<layout-config>", encoding="utf-8")
+        with self.assertRaisesRegex(btb.BrowserDataError, "is not XML"):
+            btb.view(self.src)
+
+    def test_check_does_not_need_a_data_file(self):
+        self.assertFalse((self.www / btb.OUT_REL).exists())
+        self.assertEqual(btb.stale(self.www, self.src), [])
 
     def test_site_build_skips_a_tree_without_the_page(self):
         (self.www / btb.PAGE_REL).unlink()

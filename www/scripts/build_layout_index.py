@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
 """Build the www layout index from live repo data.
 
+    python3 www/scripts/build_layout_index.py          # render the PNG, stamp it, write the local JSON
+    python3 www/scripts/build_layout_index.py --check  # build in memory; exit 1 if a check fails
+
 Uses the same LE geometry + overview transform as jmri/layouts/hart/scripts/render_le_layout.py
 so hotspot pixels align with assets/layout/HART_le_schematic.png.
+
+www/data/layout-index.json is built where it is used, not committed (ADR-036): the site build
+(prepare_github_pages.py, through site_views.py) and the local preview (serve_portal.py, make site-data) call
+index_text(). The PNG stays committed; it carries the hash of what it is drawn from (png_stamp.py), so --check
+finds a PNG that needs re-rendering without drawing it.
 """
 
 from __future__ import annotations
@@ -20,6 +28,9 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import devices as device_master, names, paths, railroad_facts, tables  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import png_stamp  # noqa: E402
+
 PORTAL = Path(__file__).resolve().parents[1]
 ROOT = paths.REPO_ROOT
 
@@ -33,12 +44,17 @@ RENDER = paths.LAYOUT_SCRIPTS / "render_le_layout.py"
 PAD = 34
 TOP = 78
 TARGET_W = 2000
+BUILD = "python3 www/scripts/build_layout_index.py"
+
+
+class LayoutIndexError(Exception):
+    """The layout index cannot be built, or what was built fails a check; the message says why."""
 
 
 def load_render_mod():
     spec = importlib.util.spec_from_file_location("render_le_layout", RENDER)
     if spec is None or spec.loader is None:
-        raise SystemExit(f"cannot load {RENDER}")
+        raise LayoutIndexError(f"cannot load {RENDER}")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
@@ -166,7 +182,7 @@ def overview_xy(turnouts, segs, signals, stations):
     for s in stations:
         pts.append((s["x"], s["y"]))
     if not pts:
-        raise SystemExit("no geometry")
+        raise LayoutIndexError(f"no geometry in {PANEL}")
     bx0 = min(p[0] for p in pts) - PAD
     bx1 = max(p[0] for p in pts) + PAD
     by0 = min(p[1] for p in pts) - PAD
@@ -188,15 +204,15 @@ def refresh_schematic():
     SCHEMATIC.parent.mkdir(parents=True, exist_ok=True)
     cmd = [sys.executable, str(RENDER), str(PANEL), str(SCHEMATIC)]
     print("render:", " ".join(cmd))
-    # a failed render must stop the run: the JSON records the render inputs, so --check would pass on an old PNG
+    # a failed render must stop the run: the stamp records the render inputs, so --check would pass on an old PNG
     if subprocess.run(cmd).returncode:
-        raise SystemExit(f"render failed: {RENDER.name} {PANEL}")
+        raise LayoutIndexError(f"render failed: {RENDER.name} {PANEL}")
 
 
 def render_inputs_sha256(geometry) -> str:
     """What the schematic PNG is drawn from: the panel geometry the renderer reads, and the renderer.
 
-    Recorded in the JSON so --check finds a PNG that needs re-rendering without drawing it
+    Recorded in the PNG (png_stamp) and the JSON so --check finds a PNG that needs re-rendering without drawing it
     (the renderer's fonts differ by machine, so its pixels cannot be compared in CI).
     """
     h = hashlib.sha256(repr(geometry).encode("utf-8"))
@@ -205,10 +221,15 @@ def render_inputs_sha256(geometry) -> str:
 
 
 def build():
+    for path, what in ((PANEL, "panel"), (NAMES, "names"), (STATIONS, "stations")):
+        if not path.is_file():
+            raise LayoutIndexError(f"missing {what}: {path}")
+    if not SCHEMATIC.is_file():
+        raise LayoutIndexError(f"missing {paths.rel(SCHEMATIC)}: run {BUILD} to render it, and commit it")
     mod = load_render_mod()
     geometry = mod.load_geometry(PANEL)
     _pp, _legs, turnouts, segs, signals, stations = geometry
-    X, Y, width, height, scale = overview_xy(turnouts, segs, signals, stations)
+    X, Y, _width, _height, scale = overview_xy(turnouts, segs, signals, stations)
 
     by_hw, by_name = load_names(NAMES)
     devices = load_devices(PANEL)
@@ -298,14 +319,10 @@ def build():
             }
         )
 
-    # Prefer actual PNG size after render
-    if SCHEMATIC.is_file():
-        try:
-            from PIL import Image
-
-            width, height = Image.open(SCHEMATIC).size
-        except Exception:
-            pass
+    try:
+        width, height = png_stamp.size(SCHEMATIC)  # the PNG the hotspots sit on
+    except png_stamp.PngError as err:
+        raise LayoutIndexError(str(err)) from None
 
     return {
         "source": {
@@ -334,39 +351,70 @@ def build():
     }
 
 
+def problems(payload: dict) -> list[str]:
+    """What is wrong with a built index: no items, counts that do not add up, repeated ids, or a PNG whose stamp is
+    not the hash of what it is drawn from now (re-render it)."""
+    out = []
+    items = payload.get("items") or []
+    if not items:
+        out.append("the index has no items")
+    ids = [it.get("id") for it in items]
+    if len(set(ids)) != len(ids):
+        out.append("repeated item ids: " + ", ".join(sorted({i for i in ids if ids.count(i) > 1}, key=str)[:10]))
+    counts = payload.get("counts") or {}
+    if counts.get("total") != len(items):
+        out.append(f"counts.total is {counts.get('total')}, the index has {len(items)} items")
+    if not counts.get("mapped"):
+        out.append("no item has a place on the schematic (counts.mapped is 0)")
+    want = (payload.get("image") or {}).get("inputs_sha256")
+    try:
+        have = png_stamp.stamp(SCHEMATIC)
+    except png_stamp.PngError as err:
+        out.append(str(err))
+    else:
+        if have != want:
+            out.append(f"{paths.rel(SCHEMATIC)} was drawn from other inputs (its stamp is {have}, they hash to "
+                       f"{want}): run {BUILD} and commit the PNG")
+    return out
+
+
+def index_text(payload: dict | None = None) -> str:
+    """The checked layout-index.json text of `payload` (built now when None). LayoutIndexError when it cannot be
+    built or fails a check."""
+    payload = build() if payload is None else payload
+    bad = problems(payload)
+    if bad:
+        raise LayoutIndexError(f"{paths.rel(OUT_JSON)} fails its checks:\n  " + "\n  ".join(bad))
+    return json.dumps(payload, indent=2) + "\n"
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--check", action="store_true",
-                    help="build without rendering or writing; exit 1 if layout-index.json or the PNG "
-                         "(by its recorded render inputs) is stale")
+                    help="build in memory and write nothing; exit 1 if the index fails a check or the PNG "
+                         "(by its render stamp) is stale")
     args = ap.parse_args(argv)
-    if not PANEL.is_file():
-        raise SystemExit(f"missing panel: {PANEL}")
-    if not NAMES.is_file():
-        raise SystemExit(f"missing names: {NAMES}")
     if not args.check:
         # never render the public site's schematic from a HART_TABLES candidate the owner has not approved
         paths.exit_if_overridden(Path(__file__).name)
-    if args.check:
-        want = json.dumps(build(), indent=2) + "\n"
-        have = OUT_JSON.read_text(encoding="utf-8") if OUT_JSON.is_file() else ""
-        if want != have:
-            print(f"{OUT_JSON.relative_to(ROOT)} or {SCHEMATIC.relative_to(ROOT)} is stale: run "
-                  "python3 www/scripts/build_layout_index.py and commit both", file=sys.stderr)
-            return 1
-        print(f"{OUT_JSON.relative_to(ROOT)} is current")
-        return 0
-    refresh_schematic()
-    payload = build()
-    OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
-    OUT_JSON.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-    c = payload["counts"]
-    print(
-        f"wrote {OUT_JSON.relative_to(ROOT)} "
-        f"total={c['total']} mapped={c['mapped']} "
-        f"to={c['turnout']} sig={c['signal']} "
-        f"img={payload['image']['width']}x{payload['image']['height']}"
-    )
+    try:
+        if args.check:
+            text = index_text()
+            print(f"{paths.rel(OUT_JSON)} builds and passes its checks "
+                  f"({len(json.loads(text)['items'])} items, the PNG's render stamp is current)")
+            return 0
+        refresh_schematic()
+        payload = build()
+        png_stamp.write_stamp(SCHEMATIC, payload["image"]["inputs_sha256"])
+        text = index_text(payload)
+        OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
+        OUT_JSON.write_text(text, encoding="utf-8")
+    except (LayoutIndexError, png_stamp.PngError, OSError) as err:
+        print(err, file=sys.stderr)
+        return 1
+    c = json.loads(text)["counts"]
+    print(f"wrote {paths.rel(SCHEMATIC)} (to commit) and {paths.rel(OUT_JSON)} (not committed) "
+          f"total={c['total']} mapped={c['mapped']} to={c['turnout']} sig={c['signal']}")
     return 0
 
 
