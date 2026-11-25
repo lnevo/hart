@@ -53,7 +53,13 @@ class CheckTrainSymbols(unittest.TestCase):
                             "opspro_name": ""}]
         problems = C.roster_problems(trains, ["D749", "D749 Return", *C.NOT_TRAINS])
         self.assertEqual(problems, [f"check_train_symbols.NOT_TRAINS: {name!r} is in "
-                                    f"{C.MASTER.relative_to(ROOT)} now; drop it"])
+                                    f"{C.MASTER.relative_to(ROOT)} now; drop it from NOT_TRAINS"])
+
+    def test_two_trains_may_not_share_an_opspro_name(self) -> None:
+        trains = [*TRAINS, {**TRAINS[1], "train_symbol": "D749X"}]
+        problems = C.roster_problems(trains, ["D749", "D749 Return", *C.NOT_TRAINS])
+        self.assertEqual(problems, [f"{C.MASTER.relative_to(ROOT)}: D749R and D749X share the opspro_name "
+                                    "'D749 Return'"])
 
     def test_the_desk_train_list_matches_the_master_in_order(self) -> None:
         same = header(rec("D749", "D749", "1993", "East"), rec("D749R", "D749 Return", "1993", "West"))

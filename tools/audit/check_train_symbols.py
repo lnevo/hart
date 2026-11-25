@@ -61,6 +61,14 @@ def roster_problems(trains: list[dict[str, str]], names: list[str]) -> list[str]
     symbols = {t["train_symbol"] for t in trains}
     mapped = {t["opspro_name"]: t["train_symbol"] for t in trains if t.get("opspro_name")}
     problems = []
+    seen: dict[str, str] = {}
+    for t in trains:
+        name = t.get("opspro_name")
+        if name and name in seen:
+            problems.append(f"{MASTER.relative_to(ROOT)}: {seen[name]} and {t['train_symbol']} share the opspro_name "
+                            f"{name!r}")
+        elif name:
+            seen[name] = t["train_symbol"]
     for name in names:
         if name in symbols or name in mapped or name in NOT_TRAINS:
             continue
@@ -73,9 +81,11 @@ def roster_problems(trains: list[dict[str, str]], names: list[str]) -> list[str]
             problems.append(f"{MASTER.relative_to(ROOT)}: {symbol}'s opspro_name {name!r} is another train's symbol")
     for name, why in NOT_TRAINS.items():
         if name not in names:
-            problems.append(f"check_train_symbols.NOT_TRAINS: {name!r} ({why}) is no longer in {rel}; drop it")
+            problems.append(f"check_train_symbols.NOT_TRAINS: {name!r} ({why}) is no longer in {rel}; drop it from "
+                            "NOT_TRAINS, or give the renamed train a row in trains.csv")
         elif name in symbols or name in mapped:
-            problems.append(f"check_train_symbols.NOT_TRAINS: {name!r} is in {MASTER.relative_to(ROOT)} now; drop it")
+            problems.append(f"check_train_symbols.NOT_TRAINS: {name!r} is in {MASTER.relative_to(ROOT)} now; drop it from "
+                            "NOT_TRAINS")
     return problems
 
 
