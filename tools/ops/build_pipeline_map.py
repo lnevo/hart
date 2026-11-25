@@ -1,15 +1,22 @@
 #!/usr/bin/env python3
 """build_pipeline_map.py
 
-Write docs/pipeline-map/index.html, a zoomable map of every source, generator and output in the repo, from the graph
-in docs/pipeline-map/pipeline_map.json.
+Build the pipeline map, a zoomable page of every source, generator and output in the repo, from the graph in
+docs/pipeline-map/pipeline_map.json. The pages are views built where they are used, not committed (ADR-036).
 
-    python3 tools/ops/build_pipeline_map.py            write the page
-    python3 tools/ops/build_pipeline_map.py --check    exit 1 when the graph is broken or the page is out of date
-    python3 tools/ops/build_pipeline_map.py --public --out www/... [--back HREF]   the website copy (with --check too)
+    python3 tools/ops/build_pipeline_map.py            (make map) refresh the graph's agent-doc lane, then write both
+                                                       local pages: docs/pipeline-map/index.html and the website copy
+                                                       www/library/pipeline-map.html (both gitignored)
+    python3 tools/ops/build_pipeline_map.py --check    build both pages in memory and write nothing; exit 1 when the
+                                                       graph is broken or stale, or a page fails its checks (check.sh, CI)
+    python3 tools/ops/build_pipeline_map.py --out FILE                 the repo page to FILE
+    python3 tools/ops/build_pipeline_map.py --public --out FILE [--back HREF]   the website copy to FILE
 
-The website copy renames the gitignored mirrors (PUBLIC_NAMES), whose real paths the site build treats as leaks, and
-can carry a link back to the page that links to it.
+The website build (www/scripts/prepare_github_pages.py) calls site_page() and writes the website copy into its output.
+Every page is checked after it is drawn (check_page: no template placeholder left, the graph's every box and link in
+it, the viewer script inlined) and read back after it is written. The website copy renames the gitignored mirrors
+(PUBLIC_NAMES), whose real paths the site build treats as leaks, passes the site's leak check, and can carry a link
+back to the page that links to it.
 
 The agent-doc lane (domain "agents": boxes and links marked "gen": "agent-docs") is generated from the files by
 tools/ops/agent_docs_map.py: a plain run rewrites it in the graph file, and --check fails when the committed graph
@@ -45,9 +52,12 @@ GRAPH = ROOT / "docs" / "pipeline-map" / "pipeline_map.json"
 SIDES = ("check", "pointer", "pull", "mirror", "capture", "history")  # an edge's "side": why it carries no content on
 PAGE = ROOT / "docs" / "pipeline-map" / "index.html"
 SCRIPT = Path(__file__).resolve().with_name("pipeline_map.js")
-# the website copy, as tools/check.sh checks it
-SITE_BUILD = ("python3 tools/ops/build_pipeline_map.py --public --out www/library/pipeline-map.html "
-              "--back repository-guide.html")
+# the website copy: its path in the site (under www/ locally, under the build's output folder on a deploy) and the
+# page its back link returns to
+SITE_REL = "library/pipeline-map.html"
+SITE_BACK = "repository-guide.html"
+SITE_PAGE = ROOT / "www" / SITE_REL
+BUILD = "python3 tools/ops/build_pipeline_map.py"  # (make map) both local pages
 
 KINDS = {
     "structured": ("Structured data", "#dbeafe", "#1e40af"),
@@ -543,12 +553,27 @@ def public_copy(data: dict) -> dict:
     return fix(data)
 
 
+@functools.cache
+def _site_build():
+    """www/scripts/prepare_github_pages.py, loaded once, for its leak patterns and private-name check."""
+    path = ROOT / "www/scripts/prepare_github_pages.py"
+    for name in ("prepare_github_pages", "__main__"):
+        loaded = sys.modules.get(name)
+        if loaded is not None and Path(getattr(loaded, "__file__", "") or ".").resolve() == path.resolve():
+            return loaded    # the site build itself is running: use it, do not load a second copy
+    spec = importlib.util.spec_from_file_location("prepare_github_pages", path)
+    site = importlib.util.module_from_spec(spec)
+    try:
+        spec.loader.exec_module(site)
+    except (OSError, ImportError) as err:
+        raise GraphError(f"cannot load the website's checks from {path.relative_to(ROOT)}: {err}") from None
+    return site
+
+
 def check_public_page(page: str) -> None:
     """Fail on text in the finished public page that the website build would reject: its leak patterns and the
     private name (www/scripts/prepare_github_pages.py), over the graph, the template and the inlined script."""
-    spec = importlib.util.spec_from_file_location("prepare_github_pages", ROOT / "www/scripts/prepare_github_pages.py")
-    site = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(site)
+    site = _site_build()
     leaks = sorted({m.group() for m in site.LEAK_PATTERNS.finditer(page)})
     if leaks:
         raise GraphError(f"the public page holds text the website's leak check rejects: {', '.join(leaks)}")
@@ -601,56 +626,167 @@ def render(data: dict, back: str = "", site: bool = False) -> str:
         .replace("__DATE__", esc(data.get("updated", "")))
         .replace("__COUNTS__", counts)
         .replace("__DATA__", json.dumps(page_data, separators=(",", ":")).replace("<", "\\u003c"))
-        .replace("__SCRIPT__", SCRIPT.read_text())
+        .replace("__SCRIPT__", script_text())
     )
+
+
+@functools.cache
+def script_text() -> str:
+    """The viewer script the page inlines (pipeline_map.js); a missing or empty file is a GraphError, not a page
+    without a viewer."""
+    try:
+        text = SCRIPT.read_text(encoding="utf-8")
+    except OSError as err:
+        raise GraphError(f"cannot read the viewer script {SCRIPT.name}: {err.strerror}") from None
+    if not text.strip():
+        raise GraphError(f"the viewer script {SCRIPT.name} is empty")
+    return text
+
+
+PLACEHOLDERS = ("__SITEHEAD__", "__SITECSS__", "__SITEHEADER__", "__SITESCRIPT__", "__BACK__", "__LEGEND__",
+                "__DATE__", "__COUNTS__", "__DATA__", "__SCRIPT__")
+_PAGE_DATA = re.compile(r"<script>const DATA = (\{.*?\});</script>", re.S)  # "<" in the data is written <
+
+
+def check_page(page: str, data: dict, site: bool) -> None:
+    """GraphError unless the drawn page is whole: every template placeholder filled, its data holding exactly the
+    graph's boxes (by id) and links (by their two ends), the viewer script inlined, and the site header in the website
+    copy. `data` is the graph the page was drawn from (the public copy for the website page)."""
+    left = [p for p in PLACEHOLDERS if p in page]
+    if left:
+        raise GraphError(f"the page still holds template placeholders: {', '.join(left)}")
+    found = _PAGE_DATA.search(page)
+    if not found:
+        raise GraphError("the page holds no graph data (const DATA)")
+    try:
+        shown = json.loads(found.group(1))
+    except json.JSONDecodeError as err:
+        raise GraphError(f"the page's graph data is not valid JSON: {err}") from None
+    try:
+        keys = {"nodes": lambda e: e["id"], "edges": lambda e: (e["from"], e["to"])}
+        for key, ident in keys.items():
+            got, want = [ident(e) for e in shown.get(key, ())], [ident(e) for e in data[key]]
+            if len(got) != len(want) or set(got) != set(want):
+                missing, extra = sorted(map(str, set(want) - set(got))), sorted(map(str, set(got) - set(want)))
+                raise GraphError(f"the page holds {len(got)} {key}, the graph {len(want)}"
+                                 + (f"; missing {', '.join(missing[:5])}" if missing else "")
+                                 + (f"; not in the graph {', '.join(extra[:5])}" if extra else ""))
+    except (KeyError, TypeError) as err:
+        raise GraphError(f"the page's graph data has a malformed entry ({err!r})") from None
+    if script_text() not in page:
+        raise GraphError(f"the page does not inline {SCRIPT.name}")
+    if site and SITE_HEADER not in page:
+        raise GraphError("the website copy has no site header")
+
+
+def build(data: dict, public: bool, back: str = "") -> str:
+    """One page from a checked graph, itself checked: the repo page, or the website copy (public=True: mirror paths
+    renamed, site look, and the website's leak and private-name checks)."""
+    drawn = public_copy(data) if public else data
+    page = render(drawn, back, public)
+    check_page(page, drawn, public)
+    if public:
+        check_public_page(page)
+    return page
+
+
+def write_page(out: Path, page: str) -> None:
+    """Write a page and read it back; GraphError when either fails."""
+    try:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(page, encoding="utf-8")
+        back = out.read_text(encoding="utf-8")
+    except OSError as err:
+        raise GraphError(f"cannot write {out}: {err.strerror or err}") from None
+    if back != page:
+        raise GraphError(f"{out} reads back different from the page written")
+
+
+def check_untracked() -> None:
+    """GraphError when git tracks a page that is built, not committed (ADR-036): a branch from before it that kept its
+    copy in a modify/delete conflict, or a git add -f. The site build would stop on it at deploy time."""
+    tracked = [shown(p) for p in (PAGE, SITE_PAGE) if shown(p) in tracked_paths()]
+    if tracked:
+        raise GraphError(f"git tracks {', '.join(tracked)}, which are built, not committed (ADR-036): "
+                         f"git rm --cached {' '.join(tracked)}")
+
+
+def rebuild_command(graph: Path) -> str:
+    if graph.resolve() == GRAPH.resolve():
+        return f"{BUILD} (make map)"
+    return f"{BUILD} --graph {shlex.quote(str(graph))} --out <page>"
+
+
+def current(graph: Path) -> tuple[dict, str | None]:
+    """The checked graph with its generated lane rebuilt, and why the file is stale (None when it is current)."""
+    data = validate(regenerate(read(graph)))
+    if graph.read_text(encoding="utf-8") == graph_text(data):
+        return data, None
+    return data, (f"{graph} is out of date (its agent-doc lane is generated from the files): run "
+                  f"{rebuild_command(graph)} and commit the graph")
+
+
+def site_page(graph: Path = GRAPH) -> str:
+    """The website copy for the site build (prepare_github_pages.py), as the page at SITE_REL with its back link.
+    GraphError when the graph is broken or stale or the page fails a check: a deploy never publishes a map that
+    does not match the committed graph."""
+    data, stale = current(graph)
+    if stale:
+        raise GraphError(stale)
+    return build(data, public=True, back=SITE_BACK)
+
+
+def shown(path: Path) -> str:
+    p = path.resolve()
+    return str(p.relative_to(ROOT)) if p.is_relative_to(ROOT) else str(path)
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[2])
-    ap.add_argument("--check", action="store_true", help="fail when the graph is broken or the page is stale")
+    ap.add_argument("--check", action="store_true",
+                    help="build both pages in memory and write nothing; fail when the graph or a page has a problem")
     ap.add_argument("--graph", type=Path, default=GRAPH)
-    ap.add_argument("--out", type=Path, default=PAGE)
-    ap.add_argument("--public", action="store_true", help="write the website copy (mirror paths renamed); needs --out")
+    ap.add_argument("--out", type=Path, help="write one page here instead of both local pages")
+    ap.add_argument("--public", action="store_true", help="the website copy (mirror paths renamed); needs --out")
     ap.add_argument("--back", default="", help="link at the top left of the page, back to the page that links to it")
     args = ap.parse_args(argv)
-    if args.public and args.out.resolve() == PAGE.resolve():
+    if args.check and (args.out or args.public or args.back):
+        ap.error("--check builds both pages in memory and writes nothing; it takes no --out, --public or --back")
+    if args.public and not args.out:
         ap.error("--public writes the website copy; give it --out")
-    again = shlex.join(a for a in (argv if argv is not None else sys.argv[1:]) if a != "--check")
+    if not args.check and not args.out and args.graph.resolve() != GRAPH.resolve():
+        ap.error("another --graph writes no local page in its place; give it --out")
     try:
-        raw = read(args.graph)
-        data = validate(regenerate(raw))
+        data, stale = current(args.graph)
     except GraphError as err:
         print(f"{args.graph}: the graph has problems:\n{err}", file=sys.stderr)
         return 1
-    fresh = graph_text(data)
-    plain = "python3 tools/ops/build_pipeline_map.py" + (
-        f" --graph {shlex.quote(str(args.graph))}" if args.graph.resolve() != GRAPH.resolve() else "")
-    if args.graph.read_text() != fresh:
-        # Only the plain build writes the graph, so a website build or a --check never changes a tracked source.
-        if args.check or args.public:
-            print(f"{args.graph} is out of date (its agent-doc lane is generated from the files): run {plain} "
-                  f"(it rewrites the graph and the docs page), then {SITE_BUILD}", file=sys.stderr)
-            return 1
-        args.graph.write_text(fresh)
-        print(f"updated {args.graph.name}: the agent-doc lane, from the files; rebuild the website copy too: "
-              f"{SITE_BUILD}")
-    page = render(public_copy(data) if args.public else data, args.back, args.public)
-    if args.public:
-        try:
-            check_public_page(page)
-        except GraphError as err:
-            print(f"{args.out}: the public page fails the website's checks (graph, template or {SCRIPT.name}):\n{err}",
-                  file=sys.stderr)
-            return 1
-    if args.check:
-        if not args.out.exists() or args.out.read_text() != page:
-            print(f"{args.out} is out of date: run python3 tools/ops/build_pipeline_map.py {again}".rstrip(), file=sys.stderr)
-            return 1
-        return 0
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(page)
-    shown = args.out.resolve().relative_to(ROOT) if args.out.resolve().is_relative_to(ROOT) else args.out
-    print(f"wrote {shown}: {len(data['nodes'])} nodes, {len(data['edges'])} edges")
+    # Only the plain build writes the graph, so a website build or a --check never changes a tracked source.
+    if stale and (args.check or args.public):
+        print(stale, file=sys.stderr)
+        return 1
+    try:
+        if args.check:
+            check_untracked()
+            build(data, public=False)
+            build(data, public=True, back=SITE_BACK)
+            print(f"pipeline map: the graph is current and both pages build ({len(data['nodes'])} nodes, "
+                  f"{len(data['edges'])} edges)")
+            return 0
+        if args.out:
+            pages = [(args.out, build(data, args.public, args.back))]
+        else:
+            pages = [(PAGE, build(data, public=False, back=args.back)),
+                     (SITE_PAGE, build(data, public=True, back=SITE_BACK))]
+        if stale:
+            args.graph.write_text(graph_text(data), encoding="utf-8")
+            print(f"updated {args.graph.name}: the agent-doc lane, from the files; commit it")
+        for out, page in pages:
+            write_page(out, page)
+            print(f"wrote {shown(out)}: {len(data['nodes'])} nodes, {len(data['edges'])} edges")
+    except GraphError as err:
+        print(f"pipeline map: {err}", file=sys.stderr)
+        return 1
     return 0
 
 

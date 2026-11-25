@@ -292,11 +292,11 @@ LEFT_OUT = {
                                             "HART_TABLES; status_counts.py reads wiki/STATUS.md on the way",
     "unit-guards test_jmri_process_patterns": "reads the .sh, .ps1 and .py files git lists, docs/ included; no Markdown",
     "unit-guards test_pipeline_map": "its real-map tests read the graph and the pages, which only a full-path change "
-                                     "(docs/pipeline-map/) alters; the site copy is the pipeline-map-site check",
+                                     "(docs/pipeline-map/) alters; both pages are the pipeline-map check",
     "unit-guards test_pipeline_map_coverage": "the agent docs it checks are .claude/ and AGENTS.md files: full path",
     "unit-guards test_docs_index": "builds fake docs trees; the real index is the docs-index check",
     "unit-guards test_agent_docs_map": "its one test on the real wiki (the committed graph is current) is what the "
-                                       "pipeline-map-site check's build_pipeline_map.py --check also fails on",
+                                       "pipeline-map check's build_pipeline_map.py --check also fails on",
     "unit-guards test_agent_docs_cells": "its runs of check_agent_docs.py on the real wiki and AGENTS.md are what "
                                          "the agent-docs check in docs_checks.sh's list checks",
     "unit-guards test_status_merge": "its one test on the real wiki/STATUS.md (no doubled entries) is what the "

@@ -115,7 +115,7 @@ EXTRA: dict[str, tuple[str, ...]] = {
     # the map build draws the agent-doc lane from the wiki and docs/INDEX.md too (tools/ops/agent_docs_map.py)
     # the map build also reads .gitmodules (the submodule nodes) and lists ops/hart-ops/card_pipeline (a folder node
     # of the map, docs/pipeline-map/pipeline_map.json)
-    "unit-guards test_pipeline_map": ("docs/pipeline-map/**/*", "www/library/**/*", "www/scripts/**/*", "wiki/**/*",
+    "unit-guards test_pipeline_map": ("docs/pipeline-map/**/*", "www/scripts/**/*", "wiki/**/*",
                                       "docs/INDEX.md", "ops/hart-ops/AGENTS.md", ".gitmodules",
                                       "ops/hart-ops/card_pipeline/**/*"),
     # the map and the entry files outside CODE (www/scripts/deploy_hartrailroad.sh); its output roots are in CODE

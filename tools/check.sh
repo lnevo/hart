@@ -339,7 +339,8 @@ static_checks() {
 run phase02 python3 jmri/scripts/check_hart_phase02.py
 run tables-browser python3 www/scripts/build_tables_browser.py --check
 run repo-guide python3 www/scripts/repo_guide_page.py --check
-run pipeline-map-site python3 tools/ops/build_pipeline_map.py --public --out www/library/pipeline-map.html --back repository-guide.html --check
+# The pipeline map pages are built, not committed (ADR-036): --check draws both in memory and fails on any problem.
+run pipeline-map python3 tools/ops/build_pipeline_map.py --check
 # Every script this file, the Makefile, make panels and the deploys run, and every file in an output folder, is in the
 # map agents query (tools/ops/pipeline_query.py); the deliberate exceptions are ALLOWED in the script.
 run pipeline-map-coverage python3 tools/ops/pipeline_map_coverage.py

@@ -46,6 +46,21 @@ PORTAL = Path(__file__).resolve().parents[1]
 # The private-name check works by fingerprint, so the name itself is never written in this script.
 sys.path.insert(0, str(PORTAL.parent / "ops/hart-ops/card_pipeline"))
 from private_name import contains_private_name  # noqa: E402
+
+
+def _load_tool(rel: str):
+    """A repo tool outside www/scripts, loaded by path once (tools/ops is not a package)."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(Path(rel).stem, PORTAL.parent / rel)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+pipeline_map = _load_tool("tools/ops/build_pipeline_map.py")
+# Pages the site publishes that are built here from their sources instead of committed (ADR-036): the site path,
+# and the builder that returns the checked page or raises its GraphError.
+BUILT_PAGES = {pipeline_map.SITE_REL: pipeline_map.site_page}
 # Build scripts, the owner's review desk, and pages that only work at the layout (localhost tools,
 # workspace pointers) stay off the public site.
 SKIP_DIRS = {Path("scripts"), Path("review"), Path("review-data"), Path("tools"), Path("reference")}
@@ -1128,6 +1143,30 @@ def _refresh_tables_page(dest_root: Path) -> None:
             print("WARNING: JMRI additions page not refilled, the committed copy is published: %s" % e)
 
 
+def _build_pages(dest: Path) -> bool:
+    """Stage 1b: write each of BUILT_PAGES into the tree from its builder. False (said on stderr) when a builder
+    fails or returns nothing, when the page is already in the tree (it would be committed again, or named in the
+    manifest), or when the written file does not read back as built: a build never publishes a stale or missing page
+    in its place."""
+    for rel, make in BUILT_PAGES.items():
+        out = dest / rel
+        if out.exists():
+            print(f"{rel} is built by the site build (ADR-036), but the copy stage already put one in the tree: "
+                  f"untrack it (git rm --cached www/{rel}) or drop it from scripts/published-files.json",
+                  file=sys.stderr)
+            return False
+        try:
+            page = make()
+            if not isinstance(page, str) or not page.strip():
+                raise pipeline_map.GraphError("its builder returned no page")
+            pipeline_map.write_page(out, page)  # writes, then reads back
+        except pipeline_map.GraphError as e:
+            print(f"Cannot build {rel}:\n{e}", file=sys.stderr)
+            return False
+        print(f"Built {rel}")
+    return True
+
+
 def _unsafe_dest(dest: Path) -> bool:
     """True when rmtree(dest) would delete the repo, the portal, or a folder holding either."""
     repo = Path(
@@ -1419,6 +1458,8 @@ def main() -> int:
     if dest.exists():
         shutil.rmtree(dest)
     _copy_published(dest)
+    if not _build_pages(dest):
+        return 1
     _refresh_tables_page(dest)
     _scrub_site_json(dest)
     early_stamp, early_files, reused = _photo_early(dest, args.full)

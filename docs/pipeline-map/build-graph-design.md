@@ -243,7 +243,7 @@ It **stays committed**, as a mix of hand-kept entries and generated lanes:
 - Its hand-kept part (249 nodes and 190 edges in 2.1) has no other home unless stage 7 runs.
 - The merge driver already merges `gen` entries by key, and `--check` catches a stale lane.
 
-ADR-036 may take `index.html` and `www/library/pipeline-map.html` out of git. That does not change the JSON; the `pipeline-map-site` check then moves wherever ADR-036 puts the page build.
+ADR-036 takes `index.html` and `www/library/pipeline-map.html` out of git. That does not change the JSON; the map check is now `pipeline-map` (`build_pipeline_map.py --check`, both pages drawn in memory), and the site build writes its own copy.
 
 ### 4.3 Checks and code that shrink or go
 
