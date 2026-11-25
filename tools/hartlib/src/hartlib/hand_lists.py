@@ -51,9 +51,13 @@ class HandListError(ValueError):
 
 OVERRIDES_NAME = "block_overrides.csv"     # in the schematic data folder, beside plan_overrides.json
 TRACK_KEY_COLUMNS = ["switch_a", "switch_b", "parallel"]
+# `parallel` has two uses: on a split or track row, the track's place among tracks with the same end switches (1 to
+# 4, plan order); on a crossover_half row, the half's letter, 1 a or 2 b (HALF_LETTERS). Both say which of two or
+# more things sharing switch_a and switch_b the row means.
 OVERRIDE_COLUMNS = ["level", "kind"] + TRACK_KEY_COLUMNS + ["end", "block", "cm", "inside", "notes"]
 OVERRIDE_KINDS = ("split", "track", "crossover_half")
 SWITCH_NUMBER = re.compile(r"\d+")
+HALF_LETTERS = "ab"           # a crossover_half row's parallel 1 or 2: the half's letter
 OS_ID = re.compile(r"os:(?P<n>\d+)(?::A-(?P<to>\d+)[A-Z]?[A-D]|:(?P<corner>[A-D]))?")
 
 
@@ -86,9 +90,13 @@ def read_block_overrides(path: Path = SCHEMATIC / OVERRIDES_NAME, kinds: tuple[s
       own. block_layer's module text has the rules. The row comes back with `block` the OS block's generated name
       (os_block_name; `names` as there) and `id` the ID, so an owner's rename of the OS block (devices_field.csv)
       changes no row here.
-    - crossover_half: switch_a the crossover's number, switch_b the switch its half's leg A track runs to, `block` the
-      half's own OS block's generated name (OS Switch 7b): the generator names the half from it, and the owner's name
-      for it goes in devices_field.csv. No parallel, end, cm or inside.
+    - crossover_half: `block` the half's own OS block by its device ID, os:<n>:A-<end> (the half whose leg A runs to
+      that end: os:7:A-13C), switch_a its crossover's number n and switch_b the end's switch, as the ID has them;
+      `parallel` 1 or 2, the half's letter a or b (HALF_LETTERS). The letter is the owner's: the desks label the half
+      by it (7A, 7B) and the generator names the half OS Switch <n><letter>, so the owner's name for it
+      (devices_field.csv, by its ID) is free and nothing reads a letter off a name. The row comes back with `id` the
+      ID, `half` the letter and `block` the generated name, as a track row does. No end, cm or inside; each letter
+      once per crossover.
     HandListError naming the file and line on columns not OVERRIDE_COLUMNS, a level not 1 to 3, a kind not
     OVERRIDE_KINDS, or a row not in its kind's shape."""
     unknown = sorted(set(kinds) - set(OVERRIDE_KINDS))
@@ -102,7 +110,7 @@ def read_block_overrides(path: Path = SCHEMATIC / OVERRIDES_NAME, kinds: tuple[s
         raise HandListError(f"cannot read {path.name}: {exc}") from None
     if reader.fieldnames != OVERRIDE_COLUMNS:
         raise HandListError(f"{path.name}: columns {reader.fieldnames}, not {OVERRIDE_COLUMNS}")
-    out, bad, halves = [], [], {}
+    out, bad, halves, letters = [], [], {}, {}
     for i, r in enumerate(rows, 2):
         if None in r:                       # a short row's missing trailing fields are empty, as csv reads them
             bad.append(f"line {i}: more fields than the header's {len(OVERRIDE_COLUMNS)}")
@@ -115,6 +123,11 @@ def read_block_overrides(path: Path = SCHEMATIC / OVERRIDES_NAME, kinds: tuple[s
             continue
         r["cm"] = float(r["cm"]) if r["cm"] else None
         if r["kind"] == "crossover_half":         # every half, whichever kinds are asked for: a track row's OS block
+            r["id"], r["half"] = r["block"], HALF_LETTERS[int(r["parallel"]) - 1]
+            r["block"] = f"OS Switch {r['switch_a']}{r['half']}"
+            other = letters.setdefault((r["level"], r["switch_a"], r["half"]), i)
+            if other != i:
+                bad.append(f"line {i}: Switch {r['switch_a']}'s half {r['half']} is given on line {other} too")
             halves[(r["level"], r["switch_a"], r["switch_b"])] = r["block"]
         if r["kind"] in kinds:
             out.append(r)
@@ -128,6 +141,13 @@ def read_block_overrides(path: Path = SCHEMATIC / OVERRIDES_NAME, kinds: tuple[s
     if bad:
         raise HandListError(f"{path.name}: " + "; ".join(bad))
     return out
+
+
+def half_letters(path: Path = SCHEMATIC / OVERRIDES_NAME) -> dict[tuple[str, str], str]:
+    """{(level, a crossover half's OS block ID): its letter a or b}, from block_overrides.csv's crossover_half rows
+    (the owner's letters: a desk labels the half 7A, 7B by them, never by its name). HandListError as
+    read_block_overrides."""
+    return {(r["level"], r["id"]): r["half"] for r in read_block_overrides(path, ("crossover_half",))}
 
 
 def os_block_name(level: str, ident: str, halves: dict, names: Mapping[tuple[str, str], str] | None = None) -> str:
@@ -170,13 +190,15 @@ def override_problem(r: dict) -> str:
     if kind == "track" and not OS_ID.fullmatch(r["block"]):
         return (f"block {r['block']!r} is no OS block ID (a piece of track is part of a switch's OS block: os:<switch>, "
                 "a crossover half's os:<switch>:A-<end>, or a double crossover corner's os:<switch>:<leg>)")
-    if kind == "crossover_half" and not r["block"].startswith("OS Switch "):
-        return f"block {r['block']!r} is no OS block (a crossover half's own OS block, OS Switch <n>[a-d])"
     if kind == "crossover_half":
-        if not (SWITCH_NUMBER.fullmatch(r["switch_a"]) and SWITCH_NUMBER.fullmatch(r["switch_b"])) or \
-                r["parallel"] or r["end"] or r["cm"] or r["inside"]:
-            return ("a crossover half is switch_a (the crossover) and switch_b (where its leg A track runs), with no "
-                    "parallel, end, cm or inside")
+        m = OS_ID.fullmatch(r["block"])
+        if not (m and m.group("to")):
+            return (f"block {r['block']!r} is no crossover half's OS block ID (os:<switch>:A-<end>, the half whose "
+                    "leg A runs to that end)")
+        if (m.group("n"), m.group("to")) != (r["switch_a"], r["switch_b"]) or \
+                r["parallel"] not in ("1", "2") or r["end"] or r["cm"] or r["inside"]:
+            return ("a crossover half is switch_a (the crossover) and switch_b (where its leg A track runs), as its "
+                    "block ID has them, and parallel 1 or 2 (its letter a or b), with no end, cm or inside")
         return ""
     try:
         cm = float(r["cm"]) if r["cm"] else None

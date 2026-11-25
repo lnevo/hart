@@ -74,7 +74,7 @@ from cats_panel_facts import (DEVICE_MAP, DeviceMap, Facts, StagingTracks, load_
 from cats_panel import (split_system_name, MAIN_UPPER_DISCIPLINE, block_bindings,  # noqa: E402,F401
                         dark_bindings, dest, device_name, half_label, helix_block, inside_os, intermediate_signal,
                         legs_of, level_bands, level_mast_bindings, level_signals, level_switch_bindings,
-                        loop_half_edge, mast_bindings, name_loop_halves, os_blocks, plan_edge, placeholder,
+                        loop_half_edge, mast_bindings, name_loop_halves, os_blocks, os_plates, plan_edge, placeholder,
                         planned_sensor, spec, staging_names, switch_bindings, switch_of, track_block, virtual_sensor,
                         xover_corners)
 from cats_panel_dress import (ABS_PLATE, HEADER, ORDER, PLATE_PX, dress, frozen_header, label_clashes,  # noqa: E402,F401
