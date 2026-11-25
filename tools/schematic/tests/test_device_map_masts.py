@@ -328,6 +328,27 @@ class Rows(unittest.TestCase):
         self.assertEqual(got, {"Mast 4LA": "IF$vsm:basic:one-low($1002)", "Mast 4LB": "IF$vsm:basic:one-low($1001)"})
 
 
+class MainUpperMemory(unittest.TestCase):
+    """build_device_map.virtual_memory: a main or upper virtual mast keeps its ordinal by its ID too."""
+    V = "IF$vsm:basic:one-low(${})"
+
+    def test_an_ordinal_follows_its_id_not_its_letter(self):
+        virtual = [dict(id="mast:block:209B-end:west", name="210LA"), dict(id="mast:block:209C-end:west", name="210LB")]
+        old = {"mast:block:209C-end:west": ("Mast 210LA", self.V.format(3002)),
+               "mast:block:209B-end:west": ("Mast 210LB", self.V.format(3003)),
+               "mast:block:gone:west": ("Mast 299L", self.V.format(3009))}     # gone: kept by its old name
+        self.assertEqual(bdm.virtual_memory(virtual, old),
+                         {3: {"Mast 210LA": self.V.format(3003), "Mast 210LB": self.V.format(3002),
+                              "Mast 299L": self.V.format(3009)}})
+
+    def test_a_gone_masts_old_name_that_another_mast_has_now_stops(self):
+        virtual = [dict(id="mast:block:209B-end:west", name="210LA")]
+        old = {"mast:block:209B-end:west": ("Mast 210LB", self.V.format(3003)),
+               "mast:block:gone:west": ("Mast 210LA", self.V.format(3002))}
+        with self.assertRaisesRegex(bdm.MapError, "Mast 210LA: the virtual mast of id mast:block:gone:west"):
+            bdm.virtual_memory(virtual, old)
+
+
 class CommittedData(unittest.TestCase):
     """Data checks, not rule tests: staging_masts over the repo's committed plan and master (built once). A failure
     here can mean the data changed, not the code."""
