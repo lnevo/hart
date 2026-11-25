@@ -389,7 +389,11 @@ run_check() {
       [[ -z "${HART_TRACE_LOG:-}" ]] || printf '0\tb\n' >>"$HART_TRACE_LOG"
       "$@" ;;
     bash)
-      [[ -z "${HART_TRACE_LOG:-}" ]] || printf '0\tx\tcheck.sh-run\t%s\t%s\n' "$ROOT" "$(IFS=$'\t'; echo "$*")" >>"$HART_TRACE_LOG"
+      # and when it starts ("t", from a Python outside the hook): the job's stamp checks no file it hashes changed since
+      if [[ -n "${HART_TRACE_LOG:-}" ]]; then
+        printf '0\tt\t%s\n' "$(env -u HART_TRACE_LOG -u PYTHONPATH python3 -c 'import time; print(time.time_ns())')" >>"$HART_TRACE_LOG"
+        printf '0\tx\tcheck.sh-run\t%s\t%s\n' "$ROOT" "$(IFS=$'\t'; echo "$*")" >>"$HART_TRACE_LOG"
+      fi
       env -u HART_TRACE_LOG -u HART_TRACE_SPAWN -u HART_TRACE_ROOT -u CHECK_AUDIT_LOG ${CALLER_PYTHONPATH[@]+"${CALLER_PYTHONPATH[@]}"} "$@" ;;
     *) echo "$name: check.sh's run_check takes python3, env VAR=... python3 or bash, not $prog; not run"; return 1 ;;
   esac

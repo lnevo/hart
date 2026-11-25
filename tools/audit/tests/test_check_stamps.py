@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 import unittest.mock
 from pathlib import Path
@@ -392,6 +393,22 @@ class StampTest(RepoCase):
             plan.write_text("p2\n")             # the job saw p1; the key worked out now would hold p2
             self.assertIn("changed while the job ran", cs.record("a", log, self.root, self.store, before=before))
             self.assertFalse(self.current("a"))
+
+    def test_a_job_that_is_one_bash_program_records_on_its_declaration(self) -> None:
+        """check.sh's panels job: bash alone, with no Python process in its trace. It records, keyed on every file,
+        so any edit reruns it (in the one static job, the other checks' processes carried such a trace)."""
+        log = self.tmp / "bash.log"
+        log.write_text(f"0\tt\t{time.time_ns()}\n0\tx\tcheck.sh-run\t{self.root}\tbash\ttools/b.sh\t--check\n")
+        self.assertIsNone(cs.record("a", log, self.root, self.store))
+        self.assertTrue(self.current("a"))
+        (self.root / "docs/a.md").write_text("edited while it ran\n")
+        self.assertIn("docs/a.md changed while the job ran", cs.record("a", log, self.root, self.store))
+        log.write_text(f"0\tt\t{time.time_ns()}\n0\tx\tcheck.sh-run\t{self.root}\tbash\ttools/b.sh\t--check\n")
+        self.assertIsNone(cs.record("a", log, self.root, self.store))
+        self.assertTrue(self.current("a"))
+        self.assertEqual(cs.traced.load(cs._file("a", self.store))["programs"], ["bash"])
+        (self.root / "docs/a.md").write_text("v2\n")
+        self.assertFalse(self.current("a"))
 
     def test_a_short_trace_records_nothing_and_drops_the_old_stamp(self) -> None:
         self.record()

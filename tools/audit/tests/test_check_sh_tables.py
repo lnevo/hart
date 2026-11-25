@@ -210,6 +210,7 @@ class StaticPanelChecks(unittest.TestCase):
             self.assertIn("static_rc=0", done.stdout, done.stderr)
             t = traced.parse(log)
             self.assertEqual(1, t.expected_roots)
+            self.assertEqual(1, len(t.runner_ns), "the bash check says when it started")
             programs, gits = traced.untraced(t, str(ROOT))
             self.assertEqual((["bash"], []), (programs, gits))
 

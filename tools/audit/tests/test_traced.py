@@ -229,6 +229,21 @@ class ProblemTest(unittest.TestCase):
         self.log.write_text("0\tb\n")
         self.assertIn("did not load", traced.problem(traced.parse(self.log)))
 
+    def test_a_runner_spawned_program_alone_is_a_trace(self) -> None:
+        """check.sh's panels job: bash, written into the log by check.sh itself, and no Python process expected."""
+        self.log.write_text(f"0\tt\t1700000000000000000\n0\tx\tcheck.sh-run\t{self.root}\tbash\ttools/b.sh\n")
+        t = traced.parse(self.log)
+        self.assertIsNone(traced.problem(t))
+        self.assertEqual(t.started_ns, 1700000000000000000)
+        self.assertEqual(traced.untraced(t, str(self.root)), (["bash"], []))
+        for text in (f"0\tt\t1\n0\tb\n0\tx\tcheck.sh-run\t{self.root}\tbash\tx.sh\n",   # Python expected
+                     f"0\tx\tcheck.sh-run\t{self.root}\tbash\tx.sh\n",              # no start time
+                     f"5\tx\ttok\t{self.root}\tbash\tx.sh\n",                    # a hooked process's spawn, no start
+                     ""):
+            with self.subTest(text=text):
+                self.log.write_text(text)
+                self.assertIn("did not load", traced.problem(traced.parse(self.log)))
+
     def test_a_process_that_dropped_the_hook_is_a_problem(self) -> None:
         self.assertEqual(run_traced(self.root, "pass\n", self.log, roots=2), 0)
         self.assertIn("1 of the 2", traced.problem(traced.parse(self.log)))
