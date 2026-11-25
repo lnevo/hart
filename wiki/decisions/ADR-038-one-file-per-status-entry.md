@@ -1,6 +1,6 @@
 # ADR-038 — One file per STATUS entry
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-25
 - **Deciders:** lnevo
 - **Amends:** ADR-036, point 4 (`wiki/STATUS.md` leaves the committed list)
