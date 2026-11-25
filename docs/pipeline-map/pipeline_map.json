@@ -1292,7 +1292,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels step 7, with its modules device_map_inputs.py (the readers), device_map_schematic.py (the drawing's tracks), device_map_rows.py (every level's row makers and the owner's values over them) and device_map_staging.py (staging's rows): writes every level's turnout, feedback, block and occupancy rows and main and upper's masts and heads to devices_generated.csv, each generated from the plan with the owner's cells from devices_field.csv over it (naming-layers step 7), and (T6b) the plan_generated.json main_upper section from the solved sheet.",
+   "desc": "make panels step 7, with its modules device_map_inputs.py (the readers), device_map_schematic.py (the drawing's tracks), device_map_rows.py (every level's row makers and the owner's values over them), device_map_staging.py (staging's rows) and device_map_masts.py (staging's masts, build_masts.py part 1 until naming-layers step 12): writes every level's turnout, feedback, block, occupancy, mast and head rows to devices_generated.csv, each generated from the plan with the owner's cells from devices_field.csv over it (naming-layers step 7), and (T6b) the plan_generated.json main_upper section from the solved sheet.",
    "path": "tools/schematic/build_device_map.py"
   },
   {
@@ -1328,7 +1328,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels masts step: staging's mast/head rows of devices_generated.csv by the mast rule, and masts.csv for every level from the master.",
+   "desc": "make panels masts step: masts.csv for every level from the device master's mast and head rows (build_device_map.py writes them since naming-layers step 12), with staging's plan facts from the same plan (device_map_masts.staging_masts).",
    "path": "tools/schematic/build_masts.py"
   },
   {
@@ -3437,7 +3437,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "layout",
-   "desc": "Device master, all three levels, the builders' file: every turnout, sensor, block, head, mast with public name, JMRI/system names, wiring, DCC address. Written only by build_device_map, build_masts and panel_items; hartlib.devices merges it with devices_field.csv into the one view readers get.",
+   "desc": "Device master, all three levels, the builders' file: every turnout, sensor, block, head, mast with public name, JMRI/system names, wiring, DCC address. Written only by build_device_map and panel_items; hartlib.devices merges it with devices_field.csv into the one view readers get.",
    "path": "jmri/layouts/hart/data/devices_generated.csv"
   },
   {
@@ -4953,7 +4953,7 @@
   {
    "from": "jmri/layouts/hart/data/wiring.csv",
    "to": "tools/schematic/build_device_map.py",
-   "label": "reads"
+   "label": "reads (detectors, turnouts, and staging's wired heads by id)"
   },
   {
    "from": "jmri/layouts/hart/data/wiring.csv",
@@ -7193,7 +7193,7 @@
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
    "to": "tools/schematic/build_masts.py",
-   "label": "reads mast/head rows"
+   "label": "reads every level's mast/head rows"
   },
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
@@ -7227,12 +7227,7 @@
   {
    "from": "tools/schematic/build_device_map.py",
    "to": "jmri/layouts/hart/data/devices_generated.csv",
-   "label": "step 7 levels 2-3 rows; wiring cells"
-  },
-  {
-   "from": "tools/schematic/build_masts.py",
-   "to": "jmri/layouts/hart/data/devices_generated.csv",
-   "label": "staging mast/head rows"
+   "label": "every level's rows, masts and heads too (naming-layers step 12); wiring cells"
   },
   {
    "from": "tools/schematic/split_store.py",
@@ -7243,12 +7238,12 @@
   {
    "from": "jmri/layouts/hart/data/devices_field.csv",
    "to": "tools/schematic/build_device_map.py",
-   "label": "staging devices, owner's cells"
+   "label": "owner's cells by id, staging masts' names and wired cells too"
   },
   {
    "from": "jmri/layouts/hart/data/devices_field.csv",
    "to": "tools/schematic/build_masts.py",
-   "label": "wired mast node, head notes"
+   "label": "staging masts' owner cells by id (through device_map_masts)"
   },
   {
    "from": "ext:anyrail-plan",
@@ -7717,6 +7712,16 @@
    "to": "tools/check.sh",
    "label": "check data-readers",
    "side": "check"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/retired_virtual_masts.csv",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "reads (virtual mast ordinals)"
+  },
+  {
+   "from": "jmri/layouts/hart/data/block_lengths.csv",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "reads staging plan lengths by id (masts)"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

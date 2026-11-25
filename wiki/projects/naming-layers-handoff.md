@@ -52,7 +52,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 | 9 | `start` column and comment data | 0.5 day | Builder merge step 3: main and upper rows carry `start` and `bean_comment`; `le_tables` reads them. **Done (2026-11-25):** see [Step 9 findings](#step-9-findings) |
 | 10 | Bean shapes by column | 1 day | Builder merge step 4. **Done (2026-11-25):** see [Step 10 findings](#step-10-findings) |
 | 11 | Every level through `master_beans` | 1 day | Builder merge step 5. **Done (2026-11-25), pending `make panelpro-test` and the deploy:** see [Step 11 findings](#step-11-findings); a listed diff of 399 main and upper comments |
-| 12 | One mast step | 1 to 1.5 days | Builder merge step 6: `build_masts.py` part 1 into the builder, so one writer makes every level's mast and head rows; any main or upper mast change goes to panel approval |
+| 12 | One mast step | 1 to 1.5 days | Builder merge step 6. **Done (2026-11-25), pending the SML discovery and the owner's panel approval:** see [Step 12 findings](#step-12-findings); nine upper mast pairs swap letters |
 | 13 | One reader | 1 day | Builder merge step 7, first half: `le_names.level_names` and `staging_device_map.load` become one reader keyed by ID |
 | 14 | Level tests to column tests, and a swap test | 1 day | Builder merge step 8, then in the sandbox swap one main or upper turnout to a physical name by its owner row alone: `make panels`, `make panelpro-test`, then revert |
 
@@ -435,6 +435,35 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   its dead branch. No output changed. `panelpro_smoke_test.py` (Jython) keeps the virtual prefix: it checks the
   turnouts the startup LogixNG sets, which a swapped turnout leaves.
 - **Open:** the main session runs `make panelpro-test` and the deploy (`--pi --win`).
+
+## Step 12 findings (2026-11-25)
+
+- **One writer.** `build_masts.py` part 1 is `tools/schematic/device_map_masts.py`; `build_device_map.master_outputs`
+  runs it (`staging_masts`) on the block rows it makes in the same run (`staging_device_map.load(master_rows=...)`),
+  not on its last output, and writes staging's mast and head rows. `build_masts.py` writes `masts.csv` alone (it reads
+  staging's plan facts from the same plan and stops when the master's staging masts are not the rule's);
+  `devices.WRITERS` is `build_device_map.py` and `panel_items.json`. Block lengths are read by `(level, id)`.
+- **By ID.** Wired heads are `wiring.csv`'s rows by head ID, the owner's cells by mast or head ID, and a mast's field
+  `user_name` names the mast and its heads on every level (`device_map_masts.owner_names`,
+  `build_device_map.owner_mast_names`). A virtual mast keeps its ordinal by ID. A staging crossover half's mast is
+  keyed like its OS block: `mast:7:A-13C:B:east` (nine staging IDs changed, no name).
+- **One anchor rule and the head prefix as data** on every level: `file_rows` takes a home mast at no switch on any
+  level as an anchor mast that must protect an OS block (`ANCHOR_LEVELS` gone); every builder names heads with
+  `level_masts.head_name` (`HEAD_PREFIXES`).
+- **Letters, my call (owner's rule of 2026-11-25):** A and B follow the plan order of the tracks the masts face
+  (`mast_rule.letter_order`, then a loop's half and the leg); virtual masts by the switch leg their track leaves.
+  No plan rule keeps every staging letter: this one would swap 6LA/6LB and 8RA/8RB (the 5-7 pair's plan order is
+  the reverse of its rows), so those four keep their names as owner names in `devices_field.csv` (heads follow).
+- **Changed masts (upper only; old name, new name, what it faces):** 204RA to 204RB (Track 203-207), 204RB to 204RA
+  (203-211), 212LA to 212LB (207-211), 212LB to 212LA (203-211), 218RA to 218RB (217-219), 218RB to 218RA (217-221),
+  222LA to 222LB (221-223), 222LB to 222LA (217-221), 230LA to 230LB (229-241), 230LB to 230LA (229-233); virtual
+  210LA/LB (209 Spur 2/1), 216LA/LB (215 Spur 2/1), 244RA/RB (243 Spur 2/1), 246LA/LB (245 Spur 2/1) swap, so an A
+  faces Spur 1. Draft LCOS heads follow the names (placed in name order). Main and staging: no change.
+- **Outputs:** `devices_generated.csv`, `devices_field.csv` (3 name rows), `masts.csv`, `signals.json`, the schematic
+  and station sheets (upper renames; the others a revision stamp), the desks (26 lines, `cats-ctc` and `cats-abs` no
+  longer match), the bean golden fixture (from the new discovery base). Discovery base hash `b2fe5165...` to
+  `843f47e4...`. `tables.xml` is unchanged here: the main session runs the discovery and the approval.
+- **Also fixed:** `freeze_wiring.track_keys` numbered parallel tracks by row while `resolve_track` reads plan order.
 
 ## How to run this
 

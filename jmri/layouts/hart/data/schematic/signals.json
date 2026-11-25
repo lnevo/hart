@@ -1103,23 +1103,6 @@
     "toward": "203",
     "run": [
      "203",
-     "207"
-    ],
-    "names": [],
-    "edge_cm": 144.8,
-    "cm_from_toward": 0.0,
-    "dir": "east",
-    "kind": "planned",
-    "heads": 2,
-    "source": "masts.csv",
-    "_edge": "e55",
-    "_toward_node": "TOL29367"
-   },
-   {
-    "mast": "204RB",
-    "toward": "203",
-    "run": [
-     "203",
      "211B"
     ],
     "names": [],
@@ -1130,6 +1113,23 @@
     "heads": 2,
     "source": "masts.csv",
     "_edge": "e67",
+    "_toward_node": "TOL29367"
+   },
+   {
+    "mast": "204RB",
+    "toward": "203",
+    "run": [
+     "203",
+     "207"
+    ],
+    "names": [],
+    "edge_cm": 144.8,
+    "cm_from_toward": 0.0,
+    "dir": "east",
+    "kind": "planned",
+    "heads": 2,
+    "source": "masts.csv",
+    "_edge": "e55",
     "_toward_node": "TOL29367"
    },
    {
@@ -1157,23 +1157,6 @@
      ""
     ],
     "names": [],
-    "edge_cm": 170.2,
-    "cm_from_toward": 170.2,
-    "dir": "west",
-    "kind": "virtual",
-    "heads": 1,
-    "source": "masts.csv",
-    "_edge": "e85",
-    "_toward_node": "TOL29364"
-   },
-   {
-    "mast": "210LB",
-    "toward": "209",
-    "run": [
-     "209",
-     ""
-    ],
-    "names": [],
     "edge_cm": 180.2,
     "cm_from_toward": 180.2,
     "dir": "west",
@@ -1184,24 +1167,24 @@
     "_toward_node": "TOL29364"
    },
    {
-    "mast": "212LA",
-    "toward": "211A",
+    "mast": "210LB",
+    "toward": "209",
     "run": [
-     "211A",
-     "207"
+     "209",
+     ""
     ],
     "names": [],
-    "edge_cm": 86.1,
-    "cm_from_toward": 0.0,
+    "edge_cm": 170.2,
+    "cm_from_toward": 170.2,
     "dir": "west",
-    "kind": "planned",
-    "heads": 2,
+    "kind": "virtual",
+    "heads": 1,
     "source": "masts.csv",
-    "_edge": "e56",
-    "_toward_node": "TOR34046"
+    "_edge": "e85",
+    "_toward_node": "TOL29364"
    },
    {
-    "mast": "212LB",
+    "mast": "212LA",
     "toward": "211B",
     "run": [
      "211B",
@@ -1216,6 +1199,23 @@
     "source": "masts.csv",
     "_edge": "e67",
     "_toward_node": "TOR34047"
+   },
+   {
+    "mast": "212LB",
+    "toward": "211A",
+    "run": [
+     "211A",
+     "207"
+    ],
+    "names": [],
+    "edge_cm": 86.1,
+    "cm_from_toward": 0.0,
+    "dir": "west",
+    "kind": "planned",
+    "heads": 2,
+    "source": "masts.csv",
+    "_edge": "e56",
+    "_toward_node": "TOR34046"
    },
    {
     "mast": "212RA",
@@ -1276,13 +1276,13 @@
      ""
     ],
     "names": [],
-    "edge_cm": 97.8,
-    "cm_from_toward": 97.8,
+    "edge_cm": 91.4,
+    "cm_from_toward": 91.4,
     "dir": "west",
     "kind": "virtual",
     "heads": 1,
     "source": "masts.csv",
-    "_edge": "e82",
+    "_edge": "e81",
     "_toward_node": "TOL30483"
    },
    {
@@ -1293,13 +1293,13 @@
      ""
     ],
     "names": [],
-    "edge_cm": 91.4,
-    "cm_from_toward": 91.4,
+    "edge_cm": 97.8,
+    "cm_from_toward": 97.8,
     "dir": "west",
     "kind": "virtual",
     "heads": 1,
     "source": "masts.csv",
-    "_edge": "e81",
+    "_edge": "e82",
     "_toward_node": "TOL30483"
    },
    {
@@ -1338,23 +1338,6 @@
    },
    {
     "mast": "218RA",
-    "toward": "217B",
-    "run": [
-     "217B",
-     "219"
-    ],
-    "names": [],
-    "edge_cm": 163.0,
-    "cm_from_toward": 0.0,
-    "dir": "east",
-    "kind": "planned",
-    "heads": 2,
-    "source": "masts.csv",
-    "_edge": "e75",
-    "_toward_node": "TOL34042"
-   },
-   {
-    "mast": "218RB",
     "toward": "217A",
     "run": [
      "217A",
@@ -1369,6 +1352,23 @@
     "source": "masts.csv",
     "_edge": "e74",
     "_toward_node": "TOL34043"
+   },
+   {
+    "mast": "218RB",
+    "toward": "217B",
+    "run": [
+     "217B",
+     "219"
+    ],
+    "names": [],
+    "edge_cm": 163.0,
+    "cm_from_toward": 0.0,
+    "dir": "east",
+    "kind": "planned",
+    "heads": 2,
+    "source": "masts.csv",
+    "_edge": "e75",
+    "_toward_node": "TOL34042"
    },
    {
     "mast": "220R",
@@ -1389,23 +1389,6 @@
    },
    {
     "mast": "222LA",
-    "toward": "221A",
-    "run": [
-     "221A",
-     "223"
-    ],
-    "names": [],
-    "edge_cm": 638.7,
-    "cm_from_toward": 0.0,
-    "dir": "west",
-    "kind": "planned",
-    "heads": 2,
-    "source": "masts.csv",
-    "_edge": "e69",
-    "_toward_node": "TOR28724"
-   },
-   {
-    "mast": "222LB",
     "toward": "221B",
     "run": [
      "221B",
@@ -1420,6 +1403,23 @@
     "source": "masts.csv",
     "_edge": "e74",
     "_toward_node": "TOR28723"
+   },
+   {
+    "mast": "222LB",
+    "toward": "221A",
+    "run": [
+     "221A",
+     "223"
+    ],
+    "names": [],
+    "edge_cm": 638.7,
+    "cm_from_toward": 0.0,
+    "dir": "west",
+    "kind": "planned",
+    "heads": 2,
+    "source": "masts.csv",
+    "_edge": "e69",
+    "_toward_node": "TOR28724"
    },
    {
     "mast": "222R",
@@ -1562,23 +1562,6 @@
     "toward": "229",
     "run": [
      "229",
-     "241"
-    ],
-    "names": [],
-    "edge_cm": 77.5,
-    "cm_from_toward": 0.0,
-    "dir": "west",
-    "kind": "planned",
-    "heads": 2,
-    "source": "masts.csv",
-    "_edge": "e62",
-    "_toward_node": "TOL30902"
-   },
-   {
-    "mast": "230LB",
-    "toward": "229",
-    "run": [
-     "229",
      "233"
     ],
     "names": [],
@@ -1589,6 +1572,23 @@
     "heads": 2,
     "source": "masts.csv",
     "_edge": "e37",
+    "_toward_node": "TOL30902"
+   },
+   {
+    "mast": "230LB",
+    "toward": "229",
+    "run": [
+     "229",
+     "241"
+    ],
+    "names": [],
+    "edge_cm": 77.5,
+    "cm_from_toward": 0.0,
+    "dir": "west",
+    "kind": "planned",
+    "heads": 2,
+    "source": "masts.csv",
+    "_edge": "e62",
     "_toward_node": "TOL30902"
    },
    {
@@ -1678,23 +1678,6 @@
    },
    {
     "mast": "244RA",
-    "toward": "243B",
-    "run": [
-     "243B",
-     ""
-    ],
-    "names": [],
-    "edge_cm": 35.4,
-    "cm_from_toward": 35.4,
-    "dir": "east",
-    "kind": "virtual",
-    "heads": 1,
-    "source": "masts.csv",
-    "_edge": "e40",
-    "_toward_node": "TOL31925"
-   },
-   {
-    "mast": "244RB",
     "toward": "243A",
     "run": [
      "243A",
@@ -1711,24 +1694,24 @@
     "_toward_node": "TOL31924"
    },
    {
-    "mast": "246LA",
-    "toward": "245B",
+    "mast": "244RB",
+    "toward": "243B",
     "run": [
-     "245B",
+     "243B",
      ""
     ],
     "names": [],
-    "edge_cm": 33.2,
-    "cm_from_toward": 33.2,
-    "dir": "west",
+    "edge_cm": 35.4,
+    "cm_from_toward": 35.4,
+    "dir": "east",
     "kind": "virtual",
     "heads": 1,
     "source": "masts.csv",
-    "_edge": "e52",
-    "_toward_node": "TOL31514"
+    "_edge": "e40",
+    "_toward_node": "TOL31925"
    },
    {
-    "mast": "246LB",
+    "mast": "246LA",
     "toward": "245A",
     "run": [
      "245A",
@@ -1743,6 +1726,23 @@
     "source": "masts.csv",
     "_edge": "e46",
     "_toward_node": "TOL31515"
+   },
+   {
+    "mast": "246LB",
+    "toward": "245B",
+    "run": [
+     "245B",
+     ""
+    ],
+    "names": [],
+    "edge_cm": 33.2,
+    "cm_from_toward": 33.2,
+    "dir": "west",
+    "kind": "virtual",
+    "heads": 1,
+    "source": "masts.csv",
+    "_edge": "e52",
+    "_toward_node": "TOL31514"
    }
   ],
   "unplaced": []

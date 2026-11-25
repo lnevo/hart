@@ -3154,11 +3154,11 @@
   },
   "212LA": {
    "name": "Mast 212LA",
-   "template": "double"
+   "template": "single"
   },
   "212LB": {
    "name": "Mast 212LB",
-   "template": "single"
+   "template": "double"
   },
   "212RA": {
    "name": "Mast 212RA",
@@ -3178,11 +3178,11 @@
   },
   "218RA": {
    "name": "Mast 218RA",
-   "template": "double"
+   "template": "single"
   },
   "218RB": {
    "name": "Mast 218RB",
-   "template": "single"
+   "template": "double"
   },
   "220R": {
    "name": "Mast 220R",
@@ -3190,11 +3190,11 @@
   },
   "222LA": {
    "name": "Mast 222LA",
-   "template": "double"
+   "template": "single"
   },
   "222LB": {
    "name": "Mast 222LB",
-   "template": "single"
+   "template": "double"
   },
   "222R": {
    "name": "Mast 222R",

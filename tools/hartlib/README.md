@@ -251,7 +251,9 @@ the name map's copy (2026-11-21): their facts are in `cp`, `system_name`, `dcc`,
   staging turnout is bound to its address). A turnout, alias or feedback row's `wiring.csv` row is found by its id (an
   alias by its turnout's), and `wiring.read` names a staging turnout or feedback with no owner's name by its id
   (Switch <n>); a spare detector is `wiring.csv`'s alone. Staging's nodes are as built: a staging device with no
-  `wiring.csv` row stops. Staging's masts and heads are still `build_masts.py`'s, matched by name (step 12).
+  `wiring.csv` row stops. Staging's masts and heads are `build_device_map.py`'s too since step 12
+  (`device_map_masts.py`): every level's mast and head rows have one writer, their field rows and wired heads are
+  found by ID, and a mast's field `user_name` (the owner's name) names its heads.
   A line block (`LINE_ROLES`) and its sensor list in `cp` the places it joins, `;` between (`build_device_map.line_cp`); any other row has one control point at most, and `check_rows` holds it.
 - A device's kind comes from its row, never from its name (hand-off row 8): `row_role(row, where)` is a row's `role`
   and stops with a `DevicesError` naming `where` (file and key) when the row has none; `is_os(row)` says whether a block
@@ -265,7 +267,7 @@ the name map's copy (2026-11-21): their facts are in `cp`, `system_name`, `dcc`,
   A writer states the role of every row it makes (part B): `master_row` takes it from the row (`role`, one of
   `ROLES`) and stops on a row with none, and `railroad.DeviceRow` has no role default (a row with none stops, naming
   its line). `build_device_map` gives each row the role of what it builds (a line block's from its track's ends:
-  `line_role`), `build_masts` the role the mast rule placed each mast with (`with_roles`). A block's occupancy row is
+  `line_role`), and each mast the role the mast rule placed it with (`device_map_masts.device_rows`). A block's occupancy row is
   found by its `blocks` column (`DeviceMap.occupancy`), not by building the sensor's name. Kept on purpose:
   `level_devices.block_key` and `occupancy_user`, the owner's naming rule that builds a virtual sensor's name from
   its block's name (2026-11-17), with the checks that hold the rows to it (`check_virtual_names`, `read_device_map`).
@@ -336,9 +338,10 @@ table, say), never a second copy of a known one. Errors are `SplitError`.
 ### `hartlib.level_masts`
 
 Every level's masts, one file with a `level` column (owner, 2026-11-21: the level is a column): `PATH`
-(`schematic/masts.csv`, written by `tools/schematic/build_masts.py` from the mast and head rows of the device master),
-`FIELDS` (`level`, the mast columns and `PLAN_FIELDS`, the plan facts the drawing places a mast by: filled for the
-masts `build_masts.py` places from a block layer of its own, staging today, and empty on main and upper, whose
+(`schematic/masts.csv`, written by `tools/schematic/build_masts.py` from the mast and head rows of the device master,
+which `build_device_map.py` writes for every level), `FIELDS` (`level`, the mast columns and `PLAN_FIELDS`, the plan
+facts the drawing places a mast by: filled for staging's masts, which `device_map_masts.py` places from staging's
+block rows, and empty on main and upper, whose
 `build_signals.py` places from the plan graph), `read(path, levels=...)` (the rows of `levels`, by keyword, every level when `None`,
 each with `level`, `line` and `heads` as system=user pairs), `names(levels=...)`, `visible_names(levels=...)`,
 `head_name(user, level)` (a head's internal name from its user name and level: "Head 2L Top" on level 1 ->
