@@ -480,6 +480,13 @@ class SiteDeployTest(unittest.TestCase):
         ])
 
 
+class SiteDeployUnknownCommitTest(SiteDeployTest):
+    def test_unknown_commit_is_named(self):
+        record = {"deploy": {"commit": "0123456789abcdef", "branch": "main", "worktree": "/w", "finished": "t"}}
+        self.assertEqual(self.lines(record, ((128, "", "fatal: bad revision\n"),))[1:],
+                         ["  cannot compare the deployed commit with origin/main (fatal: bad revision)"])
+
+
 class HookTest(unittest.TestCase):
     def proc(self, code: str) -> subprocess.Popen:
         return subprocess.Popen([sys.executable, "-c", code], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)

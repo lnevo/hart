@@ -58,7 +58,7 @@ class DeployScriptTest(unittest.TestCase):
         self.push_from_elsewhere()
         done = self.deploy()
         self.assertEqual(done.returncode, 1)
-        self.assertIn("HEAD lacks origin/main (1 missing commit(s) touch www/)", done.stderr)
+        self.assertIn("HEAD lacks 1 commit(s) on origin/main, 1 of them under www/", done.stderr)
         self.assertFalse(self.lock.exists())
 
     def test_allow_behind_deploys_anyway(self):
@@ -82,7 +82,7 @@ class DeployScriptTest(unittest.TestCase):
         (self.lock / "pid").write_text(f"{dead.pid}\n")
         done = self.deploy()
         self.assertEqual(done.returncode, 7, done.stderr)
-        self.assertIn("stale deploy lock", done.stderr)
+        self.assertIn("Took over a stale deploy lock", done.stderr)
         self.assertFalse(self.lock.exists())
 
     def test_status_prints_the_record(self):

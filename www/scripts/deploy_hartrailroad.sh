@@ -42,20 +42,32 @@ for arg in "$@"; do
 done
 
 # One deploy at a time across every worktree: rsync --delete from two builds would interleave.
-# mkdir is atomic; the lock holds the owner's PID, so a lock left by a killed run is taken over.
+# The lock is a directory that holds the owner's PID from the moment it exists: it is built
+# under a private name and renamed into place (rename onto a non-empty directory fails, so
+# only one deploy wins). A lock whose PID is gone is renamed aside, and checked, before it is taken.
 LOCK="$COMMON/hart-site-deploy.lock"
-if ! mkdir "$LOCK" 2>/dev/null; then
+rename() { python3 -c 'import os, sys; os.rename(sys.argv[1], sys.argv[2])' "$1" "$2" 2>/dev/null; }
+take_lock() {
+  local mine="$LOCK.new.$$"
+  rm -rf "$mine"; mkdir "$mine"; echo $$ >"$mine/pid"; echo "$ROOT" >"$mine/where"
+  rename "$mine" "$LOCK" || { rm -rf "$mine"; return 1; }
+}
+if ! take_lock; then
   holder="$(cat "$LOCK/pid" 2>/dev/null || true)"
-  if [[ -n "$holder" ]] && kill -0 "$holder" 2>/dev/null; then
-    echo "Refusing to deploy: another site deploy is running (PID $holder, $(cat "$LOCK/where" 2>/dev/null || echo '?'))." >&2
+  if [[ -z "$holder" ]] || kill -0 "$holder" 2>/dev/null; then
+    echo "Refusing to deploy: another site deploy is running (PID ${holder:-?}, $(cat "$LOCK/where" 2>/dev/null || echo '?'))." >&2
     exit 1
   fi
-  echo "Taking over a stale deploy lock (PID ${holder:-unknown} is gone)." >&2
-  rm -rf "$LOCK"
-  mkdir "$LOCK"
+  aside="$LOCK.stale.$$"
+  if ! rename "$LOCK" "$aside" || [[ "$(cat "$aside/pid" 2>/dev/null)" != "$holder" ]]; then
+    [[ -d "$aside" ]] && rename "$aside" "$LOCK"  # it was not the stale lock: put it back
+    echo "Refusing to deploy: another deploy took the lock at the same moment." >&2
+    exit 1
+  fi
+  rm -rf "$aside"
+  echo "Took over a stale deploy lock (PID $holder is gone)." >&2
+  take_lock || { echo "Refusing to deploy: another deploy took the lock at the same moment." >&2; exit 1; }
 fi
-echo $$ >"$LOCK/pid"
-echo "$ROOT" >"$LOCK/where"
 WORK=""
 cleanup() { [[ -n "$WORK" ]] && rm -rf "$WORK"; rm -rf "$LOCK"; }
 trap cleanup EXIT
@@ -74,13 +86,14 @@ if ! git -C "$ROOT" fetch --quiet origin main; then
   fi
   echo "Warning: origin/main not fetched; deploying without the up-to-date check." >&2
 elif ! git -C "$ROOT" merge-base --is-ancestor origin/main HEAD; then
-  behind="$(git -C "$ROOT" rev-list --count HEAD..origin/main -- .)"
+  missing="$(git -C "$ROOT" rev-list --count HEAD..origin/main)"
+  in_www="$(git -C "$ROOT" rev-list --count HEAD..origin/main -- .)"
   if [[ -z "$ALLOW_BEHIND" ]]; then
-    echo "Refusing to deploy: HEAD lacks origin/main ($behind missing commit(s) touch www/); a deploy would take them off the site." >&2
+    echo "Refusing to deploy: HEAD lacks $missing commit(s) on origin/main, $in_www of them under www/; a deploy would take those off the site." >&2
     echo "Merge or pull origin/main first, or pass --allow-behind." >&2
     exit 1
   fi
-  echo "Warning: HEAD lacks origin/main ($behind commit(s) touching www/); deploying anyway (--allow-behind)." >&2
+  echo "Warning: HEAD lacks $missing commit(s) on origin/main, $in_www of them under www/; deploying anyway (--allow-behind)." >&2
 fi
 BRANCH="$(git -C "$ROOT" symbolic-ref --quiet --short HEAD || echo detached)"
 COMMIT="$(git -C "$ROOT" rev-parse HEAD)"
@@ -104,7 +117,7 @@ chmod -R u+rwX,go+rX,go-w "$DIST"
 "$RSYNC" -az --delete "$DIST/" "$DEST"
 # The counts plus what was deployed (ADR-040); make orient reads this record.
 COMMIT="$COMMIT" BRANCH="$BRANCH" DIRTY="$DIRTY" WORKTREE="$REPO" STARTED="$STARTED" \
-  python3 - "$WORK/manifest.json" "$MANIFEST" <<'PY'
+  python3 - "$WORK/manifest.json" "$MANIFEST.new" <<'PY' && mv "$MANIFEST.new" "$MANIFEST" || {
 import json, os, sys
 from datetime import datetime, timezone
 data = json.load(open(sys.argv[1], encoding="utf-8"))
@@ -117,4 +130,7 @@ with open(sys.argv[2], "w", encoding="utf-8") as out:
     json.dump(data, out, indent=2)
     out.write("\n")
 PY
+  echo "The site IS deployed, but the deploy record was NOT updated: $MANIFEST still names the previous deploy." >&2
+  exit 1
+}
 echo "Deployed → https://www.hartrailroad.com/"

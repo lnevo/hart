@@ -17,9 +17,9 @@
 
 ## Decision
 
-1. **Every deploy is recorded.** After the copy, the deploy adds a `deploy` object to `.deploy-manifest.json`: `commit`, `branch`, `dirty`, `worktree`, `started` and `finished` (UTC). `make orient` shows a `website:` line under its last deploys, with the number of `origin/main` commits under `www/` that the site lacks and a note when the deployed commit is not on `origin/main`. `deploy_hartrailroad.sh --status` prints the record.
+1. **Every deploy is recorded.** After the copy, the deploy adds a `deploy` object to `.deploy-manifest.json`: `commit`, `branch`, `dirty`, `worktree`, `started` and `finished` (UTC). `make orient` shows a `website:` line under its last deploys, with the number of `origin/main` commits under `www/` that the site lacks and a note when the deployed commit is not on `origin/main`. `deploy_hartrailroad.sh --status` prints the record. When the record cannot be written after the copy, the deploy says the site is live and the record is not.
 2. **A deploy is never behind `origin/main`.** The deploy fetches `origin/main` and stops when `HEAD` does not contain it, naming how many missing commits touch `www/`. It also stops when the fetch fails. `--allow-behind` overrides both, for an owner's rollback or when GitHub is down. A deploy from a branch other than `main`, or with uncommitted changes, warns and goes ahead, since work-in-progress deploys stay allowed. The usual deploy, from the main checkout after pulling `main`, passes.
-3. **One deploy at a time.** A `mkdir` lock, `hart-site-deploy.lock` in the shared git directory, covers every worktree. It holds the owner's PID and checkout. A second deploy stops while that PID is alive and takes over the lock when it is not. The lock is released on exit.
+3. **One deploy at a time.** A lock directory, `hart-site-deploy.lock` in the shared git directory, covers every worktree. It is built under a private name with the owner's PID and checkout, then renamed into place, so it never exists without its PID. A second deploy stops while that PID is alive. When the PID is gone, the lock is renamed aside, checked to be the same stale lock, and taken. The lock is released on exit.
 4. **The drop check counts pages and share cards.** The manifest adds `html_pages` and `share_cards` (`assets/share/*.jpg`). The deploy record is not a count, so the drop check skips it. A manifest written before this ADR lacks the new counts, so its first comparison checks only the old ones.
 5. The script header names HestiaCP on Lightsail.
 
@@ -28,7 +28,7 @@ Tests: `www/scripts/tests/test_deploy_script.py` runs the script in a throwaway 
 ### Under ADR-036, assigned to its session
 
 - `www/data/wiring-inventory.json` (`build_wiring_json.py`) is built by the site build and the local preview, not committed.
-- `www/exam/answers.html` and `www/play/answers.html` stay committed static files until the cards change, with no build step and no check job (owner, 2026-11-25; recorded in the ADR-036 amendment). Rerun `build_exam_answers.js` or `build_play_answers.js` by hand after changing `run.js` or `runs.js`.
+- `www/exam/answers.html` and `www/play/answers.html` stay committed static files until the cards change, with no build step and no check job (owner, 2026-11-25, in the ADR-036 session; that session's follow-up adds it to ADR-036). Rerun `build_exam_answers.js` or `build_play_answers.js` by hand after changing `run.js` or `runs.js`.
 
 ### Later, after that follow-up merges
 

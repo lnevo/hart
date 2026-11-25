@@ -450,12 +450,16 @@ def site_deploy_lines() -> list[str]:
     where = short_path(str(record.get("worktree", "?")))
     dirty = ", uncommitted changes" if record.get("dirty") else ""
     lines = [f"website: {commit[:8]} at {record.get('finished', '?')} ({record.get('branch', '?')}, {where}{dirty})"]
-    code, out, _ = run(["git", "rev-list", "--count", f"{commit}..{BASE}", "--", "www"], GIT_TIMEOUT)
-    if code == 0 and out.strip() not in ("", "0"):
+    code, out, err = run(["git", "rev-list", "--count", f"{commit}..{BASE}", "--", "www"], GIT_TIMEOUT)
+    if code != 0:
+        return lines + [f"  cannot compare the deployed commit with {BASE} ({first_line(err)})"]
+    if out.strip() not in ("", "0"):
         lines.append(f"  {BASE} has {out.strip()} commit(s) under www/ that the site lacks")
-    code, _, _ = run(["git", "merge-base", "--is-ancestor", commit, BASE], GIT_TIMEOUT)
+    code, _, err = run(["git", "merge-base", "--is-ancestor", commit, BASE], GIT_TIMEOUT)
     if code == 1:
         lines.append(f"  NOTE: the deployed commit is not on {BASE}")
+    elif code != 0:
+        lines.append(f"  cannot tell whether the deployed commit is on {BASE} ({first_line(err)})")
     return lines
 
 
