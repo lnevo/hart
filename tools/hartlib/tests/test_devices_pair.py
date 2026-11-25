@@ -18,10 +18,15 @@ def generated(**cells) -> dict:
     return turnout(**{"role": "", "assignment": "", "dcc": "", "written_by": "build_device_map.py", **cells})
 
 
+def owner(**cells) -> dict:
+    """A field row of `cells`: no id, which is the builders' alone."""
+    return blank(**{"id": "", **cells})
+
+
 def field(user="Switch 1", **cells) -> dict:
     """The field row of the staging turnout `user`: its key and the owner's cells."""
     return blank(**{"level": "1", "layer": "turnout", "user_name": user, "role": "turnout", "assignment": "field",
-                    "dcc": "100", "cp": "Brick", **cells})
+                    "dcc": "100", "cp": "Brick", "id": "", **cells})     # id is the builders' alone
 
 
 def block(**cells) -> dict:
@@ -89,13 +94,13 @@ class TheMerge(unittest.TestCase):
 
     def test_field_rows_out_of_order_are_refused(self):
         with self.assertRaisesRegex(D.DevicesError, "out of order"):
-            D.check_field([blank(level="1", layer="mast", user_name="Mast 6LB", node="4"), field()])
+            D.check_field([owner(level="1", layer="mast", user_name="Mast 6LB", node="4"), field()])
 
 
 class TheOccupancyMark(unittest.TestCase):
     """A wired block's comment: the owner's words in the field file, the detector's wiring.csv text filled in by the
     builder, so a moved pin changes no hand file."""
-    F = blank(level="1", layer="block", user_name="OS Switch 1", role="os", assignment="field",
+    F = owner(level="1", layer="block", user_name="OS Switch 1", role="os", assignment="field",
               jmri_comment="Brick CP, Switch 1; {occupancy}")
 
     def test_the_generated_comment_stands_when_it_fills_the_mark(self):
@@ -200,7 +205,7 @@ class ThePair(unittest.TestCase):
             D.outputs_after_rows("build_device_map.py", mine, self.files)
 
     def test_a_writer_that_drops_a_key_the_field_file_names_is_refused(self):
-        self.files.field.write_text(D.master_text([field(), blank(level="1", layer="mast", user_name="Mast 2L",
+        self.files.field.write_text(D.master_text([field(), owner(level="1", layer="mast", user_name="Mast 2L",
                                                                  notes="the owner's"), unplaced()]), encoding="utf-8")
         with self.assertRaisesRegex(D.DevicesError, r"Mast 2L \(level 1, mast\) has no row in .*rename the "
                                                     "field row"):

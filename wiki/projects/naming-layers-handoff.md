@@ -42,7 +42,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 | # | Step | Size | Notes |
 |---|---|---|---|
 | 1 | Tests first | 1 day | Builder merge step 1: golden tests of every main and upper bean `le_tables` makes, unit tests of `master_beans` per assignment, `build_masts.generate` on staging, and the device-master merge. **Done (2026-11-24):** see [Step 1 findings](#step-1-findings) |
-| 2 | `id` column | 0.5 day | The builders write an ID on every row (decision 1); `check_rows` holds it unique per level. Only `devices_generated.csv` changes |
+| 2 | `id` column | 0.5 day | The builders write an ID on every row (decision 1); `check_rows` holds it unique per level. Only `devices_generated.csv` changes. **Done (2026-11-24):** see [Step 2 findings](#step-2-findings) |
 | 3 | The name store | 1.5 days | Check first that the generator can name every track from the plan before the drawing (the end switches come from the plan graph). Then `hartlib` resolves every name (decision 2); the `name` and `end` edits move to the owner layer, keyed by ID; `layer_files.view` writes them for the plugin; `cats_panel.py` and `le_names.py` read names from the store instead of the drawing. A check fails if `plan_overrides.json` holds a name again. Drawings byte-identical |
 | 4 | Owner file keyed by ID | 1 day | `devices_field.csv` rekeyed on `(level, id)`; `user_name` becomes an owner cell. The build prints new and gone IDs against the last generated file and stops as decision 3 says; a rename lists the Operations Pro copies (decision 5) and warns on a mast rename (decision 6) |
 | 5 | Files keyed by ID | 1.5 to 2 days | `block_lengths.csv`, `block_numbering.csv`, `wiring.csv`, `mast_cells.csv`, `masts.csv` (`facing`, `protects`), `block_overrides.csv` and `main_lines.csv` key on device IDs, so a rename touches no row. Frozen wiring rows keep their pins; their labels follow the name store |
@@ -63,6 +63,12 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 - The two block length formats (`le_tables.r1` and `master_beans`) agree on every committed length and every hundredth of an inch to 3000 in.
 - `build_masts.generate` on staging and the device-master merge already had tests on the committed data (`test_build_masts.CommittedData`, `test_devices_pair`); `master_beans` now has a case per assignment (`MasterBeansByAssignment`).
 - The data-check write guard (`repo_read_only`) refused `layer_files.view` swapping its cache link on the first build in a new worktree; it now judges a renamed or removed link by where it stands.
+
+## Step 2 findings (2026-11-24)
+
+- `hartlib.device_ids` holds the grammar: `switch:<n>`, `dcc:<n>`, `fb:<n>:N|R`; `block:<ends>` from the plan ends of its strands (`block:1B-3A:1/2`, `block:107B-107C#1`, `block:1C-5A#1+1C-5A#2`); `os:<n>`, a staging crossover half `os:<n>:A-<leg A end>` and the 225 corners by schematic leg (`os:225:D`); `det:<block id>`, `spare:<system name>`; a home mast `mast:<switch or half label>:<leg>:<dir>`, others `mast:<facing block id>:<dir>`; heads `<mast id>:top|bottom|single`; panel lamps `panel:status:<system name>` (they share one `panel_items.json` item). 772 IDs, unique per level; rows with no level have none.
+- **Open for step 7:** staging's turnout, alias and feedback rows still come from the owner's rows and `wiring.csv`, so their switch number is read from the user name (`wired_id`; `check_switch_ids` stops the build if a number has no staging OS block in the plan). Step 7 derives them from the plan.
+- **Open for step 12:** both halves of a staging crossover carry the label "7", so their home masts are `mast:7:A:west` and `mast:7:A:east`, unique only by direction; the uniqueness check stops a clash. Step 12 (one mast step) can key a half's mast like its OS block.
 
 ## How to run this
 

@@ -165,7 +165,8 @@ is the builder's to fill from `wiring.csv`), cached on both files' bytes. `field
 of the owner's cells; `allocated_names()` its one read-back of its own output (the numbers it gave). `write_generated`
 and `write_field` are the only text writers; `one_file_copy` and `pair_copy` make a test's copy.
 `devices.columns.csv` (`column,file,description`) describes every column and which file may hold it, and a test holds
-the two to each other both ways. Staging, main and upper are one structure,
+the two to each other both ways. Every row with a level carries an `id` (ADR-033): a key derived from the plan, not from
+its name, unique on its level (`hartlib.device_ids` holds the grammar; nothing keys on it yet). Staging, main and upper are one structure,
 a level differs in column values only. Every reader gets its rows from here (R9b-2, 2026-11-20): `load()` (the
 master rows) and `device_map_lines` (the old device-map rows of some levels, plus `role`); `comment_of(row)` is a row's
 JMRI comment. The two device maps and `public_name_map.csv` are gone (R9e, 2026-11-20), and so are the six `pnm_`

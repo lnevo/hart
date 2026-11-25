@@ -17,6 +17,8 @@ The master's values.
 - assignment: field (the physical device is in JMRI: jmri_name is system_name), virtual (an internal stand-in; the
   system_name, if any, is the planned device), none (no JMRI name from this row), spare (a detector with no block).
 - role: what the device is (ROLES). Readers test it, never a name prefix.
+- id: the device's key from the plan, not its name (hartlib.device_ids, ADR-033): a generated column, set on every
+  row with a level and unique on its level; empty on a Store's level-less row. Nothing keys on it yet.
 - written_by: the script that writes the row, one of WRITERS (the one place a later merge of builders changes);
   every row with a level has one, and only a Store's level-less device (the field file's) has none. A writer
   replaces only the rows that carry its name (outputs_after_rows), stops on a key another writer or a Store's device
@@ -76,7 +78,7 @@ WRITERS = ("build_masts.py", "build_device_map.py", "panel_items.json")
 OUT_OF_MAPS = ("spare", "panel_status", "part")
 SOURCE_PREFIXES = ("IT:HART:", "IS:HART:", "IH:HART:", "IB:HART:")
 
-COLUMNS = ("level", "cp", "layer", "role", "user_name", "assignment", "system_name", "jmri_name", "node", "dcc",
+COLUMNS = ("level", "cp", "layer", "role", "id", "user_name", "assignment", "system_name", "jmri_name", "node", "dcc",
            "wiring", "jmri_comment", "trial_name", "notes", "blocks", "detector", "stop", "layout_block",
            "part_of", "switch", "facing", "protects", "dir", "written_by", "description", "jmri_bean")
 KEY = ("level", "layer", "user_name")      # a row's key in both files
@@ -614,7 +616,7 @@ def _unplaced_problems(r: Mapping[str, str]) -> list[str]:
         return ["level is one of " + ", ".join(LEVELS) + ", or empty for a device kept by its jmri_bean"]
     if r["assignment"] != "field" or not r["jmri_name"] or r["system_name"] != r["jmri_name"]:
         bad.append("a level-less device is assignment field with system_name equal to jmri_name")
-    set_cols = [c for c in ("cp", "role", "written_by", "wiring", "part_of", "blocks", "detector", "stop", "switch",
+    set_cols = [c for c in ("cp", "role", "id", "written_by", "wiring", "part_of", "blocks", "detector", "stop", "switch",
                             "facing", "protects", "dir") if r[c]]
     if set_cols:
         bad.append(f"a level-less device has no {', '.join(set_cols)} (they come with its level)")
@@ -634,7 +636,7 @@ def _unplaced_problems(r: Mapping[str, str]) -> list[str]:
 def check_rows(rows: Iterable[Mapping[str, str]], where: str = "the device master") -> None:
     """The master's invariants; DevicesError listing every problem (a row is named by its key: name, level and
     layer, never a line, as the merged view is two files). Run on every load and after every write."""
-    bad, keys, jmri, field_systems = [], {}, {}, {}
+    bad, keys, jmri, field_systems, ids = [], {}, {}, {}, {}
     ranks = []
     parts, part_names, whole = [], set(), set()      # parts (row, level, part_of); (level, name)s
     for n, r in enumerate(rows, 2):
@@ -662,6 +664,14 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "the device maste
         for col in ("user_name", "description"):
             if not r[col].strip():
                 bad.append(f"{at}: {col} is empty")
+        if r["level"]:                          # a Store's level-less row has none (_unplaced_problems)
+            if not r["id"].strip():
+                bad.append(f"{at}: id is empty (the builders give every row with a level one, hartlib.device_ids)")
+            elif (r["level"], r["id"]) in ids:
+                bad.append(f"{at}: id {r['id']!r} is {ids[(r['level'], r['id'])]}'s as well (an id is unique on "
+                           "its level)")
+            else:
+                ids[(r["level"], r["id"])] = at
         key = (r["level"], r["layer"], r["user_name"])
         if key in keys:
             bad.append(f"{at}: the same level, layer and user_name twice")
@@ -719,6 +729,19 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "the device maste
             whole.add((r["level"], r["user_name"]))
         if not unknown:
             ranks.append((_rank(r), at))
+    # an intermediate or hidden mast's id names the block it faces (hartlib.device_ids.block_mast_id): that
+    # block's row on the mast's level, else its one row on another level (a helix block)
+    block_id = {(r["level"], r["user_name"]): r["id"] for r in rows if r["layer"] == "block" and r["level"]}
+    for r in rows:
+        if r["layer"] != "mast" or r["role"] not in ("intermediate", "hidden") or not r["level"]:
+            continue
+        got = block_id.get((r["level"], r["facing"]))
+        if got is None:
+            other = [v for (_lv, b), v in block_id.items() if b == r["facing"]]
+            got = other[0] if len(other) == 1 else None
+        if got is not None and r["id"] != f"mast:{got}:{r['dir']}":
+            bad.append(f"{key_text(key_of(r))}: id {r['id']!r} does not name the block it faces, {r['facing']} "
+                       f"(id {got!r}), and its dir {r['dir']!r}")
     for at, level, target in parts:            # the block a part names is on the part's own level
         if (level, target) in part_names:
             bad.append(f"{at}: part_of {target!r} is itself a part (a part names a whole block: no chain or cycle)")
@@ -809,7 +832,7 @@ def device_map_row(r: Mapping[str, str]) -> dict[str, str]:
 def master_row(old: Mapping[str, str], writer: str, prior: Mapping[str, str] | None = None,
                description: str | None = None) -> dict[str, str]:
     """The master row of an old-form device-map row with its `role` (the writer states what each row is: no role is
-    read off a name, hand-off row 8). `prior` is the row it replaces, whose description a hand-kept row keeps.
+    read off a name, hand-off row 8) and its `id` (hartlib.device_ids), which the old form does not hold. `prior` is the row it replaces, whose description a hand-kept row keeps.
     DevicesError on a layer a device map does not hold, a row with no role or one not in ROLES, or a comment that
     cannot be split back by device_map_row."""
     if not set(DEVICE_COLUMNS) <= set(old):
@@ -824,6 +847,7 @@ def master_row(old: Mapping[str, str], writer: str, prior: Mapping[str, str] | N
     r = {c: "" for c in COLUMNS}
     r.update({c: str(old[c]) for c in _SHARED})
     r["role"] = role
+    r["id"] = str(old.get("id") or "")        # the writer's (hartlib.device_ids); a device map has no id column
     r["assignment"] = assignment_of(old["jmri_name"])
     r["written_by"] = writer
     comment = old["comment"]
