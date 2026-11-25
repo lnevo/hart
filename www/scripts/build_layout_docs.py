@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Write www/behind/layout-docs.html, the layout documentation, from its template, block_lengths.csv and the device master.
+"""Write www/behind/layout-docs.html, the layout documentation, from its template and the layout's data.
 
 The page began as the Model Railroad Engineer SOQ (docs/ap/electrical) without the NMRA form, the
 checklist, the requirement framing and the wiring-record appendix (owner, 2026-11-22). It reads nothing
@@ -7,9 +7,12 @@ from the SOQ, which was submitted and is frozen; the page is a live document tha
 (owner, 2026-11-25). Its text is layout_docs_template.html, and its drawings and photos are files under
 www/assets/behind/layout-docs/, edited in place. This script fills in the list of detected sections (lengths
 and detectors from jmri/layouts/hart/data/block_lengths.csv by level and ID, names from the device master,
-where the owner's name wins), the track names the template gives by block ID ({{name:<id>}}) and the
-figures its text states (section count, RS-1, siding and yard lengths, the crossovers), and checks that
-drawing D2 states the same count and plans P3 and P4 the same lengths.
+where the owner's name wins), the track names the template gives by block ID ({{name:<id>}}), the switch names
+and DCC addresses it gives by turnout ID ({{turnout:switch:3}}, {{turnouts:switch:9,switch:11}}, {{dcc:switch:3}}),
+the station names it gives by a switch of the station ({{station:switch:5}}: stations.csv's level 1 station holding
+that switch, the smallest when two do) and the figures its text states (section count, RS-1, siding and yard
+lengths, the crossovers), and checks that drawing D2 states the same count, plans P3 and P4 the same lengths and
+the plans' switch labels the live switch numbers.
 
     python3 www/scripts/build_layout_docs.py           # write the page
     python3 www/scripts/build_layout_docs.py --check   # exit 1 if the page is out of date
@@ -45,6 +48,7 @@ LEVEL = "1"          # the template's {{name:...}} blocks are on the staging lev
 YARD = ("block:15B-23B", "block:17C-29C", "block:19C-27C", "block:21C-25C", "block:21B-25B")     # Y1 to Y5
 ENGINE = ("block:11B-end", "block:9B-end", "block:9C-end")                                      # E1 to E3
 RS1, SIDING = "block:1A-23A", "block:5C-7B"
+PLANS = sorted(DRAWINGS.glob("P*.svg"))    # the plans, each labelled with every staging switch number
 LABELS = {
     **{bid: f"Yard track Y{n}" for n, bid in enumerate(YARD, 1)},
     **{bid: f"Engine storage E{n}" for n, bid in enumerate(ENGINE, 1)},
@@ -56,6 +60,10 @@ LABELS = {
 CAR_IN = 7.5         # the page's car length, for the siding's "about n cars" (the SOQ's 144 in held about 19)
 NAME = re.compile(r"\{\{name:([^}]+)\}\}")     # {{name:<block id>}}: the store's name of a staging block, "S-1"
 OS = re.compile(r"os:(\d+)(:.+)?")             # an OS block's ID: its switch number, and a leg on a crossover half
+# {{turnout:<id>}} a turnout's name ("Switch 3"), {{turnouts:<id>,<id>}} several ("Switches 9 and 11"), {{dcc:<id>}} its
+# DCC address, {{station:<switch id>}} the station at that switch; each ID a staging turnout's (switch:<n>)
+SWITCHES = re.compile(r"\{\{(turnouts?|dcc|station):([^}]+)\}\}")
+SWITCH_NAME = re.compile(r"Switch (\d+)")      # a turnout's name, whose number the plans print
 # What plans P3 and P4 (hand-edited files) must say: the page's figures.
 PLAN_TEXT = {P3: "Passing siding, {SIDING_IN} in long (about {SIDING_CARS} cars)",
              P4: "Yard tracks Y1 to Y5, {YARD_IN} in long"}
@@ -66,14 +74,54 @@ def bare(name: str) -> str:
     return name.removeprefix("Track ")
 
 
-def label(section: dict) -> str:
-    """The page's description of a detected section, by its block ID."""
+def turnout(master: dict, did: str) -> dict:
+    """The device master's row of the staging turnout `did` (switch:<n>)."""
+    row = master.get((LEVEL, did))
+    if row is None or row["layer"] != "turnout" or row["role"] != "turnout":
+        raise SystemExit(f"build_layout_docs: {did} is no level {LEVEL} turnout of the device master (a switch "
+                         "renumbered in the plan changes its ID; fix the template or build_layout_docs.py)")
+    return row
+
+
+def switch_number(master: dict, did: str) -> str:
+    """The number in the name of the turnout `did` ("3" for "Switch 3")."""
+    name = turnout(master, did)["user_name"]
+    m = SWITCH_NAME.fullmatch(name)
+    if not m:
+        raise SystemExit(f"build_layout_docs: turnout {did} is named {name!r}, not Switch <n>; the page and its plans "
+                         "number the switches")
+    return m.group(1)
+
+
+def switches_text(numbers: list[str]) -> str:
+    """"Switch 7", or "Switches 7, 23 and 35"."""
+    if len(numbers) == 1:
+        return f"Switch {numbers[0]}"
+    return f"Switches {', '.join(numbers[:-1])} and {numbers[-1]}"
+
+
+def station_at(stations: list, did: str) -> str:
+    """The name of the level 1 station of stations.csv holding the switch of turnout ID `did` (switch:<n>); of two,
+    the one with fewer switches (West Yard, not Brick, at Switch 3; Engine House, not Barn, at Switch 9)."""
+    n = did.removeprefix("switch:")
+    held = sorted((len(s.switches), s.name) for s in stations if str(s.level) == LEVEL and n in s.switches)
+    if not held:
+        raise SystemExit(f"build_layout_docs: no level {LEVEL} station of stations.csv holds the switch of {did}")
+    if len(held) > 1 and held[0][0] == held[1][0]:
+        raise SystemExit(f"build_layout_docs: {held[0][1]} and {held[1][1]} both hold the switch of {did}; the "
+                         "template names one station")
+    return held[0][1]
+
+
+def label(section: dict, master: dict | None = None) -> str:
+    """The page's description of a detected section, by its block ID; an OS block's by its turnout's number."""
     if section["id"] in LABELS:
         return LABELS[section["id"]]
     m = OS.fullmatch(section["id"])
     if m:
+        number = switch_number(master_rows() if master is None else master, f"switch:{m.group(1)}")
         half = re.search(r"([ab])$", section["name"]) if m.group(2) else None
-        return f"Turnout {m.group(1)}{' (crossover half ' + half.group(1) + ')' if half else ''}"
+        return f"Turnout {number}{' (crossover half ' + half.group(1) + ')' if half else ''}"
     raise SystemExit(f"build_layout_docs: no label for section {section['id']} ({section['name']}); add it to LABELS")
 
 
@@ -125,9 +173,9 @@ def detected_sections(lengths=None, master=None) -> list[dict]:
     return sorted(out, key=lambda s: (s["node"], s["ch"]))
 
 
-def sections_table(rows: list[dict]) -> str:
+def sections_table(rows: list[dict], master: dict) -> str:
     body = "".join(
-        f"<tr><td class=\"num\">{i}</td><td>{html.escape(label(s))}</td>"
+        f"<tr><td class=\"num\">{i}</td><td>{html.escape(label(s, master))}</td>"
         f"<td>{html.escape(s['name'])}</td><td>C{s['node']} · {s['ch']}</td>"
         f"<td class=\"num\">{'≈ ' if s['estimate'] else ''}{s['inches']:.0f}</td></tr>"
         for i, s in enumerate(rows, 1))
@@ -137,9 +185,10 @@ def sections_table(rows: list[dict]) -> str:
             f'          <tbody>{body}</tbody>\n        </table>\n      </div>')
 
 
-def facts(rows: list[dict]) -> dict[str, str]:
+def facts(rows: list[dict], master: dict | None = None) -> dict[str, str]:
     """The figures the page's text states, from the section list and rounded as it shows them. A length from plan
-    estimates (marked ≈ in the list) is said as "about"."""
+    estimates (marked ≈ in the list) is said as "about". The crossovers are named by their turnouts' numbers."""
+    master = master_rows() if master is None else master
     inches = {s["id"]: float(f"{s['inches']:.0f}") for s in rows}
     estimate = {s["id"]: s["estimate"] for s in rows}
     named = {"RS1": [RS1], "SIDING": [SIDING], "YARD": list(YARD)}
@@ -154,11 +203,11 @@ def facts(rows: list[dict]) -> dict[str, str]:
     xings = sorted({int(m.group(1)) for s in rows if (m := OS.fullmatch(s["id"])) and m.group(2)})
     if not xings:
         raise SystemExit("build_layout_docs: no crossover half in the section list; the page names the crossovers")
-    listed = " and ".join(filter(None, [", ".join(map(str, xings[:-1])), str(xings[-1])]))
+    listed = switches_text([switch_number(master, f"switch:{n}") for n in xings])
     return {"SECTION_COUNT": str(len(rows)), "RS1_IN": f"{about([RS1])}{inches[RS1]:.0f}",
             "SIDING_IN": f"{about([SIDING])}{inches[SIDING]:.0f}", "SIDING_CARS": str(round(inches[SIDING] / CAR_IN)),
             "YARD_IN": f"{about(YARD)}{yard[0]:.0f} to {yard[-1]:.0f}",
-            "CROSSOVERS": (f"crossovers at Switches {listed}" if len(xings) > 1 else f"a crossover at Switch {listed}")}
+            "CROSSOVERS": f"{'crossovers' if len(xings) > 1 else 'a crossover'} at {listed}"}
 
 
 def fill_names(text: str, master: dict) -> str:
@@ -170,6 +219,25 @@ def fill_names(text: str, master: dict) -> str:
                              "device master")
         return html.escape(bare(row["user_name"]))
     return NAME.sub(one, text)
+
+
+def fill_switches(text: str, master: dict, stations: list) -> str:
+    """Each {{turnout:...}}, {{turnouts:...}}, {{dcc:...}} and {{station:...}} in `text` replaced from the device
+    master and stations.csv."""
+    def one(m: re.Match) -> str:
+        kind, arg = m.groups()
+        if kind == "turnouts":
+            return html.escape(switches_text([switch_number(master, d.strip()) for d in arg.split(",")]))
+        if kind == "station":
+            turnout(master, arg)
+            return html.escape(station_at(stations, arg))
+        row = turnout(master, arg)
+        if kind == "turnout":
+            return html.escape(row["user_name"])
+        if not row["dcc"]:
+            raise SystemExit(f"build_layout_docs: turnout {arg} has no DCC address in the device master")
+        return html.escape(row["dcc"])
+    return SWITCHES.sub(one, text)
 
 
 def check_d2(count: int) -> None:
@@ -191,6 +259,19 @@ def check_plans(fact: dict[str, str]) -> None:
                              "does; edit the drawing")
 
 
+def check_switch_labels(master: dict) -> None:
+    """The plans (hand-edited files) label every staging switch by its number ("Sw 3" on plan P0, "3" on the others);
+    they must label the live turnouts' numbers, so a switch renumbered or renamed stops here until they are edited."""
+    live = sorted({switch_number(master, k[1]) for k, r in master.items()
+                   if k[0] == LEVEL and r["layer"] == "turnout" and r["role"] == "turnout"}, key=int)
+    for svg in PLANS:
+        texts = [t.strip() for t in re.findall(r"<text\b[^>]*>([^<]*)", svg.read_text())]
+        drawn = sorted({m.group(1) for t in texts if (m := re.fullmatch(r"(?:Sw )?(\d+)", t))}, key=int)
+        if drawn != live:
+            raise SystemExit(f"build_layout_docs: {svg.relative_to(ROOT)} labels switches {', '.join(drawn)}, the "
+                             f"device master has {', '.join(live)}; edit the drawing")
+
+
 def check_drawings() -> None:
     """No SOQ wording in the visible text of the page's drawings."""
     for svg in sorted(DRAWINGS.glob("*.svg")):
@@ -200,12 +281,15 @@ def check_drawings() -> None:
                 raise SystemExit(f"build_layout_docs: {svg.relative_to(ROOT)} says {word!r}, SOQ wording; edit the drawing")
 
 
-def outputs(files=None) -> dict[Path, str]:
-    """The page. `files` is the device master's (hartlib.devices.Files of a test's copy); None the repo's."""
+def outputs(files=None, stations: Path | None = None) -> dict[Path, str]:
+    """The page. `files` is the device master's (hartlib.devices.Files of a test's copy) and `stations` a copy of
+    stations.csv; None the repo's."""
     master = master_rows(files)
+    places = railroad.read_stations(railroad.Sources.under().stations if stations is None else stations)
     rows = detected_sections(master=master)
-    fact = facts(rows)
-    page = fill_names(TEMPLATE.read_text(), master).replace("{{SECTIONS_TABLE}}", sections_table(rows))
+    fact = facts(rows, master)
+    page = fill_switches(fill_names(TEMPLATE.read_text(), master), master, places)
+    page = page.replace("{{SECTIONS_TABLE}}", sections_table(rows, master))
     for key, value in fact.items():
         page = page.replace("{{" + key + "}}", value)
     if "{{" in page:
@@ -221,6 +305,7 @@ def main() -> int:
     ap.add_argument("--check", action="store_true", help="report stale outputs and exit 1, write nothing")
     a = ap.parse_args()
     stale = []
+    check_switch_labels(master_rows())
     for path, text in outputs().items():
         if path.exists() and path.read_text() == text:
             continue
