@@ -64,8 +64,8 @@ JMRI's length is the plan length; a measured length is for speed profiling.
 | Track 101-103 | BS Switch 101 | 0 |  | plan | 0.0 | main level, the plan's length |
 | Track 101-111 | BS 101-111 | 152.3 |  | plan | 3868.4 | main level, the plan's length |
 | Track 103 Spur | BS 103 Spur | 41.4 |  | plan | 1051.6 | main level, the plan's length |
-| Track 103-105 1 | BS 103-105 1 | 121 |  | plan | 3073.4 | main level, the plan's length |
-| Track 103-105 2 | BS 103-105 2 | 134.8 |  | plan | 3423.9 | main level, the plan's length |
+| Track 103-105 1 | BS 103-105 1 | 134.8 |  | plan | 3423.9 | main level, the plan's length |
+| Track 103-105 2 | BS 103-105 2 | 121 |  | plan | 3073.4 | main level, the plan's length |
 | Track 105-109 | BS Switch 105 | 4.3 |  | plan | 109.2 | main level, the plan's length |
 | Track 107 Loop 1 | BS 107 Loop 1 | 154.5 |  | plan | 3924.3 | main level, the plan's length |
 | Track 107 Loop 2 | BS 107 Loop 2 | 154.5 |  | plan | 3924.3 | main level, the plan's length |
@@ -101,14 +101,14 @@ JMRI's length is the plan length; a measured length is for speed profiling.
 | Track 205-209 | BS Switch 205 | 0 |  | plan | 0.0 | upper level, the plan's length |
 | Track 207-211 | BS 207-211 | 29.9 |  | plan | 759.5 | upper level, the plan's length |
 | Track 207-213 | BS 207-213 | 24.3 |  | plan | 617.2 | upper level, the plan's length |
-| Track 209 Spur 1 | BS 209 Spur 1 | 65.6 |  | plan | 1666.2 | upper level, the plan's length |
-| Track 209 Spur 2 | BS 209 Spur 2 | 69.1 |  | plan | 1755.1 | upper level, the plan's length |
+| Track 209 Spur 1 | BS 209 Spur 1 | 69.1 |  | plan | 1755.1 | upper level, the plan's length |
+| Track 209 Spur 2 | BS 209 Spur 2 | 65.6 |  | plan | 1666.2 | upper level, the plan's length |
 | Track 211-217 1 | BS 211-217 1 | 113.9 |  | plan | 2893.1 | upper level, the plan's length |
 | Track 211-217 2 | BS 211-217 2 | 97.4 |  | plan | 2474.0 | upper level, the plan's length |
 | Track 213 Spur | BS 213 Spur | 52 |  | plan | 1320.8 | upper level, the plan's length |
 | Track 213-215 | BS Switch 213 | 0 |  | plan | 0.0 | upper level, the plan's length |
-| Track 215 Spur 1 | BS 215 Spur 1 | 35.8 |  | plan | 909.3 | upper level, the plan's length |
-| Track 215 Spur 2 | BS 215 Spur 2 | 33.2 |  | plan | 843.3 | upper level, the plan's length |
+| Track 215 Spur 1 | BS 215 Spur 1 | 33.2 |  | plan | 843.3 | upper level, the plan's length |
+| Track 215 Spur 2 | BS 215 Spur 2 | 35.8 |  | plan | 909.3 | upper level, the plan's length |
 | Track 217-219 | BS 217-219 | 59.9 |  | plan | 1521.5 | upper level, the plan's length |
 | Track 217-221 | BS 217-221 | 89.1 |  | plan | 2263.1 | upper level, the plan's length |
 | Track 219-221 | BS Switch 219 | 0 |  | plan | 0.0 | upper level, the plan's length |
@@ -133,10 +133,10 @@ JMRI's length is the plan length; a measured length is for speed profiling.
 | Track 239 Spur | BS 239 Spur | 41.8 |  | plan | 1061.7 | upper level, the plan's length |
 | Track 239-245 | BS Switch 239 | 13.9 |  | plan | 353.1 | upper level, the plan's length |
 | Track 241 Spur | BS 241 Spur | 35.9 |  | plan | 911.9 | upper level, the plan's length |
-| Track 243 Spur 1 | BS 243 Spur 1 | 11.9 |  | plan | 302.3 | upper level, the plan's length |
-| Track 243 Spur 2 | BS 243 Spur 2 | 20.1 |  | plan | 510.5 | upper level, the plan's length |
-| Track 245 Spur 1 | BS 245 Spur 1 | 11 |  | plan | 279.4 | upper level, the plan's length |
-| Track 245 Spur 2 | BS 245 Spur 2 | 19.3 |  | plan | 490.2 | upper level, the plan's length |
+| Track 243 Spur 1 | BS 243 Spur 1 | 20.1 |  | plan | 510.5 | upper level, the plan's length |
+| Track 243 Spur 2 | BS 243 Spur 2 | 11.9 |  | plan | 302.3 | upper level, the plan's length |
+| Track 245 Spur 1 | BS 245 Spur 1 | 19.3 |  | plan | 490.2 | upper level, the plan's length |
+| Track 245 Spur 2 | BS 245 Spur 2 | 11 |  | plan | 279.4 | upper level, the plan's length |
 
 ## Switch (OS) blocks
 
