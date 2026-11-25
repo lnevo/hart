@@ -102,9 +102,11 @@ def checks_for(root, path):
 
 
 def ruff_problem(root, path):
-    """pyflakes on the edited .py file: its findings as a failure text, or "" (clean, excluded by ruff.toml, or a file
-    outside root, which is not this checkout's). When ruff cannot run, says why on stderr in one line and gives ""."""
-    root, full = os.path.abspath(root), os.path.abspath(path)
+    """pyflakes on the edited .py file: its findings as a failure text, or "" (clean, excluded by ruff.toml or ignored
+    by git, as check.sh's whole-repo run leaves them, or a file outside root, which is not this checkout's). Paths are
+    compared resolved, as git gives root: a file reached through a symlink (/tmp on macOS) is still the checkout's.
+    When ruff cannot run, says why on stderr in one line and gives ""."""
+    root, full = os.path.realpath(root), os.path.realpath(path)
     if os.path.commonpath([root, full]) != root:
         return ""
     script = os.path.join(root, RUFF_CHECK)

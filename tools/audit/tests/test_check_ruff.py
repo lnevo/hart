@@ -9,6 +9,7 @@ import contextlib
 import io
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -90,6 +91,23 @@ class FindTests(Scratch):
         with self.env(version="garbage", version_rc="1"), self.assertRaisesRegex(cr.RuffSetupError, "answered 1"):
             cr.find_ruff("9.9.9", [self.ruff])
 
+    def test_a_broken_first_ruff_does_not_hide_a_good_one_later(self) -> None:
+        broken = self.root / "bin" / "broken"
+        broken.write_text("#!/usr/bin/env bash\nexit 1\n", encoding="utf-8")
+        broken.chmod(0o755)
+        self.assertEqual(cr.find_ruff("9.9.9", [broken, self.ruff]), self.ruff)
+        with self.assertRaisesRegex(cr.RuffSetupError, "broken --version answered 1"):
+            cr.find_ruff("9.9.9", [broken])
+
+    def test_pin_prints_the_requirement_for_ci_and_win_run(self) -> None:
+        with mock.patch.object(cr, "ROOT", self.root), contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(cr.main(["--pin"]), 0)
+        self.assertEqual(out.getvalue(), "ruff==9.9.9\n")
+        (self.root / "requirements.txt").write_text("numpy==1\n", encoding="utf-8")
+        with mock.patch.object(cr, "ROOT", self.root), contextlib.redirect_stderr(io.StringIO()) as err:
+            self.assertEqual(cr.main(["--pin"]), 2)
+        self.assertIn("pins ruff 0 times", err.getvalue())
+
 
 class RunTests(Scratch):
     def test_clean_findings_and_ruff_errors(self) -> None:
@@ -124,6 +142,34 @@ class RunTests(Scratch):
         argv = log.read_text(encoding="utf-8").splitlines()
         self.assertEqual(argv[argv.index("--config") + 1], str(self.root / "ruff.toml"))
         self.assertEqual(argv[-1], str(self.root / "a.py"))
+
+    def test_a_symlinked_path_is_the_file_it_names(self) -> None:
+        log = self.root / "argv.log"
+        self.ruff.write_text(FAKE.replace('printf', f'printf "%s\\n" "$@" > {log}; printf'), encoding="utf-8")
+        with tempfile.TemporaryDirectory() as d:
+            link = Path(d) / "link"
+            link.symlink_to(self.root)
+            cr.run(link, [str(link / "a.py")])
+        argv = log.read_text(encoding="utf-8").splitlines()
+        self.assertEqual(argv[argv.index("--config") + 1], str(self.root / "ruff.toml"))
+        self.assertEqual(argv[-1], str(self.root / "a.py"))
+
+    def test_a_file_git_ignores_is_skipped_as_the_whole_repo_run_skips_it(self) -> None:
+        subprocess.run(["git", "init", "-q", str(self.root)], check=True)
+        (self.root / ".gitignore").write_text("scratch/\n", encoding="utf-8")
+        (self.root / "scratch").mkdir()
+        (self.root / "scratch/x.py").write_text("import os\n", encoding="utf-8")
+        log = self.root / "argv.log"
+        self.ruff.write_text(FAKE.replace('printf', f'printf "%s\\n" "$@" > {log}; printf'), encoding="utf-8")
+        self.assertEqual(cr.run(self.root, [str(self.root / "scratch/x.py")]), (0, "every file named is ignored by git"))
+        self.assertFalse(log.exists())          # ruff was not started
+        cr.run(self.root, [str(self.root / "scratch/x.py"), str(self.root / "a.py")])
+        self.assertEqual(log.read_text(encoding="utf-8").splitlines()[-1], str(self.root / "a.py"))
+
+    def test_a_git_failure_is_reported_not_taken_as_not_ignored(self) -> None:
+        (self.root / ".git").write_text("gitdir: /nonexistent\n", encoding="utf-8")     # a broken worktree link
+        with self.assertRaisesRegex(cr.RuffSetupError, "git check-ignore in .* answered 128"):
+            cr.run(self.root, [str(self.root / "a.py")])
 
     def test_main_exit_codes(self) -> None:
         with mock.patch.object(cr, "ROOT", self.root):

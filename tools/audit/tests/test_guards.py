@@ -699,6 +699,15 @@ class AfterEditRuffTests(unittest.TestCase):
         self.assertEqual(code, 2, err)
         self.assertIn("F401", err)
 
+    def test_a_path_through_a_symlink_is_still_checked(self) -> None:
+        self.write("tools/x.py", "import os\n")
+        with tempfile.TemporaryDirectory() as d:
+            link = Path(d) / "link"
+            link.symlink_to(self.root)           # git gives the resolved root, the edit names the link
+            code, err = self.hook(link / "tools/x.py")
+        self.assertEqual(code, 2, err)
+        self.assertIn("F401", err)
+
     def test_missing_ruff_says_so_on_one_line_and_does_not_block(self) -> None:
         (self.root / ".venv/bin/ruff").unlink()
         with mock.patch.dict(os.environ, {"PATH": str(self.root / "no-bin")}):

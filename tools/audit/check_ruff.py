@@ -81,7 +81,11 @@ def find_ruff(pin: str, places: list[Path]) -> Path:
     for binary in places:
         if not binary.is_file():
             continue
-        got = version_of(binary)
+        try:
+            got = version_of(binary)
+        except RuffSetupError as err:
+            seen.append(str(err))
+            continue
         if got == pin:
             return binary
         seen.append(f"{binary} is {got}")
@@ -90,18 +94,40 @@ def find_ruff(pin: str, places: list[Path]) -> Path:
                          f"Install it with: {places[0].parent / 'pip'} install ruff=={pin}")
 
 
+def git_ignored(root: Path, files: list[str]) -> set[str]:
+    """The files (absolute, resolved) inside root that git ignores there: ruff's whole-repo run skips them, so a file
+    named alone is skipped too. None when root is not a git checkout (no .git)."""
+    inside = [f for f in files if os.path.commonpath([str(root), f]) == str(root)]
+    if not inside or not (root / ".git").exists():
+        return set()
+    try:
+        done = subprocess.run(["git", "-C", str(root), "check-ignore", "-z", "--stdin"], input="\0".join(inside),
+                              capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError) as err:
+        raise RuffSetupError(f"git check-ignore could not run in {root}: {err}") from err
+    if done.returncode not in (0, 1):
+        raise RuffSetupError(f"git check-ignore in {root} answered {done.returncode}: {done.stderr.strip()}")
+    return {p if os.path.isabs(p) else os.path.join(str(root), p) for p in done.stdout.split("\0") if p}
+
+
 def run(root: Path, files: list[str] | None = None) -> tuple[int, str]:
-    """(finding count, ruff's output) for files, or the whole of root when files is None. Each file must exist."""
-    root = Path(os.path.abspath(root))
+    """(finding count, ruff's output) for files, or the whole of root when files is None. Each file must exist.
+    Paths are resolved first (a symlinked or ../ path is the file it names), and files git ignores are not checked."""
+    root = Path(os.path.realpath(root))
     config = root / CONFIG
     if not config.is_file():
         raise RuffSetupError(f"no {CONFIG} in {root}")
-    targets = [str(root)] if files is None else [os.path.abspath(f) for f in files]
+    targets = [str(root)] if files is None else [os.path.realpath(f) for f in files]
     if not targets:
         raise ValueError("run() was given an empty file list: pass None for the whole repo")
     missing = [t for t in targets if not os.path.isfile(t) and not os.path.isdir(t)]
     if missing:
         raise RuffSetupError("no such file: " + ", ".join(missing))
+    if files is not None:
+        ignored = git_ignored(root, targets)
+        targets = [t for t in targets if t not in ignored]
+        if not targets:
+            return 0, "every file named is ignored by git"
     ruff = find_ruff(pinned_version(root), candidates(root))
     argv = [str(ruff), "check", "--config", str(config), "--no-cache", "--output-format", "concise", *targets]
     try:
@@ -122,7 +148,18 @@ def run(root: Path, files: list[str] | None = None) -> tuple[int, str]:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("files", nargs="*", help="files to check (default: the whole repo)")
+    ap.add_argument("--pin", action="store_true",
+                    help="print requirements.txt's pin as ruff==X and stop (CI and win_run.sh install it)")
     args = ap.parse_args(argv)
+    if args.pin:
+        if args.files:
+            ap.error("--pin takes no files")
+        try:
+            print(f"ruff=={pinned_version(ROOT)}")
+        except RuffSetupError as err:
+            print(f"check_ruff: {err}", file=sys.stderr)
+            return 2
+        return 0
     try:
         count, out = run(ROOT, args.files or None)
     except (RuffSetupError, RuffError) as err:

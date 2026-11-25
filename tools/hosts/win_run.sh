@@ -105,17 +105,30 @@ git -C "\$wt" config -f .gitmodules --get-regexp '\.path\$' | while read -r _ su
   fi
 done
 cd "\$wt"
-# The ruff this commit's requirements.txt pins (check.sh's pyflakes job, tools/audit/check_ruff.py) into ~/hart/.venv
-# when that venv has another version or none; a commit from before the pin installs nothing.
-want="\$(grep -E '^ruff==' requirements.txt || true)"
-if [[ -n "\$want" && "\$(ruff --version 2>/dev/null || true)" != "ruff \${want#ruff==}" ]]; then
-  echo "win_run.sh: installing \$want into \$HOME/hart/.venv" >&2
-  # The venv there is made by uv (no pip in it); a venv with pip installs with pip.
-  py="\$HOME/hart/.venv/bin/python"
-  if "\$py" -m pip --version >/dev/null 2>&1; then installer=("\$py" -m pip install -q)
-  else installer=(uv pip install -q --python "\$py"); fi
-  flock "\$main/.git/win_run.lock" "\${installer[@]}" "\$want" >&2
+# --- ruff (tests run this block alone)
+# The ruff this commit pins (requirements.txt, read by tools/audit/check_ruff.py --pin), installed once per version in
+# ~/.cache/hart/ruff/<version> with uv and put first on PATH: runs of commits that pin other versions never share an
+# install. A commit from before the pin installs nothing. A failed install is a warning, not a setup failure: check.sh's
+# ruff job then says which ruff it lacks, and any other command runs as before.
+install_ruff() {   # <folder> <ruff==X>: into a temp folder, then moved into place, so a half install is never used
+  [[ -x "\$1/bin/ruff" ]] && return 0
+  rm -rf "\$1.tmp"
+  uv pip install -q --target "\$1.tmp" "\$2" && mv "\$1.tmp" "\$1"
+}
+if [[ -f tools/audit/check_ruff.py ]]; then
+  if want="\$(python3 tools/audit/check_ruff.py --pin 2>&1)"; then
+    rdir="\$HOME/.cache/hart/ruff/\${want#ruff==}"
+    mkdir -p "\$HOME/.cache/hart/ruff"
+    if ( flock 8 && install_ruff "\$rdir" "\$want" ) 8>"\$HOME/.cache/hart/ruff/.lock" >&2; then
+      export PATH="\$rdir/bin:\$PATH"
+    else
+      echo "win_run.sh: warning: could not install \$want into \$rdir; the ruff job will fail" >&2
+    fi
+  else
+    echo "win_run.sh: warning: no ruff pin (\$want); the ruff job will fail" >&2
+  fi
 fi
+# --- end ruff
 # --- slots (tests run this block alone)
 # At most $slots runs at once, each with its share of the CPUs: more runs only slow each other down (2026-11-21:
 # four checks at once each took three times as long). A run waits here for a free slot; the slot is held on fd 9
