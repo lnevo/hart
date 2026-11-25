@@ -297,6 +297,11 @@ LEFT_OUT = {
     "unit-guards test_docs_index": "builds fake docs trees; the real index is the docs-index check",
     "unit-guards test_agent_docs_map": "its one test on the real wiki (the committed graph is current) is what the "
                                        "pipeline-map-site check's build_pipeline_map.py --check also fails on",
+    "unit-guards test_agent_docs_cells": "its runs of check_agent_docs.py on the real wiki and AGENTS.md are what "
+                                         "the agent-docs check in docs_checks.sh's list checks",
+    "unit-guards test_status_merge": "its one test on the real wiki/STATUS.md (no doubled entries) is what the "
+                                     "status-counts check in docs_checks.sh's list also fails on",
+    "unit-guards test_helix_stl_index": "lists the docs/benchwork/helix/stl/ models, no Markdown",
     "unit-guards test_publish_draft": "reads docs/ops/ drawings and JSON, no Markdown",
     "unit-guards test_write_inventory": "reads docs/wiring/ CSV, no Markdown",
     "unit-hosts test_live_paths": "reads the docs/ paths the deploy scripts name, not Markdown text",

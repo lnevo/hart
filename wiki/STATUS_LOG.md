@@ -1,6 +1,7 @@
 # Status log
 
 Updated: 2026-11-24 — JMRI MQTT race overlay back, MQTT only, as the owner asked once JMRI/JMRI#16004 was submitted (ADR-034). Replaced in STATUS: "**MQTT startup race:** a dropped connection with `Can't subscribe` at startup clears itself; worry only if `Succeeded to reconnect` does not follow. It is a stock JMRI 5.16 bug: reproduced on a bare profile with only MQTT beans and retained messages (2026-11-23, [`MQTT_STARTUP_RACE.md`](../docs/jmri/MQTT_STARTUP_RACE.md))."
+Updated: 2026-11-24 — check.sh stamp loose ends (#1084): a fresh worktree's second no-change run reran 31 jobs because `.cache` appeared mid-run; `check.sh` now makes it first (warm-up, then a no-change run that runs 1 job). The 7 audit-UNCOVERED jobs declare what they read, and `test_deploy_stage` keys on HEAD ([`projects/check-speed-handoff.md`](projects/check-speed-handoff.md)).
 Updated: 2026-11-24 — check.sh speed hand-off done (#1078, #1080, #1082): docs-only local path, narrower stamps, one stamp-check process and stamps for jobs with skipped tests. Added the docs-only and no-change sentence to Repo gates.
 Updated: 2026-11-24 — Naming layers step 2: every device row has a plan-derived `id` (`hartlib.device_ids`). Replaced in STATUS: "step 2 waits for the check-speed hand-off to merge".
 Updated: 2026-11-24 — ADR-033 accepted: the owner started the naming-layers hand-off; step 1 (golden tests of both bean processes, `test_bean_goldens.py`) done. Replaced in STATUS: "All questions answered; starts when the owner says go".

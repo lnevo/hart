@@ -94,6 +94,12 @@ STAMPS=1
 RECORD=1
 if [[ -n "${CI:-}" || "${FULL:-}" == 1 || -n "${CHECK_AUDIT:-}" ]]; then STAMPS=0; fi
 if [[ -n "${CI:-}" ]]; then RECORD=0; fi
+# The checkout's .cache (gitignored) before any job starts: the panel check (build_panels.sh) makes .cache/panel-stamps
+# there, and a job that lists the root and passed before that recorded a listing without it, so the next run reran it.
+# Without the folder the run goes on; a job that saw it appear then records nothing and reruns next time.
+if ! mkdir -p "$ROOT/.cache" 2>/dev/null; then
+  echo "cannot make $ROOT/.cache: a job that lists the root and finishes before a step makes it reruns next time"
+fi
 # CI only (.github/workflows/check.yml, tools/ci/stamp_gate.py): CHECK_RECORD_TO=<folder> is main's push run, which runs
 # every job and records the stamps of the ones that passed there; CHECK_SKIP_FROM=<folder> is a pull request run with
 # main's stamps for its merge base, which skips a job whose inputs are byte-identical to that pass and records
