@@ -51,7 +51,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 | 8 | Block names into the rows | 0.5 day | Builder merge step 2 (`block_numbering.csv` stays the source of main and upper numbers, owner 2026-11-23). **Done (2026-11-25):** see [Step 8 findings](#step-8-findings) |
 | 9 | `start` column and comment data | 0.5 day | Builder merge step 3: main and upper rows carry `start` and `bean_comment`; `le_tables` reads them. **Done (2026-11-25):** see [Step 9 findings](#step-9-findings) |
 | 10 | Bean shapes by column | 1 day | Builder merge step 4. **Done (2026-11-25):** see [Step 10 findings](#step-10-findings) |
-| 11 | Every level through `master_beans` | 1 day | Builder merge step 5. **Done (2026-11-25), pending `make panelpro-test` and the deploy:** see [Step 11 findings](#step-11-findings); a listed diff of 399 main and upper comments |
+| 11 | Every level through `master_beans` | 1 day | Builder merge step 5. **Done (2026-11-25), PanelPro-tested and deployed with `67b6d185` (2026-11-25 11:31):** see [Step 11 findings](#step-11-findings); a listed diff of 399 main and upper comments |
 | 12 | One mast step | 1 to 1.5 days | Builder merge step 6. **Done (2026-11-25), pending the SML discovery and the owner's panel approval:** see [Step 12 findings](#step-12-findings); nine upper mast pairs swap letters |
 | 13 | One reader | 1 day | Builder merge step 7, first half: `le_names.level_names` and `staging_device_map.load` become one reader keyed by ID. **Done (2026-11-25):** see [Step 13 findings](#step-13-findings) |
 | 14 | Level tests to column tests, and a swap test | 1 day | Builder merge step 8. **Done (2026-11-25):** see [Step 14 findings](#step-14-findings). The sandbox swap of Switch 107 by its field row alone built, discovered and passed `make panelpro-test`, then was reverted |
@@ -90,9 +90,9 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   them would change it. They stay `block_layer.name_tracks`' end-switch rule, now a function of the plan alone.
 - **Open for 3b:** `block_layer`, `cats_panel.py`, `build_masts.py` and `staging_device_map.py` still read staging names
   off the drawn strands (which now carry the store's names through the plugin); 3b makes them look up the store by ID.
-- **Open for step 12:** a mast's letter (210LA, 210LB) is still ordered by drawn row, so after the renumbering Mast 210LA
+- **Closed at step 12 (2026-11-25):** the swap below makes an A face Spur 1; Mast 210LA faces Track 209 Spur 1 in `devices_generated.csv`. Was: a mast's letter (210LA, 210LB) is still ordered by drawn row, so after the renumbering Mast 210LA
   faces Track 209 Spur 2. Mast names were left alone (a rename needs SML discovery and approval, decision 6).
-- **Open for step 5:** `main_lines.csv` and `milepost_route` still name staging tracks (`7@East Ext`), and
+- **Closed at step 5 (2026-11-25):** `main_lines.csv` keys by block ID (`5;7@block:5B-7A`). Was: `main_lines.csv` and `milepost_route` still name staging tracks (`7@East Ext`), and
   `stations.csv` station tracks (W-1, W-2) are names too.
 
 ## Step 3b findings (2026-11-24)
@@ -113,7 +113,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   each drawn piece of a run named by piece needs its own); two drawn tracks up the helix from one `helix` switch
   stop; `staging_names` and `check_helix` take the data folder from their caller; `build_signals.py` names its
   tracks with `build_device_map.named_tracks`, as the device map does.
-- **Open, not 3b's:** `publish_draft.check_digest` keys the drawing stamp on the data, the plugin and the field file,
+- **Closed (2026-11-25, PR #1114):** the drawing stamp keys on `hartlib` code. Was: `publish_draft.check_digest` keys the drawing stamp on the data, the plugin and the field file,
   not on `hartlib` code, so a `hartlib` change to the plugin's view is not redrawn by `--check` until the data
   changes (it was checked uncached here). Main and upper loop-half names still go onto the drawing from the device
   master (`cats_panel.name_loop_halves`, `le_names`), as step 13 plans.
@@ -145,7 +145,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   its turnout's owner name; the Operations Pro search counts a bare track name only as a track or location `name`
   and not the tail of a longer name; the changes are said once, after the write merges back, marked check-only on a
   `--check` run; a nameless field row is found by its id.
-- **Open for step 5:** a staging rename still breaks the files keyed by name (`wiring.csv`'s detector rows,
+- **Closed at step 5 (2026-11-25):** `devices.follow_renames` carries a block rename into `facing` and `protects` (Step 5 findings). Was: a staging rename still breaks the files keyed by name (`wiring.csv`'s detector rows,
   `block_lengths.csv`, `stations.csv` tracks, `masts.csv` `facing`), and names derived from a renamed block (a mast's
   `facing`) are not followed. A trial rename of OS Switch 19 in the field file left only `devices_generated.csv` stale;
   the other files were not traced one by one.

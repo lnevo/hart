@@ -14,6 +14,10 @@
                                                          (N: the skipped tests its output shows)
     check_stamps.py why     NAME                         say why NAME is not current
     check_stamps.py declared NAME                        the patterns NAME falls back to (an untraceable program)
+    check_stamps.py audit [NAME...]                      the reads of a manifest job's last recorded pass that its
+                                                         steps do not declare in tools/pipeline/checks.toml (every
+                                                         manifest job when no NAME); exit 1 with any, 2 when one
+                                                         cannot be audited (no stamp, a manifest that will not read)
     check_stamps.py audit-report DIR [-v]                compare the files a CHECK_AUDIT run opened with the declarations
                                                          (-v: for every job, the first two path parts
                                                          of each file it read)
@@ -42,6 +46,12 @@ size and mtime stay.
 tests/test_check_stamps.py checks that a recorded read set holds everything an independent audit hook
 (tools/audit/stamp_audit/sitecustomize.py, CHECK_AUDIT) saw the same jobs open or list. What neither hook can see:
 the plugin's files (covered by its commit).
+
+The declaration audit (ADR-037 stage 4a): after a step-manifest job's traced pass, `record` sorts the files each of
+its Python processes read by the step that started the process (step_reads), keeps them in the stamp, and prints a
+WARNING naming each one its step does not declare in tools/pipeline/checks.toml; `audit` prints it again from the
+stamp against the manifest as it is now. It changes no key and no verdict; one that cannot run prints STAMP AUDIT
+FAILED. The CHECK_AUDIT hook and audit-report above check the unit jobs' BY_KIND declarations instead.
 """
 from __future__ import annotations
 
@@ -586,10 +596,11 @@ def current_batch(names: list[str], out: Path, why: bool, root: Path = ROOT, sto
 
 
 def record(name: str, trace_log, root: Path = ROOT, store: Path = STORE, before: str | None = None,
-           skipped: int = 0) -> str | None:
+           skipped: int = 0, audit: dict | None = None) -> str | None:
     """Record `name`'s stamp from `trace_log`; None when recorded, else why not (any old stamp is dropped).
     `before` is the snapshot() taken before the job: a different one now records nothing. `skipped` is the number of
-    skipped tests the job's output shows: the trace must hold at least that many skips, with their ids and reasons."""
+    skipped tests the job's output shows: the trace must hold at least that many skips, with their ids and reasons.
+    `audit` (a manifest job's step_reads) is kept in the stamp for `check_stamps.py audit`; it is not in the key."""
     t = traced.parse(trace_log)
     reason = traced.problem(t)
     ck = Checker(root, store)
@@ -611,7 +622,8 @@ def record(name: str, trace_log, root: Path = ROOT, store: Path = STORE, before:
             else:
                 skips = skip_list(t.skips)
                 k = key(name, ck, programs, gits, skips)
-                meta = {"programs": programs, "git": gits, **({"skips": skips} if skips else {})}
+                meta = {"programs": programs, "git": gits, **({"skips": skips} if skips else {}),
+                        **({"audit": audit} if audit is not None else {})}
                 traced.save(_file(name, store), traced.make_stamp(k, t, str(root), hasher=lambda p: ck.cache(Path(p)),
                                                                   **meta))
                 return None
@@ -672,6 +684,151 @@ def _reaches(d: str, pat: str) -> bool:
     return d == literal or d.startswith(literal + "/") or literal.startswith(d + "/")
 
 
+# ---- the declaration audit (ADR-037 stage 4a; docs/pipeline-map/build-graph-design.md 4.5) ----
+# After a manifest job's traced pass, `record` sorts the repo files each of its Python processes read by the step that
+# started the process, keeps the data reads in the stamp and prints those its step does not declare in
+# tools/pipeline/checks.toml. Warn only: it changes no verdict and no key, and the trace stays what decides a skip.
+
+class AuditError(Exception):
+    """The declaration audit cannot run for a job (no such manifest job, no trace, no audit in its stamp)."""
+
+
+AUDIT_HOW = "warn only (ADR-037 stage 4a): nothing fails and no skip changes because of it"
+
+
+def step_reads(name: str, trace_log, root: Path, steps) -> dict:
+    """Job `name`'s data reads by step, from its trace: {"steps": {step: [files]}, "unowned": {process: [files]},
+    "absent": [Python steps with no process in the trace], "bash": [steps run by bash, whose reads the trace cannot
+    see]}. Files are repo paths that are not code (manifest.is_code). A process belongs to the step of its traced
+    parent (by pid, or by the spawn token it inherited), else to the step whose words its argv ends with; in a job of
+    one step, to that step. Raises AuditError when the trace cannot be read or holds no process."""
+    try:
+        text = Path(trace_log).read_text(encoding="utf-8", errors="surrogateescape")
+    except OSError as exc:
+        raise AuditError(f"cannot read the trace of {name}: {exc}") from None
+    by_words = {s.words: s.name for s in steps if s.python}
+    only = steps[0].name if len(steps) == 1 else None
+    skip = traced._skip_prefixes(str(root))
+    owner: dict[int, str] = {}          # pid -> its step, or "?<argv>" for a process no step started
+    token_owner: dict[str, str] = {}
+    reads: dict[str, set[str]] = {}
+    started = 0
+    for line in text.splitlines():
+        parts = line.split("\t")
+        if len(parts) < 3 or not parts[0].isdigit():
+            continue
+        pid, kind, rest = int(parts[0]), parts[1], parts[2:]
+        if kind == "s" and len(rest) >= 3:
+            started += 1
+            ppid = int(rest[0]) if rest[0].isdigit() else -1
+            words = tuple(rest[4:])
+            # the spawn token is unique, and a step's own command words name it; a parent pid comes last, as an
+            # untraced process (the job's bash) may have been given the pid of a traced one that ended before
+            owner[pid] = (only or token_owner.get(rest[1]) or by_words.get(words) or owner.get(ppid)
+                          or "?" + " ".join(rest[3:]))
+        elif kind == "x" and len(rest) >= 2 and pid in owner:
+            token_owner[rest[0]] = owner[pid]
+        elif kind == "r":
+            rel = traced.keep(rest[0], str(root), skip)
+            if rel is not None and not os.path.isabs(rel) and not pm.is_code(rel):
+                reads.setdefault(owner.get(pid, f"?pid {pid}, no start line"), set()).add(rel)
+    if not started:
+        raise AuditError(f"the trace of {name} ({trace_log}) holds no process start")
+    seen = set(owner.values())
+    return {"steps": {s.name: sorted(reads.get(s.name, ())) for s in steps if s.python},
+            "unowned": {who[1:]: sorted(files) for who, files in sorted(reads.items()) if who.startswith("?")},
+            "absent": [s.name for s in steps if s.python and s.name not in seen],
+            "bash": [s.name for s in steps if not s.python]}
+
+
+def audit_lines(name: str, audit: dict, steps, full: bool = False) -> tuple[list[str], int]:
+    """The audit's report for job `name` from its step_reads and the manifest's steps now, and the number of
+    warnings. A job with none gets one line. `full` lists every file (the `audit` command); else at most 8 a step."""
+    by_name = {s.name: s for s in steps}
+    rows: list[str] = []
+    count = 0
+    for step, files in sorted(audit.get("steps", {}).items()):
+        if step not in by_name:
+            rows.append(f"    {step}: in the stamp, not in tools/pipeline/checks.toml now; run the job again")
+            count += 1
+            continue
+        bad = pm.undeclared(by_name[step], files)
+        count += len(bad)
+        if bad:
+            shown = bad if full or len(bad) <= 8 else [*bad[:8], f"and {len(bad) - 8} more"]
+            rows.append(f"    {step}: {', '.join(shown)}")
+    for who, files in audit.get("unowned", {}).items():
+        count += len(files)
+        rows.append(f"    no step started this process ({who}): {', '.join(files)}")
+    for step in audit.get("absent", []):
+        count += 1
+        rows.append(f"    {step}: no process of it in the trace, so its reads are not audited")
+    recorded = set(audit.get("steps", {})) | set(audit.get("absent", []))
+    for s in steps:                 # a step added to the manifest after the stamp was recorded
+        if s.python and s.name not in recorded:
+            count += 1
+            rows.append(f"    {s.name}: in tools/pipeline/checks.toml, not in the stamp; run the job again")
+    bash = [s.name for s in steps if not s.python]          # from the manifest now, not the stamp
+    tail = f" ({', '.join(bash)}: bash, which the trace cannot see, so not audited)" if bash else ""
+    if not count:
+        return [f"stamp audit: {name}: every data read is declared in tools/pipeline/checks.toml (code under "
+                f"tools/ and .py files are not audited){tail}"], 0
+    return ([f"WARNING: stamp audit: {name}: {count} read(s) not declared in tools/pipeline/checks.toml "
+             f"(inputs, or quiet_inputs for a read not drawn on the map); {AUDIT_HOW}", *rows,
+             *([f"    not audited: {', '.join(bash)} (bash, which the trace cannot see)"] if bash else []),
+             f"    again: python3 tools/audit/check_stamps.py audit {name}"], count)
+
+
+def manifest_steps(name: str, root: Path = ROOT) -> tuple:
+    """Job `name`'s steps as the audit sees them (manifest.declarations). Raises AuditError for a job that is not a
+    manifest job, manifest.ManifestError for a manifest that will not read."""
+    decls = pm.declarations(root / MANIFEST)
+    if name not in decls:
+        raise AuditError(f"{name!r} is no job of {MANIFEST.as_posix()} (its jobs: {', '.join(decls)})")
+    return decls[name]
+
+
+def audit_stamp(names: list[str], root: Path = ROOT, store: Path = STORE) -> int:
+    """`check_stamps.py audit [NAME...]`: each manifest job's report from the audit its last recorded pass kept (every
+    manifest job when no name is given), against the manifest now. 0 when every read is declared, 1 with warnings,
+    2 when a job cannot be audited (its line says why)."""
+    try:
+        decls = pm.declarations(root / MANIFEST)
+    except pm.ManifestError as exc:
+        print(f"stamp audit: cannot run: {exc}", file=sys.stderr)
+        return 2
+    rc = 0
+    for name in names or list(decls):
+        if name not in decls:
+            print(f"stamp audit: {name}: no job of {MANIFEST.as_posix()} (its jobs: {', '.join(decls)})",
+                  file=sys.stderr)
+            rc = 2
+            continue
+        stamp = traced.load(_file(name, store))
+        if not stamp or not isinstance(stamp.get("audit"), dict):
+            print(f"stamp audit: {name}: {'no stamp' if not stamp else 'its stamp holds no audit'}; a pass of the "
+                  f"job records one (FULL=1 CHECK_ONLY='^{name}$' tools/check.sh)", file=sys.stderr)
+            rc = 2
+            continue
+        lines, count = audit_lines(name, stamp["audit"], decls[name], full=True)
+        print("\n".join(lines))
+        rc = max(rc, 1 if count else 0)
+    return rc
+
+
+def audit_trace(name: str, trace_log, root: Path = ROOT) -> tuple[list[str], dict | None]:
+    """`record`'s audit of a job's trace: (the report's lines, the step_reads to keep in its stamp). A job that is not
+    a manifest job gets ([], None). An audit that cannot run says so in one STAMP AUDIT FAILED line, never nothing."""
+    if not from_manifest(name):
+        return [], None
+    try:
+        steps = manifest_steps(name, root)
+        audit = step_reads(name, trace_log, root, steps)
+    except (AuditError, pm.ManifestError) as exc:
+        return [f"STAMP AUDIT FAILED: {name}: {exc} (the job's result stands; {AUDIT_HOW})"], None
+    return audit_lines(name, audit, steps)[0], audit
+
+
 def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
     try:
@@ -716,10 +873,16 @@ def _main(argv: list[str]) -> int:
             print(f"check_stamps.py record: --skipped takes a count, not {skipped!r}; not stamped")
             return 2
         if not_stampable(argv[1]) is None:
-            reason = record(argv[1], argv[4], before=Path(argv[2]).read_text().strip(), skipped=int(skipped))
+            report, audit = audit_trace(argv[1], argv[4])
+            reason = record(argv[1], argv[4], before=Path(argv[2]).read_text().strip(), skipped=int(skipped),
+                            audit=audit)
             if reason:
                 print(f"not stamped: {reason}")
+            if report:
+                print("\n".join(report))
         return 0
+    if argv[:1] == ["audit"]:
+        return audit_stamp(argv[1:])
     if len(argv) == 2 and argv[0] == "declared":
         print("\n".join(declared(argv[1]) or ()))
         return 0

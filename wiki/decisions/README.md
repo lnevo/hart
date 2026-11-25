@@ -39,5 +39,7 @@
 | [035](ADR-035-backups.md) | What is backed up, where and how often | Accepted |
 | [036](ADR-036-generated-views-not-committed.md) | Generated views are built where they are used, not committed | Accepted |
 | [037](ADR-037-one-step-manifest.md) | One step manifest for the checks and the panels build | Accepted |
+| [038](ADR-038-one-file-per-status-entry.md) | One file per STATUS entry | Accepted, amends 036 |
+| [039](ADR-039-data-masters-in-git.md) | One master per kind of record, kept in git | Accepted |
 
 Older consolidation decisions are in git history, and ADR-007 records what became of them.

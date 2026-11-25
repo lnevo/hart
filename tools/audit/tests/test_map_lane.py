@@ -74,6 +74,11 @@ class DrawTest(Fixture):
                                   "gen": "manifest"})
         MAP.validate(out, tracked=False)
 
+    def test_quiet_inputs_are_not_drawn(self) -> None:
+        loud = step("one", "tools/one.py", inputs=[("data/x.csv", "reads", "")])
+        quiet = M.Step(**{**loud.__dict__, "quiet_inputs": ("out/y.json", "data/nowhere.csv")})
+        self.assertEqual(LANE.regenerate(graph(), (quiet,)), LANE.regenerate(graph(), (loud,)))
+
     def test_an_unlabelled_input_has_no_label_key(self) -> None:
         out = LANE.regenerate(graph(), (step("one", "tools/one.py", inputs=[("data/x.csv", "", "")]),))
         self.assertIn({"from": "data/x.csv", "to": "tools/one.py", "gen": "manifest"}, out["edges"])
