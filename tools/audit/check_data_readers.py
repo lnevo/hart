@@ -74,10 +74,8 @@ ALLOWED: dict[str, dict[str, str]] = {
     "tools/schematic/device_map_masts.py": {"interlockings.csv": THROUGH},
     "tools/schematic/le_common.py": {"stations.csv": THROUGH},
     "tools/schematic/panel_items.py": {"panel_items.json": TAG},
-    "tools/schematic/panel_stamps.py": {
-        n: STAMP for n in ("block_lengths.csv", "devices_field.csv", "devices_generated.csv", "masts.csv",
-                           "plan_generated.json", "preferences.json", "preferences_generated.json", "signals.json",
-                           "switches.csv")},
+    # the steps' data files are named in tools/pipeline/panels.toml since ADR-037 stage 5; only these stay here
+    "tools/schematic/panel_stamps.py": {n: STAMP for n in ("devices_field.csv", "devices_generated.csv")},
     "tools/schematic/plan_lengths.py": {"main.json": PLAN, "parts.json": PLAN, "staging.json": PLAN},
     "tools/schematic/publish_draft.py": {"main.json": PLAN, "staging.json": PLAN},
     "tools/schematic/split_store.py": {"tables_template.xml": WRITES + " from a PanelPro Store"},
