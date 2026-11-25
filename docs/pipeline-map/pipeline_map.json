@@ -367,13 +367,13 @@
    "runner": true
   },
   {
-   "id": "tools/ctc_history/make_ctc_evolution_video.py",
-   "label": "make_*_evolution_video.py (ctc, cats, le)",
+   "id": "tools/ctc_history/films.py",
+   "label": "films.py {ctc,cats,le}",
    "kind": "generator",
    "status": "live",
    "domain": "extras",
-   "desc": "Builds stop-motion MP4/GIF of CTC, CATS and Layout Editor panel evolution from dated screenshots.",
-   "path": "tools/ctc_history/make_ctc_evolution_video.py"
+   "desc": "Builds the stop-motion films of the CTC, CATS and Layout Editor panels from dated screenshots (film_ctc.py, film_cats.py, film_le.py).",
+   "path": "tools/ctc_history/films.py"
   },
   {
    "id": "tools/ops/build_docs_index.py",
@@ -647,6 +647,15 @@
    "domain": "layout",
    "desc": "HART_CTC.xml and HART_ABS.xml CATS desk panels shipped to hosts; checked by layout-facts and validate_cats_panel.",
    "path": "cats/panels/HART_CTC.xml"
+  },
+  {
+   "id": "cats/scripts/cats_inspect.py",
+   "label": "cats_inspect.py {edges,grid,trace}",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Read-only inspectors of a CATS panel: SEC_EDGE joint types, the cell grid, and where each plant's legs lead (digicon_trace.py).",
+   "path": "cats/scripts/cats_inspect.py"
   },
   {
    "id": "cats/scripts/render_cats_panel.py",
@@ -2109,22 +2118,13 @@
    "path": "tools/hosts/sync_roster_from_pi.sh"
   },
   {
-   "id": "tools/ops/cs105_reboot.sh",
-   "label": "cs105_reboot.sh",
+   "id": "tools/ops/cs105.sh",
+   "label": "cs105.sh {reboot,consist,roster-sync}",
    "kind": "generator",
    "status": "live",
    "domain": "ops",
-   "desc": "Reboots the CS-105 command station after roster sync, only when nothing is moving.",
-   "path": "tools/ops/cs105_reboot.sh"
-  },
-  {
-   "id": "tools/ops/cs105_roster_sync.sh",
-   "label": "cs105_roster_sync.sh",
-   "kind": "generator",
-   "status": "live",
-   "domain": "ops",
-   "desc": "Runs the cs105 sync script through the Pi's JMRI to create or relabel CS-105 train entries from the roster.",
-   "path": "tools/ops/cs105_roster_sync.sh"
+   "desc": "Drops a Jython script into the Pi's JMRI to restart the CS-105, attach, detach or query an LCC consist (refused while operating), or sync the roster into CS-105 train entries.",
+   "path": "tools/ops/cs105.sh"
   },
   {
    "id": "tools/ops/loco_roster_import.sh",
@@ -4362,7 +4362,7 @@
   },
   {
    "from": "ext:decoderpro-roster",
-   "to": "tools/ops/cs105_roster_sync.sh"
+   "to": "tools/ops/cs105.sh"
   },
   {
    "from": "ext:hartlib",
@@ -4414,7 +4414,7 @@
   },
   {
    "from": "external/jmri-cs105-roster-sync",
-   "to": "tools/ops/cs105_roster_sync.sh",
+   "to": "tools/ops/cs105.sh",
    "label": "script"
   },
   {
@@ -5681,7 +5681,7 @@
   },
   {
    "from": "media/screenshots",
-   "to": "tools/ctc_history/make_ctc_evolution_video.py",
+   "to": "tools/ctc_history/films.py",
    "label": "reads"
   },
   {
@@ -6181,7 +6181,7 @@
    "side": "check"
   },
   {
-   "from": "tools/ctc_history/make_ctc_evolution_video.py",
+   "from": "tools/ctc_history/films.py",
    "to": "docs/ctc/history",
    "label": "mp4, gif, poster"
   },
@@ -6452,11 +6452,7 @@
    "gen": "manifest"
   },
   {
-   "from": "tools/ops/cs105_reboot.sh",
-   "to": "ext:cs105"
-  },
-  {
-   "from": "tools/ops/cs105_roster_sync.sh",
+   "from": "tools/ops/cs105.sh",
    "to": "ext:cs105",
    "label": "via Pi JMRI"
   },
@@ -7878,7 +7874,7 @@
   },
   {
    "from": "tools/hartlib/src/hartlib/film_pace.py",
-   "to": "tools/ctc_history/make_ctc_evolution_video.py",
+   "to": "tools/ctc_history/films.py",
    "label": "pace (ctc, cats, le)"
   },
   {
@@ -8620,6 +8616,16 @@
    "label": "check py-sizes",
    "side": "check",
    "gen": "manifest"
+  },
+  {
+   "from": "cats/panels/HART_CTC.xml",
+   "to": "cats/scripts/cats_inspect.py",
+   "label": "reads"
+  },
+  {
+   "from": "tools/ops/rebuild_publications.sh",
+   "to": "ops/hart-ops/publications/assets",
+   "label": "station_map_full.png"
   },
   {
    "from": "www/scripts/build_tables_browser.py",

@@ -129,7 +129,7 @@ every write goes through:
    shares the address.
 2. **No consist in the path.** 2121 leads an LCC consist with 2738. Refuse to write while either
    loco is in an active consist; the consist is broken first and made again afterwards with
-   `cs105_consist.py`. Never write to a consist address.
+   `tools/ops/cs105.sh consist`. Never write to a consist address.
 3. **Allowed CVs only:** 3, 4, 25, 66, 67 to 94, 95. Never CV1, CV17 to 19 (addresses and
    consist) or CV8 (reset). CV29 is set on the programming track only (decided 2026-11-13):
    without RailCom its real value cannot be read on the main, so a whole-byte write could flip

@@ -27,7 +27,7 @@ The JMRI page has Staging, Main and Upper tabs. Staging is the LCOS plant: click
 
 ## Broker setting
 
-The Mac tools (`tools/mqtt/`, `tools/mqtt-mimic/`, `seed_default_thrown_turnouts.py`) read the broker and JMRI address through `tools/hartlib/src/hartlib/hosts.py`. Set `HART_MQTT_BROKER`, `HART_MQTT_PORT` and `HART_JMRI_JSON` in the environment or in `tools/env/hart.env`; the default is the Pi, from `tools/env/defaults.env`. The older `MQTT_HOST` and `JMRI_JSON` still work, and the environment beats `hart.env`.
+The Mac tools (`tools/mqtt/`, `tools/mqtt-mimic/`, `diagnose_turnout_states.py`) read the broker and JMRI address through `tools/hartlib/src/hartlib/hosts.py`. Set `HART_MQTT_BROKER`, `HART_MQTT_PORT` and `HART_JMRI_JSON` in the environment or in `tools/env/hart.env`; the default is the Pi, from `tools/env/defaults.env`. The older `MQTT_HOST` and `JMRI_JSON` still work, and the environment beats `hart.env`.
 
 ## Run
 

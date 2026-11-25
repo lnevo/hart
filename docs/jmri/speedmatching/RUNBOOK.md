@@ -80,7 +80,7 @@ from the 2026-11-08 speeds (corrected for the longer loop); the first real run r
 
 | Part | What | Minutes |
 |---|---|---|
-| 1 | Break the 2121/2738 consist (`cs105_consist.py` detach), line up loop 1 (`make_job.py lineup --route loop1`), build the four jobs | 5 |
+| 1 | Break the 2121/2738 consist (`tools/ops/cs105.sh consist detach`), line up loop 1 (`make_job.py lineup --route loop1`), build the four jobs | 5 |
 | 2 | **2121 forward**: warm 60 s, then the distance pass. Its first two steps (8 and 16) are the shakedown: watch the log live (`ssh pi tail -f`), check `STEP`, `SETTLE`, `MEASURE`, `BLOCK` and the sensor order, and `drop_job.sh --kill` if anything looks wrong | 6 |
 | 3 | **2121 reverse**: `--warm-s 0` (already warm), same job | 5 |
 | 4 | Swap to 2738 (no `--mute-sound`), then **2738 forward** with its 60 s warm-up | 9 |
@@ -530,7 +530,7 @@ settings in the job, and each is logged:
   roster came from a full DecoderPro read on the programming track (2026-11-13), so step 1 can
   be skipped.
 - `CONSISTS_BROKEN = True` - your confirmation that every consist involving the loco is
-  detached. For 2121 and 2738 detach the LCC consist first with `cs105_consist.py`, then set it.
+  detached. For 2121 and 2738 detach the LCC consist first with `tools/ops/cs105.sh consist detach`, then set it.
 - `ABSENT_OK = [...]` - roster ids whose train node is not on the CS-105 that day (the guard
   asks every roster loco's node to answer). Build the list from a consist query: any roster loco
   the query shows as absent goes in. The target loco itself can never be in it.

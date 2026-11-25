@@ -18,6 +18,8 @@ Two read-only studies on 2026-11-25 found 237 tracked scripts that are not nodes
 
 ## How to run this
 
+- Merges go through the queue held by session `hart-95`: "ready #N", merge only on "go #N" (2026-11-25). Lane A follows every open PR that edits `pipeline_map.json`; `make map` draws the check scripts' boxes from `checks.toml`, so lane A adds by hand only scripts no manifest step runs.
+
 - Lanes A to E each open their own PR from their own worktree. Full checks run only through `make remote`.
 - `tools/pipeline/checks.toml`, `tools/check.sh` and `tools/audit/check_stamps.py` belong to the ADR-037 session. Lane E sends its edits to those files through it, as the data-masters lanes do ([`data-masters.md`](data-masters.md)).
 - Lane A's large JSON diff lands when `make orient` shows few open map changes (ADR-037 consequence 4), after ADR-037 stage 4c.
@@ -35,6 +37,8 @@ Two read-only studies on 2026-11-25 found 237 tracked scripts that are not nodes
 - Agent: `general-purpose`, opus. No code review for the JSON; `/code-review medium` for the coverage check.
 
 ## B. One-off scripts become CLIs (M)
+
+**Done** in #1148: `cats_inspect.py`, `films.py` and `cs105.sh` (with `consist query|attach|detach`, refused while the operating flag is set); `seed_default_thrown_turnouts.py` is now `diagnose_turnout_states.py`; `rebuild_station_map_full.py` runs in `rebuild_publications.sh`.
 
 | CLI | Folds | Note |
 |---|---|---|
