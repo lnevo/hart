@@ -39,7 +39,7 @@ The layout deploy and the Pi and Windows host scripts live in [`tools/hosts/`](.
   make desks   # writes HART_CTC.xml and HART_ABS.xml (all three levels)
   ```
   - Plant map: [`docs/ctc/DIGICON_SCHEMATIC.md`](../docs/ctc/DIGICON_SCHEMATIC.md)
-- Validate: `python3 cats/scripts/validate_cats_panel.py`
+- Check: `make panels CHECK=1` (the desks are byte-checked against a rebuild and against the approved fingerprints)
 
 ## Install + run (macOS)
 

@@ -645,7 +645,7 @@
    "kind": "output",
    "status": "live",
    "domain": "layout",
-   "desc": "HART_CTC.xml and HART_ABS.xml CATS desk panels shipped to hosts; checked by layout-facts and validate_cats_panel.",
+   "desc": "HART_CTC.xml and HART_ABS.xml CATS desk panels shipped to hosts; checked by layout-facts, the panels check (cats --check, approved-desks) and the CATS tests.",
    "path": "cats/panels/HART_CTC.xml"
   },
   {
@@ -665,16 +665,6 @@
    "domain": "layout",
    "desc": "Renders the Digicon panel image used with CATS hotspot index.",
    "path": "cats/scripts/render_cats_panel.py"
-  },
-  {
-   "id": "cats/scripts/validate_cats_panel.py",
-   "label": "validate_cats_panel.py",
-   "kind": "generator",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Validates desks (make desks and check.sh); with cats_turnout_io and digicon_lib loaders.",
-   "path": "cats/scripts/validate_cats_panel.py",
-   "gen": "manifest"
   },
   {
    "id": "docs/jmri/speedmatching",
@@ -4191,27 +4181,6 @@
    "from": "cats/panels/HART_CTC.bindings.json",
    "to": "tools/hosts/sync_hart_package.sh",
    "label": "ships"
-  },
-  {
-   "from": "cats/panels/HART_CTC.xml",
-   "to": "cats/scripts/validate_cats_panel.py",
-   "label": "make desks check",
-   "side": "check",
-   "gen": "manifest"
-  },
-  {
-   "from": "cats/scripts/validate_cats_panel.py",
-   "to": "tools/check.sh",
-   "label": "check desks",
-   "side": "check",
-   "gen": "manifest"
-  },
-  {
-   "from": "cats/panels/HART_ABS.xml",
-   "to": "cats/scripts/validate_cats_panel.py",
-   "label": "make desks check",
-   "side": "check",
-   "gen": "manifest"
   },
   {
    "from": "cats/panels/HART_CTC.xml",
