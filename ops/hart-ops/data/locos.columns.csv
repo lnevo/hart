@@ -1,7 +1,7 @@
 column,description,type,required,key,refs,values
-roster_id,"The loco's id: the road name and road number with a space between (CSX 2121), as DecoderPro names it. The row's key. The Operations Pro engine id is the same without the space or punctuation (CSX2121; locos.ops_id), and tools/ops/check_locos.py holds both engine rosters and the train list to it.",str,yes,yes,,
-road_name,"The road name as the rosters give it (BO, CR, CSX), not the display form on a card (B&O).",str,yes,,,
-road_number,"The road number, as text: NWR 06 keeps its leading zero.",str,yes,,,
+roster_id,"DecoderPro's id, formatted from the key: road_name, a space, road_number (CSX 2121). bin/cars, new_locos.json and the cards read it. locos.loco_roster_id in ops/hart-ops/card_pipeline/locos.py formats it, and locos.ops_id formats the Operations Pro id (road_name and road_number with nothing between: CSX2121). tools/ops/check_locos.py fails a roster_id that is not the formatted pair, and holds both engine rosters and the train list to the master.",str,yes,,,
+road_name,"The road name as the rosters give it (BO, CR, CSX), not the display form on a card (B&O). With road_number, the row's key.",str,yes,yes,,
+road_number,"The road number, as text: NWR 06 keeps its leading zero. With road_name, the row's key.",str,yes,yes,,
 dcc_address,"The DCC address. Required only when bin/cars locos publish sends the loco to DecoderPro; for the locos it already has, the DecoderPro roster on the Pi holds it.",int,,,,
 long_address,"yes for a long (four-figure) address. Empty: publish decides from the address (over 127 is long).",bool,,,,
 mfg,"The builder (EMD, GE, ALCO). Empty: the cards take it from the model (engine_lookup.manufacturer_for_model).",str,,,,

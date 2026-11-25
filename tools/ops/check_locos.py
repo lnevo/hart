@@ -9,7 +9,8 @@ the master lacks:
 - each roster ``id`` must be a master row's Operations Pro id (``locos.ops_id``: road name and number with
   no space);
 - each train ``engine``, a road number, must be the road number of exactly one master row;
-- each master ``roster_id`` must be its road name and road number with one space (``locos.loco_roster_id``).
+- each master ``roster_id`` must be its key, road name and road number, formatted by ``locos.loco_roster_id``
+  (one space); the sidecar keys the master on the pair.
 
 A gap the owner has yet to decide is in ``REPORTED``: it is printed on every run and does not fail. An entry
 there that is no longer a gap fails, so the list cannot go stale. It writes nothing; the rosters are the
@@ -38,11 +39,11 @@ TRAINS = ROOT / "cats/data/hart_trains.csv"
 # (file, value) -> why it is a known gap. Owner questions of lane L4d; remove an entry when it is settled.
 REPORTED: dict[tuple[str, str], str] = {
     ("ops/hart-ops/data/OperationsEngineRoster.xml", "CWRY2091"):
-        "the snapshot roster's road name for 2091; the master has POHC 2091 (crew card, live roster)",
+        "the owner chose POHC 2091 (2026-11-25); the snapshot roster keeps CWRY until phase 2 reconciles it",
     ("cats/data/hart_trains.csv", "4501"):
-        "Route 23 AM's engine is the CATS sample panel's 4501; Route 23 runs streetcar PRC 4678",
+        "Route 23 AM's engine is the CATS sample panel's 4501; lane L4b sets it to 4678 and removes this entry",
     ("cats/data/hart_trains.csv", "4503"):
-        "Route 23 PM's engine is the CATS sample panel's 4503; Route 23 runs streetcar PRC 4678",
+        "Route 23 PM's engine is the CATS sample panel's 4503; lane L4b sets it to 4678 and removes this entry",
 }
 
 

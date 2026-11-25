@@ -73,6 +73,12 @@ class RepoTests(unittest.TestCase):
         with (data / "loco_queue.csv").open(newline="", encoding="utf-8") as fh:   # bin/cars cards: the same queue
             self.assertEqual([q["roster_id"] for q in csv.DictReader(fh) if not q["card_printed"]], [])
 
+    def test_the_master_is_keyed_on_road_name_and_road_number(self) -> None:
+        with (ROOT / "ops/hart-ops/data/locos.columns.csv").open(newline="", encoding="utf-8") as fh:
+            keys = [r["column"] for r in csv.DictReader(fh) if r["key"] == "yes"]
+        self.assertEqual(keys, ["road_name", "road_number"])
+        self.assertEqual((locos.loco_roster_id("CSX", "2121"), locos.ops_id("CSX", "2121")), ("CSX 2121", "CSX2121"))
+
     def test_two_rows_with_one_operations_pro_id(self) -> None:
         found = L.gaps([row("BO", "572"), row("B-O", "572")], {}, {})
         self.assertEqual([v for _, v, _ in found], ["B-O 572"])
