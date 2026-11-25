@@ -120,6 +120,10 @@ def problems(master: dict, industries: dict[str, dict]) -> list[str]:
             continue
         out += [f"{where}: color {v!r} is no color" for v in j.get("colors", []) if v not in color_ids]
         out += [f"{where}: map {v!r} is no map" for v in j.get("maps", []) if v not in map_ids]
+        needs = {"crew": ("steps",), "yardmaster": ("sequence",), "dispatcher": ("lineup", "priority")}[kind]
+        out += [f"{where}: a {kind} job needs {f} (its docx prints it)" for f in needs if not j.get(f)]
+        if kind == "yardmaster" and not (j.get("docx") or {}).get("legend"):
+            out.append(f"{where}: a yardmaster job needs docx.legend (YM-01's blocking list order)")
         if kind == "crew":
             if not (j.get("engine") or {}).get("label"):
                 out.append(f"{where}: a crew job needs engine.label")

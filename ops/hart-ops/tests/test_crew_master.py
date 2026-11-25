@@ -64,6 +64,11 @@ class Schema(unittest.TestCase):
         out = self.broken(lambda m: cm.job(m, "dispatcher")["lineup"][0].update(route=""))
         self.assertIn("job 'dispatcher' row '1': a lineup row needs route and action", out)
 
+    def test_jobs_need_what_their_docx_prints(self):
+        out = self.broken(lambda m: (cm.job(m, "d749").pop("steps"), cm.job(m, "dispatcher").pop("priority")))
+        self.assertIn("job 'd749': a crew job needs steps (its docx prints it)", out)
+        self.assertIn("job 'dispatcher': a dispatcher job needs priority (its docx prints it)", out)
+
     def test_build_stops_on_a_problem(self):
         bad = copy.deepcopy(MASTER)
         bad["colors"].append(dict(bad["colors"][0]))

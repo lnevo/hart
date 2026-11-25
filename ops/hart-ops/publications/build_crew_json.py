@@ -6,7 +6,7 @@
 
 The view is crew_master.site_view(): the master less its docx-only fields, the spot sheet's industry names and
 anchors from ops/hart-ops/data/industries.csv, and the schematic's revision and date from the title block
-(hartlib.map_revision.fields, the same values map_revision.py writes). It first runs crew_master.problems() and
+(hartlib.map_revision.fields, the same values map_revision.py writes). It first runs crew_schema.problems() and
 stops on any. Edit the master, never www/data/crew.json.
 """
 from __future__ import annotations
