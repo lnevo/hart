@@ -19,6 +19,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
 MAIN_GUARD = ROOT / ".claude/hooks/main_guard.py"
@@ -629,6 +630,112 @@ class AfterEditMatchingTests(unittest.TestCase):
     def test_unwatched_file_runs_nothing(self) -> None:
         self.assertEqual(self.hook("jmri/scripts/README.md"), (0, ""))
         self.assertEqual(self.ran, [])
+
+
+class AfterEditRuffTests(unittest.TestCase):
+    """check_after_edit.py runs tools/audit/check_ruff.py on each edited .py file of the checkout.
+
+    A scratch checkout holds a copy of the real check script, ruff.toml, requirements.txt and hartlib; the ruff it
+    runs is the real pinned one (linked in as the checkout's .venv/bin/ruff), or a stub for the case where it is missing.
+    """
+
+    def setUp(self) -> None:
+        sys.path.insert(0, str(ROOT / "tools/audit"))
+        import check_ruff
+        try:
+            self.ruff = check_ruff.find_ruff(check_ruff.pinned_version(ROOT), check_ruff.candidates(ROOT))
+        except check_ruff.RuffSetupError as err:
+            self.skipTest(str(err))
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.root = Path(os.path.realpath(tmp.name))
+        for rel in ("ruff.toml", "requirements.txt", "tools/audit/check_ruff.py"):
+            (self.root / rel).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(ROOT / rel, self.root / rel)
+        shutil.copytree(ROOT / "tools/hartlib/src", self.root / "tools/hartlib/src",
+                        ignore=shutil.ignore_patterns("__pycache__"))
+        (self.root / ".venv/bin").mkdir(parents=True)
+        (self.root / ".venv/bin/ruff").symlink_to(self.ruff)
+        self.after = load(ROOT / ".claude/hooks/check_after_edit.py", "hart_check_after_edit_ruff_test")
+        self.after.toplevel = lambda directory: str(self.root)
+        self.ran: list[list[str]] = []
+        self.after.subprocess = type("FakeSubprocess", (), {     # the table checks: none here
+            "run": staticmethod(lambda argv, **kw: self.ran.append(argv)), "TimeoutExpired": subprocess.TimeoutExpired})
+
+    def hook(self, path: Path) -> tuple[int, str]:
+        saved, err = sys.stdin, io.StringIO()
+        sys.stdin = io.StringIO(json.dumps({"tool_input": {"file_path": str(path)}}))
+        try:
+            with contextlib.redirect_stderr(err):
+                return self.after.main(), err.getvalue()
+        finally:
+            sys.stdin = saved
+
+    def write(self, rel: str, text: str) -> Path:
+        path = self.root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+        return path
+
+    def test_a_finding_blocks_with_ruffs_output(self) -> None:
+        code, err = self.hook(self.write("tools/x.py", "import os\n"))
+        self.assertEqual(code, 2, err)
+        self.assertIn("--- ruff FAILED (1 pyflakes finding(s)", err)
+        self.assertIn("tools/x.py:1:8: F401", err)
+        self.assertEqual(self.ran, [])
+
+    def test_a_clean_file_and_an_excluded_file_pass_quietly(self) -> None:
+        self.assertEqual(self.hook(self.write("tools/x.py", "import os\nprint(os.sep)\n")), (0, ""))
+        self.assertEqual(self.hook(self.write("archive/old.py", "import os\n")), (0, ""))
+
+    def test_a_relative_dotted_path_is_the_same_file(self) -> None:
+        self.write("tools/x.py", "import os\n")
+        cwd = os.getcwd()
+        os.chdir(self.root / "tools")
+        try:
+            code, err = self.hook(Path("../tools/./x.py"))
+        finally:
+            os.chdir(cwd)
+        self.assertEqual(code, 2, err)
+        self.assertIn("F401", err)
+
+    def test_missing_ruff_says_so_on_one_line_and_does_not_block(self) -> None:
+        (self.root / ".venv/bin/ruff").unlink()
+        with mock.patch.dict(os.environ, {"PATH": str(self.root / "no-bin")}):
+            code, err = self.hook(self.write("tools/x.py", "import os\n"))
+        self.assertEqual(code, 0)
+        self.assertEqual(len(err.strip().splitlines()), 1, err)
+        self.assertIn("check_after_edit: ruff not run on x.py: ruff ", err)
+
+    def test_a_checkout_without_the_check_script_says_so_and_does_not_block(self) -> None:
+        (self.root / "tools/audit/check_ruff.py").unlink()
+        code, err = self.hook(self.write("tools/x.py", "import os\n"))
+        self.assertEqual(code, 0)
+        self.assertIn("has no tools/audit/check_ruff.py", err)
+
+    def test_a_broken_check_script_blocks(self) -> None:
+        (self.root / "tools/audit/check_ruff.py").write_text("def broken(:\n", encoding="utf-8")
+        code, err = self.hook(self.write("tools/x.py", "x = 1\n"))
+        self.assertEqual(code, 2)
+        self.assertIn("tools/audit/check_ruff.py did not load", err)
+
+    def test_a_file_outside_the_checkout_is_not_checked(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            outside = Path(d) / "bad.py"
+            outside.write_text("import os\n", encoding="utf-8")
+            self.assertEqual(self.hook(outside), (0, ""))
+
+    def test_a_watched_script_gets_ruff_and_its_checks(self) -> None:
+        self.after.checks_for = lambda root, path: ([("phase02", ["python3", "phase02.py"])], "")
+        self.after.subprocess = type("FakeSubprocess", (), {
+            "run": staticmethod(lambda argv, **kw: (self.ran.append(argv), subprocess.CompletedProcess(argv, 0, "", ""))[1]),
+            "TimeoutExpired": subprocess.TimeoutExpired})
+        code, err = self.hook(self.write("jmri/scripts/signal_coordinator.py", "x = latch.await(1)\n"))
+        self.assertEqual(code, 0, err)       # excluded by ruff.toml: Jython that Python 3 cannot parse
+        self.assertEqual(self.ran, [["python3", "phase02.py"]])
+        code, err = self.hook(self.write("jmri/scripts/sml_beans.py", "import os\n"))
+        self.assertEqual(code, 2, err)
+        self.assertIn("F401", err)
 
 
 if __name__ == "__main__":

@@ -105,6 +105,13 @@ git -C "\$wt" config -f .gitmodules --get-regexp '\.path\$' | while read -r _ su
   fi
 done
 cd "\$wt"
+# The ruff this commit's requirements.txt pins (check.sh's pyflakes job, tools/audit/check_ruff.py) into ~/hart/.venv
+# when that venv has another version or none; a commit from before the pin installs nothing.
+want="\$(grep -E '^ruff==' requirements.txt || true)"
+if [[ -n "\$want" && "\$(ruff --version 2>/dev/null || true)" != "ruff \${want#ruff==}" ]]; then
+  echo "win_run.sh: installing \$want into \$HOME/hart/.venv" >&2
+  flock "\$main/.git/win_run.lock" "\$HOME/hart/.venv/bin/python" -m pip install -q "\$want" >&2
+fi
 # --- slots (tests run this block alone)
 # At most $slots runs at once, each with its share of the CPUs: more runs only slow each other down (2026-11-21:
 # four checks at once each took three times as long). A run waits here for a free slot; the slot is held on fd 9

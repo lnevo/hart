@@ -30,3 +30,7 @@ pypdf==6.21.4
 
 # Website helix page
 Markdown==3.11.2
+
+# Pyflakes checks (ruff's F rules, ruff.toml): tools/audit/check_ruff.py in tools/check.sh and the edit hook.
+# CI and tools/hosts/win_run.sh install this exact pin.
+ruff==0.17.6

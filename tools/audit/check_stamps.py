@@ -79,6 +79,8 @@ EVERYTHING = ("**/*",)
 BY_KIND: dict[str, tuple[str, ...]] = {
     "static": EVERYTHING,
     "public-text": EVERYTHING,
+    # ruff (a program the trace cannot see) reads every .py and ruff.toml; the version is requirements.txt's pin
+    "ruff": ("**/*.py", "ruff.toml", "requirements.txt"),
     "portal": (*CODE, *SITE),
     # its node scripts (www/scripts/tests/*.js, build_exam_answers.js, build_play_answers.js) read only www/, and a
     # package.json on the way up from them (none today) would set how node loads them

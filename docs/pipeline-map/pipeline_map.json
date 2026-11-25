@@ -239,6 +239,15 @@
    "path": "tools/audit/check_ai_speak.py"
   },
   {
+   "id": "tools/audit/check_ruff.py",
+   "label": "check_ruff",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Pyflakes (ruff F rules, ruff.toml) over every .py file; the edit hook runs it on each edited file.",
+   "path": "tools/audit/check_ruff.py"
+  },
+  {
    "id": "tools/audit/check_layout_facts.py",
    "label": "check_layout_facts",
    "kind": "generator",
@@ -5744,6 +5753,12 @@
   },
   {
    "from": "tools/audit/check_ai_speak.py",
+   "to": "tools/check.sh",
+   "label": "check",
+   "side": "check"
+  },
+  {
+   "from": "tools/audit/check_ruff.py",
    "to": "tools/check.sh",
    "label": "check",
    "side": "check"
