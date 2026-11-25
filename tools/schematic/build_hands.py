@@ -71,7 +71,7 @@ def store_names(path):
     data = Path(path).parent
     try:
         return devices.user_names(devices.Files.under(data) if (data / devices.GENERATED_FILE).is_file() else None)
-    except devices.DevicesError as exc:
+    except railroad.FactsError as exc:          # a DevicesError too (its subclass)
         raise SystemExit(f"build_hands.py: {exc}") from None
 
 

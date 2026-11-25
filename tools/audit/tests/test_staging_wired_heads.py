@@ -104,7 +104,7 @@ class WiringHeads(unittest.TestCase):
             bsm.wiring_heads([owned()], wiring_file(self.HEAD))
         with self.assertRaisesRegex(bsm.RuleError, "Head 6LB is on node 41, no staging node"):
             bsm.wiring_heads([owned()], wiring_file(self.HEAD + f'1,head,{SIX_LB},,,,,,41,0,OU2,"1,2,3",wired,\n'))
-        with self.assertRaisesRegex(bsm.RuleError, "is not a staging head name"):       # the mast's id, not a head's
+        with self.assertRaisesRegex(bsm.RuleError, "a head.s id is its mast.s id and its place"):       # the mast's id, not a head's
             bsm.wiring_heads([], wiring_file(self.HEAD + '1,head,mast:5:B:west,,,,,,4,0,OU2,"1,2,3",wired,\n'))
 
 

@@ -335,9 +335,11 @@ BLOCK_REFS = ("part_of", "blocks", "facing", "protects")
 def follow_renames(rows: list[Mapping[str, str]], generated: Iterable[Mapping[str, str]]) -> list[Mapping[str, str]]:
     """`rows` (merged) with each block named in BLOCK_REFS by the name the merged view gives it: where the owner's
     name (a field user_name) replaced a block's generated name, a part's part_of, a detector's blocks and a mast's
-    facing and protects that name the block on its level follow it. So a rename leaves the view consistent (no part
-    of a block that is no row) and a reader takes the new name everywhere, by the block's id. Rows with no rename to
-    follow are returned as they are."""
+    facing and protects that name the block follow it. A reference names a block on its own level first; one that
+    names no block of its level (a main or upper mast facing a helix block of another level) follows the block's
+    rename on the one other level whose block had that name, by the block's id, unless another level still has a
+    block of that name. So a rename leaves the view consistent (no part of a block that is no row) and a reader takes
+    the new name everywhere. Rows with no rename to follow are returned as they are."""
     renamed: dict[str, dict[str, str]] = {}
     new = {key_of(r): r["user_name"] for r in rows if r["level"] and r["layer"] == "block"}
     for g in generated:
@@ -347,10 +349,27 @@ def follow_renames(rows: list[Mapping[str, str]], generated: Iterable[Mapping[st
                 renamed.setdefault(g["level"], {})[g["user_name"]] = now
     if not renamed:
         return rows
+    on_level: dict[str, set[str]] = {}
+    for (level, _id), name in new.items():
+        on_level.setdefault(level, set()).add(name)
+    kept = {n for names in on_level.values() for n in names}          # names some block still has after the merge
+    elsewhere: dict[str, list[str]] = {}
+    for level, mine in renamed.items():
+        for old, now in mine.items():
+            elsewhere.setdefault(old, []).append(now)
+
+    def follow(level: str, b: str) -> str:
+        mine = renamed.get(level, {})
+        if b in mine:
+            return mine[b]
+        if b in on_level.get(level, ()) or b in kept:
+            return b
+        hits = elsewhere.get(b, [])
+        return hits[0] if len(hits) == 1 else b
+
     out = []
     for r in rows:
-        mine = renamed.get(r["level"])
-        cells = {c: LIST.join(mine.get(b, b) for b in r[c].split(LIST)) for c in BLOCK_REFS if mine and r[c]}
+        cells = {c: LIST.join(follow(r["level"], b) for b in r[c].split(LIST)) for c in BLOCK_REFS if r[c]}
         changed = {c: v for c, v in cells.items() if v != r[c]}
         out.append(MappingProxyType({**r, **changed}) if changed else r)
     return out

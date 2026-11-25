@@ -46,11 +46,11 @@ OS_BLOCK = re.compile(r"OS Switch \d+[a-d]?")        # a main or upper OS block,
 STAGING_NAMES = (int(FIELD_LEVEL),)    # a staging reader names staging's rows only, from the field file (ADR-029)
 
 
-def wiring_rows(path: Path | None = None, levels=None) -> list:
+def wiring_rows(path: Path | None = None, levels=None, files=None) -> list:
     """The rows of wiring.csv (hartlib.wiring.read, `path` default the committed file; `levels` the levels whose rows
-    get their names), its FactsError a MapError."""
+    get their names; `files` the device master they are named from), its FactsError a MapError."""
     try:
-        return wiring.read(path or WIRING, levels=levels)
+        return wiring.read(path or WIRING, levels=levels, files=files)
     except railroad.FactsError as exc:
         raise MapError(str(exc)) from None
 
@@ -143,14 +143,14 @@ def staging_nodes() -> set:
         raise MapError(str(exc)) from None
 
 
-def read_staging_pins(path: Path | None = None, nodes: set | None = None) -> list[StagingPin]:
+def read_staging_pins(path: Path | None = None, nodes: set | None = None, files=None) -> list[StagingPin]:
     """Staging's detectors as wired: the level 1 detector rows of wiring.csv, each a block by its name (staging's
     names are the field's) or a spare input (no block), its node and input. `nodes`: staging's nodes (lcos_nodes.csv
     level 1; default the committed file's). Stops on a node that is not staging's (wiring.read stops on the rest)."""
     nodes = staging_nodes() if nodes is None else nodes
     path = path or WIRING
     out, bad = [], []
-    for w in wiring_rows(path, STAGING_NAMES):
+    for w in wiring_rows(path, STAGING_NAMES, files):
         if w.kind != "detector" or w.level != int(FIELD_LEVEL):
             continue
         if w.node not in nodes:
@@ -170,10 +170,13 @@ def helix_pins(path: Path | None = None, helix_map: dict | None = None) -> dict:
     """{staging helix block id: (node, input index from 0)} of wiring.csv's main and upper detector rows on a helix
     track (det:block:<switch label><leg>-helix): a helix block's staging row names the detector its main or upper row
     has. The main or upper switch label finds the staging block in `helix_map` (plan_overrides.json main_upper's
-    `helix`: {"131A": "block:39B-helix"}; default the committed one), by ID, so a renamed helix track keeps its
+    `helix`: {"131A": "block:39B-helix"}; default the one beside `path`'s data folder, else the committed one), by
+    ID, so a renamed helix track keeps its
     detector. Stops on a helix row whose switch the map does not have."""
     if helix_map is None:
-        helix_map = layer_files.read("plan_overrides", "main_upper", pd.DATA).get("helix", {})
+        beside = Path(path).parent / "schematic" if path else pd.DATA      # a copy's own plan overrides
+        folder = beside if layer_files.path("plan_overrides", beside).is_file() else pd.DATA
+        helix_map = layer_files.read("plan_overrides", "main_upper", folder).get("helix", {})
     out, bad = {}, []
     for w in wiring_rows(path, STAGING_NAMES):
         if w.kind != "detector" or w.level == int(FIELD_LEVEL) or not w.id.startswith("det:block:"):

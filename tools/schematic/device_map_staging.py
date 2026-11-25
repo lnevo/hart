@@ -278,11 +278,11 @@ def staging_wired_rows(files: devices.Files | None = None, path: Path | None = N
     row, a wiring row with no field row or on a node that is not staging's."""
     bdm = builder()
     nodes = staging_nodes() if nodes is None else nodes
-    by = {(w.kind, w.id): w for w in wiring_rows(path, (int(FIELD_LEVEL),))
+    field = bdm.device_files() if files is None else files
+    by = {(w.kind, w.id): w for w in wiring_rows(path, (int(FIELD_LEVEL),), field)
           if w.level == int(FIELD_LEVEL) and w.kind in ("turnout", "fb")}
     bad = [f"{WIRING.name} line {w.line}: {w.kind} {w.device} is on node {w.node}, no staging node of {NODES.name} "
            f"({', '.join(map(str, sorted(nodes)))})" for w in by.values() if w.node not in nodes]
-    field = bdm.device_files() if files is None else files
     rows = staging_field(field, tuple(WIRED_LAYERS)).values()
     out, seen = [], set()
     turnout_address = {d: w.address for (kind, d), w in by.items() if kind == "turnout"}
@@ -426,15 +426,16 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
         beans = part_bean_names(list(lay.parts), mine, taken)
     except MapError as exc:
         raise MapError(f"staging parts: {exc}") from None
-    staging_pins = read_staging_pins(pins)
+    staging_pins = read_staging_pins(pins, files=f)
     # a pin finds its block by the block's device ID (wiring.csv keys it so, naming-layers step 5): the drawn name of
     # an OS block is the rule's, its row's name may be the owner's
     pin_of = {p.id: p for p in staging_pins if p.id}
-    on_helix = helix_pins(pins)
+    on_helix = helix_pins(pins, layer_files.read("plan_overrides", "main_upper", bdm.OVERRIDES.parent).get("helix", {}))
+    helix_ids = {ids[n] for n in helix if n in ids}
     drawn_ids = {ids[n] for n in blocks | set(lay.parts) if n in ids}
     part_ids = {ids[n] for n in lay.parts if n in ids}
     for p in staging_pins:
-        if p.block in helix:
+        if p.id in helix_ids:                   # by id: the pin's name may be the owner's
             bad.append(f"{PINS.name} line {p.line}: {p.block} is a helix block; its detector is its main or upper "
                        "row's")
         elif p.id and p.id not in drawn_ids:

@@ -338,16 +338,27 @@ def read_block_overrides(path: Path, kinds: tuple[str, ...] = OVERRIDE_KINDS) ->
     return out
 
 
-OS_ID = re.compile(r"os:(?P<n>\d+)(?::A-(?P<to>\d+)[A-Z]?[A-D])?")
+OS_ID = re.compile(r"os:(?P<n>\d+)(?::A-(?P<to>\d+)[A-Z]?[A-D]|:(?P<corner>[A-D]))?")
 
 
-def os_block_name(level: str, ident: str, halves: dict) -> str:
+def os_block_name(level: str, ident: str, halves: dict, names=None) -> str:
     """The generated name of the OS block with device ID `ident`: os:<n> is OS Switch <n>; a crossover half,
     os:<n>:A-<end>, is the half whose leg A runs to the end's switch, named by its crossover_half row (`halves`:
-    {(level, crossover, switch): name}). MapError on an ID of no OS block, or a half with no crossover_half row."""
+    {(level, crossover, switch): name}); a double crossover's corner, os:<n>:<leg> (os:225:D), is named by the device
+    master (`names`, hartlib.devices.user_names, default the repo's: its letter is not its leg, OS Switch 225a is
+    os:225:C). MapError on an ID of no OS block, a half with no crossover_half row, or a corner the master lacks."""
     m = OS_ID.fullmatch(ident)
     if not m:
-        raise MapError(f"block {ident!r} is no OS block ID (os:<switch>, or a crossover half's os:<switch>:A-<end>)")
+        raise MapError(f"block {ident!r} is no OS block ID (os:<switch>, a crossover half's os:<switch>:A-<end>, or a "
+                       "double crossover corner's os:<switch>:<leg>)")
+    if m.group("corner"):
+        if names is None:
+            from hartlib import devices
+            names = devices.user_names()
+        name = names.get((level, ident))
+        if name is None:
+            raise MapError(f"block {ident}: no level {level} OS block of the device master has this id")
+        return name
     if not m.group("to"):
         return f"OS Switch {m.group('n')}"
     name = halves.get((level, m.group("n"), m.group("to")))
@@ -368,7 +379,7 @@ def override_problem(r: dict) -> str:
         return key_problem(r)
     if kind == "track" and not OS_ID.fullmatch(r["block"]):
         return (f"block {r['block']!r} is no OS block ID (a piece of track is part of a switch's OS block: os:<switch>, "
-                "or a crossover half's os:<switch>:A-<end>)")
+                "a crossover half's os:<switch>:A-<end>, or a double crossover corner's os:<switch>:<leg>)")
     if kind == "crossover_half" and not r["block"].startswith("OS Switch "):
         return f"block {r['block']!r} is no OS block (a crossover half's own OS block, OS Switch <n>[a-d])"
     if kind == "crossover_half":

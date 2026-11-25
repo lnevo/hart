@@ -41,6 +41,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 from . import paths
+from .device_ids import HEAD_PLACES
 from .railroad_facts import FactsError
 
 PATH = paths.WIRING
@@ -76,6 +77,13 @@ class Wire(NamedTuple):
     notes: str
     boards: tuple[str, ...] = ()          # each port's board (a head's may span two OU boards); `board` if empty
     id: str = ""                          # the device's ID (a detector's det:<block id>); empty on a local or spare row
+    mast: str = ""                        # a head's mast's user name (the name store's of its id less the place)
+
+    @property
+    def place(self) -> str:
+        """A head's place on its mast, from its id (mast:...:top|bottom|single); "" for any other row."""
+        tail = self.id.rsplit(":", 1)[-1] if self.kind == "head" else ""
+        return tail if tail in HEAD_PLACES else ""
 
     @property
     def pins(self) -> list[tuple[str, int]]:
@@ -135,14 +143,19 @@ class _LoadFailed(FactsError):
     """The device master or field file did not load: read() stops once with its message, not once per row."""
 
 
+GENERATED_NAMES = ((re.compile(r"switch:(\d+)"), "Switch {}"), (re.compile(r"fb:(\d+):([NR])"), "FB Switch {} {}"))
+
+
 class _Names:
     """How read() names a row's id: `given` ({(level, id): user name}) when the caller passes one; else a staging
-    device by its field row's user name (devices_field.csv beside the file, else the repo's: a staging builder reads
-    the owner's cells from the field file alone, ADR-029), and any other by the merged view (names_beside), each
-    read once and only when a row needs it."""
+    device by its field row's user name, or for a turnout or feedback row with none the name its id gives (Switch
+    <n>, FB Switch <n> N), from the field file alone (a device with no field row, a head the mast rule names, by the
+    merged view) (`files`' field file, else the one beside the wiring file, else the
+    repo's: a staging builder reads the owner's cells there and never its own last output, ADR-029); any other level's
+    by the merged view (`files`, else names_beside). Each file is read once, and only when a row needs it."""
 
-    def __init__(self, path: Path, given):
-        self.path, self.given, self.field, self.merged = path, given, None, None
+    def __init__(self, path: Path, given, files=None):
+        self.path, self.given, self.files, self.field, self.merged = path, given, files, None, None
 
     def __call__(self, level: str, ident: str, where: str) -> str:
         from . import devices
@@ -150,24 +163,42 @@ class _Names:
             return devices.name_of(self.given, level, ident, where)
         if level == devices.FIELD_LEVEL:
             if self.field is None:
-                data = Path(self.path).parent
-                files = devices.Files.under(data) if (data / devices.FIELD_FILE).is_file() else None
+                files = self.files
+                if files is None:
+                    data = Path(self.path).parent
+                    files = devices.Files.under(data) if (data / devices.FIELD_FILE).is_file() else None
                 try:
                     index = devices.field_index(files)
                 except FactsError as exc:
                     raise _LoadFailed(str(exc)) from None
-                self.field = {k: r["user_name"] for k, r in index.items() if r["user_name"]}
-            if (level, ident) in self.field:
-                return self.field[(level, ident)]
+                self.field = {k: r["user_name"] for k, r in index.items()}
+            name = self.field.get((level, ident))
+            if name:
+                return name
+            if name is not None:                # a field row with no user_name: the name its id gives
+                for pattern, form in GENERATED_NAMES:
+                    m = pattern.fullmatch(ident)
+                    if m:
+                        return form.format(*m.groups())
+                raise FactsError(f"{where}: {ident}'s row in {devices.FIELD_FILE} has no user_name: give it its name")
+            # no field row (a staging head or mast the mast rule names): the merged view; when that does not load
+            # either (a field row taken out or moved to another id), the row stays unnamed and the staging builder,
+            # which finds it by id, says what is missing
         if self.merged is None:
             try:
-                self.merged = names_beside(self.path)
+                self.merged = devices.user_names(self.files) if self.files is not None else names_beside(self.path)
             except FactsError as exc:
-                raise _LoadFailed(str(exc)) from None
+                if level == devices.FIELD_LEVEL:
+                    self.merged = {}
+                    self.unloaded = str(exc)
+                else:
+                    raise _LoadFailed(str(exc)) from None
+        if level == devices.FIELD_LEVEL and getattr(self, "unloaded", None):
+            return ""
         return devices.name_of(self.merged, level, ident, where)
 
 
-def read(path: Path | None = None, names=None, levels=None) -> list[Wire]:
+def read(path: Path | None = None, names=None, levels=None, files=None) -> list[Wire]:
     """The rows of wiring.csv, each checked. Stops (FactsError, naming the file and line) on a file not in COLUMNS, an
     unknown level, kind or status, a number that is not one, an index past its kind's range, a board or ports that do
     not fit the kind, a device given twice on its level, two devices on one LCOS number or on one port of a board, or
@@ -175,9 +206,10 @@ def read(path: Path | None = None, names=None, levels=None) -> list[Wire]:
     name}, hartlib.devices.user_names; default a staging device's field row, any other's the merged view: _Names), a
     detector's its block's, so the wiring follows a rename with no row changed. `levels` (default every level): the
     levels whose rows are named; a row of another level keeps its id and an empty `device`, so a staging builder that
-    reads only staging's names never opens the generated file."""
+    reads only staging's names never opens the generated file. `files` (a hartlib.devices.Files): the device master
+    a copy's builder names its rows from."""
     path = path or PATH
-    store_name = _Names(path, names)
+    store_name = _Names(path, names, files)
     wanted = None if levels is None else {str(lv) for lv in levels}
     try:
         with open(path, newline="", encoding="utf-8") as fh:
@@ -284,11 +316,16 @@ def read(path: Path | None = None, names=None, levels=None) -> list[Wire]:
         level = int(r["level"])
         name = ident or r["device"] or (",".join(r[c] for c in ("switch_a", "switch_b", "parallel", "half"))
                                         if keyed else "")
-        device = r["device"]
+        device, mast = r["device"], ""
+        if kind == "head" and ident and ident.rsplit(":", 1)[-1] not in HEAD_PLACES:
+            bad.append(f"{at}: a head's id is its mast's id and its place ({', '.join(HEAD_PLACES)}), not {ident!r}")
+            continue
         if ident and (wanted is None or r["level"] in wanted):
             try:
                 device = store_name(r["level"], ident[len("det:"):] if kind == "detector" else ident,
                                     f"{path.name} {at}")
+                if kind == "head" and level == FIELD:     # a wired head's mast: digicon_rows, build_masts
+                    mast = store_name(r["level"], ident.rsplit(":", 1)[0], f"{path.name} {at}")
             except _LoadFailed:
                 raise
             except FactsError as exc:
@@ -316,7 +353,7 @@ def read(path: Path | None = None, names=None, levels=None) -> list[Wire]:
         for b, p in own:
             pins[node, b, p] = i
         out.append(Wire(i, level, kind, device, r["switch_a"], r["switch_b"], r["parallel"], r["half"], node,
-                        index, r["board"], ports, r["status"], r["notes"], boards, ident))
+                        index, r["board"], ports, r["status"], r["notes"], boards, ident, mast))
     if bad:
         raise FactsError(f"{path.name}: " + "; ".join(bad))
     return out
@@ -343,19 +380,20 @@ def digicon_rows(path: Path | None = None) -> list[dict[str, str]]:
     for w in read(path):
         if w.kind != "head" or w.status != "wired" or w.level != 1:
             continue
-        m = HEAD_NAME.match(w.device)
-        if not m:
-            bad.append(f"line {w.line}: {w.device!r} is not a head name (Head <mast>[ Top| Bottom])")
+        # the mast and the place come from the head's id, not its name, so a renamed head keeps its lamps
+        key = w.mast.removeprefix("Mast ")
+        if not w.mast.startswith("Mast ") or not w.place:
+            bad.append(f"line {w.line}: {w.id!r} is no head of a mast (Mast <key>, its id ending top, bottom or single)")
             continue
-        role = {"Top": "T", "Bottom": "B"}.get(m.group("pos"), "S")
-        lamp_of = f"Head {m.group('key')} {role}" if role != "S" else f"Head {m.group('key')}"
+        role = {"top": "T", "bottom": "B"}.get(w.place, "S")
+        lamp_of = f"Head {key} {role}" if role != "S" else f"Head {key}"
         uid = LCOS["head"][1] + w.index
         packed = w.node * 100 + uid
         for (board, port), lamp in zip(w.pins, "RYG"):
             out.append(dict(port_id=f"C{w.node}-{board}-{port}", parent_node_id=f"C{w.node}",
                             mqtt_node=str(w.node), board_location=place.get(w.node, ""), signal_index=str(w.index),
                             uid=str(uid), packed=str(packed), system_name=f"IH{packed}",
-                            user_name=f"{lamp_of} {lamp}", mast_user_name=f"Mast {m.group('key')}",
+                            user_name=f"{lamp_of} {lamp}", mast_user_name=w.mast,
                             disc_role=role, head_role=role, lamp_color=lamp, topic=f"track/signalhead/{packed}",
                             device_type="Searchlight Signal Head", voltage_rail="5V",
                             notes=f"LCOS Signal {w.index} UID {uid}; STOP/APPROACH/CLEAR; lamp {lamp}"))

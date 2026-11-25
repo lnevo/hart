@@ -186,14 +186,13 @@ def wiring_heads(owned: list[dict], path: Path | None = None) -> dict:
     out, bad = {}, [f"{wiring.PATH.name} line {w.line}: {w.device} is on node {w.node}, no staging node "
                     f"({', '.join(map(str, sorted(nodes)))})" for w in heads if w.node not in nodes]
     for w in heads:
-        m = HEAD_USER.fullmatch(w.device)
-        if not m:
-            bad.append(f"{wiring.PATH.name} line {w.line}: {w.device!r} is not a staging head name (Head <mast>)")
+        if not w.mast.startswith("Mast "):          # the mast by the head's id (wiring.Wire.mast), not its name
+            bad.append(f"{wiring.PATH.name} line {w.line}: {w.id!r} is no head of a staging mast")
             continue
         prev = by_user.pop(w.device, None)              # the owner's notes of the head, if any
         row = dict(user_name=w.device, system_name=w.address, jmri_name=w.address, node=str(w.node),
                    comment=w.wiring_text, notes=carried(prev, "head").get("notes") or w.notes or "wired")
-        out.setdefault("Mast " + m.group(1), {})[w.device] = row
+        out.setdefault(w.mast, {})[w.device] = row
     for user in sorted(by_user):
         bad.append(f"{devices.FIELD_FILE}: {devices.key_text((str(PLANNED_LEVEL), 'head', user))} has no head row in "
                    f"{wiring.PATH.name}: add its wiring there, or remove the field row")

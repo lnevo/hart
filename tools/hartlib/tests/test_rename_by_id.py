@@ -79,6 +79,20 @@ class RenameById(unittest.TestCase):
         self.assertEqual(got["det:block:33A-35A"], "Track Princess Lead")
         self.assertEqual(got["switch:19"], "Switch 19")
 
+    def test_staging_wiring_names_come_from_the_field_file_alone(self) -> None:
+        # a field row with no user_name: a turnout takes the name its id gives; the generated file is never read
+        tmp = Path(tempfile.mkdtemp())
+        for name in (devices.FIELD_FILE, "wiring.csv"):
+            shutil.copy(self.data / name, tmp / name)
+        rows = list(csv.DictReader(io.StringIO((tmp / devices.FIELD_FILE).read_text(encoding="utf-8"))))
+        for r in rows:
+            if (r["level"], r["id"]) == ("1", "switch:19"):
+                r["user_name"] = ""
+        (tmp / devices.FIELD_FILE).write_text(devices.master_text(rows), encoding="utf-8")
+        files = devices.Files(tmp / "absent_generated.csv", tmp / "devices.columns.csv", tmp / devices.FIELD_FILE)
+        got = {w.id: w.device for w in wiring.read(tmp / "wiring.csv", levels=(1,), files=files)}
+        self.assertEqual((got["switch:19"], got["det:os:19"]), ("Switch 19", "OS South 19"))
+
     def test_block_lengths_relabel_and_keep_their_lengths(self) -> None:
         import plan_lengths
         text = plan_lengths.labelled(self.data / "block_lengths.csv", self.files)
@@ -114,6 +128,31 @@ class RenameById(unittest.TestCase):
 
 
 
+class FollowAcrossLevels(unittest.TestCase):
+    """A reference to a block of another level (a main mast facing a helix block of the upper level) follows that
+    block's rename; one whose name a block of another level still has is left alone."""
+
+    @staticmethod
+    def row(level, layer, ident, name, **cells):
+        r = dict.fromkeys(devices.COLUMNS, "")
+        r.update(level=level, layer=layer, id=ident, user_name=name, **cells)
+        return r
+
+    def test_a_cross_level_reference_follows_by_id(self) -> None:
+        gen = [self.row("3", "block", "block:131BB-helix", "Track Helix Inner"),
+               self.row("2", "mast", "mast:131B:B:east", "Mast 132RB", facing="Track Helix Inner")]
+        merged = [self.row("3", "block", "block:131BB-helix", "Track Up"), gen[1]]
+        got = devices.follow_renames(merged, gen)
+        self.assertEqual(got[1]["facing"], "Track Up")
+
+    def test_a_name_another_level_still_has_is_kept(self) -> None:
+        gen = [self.row("1", "block", "block:37B-helix", "Track Helix Inner"),
+               self.row("3", "block", "block:131BB-helix", "Track Helix Inner"),
+               self.row("2", "mast", "mast:131B:B:east", "Mast 132RB", facing="Track Helix Inner")]
+        merged = [self.row("1", "block", "block:37B-helix", "Track Up"), gen[1], gen[2]]
+        self.assertEqual(devices.follow_renames(merged, gen)[2]["facing"], "Track Helix Inner")
+
+
 class OtherKeys(unittest.TestCase):
     """block_overrides.csv and block_numbering.csv name blocks by ID and come back by name."""
 
@@ -128,6 +167,24 @@ class OtherKeys(unittest.TestCase):
             mast_rule.os_block_name("1", "os:7:A-9B", {})
         with self.assertRaisesRegex(mast_rule.MapError, "no OS block ID"):
             mast_rule.os_block_name("1", "OS Switch 7", {})
+
+    def test_a_double_crossover_corner_is_named_by_the_master(self) -> None:
+        import mast_rule
+        self.assertEqual(mast_rule.os_block_name("3", "os:225:C", {}, {("3", "os:225:C"): "OS Switch 225a"}),
+                         "OS Switch 225a")
+        with self.assertRaisesRegex(mast_rule.MapError, "no level 3 OS block"):
+            mast_rule.os_block_name("3", "os:225:D", {}, {})
+
+    def test_le_tables_reads_its_numbering_on_first_use_not_at_import(self) -> None:
+        import importlib
+        import le_tables
+        from unittest import mock
+        with mock.patch.object(devices, "user_names", side_effect=devices.DevicesError("the master is broken")):
+            mod = importlib.reload(le_tables)                   # importing it reads no master
+            with self.assertRaisesRegex(devices.DevicesError, "the master is broken"):
+                mod.numbering()
+        importlib.reload(le_tables)
+        self.assertIn("Track 107 Loop 2", le_tables.numbering()[1])
 
     def test_block_numbering_names_its_ids(self) -> None:
         import le_tables

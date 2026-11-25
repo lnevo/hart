@@ -76,7 +76,26 @@ def load_numbering(path: Path = NUMBERING, names=None) -> tuple[dict, tuple, tup
     return numbered, tuple(appended[k] for k in sorted(appended)), tuple(retired)
 
 
-BLOCK_NUMBERED_AS, APPENDED_BLOCKS, RETIRED_BLOCKS = load_numbering()
+NUMBERING_NAMES = ("BLOCK_NUMBERED_AS", "APPENDED_BLOCKS", "RETIRED_BLOCKS")
+
+
+def __getattr__(name: str):
+    """BLOCK_NUMBERED_AS, APPENDED_BLOCKS and RETIRED_BLOCKS, read from block_numbering.csv on first use, not at
+    import: they name their blocks through the device master, and a master that does not load must not stop every
+    importer of this module before device-map can rebuild it or say what is wrong."""
+    if name in NUMBERING_NAMES:
+        values = dict(zip(NUMBERING_NAMES, load_numbering()))
+        globals().update(values)
+        return values[name]
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def numbering() -> tuple[dict, tuple, tuple]:
+    """(BLOCK_NUMBERED_AS, APPENDED_BLOCKS, RETIRED_BLOCKS), read once on first use (a test may patch them)."""
+    g = globals()
+    if not all(n in g for n in NUMBERING_NAMES):
+        __getattr__(NUMBERING_NAMES[0])
+    return tuple(g[n] for n in NUMBERING_NAMES)
 COMMENT = "Main and upper level, internal until the import (device map name; build_layout_le.py)"
 
 
@@ -269,12 +288,13 @@ def numbered_blocks(blocks, require_listed: bool = False) -> list:
     their numbers taken. With require_listed (the build), a block named in block_numbering.csv that is not among
     `blocks` stops it: the row is stale."""
     blocks = set(blocks)
-    missing = sorted((set(BLOCK_NUMBERED_AS) | set(APPENDED_BLOCKS) | set(RETIRED_BLOCKS)) - blocks) if require_listed else []
+    numbered_as, appended, retired = numbering()
+    missing = sorted((set(numbered_as) | set(appended) | set(retired)) - blocks) if require_listed else []
     if missing:
         raise BuildError(f"{NUMBERING.name} names {', '.join(missing)}, which the main and upper levels no longer "
                          "have; take the row out or rename it")
-    tail = [b for b in APPENDED_BLOCKS if b in blocks]
-    return sorted(blocks - set(tail), key=lambda b: block_sort(BLOCK_NUMBERED_AS.get(b, b))) + tail
+    tail = [b for b in appended if b in blocks]
+    return sorted(blocks - set(tail), key=lambda b: block_sort(numbered_as.get(b, b))) + tail
 
 
 def level_sensors(path: Path = DEVICE_MAP) -> dict:
@@ -524,11 +544,12 @@ def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, base_keys
     new_turnouts = sorted({t for k, v in names.items() if k not in base_keys for t in v["turnouts"].values()},
                           key=lambda s: block_sort("OS " + s))
     drawn = {b for b in P.blocks if b not in staging_blocks}
-    if drawn & set(RETIRED_BLOCKS):
-        raise BuildError(f"retired blocks drawn again: {sorted(drawn & set(RETIRED_BLOCKS))}; take them out of "
+    retired = set(numbering()[2])
+    if drawn & retired:
+        raise BuildError(f"retired blocks drawn again: {sorted(drawn & retired)}; take them out of "
                          f"{NUMBERING.name}'s retired rows")
-    order = numbered_blocks(drawn | set(RETIRED_BLOCKS), require_listed=True)       # a retired block keeps its number, unused
-    new_blocks = [b for b in order if b not in RETIRED_BLOCKS]
+    order = numbered_blocks(drawn | retired, require_listed=True)       # a retired block keeps its number, unused
+    new_blocks = [b for b in order if b not in retired]
     if set(new_blocks) - set(lengths):
         raise BuildError(f"blocks with no source: {sorted(set(new_blocks) - set(lengths))}")
     taken_users = {tables.user_name(b) for b in tables.turnouts(root) + tables.blocks(root, full=False)

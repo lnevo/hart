@@ -53,7 +53,8 @@ class Read(unittest.TestCase):
         d = Path(tempfile.mkdtemp())
         (d / "wiring.csv").write_text(GOOD, encoding="utf-8")
         names = {("1", "switch:1"): "Switch One", ("1", "fb:1:N"): "FB Switch 1 N",
-                 ("1", "mast:5:B:west:single"): "Head 6LB", ("1", "block:7A-13C"): "Track Barn Lead"}
+                 ("1", "mast:5:B:west:single"): "Head 6LB", ("1", "mast:5:B:west"): "Mast 6LB",
+                 ("1", "block:7A-13C"): "Track Barn Lead"}
         self.assertEqual([w.device for w in W.read(d / "wiring.csv", names)][:4],
                          ["Switch One", "FB Switch 1 N", "Head 6LB", "Track Barn Lead"])
 
@@ -142,9 +143,18 @@ class Digicon(unittest.TestCase):
         self.assertEqual({r["system_name"] for r in W.digicon_rows()}, {"IH432"})
 
     def test_a_head_that_is_not_named_as_a_head_stops(self):
-        # mast:5:B:west is the mast, Mast 6LB, not one of its heads
-        with self.assertRaisesRegex(FactsError, "'Mast 6LB' is not a head name"):
+        # mast:5:B:west is the mast, Mast 6LB, not one of its heads: a head's id ends in its place
+        with self.assertRaisesRegex(FactsError, "a head's id is its mast's id and its place"):
             W.digicon_rows(self.read('1,head,mast:5:B:west,,,,,,4,0,OU2,"1,2,3",wired,\n'))
+
+    def test_a_renamed_head_keeps_its_mast_and_lamps(self):
+        # the mast and the place come from the id, so an owner's name for the head changes no lamp
+        d = Path(tempfile.mkdtemp())
+        (d / "wiring.csv").write_text(",".join(W.COLUMNS) + '\n1,head,mast:5:B:west:single,,,,,,4,0,OU2,"1,2,3",wired,\n',
+                                      encoding="utf-8")
+        names = {("1", "mast:5:B:west:single"): "Head Plane West", ("1", "mast:5:B:west"): "Mast 6LB"}
+        w = W.read(d / "wiring.csv", names)[0]
+        self.assertEqual((w.device, w.mast, w.place), ("Head Plane West", "Mast 6LB", "single"))
 
 
 
