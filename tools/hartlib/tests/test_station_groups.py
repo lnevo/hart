@@ -69,7 +69,7 @@ class TheRepo(Files):
 
 class DeskAreas(Files):
     def test_stations_that_share_a_code_are_one_area_named_by_the_first(self):
-        areas = self.areas('1,Brick,"1,3",none,BK,a\n1,West Yard,3,W-1;W-2,BK,b\n1,Plane,5,,PL,\n')
+        areas = self.areas('1,Brick,"1,3",none,BK,a\n1,West Yard,3,block:3B-end;block:3C-end,BK,b\n1,Plane,5,,PL,\n')
         self.assertEqual([(a.name, a.code, a.switches, a.stations, a.notes, a.line) for a in areas],
                          [("Brick", "BK", ("1", "3"), ("Brick", "West Yard"), "a", 2),
                           ("Plane", "PL", ("5",), ("Plane",), "", 4)])

@@ -1,6 +1,6 @@
 {
  "_sections": true,
- "_note": "Layer 3 for both sheets, one section per input name (publish_draft.INPUTS): the owner's look for each sheet; main_upper's sets the page and its title block. Read with hartlib.layer_files.",
+ "_note": "Layer 3 for both sheets, one section per input name (publish_draft.INPUTS): the owner's look for each sheet; main_upper's sets the page and its title block. Read with hartlib.layer_files. A track is named by its block ID (block:17C-29C, the id of its row in devices_field.csv) in min_cells, turnbacks, track_labels and the label options' track lists; the merged view the plugin reads gives each its name from the name store (hartlib.track_names.pref_section, naming-layers step 5b), so a rename touches no line here, and a track name put here stops the build.",
  "staging": {
   "_layer": 3,
   "_note": "The owner's look for this sheet. Optional; never needed for a correct drawing.",
@@ -14,13 +14,13 @@
     "5",
     "7",
     5,
-    "Scale"
+    "block:5C-7B"
    ],
    [
     "5",
     "7",
     5,
-    "East Ext"
+    "block:5B-7A"
    ],
    [
     "7",
@@ -36,8 +36,8 @@
     "21",
     "25",
     4,
-    "S-3",
-    "S-4"
+    "block:21C-25C",
+    "block:21B-25B"
    ],
    [
     "33",
@@ -47,7 +47,7 @@
   ],
   "_min_cells_east_lead": "Owner, 2026-11-13: East Lead (33-35) longer so its name and Mast 34L fit; South Yard tracks shorter (6 to 4 cells) to give the length back. Owner, 2026-11-14: Switch 13 to 15 drawn short (one cell, as on the upper level); the cells go to East Lead (7 cells), which lengthens West Ext beside it. The plugin draws 13 to 15 at one cell by itself, so its `shorten` entry went (2026-11-21, row 10 of the source-data hand-off: no output changed without it).",
   "turnbacks": [
-   "Brick-Plane"
+   "block:1C-5A#1+1C-5A#2"
   ],
   "_turnbacks": "Brick-Plane turns back on the sheet, as the owner approved it (2026-11-17). With the plan 5.3c the cheapest drawing turned Main West back instead (2026-11-19), so it is pinned.",
   "facing_letters": false,
@@ -71,48 +71,48 @@
   "le_labels": {
    "extra_steps": [
     [
-     "Track EH-1",
-     "Track EH-2",
-     "Track EH-3"
+     "block:11B-end",
+     "block:9B-end",
+     "block:9C-end"
     ]
    ],
    "extra_follow": [
     [
-     "Track W-1",
-     "Track W-2"
+     "block:3B-end",
+     "block:3C-end"
     ]
    ],
    "name_columns": [
     [
-     "S-R",
-     "S-1",
-     "S-2",
-     "S-3",
-     "S-4"
+     "block:15B-23B",
+     "block:17C-29C",
+     "block:19C-27C",
+     "block:21C-25C",
+     "block:21B-25B"
     ]
    ],
    "name_steps": [
     [
-     "EH-1",
-     "EH-2",
-     "EH-3"
+     "block:11B-end",
+     "block:9B-end",
+     "block:9C-end"
     ]
    ],
    "optional_block_contents": [
-    "Track 1-3 at 1",
-    "Track 1-3 at 3",
-    "Track 9-11",
-    "Track 11-13",
-    "Track 13-15",
-    "Track 15-17",
-    "Track 17-19",
-    "Track 19-21",
-    "Track 23-31",
-    "Track 25-27",
-    "Track 27-29",
-    "Track 29-31",
-    "Track 31-33",
-    "Track 35-37"
+    "block:1B-3A:1/2",
+    "block:1B-3A:2/2",
+    "block:9A-11C",
+    "block:11A-13B",
+    "block:13A-15A",
+    "block:15C-17A",
+    "block:17B-19A",
+    "block:19B-21A",
+    "block:23A-31B",
+    "block:25A-27B",
+    "block:27A-29B",
+    "block:29A-31C",
+    "block:31A-33B",
+    "block:35B-37A"
    ],
    "block_contents_size": 11
   },
@@ -338,48 +338,48 @@
      "101"
     ],
     "hidden_names": [
-     "101-103"
+     "block:101AB-103AA"
     ],
     "optional_block_contents": [
-     "Track 101-103",
-     "Track 105-109",
-     "Track 109-111",
-     "Track 111-117",
-     "Track 113-115",
-     "Track 115-117",
-     "Track 117-119",
-     "Track 121-123",
-     "Track 123-125",
-     "Track 125-129",
-     "Track 127-131 2"
+     "block:101AB-103AA",
+     "block:105A-109C",
+     "block:109A-111B",
+     "block:111A-117B",
+     "block:113A-115C",
+     "block:115A-117C",
+     "block:117A-119AA",
+     "block:121BA-123C",
+     "block:123A-125AA",
+     "block:125BA-129A",
+     "block:127BA-131BA"
     ]
    },
    "Upper": {
     "names_last": true,
     "block_contents_size": 11,
     "optional_block_contents": [
-     "Track 201-203",
-     "Track 201-205",
-     "Track 201-219",
-     "Track 205-209",
-     "Track 213-215",
-     "Track 219-221",
-     "Track 225-227",
-     "Track 225-229",
-     "Track 227-231",
-     "Track 229-233",
-     "Track 231-237",
-     "Track 235-243",
-     "Track 237-239",
-     "Track 239-245"
+     "block:201B-203A",
+     "block:201C-205A",
+     "block:201A-219B#1+201A-219B#2",
+     "block:205C-209A",
+     "block:213B-215A",
+     "block:219A-221AA",
+     "block:225A-227A",
+     "block:225D-229A",
+     "block:227B-231A",
+     "block:229B-233A",
+     "block:231C-237A",
+     "block:235B-243AA",
+     "block:237B-239A",
+     "block:239C-245AA"
     ]
    }
   },
   "_le_band_labels": "Each level's own label options (owner, 2026-11-16). Main and upper at staging's grid (the three-level candidate) are denser than staging, so every block's contents icon comes first and a track name with no room is left out (logged; names_last), and the icons are 12 px, the short reserve still tried before none: at 13 px three have no clean spot at any reserve (staging keeps 13). numbers_below: SW-101 on its crossover's bottom track side, clear of 103 drawn tight above it. hidden_names: track 101-103, the short track inside the 101/103 three-way, has no name on the Layout Editor panel; it keeps it everywhere else. optional_block_contents: Track 227-231 (227-233 before the upper renumber) is 16 px between switches 227 and 231, and with Masts 228RA and 228RB beside it no clean spot is left for its icon, which may be left out (logged; 2026-11-16). crowded_block_contents (OS Switch 235, 2026-11-20) went on 2026-11-21 (row 10 of the source-data hand-off): its icon finds a clean spot again (with the short reserve, room made by moving Track 235 Spur's name and icon), so the entry changed nothing; give it back if the icon is dropped again. Every part's block contents icon is optional (optional_block_contents: the level's parts in devices.csv; owner, 2026-11-20).",
   "track_labels": {
-   "Helix Outer": "McKees Rocks",
-   "Helix Inner": "McKeesport"
+   "block:39B-helix": "McKees Rocks",
+   "block:37B-helix": "McKeesport"
   },
-  "_track_labels": "The label drawn for a track in place of its plan name (owner, 2026-11-21), on every output: the schematic and station sheets (the plugin's track_labels, sheet-wide, so this one section gives it for staging too), the Layout Editor labels, the CATS desks and the track-plan article (HART's builders read this same key). The helix tracks' plan names, Helix Outer and Helix Inner, name their blocks by the ordinary rule (Track <plan name>); the labels are the places each runs toward. Temporary: a moving target until the layout expands, when these labels change or go."
+  "_track_labels": "The label drawn for a track in place of its plan name, keyed by the staging helix block's ID (owner, 2026-11-21), on every output: the schematic and station sheets (the plugin's track_labels, sheet-wide, so this one section gives it for staging too), the Layout Editor labels, the CATS desks and the track-plan article (HART's builders read this same key). The helix tracks' plan names, Helix Outer and Helix Inner, name their blocks by the ordinary rule (Track <plan name>); the labels are the places each runs toward. Temporary: a moving target until the layout expands, when these labels change or go."
  }
 }

@@ -6,7 +6,10 @@ ID, and how they reach the schematic plugin.
     track_names.hand_problems(section)             why a hand section still holds a name (a check)
     track_names.piece_names(section, pieces)       {drawn piece ("37C-39C #2"): name}: what the readers by ID take
     track_names.end_key(node, port), edge_run(...) a plan graph end's and edge's run key (plan_runs, build_main_route)
-    track_names.repo_inputs(data)                  a test's opt-in to the repo's plan graphs and field file
+    track_names.repo_inputs(data)                  a test's opt-in to the repo's plan graphs and device files
+    track_names.names_by_id(ids)                   {block id: "Track S-1"}: preferences.json's and stations.csv's
+    track_names.pref_section(sheet, section)       a preferences section with its track keys' IDs named
+    track_names.pref_problems(section)             why a hand preferences section names a track (a check)
 
 The owner names a track in devices_field.csv: a block row with an `id` (hartlib.device_ids.block_id, "block:17C-29C")
 and its user name ("Track S-1"). That row is the only place the name is kept. plan_overrides.json holds no track
@@ -30,6 +33,10 @@ The readers by ID (naming-layers step 3b): block_layer (name_tracks, the halves)
 staging_device_map.check_helix take a drawn strand's track name from piece_names, by the strand's ID part
 (staging_device_map.band_refs, strand_names), not from the drawing. The store reads only the folder it is given: a
 missing devices_field.csv or plan graph stops (a test whose copy holds only the layer files calls repo_inputs).
+
+preferences.json and stations.csv name tracks by block ID too (naming-layers step 5b): the preferences' track keys
+(_map_pref_tracks) are named in the merged view (hartlib.layer_files.merged, so the plugin's folder holds names), and
+stations.csv's `tracks` cell by hartlib.railroad_facts.station_tracks; both through names_by_id.
 
 TrackNameError names the file and row: an owner ID no plan track has, a name on part of a piece (":1/2"), a run whose
 pieces are not all named, a `name` edit or a five-item `end` entry left in plan_overrides.json.
@@ -99,8 +106,8 @@ def _beside(data: Path, rel: str, what: str) -> Path:
 
 
 def repo_inputs(data: Path) -> Path:
-    """Copy the repo's plan graphs (inputs/<graph>.json) into the folder `data` and the repo's devices_field.csv beside
-    it, each only where it is missing: the explicit opt-in of a test whose copy of the schematic folder holds only the
+    """Copy the repo's plan graphs (inputs/<graph>.json) into the folder `data` and the repo's devices_field.csv and
+    devices_generated.csv (the generated names of preferences.json's block IDs) beside it, each only where missing: the explicit opt-in of a test whose copy of the schematic folder holds only the
     layer files. Returns `data`."""
     import shutil
     data = Path(data)
@@ -108,8 +115,10 @@ def repo_inputs(data: Path) -> Path:
         if not (data / rel).exists():
             (data / rel).parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(SCHEMATIC / rel, data / rel)
-    if not (data.parent / FIELD_FILE).exists():
-        shutil.copyfile(SCHEMATIC.parent / FIELD_FILE, data.parent / FIELD_FILE)
+    from . import devices
+    for name in (FIELD_FILE, devices.GENERATED_FILE):   # the generated names of the IDs preferences.json gives
+        if not (data.parent / name).exists():
+            shutil.copyfile(SCHEMATIC.parent / name, data.parent / name)
     return data
 
 
@@ -379,5 +388,148 @@ def plugin_section(sheet: str, section: dict, main_runs=(), owner: dict | None =
         edits = out.setdefault("edits", [])
         at = next((i + 1 for i, e in enumerate(edits) if e.get("op") == "relabel"), 0)
         edits.insert(at, {"op": "name", "tracks": tracks})
+    return out
+
+
+# ---------------------------------------------------------------- tracks named by ID in the other hand files (step 5b)
+
+BLOCK_PREFIX = "block:"
+WHOLE, BARE = "whole", "bare"      # how a plugin key names a track: "Track S-1" (whole) or "S-1" (bare)
+# the label options (le_labels, and each band's in le_band_labels) that list tracks: key -> (depth, form); depth 1 a
+# list of tracks, 2 a list of lists
+LABEL_TRACK_KEYS = {"extra_steps": (2, WHOLE), "extra_follow": (2, WHOLE), "name_columns": (2, BARE),
+                    "name_steps": (2, BARE), "optional_block_contents": (1, WHOLE), "hidden_names": (1, BARE)}
+
+
+def names_by_id(ids, data: Path = SCHEMATIC, where: str = "") -> dict[str, str]:
+    """{block id: its track name, "Track S-1"} of each of `ids`: the owner's (owner_names, any level: a block ID names
+    one level's track), else the generated name of its row in devices_generated.csv beside `data`, which is read
+    only when an ID has no owner's name. TrackNameError naming `where` on an ID that is no block of either (a new
+    export dropped it, or it is mistyped: decision 3) or that two levels name differently."""
+    from . import devices                  # devices imports railroad_facts, which imports layer_files and so this
+    want = set(ids)
+    if not want:
+        return {}
+    got: dict[str, set[str]] = {}
+    for (_level, bid), name in owner_names(data).items():
+        if bid in want:
+            got.setdefault(bid, set()).add(TRACK_PREFIX + name)
+    rest = want - set(got)
+    if rest:
+        gen = _beside(Path(data).parent, devices.GENERATED_FILE, "the generated device rows")
+        with gen.open(newline="", encoding="utf-8") as fh:
+            for r in csv.DictReader(fh):
+                if r.get("id") in rest and r.get("level") and r.get("layer") == "block" and r.get("user_name"):
+                    got.setdefault(r["id"], set()).add(r["user_name"])
+    bad = [f"{bid} is no block of {FIELD_FILE} or {devices.GENERATED_FILE} (a new export dropped it, or it is "
+           "mistyped: give the block's id)" for bid in sorted(want - set(got))]
+    bad += [f"{bid} is named {' and '.join(sorted(n))}" for bid, n in sorted(got.items()) if len(n) > 1]
+    if bad:
+        raise TrackNameError((f"{where}: " if where else "") + "; ".join(bad))
+    return {bid: next(iter(n)) for bid, n in got.items()}
+
+
+def _map_pref_tracks(section: dict, fn) -> dict:
+    """A copy of the preferences section `section` with each track it names put through fn(value, form, where):
+    min_cells' track names (an entry's items after [from, to, cells]), turnbacks, track_labels' keys, and the
+    LABEL_TRACK_KEYS of le_labels and of each band of le_band_labels. Shapes the plugin would refuse are left to it."""
+    out = json.loads(json.dumps(section))
+
+    def each(values, form, where):
+        return [fn(v, form, f"{where}[{i}]") for i, v in enumerate(values)] if isinstance(values, list) else values
+
+    cells = out.get("min_cells")
+    for i, entry in enumerate(cells if isinstance(cells, list) else ()):
+        if isinstance(entry, list) and len(entry) > 3:
+            entry[3:] = [fn(v, BARE, f"min_cells[{i}][{3 + j}]") for j, v in enumerate(entry[3:])]
+    if "turnbacks" in out:
+        out["turnbacks"] = each(out["turnbacks"], BARE, "turnbacks")
+    labels = out.get("track_labels")
+    if isinstance(labels, dict):
+        out["track_labels"] = {fn(k, BARE, f"track_labels key {k!r}"): v for k, v in labels.items()}
+    holders = [("le_labels", out.get("le_labels"))]
+    if isinstance(out.get("le_band_labels"), dict):
+        holders += [(f"le_band_labels.{band}", d) for band, d in out["le_band_labels"].items()]
+    for where, d in holders:
+        if not isinstance(d, dict):
+            continue
+        for key, (depth, form) in LABEL_TRACK_KEYS.items():
+            if key not in d:
+                continue
+            if depth == 1:
+                d[key] = each(d[key], form, f"{where}.{key}")
+            elif isinstance(d[key], list):
+                d[key] = [each(g, form, f"{where}.{key}[{i}]") for i, g in enumerate(d[key])]
+    return out
+
+
+def pref_problems(section: dict) -> list[str]:
+    """Why a hand preferences section names a track (the name store holds every name): a track key (min_cells,
+    turnbacks, track_labels, the label options' track lists: _map_pref_tracks) holding anything but a block ID, or a
+    "Track ..." string anywhere else outside a note (a key starting with _)."""
+    bad: list[str] = []
+
+    def check(v, _form, where):
+        if not (isinstance(v, str) and v.startswith(BLOCK_PREFIX)):
+            bad.append(f"{where} is {v!r}, not a block ID (block:...; the track's name is its row's in {FIELD_FILE})")
+        return BLOCK_PREFIX                 # the slot is checked; the scan below skips it
+
+    def scan(v, where):
+        if isinstance(v, str) and v.startswith(TRACK_PREFIX):
+            bad.append(f"{where} names {v!r} (a track is named by its block ID, its name kept in {FIELD_FILE})")
+        elif isinstance(v, dict):
+            for k, x in v.items():
+                if not str(k).startswith("_"):
+                    scan(k, f"{where} key" if where else "key")
+                    scan(x, f"{where}.{k}" if where else str(k))
+        elif isinstance(v, list):
+            for i, x in enumerate(v):
+                scan(x, f"{where}[{i}]")
+
+    scan(_map_pref_tracks(section, check), "")
+    return bad
+
+
+def pref_ids(section: dict) -> set[str]:
+    """The block IDs a preferences section names in its track keys (_map_pref_tracks)."""
+    got: set[str] = set()
+
+    def note(v, _form, _where):
+        if isinstance(v, str) and v.startswith(BLOCK_PREFIX):
+            got.add(v)
+        return v
+    _map_pref_tracks(section, note)
+    return got
+
+
+def pref_section(sheet: str, section: dict, names: dict[str, str] | None = None, data: Path = SCHEMATIC) -> dict:
+    """`section` (a merged preferences section) as the plugin reads it: each block ID of its track keys
+    (_map_pref_tracks) put back as the track's name in the form the key takes ("Track S-1" or "S-1"), from `names`
+    ({id: "Track <name>"}; names_by_id of the folder `data` when not given). A section that names no ID is returned
+    as it is, without reading the store. TrackNameError naming preferences.json[sheet] and the key."""
+    ids = pref_ids(section)
+    if not ids:
+        return section
+    where = f"preferences.json[{sheet}]"
+    names = names_by_id(ids, data, where) if names is None else names
+    bad: list[str] = []
+
+    def put(v, form, at):
+        if not (isinstance(v, str) and v.startswith(BLOCK_PREFIX)):
+            return v
+        name = names.get(v)
+        if name is None:
+            bad.append(f"{at}: {v} has no name")
+            return v
+        if form == WHOLE:
+            return name
+        if not name.startswith(TRACK_PREFIX):
+            bad.append(f"{at}: {v} is named {name!r}, not \"Track <name>\"")
+            return v
+        return name[len(TRACK_PREFIX):]
+
+    out = _map_pref_tracks(section, put)
+    if bad:
+        raise TrackNameError(f"{where}: " + "; ".join(bad))
     return out
 

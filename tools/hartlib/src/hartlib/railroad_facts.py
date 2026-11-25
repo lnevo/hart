@@ -11,7 +11,7 @@ from functools import cached_property
 from pathlib import Path
 from typing import Iterable
 
-from . import layer_files, level_devices, level_masts, paths, tables
+from . import layer_files, level_devices, level_masts, paths, tables, track_names
 
 LAYERS = ("inputs", "hands", "device_map", "masts", "tables")
 WRITERS = {
@@ -511,9 +511,11 @@ DESK_CODE = re.compile(r"[A-Z]+")
 
 @dataclass(frozen=True)
 class Station:
-    """A station of stations.csv (every level; one row each). `tracks` is the cell as written (build_staging_sets
-    reads it: blank counts the tracks from the switches, `none` none, else names); `desk_code` names its desk area;
-    `desk_plate` (yes) puts a control point plate with its name on the CATS desks (cats_panel_dress.station_plates)."""
+    """A station of stations.csv (every level; one row each). `tracks` is the cell as written: blank counts the
+    tracks from the switches, `none` none, else the block IDs of its tracks, `;` between them (block:3B-end;
+    block:3C-end; naming-layers step 5b), whose names station_tracks gives from the name store; `desk_code` names its
+    desk area; `desk_plate` (yes) puts a control point plate with its name on the CATS desks
+    (cats_panel_dress.station_plates)."""
     line: int
     level: int
     name: str
@@ -522,6 +524,38 @@ class Station:
     desk_code: str
     notes: str = ""
     desk_plate: bool = False
+
+    @property
+    def track_ids(self) -> tuple[str, ...] | None:
+        """The block IDs of its `tracks` cell: None when blank (its tracks are counted from its switches), () for
+        `none`."""
+        if not self.tracks:
+            return None
+        if self.tracks == STATION_NO_TRACKS:
+            return ()
+        return tuple(t.strip() for t in self.tracks.split(";") if t.strip())
+
+
+STATION_NO_TRACKS = "none"      # the `tracks` cell of a station that counts no track
+
+
+def station_tracks(stations: list[Station], path: Path) -> dict[str, tuple[str, ...]]:
+    """{station: the names of the tracks its `tracks` cell gives ("Track W-1", in cell order)} of each station of
+    `stations` (read_stations of `path`) whose cell lists block IDs, each named by the name store
+    (hartlib.track_names.names_by_id: the owner's name in devices_field.csv, else the generated one, beside the
+    schematic folder `path` sits in), so a renamed track changes no row of stations.csv. FactsError naming the file
+    and line on an ID the store has no block for."""
+    out = {}
+    for st in stations:
+        ids = st.track_ids
+        if not ids:
+            continue
+        try:
+            names = track_names.names_by_id(ids, Path(path).parent, f"{_where(path, st.line)} ({st.name}) tracks")
+        except track_names.TrackNameError as exc:
+            raise FactsError(str(exc)) from None
+        out[st.name] = tuple(names[i] for i in ids)
+    return out
 
 
 @dataclass(frozen=True)
@@ -573,6 +607,14 @@ def read_stations(path: Path) -> list[Station]:
             raise FactsError(f"{at}: desk code {code!r} is not capital letters")
         if r["desk_plate"] not in ("", "yes"):
             raise FactsError(f"{at}: desk_plate is yes or empty, not {r['desk_plate']!r}")
+        if r["tracks"] and r["tracks"] != STATION_NO_TRACKS:
+            ids = [t.strip() for t in r["tracks"].split(";")]
+            bad = [t for t in ids if not t.startswith(track_names.BLOCK_PREFIX)]
+            if bad:
+                raise FactsError(f"{at}: tracks is blank, none, or the block IDs of its tracks with ; between them "
+                                 f"(block:3B-end; the names are the name store's), not {', '.join(map(repr, bad))}")
+            if len(set(ids)) != len(ids):
+                raise FactsError(f"{at}: tracks lists a block twice ({r['tracks']!r})")
         out.append(Station(line, level, name, sw, r["tracks"], code, r["notes"], r["desk_plate"] == "yes"))
     return out
 
@@ -752,6 +794,7 @@ class HelixTrack:
 
 
 TRACK_LABELS = "track_labels"   # preferences.json[main_upper]: {plan name: label drawn}, the schematic-maps preference
+#                                 (the hand file keys it by the staging helix block's ID; layer_files.merged names it)
 
 
 def read_helix_tracks(path: Path) -> dict[str, HelixTrack]:
@@ -768,7 +811,8 @@ def read_helix_tracks(path: Path) -> dict[str, HelixTrack]:
         whole = layer_files.merged(folder)     # the names of the staging helix ends are the name store's
         staging = layer_files.section_of(whole, "staging", path.name)
         upper = layer_files.section_of(whole, "main_upper", path.name)
-        prefs = layer_files.read("preferences", "main_upper", folder)
+        # track_labels keyed by block ID in the hand file: the merged view gives each label its track's name
+        prefs = layer_files.section_of(layer_files.merged(folder, "preferences"), "main_upper", "preferences.json")
     except layer_files.LayerFileError as exc:
         raise FactsError(f"helix tracks: {exc}") from None
     feet: dict[str, str] = {}

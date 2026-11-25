@@ -4,8 +4,10 @@ Write staging's station and control-point membership, in every place the build r
 edits (jmri/layouts/hart/data/schematic/):
 
   stations.csv   level,station,switches,tracks,desk_code,desk_plate,notes   the stations of every level (one file, a level
-                 column); `tracks` blank counts the tracks that run from the switches, `none` counts none, else track
-                 names, ";" between; `desk_code` names the station's desk area (owner, 2026-11-20)
+                 column); `tracks` blank counts the tracks that run from the switches, `none` counts none, else the
+                 block IDs of its tracks, ";" between (block:3B-end), written to station_tracks by the name store's
+                 names (hartlib.railroad_facts.station_tracks, naming-layers step 5b); `desk_code` names the
+                 station's desk area (owner, 2026-11-20)
   sheets.csv     level,sheet,stations,notes                       the station detail sheets of every level, each the
                  stations named in `stations` (";" between), its switches the sorted union of theirs
 
@@ -56,7 +58,6 @@ STATIONS = pd.DATA / "stations.csv"
 SHEETS = pd.DATA / "sheets.csv"
 SHEET = "staging"     # the sections of plan_generated.json and preferences_generated.json this writes
 SWITCHES = paths.LAYOUT_DATA / "switches.csv"
-NONE = "none"        # the `tracks` cell of a station that counts no track
 
 
 class SetsError(ValueError):
@@ -121,10 +122,12 @@ def read_masters(path: Path = STATIONS, switches: set[str] | None = None) -> tup
         for st in rows:
             _staging_row(_where(path, st.line), st.name, str(st.level))
         areas = rf.desk_areas(rows, path, known)
+        named = rf.station_tracks(rows, path)        # the tracks' names, by their block IDs, from the name store
     except FactsError as exc:
         raise SetsError(str(exc)) from None
     stations = [Station(st.line, st.name, st.switches,
-                        None if not st.tracks else () if st.tracks == NONE else _split(st.tracks)) for st in rows]
+                        None if st.track_ids is None else tuple(n.removeprefix("Track ") for n in named.get(st.name, ())))
+                for st in rows]
     return areas, stations
 
 

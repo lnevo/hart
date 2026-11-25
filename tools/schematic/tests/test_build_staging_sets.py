@@ -12,6 +12,7 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import build_staging_sets as S  # noqa: E402
+from hartlib import devices  # noqa: E402  (build_staging_sets put hartlib on the path)
 
 HEAD = "level,station,switches,tracks,desk_code,notes\n"
 SWITCHES = {"1", "3", "5"}
@@ -145,9 +146,34 @@ class BadMasters(Tmp):
     def test_a_station_with_no_code_stops(self):
         self.assertStops(lambda: self.masters('1,A,"1,3",,,\n1,B,5,,BB,\n'), "stations.csv line 2 (A)", "no desk code")
 
-    def test_station_tracks_blank_none_and_names(self):
-        _cps, stations = self.masters('1,One,1,,AA,\n1,Two,3,none,AA,\n1,Three,5,"X-1;X-2",BB,\n')
-        self.assertEqual([s.tracks for s in stations], [None, (), ("X-1", "X-2")])
+    def test_station_tracks_blank_none_and_ids_named_by_the_store(self):
+        # the tracks cell gives block IDs; their names are the name store's (the field file beside the schematic
+        # folder, else the generated file), so a rename there renames the station's tracks with no row changed
+        folder = self.tmp / "schematic"
+        folder.mkdir()
+        for name in (devices.FIELD_FILE, devices.GENERATED_FILE):
+            shutil.copyfile(devices.field_path().parent / name, self.tmp / name)
+        path = folder / "stations.csv"
+        path.write_text(HEAD + '1,One,1,,AA,\n1,Two,3,none,AA,\n1,Three,5,"block:3B-end;block:3C-end",BB,\n',
+                        encoding="utf-8")
+        _cps, stations = S.read_masters(path, SWITCHES)
+        self.assertEqual([s.tracks for s in stations], [None, (), ("W-1", "W-2")])
+        field = self.tmp / devices.FIELD_FILE
+        field.write_text(field.read_text(encoding="utf-8").replace(",Track W-1,", ",Track Brick 1,"), encoding="utf-8")
+        _cps, stations = S.read_masters(path, SWITCHES)
+        self.assertEqual(stations[2].tracks, ("Brick 1", "W-2"))
+
+    def test_a_station_track_by_name_or_unknown_id_stops(self):
+        self.assertStops(lambda: self.masters('1,One,"1,3",,AA,\n1,Three,5,"W-1;W-2",BB,\n'),
+                         "stations.csv line 3 (Three)", "block IDs", "'W-1'")
+        folder = self.tmp / "schematic"
+        folder.mkdir()
+        shutil.copyfile(devices.field_path(), self.tmp / devices.FIELD_FILE)
+        shutil.copyfile(devices.field_path().parent / devices.GENERATED_FILE, self.tmp / devices.GENERATED_FILE)
+        path = folder / "stations.csv"
+        path.write_text(HEAD + '1,One,"1,3",,AA,\n1,Three,5,block:3X-end,BB,\n', encoding="utf-8")
+        self.assertStops(lambda: S.read_masters(path, SWITCHES), "stations.csv line 3 (Three) tracks",
+                         "block:3X-end is no block")
 
     def test_a_sheet_naming_no_station_stops(self):
         _cps, stations = self.masters('1,One,"1,3,5",,AA,\n')

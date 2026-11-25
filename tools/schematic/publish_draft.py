@@ -191,7 +191,7 @@ def apply_host_screen(opts, data=DATA):
     return host_screen.apply(opts, sections, map_revision.PAGE_SHEET)
 
 
-STAMP_VERSION = b"publish_draft check 2"
+STAMP_VERSION = b"publish_draft check 3"
 STAMP_KEEP = 8                 # digests kept, newest first: one per worktree that runs --check in turn
 
 
@@ -213,7 +213,9 @@ def _tree(h, root, label):
 def check_digest(plugin_dir):
     """A hex digest of everything the --check drawing comparison reads: the plugin's code (the folder bin/schematic
     runs from), every file in DATA (the layer files and the graphs in GRAPHS below it), devices_field.csv beside it
-    (the owner's track names, which the plugin's view carries), the published SVG and the
+    (the owner's track names, which the plugin's view carries), the merged plan overrides and preferences the view
+    writes (hartlib.layer_files.merged: preferences.json's block IDs take generated names from devices_generated.csv,
+    which is not hashed whole), the published SVG and the
     station sheets it is compared with, this script, and the Python the plugin runs under (bin/schematic runs the
     python3 on PATH, the real file it names, with the caller's PYTHONPATH). The station map pages and the staging
     lengths are not in it: --check reads those each time. Raises OSError when a file cannot be read."""
@@ -225,6 +227,12 @@ def check_digest(plugin_dir):
     _tree(h, DATA, "data")
     field = devices.field_path(DATA.parent)       # the owner's track names the view draws (hartlib.track_names)
     h.update(b"field\0" + (field.read_bytes() if field.exists() else b"-") + b"\0")
+    for kind in ("plan_overrides", "preferences"):      # what the plugin's view holds, its track names resolved
+        try:
+            merged = layer_files.dumps(layer_files.merged(DATA, kind)).encode()
+        except layer_files.LayerFileError:
+            merged = b"-"           # the drawing stops on it; the hand files above are hashed whole
+        h.update(kind.encode() + b"\0" + merged + b"\0")
     target = OUT / "schematic-system-draft.svg"
     h.update(b"target\0" + (b"+" + target.read_bytes() if target.exists() else b"-") + b"\0")
     if STATIONS.exists():

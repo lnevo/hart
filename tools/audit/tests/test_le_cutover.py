@@ -37,8 +37,10 @@ def page_prefs() -> dict:
 
 
 def optional_staging() -> set:
-    """Staging's optional block contents icons (preferences.json's staging section, le_labels): its parts."""
-    prefs = json.loads((B.pd.DATA / "preferences.json").read_text(encoding="utf-8"))
+    """Staging's optional block contents icons (preferences.json's staging section, le_labels): its parts, named
+    as the plugin reads them (the hand file gives their block IDs; hartlib.layer_files.merged names them)."""
+    from hartlib import layer_files
+    prefs = layer_files.merged(B.pd.DATA, "preferences")
     return set(prefs["staging"]["le_labels"].get("optional_block_contents", []))
 
 

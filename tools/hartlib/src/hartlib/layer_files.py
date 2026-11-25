@@ -25,8 +25,10 @@ the `end` edit and `left_end`), which plan_overrides.json does not hold. `view` 
 and never touch the hand file.
 
 preferences.json is split the same way: build_staging_sets.py writes staging's `detail_sheets` (from sheets.csv) to
-preferences_generated.json (GENERATED_OF), merged under preferences.json by the same rule. `merged(data,
-"preferences")` gives that view, and `view` puts both merged files in the plugin's folder.
+preferences_generated.json (GENERATED_OF), merged under preferences.json by the same rule. preferences.json names
+tracks by block ID (naming-layers step 5b); `merged(data, "preferences")` gives that view with each track key's
+names (prefs_named: hartlib.track_names.pref_section), and stops on a hand section that names a track
+(track_names.pref_problems). `view` puts both merged files in the plugin's folder.
 """
 from __future__ import annotations
 
@@ -205,7 +207,29 @@ def merged(data: Path = SCHEMATIC, kind: str = "plan_overrides", main: bool = Tr
             raise LayerFileError(f"{path(gen_kind, data).name}[{', '.join(flagged)}]: {NAME_MAIN} belongs in "
                                  f"{PLAN_GENERATED_FILE}")
     whole = merge(hand, gen) if gen else hand
-    return named(whole, gen, data, main) if kind == "plan_overrides" else whole
+    return named(whole, gen, data, main) if kind == "plan_overrides" else prefs_named(whole, hand, data)
+
+
+def prefs_named(whole: dict, hand: dict, data: Path = SCHEMATIC) -> dict:
+    """`whole` (the merged preferences) with each sheet's track keys, which name tracks by block ID, given the tracks'
+    names from the name store (hartlib.track_names.pref_section: min_cells, turnbacks, track_labels and the label
+    options' track lists). LayerFileError for a hand section that names a track (track_names.pref_problems) or an ID
+    the store has no name for."""
+    out = dict(whole)
+    for sheet, section in whole.items():
+        if sheet.startswith("_") or not isinstance(section, dict):
+            continue
+        bad = track_names.pref_problems(hand.get(sheet, {}))
+        if bad:
+            raise LayerFileError(f"{PREFERENCES_FILE}[{sheet}]: " + "; ".join(bad))
+        try:
+            out[sheet] = track_names.pref_section(sheet, section, data=data)
+        except (track_names.TrackNameError, OSError) as exc:
+            raise LayerFileError(f"the track names of {PREFERENCES_FILE}[{sheet}]: {exc}") from None
+    return out
+
+
+PREFERENCES_FILE = "preferences.json"
 
 
 def merged_section(sheet: str, data: Path = SCHEMATIC) -> dict:
@@ -238,15 +262,30 @@ def write_generated(updates: Mapping[str, dict], data: Path = SCHEMATIC, kind: s
     return changed
 
 
+def _names_tracks(kind: str, data: Path) -> bool:
+    """Whether the merged view of `kind` differs from its hand file (the name store fills its track names in). With
+    no generated file, a folder with no preferences.json, or one that is not a layer file (the plugin does not read
+    it either), has nothing to fill; plan_overrides.json must be there."""
+    if kind == "preferences":
+        try:
+            whole = json.loads(path(kind, data).read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return False
+        if not isinstance(whole, dict) or whole.get(SECTIONS) is not True:
+            return False
+    return merged(data, kind) != read_file(kind, data)
+
+
 def view(data: Path = SCHEMATIC) -> Path:
     """A folder the schematic plugin reads as its `--data`: `data` itself when nothing is generated or named there, else a
     stable folder under paths.cache_dir("plan-merged") holding the merged plan_overrides.json and preferences.json
     (each kind whose generated file is there) and links to the rest of `data`. A file is rewritten only when its
     bytes change, so every mtime and path stays put (the plugin's cache keys on content and relative paths)."""
     data = Path(data).resolve()
-    # plan_overrides.json is merged whenever the name store adds to it (its track names), generated file or not
+    # plan_overrides.json is merged whenever the name store adds to it (its track names), generated file or not, and
+    # preferences.json whenever it names a track by ID (_names_tracks)
     whole_texts = {f"{kind}.json": dumps(merged(data, kind)) for kind, gen in GENERATED_OF.items()
-                   if path(gen, data).exists() or (kind == "plan_overrides" and merged(data) != read_file(kind, data))}
+                   if path(gen, data).exists() or _names_tracks(kind, data)}
     if not whole_texts:
         return data
     root = paths.cache_dir("plan-merged") / hashlib.sha256(str(data).encode()).hexdigest()[:12]

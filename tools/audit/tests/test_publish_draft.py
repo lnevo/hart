@@ -439,6 +439,18 @@ class CheckStamp(unittest.TestCase):
         self.check()
         self.assertEqual(self.drawn, 1)
 
+    def test_a_name_the_view_resolves_differently_draws_again(self) -> None:
+        # preferences.json names tracks by block ID (naming-layers step 5b); a generated name comes from
+        # devices_generated.csv, which is not hashed whole, so the merged view the plugin reads is
+        name = ["Brick-Plane"]
+        with mock.patch.object(PD.layer_files, "merged", side_effect=lambda data, kind: {"turnbacks": list(name)}):
+            self.check()
+            self.check()
+            self.assertEqual(self.drawn, 1)
+            name[0] = "Brick West"
+            self.check()
+        self.assertEqual(self.drawn, 2)
+
     def test_any_input_change_draws_again(self) -> None:
         for change in (lambda: (self.plugin / "schematic/sheet.py").write_text("SOLVE = 2\n"),
                        lambda: (self.plugin / "schematic/new.py").write_text(""),

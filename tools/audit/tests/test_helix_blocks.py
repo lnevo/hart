@@ -64,7 +64,7 @@ class HelixTracks(unittest.TestCase):
                          {"Helix Outer": "McKees Rocks", "Helix Inner": "McKeesport"})
 
     def test_a_track_with_no_label_shows_its_plan_name(self):
-        got = mr.read_helix_tracks(copied([('"Helix Inner": "McKeesport"', '"Elsewhere": "McKeesport"',
+        got = mr.read_helix_tracks(copied([('"block:37B-helix": "McKeesport"', '"block:9B-end": "McKeesport"',
                                             "preferences.json")]))
         self.assertEqual(got["Helix Inner"]["shown"], "Helix Inner")
 
@@ -75,7 +75,7 @@ class HelixTracks(unittest.TestCase):
                            "helix entry 131B is named 'Helix Outer'"),
                           ([("block:39B-helix", "", FIELD)],
                            "the helix at Switch 39 leg B has no named block row block:39B-helix"),
-                          ([('"Helix Outer": "McKees Rocks"', '"Helix Outer": ""', "preferences.json")],
+                          ([('"block:39B-helix": "McKees Rocks"', '"block:39B-helix": ""', "preferences.json")],
                            "track_labels"),):
             with self.subTest(msg=msg), self.assertRaisesRegex(mr.MapError, msg):
                 mr.read_helix_tracks(copied(edit))

@@ -65,6 +65,7 @@ class Copy(unittest.TestCase):
         self.data = root / "schematic"
         shutil.copytree(T.SCHEMATIC, self.data, symlinks=True)
         shutil.copy(T.SCHEMATIC.parent / T.FIELD_FILE, root / T.FIELD_FILE)
+        shutil.copy(T.SCHEMATIC.parent / "devices_generated.csv", root / "devices_generated.csv")
         self.field = root / T.FIELD_FILE
 
     def tearDown(self) -> None:
@@ -134,6 +135,83 @@ class Copy(unittest.TestCase):
             self.assertNotEqual(folder, self.data.resolve())
             got = L.parse((folder / "plan_overrides.json").read_text(encoding="utf-8"), "plan_overrides", "view")
         self.assertEqual(got["staging"]["left_end"], "W-1")
+
+    def test_a_rename_reaches_the_preferences_with_no_edit_there(self) -> None:
+        """preferences.json names tracks by block ID (step 5b): renaming Track S-1 and Track W-1 in the field file
+        renames them in the merged preferences the plugin reads, and preferences.json is left as it is."""
+        hand = L.path("preferences", self.data).read_bytes()
+        self.edit_field(lambda rows: self.by_name(rows, "Track S-1").update(user_name="Track South 1"))
+        self.edit_field(lambda rows: self.by_name(rows, "Track W-1").update(user_name="Track Brick 1"))
+        got = L.merged(self.data, "preferences")["staging"]
+        self.assertEqual(got["le_labels"]["name_columns"], [["S-R", "South 1", "S-2", "S-3", "S-4"]])
+        self.assertEqual(got["le_labels"]["extra_follow"], [["Track Brick 1", "Track W-2"]])
+        self.assertEqual(L.path("preferences", self.data).read_bytes(), hand)
+
+    def test_a_name_put_back_in_preferences_stops(self) -> None:
+        whole = L.read_file("preferences", self.data)
+        whole["staging"]["turnbacks"] = ["Brick-Plane"]
+        whole["main_upper"]["le_band_labels"]["Main"]["numbers_below"] = ["Track 101-103"]
+        L.path("preferences", self.data).write_text(L.dumps(whole), encoding="utf-8")
+        with self.assertRaisesRegex(L.LayerFileError, r"preferences.json\[staging\]: turnbacks\[0\] is 'Brick-Plane', "
+                                                      r"not a block ID"):
+            L.merged(self.data, "preferences")
+        whole["staging"]["turnbacks"] = ["block:1C-5A#1+1C-5A#2"]
+        L.path("preferences", self.data).write_text(L.dumps(whole), encoding="utf-8")
+        with self.assertRaisesRegex(L.LayerFileError, r"preferences.json\[main_upper\]: le_band_labels.Main.numbers_below"
+                                                      r"\[0\] names 'Track 101-103'"):
+            L.merged(self.data, "preferences")
+
+    def test_an_id_the_store_has_not_stops(self) -> None:
+        whole = L.read_file("preferences", self.data)
+        whole["main_upper"]["track_labels"] = {"block:41B-helix": "Nowhere"}
+        L.path("preferences", self.data).write_text(L.dumps(whole), encoding="utf-8")
+        with self.assertRaisesRegex(L.LayerFileError, r"preferences.json\[main_upper\]: block:41B-helix is no block"):
+            L.merged(self.data, "preferences")
+
+
+class PrefSection(unittest.TestCase):
+    """The track keys of a preferences section and the form each takes (step 5b)."""
+
+    NAMES = {"block:5C-7B": "Track Scale", "block:9B-end": "Track EH-2", "block:39B-helix": "Track Helix Outer",
+             "block:1B-3A:1/2": "Track 1-3 at 1"}
+
+    def test_each_key_takes_its_form(self) -> None:
+        sec = {"min_cells": [["5", "7", 5, "block:5C-7B"], ["7", "13", 4]], "turnbacks": ["block:5C-7B"],
+               "track_labels": {"block:39B-helix": "McKees Rocks"}, "title": ["Staging level"],
+               "le_labels": {"extra_steps": [["block:9B-end"]], "name_steps": [["block:9B-end"]],
+                             "optional_block_contents": ["block:1B-3A:1/2"]},
+               "le_band_labels": {"Main": {"hidden_names": ["block:5C-7B"], "numbers_below": ["101"]}}}
+        got = T.pref_section("staging", sec, self.NAMES)
+        self.assertEqual(got["min_cells"], [["5", "7", 5, "Scale"], ["7", "13", 4]])
+        self.assertEqual(got["turnbacks"], ["Scale"])
+        self.assertEqual(got["track_labels"], {"Helix Outer": "McKees Rocks"})
+        self.assertEqual(got["le_labels"], {"extra_steps": [["Track EH-2"]], "name_steps": [["EH-2"]],
+                                            "optional_block_contents": ["Track 1-3 at 1"]})
+        self.assertEqual(got["le_band_labels"]["Main"], {"hidden_names": ["Scale"], "numbers_below": ["101"]})
+        self.assertEqual(T.pref_ids(sec), set(self.NAMES))
+        self.assertEqual(T.pref_problems(sec), [])
+        self.assertEqual(sec["turnbacks"], ["block:5C-7B"])          # the section given is not changed
+
+    def test_a_section_with_no_id_reads_no_store(self) -> None:
+        sec = {"title": ["Main levels"], "min_cells": [["105", "103B", 6]]}
+        self.assertIs(T.pref_section("main_upper", sec, data=Path("/nowhere")), sec)
+
+    def test_names_by_id_prefers_the_owners_and_reads_the_generated_file_only_for_the_rest(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "schematic").mkdir()
+            (root / T.FIELD_FILE).write_text("level,layer,id,user_name\n1,block,block:3B-end,Track Brick 1\n",
+                                             encoding="utf-8")
+            self.assertEqual(T.names_by_id({"block:3B-end"}, root / "schematic"), {"block:3B-end": "Track Brick 1"})
+            with self.assertRaisesRegex(T.TrackNameError, "devices_generated.csv is missing"):
+                T.names_by_id({"block:3C-end"}, root / "schematic")
+            (root / "devices_generated.csv").write_text(
+                "level,layer,id,user_name\n1,block,block:3B-end,Track W-1\n1,block,block:3C-end,Track W-2\n",
+                encoding="utf-8")
+            self.assertEqual(T.names_by_id({"block:3B-end", "block:3C-end"}, root / "schematic", "here"),
+                             {"block:3B-end": "Track Brick 1", "block:3C-end": "Track W-2"})
+            with self.assertRaisesRegex(T.TrackNameError, "here: block:3D-end is no block"):
+                T.names_by_id({"block:3D-end"}, root / "schematic", "here")
 
 
 class EarlyReturn(unittest.TestCase):
