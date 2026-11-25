@@ -17,8 +17,8 @@ the builders make) and `<name>_field.csv` (the owner's cells), merged as hartlib
 matched to the generated row with the same key, and its non-empty cells win; a field row with no match is added.
 A refs path names a master the same way, so `devices.csv:user_name` reads the merged device pair.
 
-Sidecars are found by walking the repo, leaving out SKIP and folders whose names start with a dot, so a new sidecar
-is checked with no list to edit.
+Sidecars are the files git lists for SCAN_GLOBS, tracked or untracked but not ignored, leaving out SKIP and folders
+whose names start with a dot, so a new sidecar is checked with no list to edit.
 
     python3 tools/ops/check_data.py              check every sidecar (exit 1 on a problem)
     python3 tools/ops/check_data.py PATH ...     check only these sidecars
@@ -27,14 +27,15 @@ from __future__ import annotations
 
 import argparse
 import csv
-import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SUFFIX = ".columns.csv"
-SKIP = ("archive", "external", "reference", "node_modules", "tools/cats/src-repo")   # from the repo root
+SCAN_GLOBS = (f"**/*{SUFFIX}",)     # what find_sidecars lists, as git :(glob) pathspecs (checks.toml quiet_inputs)
+SKIP =("archive", "external", "reference", "node_modules", "tools/cats/src-repo")   # from the repo root
 SIDECAR_COLUMNS = ("column", "file", "description", "type", "required", "key", "refs", "values")
 RULE_COLUMNS = ("type", "required", "key", "refs", "values")
 TYPES = ("str", "int", "float", "bool", "enum", "id-list")
@@ -50,14 +51,18 @@ class DataError(Exception):
 
 
 def find_sidecars(root: Path = ROOT) -> list[Path]:
-    """Every <name>.columns.csv under root, sorted, outside SKIP and dot folders."""
-    out = []
-    for here, dirs, files in os.walk(root):
-        rel = Path(here).relative_to(root).as_posix()
-        dirs[:] = sorted(d for d in dirs if not d.startswith(".")
-                         and (f"{rel}/{d}" if rel != "." else d) not in SKIP)
-        out += [Path(here) / f for f in files if f.endswith(SUFFIX)]
-    return sorted(out)
+    """Every sidecar git lists under root (SCAN_GLOBS, tracked or untracked and not ignored), sorted, outside SKIP and
+    dot folders. DataError when git cannot list them."""
+    try:
+        done = subprocess.run(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--",
+                               *(f":(glob){g}" for g in SCAN_GLOBS)], cwd=root, capture_output=True, text=True)
+    except OSError as exc:
+        raise DataError(f"git ls-files could not run: {exc}") from None
+    if done.returncode:
+        raise DataError(f"git ls-files failed: {done.stderr.strip() or f'exit {done.returncode}'}")
+    rels = sorted({p for p in done.stdout.split("\0") if p})
+    return [root / p for p in rels
+            if not any(p == s or p.startswith(f"{s}/") for s in SKIP) and not any(d.startswith(".") for d in p.split("/"))]
 
 
 def _read_csv(path: Path) -> list[list[str]]:

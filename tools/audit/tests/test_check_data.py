@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import csv
 import importlib.util
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -190,8 +191,15 @@ class Glob(Base):
                   "reference/r.columns.csv", ".claude/w/s.columns.csv", "tools/cats/src-repo/u.columns.csv",
                   "tools/v.columns.csv", "a/not_a_sidecar.csv"):
             self.write(p, "column,description\n")
+        self.write("ignored/i.columns.csv", "column,description\n")
+        self.write(".gitignore", "ignored/\n")
+        subprocess.run(["git", "init", "-q"], cwd=self.tmp, check=True)
+        subprocess.run(["git", "add", "a/x.columns.csv"], cwd=self.tmp, check=True)     # tracked and untracked alike
         found = [p.relative_to(self.tmp).as_posix() for p in C.find_sidecars(self.tmp)]
         self.assertEqual(found, ["a/b/y.columns.csv", "a/x.columns.csv", "tools/v.columns.csv"])
+
+    def test_git_failing_is_an_error(self) -> None:
+        self.assertRaisesRegex(C.DataError, "git ls-files failed", C.find_sidecars, self.tmp)   # not a repo
 
     def test_main_reports_and_exits_1(self) -> None:
         side = self.write("t.columns.csv", HEAD + "a,x,int,,,,\n")

@@ -36,7 +36,7 @@ python3 tools/ops/check_data.py                       # every sidecar in the rep
 python3 tools/ops/check_data.py path/x.columns.csv    # one sidecar
 ```
 
-It walks the repo and leaves out `archive/`, `external/`, `reference/`, `node_modules/`, `tools/cats/src-repo/` and every folder whose name starts with a dot. It prints each problem with the file, the rule and the rows (up to 20 per rule), and exits 1 when any sidecar fails.
+It finds sidecars with `git ls-files` (tracked, or untracked and not ignored) and leaves out `archive/`, `external/`, `reference/`, `node_modules/`, `tools/cats/src-repo/` and every folder whose name starts with a dot. It prints each problem with the file, the rule and the rows (up to 20 per rule), and exits 1 when any sidecar fails.
 
 ## The sidecars today
 
