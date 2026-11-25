@@ -54,7 +54,8 @@ PYTHON = "{python}"                            # check.sh's $HOPS_PY
 SHELL_PYTHON = '"$HOPS_PY"'
 # field -> (type, required); the item lists are checked further below
 FIELDS: dict[str, tuple[type, bool]] = {
-    "name": (str, True), "runner": (str, True), "cmd": (list, True), "domain": (str, True), "desc": (str, True),
+    "name": (str, True), "runner": (str, True), "cmd": (list, True), "domain": (str, True), "label": (str, True),
+    "desc": (str, True),
     "group": (str, False), "docs_only": (bool, False), "inputs": (list, False), "outputs": (list, False),
     "programs": (dict, False),
 }
@@ -88,6 +89,7 @@ class Step:
     runner: str
     cmd: tuple[str, ...]
     domain: str
+    label: str                      # the map box's name
     desc: str
     script: str                     # the file the command runs: the script, or the -m module's file
     group: str = ""
@@ -135,8 +137,8 @@ def repo_from(tracked: frozenset[str] | set[str], graph: dict) -> Repo:
     return Repo(files, folders, domains, frozenset(pipeline_map().SIDES), local)
 
 
-def repo() -> Repo:
-    """This checkout: its tracked files (git ls-files) and the map, docs/pipeline-map/pipeline_map.json."""
+def tracked_files() -> frozenset[str]:
+    """This checkout's tracked files (git ls-files) that are on disk; ManifestError when git fails or lists none."""
     try:
         out = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT, capture_output=True, text=True, timeout=60)
     except (OSError, subprocess.SubprocessError) as err:
@@ -147,6 +149,12 @@ def repo() -> Repo:
     tracked = frozenset(p for p in out.stdout.split("\0") if p and (ROOT / p).exists())
     if not tracked:
         raise ManifestError(f"git ls-files lists no file in {ROOT}")
+    return tracked
+
+
+def repo() -> Repo:
+    """This checkout: its tracked files (tracked_files) and the map, docs/pipeline-map/pipeline_map.json."""
+    tracked = tracked_files()
     graph_map = pipeline_map()
     try:
         graph = graph_map.read(graph_map.GRAPH)
@@ -405,7 +413,8 @@ def _script(cmd: tuple[str, ...]) -> str:
 def _step(entry: dict) -> Step:
     cmd = tuple(entry["cmd"])
     return Step(
-        name=entry["name"], runner=entry["runner"], cmd=cmd, domain=entry["domain"], desc=entry["desc"],
+        name=entry["name"], runner=entry["runner"], cmd=cmd, domain=entry["domain"], label=entry["label"],
+        desc=entry["desc"],
         script=_script(cmd), group=entry.get("group", ""), docs_only=entry.get("docs_only", False),
         inputs=_edges(entry.get("inputs", [])), outputs=_edges(entry.get("outputs", [])),
         programs=tuple((p, tuple(g)) for p, g in entry.get("programs", {}).items()),

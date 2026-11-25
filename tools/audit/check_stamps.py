@@ -143,6 +143,9 @@ EXTRA: dict[str, tuple[str, ...]] = {
     "unit-guards test_check_docs_only": ("docs/pipeline-map/pipeline_map.json",),
     "unit-guards test_agent_docs_map": ("docs/pipeline-map/**/*", "www/scripts/**/*", "wiki/**/*", "docs/INDEX.md",
                                         "ops/hart-ops/AGENTS.md", ".gitmodules"),
+    # it builds the committed map with both lanes, as test_agent_docs_map does
+    "unit-guards test_map_lane": ("docs/pipeline-map/**/*", "www/scripts/**/*", "wiki/**/*", "docs/INDEX.md",
+                                  "ops/hart-ops/AGENTS.md", ".gitmodules"),
     # the agent-doc cells it checks are in the wiki (home.md, the decisions, pipelines, projects, STATUS.md)
     "unit-guards test_agent_docs_cells": ("wiki/**/*",),
     # check_ai_speak.DEFAULT_GLOBS (a test keeps the two the same): it lists their folders and fails a glob that

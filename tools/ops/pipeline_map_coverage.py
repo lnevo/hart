@@ -9,17 +9,18 @@ so the map agents query (tools/ops/pipeline_query.py) cannot fall behind without
 
 What must be in the map:
 
-- Scripts: every tracked .py, .sh or .js file the pipeline's entry files (ENTRY_FILES: tools/check.sh, the Makefile,
-  `make panels`, the layout deploy with its steps, the website deploy) name by path, or as
+- Scripts: every tracked .py, .sh or .js file the pipeline's entry files (ENTRY_FILES: the Makefile, `make panels`,
+  the layout deploy with its steps, the website deploy) name by path, or as
   `PYTHONPATH=<dir> python3 -m <module>`. A plain path is read from the repo root, then from the entry file's
   folder. A path behind $ROOT is read from the entry's own ROOT (deploy_hartrailroad.sh's is www/), and one behind a
   variable the file sets from ROOT or REPO (`local sm="$ROOT/.../speedmatch"`) from that folder. A path behind any
   other variable ($dest/x.py, $PI_DROP/...) or a prefix (preference:jython/x.py) is a copy destination or a host
   path, not a call, and is not read; one inside a submodule belongs to that repo, and a module whose top package is
   not in <dir> (unittest) is not a repo script. Any other path that names no file in the checkout (tracked, or new
-  and not ignored) fails: it is a call to a file that is gone. Comments are not read. check.sh runs its read-only
-  checks from the step manifest (tools/pipeline/checks.toml, ADR-037), so each step's script counts too, as if
-  check.sh named it.
+  and not ignored) fails: it is a call to a file that is gone. Comments are not read. tools/check.sh is no entry
+  file: it runs its read-only checks from the step manifest (tools/pipeline/checks.toml, ADR-037), and the map
+  draws each step's script from there (its manifest lane, tools/pipeline/map_lane.py), so they are boxes by
+  construction. What else check.sh runs (unit tests, its stamps and scheduling helpers) is plumbing, not pipeline.
 - Outputs: every tracked file under OUTPUT_ROOTS, and every repo path an entry file gives to `--out`.
 - Agent docs: every file, tracked or new and not ignored, that matches GLOBS in tools/ops/agent_docs_map.py (the
   .claude skills, subagents and commands, and the
@@ -45,16 +46,10 @@ ROOT = Path(__file__).resolve().parents[2]
 _spec = importlib.util.spec_from_file_location("build_pipeline_map", ROOT / "tools/ops/build_pipeline_map.py")
 BUILD = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(BUILD)
-if "pipeline_manifest" not in sys.modules:      # once per process: tools/audit/check_stamps.py loads it under this name
-    _spec = importlib.util.spec_from_file_location("pipeline_manifest", ROOT / "tools/pipeline/manifest.py")
-    sys.modules["pipeline_manifest"] = importlib.util.module_from_spec(_spec)    # its dataclasses look it up there
-    _spec.loader.exec_module(sys.modules["pipeline_manifest"])
-MANIFEST = sys.modules["pipeline_manifest"]
 ME = "tools/ops/pipeline_map_coverage.py"
 
 # The files that run the pipeline: what they call is the pipeline. A folder means every .sh file directly in it.
 ENTRY_FILES = (
-    "tools/check.sh",
     "Makefile",
     "tools/schematic/build_panels.sh",       # make panels
     "tools/hosts/sync_hart_package.sh",      # the layout deploy
@@ -68,16 +63,11 @@ OUTPUT_ROOTS = (
 )
 # Deliberate exceptions: path (a file, or a folder for every file under it) -> why the map leaves it out.
 ALLOWED = {
-    # check.sh and make plumbing: they schedule, stamp or route jobs and read or write no pipeline file
+    # make plumbing: they schedule or route jobs and read or write no pipeline file (check.sh is no entry file:
+    # its own plumbing is not scanned)
     "tools/agent/worktrees.py": "makes and sweeps agent worktrees (make wt); no pipeline file",
     "tools/ops/orient.py": "prints claims, worktrees in progress, deploys and PRs (make orient); no pipeline file",
-    "tools/audit/check_stamps.py": "check.sh job stamps in .cache; no pipeline file",
-    "tools/audit/test_classes.py": "lists test classes so check.sh can split a test file into jobs",
-    "tools/audit/portal_inputs.py": "decides whether check.sh runs the portal build; reads git, writes nothing",
-    "tools/ci/changed_kind.py": "decides whether check.sh and CI take the docs-only path; reads git, writes nothing",
-    "tools/ci/docs_checks.sh": "the docs-only path's checks, each also in check.sh's full run; writes nothing",
     "tools/schematic/panel_stamps.py": "make panels' step stamps in .cache; no pipeline file",
-    "tools/wiring/check_wiring_frozen.py": "check.sh audit of wiring.csv against the freeze's form; writes nothing",
     "tools/hosts/win_run.sh":"runs a command on the Windows box (make remote); no pipeline file",
     "tools/env/load_env.sh": "loads .env.local host settings for the deploy steps",
     "tools/ops/screenshot.py": "screenshots any page for a check by eye (make shot); writes only scratch images",
@@ -316,12 +306,6 @@ def check(graph: Path, listing: list[str] | None = None) -> list[str]:
     # new files not yet added count too, so a check before the commit does not call them gone
     files = frozenset(_git_files() + _git_files("--others", "--exclude-standard"))
     scripts, outputs = scan(files, _submodules(), lambda f: (ROOT / f).read_text())
-    try:        # checked against this graph and the files scanned here, not a second git ls-files and map read
-        steps = MANIFEST.load(where=MANIFEST.repo_from(files, data))
-    except MANIFEST.ManifestError as err:
-        raise CoverageError(f"the step manifest check.sh runs its checks from cannot be read:\n{err}") from None
-    for step in steps:
-        scripts.setdefault(step.script, MANIFEST.MANIFEST.relative_to(ROOT).as_posix())
     shown = graph.relative_to(ROOT) if graph.is_relative_to(ROOT) else graph
     try:
         docs = BUILD.AGENT_DOCS.glob_files() + BUILD.AGENT_DOCS.glob_files(others=True)

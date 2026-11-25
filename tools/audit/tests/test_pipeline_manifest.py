@@ -35,6 +35,7 @@ runner = "check"
 group = "static"
 cmd = ["python3", "tools/a.py", "--check"]
 domain = "layout"
+label = "a.py"
 desc = "First."
 docs_only = true
 inputs = ["data/x.csv", { path = "data/sub", label = "reads", side = "check" }]
@@ -49,7 +50,7 @@ def parse(text: str, where=REPO):
 def step(**fields) -> str:
     """GOOD's step with fields replaced (a value of None drops the field), as TOML."""
     base = {"name": '"one"', "runner": '"check"', "cmd": '["python3", "tools/a.py"]', "domain": '"layout"',
-            "desc": '"First."'}
+            "label": '"a.py"', "desc": '"First."'}
     base.update(fields)
     return "[[step]]\n" + "".join(f"{k} = {v}\n" for k, v in base.items() if v is not None)
 
@@ -93,6 +94,9 @@ class LoadTest(Refusing):
     def test_fields(self) -> None:
         self.assertRefused(step(colour='"red"'), "step 'one': colour: not a field")
         self.assertRefused(step(desc=None), "step 'one': desc: missing")
+        self.assertRefused(step(label=None), "step 'one': label: missing")
+        self.assertRefused(step(label='""'), "label: must be a str with text")
+        self.assertEqual(parse(step())[0].label, "a.py")
         self.assertRefused(step(name=None), "step 1: name: missing")
         self.assertRefused(step(docs_only='"yes"'), "docs_only: must be true or false")
         self.assertRefused(step(cmd='"python3 tools/a.py"'), "cmd: must be a list")

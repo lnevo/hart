@@ -1,7 +1,8 @@
 """The layout documentation page matches its template, block_lengths.csv (one row per detector), the device
 master's names and DCC addresses and the station names; drawing D2 states the same section count, plans P3 and P4 the
 same lengths and the plans the live switch numbers; a rename in the field file renames the track or the switch on the
-page, and a rename in the stations file the station; the hand-edited drawings carry no SOQ wording."""
+page, and a rename in the stations file the station (and stops on a drawing's station label until it is edited);
+the siding's car count is in 50 ft cars at the plan's scale; the hand-edited drawings carry no SOQ wording."""
 import csv
 import io
 import re
@@ -10,6 +11,7 @@ import sys
 import tempfile
 import tokenize
 import unittest
+from unittest import mock
 from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parents[1]
@@ -92,6 +94,47 @@ class LayoutDocs(unittest.TestCase):
             ld.station_at(places, "switch:5")
         with self.assertRaises(SystemExit):
             ld.station_at(places + [st(5, 1, "Other", ("3",), "", "OT")], "switch:3")
+
+    def test_the_siding_counts_50_ft_cars_at_the_plans_scale(self):
+        self.assertAlmostEqual(ld.car_inches(87.1), 55 * 12 / 87.1)
+        self.assertAlmostEqual(ld.car_inches(87.1) - 7.58, 0, places=2)    # 6.9 in of body plus the couplers
+        siding = next(s for s in ld.detected_sections() if s["id"] == ld.SIDING)
+        cars = str(round(float(f"{siding['inches']:.0f}") / ld.car_inches()))
+        self.assertEqual(ld.facts(ld.detected_sections())["SIDING_CARS"], cars)
+        self.assertIn(f"about {cars} cars of 50 ft", ld.PAGE.read_text())
+
+    def test_a_missing_scale_stops_by_name(self):
+        with mock.patch.object(ld.layer_files, "merged_section", return_value={}):
+            with self.assertRaisesRegex(SystemExit, "staging scale_ratio"):
+                ld.car_inches()
+
+    def test_station_names_in_drawings_are_labels(self):
+        master = ld.master_rows()
+        places = ld.railroad.read_stations(ld.railroad.Sources.under().stations)
+        ld.check_station_labels(places, master)                               # the drawings today
+        with tempfile.TemporaryDirectory() as tmp:
+            svg = Path(tmp) / "P9.svg"
+            svg.write_text('<svg><text x="1">Plane</text></svg>')
+            with self.assertRaises(SystemExit):                              # a typed name, untagged
+                ld.check_station_labels(places, master, [svg])
+            svg.write_text('<svg><text x="1" data-station="switch:5">Plane</text><text>siding</text></svg>')
+            ld.check_station_labels(places, master, [svg])
+            svg.write_text('<svg><text data-station="switch:5">Barn</text></svg>')
+            with self.assertRaises(SystemExit):                              # the wrong station for the switch
+                ld.check_station_labels(places, master, [svg])
+            svg.write_text('<svg><text data-station="switch:5"><tspan x="1">Plane</tspan></text></svg>')
+            ld.check_station_labels(places, master, [svg])                   # Inkscape puts the text in a tspan
+            svg.write_text('<svg><text data-station="switch:5"><tspan x="1">Barn</tspan></text></svg>')
+            with self.assertRaises(SystemExit):
+                ld.check_station_labels(places, master, [svg])
+            for typed in ('<text>PLANE</text>', '<text><tspan>Plane</tspan><tspan>West</tspan></text>',
+                          '<text data-station="switch:5">Plane</text><text>plane</text>'):
+                svg.write_text(f'<svg>{typed}</svg>')
+                with self.assertRaises(SystemExit, msg=typed):               # untagged, in any case
+                    ld.check_station_labels(places, master, [svg])
+            yard = ld.railroad.Station(9, 1, "Yard", ("15",), "", "YD")
+            svg.write_text('<svg><text>Yard lead</text><desc>The yard of five tracks</desc></svg>')
+            ld.check_station_labels(places + [yard], master, [svg])          # a word in a longer label is no name
 
     def test_d2_must_state_the_live_count(self):
         ld.check_d2(len(ld.detected_sections()))
@@ -212,6 +255,7 @@ class StationRenameReachesThePage(unittest.TestCase):
             w = csv.DictWriter(f, fields)
             w.writeheader()
             w.writerows(rows)
+        cls.copy = copy
         cls.page = ld.outputs(stations=copy)[ld.PAGE]
         cls.live = ld.outputs()[ld.PAGE]
 
@@ -222,6 +266,25 @@ class StationRenameReachesThePage(unittest.TestCase):
     def test_the_renamed_stations_are_on_the_page(self):
         self.assertRegex(self.page, r"<td>[^<]*, at Renamed Plane</td>")                     # the passing siding
         self.assertIn("<td>Renamed South Yard ", self.page)                                   # the yard tracks
+
+    def test_a_renamed_station_stops_on_a_drawing_label(self):
+        # a drawing labelling the station at Switch 5 holds the old name: the build stops until it is edited
+        with tempfile.TemporaryDirectory() as tmp:
+            label = '<text x="1" data-station="switch:5">{}</text>'
+            plans = []
+            for svg in ld.PLANS:
+                copy = Path(tmp) / svg.name
+                copy.write_text(svg.read_text().replace("</svg>", label.format("Plane") + "</svg>"))
+                plans.append(copy)
+            ld.outputs(drawings=plans)                                       # the live names: it builds
+            with self.assertRaisesRegex(SystemExit, "Renamed Plane"):
+                ld.outputs(stations=self.copy, drawings=plans)
+            plans[0].write_text(plans[0].read_text().replace(label.format("Plane"), label.format("Renamed Plane")))
+            with self.assertRaisesRegex(SystemExit, "Renamed Plane"):         # one drawing still has the old name
+                ld.outputs(stations=self.copy, drawings=plans)
+            for p in plans:
+                p.write_text(p.read_text().replace(label.format("Plane"), label.format("Renamed Plane")))
+            self.assertEqual(ld.outputs(stations=self.copy, drawings=plans)[ld.PAGE], self.page)
 
     def test_nothing_else_changes(self):
         page = self.page
