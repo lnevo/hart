@@ -546,6 +546,25 @@ class DeviceNames(unittest.TestCase):
         self.assertEqual(got, {"Track 1-2": "track", "OS Switch 1": "os"})        # staging's Track Barn left out
         self.assertNotIn("Track 101-103", got)
 
+    def test_an_owners_name_is_free_of_the_generated_form(self) -> None:
+        """Naming-layers step 13: a main turnout the owner names "Switch Coal" in the field file reaches the drawing
+        by its id; the name form holds only generated names, as hartlib.railroad.check_virtual_names does."""
+        import csv
+        import shutil
+        from hartlib import devices
+        with tempfile.TemporaryDirectory() as tmp:
+            data = Path(tmp)
+            here = devices.Files.here()
+            for src in (here.master, here.dictionary, here.field):
+                shutil.copy(src, data / src.name)
+            field = devices.field_path(data)
+            rows = list(csv.DictReader(io.StringIO(field.read_text(encoding="utf-8"))))
+            row = dict.fromkeys(rows[0], "")
+            row.update(level="2", layer="turnout", id="switch:101", user_name="Switch Coal")
+            field.write_text(devices.master_text(rows + [row]), encoding="utf-8")
+            got = B.device_names(devices.master_path(data))
+        self.assertEqual((got["Switch 101A"], got["Switch 101B"]), ("Switch Coal", "Switch Coal"))
+
     def test_the_committed_map(self) -> None:
         got = B.device_names()
         self.assertEqual(got["Switch 101A"], "Switch 101")

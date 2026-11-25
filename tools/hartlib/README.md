@@ -145,10 +145,10 @@ paths are `RETIRED_MASTS`, `SHEETS_FILE` and `PANEL_ITEMS`.
 
 Which device each piece of the drawing is, keyed by device ID (naming-layers step 13, builder merge step 7): the one
 reader of the device master's `trial_name` keys for every level. `read(levels, source=None, rows=None)` gives `Keys`:
-`ids` ({drawing key: device ID}, "Switch 101A", "OS 7 A-13C", "Track 1B-3A 1/2") and `rows` ({ID: merged row}) of the
-turnout and block rows of `levels`, parts among them, no LCC alias; `row(key)`, `name(key)` (the ID's name in the
+`ids` ({drawing key: (level, device ID)}, the master's key; "Switch 101A", "OS 7 A-13C", "Track 1B-3A 1/2") and `rows` ({(level, ID): merged row}) of the
+turnout and block rows of `levels`, parts among them, no LCC alias; `id(key)`, `row(key)`, `name(key)` (the ID's name in the
 merged view: the owner's, else the generated), `keys(id)`, `of(layer, role, parts)`, `parts()`. `DrawingKeyError` (a
-`ValueError`) on a row with no key or no id, a key or id given twice, or a part of no block row. Its readers:
+`ValueError`) on a row with no key or no id, a key given twice or an id twice on one level, an LCC alias with a key, a part of no block row of its level, or a staging key with a plan "*". Its readers:
 `le_names.device_names` (the Layout Editor build's main and upper names), `staging_device_map.load` (staging's, the
 device map's masts and the CATS desks' tracks), and `cats_panel.drawn_keys` (the desks' balloon-loop halves and
 parts).
@@ -199,7 +199,7 @@ stale copy of its own output: `build_device_map.py` loads `upto="inputs"`, `buil
 | `Railroad.masts` | `hartlib.level_masts.read()` rows, every level (`read_masts(path, levels=...)` gives `[Mast]`: line, level, name, blocks) |
 | `Railroad.tables` | `TablesNames`: `root`, `turnouts`, `sensors`, `masts` (user -> system), `blocks` |
 | `read_*(path)` | each file alone; `FactsError` names the file and line |
-| `check_virtual_names(rows, owner_named=())`, `join_main_upper(cps, local)` | the rules `build_device_map.py` builds by; a turnout's number and a block's detector are read by ID (naming-layers step 13), and a device the owner names (`owner_named`: its field row's level and id; the device-map invariant passes them) keeps its generated virtual names, held to their form only |
+| `check_virtual_names(rows, owner_named=(), swapped=())`, `join_main_upper(cps, local)` | the rules `build_device_map.py` builds by; a turnout's number and a block's detector are read by ID (naming-layers step 13), and a device the owner names (`owner_named`: its field row's level and id; the device-map invariant passes them) keeps its generated virtual names, held to their form only; one whose `jmri_name` the owner gives (`swapped`, a swap, ADR-028) to no virtual rule |
 
 `KNOWN` in the module lists problems already reported to the owner, each by its exact message: they print and pass,
 anything else fails, and a `KNOWN` entry that no longer happens fails.

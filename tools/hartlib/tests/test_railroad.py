@@ -810,6 +810,14 @@ class VirtualNames(unittest.TestCase):
         self.assertIn("turnout Switch Coal: jmri_name 'IT:HART:C3:1', not IT:HART:C3:<switch number>",
                       R.check_virtual_names([replace(ok[2], id="switch:3")], owner))
         self.assertEqual(R.DeviceMap(rows=ok).turnouts, {"1": ok[2]})
+        # paired row by row: a row with no id among rows with ids is named, not a reason to drop the ids
+        mixed = R.check_virtual_names(ok + [self.row("block", "Track 3-5", ""),
+                                            self.row("occupancy", "BS 3-5", "IS:HART:C3:B:3-5")], owner)
+        self.assertEqual(mixed, ["rows with no id among rows with ids: block Track 3-5, occupancy BS 3-5"])
+        # a swap (ADR-028): the owner's jmri_name on a turnout is a field device, held to no virtual rule
+        swap = [replace(ok[2], jmri_name="M2T408")] + ok[3:]
+        self.assertTrue(R.check_virtual_names(swap, owner))
+        self.assertEqual(R.check_virtual_names(swap, owner, swapped={(2, "switch:1")}), [])
 
     def test_a_block_or_occupancy_row_given_twice(self) -> None:
         """Two rows of one block (or of one occupancy sensor) are caught, not folded into one by a set."""

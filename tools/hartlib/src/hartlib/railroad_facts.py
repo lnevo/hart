@@ -1254,20 +1254,26 @@ def turnout_switch(row: DeviceRow) -> str | None:
     return m.group(1) if m else None
 
 
-def check_virtual_names(rows: Iterable[DeviceRow], owner_named: Collection[tuple[int, str]] = ()) -> list[str]:
-    """Problems with a device map's virtual names: every block has exactly one occupancy row (its detector by ID:
-    det:<block id>; by the name rule on rows made without IDs), numbered by the block (hartlib.level_devices), every
-    head's jmri_name comes from its user name, every turnout's from its switch number (turnout_switch: its ID's),
-    and no two rows of a layer share a virtual name (but a turnout and its LCC alias, one JMRI turnout).
-    `owner_named`: the (level, id) of the rows the owner names in devices_field.csv. A virtual name stays the
-    generated one when the owner renames a device (naming-layers step 7), so such a block, its detector, a mast's
-    heads and a head are held to their virtual name's form only (naming-layers step 13)."""
+def check_virtual_names(rows: Iterable[DeviceRow], owner_named: Collection[tuple[int, str]] = (),
+                        swapped: Collection[tuple[int, str]] = ()) -> list[str]:
+    """Problems with a device map's virtual names: every block has exactly one occupancy row, paired row by row (its
+    detector by ID, det:<block id>; by the name rule between rows made without IDs, a test's; rows with and without
+    IDs mixed are named), numbered by the block (hartlib.level_devices), every head's jmri_name comes from its user
+    name, every turnout's from its switch number (turnout_switch: its ID's), and no two rows of a layer share a
+    virtual name (but a turnout and its LCC alias, one JMRI turnout). By the (level, id) of the owner's rows in
+    devices_field.csv (naming-layers step 13): `owner_named`, the rows the owner names, whose virtual names stay the
+    generated ones (step 7), so such a block, its detector, a mast's heads and a head are held to their virtual name's
+    form only; `swapped`, the rows whose jmri_name the owner gives (a field device swapped in, ADR-028), held to no
+    virtual-name rule."""
     rows = list(rows)
-    owner_named = set(owner_named)
+    owner_named, swapped = set(owner_named), set(swapped)
 
-    def owned(r: DeviceRow) -> bool:            # the row, or the mast of a head, carries an owner's name
-        return bool(r.id) and ((r.level, r.id) in owner_named or
-                               (r.layer == "head" and (r.level, r.id.rsplit(":", 1)[0]) in owner_named))
+    def mine(r: DeviceRow, keys: set) -> bool:  # the row, or the mast of a head, is one of `keys`
+        return bool(r.id) and ((r.level, r.id) in keys or
+                               (r.layer == "head" and (r.level, r.id.rsplit(":", 1)[0]) in keys))
+
+    def owned(r: DeviceRow) -> bool:
+        return mine(r, owner_named)
 
     bad = []
     for layer in ("block", "occupancy"):            # the dicts and sets below would fold a second row away
@@ -1276,15 +1282,19 @@ def check_virtual_names(rows: Iterable[DeviceRow], owner_named: Collection[tuple
             bad.append(f"{layer} rows given twice: {', '.join(twice)}")
     blocks = [r for r in rows if r.layer == "block"]
     occ = [r for r in rows if r.layer == "occupancy"]
-    by_id = all(r.id for r in blocks + occ)
-    # each block's detector row, keyed as the block is: by its ID, else by the name rule
-    want = {(f"det:{b.id}" if by_id else level_devices.occupancy_user(b.user_name)): b for b in blocks}
-    have = {(r.id if by_id else r.user_name): r for r in occ}
+    if any(r.id for r in blocks + occ):
+        no_id = sorted(f"{r.layer} {r.user_name}" for r in blocks + occ if not r.id)
+        if no_id:
+            bad.append(f"rows with no id among rows with ids: {', '.join(no_id)}")
+    # each block's detector row, row by row: by its ID, else by the name rule
+    want = {(f"det:{b.id}" if b.id else "name:" + level_devices.occupancy_user(b.user_name)): b for b in blocks}
+    have = {(r.id if r.id else "name:" + r.user_name): r for r in occ}
     if set(want) != set(have):
-        bad.append(f"blocks and occupancy rows differ: {sorted(set(want) ^ set(have))}")
+        bad.append("blocks and occupancy rows differ: "
+                   f"{sorted(k.removeprefix('name:') for k in set(want) ^ set(have))}")
     for key, b in sorted(want.items()):
         r = have.get(key)
-        if r is None:
+        if r is None or mine(r, swapped):
             continue
         if owned(b) or owned(r):
             if not level_devices.is_block_sensor(r.jmri_name):
@@ -1298,6 +1308,8 @@ def check_virtual_names(rows: Iterable[DeviceRow], owner_named: Collection[tuple
         if r.jmri_name != sensor:
             bad.append(f"occupancy {r.user_name}: jmri_name {r.jmri_name!r}, not {sensor} (from block {b.user_name})")
     for r in rows:
+        if mine(r, swapped):
+            continue                            # a field device the owner swapped in: no virtual name
         if r.layer == "head" and owned(r):
             if not level_devices.HEAD.fullmatch(r.jmri_name):
                 bad.append(f"head {r.user_name}: jmri_name {r.jmri_name!r} is no virtual head name")

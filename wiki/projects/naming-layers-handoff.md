@@ -497,8 +497,15 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   `test_build_layout_le` (the reader's messages), plus the helper's tests for each moved reader.
 - **Outputs byte-identical:** `make panels CHECK=1 FULL=1` all current (the discovery stamp matches its base),
   `check_approved.py --check` all matching, `publish_draft.py --check` current, `test_bean_goldens` unchanged.
-- **Open, for step 14:** an owner's `jmri_name` on a main or upper turnout (a swap, ADR-028) still fails
-  `check_virtual_names`' turnout rule; step 14's swap test meets it. The desks' `device_name`, `inside_os` and
+- **Code review (medium), fixed:** keys by `(level, id)`, the master's key; a part's block on its own level; an LCC
+  alias with a key and a staging key with a plan "*" stop; `device_names` holds only generated names to the name
+  form; `cats_panel.drawn_keys` stops on a device map made in memory instead of reading the committed one;
+  `check_virtual_names` pairs blocks and detectors row by row and names rows with no id; a row whose `jmri_name` the
+  owner gives (a swap) is held to no virtual-name rule; `MAIN_UPPER` is `level_devices.LEVELS`.
+  `render_le_layout.py`'s signals path comes from hartlib, which the copied script in `test_layout_index_check` still
+  imports (checked).
+- **Open, for step 14:** a swapped main or upper detector still stops `read_device_map` (its occupancy
+  `jmri_name` must be a virtual block sensor); step 14 swaps a turnout. The desks' `device_name`, `inside_os` and
   `level_signals` still match tracks through `DeviceMap` rows (tests build those by hand); a main detector's user name
   still does not follow its block's owner name (Step 7). Not this step's: `docs/ap/electrical/test_build_soq.py`
   fails on main too (57 detected sections in `block_lengths.csv`, the text says 43).

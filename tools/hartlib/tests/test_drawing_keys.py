@@ -22,10 +22,10 @@ class Committed(unittest.TestCase):
     def test_every_level_reads_one_device_per_key(self) -> None:
         staging, main_upper = drawing_keys.read(("1",)), drawing_keys.read(("2", "3"))
         self.assertEqual(staging.name("Switch 7"), "Switch 7")
-        self.assertEqual(staging.ids["OS 35 A-39A"], "os:35:A-39A")
-        self.assertEqual(staging.ids["Track 35A-39A 1/2"], "os:35:A-39A")      # an OS block holds a track piece
+        self.assertEqual(staging.id("OS 35 A-39A"), "os:35:A-39A")
+        self.assertEqual(staging.id("Track 35A-39A 1/2"), "os:35:A-39A")      # an OS block holds a track piece
         self.assertEqual(staging.keys("block:1C-5A#1+1C-5A#2"), {"Track 1C-5A #1", "Track 1C-5A #2"})
-        self.assertEqual(main_upper.ids["Switch 101A"], main_upper.ids["Switch 101B"])     # one crossover turnout
+        self.assertEqual(main_upper.id("Switch 101A"), main_upper.id("Switch 101B"))     # one crossover turnout
         self.assertEqual(main_upper.name("Track 107B-107C #1"), "Track 107 Loop 1")      # a loop half
         self.assertEqual(main_upper.row("Track 101AB-103AA")["role"], "part")
         self.assertIn("Track 101-103", main_upper.parts())
@@ -33,7 +33,7 @@ class Committed(unittest.TestCase):
         # every turnout and block row of the master is read, by its id
         want = {(r["level"], r["id"]) for r in devices.load()
                 if r["level"] and r["layer"] in drawing_keys.LAYERS and r["role"] != "lcc_alias"}
-        got = {(r["level"], i) for k in (staging, main_upper) for i, r in k.rows.items()}
+        got = {i for k in (staging, main_upper) for i in k.rows}
         self.assertEqual(got, want)
 
     def test_of_selects_by_layer_role_and_part(self) -> None:
@@ -79,12 +79,31 @@ class Stops(unittest.TestCase):
 
     def test_a_good_set(self) -> None:
         k = drawing_keys.read(("2",), rows=self.rows())
-        self.assertEqual(dict(k.ids), {"Track 1A-2B": "block:1A-2B", "Switch 1A": "switch:1",
-                                       "Switch 1B": "switch:1"})          # the "*" left off; level 1 not read
+        self.assertEqual(dict(k.ids), {"Track 1A-2B": ("2", "block:1A-2B"), "Switch 1A": ("2", "switch:1"),
+                                       "Switch 1B": ("2", "switch:1")})   # the "*" left off; level 1 not read
+        self.assertEqual(k.id("Switch 1B"), "switch:1")
         self.assertIsNone(k.row("Track 9A-end"))
+
+    def test_an_id_is_unique_on_its_level_only(self) -> None:
+        """The master's key is (level, id): the same id on two levels is two devices."""
+        k = drawing_keys.read(("2", "3"), rows=self.rows(
+            dict(level="3", layer="block", role="track", id="block:1A-2B", user_name="Track 1-2 Upper",
+                 trial_name="Track 201A-202B", part_of="")))
+        self.assertEqual(k.name("Track 201A-202B"), "Track 1-2 Upper")
+        self.assertEqual(k.name("Track 1A-2B"), "Track 1-2")
+        self.assertEqual(k.keys("block:1A-2B", "3"), {"Track 201A-202B"})
 
     def test_each_problem_stops(self) -> None:
         for extra, why in (
+                (dict(level="2", layer="turnout", role="lcc_alias", id="dcc:3", user_name="DCC Switch 3",
+                      trial_name="Switch 3", part_of=""), "is an LCC alias, which holds no piece"),
+                (dict(level="3", layer="block", role="part", id="block:5A-6B", user_name="Track 5-6",
+                      trial_name="Track 5A-6B", part_of="Track 1-2"),
+                 "is part of 'Track 1-2', no block row of level 3"),
+                (dict(level="2", layer="block", role="track", id="block:3A-end", user_name="Track Coal",
+                      trial_name="Track 3A-end*", part_of=""), None),       # main and upper: the "*" is bare
+                (dict(level="1", layer="block", role="track", id="block:3A-end", user_name="Track Coal",
+                      trial_name="Track 3A-end*", part_of=""), r"staging keys are written exactly.*Track 3A-end\*"),
                 (dict(level="2", layer="block", role="track", id="block:3A-4B", user_name="Track 3-4",
                       trial_name="", part_of=""), r"Track 3-4 \(level 2, block\) has no trial_name"),
                 (dict(level="2", layer="block", role="track", id="block:3A-4B", user_name="Track 3-4",
@@ -96,8 +115,15 @@ class Stops(unittest.TestCase):
                       trial_name="Track 7A-8B", part_of=""), "id block:1A-2B is Track 1-2"),
                 (dict(level="2", layer="block", role="track", id="", user_name="Track 7-8",
                       trial_name="Track 7A-8B", part_of=""), "has no id")):
-            with self.subTest(why=why), self.assertRaisesRegex(drawing_keys.DrawingKeyError, why):
-                drawing_keys.read(("2",), rows=self.rows(extra))
+            levels = ("1", "2", "3")
+            base = [r for r in self.rows() if r["level"] != "1"]        # Track Barn's key is main's Track 1A-2B
+            with self.subTest(why=why):
+                if why is None:
+                    self.assertEqual(drawing_keys.read(levels, rows=base + [extra]).name("Track 3A-end"),
+                                     "Track Coal")
+                    continue
+                with self.assertRaisesRegex(drawing_keys.DrawingKeyError, why):
+                    drawing_keys.read(levels, rows=base + [extra])
 
 
 if __name__ == "__main__":

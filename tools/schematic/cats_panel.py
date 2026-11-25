@@ -26,10 +26,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_device_map as bdm  # noqa: E402  the device map's naming helpers (base, band_level, natural)
 import mast_rule as mr  # noqa: E402  the helix tracks (plan_overrides.json)
-from hartlib import drawing_keys, level_masts, paths  # noqa: E402
+from hartlib import drawing_keys, level_devices, level_masts, paths  # noqa: E402
 from hartlib.railroad_facts import FactsError  # noqa: E402
-
-MAIN_UPPER = ("2", "3")     # the levels the desks name from the device master (staging's are the staging map's)
 from hartlib.cats import station_plate  # noqa: E402
 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
@@ -357,11 +355,18 @@ def name_loop_halves(bands, device=None):
 
 def drawn_keys(device=None):
     """The main and upper drawing keys (hartlib.drawing_keys: each schematic piece's device by ID, named from the
-    merged view, the name store) of the master `device` was read from (a Facts.device; default the committed
-    master). SystemExit naming the file on keys that do not read as one device per piece."""
-    path = getattr(device, "path", None) or DEVICE_MAP
+    merged view, the name store) of the master `device` was read from (a Facts.device; None: the committed master).
+    SystemExit on a device made in memory (no path: its rows hold no parts and no ids, so the desk would mix it with
+    the committed master), and naming the file on keys that do not read as one device per piece."""
+    if device is None:
+        path = DEVICE_MAP
+    elif getattr(device, "path", None):
+        path = device.path
+    else:
+        raise SystemExit("cats_panel.drawn_keys: the device map was made in memory and names no master to read the "
+                         "drawing keys of")
     try:
-        return drawing_keys.read(MAIN_UPPER, path)
+        return drawing_keys.read(level_devices.LEVELS, path)
     except (drawing_keys.DrawingKeyError, FactsError) as exc:
         raise SystemExit(f"{paths.rel(path)}: {exc}") from None
 
@@ -369,7 +374,10 @@ def drawn_keys(device=None):
 def part_blocks(device=None) -> dict[str, tuple[str, str]]:
     """{trial name: (part name, the block it is part of)} of the main and upper parts (the device master's part_of: a
     link inside an OS block, step 5 part 2, owner 2026-11-20), which the device maps leave out: a block of its own on
-    the desk, bound to its OS block's sensor. Read through drawn_keys, which stops on a key two rows give."""
+    the desk, bound to its OS block's sensor. Read through drawn_keys, which stops on a key two rows give, from the
+    master `device` was read from; a device map made in memory (a test's, no path) holds no part."""
+    if device is not None and not getattr(device, "path", None):
+        return {}
     keys = drawn_keys(device)
     return {k: (keys.rows[i]["user_name"], keys.rows[i]["part_of"]) for k, i in keys.ids.items()
             if keys.rows[i]["role"] == "part"}
