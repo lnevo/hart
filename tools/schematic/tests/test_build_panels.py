@@ -1,8 +1,11 @@
-"""build_panels.sh: the steps it runs, their order, and what it says when one stops the run.
+"""build_panels.sh and its step list, the panels manifest (tools/pipeline/panels.toml, ADR-037): what the loader
+refuses (the order, two writers, bad fields), the steps it runs, and what it says when one stops the run.
 
-The script is run with a stand-in python3 on PATH that only records its arguments, so no build runs here.
+The script is run with a stand-in python3 on PATH that only records its arguments (and runs the real manifest.py), so
+no build runs here.
 """
 import contextlib
+import importlib.util
 import io
 import os
 import re
@@ -10,6 +13,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import tomllib
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -19,82 +23,165 @@ REPO = HERE.parents[1]
 SCRIPT = HERE / "build_panels.sh"
 WIKI = REPO / "wiki/pipelines/schematic-panels.md"
 sys.path.insert(0, str(HERE))
+if "pipeline_manifest" not in sys.modules:      # the name panel_stamps.py and check_stamps.py load it by
+    _spec = importlib.util.spec_from_file_location("pipeline_manifest", REPO / "tools/pipeline/manifest.py")
+    sys.modules["pipeline_manifest"] = importlib.util.module_from_spec(_spec)    # its dataclasses look it up there
+    _spec.loader.exec_module(sys.modules["pipeline_manifest"])
+M = sys.modules["pipeline_manifest"]
 
-# (step, script and arguments, True when it only checks in both modes), in the order the outputs depend on each other.
-STEPS = [
-    ("hands", "tools/schematic/build_hands.py", False),
-    ("staging-sets", "tools/schematic/build_staging_sets.py", False),
-    ("main-route", "tools/schematic/build_main_route.py", False),
-    ("device-map", "tools/schematic/build_device_map.py", False),
-    ("length-labels", "tools/schematic/plan_lengths.py --labels", False),
-    ("plan-lengths", "tools/schematic/plan_lengths.py --check", True),
-    ("masts", "tools/schematic/build_masts.py", False),
-    ("panel-items", "tools/schematic/panel_items.py", False),
-    ("signals", "tools/schematic/build_signals.py", False),
-    ("head-plan", "jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only", False),
-    ("schematic", "tools/schematic/publish_draft.py", False),
-    ("sml-current", "tools/schematic/check_sml_current.py", True),
-    ("tables", "tools/schematic/build_tables.py", False),
-    ("signals-sync", "tools/schematic/sync_signals.py --check", True),
-    ("device-master", "tools/schematic/check_device_master.py --check", True),
-    ("cats", "tools/schematic/build_cats_panel.py", False),
-    ("approved-desks", "tools/schematic/check_approved.py cats-ctc cats-abs", True),
-    ("approved-live", "tools/schematic/check_approved.py le-panel", True),
-]
-NAMES = [name for name, _cmd, _only in STEPS]
+# (step, script and arguments, what --check adds, True when it only checks in both modes), in the manifest's order
+STEPS = [(s.name, " ".join(s.cmd[1:]), " ".join(s.check_args), s.mode == "guard") for s in M.panel_steps()]
+NAMES = [name for name, _cmd, _check, _only in STEPS]
 FAKE_PYTHON = """#!/bin/sh
 case "$1" in */panel_stamps.py) [ "$2" = current ] && exit 1; exit 0 ;; esac    # the stamps: nothing is current
+case "$1" in */manifest.py)
+  case "${MANIFEST_STUB:-}" in
+    fail) echo "manifest.py: panels.toml: step 'x': mode: 'run' is not one of step, guard" >&2; exit 1 ;;
+    empty) exit 0 ;;
+    junk) echo "stop hands 1 --check python3 tools/schematic/build_hands.py"; exit 0 ;;
+    nocmd) echo "step hands 1 --check python3"; exit 0 ;;
+  esac
+  exec "$REAL_PYTHON" "$@" ;;
+esac
 echo "$*" >> "$PANELS_LOG"
 case "$1" in *"/$PANELS_FAIL") exit 1 ;; esac
 exit 0
 """
+GOOD = {"name": "a", "mode": "step", "cmd": ["python3", "tools/schematic/build_hands.py"], "check_args": ["--check"],
+        "domain": "layout", "label": "a", "desc": "A."}
 
 
-class StepList(unittest.TestCase):
-    def test_the_script_lists_these_steps_in_this_order(self):
-        got = re.findall(r"^(step|guard) (\S+) python3 (.+)$", SCRIPT.read_text(encoding="utf-8"),
-                         re.M)
-        self.assertEqual([(name, cmd, kind == "guard") for kind, name, cmd in got], STEPS)
+def entry(**fields):
+    """A step for a stand-in manifest: GOOD with `fields` over it (None drops a field)."""
+    out = {**GOOD, **fields}
+    return {k: v for k, v in out.items() if v is not None}
 
-    def test_every_script_it_names_exists(self):
-        for _name, cmd, _only in STEPS:
-            self.assertTrue((REPO / cmd.split()[0]).is_file(), cmd)
 
-    def test_the_header_comment_lists_the_steps_in_the_same_order(self):
-        header = SCRIPT.read_text(encoding="utf-8").split("\nset -uo pipefail")[0]
-        self.assertEqual(re.findall(r"^#   ([a-z][a-z-]+)  ", header, re.M), NAMES)
+def parse(*entries, where=None):
+    return M.parse_panels({"step": list(entries)}, "t.toml", where)
+
+
+class Manifest(unittest.TestCase):
+    """The loader's checks of a panels manifest: it refuses, naming the file, the step and the field."""
+
+    def assertRefused(self, entries, pattern, where=None):
+        with self.assertRaisesRegex(M.ManifestError, pattern):
+            parse(*entries, where=where)
+
+    def test_the_repo_manifest_loads_against_git_and_the_map_and_alone(self):
+        full = M.load_panels()
+        self.assertEqual(full, M.panel_steps())
+        self.assertEqual(len(full), 18)
+        self.assertEqual(full[0].name, "hands")
+        self.assertEqual(full[-1].name, "approved-live")
+
+    def test_the_masts_step_only_reads_the_device_master(self):
+        # build_masts.py writes masts.csv alone since naming-layers step 12 (hartlib.devices.WRITERS)
+        sys.path.insert(0, str(REPO / "tools/hartlib/src"))
+        from hartlib import devices
+        masts = next(s for s in M.panel_steps() if s.name == "masts")
+        self.assertEqual([o.path for o in masts.outputs], ["jmri/layouts/hart/data/schematic/masts.csv"])
+        writers = [s.name for s in M.panel_steps() if f"jmri/layouts/hart/data/{devices.MASTER_FILE}"
+                   in [o.path for o in s.outputs]]
+        self.assertEqual(writers, ["device-map", "panel-items"])
+        self.assertNotIn("build_masts.py", devices.WRITERS)
+
+    def test_no_step_and_bad_fields(self):
+        with self.assertRaisesRegex(M.ManifestError, r"t.toml: no \[\[step\]\] in it"):
+            M.parse_panels({}, "t.toml", None)
+        with self.assertRaisesRegex(M.ManifestError, "no panels step; make panels would run nothing"):
+            M.panel_lines(())
+        self.assertRefused([entry(mode="run")], r"t.toml: step 'a': mode: 'run' is not one of step, guard")
+        self.assertRefused([entry(runner="panels")], r"step 'a': runner: not a field")
+        self.assertRefused([entry(check_args=None)], r"step 'a': check_args: missing")
+        self.assertRefused([entry(cmd=["python3", "tools/schematic/build_hands.py", "a b"])], r"split the line|splits")
+        self.assertRefused([entry(cmd=["bash", "tools/x.sh"])], r"cmd: .* must be python3 and a script")
+        self.assertRefused([entry(cmd=["python3", "tools/schematic/no_such.py"])], r"no_such.py is not a file")
+        self.assertRefused([entry(), entry()], r"step 'a': name: also step 1's name")
+        self.assertRefused([entry(inputs=[{"path": "x/../y"}])], r"inputs: x/\.\./y has an empty")
+        self.assertRefused([entry(outputs=[{"path": "a.csv", "written_later": ["b"]}])],
+                           r"outputs: .*written_later not allowed here")
+
+    def test_a_box_takes_its_text_from_its_first_step(self):
+        self.assertRefused([entry(desc=None)], r"step 'a': desc: missing \(the first step drawn in box")
+        self.assertRefused([entry(), entry(name="b", domain=None, desc=None)], r"step 'b': label: step 'a' gives box")
+        two = parse(entry(), entry(name="b", domain=None, label=None, desc=None))
+        self.assertEqual([s.box for s in two], ["tools/schematic/build_hands.py"] * 2)
+        self.assertRefused([entry(), entry(name="b", cmd=["python3", "tools/schematic/build_masts.py"],
+                                           box="tools/schematic/build_hands.py", domain=None, label=None, desc=None)],
+                           r"step 'b': box: tools/schematic/build_hands.py is the box of step 'a', which runs")
+        self.assertRefused([entry(box="tools/schematic/build_hands.py")], r"box: .* is the script cmd runs; drop box")
+
+    def test_a_writer_comes_before_its_readers(self):
+        later = {"domain": None, "label": None, "desc": None}    # a second step in one box takes the first's text
+        parse(entry(name="w", outputs=["d/f.csv"]), entry(name="r", inputs=["d/f.csv"], **later))
+        self.assertRefused([entry(name="r", inputs=[{"path": "d/f.csv", "label": "reads"}]),
+                            entry(name="w", outputs=["d/f.csv"], **later)],
+                           r"t.toml: step 'r' \(step 1\) reads d/f.csv, which 'w' writes later \(step 2\); run the "
+                           r"writer first, or name it in the input's written_later")
+        late = {"path": "d/f.csv", "written_later": ["w"]}
+        parse(entry(name="r", inputs=[late]), entry(name="w", outputs=["d/f.csv"], **later))
+        # a written_later name must be a step that writes the file after this one
+        self.assertRefused([entry(name="w", outputs=["d/f.csv"]),
+                            entry(name="r", inputs=[late], domain=None, label=None, desc=None)],
+                           r"step 'r': inputs: d/f.csv: written_later names 'w', which does not write it after")
+        self.assertRefused([entry(name="r", inputs=[{"path": "d/f.csv", "written_later": ["gone"]}])],
+                           r"written_later names 'gone', no step")
+        # a step that reads what it writes lists the file in updates
+        self.assertRefused([entry(name="s", inputs=["d/f.csv"], outputs=["d/f.csv"])], r"'s' writes itself")
+        parse(entry(name="s", inputs=["d/f.csv"], outputs=["d/f.csv"], updates=["d/f.csv"]))
+
+    def test_two_writers_of_one_file_both_list_it_in_updates(self):
+        a = entry(name="a", outputs=["d/f.csv"])
+        b = entry(name="b", outputs=["d/*.csv"], domain=None, label=None, desc=None)
+        self.assertRefused([a, b], r"steps 'a' and 'b' both write d/\*.csv; list it in both steps' updates")
+        self.assertRefused([a | {"updates": ["d/f.csv"]}, b | {"outputs": ["d/f.csv"]}], r"'a' and 'b' both write")
+        parse(a | {"updates": ["d/f.csv"]}, b | {"outputs": ["d/f.csv"], "updates": ["d/f.csv"]})
+        self.assertRefused([entry(updates=["d/f.csv"])], r"updates: d/f.csv is not one of the step's outputs")
+
+    def test_against_the_repo_paths_must_be_tracked_and_the_domain_a_map_domain(self):
+        where = M.repo()
+        self.assertRefused([entry(inputs=["no/such/file.csv"])], r"inputs: no/such/file.csv names no tracked file",
+                           where=where)
+        self.assertRefused([entry(domain="nowhere")], r"domain: 'nowhere' is not a map domain", where=where)
+        self.assertRefused([entry(inputs=[{"path": "jmri/layouts/hart/data/wiring.csv", "side": "odd"}])],
+                           r"side 'odd' is not a map edge side", where=where)
+
+    def test_the_lines_build_panels_sh_reads(self):
+        steps = parse(entry(), entry(name="g", mode="guard", check_args=[], domain=None, label=None, desc=None,
+                                     cmd=["python3", "tools/schematic/build_hands.py", "--x"]))
+        self.assertEqual(M.panel_lines(steps), ["step a 1 --check python3 tools/schematic/build_hands.py",
+                                                "guard g 0 python3 tools/schematic/build_hands.py --x"])
+
+    def test_the_command_line_reports_a_bad_manifest_without_a_traceback(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "bad.toml"
+            p.write_text('[[step]]\nname = "a"\nmode = "run"\n', encoding="utf-8")
+            for argv in (("jobs", "panels"), ("check",)):
+                with self.subTest(argv=argv):
+                    out, err = io.StringIO(), io.StringIO()
+                    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                        rc = M.main(["--panels", str(p), *argv])
+                    self.assertEqual((rc, out.getvalue()), (1, ""))
+                    self.assertIn("bad.toml: step 'a': cmd: missing", err.getvalue())
+                    self.assertNotIn("Traceback", err.getvalue())
+
+    def test_the_file_is_toml_with_its_header_naming_every_field(self):
+        text = M.PANELS.read_text(encoding="utf-8")
+        tomllib.loads(text)
+        header = text.split("\n[[step]]")[0]
+        for key in M.PANEL_FIELDS:
+            self.assertRegex(header, rf"(?m)^#   (?:\w+, )*{key}\b", key)
 
     def test_the_wiki_table_lists_the_steps_in_the_same_order(self):
         rows = re.findall(r"^\| ([a-z][a-z-]+) \| `([^`]+)` \|", WIKI.read_text(encoding="utf-8"), re.M)
-        self.assertEqual(rows, [(name, cmd.rsplit('/', 1)[-1]) for name, cmd, _only in STEPS])
-
-    def test_the_masts_come_after_the_device_map_and_before_what_reads_them(self):
-        self.assertLess(NAMES.index("device-map"), NAMES.index("masts"))     # main and upper's rows are its
-        # signals.json is drawn from masts.csv: in one run, after the masts are written (review of #859); nothing
-        # before signals reads signals.json (device-map and masts gave the same outputs with every signal dropped)
-        self.assertLess(NAMES.index("masts"), NAMES.index("signals"))
-        for late in ("schematic", "cats", "tables"):
-            self.assertLess(NAMES.index("masts"), NAMES.index(late), late)
-        # what reads tables.xml runs after the step that writes it (ADR-029): the staging checks, the CATS desks
-        # (their turnouts, sensors and masts) and the live fingerprint, so one make panels leaves them all current
-        for check in ("signals-sync", "device-master", "cats", "approved-desks", "approved-live"):
-            self.assertLess(NAMES.index("tables"), NAMES.index(check), check)
-
-    def test_every_device_master_writer_runs_before_tables_and_plan_lengths_checks_the_new_blocks(self):
-        # device-map, masts and panel_items.py write the device master (hartlib.devices.WRITERS); tables reads it,
-        # so an edit to panel_items.json reaches tables.xml in one make panels
-        for writer in ("device-map", "masts", "panel-items"):
-            self.assertLess(NAMES.index(writer), NAMES.index("tables"), writer)
-        # plan_lengths.py --check finds the OS blocks in the device master: it checks the ones device-map just wrote,
-        # once length-labels has given block_lengths.csv's rows the names device-map wrote (naming-layers step 5)
-        self.assertEqual(NAMES.index("length-labels"), NAMES.index("device-map") + 1)
-        self.assertEqual(NAMES.index("plan-lengths"), NAMES.index("length-labels") + 1)
+        self.assertEqual(rows, [(name, cmd.rsplit('/', 1)[-1]) for name, cmd, _check, _only in STEPS])
 
 
 class DryRun(unittest.TestCase):
     """The script itself, with python3 replaced by a recorder that fails for one named script."""
 
-    def run_script(self, *args, fail=""):
+    def run_script(self, *args, fail="", manifest=""):
         with tempfile.TemporaryDirectory() as tmp:
             fake = Path(tmp) / "python3"
             fake.write_text(FAKE_PYTHON, encoding="utf-8")
@@ -102,18 +189,20 @@ class DryRun(unittest.TestCase):
             log = Path(tmp) / "log"
             log.touch()
             env = dict(os.environ, PATH=f"{tmp}{os.pathsep}{os.environ['PATH']}", PANELS_LOG=str(log),
-                       PANELS_FAIL=fail or "none", HART_PANELS_OS="Linux")    # no SML discovery here: SmlDiscovery
+                       PANELS_FAIL=fail or "none", HART_PANELS_OS="Linux",    # no SML discovery here: SmlDiscovery
+                       REAL_PYTHON=sys.executable, MANIFEST_STUB=manifest)
             r = subprocess.run(["bash", str(SCRIPT), *args], cwd=REPO, env=env, capture_output=True, text=True)
             return r.returncode, r.stdout + r.stderr, log.read_text(encoding="utf-8").splitlines()
 
     def test_a_write_runs_every_step_in_order(self):
         code, out, ran = self.run_script()
-        self.assertEqual((code, ran), (0, [cmd for _n, cmd, _o in STEPS]), out)
+        self.assertEqual((code, ran), (0, [cmd for _n, cmd, _c, _o in STEPS]), out)
         self.assertIn("all current", out)
 
     def test_a_check_runs_every_step_with_check_and_names_each_stale_one(self):
         code, out, ran = self.run_script("--check", fail="sync_signals.py")
-        self.assertEqual(ran, [f"{cmd} --check" for _n, cmd, _o in STEPS])
+        self.assertEqual(ran, [f"{cmd} {check}".strip() for _n, cmd, check, _o in STEPS])
+        self.assertTrue(all("--check" in line for line in ran), ran)    # every step only checks
         self.assertEqual(code, 1)
         self.assertIn("stale or failed: signals-sync\n", out)
         self.assertNotIn("stopped", out)
@@ -138,10 +227,25 @@ class DryRun(unittest.TestCase):
         code, out, ran = self.run_script("--chek")
         self.assertEqual((code, ran), (2, []), out)
 
+    def test_a_manifest_that_fails_lists_nothing_or_prints_junk_stops_before_any_step(self):
+        for stub, said in (("fail", "jobs panels failed (its error is above); no step ran"),
+                           ("empty", "jobs panels listed no step; no step ran"),
+                           ("junk", 'printed "stop hands 1 --check python3 tools/schematic/build_hands.py", not a step '
+                                    'line; no step ran'),
+                           ("nocmd", 'printed "step hands 1 --check python3", with no command; no step ran')):
+            for args in ((), ("--check",)):
+                with self.subTest(stub=stub, args=args):
+                    code, out, ran = self.run_script(*args, manifest=stub)
+                    self.assertEqual((code, ran), (2, []), out)
+                    self.assertIn(f"stopped: {'tools/pipeline/manifest.py ' if stub in ('fail', 'empty') else ''}"
+                                  f"{'' if stub in ('fail', 'empty') else 'manifest.py '}{said}", out)
+                    self.assertNotIn("all current", out)
+
 
 # A python3 stand-in whose sml-current guard says stale (exit 4, check_sml_current.EXIT_STALE) until the stand-in
 # discovery has run, and which fails it with SML_RC when that is set (1: a crash, 2: a build error; not staleness).
 SML_PYTHON = """#!/bin/sh
+case "$1" in */manifest.py) exec "$REAL_PYTHON" "$@" ;; esac
 case "$1" in */panel_stamps.py) [ "$2" = current ] && exit 1; exit 0 ;; esac
 echo "$*" >> "$PANELS_LOG"
 case "$1" in */check_sml_current.py)
@@ -185,7 +289,7 @@ class SmlDiscovery(unittest.TestCase):
             env.update(PATH=f"{tmp}{os.pathsep}{os.environ['PATH']}", PANELS_LOG=str(log),
                        DISCOVERED=str(tmp / "discovered"), HART_PANELS_OS=os_name,
                        HART_SML_DISCOVER_CMD=str(discover), HART_OPERATING_FLAG=str(flag),
-                       HART_SML_DISCOVER_LOCK=str(lock), **extra)
+                       HART_SML_DISCOVER_LOCK=str(lock), REAL_PYTHON=sys.executable, **extra)
             r = subprocess.run(["bash", str(SCRIPT), *args], cwd=REPO, env=env, capture_output=True, text=True)
             self.lock_left = lock.exists()
             return r.returncode, r.stdout + r.stderr, log.read_text(encoding="utf-8").splitlines()
@@ -270,6 +374,7 @@ class SmlDiscovery(unittest.TestCase):
 # A python3 stand-in that runs the real sync_signals.py against a stale copy of masts.csv (a temp
 # file: the repo's data files are only read) and answers every other script with success.
 STALE_SYNC_PYTHON = """#!/bin/sh
+case "$1" in */manifest.py) exec "$REAL_PYTHON" "$@" ;; esac
 case "$1" in
   */panel_stamps.py) [ "$2" = current ] && exit 1; exit 0 ;;
   */sync_signals.py) shift; exec "$REAL_PYTHON" "$STALE_RUNNER" "$SCHEMATIC_DIR" "$STALE_CSV" "$@" ;;

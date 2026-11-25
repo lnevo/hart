@@ -207,11 +207,20 @@ class BuildTest(unittest.TestCase):
         self.assertEqual(MAP.graph_text(MAP.validate(MAP.regenerate(data))), MAP.GRAPH.read_text())
         drawn = {n["id"] for n in data["nodes"] if n.get("gen") == LANE.GEN}
         steps = M.load()
-        self.assertEqual(drawn, {s.script for s in steps if s.name not in LANE.HAND_KEPT_STEPS})
+        panels = M.load_panels()
+        self.assertEqual(drawn, {s.script for s in steps if s.name not in LANE.HAND_KEPT_STEPS}
+                         | {s.box for s in panels})
         checks = {(e["from"], e.get("label")) for e in data["edges"] if e["to"] == LANE.RUNNER}
         for s in steps:
             if s.name not in LANE.HAND_KEPT_STEPS:
                 self.assertIn((s.script, f"check {s.name}"), checks)
+        # make panels: build_panels.sh runs each step and each guard links back to it (ADR-037 stage 5)
+        runs = {(e["from"], e["to"], e.get("label")) for e in data["edges"] if M.PANELS_RUNNER in (e["from"], e["to"])}
+        for s in panels:
+            if s.mode == "step":
+                self.assertIn((M.PANELS_RUNNER, s.box, f"step {s.name}"), runs)
+            else:
+                self.assertTrue(any(a == s.box and b == M.PANELS_RUNNER and s.name in lbl for a, b, lbl in runs), s.name)
 
     def test_a_hand_edit_to_a_generated_entry_fails_check_naming_it(self) -> None:
         data = MAP.read(MAP.GRAPH)

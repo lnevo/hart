@@ -9,8 +9,8 @@ so the map agents query (tools/ops/pipeline_query.py) cannot fall behind without
 
 What must be in the map:
 
-- Scripts: every tracked .py, .sh or .js file the pipeline's entry files (ENTRY_FILES: the Makefile, `make panels`,
-  the layout deploy with its steps, the website deploy) name by path, or as
+- Scripts: every tracked .py, .sh or .js file the pipeline's entry files (ENTRY_FILES: the Makefile, the layout
+  deploy with its steps, the website deploy) name by path, or as
   `PYTHONPATH=<dir> python3 -m <module>`. A plain path is read from the repo root, then from the entry file's
   folder. A path behind $ROOT is read from the entry's own ROOT (deploy_hartrailroad.sh's is www/), and one behind a
   variable the file sets from ROOT or REPO (`local sm="$ROOT/.../speedmatch"`) from that folder. A path behind any
@@ -21,6 +21,8 @@ What must be in the map:
   file: it runs its read-only checks from the step manifest (tools/pipeline/checks.toml, ADR-037), and the map
   draws each step's script from there (its manifest lane, tools/pipeline/map_lane.py), so they are boxes by
   construction. What else check.sh runs (unit tests, its stamps and scheduling helpers) is plumbing, not pipeline.
+  tools/schematic/build_panels.sh (make panels) is no entry file either: its steps are tools/pipeline/panels.toml's,
+  drawn by the same lane.
 - Outputs: every tracked file under OUTPUT_ROOTS, and every repo path an entry file gives to `--out`.
 - Agent docs: every file, tracked or new and not ignored, that matches GLOBS in tools/ops/agent_docs_map.py (the
   .claude skills, subagents and commands, and the
@@ -51,7 +53,6 @@ ME = "tools/ops/pipeline_map_coverage.py"
 # The files that run the pipeline: what they call is the pipeline. A folder means every .sh file directly in it.
 ENTRY_FILES = (
     "Makefile",
-    "tools/schematic/build_panels.sh",       # make panels
     "tools/hosts/sync_hart_package.sh",      # the layout deploy
     "tools/hosts/deploy",                    # its steps (gate, stage, ship_*)
     "www/scripts/deploy_hartrailroad.sh",    # the website deploy
@@ -67,7 +68,6 @@ ALLOWED = {
     # its own plumbing is not scanned)
     "tools/agent/worktrees.py": "makes and sweeps agent worktrees (make wt); no pipeline file",
     "tools/ops/orient.py": "prints claims, worktrees in progress, deploys and PRs (make orient); no pipeline file",
-    "tools/schematic/panel_stamps.py": "make panels' step stamps in .cache; no pipeline file",
     "tools/hosts/win_run.sh":"runs a command on the Windows box (make remote); no pipeline file",
     "tools/env/load_env.sh": "loads .env.local host settings for the deploy steps",
     "tools/ops/screenshot.py": "screenshots any page for a check by eye (make shot); writes only scratch images",

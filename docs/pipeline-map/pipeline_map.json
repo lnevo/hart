@@ -1304,7 +1304,8 @@
    "status": "live",
    "domain": "layout",
    "desc": "Fingerprints panel elements; check_approved runs in make panels (desks, live panel) and stops drift from owner-approved hashes.",
-   "path": "tools/schematic/check_approved.py"
+   "path": "tools/schematic/check_approved.py",
+   "gen": "manifest"
   },
   {
    "id": "tools/schematic/build_cats_panel.py",
@@ -1313,7 +1314,8 @@
    "status": "live",
    "domain": "layout",
    "desc": "make panels/make desks step: generates CATS CTC and ABS desks and bindings via the plugin's cats module from switches, devices, tables and signals.",
-   "path": "tools/schematic/build_cats_panel.py"
+   "path": "tools/schematic/build_cats_panel.py",
+   "gen": "manifest"
   },
   {
    "id": "tools/schematic/build_device_map.py",
@@ -1322,7 +1324,8 @@
    "status": "live",
    "domain": "layout",
    "desc": "make panels step 7, with its modules device_map_inputs.py (the readers), device_map_schematic.py (the drawing's tracks), device_map_rows.py (every level's row makers and the owner's values over them), device_map_staging.py (staging's rows) and device_map_masts.py (staging's masts, build_masts.py part 1 until naming-layers step 12): writes every level's turnout, feedback, block, occupancy, mast and head rows to devices_generated.csv, each generated from the plan with the owner's cells from devices_field.csv over it (naming-layers step 7), and (T6b) the plan_generated.json main_upper section from the solved sheet.",
-   "path": "tools/schematic/build_device_map.py"
+   "path": "tools/schematic/build_device_map.py",
+   "gen": "manifest"
   },
   {
    "id": "tools/schematic/build_hands.py",
@@ -1331,7 +1334,8 @@
    "status": "live",
    "domain": "layout",
    "desc": "make panels step 1 (hands): writes the hand of switches.csv's plan rows from the plan graph and relabel edits, and each staging row's os_block, closed_leg and thrown_leg from the name store by their ids; owner hands are left alone.",
-   "path": "tools/schematic/build_hands.py"
+   "path": "tools/schematic/build_hands.py",
+   "gen": "manifest"
   },
   {
    "id": "tools/schematic/build_layout_le.py",
@@ -1349,7 +1353,8 @@
    "status": "live",
    "domain": "layout",
    "desc": "make panels step 3: writes main_route, staging milepost_route and name_main (the runs of the staging main lines, which the name store flags main in the plugin's name edit) into plan_generated.json from main_lines.csv.",
-   "path": "tools/schematic/build_main_route.py"
+   "path": "tools/schematic/build_main_route.py",
+   "gen": "manifest"
   },
   {
    "id": "tools/schematic/build_masts.py",
@@ -1358,7 +1363,8 @@
    "status": "live",
    "domain": "layout",
    "desc": "make panels masts step: masts.csv for every level from the device master's mast and head rows (build_device_map.py writes them since naming-layers step 12), with staging's plan facts from the same plan (device_map_masts.staging_masts).",
-   "path": "tools/schematic/build_masts.py"
+   "path": "tools/schematic/build_masts.py",
+   "gen": "manifest"
   },
   {
    "id": "tools/schematic/build_signals.py",
@@ -1367,7 +1373,8 @@
    "status": "live",
    "domain": "layout",
    "desc": "make panels step 6: writes signals.json from the plan graph and the mast CSVs.",
-   "path": "tools/schematic/build_signals.py"
+   "path": "tools/schematic/build_signals.py",
+   "gen": "manifest"
   },
   {
    "id": "tools/schematic/build_staging_sets.py",
@@ -1376,7 +1383,8 @@
    "status": "live",
    "domain": "layout",
    "desc": "make panels step 2: writes staging control points and stations into plan_generated.json and detail sheets into preferences_generated.json.",
-   "path": "tools/schematic/build_staging_sets.py"
+   "path": "tools/schematic/build_staging_sets.py",
+   "gen": "manifest"
   },
   {
    "id": "tools/schematic/band_panels.py",
@@ -1394,7 +1402,8 @@
    "status": "live",
    "domain": "layout",
    "desc": "make panels step 12: writes tables.xml from the template, the device master's beans, the LE build and discovered SML; applies Digicon boot rule.",
-   "path": "tools/schematic/build_tables.py"
+   "path": "tools/schematic/build_tables.py",
+   "gen": "manifest"
   },
   {
    "id": "tools/schematic/check_device_master.py",
@@ -1403,7 +1412,8 @@
    "status": "live",
    "domain": "layout",
    "desc": "Check only in make panels: device master rules (both files), rows against tables.xml and schematic.",
-   "path": "tools/schematic/check_device_master.py"
+   "path": "tools/schematic/check_device_master.py",
+   "gen": "manifest"
   },
   {
    "id": "tools/schematic/plan_lengths.py",
@@ -1412,7 +1422,8 @@
    "status": "live",
    "domain": "layout",
    "desc": "Writes block_lengths.csv plan_in from the AnyRail plan, run by hand; make panels only checks it.",
-   "path": "tools/schematic/plan_lengths.py"
+   "path": "tools/schematic/plan_lengths.py",
+   "gen": "manifest"
   },
   {
    "id": "tools/schematic/publish_draft.py",
@@ -1421,7 +1432,8 @@
    "status": "live",
    "domain": "layout",
    "desc": "make panels step 9: draws the system schematic and station sheets with the plugin, prints PDF via Chrome, updates map revision data.",
-   "path": "tools/schematic/publish_draft.py"
+   "path": "tools/schematic/publish_draft.py",
+   "gen": "manifest"
   },
   {
    "id": "tools/schematic/split_store.py",
@@ -1439,7 +1451,8 @@
    "status": "live",
    "domain": "layout",
    "desc": "Check only in make panels: every level's heads and masts in tables.xml follow masts.csv.",
-   "path": "tools/schematic/sync_signals.py"
+   "path": "tools/schematic/sync_signals.py",
+   "gen": "manifest"
   },
   {
    "id": "www",
@@ -3022,7 +3035,8 @@
    "status": "live",
    "domain": "wiring",
    "desc": "make panels head-plan step: with --wiring-only writes the Digicon signal head plan from wiring.csv heads (the old mast plan is archived).",
-   "path": "jmri/layouts/hart/scripts/build_hart_signal_heads.py"
+   "path": "jmri/layouts/hart/scripts/build_hart_signal_heads.py",
+   "gen": "manifest"
   },
   {
    "id": "jmri/layouts/hart/scripts/mimic_relay.py",
@@ -3298,7 +3312,8 @@
    "status": "live",
    "domain": "layout",
    "desc": "Reads panel_items.json (fixed icons, labels, status cluster, panel attributes) for build_layout_le.py and writes the status beans' rows of devices_generated.csv (make panels' panel-items step, before tables); --check in check.sh.",
-   "path": "tools/schematic/panel_items.py"
+   "path": "tools/schematic/panel_items.py",
+   "gen": "manifest"
   },
   {
    "id": "tools/schematic/check_sml_current.py",
@@ -3307,7 +3322,8 @@
    "status": "live",
    "domain": "layout",
    "desc": "make panels guard: discovered_sml.stamp equals the discovery base the sources give now (run_sml_discover.sh again if not).",
-   "path": "tools/schematic/check_sml_current.py"
+   "path": "tools/schematic/check_sml_current.py",
+   "gen": "manifest"
   },
   {
    "id": "tools/schematic/build_panels.sh",
@@ -3317,7 +3333,8 @@
    "domain": "layout",
    "desc": "make panels: runs the schematic builders and guards in order (hands to CATS: head-plan and panel-items steps and the sml-current guard included), skipping a step whose stamped inputs are unchanged (FULL=1 runs all).",
    "path": "tools/schematic/build_panels.sh",
-   "runner": true
+   "runner": true,
+   "gen": "manifest"
   },
   {
    "id": "jmri/layouts/hart/scripts/run_panelpro_smoke_test.sh",
@@ -3484,6 +3501,15 @@
    "domain": "extras",
    "desc": "The step manifest (ADR-037): one [[step]] per check.sh read-only check, with its command, lane and the files it reads and writes. check.sh and docs_checks.sh run their checks from it (ADR-037).",
    "path": "tools/pipeline/checks.toml"
+  },
+  {
+   "id": "tools/pipeline/panels.toml",
+   "label": "panels.toml",
+   "kind": "structured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "The panels manifest (ADR-037 stage 5): one [[step]] per make panels step or guard, in run order, with its command, check_args, outputs (the stamps') and the files it reads; build_panels.sh runs them, panel_stamps.py takes the outputs, and the map draws each step's box from it.",
+   "path": "tools/pipeline/panels.toml"
   },
   {
    "id": "tools/pipeline/manifest.py",
@@ -4072,7 +4098,8 @@
   {
    "from": "cats/data/occupancy_bindings.csv",
    "to": "tools/schematic/build_cats_panel.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "cats/panels/HART_ABS.xml",
@@ -4083,7 +4110,8 @@
    "from": "cats/panels/HART_ABS.xml",
    "to": "tools/schematic/approval.py",
    "label": "check cats-abs",
-   "side": "check"
+   "side": "check",
+   "gen": "manifest"
   },
   {
    "from": "cats/panels/HART_CTC.bindings.json",
@@ -4125,7 +4153,8 @@
    "from": "cats/panels/HART_CTC.xml",
    "to": "tools/schematic/approval.py",
    "label": "check cats-ctc",
-   "side": "check"
+   "side": "check",
+   "gen": "manifest"
   },
   {
    "from": "cats/panels/HART_CTC.xml",
@@ -4254,7 +4283,8 @@
   {
    "from": "jmri/layouts/hart/output/signal_head_plan.csv",
    "to": "tools/schematic/build_cats_panel.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/output/signal_head_plan.csv",
@@ -4741,22 +4771,26 @@
   {
    "from": "jmri/layouts/hart/data/block_lengths.csv",
    "to": "tools/schematic/build_signals.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/block_lengths.csv",
    "to": "tools/schematic/build_masts.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/block_lengths.csv",
    "to": "tools/schematic/build_tables.py",
-   "label": "block lengths"
+   "label": "block lengths",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/block_lengths.csv",
    "to": "tools/schematic/publish_draft.py",
-   "label": "plan lengths"
+   "label": "plan lengths",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/devices.columns.csv",
@@ -4784,34 +4818,40 @@
    "from": "jmri/layouts/hart/data/schematic/approved_cats_abs.sha256",
    "to": "tools/schematic/approval.py",
    "label": "compares",
-   "side": "check"
+   "side": "check",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/approved_cats_ctc.sha256",
    "to": "tools/schematic/approval.py",
    "label": "compares",
-   "side": "check"
+   "side": "check",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/approved_le_panel.sha256",
    "to": "tools/schematic/approval.py",
    "label": "compares",
-   "side": "check"
+   "side": "check",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/block_overrides.csv",
    "to": "tools/schematic/build_device_map.py",
-   "label": "reads, via hartlib.hand_lists"
+   "label": "reads, via hartlib.hand_lists",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/block_overrides.csv",
    "to": "tools/schematic/plan_lengths.py",
-   "label": "reads, via hartlib.hand_lists"
+   "label": "reads, via hartlib.hand_lists",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/block_numbering.csv",
    "to": "tools/schematic/build_device_map.py",
-   "label": "reads, via hartlib.block_numbering"
+   "label": "reads, via hartlib.block_numbering",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/block_numbering.csv",
@@ -4822,12 +4862,14 @@
   {
    "from": "jmri/layouts/hart/data/schematic/block_overrides.csv",
    "to": "tools/schematic/build_masts.py",
-   "label": "reads, via hartlib.hand_lists"
+   "label": "reads, via hartlib.hand_lists",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/discovered_sml.xml",
    "to": "tools/schematic/build_tables.py",
-   "label": "SML merge"
+   "label": "SML merge",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
@@ -4837,87 +4879,104 @@
   {
    "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
    "to": "tools/schematic/build_device_map.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/inputs/main.json",
    "to": "tools/schematic/build_device_map.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/inputs/main.json",
    "to": "tools/schematic/build_hands.py",
-   "label": "reads hand"
+   "label": "reads hand",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/inputs/main.json",
    "to": "tools/schematic/build_main_route.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/inputs/main.json",
    "to": "tools/schematic/build_signals.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/inputs/main.json",
    "to": "tools/schematic/plan_lengths.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/inputs/main.json",
    "to": "tools/schematic/publish_draft.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/inputs/parts.json",
    "to": "tools/schematic/build_device_map.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/inputs/parts.json",
    "to": "tools/schematic/plan_lengths.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/inputs/staging.json",
    "to": "tools/schematic/build_device_map.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/inputs/staging.json",
    "to": "tools/schematic/build_main_route.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/inputs/staging.json",
    "to": "tools/schematic/build_signals.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/inputs/staging.json",
    "to": "tools/schematic/plan_lengths.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/inputs/staging.json",
    "to": "tools/schematic/publish_draft.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/interlockings.csv",
    "to": "tools/schematic/build_device_map.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/interlockings.csv",
    "to": "tools/schematic/build_masts.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/lcos_nodes.csv",
    "to": "tools/schematic/build_device_map.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/lcos_nodes.csv",
@@ -4928,12 +4987,14 @@
   {
    "from": "jmri/layouts/hart/data/switches.csv",
    "to": "tools/schematic/build_device_map.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/main_lines.csv",
    "to": "tools/schematic/build_main_route.py",
-   "label": "reads, via hartlib.hand_lists"
+   "label": "reads, via hartlib.hand_lists",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/masts.csv",
@@ -4950,7 +5011,8 @@
   {
    "from": "jmri/layouts/hart/data/schematic/masts.csv",
    "to": "tools/schematic/build_signals.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/panel_items.json",
@@ -4960,22 +5022,26 @@
   {
    "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
    "to": "tools/schematic/build_hands.py",
-   "label": "relabel edits"
+   "label": "relabel edits",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
    "to": "tools/schematic/publish_draft.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/preferences.json",
    "to": "tools/schematic/build_device_map.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/preferences.json",
    "to": "tools/schematic/publish_draft.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/preferences.json",
@@ -4985,38 +5051,45 @@
   {
    "from": "jmri/layouts/hart/data/schematic/retired_virtual_masts.csv",
    "to": "tools/schematic/build_masts.py",
-   "label": "reads, via hartlib.hand_lists (mast_plan)"
+   "label": "reads, via hartlib.hand_lists (mast_plan)",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/sheets.csv",
    "to": "tools/schematic/build_staging_sets.py",
-   "label": "reads, via hartlib.hand_lists"
+   "label": "reads, via hartlib.hand_lists",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/sheets.csv",
    "to": "tools/schematic/publish_draft.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/signals.json",
    "to": "tools/schematic/build_cats_panel.py",
-   "label": "staging masts"
+   "label": "staging masts",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/signals.json",
    "to": "tools/schematic/build_device_map.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/signals.json",
    "to": "tools/schematic/publish_draft.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/masts.csv",
    "to": "tools/schematic/sync_signals.py",
    "label": "check only",
-   "side": "check"
+   "side": "check",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/stations.csv",
@@ -5026,12 +5099,14 @@
   {
    "from": "jmri/layouts/hart/data/schematic/stations.csv",
    "to": "tools/schematic/build_staging_sets.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/stations.csv",
    "to": "tools/schematic/publish_draft.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/stations.csv",
@@ -5063,7 +5138,8 @@
   {
    "from": "jmri/layouts/hart/data/switches.csv",
    "to": "tools/schematic/build_cats_panel.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/switches.csv",
@@ -5073,7 +5149,8 @@
   {
    "from": "jmri/layouts/hart/data/switches.csv",
    "to": "tools/schematic/build_staging_sets.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/switches.csv",
@@ -5089,7 +5166,8 @@
   {
    "from": "jmri/layouts/hart/data/tables_template.xml",
    "to": "tools/schematic/build_tables.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/uss_board_cells.csv",
@@ -5099,7 +5177,8 @@
   {
    "from": "jmri/layouts/hart/data/wiring.csv",
    "to": "jmri/layouts/hart/scripts/build_hart_signal_heads.py",
-   "label": "--wiring-only"
+   "label": "--wiring-only",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/wiring.csv",
@@ -5111,17 +5190,20 @@
   {
    "from": "jmri/layouts/hart/data/wiring.csv",
    "to": "tools/schematic/build_device_map.py",
-   "label": "reads (detectors, turnouts, and staging's wired heads by id)"
+   "label": "reads (detectors, turnouts, and staging's wired heads by id)",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/wiring.csv",
    "to": "tools/schematic/build_masts.py",
-   "label": "reads heads"
+   "label": "reads heads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/wiring.csv",
    "to": "tools/schematic/build_tables.py",
-   "label": "bean comments"
+   "label": "bean comments",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/wiring.csv",
@@ -5236,18 +5318,28 @@
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "tools/schematic/approval.py",
    "label": "check le-panel",
-   "side": "check"
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/schematic/approval.py",
+   "to": "tools/schematic/build_panels.sh",
+   "label": "guard approved-desks, approved-live",
+   "side": "check",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "tools/schematic/build_cats_panel.py",
-   "label": "turnouts, sensors, masts"
+   "label": "turnouts, sensors, masts",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "tools/schematic/check_device_master.py",
    "label": "check only",
-   "side": "check"
+   "side": "check",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
@@ -5259,7 +5351,15 @@
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "tools/schematic/sync_signals.py",
    "label": "check only",
-   "side": "check"
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/schematic/sync_signals.py",
+   "to": "tools/schematic/build_panels.sh",
+   "label": "guard signals-sync",
+   "side": "check",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
@@ -5301,7 +5401,8 @@
   },
   {
    "from": "jmri/layouts/hart/scripts/build_hart_signal_heads.py",
-   "to": "jmri/layouts/hart/output/signal_head_plan.csv"
+   "to": "jmri/layouts/hart/output/signal_head_plan.csv",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/scripts/build_hart_signal_heads.py",
@@ -6350,22 +6451,26 @@
   {
    "from": "tools/schematic/build_cats_panel.py",
    "to": "cats/panels/HART_ABS.xml",
-   "label": "ABS twin"
+   "label": "ABS twin",
+   "gen": "manifest"
   },
   {
    "from": "tools/schematic/build_cats_panel.py",
    "to": "cats/panels/HART_CTC.bindings.json",
-   "label": "writes"
+   "label": "writes",
+   "gen": "manifest"
   },
   {
    "from": "tools/schematic/build_cats_panel.py",
    "to": "cats/panels/HART_CTC.xml",
-   "label": "step cats"
+   "label": "step cats",
+   "gen": "manifest"
   },
   {
    "from": "tools/schematic/build_hands.py",
    "to": "jmri/layouts/hart/data/switches.csv",
-   "label": "step 1 hands; staging's leg labels by id"
+   "label": "step 1 hands; staging's leg labels by id",
+   "gen": "manifest"
   },
   {
    "from": "tools/schematic/build_layout_le.py",
@@ -6375,22 +6480,26 @@
   {
    "from": "tools/schematic/build_masts.py",
    "to": "jmri/layouts/hart/data/schematic/masts.csv",
-   "label": "writes (every level)"
+   "label": "writes (every level)",
+   "gen": "manifest"
   },
   {
    "from": "tools/schematic/build_signals.py",
    "to": "jmri/layouts/hart/data/schematic/signals.json",
-   "label": "step 6 signals"
+   "label": "step 6 signals",
+   "gen": "manifest"
   },
   {
    "from": "tools/schematic/build_staging_sets.py",
    "to": "jmri/layouts/hart/data/schematic/preferences_generated.json",
-   "label": "detail_sheets"
+   "label": "detail_sheets",
+   "gen": "manifest"
   },
   {
    "from": "tools/schematic/build_tables.py",
    "to": "jmri/layouts/hart/output/tables.xml",
-   "label": "step 12 tables"
+   "label": "step 12 tables",
+   "gen": "manifest"
   },
   {
    "from": "tools/schematic/build_tables.py",
@@ -6400,22 +6509,26 @@
   {
    "from": "tools/schematic/plan_lengths.py",
    "to": "jmri/layouts/hart/data/block_lengths.csv",
-   "label": "writes plan_in and the user_name labels (--labels: length-labels step); check in panels"
+   "label": "writes plan_in and the user_name labels (--labels: length-labels step); check in panels",
+   "gen": "manifest"
   },
   {
    "from": "tools/schematic/publish_draft.py",
    "to": "docs/ops/schematic-system-draft.pdf",
-   "label": "Chrome print"
+   "label": "Chrome print",
+   "gen": "manifest"
   },
   {
    "from": "tools/schematic/publish_draft.py",
    "to": "docs/ops/schematic-system-draft.svg",
-   "label": "step 9 schematic"
+   "label": "step 9 schematic",
+   "gen": "manifest"
   },
   {
    "from": "tools/schematic/publish_draft.py",
    "to": "docs/ops/stations",
-   "label": "station sheets"
+   "label": "station sheets",
+   "gen": "manifest"
   },
   {
    "from": "tools/schematic/publish_draft.py",
@@ -7267,7 +7380,8 @@
   {
    "from": "jmri/layouts/hart/data/schematic/panel_items.json",
    "to": "tools/schematic/panel_items.py",
-   "label": "reads, via hartlib.hand_lists"
+   "label": "reads, via hartlib.hand_lists",
+   "gen": "manifest"
   },
   {
    "from": "tools/schematic/panel_items.py",
@@ -7277,19 +7391,22 @@
   {
    "from": "tools/schematic/build_panels.sh",
    "to": "tools/check.sh",
-   "label": "check panels (every step --check)",
-   "side": "check"
+   "label": "check panels",
+   "side": "check",
+   "gen": "manifest"
   },
   {
    "from": "tools/schematic/build_panels.sh",
    "to": "tools/schematic/build_hands.py",
-   "label": "runs every step in order"
+   "label": "step hands",
+   "gen": "manifest"
   },
   {
    "from": "tools/schematic/check_sml_current.py",
    "to": "tools/schematic/build_panels.sh",
-   "label": "guard before tables",
-   "side": "check"
+   "label": "guard sml-current",
+   "side": "check",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
@@ -7485,7 +7602,8 @@
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
    "to": "tools/schematic/build_cats_panel.py",
-   "label": "reads"
+   "label": "reads",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
@@ -7495,23 +7613,27 @@
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
    "to": "tools/schematic/build_masts.py",
-   "label": "reads every level's mast/head rows"
+   "label": "reads every level's mast/head rows",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
    "to": "tools/schematic/build_tables.py",
-   "label": "beans"
+   "label": "beans",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
    "to": "tools/schematic/check_device_master.py",
    "label": "check only",
-   "side": "check"
+   "side": "check",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
    "to": "tools/schematic/plan_lengths.py",
-   "label": "reads blocks"
+   "label": "reads blocks",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
@@ -7538,7 +7660,8 @@
   {
    "from": "tools/schematic/build_device_map.py",
    "to": "jmri/layouts/hart/data/devices_generated.csv",
-   "label": "every level's rows, masts and heads too (naming-layers step 12); wiring cells"
+   "label": "every level's rows, masts and heads too (naming-layers step 12); wiring cells",
+   "gen": "manifest"
   },
   {
    "from": "tools/schematic/split_store.py",
@@ -7549,12 +7672,14 @@
   {
    "from": "jmri/layouts/hart/data/devices_field.csv",
    "to": "tools/schematic/build_device_map.py",
-   "label": "owner's cells by id, staging masts' names and wired cells too"
+   "label": "owner's cells by id, staging masts' names and wired cells too",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/devices_field.csv",
    "to": "tools/schematic/build_masts.py",
-   "label": "staging masts' owner cells by id (through device_map_masts)"
+   "label": "staging masts' owner cells by id (through device_map_masts)",
+   "gen": "manifest"
   },
   {
    "from": "ext:anyrail-plan",
@@ -7635,7 +7760,8 @@
   {
    "from": "tools/schematic/panel_items.py",
    "to": "jmri/layouts/hart/data/devices_generated.csv",
-   "label": "status beans rows"
+   "label": "status beans rows",
+   "gen": "manifest"
   },
   {
    "from": "tools/hartlib/src/hartlib/film_pace.py",
@@ -7724,6 +7850,12 @@
    "label": "cache_on"
   },
   {
+   "from": "tools/schematic/build_panels.sh",
+   "to": "tools/schematic/build_masts.py",
+   "label": "step masts",
+   "gen": "manifest"
+  },
+  {
    "from": "ext:schematic-cache",
    "to": "tools/schematic/build_signals.py",
    "label": "cache_on"
@@ -7737,6 +7869,13 @@
    "from": "ext:schematic-cache",
    "to": "tools/schematic/check_device_master.py",
    "label": "cache_on"
+  },
+  {
+   "from": "tools/schematic/check_device_master.py",
+   "to": "tools/schematic/build_panels.sh",
+   "label": "guard device-master",
+   "side": "check",
+   "gen": "manifest"
   },
   {
    "from": "ext:schematic-cache",
@@ -7766,12 +7905,14 @@
   {
    "from": "tools/schematic/build_panels.sh",
    "to": "jmri/layouts/hart/scripts/build_hart_signal_heads.py",
-   "label": "head-plan step (--wiring-only)"
+   "label": "step head-plan",
+   "gen": "manifest"
   },
   {
    "from": "tools/schematic/build_panels.sh",
    "to": "tools/schematic/panel_items.py",
-   "label": "panel-items step, before tables"
+   "label": "step panel-items",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/scripts/run_sml_discover.sh",
@@ -7782,7 +7923,8 @@
    "from": "jmri/layouts/hart/data/schematic/discovered_sml.stamp",
    "to": "tools/schematic/check_sml_current.py",
    "label": "compared",
-   "side": "check"
+   "side": "check",
+   "gen": "manifest"
   },
   {
    "from": "tools/hosts/sync_hart_package.sh",
@@ -7797,62 +7939,85 @@
   {
    "from": "tools/schematic/build_staging_sets.py",
    "to": "jmri/layouts/hart/data/schematic/plan_generated.json",
-   "label": "step 2 staging section"
+   "label": "step 2 staging section",
+   "gen": "manifest"
   },
   {
    "from": "tools/schematic/build_main_route.py",
    "to": "jmri/layouts/hart/data/schematic/plan_generated.json",
-   "label": "step 3 main_route, name_main, milepost_route"
+   "label": "step 3 main_route, name_main, milepost_route",
+   "gen": "manifest"
   },
   {
    "from": "tools/schematic/build_device_map.py",
    "to": "jmri/layouts/hart/data/schematic/plan_generated.json",
-   "label": "main_upper section"
+   "label": "main_upper section",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
    "to": "tools/schematic/build_main_route.py",
-   "label": "merged view (layer_files.view): the plan graph with its edits"
+   "label": "merged view (layer_files.view): the plan graph with its edits",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/devices_field.csv",
    "to": "tools/schematic/publish_draft.py",
-   "label": "the owner's track names by id (hartlib.track_names, in the merged view)"
+   "label": "the owner's track names by id (hartlib.track_names, in the merged view)",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/devices_field.csv",
    "to": "tools/schematic/build_main_route.py",
-   "label": "the owner's track names by id (hartlib.track_names, in the merged view)"
+   "label": "the owner's track names by id (hartlib.track_names, in the merged view)",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/devices_field.csv",
    "to": "tools/schematic/build_signals.py",
-   "label": "the owner's track and helix names by id (hartlib.track_names, in the merged view)"
+   "label": "the owner's track and helix names by id (hartlib.track_names, in the merged view)",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/plan_generated.json",
    "to": "tools/schematic/publish_draft.py",
-   "label": "merged view (layer_files.view)"
+   "label": "merged view (layer_files.view)",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/plan_generated.json",
    "to": "tools/schematic/build_signals.py",
-   "label": "merged view (layer_files.view)"
+   "label": "merged view (layer_files.view)",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/preferences_generated.json",
    "to": "tools/schematic/publish_draft.py",
-   "label": "merged view (layer_files.view)"
+   "label": "merged view (layer_files.view)",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
    "to": "tools/schematic/build_signals.py",
-   "label": "merged view (layer_files.view)"
+   "label": "merged view (layer_files.view)",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/schematic/build_panels.sh",
+   "to": "tools/schematic/build_signals.py",
+   "label": "step signals",
+   "gen": "manifest"
   },
   {
    "from": "tools/schematic/band_panels.py",
    "to": "tools/schematic/build_tables.py",
    "label": "band panels"
+  },
+  {
+   "from": "tools/schematic/build_panels.sh",
+   "to": "tools/schematic/build_tables.py",
+   "label": "step tables",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/scripts/hide_band_panels.py",
@@ -7971,42 +8136,75 @@
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
    "to": "tools/schematic/build_hands.py",
-   "label": "the name store's names of the staging legs' ids"
+   "label": "the name store's names of the staging legs' ids",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/devices_field.csv",
    "to": "tools/schematic/build_hands.py",
-   "label": "the owner's names by id (merged view)"
+   "label": "the owner's names by id (merged view)",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
    "to": "tools/schematic/build_main_route.py",
-   "label": "the names of main_lines.csv's block ids"
+   "label": "the names of main_lines.csv's block ids",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/devices_field.csv",
    "to": "tools/schematic/plan_lengths.py",
-   "label": "the owner's names by id (labels)"
+   "label": "the owner's names by id (labels)",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/schematic/build_panels.sh",
+   "to": "tools/schematic/plan_lengths.py",
+   "label": "step length-labels",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/schematic/plan_lengths.py",
+   "to": "tools/schematic/build_panels.sh",
+   "label": "guard plan-lengths",
+   "side": "check",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/devices_field.csv",
    "to": "tools/schematic/build_staging_sets.py",
-   "label": "the names of stations.csv's tracks by block id (station_tracks)"
+   "label": "the names of stations.csv's tracks by block id (station_tracks)",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
    "to": "tools/schematic/build_staging_sets.py",
-   "label": "generated names of stations.csv's track ids, the last build's (station_tracks)"
+   "label": "generated names of stations.csv's track ids, the last build's (station_tracks)",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/schematic/build_panels.sh",
+   "to": "tools/schematic/build_staging_sets.py",
+   "label": "step staging-sets",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
    "to": "tools/schematic/publish_draft.py",
-   "label": "generated names of preferences.json's block ids (merged view)"
+   "label": "generated names of preferences.json's block ids (merged view)",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/schematic/build_panels.sh",
+   "to": "tools/schematic/publish_draft.py",
+   "label": "step schematic",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
    "to": "tools/schematic/build_device_map.py",
-   "label": "generated names of stations.csv's track ids and preferences.json's block ids, the last build's (read_places, solve)"
+   "label": "generated names of stations.csv's track ids and preferences.json's block ids, the last build's (read_places, solve)",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
@@ -8027,6 +8225,12 @@
    "from": "tools/hartlib/src/hartlib/drawing_keys.py",
    "to": "tools/schematic/build_cats_panel.py",
    "label": "each drawn piece's device by ID (le_names, staging_device_map, cats_panel)"
+  },
+  {
+   "from": "tools/schematic/build_panels.sh",
+   "to": "tools/schematic/build_cats_panel.py",
+   "label": "step cats",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/block_overrides.csv",
@@ -8074,6 +8278,12 @@
    "label": "imports"
   },
   {
+   "from": "tools/schematic/build_panels.sh",
+   "to": "tools/schematic/build_main_route.py",
+   "label": "step main-route",
+   "gen": "manifest"
+  },
+  {
    "from": "tools/hartlib/src/hartlib/hand_lists.py",
    "to": "jmri/layouts/hart/scripts/gen_ctc_track_plan.py",
    "label": "imports (layout_facts)"
@@ -8099,12 +8309,20 @@
   {
    "from": "jmri/layouts/hart/data/schematic/retired_virtual_masts.csv",
    "to": "tools/schematic/build_device_map.py",
-   "label": "reads (virtual mast ordinals), via hartlib.hand_lists"
+   "label": "reads (virtual mast ordinals), via hartlib.hand_lists",
+   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/block_lengths.csv",
    "to": "tools/schematic/build_device_map.py",
-   "label": "reads staging plan lengths by id (masts)"
+   "label": "reads staging plan lengths by id (masts)",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/schematic/build_panels.sh",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "step device-map",
+   "gen": "manifest"
   },
   {
    "from": "tools/hosts/backup_launchagents.sh",
@@ -8142,6 +8360,22 @@
    "label": "loads"
   },
   {
+   "from": "tools/pipeline/panels.toml",
+   "to": "tools/pipeline/manifest.py",
+   "label": "loads"
+  },
+  {
+   "from": "tools/pipeline/manifest.py",
+   "to": "tools/schematic/build_panels.sh",
+   "label": "jobs panels: the steps in order"
+  },
+  {
+   "from": "tools/pipeline/panels.toml",
+   "to": "tools/schematic/build_panels.sh",
+   "label": "the steps, in order",
+   "gen": "manifest"
+  },
+  {
    "from": "tools/pipeline/manifest.py",
    "to": "tools/check.sh",
    "label": "jobs check: the static group and its own jobs"
@@ -8159,6 +8393,12 @@
   },
   {
    "from": "tools/pipeline/checks.toml",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "manifest lane",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/pipeline/panels.toml",
    "to": "tools/ops/build_pipeline_map.py",
    "label": "manifest lane",
    "gen": "manifest"

@@ -4,54 +4,12 @@
 #
 # usage: build_panels.sh [--check] [--full]
 #
-# The steps, in the order they run (the name is the one each step prints):
-#
-#   hands                 the plan rows' hands in switches.csv, from the plan graph
-#   staging-sets          staging's control points, stations and detail sheets in the staging sections of
-#                         plan_generated.json and preferences_generated.json, from stations.csv (the desk areas by its
-#                         desk_code column) and sheets.csv (the layer files hold a section per sheet: hartlib.layer_files)
-#   main-route            main_route in plan_overrides.json's main_upper section, from main_lines.csv (main_upper
-#                         rows) and the plan graph; staging's main flags and milepost_route, from its staging rows
-#   device-map            from the solved sheet; writes plan_overrides.json's main_upper section, which the schematic
-#                         reads, so it runs before publishing
-#   length-labels         block_lengths.csv's user_name labels, the name store's for each row's (level, id)
-#                         (plan_lengths.py --labels; no plan file needed), so a rename in devices_field.csv relabels the
-#                         row and plan-lengths, the readers by name and the Pi's speed-match copy follow it. After
-#                         device-map, which writes the generated names it reads
-#   plan-lengths          block_lengths.csv's plan_in (the AnyRail plan 5.3c lengths) is written by plan_lengths.py,
-#                         run by hand (it reads the private plan file): this only checks it (--check), in both modes.
-#                         After device-map, since it finds the OS blocks in the device master that device-map writes
-#   masts                 masts.csv, every level's masts (build_masts.py): staging's by the mast rule over its device
-#                         map, with their device-master rows, and main and upper's from the device map's rows; after
-#                         device-map, whose rows it reads
-#   panel-items           the status beans' device-master rows (panel_items.py, written_by panel_items.json), from
-#                         panel_items.json; like device-map and masts it writes the device master, so it runs
-#                         before tables, which reads its rows
-#   signals               signals.json (a section per sheet), from the plan graph and masts.csv; the schematic reads it.
-#                         After masts, so one run draws the masts it writes. Nothing before it reads signals.json:
-#                         device-map and masts give the same outputs with every signal dropped from it (the solve's
-#                         signals layer places mast icons only), so there is no cycle
-#   head-plan             signal_head_plan.csv (build_hart_signal_heads.py --wiring-only), from wiring.csv's wired heads;
-#                         the CATS desks read its templates, so it runs before cats
-#   schematic             the schematic draft and stations (publish_draft.py)
-#   sml-current           the discovered Signal Mast Logic was discovered from the beans the sources give now:
-#                         data/schematic/discovered_sml.stamp holds the sha256 of the discovery base it came from
-#                         (run_sml_discover.sh writes it). Always runs. On a mismatch, a write on the Mac runs
-#                         run_sml_discover.sh itself (PanelPro, about 3 min) and checks again (owner, 2026-11-24); see
-#                         "SML discovery" below for when it does not. --check only names it stale
-#   tables                tables.xml (build_tables.py): the template, the staging beans of the device master, the Layout
-#                         Editor build (build_layout_le.build, in memory), the discovered Signal Mast Logic (ADR-029:
-#                         tables.xml is an output)
-#   signals-sync          every level's heads and masts in tables.xml follow masts.csv (sync_signals.py
-#                         --check), in both modes; after tables, which generates them from the device master
-#   device-master         the device master is checked against tables.xml and the schematic (check_device_master.py
-#                         --check), in both modes; after tables, which it checks
-#   cats                  the CATS desks (build_cats_panel.py); after tables, whose turnouts, sensors, layout blocks
-#                         and masts they read, so one make panels leaves the desks current with the tables
-#   approved-desks        check_approved.py on the desks, straight after they are written
-#   approved-live         check_approved.py on the live panel
-#
-# The approved-* steps stop a write that drifts from the owner-approved fingerprints, before anything else reads it.
+# The steps, their order, commands and outputs are the panels manifest's, tools/pipeline/panels.toml (ADR-037): one
+# [[step]] each, read through `python3 tools/pipeline/manifest.py jobs panels`, which checks the order (each writer
+# before the steps that read its file). A step ("step") writes its outputs, or checks them with --check (its
+# check_args); a guard ("guard") only checks, in both modes. The approved-* guards stop a write that drifts from the
+# owner-approved fingerprints, before anything else reads it. A manifest that does not load, or lists no step, stops
+# the run before any step, so make panels never says "all current" having run nothing.
 #
 # Each step reads the plugin's cache (<main checkout>/.cache/hart/schematic): the solve is shared, and Layout Editor panels whose
 # inputs and plugin code are unchanged are read back, so a run after a small change redoes only what that change
@@ -85,6 +43,22 @@ for arg in "$@"; do
     --full) full=1 ;;
     *) echo "usage: $0 [--check] [--full]" >&2; exit 2 ;;
   esac
+done
+# The step lines (manifest.py panel_lines): mode, name, how many check_args, the check_args, then the command; plain
+# words, split on spaces. All are read and checked before the first step runs, so no step reads them on its stdin.
+manifest_stop() { echo "stopped: $1; no step ran" >&2; exit 2; }
+lines=$(python3 tools/pipeline/manifest.py jobs panels) ||
+  manifest_stop "tools/pipeline/manifest.py jobs panels failed (its error is above)"
+STEP_LINES=()
+while IFS= read -r line; do
+  [ -n "$line" ] && STEP_LINES+=("$line")
+done <<<"$lines"
+[ ${#STEP_LINES[@]} -gt 0 ] || manifest_stop "tools/pipeline/manifest.py jobs panels listed no step"
+for line in "${STEP_LINES[@]}"; do
+  read -r -a w <<<"$line"
+  case "${w[0]:-}" in step|guard) ;; *) manifest_stop "manifest.py printed \"$line\", not a step line" ;; esac
+  case "${w[2]:-x}" in *[!0-9]*) manifest_stop "manifest.py printed \"$line\", not a step line" ;; esac
+  [ ${#w[@]} -ge $((w[2] + 5)) ] || manifest_stop "manifest.py printed \"$line\", with no command"
 done
 STAMPS=(python3 tools/schematic/panel_stamps.py)
 # No stamps while HART_TABLES is set or the plugin is off its pin: nothing is skipped and nothing recorded (said once).
@@ -123,7 +97,7 @@ run_step() {
     printf '0\tb\n' >"$trace"      # the runner starts one Python process: its start must be in the trace
     "${STAMPS[@]}" snapshot "$trace.before"     # git and plugin state now: a change while the step runs records nothing
   fi
-  traced "$trace" "$@" ${check[@]+"${check[@]}"} | tee "$out"
+  traced "$trace" "$@" ${cargs[@]+"${cargs[@]}"} | tee "$out"
   local rc=${PIPESTATUS[0]} tee_rc=${PIPESTATUS[1]}
   [ "$rc" -eq 0 ] && [ "$tee_rc" -ne 0 ] && { echo "   $name: could not save its output ($out)"; rc=$tee_rc; }
   if [ "$rc" -eq 0 ]; then
@@ -204,24 +178,14 @@ step() { run_step "later steps read what $1 writes" stamped "$@"; }
 # A step that only checks, in both modes: it writes nothing, and its message names what to run by hand.
 guard() { run_step "$1 only checks and it failed; later steps read the files it checks" guard "$@"; }
 
-step hands python3 tools/schematic/build_hands.py
-step staging-sets python3 tools/schematic/build_staging_sets.py
-step main-route python3 tools/schematic/build_main_route.py
-step device-map python3 tools/schematic/build_device_map.py
-step length-labels python3 tools/schematic/plan_lengths.py --labels
-guard plan-lengths python3 tools/schematic/plan_lengths.py --check
-step masts python3 tools/schematic/build_masts.py
-step panel-items python3 tools/schematic/panel_items.py
-step signals python3 tools/schematic/build_signals.py
-step head-plan python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only
-step schematic python3 tools/schematic/publish_draft.py
-guard sml-current python3 tools/schematic/check_sml_current.py
-step tables python3 tools/schematic/build_tables.py
-guard signals-sync python3 tools/schematic/sync_signals.py --check
-guard device-master python3 tools/schematic/check_device_master.py --check
-step cats python3 tools/schematic/build_cats_panel.py
-guard approved-desks python3 tools/schematic/check_approved.py cats-ctc cats-abs
-guard approved-live python3 tools/schematic/check_approved.py le-panel
+# Run them, in the manifest's order.
+for line in "${STEP_LINES[@]}"; do
+  read -r -a w <<<"$line"
+  n=${w[2]}
+  cargs=()                              # what --check adds to this step's command
+  if [ ${#check[@]} -gt 0 ] && [ "$n" -gt 0 ]; then cargs=("${w[@]:3:n}"); fi
+  "${w[0]}" "${w[1]}" "${w[@]:$((3 + n))}"
+done
 
 if [ ${#failed[@]} -gt 0 ]; then
   echo "stale or failed: ${failed[*]}"

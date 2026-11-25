@@ -17,10 +17,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import panel_stamps as ps  # noqa: E402
 
 REPO = ps.ROOT
-SCRIPT = (REPO / "tools/schematic/build_panels.sh").read_text(encoding="utf-8")
-# `step NAME CMD...` and `guard NAME CMD...` lines of build_panels.sh
-LINES = [(m.group(1), m.group(2), m.group(3).split())
-         for m in re.finditer(r"^(step|guard) (\S+) (.+)$", SCRIPT, re.M)]
+# (mode, name, cmd) of each step build_panels.sh runs, from the panels manifest (tools/pipeline/panels.toml)
+LINES = [(s.mode, s.name, list(s.cmd)) for s in ps._load_manifest().panel_steps()]
 
 
 class DeclarationTest(unittest.TestCase):
@@ -40,12 +38,12 @@ class DeclarationTest(unittest.TestCase):
                     self.assertTrue(ps.expand([pat]), f"{pat} matches nothing")
 
     def test_the_device_master_is_two_files(self) -> None:
-        """The device-map, masts and panel-items steps write devices_generated.csv; no step writes the owner's field
-        file, so a hand edit there is an input (the trace sees every step that reads it). The names are pinned to
-        hartlib.devices by test_devices_one_path."""
+        """The device-map and panel-items steps write devices_generated.csv (hartlib.devices.WRITERS: build_masts.py
+        only reads it since naming-layers step 12); no step writes the owner's field file, so a hand edit there is an
+        input (the trace sees every step that reads it). The names are pinned to hartlib.devices by
+        test_devices_one_path."""
         generated, field = f"{ps.DATA}/{ps.DEVICES_FILE}", f"{ps.DATA}/{ps.DEVICES_FIELD_FILE}"
-        self.assertEqual([n for n, s in ps.STEPS.items() if generated in s.outputs],
-                         ["device-map", "masts", "panel-items"])
+        self.assertEqual([n for n, s in ps.STEPS.items() if generated in s.outputs], ["device-map", "panel-items"])
         self.assertFalse([n for n, s in ps.STEPS.items() if field in s.outputs])
 
     def test_the_trace_hook_is_code_of_every_step(self) -> None:
@@ -244,6 +242,9 @@ class ShellTest(unittest.TestCase):
         (self.root / "tools/schematic").mkdir(parents=True, exist_ok=True)
         shutil.copy(REPO / "tools/schematic/build_panels.sh", self.root / "tools/schematic/build_panels.sh")
         shutil.copy(REPO / "tools/schematic/panel_stamps.py", self.root / "tools/schematic/panel_stamps.py")
+        (self.root / "tools/pipeline").mkdir(parents=True, exist_ok=True)
+        for f in ("tools/pipeline/manifest.py", "tools/pipeline/panels.toml"):     # the step list
+            shutil.copy(REPO / f, self.root / f)
         for f in ps.traced.HOOK_FILES:
             (self.root / f).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(REPO / f, self.root / f)
@@ -450,7 +451,6 @@ class SmlCurrentTest(unittest.TestCase):
         self.assertEqual(bt.discovery_digest(data), bt.discovery_digest(renamed.encode("utf-8")))
 
     def test_a_mast_or_a_track_change_trips_the_digest(self) -> None:
-        import re
         import build_tables as bt
         text = self.base().decode("utf-8")
         mast = text.replace("<userName>Mast 4RA</userName>", "<userName>Mast 4RAx</userName>", 1)
