@@ -216,19 +216,24 @@ class Glob(Base):
 class TheRepo(unittest.TestCase):
     """The repo's sidecars pass, and the readers of the extended format still read them."""
 
+    @staticmethod
+    def hartlib_devices():
+        sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+        try:
+            from hartlib import devices
+        finally:
+            sys.path.remove(str(ROOT / "tools/hartlib/src"))
+        return devices
+
     def test_every_sidecar_passes(self) -> None:
         sidecars = C.find_sidecars()
-        self.assertIn(ROOT / "jmri/layouts/hart/data/devices.columns.csv", sidecars)
+        self.assertIn(self.hartlib_devices().Files.here().dictionary, sidecars)     # the device master's path is hartlib's
         self.assertIn(ROOT / "jmri/layouts/hart/data/switches.columns.csv", sidecars)
         checker = C.Checker()
         self.assertEqual([p for s in sidecars for p in checker.check(s)], [])
 
     def test_hartlib_reads_the_device_dictionary(self) -> None:
-        sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
-        try:
-            from hartlib import devices as D
-        finally:
-            sys.path.remove(str(ROOT / "tools/hartlib/src"))
+        D = self.hartlib_devices()
         self.assertEqual(set(D.read_dictionary(D.Files.here().dictionary)), set(D.COLUMNS))
 
     def test_the_switch_dictionary_names_the_columns_in_order(self) -> None:
