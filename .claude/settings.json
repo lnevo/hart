@@ -16,7 +16,16 @@
       "mcp__plugin_sts_sts-api__sts_health",
       "mcp__plugin_sts_sts-api__sts_session",
       "mcp__claude-in-chrome__tabs_context_mcp",
-      "mcp__claude-in-chrome__read_console_messages"
+      "mcp__claude-in-chrome__read_console_messages",
+      "Bash(python3 tools/audit/check_ai_speak.py)",
+      "Bash(python3 tools/audit/check_ai_speak.py *)",
+      "Bash(tools/hosts/operating.sh status)",
+      "Bash(make deploy-status)",
+      "Bash(make deploy-status *)",
+      "Bash(python3 tools/schematic/check_approved.py)",
+      "Bash(python3 tools/schematic/check_approved.py --check)",
+      "Bash(python3 tools/ops/pipeline_query.py *)",
+      "Bash(make orient)"
     ]
   },
   "hooks": {
