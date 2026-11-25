@@ -203,7 +203,7 @@ class ProfileJob(unittest.TestCase):
                                            "emergency", "OpsMode"]:
             self.assertNotIn(bad, src, bad)
         for need in ["clearCurrentProfile", "updateFile()", "writeRoster()", "APPLY is not True",
-                     "/tmp/speedrun.active", "os.remove", 'L("END")', "java.lang.Throwable", "except Exception, e",
+                     "/tmp/speedrun.active", "os.remove", 'L("END")', "java.lang.Throwable", "except Exception as e",
                      'show("OLD"', 'show("NEW"']:
             self.assertIn(need, src, need)
         self.assertLess(src.index("APPLY is not True"), src.index("clearCurrentProfile"))

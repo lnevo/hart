@@ -2,6 +2,7 @@
 command. A stand-in ssh on PATH records any call, so a refusal that still connected would show."""
 from __future__ import annotations
 
+import hashlib
 import os
 import shutil
 import time
@@ -49,10 +50,6 @@ class WinRunRefuses(unittest.TestCase):
         self.assertNotEqual(r.returncode, 0)
         self.assertIn("set CMD", r.stderr)
         self.assertFalse(self.called.exists())
-
-
-if __name__ == "__main__":
-    unittest.main()
 
 
 FLOCK = shutil.which("flock")
@@ -177,3 +174,197 @@ class WinRunRuff(unittest.TestCase):
         done = self.run_block()
         self.assertEqual(("", 0), (done.stderr, done.returncode))
         self.assertFalse(self.uv_log.exists())
+
+
+def block_of(text: str, marker: str) -> str:
+    """The lines between "# --- <marker>" and "# --- end <marker>" in `text` (win_run.sh or its --print-script)."""
+    return text.split(f"# --- {marker}", 1)[1].split(f"# --- end {marker}", 1)[0].split("\n", 1)[1]
+
+
+class WinRunStampName(unittest.TestCase):
+    """stamp_name, the Mac's half: the name of a ref's stamp folder on Windows. Run alone in a scratch repo."""
+
+    def setUp(self) -> None:
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.repo = self.tmp / "repo"
+        git = ["git", "-C", str(self.repo), "-c", "user.name=t", "-c", "user.email=t@example.invalid"]
+        subprocess.run(["git", "init", "-q", "-b", "main", str(self.repo)], check=True)
+        subprocess.run([*git, "commit", "-q", "--allow-empty", "-m", "c"], check=True)
+        self.sha = subprocess.run([*git, "rev-parse", "HEAD"], check=True, capture_output=True, text=True).stdout.strip()
+        for b in ("agent/claude/x", "agent_claude_x", "odd.name+1", "x" * 80):
+            subprocess.run([*git, "branch", b], check=True)
+        for r in ("refs/remotes/origin/main", "refs/remotes/origin/feature/y"):
+            subprocess.run([*git, "update-ref", r, self.sha], check=True)
+        self.block = self.tmp / "name.sh"
+        self.block.write_text(f'set -euo pipefail\n{block_of(WIN_RUN.read_text(), "stamp name")}\n'
+                              'stamp_name "$@"\n')
+
+    def name(self, ref: str, sha: str | None = None) -> subprocess.CompletedProcess:
+        return subprocess.run(["bash", str(self.block), str(self.repo), ref, sha or self.sha], capture_output=True,
+                              text=True, timeout=30)
+
+    def suffix(self, branch: str) -> str:
+        data = branch.encode()
+        return hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()[:10]
+
+    def test_a_non_ascii_name_is_cut_by_bytes(self) -> None:
+        subprocess.run(["git", "-C", str(self.repo), "branch", "agent/éclair"], check=True)
+        done = subprocess.run(["bash", str(self.block), str(self.repo), "agent/éclair", self.sha], capture_output=True,
+                              text=True, timeout=30, env=dict(os.environ, LC_ALL="en_US.UTF-8"))
+        self.assertEqual(f"agent___clair-{self.suffix('agent/éclair')}", done.stdout.strip(), done.stderr)
+
+    def test_slashes_and_odd_characters_become_underscores_with_the_name_hash(self) -> None:
+        self.assertEqual(f"agent_claude_x-{self.suffix('agent/claude/x')}", self.name("agent/claude/x").stdout.strip())
+        self.assertEqual(f"odd_name_1-{self.suffix('odd.name+1')}", self.name("odd.name+1").stdout.strip())
+
+    def test_names_that_sanitise_alike_get_two_folders(self) -> None:
+        self.assertNotEqual(self.name("agent/claude/x").stdout, self.name("agent_claude_x").stdout)
+
+    def test_a_long_name_is_cut_to_60(self) -> None:
+        self.assertEqual(f"{'x' * 60}-{self.suffix('x' * 80)}", self.name("x" * 80).stdout.strip())
+
+    def test_main_and_remote_branches(self) -> None:
+        self.assertEqual("main", self.name("main").stdout.strip())
+        self.assertEqual("main", self.name("origin/main").stdout.strip())
+        self.assertEqual(f"feature_y-{self.suffix('feature/y')}", self.name("origin/feature/y").stdout.strip())
+
+    def test_a_detached_commit_or_tag_uses_the_commit(self) -> None:
+        self.assertEqual(self.sha, self.name(self.sha).stdout.strip())
+        self.assertEqual(self.sha, self.name("HEAD~0").stdout.strip())
+
+    def test_no_branch_and_no_sha_is_refused(self) -> None:
+        done = self.name("nope", sha="not-a-sha")
+        self.assertEqual(2, done.returncode)
+        self.assertIn("not a commit sha", done.stderr)
+        self.assertEqual("", done.stdout)
+
+
+class WinRunStamps(unittest.TestCase):
+    """The block that picks the run's CHECK_STAMPS_DIR on Windows: main keeps the shared folder, any other ref gets its
+    own copy under check-stamps-by-ref. Rendered with --print-script (the name replaced) and run alone."""
+
+    SHARED_STAMPS = ("a-1.json", "b-2.json")
+
+    def setUp(self) -> None:
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.main = self.tmp / "main"      # not a git checkout: hart_main_checkout answers with the folder itself
+        self.shared = self.main / ".cache/hart/check-stamps"
+        self.byref = self.main / ".cache/hart/check-stamps-by-ref"
+        self.shared.mkdir(parents=True)
+        for n in self.SHARED_STAMPS:
+            (self.shared / n).write_text(n)
+        (self.shared / "filehash.json").write_text("{}")
+        (self.shared / "c-3.json.99.tmp").write_text("half")
+        self.bin = self.tmp / "bin"
+        self.bin.mkdir()
+        if not FLOCK:       # the Mac: the lock is not what these tests check
+            self.fake("flock", "exit 0")
+        env = dict(os.environ, HART_WIN_SSH="nobody@example.invalid")
+        script = subprocess.run(["bash", str(WIN_RUN), "--print-script", "--ref", "HEAD", "--", "true"], cwd=ROOT,
+                                env=env, capture_output=True, text=True, timeout=60, check=True).stdout
+        self.rendered = block_of(script, "stamps")
+        self.sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True,
+                                  check=True).stdout.strip()
+
+    def fake(self, name: str, body: str) -> None:
+        (self.bin / name).write_text(f"#!/bin/sh\n{body}\n")
+        (self.bin / name).chmod(0o755)
+
+    def run_block(self, name: str = "feat-x") -> subprocess.CompletedProcess:
+        block = self.tmp / "stamps.sh"
+        block.write_text(f'set -euo pipefail\ntrap "echo SETUP FAILED >&2; exit 3" ERR\nmain="{self.main}"\n'
+                         f'{self.rendered.replace(self.sha, name)}\necho "DIR=$CHECK_STAMPS_DIR"\n')
+        env = {k: v for k, v in os.environ.items() if k != "HART_CACHE_DIR"}
+        return subprocess.run(["bash", str(block)], env=dict(env, PATH=f"{self.bin}:{env['PATH']}"),
+                              capture_output=True, text=True, timeout=30)
+
+    def test_the_rendered_block_names_the_refs_folder(self) -> None:
+        self.assertIn(f'CHECK_STAMPS_DIR="$byref/{self.sha}"', self.rendered)
+
+    def test_first_use_copies_the_shared_stamps_and_the_second_reuses_them(self) -> None:
+        done = self.run_block()
+        self.assertEqual(0, done.returncode, done.stderr)
+        mine = self.byref / "feat-x"
+        self.assertIn(f"DIR={mine}\n", done.stdout)
+        self.assertIn("new, 2 stamps copied", done.stderr)
+        self.assertEqual(sorted(self.SHARED_STAMPS), sorted(p.name for p in mine.iterdir()))
+        self.assertFalse((mine / "a-1.json").is_symlink())
+        self.assertEqual([".lock", "feat-x"], sorted(p.name for p in self.byref.iterdir()))   # no temp folder left
+        (mine / "a-1.json").write_text("this ref's record")
+        (self.shared / "b-2.json").write_text("main's record")
+        done = self.run_block()
+        self.assertEqual(0, done.returncode, done.stderr)
+        self.assertIn("reused", done.stderr)
+        self.assertEqual("a-1.json", (self.shared / "a-1.json").read_text())    # a copy: neither changes the other
+        self.assertEqual("b-2.json", (mine / "b-2.json").read_text())
+
+    def test_main_writes_the_shared_folder(self) -> None:
+        done = self.run_block("main")
+        self.assertEqual(0, done.returncode, done.stderr)
+        self.assertIn(f"DIR={self.shared}\n", done.stdout)
+        self.assertIn("main's, shared", done.stderr)
+        self.assertFalse(self.byref.exists())
+
+    def test_folders_untouched_for_14_days_are_removed(self) -> None:
+        old = time.time() - 15 * 86400
+        for n in ("gone-1", "gone-2", "feat-x", ".feat-y.tmp.123"):
+            (self.byref / n).mkdir(parents=True)
+            (self.byref / n / "stale.json").write_text("old")
+            os.utime(self.byref / n, (old, old))
+        (self.byref / "recent").mkdir()
+        os.utime(self.byref / "recent", (time.time() - 3 * 86400,) * 2)
+        done = self.run_block()
+        self.assertEqual(0, done.returncode, done.stderr)
+        self.assertIn("4 stamp folders untouched for 14 days removed", done.stderr)
+        self.assertEqual([".lock", "feat-x", "recent"], sorted(p.name for p in self.byref.iterdir()))
+        self.assertIn("new, 2 stamps copied", done.stderr)      # this ref's own old folder was made again
+        self.assertFalse((self.byref / "feat-x/stale.json").exists())
+        self.assertGreater((self.byref / "feat-x").stat().st_mtime, time.time() - 60)
+
+    def test_an_old_folder_that_will_not_go_warns_and_the_run_goes_on(self) -> None:
+        old = time.time() - 15 * 86400
+        (self.byref / "stuck").mkdir(parents=True)
+        os.utime(self.byref / "stuck", (old, old))
+        self.fake("rm", 'case "$*" in *stuck*) exit 1 ;; esac; exec /bin/rm "$@"')
+        done = self.run_block()
+        self.assertEqual(0, done.returncode, done.stderr)
+        self.assertIn("could not remove the old stamp folder", done.stderr)
+        self.assertIn("0 stamp folders untouched for 14 days removed", done.stderr)
+        self.assertIn(f"DIR={self.byref / 'feat-x'}\n", done.stdout)
+
+    def test_no_shared_folder_says_so_and_starts_empty(self) -> None:
+        shutil.rmtree(self.shared)
+        done = self.run_block()
+        self.assertEqual(0, done.returncode, done.stderr)
+        self.assertIn("no shared stamps", done.stderr)
+        self.assertEqual([], list((self.byref / "feat-x").iterdir()))
+
+    def test_a_failed_copy_stops_the_run_and_leaves_no_folder(self) -> None:
+        self.fake("cp", "echo 'cp: disk full' >&2; exit 1")
+        done = self.run_block()
+        self.assertEqual(3, done.returncode, done.stderr)
+        self.assertIn("could not copy the stamps", done.stderr)
+        self.assertIn("was not set up", done.stderr)
+        self.assertNotIn("SETUP FAILED", done.stderr)
+        self.assertNotIn("DIR=", done.stdout)
+        self.assertEqual([".lock"], sorted(p.name for p in self.byref.iterdir()))
+
+    def test_a_short_copy_is_caught_by_the_count(self) -> None:
+        self.fake("cp", "exit 0")
+        done = self.run_block()
+        self.assertEqual(3, done.returncode, done.stderr)
+        self.assertIn("copied 0 of 2 stamps", done.stderr)
+        self.assertEqual([".lock"], sorted(p.name for p in self.byref.iterdir()))
+
+    def test_a_by_ref_folder_that_cannot_be_made_stops_the_run(self) -> None:
+        (self.main / ".cache/hart/check-stamps-by-ref").write_text("a file, not a folder")
+        done = self.run_block()
+        self.assertEqual(3, done.returncode, done.stderr)
+        self.assertIn("could not make", done.stderr)
+        self.assertNotIn("DIR=", done.stdout)
+
+
+if __name__ == "__main__":
+    unittest.main()

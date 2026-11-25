@@ -32,6 +32,16 @@
 #       for one step
 # Needs jobkit.py in front of it (make_job.py pastes it): L, why, ab, claim, scan, check_guards,
 # request_throttle, end_job, and the shared route listener SL, last, lock, HOOK, wait.
+# Never runs: the names make_job.py puts in front of this file (its settings, liverule.py and jobkit.py), listed for pyflakes
+# (ruff's undefined-name rule) so a misspelt name fails the check. job_settings stands for the settings.
+if False:
+    import time, threading, java
+    from jobkit import (HOOK, L, SL, check_guards, claim, end_job, last, lock, request_throttle, scan, set_direction, wait,
+        why)
+    from liverule import (HIGH_SPAN, LOW_MAX, MAX_READINGS, SETTLE_EVENTS, STALL_CAP, STOP_K, STOP_REL, SpanReader, median,
+        next_stall, rel_stdev, should_move_on, span_for_step, stall_action)
+    from job_settings import (FUNCS, GUARD, LENGTHS, MID, ORDER, P_FWD, P_ID, REF, ROUTE, STALL0,
+        STALL_SKIP_BELOW, STEPS_LIST, STEP_MAX_S, WARM_LAPS, WARM_STEP)
 import json
 mid = [False]; ref = [0]
 reader = SpanReader(ORDER, LENGTHS, SETTLE_EVENTS)
@@ -116,8 +126,8 @@ def run():
             if reason == "settled" and frozen: interval = (time.time() - t0) / float(len(frozen))
             stall = next_stall(STALL0, STALL_CAP, interval)
         why[0] = "all steps complete"
-    except java.lang.Throwable, e: L("ERROR %s" % e)
-    except Exception, e: L("ERROR %s" % e)
+    except java.lang.Throwable as e: L("ERROR %s" % e)
+    except Exception as e: L("ERROR %s" % e)
     finally:
         phase[0] = "idle"
         end_job(t, tl, FUNCS)

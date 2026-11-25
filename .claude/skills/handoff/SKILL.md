@@ -9,6 +9,7 @@ description: Use when the owner says go on a hand-off or a plan with several ind
 
 ## Split
 
+- When another session runs (`ListAgents`), follow the `coordinate` skill first: find the merge queue's coordinator and the files other lanes own.
 - Run `make orient` first: an item on a project page another branch has claimed, or in files a worktree in progress changes, waits or goes to that agent.
 - Up to 5 agents, launched in one message, one item each. Items that edit the same files go to one agent, or run one after another.
 - Generated files that several PRs regenerate (`docs/INDEX.md` and the like): each branch regenerates its own. On a rebase conflict, take main's copy and run the generator again (`python3 tools/ops/build_docs_index.py` for the index). Never merge a generated file by hand.
@@ -67,12 +68,12 @@ Set each brief's interval by the job's expected length (`AGENTS.md`, "Status rep
 
 ## Merge
 
-The main session merges, never with `--admin`. It queues GitHub auto-merge (`gh pr merge <n> --merge --auto`, on for the repo) once a PR's reviews are done, so the PR merges when its required `check` passes on its newest commit, with no polling. Never queue it before the reviews finish, or a fast CI merges ahead of the findings; a commit pushed afterwards makes auto-merge wait for that commit's check. `main` does not require PRs to be up to date (`strict` is off), so before queueing a PR that regenerates a shared committed output (`docs/INDEX.md`, panels, `tables.xml`), merge `origin/main` into it and regenerate. The pipeline map pages are not committed (ADR-036), so they never need it. CI on `main` after each merge catches what two PRs break together.
+The main session merges, never with `--admin`. `main` requires the branch to be up to date (`strict` is on) and `check` to pass on its head. When another session runs, merges go through its merge queue (`coordinate` skill): no auto-merge, one at a time. Alone, queue auto-merge (`gh pr merge <n> --merge --auto`) once a PR's reviews are done, never before, or a fast CI merges ahead of the findings. Either way, merge `origin/main` into the branch before it merges and regenerate what it owns. CI on `main` after each merge catches what two PRs break together.
 
 `docs/pipeline-map/pipeline_map.json` merges itself locally (`tools/ops/merge_pipeline_map.py`, a git merge driver that `make wt` and the session-start hook set up); it stops only on two different edits to one box or link, or a link left pointing at a deleted box. GitHub never runs it, so a PR that shows a conflict there needs `origin/main` merged into the branch locally, then `python3 tools/ops/build_pipeline_map.py --check`. A branch from before ADR-036 that still changes `docs/pipeline-map/index.html` or `www/library/pipeline-map.html` gets a modify/delete conflict on them when it merges main: `git rm` them.
 
 1. Code PRs are reviewed once, by their own agent (brief, Review). The main session does not review them again: it checks that each confirmed finding was fixed, and runs `/code-review low` only when those fixes changed code beyond the finding's own lines. When the agent could not run a review, the main session runs the AGENTS.md step 3 review. Fix confirmed correctness bugs, check each unverified finding against the code, and leave performance and style for later unless trivial. Add a finding that recurs to the list in the brief's Quality line. After a review, check `git branch --show-current` before committing; it can leave a detached HEAD.
-2. Queue PRs that others build on first. When one merges, merge `origin/main` into each remaining one (no rebase: force-push is blocked), regenerate its committed generated files, and leave auto-merge to wait for CI again.
+2. Queue PRs that others build on first. When one merges, merge `origin/main` into each remaining one (no rebase: force-push is blocked) and regenerate its committed generated files.
 3. Deploy once after the last merge if live artifacts changed (`deploy` skill).
 
 ## Finish

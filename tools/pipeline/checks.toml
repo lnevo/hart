@@ -247,7 +247,7 @@ cmd = ["python3", "www/scripts/build_wiring_json.py", "--check"]
 git = ["head", "base"]
 domain = "website"
 label = "build_wiring_json.py"
-desc = "Builds the website wiring viewer JSON from the wiring model (write_inventory.workbook(), in memory, never the v86 file; ADR-039); tools/check.sh fails while stale."
+desc = "Builds the website wiring viewer JSON (wiring-inventory.json; not committed, ADR-036: the site build and the preview build it through site_views.py) from the wiring model (write_inventory.workbook(), in memory, never the v86 file; ADR-039); --check builds it in memory and runs its checks (lists filled, no network detail left)."
 inputs = [
   { path = "tools/wiring/write_inventory.py", label = "workbook(), in memory" },
 ]
@@ -651,10 +651,32 @@ inputs = [
   { path = "jmri/layouts/hart/data/switches.csv", label = "rules", side = "check" },
   { path = "jmri/layouts/hart/data/schematic/stations.csv", label = "refs", side = "check" },
   { path = "jmri/layouts/hart/data/schematic/interlockings.csv", label = "refs", side = "check" },
+  { path = "ops/hart-ops/data/industries.csv", label = "rules", side = "check" },
+  { path = "ops/hart-ops/data/spot_assignments.csv", label = "rules", side = "check" },
+  { path = "ops/hart-ops/data/HART_Spot_Waybills.csv", label = "rules", side = "check" },
+  { path = "ops/hart-ops/data/locos.csv", label = "rules", side = "check" },
   { path = "ops/hart-ops/data/trains.csv", label = "rules", side = "check" },
 ]
 # the sidecars it lists (check_data.SCAN_GLOBS)
 quiet_inputs = ["**/*.columns.csv"]
+
+# The loco master against its copies (ADR-039 lane L4d): every engine of both Operations Pro rosters and every
+# train's engine must be a locos.csv row, or a gap the script reports by name until the owner settles it.
+[[step]]
+name = "loco-refs"
+runner = "check"
+group = "static"
+cmd = ["python3", "tools/ops/check_locos.py"]
+git = ["head", "base"]
+domain = "ops"
+label = "check_locos.py"
+desc = "Checks that every engine in both Operations Pro engine rosters and every engine in the train list is a row of the loco master locos.csv, keyed on roster_id (ADR-039)."
+inputs = [
+  { path = "ops/hart-ops/data/locos.csv", label = "master", side = "check" },
+  { path = "jmri/layouts/hart/operations", label = "engine roster", side = "check" },
+  { path = "ops/hart-ops/data/OperationsEngineRoster.xml", label = "snapshot roster", side = "check" },
+  { path = "cats/data/hart_trains.csv", label = "train list", side = "check" },
+]
 
 [[step]]
 name = "hart-trains"
@@ -807,22 +829,6 @@ outputs = [
 ]
 
 [[step]]
-name = "desks"
-runner = "check"
-group = "static"
-cmd = ["python3", "cats/scripts/validate_cats_panel.py"]
-git = ["head", "base"]
-domain = "layout"
-label = "validate_cats_panel.py"
-desc = "Validates desks (make desks and check.sh); with cats_turnout_io and digicon_lib loaders."
-inputs = [
-  { path = "cats/panels/HART_ABS.xml", label = "make desks check", side = "check" },
-  { path = "cats/panels/HART_CTC.xml", label = "make desks check", side = "check" },
-]
-# the reference desk it validates too; the map has no box for it
-quiet_inputs = ["cats/panels/HART_chubb_magnet.xml"]
-
-[[step]]
 name = "public-text"
 runner = "check"
 cmd = ["{python}", "tools/audit/check_public_text.py"]
@@ -865,8 +871,9 @@ inputs = [
 ]
 # The site build (prepare_github_pages.py) reads: the site tree; the sources www/scripts/published-files.json names,
 # as their folder and suffix; the files the site's data names outside www/ that it copies in (the operator logos,
-# the rolling stock photos: its _vendor_logo and MIRROR_PREFIXES); and what the six steps whose pages and data it builds read (tables-browser,
-# repo-guide, jmri-additions, pipeline-map, layout-index, layout-index-cats: their inputs and quiet_inputs, in that order). tools/audit/tests/test_manifest_scans.py
+# the rolling stock photos: its _vendor_logo and MIRROR_PREFIXES); and what the seven steps whose pages and data it builds read (tables-browser,
+# repo-guide, jmri-additions, pipeline-map, layout-index, layout-index-cats, wiring-json: their inputs and quiet_inputs, in that order).
+# tools/audit/tests/test_manifest_scans.py
 # keeps this list equal to those.
 quiet_inputs = [
   "www/**",
@@ -889,4 +896,6 @@ quiet_inputs = [
   ".claude/commands/*.md", "*/AGENTS.md", "*/*/AGENTS.md", ".gitmodules",
   "jmri/layouts/hart/data/schematic/stations.csv", "jmri/layouts/hart/data/schematic/block_overrides.csv",
   "jmri/layouts/hart/scripts/render_le_layout.py", "cats/panels/HART_CTC.xml", "cats/scripts/render_cats_panel.py",
+  "tools/wiring/write_inventory.py", "jmri/layouts/hart/data/schematic/lcos_nodes.csv",
+  "jmri/layouts/hart/data/wiring.csv", "jmri/layouts/hart/output/signal_head_plan.csv",
 ]

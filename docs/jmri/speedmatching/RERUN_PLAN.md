@@ -105,7 +105,7 @@ scripts").
    back-EMF CVs before each run, and stop if they differ from the roster. Settle back-EMF before
    matching. Note the known decoder traps: Digitrax CV57 limits the lowest speed, and some TCS
    decoders stall at table values of 250 and up.
-6. **Measured correction.** `propose_table.py` currently assumes table entry k acts at step
+6. **Measured correction.** The 2026-11-08 [`propose_table.py`](../../../archive/docs/jmri/speedmatching/profile-2026-11-08/propose_table.py) assumes table entry k acts at step
    126k/28 and writes the table once. The new step: after the write, measure each anchor step
    again, adjust that entry by the measured error, write it on the main (Part C), and repeat
    until every anchor is within tolerance (default ±3%, about the top-end repeatability) or a

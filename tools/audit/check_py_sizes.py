@@ -31,10 +31,9 @@ LIMIT = 800
 # What it reads, as git globs (then in_scope); the step's quiet_inputs in tools/pipeline/checks.toml are these
 # (tools/audit/tests/test_manifest_scans.py)
 SCAN_GLOBS = ("**/*.py",)
-# Code this repo does not grow: vendored or submodule code, the archive, parked features (docs/parked/UNPARK.md)
-# and the third-party STRR speed-match scripts. The same set ruff.toml leaves out.
+# Code this repo does not grow: vendored or submodule code, the archive (the third-party STRR speed-match scripts
+# are there) and parked features (docs/parked/UNPARK.md). The same set ruff.toml leaves out.
 EXCLUDED = ("archive/", "external/", "reference/", "tools/cats/src-repo/", "jmri/layouts/hart/parked/")
-EXCLUDED_NAMES = ("docs/jmri/speedmatching/STRR_",)
 HEADER = ("path", "lines")
 
 
@@ -48,7 +47,7 @@ class Problem(NamedTuple):  # a NamedTuple, not a dataclass: tests load this fil
 
 
 def in_scope(path: str) -> bool:
-    return path.endswith(".py") and not path.startswith(EXCLUDED) and not path.startswith(EXCLUDED_NAMES)
+    return path.endswith(".py") and not path.startswith(EXCLUDED)
 
 
 def tracked(root: Path | None = None) -> list[str]:

@@ -49,6 +49,8 @@ STAMP = "hashes the file's bytes for a build stamp; reads no row"
 TEXT = "a text search for names (check_name_copies), not a read of the rows"
 PI = ("runs on the Pi with a copy of the file and no hartlib (tools/hosts/deploy/stage.sh); reads it by the label "
       "the name store writes")
+REF = ("the speed-match publisher's 2026-11-08 reference speeds: it runs on the Pi with a copy of the file and no "
+       "hartlib (tools/hosts/deploy/stage.sh), and the Mac dashboard reads the same file")
 
 # script -> {data file name: reason}. Only what the scan finds; a pair no longer found fails.
 MESSAGE = "names the path in a message only (the rows come from another module)"
@@ -61,6 +63,8 @@ ALLOWED: dict[str, dict[str, str]] = {
     "jmri/layouts/hart/scripts/infer_block_lengths.py": {
         "block_lengths.csv": WRITES + ": --apply rewrites the timed rows' measured lengths, every column kept"},
     "jmri/layouts/hart/scripts/speedmatch/analyze.py": {"block_lengths.csv": PI},
+    "jmri/layouts/hart/scripts/speedmatch/dashboard/dashsources.py": {"speed_by_step_2026-11-08.csv": REF},
+    "jmri/layouts/hart/scripts/speedmatch/dashboard/publish_live.py": {"speed_by_step_2026-11-08.csv": REF},
     "ops/hart-ops/card_pipeline/locos.py": {"new_locos.json": WRITES + "; the card pipeline adds to the import list"},
     "tools/audit/check_name_copies.py": {
         n: TEXT for n in ("block_numbering.csv", "discovered_sml.xml", "mast_cells.csv", "masts.csv",
