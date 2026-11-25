@@ -42,6 +42,13 @@ Documents about the CATS Digicon CTC desks, how their signals and turnouts get t
 - [history/README.md](ctc/history/README.md): Index of the dated screenshots kept to show how the USS CTC, CATS and Layout Editor panels grew, used for the evolution videos
 - Plus 22 image, css or script files
 
+## data
+
+Items inside a cell are separated by `;`, so the file needs no quoting
+
+- [README.md](data/README.md): Items inside a cell are separated by `;`, so the file needs no quoting
+- Other files: [entities.csv](data/entities.csv)
+
 ## hosts
 
 - [PI_OS_REBUILD.md](hosts/PI_OS_REBUILD.md): The layout Pi runs the new 64-bit Raspberry Pi OS (trixie) card since 2026-11-23, built from scripts and config files in the repo; the old bookworm card is...
