@@ -16,6 +16,13 @@
 # sensor after TO_S, whose lighting ends the pass), PATH (the sensors FROM_S .. TO_S the loco is
 # expected to light, in order; any other route sensor lighting after FROM_S and before TO_S is
 # the wrong way and ends the run), MAX_S, STALL.
+# Never runs: the names make_job.py puts in front of this file (its settings and jobkit.py), listed for pyflakes
+# (ruff's undefined-name rule) so a misspelt name fails the check. job_settings stands for the settings.
+if False:
+    import time, threading, os, java
+    from jobkit import (HOOK, L, SL, ab, check_guards, claim, end_job, last, request_throttle, scan, set_direction, why)
+    from job_settings import (AFTER_S, FROM_S, FUNCS, GUARD, MAX_S, ORDER, PATH, P_FWD, P_ID, P_STEP, ROUTE,
+        STALL, TO_S)
 seen = {}   # sensor -> True once it lit after the loco was sent off
 go = [False]
 def on_active(n, now):
@@ -54,8 +61,8 @@ def run():
             if time.time() - t0 > MAX_S: why[0] = "max"; break
             if time.time() - last[0] > STALL: why[0] = "stalled"; break
             time.sleep(0.1)
-    except java.lang.Throwable, e: why[0] = why[0] or "error"; L("ERROR %s" % e)
-    except Exception, e: why[0] = why[0] or "error"; L("ERROR %s" % e)
+    except java.lang.Throwable as e: why[0] = why[0] or "error"; L("ERROR %s" % e)
+    except Exception as e: why[0] = why[0] or "error"; L("ERROR %s" % e)
     finally:
         go[0] = False
         L("PASSDONE reason=%s" % (why[0] or "ended").replace(" ", "_"))

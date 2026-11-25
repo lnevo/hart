@@ -18,21 +18,41 @@ the check is the re-measure, then a full read-back on the programming track at t
 A POM read without RailCom fails the same way, so old values usually come from the ledger
 or the roster.
 
+## Ledger commands on the Pi
+
+The ledger lives on the Pi, in the folder `speedmatch.py ledger-dir` prints: `speedmatch/ledger`
+in the Pi's home, the parent of `HART_PI_USERFILES` (`/home/pi/speedmatch/ledger` by default).
+The writer uses that folder, and every ledger command gets it as `--ledger-dir`. The commands
+need `pom_guard.py` and `pom_guard_cli.py` in `/tmp/speedmatch` on the Pi. A `speedmatch.py pom`
+drop leaves them there, but a ledger step can come before any drop, so copy them first:
+
+```
+S=jmri/layouts/hart/scripts/speedmatch
+LD=$(python3 $S/speedmatch.py ledger-dir)
+ssh pi 'mkdir -p /tmp/speedmatch'
+scp $S/pom_guard.py $S/pom_guard_cli.py pi:/tmp/speedmatch/
+ssh pi "python3 /tmp/speedmatch/pom_guard.py seed-ledger 'CSX 2738' /tmp/preflight_CSX_2738_<time>.log --ledger-dir $LD"
+ssh pi "python3 /tmp/speedmatch/pom_guard.py clear-ledger 'CSX 2738' CV68 --ledger-dir $LD"
+ssh pi "python3 /tmp/speedmatch/pom_guard.py archive-ledger 'CSX 2738' --ledger-dir $LD"
+```
+
 ## Checklist before an apply
 
 1. PanelPro running on the Pi, the owner not operating, only the test loco on the track.
 2. **Break every consist involving the target** with `tools/ops/cs105.sh consist detach LEAD FOLLOW`,
    including any led by an address that is not in the roster. The guard queries every
    rostered loco's train node, but it cannot list consists led by unrostered addresses, so
-   apply also needs `CONSISTS_BROKEN = True` as your confirmation (it is logged).
+   apply also needs `CONSISTS_BROKEN = True` (`--consists-broken`) as your confirmation (it is logged).
 3. **Read the decoder on the programming track first** (the Part B preflight) and seed the
    ledger from that log, so old values are real reads, not roster values that may be
    decoder-definition defaults:
-   `python3 pom_guard.py seed-ledger "CSX 2738" preflight.log` (on the Pi). The log is JSON
+   `seed-ledger` on the Pi ([Ledger commands on the Pi](#ledger-commands-on-the-pi): copy the
+   guard first, then run it with `--ledger-dir`). The log is JSON
    (`{"roster_id": .., "cvs": {cv: value}}`) or text with one `CV<n> = <value>` per line.
    Without that, an apply that would take any old value from the roster needs
-   `ROSTER_OLD_OK = True` (logged), and the plan marks those rows `roster (may be a default)`.
-4. A dry run first (`APPLY = False`), and read its `PLAN` and `WARNING` lines.
+   `ROSTER_OLD_OK = True` (`--roster-old-ok`, logged), and the plan marks those rows `roster (may be a default)`.
+4. A dry run first (`speedmatch.py pom` without `--apply`), and read its `PLAN` and `WARNING`
+   lines.
 5. Any CV29 change (speed table on or off) is done on the programming track, not here.
 
 ## What it refuses, and why
@@ -71,7 +91,7 @@ stop, throttles, turnouts or MQTT.
 
 Without RailCom the roster is the only record of a decoder, and it goes stale as soon as a
 write on the main lands. So the guard keeps a ledger per loco
-(`~/speedmatch/ledger/<roster id>.json` on the Pi, set with `LEDGER_DIR`): per CV, the last
+(`<roster id>.json` in the folder `speedmatch.py ledger-dir` prints, on the Pi; the writer's `LEDGER_DIR`): per CV, the last
 value read from the decoder (`read`) or sent with an OK reply (`sent`), or `unknown`. Every
 entry carries a sequence number from a counter in the ledger, not a clock. Reads from any run,
 dry runs included, are recorded there. Old values, for the plan and the rollback file, come in
@@ -91,8 +111,11 @@ update the roster (Pi first, then sync), then move the ledger aside so the next 
 from the roster:
 
 ```
-python3 pom_guard.py archive-ledger "CSX 2738"        # moves CSX_2738.json to CSX_2738.<time>.json
+ssh pi "python3 /tmp/speedmatch/pom_guard.py archive-ledger 'CSX 2738' --ledger-dir $LD"
 ```
+
+It moves `CSX_2738.json` to `CSX_2738.<time>.json` (`$LD` and the copy step as in
+[Ledger commands on the Pi](#ledger-commands-on-the-pi)).
 
 ## Recovering from a failed or timed-out write
 
@@ -111,10 +134,11 @@ ledger. Writes before it stand. To roll back: 1) python3 pom_guard.py clear-ledg
 
 1. `clear-ledger` (validated like any ledger load) accepts that CV68's value is not known.
    Its old value then comes from the roster, marked `roster (may be a default)`, so the
-   rollback apply needs `ROSTER_OLD_OK = True`; or read CV68 on the programming track and
+   rollback apply needs `--roster-old-ok`; or read CV68 on the programming track and
    `seed-ledger` instead.
-2. Copy the partial rollback file to the Pi as `proposal.json` and drop the writer with
-   `APPLY = True`, `CONSISTS_BROKEN = True` and a new `ROLLBACK` name.
+2. Fetch the partial rollback file (`speedmatch.py drop --fetch <its path>`) and apply it as the
+   proposal: `speedmatch.py pom <file> --apply --consists-broken --send`, which picks a new
+   rollback name.
 
 Without step 1 the rollback is refused too, so an unknown CV is never planned by accident.
 
@@ -146,33 +170,38 @@ value) or `REFUSED <reason>`. It never writes.
 
 ## Dry run and apply on the Pi
 
-Copy the files, then drop the writer through `jmri_cmd_watcher` with its settings first (same
-pattern as `tools/ops/cs105.sh`):
+`speedmatch.py pom` (`jmri/layouts/hart/scripts/speedmatch/speedmatch.py`, or
+`make speedmatch ARGS="pom ..."`) builds the drop and sends it through `drop_job.sh`:
 
 ```
-ssh pi 'mkdir -p /tmp/speedmatch /home/pi/speedmatch/ledger'
-scp jmri/layouts/hart/scripts/speedmatch/pom_guard.py \
-    jmri/layouts/hart/scripts/cs105_consist.py proposal.json pi:/tmp/speedmatch/
-{ cat <<'EOF'
-PROPOSAL = "/tmp/speedmatch/proposal.json"
-GUARD_PATH = "/tmp/speedmatch/pom_guard.py"
-CONSIST_SCRIPT = "/tmp/speedmatch/cs105_consist.py"
-ABSENT_OK = []
-CONSISTS_BROKEN = False
-ROSTER_OLD_OK = False
-LOGF = "/tmp/pom_write.log"
-ROLLBACK = "/home/pi/speedmatch/rollback_2738_20261113T1500.json"
-APPLY = False
-EOF
-  cat jmri/layouts/hart/scripts/speedmatch/pom_write.py; } > /tmp/pom_drop.py
-scp /tmp/pom_drop.py pi:/tmp/jmri_cmd.py.tmp && ssh pi 'mv /tmp/jmri_cmd.py.tmp /tmp/jmri_cmd.py'
-ssh pi cat /tmp/pom_write.log      # repeat until the last line is END
+S=jmri/layouts/hart/scripts/speedmatch/speedmatch.py
+python3 $S pom proposal.json --send                      # dry run
+python3 $S drop --fetch /tmp/pom_write.log               # repeat until the last line is END
+tools/hosts/operating.sh off                             # the run is over
+python3 $S pom proposal.json --apply --consists-broken --send   # the write; add --roster-old-ok if needed
 ```
+
+It checks the proposal with the guard on the Mac first, then writes `/tmp/pom_drop.py` (`--out`
+changes it): the settings `pom_write.py` reads, the files it needs (`pom_guard.py`,
+`pom_guard_cli.py`, `cs105_consist.py` and the proposal, unpacked into `/tmp/speedmatch` on the Pi
+before the writer starts), then `pom_write.py` itself. Without `--send` nothing leaves the Mac. The
+rollback file and the ledger go in `~/speedmatch` beside the Pi's user files (`HART_PI_USERFILES`,
+read as `tools/env/load_env.sh` reads it); `--rollback NAME` names the rollback file, and by
+default it is `rollback_<loco>_<time>.json`. It prints the ledger folder and the ledger commands'
+`--ledger-dir`, the same folder `speedmatch.py ledger-dir` prints.
+
+`--send` goes through `drop_job.sh` and its gates, the same as a speed run: no drop while the owner
+is operating, while another command waits for the watcher, while a runner is active
+(`/tmp/speedrun.active`) or while a kill flag is left (`/tmp/speedrun.kill`). It never passes
+`--force`. The drop sets the operating flag (`--by speedmatch`); clear it once the log shows
+`END`. The writer itself holds `/tmp/speedrun.active` from its start to `END`, as the runners do,
+so no runner job is sent while it writes, and it refuses to start while a runner holds it. `speedmatch.py drop --kill` stops a runner, not a POM write: the writer stops itself at the
+first write that is not OK.
 
 The consist query covers every roster loco, about 1.5 s each. A loco whose train node does not
-answer (never driven since the CS-105 last started) refuses the run; add its roster id to
-`ABSENT_OK` only when that loco is not on the layout. The dry run also saves
-`<ROLLBACK>.dryrun`. To write, drop it again with `APPLY = True` and `CONSISTS_BROKEN = True`
-(both exactly `True`, plus `ROSTER_OLD_OK = True` if any old value is from the roster) and a new `ROLLBACK` name. The log then shows `ROLLBACK written`, one
+answer (never driven since the CS-105 last started) refuses the run; pass `--absent-ok "NWR 06"`
+only when that loco is not on the layout. The dry run also saves `<ROLLBACK>.dryrun`. An apply
+needs `--apply` and `--consists-broken`, plus `--roster-old-ok` if any old value is from the roster,
+and a rollback name not used before. The log then shows `ROLLBACK written`, one
 `WRITE CVn=v OK|FAILED|TIMEOUT` line per CV, and `DONE` or `STOPPED at ...`. Afterwards make
 the consist again with `tools/ops/cs105.sh consist attach`, once per side.
