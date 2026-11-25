@@ -1,5 +1,6 @@
 # Status log
 
+Updated: 2026-11-25 — Baselines cleaned up (owner): the four historical 2026-08-20 check snapshots and the empty `sml_sections.csv` are removed, since nothing read them; they stay in git history.
 Updated: 2026-11-25 — Naming follow-ups merged and deployed: a detector and a head swap by their field rows alone passed `make panelpro-test` in a sandbox (#1113); `publish_draft --check` keys on hartlib code and crossover halves rename by their row (#1114); the layout docs page reads switch and station names from the data (#1112, #1115). The SOQ tests are retired (frozen).
 Updated: 2026-11-25 — Layout docs switch and station names (owner, 2026-11-25): the template names switches by turnout ID (`{{turnout:switch:3}}`, `{{dcc:switch:3}}`) and stations by a switch they hold (`{{station:switch:5}}`, from `stations.csv`); the section list's "Turnout n" and the crossover list take the turnout's number from the device master; `--check` stops when plans P0 to P5 label other switch numbers than the master's. The only page change: the indication photo's caption said Switch 3 was DCC address 102; the device master has 101 (102 is Switch 5). Replaced in STATUS: "takes its section list, track names (by block ID from the device master), lengths and crossovers from the live data ..., so a rename in `devices_field.csv` reaches it;".
 
