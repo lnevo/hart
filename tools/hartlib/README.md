@@ -279,7 +279,8 @@ the name map's copy (2026-11-21): their facts are in `cp`, `system_name`, `dcc`,
   detector, closed or thrown on a turnout; `level_devices.START_ENUM` gives the JMRI word for the startup LogixNG);
   `bean_comment` is the bean's JMRI comment, in the words of `level_devices.LEVEL_COMMENT`, `sensor_comment` and
   `signal_note`. `build_device_map.py` writes both (`device_map_rows.bean_cells`); staging rows leave them empty,
-  their comment is `tables_build.bean_comment`'s. Step 11 makes every bean from the row and unifies the words.
+  their comment is `tables_build.bean_comment`'s. `tables_build.master_beans` reads both (step 10); step 11 makes
+  every bean there and unifies the words.
 
 ### `hartlib.tables_build`
 
@@ -289,8 +290,18 @@ the name map's copy (2026-11-21): their facts are in `cp`, `system_name`, `dcc`,
 - `read_template()`: `jmri/layouts/hart/data/tables_template.xml`, what PanelPro owns (settings, memories, the clock
   sensor, the "Hide windows on start" LogixNG), in JMRI's format, every section of `SECTIONS` once and in order, with
   the fixed envelope (`PROLOG`, `EPILOG`) and none of what a Store writes each time (`ENVELOPE_DROPS`).
-- `base()`: the template with the staging beans of the device master (`master_beans`), comments from the wiring columns
-  (`bean_comment`), each section in JMRI's system-name order (`jmri_order`). `build_layout_le.py` draws on it.
+- `base()`: the template with the staging beans of the device master (`master_beans`), each section in JMRI's
+  system-name order (`jmri_order`). `build_layout_le.py` draws on it.
+- `master_beans(rows, lengths, levels=GENERATED_LEVELS)`: each row's beans from its columns alone (naming-layers step
+  10): its layer gives which (`LAYER_BEANS`), `bean_name` the system name (`system_name` on a field row, else
+  `jmri_name`), `row_comment` the comment (`bean_comment` where set, else the wiring columns' `bean_comment()`),
+  `turnout_feedback` TWOSENSOR on the turnout's two `fb:<n>:R|N` rows of its level when both give beans and DIRECT
+  when neither does, `alias_is_turnout` no bean for an LCC alias that names its turnout's bean, and `start_actions`
+  an ActionSensor or ActionTurnout (`start_action`, the shape `le_tables.add_level_clear` uses) for each virtual row
+  with a `start`, under `START_ACTIONS`. A block takes the detector that names it on any level run, so a helix block
+  is bound to its main or upper sensor. `build_tables.py` still runs staging alone (`GENERATED_LEVELS`); run over
+  every level, it makes every main and upper bean of `tables.xml` but the startup LogixNG's frame
+  (`test_bean_goldens.MasterBeansOnEveryLevel`), which step 11 adds.
 - `read_discovered()` / `discovered_from_store()` / `write_discovered()` / `merge_discovered()`:
   `data/schematic/discovered_sml.xml`, the Signal Mast Logic and mast properties stock discovery wrote. Only
   `build_tables.py --discovered-from STORE` (run by `run_sml_discover.sh`) writes it.
