@@ -101,10 +101,17 @@ The six jobs that always ran now record, and stay current on a no-change run: `t
 
 Merged: #1078 (item 1), #1080 (item 2), #1082 (item 3b); item 3a measured only. The first run after #1082 on each host runs every job once (the trace hook changed every key: 258 s here), and the next no-change run still ran 31 jobs (62 s) before settling at 7 s; why that second run did not skip is not checked.
 
-**Left, not in this plan:**
+**Left, not in this plan** (the first two closed in #1084, below; the third left as it is):
 - `check_stamps.py audit-report` lists 7 jobs that read folders outside their declarations: test_agent_docs_cells, test_agent_docs_map, test_ai_speak, test_helix_stl_index, test_pipeline_map, test_public_text, test_status_merge (traced reads, so their stamps hold them; nothing gates on the report).
 - `test_deploy_stage` stages from a clone of the committed HEAD while its stamp hashes the working tree, so committing an edit already in the tree does not rerun it.
 - `test_redeploy_commit` reruns whenever a worktree is added or removed (its key holds `git worktree list`).
+
+## Loose ends closed (2026-11-24, #1084)
+
+- **Why the second no-change run ran 31 jobs:** in a fresh worktree the panel check (`build_panels.sh`, in `static`) makes `.cache/panel-stamps` about 10 s into the run. The quick `unit-jmri` jobs that list the root passed before that and recorded a root listing without `.cache`, so the next run reran them ("listed . changed"); the jobs running at that moment recorded nothing ("not stamped: . changed while the job ran"). Reproduced with a private `CHECK_STAMPS_DIR`: 31 jobs with "listed . changed" and 7 with no stamp. `check.sh` now makes `$ROOT/.cache` before any job starts. The fix is in `check.sh` and not in `traced.listing()`, because `traced.py` is in every `make panels` step's key. The 7 "HEAD, origin/main ... changed while the job ran" of the first measurement did not happen again and are not explained; origin/main moving during a run (another session's merge) would cause them.
+- **Measured on the fix (the Mac, private stamp folder, `.cache` removed first, under the timing lock):** warm-up 344 s, no "not stamped" (load 12 at the start, 85 at the end); the next no-change run 22 s, 202 of 204 jobs skipped, 1 run: `test_redeploy_commit`, because a commit in another worktree during the warm-up changed `git worktree list` (the rerun left as it is).
+- **The 7 UNCOVERED jobs** now declare what the audit (`CHECK_AUDIT=DIR FULL=1`, Windows) saw them read: `test_agent_docs_cells` `wiki/**/*`; `test_agent_docs_map` `.gitmodules`; `test_ai_speak` `check_ai_speak.DEFAULT_GLOBS` (a test keeps them equal); `test_helix_stl_index` `docs/benchwork/helix/stl/**/*`; `test_pipeline_map` `.gitmodules` and `ops/hart-ops/card_pipeline/**/*`; `test_public_text` `ops/hart-ops/card_pipeline/**/*`; `test_status_merge` `wiki/STATUS.md` and `.gitattributes`. A new audit on the branch reports none. The docs-only guard lists three of them in LEFT_OUT, with reasons; none was added to `docs_checks.sh`.
+- **`test_deploy_stage`** keys on HEAD (`REFS_OF`), so committing an edit already in the tree reruns it. Any other commit reruns it too (36 s), and a pull request CI run never skips it.
 
 ## Owner decisions (2026-11-24)
 
