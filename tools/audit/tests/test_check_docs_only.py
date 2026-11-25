@@ -23,7 +23,7 @@ manifest = check_stamps.pm      # tools/pipeline/manifest.py, as the stamps load
 
 # check.sh's variables that pick a path; the tests start each run without them.
 PATH_VARS = ("CI", "FULL", "CHECK_ONLY", "CHECK_AUDIT", "HART_TABLES", "PORTAL_CHECK", "CHECK_RECORD_TO",
-             "CHECK_SKIP_FROM", "CHECK_SKIP_NOTE", "PYTHONPATH")
+             "CHECK_SKIP_FROM", "CHECK_SKIP_NOTE", "CHECK_STAMPS_DIR", "PYTHONPATH")
 # Stand-ins for what check.sh calls before and on the docs path: the plugin pin guard (STUB_PIN stops the run there,
 # before any job, so a full-path run ends at once) and the docs checks (they print what they were given).
 GUARD_STUB = 'hart_plugin_pin_problem() { echo "${STUB_PIN:-}"; }\n'
@@ -240,7 +240,7 @@ class OneList(unittest.TestCase):
         self.assertIn("if: steps.kind.outputs.kind == 'docs'", step)
         self.assertIn("run: bash tools/ci/docs_checks.sh", step)
         self.assertNotIn("python3 ", step, "a docs check listed in the workflow, not in tools/ci/docs_checks.sh")
-        self.assertIn('bash tools/ci/docs_checks.sh', (ROOT / "tools/check.sh").read_text(encoding="utf-8"))
+        # check.sh's docs-only path runs the same script: CheckSh.test_a_docs_only_branch_takes_the_quick_path_...
 
     def test_each_docs_check_is_also_in_the_full_run(self) -> None:
         """The docs path skips the full run, so its checks must be ones the full run makes too: the manifest's
@@ -251,12 +251,11 @@ class OneList(unittest.TestCase):
         for step in docs:
             with self.subTest(step.name):
                 self.assertTrue(step.group == "static" or (not step.group and step.name != "portal"))
-        text = (ROOT / "tools/ci/docs_checks.sh").read_text(encoding="utf-8")
-        self.assertIn("python3 tools/pipeline/manifest.py jobs check --docs-only", text)
-        by_hand = [line for line in text.splitlines() if line.startswith("check ") and " -m unittest " not in line]
-        self.assertEqual([], by_hand, "a docs check listed by hand: mark its step docs_only in tools/pipeline/checks.toml")
+        # that docs_checks.sh takes them from the manifest and lists none by hand: the next test runs it
 
     def test_docs_checks_runs_every_check_and_fails_when_one_did(self) -> None:
+        """Every check it runs is a docs-only step of the manifest (asked for with exactly those arguments) or one of
+        its unit test lines: a check listed by hand would be one heading more."""
         docs = manifest.select(manifest.load(), "check", docs_only=True)
         with tempfile.TemporaryDirectory() as d:
             repo = Path(d)
@@ -269,7 +268,8 @@ class OneList(unittest.TestCase):
             # check only
             (bin_dir / "python3").write_text(
                 '#!/usr/bin/env bash\n'
-                f'if [[ "$1" == tools/pipeline/manifest.py ]]; then cat "{repo}/lines"; exit 0; fi\n'
+                f'if [[ "$*" == "tools/pipeline/manifest.py jobs check --docs-only" ]]; then cat "{repo}/lines"; exit 0; fi\n'
+                'if [[ "$1" == tools/pipeline/manifest.py ]]; then echo "manifest.py: not the docs-only list: $*" >&2; exit 1; fi\n'
                 'echo "ran $1"\n[[ "$1" != *check_ai_speak.py ]]\n')
             (bin_dir / "python3").chmod(0o755)
             env = {**os.environ, "PATH": f"{bin_dir}:{os.environ['PATH']}"}
@@ -278,6 +278,8 @@ class OneList(unittest.TestCase):
                                   text=True, timeout=30)
             self.assertEqual(1, done.returncode)
             self.assertEqual(len(docs) + len(docs_unit_tests()), len(re.findall(r"^ran ", done.stdout, re.M)),
+                             done.stdout)
+            self.assertEqual(len(docs) + len(docs_unit_tests()), len(re.findall(r"^--- ", done.stdout, re.M)),
                              done.stdout)
             self.assertIn("quick docs checks FAILED: ai-speak", done.stdout)
 

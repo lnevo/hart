@@ -622,6 +622,24 @@
    "path": "cats/data/occupancy_bindings.csv"
   },
   {
+   "id": "cats/data/hart_trains.csv",
+   "label": "hart_trains.csv",
+   "kind": "output",
+   "status": "live",
+   "domain": "layout",
+   "desc": "The CATS train list as a flat CSV (name, symbol, engine, font, runs_job, notes), written from trains.csv by build_hart_trains.py; never edited by hand.",
+   "path": "cats/data/hart_trains.csv"
+  },
+  {
+   "id": "cats/data/generated_desk_header.xml",
+   "label": "generated_desk_header.xml",
+   "kind": "structured",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Fonts, templates, train, job and crew stores and the publication plate of the CATS desks, frozen from the hand-wired desk; its train list must match trains.csv (check_train_symbols.py).",
+   "path": "cats/data/generated_desk_header.xml"
+  },
+  {
    "id": "cats/panels/HART_ABS.xml",
    "label": "HART_ABS.xml",
    "kind": "output",
@@ -645,7 +663,7 @@
    "kind": "output",
    "status": "live",
    "domain": "layout",
-   "desc": "HART_CTC.xml and HART_ABS.xml CATS desk panels shipped to hosts; checked by layout-facts and validate_cats_panel.",
+   "desc": "HART_CTC.xml and HART_ABS.xml CATS desk panels shipped to hosts; checked by layout-facts, the panels check (cats --check, approved-desks) and the CATS tests.",
    "path": "cats/panels/HART_CTC.xml"
   },
   {
@@ -665,16 +683,6 @@
    "domain": "layout",
    "desc": "Renders the Digicon panel image used with CATS hotspot index.",
    "path": "cats/scripts/render_cats_panel.py"
-  },
-  {
-   "id": "cats/scripts/validate_cats_panel.py",
-   "label": "validate_cats_panel.py",
-   "kind": "generator",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Validates desks (make desks and check.sh); with cats_turnout_io and digicon_lib loaders.",
-   "path": "cats/scripts/validate_cats_panel.py",
-   "gen": "manifest"
   },
   {
    "id": "docs/jmri/speedmatching",
@@ -2010,6 +2018,15 @@
    "path": "ops/hart-ops/data/locos.csv"
   },
   {
+   "id": "ops/hart-ops/data/trains.csv",
+   "label": "trains.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Train master keyed on train_symbol (ADR-039): CATS name, engine, font, runs_job, the Operations Pro name when it differs; column rules in trains.columns.csv.",
+   "path": "ops/hart-ops/data/trains.csv"
+  },
+  {
    "id": "ops/hart-ops/data/industries.csv",
    "label": "industries.csv",
    "kind": "structured",
@@ -2424,7 +2441,7 @@
    "status": "live",
    "domain": "website",
    "desc": "Crew pages and spot sheet data; schematic revision and effective date are written by map_revision.py.",
-   "path": "www/data"
+   "path": "www/data/crew.json"
   },
   {
    "id": "www/data/fleet-gallery.json",
@@ -3633,7 +3650,7 @@
    "kind": "output",
    "status": "live",
    "domain": "extras",
-   "desc": "tools/check.sh job stamps (check_stamps.py): content hashes of a job's declared inputs; a job whose inputs match its last pass is skipped (not in CI, not with FULL=1) (#880).",
+   "desc": "tools/check.sh job stamps (check_stamps.py): content hashes of a job's declared inputs; a job whose inputs match its last pass is skipped (not in CI, not with FULL=1) (#880). On the Windows box each ref of make remote has its own copy (check-stamps-by-ref/, win_run.sh).",
    "path": ""
   },
   {
@@ -3782,6 +3799,26 @@
    "domain": "layout",
    "desc": "Checks every master CSV against its <name>.columns.csv sidecar: types, enum values, required cells, unique keys and references into other masters (ADR-039).",
    "path": "tools/ops/check_data.py",
+   "gen": "manifest"
+  },
+  {
+   "id": "cats/scripts/build_hart_trains.py",
+   "label": "build_hart_trains.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Writes the CATS train list cats/data/hart_trains.csv from the train master trains.csv, in the CATS file's own columns (ADR-039); --check.",
+   "path": "cats/scripts/build_hart_trains.py",
+   "gen": "manifest"
+  },
+  {
+   "id": "tools/audit/check_train_symbols.py",
+   "label": "check_train_symbols.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Checks that crew.json's crew job codes, the Operations Pro train names and the CATS desks' train list name trains of trains.csv (ADR-039).",
+   "path": "tools/audit/check_train_symbols.py",
    "gen": "manifest"
   },
   {
@@ -4191,27 +4228,6 @@
    "from": "cats/panels/HART_CTC.bindings.json",
    "to": "tools/hosts/sync_hart_package.sh",
    "label": "ships"
-  },
-  {
-   "from": "cats/panels/HART_CTC.xml",
-   "to": "cats/scripts/validate_cats_panel.py",
-   "label": "make desks check",
-   "side": "check",
-   "gen": "manifest"
-  },
-  {
-   "from": "cats/scripts/validate_cats_panel.py",
-   "to": "tools/check.sh",
-   "label": "check desks",
-   "side": "check",
-   "gen": "manifest"
-  },
-  {
-   "from": "cats/panels/HART_ABS.xml",
-   "to": "cats/scripts/validate_cats_panel.py",
-   "label": "make desks check",
-   "side": "check",
-   "gen": "manifest"
   },
   {
    "from": "cats/panels/HART_CTC.xml",
@@ -7881,6 +7897,11 @@
    "label": "edits (staging rows)"
   },
   {
+   "from": "human:owner-csv-edits",
+   "to": "ops/hart-ops/data/trains.csv",
+   "label": "edits"
+  },
+  {
    "from": "ops/hart-ops/bin/cars",
    "to": "jmri/layouts/hart/operations",
    "label": "publish: add cars, out-of-service; sync --apply: identity fields"
@@ -8764,6 +8785,70 @@
    "gen": "manifest"
   },
   {
+   "from": "ops/hart-ops/data/trains.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "cats/data/generated_desk_header.xml",
+   "to": "tools/schematic/build_cats_panel.py",
+   "label": "desk header"
+  },
+  {
+   "from": "ops/hart-ops/data/trains.csv",
+   "to": "cats/scripts/build_hart_trains.py",
+   "gen": "manifest"
+  },
+  {
+   "from": "cats/scripts/build_hart_trains.py",
+   "to": "cats/data/hart_trains.csv",
+   "gen": "manifest"
+  },
+  {
+   "from": "cats/scripts/build_hart_trains.py",
+   "to": "tools/check.sh",
+   "label": "check hart-trains",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/trains.csv",
+   "to": "tools/audit/check_train_symbols.py",
+   "label": "symbols",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "www/data/crew.json",
+   "to": "tools/audit/check_train_symbols.py",
+   "label": "job codes",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/operations",
+   "to": "tools/audit/check_train_symbols.py",
+   "label": "train names",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "cats/data/generated_desk_header.xml",
+   "to": "tools/audit/check_train_symbols.py",
+   "label": "desk train list",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/audit/check_train_symbols.py",
+   "to": "tools/check.sh",
+   "label": "check train-symbols",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
    "from": "ops/hart-ops/data/industries.csv",
    "to": "tools/ops/check_data.py",
    "label": "rules",
@@ -8816,6 +8901,13 @@
    "from": "tools/ops/check_locos.py",
    "to": "tools/check.sh",
    "label": "check loco-refs",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "cats/data/hart_trains.csv",
+   "to": "tools/ops/check_locos.py",
+   "label": "train list",
    "side": "check",
    "gen": "manifest"
   },

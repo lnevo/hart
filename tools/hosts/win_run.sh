@@ -18,6 +18,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 source "$ROOT/tools/env/load_env.sh"
+source "$ROOT/tools/hosts/profile_tables_guard.sh"     # hart_cache_dir, sent to Windows below
 WIN="${HART_WIN_SSH:?HART_WIN_SSH is not set}"
 PORT="${HART_WIN_SSH_PORT:-2222}"
 DISTRO="${HART_WIN_WSL_DISTRO:-Ubuntu-24.04}"
@@ -36,6 +37,30 @@ while [[ $# -gt 0 ]]; do
 done
 [[ $# -gt 0 ]] || { echo "win_run.sh: no command given (try --help)" >&2; exit 2; }
 
+# --- stamp name (tests run this block alone)
+# stamp_name GITDIR REF SHA prints the name of REF's stamp folder on Windows: "main" for main (its runs keep the shared
+# folder), else the branch name with every character but letters, digits, - and _ made _, cut to 60, and the first 10
+# hex of git's hash of the full name (so a/b and a_b get two folders); REF that names no local or remote-tracking
+# branch (a commit, a tag, HEAD~1) gives SHA.
+stamp_name() {
+  local branch="" safe LC_ALL=C     # bytes, not the locale's letters: é is two _, as on every machine
+  if git -C "$1" show-ref --verify -q "refs/heads/$2"; then branch="$2"
+  elif git -C "$1" show-ref --verify -q "refs/remotes/$2"; then branch="${2#*/}"
+  fi
+  if [[ -z "$branch" ]]; then
+    [[ "$3" =~ ^[0-9a-f]{40}$ ]] || { echo "win_run.sh: $3 is not a commit sha (for $2's stamp folder)" >&2; return 2; }
+    echo "$3"; return 0
+  fi
+  if [[ "$branch" == main ]]; then echo main; return 0; fi
+  safe="${branch//[^A-Za-z0-9_-]/_}"
+  echo "${safe:0:60}-$(printf '%s' "$branch" | git hash-object --stdin | cut -c1-10)"
+}
+# --- end stamp name
+
+if [[ -z "$ref" ]]; then
+  ref="$(git -C "$ROOT" rev-parse --abbrev-ref HEAD)"
+  [[ "$ref" != HEAD ]] || ref="$(git -C "$ROOT" rev-parse HEAD)"
+fi
 if [[ $print_script -eq 0 ]]; then
 # operating.sh status: 0 = set, 1 = clear. Anything else (broken, missing) counts as set: fail closed.
 flag_rc=0
@@ -46,10 +71,6 @@ if [[ $flag_rc -ne 1 ]]; then
 fi
 
 # The commit to run: the branch's (or REF's), which origin must have.
-if [[ -z "$ref" ]]; then
-  ref="$(git -C "$ROOT" rev-parse --abbrev-ref HEAD)"
-  [[ "$ref" != HEAD ]] || ref="$(git -C "$ROOT" rev-parse HEAD)"
-fi
 sha="$(git -C "$ROOT" rev-parse --verify "$ref^{commit}")" || { echo "win_run.sh: unknown ref $ref" >&2; exit 2; }
 if ! git -C "$ROOT" fetch -q origin; then
   echo "win_run.sh: could not fetch origin from the Mac; run the command on the Mac." >&2
@@ -65,6 +86,7 @@ fi
 else
   sha="$(git -C "$ROOT" rev-parse HEAD)"
 fi
+stamps="$(stamp_name "$ROOT" "$ref" "$sha")" || exit 2
 
 cmd="$(printf '%q ' "$@")"
 run_id="$(date +%Y%m%d-%H%M%S)-$$"
@@ -105,6 +127,67 @@ git -C "\$wt" config -f .gitmodules --get-regexp '\.path\$' | while read -r _ su
   fi
 done
 cd "\$wt"
+# --- stamps (tests run this block alone)
+# check.sh's stamps (tools/audit/check_stamps.py, CHECK_STAMPS_DIR). A shared folder was overwritten by whichever
+# branch ran last (2026-11-25: eleven stamps held reads of files only another branch has), so main's runs keep the
+# shared folder (<cache>/check-stamps) and each other ref gets <cache>/check-stamps-by-ref/<name>, copied from the
+# shared one on its first run: a copy, never a link, so one ref's records never change another's. A copied stamp is
+# safe: a job is skipped only when its key and every hash of its read set match this checkout (check_stamps.py
+# why_not_current, traced.mismatch). filehash.json is not copied: its keys are other runs' worktree paths.
+# Under one lock: folders untouched for 14 days are removed first, the copy goes to a temp folder that is renamed
+# into place, and the folder is touched, so two runs of one ref never see half a copy.
+$(declare -f hart_main_checkout hart_cache_dir)
+ref_stamps() {   # <shared> <by-ref folder> <name>: make or reuse <by-ref folder>/<name>; return 3 with a message
+  local shared="\$1" byref="\$2" dir="\$2/\$3" tmp="\$2/.\$3.tmp.\$\$" old removed=0 how f
+  local -a files=()
+  while IFS= read -r -d '' old; do
+    # an old folder that will not go is litter, not a reason to refuse the run: warn and go on
+    if rm -rf "\$old"; then removed=\$((removed + 1))
+    else echo "win_run.sh: warning: could not remove the old stamp folder \$old; remove it by hand" >&2; fi
+  done < <(find "\$byref" -mindepth 1 -maxdepth 1 -type d -mtime +13 -print0)
+  if [[ -d "\$dir" ]]; then
+    how="reused"
+  else
+    if [[ -d "\$shared" ]]; then
+      for f in "\$shared"/*.json; do
+        if [[ -f "\$f" && "\${f##*/}" != filehash.json ]]; then files+=("\$f"); fi
+      done
+    else
+      echo "win_run.sh: no shared stamps at \$shared yet; \$3 starts with none" >&2
+    fi
+    if ! { rm -rf "\$tmp" && mkdir "\$tmp"; }; then echo "win_run.sh: could not make \$tmp" >&2; return 3; fi
+    if (( \${#files[@]} )) && ! cp -- "\${files[@]}" "\$tmp/"; then
+      rm -rf "\$tmp"
+      echo "win_run.sh: could not copy the stamps of \$shared into \$dir; run the command again, or on the Mac." >&2
+      return 3
+    fi
+    f=\$(( \$(find "\$tmp" -maxdepth 1 -name '*.json' -type f | wc -l) ))   # BSD wc pads the number
+    if (( f != \${#files[@]} )); then
+      rm -rf "\$tmp"
+      echo "win_run.sh: copied \$f of \${#files[@]} stamps from \$shared; \$dir was not made" >&2
+      return 3
+    fi
+    if ! mv "\$tmp" "\$dir"; then rm -rf "\$tmp"; echo "win_run.sh: could not move \$tmp to \$dir" >&2; return 3; fi
+    how="new, \${#files[@]} stamps copied from \$shared"
+  fi
+  touch "\$dir" || { echo "win_run.sh: could not touch \$dir" >&2; return 3; }
+  echo "win_run.sh: stamps in \$dir (\$how; \$removed stamp folders untouched for 14 days removed)" >&2
+}
+shared="\$(hart_cache_dir "\$main" check-stamps)"
+if [[ "$stamps" == main ]]; then
+  export CHECK_STAMPS_DIR="\$shared"
+  echo "win_run.sh: stamps in \$shared (main's, shared)" >&2
+else
+  byref="\$(hart_cache_dir "\$main" check-stamps-by-ref)"
+  mkdir -p "\$byref" || { echo "win_run.sh: could not make \$byref; run the command on the Mac." >&2; exit 3; }
+  if ! ( flock 7 && ref_stamps "\$shared" "\$byref" "$stamps" ) 7>"\$byref/.lock"; then
+    echo "win_run.sh: the stamp folder $stamps was not set up (above); run the command on the Mac." >&2
+    exit 3
+  fi
+  export CHECK_STAMPS_DIR="\$byref/$stamps"
+  [[ -d "\$CHECK_STAMPS_DIR" ]] || { echo "win_run.sh: \$CHECK_STAMPS_DIR is missing after setup" >&2; exit 3; }
+fi
+# --- end stamps
 # --- ruff (tests run this block alone)
 # The ruff this commit pins (requirements.txt, read by tools/audit/check_ruff.py --pin), installed once per version in
 # ~/.cache/hart/ruff/<version> with uv and put first on PATH: runs of commits that pin other versions never share an

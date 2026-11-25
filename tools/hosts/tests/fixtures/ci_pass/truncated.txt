@@ -1,0 +1,92 @@
+﻿2026-11-25T22:20:34.5261113Z Current runner version: '2.338.2'
+2026-11-25T22:20:34.5285647Z ##[group]Runner Image Provisioner
+2026-11-25T22:20:34.5286525Z Hosted Compute Agent
+2026-11-25T22:20:59.3817263Z ##[group]Run ./tools/check.sh
+2026-11-25T22:20:59.3817584Z [36;1m./tools/check.sh[0m
+2026-11-25T22:20:59.3849966Z shell: /usr/bin/bash -e {0}
+2026-11-25T22:20:59.3850412Z env:
+2026-11-25T22:20:59.3850747Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-25T22:20:59.3851215Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.18/x64/lib/pkgconfig
+2026-11-25T22:20:59.3851701Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-25T22:20:59.3852103Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-25T22:20:59.3852498Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-25T22:20:59.3852904Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.18/x64/lib
+2026-11-25T22:20:59.3853252Z   SCHEMATIC_REQUIRED: 1
+2026-11-25T22:20:59.3853486Z   CHECK_SKIP_FROM: 
+2026-11-25T22:20:59.3853698Z   CHECK_SKIP_NOTE: 
+2026-11-25T22:20:59.3854004Z   CHECK_RECORD_TO: /home/runner/work/hart/hart/.cache/ci/main-stamps
+2026-11-25T22:20:59.3854473Z   CHECK_RESULTS_TO: /home/runner/work/_temp/check-results.tsv
+2026-11-25T22:20:59.3854811Z ##[endgroup]
+2026-11-25T22:25:39.1911747Z --- panels (69s)
+2026-11-25T22:25:39.1932217Z == hands
+2026-11-25T22:25:39.1990976Z switches.csv plan hands up to date
+2026-11-25T22:25:39.1991572Z    hands: ok, 0 s
+2026-11-25T22:25:39.1991946Z == staging-sets
+2026-11-25T22:25:39.1992468Z staging stations, control points and sheets are current
+2026-11-25T22:25:39.1993076Z    staging-sets: ok, 0 s
+2026-11-25T22:25:39.1993480Z == main-route
+2026-11-25T22:25:39.1993862Z plugin: submodule at 09bcf066
+2026-11-25T22:25:39.1994360Z main route and staging main lines are current
+2026-11-25T22:25:39.1994884Z    main-route: ok, 0 s
+2026-11-25T22:25:39.1995278Z == device-map
+2026-11-25T22:25:39.1995652Z plugin: submodule at 09bcf066
+2026-11-25T22:25:39.1996092Z    device-map: ok, 1 s
+2026-11-25T22:25:39.1996487Z == length-labels
+2026-11-25T22:25:39.1996879Z    length-labels: ok, 1 s
+2026-11-25T22:25:39.1997288Z == plan-lengths
+2026-11-25T22:25:39.1997681Z plugin: submodule at 09bcf066
+2026-11-25T22:25:39.1998397Z plan lengths: no plan file Lee Nevo Design Version 5.3c.any; the OS rows only are checked
+2026-11-25T22:25:39.1999179Z    plan-lengths: ok, 0 s
+2026-11-25T22:25:39.1999572Z == masts
+2026-11-25T22:25:39.1999916Z plugin: submodule at 09bcf066
+2026-11-25T22:25:39.2000528Z    masts: ok, 1 s
+2026-11-25T22:25:39.2001203Z == panel-items
+2026-11-25T22:25:39.2001580Z    panel-items: ok, 1 s
+2026-11-25T22:25:39.2001961Z == signals
+2026-11-25T22:25:39.2002306Z plugin: submodule at 09bcf066
+2026-11-25T22:25:39.2002780Z plugin: submodule at 09bcf066
+2026-11-25T22:25:39.2003240Z signals.json[staging] is current
+2026-11-25T22:25:39.2003716Z signals.json[main_upper] is current
+2026-11-25T22:25:39.2004189Z    signals: ok, 1 s
+2026-11-25T22:25:39.2004554Z == head-plan
+2026-11-25T22:25:39.2004932Z signal_head_plan.csv: current
+2026-11-25T22:25:39.2005375Z    head-plan: ok, 1 s
+2026-11-25T22:25:39.2005747Z == schematic
+2026-11-25T22:25:39.2006128Z plugin: submodule at 09bcf066
+2026-11-25T22:25:39.2006586Z plugin: submodule at 09bcf066
+2026-11-25T22:25:39.2007034Z Staging level: 0 drawing faults []
+2026-11-25T22:25:39.2007556Z main_upper: main track turns back at 225, 227
+2026-11-25T22:25:39.2008094Z Main level: 0 drawing faults []
+2026-11-25T22:25:39.2008586Z Upper level, 4.25 in: 0 drawing faults []
+2026-11-25T22:25:39.2009092Z mileposts: every 0.5 mile
+2026-11-25T22:25:39.2009537Z R12: 3 labels still have no free position
+2026-11-25T22:25:39.2010518Z /tmp/tmpk9d14mpx/sheet.svg: 257 labels, 12 label faults {'track': 9, 'symbol': 2, 'label': 1}
+2026-11-25T22:25:39.2011338Z plugin: submodule at 09bcf066
+2026-11-25T22:25:39.2011975Z Brick and Plane: switches 1, 3, 5 -> /tmp/tmpz_qnsibb/brick-and-plane.svg
+2026-11-25T22:25:39.2012829Z /tmp/tmpz_qnsibb/brick-and-plane.svg: 35 labels, 0 label faults {}
+2026-11-25T22:25:39.2013568Z Barn: switches 7, 9, 11, 13 -> /tmp/tmpz_qnsibb/barn.svg
+2026-11-25T22:25:39.2014505Z /tmp/tmpz_qnsibb/barn.svg: 35 labels, 0 label faults {}
+2026-11-25T22:25:39.2015316Z South Yard: switches 7, 9, 11, 13, 15, 17, 19, 21 -> /tmp/tmpz_qnsibb/south-yard.svg
+2026-11-25T22:25:39.2016148Z /tmp/tmpz_qnsibb/south-yard.svg: 51 labels, 0 label faults {}
+2026-11-25T22:25:39.2017127Z South Yard and East End: switches 15, 17, 19, 21, 23, 25, 27, 29, 31, 33 -> /tmp/tmpz_qnsibb/south-yard-and-east-end.svg
+2026-11-25T22:25:39.2018252Z /tmp/tmpz_qnsibb/south-yard-and-east-end.svg: 45 labels, 1 label faults {'track': 1}
+2026-11-25T22:25:39.2019190Z East End: switches 23, 25, 27, 29, 31, 33 -> /tmp/tmpz_qnsibb/east-end.svg
+2026-11-25T22:25:39.2019955Z /tmp/tmpz_qnsibb/east-end.svg: 41 labels, 0 label faults {}
+2026-11-25T22:25:39.2060624Z Princess: switches 35, 37, 39 -> /tmp/tmpz_qnsibb/princess.svg
+2026-11-25T22:25:39.2061413Z /tmp/tmpz_qnsibb/princess.svg: 38 labels, 0 label faults {}
+2026-11-25T22:25:39.2062404Z Staging level: switches 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39 -> /tmp/tmpz_qnsibb/staging-level.svg
+2026-11-25T22:25:39.2063450Z /tmp/tmpz_qnsibb/staging-level.svg: 106 labels, 0 label faults {}
+2026-11-25T22:25:39.2064697Z Main level: switches 101A, 101B, 103A, 103B, 105, 107, 109, 111, 113, 115, 117, 119A, 119B, 121A, 121B, 123, 125A, 125B, 127A, 129, 131A -> /tmp/tmpz_qnsibb/main-level.svg
+2026-11-25T22:25:39.2066050Z /tmp/tmpz_qnsibb/main-level.svg: 69 labels, 5 label faults {'symbol': 3, 'label': 2}
+2026-11-25T22:25:39.2067620Z Upper level: switches 127B, 131B, 201, 203, 205, 207, 209, 211A, 211B, 213, 215, 217A, 217B, 219, 221A, 221B, 223, 225, 227, 229, 231, 233, 235, 237, 239, 241, 243A, 243B, 245A, 245B -> /tmp/tmpz_qnsibb/upper-level.svg
+2026-11-25T22:25:39.2069183Z /tmp/tmpz_qnsibb/upper-level.svg: 110 labels, 5 label faults {'track': 3, 'label': 2}
+2026-11-25T22:25:39.2069950Z published draft is current
+2026-11-25T22:25:39.2070545Z station sheets are current
+2026-11-25T22:25:39.2071189Z station map pages carry the title block's revision and date
+2026-11-25T22:25:39.2071834Z    schematic: ok, 45 s
+2026-11-25T22:25:39.2072227Z == sml-current
+2026-11-25T22:25:39.2072603Z plugin: submodule at 09bcf066
+2026-11-25T22:25:39.2073327Z ok: jmri/layouts/hart/data/schematic/discovered_sml.stamp matches the discovery base
+2026-11-25T22:25:39.2074092Z    sml-current: ok, 3 s
+2026-11-25T22:25:39.2074471Z == tables
+2026-11-25T22:25:39.2074827Z plugin: submodule at 09bcf066

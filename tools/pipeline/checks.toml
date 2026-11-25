@@ -655,6 +655,7 @@ inputs = [
   { path = "ops/hart-ops/data/spot_assignments.csv", label = "rules", side = "check" },
   { path = "ops/hart-ops/data/HART_Spot_Waybills.csv", label = "rules", side = "check" },
   { path = "ops/hart-ops/data/locos.csv", label = "rules", side = "check" },
+  { path = "ops/hart-ops/data/trains.csv", label = "rules", side = "check" },
 ]
 # the sidecars it lists (check_data.SCAN_GLOBS)
 quiet_inputs = ["**/*.columns.csv"]
@@ -674,9 +675,40 @@ inputs = [
   { path = "ops/hart-ops/data/locos.csv", label = "master", side = "check" },
   { path = "jmri/layouts/hart/operations", label = "engine roster", side = "check" },
   { path = "ops/hart-ops/data/OperationsEngineRoster.xml", label = "snapshot roster", side = "check" },
+  { path = "cats/data/hart_trains.csv", label = "train list", side = "check" },
 ]
-# the train list: no map box yet (lane L4b adds it; then move it to inputs)
-quiet_inputs = ["cats/data/hart_trains.csv"]
+
+[[step]]
+name = "hart-trains"
+runner = "check"
+group = "static"
+cmd = ["python3", "cats/scripts/build_hart_trains.py", "--check"]
+git = ["head", "base"]
+domain = "layout"
+label = "build_hart_trains.py"
+desc = "Writes the CATS train list cats/data/hart_trains.csv from the train master trains.csv, in the CATS file's own columns (ADR-039); --check."
+inputs = [
+  "ops/hart-ops/data/trains.csv",
+]
+outputs = [
+  "cats/data/hart_trains.csv",
+]
+
+[[step]]
+name = "train-symbols"
+runner = "check"
+group = "static"
+cmd = ["python3", "tools/audit/check_train_symbols.py"]
+git = ["head", "base"]
+domain = "ops"
+label = "check_train_symbols.py"
+desc = "Checks that crew.json's crew job codes, the Operations Pro train names and the CATS desks' train list name trains of trains.csv (ADR-039)."
+inputs = [
+  { path = "ops/hart-ops/data/trains.csv", label = "symbols", side = "check" },
+  { path = "www/data/crew.json", label = "job codes", side = "check" },
+  { path = "jmri/layouts/hart/operations", label = "train names", side = "check" },
+  { path = "cats/data/generated_desk_header.xml", label = "desk train list", side = "check" },
+]
 
 [[step]]
 name = "name-copies"
@@ -795,22 +827,6 @@ inputs = [
 outputs = [
   "docs/INDEX.md",
 ]
-
-[[step]]
-name = "desks"
-runner = "check"
-group = "static"
-cmd = ["python3", "cats/scripts/validate_cats_panel.py"]
-git = ["head", "base"]
-domain = "layout"
-label = "validate_cats_panel.py"
-desc = "Validates desks (make desks and check.sh); with cats_turnout_io and digicon_lib loaders."
-inputs = [
-  { path = "cats/panels/HART_ABS.xml", label = "make desks check", side = "check" },
-  { path = "cats/panels/HART_CTC.xml", label = "make desks check", side = "check" },
-]
-# the reference desk it validates too; the map has no box for it
-quiet_inputs = ["cats/panels/HART_chubb_magnet.xml"]
 
 [[step]]
 name = "public-text"

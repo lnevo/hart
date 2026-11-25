@@ -55,9 +55,7 @@ class CheckShTables(unittest.TestCase):
                 break
             users |= more
         self.assertEqual(sorted(users), sorted(names))
-        self.assertIn('PYTHONPATH="tools/audit/tests${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m unittest -b -q \'"$LE_TESTS"',
-                      text)
-        self.assertIn('" $LE_TESTS " == *" ${f%.py} "* ]] && continue', text)
+        # that check.sh runs them in one process and leaves them out of the per-file jobs: ScratchCheckSh below
 
     def test_every_import_form_is_seen(self) -> None:
         for source in ("import test_build_layout_le", "import test_build_layout_le as T  # noqa",
@@ -95,15 +93,20 @@ class CheckShTables(unittest.TestCase):
         self.assertLess(warm, text.index("run: ./tools/check.sh"))
 
     def test_check_sh_turns_on_the_builds_schematic_cache(self) -> None:
-        """The folder the builds use (publish_draft.CACHE), made private; read from the source, not imported."""
-        source = (ROOT / "tools/schematic/publish_draft.py").read_text(encoding="utf-8")
-        self.assertIn('CACHE = paths.cache_dir("schematic")', source)
+        """The folder the builds use (publish_draft.CACHE, loaded under the same HART_CACHE_DIR), made private."""
         self.assertIn("path: .cache/hart/schematic", (ROOT / ".github/workflows/check.yml").read_text(encoding="utf-8"))
         with tempfile.TemporaryDirectory() as d:
-            done = self.cache_block(Path(d))
-            folder = Path(d) / ".cache/hart/schematic"
-            self.assertIn(f"CACHE={folder}", done.stdout)
-            self.assertEqual(0o700, folder.stat().st_mode & 0o777)
+            home = Path(d)
+            spec = importlib.util.spec_from_file_location("check_sh_tables_publish_draft",
+                                                          ROOT / "tools/schematic/publish_draft.py")
+            draft = importlib.util.module_from_spec(spec)
+            with mock.patch.dict(os.environ, {"HART_CACHE_DIR": str(home / ".cache/hart")}), \
+                    mock.patch.dict(sys.modules, {spec.name: draft}):
+                spec.loader.exec_module(draft)
+            done = self.cache_block(home)
+            self.assertEqual(home / ".cache/hart/schematic", draft.CACHE)
+            self.assertIn(f"CACHE={draft.CACHE}\n", done.stdout)
+            self.assertEqual(0o700, draft.CACHE.stat().st_mode & 0o777)
 
     def test_an_empty_or_set_schematic_cache_is_the_callers(self) -> None:
         with tempfile.TemporaryDirectory() as d:
@@ -258,16 +261,78 @@ class StaticPanelChecks(unittest.TestCase):
             self.assertFalse(marker.exists())
             self.assertEqual(1, traced.parse(log).expected_roots)
 
-    def test_a_run_that_skips_no_job_skips_no_panel_step(self) -> None:
-        """The panels step gets --full when stamps are off (tools/audit/tests/test_pipeline_manifest.py runs it)."""
-        text = CHECK.read_text(encoding="utf-8")
-        body = self.static_body()
-        self.assertIn("(( STAMPS )) || panels_full=(--full)", body)
-        self.assertLess(text.index("if [[ -n \"${CI:-}\" || \"${FULL:-}\" == 1 || -n \"${CHECK_AUDIT:-}\" ]]; then STAMPS=0; fi"),
-                        text.index("\nrun_line() {\n"))
-        self.assertIn('[[ "${line%% *}" == panels ]] || continue', body)
-        self.assertIn('later panels run_line "$line" ${panels_full[@]+"${panels_full[@]}"}', body)
-        self.assertIn("eval \"run_check $line\"' ${1+\"$@\"}'", body)
+
+# A stand-in test file: logs its name and process; test_build_layout_le also logs its one import ("built": the real
+# module's built() caches per process), and the other Layout Editor files import it.
+STUB_TEST = """import os
+import unittest
+{imp}
+
+def log(what):
+    with open(os.environ["STUB_LE_LOG"], "a") as f:
+        f.write(f"{{what}} {{os.getpid()}}\\n")
+
+{built}
+
+class T(unittest.TestCase):
+    def test_runs(self):
+        log("{name}")
+"""
+
+
+class ScratchCheckSh(unittest.TestCase):
+    """check.sh itself in a scratch repo (test_pipeline_manifest.scratch_check_sh: a stand-in manifest, and a panels
+    script that prints what it was run with), for what its queueing does: the Layout Editor job, panels' --full."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        from test_pipeline_manifest import scratch_check_sh   # noqa: PLC0415 - its folder is on sys.path under discover
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.s = scratch_check_sh(Path(cls.tmp.name))
+        for name in ("test_build_layout_le", "test_le_cutover", "test_le_mast_parity", "test_other"):
+            cls.s.write(f"tools/audit/tests/{name}.py", STUB_TEST.format(
+                name=name, imp="import test_build_layout_le" if name.startswith("test_le_") else "",
+                built='log("built")' if name == "test_build_layout_le" else ""))
+        cls.s.commit("test stand-ins")
+        subprocess.run(["git", "-C", str(cls.s.repo), "update-ref", "refs/remotes/origin/main", "HEAD"], check=True)
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.tmp.cleanup()
+
+    def run_check(self, **env: str) -> subprocess.CompletedProcess:
+        from test_pipeline_manifest import OWN, STATIC   # noqa: PLC0415
+        return self.s.check_sh(**{"STUB_PIN": "", "STUB_STATIC": STATIC, "STUB_OWN": OWN, **env})
+
+    def test_the_layout_editor_files_run_in_one_process_and_in_no_job_of_their_own(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            log = Path(d) / "le.log"
+            done = self.run_check(FULL="1", CHECK_ONLY="^unit-guards", STUB_LE_LOG=str(log))
+            self.assertEqual(0, done.returncode, done.stdout + done.stderr)
+            jobs = sorted(re.sub(r" \([0-9.]+s\)$", "", line) for line in done.stdout.splitlines()
+                          if line.startswith("--- "))
+            self.assertEqual(["--- unit-guards layout-editor (test_build_layout_le test_le_cutover test_le_mast_parity)",
+                              "--- unit-guards test_other"], jobs)
+            lines = [line.split() for line in log.read_text().splitlines()]
+            self.assertEqual(["built", "test_build_layout_le", "test_le_cutover", "test_le_mast_parity", "test_other"],
+                             sorted(what for what, _ in lines))
+            pid = dict(lines)
+            self.assertEqual({pid["built"]}, {pid[n] for n in ("test_build_layout_le", "test_le_cutover",
+                                                                "test_le_mast_parity")}, "one process, one build")
+            self.assertNotEqual(pid["built"], pid["test_other"])
+
+    def test_panels_gets_full_in_every_run_that_skips_no_job(self) -> None:
+        """CI, FULL=1 and an audit run (CHECK_AUDIT) skip no job, so the panels check skips no panel step; a local
+        run with stamps does not pass --full."""
+        full, plain = "ran panels --check --full\n", "ran panels --check\n"
+        with tempfile.TemporaryDirectory() as d:
+            for env, want in (({"FULL": "1"}, full), ({"CI": "true"}, full),
+                              ({"CHECK_AUDIT": str(Path(d) / "audit")}, full), ({}, plain)):
+                with self.subTest(env=env):
+                    done = self.run_check(CHECK_ONLY="^panels$", **env)
+                    self.assertEqual(0, done.returncode, done.stdout + done.stderr)
+                    self.assertIn(want, done.stdout)
+                    self.assertEqual(1, done.stdout.count("ran panels"), "the panels job queued once")
 
 
 class LayoutIndexSource(unittest.TestCase):

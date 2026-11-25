@@ -184,5 +184,27 @@ class ControlPointPlates(unittest.TestCase):
         self.assertNotIn(got[0][1], used)
 
 
+class DeskSchema(unittest.TestCase):
+    """The CATS 3 rules the old desks check (validate_cats_panel.py) held, on the desks build_cats_panel.py writes
+    (the panels check's cats --check keeps the committed files equal to a rebuild): a DOCUMENT root with a TRACKPLAN,
+    no ROUTEFEEDBACK (not a CATS 3 element; SELECTEDREPORT is), a ROUTEINFO holding only SELECTEDREPORT and
+    ROUTECOMMAND, and a SWITCHPOINTS holding only ROUTEINFO and POINTSMSG."""
+
+    def test_both_desks_keep_the_cats_3_element_rules(self):
+        import xml.etree.ElementTree as ET
+        for desk in ("HART_CTC.xml", "HART_ABS.xml"):
+            with self.subTest(desk):
+                root = ET.parse(ROOT / "cats/panels" / desk).getroot()
+                self.assertEqual(root.tag, "DOCUMENT")
+                self.assertIsNotNone(root.find("TRACKPLAN"))
+                self.assertEqual([], list(root.iter("ROUTEFEEDBACK")))
+                points = list(root.iter("SWITCHPOINTS"))
+                self.assertTrue(points, "no SWITCHPOINTS: the desk lost its plants")
+                for sp in points:
+                    self.assertEqual(set(), {c.tag for c in sp} - {"ROUTEINFO", "POINTSMSG"})
+                    for ri in sp.findall("ROUTEINFO"):
+                        self.assertEqual(set(), {c.tag for c in ri} - {"SELECTEDREPORT", "ROUTECOMMAND"})
+
+
 if __name__ == "__main__":
     unittest.main()
