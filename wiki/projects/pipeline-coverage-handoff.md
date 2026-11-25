@@ -93,7 +93,7 @@ Checked and needed: the two `tables.xml` checks that look like repeats (they cov
 
 - When the benchwork build is finished, so lane C can archive the generators.
 - `docs/ap/electrical/build_soq.py` and `make_drawings.py` have no callers: keep as the AP package's tools, or archive.
-- The optional "waiting to ingest" line in `make orient`.
+- ~~The optional "waiting to ingest" line in `make orient`.~~ Done 2026-11-25 (owner's decision that day): a "Waiting to ingest" section, one read-only line per source, each naming its pull command; the live STS line says "not checked" with why.
 
 ## Done when
 

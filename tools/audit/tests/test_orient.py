@@ -261,6 +261,7 @@ class ReportTest(Repo):
         self.assertIn(f"{busy} (this session)", out)
         self.assertNotIn("agent/claude/idle", out)
         self.assertNotIn("Open PRs", out)
+        self.assertNotIn("Waiting to ingest", out)  # the session-start hook: no network, no ingest lines
 
     def test_the_same_claim_in_many_worktrees_is_listed_once(self):
         first = self.worktree("a1", commits=1)
@@ -386,6 +387,9 @@ class ReportTest(Repo):
         self.assertIn("Operating flag: cannot read the operating flag (operating.sh: cannot read the flag)", text)
         self.assertIn("Open PRs: gh pr list failed (To get started with GitHub CLI", text)
         self.assertIn("deploy status unavailable (timed out after 40 s)", text)
+        self.assertIn("Waiting to ingest (what a host holds that the repo lacks):", text)
+        self.assertIn("  JMRI tables, Pi: Pi check timed out after 40 s, not checked (make tables-pull-pi)", text)
+        self.assertIn("  STS, Pi: not checked: ", text)
         self.assertNotIn("Traceback", text)
 
     def test_a_full_pr_list_says_it_is_cut(self):
@@ -448,6 +452,83 @@ class NetworkPartsTest(unittest.TestCase):
                          ["deploy status printed nothing (exit 2: Unknown option: --x)"])
         self.assertEqual(OR.summarize_deploy("== pi\n  No deploy stamp.\n", 3, "boom\n")[-1],
                          "deploy_status.sh exit 3: boom")
+
+
+class IngestTest(unittest.TestCase):
+    """make orient's "waiting to ingest" lines: each source's states (nothing waiting, waiting, the Pi unreachable,
+    not checked), from stubbed checks; nothing here runs a check or reaches a host."""
+    OK = (0, "", "")
+    DOWN = (255, "", "ssh: connect to host pi.example.invalid port 22: Operation timed out\n")
+
+    def lines(self, pi=OK, mac=(0, "nothing\n", ""), roster=(0, "nothing\n", "")):
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.dict(os.environ, {"STS_PI_COPY": tmp}):
+            return dict(line.split(": ", 1) for line in OR.ingest_lines(pi, mac, roster))
+
+    def test_nothing_waiting(self):
+        got = self.lines()
+        self.assertEqual(got["JMRI tables, Pi"], "nothing waiting (make tables-pull-pi)")
+        self.assertEqual(got["JMRI tables, Mac"], "nothing waiting (make tables-pull)")
+        self.assertEqual(got["Operations Pro, Pi"], "nothing waiting (make ops-pull)")
+        self.assertEqual(got["DecoderPro roster, Pi"], "nothing waiting (./tools/hosts/sync_roster_from_pi.sh)")
+        self.assertEqual(got["STS, Pi"], "not checked: the live database keeps no change marker, only a dump shows a "
+                                         "change; no dump pulled to this Mac yet (make sts-pull)")
+        self.assertEqual(self.lines(mac=(0, "absent\n", ""))["JMRI tables, Mac"],
+                         "nothing waiting (no ~/JMRI_UserFiles/tables.xml) (make tables-pull)")
+
+    def test_waiting(self):
+        got = self.lines(pi=(0, "ops\ntables\n", ""), mac=(0, "waiting\n", ""), roster=(0, "waiting 3\n", ""))
+        self.assertEqual(got["JMRI tables, Pi"], "a PanelPro Store is waiting (make tables-pull-pi)")
+        self.assertEqual(got["JMRI tables, Mac"], "a PanelPro Store is waiting (make tables-pull)")
+        self.assertEqual(got["Operations Pro, Pi"], "the Pi's session changed the Operations files since the last "
+                                                    "deploy or pull (make ops-pull)")
+        self.assertEqual(got["DecoderPro roster, Pi"], "3 files on the Pi differ from the Mac copy or are not on it "
+                                                       "(./tools/hosts/sync_roster_from_pi.sh)")
+        self.assertEqual(self.lines(pi=(0, "ops\n", ""))["JMRI tables, Pi"], "nothing waiting (make tables-pull-pi)")
+        self.assertIn("1 file on the Pi differ", self.lines(roster=(0, "waiting 1\n", ""))["DecoderPro roster, Pi"])
+
+    def test_an_unreachable_pi_is_one_line_per_source(self):
+        got = self.lines(pi=self.DOWN, roster=self.DOWN)
+        down = "Pi unreachable, not checked (ssh: connect to host pi.example.invalid port 22: Operation timed out)"
+        self.assertEqual(got["JMRI tables, Pi"], f"{down} (make tables-pull-pi)")
+        self.assertEqual(got["Operations Pro, Pi"], f"{down} (make ops-pull)")
+        self.assertEqual(got["DecoderPro roster, Pi"], f"{down} (./tools/hosts/sync_roster_from_pi.sh)")
+        self.assertEqual(got["JMRI tables, Mac"], "nothing waiting (make tables-pull)")  # the Mac is still read
+
+    def test_not_checked(self):
+        hung = (None, "", "timed out after 40 s")
+        got = self.lines(pi=hung, mac=(1, "", "Could not check it; nothing pulled.\n"), roster=(0, "huh\n", ""))
+        self.assertEqual(got["JMRI tables, Pi"], "Pi check timed out after 40 s, not checked (make tables-pull-pi)")
+        self.assertEqual(got["JMRI tables, Mac"],
+                         "cannot check (exit 1: Could not check it; nothing pulled.) (make tables-pull)")
+        self.assertEqual(got["DecoderPro roster, Pi"],
+                         "cannot read the check's answer 'huh' (./tools/hosts/sync_roster_from_pi.sh)")
+        self.assertIn("cannot read the check's answer 'tables junk'",
+                      self.lines(pi=(0, "tables junk\n", ""))["Operations Pro, Pi"])
+        self.assertTrue(self.lines()["STS, Pi"].startswith("not checked: "))
+
+    def test_the_last_sts_dump(self):
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.dict(os.environ, {"STS_PI_COPY": tmp}):
+            (Path(tmp) / "db").mkdir()
+            for name in ("sts_db3_20261124-210500.sql.gz", "sts_db3_20261125-102733.sql.gz", "other.sql.gz",
+                         "sts_db3_20261126-000000.sql.gz.part"):
+                (Path(tmp) / "db" / name).write_text("")
+            self.assertEqual(OR.last_sts_pull(), "last dump 2026-11-25 10:27")
+
+    def test_the_checks_are_the_reused_read_only_ones(self):
+        calls = []
+
+        def fake(cmd, timeout):
+            calls.append((cmd, timeout))
+            return 0, "nothing\n", ""
+
+        with mock.patch.object(OR, "run", side_effect=fake):
+            OR.pi_unpulled(), OR.mac_tables(), OR.roster_status()
+        self.assertEqual([c[0][1:] for c in calls], [[], ["--status"], ["--status"]])
+        self.assertEqual([Path(c[0][0]).relative_to(OR.ROOT).as_posix() for c in calls],
+                         ["tools/hosts/deploy/pi_unpulled.sh", "tools/ops/pull_tables.sh",
+                          "tools/hosts/sync_roster_from_pi.sh"])
+        self.assertTrue(all(t == OR.NET_TIMEOUT for _, t in calls))
+        self.assertTrue(all(os.access(c[0][0], os.X_OK) for c in calls), calls)  # run directly, so executable
 
 
 class SiteDeployTest(unittest.TestCase):

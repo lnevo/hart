@@ -1312,7 +1312,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make tables-pull: same for a Store on the Mac, saved as mac-<date>.xml.",
+   "desc": "make tables-pull: same for a Store on the Mac, saved as mac-<date>.xml. --status (make orient) only says whether one is waiting.",
    "path": "tools/ops/pull_tables.sh"
   },
   {
@@ -2140,7 +2140,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "ops",
-   "desc": "Pulls DecoderPro roster from the Pi to Mac and Windows JMRI_UserFiles for visibility and backup; not committed.",
+   "desc": "Pulls DecoderPro roster from the Pi to Mac and Windows JMRI_UserFiles for visibility and backup; not committed. --status (make orient) only compares the Pi with the Mac copy.",
    "path": "tools/hosts/sync_roster_from_pi.sh"
   },
   {
