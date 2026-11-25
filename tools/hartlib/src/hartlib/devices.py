@@ -305,7 +305,7 @@ def redundant(generated: Iterable[Mapping[str, str]], field: Iterable[Mapping[st
         f = keyed.get(key_of(g))
         if f is not None:
             out += [f"{FIELD_FILE}: {key_text(key_of(g))}: {c} {f[c]!r} is the generated value too (redundant)"
-                    for c in FIELD_COLUMNS if f[c] and f[c] == g[c]]
+                    for c in FIELD_COLUMNS if c != "id" and f[c] and f[c] == g[c]]     # an id is in both on purpose
     return out
 
 

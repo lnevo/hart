@@ -8,6 +8,7 @@ import shutil
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -109,6 +110,37 @@ class Copy(unittest.TestCase):
         L.write_generated({"staging": {L.NAME_MAIN: [0, 1]}}, self.data)
         with self.assertRaisesRegex(L.LayerFileError, "run python3 tools/schematic/build_main_route.py"):
             L.merged(self.data)
+
+
+    def test_build_main_route_reads_the_plan_without_its_own_flags(self) -> None:
+        """A stale name_main (a run the plan no longer has) stops every reader but the script that rewrites it."""
+        L.write_generated({"staging": {L.NAME_MAIN: ["17C-31C"]}}, self.data)
+        with self.assertRaisesRegex(L.LayerFileError, "run 17C-31C"):
+            L.merged(self.data)
+        self.assertTrue(any(e["op"] == "name" for e in L.merged(self.data, main=False)["staging"]["edits"]))
+
+    def test_a_helix_rename_is_one_field_row(self) -> None:
+        self.edit_field(lambda rows: self.by_name(rows, "Track Helix Outer").update(user_name="Track Helix Big"))
+        whole = L.merged(self.data)
+        self.assertEqual(whole["main_upper"]["helix"]["131A"], "Helix Big")
+        ends = next(e for e in whole["staging"]["edits"] if e["op"] == "end")["ends"]
+        self.assertIn("Helix Big", [e[2] for e in ends])
+
+    def test_with_no_generated_file_the_plugin_still_gets_the_names(self) -> None:
+        L.path(L.GENERATED, self.data).unlink()
+        (self.data / "preferences_generated.json").unlink(missing_ok=True)
+        with tempfile.TemporaryDirectory() as cache, unittest.mock.patch.dict("os.environ", {"HART_CACHE_DIR": cache}):
+            folder = L.view(self.data)
+            self.assertNotEqual(folder, self.data.resolve())
+            got = L.parse((folder / "plan_overrides.json").read_text(encoding="utf-8"), "plan_overrides", "view")
+        self.assertEqual(got["staging"]["left_end"], "W-1")
+
+
+class EarlyReturn(unittest.TestCase):
+    def test_an_end_edit_is_filled_or_stops_even_with_no_other_names(self) -> None:
+        sec = {"level": 2, "edits": [{"op": "end", "ends": [["209", "B", "bumper", ""]]}]}
+        with self.assertRaisesRegex(T.TrackNameError, "no named block row block:209B-end"):
+            T.plugin_section("main_upper", sec, owner={})
 
 
 class Pieces(unittest.TestCase):

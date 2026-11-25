@@ -165,16 +165,17 @@ def merge(hand: dict, generated: dict) -> dict:
     return out
 
 
-def named(whole: dict, generated: dict, data: Path = SCHEMATIC) -> dict:
+def named(whole: dict, generated: dict, data: Path = SCHEMATIC, main: bool = True) -> dict:
     """`whole` (the merged plan_overrides) with each sheet's track names from the name store put where the plugin
     reads them (hartlib.track_names.plugin_section: the `name` edit, the `end` names, `left_end`), the `name` edit's
-    main flags the generated `name_main` runs. LayerFileError for a hand section that holds a name or a name the
+    main flags the generated `name_main` runs (none with `main` false: build_main_route.py, which writes them, reads
+    the plan without its own last output). LayerFileError for a hand section that holds a name or a name the
     plan does not draw."""
     out = dict(whole)
     for sheet in track_names.PLAN_GRAPHS:
         if sheet not in out:
             continue
-        runs = generated.get(sheet, {}).get(NAME_MAIN, [])
+        runs = generated.get(sheet, {}).get(NAME_MAIN, []) if main else []
         try:
             out[sheet] = track_names.plugin_section(sheet, out[sheet], runs, data=data)
         except (track_names.TrackNameError, OSError, KeyError) as exc:
@@ -192,7 +193,7 @@ def generated_kind(kind: str) -> str:
     return GENERATED_OF[kind]
 
 
-def merged(data: Path = SCHEMATIC, kind: str = "plan_overrides") -> dict:
+def merged(data: Path = SCHEMATIC, kind: str = "plan_overrides", main: bool = True) -> dict:
     """The whole view of `kind` (its generated file under the hand file). A folder with no generated file of that
     kind (a test's copy of the data) has nothing generated. Only plan_generated.json may hold `name_main`."""
     gen_kind = generated_kind(kind)
@@ -204,7 +205,7 @@ def merged(data: Path = SCHEMATIC, kind: str = "plan_overrides") -> dict:
             raise LayerFileError(f"{path(gen_kind, data).name}[{', '.join(flagged)}]: {NAME_MAIN} belongs in "
                                  f"{PLAN_GENERATED_FILE}")
     whole = merge(hand, gen) if gen else hand
-    return named(whole, gen, data) if kind == "plan_overrides" else whole
+    return named(whole, gen, data, main) if kind == "plan_overrides" else whole
 
 
 def merged_section(sheet: str, data: Path = SCHEMATIC) -> dict:
@@ -238,13 +239,14 @@ def write_generated(updates: Mapping[str, dict], data: Path = SCHEMATIC, kind: s
 
 
 def view(data: Path = SCHEMATIC) -> Path:
-    """A folder the schematic plugin reads as its `--data`: `data` itself when nothing is generated there, else a
+    """A folder the schematic plugin reads as its `--data`: `data` itself when nothing is generated or named there, else a
     stable folder under paths.cache_dir("plan-merged") holding the merged plan_overrides.json and preferences.json
     (each kind whose generated file is there) and links to the rest of `data`. A file is rewritten only when its
     bytes change, so every mtime and path stays put (the plugin's cache keys on content and relative paths)."""
     data = Path(data).resolve()
+    # plan_overrides.json is merged whenever the name store adds to it (its track names), generated file or not
     whole_texts = {f"{kind}.json": dumps(merged(data, kind)) for kind, gen in GENERATED_OF.items()
-                   if path(gen, data).exists()}
+                   if path(gen, data).exists() or (kind == "plan_overrides" and merged(data) != read_file(kind, data))}
     if not whole_texts:
         return data
     root = paths.cache_dir("plan-merged") / hashlib.sha256(str(data).encode()).hexdigest()[:12]

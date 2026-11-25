@@ -261,7 +261,10 @@ def prepared(overrides: dict, layer: str = "main_upper", graph: Path = GRAPH):
     import build_layout_le as bl
     sheet, _le, _core = bl.plugin()
     from schematic import edits   # the plugin's package: bl.plugin() has put it on the path
-    opts = dict(sheet.options(layer, str(layer_files.view(pd.DATA))))   # the view: the name store's track names
+    opts = dict(sheet.options(layer, pd.DATA))
+    # the plan with the name store's track names but without the main flags this script writes (name_main), so a
+    # stale or old-form name_main never stops the script that rewrites it
+    opts.update({k: v for k, v in layer_files.merged(pd.DATA, main=False)[layer].items() if not k.startswith("_")})
     opts.pop("main_route", None)
     g = sheet.prepare(json.loads(graph.read_text()), opts, set())
     return g, edits.node_ref

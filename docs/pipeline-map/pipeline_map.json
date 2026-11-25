@@ -7465,6 +7465,16 @@
    "label": "the owner's track names by id (hartlib.track_names, in the merged view)"
   },
   {
+   "from": "jmri/layouts/hart/data/devices_field.csv",
+   "to": "tools/schematic/build_main_route.py",
+   "label": "the owner's track names by id (hartlib.track_names, in the merged view)"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_field.csv",
+   "to": "tools/schematic/build_signals.py",
+   "label": "the owner's track and helix names by id (hartlib.track_names, in the merged view)"
+  },
+  {
    "from": "jmri/layouts/hart/data/schematic/plan_generated.json",
    "to": "tools/schematic/publish_draft.py",
    "label": "merged view (layer_files.view)"

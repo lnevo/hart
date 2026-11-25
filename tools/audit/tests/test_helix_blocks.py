@@ -13,6 +13,8 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/schematic"))
 import build_device_map as bdm  # noqa: E402
 from hartlib import devices, wiring  # noqa: E402
+
+FIELD = devices.FIELD_FILE
 import le_tables as T  # noqa: E402
 import mast_rule as mr  # noqa: E402
 import check_device_master as cdm  # noqa: E402
@@ -36,9 +38,9 @@ def copied(edit=None) -> Path:
     tmp.mkdir()
     for name in ("plan_overrides.json", "preferences.json"):
         shutil.copyfile(mr.HELIX_SOURCE.parent / name, tmp / name)
-    shutil.copyfile(mr.HELIX_SOURCE.parent.parent / "devices_field.csv", root / "devices_field.csv")
+    shutil.copyfile(devices.field_path(mr.HELIX_SOURCE.parent.parent), root / devices.FIELD_FILE)
     for old, new, name in edit or ():
-        f = (root if name == "devices_field.csv" else tmp) / name
+        f = (root if name == FIELD else tmp) / name
         text = f.read_text(encoding="utf-8")
         assert old in text, (old, name)
         f.write_text(text.replace(old, new, 1), encoding="utf-8")
@@ -66,11 +68,11 @@ class HelixTracks(unittest.TestCase):
         self.assertEqual(got["Helix Inner"]["shown"], "Helix Inner")
 
     def test_bad_plans_stop(self):
-        for edit, msg in (([('"131B": "Helix Inner"', '"131B": "Helix Other"', "plan_overrides.json")],
+        for edit, msg in (([('"131B": "block:37B-helix"', '"131B": "block:3B-end"', "plan_overrides.json")],
                            "each helix track is one track with one name on both"),
-                          ([('"131B": "Helix Inner"', '"131B": "Helix Outer"', "plan_overrides.json")],
+                          ([('"131B": "block:37B-helix"', '"131B": "block:39B-helix"', "plan_overrides.json")],
                            "helix entry 131B is named 'Helix Outer'"),
-                          ([("block:39B-helix", "", "devices_field.csv")],
+                          ([("block:39B-helix", "", FIELD)],
                            "the helix at Switch 39 leg B has no named block row block:39B-helix"),
                           ([('"Helix Outer": "McKees Rocks"', '"Helix Outer": ""', "preferences.json")],
                            "track_labels"),):
@@ -98,8 +100,7 @@ class HelixTracks(unittest.TestCase):
 
     def test_the_device_map_reads_the_helix_tracks_of_its_overrides_when_called(self):
         """build_device_map.helix_tracks reads OVERRIDES as it is then, so a patched one is honoured."""
-        path = copied([('"131B": "Helix Inner"', '"131B": "Helix Lower"', "plan_overrides.json"),
-                       (",Track Helix Inner,", ",Track Helix Lower,", "devices_field.csv")])
+        path = copied([(",Track Helix Inner,", ",Track Helix Lower,", FIELD)])   # one edit, both levels
         with unittest.mock.patch.object(bdm, "OVERRIDES", path):
             self.assertEqual(list(bdm.helix_tracks()), ["Helix Outer", "Helix Lower"])
             self.assertEqual(bdm.block_overrides(), path.parent / "block_overrides.csv")

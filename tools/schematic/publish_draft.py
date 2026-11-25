@@ -53,7 +53,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import layer_files, map_revision, paths  # noqa: E402
+from hartlib import devices, layer_files, map_revision, paths  # noqa: E402
 
 REPO = paths.REPO_ROOT
 CACHE = paths.cache_dir("schematic")      # <main checkout>/.cache/hart/schematic, shared by every worktree
@@ -223,7 +223,7 @@ def check_digest(plugin_dir):
     h.update(Path(__file__).read_bytes() + b"\0")
     _tree(h, Path(plugin_dir), "plugin")
     _tree(h, DATA, "data")
-    field = DATA.parent / "devices_field.csv"      # the owner's track names the view draws (hartlib.track_names)
+    field = devices.field_path(DATA.parent)       # the owner's track names the view draws (hartlib.track_names)
     h.update(b"field\0" + (field.read_bytes() if field.exists() else b"-") + b"\0")
     target = OUT / "schematic-system-draft.svg"
     h.update(b"target\0" + (b"+" + target.read_bytes() if target.exists() else b"-") + b"\0")

@@ -202,8 +202,13 @@ class PlanGenerated(unittest.TestCase):
             (data / "plan_overrides.json").write_text(L.dumps(hand), encoding="utf-8")
             (data / "plan_generated.json").write_text(L.dumps(gen), encoding="utf-8")
             (data / "preferences.json").write_text("{}", encoding="utf-8")
-            hand["staging"].pop("left_end", None)           # a track name: the name store's, not this test's
-            hand["staging"]["edits"] = [e for e in hand["staging"]["edits"] if e["op"] not in ("name", "end")]
+            # the form of today's hand file: the track names are the name store's (hartlib.track_names)
+            hand["staging"]["left_end"] = "block:3B-end"
+            hand["main_upper"]["helix"] = {"131A": "block:39B-helix", "131B": "block:37B-helix"}
+            hand["staging"]["edits"] = [e for e in hand["staging"]["edits"] if e["op"] != "name"]
+            for e in hand["staging"]["edits"]:
+                if e["op"] == "end":
+                    e["ends"] = [[r, p, k, t] for r, p, _n, k, t in e["ends"]]
             (data / "plan_overrides.json").write_text(L.dumps(hand), encoding="utf-8")
             with unittest.mock.patch.dict("os.environ", {"HART_CACHE_DIR": cache}):
                 folder = L.view(data)

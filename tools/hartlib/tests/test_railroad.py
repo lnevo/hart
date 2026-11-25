@@ -805,7 +805,7 @@ class SmallHelpers(Copy):
         self.assertEqual([h.block for h in rr.helix_tracks.values()], ["Track Helix Outer", "Track Helix Inner"])
 
     def test_a_helix_track_named_twice_stops(self) -> None:
-        self.edit("plan_overrides", '"131B": "Helix Inner"', '"131B": "Helix Outer"')
+        self.edit("plan_overrides", '"131B": "block:37B-helix"', '"131B": "block:39B-helix"')
         with self.assertRaisesRegex(R.FactsError, "named 'Helix Outer'"):
             R.read_helix_tracks(self.src.plan_overrides)
 

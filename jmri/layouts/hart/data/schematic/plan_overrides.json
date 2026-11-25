@@ -179,8 +179,8 @@
    ]
   },
   "helix": {
-   "131A": "Helix Outer",
-   "131B": "Helix Inner"
+   "131A": "block:39B-helix",
+   "131B": "block:37B-helix"
   },
   "helix_side": "east",
   "_helix_side": "Fact, not a preference: the helix is at the east end of every level (ADR-022: timetable east runs toward Princess and the helix).",

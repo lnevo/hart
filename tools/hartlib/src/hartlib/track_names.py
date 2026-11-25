@@ -8,8 +8,9 @@ ID, and how they reach the schematic plugin.
 The owner names a track in devices_field.csv: a block row with an `id` (hartlib.device_ids.block_id, "block:17C-29C")
 and its user name ("Track S-1"). That row is the only place the name is kept. plan_overrides.json holds no track
 name: its `end` edit says what each track end is ([switch, leg, kind, to]: a bumper, or the helix and the level it
-climbs to) and `left_end` is the ID of the track drawn at the left end; the plugin's `name` edit, the names in its
-`end` edit and its `left_end` are made here from the store, when hartlib.layer_files.view writes the folder the
+climbs to), `left_end` is the ID of the track drawn at the left end and main_upper's `helix` map gives each helix
+top switch the ID of its staging helix track (block:39B-helix); the plugin's `name` edit, the names in its `end` edit,
+its `left_end` and its `helix` names are made here from the store, when hartlib.layer_files.view writes the folder the
 plugin reads. A renamed track is one edited user name; nothing in plan_overrides.json changes.
 
 A block ID comes from the plan: each end of its track is the switch label (after the `relabel` edit) and leg it ends
@@ -162,6 +163,9 @@ def hand_problems(section: dict) -> list[str]:
     left = section.get("left_end")
     if left is not None and not str(left).startswith("block:"):
         bad.append(f"left_end {left!r} is not a block ID (block:...)")
+    named = {k: v for k, v in section.get("helix", {}).items() if not str(v).startswith("block:")}
+    if named:
+        bad.append(f"helix {named} gives names, not the block IDs of the staging helix tracks (block:39B-helix)")
     return bad
 
 
@@ -212,11 +216,13 @@ def plugin_section(sheet: str, section: dict, main_runs=(), owner: dict | None =
     levels = section_levels(section)
     names = _names_of_runs(owner, levels)
     by_id = {bid: name for (level, bid), name in owner.items() if level in levels}
+    any_level = {bid: name for (_level, bid), name in owner.items()}     # a helix track is staging's block
     main_runs = list(main_runs)
     if not all(isinstance(r, str) for r in main_runs):
         raise TrackNameError(f"plan_generated.json[{sheet}] {NAME_MAIN} holds {main_runs[:3]}..., not runs "
                              "(\"1A-23A\"): run python3 tools/schematic/build_main_route.py")
-    if not names and not main_runs and "left_end" not in section:
+    has_end = any(e.get("op") == "end" for e in section.get("edits", ()))
+    if not names and not main_runs and not has_end and "left_end" not in section and not section.get("helix"):
         return section
     runs = plan_runs(sheet, section, data)
     out = json.loads(json.dumps(section))
@@ -248,13 +254,19 @@ def plugin_section(sheet: str, section: dict, main_runs=(), owner: dict | None =
             ends_done.add(bid)
             filled.append([ref, port, by_id[bid], kind, to])
         e["ends"] = filled
+    for ref, bid in out.get("helix", {}).items():
+        if bid not in any_level:
+            bad.append(f"helix {ref}: {bid} has no named block row in {FIELD_FILE}")
+        else:
+            out["helix"][ref] = any_level[bid]
     if "left_end" in out:
         bid = out["left_end"]
         if bid not in by_id:
             bad.append(f"left_end {bid} has no named block row in {FIELD_FILE}")
         else:
             out["left_end"] = by_id[bid]
-    lost = sorted(bid for bid in by_id if bid.endswith(("-end", "-helix")) and bid not in ends_done)
+    # a named track end the `end` edit does not list would not be drawn: checked where the section has an `end` edit
+    lost = sorted(bid for bid in by_id if has_end and bid.endswith(("-end", "-helix")) and bid not in ends_done)
     if lost:
         bad.append(f"track ends {lost} are named in {FIELD_FILE} but have no `end` entry in plan_overrides.json")
     if bad:
