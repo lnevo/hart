@@ -311,6 +311,15 @@
    "gen": "manifest"
   },
   {
+   "id": "tools/audit/py_sizes.csv",
+   "label": "py_sizes.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "The line count each Python file over 800 lines may not pass (owner, 2026-11-25); check_py_sizes.py --update tightens it, --accept raises a row by name.",
+   "path": "tools/audit/py_sizes.csv"
+  },
+  {
    "id": "tools/audit/check_wiring_crosswalk.py",
    "label": "check_wiring_crosswalk",
    "kind": "generator",
@@ -372,7 +381,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "extras",
-   "desc": "Lists git-tracked docs/ documents newest first into docs/INDEX.md; --check in tools/check.sh.",
+   "desc": "Lists docs/ documents (tracked or new) newest first into docs/INDEX.md; --check in tools/check.sh.",
    "path": "tools/ops/build_docs_index.py",
    "gen": "manifest"
   },
@@ -3731,6 +3740,16 @@
    "domain": "layout",
    "desc": "The fact files against each other (the device master, switches.csv, masts.csv, the tables file); KNOWN in hartlib.railroad lists what is reported and left.",
    "path": "tools/hartlib/src/hartlib/railroad.py",
+   "gen": "manifest"
+  },
+  {
+   "id": "tools/audit/check_py_sizes.py",
+   "label": "check_py_sizes",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Fails when a Python file over 800 lines grows past its row in tools/audit/py_sizes.csv; --update tightens the list, --accept raises a row by name.",
+   "path": "tools/audit/check_py_sizes.py",
    "gen": "manifest"
   },
   {
@@ -8498,6 +8517,18 @@
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "tools/hartlib/src/hartlib/railroad.py",
    "label": "check",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/audit/py_sizes.csv",
+   "to": "tools/audit/check_py_sizes.py",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/audit/check_py_sizes.py",
+   "to": "tools/check.sh",
+   "label": "check py-sizes",
    "side": "check",
    "gen": "manifest"
   },
