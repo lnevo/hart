@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_device_map as bdm  # noqa: E402  the device map's naming helpers (base, band_level, natural)
 import mast_rule as mr  # noqa: E402  the helix tracks (plan_overrides.json)
 from hartlib import drawing_keys, level_devices, level_masts, paths  # noqa: E402
-from hartlib.railroad_facts import FactsError  # noqa: E402
+from hartlib.railroad_facts import FactsError, half_text  # noqa: E402
 from hartlib.cats import station_plate  # noqa: E402
 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
@@ -207,18 +207,20 @@ def half_label(sw, leg, letters):
 
 
 def os_plates(F) -> dict:
-    """{staging OS block name: its desk station plate}: the name less "OS Switch " while the name keeps that form (19,
-    7, 7b, 23a), else, for an OS block the owner renamed, its switch's number, and a crossover half's letter by its
-    ID (half_label), so a renamed OS block keeps its plate rather than the first word of its name."""
+    """{staging OS block name: its desk station plate}. A switch with one OS block: the name less "OS Switch " while
+    the name keeps that form (19), else its number, so a renamed OS block keeps its plate rather than the first word
+    of its name. A crossover half: its number and the letter of its ID (half_label; railroad_facts.half_text, so
+    OS Switch 7 is 7), never a letter read off its name, so plate and label agree."""
     out = {}
     for sw in F.switches.values():
         for leg in sw.legs:
-            if re.fullmatch(rf"OS Switch {sw.number}[a-z]?", leg.os_block):
+            if len(sw.legs) > 1:
+                letter = half_label(sw, leg, F.half_letters)[-1].lower()
+                out[leg.os_block] = half_text(sw.number, leg.os_block, letter)
+            elif re.fullmatch(rf"OS Switch {sw.number}", leg.os_block):
                 out[leg.os_block] = station_plate(leg.os_block)
-            elif len(sw.legs) == 1:
-                out[leg.os_block] = str(sw.number)
             else:
-                out[leg.os_block] = half_label(sw, leg, F.half_letters).lower()
+                out[leg.os_block] = str(sw.number)
     return out
 
 

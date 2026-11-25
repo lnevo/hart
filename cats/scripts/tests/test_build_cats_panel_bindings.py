@@ -152,13 +152,16 @@ class Switches(unittest.TestCase):
         # the letters are the crossover_half rows', by the half's OS block ID: an owner's name for
         # the half (OS Barn West, OS X) changes no label, and its plate is its number and letter
         letters = {("1", "os:7:A-13C"): "a", ("1", "os:7:A-5B"): "b"}
-        for a, b in (("OS Switch 7", "OS Switch 7b"), ("OS Barn West", "OS Switch 7b"), ("OS Switch 7", "OS X")):
+        for a, b in (("OS Switch 7", "OS Switch 7b"), ("OS Barn West", "OS Switch 7b"), ("OS Switch 7", "OS X"),
+                     ("OS Switch 7b", "OS Switch 7a")):        # names swapped: label and plate still by the ID
             sw = Switch(7, "1", "TO7", False, 7, True, (Leg(a, "Track A", b, "os:7:A-13C"),
                                                          Leg(b, "Track B", a, "os:7:A-5B")))
             with self.subTest(names=(a, b)):
                 self.assertEqual([B.half_label(sw, leg, letters) for leg in sw.legs], ["7A", "7B"])
                 plates = B.os_plates(facts(switches={7: sw}, half_letters=letters))
                 self.assertEqual((plates[a], plates[b]), ("7" if a == "OS Switch 7" else "7a", "7b"))
+                self.assertEqual([plates[a][-1:].upper(), plates[b][-1:].upper()],
+                                 ["7" if a == "OS Switch 7" else "A", "B"])
         sw = Switch(7, "1", "TO7", False, 7, True, (Leg("OS Barn West", "Track A", "OS Switch 7b", "os:7:A-13C"),
                                                      Leg("OS Switch 7b", "Track B", "OS Barn West", "os:7:A-5B")))
         self.assertEqual(B.os_plates(facts(switches={7: sw}, half_letters=letters)),

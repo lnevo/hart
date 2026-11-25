@@ -6,8 +6,9 @@ step 5, owner 2026-11-20; archive/wiki/projects/level-unification-handoff.md).
 What it makes, for each level drawn on a band:
 - an OS block per switch, "OS Switch <n>". A single crossover is one OS block, unless its halves have their own
   detectors: then each half is an OS block of its own, given in block_overrides.csv (kind crossover_half; staging 7,
-  23 and 35) and named OS Switch <n><its letter> (the owner's name, by its ID, wins in the device master). A double crossover's corners are build_device_map.xover_corners' (main and upper), not this module's;
-  its node keeps "OS Switch <n>" here, as mast_plan reads it.
+  23 and 35) and named OS Switch <n><its letter> (the owner's name, by its ID, wins in the device master). A double
+  crossover's corners are build_device_map.xover_corners' (main and upper), not this module's; its node keeps
+  "OS Switch <n>" here, as mast_plan reads it.
 - a block per track, named by name_tracks: the name store's name when it gives its strands one ("Track <name>";
   hartlib.track_names, looked up by each strand's ID, store_names, never read off the drawing; a helix track its
   "Track <plan name>" too, on every level, so each helix block is one block across levels), else

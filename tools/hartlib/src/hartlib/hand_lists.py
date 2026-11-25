@@ -51,6 +51,9 @@ class HandListError(ValueError):
 
 OVERRIDES_NAME = "block_overrides.csv"     # in the schematic data folder, beside plan_overrides.json
 TRACK_KEY_COLUMNS = ["switch_a", "switch_b", "parallel"]
+# `parallel` has two uses: on a split or track row, the track's place among tracks with the same end switches (1 to
+# 4, plan order); on a crossover_half row, the half's letter, 1 a or 2 b (HALF_LETTERS). Both say which of two or
+# more things sharing switch_a and switch_b the row means.
 OVERRIDE_COLUMNS = ["level", "kind"] + TRACK_KEY_COLUMNS + ["end", "block", "cm", "inside", "notes"]
 OVERRIDE_KINDS = ("split", "track", "crossover_half")
 SWITCH_NUMBER = re.compile(r"\d+")

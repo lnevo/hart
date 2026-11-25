@@ -223,6 +223,7 @@ SWITCH_WIDE = ("area", "le_ident", "cats_inverted", "ctc_is", "ctc_signals", "no
 # Staging's bindings to its live Layout Editor, CATS desks and USS CTC board; main and upper leave them blank
 STAGING_ONLY = ("le_ident", "cats_inverted", "ctc_is", "ctc_signals")
 OS_BLOCK = re.compile(r"OS Switch (\d+)([a-z]?)")
+HALF_OS_ID = re.compile(r"os:\d+:A-\w+")      # a staging crossover half's OS block ID (hartlib.device_ids)
 
 
 @dataclass(frozen=True)
@@ -747,22 +748,33 @@ def read_desk_areas(path: Path, switches: Iterable[str] | None = None) -> list[D
 STATION_GROUP_COLUMNS = ("cp_id", "cp_name", "level", "switches", "notes", "code")
 
 
+def half_text(number, name: str, letter: str) -> str:
+    """The lower-case label of a crossover half with `letter` (a or b, by its ID): its number and letter ("23a"), or
+    the bare number while the owner's name is "OS Switch <n>" and the half is a (staging's OS Switch 7, which has
+    always been labelled 7). The letter is never read off the name: a half named like the other one still gets its
+    own."""
+    return str(number) if letter == "a" and name == f"OS Switch {number}" else f"{number}{letter}"
+
+
 def os_label(r: SwitchRow, where: Path, letters=None) -> str:
-    """The label a desk area gives a switch row's OS block: "19", or a crossover half's "7b", "23a". It is the OS
-    block's name less "OS Switch " while the name keeps that form; a renamed OS block is its switch's number (os_id
-    os:<n>), or a crossover half's number and letter (os_id os:<n>:A-<end>), the letter by its ID from `letters`
-    ({(level, id): letter}, hartlib.hand_lists.half_letters; a callable that gives them, so the file is read only for
-    a renamed half). FactsError on a renamed half with no letter there."""
-    m = OS_BLOCK.fullmatch(r.os_block)
-    if m and int(m.group(1)) == r.switch:
-        return r.os_block.removeprefix("OS Switch ")
-    if r.os_id == f"os:{r.switch}":
-        return str(r.switch)
+    """The label a desk area gives a switch row's OS block: "19", or a crossover half's "7", "7b", "23a". A switch's
+    one OS block (os_id os:<n>) is its name less "OS Switch " while the name keeps that form for its number, else the
+    number; a crossover half (os_id os:<n>:A-<end>) is half_text of its letter by its ID from `letters` ({(level, id):
+    letter}, hartlib.hand_lists.half_letters, or a callable that gives them, read when a half is met). FactsError on a
+    half with no letter there."""
+    if not HALF_OS_ID.fullmatch(r.os_id):
+        m = OS_BLOCK.fullmatch(r.os_block)
+        if m and int(m.group(1)) == r.switch:
+            return r.os_block.removeprefix("OS Switch ")
+        if r.os_id == f"os:{r.switch}":
+            return str(r.switch)
+        raise FactsError(f"{_where(where, r.line)} (Switch {r.switch}): {r.os_id or 'no os_id'} is named "
+                         f"{r.os_block!r}, which gives no label")
     letter = (letters() if callable(letters) else letters or {}).get((str(r.level), r.os_id))
     if letter is None:
-        raise FactsError(f"{_where(where, r.line)} (Switch {r.switch}): {r.os_id} is named {r.os_block!r}, and no "
-                         "crossover_half row of block_overrides.csv gives its half letter")
-    return f"{r.switch}{letter}"
+        raise FactsError(f"{_where(where, r.line)} (Switch {r.switch}): {r.os_id} ({r.os_block}) is a crossover half "
+                         "with no crossover_half row of block_overrides.csv to give its letter")
+    return half_text(r.switch, r.os_block, letter)
 
 
 def station_group_rows(stations: Path, switches: Path) -> list[dict[str, str]]:
@@ -775,14 +787,17 @@ def station_group_rows(stations: Path, switches: Path) -> list[dict[str, str]]:
     FactsError, naming the file, line and station, on what read_desk_areas or read_switch_rows stops on or a switch
     with no OS block."""
     from . import hand_lists          # it imports this module
-    letters = {}
+    letters: dict = {}
+    loaded = False
 
     def half_letters():
-        if not letters:          # a renamed crossover half's letter, by its ID (os_label), from beside stations.csv
+        nonlocal loaded
+        if not loaded:           # the crossover halves' letters, by ID (os_label), from beside stations.csv
             try:
                 letters.update(hand_lists.half_letters(Path(stations).parent / hand_lists.OVERRIDES_NAME))
             except hand_lists.HandListError as exc:
                 raise FactsError(str(exc)) from None
+            loaded = True
         return letters
 
     halves: dict[str, list[str]] = {}
