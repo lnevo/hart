@@ -149,17 +149,6 @@ def capture_sml_pairs(root: ET.Element) -> list[dict[str, str]]:
     return rows
 
 
-def capture_sml_sections(root: ET.Element) -> list[dict[str, str]]:
-    rows: list[dict[str, str]] = []
-    for section in root.iter("section"):
-        if section.get("creationtype") != "signalmastlogic":
-            continue
-        user_name = section.get("userName", "").strip()
-        if user_name:
-            rows.append({"sectionUserName": user_name})
-    return rows
-
-
 def capture_ctc_sidi(root: ET.Element) -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
     for column in root.iter("ctcCodeButtonData"):
@@ -335,7 +324,6 @@ CAPTURED_FILES = (
     "hardware_identity.csv",
     "le_mast_bindings.csv",
     "sml_pairs.csv",
-    "sml_sections.csv",
 )
 
 
@@ -390,7 +378,6 @@ def main(argv: list[str] | None = None) -> int:
     captures = (
         ("hardware_identity.csv", ["layer", "systemName", "userName"], capture_hardware_identity(root)),
         ("sml_pairs.csv", ["source", "destination", "associatedSection"], capture_sml_pairs(root)),
-        ("sml_sections.csv", ["sectionUserName"], capture_sml_sections(root)),
         ("ctc_sidi.csv", ["column", "turnout", "ltr", "rtl"], capture_ctc_sidi(uss)),
         ("ctc_trl.csv", ["column", "direction", "dest", "occupancySensors"], capture_ctc_trl(uss)),
         ("le_mast_bindings.csv", ["kind", "ident", "slot", "mast"], capture_le_mast_bindings(root)),
