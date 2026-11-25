@@ -3,7 +3,9 @@
 guard counts as the other levels', and what the mast checks stop on. These pin the behaviour the level unification
 (archive/wiki/projects/level-unification-handoff.md, step 4) keeps while it takes the level branches out.
 """
+import os
 import sys
+import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -125,6 +127,28 @@ class AddLevelObjects(unittest.TestCase):
             self.run_it(beans=dict(BEANS, **{"Track 105-109": ("IB:AUTO:0003", "ILB1003")}))
         with self.assertRaisesRegex(BuildError, "names collide"):
             self.run_it(beans=dict(BEANS, **{"Track 105-109": BEANS["OS Switch 105"]}))
+
+    def test_the_rows_names_are_checked_against_the_numbering(self):
+        """level_block_beans stops on a row whose layout block is not its block's pair, and on rows a
+        block_numbering.csv edit left stale (stale_block_beans: build_device_map.py was not run since)."""
+        row = dict(level="2", layer="block", user_name="Track 105-109", jmri_name="IB:C3:0003", layout_block="ILB1004")
+        with mock.patch.object(le_tables.devices, "load", return_value=[row]), \
+                mock.patch.object(le_tables, "stale_block_beans", return_value=[]):
+            with self.assertRaisesRegex(BuildError, "layout_block 'ILB1004' is not the pair of jmri_name 'IB:C3:0003'"):
+                le_tables.level_block_beans()
+            row["layout_block"] = "ILB1003"
+            self.assertEqual(le_tables.level_block_beans(), {"Track 105-109": ("IB:C3:0003", "ILB1003")})
+        self.assertEqual(le_tables.stale_block_beans(), [])             # the committed rows and file agree
+        d = Path(tempfile.mkdtemp())
+        self.addCleanup(os.rmdir, d)
+        path = d / le_tables.NUMBERING.name
+        text = le_tables.NUMBERING.read_text(encoding="utf-8")
+        old = "block:227C-241B#1,Track 227-241,,,"
+        self.assertIn(old, text)
+        path.write_text(text.replace(old, "block:227C-241B#1,,6,,"), encoding="utf-8")
+        self.addCleanup(os.remove, path)
+        stale = le_tables.stale_block_beans(numbering_path=path)
+        self.assertIn("Track 227-241 1 (IB:C3:0108, not IB:C3:0122)", stale)
 
     def test_a_staging_name_is_never_added(self):
         names = dict(NAMES, **{STAGING: dict(NAMES[STAGING], turnouts={"s1": "Switch 999"})})

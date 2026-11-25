@@ -265,9 +265,32 @@ def level_block_beans(path: Path = DEVICE_MAP) -> dict[str, tuple[str, str]]:
             bad.append(f"{r['user_name']}: jmri_name {jn!r} and layout_block {lb!r}, not both or neither")
         elif jn:
             out[r["user_name"]] = (jn, lb)
+            if jn.startswith(BLOCK_SYS) and (not jn[len(BLOCK_SYS):].isdigit() or
+                                             lb != block_numbering.layout_block_name(int(jn[len(BLOCK_SYS):]))):
+                bad.append(f"{r['user_name']}: layout_block {lb!r} is not the pair of jmri_name {jn!r}")
     if bad:
         raise BuildError(f"{paths.rel(path)}: " + "; ".join(bad))
+    stale = stale_block_beans(path)
+    if stale:
+        raise BuildError(f"{paths.rel(path)}: main and upper block rows whose jmri_name and layout_block are not "
+                         f"{NUMBERING.name}'s: {', '.join(stale)}; run build_device_map.py")
     return out
+
+
+def stale_block_beans(path: Path = DEVICE_MAP, numbering_path: Path = NUMBERING) -> list[str]:
+    """The generated main and upper block rows (not a helix block's) whose jmri_name and layout_block are not the
+    numbers block_numbering.csv gives now (hartlib.block_numbering over the generated names, as build_device_map.py
+    numbers them): the file was edited after the last device-map build. An owner's field jmri_name (a swap) is not
+    judged. BuildError on a numbering problem."""
+    try:
+        rows = [r for r in devices.generated_rows(path) if r["level"] in block_numbering.LEVELS
+                and r["layer"] == "block" and r["role"] != "helix"]
+        names = {(r["level"], r["id"]): r["user_name"] for r in rows}
+        want = block_numbering.bean_names(names.values(), block_numbering.read(numbering_path, names))
+    except (devices.DevicesError, block_numbering.NumberingError) as exc:
+        raise BuildError(str(exc)) from None
+    return [f"{r['user_name']} ({r['jmri_name'] or 'none'}, not {want[r['user_name']][0]})" for r in rows
+            if (r["jmri_name"], r["layout_block"]) != want[r["user_name"]]]
 
 
 def level_sensors(path: Path = DEVICE_MAP) -> dict:

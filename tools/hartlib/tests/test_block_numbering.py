@@ -51,15 +51,30 @@ class Rule(unittest.TestCase):
         with self.assertRaisesRegex(bn.NumberingError, "no longer have"):
             bn.bean_names(["OS Switch 105"], numbering("block:107B-107C#2,,1,,\n"))
 
+    def test_a_message_names_the_file_read(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "numbers_copy.csv"
+            path.write_text(HEADER + ",,,Track 105-109,\n", encoding="utf-8")
+            n = bn.read(path, NAMES)
+        self.assertEqual(n.source, path)
+        with self.assertRaisesRegex(bn.NumberingError, "out of numbers_copy.csv's retired rows"):
+            bn.bean_names(BLOCKS, n)
+        with self.assertRaisesRegex(bn.NumberingError, "^numbers_copy.csv names Track 105-109"):
+            bn.order(["OS Switch 105"], n, require_listed=True)
+
 
 class CommittedRows(unittest.TestCase):
     def test_every_main_and_upper_block_row_has_the_files_numbers(self):
         """The committed device master: each main and upper block row but a helix block's carries the names the rule
-        gives over block_numbering.csv, and only those rows have them."""
+        gives over block_numbering.csv and the generated names (as build_device_map.block_beans numbers them, so an
+        owner's rename keeps them), and only those rows have them."""
         rows = [r for r in devices.load() if r["level"] in bn.LEVELS and r["layer"] == "block"]
         numbered = [r for r in rows if r["role"] != "helix"]
-        want = bn.bean_names([r["user_name"] for r in numbered], bn.read(bn.PATH, devices.user_names()))
-        self.assertEqual({r["user_name"]: (r["jmri_name"], r["layout_block"]) for r in numbered}, want)
+        generated = {(r["level"], r["id"]): r["user_name"] for r in devices.generated_rows()
+                     if r["level"] in bn.LEVELS and r["layer"] == "block" and r["role"] != "helix"}
+        want = bn.bean_names(generated.values(), bn.read(bn.PATH, generated))
+        self.assertEqual({(r["level"], r["id"]): (r["jmri_name"], r["layout_block"]) for r in numbered},
+                         {k: want[name] for k, name in generated.items()})
         self.assertEqual({r["assignment"] for r in numbered}, {"virtual"})
         self.assertEqual([(r["jmri_name"], r["layout_block"]) for r in rows if r["role"] == "helix"],
                          [("", "")] * 2)

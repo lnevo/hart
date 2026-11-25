@@ -22,7 +22,7 @@ them into the block rows' jmri_name and layout_block, and the Layout Editor buil
 from __future__ import annotations
 
 import csv
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, Mapping
 
@@ -40,10 +40,11 @@ class NumberingError(ValueError):
 @dataclass(frozen=True)
 class Numbering:
     """block_numbering.csv by block name: {block: the name whose sort place it takes}, the appended blocks in
-    append order and the retired blocks' old names."""
+    append order and the retired blocks' old names; `source`, the file they were read from, for messages."""
     numbered_as: Mapping[str, str]
     appended: tuple[str, ...]
     retired: tuple[str, ...]
+    source: Path = field(default=PATH, compare=False)
 
 
 def read(path: Path = PATH, names: Mapping[tuple[str, str], str] | None = None) -> Numbering:
@@ -94,7 +95,7 @@ def read(path: Path = PATH, names: Mapping[tuple[str, str], str] | None = None) 
     clash = sorted(set(numbered.values()) & seen)
     if clash:
         raise NumberingError(f"{path.name}: {', '.join(clash)} is both a block and the name another is numbered as")
-    return Numbering(numbered, tuple(appended[k] for k in sorted(appended)), tuple(retired))
+    return Numbering(numbered, tuple(appended[k] for k in sorted(appended)), tuple(retired), path)
 
 
 def block_sort(name: str):
@@ -114,7 +115,8 @@ def order(blocks: Iterable[str], numbering: Numbering, require_listed: bool = Fa
     listed = set(numbering.numbered_as) | set(numbering.appended) | set(numbering.retired)
     missing = sorted(listed - blocks) if require_listed else []
     if missing:
-        raise NumberingError(f"{PATH.name} names {', '.join(missing)}, which the main and upper levels no longer "
+        raise NumberingError(f"{numbering.source.name} names {', '.join(missing)}, which the main and upper levels "
+                             "no longer "
                              "have; take the row out or rename it")
     tail = [b for b in numbering.appended if b in blocks]
     return sorted(blocks - set(tail), key=lambda b: block_sort(numbering.numbered_as.get(b, b))) + tail
@@ -137,7 +139,8 @@ def bean_names(blocks: Iterable[str], numbering: Numbering) -> dict[str, tuple[s
     blocks = set(blocks)
     again = sorted(blocks & set(numbering.retired))
     if again:
-        raise NumberingError(f"retired blocks drawn again: {', '.join(again)}; take them out of {PATH.name}'s "
+        raise NumberingError(f"retired blocks drawn again: {', '.join(again)}; take them out of "
+                             f"{numbering.source.name}'s "
                              "retired rows")
     return {b: (block_name(i), layout_block_name(i))
             for i, b in enumerate(order(blocks | set(numbering.retired), numbering, require_listed=True), 1)

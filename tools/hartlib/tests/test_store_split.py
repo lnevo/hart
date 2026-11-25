@@ -379,6 +379,18 @@ class DeviceItems(unittest.TestCase):
         self.assertIn("rename it by hand in its devices_field.csv row (keyed by its id): change user_name, and "
                       "jmri_name with it when that binds the turnout by its user name", g.note)
 
+    def test_a_rename_of_a_built_block_says_where_to_rename_it(self) -> None:
+        """Naming-layers step 8: a block row of the builder's (main and upper's are virtual beans with their names in
+        the row) is renamed by hand in its field row, not by changing the builder's inputs."""
+        rows = [dict(r, written_by="build_device_map.py") if r["layer"] == "block" else r for r in ROWS]
+        before = bean("block", "IB:AUTO:0033", "OS Switch 1", "Brick CP, Switch 1", systemName="IB:AUTO:0033")
+        after = bean("block", "IB:AUTO:0033", "OS Switch 1A", "Brick CP, Switch 1", systemName="IB:AUTO:0033")
+        p = plan(doc(blocks=before), doc(blocks=before), doc(blocks=after), rows=rows)
+        self.assertEqual([], p.of(ss.DEVICE))
+        self.assertTrue(any("rename it by hand in its devices_field.csv row (keyed by its id): change user_name; its "
+                            "jmri_name and layout_block stay" in g.note for g in p.of(ss.DROPPED)),
+                        [g.note for g in p.of(ss.DROPPED)])
+
     def test_a_rename_on_both_passes_is_one_question(self) -> None:
         """A block's names-only pass and full pass (and its layout block) carry one rename: one DEVICE item."""
         both = (bean("block", "IB:AUTO:0033", "OS Switch 1A", systemName="IB:AUTO:0033")

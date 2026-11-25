@@ -454,6 +454,12 @@ def _device_items(key: tuple, b: ET.Element | None, g: ET.Element, s: ET.Element
                                  "turnout by its user name (the build stops on one without the other); wiring.csv "
                                  "keeps the generated name the id gives"))
             continue
+        if r["written_by"] == "build_device_map.py" and r["layer"] == "block" and p == "userName":
+            # a block of any level (main and upper's are virtual beans since naming-layers step 8): the owner's
+            # name is a devices_field.csv cell, its bean names stay (numbered over the generated name)
+            out.append((p, None, f"{who} is a block the builder names: rename it by hand in its devices_field.csv "
+                                 "row (keyed by its id): change user_name; its jmri_name and layout_block stay"))
+            continue
         if r["written_by"]:
             out.append((p, None, f"{r['written_by']} writes {who}: change its inputs and rebuild"))
             continue
