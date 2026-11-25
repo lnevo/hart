@@ -41,7 +41,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 
 | # | Step | Size | Notes |
 |---|---|---|---|
-| 1 | Tests first | 1 day | Builder merge step 1: golden tests of every main and upper bean `le_tables` makes, unit tests of `master_beans` per assignment, `build_masts.generate` on staging, and the device-master merge |
+| 1 | Tests first | 1 day | Builder merge step 1: golden tests of every main and upper bean `le_tables` makes, unit tests of `master_beans` per assignment, `build_masts.generate` on staging, and the device-master merge. **Done (2026-11-24):** see [Step 1 findings](#step-1-findings) |
 | 2 | `id` column | 0.5 day | The builders write an ID on every row (decision 1); `check_rows` holds it unique per level. Only `devices_generated.csv` changes |
 | 3 | The name store | 1.5 days | Check first that the generator can name every track from the plan before the drawing (the end switches come from the plan graph). Then `hartlib` resolves every name (decision 2); the `name` and `end` edits move to the owner layer, keyed by ID; `layer_files.view` writes them for the plugin; `cats_panel.py` and `le_names.py` read names from the store instead of the drawing. A check fails if `plan_overrides.json` holds a name again. Drawings byte-identical |
 | 4 | Owner file keyed by ID | 1 day | `devices_field.csv` rekeyed on `(level, id)`; `user_name` becomes an owner cell. The build prints new and gone IDs against the last generated file and stops as decision 3 says; a rename lists the Operations Pro copies (decision 5) and warns on a mast rename (decision 6) |
@@ -56,9 +56,17 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 | 13 | One reader | 1 day | Builder merge step 7, first half: `le_names.level_names` and `staging_device_map.load` become one reader keyed by ID |
 | 14 | Level tests to column tests, and a swap test | 1 day | Builder merge step 8, then in the sandbox swap one main or upper turnout to a physical name by its owner row alone: `make panels`, `make panelpro-test`, then revert |
 
+## Step 1 findings (2026-11-24)
+
+- `tools/schematic/tests/test_bean_goldens.py` pins both bean processes against the committed `tables.xml`, without the plugin: `tables_build.base` is the committed manager sections once `le_tables.strip_build_owned` has run (block paths and mast properties left out, as JMRI and discovery derive them); every main and upper bean is a line of `tests/fixtures/main_upper_beans.txt` (783 lines; a listed bean diff rewrites it with `--write`); `add_level_signals` on `masts.csv` alone makes the fixture's heads and masts.
+- The row-to-bean map step 11 must keep: a main or upper switch gives one internal turnout and its LCC alias and feedback rows none (DIRECT feedback); every main and upper block row has assignment `none` today yet gets a names-only block, a full block and a layout block from `le_tables`, except the two helix blocks, which are staging's beans bound to a main and upper sensor; a detector gives one internal sensor and one `ActionSensor`, a turnout one `ActionTurnout`.
+- The two block length formats (`le_tables.r1` and `master_beans`) agree on every committed length and every hundredth of an inch to 3000 in.
+- `build_masts.generate` on staging and the device-master merge already had tests on the committed data (`test_build_masts.CommittedData`, `test_devices_pair`); `master_beans` now has a case per assignment (`MasterBeansByAssignment`).
+- The data-check write guard (`repo_read_only`) refused `layer_files.view` swapping its cache link on the first build in a new worktree; it now judges a renamed or removed link by where it stands.
+
 ## How to run this
 
-- Start when the owner says go; ADR-033 moves to Accepted then.
+- Started 2026-11-24 (ADR-033 Accepted). While the Mac is loaded (owner's Repo-audit session, 2026-11-24): one agent and one step at a time, only the new tests on the Mac, every full `check.sh` or suite through `make remote`; step 2 waits until the check-speed hand-off has merged.
 - One PR per step, in order, each in its own `make wt` worktree. Steps 2 to 7 are `hartlib` and `tools/schematic/` work (`schematic-builder`); steps 11 and 14 need the Mac's PanelPro and stay in the main session.
 - Steps that add or move a pipeline step update `docs/pipeline-map/pipeline_map.json`.
 - Docs to update as steps land: `tools/hartlib/README.md` (`hartlib.devices`), `wiki/pipelines/schematic-panels.md`, `jmri/layouts/hart/data/devices.columns.csv`, ADR-027, 028 and 029 (amended by 033).
