@@ -48,7 +48,6 @@ WRITER = "build_device_map.py"              # the one writer of every level's ma
 LEVEL = sdm.LEVEL                           # staging
 STATIONS = sdm.STATIONS
 INTERLOCKINGS = pd.DATA / "interlockings.csv"   # the signal rule's control points, every level (owner, 2026-11-20)
-LEVELS = mast_rule.band_levels(sdm.overrides())     # {band title: level}: staging's
 FACTS = railroad.DEVICE_FACTS               # the device map's fact columns; a mast row fills switch, facing, protects, dir
 WIRED_HEAD = level_masts.WIRED_HEAD         # an LCOS head: signal_coordinator.py publishes IH and digits to MQTT
 # the note of a head on its internal name (no field head drives it), with the owner's decision (2026-11-19)
@@ -60,6 +59,22 @@ LAYERS = ("mast", "head")
 
 class RuleError(mast_rule.MapError):
     pass
+
+
+class MissingLengths(RuleError):
+    """Staging blocks with no plan length in block_lengths.csv: no mast can be placed on their runs. The device map
+    still writes its rows (build_device_map.master_outputs keeps the last mast rows and stops after the write), so
+    plan_lengths.py can add the lengths of a new block."""
+
+
+def levels() -> dict:
+    """{band title: level} of staging's plan overrides, read on first use (not on import)."""
+    if not _LEVELS:
+        _LEVELS.update(mast_rule.band_levels(sdm.overrides()))
+    return _LEVELS
+
+
+_LEVELS: dict = {}
 
 
 def internal_head(user: str, level: int = LEVEL) -> str:
@@ -256,14 +271,20 @@ def mast_ids(band, placed: list[dict], block_ids: dict) -> list[str]:
     halves = {n: ident.split(":", 2)[2] for n, (_ph, ident) in sdm.os_keys(band).items() if ident.count(":") == 2}
     out, bad = [], []
     for m in placed:
-        if m["role"] == "home":
-            label = sdm.lc.bare(band["nodes"][m["node"]].get("label"))
-            out.append(device_ids.home_mast_id(label, m["leg"], m["dir"], halves.get(m["node"], "")))
-        elif m["facing"] in block_ids:
-            out.append(device_ids.block_mast_id(block_ids[m["facing"]], m["dir"]))
-        else:
+        try:
+            if m["role"] == "home":
+                label = sdm.lc.bare(band["nodes"][m["node"]].get("label"))
+                out.append(device_ids.home_mast_id(label, m["leg"], m["dir"], halves.get(m["node"], "")))
+                continue
+            if m["facing"] in block_ids:
+                out.append(device_ids.block_mast_id(block_ids[m["facing"]], m["dir"]))
+                continue
+        except ValueError as exc:
             out.append("")
-            bad.append(f"{m['mast']} faces {m['facing']}, which has no staging block row with a device ID")
+            bad.append(f"{m['mast']}: {exc}")
+            continue
+        out.append("")
+        bad.append(f"{m['mast']} faces {m['facing']}, which has no staging block row with a device ID")
     twice = sorted({i for i in out if i and out.count(i) > 1})
     bad += [f"two masts have device ID {i}" for i in twice]
     if bad:
@@ -302,8 +323,10 @@ def virtual_names(vgen: list[dict], ids: dict, old_rows: list[dict]) -> dict[str
         if r["layer"] != "mast" or not level_masts.virtual_ordinal(r["system_name"]):
             continue
         key = name_of.get(r["id"], r["user_name"])
-        if key in old:
-            bad.append(f"{key}: the virtual mast of id {r['id']} had that name, and another mast now has it")
+        if key in old or (r["id"] not in name_of and key in name_of.values()):
+            bad.append(f"{key}: the virtual mast of id {r['id']} had that name, and another mast now has it: add "
+                       f"{r['user_name']} ({r['system_name']}) to retired_virtual_masts.csv under another name, or "
+                       "give the mast its old ID back")
         old[key] = r["system_name"]
     if bad:
         raise RuleError("; ".join(bad))
@@ -381,13 +404,13 @@ def plan(band, bands, joined, runs, names: dict, locks: dict, cm: dict) -> dict:
     interlockings (`locks`), its block layer (`names`, of `band`, the staging band of `bands`) and block lengths
     (`cm`), the owner's block splits. RuleError when `band` is not the staging band `bands` holds."""
     import device_map_schematic as dms
-    found = mast_rule.tracks(bands, runs, joined, {1: "H"}, levels=LEVELS)
+    found = mast_rule.tracks(bands, runs, joined, {1: "H"}, levels=levels())
     mast_rule.track_names(found)
-    bi = [i for i, (title, _b, _o) in enumerate(bands) if mast_rule.band_level(title, LEVELS)]
+    bi = [i for i, (title, _b, _o) in enumerate(bands) if mast_rule.band_level(title, levels())]
     if len(bi) != 1 or set(bands[bi[0]][1]["strands"]) != set(band["strands"]):
         raise RuleError(f"the solved sheet has {len(bi)} staging band(s), or its staging band is not the device map's")
-    return mast_plan.plan(bands, joined, found, levels=LEVELS, cp_of=locks, layer={bi[0]: names}, cm=cm,
-                          split=mast_rule.read_block_splits(dms.block_overrides(), found, LEVELS))
+    return mast_plan.plan(bands, joined, found, levels=levels(), cp_of=locks, layer={bi[0]: names}, cm=cm,
+                          split=mast_rule.read_block_splits(dms.block_overrides(), found, levels()))
 
 
 def plan_facts(placed: list[dict]) -> dict:
@@ -412,6 +435,10 @@ def staging_masts(bands, joined, runs, rows: list, files: devices.Files) -> dict
     field = field_by_id(files)
     wired = wired_heads(field, files=files)
     cm = block_cm(rows)
+    missing = sorted({b for v in names["blocks"].values() for b in v} - set(cm))
+    if missing:
+        raise MissingLengths(f"block_lengths.csv has no plan length for {missing}: the masts are not placed again "
+                             "until it does (python3 tools/schematic/plan_lengths.py)")
     parts = sdm.staging_parts(rows=rows)
     planned = plan(band, bands, joined, runs, sdm.os_layer(names, parts), locks, cm)   # parts inside their blocks
     stored = sdm.staging_names(band, pd.DATA)     # the name store's of the folder solved from, by each strand's ID

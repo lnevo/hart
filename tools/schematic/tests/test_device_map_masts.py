@@ -328,6 +328,38 @@ class Rows(unittest.TestCase):
         self.assertEqual(got, {"Mast 4LA": "IF$vsm:basic:one-low($1002)", "Mast 4LB": "IF$vsm:basic:one-low($1001)"})
 
 
+class ReviewFixes(unittest.TestCase):
+    """Code review of naming-layers step 12."""
+    V = "IF$vsm:basic:one-low(${})"
+
+    def test_a_dropped_virtual_masts_name_taken_by_a_new_mast_stops(self):
+        """A dropped mast's ordinal must not go silently to a new mast (a new ID) that takes its name."""
+        vgen = [dict(mast="Mast 4LA")]
+        ids = {"Mast 4LA": "mast:block:new-end:west"}
+        old = [dict(layer="mast", id="mast:block:3B-end:west", user_name="Mast 4LA", system_name=self.V.format(1001))]
+        with self.assertRaisesRegex(dmm.RuleError, "Mast 4LA: the virtual mast of id mast:block:3B-end:west"):
+            dmm.virtual_names(vgen, ids, old)
+        virtual = [dict(id="mast:block:new-end:west", name="210LA")]
+        with self.assertRaisesRegex(bdm.MapError, "Mast 210LA: the virtual mast of id mast:block:209B-end:west"):
+            bdm.virtual_memory(virtual, {"mast:block:209B-end:west": ("Mast 210LA", self.V.format(3003))})
+
+    def test_a_half_takes_every_end_end_key_gives(self):
+        from hartlib import device_ids
+        for half in ("A-13C", "A-121AB", "A-helix", "A-end"):
+            self.assertEqual(device_ids.home_mast_id("7", "B", "east", half), f"mast:7:{half}:B:east")
+
+    def test_a_bad_id_is_a_rule_error(self):
+        band = {"nodes": {"n7": {"label": "7"}}}
+        ms = [dict(mast="Mast 8LA", role="home", node="n7", leg="E", dir="west")]
+        with unittest.mock.patch.object(dmm.sdm, "os_keys", lambda band: {}), \
+                self.assertRaisesRegex(dmm.RuleError, "Mast 8LA: no device ID for a home mast"):
+            dmm.mast_ids(band, ms, {})
+
+    def test_the_levels_are_read_on_first_use(self):
+        self.assertFalse(hasattr(dmm, "LEVELS"))
+        self.assertEqual(dmm.levels(), {"Staging level": 1})
+
+
 class MainUpperMemory(unittest.TestCase):
     """build_device_map.virtual_memory: a main or upper virtual mast keeps its ordinal by its ID too."""
     V = "IF$vsm:basic:one-low(${})"

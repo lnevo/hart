@@ -464,6 +464,12 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   longer match), the bean golden fixture (from the new discovery base). Discovery base hash `b2fe5165...` to
   `843f47e4...`. `tables.xml` is unchanged here: the main session runs the discovery and the approval.
 - **Also fixed:** `freeze_wiring.track_keys` numbered parallel tracks by row while `resolve_track` reads plan order.
+- **Code review (medium), fixed:** a staging block with no plan length no longer stops the device map before it
+  writes (it keeps staging's last mast rows, writes, and exits 2, so `plan_lengths.py` can add the length); a dropped
+  virtual mast's old name now taken by a new ID stops instead of handing it the ordinal; a half ID takes every end
+  `end_key` gives (`A-helix`, `A-end`) and a bad mast ID is a RuleError; the staging band levels are read on first
+  use. The device map reads `block_lengths.csv` by `(level, id)`, and length-labels after it rewrites the file only
+  when a label changes, so the device-map stamp breaks once after a rename (its output unchanged), then holds.
 
 ## How to run this
 

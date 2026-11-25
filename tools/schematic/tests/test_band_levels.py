@@ -46,10 +46,10 @@ class BandLevels(unittest.TestCase):
     def test_the_repo_files_give_staging_main_and_upper(self):
         import build_device_map as bdm
         import device_map_masts as bsm
-        self.assertEqual(bsm.LEVELS, {"Staging level": 1})
+        self.assertEqual(bsm.levels(), {"Staging level": 1})
         self.assertEqual(sorted(bdm.LEVELS.values()), [2, 3])
-        self.assertFalse(set(bdm.LEVELS) & set(bsm.LEVELS), "a band title is in both overrides files")
-        self.assertEqual([lv for lv in (*bdm.LEVELS.values(), *bsm.LEVELS.values()) if lv == 1], [1])
+        self.assertFalse(set(bdm.LEVELS) & set(bsm.levels()), "a band title is in both overrides files")
+        self.assertEqual([lv for lv in (*bdm.LEVELS.values(), *bsm.levels().values()) if lv == 1], [1])
 
 
 def band(nodes, strands):

@@ -103,7 +103,7 @@ class Committed(unittest.TestCase):
     def test_each_kind_follows_the_grammar(self):
         want = {"turnout": r"switch:\d+", "lcc_alias": r"dcc:\d+", "fb": r"fb:\d+:[NR]",
                 "os": r"os:\d+(:A-\d+[A-D])?", "xover_corner": r"os:\d+:(A-\d+[A-D]|[A-D])",
-                "home": r"mast:\d+[A-Z]?:(A-\d+[A-Z]?[A-D]:)?[A-D]:(east|west)", "intermediate": r"mast:block:\S+:(east|west)",
+                "home": r"mast:\d+[A-Z]?:(A-(\d+[A-Z]?[A-D]|helix|end):)?[A-D]:(east|west)", "intermediate": r"mast:block:\S+:(east|west)",
                 "hidden": r"mast:block:\S+:(east|west)", "spare": r"spare:M2S\d+",
                 "panel_status": r"panel:\w+:\S+"}
         for kind in ("track", "spur", "loop_half", "helix", "part"):

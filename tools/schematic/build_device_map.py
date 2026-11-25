@@ -455,8 +455,10 @@ def virtual_memory(virtual: list[dict], old: dict) -> dict[int, dict]:
     for ident, (user, system) in old.items():
         key = now.get(ident, user)
         mine = out.setdefault(level_masts.virtual_level(system), {})
-        if key in mine:
-            bad.append(f"{key}: the virtual mast of id {ident} had that name, and another mast now has it")
+        if key in mine or (ident not in now and key in now.values()):
+            bad.append(f"{key}: the virtual mast of id {ident} had that name, and another mast now has it: add "
+                       f"{user} ({system}) to retired_virtual_masts.csv under another name, or give the mast its old "
+                       "ID back")
         mine[key] = system
     if bad:
         raise MapError("; ".join(bad))
@@ -868,14 +870,17 @@ def block_beans(rows: list[dict], numbering_path: Path | None = None) -> list[di
 
 
 def master_outputs(bands, joined, runs, rows, parts, files: devices.Files | None = None, warn=None,
-                   check: bool = False) -> dict[Path, str]:
+                   check: bool = False, held: list | None = None) -> dict[Path, str]:
     """{path: text} of the device master once this script has written every level's rows: main and upper's
     (build()'s `rows` and `parts`, owned_rows) and staging's (staging_rows, staging_wired_rows, and its masts and
     heads from those rows, device_map_masts.staging_masts), all generated from the plan with the owner's values over
     them, in `files` (default device_files()). The cells that name a block the
     owner renamed (a part's part_of, a detector's blocks, a mast's facing and protects) follow the new name on every
     level at once (hartlib.devices.follow_renames: a main mast facing a renamed staging helix block too). `warn` and
-    `check`: hartlib.devices.outputs_after's. MapError, DevicesError (a FactsError) as those stop."""
+    `check`: hartlib.devices.outputs_after's. `held` gets why staging's masts were not placed again (a block with
+    no plan length: its last mast rows are kept, and main stops after the write). MapError, DevicesError (a
+    FactsError) as those stop."""
+    held = [] if held is None else held
     f = files or device_files()
     drawn: dict[str, str] = {}
     staging = staging_rows(bands, joined, runs, f, drawn=drawn)
@@ -888,8 +893,15 @@ def master_outputs(bands, joined, runs, rows, parts, files: devices.Files | None
     every = [dict(r) for r in devices.follow_renames(main + staging + wired, generated)]
     # staging's masts and heads, from the block rows above (device_map_masts; naming-layers step 12: one writer of
     # every level's mast and head rows)
-    masts = device_map_masts.staging_masts(bands, joined, runs, every, f)
-    every += [devices.master_row(o, WRITER) for o in masts["rows"]]
+    try:
+        every += [devices.master_row(o, WRITER) for o in
+                  device_map_masts.staging_masts(bands, joined, runs, every, f)["rows"]]
+    except device_map_masts.MissingLengths as exc:
+        # a new staging block has no plan length yet: write the rows (plan_lengths.py needs them) with staging's
+        # last mast and head rows, and stop after the write (main)
+        every += [dict(r) for r in devices.load(f) if r["level"] == str(STAGING_LEVEL)
+                  and r["layer"] in device_map_masts.LAYERS and r["written_by"] == WRITER]
+        held.append(str(exc))
     # what a main or upper bean takes from its row: its start and bean comment (naming-layers steps 9 and 11)
     every = bean_cells(every, startup_thrown(bands))
     return devices.outputs_after(WRITER, [], f, master_rows=every, warn=warn, check=check)
@@ -1017,8 +1029,9 @@ def main(argv=None) -> int:
         print(f"build_device_map.py: {exc}", file=sys.stderr)
         return 2
     try:
+        held: list[str] = []
         want = {GENERATED: generated_text(cp_keys),
-                **master_outputs(bands, joined, runs, rows, parts, check=args.check)}
+                **master_outputs(bands, joined, runs, rows, parts, check=args.check, held=held)}
     except (MapError, staging_map_error(), railroad.FactsError, layer_files.LayerFileError) as exc:
         # a DevicesError is a FactsError; a StagingMapError comes from staging's placeholder grammar
         print(f"build_device_map.py: {exc}", file=sys.stderr)
@@ -1027,10 +1040,16 @@ def main(argv=None) -> int:
     if args.check:
         for p in stale:
             print(devices.stale_message(p, device_files(), "tools/schematic/build_device_map.py"), file=sys.stderr)
-        return 1 if stale else 0
+        if held:
+            print(f"build_device_map.py: staging's masts not placed again: {'; '.join(held)}", file=sys.stderr)
+        return 1 if stale or held else 0
     for p in stale:
         p.write_text(want[p], encoding="utf-8")
         print(f"wrote {p.relative_to(pd.DATA.parents[4]) if len(pd.DATA.parents) > 4 else p}")
+    if held:
+        print(f"build_device_map.py: rows written, staging's masts kept as they were: {'; '.join(held)}",
+              file=sys.stderr)
+        return 2
     counts = defaultdict(int)
     for r in rows:
         counts[r["layer"]] += 1

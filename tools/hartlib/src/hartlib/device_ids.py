@@ -38,7 +38,9 @@ HEAD_PLACES = ("top", "bottom", "single")
 DIRS = ("east", "west")
 _LABEL = re.compile(r"\d+[A-Z]?")          # a switch label as the plan prints it: 101, 101A
 _NUMBER = re.compile(r"\d+")
-_HALF = re.compile(r"A-\d+[A-Z]?[A-D]")      # a staging crossover half: where its leg A runs (A-13C, A-5B)
+# a staging crossover half: where its leg A runs, as staging_device_map.end_key gives it (A-13C, A-5B, A-121AB, and
+# A-helix or A-end at a helix or a bumper)
+_HALF = re.compile(r"A-(\d+[A-Z]?[A-D]|helix|end)")
 
 
 def _need(ok: bool, what: str) -> None:
