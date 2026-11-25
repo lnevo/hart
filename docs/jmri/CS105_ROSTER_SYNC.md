@@ -5,11 +5,11 @@ Copy the JMRI roster (names, DCC addresses, function labels) into the TCS CS-105
 ## What you can do
 
 ```
-tools/ops/cs105_roster_sync.sh                  # show the plan, write nothing
-tools/ops/cs105_roster_sync.sh --apply          # create missing trains, refresh labels
-tools/ops/cs105_roster_sync.sh --apply --only 1993,572
-tools/ops/cs105_roster_sync.sh --apply --rename # also rename trains the CS-105 already has
-tools/ops/cs105_roster_sync.sh --apply --rename --names road   # names as "Road Number", e.g. PRC 4678
+tools/ops/cs105.sh roster-sync                  # show the plan, write nothing
+tools/ops/cs105.sh roster-sync --apply          # create missing trains, refresh labels
+tools/ops/cs105.sh roster-sync --apply --only 1993,572
+tools/ops/cs105.sh roster-sync --apply --rename # also rename trains the CS-105 already has
+tools/ops/cs105.sh roster-sync --apply --rename --names road   # names as "Road Number", e.g. PRC 4678
 ```
 
 Run it from the Mac while the Pi's JMRI is up. It does not need PanelPro on the Mac, and it does not touch turnouts, signals or MQTT.
@@ -31,10 +31,21 @@ The plan lists one line per roster entry: CREATE (the CS-105 has no train for th
 ## Restarting the CS-105
 
 ```
-tools/ops/cs105_reboot.sh
+tools/ops/cs105.sh reboot
 ```
 
 Sends the CS-105 the OpenLCB Reset/Reboot datagram through the Pi's JMRI, waits for it to come back and lists every node on the bus, naming the ones that disappeared. Use it after deleting trains from the CS-105 roster (`Train.Delete From Roster?`), because deleted trains stay on the bus as live nodes until the command station restarts. Track power drops for a few seconds, so run it only when nothing is moving.
+
+## Consists
+
+```
+tools/ops/cs105.sh consist query 06.01.00.00.C8.49 06.01.00.00.CA.B2       # the listeners each train node holds
+tools/ops/cs105.sh consist attach 06.01.00.00.C8.49 06.01.00.00.CA.B2      # CSX 2121 lists CSX 2738, flags 6
+tools/ops/cs105.sh consist attach 06.01.00.00.CA.B2 06.01.00.00.C8.49 --flags 2
+tools/ops/cs105.sh consist detach 06.01.00.00.C8.49 06.01.00.00.CA.B2      # drop the listener on both, query both
+```
+
+Drops `jmri/layouts/hart/scripts/cs105_consist.py` with its settings into the same channel and prints its log (`/tmp/cs105_consist.log` on the Pi, ending with `END`). A consist takes one attach per side. Flags: 0x02 reverse, 0x04 link F0, 0x08 link the other functions; the default 6 runs the follower in reverse with its headlight on the lead's F0. A train node is six hex bytes: long address n is `06.01.00.00.(C0+high).low`. The command sends LCC Train Control messages, so it is refused while the operating flag is set (`tools/hosts/operating.sh`), with no override.
 
 ## Doing it by hand in JMRI
 
@@ -44,8 +55,8 @@ DecoderPro can do one entry at a time, but only if the CS-105 already has a trai
 
 - Script that runs inside JMRI: `external/jmri-cs105-roster-sync/cs105_roster_sync.py`, a submodule of the public repo [lnevo/jmri-cs105-roster-sync](https://github.com/lnevo/jmri-cs105-roster-sync) (Jython 2.7 and CPython 3). Change it there, then move the submodule pointer. Run from PanelPro's Scripting menu it opens a window that plans first; through the wrapper it runs without a window.
 - Roster ID renamer (Jython, runs in the Pi's JMRI): `jmri/layouts/hart/scripts/roster_rename_road_ids.py`.
-- Restart script and wrapper: `jmri/layouts/hart/scripts/cs105_reboot.py`, `tools/ops/cs105_reboot.sh`.
-- Mac wrapper: `tools/ops/cs105_roster_sync.sh`. It drops the script into the Pi's `jmri_cmd_watcher.py` channel and prints the result.
+- Restart and consist scripts (Jython, run in the Pi's JMRI): `jmri/layouts/hart/scripts/cs105_reboot.py`, `jmri/layouts/hart/scripts/cs105_consist.py`.
+- Mac wrapper: `tools/ops/cs105.sh` (`reboot`, `roster-sync`, `consist`). It drops the script into the Pi's `jmri_cmd_watcher.py` channel and prints the result. Tests: `tools/hosts/tests/test_cs105_cli.py`.
 - Tests: in the submodule, `python3 -m unittest discover -s tests` (CI runs them under Python 3 and Jython 2.7).
 - Offline plan from a roster folder (no device): `python3 external/jmri-cs105-roster-sync/cs105_roster_sync.py <folder with roster.xml and roster/> --values`.
 

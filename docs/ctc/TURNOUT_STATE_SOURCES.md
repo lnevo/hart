@@ -32,7 +32,7 @@ at `PtsVitalLogic.setSelectedTrack` and occupancy freezes until relaunch.
 ## Diagnose (read-only)
 
 ```bash
-python3 jmri/layouts/hart/scripts/seed_default_thrown_turnouts.py --diagnose
+python3 jmri/layouts/hart/scripts/diagnose_turnout_states.py --diagnose
 ```
 
 ## Digicon NORMAL (current panel)
