@@ -12,9 +12,9 @@
 build_panels.sh runs each step with the trace hook of tools/audit/traced.py, which logs every repo file the step's
 Python processes open, every file they probe and find absent, every folder they list and every subprocess they
 start. After a pass the stamp records that read set with its hashes, and a key: the sha256 over the step's command
-line, its outputs (STEPS), the code every step may run (CODE, whole), the schematic-maps plugin's commit and
-uncommitted changes (of the SCHEMATIC_PLUGIN folder when set), the Python (version, real path, PYTHONPATH),
-SCHEMATIC_REQUIRED, and, for the steps that publish, the merge base with origin/main. The next run skips the step
+line, its outputs (STEPS, read from tools/pipeline/panels.toml), the code every step may run (CODE, whole), the
+schematic-maps plugin's commit and uncommitted changes (of the SCHEMATIC_PLUGIN folder when set), the Python
+(version, real path, PYTHONPATH), SCHEMATIC_REQUIRED, and, for the steps that publish, the merge base with origin/main. The next run skips the step
 only when the key and every read-set entry match: each file's content, each miss's absence, each listing's names,
 and the output of each read-only git command the step ran (run again). An edit to one data file re-runs only the
 steps that read it.
@@ -32,6 +32,7 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import os
+import re
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -57,13 +58,11 @@ def _load_traced():
 traced = _load_traced()
 
 DATA = "jmri/layouts/hart/data"
-# The device master's file names: the generated file the device-map, masts and panel-items steps write, and the
+# The device master's file names: the generated file the device-map and panel-items steps write, and the
 # owner's field file. This script cannot import hartlib (the shell test runs a copy of it alone), so the names are
 # here, and test_devices_one_path pins them to hartlib.devices.
 DEVICES_FILE = "devices_generated.csv"
 DEVICES_FIELD_FILE = "devices_field.csv"
-SCH = f"{DATA}/schematic"
-OUT = "jmri/layouts/hart/output"
 
 # The code every step may run, declared whole: hartlib, the schematic tools, the helpers they import, the trace hook.
 CODE = (
@@ -87,28 +86,52 @@ class Step:
     programs: dict[str, tuple[str, ...]] = field(default_factory=dict)
 
 
-STEPS: dict[str, Step] = {
-    "hands": Step((f"{DATA}/switches.csv",)),
-    # plan_generated.json is an output of staging-sets, main-route and device-map (each replaces only its own keys, so it
-    # reads the file it writes to carry the others' keys over) and an input of every step that draws from the plan.
-    "staging-sets": Step((f"{SCH}/plan_generated.json", f"{SCH}/preferences_generated.json")),
-    "main-route": Step((f"{SCH}/plan_generated.json",)),
-    "device-map": Step((f"{SCH}/plan_generated.json", f"{DATA}/{DEVICES_FILE}")),
-    # block_lengths.csv's user_name labels, from the name store (plan_lengths.py --labels; naming-layers step 5)
-    "length-labels": Step((f"{DATA}/block_lengths.csv",)),
-    "masts": Step((f"{SCH}/masts.csv", f"{DATA}/{DEVICES_FILE}")),
-    # the status beans' rows of the device master (panel_items.py); panel_items.json is read, so the trace holds it
-    "panel-items": Step((f"{DATA}/{DEVICES_FILE}",)),
-    "signals": Step((f"{SCH}/signals.json",)),
-    "head-plan": Step((f"{OUT}/signal_head_plan.csv",)),
-    # Chrome prints the drawn sheet (an output) to PDF
-    "schematic": Step(
-        ("docs/ops/schematic-system-draft.*", "docs/ops/stations/*", "www/crew/maps/*/index.html",
-         f"{SCH}/preferences.json"),
-        publishes=True, programs={"chrom": ()}),
-    "tables": Step((f"{OUT}/tables.xml",)),
-    "cats": Step(("cats/panels/HART_CTC.xml", "cats/panels/HART_ABS.xml", "cats/panels/HART_CTC.bindings.json")),
-}
+def _load_manifest():
+    """tools/pipeline/manifest.py, by path, under the name tools/audit/check_stamps.py and the map lane load it by: its
+    dataclasses look their module up in sys.modules, so it is put there before it runs."""
+    if "pipeline_manifest" not in sys.modules:
+        spec = importlib.util.spec_from_file_location("pipeline_manifest", ROOT / "tools" / "pipeline" / "manifest.py")
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules["pipeline_manifest"] = mod
+        try:
+            spec.loader.exec_module(mod)
+        except BaseException:
+            del sys.modules["pipeline_manifest"]
+            raise
+    return sys.modules["pipeline_manifest"]
+
+
+class StepsError(Exception):
+    """The panels manifest does not load, or lists no step; the message says why."""
+
+
+_STEPS: dict[str, Step] | None = None
+
+
+def steps() -> dict[str, Step]:
+    """The `step`s of the panels manifest (tools/pipeline/panels.toml; guards have no stamp), each with its outputs,
+    publish flag and programs, read on first use (importing this module reads nothing); StepsError when the manifest
+    does not load or lists no step."""
+    global _STEPS
+    if _STEPS is None:
+        manifest = _load_manifest()
+        try:
+            listed = manifest.panel_steps()
+        except manifest.ManifestError as err:
+            raise StepsError(str(err)) from None
+        found = {s.name: Step(tuple(o.path for o in s.outputs), s.publishes, {p: tuple(g) for p, g in s.programs})
+                 for s in listed if s.mode == "step"}
+        if not found:
+            raise StepsError(f"{manifest.PANELS} lists no step")
+        _STEPS = found
+    return _STEPS
+
+
+def __getattr__(name: str):
+    """STEPS, the module attribute, is steps()."""
+    if name == "STEPS":
+        return steps()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 SKIP_PARTS = {"__pycache__", ".DS_Store"}
 
@@ -124,7 +147,6 @@ def expand(patterns, root: Path = ROOT) -> list[Path]:
 
 
 def _glob_match(rel: str, pat: str) -> bool:
-    import re
     out, i = "", 0
     while i < len(pat):
         if pat.startswith("**/", i):
@@ -218,7 +240,7 @@ def digest(label: str, cmd, patterns, root: Path = ROOT, publishes: bool = False
 
 def allowed(name: str, programs: list[str]) -> tuple[list[str], list[str]]:
     """(the programs STEPS lets `name` run untraced, the ones it does not)."""
-    rules = STEPS[name].programs
+    rules = steps()[name].programs
     ok = [p for p in programs if any(k.lower() in p.lower() for k in rules)]
     return ok, [p for p in programs if p not in ok]
 
@@ -226,7 +248,7 @@ def allowed(name: str, programs: list[str]) -> tuple[list[str], list[str]]:
 def key(name: str, cmd, root: Path, programs: list[str], gits: list) -> str:
     """The stamp key: the step's command, outputs, code, plugin, interpreter and environment, the untraced programs it
     ran with the files STEPS says they read, and its git commands' output now."""
-    step = STEPS[name]
+    step = steps()[name]
     extra_pats = [pat for k, pats in step.programs.items() if any(k.lower() in p.lower() for p in programs)
                   for pat in pats]
     extra = f"programs={','.join(programs)}\ngit={','.join(traced.git_replay(gits, str(root)))}"
@@ -311,8 +333,19 @@ def main(argv: list[str] | None = None) -> int:
         print(__doc__.split("\n\n")[0], file=sys.stderr)
         return 2
     action, name, rest = argv[0], argv[1], argv[2:]
-    if name not in STEPS:
-        print(f"panel_stamps.py: no step {name!r} (known: {', '.join(STEPS)})", file=sys.stderr)
+    if action == "forget":      # needs no manifest: a failed step's stamp goes even when panels.toml is broken
+        if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", name):
+            print(f"panel_stamps.py: {name!r} is not a step name", file=sys.stderr)
+            return 2
+        forget(name)
+        return 0
+    try:
+        known = steps()
+    except StepsError as err:
+        print(f"panel_stamps.py: {err}", file=sys.stderr)
+        return 2
+    if name not in known:
+        print(f"panel_stamps.py: no step {name!r} (known: {', '.join(known)})", file=sys.stderr)
         return 2
     if action == "current":
         return 0 if is_current(name, rest) else 1

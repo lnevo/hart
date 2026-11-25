@@ -175,6 +175,18 @@ class RepoTest(unittest.TestCase):
                 want = None if step.name in lane.HAND_KEPT_STEPS else lane.GEN
                 self.assertEqual(boxes[step.script].get("gen"), want)
 
+    def test_build_panels_sh_is_no_entry_file_since_the_map_draws_its_steps(self) -> None:
+        """ADR-037 stage 5: make panels' steps are tools/pipeline/panels.toml's, each drawn in a generated box."""
+        self.assertNotIn("tools/schematic/build_panels.sh", COV.ENTRY_FILES)
+        lane = COV.BUILD.MANIFEST_LANE
+        graph = COV.BUILD.load(COV.BUILD.GRAPH)
+        boxes = {n["path"]: n for n in graph["nodes"] if n.get("path")}
+        for step in lane.MANIFEST.load_panels():
+            with self.subTest(step=step.name):
+                self.assertEqual(boxes[step.script].get("gen"), lane.GEN)
+                self.assertNotIn(step.script, COV.ALLOWED)
+        self.assertTrue(boxes[lane.MANIFEST.PANELS_RUNNER].get("runner"))
+
     def test_the_repo_map_knows_every_pipeline_file(self) -> None:
         err = io.StringIO()
         with redirect_stderr(err):
