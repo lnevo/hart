@@ -210,11 +210,13 @@ def merged(data: Path = SCHEMATIC, kind: str = "plan_overrides", main: bool = Tr
     return named(whole, gen, data, main) if kind == "plan_overrides" else prefs_named(whole, hand, data)
 
 
-def prefs_named(whole: dict, hand: dict, data: Path = SCHEMATIC) -> dict:
+def prefs_named(whole: dict, hand: dict, data: Path = SCHEMATIC, missing: str = track_names.KEEP) -> dict:
     """`whole` (the merged preferences) with each sheet's track keys, which name tracks by block ID, given the tracks'
     names from the name store (hartlib.track_names.pref_section: min_cells, turnbacks, track_labels and the label
-    options' track lists). LayerFileError for a hand section that names a track (track_names.pref_problems) or an ID
-    the store has no name for."""
+    options' track lists), each on its sheet's levels. An ID no block has yet is kept as it is (`missing` KEEP): the
+    generated names are the device-map step's output, which the steps before it (and its own solve) cannot wait for;
+    unnamed_preferences, run by the device-master check after device-map, stops on one. LayerFileError for a hand
+    section that names a track (track_names.pref_problems), a clash, or with `missing` STOP an unnamed ID."""
     out = dict(whole)
     for sheet, section in whole.items():
         if sheet.startswith("_") or not isinstance(section, dict):
@@ -223,10 +225,25 @@ def prefs_named(whole: dict, hand: dict, data: Path = SCHEMATIC) -> dict:
         if bad:
             raise LayerFileError(f"{PREFERENCES_FILE}[{sheet}]: " + "; ".join(bad))
         try:
-            out[sheet] = track_names.pref_section(sheet, section, data=data)
+            out[sheet] = track_names.pref_section(sheet, section, data=data, missing=missing)
         except (track_names.TrackNameError, OSError) as exc:
             raise LayerFileError(f"the track names of {PREFERENCES_FILE}[{sheet}]: {exc}") from None
     return out
+
+
+def unnamed_preferences(data: Path = SCHEMATIC) -> list[str]:
+    """Why preferences.json's track keys cannot all be named: each block ID the name store has no block for on its
+    sheet's levels (decision 3: a new export dropped it, or it is mistyped), and every other problem prefs_named
+    stops on. [] when every ID is named. The device-master check runs it after the device-map step has written
+    devices_generated.csv, whose generated names the view reads."""
+    hand = read_file("preferences", data)
+    gen_kind = GENERATED_OF["preferences"]
+    gen = read_file(gen_kind, data) if path(gen_kind, data).exists() else {}
+    try:
+        prefs_named(merge(hand, gen) if gen else hand, hand, data, track_names.STOP)
+    except LayerFileError as exc:
+        return [str(exc)]
+    return []
 
 
 PREFERENCES_FILE = "preferences.json"

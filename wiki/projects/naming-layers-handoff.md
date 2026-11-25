@@ -208,6 +208,19 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   change; `plan_generated.json`'s `station_tracks` and `signals.json` took the new name.
 - **Outputs byte-identical:** the merged view's names unchanged, `make panels CHECK=1 FULL=1` all current,
   `check_approved.py --check` all matching. No main or upper change.
+- **Build order, my call (owner's rule of 2026-11-25):** 39 of the 54 IDs in `preferences.json` are main and upper
+  blocks or staging parts with generated names only, which are the device-map step's output. Naming them from the
+  plan inside hartlib is out of reach: the rule (`block_layer.name_tracks`, the parallel numbers, parts, loop halves
+  and `block_numbering.csv`) runs on the solved drawing, and the solve reads the view. Steps cannot be reordered
+  either: device-map's solve needs main-route's output. So the view keeps an ID with no name yet as it is (no step
+  before device-map reads those keys: they are the Layout Editor's labels), and `layer_files.unnamed_preferences`,
+  in `check_device_master.py --check` after device-map, stops on one (decision 3). The steps before device-map read
+  the last build's generated names, which differ only for a block whose generated name changed.
+- **Code review (medium), fixed:** IDs match on their sheet's levels (`track_labels` on every level, a station's
+  on its own) and a block of two levels is a clash; two `track_labels` keys for one track stop; `pref_problems`
+  names a track key of the wrong shape and scans the keys as written; an empty `tracks` entry stops with its own
+  message; `read_helix_tracks` refuses a plan name in `track_labels`; the `devices_generated.csv` readers are on
+  the pipeline map.
 - **Open:** a field `jmri_comment` is free text (W-1's still says "Brick yard Track W-1"); a rename does not reach it.
 
 ## How to run this

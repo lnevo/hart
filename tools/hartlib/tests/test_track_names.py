@@ -161,12 +161,24 @@ class Copy(unittest.TestCase):
                                                       r"\[0\] names 'Track 101-103'"):
             L.merged(self.data, "preferences")
 
-    def test_an_id_the_store_has_not_stops(self) -> None:
+    def test_an_id_the_store_has_not_is_kept_until_the_device_master_check(self) -> None:
+        # the generated names are device-map's output: the view keeps an unnamed ID, the check after it stops on it
+        self.assertEqual(L.unnamed_preferences(self.data), [])
         whole = L.read_file("preferences", self.data)
-        whole["main_upper"]["track_labels"] = {"block:41B-helix": "Nowhere"}
+        whole["main_upper"]["le_band_labels"]["Main"]["optional_block_contents"].append("block:199A-199B")
         L.path("preferences", self.data).write_text(L.dumps(whole), encoding="utf-8")
-        with self.assertRaisesRegex(L.LayerFileError, r"preferences.json\[main_upper\]: block:41B-helix is no block"):
-            L.merged(self.data, "preferences")
+        got = L.merged(self.data, "preferences")["main_upper"]["le_band_labels"]["Main"]["optional_block_contents"]
+        self.assertEqual(got[-1], "block:199A-199B")
+        self.assertIn("Track 101-103", got)
+        bad = L.unnamed_preferences(self.data)
+        self.assertEqual(len(bad), 1)
+        self.assertRegex(bad[0], r"preferences.json\[main_upper\].*block:199A-199B is no block on level 2/3")
+
+    def test_a_staging_id_in_a_main_upper_track_key_is_no_block_there(self) -> None:
+        whole = L.read_file("preferences", self.data)
+        whole["main_upper"]["le_band_labels"]["Main"]["hidden_names"] = ["block:3B-end"]
+        L.path("preferences", self.data).write_text(L.dumps(whole), encoding="utf-8")
+        self.assertRegex(L.unnamed_preferences(self.data)[0], "block:3B-end is no block on level 2/3")
 
 
 class PrefSection(unittest.TestCase):
@@ -210,8 +222,46 @@ class PrefSection(unittest.TestCase):
                 encoding="utf-8")
             self.assertEqual(T.names_by_id({"block:3B-end", "block:3C-end"}, root / "schematic", "here"),
                              {"block:3B-end": "Track Brick 1", "block:3C-end": "Track W-2"})
+
             with self.assertRaisesRegex(T.TrackNameError, "here: block:3D-end is no block"):
-                T.names_by_id({"block:3D-end"}, root / "schematic", "here")
+                T.names_by_id({"block:3D-end"}, root / "schematic", "here", missing=T.STOP)
+            self.assertEqual(T.names_by_id({"block:3D-end"}, root / "schematic", missing=T.KEEP), {})
+
+    def test_an_id_on_two_levels_is_a_clash_unless_the_levels_are_given(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "schematic").mkdir()
+            (root / T.FIELD_FILE).write_text("level,layer,id,user_name\n", encoding="utf-8")
+            (root / "devices_generated.csv").write_text(
+                "level,layer,id,user_name\n2,block,block:1A-3B,Track 1-3\n3,block,block:1A-3B,Track Up 1-3\n",
+                encoding="utf-8")
+            with self.assertRaisesRegex(T.TrackNameError, "block:1A-3B is a block of levels 2 and 3"):
+                T.names_by_id({"block:1A-3B"}, root / "schematic")
+            self.assertEqual(T.names_by_id({"block:1A-3B"}, root / "schematic", levels={"3"}),
+                             {"block:1A-3B": "Track Up 1-3"})
+
+    def test_two_labels_for_one_track_stop(self) -> None:
+        sec = {"track_labels": {"block:39B-helix": "A", "block:39X-helix": "B"}}
+        with self.assertRaisesRegex(T.TrackNameError, "both 'Helix Outer'"):
+            T.pref_section("main_upper", sec, {"block:39B-helix": "Track Helix Outer",
+                                               "block:39X-helix": "Track Helix Outer"})
+
+    def test_a_track_key_of_the_wrong_shape_is_a_problem(self) -> None:
+        sec = {"le_labels": {"extra_follow": ["block:3B-end"], "hidden_names": "block:3B-end"},
+               "track_labels": ["block:39B-helix"], "turnbacks": "S-1"}
+        got = T.pref_problems(sec)
+        self.assertIn("le_labels.extra_follow[0] is 'block:3B-end', not a list of tracks", got)
+        self.assertIn("le_labels.hidden_names is 'block:3B-end', not a list of tracks", got)
+        self.assertIn("turnbacks is 'S-1', not a list of tracks", got)
+        self.assertTrue(any(p.startswith("track_labels is") for p in got), got)
+
+    def test_problems_name_each_wrong_value_once_and_scan_the_keys_as_written(self) -> None:
+        got = T.pref_problems({"turnbacks": ["Track S-1"], "track_labels": {"Helix Outer": "McKees Rocks"},
+                               "other": {"Track X": 1}})
+        self.assertEqual(len([p for p in got if "turnbacks[0]" in p]), 1)
+        self.assertIn("track_labels key 'Helix Outer' is 'Helix Outer', not a block ID (block:...; the track's name "
+                      "is its row's in devices_field.csv)", got)
+        self.assertTrue(any("key 'Track X'" in p for p in got), got)
 
 
 class EarlyReturn(unittest.TestCase):

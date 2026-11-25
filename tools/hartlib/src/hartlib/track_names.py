@@ -399,44 +399,65 @@ WHOLE, BARE = "whole", "bare"      # how a plugin key names a track: "Track S-1"
 # list of tracks, 2 a list of lists
 LABEL_TRACK_KEYS = {"extra_steps": (2, WHOLE), "extra_follow": (2, WHOLE), "name_columns": (2, BARE),
                     "name_steps": (2, BARE), "optional_block_contents": (1, WHOLE), "hidden_names": (1, BARE)}
+STOP, KEEP = "stop", "keep"        # names_by_id: what an ID with no name does
 
 
-def names_by_id(ids, data: Path = SCHEMATIC, where: str = "") -> dict[str, str]:
-    """{block id: its track name, "Track S-1"} of each of `ids`: the owner's (owner_names, any level: a block ID names
-    one level's track), else the generated name of its row in devices_generated.csv beside `data`, which is read
-    only when an ID has no owner's name. TrackNameError naming `where` on an ID that is no block of either (a new
-    export dropped it, or it is mistyped: decision 3) or that two levels name differently."""
+def names_by_id(ids, data: Path = SCHEMATIC, where: str = "", levels=None, missing: str = STOP) -> dict[str, str]:
+    """{block id: its track name, "Track S-1"} of each of `ids` on `levels` (a set of level numbers as text; None:
+    any level): the owner's (owner_names), else the generated name of its row in devices_generated.csv beside
+    `data`, which is read only when an ID has no owner's name. A block ID is unique on its level only, so an ID that
+    two of `levels` have is a clash. TrackNameError naming `where` on a clash, or on an ID that is no block of
+    either file (a new export dropped it, or it is mistyped: decision 3) when `missing` is STOP; with KEEP such an
+    ID is left out of the answer (the caller keeps it as it is: the device-map step has not written its row yet).
+
+    The generated names are the device-map step's output: a step before it reads the last build's, which can only
+    differ for a block whose generated name changed, and none of those steps reads the keys that hold such names
+    (the Layout Editor's label options); hartlib.layer_files.unnamed_preferences, which the device-master check
+    runs after device-map, stops on an ID still unnamed."""
     from . import devices                  # devices imports railroad_facts, which imports layer_files and so this
     want = set(ids)
     if not want:
         return {}
-    got: dict[str, set[str]] = {}
-    for (_level, bid), name in owner_names(data).items():
-        if bid in want:
-            got.setdefault(bid, set()).add(TRACK_PREFIX + name)
+    levels = None if levels is None else {str(lv) for lv in levels}
+    got: dict[str, dict[str, str]] = {}            # id -> {level: name}
+    for (level, bid), name in owner_names(data).items():
+        if bid in want and (levels is None or level in levels):
+            got.setdefault(bid, {})[level] = TRACK_PREFIX + name
     rest = want - set(got)
     if rest:
         gen = _beside(Path(data).parent, devices.GENERATED_FILE, "the generated device rows")
         with gen.open(newline="", encoding="utf-8") as fh:
             for r in csv.DictReader(fh):
-                if r.get("id") in rest and r.get("level") and r.get("layer") == "block" and r.get("user_name"):
-                    got.setdefault(r["id"], set()).add(r["user_name"])
-    bad = [f"{bid} is no block of {FIELD_FILE} or {devices.GENERATED_FILE} (a new export dropped it, or it is "
-           "mistyped: give the block's id)" for bid in sorted(want - set(got))]
-    bad += [f"{bid} is named {' and '.join(sorted(n))}" for bid, n in sorted(got.items()) if len(n) > 1]
+                lv = r.get("level") or ""
+                if (r.get("id") in rest and lv and (levels is None or lv in levels) and r.get("layer") == "block"
+                        and r.get("user_name")):
+                    got.setdefault(r["id"], {}).setdefault(lv, r["user_name"])
+    on = f" on level {'/'.join(sorted(levels))}" if levels else ""
+    bad = []
+    if missing == STOP:
+        bad += [f"{bid} is no block{on} of {FIELD_FILE} or {devices.GENERATED_FILE} (a new export dropped it, or it "
+                "is mistyped: give the block's id)" for bid in sorted(want - set(got))]
+    bad += [f"{bid} is a block of levels {' and '.join(sorted(by))} ({', '.join(by[lv] for lv in sorted(by))}): "
+            "name one level's" for bid, by in sorted(got.items()) if len(by) > 1]
     if bad:
         raise TrackNameError((f"{where}: " if where else "") + "; ".join(bad))
-    return {bid: next(iter(n)) for bid, n in got.items()}
+    return {bid: next(iter(by.values())) for bid, by in got.items()}
 
 
-def _map_pref_tracks(section: dict, fn) -> dict:
+def _map_pref_tracks(section: dict, fn, shapes: list | None = None) -> dict:
     """A copy of the preferences section `section` with each track it names put through fn(value, form, where):
     min_cells' track names (an entry's items after [from, to, cells]), turnbacks, track_labels' keys, and the
-    LABEL_TRACK_KEYS of le_labels and of each band of le_band_labels. Shapes the plugin would refuse are left to it."""
+    LABEL_TRACK_KEYS of le_labels and of each band of le_band_labels. A track key of the wrong shape (a list where a
+    list of lists goes, a string where a list goes) is left as it is and named in `shapes` when given. TrackNameError
+    on two track_labels keys that come out as one."""
     out = json.loads(json.dumps(section))
+    shapes = [] if shapes is None else shapes
 
     def each(values, form, where):
-        return [fn(v, form, f"{where}[{i}]") for i, v in enumerate(values)] if isinstance(values, list) else values
+        if not isinstance(values, list):
+            shapes.append(f"{where} is {values!r}, not a list of tracks")
+            return values
+        return [fn(v, form, f"{where}[{i}]") for i, v in enumerate(values)]
 
     cells = out.get("min_cells")
     for i, entry in enumerate(cells if isinstance(cells, list) else ()):
@@ -446,7 +467,16 @@ def _map_pref_tracks(section: dict, fn) -> dict:
         out["turnbacks"] = each(out["turnbacks"], BARE, "turnbacks")
     labels = out.get("track_labels")
     if isinstance(labels, dict):
-        out["track_labels"] = {fn(k, BARE, f"track_labels key {k!r}"): v for k, v in labels.items()}
+        mapped: dict = {}
+        for k, v in labels.items():
+            key = fn(k, BARE, f"track_labels key {k!r}")
+            if key in mapped:
+                raise TrackNameError(f"track_labels keys {mapped[key][0]!r} and {k!r} are both {key!r}: give each "
+                                     "track one label")
+            mapped[key] = (k, v)
+        out["track_labels"] = {key: v for key, (_k, v) in mapped.items()}
+    elif labels is not None:
+        shapes.append(f"track_labels is {labels!r}, not an object of track to label")
     holders = [("le_labels", out.get("le_labels"))]
     if isinstance(out.get("le_band_labels"), dict):
         holders += [(f"le_band_labels.{band}", d) for band, d in out["le_band_labels"].items()]
@@ -458,35 +488,50 @@ def _map_pref_tracks(section: dict, fn) -> dict:
                 continue
             if depth == 1:
                 d[key] = each(d[key], form, f"{where}.{key}")
-            elif isinstance(d[key], list):
-                d[key] = [each(g, form, f"{where}.{key}[{i}]") for i, g in enumerate(d[key])]
+            elif not isinstance(d[key], list):
+                shapes.append(f"{where}.{key} is {d[key]!r}, not a list of lists of tracks")
+            else:
+                d[key] = [each(g, form, f"{where}.{key}[{i}]") if isinstance(g, list)
+                          else shapes.append(f"{where}.{key}[{i}] is {g!r}, not a list of tracks") or g
+                          for i, g in enumerate(d[key])]
     return out
 
 
 def pref_problems(section: dict) -> list[str]:
     """Why a hand preferences section names a track (the name store holds every name): a track key (min_cells,
-    turnbacks, track_labels, the label options' track lists: _map_pref_tracks) holding anything but a block ID, or a
-    "Track ..." string anywhere else outside a note (a key starting with _)."""
+    turnbacks, track_labels, the label options' track lists: _map_pref_tracks) holding anything but a block ID or of
+    the wrong shape, two track_labels keys for one track, or a "Track ..." string anywhere else outside a note (a key
+    starting with _)."""
     bad: list[str] = []
+    slots: set[str] = set()
 
     def check(v, _form, where):
+        slots.add(where)
         if not (isinstance(v, str) and v.startswith(BLOCK_PREFIX)):
             bad.append(f"{where} is {v!r}, not a block ID (block:...; the track's name is its row's in {FIELD_FILE})")
-        return BLOCK_PREFIX                 # the slot is checked; the scan below skips it
+        return v
 
     def scan(v, where):
+        if where in slots:
+            return
         if isinstance(v, str) and v.startswith(TRACK_PREFIX):
             bad.append(f"{where} names {v!r} (a track is named by its block ID, its name kept in {FIELD_FILE})")
         elif isinstance(v, dict):
             for k, x in v.items():
                 if not str(k).startswith("_"):
-                    scan(k, f"{where} key" if where else "key")
+                    scan(k, f"{where} key {k!r}" if where else f"key {k!r}")
                     scan(x, f"{where}.{k}" if where else str(k))
         elif isinstance(v, list):
             for i, x in enumerate(v):
                 scan(x, f"{where}[{i}]")
 
-    scan(_map_pref_tracks(section, check), "")
+    shapes: list[str] = []
+    try:
+        _map_pref_tracks(section, check, shapes)
+    except TrackNameError as exc:
+        bad.append(str(exc))
+    bad += shapes
+    scan(section, "")
     return bad
 
 
@@ -502,16 +547,30 @@ def pref_ids(section: dict) -> set[str]:
     return got
 
 
-def pref_section(sheet: str, section: dict, names: dict[str, str] | None = None, data: Path = SCHEMATIC) -> dict:
+def pref_levels(sheet: str, data: Path = SCHEMATIC) -> set[str]:
+    """The levels whose blocks a preferences section `sheet` names: the levels its plan_overrides section draws
+    (section_levels; plan_overrides.json in `data`)."""
+    from . import layer_files              # layer_files imports this module
+    return section_levels(layer_files.read("plan_overrides", sheet, data))
+
+
+def pref_section(sheet: str, section: dict, names: dict[str, str] | None = None, data: Path = SCHEMATIC,
+                 levels=None, missing: str = STOP) -> dict:
     """`section` (a merged preferences section) as the plugin reads it: each block ID of its track keys
     (_map_pref_tracks) put back as the track's name in the form the key takes ("Track S-1" or "S-1"), from `names`
-    ({id: "Track <name>"}; names_by_id of the folder `data` when not given). A section that names no ID is returned
-    as it is, without reading the store. TrackNameError naming preferences.json[sheet] and the key."""
+    ({id: "Track <name>"}; else names_by_id of the folder `data` on `levels`, default the sheet's (pref_levels), but
+    track_labels on every level: the plugin reads it sheet-wide, and its keys are staging's helix blocks). With
+    `missing` KEEP an ID with no name is left as it is (names_by_id). A section that names no ID is returned as it is,
+    without reading the store. TrackNameError naming preferences.json[sheet] and the key."""
     ids = pref_ids(section)
     if not ids:
         return section
     where = f"preferences.json[{sheet}]"
-    names = names_by_id(ids, data, where) if names is None else names
+    if names is None:
+        levels = pref_levels(sheet, data) if levels is None else levels
+        labels = set(pref_ids({"track_labels": section.get("track_labels", {})}))
+        names = {**names_by_id(ids - labels, data, where, levels, missing),
+                 **names_by_id(labels, data, f"{where} track_labels", None, missing)}
     bad: list[str] = []
 
     def put(v, form, at):
@@ -519,7 +578,8 @@ def pref_section(sheet: str, section: dict, names: dict[str, str] | None = None,
             return v
         name = names.get(v)
         if name is None:
-            bad.append(f"{at}: {v} has no name")
+            if missing != KEEP:
+                bad.append(f"{at}: {v} has no name")
             return v
         if form == WHOLE:
             return name
@@ -528,8 +588,10 @@ def pref_section(sheet: str, section: dict, names: dict[str, str] | None = None,
             return v
         return name[len(TRACK_PREFIX):]
 
-    out = _map_pref_tracks(section, put)
+    try:
+        out = _map_pref_tracks(section, put)
+    except TrackNameError as exc:
+        raise TrackNameError(f"{where}: {exc}") from None
     if bad:
         raise TrackNameError(f"{where}: " + "; ".join(bad))
     return out
-

@@ -76,7 +76,9 @@ class HelixTracks(unittest.TestCase):
                           ([("block:39B-helix", "", FIELD)],
                            "the helix at Switch 39 leg B has no named block row block:39B-helix"),
                           ([('"block:39B-helix": "McKees Rocks"', '"block:39B-helix": ""', "preferences.json")],
-                           "track_labels"),):
+                           "track_labels"),
+                          ([('"block:39B-helix": "McKees Rocks"', '"Helix Outer": "McKees Rocks"', "preferences.json")],
+                           "track_labels key 'Helix Outer' is 'Helix Outer', not a block ID"),):
             with self.subTest(msg=msg), self.assertRaisesRegex(mr.MapError, msg):
                 mr.read_helix_tracks(copied(edit))
 

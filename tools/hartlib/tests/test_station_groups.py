@@ -67,6 +67,16 @@ class TheRepo(Files):
         self.assertEqual({r["level"] for r in rows.values()}, {"1"})
 
 
+class StationTracks(Files):
+    def test_an_empty_entry_or_a_name_in_tracks_stops(self):
+        with self.assertRaisesRegex(rf.FactsError, "has an empty entry"):
+            rf.read_stations(self.stations("1,West Yard,3,block:3B-end;;block:3C-end,BK,\n"))
+        with self.assertRaisesRegex(rf.FactsError, "not 'W-1'"):
+            rf.read_stations(self.stations("1,West Yard,3,W-1;block:3C-end,BK,\n"))
+        st = rf.read_stations(self.stations("1,West Yard,3,block:3B-end;block:3C-end,BK,\n1,B,5,none,BB,\n1,C,7,,CC,\n"))
+        self.assertEqual([s.track_ids for s in st], [("block:3B-end", "block:3C-end"), (), None])
+
+
 class DeskAreas(Files):
     def test_stations_that_share_a_code_are_one_area_named_by_the_first(self):
         areas = self.areas('1,Brick,"1,3",none,BK,a\n1,West Yard,3,block:3B-end;block:3C-end,BK,b\n1,Plane,5,,PL,\n')

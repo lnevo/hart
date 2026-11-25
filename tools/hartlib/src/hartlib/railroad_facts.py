@@ -533,7 +533,7 @@ class Station:
             return None
         if self.tracks == STATION_NO_TRACKS:
             return ()
-        return tuple(t.strip() for t in self.tracks.split(";") if t.strip())
+        return tuple(t.strip() for t in self.tracks.split(";"))    # read_stations refuses an empty entry
 
 
 STATION_NO_TRACKS = "none"      # the `tracks` cell of a station that counts no track
@@ -551,7 +551,8 @@ def station_tracks(stations: list[Station], path: Path) -> dict[str, tuple[str, 
         if not ids:
             continue
         try:
-            names = track_names.names_by_id(ids, Path(path).parent, f"{_where(path, st.line)} ({st.name}) tracks")
+            names = track_names.names_by_id(ids, Path(path).parent, f"{_where(path, st.line)} ({st.name}) tracks",
+                                            levels={str(st.level)})
         except track_names.TrackNameError as exc:
             raise FactsError(str(exc)) from None
         out[st.name] = tuple(names[i] for i in ids)
@@ -609,6 +610,8 @@ def read_stations(path: Path) -> list[Station]:
             raise FactsError(f"{at}: desk_plate is yes or empty, not {r['desk_plate']!r}")
         if r["tracks"] and r["tracks"] != STATION_NO_TRACKS:
             ids = [t.strip() for t in r["tracks"].split(";")]
+            if "" in ids:
+                raise FactsError(f"{at}: tracks {r['tracks']!r} has an empty entry (a ; with no block ID beside it)")
             bad = [t for t in ids if not t.startswith(track_names.BLOCK_PREFIX)]
             if bad:
                 raise FactsError(f"{at}: tracks is blank, none, or the block IDs of its tracks with ; between them "
@@ -814,7 +817,11 @@ def read_helix_tracks(path: Path) -> dict[str, HelixTrack]:
         # track_labels keyed by block ID in the hand file, named by the name store as the merged view names them;
         # only that key, so the helix tracks' owner names are all that is read (no generated name is needed)
         hand = layer_files.read("preferences", "main_upper", folder)
-        prefs = track_names.pref_section("main_upper", {TRACK_LABELS: hand.get(TRACK_LABELS, {})}, data=folder)
+        own = {TRACK_LABELS: hand.get(TRACK_LABELS, {})}
+        bad = track_names.pref_problems(own)            # a plan name put back is refused here too
+        if bad:
+            raise FactsError(f"helix tracks: preferences.json[main_upper]: " + "; ".join(bad))
+        prefs = track_names.pref_section("main_upper", own, data=folder)
     except track_names.TrackNameError as exc:
         raise FactsError(f"helix tracks: {exc}") from None
     except layer_files.LayerFileError as exc:
