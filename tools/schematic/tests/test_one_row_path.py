@@ -161,6 +161,41 @@ class OneRowPath(RepoReadOnly, unittest.TestCase):
         self.assertEqual(self.generated(files, "2", "block:103BB-end")["user_name"], "Track Coal Spur")
         self.assertTrue(any("Track 103 Spur" in line and "Track Coal Spur" in line for line in self.said),
                         self.said)          # the rename is said (hartlib.device_changes)
+        # step 8: the blocks are numbered over the generated names, so the renamed block and every other keep theirs
+        before = {k: (r["jmri_name"], r["layout_block"]) for k, r in self.write(self.copy()).items()}
+        self.assertEqual({k: (r["jmri_name"], r["layout_block"]) for k, r in rows.items()}, before)
+
+    def test_a_block_rows_bean_names_come_from_block_numbering(self):
+        """Step 8: build_device_map writes each main and upper block row's jmri_name and layout_block from
+        block_numbering.csv (hartlib.block_numbering). In a copy of the file, Track 227-241 1 (block:227C-241B#1)
+        loses the loop's old sort place (numbered_as) and is appended after the five appended blocks instead: its row
+        takes the last number, the blocks after its old place move up one, and a helix block gets none."""
+        bn = bdm.block_numbering
+        rows = [devices.master_row(o, bdm.WRITER) for o in self.main_rows] + [dict(p) for p in self.parts]
+        now = {(r["level"], r["id"]): (r["jmri_name"], r["layout_block"]) for r in bdm.block_beans(rows)
+               if r["layer"] == "block"}
+        committed = {(r["level"], r["id"]): (r["jmri_name"], r["layout_block"]) for r in devices.load()
+                     if r["level"] in bn.LEVELS and r["layer"] == "block"}
+        self.assertEqual(now, committed)
+        self.assertEqual(now[("2", "block:107B-107C#1")], ("IB:C3:0041", "ILB1041"))
+        self.assertEqual({v for k, v in now.items() if k[1] in ("block:131AA-helix", "block:131BB-helix")}, {("", "")})
+        d = Path(tempfile.mkdtemp())
+        self.addCleanup(os.rmdir, d)
+        path = d / bn.PATH.name
+        text = bn.PATH.read_text(encoding="utf-8")
+        old = "block:227C-241B#1,Track 227-241,,,"
+        self.assertIn(old, text)
+        path.write_text(text.replace(old, "block:227C-241B#1,,6,,"), encoding="utf-8")
+        self.addCleanup(os.remove, path)        # by full path, as copy()'s
+        moved = {(r["level"], r["id"]): r["jmri_name"] for r in bdm.block_beans(rows, path)
+                 if r["layer"] == "block"}
+        last = max(v[0] for v in now.values())
+        self.assertEqual(moved[("3", "block:227C-241B#1")], last)
+        was = int(now[("3", "block:227C-241B#1")][0][-4:])
+        shifted = {k for k, v in now.items() if v[0] and was < int(v[0][-4:])}
+        self.assertTrue(shifted)
+        for k in shifted:
+            self.assertEqual(int(moved[k][-4:]), int(now[k][0][-4:]) - 1, k)
 
 
 if __name__ == "__main__":

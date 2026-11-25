@@ -832,7 +832,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "layout",
-   "desc": "Block numbering classes and ranges used by devices.py and plan_lengths.",
+   "desc": "The main and upper blocks' JMRI numbers (IB:C3:<n>, ILB<1000+n>), by device ID: a renamed block's sort place, appended and retired blocks. Read by hartlib.block_numbering; build_device_map.py copies the numbers into the block rows.",
    "path": "jmri/layouts/hart/data/schematic/block_numbering.csv"
   },
   {
@@ -4661,7 +4661,13 @@
   {
    "from": "jmri/layouts/hart/data/schematic/block_numbering.csv",
    "to": "tools/schematic/build_device_map.py",
-   "label": "reads"
+   "label": "reads, via hartlib.block_numbering"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/block_numbering.csv",
+   "to": "tools/schematic/build_layout_le.py",
+   "label": "reads, via hartlib.block_numbering",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/block_overrides.csv",

@@ -288,7 +288,9 @@ def change_text(a: ET.Element | None, b: ET.Element | None) -> str:
 def row_index(rows: Iterable[Mapping[str, str]]) -> dict[tuple[str, str], list[int]]:
     """{(section tag, bean name): [device-master row numbers]}: the rows a bean of the tables comes from. A turnout by
     its system or JMRI name; a sensor, head, mast or block by its JMRI name; a layout block by its layout_block or
-    "user:" and its block's user name (the main and upper layout blocks are numbered by the Layout Editor build)."""
+    "user:" and its block's user name (every block row with a JMRI name has its layout_block since naming-layers step
+    8, the main and upper ones copied from block_numbering.csv; the user name is kept for a Store's layout block JMRI
+    renumbered)."""
     out: dict[tuple[str, str], list[int]] = {}
 
     def add(tag: str, name: str, i: int) -> None:

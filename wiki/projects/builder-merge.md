@@ -38,7 +38,7 @@ What is truly per level: staging's names are the field's; main and upper have a 
 Each PR leaves `tables.xml`, the desks and `devices_generated.csv` byte-identical unless it says otherwise, and passes `make panels CHECK=1`, `./tools/check.sh` (FULL=1 for the bean PRs, through `make remote`), an unchanged `build_tables.py --base-hash` (no rediscovery) and, for the bean PRs, `make panelpro-test`.
 
 1. **Tests first** (0.5 to 1 day): golden tests of every main and upper bean `le_tables` makes; unit tests of `master_beans` per assignment and of `build_masts.generate` on staging. `build_device_map.py` (833 lines) and `tables_build.py` (963) need cover before anything moves. Check here that the two block length formats agree (`round(v,1):.1f` against `plan_in*25.4:.1f`).
-2. **Main and upper block names into the rows** (0.5 day): the builder writes `jmri_name` and `layout_block` from `block_numbering.csv`; `le_tables` reads them instead of numbering.
+2. **Main and upper block names into the rows** (0.5 day): the builder writes `jmri_name` and `layout_block` from `block_numbering.csv`; `le_tables` reads them instead of numbering. **Done (2026-11-25)** as naming-layers step 8: [Step 8 findings](naming-layers-handoff.md#step-8-findings).
 3. **`start` column and comment data** (0.5 day): the rows carry what `le_tables` hard-codes.
 4. **Bean shapes by column in `master_beans`** (1 day), still limited to level 1, so no output changes.
 5. **Every level through `master_beans`; delete `add_level_*`** (1 day). With the owner's comment answer this PR has a listed comment diff; every other byte stays. `check_bound`'s split assumes base levels, and `strip_build_owned` recognises beans by name grammar: both change here.

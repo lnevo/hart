@@ -28,8 +28,9 @@ These are hartlib.railroad_invariants.device_row_problems, which `python3 -m har
 
 Every row against tables.xml (check_tables, hartlib.railroad's tables by user name): the bean its user name names
 is the device the row binds (its system name when it is a field device, its jmri_name when it is virtual; a row
-with assignment none gives no name and is not looked for, but a block, whose bean the Layout Editor build
-numbers); a block's system name when the row has one, its stop as its comment marks a station, and its detector its
+with assignment none gives no name and is not looked for, but a block, found by its user name); a block's system
+name or jmri_name when the row has one and its layout block's its layout_block (a main or upper block's, which
+build_device_map.py copies from block_numbering.csv), its stop as its comment marks a station, and its detector its
 occupancy row's; a turnout's jmri_name that turnout, its feedback sensors fb rows', both of them for a field
 turnout; a head's user name; a mast's heads its head rows, and its planned heads the head rows' planned devices.
 
@@ -263,6 +264,7 @@ def check_tables(rows: list[dict], rr: railroad.Railroad) -> list[str]:
     t = rr.tables
     heads = {tables.system_name(h): tables.user_name(h) for h in tables.signal_heads(t.root)}
     blocks = {tables.user_name(b): b for b in tables.blocks(t.root)}
+    layout_blocks = {tables.user_name(b): b for b in tables.layout_blocks(t.root)}
     turnout_els = tables.by_any_name(tables.turnouts(t.root))
     by_layer = {"turnout": t.turnouts, "fb": t.sensors, "occupancy": t.sensors, "mast": t.masts}
     serves = {b: r for r in rows if r["layer"] == "occupancy" for b in sdm.occupancy_blocks(r)}
@@ -278,11 +280,17 @@ def check_tables(rows: list[dict], rr: railroad.Railroad) -> list[str]:
     for r in rows:
         user, layer, bound = r["user_name"], r["layer"], bound_name(r)
         if layer == "block":
-            b = blocks.get(user)
-            if b is None or (r["system_name"] and tables.system_name(b) != r["system_name"]):
+            # the block bean its row names: a field block's system name, a virtual one's jmri_name (a main or upper
+            # block's, which build_device_map.py copies from block_numbering.csv, naming-layers step 8)
+            b, want = blocks.get(user), bound or r["system_name"]
+            if b is None or (want and tables.system_name(b) != want):
                 bad.append(f"block {user}: tables.xml has {tables.system_name(b) if b is not None else 'none'}, "
-                           f"not {r['system_name'] or 'a block of that name'}")
+                           f"not {want or 'a block of that name'}")
                 continue
+            lb = layout_blocks.get(user)
+            if r["layout_block"] and (lb is None or tables.system_name(lb) != r["layout_block"]):
+                bad.append(f"block {user}: tables.xml's layout block is "
+                           f"{tables.system_name(lb) if lb is not None else 'none'}, not {r['layout_block']}")
             stop = "yes" if "yes" in stops[user] else ""       # a block's rows that disagree: reported above
             if stop_token(b.findtext("comment")) != (stop == "yes"):
                 bad.append(f"block {user}: stop is {stop or 'empty'}, but its comment in tables.xml "

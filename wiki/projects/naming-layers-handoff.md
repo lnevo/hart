@@ -48,7 +48,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 | 5 | Files keyed by ID | 1.5 to 2 days | `wiring.csv`, `block_lengths.csv`, `block_numbering.csv`, `block_overrides.csv`, `main_lines.csv` and switches.csv's staging legs key on device IDs; their names come from the name store, so a rename touches no row. **Done (2026-11-25):** see [Step 5 findings](#step-5-findings); 5b, `preferences.json` and `stations.csv` by block ID: [Step 5b findings](#step-5b-findings) |
 | 6 | Every read through `hartlib` | 1.5 days | `hartlib.hand_lists` reads `block_overrides.csv`, `main_lines.csv` and `mast_cells.csv`; `layout_facts.py`, `write_inventory.py`, `check_hart_phase02.py` and the speed-match routes go through `hartlib`; a check fails a script outside `hartlib` that names a layout data file, Jython listed by name. **Done (2026-11-25):** see [Step 6 findings](#step-6-findings) |
 | 7 | Staging generated like main and upper | 1.5 days | `staging_rows` and `staging_wired_rows` go through the main and upper row makers; a staging device with no owner row gets generated values instead of stopping; `FIELD_LEVEL` goes. **Done (2026-11-25):** see [Step 7 findings](#step-7-findings) |
-| 8 | Block names into the rows | 0.5 day | Builder merge step 2 (`block_numbering.csv` stays the source of main and upper numbers, owner 2026-11-23) |
+| 8 | Block names into the rows | 0.5 day | Builder merge step 2 (`block_numbering.csv` stays the source of main and upper numbers, owner 2026-11-23). **Done (2026-11-25):** see [Step 8 findings](#step-8-findings) |
 | 9 | `start` column and comment data | 0.5 day | Builder merge step 3 |
 | 10 | Bean shapes by column | 1 day | Builder merge step 4 |
 | 11 | Every level through `master_beans` | 1 day | Builder merge step 5: deletes `add_level_*` and the `IT:HART:C3` patterns in `cats_panel.py` and `le_tables.py`, so the bean name is always the row's `jmri_name`. Listed comment diff (owner's 2026-11-23 answer), `make panelpro-test`, deploy |
@@ -301,6 +301,30 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   the user name, so `python3 -m hartlib.railroad check` would flag it (step 13 or 14: read them by id). A main
   detector's user name ("BS 103 Spur") does not follow its block's owner name, as staging's does. Wired or proposed
   is still per level in the callers (staging bound to its addresses, main and upper virtual), not data.
+
+## Step 8 findings (2026-11-25)
+
+- **One numbering, in hartlib.** `hartlib.block_numbering` is `block_numbering.csv`'s one reader (`read`, a
+  `NumberingError`) and the rule (`block_sort`, `order`, `bean_names`: IB:C3:<nnnn> and ILB<1000 + nnnn>,
+  `level_devices.LAYOUT_BLOCK_FIRST`). `le_tables.load_numbering` and `numbered_blocks` wrap it; the data-readers
+  check no longer allows `le_tables.py` to name the file.
+- **The builder writes the names.** `build_device_map.block_beans` gives every main and upper block row (parts too;
+  not the two helix rows, whose beans are staging's) its `jmri_name` and `layout_block`; `IB:C3:` is an internal
+  prefix (`devices.SOURCE_PREFIXES`), so those rows are `assignment` virtual. `devices_generated.csv`: 120 rows (48
+  main, 72 upper), columns `assignment` (none to virtual), `jmri_name` and `layout_block`; every value is the bean
+  `tables.xml` already held.
+- **`le_tables` reads them** (`level_block_beans`) and numbers nothing; it still stops on a stale numbering row or a
+  retired block drawn again, on a drawn block whose row has no names, and on a name of the wrong form or given twice.
+  `check_device_master.check_tables` now holds a block's bean and layout block to its row's names.
+- **My call (owner's rule of 2026-11-25):** the blocks are numbered over the generated names, not the owner's, so an
+  owner's rename keeps every number. Before, the build sorted the merged names, and a main or upper rename with no
+  `numbered_as` row would have shifted every block after it.
+- **Tests:** `tools/hartlib/tests/test_block_numbering.py` (the rule; the committed rows hold the file's numbers);
+  `test_one_row_path` (a row's names come from the file: a copy that appends Track 227-241 1 moves it last and the
+  blocks after it up one; an owner's rename keeps the numbers); `test_le_tables` (the build follows a row's changed
+  number); `test_check_device_master`, `test_build_device_map` follow.
+- **Outputs byte-identical:** `make panels CHECK=1 FULL=1` all current, `check_approved.py --check` all matching,
+  `build_tables.py --base-hash` unchanged against main, `test_bean_goldens` unchanged. No visible main or upper change.
 
 ## How to run this
 
