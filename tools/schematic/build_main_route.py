@@ -296,8 +296,10 @@ def prepared(overrides: dict, layer: str = "main_upper", graph: Path = GRAPH):
     """(the plugin's graph with the overrides applied and no main_route, node_ref: how a route names a junction)."""
     import build_layout_le as bl
     sheet, _le, _core = bl.plugin()
-    from schematic import edits   # the plugin's package: bl.plugin() has put it on the path
-    opts = dict(sheet.options(layer, pd.DATA))
+    from schematic import edits, layers   # the plugin's package: bl.plugin() has put it on the path
+    # the hand preferences name tracks by block ID: the plugin takes the merged view's, which gives their names
+    prefs = layer_files.merged(pd.DATA, "preferences").get(layer, {})
+    opts = dict(sheet.DEFAULTS, **layers.merge(layers.load(layer, pd.DATA, preferences=False), prefs))
     # the plan with the name store's track names but without the main flags this script writes (name_main), so a
     # stale or old-form name_main never stops the script that rewrites it
     opts.update({k: v for k, v in layer_files.merged(pd.DATA, main=False)[layer].items() if not k.startswith("_")})

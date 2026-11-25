@@ -417,13 +417,14 @@ class Committed(unittest.TestCase):
     def test_every_parts_label_is_optional_on_every_level(self):
         """A part's block contents icon may be left out on every level (owner, 2026-11-20): preferences.json's
         optional_block_contents (staging's le_labels, main's and upper's le_band_labels) lists exactly the level's
-        parts. The plugin reads the list from the preferences only, so it is kept there and held to devices.csv here."""
+        parts, by block ID (the plugin reads their names from the merged view, hartlib.layer_files.merged). The
+        plugin reads the list from the preferences only, so it is kept there and held to the device master here."""
         import json
         prefs = json.loads((bdm.OVERRIDES.parent / "preferences.json").read_text(encoding="utf-8"))
         got = {"1": prefs["staging"]["le_labels"]["optional_block_contents"],
                "2": prefs["main_upper"]["le_band_labels"]["Main"]["optional_block_contents"],
                "3": prefs["main_upper"]["le_band_labels"]["Upper"]["optional_block_contents"]}
-        want = {lv: [r["user_name"] for r in self.rows if r["level"] == lv and r["role"] == "part"] for lv in "123"}
+        want = {lv: [r["id"] for r in self.rows if r["level"] == lv and r["role"] == "part"] for lv in "123"}
         self.assertEqual(got, want)
 
     def test_main_and_upper_trial_names(self):

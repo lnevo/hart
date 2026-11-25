@@ -7,7 +7,11 @@ Switch 19, os:19) in its field file, as the owner would, and nothing else; then:
 - block_lengths.csv's labels come out renamed and its lengths unchanged (plan_lengths.labelled);
 - switches.csv's staging labels come out renamed (build_hands.apply);
 - main_lines.csv's stop 35@block:33A-35A reads 35@Princess Lead (build_main_route.read_lines).
-The whole build on such a copy was run by hand for the step (wiki/projects/naming-layers-handoff.md, step 5
+A second copy (step 5b, RenameInPreferencesAndStations) renames Track S-1 (block:17C-29C) and a West Yard track,
+Track W-1 (block:3B-end), and checks that preferences.json and stations.csv, which name tracks by block ID, are left
+as they are while the merged preferences the plugin reads, the station's tracks (build_staging_sets, read_places)
+and the left end take the new names.
+The whole build on such a copy was run by hand for each step (wiki/projects/naming-layers-handoff.md, step 5 and 5b
 findings); this pins the readers without the schematic plugin.
 """
 from __future__ import annotations
@@ -126,6 +130,62 @@ class RenameById(unittest.TestCase):
         with self.assertRaisesRegex(build_main_route.RouteError, "give its block id"):
             build_main_route.resolve_stop("35@East Lead", self.names, "here")
 
+
+
+class RenameInPreferencesAndStations(unittest.TestCase):
+    """Step 5b: preferences.json and stations.csv name tracks by block ID, so renaming Track S-1 and Track W-1 in the
+    field file alone renames them wherever those files' tracks are read."""
+
+    RENAMES = {("1", "block:17C-29C"): "Track South 1", ("1", "block:3B-end"): "Track Brick 1"}
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        from hartlib import track_names
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.data = Path(cls.tmp.name)
+        for name in (devices.GENERATED_FILE, devices.FIELD_FILE, "devices.columns.csv"):
+            shutil.copy(paths.LAYOUT_DATA / name, cls.data / name)
+        cls.schematic = cls.data / "schematic"
+        shutil.copytree(paths.LAYOUT_DATA / "schematic", cls.schematic, symlinks=True)
+        track_names.repo_inputs(cls.schematic)
+        cls.before = {p.relative_to(cls.data): p.read_bytes() for p in cls.data.rglob("*") if p.is_file()}
+        field = devices.field_path(cls.data)
+        rows = list(csv.DictReader(io.StringIO(field.read_text(encoding="utf-8"))))
+        hit = 0
+        for r in rows:
+            if (r["level"], r["id"]) in cls.RENAMES:
+                r["user_name"] = cls.RENAMES[(r["level"], r["id"])]
+                hit += 1
+        assert hit == len(cls.RENAMES), hit
+        field.write_text(devices.master_text(rows), encoding="utf-8")
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.tmp.cleanup()
+
+    def test_only_the_field_file_was_edited(self) -> None:
+        changed = {str(k) for k, v in self.before.items() if (self.data / k).read_bytes() != v}
+        self.assertEqual(changed, {devices.FIELD_FILE})
+
+    def test_the_merged_preferences_take_the_new_names(self) -> None:
+        from hartlib import layer_files
+        got = layer_files.merged(self.schematic, "preferences")
+        labels = got["staging"]["le_labels"]
+        self.assertEqual(labels["name_columns"], [["S-R", "South 1", "S-2", "S-3", "S-4"]])
+        self.assertEqual(labels["extra_follow"], [["Track Brick 1", "Track W-2"]])
+        self.assertEqual(got["main_upper"]["track_labels"], {"Helix Outer": "McKees Rocks", "Helix Inner": "McKeesport"})
+        self.assertEqual(layer_files.merged(self.schematic)["staging"]["left_end"], "Brick 1")
+
+    def test_the_station_tracks_take_the_new_names(self) -> None:
+        import build_staging_sets
+        import device_map_inputs
+        stations = self.schematic / "stations.csv"
+        self.assertEqual(railroad.station_tracks(railroad.read_stations(stations), stations),
+                         {"West Yard": ("Track Brick 1", "Track W-2")})
+        _areas, sets = build_staging_sets.read_masters(stations, build_staging_sets.staging_switches())
+        self.assertEqual(next(s.tracks for s in sets if s.name == "West Yard"), ("Brick 1", "W-2"))
+        places = device_map_inputs.read_places(stations)
+        self.assertEqual(places.tracks, {"Track Brick 1": ["West Yard"], "Track W-2": ["West Yard"]})
 
 
 class FollowAcrossLevels(unittest.TestCase):

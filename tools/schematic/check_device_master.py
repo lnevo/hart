@@ -55,7 +55,7 @@ import le_common as lc  # noqa: E402  the plugin
 import mast_rule as mr  # noqa: E402  MapError of the helix tracks file
 import publish_draft as pd  # noqa: E402  the plugin cache
 import staging_device_map as sdm  # noqa: E402  staging's rows, band and mast files
-from hartlib import devices, level_masts, paths, railroad, railroad_invariants, tables  # noqa: E402
+from hartlib import devices, layer_files, level_masts, paths, railroad, railroad_invariants, tables  # noqa: E402
 
 DEVICE_MAP = sdm.DEVICE_MAP
 STATIONS = sdm.STATIONS                         # staging's control points: the desk areas of its stations
@@ -415,6 +415,9 @@ def main(argv=None) -> int:
             return 2
     with pd.cache_on():
         bad = check(band)
+    # preferences.json's block IDs, each named now that device-map has written the generated names (naming-layers
+    # step 5b: the view keeps an ID with no name as it is until then)
+    bad += [f"preferences: {m}" for m in layer_files.unnamed_preferences(pd.DATA)]
     for b in bad:
         print(f"device master: {b}", file=sys.stderr)
     if not bad:

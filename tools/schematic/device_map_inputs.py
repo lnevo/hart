@@ -211,7 +211,8 @@ class Places(NamedTuple):
     """Where a line block sits (owner, 2026-11-21): `of` {switch: its places}, a switch's places the stations of
     stations.csv that list it, or, for a switch in no station, the control points of interlockings.csv that list it;
     `order` {place: rank}, stations.csv's order then interlockings.csv's; `level` {place: its level}; `tracks`
-    {block: the stations whose `tracks` cell names it} (the owner's additions)."""
+    {block name: the stations whose `tracks` cell gives its block ID} (the owner's additions; the name the store's,
+    railroad.station_tracks)."""
     of: dict
     order: dict
     level: dict
@@ -234,13 +235,15 @@ def read_places(stations: Path | None = None, interlockings: Path | None = None)
             raise MapError(f"{name} is a station or control point of levels {level[name]} and {lv}; a place is on "
                            "one level")
     in_station, in_cp, tracks = defaultdict(list), defaultdict(list), defaultdict(list)
+    try:
+        named = railroad.station_tracks(st, stations or STATIONS)   # the `tracks` IDs' names, from the name store
+    except railroad.FactsError as exc:
+        raise MapError(str(exc)) from None
     for s in st:
         for sw in s.switches:
             in_station[sw].append(s.name)
-        if s.tracks and s.tracks != "none":
-            for t in (x.strip() for x in s.tracks.split(";")):
-                if t:
-                    tracks[f"Track {t}"].append(s.name)
+        for t in named.get(s.name, ()):
+            tracks[t].append(s.name)
     for i in ils:
         for sw in i.switches:
             in_cp[sw].append(i.name)

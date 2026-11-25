@@ -58,11 +58,20 @@ class Readers(TempFiles):
             bdm.helix_pins(p)
 
     def places(self, stations: str, interlockings: str):
-        return bdm.read_places(self.file("stations.csv", STATIONS_HEAD + stations),
-                               self.file("interlockings.csv", INTERLOCKINGS_HEAD + interlockings))
+        """read_places of these rows: stations.csv in a schematic folder of a copy whose field and generated files
+        are the repo's (the name store names the tracks cell's block IDs from them)."""
+        d = tempfile.TemporaryDirectory()
+        self.addCleanup(d.cleanup)
+        root = Path(d.name)
+        (root / "schematic").mkdir()
+        for name in (devices.FIELD_FILE, devices.GENERATED_FILE):
+            (root / name).write_bytes((devices.field_path().parent / name).read_bytes())
+        path = root / "schematic" / "stations.csv"
+        path.write_text(STATIONS_HEAD + stations, encoding="utf-8")
+        return bdm.read_places(path, self.file("interlockings.csv", INTERLOCKINGS_HEAD + interlockings))
 
     def test_read_places(self):
-        got = self.places('1,West Yard,"3,5",W-1;W-2,WY,,\n2,Princess,131,none,PR,,\n',
+        got = self.places('1,West Yard,"3,5",block:3B-end;block:3C-end,WY,,\n2,Princess,131,none,PR,,\n',
                           '1,Brick,"1,3",,\n2,CP 127,"127,129",West,\n')
         self.assertEqual(got.of, {"3": ("West Yard",), "5": ("West Yard",), "131": ("Princess",), "1": ("Brick",),
                                   "127": ("CP 127",), "129": ("CP 127",)})

@@ -219,7 +219,8 @@ class LabelRuleNamingNoBand(unittest.TestCase):
 
     def test_the_staging_rules_are_read_from_its_section(self):
         from hartlib import layer_files
-        own = layer_files.read("preferences", "staging", le_common.pd.DATA)["le_labels"]
+        # as named in the merged view: the hand file gives the tracks' block IDs (naming-layers step 5b)
+        own = layer_files.merged(le_common.pd.DATA, "preferences")["staging"]["le_labels"]
         bands, page = le_common.schematic()
         labels = le_common.plugin_module("le_labels")
         opts = labels.options(bands, page)[le_common.base_band(bands)]
