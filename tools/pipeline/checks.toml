@@ -184,9 +184,10 @@ outputs = [
   "www/data/layout-index.json",
   { path = "www/assets/layout", label = "schematic PNG" },
 ]
-# read through hartlib, seen in the 2026-11-25 traced full runs (ADR-037 stages 4a, 4c)
+# read through hartlib, seen in the 2026-11-25 traced full runs (ADR-037 stages 4a, 4c); and the renderer it loads
+# and runs to draw the PNG, hashed for the PNG's stamp (read as bytes, stage 4c)
 quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv", "jmri/layouts/hart/data/devices_generated.csv",
-                "jmri/layouts/hart/data/schematic/block_overrides.csv"]
+                "jmri/layouts/hart/data/schematic/block_overrides.csv", "jmri/layouts/hart/scripts/render_le_layout.py"]
 
 [[step]]
 name = "layout-docs"
@@ -500,6 +501,7 @@ inputs = [
   { path = "jmri/scripts/sml_claims.py", label = "check", side = "check" },
   { path = "jmri/scripts/sml_handoff.py", label = "check", side = "check" },
   { path = "external/lcos-bridge/lcos_mqtt_bridge.cpp", label = "check", side = "check" },
+  { path = "external/lcos-bridge/serial_to_mqtt.py", label = "check", side = "check" },
 ]
 
 # No script outside hartlib reads a layout data file itself but the pairs it allows (naming-layers step 6).
@@ -799,7 +801,8 @@ inputs = [
   { path = "www/scripts/share_cards.py", label = "check", side = "check" },
 ]
 # The site build (prepare_github_pages.py) reads: the site tree; the sources www/scripts/published-files.json names,
-# as their folder and suffix; and what the four steps whose pages it builds read (tables-browser, repo-guide,
+# as their folder and suffix; the files the site's data names outside www/ that it copies in (the operator logos,
+# the rolling stock photos: its _vendor_logo and MIRROR_PREFIXES); and what the four steps whose pages it builds read (tables-browser, repo-guide,
 # jmri-additions, pipeline-map: their inputs and quiet_inputs, in that order). tools/audit/tests/test_manifest_scans.py
 # keeps this list equal to those.
 quiet_inputs = [
@@ -810,6 +813,7 @@ quiet_inputs = [
   "docs/ops/stations/*.svg", "jmri/layouts/hart/scripts/speedmatch/dashboard/static/*.css",
   "jmri/layouts/hart/scripts/speedmatch/dashboard/static/*.js", "ops/hart-ops/publications/assets/*.png",
   "ops/station_maps/maps/*.png", "tools/benchwork/helix/*.py",
+  "ops/hart-ops/operator_logos/**", "external/sts-docker-data/Rolling Stock photos/*.jpg",
   "jmri/layouts/hart/output/tables.xml", "jmri/layouts/hart/data/switches.csv",
   "jmri/layouts/hart/parked/tables_parked.xml", "jmri/layouts/hart/data/devices_field.csv",
   "jmri/layouts/hart/data/devices_generated.csv", "jmri/scripts/signal_coordinator.py", "jmri/scripts/sml_beans.py",

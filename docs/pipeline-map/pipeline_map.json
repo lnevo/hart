@@ -2994,6 +2994,16 @@
    "local": true
   },
   {
+   "id": "external/lcos-bridge/serial_to_mqtt.py",
+   "label": "serial_to_mqtt.py",
+   "kind": "external",
+   "status": "live",
+   "domain": "wiring",
+   "desc": "The LCOS bridge's serial-to-MQTT program (submodule); check_mqtt_no_static_lists.py checks it holds no static head list.",
+   "path": "external/lcos-bridge/serial_to_mqtt.py",
+   "local": true
+  },
+  {
    "id": "human:owner",
    "label": "Owner",
    "kind": "human",
@@ -6087,6 +6097,13 @@
   },
   {
    "from": "external/lcos-bridge/lcos_mqtt_bridge.cpp",
+   "to": "tools/audit/check_mqtt_no_static_lists.py",
+   "label": "check",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "external/lcos-bridge/serial_to_mqtt.py",
    "to": "tools/audit/check_mqtt_no_static_lists.py",
    "label": "check",
    "side": "check",

@@ -44,6 +44,8 @@ SCANS = {
 }
 # the steps whose pages the site build makes, in the order the portal step lists their reads
 PORTAL_PAGES = ("tables-browser", "repo-guide", "jmri-additions", "pipeline-map")
+# what the site's data names outside www/ and the build copies in (prepare_github_pages._vendor_logo, MIRROR_PREFIXES)
+PORTAL_VENDORED = ("ops/hart-ops/operator_logos/**", "external/sts-docker-data/Rolling Stock photos/*.jpg")
 
 
 def declared_scan(step, scan) -> set[str]:
@@ -100,7 +102,8 @@ class ScanListsTest(unittest.TestCase):
 
     def test_the_portal_declares_the_site_its_sources_and_the_pages_it_builds(self) -> None:
         published = json.loads((ROOT / "www/scripts/published-files.json").read_text(encoding="utf-8"))
-        want = ["www/**", *sorted({f"{os.path.dirname(src)}/*{os.path.splitext(src)[1]}" for src in published.values()})]
+        want = ["www/**", *sorted({f"{os.path.dirname(src)}/*{os.path.splitext(src)[1]}" for src in published.values()}),
+                *PORTAL_VENDORED]
         for name in PORTAL_PAGES:
             s = STEPS[name]
             want += [p for p in (*(e.path for e in s.inputs), *s.quiet_inputs) if p not in want]
