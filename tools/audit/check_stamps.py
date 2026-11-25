@@ -4,7 +4,14 @@
     check_stamps.py current NAME [--save FILE]           exit 0 when NAME's stamp still holds (skip the job),
                                                          1 when it must run (and may record: FILE is written),
                                                          2 when NAME is not stampable now (run it, record nothing)
-    check_stamps.py record  NAME FILE --trace LOG        record NAME's stamp from the trace of the run that passed
+    check_stamps.py current-batch NAMES DIR [--why]      `current` for every job of a check.sh run, in one process:
+                                                         NAMES has one job name per line; job i (from 0) gets
+                                                         DIR/i.stamp (--save) and DIR/i.stamplog (--why), and
+                                                         DIR/verdicts "i<TAB>0|1|2" per job once all are checked;
+                                                         exit 3 and no verdicts when it cannot check them all
+    check_stamps.py record  NAME FILE --trace LOG [--skipped N]
+                                                         record NAME's stamp from the trace of the run that passed
+                                                         (N: the skipped tests its output shows)
     check_stamps.py why     NAME                         say why NAME is not current
     check_stamps.py declared NAME                        the patterns NAME falls back to (an untraceable program)
     check_stamps.py audit-report DIR [-v]                compare the files a CHECK_AUDIT run opened with the declarations
@@ -17,6 +24,10 @@ start goes to a log. After a pass the stamp records that read set with its hashe
 the job name, tools/check.sh and the hook, the Python and the plugin's state, what the job reads from outside the
 repo (outside_state), and the output of each read-only git command it ran (run again at compare time). The next run
 skips the job only when the key and every read-set entry match, so an edit re-runs only the jobs that read the file.
+A unit job whose tests skipped records them too (each test's id and reason, from the hook) in its key; what they
+skipped on is an input like any other: a file or folder the trace saw, a shutil.which lookup (looked up again at
+compare time), the interpreters' packages (outside_state), a git command it ran or a git ref REFS_OF names.
+check.sh checks every job in one `current-batch` process before it starts any, and starts only the ones that run.
 A job that ran a program the hook cannot see (bash, a writing git, a Python child with the hook dropped) inside the
 checkout falls back to its declaration (`declared`, wide on purpose: whole folders) as well, as before the traces.
 Nothing is skipped or recorded while HART_TABLES is set or the schematic plugin is not at its pinned commit
@@ -90,6 +101,8 @@ EXTRA: dict[str, tuple[str, ...]] = {
     # the deploy scripts (bash, and a git clone of HEAD staged the same way) copy from jmri/, cats/, tools/ and one
     # speed-matching CSV under docs/jmri/ (tools/hosts/deploy/stage.sh); their Python reads only CODE
     "unit-hosts test_deploy_stage": ("docs/jmri/**/*",),
+    # cs105_roster_sync.sh (bash) refuses when the submodule is not checked out, and the test skips on that answer
+    "unit-hosts test_pi_ssh_scripts": ("external/jmri-cs105-roster-sync/**/*",),
     "unit-guards test_check_sh_tables": ("www/**/*",),
     # tools/ops/status_counts.py reads wiki/STATUS.md; its git status only compares the tree before and after
     "unit-guards test_hart_tables_writers": ("wiki/STATUS.md", "www/scripts/**/*"),
@@ -182,6 +195,12 @@ def check_tables() -> None:
             if _test_key(job) in RUNS_JOBS:
                 raise ValueError(f"check_stamps.RUNS_JOBS: {tk!r} runs {job!r}, which runs jobs of its own")
             _declared_job(job)
+    for job, refs in REFS_OF.items():
+        if declared(job) is None:
+            raise ValueError(f"check_stamps.REFS_OF: {job!r} is not a stampable job")
+        unknown = [r for r in refs if r not in GIT_REFS]
+        if unknown:
+            raise ValueError(f"check_stamps.REFS_OF: {job!r} names {', '.join(unknown)}, not in GIT_REFS")
 
 
 def _pruned(rel: str) -> bool:
@@ -193,8 +212,12 @@ def walk(patterns, root: Path = ROOT) -> list[Path]:
     Linked folders (media/, ops/car-cards in a worktree) are walked through their links, whatever the pattern."""
     heads = set()
     for pat in patterns:
-        head = pat.split("*", 1)[0]
-        heads.add(head.rsplit("/", 1)[0] if "/" in head else ("" if "*" in pat else pat))
+        # a literal pattern ("tools/check.sh") starts at itself, not at its folder: no walk of all of tools/ for it
+        if not any(c in pat for c in "*?"):
+            heads.add(pat)
+            continue
+        head = pat.split("*", 1)[0].split("?", 1)[0]
+        heads.add(head.rsplit("/", 1)[0] if "/" in head else "")
     found: set[Path] = set()
     starts = {h for h in heads if not any(h != o and (h + "/").startswith(o + "/") for o in heads if o)}
     seen: set[str] = set()                          # real paths of the folders walked: a link back up ends there
@@ -266,38 +289,102 @@ def _run(*cmd: str, cwd: Path) -> str:
 
 
 def venv_state(python: Path) -> str:
-    """An interpreter's real path and the names and versions of the packages in its site-packages."""
+    """An interpreter's real path and the names and versions of the packages it can import: for the Python running
+    this (the jobs' python3), its site-packages and the user's (pip install --user); for another one (a venv), the
+    site-packages under its prefix."""
     out = [os.path.realpath(python)]
-    prefix = Path(python).parent.parent
-    for site in sorted(prefix.glob("lib/python*/site-packages")):
-        out += sorted(d.name for d in site.glob("*.dist-info"))
+    if out[0] == os.path.realpath(sys.executable):
+        import site
+        sites = [Path(s) for s in site.getsitepackages()]
+        if site.ENABLE_USER_SITE:
+            sites.append(Path(site.getusersitepackages()))
+    else:
+        sites = sorted(Path(python).parent.parent.glob("lib/python*/site-packages"))
+    for s in sites:
+        out += sorted(d.name for d in s.glob("*.dist-info"))
     return "|".join(out)
 
 
-def outside_state(name: str, root: Path, cache: "HashCache", wide: bool = False) -> str:
+class Checker:
+    """The stamp checks of one moment: one file-hash cache, and what is the same for every job then (git's answers,
+    the plugin's state, the walk of a pattern set, the interpreters, the snapshot) worked out once. check.sh's
+    `current-batch` checks every job with one; a single `current`, `why` or `record` makes one of its own."""
+
+    def __init__(self, root: Path = ROOT, store: Path = STORE) -> None:
+        self.root, self.store = root, store
+        self.cache = HashCache(store / "filehash.json")
+        self._memo: dict[tuple, object] = {}
+
+    def _once(self, key: tuple, make):
+        if key not in self._memo:
+            self._memo[key] = make()
+        return self._memo[key]
+
+    def git(self, *args: str) -> str:
+        return self._once(("git", args), lambda: _run("git", *args, cwd=self.root))
+
+    def plugin(self) -> str:
+        return self._once(("plugin",), lambda: ps.plugin_state(self.root))
+
+    def unstampable(self) -> str | None:
+        return self._once(("unstampable",), lambda: ps.unstampable(self.root))
+
+    def walk(self, patterns: tuple[str, ...]) -> list[Path]:
+        return self._once(("walk", patterns), lambda: walk(patterns, self.root))
+
+    def venv(self, python: Path) -> str:
+        return self._once(("venv", str(python)), lambda: venv_state(python))
+
+    def replay(self, gits: list) -> list[str]:
+        """traced.git_replay, each command run once."""
+        return [self._once(("replay", tuple(cmd)), lambda cmd=cmd: traced.git_replay([cmd], str(self.root))[0])
+                for cmd in gits]
+
+    def snapshot(self, outside: str) -> str:
+        return self._once(("snapshot", outside), lambda: traced.snapshot(self.root, self.plugin(), outside))
+
+
+# The git refs a job's key holds besides the git commands its trace replays: the read-only checks and the portal
+# build compare against them, and test_redeploy_commit's deploy script (bash, untraced) stages HEAD's tree and refuses
+# a commit that is not on origin/main, and its tests skip by that answer.
+GIT_REFS = {"head": ("rev-parse", "HEAD"), "base": ("merge-base", "HEAD", "origin/main"),
+            "origin": ("rev-parse", "origin/main")}
+REFS_OF: dict[str, tuple[str, ...]] = {
+    "static": ("head", "base"),
+    "portal": ("head", "base"),
+    "unit-hosts test_redeploy_commit": ("head", "base", "origin"),
+}
+
+
+# The environment that picks other inputs, and what tests skip on (tests/test_check_stamps.py: every variable a
+# test's skip reads is here): CHECK_AUDIT (test_check_stamps inside an audit run), UPDATE_GOLDEN (golden files rewritten).
+KEY_ENV = ("ANYRAIL_PLAN", "JMRI_LAYOUT", "SCHEMATIC_CACHE", "SCHEMATIC_REQUIRED", "CHECK_AUDIT", "UPDATE_GOLDEN")
+
+
+def outside_state(name: str, ck: Checker, wide: bool = False) -> str:
     """What the jobs read from outside the traced files: the private AnyRail plan, the interpreters and their
-    packages, the environment that picks other inputs, and, for the checks that read git history, HEAD and the merge
-    base. `wide` (a job that ran an untraceable program) adds the names of the files git tracks or would add."""
+    packages, the environment that picks other inputs, and the git refs REFS_OF names for the job. `wide` (a job that
+    ran an untraceable program) adds the names of the files git tracks or would add."""
     plan = plan_file()
-    parts = [f"plan={cache(plan) if plan.is_file() else 'absent'}",
-             f"python3={venv_state(Path(sys.executable))}"]
+    parts = [f"plan={ck.cache(plan) if plan.is_file() else 'absent'}",
+             f"python3={ck.venv(Path(sys.executable))}"]
     if wide:
-        parts.append("tracked=" + hashlib.sha256(
-            _run("git", "ls-files", "-co", "--exclude-standard", cwd=root).encode()).hexdigest())
-    hops = root / "ops/hart-ops/.venv/bin/python"
+        parts.append("tracked=" + hashlib.sha256(ck.git("ls-files", "-co", "--exclude-standard").encode()).hexdigest())
+    hops = ck.root / "ops/hart-ops/.venv/bin/python"
     if name in ("unit-hart-ops", "public-text") and hops.exists():
-        parts.append(f"hops={venv_state(hops)}")
-    if name in ("static", "portal"):
-        parts.append("head=" + _run("git", "rev-parse", "HEAD", cwd=root).strip())
-        parts.append("base=" + _run("git", "merge-base", "HEAD", "origin/main", cwd=root).strip())
-    parts += [f"{k}={os.environ.get(k, '')}" for k in ("ANYRAIL_PLAN", "JMRI_LAYOUT", "SCHEMATIC_CACHE", "SCHEMATIC_REQUIRED")]
+        parts.append(f"hops={ck.venv(hops)}")
+    for ref in REFS_OF.get(name) or REFS_OF.get(_test_key(name) or "", ()):
+        parts.append(f"{ref}=" + ck.git(*GIT_REFS[ref]).strip())
+    parts += [f"{k}={os.environ.get(k, '')}" for k in KEY_ENV]
+    parts.append(f"euid={os.geteuid() if hasattr(os, 'geteuid') else ''}")    # test_operating skips as root
     return "\n".join(parts)
 
 
-def not_stampable(name: str) -> str | None:
+def not_stampable(name: str, ck: Checker | None = None) -> str | None:
     if declared(name) is None:
         return f"{name} is not a stampable job"
-    return ps.unstampable(ROOT)         # also while HART_TABLES is set, for every job: the unit jobs run without it
+    # also while HART_TABLES is set, for every job: the unit jobs run without it
+    return ck.unstampable() if ck else ps.unstampable(ROOT)
 
 
 ALWAYS = ("tools/check.sh", *traced.HOOK_FILES)
@@ -308,13 +395,22 @@ def _patterns(name: str, programs: list[str]) -> tuple[str, ...]:
     return (*ALWAYS, *(declared(name) or ())) if programs else ALWAYS
 
 
-def key(name: str, root: Path, cache: "HashCache", programs: list[str], gits: list) -> str:
-    """The stamp key: job, check.sh and the hook, interpreter, plugin, outside state and git output now, and, for a job
-    that ran an untraceable program, every file its declaration names."""
+def skip_list(skips) -> list[list[str]]:
+    """The skipped tests a stamp holds: [test id, reason] pairs, sorted, each once."""
+    return [list(s) for s in sorted({(str(i), str(r)) for i, r in skips})]
+
+
+def key(name: str, ck: Checker, programs: list[str], gits: list, skips=()) -> str:
+    """The stamp key: job, check.sh and the hook, interpreter, plugin, outside state and git output now, for a job
+    that ran an untraceable program every file its declaration names, and the tests its passing run skipped (their
+    ids and reasons): what they skipped on is in the rest of the key and the read set."""
     pats = _patterns(name, programs)
-    extra = (outside_state(name, root, cache, bool(programs)) + f"\nprograms={','.join(programs)}"
-             + f"\ngit={','.join(traced.git_replay(gits, str(root)))}")
-    return ps.digest(f"check:{name}", (), pats, root, hasher=cache, files=walk(pats, root), extra=extra)
+    extra = (outside_state(name, ck, bool(programs)) + f"\nprograms={','.join(programs)}"
+             + f"\ngit={','.join(ck.replay(gits))}")
+    if skips:
+        extra += "\nskips=" + json.dumps(skip_list(skips))
+    return ps.digest(f"check:{name}", (), pats, ck.root, hasher=ck.cache, files=ck.walk(pats), extra=extra,
+                     plugin=ck.plugin())
 
 
 def _file(name: str, store: Path = STORE) -> Path:
@@ -322,56 +418,133 @@ def _file(name: str, store: Path = STORE) -> Path:
     return store / f"{slug}-{hashlib.sha256(name.encode()).hexdigest()[:10]}.json"
 
 
-def why_not_current(name: str, root: Path = ROOT, store: Path = STORE) -> str | None:
-    """None when job `name` may be skipped, else why it must run."""
-    stamp = traced.load(_file(name, store))
-    if not stamp:
-        return "no stamp"
-    cache = HashCache(store / "filehash.json")
+def why_not_current(name: str, root: Path = ROOT, store: Path = STORE, checker: Checker | None = None) -> str | None:
+    """None when job `name` may be skipped, else why it must run. With no `checker`, one of its own (saved after)."""
+    ck = checker or Checker(root, store)
     try:
-        k = key(name, root, cache, stamp.get("programs", []), stamp.get("git", []))
-        return traced.mismatch(stamp, k, str(root), hasher=lambda p: cache(Path(p)))
+        stamp = traced.load(_file(name, ck.store))
+        if not stamp:
+            return "no stamp"
+        k = key(name, ck, stamp.get("programs", []), stamp.get("git", []), stamp.get("skips", []))
+        return traced.mismatch(stamp, k, str(ck.root), hasher=lambda p: ck.cache(Path(p)))
     finally:
-        cache.save()
+        if checker is None:
+            ck.cache.save()
 
 
 def is_current(name: str, root: Path = ROOT, store: Path = STORE) -> bool:
     return why_not_current(name, root, store) is None
 
 
-def snapshot(name: str, root: Path = ROOT, store: Path = STORE) -> str:
+def snapshot(name: str, root: Path = ROOT, store: Path = STORE, checker: Checker | None = None) -> str:
     """traced.snapshot with the plugin's and `name`'s outside state: saved before the job, compared at record."""
-    cache = HashCache(store / "filehash.json")
+    ck = checker or Checker(root, store)
     try:
-        return traced.snapshot(root, ps.plugin_state(root), outside_state(name, root, cache, True))
+        return ck.snapshot(outside_state(name, ck, True))
     finally:
-        cache.save()
+        if checker is None:
+            ck.cache.save()
 
 
-def record(name: str, trace_log, root: Path = ROOT, store: Path = STORE, before: str | None = None) -> str | None:
+def verdict(name: str, ck: Checker, save: Path | None) -> tuple[int, str | None]:
+    """`current`'s answer for job `name`: (0, None) when its stamp holds (skip it), (1, why) when it must run and may
+    record, (2, why) when it is not stampable now (run it, record nothing). `save` gets the snapshot of a stampable
+    job, taken before it runs, for `record`."""
+    unstampable = not_stampable(name, ck)
+    if unstampable:
+        return 2, unstampable
+    reason = why_not_current(name, checker=ck)
+    if save:
+        save.write_text(snapshot(name, checker=ck) + "\n")
+    return (0, None) if reason is None else (1, reason)
+
+
+class BatchError(Exception):
+    """current-batch stopped: check.sh then runs every job and records none."""
+
+
+def read_names(path: Path) -> list[str]:
+    """The job names of a current-batch, one per line in check.sh's order (line i is job i). Raises BatchError."""
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise BatchError(f"cannot read the job names in {path}: {exc}") from exc
+    names = text.split("\n")
+    if names and names[-1] == "":
+        names.pop()
+    if not names:
+        raise BatchError(f"{path} names no job")
+    for i, name in enumerate(names):
+        if not name.strip() or name != name.strip():
+            raise BatchError(f"{path} line {i + 1}: {name!r} is no job name (empty, or spaces around it)")
+    return names
+
+
+def current_batch(names: list[str], out: Path, why: bool, root: Path = ROOT, store: Path = STORE) -> list[int]:
+    """`current` for every job of one check.sh run in one process, with one Checker: job i (names[i]) gets out/i.stamp
+    (the snapshot, for a stampable job) and, with `why`, out/i.stamplog ("runs: <why>"); out/verdicts gets "i<TAB>code"
+    per job once all are checked (written whole or not at all). A job whose check raises gets 2 (run, record nothing),
+    its stamp is dropped so its next pass records afresh, and its stamplog says why. Raises BatchError when it cannot
+    check the batch at all (the folder): then no job may be skipped."""
+    if not out.is_dir():
+        raise BatchError(f"{out} is not a folder")
+    ck = Checker(root, store)
+    verdicts = []
+    try:
+        for i, name in enumerate(names):
+            log = out / f"{i}.stamplog"
+            try:
+                code, reason = verdict(name, ck, out / f"{i}.stamp")
+            except Exception as exc:  # noqa: BLE001 - this job runs and records nothing; its stamp is dropped
+                code, why_now = 2, f"the stamp check failed: {type(exc).__name__}: {exc}; its stamp is dropped"
+                _file(name, ck.store).unlink(missing_ok=True)
+                (out / f"{i}.stamp").unlink(missing_ok=True)
+                log.write_text(f"runs: {why_now}\n")      # printed with the job's output, --why or not
+            else:
+                if why and reason:
+                    log.write_text(f"runs: {reason}\n")
+            verdicts.append(code)
+    finally:
+        ck.cache.save()
+    if len(verdicts) != len(names):
+        raise BatchError(f"{len(verdicts)} verdicts for {len(names)} jobs")
+    tmp = out / f"verdicts.{os.getpid()}.tmp"
+    tmp.write_text("".join(f"{i}\t{code}\n" for i, code in enumerate(verdicts)))
+    os.replace(tmp, out / "verdicts")
+    return verdicts
+
+
+def record(name: str, trace_log, root: Path = ROOT, store: Path = STORE, before: str | None = None,
+           skipped: int = 0) -> str | None:
     """Record `name`'s stamp from `trace_log`; None when recorded, else why not (any old stamp is dropped).
-    `before` is the snapshot() taken before the job: a different one now records nothing."""
+    `before` is the snapshot() taken before the job: a different one now records nothing. `skipped` is the number of
+    skipped tests the job's output shows: the trace must hold at least that many skips, with their ids and reasons."""
     t = traced.parse(trace_log)
     reason = traced.problem(t)
-    if reason is None and before is not None and before != snapshot(name, root, store):
-        reason = "HEAD, origin/main, the plugin, an interpreter or the private plan changed while the job ran"
-    if reason is None:
-        main = main_checkout(root)
-        programs, gits = traced.untraced(t, str(root), (str(main),) if main else ())
-        rs = traced.read_set(t, str(root))
-        cache = HashCache(store / "filehash.json")
-        try:
-            hashed = [p.relative_to(root).as_posix() for p in walk(_patterns(name, programs), root)]
+    ck = Checker(root, store)
+    try:
+        if reason is None and before is not None and before != snapshot(name, checker=ck):
+            reason = "HEAD, origin/main, the plugin, an interpreter or the private plan changed while the job ran"
+        if reason is None and len(t.skips) < skipped:
+            reason = (f"the output shows {skipped} skipped tests and the trace holds {len(t.skips)}: which tests "
+                      "skipped, and why, is not known")
+        if reason is None:
+            main = main_checkout(root)
+            programs, gits = traced.untraced(t, str(root), (str(main),) if main else ())
+            rs = traced.read_set(t, str(root))
+            hashed = [p.relative_to(root).as_posix() for p in ck.walk(_patterns(name, programs))]
             late = traced.changed_since(t, rs, str(root), hashed)
             if late:
                 reason = f"{late[0]} changed while the job ran"
             else:
-                k = key(name, root, cache, programs, gits)
-                traced.save(_file(name, store), traced.make_stamp(k, t, str(root), hasher=lambda p: cache(Path(p)),
-                                                                  programs=programs, git=gits))
+                skips = skip_list(t.skips)
+                k = key(name, ck, programs, gits, skips)
+                meta = {"programs": programs, "git": gits, **({"skips": skips} if skips else {})}
+                traced.save(_file(name, store), traced.make_stamp(k, t, str(root), hasher=lambda p: ck.cache(Path(p)),
+                                                                  **meta))
                 return None
-        finally:
-            cache.save()
+    finally:
+        ck.cache.save()
     _file(name, store).unlink(missing_ok=True)
     return reason
 
@@ -439,23 +612,31 @@ def main(argv: list[str] | None = None) -> int:
         if "--save" in argv:
             save = Path(argv[argv.index("--save") + 1])
         why = "--why" in argv              # say why it runs (a CI pull request run: check.sh CHECK_SKIP_FROM)
-        unstampable = not_stampable(name)
-        if unstampable:
-            if why:
-                print(f"runs: {unstampable}")
-            return 2
-        reason = why_not_current(name)
-        if save:
-            save.write_text(snapshot(name) + "\n")
+        ck = Checker()
+        try:
+            code, reason = verdict(name, ck, save)
+        finally:
+            ck.cache.save()
         if reason and why:
             print(f"runs: {reason}")
-        return 0 if reason is None else 1
+        return code
+    if argv[:1] == ["current-batch"] and len(argv) in (3, 4) and argv[3:] in ([], ["--why"]):
+        try:
+            current_batch(read_names(Path(argv[1])), Path(argv[2]), why=len(argv) == 4)
+        except BatchError as exc:
+            print(f"check_stamps.py current-batch: {exc}", file=sys.stderr)
+            return 3
+        return 0
     if len(argv) == 2 and argv[0] == "why":
         print(not_stampable(argv[1]) or why_not_current(argv[1]) or "current")
         return 0
-    if len(argv) == 5 and argv[0] == "record" and argv[3] == "--trace":
+    if argv[:1] == ["record"] and len(argv) in (5, 7) and argv[3] == "--trace" and argv[5:6] in ([], ["--skipped"]):
+        skipped = argv[6] if len(argv) == 7 else "0"
+        if not skipped.isdigit():
+            print(f"check_stamps.py record: --skipped takes a count, not {skipped!r}; not stamped")
+            return 2
         if not_stampable(argv[1]) is None:
-            reason = record(argv[1], argv[4], before=Path(argv[2]).read_text().strip())
+            reason = record(argv[1], argv[4], before=Path(argv[2]).read_text().strip(), skipped=int(skipped))
             if reason:
                 print(f"not stamped: {reason}")
         return 0

@@ -68,7 +68,29 @@ Why the first measurement counted 39 is not checked. A likely cause, unverified:
 
 **3a, measure (read-only, alongside 1 and 2).** Time a no-change `check.sh` on the Mac by phase: start-up before the first job, the stamp checks (one `check_stamps.py current` per job), the jobs that always run, and the wait for the last job. Say why each of the 8 jobs ran with nothing changed (traced reads of a file that changes every run, an untraceable program, or no stamp at all).
 
+**3a results (2026-11-24, the Mac, 834b73d6, load average 8 to 18).** A no-change `check.sh` took about 65 s:
+
+| Part | Time | Why |
+|---|---|---|
+| 202 `check_stamps.py current` processes, 8 at once | about 55 s (2.2 s each loaded, 0.8 to 1.4 s alone) | one process per job |
+| in each: parse `filehash.json` (40 MB, 200,257 entries, 44,540 paths still there) 2 or 3 times | 0.31 s | a new cache per call |
+| in each: walk all of `tools/` to hash 3 literal files | 0.27 s (0.85 s for a job declared on every file) | a literal pattern walked from its folder |
+| in each: 14 git processes, `plugin_state` twice | 0.38 s | nothing shared between jobs |
+| in each: the `--save` snapshot | about 0.4 s | |
+| all 202 in one process (prototype, shared caches) | 7.4 s | the same 8 jobs not current |
+| jobs that always ran | 6 real ones and 2 placeholders | check.sh recorded no stamp when the output showed `skipped=` |
+
 **3b, cut (after 1 and 2 merge).** Act on 3a. Likely candidates, to be confirmed by it: check every job's stamp in one `check_stamps.py` process instead of one per job; let `test_redeploy_commit` (24 s) and the other always-run jobs be stamped if what makes them always run can be declared. Byte-identical results: the same jobs run and skip as before, for the same changes. Done when a no-change run is timed before and after.
+
+**3b results (2026-11-24, PR from `agent/claude/check-overhead-cut`).** `check.sh` now queues every job, checks all their stamps in one `check_stamps.py current-batch` process (one hash cache; git, the plugin state, the walks and the snapshots worked out once), and starts only the jobs that run. A batch that fails runs every job, records nothing and says why; a job whose own check raises runs alone and loses its stamp. A unit job whose tests skipped now records its stamp: the trace hook logs each skipped test's id and reason (they go in the key) and every `shutil.which` lookup (looked up again at compare time), and the key gained the user site-packages, `CHECK_AUDIT`, `UPDATE_GOLDEN`, the user id, the roster-sync submodule for `test_pi_ssh_scripts`, and HEAD, `origin/main` and their merge base for `test_redeploy_commit`. `tools/audit/tests/test_check_stamps.py` compares the batch's verdict, reason and snapshot with each job checked alone for no change, an edit to a read file, an edit only a declaration covers, a missing stamp, a plugin change and an unstampable checkout. Timed on the Mac in one worktree with a private stamp folder, each run after the 1-minute load fell under 12 (it rose to between 17 and 32 during the runs, other work on the Mac):
+
+| Run | Wall | Ran | Skipped |
+|---|---|---|---|
+| No change, before (main, 33d4b68a), three runs | 54 s, 65 s, 54 s | 8 | 196 |
+| No change, after (86254ac9), two runs | 7.4 s, 7.5 s | 1 (the `unit-hart-ops` placeholder) | 203 |
+| One line added to an ADR, after | 27 s | 7 (`static` 21 s, `public-text`, four guard tests, the placeholder) | 197 |
+
+The six jobs that always ran now record, and stay current on a no-change run: `test_ctc_signal_heads`, `test_patch_windows_mqtt`, `test_win_run`, `test_public_text`, `test_pi_ssh_scripts` and `test_redeploy_commit`. `test_redeploy_commit` still reruns whenever HEAD, `origin/main` or the shared `git worktree list` changes (its tests replay that command), so it reruns after any commit and often while other worktrees come and go. Not done: pruning `filehash.json` (parsed once per run now, 0.3 s). Every stamp, the panel steps' too, is new once after this change (the hook changed).
 
 ## Owner decisions (2026-11-24)
 
