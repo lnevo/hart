@@ -64,8 +64,14 @@ def pdf_text(path: Path) -> str | None:
     return " ".join(parts)
 
 
+# What it reads with no paths given: every tracked file, as git globs (the step's quiet_inputs in
+# tools/pipeline/checks.toml are these; tools/audit/tests/test_manifest_scans.py keeps the two the same).
+SCAN_GLOBS = ("**/*",)
+
+
 def git_files() -> list[str]:
-    out = subprocess.check_output(["git", "ls-files", "-z"], cwd=ROOT, text=True)
+    out = subprocess.check_output(["git", "ls-files", "-z", "--", *(f":(glob){g}" for g in SCAN_GLOBS)],
+                                  cwd=ROOT, text=True)
     return [p for p in out.split("\0") if p]
 
 

@@ -21,8 +21,10 @@ from typing import NamedTuple
 from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[2]
-PATTERNS = ("AGENTS.md", "*/AGENTS.md", ".cursor/*", ".claude/*", "wiki/home.md",
-            "wiki/AGENTS_GIT.md")
+# The tracked files it reads, as git globs (** crosses folders, * does not): the agent docs (PATTERNS, less EXCLUDED)
+# and the Markdown files the cell rule covers (CELL_GLOBS, less the exempt history). The step's quiet_inputs in
+# tools/pipeline/checks.toml are these (tools/audit/tests/test_manifest_scans.py).
+PATTERNS = ("**/AGENTS.md", ".cursor/**", ".claude/**", "wiki/home.md", "wiki/AGENTS_GIT.md")
 EXCLUDED = ("external/",)
 ROOTS = ("jmri", "cats", "docs", "www", "ops", "tools", "wiki", "archive", ".cursor", ".claude")
 # A Markdown link target: <in angle brackets> (may hold spaces) or a bare target up to a space, ")" or "#".
@@ -30,7 +32,8 @@ LINK = re.compile(r"\]\(\s*(?:<(?P<angled>[^>#]*)[^>]*>|(?P<bare>[^)#\s]+))")
 CODE = re.compile(r"`([^`\s]+)`")
 HTML_COMMENT = re.compile(r"<!--.*?-->", re.S)
 MAX_CELL_WORDS = 80
-CELL_FILES = ("wiki", "AGENTS.md")
+CELL_GLOBS = ("wiki/**/*.md", "AGENTS.md")
+SCAN_GLOBS = (*PATTERNS, CELL_GLOBS[0])         # CELL_GLOBS' AGENTS.md is one of PATTERNS' **/AGENTS.md
 CELL_EXEMPT_FILES = ("wiki/STATUS_LOG.md",)
 CELL_EXEMPT_DIRS = ("wiki/archive/",)
 FENCE = re.compile(r"^\s*(?P<run>`{3,}(?=[^`]*$)|~{3,})(?P<info>.*)$")   # a backtick fence has no backtick after it
@@ -60,7 +63,12 @@ def _git(*args: str) -> list[str]:
 
 
 def agent_files() -> list[str]:
-    return [p for p in _git("ls-files", "-z", *PATTERNS) if not p.startswith(EXCLUDED)]
+    return [p for p in _git("ls-files", "-z", "--", *globs(PATTERNS)) if not p.startswith(EXCLUDED)]
+
+
+def globs(patterns: tuple[str, ...]) -> list[str]:
+    """Repo globs as git pathspecs with the glob magic, so * stays inside one folder as in the step manifest."""
+    return [f":(glob){g}" for g in patterns]
 
 
 def is_ignored(token: str) -> bool:
@@ -234,8 +242,8 @@ def cell_word_counts(rel: str, text: str) -> list[tuple[int, int, int]]:
 def cell_files() -> list[str]:
     """The tracked Markdown files the cell-length rule covers: all of wiki/ and AGENTS.md, minus the history."""
     # a file git still lists but the working tree no longer has (deleted, not yet staged) has nothing to read
-    return [p for p in _git("ls-files", "-z", *CELL_FILES)
-            if p.endswith(".md") and not is_cell_exempt(p) and (ROOT / p).exists()]
+    return [p for p in _git("ls-files", "-z", "--", *globs(CELL_GLOBS))
+            if not is_cell_exempt(p) and (ROOT / p).exists()]
 
 
 def is_cell_exempt(rel: str) -> bool:

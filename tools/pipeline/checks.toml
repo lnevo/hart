@@ -29,10 +29,14 @@
 #   outputs     what the step writes when run without --check (the map's edges out of its script)
 #   programs    a program the trace cannot see into, and the files it reads
 #   quiet_inputs  paths or globs the step reads that the map does not draw (tables.xml or the device master read
-#               through hartlib by many scripts); only the trace audit reads them. A path is in inputs or here, not both
-# After each traced pass of a job, tools/audit/check_stamps.py prints a WARNING naming each repo file a step read that
-# is in none of inputs, quiet_inputs, outputs and programs (code under tools/ and .py files left out);
-# `python3 tools/audit/check_stamps.py audit [job]` shows it again from the job's last stamp (ADR-037 stage 4a).
+#               through hartlib by many scripts, or the files a scanner walks); only the trace audit reads them. A
+#               path is in inputs or here, not both. A glob must match a tracked file. A scanner's globs are its
+#               script's own scan list (its SCAN_GLOBS; tools/audit/tests/test_manifest_scans.py keeps the two equal)
+#   reads_all   why the script reads every tracked file: only then may quiet_inputs hold "**/*" (public-text)
+# After each traced pass of a job, tools/audit/check_stamps.py prints a WARNING naming each repo file a step read as
+# data that is in none of inputs, quiet_inputs, outputs and programs (the code it imported or ran, which the trace
+# marks, is left out; a .py file or a file under tools/ read as text is not);
+# `python3 tools/audit/check_stamps.py audit [job]` shows it again from the job's last stamp (ADR-037 stages 4a, 4c).
 # Every path is from the repo root and names a tracked file or folder, or a map node marked "local". Inputs and
 # outputs were filled once from the map's edges (2026-11-25): code the script imports or is called by is left out,
 # and a map node with no repo path (ext:...) is named in a comment instead.
@@ -111,6 +115,11 @@ outputs = [
   { path = "docs/pipeline-map/index.html", label = "make map" },
   { path = "www/library/pipeline-map.html", label = "--public" },
 ]
+# what the agent-doc lane reads (tools/ops/agent_docs_map.scan_globs()), then .gitmodules (the submodule boxes)
+quiet_inputs = ["AGENTS.md", "wiki/home.md", "wiki/AGENTS_GIT.md", "wiki/STATUS_LOG.md", "wiki/not-pending.md",
+                "wiki/STATUS.md", "docs/INDEX.md", "wiki/decisions/**", "wiki/pipelines/**", "wiki/projects/**",
+                ".cursor/**", ".claude/skills/*/SKILL.md", ".claude/agents/*.md", ".claude/commands/*.md",
+                "*/AGENTS.md", "*/*/AGENTS.md", ".gitmodules"]
 
 # Every script the Makefile, make panels and the deploys run, and every file in an output folder, is in the map agents
 # query (tools/ops/pipeline_query.py); the deliberate exceptions are ALLOWED in the script. The scripts this file runs
@@ -126,10 +135,11 @@ label = "pipeline_map_coverage.py"
 desc = "check.sh pipeline-map-coverage: fails when a script the Makefile, make panels or a deploy runs, or a file in an output folder or an agent doc, is not in pipeline_map.json (check.sh's checks are boxes by construction: the manifest lane)."
 inputs = [
   "docs/pipeline-map/pipeline_map.json",
+  { path = "tools/hosts/sync_hart_package.sh", label = "entry file" },
   { path = "www/scripts/deploy_hartrailroad.sh", label = "entry file" },
 ]
-# an entry file it scans for scripts; the map has no box for the Makefile
-quiet_inputs = ["Makefile"]
+# the entry files it scans for scripts (its ENTRY_FILES; a folder is the .sh files in it) the map has no box for
+quiet_inputs = ["Makefile", "tools/hosts/deploy/*.sh"]
 
 [[step]]
 name = "jmri-additions"
@@ -145,10 +155,16 @@ inputs = [
   "jmri/layouts/hart/data/devices_field.csv",
   "jmri/layouts/hart/data/devices_generated.csv",
   "jmri/layouts/hart/output/tables.xml",
+  { path = "jmri/scripts/signal_coordinator.py", label = "the masts it hands over, its modules" },
 ]
 outputs = [
   "www/behind/jmri-additions.html",
 ]
+# read as text, seen in the 2026-11-25 traced run (ADR-037 stage 4c): the modules signal_coordinator.py loads
+# (hartlib.coordinator), and each host's Jython install list (HOSTS in the script)
+quiet_inputs = ["jmri/scripts/sml_beans.py", "jmri/scripts/sml_claims.py", "jmri/scripts/sml_handoff.py",
+                "tools/hosts/deploy/common.sh", "tools/hosts/pi/apply_hart_package_local.sh",
+                "tools/hosts/windows/apply_hart_package_local.ps1"]
 
 [[step]]
 name = "layout-index"
@@ -168,8 +184,9 @@ outputs = [
   "www/data/layout-index.json",
   { path = "www/assets/layout", label = "schematic PNG" },
 ]
-# read through hartlib, seen in the 2026-11-25 traced full run (ADR-037 stage 4a)
-quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv", "jmri/layouts/hart/data/devices_generated.csv"]
+# read through hartlib, seen in the 2026-11-25 traced full runs (ADR-037 stages 4a, 4c)
+quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv", "jmri/layouts/hart/data/devices_generated.csv",
+                "jmri/layouts/hart/data/schematic/block_overrides.csv"]
 
 [[step]]
 name = "layout-docs"
@@ -191,8 +208,11 @@ inputs = [
 outputs = [
   "www/behind",
 ]
-# the page template the desc names; the map has no box for it
-quiet_inputs = ["www/scripts/layout_docs_template.html"]
+# the page template the desc names (the map has no box for it), and the plan graphs hartlib.layer_files reads with
+# plan_overrides.json (seen in the 2026-11-25 traced run, ADR-037 stage 4c)
+quiet_inputs = ["www/scripts/layout_docs_template.html", "jmri/layouts/hart/data/schematic/inputs/main.json",
+                "jmri/layouts/hart/data/schematic/inputs/staging.json",
+                "jmri/layouts/hart/data/schematic/plan_generated.json"]
 
 [[step]]
 name = "layout-index-cats"
@@ -211,6 +231,8 @@ outputs = [
   "www/data/layout-index-cats.json",
   { path = "www/assets/layout", label = "digicon PNG" },
 ]
+# the renderer it runs to draw the PNG, hashed for the PNG's stamp (read as bytes; ADR-037 stage 4c)
+quiet_inputs = ["cats/scripts/render_cats_panel.py"]
 
 [[step]]
 name = "wiring-json"
@@ -241,6 +263,9 @@ inputs = [
   { path = "jmri/layouts/hart/data/block_lengths.csv", label = "reads, via hartlib.railroad" },
   { path = "jmri/layouts/hart/output/tables.xml", label = "block names" },
 ]
+outputs = [
+  "docs/jmri/TRACK_LENGTHS.md",
+]
 # read through hartlib, seen in the 2026-11-25 traced full run (ADR-037 stage 4a)
 quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv", "jmri/layouts/hart/data/devices_generated.csv"]
 
@@ -260,8 +285,9 @@ inputs = [
 outputs = [
   "jmri/layouts/hart/scripts/speedmatch/routes.json",
 ]
-# read through hartlib, seen in the 2026-11-25 traced full run (ADR-037 stage 4a)
-quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv"]
+# read through hartlib, seen in the 2026-11-25 traced full run (ADR-037 stage 4a); analyze.py's route lists, read
+# with ast (stage 4c)
+quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv", "jmri/layouts/hart/scripts/speedmatch/analyze.py"]
 
 [[step]]
 name = "panel-contracts"
@@ -391,12 +417,16 @@ inputs = [
   "tools/anyrail/levels",
   { path = "jmri/layouts/hart/data/block_lengths.csv", label = "reads, via hartlib.railroad" },
   { path = "jmri/layouts/hart/scripts/speedmatch/routes.json", label = "speedmatch routes" },
+  { path = "jmri/layouts/hart/data/schematic/preferences.json", label = "track_labels" },
 ]
 outputs = [
   "www/build/track-plan.html",
 ]
-# read through hartlib, seen in the 2026-11-25 traced full run (ADR-037 stage 4a)
-quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv"]
+# read through hartlib (the plan graphs: hartlib.layer_files), seen in the 2026-11-25 traced full runs (ADR-037
+# stages 4a, 4c)
+quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv", "jmri/layouts/hart/data/schematic/inputs/main.json",
+                "jmri/layouts/hart/data/schematic/inputs/staging.json",
+                "jmri/layouts/hart/data/schematic/plan_generated.json"]
 
 [[step]]
 name = "wiring-v86"
@@ -481,6 +511,8 @@ git = ["head", "base"]
 domain = "extras"
 label = "check_data_readers"
 desc = "Audit: no script outside hartlib names a layout data file (jmri/layouts/hart/data/) but the pairs it allows, each with its reason; Jython inside JMRI reads only generated outputs."
+# it reads every tracked .py as text (check_data_readers.SCAN_GLOBS)
+quiet_inputs = ["**/*.py"]
 
 [[step]]
 name = "wiring-crosswalk"
@@ -530,9 +562,18 @@ inputs = [
   { path = "cats/panels/HART_CTC.xml", label = "check", side = "check" },
   { path = "jmri/layouts/hart/data/devices_field.csv", label = "check", side = "check" },
   { path = "jmri/layouts/hart/data/devices_generated.csv", label = "check", side = "check" },
+  { path = "jmri/layouts/hart/data/mast_cells.csv", label = "check", side = "check" },
+  { path = "jmri/layouts/hart/data/schematic/masts.csv", label = "check", side = "check" },
+  { path = "jmri/layouts/hart/data/schematic/stations.csv", label = "check", side = "check" },
   { path = "jmri/layouts/hart/data/switches.csv", label = "check", side = "check" },
+  { path = "jmri/layouts/hart/data/uss_board_cells.csv", label = "check", side = "check" },
   { path = "jmri/layouts/hart/output/tables.xml", label = "check", side = "check" },
 ]
+# the parked USS CTC machine's GUI file and board plants (no map box), and what hartlib reads beside them (the
+# interlockings, block overrides and the parked snapshot), seen in the 2026-11-25 traced run (ADR-037 stage 4c)
+quiet_inputs = ["jmri/layouts/hart/ctc/GUIObjects.xml", "jmri/layouts/hart/data/uss_board_plants.csv",
+                "jmri/layouts/hart/data/schematic/block_overrides.csv",
+                "jmri/layouts/hart/data/schematic/interlockings.csv", "jmri/layouts/hart/parked/tables_parked.xml"]
 
 # The fact files against each other (hartlib.railroad: the device master, switches.csv, masts.csv, the tables file);
 # KNOWN in the module lists what is reported and left.
@@ -554,6 +595,14 @@ inputs = [
   { path = "jmri/layouts/hart/data/switches.csv", label = "check", side = "check" },
   { path = "jmri/layouts/hart/output/tables.xml", label = "check", side = "check" },
 ]
+# the other layer files hartlib.railroad.Sources loads with them (block lengths, interlockings, LCOS nodes, the plan
+# graphs and the plan's overrides and preferences), seen in the 2026-11-25 traced run (ADR-037 stage 4c)
+quiet_inputs = ["jmri/layouts/hart/data/block_lengths.csv", "jmri/layouts/hart/data/schematic/inputs/main.json",
+                "jmri/layouts/hart/data/schematic/inputs/staging.json",
+                "jmri/layouts/hart/data/schematic/interlockings.csv", "jmri/layouts/hart/data/schematic/lcos_nodes.csv",
+                "jmri/layouts/hart/data/schematic/plan_generated.json",
+                "jmri/layouts/hart/data/schematic/plan_overrides.json",
+                "jmri/layouts/hart/data/schematic/preferences.json"]
 
 # the device master and its column dictionary (python3 -m hartlib.devices)
 [[step]]
@@ -586,6 +635,10 @@ inputs = [
   { path = "jmri/layouts/hart/data/devices_generated.csv", label = "check", side = "check" },
   { path = "jmri/layouts/hart/data/mast_cells.csv", label = "check", side = "check" },
 ]
+# the tracked text files it reads (check_name_copies.SCAN_GLOBS: one glob per suffix, less .mjs and .yaml, which no
+# tracked file has: a glob here must match one)
+quiet_inputs = ["**/*.py", "**/*.sh", "**/*.js", "**/*.csv", "**/*.json", "**/*.xml", "**/*.html", "**/*.svg",
+                "**/*.txt", "**/*.cmd", "**/*.yml"]
 
 [[step]]
 name = "ai-speak"
@@ -597,6 +650,9 @@ domain = "extras"
 label = "check_ai_speak"
 desc = "Audit flagging AI-style phrasing in tracked prose."
 docs_only = true
+# the article pages it reads (check_ai_speak.DEFAULT_GLOBS)
+quiet_inputs = ["www/ai/*.html", "www/library/*.html", "www/behind/*.html", "www/guides/*.html", "www/ap/*.html",
+                "www/exam/index.html", "www/exam/run.html"]
 
 [[step]]
 name = "tracked-policy"
@@ -622,6 +678,8 @@ desc = "Fails when a Python file over 800 lines grows past its row in tools/audi
 inputs = [
   "tools/audit/py_sizes.csv",
 ]
+# it counts the lines of every .py (check_py_sizes.SCAN_GLOBS)
+quiet_inputs = ["**/*.py"]
 
 [[step]]
 name = "agent-docs"
@@ -659,6 +717,9 @@ inputs = [
   { path = "wiki/AGENTS_GIT.md", label = "check", side = "check" },
   { path = "wiki/home.md", label = "check", side = "check" },
 ]
+# the agent docs and the wiki pages the cell rule covers (check_agent_docs.SCAN_GLOBS, less wiki/home.md and
+# wiki/AGENTS_GIT.md, drawn above with the boxes of the other agent docs)
+quiet_inputs = ["**/AGENTS.md", ".cursor/**", ".claude/**", "wiki/**/*.md"]
 
 # Every Markdown document under docs/ needs a summary line (see summarize() in the script).
 [[step]]
@@ -706,6 +767,8 @@ docs_only = true
 inputs = [
   { path = "www", label = "check", side = "check" },
 ]
+reads_all = "it reads every tracked file for the private name and personal email addresses (check_public_text.SCAN_GLOBS)"
+quiet_inputs = ["**/*"]
 
 [[step]]
 name = "ruff"
@@ -732,4 +795,27 @@ desc = "Smoke-tests built tree: internal href/src and data JSON link fields reso
 inputs = [
   { path = ".deploy-manifest.json", label = "--previous" },
   { path = "www/scripts/share_cards.py", label = "check", side = "check" },
+]
+# The site build (prepare_github_pages.py) reads: the site tree; the sources www/scripts/published-files.json names,
+# as their folder and suffix; and what the four steps whose pages it builds read (tables-browser, repo-guide,
+# jmri-additions, pipeline-map: their inputs and quiet_inputs, in that order). tools/audit/tests/test_manifest_scans.py
+# keeps this list equal to those.
+quiet_inputs = [
+  "www/**",
+  "docs/benchwork/helix/*.md", "docs/benchwork/helix/*.pdf", "docs/benchwork/helix/stl/*.3mf",
+  "docs/benchwork/helix/stl/*.stl", "docs/benchwork/main_level/*.html", "docs/benchwork/main_level/*.pdf",
+  "docs/benchwork/roadbed/*.pdf", "docs/benchwork/staging_level/*.pdf", "docs/ops/*.pdf", "docs/ops/*.svg",
+  "docs/ops/stations/*.svg", "jmri/layouts/hart/scripts/speedmatch/dashboard/static/*.css",
+  "jmri/layouts/hart/scripts/speedmatch/dashboard/static/*.js", "ops/hart-ops/publications/assets/*.png",
+  "ops/station_maps/maps/*.png", "tools/benchwork/helix/*.py",
+  "jmri/layouts/hart/output/tables.xml", "jmri/layouts/hart/data/switches.csv",
+  "jmri/layouts/hart/parked/tables_parked.xml", "jmri/layouts/hart/data/devices_field.csv",
+  "jmri/layouts/hart/data/devices_generated.csv", "jmri/scripts/signal_coordinator.py", "jmri/scripts/sml_beans.py",
+  "jmri/scripts/sml_claims.py", "jmri/scripts/sml_handoff.py", "tools/hosts/deploy/common.sh",
+  "tools/hosts/pi/apply_hart_package_local.sh", "tools/hosts/windows/apply_hart_package_local.ps1",
+  "docs/pipeline-map/pipeline_map.json", "tools/ops/pipeline_map.js", "tools/pipeline/checks.toml",
+  "tools/pipeline/panels.toml", "AGENTS.md", "wiki/home.md", "wiki/AGENTS_GIT.md", "wiki/STATUS_LOG.md",
+  "wiki/not-pending.md", "wiki/STATUS.md", "docs/INDEX.md", "wiki/decisions/**", "wiki/pipelines/**",
+  "wiki/projects/**", ".cursor/**", ".claude/skills/*/SKILL.md", ".claude/agents/*.md", ".claude/commands/*.md",
+  "*/AGENTS.md", "*/*/AGENTS.md", ".gitmodules",
 ]

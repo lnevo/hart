@@ -35,6 +35,9 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 DATA = "jmri/layouts/hart/data/"
 SKIP = ("tools/hartlib/", "reference/", "archive/", "external/")
+# What it reads, as git globs: every tracked .py (less SKIP, the tests and itself). The step's quiet_inputs in
+# tools/pipeline/checks.toml are these (tools/audit/tests/test_manifest_scans.py).
+SCAN_GLOBS = ("**/*.py",)
 SELF = "tools/audit/check_data_readers.py"    # its ALLOWED table names the files it allows
 TEXT_ONLY = {"README.md"}        # a doc beside the data, named by many docs tools as any README
 
@@ -108,7 +111,7 @@ def is_test(path: str) -> bool:
 
 
 def scripts() -> list[str]:
-    return [p for p in tracked("*.py") if not p.startswith(SKIP) and not is_test(p) and p != SELF]
+    return [p for g in SCAN_GLOBS for p in tracked(f":(glob){g}") if not p.startswith(SKIP) and not is_test(p) and p != SELF]
 
 
 # the top-level packages only Jython inside JMRI imports: JMRI's own (jmri, apps), Java's (java, javax, org) and

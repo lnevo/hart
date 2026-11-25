@@ -1114,6 +1114,15 @@
    "gen": "manifest"
   },
   {
+   "id": "docs/jmri/TRACK_LENGTHS.md",
+   "label": "TRACK_LENGTHS.md",
+   "kind": "output",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Generated table of every block's length, from block_lengths.csv and tables.xml; export_track_lengths.py --check fails while it is stale.",
+   "path": "docs/jmri/TRACK_LENGTHS.md"
+  },
+  {
    "id": "jmri/layouts/hart/scripts/gen_ctc_track_plan.py",
    "label": "gen_ctc_track_plan.py",
    "kind": "generator",
@@ -5444,6 +5453,11 @@
    "gen": "manifest"
   },
   {
+   "from": "jmri/layouts/hart/scripts/export_track_lengths.py",
+   "to": "docs/jmri/TRACK_LENGTHS.md",
+   "gen": "manifest"
+  },
+  {
    "from": "jmri/layouts/hart/scripts/gen_ctc_track_plan.py",
    "to": "jmri/layouts/hart/ctc",
    "label": "USS CTC plan"
@@ -5999,6 +6013,12 @@
    "from": "jmri/layouts/hart/scripts/speedmatch/routes.json",
    "to": "tools/anyrail/levels_page.py",
    "label": "speedmatch routes",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/preferences.json",
+   "to": "tools/anyrail/levels_page.py",
+   "label": "track_labels",
    "gen": "manifest"
   },
   {
@@ -7570,6 +7590,12 @@
    "gen": "manifest"
   },
   {
+   "from": "tools/hosts/sync_hart_package.sh",
+   "to": "tools/ops/pipeline_map_coverage.py",
+   "label": "entry file",
+   "gen": "manifest"
+  },
+  {
    "from": "jmri/layouts/hart/scripts/speedmatch/routes.json",
    "to": "jmri/layouts/hart/scripts/speedmatch",
    "label": "analyze.py reads"
@@ -7692,6 +7718,12 @@
   {
    "from": "jmri/layouts/hart/data/devices_field.csv",
    "to": "www/scripts/jmri_additions_page.py",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/scripts/signal_coordinator.py",
+   "to": "www/scripts/jmri_additions_page.py",
+   "label": "the masts it hands over, its modules",
    "gen": "manifest"
   },
   {
@@ -8339,6 +8371,34 @@
   },
   {
    "from": "jmri/layouts/hart/data/devices_field.csv",
+   "to": "tools/audit/check_layout_facts.py",
+   "label": "check",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/mast_cells.csv",
+   "to": "tools/audit/check_layout_facts.py",
+   "label": "check",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/masts.csv",
+   "to": "tools/audit/check_layout_facts.py",
+   "label": "check",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/stations.csv",
+   "to": "tools/audit/check_layout_facts.py",
+   "label": "check",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/uss_board_cells.csv",
    "to": "tools/audit/check_layout_facts.py",
    "label": "check",
    "side": "check",

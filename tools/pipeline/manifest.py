@@ -28,9 +28,9 @@ and every edge side are the map's (docs/pipeline-map/pipeline_map.json); `git` n
 GIT_REFS. Every problem is reported, each naming the file, the step and the field.
 
 The trace audit (ADR-037 stage 4a) reads the manifest through declarations(): each job's step with every path it
-declares (inputs, quiet_inputs, outputs, programs). undeclared() names the reads its processes made that none of
-those cover, leaving code out (is_code). tools/audit/check_stamps.py does the attribution and the report; it warns
-only.
+declares (inputs, quiet_inputs, outputs, programs). undeclared() names the data reads its processes made that none
+of those cover; tools/audit/check_stamps.py takes those reads from the trace, leaving out the code the job imported
+or ran (the trace's "c" lines), and makes the report; it warns only.
 """
 from __future__ import annotations
 
@@ -65,8 +65,10 @@ FIELDS: dict[str, tuple[type, bool]] = {
     "name": (str, True), "runner": (str, True), "cmd": (list, True), "domain": (str, True), "label": (str, True),
     "desc": (str, True),
     "group": (str, False), "docs_only": (bool, False), "inputs": (list, False), "outputs": (list, False),
-    "programs": (dict, False), "quiet_inputs": (list, False), "git": (list, True),
+    "programs": (dict, False), "quiet_inputs": (list, False), "git": (list, True), "reads_all": (str, False),
 }
+# The globs that name every file of the repo: a scan glob a step may hold only with reads_all (_scan_problems)
+WHOLE_REPO = ("**", "**/*")
 EDGE_KEYS = {"inputs": ("path", "label", "side"), "outputs": ("path", "label")}
 
 
@@ -107,6 +109,7 @@ class Step:
     programs: tuple[tuple[str, tuple[str, ...]], ...] = ()
     quiet_inputs: tuple[str, ...] = ()          # read, not drawn on the map: for the trace audit only
     git: tuple[str, ...] = ()                   # the git refs in its stamp key (GIT_REFS)
+    reads_all: str = ""                         # why its script reads every tracked file (quiet_inputs **/*)
 
 
 @dataclass(frozen=True)
@@ -127,10 +130,15 @@ class Repo:
         """Whether a path or glob names a tracked file or folder, or is a local map node's path."""
         if pattern in self.local:
             return True
-        if not any(c in pattern for c in "*?"):
+        if not is_glob(pattern):
             return pattern in self.files or pattern in self.folders
         rx = glob_regex(pattern)
         return any(rx.fullmatch(p) for p in self._sorted)
+
+    def matches_file(self, pattern: str) -> bool:
+        """Whether a glob matches a tracked file (not only a folder)."""
+        rx = glob_regex(pattern)
+        return any(rx.fullmatch(p) for p in self.files)
 
 
 def repo_from(tracked: frozenset[str] | set[str], graph: dict) -> Repo:
@@ -306,6 +314,7 @@ def _step_problems(entry: dict, where: Repo) -> list[str]:
         out.append("quiet_inputs: must be a list of paths (no label or side: they are not drawn)")
     else:
         out += [f"quiet_inputs: {msg}" for msg in _path_list_problems(quiet, where)]
+        out += [f"quiet_inputs: {msg}" for msg in _scan_problems(quiet, entry.get("reads_all"), where)]
         drawn = {p for i in entry.get("inputs", []) for p in [i.get("path") if isinstance(i, dict) else i]
                  if isinstance(p, str)}         # a path that is no text is _edge_problems' to name
         both = sorted(set(quiet) & drawn)
@@ -319,6 +328,27 @@ def _step_problems(entry: dict, where: Repo) -> list[str]:
             continue
         out += [f"programs: {prog}: {msg}" for msg in _path_list_problems(globs, where)]
     return out
+
+
+def _scan_problems(quiet: list[str], reads_all: str | None, where: Repo) -> list[str]:
+    """Why a step's quiet_inputs globs are not a scan list the audit may trust: each glob must match a tracked file
+    (a folder alone is not enough: the audit covers files), and a glob of the whole repo (WHOLE_REPO) only with the
+    step's reads_all saying why the script reads every file, which then needs that glob."""
+    out = []
+    for p in quiet:      # one that matches nothing at all is _path_list_problems' to name
+        if is_glob(p) and path_problem(p) is None and where.matches(p) and not where.matches_file(p):
+            out.append(f"{p} matches tracked folders only, no file; a scan glob names the files the script reads")
+    whole = [p for p in quiet if p in WHOLE_REPO]
+    if whole and reads_all is None:
+        out.append(f"{', '.join(whole)} is the whole repo: a step whose script reads every tracked file says why in "
+                   f"reads_all; any other step lists the folders or suffixes it scans")
+    if reads_all is not None and not whole:
+        out.append(f"reads_all is set, so quiet_inputs must hold {WHOLE_REPO[-1]} (the script reads every file)")
+    return out
+
+
+def is_glob(pattern: str) -> bool:
+    return any(c in pattern for c in "*?")
 
 
 def git_problem(refs: object) -> str | None:
@@ -457,6 +487,7 @@ def _step(entry: dict) -> Step:
         inputs=_edges(entry.get("inputs", [])), outputs=_edges(entry.get("outputs", [])),
         programs=tuple((p, tuple(g)) for p, g in entry.get("programs", {}).items()),
         quiet_inputs=tuple(entry.get("quiet_inputs", ())), git=tuple(entry["git"]),
+        reads_all=entry.get("reads_all", ""),
     )
 
 
@@ -554,24 +585,18 @@ def declarations(path: Path = MANIFEST) -> dict[str, tuple[Declared, ...]]:
     return out
 
 
-def is_code(path: str) -> bool:
-    """Whether a read is code, which the audit leaves out (design 4.5): anything under tools/ (the checks, hartlib,
-    their fixtures) and any .py file (the trace cannot tell an import from a read of the source)."""
-    return path.startswith("tools/") or path.endswith(".py")
-
-
 def covers(pattern: str, path: str) -> bool:
     """Whether a declared path or glob covers a repo file: the file itself, a folder above it, or a glob match."""
-    if any(c in pattern for c in "*?"):
+    if is_glob(pattern):
         return bool(glob_regex(pattern).fullmatch(path))
     return path == pattern or path.startswith(pattern + "/")
 
 
 def undeclared(step: Declared, reads) -> list[str]:
-    """The files of `reads` (repo paths the step's processes read) that are not code, not the step's own script and
-    not covered by any path the step declares, sorted."""
-    return sorted(r for r in set(reads) if not is_code(r) and r != step.script
-                  and not any(covers(p, r) for p in step.patterns))
+    """The files of `reads` (repo paths the step's processes read as data: the code they imported or ran is left out
+    before, by check_stamps.step_reads from the trace's "c" lines) that are not the step's own script and not covered
+    by any path the step declares, sorted. A .py file or a file under tools/ read as data is audited like any other."""
+    return sorted(r for r in set(reads) if r != step.script and not any(covers(p, r) for p in step.patterns))
 
 
 def shell_line(step: Step) -> str:

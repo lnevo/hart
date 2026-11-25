@@ -65,12 +65,19 @@ GLOBS = {
     ".claude/agents/*.md": "agent: ",
     ".claude/commands/*.md": "/",
     "*/AGENTS.md": "",
-    "*/*/AGENTS.md": "",    # with the line above, every AGENTS.md check_agent_docs.py reads (its */AGENTS.md crosses /)
+    "*/*/AGENTS.md": "",    # with the line above, every AGENTS.md check_agent_docs.py reads (its **/AGENTS.md)
 }
 HAND_KEPT = ("wiki/STATUS.md", "docs/INDEX.md", "docs/pipeline-map/pipeline_map.json", "tools/ops/pipeline_query.py")
 READ_SUFFIXES = (".md", ".mdc")    # the files whose links are read; the others are only link targets
 PLAIN_COMMENT = re.compile(r"\s+#.*$")
 FRONT_KEY = re.compile(r"^(?P<key>[A-Za-z_]+):(?P<value>.*)$")
+
+
+def scan_globs() -> tuple[str, ...]:
+    """What the lane reads, as repo globs: the DOCS, the hand-kept boxes it reads links from, every file of the
+    FOLDERS (it reads their READ_SUFFIXES files and lists the rest as link targets) and the GLOBS. The pipeline-map
+    step's quiet_inputs in tools/pipeline/checks.toml hold these (tools/audit/tests/test_manifest_scans.py)."""
+    return (*DOCS, *(p for p in HAND_KEPT if p.endswith(READ_SUFFIXES)), *(f"{f}/**" for f in FOLDERS), *GLOBS)
 
 
 class AgentDocsMapError(Exception):

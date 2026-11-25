@@ -9,6 +9,8 @@ appends one line per event to the log ("<pid>\\t<kind>\\t<data>"):
 
     s  a process started: ppid, the spawn token it inherited, start time (ns), argv[0]
     r  a file opened for reading (an import's .pyc counts as its source)      w  a file written, renamed or removed
+    c  that file was opened as code: imported, run as the main script or by runpy, or shown in a traceback (it
+       comes with its "r" line; the stamps hash it like any read, the declaration audit leaves it out)
     m  a file probed (opened or stat'ed) and not there                         p  a file or folder stat'ed and there
     d  a folder listed (listdir, scandir, glob)                                x  a subprocess spawned: token, cwd, argv
     h  a shutil.which lookup on the starting PATH: the name, what it found      k  a unittest skip: the test's id, reason
@@ -157,12 +159,39 @@ def _on_open(args) -> None:
         if os.path.isdir(p):
             _write_listing(p)       # a folder opened by os.open (os.walk with fd, shutil) is a listing
         elif os.path.exists(p):
-            _write("r", p)
+            code = _opened_as_code()
             real = os.path.realpath(p)
-            if real != p:
-                _write("r", real)   # a link (a .cache view linking back to the data folder) reads its target
+            for q in (p, real) if real != p else (p,):    # a link (a .cache view of the data) reads its target too
+                _write("r", q)
+                if code:
+                    _write("c", q)
         else:
             _write("m", p)
+
+
+# The frames that open a file as code, by file name: the frozen importlib module, or its source file in an
+# interpreter built without the frozen copy.
+_IMPORTLIB = ("<frozen importlib._bootstrap_external>", os.path.join("importlib", "_bootstrap_external.py"))
+
+
+def _opened_as_code(frame=None) -> bool:
+    """Whether the open being traced loads code, by the first frame above the hook (`frame`, for tests): none at all
+    (the interpreter opening the main script), importlib's get_data called by its get_code (an import: the source
+    or its .pyc), runpy reading a script it runs, or tokenize.open called by linecache (the source of a frame in a
+    traceback or a warning). Every other open reads the file as data: pkgutil.get_data and importlib.resources
+    included."""
+    f = frame if frame is not None else sys._getframe(1)
+    while frame is None and f is not None and f.f_code.co_filename == __file__:
+        f = f.f_back
+    if f is None:
+        return True
+    name, file, up = f.f_code.co_name, f.f_code.co_filename, f.f_back
+    if file.endswith(_IMPORTLIB) and name == "get_data":
+        return up is not None and up.f_code.co_filename.endswith(_IMPORTLIB) and up.f_code.co_name == "get_code"
+    if name == "_get_code_from_file" and (file == "<frozen runpy>" or os.path.basename(file) == "runpy.py"):
+        return True
+    return (name == "open" and os.path.basename(file) == "tokenize.py" and up is not None
+            and os.path.basename(up.f_code.co_filename) == "linecache.py")
 
 
 def _on_list(args) -> None:
@@ -346,6 +375,7 @@ class Trace:
 
     def __init__(self) -> None:
         self.reads: set[str] = set()
+        self.code: set[str] = set()                             # "c" lines: the reads that loaded code
         self.writes: set[str] = set()
         self.misses: set[str] = set()
         self.present: dict[str, str] = {}
@@ -403,7 +433,7 @@ def parse(log: str | os.PathLike) -> Trace:
         elif kind == "h" and len(rest) == 2:
             t.which.add((rest[0], rest[1]))
         elif rest:
-            {"r": t.reads, "w": t.writes, "m": t.misses, "d": t.listed}.get(kind, set()).add(rest[0])
+            {"r": t.reads, "c": t.code, "w": t.writes, "m": t.misses, "d": t.listed}.get(kind, set()).add(rest[0])
     return t
 
 
