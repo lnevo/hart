@@ -36,6 +36,12 @@ def strand(src, dst, name="", trial=None):
     return {"src": src, "dst": dst, "name": name, **({"trial": trial} if trial else {})}
 
 
+def named(b) -> dict:
+    """The name store's names of a hand-built band's strands, as cats_panel.staging_names gives the real band's: the
+    test bands keep them in their strands' `name`, which the code under test no longer reads."""
+    return {sid: st["name"] for sid, st in b["strands"].items() if st.get("name")}
+
+
 def band():
     nodes = {
         "N1": node("1", "T1", {"A": "w"}, {"B": "s12", "C": "y"}),
@@ -85,52 +91,53 @@ def facts(**kw):
 class OsBlocks(unittest.TestCase):
     def test_by_named_track_then_by_elimination(self):
         b = band()
-        self.assertEqual(B.os_blocks(b, facts()), {"N1": "OS Switch 1", "N2a": "OS Switch 2a", "N2b": "OS Switch 2b"})
+        self.assertEqual(B.os_blocks(b, facts(), named(b)),
+                         {"N1": "OS Switch 1", "N2a": "OS Switch 2a", "N2b": "OS Switch 2b"})
         b["strands"]["e"]["name"] = ""            # 2b touches no named track of its row: the row left over
         b["strands"]["e"]["dst"] = ("END:e", "E")
-        self.assertEqual(B.os_blocks(b, facts())["N2b"], "OS Switch 2b")
+        self.assertEqual(B.os_blocks(b, facts(), named(b))["N2b"], "OS Switch 2b")
 
     def test_two_nodes_on_one_row_stop(self):
         b = band()
         b["strands"]["e"]["name"] = "Main"        # both halves touch Track Main
         with self.assertRaisesRegex(SystemExit, "would both be OS Switch 2a"):
-            B.os_blocks(b, facts())
+            B.os_blocks(b, facts(), named(b))
 
     def test_a_switch_not_in_the_facts_stops(self):
         b = band()
         b["nodes"]["N1"]["label"] = "9"
         with self.assertRaisesRegex(SystemExit, "not in switches.csv"):
-            B.os_blocks(b, facts())
+            B.os_blocks(b, facts(), named(b))
 
 
 class Dest(unittest.TestCase):
     def test_named_track_next_switch_and_through_a_turnback(self):
         b = band()
-        os_of = B.os_blocks(b, facts())
-        self.assertEqual(B.dest(b, os_of, "N1", "C"), "Track Yard")
-        self.assertEqual(B.dest(b, os_of, "N1", "B"), "OS Switch 2a")
-        self.assertEqual(B.dest(b, os_of, "N2b", "A"), "Track Loop")
+        os_of = B.os_blocks(b, facts(), named(b))
+        self.assertEqual(B.dest(b, os_of, "N1", "C", None, named(b)), "Track Yard")
+        self.assertEqual(B.dest(b, os_of, "N1", "B", None, named(b)), "OS Switch 2a")
+        self.assertEqual(B.dest(b, os_of, "N2b", "A", None, named(b)), "Track Loop")
 
     def test_a_track_to_nowhere_stops(self):
         b = band()
-        os_of = B.os_blocks(b, facts())
+        os_of = B.os_blocks(b, facts(), named(b))
         b["strands"]["loop1"]["name"] = ""
         with self.assertRaisesRegex(SystemExit, "reaches no named track or switch"):
-            B.dest(b, os_of, "N2b", "A")
+            B.dest(b, os_of, "N2b", "A", None, named(b))
 
     def test_a_turnback_loop_stops_instead_of_hanging(self):
         b = band()
-        os_of = B.os_blocks(b, facts())
+        os_of = B.os_blocks(b, facts(), named(b))
         b["strands"]["loop1"] = strand(("turn", 1), ("turn", 0))
         b["nodes"]["turn"]["outs"] = {0: "loop0", 1: "loop1"}
         with self.assertRaises(SystemExit):
-            B.dest(b, os_of, "N2b", "A")
+            B.dest(b, os_of, "N2b", "A", None, named(b))
 
 
 class Switches(unittest.TestCase):
     def test_routes_by_closed_and_thrown_leg(self):
         b = band()
-        out = B.switch_bindings(b, facts(), B.os_blocks(b, facts()))
+        out = B.switch_bindings(b, facts(), B.os_blocks(b, facts(), named(b)), named(b))
         self.assertEqual(set(out), {"1", "2/2a", "2/2b"})
         one = out["1"]                            # closed leg OS Switch 2a is leg B
         self.assertEqual((one["block"], one["normal"]), ("OS Switch 1", "B"))
@@ -168,7 +175,7 @@ class Switches(unittest.TestCase):
         f.switches[1] = Switch(1, "1", "TO1", False, 1, True, (Leg("OS Switch 1", "Track Main", "Track Yard"),))
         b = band()
         with self.assertRaisesRegex(SystemExit, "switches.csv says"):
-            B.switch_bindings(b, f, B.os_blocks(b, f))
+            B.switch_bindings(b, f, B.os_blocks(b, f, named(b)), named(b))
 
 
 class StagingTracks(unittest.TestCase):
@@ -208,10 +215,10 @@ class Blocks(unittest.TestCase):
         b = band()
         names = {("os", "b0:N1"): "OS Switch 1", ("track", "b0:w"): "West", ("track", "b0:s12"): "1-2"}
         with self.assertRaisesRegex(SystemExit, "block 1-2: .* holds blocks OS Switch 1, OS Switch 2a"):
-            B.block_bindings(b, facts(), names)       # the staging track holds two blocks
+            B.block_bindings(b, facts(), names, named(b))       # the staging track holds two blocks
         F = facts()
         F.layout = B.StagingTracks([{"ends": [("TO1", "C"), ("TO2", "A")], "blocks": ["OS Switch 1"]}])
-        out = B.block_bindings(b, F, names)
+        out = B.block_bindings(b, F, names, named(b))
         self.assertNotIn("name", out["OS Switch 1"])
         self.assertEqual(out["OS Switch 1"]["occupied"]["USER_NAME"], "BS OS Switch 1")
         self.assertEqual(out["West"]["name"], "Track West")
@@ -223,17 +230,17 @@ class Blocks(unittest.TestCase):
         F = facts()
         F.occupancy.pop("Track West")
         with self.assertRaisesRegex(SystemExit, "block West: no JMRI block West or Track West"):
-            B.block_bindings(band(), F, {("track", "b0:w"): "West"})
+            B.block_bindings(band(), F, {("track", "b0:w"): "West"}, named(band()))
 
     def test_a_helix_track_takes_its_helix_block(self):
         helix = {"Helix Inner": "Track Helix Inner"}
         self.assertEqual(B.track_block("Helix Inner", helix), "Track Helix Inner")
         self.assertEqual(B.track_block("K-2", helix), "Track K-2")
         b = {"strands": {"h": {"name": "Helix Inner"}, "k": {"name": "K-2"}}}
-        self.assertEqual(B.helix_block(b, ("track", "b0:h"), {"Helix Inner": {"block": "Track Helix Inner"}}),
+        self.assertEqual(B.helix_block(("track", "b0:h"), {"Helix Inner": {"block": "Track Helix Inner"}}, named(b)),
                          "Track Helix Inner")
-        self.assertIsNone(B.helix_block(b, ("track", "b0:k"), {"Helix Inner": {"block": "Track Helix Inner"}}))
-        self.assertIsNone(B.helix_block(b, ("os", "b0:N1"), {}))
+        self.assertIsNone(B.helix_block(("track", "b0:k"), {"Helix Inner": {"block": "Track Helix Inner"}}, named(b)))
+        self.assertIsNone(B.helix_block(("os", "b0:N1"), {}, named(b)))
 
     def test_a_block_with_no_jmri_block_that_is_no_short_track_stops(self):
         b = band()
@@ -243,7 +250,7 @@ class Blocks(unittest.TestCase):
             with self.subTest(names=names):
                 b["strands"]["m"]["name"] = "Mainline"
                 with self.assertRaisesRegex(SystemExit, "not a short unnamed track between two switches"):
-                    B.block_bindings(b, facts(), names)
+                    B.block_bindings(b, facts(), names, named(b))
 
 
 class Masts(unittest.TestCase):

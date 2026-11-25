@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from hartlib import devices as _devices, layer_files, paths, railroad as R  # noqa: E402
+from hartlib import devices as _devices, layer_files, paths, railroad as R, track_names  # noqa: E402
 from master_edit import add, change, drop  # noqa: E402  the master is changed through hartlib.devices
 
 REPO = R.Sources.under()
@@ -36,6 +36,8 @@ class Copy(unittest.TestCase):
                 shutil.copyfile(getattr(REPO, name), dst)
         prefs = layer_files.path("preferences", REPO.plan_overrides.parent)     # the helix tracks' labels
         shutil.copyfile(prefs, self.src.plan_overrides.parent / prefs.name)
+        # the name store's plan graphs and owner rows (the one-file copy has no field file): the repo's, by opt-in
+        track_names.repo_inputs(self.src.plan_overrides.parent)
 
     def edit(self, name: str, old: str, new: str, count: int = 1) -> None:
         path = getattr(self.src, name)

@@ -169,6 +169,76 @@ class Pieces(unittest.TestCase):
         self.assertEqual(T.run_of("103BA", "103AB"), "103AB-103BA")
 
 
+class ByPiece(unittest.TestCase):
+    """piece_names: what the readers by ID (block_layer, cats_panel, build_masts) take a drawn strand's name from."""
+
+    OWNER = {("1", "block:17C-29C"): "S-1", ("1", "block:1C-5A#1+1C-5A#2"): "Brick-Plane",
+             ("1", "block:37C-39C#2"): "K-1", ("1", "block:37C-39C#1"): "K-2", ("1", "block:39B-helix"): "Helix Outer"}
+
+    def test_each_piece_takes_its_runs_name_or_its_own(self) -> None:
+        got = T.piece_names({"level": 1}, ["17C-29C", "1C-5A #1", "1C-5A #2", "37C-39C #1", "37C-39C #2",
+                                           "39B-helix", "19C-27C"], owner=self.OWNER)
+        self.assertEqual(got, {"17C-29C": "S-1", "1C-5A #1": "Brick-Plane", "1C-5A #2": "Brick-Plane",
+                               "37C-39C #1": "K-2", "37C-39C #2": "K-1", "39B-helix": "Helix Outer"})
+
+    def test_a_helix_track_on_another_level_takes_its_staging_blocks_name(self) -> None:
+        sec = {"level": 2, "edits": [{"op": "relabel", "map": {"T131A": "131A"}}], "helix": {"T131A": "block:39B-helix"}}
+        self.assertEqual(T.piece_names(sec, ["131AA-helix", "131BB-helix", "101B-103A"], owner=self.OWNER),
+                         {"131AA-helix": "Helix Outer"})
+        with self.assertRaisesRegex(T.TrackNameError, "helix T131A: block:37B-helix has no named block row"):
+            T.piece_names({**sec, "helix": {"T131A": "block:37B-helix"}}, [], owner=self.OWNER)
+
+    def test_a_piece_its_run_is_not_named_by_stops(self) -> None:
+        with self.assertRaisesRegex(T.TrackNameError, "piece 37C-39C: its run is named by piece"):
+            T.piece_names({"level": 1}, ["37C-39C"], owner=self.OWNER)
+
+    def test_a_name_is_never_spread_to_a_piece_the_owner_did_not_name(self) -> None:
+        with self.assertRaisesRegex(T.TrackNameError, r"pieces \[2\] are named, not every piece from #1"):
+            T.piece_names({"level": 1}, ["37C-39C #1", "37C-39C #2"], owner={("1", "block:37C-39C#2"): "K-1"})
+        with self.assertRaisesRegex(T.TrackNameError, r"piece 37C-39C #2: its run is named by piece \(#1 K-2\)"):
+            T.piece_names({"level": 1}, ["37C-39C #1", "37C-39C #2"], owner={("1", "block:37C-39C#1"): "K-2"})
+        self.assertEqual(T.piece_names({"level": 1}, ["37C-39C #1", "37C-39C #2"],
+                                       owner={("1", "block:37C-39C#1"): "K", ("1", "block:37C-39C#2"): "K"}),
+                         {"37C-39C #1": "K", "37C-39C #2": "K"})
+
+    def test_two_tracks_up_the_helix_from_one_switch_stop(self) -> None:
+        sec = {"level": 2, "helix": {"131A": "block:39B-helix"}}
+        with self.assertRaisesRegex(T.TrackNameError, "helix track from switch 131A: 2 drawn tracks"):
+            T.piece_names(sec, ["131AA-helix", "131AB-helix"], owner=self.OWNER)
+
+
+class EndKeys(unittest.TestCase):
+    def test_one_end_key_for_the_plan_and_the_main_lines(self) -> None:
+        nodes = {"a": {"kind": "switch", "label": "23*"}, "b": {"kind": "end", "sub": "helix"},
+                 "c": {"kind": "end"}, "d": {"kind": "switch"}}
+        self.assertEqual(T.end_key(nodes["a"], "B", "a"), "23B")
+        self.assertEqual(T.end_key(nodes["d"], "A", "d"), "dA")
+        self.assertEqual(T.end_key(nodes["b"], "", "b"), "helix")
+        self.assertEqual(T.end_key(nodes["b"], "", "b", helix=False), "end")
+        self.assertEqual(T.edge_run(nodes, {"u": "b", "up": "", "v": "a", "vp": "B"}), "23B-helix")
+        self.assertEqual(T.edge_run(nodes, {"u": "c", "up": "", "v": "a", "vp": "C"}, helix_ends={"c"}), "23C-helix")
+
+
+class Inputs(unittest.TestCase):
+    """The store reads only the folder it is given; a test opts in to the repo's plan graphs and owner rows."""
+
+    def test_a_missing_field_file_or_plan_graph_stops_and_repo_inputs_opts_in(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            data = Path(tmp) / "schematic"
+            data.mkdir()
+            with self.assertRaisesRegex(T.TrackNameError, "the owner's rows .*devices_field.csv is missing"):
+                T.owner_names(data)
+            with self.assertRaisesRegex(T.TrackNameError, "the plan graph .*staging.json is missing"):
+                T.plan_runs("staging", {}, data)
+            self.assertEqual(T.repo_inputs(data), data)
+            self.assertEqual(T.owner_names(data), T.owner_names())
+            self.assertEqual(T.plan_runs("staging", {}, data), T.plan_runs("staging", {}))
+
+    def test_a_section_that_draws_no_level_and_names_nothing_needs_no_store(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(T.plugin_section("staging", {"a": 1}, data=Path(tmp)), {"a": 1})
+
+
 class HandProblems(unittest.TestCase):
     def test_each_kind_of_name_in_a_hand_section_is_named(self) -> None:
         got = T.hand_problems({"edits": [{"op": "name", "tracks": []},

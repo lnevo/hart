@@ -110,10 +110,21 @@ def switch_of(F, d):
         raise SystemExit(f"switch {d.get('label')!r} on the staging band is not in switches.csv") from None
 
 
-def os_blocks(band, F):
+def staging_names(band, data) -> dict:
+    """{strand: track name} of the staging band, from the name store of the schematic folder `data` the band was
+    solved from, by each strand's ID (staging_device_map.staging_names), never read off the drawing: what os_blocks,
+    dest, block_bindings and helix_block take as `stored`."""
+    import staging_device_map as sdm
+    try:
+        return sdm.staging_names(band, data)
+    except sdm.StagingMapError as exc:
+        raise SystemExit(f"the staging track names: {exc}") from None
+
+
+def os_blocks(band, F, stored):
     """{switch node: its OS block}: the switch's only one, else the switches.csv row whose named tracks its legs
-    touch, else the one row left. Two nodes never get one row."""
-    nodes, strands = band["nodes"], band["strands"]
+    touch (`stored`: staging_names), else the one row left. Two nodes never get one row."""
+    nodes = band["nodes"]
     sw_nodes = {n: d for n, d in nodes.items() if d["kind"] == "switch"}
     os_of = {}
     for n, d in sw_nodes.items():
@@ -121,7 +132,7 @@ def os_blocks(band, F):
         if len(sw.legs) == 1:
             os_of[n] = sw.legs[0].os_block
             continue
-        touched = {track_block(strands[legs_of(d)[p]]["name"], F.helix) for p in "BC" if strands[legs_of(d)[p]]["name"]}
+        touched = {track_block(stored[legs_of(d)[p]], F.helix) for p in "BC" if stored.get(legs_of(d)[p])}
         rows = [leg.os_block for leg in sw.legs if {leg.closed, leg.thrown} & touched]
         if len(rows) == 1:
             os_of[n] = rows[0]
@@ -148,16 +159,16 @@ def track_block(name, helix) -> str:
     return helix.get(name) or "Track " + name
 
 
-def dest(band, os_of, n, port, helix=None):
-    """The block leg `port` of switch node n leads to, beyond its own OS: a named track (track_block, with `helix`),
-    the next switch's OS, or through a turnback to the named half beyond it."""
+def dest(band, os_of, n, port, helix, stored):
+    """The block leg `port` of switch node n leads to, beyond its own OS: a named track (`stored`, staging_names;
+    track_block, with `helix`), the next switch's OS, or through a turnback to the named half beyond it."""
     nodes, strands = band["nodes"], band["strands"]
     sid, here, seen = legs_of(nodes[n])[port], n, set()
     while sid not in seen:
         seen.add(sid)
         s = strands[sid]
-        if s["name"]:
-            return track_block(s["name"], helix or {})
+        if stored.get(sid):
+            return track_block(stored[sid], helix or {})
         nxt = s["dst"][0] if s["src"][0] == here else s["src"][0]
         d = nodes[nxt]
         if d["kind"] == "switch":
@@ -185,10 +196,11 @@ def half_label(sw, leg):
     return f"{sw.number}{own.upper()}"
 
 
-def switch_bindings(band, F, os_of):
+def switch_bindings(band, F, os_of, stored):
     """{switch key: binding} for the staging switches: each node's OS block (os_of), its M2T turnout, closed on the
-    leg that leads to its switches.csv closed block, NORMAL the thrown leg when CATS normal is JMRI thrown
-    (cats_inverted); a switch drawn as halves is keyed label/alias and labelled by half (half_label)."""
+    leg that leads to its switches.csv closed block (dest, by the `stored` names), NORMAL the thrown leg when CATS
+    normal is JMRI thrown (cats_inverted); a switch drawn as halves is keyed label/alias and labelled by half
+    (half_label)."""
     nodes = band["nodes"]
     sw_nodes = {n: d for n, d in nodes.items() if d["kind"] == "switch"}
     labels = Counter(d["label"] for d in sw_nodes.values())
@@ -196,7 +208,7 @@ def switch_bindings(band, F, os_of):
     for n, d in sorted(sw_nodes.items(), key=lambda kv: (int(kv[1]["label"]), os_of[kv[0]])):
         sw = switch_of(F, d)
         leg = next(l for l in sw.legs if l.os_block == os_of[n])
-        to = {p: dest(band, os_of, n, p, F.helix) for p in "BC"}
+        to = {p: dest(band, os_of, n, p, F.helix, stored) for p in "BC"}
         if sorted(to.values()) != sorted((leg.closed, leg.thrown)):
             raise SystemExit(f"{leg.os_block}: the schematic's legs lead to {to}, but switches.csv says "
                              f"closed {leg.closed}, thrown {leg.thrown}")
@@ -215,11 +227,11 @@ def switch_bindings(band, F, os_of):
     return out
 
 
-def block_bindings(band, F, names):
+def block_bindings(band, F, names, stored):
     """names: {block key: panel block name} of the staging band's blocks (a helix block, bound with the main and
     upper ones, left out: dark_bindings). A block is its JMRI block (by name, or Track + name), bound to its detector;
-    a short unnamed track joining two switches, with no JMRI block of its own, joins the one block the staging device
-    map gives it. Anything else stops."""
+    a short track joining two switches that the name store does not name (`stored`, staging_names), with no JMRI
+    block of its own, joins the one block the staging device map gives it. Anything else stops."""
     nodes, strands = band["nodes"], band["strands"]
     out = {}
     for key, name in sorted(names.items(), key=lambda kv: kv[1]):
@@ -228,7 +240,7 @@ def block_bindings(band, F, names):
             sid = key[1].split(":", 1)[1] if key[0] == "track" else None
             s = strands.get(sid) if sid else None
             ends = [nodes[e[0]] for e in (s["src"], s["dst"])] if s else []
-            if not s or s["name"] or not all(d["kind"] == "switch" for d in ends):
+            if not s or stored.get(sid) or not all(d["kind"] == "switch" for d in ends):
                 raise SystemExit(f"block {name}: no JMRI block {name} or Track {name} in occupancy_bindings.csv / "
                                  "tables.xml, and it is not a short unnamed track between two switches")
             a, b = (switch_of(F, d).le_ident for d in ends)
@@ -439,11 +451,11 @@ def inside_os(bands, P, bound_bi, name, row):
             "block)")
 
 
-def dark_bindings(bands, cats, P, F, bound_bi):
+def dark_bindings(bands, cats, P, F, bound_bi, stored):
     """(bindings, log, report, joined) for the main and upper blocks: device map names, MAIN_UPPER_DISCIPLINE, the
     station plate, the virtual occupancy sensor bound (the device map's jmri_name) and the planned detector kept as
     _planned_*; the report names each device map block with no block of its own on the desk, why, and its sensor;
-    `joined` the staging keys of helix blocks, bound here."""
+    `joined` the staging keys of helix blocks, bound here (helix_block, by the `stored` staging names)."""
     groups = defaultdict(list)
     for key in P.blocks:
         groups[P.find(key)].append(key)
@@ -458,7 +470,7 @@ def dark_bindings(bands, cats, P, F, bound_bi):
             continue
         if len(dark) < len(keys):       # a helix track: one block from staging up the helix (owner, 2026-11-20)
             name = device_name(bands, cats, dark, F, log)
-            staged = {helix_block(bands[bound_bi][1], k, helix) for k in keys if k not in dark}
+            staged = {helix_block(k, helix, stored) for k in keys if k not in dark}
             if staged != {name}:
                 raise SystemExit(f"desk block {panel_name} holds track of staging ({', '.join(sorted(map(str, staged)))}"
                                  f") and of main or upper ({name}); only a helix block of "
@@ -501,13 +513,14 @@ def dark_bindings(bands, cats, P, F, bound_bi):
     return out, log, report, joined
 
 
-def helix_block(band, key, helix) -> str | None:
-    """The helix block of staging desk key `key` (`helix`: {plan name: its read_helix_tracks entry}): its strand's
-    plan name is a helix track's; else None. staging_device_map.check_helix holds the staging device map to the same block."""
+def helix_block(key, helix, stored) -> str | None:
+    """The helix block of staging desk key `key` (`helix`: {plan name: its read_helix_tracks entry}): the name store's
+    name of its strand (`stored`, staging_names) is a helix track's; else None. staging_device_map.check_helix holds
+    the staging device map to the same block."""
     if key[0] != "track":
         return None
-    s = band["strands"].get(key[1].split(":", 1)[1])
-    return helix.get(s["name"], {}).get("block") if s else None
+    name = stored.get(key[1].split(":", 1)[1])
+    return helix.get(name, {}).get("block") if name else None
 
 
 def level_switch_bindings(bands, F, bound_bi, dx_corners=None):

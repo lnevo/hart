@@ -219,6 +219,32 @@ class Files(unittest.TestCase):
         self.assertEqual(len(self.names["masts"]), 30)
         self.assertEqual(self.names["idents"]["turnouts"]["TOL34511"], "TO1")         # switches.csv le_ident
 
+    def test_the_helix_tracks_are_found_by_the_name_stores_names_not_the_drawings(self):
+        """check_helix finds each helix track by the name store's name of its strand (staging_names, by the strand's
+        ID): the drawn names are not read (naming-layers step 3b)."""
+        import copy
+        stored = sdm.staging_names(self.band, sdm.pd.DATA)
+        self.assertEqual({stored[s] for s in stored if stored[s].startswith("Helix")}, {"Helix Outer", "Helix Inner"})
+        drawn = copy.deepcopy(self.band)
+        for s in drawn["strands"].values():
+            s["name"] = ""
+        self.assertEqual(sdm.check_helix(drawn, self.names, sdm.staging_names(drawn, sdm.pd.DATA)), [])
+        self.assertEqual(len(sdm.check_helix(self.band, self.names, {})), 2)      # no stored name: not found
+
+    def test_the_names_come_from_the_folder_given(self):
+        """staging_names reads the store of the schematic folder it is given, not publish_draft.DATA."""
+        with tempfile.TemporaryDirectory() as root:
+            data = Path(root) / "schematic"
+            shutil.copytree(sdm.pd.DATA, data, symlinks=True)
+            field = Path(root) / devices.FIELD_FILE
+            text = devices.field_path(sdm.pd.DATA.parent).read_text(encoding="utf-8")
+            self.assertIn(",Track S-1,", text)
+            field.write_text(text.replace(",Track S-1,", ",Track S-9,", 1), encoding="utf-8")
+            got = sdm.staging_names(self.band, data)
+        self.assertIn("S-9", got.values())
+        self.assertNotIn("S-1", got.values())
+        self.assertIn("S-1", sdm.staging_names(self.band, sdm.pd.DATA).values())
+
     def _copy(self, edit):
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)

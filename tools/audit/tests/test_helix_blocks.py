@@ -18,7 +18,7 @@ FIELD = devices.FIELD_FILE
 import le_tables as T  # noqa: E402
 import mast_rule as mr  # noqa: E402
 import check_device_master as cdm  # noqa: E402
-from hartlib import railroad  # noqa: E402
+from hartlib import railroad, track_names  # noqa: E402
 
 
 def write(text: str) -> Path:
@@ -39,6 +39,7 @@ def copied(edit=None) -> Path:
     for name in ("plan_overrides.json", "preferences.json"):
         shutil.copyfile(mr.HELIX_SOURCE.parent / name, tmp / name)
     shutil.copyfile(devices.field_path(mr.HELIX_SOURCE.parent.parent), root / devices.FIELD_FILE)
+    track_names.repo_inputs(tmp)        # the plan graphs the name store reads: the repo's, by opt-in
     for old, new, name in edit or ():
         f = (root if name == FIELD else tmp) / name
         text = f.read_text(encoding="utf-8")

@@ -299,7 +299,7 @@ def milepost_route(plan: Plan, rows: list[dict]) -> list[list[str]]:
 
 def staging_keys(overrides: dict, plan: Plan, rows: list[dict]) -> dict:
     """The keys of plan_generated.json's staging section this writes: name_main (the runs of the tracks on a main
-    line, hartlib.track_names.run_of: "1A-23A", which the name store's `name` edit flags main) and milepost_route,
+    line, hartlib.track_names.edge_run: "1A-23A", which the name store's `name` edit flags main) and milepost_route,
     from the lines. A crossover's link between its halves and a helix track are left out: the plugin marks those
     main itself. `overrides` (the hand section) is not read: the plan graph names every junction."""
     g = plan.g
@@ -309,15 +309,8 @@ def staging_keys(overrides: dict, plan: Plan, rows: list[dict]) -> dict:
         la, lb = (N[n].get("label") for n in (e["u"], e["v"]))
         return (la and la == lb) or any(N[n]["kind"] == "end" and N[n].get("sub") == "helix" for n in (e["u"], e["v"]))
 
-    def end_key(n, port):
-        d = N[n]
-        if d["kind"] != "end":
-            return f"{(d.get('label') or n).rstrip('*')}{port}"
-        return "helix" if d.get("sub") == "helix" else "end"
-
-    main_ids = line_edges(plan, rows)
-    flagged = sorted({track_names.run_of(end_key(e["u"], e["up"]), end_key(e["v"], e["vp"]))
-                      for e in g["edges"] if e["id"] in main_ids and not owned_by_plugin(e)})
+    main_ids = line_edges(plan, rows)     # each run by the name store's end keys (track_names.edge_run, as plan_runs)
+    flagged = sorted({track_names.edge_run(N, e) for e in g["edges"] if e["id"] in main_ids and not owned_by_plugin(e)})
     return {layer_files.NAME_MAIN: flagged, "milepost_route": milepost_route(plan, rows),
             "_main_lines": ("name_main (the runs of the tracks on a main line, which the name store's `name` edit "
                             "flags main: hartlib.track_names) and milepost_route are written by "

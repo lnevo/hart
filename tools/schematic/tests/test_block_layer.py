@@ -290,14 +290,33 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
     # ---------------------------------------------------------------- halves
 
     def renamed(self, names: dict):
-        """(bands, found) with the staging strands' plan names changed ({strand: name})."""
+        """(bands, found) with the name store's names of staging strands changed ({strand: name}): each strand's
+        owner row, by its ID (staging_device_map.band_refs), renamed; the drawing is left as it is."""
+        import staging_device_map as sdm
+        from hartlib import device_ids, track_names
+        bi = next(i for i, (t, _b, _o) in enumerate(self.bands) if self.levels.get(t) == 1)
+        refs = sdm.band_refs(self.bands, self.joined, bi)
+        owner = track_names.owner_names()
+        for sid, name in names.items():
+            owner[("1", device_ids.block_id([device_ids.strand_key(refs[sid][0])]))] = name
+        over = bdm.layer_files.read("plan_overrides", bdm.STAGING_SHEET, bdm.OVERRIDES.parent)
+        return self.bands, bdm.named_tracks(self.bands, self.joined, self.runs, over, owner=owner)
+
+    def test_a_track_is_named_by_its_id_not_by_the_drawing(self):
+        """The drawn strand names are not read: a strand renamed on the drawing keeps the store's name, and a rename
+        in the store is the block's name (naming-layers step 3b)."""
         import copy
         bands = copy.deepcopy(self.bands)
         bi = next(i for i, (t, _b, _o) in enumerate(bands) if self.levels.get(t) == 1)
-        for sid, name in names.items():
-            bands[bi][1]["strands"][sid]["name"] = name
+        for s in bands[bi][1]["strands"].values():
+            s["name"] = "Drawn"
         over = bdm.layer_files.read("plan_overrides", bdm.STAGING_SHEET, bdm.OVERRIDES.parent)
-        return bands, bdm.named_tracks(bands, self.joined, self.runs, over)
+        names = {t["name"] for t in bdm.named_tracks(bands, self.joined, self.runs, over)}
+        self.assertEqual(names, {t["name"] for t in self.found})
+        self.assertIn("Track S-1", names)
+        _bands, found = self.renamed({"e22": "S-9"})
+        self.assertIn("Track S-9", {t["name"] for t in found})
+        self.assertNotIn("Track S-1", {t["name"] for t in found})
 
     def halves_layer(self, names: dict) -> BL.Layer:
         bands, found = self.renamed(names)
@@ -316,7 +335,7 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
 
     def test_a_helix_track_its_plan_name_does_not_name_stops(self):
         with self.assertRaisesRegex(BL.BlockError, "which is not a helix track of plan_overrides.json"):
-            BL.name_tracks([dict(t) for t in self.found], self.bands, {})
+            BL.name_tracks([dict(t) for t in self.found], {})
 
     def test_a_track_cut_by_the_level_split_is_one_block_by_the_ordinary_rule(self):
         """A helix track arrives as two pieces, staging's and main or upper's, cut at the level split; both carry its
@@ -363,6 +382,8 @@ class Drawings(RepoReadOnly, unittest.TestCase):
         try:
             with self.assertRaises(BL.BlockError):
                 BL.drawings(folder)
+            with self.assertRaisesRegex(BL.BlockError, "plan_overrides"):    # the store's lookup too
+                BL.store_names([], [], {}, {}, folder)
         finally:
             os.rmdir(folder)
 

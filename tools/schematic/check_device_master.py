@@ -331,10 +331,11 @@ def stop_token(comment: str | None) -> bool:
     return c == "stop" or c.endswith("; stop")
 
 
-def check_drawing(band, lines: list[tuple[int, dict]]) -> list[str]:
-    """Staging's rows against the drawing (the module text): the helix tracks drawn from their staging switches.
-    Every row with a level has a writer (hartlib.devices.check_generated), whose --check reads it."""
-    return sdm.check_helix(band, sdm.load(band))
+def check_drawing(band, lines: list[tuple[int, dict]], data: Path) -> list[str]:
+    """Staging's rows against the drawing (the module text): the helix tracks drawn from their staging switches,
+    each found by the name store's names in the schematic folder `data`. Every row with a level has a writer
+    (hartlib.devices.check_generated), whose --check reads it."""
+    return sdm.check_helix(band, sdm.load(band), sdm.staging_names(band, data))
 
 
 ERRORS = (DeviceMasterError, sdm.StagingMapError, railroad.FactsError, mr.MapError, lc.BuildError)
@@ -387,7 +388,7 @@ def check(band=None) -> list[str]:
         bad += got
     _part(bad, lambda: check_rows(lines, {h.block for h in rr.helix_tracks.values()}))
     if band is not None and not staging_bad:
-        _part(bad, lambda: check_drawing(band, lines))
+        _part(bad, lambda: check_drawing(band, lines, rr.sources.plan_overrides.parent))
     _part(bad, read_mast_files)
     _part(bad, lambda: check_tables([r for _n, r in lines], rr))
     return bad
