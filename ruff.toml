@@ -27,12 +27,11 @@ select = ["F"]
 
 [lint.per-file-ignores]
 # Jython scripts that run inside JMRI: F821 (undefined name) misfires on them. JMRI's interpreter supplies
-# sensors, turnouts, ACTIVE and the like; Python 2 builtins (unicode, execfile) are real there; the speed-match
-# runners share one namespace through execfile (jobkit.py defines L, GUARD, P_ID for the rest); cs105_consist.py
+# sensors, turnouts, ACTIVE and the like; Python 2 builtins (unicode, execfile) are real there; cs105_consist.py
 # gets ACTION, LOGF and the rest prepended by jmri_cmd_watcher.py, and its `except Exception, e:` (Python 2) parses
-# as a tuple of exceptions, so `e` looks undefined. Every other F rule still applies to them.
-"jmri/layouts/hart/scripts/speedmatch/jython/*.py" = ["F821"]
-"jmri/layouts/hart/scripts/speedmatch/pom_write.py" = ["F821"]
+# as a tuple of exceptions, so `e` looks undefined. Every other F rule still applies to them. The speed-match
+# runners in speedmatch/jython/ list the names make_job.py pastes in front of them in an `if False:` block, and
+# pom_write.py marks its one execfile, so F821 checks them.
 "jmri/layouts/hart/scripts/cs105_consist.py" = ["F821"]
 "jmri/layouts/hart/scripts/ctc_default_reverse_levers.py" = ["F821"]
 "jmri/layouts/hart/scripts/panel_status.py" = ["F821"]

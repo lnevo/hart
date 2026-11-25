@@ -109,7 +109,7 @@ def _consist_query(nodes, refuse):
     if os.path.exists(qlog):
         os.remove(qlog)
     env = {"ACTION": "query", "NODES": list(nodes), "LOGF": qlog}
-    execfile(path, env)
+    execfile(path, env)  # noqa: F821 (a Python 2 builtin: Jython has it; the tests pass one in)
     end = time.time() + _CONSIST_TIMEOUT
     text = ""
     while time.time() < end:
