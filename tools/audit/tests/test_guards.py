@@ -376,7 +376,11 @@ class OperatingFlag(unittest.TestCase):
                    "ssh -p 2222 lnevo@minipc-e5h6x.local taskkill /IM python.exe",
                    "bash -c 'tools/hosts/pi_quit_panelpro.sh --for-deploy'", "zsh -c \"ssh pi pkill -f PanelPro\"",
                    "env HART_PI_RESTART=0 timeout 60 tools/hosts/pi_quit_panelpro.sh",
-                   "jmri/layouts/hart/scripts/speedmatch/drop_job.sh /tmp/job.py")
+                   "jmri/layouts/hart/scripts/speedmatch/drop_job.sh /tmp/job.py",
+                   "python3 jmri/layouts/hart/scripts/speedmatch/speedmatch.py drop /tmp/job.py",
+                   "python3 -u jmri/layouts/hart/scripts/speedmatch/speedmatch.py pom p.json --send",
+                   'make speedmatch ARGS="pom p.json --apply --consists-broken --send"',
+                   "make speedmatch ARGS='drop /tmp/job.py'")
         for cmd in blocked:
             self.assertEqual(self.op_code(cmd, owner), 2, cmd)
             self.assertEqual(self.op_code(cmd, None), 0, cmd)          # no flag: allowed
@@ -389,7 +393,10 @@ class OperatingFlag(unittest.TestCase):
                     "cat tools/hosts/pi_quit_panelpro.sh",
                     "tools/hosts/operating.sh off --owner", "tools/hosts/operating.sh status",
                     "jmri/layouts/hart/scripts/speedmatch/drop_job.sh --fetch /tmp/x.log",
-                    "jmri/layouts/hart/scripts/speedmatch/drop_job.sh --kill"):
+                    "jmri/layouts/hart/scripts/speedmatch/drop_job.sh --kill",
+                    "python3 jmri/layouts/hart/scripts/speedmatch/speedmatch.py pom p.json --out /tmp/d.py",
+                    "python3 jmri/layouts/hart/scripts/speedmatch/speedmatch.py drop --kill",
+                    'make speedmatch ARGS="job steps --loco x --out /tmp/j.py"', "make speedmatch"):
             self.assertEqual(self.op_code(cmd, owner), 0, cmd)
         # a speed-matching run's own flag lets the run's next job through, never a host deploy
         speed = "by=speedmatch\nsince=2026-11-18T15:00:00-0500\nreason=job\n"

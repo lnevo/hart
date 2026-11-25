@@ -13,12 +13,13 @@ The 2026-11-08 run and its scripts stay as the record in
 These tools **never write to a decoder**. The runner moves one loco with its own throttle and
 stops it with that throttle at speed 0 (no emergency stop, no track power, no turnouts). The
 preflight only reads CVs. The correction only proposes a table. Writing is a separate guard
-module (`pom_guard.py`, built elsewhere).
+module (`pom_guard.py`, [`POM_GUARD.md`](POM_GUARD.md)).
 
 ## What is here
 
 | File | What it does | Where it runs |
 |---|---|---|
+| `speedmatch.py` | one command over the tools below (`job`, `drop`, `pom`, `compare`, `to-roster`, `lengths`, `rename-ext`), also `make speedmatch ARGS="..."`; `pom` builds a POM write drop and sends it through `drop_job.sh` ([`POM_GUARD.md`](POM_GUARD.md)) | Mac |
 | `make_job.py` | builds a job file (settings, then the runner) | Mac |
 | `drop_job.sh` | copies a job to the Pi's `jmri_cmd_watcher`, fetches logs, sets the kill flag; sending a job sets the operating flag (`tools/hosts/operating.sh`), so no agent deploys to the Pi or Windows or quits PanelPro on the Pi while trains move (it refuses while the owner's flag is set). Clear it with `tools/hosts/operating.sh off` once the session's last log shows END | Mac |
 | `jython/preflight.py` | reads CVs on the programming track | Pi, inside JMRI |

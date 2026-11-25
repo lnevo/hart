@@ -130,6 +130,13 @@ def run_words(words):
     return words, None
 
 
+def speedmatch_sends(args):
+    """speedmatch.py's words after the script: True when they send to the Pi (drop JOB, pom ... --send)."""
+    if args[:1] == ["drop"]:
+        return len(args) > 1 and args[1] not in ("--fetch", "--kill", "-h", "--help")
+    return args[:1] == ["pom"] and "--send" in args
+
+
 HOSTS_PI = re.compile(r"(^|\s|=)(" + "|".join(re.escape(f) for f in HOST_FLAGS) + r")\b")
 
 
@@ -169,6 +176,19 @@ def host_control(part, flag, exported=None):
         return f"{head}, which acts on the Pi"
     if head == "drop_job.sh" and flag.get("by") == "owner" and args and \
             args[0] not in ("--fetch", "--kill", "-h", "--help"):
+        return "a speed-matching job during the owner's session"
+    # the speedmatch command runs drop_job.sh itself: python3 speedmatch.py ..., or make speedmatch ARGS="..."
+    if re.fullmatch(r"python[\d.]*", head):
+        while args and args[0].startswith("-"):
+            args = args[1:]
+        head, args = (os.path.basename(args[0]), args[1:]) if args else (head, args)
+    if head == "make" and "speedmatch" in args:
+        make_args = [a[len("ARGS="):] for a in args if a.startswith("ARGS=")] or [assigned.get("ARGS", "")]
+        try:
+            head, args = "speedmatch.py", shlex.split(make_args[-1])
+        except ValueError:
+            head, args = "speedmatch.py", make_args[-1].split()
+    if head == "speedmatch.py" and flag.get("by") == "owner" and speedmatch_sends(args):
         return "a speed-matching job during the owner's session"
     if head == "ssh":
         i, target = 0, ""
