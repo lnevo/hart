@@ -54,6 +54,10 @@ MACHINERY = (
     ".github/workflows/check.yml",
     "tools/check.sh",
     "tools/pipeline/manifest.py",           # turns tools/pipeline/checks.toml into check.sh's job lines
+    "tools/pipeline/manifest_base.py",      # its parts (manifest.FILES)
+    "tools/pipeline/manifest_checks.py",
+    "tools/pipeline/manifest_jobs.py",
+    "tools/pipeline/manifest_panels.py",
     "tools/ci/",
     "tools/audit/check_stamps.py",
     "tools/audit/traced.py",

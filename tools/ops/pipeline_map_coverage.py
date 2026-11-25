@@ -82,7 +82,6 @@ ALLOWED = {
     "jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py": "parked Dispatcher traininfo repair; the "
                                                                 "run_dispatcher_stage1.py box names it",
     # hand-kept files in an output folder
-    "cats/panels/HART_chubb_magnet.xml": "hand-drawn legacy CATS panel; no builder writes it",
     "cats/panels/reference_ArmstrongMagnet.xml": "CATS sample panel kept for reference (cats/README.md)",
 }
 

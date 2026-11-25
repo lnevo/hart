@@ -40,10 +40,6 @@ TRAINS = ROOT / "cats/data/hart_trains.csv"
 REPORTED: dict[tuple[str, str], str] = {
     ("ops/hart-ops/data/OperationsEngineRoster.xml", "CWRY2091"):
         "the owner chose POHC 2091 (2026-11-25); the snapshot roster keeps CWRY until phase 2 reconciles it",
-    ("cats/data/hart_trains.csv", "4501"):
-        "Route 23 AM's engine is the CATS sample panel's 4501; lane L4b sets it to 4678 and removes this entry",
-    ("cats/data/hart_trains.csv", "4503"):
-        "Route 23 PM's engine is the CATS sample panel's 4503; lane L4b sets it to 4678 and removes this entry",
 }
 
 
