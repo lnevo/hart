@@ -88,10 +88,13 @@ pp_profile() {
   fi
   PP_USER_FILES="$(python3 "$PP_PROFILE_PY" check-profile --profile "$PROFILE_XML" --launch "$PROFILE_ID" \
     ${JMRI_USER_FILES:+--user-files "$JMRI_USER_FILES"})" || exit 1
-  # PanelPro loads the tables of the checkout the wrapper lives in (main or a worktree).
+  # PanelPro loads the tables of the checkout the wrapper lives in (main or a worktree), in place (load-tables names
+  # this file in the profile; nothing is copied into JMRI_UserFiles). PP_TABLES_FILE is that file, for a wrapper
+  # that reads what PanelPro loads (run_panelpro_smoke_test.sh).
+  PP_TABLES_FILE="$ROOT/jmri/layouts/hart/output/tables.xml"
   case "$ROOT" in
-    "$HOME"/*) TABLES_URI="home:${ROOT#"$HOME"/}/jmri/layouts/hart/output/tables.xml" ;;
-    *) TABLES_URI="$ROOT/jmri/layouts/hart/output/tables.xml" ;;
+    "$HOME"/*) TABLES_URI="home:${PP_TABLES_FILE#"$HOME"/}" ;;
+    *) TABLES_URI="$PP_TABLES_FILE" ;;
   esac
 }
 

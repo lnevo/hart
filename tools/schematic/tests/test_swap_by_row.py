@@ -138,6 +138,29 @@ class SwapByRow(RepoReadOnly, unittest.TestCase):
         # every other turnout and sensor as committed
         self.assertEqual({k: v for k, v in got.items() if k not in new}, {k: v for k, v in was.items() if k not in gone})
 
+    def test_the_panelpro_smoke_check_takes_the_swapped_detector(self):
+        """The smoke test's block check (Jython; its plain functions run here) on the copy's tables, as
+        run_panelpro_smoke_test.sh passes them: the swapped block on M2S3305 passes, every other main and upper block
+        on its virtual sensor; the committed tables have no field-detected block."""
+        sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "jmri/layouts/hart/scripts/tests"))
+        from test_panelpro_smoke_blocks import plain_parts
+        from hartlib import level_devices
+        smoke = plain_parts()
+        root = tables.read(self.tables_path)
+        field = level_devices.field_detected(root)
+        sensors = tables.by_any_name(tables.sensors(root))
+        block = self.after[("2", "block:107B-107C#1")]
+        self.assertEqual(field, {block["jmri_name"]: "M2S3305"})
+        self.assertEqual(level_devices.field_detected(self.committed_tables.root), {})
+        blocks = [(tables.user_name(b), tables.system_name(b),
+                   tables.system_name(sensors[tables.text(b, "occupancysensor")])
+                   if tables.text(b, "occupancysensor") else None)
+                  for b in tables.blocks(root) if tables.system_name(b).startswith(level_devices.BLOCK_PREFIX)]
+        text = "".join(f"{b} {s};" for b, s in sorted(field.items()))     # what the wrapper exports
+        self.assertEqual(smoke["block_sensor_errors"](blocks, smoke["field_detected"](text)), [])
+        self.assertEqual(smoke["block_sensor_errors"](blocks, {}),     # the old check: the swapped block fails
+                         [f"main and upper blocks with no virtual occupancy sensor: {block['user_name']}"])
+
     def test_the_device_master_check_passes_on_the_copy(self):
         import check_device_master as cdm
         lines = [dict(r) for r in self.rows if r["role"] not in devices.OUT_OF_MAPS and not devices.is_unplaced(r)]

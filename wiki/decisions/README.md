@@ -37,5 +37,6 @@
 | [033](ADR-033-generated-then-owner.md) | Generated values, then the owner's, then frozen wiring | Accepted |
 | [034](ADR-034-jmri-mqtt-race-overlay.md) | JMRI's MQTT race fix as an overlay until JMRI ships it | Accepted |
 | [035](ADR-035-backups.md) | What is backed up, where and how often | Accepted |
+| [037](ADR-037-one-step-manifest.md) | One step manifest for the checks and the panels build | Accepted |
 
 Older consolidation decisions are in git history, and ADR-007 records what became of them.
