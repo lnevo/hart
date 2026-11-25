@@ -18,7 +18,8 @@ tools/hartlib/src) plus every source named in www/scripts/published-files.json. 
 the build writes reads tables.xml, which check.sh checks on its own (tables-browser), so a
 tables-only change does not rebuild the site.
 
-When no merge base can be found (no origin/main, a shallow clone) this exits 0: run the check.
+When no merge base can be found (no origin/main, a shallow clone), or git fails, this says why and exits 0:
+run the check. tools/ci/changed_kind.py --git reads the changed paths the same way (check.sh's docs-only path).
 """
 from __future__ import annotations
 
@@ -34,23 +35,34 @@ SITE_PREFIXES = ("www/", "ops/", "docs/", "external/", "media/", "tools/hartlib/
 NO_CHANGE = 3
 
 
-def _git(root: Path, *args: str) -> list[str] | None:
-    done = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True)
+class ChangedFilesError(Exception):
+    """git could not say what this checkout changes; the message says why."""
+
+
+def _git(root: Path, *args: str) -> list[str]:
+    try:
+        done = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.SubprocessError, UnicodeDecodeError) as e:
+        raise ChangedFilesError(f"git {args[0]} could not run: {e}") from None
     if done.returncode != 0:
-        return None
+        detail = done.stderr.strip().splitlines()[-1] if done.stderr.strip() else f"exit {done.returncode}"
+        raise ChangedFilesError(f"git {' '.join(args)} failed: {detail}")
     return [line for line in done.stdout.splitlines() if line]
 
 
-def changed_files(root: Path, base: str = "origin/main") -> list[str] | None:
-    """Paths changed against the merge base with `base`, including uncommitted and untracked; None if unknown."""
-    merge_base = _git(root, "merge-base", base, "HEAD")
-    if not merge_base:
-        return None
+def changed_files(root: Path, base: str = "origin/main") -> list[str]:
+    """Paths changed against the merge base with `base`, including uncommitted and untracked.
+
+    Raises ChangedFilesError when git cannot say (no merge base with `base`: a shallow clone, no such branch)."""
+    try:
+        merge_base = _git(root, "merge-base", base, "HEAD")
+    except ChangedFilesError as e:
+        raise ChangedFilesError(f"no merge base with {base} (a shallow clone, or no {base}): {e}") from None
+    if len(merge_base) != 1:
+        raise ChangedFilesError(f"no merge base with {base}: git merge-base printed {merge_base!r}")
     committed = _git(root, "diff", "--name-only", "--no-renames", merge_base[0], "HEAD")
     working = _git(root, "diff", "--name-only", "--no-renames", "--ignore-submodules=all", "HEAD")
     untracked = _git(root, "ls-files", "--others", "--exclude-standard")
-    if committed is None or working is None or untracked is None:
-        return None
     return sorted(set(committed) | set(working) | set(untracked))
 
 
@@ -70,9 +82,10 @@ def main() -> int:
     parser.add_argument("--base", default="origin/main")
     parser.add_argument("--list", action="store_true")
     args = parser.parse_args()
-    paths = changed_files(ROOT, args.base)
-    if paths is None:
-        print(f"no merge base with {args.base}; treating the site as changed")
+    try:
+        paths = changed_files(ROOT, args.base)
+    except ChangedFilesError as e:
+        print(f"{e}; treating the site as changed")
         return 0
     hits = site_inputs(paths, manifest_sources(ROOT))
     if args.list:

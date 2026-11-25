@@ -103,7 +103,13 @@ class ChangedFiles(unittest.TestCase):
     def test_no_merge_base_means_unknown(self) -> None:
         with tempfile.TemporaryDirectory() as d:
             self.git(Path(d), "init", "-q")
-            self.assertIsNone(portal_inputs.changed_files(Path(d), "origin/main"))
+            with self.assertRaisesRegex(portal_inputs.ChangedFilesError, "no merge base with origin/main"):
+                portal_inputs.changed_files(Path(d), "origin/main")
+
+    def test_git_that_cannot_run_is_a_changed_files_error(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            with self.assertRaisesRegex(portal_inputs.ChangedFilesError, "no merge base"):
+                portal_inputs.changed_files(Path(d) / "nowhere", "origin/main")
 
 
 if __name__ == "__main__":
