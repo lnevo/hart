@@ -608,6 +608,21 @@ domain = "extras"
 label = "check_tracked_policy"
 desc = "Audit that tracked files obey the tracking policy."
 
+# Owner, 2026-11-25 (wiki/projects/cleanup-streamline-handoff.md, D): a .py file over 800 lines may not grow past its
+# row in py_sizes.csv; only `--update --accept PATH` raises a row. It lists files with git ls-files, so it keeps HEAD.
+[[step]]
+name = "py-sizes"
+runner = "check"
+group = "static"
+cmd = ["python3", "tools/audit/check_py_sizes.py"]
+git = ["head", "base"]
+domain = "extras"
+label = "check_py_sizes"
+desc = "Fails when a Python file over 800 lines grows past its row in tools/audit/py_sizes.csv; --update tightens the list, --accept raises a row by name."
+inputs = [
+  "tools/audit/py_sizes.csv",
+]
+
 [[step]]
 name = "agent-docs"
 runner = "check"
@@ -654,7 +669,7 @@ cmd = ["python3", "tools/ops/build_docs_index.py", "--check", "--strict"]
 git = ["head", "base"]
 domain = "extras"
 label = "build_docs_index.py"
-desc = "Lists git-tracked docs/ documents newest first into docs/INDEX.md; --check in tools/check.sh."
+desc = "Lists docs/ documents (tracked or new) newest first into docs/INDEX.md; --check in tools/check.sh."
 docs_only = true
 inputs = [
   "docs",
