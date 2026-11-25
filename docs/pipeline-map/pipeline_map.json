@@ -3432,6 +3432,24 @@
    "path": "tools/ops/pipeline_map_coverage.py"
   },
   {
+   "id": "tools/pipeline/checks.toml",
+   "label": "checks.toml",
+   "kind": "structured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "The step manifest (ADR-037): one [[step]] per check.sh read-only check, with its command, lane and the files it reads and writes. Stage 1: only manifest.py and its test read it; check.sh keeps its own list.",
+   "path": "tools/pipeline/checks.toml"
+  },
+  {
+   "id": "tools/pipeline/manifest.py",
+   "label": "manifest.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Loads and checks the step manifest against git and the map (names, commands, paths, lanes); prints each runner's job lines (jobs) and the steps (list). No runner reads it yet (ADR-037 stage 1).",
+   "path": "tools/pipeline/manifest.py"
+  },
+  {
    "id": "jmri/layouts/hart/scripts/speedmatch",
    "label": "speedmatch scripts",
    "kind": "generator",
@@ -7850,6 +7868,17 @@
    "from": "ops/car-cards",
    "to": "tools/hosts/backup_win_push.sh",
    "label": "copied"
+  },
+  {
+   "from": "tools/pipeline/checks.toml",
+   "to": "tools/pipeline/manifest.py",
+   "label": "loads"
+  },
+  {
+   "from": "docs/pipeline-map/pipeline_map.json",
+   "to": "tools/pipeline/manifest.py",
+   "label": "domains, edge sides, local nodes",
+   "side": "check"
   },
   {
    "from": ".claude/agents/archive-researcher.md",
