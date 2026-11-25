@@ -43,7 +43,7 @@ done
 # hex of git's hash of the full name (so a/b and a_b get two folders); REF that names no local or remote-tracking
 # branch (a commit, a tag, HEAD~1) gives SHA.
 stamp_name() {
-  local branch="" safe
+  local branch="" safe LC_ALL=C     # bytes, not the locale's letters: é is two _, as on every machine
   if git -C "$1" show-ref --verify -q "refs/heads/$2"; then branch="$2"
   elif git -C "$1" show-ref --verify -q "refs/remotes/$2"; then branch="${2#*/}"
   fi
@@ -141,8 +141,9 @@ ref_stamps() {   # <shared> <by-ref folder> <name>: make or reuse <by-ref folder
   local shared="\$1" byref="\$2" dir="\$2/\$3" tmp="\$2/.\$3.tmp.\$\$" old removed=0 how f
   local -a files=()
   while IFS= read -r -d '' old; do
-    rm -rf "\$old" || { echo "win_run.sh: could not remove the old stamp folder \$old" >&2; return 3; }
-    removed=\$((removed + 1))
+    # an old folder that will not go is litter, not a reason to refuse the run: warn and go on
+    if rm -rf "\$old"; then removed=\$((removed + 1))
+    else echo "win_run.sh: warning: could not remove the old stamp folder \$old; remove it by hand" >&2; fi
   done < <(find "\$byref" -mindepth 1 -maxdepth 1 -type d -mtime +13 -print0)
   if [[ -d "\$dir" ]]; then
     how="reused"

@@ -205,7 +205,14 @@ class WinRunStampName(unittest.TestCase):
                               text=True, timeout=30)
 
     def suffix(self, branch: str) -> str:
-        return hashlib.sha1(f"blob {len(branch)}\0{branch}".encode()).hexdigest()[:10]
+        data = branch.encode()
+        return hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()[:10]
+
+    def test_a_non_ascii_name_is_cut_by_bytes(self) -> None:
+        subprocess.run(["git", "-C", str(self.repo), "branch", "agent/éclair"], check=True)
+        done = subprocess.run(["bash", str(self.block), str(self.repo), "agent/éclair", self.sha], capture_output=True,
+                              text=True, timeout=30, env=dict(os.environ, LC_ALL="en_US.UTF-8"))
+        self.assertEqual(f"agent___clair-{self.suffix('agent/éclair')}", done.stdout.strip(), done.stderr)
 
     def test_slashes_and_odd_characters_become_underscores_with_the_name_hash(self) -> None:
         self.assertEqual(f"agent_claude_x-{self.suffix('agent/claude/x')}", self.name("agent/claude/x").stdout.strip())
@@ -315,6 +322,17 @@ class WinRunStamps(unittest.TestCase):
         self.assertIn("new, 2 stamps copied", done.stderr)      # this ref's own old folder was made again
         self.assertFalse((self.byref / "feat-x/stale.json").exists())
         self.assertGreater((self.byref / "feat-x").stat().st_mtime, time.time() - 60)
+
+    def test_an_old_folder_that_will_not_go_warns_and_the_run_goes_on(self) -> None:
+        old = time.time() - 15 * 86400
+        (self.byref / "stuck").mkdir(parents=True)
+        os.utime(self.byref / "stuck", (old, old))
+        self.fake("rm", 'case "$*" in *stuck*) exit 1 ;; esac; exec /bin/rm "$@"')
+        done = self.run_block()
+        self.assertEqual(0, done.returncode, done.stderr)
+        self.assertIn("could not remove the old stamp folder", done.stderr)
+        self.assertIn("0 stamp folders untouched for 14 days removed", done.stderr)
+        self.assertIn(f"DIR={self.byref / 'feat-x'}\n", done.stdout)
 
     def test_no_shared_folder_says_so_and_starts_empty(self) -> None:
         shutil.rmtree(self.shared)
