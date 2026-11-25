@@ -180,13 +180,25 @@ def _image_size(path: Path) -> tuple[int, int] | None:
         return im.size
 
 
+def built_pages() -> frozenset[str]:
+    """The pages the site build writes from their sources instead of copying (prepare_github_pages.BUILT_PAGES,
+    ADR-036): not in www/ unless someone built a local copy, yet published."""
+    import prepare_github_pages as build  # the build's own list
+
+    return frozenset(build.BUILT_PAGES)
+
+
+def _is_page(page: str, portal: Path) -> bool:
+    return (portal / page).is_file() or page in built_pages()
+
+
 def review(pages: list[Path], cards: dict[str, dict], portal: Path = PORTAL) -> tuple[list[str], list[str]]:
     """(pages that still show the site card, faults in the cards that exist)."""
     missing = [p.as_posix() for p in expected_pages(pages, portal) if p.as_posix() not in cards]
     faults, seen_image, seen_from = [], {}, {}
     for page, card in cards.items():
         image, alt = card.get("image", ""), card.get("alt", "")
-        if not (portal / page).is_file():
+        if not _is_page(page, portal):
             faults.append(f"{page}: no such page")
         if not alt.strip():
             faults.append(f"{page}: no alt text")
@@ -221,7 +233,7 @@ def review_links(links: dict[str, dict], portal: Path = PORTAL) -> list[str]:
             faults.append(f"link {key}: image {image or '(none)'} is not a file under assets/share/")
         if not entry.get("alt", "").strip():
             faults.append(f"link {key}: no alt text")
-        if not key.startswith(("http:", "https:")) and not (portal / key.split("#", 1)[0]).is_file():
+        if not key.startswith(("http:", "https:")) and not _is_page(key.split("#", 1)[0], portal):
             faults.append(f"link {key}: no such page")
     return faults
 

@@ -5,6 +5,8 @@ STAGE MAP (functions of prepare_github_pages.py; main() runs 1 to 14 in this ord
  1. Copy         _published_files, _copy_published. Reads: git ls-files of www/,
                  scripts/published-files.json and the files it names outside www/. Skip lists
                  SKIP_DIRS, SKIP_FILES, SKIP_GLOBS. Writes: the whole tree in DEST.
+ 1b. Built pages _build_pages. Writes each of BUILT_PAGES (the pipeline map, ADR-036) from its builder;
+                 a failed, empty or already-copied page stops the build (exit 1).
  2. Fill pages   _refresh_tables_page. Reads tables.xml, the repo's file lists and
                  the JMRI additions (build_tables_browser, repo_guide_page, jmri_additions_page, each
                  with its own tests). Rewrites behind/ pages and data/ in DEST. A failed repo guide or JMRI
@@ -337,6 +339,66 @@ class PhotoStages(_Repo):
         self.assertFalse((dest / "assets/archive/h2.jpg").exists())
 
 
+class BuiltPages(unittest.TestCase):
+    """_build_pages (stage 1b): the pages built at deploy instead of committed (ADR-036)."""
+
+    def run_stage(self, pages, existing=()):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for rel in existing:
+                _write(root, rel, "committed copy")
+            err = io.StringIO()
+            with mock.patch.object(build, "BUILT_PAGES", pages), contextlib.redirect_stderr(err), \
+                    contextlib.redirect_stdout(io.StringIO()):
+                ok = build._build_pages(root)
+            written = {rel: (root / rel).read_text() for rel in pages if (root / rel).is_file()}
+            return ok, err.getvalue(), written
+
+    def test_the_real_pipeline_map_is_built_into_the_tree(self):
+        ok, err, written = self.run_stage(dict(build.BUILT_PAGES))
+        self.assertTrue(ok, err)
+        page = written["library/pipeline-map.html"]
+        data = build.pipeline_map.load(build.pipeline_map.GRAPH)
+        self.assertIn(f'{len(data["nodes"])} boxes, {len(data["edges"])} links', page)
+        self.assertIn("data-ops-header", page)
+
+    def test_a_failing_builder_stops_with_its_message(self):
+        def broken():
+            raise build.pipeline_map.GraphError("node 'x' has no links")
+
+        ok, err, written = self.run_stage({"library/map.html": broken})
+        self.assertFalse(ok)
+        self.assertIn("Cannot build library/map.html", err)
+        self.assertIn("node 'x' has no links", err)
+        self.assertEqual(written, {})
+
+    def test_an_empty_page_stops(self):
+        for empty in ("", "  \n", None):
+            with self.subTest(page=empty):
+                ok, err, written = self.run_stage({"library/map.html": lambda: empty})
+                self.assertFalse(ok)
+                self.assertIn("its builder returned no page", err)
+                self.assertEqual(written, {})
+
+    def test_a_copied_page_stops_and_the_builder_is_not_run(self):
+        builder = mock.Mock(return_value="<p>new</p>")
+        ok, err, written = self.run_stage({"library/map.html": builder}, existing=("library/map.html",))
+        self.assertFalse(ok)
+        self.assertIn("git rm --cached www/library/map.html", err)
+        builder.assert_not_called()
+        self.assertEqual(written, {"library/map.html": "committed copy"})
+
+    def test_a_write_that_fails_stops_without_a_traceback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            _write(Path(tmp), "library", "a file where the folder goes")
+            err = io.StringIO()
+            with mock.patch.object(build, "BUILT_PAGES", {"library/map.html": lambda: "<p>page</p>"}), \
+                    contextlib.redirect_stderr(err):
+                self.assertFalse(build._build_pages(Path(tmp)))
+        self.assertIn("cannot write", err.getvalue())
+        self.assertNotIn("Traceback", err.getvalue())
+
+
 class RefillFailures(unittest.TestCase):
     """_refresh_tables_page: which failed refills are warnings and which stop the build."""
 
@@ -392,7 +454,8 @@ class FullBuild(_Repo):
         "assets/gallery/night/p1.jpg", "assets/gallery/thumbs/night/p1.jpg", "assets/logos/a.png",
         "assets/search/assets-archive-thumbs-h1.jpg",
         "data/archive.json", "data/fleet-gallery.json", "data/gallery.json", "data/industries.json", "data/site.json",
-        "docs/page.html", "index.html", "llms.txt", "robots.txt", "search-index.json", "sitemap.xml",
+        "docs/page.html", "index.html", "library/map.html", "llms.txt", "robots.txt", "search-index.json",
+        "sitemap.xml",
     ]
 
     def setUp(self):
@@ -402,13 +465,15 @@ class FullBuild(_Repo):
         prov = _write(Path(self._tmp.name), "prov/provenance.json", json.dumps({
             "site": {"name": "Test Railroad", "summary": "A test site.", "notes": ["Everything here is a fixture."], "setting": "Nowhere"},
             "classes": {c: f"{c} pages" for c in ("prototype", "fiction", "hobby", "mixed")},
-            "rules": {"index.html": {"class": "hobby"}, "about/": {"class": "hobby"}, "docs/": {"class": "hobby"}},
+            "rules": {"index.html": {"class": "hobby"}, "about/": {"class": "hobby"}, "docs/": {"class": "hobby"},
+                      "library/": {"class": "hobby"}},
         }))
         original_load = build.provenance.load
         for patch in (
             mock.patch.object(build.provenance, "load", lambda path=prov: original_load(path)),
             mock.patch.object(build.share_cards, "load", return_value={"about/index.html": {"image": "assets/share/about.jpg", "alt": "About card"}}),
             mock.patch.object(build.share_cards, "load_links", return_value={}),
+            mock.patch.object(build, "BUILT_PAGES", {"library/map.html": lambda: _page("Map — HART", "<h1>Map</h1>")}),
         ):
             patch.start()
             self.addCleanup(patch.stop)
@@ -440,6 +505,16 @@ class FullBuild(_Repo):
         code, _, err = self.run_main()
         self.assertEqual(code, 0, err)
         self.assertEqual(self.tree(), self.EXPECTED)
+
+    def test_a_built_page_that_fails_stops_the_build(self):
+        def broken():
+            raise build.pipeline_map.GraphError("the graph has problems")
+
+        with mock.patch.object(build, "BUILT_PAGES", {"library/map.html": broken}):
+            code, _, err = self.run_main()
+        self.assertEqual(code, 1)
+        self.assertIn("Cannot build library/map.html", err)
+        self.assertNotIn("Traceback", err)
 
     def test_a_second_run_gives_the_same_files_and_resizes_nothing(self):
         self.assertEqual(self.run_main()[0], 0)
@@ -475,7 +550,8 @@ class FullBuild(_Repo):
         self.assertEqual(code, 0, err)
         index = json.loads((self.out / build.INDEX_NAME).read_text())
         urls = sorted(r["url"] for r in index["records"])
-        self.assertEqual(urls, ["about/index.html", "docs/page.html", "index.html", "photos/index.html#historical/h1"])
+        self.assertEqual(urls, ["about/index.html", "docs/page.html", "index.html", "library/map.html",
+                                "photos/index.html#historical/h1"])
         self.assertNotIn("Engineering desk", json.dumps(index))
 
     def test_a_leak_in_a_page_fails_the_build_before_the_index_is_written(self):

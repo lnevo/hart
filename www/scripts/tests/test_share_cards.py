@@ -126,6 +126,28 @@ class Review(unittest.TestCase):
         self.assertEqual(faults, [])
 
 
+    def test_a_page_the_build_writes_needs_no_file_but_a_missing_page_is_a_fault(self):
+        """A built page (prepare_github_pages.BUILT_PAGES, not committed: ADR-036) counts as a page; others must exist."""
+        built = next(iter(build.BUILT_PAGES))
+        with tempfile.TemporaryDirectory() as tmp:
+            root = _portal(tmp)
+            (root / "assets" / "share").mkdir(parents=True)
+            for name in ("m.jpg", "g.jpg"):
+                (root / "assets" / "share" / name).write_bytes(b"")
+            share_cards._image_size, orig = (lambda p: share_cards.SIZE), share_cards._image_size
+            try:
+                cards = {built: {"image": "assets/share/m.jpg", "alt": "Map"},
+                         "library/gone.html": {"image": "assets/share/g.jpg", "alt": "Gone"}}
+                _, faults = share_cards.review([], cards, root)
+                links = share_cards.review_links({built + "#focus=x": {"image": "assets/share/m.jpg", "alt": "Map"},
+                                                  "library/gone.html": {"image": "assets/share/g.jpg", "alt": "G"}}, root)
+            finally:
+                share_cards._image_size = orig
+        self.assertFalse((root / built).exists())
+        self.assertEqual(faults, ["library/gone.html: no such page"])
+        self.assertEqual(links, ["link library/gone.html: no such page"])
+
+
 class CardThumbs(unittest.TestCase):
     CARDS = {
         "ai/research.html": {"image": "assets/share/ai-research.jpg", "alt": "R"},

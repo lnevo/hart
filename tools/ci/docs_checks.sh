@@ -19,8 +19,9 @@ check docs-index python3 tools/ops/build_docs_index.py --check --strict
 check status-counts python3 tools/ops/status_counts.py --check
 check ai-speak python3 tools/audit/check_ai_speak.py
 check agent-docs python3 tools/audit/check_agent_docs.py
-# the map's agent-doc lane is generated from the wiki and agent docs, so a docs-only change can leave it stale
-check pipeline-map-site python3 tools/ops/build_pipeline_map.py --public --out www/library/pipeline-map.html --back repository-guide.html --check
+# the map's agent-doc lane is generated from the wiki and agent docs, so a docs-only change can leave it stale;
+# --check also draws both map pages in memory (they are not committed, ADR-036)
+check pipeline-map python3 tools/ops/build_pipeline_map.py --check
 check public-text "$HOPS_PY" tools/audit/check_public_text.py
 check repo-guide python3 www/scripts/repo_guide_page.py --check
 check jmri-additions python3 www/scripts/jmri_additions_page.py --check

@@ -1,12 +1,15 @@
 """The pipeline map's graph checks and its layered layout (tools/ops/build_pipeline_map.py)."""
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import io
 import json
 import shutil
 import subprocess
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -64,10 +67,13 @@ class GraphChecksTest(unittest.TestCase):
         with self.assertRaisesRegex(MAP.GraphError, "lacks a from or to end"):
             load([node("x"), node("y")], [{"form": "x", "to": "y"}])
 
-    def test_repo_graph_loads_and_page_is_current(self) -> None:
-        """The committed map: every tracked path exists and index.html matches the graph."""
+    def test_repo_graph_loads_and_both_pages_build(self) -> None:
+        """The committed map: every tracked path exists, and both pages draw from it and pass their checks (the pages
+        are built, not committed: ADR-036)."""
         data = MAP.load(MAP.GRAPH)
-        self.assertEqual(MAP.PAGE.read_text(), MAP.render(data), "run python3 tools/ops/build_pipeline_map.py")
+        for public in (False, True):
+            page = MAP.build(data, public, MAP.SITE_BACK if public else "")
+            self.assertIn(f'{len(data["nodes"])} boxes, {len(data["edges"])} links', page)
 
     def test_presets_name_a_node_and_steps(self) -> None:
         g = {"domains": DOMAINS, "nodes": [node("x"), node("y")], "edges": [{"from": "x", "to": "y"}]}
@@ -729,26 +735,109 @@ process.stdout.write(JSON.stringify(out));"""
         self.assertEqual(js_layout({"domains": DOMAINS, "nodes": [], "edges": []})["nodes"], [])
 
 
-class PageTest(unittest.TestCase):
-    def test_site_copy_is_current(self) -> None:
-        """The website copy check.sh guards, with the same flags."""
-        args = ["--public", "--out", str(ROOT / "www/library/pipeline-map.html"), "--back", "repository-guide.html", "--check"]
-        self.assertEqual(MAP.main(args), 0)
+def run_main(args: list[str]) -> tuple[int, str, str]:
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        rc = MAP.main(args)
+    return rc, out.getvalue(), err.getvalue()
 
-    def test_relative_out_and_stale_hint(self) -> None:
-        import contextlib
-        import io
+
+class PageTest(unittest.TestCase):
+    def test_check_builds_both_pages_and_writes_nothing(self) -> None:
+        """The check check.sh and CI run: both pages drawn in memory and checked, no file written or compared."""
+        with unittest.mock.patch.object(MAP, "write_page") as write, \
+                unittest.mock.patch.object(MAP, "build", wraps=MAP.build) as build:
+            rc, out, err = run_main(["--check"])
+        self.assertEqual(rc, 0, err)
+        self.assertIn("both pages build", out)
+        write.assert_not_called()
+        self.assertEqual(sorted(c.kwargs["public"] for c in build.call_args_list), [False, True])
+
+    def test_check_refuses_an_out_file(self) -> None:
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as stop:
+            MAP.main(["--check", "--public", "--out", "x.html"])
+        self.assertEqual(stop.exception.code, 2)
+
+    def test_public_needs_out(self) -> None:
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as stop:
+            MAP.main(["--public"])
+        self.assertEqual(stop.exception.code, 2)
+
+    def test_plain_build_writes_both_local_pages(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp, \
+                unittest.mock.patch.object(MAP, "PAGE", Path(tmp, "docs/index.html")), \
+                unittest.mock.patch.object(MAP, "SITE_PAGE", Path(tmp, "www/library/pipeline-map.html")):
+            rc, out, err = run_main([])
+            self.assertEqual(rc, 0, err)
+            docs, site = MAP.PAGE.read_text(), MAP.SITE_PAGE.read_text()
+        self.assertNotIn("data-ops-header", docs)
+        self.assertIn("data-ops-header", site)
+        self.assertIn('href="repository-guide.html"', site)
+        self.assertEqual(out.count("wrote "), 2)
+
+    def test_relative_out(self) -> None:
         with tempfile.TemporaryDirectory() as tmp, contextlib.chdir(tmp):
-            rel = "map.html"
-            out = io.StringIO()
-            with contextlib.redirect_stdout(out):
-                self.assertEqual(MAP.main(["--public", "--out", rel]), 0)
-            self.assertIn("map.html", out.getvalue())
-            Path(rel).write_text("stale")
-            err = io.StringIO()
-            with contextlib.redirect_stderr(err):
-                self.assertEqual(MAP.main(["--public", "--out", rel, "--check"]), 1)
-            self.assertIn(f"--public --out {rel}", err.getvalue())
+            rc, out, err = run_main(["--public", "--out", "map.html"])
+            self.assertEqual(rc, 0, err)
+            self.assertIn("map.html", out)
+            self.assertTrue(Path("map.html").read_text().startswith("<!doctype html>"))
+
+    def test_site_page_is_the_checked_public_copy(self) -> None:
+        page = MAP.site_page()
+        self.assertIn("data-ops-header", page)
+        self.assertIn(f'href="{MAP.SITE_BACK}"', page)
+
+    def test_site_page_refuses_a_stale_graph(self) -> None:
+        data = json.loads(MAP.GRAPH.read_text())
+        data["edges"] = [e for e in data["edges"] if not e.get("gen")]
+        with tempfile.TemporaryDirectory() as tmp:
+            graph = Path(tmp, "g.json")
+            graph.write_text(json.dumps(data))
+            with self.assertRaisesRegex(MAP.GraphError, "agent-doc lane is generated"):
+                MAP.site_page(graph)
+
+    def test_a_page_that_lost_its_parts_fails_its_check(self) -> None:
+        data = MAP.load(MAP.GRAPH)
+        page = MAP.render(data)
+        MAP.check_page(page, data, site=False)
+        cases = (
+            (page.replace("const DATA = ", "const XDATA = "), "no graph data"),
+            (page.replace(MAP.script_text(), ""), "does not inline pipeline_map.js"),
+            (page + "__DATA__", "placeholders: __DATA__"),
+            (page.replace('{"nodes":[{', '{"nodes":[{"id":"extra"},{', 1), r"holds \d+ nodes, the graph \d+"),
+        )
+        for broken, why in cases:
+            with self.subTest(why=why), self.assertRaisesRegex(MAP.GraphError, why):
+                MAP.check_page(broken, data, site=False)
+        with self.assertRaisesRegex(MAP.GraphError, "no site header"):
+            MAP.check_page(page, data, site=True)
+
+    def test_an_empty_or_missing_viewer_script_is_a_graph_error(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp, "pipeline_map.js")
+            for content, why in (("  \n", "is empty"), (None, "cannot read the viewer script")):
+                if content is None:
+                    path.unlink(missing_ok=True)
+                else:
+                    path.write_text(content)
+                MAP.script_text.cache_clear()
+                try:
+                    with self.subTest(why=why), unittest.mock.patch.object(MAP, "SCRIPT", path), \
+                            self.assertRaisesRegex(MAP.GraphError, why):
+                        MAP.script_text()
+                finally:
+                    MAP.script_text.cache_clear()
+
+    def test_a_write_that_fails_is_a_graph_error_and_exit_1(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            blocker = Path(tmp, "file")
+            blocker.write_text("not a folder")
+            with self.assertRaisesRegex(MAP.GraphError, "cannot write"):
+                MAP.write_page(blocker / "map.html", "<p>page</p>")
+            rc, _, err = run_main(["--out", str(blocker / "map.html")])
+            self.assertEqual(rc, 1)
+            self.assertIn("pipeline map: cannot write", err)
+            self.assertNotIn("Traceback", err)
 
     def test_public_page_rejects_a_leak_anywhere(self) -> None:
         with self.assertRaisesRegex(MAP.GraphError, "leak check rejects: localhost"):
