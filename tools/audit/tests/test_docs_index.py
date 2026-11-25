@@ -108,7 +108,7 @@ class Summary(unittest.TestCase):
 
 
 class Tree(unittest.TestCase):
-    """A fake docs tree in a temporary ROOT, with `tracked` patched to its files."""
+    """A fake docs tree in a temporary ROOT, with `doc_files` patched to its files."""
 
     FILES = {
         "docs/AI.md": "# AI\nTop level doc.\n",
@@ -130,7 +130,7 @@ class Tree(unittest.TestCase):
             (self.root / name).parent.mkdir(parents=True, exist_ok=True)
             (self.root / name).write_text(body)
         for patch in (mock.patch.object(INDEX, "ROOT", self.root),
-                      mock.patch.object(INDEX, "tracked", return_value=sorted(self.FILES))):
+                      mock.patch.object(INDEX, "doc_files", return_value=sorted(self.FILES))):
             patch.start()
             self.addCleanup(patch.stop)
 
@@ -192,7 +192,7 @@ class Tree(unittest.TestCase):
         (self.root / "docs/ops/A B.md").write_text("# A\nChanged words.\n")
         self.assertEqual(self.run_main(["--check"])[0], 0)
         (self.root / "docs/ops/new.md").write_text("# N\nNew doc.\n")
-        with mock.patch.object(INDEX, "tracked", return_value=sorted(self.FILES) + ["docs/ops/new.md"]):
+        with mock.patch.object(INDEX, "doc_files", return_value=sorted(self.FILES) + ["docs/ops/new.md"]):
             status, _, err = self.run_main(["--check"])
         self.assertEqual(status, 1)
         self.assertIn("missing: ops: ops/new.md", err)
@@ -214,7 +214,7 @@ class Tree(unittest.TestCase):
 
     def test_new_asset_changes_the_count_and_fails(self) -> None:
         self.write_index()
-        with mock.patch.object(INDEX, "tracked", return_value=sorted(self.FILES) + ["docs/ops/more.png"]):
+        with mock.patch.object(INDEX, "doc_files", return_value=sorted(self.FILES) + ["docs/ops/more.png"]):
             status, _, err = self.run_main(["--check"])
         self.assertEqual(status, 1)
         self.assertIn("Plus 4 image", err)
@@ -251,10 +251,10 @@ class Tree(unittest.TestCase):
     def test_removed_document_fails(self) -> None:
         self.write_index()
         kept = [f for f in sorted(self.FILES) if f != "docs/wiring/x.csv"]
-        with mock.patch.object(INDEX, "tracked", return_value=kept):
+        with mock.patch.object(INDEX, "doc_files", return_value=kept):
             status, _, err = self.run_main(["--check"])
         self.assertEqual(status, 1)
-        self.assertIn("not tracked: wiring: wiring/x.csv", err)
+        self.assertIn("not in docs/: wiring: wiring/x.csv", err)
 
     def test_missing_index_fails(self) -> None:
         status, _, err = self.run_main(["--check"])
@@ -278,7 +278,7 @@ class Arguments(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             (Path(tmp) / "docs").mkdir()
             out, err = io.StringIO(), io.StringIO()
-            with mock.patch.object(INDEX, "ROOT", Path(tmp)), mock.patch.object(INDEX, "tracked") as tracked, \
+            with mock.patch.object(INDEX, "ROOT", Path(tmp)), mock.patch.object(INDEX, "doc_files") as tracked, \
                     contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
                 status = INDEX.main(argv)
             tracked.assert_not_called()
@@ -310,6 +310,29 @@ class Arguments(unittest.TestCase):
         with mock.patch.object(INDEX, "__doc__", None):
             status, out, err = self.run_main(["--help"])
         self.assertEqual((status, out, err), (0, INDEX.USAGE + "\n", ""))
+
+
+class DocFiles(unittest.TestCase):
+    """doc_files(): tracked and new files under docs/, without ignored or deleted ones, so a local run matches CI's."""
+
+    def test_new_untracked_doc_is_listed_and_deleted_or_ignored_are_not(self) -> None:
+        import subprocess
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            git = ["git", "-c", "user.email=t@t", "-c", "user.name=t"]
+            subprocess.run([*git, "init", "-q"], cwd=root, check=True)
+            (root / "docs").mkdir()
+            for name in ("kept.md", "gone.md"):
+                (root / "docs" / name).write_text("# T\n\nText.\n")
+            subprocess.run([*git, "add", "docs"], cwd=root, check=True)
+            subprocess.run([*git, "commit", "-q", "-m", "x"], cwd=root, check=True)
+            (root / "docs" / "gone.md").unlink()
+            (root / "docs" / "new.md").write_text("# T\n\nText.\n")
+            (root / ".gitignore").write_text("docs/ignored.md\n")
+            (root / "docs" / "ignored.md").write_text("# T\n")
+            with mock.patch.object(INDEX, "ROOT", root):
+                self.assertEqual(INDEX.doc_files(), ["docs/kept.md", "docs/new.md"])
 
 
 if __name__ == "__main__":
