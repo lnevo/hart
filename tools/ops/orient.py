@@ -19,7 +19,8 @@ problem. Code fences and HTML comments are not read.
 
 A worktree is in progress when its commit has commits not on origin/main, or a running Claude Code session holds
 its lock (tools/agent/worktrees.py reads the lock). The full view fetches origin/main first (a failed fetch says so
-and the counts use the local ref); --short never fetches. A part that cannot be read (gh, a host, the flag) prints
+and the counts use the local ref); --short never fetches. A clone without origin/main (a fresh or CI one) says so
+in one line and lists every worktree but the main checkout, with commits ahead unknown. A part that cannot be read (gh, a host, the flag) prints
 one line saying so; only a failure to read the worktrees themselves stops the run (exit 2).
 """
 from __future__ import annotations
@@ -80,7 +81,7 @@ class Tree:
     branch: str | None
     head: str
     lock: str  # "", "session running", "session ended", or "locked: <reason>" for a lock with no session pid
-    ahead: int = 0
+    ahead: int | None = 0  # None when origin/main is not in the repo, so the count is unknown
     last: datetime | None = None
 
 
@@ -225,23 +226,48 @@ def read_trees(wt) -> list[Tree]:
     if not raw:  # a repo always has its main checkout: an empty list means git worktree list failed
         git("worktree", "list", "--porcelain")  # raises with git's own message
         raise OrientError("git worktree list printed no worktree")
-    git("rev-parse", "--verify", "--quiet", f"{BASE}^{{commit}}")
+    known = base_exists()
     trees = [Tree(t.path, t.branch, t.head, lock_state(wt, t)) for t in raw]
     heads = sorted({t.head for t in trees if t.head and t.head.strip("0")})  # all zeros: no commit yet
     times = {}
     for line in git("log", "--no-walk=unsorted", "--format=%H %ct", *heads).splitlines():
         sha, stamp = line.split()
         times[sha] = datetime.fromtimestamp(int(stamp))
-    ahead = {sha: int(git("rev-list", "--count", f"{BASE}..{sha}")) for sha in heads}
+    ahead = {sha: int(git("rev-list", "--count", f"{BASE}..{sha}")) for sha in heads} if known else {}
     for t in trees:
         if t.head and t.head.strip("0") and t.head not in times:
             raise OrientError(f"git log gave no time for {t.head} ({t.path})")
-        t.ahead, t.last = ahead.get(t.head, 0), times.get(t.head)
+        t.ahead, t.last = (ahead.get(t.head, 0) if known else None), times.get(t.head)
     return trees
 
 
+def base_exists() -> bool:
+    """Whether origin/main is in the repo. A fresh or CI clone may lack it: that is a stated case (commits ahead
+    unknown), not an error; any other git failure is."""
+    cmd = ["git", "-C", str(ROOT), "rev-parse", "--verify", "--quiet", f"{BASE}^{{commit}}"]
+    try:
+        done = subprocess.run(cmd, capture_output=True, text=True, timeout=GIT_TIMEOUT)
+    except subprocess.TimeoutExpired:
+        raise OrientError(f"git rev-parse {BASE} took over {GIT_TIMEOUT} s") from None
+    except OSError as err:
+        raise OrientError(f"cannot run git: {err}") from None
+    if done.returncode == 0:
+        return True
+    if done.returncode == 1 and not done.stderr.strip():
+        return False
+    raise OrientError(f"git rev-parse {BASE} failed in {ROOT}: {done.stderr.strip() or f'exit {done.returncode}'}")
+
+
+BASE_MISSING = f"{BASE} not found; commits ahead unknown, so every worktree but the main checkout is listed"
+
+
 def in_progress(trees: list[Tree]) -> list[Tree]:
-    busy = [t for t in trees if t.ahead > 0 or t.lock == "session running"]
+    """Worktrees with commits not on origin/main or a running session's lock; when the count is unknown (no
+    origin/main), every worktree but the main checkout, since none can be ruled out."""
+    if any(t.ahead is None for t in trees):
+        busy = trees[1:]
+    else:
+        busy = [t for t in trees if t.ahead > 0 or t.lock == "session running"]
     return sorted(busy, key=lambda t: t.last or datetime.min, reverse=True)
 
 
@@ -411,7 +437,7 @@ def summarize_deploy(out: str, code: int, err: str) -> list[str]:
 # ---------------------------------------------------------------- output
 
 def tree_line(t: Tree, prs: dict[str, int], here: str) -> str:
-    bits = [t.branch or "(detached)", f"{t.ahead} ahead", f"last commit {t.last:%Y-%m-%d %H:%M}" if t.last else "no commit"]
+    bits = [t.branch or "(detached)", "commits ahead unknown" if t.ahead is None else f"{t.ahead} ahead", f"last commit {t.last:%Y-%m-%d %H:%M}" if t.last else "no commit"]
     if t.lock:
         bits.append(t.lock if t.lock.startswith("locked") else f"locked, {t.lock}")
     if t.branch in prs:
@@ -449,14 +475,17 @@ def report(short: bool, here: str) -> list[str]:
             prs, deploys, flag = prs_job.result(), deploy_job.result(), flag_job.result()
     limit = SHORT_LIMIT if short else None
     out = [] if short else [f"Orient {datetime.now():%Y-%m-%d %H:%M} ({fetched})", f"Operating flag: {flag}"]
+    if any(t.ahead is None for t in trees):
+        out.append(BASE_MISSING)
     out.append(f"Claims ({len(claims)})" + (":" if claims else ": none"))
     out += capped([claim_line(c, state) for c, state in claims], limit)
     if problems:
         out.append(f"Claim problems ({len(problems)}):")
         out += capped(["  " + p for p in problems], limit)
     by_branch = {p["headRefName"]: p["number"] for p in prs} if isinstance(prs, list) else {}
-    out.append(f"Worktrees in progress ({len(busy)}; commits not on {BASE}, or locked by a running session)"
-               + (":" if busy else ": none"))
+    rule = (f"{BASE} not found, so all but the main checkout" if any(t.ahead is None for t in trees)
+            else f"commits not on {BASE}, or locked by a running session")
+    out.append(f"Worktrees in progress ({len(busy)}; {rule})" + (":" if busy else ": none"))
     out += capped([tree_line(t, by_branch, here) for t in busy], limit)
     if short:
         return out

@@ -7,6 +7,7 @@ network or the real worktrees.
 from __future__ import annotations
 
 import importlib.util
+import io
 import json
 import os
 import subprocess
@@ -319,22 +320,43 @@ class ReportTest(Repo):
         (claim, state), = OR.read_claims(OR.read_trees(WT), WT)[0]
         self.assertEqual(state, f"STALE: no worktree at that path; remove the line in {wt}")
 
-    def test_a_worktree_failure_stops_before_any_network_call(self):
+    def test_no_origin_main_is_a_stated_case(self):
+        """A fresh or CI clone has no origin/main: one line says so, the count is unknown (never 0), and every
+        worktree but the main checkout is listed with its branch and lock."""
+        self.worktree("w1", commits=1)
+        self.worktree("w2")
         sh("git", "update-ref", "-d", "refs/remotes/origin/main", cwd=self.main)
+        trees = OR.read_trees(WT)
+        self.assertEqual([t.ahead for t in trees], [None, None, None])
+        out = OR.report(short=True, here="/")
+        self.assertEqual(out[0], OR.BASE_MISSING)
+        text = "\n".join(out)
+        self.assertIn("Worktrees in progress (2; origin/main not found, so all but the main checkout):", text)
+        self.assertIn("agent/claude/w1, commits ahead unknown, last commit", text)
+        self.assertIn("agent/claude/w2, commits ahead unknown", text)
+        self.assertNotIn(" 0 ahead", text)
+        with mock.patch("os.getcwd", return_value="/"), mock.patch("sys.stdout", new_callable=io.StringIO):
+            self.assertEqual(OR.main(["--short"]), 0)
+
+    def test_a_broken_origin_main_lookup_is_an_error(self):
+        with mock.patch.object(OR.subprocess, "run",
+                               return_value=subprocess.CompletedProcess([], 128, "", "fatal: not a git repository")):
+            with self.assertRaisesRegex(OR.OrientError, "not a git repository"):
+                OR.base_exists()
+
+    def test_a_worktree_failure_stops_before_any_network_call(self):
         calls = []
 
         def fake(cmd, timeout):
             calls.append(cmd[0])
             return 1, "", "offline"
 
-        with mock.patch.object(OR, "run", side_effect=fake), self.assertRaisesRegex(OR.OrientError, "origin/main"):
+        with mock.patch.object(OR, "run", side_effect=fake), mock.patch.object(WT, "worktrees", return_value=[]), \
+                mock.patch.object(OR, "ROOT", self.base), self.assertRaisesRegex(OR.OrientError, "worktree list"):
             OR.report(short=False, here="/")
         self.assertEqual(calls, ["git"])  # the fetch only; gh, the hosts and the flag were never asked
 
     def test_git_failures_are_domain_errors(self):
-        sh("git", "update-ref", "-d", "refs/remotes/origin/main", cwd=self.main)
-        with self.assertRaisesRegex(OR.OrientError, "origin/main"):
-            OR.read_trees(WT)
         with tempfile.TemporaryDirectory() as tmp, mock.patch.object(OR, "ROOT", Path(tmp)):
             with self.assertRaisesRegex(OR.OrientError, "worktree list"):
                 OR.read_trees(WT)
