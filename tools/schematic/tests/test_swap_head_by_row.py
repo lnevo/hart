@@ -104,6 +104,9 @@ class HeadSwapByRow(RepoReadOnly, unittest.TestCase):
         self.assertIn("Mast 108LA", diff[0])
         [row] = [r for r in level_masts.read(self.masts_path) if r["mast"] == "Mast 108LA"]
         self.assertEqual(row["heads"], [("IH3332", "Head 108LA Top"), ("IH3333", "Head 108LA Bottom")])
+        import le_names       # the Layout Editor build's reader takes the swapped mast for the field
+        [le_row] = [r for r in le_names.read_level_masts(self.masts_path) if r["mast"] == "Mast 108LA"]
+        self.assertEqual(le_row["system_name"], WIRED_MAST)
 
     def test_the_railroad_check_passes(self):
         self.assertEqual([str(p) for p in self.rr.check()], [])
