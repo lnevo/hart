@@ -2,6 +2,14 @@
 
 One or two lines per fact, with the owner and date and a link to the detail. PR numbers, how each fact came about and the full earlier wording are in [`STATUS_LOG.md`](STATUS_LOG.md) (the 2026-11-21 "Full text" entry holds the last long versions).
 
+## Now
+
+- **Active:** generated-then-owner naming across every level ([`projects/naming-layers-handoff.md`](projects/naming-layers-handoff.md), [ADR-033](decisions/ADR-033-generated-then-owner.md)); CATS integration ([`projects/cats-integration.md`](projects/cats-integration.md)); health round 2 ([`projects/health-round2-handoff.md`](projects/health-round2-handoff.md)).
+- **Upstream:** the JMRI MQTT listener race fix ([`projects/mqtt-race-upstream-handoff.md`](projects/mqtt-race-upstream-handoff.md)).
+- **Waits on the owner:** the main and upper station maps and the wiring finalize, in that order (see Owed below); the session #4 punch list ([`docs/ops/SESSION4_PUNCH_LIST.md`](../docs/ops/SESSION4_PUNCH_LIST.md)).
+- **Blocked on hardware:** 14 main and upper heads have no board place yet, so their control points cannot be frozen (Owed below).
+- **Not pending:** [`not-pending.md`](not-pending.md). Parked: speed matching ([`projects/speedmatching.md`](projects/speedmatching.md)).
+
 ## Current state
 
 - **Layout:** `hart`. Masts are stock Basic (ADR-011). `jmri/layouts/hart/output/tables.xml` is the one tables file (ADR-008), generated from its sources (ADR-029). Every host loads `preference:tables.xml` from `JMRI_UserFiles` (ADR-014).
