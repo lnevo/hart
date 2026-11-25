@@ -87,7 +87,11 @@ SOURCE_PREFIXES = ("IT:HART:", "IS:HART:", "IH:HART:", "IB:HART:", level_devices
 
 COLUMNS = ("level", "cp", "layer", "role", "id", "user_name", "assignment", "system_name", "jmri_name", "node", "dcc",
            "wiring", "jmri_comment", "trial_name", "notes", "blocks", "detector", "stop", "layout_block",
-           "part_of", "switch", "facing", "protects", "dir", "written_by", "description", "jmri_bean")
+           "part_of", "switch", "facing", "protects", "dir", "start", "bean_comment", "written_by", "description",
+           "jmri_bean")
+# A row's start: its bean's state when the tables load, by layer (hartlib.level_devices.START_ENUM gives the JMRI
+# word); empty where JMRI's default stands (naming-layers step 9)
+START = {"occupancy": ("inactive",), "turnout": ("closed", "thrown")}
 # A field row's key (ADR-033 step 4): its device ID on its level, so a rename changes no key. A Store's level-less row
 # has no ID and is keyed by ("", layer, user_name) instead (key_of). NAME_KEY is unique in the merged view too, and is
 # how a message names a row (row_text).
@@ -832,6 +836,11 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "the device maste
         if LIST in r["cp"] and r["role"] not in LINE_ROLES:
             bad.append(f"{at}: cp {r['cp']!r} is a list, but a {r['role'] or r['layer']} sits in one control point "
                        f"(only a line block, roles {', '.join(LINE_ROLES)}, lists the places it joins)")
+        if r["start"] and r["start"] not in START.get(r["layer"], ()):
+            bad.append(f"{at}: start {r['start']!r} is not one a {r['layer']} row takes "
+                       f"({', '.join(START.get(r['layer'], ())) or 'none'})")
+        elif r["start"] and (not jn or r["role"] == "lcc_alias"):
+            bad.append(f"{at}: start is set, but the row makes no bean of its own (no jmri_name, or an LCC alias)")
         if r["wiring"] and r["jmri_comment"]:
             bad.append(f"{at}: wiring and jmri_comment are both set; a row has one comment")
         if (r["role"] == "part") != bool(r["part_of"]):

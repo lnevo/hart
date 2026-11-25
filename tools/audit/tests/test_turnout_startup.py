@@ -1,5 +1,5 @@
-"""The main and upper virtual turnouts' startup positions: build_layout_le.startup_thrown picks the switches whose main
-route runs through the diverging leg, le_tables.add_level_clear writes an ActionTurnout per turnout into the startup
+"""The main and upper virtual turnouts' startup positions: build_device_map.startup_thrown picks the switches whose main
+route runs through the diverging leg (written as the turnout rows' start, naming-layers step 9), le_tables.add_level_clear writes an ActionTurnout per turnout into the startup
 LogixNG, and hartlib.level_devices reads them back and refuses anything else (owner, 2026-11-19)."""
 from __future__ import annotations
 
@@ -53,12 +53,11 @@ class StartupActions(unittest.TestCase):
 class StartupThrown(unittest.TestCase):
     def test_227_and_229_line_the_peninsula_loop(self):
         import build_device_map as bdm
-        import build_layout_le as bl
         try:
             bands, _joined, _runs, _corners = bdm.solve()
         except Exception as exc:        # the schematic-maps plugin is not checked out here
             self.skipTest(f"no schematic: {exc}")
-        self.assertEqual(bl.startup_thrown(bands), {"Switch 227", "Switch 229"})
+        self.assertEqual(bdm.startup_thrown(bands), {"227", "229"})
 
 
 if __name__ == "__main__":

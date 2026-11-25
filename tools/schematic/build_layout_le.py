@@ -259,7 +259,7 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
     base_ix = {i for i, lv in enumerate(levels_of) if lv in BASE_LEVELS}    # a hidden join has band None: in none
     base_beans = bean_names(root)       # before the build adds any: a base level's names must be the base's own
     if adds:
-        add_level_objects(root, P, names, lengths, skip, startup_thrown(bands))
+        add_level_objects(root, P, names, lengths, skip)
         add_level_signals(root, level_rows)
     check_bound(root, P, names, skip, base_ix, base_beans, BASE_NAME)
 
@@ -300,26 +300,6 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
             raise BuildError(f"parking: {exc}") from None
         P.retired = retire_yard_ladder(root)
     return doc.tobytes(), P, names, bands
-
-
-def startup_thrown(bands) -> frozenset:
-    """The turnouts ("Switch <n>") of the levels the build adds (not BASE_LEVELS: the base's are the field's) that
-    start Thrown: those whose main route runs through leg C and not leg B, so every virtual turnout lines the main
-    line when the tables load (owner, 2026-11-19: 227 and 229 at the peninsula loop). A double crossover or a
-    crossover half stays Closed (straight through)."""
-    import build_device_map as bdm      # imports this module's plugin path: here, not at load
-    out = set()
-    for (_title, band, _opts), level in zip(bands, band_levels(bands)):
-        if level in BASE_LEVELS:
-            continue
-        for d in band["nodes"].values():
-            if d["kind"] != "switch":
-                continue
-            main = {p: bool(sid and band["strands"][sid]["main"])
-                    for p in "BC" for sid in [d["ins"].get(p) or d["outs"].get(p)]}
-            if main["C"] and not main["B"]:
-                out.add(f"Switch {bdm.base(d['label'])}")
-    return frozenset(out)
 
 
 def __getattr__(name: str):

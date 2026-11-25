@@ -274,6 +274,12 @@ the name map's copy (2026-11-21): their facts are in `cp`, `system_name`, `dcc`,
   `block_numbering.csv` (`hartlib.block_numbering`, naming-layers step 8) and the Layout Editor build reads. Those rows
   are `assignment` virtual (`IB:C3:` is in `SOURCE_PREFIXES`); a helix block's main or upper row has neither name,
   its beans are staging's. A wired head's comment is its `wiring`.
+- `start` and `bean_comment` (naming-layers step 9): what the Layout Editor build reads off a main or upper row for
+  the bean it makes. `start` is the state the bean takes when the tables load (`devices.START` by layer: inactive on a
+  detector, closed or thrown on a turnout; `level_devices.START_ENUM` gives the JMRI word for the startup LogixNG);
+  `bean_comment` is the bean's JMRI comment, in the words of `level_devices.LEVEL_COMMENT`, `sensor_comment` and
+  `signal_note`. `build_device_map.py` writes both (`device_map_rows.bean_cells`); staging rows leave them empty,
+  their comment is `tables_build.bean_comment`'s. Step 11 makes every bean from the row and unifies the words.
 
 ### `hartlib.tables_build`
 

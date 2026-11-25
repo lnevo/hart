@@ -316,6 +316,18 @@ class TheParts(unittest.TestCase):
         cycle = [part("Track 1-3", part_of="Track 3-5"), part("Track 3-5", part_of="Track 1-3")]
         self.assertIn("itself a part", problems(cycle))
 
+    def test_a_start_is_one_its_layer_takes_on_a_row_with_a_bean(self):
+        """start (naming-layers step 9): inactive on a detector, closed or thrown on a turnout, on a row with a bean of
+        its own (a jmri_name, not an LCC alias); empty anywhere else."""
+        D.check_rows([turnout(start="thrown"), mast(bean_comment="any words")])
+        self.assertIn("start 'inactive' is not one a turnout row takes (closed, thrown)",
+                      problems([turnout(start="inactive")]))
+        self.assertIn("start 'closed' is not one a mast row takes (none)", problems([mast(start="closed")]))
+        self.assertIn("start is set, but the row makes no bean of its own",
+                      problems([turnout(role="lcc_alias", start="closed")]))
+        self.assertIn("start is set, but the row makes no bean of its own",
+                      problems([turnout(assignment="none", system_name="", jmri_name="", start="closed")]))
+
     def test_the_device_maps_leave_parts_out(self):
         self.assertIn("part", D.OUT_OF_MAPS)
         self.assertIn("a JMRI block of its own", D.describe(part()))

@@ -52,6 +52,15 @@ NAMES = {
     "Upper": dict(turnouts={"n3": "Switch 201"}, os={"n3": "OS Switch 201"}, blocks={}),
 }
 LEVEL_BLOCKS = ["OS Switch 105", "OS Switch 201", "Track 105-109"]
+
+
+def cells_for(thrown) -> dict:
+    """level_cells as build_device_map.py writes them for NAMES: each turnout's start (thrown when in `thrown`) and
+    comment, each block's comment."""
+    turnouts = [t for k, v in NAMES.items() if k != STAGING for t in v["turnouts"].values()]
+    out = {("turnout", t): ("thrown" if t in thrown else "closed", level_devices.LEVEL_COMMENT) for t in turnouts}
+    out.update({("block", b): ("", level_devices.LEVEL_COMMENT) for b in LEVEL_BLOCKS})
+    return out
 # each level block's bean names as its device-master row gives them (build_device_map.py copies them from
 # block_numbering.csv; naming-layers step 8)
 BEANS = {b: (f"IB:C3:{i:04d}", f"ILB{1000 + i}") for i, b in enumerate(LEVEL_BLOCKS, 1)}
@@ -62,16 +71,34 @@ class AddLevelObjects(unittest.TestCase):
     for each and for a staging block the device map gives one (the helix), and the startup positions."""
 
     def run_it(self, names=NAMES, drawn=None, lengths=None, thrown=frozenset({"Switch 105"}), sensors=None,
-               beans=None):
+               beans=None, cells=None):
         root = base_root()
         P = SimpleNamespace(blocks=set(drawn if drawn is not None else LEVEL_BLOCKS + ["Track Helix Outer"]))
         lengths = {b: 100.0 for b in LEVEL_BLOCKS} if lengths is None else lengths
         sensors = sensors_for(LEVEL_BLOCKS + ["Track Helix Outer"]) if sensors is None else sensors
         with mock.patch.multiple(le_tables, BLOCK_NUMBERED_AS={}, APPENDED_BLOCKS=(), RETIRED_BLOCKS=()), \
                 mock.patch.object(le_tables, "level_sensors", return_value=sensors), \
-                mock.patch.object(le_tables, "level_block_beans", return_value=BEANS if beans is None else beans):
-            le_tables.add_level_objects(root, P, names, lengths, {STAGING}, thrown)
+                mock.patch.object(le_tables, "level_block_beans", return_value=BEANS if beans is None else beans), \
+                mock.patch.object(le_tables, "level_cells", return_value=cells_for(thrown) if cells is None else cells):
+            le_tables.add_level_objects(root, P, names, lengths, {STAGING})
         return root
+
+    def test_each_turnouts_and_blocks_comment_and_start_are_its_rows(self):
+        """The build gives each turnout and block its row's bean_comment and each turnout its row's start
+        (naming-layers step 9); a row with none, or a turnout start that is not closed or thrown, stops."""
+        cells = {**cells_for(frozenset()), ("block", "Track 105-109"): ("", "block words"),
+                 ("turnout", "Switch 103"): ("closed", "turnout words")}
+        root = self.run_it(cells=cells)
+        comments = {tables.user_name(b): b.findtext("comment") for b in tables.turnouts(root) + tables.blocks(root)}
+        self.assertEqual(comments["Track 105-109"], "block words")
+        self.assertEqual(comments["Switch 103"], "turnout words")
+        self.assertEqual(comments["Switch 105"], level_devices.LEVEL_COMMENT)
+        with self.assertRaisesRegex(BuildError, r"the turnout row 'Switch 201' has no bean_comment"):
+            self.run_it(cells={k: v for k, v in cells.items() if k != ("turnout", "Switch 201")})
+        with self.assertRaisesRegex(BuildError, r"the block row 'OS Switch 105' has no bean_comment"):
+            self.run_it(cells={k: v for k, v in cells.items() if k != ("block", "OS Switch 105")})
+        with self.assertRaisesRegex(BuildError, r"start is not closed or thrown: \['Switch 103'\]"):
+            self.run_it(cells={**cells, ("turnout", "Switch 103"): ("", "c")})
 
     def test_the_other_levels_turnouts_and_blocks_are_added_virtual(self):
         root = self.run_it()
@@ -99,8 +126,8 @@ class AddLevelObjects(unittest.TestCase):
         root = self.run_it()
         states = {a.findtext("namedBean/name"): a.findtext("state/enum") for a in root.iter("ActionTurnout")}
         self.assertEqual(states, {"IT:HART:C3:103": "Closed", "IT:HART:C3:105": "Thrown", "IT:HART:C3:201": "Closed"})
-        with self.assertRaisesRegex(BuildError, r"start Thrown that the panel does not have: \['T1'\]"):
-            self.run_it(thrown=frozenset({"T1"}))          # a staging turnout is no virtual one
+        root = self.run_it(thrown=frozenset({"T1"}))       # a staging turnout's row is never read
+        self.assertNotIn("IT1", {a.findtext("namedBean/name") for a in root.iter("ActionTurnout")})
 
     def test_a_block_with_no_length_or_sensor_stops(self):
         with self.assertRaisesRegex(BuildError, r"blocks with no source: \['Track 105-109'\]"):
