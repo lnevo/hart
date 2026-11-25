@@ -325,6 +325,10 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   number); `test_check_device_master`, `test_build_device_map` follow.
 - **Outputs byte-identical:** `make panels CHECK=1 FULL=1` all current, `check_approved.py --check` all matching,
   `build_tables.py --base-hash` unchanged against main, `test_bean_goldens` unchanged. No visible main or upper change.
+- **Code review (medium), fixed:** `le_tables` stops when a row's layout block is not its block's ILB pair or the
+  generated rows are stale against `block_numbering.csv` (`stale_block_beans`: run `build_device_map.py`); an owner's
+  field `jmri_name` is not judged. A Store rename of a built block says to rename its `devices_field.csv` row. A
+  numbering message names the file read (`Numbering.source`). The committed-rows test numbers over the generated names.
 
 ## How to run this
 
