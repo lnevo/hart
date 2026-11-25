@@ -63,7 +63,7 @@ SHELL_PYTHON = '"$HOPS_PY"'
 # field -> (type, required); the item lists are checked further below
 FIELDS: dict[str, tuple[type, bool]] = {
     "name": (str, True), "runner": (str, True), "cmd": (list, True), "domain": (str, True), "label": (str, True),
-    "desc": (str, True),
+    "desc": (str, True), "after_edit": (bool, False),
     "group": (str, False), "docs_only": (bool, False), "inputs": (list, False), "outputs": (list, False),
     "programs": (dict, False), "quiet_inputs": (list, False), "git": (list, True), "reads_all": (str, False),
 }
@@ -304,6 +304,8 @@ def _step_problems(entry: dict, where: Repo) -> list[str]:
     if entry["domain"] not in where.domains:
         out.append(f"domain: {entry['domain']!r} is not a map domain ({', '.join(sorted(where.domains))})")
     out += [f"cmd: {msg}" for msg in _cmd_problems(entry["cmd"], "group" in entry, where)]
+    if entry.get("after_edit") and PYTHON in entry["cmd"]:     # .claude/hooks/check_after_edit.py runs cmd as it is
+        out.append(f"after_edit: the after-edit hook runs the command as written, so it cannot hold {PYTHON!r}")
     why = git_problem(entry["git"])
     if why:
         out.append(f"git: {why}")
