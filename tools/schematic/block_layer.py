@@ -8,12 +8,13 @@ What it makes, for each level drawn on a band:
   detectors: then each half is an OS block of its own, named in block_overrides.csv (kind crossover_half; staging 7,
   23 and 35). A double crossover's corners are build_device_map.xover_corners' (main and upper), not this module's;
   its node keeps "OS Switch <n>" here, as mast_plan reads it.
-- a block per track, named by name_tracks: the plan's name when its strands carry one ("Track <name>"; a helix track
-  its "Track <plan name>" too, on every level, so each helix block is one block across levels), else
+- a block per track, named by name_tracks: the name store's name when it gives its strands one ("Track <name>";
+  hartlib.track_names, looked up by each strand's ID, store_names, never read off the drawing; a helix track its
+  "Track <plan name>" too, on every level, so each helix block is one block across levels), else
   mast_rule.track_names' end-switch rule ("Track 107-109", "Track 3 Spur 1", "Track 107 Loop"). A balloon loop, or a
   track block_overrides.csv splits (kind split, the owner's choice: 227-241, Princess K-1 and K-2), is two blocks
-  parted at its turnback, half 1 at the lower-numbered switch (loop_halves); a half is named by its strand's plan name
-  when the two halves carry different ones (Track K-2, Track K-1), else "<track> <half>" (half_block). A name given
+  parted at its turnback, half 1 at the lower-numbered switch (loop_halves); a half is named by its strand's name
+  when the two halves have different ones (Track K-2, Track K-1), else "<track> <half>" (half_block). A name given
   to two blocks of one level stops.
 - parts: a piece of track inside another block (the device master's part_of; owner, 2026-11-20). A link, a track between two
   switches shorter than LINK_CM, is part of the lower-numbered switch's OS block (the one at that end: a crossover
@@ -73,8 +74,10 @@ def edge_key(edge: str) -> str:
     return re.sub(r"(?<=\d)[xy]$", "", edge)
 
 
-def plan_name(band, sid: str) -> str:
-    return (band["strands"][sid].get("name") or "").strip()
+def plan_name(t: dict, bi: int, sid: str) -> str:
+    """The name store's name of strand `sid` of band `bi`, a strand of track entry `t` ("" when it has none): the
+    names tracks() looked up by the strands' IDs (staging_device_map.strand_names), never the drawing's."""
+    return t["names"].get((bi, sid), "")
 
 
 # ---------------------------------------------------------------- track names
@@ -119,10 +122,13 @@ def drawing(level: int, of: dict | None = None, title: str | None = None) -> str
     return of[level]
 
 
-def tracks(bands, runs, joined, levels: dict, data: Path | None = None) -> list[dict]:
+def tracks(bands, runs, joined, levels: dict, data: Path | None = None, owner: dict | None = None) -> list[dict]:
     """mast_rule.tracks of every band `levels` holds, one drawing at a time (sheet_of: a track's edges are keyed
     within its drawing; drawings of `data`), each level's helix ends tagged "H" (name_tracks names a helix track by
-    its plan name)."""
+    its plan name). Each entry's `names` ({(band index, strand): name}) are the name store's for its strands on every
+    band of its drawing (a track cut by a connector is one entry), looked up by their IDs
+    (staging_device_map.strand_names over the drawing's hand plan_overrides section; `owner`: hartlib.track_names
+    .owner_names in its shape, default the rows beside `data`). BlockError when a name cannot be looked up."""
     out, of = [], drawings(data)
     titles = defaultdict(list)
     for t, lv in levels.items():
@@ -131,19 +137,42 @@ def tracks(bands, runs, joined, levels: dict, data: Path | None = None) -> list[
         mine = {t: lv for t, lv in levels.items() if drawing(lv, of) == name}
         if mine:
             out += mr.tracks(bands, runs, joined, {lv: "H" for lv in mine.values()}, mine)
+    store_names(out, bands, joined, levels, data, owner)
     return out
 
 
-def name_tracks(found: list[dict], bands, helix: dict) -> None:
-    """Fill `name` in each track entry of mast_rule.tracks: "Track <plan name>" when its strands carry one plan name
-    (a helix track too: its pieces on two drawings carry one name, so they are one block across the level split, the
-    plugin pairing the cut ends by it), else the end-switch rule (mast_rule.track_names). A track whose strands carry
-    two names keeps the end-switch name: it must be split into halves (layer checks it), each named by its own.
+def store_names(found: list[dict], bands, joined, levels: dict, data: Path | None = None,
+                owner: dict | None = None) -> None:
+    """Give each track entry of `found` (mast_rule.tracks of the bands `levels` holds) its `names`, {(band index,
+    strand): name}: the name store's for its strands on every band of its drawing (a track cut by a connector is one
+    entry), looked up by their IDs (staging_device_map.strand_names over the drawing's hand plan_overrides section in
+    `data`; `owner`: hartlib.track_names.owner_names in its shape, default the rows beside `data`). plan_name reads
+    them. BlockError when a name cannot be looked up."""
+    import staging_device_map as sdm        # band_refs, the strands' IDs (it does not import this module)
+    folder = Path(pd.DATA if data is None else data)
+    whole = layer_files.read_file("plan_overrides", folder)
+    sheet = sheet_of(bands, levels, folder)
+    named = {}
+    for bi, name in sheet.items():
+        try:
+            named[bi] = sdm.strand_names(bands, joined, bi, whole[name], owner, folder)
+        except sdm.StagingMapError as exc:
+            raise BlockError(f"the track names of {bands[bi][0]!r}: {exc}") from None
+    for t in found:
+        edges = {edge_key(bands[t["band"]][1]["strands"][sid]["edge"]) for sid in t["strands"]}
+        t["names"] = {(bi, sid): nm for bi, got in named.items() if sheet[bi] == sheet[t["band"]]
+                      for sid, nm in got.items() if edge_key(bands[bi][1]["strands"][sid]["edge"]) in edges}
+
+
+def name_tracks(found: list[dict], helix: dict) -> None:
+    """Fill `name` in each track entry of tracks(): "Track <plan name>" when the name store gives its strands one
+    name (plan_name; a helix track too: its pieces on two drawings get one name, so they are one block across the
+    level split), else the end-switch rule (mast_rule.track_names). A track whose strands get two names keeps the
+    end-switch name: it must be split into halves (layer checks it), each named by its own.
     BlockError on a track up the helix whose one plan name is not a helix track of `helix` (read_helix_tracks)."""
     rest, bad = [], []
     for t in found:
-        band = bands[t["band"]][1]
-        names = sorted({plan_name(band, sid) for sid in t["strands"]} - {""})
+        names = sorted({plan_name(t, t["band"], sid) for sid in t["strands"]} - {""})
         if any(k == "helix" for k, _v in t["ends"]):
             if len(names) != 1 or names[0] not in helix:
                 bad.append(f"level {t['level']}: the track up the helix from Switch "
@@ -432,7 +461,7 @@ def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions:
                 blocks[sid] = rows[sid] = [os_[ends[0]]]
                 continue
             h = halves.get(sid)
-            name = half_block(band, t, sid, h, halves)
+            name = half_block(bi, t, sid, h, halves)
             held = out.tracks.get(name)
             if held is not None and held != (t, h) and held[0]["level"] == t["level"]:
                 bad.append(f"level {level}: {name} names two blocks ({', '.join(held[0]['trial'])} and "
@@ -557,13 +586,14 @@ def exception_pieces(t, ex: dict, own: str, ends: dict, where: str, bad: list) -
     return out
 
 
-def half_block(band, t: dict, sid: str, h: int | None, halves: dict) -> str:
-    """The block name of strand `sid` of track `t`: the track's name, or for a half (`h`) of a balloon loop or split
-    track its strand's plan name ("Track K-2") when the two halves carry different ones, else "<track> <half>"."""
+def half_block(bi: int, t: dict, sid: str, h: int | None, halves: dict) -> str:
+    """The block name of strand `sid` (on band `bi`) of track `t`: the track's name, or for a half (`h`) of a balloon
+    loop or split track its strand's plan name ("Track K-2") when the two halves have different ones, else
+    "<track> <half>"."""
     if h is None:
         return t["name"]
-    names = {halves[x]: plan_name(band, x) for x in t["strands"] if x in halves}
-    mine = plan_name(band, sid)
+    names = {halves[x]: plan_name(t, bi, x) for x in t["strands"] if x in halves}
+    mine = plan_name(t, bi, sid)
     if mine and len(set(names.values())) == len(names) == 2:
         return f"Track {mine}"
     return half_name(t["name"], h)
@@ -589,7 +619,7 @@ def check(bands, lay: Layer, levels: dict, found: list[dict], corners: dict | No
         key = (t["level"], name)
         if owners.setdefault(key, id(t)) != id(t):
             bad.append(f"level {t['level']}: {name} names two tracks")
-        names = {plan_name(bands[t["band"]][1], sid) for sid in t["strands"]} - {""}
+        names = {plan_name(t, t["band"], sid) for sid in t["strands"]} - {""}
         if len(names) > 1 and h is None:
             bad.append(f"level {t['level']}: {t['name']} carries plan names {sorted(names)} but is one block: name "
                        f"one of them, or split it in {OVERRIDES_NAME} (kind split)")

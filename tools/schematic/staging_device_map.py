@@ -82,7 +82,7 @@ import le_common as lc  # noqa: E402  the band key, plugin, solved schematic and
 import le_names as ln  # noqa: E402  runs and crossovers
 import mast_rule as mr  # noqa: E402  the helix tracks (plan_overrides.json)
 import publish_draft as pd  # noqa: E402  DATA and the plugin cache
-from hartlib import device_ids, devices, layer_files, level_masts, paths, railroad, tables  # noqa: E402
+from hartlib import device_ids, devices, layer_files, level_masts, paths, railroad, tables, track_names  # noqa: E402
 
 LEVEL = 1
 DEVICE_MAP = devices.MASTER     # the master: its level 1 rows are staging's device map
@@ -158,6 +158,30 @@ def band_refs(bands, joined: dict, bi: int) -> dict[str, tuple[str, bool]]:
                 return end_key(other, far)
         raise StagingMapError(f"{bands[bj][0]}: no run reaches connector {m}")
     return piece_refs(bands[bi][1], beyond)
+
+
+def strand_names(bands, joined: dict, bi: int, section: dict, owner: dict | None = None,
+                 data: Path | None = None) -> dict[str, str]:
+    """{strand id: its track's name, without "Track "} of every strand of band `bi` the name store names, looked up
+    by the strand's ID part (band_refs) in hartlib.track_names (piece_names over `section`, the hand plan_overrides
+    section of the band's drawing; `owner`, owner_names of `data`, default publish_draft.DATA), never read off the
+    drawing. A strand of no named track has none."""
+    return _names_by_ref(band_refs(bands, joined, bi), section, owner, data, bands[bi][0])
+
+
+def staging_names(band, section: dict | None = None, owner: dict | None = None) -> dict[str, str]:
+    """strand_names of the staging band alone (`band`, no connector: piece_refs), by staging's hand section
+    (overrides(), default)."""
+    return _names_by_ref(piece_refs(band), overrides() if section is None else section, owner, None, "staging")
+
+
+def _names_by_ref(refs: dict, section: dict, owner, data, where: str) -> dict[str, str]:
+    try:
+        got = track_names.piece_names(section, {piece for piece, _rev in refs.values()}, owner,
+                                      pd.DATA if data is None else data)
+    except track_names.TrackNameError as exc:
+        raise StagingMapError(f"{where}: {exc}") from None
+    return {sid: got[piece] for sid, (piece, _rev) in refs.items() if piece in got}
 
 
 def piece_refs(band, beyond=None) -> dict[str, tuple[str, bool]]:
@@ -291,13 +315,15 @@ def occupancy_blocks(r: dict) -> list[str]:
     return railroad.device_list(r["blocks"])
 
 
-def check_helix(band, names: dict, helix: dict | None = None) -> list[str]:
+def check_helix(band, names: dict, helix: dict | None = None, stored: dict | None = None) -> list[str]:
     """Each helix track of plan_overrides.json is drawn on the staging band from its staging_switch, and its staging
-    piece is that file's block (load()'s names)."""
+    piece is that file's block (load()'s names). A strand is the helix track the name store names it by its ID
+    (`stored`: staging_names, default the band's)."""
     helix = mr.read_helix_tracks() if helix is None else helix
+    stored = staging_names(band) if stored is None else stored
     bad = []
     for plan, h in sorted(helix.items()):
-        sids = [sid for sid, s in band["strands"].items() if s.get("name") == plan]
+        sids = [sid for sid in band["strands"] if stored.get(sid) == plan]
         if len(sids) != 1:
             bad.append(f"helix track {plan}: drawn {len(sids)} times on the staging band")
             continue

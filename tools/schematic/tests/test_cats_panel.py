@@ -77,7 +77,8 @@ class StagingSwitches(unittest.TestCase):
         k = built()
         self.F, self.band, self.opts = k["F"], k["bands"][k["bi"]][1], k["bands"][k["bi"]][2]
         self.committed = k["committed"]
-        self.os_of = B.os_blocks(self.band, self.F)
+        self.stored = B.staging_names(self.band)
+        self.os_of = B.os_blocks(self.band, self.F, self.stored)
 
     def test_os_blocks_one_per_switch_node(self):
         nodes = {n for n, d in self.band["nodes"].items() if d["kind"] == "switch"}
@@ -87,14 +88,14 @@ class StagingSwitches(unittest.TestCase):
         self.assertEqual(set(self.os_of.values()), legs)              # every staging row of switches.csv drawn once
 
     def test_switch_bindings_are_the_committed_staging_ones(self):
-        got = B.switch_bindings(self.band, self.F, self.os_of)
+        got = B.switch_bindings(self.band, self.F, self.os_of, self.stored)
         want = {k: e for k, e in self.committed["switches"].items() if staging_turnout(e)}
         self.assertEqual(got, want)
 
     def test_half_labels(self):
         """A switch with several staging rows of switches.csv is drawn as halves, labelled its number and A, B, ... one per
         row; a switch with one row has no label."""
-        got = B.switch_bindings(self.band, self.F, self.os_of)
+        got = B.switch_bindings(self.band, self.F, self.os_of, self.stored)
         by_number = {}
         for key, e in got.items():
             number = int(key.split("/")[0])
@@ -111,14 +112,14 @@ class StagingSwitches(unittest.TestCase):
     def test_destinations_are_the_closed_and_thrown_legs(self):
         """Each staging switch's legs B and C lead to its switches.csv closed and thrown blocks, the closed one
         on the leg its binding closes the turnout for."""
-        got = B.switch_bindings(self.band, self.F, self.os_of)
+        got = B.switch_bindings(self.band, self.F, self.os_of, self.stored)
         by_block = {e["block"]: (k, e) for k, e in got.items()}
         dests = set()
         for n, os_name in sorted(self.os_of.items()):
             d = self.band["nodes"][n]
             sw = self.F.switches[int(d["label"])]
             leg = next(l for l in sw.legs if l.os_block == os_name)
-            to = {p: B.dest(self.band, self.os_of, n, p, self.F.helix) for p in "BC"}
+            to = {p: B.dest(self.band, self.os_of, n, p, self.F.helix, self.stored) for p in "BC"}
             with self.subTest(os=os_name):
                 self.assertEqual(sorted(to.values()), sorted((leg.closed, leg.thrown)))
                 _key, e = by_block[os_name]
@@ -142,12 +143,17 @@ class Helix(unittest.TestCase):
             self.assertEqual(B.track_block(plan, k["F"].helix), h["block"])
         self.assertEqual(B.track_block("K-2", k["F"].helix), "Track K-2")
         band = k["bands"][k["bi"]][1]
+        stored = B.staging_names(band)
         found = {}
         for sid, s in band["strands"].items():
-            got = B.helix_block(band, ("track", f"b{k['bi']}:{sid}"), helix)
+            got = B.helix_block(("track", f"b{k['bi']}:{sid}"), helix, stored)
             if got:
                 found.setdefault(got, set()).add(s["name"])
         self.assertEqual(found, {h["block"]: {plan} for plan, h in helix.items()})
+        # the name store's names, by strand ID, not the drawing's: a strand drawn with a helix name is not a helix
+        drawn = {sid: s["name"] for sid, s in band["strands"].items() if s["name"]}
+        self.assertEqual({sid: n for sid, n in stored.items() if sid in drawn}, drawn)
+        self.assertIsNone(B.helix_block(("track", f"b{k['bi']}:{next(iter(drawn))}"), helix, {}))
 
     def test_each_helix_block_is_bound_once_from_the_device_map(self):
         blocks = built()["committed"]["blocks"]
@@ -163,7 +169,9 @@ class Blocks(unittest.TestCase):
     def setUp(self):
         k = built()
         self.k = k
-        out_sw = B.switch_bindings(k["bands"][k["bi"]][1], k["F"], B.os_blocks(k["bands"][k["bi"]][1], k["F"]))
+        band = k["bands"][k["bi"]][1]
+        self.stored = B.staging_names(band)
+        out_sw = B.switch_bindings(band, k["F"], B.os_blocks(band, k["F"], self.stored), self.stored)
         named = {key: {"block": v["block"]} for key, v in out_sw.items()}
         level_sw = self.level_switches()
         named.update({key: {"corners": v["corners"]} for key, v in level_sw.items() if "corners" in v})
@@ -178,9 +186,9 @@ class Blocks(unittest.TestCase):
 
     def test_staging_and_main_upper_blocks_are_the_committed_ones(self):
         k = self.k
-        dark, log, missing, joined = B.dark_bindings(k["bands"], k["cats"], self.P, k["F"], k["bi"])
+        dark, log, missing, joined = B.dark_bindings(k["bands"], k["cats"], self.P, k["F"], k["bi"], self.stored)
         names = {key: v for key, v in self.P.names.items() if key[1].startswith(f"b{k['bi']}:") and key not in joined}
-        staging = B.block_bindings(k["bands"][k["bi"]][1], k["F"], names)
+        staging = B.block_bindings(k["bands"][k["bi"]][1], k["F"], names, self.stored)
         self.assertFalse(set(staging) & set(dark))
         self.assertEqual(dict(staging, **dark), k["committed"]["blocks"])
         self.assertEqual(missing, k["committed"]["_main_upper_not_on_desk"])

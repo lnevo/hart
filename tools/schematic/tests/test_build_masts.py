@@ -77,18 +77,22 @@ class Names(unittest.TestCase):
 
 
 class PlanEdge(unittest.TestCase):
-    BAND = {"strands": {"a": strand("e16.0", "K-1"), "b": strand("e16.1", "K-2"), "c": strand("e16.2", ""),
-                        "d": strand("e9+e10", "Main West"), "e": strand("e160", "Other")}}
+    # the drawing's own names are not read (naming-layers step 3b): the name store's, by strand, are STORED
+    BAND = {"strands": {"a": strand("e16.0", "Drawn"), "b": strand("e16.1", ""), "c": strand("e16.2", "Drawn"),
+                        "d": strand("e9+e10", ""), "e": strand("e160", "")}}
+    STORED = {"a": "K-1", "b": "K-2", "d": "Main West", "e": "Other"}
 
-    def test_one_edge_with_every_name_it_carries(self):
-        self.assertEqual(bsm.plan_edge(self.BAND, ["a"]), ("e16", ["K-1", "K-2"]))       # the unnamed part left out
-        self.assertEqual(bsm.plan_edge(self.BAND, ["b", "c"]), ("e16", ["K-1", "K-2"]))
-        self.assertEqual(bsm.plan_edge(self.BAND, ["d"]), ("e9+e10", ["Main West"]))
-        self.assertEqual(bsm.plan_edge(self.BAND, ["e"]), ("e160", ["Other"]))           # e160 is not e16
+    def test_one_edge_with_every_name_the_store_gives_it(self):
+        edge = lambda sids: bsm.plan_edge(self.BAND, sids, self.STORED)     # noqa: E731
+        self.assertEqual(edge(["a"]), ("e16", ["K-1", "K-2"]))       # the unnamed part left out
+        self.assertEqual(edge(["b", "c"]), ("e16", ["K-1", "K-2"]))
+        self.assertEqual(edge(["d"]), ("e9+e10", ["Main West"]))
+        self.assertEqual(edge(["e"]), ("e160", ["Other"]))           # e160 is not e16
+        self.assertEqual(bsm.plan_edge(self.BAND, ["a"], {}), ("e16", []))     # a drawn name is no name
 
     def test_a_run_over_two_edges_stops(self):
         with self.assertRaisesRegex(bsm.RuleError, r"spans plan edges \['e16', 'e9\+e10'\]"):
-            bsm.plan_edge(self.BAND, ["a", "d"])
+            bsm.plan_edge(self.BAND, ["a", "d"], self.STORED)
 
 
 class Interlockings(unittest.TestCase):
@@ -153,7 +157,8 @@ class Generate(unittest.TestCase):
                 patch(bsm, "run_strands", lambda band: dict(self.CHAINS)):
             return bsm.generate(self.BAND, self.NAMES, {"home": [dict(m) for m in homes],
                                                         "intermediates": [dict(m) for m in inter]},
-                                dict(self.CM if cm is None else cm), wired or {}, dict(parts or {}))
+                                dict(self.CM if cm is None else cm), wired or {}, dict(parts or {}),
+                                {sid: s["name"] for sid, s in self.BAND["strands"].items() if s["name"]})
 
     def one(self, m, **kw):
         (got,) = self.generate([m], **kw)

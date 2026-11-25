@@ -219,6 +219,18 @@ class Files(unittest.TestCase):
         self.assertEqual(len(self.names["masts"]), 30)
         self.assertEqual(self.names["idents"]["turnouts"]["TOL34511"], "TO1")         # switches.csv le_ident
 
+    def test_the_helix_tracks_are_found_by_the_name_stores_names_not_the_drawings(self):
+        """check_helix finds each helix track by the name store's name of its strand (staging_names, by the strand's
+        ID): the drawn names are not read (naming-layers step 3b)."""
+        import copy
+        stored = sdm.staging_names(self.band)
+        self.assertEqual({stored[s] for s in stored if stored[s].startswith("Helix")}, {"Helix Outer", "Helix Inner"})
+        drawn = copy.deepcopy(self.band)
+        for s in drawn["strands"].values():
+            s["name"] = ""
+        self.assertEqual(sdm.check_helix(drawn, self.names), [])
+        self.assertEqual(len(sdm.check_helix(self.band, self.names, stored={})), 2)      # no stored name: not found
+
     def _copy(self, edit):
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)

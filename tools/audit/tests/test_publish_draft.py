@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[3]
 SPEC = importlib.util.spec_from_file_location("publish_draft", ROOT / "tools/schematic/publish_draft.py")
 PD = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(PD)
+from hartlib import track_names  # noqa: E402  (publish_draft put tools/hartlib/src on the path)
 
 TODAY = datetime.date(2026, 12, 1)
 REAL_STAMP_FILE = PD.stamp_file
@@ -244,12 +245,14 @@ class SignalsCheck(unittest.TestCase):
     def run_with(self, committed, masts=None):
         """main(["--check"]) against `committed` as signals.json's staging section, from the staging device map's masts (or `masts`
         rows, in staging_device_map.load_signal_masts' shape, with the device map's tracks)."""
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
+        with tempfile.TemporaryDirectory() as root:
+            tmp = Path(root) / "schematic"
+            tmp.mkdir()
             real_data, real_facts = self.bs.pd.DATA, self.bs.staging_facts
             for f in real_data.iterdir():       # both levels (staging, main_upper) solve from these
                 if f.is_file():
                     (tmp / f.name).write_bytes(f.read_bytes())
+            track_names.repo_inputs(tmp)     # the name store's plan graphs and owner rows: the repo's, by opt-in
             PD.layer_files.write({("signals", "staging"): committed}, tmp)
             if masts is not None:
                 chains = real_facts()[1]

@@ -10,6 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from hartlib import layer_files as L  # noqa: E402
+from hartlib import track_names as T  # noqa: E402
 
 SHEETS = ["staging", "main_upper"]       # publish_draft.INPUTS' layer stems
 
@@ -197,7 +198,9 @@ class PlanGenerated(unittest.TestCase):
 
     def test_the_plugin_folder_holds_the_merged_file_and_is_left_alone_when_nothing_changes(self) -> None:
         with tempfile.TemporaryDirectory() as tmp, tempfile.TemporaryDirectory() as cache:
-            data = Path(tmp)
+            data = Path(tmp) / "schematic"
+            data.mkdir()
+            T.repo_inputs(data)         # the name store's plan graphs and owner rows: the repo's, by opt-in
             hand, gen = split_one_file(json.loads(self.ONE_FILE.read_text(encoding="utf-8")))
             (data / "plan_overrides.json").write_text(L.dumps(hand), encoding="utf-8")
             (data / "plan_generated.json").write_text(L.dumps(gen), encoding="utf-8")

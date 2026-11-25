@@ -43,7 +43,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 |---|---|---|---|
 | 1 | Tests first | 1 day | Builder merge step 1: golden tests of every main and upper bean `le_tables` makes, unit tests of `master_beans` per assignment, `build_masts.generate` on staging, and the device-master merge. **Done (2026-11-24):** see [Step 1 findings](#step-1-findings) |
 | 2 | `id` column | 0.5 day | The builders write an ID on every row (decision 1); `check_rows` holds it unique per level. Only `devices_generated.csv` changes. **Done (2026-11-24):** see [Step 2 findings](#step-2-findings) |
-| 3 | The name store | 1.5 days | Generator names every track from the plan; `hartlib.track_names` keeps the owner's names by ID and gives them to the plugin; readers by ID; a check stops a name in `plan_overrides.json`. Drawings byte-identical. **3a done (2026-11-24):** [Step 3 findings](#step-3-findings); 3b (the readers by ID) next |
+| 3 | The name store | 1.5 days | Generator names every track from the plan; `hartlib.track_names` keeps the owner's names by ID and gives them to the plugin; readers by ID; a check stops a name in `plan_overrides.json`. Drawings byte-identical. **Done (2026-11-24):** 3a the store ([Step 3 findings](#step-3-findings)); 3b the readers by ID ([Step 3b findings](#step-3b-findings)) |
 | 4 | Owner file keyed by ID | 1 day | `devices_field.csv` rekeyed on `(level, id)`; `user_name` becomes an owner cell. The build prints new and gone IDs against the last generated file and stops as decision 3 says; a rename lists the Operations Pro copies (decision 5) and warns on a mast rename (decision 6) |
 | 5 | Files keyed by ID | 1.5 to 2 days | `block_lengths.csv`, `block_numbering.csv`, `wiring.csv`, `mast_cells.csv`, `masts.csv` (`facing`, `protects`), `block_overrides.csv` and `main_lines.csv` key on device IDs, so a rename touches no row. Frozen wiring rows keep their pins; their labels follow the name store |
 | 6 | Every read through `hartlib` | 1.5 days | `hartlib` readers for `block_overrides.csv`, `main_lines.csv` and `mast_cells.csv`; `layout_facts.py`, `write_inventory.py`, `check_hart_phase02.py` and `analyze.py` onto `hartlib.railroad` (was builder merge step 7, second half); mast rows read only through `hartlib.level_masts`. Then a check fails when a script outside `hartlib` opens a layout data file. Jython inside JMRI cannot import `hartlib` and reads only generated outputs; the check lists those scripts by name |
@@ -94,6 +94,26 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   faces Track 209 Spur 2. Mast names were left alone (a rename needs SML discovery and approval, decision 6).
 - **Open for step 5:** `main_lines.csv` and `milepost_route` still name staging tracks (`7@East Ext`), and
   `stations.csv` station tracks (W-1, W-2) are names too.
+
+## Step 3b findings (2026-11-24)
+
+- **The readers take names by ID.** `hartlib.track_names.piece_names` gives a drawn piece ("37C-39C #2", its ID part
+  from `staging_device_map.band_refs`) its store name; a main or upper helix track takes its staging block's name
+  through the `helix` map. `block_layer.tracks` (and `store_names`, which `build_signals.py` calls on its own track
+  entries) puts the names on each track entry, so `name_tracks`, `half_block` and `check` never read the drawing;
+  `cats_panel.py` (`staging_names`), `build_masts.plan_edge` and `staging_device_map.check_helix` take them as an
+  argument. Outputs are byte-identical: `make panels CHECK=1 FULL=1` all current, `check_approved.py --check` all
+  matching, an uncached `publish_draft.py --check` current.
+- **One difference in what is named, none in what is built:** the plugin draws Brick-Plane's name on one of its two
+  pieces (1C-5A #2); the store names both. Every reader gives the same block either way.
+- **Review nits from 3a done:** one end key (`track_names.end_key`, `edge_run`) for `plan_runs` and
+  `build_main_route.staging_keys`; the store reads only the folder it is given (a missing plan graph or
+  `devices_field.csv` stops), and a test opts in with `track_names.repo_inputs` (`test_railroad.Copy`,
+  `test_layer_files`). A section that draws no level and fills nothing reads no store.
+- **Open, not 3b's:** `publish_draft.check_digest` keys the drawing stamp on the data, the plugin and the field file,
+  not on `hartlib` code, so a `hartlib` change to the plugin's view is not redrawn by `--check` until the data
+  changes (it was checked uncached here). Main and upper loop-half names still go onto the drawing from the device
+  master (`cats_panel.name_loop_halves`, `le_names`), as step 13 plans.
 
 ## How to run this
 

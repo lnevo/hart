@@ -4,6 +4,9 @@ ID, and how they reach the schematic plugin.
     track_names.owner_names()                      {(level, block id): name}: the owner's track names
     track_names.plugin_section(sheet, section)     a plan_overrides section with the plugin's `name` and `end` edits
     track_names.hand_problems(section)             why a hand section still holds a name (a check)
+    track_names.piece_names(section, pieces)       {drawn piece ("37C-39C #2"): name}: what the readers by ID take
+    track_names.end_key(node, port), edge_run(...) a plan graph end's and edge's run key (plan_runs, build_main_route)
+    track_names.repo_inputs(data)                  a test's opt-in to the repo's plan graphs and field file
 
 The owner names a track in devices_field.csv: a block row with an `id` (hartlib.device_ids.block_id, "block:17C-29C")
 and its user name ("Track S-1"). That row is the only place the name is kept. plan_overrides.json holds no track
@@ -22,6 +25,11 @@ owner's split, K-1 and K-2). The `main` flags of the `name` edit are build_main_
 
 Generated names (the end-switch rule, "Track 17-19") are not drawn on the schematic, so they are not written here:
 block_layer.name_tracks makes them from the plan's track ends (mast_rule.plan_order for parallel tracks).
+
+The readers by ID (naming-layers step 3b): block_layer (name_tracks, the halves), cats_panel.py, build_masts.py and
+staging_device_map.check_helix take a drawn strand's track name from piece_names, by the strand's ID part
+(staging_device_map.band_refs, strand_names), not from the drawing. The store reads only the folder it is given: a
+missing devices_field.csv or plan graph stops (a test whose copy holds only the layer files calls repo_inputs).
 
 TrackNameError names the file and row: an owner ID no plan track has, a name on part of a piece (":1/2"), a run whose
 pieces are not all named, a `name` edit or a five-item `end` entry left in plan_overrides.json.
@@ -59,19 +67,56 @@ def run_of(a: str, b: str) -> str:
     return f"{lo}-{hi}"
 
 
-def _beside(data: Path, rel: str, repo: Path) -> Path:
-    """`rel` under the folder `data`, or the repo's (`repo`) when `data` lacks it: a test's copy of the schematic
-    folder that holds only the layer files reads the repo's plan graph and field file."""
+def end_key(node: dict, port: str, node_id: str = "", helix: bool | None = None) -> str:
+    """A track end's key in a plan graph: at a junction (`node`, a graph node whose label is already relabelled) its
+    label, else `node_id`, with a moved switch's star dropped, then the `port` the track leaves it by ("17C",
+    "103AB"); at a track end "helix" (`helix`; default: the node's sub is helix) or "end". The one end key of
+    plan_runs and build_main_route.staging_keys (staging_device_map.end_key gives the drawing's, the same keys)."""
+    if node["kind"] != "end":
+        return f"{(node.get('label') or node_id).rstrip('*')}{port}"
+    if helix is None:
+        helix = node.get("sub") == "helix"
+    return "helix" if helix else "end"
+
+
+def edge_run(nodes: dict, edge: dict, helix_ends=None) -> str:
+    """The run key (run_of) of plan graph edge `edge`, each end by end_key over `nodes` (the graph's, relabelled);
+    `helix_ends`, the end nodes that are the helix (default: those whose sub is helix)."""
+    def key(n, port):
+        return end_key(nodes[n], port, n, None if helix_ends is None else n in helix_ends)
+    return run_of(key(edge["u"], edge["up"]), key(edge["v"], edge["vp"]))
+
+
+def _beside(data: Path, rel: str, what: str) -> Path:
+    """`rel` under the folder `data`; TrackNameError when it is not there. The store reads only the folder it is
+    given: a test whose copy of the schematic folder holds only the layer files opts in to the repo's plan graphs
+    and devices_field.csv with repo_inputs."""
     p = Path(data) / rel
-    return p if p.exists() else repo
+    if not p.exists():
+        raise TrackNameError(f"{what} {p} is missing (the name store reads the plan graphs in the schematic folder it "
+                             f"is given and {FIELD_FILE} beside it; a test's copy: hartlib.track_names.repo_inputs)")
+    return p
+
+
+def repo_inputs(data: Path) -> Path:
+    """Copy the repo's plan graphs (inputs/<graph>.json) into the folder `data` and the repo's devices_field.csv beside
+    it, each only where it is missing: the explicit opt-in of a test whose copy of the schematic folder holds only the
+    layer files. Returns `data`."""
+    import shutil
+    data = Path(data)
+    for rel in PLAN_GRAPHS.values():
+        if not (data / rel).exists():
+            (data / rel).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(SCHEMATIC / rel, data / rel)
+    if not (data.parent / FIELD_FILE).exists():
+        shutil.copyfile(SCHEMATIC.parent / FIELD_FILE, data.parent / FIELD_FILE)
+    return data
 
 
 def owner_names(data: Path = SCHEMATIC) -> dict[tuple[str, str], str]:
-    """{(level, block id): name without "Track "} of every block row of devices_field.csv (beside `data`, else the
-    repo's) that has an id. TrackNameError on a row with an id that is not a block ID or a name not "Track <name>"."""
-    path = _beside(Path(data).parent, FIELD_FILE, SCHEMATIC.parent / FIELD_FILE)
-    if not path.exists():
-        return {}
+    """{(level, block id): name without "Track "} of every block row of devices_field.csv (beside `data`) that has an
+    id. TrackNameError on a missing file, a row with an id that is not a block ID or a name not "Track <name>"."""
+    path = _beside(Path(data).parent, FIELD_FILE, "the owner's rows")
     out, bad = {}, []
     with path.open(newline="", encoding="utf-8") as fh:
         for i, r in enumerate(csv.DictReader(fh), 2):
@@ -101,7 +146,7 @@ def plan_runs(sheet: str, section: dict, data: Path = SCHEMATIC) -> dict[str, li
     """{run key: [((junction, leg, end key), (junction, leg, end key)), lower end first]} of every track of the
     sheet's plan graph, its switches labelled by the section's `relabel` edit and its ends by the section's `end`
     edit (a helix end: "helix") and `helix` map. A run two tracks share lists both."""
-    graph = json.loads(_beside(data, PLAN_GRAPHS[sheet], SCHEMATIC / PLAN_GRAPHS[sheet]).read_text(encoding="utf-8"))
+    graph = json.loads(_beside(data, PLAN_GRAPHS[sheet], "the plan graph").read_text(encoding="utf-8"))
     relabel = {}
     for e in section.get("edits", ()):
         if e.get("op") == "relabel":
@@ -127,9 +172,7 @@ def plan_runs(sheet: str, section: dict, data: Path = SCHEMATIC) -> dict[str, li
                 helix_ends.add(max(ends, key=lambda t: t[0]["cm"])[1])
 
     def key(n, port):
-        if nodes[n]["kind"] != "end":
-            return f"{label[n].rstrip('*')}{port}"
-        return "helix" if n in helix_ends else "end"
+        return end_key({**nodes[n], "label": label.get(n)}, port, n, helix=n in helix_ends)
 
     out = {}
     for ed in graph["edges"]:
@@ -202,27 +245,74 @@ def _names_of_runs(owner: dict, levels: set[str]) -> dict[str, str | list[str]]:
     return out
 
 
+HELIX_END = "-helix"
+
+
+def piece_names(section: dict, pieces, owner: dict | None = None, data: Path = SCHEMATIC) -> dict[str, str]:
+    """{piece: name without "Track "} of each drawn piece of `pieces` (staging_device_map.band_refs' piece
+    references: "17C-29C", "37C-39C #2", the ID parts of a block ID) that the store names, for a hand plan_overrides
+    section (its `helix` map holding block IDs): a run the owner names whole gives each of its pieces that name, a
+    run named by piece its i-th piece the i-th name (owner_names on the section's levels; `owner` in its shape); a
+    track up the helix from a switch of the section's `helix` map ("131AA-helix") the name of the staging helix block
+    the map gives it. The readers by ID (block_layer, cats_panel, build_masts, staging_device_map) take a strand's
+    name from here, not from the drawing. TrackNameError on a helix entry with no named block row, or a piece a run
+    named by piece does not have."""
+    owner = owner_names(data) if owner is None else owner
+    names = _names_of_runs(owner, section_levels(section))
+    any_level = {bid: name for (_level, bid), name in owner.items()}     # a helix track is staging's block
+    relabel = {}
+    for e in section.get("edits", ()):
+        if e.get("op") == "relabel":
+            relabel.update(e["map"])
+    helix, bad = {}, []
+    for ref, bid in section.get("helix", {}).items():
+        if bid not in any_level:
+            bad.append(f"helix {ref}: {bid} has no named block row in {FIELD_FILE}")
+        else:
+            helix[str(relabel.get(ref, ref)).rstrip("*")] = any_level[bid]
+    out = {}
+    for piece in pieces:
+        run, _sep, i = piece.partition(" #")
+        got = names.get(run)
+        if isinstance(got, list):
+            if not i or not 1 <= int(i) <= len(got):
+                bad.append(f"piece {piece}: its run is named by piece ({', '.join(got)}), and it is not one of them")
+                continue
+            got = got[int(i) - 1]
+        elif got is None and run.endswith(HELIX_END):
+            got = helix.get(run.removesuffix(HELIX_END)[:-1])         # the end key less its leg: the switch label
+        if got:
+            out[piece] = got
+    if bad:
+        raise TrackNameError("; ".join(bad))
+    return out
+
+
 def plugin_section(sheet: str, section: dict, main_runs=(), owner: dict | None = None,
                    data: Path = SCHEMATIC) -> dict:
     """`section` (a merged plan_overrides section) as the plugin reads it: a `name` edit after `relabel` naming every
     run the owner names (owner_names on the section's levels) and every run of `main_runs` (flagged main), each by
     its plan junction ids and the leg it leaves the lower end by; each `end` entry's name (its block row's: a bumper's
     block:<switch><leg>-end, a helix end's block:<switch><leg>-helix) put in third place; `left_end` the name of the
-    block it gives. A section with no owner names and no main runs is returned as it is."""
+    block it gives. A section with no owner names and no main runs is returned as it is; one that draws no level
+    and has nothing to fill is returned without reading the store."""
     bad = hand_problems(section)
     if bad:
         raise TrackNameError(f"plan_overrides.json[{sheet}]: " + "; ".join(bad))
-    owner = owner_names(data) if owner is None else owner
-    levels = section_levels(section)
-    names = _names_of_runs(owner, levels)
-    by_id = {bid: name for (level, bid), name in owner.items() if level in levels}
-    any_level = {bid: name for (_level, bid), name in owner.items()}     # a helix track is staging's block
     main_runs = list(main_runs)
     if not all(isinstance(r, str) for r in main_runs):
         raise TrackNameError(f"plan_generated.json[{sheet}] {NAME_MAIN} holds {main_runs[:3]}..., not runs "
                              "(\"1A-23A\"): run python3 tools/schematic/build_main_route.py")
+    levels = section_levels(section)
     has_end = any(e.get("op") == "end" for e in section.get("edits", ()))
-    if not names and not main_runs and not has_end and "left_end" not in section and not section.get("helix"):
+    fills = main_runs or has_end or "left_end" in section or section.get("helix")
+    if not levels and not fills:
+        return section
+    owner = owner_names(data) if owner is None else owner
+    names = _names_of_runs(owner, levels)
+    by_id = {bid: name for (level, bid), name in owner.items() if level in levels}
+    any_level = {bid: name for (_level, bid), name in owner.items()}     # a helix track is staging's block
+    if not names and not fills:
         return section
     runs = plan_runs(sheet, section, data)
     out = json.loads(json.dumps(section))

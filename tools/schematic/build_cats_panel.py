@@ -74,7 +74,8 @@ from cats_panel import (LEVEL_TURNOUT, LEVEL_TURNOUT_PREFIX, MAIN_UPPER_DISCIPLI
                         dark_bindings, dest, device_name, half_label, helix_block, inside_os, intermediate_signal,
                         legs_of, level_bands, level_mast_bindings, level_signals, level_switch_bindings,
                         loop_half_edge, mast_bindings, name_loop_halves, os_blocks, plan_edge, placeholder,
-                        planned_sensor, spec, switch_bindings, switch_of, track_block, virtual_sensor, xover_corners)
+                        planned_sensor, spec, staging_names, switch_bindings, switch_of, track_block, virtual_sensor,
+                        xover_corners)
 from cats_panel_dress import (ABS_PLATE, HEADER, ORDER, PLATE_PX, dress, frozen_header, label_clashes,  # noqa: E402,F401
                               plate_box, right_edge, station_plates)
 
@@ -131,8 +132,9 @@ def bindings(bands, cats, F, o, page):
     (cats.options), `page` the schematic's page preferences (the solved sheet's opts)."""
     bi = bound_index(bands)
     _, band, opts = bands[bi]
-    os_of = os_blocks(band, F)
-    out_sw = switch_bindings(band, F, os_of)
+    stored = staging_names(band)        # the staging track names, from the name store by strand ID
+    os_of = os_blocks(band, F, stored)
+    out_sw = switch_bindings(band, F, os_of, stored)
     le_mod = cats_le(cats)
     level_sw = level_switch_bindings(bands, F, bi, bdm.dx_corners(bands, le_mod, page))
     # the panel's block names once the switches name their OS blocks (and a double crossover its corners)
@@ -141,9 +143,9 @@ def bindings(bands, cats, F, o, page):
     P = cats.panel(bands, scale=o["scale"], helix_blocks=o["helix_blocks"],   # names only: no column trimming
                    band_gap=o["band_gap"], title_gap=o["title_gap"],
                    bindings={"switches": named})
-    dark, log, missing, joined = dark_bindings(bands, cats, P, F, bi)
+    dark, log, missing, joined = dark_bindings(bands, cats, P, F, bi, stored)
     names = {k: v for k, v in P.names.items() if k[1].startswith(f"b{bi}:") and k not in joined}
-    blocks = block_bindings(band, F, names)
+    blocks = block_bindings(band, F, names, stored)
     print("\n".join(log))
     check_apart(blocks, dark)
     masts, level = mast_bindings(opts, F), level_mast_bindings(bands, F, bi)

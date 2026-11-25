@@ -106,17 +106,18 @@ def split_tracks(path: Path | None = None, found: list | None = None) -> set[str
     return mast_rule.read_block_splits(path or block_overrides(), named_tracks() if found is None else found, bdm.LEVELS)
 
 
-def named_tracks(bands=None, joined=None, runs=None, overrides=None, helix=None) -> list[dict]:
+def named_tracks(bands=None, joined=None, runs=None, overrides=None, helix=None, owner=None) -> list[dict]:
     """The track entries of the bands `overrides` names (default: the main and upper bands) with their names
-    (block_layer.tracks and name_tracks: the plan's name, a helix track's helix block from plan_overrides.json, else the
-    end-switch rule); the solved schematic's bands when none are given. `helix`: read_helix_tracks (default)."""
+    (block_layer.tracks and name_tracks: the name store's by the strands' IDs, a helix track's helix block, else the
+    end-switch rule); the solved schematic's bands when none are given. `helix`: read_helix_tracks (default);
+    `owner`: the owner's track names (hartlib.track_names.owner_names, default the rows beside OVERRIDES' folder)."""
     bdm = builder()
     if bands is None:
         bands, joined, runs, _corners = bdm.solve()
     if overrides is None:
         overrides = layer_files.read("plan_overrides", bdm.SHEET, bdm.OVERRIDES.parent)
-    found = block_layer.tracks(bands, runs, joined, band_levels(overrides), bdm.OVERRIDES.parent)
-    block_layer.name_tracks(found, bands, helix_tracks() if helix is None else helix)
+    found = block_layer.tracks(bands, runs, joined, band_levels(overrides), bdm.OVERRIDES.parent, owner)
+    block_layer.name_tracks(found, helix_tracks() if helix is None else helix)
     return found
 
 

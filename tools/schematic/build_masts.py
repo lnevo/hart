@@ -228,15 +228,16 @@ def with_lengths(runs: list, cm: dict) -> list:
     return runs
 
 
-def plan_edge(band, sids) -> tuple[str, list[str]]:
-    """(the plan graph edge a run's strands come from, every track name that edge carries), as build_signals.py
-    checks a mast's schematic run: one edge, a strand's own suffix (".0", ".1") dropped."""
+def plan_edge(band, sids, stored: dict) -> tuple[str, list[str]]:
+    """(the plan graph edge a run's strands come from, every track name the name store gives a strand of that edge:
+    `stored`, {strand: name}, staging_device_map.staging_names), as build_signals.py checks a mast's schematic run:
+    one edge, a strand's own suffix (".0", ".1") dropped."""
     strands = band["strands"]
     edges = sorted({re.sub(r"\.\d+$", "", strands[s]["edge"]) for s in sids})
     if len(edges) != 1:
         raise RuleError(f"a mast's run spans plan edges {edges}")
-    names = sorted({strands[s]["name"] for s in strands
-                    if re.sub(r"\.\d+$", "", strands[s]["edge"]) == edges[0] and strands[s]["name"]})
+    names = sorted({stored[s] for s in strands
+                    if re.sub(r"\.\d+$", "", strands[s]["edge"]) == edges[0] and stored.get(s)})
     return edges[0], names
 
 
@@ -249,7 +250,7 @@ def run_strands(band) -> dict:
     return out
 
 
-def generate(band, names: dict, planned: dict, cm: dict, wired: dict, parts: dict) -> list[dict]:
+def generate(band, names: dict, planned: dict, cm: dict, wired: dict, parts: dict, stored: dict) -> list[dict]:
     """The visible staging masts in the columns the files take, from mast_plan.plan's home masts and intermediates on
     the staging band (`names`: the device map's block layer, `cm`: block_cm; a mast in `wired`, from wired_heads, is a
     field signal): [{mast, cp, switch, facing, protects, kind, heads, dir, toward, run, names, edge_cm,
@@ -258,7 +259,8 @@ def generate(band, names: dict, planned: dict, cm: dict, wired: dict, parts: dic
     there (a turnout mast), else on the anchor where the switch's own OS block ends (an anchor mast, no switch); a
     part of the OS block (a JMRI block of its own, owner 2026-11-20) is inside it, as mast_plan reads the layer
     (staging_device_map.os_layer). It faces the JMRI block next to that boundary (Mast 32R: Track 29-31), and its
-    lengths are the JMRI blocks' (block_lengths.csv), as build_signals.check_lengths reads them."""
+    lengths are the JMRI blocks' (block_lengths.csv), as build_signals.check_lengths reads them. A mast's `names` are
+    the name store's for its run's plan edge (`stored`: staging_device_map.staging_names of `band`, plan_edge)."""
     part_of = parts
     seqs = {}                      # (node, leg) -> the JMRI blocks from that switch leg along its run
     for start, seq, end in with_lengths(mast_plan.run_blocks(band, names), cm):
@@ -279,7 +281,7 @@ def generate(band, names: dict, planned: dict, cm: dict, wired: dict, parts: dic
             facing = names["os"].get(far[0]) if far_node["kind"] == "switch" else None
         if facing is None:
             raise RuleError(f"switch {m['switch']} leg {p}: no block to face")
-        edge, names_ = plan_edge(band, chains[(n, p)])
+        edge, names_ = plan_edge(band, chains[(n, p)], stored)
         track_cm = sum(cm[b] for b in seq)
         back = 0.0
         if not at_turnout:
@@ -298,7 +300,7 @@ def generate(band, names: dict, planned: dict, cm: dict, wired: dict, parts: dic
                         edge_cm=round(track_cm, 1), cm_from_toward=round(back, 1), edge=edge, node=n,
                         leg=p, strand=m["strand"], running=m["running"], role="home"))
     for x in planned["intermediates"]:
-        edge, track_names = plan_edge(band, chains[tuple(x["start"])])
+        edge, track_names = plan_edge(band, chains[tuple(x["start"])], stored)
         out.append(dict(mast=f"Mast {x['name']}", cp=x["cp"], switch="", facing=x["facing"],
                         protects=x["protects"], kind="one-searchlight", heads=1, dir=x["dir"],
                         toward=x["toward"], run=f"{x['toward']};{x['other']}", names=track_names,
@@ -315,14 +317,14 @@ def generate(band, names: dict, planned: dict, cm: dict, wired: dict, parts: dic
 VIRTUAL_KIND = "one-low"
 
 
-def virtual_masts(band, planned: dict, cps: dict) -> list[dict]:
+def virtual_masts(band, planned: dict, cps: dict, stored: dict) -> list[dict]:
     """Staging's hidden routing masts in the columns generate() gives, from mast_plan.plan's virtual masts (only where
     a visible mast's route reaches a buffer stop first, owner 2026-11-20: 4LA, 4LB, 10LA, 10LB, 12L), `cps` naming
-    each switch's control point (the drawings')."""
+    each switch's control point (the drawings'), `stored` the name store's strand names (generate)."""
     chains = run_strands(band)
     out = []
     for m in planned["virtual"]:
-        edge, track_names = plan_edge(band, chains[(m["node"], m["leg"])])
+        edge, track_names = plan_edge(band, chains[(m["node"], m["leg"])], stored)
         out.append(dict(mast=f"Mast {m['name']}", cp=cps[m["switch"]], kind=VIRTUAL_KIND, heads=1,
                         toward=m["switch"], run=f"{m['switch']};", names=track_names, edge_cm=m["total"],
                         edge=edge, node=m["node"], signal_kind="virtual", switch="", facing=m["facing"],
@@ -625,14 +627,15 @@ def build():
     cm = block_cm()
     parts = sdm.staging_parts(DEVICE_MAP)
     planned = plan(band, bands, joined, runs, sdm.os_layer(names, parts), locks, cm)   # parts inside their blocks
-    gen = generate(band, names, planned, cm, wired, parts)
+    stored = sdm.staging_names(band)            # the name store's, by each strand's ID
+    gen = generate(band, names, planned, cm, wired, parts, stored)
     unplaced = sorted(set(wired) - {m["mast"] for m in gen})
     if unplaced:
         raise RuleError(f"{DEVICE_MAP.name} wires heads on masts the rule does not place: "
                         + "; ".join(f"{m} ({', '.join(sorted(wired[m]))})" for m in unplaced))
     for m in gen:                    # the cp column names the control point (the drawings') of the mast's switch
         m["cp"] = cp_of[m["toward"]]
-    vgen = virtual_masts(band, planned, cp_of)
+    vgen = virtual_masts(band, planned, cp_of, stored)
     gm = mast_rows(gen, wired)
     vr = virtual_rows(vgen, allocated_masts(files))
     taken = [r["system_name"] for r in gm + vr]
