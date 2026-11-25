@@ -278,7 +278,8 @@ def staging_wired_rows(files: devices.Files | None = None, path: Path | None = N
     row, a wiring row with no field row or on a node that is not staging's."""
     bdm = builder()
     nodes = staging_nodes() if nodes is None else nodes
-    by = {(w.kind, w.id): w for w in wiring_rows(path) if w.level == int(FIELD_LEVEL) and w.kind in ("turnout", "fb")}
+    by = {(w.kind, w.id): w for w in wiring_rows(path, (int(FIELD_LEVEL),))
+          if w.level == int(FIELD_LEVEL) and w.kind in ("turnout", "fb")}
     bad = [f"{WIRING.name} line {w.line}: {w.kind} {w.device} is on node {w.node}, no staging node of {NODES.name} "
            f"({', '.join(map(str, sorted(nodes)))})" for w in by.values() if w.node not in nodes]
     field = bdm.device_files() if files is None else files

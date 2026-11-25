@@ -74,7 +74,7 @@ class TheStagingRows(unittest.TestCase):
     def test_staging_wired_rows_read_the_field_file_and_never_the_generated_one(self):
         with opens() as got:
             rows = bdm.staging_wired_rows()
-        self.assertEqual(got, [FIELD])
+        self.assertEqual(set(got), {FIELD})       # the field file only (wiring.csv names staging by it too)
         self.assertEqual(len(rows), 80)
 
     def test_a_blanked_generated_file_gives_the_same_staging_rows(self):
@@ -89,7 +89,7 @@ class TheMasts(unittest.TestCase):
         with opens() as got:
             owned = bsm.field_rows()
             wired = bsm.wiring_heads(owned["head"])
-        self.assertEqual(got, [FIELD])
+        self.assertEqual(set(got), {FIELD})       # the field file only (wiring.csv names staging by it too)
         self.assertEqual([r["user_name"] for r in owned["mast"]], ["Mast 6LB"])
         self.assertEqual(wired["Mast 6LB"]["Head 6LB"]["notes"], "one high head (owner 2026-11-19); IH433 dropped")
 

@@ -131,21 +131,54 @@ def names_beside(path: Path):
     return devices.user_names(devices.Files.under(data) if (data / devices.GENERATED_FILE).is_file() else None)
 
 
-def read(path: Path | None = None, names=None) -> list[Wire]:
+class _LoadFailed(FactsError):
+    """The device master or field file did not load: read() stops once with its message, not once per row."""
+
+
+class _Names:
+    """How read() names a row's id: `given` ({(level, id): user name}) when the caller passes one; else a staging
+    device by its field row's user name (devices_field.csv beside the file, else the repo's: a staging builder reads
+    the owner's cells from the field file alone, ADR-029), and any other by the merged view (names_beside), each
+    read once and only when a row needs it."""
+
+    def __init__(self, path: Path, given):
+        self.path, self.given, self.field, self.merged = path, given, None, None
+
+    def __call__(self, level: str, ident: str, where: str) -> str:
+        from . import devices
+        if self.given is not None:
+            return devices.name_of(self.given, level, ident, where)
+        if level == devices.FIELD_LEVEL:
+            if self.field is None:
+                data = Path(self.path).parent
+                files = devices.Files.under(data) if (data / devices.FIELD_FILE).is_file() else None
+                try:
+                    index = devices.field_index(files)
+                except FactsError as exc:
+                    raise _LoadFailed(str(exc)) from None
+                self.field = {k: r["user_name"] for k, r in index.items() if r["user_name"]}
+            if (level, ident) in self.field:
+                return self.field[(level, ident)]
+        if self.merged is None:
+            try:
+                self.merged = names_beside(self.path)
+            except FactsError as exc:
+                raise _LoadFailed(str(exc)) from None
+        return devices.name_of(self.merged, level, ident, where)
+
+
+def read(path: Path | None = None, names=None, levels=None) -> list[Wire]:
     """The rows of wiring.csv, each checked. Stops (FactsError, naming the file and line) on a file not in COLUMNS, an
     unknown level, kind or status, a number that is not one, an index past its kind's range, a board or ports that do
     not fit the kind, a device given twice on its level, two devices on one LCOS number or on one port of a board, or
     an id the device master does not have. Each Wire's `device` is its id's user name in `names` ({(level, id): user
-    name}, hartlib.devices.user_names; default names_beside(path)), a detector's its block's, so the wiring follows
-    a rename with no row changed."""
-    from .devices import name_of
+    name}, hartlib.devices.user_names; default a staging device's field row, any other's the merged view: _Names), a
+    detector's its block's, so the wiring follows a rename with no row changed. `levels` (default every level): the
+    levels whose rows are named; a row of another level keeps its id and an empty `device`, so a staging builder that
+    reads only staging's names never opens the generated file."""
     path = path or PATH
-    lookup = [names]                       # read once, and only when a row has an id
-
-    def store_name(level: str, ident: str, at: str) -> str:
-        if lookup[0] is None:
-            lookup[0] = names_beside(path)
-        return name_of(lookup[0], level, ident, f"{path.name} {at}")
+    store_name = _Names(path, names)
+    wanted = None if levels is None else {str(lv) for lv in levels}
     try:
         with open(path, newline="", encoding="utf-8") as fh:
             reader = csv.DictReader(fh)
@@ -252,11 +285,12 @@ def read(path: Path | None = None, names=None) -> list[Wire]:
         name = ident or r["device"] or (",".join(r[c] for c in ("switch_a", "switch_b", "parallel", "half"))
                                         if keyed else "")
         device = r["device"]
-        if ident:
-            if lookup[0] is None:            # a master that does not load stops the read once, with its own message
-                lookup[0] = names_beside(path)
+        if ident and (wanted is None or r["level"] in wanted):
             try:
-                device = store_name(r["level"], ident[len("det:"):] if kind == "detector" else ident, at)
+                device = store_name(r["level"], ident[len("det:"):] if kind == "detector" else ident,
+                                    f"{path.name} {at}")
+            except _LoadFailed:
+                raise
             except FactsError as exc:
                 bad.append(str(exc).removeprefix(f"{path.name} "))
                 continue

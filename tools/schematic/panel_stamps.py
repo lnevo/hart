@@ -94,6 +94,8 @@ STEPS: dict[str, Step] = {
     "staging-sets": Step((f"{SCH}/plan_generated.json", f"{SCH}/preferences_generated.json")),
     "main-route": Step((f"{SCH}/plan_generated.json",)),
     "device-map": Step((f"{SCH}/plan_generated.json", f"{DATA}/{DEVICES_FILE}")),
+    # block_lengths.csv's user_name labels, from the name store (plan_lengths.py --labels; naming-layers step 5)
+    "length-labels": Step((f"{DATA}/block_lengths.csv",)),
     "masts": Step((f"{SCH}/masts.csv", f"{DATA}/{DEVICES_FILE}")),
     # the status beans' rows of the device master (panel_items.py); panel_items.json is read, so the trace holds it
     "panel-items": Step((f"{DATA}/{DEVICES_FILE}",)),

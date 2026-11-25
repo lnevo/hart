@@ -179,7 +179,7 @@ def wiring_heads(owned: list[dict], path: Path | None = None) -> dict:
     name."""
     by_user = {h["user_name"]: h for h in owned}
     try:
-        heads = [w for w in wiring.read(path) if w.level == 1 and w.kind == "head"]
+        heads = [w for w in wiring.read(path, levels=(1,)) if w.level == 1 and w.kind == "head"]
         nodes = bdm.staging_nodes()
     except (railroad.FactsError, bdm.MapError) as exc:
         raise RuleError(str(exc)) from None

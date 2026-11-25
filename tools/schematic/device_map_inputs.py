@@ -43,10 +43,14 @@ UID = {"block": 0, "turnout": 8, "signal": 32, "sensor": 67}     # LCOS packed I
 OS_BLOCK = re.compile(r"OS Switch \d+[a-d]?")        # a main or upper OS block, named by its switch
 
 
-def wiring_rows(path: Path | None = None) -> list:
-    """The rows of wiring.csv (hartlib.wiring.read, `path` default the committed file), its FactsError a MapError."""
+STAGING_NAMES = (int(FIELD_LEVEL),)    # a staging reader names staging's rows only, from the field file (ADR-029)
+
+
+def wiring_rows(path: Path | None = None, levels=None) -> list:
+    """The rows of wiring.csv (hartlib.wiring.read, `path` default the committed file; `levels` the levels whose rows
+    get their names), its FactsError a MapError."""
     try:
-        return wiring.read(path or WIRING)
+        return wiring.read(path or WIRING, levels=levels)
     except railroad.FactsError as exc:
         raise MapError(str(exc)) from None
 
@@ -146,7 +150,7 @@ def read_staging_pins(path: Path | None = None, nodes: set | None = None) -> lis
     nodes = staging_nodes() if nodes is None else nodes
     path = path or WIRING
     out, bad = [], []
-    for w in wiring_rows(path):
+    for w in wiring_rows(path, STAGING_NAMES):
         if w.kind != "detector" or w.level != int(FIELD_LEVEL):
             continue
         if w.node not in nodes:
@@ -171,7 +175,7 @@ def helix_pins(path: Path | None = None, helix_map: dict | None = None) -> dict:
     if helix_map is None:
         helix_map = layer_files.read("plan_overrides", "main_upper", pd.DATA).get("helix", {})
     out, bad = {}, []
-    for w in wiring_rows(path):
+    for w in wiring_rows(path, STAGING_NAMES):
         if w.kind != "detector" or w.level == int(FIELD_LEVEL) or not w.id.startswith("det:block:"):
             continue
         m = HELIX_ID.fullmatch(w.id)
