@@ -391,7 +391,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "extras",
-   "desc": "Rewrites the Counts line of wiki/STATUS.md from tables.xml masts/SML and dispatcher traininfo; --check in tools/check.sh.",
+   "desc": "Builds wiki/STATUS.md from the entry files in wiki/status/ and the Counts line from tables.xml masts/SML and dispatcher traininfo (make status, ADR-038); --check fails an entry over 60 words and builds the page in memory.",
    "path": "tools/ops/status_counts.py",
    "gen": "manifest"
   },
@@ -6446,7 +6446,13 @@
   {
    "from": "tools/ops/status_counts.py",
    "to": "wiki/STATUS.md",
-   "label": "Counts line",
+   "label": "built page",
+   "gen": "manifest"
+  },
+  {
+   "from": "wiki/status",
+   "to": "tools/ops/status_counts.py",
+   "label": "entries",
    "gen": "manifest"
   },
   {
@@ -7284,11 +7290,6 @@
    "from": "docs/ops/schematic-system-draft.pdf",
    "to": "www/scripts/prepare_github_pages.py",
    "label": "published-files.json"
-  },
-  {
-   "from": "wiki/status",
-   "to": "tools/ops/status_counts.py",
-   "label": "entries"
   },
   {
    "from": "external/sts-docker-data/Rolling Stock photos",
