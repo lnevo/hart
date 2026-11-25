@@ -285,6 +285,9 @@ def staging_wired_rows(files: devices.Files | None = None, path: Path | None = N
     rows = staging_field(field, tuple(WIRED_LAYERS)).values()
     out, seen = [], set()
     turnout_address = {w.device: w.address for (kind, _d), w in by.items() if kind == "turnout"}
+    # a turnout's name as readers see it (the owner's, else the generated one), by its switch number: its alias's note
+    turnout_name = {r["id"].split(":", 1)[1]: r["user_name"] for r in rows
+                    if r["role"] == "turnout" and r["id"].startswith("switch:") and r["user_name"]}
     for r in rows:
         alias = r["role"] == "lcc_alias"
         try:
@@ -304,8 +307,16 @@ def staging_wired_rows(files: devices.Files | None = None, path: Path | None = N
         if not alias:
             row["system_name"] = w.address
             row["jmri_name"] = r["jmri_name"] or w.address
+            if row["jmri_name"] not in (w.address, row["user_name"]):
+                # a turnout the panels bind by its user name (Q13): a rename moves the binding, so the owner changes
+                # both cells together; the build does not rewrite the binding
+                bad.append(f"{devices.FIELD_FILE}: staging {r['layer']} {row['user_name']} (id {r['id']}): its "
+                           f"jmri_name {row['jmri_name']!r} binds it by its old user name; change jmri_name and "
+                           f"user_name together, or clear jmri_name to bind it by its address {w.address}")
+                continue
         else:
-            row["notes"] = alias_note(name, turnout_address.get(name, ""))
+            number = r["id"].split(":", 1)[1]
+            row["notes"] = alias_note(turnout_name.get(number, name), turnout_address.get(name, ""))
         row["description"] = devices.describe(row)
         out.append(row)
     for kind, device in sorted(set(by) - seen):
@@ -436,9 +447,10 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
         row["description"] = devices.describe(row)
         return row
 
-    def drop(layer: str, name: str) -> list[str]:
-        """Take the field rows of `layer` named `name` out of `prior` (a device with no id to find it by); their names."""
-        keys = [k for k, r in prior.items() if k[0] == layer and r["user_name"] == name]
+    def drop(layer: str, name: str, did: str = "") -> list[str]:
+        """Take the field rows of `layer` with the id `did` (when known) or named `name` out of `prior` (a field row's
+        user name may be empty: the generated name stands); `name` once per row taken."""
+        keys = [k for k, r in prior.items() if k[0] == layer and ((did and k[1] == did) or r["user_name"] == name)]
         for k in keys:
             prior.pop(k)
         return [name for _k in keys]
@@ -525,7 +537,8 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
         occupancy.append(wire_occupancy(row, pin_of[b]))
     # spare inputs: a pin with no block, and a pin whose block is now a part (its rails are still on that input)
     spares = [new_spare(p) for p in staging_pins if not p.block or p.block in lay.parts]
-    taken_spare = [n for p in staging_pins for n in drop("occupancy", f"unused {p.input}")]
+    taken_spare = [n for p in staging_pins
+                   for n in drop("occupancy", f"unused {p.input}", device_ids.spare_id(p.sensor))]
     bad += [f"{devices.FIELD_FILE}: occupancy {n} is a spare input of {PINS.name}, which makes its row: remove the "
             "field row" for n in taken_spare]
     if prior:

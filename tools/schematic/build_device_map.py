@@ -863,7 +863,7 @@ def main(argv=None) -> int:
         check_switch_ids(staging + wired)
         want = {GENERATED: generated_text(cp_keys),
                 **devices.outputs_after("build_device_map.py", rows, device_files(),
-                                        master_rows=staging + wired + parts)}
+                                        master_rows=staging + wired + parts, check=args.check)}
     except (MapError, staging_map_error(), railroad.FactsError, layer_files.LayerFileError) as exc:
         # a DevicesError is a FactsError; a StagingMapError comes from staging's placeholder grammar
         print(f"build_device_map.py: {exc}", file=sys.stderr)

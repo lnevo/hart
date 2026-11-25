@@ -13,6 +13,7 @@ one.
 
 from __future__ import annotations
 
+import re
 import sys
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
@@ -46,6 +47,17 @@ class Plant:
         return self.index.where(dict(zip(("level", "layer", "user_name"), self.key)))
 
 
+_PAIR_ID = re.compile(r"(?:switch|dcc):(\d+)")      # a turnout's and its LCC alias's device IDs (hartlib.device_ids)
+
+
+def pair_key(row) -> tuple[str, str]:
+    """What pairs a turnout row with its LCC alias row: the switch number of its device ID (switch:<n>, dcc:<n>), so
+    an owner's rename of either (naming-layers step 4) keeps the pair; a row whose id is not of that grammar (a test's)
+    pairs by name, the turnout's user name and the alias's without "DCC "."""
+    m = _PAIR_ID.fullmatch(row["id"])
+    return ("id", m.group(1)) if m else ("name", row["user_name"].removeprefix("DCC "))
+
+
 def field_plants(csv_path: Path) -> tuple[dict[str, Plant], set[str], list[str]]:
     """({M2T system name: Plant} of the field turnout rows of the device master, the system names of the field turnout rows
     refused, problems): a refused row is a field turnout with no DCC address or no LCC alias row, or one whose alias's
@@ -53,12 +65,12 @@ def field_plants(csv_path: Path) -> tuple[dict[str, Plant], set[str], list[str]]
     read."""
     ix = devices.index(csv_path)               # built once; a row's location text only when a message needs it
     rows = [r for _n, r in ix.lines]
-    aliases = {r["user_name"]: r for r in rows if r["role"] == "lcc_alias" and r["assignment"] == "field"}
+    aliases = {pair_key(r): r for r in rows if r["role"] == "lcc_alias" and r["assignment"] == "field"}
     out, refused, bad = {}, set(), []
     for r in rows:
         if r["role"] != "turnout" or r["assignment"] != "field":
             continue
-        a = aliases.pop(f"DCC {r['user_name']}", None)
+        a = aliases.pop(pair_key(r), None)
         problem = ("a field turnout with no dcc" if not r["dcc"] else
                    f"no LCC alias row DCC {r['user_name']}" if a is None else
                    f"its alias DCC {r['user_name']} is {a['system_name']}, not MTT{r['dcc']} (its dcc)"
@@ -69,8 +81,8 @@ def field_plants(csv_path: Path) -> tuple[dict[str, Plant], set[str], list[str]]
         else:
             out[r["system_name"]] = Plant(devices.name_key(r), r["user_name"], r["system_name"], r["dcc"],
                                           a["system_name"], a["user_name"], devices.comment_of(a), ix)
-    bad += [f"{ix.where(a)}: alias {u} ({a['system_name']}) has no field turnout row {u.removeprefix('DCC ')}"
-            for u, a in sorted(aliases.items())]
+    bad += [f"{ix.where(a)}: alias {a['user_name']} ({a['system_name']}) has no field turnout row "
+            f"{a['user_name'].removeprefix('DCC ')}" for _k, a in sorted(aliases.items())]
     return out, refused, bad
 
 

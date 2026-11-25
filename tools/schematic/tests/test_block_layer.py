@@ -653,6 +653,19 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
                                                   "row"):
             self.rows(add)
 
+    def test_a_spare_in_the_field_file_with_no_name_is_found_by_its_id(self):
+        """Code review (2026-11-25): a field row's user name may be empty (the generated one stands), so a spare's
+        field row is found by its id too: one error for it, not a second "no block for" one."""
+        def add(rows):
+            occ = next(i for i, r in enumerate(rows) if r["level"] == "1" and r["layer"] == "occupancy")
+            spare = dict.fromkeys(devices.COLUMNS, "")
+            spare.update(level="1", layer="occupancy", role="spare", assignment="spare", id="spare:M2S201")
+            return rows[:occ] + [spare] + rows[occ:]
+        with self.assertRaises(bdm.MapError) as cm:
+            self.rows(add)
+        self.assertIn("occupancy unused Block 2-2 is a spare input", str(cm.exception))
+        self.assertNotIn("the drawing has no block for", str(cm.exception))
+
 
 class StagingWiredRows(RepoReadOnly, unittest.TestCase):
     """build_device_map.staging_wired_rows: staging's turnout, LCC alias and feedback rows take their wiring cells
@@ -714,6 +727,35 @@ class StagingWiredRows(RepoReadOnly, unittest.TestCase):
         self.assertEqual(bdm.wired_name({"role": "lcc_alias", "layer": "turnout", "id": "dcc:7"}), "DCC Switch 7")
         with self.assertRaisesRegex(ValueError, "id 'os:7' is not a turnout ID"):
             bdm.wired_name({"role": "turnout", "layer": "turnout", "id": "os:7"})
+
+    def field_copy(self, edit) -> devices.Files:
+        """A copy of the master's two files with its field rows `edit`ed ({id: {column: value}})."""
+        d = Path(tempfile.mkdtemp())
+        self.addCleanup(os.rmdir, d)
+        files = devices.pair_copy(d)
+        for p in (files.master, files.field, files.dictionary):
+            self.addCleanup(os.remove, p)
+        rows = [dict(r) for r in devices.field_rows(files)]
+        for r in rows:
+            r.update(edit.get(r["id"], {}))
+        files.field.write_text(devices.master_text(rows), encoding="utf-8")
+        return files
+
+    def test_an_alias_note_names_its_turnout_as_readers_see_it(self):
+        """Code review (2026-11-25): the alias's note follows its turnout's owner name, by the switch number."""
+        got = {r["id"]: r for r in bdm.staging_wired_rows(self.field_copy({"switch:1": {"user_name": "Switch Brick"}}))}
+        self.assertEqual(got["dcc:1"]["notes"], "LCC alias of Switch Brick (M2T408)")
+
+    def test_a_turnout_bound_by_its_name_is_renamed_with_its_binding(self):
+        """Code review (2026-11-25), the main session's choice: Switch 23's panels bind it by its user name (its field
+        jmri_name), so a rename of the user name alone stops, naming both cells; both together pass."""
+        with self.assertRaisesRegex(bdm.MapError, r"staging turnout Switch East \(id switch:23\): its jmri_name "
+                                                  r"'Switch 23' binds it by its old user name; change jmri_name and "
+                                                  r"user_name together"):
+            bdm.staging_wired_rows(self.field_copy({"switch:23": {"user_name": "Switch East"}}))
+        got = {r["id"]: r for r in bdm.staging_wired_rows(
+            self.field_copy({"switch:23": {"user_name": "Switch East", "jmri_name": "Switch East"}}))}
+        self.assertEqual((got["switch:23"]["user_name"], got["switch:23"]["jmri_name"]), ("Switch East", "Switch East"))
 
     def test_rows_that_do_not_match_stop(self):
         for edit, msg in ((lambda t: t.replace('1,turnout,Switch 1,,,,,4,0,OU1,"1,2",wired,\n', ""),

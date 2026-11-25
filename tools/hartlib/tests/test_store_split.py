@@ -376,7 +376,8 @@ class DeviceItems(unittest.TestCase):
         p = plan(doc(), doc(), doc(turnouts=turnouts), rows=rows)
         self.assertEqual([], p.of(ss.DEVICE))
         [g] = p.of(ss.DROPPED)
-        self.assertIn("rename it by hand in its devices_field.csv row (keyed by its id; wiring.csv keeps", g.note)
+        self.assertIn("rename it by hand in its devices_field.csv row (keyed by its id): change user_name, and "
+                      "jmri_name with it when that binds the turnout by its user name", g.note)
 
     def test_a_rename_on_both_passes_is_one_question(self) -> None:
         """A block's names-only pass and full pass (and its layout block) carry one rename: one DEVICE item."""

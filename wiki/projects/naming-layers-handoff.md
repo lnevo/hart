@@ -140,6 +140,11 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   the cell); step 7 brings them onto the staging path. Staging's masts and heads are the rule's, so `build_masts.py`
   still matches its two field rows by name and the same stop applies.
 - **Outputs byte-identical:** `make panels CHECK=1 FULL=1` all current, `check_approved.py --check` all matching.
+- **Code review (medium), fixed:** the LCC contract pairs a turnout and its alias by id; a turnout bound by its user
+  name (its field `jmri_name`, Q13) renamed without its `jmri_name` stops, naming both cells; an alias's note names
+  its turnout's owner name; the Operations Pro search counts a bare track name only as a track or location `name`
+  and not the tail of a longer name; the changes are said once, after the write merges back, marked check-only on a
+  `--check` run; a nameless field row is found by its id.
 - **Open for step 5:** a staging rename still breaks the files keyed by name (`wiring.csv`'s detector rows,
   `block_lengths.csv`, `stations.csv` tracks, `masts.csv` `facing`), and names derived from a renamed block (a mast's
   `facing`) are not followed. A trial rename of OS Switch 19 in the field file left only `devices_generated.csv` stale;

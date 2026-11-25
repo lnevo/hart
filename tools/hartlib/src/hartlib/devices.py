@@ -1009,19 +1009,29 @@ def texts(rows: list[Mapping[str, str]], files: Files | None = None) -> dict[Pat
 
 
 def outputs_after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Files | None = None,
-                       warn: "Callable[[str], None] | None" = None) -> dict[Path, str]:
+                       warn: "Callable[[str], None] | None" = None, check: bool = False) -> dict[Path, str]:
     """{path: text} of the generated file once `writer` has written `new`, its rows as readers will see them (merged
     form, written_by set to it), in place of the rows it holds (replace_rows on the merged view). The writer's rows
     go in with the field file's cells left empty (unmerge); every other writer's generated row is kept as written.
-    Against the last generated file, the write's new and gone IDs and its renames go to `warn` (default: stderr;
-    hartlib.device_changes, decisions 3, 5 and 6 of the naming-layers hand-off). The caller writes the texts (or
-    compares them for --check); nothing is written here. DevicesError when the writer would touch a row it does not
-    hold, override a field cell, drop an ID the field file holds owner's cells for (device_changes.report lists it
-    and the new IDs that may be its device's), or the result does not merge back to what the writer gave."""
+    Once the result has merged back, the write's new and gone IDs and its renames against the last generated file go
+    to `warn` (default: stderr; hartlib.device_changes, decisions 3, 5 and 6 of the naming-layers hand-off), each line
+    marked check-only when `check` (a --check run, which writes nothing). The caller writes the texts (or compares
+    them for --check); nothing is written here. DevicesError when the writer would touch a row it does not hold,
+    override a field cell, drop an ID the field file holds owner's cells for (device_changes.stop lists it and the new
+    IDs that may be its device's), or the result does not merge back to what the writer gave."""
+    from . import device_changes                # it reads this module
+    out, changes = _after_rows(writer, new, files)
+    if changes is not None:
+        device_changes.say(writer, changes, warn, check)
+    return out
+
+
+def _after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Files | None):
+    """(outputs_after_rows' texts, the write's device_changes.Changes, None for a one-file copy), nothing said."""
     from . import device_changes                # it reads this module
     f = files or Files.here()
     if f.field is None:                     # a one-file copy: it holds every cell
-        return texts(replace_rows(load(f), writer, new), f)
+        return texts(replace_rows(load(f), writer, new), f), None
     # The old merged view is not read: after an owner's edit (a field row removed or renamed) it may not merge any
     # more, and this write is what makes the pair whole again.
     new = [dict(r) for r in new]
@@ -1031,31 +1041,37 @@ def outputs_after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Fil
     _writes_only_its_own(writer, new, keep + [r for r in field if not r["level"]])
     out = keep + unmerge(new, field, writer)
     out.sort(key=_rank)
-    device_changes.report(writer, last, out, field, warn)
+    changes = device_changes.stop(last, out, field)
     back = merge(out, field, (f.master.name, f.field.name))
     mine = {key_of(r): dict(r) for r in back if r["written_by"] == writer}
     if mine != {key_of(r): r for r in new}:
         raise DevicesError(f"{writer}: the rows written do not merge back to what it gave")
-    return {f.master: master_text(out)}
+    return {f.master: master_text(out)}, changes
+
+
 def outputs_after(writer: str, old_rows: Iterable[Mapping[str, str]], files: Files | None = None,
                   master_rows: Iterable[Mapping[str, str]] = (),
-                  warn: "Callable[[str], None] | None" = None) -> dict[Path, str]:
+                  warn: "Callable[[str], None] | None" = None, check: bool = False) -> dict[Path, str]:
     """outputs_after_rows for `old_rows`, old-form device-map rows each with the role its writer gives it (master_row
     gives each its master form), and
     `master_rows`, rows already in the master's form (a builder's staging rows, built on the owner's field rows, or
     rows the device maps leave out). What a reader of the master sees for these rows is what the writer gave; DevicesError
-    when it is not. `warn`: where the write's ID changes and renames go (outputs_after_rows)."""
+    when it is not. `warn` and `check`: where the write's ID changes and renames go, once it has read back
+    (outputs_after_rows)."""
+    from . import device_changes                # it reads this module
     f = files or Files.here()
     old_rows = list(old_rows)
     master_rows = [dict(r) for r in master_rows]
     new = [master_row(o, writer) for o in old_rows]
-    out = outputs_after_rows(writer, new + master_rows, f, warn)
+    out, changes = _after_rows(writer, new + master_rows, f)
     want = {(str(o["level"]), o["layer"], o["user_name"]): {c: str(o[c]) for c in DEVICE_COLUMNS} for o in old_rows}
     whole = {(r["level"], r["layer"], r["user_name"]): r for r in master_rows}
     back = {name_key(r): dict(r) for r in parse(out[f.master], f.master.name, f) if r["written_by"] == writer}
     held = {k: device_map_row(r) for k, r in back.items() if k not in whole}
     if held != want or any(back.get(k) != r for k, r in whole.items()):
         raise DevicesError(f"{writer}: the rows written do not read back as given")
+    if changes is not None:
+        device_changes.say(writer, changes, warn, check)
     return out
 
 

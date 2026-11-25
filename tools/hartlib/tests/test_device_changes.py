@@ -20,6 +20,8 @@ LOCATIONS = """<?xml version="1.0" encoding="UTF-8"?>
     <track id="1s1" name="S-1" trackType="Yard"/>
     <track id="1s2" name="S-10" trackType="Yard" comment="not Mast 2LA"/>
   </location>
+  <car id="S-1" roadNumber="S-1" comment="a car number, not a track"/>
+  <location id="2" name="East End" comment="DCC Switch 3 is the alias" switch="Switch 3"/>
 </operations-config>
 """
 
@@ -52,6 +54,17 @@ class TheOperationsCopies(Temp):
 
     def test_a_track_is_found_by_its_bare_name_as_operations_pro_names_it(self):
         self.assertEqual(C.ops_copies("Track S-1", self.ops), ["OperationsLocationRoster.xml:4"])
+
+    def test_a_bare_track_name_counts_only_as_a_track_or_location_name(self):
+        """A car's id or road number of the same text is no copy of the track (code review, 2026-11-25)."""
+        self.assertNotIn("OperationsLocationRoster.xml:7", C.ops_copies("Track S-1", self.ops))
+
+    def test_the_tail_of_a_longer_name_is_no_copy(self):
+        """"Switch 3" inside "DCC Switch 3" is the alias's name, not a copy of the turnout's; the bare "Switch 3"
+        on the same line, an attribute of its own, is one."""
+        self.assertEqual(C._quoted("Switch 3").findall("DCC Switch 3 is the alias"), [])
+        self.assertEqual(C.ops_copies("Switch 3", self.ops), ["OperationsLocationRoster.xml:8"])
+        self.assertEqual(C._quoted("Switch 3").findall('comment="Switch 3 here"'), ["Switch 3"])
 
     def test_no_folder_is_no_copy(self):
         self.assertEqual(C.ops_copies("Mast 2L", self.tmp / "none"), [])
@@ -133,6 +146,28 @@ class ThroughTheWriter(unittest.TestCase):
         self.assertEqual(said[0], "build_masts.py: 1 new ID(s) on level 1, mast: mast:new")
         self.assertIn("is renamed 'Mast 2L' -> 'Mast 2LB'", said[1])
         self.assertTrue(said[2].startswith("warning: build_masts.py: mast 'Mast 2L' is now 'Mast 2LB'"), said[2])
+
+    NEW = staticmethod(lambda **c: mast("Mast 4R", id="mast:new", **{"system_name": "IF$vsm:basic:one-low($2)",
+                                                                    "jmri_name": "IF$vsm:basic:one-low($2)", **c}))
+
+    def test_a_check_run_marks_its_lines_check_only(self):
+        said = []
+        D.outputs_after_rows("build_masts.py", [mast(), self.NEW()], self.files, said.append, check=True)
+        self.assertEqual(said, [C.CHECK_ONLY + "build_masts.py: 1 new ID(s) on level 1, mast: mast:new"])
+
+    def test_a_write_that_does_not_merge_says_nothing(self):
+        """Code review (2026-11-25): the changes are said once the write has merged back, never before a stop."""
+        said = []
+        clash = self.NEW(system_name=mast()["system_name"], jmri_name=mast()["jmri_name"])     # Mast 2L's name
+        with self.assertRaisesRegex(D.DevicesError, "jmri_name .* as well"):
+            D.outputs_after_rows("build_masts.py", [mast(), clash], self.files, said.append)
+        self.assertEqual(said, [])
+
+    def test_outputs_after_says_each_change_once(self):
+        said = []
+        rows = [dict(D.device_map_row(r), role=r["role"], id=r["id"]) for r in [mast(), self.NEW()]]
+        D.outputs_after("build_masts.py", rows, self.files, warn=said.append)
+        self.assertEqual(said, ["build_masts.py: 1 new ID(s) on level 1, mast: mast:new"])
 
     def test_an_owner_rename_reaches_the_merged_view_and_is_said_when_the_builder_gives_it(self):
         """A staging device: the owner renames it in its field row (keyed by id), the builder takes the name from

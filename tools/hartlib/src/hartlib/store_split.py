@@ -448,7 +448,9 @@ def _device_items(key: tuple, b: ET.Element | None, g: ET.Element, s: ET.Element
         who = _row_at(r)
         if r["written_by"] == "build_device_map.py" and r["level"] == "1" and r["layer"] in ("turnout", "fb"):
             out.append((p, None, f"{who} is staging's, wired in wiring.csv: rename it by hand in its devices_field.csv "
-                                 "row (keyed by its id; wiring.csv keeps the generated name the id gives)"))
+                                 "row (keyed by its id): change user_name, and jmri_name with it when that binds the "
+                                 "turnout by its user name (the build stops on one without the other); wiring.csv "
+                                 "keeps the generated name the id gives"))
             continue
         if r["written_by"]:
             out.append((p, None, f"{r['written_by']} writes {who}: change its inputs and rebuild"))

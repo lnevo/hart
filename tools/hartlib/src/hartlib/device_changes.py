@@ -70,25 +70,30 @@ def held_gone(changes: Changes, field: Iterable[Mapping[str, str]]) -> list[str]
 
 
 def _quoted(name: str) -> re.Pattern[str]:
-    """The name as a whole word (not inside a longer name), as tools/audit/check_name_copies.py matches it."""
-    return re.compile(r"(?<![\w-])" + re.escape(name) + r"(?![\w-])")
+    """The name as a whole name, as tools/audit/check_name_copies.py matches it: not inside a longer word, and not the
+    tail of a longer name ("Switch 3" in "DCC Switch 3": a word and a space before it)."""
+    return re.compile(r"(?<![\w-])(?<!\w )" + re.escape(name) + r"(?![\w-])")
 
 
 def ops_copies(name: str, folder: Path = OPERATIONS) -> list[str]:
-    """"<file>:<line>" of each line of the Operations Pro files in `folder` that holds `name` as a whole word, or,
-    for a track ("Track X"), its bare name X as a whole attribute value (name="X"), as Operations Pro names a track
-    on a location. [] when the folder is not there."""
+    """"<file>:<line>" of each line of the Operations Pro files in `folder` that holds `name` as a whole name
+    (_quoted), or, for a track ("Track X"), its bare name X as the name attribute of a track or location element
+    (<track ... name="X">), as Operations Pro names a track on a location. [] when the folder is not there."""
     if not folder.is_dir():
         return []
     pats = [_quoted(name)]
     if name.startswith("Track "):
-        pats.append(re.compile(r'="' + re.escape(name.removeprefix("Track ")) + '"'))
+        bare = re.escape(name.removeprefix("Track "))
+        pats.append(re.compile(r'<(?:track|location)\b[^>]*?\sname="' + bare + '"'))
     out = []
     for path in sorted(folder.glob("*.xml")):
         for no, line in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
             if any(p.search(line) for p in pats):
                 out.append(f"{path.name}:{no}")
     return out
+
+
+CHECK_ONLY = "check only, nothing written: "     # the mark of a line said by a --check run
 
 
 def lines(writer: str, changes: Changes, ops: Path = OPERATIONS) -> list[str]:
@@ -118,17 +123,29 @@ def _stderr(line: str) -> None:
     print(line, file=sys.stderr)
 
 
-def report(writer: str, old: Iterable[Mapping[str, str]], new: Iterable[Mapping[str, str]],
-           field: Iterable[Mapping[str, str]], warn: Callable[[str], None] | None = None,
-           ops: Path = OPERATIONS) -> Changes:
-    """Hold a write (`new`, the generated rows it gives) to the last generated file (`old`): DevicesError listing
-    each gone ID the field file holds owner's cells for (held_gone); else each line of `lines` to `warn` (default:
-    stderr). The Changes."""
-    field = list(field)
+def stop(old: Iterable[Mapping[str, str]], new: Iterable[Mapping[str, str]],
+         field: Iterable[Mapping[str, str]]) -> Changes:
+    """The Changes from the last generated file (`old`) to a write's generated rows (`new`); DevicesError listing
+    each gone ID the field file holds owner's cells for (held_gone, decision 3). Says nothing (say does, once the
+    write has merged back)."""
     changes = compare(old, new)
-    bad = held_gone(changes, field)
+    bad = held_gone(changes, list(field))
     if bad:
         raise devices.DevicesError("; ".join(bad))
+    return changes
+
+
+def say(writer: str, changes: Changes, warn: Callable[[str], None] | None = None, check: bool = False,
+        ops: Path = OPERATIONS) -> None:
+    """Each line of `lines` to `warn` (default: stderr), marked CHECK_ONLY when `check` (a --check run)."""
     for line in lines(writer, changes, ops):
-        (warn or _stderr)(line)
+        (warn or _stderr)((CHECK_ONLY if check else "") + line)
+
+
+def report(writer: str, old: Iterable[Mapping[str, str]], new: Iterable[Mapping[str, str]],
+           field: Iterable[Mapping[str, str]], warn: Callable[[str], None] | None = None,
+           ops: Path = OPERATIONS, check: bool = False) -> Changes:
+    """stop, then say: a write held to the last generated file and what it changes said. The Changes."""
+    changes = stop(old, new, field)
+    say(writer, changes, warn, check, ops)
     return changes
