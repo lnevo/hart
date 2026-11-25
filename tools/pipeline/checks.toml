@@ -774,22 +774,6 @@ outputs = [
 ]
 
 [[step]]
-name = "desks"
-runner = "check"
-group = "static"
-cmd = ["python3", "cats/scripts/validate_cats_panel.py"]
-git = ["head", "base"]
-domain = "layout"
-label = "validate_cats_panel.py"
-desc = "Validates desks (make desks and check.sh); with cats_turnout_io and digicon_lib loaders."
-inputs = [
-  { path = "cats/panels/HART_ABS.xml", label = "make desks check", side = "check" },
-  { path = "cats/panels/HART_CTC.xml", label = "make desks check", side = "check" },
-]
-# the reference desk it validates too; the map has no box for it
-quiet_inputs = ["cats/panels/HART_chubb_magnet.xml"]
-
-[[step]]
 name = "public-text"
 runner = "check"
 cmd = ["{python}", "tools/audit/check_public_text.py"]

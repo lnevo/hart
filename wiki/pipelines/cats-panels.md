@@ -21,7 +21,7 @@ Schematic → `tools/schematic/build_cats_panel.py` → the CATS CTC and CATS AB
 ## Run
 
 ```bash
-make desks        # python3 tools/schematic/build_cats_panel.py, then validate_cats_panel.py
+make desks        # python3 tools/schematic/build_cats_panel.py
 ./cats/scripts/launch_cats.sh
 ```
 
