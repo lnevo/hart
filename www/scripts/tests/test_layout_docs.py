@@ -39,8 +39,9 @@ class LayoutDocs(unittest.TestCase):
         ld.check_drawings()
 
     def test_every_section_has_a_label(self):
-        for s in ld.detected_sections():
-            ld.label(s)
+        master = ld.master_rows()
+        for s in ld.detected_sections(master=master):
+            ld.label(s, master)
 
     def test_every_label_is_a_live_block(self):
         # a label for a block the plan no longer has would hide a renumbered switch
@@ -72,6 +73,10 @@ class LayoutDocs(unittest.TestCase):
         with self.assertRaises(SystemExit):
             ld.check_switch_labels({**master, key: {**master[key], "user_name": "Switch 6"}})
 
+    def test_only_switch_labels_count(self):
+        svg = ('<text x="1" font-weight="bold" fill="#5f6e7a">5</text><text class="lb">Sw 3</text>'
+               '<text font-size="9">100</text><text font-weight="bold" fill="#5f6e7a">WEST</text>')
+        self.assertEqual(ld.drawn_switches(svg), ["3", "5"])         # a plain number (a dimension) is no label
     def test_the_dcc_address_is_the_turnouts(self):
         # "DCC Switch N" follows switch number N, not DCC address N: the page states both, from the turnout's row
         row = ld.master_rows()[(ld.LEVEL, "switch:3")]
@@ -102,6 +107,13 @@ class LayoutDocs(unittest.TestCase):
     def facts_of(self, os_ids, estimate=False):
         rows = [{"id": i, "inches": 100.0, "estimate": estimate} for i in (ld.RS1, ld.SIDING, *ld.YARD)]
         return ld.facts(rows + [{"id": i, "inches": 9.0, "estimate": True} for i in os_ids])
+
+    def test_crossovers_are_in_switch_number_order(self):
+        master = {(ld.LEVEL, f"switch:{n}"): {"layer": "turnout", "role": "turnout", "user_name": f"Switch {u}"}
+                  for n, u in ((7, 107), (23, 9), (35, 35))}
+        rows = [{"id": i, "inches": 100.0, "estimate": False} for i in (ld.RS1, ld.SIDING, *ld.YARD)]
+        rows += [{"id": i, "inches": 9.0, "estimate": True} for i in ("os:7:A-5B", "os:23:A-1A", "os:35:A-33A")]
+        self.assertEqual(ld.facts(rows, master)["CROSSOVERS"], "crossovers at Switches 9, 35 and 107")
 
     def test_crossovers_come_from_the_os_halves(self):
         self.assertEqual(self.facts_of(("os:35:A-33A", "os:7:A-5B", "os:23:A-1A", "os:23:A-31B", "os:3"))["CROSSOVERS"],
@@ -134,7 +146,17 @@ class RenameReachesThePage(unittest.TestCase):
                 hit += 1
         assert hit == len(cls.RENAMES), hit
         cls.files.field.write_text(devices.master_text(rows), encoding="utf-8")
-        cls.page = ld.outputs(cls.files)[ld.PAGE]
+        try:                                                      # the plans unedited: the renamed switch stops
+            ld.outputs(cls.files)
+            cls.stopped = ""
+        except SystemExit as exc:
+            cls.stopped = str(exc)
+        cls.plans = []                                            # the plans with Switch 5 relabelled, as the owner would
+        for svg in ld.PLANS:
+            copy = Path(cls.tmp.name) / svg.name
+            copy.write_text(re.sub(r"(<text\b[^>]*>)(Sw )?5<", r"\g<1>\g<2>105<", svg.read_text()))
+            cls.plans.append(copy)
+        cls.page = ld.outputs(cls.files, plans=cls.plans)[ld.PAGE]
         cls.live = ld.outputs()[ld.PAGE]                      # the same build on the real device master
         master = ld.master_rows()
         cls.old = {k: ld.bare(master[k]["user_name"]) for k in cls.RENAMES}
@@ -160,6 +182,9 @@ class RenameReachesThePage(unittest.TestCase):
         self.assertIn("The siding beside the main line, Switch 105 to Switch 7", self.page)     # the label table
         self.assertIn("<td>Turnout 105</td>", self.page)                                       # the section list
         self.assertNotIn("Switch 5 ", self.page)
+
+    def test_unedited_plans_stop_the_build(self):
+        self.assertIn("labels switches", self.stopped)
 
     def test_nothing_else_changes(self):
         page = self.page.replace("Turnout 105", "Turnout 5")

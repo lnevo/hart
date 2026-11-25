@@ -49,6 +49,9 @@ YARD = ("block:15B-23B", "block:17C-29C", "block:19C-27C", "block:21C-25C", "blo
 ENGINE = ("block:11B-end", "block:9B-end", "block:9C-end")                                      # E1 to E3
 RS1, SIDING = "block:1A-23A", "block:5C-7B"
 PLANS = sorted(DRAWINGS.glob("P*.svg"))    # the plans, each labelled with every staging switch number
+# A switch label on the plans: "Sw <n>" on P0; on P1 to P5 a number in the labels' bold grey, which no other number has
+P0_LABEL = re.compile(r"Sw (\d+)")
+LABEL_STYLE = ('font-weight="bold"', 'fill="#5f6e7a"')
 LABELS = {
     **{bid: f"Yard track Y{n}" for n, bid in enumerate(YARD, 1)},
     **{bid: f"Engine storage E{n}" for n, bid in enumerate(ENGINE, 1)},
@@ -113,13 +116,13 @@ def station_at(stations: list, did: str) -> str:
     return held[0][1]
 
 
-def label(section: dict, master: dict | None = None) -> str:
+def label(section: dict, master: dict) -> str:
     """The page's description of a detected section, by its block ID; an OS block's by its turnout's number."""
     if section["id"] in LABELS:
         return LABELS[section["id"]]
     m = OS.fullmatch(section["id"])
     if m:
-        number = switch_number(master_rows() if master is None else master, f"switch:{m.group(1)}")
+        number = switch_number(master, f"switch:{m.group(1)}")
         half = re.search(r"([ab])$", section["name"]) if m.group(2) else None
         return f"Turnout {number}{' (crossover half ' + half.group(1) + ')' if half else ''}"
     raise SystemExit(f"build_layout_docs: no label for section {section['id']} ({section['name']}); add it to LABELS")
@@ -200,10 +203,11 @@ def facts(rows: list[dict], master: dict | None = None) -> dict[str, str]:
     def about(ids) -> str:
         return "about " if any(estimate[bid] for bid in ids) else ""
     yard = sorted(inches[bid] for bid in YARD)
-    xings = sorted({int(m.group(1)) for s in rows if (m := OS.fullmatch(s["id"])) and m.group(2)})
+    xings = sorted({switch_number(master, f"switch:{m.group(1)}") for s in rows
+                    if (m := OS.fullmatch(s["id"])) and m.group(2)}, key=int)
     if not xings:
         raise SystemExit("build_layout_docs: no crossover half in the section list; the page names the crossovers")
-    listed = switches_text([switch_number(master, f"switch:{n}") for n in xings])
+    listed = switches_text(xings)
     return {"SECTION_COUNT": str(len(rows)), "RS1_IN": f"{about([RS1])}{inches[RS1]:.0f}",
             "SIDING_IN": f"{about([SIDING])}{inches[SIDING]:.0f}", "SIDING_CARS": str(round(inches[SIDING] / CAR_IN)),
             "YARD_IN": f"{about(YARD)}{yard[0]:.0f} to {yard[-1]:.0f}",
@@ -259,16 +263,27 @@ def check_plans(fact: dict[str, str]) -> None:
                              "does; edit the drawing")
 
 
-def check_switch_labels(master: dict) -> None:
+def drawn_switches(svg: str) -> list[str]:
+    """The switch numbers a plan's switch labels print, in number order."""
+    out = set()
+    for attrs, body in re.findall(r"<text\b([^>]*)>([^<]*)<", svg):
+        body = body.strip()
+        if m := P0_LABEL.fullmatch(body):
+            out.add(m.group(1))
+        elif body.isdigit() and all(a in attrs for a in LABEL_STYLE):
+            out.add(body)
+    return sorted(out, key=int)
+
+
+def check_switch_labels(master: dict, plans=PLANS) -> None:
     """The plans (hand-edited files) label every staging switch by its number ("Sw 3" on plan P0, "3" on the others);
     they must label the live turnouts' numbers, so a switch renumbered or renamed stops here until they are edited."""
     live = sorted({switch_number(master, k[1]) for k, r in master.items()
                    if k[0] == LEVEL and r["layer"] == "turnout" and r["role"] == "turnout"}, key=int)
-    for svg in PLANS:
-        texts = [t.strip() for t in re.findall(r"<text\b[^>]*>([^<]*)", svg.read_text())]
-        drawn = sorted({m.group(1) for t in texts if (m := re.fullmatch(r"(?:Sw )?(\d+)", t))}, key=int)
+    for svg in plans:
+        drawn = drawn_switches(Path(svg).read_text())
         if drawn != live:
-            raise SystemExit(f"build_layout_docs: {svg.relative_to(ROOT)} labels switches {', '.join(drawn)}, the "
+            raise SystemExit(f"build_layout_docs: {Path(svg).name} labels switches {', '.join(drawn)}, the "
                              f"device master has {', '.join(live)}; edit the drawing")
 
 
@@ -281,9 +296,9 @@ def check_drawings() -> None:
                 raise SystemExit(f"build_layout_docs: {svg.relative_to(ROOT)} says {word!r}, SOQ wording; edit the drawing")
 
 
-def outputs(files=None, stations: Path | None = None) -> dict[Path, str]:
-    """The page. `files` is the device master's (hartlib.devices.Files of a test's copy) and `stations` a copy of
-    stations.csv; None the repo's."""
+def outputs(files=None, stations: Path | None = None, plans=None) -> dict[Path, str]:
+    """The page. `files` is the device master's (hartlib.devices.Files of a test's copy), `stations` a copy of
+    stations.csv and `plans` copies of the plans; None the repo's."""
     master = master_rows(files)
     places = railroad.read_stations(railroad.Sources.under().stations if stations is None else stations)
     rows = detected_sections(master=master)
@@ -296,6 +311,7 @@ def outputs(files=None, stations: Path | None = None) -> dict[Path, str]:
         raise SystemExit("build_layout_docs: a placeholder is left in the page")
     check_d2(len(rows))
     check_plans(fact)
+    check_switch_labels(master, PLANS if plans is None else plans)
     check_drawings()
     return {PAGE: page}
 
@@ -305,7 +321,6 @@ def main() -> int:
     ap.add_argument("--check", action="store_true", help="report stale outputs and exit 1, write nothing")
     a = ap.parse_args()
     stale = []
-    check_switch_labels(master_rows())
     for path, text in outputs().items():
         if path.exists() and path.read_text() == text:
             continue
