@@ -119,11 +119,20 @@ class Verdict(unittest.TestCase):
         verdict = self.s.verdict()
         self.assertTrue(verdict.startswith("unknown: no merge base with origin/main"), verdict)
 
-    def test_git_that_cannot_run_is_unknown_not_a_traceback(self) -> None:
-        with mock.patch.object(portal_inputs.subprocess, "run", side_effect=FileNotFoundError("git")):
-            verdict = changed_kind.checkout_verdict(self.s.repo, "origin/main")
-        self.assertTrue(verdict.startswith("unknown: no merge base with origin/main"), verdict)
-        self.assertIn("could not run", verdict)
+    def test_git_that_cannot_run_is_unknown_and_not_blamed_on_the_merge_base(self) -> None:
+        for err in (FileNotFoundError("git"), subprocess.TimeoutExpired(["git"], 60)):
+            with self.subTest(err=type(err).__name__):
+                with mock.patch.object(portal_inputs.subprocess, "run", side_effect=err):
+                    verdict = changed_kind.checkout_verdict(self.s.repo, "origin/main")
+                self.assertTrue(verdict.startswith("unknown: git merge-base could not run"), verdict)
+                self.assertNotIn("no merge base", verdict)
+
+    def test_a_staged_submodule_move_is_a_change(self) -> None:
+        # a gitlink staged at a new commit: the working diff leaves submodules out, the staged one must not
+        sha = git(self.s.repo, "rev-parse", "HEAD").strip()
+        git(self.s.repo, "update-index", "--add", "--cacheinfo", f"160000,{sha},external/plugin")
+        self.s.write("wiki/a.md", "# A, edited\n")
+        self.assertEqual("full: external/plugin is not docs", self.s.verdict())
 
 
 class Paths(unittest.TestCase):
