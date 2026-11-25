@@ -41,6 +41,7 @@ TOKEN = "[full-ci]"
 MACHINERY = (
     ".github/workflows/check.yml",
     "tools/check.sh",
+    "tools/pipeline/manifest.py",           # turns tools/pipeline/checks.toml into check.sh's job lines
     "tools/ci/",
     "tools/audit/check_stamps.py",
     "tools/audit/traced.py",

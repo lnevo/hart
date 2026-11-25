@@ -22,7 +22,9 @@ check.sh runs each job under the trace hook of tools/audit/traced.py (shared wit
 job's Python processes open, every file they probe and find absent, every folder they list and every subprocess they
 start goes to a log. After a pass the stamp records that read set with its hashes and a key: panel_stamps.digest over
 the job name, tools/check.sh and the hook, the Python and the plugin's state, what the job reads from outside the
-repo (outside_state), and the output of each read-only git command it ran (run again at compare time). The next run
+repo (outside_state; for a job of the step manifest, tools/pipeline/checks.toml, also a digest of the entries it
+runs, so an edited entry reruns that job and no other), and the output of each read-only git command it ran (run
+again at compare time). The next run
 skips the job only when the key and every read-set entry match, so an edit re-runs only the jobs that read the file.
 A unit job whose tests skipped records them too (each test's id and reason, from the hook) in its key; what they
 skipped on is an input like any other: a file or folder the trace saw, a shutil.which lookup (looked up again at
@@ -44,6 +46,7 @@ the plugin's files (covered by its commit).
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -58,6 +61,20 @@ import panel_stamps as ps  # noqa: E402
 traced = ps.traced
 sys.path[:0] = [str(ROOT / "tools/hartlib/src")]
 from hartlib.paths import cache_dir, main_checkout  # noqa: E402
+
+
+def _import(name: str, path: Path):
+    """The module at `path` under `name`, loaded once per process (its dataclasses look it up in sys.modules)."""
+    if name not in sys.modules:
+        spec = importlib.util.spec_from_file_location(name, path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+    return sys.modules[name]
+
+
+pm = _import("pipeline_manifest", ROOT / "tools/pipeline/manifest.py")
+MANIFEST = pm.MANIFEST.relative_to(pm.ROOT)     # tools/pipeline/checks.toml, under each Checker's root
 
 STORE = Path(os.environ.get("CHECK_STAMPS_DIR") or cache_dir("check-stamps", ROOT))
 PRUNE = {".git", ".cache", "__pycache__", "node_modules", ".venv", "venv", ".pages-dist", ".mypy_cache", ".pytest_cache"}
@@ -121,6 +138,9 @@ EXTRA: dict[str, tuple[str, ...]] = {
     # the map and the entry files outside CODE (www/scripts/deploy_hartrailroad.sh); its output roots are in CODE
     "unit-guards test_pipeline_map_coverage": ("docs/pipeline-map/**/*", "www/scripts/**/*", "wiki/**/*",
                                                "docs/INDEX.md", "ops/hart-ops/AGENTS.md"),
+    # the step manifest's loader checks domains, edge sides and local nodes against the map (manifest.repo())
+    "unit-guards test_pipeline_manifest": ("docs/pipeline-map/pipeline_map.json",),
+    "unit-guards test_check_docs_only": ("docs/pipeline-map/pipeline_map.json",),
     "unit-guards test_agent_docs_map": ("docs/pipeline-map/**/*", "www/scripts/**/*", "wiki/**/*", "docs/INDEX.md",
                                         "ops/hart-ops/AGENTS.md", ".gitmodules"),
     # the agent-doc cells it checks are in the wiki (home.md, the decisions, pipelines, projects, STATUS.md)
@@ -351,6 +371,10 @@ class Checker:
     def walk(self, patterns: tuple[str, ...]) -> list[Path]:
         return self._once(("walk", patterns), lambda: walk(patterns, self.root))
 
+    def manifest(self) -> dict[str, str]:
+        """manifest.job_digests of the checkout's tools/pipeline/checks.toml (raises manifest.ManifestError)."""
+        return self._once(("manifest",), lambda: pm.job_digests(self.root / MANIFEST))
+
     def venv(self, python: Path) -> str:
         return self._once(("venv", str(python)), lambda: venv_state(python))
 
@@ -384,10 +408,27 @@ REFS_OF: dict[str, tuple[str, ...]] = {
 KEY_ENV = ("ANYRAIL_PLAN", "JMRI_LAYOUT", "SCHEMATIC_CACHE", "SCHEMATIC_REQUIRED", "CHECK_AUDIT", "UPDATE_GOLDEN")
 
 
+def from_manifest(name: str) -> bool:
+    """Whether check.sh runs job `name` from the step manifest: every stampable job but the unit tests (static, and
+    each step in no group: public-text, ruff, portal)."""
+    return declared(name) is not None and not name.split(" ", 1)[0].startswith("unit-")
+
+
+def manifest_part(name: str, ck: Checker) -> str:
+    """The key's line for a manifest job: the digest of the entries it runs. Raises manifest.ManifestError when the
+    manifest cannot be read or holds no such job (check.sh then runs the job and records nothing)."""
+    digests = ck.manifest()
+    if name not in digests:
+        raise pm.ManifestError(f"{MANIFEST.as_posix()} has no job {name!r}, which check.sh runs from it "
+                               f"(its jobs: {', '.join(digests)})")
+    return f"manifest={digests[name]}"
+
+
 def outside_state(name: str, ck: Checker, wide: bool = False) -> str:
     """What the jobs read from outside the traced files: the private AnyRail plan, the interpreters and their
-    packages, the environment that picks other inputs, and the git refs REFS_OF names for the job. `wide` (a job that
-    ran an untraceable program) adds the names of the files git tracks or would add."""
+    packages, the environment that picks other inputs, the git refs REFS_OF names for the job, and for a manifest job
+    the digest of its entries (manifest_part). `wide` (a job that ran an untraceable program) adds the names of the
+    files git tracks or would add."""
     plan = plan_file()
     parts = [f"plan={ck.cache(plan) if plan.is_file() else 'absent'}",
              f"python3={ck.venv(Path(sys.executable))}"]
@@ -398,6 +439,8 @@ def outside_state(name: str, ck: Checker, wide: bool = False) -> str:
         parts.append(f"hops={ck.venv(hops)}")
     for ref in REFS_OF.get(name) or REFS_OF.get(_test_key(name) or "", ()):
         parts.append(f"{ref}=" + ck.git(*GIT_REFS[ref]).strip())
+    if from_manifest(name):
+        parts.append(manifest_part(name, ck))
     parts += [f"{k}={os.environ.get(k, '')}" for k in KEY_ENV]
     parts.append(f"euid={os.geteuid() if hasattr(os, 'geteuid') else ''}")    # test_operating skips as root
     return "\n".join(parts)
@@ -410,7 +453,9 @@ def not_stampable(name: str, ck: Checker | None = None) -> str | None:
     return ck.unstampable() if ck else ps.unstampable(ROOT)
 
 
-ALWAYS = ("tools/check.sh", *traced.HOOK_FILES)
+# check.sh, the loader that turns the manifest's entries into its job lines, and the hook: an edit to one reruns every
+# job. tools/pipeline/checks.toml is not here: each manifest job's key holds its own entries (manifest_part).
+ALWAYS = ("tools/check.sh", "tools/pipeline/manifest.py", *traced.HOOK_FILES)
 
 
 def _patterns(name: str, programs: list[str]) -> tuple[str, ...]:
@@ -547,7 +592,8 @@ def record(name: str, trace_log, root: Path = ROOT, store: Path = STORE, before:
     ck = Checker(root, store)
     try:
         if reason is None and before is not None and before != snapshot(name, checker=ck):
-            reason = "HEAD, origin/main, the plugin, an interpreter or the private plan changed while the job ran"
+            reason = ("HEAD, origin/main, the plugin, an interpreter, the private plan or the job's entries in "
+                      "tools/pipeline/checks.toml changed while the job ran")
         if reason is None and len(t.skips) < skipped:
             reason = (f"the output shows {skipped} skipped tests and the trace holds {len(t.skips)}: which tests "
                       "skipped, and why, is not known")
@@ -630,6 +676,14 @@ def main(argv: list[str] | None = None) -> int:
     except ValueError as exc:       # every job runs and records nothing (check.sh: an answer other than 0 or 1)
         print(f"check_stamps.py: {exc}", file=sys.stderr)
         return 2
+    try:
+        return _main(argv)
+    except pm.ManifestError as exc:     # a manifest job's key cannot be made: it runs and records nothing
+        print(f"check_stamps.py: not stamped: {exc}", file=sys.stderr)
+        return 2
+
+
+def _main(argv: list[str]) -> int:
     if len(argv) >= 2 and argv[0] == "current":
         name, save = argv[1], None
         if "--save" in argv:

@@ -9,8 +9,9 @@ print the lists its runners will read.
     python3 tools/pipeline/manifest.py jobs check [--group static | --ungrouped | --docs-only]
                                                                    one shell line per step: its name, then its command
 
-Stage 1: nothing runs from these lists yet. tools/check.sh and tools/ci/docs_checks.sh keep their own, and
-tools/audit/tests/test_pipeline_manifest.py checks the three agree until stage 2 makes them read `jobs`.
+tools/check.sh runs the static group as its one "static" job and each step in no group as a job of its own;
+tools/ci/docs_checks.sh runs the docs-only steps. Both stop, naming the error, when `jobs` fails. check.sh's stamps
+(tools/audit/check_stamps.py) key each job on its own entries (job_digests), so an edited entry reruns that job only.
 
 A `jobs` line is shell text for check.sh to eval: each word shell-quoted, except "{python}", which is written as
 "$HOPS_PY", and an env PYTHONPATH=dir word, which is written as PYTHONPATH="dir${PYTHONPATH:+:$PYTHONPATH}" so the
@@ -29,7 +30,9 @@ from __future__ import annotations
 
 import argparse
 import functools
+import hashlib
 import importlib.util
+import json
 import re
 import shlex
 import subprocess
@@ -40,9 +43,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = ROOT / "tools" / "pipeline" / "checks.toml"
-_spec = importlib.util.spec_from_file_location("build_pipeline_map", ROOT / "tools/ops/build_pipeline_map.py")
-MAP = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(MAP)
 
 RUNNERS = ("check",)          # panels and manual steps come with stage 5 (panels.toml)
 GROUPS = ("static",)          # check.sh's one job that runs its checks one after another
@@ -63,6 +63,16 @@ EDGE_KEYS = {"inputs": ("path", "label", "side"), "outputs": ("path", "label")}
 
 class ManifestError(Exception):
     """A manifest, or the map or git it is checked against, that cannot be used; the message says where."""
+
+
+@functools.cache
+def pipeline_map():
+    """tools/ops/build_pipeline_map.py, loaded on first use: only the checks against the map need it, not the stamps'
+    job_digests (tools/audit/check_stamps.py imports this module for every job it checks or records)."""
+    spec = importlib.util.spec_from_file_location("build_pipeline_map", ROOT / "tools/ops/build_pipeline_map.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 @dataclass(frozen=True)
@@ -122,7 +132,7 @@ def repo_from(tracked: frozenset[str] | set[str], graph: dict) -> Repo:
     overlap = files & folders
     if overlap:
         raise ManifestError(f"git lists {sorted(overlap)[0]} as a file and as a folder")
-    return Repo(files, folders, domains, frozenset(MAP.SIDES), local)
+    return Repo(files, folders, domains, frozenset(pipeline_map().SIDES), local)
 
 
 def repo() -> Repo:
@@ -137,10 +147,11 @@ def repo() -> Repo:
     tracked = frozenset(p for p in out.stdout.split("\0") if p and (ROOT / p).exists())
     if not tracked:
         raise ManifestError(f"git ls-files lists no file in {ROOT}")
+    graph_map = pipeline_map()
     try:
-        graph = MAP.read(MAP.GRAPH)
-    except MAP.GraphError as err:
-        raise ManifestError(f"{_shown(MAP.GRAPH)}: {err}") from None
+        graph = graph_map.read(graph_map.GRAPH)
+    except graph_map.GraphError as err:
+        raise ManifestError(f"{_shown(graph_map.GRAPH)}: {err}") from None
     return repo_from(tracked, graph)
 
 
@@ -183,8 +194,8 @@ def _shown(path: Path) -> str:
         return str(path)
 
 
-def load(path: Path = MANIFEST, where: Repo | None = None) -> tuple[Step, ...]:
-    """The manifest's steps in file order, or ManifestError listing every problem."""
+def read(path: Path = MANIFEST) -> tuple[dict, str]:
+    """The manifest file as TOML, unchecked, and its name for messages; ManifestError when it cannot be read."""
     shown = _shown(path)
     try:
         text = path.read_text(encoding="utf-8")
@@ -193,14 +204,19 @@ def load(path: Path = MANIFEST, where: Repo | None = None) -> tuple[Step, ...]:
     except UnicodeDecodeError as err:
         raise ManifestError(f"{shown}: not UTF-8 text: {err}") from None
     try:
-        data = tomllib.loads(text)
+        return tomllib.loads(text), shown
     except tomllib.TOMLDecodeError as err:
         raise ManifestError(f"{shown}: not valid TOML: {err}") from None
+
+
+def load(path: Path = MANIFEST, where: Repo | None = None) -> tuple[Step, ...]:
+    """The manifest's steps in file order, or ManifestError listing every problem."""
+    data, shown = read(path)
     return parse(data, shown, repo() if where is None else where)
 
 
-def parse(data: dict, shown: str, where: Repo) -> tuple[Step, ...]:
-    """The steps of a manifest already read as TOML; `shown` names the file in messages."""
+def _entries(data: dict, shown: str) -> list[dict]:
+    """The [[step]] tables of a manifest read as TOML, unchecked beyond that; ManifestError when there are none."""
     other = sorted(set(data) - {"step"})
     if other:
         raise ManifestError(f"{shown}: only [[step]] tables belong here, not {', '.join(other)}")
@@ -209,6 +225,12 @@ def parse(data: dict, shown: str, where: Repo) -> tuple[Step, ...]:
         raise ManifestError(f"{shown}: no [[step]] in it; a manifest with no steps would run nothing")
     if not isinstance(raw, list) or not all(isinstance(s, dict) for s in raw):
         raise ManifestError(f"{shown}: step must be [[step]] tables")
+    return raw
+
+
+def parse(data: dict, shown: str, where: Repo) -> tuple[Step, ...]:
+    """The steps of a manifest already read as TOML; `shown` names the file in messages."""
+    raw = _entries(data, shown)
     problems: list[str] = []
     steps: list[Step] = []
     seen: dict[str, int] = {}
@@ -246,6 +268,8 @@ def _step_problems(entry: dict, where: Repo) -> list[str]:
         return out
     if not NAME_RE.fullmatch(entry["name"]):
         out.append(f"name: {entry['name']!r} must be lower case letters, digits and hyphens (stamps key on it)")
+    if entry["name"] in GROUPS:
+        out.append(f"name: {entry['name']!r} is a group's name, the name of check.sh's job for that group")
     if entry["runner"] not in RUNNERS:
         out.append(f"runner: {entry['runner']!r} is not one of {', '.join(RUNNERS)}")
     if "group" in entry and entry["group"] not in GROUPS:
@@ -386,6 +410,34 @@ def _step(entry: dict) -> Step:
         inputs=_edges(entry.get("inputs", [])), outputs=_edges(entry.get("outputs", [])),
         programs=tuple((p, tuple(g)) for p, g in entry.get("programs", {}).items()),
     )
+
+
+def job_digests(path: Path = MANIFEST) -> dict[str, str]:
+    """check.sh's job name -> a sha256 of the manifest entries that job runs: a group's job (static) holds its steps'
+    entries in file order, and any other step is a job of its own under its name. tools/audit/check_stamps.py puts it
+    in each job's stamp key, so an edited entry reruns its own job and no other. Read without the checks against git
+    and the map: check.sh ran `jobs` on the file before any job started, and that checks it all. An entry with no name,
+    a name or group that is not text, or two jobs of one name is a ManifestError."""
+    data, shown = read(path)
+    jobs: dict[str, list[dict]] = {}
+    own: set[str] = set()                   # jobs of one step each
+    for i, entry in enumerate(_entries(data, shown), 1):
+        name, group = entry.get("name"), entry.get("group", "")
+        if not isinstance(name, str) or not name or not isinstance(group, str):
+            raise ManifestError(f"{shown}: step {i}: no name, or a name or group that is not text "
+                                f"(manifest.py check names every problem)")
+        job = group or name
+        if job in jobs and (not group or job in own):
+            raise ManifestError(f"{shown}: step {i}: two jobs named {job!r} (manifest.py check names every problem)")
+        if not group:
+            own.add(job)
+        jobs.setdefault(job, []).append(entry)
+    try:
+        return {job: hashlib.sha256(json.dumps({"job": job, "steps": entries}, sort_keys=True, ensure_ascii=False,
+                                               separators=(",", ":")).encode()).hexdigest()
+                for job, entries in jobs.items()}
+    except (TypeError, ValueError) as err:     # a TOML date or time: no field of a step takes one
+        raise ManifestError(f"{shown}: a step holds a value JSON cannot hold (a date or time?): {err}") from None
 
 
 def shell_line(step: Step) -> str:

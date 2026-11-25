@@ -19,6 +19,8 @@ import changed_kind  # noqa: E402
 import check_stamps  # noqa: E402
 import portal_inputs  # noqa: E402
 
+manifest = check_stamps.pm      # tools/pipeline/manifest.py, as the stamps load it
+
 # check.sh's variables that pick a path; the tests start each run without them.
 PATH_VARS = ("CI", "FULL", "CHECK_ONLY", "CHECK_AUDIT", "HART_TABLES", "PORTAL_CHECK", "CHECK_RECORD_TO",
              "CHECK_SKIP_FROM", "CHECK_SKIP_NOTE", "PYTHONPATH")
@@ -241,31 +243,42 @@ class OneList(unittest.TestCase):
         self.assertIn('bash tools/ci/docs_checks.sh', (ROOT / "tools/check.sh").read_text(encoding="utf-8"))
 
     def test_each_docs_check_is_also_in_the_full_run(self) -> None:
-        """The docs path skips the full run, so its checks must be ones the full run makes too (static or public-text)."""
-        checks = re.findall(r"^check [\w-]+ (?:python3|\"\$HOPS_PY\") (?!-m )(\S+)", (ROOT / "tools/ci/docs_checks.sh")
-                            .read_text(encoding="utf-8"), re.M)
-        self.assertGreaterEqual(len(checks), 8)
-        check_sh = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
-        static = check_sh[check_sh.index("\nstatic_checks() {\n"):]
-        for script in checks:
-            self.assertIn(script, static, script)
+        """The docs path skips the full run, so its checks must be ones the full run makes too: the manifest's
+        docs-only steps, each in the static group or a job of its own that check.sh always queues (not the portal
+        build, which check.sh runs only where its inputs are)."""
+        docs = manifest.select(manifest.load(), "check", docs_only=True)
+        self.assertGreaterEqual(len(docs), 8)
+        for step in docs:
+            with self.subTest(step.name):
+                self.assertTrue(step.group == "static" or (not step.group and step.name != "portal"))
+        text = (ROOT / "tools/ci/docs_checks.sh").read_text(encoding="utf-8")
+        self.assertIn("python3 tools/pipeline/manifest.py jobs check --docs-only", text)
+        by_hand = [line for line in text.splitlines() if line.startswith("check ") and " -m unittest " not in line]
+        self.assertEqual([], by_hand, "a docs check listed by hand: mark its step docs_only in tools/pipeline/checks.toml")
 
     def test_docs_checks_runs_every_check_and_fails_when_one_did(self) -> None:
+        docs = manifest.select(manifest.load(), "check", docs_only=True)
         with tempfile.TemporaryDirectory() as d:
             repo = Path(d)
             (repo / "tools/ci").mkdir(parents=True)
             shutil.copy(ROOT / "tools/ci/docs_checks.sh", repo / "tools/ci/docs_checks.sh")
+            (repo / "lines").write_text("".join(manifest.shell_line(s) + "\n" for s in docs))
             bin_dir = repo / "bin"
             bin_dir.mkdir()
-            # a python3 that logs each script and fails the ai-speak check only
-            (bin_dir / "python3").write_text('#!/usr/bin/env bash\necho "ran $1"\n[[ "$1" != *check_ai_speak.py ]]\n')
+            # a python3 that answers the manifest's docs-only lines, logs each other script and fails the ai-speak
+            # check only
+            (bin_dir / "python3").write_text(
+                '#!/usr/bin/env bash\n'
+                f'if [[ "$1" == tools/pipeline/manifest.py ]]; then cat "{repo}/lines"; exit 0; fi\n'
+                'echo "ran $1"\n[[ "$1" != *check_ai_speak.py ]]\n')
             (bin_dir / "python3").chmod(0o755)
             env = {**os.environ, "PATH": f"{bin_dir}:{os.environ['PATH']}"}
             env.pop("HOPS_PY", None)
             done = subprocess.run(["bash", str(repo / "tools/ci/docs_checks.sh")], env=env, capture_output=True,
                                   text=True, timeout=30)
             self.assertEqual(1, done.returncode)
-            self.assertEqual(8 + len(docs_unit_tests()), len(re.findall(r"^ran ", done.stdout, re.M)), done.stdout)
+            self.assertEqual(len(docs) + len(docs_unit_tests()), len(re.findall(r"^ran ", done.stdout, re.M)),
+                             done.stdout)
             self.assertIn("quick docs checks FAILED: ai-speak", done.stdout)
 
 

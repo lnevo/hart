@@ -29,7 +29,7 @@ WATCHED = re.compile(
     r"|jmri/layouts/hart/output/signal_head_plan\.csv"
     r"|jmri/scripts/(signal_coordinator|sml_[a-z_]+)\.py)$"  # the script and the sibling modules it loads
 )
-CHECKS = [  # (name, argv) as in tools/check.sh; test_guards checks each one is still there
+CHECKS = [  # (name, argv) as tools/pipeline/checks.toml (unit-jmri: tools/check.sh) has them; test_guards checks they match
     ("phase02", ["python3", "jmri/scripts/check_hart_phase02.py"]),
     ("tables-browser", ["python3", "www/scripts/build_tables_browser.py", "--check"]),
     ("track-lengths", ["python3", "jmri/layouts/hart/scripts/export_track_lengths.py", "--check"]),

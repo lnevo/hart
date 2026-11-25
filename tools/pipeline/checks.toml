@@ -1,7 +1,8 @@
 # The read-only checks tools/check.sh runs, one [[step]] each (ADR-037, docs/pipeline-map/build-graph-design.md).
-# Stage 1: nothing reads this file yet but tools/pipeline/manifest.py and its tests. tools/check.sh and
-# tools/ci/docs_checks.sh still hold their own lists, and a temporary test (tools/audit/tests/test_pipeline_manifest.py)
-# keeps the three the same until stage 2 makes check.sh read this one.
+# tools/check.sh and tools/ci/docs_checks.sh run what is listed here, through `tools/pipeline/manifest.py jobs check`;
+# a file that does not load, or a list with no step, stops them before any job. To add a check, add a [[step]] and run
+# `python3 tools/pipeline/manifest.py check` (docs/pipeline-map/checks-and-remote.md). Each job's stamp key holds its
+# own entries (all of the static group's for "static"), so an edit here reruns only the job it changes.
 #
 # Fields (manifest.py checks each one and refuses any other):
 #   name        the job name as check.sh prints it; stamps key on it, so a rename reruns the check once
@@ -540,7 +541,7 @@ desc = "Pyflakes (ruff F rules, ruff.toml) over every .py file; the edit hook ru
 programs = { ruff = ["**/*.py", "ruff.toml", "requirements.txt", ".gitignore", "**/.gitignore"] }
 
 # check.sh queues it only off CI and when tools/audit/portal_inputs.py does not exit 3 (no site input changed), or
-# with PORTAL_CHECK=1; the condition stays in check.sh (stage 2 keeps it around the line `jobs` gives)
+# with PORTAL_CHECK=1; the condition is in check.sh, keyed on this step's name
 [[step]]
 name = "portal"
 runner = "check"
