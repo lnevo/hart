@@ -5,8 +5,8 @@
 
 # Not checked at all:
 # - external/, reference/, tools/cats/src-repo/: vendored or submodule code.
-# - archive/ and jmri/layouts/hart/parked/: kept for the record, never run (docs/parked/UNPARK.md).
-# - The STRR speed-match scripts: third-party Jython 2 copies kept as reference.
+# - archive/ and jmri/layouts/hart/parked/: kept for the record, never run (docs/parked/UNPARK.md). The STRR
+#   speed-match scripts (third-party Jython 2 copies) and the 2026-11-08 speed-match runners are in archive/.
 # - Jython 2 scripts ruff cannot parse: `print "..."` statements, and `latch.await(...)` (await is a keyword in
 #   Python 3, a plain Java method name in Jython). A syntax error cannot be ignored per rule, only per file.
 extend-exclude = [
@@ -15,7 +15,6 @@ extend-exclude = [
     "tools/cats/src-repo",
     "archive",
     "jmri/layouts/hart/parked",
-    "docs/jmri/speedmatching/STRR_*.py",
     "jmri/layouts/hart/scripts/run_dispatcher_stage1.py",
     "jmri/layouts/hart/scripts/apply_dispatcher_roster_profiles.py",
     "jmri/scripts/signal_coordinator.py",
@@ -34,7 +33,6 @@ select = ["F"]
 # as a tuple of exceptions, so `e` looks undefined. Every other F rule still applies to them.
 "jmri/layouts/hart/scripts/speedmatch/jython/*.py" = ["F821"]
 "jmri/layouts/hart/scripts/speedmatch/pom_write.py" = ["F821"]
-"docs/jmri/speedmatching/profile-*/runner/*.py" = ["F821"]
 "jmri/layouts/hart/scripts/cs105_consist.py" = ["F821"]
 "jmri/layouts/hart/scripts/ctc_default_reverse_levers.py" = ["F821"]
 "jmri/layouts/hart/scripts/panel_status.py" = ["F821"]
