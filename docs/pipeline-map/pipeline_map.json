@@ -3650,6 +3650,33 @@
    "path": "tools/audit/check_data_readers.py"
   },
   {
+   "id": "tools/hosts/backup_launchagents.sh",
+   "label": "backup_launchagents.sh (make backup-status)",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Installs and checks the Mac LaunchAgents that run the daily Pi pull and the weekly Windows push (ADR-035).",
+   "path": "tools/hosts/backup_launchagents.sh"
+  },
+  {
+   "id": "tools/hosts/backup_pi_pull.sh",
+   "label": "backup_pi_pull.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Daily: snapshots the Pi's ~/.jmri, JMRI user files, ~/speedmatch, ~/Desktop, ~/.java, app launchers and ~/jmrihelp into ~/Backups/hart/pi on the Mac, then runs the STS pull (ADR-035).",
+   "path": "tools/hosts/backup_pi_pull.sh"
+  },
+  {
+   "id": "tools/hosts/backup_win_push.sh",
+   "label": "backup_win_push.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Weekly: mirrors the Mac's gitignored data, the Pi snapshots and the AnyRail plans into WSL on the Windows box (ADR-035).",
+   "path": "tools/hosts/backup_win_push.sh"
+  },
+  {
    "id": ".claude/agents/archive-researcher.md",
    "label": "agent: archive-researcher",
    "kind": "unstructured",
@@ -7793,6 +7820,36 @@
    "from": "jmri/layouts/hart/data/block_lengths.csv",
    "to": "tools/schematic/build_device_map.py",
    "label": "reads staging plan lengths by id (masts)"
+  },
+  {
+   "from": "tools/hosts/backup_launchagents.sh",
+   "to": "tools/hosts/backup_pi_pull.sh",
+   "label": "daily"
+  },
+  {
+   "from": "tools/hosts/backup_launchagents.sh",
+   "to": "tools/hosts/backup_win_push.sh",
+   "label": "weekly"
+  },
+  {
+   "from": "tools/hosts/backup_pi_pull.sh",
+   "to": "tools/hosts/pi_sts_pull_backups.sh",
+   "label": "runs"
+  },
+  {
+   "from": "external/sts-docker-data/pi",
+   "to": "tools/hosts/backup_win_push.sh",
+   "label": "copied"
+  },
+  {
+   "from": "media",
+   "to": "tools/hosts/backup_win_push.sh",
+   "label": "copied"
+  },
+  {
+   "from": "ops/car-cards",
+   "to": "tools/hosts/backup_win_push.sh",
+   "label": "copied"
   },
   {
    "from": ".claude/agents/archive-researcher.md",
