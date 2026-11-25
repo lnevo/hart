@@ -197,6 +197,8 @@ EXTRA: dict[str, tuple[str, ...]] = {
     "unit-jmri test_speedmatch_publish_live": ("docs/jmri/**/*",),
     "unit-jmri test_speedmatch_site_export": ("docs/jmri/**/*", "www/ai/**/*"),
 }
+# "kind test" of EXTRA -> the -k filter tools/ci/docs_unit_tests.py runs it with: the one class that reads docs
+DOCS_K: dict[str, str] = {"unit-jmri test_speedmatch_distance": "RunnerSource."}  # RUNBOOK.md's log tags
 
 
 # "kind test" -> folders the job only lists (a bare exists-or-not look; no file in them is read), left out of the stamp.

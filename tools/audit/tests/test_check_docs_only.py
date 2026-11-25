@@ -17,6 +17,7 @@ sys.path.insert(0, str(ROOT / "tools" / "ci"))
 sys.path.insert(0, str(ROOT / "tools" / "audit"))
 import changed_kind  # noqa: E402
 import check_stamps  # noqa: E402
+import docs_unit_tests  # noqa: E402
 import portal_inputs  # noqa: E402
 
 manifest = check_stamps.pm      # tools/pipeline/manifest.py, as the stamps load it
@@ -263,6 +264,8 @@ class OneList(unittest.TestCase):
             (repo / "tools/ci").mkdir(parents=True)
             shutil.copy(ROOT / "tools/ci/docs_checks.sh", repo / "tools/ci/docs_checks.sh")
             (repo / "lines").write_text("".join(manifest.shell_line(s) + "\n" for s in docs))
+            units = docs_unit_tests.lines(docs_unit_tests.tests())
+            (repo / "units").write_text("".join(line + "\n" for line in units))
             bin_dir = repo / "bin"
             bin_dir.mkdir()
             # a python3 that answers the manifest's docs-only lines, logs each other script and fails the ai-speak
@@ -270,6 +273,7 @@ class OneList(unittest.TestCase):
             (bin_dir / "python3").write_text(
                 '#!/usr/bin/env bash\n'
                 f'if [[ "$1" == tools/pipeline/manifest.py ]]; then cat "{repo}/lines"; exit 0; fi\n'
+                f'if [[ "$1" == tools/ci/docs_unit_tests.py ]]; then cat "{repo}/units"; exit 0; fi\n'
                 'echo "ran $1"\n[[ "$1" != *check_ai_speak.py ]]\n')
             (bin_dir / "python3").chmod(0o755)
             env = {**os.environ, "PATH": f"{bin_dir}:{os.environ['PATH']}"}
@@ -277,84 +281,9 @@ class OneList(unittest.TestCase):
             done = subprocess.run(["bash", str(repo / "tools/ci/docs_checks.sh")], env=env, capture_output=True,
                                   text=True, timeout=30)
             self.assertEqual(1, done.returncode)
-            self.assertEqual(len(docs) + len(docs_unit_tests()), len(re.findall(r"^ran ", done.stdout, re.M)),
+            self.assertEqual(len(docs) + len(units), len(re.findall(r"^ran ", done.stdout, re.M)),
                              done.stdout)
             self.assertIn("quick docs checks FAILED: ai-speak", done.stdout)
-
-
-# check.sh's unit job kinds by test folder (tools/check.sh), for the stamp names of the tests docs_checks.sh runs.
-KIND_BY_DIR = {"tools/audit/tests": "unit-guards", "tools/hosts/tests": "unit-hosts",
-               "tools/schematic/tests": "unit-schematic", "jmri/layouts/hart/scripts/tests": "unit-jmri"}
-UNIT_LINE = re.compile(r"^check (?P<name>\S+) python3 -m unittest discover -b -q -s (?P<dir>\S+) -p (?P<file>test\w*\.py)"
-                       r"(?: -k (?P<k>\S+))?$")
-# The stamp declarations (tools/audit/check_stamps.py) that cover Markdown under docs/ or wiki/ but whose tests the
-# docs-only path leaves out, each with why (owner, 2026-11-24: a short list; whole suites that only partly read docs
-# stay out). A new or changed declaration on docs/ or wiki/ fails below until docs_checks.sh runs it or it is listed.
-LEFT_OUT = {
-    # check_stamps.MANIFEST_CHECK: a read-only check's fallback after bash (every file), one job per step since ADR-037
-    # stage 4b
-    "manifest checks": "the ones a docs-only change can break are docs_only steps, run from docs_checks.sh's list",
-    "public-text": "check_public_text.py is in docs_checks.sh's list",
-    "portal": "the portal build stays with the website deploy, as in CI (owner, 2026-11-24)",
-    "unit-portal": "whole suite of site builders (39 s); reads docs/ops and docs/wiring only as page sources",
-    "unit-hart-ops": "whole suite (car cards, publications); reads docs only in part",
-    "unit-schematic": "whole suite; reads wiki/pipelines/ only in part",
-    "unit-anyrail": "whole suite; reads docs/ only for the track plan article",
-    "unit-guards test_check_stamps": "the stamp machinery's own tests (38 s); declared on its sample jobs' "
-                                     "declarations (RUNS_JOBS), docs/ through unit-anyrail's",
-    "unit-guards test_hart_tables_writers": "runs each table writer only to see it refuse to write under "
-                                            "HART_TABLES; status_counts.py reads wiki/status/ on the way",
-    "unit-guards test_jmri_process_patterns": "reads the .sh, .ps1 and .py files git lists, docs/ included; no Markdown",
-    "unit-guards test_pipeline_map": "its real-map tests read the graph and the pages, which only a full-path change "
-                                     "(docs/pipeline-map/) alters; both pages are the pipeline-map check",
-    "unit-guards test_pipeline_map_coverage": "the agent docs it checks are .claude/ and AGENTS.md files: full path",
-    "unit-guards test_docs_index": "builds fake docs trees; the real index is the docs-index check",
-    "unit-guards test_agent_docs_map": "its one test on the real wiki (the committed graph is current) is what the "
-                                       "pipeline-map check's build_pipeline_map.py --check also fails on",
-    "unit-guards test_map_lane": "its tests on the real map (the committed graph is current, a hand edit fails) are "
-                                 "what the pipeline-map check's build_pipeline_map.py --check also fails on",
-    "unit-guards test_agent_docs_cells": "its runs of check_agent_docs.py on the real wiki and AGENTS.md are what "
-                                         "the agent-docs check in docs_checks.sh's list checks",
-    "unit-guards test_status_merge": "its tests on the built page (no doubled entries) are what the status-counts "
-                                     "check in docs_checks.sh's list also fails on",
-    "unit-guards test_status_counts": "its tests on the real wiki/status/ are what the status-counts check in "
-                                      "docs_checks.sh's list also fails on",
-    "unit-guards test_helix_stl_index": "lists the docs/benchwork/helix/stl/ models, no Markdown",
-    "unit-guards test_publish_draft": "reads docs/ops/ drawings and JSON, no Markdown",
-    "unit-guards test_write_inventory": "reads docs/wiring/ CSV, no Markdown",
-    "unit-hosts test_live_paths": "reads the docs/ paths the deploy scripts name, not Markdown text",
-    "unit-jmri test_infer_block_lengths": "reads docs/jmri/ data files, no Markdown",
-    "unit-jmri test_speedmatch": "reads docs/jmri/ data files (block_events.csv), no Markdown",
-    "unit-jmri test_speedmatch_dashboard": "reads docs/jmri/ data files, no Markdown",
-    "unit-jmri test_speedmatch_publish_live": "reads docs/jmri/ data files, no Markdown",
-    "unit-jmri test_speedmatch_site_export": "reads docs/jmri/ and www/ai/ data files, no Markdown",
-}
-
-
-def docs_unit_tests() -> dict[str, re.Match]:
-    """docs_checks.sh's unit test lines by stamp name ("unit-guards test_name_copies")."""
-    found = {}
-    for line in (ROOT / "tools/ci/docs_checks.sh").read_text(encoding="utf-8").splitlines():
-        if line.startswith("check ") and " -m unittest" in line:
-            m = UNIT_LINE.match(line)
-            if m is None or m["dir"] not in KIND_BY_DIR:
-                raise AssertionError(f"docs_checks.sh: a unit test line not in the form the guard reads: {line}")
-            found[f"{KIND_BY_DIR[m['dir']]} {m['file'].removesuffix('.py')}"] = m
-    return found
-
-
-def covers_markdown_docs(patterns: tuple[str, ...]) -> bool:
-    """Whether a stamp declaration covers a Markdown file under docs/ or wiki/, matched by the stamps' own rule
-    (panel_stamps._glob_match). Each docs/ or wiki/ pattern is probed with a path made from its own segments, a
-    wildcard segment named "x" and the last one "x.md"."""
-    probes = {"docs/x.md", "wiki/x.md"}
-    for p in patterns:
-        if p.startswith(("docs/", "wiki/")):
-            parts = ["x" if "*" in part else part for part in p.split("/")]
-            if not parts[-1].endswith(".md"):
-                parts[-1] = "x.md"
-            probes.add("/".join(parts))
-    return any(check_stamps.ps._glob_match(probe, p) for p in patterns for probe in probes)
 
 
 def check_sh_list(name: str) -> set[str]:
@@ -367,52 +296,72 @@ def check_sh_list(name: str) -> set[str]:
 
 
 class DocsUnitTests(unittest.TestCase):
-    """The unit tests docs_checks.sh runs follow the stamp declarations of what reads docs (tools/audit/check_stamps.py)."""
+    """The unit tests docs_checks.sh runs: tools/ci/docs_unit_tests.py makes them from the stamp declarations of what
+    reads docs (tools/audit/check_stamps.py), so every declaration on docs is run or left out with a reason."""
 
-    def test_each_listed_test_is_declared_on_docs_and_named_for_its_file(self) -> None:
-        tests = docs_unit_tests()
-        self.assertGreaterEqual(len(tests), 2)
-        for stamp, m in tests.items():
+    def test_the_real_list_runs_as_check_sh_names_its_tests(self) -> None:
+        tests = docs_unit_tests.tests()
+        stamps = [stamp for stamp, *_ in tests]
+        self.assertIn("unit-guards test_name_copies", stamps)
+        self.assertIn(("unit-jmri test_speedmatch_distance", "jmri/layouts/hart/scripts/tests",
+                       "test_speedmatch_distance.py", "RunnerSource."), tests)
+        check_sh = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
+        for stamp, folder, file, _k in tests:
             with self.subTest(stamp):
-                self.assertTrue((ROOT / m["dir"] / m["file"]).is_file())
-                self.assertEqual(stamp.replace(" ", "-"), m["name"])
-                extra = check_stamps.EXTRA.get(stamp)
-                self.assertIsNotNone(extra, f"{stamp}: check_stamps.EXTRA does not say it reads docs or the wiki")
-                self.assertTrue(covers_markdown_docs(extra), f"{stamp}: its declaration covers no Markdown doc")
-                self.assertNotIn(stamp, LEFT_OUT)
+                self.assertIn(folder, check_sh)
                 # check.sh runs these files under another job name (the Layout Editor job, one job per class)
-                self.assertNotIn(m["file"].removesuffix(".py"), check_sh_list("LE_TESTS"))
-                self.assertNotIn(m["file"], check_sh_list("BY_CLASS"))
+                self.assertNotIn(file.removesuffix(".py"), check_sh_list("LE_TESTS"))
+                self.assertNotIn(file, check_sh_list("BY_CLASS"))
+        done = subprocess.run([sys.executable, str(ROOT / "tools/ci/docs_unit_tests.py")], capture_output=True,
+                              text=True, timeout=60)
+        self.assertEqual((0, docs_unit_tests.lines(tests)), (done.returncode, done.stdout.splitlines()), done.stderr)
 
     def test_each_k_filter_names_a_test_class_of_its_file(self) -> None:
-        for stamp, m in docs_unit_tests().items():
-            if m["k"] is None:
+        for stamp, folder, file, k in docs_unit_tests.tests():
+            if k is None:
                 continue
             with self.subTest(stamp):
                 done = subprocess.run([sys.executable, str(ROOT / "tools/audit/test_classes.py"),
-                                       str(ROOT / m["dir"] / m["file"])], capture_output=True, text=True, timeout=60)
+                                       str(ROOT / folder / file)], capture_output=True, text=True, timeout=60)
                 self.assertEqual(0, done.returncode, done.stderr)
                 classes = {c.split(".")[-1] for c in done.stdout.split()}
-                self.assertIn(m["k"].split(".")[0], classes, f"-k {m['k']} names no test class of {m['file']}")
+                self.assertIn(k.split(".")[0], classes, f"-k {k} names no test class of {file}")
 
-    def test_every_declaration_on_markdown_docs_is_run_or_left_out_with_a_reason(self) -> None:
-        # a job that runs other jobs (RUNS_JOBS) is declared on theirs too: its whole declaration
-        declared = {**check_stamps.BY_KIND, **check_stamps.EXTRA, "manifest checks": check_stamps.MANIFEST_CHECK,
-                    **{k: check_stamps.declared(k) for k in check_stamps.RUNS_JOBS}}
-        on_docs = {k for k, v in declared.items() if covers_markdown_docs(v)}
-        handled = set(docs_unit_tests()) | set(LEFT_OUT)
-        self.assertEqual([], sorted(on_docs - handled), "declared on docs/ or wiki/: run it in docs_checks.sh or "
-                                                        "add it to LEFT_OUT with the reason")
-        self.assertEqual([], sorted(set(LEFT_OUT) - on_docs), "LEFT_OUT names a job no longer declared on docs")
+    def stamps(self, extra: dict, by_kind: dict | None = None, docs_k: dict | None = None):
+        """A stand-in for check_stamps with only these declarations."""
+        return type("Stamps", (), {"BY_KIND": by_kind or {"unit-guards": ("tools/**/*",)}, "EXTRA": extra,
+                                   "MANIFEST_CHECK": ("tools/**/*",), "RUNS_JOBS": {}, "DOCS_K": docs_k or {},
+                                   "declared": staticmethod(lambda name: ())})
+
+    def test_problems_fail_the_list_and_name_the_reason(self) -> None:
+        real = "unit-guards test_name_copies"
+        cases = (
+            (self.stamps({}), {}, "no unit test is declared on docs/ or wiki/ outside LEFT_OUT"),
+            (self.stamps({real: ("docs/**/*",)}), {"unit-guards test_gone": "x"}, "LEFT_OUT names 'unit-guards test_gone'"),
+            (self.stamps({real: ("docs/**/*",)}, {"unit-guards": ("wiki/**/*",)}), {}, "'unit-guards' is declared"),
+            (self.stamps({"unit-guards test_no_such_file": ("docs/**/*",)}), {}, "test_no_such_file.py is gone"),
+            (self.stamps({real: ("docs/**/*",)}, docs_k={"unit-jmri test_x": "A."}), {}, "DOCS_K names 'unit-jmri"),
+            (self.stamps({real: ("docs/**/*",)}, docs_k={real: "A; rm"}), {}, "is not a class or test name"),
+        )
+        for stamps, left_out, why in cases:
+            with self.subTest(why), self.assertRaisesRegex(docs_unit_tests.Problem, why):
+                docs_unit_tests.tests(stamps, left_out)
+        self.assertEqual(docs_unit_tests.lines(docs_unit_tests.tests(self.stamps({real: ("docs/x.md",)}), {})),
+                         ["unit-guards-test_name_copies python3 -m unittest discover -b -q -s tools/audit/tests "
+                          "-p test_name_copies.py"])
+        with mock.patch.object(docs_unit_tests, "tests", side_effect=docs_unit_tests.Problem("none")), \
+                mock.patch("sys.stderr"):
+            self.assertEqual(1, docs_unit_tests.main())
 
     def test_the_probe_reads_patterns_as_the_stamps_do(self) -> None:
-        self.assertTrue(covers_markdown_docs(("**/*",)))
-        self.assertTrue(covers_markdown_docs(("docs/jmri/**/*",)))
-        self.assertTrue(covers_markdown_docs(("docs/INDEX.md",)))
-        self.assertFalse(covers_markdown_docs(("**/*.py", "www/**/*", "tools/**/*")))
-        self.assertFalse(covers_markdown_docs(("docs/x.json",)))
-        self.assertTrue(covers_markdown_docs(("docs/jmri/*/**/*",)))     # a wildcard segment in the middle
-        self.assertTrue(covers_markdown_docs(("wiki/*/notes/*.md",)))
+        covers = docs_unit_tests.covers_markdown_docs
+        self.assertTrue(covers(("**/*",)))
+        self.assertTrue(covers(("docs/jmri/**/*",)))
+        self.assertTrue(covers(("docs/INDEX.md",)))
+        self.assertFalse(covers(("**/*.py", "www/**/*", "tools/**/*")))
+        self.assertFalse(covers(("docs/x.json",)))
+        self.assertTrue(covers(("docs/jmri/*/**/*",)))     # a wildcard segment in the middle
+        self.assertTrue(covers(("wiki/*/notes/*.md",)))
 
     def test_check_sh_lists_are_read(self) -> None:
         self.assertIn("test_build_layout_le", check_sh_list("LE_TESTS"))
@@ -420,12 +369,6 @@ class DocsUnitTests(unittest.TestCase):
         self.assertIn("test_deploy_gates.py", check_sh_list("BY_CLASS"))
         with self.assertRaisesRegex(AssertionError, "no NOPE= list"):
             check_sh_list("NOPE")
-
-    def test_a_unit_line_in_another_form_fails_the_guard(self) -> None:
-        bad = "check x python3 -m unittest tools/audit/tests/test_name_copies.py\n"
-        with mock.patch.object(Path, "read_text", return_value=bad):
-            with self.assertRaisesRegex(AssertionError, "not in the form the guard reads"):
-                docs_unit_tests()
 
 
 if __name__ == "__main__":
