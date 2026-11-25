@@ -4,7 +4,7 @@
  "staging": {
   "_layer": 1,
   "_note": "Facts about the railroad that the AnyRail plan 5.3c does not hold or holds wrongly. Every output uses them. Since 5.3c (owner, 2026-11-19) the plan draws the Switch 7 crossover, Switches 13, 11 and 9 with EH-1 to EH-3, and no crossover T41/T43, all left-hand as built; the helix comes from the plan, cut at -5 cm (the schematic-maps plugin's schematic anyplan --cut -5 --stubs).",
-  "left_end": "W-1",
+  "left_end": "block:3B-end",
   "edits": [
    {
     "op": "relabel",
@@ -35,149 +35,52 @@
     }
    },
    {
-    "op": "name",
-    "_note": "Switch numbers, not part numbers. Switches 23, 35 and 7 are crossover or three-way halves that share one number, so a half is named as number@track once a track leaving it has a name, and before that as number@neighbour: the half a track joins to that switch (23@1, 35@23, 23@15, 35@33, 7@33, 7@13; 7@5 would answer both halves of 7). Only the relabel edit above keys by plan part number.",
-    "tracks": [
-     [
-      "1",
-      "23@1",
-      "Main West"
-     ],
-     [
-      "23@Main West",
-      "35@23",
-      "West Ext"
-     ],
-     [
-      "15",
-      "23@15",
-      "S-R"
-     ],
-     [
-      "17",
-      "29",
-      "S-1"
-     ],
-     [
-      "19",
-      "27",
-      "S-2"
-     ],
-     [
-      "21",
-      "25",
-      "S-4",
-      "B"
-     ],
-     [
-      "21",
-      "25",
-      "S-3",
-      "C"
-     ],
-     [
-      "33",
-      "35@33",
-      "East Lead"
-     ],
-     [
-      "1",
-      "5",
-      "Brick-Plane"
-     ],
-     [
-      "39",
-      "37",
-      [
-       "K-1",
-       "K-2"
-      ]
-     ],
-     [
-      "5",
-      "7@33",
-      "East Ext"
-     ],
-     [
-      "7@East Ext",
-      "33",
-      "Main East"
-     ],
-     [
-      "5",
-      "7@13",
-      "Scale"
-     ],
-     [
-      "7@Scale",
-      "13",
-      "Barn"
-     ],
-     [
-      "35@West Ext",
-      "39",
-      ""
-     ],
-     [
-      "35@East Lead",
-      "37",
-      ""
-     ]
-    ]
-   },
-   {
     "op": "end",
     "ends": [
      [
       "3",
       "B",
-      "W-1",
       "bumper",
       ""
      ],
      [
       "3",
       "C",
-      "W-2",
       "bumper",
       ""
      ],
      [
       "11",
       "B",
-      "EH-1",
       "bumper",
       ""
      ],
      [
       "9",
       "B",
-      "EH-2",
       "bumper",
       ""
      ],
      [
       "9",
       "C",
-      "EH-3",
       "bumper",
       ""
      ],
      [
       "39",
       "B",
-      "Helix Outer",
       "helix",
       "Main level"
      ],
      [
       "37",
       "B",
-      "Helix Inner",
       "helix",
       "Upper level"
      ]
-    ]
+    ],
+    "_note": "What each track end is: [switch, leg, kind, to], a bumper or the helix and the level it climbs to. A track's name is its block row's in devices_field.csv, by id (hartlib.track_names); the name edit is made from those rows (naming-layers step 3, 2026-11-24)."
    }
   ],
   "level_title": "Staging level",

@@ -18,8 +18,9 @@ a new sheet is added by hand, with its note).
 plan_overrides.json holds the owner's hand edits only. What build_staging_sets.py, build_main_route.py and
 build_device_map.py write goes to plan_generated.json (same sections; GENERATED below; T6b). `read` and `read_file`
 of "plan_overrides" give the hand file. `merged` / `merged_section` give the view every output is drawn from: the
-hand keys, then the generated keys the hand section lacks (a hand value wins), with the generated `name_main` flags
-put back on the staging `name` edit. `view` writes that merged view as a folder the schematic plugin reads with
+hand keys, then the generated keys the hand section lacks (a hand value wins), and then the track names of the name
+store (hartlib.track_names: the plugin's `name` edit, flagged main by the generated `name_main` runs, the names of
+the `end` edit and `left_end`), which plan_overrides.json does not hold. `view` writes that merged view as a folder the schematic plugin reads with
 `--data`. A generated write goes through `generated_texts` / `write_generated`, which replace only the keys given
 and never touch the hand file.
 
@@ -36,14 +37,14 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
-from . import paths
+from . import paths, track_names
 
 SCHEMATIC = paths.LAYOUT_DATA / "schematic"
 KINDS = ("plan_overrides", "preferences", "signals")
 GENERATED = "plan_generated"  # the generated half of plan_overrides: same sections, written by three builders
 PREFS_GENERATED = "preferences_generated"  # the generated half of preferences: written by build_staging_sets.py
 GENERATED_OF = {"plan_overrides": GENERATED, "preferences": PREFS_GENERATED}   # hand kind -> its generated kind
-NAME_MAIN = "name_main"       # staging's generated key: the indexes of the `name` edit's tracks flagged "main"
+NAME_MAIN = track_names.NAME_MAIN   # staging's generated key: the runs of its main lines (build_main_route.py)
 SECTIONS = "_sections"        # the key a combined file holds, true (the plugin's layers.SECTIONS)
 
 
@@ -150,8 +151,8 @@ PLAN_GENERATED_FILE = f"{GENERATED}.json"
 
 def merge(hand: dict, generated: dict) -> dict:
     """The whole view of a kind (plan_overrides or preferences) from the hand file's and the generated file's contents: per section the hand
-    keys, then the generated keys the hand section lacks. The generated `name_main` is not a key of the view: it flags
-    those tracks of the staging `name` edit "main" (last in the entry), as the one file used to hold them."""
+    keys, then the generated keys the hand section lacks. The generated `name_main` is not a key of the view: `named`
+    puts it on the `name` edit it makes."""
     out = dict(hand)
     for k, g in generated.items():
         if k.startswith("_"):
@@ -161,20 +162,23 @@ def merge(hand: dict, generated: dict) -> dict:
         for key, val in g.items():
             if key != NAME_MAIN:
                 sec.setdefault(key, val)
-        if NAME_MAIN in g:
-            sec["edits"] = edits = json.loads(json.dumps(sec.get("edits", [])))
-            named = [e for e in edits if isinstance(e, dict) and e.get("op") == "name"]
-            if len(named) != 1:
-                raise LayerFileError(f"{PLAN_GENERATED_FILE}[{k}]: {NAME_MAIN} needs one `name` edit in "
-                                     f"{PLAN_OVERRIDES_FILE}[{k}], found {len(named)}")
-            tracks = named[0]["tracks"]
-            for i, t in enumerate(tracks):       # the generated flags are the only ones: a hand "main" is dropped
-                tracks[i] = [*t[:3], *[x for x in t[3:] if x != "main"]]
-            for i in g[NAME_MAIN]:
-                if i >= len(tracks):
-                    raise LayerFileError(f"{PLAN_GENERATED_FILE}[{k}] {NAME_MAIN}: track {i} is past the "
-                                         f"{len(tracks)} the `name` edit has; run build_main_route.py")
-                tracks[i] = [*[x for x in tracks[i] if x != "main"], "main"]
+    return out
+
+
+def named(whole: dict, generated: dict, data: Path = SCHEMATIC) -> dict:
+    """`whole` (the merged plan_overrides) with each sheet's track names from the name store put where the plugin
+    reads them (hartlib.track_names.plugin_section: the `name` edit, the `end` names, `left_end`), the `name` edit's
+    main flags the generated `name_main` runs. LayerFileError for a hand section that holds a name or a name the
+    plan does not draw."""
+    out = dict(whole)
+    for sheet in track_names.PLAN_GRAPHS:
+        if sheet not in out:
+            continue
+        runs = generated.get(sheet, {}).get(NAME_MAIN, [])
+        try:
+            out[sheet] = track_names.plugin_section(sheet, out[sheet], runs, data=data)
+        except (track_names.TrackNameError, OSError, KeyError) as exc:
+            raise LayerFileError(f"the track names of {PLAN_OVERRIDES_FILE}[{sheet}]: {exc}") from None
     return out
 
 
@@ -193,15 +197,14 @@ def merged(data: Path = SCHEMATIC, kind: str = "plan_overrides") -> dict:
     kind (a test's copy of the data) has nothing generated. Only plan_generated.json may hold `name_main`."""
     gen_kind = generated_kind(kind)
     hand = read_file(kind, data)
-    if not path(gen_kind, data).exists():
-        return hand
-    gen = read_file(gen_kind, data)
+    gen = read_file(gen_kind, data) if path(gen_kind, data).exists() else {}
     if gen_kind != GENERATED:
         flagged = sorted(k for k, v in gen.items() if not k.startswith("_") and NAME_MAIN in v)
         if flagged:
             raise LayerFileError(f"{path(gen_kind, data).name}[{', '.join(flagged)}]: {NAME_MAIN} belongs in "
                                  f"{PLAN_GENERATED_FILE}")
-    return merge(hand, gen)
+    whole = merge(hand, gen) if gen else hand
+    return named(whole, gen, data) if kind == "plan_overrides" else whole
 
 
 def merged_section(sheet: str, data: Path = SCHEMATIC) -> dict:

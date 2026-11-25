@@ -147,16 +147,16 @@
     "Helix Outer"
    ]
   ],
-  "_main_lines": "name_main (the tracks of the `name` edit that are main, by position) and milepost_route are written by tools/schematic/build_main_route.py from the staging rows of main_lines.csv; edit that file, not these.",
+  "_main_lines": "name_main (the runs of the tracks on a main line, which the name store's `name` edit flags main: hartlib.track_names) and milepost_route are written by tools/schematic/build_main_route.py from the staging rows of main_lines.csv; edit that file, not these.",
   "name_main": [
-   0,
-   1,
-   7,
-   8,
-   10,
-   11,
-   14,
-   15
+   "1A-23A",
+   "1C-5A",
+   "23B-35B",
+   "33A-35A",
+   "35A-39A",
+   "35B-37A",
+   "5B-7A",
+   "7B-33C"
   ]
  },
  "main_upper": {

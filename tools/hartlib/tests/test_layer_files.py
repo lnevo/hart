@@ -140,13 +140,7 @@ def split_one_file(whole: dict) -> tuple[dict, dict]:
     for sheet, keys in MOVED.items():
         for k in keys:
             gen[sheet][k] = hand[sheet].pop(k)
-    named = [e for e in hand["staging"]["edits"] if e["op"] == "name"]
-    gen["staging"][L.NAME_MAIN] = []
-    for i, t in enumerate(named[0]["tracks"]):
-        if "main" in t[3:]:
-            gen["staging"][L.NAME_MAIN].append(i)
-            t[:] = [x for j, x in enumerate(t) if j < 3 or x != "main"]
-    return hand, gen
+    return hand, gen       # the main flags stayed on its `name` edit then; the name store makes that edit now
 
 
 class PlanGenerated(unittest.TestCase):
@@ -163,22 +157,10 @@ class PlanGenerated(unittest.TestCase):
                          {"_sections": True, "staging": {"a": 2, "b": 3}})
         self.assertEqual(merged["staging"], {"a": 1, "edits": [], "b": 3})
 
-    def test_a_hand_main_flag_is_dropped_and_only_the_generated_ones_stand(self) -> None:
-        hand = {"_sections": True, "staging": {"edits": [{"op": "name", "tracks": [["1", "2", "x", "main"], ["2", "3", "y", "A"]]}]}}
-        merged = L.merge(hand, {"_sections": True, "staging": {L.NAME_MAIN: [1]}})
-        self.assertEqual(merged["staging"]["edits"][0]["tracks"], [["1", "2", "x"], ["2", "3", "y", "A", "main"]])
-        self.assertIn("main", hand["staging"]["edits"][0]["tracks"][0])        # the hand data is not changed
-        self.assertNotIn(L.NAME_MAIN, merged["staging"])
-
-    def test_a_generated_section_with_no_hand_section_or_edits_is_a_layer_error(self) -> None:
+    def test_a_generated_section_with_no_hand_section_is_its_own(self) -> None:
         self.assertEqual(L.merge({"_sections": True}, {"_sections": True, "main_upper": {"a": 1}})["main_upper"], {"a": 1})
-        with self.assertRaisesRegex(L.LayerFileError, "needs one `name` edit"):
-            L.merge({"_sections": True}, {"_sections": True, "staging": {L.NAME_MAIN: [0]}})
-
-    def test_a_flag_past_the_name_edit_stops(self) -> None:
-        hand = {"_sections": True, "staging": {"edits": [{"op": "name", "tracks": [["1", "2", "x"]]}]}}
-        with self.assertRaisesRegex(L.LayerFileError, "track 4 is past the 1"):
-            L.merge(hand, {"_sections": True, "staging": {L.NAME_MAIN: [4]}})
+        self.assertNotIn(L.NAME_MAIN, L.merge({"_sections": True}, {"_sections": True, "staging": {L.NAME_MAIN: []}})
+                         ["staging"])
 
     def test_the_repo_files_merge_to_a_whole_view_and_the_hand_file_has_no_generated_key(self) -> None:
         hand = L.read_file("plan_overrides")
@@ -220,6 +202,9 @@ class PlanGenerated(unittest.TestCase):
             (data / "plan_overrides.json").write_text(L.dumps(hand), encoding="utf-8")
             (data / "plan_generated.json").write_text(L.dumps(gen), encoding="utf-8")
             (data / "preferences.json").write_text("{}", encoding="utf-8")
+            hand["staging"].pop("left_end", None)           # a track name: the name store's, not this test's
+            hand["staging"]["edits"] = [e for e in hand["staging"]["edits"] if e["op"] not in ("name", "end")]
+            (data / "plan_overrides.json").write_text(L.dumps(hand), encoding="utf-8")
             with unittest.mock.patch.dict("os.environ", {"HART_CACHE_DIR": cache}):
                 folder = L.view(data)
                 self.assertEqual(json.loads((folder / "plan_overrides.json").read_text(encoding="utf-8")),

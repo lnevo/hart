@@ -1319,7 +1319,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels step 3: writes main_route, staging milepost_route and name_main into plan_generated.json from main_lines.csv.",
+   "desc": "make panels step 3: writes main_route, staging milepost_route and name_main (the runs of the staging main lines, which the name store flags main in the plugin's name edit) into plan_generated.json from main_lines.csv.",
    "path": "tools/schematic/build_main_route.py"
   },
   {
@@ -7457,7 +7457,12 @@
   {
    "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
    "to": "tools/schematic/build_main_route.py",
-   "label": "staging name edit"
+   "label": "merged view (layer_files.view): the plan graph with its edits"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_field.csv",
+   "to": "tools/schematic/publish_draft.py",
+   "label": "the owner's track names by id (hartlib.track_names, in the merged view)"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/plan_generated.json",

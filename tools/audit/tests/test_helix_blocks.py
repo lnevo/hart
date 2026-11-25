@@ -27,14 +27,18 @@ def write(text: str) -> Path:
 
 
 def copied(edit=None) -> Path:
-    """plan_overrides.json in a temporary copy of the schematic data folder (with preferences.json), each
+    """plan_overrides.json in a temporary copy of the schematic data folder (with preferences.json, and
+    devices_field.csv beside it: the staging helix ends' names are its block rows', hartlib.track_names), each
     (old, new, file) of `edit` replaced once in its file."""
     import shutil
-    tmp = Path(tempfile.mkdtemp())
+    root = Path(tempfile.mkdtemp())
+    tmp = root / "schematic"
+    tmp.mkdir()
     for name in ("plan_overrides.json", "preferences.json"):
         shutil.copyfile(mr.HELIX_SOURCE.parent / name, tmp / name)
+    shutil.copyfile(mr.HELIX_SOURCE.parent.parent / "devices_field.csv", root / "devices_field.csv")
     for old, new, name in edit or ():
-        f = tmp / name
+        f = (root if name == "devices_field.csv" else tmp) / name
         text = f.read_text(encoding="utf-8")
         assert old in text, (old, name)
         f.write_text(text.replace(old, new, 1), encoding="utf-8")
@@ -66,8 +70,8 @@ class HelixTracks(unittest.TestCase):
                            "each helix track is one track with one name on both"),
                           ([('"131B": "Helix Inner"', '"131B": "Helix Outer"', "plan_overrides.json")],
                            "helix entry 131B is named 'Helix Outer'"),
-                          ([('"Helix Outer",\n      "helix"', '"",\n      "helix"', "plan_overrides.json")],
-                           "helix end at Switch 39 is named ''"),
+                          ([("block:39B-helix", "", "devices_field.csv")],
+                           "the helix at Switch 39 leg B has no named block row block:39B-helix"),
                           ([('"Helix Outer": "McKees Rocks"', '"Helix Outer": ""', "preferences.json")],
                            "track_labels"),):
             with self.subTest(msg=msg), self.assertRaisesRegex(mr.MapError, msg):
@@ -84,19 +88,18 @@ class HelixTracks(unittest.TestCase):
         path.write_text(json.dumps(whole, indent=1), encoding="utf-8")
         return path
 
-    def test_only_a_helix_end_edit_must_have_five_fields(self):
-        bumper = lambda ends: ends.__setitem__(0, ends[0][:4])            # W-1's bumper end, a field short
-        self.assertEqual(list(mr.read_helix_tracks(self.staging_ends(bumper))), ["Helix Outer", "Helix Inner"])
-        def short(ends):
-            i = next(i for i, x in enumerate(ends) if x[3] == "helix")
-            ends[i] = ends[i][:4]
-        with self.assertRaisesRegex(mr.MapError, "helix end edit .* is not \\[switch, leg, name, helix, to\\]"):
-            mr.read_helix_tracks(self.staging_ends(short))
+    def test_a_named_end_left_in_the_hand_file_stops(self):
+        """An `end` entry is [switch, leg, kind, to]: its name is the name store's (hartlib.track_names)."""
+        def named(ends):
+            i = next(i for i, x in enumerate(ends) if x[2] == "helix")
+            ends[i] = ends[i][:2] + ["Helix Outer"] + ends[i][2:]
+        with self.assertRaisesRegex(mr.MapError, r"are not \[switch, leg, kind, to\]"):
+            mr.read_helix_tracks(self.staging_ends(named))
 
     def test_the_device_map_reads_the_helix_tracks_of_its_overrides_when_called(self):
         """build_device_map.helix_tracks reads OVERRIDES as it is then, so a patched one is honoured."""
         path = copied([('"131B": "Helix Inner"', '"131B": "Helix Lower"', "plan_overrides.json"),
-                       ('"Helix Inner",\n      "helix"', '"Helix Lower",\n      "helix"', "plan_overrides.json")])
+                       (",Track Helix Inner,", ",Track Helix Lower,", "devices_field.csv")])
         with unittest.mock.patch.object(bdm, "OVERRIDES", path):
             self.assertEqual(list(bdm.helix_tracks()), ["Helix Outer", "Helix Lower"])
             self.assertEqual(bdm.block_overrides(), path.parent / "block_overrides.csv")

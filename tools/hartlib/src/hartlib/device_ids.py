@@ -3,7 +3,7 @@
 The builders derive each ID from the plan (the AnyRail plan's switch numbers and legs, as the solved schematic gives
 them), never from a user name, so an ID stays the same when the owner renames the device. Every row of the device
 master with a level carries one in its `id` column, unique on its level (hartlib.devices.check_rows); a Store's
-level-less row has none. Nothing keys on the ID yet (steps 4 and 5 of the hand-off).
+level-less row has none. The owner's track names are kept by it (hartlib.track_names, step 3); other keys follow in steps 4 and 5.
 
 The grammar, one function per kind below:
 - switch:<n>          a turnout (a crossover drawn as halves 101A and 101B is one turnout, one ID)

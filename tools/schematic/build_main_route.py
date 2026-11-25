@@ -31,10 +31,9 @@ line runs; switches are named by their number, so the hops do not depend on the 
 
 Staging (the rows whose sheet is staging). Staging's drawings take no main_route (it
 would turn on the direction letters of a route), so its lines write two other things in plan_generated.json's staging
-section (name_main, the tracks of the `name` edit that are main).
-Each track on a line gets "main" in the `name` edit and every other track in it loses it; a track on a line that the
-edit does not name must be a helix end or the short link between the halves of a crossover, which the plugin marks
-itself. A line with `count` yes is the way the mileposts run: milepost_route is its stops, one hop from each to the
+section (name_main, the runs of the tracks on a main line: "1A-23A", hartlib.track_names.run_of). The name store
+gives each of them an entry flagged "main" in the plugin's `name` edit, and no other track is flagged; a helix end and
+the short link between the halves of a crossover are left out, as the plugin marks them itself. A line with `count` yes is the way the mileposts run: milepost_route is its stops, one hop from each to the
 next (the origin, Switch 1 at MP 5.7, stays in milepost_origin).
 """
 from __future__ import annotations
@@ -51,7 +50,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS and the pinned plugin
-from hartlib import layer_files  # noqa: E402  (publish_draft put tools/hartlib/src on the path)
+from hartlib import layer_files, track_names  # noqa: E402  (publish_draft put tools/hartlib/src on the path)
 
 LINES = pd.DATA / "main_lines.csv"
 GRAPH = pd.GRAPHS / "main.json"
@@ -262,7 +261,7 @@ def prepared(overrides: dict, layer: str = "main_upper", graph: Path = GRAPH):
     import build_layout_le as bl
     sheet, _le, _core = bl.plugin()
     from schematic import edits   # the plugin's package: bl.plugin() has put it on the path
-    opts = dict(sheet.options(layer, pd.DATA))
+    opts = dict(sheet.options(layer, str(layer_files.view(pd.DATA))))   # the view: the name store's track names
     opts.pop("main_route", None)
     g = sheet.prepare(json.loads(graph.read_text()), opts, set())
     return g, edits.node_ref
@@ -296,9 +295,10 @@ def milepost_route(plan: Plan, rows: list[dict]) -> list[list[str]]:
 
 
 def staging_keys(overrides: dict, plan: Plan, rows: list[dict]) -> dict:
-    """The keys of plan_generated.json's staging section this writes, from the hand section `overrides` (plan_overrides.json):
-    name_main (the indexes of the `name` edit's tracks on a main line) and milepost_route, from the lines."""
-    from schematic import edits
+    """The keys of plan_generated.json's staging section this writes: name_main (the runs of the tracks on a main
+    line, hartlib.track_names.run_of: "1A-23A", which the name store's `name` edit flags main) and milepost_route,
+    from the lines. A crossover's link between its halves and a helix track are left out: the plugin marks those
+    main itself. `overrides` (the hand section) is not read: the plan graph names every junction."""
     g = plan.g
     N = g["nodes"]
 
@@ -306,25 +306,20 @@ def staging_keys(overrides: dict, plan: Plan, rows: list[dict]) -> dict:
         la, lb = (N[n].get("label") for n in (e["u"], e["v"]))
         return (la and la == lb) or any(N[n]["kind"] == "end" and N[n].get("sub") == "helix" for n in (e["u"], e["v"]))
 
+    def end_key(n, port):
+        d = N[n]
+        if d["kind"] != "end":
+            return f"{(d.get('label') or n).rstrip('*')}{port}"
+        return "helix" if d.get("sub") == "helix" else "end"
+
     main_ids = line_edges(plan, rows)
-    named = [ed for ed in overrides["edits"] if ed.get("op") == "name"]
-    if len(named) != 1:
-        raise RouteError(f"plan_overrides.json[staging]: expected one `name` edit, found {len(named)}")
-    seen, flagged = set(), []
-    for i, (a, b, name, *rest) in enumerate(named[0]["tracks"]):
-        port = rest[0] if rest and rest[0] in ("A", "B", "C", "D") else None
-        e = edits.edge_between(g, a, b, port)[0]
-        seen.add(e["id"])
-        if e["id"] in main_ids:
-            flagged.append(i)
-    lost = [e for e in g["edges"] if e["id"] in main_ids - seen and not owned_by_plugin(e)]
-    if lost:
-        raise RouteError("a main line runs over track the `name` edit does not name: "
-                         + ", ".join(f"{plan.name(e['u'])} to {plan.name(e['v'])}" for e in lost))
+    flagged = sorted({track_names.run_of(end_key(e["u"], e["up"]), end_key(e["v"], e["vp"]))
+                      for e in g["edges"] if e["id"] in main_ids and not owned_by_plugin(e)})
     return {layer_files.NAME_MAIN: flagged, "milepost_route": milepost_route(plan, rows),
-            "_main_lines": ("name_main (the tracks of the `name` edit that are main, by position) and milepost_route "
-                            "are written by tools/schematic/build_main_route.py from the staging rows of "
-                            "main_lines.csv; edit that file, not these.")}
+            "_main_lines": ("name_main (the runs of the tracks on a main line, which the name store's `name` edit "
+                            "flags main: hartlib.track_names) and milepost_route are written by "
+                            "tools/schematic/build_main_route.py from the staging rows of main_lines.csv; edit that "
+                            "file, not these.")}
 
 
 def main(argv=None) -> int:
