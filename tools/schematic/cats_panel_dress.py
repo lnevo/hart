@@ -56,7 +56,8 @@ def station_plates(cats, root, stations, used: dict, boxes: list, fit) -> list[t
     both added to."""
     import digicon_trace as trace          # cats/scripts, on build_cats_panel's path
     cells = trace.track_cells(root.find("TRACKPLAN"))
-    plants = trace.desk_plants(cells, bound=True)
+    from hartlib import devices, tables_build
+    plants = trace.desk_plants(cells, bound=True, level_turnouts=tables_build.level_turnouts(devices.load()))
     cols, rows = fit
     out = []
     for name, switches in stations:

@@ -199,6 +199,11 @@ class IsLevelBean(unittest.TestCase):
         self.assertFalse(le_tables.is_level_bean(self.el("layoutblock", "ILB12", "Track W-1"), names))
         self.assertFalse(le_tables.is_level_bean(self.el("sensor", "M2S3467"), names))     # no bean: assignment none
 
+    def test_a_start_with_no_action_name_stops_naming_the_row(self):
+        rows = [dict(self.ROWS[0], jmri_name="IT:ODD:105", user_name="Switch 105")]
+        with self.assertRaisesRegex(BuildError, r"turnout 'Switch 105' \(level 2\): start 'closed': .*IT:ODD:105"):
+            le_tables.level_bean_names(rows=rows)
+
     def test_a_swapped_turnout_is_still_a_main_or_upper_bean(self):
         rows = [dict(self.ROWS[0], jmri_name="M2T3408", assignment="field", start="")]
         names = le_tables.level_bean_names(rows=rows)

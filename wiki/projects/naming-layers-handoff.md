@@ -428,8 +428,13 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   (`start_logixng`), `test_turnout_startup`, `test_level_signal_comments` (each kind's words),
   `test_build_cats_panel_bindings` (a swapped turnout binds), `test_cats_panel`, `test_build_layout_le`,
   `test_le_cutover`, `test_helix_blocks` follow.
-- **Open:** the main session runs `make panelpro-test` and the deploy (`--pi --win`). `tables_build.with_direction`
-  still places a direction before a "virtual (" part, which no row writes now.
+- **Code review (medium), fixed:** a swapped (not virtual) row's comment carries its wiring, not the note or a planned
+  device, and a mast whose planned name is its own is not "not on a node yet"; the CATS desk checks and the desk
+  build pick main and upper plants by the rows' turnouts (`tables_build.level_turnouts`), not the `IT` prefix;
+  `level_bean_names` names a row whose start has no action; `is_level_bean` takes its names; `with_direction` lost
+  its dead branch. No output changed. `panelpro_smoke_test.py` (Jython) keeps the virtual prefix: it checks the
+  turnouts the startup LogixNG sets, which a swapped turnout leaves.
+- **Open:** the main session runs `make panelpro-test` and the deploy (`--pi --win`).
 
 ## How to run this
 

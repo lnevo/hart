@@ -114,6 +114,23 @@ class Comments(unittest.TestCase):
         with self.assertRaisesRegex(DR.MapError, "switches 999 start Thrown"):
             DR.bean_cells(made, frozenset({"101", "999"}))
 
+    def test_a_swapped_device_says_neither_unwired_nor_planned(self):
+        """A row swapped to its physical device (assignment field, ADR-028) carries its wiring after its place, as
+        staging's do, and no start; a mast whose planned name is its own is not "not on a node yet"."""
+        turnout = master(level="2", layer="turnout", role="turnout", id="switch:107", user_name="Switch 107",
+                         assignment="field", system_name="M2T3308", jmri_name="M2T3308",
+                         wiring="Node: 33 Turnout: 0 | OU: 1 Ports: 1,2")
+        made = rows("120RA", ["120RA_Top"], "IF$shsm:basic:one-searchlight(IH4338)")
+        made[0].update(assignment="field", jmri_name="IF$shsm:basic:one-searchlight(IH4338)")
+        made[1].update(assignment="field", jmri_name="IH4338", wiring="Node: 33 Signal: 0 | OU: 3 Ports: 1,2,3")
+        cells = {r["user_name"]: (r["start"], r["bean_comment"]) for r in DR.bean_cells([turnout] + made)}
+        self.assertEqual(cells["Switch 107"], ("", "CP 107 | Switch 107 | Node: 33 Turnout: 0 | OU: 1 Ports: 1,2"))
+        self.assertEqual(cells["Mast 120RA"], ("", "CP 107 | Switch 119 | West"))
+        self.assertEqual(cells["Head 120RA_Top"], ("", "CP 107 | Switch 119 | Node: 33 Signal: 0 | OU: 3 Ports: 1,2,3"))
+        virtual = rows("120RB", ["120RB_Top"], "")
+        virtual[0]["system_name"] = virtual[0]["jmri_name"]           # its planned name is its own
+        self.assertEqual(comments(virtual)["Mast 120RB"], "CP 107 | Switch 119 | West")
+
     def test_master_beans_puts_each_rows_comment_on_its_bean(self):
         made = [dict(r, bean_comment=w) for r, w in zip(rows("120RA", ["120RA"], ""), ("mast words", "head words"))]
         beans = tb.master_beans(made, {}, ("3",))

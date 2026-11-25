@@ -473,6 +473,15 @@ class ShapeByColumn(unittest.TestCase):
         self.assertIsNone(tb.base(rows(), lengths=LENGTHS).root.find(
             f"LogixNGs/LogixNG[systemName='{level_devices.CLEAR_LOGIXNG}']"))         # no start: no LogixNG
 
+    def test_level_turnouts_are_the_rows_whatever_their_bean(self) -> None:
+        """The main and upper turnouts by their rows (the desk checks pick plants by them): an LCC alias, a feedback
+        row and a staging turnout are not one; a turnout swapped to a field name still is."""
+        got = tb.level_turnouts(rows() + main_rows())
+        self.assertEqual({"Switch 101": "IT:HART:C3:101"}, got)
+        swapped = [dict(r, assignment="field", jmri_name="M2T3408") if r["id"] == "switch:101" else r
+                   for r in main_rows()]
+        self.assertEqual({"Switch 101": "M2T3408"}, tb.level_turnouts(swapped))
+
     def test_every_layer_has_its_beans_named(self) -> None:
         self.assertEqual({"turnout", "fb", "occupancy", "sensor", "head", "mast", "block"}, set(tb.LAYER_BEANS))
 
@@ -482,8 +491,8 @@ class CommentOrder(unittest.TestCase):
 
     def test_a_mast_names_its_direction_after_its_place(self) -> None:
         self.assertEqual("Brick | Switch 1 | West", tb.with_direction("Brick | Switch 1", "west"))
-        self.assertEqual("Switch 241 | East | virtual (device map); not on a node yet",
-                         tb.with_direction("Switch 241 | virtual (device map); not on a node yet", "east"))
+        self.assertEqual("Switch 241 | East", tb.with_direction("Switch 241", "east"))
+        self.assertEqual("Switch 241 | East", tb.with_direction("Switch 241 | East", "east"))
         self.assertEqual("Brick", tb.with_direction("Brick", ""))
         self.assertEqual("Brick | West", tb.with_direction("Brick | West", "west"))      # named already: once
 

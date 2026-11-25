@@ -124,29 +124,33 @@ def level_bean_names(path: Path = DEVICE_MAP, rows: list | None = None) -> set[s
     master_beans; `rows` in place of reading `path`): each row's bean name (bean_name; an LCC alias names its
     turnout's) and a block row's layout block, and the startup LogixNG with its actions when a row has a start
     (start_logixng). By the rows, not by a naming rule, so a main or upper row bound to a physical name is found too.
-    BuildError when the master does not load."""
+    BuildError when the master does not load, or naming a row whose start the startup LogixNG has no action for."""
     if rows is None:
         try:
             rows = devices.load(path)
         except devices.DevicesError as exc:
             raise BuildError(f"{paths.rel(path)}: {exc}") from None
     out: set[str] = set()
+    bad = []
     for r in rows:
         if r["level"] not in level_devices.LEVELS or r["assignment"] == "none":
             continue
         out |= {tb.bean_name(r), r["layout_block"]} - {""}
         if r["start"]:
-            out.add(level_devices.clear_action(tb.bean_name(r)) if r["layer"] == "occupancy"
-                    else level_devices.turnout_action(tb.bean_name(r)))
+            action = level_devices.clear_action if r["layer"] == "occupancy" else level_devices.turnout_action
+            try:
+                out.add(action(tb.bean_name(r)))
+            except ValueError as exc:
+                bad.append(f"{r['layer']} {r['user_name']!r} (level {r['level']}): start {r['start']!r}: {exc}")
             out |= {level_devices.CLEAR_LOGIXNG, level_devices.CLEAR_CONDITIONAL, level_devices.CLEAR_MANY}
+    if bad:
+        raise BuildError(f"{paths.rel(path)}: " + "; ".join(bad))
     return out
 
 
-def is_level_bean(el: ET.Element, names: set[str] | None = None) -> bool:
+def is_level_bean(el: ET.Element, names: set[str]) -> bool:
     """Whether bean `el` (a turnout, sensor, block, layout block, head, mast or startup LogixNG element) is one a main
-    or upper row gives: its system name is among `names` (level_bean_names, read from the device master when not
-    given)."""
-    names = level_bean_names() if names is None else names
+    or upper row gives: its system name is among `names` (level_bean_names, read once by the caller)."""
     return (el.findtext("systemName") or el.get("systemName") or "").strip() in names
 
 

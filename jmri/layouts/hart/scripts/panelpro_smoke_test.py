@@ -38,6 +38,9 @@ if "dispatcher" in PARKED:
 LEVEL_BLOCK_PREFIX = "IB:C3:"
 LEVEL_SENSOR_PREFIX = "IS:HART:C3:B:"
 LEVEL_TURNOUT_PREFIX = "IT:HART:C3:"      # the same LogixNG sets each to its startup position (owner, 2026-11-19)
+# The prefix is the virtual turnouts' (hartlib.level_devices.TURNOUT_PREFIX), the ones the startup LogixNG sets: a
+# main or upper turnout swapped to a physical one (ADR-028) leaves the startup LogixNG and this check with it, as it
+# should, since a field turnout reports its own state (naming-layers step 11).
 
 
 def level_sensors(sensor_manager):

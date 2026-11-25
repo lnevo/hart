@@ -1,5 +1,5 @@
 """The main and upper levels on the live, generated desks (cats/panels/HART_CTC.xml and its ABS twin HART_ABS.xml):
-their plants command only their internal turnouts (IT:HART:C3), their masts are masts.csv's main and upper rows', and their
+their plants command only the turnouts their device-master rows give (internal today), their masts are masts.csv's main and upper rows', and their
 blocks take the desk's discipline and report their virtual occupancy sensors (IS:HART:C3:B:<block key>, the device
 map's jmri_name).
 """
@@ -15,10 +15,8 @@ SCRIPTS = Path(__file__).resolve().parents[1]
 ROOT = SCRIPTS.parents[1]
 sys.path.insert(0, str(SCRIPTS))
 
-import digicon_trace as trace  # noqa: E402
-
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
-from hartlib import level_devices, level_masts  # noqa: E402
+from hartlib import devices, level_devices, level_masts, tables_build  # noqa: E402
 
 LEVEL_MASTS = level_masts.visible_names(levels=(2, 3))    # the hidden virtual masts are never drawn
 BINDINGS = ROOT / "cats/panels/HART_CTC.bindings.json"
@@ -49,15 +47,15 @@ class LiveDeskLevels(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.desk = ET.parse(cls.DESK).getroot()
 
-    def test_main_and_upper_bind_only_their_internal_turnouts_and_masts(self) -> None:
-        level = [i for i in self.desk.iter("IOSPEC") if i.get("JMRIPREFIX") == trace.LEVEL_PREFIX]
-        self.assertTrue(level)
+    def test_main_and_upper_bind_only_their_rows_turnouts_and_masts(self) -> None:
+        turnouts = tables_build.level_turnouts(devices.load())       # {user name: bean name}, by the rows
+        level = [i for i in self.desk.iter("IOSPEC") if i.get("USER_NAME") in turnouts]
+        self.assertEqual({i.get("USER_NAME") for i in level}, set(turnouts))
         on_routes = {id(i) for ri in self.desk.iter("ROUTEINFO") for c in ri for i in c.iter("IOSPEC")}
         for i in level:
             with self.subTest(turnout=i.get("USER_NAME")):
-                self.assertRegex(i.get("DECADDR"), r"^:HART:C3:[0-9]+$")
-                self.assertEqual(i.get("USER_NAME"), "Switch " + i.get("DECADDR").rpartition(":")[2])
-                self.assertIn(id(i), on_routes, "an internal turnout outside a route")
+                self.assertEqual(i.get("JMRIPREFIX") + i.get("DECADDR"), turnouts[i.get("USER_NAME")])
+                self.assertIn(id(i), on_routes, "a main or upper turnout outside a route")
         drawn = {(s.text or "").strip() for s in self.desk.iter("SECSIGNAL")}
         self.assertEqual(drawn & LEVEL_MASTS, LEVEL_MASTS)
 

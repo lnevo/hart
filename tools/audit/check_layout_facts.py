@@ -62,7 +62,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import devices, level_devices, level_masts, parked, paths, railroad  # noqa: E402
+from hartlib import devices, level_devices, level_masts, parked, paths, railroad, tables_build  # noqa: E402
 from hartlib import tables as hart_tables  # noqa: E402
 from hartlib.names import split_dcc  # noqa: E402
 
@@ -378,11 +378,18 @@ def check_tables(sw: facts.Switch, t: Tables, r: Report) -> None:
 def desk_plants(path: Path, r: Report) -> tuple[dict, dict[str, tuple[int, int]]]:
     cells = trace.track_cells(parse(path).getroot().find("TRACKPLAN"))
     try:
-        plants = trace.desk_plants(cells, bound=True)      # the dark main and upper plants bind nothing
+        plants = trace.desk_plants(cells, bound=True, level_turnouts=level_turnouts())     # staging's plants
     except trace.PlantError as err:
         r.add(f"cats:{path.name}", f"{path.name}: {err}")
         plants = {}
     return cells, plants
+
+
+@functools.cache
+def level_turnouts() -> dict[str, str]:
+    """{user name: bean name} of the main and upper turnouts, from the device master's rows
+    (hartlib.tables_build.level_turnouts), so a swapped turnout is still one."""
+    return tables_build.level_turnouts(devices.load(DEVICE_MAP))
 
 
 @functools.cache
@@ -521,15 +528,15 @@ def check_level_desk(path: Path, t: Tables, r: Report) -> None:
     desk = path.name
     cells = trace.track_cells(parse(path).getroot().find("TRACKPLAN"))
     try:
-        plants = trace.level_plants(cells)
+        plants = trace.level_plants(cells, level_turnouts())
     except trace.PlantError as err:
         r.add(f"cats:{desk}", f"{desk}: {err}")
         return
-    level = {user: system for user, (system, _c) in t.turnouts.items() if system.startswith("IT:HART:C3:")}
+    level = {user: t.turnouts[user][0] for user in level_turnouts() if user in t.turnouts}
     if not level:
         if t.block_names() & device_map_blocks():
-            r.add(f"cats:{desk}", f"{desk}: tables.xml holds main/upper blocks but no IT:HART:C3: turnout for the "
-                                  "desk's main and upper plants to command")
+            r.add(f"cats:{desk}", f"{desk}: tables.xml holds main/upper blocks but none of the device master's main "
+                                  "and upper turnouts for the desk's main and upper plants to command")
         return              # a staging-only candidate (test_le_cutover): tables with no main or upper level to check
     commanded: set[str] = set()
     for os_name, xy, points in plants:
@@ -546,7 +553,7 @@ def check_level_desk(path: Path, t: Tables, r: Report) -> None:
             users.add(user)
             if level.get(user) != system:
                 r.add(f"cats:{user}", f"{desk}: plant at {xy} in {os_name} commands {user} ({system}); tables.xml "
-                                      f"has {level.get(user) or 'no such internal turnout'}")
+                                      f"has {level.get(user) or 'no such main or upper turnout'}")
             if report is None or (report.text or "").strip() != cmd or report.get("USER_NAME") != user:
                 r.add(f"cats:{user}", f"{desk}: plant at {xy} in {os_name} leg {edge} does not report the {cmd} "
                                       f"of {user} it commands")
@@ -569,7 +576,7 @@ def check_level_desk(path: Path, t: Tables, r: Report) -> None:
                 r.add(f"cats:{user}", f"{desk}: {user} closes to {cmds['close']} and throws to {cmds['throw']}; the "
                                       f"Layout Editor ({lt.get('ident')}) closes to {closed} and throws to {thrown}")
     for user in sorted(set(level) - commanded):
-        r.add(f"cats:{user}", f"{desk}: no plant commands internal turnout {user}")
+        r.add(f"cats:{user}", f"{desk}: no plant commands main or upper turnout {user}")
     have = desk_mast_blocks(path)
     blocks = {b.get("NAME") for b in parse(path).getroot().iter("BLOCK") if b.get("NAME")}
     masts = {hart_tables.user_name(m): hart_tables.system_name(m) for m in hart_tables.masts(t.root)}

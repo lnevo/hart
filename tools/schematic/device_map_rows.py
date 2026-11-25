@@ -133,7 +133,8 @@ def bean_cells(rows: list[Mapping[str, str]], thrown: frozenset = frozenset()) -
       buffer stop | East";
     - a head: its jmri_comment or its mast's place, the note and its planned head (by its place in the mast's planned
       system name) or UNPLACED_NOTE: "CP 107 | Switch 107 | internal, not wired | planned IH3332 (draft)".
-    Only the rows makes_bean names get cells. MapError on a head with no mast row of its id, a block no detector row
+    A row that is not virtual (a device swapped in, ADR-028) has no note and no planned device: its wiring follows
+    its place, as on staging. Only the rows makes_bean names get cells. MapError on a head with no mast row of its id, a block no detector row
     names, or a switch in `thrown` that is no main or upper turnout row's (the rule and the rows disagree: nothing
     would start it Thrown)."""
     masts = {r["id"]: r for r in rows if r["level"] in BEAN_LEVELS and r["layer"] == "mast"}
@@ -149,11 +150,15 @@ def bean_cells(rows: list[Mapping[str, str]], thrown: frozenset = frozenset()) -
     def joined(*parts: str) -> str:
         return " | ".join(p for p in parts if p)
 
-    def planned(name: str) -> str:
-        return level_devices.planned_note(name) if name else ""
-
-    def placed(name: str) -> str:       # a head or a mast that is not hidden: its planned device or that it has none
-        return level_devices.planned_note(name)
+    def drafted(r, planned: str, placed: bool = False) -> tuple[str, ...]:
+        """The parts after the place: a virtual row's VIRTUAL_NOTE and its planned device (`planned`, a draft; for
+        a head or a mast that is not hidden, `placed`, UNPLACED_NOTE when it has none; nothing when the planned name
+        is the bean's own); a swapped row's (ADR-028) wiring, the device that is wired, as staging's."""
+        if r["assignment"] != "virtual":
+            return (r["wiring"],)
+        if planned and planned == r["jmri_name"]:
+            return (note, "")
+        return (note, level_devices.planned_note(planned) if planned or placed else "")
 
     def virtual_start(r, state: str) -> str:
         return state if r["assignment"] == "virtual" else ""       # a field device reports its own state
@@ -172,7 +177,7 @@ def bean_cells(rows: list[Mapping[str, str]], thrown: frozenset = frozenset()) -
         if layer == "turnout":
             number = r["id"].removeprefix("switch:")
             r["start"] = virtual_start(r, "thrown" if number in thrown else "closed")
-            r["bean_comment"] = joined(r["cp"], f"Switch {number}", note, planned(r["system_name"]))
+            r["bean_comment"] = joined(r["cp"], f"Switch {number}", *drafted(r, r["system_name"]))
         elif layer == "block":
             d = detector.get((r["level"], r["part_of"] or r["user_name"]))
             if d is None:
@@ -182,16 +187,20 @@ def bean_cells(rows: list[Mapping[str, str]], thrown: frozenset = frozenset()) -
             r["bean_comment"] = "; ".join(x for x in (f"{d['user_name']} / {d['jmri_name']}", what) if x)
         elif layer == "occupancy":
             r["start"] = virtual_start(r, "inactive")
-            r["bean_comment"] = joined(note, planned(r["system_name"]) or r["notes"])
+            r["bean_comment"] = (joined(note, r["notes"]) if r["assignment"] == "virtual" and not r["system_name"]
+                                 else joined(*drafted(r, r["system_name"])))
         elif layer == "mast":
-            own = r["system_name"] if r["system_name"] != r["jmri_name"] else ""
-            r["bean_comment"] = joined(with_direction(place(r), r["dir"]),
-                                       planned(own) if r["role"] == "hidden" else placed(own))
+            # a mast's planned device follows its place; a virtual mast says nothing of being unwired (its heads
+            # do), and a hidden one at a buffer stop has no device to plan
+            planned = "" if r["role"] == "hidden" or r["assignment"] != "virtual" else \
+                drafted(r, r["system_name"], placed=True)[1]
+            r["bean_comment"] = joined(with_direction(place(r), r["dir"]), planned)
         elif layer == "head":
             m = masts.get(r["id"].rsplit(":", 1)[0])
             if m is None:
                 raise MapError(f"head {r['user_name']} ({r['id']}): no mast row of its id")
             heads = dict(zip(mast_heads(m["jmri_name"]), mast_heads(m["system_name"])))
-            r["bean_comment"] = joined(r["jmri_comment"] or place(m), note, placed(heads.get(r["jmri_name"], "")))
+            r["bean_comment"] = joined(r["jmri_comment"] or place(m),
+                                       *drafted(r, heads.get(r["jmri_name"], ""), placed=True))
         out.append(r)
     return out

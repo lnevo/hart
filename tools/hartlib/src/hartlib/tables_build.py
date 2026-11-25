@@ -364,16 +364,15 @@ _HEADS_OF_MAST = re.compile(r"\(([^()]+)\)")
 
 
 def with_direction(comment: str, direction: str) -> str:
-    """A mast's comment with the way it faces ("East" or "West", from the dir column) after its place, before a
-    "virtual (device map)" note (owner, 2026-11-22): "Brick | Switch 1 | West"."""
+    """A mast's comment (its place) with the way it faces ("East" or "West", from the dir column) after it (owner,
+    2026-11-22): "Brick | Switch 1 | West". A main or upper mast's planned device follows (device_map_rows.bean_cells)."""
     word = DIRECTION_WORD.get(direction)
     if not word:
         return comment
     parts = comment.split(" | ") if comment else []
     if word in parts:                       # a comment that names it already
         return comment
-    at = next((i for i, p in enumerate(parts) if p.startswith("virtual (")), len(parts))
-    return " | ".join(parts[:at] + [word] + parts[at:])
+    return " | ".join(parts + [word])
 
 
 def occupancy_first(comment: str) -> str:
@@ -574,6 +573,14 @@ def bean_name(r: Mapping[str, str]) -> str:
     name, Q13), every other row's jmri_name. jmri_name is the device tables.xml uses and system_name a main or upper
     row's planned draft (ADR-028), so a swap is a jmri_name edit."""
     return r["system_name"] if r["assignment"] == "field" and r["layer"] == "turnout" else r["jmri_name"]
+
+
+def level_turnouts(rows: Iterable[Mapping[str, str]]) -> dict[str, str]:
+    """{user name: bean name} of the main and upper turnouts (level_devices.LEVELS, layer turnout, role turnout, a
+    bean): by the rows, so a turnout swapped to a physical name (ADR-028) is still one. The CATS desk checks and the
+    desk build pick the main and upper plants by it."""
+    return {r["user_name"]: bean_name(r) for r in rows if r["level"] in level_devices.LEVELS
+            and r["layer"] == "turnout" and r["role"] == "turnout" and r["assignment"] != "none"}
 
 
 def row_comment(r: Mapping[str, str], places: Mapping[str, str] | None = None) -> str:
