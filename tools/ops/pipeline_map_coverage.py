@@ -63,6 +63,7 @@ OUTPUT_ROOTS = (
 ALLOWED = {
     # check.sh and make plumbing: they schedule, stamp or route jobs and read or write no pipeline file
     "tools/agent/worktrees.py": "makes and sweeps agent worktrees (make wt); no pipeline file",
+    "tools/ops/orient.py": "prints claims, worktrees in progress, deploys and PRs (make orient); no pipeline file",
     "tools/audit/check_stamps.py": "check.sh job stamps in .cache; no pipeline file",
     "tools/audit/test_classes.py": "lists test classes so check.sh can split a test file into jobs",
     "tools/audit/portal_inputs.py": "decides whether check.sh runs the portal build; reads git, writes nothing",
