@@ -56,7 +56,6 @@ REF = ("the speed-match publisher's 2026-11-08 reference speeds: it runs on the 
 MESSAGE = "names the path in a message only (the rows come from another module)"
 TAG = "a device master written_by tag that happens to be the file's name, not a path"
 ALLOWED: dict[str, dict[str, str]] = {
-    "docs/ap/electrical/build_soq.py": {"block_lengths.csv": MESSAGE},
     "jmri/layouts/hart/scripts/capture_public_name_baseline.py": {
         n: WRITES for n in ("block_sensors.csv", "cats_bindings.csv", "counts.txt", "ctc_sidi.csv", "ctc_trl.csv",
                             "hardware_identity.csv", "le_mast_bindings.csv", "sml_pairs.csv")},
