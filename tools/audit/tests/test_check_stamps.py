@@ -41,6 +41,24 @@ NARROWED_READS: dict[str, tuple[set[str], set[str]]] = {   # job -> (files read,
                                       "tools/hosts/pi/apply_hart_package_local.sh"}, {"jmri/resources/jmri-web"}),
 }
 
+# What the 2026-11-24 audit (CHECK_AUDIT=DIR FULL=1 tools/check.sh on dc25d8ea) saw each of these jobs read or list
+# outside its old declaration (audit-report called them UNCOVERED), and a read just past the widened one, which must
+# still be reported: each declaration was widened to those folders and no further.
+WIDENED_READS: dict[str, tuple[set[str], set[str], str]] = {   # job -> (files read, folders listed, still outside)
+    "unit-guards test_agent_docs_cells": ({"wiki/AGENTS_GIT.md", "wiki/REPOS.md", "wiki/STATUS.md", "wiki/home.md",
+                                           "wiki/decisions/ADR-001-layout-identity.md", "AGENTS.md"},
+                                          {"wiki/decisions", "wiki/pipelines", "wiki/projects"}, "docs/INDEX.md"),
+    "unit-guards test_agent_docs_map": ({".gitmodules", "wiki/STATUS.md"}, set(), ".gitattributes"),
+    "unit-guards test_ai_speak": (set(), {"www/ai", "www/ap", "www/behind", "www/guides", "www/library"},
+                                  "www/crew/index.html"),
+    "unit-guards test_helix_stl_index": ({"docs/benchwork/helix/stl/a.stl"}, {"docs/benchwork/helix/stl"},
+                                         "docs/benchwork/helix/notes.md"),
+    "unit-guards test_pipeline_map": ({".gitmodules"}, {"ops/hart-ops/card_pipeline"}, "ops/hart-ops/README.md"),
+    "unit-guards test_public_text": ({"ops/hart-ops/card_pipeline/private_name.py"}, {"ops/hart-ops/card_pipeline"},
+                                     "ops/hart-ops/README.md"),
+    "unit-guards test_status_merge": ({".gitattributes", "wiki/STATUS.md"}, set(), "wiki/STATUS_LOG.md"),
+}
+
 
 class DeclarationTest(unittest.TestCase):
     def test_every_job_kind_in_check_sh_is_declared(self) -> None:
@@ -105,6 +123,13 @@ class DeclarationTest(unittest.TestCase):
                                  ["wiki/decisions/ADR-001-layout-identity.md"])
                 self.assertEqual(cs.uncovered(name, files, dirs | {"wiki/decisions", "media/photos"}),
                                  ["media/photos/", "wiki/decisions/"])
+
+    def test_a_widened_declaration_covers_what_the_audit_saw_and_no_more(self) -> None:
+        for name, (files, dirs, outside) in WIDENED_READS.items():
+            with self.subTest(job=name):
+                self.assertEqual(cs.uncovered(name, files, dirs), [])
+                self.assertEqual(cs.uncovered(name, files | {outside}, dirs), [outside])
+                self.assertEqual(cs.uncovered(name, files, dirs | {"media/photos"}), ["media/photos/"])
 
     def test_a_listed_folder_is_covered_only_where_a_pattern_reaches(self) -> None:
         for d, pat, want in (("wiki", "wiki/STATUS.md", True), ("wiki/decisions", "wiki/STATUS.md", False),
@@ -556,6 +581,64 @@ class GitRefsTest(RepoCase):
         self.assertTrue(self.current(name))
         self.git("commit", "-q", "--allow-empty", "-m", "two")
         self.assertFalse(self.current(name))
+
+    def test_the_deploy_stage_job_reruns_when_an_edit_in_the_tree_is_committed(self) -> None:
+        """test_deploy_stage stages a clone of HEAD (stage.sh), not the working tree its read set hashes."""
+        self.git("init", "-q")
+        self.git("add", "-A")
+        self.git("commit", "-q", "-m", "one")
+        name = "unit-hosts test_deploy_stage"
+        ck = cs.Checker(self.root, self.store)
+        self.assertRegex(cs.outside_state(name, ck), "(?m)^head=[0-9a-f]{40}$")
+        self.assertNotRegex(cs.outside_state(name, ck), "(?m)^(base|origin)=")
+        (self.root / "tools/edit.txt").write_text("in the tree, not yet committed\n")
+        self.assertIsNone(self.record(name))
+        self.assertTrue(self.current(name))
+        tree = subprocess.run(["git", "status", "--porcelain"], cwd=self.root, capture_output=True, text=True).stdout
+        self.git("add", "tools/edit.txt")
+        self.git("commit", "-q", "-m", "two")
+        self.assertNotEqual(tree, "", "the edit was in the tree before the commit")
+        self.assertFalse(self.current(name), "the commit changed nothing in the tree, but HEAD moved")
+
+
+class CheckShCacheTest(unittest.TestCase):
+    """check.sh makes the checkout's .cache before any job starts: the panel check makes .cache/panel-stamps in a
+    fresh worktree mid-run, and a job that listed the root before that recorded a listing the next run did not match
+    (2026-11-24: 31 jobs reran on the second no-change run)."""
+
+    LINE = 'if ! mkdir -p "$ROOT/.cache" 2>/dev/null; then'
+
+    def test_it_comes_before_the_first_stamp_batch(self) -> None:
+        self.assertEqual(CHECK_SH.count(self.LINE), 1)
+        first_batch = CHECK_SH.index("\nstart_jobs\n")
+        self.assertLess(CHECK_SH.index(self.LINE), first_batch)
+
+    def block(self) -> str:
+        start = CHECK_SH.index(self.LINE)
+        return CHECK_SH[start:CHECK_SH.index("\nfi\n", start) + 4]
+
+    def test_it_makes_the_folder_and_says_so_when_it_cannot(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            done = subprocess.run(["bash", "-c", f"set -uo pipefail\nROOT='{d}'\n{self.block()}"],
+                                  capture_output=True, text=True, timeout=30)
+            self.assertEqual(done.returncode, 0, done.stderr)
+            self.assertTrue((Path(d) / ".cache").is_dir())
+            self.assertEqual(done.stdout, "")
+            (Path(d) / "file").write_text("x")
+            done = subprocess.run(["bash", "-c", f"set -uo pipefail\nROOT='{d}/file'\n{self.block()}"],
+                                  capture_output=True, text=True, timeout=30)
+            self.assertEqual(done.returncode, 0, "the run goes on")
+            self.assertIn(f"cannot make {d}/file/.cache", done.stdout)
+
+
+
+class RootListingTest(RepoCase):
+    def test_a_root_name_added_after_a_pass_reruns_a_job_that_listed_the_root(self) -> None:
+        """What check.sh's .cache line prevents, and the stamps' answer without it: the job reruns, never skips."""
+        self.assertIsNone(self.record(code="import os\nos.listdir('.')\n"))
+        self.assertTrue(self.current())
+        (self.root / ".cache").mkdir()
+        self.assertFalse(self.current())
 
 
 class CheckShVerdictsTest(unittest.TestCase):

@@ -106,16 +106,29 @@ EXTRA: dict[str, tuple[str, ...]] = {
     "unit-guards test_check_sh_tables": ("www/**/*",),
     # tools/ops/status_counts.py reads wiki/STATUS.md; its git status only compares the tree before and after
     "unit-guards test_hart_tables_writers": ("wiki/STATUS.md", "www/scripts/**/*"),
-    "unit-guards test_helix_stl_index": ("www/scripts/**/*",),
+    # it lists the STL folder to check every file there is classified
+    "unit-guards test_helix_stl_index": ("www/scripts/**/*", "docs/benchwork/helix/stl/**/*"),
     "unit-guards test_jmri_process_patterns": ("docs/**/*", "ops/**/*", "www/scripts/**/*"),
     # the map build draws the agent-doc lane from the wiki and docs/INDEX.md too (tools/ops/agent_docs_map.py)
+    # the map build also reads .gitmodules (the submodule nodes) and lists ops/hart-ops/card_pipeline (a folder node
+    # of the map, docs/pipeline-map/pipeline_map.json)
     "unit-guards test_pipeline_map": ("docs/pipeline-map/**/*", "www/library/**/*", "www/scripts/**/*", "wiki/**/*",
-                                      "docs/INDEX.md", "ops/hart-ops/AGENTS.md"),
+                                      "docs/INDEX.md", "ops/hart-ops/AGENTS.md", ".gitmodules",
+                                      "ops/hart-ops/card_pipeline/**/*"),
     # the map and the entry files outside CODE (www/scripts/deploy_hartrailroad.sh); its output roots are in CODE
     "unit-guards test_pipeline_map_coverage": ("docs/pipeline-map/**/*", "www/scripts/**/*", "wiki/**/*",
                                                "docs/INDEX.md", "ops/hart-ops/AGENTS.md"),
     "unit-guards test_agent_docs_map": ("docs/pipeline-map/**/*", "www/scripts/**/*", "wiki/**/*", "docs/INDEX.md",
-                                        "ops/hart-ops/AGENTS.md"),
+                                        "ops/hart-ops/AGENTS.md", ".gitmodules"),
+    # the agent-doc cells it checks are in the wiki (home.md, the decisions, pipelines, projects, STATUS.md)
+    "unit-guards test_agent_docs_cells": ("wiki/**/*",),
+    # check_ai_speak.DEFAULT_GLOBS: it lists their folders and fails a glob that matches nothing
+    "unit-guards test_ai_speak": ("www/ai/*.html", "www/library/*.html", "www/behind/*.html", "www/guides/*.html",
+                                  "www/ap/*.html", "www/exam/index.html", "www/exam/run.html"),
+    # check_public_text.py imports private_name from ops/hart-ops/card_pipeline (on sys.path)
+    "unit-guards test_public_text": ("ops/hart-ops/card_pipeline/**/*",),
+    # it checks wiki/STATUS.md for doubled entries and merges in a scratch repo under the repo's .gitattributes
+    "unit-guards test_status_merge": ("wiki/STATUS.md", ".gitattributes"),
     # the merge drivers run under the repo's own .gitattributes in a scratch repo
     "unit-guards test_merge_pipeline_map": (".gitattributes",),
     "unit-guards test_portal_inputs": ("www/scripts/**/*",),
@@ -345,14 +358,17 @@ class Checker:
 
 
 # The git refs a job's key holds besides the git commands its trace replays: the read-only checks and the portal
-# build compare against them, and test_redeploy_commit's deploy script (bash, untraced) stages HEAD's tree and refuses
-# a commit that is not on origin/main, and its tests skip by that answer.
+# build compare against them, test_redeploy_commit's deploy script (bash, untraced) stages HEAD's tree and refuses
+# a commit that is not on origin/main, and its tests skip by that answer, and test_deploy_stage stages from a clone of
+# the committed HEAD (tools/hosts/deploy/stage.sh) while its read set hashes the working tree, so committing an edit
+# already in the tree must rerun it.
 GIT_REFS = {"head": ("rev-parse", "HEAD"), "base": ("merge-base", "HEAD", "origin/main"),
             "origin": ("rev-parse", "origin/main")}
 REFS_OF: dict[str, tuple[str, ...]] = {
     "static": ("head", "base"),
     "portal": ("head", "base"),
     "unit-hosts test_redeploy_commit": ("head", "base", "origin"),
+    "unit-hosts test_deploy_stage": ("head",),
 }
 
 
