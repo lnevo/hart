@@ -183,3 +183,50 @@ def clear_sensors(root: ET.Element) -> list[str]:
                              "is not an ActionSensor setting a sensor Inactive")
         out.append(a.findtext("namedBean/name") or "")
     return out
+
+
+def field_detected(root: ET.Element) -> dict[str, str]:
+    """{block system name: its occupancy sensor's system name} of the main and upper blocks (BLOCK_PREFIX) in tables
+    `root` whose occupancy sensor is not a virtual block sensor: a detector swapped to its field sensor by its device
+    row (ADR-028, a field assignment). The PanelPro smoke test (Jython, no hartlib) takes them from
+    run_panelpro_smoke_test.sh, which reads the tables.xml it loads, so it holds such a block to that sensor and every
+    other one to its virtual sensor. A block with no occupancy sensor is not here. ValueError on a block whose
+    occupancy sensor names no sensor bean of the tables."""
+    from . import tables     # here: tables is the reader of a whole file, this module the naming rule
+    sensors = tables.by_any_name(tables.sensors(root))
+    out = {}
+    for b in tables.blocks(root):
+        name, sensor = tables.system_name(b), tables.text(b, "occupancysensor")
+        if not name.startswith(BLOCK_PREFIX) or not sensor:
+            continue
+        bean = sensors.get(sensor)
+        if bean is None:
+            raise ValueError(f"block {name} ({tables.user_name(b)}): its occupancy sensor {sensor!r} is no sensor of "
+                             "the tables")
+        if not is_block_sensor(tables.system_name(bean)):
+            out[name] = tables.system_name(bean)
+    return out
+
+
+def main(argv=None) -> int:
+    """python3 -m hartlib.level_devices field-detected TABLES: one line "<block system name> <sensor system name>"
+    per main or upper block on a field sensor (field_detected), for run_panelpro_smoke_test.sh."""
+    import argparse
+    import sys
+    from . import tables
+    ap = argparse.ArgumentParser(prog="python3 -m hartlib.level_devices")
+    ap.add_argument("what", choices=("field-detected",))
+    ap.add_argument("tables")
+    args = ap.parse_args(argv)
+    try:
+        found = field_detected(tables.read(args.tables))
+    except (OSError, ValueError, ET.ParseError) as exc:
+        print(f"level_devices: {exc}", file=sys.stderr)
+        return 1
+    for block, sensor in sorted(found.items()):
+        print(f"{block} {sensor}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
