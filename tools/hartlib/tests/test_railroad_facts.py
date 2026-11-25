@@ -30,14 +30,28 @@ class Tmp(unittest.TestCase):
         p.write_text(text, encoding="utf-8")
         return p
 
-    def write_rows(self, name: str, columns, rows: list[dict]) -> Path:
+    def write_rows(self, name: str, columns, rows: list[dict], *, dropped=()) -> Path:
+        """`dropped`: columns the rows give that the header leaves out on purpose."""
         p = self.tmp / name
         with p.open("w", newline="", encoding="utf-8") as fh:
             w = csv.DictWriter(fh, fieldnames=list(columns), lineterminator="\n")
             w.writeheader()
             for r in rows:
+                unknown = set(r) - set(columns) - set(dropped)
+                assert not unknown, f"{name}: no such column {sorted(unknown)}"
                 w.writerow({c: r.get(c, "") for c in columns})
         return p
+
+    def master(self) -> Path:
+        """A two-file device master holding one staging turnout, Switch 9, with the owner's cells."""
+        key = dict(level="1", layer="turnout", user_name="Switch 9", id="switch:9")
+        blank = {c: "" for c in devices.COLUMNS}
+        (self.tmp / devices.GENERATED_FILE).write_text(devices.master_text(
+            [blank | key | dict(written_by="build_device_map.py", description="Switch 9's turnout.")]), encoding="utf-8")
+        (self.tmp / devices.FIELD_FILE).write_text(devices.master_text(
+            [blank | key | dict(role="turnout", assignment="field", system_name="M2T9", jmri_name="M2T9")]),
+            encoding="utf-8")
+        return devices.master_path(self.tmp)
 
     def fails(self, reader, pattern: str) -> None:
         with self.assertRaisesRegex(rf.FactsError, pattern):
@@ -76,7 +90,7 @@ class ReadRows(Tmp):
         self.fails(lambda: rf.read_rows(self.tmp / "none.csv", ("a",)), r"none.csv: cannot read it")
 
 
-class SmallHelpers(unittest.TestCase):
+class SmallHelpers(Tmp):
     def test_natural(self) -> None:
         self.assertEqual(sorted(["Switch 101", "Switch 9", "Switch 10b", "Switch 10a"], key=rf.natural),
                          ["Switch 9", "Switch 10a", "Switch 10b", "Switch 101"])
@@ -112,11 +126,10 @@ class SmallHelpers(unittest.TestCase):
         self.assertEqual((swapped.switches, swapped.stations), (Path("/y.csv"), s.stations))
 
     def test_master_at_names_the_file_holding_the_row(self) -> None:
-        # The master is two merged files with no line numbers; the checkout's is read for the message only.
-        master = devices.master_path()
-        self.assertEqual(rf.master_at(master, "Switch 1", 1, "turnout"), "devices_field.csv: Switch 1 (level 1, turnout)")
+        master = self.master()
+        self.assertEqual(rf.master_at(master, "Switch 9", 1, "turnout"), "devices_field.csv: Switch 9 (level 1, turnout)")
         self.assertEqual(rf.master_at(master, "No Such Row", "1", "turnout"),
-                         f"{master.name}: No Such Row (level 1, turnout)")
+                         "devices_generated.csv: No Such Row (level 1, turnout)")
 
 
 # ---------------------------------------------------------------- switches.csv
@@ -151,7 +164,9 @@ def staging_rows() -> list[tuple[int, dict[str, str]]]:
             (3, blank | dict(layer="block", user_name="Switch 7", system_name="IB7"))]
 
 
-class SwitchRows(Tmp):
+class SwitchFiles(Tmp):
+    """switches.csv fixtures; no tests of its own, so a subclass runs only its own."""
+
     def path(self, rows=None) -> Path:
         return self.write_rows("switches.csv", rf.SWITCH_COLUMNS, switch_rows() if rows is None else rows)
 
@@ -161,6 +176,8 @@ class SwitchRows(Tmp):
         rows[line - 2] |= {k: str(v) for k, v in cells.items()}
         return self.path(rows)
 
+
+class SwitchRows(SwitchFiles):
     def test_the_rows_in_file_order(self) -> None:
         rows = rf.read_switch_rows(self.path())
         self.assertEqual([(r.line, r.level, r.switch, r.key) for r in rows],
@@ -226,11 +243,12 @@ class SwitchRows(Tmp):
                    r"and 101B; not 101A")
 
     def test_a_missing_column_stops(self) -> None:
-        p = self.write_rows("switches.csv", rf.SWITCH_COLUMNS[:-1], switch_rows())
+        p = self.write_rows("switches.csv", rf.SWITCH_COLUMNS[:-1], switch_rows(),
+                           dropped=rf.SWITCH_COLUMNS[-1:])
         self.fails(lambda: rf.read_switch_rows(p), r"switches.csv: no column notes")
 
 
-class StagingSwitches(SwitchRows):
+class StagingSwitches(SwitchFiles):
     def test_a_switch_of_the_os_keyed_rows_with_its_turnout_row(self) -> None:
         got = rf.read_switches(self.path(), self.tmp / "devices.csv", staging_rows())
         self.assertEqual(list(got), [1, 7])
@@ -244,9 +262,10 @@ class StagingSwitches(SwitchRows):
         self.assertEqual((s7.turnout, s7.uss_slot, got[1].uss_slot), ("Switch 7", 3, 0))
 
     def test_staging_switches_takes_rows_read_already(self) -> None:
-        rows = rf.read_switch_rows(self.path())
-        self.assertEqual(rf.staging_switches(rows, self.path(), self.tmp / "devices.csv", staging_rows()),
-                         rf.read_switches(self.path(), self.tmp / "devices.csv", staging_rows()))
+        got = rf.staging_switches(rf.read_switch_rows(self.path()), self.path(), self.tmp / "devices.csv", staging_rows())
+        self.assertEqual(list(got), [1, 7])
+        self.assertEqual((got[1].hardware, got[1].dcc, got[1].uss_slot, got[7].turnout, got[7].uss_slot),
+                         ("M2T1", "100", 0, "Switch 7", 3))
 
     def test_a_bad_first_row_stops(self) -> None:
         cases = (
@@ -266,19 +285,19 @@ class StagingSwitches(SwitchRows):
         self.assertEqual(rf.switch_turnouts(self.tmp / "d.csv", rows, [1, 7]), {1: rows[0][1]})
         self.assertEqual(rf.switch_turnouts(self.tmp / "d.csv", rows, []), {})
         twice = rows + [(4, rows[0][1] | {"system_name": "M2T2"})]
-        self.fails(lambda: rf.switch_turnouts(devices.master_path(), twice, [1]),
+        self.fails(lambda: rf.switch_turnouts(self.master(), twice, [1]),
                    r"Switch 1 \(level 1, turnout\): two rows are both the turnout Switch 1")
 
 
-class StagingDevicesRead(unittest.TestCase):
-    """read_staging_devices on rows given; the checkout's master names a row in a message."""
+class StagingDevicesRead(Tmp):
+    """read_staging_devices on rows given; a fixture master names a row in a message."""
 
     def rows(self, **cells):
         return [(2, {c: "" for c in rf.STAGING_COLUMNS} | dict(layer="turnout", user_name="Switch 1", dcc="100")),
                 (3, {c: "" for c in rf.STAGING_COLUMNS} | dict(layer="block", user_name="OS Switch 1") | cells)]
 
     def test_the_rows_by_layer_and_name(self) -> None:
-        got = rf.read_staging_devices(devices.master_path(), self.rows())
+        got = rf.read_staging_devices(self.master(), self.rows())
         self.assertEqual([(r.line, r.layer, r.user_name, r.dcc) for r in got.rows],
                          [(2, "turnout", "Switch 1", "100"), (3, "block", "OS Switch 1", "")])
         self.assertEqual(got.by_name[("block", "OS Switch 1")].line, 3)
@@ -286,9 +305,9 @@ class StagingDevicesRead(unittest.TestCase):
 
     def test_an_empty_name_or_a_dcc_that_is_no_number_stops(self) -> None:
         with self.assertRaisesRegex(rf.FactsError, "user_name is empty"):
-            rf.read_staging_devices(devices.master_path(), self.rows(user_name=""))
+            rf.read_staging_devices(self.master(), self.rows(user_name=""))
         with self.assertRaisesRegex(rf.FactsError, r"dcc is a number or blank, not 'x1'"):
-            rf.read_staging_devices(devices.master_path(), self.rows(dcc="x1"))
+            rf.read_staging_devices(self.master(), self.rows(dcc="x1"))
 
 
 # ---------------------------------------------------------------- interlockings, stations, OS labels, nodes
@@ -333,7 +352,8 @@ class Stations(Tmp):
             dict(level=1, station="Plane", switches="5, 7", tracks="none", desk_code="PL", notes="n")]
 
     def path(self, *extra: dict, columns=COLUMNS) -> Path:
-        return self.write_rows("stations.csv", columns, self.ROWS + list(extra))
+        return self.write_rows("stations.csv", columns, self.ROWS + list(extra),
+                               dropped=set(self.COLUMNS) - set(columns))
 
     def test_stations_and_their_tracks_cells(self) -> None:
         brick, west, plane = rf.read_stations(self.path())
@@ -559,6 +579,7 @@ class DeviceRows(unittest.TestCase):
                             (dict(user_name="Switch 4"), "4"), (dict(user_name="DCC Switch 4"), "4"),
                             (dict(user_name="Coal"), None), (dict(user_name="Switch 4a"), None)):
             with self.subTest(cells):
+                cells = dict(cells)
                 r = drow("turnout", cells.pop("user_name", "Switch Coal"), "turnout", **cells)
                 self.assertEqual(rf.turnout_switch(r), want)
 
