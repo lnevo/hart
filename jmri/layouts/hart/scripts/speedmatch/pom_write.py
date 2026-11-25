@@ -21,8 +21,8 @@
 #   READ_FIRST = True                              try a POM read of each CV for the old values
 #   OP_TIMEOUT = 10.0                              seconds to wait for each ProgListener reply
 #
-# Steps: load the guard (refuse if it will not load); query the consist state of every roster
-# loco's train node; run the guard's checks once (proposal, roster target, consist); check
+# Steps: take /tmp/speedrun.active (refuse while a runner holds it; removed at END); load the
+# guard (refuse if it will not load); query the consist state of every roster loco's train node; run the guard's checks once (proposal, roster target, consist); check
 # JMRI's own roster entry against it; get the addressed programmer for the roster address from
 # the CS-105 connection's AddressedProgrammerManager (an OlcbProgrammer: an addressed
 # memory-config write to the loco's train node, space 0xF8); read the old values where the
@@ -65,6 +65,9 @@ _READ_FIRST = _G.get("READ_FIRST", True) is True
 _TIMEOUT = float(_G.get("OP_TIMEOUT", 10.0))
 _CONSIST_TIMEOUT = float(_G.get("CONSIST_TIMEOUT", 120.0))  # every roster node, about 1.5 s each
 _INLINE = _G.get("RUN_INLINE", False) is True   # tests only: run in the caller's thread
+# The runners' marker (jython/jobkit.py claim and end_job): while it exists drop_job.sh sends no runner, and this
+# writer does not start while a runner holds it. Held from the start of the run to END, removed only by this run.
+_ACTIVE = _G.get("ACTIVE_FILE", "/tmp/speedrun.active")   # tests point it elsewhere
 
 _log = open(_LOGF, "w")
 
@@ -133,7 +136,17 @@ def _consist_query(nodes, refuse):
 def _run():
     held = []  # the lock file, once this run holds it
     guard = None
+    own = []   # the active marker, once this run made it
     try:
+        if os.path.exists(_ACTIVE):
+            L("REFUSED %s exists: a runner (or another writer) is active; wait for its END" % _ACTIVE)
+            return
+        a = open(_ACTIVE, "w")
+        try:
+            a.write(_LOGF)
+        finally:
+            a.close()
+        own.append(_ACTIVE)
         try:
             guard = _load_guard(_G["GUARD_PATH"])
         except _ANY as e:
@@ -230,6 +243,11 @@ def _run():
                 guard.release_lock(held[0])
             except _ANY as e:
                 L("ERROR lock %s not removed: %s" % (held[0], e))
+        if own:
+            try:
+                os.remove(own[0])
+            except _ANY as e:
+                L("ERROR %s not removed: %s" % (own[0], e))
         L("END")
         _log.close()
 

@@ -18,6 +18,24 @@ the check is the re-measure, then a full read-back on the programming track at t
 A POM read without RailCom fails the same way, so old values usually come from the ledger
 or the roster.
 
+## Ledger commands on the Pi
+
+The ledger lives on the Pi, in the folder `speedmatch.py ledger-dir` prints: `speedmatch/ledger`
+in the Pi's home, the parent of `HART_PI_USERFILES` (`/home/pi/speedmatch/ledger` by default).
+The writer uses that folder, and every ledger command gets it as `--ledger-dir`. The commands
+need `pom_guard.py` and `pom_guard_cli.py` in `/tmp/speedmatch` on the Pi. A `speedmatch.py pom`
+drop leaves them there, but a ledger step can come before any drop, so copy them first:
+
+```
+S=jmri/layouts/hart/scripts/speedmatch
+LD=$(python3 $S/speedmatch.py ledger-dir)
+ssh pi 'mkdir -p /tmp/speedmatch'
+scp $S/pom_guard.py $S/pom_guard_cli.py pi:/tmp/speedmatch/
+ssh pi "python3 /tmp/speedmatch/pom_guard.py seed-ledger 'CSX 2738' /tmp/preflight_CSX_2738_<time>.log --ledger-dir $LD"
+ssh pi "python3 /tmp/speedmatch/pom_guard.py clear-ledger 'CSX 2738' CV68 --ledger-dir $LD"
+ssh pi "python3 /tmp/speedmatch/pom_guard.py archive-ledger 'CSX 2738' --ledger-dir $LD"
+```
+
 ## Checklist before an apply
 
 1. PanelPro running on the Pi, the owner not operating, only the test loco on the track.
@@ -28,7 +46,8 @@ or the roster.
 3. **Read the decoder on the programming track first** (the Part B preflight) and seed the
    ledger from that log, so old values are real reads, not roster values that may be
    decoder-definition defaults:
-   `python3 pom_guard.py seed-ledger "CSX 2738" preflight.log` (on the Pi). The log is JSON
+   `seed-ledger` on the Pi ([Ledger commands on the Pi](#ledger-commands-on-the-pi): copy the
+   guard first, then run it with `--ledger-dir`). The log is JSON
    (`{"roster_id": .., "cvs": {cv: value}}`) or text with one `CV<n> = <value>` per line.
    Without that, an apply that would take any old value from the roster needs
    `ROSTER_OLD_OK = True` (`--roster-old-ok`, logged), and the plan marks those rows `roster (may be a default)`.
@@ -72,7 +91,7 @@ stop, throttles, turnouts or MQTT.
 
 Without RailCom the roster is the only record of a decoder, and it goes stale as soon as a
 write on the main lands. So the guard keeps a ledger per loco
-(`~/speedmatch/ledger/<roster id>.json` on the Pi, set with `LEDGER_DIR`): per CV, the last
+(`<roster id>.json` in the folder `speedmatch.py ledger-dir` prints, on the Pi; the writer's `LEDGER_DIR`): per CV, the last
 value read from the decoder (`read`) or sent with an OK reply (`sent`), or `unknown`. Every
 entry carries a sequence number from a counter in the ledger, not a clock. Reads from any run,
 dry runs included, are recorded there. Old values, for the plan and the rollback file, come in
@@ -92,8 +111,11 @@ update the roster (Pi first, then sync), then move the ledger aside so the next 
 from the roster:
 
 ```
-python3 pom_guard.py archive-ledger "CSX 2738"        # moves CSX_2738.json to CSX_2738.<time>.json
+ssh pi "python3 /tmp/speedmatch/pom_guard.py archive-ledger 'CSX 2738' --ledger-dir $LD"
 ```
+
+It moves `CSX_2738.json` to `CSX_2738.<time>.json` (`$LD` and the copy step as in
+[Ledger commands on the Pi](#ledger-commands-on-the-pi)).
 
 ## Recovering from a failed or timed-out write
 
@@ -165,13 +187,15 @@ changes it): the settings `pom_write.py` reads, the files it needs (`pom_guard.p
 before the writer starts), then `pom_write.py` itself. Without `--send` nothing leaves the Mac. The
 rollback file and the ledger go in `~/speedmatch` beside the Pi's user files (`HART_PI_USERFILES`,
 read as `tools/env/load_env.sh` reads it); `--rollback NAME` names the rollback file, and by
-default it is `rollback_<loco>_<time>.json`.
+default it is `rollback_<loco>_<time>.json`. It prints the ledger folder and the ledger commands'
+`--ledger-dir`, the same folder `speedmatch.py ledger-dir` prints.
 
 `--send` goes through `drop_job.sh` and its gates, the same as a speed run: no drop while the owner
 is operating, while another command waits for the watcher, while a runner is active
 (`/tmp/speedrun.active`) or while a kill flag is left (`/tmp/speedrun.kill`). It never passes
 `--force`. The drop sets the operating flag (`--by speedmatch`); clear it once the log shows
-`END`. `speedmatch.py drop --kill` stops a runner, not a POM write: the writer stops itself at the
+`END`. The writer itself holds `/tmp/speedrun.active` from its start to `END`, as the runners do,
+so no runner job is sent while it writes, and it refuses to start while a runner holds it. `speedmatch.py drop --kill` stops a runner, not a POM write: the writer stops itself at the
 first write that is not OK.
 
 The consist query covers every roster loco, about 1.5 s each. A loco whose train node does not

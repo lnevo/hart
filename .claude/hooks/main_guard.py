@@ -134,7 +134,8 @@ def speedmatch_sends(args):
     """speedmatch.py's words after the script: True when they send to the Pi (drop JOB, pom ... --send)."""
     if args[:1] == ["drop"]:
         return len(args) > 1 and args[1] not in ("--fetch", "--kill", "-h", "--help")
-    return args[:1] == ["pom"] and "--send" in args
+    # any prefix of --send counts (an argparse abbreviation), though speedmatch.py turns abbreviations off
+    return args[:1] == ["pom"] and any(len(a) > 2 and "--send".startswith(a) for a in args[1:])
 
 
 HOSTS_PI = re.compile(r"(^|\s|=)(" + "|".join(re.escape(f) for f in HOST_FLAGS) + r")\b")
@@ -179,9 +180,13 @@ def host_control(part, flag, exported=None):
         return "a speed-matching job during the owner's session"
     # the speedmatch command runs drop_job.sh itself: python3 speedmatch.py ..., or make speedmatch ARGS="..."
     if re.fullmatch(r"python[\d.]*", head):
-        while args and args[0].startswith("-"):
-            args = args[1:]
-        head, args = (os.path.basename(args[0]), args[1:]) if args else (head, args)
+        while args and args[0].startswith("-") and args[0] not in ("-c", "-m", "-"):
+            # -W and -X take the next word as their value unless it is joined (-Wignore)
+            args = args[2:] if args[0] in ("-W", "-X") else args[1:]
+        if args[:1] == ["-m"]:
+            args = args[1:]         # python3 -m speedmatch ...: the module stands for the script
+        head, args = (os.path.basename(args[0]), args[1:]) if args and args[0] not in ("-c", "-") else (head, [])
+        head = "speedmatch.py" if head == "speedmatch" else head
     if head == "make" and "speedmatch" in args:
         make_args = [a[len("ARGS="):] for a in args if a.startswith("ARGS=")] or [assigned.get("ARGS", "")]
         try:

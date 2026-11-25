@@ -29,8 +29,8 @@ Owner decisions: tolerance 5% (run-to-run repeat is about ±2%, more at slow ste
 Left, in order:
 
 1. **Read back** both decoders on the programming track, update the roster (Pi first, then
-   `tools/hosts/sync_roster_from_pi.sh --all`), then `pom_guard.py archive-ledger "CSX 2738"` on
-   the Pi. Until then the roster holds 2738's old CV66, CV69 and CV70.
+   `tools/hosts/sync_roster_from_pi.sh --all`), then `pom_guard.py archive-ledger "CSX 2738" --ledger-dir ...` on
+   the Pi ([`POM_GUARD.md`](../../docs/jmri/speedmatching/POM_GUARD.md), ledger commands). Until then the roster holds 2738's old CV66, CV69 and CV70.
 2. **Loop 2 lengths:** Scale (144.9 in) and Barn (34.1 in) are timed in `block_lengths.csv` (flag `timed`). Track S-R, OS Switch 31, OS Switch 23b and OS Switch 7 are still plan lengths; time them with PanelPro closed. A proper survey needs
    a higher `--max` so each step gets 3 or more laps; the 2026-11-13 survey got one.
 3. **Pair stop test:** the coupled run was spoiled (Switch 33 closed under it); repeat it from East

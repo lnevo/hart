@@ -379,6 +379,12 @@ class OperatingFlag(unittest.TestCase):
                    "jmri/layouts/hart/scripts/speedmatch/drop_job.sh /tmp/job.py",
                    "python3 jmri/layouts/hart/scripts/speedmatch/speedmatch.py drop /tmp/job.py",
                    "python3 -u jmri/layouts/hart/scripts/speedmatch/speedmatch.py pom p.json --send",
+                   "python3 jmri/layouts/hart/scripts/speedmatch/speedmatch.py pom p.json --se",
+                   "python3 jmri/layouts/hart/scripts/speedmatch/speedmatch.py pom p.json --s --apply",
+                   "python3 -W ignore jmri/layouts/hart/scripts/speedmatch/speedmatch.py pom p.json --send",
+                   "python3 -X dev -W ignore -u jmri/layouts/hart/scripts/speedmatch/speedmatch.py drop /tmp/j.py",
+                   "python3 -Wignore jmri/layouts/hart/scripts/speedmatch/speedmatch.py drop /tmp/j.py",
+                   "cd jmri/layouts/hart/scripts/speedmatch && python3 -m speedmatch pom p.json --send",
                    'make speedmatch ARGS="pom p.json --apply --consists-broken --send"',
                    "make speedmatch ARGS='drop /tmp/job.py'")
         for cmd in blocked:
@@ -396,6 +402,8 @@ class OperatingFlag(unittest.TestCase):
                     "jmri/layouts/hart/scripts/speedmatch/drop_job.sh --kill",
                     "python3 jmri/layouts/hart/scripts/speedmatch/speedmatch.py pom p.json --out /tmp/d.py",
                     "python3 jmri/layouts/hart/scripts/speedmatch/speedmatch.py drop --kill",
+                    "python3 -W ignore jmri/layouts/hart/scripts/speedmatch/speedmatch.py pom p.json --out /tmp/d.py",
+                    "python3 -c 'print(1)'",
                     'make speedmatch ARGS="job steps --loco x --out /tmp/j.py"', "make speedmatch"):
             self.assertEqual(self.op_code(cmd, owner), 0, cmd)
         # a speed-matching run's own flag lets the run's next job through, never a host deploy

@@ -74,7 +74,7 @@ class PassThrough(Base):
     def test_help_lists_every_subcommand(self):
         out = self.cli("--help").stdout
         for cmd in ("job", "drop", "pom", "compare preflight", "compare stoptest", "to-roster", "lengths",
-                    "rename-ext"):
+                    "rename-ext", "ledger-dir"):
             self.assertIn("speedmatch.py " + cmd, out)
 
     def test_a_subcommand_runs_its_script_with_the_arguments_as_given(self):
@@ -125,31 +125,67 @@ class PomBuild(Base):
                          ("/home/tester/speedmatch/rb.json", "/home/tester/speedmatch/ledger"))
         self.assertEqual((ns["APPLY"], ns["CONSISTS_BROKEN"], ns["ABSENT_OK"]), (False, False, ["NWR 06"]))
         self.assertEqual(ns["PROPOSAL"], "/tmp/speedmatch/proposal.json")
+        self.assertIn("--ledger-dir /home/tester/speedmatch/ledger", r.stdout)       # the same folder, printed
+        self.assertEqual(self.cli("ledger-dir").stdout, "/home/tester/speedmatch/ledger\n")
         self.assertIn("speedrun.active", text)     # what makes drop_job.sh run its runner checks
         self.assertTrue(text.endswith((SM / "pom_write.py").read_text()))
         self.assertNotRegex(text, r"""\bf["']""")  # Jython 2 source
 
-    def test_the_drop_unpacks_its_files_and_runs_the_writer(self):
+    def run_drop(self, guard_missing=False):
+        """Build the drop, then run it in-process: the stand-in jmri, a fake consist query that notes whether the
+        active marker exists while the writer runs. Returns (log lines, programmer calls, the marker's path)."""
         pidir, logf = self.dir / "pidir", self.dir / "pom.log"
         self.env["HART_PI_USERFILES"] = str(self.dir / "home/JMRI_UserFiles")
         r = self.cli("pom", self.prop, "--out", self.dir / "d.py", "--pi-dir", pidir, "--log", logf)
         self.assertEqual(r.returncode, 0, r.stderr)
+        text = (self.dir / "d.py").read_text()
+        if guard_missing:
+            text = text.replace("GUARD_PATH = %r" % (str(pidir) + "/pom_guard.py"), "GUARD_PATH = '/nonexistent.py'")
         roster_dir = tpg.make_roster(str(self.dir / "u"))
+        active = self.dir / "speedrun.active"
+        self.seen = []
         fake_query = 'with open(LOGF, "w") as q:\n    q.write(%r)\n' % tpg.CLEAR
+
+        def execfile(path, e):
+            self.seen.append(active.read_text() if active.exists() else None)
+            exec(fake_query, e)
         calls = []
         env = {"__name__": "pom_drop_test", "RUN_INLINE": True, "OP_TIMEOUT": 0.05, "CONSIST_TIMEOUT": 2.0,
-               "execfile": lambda path, e: exec(fake_query, e)}
+               "ACTIVE_FILE": str(active), "execfile": execfile}
         with mock.patch.dict(sys.modules, {"jmri": tpg.fake_jmri(roster_dir, calls)}):
-            exec(compile((self.dir / "d.py").read_text(), "d.py", "exec"), env)
+            exec(compile(text, "d.py", "exec"), env)
+        return logf.read_text().splitlines(), calls, active
+
+    def test_the_drop_unpacks_its_files_and_runs_the_writer(self):
+        lines, calls, active = self.run_drop()
+        pidir = self.dir / "pidir"
         for p in ("pom_guard.py", "pom_guard_cli.py", "cs105_consist.py"):
             self.assertEqual((pidir / p).read_bytes(), (SM.parent / p if p.startswith("cs105") else SM / p)
                              .read_bytes())
         self.assertEqual(json.loads((pidir / "proposal.json").read_text())["roster_id"], "CSX 2738")
         self.assertTrue((self.dir / "home/speedmatch/ledger").is_dir())
-        lines = logf.read_text().splitlines()
         self.assertIn("PLAN 2738L CV67 old=12 (roster (may be a default)) new=14", lines)
         self.assertEqual(lines[-1], "END")
         self.assertFalse([c for c in calls if c[0] == "write"])
+
+    def test_the_writer_holds_the_runners_active_marker_until_its_end(self):
+        lines, calls, active = self.run_drop()
+        self.assertEqual(self.seen, [str(self.dir / "pom.log")])   # held, naming its log, while it ran
+        self.assertFalse(active.exists())                           # and gone at END
+        self.assertEqual(lines[-1], "END")
+
+    def test_a_runner_holding_the_marker_stops_the_writer_and_keeps_its_marker(self):
+        (self.dir / "speedrun.active").write_text("steps CSX 2121")
+        lines, calls, active = self.run_drop()
+        self.assertTrue(lines[0].startswith("REFUSED") and "active" in lines[0], lines)
+        self.assertEqual((calls, self.seen), ([], []))               # no programmer, no consist query
+        self.assertEqual(active.read_text(), "steps CSX 2121")
+        self.assertEqual(lines[-1], "END")
+
+    def test_the_marker_goes_when_the_writer_stops_early(self):
+        lines, calls, active = self.run_drop(guard_missing=True)
+        self.assertTrue(any(line.startswith("REFUSED guard module") for line in lines), lines)
+        self.assertFalse(active.exists())
 
 
 class PomSend(Base):
@@ -171,6 +207,13 @@ class PomSend(Base):
         self.assertEqual(r.returncode, 1)
         self.assertIn("speedrun.kill exists", r.stderr)
         self.assertFalse((self.pi / "jmri_cmd.py").exists())
+
+    def test_an_abbreviated_send_is_refused_not_sent(self):
+        r = self.cli("pom", self.prop, "--out", self.dir / "d.py", "--se")
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("unrecognized arguments: --se", r.stderr)
+        self.assertFalse((self.pi / "jmri_cmd.py").exists())
+        self.assertFalse((self.dir / "d.py").exists())
 
     def test_the_owners_session_stops_the_drop(self):
         self.flag.write_text("by=owner\nsince=2026-11-25T10:00:00-0500\nreason=ops\n")

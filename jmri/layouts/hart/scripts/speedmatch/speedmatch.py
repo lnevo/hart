@@ -9,6 +9,7 @@
     speedmatch.py to-roster ARGS...   profile_to_roster.py: profile.csv to a write_profile.py payload
     speedmatch.py lengths ARGS...     infer_block_lengths.py: block lengths from timed laps and the plan
     speedmatch.py rename-ext ARGS...  rename_extension_tracks.py: old extension-track names in logs
+    speedmatch.py ledger-dir          the Pi's POM ledger folder: pass it as --ledger-dir to pom_guard.py
 
 `make speedmatch ARGS="job steps --loco 'CSX 2738' --out /tmp/job.py"` runs the same. Every subcommand but pom
 runs its script with the arguments as given, so each script's own --help and behaviour are unchanged.
@@ -74,13 +75,23 @@ def pi_userfiles():
     return value
 
 
+def pi_home():
+    """The Pi's home folder: the parent of HART_PI_USERFILES (its ~/speedmatch holds the ledger and rollbacks)."""
+    return os.path.dirname(pi_userfiles().rstrip("/"))
+
+
+def ledger_dir(home=None):
+    """The one ledger folder: the writer's LEDGER_DIR and every pom_guard.py ledger command's --ledger-dir."""
+    return (home or pi_home()) + "/speedmatch/ledger"
+
+
 def load_guard():
     sys.path.insert(0, str(HERE))
     import pom_guard
     return pom_guard
 
 
-def pom_text(proposal_path, a, pi_home):
+def pom_text(proposal_path, a, home):
     """The drop file: settings, the Pi's support files, then pom_write.py unchanged."""
     raw = Path(proposal_path).read_bytes()
     settings = [
@@ -91,8 +102,8 @@ def pom_text(proposal_path, a, pi_home):
         ("CONSISTS_BROKEN", a.consists_broken),
         ("ROSTER_OLD_OK", a.roster_old_ok),
         ("LOGF", a.log),
-        ("ROLLBACK", pi_home + "/speedmatch/" + a.rollback),
-        ("LEDGER_DIR", pi_home + "/speedmatch/ledger"),
+        ("ROLLBACK", home + "/speedmatch/" + a.rollback),
+        ("LEDGER_DIR", ledger_dir(home)),
         ("APPLY", a.apply),
         ("READ_FIRST", not a.no_read_first),
     ]
@@ -123,7 +134,8 @@ def pom_text(proposal_path, a, pi_home):
 
 
 def pom(argv):
-    ap = argparse.ArgumentParser(prog="speedmatch.py pom", description="Build a POM write drop for the Pi's "
+    # allow_abbrev=False: --send is spelt out, so .claude/hooks/main_guard.py sees every send
+    ap = argparse.ArgumentParser(prog="speedmatch.py pom", allow_abbrev=False, description="Build a POM write drop for the Pi's "
                                  "pom_write.py; --send hands it to drop_job.sh.")
     ap.add_argument("proposal", help="proposal JSON (schema in pom_guard.py); a rollback file works the same")
     ap.add_argument("--apply", action="store_true", help="write the CVs (default: a dry run)")
@@ -154,10 +166,12 @@ def pom(argv):
     a.rollback = a.rollback or "rollback_%s_%s.json" % (guard.safe_name(rid), time.strftime("%Y%m%dT%H%M%S"))
     if not ROLLBACK_NAME.match(a.rollback):
         ap.error("--rollback is a file name ending in .json, not a path: %r" % a.rollback)
-    pi_home = os.path.dirname(pi_userfiles().rstrip("/"))
-    Path(a.out).write_text(pom_text(a.proposal, a, pi_home))
-    print("wrote %s: %s for %r, rollback %s/speedmatch/%s" % (
-        a.out, "APPLY" if a.apply else "dry run", rid, pi_home, a.rollback))
+    home = pi_home()
+    Path(a.out).write_text(pom_text(a.proposal, a, home))
+    print("wrote %s: %s for %r, rollback %s/speedmatch/%s, ledger %s" % (
+        a.out, "APPLY" if a.apply else "dry run", rid, home, a.rollback, ledger_dir(home)))
+    print("ledger commands on the Pi: python3 %s/pom_guard.py clear-ledger|seed-ledger|archive-ledger ... "
+          "--ledger-dir %s" % (a.pi_dir, ledger_dir(home)))
     if not a.send:
         print("send it with: speedmatch.py pom ... --send, or speedmatch.py drop %s" % a.out)
         return 0
@@ -181,6 +195,9 @@ def main(argv=None):
             print("speedmatch.py compare preflight|stoptest ARGS...", file=sys.stderr)
             return 2
         return run_script(*COMPARE[rest[0]], rest[1:])
+    if cmd == "ledger-dir":
+        print(ledger_dir())
+        return 0
     if cmd == "pom":
         return pom(rest)
     print("speedmatch.py: no subcommand %r (speedmatch.py --help lists them)" % cmd, file=sys.stderr)

@@ -827,7 +827,7 @@ class PomWriteScript(GuardCase):
                "CONSIST_SCRIPT": fake_query, "LOGF": logf, "ROLLBACK": rb, "APPLY": apply,
                "CONSISTS_BROKEN": consists_broken, "ROSTER_OLD_OK": roster_old_ok,
                "LEDGER_DIR": ledger_dir or os.path.join(self.dir, "ledger"), "RUN_INLINE": True,
-               "OP_TIMEOUT": 0.05, "CONSIST_TIMEOUT": 2.0,
+               "OP_TIMEOUT": 0.05, "CONSIST_TIMEOUT": 2.0, "ACTIVE_FILE": os.path.join(self.dir, "speedrun.active"),
                "execfile": lambda path, e: exec(Path(path).read_text(), e)}
         if absent_ok is not None:
             env["ABSENT_OK"] = absent_ok
