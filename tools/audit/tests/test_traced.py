@@ -181,6 +181,19 @@ class ReadSetTest(unittest.TestCase):
         (self.root / "data/brand-new.csv").write_text("x\n")
         self.assertNotEqual(traced.git_replay(cmds, str(self.root)), before)
 
+    def test_a_replayed_answer_that_names_the_checkout_holds_in_a_copy_of_it(self) -> None:
+        """make remote runs each check in a new worktree: `rev-parse --show-toplevel` names it, so the checkout's
+        path is hashed as {root}; a path outside the checkout is still compared as it is."""
+        env = {**os.environ, "GIT_CONFIG_GLOBAL": os.devnull}
+        copy = self.root.parent / "copy"
+        for root in (self.root, copy):
+            root.mkdir(exist_ok=True)
+            subprocess.run(["git", "init", "-q"], cwd=root, check=True, env=env)
+        cmds = [[traced.ROOT_MARK, "git", "-C", traced.ROOT_MARK, "rev-parse", "--show-toplevel"]]
+        self.assertEqual(traced.git_replay(cmds, str(copy)), traced.git_replay(cmds, str(self.root)))
+        outside = [[traced.ROOT_MARK, "git", "-C", str(copy), "rev-parse", "--show-toplevel"]]
+        self.assertNotEqual(traced.git_replay(outside, str(self.root)), traced.git_replay(cmds, str(self.root)))
+
     def test_a_writing_git_command_is_untraced(self) -> None:
         code = "import subprocess\nsubprocess.run(['git', 'init', '-q'], capture_output=True)\n"
         self.assertEqual(run_traced(self.root, code, self.log), 0)

@@ -555,16 +555,22 @@ def untraced(t: Trace, root: str, also_inside: tuple[str, ...] = ()) -> tuple[li
 
 
 def git_replay(cmds: list[list[str]], root: str) -> list[str]:
-    """sha256 of each recorded git command's exit code and output, run now in this checkout."""
+    """sha256 of each recorded git command's exit code and output, run now in this checkout. The checkout's own path
+    in the output is hashed as ROOT_MARK, as it is in the arguments: `rev-parse --show-toplevel` names the checkout,
+    and make remote runs each check in a worktree of its own, so its stamps never matched the next run's (2026-11-25)."""
     import hashlib
     import subprocess
     out = []
+    forms = sorted({f.encode() for f in _root_forms(root)}, key=len, reverse=True)
     for cmd in cmds:
         cmd = [a.replace(ROOT_MARK, os.path.normpath(root), 1) for a in cmd]
         cwd, argv = cmd[0], cmd[1:]
         try:
             done = subprocess.run(argv, cwd=cwd if os.path.isdir(cwd) else None, capture_output=True, timeout=60)
-            out.append(hashlib.sha256(f"{done.returncode}\0".encode() + done.stdout).hexdigest())
+            text = done.stdout
+            for form in forms:
+                text = text.replace(form, ROOT_MARK.encode())
+            out.append(hashlib.sha256(f"{done.returncode}\0".encode() + text).hexdigest())
         except (OSError, subprocess.SubprocessError) as exc:
             out.append(f"unavailable:{type(exc).__name__}")
     return out
