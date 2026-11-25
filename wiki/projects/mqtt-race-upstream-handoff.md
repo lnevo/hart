@@ -14,9 +14,7 @@ Watch JMRI/JMRI pull request [#16004](https://github.com/JMRI/JMRI/pull/16004) a
 
 ## The watcher
 
-In a fresh session, schedule a recurring check (for example every 3 hours, off the hour) with this prompt:
-
-> Check JMRI/JMRI pull request #16004 and issue #16003 for anything new since the last check: comments, review comments or requested changes, CI workflow runs and their results, labels, approval, merge or close. Use gh read-only (`gh pr view 16004 -R JMRI/JMRI --comments`, `gh pr checks 16004 -R JMRI/JMRI`, `gh issue view 16003 -R JMRI/JMRI --comments`). If nothing changed, say so in one line. If a reviewer asked for changes or a check failed on the code, give the exact text and propose the fix, but do not push, comment or reply on JMRI without the owner's yes. If the PR is merged, tell the owner and close the topic (below), then delete the job. If it is closed without merging, tell the owner and stop.
+GitHub Actions runs it, so it costs no Claude tokens (2026-11-24; it replaced a cloud scheduled task). [`.github/workflows/watch-jmri-pr.yml`](../../.github/workflows/watch-jmri-pr.yml) runs [`tools/ci/watch_jmri_pr.sh`](../../tools/ci/watch_jmri_pr.sh) every 4 hours at :17. It reads #16004 and #16003 (reviews, new or edited comments, events, new commits, failed check runs other than `check-pr` and "Approved after last commit") and, only when something is new, comments on the issue "Watch: JMRI/JMRI PR 16004 (MQTT startup race)" in this repo, mentioning the owner; GitHub's own notifications deliver it. Quoted JMRI text and links sit in code spans, so the posts ping no one else and leave no cross-reference on the JMRI pull request. When the pull request is merged or closed it posts once more and closes that issue, which stops the watch. Run it by hand from the Actions tab (`dry_run` prints without posting). It never writes to JMRI. A reply or fix on JMRI still needs a session and the owner's yes.
 
 ## If changes are asked for
 

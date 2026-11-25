@@ -1,0 +1,33 @@
+# Watches JMRI/JMRI pull request #16004 (the MQTT startup race fix) and issue #16003 without a Claude session:
+# tools/ci/watch_jmri_pr.sh comments on a tracking issue here, mentioning the owner, only when something changed.
+# Replaced the cloud scheduled task of 2026-11-24. Delete this file when the topic closes
+# (wiki/projects/mqtt-race-upstream-handoff.md).
+name: watch-jmri-pr
+on:
+  schedule:
+    - cron: "17 */4 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Print the comment instead of posting it"
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: watch-jmri-pr
+  cancel-in-progress: false
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: tools/ci
+      - name: Check JMRI/JMRI#16004
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
+        run: ./tools/ci/watch_jmri_pr.sh
