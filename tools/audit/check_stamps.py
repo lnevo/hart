@@ -7,7 +7,8 @@
     check_stamps.py record  NAME FILE --trace LOG        record NAME's stamp from the trace of the run that passed
     check_stamps.py why     NAME                         say why NAME is not current
     check_stamps.py declared NAME                        the patterns NAME falls back to (an untraceable program)
-    check_stamps.py audit-report DIR                     compare the files a CHECK_AUDIT run opened with the declarations
+    check_stamps.py audit-report DIR [-v]                compare the files a CHECK_AUDIT run opened with the declarations
+                                                         (-v: the folders each job read, for every job)
 
 check.sh runs each job under the trace hook of tools/audit/traced.py (shared with make panels): every repo file the
 job's Python processes open, every file they probe and find absent, every folder they list and every subprocess they
@@ -67,7 +68,8 @@ BY_KIND: dict[str, tuple[str, ...]] = {
     "static": EVERYTHING,
     "public-text": EVERYTHING,
     "portal": (*CODE, *SITE),
-    "unit-portal": (*CODE, *SITE),
+    # its node scripts (www/scripts/tests/*.js, build_exam_answers.js, build_play_answers.js) read only www/
+    "unit-portal": (*CODE, "www/**/*", "docs/**/*", "ops/**/*"),
     "unit-hart-ops": (*CODE, *SITE),
     "unit-schematic": (*CODE, "docs/ops/**/*", "wiki/pipelines/**/*", "www/crew/**/*", "www/data/**/*", "ops/**/*"),
     "unit-anyrail": (*CODE, "www/build/**/*", "docs/**/*"),
@@ -83,9 +85,12 @@ BY_KIND: dict[str, tuple[str, ...]] = {
 # site, the docs or the wiki. Every other file reads only code and data.
 EXTRA: dict[str, tuple[str, ...]] = {
     "unit-guards test_name_copies": EVERYTHING,
-    "unit-hosts test_deploy_stage": EVERYTHING,
+    # the deploy scripts (bash, and a git clone of HEAD staged the same way) copy from jmri/, cats/, tools/ and one
+    # speed-matching CSV under docs/jmri/ (tools/hosts/deploy/stage.sh); their Python reads only CODE
+    "unit-hosts test_deploy_stage": ("docs/jmri/**/*",),
     "unit-guards test_check_sh_tables": ("www/**/*",),
-    "unit-guards test_hart_tables_writers": ("wiki/**/*", "www/scripts/**/*"),
+    # tools/ops/status_counts.py reads wiki/STATUS.md; its git status only compares the tree before and after
+    "unit-guards test_hart_tables_writers": ("wiki/STATUS.md", "www/scripts/**/*"),
     "unit-guards test_helix_stl_index": ("www/scripts/**/*",),
     "unit-guards test_jmri_process_patterns": ("docs/**/*", "ops/**/*", "www/scripts/**/*"),
     # the map build draws the agent-doc lane from the wiki and docs/INDEX.md too (tools/ops/agent_docs_map.py)
@@ -103,7 +108,6 @@ EXTRA: dict[str, tuple[str, ...]] = {
     "unit-guards test_site_device_names": ("www/data/**/*", "www/scripts/**/*"),
     "unit-guards test_write_inventory": ("docs/wiring/**/*",),
     "unit-guards test_docs_index": ("docs/**/*",),
-    "unit-guards test_check_stamps": EVERYTHING,
     "unit-hosts test_live_paths": ("docs/**/*",),
     "unit-hosts test_host_copies": ("ops/**/*",),
     "unit-hosts test_pull_tables": ("ops/**/*",),
@@ -122,14 +126,56 @@ LISTED_ONLY: dict[str, tuple[str, ...]] = {
 }
 
 
+# The quick jobs tests/test_check_stamps.py runs under CHECK_AUDIT: one of each kind of folder a job tests.
+AUDIT_SAMPLE = ("unit-hartlib", "unit-mimic", "unit-anyrail", "unit-cats", "unit-jmri-scripts",
+                "unit-guards test_turnout_startup", "unit-hosts test_load_env", "unit-jmri test_speedmatch_distance")
+# "kind test" -> the jobs it runs through a check.sh of its own (bash, untraced, so its stamp falls back to its
+# declaration): it reads what their declarations name, and .gitmodules (check.sh's start-up: worktrees.py submodules
+# and the plugin pin check); the rest of that start-up and the stamp helper read only tools/.
+RUNS_JOBS: dict[str, tuple[str, ...]] = {
+    "unit-guards test_check_stamps": AUDIT_SAMPLE,
+}
+
+
+def _test_key(name: str) -> str | None:
+    """"kind test" for job `name` ("unit-hosts test_deploy_gates.SomeTest" -> "unit-hosts test_deploy_gates"), or
+    None for a job named by its kind alone."""
+    parts = name.split(" ", 2)
+    return f"{parts[0]} {parts[1].split('.')[0]}" if len(parts) > 1 else None
+
+
 def declared(name: str) -> tuple[str, ...] | None:
     """The patterns job `name`'s stamp covers, or None when it is not a stampable job (a "... skipped" placeholder)."""
-    parts = name.split(" ", 2)
-    pats = BY_KIND.get(parts[0])
+    pats = BY_KIND.get(name.split(" ", 1)[0])
     if pats is None or re.search(r" skipped\b", name):
         return None
-    extra = EXTRA.get(f"{parts[0]} {parts[1].split('.')[0]}", ()) if len(parts) > 1 else ()
-    return (*pats, *extra, "tools/check.sh")
+    tk = _test_key(name)
+    extra = EXTRA.get(tk, ()) if tk else ()
+    inner = (*(p for job in RUNS_JOBS[tk] for p in _declared_job(job)), ".gitmodules") if tk in RUNS_JOBS else ()
+    return tuple(dict.fromkeys((*pats, *extra, *inner, "tools/check.sh")))
+
+
+def _declared_job(job: str) -> tuple[str, ...]:
+    """declared(job) for a job a table names: one that is not stampable is an error in the table."""
+    pats = declared(job)
+    if pats is None:
+        raise ValueError(f"check_stamps.RUNS_JOBS names {job!r}, which is not a stampable job")
+    return pats
+
+
+def check_tables() -> None:
+    """The tables keyed by "kind test" name a kind in BY_KIND, and RUNS_JOBS does not nest (a job that runs a job
+    that runs jobs) and names only stampable jobs. Raises ValueError."""
+    for label, table in (("EXTRA", EXTRA), ("LISTED_ONLY", LISTED_ONLY), ("RUNS_JOBS", RUNS_JOBS)):
+        for tk in table:
+            parts = tk.split(" ")
+            if len(parts) != 2 or parts[0] not in BY_KIND or not parts[1]:
+                raise ValueError(f"check_stamps.{label}: {tk!r} is not \"<kind in BY_KIND> <test file>\"")
+    for tk, jobs in RUNS_JOBS.items():
+        for job in jobs:
+            if _test_key(job) in RUNS_JOBS:
+                raise ValueError(f"check_stamps.RUNS_JOBS: {tk!r} runs {job!r}, which runs jobs of its own")
+            _declared_job(job)
 
 
 def _pruned(rel: str) -> bool:
@@ -352,8 +398,8 @@ def uncovered(name: str, files: set[str], dirs: set[str]) -> list[str]:
     files = {f for f in files if not f.startswith(".cache/")}
     dirs = {d for d in dirs if d != ".cache" and not d.startswith(".cache/")}
     bad = [f for f in sorted(files) if not any(ps._glob_match(f, p) for p in pats)]
-    parts = name.split(" ", 2)
-    listed = LISTED_ONLY.get(f"{parts[0]} {parts[1].split('.')[0]}", ()) if len(parts) > 1 else ()
+    tk = _test_key(name)
+    listed = LISTED_ONLY.get(tk, ()) if tk else ()
     for d in sorted(dirs):
         if d in (".", "") or d in listed:
             continue
@@ -371,6 +417,11 @@ def uncovered(name: str, files: set[str], dirs: set[str]) -> list[str]:
 
 def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
+    try:
+        check_tables()
+    except ValueError as exc:       # every job runs and records nothing (check.sh: an answer other than 0 or 1)
+        print(f"check_stamps.py: {exc}", file=sys.stderr)
+        return 2
     if len(argv) >= 2 and argv[0] == "current":
         name, save = argv[1], None
         if "--save" in argv:
@@ -399,7 +450,11 @@ def main(argv: list[str] | None = None) -> int:
     if len(argv) == 2 and argv[0] == "declared":
         print("\n".join(declared(argv[1]) or ()))
         return 0
-    if len(argv) == 2 and argv[0] == "audit-report":
+    if argv[:1] == ["audit-report"] and (len(argv) == 2 or argv[2:] == ["-v"]):
+        if not Path(argv[1]).is_dir():
+            print(f"check_stamps.py audit-report: {argv[1]} is not a folder (CHECK_AUDIT=DIR FULL=1 tools/check.sh "
+                  "writes one)", file=sys.stderr)
+            return 2
         rc = 0
         for name, (files, dirs) in read_audit(Path(argv[1])).items():
             if declared(name) is None:

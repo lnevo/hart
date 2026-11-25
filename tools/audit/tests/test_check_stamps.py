@@ -18,9 +18,28 @@ import check_stamps as cs  # noqa: E402
 
 REPO = cs.ROOT
 CHECK_SH = (REPO / "tools" / "check.sh").read_text(encoding="utf-8")
-# Jobs the audit runs for real: quick ones, one of each kind of folder a job tests.
-AUDITED = (r"^(unit-hartlib|unit-mimic|unit-anyrail|unit-cats|unit-jmri-scripts"
-           r"|unit-guards test_turnout_startup|unit-hosts test_load_env|unit-jmri test_speedmatch_distance)$")
+# Jobs the audit runs for real (check_stamps.AUDIT_SAMPLE, which this test's own declaration is built from).
+# check.sh matches CHECK_ONLY with bash's =~ (POSIX ERE), so the names are joined as they are: letters, digits,
+# "_", "-" and spaces only (DeclarationTest.test_the_audit_sample_names_are_plain).
+AUDITED = "^(" + "|".join(cs.AUDIT_SAMPLE) + ")$"
+# Jobs whose declarations were narrowed off the wiki from what the audit saw them read (2026-11-24).
+NARROWED = ("unit-guards test_check_stamps", "unit-hosts test_deploy_stage", "unit-guards test_hart_tables_writers",
+            "unit-portal")
+# What the 2026-11-24 audit (CHECK_AUDIT=DIR FULL=1 tools/check.sh) saw each narrowed job read outside CODE: each must
+# stay covered by its declaration (the audit sees Python only; the comments in check_stamps.EXTRA say what the
+# untraced programs read).
+NARROWED_READS: dict[str, tuple[set[str], set[str]]] = {   # job -> (files read, folders listed)
+    "unit-guards test_hart_tables_writers": ({"wiki/STATUS.md", "www/scripts/build_layout_index.py"},
+                                             {"www/scripts"}),
+    "unit-portal": ({"docs/ops/stations/barn.md", "docs/wiring/inventory.md", "www/scripts/tests/test_x.py",
+                     "www/play/runs.js", "www/index.html"},
+                    {"docs/ops/stations", "docs/wiring", "ops/hart-ops/card_pipeline", "www/crew/maps/barn",
+                     "www/scripts/tests"}),
+    # the files the deploy's bash copies (stage.sh), which no hook sees
+    "unit-hosts test_deploy_stage": ({"docs/jmri/speedmatching/profile-2026-11-08/speed_by_step.csv",
+                                      "jmri/layouts/hart/output/tables.xml", "cats/scripts/install_ops_files.sh",
+                                      "tools/hosts/pi/apply_hart_package_local.sh"}, {"jmri/resources/jmri-web"}),
+}
 
 
 class DeclarationTest(unittest.TestCase):
@@ -40,6 +59,66 @@ class DeclarationTest(unittest.TestCase):
     def test_check_sh_is_an_input_of_every_job(self) -> None:
         for kind in cs.BY_KIND:
             self.assertIn("tools/check.sh", cs.declared(kind))
+
+    def test_the_tables_are_consistent(self) -> None:
+        cs.check_tables()
+
+    def test_the_audit_sample_names_are_plain(self) -> None:
+        for job in cs.AUDIT_SAMPLE:
+            self.assertRegex(job, r"^[A-Za-z0-9_ -]+$")
+            self.assertIsNotNone(cs.declared(job), job)
+
+    def test_a_job_that_runs_jobs_covers_their_declarations(self) -> None:
+        for tk, jobs in cs.RUNS_JOBS.items():
+            mine = set(cs.declared(tk))
+            self.assertIn(".gitmodules", mine)
+            for job in jobs:
+                with self.subTest(runner=tk, job=job):
+                    self.assertEqual(sorted(set(cs.declared(job)) - mine), [])
+
+    def test_a_wiki_edit_is_no_input_of_jobs_the_audit_shows_do_not_read_it(self) -> None:
+        # each of these reran on a one-line ADR edit through a declaration wider than its reads (2026-11-24 audit)
+        for name in NARROWED:
+            with self.subTest(job=name):
+                self.assertFalse(any(cs.ps._glob_match("wiki/decisions/ADR-001-layout-identity.md", p)
+                                     for p in cs.declared(name)), cs.declared(name))
+
+    def test_a_narrowed_declaration_covers_what_the_audit_saw_read(self) -> None:
+        self.assertEqual(sorted(NARROWED_READS), sorted(set(NARROWED) - set(cs.RUNS_JOBS)))
+        for name, (files, dirs) in NARROWED_READS.items():
+            with self.subTest(job=name):
+                self.assertEqual(cs.uncovered(name, files, dirs), [])
+                # and the check compares what it claims: a read outside the declaration is reported
+                self.assertEqual(cs.uncovered(name, files | {"wiki/decisions/ADR-001-layout-identity.md"}, dirs),
+                                 ["wiki/decisions/ADR-001-layout-identity.md"])
+
+    def test_audit_report_takes_v_and_refuses_a_missing_folder(self) -> None:
+        import contextlib
+        import io
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "0.name").write_text("unit-mimic\n")
+            (Path(tmp) / "0.log").write_text("r\ttools/mqtt-mimic/x.py\nr\twiki/home.md\n")
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                self.assertEqual(cs.main(["audit-report", tmp, "-v"]), 1)
+            self.assertIn("UNCOVERED wiki/home.md", out.getvalue())
+            self.assertIn("reads: tools/mqtt-mimic, wiki/home.md", out.getvalue())
+            err = io.StringIO()
+            with contextlib.redirect_stderr(err):
+                self.assertEqual(cs.main(["audit-report", f"{tmp}/none"]), 2)
+                self.assertEqual(cs.main(["audit-report", tmp, "-x"]), 2)
+            self.assertIn("is not a folder", err.getvalue())
+
+    def test_a_bad_table_entry_is_a_clear_error(self) -> None:
+        for table, entry in ((cs.EXTRA, {"no-such-kind test_x": ("a",)}), (cs.LISTED_ONLY, {"unit-guards": ("a",)}),
+                             (cs.RUNS_JOBS, {"unit-guards test_x": ("unit-guards test_check_stamps",)}),
+                             (cs.RUNS_JOBS, {"unit-guards test_x": ("portal skipped in CI",)})):
+            with self.subTest(entry=entry), unittest.mock.patch.dict(table, entry):
+                with self.assertRaises(ValueError):
+                    cs.check_tables()
+                with unittest.mock.patch("sys.stderr") as err:
+                    self.assertEqual(cs.main(["declared", "unit-hartlib"]), 2)
+                self.assertIn("check_stamps", "".join(c.args[0] for c in err.write.call_args_list))
 
 
 class StoreTest(unittest.TestCase):
@@ -197,7 +276,7 @@ class AuditTest(unittest.TestCase):
                                   text=True, timeout=900)
             self.assertEqual(done.returncode, 0, done.stdout[-3000:] + done.stderr[-2000:])
             jobs = cs.read_audit(Path(f"{tmp}/audit"))
-            wanted = AUDITED[2:-2].split("|")
+            wanted = list(cs.AUDIT_SAMPLE)
             self.assertEqual(sorted(jobs), sorted(wanted), "the jobs CHECK_ONLY matched are not the ones audited")
             skip = cs.traced._skip_prefixes(str(REPO))
             verified = 0
