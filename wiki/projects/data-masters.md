@@ -9,12 +9,12 @@ Plan for [ADR-039](../decisions/ADR-039-data-masters-in-git.md): one master per 
 | Lane | Job | Owns | Starts after | Agent, review |
 |---|---|---|---|---|
 | L1 Catalogue | `docs/data/entities.csv` and its README: each kind of record, key, master, copies, outside tools, which side wins in a session. Masters chosen by the owner on 2026-11-25 (in `docs/data/README.md`). **Done** in the L1 PR. | `docs/data/` | this page | `repo-auditor` drafts, main session writes; no review (docs) |
-| L2 Validator | `tools/ops/check_data.py`, the extended sidecar format, sidecars for `devices` and `switches` converted; the ADR-037 session adds the `data-schemas` step after its stage 4b | `tools/ops/check_data.py`, `*.columns.csv` format | L1 | `general-purpose`, opus; `/code-review medium` |
-| L3 Wiring inputs | `build_wiring_json.py` and `create_wiring_schematic_ppt.py` read `hartlib.wiring`, not v86 (the signal split and v85 were archived on 2026-11-25) | `www/scripts/build_wiring_json.py`, `tools/wiring/`, `docs/wiring/` | L1 | `general-purpose`, opus; `/code-review high` (`hartlib` reader) |
-| L4a Industries | new master `ops/hart-ops/data/industries.csv`; `industry_id` and spot keys across `spot_assignments.csv`, `HART_Spot_Waybills.csv`, `industries.json`; sidecars | `ops/hart-ops/data/`, `www/data/industries.json` and its readers | L2 | `general-purpose`, opus; `/code-review medium` |
-| L4b Trains | new master `ops/hart-ops/data/trains.csv` keyed on train symbol; `cats/data/hart_trains.csv` built from it and recorded in the pipeline map; `crew.json` jobs checked against it; sidecar | `ops/hart-ops/data/trains.csv`, `cats/data/hart_trains.csv`, `www/data/crew.json` readers | L2 | `general-purpose`; `/code-review medium` |
+| L2 Validator | `tools/ops/check_data.py`, the extended sidecar format, sidecars for `devices` and `switches` converted; the ADR-037 session adds the `data-schemas` step after its stage 4b **Done** 2026-11-25 (#1146): `data-schemas` step, format in `docs/data/sidecars.md`. | `tools/ops/check_data.py`, `*.columns.csv` format | L1 | `general-purpose`, opus; `/code-review medium` |
+| L3 Wiring inputs | `build_wiring_json.py` and `create_wiring_schematic_ppt.py` read `hartlib.wiring`, not v86 (the signal split and v85 were archived on 2026-11-25) **Done** 2026-11-25 (#1145): v86 is an output only. | `www/scripts/build_wiring_json.py`, `tools/wiring/`, `docs/wiring/` | L1 | `general-purpose`, opus; `/code-review high` (`hartlib` reader) |
+| L4a Industries | new master `ops/hart-ops/data/industries.csv`; `industry_id` and spot keys across `spot_assignments.csv`, `HART_Spot_Waybills.csv`, `industries.json`; sidecars In progress since 2026-11-25 16:35. | `ops/hart-ops/data/`, `www/data/industries.json` and its readers | L2 | `general-purpose`, opus; `/code-review medium` |
+| L4b Trains | new master `ops/hart-ops/data/trains.csv` keyed on train symbol; `cats/data/hart_trains.csv` built from it and recorded in the pipeline map; `crew.json` jobs checked against it; sidecar In progress since 2026-11-25 16:35. | `ops/hart-ops/data/trains.csv`, `cats/data/hart_trains.csv`, `www/data/crew.json` readers | L2 | `general-purpose`; `/code-review medium` |
 | L4c Places | one id for station and for control point across `stations.csv`, `interlockings.csv` and the devices' `cp`; block `id` in `occupancy_bindings.csv`; sidecars | `jmri/layouts/hart/data/schematic/`, `cats/data/occupancy_bindings.csv`, the CATS builders | L2, and no open schematic or naming PR on the same files | `schematic-builder`; `/code-review high` |
-| L4d Locos | `roster_id` as key in `locos.csv`, `new_locos.json` built from it; sidecar | `ops/hart-ops/data/locos.csv`, `bin/cars locos` | L2 | `general-purpose`; `/code-review medium` |
+| L4d Locos | `roster_id` as key in `locos.csv`, `new_locos.json` built from it; sidecar In progress since 2026-11-25 16:35. | `ops/hart-ops/data/locos.csv`, `bin/cars locos` | L2 | `general-purpose`; `/code-review medium` |
 
 L4c is the riskiest: it renames references that the panels and the CATS desks read. It runs last of the L4 lanes, with `make panels CHECK=1` and `make panelpro-test` before it merges.
 
@@ -30,4 +30,5 @@ L4c is the riskiest: it renames references that the panels and the CATS desks re
 
 ## Open for the owner
 
+- From L2: should the two spare occupancy rows (`spare:M2S201`, `spare:M2S307`) carry a `detector` value, and is `switches.csv` `area` a ref to `interlockings.csv` `area` or an enum of its own?
 - Whether the DecoderPro roster becomes a repo master or stays a copy on the Pi (phase 2).

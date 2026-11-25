@@ -21,6 +21,7 @@ SCRIPTS=(
   publications/rebuild_crew_instructions.py
   publications/rebuild_station_map.py
   publications/rebuild_local_station_maps.py
+  publications/rebuild_station_map_full.py   # assets/station_map_full.png: the primer and the site read it
   publications/rebuild_operator_primer.py
   publications/update_tt23_station_map.py
 )

@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Serve the website tree + archive and gallery edit APIs, local only."""
+"""Serve the website tree + archive and gallery edit APIs, local only.
+
+The files the site build makes instead of committing (site_views.VIEWS, ADR-036: the pipeline map page and the
+generated JSON) are built into www/ at start, so the preview never shows a missing or stale one; one that cannot
+be built is removed and named, with the command that says why (make site-data).
+"""
 
 from __future__ import annotations
 
@@ -7,10 +12,14 @@ import argparse
 import json
 import os
 import re
+import sys
 from datetime import datetime, timezone
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import site_views  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 ARCHIVE_PATH = ROOT / "www/data/archive.json"
@@ -324,6 +333,13 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("port", nargs="?", type=int, default=8760, help="port on 127.0.0.1 (default %(default)s)")
     port = parser.parse_args().port
+    failed = site_views.refresh()
+    if failed:
+        print("\n".join(failed), file=sys.stderr)
+        print(f"NOT SERVED: {len(failed)} of {len(site_views.VIEWS)} built files (pages that read them show an "
+              f"error); fix the source and run {site_views.BUILD}", file=sys.stderr, flush=True)
+    else:
+        print(f"built {len(site_views.VIEWS)} files the site build makes: " + ", ".join(site_views.VIEWS), flush=True)
     server = HTTPServer(("127.0.0.1", port), PortalHandler)
     print(f"HART portal → http://127.0.0.1:{port}/www/", flush=True)
     print(f"Archive → http://127.0.0.1:{port}/www/photos/index.html#historical (edits save to data/archive.json)", flush=True)

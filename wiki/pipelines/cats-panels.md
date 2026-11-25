@@ -33,7 +33,11 @@ Owner, 2026-11-17: signals run ABS unless CATS holds and releases them. On the C
 
 ## Diagnosing a panel
 
-`python3 cats/scripts/analyze_cats_edges.py <panel.xml>...` reports how each `SEC_EDGE` joint is typed (block, switchpoints or plain). It is read-only.
+`python3 cats/scripts/cats_inspect.py` reads a panel and writes nothing:
+
+- `edges <panel.xml>...` reports how each `SEC_EDGE` joint is typed (block, switchpoints or plain).
+- `grid <panel.xml>...` lists every track cell with its tracks and edge kinds.
+- `trace <panel.xml>` lists every wired plant with its OS block and the block each leg leads to; `trace <panel.xml> X Y LEG` follows one leg. It uses `digicon_trace.py`, as the desk build does.
 
 ## Do not
 

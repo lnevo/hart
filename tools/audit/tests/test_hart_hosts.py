@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 
 SCRIPTS = (
-    "jmri/layouts/hart/scripts/seed_default_thrown_turnouts.py",
+    "jmri/layouts/hart/scripts/diagnose_turnout_states.py",
     "tools/mqtt/sync_mqtt_turnouts_from_fb.py",
     "tools/mqtt/clear_mqtt_cmd_sensor_retain.py",
     "tools/mqtt-mimic/lcos_mqtt_mimic.py",

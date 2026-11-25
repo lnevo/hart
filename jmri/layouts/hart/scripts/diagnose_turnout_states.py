@@ -13,8 +13,8 @@ Rules (SoR):
     the desks. Do not command MQTT/JMRI.
   - This script must not throw field points.
 
-    python3 jmri/layouts/hart/scripts/seed_default_thrown_turnouts.py
-    python3 jmri/layouts/hart/scripts/seed_default_thrown_turnouts.py --diagnose
+    python3 jmri/layouts/hart/scripts/diagnose_turnout_states.py
+    python3 jmri/layouts/hart/scripts/diagnose_turnout_states.py --diagnose
 
 Read-only: the retained-write mode was removed with the boot retain fill. Use
 sync_mqtt_turnouts_from_fb.py only when Digicon must track FB.
