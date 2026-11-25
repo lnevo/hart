@@ -199,7 +199,10 @@ def doc_edges(set_nodes: dict[str, str], tracked: frozenset[str], read, checked:
             names["/" + PurePosixPath(path).stem] = path
     found: set[tuple[str, str]] = set()
     for path, nid in set_nodes.items():
-        files = [path] if path not in FOLDERS else sorted(f for f in tracked if f.startswith(path + "/"))
+        # a box's own file is read only when git tracks it: wiki/STATUS.md is built and gitignored (ADR-038), so it is
+        # a link target and its links are its entries' (the wiki/status folder box)
+        files = ([path] if path in tracked else []) if path not in FOLDERS else sorted(
+            f for f in tracked if f.startswith(path + "/"))
         for f in files:
             if not f.endswith(READ_SUFFIXES):
                 continue
