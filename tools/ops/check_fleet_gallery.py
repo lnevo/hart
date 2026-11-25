@@ -54,6 +54,10 @@ def _private(row: dict) -> bool:
 
 def check(gallery: dict, cars: list[dict], locos: list[dict]) -> list[str]:
     problems: list[str] = []
+    for name, rows in (("car", cars), ("loco", locos)):
+        for photo, n in sorted(Counter(stem(r["source_image"]) for r in rows if r.get("source_image")).items()):
+            if n > 1:
+                problems.append(f"{n} {name} rows share the photo {photo!r}; each photo is one row")
     car_by_photo = {stem(r["source_image"]): r for r in cars if r.get("source_image")}
     loco_by_photo = {stem(r["source_image"]): r for r in locos if r.get("source_image")}
     car_by_id = {r["roster_id"]: r for r in cars if r.get("roster_id")}
@@ -76,6 +80,10 @@ def check(gallery: dict, cars: list[dict], locos: list[dict]) -> list[str]:
             continue
         else:
             shown.add(photo)
+            rids = {r["roster_id"] for r in (car, loco) if r and r.get("roster_id")}
+            if item.get("roster_id") and item["roster_id"] not in rids:
+                problems.append(f"item {label}: roster_id {item['roster_id']!r}; its photo's row has "
+                                f"{' or '.join(sorted(rids)) or 'none'}")
         numbers = {r["road_number"] for r in (car, loco) if r}
         if item.get("number") and item["number"] not in numbers:
             problems.append(f"item {label}: number {item['number']!r}; the master has {' or '.join(sorted(numbers))}")

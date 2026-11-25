@@ -47,6 +47,12 @@ class CheckTests(unittest.TestCase):
         g["items"][1]["roster_id"] = "BO11"
         self.assertIn("is in neither master", F.check(g, cars, [])[0])
 
+    def test_two_rows_with_one_photo_and_a_wrong_roster_id_fail(self) -> None:
+        cars = [car("IMG_1.png", "10", rid="BO10"), car("IMG_1.jpg", "11")]
+        self.assertIn("2 car rows share the photo 'IMG_1'", F.check(gallery(item("IMG_1", "10")), cars, [])[0])
+        problems = F.check(gallery(item("IMG_1", "10", roster_id="BO99")), cars[:1], [])
+        self.assertEqual(problems, ["item x-10: roster_id 'BO99'; its photo's row has BO10"])
+
     def test_a_wrong_number_or_type_fails_and_a_blank_number_does_not(self) -> None:
         cars = [car("IMG_1.png", "10")]
         self.assertIn("number '11'", F.check(gallery(item("IMG_1", "11")), cars, [])[0])
