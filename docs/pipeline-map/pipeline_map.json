@@ -3624,7 +3624,7 @@
    "kind": "output",
    "status": "live",
    "domain": "extras",
-   "desc": "tools/check.sh job stamps (check_stamps.py): content hashes of a job's declared inputs; a job whose inputs match its last pass is skipped (not in CI, not with FULL=1) (#880).",
+   "desc": "tools/check.sh job stamps (check_stamps.py): content hashes of a job's declared inputs; a job whose inputs match its last pass is skipped (not in CI, not with FULL=1) (#880). On the Windows box each ref of make remote has its own copy (check-stamps-by-ref/, win_run.sh).",
    "path": ""
   },
   {
