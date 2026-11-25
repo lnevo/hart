@@ -219,6 +219,24 @@ class Tree(unittest.TestCase):
         self.assertEqual(status, 1)
         self.assertIn("Plus 4 image", err)
 
+    def test_a_row_left_twice_by_a_union_merge_fails(self) -> None:
+        """Two branches changed one row's summary; git's union merge kept both lines."""
+        self.write_index()
+        text = (self.root / "docs/INDEX.md").read_text()
+        row = "- [A B.md](ops/A%20B.md): Spaced name"
+        (self.root / "docs/INDEX.md").write_text(text.replace(row, row + "\n- [A B.md](ops/A%20B.md): Other words"))
+        status, out, err = self.run_main(["--check"])
+        self.assertEqual(status, 1)
+        self.assertIn("twice: ops: ops/A%20B.md", err)
+        self.assertNotIn("lists all", out)
+
+    def test_two_asset_counts_after_a_union_merge_fail(self) -> None:
+        self.write_index()
+        text = (self.root / "docs/INDEX.md").read_text()
+        line = next(l for l in text.splitlines() if l.startswith("- Plus "))
+        (self.root / "docs/INDEX.md").write_text(text.replace(line, line + "\n- Plus 9 image, css or script files"))
+        self.assertEqual(self.run_main(["--check"])[0], 1)
+
     def test_removed_document_fails(self) -> None:
         self.write_index()
         kept = [f for f in sorted(self.FILES) if f != "docs/wiring/x.csv"]

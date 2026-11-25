@@ -154,19 +154,35 @@ def render(paths: list[str]) -> str:
     return "\n".join(lines)
 
 
-def listed(text: str) -> set[tuple[str, str]]:
-    """The (area, entry) pairs of an index text: the documents it links and its asset counts, not the summaries."""
-    area, rows = "", set()
+def entries(text: str) -> list[tuple[str, str]]:
+    """The (area, entry) pairs of an index text, in order and with repeats: the documents it links and its asset
+    counts, not the summaries."""
+    area, rows = "", []
     for line in text.splitlines():
         if line.startswith("## "):
             area = line[3:]
         elif line.startswith("- Plus "):
-            rows.add((area, line))
+            rows.append((area, line))
         elif line.startswith("- Other files: "):
-            rows.update((area, link) for link in re.findall(r"\]\(([^)]*)\)", line))
+            rows.extend((area, link) for link in re.findall(r"\]\(([^)]*)\)", line))
         elif line.startswith("- ") and (m := re.match(r"- \[[^\]]*\]\(([^)]*)\)", line)):
-            rows.add((area, m.group(1)))      # the row's own link only: a summary holds none, and its words are not compared
+            rows.append((area, m.group(1)))   # the row's own link only: a summary holds none, and its words are not compared
     return rows
+
+
+def listed(text: str) -> set[tuple[str, str]]:
+    return set(entries(text))
+
+
+def repeated(text: str) -> list[tuple[str, str]]:
+    """Entries listed more than once. The index merges with git's union driver (.gitattributes), which keeps both
+    sides' lines: two branches that changed one row leave it twice, and a set comparison alone would not see it."""
+    seen, twice = set(), []
+    for row in entries(text):
+        if row in seen and row not in twice:
+            twice.append(row)
+        seen.add(row)
+    return twice
 
 
 def check(strict: bool = False) -> int:
@@ -174,9 +190,15 @@ def check(strict: bool = False) -> int:
     or a failure with strict."""
     paths = tracked()
     index = ROOT / "docs/INDEX.md"
-    have = listed(index.read_text(encoding="utf-8")) if index.is_file() else set()
-    want = listed(render(paths))
+    text = index.read_text(encoding="utf-8") if index.is_file() else ""
+    have, want = listed(text), listed(render(paths))
     status = 0
+    if twice := repeated(text):
+        status = 1
+        print("build_docs_index.py: docs/INDEX.md lists an entry more than once (a union merge kept both sides); "
+              "run python3 tools/ops/build_docs_index.py and commit it", file=sys.stderr)
+        for area, row in twice[:10]:
+            print(f"  twice: {area}: {row}", file=sys.stderr)
     if have != want:
         status = 1
         print("build_docs_index.py: docs/INDEX.md is out of date; run python3 tools/ops/build_docs_index.py and commit it", file=sys.stderr)
