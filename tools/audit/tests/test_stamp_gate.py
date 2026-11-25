@@ -1,5 +1,6 @@
 """tools/ci/stamp_gate.py and check.sh's CI stamp modes: a pull request run skips only the jobs main's last full pass
-covered, and any doubt about the stamps runs everything."""
+covered, and any doubt about the stamps runs everything; each passing pull request run records what it skipped, and
+the weekly full run fails when a job one of them skipped fails in full."""
 import json
 import os
 import subprocess
@@ -166,20 +167,23 @@ class CheckShModesTest(unittest.TestCase):
         """A job that runs check.sh itself (test_check_stamps.AuditTest) must not see main's stamp folder."""
         text = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
         start = text.index('SKIP_NOTE="current"')
-        block = text[start:text.index("\n", text.index("unset CHECK_RECORD_TO")) + 1]
-        show = ('env | grep -E "^CHECK_(RECORD_TO|SKIP_FROM|SKIP_NOTE|STAMPS_DIR)=" || true\n'
-                'echo "NOTE=$SKIP_NOTE ENV=${STAMP_ENV[*]}"\n')
+        block = text[start:text.index("\nfi\n", text.index("unset CHECK_RESULTS_TO")) + 4]
+        show = ('env | grep -E "^CHECK_(RECORD_TO|SKIP_FROM|SKIP_NOTE|STAMPS_DIR|RESULTS_TO)=" || true\n'
+                'echo "NOTE=$SKIP_NOTE ENV=${STAMP_ENV[*]} RESULTS=$RESULTS_TO"\n')
         with tempfile.TemporaryDirectory() as d:
             for mode in ("CHECK_RECORD_TO", "CHECK_SKIP_FROM"):
                 with self.subTest(mode):
                     # FULL=1 (a full check.sh run) takes the no-stamps branch: drop it, as check_sh() does
                     env = {k: v for k, v in os.environ.items() if not k.startswith("CHECK_") and k != "FULL"}
+                    results = f"{d}/results.tsv"
                     done = subprocess.run(["bash", "-c", "STAMPS=0\nRECORD=0\n" + block + show],
-                                          env={**env, "CI": "1", mode: d, "CHECK_SKIP_NOTE": "current on main abc"},
+                                          env={**env, "CI": "1", mode: d, "CHECK_SKIP_NOTE": "current on main abc",
+                                               "CHECK_RESULTS_TO": results},
                                           capture_output=True, text=True, timeout=30)
                     self.assertEqual(0, done.returncode, done.stderr)
                     self.assertNotRegex(done.stdout, r"(?m)^CHECK_")
                     self.assertIn(f"ENV=CHECK_STAMPS_DIR={d}", done.stdout)
+                    self.assertIn(f"RESULTS={results}", done.stdout)
 
     def test_the_modes_are_for_ci_only_and_one_at_a_time(self) -> None:
         with tempfile.TemporaryDirectory() as d:
@@ -191,6 +195,110 @@ class CheckShModesTest(unittest.TestCase):
             self.assertIn("either records or skips", done.stderr)
             done = self.check_sh(CI="1", CHECK_SKIP_FROM=str(Path(d) / "nowhere"))
             self.assertEqual(2, done.returncode)
+
+
+HEAD = "b" * 40
+
+
+class SkipRecordTest(unittest.TestCase):
+    """record-skips and check-skips: the record a passing pull request run keeps, and the weekly full run's check."""
+
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self.tmp.name)
+
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
+
+    def results(self, text: str, name: str = "results.tsv") -> Path:
+        path = self.dir / name
+        path.write_text(text)
+        return path
+
+    def record(self, skipped: list[str], pr: int = 7, run: int = 70, folder: str = "records") -> dict:
+        rec = gate.skip_record({**{j: "skipped" for j in skipped}, "other": "passed"}, pr, run, BASE, HEAD)
+        (self.dir / folder / str(run)).mkdir(parents=True, exist_ok=True)
+        (self.dir / folder / str(run) / "skips.json").write_text(json.dumps(rec))
+        return rec
+
+    def test_the_results_file_is_read_whole_or_refused(self) -> None:
+        self.assertEqual(gate.read_results(self.results("a\tpassed\nunit-x y\tskipped\nb\tfailed\n")),
+                         {"a": "passed", "unit-x y": "skipped", "b": "failed"})
+        for text, why in (("", "names no job"), ("a passed\n", "is not"), ("a\tran\n", "is not"),
+                          (" a\tpassed\n", "is not"), ("a\tpassed\na\tfailed\n", "listed twice")):
+            with self.subTest(text=text), self.assertRaisesRegex(gate.GateError, why):
+                gate.read_results(self.results(text))
+        with self.assertRaisesRegex(gate.GateError, "cannot read check.sh's results"):
+            gate.read_results(self.dir / "absent.tsv")
+
+    def test_a_passing_run_records_the_jobs_it_skipped(self) -> None:
+        rec = gate.skip_record({"b": "skipped", "a": "skipped", "c": "passed"}, 7, 70, BASE, HEAD)
+        self.assertEqual(rec, {"version": gate.SKIPS_VERSION, "pr": 7, "run": 70, "base": BASE, "head": HEAD,
+                               "skipped": ["a", "b"], "ran": 1})
+        self.assertEqual(gate.skip_record({"c": "passed"}, 7, 70, BASE, HEAD)["skipped"], [])
+        for args, why in ((({"c": "failed"}, 7, 70, BASE, HEAD), "failed jobs \\(c\\)"),
+                          (({"c": "passed"}, 0, 70, BASE, HEAD), "positive numbers"),
+                          (({"c": "passed"}, 7, 70, "main", HEAD), "--base 'main' is not a commit"),
+                          (({"c": "passed"}, 7, 70, BASE, ""), "--head '' is not a commit")):
+            with self.subTest(why=why), self.assertRaisesRegex(gate.GateError, why):
+                gate.skip_record(*args)
+
+    def test_a_failed_job_a_pull_request_skipped_is_named(self) -> None:
+        recs = [self.record(["x", "gone-job"], pr=7, run=70), self.record(["x"], pr=8, run=80), self.record(["y"])]
+        errors, notes = gate.wrong_skips({"x": "failed", "y": "passed", "z": "failed", "other": "passed"}, recs)
+        self.assertEqual(len(errors), 2, errors)
+        self.assertTrue(errors[0].startswith("x: fails in this full run, and pull request #7 (run 70"), errors[0])
+        self.assertIn("python3 tools/audit/check_stamps.py why x", errors[0])
+        self.assertIn("pull request #8", errors[1])
+        self.assertFalse(any(e.startswith("z:") for e in errors), "z failed, but no pull request skipped it")
+        self.assertIn("3 skip record(s) from pull request runs, 4 skipped job(s); 2 of 4 jobs failed", notes[0])
+        self.assertIn("skipped then, not run now (renamed or removed): gone-job", notes[1])
+        self.assertEqual(gate.wrong_skips({"x": "passed"}, recs)[0], [])
+
+    def test_the_weekly_results_must_be_a_full_run(self) -> None:
+        with self.assertRaisesRegex(gate.GateError, "skip 1 job\\(s\\) \\(x\\): not a full run"):
+            gate.wrong_skips({"x": "skipped"}, [])
+
+    def test_a_record_that_cannot_be_read_is_an_error_not_no_skips(self) -> None:
+        good = self.record(["x"])
+        for data, why in (("not json", "not a skip record"), ({**good, "version": 9}, "of version 1"),
+                          ({**good, "skipped": "x"}, "needs pr, run"), ({**good, "pr": "7"}, "needs pr, run"),
+                          ({**good, "head": "main"}, "needs pr, run")):
+            with self.subTest(why=why):
+                path = self.dir / "bad.json"
+                path.write_text(data if isinstance(data, str) else json.dumps(data))
+                with self.assertRaisesRegex(gate.GateError, why):
+                    gate.read_record(path)
+
+    def cli(self, *argv: str) -> subprocess.CompletedProcess:
+        return subprocess.run([sys.executable, str(ROOT / "tools/ci/stamp_gate.py"), *argv], capture_output=True,
+                              text=True, timeout=60)
+
+    def test_the_command_line(self) -> None:
+        out = self.dir / "rec" / "skips.json"
+        done = self.cli("record-skips", str(self.results("a\tskipped\nb\tpassed\n")), "--pr", "7", "--run", "70",
+                        "--base", BASE, "--head", HEAD, "--out", str(out))
+        self.assertEqual(0, done.returncode, done.stderr)
+        self.assertIn("1 of 2 jobs skipped", done.stdout)
+        self.assertEqual(json.loads(out.read_text())["skipped"], ["a"])
+        done = self.cli("check-skips", str(self.results("a\tfailed\nb\tpassed\n", "full.tsv")), str(self.dir / "rec"))
+        self.assertEqual(1, done.returncode, done.stdout + done.stderr)
+        self.assertIn("::error::wrong skip? a: fails in this full run, and pull request #7", done.stdout)
+        done = self.cli("check-skips", str(self.results("a\tpassed\nb\tfailed\n", "full.tsv")), str(self.dir / "rec"))
+        self.assertEqual(0, done.returncode, done.stdout + done.stderr)
+        for argv, why in ((("check-skips", str(self.dir / "full.tsv"), str(self.dir / "nowhere")), "is not a folder"),
+                          (("check-skips", str(self.results("", "empty.tsv")), str(self.dir / "rec")), "names no job"),
+                          (("record-skips", str(self.results("a\tfailed\n", "failed.tsv")), "--pr", "7", "--run", "70", "--base",
+                            BASE, "--head", HEAD, "--out", str(out)), "failed jobs")):
+            with self.subTest(why=why):
+                done = self.cli(*argv)
+                self.assertEqual(2, done.returncode, done.stdout + done.stderr)
+                self.assertIn(why, done.stderr)
+                self.assertNotIn("Traceback", done.stderr)
+        (self.dir / "rec" / "broken.json").write_text("{")
+        done = self.cli("check-skips", str(self.dir / "full.tsv"), str(self.dir / "rec"))
+        self.assertEqual(2, done.returncode)
+        self.assertIn("broken.json: not a skip record", done.stderr)
 
 
 class WorkflowTest(unittest.TestCase):
@@ -251,6 +359,71 @@ class WorkflowTest(unittest.TestCase):
         self.assertIn("full: ", done.stdout)
         self.assertIn("::notice::every check.sh job runs", done.stdout)
         self.assertNotIn("skip_from=", out)
+
+    def step_block(self, name: str) -> str:
+        start = self.text.index("        run: |", self.text.index(f"name: {name}"))
+        lines = []
+        for line in self.text[start:].splitlines()[1:]:
+            if line.strip() and not line.startswith("          "):
+                break
+            lines.append(line[10:])
+        return "\n".join(lines) + "\n"
+
+    GH_WEEKLY = """case "$1 $2" in
+  "run list") echo 11; echo 12; echo 13 ;;
+  "api repos/o/r/actions/runs/12/artifacts") echo 0 ;;
+  api*) echo 1 ;;
+  "run download") [ -z "$STUB_DOWNLOAD_FAIL" ] || exit 1
+                  mkdir -p "$9"; cp "$STUB_RECORDS/$3.json" "$9/skips.json" ;;
+  *) echo "unexpected gh $*" >&2; exit 9 ;;
+esac
+"""
+
+    def run_weekly(self, results: str, skipped: dict[str, list[str]], **env: str) -> subprocess.CompletedProcess:
+        """The weekly guard step's script under bash, with a stand-in gh: runs 11 and 13 have a skip record (13's
+        skipping `skipped["13"]`), run 12 has none."""
+        with tempfile.TemporaryDirectory() as d:
+            stub, recs = Path(d) / "bin", Path(d) / "recs"
+            stub.mkdir()
+            recs.mkdir()
+            (stub / "gh").write_text("#!/bin/bash\n" + self.GH_WEEKLY)
+            (stub / "gh").chmod(0o755)
+            for run in ("11", "13"):
+                rec = gate.skip_record({**{j: "skipped" for j in skipped.get(run, [])}, "q": "passed"}, int(run) + 100,
+                                       int(run), BASE, HEAD)
+                (recs / f"{run}.json").write_text(json.dumps(rec))
+            (Path(d) / "check-results.tsv").write_text(results)
+            full = {**os.environ, "PATH": f"{stub}:{os.environ['PATH']}", "GITHUB_REPOSITORY": "o/r",
+                    "RUNNER_TEMP": d, "GH_TOKEN": "x", "STUB_RECORDS": str(recs), "STUB_DOWNLOAD_FAIL": "", **env}
+            return subprocess.run(["bash", "-e", "-c", self.step_block("Did a pull request skip a job that fails here?")],
+                                  cwd=ROOT, env=full, capture_output=True, text=True, timeout=60)
+
+    def test_the_weekly_run_fails_on_a_job_a_pull_request_skipped(self) -> None:
+        done = self.run_weekly("x\tfailed\ny\tpassed\n", {"13": ["x"]})
+        self.assertEqual(1, done.returncode, done.stdout + done.stderr)
+        self.assertIn("::error::wrong skip? x: fails in this full run, and pull request #113 (run 13", done.stdout)
+        self.assertIn("pull request runs since ", done.stdout)
+        self.assertIn("that passed: 3; without a skip record: 1", done.stdout)
+
+    def test_the_weekly_run_passes_when_no_skipped_job_fails(self) -> None:
+        done = self.run_weekly("x\tfailed\ny\tpassed\n", {"13": ["y"]})
+        self.assertEqual(0, done.returncode, done.stdout + done.stderr)
+        self.assertNotIn("::error::", done.stdout)
+        self.assertIn("2 skip record(s) from pull request runs, 1 skipped job(s)", done.stdout)
+
+    def test_the_weekly_run_fails_when_a_record_cannot_be_fetched(self) -> None:
+        done = self.run_weekly("y\tpassed\n", {"13": ["y"]}, STUB_DOWNLOAD_FAIL="1")
+        self.assertNotEqual(0, done.returncode, done.stdout + done.stderr)
+        self.assertNotIn("skip record(s)", done.stdout)
+
+    def test_the_weekly_guard_runs_after_a_failed_check_sh_on_the_schedule_only(self) -> None:
+        step = self.text[self.text.index("name: Did a pull request skip a job that fails here?"):]
+        self.assertIn("if: ${{ !cancelled() && github.event_name == 'schedule'", step[:300])
+        self.assertLess(self.text.index("run: ./tools/check.sh"), self.text.index("name: Did a pull request skip"))
+        self.assertIn("CHECK_RESULTS_TO: ${{ runner.temp }}/check-results.tsv", self.text)
+        rec = self.text[self.text.index("name: Record the jobs this run skipped"):]
+        self.assertIn("if: github.event_name == 'pull_request' && steps.kind.outputs.kind != 'docs'", rec[:200])
+        self.assertIn("name: check-skips", rec[:1200])
 
     def test_a_failed_label_or_message_lookup_runs_everything(self) -> None:
         done, out = self.run_gate("exit 1\n", "b" * 40)

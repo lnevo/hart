@@ -9,9 +9,10 @@ print the lists its runners will read.
     python3 tools/pipeline/manifest.py jobs check [--group static | --ungrouped | --docs-only]
                                                                    one shell line per step: its name, then its command
 
-tools/check.sh runs the static group as its one "static" job and each step in no group as a job of its own;
-tools/ci/docs_checks.sh runs the docs-only steps. Both stop, naming the error, when `jobs` fails. check.sh's stamps
-(tools/audit/check_stamps.py) key each job on its own entries (job_digests), so an edited entry reruns that job only.
+tools/check.sh runs every step as a job of its own, named after the step (ADR-037 stage 4b): the static group's
+ahead of the unit tests, the steps in no group after them; tools/ci/docs_checks.sh runs the docs-only steps. Both
+stop, naming the error, when `jobs` fails. check.sh's stamps (tools/audit/check_stamps.py) key each job on its own
+entry and on the git refs its `git` field names (job_keys), so an edited entry reruns that job only.
 
 A `jobs` line is shell text for check.sh to eval: each word shell-quoted, except "{python}", which is written as
 "$HOPS_PY", and an env PYTHONPATH=dir word, which is written as PYTHONPATH="dir${PYTHONPATH:+:$PYTHONPATH}" so the
@@ -19,17 +20,17 @@ caller's PYTHONPATH (the trace hook) stays on it, as check.sh writes it today. A
 so a runner reading it cannot pass with nothing run.
 
 What the loader checks (the file's header lists the fields): the file is TOML with [[step]] tables and at least one
-step; each field has its type and no other field is set; names are unique; the command is one check.sh's run() takes
-(python3, env PYTHONPATH=dir python3, or bash; "{python}" only for a job of its own) and names a tracked script, or a
--m module that is a tracked file under its PYTHONPATH; every input, output and program glob is a plain repo path
+step; each field has its type and no other field is set; names are unique; the command is one check.sh takes
+(python3, env PYTHONPATH=dir python3, or bash; "{python}" only for a step in no group) and names a tracked script,
+or a -m module that is a tracked file under its PYTHONPATH; every input, output and program glob is a plain repo path
 (no ./, ../, leading / or backslash) that names a tracked file or folder, or a map node marked "local"; the domain
-and every edge side are the map's (docs/pipeline-map/pipeline_map.json). Every problem is reported, each naming the
-file, the step and the field.
+and every edge side are the map's (docs/pipeline-map/pipeline_map.json); `git` names each ref at most once, from
+GIT_REFS. Every problem is reported, each naming the file, the step and the field.
 
-The trace audit (ADR-037 stage 4a) reads the manifest through declarations(): each job's steps with the words their
-Python process runs with and every path they declare (inputs, quiet_inputs, outputs, programs). undeclared() names
-the reads a step's processes made that none of those cover, leaving code out (is_code). tools/audit/check_stamps.py
-does the attribution and the report; it warns only.
+The trace audit (ADR-037 stage 4a) reads the manifest through declarations(): each job's step with every path it
+declares (inputs, quiet_inputs, outputs, programs). undeclared() names the reads its processes made that none of
+those cover, leaving code out (is_code). tools/audit/check_stamps.py does the attribution and the report; it warns
+only.
 """
 from __future__ import annotations
 
@@ -50,7 +51,9 @@ ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = ROOT / "tools" / "pipeline" / "checks.toml"
 
 RUNNERS = ("check",)          # panels and manual steps come with stage 5 (panels.toml)
-GROUPS = ("static",)          # check.sh's one job that runs its checks one after another
+GROUPS = ("static",)          # the read-only checks check.sh queues ahead of the unit tests, each a job of its own
+# The git refs a step's stamp key may hold (its `git` field); check_stamps.GIT_REFS says how each is read.
+GIT_REFS = ("head", "base", "origin")
 NAME_RE = re.compile(r"[a-z0-9][a-z0-9-]*")
 PROGRAM_RE = re.compile(r"[a-z0-9][a-z0-9_.-]*")
 MODULE_RE = re.compile(r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*")
@@ -62,7 +65,7 @@ FIELDS: dict[str, tuple[type, bool]] = {
     "name": (str, True), "runner": (str, True), "cmd": (list, True), "domain": (str, True), "label": (str, True),
     "desc": (str, True),
     "group": (str, False), "docs_only": (bool, False), "inputs": (list, False), "outputs": (list, False),
-    "programs": (dict, False), "quiet_inputs": (list, False),
+    "programs": (dict, False), "quiet_inputs": (list, False), "git": (list, True),
 }
 EDGE_KEYS = {"inputs": ("path", "label", "side"), "outputs": ("path", "label")}
 
@@ -74,7 +77,7 @@ class ManifestError(Exception):
 @functools.cache
 def pipeline_map():
     """tools/ops/build_pipeline_map.py, loaded on first use: only the checks against the map need it, not the stamps'
-    job_digests (tools/audit/check_stamps.py imports this module for every job it checks or records)."""
+    job_keys (tools/audit/check_stamps.py imports this module for every job it checks or records)."""
     spec = importlib.util.spec_from_file_location("build_pipeline_map", ROOT / "tools/ops/build_pipeline_map.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -103,6 +106,7 @@ class Step:
     outputs: tuple[Edge, ...] = ()
     programs: tuple[tuple[str, tuple[str, ...]], ...] = ()
     quiet_inputs: tuple[str, ...] = ()          # read, not drawn on the map: for the trace audit only
+    git: tuple[str, ...] = ()                   # the git refs in its stamp key (GIT_REFS)
 
 
 @dataclass(frozen=True)
@@ -283,7 +287,8 @@ def _step_problems(entry: dict, where: Repo) -> list[str]:
     if not NAME_RE.fullmatch(entry["name"]):
         out.append(f"name: {entry['name']!r} must be lower case letters, digits and hyphens (stamps key on it)")
     if entry["name"] in GROUPS:
-        out.append(f"name: {entry['name']!r} is a group's name, the name of check.sh's job for that group")
+        out.append(f"name: {entry['name']!r} is a group's name (and the job the static group ran as until ADR-037 "
+                   f"stage 4b, whose old stamps check_stamps.RETIRED drops)")
     if entry["runner"] not in RUNNERS:
         out.append(f"runner: {entry['runner']!r} is not one of {', '.join(RUNNERS)}")
     if "group" in entry and entry["group"] not in GROUPS:
@@ -291,6 +296,9 @@ def _step_problems(entry: dict, where: Repo) -> list[str]:
     if entry["domain"] not in where.domains:
         out.append(f"domain: {entry['domain']!r} is not a map domain ({', '.join(sorted(where.domains))})")
     out += [f"cmd: {msg}" for msg in _cmd_problems(entry["cmd"], "group" in entry, where)]
+    why = git_problem(entry["git"])
+    if why:
+        out.append(f"git: {why}")
     for key in EDGE_KEYS:
         out += [f"{key}: {msg}" for msg in _edge_problems(entry.get(key, []), EDGE_KEYS[key], where)]
     quiet = entry.get("quiet_inputs", [])
@@ -311,6 +319,18 @@ def _step_problems(entry: dict, where: Repo) -> list[str]:
             continue
         out += [f"programs: {prog}: {msg}" for msg in _path_list_problems(globs, where)]
     return out
+
+
+def git_problem(refs: object) -> str | None:
+    """Why `refs` is not a step's git field (a list of distinct names from GIT_REFS, [] for none), or None."""
+    if not isinstance(refs, list) or not all(isinstance(r, str) for r in refs):
+        return f"{refs!r} must be a list of ref names ({', '.join(GIT_REFS)}), [] for none"
+    bad = [r for r in refs if r not in GIT_REFS]
+    if bad:
+        return f"{', '.join(map(repr, bad))}: not a ref name ({', '.join(GIT_REFS)})"
+    if len(set(refs)) != len(refs):
+        return f"{refs!r} names a ref twice"
+    return None
 
 
 def _path_list_problems(paths: list, where: Repo) -> list[str]:
@@ -361,7 +381,8 @@ def _split_env(cmd: tuple[str, ...] | list[str]) -> tuple[list[tuple[str, str]],
 
 
 def _cmd_problems(cmd: list, grouped: bool, where: Repo) -> list[str]:
-    """Why `cmd` is not a command check.sh can run as this step, or []. grouped: run inside the static job."""
+    """Why `cmd` is not a command check.sh can run as this step, or []. grouped: a static check, which check.sh's
+    run_check runs."""
     if not cmd or not all(isinstance(w, str) and w.strip() for w in cmd):
         return [f"{cmd!r} must be a list of words, none empty"]
     assigned, words = _split_env(cmd)
@@ -375,9 +396,10 @@ def _cmd_problems(cmd: list, grouped: bool, where: Repo) -> list[str]:
         return ["no program after env"]
     prog, rest = words[0], words[1:]
     if prog == PYTHON and grouped:
-        return [f"{PYTHON} ($HOPS_PY) is for a job of its own; check.sh's static checks run python3 or bash"]
+        return [f"{PYTHON} ($HOPS_PY) is for a step in no group; check.sh's run_check runs a static check with "
+                f"python3 or bash"]
     if prog == "bash" and env:
-        return ["env ... bash: check.sh's run() takes env only before python3"]
+        return ["env ... bash: check.sh's run_check takes env only before python3"]
     if prog not in ("python3", PYTHON, "bash"):
         return [f"runs {prog}; check.sh takes python3, {PYTHON}, env PYTHONPATH=dir python3 or bash"]
     out = []
@@ -434,42 +456,51 @@ def _step(entry: dict) -> Step:
         script=_script(cmd), group=entry.get("group", ""), docs_only=entry.get("docs_only", False),
         inputs=_edges(entry.get("inputs", [])), outputs=_edges(entry.get("outputs", [])),
         programs=tuple((p, tuple(g)) for p, g in entry.get("programs", {}).items()),
-        quiet_inputs=tuple(entry.get("quiet_inputs", ())),
+        quiet_inputs=tuple(entry.get("quiet_inputs", ())), git=tuple(entry["git"]),
     )
 
 
-def job_digests(path: Path = MANIFEST) -> dict[str, str]:
-    """check.sh's job name -> a sha256 of the manifest entries that job runs: a group's job (static) holds its steps'
-    entries in file order, and any other step is a job of its own under its name. tools/audit/check_stamps.py puts it
-    in each job's stamp key, so an edited entry reruns its own job and no other. Read without the checks against git
-    and the map: check.sh ran `jobs` on the file before any job started, and that checks it all. An entry with no name,
-    a name or group that is not text, or two jobs of one name is a ManifestError."""
+@dataclass(frozen=True)
+class JobKey:
+    """What check.sh's stamp key takes from a job's manifest entry: a sha256 of the entry, and the git refs it names."""
+    digest: str
+    git: tuple[str, ...]
+
+
+def job_keys(path: Path = MANIFEST) -> dict[str, JobKey]:
+    """check.sh's job name (each step is a job of its own, named after it) -> its JobKey. tools/audit/check_stamps.py
+    puts both in the job's stamp key, so an edited entry reruns its own job and no other, and a job whose entry names
+    `head` reruns after every commit. Read without the checks against git and the map (check.sh ran `jobs` on the file
+    before any job started, and that checks it all), but a git field the key cannot use is a ManifestError, as is an
+    entry with no name, a name that is not text, or two steps of one name."""
     data, shown = read(path)
-    jobs = _jobs(data, shown)
-    try:
-        return {job: hashlib.sha256(json.dumps({"job": job, "steps": entries}, sort_keys=True, ensure_ascii=False,
+    out = {}
+    for name, entry in _jobs(data, shown).items():
+        why = git_problem(entry.get("git"))
+        if why:
+            raise ManifestError(f"{shown}: step {name!r}: git: {why} (manifest.py check names every problem)")
+        try:
+            digest = hashlib.sha256(json.dumps({"job": name, "step": entry}, sort_keys=True, ensure_ascii=False,
                                                separators=(",", ":")).encode()).hexdigest()
-                for job, entries in jobs.items()}
-    except (TypeError, ValueError) as err:     # a TOML date or time: no field of a step takes one
-        raise ManifestError(f"{shown}: a step holds a value JSON cannot hold (a date or time?): {err}") from None
+        except (TypeError, ValueError) as err:     # a TOML date or time: no field of a step takes one
+            raise ManifestError(f"{shown}: step {name!r} holds a value JSON cannot hold (a date or time?): {err}") \
+                from None
+        out[name] = JobKey(digest, tuple(entry["git"]))
+    return out
 
 
-def _jobs(data: dict, shown: str) -> dict[str, list[dict]]:
-    """check.sh's job name -> the manifest entries it runs, in file order (see job_digests). An entry with no name, a
-    name or group that is not text, or two jobs of one name is a ManifestError."""
-    jobs: dict[str, list[dict]] = {}
-    own: set[str] = set()                   # jobs of one step each
+def _jobs(data: dict, shown: str) -> dict[str, dict]:
+    """check.sh's job name -> the manifest entry it runs, in file order: every step is a job of its own, under its
+    name. An entry with no name, a name that is not text, or two steps of one name is a ManifestError."""
+    jobs: dict[str, dict] = {}
     for i, entry in enumerate(_entries(data, shown), 1):
-        name, group = entry.get("name"), entry.get("group", "")
-        if not isinstance(name, str) or not name or not isinstance(group, str):
-            raise ManifestError(f"{shown}: step {i}: no name, or a name or group that is not text "
+        name = entry.get("name")
+        if not isinstance(name, str) or not name:
+            raise ManifestError(f"{shown}: step {i}: no name, or a name that is not text "
                                 f"(manifest.py check names every problem)")
-        job = group or name
-        if job in jobs and (not group or job in own):
-            raise ManifestError(f"{shown}: step {i}: two jobs named {job!r} (manifest.py check names every problem)")
-        if not group:
-            own.add(job)
-        jobs.setdefault(job, []).append(entry)
+        if name in jobs:
+            raise ManifestError(f"{shown}: step {i}: two steps named {name!r} (manifest.py check names every problem)")
+        jobs[name] = entry
     return jobs
 
 
@@ -477,61 +508,49 @@ def _jobs(data: dict, shown: str) -> dict[str, list[dict]]:
 
 @dataclass(frozen=True)
 class Declared:
-    """What the trace audit needs of one step: the words its traced Python process runs with (after the program, as
-    the process's argv shows them), its script, and every path or glob it declares it reads: inputs, quiet_inputs,
-    outputs (a --check reads what it would write) and the programs' paths."""
+    """What the trace audit needs of one step: whether Python runs it (so its trace holds its reads), its script, and
+    every path or glob it declares it reads: inputs, quiet_inputs, outputs (a --check reads what it would write) and
+    the programs' paths."""
     name: str
-    words: tuple[str, ...]
     python: bool                    # run by Python (traced); a bash step's reads are not in the job's trace
     script: str
     patterns: tuple[str, ...]
 
 
 def declarations(path: Path = MANIFEST) -> dict[str, tuple[Declared, ...]]:
-    """check.sh's job name -> its steps as the audit sees them (Declared), in file order. Read like job_digests,
-    without the checks against git and the map (check.sh ran `jobs` before any job started), but each field the audit
-    uses must have its type: otherwise a ManifestError, never an audit that quietly checks less."""
+    """check.sh's job name -> its step as the audit sees it (Declared), as a tuple of one: every step is a job of its
+    own (ADR-037 stage 4b), so each process in a job's trace is that step's. Read like job_keys, without the checks
+    against git and the map (check.sh ran `jobs` before any job started), but each field the audit uses must have its
+    type: otherwise a ManifestError, never an audit that quietly checks less."""
     data, shown = read(path)
     out: dict[str, tuple[Declared, ...]] = {}
-    for job, entries in _jobs(data, shown).items():
-        steps = []
-        for entry in entries:
-            who = f"{shown}: step {entry['name']!r}"
-            cmd = entry.get("cmd")
-            if not isinstance(cmd, list) or not cmd or not all(isinstance(w, str) and w for w in cmd):
-                raise ManifestError(f"{who}: cmd: not a list of words (manifest.py check names every problem)")
-            env, words = _split_env(cmd)
-            if len(words) < 2:
-                raise ManifestError(f"{who}: cmd: runs nothing (manifest.py check names every problem)")
-            patterns: list[str] = []
-            for key in ("inputs", "outputs", "quiet_inputs"):
-                items = entry.get(key, [])
-                if not isinstance(items, list):
-                    raise ManifestError(f"{who}: {key}: not a list (manifest.py check names every problem)")
-                for item in items:
-                    p = item.get("path") if isinstance(item, dict) else item
-                    if path_problem(p):
-                        raise ManifestError(f"{who}: {key}: {path_problem(p)} (manifest.py check names every problem)")
-                    patterns.append(p)
-            programs = entry.get("programs", {})
-            if not isinstance(programs, dict) or not all(isinstance(g, list) for g in programs.values()):
-                raise ManifestError(f"{who}: programs: not a table of path lists (manifest.py check names every problem)")
-            for globs in programs.values():
-                for p in globs:
-                    if path_problem(p):
-                        raise ManifestError(f"{who}: programs: {path_problem(p)} "
-                                            f"(manifest.py check names every problem)")
-                    patterns.append(p)
-            steps.append(Declared(entry["name"], tuple(words[1:]), words[0] != "bash", _script(tuple(cmd)),
-                                  tuple(dict.fromkeys(patterns))))
-        out[job] = tuple(steps)
-    for job, steps in out.items():           # a traced process is told to its step by its words: no two alike
-        seen: dict[tuple[str, ...], str] = {}
-        for s in steps:
-            if s.python and s.words in seen:
-                raise ManifestError(f"{shown}: job {job!r}: steps {seen[s.words]!r} and {s.name!r} run the same "
-                                    f"words, so the audit cannot tell their reads apart")
-            seen.setdefault(s.words, s.name)
+    for job, entry in _jobs(data, shown).items():
+        who = f"{shown}: step {job!r}"
+        cmd = entry.get("cmd")
+        if not isinstance(cmd, list) or not cmd or not all(isinstance(w, str) and w for w in cmd):
+            raise ManifestError(f"{who}: cmd: not a list of words (manifest.py check names every problem)")
+        _env, words = _split_env(cmd)
+        if len(words) < 2:
+            raise ManifestError(f"{who}: cmd: runs nothing (manifest.py check names every problem)")
+        patterns: list[str] = []
+        for key in ("inputs", "outputs", "quiet_inputs"):
+            items = entry.get(key, [])
+            if not isinstance(items, list):
+                raise ManifestError(f"{who}: {key}: not a list (manifest.py check names every problem)")
+            for item in items:
+                p = item.get("path") if isinstance(item, dict) else item
+                if path_problem(p):
+                    raise ManifestError(f"{who}: {key}: {path_problem(p)} (manifest.py check names every problem)")
+                patterns.append(p)
+        programs = entry.get("programs", {})
+        if not isinstance(programs, dict) or not all(isinstance(g, list) for g in programs.values()):
+            raise ManifestError(f"{who}: programs: not a table of path lists (manifest.py check names every problem)")
+        for globs in programs.values():
+            for p in globs:
+                if path_problem(p):
+                    raise ManifestError(f"{who}: programs: {path_problem(p)} (manifest.py check names every problem)")
+                patterns.append(p)
+        out[job] = (Declared(job, words[0] != "bash", _script(tuple(cmd)), tuple(dict.fromkeys(patterns))),)
     return out
 
 

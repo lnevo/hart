@@ -207,7 +207,7 @@ class CheckSh(unittest.TestCase):
         self.assertEqual("", done.stdout)
         self.s.write("tools/x.py", "x = 1\n")
         self.s.write("wiki/a.md", "# A, edited\n")
-        for env in ({"FULL": "1"}, {"CI": "true"}, {"CHECK_ONLY": "static"}, {"PORTAL_CHECK": "1"}):
+        for env in ({"FULL": "1"}, {"CI": "true"}, {"CHECK_ONLY": "phase02"}, {"PORTAL_CHECK": "1"}):
             with self.subTest(env):
                 done = self.s.check_sh(**env)
                 self.assertNotIn("Docs-only", done.stdout)
@@ -291,7 +291,9 @@ UNIT_LINE = re.compile(r"^check (?P<name>\S+) python3 -m unittest discover -b -q
 # docs-only path leaves out, each with why (owner, 2026-11-24: a short list; whole suites that only partly read docs
 # stay out). A new or changed declaration on docs/ or wiki/ fails below until docs_checks.sh runs it or it is listed.
 LEFT_OUT = {
-    "static": "its checks that read docs are in docs_checks.sh's list; stays one job (owner, 2026-11-24)",
+    # check_stamps.MANIFEST_CHECK: a read-only check's fallback after bash (every file), one job per step since ADR-037
+    # stage 4b
+    "manifest checks": "the ones a docs-only change can break are docs_only steps, run from docs_checks.sh's list",
     "public-text": "check_public_text.py is in docs_checks.sh's list",
     "portal": "the portal build stays with the website deploy, as in CI (owner, 2026-11-24)",
     "unit-portal": "whole suite of site builders (39 s); reads docs/ops and docs/wiring only as page sources",
@@ -394,7 +396,7 @@ class DocsUnitTests(unittest.TestCase):
 
     def test_every_declaration_on_markdown_docs_is_run_or_left_out_with_a_reason(self) -> None:
         # a job that runs other jobs (RUNS_JOBS) is declared on theirs too: its whole declaration
-        declared = {**check_stamps.BY_KIND, **check_stamps.EXTRA,
+        declared = {**check_stamps.BY_KIND, **check_stamps.EXTRA, "manifest checks": check_stamps.MANIFEST_CHECK,
                     **{k: check_stamps.declared(k) for k in check_stamps.RUNS_JOBS}}
         on_docs = {k for k, v in declared.items() if covers_markdown_docs(v)}
         handled = set(docs_unit_tests()) | set(LEFT_OUT)

@@ -1,7 +1,7 @@
 """tools/pipeline/manifest.py: what the loader refuses and how it says so, the shell lines it prints, the per-job
-digests the stamps key on, and tools/check.sh and tools/ci/docs_checks.sh running what it lists (in scratch repos with
-a stand-in manifest.py): a manifest that fails or lists nothing stops them, and check.sh's own conditions (panels'
---full, when the portal job runs) still apply."""
+digests and git refs the stamps key on, and tools/check.sh and tools/ci/docs_checks.sh running what it lists (in
+scratch repos with a stand-in manifest.py): a manifest that fails or lists nothing stops them, each step is a job of
+its own, and check.sh's own conditions (panels' --full, when the portal job runs) still apply."""
 from __future__ import annotations
 
 import importlib.util
@@ -34,6 +34,7 @@ name = "one"
 runner = "check"
 group = "static"
 cmd = ["python3", "tools/a.py", "--check"]
+git = ["head", "base"]
 domain = "layout"
 label = "a.py"
 desc = "First."
@@ -50,7 +51,7 @@ def parse(text: str, where=REPO):
 def step(**fields) -> str:
     """GOOD's step with fields replaced (a value of None drops the field), as TOML."""
     base = {"name": '"one"', "runner": '"check"', "cmd": '["python3", "tools/a.py"]', "domain": '"layout"',
-            "label": '"a.py"', "desc": '"First."'}
+            "label": '"a.py"', "desc": '"First."', "git": "[]"}
     base.update(fields)
     return "[[step]]\n" + "".join(f"{k} = {v}\n" for k, v in base.items() if v is not None)
 
@@ -70,6 +71,7 @@ class LoadTest(Refusing):
         (s,) = parse(GOOD)
         self.assertEqual((s.name, s.group, s.script, s.docs_only), ("one", "static", "tools/a.py", True))
         self.assertEqual(s.cmd, ("python3", "tools/a.py", "--check"))
+        self.assertEqual(s.git, ("head", "base"))
         self.assertEqual(s.inputs, (M.Edge("data/x.csv"), M.Edge("data/sub", "reads", "check")))
         self.assertEqual(s.outputs, (M.Edge("www/index.html"),))
 
@@ -104,6 +106,17 @@ class LoadTest(Refusing):
         self.assertRefused(step(runner='"panels"'), "runner: 'panels' is not one of check")
         self.assertRefused(step(group='"fast"'), "group: 'fast'")
         self.assertRefused(step(domain='"ops"'), "domain: 'ops' is not a map domain (layout, website)")
+
+    def test_the_git_refs(self) -> None:
+        """Every step says which refs its stamp key holds ([] for none): a step that leaves it out is refused, never
+        given a default, and only refs check_stamps can read are taken."""
+        self.assertEqual(parse(step(git='["origin", "head"]'))[0].git, ("origin", "head"))
+        self.assertEqual(parse(step())[0].git, ())
+        self.assertRefused(step(git=None), "step 'one': git: missing")
+        self.assertRefused(step(git='"head"'), "git: must be a list")
+        self.assertRefused(step(git='["HEAD"]'), "git: 'HEAD': not a ref name (head, base, origin)")
+        self.assertRefused(step(git='["head", "head"]'), "names a ref twice")
+        self.assertRefused(step(git="[1]"), "must be a list of ref names")
 
     def test_every_problem_is_listed_with_its_file_step_and_field(self) -> None:
         msg = self.assertRefused(step(domain='"ops"') + step(name='"two"', cmd='["python3", "tools/none.py"]'))
@@ -151,7 +164,7 @@ class CmdTest(Refusing):
 
     def test_the_hops_python_is_for_a_job_of_its_own(self) -> None:
         self.assertEqual(parse(step(cmd='["{python}", "tools/a.py"]'))[0].cmd[0], "{python}")
-        self.assertRefused(step(group='"static"', cmd='["{python}", "tools/a.py"]'), "a job of its own")
+        self.assertRefused(step(group='"static"', cmd='["{python}", "tools/a.py"]'), "is for a step in no group")
         self.assertRefused(step(cmd='["python3", "tools/a.py", "{root}"]'), "{root}: only {python}")
 
 
@@ -221,18 +234,19 @@ class DeclarationsTest(unittest.TestCase):
             p.write_text(text, encoding="utf-8")
             return M.declarations(p)
 
-    def test_jobs_steps_words_and_patterns(self) -> None:
+    def test_one_job_per_step_with_its_patterns(self) -> None:
         d = self.decls(self.TEXT)
-        self.assertEqual(list(d), ["static", "r"])
-        a, b, p = d["static"]
-        self.assertEqual((a.words, a.python, a.script), (("tools/a.py",), True, "tools/a.py"))
+        self.assertEqual(list(d), ["a", "b", "p", "r"])
+        self.assertEqual({len(steps) for steps in d.values()}, {1})
+        (a,), (b,), (p,), (r,) = d.values()
+        self.assertEqual((a.name, a.python, a.script), ("a", True, "tools/a.py"))
         self.assertEqual(a.patterns, ("data/sub", "data/x.csv", "www/index.html", "lib/*.txt"))
-        self.assertEqual((b.words, b.script), (("-m", "pkg.mod", "x"), "lib/src/pkg/mod.py"))
+        self.assertEqual(b.script, "lib/src/pkg/mod.py")
         self.assertFalse(p.python)
-        self.assertEqual(d["r"][0].patterns, ("**/*.py", "ruff.toml"))
+        self.assertEqual(r.patterns, ("**/*.py", "ruff.toml"))
 
     def test_undeclared(self) -> None:
-        a = self.decls(self.TEXT)["static"][0]
+        a = self.decls(self.TEXT)["a"][0]
         reads = ["data/sub/y.csv", "data/x.csv", "www/index.html", "lib/n.txt", "tools/fixture.json", "jmri/x.py",
                  "data/subway.csv", "lib/deep/n.txt", "wiki/STATUS.md", "wiki/STATUS.md"]
         self.assertEqual(M.undeclared(a, reads), ["data/subway.csv", "lib/deep/n.txt", "wiki/STATUS.md"])
@@ -248,21 +262,19 @@ class DeclarationsTest(unittest.TestCase):
                           (step(quiet_inputs='["/abs"]'), "quiet_inputs: /abs is not a path from the repo root"),
                           (step(programs='{ ruff = "x" }'), "programs: not a table"),
                           (step(programs='{ ruff = ["../x"] }'), "programs: ../x has an empty"),
-                          (step(name='"a"', group='"static"') + step(name='"b"', group='"static"'),
-                           "steps 'a' and 'b' run the same words"),
+                          (step(name='"a"') + step(name='"a"'), "two steps named 'a'"),
                           ("", "no \\[\\[step\\]\\]")):
             with self.subTest(why=why):
                 with self.assertRaisesRegex(M.ManifestError, why):
                     self.decls(text)
 
-    def test_two_bash_steps_with_the_same_words_are_fine(self) -> None:
-        text = (step(name='"a"', group='"static"', cmd='["bash", "tools/b.sh"]')
-                + step(name='"b"', group='"static"', cmd='["bash", "tools/b.sh"]'))
-        self.assertEqual([s.name for s in self.decls(text)["static"]], ["a", "b"])
+    def test_two_steps_running_the_same_words_are_two_jobs(self) -> None:
+        text = step(name='"a"', group='"static"') + step(name='"b"', group='"static"')
+        self.assertEqual(list(self.decls(text)), ["a", "b"])
 
     def test_this_repo(self) -> None:
         d = M.declarations()
-        self.assertEqual(set(d), set(M.job_digests()))
+        self.assertEqual(set(d), set(M.job_keys()))
         steps = {s.name: s for s in M.load()}
         for job, decls in d.items():
             for s in decls:
@@ -380,36 +392,40 @@ class ThisRepoTest(unittest.TestCase):
         self.assertTrue(M.select(steps, "check", group="static"))
 
 
-class DigestTest(unittest.TestCase):
-    """job_digests: what check.sh's stamps key each manifest job on (tools/audit/check_stamps.manifest_part)."""
-    TEXT = (step(name='"a"', group='"static"') + step(name='"b"', group='"static"', cmd='["python3", "tools/b.py"]')
+class JobKeyTest(unittest.TestCase):
+    """job_keys: what check.sh's stamps key each manifest job on (tools/audit/check_stamps.manifest_key): every step is
+    a job of its own, keyed on its own entry and the git refs it names."""
+    TEXT = (step(name='"a"', group='"static"', git='["head", "base"]')
+            + step(name='"b"', group='"static"', cmd='["python3", "tools/b.py"]')
             + step(name='"c"') + step(name='"d"', cmd='["python3", "tools/d.py"]'))
 
-    def digests(self, text: str) -> dict[str, str]:
+    def keys(self, text: str) -> dict:
         with tempfile.TemporaryDirectory() as d:
             p = Path(d) / "checks.toml"
             p.write_text(text, encoding="utf-8")
-            return M.job_digests(p)
+            return M.job_keys(p)
 
     def changed(self, before: str, after: str) -> list[str]:
-        old, new = self.digests(before), self.digests(after)
+        old, new = self.keys(before), self.keys(after)
         self.assertEqual(set(old), set(new))
         return sorted(job for job in old if old[job] != new[job])
 
-    def test_one_job_per_group_and_per_step_in_no_group(self) -> None:
-        self.assertEqual(list(self.digests(self.TEXT)), ["static", "c", "d"])
+    def test_one_job_per_step_grouped_or_not(self) -> None:
+        keys = self.keys(self.TEXT)
+        self.assertEqual(list(keys), ["a", "b", "c", "d"])
+        self.assertEqual(keys["a"].git, ("head", "base"))
+        self.assertEqual(keys["b"].git, ())
 
     def test_an_edited_cmd_changes_its_own_job_only(self) -> None:
         self.assertEqual(self.changed(self.TEXT, self.TEXT.replace('"tools/d.py"', '"tools/d.py", "--check"')), ["d"])
-        self.assertEqual(self.changed(self.TEXT, self.TEXT.replace('"tools/b.py"', '"tools/b.py", "--check"')),
-                         ["static"])
+        self.assertEqual(self.changed(self.TEXT, self.TEXT.replace('"tools/b.py"', '"tools/b.py", "--check"')), ["b"])
 
-    def test_a_reordered_group_or_a_moved_step_changes_that_group(self) -> None:
+    def test_a_changed_git_field_changes_its_own_job_only(self) -> None:
+        self.assertEqual(self.changed(self.TEXT, self.TEXT.replace('git = ["head", "base"]', "git = []")), ["a"])
+
+    def test_the_order_of_the_steps_changes_nothing(self) -> None:
         a, b, c, d = self.TEXT.split("[[step]]\n")[1:]
-        swapped = "".join("[[step]]\n" + x for x in (b, a, c, d))
-        self.assertEqual(self.changed(self.TEXT, swapped), ["static"])
-        own_moved = "".join("[[step]]\n" + x for x in (a, c, b, d))     # c between the static steps: still the same
-        self.assertEqual(self.changed(self.TEXT, own_moved), [])
+        self.assertEqual(self.changed(self.TEXT, "".join("[[step]]\n" + x for x in (d, b, c, a))), [])
 
     def test_comments_and_layout_change_nothing(self) -> None:
         relaid = "# a comment\n" + self.TEXT.replace('desc = "First."', 'desc   =   "First."  # why')
@@ -421,21 +437,23 @@ class DigestTest(unittest.TestCase):
 
     def test_errors(self) -> None:
         with self.assertRaisesRegex(M.ManifestError, "gone.toml: cannot read it"):
-            M.job_digests(Path("/nonexistent/gone.toml"))
+            M.job_keys(Path("/nonexistent/gone.toml"))
         for text, why in (("", "no \\[\\[step\\]\\]"), (step(name=None), "step 1: no name"),
-                          (step(group="1"), "not text"),
-                          (step(name='"x"') + step(name='"x"'), "two jobs named 'x'"),
-                          (step(name='"static"') + step(name='"a"', group='"static"'), "two jobs named 'static'"),
-                          (step(name='"a"', group='"static"') + step(name='"static"'), "two jobs named 'static'"),
+                          (step(name="1"), "not text"),
+                          (step(name='"x"') + step(name='"x"'), "two steps named 'x'"),
+                          (step(git=None), "step 'one': git: None must be a list"),
+                          (step(git='["tip"]'), "step 'one': git: 'tip': not a ref name"),
                           (step(when="2026-11-25"), "JSON cannot hold")):
             with self.subTest(why=why):
                 with self.assertRaisesRegex(M.ManifestError, why):
-                    self.digests(text)
+                    self.keys(text)
 
     def test_this_repo(self) -> None:
-        jobs = M.job_digests()
+        keys = M.job_keys()
         steps = M.load()
-        self.assertEqual(set(jobs), {"static", *(s.name for s in M.select(steps, "check", ungrouped=True))})
+        self.assertEqual(list(keys), [s.name for s in steps])
+        self.assertEqual({k: v.git for k, v in keys.items()}, {s.name: s.git for s in steps})
+        self.assertNotIn("static", keys)
 
 
 def scratch_check_sh(base: Path):
@@ -463,6 +481,7 @@ print(os.environ.get(var, ""), end="")
 STATIC = "\n".join(("one python3 tools/a.py --check",
                     'two env PYTHONPATH="lib/src${PYTHONPATH:+:$PYTHONPATH}" python3 -m pkg.mod',
                     "panels bash tools/p.sh --check")) + "\n"
+STATIC_ONLY = "^(one|two|panels|gone|odd)$"         # the static jobs these tests queue
 OWN = "solo python3 tools/a.py solo\nportal python3 tools/a.py portal\n"
 
 
@@ -477,7 +496,7 @@ class CheckShTest(unittest.TestCase):
         cls.tmp.cleanup()
 
     def run_check(self, **env: str) -> subprocess.CompletedProcess:
-        base = {"STUB_PIN": "", "STUB_STATIC": STATIC, "STUB_OWN": OWN, "FULL": "1", "CHECK_ONLY": "^static$"}
+        base = {"STUB_PIN": "", "STUB_STATIC": STATIC, "STUB_OWN": OWN, "FULL": "1", "CHECK_ONLY": STATIC_ONLY}
         return self.s.check_sh(**{**base, **env})
 
     def assertStopped(self, done: subprocess.CompletedProcess, *said: str) -> None:
@@ -505,12 +524,14 @@ class CheckShTest(unittest.TestCase):
                            "no panels step in the static group")
         self.assertStopped(self.run_check(STUB_OWN="solo python3 tools/a.py\n"), "no portal step")
 
-    def test_the_static_job_runs_every_line_in_order_with_the_callers_pythonpath(self) -> None:
+    def test_each_static_line_is_a_job_of_its_own_panels_first_with_the_callers_pythonpath(self) -> None:
         done = self.run_check(PYTHONPATH="/caller")
         self.assertEqual(0, done.returncode, done.stdout + done.stderr)
+        jobs = [line for line in done.stdout.splitlines() if line.startswith("--- ")]
+        self.assertEqual([j.split(" (")[0] for j in jobs], ["--- panels", "--- one", "--- two"])
         ran = [line for line in done.stdout.splitlines() if line.startswith("ran ")]
-        self.assertEqual(ran, ["ran --check PYTHONPATH=/caller", "ran mod PYTHONPATH=lib/src:/caller",
-                               "ran panels --check --full"])
+        self.assertEqual(ran, ["ran panels --check --full", "ran --check PYTHONPATH=/caller",
+                               "ran mod PYTHONPATH=lib/src:/caller"])
         self.assertEqual("ALL PASSED", done.stdout.splitlines()[-1])
         done = self.run_check(PYTHONPATH="")
         self.assertIn("ran mod PYTHONPATH=lib/src\n", done.stdout)
@@ -525,17 +546,31 @@ class CheckShTest(unittest.TestCase):
             with self.subTest(env=env):
                 self.assertStopped(self.run_check(**env), "printed a line the shell cannot parse: bad python3 'unclosed")
 
-    def test_the_static_job_fails_when_a_line_ends_it_early(self) -> None:
-        # manifest.py quotes every word, so only a stand-in prints this; the count still catches it
-        done = self.run_check(STUB_STATIC="one python3 tools/a.py; return 0\n" + STATIC)
-        self.assertEqual(1, done.returncode, done.stdout + done.stderr)
-        self.assertIn("--- static: 1 of the manifest's 4 checks ran", done.stdout)
-        self.assertEqual("FAILED", done.stdout.splitlines()[-1])
-
-    def test_a_failing_check_fails_the_run(self) -> None:
+    def test_a_failing_check_fails_its_own_job_and_the_run(self) -> None:
         done = self.run_check(STUB_STATIC=STATIC + "gone python3 tools/none.py\n")
         self.assertEqual(1, done.returncode)
-        self.assertIn("--- static FAILED", done.stdout)
+        self.assertIn("--- gone FAILED", done.stdout)
+        self.assertIn("--- one (", done.stdout)
+        self.assertEqual("FAILED", done.stdout.splitlines()[-1])
+
+    def test_a_check_of_another_program_is_refused_not_run(self) -> None:
+        done = self.run_check(STUB_STATIC=STATIC + "odd node tools/a.py\n")
+        self.assertEqual(1, done.returncode, done.stdout + done.stderr)
+        self.assertIn("--- odd FAILED", done.stdout)
+        self.assertIn("odd: check.sh's run_check takes python3, env VAR=... python3 or bash, not node; not run",
+                      done.stdout)
+
+    def test_the_results_file_names_each_job_and_its_result(self) -> None:
+        """CHECK_RESULTS_TO: what tools/ci/stamp_gate.py's skip record and weekly guard read."""
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d) / "results.tsv"
+            done = self.run_check(STUB_STATIC=STATIC + "gone python3 tools/none.py\n", CHECK_RESULTS_TO=str(out))
+            self.assertEqual(1, done.returncode)
+            self.assertEqual(out.read_text(), "panels\tpassed\none\tpassed\ntwo\tpassed\ngone\tfailed\n")
+            done = self.run_check(CHECK_RESULTS_TO=str(Path(d) / "no-such-folder" / "r.tsv"))
+            self.assertEqual(2, done.returncode)
+            self.assertIn("no-such-folder/r.tsv: cannot write it", done.stderr)
+            self.assertNotIn("ran ", done.stdout)
 
     def test_no_job_to_run_is_no_pass(self) -> None:
         done = self.run_check(CHECK_ONLY="^nothing-by-this-name$")
@@ -621,11 +656,13 @@ CHECK_SH_MACHINERY = {"tools/ci/changed_kind.py", "tools/hosts/profile_tables_gu
                       "tools/audit/test_classes.py", "tools/audit/portal_inputs.py"}
 SCRIPT_RE = re.compile(r"[\w$\"{}./*-]*/[\w*.-]*\.(?:py|sh)\b")
 TEST_GLOB_RE = re.compile(r'(?:"\$JMRI_TESTS"|[\w/]+/tests)/test\*\.py')
-# the only `later` calls with a command of their own: unit()'s, the static job, the manifest's own lines and the
-# placeholders that run nothing (true)
-LATER_OK = re.compile(r'later "\$name" env -u HART_TABLES "\$@"$|later static static_checks$|eval "later \$line"$'
+# the only `later` calls with a command of their own: unit()'s, the manifest's static lines (run_line, the panels one
+# with its --full), its own lines and the placeholders that run nothing (true)
+LATER_OK = re.compile(r'later "\$name" env -u HART_TABLES "\$@"$|eval "later \$line"$'
+                      r'|later "\$\{line%% \*\}" run_line "\$line"$'
+                      r'|later panels run_line "\$line" \$\{panels_full\[@\]\+"\$\{panels_full\[@\]\}"\}$'
                       r'|later "[^"]* skipped[^"]*" true$')
-RUN_OK = re.compile(r"""eval "run \$line"('.*')?$""")
+RUN_OK = re.compile(r"""eval "run_check \$line"' \$\{1\+"\$@"\}'$""")
 
 
 def check_sh_problems(text: str, manifest_scripts) -> list[str]:
@@ -641,7 +678,7 @@ def check_sh_problems(text: str, manifest_scripts) -> list[str]:
             path = word.strip('"').removeprefix('"').replace('"$ROOT/', "").replace("$ROOT/", "")
             if path not in CHECK_SH_MACHINERY and not TEST_GLOB_RE.fullmatch(word):
                 out.append(f"line {n}: names {path}, which is not check.sh's machinery: {line}")
-        if re.match(r"(eval\s+\"?)?run\s", line) and not RUN_OK.match(line):
+        if re.match(r"(eval\s+\"?)?run(?:_check)?\s", line) and not RUN_OK.match(line):
             out.append(f"line {n}: a run line outside the manifest's static loop: {line}")
         if re.match(r"(eval\s+\"?)?later\s", line) and not LATER_OK.match(line):
             out.append(f"line {n}: a later line with a command of its own: {line}")
@@ -674,6 +711,8 @@ class CheckShRunsOnlyTheManifestTest(unittest.TestCase):
         for added, why in (("run phase03 python3 jmri/scripts/check_x.py", "names jmri/scripts/check_x.py"),
                            ("run phase03 python3 jmri/scripts/check_x.py", "a run line outside"),
                            ('eval "run extra python3 tools/x.py"', "a run line outside"),
+                           ("run_check extra python3 tools/x.py", "a run line outside"),
+                           ("later extra run_line 'extra python3 tools/x.py'", "a later line with a command"),
                            ("later extra python3 tools/audit/check_x.py", "a later line with a command"),
                            ("later extra true_check", "a later line with a command"),
                            ('python3 tools/audit/check_x.py || fail=1', "names tools/audit/check_x.py"),

@@ -131,16 +131,26 @@ if [[ -n "${CHECK_RECORD_TO:-}" || -n "${CHECK_SKIP_FROM:-}" ]]; then
   fi
 fi
 unset CHECK_RECORD_TO CHECK_SKIP_FROM CHECK_SKIP_NOTE
+# CHECK_RESULTS_TO=<file>: once every job is done, one line per queued job, "<name><TAB>passed|failed|skipped", for
+# tools/ci/stamp_gate.py: a pull request run's record of the jobs it skipped, and the weekly full run's check that no
+# job those runs skipped fails (.github/workflows/check.yml). The file is emptied here, so a run that stops before the
+# end leaves it empty (which the gate refuses), and the variable is unset, so a job never inherits it.
+RESULTS_TO="${CHECK_RESULTS_TO:-}"
+unset CHECK_RESULTS_TO
+if [[ -n "$RESULTS_TO" ]] && ! : >"$RESULTS_TO"; then
+  echo "CHECK_RESULTS_TO=$RESULTS_TO: cannot write it" >&2
+  exit 2
+fi
 if [[ -n "${CHECK_AUDIT:-}" ]]; then
   mkdir -p "$CHECK_AUDIT"
   CHECK_AUDIT="$(cd "$CHECK_AUDIT" && pwd)"
   rm -f "$CHECK_AUDIT"/*.log "$CHECK_AUDIT"/*.name
 fi
-# The read-only checks come from the step manifest, tools/pipeline/checks.toml (ADR-037): its "static" group runs as
-# the one static job, in file order, and each step in no group is a job of its own. A manifest that does not load, or
-# a list with no check in it, stops the run here, before any job: check.sh never passes having run nothing. Two
-# conditions stay here, keyed on a step's name, so each must be in its list: the panels check gets --full when no
-# job is skipped, and the portal job runs only where its inputs are (below).
+# The read-only checks come from the step manifest, tools/pipeline/checks.toml (ADR-037): each step is a job of its
+# own, named after it (stage 4b), the "static" group's queued ahead of the unit tests and the steps in no group after
+# them. A manifest that does not load, or a list with no check in it, stops the run here, before any job: check.sh
+# never passes having run nothing. Two conditions stay here, keyed on a step's name, so each must be in its list: the
+# panels check gets --full when no job is skipped, and the portal job runs only where its inputs are (below).
 manifest_lines() {   # the lines of `manifest.py jobs check <args>` into MANIFEST_LINES; stops the run when there are none
   local out line
   MANIFEST_LINES=()
@@ -179,7 +189,7 @@ manifest_lines --ungrouped
 OWN_LINES=("${MANIFEST_LINES[@]}")
 has_step panels "${STATIC_LINES[@]}" || { echo "STOP: no panels step in the static group of tools/pipeline/checks.toml; check.sh adds its --full" >&2; exit 2; }
 has_step portal "${OWN_LINES[@]}" || { echo "STOP: no portal step in tools/pipeline/checks.toml; check.sh decides when it runs" >&2; exit 2; }
-# The jobs (the read-only checks as one "static" job, unit tests, public text, the portal build) run at the same time,
+# The jobs (each read-only check, the unit tests, public text, the portal build) run at the same time,
 # at most one job per core. Every one works in its own temp folders. `later` queues a job; `start_jobs` checks every
 # queued job's stamp in one process (check_stamps.py current-batch) and starts the ones that must run, each with its
 # output in a file; `collect` waits for each in the order queued and prints its output under its heading. Job control
@@ -275,7 +285,7 @@ start_jobs() {
       fi
       unset HART_TRACE_LOG HART_TRACE_SPAWN HART_TRACE_PATH
       if (( src == 1 )); then
-        # the trace this job's stamp is recorded from; the job's own Python process (one per `run` in static) is
+        # the trace this job's stamp is recorded from; the job's own Python process (the check run_check starts) is
         # expected in it ("b" lines), so a process that dropped the hook leaves the trace short and records nothing
         export HART_TRACE_LOG="$JOBS/$n.trace" HART_TRACE_ROOT="$ROOT" PYTHONPATH="$ROOT/tools/audit/trace_hook${PYTHONPATH:+:$PYTHONPATH}"
         : >"$HART_TRACE_LOG"
@@ -310,19 +320,26 @@ start_jobs() {
   done
 }
 collect() {
-  local i took skipped=0
+  local i took skipped=0 results=()
   for i in "${!names[@]}"; do
     if [[ -e "$JOBS/$i.skip" ]]; then
       skipped=$((skipped + 1))
+      results+=("${names[$i]}"$'\tskipped')
     elif wait "${pids[$i]}"; then
       echo "--- ${names[$i]} ($(cat "$JOBS/$i.time")s)"
+      results+=("${names[$i]}"$'\tpassed')
     else
       fail=1
       took="$(cat "$JOBS/$i.time" 2>/dev/null)" || took="killed before it finished, no "
       echo "--- ${names[$i]} FAILED (${took}s)"
+      results+=("${names[$i]}"$'\tfailed')
     fi
     cat "$JOBS/$i.log"
   done
+  if [[ -n "$RESULTS_TO" ]] && ! printf '%s\n' ${results[@]+"${results[@]}"} >"$RESULTS_TO"; then
+    echo "CHECK_RESULTS_TO=$RESULTS_TO: cannot write the jobs' results"
+    fail=1
+  fi
   # A job that printed SKIPPED did not really check (a unit job's output may quote the word, as for the stamps above).
   local i2 said=()
   for i2 in "${!names[@]}"; do
@@ -346,19 +363,22 @@ unit() {
   shift
   later "$name" env -u HART_TABLES "$@"
 }
-# The read-only checks run as one job ("static"), one after another, beside the unit jobs.
-run() {
-  static_ran=$((static_ran + 1))     # static_checks counts the checks that got here
-  echo "--- $1"
+# One read-only check of the manifest's static group as a job of its own: run_line LINE [WORD...] evals the step's
+# line (its name, then its command) inside the job, so an env PYTHONPATH=dir word keeps the trace hook start_jobs put
+# on PYTHONPATH, and adds the words after it (the panels check's --full). What the job's trace must show for the
+# check: a Python check (python3, or env VAR=... python3) is one Python process it expects ("b"); bash
+# (build_panels.sh) is a program the hook cannot see into, so it goes in as a spawn nothing loaded the hook for ("x"),
+# and the job's stamp falls back to its declaration (tools/audit/check_stamps.py). bash runs outside the job's hooks,
+# with the caller's PYTHONPATH: build_panels.sh traces its steps into logs of its own, and its stamps key on
+# PYTHONPATH, so make panels' stamps hold here too. Any other program is refused: its reads would be missing.
+run_line() {
+  local line=$1
+  shift
+  eval "run_check $line"' ${1+"$@"}'
+}
+run_check() {
   local name=$1
   shift
-  local start=$SECONDS
-  # What the job's trace (check.sh `later`) must show for this check: a Python check (python3, or env VAR=... python3)
-  # is one Python process it expects ("b"); bash (build_panels.sh) is a program the hook cannot see into, so it goes
-  # in as a spawn nothing loaded the hook for ("x"), and the job's stamp falls back to its declaration
-  # (tools/audit/check_stamps.py). bash runs outside the job's hooks, with the caller's PYTHONPATH: build_panels.sh
-  # traces its steps into logs of its own, and its stamps key on PYTHONPATH, so make panels' stamps hold here too.
-  # Any other program is refused: its reads would be missing.
   local prog=$1 i
   if [[ "$prog" == env ]]; then
     for (( i = 2; i <= $#; i++ )); do [[ "${!i}" == *=* ]] || { prog="env ${!i}"; break; }; done
@@ -366,44 +386,23 @@ run() {
   case "$prog" in
     python3|"env python3")
       [[ -z "${HART_TRACE_LOG:-}" ]] || printf '0\tb\n' >>"$HART_TRACE_LOG"
-      "$@" || static_rc=1 ;;
+      "$@" ;;
     bash)
       [[ -z "${HART_TRACE_LOG:-}" ]] || printf '0\tx\tcheck.sh-run\t%s\t%s\n' "$ROOT" "$(IFS=$'\t'; echo "$*")" >>"$HART_TRACE_LOG"
-      env -u HART_TRACE_LOG -u HART_TRACE_SPAWN -u HART_TRACE_ROOT -u CHECK_AUDIT_LOG ${CALLER_PYTHONPATH[@]+"${CALLER_PYTHONPATH[@]}"} "$@" \
-        || static_rc=1 ;;
-    *) echo "    $name: check.sh's run() takes python3, env VAR=... python3 or bash, not $prog; not run"; static_rc=1; return ;;
+      env -u HART_TRACE_LOG -u HART_TRACE_SPAWN -u HART_TRACE_ROOT -u CHECK_AUDIT_LOG ${CALLER_PYTHONPATH[@]+"${CALLER_PYTHONPATH[@]}"} "$@" ;;
+    *) echo "$name: check.sh's run_check takes python3, env VAR=... python3 or bash, not $prog; not run"; return 1 ;;
   esac
-  (( SECONDS - start < 5 )) || echo "    ($((SECONDS - start))s)"
 }
-static_lines() {
-  local static_rc=0 line
-  # a run that skips no job (CI, FULL=1, an audit run) skips no panel step either: the panels step (build_panels.sh
-  # --check, with stamps of its own shared with make panels) then gets --full
-  local panels_full=()
-  (( STAMPS )) || panels_full=(--full)
-  for line in "${STATIC_LINES[@]}"; do
-    if [[ "${line%% *}" == panels ]]; then
-      eval "run $line"' ${panels_full[@]+"${panels_full[@]}"}'
-    else
-      eval "run $line"
-    fi
-  done
-  return "$static_rc"
-}
-# The static job: every line of the manifest's static group, and a failure when fewer of them reached run() than it
-# lists (a line that ended the loop early). static_ran is the job's own: it runs in a subshell of its own.
-static_checks() {
-  local rc
-  static_ran=0
-  static_lines
-  rc=$?
-  if (( static_ran != ${#STATIC_LINES[@]} )); then
-    echo "--- static: $static_ran of the manifest's ${#STATIC_LINES[@]} checks ran"
-    rc=1
-  fi
-  return "$rc"
-}
-later static static_checks
+# The read-only checks are queued here, the panels check first and the rest after the Layout Editor job below: panels
+# is the longest of them (78 s of the 107 s the one static job took on the Windows box, 2026-11-25), and the others
+# take a few seconds each. A run that skips no job (CI, FULL=1, an audit run) skips no panel step either: the panels
+# check (build_panels.sh --check, with stamps of its own shared with make panels) then gets --full.
+panels_full=()
+(( STAMPS )) || panels_full=(--full)
+for line in "${STATIC_LINES[@]}"; do
+  [[ "${line%% *}" == panels ]] || continue
+  later panels run_line "$line" ${panels_full[@]+"${panels_full[@]}"}
+done
 # The longest jobs start first, so none of them waits behind the quick ones: the Layout Editor job, unit-jmri, then
 # the per-file guard and host jobs, with the files in SLOW of each folder (each 10-20 s) ahead of the rest.
 SLOW=" test_worktrees.py test_panelpro_wrappers.py test_deploy_stage.py test_deploy_gates.py test_deploy_preflight.py "
@@ -423,6 +422,10 @@ slow_first() {
 # PYTHONPATH is extended inside the job, where the trace hook is already on it (bash execs python: one process)
 # shellcheck disable=SC2016  # expanded by the inner bash
 unit "unit-guards layout-editor ($LE_TESTS)" bash -c 'PYTHONPATH="tools/audit/tests${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m unittest -b -q '"$LE_TESTS"
+for line in "${STATIC_LINES[@]}"; do
+  [[ "${line%% *}" == panels ]] && continue
+  later "${line%% *}" run_line "$line"
+done
 # unit-jmri runs one job per file on a local run, the slow files first: about 25 s in one job, 16 s spread over six
 # cores. CI keeps one job: its four cores are taken by the Layout Editor job and the guard files for minutes, so a
 # split would only add some 50 interpreter starts there.
