@@ -36,7 +36,7 @@ from device_map_inputs import (  # noqa: E402  the readers
     CPS, FIELD_LEVEL, NODES, PINS, STATIONS, WIRING, Places, StagingPin, helix_pins, read_places, read_staging_pins,
     staging_nodes, wiring_rows)
 from device_map_schematic import block_overrides, builder, helix_tracks, home_and_posts, named_tracks  # noqa: E402
-from hartlib import devices, layer_files, level_devices, railroad  # noqa: E402
+from hartlib import device_ids, devices, layer_files, level_devices, railroad  # noqa: E402
 
 natural = railroad.natural
 occupancy_user = level_devices.occupancy_user
@@ -46,14 +46,16 @@ STAGING_SHEET = "staging"           # staging's section of plan_overrides.json
 FIELD_LAYERS = ("block", "occupancy")
 
 
-def part_row(level: str, name: str, part: dict, trial: str) -> dict:
+def part_row(level: str, name: str, part: dict, trial: str, device_id: str = "") -> dict:
     """The master row of a part (block_layer.Layer.parts): a piece of track inside another block, part_of naming it,
     with no occupancy row or detector of its own (hartlib.devices: role part). It is a JMRI block of its own on every
     level, its sensor its OS block's (owner, 2026-11-20): main and upper's the Layout Editor build makes (assignment
-    none here); staging_rows gives staging's their bean names (part_bean_names, assignment virtual)."""
+    none here); staging_rows gives staging's their bean names (part_bean_names, assignment virtual). `device_id`: its
+    block ID from the plan ends its trial name has (staging_keys, level_keys)."""
     t = part["track"]
     row = {c: "" for c in devices.COLUMNS}
-    row.update(level=level, layer="block", role="part", user_name=name, assignment="none", trial_name=trial,
+    row.update(level=level, layer="block", role="part", id=device_id, user_name=name, assignment="none",
+               trial_name=trial,
                notes=f"a piece of the {t['cm']} cm track from Switch "
                      f"{' to Switch '.join(sorted({v for k, v in t['ends'] if k == 'sw'}, key=natural))}, part of "
                      f"{part['part_of']} ({part['why']})",
@@ -141,14 +143,28 @@ def staging_trials(band, lay: block_layer.Layer, bi: int) -> dict[str, str]:
     """{row name: trial_name} of staging's block rows in its drawing's keys (staging_device_map.placeholders: switch
     numbers and legs, which survive a new export): a row's OS placeholders, then its track pieces in strand order,
     each "Track <piece>" or, for the k-th of a piece's n rows from the piece's first end, "Track <piece> k/n"."""
+    return staging_keys(band, lay, bi)[0]
+
+
+def staging_keys(band, lay: block_layer.Layer, bi: int) -> tuple[dict[str, str], dict[str, str]]:
+    """({row name: trial_name} (staging_trials), {row name: device ID}) of staging's block rows, both from the same
+    plan ends (hartlib.device_ids): an OS block's ID is its switch's (staging_device_map.os_keys: os:<n>, or
+    os:<n>:A-<end> of a crossover half), even when a piece of track lies inside it; any other row's is block: and
+    its pieces' keys, in key order. MapError on a row that two switches' OS blocks share."""
     import staging_device_map as sdm        # its placeholder grammar (it imports this module)
-    _turnouts, os_ph, refs = sdm.placeholders(band)
-    got = defaultdict(list)
-    for n, ph in os_ph.items():
-        got[lay.bands[bi]["os"][n]].append(ph)
-    for row, phs in piece_trials({bi: lay.rows[bi]}, {bi: refs}, {bi: set()}).items():
-        got[row] += phs
-    return {row: ", ".join(phs) for row, phs in got.items()}
+    _turnouts, _os_ph, refs = sdm.placeholders(band)
+    got, ids, bad = defaultdict(list), {}, []
+    for n, (ph, oid) in sdm.os_keys(band).items():
+        row = lay.bands[bi]["os"][n]
+        got[row].append(ph)
+        if ids.setdefault(row, oid) != oid:
+            bad.append(f"{row} is the OS block of {ids[row]} and {oid}")
+    for row, keys in piece_keys({bi: lay.rows[bi]}, {bi: refs}, {bi: set()}).items():
+        got[row] += [ph for ph, _k in keys]
+        ids.setdefault(row, device_ids.block_id(k for _ph, k in keys))
+    if bad:
+        raise MapError("staging OS blocks: " + "; ".join(bad))
+    return {row: ", ".join(phs) for row, phs in got.items()}, ids
 
 
 def piece_trials(rows: dict, refs: dict, inside: dict) -> dict[str, list[str]]:
@@ -159,6 +175,12 @@ def piece_trials(rows: dict, refs: dict, inside: dict) -> dict[str, list[str]]:
     rows are all in `inside` ({band index: OS blocks}) is inside a crossover and keyed by its OS block's own
     placeholder, not here. One grammar for every level (owner, 2026-11-20); a key drawn on two bands (a track cut by a
     connector) is listed once. MapError on a strand with rows but no key."""
+    return {row: [ph for ph, _k in keys] for row, keys in piece_keys(rows, refs, inside).items()}
+
+
+def piece_keys(rows: dict, refs: dict, inside: dict) -> dict[str, list[tuple[str, str]]]:
+    """{row name: [(track placeholder, device-ID part)], in placeholder key order}: piece_trials' placeholders, each
+    with the ID part of the same piece, k and n (staging_device_map.strand_ids, hartlib.device_ids.strand_key)."""
     import staging_device_map as sdm        # its placeholder grammar (it imports this module)
     got = defaultdict(dict)
     for bi, band_rows in rows.items():
@@ -168,22 +190,32 @@ def piece_trials(rows: dict, refs: dict, inside: dict) -> dict[str, list[str]]:
             if sid not in refs[bi]:
                 raise MapError(f"strand {sid} of band {bi} has blocks {names} but no piece key "
                                "(staging_device_map.piece_refs)")
-            for row, key in zip(names, sdm.strand_placeholders(refs[bi][sid], len(names))):
-                got[row][key] = None
-    return {row: sorted(phs, key=natural) for row, phs in got.items()}
+            ref = refs[bi][sid]
+            for row, key, part in zip(names, sdm.strand_placeholders(ref, len(names)),
+                                      sdm.strand_ids(ref, len(names))):
+                got[row][key] = part
+    return {row: sorted(phs.items(), key=lambda kv: natural(kv[0])) for row, phs in got.items()}
 
 
 def level_trials(bands, joined, lay: block_layer.Layer) -> dict[str, str]:
     """{row name: trial_name} of the main and upper track, half and part rows of `lay` (main_upper_layer), in the
     switch-and-leg keys staging's rows have (piece_trials over staging_device_map.band_refs), which survive a new
     export (owner, 2026-11-20). A strand inside a crossover is its OS block's ("OS Switch <n>", written by os_rows)."""
+    return level_keys(bands, joined, lay)[0]
+
+
+def level_keys(bands, joined, lay: block_layer.Layer) -> tuple[dict[str, str], dict[str, str]]:
+    """({row name: trial_name} (level_trials), {row name: device ID}) of the main and upper track, half and part rows
+    of `lay`, both from the same plan ends: the ID is block: and the row's pieces' keys (hartlib.device_ids)."""
     import staging_device_map as sdm        # its placeholder grammar (it imports this module)
     try:
         refs = {bi: sdm.band_refs(bands, joined, bi) for bi in lay.rows}
     except sdm.StagingMapError as exc:
         raise MapError(str(exc)) from None
     inside = {bi: set(b["os"].values()) for bi, b in lay.bands.items()}
-    return {row: ", ".join(phs) for row, phs in piece_trials(lay.rows, refs, inside).items()}
+    keys = piece_keys(lay.rows, refs, inside)
+    return ({row: ", ".join(ph for ph, _k in ks) for row, ks in keys.items()},
+            {row: device_ids.block_id(k for _ph, k in ks) for row, ks in keys.items()})
 
 
 def helix_ends(helix: dict) -> dict[str, set[str]]:
@@ -258,7 +290,12 @@ def staging_wired_rows(files: devices.Files | None = None, path: Path | None = N
                        f"{WIRING.name}")
             continue
         seen.add((w.kind, w.device))
-        row = dict(r, node=str(w.node), wiring=w.wiring_text, written_by="build_device_map.py")
+        try:
+            did = wired_id(r)
+        except ValueError as exc:
+            bad.append(f"staging {r['layer']} {r['user_name']}: {exc}")
+            continue
+        row = dict(r, id=did, node=str(w.node), wiring=w.wiring_text, written_by="build_device_map.py")
         if not alias:
             row["system_name"] = w.address
             row["jmri_name"] = r["jmri_name"] or w.address
@@ -274,6 +311,26 @@ def staging_wired_rows(files: devices.Files | None = None, path: Path | None = N
     return out
 
 
+WIRED_NAME = {"turnout": re.compile(r"Switch (\d+)"), "lcc_alias": re.compile(r"DCC Switch (\d+)"),
+              "fb": re.compile(r"FB Switch (\d+) ([NR])")}
+
+
+def wired_id(row: Mapping[str, str]) -> str:
+    """The device ID of a staging turnout, LCC alias or feedback row (hartlib.device_ids: switch:<n>, dcc:<n>,
+    fb:<n>:N|R). These rows come from the owner's field rows and wiring.csv, which name the switch; nothing ties them
+    to the plan until staging is generated (hand-off step 7), so the number is read from the row's own name here, and
+    build_device_map.check_switch_ids holds every number to a staging OS block of the plan. ValueError on a name out
+    of that grammar."""
+    kind = row["role"] if row["role"] in WIRED_NAME else row["layer"]
+    pattern = WIRED_NAME.get(kind)
+    m = pattern.fullmatch(row["user_name"]) if pattern else None
+    if not m:
+        raise ValueError(f"{row['user_name']!r} is not a {kind} name with a switch number, so it has no device ID")
+    if kind == "fb":
+        return device_ids.fb_id(m.group(1), m.group(2))
+    return (device_ids.dcc_id if kind == "lcc_alias" else device_ids.switch_id)(m.group(1))
+
+
 def wire_occupancy(row: dict, pin: StagingPin) -> dict:
     """`row` (a staging occupancy row) with its wiring cells from its pin: node, sensor and wiring."""
     return dict(row, node=str(pin.node), system_name=pin.sensor, jmri_name=pin.sensor, wiring=pin.wiring)
@@ -286,6 +343,7 @@ def new_spare(pin: StagingPin) -> dict:
     row.update(level=FIELD_LEVEL, layer="occupancy", role="spare", user_name=f"unused {pin.input}",
                assignment="spare", written_by="build_device_map.py")
     row = wire_occupancy(row, pin)
+    row["id"] = device_ids.spare_id(row["system_name"])
     row["description"] = devices.describe(row)
     return row
 
@@ -335,7 +393,7 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
     have or is a helix block."""
     bdm = builder()
     lay, bi, _found = staging_layer(bands, joined, runs, exceptions)
-    trials = staging_trials(bands[bi][1], lay, bi)
+    trials, ids = staging_keys(bands[bi][1], lay, bi)
     helix_rows = helix_tracks()
     helix = {h["block"] for h in helix_rows.values()}
     f = files or bdm.device_files()
@@ -380,14 +438,17 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
                            + ": remove them (its detector's input becomes a spare)")
                 for k in was:
                     prior.pop(k)
-            row = part_row(FIELD_LEVEL, name, part, trials[name])
+            row = part_row(FIELD_LEVEL, name, part, trials[name], ids[name])
             row.update(assignment="virtual", jmri_name=beans[name][0], layout_block=beans[name][1])
             # its cp is line_cp's of its own track and its comment names its block's detector, both set below (the
             # comment from the block's rewired row)
             row["description"] = devices.describe(row)
             out.append(row)
         else:
-            row = owned("block", name, trial_name=trials.get(name, ""))
+            if name not in ids:
+                bad.append(f"staging block {name}: the plan gives it no ends, so no device ID")
+                continue
+            row = owned("block", name, trial_name=trials.get(name, ""), id=ids[name])
             at = (pin_of[name].node, pin_of[name].k) if name in pin_of else on_helix.get(name)
             if row is not None and at is not None:
                 try:
@@ -425,7 +486,10 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
     cp_of_block = {r["user_name"]: r["cp"] for r in out if r is not None}
     occupancy = []
     for b in sorted(blocks - helix, key=natural):
-        row = owned("occupancy", occupancy_user(b), blocks=b, cp=cp_of_block.get(b, ""))
+        if b not in ids:
+            continue                        # named in bad above
+        row = owned("occupancy", occupancy_user(b), blocks=b, cp=cp_of_block.get(b, ""),
+                    id=device_ids.det_id(ids[b]))
         if row is None:
             continue
         if b not in pin_of:
