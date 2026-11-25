@@ -175,9 +175,8 @@ EXTRA: dict[str, tuple[str, ...]] = {
                                   "www/ap/*.html", "www/exam/index.html", "www/exam/run.html"),
     # check_public_text.py imports private_name from ops/hart-ops/card_pipeline (on sys.path)
     "unit-guards test_public_text": ("ops/hart-ops/card_pipeline/**/*",),
-    # it builds the page from wiki/status/ and merges in a scratch repo under the repo's .gitattributes
+    # both read the real wiki/status/ entries (ADR-038); test_status_merge also merges under .gitattributes
     "unit-guards test_status_merge": ("wiki/status/**/*", "tools/ops/status_counts.py", ".gitattributes"),
-    # its tests read the real wiki/status/ entries (ADR-038)
     "unit-guards test_status_counts": ("wiki/status/**/*", "tools/ops/status_counts.py"),
     # the merge drivers run under the repo's own .gitattributes in a scratch repo
     "unit-guards test_merge_pipeline_map": (".gitattributes",),
