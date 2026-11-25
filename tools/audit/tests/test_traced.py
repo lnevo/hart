@@ -11,6 +11,7 @@ import sys
 import tempfile
 import textwrap
 import unittest
+import unittest.mock
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -253,6 +254,84 @@ class ProblemTest(unittest.TestCase):
         self.assertIsNotNone(traced.mismatch({"version": 0, "key": "k", "state": {}}, "k", str(self.root)))
         self.assertIsNotNone(traced.mismatch({"version": traced.VERSION, "key": "j", "state": {}}, "k", str(self.root)))
         self.assertIsNone(traced.mismatch({"version": traced.VERSION, "key": "k", "state": {}}, "k", str(self.root)))
+
+
+class WhichAndSkipTest(unittest.TestCase):
+    """The tool lookups and unittest skips the hook logs: what a test that skips on a missing tool skipped on."""
+
+    def setUp(self) -> None:
+        tmp = Path(tempfile.mkdtemp()).resolve()
+        self.addCleanup(shutil.rmtree, tmp)
+        self.root, self.log, self.bin = tmp / "repo", tmp / "trace.log", tmp / "bin"
+        self.root.mkdir()
+        self.bin.mkdir()
+        path = f"{self.bin}{os.pathsep}{os.environ.get('PATH', '')}"
+        patch = unittest.mock.patch.dict(os.environ, {"PATH": path})
+        patch.start()
+        self.addCleanup(patch.stop)
+
+    def install_tool(self) -> Path:
+        tool = self.bin / "hart-no-such-tool"
+        tool.write_text("#!/bin/sh\n")
+        tool.chmod(0o755)
+        return tool
+
+    def test_a_lookup_on_the_starting_path_is_an_input(self) -> None:
+        code = "import shutil\nshutil.which('hart-no-such-tool')\n"
+        self.assertEqual(run_traced(self.root, code, self.log), 0)
+        t = traced.parse(self.log)
+        self.assertEqual(t.which, {("hart-no-such-tool", "")})
+        stamp = traced.make_stamp("k", t, str(self.root))
+        self.assertIsNone(traced.mismatch(stamp, "k", str(self.root)))
+        tool = self.install_tool()
+        self.assertIn("finds " + str(tool), traced.mismatch(stamp, "k", str(self.root)))
+
+    def test_a_lookup_on_a_stub_path_or_another_path_is_no_input(self) -> None:
+        code = ("import os, shutil\nshutil.which('hart-no-such-tool', path='/nowhere')\n"
+                "os.environ['PATH'] = '/elsewhere'\nshutil.which('hart-no-such-tool')\n")
+        self.assertEqual(run_traced(self.root, code, self.log), 0)
+        self.assertEqual(traced.parse(self.log).which, set())
+
+    def write_tests(self) -> None:
+        (self.root / "test_s.py").write_text(textwrap.dedent("""\
+            import shutil, unittest
+            TOOL = shutil.which("hart-no-such-tool")
+
+            class S(unittest.TestCase):
+                @unittest.skipUnless(TOOL, "no hart-no-such-tool\\there")
+                def test_needs_the_tool(self):
+                    pass
+
+                def test_plain(self):
+                    pass
+            """))
+
+    def run_unittest(self, *args: str) -> subprocess.CompletedProcess:
+        self.log.write_text("0\tb\n")
+        env = {k: v for k, v in os.environ.items() if not k.startswith("HART_TRACE")}
+        env.update(HART_TRACE_LOG=str(self.log), HART_TRACE_ROOT=str(self.root), PYTHONPATH=str(HOOK))
+        return subprocess.run([sys.executable, *args], cwd=self.root, env=env, capture_output=True, text=True)
+
+    def test_a_unittest_process_logs_each_skip_with_its_reason(self) -> None:
+        self.write_tests()
+        done = self.run_unittest("-m", "unittest", "-q", "test_s")
+        self.assertIn("OK (skipped=1)", done.stderr)
+        t = traced.parse(self.log)
+        # the tab in the reason (the log's separator) is written as a space
+        self.assertEqual(t.skips, [("test_s.S.test_needs_the_tool", "no hart-no-such-tool here")])
+        self.assertEqual(t.which, {("hart-no-such-tool", "")})
+
+    def test_a_process_that_is_no_unittest_run_does_not_load_unittest(self) -> None:
+        code = "import sys\nassert 'unittest' not in sys.modules, 'the hook imported unittest'\n"
+        self.assertEqual(run_traced(self.root, code, self.log), 0)
+        self.assertEqual(traced.parse(self.log).skips, [])
+
+    def test_runs_unittest(self) -> None:
+        self.assertTrue(traced._runs_unittest(["python3", "-m", "unittest", "discover"]))
+        self.assertTrue(traced._runs_unittest(["python3", "-b", "-m", "unittest"]))
+        for argv in (["python3", "job.py", "-m", "unittest"][:2], ["python3", "-m"], ["python3", "-m", "pytest"], []):
+            with self.subTest(argv=argv):
+                self.assertFalse(traced._runs_unittest(argv))
 
 
 class KeepTest(unittest.TestCase):

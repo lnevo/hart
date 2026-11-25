@@ -187,11 +187,13 @@ def unstampable(root: Path = ROOT) -> str | None:
     return None
 
 
-def digest(label: str, cmd, patterns, root: Path = ROOT, publishes: bool = False, hasher=None, extra: str = "", files=None) -> str:
+def digest(label: str, cmd, patterns, root: Path = ROOT, publishes: bool = False, hasher=None, extra: str = "", files=None,
+           plugin: str | None = None) -> str:
     """The sha256 over a job's label and command line, the Python, SCHEMATIC_REQUIRED, the plugin's state, `extra`, the
     merge base with origin/main when `publishes`, and every file `patterns` name. Shared with tools/audit/check_stamps.py;
     `hasher(path)` may stand in for reading the file (a cache keyed on its size and mtime); `files` replaces the expansion
-    of `patterns` (a caller that walks a wide tree and prunes it)."""
+    of `patterns` (a caller that walks a wide tree and prunes it); `plugin` replaces plugin_state(root) (a caller that
+    checks many jobs at one moment and works it out once)."""
     h = hashlib.sha256()
 
     def put(tag: str, text: str) -> None:
@@ -201,7 +203,7 @@ def digest(label: str, cmd, patterns, root: Path = ROOT, publishes: bool = False
     put("cmd", " ".join(cmd))
     put("python", f"{sys.version_info[:3]} {os.path.realpath(sys.executable)} {os.environ.get('PYTHONPATH', '')}")
     put("schematic-required", os.environ.get("SCHEMATIC_REQUIRED", ""))
-    put("plugin", plugin_state(root))
+    put("plugin", plugin_state(root) if plugin is None else plugin)
     if extra:
         put("extra", extra)
     if publishes:

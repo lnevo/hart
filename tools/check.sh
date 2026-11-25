@@ -131,19 +131,22 @@ if [[ -n "${CHECK_AUDIT:-}" ]]; then
   rm -f "$CHECK_AUDIT"/*.log "$CHECK_AUDIT"/*.name
 fi
 # The jobs (the read-only checks as one "static" job, unit tests, public text, the portal build) run at the same time,
-# at most one job per core. Every one works in its own temp folders. `later`
-# starts a job with its output in a file; `collect` waits for each in the order started and prints its
-# output under its heading. Job control (set -m) gives each job its own process group with the signals a
-# terminal has (a plain background job ignores SIGINT), and Ctrl-C or TERM stops every group still running.
+# at most one job per core. Every one works in its own temp folders. `later` queues a job; `start_jobs` checks every
+# queued job's stamp in one process (check_stamps.py current-batch) and starts the ones that must run, each with its
+# output in a file; `collect` waits for each in the order queued and prints its output under its heading. Job control
+# (set -m) gives each job its own process group with the signals a terminal has (a plain background job ignores
+# SIGINT), and Ctrl-C or TERM stops every group still running.
 set -m
 JOBS="$(mktemp -d)"
 MAX_JOBS="${CHECK_MAX_JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)}"   # win_run.sh sets CHECK_MAX_JOBS to its share of the box
 (( MAX_JOBS >= 2 )) || MAX_JOBS=2
 names=()
-pids=()
+cmds=()          # each queued job's command line, quoted for eval
+pids=()          # each job's process, "" for a job that was skipped and never started
+verdicts=()      # each job's stamp verdict: 0 current (skip it), 1 run and record its stamp, 2 run and record nothing
 stop_jobs() {
   local pid
-  for pid in ${pids[@]+"${pids[@]}"}; do kill -TERM -- "-$pid" 2>/dev/null; done
+  for pid in ${pids[@]+"${pids[@]}"}; do [[ -z "$pid" ]] || kill -TERM -- "-$pid" 2>/dev/null; done
 }
 trap 'rm -rf "$JOBS"' EXIT
 trap 'stop_jobs; exit 130' INT
@@ -152,27 +155,66 @@ later() {
   local name="$1"
   shift
   if [[ -n "${CHECK_ONLY:-}" && ! "$name" =~ $CHECK_ONLY ]]; then return 0; fi
-  while (( $(jobs -rp | wc -l) >= MAX_JOBS )); do sleep 0.2; done
-  local n="${#names[@]}"
-  (
-    start=$SECONDS
-    pp_set=${PYTHONPATH+1}
-    pp=${PYTHONPATH-}
-    src=2
-    if (( STAMPS || RECORD )); then
-      env ${STAMP_ENV[@]+"${STAMP_ENV[@]}"} python3 tools/audit/check_stamps.py current "$name" --save "$JOBS/$n.stamp" ${STAMP_WHY[@]+"${STAMP_WHY[@]}"} >"$JOBS/$n.stamplog" 2>&1
-      src=$?
-      # anything but 0 (current) or 1 (not current) is run, don't record; so is a current verdict without a stamp file
-      (( src == 0 || src == 1 )) || src=2
-      if (( src == 0 )) && [[ ! -s "$JOBS/$n.stamp" ]]; then src=2; fi
-      if (( src == 0 && ! STAMPS )); then src=1; fi       # FULL=1 or an audit run: run it, and record
-      if (( src == 1 && ! RECORD )); then src=2; fi       # a pull request run on main's stamps: run it, untraced
+  names+=("$name")
+  cmds+=("$(printf '%q ' "$@")")
+}
+# Every queued job's verdict from one check_stamps.py process (current-batch), which also saves each stampable job's
+# snapshot ($JOBS/<n>.stamp, taken before any job starts) and, on a pull request run, why each runs (<n>.stamplog).
+# A batch that fails, or answers for other jobs than were queued, makes every job run and record nothing, and says why.
+read_verdicts() {
+  local i v n=0 total="${#names[@]}"
+  for (( i = 0; i < total; i++ )); do verdicts[$i]=2; done
+  (( STAMPS || RECORD )) || return 0
+  (( total > 0 )) || return 0
+  printf '%s\n' "${names[@]}" >"$JOBS/names"
+  if ! env ${STAMP_ENV[@]+"${STAMP_ENV[@]}"} python3 tools/audit/check_stamps.py current-batch "$JOBS/names" "$JOBS" \
+       ${STAMP_WHY[@]+"${STAMP_WHY[@]}"} >"$JOBS/batch.log" 2>&1; then
+    echo "stamp check failed, so every job runs and none records a stamp: $(tail -n 5 "$JOBS/batch.log")"
+    return 0
+  fi
+  if [[ ! -f "$JOBS/verdicts" ]]; then
+    echo "stamp check wrote no verdicts, so every job runs and none records a stamp: $(tail -n 5 "$JOBS/batch.log")"
+    return 0
+  fi
+  local got=()
+  while IFS=$'\t' read -r i v; do
+    if [[ ! "$i" =~ ^[0-9]+$ || ! "$v" =~ ^[012]$ ]] || (( i >= total )); then
+      echo "stamp check: \"$i	$v\" in its verdicts is no verdict of a queued job, so every job runs and none records a stamp"
+      for (( i = 0; i < total; i++ )); do verdicts[$i]=2; done
+      return 0
     fi
+    got[$i]=$v
+    n=$((n + 1))
+  done <"$JOBS/verdicts"
+  if (( n != total || ${#got[@]} != total )); then
+    echo "stamp check: verdicts for ${#got[@]} of $total jobs in $n lines, so every job runs and none records a stamp"
+    return 0
+  fi
+  for (( i = 0; i < total; i++ )); do verdicts[$i]=${got[$i]}; done
+}
+# shellcheck disable=SC2120  # its "$@" is each job's own command, set from cmds by eval
+start_jobs() {
+  read_verdicts
+  local n src name
+  for n in "${!names[@]}"; do
+    name="${names[$n]}"
+    src="${verdicts[$n]}"
+    # a current verdict without a saved snapshot is run, don't record
+    if (( src == 0 )) && [[ ! -s "$JOBS/$n.stamp" ]]; then src=2; fi
+    if (( src == 0 && ! STAMPS )); then src=1; fi       # FULL=1 or an audit run: run it, and record
+    if (( src == 1 && ! RECORD )); then src=2; fi       # a pull request run on main's stamps: run it, untraced
     if (( src == 0 )); then
       echo "$name: $SKIP_NOTE, skipped" >"$JOBS/$n.log"
       : >"$JOBS/$n.skip"
-      rc=0
-    else
+      pids[$n]=""
+      continue
+    fi
+    while (( $(jobs -rp | wc -l) >= MAX_JOBS )); do sleep 0.2; done
+    eval "set -- ${cmds[$n]}"
+    (
+      start=$SECONDS
+      pp_set=${PYTHONPATH+1}
+      pp=${PYTHONPATH-}
       if [[ -n "${CHECK_AUDIT:-}" ]]; then
         echo "$name" >"$CHECK_AUDIT/$n.name"
         export CHECK_AUDIT_LOG="$CHECK_AUDIT/$n.log" CHECK_AUDIT_ROOT="$ROOT" PYTHONPATH="$ROOT/tools/audit/stamp_audit${PYTHONPATH:+:$PYTHONPATH}"
@@ -187,31 +229,39 @@ later() {
       fi
       "$@" >"$JOBS/$n.log" 2>&1
       rc=$?
-      # a check that printed SKIPPED did not really run: no stamp (a unit job's output may quote the word)
-      # and a unit job whose output shows skipped tests (their conditions are not in the stamp)
-      if (( rc == 0 && src == 1 )) && [[ -s "$JOBS/$n.stamp" ]] && ! grep -q "skipped=" "$JOBS/$n.log" \
-         && { [[ "$name" == unit-* ]] || ! grep -q SKIPPED "$JOBS/$n.log"; }; then
-        # with the environment `current` had (PYTHONPATH is in the key), untraced
+      # A passing job records its stamp, except a check that printed SKIPPED (it did not really run; a unit job's
+      # output may quote the word). A unit job whose tests skipped records them: the trace hook logs each skipped
+      # test's id and reason, the stamp's key holds them, and the stamp helper refuses when the trace holds fewer
+      # skips than the output's skipped=N counts. Any other job whose output shows skipped= records nothing.
+      stampable=0
+      skip_count=()
+      if (( rc == 0 && src == 1 )) && [[ -s "$JOBS/$n.stamp" ]]; then
+        if [[ "$name" == unit-* ]]; then
+          stampable=1
+          skip_count=(--skipped "$(grep -o 'skipped=[0-9]*' "$JOBS/$n.log" | awk -F= '{ s += $2 } END { print s + 0 }')")
+        elif ! grep -q "skipped=" "$JOBS/$n.log" && ! grep -q SKIPPED "$JOBS/$n.log"; then
+          stampable=1
+        fi
+      fi
+      if (( stampable )); then
+        # with the environment the stamp check had (PYTHONPATH is in the key), untraced
         if [[ -n "$pp_set" ]]; then ppenv=(PYTHONPATH="$pp"); else ppenv=(-u PYTHONPATH); fi
-        env -u HART_TRACE_LOG -u HART_TRACE_SPAWN -u CHECK_AUDIT_LOG "${ppenv[@]}" ${STAMP_ENV[@]+"${STAMP_ENV[@]}"} python3 tools/audit/check_stamps.py record "$name" "$JOBS/$n.stamp" --trace "$HART_TRACE_LOG" >>"$JOBS/$n.stamplog" 2>&1
+        env -u HART_TRACE_LOG -u HART_TRACE_SPAWN -u CHECK_AUDIT_LOG "${ppenv[@]}" ${STAMP_ENV[@]+"${STAMP_ENV[@]}"} python3 tools/audit/check_stamps.py record "$name" "$JOBS/$n.stamp" --trace "$HART_TRACE_LOG" ${skip_count[@]+"${skip_count[@]}"} >>"$JOBS/$n.stamplog" 2>&1
       fi
       if [[ -s "$JOBS/$n.stamplog" ]]; then { echo "--- stamps ($name):"; cat "$JOBS/$n.stamplog"; } >>"$JOBS/$n.log"; fi
-    fi
-    echo "$((SECONDS - start))" >"$JOBS/$n.time"
-    exit "$rc"
-  ) &
-  pids+=("$!")
-  names+=("$name")
+      echo "$((SECONDS - start))" >"$JOBS/$n.time"
+      exit "$rc"
+    ) &
+    pids[$n]=$!
+  done
 }
 collect() {
   local i took skipped=0
   for i in "${!names[@]}"; do
-    if wait "${pids[$i]}"; then
-      if [[ -e "$JOBS/$i.skip" ]]; then
-        skipped=$((skipped + 1))
-      else
-        echo "--- ${names[$i]} ($(cat "$JOBS/$i.time")s)"
-      fi
+    if [[ -e "$JOBS/$i.skip" ]]; then
+      skipped=$((skipped + 1))
+    elif wait "${pids[$i]}"; then
+      echo "--- ${names[$i]} ($(cat "$JOBS/$i.time")s)"
     else
       fail=1
       took="$(cat "$JOBS/$i.time" 2>/dev/null)" || took="killed before it finished, no "
@@ -429,6 +479,7 @@ elif [[ "${PORTAL_CHECK:-}" != 1 && "$portal_rc" -eq 3 ]]; then
 else
   later portal python3 www/scripts/check_portal_build.py
 fi
+start_jobs
 collect
 if [[ "$fail" -eq 0 ]]; then echo "ALL PASSED"; else echo "FAILED"; fi
 exit "$fail"

@@ -122,7 +122,9 @@ class DeclarationTest(unittest.TestCase):
     def test_a_bad_table_entry_is_a_clear_error(self) -> None:
         for table, entry in ((cs.EXTRA, {"no-such-kind test_x": ("a",)}), (cs.LISTED_ONLY, {"unit-guards": ("a",)}),
                              (cs.RUNS_JOBS, {"unit-guards test_x": ("unit-guards test_check_stamps",)}),
-                             (cs.RUNS_JOBS, {"unit-guards test_x": ("portal skipped in CI",)})):
+                             (cs.RUNS_JOBS, {"unit-guards test_x": ("portal skipped in CI",)}),
+                             (cs.REFS_OF, {"unit-guards test_x": ("tip",)}),
+                             (cs.REFS_OF, {"portal skipped in CI": ("head",)})):
             with self.subTest(entry=entry), unittest.mock.patch.dict(table, entry):
                 with self.assertRaises(ValueError):
                     cs.check_tables()
@@ -148,7 +150,7 @@ class StoreTest(unittest.TestCase):
         self.assertEqual(ignored.returncode, 0, "the stamp folder is not git-ignored")
 
 
-class StampTest(unittest.TestCase):
+class RepoCase(unittest.TestCase):
     """A fake repo with a store of its own; the job is a script run under the real trace hook."""
 
     JOB = "open('tools/x/tests/test_a.py').read()\n"
@@ -169,21 +171,23 @@ class StampTest(unittest.TestCase):
         patch.start()
         self.addCleanup(patch.stop)
 
-    def run_job(self, code: str | None = None) -> Path:
+    def run_job(self, code: str | None = None, script: str = "job.py") -> Path:
         log = self.tmp / "trace.log"
         log.write_text("0\tb\n")
-        (self.root / "job.py").write_text(code or self.JOB)
+        (self.root / script).write_text(code or self.JOB)
         env = {k: v for k, v in os.environ.items() if not k.startswith("HART_TRACE")}
         env.update(HART_TRACE_LOG=str(log), HART_TRACE_ROOT=str(self.root), PYTHONPATH=cs.traced.HOOK_DIR)
-        subprocess.run([sys.executable, "job.py"], cwd=self.root, env=env, check=True, capture_output=True)
+        subprocess.run([sys.executable, script], cwd=self.root, env=env, check=True, capture_output=True)
         return log
 
-    def record(self, name: str = "unit-hartlib", code: str | None = None) -> str | None:
-        return cs.record(name, self.run_job(code), self.root, self.store)
+    def record(self, name: str = "unit-hartlib", code: str | None = None, script: str = "job.py") -> str | None:
+        return cs.record(name, self.run_job(code, script), self.root, self.store)
 
     def current(self, name: str = "unit-hartlib") -> bool:
         return cs.is_current(name, self.root, self.store)
 
+
+class StampTest(RepoCase):
     def test_hit_after_record_and_miss_after_a_file_it_read_changes(self) -> None:
         self.assertFalse(self.current())
         self.assertIsNone(self.record())
@@ -271,6 +275,286 @@ class StampTest(unittest.TestCase):
         self.assertFalse(self.current())
 
 
+class BatchTest(RepoCase):
+    """current-batch checks every job in one process with one Checker (shared hash cache, git, plugin state, walks and
+    snapshots); each job alone gets a Checker of its own, as one `current` process per job did. Both must give the same
+    verdict, reason and snapshot for every job, whatever changed."""
+
+    SHELL = RepoCase.JOB + "import subprocess\nsubprocess.run(['sh', '-c', 'true'])\n"
+    NAMES = ["unit-hartlib", "unit-mimic", "static", "unit-hosts test_redeploy_commit", "unit-jmri test_x",
+             "unit-hart-ops skipped (no ops/hart-ops/.venv)"]
+
+    def setUp(self) -> None:
+        super().setUp()
+        patch = unittest.mock.patch.object(cs.ps, "unstampable", return_value=None)
+        self.unstampable = patch.start()
+        self.addCleanup(patch.stop)
+        self.record("unit-hartlib")
+        self.record("unit-mimic")
+        # an untraceable program: the declaration (every file for static, CODE for unit-jmri)
+        self.record("static", code=self.SHELL, script="shell_job.py")
+        self.record("unit-jmri test_x", code=self.SHELL, script="shell_job.py")
+        # unit-hosts test_redeploy_commit has no stamp; the placeholder is not stampable
+
+    def alone(self) -> list[tuple[int, str | None, str | None]]:
+        out = []
+        for i, name in enumerate(self.NAMES):
+            save = self.tmp / f"alone-{i}.stamp"
+            save.unlink(missing_ok=True)
+            ck = cs.Checker(self.root, self.store)
+            try:
+                code, reason = cs.verdict(name, ck, save)
+            finally:
+                ck.cache.save()
+            out.append((code, reason, save.read_text() if save.exists() else None))
+        return out
+
+    def batch(self) -> list[tuple[int, str | None, str | None]]:
+        folder = Path(tempfile.mkdtemp(dir=self.tmp))
+        codes = cs.current_batch(self.NAMES, folder, True, self.root, self.store)
+        lines = (folder / "verdicts").read_text().splitlines()
+        self.assertEqual(lines, [f"{i}\t{c}" for i, c in enumerate(codes)])
+        out = []
+        for i, code in enumerate(codes):
+            log, stamp = folder / f"{i}.stamplog", folder / f"{i}.stamp"
+            reason = log.read_text().removeprefix("runs: ").removesuffix("\n") if log.exists() else None
+            out.append((code, reason, stamp.read_text() if stamp.exists() else None))
+        return out
+
+    def same(self, want: list[int]) -> list[tuple[int, str | None, str | None]]:
+        alone, batch = self.alone(), self.batch()
+        self.assertEqual(batch, alone)
+        self.assertEqual([v[0] for v in batch], want)
+        return batch
+
+    def test_no_change(self) -> None:
+        got = self.same([0, 0, 0, 1, 0, 2])
+        self.assertEqual(got[3][1], "no stamp")
+        self.assertIn("not a stampable job", got[5][1])
+        self.assertIsNone(got[5][2], "no snapshot for a job that is not stampable")
+
+    def test_an_edit_to_a_file_the_jobs_read(self) -> None:
+        (self.root / "tools/x/tests/test_a.py").write_text("v2\n")
+        self.same([1, 1, 1, 1, 1, 2])
+
+    def test_an_edit_only_the_declarations_cover(self) -> None:
+        """The jobs that ran an untraceable program fall back to their declarations; the traced ones did not read it."""
+        (self.root / "www/index.html").write_text("v2\n")           # in static's declaration, not in CODE
+        self.same([0, 0, 1, 1, 0, 2])
+        (self.root / "jmri/layouts/hart/data/switches.csv").write_text("v2\n")
+        self.same([0, 0, 1, 1, 1, 2])
+
+    def test_a_missing_stamp(self) -> None:
+        cs._file("unit-mimic", self.store).unlink()
+        self.assertEqual(self.same([0, 1, 0, 1, 0, 2])[1][1], "no stamp")
+
+    def test_a_plugin_change(self) -> None:
+        cs.ps.plugin_state.return_value = "another plugin commit"
+        self.same([1, 1, 1, 1, 1, 2])
+
+    def test_nothing_is_stampable_while_the_tables_or_plugin_say_so(self) -> None:
+        self.unstampable.return_value = "HART_TABLES is set (x): the steps run on another tables file"
+        got = self.same([2, 2, 2, 2, 2, 2])
+        self.assertTrue(all(v[2] is None for v in got))
+
+    def test_a_failure_part_way_gives_no_verdicts(self) -> None:
+        folder = Path(tempfile.mkdtemp(dir=self.tmp))
+        real = cs.why_not_current
+
+        def fail_on_mimic(name, *args, **kwargs):
+            if name == "unit-mimic":
+                raise OSError("disk gone")
+            return real(name, *args, **kwargs)
+        with unittest.mock.patch.object(cs, "why_not_current", side_effect=fail_on_mimic):
+            with self.assertRaisesRegex(cs.BatchError, r"job 1 \(unit-mimic\): OSError: disk gone"):
+                cs.current_batch(self.NAMES, folder, False, self.root, self.store)
+        self.assertFalse((folder / "verdicts").exists())
+
+    def test_the_names_and_the_folder_are_checked_first(self) -> None:
+        names = self.tmp / "names"
+        for text, says in (("", "names no job"), ("unit-mimic\n\nunit-hartlib\n", "line 2"),
+                           (" unit-mimic\n", "line 1")):
+            with self.subTest(text=text):
+                names.write_text(text)
+                with self.assertRaisesRegex(cs.BatchError, says):
+                    cs.read_names(names)
+        names.write_text("unit-mimic\nunit-cats\n")
+        self.assertEqual(cs.read_names(names), ["unit-mimic", "unit-cats"])
+        with self.assertRaisesRegex(cs.BatchError, "cannot read"):
+            cs.read_names(self.tmp / "absent")
+        with self.assertRaisesRegex(cs.BatchError, "is not a folder"):
+            cs.current_batch(["unit-mimic"], self.tmp / "absent", False, self.root, self.store)
+
+    def test_the_command_line(self) -> None:
+        """`current` per job and one `current-batch`, as processes in this checkout with a scratch store."""
+        names = ["unit-mimic", "unit-cats", "unit-hart-ops skipped (no ops/hart-ops/.venv)"]
+        env = {k: v for k, v in os.environ.items() if not k.startswith(("HART_TRACE", "HART_TABLES"))}
+        env["CHECK_STAMPS_DIR"] = str(self.store)
+        tool = [sys.executable, str(REPO / "tools/audit/check_stamps.py")]
+
+        def run(*args: str) -> subprocess.CompletedProcess:
+            return subprocess.run([*tool, *args], cwd=REPO, env=env, capture_output=True, text=True, timeout=120)
+        alone = [run("current", n, "--why").returncode for n in names]
+        folder = self.tmp / "cli"
+        folder.mkdir()
+        (self.tmp / "names").write_text("".join(n + "\n" for n in names))
+        done = run("current-batch", str(self.tmp / "names"), str(folder), "--why")
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertEqual((folder / "verdicts").read_text(), "".join(f"{i}\t{c}\n" for i, c in enumerate(alone)))
+        for args in (("current-batch", str(self.tmp / "names"), str(self.tmp / "nowhere")),
+                     ("current-batch", str(self.tmp / "no-names"), str(folder))):
+            with self.subTest(args=args[1:]):
+                done = run(*args)
+                self.assertEqual(done.returncode, 3)
+                self.assertRegex(done.stderr, r"^check_stamps.py current-batch: ")
+                self.assertNotIn("Traceback", done.stderr)
+        done = run("record", "unit-mimic", str(folder / "0.stamp"), "--trace", "x", "--skipped", "two")
+        self.assertEqual(done.returncode, 2)
+        self.assertIn("--skipped takes a count", done.stdout)
+
+
+class SkipStampTest(RepoCase):
+    """A unit job whose tests skipped records its stamp with the skipped tests' ids and reasons in its key; what they
+    skipped on (here a tool shutil.which does not find) is an input like any read file."""
+
+    TESTS = ("import shutil, unittest\n"
+             "TOOL = shutil.which('hart-no-such-tool')\n\n"
+             "class S(unittest.TestCase):\n"
+             "    @unittest.skipUnless(TOOL, 'no hart-no-such-tool')\n"
+             "    def test_needs_the_tool(self):\n"
+             "        pass\n\n"
+             "    def test_plain(self):\n"
+             "        open('tools/x/tests/test_a.py').read()\n")
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.bin = self.tmp / "bin"
+        self.bin.mkdir()
+        patch = unittest.mock.patch.dict(os.environ, {"PATH": f"{self.bin}{os.pathsep}{os.environ.get('PATH', '')}"})
+        patch.start()
+        self.addCleanup(patch.stop)
+        (self.root / "tools/x/tests/test_s.py").write_text(self.TESTS)
+
+    def run_tests(self) -> tuple[Path, str]:
+        log = self.tmp / "trace.log"
+        log.write_text("0\tb\n")
+        env = {k: v for k, v in os.environ.items() if not k.startswith("HART_TRACE")}
+        env.update(HART_TRACE_LOG=str(log), HART_TRACE_ROOT=str(self.root), PYTHONPATH=cs.traced.HOOK_DIR)
+        done = subprocess.run([sys.executable, "-m", "unittest", "discover", "-b", "-q", "-s", "tools/x/tests",
+                               "-p", "test_s.py"], cwd=self.root, env=env, capture_output=True, text=True, check=True)
+        return log, done.stderr
+
+    def test_a_job_with_a_skipped_test_records_and_reruns_when_the_tool_appears(self) -> None:
+        log, out = self.run_tests()
+        self.assertIn("OK (skipped=1)", out)
+        self.assertIsNone(cs.record("unit-guards test_s", log, self.root, self.store, skipped=1))
+        stamp = cs.traced.load(cs._file("unit-guards test_s", self.store))
+        self.assertEqual(stamp["skips"], [["test_s.S.test_needs_the_tool", "no hart-no-such-tool"]])
+        self.assertTrue(self.current("unit-guards test_s"))
+        (self.bin / "hart-no-such-tool").write_text("#!/bin/sh\n")
+        (self.bin / "hart-no-such-tool").chmod(0o755)
+        self.assertIn("hart-no-such-tool", cs.why_not_current("unit-guards test_s", self.root, self.store))
+
+    def test_an_edit_still_reruns_it(self) -> None:
+        log, _ = self.run_tests()
+        self.assertIsNone(cs.record("unit-guards test_s", log, self.root, self.store, skipped=1))
+        (self.root / "tools/x/tests/test_a.py").write_text("v2\n")
+        self.assertFalse(self.current("unit-guards test_s"))
+
+    def test_the_key_holds_which_tests_skipped_and_why(self) -> None:
+        log, _ = self.run_tests()
+        self.assertIsNone(cs.record("unit-guards test_s", log, self.root, self.store, skipped=1))
+        path = cs._file("unit-guards test_s", self.store)
+        good = cs.traced.load(path)
+        for skips in ([["test_s.S.test_needs_the_tool", "another reason"]],
+                      [["test_s.S.test_plain", "no hart-no-such-tool"]],
+                      [*good["skips"], ["test_s.S.test_plain", "no hart-no-such-tool"]]):
+            with self.subTest(skips=skips):
+                cs.traced.save(path, {**good, "skips": skips})
+                self.assertIn("the code, command", cs.why_not_current("unit-guards test_s", self.root, self.store))
+        ck = cs.Checker(self.root, self.store)
+        self.assertEqual(cs.key("unit-mimic", ck, [], []), cs.key("unit-mimic", ck, [], [], skips=[]),
+                         "a job with no skips keeps the key it had")
+
+    def test_fewer_skips_in_the_trace_than_the_output_shows_records_nothing(self) -> None:
+        log, _ = self.run_tests()
+        self.assertIsNone(cs.record("unit-guards test_s", log, self.root, self.store, skipped=1))
+        reason = cs.record("unit-guards test_s", log, self.root, self.store, skipped=2)
+        self.assertIn("the output shows 2 skipped tests and the trace holds 1", reason)
+        self.assertFalse(self.current("unit-guards test_s"), "the old stamp is dropped")
+
+
+class GitRefsTest(RepoCase):
+    def git(self, *args: str) -> None:
+        subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@example.com", *args], cwd=self.root,
+                       check=True, capture_output=True)
+
+    def test_the_redeploy_job_reruns_when_head_moves(self) -> None:
+        """test_redeploy_commit's deploy script (bash) stages HEAD and checks origin/main, which no trace sees."""
+        self.git("init", "-q")
+        self.git("add", "-A")
+        self.git("commit", "-q", "-m", "one")
+        name = "unit-hosts test_redeploy_commit"
+        ck = cs.Checker(self.root, self.store)
+        state = cs.outside_state(name, ck)
+        for ref in ("head=", "base=", "origin="):
+            self.assertRegex(state, f"(?m)^{ref}")
+        self.assertNotRegex(cs.outside_state("static", ck), "(?m)^origin=")
+        self.assertNotRegex(cs.outside_state("unit-mimic", ck), "(?m)^(head|base|origin)=")
+        self.assertIsNone(self.record(name))
+        self.assertTrue(self.current(name))
+        self.git("commit", "-q", "--allow-empty", "-m", "two")
+        self.assertFalse(self.current(name))
+
+
+class CheckShVerdictsTest(unittest.TestCase):
+    """check.sh's read_verdicts, with a stand-in python3: the batch's answers count only when it exits 0 and answers
+    once for each queued job; anything else runs every job, records no stamp, and says why."""
+
+    def verdicts(self, stub: str, stamps: str = "1") -> tuple[subprocess.CompletedProcess, str]:
+        start = CHECK_SH.index("read_verdicts() {")
+        block = CHECK_SH[start:CHECK_SH.index("\n}\n", start) + 3]
+        with tempfile.TemporaryDirectory() as d:
+            stub_dir = Path(d) / "bin"
+            stub_dir.mkdir()
+            (stub_dir / "python3").write_text('#!/bin/bash\ncp "$3" "$4/names.seen"\n' + stub)
+            (stub_dir / "python3").chmod(0o755)
+            (Path(d) / "jobs").mkdir()
+            script = (f"set -uo pipefail\nnames=(a 'b c' d)\nverdicts=()\nSTAMPS={stamps}\nRECORD={stamps}\n"
+                      f"STAMP_ENV=()\nSTAMP_WHY=()\nJOBS='{d}/jobs'\n{block}read_verdicts\n"
+                      'echo "VERDICTS=${verdicts[*]}"\n')
+            done = subprocess.run(["bash", "-c", script], env={**os.environ, "PATH": f"{stub_dir}:{os.environ['PATH']}"},
+                                  capture_output=True, text=True, timeout=30)
+            seen = Path(d) / "jobs/names.seen"
+            return done, seen.read_text() if seen.exists() else ""
+
+    def test_a_good_batch_gives_each_job_its_verdict(self) -> None:
+        done, names = self.verdicts("printf '0\\t0\\n1\\t1\\n2\\t2\\n' >\"$4/verdicts\"\n")
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertIn("VERDICTS=0 1 2", done.stdout)
+        self.assertEqual(names, "a\nb c\nd\n")
+        self.assertNotIn("every job runs", done.stdout)
+
+    def test_anything_else_runs_every_job_and_says_why(self) -> None:
+        for stub, says in (("echo 'job 1 (b c): OSError: disk gone' >&2\nexit 3\n", "OSError: disk gone"),
+                           ("exit 0\n", "wrote no verdicts"),
+                           ("printf '0\\t0\\n1\\t0\\n' >\"$4/verdicts\"\n", "verdicts for 2 of 3 jobs in 2 lines"),
+                           ("printf '0\\t0\\n0\\t0\\n1\\t0\\n' >\"$4/verdicts\"\n", "verdicts for 2 of 3 jobs in 3 lines"),
+                           ("printf '0\\t0\\n1\\tx\\n2\\t0\\n' >\"$4/verdicts\"\n", "no verdict of a queued job"),
+                           ("printf '0\\t0\\n1\\t0\\n5\\t0\\n' >\"$4/verdicts\"\n", "no verdict of a queued job")):
+            with self.subTest(says=says):
+                done, _ = self.verdicts(stub)
+                self.assertIn("VERDICTS=2 2 2", done.stdout)
+                self.assertIn(says, done.stdout)
+                self.assertIn("every job runs and none records a stamp", done.stdout)
+
+    def test_no_stamps_no_batch(self) -> None:
+        done, names = self.verdicts("exit 3\n", stamps="0")
+        self.assertIn("VERDICTS=2 2 2", done.stdout)
+        self.assertEqual(names, "", "the batch ran")
+        self.assertNotIn("every job runs", done.stdout)
+
+
 class AuditTest(unittest.TestCase):
     """Runs check.sh for the quick jobs under CHECK_AUDIT (tools/audit/stamp_audit, an independent hook) while they
     record their traced stamps into a scratch store, and fails for any repo file or folder the audit saw a job touch
@@ -294,10 +578,8 @@ class AuditTest(unittest.TestCase):
                 with self.subTest(job=name):
                     self.assertTrue(files, "the audit hook logged nothing")
                     stamp = cs.traced.load(cs._file(name, Path(f"{tmp}/stamps")))
-                    if stamp is None:
-                        # check.sh records nothing for a job that skipped tests (their conditions are not stamped)
-                        self.assertRegex(done.stdout, r"skipped=\d", f"{name} recorded no stamp")
-                        continue
+                    # a job whose tests skipped records too, with the skips in its key
+                    self.assertIsNotNone(stamp, f"{name} recorded no stamp:\n{done.stdout[-3000:]}")
                     verified += 1
                     # every sample job, traced or not: this test's own declaration is built from theirs (RUNS_JOBS)
                     self.assertEqual(cs.uncovered(name, files, dirs - {"tools/audit/stamp_audit"}), [])
@@ -310,7 +592,15 @@ class AuditTest(unittest.TestCase):
                     st = stamp["state"]
                     self.assertEqual(sorted(kept - set(st["files"])), [])
                     self.assertEqual(sorted(kept_dirs - set(st["dirs"]) - set(st["files"])), [])
-            self.assertGreaterEqual(verified, len(wanted) // 2, "too few audited jobs recorded a stamp to compare")
+            self.assertEqual(verified, len(wanted))
+            # the same jobs again, not audited: every one is current, checked in one stamp process and never started
+            env.pop("CHECK_AUDIT")
+            again = subprocess.run(["bash", str(REPO / "tools/check.sh")], cwd=REPO, env=env, capture_output=True,
+                                   text=True, timeout=900)
+            self.assertEqual(again.returncode, 0, again.stdout[-3000:] + again.stderr[-2000:])
+            for name in wanted:
+                self.assertIn(f"{name}: current, skipped", again.stdout)
+            self.assertIn(f"{len(wanted)} of {len(wanted)} jobs current, skipped", again.stdout)
 
 
 if __name__ == "__main__":

@@ -11,6 +11,7 @@ appends one line per event to the log ("<pid>\\t<kind>\\t<data>"):
     r  a file opened for reading (an import's .pyc counts as its source)      w  a file written, renamed or removed
     m  a file probed (opened or stat'ed) and not there                         p  a file or folder stat'ed and there
     d  a folder listed (listdir, scandir, glob)                                x  a subprocess spawned: token, cwd, argv
+    h  a shutil.which lookup on the starting PATH: the name, what it found      k  a unittest skip: the test's id, reason
     b  written by the runner, not the hook: one Python process it starts and expects to see a "s" line from
 
 Paths are relative to the repo root (HART_TRACE_ROOT) or absolute for files outside it. A spawn hands its child a
@@ -56,8 +57,16 @@ def install() -> bool:
     _write("s", f"{os.getppid()}\t{os.environ.get(TOKEN_ENV, '')}\t{now}\t{_words(argv)}")
     os.register_at_fork(after_in_child=_after_fork)
     _patch_stat()
+    _patch_which()
+    if _runs_unittest(argv):
+        _patch_skips()
     sys.addaudithook(_hook)
     return True
+
+
+def _runs_unittest(argv: list[str]) -> bool:
+    """Whether the process was started as `python ... -m unittest ...`."""
+    return any(a == "-m" and argv[i + 1:i + 2] == ["unittest"] for i, a in enumerate(argv))
 
 
 def _after_fork() -> None:
@@ -270,6 +279,43 @@ def _patch_stat() -> None:
     os.stat, os.lstat = wrap(real_stat), wrap(real_lstat)
 
 
+def _patch_which() -> None:
+    """shutil.which notes a lookup on the PATH the process started with ("h": the name, and what it found or nothing),
+    so a test that skips when a tool is missing (pwsh, flock) runs again once the tool is there. A lookup on another
+    PATH, with an explicit path or mode (a test's stub folder) is no input of the job and is not noted."""
+    import shutil
+    real, start_path = shutil.which, os.environ.get("PATH")
+
+    def which(cmd, mode=os.F_OK | os.X_OK, path=None):
+        found = real(cmd, mode, path)
+        try:
+            if path is None and mode == os.F_OK | os.X_OK and isinstance(cmd, str) \
+                    and os.environ.get("PATH") == start_path:
+                _write("h", _words([cmd, found or ""]))
+        except Exception:  # noqa: BLE001 - tracing must never break the traced program
+            pass
+        return found
+    which.__wrapped__ = real
+    which.__doc__ = real.__doc__
+    shutil.which = which
+
+
+def _patch_skips() -> None:
+    """In a `python -m unittest` process, every skip ("k": the test's id and the reason; a skipped class reports each
+    of its tests, a skipped class or module fixture reports itself once, as unittest does). tools/audit/check_stamps.py
+    puts them in the stamp's key, so a job whose tests skipped may record a stamp that says which and why."""
+    import unittest.result
+    real = unittest.result.TestResult.addSkip
+
+    def add_skip(self, test, reason):
+        try:
+            _write("k", _words([test.id(), str(reason)]))
+        except Exception:  # noqa: BLE001
+            pass
+        return real(self, test, reason)
+    unittest.result.TestResult.addSkip = add_skip
+
+
 def _note_probe(path, dir_fd, st) -> None:
     busy = _state["busy"]
     if getattr(busy, "on", False):
@@ -306,6 +352,8 @@ class Trace:
         self.start_argv: list[list[str]] = []                   # the argv of each start, in the same order
         self.spawns: list[tuple[int, str, str, list[str]]] = []  # pid, token, cwd, argv
         self.expected_roots = 0
+        self.skips: list[tuple[str, str]] = []                  # (test id, reason), one per skip reported
+        self.which: set[tuple[str, str]] = set()                # (name, what shutil.which found or "")
 
     @property
     def started_ns(self) -> int | None:
@@ -344,6 +392,10 @@ def parse(log: str | os.PathLike) -> Trace:
             t.listed_as.setdefault(rest[0], rest[1])
         elif kind == "p" and len(rest) == 2:
             t.present.setdefault(rest[1], rest[0])
+        elif kind == "k" and len(rest) == 2:
+            t.skips.append((rest[0], rest[1]))
+        elif kind == "h" and len(rest) == 2:
+            t.which.add((rest[0], rest[1]))
         elif rest:
             {"r": t.reads, "w": t.writes, "m": t.misses, "d": t.listed}.get(kind, set()).add(rest[0])
     return t
@@ -623,7 +675,8 @@ def changed_since(t: Trace, rs: dict[str, list[str]], root: str, extra_files=())
 
 def make_stamp(key: str, t: Trace, root: str, hasher=None, **meta) -> dict:
     rs = read_set(t, root)
-    return {"version": VERSION, "key": key, **meta, "state": hash_entries(rs, root, hasher)}
+    return {"version": VERSION, "key": key, **meta, "state": hash_entries(rs, root, hasher),
+            "which": [list(w) for w in sorted(t.which)]}
 
 
 def mismatch(stamp: dict | None, key: str, root: str, hasher=None) -> str | None:
@@ -632,6 +685,11 @@ def mismatch(stamp: dict | None, key: str, root: str, hasher=None) -> str | None
         return "no traced stamp"
     if stamp.get("key") != key:
         return "the code, command, interpreter, plugin or environment changed"
+    import shutil
+    for name, found in stamp.get("which") or ():
+        now = shutil.which(name) or ""
+        if now != found:
+            return f"shutil.which({name!r}) finds {now or 'nothing'} now, not {found or 'nothing'}"
     st = stamp.get("state") or {}
     rs = {k: sorted((st.get(k) or {})) for k in ("files", "missing", "dirs", "present")}
     now = hash_entries(rs, root, hasher)
