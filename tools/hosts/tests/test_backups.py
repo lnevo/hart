@@ -6,6 +6,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -164,6 +165,7 @@ class WinPush(Base):
 AGENTS = ROOT / "tools/hosts/backup_launchagents.sh"
 
 
+@unittest.skipUnless(sys.platform == "darwin", "LaunchAgents, plutil and BSD date are macOS only; the jobs run on the Mac")
 class LaunchAgents(Base):
     def test_both_plists_are_valid_and_run_the_main_checkouts_scripts(self) -> None:
         r = self.run_script(AGENTS)  # no command: usage

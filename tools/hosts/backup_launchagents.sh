@@ -14,6 +14,7 @@
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
+source "$HERE/../env/load_env.sh"  # every hosts script reads the same settings (test_load_env)
 MAIN="$(dirname "$(git -C "$HERE" rev-parse --path-format=absolute --git-common-dir)")"
 ROOT="${HART_BACKUP_DIR:-$HOME/Backups/hart}"
 AGENTS="$HOME/Library/LaunchAgents"
