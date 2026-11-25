@@ -42,4 +42,16 @@ It finds sidecars with `git ls-files` (tracked, or untracked and not ignored) an
 
 - `jmri/layouts/hart/data/devices.columns.csv`: the device pair `devices_generated.csv` and `devices_field.csv`. Keys: `level` and `id` on rows with a level, `layer` and `user_name` on a Store's level-less rows. Its `cp`, `blocks`, `protects`, `part_of`, `facing` and `switch` must name stations, control points, devices and switches that exist.
 - `jmri/layouts/hart/data/switches.columns.csv`: `switches.csv`. Keys: `half` on main and upper, `os_block` on staging. Staging's legs and ids must name devices that exist, and an `owner` hand must be given.
+- `ops/hart-ops/data/industries.columns.csv`: `industries.csv`, the industry master. Key: `industry_id`.
+- `ops/hart-ops/data/spot_assignments.columns.csv`: `spot_assignments.csv`, the spot master. Key: `industry_id` and `Spot #`. `industry_id` must be in `industries.csv`.
+- `ops/hart-ops/data/HART_Spot_Waybills.columns.csv`: `HART_Spot_Waybills.csv`. Key: `card_id`. `traffic` is `industry` or `interchange` (a car going straight between Scully Yard and Demmler Yard); `industry_id` is required on industry traffic and must be in `industries.csv`, and `usage` must be a usage in `spot_assignments.csv`.
 - `ops/hart-ops/data/locos.columns.csv`: the loco master `locos.csv`. Key: `road_name` and `road_number`. `roster_id` is formatted from them (`CSX 2121`, `locos.loco_roster_id`), and the check fails one that is not. `loco_type` is `Diesel`, `Steam` or `Electric`. `tools/ops/check_locos.py` (the `loco-refs` step) checks that both Operations Pro engine rosters and the train list name only locos in it.
+
+`www/scripts/tests/test_industry_ids.py` checks what a ref cannot: that each spot and waybill's name matches its `industry_id`, that a waybill's spots are spots of its industry, and that `www/data/industries.json` lists each industry once, under its `public_name`, `slug` and `blurb`, with the waybill count and commodities of its waybills. Its one interchange entry has no `industry_id` and carries `category: "interchange"`.
+
+### Owner decisions (2026-11-25) and what is left
+
+- `name` is the Operations Pro spelling (`A. Stucki Co.`, `Ferrellgas`). The name columns of `spot_assignments.csv` and `HART_Spot_Waybills.csv` keep the old spellings (`A Stucki Co`, `Ferrel Gas`), because the STS seed in `external/sts-helpers` has them in its code. One later follow-up renames them together with sts-helpers and deletes the test's alias list.
+- Interchange is a kind of traffic, not an industry, so it has no row. Its site entry keeps the `scully` anchor for now.
+- `blurb` is copied from `www/data/industries.json` as it stands; lane L5 settles the text. Where it differs from the Operator Sheet's traffic lines: the Aristech blurb says resins and monomers arrive and the Neville Island Turn works the plant, but the sheet says pellets and process chemicals arrive, resins leave, and NVL serves the plant. The Ferrellgas blurb says LPG moves in and out, but the sheet says LPG comes in and empty tanks go out.
+- `generate_waybill_cards.py` renumbers `card_id` from 1 when it runs and rewrites `HART_Spot_Waybills.csv`, so it is not to be run against the master until a later decision. Live waybills and the print queue are tracked in STS.

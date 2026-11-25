@@ -1,7 +1,8 @@
 """tools/hosts/deploy/ci_pass.py: the gate skips G4 only on CI's full passing check.sh run for the exact commit shipped.
 
 Each test builds a throwaway git repo (its origin a GitHub URL) and answers gh with canned GitHub API replies; nothing
-reaches GitHub. The replies follow the shapes of a real main push run (2026-11-24, run 45488560774).
+reaches GitHub. The API replies follow the shapes of a real main push run (2026-11-24, run 45488560774); the job
+log is a real one (fixtures/ci_pass/main_pass.txt, run 45712383076) and edited copies of it, one failure each.
 """
 from __future__ import annotations
 
@@ -37,28 +38,24 @@ def git(repo: Path, *args: str) -> str:
                           capture_output=True, text=True, check=True).stdout.strip()
 
 
-def log_text(env: dict[str, str] | None = None, out: list[str] | None = None) -> str:
-    """A job log as GitHub serves it: a timestamp on every line, the check.sh step's group with its env block."""
-    env = {"SCHEMATIC_REQUIRED": "1", "CHECK_SKIP_FROM": "", "CHECK_SKIP_NOTE": "",
-           "CHECK_RECORD_TO": "/home/runner/work/repo/repo/.cache/ci/main-stamps"} if env is None else env
-    out = [
-        "--- panels (20s)",
-        "--- tables-browser",
-        "--- tables",
-        "plugin: submodule at 19261998",
-        "ok: jmri/layouts/hart/output/tables.xml current (69 signal mast logics, 1 digicon masts)",
-        "--- levels-svg",
-        "levels_svg: SKIPPED, the plan is not on this machine",
-        "--- unit-hosts (40s)",
-        "1 job(s) printed SKIPPED and checked only part of their inputs: levels-svg",
-        "ALL PASSED",
-    ] if out is None else out
-    lines = ["##[group]Run actions/checkout@v4", "##[endgroup]",
-             "##[group]Run ./tools/check.sh", "\x1b[36;1m./tools/check.sh\x1b[0m", "shell: /usr/bin/bash -e {0}", "env:",
-             *(f"  {k}: {v}" for k, v in env.items()), "##[endgroup]", *out,
-             "##[group]Run python3 tools/ci/stamp_gate.py manifest .cache/ci/main-stamps --sha \"$GITHUB_SHA\"",
-             "##[endgroup]"]
-    return "\n".join(f"2026-11-24T21:14:52.{i:07d}Z {line}" for i, line in enumerate(lines)) + "\n"
+FIXTURES = Path(__file__).resolve().parent / "fixtures/ci_pass"
+# The plugin commit main pinned at 85a4c80d, the commit of the real log in main_pass.txt (its tables step printed
+# "plugin: submodule at 09bcf066"); each test repo pins it too.
+PIN = "09bcf066d71545fb2081e89fce5bb7e75bac1e79"
+
+
+def fixture(name: str) -> str:
+    """A job log as GitHub serves it. main_pass.txt is check.yml run 45712383076 (job 139549798008, push of 85a4c80d to
+    main, 2026-11-25), trimmed to the check.sh step's env block, the panels job and a few after it, and the step's
+    last lines; the others are edited copies of it, one failure each."""
+    return (FIXTURES / name).read_text(encoding="utf-8")
+
+
+def edited(old: str, new: str, name: str = "main_pass.txt") -> str:
+    """The fixture with `old` (which must be in it, once) replaced by `new`."""
+    text = fixture(name)
+    assert text.count(old) == 1, f"{name} holds {text.count(old)} copies of {old!r}, not one"
+    return text.replace(old, new)
 
 
 class FakeGitHub:
@@ -73,7 +70,7 @@ class FakeGitHub:
             "steps": [{"name": "Run ./tools/check.sh", "conclusion": "success"},
                       {"name": "Save the check stamps for pull requests on this commit", "conclusion": "success"}]}]}
         self.caches = {"total_count": 1, "actions_caches": [{"key": f"check-stamps-{sha}", "ref": "refs/heads/main"}]}
-        self.log = log_text()
+        self.log = fixture("main_pass.txt")
         self.fail: dict[str, Exception] = {}
 
     def run(self, **over) -> dict:
@@ -99,7 +96,9 @@ class CiPassTest(unittest.TestCase):
         self.repo = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.repo, True)
         git(self.repo, "init", "-q", "-b", "main")
-        git(self.repo, "commit", "-q", "--allow-empty", "-m", "first")
+        git(self.repo, "update-index", "--add", "--cacheinfo", f"160000,{PIN},{ci_pass.PLUGIN}")
+        git(self.repo, "commit", "-q", "-m", "first, pinning the plugin")
+        (self.repo / ci_pass.PLUGIN).mkdir(parents=True)     # an unpopulated submodule: git status lists nothing
         git(self.repo, "remote", "add", "origin", f"https://github.com/{SLUG}.git")
         self.sha = git(self.repo, "rev-parse", "HEAD")
         self.gh = FakeGitHub(self.sha)
@@ -183,30 +182,66 @@ class CiPassTest(unittest.TestCase):
 
     # ---- a partial run ----
 
+    def test_the_real_main_log_passes(self) -> None:
+        """The log of a real passing push run of main (main_pass.txt) is a pass: the check reads check.sh as it
+        prints today, not a shape of its own."""
+        ci_pass.check_log(fixture("main_pass.txt"), PIN)
+
     def test_a_partial_or_skipping_run_does_not_count(self) -> None:
-        base = {"CHECK_SKIP_FROM": "", "CHECK_RECORD_TO": "/stamps"}
-        for env, text in (({**base, "CHECK_ONLY": "unit-"}, "CHECK_ONLY: a partial run"),
-                          ({**base, "CHECK_SKIP_FROM": "/old"}, "skipped jobs on older stamps"),
-                          ({**base, "CHECK_RECORD_TO": ""}, "recorded no stamps"),
-                          ({"CHECK_SKIP_FROM": ""}, "recorded no stamps")):
-            with self.subTest(env=env):
-                self.gh.log = log_text(env=env)
+        record = "  CHECK_RECORD_TO: /home/runner/work/hart/hart/.cache/ci/main-stamps"
+        cases = (
+            (edited("  CHECK_SKIP_NOTE: \n", "  CHECK_SKIP_NOTE: \n  CHECK_ONLY: unit-\n"), "CHECK_ONLY: a partial run"),
+            (edited(record, "  CHECK_RECORD_TO: "), "recorded no stamps"),
+            (edited(record, "  NOT_RECORDING: 1"), "recorded no stamps"),
+            (fixture("pr_skip_from.txt"), "skipped jobs on older stamps (CHECK_SKIP_FROM set)"),
+            (fixture("schematic_not_required.txt"), "SCHEMATIC_REQUIRED '0', not 1 as G4 runs"),
+        )
+        for log, text in cases:
+            with self.subTest(text=text):
+                self.gh.log = log
                 self.assert_runs_g4(text)
 
-    def test_a_run_that_did_not_check_the_tables_does_not_count(self) -> None:
+    def test_a_run_that_did_not_run_g4s_tables_check_does_not_count(self) -> None:
+        """G4 is build_tables.py --check with the plugin at its pin: the panels job's tables step must show it ran
+        and passed. Each fixture is the real log with one thing wrong."""
         cases = (
-            (["--- panels (20s)", "ALL PASSED"], "0 '--- tables' checks"),
-            (["panels: current, skipped", "--- tables", "ok: jmri/layouts/hart/output/tables.xml current (1)",
-              "ALL PASSED"], "no run of the panels job"),
-            (["--- panels (2s)", "--- tables", "SKIPPED tables check: no plugin", "ALL PASSED"], "printed SKIPPED"),
-            (["--- panels (2s)", "--- tables", "STALE: tables.xml", "ALL PASSED"], "did not print that tables.xml is current"),
-            (["--- panels (2s)", "--- tables", "ok: jmri/layouts/hart/output/tables.xml current (1)", "FAILED"],
-             "no ALL PASSED line"),
+            (fixture("panels_missing.txt"), "0 '--- panels (Ns)' job headings, not one"),
+            (fixture("panels_current_on_main.txt"), "skipped the panels job (current on older stamps)"),
+            (fixture("tables_step_skipped.txt"), "tables step was skipped or failed: tables: current, skipped"),
+            (fixture("tables_plugin_skipped.txt"), "tables step was skipped or failed: SKIPPED tables check"),
+            (fixture("tables_other_plugin.txt"), "did not draw with the commit's plugin pin 09bcf066 (it printed "
+                                                 "'plugin: /tmp/other-plugin (SCHEMATIC_PLUGIN)')"),
+            (fixture("truncated.txt"), "does not end ALL PASSED (last line 'plugin: submodule at 09bcf066')"),
+            (edited("ALL PASSED", "FAILED"), "does not end ALL PASSED (last line 'FAILED')"),
+            (edited("--- panels (69s)", "--- panels FAILED (69s)"), "its panels job FAILED"),
+            (edited("--- panels (69s)", "--- panels (69s)\n--- panels (1s)"), "2 '--- panels (Ns)' job headings"),
+            (edited("all current\n", "stale or failed: cats\n"), "did not end 'all current'"),
+            (edited("== tables\n", "== tables-renamed\n"), "0 '== tables' steps, not one"),
+            (edited("   tables: ok, 3 s", "   tables: done"), "did not end 'tables: ok'"),
+            (edited("ok: jmri/layouts/hart/output/tables.xml current (", "STALE ("),
+             "did not print that tables.xml is current"),
         )
-        for out, text in cases:
+        for log, text in cases:
             with self.subTest(text=text):
-                self.gh.log = log_text(out=out)
+                self.gh.log = log
                 self.assert_runs_g4(text)
+
+    def test_a_commit_with_another_plugin_pin_does_not_count(self) -> None:
+        """CI drew with 09bcf066; a commit pinning another plugin is not what that log checked."""
+        other = "a" * 40
+        git(self.repo, "update-index", "--cacheinfo", f"160000,{other},{ci_pass.PLUGIN}")
+        git(self.repo, "commit", "-q", "-m", "another pin")
+        self.sha = git(self.repo, "rev-parse", "HEAD")
+        self.gh = FakeGitHub(self.sha)
+        self.assert_runs_g4("did not draw with the commit's plugin pin aaaaaaaa")
+
+    def test_a_commit_that_pins_no_plugin_does_not_count(self) -> None:
+        git(self.repo, "rm", "-q", "--cached", ci_pass.PLUGIN)
+        git(self.repo, "commit", "-q", "-m", "no plugin")
+        self.sha = git(self.repo, "rev-parse", "HEAD")
+        self.gh = FakeGitHub(self.sha)
+        self.assert_runs_g4("the commit pins no schematic-maps plugin at external/model-railroad-skills (no entry)")
+        self.assertEqual([], self.gh.calls, "asked GitHub about a commit G4 cannot check")
 
     # ---- unreadable ----
 

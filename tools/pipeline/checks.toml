@@ -651,6 +651,9 @@ inputs = [
   { path = "jmri/layouts/hart/data/switches.csv", label = "rules", side = "check" },
   { path = "jmri/layouts/hart/data/schematic/stations.csv", label = "refs", side = "check" },
   { path = "jmri/layouts/hart/data/schematic/interlockings.csv", label = "refs", side = "check" },
+  { path = "ops/hart-ops/data/industries.csv", label = "rules", side = "check" },
+  { path = "ops/hart-ops/data/spot_assignments.csv", label = "rules", side = "check" },
+  { path = "ops/hart-ops/data/HART_Spot_Waybills.csv", label = "rules", side = "check" },
   { path = "ops/hart-ops/data/locos.csv", label = "rules", side = "check" },
 ]
 # the sidecars it lists (check_data.SCAN_GLOBS)
