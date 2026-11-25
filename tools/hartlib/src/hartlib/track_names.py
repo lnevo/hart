@@ -114,19 +114,19 @@ def repo_inputs(data: Path) -> Path:
 
 
 def owner_names(data: Path = SCHEMATIC) -> dict[tuple[str, str], str]:
-    """{(level, block id): name without "Track "} of every block row of devices_field.csv (beside `data`) that has an
-    id. TrackNameError on a missing file, a row with an id that is not a block ID or a name not "Track <name>"."""
+    """{(level, block id): name without "Track "} of every block row of devices_field.csv (beside `data`) whose id is a
+    track's (block:...) and that gives a user name. Since naming-layers step 4 every field row is keyed by its id, so
+    an OS block's row (os:...) is there too and is no track. TrackNameError on a missing file or a track name not
+    "Track <name>"."""
     path = _beside(Path(data).parent, FIELD_FILE, "the owner's rows")
     out, bad = {}, []
     with path.open(newline="", encoding="utf-8") as fh:
         for i, r in enumerate(csv.DictReader(fh), 2):
             rid = (r.get("id") or "").strip()
-            if not rid or r.get("layer") != "block":
-                continue
             name = r.get("user_name") or ""
-            if not rid.startswith("block:"):
-                bad.append(f"line {i}: id {rid!r} of block {name!r} is no track ID (block:...)")
-            elif not name.startswith(TRACK_PREFIX) or not name[len(TRACK_PREFIX):].strip():
+            if not rid.startswith("block:") or r.get("layer") != "block" or not name:
+                continue
+            if not name.startswith(TRACK_PREFIX) or not name[len(TRACK_PREFIX):].strip():
                 bad.append(f"line {i}: block {rid} is named {name!r}, not \"Track <name>\"")
             else:
                 out[(r["level"], rid)] = name[len(TRACK_PREFIX):]

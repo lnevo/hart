@@ -406,7 +406,7 @@ def device_map_blocks() -> frozenset[str]:
     the corner letter (the middle of its X, a desk-only block)."""
     rows = block_rows()
     corners = {n for n, (line, r) in rows.items()
-               if devices.row_role(r, f"{paths.rel(DEVICE_MAP)}: {devices.key_text(devices.key_of(r))}") == "xover_corner"}
+               if devices.row_role(r, f"{paths.rel(DEVICE_MAP)}: {devices.row_text(r)}") == "xover_corner"}
     return frozenset(set(rows) | {re.sub(r"(?<=\d)[a-d]$", "", n) for n in corners})
 
 

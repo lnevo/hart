@@ -42,7 +42,7 @@ def change(path: Path, key: tuple[str, str, str], **columns: str) -> None:
         files = devices.Files.of(path)
         field = [dict(r) for r in devices.field_rows(files)]
         gen = [dict(r) for r in devices.generated_rows(files)]
-        f = next((r for r in field if devices.key_of(r) == key), None)
+        f = next((r for r in field if devices.name_key(r) == key), None)
         g = find(gen, key)
         for c, v in columns.items():
             (f if f is not None and c in devices.FIELD_COLUMNS and f[c] else g)[c] = v

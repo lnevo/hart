@@ -156,11 +156,12 @@ def carried(prior: dict | None, layer: str) -> dict:
 
 def field_rows(files: devices.Files | None = None) -> dict[str, list[dict]]:
     """{layer: field rows} of staging's mast and head rows in devices_field.csv (the owner's cells, CARRIED), read
-    from the field file alone."""
+    from the field file alone. The rule names masts and heads, so a field row is matched to its mast or head by the
+    user name it holds (the generated one; devices.unmerge stops a field user name the rule does not give)."""
     out: dict[str, list[dict]] = {"mast": [], "head": []}
-    for k, f in devices.field_index(files or device_files()).items():
-        if k[0] == str(PLANNED_LEVEL) and k[1] in out:
-            out[k[1]].append(dict(f))
+    for f in devices.field_index(files or device_files()).values():
+        if f["level"] == str(PLANNED_LEVEL) and f["layer"] in out:
+            out[f["layer"]].append(dict(f))
     return out
 
 

@@ -368,7 +368,7 @@ def claimed_name(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) 
 
 @dataclass(frozen=True)
 class Edit:
-    """One devices_field.csv cell a DEVICE merge writes, its row named by its key (level, layer, user_name)."""
+    """One devices_field.csv cell a DEVICE merge writes, its row named by its key (devices.key_of: level, id)."""
     key: tuple[str, str, str]
     column: str
     old: str
@@ -447,8 +447,8 @@ def _device_items(key: tuple, b: ET.Element | None, g: ET.Element, s: ET.Element
         r = rows[i]
         who = _row_at(r)
         if r["written_by"] == "build_device_map.py" and r["level"] == "1" and r["layer"] in ("turnout", "fb"):
-            out.append((p, None, f"{who} is staging's, wired in wiring.csv: rename it by hand in devices_field.csv and in "
-                                 "wiring.csv's row, which is keyed by the name"))
+            out.append((p, None, f"{who} is staging's, wired in wiring.csv: rename it by hand in its devices_field.csv "
+                                 "row (keyed by its id; wiring.csv keeps the generated name the id gives)"))
             continue
         if r["written_by"]:
             out.append((p, None, f"{r['written_by']} writes {who}: change its inputs and rebuild"))

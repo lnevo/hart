@@ -98,7 +98,7 @@ def master_at(path: Path, user_name: str, level, layer: str) -> str:
     from . import devices
     row = {"level": str(level), "layer": layer, "user_name": user_name}
     where = devices.index(path).where(row)
-    return where if ": " in where else f"{where}: {devices.key_text(devices.key_of(row))}"
+    return where if ": " in where else f"{where}: {devices.row_text(row)}"
 
 
 def read_rows(path: Path, required: Iterable[str], *, optional: Iterable[str] = (),

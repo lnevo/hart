@@ -160,7 +160,8 @@ class TheDictionary(unittest.TestCase):
     def test_a_column_in_the_wrong_file_fails(self):
         """The file column says which file may hold a column: the key and FIELD_COLUMNS the field file, the rest the
         generated file alone."""
-        self.assertEqual({c for c in D.COLUMNS if D.column_file(c) == "field"}, set(D.KEY) | set(D.FIELD_COLUMNS))
+        self.assertEqual({c for c in D.COLUMNS if D.column_file(c) == "field"},
+                         set(D.KEY) | set(D.FIELD_HELD) | set(D.FIELD_COLUMNS))
         with self.assertRaisesRegex(D.DevicesError, "wiring is in file 'generated', not 'field'"):
             self.read(self.full().replace("wiring,generated,", "wiring,field,"))
 
@@ -513,16 +514,29 @@ class TheWriters(unittest.TestCase):
         kept = [r for r in csv.DictReader(io.StringIO(out[self.files.master])) if r["written_by"] != "build_masts.py"]
         self.assertEqual(kept, held)                                  # every other writer's and hand-kept row is as it was
 
-    def test_a_writer_that_would_drop_a_row_the_field_file_names_is_refused(self):
-        """A rename gives a new key: the owner's cells of the old one (Mast 6LB's node, in devices_field.csv) would
-        go with no word, so the write stops and says to rename or remove the field row."""
+    def test_a_writer_that_renames_a_device_the_field_file_names_is_refused(self):
+        """A rename keeps the key (the id), and the field row names the mast (Mast 6LB): a writer that gives
+        another name would override the owner's, so the write stops and says to drop the field row's user name."""
         pair = D.pair_copy(self.tmp / "pair")
         mine = old_form([r for r in D.load(pair) if r["written_by"] == "build_masts.py"])
         first = next(r for r in mine if r["user_name"] == "Mast 6LB")            # the wired mast
         renamed = [dict(r, user_name=r["user_name"] + " X") if r is first else r for r in mine]
-        with self.assertRaisesRegex(D.DevicesError, r"Mast 6LB \(level 1, mast\) has no row in "
-                                                    r"devices_generated.csv .*rename the field row"):
-            D.outputs_after("build_masts.py", renamed, pair)
+        with self.assertRaisesRegex(D.DevicesError, r"build_masts.py names id 'mast:\S+' \(level 1, mast\) "
+                                                    r"'Mast 6LB X', but devices_field.csv names it 'Mast 6LB'"):
+            D.outputs_after("build_masts.py", renamed, pair, warn=lambda line: None)
+
+    def test_a_writer_that_would_drop_an_id_the_field_file_holds_is_refused(self):
+        """Decision 3: a gone ID with owner's cells (Mast 6LB's node, in devices_field.csv) stops the write, which
+        lists it, its cells and the new IDs of its level and layer."""
+        pair = D.pair_copy(self.tmp / "pair")
+        mine = old_form([r for r in D.load(pair) if r["written_by"] == "build_masts.py"])
+        first = next(r for r in mine if r["user_name"] == "Mast 6LB")
+        moved = [dict(r, id="mast:99:A:west") if r is first else r for r in mine]
+        with self.assertRaisesRegex(D.DevicesError, rf"id '{first['id']}' \(Mast 6LB \(level 1, mast\)\) is gone "
+                                                    r"from the plan, and its field row holds user_name 'Mast 6LB', "
+                                                    r"node '4': move them to the device's new id \(new on level 1, "
+                                                    r"mast: mast:99:A:west\), or remove the row"):
+            D.outputs_after("build_masts.py", moved, pair, warn=lambda line: None)
 
     def test_a_rule_mast_and_a_panel_status_bean_may_go_without_saying_so(self):
         """Rows the rule makes (a virtual staging mast) or panel_items.json writes carry no field facts, so their

@@ -31,7 +31,7 @@ def child_text(element: ET.Element, tag: str) -> str:
 @dataclass(frozen=True)
 class Plant:
     """A field turnout row of the device master and its LCC alias row."""
-    key: tuple             # the turnout row's key (level, layer, user_name)
+    key: tuple             # the turnout row's name key (devices.name_key: level, layer, user_name)
     user: str              # Switch N
     system: str            # M2T...
     dcc: str
@@ -67,7 +67,7 @@ def field_plants(csv_path: Path) -> tuple[dict[str, Plant], set[str], list[str]]
             bad.append(f"{ix.where(r)} ({r['system_name']}): {problem}")
             refused.add(r["system_name"])
         else:
-            out[r["system_name"]] = Plant(devices.key_of(r), r["user_name"], r["system_name"], r["dcc"],
+            out[r["system_name"]] = Plant(devices.name_key(r), r["user_name"], r["system_name"], r["dcc"],
                                           a["system_name"], a["user_name"], devices.comment_of(a), ix)
     bad += [f"{ix.where(a)}: alias {u} ({a['system_name']}) has no field turnout row {u.removeprefix('DCC ')}"
             for u, a in sorted(aliases.items())]

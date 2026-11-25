@@ -1,5 +1,5 @@
 """hartlib.devices over its two files (ADR-029 amendment 2026-11-21): devices_generated.csv, the builders' rows, and
-devices_field.csv, the owner's cells keyed by (level, layer, user_name), merged into the one view every reader gets."""
+devices_field.csv, the owner's cells keyed by (level, id) since naming-layers step 4, merged into the one view every reader gets."""
 from __future__ import annotations
 
 import shutil
@@ -19,14 +19,14 @@ def generated(**cells) -> dict:
 
 
 def owner(**cells) -> dict:
-    """A field row of `cells`: no id, which is the builders' alone."""
-    return blank(**{"id": "", **cells})
+    """A field row of `cells`, keyed by its test id (blank's, the generated row's of the same layer and name)."""
+    return blank(**cells)
 
 
 def field(user="Switch 1", **cells) -> dict:
-    """The field row of the staging turnout `user`: its key and the owner's cells."""
+    """The field row of the staging turnout `user`: its key (its test id, generated()'s) and the owner's cells."""
     return blank(**{"level": "1", "layer": "turnout", "user_name": user, "role": "turnout", "assignment": "field",
-                    "dcc": "100", "cp": "Brick", "id": "", **cells})     # id is the builders' alone
+                    "dcc": "100", "cp": "Brick", **cells})
 
 
 def block(**cells) -> dict:
@@ -65,8 +65,9 @@ class TheMerge(unittest.TestCase):
             D.merge([generated()], [field(written_by="build_device_map.py")])
 
     def test_a_keyed_field_row_with_no_generated_row_is_refused(self):
-        with self.assertRaisesRegex(D.DevicesError, r"Switch 9 \(level 1, turnout\) has no row in "
-                                                    r"devices_generated\.csv .*rename the field row .* or remove it"):
+        with self.assertRaisesRegex(D.DevicesError, r"Switch 9 \(level 1, turnout\): id 'test:turnout:Switch 9' has "
+                                                    r"no row in devices_generated\.csv .*move the row's cells to the "
+                                                    r"device's new id, or remove the row"):
             D.merge([generated()], [field(), field("Switch 9")])
 
     def test_a_key_twice_in_the_field_file_is_refused(self):
@@ -140,35 +141,51 @@ class TheUnmerge(unittest.TestCase):
 
 
 class TheId(unittest.TestCase):
-    """A field row may give its id: the key the owner's track name is kept by (hartlib.track_names, naming-layers
-    step 3). It must be the generated one, and the generated file keeps it."""
+    """A field row is keyed by its device's id on its level (naming-layers step 4), so its user_name is an owner's
+    cell like the rest: it wins over the generated name, and the generated file keeps both the id and a name."""
 
-    def test_a_field_id_equal_to_the_generated_one_merges_and_is_not_redundant(self):
-        got = merged([generated(id="switch:1")], [field(id="switch:1")])
-        self.assertEqual(got[0]["id"], "switch:1")
+    def test_a_field_row_is_matched_by_id_and_its_user_name_wins(self):
+        got = merged([generated(id="switch:1")], [field(id="switch:1", user_name="Switch One")])
+        self.assertEqual((got[0]["id"], got[0]["user_name"], got[0]["dcc"]), ("switch:1", "Switch One", "100"))
+
+    def test_a_field_user_name_is_not_redundant(self):
         self.assertEqual(D.redundant([generated(id="switch:1")], [field(id="switch:1")]), [])
 
-    def test_a_field_id_the_plan_no_longer_gives_stops_the_merge(self):
-        with self.assertRaisesRegex(D.DevicesError, r"id 'switch:9' is not the plan's, 'switch:1'"):
+    def test_a_gone_id_stops_naming_the_row(self):
+        """Decision 3: an id the plan no longer gives stops the merge and is listed; its name names nothing."""
+        with self.assertRaisesRegex(D.DevicesError, r"Switch 1 \(level 1, turnout\): id 'switch:9' has no row in "
+                                                    r"devices_generated.csv \(the plan no longer has it\)"):
             D.merge([generated(id="switch:1")], [field(id="switch:9")])
 
-    def test_unmerge_keeps_the_id_and_refuses_another(self):
+    def test_a_field_row_with_a_level_and_no_id_is_refused(self):
+        with self.assertRaisesRegex(D.DevicesError, "id is empty; a field row is keyed by its device's id"):
+            D.check_field([field(id="")])
+
+    def test_a_field_row_of_another_layer_than_its_ids_row_is_refused(self):
+        with self.assertRaisesRegex(D.DevicesError, r"id 'switch:1' is a turnout row in devices_generated.csv, not "
+                                                    "fb"):
+            D.merge([generated(id="switch:1")], [field(id="switch:1", layer="fb")])
+
+    def test_unmerge_keeps_the_id_and_the_name_and_refuses_another_name(self):
         row = turnout(cp="Brick", id="switch:1", written_by="build_device_map.py")
-        self.assertEqual(D.unmerge([row], [field(id="switch:1")])[0]["id"], "switch:1")
-        with self.assertRaisesRegex(D.DevicesError, r"id 'switch:1', but devices_field.csv keeps its name by "
-                                                    r"'switch:9'"):
-            D.unmerge([row], [field(id="switch:9")])
+        got = D.unmerge([row], [field(id="switch:1")])[0]
+        self.assertEqual((got["id"], got["user_name"], got["cp"]), ("switch:1", "Switch 1", ""))
+        with self.assertRaisesRegex(D.DevicesError, r"names id 'switch:1' \(level 1, turnout\) 'Switch 1', but "
+                                                    r"devices_field.csv names it 'Switch One'"):
+            D.unmerge([row], [field(id="switch:1", user_name="Switch One")])
 
 
 class KeyedMessages(unittest.TestCase):
     """A message names a row by its key and the file that holds it, never a line (the view is two files)."""
 
     def test_a_staging_device_is_named_in_the_field_file_and_a_built_one_in_the_generated_file(self):
-        rows = {D.key_of(r): r for r in D.load()}
+        rows = {D.name_key(r): r for r in D.load()}
         self.assertEqual(D.at(rows["1", "turnout", "Switch 1"]), "devices_field.csv: Switch 1 (level 1, turnout)")
         self.assertEqual(D.at(rows["2", "turnout", "Switch 101"]),
                          "devices_generated.csv: Switch 101 (level 2, turnout)")
         self.assertEqual(D.key_text(("", "turnout", "Test 999")), "Test 999 (no level, turnout)")
+        self.assertEqual(D.key_text(D.key_of(rows["1", "turnout", "Switch 1"])), "id 'switch:1' (level 1)")
+        self.assertEqual(D.row_text(rows["1", "turnout", "Switch 1"]), "Switch 1 (level 1, turnout)")
 
     def test_check_rows_names_keys_not_lines(self):
         with self.assertRaises(D.DevicesError) as cm:
@@ -207,8 +224,8 @@ class ThePair(unittest.TestCase):
 
     def test_field_index_is_the_field_files_keyed_rows(self):
         got = D.field_index(self.files)
-        self.assertEqual(list(got), [("1", "turnout", "Switch 1")])
-        self.assertEqual(got["1", "turnout", "Switch 1"]["dcc"], "100")
+        self.assertEqual(list(got), [("1", "test:turnout:Switch 1")])        # keyed by (level, id)
+        self.assertEqual(got["1", "test:turnout:Switch 1"]["dcc"], "100")
 
     def test_allocated_names_are_the_generated_rows(self):
         got = D.allocated_names(("1",), "mast", files=self.files)
@@ -228,9 +245,10 @@ class ThePair(unittest.TestCase):
     def test_a_writer_that_drops_a_key_the_field_file_names_is_refused(self):
         self.files.field.write_text(D.master_text([field(), owner(level="1", layer="mast", user_name="Mast 2L",
                                                                  notes="the owner's"), unplaced()]), encoding="utf-8")
-        with self.assertRaisesRegex(D.DevicesError, r"Mast 2L \(level 1, mast\) has no row in .*rename the "
-                                                    "field row"):
-            D.outputs_after_rows("build_masts.py", [], self.files)
+        with self.assertRaisesRegex(D.DevicesError, r"id 'test:mast:Mast 2L' \(Mast 2L \(level 1, mast\)\) is gone "
+                                                    r"from the plan, and its field row holds user_name 'Mast 2L', "
+                                                    r'notes "the owner.s": move them .* or remove the row'):
+            D.outputs_after_rows("build_masts.py", [], self.files, warn=lambda line: None)
 
     def test_another_writers_rows_are_kept_as_written(self):
         mine = [dict(r, notes="moved") for r in D.load(self.files) if r["written_by"] == "build_masts.py"]

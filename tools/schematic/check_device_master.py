@@ -109,7 +109,7 @@ def known_places(interlockings: list[railroad.Interlocking], stations_path: Path
 
 def _at(n: int, r: dict, where: str) -> str:
     """A master row as a message names it: its file and key, never a line (the master is two merged files)."""
-    return f"{where}: {devices.key_text(devices.key_of(r))}"
+    return f"{where}: {devices.row_text(r)}"
 
 
 def switch_cps(interlockings: list[railroad.Interlocking], stations_path: Path = STATIONS) -> dict[str, set[str]]:
@@ -237,7 +237,7 @@ def row_problems(lines: list[tuple[int, dict]], cps: dict[str, set[str]], where:
         for ph in phs:
             if (level, ph) in trial:
                 bad.append(f"{at}: trial_name {ph} is {trial[(level, ph)]}'s as well")
-            trial.setdefault((level, ph), devices.key_text(devices.key_of(r)))
+            trial.setdefault((level, ph), devices.row_text(r))
         if layer == "occupancy" and (r["assignment"] == "field") != (r["detector"] == "wired"):
             bad.append(f"{at}: assignment {r['assignment']} with detector {r['detector']!r}: a detector is wired "
                        "exactly when the row is a field device")

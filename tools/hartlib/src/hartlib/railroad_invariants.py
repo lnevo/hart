@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 # ---------------------------------------------------------------- the rows of the device master, every level
 
 def _key(r) -> str:
-    """A master row's key as a message names it (hartlib.devices.key_text)."""
+    """A master row's key as a message names it (hartlib.devices.row_text)."""
     return f"{r['user_name']} (level {r['level']}, {r['layer']})"
 
 
