@@ -254,6 +254,20 @@ class TheRepo(unittest.TestCase):
         checker = C.Checker()
         self.assertEqual([p for s in sidecars for p in checker.check(s)], [])
 
+    def test_every_master_is_an_input_of_the_step(self) -> None:
+        """A new sidecar's master must be drawn into data-schemas' inputs, or the map and the stamp miss it."""
+        sys.path.insert(0, str(ROOT / "tools/pipeline"))
+        import manifest
+
+        step = next(s for s in manifest.load() if s.name == "data-schemas")
+        inputs = {e.path for e in step.inputs}
+        for sidecar in C.find_sidecars():
+            for master in C.master_files(sidecar):
+                path = master.relative_to(ROOT).as_posix()
+                self.assertIn(path, inputs, f"{sidecar.relative_to(ROOT).as_posix()}: add "
+                              f'{{ path = "{path}", label = "rules", side = "check" }} to data-schemas\' inputs '
+                              "in tools/pipeline/checks.toml")
+
     def test_hartlib_reads_the_device_dictionary(self) -> None:
         D = self.hartlib_devices()
         self.assertEqual(set(D.read_dictionary(D.Files.here().dictionary)), set(D.COLUMNS))
