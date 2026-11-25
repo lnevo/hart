@@ -46,9 +46,10 @@ class TheViewsAreNotCommitted(unittest.TestCase):
                                  text=True).stdout.split()
         self.assertEqual(sorted(ignored), sorted(names))
 
-    def test_the_views_are_the_four_files(self) -> None:
+    def test_the_views_are_the_five_files(self) -> None:
         self.assertEqual(sorted(site_views.VIEWS), ["data/layout-index-cats.json", "data/layout-index.json",
-                                                    "data/tables-browser.json", "library/pipeline-map.html"])
+                                                    "data/tables-browser.json", "data/wiring-inventory.json",
+                                                    "library/pipeline-map.html"])
 
     def test_every_real_view_builds(self) -> None:
         for rel in site_views.VIEWS:
@@ -60,7 +61,8 @@ class Build(unittest.TestCase):
     def test_each_domain_error_becomes_a_view_error_naming_the_view(self) -> None:
         for err in (site_views.pipeline_map.GraphError("graph"), site_views.build_tables_browser.BrowserDataError("t"),
                     site_views.build_layout_index.LayoutIndexError("li"),
-                    site_views.build_cats_layout_index.CatsIndexError("c"), png_stamp.PngError("png"),
+                    site_views.build_cats_layout_index.CatsIndexError("c"),
+                    site_views.build_wiring_json.WiringDataError("w"), png_stamp.PngError("png"),
                     OSError("disk")):
             with self.subTest(err=type(err).__name__):
                 with self.assertRaisesRegex(site_views.ViewError, f"Cannot build data/x.json:\n{err}"):
@@ -115,6 +117,18 @@ class Refresh(unittest.TestCase):
         self.assertIn("ParseError", failed[0])
         self.assertFalse((self.root / "data/layout-index.json").exists())
 
+    def test_a_broken_wiring_model_removes_the_stale_wiring_inventory(self) -> None:
+        rel = site_views.build_wiring_json.OUT_REL
+        (self.root / "data").mkdir()
+        (self.root / rel).write_text("stale\n")
+        boom = site_views.build_wiring_json.write_inventory.FactsError("lcos_nodes.csv: no such file")
+        with mock.patch.object(site_views.build_wiring_json.write_inventory, "workbook", side_effect=boom):
+            failed = site_views.refresh(self.root, {rel: site_views.VIEWS[rel]})
+        self.assertEqual(len(failed), 1)
+        self.assertIn(f"Cannot build {rel}", failed[0])
+        self.assertIn("lcos_nodes.csv", failed[0])
+        self.assertFalse((self.root / rel).exists(), "a stale copy would be served")
+
     def test_a_root_that_is_not_a_folder_stops(self) -> None:
         with self.assertRaisesRegex(site_views.ViewError, "is not a folder"):
             site_views.refresh(self.root / "absent", {})
@@ -142,7 +156,7 @@ class ServePortalStart(unittest.TestCase):
 
     def test_the_views_are_built_before_serving(self) -> None:
         out, err = self.start([])
-        self.assertIn("built 4 files the site build makes", out)
+        self.assertIn("built 5 files the site build makes", out)
         self.assertEqual(err, "")
 
     def test_a_view_that_cannot_be_built_is_named_with_the_command(self) -> None:

@@ -32,5 +32,5 @@ tools/pipeline/manifest.py,917
 tools/promo/tiktok_promo.py,860
 tools/schematic/build_device_map.py,1063
 tools/schematic/tests/test_block_layer.py,869
-www/scripts/make_share_cards.py,856
+www/scripts/make_share_cards.py,878
 www/scripts/prepare_github_pages.py,1474

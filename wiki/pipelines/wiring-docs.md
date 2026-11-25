@@ -17,7 +17,7 @@ Refresh LCOS inventory workbooks and the per-node PowerPoint from hart CSVs.
 - `docs/wiring/LCOS_Layout_Inventory_v86.xlsx`: every level, a view written from scratch; an output only (ADR-039)
 - `docs/wiring/Wiring_Schematic.pptx`
 - `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx`
-- `www/data/wiring-inventory.json`: the website's viewer
+- `www/data/wiring-inventory.json`: the website's viewer; not committed (ADR-036): the site build and the local preview build it (`www/scripts/site_views.py`, `make site-data`)
 
 History, frozen (no generator): `signals_asbuilt_abs_v2.xlsx`. `LCOS_Layout_Inventory_v85.xlsx` and `signals_split_v8.xlsx` were archived on 2026-11-25 (`archive/docs/wiring/`). The v84 import and the refresh that turned it into v85 are in `archive/` (2026-11-20).
 
@@ -30,7 +30,7 @@ python3 tools/schematic/build_device_map.py
 python3 tools/wiring/write_inventory.py
 make wiring-freeze CP="CP 123"              # once a main or upper control point is wired: its wiring becomes static
 python3 tools/wiring/create_wiring_schematic_ppt.py
-python3 www/scripts/build_wiring_json.py   # site viewer from the wiring model, not v86; tools/check.sh fails while it is stale
+python3 www/scripts/build_wiring_json.py --check   # site viewer from the wiring model, not v86, built in memory (not committed, ADR-036)
 ```
 
 `docs/wiring/` is the only copy (the Desktop pack was retired, ADR-007). For Signal Manager punching, use `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx`. Detail: [`docs/wiring/README.md`](../../docs/wiring/README.md).
