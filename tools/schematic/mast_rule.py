@@ -126,9 +126,12 @@ def end_leg(bands, joined, bi, end) -> str:
     return "end"
 
 
-def _leg_order(key: str):
+def leg_order(key: str):
+    """The sort key of a track end as end_leg gives it: a switch leg by its number, half letter and leg ("103AB"
+    before "103BA" before "105B"), any other end ("end", "helix") after every switch leg."""
     m = re.fullmatch(r"(\d+)([A-Z]?)([A-D])", key)
     return (0, int(m.group(1)), m.group(2), m.group(3)) if m else (1, 0, "", key)
+
 
 
 def plan_order(t: dict) -> tuple:
@@ -136,7 +139,15 @@ def plan_order(t: dict) -> tuple:
     end first (the order of their device IDs, block:103AB-105B before block:103BA-105C), so the numbers in "Track
     103-105 1" and "2", and block_overrides.csv's `parallel`, come from the plan and not from the drawn rows (owner,
     2026-11-24, naming-layers step 3)."""
-    return tuple(sorted((_leg_order(k) for k in t["plan_ends"]))) + (t["trial"],)
+    return tuple(sorted((leg_order(k) for k in t["plan_ends"]))) + (t["trial"],)
+
+
+def letter_order(t: dict, half: int, leg: str) -> tuple:
+    """The order of two home masts of one number and direction (their A and B): by the plan order of the tracks they
+    face (plan_order, so the A mast faces a Spur 1 and the B mast its Spur 2, as the track numbers run), then a
+    balloon loop's half (the A mast faces Loop 1, from leg B), then the leg they stand at. From the plan, not the drawn rows (naming-layers step
+    12, my call under the owner's rule of 2026-11-25)."""
+    return plan_order(t) + (half, leg)
 
 
 def helix_tags(bands, overrides) -> dict[int, str]:
@@ -437,7 +448,7 @@ def masts(bands, cps, found, cp_of, corner_blocks=None, running_extra=frozenset(
     for t in found:
         for (n, p), far in zip(t["legs"], reversed(t["ends"])):
             by_leg[(t["band"], n, p)] = (t, far)
-    out = []
+    out, order = [], {}             # order: {id(mast): letter_order of the track it faces}
     for bi, (title, band, _) in enumerate(bands):
         lv = band_level(title, levels)
         if not lv:
@@ -462,6 +473,7 @@ def masts(bands, cps, found, cp_of, corner_blocks=None, running_extra=frozenset(
                                     dir="west" if TAU[p] * rail[n] == 1 else "east", protects="", heads=1,
                                     row=srow.get(sid, 0), track=t["name"], band=bi, half=0, node=n, leg=p,
                                     strand=sid, running=False, kind="one-low"))
+                    order[id(out[-1])] = letter_order(t, 0, p)
                     continue
                 loop = kind == "sw" and far == num and t["loop"]   # comes back to this switch
                 inside = kind == "sw" and cp_of.get(far) == cp and not loop
@@ -488,6 +500,7 @@ def masts(bands, cps, found, cp_of, corner_blocks=None, running_extra=frozenset(
                                 half=LOOP_HALF[p] if t["loop"] else 0, node=n, leg=p, strand=sid, running=running,
                                 kind=("two-searchlight" if heads == 2 else
                                       "one-searchlight" if running else "one-low")))
+                order[id(out[-1])] = letter_order(t, LOOP_HALF[p] if t["loop"] else 0, p)
     # a home mast governs something only when a route it would clear reaches another signal (owner, 2026-11-19: no
     # hand-made exceptions); one whose every route ends at a bumper or in dark track is left out, and again until none
     # is: a mast kept only by a mast the rule leaves out reaches no signal either
@@ -505,8 +518,9 @@ def masts(bands, cps, found, cp_of, corner_blocks=None, running_extra=frozenset(
     for (num, letter), ms in groups.items():
         if len(ms) > 2:
             raise MapError(f"switch {num - 1}: {len(ms)} masts for direction {letter}; ADR-005 names two (A and B)")
-        # a balloon loop's A mast faces Loop 1 (leg B, the normal leg) and its B mast Loop 2 (owner, 2026-11-16)
-        ms.sort(key=lambda m: (m["band"], m["half"], m["row"]))
+        # A and B in the plan order of the tracks they face (letter_order): a balloon loop's A mast faces Loop 1
+        # (leg B, the normal leg) and its B mast Loop 2 (owner, 2026-11-16)
+        ms.sort(key=lambda m: order[id(m)])
         for i, m in enumerate(ms):
             m["name"] = f"{num}{letter}" + ("AB"[i] if len(ms) == 2 else "")
     return out

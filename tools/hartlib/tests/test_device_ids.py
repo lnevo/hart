@@ -42,9 +42,21 @@ class TheGrammar(unittest.TestCase):
         self.assertEqual(I.head_place(0, 1), "single")
         self.assertEqual(I.panel_id("status", "IH9990"), "panel:status:IH9990")
         for bad in (lambda: I.det_id("Track 5"), lambda: I.home_mast_id("7", "E", "west"),
+                    lambda: I.home_mast_id("7", "B", "east", "13C"),
                     lambda: I.block_mast_id("Track W-1", "west"), lambda: I.head_place(2, 2)):
             with self.assertRaises(ValueError):
                 bad()
+
+
+    def test_a_staging_crossover_halfs_mast_is_keyed_like_its_os_block(self):
+        """Both halves of staging's single crossover 7 carry the label 7: a home mast at a half takes the half as
+        its OS block has it (os:7:A-13C), so the two halves' masts differ by more than direction (naming-layers
+        step 12; step 2 left mast:7:A:west and mast:7:A:east)."""
+        west = I.home_mast_id("7", "A", "west", "A-13C")
+        east = I.home_mast_id("7", "A", "east", "A-5B")
+        self.assertEqual((west, east), ("mast:7:A-13C:A:west", "mast:7:A-5B:A:east"))
+        self.assertEqual(I.head_id(east, "top"), "mast:7:A-5B:A:east:top")
+        self.assertEqual(I.home_mast_id("101A", "B", "east", ""), "mast:101A:B:east")
 
 
 class TheChecks(unittest.TestCase):
@@ -91,7 +103,7 @@ class Committed(unittest.TestCase):
     def test_each_kind_follows_the_grammar(self):
         want = {"turnout": r"switch:\d+", "lcc_alias": r"dcc:\d+", "fb": r"fb:\d+:[NR]",
                 "os": r"os:\d+(:A-\d+[A-D])?", "xover_corner": r"os:\d+:(A-\d+[A-D]|[A-D])",
-                "home": r"mast:\d+[A-Z]?:[A-D]:(east|west)", "intermediate": r"mast:block:\S+:(east|west)",
+                "home": r"mast:\d+[A-Z]?:(A-\d+[A-Z]?[A-D]:)?[A-D]:(east|west)", "intermediate": r"mast:block:\S+:(east|west)",
                 "hidden": r"mast:block:\S+:(east|west)", "spare": r"spare:M2S\d+",
                 "panel_status": r"panel:\w+:\S+"}
         for kind in ("track", "spur", "loop_half", "helix", "part"):
@@ -109,6 +121,17 @@ class Committed(unittest.TestCase):
             if not ok:
                 bad.append((D.key_of(r), r["role"], r["id"]))
         self.assertEqual(bad, [])
+
+    def test_a_staging_half_mast_names_its_half(self):
+        """Every home mast at a staging crossover half carries the half its protected OS block's ID gives."""
+        osid = {r["user_name"]: r["id"] for r in self.rows if r["level"] == "1" and r["layer"] == "block"}
+        got = {}
+        for r in self.rows:
+            if r["level"] == "1" and r["layer"] == "mast" and r["role"] == "home" and osid[r["protects"]].count(":") == 2:
+                got[r["user_name"]] = (r["id"], osid[r["protects"]])
+        self.assertEqual(len(got), 9)
+        for name, (mid, os_) in got.items():
+            self.assertTrue(mid.startswith(f"mast:{os_.removeprefix('os:')}:"), (name, mid, os_))
 
     def test_a_detector_takes_its_blocks_id(self):
         block = {(r["level"], r["user_name"]): r["id"] for r in self.rows if r["layer"] == "block"}

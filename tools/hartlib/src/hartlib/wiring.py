@@ -345,7 +345,7 @@ def read(path: Path | None = None, names=None, levels=None, files=None) -> list[
             try:
                 device = store_name(r["level"], ident[len("det:"):] if kind == "detector" else ident,
                                     f"{path.name} {at}")
-                if kind == "head" and level == FIELD:     # a wired head's mast: digicon_rows, build_masts
+                if kind == "head" and level == FIELD:     # a wired head's mast: digicon_rows, device_map_masts
                     mast = store_name(r["level"], ident.rsplit(":", 1)[0], f"{path.name} {at}")
             except _LoadFailed:
                 raise

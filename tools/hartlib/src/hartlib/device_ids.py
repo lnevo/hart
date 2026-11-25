@@ -22,7 +22,9 @@ The grammar, one function per kind below:
 - det:<block id>      a block's detector (occupancy row)
 - spare:<system name> a spare detector (no block)
 - mast:<switch>:<leg>:<dir>   a home mast, by the switch label it stands at (a crossover half's label: 101A), the leg
-                      and the way it looks (east, west)
+                      and the way it looks (east, west); at a staging single crossover's half, whose two halves share
+                      one label, the label and the half as its OS block has them: mast:7:A-13C:B:east (naming-layers
+                      step 12; before it both halves gave mast:7:...)
 - mast:<block id>:<dir>       an intermediate or a hidden (buffer stop) mast, by the block it faces
 - <mast id>:<top|bottom|single>   a head, by its place on its mast
 - panel:<item key>:<system name>  a panel lamp of panel_items.json, by its item and the system name of the bean its
@@ -36,6 +38,7 @@ HEAD_PLACES = ("top", "bottom", "single")
 DIRS = ("east", "west")
 _LABEL = re.compile(r"\d+[A-Z]?")          # a switch label as the plan prints it: 101, 101A
 _NUMBER = re.compile(r"\d+")
+_HALF = re.compile(r"A-\d+[A-Z]?[A-D]")      # a staging crossover half: where its leg A runs (A-13C, A-5B)
 
 
 def _need(ok: bool, what: str) -> None:
@@ -92,10 +95,13 @@ def spare_id(system_name: str) -> str:
     return f"spare:{system_name}"
 
 
-def home_mast_id(label: str, leg: str, direction: str) -> str:
-    _need(bool(_LABEL.fullmatch(label or "")) and leg in ("A", "B", "C", "D") and direction in DIRS,
-          f"a home mast at {label!r} leg {leg!r} looking {direction!r}")
-    return f"mast:{label}:{leg}:{direction}"
+def home_mast_id(label: str, leg: str, direction: str, half: str = "") -> str:
+    """mast:<label>:<leg>:<dir>; with `half` (a staging crossover half's A-<end>, as os_id takes it)
+    mast:<label>:<half>:<leg>:<dir>, so the masts of the two halves of one label differ by more than direction."""
+    _need(bool(_LABEL.fullmatch(label or "")) and leg in ("A", "B", "C", "D") and direction in DIRS
+          and (not half or bool(_HALF.fullmatch(half))),
+          f"a home mast at {label!r} {half + ' ' if half else ''}leg {leg!r} looking {direction!r}")
+    return f"mast:{label}:{half}:{leg}:{direction}" if half else f"mast:{label}:{leg}:{direction}"
 
 
 def block_mast_id(facing: str, direction: str) -> str:

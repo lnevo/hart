@@ -134,6 +134,36 @@ class AssignNumbers(unittest.TestCase):
 # ---------------------------------------------------------------- running track and exit dwarfs
 
 
+class LetterOrder(unittest.TestCase):
+    """Two masts of one number and direction are lettered A and B in the plan order of the tracks they face
+    (mast_rule.letter_order; naming-layers step 12), as parallel track numbers are (plan_order), not by drawn row."""
+
+    @staticmethod
+    def t(*ends, trial="Track e1"):
+        return dict(plan_ends=ends, trial=[trial])
+
+    def test_a_track_end_sorts_by_number_half_letter_and_leg_then_any_other_end(self):
+        keys = ["end", "105B", "103BA", "helix", "103AB", "9C", "9B"]
+        self.assertEqual(sorted(keys, key=mr.leg_order), ["9B", "9C", "103AB", "103BA", "105B", "end", "helix"])
+
+    def test_spurs_follow_their_numbers(self):
+        """Mast 210LA faces Track 209 Spur 1 (from 209B), 210LB Spur 2 (from 209C)."""
+        one, two = self.t("209B", "end"), self.t("209C", "end", trial="Track e2")
+        self.assertLess(mr.letter_order(one, 0, "B"), mr.letter_order(two, 0, "C"))
+
+    def test_the_lower_plan_end_first_whatever_the_leg(self):
+        """At Switch 203 the A mast faces Track 203-211 (from leg B), the B mast Track 203-207 (from leg C); at a
+        crossover's halves the half letter of the lower end decides (217AB before 217BA)."""
+        self.assertLess(mr.letter_order(self.t("203B", "211BB"), 0, "B"),
+                        mr.letter_order(self.t("203C", "207A"), 0, "C"))
+        self.assertLess(mr.letter_order(self.t("217AB", "221BB"), 0, "B"),
+                        mr.letter_order(self.t("217BA", "219C"), 0, "A"))
+
+    def test_a_balloon_loops_halves_by_half(self):
+        loop = self.t("107B", "107C")
+        self.assertLess(mr.letter_order(loop, 1, "B"), mr.letter_order(loop, 2, "C"))
+
+
 class Running(unittest.TestCase):
     """mast_rule.running_tracks on a siding from Switch 1 (CP 1) through local crossover half 5A to Switch 3 (CP 3):
     5A's points A take the siding from Switch 1, its leg B runs on to Switch 3, leg C joins 5B."""

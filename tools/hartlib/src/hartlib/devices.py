@@ -75,9 +75,10 @@ LINE_ROLES = ("track", "helix", "part", "loop_half", "spur")
 OS_ROLES = ("os", "xover_corner")
 ROLES = ("turnout", "lcc_alias", "fb", "os", "xover_corner", "track", "spur", "loop_half", "helix",
          "home", "intermediate", "hidden", "head", "spare", "panel_status", "part")
-# The scripts that write rows (the one list: a merge of builders changes only this). Order is the order of rows
+# The scripts that write rows (the one list: a merge of builders changes only this; build_masts.py left it in
+# naming-layers step 12, when build_device_map.py took every level's mast and head rows). Order is the order of rows
 # within a (level, layer) after the hand-kept ones.
-WRITERS = ("build_masts.py", "build_device_map.py", "panel_items.json")
+WRITERS = ("build_device_map.py", "panel_items.json")
 # roles the two device maps leave out: a spare detector, a panel status bean, and a part (a block row with part_of: a
 # piece of track inside another block: a JMRI block on its block's occupancy sensor, built by its level's builder, with
 # no occupancy row or detector of its own)

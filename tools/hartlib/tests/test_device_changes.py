@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from hartlib import device_changes as C, devices as D  # noqa: E402
-from test_devices import mast  # noqa: E402
+from test_devices import OTHER, mast, setUpModule, tearDownModule  # noqa: E402,F401
 from test_devices_pair import field, generated  # noqa: E402
 
 LOCATIONS = """<?xml version="1.0" encoding="UTF-8"?>
@@ -72,14 +72,14 @@ class TheOperationsCopies(Temp):
 
 class TheLines(Temp):
     def test_a_new_id_is_listed(self):
-        got = C.lines("build_masts.py", C.compare([mast(id="mast:1")], [mast(id="mast:1"), mast("Mast 4R", id="m:2")]),
+        got = C.lines(OTHER, C.compare([mast(id="mast:1")], [mast(id="mast:1"), mast("Mast 4R", id="m:2")]),
                       self.ops)
-        self.assertEqual(got, ["build_masts.py: 1 new ID(s) on level 1, mast: m:2"])
+        self.assertEqual(got, [f"{OTHER}: 1 new ID(s) on level 1, mast: m:2"])
 
     def test_a_gone_id_with_no_owner_cells_is_listed(self):
-        got = C.lines("build_masts.py", C.compare([mast(id="mast:1"), mast("Mast 4R", id="m:2")], [mast(id="mast:1")]),
+        got = C.lines(OTHER, C.compare([mast(id="mast:1"), mast("Mast 4R", id="m:2")], [mast(id="mast:1")]),
                       self.ops)
-        self.assertEqual(got, ["build_masts.py: 1 gone ID(s) on level 1, mast: m:2"])
+        self.assertEqual(got, [f"{OTHER}: 1 gone ID(s) on level 1, mast: m:2"])
 
     def test_a_rename_lists_the_operations_pro_copies(self):
         got = C.lines("build_device_map.py", C.compare([generated(user_name="Track S-1", id="block:1")],
@@ -95,10 +95,10 @@ class TheLines(Temp):
         self.assertTrue(got[0].endswith("no Operations Pro file holds the old name"), got[0])
 
     def test_a_mast_rename_warns_of_sml_discovery_and_approval(self):
-        got = C.lines("build_masts.py", C.compare([mast(id="mast:1")], [mast("Mast 2LA", id="mast:1")]), self.ops)
+        got = C.lines(OTHER, C.compare([mast(id="mast:1")], [mast("Mast 2LA", id="mast:1")]), self.ops)
         self.assertEqual(len(got), 2)
         self.assertIn("OperationsLocationRoster.xml:3", got[0])
-        self.assertEqual(got[1], "warning: build_masts.py: mast 'Mast 2L' is now 'Mast 2LA': JMRI keys Signal Mast "
+        self.assertEqual(got[1], f"warning: {OTHER}: mast 'Mast 2L' is now 'Mast 2LA': JMRI keys Signal Mast "
                                  f"Logic by mast user name, so this needs a new SML discovery ({C.SML_DISCOVERY}) and "
                                  "the owner's panel approval")
 
@@ -116,7 +116,7 @@ class TheReport(Temp):
 
     def test_the_lines_go_to_warn(self):
         said = []
-        C.report("build_masts.py", [mast(id="mast:1")], [mast("Mast 2LA", id="mast:1")], [], said.append, self.ops)
+        C.report(OTHER, [mast(id="mast:1")], [mast("Mast 2LA", id="mast:1")], [], said.append, self.ops)
         self.assertEqual(len(said), 2)
 
 
@@ -133,8 +133,8 @@ class ThroughTheWriter(unittest.TestCase):
 
     def test_an_unchanged_write_says_nothing(self):
         said = []
-        mine = [dict(r) for r in D.load(self.files) if r["written_by"] == "build_masts.py"]
-        D.outputs_after_rows("build_masts.py", mine, self.files, said.append)
+        mine = [dict(r) for r in D.load(self.files) if r["written_by"] == OTHER]
+        D.outputs_after_rows(OTHER, mine, self.files, said.append)
         self.assertEqual(said, [])
 
     def test_a_new_id_and_a_mast_rename_are_said(self):
@@ -142,32 +142,32 @@ class ThroughTheWriter(unittest.TestCase):
         mine = [dict(mast(), user_name="Mast 2LB"),
                 mast("Mast 4R", id="mast:new", system_name="IF$vsm:basic:one-low($2)",
                      jmri_name="IF$vsm:basic:one-low($2)")]
-        D.outputs_after_rows("build_masts.py", mine, self.files, said.append)
-        self.assertEqual(said[0], "build_masts.py: 1 new ID(s) on level 1, mast: mast:new")
+        D.outputs_after_rows(OTHER, mine, self.files, said.append)
+        self.assertEqual(said[0], f"{OTHER}: 1 new ID(s) on level 1, mast: mast:new")
         self.assertIn("is renamed 'Mast 2L' -> 'Mast 2LB'", said[1])
-        self.assertTrue(said[2].startswith("warning: build_masts.py: mast 'Mast 2L' is now 'Mast 2LB'"), said[2])
+        self.assertTrue(said[2].startswith(f"warning: {OTHER}: mast 'Mast 2L' is now 'Mast 2LB'"), said[2])
 
     NEW = staticmethod(lambda **c: mast("Mast 4R", id="mast:new", **{"system_name": "IF$vsm:basic:one-low($2)",
                                                                     "jmri_name": "IF$vsm:basic:one-low($2)", **c}))
 
     def test_a_check_run_marks_its_lines_check_only(self):
         said = []
-        D.outputs_after_rows("build_masts.py", [mast(), self.NEW()], self.files, said.append, check=True)
-        self.assertEqual(said, [C.CHECK_ONLY + "build_masts.py: 1 new ID(s) on level 1, mast: mast:new"])
+        D.outputs_after_rows(OTHER, [mast(), self.NEW()], self.files, said.append, check=True)
+        self.assertEqual(said, [C.CHECK_ONLY + f"{OTHER}: 1 new ID(s) on level 1, mast: mast:new"])
 
     def test_a_write_that_does_not_merge_says_nothing(self):
         """Code review (2026-11-25): the changes are said once the write has merged back, never before a stop."""
         said = []
         clash = self.NEW(system_name=mast()["system_name"], jmri_name=mast()["jmri_name"])     # Mast 2L's name
         with self.assertRaisesRegex(D.DevicesError, "jmri_name .* as well"):
-            D.outputs_after_rows("build_masts.py", [mast(), clash], self.files, said.append)
+            D.outputs_after_rows(OTHER, [mast(), clash], self.files, said.append)
         self.assertEqual(said, [])
 
     def test_outputs_after_says_each_change_once(self):
         said = []
         rows = [dict(D.device_map_row(r), role=r["role"], id=r["id"]) for r in [mast(), self.NEW()]]
-        D.outputs_after("build_masts.py", rows, self.files, warn=said.append)
-        self.assertEqual(said, ["build_masts.py: 1 new ID(s) on level 1, mast: mast:new"])
+        D.outputs_after(OTHER, rows, self.files, warn=said.append)
+        self.assertEqual(said, [f"{OTHER}: 1 new ID(s) on level 1, mast: mast:new"])
 
     def test_an_owner_rename_reaches_the_merged_view_and_is_said_when_the_builder_gives_it(self):
         """A staging device: the owner renames it in its field row (keyed by id), the builder takes the name from

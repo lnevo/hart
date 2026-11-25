@@ -127,8 +127,8 @@ class Digicon(unittest.TestCase):
         return p
 
     def test_a_two_head_mast_and_a_single_head(self):
-        p = self.read('1,head,mast:23:A:east:top,,,,,,2,0,OU1,"1,2,3",wired,\n'
-                      '1,head,mast:23:A:east:bottom,,,,,,2,6,OU1,"4,5,6",wired,\n'
+        p = self.read('1,head,mast:23:A-1A:A:east:top,,,,,,2,0,OU1,"1,2,3",wired,\n'
+                      '1,head,mast:23:A-1A:A:east:bottom,,,,,,2,6,OU1,"4,5,6",wired,\n'
                       '1,head,mast:5:B:west:single,,,,,,4,0,OU2,"1,2,3",wired,\n'
                       '1,calibration,,C4 calibration relay,,,,,4,,OU2,8,wired,\n')
         rows = W.digicon_rows(p)
@@ -147,7 +147,7 @@ class Digicon(unittest.TestCase):
     def test_a_planned_head_is_no_digicon_head(self):
         """Only wired heads are Digicon heads, as the old signal_wiring.csv held: a planned head's ports are
         reserved, nothing is on them yet."""
-        p = self.read('1,head,mast:23:A:east:top,,,,,,2,0,OU1,"1,2,3",planned,\n'
+        p = self.read('1,head,mast:23:A-1A:A:east:top,,,,,,2,0,OU1,"1,2,3",planned,\n'
                       '1,head,mast:5:B:west:single,,,,,,4,0,OU2,"1,2,3",wired,\n')
         self.assertEqual({r["mast_user_name"] for r in W.digicon_rows(p)}, {"Mast 6LB"})
 

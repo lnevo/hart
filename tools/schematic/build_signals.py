@@ -196,7 +196,7 @@ def main_upper_rows() -> list[dict]:
             m = destinations.get(name)
             if m is None:
                 sys.exit(f"{r['mast']}: {lm.PATH.name} names a virtual mast the rule no longer places; "
-                         "rebuild it with build_device_map.py and build_masts.py")
+                         "rebuild it with build_device_map.py (every level's mast rows) and build_masts.py")
             band = bands[m["band"]][1]
             d = band["nodes"][m["node"]]
             t = by_name.get(r["facing"])

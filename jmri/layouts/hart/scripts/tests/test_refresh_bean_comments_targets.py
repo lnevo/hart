@@ -1,5 +1,5 @@
 """refresh_bean_comments.py no longer edits tables.xml (R9c, ADR-029) nor devices.csv: the command checks that the
-staging heads' wiring in devices.csv is wiring.csv's (build_masts.py writes it); the tables' comments are
+staging heads' wiring in devices.csv is wiring.csv's (build_device_map.py writes it); the tables' comments are
 generated (tools/schematic/build_tables.py)."""
 from __future__ import annotations
 

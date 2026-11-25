@@ -20,14 +20,15 @@ the level's block layer:
    first visible mast; a route that reaches a buffer stop first gets a hidden bumper mast there, facing it. Nothing
    else gets one. A bumper mast is named as a home mast is, from the switch the track to the buffer stop leaves (its
    number + 1) and the letter a train heading for the buffer stop reads; masts of one number and letter take A, B ...
-   by row on the drawing, after the letters the visible masts use (120RA and 120RB stand, so the bumper mast is
-   120RC); a visible mast with the bare name stops the build.
+   in the plan order of their tracks (the switch leg each leaves: mast_rule.leg_order, as home masts follow
+   mast_rule.letter_order; naming-layers step 12), after the letters the visible masts use (120RA and 120RB stand,
+   so the bumper mast is 120RC); a visible mast with the bare name stops the build.
 
 The block layer is each level's own (not yet one process): staging's from its device map's block rows and
-block_lengths.csv (build_masts.py), main and upper's generated one block per track, loop and split halves
-(build_device_map.track_layer). Each level's builder turns these masts into its device rows: build_masts.py
-staging's (with their plan facts), build_device_map.py main and upper's; build_masts.py writes masts.csv, every
-level, from those rows.
+block_lengths.csv (device_map_masts.py), main and upper's generated one block per track, loop and split halves
+(build_device_map.track_layer). One writer turns these masts into every level's device rows, build_device_map.py
+(naming-layers step 12: staging's through device_map_masts.py, with their plan facts; main and upper's in its
+build()); build_masts.py writes masts.csv, every level, from those rows.
 """
 from __future__ import annotations
 
@@ -119,11 +120,6 @@ def assign_numbers(masts: list[dict]) -> None:
 def letter_at(band, node: str, leg: str) -> str:
     """The direction letter of a mast at switch `node`'s `leg` facing into the switch, as mast_rule.masts names it."""
     return "L" if mr.TAU[leg] * band["rail"][node] == 1 else "R"
-
-
-def leg_row(band, node: str, leg: str) -> int:
-    d = band["nodes"][node]
-    return band["R"]["srow"].get(d["ins"].get(leg) or d["outs"].get(leg), 0)
 
 
 def _label(band, node: str) -> str:
@@ -240,7 +236,9 @@ def virtual_masts(bands, joined, home: list[dict], runs_by_band: dict, cm: dict,
         letter = "R" if letter_at(band, n, p) == "L" else "L"      # the letter a train heading for the stop reads
         sw = _label(band, n)
         _needs_lengths([((n, p), seq, None)], cm)
-        groups[(int(sw) + 1, letter)].append((leg_row(band, n, p), dict(
+        # lettered in the plan order of the track to the buffer stop, by the switch leg it leaves (mast_rule
+        # .leg_order of its end_leg: Track 209 Spur 1 from 209B before Spur 2 from 209C), as the home masts are
+        groups[(int(sw) + 1, letter)].append((mr.leg_order(mr.end_leg(bands, joined, bi, (n, p))), dict(
             level=mr.band_level(bands[bi][0], levels), band=bi, node=n, leg=p, switch=sw,
             bumper=e[1], dir="west" if letter == "L" else "east", facing=seq[-1], seq=seq,
             total=round(sum(cm[b] for b in seq), 1), needed_by=sorted(who, key=mr.natural))))

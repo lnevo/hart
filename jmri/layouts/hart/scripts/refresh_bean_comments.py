@@ -3,7 +3,7 @@
 
 Since R9c (ADR-029) tables.xml is generated (tools/schematic/build_tables.py) and its comments come from the device master;
 the command only checks that the staging heads' wiring comments in the device master (written by
-tools/schematic/build_masts.py from wiring.csv) are wiring.csv's. The comment rules below stay for
+tools/schematic/build_device_map.py from wiring.csv) are wiring.csv's. The comment rules below stay for
 the parked USS CTC scripts (cleanup_uss_ctc_leftovers.py, uss_switch_only_columns.py) and audit_panel_contracts.py.
 
 - Track Main West Brick–Plane → Track Brick-Plane
@@ -263,7 +263,7 @@ def load_wiring_head_comments(
 
 def stale_head_comments(files: devices.Files | None = None, path: Path | None = None) -> list[str]:
     """The staging head rows of the device master whose wiring is not the comment wiring.csv gives them
-    (load_wiring_head_comments of `path`), one line each; [] when they agree. build_masts.py writes the head
+    (load_wiring_head_comments of `path`), one line each; [] when they agree. build_device_map.py writes the head
     rows' wiring from wiring.csv, so a line here means it has not been run since wiring.csv changed. DevicesError
     when the master cannot be read."""
     comments = load_wiring_head_comments(path)
@@ -912,7 +912,7 @@ def refresh_comments(text: str) -> tuple[str, int]:
 
 def main() -> int:
     """Check the wiring comments of the staging signal heads in the device master against wiring.csv
-    (stale_head_comments); 1 when they differ (run tools/schematic/build_masts.py). tables.xml is an output
+    (stale_head_comments); 1 when they differ (run tools/schematic/build_device_map.py). tables.xml is an output
     since R9c (ADR-029): its comments come from the device master through tools/schematic/build_tables.py, so this script
     no longer edits it; refresh_comments stays for the parked USS CTC scripts that import it."""
     paths.exit_if_overridden(Path(__file__).name)
@@ -924,7 +924,7 @@ def main() -> int:
     for line in stale:
         print(f"refresh_bean_comments.py: {line}", file=sys.stderr)
     if stale:
-        print("refresh_bean_comments.py: run python3 tools/schematic/build_masts.py", file=sys.stderr)
+        print("refresh_bean_comments.py: run python3 tools/schematic/build_device_map.py", file=sys.stderr)
         return 1
     print("device master: head comments current")
     return 0
