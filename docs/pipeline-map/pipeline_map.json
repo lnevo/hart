@@ -8113,6 +8113,13 @@
    "side": "pointer"
   },
   {
+   "from": "AGENTS.md",
+   "to": "wiki/projects",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
    "from": "cats/AGENTS.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -8134,27 +8141,6 @@
    "side": "check"
   },
   {
-   "from": "wiki/STATUS.md",
-   "to": "wiki/projects",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "wiki/STATUS_LOG.md",
-   "to": "wiki/projects",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "wiki/decisions",
-   "to": "wiki/projects",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
    "from": "wiki/home.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -8162,29 +8148,8 @@
    "side": "check"
   },
   {
-   "from": "wiki/home.md",
-   "to": "wiki/projects",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "wiki/not-pending.md",
-   "to": "wiki/projects",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
    "from": "wiki/pipelines",
    "to": "ops/hart-ops/AGENTS.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "wiki/pipelines",
-   "to": "wiki/projects",
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"
