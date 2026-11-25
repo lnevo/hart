@@ -30,7 +30,7 @@ python3 tools/schematic/build_device_map.py
 python3 tools/wiring/write_inventory.py
 make wiring-freeze CP="CP 123"              # once a main or upper control point is wired: its wiring becomes static
 python3 tools/wiring/create_wiring_schematic_ppt.py
-python3 www/scripts/build_wiring_json.py   # site viewer; signal splits keep v85 pins (--splits-inventory); tools/check.sh fails while it is stale
+python3 www/scripts/build_wiring_json.py   # site viewer from v86; tools/check.sh fails while it is stale
 ```
 
 `docs/wiring/` is the only copy (the Desktop pack was retired, ADR-007). For Signal Manager punching, use `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx`. Detail: [`docs/wiring/README.md`](../../docs/wiring/README.md).

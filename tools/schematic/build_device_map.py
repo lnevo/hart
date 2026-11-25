@@ -185,7 +185,7 @@ def sources() -> railroad.Sources:
                                         plan_overrides=OVERRIDES, devices=OUT)
 
 CAP = {"turnout": 8, "block": 8, "signal": 16, "sensor": 16}
-MAX_OU = 4                            # DNOU8 boards per node: the most any node has in LCOS_Layout_Inventory_v85
+MAX_OU = 4                            # DNOU8 boards per node: the most any node has in LCOS_Layout_Inventory_v85 (archive/docs/wiring/)
 COLUMNS = list(railroad.DEVICE_COLUMNS)
 DCC_FIRST = 120                       # staging uses 100-119 (MTT100-MTT119); the owner continues from 120
 VIRTUAL_TURNOUT = level_devices.TURNOUT_PREFIX   # + switch number: the internal turnout the panels and desks use
