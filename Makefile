@@ -1,7 +1,7 @@
 # The commands agents and people use most. Each target runs the real script, so
 # these stay short. `make` lists them.
 .DEFAULT_GOAL := help
-.PHONY: help mqtt-clean mqtt-watch wt wt-sweep orient status check remote portal-check panels desks panelpro-test docs-index map publications waybills submodules tables-pull tables-pull-pi ops-pull sts-pull shot deploy-layout deploy-all deploy-status backup-status redeploy deploy-site speedmatch
+.PHONY: help mqtt-clean mqtt-watch wt wt-sweep orient status check remote portal-check panels desks panelpro-test docs-index map site-data publications waybills submodules tables-pull tables-pull-pi ops-pull sts-pull shot deploy-layout deploy-all deploy-status backup-status redeploy deploy-site speedmatch
 
 help:  ## List the commands
 	@grep -hE '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -47,6 +47,9 @@ docs-index:  ## Rebuild docs/INDEX.md
 
 map:  ## Build the pipeline map pages to view locally (not committed, ADR-036): docs/pipeline-map/index.html and www/library/pipeline-map.html
 	python3 tools/ops/build_pipeline_map.py
+
+site-data:  ## Build every file the site build makes instead of committing (ADR-036) into www/ for the local preview: the map page and the generated JSON (serve_portal.py does this at start)
+	python3 www/scripts/site_views.py
 
 tables-pull:  ## Keep a Mac PanelPro Store in media/pulled-stores in the main checkout for tools/schematic/split_store.py (tables.xml is generated)
 	./tools/ops/pull_tables.sh

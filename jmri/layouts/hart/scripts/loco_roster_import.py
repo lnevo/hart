@@ -106,7 +106,7 @@ def _jmri_run(entries, apply=False):
     log("done: %d created, %d photos set" % (created, imaged))
     if apply and created:
         log("next: roster_rename_road_ids.py is not needed (IDs are road + number already);")
-        log("      run ensure_dispatcher_roster_profiles.py, then cs105_roster_sync.sh --apply")
+        log("      run ensure_dispatcher_roster_profiles.py, then tools/ops/cs105.sh roster-sync --apply")
     return "\n".join(lines)
 
 

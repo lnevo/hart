@@ -1,0 +1,2 @@
+order: 135
+**Site JSON built, not committed (owner, 2026-11-25, [ADR-036](../../decisions/ADR-036-generated-views-not-committed.md)):** `tables-browser.json`, `layout-index.json` and `layout-index-cats.json` are gitignored; the site build and `serve_portal.py` build them (`site_views.py`, `make site-data`), and their checks build them in memory. `wiring-inventory.json` follows after the wiring scripts move to `hartlib.wiring`.

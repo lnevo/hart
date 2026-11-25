@@ -38,12 +38,13 @@ SCANS = {
     "ai-speak": lambda: load("check_ai_speak", "tools/audit/check_ai_speak.py").DEFAULT_GLOBS,
     "agent-docs": lambda: load("check_agent_docs", "tools/audit/check_agent_docs.py").SCAN_GLOBS,
     "data-readers": lambda: load("check_data_readers", "tools/audit/check_data_readers.py").SCAN_GLOBS,
+    "data-schemas": lambda: load("check_data", "tools/ops/check_data.py").SCAN_GLOBS,
     "py-sizes": lambda: load("check_py_sizes", "tools/audit/check_py_sizes.py").SCAN_GLOBS,
     # the agent-doc lane, then .gitmodules, which build_pipeline_map.py reads for the submodule boxes
     "pipeline-map": lambda: (*load("agent_docs_map", "tools/ops/agent_docs_map.py").scan_globs(), ".gitmodules"),
 }
 # the steps whose pages the site build makes, in the order the portal step lists their reads
-PORTAL_PAGES = ("tables-browser", "repo-guide", "jmri-additions", "pipeline-map")
+PORTAL_PAGES = ("tables-browser", "repo-guide", "jmri-additions", "pipeline-map", "layout-index", "layout-index-cats")
 # what the site's data names outside www/ and the build copies in (prepare_github_pages._vendor_logo, MIRROR_PREFIXES)
 PORTAL_VENDORED = ("ops/hart-ops/operator_logos/**", "external/sts-docker-data/Rolling Stock photos/*.jpg")
 
@@ -114,11 +115,14 @@ class ScanListsTest(unittest.TestCase):
             self.assertTrue(any(M.covers(g, src) for g in STEPS["portal"].quiet_inputs), src)
 
     def test_the_portal_pages_are_the_ones_the_site_build_makes(self) -> None:
-        source = (ROOT / "www/scripts/prepare_github_pages.py").read_text(encoding="utf-8")
-        imported = {a.name for node in ast.walk(ast.parse(source)) if isinstance(node, ast.Import) for a in node.names}
+        # the site build imports the page fills itself and its built files' builders through site_views (ADR-036)
+        sources = [(ROOT / f"www/scripts/{f}").read_text(encoding="utf-8")
+                   for f in ("prepare_github_pages.py", "site_views.py")]
+        imported = {a.name for source in sources for node in ast.walk(ast.parse(source)) if isinstance(node, ast.Import)
+                    for a in node.names}
         made = {name for name, s in STEPS.items() if s.script.startswith("www/scripts/")
                 and Path(s.script).stem in imported}
-        self.assertIn(f'_load_tool("{STEPS["pipeline-map"].script}")', source)
+        self.assertIn(f'_load_tool("{STEPS["pipeline-map"].script}")', sources[1])
         self.assertEqual(made | {"pipeline-map"}, set(PORTAL_PAGES))
 
 

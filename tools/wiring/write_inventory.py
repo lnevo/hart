@@ -21,6 +21,9 @@ has one, owner 2026-11-21). Staging's rows are only what is wired, or reserved; 
 boards (12V boards for turnouts first, 5V boards after them, pin 8 of the first 5V board for the calibration relay)
 and are shaded light blue (owner, 2026-11-15). The workbooks before it, the imported
 v84 and the v85 written from it, are history in archive/ (owner, 2026-11-20).
+
+v86 is an output only (ADR-039): www/scripts/build_wiring_json.py and create_wiring_schematic_ppt.py take the same
+sheets from workbook(), built in memory, and never open the file.
 """
 from __future__ import annotations
 
@@ -442,7 +445,10 @@ def digicon_sheet(wb, wired: list[dict], heads: list[dict]) -> None:
         ws.column_dimensions[get_column_letter(col)].width = 22
 
 
-def build(dest: Path) -> None:
+def workbook() -> Workbook:
+    """The inventory workbook in memory, built from the wiring model (the device master, hartlib.wiring's wiring.csv,
+    the node file and the head plan): v86 is this saved, and build_wiring_json.py and create_wiring_schematic_ppt.py
+    read their sheets from it, not from the file."""
     rows = read_device_rows()
     by_name = {r["user_name"]: r for r in rows}
     wired = wiring.digicon_rows()
@@ -456,7 +462,11 @@ def build(dest: Path) -> None:
     turnout_sheet(wb, nodes, by_name)
     block_sheet(wb, nodes, by_name)
     digicon_sheet(wb, wired, load_csv(paths.SIGNAL_HEAD_PLAN))
-    wb.save(dest)
+    return wb
+
+
+def build(dest: Path) -> None:
+    workbook().save(dest)
 
 
 def values(path: Path) -> dict:

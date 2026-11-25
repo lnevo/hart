@@ -39,7 +39,7 @@ ssh pi "python3 /tmp/speedmatch/pom_guard.py archive-ledger 'CSX 2738' --ledger-
 ## Checklist before an apply
 
 1. PanelPro running on the Pi, the owner not operating, only the test loco on the track.
-2. **Break every consist involving the target** with `cs105_consist.py ACTION = "detach"`,
+2. **Break every consist involving the target** with `tools/ops/cs105.sh consist detach LEAD FOLLOW`,
    including any led by an address that is not in the roster. The guard queries every
    rostered loco's train node, but it cannot list consists led by unrostered addresses, so
    apply also needs `CONSISTS_BROKEN = True` (`--consists-broken`) as your confirmation (it is logged).
@@ -155,7 +155,7 @@ are ignored. A rollback file has the same shape, so it is applied the same way.
 
 ## Dry run on the Mac
 
-With a consist query log from the Pi (`cs105_consist.py`, `ACTION = "query"`, every roster
+With a consist query log from the Pi (`tools/ops/cs105.sh consist query NODE...` over every roster
 loco's train node):
 
 ```
@@ -204,4 +204,4 @@ only when that loco is not on the layout. The dry run also saves `<ROLLBACK>.dry
 needs `--apply` and `--consists-broken`, plus `--roster-old-ok` if any old value is from the roster,
 and a rollback name not used before. The log then shows `ROLLBACK written`, one
 `WRITE CVn=v OK|FAILED|TIMEOUT` line per CV, and `DONE` or `STOPPED at ...`. Afterwards make
-the consist again with `cs105_consist.py ACTION = "attach"`.
+the consist again with `tools/ops/cs105.sh consist attach`, once per side.
