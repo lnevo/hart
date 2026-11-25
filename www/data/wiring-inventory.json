@@ -2,8 +2,8 @@
  "source": {
   "file": "LCOS_Layout_Inventory_v86.xlsx",
   "version": "v86",
-  "modified": "2026-11-21",
-  "built": "2026-11-21"
+  "modified": "2026-11-25",
+  "built": "2026-11-25"
  },
  "nodes": [
   {
@@ -2114,7 +2114,7 @@
    "signals": [
     "204RB",
     "220R",
-    "222LA",
+    "222LB",
     "222R"
    ],
    "blockNames": [],
@@ -2287,55 +2287,55 @@
       {
        "pin": 1,
        "port": "C14-OU3-1",
-       "device": "Head 222LA Top R",
+       "device": "Head 222LB Top R",
        "kind": "lamp",
        "color": "R",
-       "head": "222LA Top",
+       "head": "222LB Top",
        "place": "West - Upper"
       },
       {
        "pin": 2,
        "port": "C14-OU3-2",
-       "device": "Head 222LA Top Y",
+       "device": "Head 222LB Top Y",
        "kind": "lamp",
        "color": "Y",
-       "head": "222LA Top",
+       "head": "222LB Top",
        "place": "West - Upper"
       },
       {
        "pin": 3,
        "port": "C14-OU3-3",
-       "device": "Head 222LA Top G",
+       "device": "Head 222LB Top G",
        "kind": "lamp",
        "color": "G",
-       "head": "222LA Top",
+       "head": "222LB Top",
        "place": "West - Upper"
       },
       {
        "pin": 4,
        "port": "C14-OU3-4",
-       "device": "Head 222LA Bottom R",
+       "device": "Head 222LB Bottom R",
        "kind": "lamp",
        "color": "R",
-       "head": "222LA Bottom",
+       "head": "222LB Bottom",
        "place": "West - Upper"
       },
       {
        "pin": 5,
        "port": "C14-OU3-5",
-       "device": "Head 222LA Bottom Y",
+       "device": "Head 222LB Bottom Y",
        "kind": "lamp",
        "color": "Y",
-       "head": "222LA Bottom",
+       "head": "222LB Bottom",
        "place": "West - Upper"
       },
       {
        "pin": 6,
        "port": "C14-OU3-6",
-       "device": "Head 222LA Bottom G",
+       "device": "Head 222LB Bottom G",
        "kind": "lamp",
        "color": "G",
-       "head": "222LA Bottom",
+       "head": "222LB Bottom",
        "place": "West - Upper"
       },
       {
@@ -3793,7 +3793,7 @@
     "Switch 217"
    ],
    "signals": [
-    "212LA",
+    "212LB",
     "212RB"
    ],
    "blockNames": [
@@ -3955,55 +3955,55 @@
       {
        "pin": 1,
        "port": "C24-OU3-1",
-       "device": "Head 212LA Top R",
+       "device": "Head 212LB Top R",
        "kind": "lamp",
        "color": "R",
-       "head": "212LA Top",
+       "head": "212LB Top",
        "place": "Peninsula - Upper"
       },
       {
        "pin": 2,
        "port": "C24-OU3-2",
-       "device": "Head 212LA Top Y",
+       "device": "Head 212LB Top Y",
        "kind": "lamp",
        "color": "Y",
-       "head": "212LA Top",
+       "head": "212LB Top",
        "place": "Peninsula - Upper"
       },
       {
        "pin": 3,
        "port": "C24-OU3-3",
-       "device": "Head 212LA Top G",
+       "device": "Head 212LB Top G",
        "kind": "lamp",
        "color": "G",
-       "head": "212LA Top",
+       "head": "212LB Top",
        "place": "Peninsula - Upper"
       },
       {
        "pin": 4,
        "port": "C24-OU3-4",
-       "device": "Head 212LA Bottom R",
+       "device": "Head 212LB Bottom R",
        "kind": "lamp",
        "color": "R",
-       "head": "212LA Bottom",
+       "head": "212LB Bottom",
        "place": "Peninsula - Upper"
       },
       {
        "pin": 5,
        "port": "C24-OU3-5",
-       "device": "Head 212LA Bottom Y",
+       "device": "Head 212LB Bottom Y",
        "kind": "lamp",
        "color": "Y",
-       "head": "212LA Bottom",
+       "head": "212LB Bottom",
        "place": "Peninsula - Upper"
       },
       {
        "pin": 6,
        "port": "C24-OU3-6",
-       "device": "Head 212LA Bottom G",
+       "device": "Head 212LB Bottom G",
        "kind": "lamp",
        "color": "G",
-       "head": "212LA Bottom",
+       "head": "212LB Bottom",
        "place": "Peninsula - Upper"
       },
       {
@@ -6593,7 +6593,7 @@
    "type": "Client",
    "turnouts": [],
    "signals": [
-    "212LB",
+    "212LA",
     "212RA",
     "218LA",
     "218LB",
@@ -6697,55 +6697,55 @@
       {
        "pin": 1,
        "port": "C54-OU2-1",
-       "device": "Head 218RA Top R",
+       "device": "Head 218RB Top R",
        "kind": "lamp",
        "color": "R",
-       "head": "218RA Top",
+       "head": "218RB Top",
        "place": "Peninsula - Upper"
       },
       {
        "pin": 2,
        "port": "C54-OU2-2",
-       "device": "Head 218RA Top Y",
+       "device": "Head 218RB Top Y",
        "kind": "lamp",
        "color": "Y",
-       "head": "218RA Top",
+       "head": "218RB Top",
        "place": "Peninsula - Upper"
       },
       {
        "pin": 3,
        "port": "C54-OU2-3",
-       "device": "Head 218RA Top G",
+       "device": "Head 218RB Top G",
        "kind": "lamp",
        "color": "G",
-       "head": "218RA Top",
+       "head": "218RB Top",
        "place": "Peninsula - Upper"
       },
       {
        "pin": 4,
        "port": "C54-OU2-4",
-       "device": "Head 218RA Bottom R",
+       "device": "Head 218RB Bottom R",
        "kind": "lamp",
        "color": "R",
-       "head": "218RA Bottom",
+       "head": "218RB Bottom",
        "place": "Peninsula - Upper"
       },
       {
        "pin": 5,
        "port": "C54-OU2-5",
-       "device": "Head 218RA Bottom Y",
+       "device": "Head 218RB Bottom Y",
        "kind": "lamp",
        "color": "Y",
-       "head": "218RA Bottom",
+       "head": "218RB Bottom",
        "place": "Peninsula - Upper"
       },
       {
        "pin": 6,
        "port": "C54-OU2-6",
-       "device": "Head 218RA Bottom G",
+       "device": "Head 218RB Bottom G",
        "kind": "lamp",
        "color": "G",
-       "head": "218RA Bottom",
+       "head": "218RB Bottom",
        "place": "Peninsula - Upper"
       },
       {
@@ -6770,28 +6770,28 @@
       {
        "pin": 1,
        "port": "C54-OU3-1",
-       "device": "Head 212LB R",
+       "device": "Head 212LA R",
        "kind": "lamp",
        "color": "R",
-       "head": "212LB",
+       "head": "212LA",
        "place": "Peninsula - Upper"
       },
       {
        "pin": 2,
        "port": "C54-OU3-2",
-       "device": "Head 212LB Y",
+       "device": "Head 212LA Y",
        "kind": "lamp",
        "color": "Y",
-       "head": "212LB",
+       "head": "212LA",
        "place": "Peninsula - Upper"
       },
       {
        "pin": 3,
        "port": "C54-OU3-3",
-       "device": "Head 212LB G",
+       "device": "Head 212LA G",
        "kind": "lamp",
        "color": "G",
-       "head": "212LB",
+       "head": "212LA",
        "place": "Peninsula - Upper"
       },
       {
@@ -6870,28 +6870,28 @@
       {
        "pin": 4,
        "port": "C54-OU4-4",
-       "device": "Head 218RB R",
+       "device": "Head 218RA R",
        "kind": "lamp",
        "color": "R",
-       "head": "218RB",
+       "head": "218RA",
        "place": "Peninsula - Upper"
       },
       {
        "pin": 5,
        "port": "C54-OU4-5",
-       "device": "Head 218RB Y",
+       "device": "Head 218RA Y",
        "kind": "lamp",
        "color": "Y",
-       "head": "218RB",
+       "head": "218RA",
        "place": "Peninsula - Upper"
       },
       {
        "pin": 6,
        "port": "C54-OU4-6",
-       "device": "Head 218RB G",
+       "device": "Head 218RA G",
        "kind": "lamp",
        "color": "G",
-       "head": "218RB",
+       "head": "218RA",
        "place": "Peninsula - Upper"
       },
       {
@@ -7000,7 +7000,7 @@
    }
   },
   {
-   "head": "222LA Bottom",
+   "head": "222LB Bottom",
    "node": "C14",
    "place": "West - Upper",
    "type": "RGB LED",
@@ -7011,7 +7011,7 @@
    }
   },
   {
-   "head": "222LA Top",
+   "head": "222LB Top",
    "node": "C14",
    "place": "West - Upper",
    "type": "RGB LED",
@@ -7176,7 +7176,7 @@
    }
   },
   {
-   "head": "212LA Bottom",
+   "head": "212LB Bottom",
    "node": "C24",
    "place": "Peninsula - Upper",
    "type": "RGB LED",
@@ -7187,7 +7187,7 @@
    }
   },
   {
-   "head": "212LA Top",
+   "head": "212LB Top",
    "node": "C24",
    "place": "Peninsula - Upper",
    "type": "RGB LED",
@@ -7550,7 +7550,7 @@
    }
   },
   {
-   "head": "212LB",
+   "head": "212LA",
    "node": "C54",
    "place": "Peninsula - Upper",
    "type": "RGB LED",
@@ -7605,7 +7605,18 @@
    }
   },
   {
-   "head": "218RA Bottom",
+   "head": "218RA",
+   "node": "C54",
+   "place": "Peninsula - Upper",
+   "type": "RGB LED",
+   "lamps": {
+    "R": "C54-OU4-4",
+    "Y": "C54-OU4-5",
+    "G": "C54-OU4-6"
+   }
+  },
+  {
+   "head": "218RB Bottom",
    "node": "C54",
    "place": "Peninsula - Upper",
    "type": "RGB LED",
@@ -7616,7 +7627,7 @@
    }
   },
   {
-   "head": "218RA Top",
+   "head": "218RB Top",
    "node": "C54",
    "place": "Peninsula - Upper",
    "type": "RGB LED",
@@ -7624,17 +7635,6 @@
     "R": "C54-OU2-1",
     "Y": "C54-OU2-2",
     "G": "C54-OU2-3"
-   }
-  },
-  {
-   "head": "218RB",
-   "node": "C54",
-   "place": "Peninsula - Upper",
-   "type": "RGB LED",
-   "lamps": {
-    "R": "C54-OU4-4",
-    "Y": "C54-OU4-5",
-    "G": "C54-OU4-6"
    }
   }
  ],
@@ -8360,7 +8360,7 @@
    "fbN": "C23-IN1-7",
    "fbR": "C23-IN1-8",
    "signals": {
-    "entry": "222LA"
+    "entry": "222LB"
    }
   },
   {
@@ -8386,7 +8386,7 @@
    "fbN": "C24-IN1-1",
    "fbR": "C24-IN1-2",
    "signals": {
-    "entry": "212LA"
+    "entry": "212LB"
    }
   },
   {
