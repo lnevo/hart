@@ -95,7 +95,7 @@ When a task changes or reuses a script of about 500 lines or more, or one with n
 - Command field turnouts or publish `track/cmd` from launch or “fix paint” scripts. Never pass an MQTT publish command through a shell, even as test input (`tools/audit/tests/test_guards.py` shows how).
 - Run `fit_panel_height`, `fit_panel_canvas`, `polish_layout_geometry` or 2× draw scale unless asked.
 - Store JMRI tables from a CATS session. PanelPro owns `tables.xml`.
-- Patch or wrap JMRI or CATS. Both are stock installs; fix the source data (`jmri/layouts/hart/data/devices_field.csv`, the builders' inputs) or the template.
+- Patch or wrap JMRI or CATS. Both are stock installs; fix the source data (`jmri/layouts/hart/data/devices_field.csv`, the builders' inputs) or the template. One exception: JMRI's `MqttAdapter` race fix in `tools/jmri/mqtt_overlay/`, until a JMRI release with JMRI/JMRI#16004 runs on the hosts ([ADR-034](wiki/decisions/ADR-034-jmri-mqtt-race-overlay.md)).
 - Leave the LCOS bridge (`serial_to_mqtt`) running detached. Start it only for a lab test, stop it before ending the turn, and ask the user to restart it (`.\run_serial_mqtt.cmd verbose`).
 - Edit `external/lcos-bridge/lcos/` or `reference/` (vendor source) without explicit instruction.
 - Stop a run with `pkill -f` on a shared script name. Use its PID or a pattern with your worktree path.

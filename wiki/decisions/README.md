@@ -35,5 +35,6 @@
 | [031](ADR-031-signal-rule.md) | Signals by rule, with prototype mileposts and line codes | Superseded by ADR-024 (2026-11-23) |
 | [032](ADR-032-pi-os-trixie-64-bit.md) | The layout Pi runs 64-bit trixie, built from the repo | Accepted |
 | [033](ADR-033-generated-then-owner.md) | Generated values, then the owner's, then frozen wiring | Accepted |
+| [034](ADR-034-jmri-mqtt-race-overlay.md) | JMRI's MQTT race fix as an overlay until JMRI ships it | Accepted |
 
 Older consolidation decisions are in git history, and ADR-007 records what became of them.

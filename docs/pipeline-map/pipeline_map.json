@@ -3596,6 +3596,24 @@
    "path": "tools/ops/move_path.py"
   },
   {
+   "id": "tools/jmri/mqtt_overlay/hart-mqtt-race-fix.jar",
+   "label": "hart-mqtt-race-fix.jar",
+   "kind": "output",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "JMRI 5.16's MqttAdapter with the JMRI/JMRI#16004 race fix, one class, built by build.sh (ADR-034).",
+   "path": "tools/jmri/mqtt_overlay/hart-mqtt-race-fix.jar"
+  },
+  {
+   "id": "tools/jmri/mqtt_overlay/install_overlay.py",
+   "label": "install_overlay.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Puts the MQTT race overlay in a host's jmri.conf (--cp:p), only over the JMRI build it was made from (ADR-034).",
+   "path": "tools/jmri/mqtt_overlay/install_overlay.py"
+  },
+  {
    "id": ".claude/agents/archive-researcher.md",
    "label": "agent: archive-researcher",
    "kind": "unstructured",
@@ -7547,6 +7565,21 @@
    "from": "tools/ops/move_path.py",
    "to": "tools/ops/build_pipeline_map.py",
    "label": "runs"
+  },
+  {
+   "from": "tools/jmri/mqtt_overlay/hart-mqtt-race-fix.jar",
+   "to": "tools/jmri/mqtt_overlay/install_overlay.py",
+   "label": "copied"
+  },
+  {
+   "from": "tools/hosts/sync_hart_package.sh",
+   "to": "tools/jmri/mqtt_overlay/install_overlay.py",
+   "label": "runs on each host"
+  },
+  {
+   "from": "tools/jmri/mqtt_overlay/install_overlay.py",
+   "to": "host:panelpro",
+   "label": "jmri.conf --cp:p"
   },
   {
    "from": ".claude/agents/archive-researcher.md",
