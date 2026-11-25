@@ -277,6 +277,8 @@ def read_main_lines(sheet: str, path: Path = MAIN_LINES,
 # ---------------------------------------------------------------- the USS CTC board (parked)
 
 MAST_CELLS = "mast_cells.csv"
+MAST_CELL_COLUMNS = ["mast", "x", "y", "edge", "uss_facing", "uss_kind", "uss_head", "sig_location", "sig_orient",
+                     "notes"]
 USS_CELLS = "uss_board_cells.csv"
 USS_PLANTS = "uss_board_plants.csv"
 EDGES = {"LEFT", "RIGHT", "TOP", "BOTTOM"}
@@ -300,15 +302,29 @@ class MastCell:
 def read_mast_cells(data: Path = DATA) -> list[MastCell]:
     """mast_cells.csv in `data`, in file order (the order the USS board draws the icons). HandListError on a mast or
     a cell and edge given twice, an edge not EDGES, uss_facing not E or W, uss_kind not h2 or d1, a d1 icon without
-    its head or an h2 with one, or sig_location without sig_orient."""
+    its head or an h2 with one, sig_location without sig_orient, columns not MAST_CELL_COLUMNS, a row of another
+    number of fields, or an x or y that is not a whole number."""
     out: list[MastCell] = []
     seen: dict[str, int] = {}
     cells: dict[tuple[int, int, str], int] = {}
     with (data / MAST_CELLS).open(newline="", encoding="utf-8") as fh:
-        rows = [{k: (v or "").strip() for k, v in row.items()} for row in csv.DictReader(fh)]
+        reader = csv.DictReader(fh)
+        if reader.fieldnames != MAST_CELL_COLUMNS:
+            raise HandListError(f"{MAST_CELLS}: columns {','.join(MAST_CELL_COLUMNS)}, not "
+                                f"{','.join(reader.fieldnames or [])}")
+        rows = []
+        for row in reader:
+            if None in row or any(v is None for v in row.values()):
+                have = sum(v is not None for k, v in row.items() if k is not None) + len(row.get(None) or [])
+                raise HandListError(f"{MAST_CELLS} line {reader.line_num}: {len(MAST_CELL_COLUMNS)} fields, not {have}")
+            rows.append({k: v.strip() for k, v in row.items()})
     for line, row in enumerate(rows, start=2):
         where = f"{MAST_CELLS} line {line} ({row['mast']})"
-        cell = MastCell(row["mast"], int(row["x"]), int(row["y"]), row["edge"], row["uss_facing"],
+        try:
+            x, y = int(row["x"]), int(row["y"])
+        except ValueError:
+            raise HandListError(f"{where}: x and y are whole numbers, not {row['x']!r} and {row['y']!r}") from None
+        cell = MastCell(row["mast"], x, y, row["edge"], row["uss_facing"],
                         row["uss_kind"], row["uss_head"], row["sig_location"], row["sig_orient"])
         key = (cell.x, cell.y, cell.edge)
         for what, index, value in (("mast", seen, cell.mast), ("cell and edge", cells, key)):

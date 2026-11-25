@@ -113,6 +113,15 @@ class UssBoard(Temp):
         with self.assertRaisesRegex(hand_lists.HandListError, r"mast_cells.csv line \d+ \(Mast 99L\): uss_head"):
             hand_lists.read_mast_cells(data)
 
+    def test_a_bad_header_short_row_or_number_stops_naming_the_line(self):
+        for edit, msg in ((lambda t: t.replace("mast,x,y", "mast,col,y", 1), r"mast_cells.csv: columns mast,x,y"),
+                          (lambda t: t + "Mast 99L,1,1,LEFT,W,h2\n", r"mast_cells.csv line \d+: 10 fields, not 6"),
+                          (lambda t: t + "Mast 99L,1,1,LEFT,W,h2,,,,,x\n", r"mast_cells.csv line \d+: 10 fields, not 11"),
+                          (lambda t: t + "Mast 99L,one,1,LEFT,W,h2,,,,\n",
+                           r"mast_cells.csv line \d+ \(Mast 99L\): x and y are whole numbers, not 'one'")):
+            with self.subTest(msg), self.assertRaisesRegex(hand_lists.HandListError, msg):
+                hand_lists.read_mast_cells(self.folder(edit))
+
     def test_layout_facts_reads_through_it(self):
         import layout_facts
         self.assertIs(layout_facts.MastCell, hand_lists.MastCell)

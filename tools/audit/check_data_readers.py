@@ -13,7 +13,8 @@ external/ (vendor and retired code), and this check (its table names the files);
 into fixtures. A script that names a data file fails unless ALLOWED lists that script and file, with the reason it
 may; an ALLOWED pair no longer named fails too, so the list stays honest.
 
-Jython that runs inside JMRI (a script that imports jmri, java or javax, or that only Python 2 parses) cannot import
+Jython that runs inside JMRI (a script that imports jmri, apps, java, javax, org or jarray, or that only Python 2
+parses; a script Python 3 cannot parse that shows no mark of Python 2 fails as unreadable) cannot import
 hartlib and reads only generated outputs (jmri/layouts/hart/output/, the JMRI profile): a Jython script that names a
 data file fails unless JYTHON_ALLOWED lists it by name (one today, loco_roster_import.py).
 
@@ -120,10 +121,33 @@ def scripts() -> list[str]:
     return [p for p in tracked("*.py") if not p.startswith(SKIP) and not is_test(p) and p != SELF]
 
 
+# the top-level packages only Jython inside JMRI imports: JMRI's own (jmri, apps), Java's (java, javax, org) and
+# Jython's array module for Java arrays (jarray)
+JYTHON_ROOTS = {"jmri", "apps", "java", "javax", "org", "jarray"}
+# what only Python 2 parses: a print or exec statement, "except E, e", "raise E, msg", a ur"" string, and a Python 3
+# keyword used as a name (Java's CountDownLatch.await)
+PY2 = re.compile(r"""^\s*print\s+[^\s(=]|^\s*exec\s+["'\w]|^\s*except\s+[\w.]+\s*,\s*\w+\s*:|^\s*raise\s+[\w.]+\s*,"""
+                 r"""|\bur["']|\.(?:await|async)\b""", re.M)
+
+
+class Unparseable(ValueError):
+    """A script neither Python 3 nor (by its Python 2 marks) Jython parses; the message says where."""
+
+
+def imported_roots(tree: ast.AST) -> set[str]:
+    """The top-level packages a parsed script imports (Import and ImportFrom nodes, relative imports left out)."""
+    out = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            out |= {a.name.split(".")[0] for a in node.names}
+        elif isinstance(node, ast.ImportFrom) and node.module and not node.level:
+            out.add(node.module.split(".")[0])
+    return out
+
+
 def is_jython(src: str, tree: ast.AST | None) -> bool:
-    if tree is None:
-        return True
-    return bool(re.search(r"^\s*(import|from)\s+(jmri|java|javax)\b", src, re.M))
+    """A Python 2 script (`tree` None) is Jython; a Python 3 one is when it imports a JYTHON_ROOTS package."""
+    return tree is None or bool(imported_roots(tree) & JYTHON_ROOTS)
 
 
 def named(path: str, names: set[str]) -> tuple[dict[str, int], bool]:
@@ -132,10 +156,13 @@ def named(path: str, names: set[str]) -> tuple[dict[str, int], bool]:
 
 
 def named_in(src: str, names: set[str]) -> tuple[dict[str, int], bool]:
-    """({data file name of `names`: first line naming it}, is Jython) of a script's text."""
+    """({data file name of `names`: first line naming it}, is Jython) of a script's text. Unparseable when Python 3
+    cannot parse it and it shows no mark of Python 2 (PY2)."""
     try:
         tree = ast.parse(src)
-    except SyntaxError:
+    except SyntaxError as exc:
+        if not PY2.search(src):
+            raise Unparseable(f"line {exc.lineno}: {exc.msg}; not Python 3, and no mark of Python 2 (Jython)") from None
         tree = None
     found: dict[str, int] = {}
     if tree is None:                       # Python 2 (Jython): a text scan for a quoted name
@@ -159,8 +186,14 @@ def problems(allowed: dict[str, dict[str, str]] = ALLOWED,
     names = data_names()
     out = []
     seen: dict[str, set[str]] = {}
+    kind: dict[str, bool] = {}          # script -> is Jython
     for path in scripts():
-        found, jython = named(path, names)
+        try:
+            found, jython = named(path, names)
+        except Unparseable as exc:
+            out.append(f"{path}: cannot be read for data file names ({exc})")
+            continue
+        kind[path] = jython
         for name, line in sorted(found.items()):
             if jython and name not in jython_allowed.get(path, {}):
                 out.append(f"{path}:{line}: names {name}, a layout data file; Jython inside JMRI cannot import "
@@ -170,11 +203,15 @@ def problems(allowed: dict[str, dict[str, str]] = ALLOWED,
                            "(hartlib.railroad, hand_lists, devices, wiring, layer_files, track_names, level_masts)")
             else:
                 seen.setdefault(path, set()).add(name)
-    for path, files in (*allowed.items(), *jython_allowed.items()):
-        for name in files:
-            if name not in seen.get(path, set()):
-                out.append(f"ALLOWED lists {path} naming {name}, which it no longer does (or the file is gone): "
-                           "take the row out of tools/audit/check_data_readers.py")
+    for table, jython in ((allowed, False), (jython_allowed, True)):
+        for path, files in table.items():
+            if kind.get(path, jython) != jython:
+                continue                # a script of the other kind: its names already failed above
+            for name in files:
+                if name not in seen.get(path, set()):
+                    label = "JYTHON_ALLOWED" if jython else "ALLOWED"
+                    out.append(f"{label} lists {path} naming {name}, which it no longer does (or the file is gone): "
+                               "take the row out of tools/audit/check_data_readers.py")
     return out
 
 

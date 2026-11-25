@@ -37,6 +37,23 @@ class Scan(unittest.TestCase):
         got, jython = self.found('print "x"\nX = "wiring.csv"\n')              # only Python 2 parses it
         self.assertEqual((got, jython), ({"wiring.csv": 2}, True))
         self.assertFalse(self.found('import json\n')[1])
+        for src in ('import jarray\n', 'from org.python.core import PyList\n', 'import apps\n',
+                    'import os, javax.swing\n', 'if x:\n    import jmri.jmrit\n'):
+            with self.subTest(src=src):
+                self.assertTrue(self.found(src)[1])
+
+    def test_an_import_inside_a_string_is_not_jython(self):
+        """The imports are the AST's Import nodes, not a text match."""
+        self.assertFalse(self.found('HELP = """\nimport jmri\n"""\n')[1])
+        self.assertFalse(self.found('import javascript_tools\n')[1])
+
+    def test_python_2_marks_and_a_broken_script(self):
+        for src in ('except Exception, e:\n', 'x = latch.await(30)\n', 'raise ValueError, "no"\n',
+                    'exec "x = 1"\n'):
+            with self.subTest(src=src):
+                self.assertTrue(self.found(src)[1])
+        with self.assertRaisesRegex(CDR.Unparseable, "line 1: .*no mark of Python 2"):
+            self.found('def f(:\n    pass\n')
 
     def test_tests_and_hartlib_are_not_scanned(self):
         scanned = CDR.scripts()
@@ -49,7 +66,7 @@ class Scan(unittest.TestCase):
     def test_the_data_files_are_every_tracked_file_there(self):
         names = CDR.data_names()
         self.assertTrue({"switches.csv", "block_overrides.csv", "main_lines.csv", "mast_cells.csv",
-                         "devices_field.csv", "plan_overrides.json"} <= names)
+                         "wiring.csv", "plan_overrides.json"} <= names)
         self.assertNotIn("README.md", names)
 
 
@@ -78,6 +95,25 @@ class Problems(unittest.TestCase):
         self.assertTrue(any("Jython inside JMRI cannot import hartlib" in b for b in bad))
         self.assertEqual(self.run_with({"jmri/x.py": ({"wiring.csv": 2}, True)}, None,
                                        {"jmri/x.py": {"wiring.csv": "why"}}), [])
+
+    def test_a_jython_script_in_the_cpython_table_gets_no_stale_line(self):
+        bad = self.run_with({"jmri/x.py": ({"wiring.csv": 2}, True)}, {"jmri/x.py": {"wiring.csv": CDR.LATER}})
+        self.assertEqual(len(bad), 1)
+        self.assertIn("Jython inside JMRI", bad[0])
+        bad = self.run_with({"tools/y.py": ({"wiring.csv": 2}, False)}, None, {"tools/y.py": {"wiring.csv": "w"}})
+        self.assertEqual(len(bad), 1)
+        self.assertIn("read it through hartlib", bad[0])
+        bad = self.run_with({"jmri/x.py": ({}, True)}, None, {"jmri/x.py": {"wiring.csv": "w"}})
+        self.assertIn("JYTHON_ALLOWED lists jmri/x.py naming wiring.csv, which it no longer does", bad[0])
+
+    def test_an_unparseable_script_fails_on_its_own(self):
+        def named(path, names):
+            raise CDR.Unparseable("line 3: invalid syntax; not Python 3, and no mark of Python 2 (Jython)")
+        with mock.patch.object(CDR, "scripts", return_value=["tools/broken.py"]), \
+                mock.patch.object(CDR, "named", side_effect=named):
+            bad = CDR.problems({}, {})
+        self.assertEqual(bad, ["tools/broken.py: cannot be read for data file names (line 3: invalid syntax; not "
+                               "Python 3, and no mark of Python 2 (Jython))"])
 
     def test_every_allowed_pair_has_a_reason(self):
         for path, files in (*CDR.ALLOWED.items(), *CDR.JYTHON_ALLOWED.items()):
