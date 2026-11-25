@@ -1,7 +1,7 @@
 # The commands agents and people use most. Each target runs the real script, so
 # these stay short. `make` lists them.
 .DEFAULT_GOAL := help
-.PHONY: help mqtt-clean mqtt-watch wt wt-sweep orient check remote portal-check panels desks panelpro-test docs-index publications waybills submodules tables-pull tables-pull-pi ops-pull sts-pull shot deploy-layout deploy-all deploy-status redeploy deploy-site
+.PHONY: help mqtt-clean mqtt-watch wt wt-sweep orient check remote portal-check panels desks panelpro-test docs-index publications waybills submodules tables-pull tables-pull-pi ops-pull sts-pull shot deploy-layout deploy-all deploy-status backup-status redeploy deploy-site
 
 help:  ## List the commands
 	@grep -hE '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -77,6 +77,9 @@ deploy-layout:  ## Deploy to the Pi and Windows (kept on the same commit)
 
 deploy-all:  ## Deploy to every layout host
 	./tools/hosts/sync_hart_package.sh --all
+
+backup-status:  ## When the Pi and Windows backups last ran in full (ADR-035)
+	@./tools/hosts/backup_launchagents.sh status
 
 deploy-status:  ## Show which commit each layout host last got: make deploy-status HOSTS="--pi --win"
 	./tools/hosts/deploy_status.sh $(HOSTS)

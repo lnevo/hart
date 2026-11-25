@@ -370,8 +370,10 @@ IH:HART:C1:2L_Top, "Head 108R Top" on level 2 -> IH:HART:C3:108R_Top, never from
 the file and the line, when the header is not `FIELDS`, a row is shorter or longer than the header, a level is not
 1, 2 or 3, a mast name is out of the grammar or given twice (on any level), a dir or leg is not one of its values, a
 row has some plan facts and not all, or a row's heads are not system=user pairs of its system name's heads, each its
-level's internal name or, on `WIRED_LEVELS` (staging), a wired LCOS head (main and upper heads stay internal, so nothing
-of theirs reaches MQTT); a virtual mast is in its level's thousand and stands at a buffer stop.
+level's internal name or a wired LCOS head that is the row's planned physical head at its place (its
+`device_system_name`'s: staging's masts are bound as built, and a main or upper head is wired only once its device row
+swaps it in, so nothing else of theirs reaches MQTT); a virtual mast is in its level's thousand and stands at a buffer
+stop.
 
 ### `hartlib.parked`
 

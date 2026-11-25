@@ -160,6 +160,8 @@ On trixie, check whether vc4 still loads from the initramfs, and that the new Co
 
 ## Phase 4: swap, with a way back
 
+Since 2026-11-25 the live data has a daily copy on the Mac ([ADR-035](../../wiki/decisions/ADR-035-backups.md)): the newest snapshot in `~/Backups/hart/pi/` holds `~/.jmri`, `~/JMRI_UserFiles`, `~/speedmatch`, `~/Desktop`, `~/.java`, the app launchers and `jmrihelp`, and `external/sts-docker-data/pi/db/` the newest STS dump. With the old card gone, restore from those instead.
+
 There is one Pi 5, so this needs a maintenance window. Turn the operating flag on, pull, shut down, put in the new card or drive, boot, restore the live data and deploy. If anything fails, put the old card back; it isn't touched at any point. Its Docker was updated by `tools/hosts/pi_docker_static.sh`, removed from the tree after the swap; `git show 3de97e59:tools/hosts/pi_docker_static.sh` brings it back if the old card returns.
 
 ### The swap, 2026-11-23
