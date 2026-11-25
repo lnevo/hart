@@ -16,8 +16,12 @@ REAL = D.Files.here()
 
 
 def blank(**cells) -> dict:
+    """A master row of `cells`, the rest empty; a row with a level gets a test id from its layer and name unless
+    `cells` gives one (check_rows wants one on every row with a level)."""
     row = {c: "" for c in D.COLUMNS}
     row.update(cells)
+    if row["level"] and "id" not in cells:
+        row["id"] = f"test:{row['layer']}:{row['user_name']}"
     return row
 
 
@@ -34,8 +38,9 @@ def mast(user="Mast 2L", **cells) -> dict:
 
 
 def old_form(rows, levels=("1",)) -> list[dict]:
-    """The device-map rows of `levels` (device_map_rows) each with its role, as a writer gives them to outputs_after."""
-    return [dict(D.device_map_row(r), role=r["role"]) for r in rows
+    """The device-map rows of `levels` (device_map_rows) each with its role and id, as a writer gives them to
+    outputs_after."""
+    return [dict(D.device_map_row(r), role=r["role"], id=r["id"]) for r in rows
             if r["level"] in levels and r["role"] not in D.OUT_OF_MAPS]
 
 
@@ -187,7 +192,8 @@ class TheChecks(unittest.TestCase):
 
     def test_a_virtual_turnout_and_its_lcc_alias_may_share_a_jmri_name(self):
         virtual = turnout("Switch 101", assignment="virtual", jmri_name="IT:HART:C3:101", level="2")
-        alias = virtual | {"user_name": "DCC Switch 101", "role": "lcc_alias", "system_name": "MTT120"}
+        alias = virtual | {"user_name": "DCC Switch 101", "role": "lcc_alias", "system_name": "MTT120",
+                           "id": "dcc:101"}
         D.check_rows([virtual, alias])
         self.assertIn("jmri_name 'IT:HART:C3:101' is Switch 101 (level 2, turnout)'s",
                       problems([virtual, virtual | {"user_name": "Switch 103"}]))
@@ -297,7 +303,7 @@ class TheParts(unittest.TestCase):
         other = block(level="2", assignment="none", system_name="", jmri_name="", layout_block="")
         self.assertIn("part_of 'OS Switch 9' is no block row", problems([part(), other]))
         # a level 2 part that has a level 1 block's name is no part of a chain on level 1
-        other11 = other | {"user_name": "OS Switch 11"}
+        other11 = other | {"user_name": "OS Switch 11", "id": "os:11"}
         D.check_rows([block(), part(), other11, part(level="2", user_name="OS Switch 9", part_of="OS Switch 11")])
 
     def test_the_block_it_names_must_exist(self):

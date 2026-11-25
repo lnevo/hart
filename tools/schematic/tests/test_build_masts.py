@@ -300,8 +300,21 @@ class Rows(unittest.TestCase):
                  dict(mast="Mast 2L", cp="Brick", switch="1", facing="Track Main West", protects="OS Switch 1",
                       dir="west", system_name=SHSM_2L,
                       head_system_names="IH:HART:C1:2L_Top=Head 2L Top;IH:HART:C1:2L_Bottom=Head 2L Bottom")]
-        got = bsm.device_rows(masts, [VIRTUAL], old, {})
-        self.assertEqual([list(r) for r in got], [bdm.COLUMNS] * len(got))
+        ids = {"Mast 67": "mast:block:37C-39C#1:west", "Mast 2L": "mast:1:A:west",
+               "Mast 4LA": "mast:block:3B-end:west"}
+        counts = {"Mast 67": 1, "Mast 2L": 2}
+        got = bsm.device_rows(masts, [VIRTUAL], old, {}, ids=ids, head_counts=counts)
+        with self.assertRaisesRegex(bsm.RuleError, r"Mast 2L: 2 head\(s\) listed, the rule gives it 1"):
+            bsm.device_rows(masts, [VIRTUAL], old, {}, ids=ids, head_counts=dict(counts, **{"Mast 2L": 1}))
+        with self.assertRaisesRegex(bsm.RuleError, r"mast\(s\) Mast 4LA have no device ID"):
+            bsm.device_rows(masts, [VIRTUAL], old, {}, ids={k: v for k, v in ids.items() if k != "Mast 4LA"},
+                            head_counts=counts)
+        # the device-map columns, and the id (hartlib.device_ids) on the mast and head rows this script writes
+        self.assertEqual([[c for c in r if c != "id"] for r in got], [bdm.COLUMNS] * len(got))
+        self.assertEqual({r["user_name"]: r["id"] for r in got if "id" in r},
+                         {**ids, "Head 67": "mast:block:37C-39C#1:west:single", "Head 2L Top": "mast:1:A:west:top",
+                          "Head 2L Bottom": "mast:1:A:west:bottom"})
+        got = [{k: v for k, v in r.items() if k != "id"} for r in got]
         # the other rows first and unchanged, then the masts by user name, then the heads by user name (plain string
         # order: Mast 2L, Mast 4LA, Mast 67)
         self.assertEqual(got[:2], [old[0], old[2]])
@@ -320,6 +333,19 @@ class Rows(unittest.TestCase):
                                                    comment="Brick | Switch 1",
                                                    notes="internal, not wired (owner, 2026-11-19)"))   # with its date
 
+    def test_mast_ids_from_the_plan_and_the_block_faced(self):
+        """A home mast's ID is the switch label, leg and way it looks at its node; any other mast's the ID of the
+        block it faces. A facing block with no ID stops."""
+        band = {"nodes": {"n7": {"label": "7*"}}}
+        placed = [dict(mast="Mast 8LA", role="home", node="n7", leg="A", dir="west"),
+                  dict(mast="Mast 67", role="intermediate", facing="Track K-2", dir="west"),
+                  dict(mast="Mast 4LA", role="hidden", facing="Track W-1", dir="west")]
+        got = bsm.mast_ids(band, placed, {"Track K-2": "block:37C-39C#1", "Track W-1": "block:3B-end"})
+        self.assertEqual(got, {"Mast 8LA": "mast:7:A:west", "Mast 67": "mast:block:37C-39C#1:west",
+                               "Mast 4LA": "mast:block:3B-end:west"})
+        with self.assertRaisesRegex(bsm.RuleError, "Mast 67 faces Track K-2, which has no staging block row"):
+            bsm.mast_ids(band, placed[1:2], {})
+
     def test_with_roles_gives_each_row_the_role_the_rule_placed_it_with(self):
         """A mast row's role is the one generate() or virtual_masts() placed it with, a head row's head: none is read
         off a name (Mast 67 and Mast 2L are both named like the other kind on main and upper)."""
@@ -333,7 +359,7 @@ class Rows(unittest.TestCase):
     def test_device_rows_sort_by_plain_string_order(self):
         masts = [dict(mast=f"Mast {n}", cp="", switch="", facing="x", protects="", dir="east", system_name="IF$vsm:basic:one-low($1)",
                       head_system_names="") for n in ("8LA", "24L", "2L", "36RA", "4RA")]
-        got = bsm.device_rows(masts, [], [], {})
+        got = bsm.device_rows(masts, [], [], {}, ids={m["mast"]: f"mast:block:x{i}:east" for i, m in enumerate(masts)})
         self.assertEqual([r["user_name"] for r in got], ["Mast 24L", "Mast 2L", "Mast 36RA", "Mast 4RA", "Mast 8LA"])
 
 

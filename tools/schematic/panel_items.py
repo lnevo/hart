@@ -296,19 +296,25 @@ def status_rows(data: dict) -> list[dict]:
     (written_by panel_items.json). ItemsError when no item of `data` (load()) has an icon naming one of them: the
     file and the rows would disagree about what the panel shows."""
     devices = _devices()
-    named = set()
+    from hartlib import device_ids
+    named = {}                  # (icon tag, the bean it names) -> the key of the item it is in
     for it in data["items"]:
         for m in it.get("members") or [it]:
             el = _element(m["xml"], f"item {it['id']}")
-            named.update((el.tag, el.get(a)) for a in ("sensor", "signalhead") if el.get(a))
+            for k in ((el.tag, el.get(a)) for a in ("sensor", "signalhead") if el.get(a)):
+                if named.setdefault(k, it["id"]) != it["id"]:
+                    raise ItemsError(f"{k[0]} {k[1]!r} is in items {named[k]!r} and {it['id']!r}; a status bean "
+                                     "is in one item, which its device ID names")
     rows = []
     for layer, user, system, assignment, comment, attr, text in STATUS_BEANS:
         tag, name = ("sensoricon", user) if attr == "sensor" else ("signalheadicon", system)
         if (tag, name) not in named:
             raise ItemsError(f"status bean {user!r} ({system}) has no {tag} naming {name!r} in the items file")
         row = {c: "" for c in devices.COLUMNS}
-        row.update(level="1", layer=layer, role="panel_status", user_name=user, assignment=assignment,
-                   system_name=system, jmri_name=system, jmri_comment=comment, written_by=WRITER, description=text)
+        # its device ID: the item its icon is in and the bean's system name (hartlib.device_ids.panel_id)
+        row.update(level="1", layer=layer, role="panel_status", id=device_ids.panel_id(named[(tag, name)], system),
+                   user_name=user, assignment=assignment, system_name=system, jmri_name=system, jmri_comment=comment,
+                   written_by=WRITER, description=text)
         rows.append(row)
     return rows
 

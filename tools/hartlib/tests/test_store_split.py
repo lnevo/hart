@@ -26,6 +26,8 @@ ISENSORS = 'class="jmri.jmrix.internal.configurexml.InternalSensorManagerXml"'
 def blank(**cells) -> dict:
     row = {c: "" for c in D.COLUMNS}
     row.update({"level": "1", "description": "A device.", **cells})
+    if row["level"] and "id" not in cells:          # check_rows wants one on every row with a level
+        row["id"] = f"test:{row['layer']}:{row['user_name']}"
     return row
 
 

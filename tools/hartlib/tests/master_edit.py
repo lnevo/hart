@@ -65,6 +65,8 @@ def add(path: Path, **columns: str) -> None:
     unknown = set(columns) - set(devices.COLUMNS)
     assert not unknown, f"not master columns: {sorted(unknown)}"
     row.update(columns)
+    if row["level"] and "id" not in columns:        # check_rows wants one on every row with a level
+        row["id"] = f"test:{row['layer']}:{row['user_name']}"
     rows.append(row)
     _write(path, rows)
 

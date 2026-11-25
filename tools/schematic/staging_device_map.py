@@ -82,7 +82,7 @@ import le_common as lc  # noqa: E402  the band key, plugin, solved schematic and
 import le_names as ln  # noqa: E402  runs and crossovers
 import mast_rule as mr  # noqa: E402  the helix tracks (plan_overrides.json)
 import publish_draft as pd  # noqa: E402  DATA and the plugin cache
-from hartlib import devices, layer_files, level_masts, paths, railroad, tables  # noqa: E402
+from hartlib import device_ids, devices, layer_files, level_masts, paths, railroad, tables  # noqa: E402
 
 LEVEL = 1
 DEVICE_MAP = devices.MASTER     # the master: its level 1 rows are staging's device map
@@ -183,12 +183,32 @@ def placeholders(band) -> tuple[dict, dict, dict]:
     """({switch node: turnout placeholder}, {switch node: OS placeholder}, {strand id: (piece reference, reversed)})
     of the staging band (piece_refs). Inner crossover strands carry none (the plugin draws them inside the
     crossover). A crossover half is told apart by where the run from its leg A goes."""
-    halves = crossover_halves(band)
     refs = piece_refs(band)
+    turnouts = {n: f"Switch {label}" for n, (label, _half) in _switch_halves(band).items()}
+    os_ = {n: ph for n, (ph, _id) in os_keys(band).items()}
+    return turnouts, os_, refs
+
+
+def os_keys(band) -> dict[str, tuple[str, str]]:
+    """{switch node: (its OS placeholder, its OS block's device ID)} of the staging band: "OS Switch <n>" and
+    os:<n> of a plain switch; "OS <n> A-<end>" and os:<n>:A-<end> of a crossover half, by where the run from its leg
+    A goes (hartlib.device_ids: the plan has no corner letter for a staging half)."""
+    out = {}
+    for n, (label, half) in _switch_halves(band).items():
+        out[n] = ((f"OS {label} A-{half}", device_ids.os_id(label, f"A-{half}")) if half else
+                  (f"OS Switch {label}", device_ids.os_id(label)))
+    if len({ph for ph, _id in out.values()}) != len(out):
+        raise StagingMapError(f"two crossover halves have one key: {sorted(ph for ph, _id in out.values())}")
+    return out
+
+
+def _switch_halves(band) -> dict[str, tuple[str, str]]:
+    """{switch node: (its label, the end its leg A runs to when it is a crossover half, else "")}."""
+    halves = crossover_halves(band)
     leg_a = {}
     for start, _chain, stop in ln.runs(band, ln.crossover_strands(band)):
         leg_a[tuple(start)], leg_a[tuple(stop)] = end_key(band, stop), end_key(band, start)
-    turnouts, os_ = {}, {}
+    out = {}
     for n, d in sorted(band["nodes"].items()):
         if d["kind"] == "dx":
             raise StagingMapError(f"staging switch {d.get('label')}: a double crossover, which staging has none of")
@@ -197,13 +217,10 @@ def placeholders(band) -> tuple[dict, dict, dict]:
         label = lc.bare(d.get("label"))
         if not re.fullmatch(r"\d+", label or ""):
             raise StagingMapError(f"staging switch node {n}: label {d.get('label')!r} is no switch number")
-        turnouts[n] = f"Switch {label}"
         if n in halves and (n, "A") not in leg_a:
             raise StagingMapError(f"crossover half {label} at {n}: no run leaves its leg A to tell it apart by")
-        os_[n] = f"OS {label} A-{leg_a[(n, 'A')]}" if n in halves else f"OS Switch {label}"
-    if len(set(os_.values())) != len(os_):
-        raise StagingMapError(f"two crossover halves have one key: {sorted(os_.values())}")
-    return turnouts, os_, refs
+        out[n] = (label, leg_a[(n, "A")] if n in halves else "")
+    return out
 
 
 def track_placeholder(piece: str, k: int, count: int) -> str:
@@ -219,6 +236,16 @@ def strand_placeholders(ref: tuple[str, bool], count: int = 1) -> list[str]:
         raise ValueError(f"a strand carries at least one block, not {count}")
     piece, against = ref
     keys = [track_placeholder(piece, k, count) for k in range(1, count + 1)]
+    return keys[::-1] if against else keys
+
+
+def strand_ids(ref: tuple[str, bool], count: int = 1) -> list[str]:
+    """The device-ID parts (hartlib.device_ids.strand_key) of a strand's `count` blocks, in the order
+    strand_placeholders gives their keys: the same piece, k and n."""
+    if count < 1:
+        raise ValueError(f"a strand carries at least one block, not {count}")
+    piece, against = ref
+    keys = [device_ids.strand_key(piece, k, count) for k in range(1, count + 1)]
     return keys[::-1] if against else keys
 
 
