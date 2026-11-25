@@ -28,6 +28,8 @@ hart/external/
   jmri-cs105-roster-sync/  → jmri-cs105-roster-sync
 ```
 
+Owner rulings on the STS repos: `sts-docker`'s working line is `active`, and `master` is the default branch on purpose, so do not flag it. `sts-helpers` stays its own repo; nothing from it is moved into `sts-docker` (owner, 2026-11-18). Do not delete the STS remote branches `track-scale`, `workflow-editor`, `workflow-editor-legacy`, `ui-improvements`, `refresh-cars-page` or `active` as merged cleanup; they are tracked lines.
+
 ## Init (operator)
 
 ```bash

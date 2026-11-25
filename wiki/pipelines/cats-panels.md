@@ -27,6 +27,10 @@ make desks        # python3 tools/schematic/build_cats_panel.py, then validate_c
 
 System picture: [`docs/ctc/HART_DIGICON_SYSTEM.md`](../../docs/ctc/HART_DIGICON_SYSTEM.md). Operator: [`docs/ctc/DISPATCHER_GUIDE_CTC.md`](../../docs/ctc/DISPATCHER_GUIDE_CTC.md).
 
+## Desk discipline
+
+Owner, 2026-11-17: signals run ABS unless CATS holds and releases them. On the CTC desk (`HART_CTC.xml`) main and upper blocks are CTC like staging, so a route set from staging up the helix stops at the first main or upper signal (136RA main, 136RB upper); the ABS twin (`HART_ABS.xml`) is all ABS. Ask before any DTC. Switch 225 is one desk block per corner (OS Switch 225a to 225d) plus a middle block with no detector that stays dark; the 107 Loop is two desk blocks. The helix tracks 135-H1 and 135-H2 keep their own desk blocks and detectors. Main and upper detection comes with the into-service work.
+
 ## Diagnosing a panel
 
 `python3 cats/scripts/analyze_cats_edges.py <panel.xml>...` reports how each `SEC_EDGE` joint is typed (block, switchpoints or plain). It is read-only.
