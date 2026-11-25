@@ -75,14 +75,15 @@ CHAINS = [{"ends": [("TO1", "B"), ("TO2", "A")], "blocks": ["OS Switch 1", "OS S
 def facts(**kw):
     switches = {
         1: Switch(1, "1", "TO1", False, 1, True, (Leg("OS Switch 1", "OS Switch 2a", "Track Yard"),)),
-        2: Switch(2, "1", "TO2", True, 2, True, (Leg("OS Switch 2a", "Track Main", "OS Switch 2b"),
-                                                 Leg("OS Switch 2b", "Track East", "OS Switch 2a"))),
+        2: Switch(2, "1", "TO2", True, 2, True, (Leg("OS Switch 2a", "Track Main", "OS Switch 2b", "os:2:A-1B"),
+                                                 Leg("OS Switch 2b", "Track East", "OS Switch 2a", "os:2:A-loop"))),
     }
     occupancy = {n: (str(i), "BS " + n) for i, n in enumerate(
         ["OS Switch 1", "OS Switch 2a", "OS Switch 2b", "Track West", "Track Yard", "Track Main", "Track East",
          "Track Loop"])}
     f = B.Facts(switches, {"TO1": ("11", "Switch 1"), "TO2": ("12", "Switch 2")}, occupancy, {},
-                B.StagingTracks(CHAINS), {"Mast 1L": "single"}, {"Mast 1L"})
+                B.StagingTracks(CHAINS), {"Mast 1L": "single"}, {"Mast 1L"},
+                half_letters={("1", "os:2:A-1B"): "a", ("1", "os:2:A-loop"): "b"})
     for k, v in kw.items():
         setattr(f, k, v)
     return f
@@ -147,20 +148,28 @@ class Switches(unittest.TestCase):
         self.assertEqual((out["2/2a"]["label"], out["2/2b"]["label"]), ("2A", "2B"))   # crossover halves lettered
         self.assertNotIn("label", out["1"])
 
-    def test_a_crossover_half_without_a_letter_is_a(self):
-        sw = Switch(7, "1", "TO7", False, 7, True, (Leg("OS Switch 7", "Track A", "OS Switch 7b"),
-                                                     Leg("OS Switch 7b", "Track B", "OS Switch 7")))
-        self.assertEqual([B.half_label(sw, l) for l in sw.legs], ["7A", "7B"])
-        both = Switch(7, "1", "TO7", False, 7, True, (Leg("OS Switch 7", "Track A", "OS X"),
-                                                       Leg("OS X", "Track B", "OS Switch 7")))
-        with self.assertRaises(SystemExit):
-            B.half_label(both, both.legs[0])
-        with self.assertRaises(SystemExit):                   # the second, unlettered leg too
-            B.half_label(both, both.legs[1])
-        taken = Switch(7, "1", "TO7", False, 7, True, (Leg("OS Switch 7", "Track A", "OS Switch 7a"),
-                                                        Leg("OS Switch 7a", "Track B", "OS Switch 7")))
-        with self.assertRaises(SystemExit):                   # 7 cannot be A when 7a already is
-            B.half_label(taken, taken.legs[0])
+    def test_a_crossover_half_is_lettered_by_its_id_not_its_name(self):
+        # the letters are the crossover_half rows', by the half's OS block ID: an owner's name for
+        # the half (OS Barn West, OS X) changes no label, and its plate is its number and letter
+        letters = {("1", "os:7:A-13C"): "a", ("1", "os:7:A-5B"): "b"}
+        for a, b in (("OS Switch 7", "OS Switch 7b"), ("OS Barn West", "OS Switch 7b"), ("OS Switch 7", "OS X"),
+                     ("OS Switch 7b", "OS Switch 7a")):        # names swapped: label and plate still by the ID
+            sw = Switch(7, "1", "TO7", False, 7, True, (Leg(a, "Track A", b, "os:7:A-13C"),
+                                                         Leg(b, "Track B", a, "os:7:A-5B")))
+            with self.subTest(names=(a, b)):
+                self.assertEqual([B.half_label(sw, leg, letters) for leg in sw.legs], ["7A", "7B"])
+                plates = B.os_plates(facts(switches={7: sw}, half_letters=letters))
+                self.assertEqual((plates[a], plates[b]), ("7" if a == "OS Switch 7" else "7a", "7b"))
+                self.assertEqual([plates[a][-1:].upper(), plates[b][-1:].upper()],
+                                 ["7" if a == "OS Switch 7" else "A", "B"])
+        sw = Switch(7, "1", "TO7", False, 7, True, (Leg("OS Barn West", "Track A", "OS Switch 7b", "os:7:A-13C"),
+                                                     Leg("OS Switch 7b", "Track B", "OS Barn West", "os:7:A-5B")))
+        self.assertEqual(B.os_plates(facts(switches={7: sw}, half_letters=letters)),
+                         {"OS Barn West": "7a", "OS Switch 7b": "7b"})
+        with self.assertRaisesRegex(SystemExit, "no crossover_half row"):
+            B.half_label(sw, sw.legs[0], {("1", "os:7:A-5B"): "b"})
+        one = Switch(19, "1", "TO19", False, 19, True, (Leg("OS South 19", "Track A", "Track B", "os:19"),))
+        self.assertEqual(B.os_plates(facts(switches={19: one})), {"OS South 19": "19"})   # a renamed OS block
 
     def test_fit_comes_from_the_window(self):
         o = desk_options()

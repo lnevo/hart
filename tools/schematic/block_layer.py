@@ -5,9 +5,10 @@ step 5, owner 2026-11-20; archive/wiki/projects/level-unification-handoff.md).
 
 What it makes, for each level drawn on a band:
 - an OS block per switch, "OS Switch <n>". A single crossover is one OS block, unless its halves have their own
-  detectors: then each half is an OS block of its own, named in block_overrides.csv (kind crossover_half; staging 7,
-  23 and 35). A double crossover's corners are build_device_map.xover_corners' (main and upper), not this module's;
-  its node keeps "OS Switch <n>" here, as mast_plan reads it.
+  detectors: then each half is an OS block of its own, given in block_overrides.csv (kind crossover_half; staging 7,
+  23 and 35) and named OS Switch <n><its letter> (the owner's name, by its ID, wins in the device master). A double
+  crossover's corners are build_device_map.xover_corners' (main and upper), not this module's; its node keeps
+  "OS Switch <n>" here, as mast_plan reads it.
 - a block per track, named by name_tracks: the name store's name when it gives its strands one ("Track <name>";
   hartlib.track_names, looked up by each strand's ID, store_names, never read off the drawing; a helix track its
   "Track <plan name>" too, on every level, so each helix block is one block across levels), else
@@ -42,7 +43,8 @@ tracks, a row of any level (1 staging, 2 main, 3 upper). Its kind split rows are
   layout block of its own (Layer.inside; owner, 2026-11-20: the halves of 35-39, for Mast 36RB's route to Mast 68),
   empty for the rule, a part that is a JMRI block of its own.
 - kind crossover_half: switch_a the crossover's number, switch_b the switch its half's leg A track runs to, `block`
-  the half's own OS block. Both halves of a crossover have a row, or neither.
+  the half's own OS block's ID (os:7:A-13C) and `parallel` its letter, 1 a or 2 b (hartlib.hand_lists). Both halves
+  of a crossover have a row, or neither.
 Stops (BlockError, naming the file, line and level) on a row in no such shape, a track or half it does not find, a row
 that would apply twice, or a block that is not the OS block at its end; and on a layer that breaks its invariants
 (check): every switch node in one OS block, every strand outside a crossover in at least one block, every part's

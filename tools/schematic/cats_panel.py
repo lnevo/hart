@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_device_map as bdm  # noqa: E402  the device map's naming helpers (base, band_level, natural)
 import mast_rule as mr  # noqa: E402  the helix tracks (plan_overrides.json)
 from hartlib import drawing_keys, level_devices, level_masts, paths  # noqa: E402
-from hartlib.railroad_facts import FactsError  # noqa: E402
+from hartlib.railroad_facts import FactsError, half_text  # noqa: E402
 from hartlib.cats import station_plate  # noqa: E402
 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
@@ -97,10 +97,10 @@ def occupancy_spec(prefix, addr, user) -> dict:
             "unoccupied": {"DECADDR": addr, "JMRIPREFIX": prefix, "command": "throw"}}
 
 
-def block_entry(panel_name, name, discipline) -> dict:
+def block_entry(panel_name, name, discipline, plate=None) -> dict:
     """A desk block's binding before its sensor: the JMRI block `name` it takes (left out when it is the panel name
-    `panel_name`), its station plate and its CATS discipline."""
-    e = {"name": name, "station": station_plate(name), "discipline": discipline}
+    `panel_name`), its station plate (`plate`, else station_plate of the name) and its CATS discipline."""
+    e = {"name": name, "station": plate or station_plate(name), "discipline": discipline}
     if name == panel_name:
         del e["name"]
     return e
@@ -194,18 +194,34 @@ def dest(band, os_of, n, port, helix, stored):
     raise SystemExit(f"switch {nodes[n]['label']} leg {port}: the track from it reaches no named track or switch")
 
 
-def half_label(sw, leg):
-    """The panel label of one half of a switch with several OS blocks (a crossover): its number and the letter of
-    its OS block in switches.csv, upper case (OS Switch 23a -> 23A). The row without a letter is A when every
-    other row has one (OS Switch 7 and 7b -> 7A, 7B)."""
-    letter = lambda name: m.group(1) if (m := re.fullmatch(rf"OS Switch {sw.number}([a-z])", name)) else None
-    own = letter(leg.os_block)
+def half_label(sw, leg, letters):
+    """The panel label of one half of a switch with several OS blocks (a crossover): its number and the half's letter,
+    upper case (23A, 23B), by its OS block's device ID (leg.os_id) from `letters` ({(level, id): letter},
+    hartlib.hand_lists.half_letters: block_overrides.csv's crossover_half rows), never from its name, so the owner may
+    rename the half (devices_field.csv). SystemExit on a half with no letter there."""
+    own = letters.get((sw.level, leg.os_id))
     if own is None:
-        others = [letter(l.os_block) for l in sw.legs if l is not leg]
-        if None in others or "a" in others:
-            raise SystemExit(f"Switch {sw.number}: cannot tell which half {leg.os_block} is from switches.csv")
-        own = "a"
+        raise SystemExit(f"Switch {sw.number}: {leg.os_block} ({leg.os_id or 'no OS block ID'}) has no crossover_half "
+                         "row in block_overrides.csv to give its half letter")
     return f"{sw.number}{own.upper()}"
+
+
+def os_plates(F) -> dict:
+    """{staging OS block name: its desk station plate}. A switch with one OS block: the name less "OS Switch " while
+    the name keeps that form (19), else its number, so a renamed OS block keeps its plate rather than the first word
+    of its name. A crossover half: its number and the letter of its ID (half_label; railroad_facts.half_text, so
+    OS Switch 7 is 7), never a letter read off its name, so plate and label agree."""
+    out = {}
+    for sw in F.switches.values():
+        for leg in sw.legs:
+            if len(sw.legs) > 1:
+                letter = half_label(sw, leg, F.half_letters)[-1].lower()
+                out[leg.os_block] = half_text(sw.number, leg.os_block, letter)
+            elif re.fullmatch(rf"OS Switch {sw.number}", leg.os_block):
+                out[leg.os_block] = station_plate(leg.os_block)
+            else:
+                out[leg.os_block] = str(sw.number)
+    return out
 
 
 def switch_bindings(band, F, os_of, stored):
@@ -232,7 +248,7 @@ def switch_bindings(band, F, os_of, stored):
         key = d["label"] if labels[d["label"]] == 1 else f"{d['label']}/{d['alias']}"
         out[key] = {
             "block": leg.os_block,
-            **({"label": half_label(sw, leg)} if labels[d["label"]] > 1 else {}),     # drawn as halves
+            **({"label": half_label(sw, leg, F.half_letters)} if labels[d["label"]] > 1 else {}),  # drawn as halves
             "normal": thrown if sw.cats_inverted else closed,
             "routes": turnout_routes(STAGING_TURNOUT_PREFIX, addr, uname, closed, thrown),
         }
@@ -245,7 +261,7 @@ def block_bindings(band, F, names, stored):
     a short track joining two switches that the name store does not name (`stored`, staging_names), with no JMRI
     block of its own, joins the one block the staging device map gives it. Anything else stops."""
     nodes, strands = band["nodes"], band["strands"]
-    out = {}
+    out, plates = {}, os_plates(F)
     for key, name in sorted(names.items(), key=lambda kv: kv[1]):
         layout = next((x for x in (name, "Track " + name) if x in F.occupancy), None)
         if layout is None:
@@ -259,7 +275,7 @@ def block_bindings(band, F, names, stored):
             out[name] = {"name": F.layout.block_between(a, b, f"block {name}")}
             continue
         addr, sensor = F.occupancy[layout]
-        out[name] = dict(block_entry(name, layout, F.discipline.get(layout, STAGING_DISCIPLINE)),
+        out[name] = dict(block_entry(name, layout, F.discipline.get(layout, STAGING_DISCIPLINE), plates.get(layout)),
                          **occupancy_spec(STAGING_SENSOR_PREFIX, addr, sensor))
     return out
 

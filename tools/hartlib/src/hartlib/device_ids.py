@@ -14,8 +14,8 @@ The grammar, one function per kind below:
                       1B-3A, "107B-107C#1" for the first piece of a run, several strands joined by "+"
 - os:<n>              the OS block of switch n
 - os:<n>:A-<end>      a staging single crossover's half (7, 23, 35), told apart by where its leg A runs, as
-                      block_overrides.csv's crossover_half rows do: os:7:A-13C. The a and b in "OS Switch 23a" are the
-                      owner's names, not the plan's (owner, 2026-11-24)
+                      block_overrides.csv's crossover_half rows do: os:7:A-13C. The a and b are the owner's (owner,
+                      2026-11-24), kept by ID in those rows (their `parallel`), not in the name
 - os:<n>:<leg>        a double crossover's corner block by the schematic leg it serves (A to D, the letters the track
                       ends use: os:225:D is the corner at track 225D-229A), not the Layout Editor corner, which turns
                       with the drawing (owner, 2026-11-24)

@@ -583,14 +583,26 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   `wiring.digicon_rows` takes staging's wired rows and each main or upper head whose row is field (`field_heads`, its
   pins from the row's wiring text), so `digicon_masts` boots its SML disabled for `signal_coordinator.py`.
   `tools/schematic/tests/test_swap_head_by_row.py` swaps Mast 108LA's two heads (IH3332, IH3333) in a copy.
+- **Done (2026-11-25):** `publish_draft --check` keys its drawing stamp on the whole `tools/hartlib/src` tree too
+  (`STAMP_VERSION` 4): the view is built by `layer_files`, `track_names`, `devices` and what they import, so the
+  whole tree is simpler and safer than a list; a `hartlib` edit costs one drawing.
+- **Done (2026-11-25):** a staging crossover half can be renamed by its `devices_field.csv` row alone.
+  `block_overrides.csv`'s `crossover_half` rows give the half's OS block ID (`os:23:A-1A`) and its letter in
+  `parallel` (1 a, 2 b; `hand_lists.half_letters`); the generator names the half `OS Switch <n><letter>` (the field
+  row's name wins, so `OS Switch 7` stays). The CATS half label (`cats_panel.half_label`), the desk plate of a renamed
+  OS block (`os_plates`: its number and letter, not the first word of its name) and the desk-area label
+  (`railroad_facts.os_label`) take the letter by ID. A trial in the worktree renamed OS Switch 23a, OS Switch 7 and
+  OS Switch 35b in the field file only and ran every `make panels` step but `sml-current` by hand: the device master,
+  `switches.csv`, `block_lengths.csv`, `masts.csv`, `tables.xml` and both desks took the new names, the labels stayed
+  23A, 7A, 35B, and only the approvals (renamed labels; the Princess plate moved three cells) and the SML stamp went
+  stale; reverted. `test_rename_by_id.RenameCrossoverHalf` pins the readers. Outputs on the committed data are
+  byte-identical.
 - Still to run (main session, the Mac's PanelPro): `make panelpro-test` with a detector and a head swapped, in a
   scratch worktree, the rows at the end of `devices_field.csv`:
   `2,,occupancy,,det:block:107B-107C#1,,field,M2S3305,M2S3305,,,,,,,,,,,,,,,,,,,,`,
   `2,,head,,mast:107:B:west:top,,field,IH3332,IH3332,,,,,,,,,,,,,,,,,,,,` and
   `2,,head,,mast:107:B:west:bottom,,field,IH3333,IH3333,,,,,,,,,,,,,,,,,,,,` (in that order); then `HART_TABLES_REVIEW=1 make panels`,
   `make panelpro-test`, and restore every changed file from git.
-- `publish_draft --check` does not key its drawing stamp on `hartlib` code (Step 3b findings).
-- A crossover half cannot be renamed: its half letter comes from its name.
 - ~~`docs/ap/electrical/test_build_soq.py` counts 57 detected sections where its text says 43~~ Closed 2026-11-25: the SOQ is frozen and its tests are removed (owner); the layout documentation page reads its names by block ID from the device master.
 
 ## How to run this

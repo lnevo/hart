@@ -20,6 +20,7 @@ from hartlib import track_names  # noqa: E402  (publish_draft put tools/hartlib/
 
 TODAY = datetime.date(2026, 12, 1)
 REAL_STAMP_FILE = PD.stamp_file
+REAL_HARTLIB = PD.HARTLIB
 
 
 def setUpModule() -> None:
@@ -394,16 +395,19 @@ class StationMapRevision(unittest.TestCase):
 
 class CheckStamp(unittest.TestCase):
     """--check skips the drawing when its inputs match the last pass (the stamp), and draws on any change to the
-    plugin, a layer file, a graph, the published SVG or a station sheet, and when the stamp is missing or unreadable."""
+    plugin, the hartlib code that builds its view, a layer file, a graph, the published SVG or a station sheet, and
+    when the stamp is missing or unreadable."""
 
     def setUp(self) -> None:
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(lambda: __import__("shutil").rmtree(tmp))
         self.plugin, data, out = tmp / "plugin", tmp / "data", tmp / "ops"
-        for d in (self.plugin / "schematic", data / "inputs", out / "stations"):
+        self.hartlib = tmp / "hartlib_src"
+        for d in (self.plugin / "schematic", data / "inputs", out / "stations", self.hartlib / "hartlib"):
             d.mkdir(parents=True)
         (self.plugin / "schematic/sheet.py").write_text("SOLVE = 1\n")
         (self.plugin / "schematic/__pycache__").mkdir()
+        (self.hartlib / "hartlib/track_names.py").write_text("RULE = 1\n")
         (data / "preferences.json").write_text("{}\n")
         (data / "inputs/staging.json").write_text("{}\n")
         (out / "schematic-system-draft.svg").write_text("<svg/>")
@@ -414,7 +418,7 @@ class CheckStamp(unittest.TestCase):
         def draw():
             self.drawn += 1
             return "<svg/>"
-        for name, value in (("plugin", lambda: self.plugin), ("DATA", data), ("OUT", out),
+        for name, value in (("plugin", lambda: self.plugin), ("DATA", data), ("OUT", out), ("HARTLIB", self.hartlib),
                             ("STATIONS", out / "stations"), ("stamp_file", lambda: self.stamp), ("draw", draw),
                             ("draw_stations", lambda: {"barn.svg": "<svg>barn</svg>"})):
             patcher = mock.patch.object(PD, name, value)
@@ -431,6 +435,10 @@ class CheckStamp(unittest.TestCase):
         self.assertTrue(self.stamp.exists())
         self.assertEqual(self.check(), (True, []))
         self.assertEqual(self.drawn, 1)
+
+    def test_the_hartlib_hashed_is_the_one_imported(self) -> None:
+        self.assertEqual(REAL_HARTLIB, ROOT / "tools/hartlib/src")
+        self.assertTrue((REAL_HARTLIB / "hartlib/layer_files.py").is_file())
 
     def test_python_caches_are_not_inputs(self) -> None:
         self.check()
@@ -453,6 +461,8 @@ class CheckStamp(unittest.TestCase):
     def test_any_input_change_draws_again(self) -> None:
         for change in (lambda: (self.plugin / "schematic/sheet.py").write_text("SOLVE = 2\n"),
                        lambda: (self.plugin / "schematic/new.py").write_text(""),
+                       lambda: (self.hartlib / "hartlib/track_names.py").write_text("RULE = 2\n"),
+                       lambda: (self.hartlib / "hartlib/new.py").write_text(""),
                        lambda: (self.data / "preferences.json").write_text('{"x": 1}\n'),
                        lambda: (self.data / "inputs/staging.json").write_text('{"x": 1}\n'),
                        lambda: (self.out / "stations/barn.svg").write_text("<svg>barn</svg>\n"),
