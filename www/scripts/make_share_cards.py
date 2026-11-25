@@ -433,10 +433,8 @@ def roster():
 
     brick = _panel().crop((228, 165, 528, 345))
     brick.resize((brick.width * 3, brick.height * 3), Image.LANCZOS).save(_tmp / "brick.png")
-    # the published index is built, not committed (ADR-036): build it here as the site build does
     sys.path.insert(0, str(PORTAL / "scripts"))
-    import build_layout_index
-
+    import build_layout_index  # the published index is built, not committed (ADR-036): build it as the site does
     try:
         items = json.loads(build_layout_index.index_text())["items"]
     except build_layout_index.LayoutIndexError as err:
