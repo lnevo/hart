@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import re
 import sys
 import threading
@@ -24,10 +23,13 @@ from pathlib import Path
 import dashsources as sources
 import dashstate as state
 
+sys.path.insert(0, str(sources.REPO / "tools/hartlib/src"))  # the Mac only: the Pi's publisher has no hartlib
+from hartlib import paths  # noqa: E402
+
 HERE = Path(__file__).resolve().parent
 STATIC = HERE / "static"
 ROSTER_PHOTOS = sources.REPO / "jmri/resources/roster"
-ROSTER_XML = Path(os.path.expanduser("~/JMRI_UserFiles/roster"))
+ROSTER_XML = paths.JMRI_USER_FILES / "roster"   # the Mac's JMRI user files (ADR-014)
 TYPES = {".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
          ".js": "text/javascript; charset=utf-8", ".jpg": "image/jpeg", ".svg": "image/svg+xml"}
 

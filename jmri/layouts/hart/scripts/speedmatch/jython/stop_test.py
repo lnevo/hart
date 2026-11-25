@@ -30,6 +30,12 @@
 #   QUIET_S    the logging also ends once no sensor event came for this long after the command
 # Needs jobkit.py in front of it (make_job.py pastes it): L, NAMES, reg, why, ab, hit, claim,
 # scan, check_guards, request_throttle, guard_hit, end_job.
+# Never runs: the names make_job.py puts in front of this file (its settings and jobkit.py), listed for pyflakes
+# (ruff's undefined-name rule) so a misspelt name fails the check. job_settings stands for the settings.
+if False:
+    import time, threading, os, java
+    from jobkit import (L, NAMES, ab, check_guards, claim, end_job, guard_hit, hit, request_throttle, scan, set_direction, why)
+    from job_settings import FUNCS, GUARD, MAX_S, P_FWD, P_ID, P_STEP, QUIET_S, SETTLE_S, TRIGGER
 box = {"t": None, "stop": None, "last": None, "armed": False, "trig": None}  # throttle, stop time, last event time
 lock = threading.Lock()
 def send_stop(reason):
@@ -56,8 +62,8 @@ class SL(java.beans.PropertyChangeListener):
             L("SENS %s %s" % (self.n, NAMES.get(st, "STATE%s" % st)))
             if box["stop"] is not None: box["last"] = time.time()
             if self.isg and st == 2: guard_hit(self.n)
-        except java.lang.Throwable, ex: L("LISTENER ERROR %s" % ex)
-        except Exception, ex: L("LISTENER ERROR %s" % ex)
+        except java.lang.Throwable as ex: L("LISTENER ERROR %s" % ex)
+        except Exception as ex: L("LISTENER ERROR %s" % ex)
 def run():
     t = None; tl = None
     try:
@@ -96,8 +102,8 @@ def run():
             if now - box["last"] >= QUIET_S: why[0] = "quiet"; break
             if os.path.exists("/tmp/speedrun.kill"): why[0] = "settled, then killed"; break
             time.sleep(0.1)
-    except java.lang.Throwable, e: L("ERROR %s" % e)
-    except Exception, e: L("ERROR %s" % e)
+    except java.lang.Throwable as e: L("ERROR %s" % e)
+    except Exception as e: L("ERROR %s" % e)
     finally:
         end_job(t, tl, FUNCS)
 th = threading.Thread(target=run); th.setDaemon(True); th.start()
