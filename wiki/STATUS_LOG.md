@@ -1,5 +1,6 @@
 # Status log
 
+Updated: 2026-11-24 — Naming layers step 3a: the track name store (`hartlib.track_names`); staging's track names are kept by id in `devices_field.csv` and `plan_overrides.json` holds none; parallel tracks are numbered by their plan legs, so five main and upper pairs traded 1 and 2 (owner approved the panel and desks). Replaced in STATUS: "steps 1 (golden tests of both bean processes) and 2 (an `id` on every device row) done 2026-11-24".
 Updated: 2026-11-24 — Naming layers step 2: every device row has a plan-derived `id` (`hartlib.device_ids`). Replaced in STATUS: "step 2 waits for the check-speed hand-off to merge".
 Updated: 2026-11-24 — ADR-033 accepted: the owner started the naming-layers hand-off; step 1 (golden tests of both bean processes, `test_bean_goldens.py`) done. Replaced in STATUS: "All questions answered; starts when the owner says go".
 Updated: 2026-11-24 — Naming layers planned (ADR-033, proposed): the parked builder merge is folded in. Replaced in STATUS Owed: "**Before the first swap (owner, 2026-11-23, deferred):** `tools/schematic/cats_panel.py` (~540) and `le_tables.py` (~282) still require the virtual names `IT:HART:C3:<n>` and the computed block sensor, so a physical `jmri_name` on main or upper stops `make panels`; ADR-028's \"jmri_name alone\" needs that fix and a swap test first."
