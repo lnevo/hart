@@ -505,7 +505,7 @@ class PrivateNameAndTables(unittest.TestCase):
             with self.subTest(name):
                 if "unittest" in argv:      # unit tests run through check.sh's `unit` (no HART_TABLES)
                     self.assertIn(f"unit {name} " + " ".join(argv), check_sh)
-                else:                       # the table checks are steps of check.sh's static job
+                else:                       # the table checks are steps of the static group, each its own job
                     self.assertIn(name, steps)
                     self.assertEqual((steps[name].group, list(steps[name].cmd)), ("static", argv))
 

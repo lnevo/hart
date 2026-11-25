@@ -608,7 +608,10 @@ def current_batch(names: list[str], out: Path, why: bool, root: Path = ROOT, sto
     for old in RETIRED:
         if old in names:
             raise BatchError(f"check.sh queued {old!r}, a job name check_stamps.RETIRED says it no longer runs")
-        _file(old, ck.store).unlink(missing_ok=True)
+        try:
+            _file(old, ck.store).unlink(missing_ok=True)
+        except OSError as exc:      # a store this run cannot write (a restored cache): the stale file is only litter
+            print(f"check_stamps.py current-batch: cannot drop the retired {old!r} stamp: {exc}", file=sys.stderr)
     verdicts = []
     try:
         for i, name in enumerate(names):

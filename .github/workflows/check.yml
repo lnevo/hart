@@ -210,10 +210,12 @@ jobs:
           if-no-files-found: error
       # The weekly full run: fail when a job that a pull request run of the last 8 days skipped fails here, so a wrong
       # skip (a stamp key that leaves an input out) shows within a week, named as one. It runs after a failed
-      # check.sh too (that is when it matters). A run listed with no check-skips artifact took the docs-only path or
+      # check.sh too (that is when it matters), but not when check.sh never ran (an earlier step failed): then there are
+      # no results to read. A job named here failed in full after a pull request skipped it: the place to look first, not
+      # proof the skip was wrong. A run listed with no check-skips artifact took the docs-only path or
       # predates the record; one whose artifact cannot be listed or downloaded fails this step.
       - name: Did a pull request skip a job that fails here?
-        if: ${{ !cancelled() && github.event_name == 'schedule' && steps.kind.outputs.kind != 'docs' }}
+        if: ${{ !cancelled() && github.event_name == 'schedule' && steps.kind.outputs.kind != 'docs' && (steps.checks.conclusion == 'success' || steps.checks.conclusion == 'failure') }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

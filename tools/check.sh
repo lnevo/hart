@@ -336,7 +336,8 @@ collect() {
     fi
     cat "$JOBS/$i.log"
   done
-  if [[ -n "$RESULTS_TO" ]] && ! printf '%s\n' ${results[@]+"${results[@]}"} >"$RESULTS_TO"; then
+  # no job queued: the file stays empty (printf with no line would still write a newline), which the gate refuses
+  if [[ -n "$RESULTS_TO" ]] && (( ${#results[@]} > 0 )) && ! printf '%s\n' "${results[@]}" >"$RESULTS_TO"; then
     echo "CHECK_RESULTS_TO=$RESULTS_TO: cannot write the jobs' results"
     fail=1
   fi

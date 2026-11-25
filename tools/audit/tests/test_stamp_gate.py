@@ -419,6 +419,8 @@ esac
     def test_the_weekly_guard_runs_after_a_failed_check_sh_on_the_schedule_only(self) -> None:
         step = self.text[self.text.index("name: Did a pull request skip a job that fails here?"):]
         self.assertIn("if: ${{ !cancelled() && github.event_name == 'schedule'", step[:300])
+        self.assertIn("(steps.checks.conclusion == 'success' || steps.checks.conclusion == 'failure') }}", step[:300])
+        self.assertIn("id: checks", self.text[self.text.index("CHECK_RESULTS_TO") - 400:])
         self.assertLess(self.text.index("run: ./tools/check.sh"), self.text.index("name: Did a pull request skip"))
         self.assertIn("CHECK_RESULTS_TO: ${{ runner.temp }}/check-results.tsv", self.text)
         rec = self.text[self.text.index("name: Record the jobs this run skipped"):]

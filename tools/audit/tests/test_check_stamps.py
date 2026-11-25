@@ -508,6 +508,11 @@ class BatchTest(RepoCase):
         folder = Path(tempfile.mkdtemp(dir=self.tmp))
         cs.current_batch(["unit-mimic"], folder, False, self.root, self.store)
         self.assertFalse(old.exists())
+        with unittest.mock.patch.object(Path, "unlink", side_effect=PermissionError("read-only")):
+            err = io.StringIO()
+            with contextlib.redirect_stderr(err):
+                self.assertEqual(cs.current_batch(["unit-mimic"], folder, False, self.root, self.store), [0])
+            self.assertIn("cannot drop the retired 'static' stamp: read-only", err.getvalue())
         with self.assertRaisesRegex(cs.BatchError, "'static', a job name check_stamps.RETIRED says it no longer runs"):
             cs.current_batch(["unit-mimic", "static"], folder, False, self.root, self.store)
 
