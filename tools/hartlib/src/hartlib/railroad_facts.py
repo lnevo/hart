@@ -811,8 +811,12 @@ def read_helix_tracks(path: Path) -> dict[str, HelixTrack]:
         whole = layer_files.merged(folder)     # the names of the staging helix ends are the name store's
         staging = layer_files.section_of(whole, "staging", path.name)
         upper = layer_files.section_of(whole, "main_upper", path.name)
-        # track_labels keyed by block ID in the hand file: the merged view gives each label its track's name
-        prefs = layer_files.section_of(layer_files.merged(folder, "preferences"), "main_upper", "preferences.json")
+        # track_labels keyed by block ID in the hand file, named by the name store as the merged view names them;
+        # only that key, so the helix tracks' owner names are all that is read (no generated name is needed)
+        hand = layer_files.read("preferences", "main_upper", folder)
+        prefs = track_names.pref_section("main_upper", {TRACK_LABELS: hand.get(TRACK_LABELS, {})}, data=folder)
+    except track_names.TrackNameError as exc:
+        raise FactsError(f"helix tracks: {exc}") from None
     except layer_files.LayerFileError as exc:
         raise FactsError(f"helix tracks: {exc}") from None
     feet: dict[str, str] = {}
