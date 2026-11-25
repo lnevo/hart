@@ -65,10 +65,12 @@ def _edge(a: str, b: str, label: str, side: str) -> dict:
     return e
 
 
-def lane(steps, path_ids: dict[str, str], runner_id: str) -> tuple[list[dict], list[dict], list[str]]:
-    """The generated boxes, links, and each box's id in manifest order. path_ids maps each box path of the graph
-    (without a trailing /) to its id, the lane's own boxes included."""
+def lane(steps, path_ids: dict[str, str], runner_id: str) -> tuple[list[dict], list[dict], list[str], dict]:
+    """The generated boxes, links, each box's id in manifest order, and each link's own script (the step that lists
+    it: a link between two steps' scripts belongs to the one whose input or output it is). path_ids maps each box path
+    of the graph (without a trailing /) to its id, the lane's own boxes included."""
     nodes, edges, order, problems = [], [], [], []
+    owner: dict[tuple[str, str], str] = {}
     seen: dict[str, str] = {}
     for step in steps:
         if step.name in HAND_KEPT_STEPS:
@@ -94,11 +96,12 @@ def lane(steps, path_ids: dict[str, str], runner_id: str) -> tuple[list[dict], l
                 else:
                     edges.append(_edge(step.script, other, item.label, ""))
         edges.append(_edge(step.script, runner_id, f"check {step.name}", "check"))
+        owner.update((_key(e), step.script) for e in edges if _key(e) not in owner)
     keys = [_key(e) for e in edges]
     problems += sorted({f"{a} -> {b} comes from two entries of the manifest" for a, b in keys if keys.count((a, b)) > 1})
     if problems:
         raise MapLaneError("\n".join(problems))
-    return nodes, edges, order
+    return nodes, edges, order, owner
 
 
 def _place(old: list, fresh: dict, owned, key, after) -> list:
@@ -146,7 +149,7 @@ def regenerate(data: dict, steps=None) -> dict:
     if missing:
         raise MapLaneError(f"the graph has no hand-kept box for {', '.join(missing)}, which the manifest lane links "
                            f"to or leaves hand-kept; add it")
-    nodes, edges, order = lane(steps, {**other_paths, **{p: p for p in scripts}}, other_paths[RUNNER])
+    nodes, edges, order, owner = lane(steps, {**other_paths, **{p: p for p in scripts}}, other_paths[RUNNER])
     held = {_key(e): e for e in data["edges"] if e.get("gen") != GEN}
     fresh_edges, problems = {}, []
     for e in edges:
@@ -178,7 +181,7 @@ def regenerate(data: dict, steps=None) -> dict:
         return at[-1] if at else -1
 
     def after_edge(out: list, edge: dict):
-        script = edge["to"] if edge["to"] in fresh_nodes else edge["from"]
+        script = owner[_key(edge)]
         at = ([i for i, e in enumerate(out) if stays(e) and script in _key(e)]
               or [i for i, e in enumerate(out) if stays(e)])
         return at[-1] if at else -1

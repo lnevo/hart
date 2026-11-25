@@ -104,6 +104,14 @@ class DrawTest(Fixture):
         k = keys(out)
         self.assertEqual(k.index(("z", "tools/one.py")), k.index(("tools/one.py", "tools/check.sh")) + 1)
 
+    def test_a_new_link_between_two_steps_scripts_goes_with_the_step_that_lists_it(self) -> None:
+        """Review finding: an output to another step's script was placed among that script's links."""
+        once = LANE.regenerate(graph(), STEPS)
+        grown = (step("one", "tools/one.py", inputs=[("data/x.csv", "reads", "")],
+                      outputs=[("out/y.json", "writes"), ("tools/two.py", "feeds")]), STEPS[1])
+        k = keys(LANE.regenerate(once, grown))
+        self.assertEqual(k.index(("tools/one.py", "tools/two.py")), k.index(("tools/one.py", "tools/check.sh")) + 1)
+
     def test_a_new_entry_is_never_placed_after_another_lanes_entry(self) -> None:
         """The agent-doc lane puts its entries last on every run, so a place after one would move each time."""
         g = graph([box("doc.md", gen="agent-docs")], [{"from": "doc.md", "to": "tools/check.sh", "gen": "agent-docs"}])

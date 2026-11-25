@@ -14,7 +14,8 @@
 #               hook is on it); the -m module must be a file under dir
 #   domain      the map lane (a domain of docs/pipeline-map/pipeline_map.json); label and desc are the map box's
 #               name and text: the map draws each step's script as a box, with its inputs, outputs and an edge to
-#               tools/check.sh, from this file (tools/pipeline/map_lane.py, "gen": "manifest" in the map)
+#               tools/check.sh, from this file (tools/pipeline/map_lane.py, "gen": "manifest" in the map); one box
+#               per script, so two steps may not run one script; each input and output must be a box of the map
 #   docs_only   also run on the docs-only path (tools/ci/docs_checks.sh)
 #   inputs      what the step reads, as map edges into its script: a path or glob, or { path, label, side }, side
 #               one of the map's edge sides ("check": a check or comparison reads it)
