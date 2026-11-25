@@ -14,11 +14,11 @@ names the reason:
    deploy ships the working tree, and CI checked the commit, not files beside it). A submodule at another commit
    counts as a change; local edits inside a submodule do not (the deploy ships none of their files, and the schematic
    plugin enters tables.xml by its pinned commit);
-2. GitHub has a push run of .github/workflows/check.yml on main for SHA, the newest one completed with success;
-3. its one job "check" passed, with its "Run ./tools/check.sh" step a success;
-4. main's check stamps for SHA (the actions/cache entry check-stamps-SHA on refs/heads/main, which that run saves only
+2. the commit pins the schematic-maps plugin (a gitlink at external/model-railroad-skills): G4 draws with it;
+3. GitHub has a push run of .github/workflows/check.yml on main for SHA, the newest one completed with success;
+4. its one job "check" passed, with its "Run ./tools/check.sh" step a success;
+5. main's check stamps for SHA (the actions/cache entry check-stamps-SHA on refs/heads/main, which that run saves only
    after check.sh passed; tools/ci/stamp_gate.py "main's last full pass") are in CI's cache;
-5. the commit pins the schematic-maps plugin (a gitlink at external/model-railroad-skills);
 6. the job's log shows a full run that did what G4 does. G4 is `SCHEMATIC_REQUIRED=1 build_tables.py --check` with the
    plugin at the commit's pin; in CI that is the "tables" step of check.sh's "panels" job (build_panels.sh --check,
    tools/pipeline/panels.toml). So the log must show: the check.sh step with SCHEMATIC_REQUIRED 1, stamps recorded
