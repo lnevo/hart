@@ -61,10 +61,20 @@ def rewrite(text: str, new: str) -> str:
     return text[:a] + "\n" + new + "\n" + text[b:]
 
 
+OPENING_WORDS = 8  # an entry with no bold lead is known by its first words; 8 flagged only real doubles in 331 versions
+
+
+def opening(line_: str) -> str | None:
+    """The first OPENING_WORDS words of a bullet with no bold lead, lower case; None for a bullet shorter than that."""
+    words = re.findall(r"\w+", line_[2:].lower())
+    return " ".join(words[:OPENING_WORDS]) if len(words) >= OPENING_WORDS else None
+
+
 def duplicates(text: str) -> list[str]:
-    """Entries a union merge (.gitattributes: wiki/STATUS.md merge=union) can leave twice: a bullet line repeated, or two
-    bullets with the same bold lead ("- **Lead:**", two versions of one entry edited on both sides)."""
-    seen_line, seen_lead, out = set(), {}, []
+    """Entries a union merge (.gitattributes: wiki/STATUS.md merge=union) can leave twice: a bullet line repeated, two
+    bullets with the same bold lead ("- **Lead:**"), or two bullets with no bold lead that open with the same words
+    (two versions of one entry edited on both sides; 2026-11-25 a Future goals entry was left twice that way)."""
+    seen_line, seen_lead, seen_open, out = set(), {}, set(), []
     for line_ in text.splitlines():
         if not line_.startswith("- "):
             continue
@@ -78,6 +88,10 @@ def duplicates(text: str) -> list[str]:
             if lead in seen_lead:
                 out.append(f"two entries for: {lead}")
             seen_lead[lead] = True
+        elif (start := opening(line_)) is not None:
+            if start in seen_open:
+                out.append(f"two entries opening: {start}")
+            seen_open.add(start)
     return out
 
 
