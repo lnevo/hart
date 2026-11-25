@@ -2740,7 +2740,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "website",
-   "desc": "Writes behind/layout-docs.html from layout_docs_template.html, with the section list from block_lengths.csv (by level and id) and the track names from the device master, so a rename in devices_field.csv reaches the page; fills the lengths and crossovers its text states; checks drawing D2's section count and plans P3 and P4's lengths; --check. Drawings and photos are its own files (the frozen SOQ is not read).",
+   "desc": "Writes behind/layout-docs.html from layout_docs_template.html, with the section list from block_lengths.csv (by level and id) and the track and switch names and DCC addresses from the device master, so a rename in devices_field.csv reaches the page, and the station names from stations.csv; fills the lengths and crossovers its text states; checks drawing D2's section count, plans P3 and P4's lengths and the plans' switch numbers; --check. Drawings and photos are its own files (the frozen SOQ is not read).",
    "path": "www/scripts/build_layout_docs.py"
   },
   {
@@ -7631,13 +7631,18 @@
    "label": "owner's names, via hartlib.devices"
   },
   {
+   "from": "jmri/layouts/hart/data/schematic/stations.csv",
+   "to": "www/scripts/build_layout_docs.py",
+   "label": "station names, via hartlib.railroad"
+  },
+  {
    "from": "www/scripts/build_layout_docs.py",
    "to": "www/behind"
   },
   {
    "from": "www/assets/behind/layout-docs/drawings",
    "to": "www/scripts/build_layout_docs.py",
-   "label": "checks count and lengths",
+   "label": "checks count, lengths and switch numbers",
    "side": "check"
   },
   {

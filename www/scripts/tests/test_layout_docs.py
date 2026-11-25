@@ -1,6 +1,7 @@
-"""The layout documentation page matches its template, block_lengths.csv (one row per detector) and the device
-master's names; drawing D2 states the same section count and plans P3 and P4 the same lengths; a rename in the field
-file renames the track on the page; the hand-edited drawings carry no SOQ wording."""
+"""The layout documentation page matches its template, block_lengths.csv (one row per detector), the device
+master's names and DCC addresses and the station names; drawing D2 states the same section count, plans P3 and P4 the
+same lengths and the plans the live switch numbers; a rename in the field file renames the track or the switch on the
+page, and a rename in the stations file the station; the hand-edited drawings carry no SOQ wording."""
 import csv
 import io
 import re
@@ -38,8 +39,9 @@ class LayoutDocs(unittest.TestCase):
         ld.check_drawings()
 
     def test_every_section_has_a_label(self):
-        for s in ld.detected_sections():
-            ld.label(s)
+        master = ld.master_rows()
+        for s in ld.detected_sections(master=master):
+            ld.label(s, master)
 
     def test_every_label_is_a_live_block(self):
         # a label for a block the plan no longer has would hide a renumbered switch
@@ -64,6 +66,33 @@ class LayoutDocs(unittest.TestCase):
         with self.assertRaises(SystemExit):
             ld.detected_sections({r.id: r for r in lengths}, master)
 
+    def test_plans_label_the_live_switches(self):
+        master = ld.master_rows()
+        ld.check_switch_labels(master)
+        key = (ld.LEVEL, "switch:5")
+        with self.assertRaises(SystemExit):
+            ld.check_switch_labels({**master, key: {**master[key], "user_name": "Switch 6"}})
+
+    def test_only_switch_labels_count(self):
+        svg = ('<text x="1" font-weight="bold" fill="#5f6e7a">5</text><text class="lb">Sw 3</text>'
+               '<text font-size="9">100</text><text font-weight="bold" fill="#5f6e7a">WEST</text>')
+        self.assertEqual(ld.drawn_switches(svg), ["3", "5"])         # a plain number (a dimension) is no label
+    def test_the_dcc_address_is_the_turnouts(self):
+        # "DCC Switch N" follows switch number N, not DCC address N: the page states both, from the turnout's row
+        row = ld.master_rows()[(ld.LEVEL, "switch:3")]
+        self.assertIn(f"{row['user_name']} (DCC address {row['dcc']}) set normal", ld.PAGE.read_text())
+
+    def test_the_station_at_a_switch_is_the_smallest_holding_it(self):
+        st = ld.railroad.Station
+        places = [st(2, 1, "Brick", ("1", "3"), "", "BK"), st(3, 1, "West Yard", ("3",), "", "BK"),
+                  st(4, 2, "Upper", ("3",), "", "UP")]
+        self.assertEqual(ld.station_at(places, "switch:3"), "West Yard")
+        self.assertEqual(ld.station_at(places, "switch:1"), "Brick")
+        with self.assertRaises(SystemExit):
+            ld.station_at(places, "switch:5")
+        with self.assertRaises(SystemExit):
+            ld.station_at(places + [st(5, 1, "Other", ("3",), "", "OT")], "switch:3")
+
     def test_d2_must_state_the_live_count(self):
         ld.check_d2(len(ld.detected_sections()))
         with self.assertRaises(SystemExit):
@@ -79,6 +108,13 @@ class LayoutDocs(unittest.TestCase):
         rows = [{"id": i, "inches": 100.0, "estimate": estimate} for i in (ld.RS1, ld.SIDING, *ld.YARD)]
         return ld.facts(rows + [{"id": i, "inches": 9.0, "estimate": True} for i in os_ids])
 
+    def test_crossovers_are_in_switch_number_order(self):
+        master = {(ld.LEVEL, f"switch:{n}"): {"layer": "turnout", "role": "turnout", "user_name": f"Switch {u}"}
+                  for n, u in ((7, 107), (23, 9), (35, 35))}
+        rows = [{"id": i, "inches": 100.0, "estimate": False} for i in (ld.RS1, ld.SIDING, *ld.YARD)]
+        rows += [{"id": i, "inches": 9.0, "estimate": True} for i in ("os:7:A-5B", "os:23:A-1A", "os:35:A-33A")]
+        self.assertEqual(ld.facts(rows, master)["CROSSOVERS"], "crossovers at Switches 9, 35 and 107")
+
     def test_crossovers_come_from_the_os_halves(self):
         self.assertEqual(self.facts_of(("os:35:A-33A", "os:7:A-5B", "os:23:A-1A", "os:23:A-31B", "os:3"))["CROSSOVERS"],
                          "crossovers at Switches 7, 23 and 35")
@@ -92,7 +128,8 @@ class LayoutDocs(unittest.TestCase):
 class RenameReachesThePage(unittest.TestCase):
     """A copy of the device master whose field file renames a staging track and an OS block, as the owner would;
     nothing else changes (block_lengths.csv keeps its labels, as before the length-labels step runs)."""
-    RENAMES = {("1", "block:17C-29C"): "Track Renamed Yard Two", ("1", "os:19"): "OS Renamed Nineteen"}
+    RENAMES = {("1", "block:17C-29C"): "Track Renamed Yard Two", ("1", "os:19"): "OS Renamed Nineteen",
+               ("1", "switch:5"): "Switch 105"}
 
     @classmethod
     def setUpClass(cls):
@@ -109,7 +146,17 @@ class RenameReachesThePage(unittest.TestCase):
                 hit += 1
         assert hit == len(cls.RENAMES), hit
         cls.files.field.write_text(devices.master_text(rows), encoding="utf-8")
-        cls.page = ld.outputs(cls.files)[ld.PAGE]
+        try:                                                      # the plans unedited: the renamed switch stops
+            ld.outputs(cls.files)
+            cls.stopped = ""
+        except SystemExit as exc:
+            cls.stopped = str(exc)
+        cls.plans = []                                            # the plans with Switch 5 relabelled, as the owner would
+        for svg in ld.PLANS:
+            copy = Path(cls.tmp.name) / svg.name
+            copy.write_text(re.sub(r"(<text\b[^>]*>)(Sw )?5<", r"\g<1>\g<2>105<", svg.read_text()))
+            cls.plans.append(copy)
+        cls.page = ld.outputs(cls.files, plans=cls.plans)[ld.PAGE]
         cls.live = ld.outputs()[ld.PAGE]                      # the same build on the real device master
         master = ld.master_rows()
         cls.old = {k: ld.bare(master[k]["user_name"]) for k in cls.RENAMES}
@@ -131,10 +178,55 @@ class RenameReachesThePage(unittest.TestCase):
         self.assertIn(f"<td>Turnout 19</td><td>{self.new[os19]}</td>", self.page)
         self.assertNotIn(f"<td>{self.old[os19]}</td>", self.page)
 
+    def test_the_renamed_switch_is_on_the_page(self):
+        self.assertIn("The siding beside the main line, Switch 105 to Switch 7", self.page)     # the label table
+        self.assertIn("<td>Turnout 105</td>", self.page)                                       # the section list
+        self.assertNotIn("Switch 5 ", self.page)
+
+    def test_unedited_plans_stop_the_build(self):
+        self.assertIn("labels switches", self.stopped)
+
     def test_nothing_else_changes(self):
-        page = self.page
+        page = self.page.replace("Turnout 105", "Turnout 5")
         for key, name in self.new.items():
             page = page.replace(name, self.old[key])
+        self.assertEqual(page, self.live)
+
+
+class StationRenameReachesThePage(unittest.TestCase):
+    """A copy of the stations file with two stations renamed, as the owner would; nothing else changes."""
+    RENAMES = {"Plane": "Renamed Plane", "South Yard": "Renamed South Yard"}
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        src = ld.railroad.Sources.under().stations
+        copy = Path(cls.tmp.name) / src.name
+        with src.open(newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            fields, rows = reader.fieldnames, list(reader)
+        assert {r["station"] for r in rows} >= set(cls.RENAMES)
+        for r in rows:
+            r["station"] = cls.RENAMES.get(r["station"], r["station"])
+        with copy.open("w", newline="", encoding="utf-8") as f:
+            w = csv.DictWriter(f, fields)
+            w.writeheader()
+            w.writerows(rows)
+        cls.page = ld.outputs(stations=copy)[ld.PAGE]
+        cls.live = ld.outputs()[ld.PAGE]
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tmp.cleanup()
+
+    def test_the_renamed_stations_are_on_the_page(self):
+        self.assertRegex(self.page, r"<td>[^<]*, at Renamed Plane</td>")                     # the passing siding
+        self.assertIn("<td>Renamed South Yard ", self.page)                                   # the yard tracks
+
+    def test_nothing_else_changes(self):
+        page = self.page
+        for old, new in self.RENAMES.items():
+            page = page.replace(new, old)
         self.assertEqual(page, self.live)
 
 
