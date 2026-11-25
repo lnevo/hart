@@ -50,7 +50,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 | 7 | Staging generated like main and upper | 1.5 days | `staging_rows` and `staging_wired_rows` go through the main and upper row makers; a staging device with no owner row gets generated values instead of stopping; `FIELD_LEVEL` goes. **Done (2026-11-25):** see [Step 7 findings](#step-7-findings) |
 | 8 | Block names into the rows | 0.5 day | Builder merge step 2 (`block_numbering.csv` stays the source of main and upper numbers, owner 2026-11-23). **Done (2026-11-25):** see [Step 8 findings](#step-8-findings) |
 | 9 | `start` column and comment data | 0.5 day | Builder merge step 3: main and upper rows carry `start` and `bean_comment`; `le_tables` reads them. **Done (2026-11-25):** see [Step 9 findings](#step-9-findings) |
-| 10 | Bean shapes by column | 1 day | Builder merge step 4 |
+| 10 | Bean shapes by column | 1 day | Builder merge step 4. **Done (2026-11-25):** see [Step 10 findings](#step-10-findings) |
 | 11 | Every level through `master_beans` | 1 day | Builder merge step 5: deletes `add_level_*` and the `IT:HART:C3` patterns in `cats_panel.py` and `le_tables.py`, so the bean name is always the row's `jmri_name`. Listed comment diff (owner's 2026-11-23 answer), `make panelpro-test`, deploy |
 | 12 | One mast step | 1 to 1.5 days | Builder merge step 6: `build_masts.py` part 1 into the builder, so one writer makes every level's mast and head rows; any main or upper mast change goes to panel approval |
 | 13 | One reader | 1 day | Builder merge step 7, first half: `le_names.level_names` and `staging_device_map.load` become one reader keyed by ID |
@@ -361,6 +361,38 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   (`build_layout_le.build`) and handed down.
 - **For step 11:** a main or upper bean is now its row's names, length, `start` and `bean_comment`; step 11 changes
   `bean_cells`' words to staging's (the listed comment diff) and makes the LogixNG from `start`.
+
+## Step 10 findings (2026-11-25)
+
+- **Shapes by column.** `tables_build.master_beans(rows, lengths, levels=GENERATED_LEVELS)` makes each bean from its
+  row: `bean_name` (`system_name` on a field turnout, else `jmri_name`), `row_comment` (`bean_comment` where set, else the
+  wiring columns), `turnout_feedback` (TWOSENSOR on the two `fb:<n>:R|N` rows of the turnout's level when both give
+  beans, DIRECT when neither does on a virtual turnout, a stop on one or on a field turnout with none), `alias_is_turnout` (an LCC alias naming its turnout's bean gives
+  none) and `start_actions` (an ActionSensor or ActionTurnout per virtual row with a `start`, under `START_ACTIONS`,
+  in the LogixNG's socket order). Which beans a layer gives is `LAYER_BEANS`. A block takes the detector of its own level
+  that names it; a helix detector (role helix) binds staging's helix block (`HELIX_LEVEL`).
+  `le_tables.add_level_clear` builds its actions with the same `start_action`.
+- **Still staging only:** `build_tables.py` and `base()` run `GENERATED_LEVELS`; `base()` stops on a staging row with
+  a `start` until step 11 makes the LogixNG frame there.
+- **master_beans against the golden.** `test_bean_goldens.MasterBeansOnEveryLevel` runs it over levels 1 to 3: 780 of
+  the fixture's 783 lines match (39 turnouts, 97 sensors, 240 block passes, 120 layout blocks, 76 heads, 68 masts,
+  136 startup actions, the 4 helix detector lines). The 3 left are the startup LogixNG's frame (its LogixNG,
+  ConditionalNG and DigitalMany), which `add_level_clear` builds around the actions: step 11 moves it. The comments
+  do not differ: `master_beans` reads `bean_comment`, which step 9 filled with today's words; step 11's listed comment
+  diff is the change to `device_map_rows.bean_cells`' words. Staging's beans over every level are the staging-only
+  ones but for the two helix blocks' and layout blocks' sensor.
+- **My calls (owner's rule of 2026-11-25):** feedback and aliases are found by id (`switch:<n>`, `dcc:<n>`,
+  `fb:<n>:R|N`) on the turnout's own level among every row, not by user name; a turnout row with no such id, or an alias with no
+  turnout row, stops. A `start` on a row that is not virtual stops (a field device reports its own state).
+- **Code review (medium), fixed:** a field turnout with no feedback beans stops, as before; `bean_name` keeps the old
+  rule (system_name only for a field turnout), since ADR-028 makes a swap a `jmri_name` edit and `system_name` stays
+  the main and upper draft; the block-to-detector map is keyed by level and only a helix detector crosses levels; an
+  alias whose turnout row is missing or has assignment none stops; the mast message says bean name.
+- **Tests:** `test_tables_build.ShapeByColumn` (a rule each, on a small main level run with staging);
+  `test_tables_build`'s staging fixture rows got their ids.
+- **Outputs byte-identical:** `make panels CHECK=1 FULL=1` all current, `check_approved.py --check` all matching,
+  `build_tables.py --base-hash` the committed discovery stamp's, `test_bean_goldens`' fixture unchanged. No visible
+  main or upper change.
 
 ## How to run this
 
