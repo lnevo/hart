@@ -126,6 +126,13 @@ class ParsePageTest(unittest.TestCase):
             """))
         self.assertEqual((got.status, got.claims, got.problems), ("active", [], []))
 
+    def test_a_comment_marker_in_inline_code_opens_no_comment(self):
+        got = OR.parse_page("p.md", "Wrap it in `<!--` and ``a ` <!-- b``; an open ` tick.\nStatus: active\n"
+                                    f"{CLAIM}\n")
+        self.assertEqual((got.status, len(got.claims), got.problems), ("active", 1, []))
+        self.assertEqual(OR.comment_start("`x` <!-- y"), 4)
+        self.assertEqual(OR.comment_start("` <!-- y"), 2)  # an unclosed backtick is literal
+
     def test_a_claim_on_a_page_that_is_not_active(self):
         self.assertEqual(self.problems(f"Status: done (2026-11-24)\n{CLAIM}\n"),
                          ["claimed, but the page's Status is done, not active"])
@@ -247,7 +254,7 @@ class ReportTest(Repo):
         self.assertIn("Claims (3):", out)
         self.assertIn(f"work.md: agent/claude/busy, {busy}, since 2026-11-25 08:00 [worktree present]", out)
         self.assertIn("agent/claude/gone, /nowhere/gone, since 2026-11-24 10:00 [STALE: no worktree", out)
-        self.assertIn("[STALE: that worktree is on agent/claude/busy", out)
+        self.assertIn("[STALE: that worktree is on agent/claude/busy; remove the line in the main checkout]", out)
         self.assertIn("Worktrees in progress (1;", out)
         self.assertIn("agent/claude/busy, 2 ahead", out)
         self.assertIn(f"{busy} (this session)", out)
@@ -260,7 +267,7 @@ class ReportTest(Repo):
         sh("git", "commit", "-q", "-am", "claim", cwd=first)
         sh("git", "update-ref", "refs/remotes/origin/main", "agent/claude/a1", cwd=self.main)
         self.worktree("a2")  # carries the same claim, from origin/main
-        claims, problems = OR.read_claims(OR.read_trees(WT))
+        claims, problems = OR.read_claims(OR.read_trees(WT), WT)
         self.assertEqual(len(claims), 1)
         self.assertEqual(problems, [])
 
@@ -277,8 +284,52 @@ class ReportTest(Repo):
     def test_a_missing_worktree_folder_is_a_problem(self):
         wt = self.worktree("vanished")
         os.rename(wt, self.base / "elsewhere")
-        _, problems = OR.read_claims(OR.read_trees(WT))
+        _, problems = OR.read_claims(OR.read_trees(WT), WT)
         self.assertTrue(any("missing on disk" in p for p in problems), problems)
+
+    def test_a_worktree_the_sweep_removes_while_orient_reads_is_no_problem(self):
+        wt = self.worktree("swept")
+        trees = OR.read_trees(WT)
+        sh("git", "worktree", "remove", "--force", str(wt), cwd=self.main)
+        _, problems = OR.read_claims(trees, WT)
+        self.assertEqual(problems, [])
+
+    def test_a_worktree_with_no_commit_yet_does_not_stop_orient(self):
+        real = WT.worktrees
+        unborn = WT.Worktree(str(self.base / "orphan"), "0" * 40, "agent/claude/orphan", True,
+                             f"claude agent x (pid {os.getpid()} start x)")
+        with mock.patch.object(WT, "worktrees", side_effect=lambda cwd=None: real(cwd) + [unborn]), \
+                mock.patch.object(WT, "lock_session_gone", return_value=False):
+            trees = OR.read_trees(WT)
+            line = OR.tree_line(OR.in_progress(trees)[0], {}, "/")
+        tree = trees[-1]
+        self.assertEqual((tree.ahead, tree.last), (0, None))
+        self.assertIn("agent/claude/orphan, 0 ahead, no commit", line)
+
+    def test_different_bad_lines_in_two_worktrees_are_two_problems(self):
+        for name, text in (("b1", "Claimed: one"), ("b2", "Claimed: two")):
+            wt = self.worktree(name)
+            (wt / "wiki/projects/work.md").write_text(f"Status: active\n{text}\n")
+        _, problems = OR.read_claims(OR.read_trees(WT), WT)
+        self.assertEqual(len(problems), 2, problems)
+
+    def test_a_stale_claim_names_the_worktree_that_holds_it(self):
+        wt = self.worktree("holder")
+        (wt / "wiki/projects/work.md").write_text("Status: active\nClaimed: agent/claude/gone, /nowhere, since 2026-11-24 10:00\n")
+        (claim, state), = OR.read_claims(OR.read_trees(WT), WT)[0]
+        self.assertEqual(state, f"STALE: no worktree at that path; remove the line in {wt}")
+
+    def test_a_worktree_failure_stops_before_any_network_call(self):
+        sh("git", "update-ref", "-d", "refs/remotes/origin/main", cwd=self.main)
+        calls = []
+
+        def fake(cmd, timeout):
+            calls.append(cmd[0])
+            return 1, "", "offline"
+
+        with mock.patch.object(OR, "run", side_effect=fake), self.assertRaisesRegex(OR.OrientError, "origin/main"):
+            OR.report(short=False, here="/")
+        self.assertEqual(calls, ["git"])  # the fetch only; gh, the hosts and the flag were never asked
 
     def test_git_failures_are_domain_errors(self):
         sh("git", "update-ref", "-d", "refs/remotes/origin/main", cwd=self.main)
@@ -314,6 +365,16 @@ class ReportTest(Repo):
         self.assertIn("Open PRs: gh pr list failed (To get started with GitHub CLI", text)
         self.assertIn("deploy status unavailable (timed out after 40 s)", text)
         self.assertNotIn("Traceback", text)
+
+    def test_a_full_pr_list_says_it_is_cut(self):
+        prs = [{"number": n, "title": "t", "headRefName": f"b{n}", "isDraft": False} for n in range(OR.PR_LIMIT)]
+
+        def fake(cmd, timeout):
+            return (0, json.dumps(prs), "") if cmd[0] == "gh" else (0, "", "")
+
+        with mock.patch.object(OR, "run", side_effect=fake):
+            text = "\n".join(OR.report(short=False, here="/"))
+        self.assertIn(f"Open PRs ({OR.PR_LIMIT}, the first {OR.PR_LIMIT} only):", text)
 
 
 class NetworkPartsTest(unittest.TestCase):
@@ -378,6 +439,8 @@ class HookTest(unittest.TestCase):
         got = HOOK.orient_lines(self.proc("import sys; print('orient: git broke', file=sys.stderr); sys.exit(2)"),
                                 time.monotonic())
         self.assertEqual(got, ["Orient failed: orient: git broke; run make orient"])
+        got = HOOK.orient_lines(self.proc("int('x')"), time.monotonic())
+        self.assertEqual(got, ["Orient failed: ValueError: invalid literal for int() with base 10: 'x'; run make orient"])
         with mock.patch.object(HOOK, "ORIENT_TIMEOUT", 0.5):
             got = HOOK.orient_lines(self.proc("import time; time.sleep(30)"), time.monotonic())
         self.assertEqual(got, ["Orient took over 0.5 s and was stopped; run make orient"])

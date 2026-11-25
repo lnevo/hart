@@ -86,7 +86,9 @@ def orient_lines(proc: subprocess.Popen | str, started: float) -> list[str]:
         proc.communicate()
         return [f"Orient took over {ORIENT_TIMEOUT} s and was stopped; run make orient"]
     if proc.returncode != 0:
-        message = next((l for l in err.splitlines() if l.strip()), f"exit {proc.returncode}")
+        # orient's own errors start "orient:"; an uncaught one ends in a traceback whose last line names it
+        lines = [l for l in err.splitlines() if l.strip()]
+        message = next((l for l in lines if l.startswith("orient:")), lines[-1] if lines else f"exit {proc.returncode}")
         return [f"Orient failed: {message.strip()}; run make orient"]
     return ["Who is working on what (make orient for PRs, deploys and the operating flag):", *out.splitlines()]
 

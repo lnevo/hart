@@ -109,12 +109,30 @@ def readable_lines(text: str):
                 end = rest.find("-->")
                 rest, in_comment = ("", True) if end < 0 else (rest[end + 3:], False)
             else:
-                start = rest.find("<!--")
+                start = comment_start(rest)
                 if start < 0:
                     out, rest = out + rest, ""
                 else:
                     out, rest, in_comment = out + rest[:start], rest[start + 4:], True
         yield no, out
+
+
+CODE_SPAN = re.compile(r"(`+)(?:.*?[^`])?\1(?!`)")
+
+
+def comment_start(text: str) -> int:
+    """Where an HTML comment opens in text, or -1; a `<!--` inside a backtick code span does not count."""
+    pos = 0
+    while True:
+        start = text.find("<!--", pos)
+        tick = text.find("`", pos)
+        if start < 0 or tick < 0 or start < tick:
+            return start
+        span = CODE_SPAN.match(text, tick)
+        if span is None:  # an unclosed backtick run is literal text
+            pos = tick + len(re.match(r"`+", text[tick:]).group(0))
+        else:
+            pos = span.end()
 
 
 def parse_page(name: str, text: str) -> Page:
@@ -209,14 +227,14 @@ def read_trees(wt) -> list[Tree]:
         raise OrientError("git worktree list printed no worktree")
     git("rev-parse", "--verify", "--quiet", f"{BASE}^{{commit}}")
     trees = [Tree(t.path, t.branch, t.head, lock_state(wt, t)) for t in raw]
-    heads = sorted({t.head for t in trees if t.head})
+    heads = sorted({t.head for t in trees if t.head and t.head.strip("0")})  # all zeros: no commit yet
     times = {}
     for line in git("log", "--no-walk=unsorted", "--format=%H %ct", *heads).splitlines():
         sha, stamp = line.split()
         times[sha] = datetime.fromtimestamp(int(stamp))
     ahead = {sha: int(git("rev-list", "--count", f"{BASE}..{sha}")) for sha in heads}
     for t in trees:
-        if t.head and t.head not in times:
+        if t.head and t.head.strip("0") and t.head not in times:
             raise OrientError(f"git log gave no time for {t.head} ({t.path})")
         t.ahead, t.last = ahead.get(t.head, 0), times.get(t.head)
     return trees
@@ -233,14 +251,21 @@ def same_path(a: str, b: str) -> bool:
     return os.path.realpath(os.path.normpath(a)) == os.path.realpath(os.path.normpath(b))
 
 
-def read_claims(trees: list[Tree]) -> tuple[list[tuple[Claim, str]], list[str]]:
+def read_claims(trees: list[Tree], wt) -> tuple[list[tuple[Claim, str]], list[str]]:
     """Every claim in any worktree's wiki/projects/, each once, with its state against the worktree list; and the
-    problem lines. A worktree folder that is gone is a problem; one without wiki/projects/ has nothing to read."""
+    problem lines. A worktree folder that is gone is a problem unless git no longer lists it (the session-start
+    sweep may remove one while orient reads); one without wiki/projects/ has nothing to read."""
     claims: dict[tuple, Claim] = {}
+    sources: dict[tuple, list[str]] = {}
     problems: dict[tuple, list[str]] = {}
+    listed: set[str] | None = None
     for t in trees:
         if not os.path.isdir(t.path):
-            problems.setdefault(("", t.path), []).append(f"worktree {t.path} is missing on disk (git worktree prune)")
+            if listed is None:
+                listed = {os.path.realpath(w.path) for w in wt.worktrees(ROOT)}
+            if os.path.realpath(t.path) in listed:
+                problems.setdefault(("", t.path), []).append(
+                    f"worktree {t.path} is missing on disk (git worktree prune)")
             continue
         folder = Path(t.path) / PROJECTS
         if not folder.is_dir():
@@ -253,29 +278,36 @@ def read_claims(trees: list[Tree]) -> tuple[list[tuple[Claim, str]], list[str]]:
                 continue
             page = parse_page(page_path.name, text)
             for c in page.claims:
-                claims.setdefault((c.page, c.branch, os.path.normpath(c.path), c.since), c)
+                key = (c.page, c.branch, os.path.normpath(c.path), c.since)
+                claims.setdefault(key, c)
+                sources.setdefault(key, []).append(t.path)
+            raw = text.splitlines()
             for no, msg in page.problems:
-                problems.setdefault((page_path.name, no, msg), []).append(
+                line = raw[no - 1] if 0 < no <= len(raw) else ""
+                problems.setdefault((page_path.name, no, msg, line), []).append(
                     f"{PROJECTS / page_path.name}:{no} in {short_path(t.path)}: {msg}")
     out = []
-    for c in sorted(claims.values(), key=lambda c: (c.page, c.since)):
-        out.append((c, claim_state(c, trees)))
+    for key, c in sorted(claims.items(), key=lambda kv: (kv[1].page, kv[1].since)):
+        out.append((c, claim_state(c, trees, sources[key])))
     lines = [p[0] + (f" (and {len(p) - 1} more copies)" if len(p) > 1 else "") for p in problems.values()]
     return out, lines
 
 
-def claim_state(c: Claim, trees: list[Tree]) -> str:
+def claim_state(c: Claim, trees: list[Tree], found_in: list[str]) -> str:
+    """The claim's worktree lock state, or STALE with why and the worktree copies that hold the line."""
     tree = next((t for t in trees if same_path(t.path, c.path)), None)
-    if tree is None:
-        return "STALE: no worktree at that path; remove the line"
-    if tree.branch != c.branch:
-        return f"STALE: that worktree is on {tree.branch or 'a detached HEAD'}; remove the line"
-    return tree.lock or "worktree present"
+    if tree is not None and tree.branch == c.branch:
+        return tree.lock or "worktree present"
+    why = "no worktree at that path" if tree is None else f"that worktree is on {tree.branch or 'a detached HEAD'}"
+    where = short_path(found_in[0]) + (f" and {len(found_in) - 1} more" if len(found_in) > 1 else "")
+    return f"STALE: {why}; remove the line in {where}"
 
 
 def short_path(path: str) -> str:
+    """A path under the main checkout relative to it ("the main checkout" for itself); any other path as it is."""
     try:
-        return str(Path(path).relative_to(ROOT_MAIN)) or "."
+        rel = str(Path(path).relative_to(ROOT_MAIN))
+        return "the main checkout" if rel == "." else rel
     except ValueError:
         return path
 
@@ -315,8 +347,11 @@ def operating() -> str:
     return f"cannot read the operating flag ({first_line(err or out)})"
 
 
+PR_LIMIT = 200
+
+
 def open_prs() -> list[dict] | str:
-    code, out, err = run(["gh", "pr", "list", "--state", "open", "--limit", "50",
+    code, out, err = run(["gh", "pr", "list", "--state", "open", "--limit", str(PR_LIMIT),
                           "--json", "number,title,headRefName,isDraft,updatedAt"], NET_TIMEOUT)
     if code != 0:
         return f"gh pr list failed ({first_line(err or out)})"
@@ -396,40 +431,44 @@ def capped(lines: list[str], limit: int | None) -> list[str]:
 
 
 def report(short: bool, here: str) -> list[str]:
+    """The report's lines. The local parts come first, so a failure to read the worktrees stops the run before any
+    network call starts; the full view then asks gh, the hosts and the flag side by side."""
+    global ROOT_MAIN
     wt = load_worktrees_module()
-    with ThreadPoolExecutor(max_workers=3) as pool:
-        if not short:
-            prs_job, deploy_job = pool.submit(open_prs), pool.submit(deploy_summary)
-            fetched = fetch_base()
-        trees = read_trees(wt)
-        global ROOT_MAIN
-        ROOT_MAIN = Path(trees[0].path)
-        claims, problems = read_claims(trees)
-        busy = in_progress(trees)
-        out = []
-        limit = SHORT_LIMIT if short else None
-        if not short:
-            out += [f"Orient {datetime.now():%Y-%m-%d %H:%M} ({fetched})", f"Operating flag: {operating()}"]
-        out.append(f"Claims ({len(claims)})" + (":" if claims else ": none"))
-        out += capped([claim_line(c, s) for c, s in claims], limit)
-        if problems:
-            out.append(f"Claim problems ({len(problems)}):")
-            out += capped(["  " + p for p in problems], limit)
-        prs = {} if short else prs_job.result()
-        by_branch = {p["headRefName"]: p["number"] for p in prs} if isinstance(prs, list) else {}
-        out.append(f"Worktrees in progress ({len(busy)}; commits not on {BASE}, or locked by a running session)"
-                   + (":" if busy else ": none"))
-        out += capped([tree_line(t, by_branch, here) for t in busy], limit)
-        if short:
-            return out
-        if isinstance(prs, str):
-            out.append(f"Open PRs: {prs}")
-        else:
-            out.append(f"Open PRs ({len(prs)})" + (":" if prs else ": none"))
-            out += [f"  #{p['number']}{' (draft)' if p.get('isDraft') else ''} {p.get('headRefName', '?')}: "
-                    f"{p.get('title', '')}" for p in prs]
-        out.append("Last deploys (compared with this checkout):")
-        out += ["  " + l for l in deploy_job.result()]
+    fetched = None if short else fetch_base()
+    trees = read_trees(wt)
+    ROOT_MAIN = Path(trees[0].path)
+    claims, problems = read_claims(trees, wt)
+    busy = in_progress(trees)
+    prs: list[dict] | str = []
+    deploys: list[str] = []
+    flag = ""
+    if not short:
+        with ThreadPoolExecutor(max_workers=3) as pool:
+            prs_job, deploy_job, flag_job = pool.submit(open_prs), pool.submit(deploy_summary), pool.submit(operating)
+            prs, deploys, flag = prs_job.result(), deploy_job.result(), flag_job.result()
+    limit = SHORT_LIMIT if short else None
+    out = [] if short else [f"Orient {datetime.now():%Y-%m-%d %H:%M} ({fetched})", f"Operating flag: {flag}"]
+    out.append(f"Claims ({len(claims)})" + (":" if claims else ": none"))
+    out += capped([claim_line(c, state) for c, state in claims], limit)
+    if problems:
+        out.append(f"Claim problems ({len(problems)}):")
+        out += capped(["  " + p for p in problems], limit)
+    by_branch = {p["headRefName"]: p["number"] for p in prs} if isinstance(prs, list) else {}
+    out.append(f"Worktrees in progress ({len(busy)}; commits not on {BASE}, or locked by a running session)"
+               + (":" if busy else ": none"))
+    out += capped([tree_line(t, by_branch, here) for t in busy], limit)
+    if short:
+        return out
+    if isinstance(prs, str):
+        out.append(f"Open PRs: {prs}")
+    else:
+        more = f", the first {PR_LIMIT} only" if len(prs) >= PR_LIMIT else ""
+        out.append(f"Open PRs ({len(prs)}{more})" + (":" if prs else ": none"))
+        out += [f"  #{p['number']}{' (draft)' if p.get('isDraft') else ''} {p.get('headRefName', '?')}: "
+                f"{p.get('title', '')}" for p in prs]
+    out.append("Last deploys (compared with this checkout):")
+    out += ["  " + line for line in deploys]
     return out
 
 
