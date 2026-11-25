@@ -136,6 +136,49 @@ if [[ -n "${CHECK_AUDIT:-}" ]]; then
   CHECK_AUDIT="$(cd "$CHECK_AUDIT" && pwd)"
   rm -f "$CHECK_AUDIT"/*.log "$CHECK_AUDIT"/*.name
 fi
+# The read-only checks come from the step manifest, tools/pipeline/checks.toml (ADR-037): its "static" group runs as
+# the one static job, in file order, and each step in no group is a job of its own. A manifest that does not load, or
+# a list with no check in it, stops the run here, before any job: check.sh never passes having run nothing. Two
+# conditions stay here, keyed on a step's name, so each must be in its list: the panels check gets --full when no
+# job is skipped, and the portal job runs only where its inputs are (below).
+manifest_lines() {   # the lines of `manifest.py jobs check <args>` into MANIFEST_LINES; stops the run when there are none
+  local out line
+  MANIFEST_LINES=()
+  if ! out="$(python3 tools/pipeline/manifest.py jobs check "$@")"; then
+    echo "STOP: tools/pipeline/manifest.py jobs check $* failed (its error is above); no check ran" >&2
+    exit 2
+  fi
+  while IFS= read -r line; do
+    [[ -z "$line" ]] && continue
+    if [[ ! "$line" =~ ^[a-z0-9][a-z0-9-]*\  ]]; then
+      echo "STOP: tools/pipeline/manifest.py jobs check $* printed \"$line\", not a step name and its command" >&2
+      exit 2
+    fi
+    # each line is eval'd later; one that will not parse, eval'd in this shell, leaves bash 3.2 unable to read the
+    # rest of this file, so it is parsed here in a subshell
+    if ! ( eval "set -- $line" ); then
+      echo "STOP: tools/pipeline/manifest.py jobs check $* printed a line the shell cannot parse: $line" >&2
+      exit 2
+    fi
+    MANIFEST_LINES+=("$line")
+  done <<<"$out"
+  if (( ${#MANIFEST_LINES[@]} == 0 )); then
+    echo "STOP: tools/pipeline/manifest.py jobs check $* listed no check; no check ran" >&2
+    exit 2
+  fi
+}
+has_step() {   # has_step NAME LINE...: whether one of the lines is step NAME's
+  local name="$1" line
+  shift
+  for line in "$@"; do [[ "${line%% *}" == "$name" ]] && return 0; done
+  return 1
+}
+manifest_lines --group static
+STATIC_LINES=("${MANIFEST_LINES[@]}")
+manifest_lines --ungrouped
+OWN_LINES=("${MANIFEST_LINES[@]}")
+has_step panels "${STATIC_LINES[@]}" || { echo "STOP: no panels step in the static group of tools/pipeline/checks.toml; check.sh adds its --full" >&2; exit 2; }
+has_step portal "${OWN_LINES[@]}" || { echo "STOP: no portal step in tools/pipeline/checks.toml; check.sh decides when it runs" >&2; exit 2; }
 # The jobs (the read-only checks as one "static" job, unit tests, public text, the portal build) run at the same time,
 # at most one job per core. Every one works in its own temp folders. `later` queues a job; `start_jobs` checks every
 # queued job's stamp in one process (check_stamps.py current-batch) and starts the ones that must run, each with its
@@ -305,6 +348,7 @@ unit() {
 }
 # The read-only checks run as one job ("static"), one after another, beside the unit jobs.
 run() {
+  static_ran=$((static_ran + 1))     # static_checks counts the checks that got here
   echo "--- $1"
   local name=$1
   shift
@@ -331,66 +375,33 @@ run() {
   esac
   (( SECONDS - start < 5 )) || echo "    ($((SECONDS - start))s)"
 }
-static_checks() {
-  local static_rc=0
-  # a run that skips no job (CI, FULL=1, an audit run) skips no panel step either
+static_lines() {
+  local static_rc=0 line
+  # a run that skips no job (CI, FULL=1, an audit run) skips no panel step either: the panels step (build_panels.sh
+  # --check, with stamps of its own shared with make panels) then gets --full
   local panels_full=()
   (( STAMPS )) || panels_full=(--full)
-run phase02 python3 jmri/scripts/check_hart_phase02.py
-run tables-browser python3 www/scripts/build_tables_browser.py --check
-run repo-guide python3 www/scripts/repo_guide_page.py --check
-# The pipeline map pages are built, not committed (ADR-036): --check draws both in memory and fails on any problem.
-run pipeline-map python3 tools/ops/build_pipeline_map.py --check
-# Every script this file, the Makefile, make panels and the deploys run, and every file in an output folder, is in the
-# map agents query (tools/ops/pipeline_query.py); the deliberate exceptions are ALLOWED in the script.
-run pipeline-map-coverage python3 tools/ops/pipeline_map_coverage.py
-run jmri-additions python3 www/scripts/jmri_additions_page.py --check
-run layout-index python3 www/scripts/build_layout_index.py --check
-run layout-docs python3 www/scripts/build_layout_docs.py --check
-run layout-index-cats python3 www/scripts/build_cats_layout_index.py --check
-run wiring-json python3 www/scripts/build_wiring_json.py --check
-run track-lengths python3 jmri/layouts/hart/scripts/export_track_lengths.py --check
-run speedmatch-routes python3 jmri/layouts/hart/scripts/speedmatch/build_routes.py --check
-run panel-contracts python3 jmri/layouts/hart/scripts/audit_panel_contracts.py --strict
-run baselines python3 jmri/layouts/hart/scripts/capture_public_name_baseline.py --check
-run digicon-disabled python3 jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py --check
-run status-counts python3 tools/ops/status_counts.py --check
-# Every output drawn from the schematic, checked by its own pipeline (make panels CHECK=1): each step of
-# tools/schematic/build_panels.sh with --check, in build order, from the hands to the approved fingerprints, with
-# tables.xml among them (an output, ADR-029: a Store is never copied over it; make tables-pull and split_store.py).
-# One list of panel checks for check.sh, CI and make panels. Its own stamps (shared with make panels) skip the steps
-# current here; CI, FULL=1 and an audit run pass --full and run them all, and so does a run with HART_TABLES (stamps
-# off; the table steps read that file). Fails when the schematic-maps plugin submodule is not checked out, even with
-# SCHEMATIC_REQUIRED=0: its schematic step (publish_draft.py --check) has no SKIPPED path.
-run panels bash tools/schematic/build_panels.sh --check ${panels_full[@]+"${panels_full[@]}"}
-# The track plan article: its drawings against the owner's plan (SKIPPED where the plan is not), and the article
-# against its drawings and the block lengths.
-run levels-svg python3 tools/anyrail/levels_svg.py --check
-run levels-page python3 tools/anyrail/levels_page.py --check
-run wiring-v86 python3 tools/wiring/write_inventory.py --check
-run sml-invariants python3 tools/audit/check_sml_invariants.py
-# The parked features (Entry/Exit, Dispatcher System, USS CTC): none of their elements or names in the tables
-# file, all of them in jmri/layouts/hart/parked/tables_parked.xml (the live snapshot, with its source commit).
-run parked env PYTHONPATH="tools/hartlib/src${PYTHONPATH:+:$PYTHONPATH}" python3 -m hartlib.parked check
-run mqtt-static python3 tools/audit/check_mqtt_no_static_lists.py
-# No script outside hartlib reads a layout data file itself but the pairs it allows (naming-layers step 6).
-run data-readers python3 tools/audit/check_data_readers.py
-run wiring-crosswalk python3 tools/audit/check_wiring_crosswalk.py
-run wiring-frozen python3 tools/wiring/check_wiring_frozen.py
-run layout-facts python3 tools/audit/check_layout_facts.py
-# The fact files against each other (hartlib.railroad: the device master, switches.csv, masts.csv, the tables file);
-# KNOWN in the module lists what is reported and left.
-run railroad-facts env PYTHONPATH="tools/hartlib/src${PYTHONPATH:+:$PYTHONPATH}" python3 -m hartlib.railroad check
-# the device master and its column dictionary (python3 -m hartlib.devices)
-run devices env PYTHONPATH="tools/hartlib/src${PYTHONPATH:+:$PYTHONPATH}" python3 -m hartlib.devices check
-run name-copies python3 tools/audit/check_name_copies.py
-run ai-speak python3 tools/audit/check_ai_speak.py
-run tracked-policy python3 tools/audit/check_tracked_policy.py
-run agent-docs python3 tools/audit/check_agent_docs.py
-# Every Markdown document under docs/ needs a summary line (see summarize() in the script).
-run docs-index python3 tools/ops/build_docs_index.py --check --strict
-run desks python3 cats/scripts/validate_cats_panel.py
+  for line in "${STATIC_LINES[@]}"; do
+    if [[ "${line%% *}" == panels ]]; then
+      eval "run $line"' ${panels_full[@]+"${panels_full[@]}"}'
+    else
+      eval "run $line"
+    fi
+  done
   return "$static_rc"
+}
+# The static job: every line of the manifest's static group, and a failure when fewer of them reached run() than it
+# lists (a line that ended the loop early). static_ran is the job's own: it runs in a subshell of its own.
+static_checks() {
+  local rc
+  static_ran=0
+  static_lines
+  rc=$?
+  if (( static_ran != ${#STATIC_LINES[@]} )); then
+    echo "--- static: $static_ran of the manifest's ${#STATIC_LINES[@]} checks ran"
+    rc=1
+  fi
+  return "$rc"
 }
 later static static_checks
 # The longest jobs start first, so none of them waits behind the quick ones: the Layout Editor job, unit-jmri, then
@@ -471,11 +482,6 @@ unit unit-anyrail python3 -m unittest discover -b -q -s tools/anyrail/tests
 unit unit-portal python3 -m unittest discover -b -q -s www/scripts/tests
 # Car cards, intake and publications. Uses ops/hart-ops/.venv when it exists; a checkout
 # without it (a worktree) skips, CI installs ops/hart-ops/requirements-test.txt.
-# HOPS_PY (set at the top) carries pypdf for the PDF part; plain python3 checks everything else.
-later public-text "$HOPS_PY" tools/audit/check_public_text.py
-# Pyflakes (ruff's F rules, ruff.toml) over every .py file, with the ruff requirements.txt pins (tools/audit/check_ruff.py
-# says where it looks); the edit hook runs the same check on each edited file.
-later ruff python3 tools/audit/check_ruff.py
 if [[ -n "${CI:-}" ]] || "$HOPS_PY" -c "import numpy, scipy, docx, pytesseract" 2>/dev/null; then
   unit unit-hart-ops "$HOPS_PY" -m unittest discover -b -q -s ops/hart-ops/tests
 else
@@ -489,12 +495,22 @@ if [[ -z "${CI:-}" && "${PORTAL_CHECK:-}" != 1 ]]; then
   portal_why="$(python3 tools/audit/portal_inputs.py)"
   portal_rc=$?
 fi
-if [[ -n "${CI:-}" ]]; then
-  later "portal skipped in CI" true
-elif [[ "${PORTAL_CHECK:-}" != 1 && "$portal_rc" -eq 3 ]]; then
-  later "portal skipped: $portal_why (PORTAL_CHECK=1 runs it)" true
-else
-  later portal python3 www/scripts/check_portal_build.py
+# The manifest's steps in no group (public-text, ruff, portal): each a job of its own. public-text runs on HOPS_PY
+# (set at the top; it carries pypdf for the PDF part), which its line names as "$HOPS_PY".
+for line in "${OWN_LINES[@]}"; do
+  if [[ "${line%% *}" != portal ]]; then
+    eval "later $line"
+  elif [[ -n "${CI:-}" ]]; then
+    later "portal skipped in CI" true
+  elif [[ "${PORTAL_CHECK:-}" != 1 && "$portal_rc" -eq 3 ]]; then
+    later "portal skipped: $portal_why (PORTAL_CHECK=1 runs it)" true
+  else
+    eval "later $line"
+  fi
+done
+if (( ${#names[@]} == 0 )); then
+  echo "--- no job to run${CHECK_ONLY:+: CHECK_ONLY=$CHECK_ONLY matches none}"
+  fail=1
 fi
 start_jobs
 collect

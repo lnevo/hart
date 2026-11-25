@@ -5,4 +5,3 @@ ctc_trl.csv=40
 hardware_identity.csv=448
 le_mast_bindings.csv=98
 sml_pairs.csv=177
-sml_sections.csv=0

@@ -1,9 +1,12 @@
-"""tools/pipeline/manifest.py: what the loader refuses and how it says so, the shell lines it prints, and (for now) that
-tools/pipeline/checks.toml lists the same checks as tools/check.sh and tools/ci/docs_checks.sh."""
+"""tools/pipeline/manifest.py: what the loader refuses and how it says so, the shell lines it prints, the per-job
+digests the stamps key on, and tools/check.sh and tools/ci/docs_checks.sh running what it lists (in scratch repos with
+a stand-in manifest.py): a manifest that fails or lists nothing stops them, and check.sh's own conditions (panels'
+--full, when the portal job runs) still apply."""
 from __future__ import annotations
 
 import importlib.util
 import io
+import os
 import re
 import subprocess
 import sys
@@ -85,6 +88,7 @@ class LoadTest(Refusing):
     def test_names_are_unique_and_plain(self) -> None:
         self.assertRefused(step() + step(), "step 'one': name: also step 1's name")
         self.assertRefused(step(name='"One Two"'), "lower case")
+        self.assertRefused(step(name='"static"'), "'static' is a group's name")
 
     def test_fields(self) -> None:
         self.assertRefused(step(colour='"red"'), "step 'one': colour: not a field")
@@ -224,7 +228,8 @@ class FileAndRepoTest(unittest.TestCase):
                     "t.toml", where)
 
     def test_a_broken_map_is_an_error(self) -> None:
-        with mock.patch.object(M.MAP, "read", side_effect=M.MAP.GraphError("the graph is not valid JSON")):
+        graph_map = M.pipeline_map()
+        with mock.patch.object(graph_map, "read", side_effect=graph_map.GraphError("the graph is not valid JSON")):
             with self.assertRaisesRegex(M.ManifestError, "pipeline_map.json: the graph is not valid JSON"):
                 M.repo()
         with self.assertRaisesRegex(M.ManifestError, "no domains"):
@@ -290,37 +295,237 @@ class ThisRepoTest(unittest.TestCase):
         self.assertTrue(M.select(steps, "check", group="static"))
 
 
-# TEMPORARY (stage 1 of ADR-037): tools/check.sh and tools/ci/docs_checks.sh still keep their own lists. Stage 2 makes
-# them read `manifest.py jobs` and deletes this class.
-class TemporarySyncTest(unittest.TestCase):
-    CHECK_SH = (ROOT / "tools/check.sh").read_text()
-    DOCS_SH = (ROOT / "tools/ci/docs_checks.sh").read_text()
-    # check.sh adds --full to the panels check when its stamps are off; the manifest does not say that yet (stage 2)
-    PANELS_FULL = ' ${panels_full[@]+"${panels_full[@]}"}'
+class DigestTest(unittest.TestCase):
+    """job_digests: what check.sh's stamps key each manifest job on (tools/audit/check_stamps.manifest_part)."""
+    TEXT = (step(name='"a"', group='"static"') + step(name='"b"', group='"static"', cmd='["python3", "tools/b.py"]')
+            + step(name='"c"') + step(name='"d"', cmd='["python3", "tools/d.py"]'))
 
+    def digests(self, text: str) -> dict[str, str]:
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "checks.toml"
+            p.write_text(text, encoding="utf-8")
+            return M.job_digests(p)
+
+    def changed(self, before: str, after: str) -> list[str]:
+        old, new = self.digests(before), self.digests(after)
+        self.assertEqual(set(old), set(new))
+        return sorted(job for job in old if old[job] != new[job])
+
+    def test_one_job_per_group_and_per_step_in_no_group(self) -> None:
+        self.assertEqual(list(self.digests(self.TEXT)), ["static", "c", "d"])
+
+    def test_an_edited_cmd_changes_its_own_job_only(self) -> None:
+        self.assertEqual(self.changed(self.TEXT, self.TEXT.replace('"tools/d.py"', '"tools/d.py", "--check"')), ["d"])
+        self.assertEqual(self.changed(self.TEXT, self.TEXT.replace('"tools/b.py"', '"tools/b.py", "--check"')),
+                         ["static"])
+
+    def test_a_reordered_group_or_a_moved_step_changes_that_group(self) -> None:
+        a, b, c, d = self.TEXT.split("[[step]]\n")[1:]
+        swapped = "".join("[[step]]\n" + x for x in (b, a, c, d))
+        self.assertEqual(self.changed(self.TEXT, swapped), ["static"])
+        own_moved = "".join("[[step]]\n" + x for x in (a, c, b, d))     # c between the static steps: still the same
+        self.assertEqual(self.changed(self.TEXT, own_moved), [])
+
+    def test_comments_and_layout_change_nothing(self) -> None:
+        relaid = "# a comment\n" + self.TEXT.replace('desc = "First."', 'desc   =   "First."  # why')
+        self.assertEqual(self.changed(self.TEXT, relaid), [])
+
+    def test_any_field_of_the_entry_counts(self) -> None:
+        self.assertEqual(self.changed(self.TEXT, self.TEXT.replace('name = "c"\n', 'name = "c"\ndocs_only = true\n')),
+                         ["c"])
+
+    def test_errors(self) -> None:
+        with self.assertRaisesRegex(M.ManifestError, "gone.toml: cannot read it"):
+            M.job_digests(Path("/nonexistent/gone.toml"))
+        for text, why in (("", "no \\[\\[step\\]\\]"), (step(name=None), "step 1: no name"),
+                          (step(group="1"), "not text"),
+                          (step(name='"x"') + step(name='"x"'), "two jobs named 'x'"),
+                          (step(name='"static"') + step(name='"a"', group='"static"'), "two jobs named 'static'"),
+                          (step(name='"a"', group='"static"') + step(name='"static"'), "two jobs named 'static'"),
+                          (step(when="2026-11-25"), "JSON cannot hold")):
+            with self.subTest(why=why):
+                with self.assertRaisesRegex(M.ManifestError, why):
+                    self.digests(text)
+
+    def test_this_repo(self) -> None:
+        jobs = M.job_digests()
+        steps = M.load()
+        self.assertEqual(set(jobs), {"static", *(s.name for s in M.select(steps, "check", ungrouped=True))})
+
+
+def scratch_check_sh(base: Path):
+    """A scratch repo (test_check_docs_only.Scratch) with tools/check.sh and a stand-in tools/pipeline/manifest.py that
+    prints $STUB_STATIC, $STUB_OWN or $STUB_DOCS for --group static, --ungrouped and --docs-only, or fails when
+    STUB_MANIFEST_FAIL is set; tools/a.py and the panels script print what they were run with."""
+    from test_check_docs_only import Scratch       # noqa: PLC0415 - its folder is on sys.path under discover
+    s = Scratch(base, with_check_sh=True)
+    s.write("tools/pipeline/manifest.py", STUB_MANIFEST)
+    s.write("tools/a.py", "import os, sys\nprint('ran', *sys.argv[1:], 'PYTHONPATH=' + os.environ.get('PYTHONPATH', ''))\n")
+    s.write("lib/src/pkg/mod.py", "import os\nprint('ran mod PYTHONPATH=' + os.environ.get('PYTHONPATH', ''))\n")
+    s.write("tools/p.sh", 'echo "ran panels $*"\n')
+    s.commit("stubs")
+    git_update = ["git", "-C", str(s.repo), "update-ref", "refs/remotes/origin/main", "HEAD"]
+    subprocess.run(git_update, check=True)          # no change on the branch: check.sh takes the full path
+    return s
+
+
+STUB_MANIFEST = '''import os, sys
+if os.environ.get("STUB_MANIFEST_FAIL"):
+    sys.exit("manifest.py: stub manifest error")
+var = {"--group": "STUB_STATIC", "--ungrouped": "STUB_OWN", "--docs-only": "STUB_DOCS"}[sys.argv[3]]
+print(os.environ.get(var, ""), end="")
+'''
+STATIC = "\n".join(("one python3 tools/a.py --check",
+                    'two env PYTHONPATH="lib/src${PYTHONPATH:+:$PYTHONPATH}" python3 -m pkg.mod',
+                    "panels bash tools/p.sh --check")) + "\n"
+OWN = "solo python3 tools/a.py solo\nportal python3 tools/a.py portal\n"
+
+
+class CheckShTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.steps = M.load()
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.s = scratch_check_sh(Path(cls.tmp.name))
 
-    def test_check_sh_run_lines_are_the_static_group_in_order(self) -> None:
-        runs = [line for line in self.CHECK_SH.splitlines() if line.startswith("run ")]
-        self.assertEqual([line for line in runs if line.endswith(self.PANELS_FULL)],
-                         [next(line for line in runs if line.startswith("run panels "))])
-        runs = [line.removesuffix(self.PANELS_FULL) for line in runs]
-        self.assertEqual(runs, ["run " + M.shell_line(s) for s in M.select(self.steps, "check", group="static")])
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.tmp.cleanup()
 
-    def test_check_sh_own_jobs_are_the_ungrouped_steps(self) -> None:
-        later = [line.strip() for line in self.CHECK_SH.splitlines()
-                 if re.match(r"\s*later [a-z]", line) and not line.strip().startswith("later static ")]
-        self.assertEqual(later, ["later " + M.shell_line(s) for s in M.select(self.steps, "check", ungrouped=True)])
+    def run_check(self, **env: str) -> subprocess.CompletedProcess:
+        base = {"STUB_PIN": "", "STUB_STATIC": STATIC, "STUB_OWN": OWN, "FULL": "1", "CHECK_ONLY": "^static$"}
+        return self.s.check_sh(**{**base, **env})
 
-    def test_docs_checks_sh_is_the_docs_only_steps_and_unit_tests(self) -> None:
-        # docs_checks.sh's order is its own (each check runs whatever the others do), so the lines are compared as a
-        # set; its unit-* lines are unit tests, which the manifest does not hold (design section 6)
-        checks = [line for line in self.DOCS_SH.splitlines() if line.startswith("check ")]
-        theirs = sorted(line for line in checks if not line.split()[1].startswith("unit-"))
-        self.assertEqual(theirs, sorted("check " + M.shell_line(s) for s in M.select(self.steps, "check",
-                                                                                      docs_only=True)))
+    def assertStopped(self, done: subprocess.CompletedProcess, *said: str) -> None:
+        self.assertEqual(2, done.returncode, done.stdout + done.stderr)
+        for text in said:
+            self.assertIn(text, done.stderr)
+        self.assertNotIn("ALL PASSED", done.stdout)
+        self.assertNotIn("ran ", done.stdout)
+        self.assertNotIn("Traceback", done.stderr)
+
+    def test_a_manifest_that_fails_stops_the_run_before_any_job(self) -> None:
+        self.assertStopped(self.run_check(STUB_MANIFEST_FAIL="1"), "manifest.py: stub manifest error",
+                           "STOP: tools/pipeline/manifest.py jobs check --group static failed")
+
+    def test_an_empty_list_stops_the_run(self) -> None:
+        self.assertStopped(self.run_check(STUB_STATIC=""), "jobs check --group static listed no check")
+        self.assertStopped(self.run_check(STUB_OWN="\n"), "jobs check --ungrouped listed no check")
+
+    def test_a_line_that_is_not_a_step_stops_the_run(self) -> None:
+        self.assertStopped(self.run_check(STUB_STATIC="Not a line\n"),
+                           'printed "Not a line"')
+
+    def test_the_steps_check_sh_adds_to_must_be_listed(self) -> None:
+        self.assertStopped(self.run_check(STUB_STATIC=STATIC.replace("panels bash", "pan bash")),
+                           "no panels step in the static group")
+        self.assertStopped(self.run_check(STUB_OWN="solo python3 tools/a.py\n"), "no portal step")
+
+    def test_the_static_job_runs_every_line_in_order_with_the_callers_pythonpath(self) -> None:
+        done = self.run_check(PYTHONPATH="/caller")
+        self.assertEqual(0, done.returncode, done.stdout + done.stderr)
+        ran = [line for line in done.stdout.splitlines() if line.startswith("ran ")]
+        self.assertEqual(ran, ["ran --check PYTHONPATH=/caller", "ran mod PYTHONPATH=lib/src:/caller",
+                               "ran panels --check --full"])
+        self.assertEqual("ALL PASSED", done.stdout.splitlines()[-1])
+        done = self.run_check(PYTHONPATH="")
+        self.assertIn("ran mod PYTHONPATH=lib/src\n", done.stdout)
+
+    def test_panels_gets_full_only_when_no_job_is_skipped(self) -> None:
+        done = self.run_check(FULL="")
+        self.assertEqual(0, done.returncode, done.stdout + done.stderr)
+        self.assertIn("ran panels --check\n", done.stdout)
+
+    def test_a_line_the_shell_cannot_parse_stops_the_run(self) -> None:
+        for env in ({"STUB_STATIC": STATIC + "bad python3 'unclosed\n"}, {"STUB_OWN": "bad python3 'unclosed\n" + OWN}):
+            with self.subTest(env=env):
+                self.assertStopped(self.run_check(**env), "printed a line the shell cannot parse: bad python3 'unclosed")
+
+    def test_the_static_job_fails_when_a_line_ends_it_early(self) -> None:
+        # manifest.py quotes every word, so only a stand-in prints this; the count still catches it
+        done = self.run_check(STUB_STATIC="one python3 tools/a.py; return 0\n" + STATIC)
+        self.assertEqual(1, done.returncode, done.stdout + done.stderr)
+        self.assertIn("--- static: 1 of the manifest's 4 checks ran", done.stdout)
+        self.assertEqual("FAILED", done.stdout.splitlines()[-1])
+
+    def test_a_failing_check_fails_the_run(self) -> None:
+        done = self.run_check(STUB_STATIC=STATIC + "gone python3 tools/none.py\n")
+        self.assertEqual(1, done.returncode)
+        self.assertIn("--- static FAILED", done.stdout)
+
+    def test_no_job_to_run_is_no_pass(self) -> None:
+        done = self.run_check(CHECK_ONLY="^nothing-by-this-name$")
+        self.assertEqual(1, done.returncode, done.stdout + done.stderr)
+        self.assertIn("--- no job to run: CHECK_ONLY=^nothing-by-this-name$ matches none", done.stdout)
+        self.assertEqual("FAILED", done.stdout.splitlines()[-1])
+
+    def test_steps_in_no_group_are_jobs_of_their_own_and_portal_keeps_its_conditions(self) -> None:
+        done = self.run_check(CHECK_ONLY="^(solo|portal.*)$", PORTAL_CHECK="1")
+        self.assertEqual(0, done.returncode, done.stdout + done.stderr)
+        self.assertIn("--- solo (", done.stdout)
+        self.assertIn("ran solo PYTHONPATH=", done.stdout)
+        self.assertIn("ran portal PYTHONPATH=", done.stdout)
+        done = self.run_check(CHECK_ONLY="^portal", CI="true")
+        self.assertEqual(0, done.returncode, done.stdout + done.stderr)
+        self.assertIn("--- portal skipped in CI (", done.stdout)
+        self.assertNotIn("ran portal", done.stdout)
+
+
+class DocsChecksShTest(unittest.TestCase):
+    """docs_checks.sh runs the manifest's docs-only lines, then its unit tests; a manifest that fails or lists none
+    stops it before any check (python3 here is a stand-in that logs each script; tools/pipeline/manifest.py is
+    answered from $STUB_DOCS)."""
+
+    def run_docs(self, **env: str) -> subprocess.CompletedProcess:
+        with tempfile.TemporaryDirectory() as d:
+            repo = Path(d)
+            (repo / "tools/ci").mkdir(parents=True)
+            (repo / "tools/ci/docs_checks.sh").write_text((ROOT / "tools/ci/docs_checks.sh").read_text())
+            bin_dir = repo / "bin"
+            bin_dir.mkdir()
+            (bin_dir / "python3").write_text(
+                '#!/usr/bin/env bash\n'
+                'if [[ "$1" == tools/pipeline/manifest.py ]]; then\n'
+                '  [[ -z "${STUB_MANIFEST_FAIL:-}" ]] || { echo "manifest.py: stub error" >&2; exit 1; }\n'
+                '  printf %s "$STUB_DOCS"; exit 0\n'
+                'fi\n'
+                '[[ "$1" != tools/eat.py ]] || cat >/dev/null\n'    # a check that reads its stdin to the end
+                'echo "ran $*"\n')
+            (bin_dir / "python3").chmod(0o755)
+            full = {**os.environ, "PATH": f"{bin_dir}:{os.environ['PATH']}", "HOPS_PY": "python3", **env}
+            return subprocess.run(["bash", str(repo / "tools/ci/docs_checks.sh")], env=full, capture_output=True,
+                                  text=True, timeout=30)
+
+    def test_the_docs_only_lines_run_then_the_unit_tests(self) -> None:
+        lines = "".join(M.shell_line(s) + "\n" for s in M.select(M.load(), "check", docs_only=True))
+        done = self.run_docs(STUB_DOCS=lines)
+        self.assertEqual(0, done.returncode, done.stdout + done.stderr)
+        ran = re.findall(r"^ran (\S+ ?\S*)", done.stdout, re.M)
+        scripts = [s.cmd[1] if s.cmd[1] != "-m" else s.cmd[2] for s in M.select(M.load(), "check", docs_only=True)]
+        self.assertEqual([r.split()[0] for r in ran[:len(scripts)]], scripts)
+        self.assertTrue(all(r.startswith("-m unittest") for r in ran[len(scripts):]), ran)
+        self.assertGreater(len(ran), len(scripts))
+
+    def test_a_manifest_that_fails_or_lists_nothing_runs_nothing(self) -> None:
+        for env, said in (({"STUB_MANIFEST_FAIL": "1", "STUB_DOCS": ""}, "jobs check --docs-only failed"),
+                          ({"STUB_DOCS": ""}, "--docs-only listed no check"),
+                          ({"STUB_DOCS": "\n\n"}, "--docs-only listed no check")):
+            with self.subTest(env=env):
+                done = self.run_docs(**env)
+                self.assertEqual(2, done.returncode)
+                self.assertIn(said, done.stdout)
+                self.assertNotIn("ran ", done.stdout)
+
+    def test_a_check_that_reads_stdin_does_not_eat_the_lines_after_it(self) -> None:
+        done = self.run_docs(STUB_DOCS="eat python3 tools/eat.py\nnext python3 tools/next.py\n")
+        self.assertEqual(0, done.returncode, done.stdout + done.stderr)
+        self.assertIn("ran tools/eat.py", done.stdout)
+        self.assertIn("ran tools/next.py", done.stdout)
+
+    def test_a_line_that_will_not_parse_is_a_failure(self) -> None:
+        done = self.run_docs(STUB_DOCS="ok python3 tools/a.py\nbad python3 'unclosed\n")
+        self.assertEqual(1, done.returncode)
+        self.assertIn("ran tools/a.py", done.stdout)
+        self.assertIn("quick docs checks FAILED: bad (its line from the manifest would not parse)", done.stdout)
 
 
 if __name__ == "__main__":
