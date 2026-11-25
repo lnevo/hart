@@ -9,6 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from hartlib import block_numbering, devices, paths, railroad, tables  # noqa: E402
+from hartlib import tables_build as tb  # noqa: E402  the startup actions' shape
 from hartlib import level_devices  # noqa: E402  the main and upper virtual names and the sensors-clear LogixNG
 from hartlib import level_masts as level_masts_lib  # noqa: E402  masts.csv and its virtual names
 from le_common import (  # noqa: E402
@@ -428,17 +429,11 @@ def add_level_sensors(root: ET.Element, sensors: dict) -> int:
 # DefaultLogixNG.execute, executeAtStartup defaults to yes), so the masts are not held at Stop by UNKNOWN blocks. The
 # internal sensor manager's default state stays as it is for the other internal sensors. Its names are
 # hartlib.level_devices' CLEAR_*.
-MALE_DEBUGGER = "jmri.jmrit.logixng.tools.debugger.configurexml.DebuggerMaleDigitalActionSocketXml"
-MALE_ACTION = "jmri.jmrit.logixng.implementation.configurexml.DefaultMaleDigitalActionSocketXml"
-
-
-def male_socket(el: ET.Element) -> None:
-    """The <MaleSocket> PanelPro 5.16 stores under a digital action (as on IQDA:AUTO:0001 in tables.xml)."""
-    m = ET.SubElement(el, "MaleSocket")
-    ET.SubElement(m, "AbstractDebuggerMaleSocket", {"class": MALE_DEBUGGER})
-    a = ET.SubElement(m, "AbstractMaleSocket", {"enabled": "yes", "locked": "no", "system": "no",
-                                                "catchAbortExecution": "no", "class": MALE_ACTION})
-    ET.SubElement(a, "errorHandling").text = "Default"
+# The action shape (male_socket, start_action) is hartlib.tables_build's, which master_beans makes the actions with
+# (naming-layers step 10); the frame around them stays here until step 11.
+MALE_DEBUGGER = tb.MALE_DEBUGGER
+MALE_ACTION = tb.MALE_ACTION
+male_socket = tb.male_socket
 
 
 def add_level_clear(root: ET.Element, sensors: list[str], turnouts: dict[str, str] | None = None) -> None:
@@ -478,18 +473,7 @@ def add_level_clear(root: ET.Element, sensors: list[str], turnouts: dict[str, st
         s = ET.SubElement(acts, "Socket")
         ET.SubElement(s, "socketName").text = f"A{i}"
         ET.SubElement(s, "systemName").text = name
-        a = ET.Element("ActionSensor", {"class": "jmri.jmrit.logixng.actions.configurexml.ActionSensorXml"})
-        ET.SubElement(a, "systemName").text = name
-        nb = ET.SubElement(a, "namedBean")
-        ET.SubElement(nb, "addressing").text = "Direct"
-        ET.SubElement(nb, "name").text = sensor
-        ET.SubElement(nb, "listenToMemory").text = "no"
-        st = ET.SubElement(a, "state")
-        ET.SubElement(st, "addressing").text = "Direct"
-        ET.SubElement(st, "enum").text = "Inactive"
-        ET.SubElement(st, "listenToMemory").text = "no"
-        male_socket(a)
-        actions.append(a)
+        actions.append(tb.start_action("occupancy", name, sensor, "Inactive"))
     for i, (turnout, state) in enumerate(sorted((turnouts or {}).items()), len(sensors) + 1):
         if state not in ("Closed", "Thrown"):
             raise BuildError(f"startup position of {turnout}: {state!r}, not Closed or Thrown")
@@ -497,18 +481,7 @@ def add_level_clear(root: ET.Element, sensors: list[str], turnouts: dict[str, st
         s = ET.SubElement(acts, "Socket")
         ET.SubElement(s, "socketName").text = f"A{i}"
         ET.SubElement(s, "systemName").text = name
-        a = ET.Element("ActionTurnout", {"class": "jmri.jmrit.logixng.actions.configurexml.ActionTurnoutXml"})
-        ET.SubElement(a, "systemName").text = name
-        nb = ET.SubElement(a, "namedBean")
-        ET.SubElement(nb, "addressing").text = "Direct"
-        ET.SubElement(nb, "name").text = turnout
-        ET.SubElement(nb, "listenToMemory").text = "no"
-        st = ET.SubElement(a, "state")
-        ET.SubElement(st, "addressing").text = "Direct"
-        ET.SubElement(st, "enum").text = state
-        ET.SubElement(st, "listenToMemory").text = "no"
-        male_socket(a)
-        actions.append(a)
+        actions.append(tb.start_action("turnout", name, turnout, state))
     male_socket(many)
     place(secs["LogixNGDigitalActions"], [many] + actions, 2)
 

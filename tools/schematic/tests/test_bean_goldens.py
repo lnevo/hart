@@ -10,7 +10,10 @@ a bean from one process to the other shows any byte it changes:
 - every main and upper bean of the committed tables.xml is in fixtures/main_upper_beans.txt, line for line;
 - add_level_signals, run on masts.csv alone (no plugin), makes the fixture's heads and masts;
 - every main and upper device row has the beans its layer and role give, and every main and upper bean has a row;
-- the two block length formats (le_tables.r1 and master_beans) agree.
+- the two block length formats (le_tables.r1 and master_beans) agree;
+- master_beans run over every level (naming-layers step 10; not written to tables.xml) makes the fixture's beans from
+  the rows' columns, all but the startup LogixNG's frame (NOT_MADE), and staging's as they are but the helix blocks'
+  sensor.
 
 A change to a main or upper bean that a PR means to make (a listed tables.xml diff) rewrites the fixture with
     python3 tools/schematic/tests/test_bean_goldens.py --write
@@ -223,6 +226,73 @@ class RowCellsAreTheGoldenBeans(unittest.TestCase):
         want = [dict(r) for r in devices.load()]
         self.assertEqual([(r["start"], r["bean_comment"]) for r in want], [(r["start"], r["bean_comment"]) for r in got])
         self.assertFalse(any(r["start"] or r["bean_comment"] for r in got if r["level"] not in LEVELS))
+
+
+def master_lines(beans: dict) -> list[str]:
+    """golden_lines' form of master_beans' main and upper beans (sorted: master_beans gives them in row order), with a
+    "detector" line for each staging block and layout block on a main and upper sensor."""
+    sensors = {tables.user_name(el) for key in (tb.INTERNAL_SENSORS,) for el in beans.get(key, [])
+               if lt.is_level_bean(el)}
+    out = []
+    for key, els in beans.items():
+        sec = key[1:] if key[0] in ("blocks-names", "start-actions") else key
+        name = f"{sec[0]} {sec[1].rsplit('.', 1)[-1]}"
+        for el in els:
+            if lt.is_level_bean(el):
+                out.append(f"{name}\t{bean_text(el)}")
+            elif key == tb.BLOCKS and (el.findtext("occupancysensor") or "") in sensors:
+                out.append(f"detector\tblock {tables.system_name(el)}\t{el.findtext('occupancysensor')}")
+            elif key == tb.LAYOUT_BLOCKS and (el.get("occupancysensor") or "") in sensors:
+                out.append(f"detector\tlayoutblock {tables.system_name(el)}\t{el.get('occupancysensor')}")
+    return sorted(out)
+
+
+# What master_beans does not make of the fixture, for step 11 to close: the startup LogixNG's frame (its LogixNG,
+# ConditionalNG and DigitalMany), which le_tables.add_level_clear builds around the actions master_beans makes.
+NOT_MADE = ("LogixNGs DefaultLogixNGManagerXml\t<LogixNG ", "LogixNGConditionalNGs DefaultConditionalNGManagerXml\t",
+            "LogixNGDigitalActions DefaultDigitalActionManagerXml\t<DigitalMany ")
+
+
+class MasterBeansOnEveryLevel(unittest.TestCase):
+    """master_beans run over every level's rows (not written to tables.xml; build_tables.py keeps GENERATED_LEVELS)
+    makes the fixture's main and upper beans from the rows' columns alone (naming-layers step 10, builder merge step
+    4), and staging's beans as they are but for the helix blocks' sensor. What it does not make is NOT_MADE."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.rows = devices.load()
+        cls.lengths = railroad.read_block_lengths(tb.BLOCK_LENGTHS)
+        cls.every = tb.master_beans(cls.rows, cls.lengths, ("1",) + LEVELS)
+
+    def test_every_main_and_upper_bean_is_the_fixtures_but_the_logixng_frame(self) -> None:
+        got, want = Counter(master_lines(self.every)), Counter(read_fixture())
+        missing = sorted((want - got).elements())
+        extra = sorted((got - want).elements())
+        self.assertEqual([], extra, "beans master_beans makes that the fixture lacks:\n" + "\n".join(extra[:20]))
+        self.assertEqual([], [x for x in missing if not x.startswith(NOT_MADE)],
+                         "fixture beans master_beans does not make")
+        self.assertEqual(len(NOT_MADE), len(missing), missing)
+
+    def test_the_startup_actions_come_in_the_frames_socket_order(self) -> None:
+        """So step 11 can number the DigitalMany's sockets A1, A2, ... in master_beans' order."""
+        fixture = [ET.fromstring(line.split("\t", 1)[1]) for line in read_fixture()
+                   if line.startswith("LogixNGDigitalActions")]
+        many = next(e for e in fixture if e.tag == "DigitalMany")
+        sockets = [s.findtext("systemName") for s in many.find("Actions")]
+        self.assertEqual(sockets, [a.findtext("systemName") for a in self.every[tb.START_ACTIONS]])
+
+    def test_staging_beans_are_the_same_but_the_helix_blocks_sensor(self) -> None:
+        alone = tb.master_beans(self.rows, self.lengths)
+        for key, els in alone.items():
+            with self.subTest(section=key):
+                level = [bean_text(el) for el in self.every[key] if not lt.is_level_bean(el)]
+                mine = [bean_text(el) for el in els]
+                helix = [i for i, (a, b) in enumerate(zip(mine, level)) if a != b]
+                self.assertEqual(len(mine), len(level))
+                names = {tables.user_name(els[i]) for i in helix}
+                self.assertLessEqual(names, set(HELIX), diff(mine, level))
+                if key in (tb.BLOCKS, tb.LAYOUT_BLOCKS):
+                    self.assertEqual(set(HELIX), names)
 
 
 class BlockLengthFormats(unittest.TestCase):
