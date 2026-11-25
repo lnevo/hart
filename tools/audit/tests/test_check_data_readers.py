@@ -83,21 +83,21 @@ class Problems(unittest.TestCase):
         self.assertIn("read it through hartlib", bad[0])
 
     def test_an_allowed_pair_passes_and_a_stale_one_fails(self):
-        allowed = {"tools/old.py": {"switches.csv": CDR.LATER}}
+        allowed = {"tools/old.py": {"switches.csv": CDR.WRITES}}
         self.assertEqual(self.run_with({"tools/old.py": ({"switches.csv": 3}, False)}, allowed), [])
         bad = self.run_with({"tools/old.py": ({}, False)}, allowed)
         self.assertEqual(len(bad), 1)
         self.assertIn("ALLOWED lists tools/old.py naming switches.csv, which it no longer does", bad[0])
 
     def test_jython_needs_its_own_list(self):
-        allowed = {"jmri/x.py": {"wiring.csv": CDR.LATER}}       # the CPython list does not let Jython through
+        allowed = {"jmri/x.py": {"wiring.csv": CDR.WRITES}}       # the CPython list does not let Jython through
         bad = self.run_with({"jmri/x.py": ({"wiring.csv": 2}, True)}, allowed)
         self.assertTrue(any("Jython inside JMRI cannot import hartlib" in b for b in bad))
         self.assertEqual(self.run_with({"jmri/x.py": ({"wiring.csv": 2}, True)}, None,
                                        {"jmri/x.py": {"wiring.csv": "why"}}), [])
 
     def test_a_jython_script_in_the_cpython_table_gets_no_stale_line(self):
-        bad = self.run_with({"jmri/x.py": ({"wiring.csv": 2}, True)}, {"jmri/x.py": {"wiring.csv": CDR.LATER}})
+        bad = self.run_with({"jmri/x.py": ({"wiring.csv": 2}, True)}, {"jmri/x.py": {"wiring.csv": CDR.WRITES}})
         self.assertEqual(len(bad), 1)
         self.assertIn("Jython inside JMRI", bad[0])
         bad = self.run_with({"tools/y.py": ({"wiring.csv": 2}, False)}, None, {"tools/y.py": {"wiring.csv": "w"}})

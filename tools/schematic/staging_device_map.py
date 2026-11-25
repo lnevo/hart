@@ -82,7 +82,7 @@ import le_common as lc  # noqa: E402  the band key, plugin, solved schematic and
 import le_names as ln  # noqa: E402  runs and crossovers
 import mast_rule as mr  # noqa: E402  the helix tracks (plan_overrides.json)
 import publish_draft as pd  # noqa: E402  DATA and the plugin cache
-from hartlib import device_ids, devices, layer_files, level_masts, paths, railroad, tables, track_names  # noqa: E402
+from hartlib import device_ids, devices, drawing_keys, layer_files, level_masts, paths, railroad, tables, track_names  # noqa: E402
 
 LEVEL = 1
 DEVICE_MAP = devices.MASTER     # the master: its level 1 rows are staging's device map
@@ -501,30 +501,27 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, stations
     rows = [r for _n, r in lines]
     cp_names = cps.get(str(LEVEL), set())
     turnout_ph, os_ph, strands = placeholders(band)
-    by_ph = {ph: (r["layer"], r["user_name"], r["jmri_name"]) for r in rows for ph in split_names(r["trial_name"])}
-    parts = {}
-    for n, r in part_lines(device_map, master_rows):     # a part's pieces are its own JMRI block
-        parts[r["user_name"]] = r["part_of"]
-        for ph in split_names(r["trial_name"]):
-            if ph in by_ph:
-                bad.append(f"part {r['user_name']}'s trial_name {ph} is another row's as well (level {r['level']})")
-            by_ph[ph] = ("block", r["user_name"], "")
+    try:        # the one reader of every level's drawing keys, keyed by device ID (naming-layers step 13)
+        keys = drawing_keys.read((str(LEVEL),), None if master_rows is not None else device_map, rows=master_rows)
+    except (drawing_keys.DrawingKeyError, railroad.FactsError) as exc:
+        raise StagingMapError(f"{paths.rel(device_map)}: {exc}") from None
+    parts = keys.parts()            # a part's pieces are its own JMRI block
     used = set()
 
     def get(ph, layer):
-        got = by_ph.get(ph)
-        if got is None or got[0] != layer:
+        row = keys.row(ph)
+        if row is None or row["layer"] != layer:
             bad.append(f"no {layer} row has trial_name {ph}")
             return None
         used.add(ph)
-        return got[2] if layer == "turnout" else got[1]
+        return row["jmri_name"] if layer == "turnout" else row["user_name"]
 
     names = dict(turnouts={n: get(ph, "turnout") for n, ph in turnout_ph.items()},
                  os={n: get(ph, "block") for n, ph in os_ph.items()}, blocks={})
     runs = defaultdict(dict)
-    for ph, (layer, _u, _j) in by_ph.items():
+    for ph, device_id in keys.ids.items():
         m = TRACK_RE.fullmatch(ph)
-        if layer == "block" and m:
+        if keys.rows[device_id]["layer"] == "block" and m:
             k, count = (int(m.group(2)), int(m.group(3))) if m.group(2) else (1, 1)
             runs[m.group(1)][k] = (count, ph)
     for sid, (piece, against) in sorted(strands.items()):
@@ -542,7 +539,7 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, stations
     for sid, got in runs.items():
         bad.append(f"trial names for track {sid}, which the staging drawing does not have: "
                    f"{sorted(ph for _c, ph in got.values())}")
-    unused = sorted(set(by_ph) - used - {ph for got in runs.values() for _c, ph in got.values()})
+    unused = sorted(set(keys.ids) - used - {ph for got in runs.values() for _c, ph in got.values()})
     if unused:
         bad.append(f"trial names the staging drawing does not have: {unused}")
     if bad:

@@ -10,7 +10,7 @@ The CSV is the record: each block's AnyRail plan 5.3c length (plan_in) and, for 
 timed block, its measured length (measured_in, for speed profiling). JMRI's block
 holds the plan length on every level, in mm (owner, 2026-11-20).
 """
-import csv, sys
+import sys
 from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
@@ -18,7 +18,6 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import devices, paths, railroad, tables, tables_build  # noqa: E402
 
 ROOT = paths.REPO_ROOT
-CSV = paths.LAYOUT_DATA / "block_lengths.csv"
 TABLES = paths.TABLES_XML
 DOC = ROOT / "docs/jmri/TRACK_LENGTHS.md"
 MM = 25.4
@@ -41,8 +40,7 @@ def render(rows):
     def fmt(b):
         measured = f"{b.measured_in:g}" if b.measured_in is not None else ""
         return (f"| {b.user_name} | {b.occupancy_sensor} | {b.plan_in:g} | {measured} | {b.source} | "
-                f"{b.plan_in * MM:.1f} | {notes[b.user_name]} |")
-    notes = {r["user_name"]: r["note"] for r in csv.DictReader(CSV.open(encoding="utf-8"))}
+                f"{b.plan_in * MM:.1f} | {b.note} |")
     head = ("| Block | Occupancy sensor | Plan in | Measured in | Source | JMRI mm | Note |\n"
             "|---|---|---|---|---|---|---|")
     index = devices.index()         # a block's kind is its device-master role, never its name (hand-off row 8)
@@ -105,7 +103,7 @@ def set_tables(rows) -> int:
 
 def main():
     try:
-        rows = railroad.read_block_lengths(CSV)
+        rows = railroad.read_block_lengths()     # this checkout's file (hartlib.railroad.BLOCK_LENGTHS)
         text = render(rows)
     except railroad.FactsError as exc:          # devices.DevicesError too: a block with no row or no role
         sys.exit(str(exc))
@@ -132,4 +130,5 @@ def main():
     return 1 if bad else 0
 
 
-sys.exit(main())
+if __name__ == "__main__":
+    sys.exit(main())

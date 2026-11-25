@@ -9,7 +9,7 @@ from collections import Counter
 from dataclasses import dataclass, field, replace
 from functools import cached_property
 from pathlib import Path
-from typing import Iterable
+from typing import Collection, Iterable
 
 from . import layer_files, level_devices, level_masts, paths, tables, track_names
 
@@ -76,7 +76,7 @@ class Sources:
                    devices=devices.master_path(data),
                    interlockings=s / "interlockings.csv",
                    lcos_nodes=s / "lcos_nodes.csv",
-                   plan_overrides=layer_files.path("plan_overrides", s), block_lengths=data / "block_lengths.csv",
+                   plan_overrides=layer_files.path("plan_overrides", s), block_lengths=data / BLOCK_LENGTHS_NAME,
                    masts=s / level_masts.PATH.name,
                    tables=paths.TABLES_XML if tables_xml is None else tables_xml,
                    stations=s / "stations.csv")
@@ -951,6 +951,8 @@ def read_plan_overrides(path: Path, sheet: str = PlanOverrides.SHEET) -> PlanOve
 # (plan_lengths.py --labels, the length-labels step of make panels) for the readers that go by name (the speed-match
 # tools on the Pi, the documentation pages).
 BLOCK_LENGTH_COLUMNS = ("level", "id", "user_name", "occupancy_sensor", "plan_in", "measured_in", "source", "note")
+BLOCK_LENGTHS_NAME = "block_lengths.csv"
+BLOCK_LENGTHS = paths.LAYOUT_DATA / BLOCK_LENGTHS_NAME      # this checkout's file, read_block_lengths' default
 LENGTH_SOURCES = ("timed", "plan")
 
 
@@ -964,9 +966,10 @@ class BlockLength:
     source: str                 # LENGTH_SOURCES: timed when the block has a measured length (speed profiling)
     level: str = ""             # the block's level and device ID: the row's key
     id: str = ""
+    note: str = ""              # the row's note (a timed loop block's spread and laps, a piece's OS block)
 
 
-def read_block_lengths(path: Path) -> dict[str, BlockLength]:
+def read_block_lengths(path: Path = BLOCK_LENGTHS) -> dict[str, BlockLength]:
     """{user name: BlockLength} from block_lengths.csv (BLOCK_LENGTH_COLUMNS). Stops on a level and id empty or given
     twice, a name empty or given twice, a plan length that is not a number above zero, a source not in
     LENGTH_SOURCES, or a measured length given on a row whose source is not "timed" (or missing on one that is). The
@@ -1002,7 +1005,7 @@ def read_block_lengths(path: Path) -> dict[str, BlockLength]:
             raise FactsError(f"{where}: source {r['source']} with measured_in {r['measured_in']!r}: a timed row "
                              "gives its measured length, any other none")
         out[r["user_name"]] = BlockLength(line, r["user_name"], r["occupancy_sensor"], lengths["plan_in"],
-                                          lengths["measured_in"], r["source"], r["level"], r["id"])
+                                          lengths["measured_in"], r["source"], r["level"], r["id"], r["note"])
     return out
 
 
@@ -1080,6 +1083,7 @@ class DeviceRow:
     facing: str = ""
     protects: str = ""
     dir: str = ""
+    id: str = ""        # its device ID (hartlib.device_ids); empty on a row made without one (a test's)
     line: int = 0
 
     def __post_init__(self) -> None:
@@ -1144,8 +1148,10 @@ class DeviceMap:
 
     @property
     def turnouts(self) -> dict[str, DeviceRow]:
-        """Switch number -> its turnout row ("Switch <n>", not the LCC alias "DCC Switch <n>")."""
-        return {r.user_name.removeprefix("Switch "): r for r in self.of("turnout") if r.role == "turnout"}
+        """Switch number -> its turnout row (not the LCC alias), the number from its ID (turnout_switch), so an
+        owner's name for the turnout does not move it."""
+        return {turnout_switch(r) or r.user_name.removeprefix("Switch "): r for r in self.of("turnout")
+                if r.role == "turnout"}
 
     @property
     def heads_by_system(self) -> dict[str, DeviceRow]:
@@ -1191,11 +1197,16 @@ def device_facts(r: dict) -> list[str]:
 def read_device_map(path: Path) -> DeviceMap:
     """The main and upper rows of the device master at `path` (devices.device_map_lines). Stops on an unknown layer, a bad level, a (layer, user name) given twice (a turnout's LCC alias is its own
     row), a row whose fact columns do not hold (device_facts), an occupancy row whose jmri_name is not a virtual block
-    sensor, whose planned detector is not M2S, or whose blocks are not the one block it is named for."""
+    sensor, whose planned detector is not M2S, or whose blocks are not the one block it is the detector of (by
+    ID: det:<the block's id>, so a block the owner renamed keeps its detector; naming-layers step 13). Each row
+    carries its `id`."""
     out = DeviceMap(path=path)
     seen: dict[tuple[str, str], int] = {}
     from . import devices
+    master = devices.load(path)         # device_map_lines numbers its rows by their place here, from 2
+    block_ids: dict[tuple[str, str], str] = {}
     for line, r in ((n, {c: v.strip() for c, v in row.items()}) for n, row in devices.device_map_lines(("2", "3"), path)):
+        r["id"] = master[line - 2]["id"]
         where = master_at(path, r["user_name"], r["level"], r["layer"])
         if r["layer"] not in DEVICE_LAYERS or not r["user_name"]:
             raise FactsError(f"{where}: layer is one of {', '.join(DEVICE_LAYERS)} and user_name is given")
@@ -1210,46 +1221,99 @@ def read_device_map(path: Path) -> DeviceMap:
         out.rows.append(row)
         if row.layer == "block":
             out.blocks[row.user_name] = row
+            block_ids[(r["level"], row.user_name)] = row.id
         elif row.layer == "occupancy":
             if not level_devices.is_block_sensor(row.jmri_name) or \
                     not (row.system_name == "" or row.system_name.startswith("M2S")) or row.detector == "wired":
                 raise FactsError(f"{where}: occupancy {row.user_name} has no virtual {level_devices.SENSOR_PREFIX} "
                                  "jmri_name, or plans a detector that is not an M2S sensor, or calls it wired")
-            if len(row.served) != 1 or level_devices.occupancy_user(row.served[0]) != row.user_name:
+            if len(row.served) != 1 or not _detects(row, block_ids.get((r["level"], row.served[0]))):
                 raise FactsError(f"{where}: occupancy {row.user_name} serves {row.served}, not the one block it is "
-                                 "named for")
+                                 "the detector of")
     out.occupancy                   # noqa: B018  built here, so a block two rows serve stops the read
     return out
 
 
-def check_virtual_names(rows: Iterable[DeviceRow]) -> list[str]:
-    """Problems with a device map's virtual names: every block has exactly one occupancy row, named and numbered by
-    the block (hartlib.level_devices), every head's jmri_name comes from its user name, every turnout's from its
-    number, and no two rows of a layer share a virtual name (but a turnout and its LCC alias, one JMRI turnout)."""
+def _detects(occupancy: DeviceRow, block_id: str | None) -> bool:
+    """Whether `occupancy` is the detector of the one block it serves, whose ID is `block_id`: by ID (det:<block id>,
+    hartlib.device_ids) when both rows carry one, else by the name rule (level_devices.occupancy_user) for rows made
+    without IDs."""
+    if occupancy.id and block_id:
+        return occupancy.id == f"det:{block_id}"
+    return level_devices.occupancy_user(occupancy.served[0]) == occupancy.user_name
+
+
+def turnout_switch(row: DeviceRow) -> str | None:
+    """The switch number of a turnout row: from its ID (switch:<n>, or dcc:<n> for its LCC alias), so an owner's
+    name does not move it (naming-layers step 13); a row made without an ID by its user name ("Switch <n>",
+    "DCC Switch <n>"). None when neither gives one."""
+    m = re.fullmatch(r"(?:switch|dcc):(\d+)", row.id or "")
+    if row.id:
+        return m.group(1) if m else None
+    m = re.fullmatch(r"(?:DCC )?Switch (\d+)", row.user_name)
+    return m.group(1) if m else None
+
+
+def check_virtual_names(rows: Iterable[DeviceRow], owner_named: Collection[tuple[int, str]] = (),
+                        swapped: Collection[tuple[int, str]] = ()) -> list[str]:
+    """Problems with a device map's virtual names: every block has exactly one occupancy row, paired row by row (its
+    detector by ID, det:<block id>; by the name rule between rows made without IDs, a test's; rows with and without
+    IDs mixed are named), numbered by the block (hartlib.level_devices), every head's jmri_name comes from its user
+    name, every turnout's from its switch number (turnout_switch: its ID's), and no two rows of a layer share a
+    virtual name (but a turnout and its LCC alias, one JMRI turnout). By the (level, id) of the owner's rows in
+    devices_field.csv (naming-layers step 13): `owner_named`, the rows the owner names, whose virtual names stay the
+    generated ones (step 7), so such a block, its detector, a mast's heads and a head are held to their virtual name's
+    form only; `swapped`, the rows whose jmri_name the owner gives (a field device swapped in, ADR-028), held to no
+    virtual-name rule."""
     rows = list(rows)
+    owner_named, swapped = set(owner_named), set(swapped)
+
+    def mine(r: DeviceRow, keys: set) -> bool:  # the row, or the mast of a head, is one of `keys`
+        return bool(r.id) and ((r.level, r.id) in keys or
+                               (r.layer == "head" and (r.level, r.id.rsplit(":", 1)[0]) in keys))
+
+    def owned(r: DeviceRow) -> bool:
+        return mine(r, owner_named)
+
     bad = []
     for layer in ("block", "occupancy"):            # the dicts and sets below would fold a second row away
         twice = sorted(n for n, k in Counter(r.user_name for r in rows if r.layer == layer).items() if k > 1)
         if twice:
             bad.append(f"{layer} rows given twice: {', '.join(twice)}")
-    blocks = {r.user_name for r in rows if r.layer == "block"}
-    occ = {r.user_name: r for r in rows if r.layer == "occupancy"}
-    want = {level_devices.occupancy_user(b): b for b in blocks}
-    if set(want) != set(occ):
-        bad.append(f"blocks and occupancy rows differ: {sorted(set(want) ^ set(occ))}")
-    for user, b in sorted(want.items()):
-        r = occ.get(user)
-        if r is None:
+    blocks = [r for r in rows if r.layer == "block"]
+    occ = [r for r in rows if r.layer == "occupancy"]
+    if any(r.id for r in blocks + occ):
+        no_id = sorted(f"{r.layer} {r.user_name}" for r in blocks + occ if not r.id)
+        if no_id:
+            bad.append(f"rows with no id among rows with ids: {', '.join(no_id)}")
+    # each block's detector row, row by row: by its ID, else by the name rule
+    want = {(f"det:{b.id}" if b.id else "name:" + level_devices.occupancy_user(b.user_name)): b for b in blocks}
+    have = {(r.id if r.id else "name:" + r.user_name): r for r in occ}
+    if set(want) != set(have):
+        bad.append("blocks and occupancy rows differ: "
+                   f"{sorted(k.removeprefix('name:') for k in set(want) ^ set(have))}")
+    for key, b in sorted(want.items()):
+        r = have.get(key)
+        if r is None or mine(r, swapped):
+            continue
+        if owned(b) or owned(r):
+            if not level_devices.is_block_sensor(r.jmri_name):
+                bad.append(f"occupancy {r.user_name}: jmri_name {r.jmri_name!r} is no virtual block sensor")
             continue
         try:
-            sensor = level_devices.block_sensor(b)
+            sensor = level_devices.block_sensor(b.user_name)
         except ValueError as exc:
-            bad.append(f"block {b}: {exc}")
+            bad.append(f"block {b.user_name}: {exc}")
             continue
         if r.jmri_name != sensor:
-            bad.append(f"occupancy {user}: jmri_name {r.jmri_name!r}, not {sensor} (from block {b})")
+            bad.append(f"occupancy {r.user_name}: jmri_name {r.jmri_name!r}, not {sensor} (from block {b.user_name})")
     for r in rows:
-        if r.layer == "head":
+        if mine(r, swapped):
+            continue                            # a field device the owner swapped in: no virtual name
+        if r.layer == "head" and owned(r):
+            if not level_devices.HEAD.fullmatch(r.jmri_name):
+                bad.append(f"head {r.user_name}: jmri_name {r.jmri_name!r} is no virtual head name")
+        elif r.layer == "head":
             try:
                 if r.jmri_name != level_devices.head_name(r.user_name):
                     bad.append(f"head {r.user_name}: jmri_name {r.jmri_name!r}, not "
@@ -1257,8 +1321,8 @@ def check_virtual_names(rows: Iterable[DeviceRow]) -> list[str]:
             except ValueError as exc:
                 bad.append(str(exc))
         elif r.layer == "turnout":
-            m = re.fullmatch(r"(?:DCC )?Switch (\d+)", r.user_name)
-            if not m or r.jmri_name != level_devices.TURNOUT_PREFIX + m.group(1):
+            n = turnout_switch(r)
+            if n is None or r.jmri_name != level_devices.TURNOUT_PREFIX + n:
                 bad.append(f"turnout {r.user_name}: jmri_name {r.jmri_name!r}, not "
                            f"{level_devices.TURNOUT_PREFIX}<switch number>")
     for layer in ("occupancy", "head", "mast", "turnout"):

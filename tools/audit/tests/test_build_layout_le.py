@@ -546,6 +546,25 @@ class DeviceNames(unittest.TestCase):
         self.assertEqual(got, {"Track 1-2": "track", "OS Switch 1": "os"})        # staging's Track Barn left out
         self.assertNotIn("Track 101-103", got)
 
+    def test_an_owners_name_is_free_of_the_generated_form(self) -> None:
+        """Naming-layers step 13: a main turnout the owner names "Switch Coal" in the field file reaches the drawing
+        by its id; the name form holds only generated names, as hartlib.railroad.check_virtual_names does."""
+        import csv
+        import shutil
+        from hartlib import devices
+        with tempfile.TemporaryDirectory() as tmp:
+            data = Path(tmp)
+            here = devices.Files.here()
+            for src in (here.master, here.dictionary, here.field):
+                shutil.copy(src, data / src.name)
+            field = devices.field_path(data)
+            rows = list(csv.DictReader(io.StringIO(field.read_text(encoding="utf-8"))))
+            row = dict.fromkeys(rows[0], "")
+            row.update(level="2", layer="turnout", id="switch:101", user_name="Switch Coal")
+            field.write_text(devices.master_text(rows + [row]), encoding="utf-8")
+            got = B.device_names(devices.master_path(data))
+        self.assertEqual((got["Switch 101A"], got["Switch 101B"]), ("Switch Coal", "Switch Coal"))
+
     def test_the_committed_map(self) -> None:
         got = B.device_names()
         self.assertEqual(got["Switch 101A"], "Switch 101")
@@ -563,7 +582,7 @@ class DeviceNames(unittest.TestCase):
         self.assertEqual(got, {"Switch 101A": "Switch 101", "Switch 101B": "Switch 101", "Track 1A-2B": "Track 1-2"})
         for rows, why in (('2,,block,Track 1-2,,,,,,,\n', "has no trial_name"),
                           ('2,,block,Track 1-2,,,,,,Track 1A-2B,\n2,,block,Track 3-4,,,,,,Track 1A-2B,\n',
-                           "trial_name Track 1A-2B is given to Track 1-2 and Track 3-4"),
+                           r"trial_name Track 1A-2B is given to Track 1-2 \(level 2, block\) and Track 3-4"),
                           ('2,,turnout,Turnout 5,,,,,,Switch 5,\n', "is not named"),
                           ('2,,block,Siding,,,,,,Track 1A-2B,\n', "is not named"),
                           ('2,,fb,FB 1,,,,,,,\n', "no turnout or block rows")):

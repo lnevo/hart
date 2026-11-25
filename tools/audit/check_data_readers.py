@@ -46,23 +46,19 @@ STAMP = "hashes the file's bytes for a build stamp; reads no row"
 TEXT = "a text search for names (check_name_copies), not a read of the rows"
 PI = ("runs on the Pi with a copy of the file and no hartlib (tools/hosts/deploy/stage.sh); reads it by the label "
       "the name store writes")
-LATER = "a direct reader not moved yet (naming-layers hand-off, step 6 findings)"
 
 # script -> {data file name: reason}. Only what the scan finds; a pair no longer found fails.
 MESSAGE = "names the path in a message only (the rows come from another module)"
 TAG = "a device master written_by tag that happens to be the file's name, not a path"
 ALLOWED: dict[str, dict[str, str]] = {
     "docs/ap/electrical/build_soq.py": {"block_lengths.csv": MESSAGE},
-    "docs/ap/electrical/make_drawings.py": {"block_lengths.csv": LATER},
     "jmri/layouts/hart/scripts/capture_public_name_baseline.py": {
         n: WRITES for n in ("block_sensors.csv", "cats_bindings.csv", "counts.txt", "ctc_sidi.csv", "ctc_trl.csv",
                             "hardware_identity.csv", "le_mast_bindings.csv", "sml_pairs.csv", "sml_sections.csv")},
-    "jmri/layouts/hart/scripts/export_track_lengths.py": {"block_lengths.csv": LATER},
-    "jmri/layouts/hart/scripts/infer_block_lengths.py": {"block_lengths.csv": LATER},
-    "jmri/layouts/hart/scripts/render_le_layout.py": {"signals.json": LATER},
+    "jmri/layouts/hart/scripts/infer_block_lengths.py": {
+        "block_lengths.csv": WRITES + ": --apply rewrites the timed rows' measured lengths, every column kept"},
     "jmri/layouts/hart/scripts/speedmatch/analyze.py": {"block_lengths.csv": PI},
     "ops/hart-ops/card_pipeline/locos.py": {"new_locos.json": WRITES + "; the card pipeline adds to the import list"},
-    "tools/anyrail/levels_page.py": {"block_lengths.csv": LATER},
     "tools/audit/check_name_copies.py": {
         n: TEXT for n in ("block_numbering.csv", "discovered_sml.xml", "mast_cells.csv", "masts.csv",
                           "retired_virtual_masts.csv", "signals.json")},
@@ -71,14 +67,12 @@ ALLOWED: dict[str, dict[str, str]] = {
         for n in ("approved_cats_abs.sha256", "approved_cats_ctc.sha256", "approved_le_panel.sha256")},
     "tools/schematic/build_cats_panel.py": {"stations.csv": THROUGH},
     "tools/schematic/build_hands.py": {"main.json": PLAN},
-    "tools/schematic/build_layout_le.py": {"panel_items.json": LATER},
     "tools/schematic/build_main_route.py": {"main.json": PLAN, "staging.json": PLAN},
     "tools/schematic/build_signals.py": {"main.json": PLAN, "staging.json": PLAN},
-    "tools/schematic/build_staging_sets.py": {"sheets.csv": LATER, "stations.csv": THROUGH, "switches.csv": THROUGH},
+    "tools/schematic/build_staging_sets.py": {"stations.csv": THROUGH, "switches.csv": THROUGH},
     "tools/schematic/device_map_inputs.py": {"stations.csv": THROUGH},
     "tools/schematic/device_map_masts.py": {"interlockings.csv": THROUGH},
     "tools/schematic/le_common.py": {"stations.csv": THROUGH},
-    "tools/schematic/mast_plan.py": {"retired_virtual_masts.csv": LATER},
     "tools/schematic/panel_items.py": {"panel_items.json": TAG},
     "tools/schematic/panel_stamps.py": {
         n: STAMP for n in ("block_lengths.csv", "devices_field.csv", "devices_generated.csv", "masts.csv",
@@ -88,7 +82,6 @@ ALLOWED: dict[str, dict[str, str]] = {
     "tools/schematic/publish_draft.py": {"main.json": PLAN, "staging.json": PLAN},
     "tools/schematic/split_store.py": {"tables_template.xml": WRITES + " from a PanelPro Store"},
     "tools/schematic/staging_device_map.py": {"stations.csv": THROUGH},
-    "www/scripts/build_layout_docs.py": {"block_lengths.csv": LATER},
     "www/scripts/build_layout_index.py": {"stations.csv": THROUGH, "switches.csv": THROUGH},
     "www/scripts/tables_page.py": {"switches.csv": THROUGH},
 }

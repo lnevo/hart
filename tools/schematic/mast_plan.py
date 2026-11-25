@@ -32,7 +32,6 @@ build()); build_masts.py writes masts.csv, every level, from those rows.
 """
 from __future__ import annotations
 
-import csv
 import re
 import sys
 from collections import defaultdict
@@ -41,10 +40,10 @@ from pathlib import Path
 import le_names as ln
 import mast_rule as mr
 import publish_draft as pd
-from hartlib import level_masts
+from hartlib import hand_lists, level_masts
 
-RETIRED = pd.DATA / "retired_virtual_masts.csv"
-RETIRED_COLUMNS = ["mast", "system_name", "dropped", "notes"]
+RETIRED = hand_lists.RETIRED_MASTS             # the virtual masts dropped from a level (hartlib.hand_lists)
+RETIRED_COLUMNS = hand_lists.RETIRED_MAST_COLUMNS
 
 LINE_CODE = {1: "", 2: "A", 3: "B"}   # milepost line codes, after Furnace A and B (owner, 2026-11-19); staging has none
 CM_PER_SCALE_MILE = 63360 * 2.54 / 87.1
@@ -260,25 +259,12 @@ def virtual_masts(bands, joined, home: list[dict], runs_by_band: dict, cm: dict,
 
 def read_retired(path: Path = RETIRED) -> dict:
     """{mast: system name} of the virtual masts dropped from any level (retired_virtual_masts.csv), so their ordinals
-    stay taken; checked: the columns, one row per mast, each a VirtualSignalMast system name, no ordinal twice."""
+    stay taken; checked: the columns, one row per mast, each a VirtualSignalMast system name, no ordinal twice
+    (hartlib.hand_lists.read_retired_masts, its HandListError a MapError here)."""
     try:
-        with open(path, newline="", encoding="utf-8") as fh:
-            reader = csv.DictReader(fh)
-            rows = list(reader)
-    except OSError as exc:
-        raise mr.MapError(f"cannot read {path.name}: {exc}") from None
-    if reader.fieldnames != RETIRED_COLUMNS:
-        raise mr.MapError(f"{path.name}: columns {reader.fieldnames}, not {RETIRED_COLUMNS}")
-    out, seen = {}, set()
-    for n, r in enumerate(rows, 2):
-        m, sysname = (r["mast"] or "").strip(), (r["system_name"] or "").strip()
-        k = level_masts.virtual_ordinal(sysname)
-        if not m or m in out or k is None or k in seen:
-            raise mr.MapError(f"{path.name} line {n}: {m!r} {sysname!r} is empty, listed twice, not a virtual mast's "
-                              "system name, or reuses an ordinal")
-        out[m] = sysname
-        seen.add(k)
-    return out
+        return hand_lists.read_retired_masts(path)
+    except hand_lists.HandListError as exc:
+        raise mr.MapError(str(exc)) from None
 
 
 def virtual_system_names(masts: list[str], level: int, old: dict, retired: dict | None = None) -> dict:

@@ -53,7 +53,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 | 10 | Bean shapes by column | 1 day | Builder merge step 4. **Done (2026-11-25):** see [Step 10 findings](#step-10-findings) |
 | 11 | Every level through `master_beans` | 1 day | Builder merge step 5. **Done (2026-11-25), pending `make panelpro-test` and the deploy:** see [Step 11 findings](#step-11-findings); a listed diff of 399 main and upper comments |
 | 12 | One mast step | 1 to 1.5 days | Builder merge step 6. **Done (2026-11-25), pending the SML discovery and the owner's panel approval:** see [Step 12 findings](#step-12-findings); nine upper mast pairs swap letters |
-| 13 | One reader | 1 day | Builder merge step 7, first half: `le_names.level_names` and `staging_device_map.load` become one reader keyed by ID |
+| 13 | One reader | 1 day | Builder merge step 7, first half: `le_names.level_names` and `staging_device_map.load` become one reader keyed by ID. **Done (2026-11-25):** see [Step 13 findings](#step-13-findings) |
 | 14 | Level tests to column tests, and a swap test | 1 day | Builder merge step 8, then in the sandbox swap one main or upper turnout to a physical name by its owner row alone: `make panels`, `make panelpro-test`, then revert |
 
 ## Step 1 findings (2026-11-24)
@@ -470,6 +470,45 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   `end_key` gives (`A-helix`, `A-end`) and a bad mast ID is a RuleError; the staging band levels are read on first
   use. The device map reads `block_lengths.csv` by `(level, id)`, and length-labels after it rewrites the file only
   when a label changes, so the device-map stamp breaks once after a rename (its output unchanged), then holds.
+
+## Step 13 findings (2026-11-25)
+
+- **One reader, keyed by ID.** `hartlib.drawing_keys.read(levels)` turns each turnout and block row's `trial_name` keys
+  into its device ID ({key: id}, {id: merged row}), parts among them, no LCC alias, and stops on a row with no key or
+  id, a key or id given twice, or a part of no block row. A key's name is its ID's row in the merged view: the
+  owner's, else the generated. `le_names.device_names` (main and upper), `staging_device_map.load` (staging) and the
+  CATS desks (`cats_panel.drawn_keys`, `part_blocks`) read it; `name_loop_halves` names each balloon-loop half by ID
+  this way (Step 3b's open item). What stays per level is the drawing side: staging's k/n pieces, switch idents,
+  normal legs and masts; main and upper's crossover insides, connectors and lengths.
+- **The railroad check by ID** (Step 7's open item). `DeviceRow` carries its `id`; `DeviceMap.turnouts` and
+  `check_virtual_names` take a turnout's switch number from it (`turnout_switch`); `read_device_map` and
+  `check_virtual_names` pair a block with its detector as `det:<block id>`. A virtual name stays the generated one
+  after an owner's rename, and the generated file keeps the owner's name, so a device the owner names in
+  `devices_field.csv` (the invariant passes their IDs) has its occupancy sensor and heads held to their form only.
+  `test_one_row_path`'s Track Coal Spur rename now passes the check.
+- **Direct readers** (Step 6's open item, by a helper agent): `export_track_lengths.py`, `levels_page.py`,
+  `build_layout_docs.py` and `make_drawings.py` read `block_lengths.csv` through `railroad.read_block_lengths()`
+  (default path, a `note` field); `render_le_layout.py` takes `signals.json` from `layer_files.path`;
+  `hand_lists.read_panel_items`, `read_retired_masts` and `read_sheet_rows` serve `panel_items.py`,
+  `mast_plan.read_retired` and `build_staging_sets.read_sheets`. `infer_block_lengths.py` stays allowed as the file's
+  writer (`WRITES`); `LATER` is gone; the Jython list is unchanged.
+- **Tests:** `tools/hartlib/tests/test_drawing_keys.py`, `test_railroad` (the rule by ID),
+  `test_cats_panel.LoopHalvesByID` (an owner's name reaches a loop half), `test_staging_device_map` and
+  `test_build_layout_le` (the reader's messages), plus the helper's tests for each moved reader.
+- **Outputs byte-identical:** `make panels CHECK=1 FULL=1` all current (the discovery stamp matches its base),
+  `check_approved.py --check` all matching, `publish_draft.py --check` current, `test_bean_goldens` unchanged.
+- **Code review (medium), fixed:** keys by `(level, id)`, the master's key; a part's block on its own level; an LCC
+  alias with a key and a staging key with a plan "*" stop; `device_names` holds only generated names to the name
+  form; `cats_panel.drawn_keys` stops on a device map made in memory instead of reading the committed one;
+  `check_virtual_names` pairs blocks and detectors row by row and names rows with no id; a row whose `jmri_name` the
+  owner gives (a swap) is held to no virtual-name rule; `MAIN_UPPER` is `level_devices.LEVELS`.
+  `render_le_layout.py`'s signals path comes from hartlib, which the copied script in `test_layout_index_check` still
+  imports (checked).
+- **Open, for step 14:** a swapped main or upper detector still stops `read_device_map` (its occupancy
+  `jmri_name` must be a virtual block sensor); step 14 swaps a turnout. The desks' `device_name`, `inside_os` and
+  `level_signals` still match tracks through `DeviceMap` rows (tests build those by hand); a main detector's user name
+  still does not follow its block's owner name (Step 7). Not this step's: `docs/ap/electrical/test_build_soq.py`
+  fails on main too (57 detected sections in `block_lengths.csv`, the text says 43).
 
 ## How to run this
 

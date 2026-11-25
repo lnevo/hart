@@ -947,9 +947,8 @@ def staging_map_error() -> type:
 def check_virtual(rows) -> None:
     """The rows' virtual names follow hartlib.level_devices (hartlib.railroad.check_virtual_names, which
     `python3 -m hartlib.railroad check` also holds the written file to); MapError naming each problem."""
-    # a DeviceRow is the device-map form, which has no id column
-    bad = railroad.check_virtual_names(railroad.DeviceRow.from_dict({k: v for k, v in r.items() if k != "id"})
-                                       for r in rows)
+    # the rows as generated, each with its id: a turnout's switch number and a block's detector are read by ID
+    bad = railroad.check_virtual_names(railroad.DeviceRow.from_dict(r) for r in rows)
     if bad:
         raise MapError("; ".join(bad))
 

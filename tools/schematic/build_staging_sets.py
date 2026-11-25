@@ -49,13 +49,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA
-from hartlib import layer_files, paths  # noqa: E402
+from hartlib import hand_lists, layer_files, paths  # noqa: E402
 from hartlib import railroad_facts as rf  # noqa: E402
-from hartlib.railroad_facts import DeskArea, FactsError, read_rows, station_group_rows  # noqa: E402
+from hartlib.railroad_facts import DeskArea, FactsError, station_group_rows  # noqa: E402
 
 LEVEL = "1"
 STATIONS = pd.DATA / "stations.csv"
-SHEETS = pd.DATA / "sheets.csv"
+SHEETS = hand_lists.SHEETS_FILE      # the station detail sheets (hartlib.hand_lists.read_sheet_rows)
 SHEET = "staging"     # the sections of plan_generated.json and preferences_generated.json this writes
 SWITCHES = paths.LAYOUT_DATA / "switches.csv"
 
@@ -77,13 +77,6 @@ class Sheet:
     line: int
     name: str
     stations: tuple[str, ...]
-
-
-def _rows(path, required, optional=()):
-    try:
-        return read_rows(path, required, optional=optional)
-    except FactsError as exc:
-        raise SetsError(str(exc)) from None
 
 
 def _where(path: Path, line: int) -> str:
@@ -135,7 +128,11 @@ def read_sheets(stations: list[Station], path: Path = SHEETS, stations_path: Pat
     """The detail sheets in file order. Stops on a name given twice or a sheet naming no station or an unknown one."""
     known = {s.name for s in stations}
     out, names = [], {}
-    for line, r in _rows(path, ("level", "sheet", "stations"), optional=("notes",)):
+    try:
+        rows = hand_lists.read_sheet_rows(path)
+    except FactsError as exc:
+        raise SetsError(str(exc)) from None
+    for line, r in rows:
         where = _where(path, line)
         _staging_row(where, r["sheet"], r["level"])
         if not r["sheet"] or r["sheet"] in names:

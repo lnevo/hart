@@ -129,6 +129,65 @@ class UssBoard(Temp):
         self.assertEqual(layout_facts.load_uss_plants(), hand_lists.read_uss_plants())
 
 
+class RetiredMasts(Temp):
+    """read_retired_masts (step 13): the committed file reads, a bad row stops, and mast_plan.read_retired wraps it."""
+
+    def test_the_committed_file(self):
+        retired = hand_lists.read_retired_masts()
+        self.assertTrue(retired)
+        self.assertTrue(all(m.startswith("Mast ") for m in retired))
+        import mast_plan
+        import mast_rule
+        self.assertEqual(mast_plan.read_retired(), retired)
+        self.assertEqual(mast_plan.RETIRED, hand_lists.RETIRED_MASTS)
+        path = self.copy(hand_lists.RETIRED_MASTS, lambda t: t.replace("system_name", "sysname", 1))
+        with self.assertRaisesRegex(hand_lists.HandListError, f"{hand_lists.RETIRED_MASTS.name}: columns"):
+            hand_lists.read_retired_masts(path)
+        with self.assertRaisesRegex(mast_rule.MapError, f"{hand_lists.RETIRED_MASTS.name}: columns"):
+            mast_plan.read_retired(path)
+
+    def test_an_ordinal_given_twice_stops_naming_the_line(self):
+        first = next(iter(hand_lists.read_retired_masts().items()))
+        path = self.copy(hand_lists.RETIRED_MASTS, lambda t: t + f"Mast 999X,{first[1]},,\n")
+        with self.assertRaisesRegex(hand_lists.HandListError, r"line \d+: 'Mast 999X' .* reuses an ordinal"):
+            hand_lists.read_retired_masts(path)
+
+
+class SheetRows(Temp):
+    def test_the_committed_file_and_build_staging_sets(self):
+        rows = hand_lists.read_sheet_rows()
+        self.assertTrue(rows)
+        self.assertTrue(all(set(hand_lists.SHEET_COLUMNS) <= set(r) for _line, r in rows))
+        import build_staging_sets
+        _areas, stations = build_staging_sets.read_masters()
+        self.assertEqual([s.name for s in build_staging_sets.read_sheets(stations)], [r["sheet"] for _l, r in rows])
+        path = self.copy(hand_lists.SHEETS_FILE, lambda t: t.replace("stations", "stops", 1))
+        with self.assertRaisesRegex(railroad.FactsError, "no column stations"):
+            hand_lists.read_sheet_rows(path)
+        with self.assertRaisesRegex(build_staging_sets.SetsError, "no column stations"):
+            build_staging_sets.read_sheets(stations, path)
+
+
+class PanelItems(Temp):
+    def test_the_committed_file_and_panel_items_load(self):
+        data = hand_lists.read_panel_items()
+        self.assertTrue(data["items"])
+        import panel_items
+        self.assertEqual(panel_items.ITEMS, hand_lists.PANEL_ITEMS)
+        self.assertEqual(panel_items.load(), panel_items.load(hand_lists.PANEL_ITEMS))
+        self.assertEqual(panel_items.load()["items"], data["items"])
+
+    def test_a_file_that_does_not_parse_stops(self):
+        path = self.copy(hand_lists.PANEL_ITEMS, lambda t: t[:-10])
+        with self.assertRaisesRegex(hand_lists.HandListError, f"cannot read {hand_lists.PANEL_ITEMS.name}"):
+            hand_lists.read_panel_items(path)
+        import panel_items
+        with self.assertRaisesRegex(panel_items.ItemsError, f"cannot read {hand_lists.PANEL_ITEMS.name}"):
+            panel_items.load(path)
+        with self.assertRaisesRegex(panel_items.ItemsError, "cannot read"):
+            panel_items.load(self.tmp / "none.json")
+
+
 class SourcesStations(unittest.TestCase):
     def test_the_stations_file_is_a_source(self):
         self.assertEqual(railroad.Sources.under(Path("/x")).stations, Path("/x/schematic/stations.csv"))

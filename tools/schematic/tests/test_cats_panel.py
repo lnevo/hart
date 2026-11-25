@@ -252,5 +252,46 @@ class Masts(unittest.TestCase):
                 self.assertEqual(sg["heads"], len(rows[name]["heads"]))
 
 
+class LoopHalvesByID(unittest.TestCase):
+    """Naming-layers step 13: a balloon loop half on the desk takes its block's name by ID through the one reader
+    (hartlib.drawing_keys over the master its Facts.device was read from), so an owner's name in the field file
+    reaches it; a master whose keys do not read stops naming the file."""
+
+    def test_an_owners_name_reaches_the_loop_half(self):
+        import csv
+        import shutil
+        import tempfile
+        from types import SimpleNamespace
+        from hartlib import devices
+        k = built()
+        halves = {s["name"] for _t, band, _o in k["bands"] for s in band["strands"].values() if s.get("loop_half")}
+        self.assertIn("107 Loop 1", halves)
+        with tempfile.TemporaryDirectory() as tmp:
+            data = Path(tmp)
+            here = devices.Files.here()
+            for src in (here.master, here.dictionary, here.field):
+                shutil.copy(src, data / src.name)
+            field = devices.field_path(data)
+            rows = list(csv.DictReader(io.StringIO(field.read_text(encoding="utf-8"))))
+            row = dict.fromkeys(rows[0], "")
+            row.update(level="2", layer="block", id="block:107B-107C#1", user_name="Track Balloon East")
+            field.write_text(devices.master_text(rows + [row]), encoding="utf-8")
+            device = SimpleNamespace(path=devices.master_path(data))
+            bands = B.name_loop_halves(B.pd.solved_sheet(B.plugin_modules(B.pd.plugin())[1]).bands, device)
+            named = {s["name"] for _t, band, _o in bands for s in band["strands"].values() if s.get("loop_half")}
+            self.assertIn("Balloon East", named)
+            self.assertNotIn("107 Loop 1", named)
+            cp = sys.modules["cats_panel"]
+            self.assertEqual(cp.part_blocks(device), cp.part_blocks())
+            self.assertEqual(cp.part_blocks(B.DeviceMap()), {})         # a map made in memory holds no part
+            with self.assertRaisesRegex(SystemExit, "made in memory"):
+                cp.drawn_keys(B.DeviceMap())
+        from unittest import mock
+        bad = cp.drawing_keys.DrawingKeyError("Track 107 Loop 2 (level 2, block) has no trial_name")
+        with mock.patch.object(cp.drawing_keys, "read", side_effect=bad), \
+                self.assertRaisesRegex(SystemExit, r"devices_generated\.csv: Track 107 Loop 2 .* has no trial_name"):
+            B.name_loop_halves(k["bands"])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -16,7 +16,6 @@ was timed over (the test loop and the Switch 5 to Switch 15 run); the page sets 
 import argparse
 import base64
 import collections
-import csv
 import json
 import re
 import sys
@@ -33,7 +32,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from levels_svg import switch_key  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
-BLOCK_CSV = paths.LAYOUT_DATA / "block_lengths.csv"
 HELIX_SOURCE = railroad.Sources.under().plan_overrides     # the helix tracks: hartlib.railroad.read_helix_tracks
 SITE_HTML = paths.REPO_ROOT / "www/build/track-plan.html"
 CM_PER_IN = 2.54
@@ -65,10 +63,8 @@ def read_meta(levels):
 
 def block_rows():
     """{user_name: BlockLength} of block_lengths.csv, and {user_name: note}."""
-    blocks = railroad.read_block_lengths(BLOCK_CSV)
-    with open(BLOCK_CSV, newline="") as f:
-        notes = {r["user_name"]: r["note"] for r in csv.DictReader(f)}
-    return blocks, notes
+    blocks = railroad.read_block_lengths()      # this checkout's file (hartlib.railroad.BLOCK_LENGTHS)
+    return blocks, {name: b.note for name, b in blocks.items()}
 
 
 def timed_rows(blocks, notes, names):

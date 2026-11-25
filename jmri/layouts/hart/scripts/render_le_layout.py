@@ -29,12 +29,12 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-try:            # mast icon sizes, as build_layout_le.py places them
-    from hartlib import tables
+try:            # mast icon sizes, as build_layout_le.py places them; the schematic's signals file
+    from hartlib import layer_files, tables
 except ImportError:     # run as a script: find the repo's hartlib above this file
     sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                     if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-    from hartlib import tables
+    from hartlib import layer_files, tables
 
 BG = (18, 20, 24)
 MAIN = (228, 231, 236)      # mainline track
@@ -46,7 +46,7 @@ SIGNAL = (255, 105, 125)    # signal mast icon / facing marker
 # with --kinds: a field mast (hardware on the layout) red, a virtual one (JMRI only, for Dispatcher) blue, a planned
 # one (placeholder, no hardware yet) violet (amber would read as a turnout's control point); a mast the signals file
 # does not list grey
-KINDS_FILE = Path(__file__).resolve().parents[1] / "data/schematic/signals.json"   # --kinds-sheet picks its section
+KINDS_FILE = layer_files.path("signals")      # the schematic's signals file; --kinds-sheet picks its section
 KINDS_SHEET = "staging"
 KIND_COLOUR = {"field": SIGNAL, "virtual": (110, 170, 255), "planned": (190, 130, 255)}
 UNLISTED = (150, 150, 150)
@@ -562,12 +562,6 @@ def mast_kinds(path, sheet=None):
     command's output). Names take the layer-1 `mast_prefix` of `sheet`'s section of the plan_overrides.json beside a
     sectioned file, or of the NAME.plan_overrides.json beside a plain NAME.signals.json, or "Mast " when it sets none. Stops on a file it cannot use, a sheet it
     has no section for, a `sheet` given for a plain file, or a mast listed twice."""
-    # hartlib only for --kinds: the drawing itself runs from a copy of this file (build_layout_index.py's tests)
-    src = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
-           if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-    if src[0] not in sys.path:
-        sys.path.insert(0, src[0])
-    from hartlib import layer_files      # the schematic's signals and plan overrides, a section per sheet
     path = Path(path)
     prefix = "Mast "
     try:
