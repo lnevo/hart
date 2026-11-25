@@ -158,13 +158,18 @@ The data reads below are today's map edges into `build_wiring_json.py`; the outp
 name = "wiring-json"
 runner = "check"
 cmd = ["python3", "www/scripts/build_wiring_json.py", "--check"]
+git = ["head", "base"]
 domain = "website"
-desc = "Builds the website wiring viewer JSON from v86 inventory and the v85 signal splits; check.sh fails while stale."
+label = "build_wiring_json.py"
+desc = "Builds the website wiring viewer JSON from the wiring model (write_inventory.workbook(), in memory, never the v86 file; ADR-039); tools/check.sh fails while stale."
 inputs = [
-  { path = "docs/wiring/LCOS_Layout_Inventory_v86.xlsx", label = "LCOS xlsx" },
-  { path = "docs/wiring/history", label = "v85 split pins" },
+  { path = "tools/wiring/write_inventory.py", label = "workbook(), in memory" },
 ]
-outputs = ["www/data/wiring-inventory.json"]  # signal-splits.json was archived 2026-11-25 (#1133)
+outputs = ["www/data/wiring-inventory.json"]
+# the wiring model write_inventory.workbook() reads (the wiring-v86 step draws them), seen in the traced run
+quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv", "jmri/layouts/hart/data/devices_generated.csv",
+                "jmri/layouts/hart/data/schematic/lcos_nodes.csv", "jmri/layouts/hart/data/switches.csv",
+                "jmri/layouts/hart/data/wiring.csv", "jmri/layouts/hart/output/signal_head_plan.csv"]
 ```
 
 The non-Python case (today `check_stamps.py:84`):
