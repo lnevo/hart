@@ -596,7 +596,12 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
                          ("spare", "spare", "M2S106", ""))
         # the master takes it and reads it back as written, and the next build over it gives the same rows
         wired = bdm.staging_wired_rows(files)
-        out = devices.outputs_after("build_device_map.py", [], files, master_rows=got + wired,
+        # staging's masts and heads are the builder's too (naming-layers step 12): kept as they are here
+        field = devices.field_index(files)          # the owner's cells over them (the merged view is broken here)
+        masts = [{**r, **{c: v for c, v in field.get(devices.key_of(r), {}).items() if c in devices.FIELD_COLUMNS and v}}
+                 for r in devices.generated_rows(files) if r["level"] == "1" and r["layer"] in ("mast", "head")
+                 and r["written_by"] == "build_device_map.py"]
+        out = devices.outputs_after("build_device_map.py", [], files, master_rows=got + wired + masts,
                                     warn=lambda line: None)     # main and upper's rows are left out: gone
         self.assertIn("unused Block 1-7", out[files.master])
         devices.write_all(files, out)
