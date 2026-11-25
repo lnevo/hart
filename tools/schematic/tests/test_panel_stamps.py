@@ -266,7 +266,7 @@ class ShellTest(unittest.TestCase):
         shutil.copy(REPO / "tools/schematic/build_panels.sh", self.root / "tools/schematic/build_panels.sh")
         shutil.copy(REPO / "tools/schematic/panel_stamps.py", self.root / "tools/schematic/panel_stamps.py")
         (self.root / "tools/pipeline").mkdir(parents=True, exist_ok=True)
-        for f in ("tools/pipeline/manifest.py", "tools/pipeline/panels.toml"):     # the step list
+        for f in (*ps._load_manifest().FILES, "tools/pipeline/panels.toml"):     # the step list: loader and parts
             shutil.copy(REPO / f, self.root / f)
         for f in ps.traced.HOOK_FILES:
             (self.root / f).parent.mkdir(parents=True, exist_ok=True)

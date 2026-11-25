@@ -786,7 +786,7 @@ class ManifestKeyTest(RepoCase):
 
     def test_check_sh_and_the_loader_rerun_every_job(self) -> None:
         before = self.keys()
-        for rel in ("tools/check.sh", "tools/pipeline/manifest.py"):
+        for rel in ("tools/check.sh", *cs.pm.FILES):     # FILES: manifest.py and its parts (test_stamp_gate counts them)
             (self.root / rel).write_text("edited\n")
             after = self.keys()
             self.assertEqual([n for n in self.JOBS if before[n] == after[n]], [], rel)
