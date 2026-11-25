@@ -99,8 +99,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 
 - **The readers take names by ID.** `hartlib.track_names.piece_names` gives a drawn piece ("37C-39C #2", its ID part
   from `staging_device_map.band_refs`) its store name; a main or upper helix track takes its staging block's name
-  through the `helix` map. `block_layer.tracks` (and `store_names`, which `build_signals.py` calls on its own track
-  entries) puts the names on each track entry, so `name_tracks`, `half_block` and `check` never read the drawing;
+  through the `helix` map. `block_layer.tracks` (through `store_names`) puts the names on each track entry, so `name_tracks`, `half_block` and `check` never read the drawing;
   `cats_panel.py` (`staging_names`), `build_masts.plan_edge` and `staging_device_map.check_helix` take them as an
   argument. Outputs are byte-identical: `make panels CHECK=1 FULL=1` all current, `check_approved.py --check` all
   matching, an uncached `publish_draft.py --check` current.
@@ -110,6 +109,10 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   `build_main_route.staging_keys`; the store reads only the folder it is given (a missing plan graph or
   `devices_field.csv` stops), and a test opts in with `track_names.repo_inputs` (`test_railroad.Copy`,
   `test_layer_files`). A section that draws no level and fills nothing reads no store.
+- **Code review (medium):** a name now reaches only the pieces the owner named (pieces from #1 with no gap, and
+  each drawn piece of a run named by piece needs its own); two drawn tracks up the helix from one `helix` switch
+  stop; `staging_names` and `check_helix` take the data folder from their caller; `build_signals.py` names its
+  tracks with `build_device_map.named_tracks`, as the device map does.
 - **Open, not 3b's:** `publish_draft.check_digest` keys the drawing stamp on the data, the plugin and the field file,
   not on `hartlib` code, so a `hartlib` change to the plugin's view is not redrawn by `--check` until the data
   changes (it was checked uncached here). Main and upper loop-half names still go onto the drawing from the device
