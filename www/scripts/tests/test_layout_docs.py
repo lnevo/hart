@@ -75,16 +75,24 @@ class LayoutDocs(unittest.TestCase):
         with self.assertRaises(SystemExit):
             ld.check_plans({**fact, "SIDING_IN": str(int(fact["SIDING_IN"]) + 1)})
 
+    def facts_of(self, os_ids, estimate=False):
+        rows = [{"id": i, "inches": 100.0, "estimate": estimate} for i in (ld.RS1, ld.SIDING, *ld.YARD)]
+        return ld.facts(rows + [{"id": i, "inches": 9.0, "estimate": True} for i in os_ids])
+
     def test_crossovers_come_from_the_os_halves(self):
-        rows = [{"id": i, "inches": 100.0} for i in (ld.RS1, ld.SIDING, *ld.YARD)]
-        rows += [{"id": i, "inches": 9.0} for i in ("os:35:A-33A", "os:7:A-5B", "os:23:A-1A", "os:23:A-31B", "os:3")]
-        self.assertEqual(ld.facts(rows)["CROSSOVERS"], "7, 23 and 35")
+        self.assertEqual(self.facts_of(("os:35:A-33A", "os:7:A-5B", "os:23:A-1A", "os:23:A-31B", "os:3"))["CROSSOVERS"],
+                         "crossovers at Switches 7, 23 and 35")
+        self.assertEqual(self.facts_of(("os:7:A-5B", "os:7:A-13C"))["CROSSOVERS"], "a crossover at Switch 7")
+
+    def test_an_estimated_length_is_said_as_about(self):
+        self.assertEqual(self.facts_of(("os:7:A-5B",))["YARD_IN"], "100 to 100")
+        self.assertEqual(self.facts_of(("os:7:A-5B",), estimate=True)["YARD_IN"], "about 100 to 100")
 
 
 class RenameReachesThePage(unittest.TestCase):
     """A copy of the device master whose field file renames a staging track and an OS block, as the owner would;
     nothing else changes (block_lengths.csv keeps its labels, as before the length-labels step runs)."""
-    RENAMES = {("1", "block:17C-29C"): "Track S-9", ("1", "os:19"): "OS South 19"}
+    RENAMES = {("1", "block:17C-29C"): "Track Renamed Yard Two", ("1", "os:19"): "OS Renamed Nineteen"}
 
     @classmethod
     def setUpClass(cls):
@@ -102,25 +110,32 @@ class RenameReachesThePage(unittest.TestCase):
         assert hit == len(cls.RENAMES), hit
         cls.files.field.write_text(devices.master_text(rows), encoding="utf-8")
         cls.page = ld.outputs(cls.files)[ld.PAGE]
+        cls.live = ld.outputs()[ld.PAGE]                      # the same build on the real device master
+        master = ld.master_rows()
+        cls.old = {k: ld.bare(master[k]["user_name"]) for k in cls.RENAMES}
+        cls.new = {k: ld.bare(v) for k, v in cls.RENAMES.items()}
+        cls.yard = [cls.new.get(("1", bid)) or ld.bare(master[("1", bid)]["user_name"]) for bid in ld.YARD]
 
     @classmethod
     def tearDownClass(cls):
         cls.tmp.cleanup()
 
     def test_the_renamed_track_is_on_the_page(self):
-        self.assertIn("<td>Yard track Y2</td><td>S-9</td>", self.page)          # the section list
-        self.assertIn("South Yard S-R, S-9, S-2, S-3, S-4", self.page)          # the overview's label table
-        self.assertNotIn(">S-1<", self.page)
-        self.assertNotIn("S-R, S-1,", self.page)
+        track = ("1", "block:17C-29C")
+        self.assertIn(f"<td>Yard track Y2</td><td>{self.new[track]}</td>", self.page)     # the section list
+        self.assertIn("South Yard " + ", ".join(self.yard), self.page)                    # the overview's label table
+        self.assertNotIn(f"<td>Yard track Y2</td><td>{self.old[track]}</td>", self.page)
 
     def test_the_renamed_os_block_keeps_its_parts(self):
-        self.assertIn("<td>Turnout 19</td><td>OS South 19</td>", self.page)
-        self.assertNotIn("OS Switch 19", self.page)
+        os19 = ("1", "os:19")
+        self.assertIn(f"<td>Turnout 19</td><td>{self.new[os19]}</td>", self.page)
+        self.assertNotIn(f"<td>{self.old[os19]}</td>", self.page)
 
     def test_nothing_else_changes(self):
-        live = ld.PAGE.read_text()
-        renamed = (self.page.replace("S-9", "S-1").replace("OS South 19", "OS Switch 19"))
-        self.assertEqual(renamed, live)
+        page = self.page
+        for key, name in self.new.items():
+            page = page.replace(name, self.old[key])
+        self.assertEqual(page, self.live)
 
 
 if __name__ == "__main__":

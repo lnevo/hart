@@ -138,18 +138,27 @@ def sections_table(rows: list[dict]) -> str:
 
 
 def facts(rows: list[dict]) -> dict[str, str]:
-    """The figures the page's text states, from the section list and rounded as it shows them."""
+    """The figures the page's text states, from the section list and rounded as it shows them. A length from plan
+    estimates (marked ≈ in the list) is said as "about"."""
     inches = {s["id"]: float(f"{s['inches']:.0f}") for s in rows}
-    missing = [bid for bid in (RS1, SIDING, *YARD) if bid not in inches]
+    estimate = {s["id"]: s["estimate"] for s in rows}
+    named = {"RS1": [RS1], "SIDING": [SIDING], "YARD": list(YARD)}
+    missing = [f"{entry} {bid}" for entry, ids in named.items() for bid in ids if bid not in inches]
     if missing:
-        raise SystemExit(f"build_layout_docs: no detected section {', '.join(missing)}; the page states its length")
+        raise SystemExit(f"build_layout_docs: no detected section for {', '.join(missing)}; the page states its "
+                         "length (fix the entry in build_layout_docs.py)")
+
+    def about(ids) -> str:
+        return "about " if any(estimate[bid] for bid in ids) else ""
     yard = sorted(inches[bid] for bid in YARD)
     xings = sorted({int(m.group(1)) for s in rows if (m := OS.fullmatch(s["id"])) and m.group(2)})
     if not xings:
         raise SystemExit("build_layout_docs: no crossover half in the section list; the page names the crossovers")
-    return {"SECTION_COUNT": str(len(rows)), "RS1_IN": f"{inches[RS1]:.0f}", "SIDING_IN": f"{inches[SIDING]:.0f}",
-            "SIDING_CARS": str(round(inches[SIDING] / CAR_IN)), "YARD_IN": f"{yard[0]:.0f} to {yard[-1]:.0f}",
-            "CROSSOVERS": " and ".join(filter(None, [", ".join(map(str, xings[:-1])), str(xings[-1])]))}
+    listed = " and ".join(filter(None, [", ".join(map(str, xings[:-1])), str(xings[-1])]))
+    return {"SECTION_COUNT": str(len(rows)), "RS1_IN": f"{about([RS1])}{inches[RS1]:.0f}",
+            "SIDING_IN": f"{about([SIDING])}{inches[SIDING]:.0f}", "SIDING_CARS": str(round(inches[SIDING] / CAR_IN)),
+            "YARD_IN": f"{about(YARD)}{yard[0]:.0f} to {yard[-1]:.0f}",
+            "CROSSOVERS": (f"crossovers at Switches {listed}" if len(xings) > 1 else f"a crossover at Switch {listed}")}
 
 
 def fill_names(text: str, master: dict) -> str:
