@@ -591,7 +591,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   `make panelpro-test`, and restore every changed file from git.
 - `publish_draft --check` does not key its drawing stamp on `hartlib` code (Step 3b findings).
 - A crossover half cannot be renamed: its half letter comes from its name.
-- `docs/ap/electrical/test_build_soq.py` counts 57 detected sections where its text says 43 (owner's call; not this plan's).
+- ~~`docs/ap/electrical/test_build_soq.py` counts 57 detected sections where its text says 43~~ Closed 2026-11-25: the SOQ is frozen and its tests are removed (owner); the layout documentation page reads its names by block ID from the device master.
 
 ## How to run this
 

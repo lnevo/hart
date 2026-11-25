@@ -2,9 +2,9 @@
 
 Index of the Model Railroad Engineer Electrical SOQ package: its source, builders, photographs and the frozen submitted PDF.
 
-**Submitted 15 November 2026 and frozen.** See [SUBMITTED.md](SUBMITTED.md). The build is kept as a record and is not expected to run.
+**Submitted 15 November 2026 and frozen.** See [SUBMITTED.md](SUBMITTED.md). The build is kept as a record and is not run or tested (owner, 2026-11-25): its tests were removed and no check builds it.
 
-**Not part of the pipeline (owner, 2026-11-22).** Nothing reads from this folder, and the build is not kept working against the live sources it once read (`block_lengths.csv` has since gained part rows, so its 43-section check would now fail). An evaluator's change is a one-off edit by hand. The layout documentation that grew out of the SOQ is maintained on its own at `www/behind/layout-docs.html` (`www/scripts/build_layout_docs.py`).
+**Not part of the pipeline (owner, 2026-11-22).** Nothing reads from this folder, and the build is not kept working against the live sources it once read (`block_lengths.csv` has since gained part rows, so its 43-section check would now fail). An evaluator's change is a one-off edit by hand. The layout documentation that grew out of the SOQ is maintained on its own at `www/behind/layout-docs.html` (`www/scripts/build_layout_docs.py`) and follows the live data (owner, 2026-11-25).
 
 The Statement of Qualifications for the NMRA Achievement Program certificate, rebuilt 2026-11-15 as one bound PDF for review by the member's evaluator. Checklist and rules: [www/ap/index.html#electrical](../../../www/ap/index.html) (live at hartrailroad.com/ap/#electrical).
 
@@ -12,14 +12,14 @@ The Statement of Qualifications for the NMRA Achievement Program certificate, re
 |------|------------|
 | `MRE-Electrical-SOQ.pdf` | The package: ticked NMRA form, title page, contents, six short chapters (introduction, checklist, Requirements 1 to 5), landscape drawing plates D1 to D6, and Appendices A to F (labels, to-scale plan and detected sections, parts list, features not claimed, radio node grid, wiring records). Written in plain first person (owner, 2026-11-15). Tagged PDF with bookmarks. |
 | `soq.html`, `soq.css` | Source of the document. Numbers, cross-references, contents and page numbers are filled in by the build. |
-| `build_soq.py` | Builds the PDF: drawings, numbering, two Chrome print passes for page numbers, the form ticks, Keynote export of the two wiring decks, footers and bookmarks. `--html-only` writes `build/` without printing. |
-| `make_drawings.py` | Writes plan clips P1 to P5 (the staging level copied from the system schematic, its own names removed, generic labels added) and drawings D1 to D6. The build also writes P0, the staging level to scale from `www/build/track-plan.html`. |
+| `build_soq.py` | Kept as a record, not run. Built the PDF: drawings, numbering, two Chrome print passes for page numbers, the form ticks, Keynote export of the two wiring decks, footers and bookmarks. `--html-only` writes `build/` without printing. |
+| `make_drawings.py` | Kept as a record, not run. Wrote plan clips P1 to P5 (the staging level copied from the system schematic, its own names removed, generic labels added) and drawings D1 to D6. The build also wrote P0, the staging level to scale from `www/build/track-plan.html`. |
 | `PHOTO_PUNCH_LIST.md` | Finished record of the photographs the SOQ needed, with file names (all in the SOQ since 2026-11-15). |
 | `photos/` | Photographs used, downsized from `media/photos-layout` (IMG_7226, 7471, 7813, 8070, 8414, 8415, 8940, 8947, 8954, 9231, 9288). |
 | `MRE-Electrical-SOQ-form.pdf` | The blank NMRA 2025 fillable form. The build ticks the claimed items and fills Region and Division only. |
-| `test_build_soq.py` | `python3 -m unittest docs/ap/electrical/test_build_soq.py` |
+| Tests | Removed 2026-11-25 (`test_build_soq.py`, `test_make_drawings.py`; git history keeps them): the SOQ is frozen and its build is not kept working. |
 
-Build (Mac, with PanelPro not needed): `/Users/lnevo/hart/.venv/bin/python docs/ap/electrical/build_soq.py`. Needs Google Chrome, Keynote and PyMuPDF (in the root `.venv`).
+How it was built (Mac, record only; `SUBMITTED.md` makes it refuse): `/Users/lnevo/hart/.venv/bin/python docs/ap/electrical/build_soq.py`. It needed Google Chrome, Keynote and PyMuPDF (in the root `.venv`).
 
 ## Claims
 
