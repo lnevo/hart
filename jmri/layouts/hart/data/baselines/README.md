@@ -1,6 +1,6 @@
 # Public-name rename baselines (live)
 
-Recaptured **2026-08-26** from live `tables.xml` and **CATS CTC** (`HART_CTC.xml`) so the next rename pass diffs against current public names, not the pre-ADR-005 strings. The 2026-08-20 pre-convert snapshot is in git history.
+Recaptured **2026-08-26** from live `tables.xml` and **CATS CTC** (`HART_CTC.xml`) so the next rename pass diffs against current public names, not the pre-ADR-005 strings. The 2026-08-20 pre-convert snapshot and the historical check outputs (removed 2026-11-25: nothing read them) are in git history.
 
 These files are read-only snapshots for regression detection; they do **not** apply any rename.
 
@@ -26,17 +26,12 @@ Optional flags: `--tables PATH`, `--out PATH`.
 |------|----------------|
 | `hardware_identity.csv` | JMRI sensors, turnouts, signal heads/masts (including `virtualsignalmast`), blocks in `tables.xml` |
 | `sml_pairs.csv` | Signal mast logic destination pairs |
-| `sml_sections.csv` | Auto sections created from SML |
 | `ctc_sidi.csv` | CTC code-button SIDI lever signals |
 | `ctc_trl.csv` | CTC traffic-locking rules |
 | `le_mast_bindings.csv` | Layout Editor turnout/point mast bindings |
 | `block_sensors.csv` | Layout block → occupancy sensor map |
 | `cats_bindings.csv` | Live CATS CTC hold panel block/signal bindings |
 | `counts.txt` | Row count of each captured file (`name=count` lines only) |
-| `validate_le_signalling.txt` | Mini-discovery dests vs stored SML (historical 2026-08-20; 36 dests then) |
-| `audit_panel_contracts.txt` | working / deployment / standalone (historical 2026-08-20) |
-| `check_hart_phase02.txt` | Phase 0–2 (historical 2026-08-20) |
-| `validate_cats_panel.txt` | Live masters (historical 2026-08-20) |
 
 Also consulted (not written): `cats/data/occupancy_bindings.csv`.
 

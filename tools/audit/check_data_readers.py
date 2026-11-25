@@ -54,7 +54,7 @@ ALLOWED: dict[str, dict[str, str]] = {
     "docs/ap/electrical/build_soq.py": {"block_lengths.csv": MESSAGE},
     "jmri/layouts/hart/scripts/capture_public_name_baseline.py": {
         n: WRITES for n in ("block_sensors.csv", "cats_bindings.csv", "counts.txt", "ctc_sidi.csv", "ctc_trl.csv",
-                            "hardware_identity.csv", "le_mast_bindings.csv", "sml_pairs.csv", "sml_sections.csv")},
+                            "hardware_identity.csv", "le_mast_bindings.csv", "sml_pairs.csv")},
     "jmri/layouts/hart/scripts/infer_block_lengths.py": {
         "block_lengths.csv": WRITES + ": --apply rewrites the timed rows' measured lengths, every column kept"},
     "jmri/layouts/hart/scripts/speedmatch/analyze.py": {"block_lengths.csv": PI},
