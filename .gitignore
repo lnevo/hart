@@ -99,7 +99,7 @@ cats/panels/_qa_*.png
 cats/panels/*.png
 cats/panels/sheets/*.pre_*
 
-# Generated CTC evolution video (regenerate with make_ctc_evolution_video.py)
+# Generated CTC evolution video (regenerate with tools/ctc_history/films.py ctc)
 docs/ctc/history/CTC_Evolution_crops/
 docs/ctc/history/CTC_Panel_Evolution.gif
 docs/ctc/history/CTC_Panel_Evolution.mp4

@@ -1,7 +1,7 @@
 # cs105_consist.py - query, attach or detach an LCC consist on the TCS CS-105.
 #
 # Runs inside the Pi's JMRI (Jython 2.7), the host that owns the LCC link, normally
-# dropped through jmri_cmd_watcher.py with its settings prepended:
+# dropped through jmri_cmd_watcher.py by tools/ops/cs105.sh consist, with its settings prepended:
 #
 #   ACTION = "query"    NODES = ["06.01.00.00.C8.49", ...]   train nodes to ask
 #   ACTION = "attach"   LEAD = "<lead train node>"  FOLLOW = "<follower train node>"  FLAGS = 6

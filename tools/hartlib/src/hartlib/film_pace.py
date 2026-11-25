@@ -2,7 +2,7 @@
 
 Every film shows each version for STEP_S seconds and holds the last one for FINAL_HOLD_S, so a film grows
 as versions are added. The schematic film (tools/schematic/evolution.py) and the three stop-motion films
-(tools/ctc_history/make_*_evolution_video.py) all take their timing from here.
+(tools/ctc_history/films.py) all take their timing from here.
 """
 
 STEP_S = 0.4

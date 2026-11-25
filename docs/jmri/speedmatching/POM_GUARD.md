@@ -21,7 +21,7 @@ or the roster.
 ## Checklist before an apply
 
 1. PanelPro running on the Pi, the owner not operating, only the test loco on the track.
-2. **Break every consist involving the target** with `cs105_consist.py ACTION = "detach"`,
+2. **Break every consist involving the target** with `tools/ops/cs105.sh consist detach LEAD FOLLOW`,
    including any led by an address that is not in the roster. The guard queries every
    rostered loco's train node, but it cannot list consists led by unrostered addresses, so
    apply also needs `CONSISTS_BROKEN = True` as your confirmation (it is logged).
@@ -131,7 +131,7 @@ are ignored. A rollback file has the same shape, so it is applied the same way.
 
 ## Dry run on the Mac
 
-With a consist query log from the Pi (`cs105_consist.py`, `ACTION = "query"`, every roster
+With a consist query log from the Pi (`tools/ops/cs105.sh consist query NODE...` over every roster
 loco's train node):
 
 ```
@@ -147,7 +147,7 @@ value) or `REFUSED <reason>`. It never writes.
 ## Dry run and apply on the Pi
 
 Copy the files, then drop the writer through `jmri_cmd_watcher` with its settings first (same
-pattern as `tools/ops/cs105_roster_sync.sh`):
+pattern as `tools/ops/cs105.sh`):
 
 ```
 ssh pi 'mkdir -p /tmp/speedmatch /home/pi/speedmatch/ledger'
@@ -175,4 +175,4 @@ answer (never driven since the CS-105 last started) refuses the run; add its ros
 `<ROLLBACK>.dryrun`. To write, drop it again with `APPLY = True` and `CONSISTS_BROKEN = True`
 (both exactly `True`, plus `ROSTER_OLD_OK = True` if any old value is from the roster) and a new `ROLLBACK` name. The log then shows `ROLLBACK written`, one
 `WRITE CVn=v OK|FAILED|TIMEOUT` line per CV, and `DONE` or `STOPPED at ...`. Afterwards make
-the consist again with `cs105_consist.py ACTION = "attach"`.
+the consist again with `tools/ops/cs105.sh consist attach`, once per side.
