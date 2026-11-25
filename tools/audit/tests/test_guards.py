@@ -495,10 +495,19 @@ class PrivateNameAndTables(unittest.TestCase):
     def test_after_edit_checks_match_check_sh(self) -> None:
         after = load(ROOT / ".claude/hooks/check_after_edit.py", "hart_check_after_edit_test")
         check_sh = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
+        spec = importlib.util.spec_from_file_location("hart_pipeline_manifest_guard_test",
+                                                      ROOT / "tools/pipeline/manifest.py")
+        manifest = importlib.util.module_from_spec(spec)
+        with mock.patch.dict(sys.modules, {spec.name: manifest}):      # its dataclasses look their module up there
+            spec.loader.exec_module(manifest)
+            steps = {s.name: s for s in manifest.load()}
         for name, argv in after.CHECKS:
-            # unit tests run through `unit` (no HART_TABLES), the table checks through `run`
-            step = "unit" if "unittest" in argv else "run"
-            self.assertIn(f"{step} {name} " + " ".join(argv), check_sh, name)
+            with self.subTest(name):
+                if "unittest" in argv:      # unit tests run through check.sh's `unit` (no HART_TABLES)
+                    self.assertIn(f"unit {name} " + " ".join(argv), check_sh)
+                else:                       # the table checks are steps of check.sh's static job
+                    self.assertIn(name, steps)
+                    self.assertEqual((steps[name].group, list(steps[name].cmd)), ("static", argv))
 
     def test_real_signal_coordinator_edit_runs_its_own_test_files(self) -> None:
         after = load(ROOT / ".claude/hooks/check_after_edit.py", "hart_check_after_edit_real_test")

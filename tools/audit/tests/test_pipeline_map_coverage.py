@@ -159,6 +159,16 @@ class RepoTest(unittest.TestCase):
             COV.check(COV.BUILD.GRAPH)
         self.assertIn(mock.call("--others", "--exclude-standard"), files.call_args_list)
 
+    def test_the_scripts_check_sh_runs_from_the_manifest_count(self) -> None:
+        listing: list[str] = []
+        COV.check(COV.BUILD.GRAPH, listing)
+        frozen = [line for line in listing if " tools/wiring/check_wiring_frozen.py " in line]
+        self.assertEqual(len(frozen), 1, "check_wiring_frozen.py runs only from tools/pipeline/checks.toml")
+        self.assertIn("allowed: tools/wiring/check_wiring_frozen.py", frozen[0])
+        with mock.patch.object(COV.MANIFEST, "load", side_effect=COV.MANIFEST.ManifestError("t.toml: broken")):
+            with self.assertRaisesRegex(COV.CoverageError, "cannot be read:\nt.toml: broken"):
+                COV.check(COV.BUILD.GRAPH)
+
     def test_the_repo_map_knows_every_pipeline_file(self) -> None:
         err = io.StringIO()
         with redirect_stderr(err):

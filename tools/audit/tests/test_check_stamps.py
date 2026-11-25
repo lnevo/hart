@@ -2,7 +2,9 @@
 audit that a recorded read set holds what an independent audit hook saw the same jobs read (a quick sample here)."""
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import io
 import os
 import re
 import shutil
@@ -63,9 +65,9 @@ WIDENED_READS: dict[str, tuple[set[str], set[str], str]] = {   # job -> (files r
 
 class DeclarationTest(unittest.TestCase):
     def test_every_job_kind_in_check_sh_is_declared(self) -> None:
-        kinds = {m.group(1) for m in re.finditer(r"^\s*(?:unit|later)\s+\"?(unit-[a-z-]+|public-text|portal|static)\b",
-                                                 CHECK_SH, re.M)}
+        kinds = {m.group(1) for m in re.finditer(r"^\s*(?:unit|later)\s+\"?(unit-[a-z-]+|static)\b", CHECK_SH, re.M)}
         kinds |= {"unit-jmri", "unit-hosts", "unit-guards"}     # their names are built in a loop
+        kinds |= set(cs.pm.job_digests())                        # the jobs check.sh queues from the step manifest
         self.assertTrue(kinds)
         for kind in sorted(kinds):
             with self.subTest(kind=kind):
@@ -74,6 +76,14 @@ class DeclarationTest(unittest.TestCase):
     def test_a_placeholder_job_is_not_stampable(self) -> None:
         self.assertIsNone(cs.declared("unit-hart-ops skipped (no ops/hart-ops/.venv)"))
         self.assertIsNone(cs.declared("portal skipped in CI"))
+
+    def test_the_manifest_jobs_are_the_stampable_jobs_that_are_not_unit_tests(self) -> None:
+        """check_stamps.from_manifest says which jobs' keys hold manifest entries: exactly the manifest's jobs."""
+        theirs = {k for k in cs.BY_KIND if cs.from_manifest(k)}
+        self.assertEqual(theirs, set(cs.pm.job_digests()), "a job of tools/pipeline/checks.toml needs a BY_KIND "
+                                                           "declaration, and BY_KIND's other kinds are unit-*")
+        self.assertFalse(cs.from_manifest("portal skipped in CI"))
+        self.assertFalse(cs.from_manifest("unit-guards test_x"))
 
     def test_check_sh_is_an_input_of_every_job(self) -> None:
         for kind in cs.BY_KIND:
@@ -224,6 +234,13 @@ class StoreTest(unittest.TestCase):
         self.assertEqual(ignored.returncode, 0, "the stamp folder is not git-ignored")
 
 
+# A step manifest for the fake repos: the jobs check.sh runs from it (static, and three jobs of their own). Only
+# manifest.job_digests reads it here, which does not check paths against git or the map.
+MANIFEST = "".join(f'[[step]]\nname = "{name}"\nrunner = "check"\n{group}cmd = ["python3", "tools/{name}.py"]\n'
+                   for name, group in (("a", 'group = "static"\n'), ("b", 'group = "static"\n'), ("public-text", ""),
+                                       ("ruff", ""), ("portal", "")))
+
+
 class RepoCase(unittest.TestCase):
     """A fake repo with a store of its own; the job is a script run under the real trace hook."""
 
@@ -237,6 +254,8 @@ class RepoCase(unittest.TestCase):
                     "www/index.html", "docs/a.md", ".claude/worktrees/other/tools/y.py"):
             (self.root / rel).parent.mkdir(parents=True, exist_ok=True)
             (self.root / rel).write_text("v1\n")
+        (self.root / cs.MANIFEST).parent.mkdir(parents=True, exist_ok=True)
+        (self.root / cs.MANIFEST).write_text(MANIFEST)
         for target, value in (("plugin_state", "plugin"),):
             patch = unittest.mock.patch.object(cs.ps, target, return_value=value)
             patch.start()
@@ -608,6 +627,104 @@ class GitRefsTest(RepoCase):
         self.git("commit", "-q", "-m", "two")
         self.assertEqual(subprocess.run(status, cwd=self.root, capture_output=True, text=True).stdout, "")
         self.assertFalse(self.current(name), "the commit changed nothing in the tree, but HEAD moved")
+
+
+class ManifestKeyTest(RepoCase):
+    """A manifest job's key holds its own entries (tools/pipeline/checks.toml): an edit to one entry reruns that job
+    and no other, and a manifest that cannot be read leaves the job to run and record nothing."""
+    JOBS = ("static", "public-text", "ruff", "portal", "unit-hartlib", "unit-guards test_x")
+
+    def setUp(self) -> None:
+        super().setUp()
+        patch = unittest.mock.patch.object(cs.ps, "unstampable", return_value=None)
+        patch.start()
+        self.addCleanup(patch.stop)
+
+    def keys(self) -> dict[str, str]:
+        ck = cs.Checker(self.root, self.store)
+        return {name: cs.key(name, ck, [], []) for name in self.JOBS}
+
+    def edit(self, old: str, new: str) -> None:
+        path = self.root / cs.MANIFEST
+        text = path.read_text()
+        self.assertEqual(text.count(old), 1, old)
+        path.write_text(text.replace(old, new))
+
+    def rerun_after(self, old: str, new: str) -> list[str]:
+        before = self.keys()
+        self.edit(old, new)
+        after = self.keys()
+        return [name for name in self.JOBS if before[name] != after[name]]
+
+    def test_an_edited_cmd_reruns_its_own_job_only(self) -> None:
+        self.assertEqual(self.rerun_after('"tools/ruff.py"]', '"tools/ruff.py", "--fix"]'), ["ruff"])
+        self.assertEqual(self.rerun_after('"tools/b.py"]', '"tools/b.py", "--check"]'), ["static"])
+        self.assertEqual(self.rerun_after('"tools/portal.py"]', '"tools/portal2.py"]'), ["portal"])
+
+    def test_a_step_added_to_the_static_group_reruns_static_only(self) -> None:
+        self.assertEqual(self.rerun_after('[[step]]\nname = "public-text"',
+                                          '[[step]]\nname = "c"\nrunner = "check"\ngroup = "static"\n'
+                                          'cmd = ["python3", "tools/c.py"]\n[[step]]\nname = "public-text"'),
+                         ["static"])
+
+    def test_a_comment_reruns_nothing(self) -> None:
+        self.assertEqual(self.rerun_after('[[step]]\nname = "a"', '# why a\n[[step]]\nname = "a"'), [])
+
+    def test_check_sh_and_the_loader_rerun_every_job(self) -> None:
+        before = self.keys()
+        for rel in ("tools/check.sh", "tools/pipeline/manifest.py"):
+            (self.root / rel).write_text("edited\n")
+            after = self.keys()
+            self.assertEqual([n for n in self.JOBS if before[n] == after[n]], [], rel)
+            before = after
+
+    def test_the_stamp_follows_the_entry(self) -> None:
+        self.assertIsNone(self.record("ruff"))
+        self.assertIsNone(self.record("public-text"))
+        self.assertTrue(self.current("ruff"))
+        self.edit('"tools/ruff.py"]', '"tools/ruff.py", "--fix"]')
+        self.assertFalse(self.current("ruff"))
+        self.assertTrue(self.current("public-text"))
+        self.assertIn("the code, command", cs.why_not_current("ruff", self.root, self.store))
+
+    def test_an_entry_edited_while_the_job_ran_records_nothing(self) -> None:
+        before = cs.snapshot("ruff", self.root, self.store)
+        log = self.run_job()
+        self.edit('"tools/ruff.py"]', '"tools/ruff.py", "--fix"]')
+        self.assertIn("tools/pipeline/checks.toml changed while the job ran",
+                      cs.record("ruff", log, self.root, self.store, before=before))
+
+    def test_a_manifest_that_cannot_be_read_or_lacks_the_job_is_an_error_not_a_skip(self) -> None:
+        ck = cs.Checker(self.root, self.store)
+        self.assertNotIn("manifest=", cs.outside_state("unit-hartlib", ck))
+        self.edit('name = "ruff"', 'name = "ruff2"')
+        with self.assertRaisesRegex(cs.pm.ManifestError, "has no job 'ruff'"):
+            cs.outside_state("ruff", cs.Checker(self.root, self.store))
+        (self.root / cs.MANIFEST).write_text("[[step]\n")
+        with self.assertRaisesRegex(cs.pm.ManifestError, "not valid TOML"):
+            cs.outside_state("static", cs.Checker(self.root, self.store))
+        # a unit job does not read the manifest
+        self.assertNotIn("manifest=", cs.outside_state("unit-hartlib", cs.Checker(self.root, self.store)))
+
+    def test_the_batch_runs_a_job_whose_key_cannot_be_made_and_records_nothing(self) -> None:
+        out = self.tmp / "batch"
+        out.mkdir()
+        (self.root / cs.MANIFEST).unlink()
+        self.assertEqual(cs.current_batch(["ruff", "unit-hartlib"], out, why=False, root=self.root, store=self.store),
+                         [2, 1])
+        self.assertIn("checks.toml: cannot read it", (out / "0.stamplog").read_text())
+
+    def test_the_command_line_says_so_without_a_traceback(self) -> None:
+        self.assertIsNone(self.record("static"))           # a stamp, so `why` works out the key
+        (self.root / cs.MANIFEST).write_text("[[step]\n")
+        err = io.StringIO()
+        real = cs.Checker
+        with unittest.mock.patch.object(cs, "Checker", lambda *a, **k: real(self.root, self.store)), \
+                contextlib.redirect_stderr(err):
+            rc = cs.main(["why", "static"])
+        self.assertEqual(rc, 2)
+        self.assertIn("check_stamps.py: not stamped:", err.getvalue())
+        self.assertIn("not valid TOML", err.getvalue())
 
 
 class CheckShCacheTest(unittest.TestCase):

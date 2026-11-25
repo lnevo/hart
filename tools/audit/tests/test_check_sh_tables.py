@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import ast
+import importlib.util
 import os
 import re
 import subprocess
@@ -9,6 +10,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
 CHECK = ROOT / "tools/check.sh"
@@ -146,20 +148,29 @@ class StaticPanelChecks(unittest.TestCase):
     """The static job checks the panel outputs through build_panels.sh --check, one list for check.sh and make panels,
     and its run() puts that bash run into the job's trace as a program the hook cannot see."""
 
-    def static_runs(self) -> list[str]:
+    @staticmethod
+    def static_steps() -> list:
+        """The static job's checks: the steps of the static group in tools/pipeline/checks.toml (check.sh runs them)."""
+        spec = importlib.util.spec_from_file_location("check_sh_tables_manifest", ROOT / "tools/pipeline/manifest.py")
+        manifest = importlib.util.module_from_spec(spec)
+        with mock.patch.dict(sys.modules, {spec.name: manifest}):      # its dataclasses look their module up there
+            spec.loader.exec_module(manifest)
+            return list(manifest.select(manifest.load(), "check", group="static"))
+
+    @staticmethod
+    def static_body() -> str:
         text = CHECK.read_text(encoding="utf-8")
-        body = text[text.index("\nstatic_checks() {\n"):text.index("\nlater static static_checks\n")]
-        return [line for line in body.splitlines() if line.startswith("run ")]
+        return text[text.index("\nstatic_lines() {\n"):text.index("\nlater static static_checks\n")]
 
     def test_static_checks_the_panel_outputs_once_through_their_pipeline(self) -> None:
-        runs = self.static_runs()
-        self.assertTrue(any(r.startswith("run panels bash tools/schematic/build_panels.sh --check") for r in runs))
-        steps = re.findall(r"^(?:step|guard) [a-z-]+ python3 (\S+\.py)", (ROOT / "tools/schematic/build_panels.sh")
+        steps = self.static_steps()
+        self.assertIn(("panels", ("bash", "tools/schematic/build_panels.sh", "--check")),
+                      [(s.name, s.cmd) for s in steps])
+        panel = re.findall(r"^(?:step|guard) [a-z-]+ python3 (\S+\.py)", (ROOT / "tools/schematic/build_panels.sh")
                            .read_text(encoding="utf-8"), re.M)
-        self.assertGreaterEqual(len(steps), 16, "build_panels.sh's step lines were not found")
-        for script in steps:
-            for line in runs:
-                self.assertNotIn(f" {script}", line, "a panel step checked twice: build_panels.sh --check runs it")
+        self.assertGreaterEqual(len(panel), 16, "build_panels.sh's step lines were not found")
+        scripts = {s.script for s in steps}
+        self.assertEqual([], sorted(set(panel) & scripts), "a panel step checked twice: build_panels.sh --check runs it")
 
     @staticmethod
     def caller_block() -> str:
@@ -235,13 +246,14 @@ class StaticPanelChecks(unittest.TestCase):
             self.assertEqual(1, traced.parse(log).expected_roots)
 
     def test_a_run_that_skips_no_job_skips_no_panel_step(self) -> None:
+        """The panels step gets --full when stamps are off (tools/audit/tests/test_pipeline_manifest.py runs it)."""
         text = CHECK.read_text(encoding="utf-8")
-        body = text[text.index("\nstatic_checks() {\n"):text.index("\nlater static static_checks\n")]
+        body = self.static_body()
         self.assertIn("(( STAMPS )) || panels_full=(--full)", body)
         self.assertLess(text.index("if [[ -n \"${CI:-}\" || \"${FULL:-}\" == 1 || -n \"${CHECK_AUDIT:-}\" ]]; then STAMPS=0; fi"),
-                        text.index("\nstatic_checks() {\n"))
-        self.assertIn('run panels bash tools/schematic/build_panels.sh --check ${panels_full[@]+"${panels_full[@]}"}',
-                      self.static_runs())
+                        text.index("\nstatic_lines() {\n"))
+        self.assertIn('[[ "${line%% *}" == panels ]]', body)
+        self.assertIn("eval \"run $line\"' ${panels_full[@]+\"${panels_full[@]}\"}'", body)
 
 
 class LayoutIndexSource(unittest.TestCase):
