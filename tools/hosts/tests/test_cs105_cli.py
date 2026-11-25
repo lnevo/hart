@@ -25,7 +25,7 @@ case "$last" in
   "test -f /tmp/jmri_cmd.py") exit 1 ;;
   "test -f /tmp/jmri_cmd.out") exit 0 ;;
   "cat /tmp/jmri_cmd.out") printf 'ok\\nstarted\\n' ;;
-  "cat /tmp/cs105_consist.log 2>/dev/null") cat "$FAKE_PI/consist.log" ;;
+  "cat /tmp/cs105_consist."*".log 2>/dev/null") cat "$FAKE_PI/consist.log" ;;
 esac
 exit 0
 """
@@ -98,7 +98,8 @@ class Cs105Cli(unittest.TestCase):
         self.assertTrue(self.dropped().startswith(
             'CS105_APPLY=True\nCS105_RENAME=True\nCS105_ONLY="1993,572"\nCS105_NAMES="road"\n'))
         self.assertTrue(self.dropped().endswith(ROSTER.read_text(encoding="utf-8")))
-        self.assertEqual(self.run_cli("roster-sync", "--force").returncode, 2)
+        for args in (("--force",), ("--names", "full"), ("--only", '1993"; import os'), ("--only",)):
+            self.assertEqual(self.run_cli("roster-sync", *args).returncode, 2, args)
 
     # consist
 
@@ -107,7 +108,7 @@ class Cs105Cli(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stderr)
         head = 'ACTION = "query"\nNODES = ["06.01.00.00.C8.49", "06.01.00.00.CA.B2", ]\n'
         self.assertTrue(self.dropped().startswith(head), self.dropped()[:200])
-        self.assertIn('LOGF = "/tmp/cs105_consist.log"\n', self.dropped())
+        self.assertRegex(self.dropped(), r'\nLOGF = "/tmp/cs105_consist\.\d{14}\.\d+\.log"\n')
         self.assertTrue(self.dropped().endswith(CONSIST.read_text(encoding="utf-8")))
         self.assertIn("06.01.00.00.C8.49 listeners: 1\nEND", done.stdout)
 

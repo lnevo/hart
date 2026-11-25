@@ -23,7 +23,7 @@ source "$(cd "$(dirname "$0")/../env" && pwd)/load_env.sh"  # hosts: environment
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 PI_HOST="$HART_PI_SSH"
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
-CONSIST_LOG=/tmp/cs105_consist.log
+CONSIST_LOG="/tmp/cs105_consist.$(date +%Y%m%d%H%M%S).$$.log"   # one per run: an earlier run's thread cannot end this one
 DROP=""   # the script with its settings, built on the Mac
 trap '[[ -z "$DROP" ]] || rm -f "$DROP"' EXIT
 
@@ -69,8 +69,12 @@ cmd_roster_sync() {
     case "$1" in
       --apply) apply=True ;;
       --rename) rename=True ;;
-      --only) [[ $# -ge 2 ]] || die "--only needs a list"; only="$2"; shift ;;
-      --names) [[ $# -ge 2 ]] || die "--names needs id or road"; names="$2"; shift ;;
+      --only)   # goes into the dropped script's source, so plain ids only
+        [[ $# -ge 2 && "$2" =~ ^[0-9A-Za-z,.\ ]+$ ]] || die "--only needs a list of roster ids or numbers (1993,572)"
+        only="$2"; shift ;;
+      --names)
+        [[ $# -ge 2 && ( "$2" == id || "$2" == road ) ]] || die "--names needs id or road"
+        names="$2"; shift ;;
       -h|--help) usage; exit 0 ;;
       *) echo "unknown option: $1" >&2; exit 2 ;;
     esac

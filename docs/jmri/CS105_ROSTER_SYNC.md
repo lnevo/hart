@@ -45,7 +45,7 @@ tools/ops/cs105.sh consist attach 06.01.00.00.CA.B2 06.01.00.00.C8.49 --flags 2
 tools/ops/cs105.sh consist detach 06.01.00.00.C8.49 06.01.00.00.CA.B2      # drop the listener on both, query both
 ```
 
-Drops `jmri/layouts/hart/scripts/cs105_consist.py` with its settings into the same channel and prints its log (`/tmp/cs105_consist.log` on the Pi, ending with `END`). A consist takes one attach per side. Flags: 0x02 reverse, 0x04 link F0, 0x08 link the other functions; the default 6 runs the follower in reverse with its headlight on the lead's F0. A train node is six hex bytes: long address n is `06.01.00.00.(C0+high).low`. The command sends LCC Train Control messages, so it is refused while the operating flag is set (`tools/hosts/operating.sh`), with no override.
+Drops `jmri/layouts/hart/scripts/cs105_consist.py` with its settings into the same channel and prints its log (`/tmp/cs105_consist.<time>.<pid>.log` on the Pi, one per run, ending with `END`). A consist takes one attach per side. Flags: 0x02 reverse, 0x04 link F0, 0x08 link the other functions; the default 6 runs the follower in reverse with its headlight on the lead's F0. A train node is six hex bytes: long address n is `06.01.00.00.(C0+high).low`. The command sends LCC Train Control messages, so it is refused while the operating flag is set (`tools/hosts/operating.sh`), with no override.
 
 ## Doing it by hand in JMRI
 

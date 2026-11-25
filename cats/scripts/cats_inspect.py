@@ -26,6 +26,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 EDGES = ("LEFT", "RIGHT", "TOP", "BOTTOM")
 
+
+def load(path: Path) -> tuple[ET.Element, ET.Element]:
+    """(root, TRACKPLAN) of a panel; a file with no TRACKPLAN (not a CATS panel) stops with exit 1."""
+    root = ET.parse(path).getroot()
+    tp = root.find("TRACKPLAN")
+    if tp is None:
+        sys.exit(f"cats_inspect.py: no TRACKPLAN in {path}: not a CATS panel")
+    return root, tp
+
+
 # ---- edges ---------------------------------------------------------------------------------------------------------
 
 OPP = {
@@ -71,7 +81,7 @@ def tracks_of(sec: ET.Element) -> list[str]:
 
 
 def analyze(path: Path) -> Counter:
-    root = ET.parse(path).getroot()
+    root, _ = load(path)
     secs = sections(root)
     pairs: Counter = Counter()
     problems: list[str] = []
@@ -154,8 +164,7 @@ def routes(e: ET.Element) -> str:
 
 
 def dump(path: Path) -> None:
-    root = ET.parse(path).getroot()
-    tp = root.find("TRACKPLAN")
+    root, tp = load(path)
     print("=" * 78)
     print(f"{path}  WIDTH={root.get('WIDTH')} HEIGHT={root.get('HEIGHT')} {tp.attrib}")
     cells = []
@@ -191,7 +200,7 @@ def cmd_grid(args: argparse.Namespace) -> int:
 def cmd_trace(args: argparse.Namespace) -> int:
     import digicon_trace as trace  # needs cats/scripts on the path (above) and tools/hartlib (digicon_lib finds it)
 
-    cells = trace.track_cells(ET.parse(args.panel).getroot().find("TRACKPLAN"))
+    cells = trace.track_cells(load(Path(args.panel))[1])
     if args.x is not None:
         xy = (args.x, args.y)
         if xy not in cells:

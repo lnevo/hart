@@ -86,6 +86,14 @@ class Dispatch(unittest.TestCase):
             cats_inspect.main([])
         self.assertEqual(e.exception.code, 2)
 
+    def test_a_file_with_no_trackplan_says_so(self) -> None:
+        other = Path(self.tmp.name) / "tables.xml"
+        other.write_text("<layout-config/>", encoding="utf-8")
+        for cmd in ("edges", "grid", "trace"):
+            with self.assertRaises(SystemExit) as e:
+                cats_inspect.main([cmd, str(other)])
+            self.assertIn("no TRACKPLAN", str(e.exception.code))
+
     def test_the_panel_is_not_written(self) -> None:
         before = self.panel.read_bytes()
         for cmd in ("edges", "grid", "trace"):
