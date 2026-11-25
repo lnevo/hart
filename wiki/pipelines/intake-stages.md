@@ -65,7 +65,7 @@ The Pi-side import is untested against live JMRI. Run the plan first and watch t
 
 ## 5. Cards and public pages
 
-- `bin/cars cards` builds one print file for cars and locomotives; print, then `bin/cars cards --mark-printed`. `--trains` appends six train cards (D749, NVL, CK1, Route 23, OCS-1, EXTRA; `card_pipeline/train_cards.py`) to fill the last sheet; they are not in the queue. Loco cards come from `data/locos.csv` (road, number, model, length, maker), so they can be built before stage 4 publishes the engine.
+- `bin/cars cards` builds one print file for cars and locomotives; print, then `bin/cars cards --mark-printed`. `--trains` appends six train cards (D749, NVL, CK1, Route 23, OCS-1 (office car special, the top-priority passenger train), EXTRA; `card_pipeline/train_cards.py`) to fill the last sheet; they are not in the queue. Loco cards come from `data/locos.csv` (road, number, model, length, maker), so they can be built before stage 4 publishes the engine.
 - `bin/cars site` shows the new photographed cars and locos missing from the public gallery (`www/data/fleet-gallery.json`); `--apply` adds them, with captions from the card text. It never adds an entry containing the private name. A clean run means the gallery is up to date. A description that only repeats the car type is left out of the caption (`CSX · Hopper · 40'`).
 - Merge the gallery to `main`, update the main checkout, then run `./www/scripts/deploy_hartrailroad.sh` **from the main checkout**: the build needs the photo mirrors (`www/README.md`), which a worktree lacks, and without them the Rolling stock albums drop out. The build prints the fleet item count (83 to 93 for ten cars); check one new image on the live site.
 - Update `wiki/STATUS.md`.
