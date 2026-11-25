@@ -158,39 +158,51 @@ anything else fails, and a `KNOWN` entry that no longer happens fails.
 ### `hartlib.devices`
 
 The device master for all three levels (ADR-029) is two files since 2026-11-21 (the amendment):
-`devices_generated.csv`, every row the builders make, and `devices_field.csv`, the owner's cells (`FIELD_COLUMNS`)
-keyed by (level, layer, user_name), plus a Store's level-less devices in full. `load()` and `index()` merge them (a
-non-empty field cell wins; a keyed field row with no generated row stops; a field `jmri_comment` with `{occupancy}`
-is the builder's to fill from `wiring.csv`), cached on both files' bytes. `field_index()` is a builder's one source
-of the owner's cells; `allocated_names()` its one read-back of its own output (the numbers it gave). `write_generated`
-and `write_field` are the only text writers; `one_file_copy` and `pair_copy` make a test's copy.
-`devices.columns.csv` (`column,file,description`) describes every column and which file may hold it, and a test holds
-the two to each other both ways. Every row with a level carries an `id` (ADR-033): a key derived from the plan, not from
-its name, unique on its level (`hartlib.device_ids` holds the grammar). A field block row may carry the same `id`: it
-is the key the owner's track name is kept by, and the merge stops when it is not the generated row's (a track that
-moved in a new export). `hartlib.track_names` is the name store (ADR-033 decision 2, naming-layers step 3): those
-rows' names reach the schematic plugin's `name` and `end` edits and `left_end` when `layer_files.view` merges the
-plan view, each track found in the plan graph by its ID's switch labels and legs, so `plan_overrides.json` holds no
-track name (`track_names.hand_problems`, which every merge runs). Staging, main and upper are one structure,
-a level differs in column values only. Every reader gets its rows from here (R9b-2, 2026-11-20): `load()` (the
-master rows) and `device_map_lines` (the old device-map rows of some levels, plus `role`); `comment_of(row)` is a row's
-JMRI comment. The two device maps and `public_name_map.csv` are gone (R9e, 2026-11-20), and so are the six `pnm_`
-columns that kept the name map's copy (2026-11-21): their facts are in `cp`, `system_name`, `dcc`, `wiring`,
-`jmri_comment` and `notes`. Readers test `role`, never a name prefix.
+`devices_generated.csv`, every row the builders make, and `devices_field.csv`, the owner's cells (`FIELD_COLUMNS`),
+each row keyed by its device ID on its level (`KEY`: level, id; naming-layers step 4) and holding its layer, plus a
+Store's level-less devices in full (keyed by layer and user name; `key_of`). The field `user_name` is an owner's cell
+like the rest: it wins over the generated name, and a rename touches no key. `load()` and `index()` merge them (a
+non-empty field cell wins; a field row whose ID no generated row has stops, decision 3; a field `jmri_comment` with
+`{occupancy}` is the builder's to fill from `wiring.csv`), cached on both files' bytes. `field_index()` is a builder's
+one source of the owner's cells, `{(level, id): row}`; `allocated_names()` its one read-back of its own output (the
+numbers it gave). `write_generated` and `write_field` are the only text writers; `one_file_copy` and `pair_copy` make
+a test's copy. `devices.columns.csv` (`column,file,description`) describes every column and which file may hold it,
+and a test holds the two to each other both ways. Every row with a level carries an `id` (ADR-033): a key derived from
+the plan, not from its name, unique on its level (`hartlib.device_ids` holds the grammar). `hartlib.track_names` is
+the name store (ADR-033 decision 2, naming-layers step 3): the field block rows with a track ID (`block:...`) and a
+name reach the schematic plugin's `name` and `end` edits and `left_end` when `layer_files.view` merges the plan view,
+each track found in the plan graph by its ID's switch labels and legs, so `plan_overrides.json` holds no track name
+(`track_names.hand_problems`, which every merge runs). Staging, main and upper are one structure, a level differs in
+column values only. Every reader gets its rows from here (R9b-2, 2026-11-20): `load()` (the master rows) and
+`device_map_lines` (the old device-map rows of some levels, plus `role`); `comment_of(row)` is a row's JMRI comment.
+The two device maps and `public_name_map.csv` are gone (R9e, 2026-11-20), and so are the six `pnm_` columns that kept
+the name map's copy (2026-11-21): their facts are in `cp`, `system_name`, `dcc`, `wiring`, `jmri_comment` and
+`notes`. Readers test `role`, never a name prefix.
 
 - `assignment` is `field`, `virtual`, `none` or `spare`; `role` says what the device is; `written_by` is a script in
   `devices.WRITERS` (the one list) on every row with a level, empty only on a Store's level-less row. A writer
-  replaces only its own rows and stops, naming the row, on a key someone else holds.
-- `load()` reads and checks once per file state; `check_rows` holds the invariants (unique key, written_by and
-  assignment in their sets, field rows `system_name == jmri_name`, order, one comment per row, a description on every
-  row). Row order is level, layer, then each writer's; a Store's level-less rows come last. Messages name a row by
-  its key and file (`at(row)`: "devices_field.csv: Track 12 (level 1, block)"), never a line.
+  replaces only its own rows and stops, naming the row, on an ID or a name someone else holds.
+- `load()` reads and checks once per file state; `check_rows` holds the invariants (a name and an id unique on their
+  level, written_by and assignment in their sets, field rows `system_name == jmri_name`, order, one comment per row, a
+  description on every row). Row order is level, layer, then each writer's; a Store's level-less rows come last.
+  Messages name a row by its name (`row_text`, `at(row)`: "devices_field.csv: Track 12 (level 1, block)"), never a
+  line.
 - Writers call `outputs_after(writer, old_form_rows)` (or `outputs_after_rows` with master rows) and write the texts it
-  gives: the generated file's text, the field file's cells left empty (`unmerge`). It refuses a row that overrides a
-  field cell or drops a key the field file names. Nothing is written until every check has passed.
+  gives: the generated file's text, the field file's cells left empty (`unmerge`; the id and user name stay, so the
+  generated file names every row). It refuses a row that overrides a field cell, a name other than the field row's
+  (that builder does not take the owner's name), or drops an ID the field file holds cells for. Nothing is written
+  until every check has passed.
+- `hartlib.device_changes` holds each write to the last generated file by ID and says what changes (to stderr, or a
+  `warn` callable): the new and gone IDs per level and layer; a gone ID with owner's cells stops (decision 3), listing
+  the new IDs of its level and layer; a rename lists the lines of the repo's Operations Pro files that hold the old name
+  (decision 5; nothing rewrites them, STS is not checked); a mast rename warns that it needs a new SML discovery and the
+  owner's panel approval (decision 6).
 - `python3 -m hartlib.devices check`. Errors are `DevicesError` (a `FactsError`).
-- Staging (`FIELD_LEVEL`, level 1) is the field: each of its devices has a field row (its identity, role and
-  assignment, and the owner's cells), the input its builder iterates; a spare detector is `wiring.csv`'s alone. A line block (`LINE_ROLES`) and its sensor list in `cp` the places it joins, `;` between (`build_device_map.line_cp`); any other row has one control point at most, and `check_rows` holds it.
+- Staging (`FIELD_LEVEL`, level 1) is the field: each of its devices has a field row (its id, name, role and
+  assignment, and the owner's cells), the input its builder iterates and finds by id (`staging_field`); a turnout,
+  alias or feedback row's `wiring.csv` row is found by the generated name its id gives (`wired_name`), so the owner may
+  rename it; a spare detector is `wiring.csv`'s alone. Main and upper builders do not take an owner's name yet (step 7).
+  A line block (`LINE_ROLES`) and its sensor list in `cp` the places it joins, `;` between (`build_device_map.line_cp`); any other row has one control point at most, and `check_rows` holds it.
 - A device's kind comes from its row, never from its name (hand-off row 8): `row_role(row, where)` is a row's `role`
   and stops with a `DevicesError` naming `where` (file and key) when the row has none; `is_os(row)` says whether a block
   or occupancy row runs through a switch's points (`OS_ROLES`: `os`, `xover_corner`). A reader that holds only a name
