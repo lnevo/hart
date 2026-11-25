@@ -1,14 +1,15 @@
 # The read-only checks tools/check.sh runs, one [[step]] each (ADR-037, docs/pipeline-map/build-graph-design.md).
 # tools/check.sh and tools/ci/docs_checks.sh run what is listed here, through `tools/pipeline/manifest.py jobs check`;
 # a file that does not load, or a list with no step, stops them before any job. To add a check, add a [[step]] and run
-# `python3 tools/pipeline/manifest.py check` (docs/pipeline-map/checks-and-remote.md). Each job's stamp key holds its
-# own entries (all of the static group's for "static"), so an edit here reruns only the job it changes.
+# `python3 tools/pipeline/manifest.py check` (docs/pipeline-map/checks-and-remote.md). Every step is a job of its own
+# under its name (ADR-037 stage 4b), and each job's stamp key holds its own entry, so an edit here reruns only the job
+# it changes.
 #
 # Fields (manifest.py checks each one and refuses any other):
 #   name        the job name as check.sh prints it; stamps key on it, so a rename reruns the check once
 #   runner      "check" (a tools/check.sh job)
-#   group       "static" for the checks that run one after another as check.sh's one "static" job, in this order; a
-#               step without a group is a job of its own (public-text, ruff, portal)
+#   group       "static" for the read-only checks check.sh queues ahead of the unit tests (python3 or bash); a step
+#               without a group is queued after them and may run "{python}" (public-text, ruff, portal)
 #   cmd         argv. "{python}" is check.sh's $HOPS_PY (ops/hart-ops/.venv's Python, which has pypdf). A
 #               "PYTHONPATH=dir" word after "env" keeps the caller's PYTHONPATH after dir, as check.sh does (the trace
 #               hook is on it); the -m module must be a file under dir
@@ -16,6 +17,12 @@
 #               name and text: the map draws each step's script as a box, with its inputs, outputs and an edge to
 #               tools/check.sh, from this file (tools/pipeline/map_lane.py, "gen": "manifest" in the map); one box
 #               per script, so two steps may not run one script; each input and output must be a box of the map
+#   git         the git refs the job's stamp key holds, so that it reruns when one moves: "head" (HEAD), "base" (its
+#               merge base with origin/main), "origin" (origin/main); [] for none. Required, so each step says it. A
+#               read-only git command the step runs is replayed at compare time whatever this says; a ref is for what
+#               the trace cannot replay: git read by bash or by a file under .git, a clone of HEAD. ["head", "base"]
+#               until the step's trace shows it reads git only through commands it replays, then [] with the reason
+#               in a comment (check_stamps.py: a wrongly skipped check is the worst failure here)
 #   docs_only   also run on the docs-only path (tools/ci/docs_checks.sh)
 #   inputs      what the step reads, as map edges into its script: a path or glob, or { path, label, side }, side
 #               one of the map's edge sides ("check": a check or comparison reads it)
@@ -35,6 +42,9 @@ name = "phase02"
 runner = "check"
 group = "static"
 cmd = ["python3", "jmri/scripts/check_hart_phase02.py"]
+# git = []: its trace (2026-11-25) shows one Python process that runs no git and opens nothing under .git, so
+# its read set holds all it reads; HEAD in its key only reran it after every commit (ADR-037 stage 4b)
+git = []
 domain = "layout"
 label = "check_hart_phase02.py"
 desc = "Acceptance checks for phases 0-2: tables.xml against the device master (devices_generated.csv and devices_field.csv) and switches.csv (check.sh phase02)."
@@ -50,6 +60,7 @@ name = "tables-browser"
 runner = "check"
 group = "static"
 cmd = ["python3", "www/scripts/build_tables_browser.py", "--check"]
+git = ["head", "base"]
 domain = "website"
 label = "build_tables_browser.py"
 desc = "Writes tables-browser.json (allowlisted fields) and fills regions of behind/tables-file.html via tables_page.py; --check."
@@ -68,6 +79,7 @@ name = "repo-guide"
 runner = "check"
 group = "static"
 cmd = ["python3", "www/scripts/repo_guide_page.py", "--check"]
+git = ["head", "base"]
 domain = "website"
 label = "repo_guide_page.py"
 desc = "Fills lists and counts on library/repository-guide.html from the repo's folders, submodules and modules; --check."
@@ -84,6 +96,7 @@ name = "pipeline-map"
 runner = "check"
 group = "static"
 cmd = ["python3", "tools/ops/build_pipeline_map.py", "--check"]
+git = ["head", "base"]
 domain = "extras"
 label = "build_pipeline_map.py"
 desc = "Checks pipeline_map.json is current and that both map pages build; --check writes nothing. The pages are built, not committed (ADR-036): make map locally, the site build for the website."
@@ -107,6 +120,7 @@ name = "pipeline-map-coverage"
 runner = "check"
 group = "static"
 cmd = ["python3", "tools/ops/pipeline_map_coverage.py"]
+git = ["head", "base"]
 domain = "extras"
 label = "pipeline_map_coverage.py"
 desc = "check.sh pipeline-map-coverage: fails when a script the Makefile, make panels or a deploy runs, or a file in an output folder or an agent doc, is not in pipeline_map.json (check.sh's checks are boxes by construction: the manifest lane)."
@@ -122,6 +136,7 @@ name = "jmri-additions"
 runner = "check"
 group = "static"
 cmd = ["python3", "www/scripts/jmri_additions_page.py", "--check"]
+git = ["head", "base"]
 domain = "website"
 label = "jmri_additions_page.py"
 desc = "Fills counts and host lists on behind/jmri-additions.html from tables.xml, the device master (devices_generated.csv and devices_field.csv) and host scripts; --check."
@@ -140,6 +155,7 @@ name = "layout-index"
 runner = "check"
 group = "static"
 cmd = ["python3", "www/scripts/build_layout_index.py", "--check"]
+git = ["head", "base"]
 domain = "website"
 label = "build_layout_index.py"
 desc = "Builds layout-index.json (hotspots, devices, MQTT, CPs) and the schematic PNG from tables.xml, stations.csv and LE geometry; --check."
@@ -160,6 +176,7 @@ name = "layout-docs"
 runner = "check"
 group = "static"
 cmd = ["python3", "www/scripts/build_layout_docs.py", "--check"]
+git = ["head", "base"]
 domain = "website"
 label = "build_layout_docs.py"
 desc = "Writes behind/layout-docs.html from layout_docs_template.html, with the section list from block_lengths.csv (by level and id) and the track and switch names and DCC addresses from the device master, so a rename in devices_field.csv reaches the page, and the station names from stations.csv; fills the lengths, the siding's 50 ft cars at the plan's scale (plan_overrides.json) and the crossovers its text states; checks drawing D2's section count, plans P3 and P4's lengths, the plans' switch numbers and the drawings' station labels (data-station) against stations.csv; --check. Drawings and photos are its own files (the frozen SOQ is not read)."
@@ -182,6 +199,7 @@ name = "layout-index-cats"
 runner = "check"
 group = "static"
 cmd = ["python3", "www/scripts/build_cats_layout_index.py", "--check"]
+git = ["head", "base"]
 domain = "website"
 label = "build_cats_layout_index.py"
 desc = "Builds Digicon/CATS device-map hotspots and panel PNG from HART_CTC.xml, joined to layout-index.json."
@@ -199,6 +217,7 @@ name = "wiring-json"
 runner = "check"
 group = "static"
 cmd = ["python3", "www/scripts/build_wiring_json.py", "--check"]
+git = ["head", "base"]
 domain = "website"
 label = "build_wiring_json.py"
 desc = "Builds the website wiring viewer JSON from the v86 inventory; tools/check.sh fails while stale."
@@ -214,6 +233,7 @@ name = "track-lengths"
 runner = "check"
 group = "static"
 cmd = ["python3", "jmri/layouts/hart/scripts/export_track_lengths.py", "--check"]
+git = ["head", "base"]
 domain = "layout"
 label = "export_track_lengths.py"
 desc = "Track length export (check: track-lengths) reading levels data."
@@ -229,6 +249,7 @@ name = "speedmatch-routes"
 runner = "check"
 group = "static"
 cmd = ["python3", "jmri/layouts/hart/scripts/speedmatch/build_routes.py", "--check"]
+git = ["head", "base"]
 domain = "layout"
 label = "speedmatch/build_routes.py"
 desc = "Writes speedmatch/routes.json, each test route's block sensor and block pairs, from tables.xml and analyze.py's route lists."
@@ -247,6 +268,7 @@ name = "panel-contracts"
 runner = "check"
 group = "static"
 cmd = ["python3", "jmri/layouts/hart/scripts/audit_panel_contracts.py", "--strict"]
+git = ["head", "base"]
 domain = "layout"
 label = "audit_panel_contracts.py"
 desc = "Audits tables.xml panel contracts; also run at deploy."
@@ -264,6 +286,7 @@ name = "baselines"
 runner = "check"
 group = "static"
 cmd = ["python3", "jmri/layouts/hart/scripts/capture_public_name_baseline.py", "--check"]
+git = ["head", "base"]
 domain = "layout"
 label = "capture_public_name_baseline.py"
 desc = "Snapshots user names and bindings from tables.xml (and the CATS CTC panel) into data/baselines before a rename; --check in check.sh."
@@ -282,6 +305,7 @@ name = "digicon-disabled"
 runner = "check"
 group = "static"
 cmd = ["python3", "jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py", "--check"]
+git = ["head", "base"]
 domain = "layout"
 label = "disable_digicon_sml_in_tables.py"
 desc = "Deploy gate: --check that Digicon masts' logic is stored disabled in tables.xml."
@@ -297,6 +321,7 @@ name = "status-counts"
 runner = "check"
 group = "static"
 cmd = ["python3", "tools/ops/status_counts.py", "--check"]
+git = ["head", "base"]
 domain = "extras"
 label = "status_counts.py"
 desc = "Rewrites the Counts line of wiki/STATUS.md from tables.xml masts/SML and dispatcher traininfo; --check in tools/check.sh."
@@ -323,6 +348,7 @@ runner = "check"
 group = "static"
 # check.sh adds --full when its stamps are off (CI, FULL=1, an audit run): the panel steps skip nothing then
 cmd = ["bash", "tools/schematic/build_panels.sh", "--check"]
+git = ["head", "base"]
 domain = "layout"
 label = "build_panels.sh (make panels)"
 desc = "make panels: runs the schematic builders and guards in order (hands to CATS: head-plan and panel-items steps and the sml-current guard included), skipping a step whose stamped inputs are unchanged (FULL=1 runs all)."
@@ -340,6 +366,7 @@ name = "levels-svg"
 runner = "check"
 group = "static"
 cmd = ["python3", "tools/anyrail/levels_svg.py", "--check"]
+git = ["head", "base"]
 domain = "layout"
 label = "levels_svg.py / levels_page.py"
 desc = "Reads the .any plan and writes per-level SVGs and levels_meta.json; --check by tools/check.sh; skipped where plan is absent."
@@ -355,6 +382,7 @@ name = "levels-page"
 runner = "check"
 group = "static"
 cmd = ["python3", "tools/anyrail/levels_page.py", "--check"]
+git = ["head", "base"]
 domain = "layout"
 label = "levels_page.py"
 desc = "Renders the Build track-plan article from level SVGs, block_lengths, the helix tracks (plan_overrides, track_labels) and speedmatch routes; --check in tools/check.sh."
@@ -375,6 +403,7 @@ name = "wiring-v86"
 runner = "check"
 group = "static"
 cmd = ["python3", "tools/wiring/write_inventory.py", "--check"]
+git = ["head", "base"]
 domain = "wiring"
 label = "write_inventory.py"
 desc = "Writes LCOS_Layout_Inventory_v86.xlsx from scratch for every level; --check run by tools/check.sh (wiring-v86)."
@@ -396,6 +425,9 @@ name = "sml-invariants"
 runner = "check"
 group = "static"
 cmd = ["python3", "tools/audit/check_sml_invariants.py"]
+# git = []: its trace (2026-11-25) shows one Python process that runs no git and opens nothing under .git, so
+# its read set holds all it reads; HEAD in its key only reran it after every commit (ADR-037 stage 4b)
+git = []
 domain = "extras"
 label = "check_sml_invariants"
 desc = "Audit of signal mast logic invariants in tables.xml."
@@ -410,6 +442,9 @@ name = "parked"
 runner = "check"
 group = "static"
 cmd = ["env", "PYTHONPATH=tools/hartlib/src", "python3", "-m", "hartlib.parked", "check"]
+# git = []: its trace (2026-11-25) shows one Python process that runs no git and opens nothing under .git, so
+# its read set holds all it reads; HEAD in its key only reran it after every commit (ADR-037 stage 4b)
+git = []
 domain = "layout"
 label = "hartlib parked.py"
 desc = "Defines the parked features (nx, dispatcher, uss); lists folders and jython the deploy skips; checks tables.xml against tables_parked.xml."
@@ -423,6 +458,7 @@ name = "mqtt-static"
 runner = "check"
 group = "static"
 cmd = ["python3", "tools/audit/check_mqtt_no_static_lists.py"]
+git = ["head", "base"]
 domain = "extras"
 label = "check_mqtt_no_static_lists"
 desc = "Audit: signal_coordinator and build_hart_signal_heads contain no static MQTT head lists."
@@ -441,6 +477,7 @@ name = "data-readers"
 runner = "check"
 group = "static"
 cmd = ["python3", "tools/audit/check_data_readers.py"]
+git = ["head", "base"]
 domain = "extras"
 label = "check_data_readers"
 desc = "Audit: no script outside hartlib names a layout data file (jmri/layouts/hart/data/) but the pairs it allows, each with its reason; Jython inside JMRI reads only generated outputs."
@@ -450,6 +487,7 @@ name = "wiring-crosswalk"
 runner = "check"
 group = "static"
 cmd = ["python3", "tools/audit/check_wiring_crosswalk.py"]
+git = ["head", "base"]
 domain = "extras"
 label = "check_wiring_crosswalk"
 desc = "Audit: each physical mast head matches wiring.csv; staging and main/upper heads match mast csvs and tables.xml."
@@ -467,6 +505,7 @@ name = "wiring-frozen"
 runner = "check"
 group = "static"
 cmd = ["python3", "tools/wiring/check_wiring_frozen.py"]
+git = ["head", "base"]
 domain = "wiring"
 label = "check_wiring_frozen.py"
 desc = "Audits wiring.csv against the form the wiring freeze left it in; writes nothing."
@@ -481,6 +520,7 @@ name = "layout-facts"
 runner = "check"
 group = "static"
 cmd = ["python3", "tools/audit/check_layout_facts.py"]
+git = ["head", "base"]
 domain = "extras"
 label = "check_layout_facts"
 desc = "Audit: switches.csv, the device master (devices_generated.csv and devices_field.csv), tables.xml and CATS desk panels agree."
@@ -501,6 +541,9 @@ name = "railroad-facts"
 runner = "check"
 group = "static"
 cmd = ["env", "PYTHONPATH=tools/hartlib/src", "python3", "-m", "hartlib.railroad", "check"]
+# git = []: its trace (2026-11-25) shows one Python process that runs no git and opens nothing under .git, so
+# its read set holds all it reads; HEAD in its key only reran it after every commit (ADR-037 stage 4b)
+git = []
 domain = "layout"
 label = "hartlib railroad.py"
 desc = "The fact files against each other (the device master, switches.csv, masts.csv, the tables file); KNOWN in hartlib.railroad lists what is reported and left."
@@ -518,6 +561,9 @@ name = "devices"
 runner = "check"
 group = "static"
 cmd = ["env", "PYTHONPATH=tools/hartlib/src", "python3", "-m", "hartlib.devices", "check"]
+# git = []: its trace (2026-11-25) shows one Python process that runs no git and opens nothing under .git, so
+# its read set holds all it reads; HEAD in its key only reran it after every commit (ADR-037 stage 4b)
+git = []
 domain = "layout"
 label = "hartlib devices.py (and railroad*, wiring, layer_files)"
 desc = "Library that loads the device master (devices_generated.csv merged with devices_field.csv) and the layer files, enforces invariants; CLI python3 -m hartlib.devices check validates the master and public names."
@@ -532,6 +578,7 @@ name = "name-copies"
 runner = "check"
 group = "static"
 cmd = ["python3", "tools/audit/check_name_copies.py"]
+git = ["head", "base"]
 domain = "extras"
 label = "check_name_copies"
 desc = "Audit: no stale copies of renamed track names in code or data; reads the device master (devices_generated.csv and devices_field.csv) and keyed data files."
@@ -545,6 +592,7 @@ name = "ai-speak"
 runner = "check"
 group = "static"
 cmd = ["python3", "tools/audit/check_ai_speak.py"]
+git = ["head", "base"]
 domain = "extras"
 label = "check_ai_speak"
 desc = "Audit flagging AI-style phrasing in tracked prose."
@@ -555,6 +603,7 @@ name = "tracked-policy"
 runner = "check"
 group = "static"
 cmd = ["python3", "tools/audit/check_tracked_policy.py"]
+git = ["head", "base"]
 domain = "extras"
 label = "check_tracked_policy"
 desc = "Audit that tracked files obey the tracking policy."
@@ -564,6 +613,7 @@ name = "agent-docs"
 runner = "check"
 group = "static"
 cmd = ["python3", "tools/audit/check_agent_docs.py"]
+git = ["head", "base"]
 domain = "extras"
 label = "check_agent_docs"
 desc = "Audit that repo paths named in agent docs (AGENTS.md etc.) exist."
@@ -601,6 +651,7 @@ name = "docs-index"
 runner = "check"
 group = "static"
 cmd = ["python3", "tools/ops/build_docs_index.py", "--check", "--strict"]
+git = ["head", "base"]
 domain = "extras"
 label = "build_docs_index.py"
 desc = "Lists git-tracked docs/ documents newest first into docs/INDEX.md; --check in tools/check.sh."
@@ -617,6 +668,7 @@ name = "desks"
 runner = "check"
 group = "static"
 cmd = ["python3", "cats/scripts/validate_cats_panel.py"]
+git = ["head", "base"]
 domain = "layout"
 label = "validate_cats_panel.py"
 desc = "Validates desks (make desks and check.sh); with cats_turnout_io and digicon_lib loaders."
@@ -631,6 +683,7 @@ quiet_inputs = ["cats/panels/HART_chubb_magnet.xml"]
 name = "public-text"
 runner = "check"
 cmd = ["{python}", "tools/audit/check_public_text.py"]
+git = []
 domain = "extras"
 label = "check_public_text"
 desc = "Audit of public site and card text for private or banned wording."
@@ -643,6 +696,7 @@ inputs = [
 name = "ruff"
 runner = "check"
 cmd = ["python3", "tools/audit/check_ruff.py"]
+git = []
 domain = "extras"
 label = "check_ruff"
 desc = "Pyflakes (ruff F rules, ruff.toml) over every .py file; the edit hook runs it on each edited file."
@@ -655,6 +709,7 @@ programs = { ruff = ["**/*.py", "ruff.toml", "requirements.txt", ".gitignore", "
 name = "portal"
 runner = "check"
 cmd = ["python3", "www/scripts/check_portal_build.py"]
+git = ["head", "base"]
 domain = "website"
 label = "check_portal_build.py"
 desc = "Smoke-tests built tree: internal href/src and data JSON link fields resolve; writes manifest and compares counts; runs share_cards check."
