@@ -66,6 +66,8 @@ ALLOWED = {
     "tools/audit/check_stamps.py": "check.sh job stamps in .cache; no pipeline file",
     "tools/audit/test_classes.py": "lists test classes so check.sh can split a test file into jobs",
     "tools/audit/portal_inputs.py": "decides whether check.sh runs the portal build; reads git, writes nothing",
+    "tools/ci/changed_kind.py": "decides whether check.sh and CI take the docs-only path; reads git, writes nothing",
+    "tools/ci/docs_checks.sh": "the docs-only path's checks, each also in check.sh's full run; writes nothing",
     "tools/schematic/panel_stamps.py": "make panels' step stamps in .cache; no pipeline file",
     "tools/wiring/check_wiring_frozen.py": "check.sh audit of wiring.csv against the freeze's form; writes nothing",
     "tools/hosts/win_run.sh":"runs a command on the Windows box (make remote); no pipeline file",
