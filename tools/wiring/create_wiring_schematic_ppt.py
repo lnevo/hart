@@ -3,8 +3,14 @@
 Create PowerPoint wiring schematic presentation
 - First slide: Summary of all nodes with board counts
 - One slide per control node (C{radio Address}) with separate tables for each board
+
+Reads the inventory's sheets as write_inventory.py builds them in memory from the wiring model (the device master,
+hartlib.wiring's wiring.csv, lcos_nodes.csv and signal_head_plan.csv), the same sheets it saves as
+LCOS_Layout_Inventory_v86.xlsx. The workbook file is an output only: this script never opens it (ADR-039).
+
+    python3 tools/wiring/create_wiring_schematic_ppt.py [--out PATH]    # needs python-pptx
 """
-import openpyxl
+import argparse
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.enum.text import PP_ALIGN
@@ -12,21 +18,21 @@ from pptx.dml.color import RGBColor
 from collections import defaultdict
 import os
 
+import write_inventory  # tools/wiring/, the script's own folder: the wiring model's inventory sheets
+
 script_dir = os.path.dirname(os.path.abspath(__file__))
 wiring_dir = os.path.normpath(os.path.join(script_dir, '..', '..', 'docs', 'wiring'))
-# The current inventory, written by tools/wiring/write_inventory.py (v85 is frozen history)
-inventory_file = os.path.join(wiring_dir, 'LCOS_Layout_Inventory_v86.xlsx')
-if not os.path.exists(inventory_file):
-    raise SystemExit(f"no {inventory_file}: run python3 tools/wiring/write_inventory.py first")
-output_ppt = os.path.join(wiring_dir, 'Wiring_Schematic.pptx')
+ap = argparse.ArgumentParser(description="Write Wiring_Schematic.pptx from the wiring model.")
+ap.add_argument("--out", default=os.path.join(wiring_dir, 'Wiring_Schematic.pptx'), help="where the deck goes")
+output_ppt = ap.parse_args().out
 
 print("=" * 80)
 print("CREATING WIRING SCHEMATIC POWERPOINT PRESENTATION")
 print("=" * 80)
 
-# Load Excel file
-print(f"Using inventory file: {os.path.basename(inventory_file)}")
-wb = openpyxl.load_workbook(inventory_file)
+# The inventory workbook, built in memory from the wiring model
+print(f"Using the wiring model (the sheets of {write_inventory.OUT.name}, built in memory)")
+wb = write_inventory.workbook()
 ws_nodes = wb['Nodes']
 ws_dnou8 = wb['DNOU8']
 ws_dnin8 = wb['DNIN8']

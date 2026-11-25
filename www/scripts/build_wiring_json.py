@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
-"""Build the public wiring viewer data (behind/wiring.html) from the LCOS inventory workbook.
+"""Build the public wiring viewer data (behind/wiring.html) from the wiring model.
 
-Reads the LCOS Layout Inventory and writes:
+Reads the LCOS inventory's sheets as tools/wiring/write_inventory.py builds them in memory from the wiring model
+(the device master, hartlib.wiring's wiring.csv, lcos_nodes.csv and signal_head_plan.csv), the same sheets it saves
+as LCOS_Layout_Inventory_v86.xlsx. The workbook file is an output only: this script never opens it (ADR-039). It
+writes:
 
   data/wiring-inventory.json  nodes with DNOU8 / DNIN8 / block-detector port maps,
                               signal heads with their R/Y/G pins, turnouts, block sensors
@@ -10,17 +13,15 @@ The signal-split view and its workbook were retired on 2026-11-25 (owner): the s
 generated for the whole layout. The split workbook, its v85 inventory and the last signal-splits.json are in
 archive/docs/wiring/.
 
-Re-run after a version bump:
+Re-run after a wiring change:
 
-  python3 www/scripts/build_wiring_json.py --inventory docs/wiring/LCOS_Layout_Inventory_v86.xlsx
+  python3 www/scripts/build_wiring_json.py
 
-With no arguments it picks the highest-numbered inventory in docs/wiring/ (the live git copy). Data problems found along the way are printed as warnings; they do
-not stop the build. Network details (IP addresses, hostnames, serial ports, machine paths,
+Data problems found along the way are printed as warnings; they do not stop the build. Network details (IP addresses, hostnames, serial ports, machine paths,
 credentials) are scrubbed from every cell before it reaches the JSON.
 
 --check builds without writing and exits 1 when the JSON file holds other data than the
-workbook gives. The build date and the workbook's save date are ignored, so re-saving a
-workbook with no change does not fail it. tools/check.sh runs it.
+wiring model gives. The build date is ignored. tools/check.sh runs it.
 """
 
 from __future__ import annotations
@@ -33,12 +34,11 @@ import sys
 from collections import Counter, OrderedDict, defaultdict
 from pathlib import Path
 
-import openpyxl
-
 PORTAL = Path(__file__).resolve().parents[1]
 ROOT = PORTAL.parent
-WIRING = ROOT / "docs" / "wiring"
 OUT_INV = PORTAL / "data" / "wiring-inventory.json"
+sys.path.insert(0, str(ROOT / "tools" / "wiring"))
+import write_inventory  # noqa: E402  (the wiring model's inventory sheets; it puts hartlib on the path)
 
 WARNINGS: list[str] = []
 SCRUBBED: list[str] = []
@@ -122,11 +122,6 @@ def version_of(path: Path) -> str:
     return f"v{m.group(1)}" if m else path.stem
 
 
-def latest(pattern: str) -> Path | None:
-    found = sorted(WIRING.glob(pattern), key=lambda p: int(re.search(r"_v(\d+)", p.stem).group(1)))
-    return found[-1] if found else None
-
-
 def split_list(s: str) -> list[str]:
     return [x.strip() for x in s.split(",") if x.strip()] if s else []
 
@@ -193,12 +188,14 @@ def pick_location(locs: list[str]) -> str:
     return Counter(specific or locs).most_common(1)[0][0]
 
 
-def build_inventory(path: Path) -> tuple[dict, dict]:
-    wb = openpyxl.load_workbook(path, data_only=True)
+def build_inventory(wb=None, source: str = write_inventory.OUT.name) -> dict:
+    """The viewer's data from the inventory sheets of wb: by default the workbook write_inventory.py builds in memory
+    from the wiring model (source is the file it saves it as, for the JSON's source)."""
+    wb = wb if wb is not None else write_inventory.workbook()
     sheets = {ws.title: sheet_rows(ws) for ws in wb.worksheets}
     for need in ("Nodes", "DNOU8", "DNIN8", "TurnoutSummary", "BlockSensors", "DigiconSignals"):
         if need not in sheets:
-            raise SystemExit(f"{path.name}: missing sheet {need}")
+            raise SystemExit(f"{source}: missing sheet {need}")
 
     # Nodes
     node_rows = table(sheets["Nodes"], 0)
@@ -529,9 +526,8 @@ def build_inventory(path: Path) -> tuple[dict, dict]:
         b.pop("_locs", None)
     for rec in out_pins.values():
         rec.pop("_note", None)
-    modified = wb.properties.modified.date().isoformat() if wb.properties.modified else ""
     inv = {
-        "source": {"file": path.name, "version": version_of(path), "modified": modified},
+        "source": {"file": source, "version": version_of(Path(source))},
         "nodes": sorted(nodes.values(), key=lambda n: node_sort(n["id"])),
         "signals": sorted(heads.values(), key=lambda h: (node_sort(h["node"]), h["head"])),
         "masts": masts,
@@ -564,7 +560,7 @@ def render(data: dict) -> str:
     return json.dumps(prune(data), indent=1, ensure_ascii=False) + "\n"
 
 
-DATES = ("built", "modified")  # when the JSON was built and when the workbook was last saved
+DATES = ("built", "modified")  # when the JSON was built; "modified", a workbook's save date in a JSON built from the file
 
 
 def stale(path: Path, data: dict) -> bool:
@@ -586,26 +582,26 @@ def stale(path: Path, data: dict) -> bool:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--inventory", type=Path, default=latest("LCOS_Layout_Inventory_v*.xlsx"),
-                    help="LCOS Layout Inventory workbook (default: newest in docs/wiring/)")
     ap.add_argument("--out-dir", type=Path, default=PORTAL / "data", help="where the JSON goes")
     ap.add_argument("-q", "--quiet", action="store_true", help="don't list data warnings")
     ap.add_argument("--check", action="store_true",
-                    help="write nothing; exit 1 if the JSON file is out of date with the workbook")
+                    help="write nothing; exit 1 if the JSON file is out of date with the wiring model")
     args = ap.parse_args()
-    if not args.inventory or not args.inventory.exists():
-        ap.error(f"inventory workbook not found: {args.inventory}")
-    inv = build_inventory(args.inventory)
+    try:
+        inv = build_inventory()
+    except write_inventory.FactsError as exc:
+        print(f"{Path(__file__).name}: {exc}", file=sys.stderr)
+        return 2
     inv["source"]["built"] = dt.date.today().isoformat()
 
     outputs = (("wiring-inventory.json", inv),)
     if args.check:
         old = [name for name, data in outputs if stale(args.out_dir / name, data)]
         for name in old:
-            print(f"STALE: {shown(args.out_dir / name)} differs from {args.inventory.name}; "
+            print(f"STALE: {shown(args.out_dir / name)} differs from the wiring model; "
                   "rebuild with the same arguments, without --check")
         if not old:
-            print(f"wiring viewer data is current with {args.inventory.name}")
+            print("wiring viewer data is current with the wiring model")
         return 1 if old else 0
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
