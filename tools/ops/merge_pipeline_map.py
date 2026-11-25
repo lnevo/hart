@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 """merge_pipeline_map.py
 
-Git merge drivers for the pipeline map: a three-way merge of docs/pipeline-map/pipeline_map.json by key, and one
-for the two pages built from it.
+The git merge driver for the pipeline map: a three-way merge of docs/pipeline-map/pipeline_map.json by key.
 
     merge_pipeline_map.py BASE OURS THEIRS [PATH]          merge the graph into OURS (git passes %O %A %B %P)
-    merge_pipeline_map.py --page BASE OURS THEIRS [PATH]   a generated page: keep OURS and say how to rebuild it
-    merge_pipeline_map.py --install                        set both drivers in this repo's git config
+    merge_pipeline_map.py --install                        set the driver in this repo's git config
 
 The graph merges entry by entry: domains by id, presets by label, nodes by id, edges by their two ends (the keys
 tools/ops/build_pipeline_map.py checks), and "updated" takes the later date. For each key: what one side left alone
@@ -18,9 +16,8 @@ page's layout depends on node order). A clean merge is checked with build_pipeli
 that each path is tracked (git has not written the merged tree yet; tools/check.sh runs that check after the
 merge); a result that fails, such as an edge to a node the other side deleted, is left in place and exits 1.
 
-The pages (docs/pipeline-map/index.html, www/library/pipeline-map.html) hold the graph on one line, so any two
-changes conflict; the page driver keeps this branch's copy and prints the rebuild commands, and the page checks
-in tools/check.sh fail until they are run.
+The pages built from the graph are not committed (ADR-036), so they never conflict; the driver for them that kept
+this branch's copy is retired, and --install removes its git config section (RETIRED) where it is still set.
 
 Exit codes: 0 merged, 1 conflict left in OURS, 2 the inputs cannot be merged by key: OURS then holds git's own
 line merge (git merge-file), so the clash still shows as conflict markers.
@@ -56,9 +53,11 @@ def driver_command(flag: str) -> str:
 
 DRIVERS = {
     "pipeline-map": ("pipeline_map.json, merged by node id and edge ends", driver_command("")),
-    "pipeline-map-page": ("pipeline map page: keep ours, rebuild after the merge", driver_command(" --page")),
 }
-REBUILD = f"python3 tools/ops/build_pipeline_map.py && {MAP.SITE_BUILD}"
+# drivers this script no longer provides: --install removes their config section (the map pages' "keep ours"
+# driver, retired when the pages stopped being committed, ADR-036)
+RETIRED = ("pipeline-map-page",)
+CHECK = "python3 tools/ops/build_pipeline_map.py --check"
 
 # the lists merged entry by entry, and the fields that name an entry
 KEY_FIELDS = {"domains": ("id",), "presets": ("label",), "nodes": ("id",), "edges": ("from", "to")}
@@ -272,7 +271,7 @@ def merge(base_path: Path, ours_path: Path, theirs_path: Path, name: str) -> int
         print(f"{name}: {len(conflicts)} conflict(s) the driver will not pick for you:", file=sys.stderr)
         for c in conflicts:
             print(f"  {c.where}", file=sys.stderr)
-        print(f"Edit the <<<<<<< blocks in {name}, then run {REBUILD}, and git add the three files.", file=sys.stderr)
+        print(f"Edit the <<<<<<< blocks in {name}, check it with {CHECK}, and git add it.", file=sys.stderr)
         return 1
     if json.loads(text) != data:
         raise MergeError("internal: the written file does not read back as the merged graph")
@@ -281,18 +280,10 @@ def merge(base_path: Path, ours_path: Path, theirs_path: Path, name: str) -> int
         MAP.validate(json.loads(text), tracked=False)
     except MAP.GraphError as err:
         print(f"{name}: merged by key, but the result fails the graph checks:\n{err}\n"
-              f"The merged file is in place: fix it, run {REBUILD}, and git add the three files.", file=sys.stderr)
+              f"The merged file is in place: fix it, check it with {CHECK}, and git add it.", file=sys.stderr)
         return 1
-    print(f"{name}: merged by key ({len(data['nodes'])} nodes, {len(data['edges'])} edges); "
-          f"now rebuild the pages: {REBUILD}", file=sys.stderr)
-    return 0
-
-
-def keep_page(ours_path: Path, name: str) -> int:
-    """Keep ours and exit 0, so a clean graph merge commits on its own: the merge commit carries stale pages, and
-    the rebuild is a commit after it (tools/check.sh and CI fail until it is made)."""
-    print(f"{name}: built from docs/pipeline-map/pipeline_map.json, so this branch's copy is kept; after the merge "
-          f"run {REBUILD} and commit the pages (tools/check.sh fails until then)", file=sys.stderr)
+    print(f"{name}: merged by key ({len(data['nodes'])} nodes, {len(data['edges'])} edges); {CHECK} checks it "
+          f"with every path tracked (make map rebuilds the local pages)", file=sys.stderr)
     return 0
 
 
@@ -322,7 +313,8 @@ def git_config(repo: Path, *args: str) -> subprocess.CompletedProcess:
 
 
 def install(repo: Path) -> list[str]:
-    """Set both drivers in the repo's git config (shared by all its worktrees); return the keys it changed."""
+    """Set the drivers in the repo's git config (shared by all its worktrees) and remove the RETIRED ones' sections;
+    return what it changed, as the lines to print."""
     try:
         top = subprocess.run(["git", "-C", str(repo), "rev-parse", "--git-dir"], capture_output=True, text=True,
                              timeout=30)
@@ -342,7 +334,21 @@ def install(repo: Path) -> list[str]:
             put = git_config(repo, "--local", key, value)
             if put.returncode != 0:
                 raise MergeError(f"git config {key} failed in {repo}: {put.stderr.strip()}")
-            changed.append(key)
+            changed.append(f"set git config {key}")
+    for driver in RETIRED:
+        section = f"merge.{driver}"
+        got = git_config(repo, "--local", "--get-regexp", rf"^{re.escape(section)}\.")
+        if got.returncode == 1:  # nothing set
+            continue
+        if got.returncode != 0:
+            raise MergeError(f"git config --get-regexp {section} failed in {repo}: {got.stderr.strip()}")
+        gone = git_config(repo, "--local", "--remove-section", section)
+        if gone.returncode != 0:
+            raise MergeError(f"git config --remove-section {section} failed in {repo}: {gone.stderr.strip()}")
+        left = git_config(repo, "--local", "--get-regexp", rf"^{re.escape(section)}\.")
+        if left.returncode != 1:
+            raise MergeError(f"git config still holds {section} in {repo} after removing it: {left.stdout.strip()}")
+        changed.append(f"removed git config {section} (a retired driver)")
     return changed
 
 
@@ -350,15 +356,14 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[2])
     ap.add_argument("--install", action="store_true", help="set the merge drivers in this repo's git config")
     ap.add_argument("--repo", type=Path, default=ROOT, help="the repo for --install (default: this checkout)")
-    ap.add_argument("--page", action="store_true", help="merge a generated page: keep ours, say how to rebuild")
     ap.add_argument("files", nargs="*", metavar="BASE OURS THEIRS [PATH]")
     args = ap.parse_args(argv)
     try:
         if args.install:
-            if args.files or args.page:
+            if args.files:
                 ap.error("--install takes no files")
-            for key in install(args.repo):
-                print(f"set git config {key}")
+            for line in install(args.repo):
+                print(line)
             return 0
         if len(args.files) not in (3, 4):
             ap.error("give BASE OURS THEIRS and optionally PATH (git: %O %A %B %P)")
@@ -367,8 +372,6 @@ def main(argv: list[str] | None = None) -> int:
         missing = [str(p) for p in (base, ours, theirs) if not p.is_file()]
         if missing:
             raise MergeError(f"no such file: {', '.join(missing)}")
-        if args.page:
-            return keep_page(ours, name)
         try:
             return merge(base, ours, theirs, name)
         except MergeError as err:

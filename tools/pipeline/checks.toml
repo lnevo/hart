@@ -63,19 +63,19 @@ outputs = [
 ]
 
 [[step]]
-name = "pipeline-map-site"
+name = "pipeline-map"
 runner = "check"
 group = "static"
-cmd = ["python3", "tools/ops/build_pipeline_map.py", "--public", "--out", "www/library/pipeline-map.html", "--back", "repository-guide.html", "--check"]
+cmd = ["python3", "tools/ops/build_pipeline_map.py", "--check"]
 domain = "extras"
-desc = "Checks pipeline_map.json and writes the zoomable map page and its website copy; --check in check.sh."
+desc = "Checks pipeline_map.json is current and that both map pages build; --check writes nothing. The pages are built, not committed (ADR-036): make map locally, the site build for the website."
 docs_only = true
 inputs = [
   "docs/pipeline-map/pipeline_map.json",
   { path = "tools/ops/pipeline_map.js", label = "inlined" },
 ]
 outputs = [
-  "docs/pipeline-map/index.html",
+  { path = "docs/pipeline-map/index.html", label = "make map" },
   { path = "www/library/pipeline-map.html", label = "--public" },
 ]
 
