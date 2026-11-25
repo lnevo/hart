@@ -16,6 +16,10 @@
 #   P_ID     roster id
 #   POINTS   list of dicts {key, step, forward, reverse}   (key = throttle * 1000, mm/s)
 #   APPLY    True writes; anything else is a dry run
+# Never runs: the names make_job.py puts in front of this file (its settings), listed for pyflakes
+# (ruff's undefined-name rule) so a misspelt name fails the check. job_settings stands for the settings.
+if False:
+    from job_settings import APPLY, LOGF, POINTS, P_ID
 import time, threading, os, java, jmri
 f = open(LOGF, "a")
 def L(m): f.write("%.3f %s\n" % (time.time(), m)); f.flush()
@@ -60,13 +64,13 @@ def run():
         got = dump(re.getSpeedProfile())
         show("NOW", got)
         why = "written" if rounded(got) == rounded(new) else "written but the profile read back differs"
-    except java.lang.Throwable, e: L("ERROR %s" % e); why = "error"
-    except Exception, e: L("ERROR %s" % e); why = "error"
+    except java.lang.Throwable as e: L("ERROR %s" % e); why = "error"
+    except Exception as e: L("ERROR %s" % e); why = "error"
     finally:
         L("STOP " + why)
         if own[0]:
             try: os.remove("/tmp/speedrun.active")
-            except Exception, e: pass
+            except Exception: pass
         L("END")
 th = threading.Thread(target=run); th.setDaemon(True); th.start()
 RESULT = "started"

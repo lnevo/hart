@@ -39,8 +39,8 @@ NARROWED_READS: dict[str, tuple[set[str], set[str]]] = {   # job -> (files read,
                      "www/play/runs.js", "www/index.html"},
                     {"docs/ops/stations", "docs/wiring", "ops/hart-ops/card_pipeline", "www/crew/maps/barn",
                      "www/scripts/tests"}),
-    # the files the deploy's bash copies (stage.sh), which no hook sees
-    "unit-hosts test_deploy_stage": ({"docs/jmri/speedmatching/profile-2026-11-08/speed_by_step.csv",
+    # the files the deploy's bash copies (stage.sh), which no hook sees; the reference CSV moved to jmri/ on 2026-11-25
+    "unit-hosts test_deploy_stage": ({"jmri/layouts/hart/data/speed_by_step_2026-11-08.csv",
                                       "jmri/layouts/hart/output/tables.xml", "cats/scripts/install_ops_files.sh",
                                       "tools/hosts/pi/apply_hart_package_local.sh"}, {"jmri/resources/jmri-web"}),
 }

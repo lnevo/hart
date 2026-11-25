@@ -1,6 +1,7 @@
 # Cleanup and streamlining: hand-off (2026-11-25)
 
 Status: active
+Coordinator: hart-95 holds the merge queue across sessions (since 2026-11-25 13:18; `coordinate` skill).
 
 Two read-only reviews on 2026-11-25 (sessions hart-rc-1 and hart-rc-2: "what is still not ideal in the architecture and pipeline") matched against the work in flight that day. Most findings already belong to an [ADR-037](../decisions/ADR-037-one-step-manifest.md) stage; this page orders the rest. The owner chose the options below on 2026-11-25.
 

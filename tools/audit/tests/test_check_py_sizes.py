@@ -113,7 +113,7 @@ class Scratch(unittest.TestCase):
         self.assertEqual(CPS.count_lines(p), 0)
 
     def test_excluded_files_are_not_measured(self) -> None:
-        for rel in ("archive/old.py", "external/x/y.py", "docs/jmri/speedmatching/STRR_v1.py",
+        for rel in ("archive/old.py", "external/x/y.py",
                     "jmri/layouts/hart/parked/p.py", "a/notes.txt"):
             self.put(rel, 900)
         self.sizes.write_text("path,lines\n")

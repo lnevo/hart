@@ -493,7 +493,7 @@ class JythonFiles(unittest.TestCase):
         for name in ("step_runner.py", "preflight.py"):
             src = self.text(name)
             self.assertNotRegex(src, r"\bf[\"']")
-            self.assertIn("except Exception, e", src)
+            self.assertIn("except Exception as e", src)
 
     def test_job_files_carry_settings_then_shared_logic_then_runner(self):
         d = Path(tempfile.mkdtemp())

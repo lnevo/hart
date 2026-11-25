@@ -14,6 +14,10 @@
 # Names the runner may use: L, NAMES, reg, why, ab, own, hit, claim, scan, check_guards,
 # request_throttle, guard_hit, end_job, TL, and for route runners last, state, lock, HOOK, SL,
 # wait, pause.
+# Never runs: the names make_job.py puts in front of this file (its settings), listed for pyflakes
+# (ruff's undefined-name rule) so a misspelt name fails the check. job_settings stands for the settings.
+if False:
+    from job_settings import LOGF, ORDER
 import time, threading, os, java, jmri
 f = open(LOGF, "a")
 def L(m): f.write("%.3f %s\n" % (time.time(), m)); f.flush()
@@ -32,8 +36,8 @@ class TL(jmri.ThrottleListener):
             self.lk.release()
         if late:
             try: t.release(self); L("late throttle released")
-            except java.lang.Throwable, e: L("late release failed %s" % e)
-            except Exception, e: L("late release failed %s" % e)
+            except java.lang.Throwable as e: L("late release failed %s" % e)
+            except Exception as e: L("late release failed %s" % e)
     def notifyFailedThrottleRequest(self, a, r): self.err = "fail %s" % r; self.ev.set()
     def notifyDecisionRequired(self, a, d): self.err = "decision %s" % d; self.ev.set()
     def notifyStealThrottleRequired(self, a): self.err = "steal"; self.ev.set()
@@ -155,21 +159,21 @@ def end_job(t, tl, funcs):
     L("STOP " + why[0])
     if t is not None:
         try: t.setSpeedSetting(0.0); L("speed 0")
-        except java.lang.Throwable, e: L("speed 0 failed %s" % e)
-        except Exception, e: L("speed 0 failed %s" % e)
+        except java.lang.Throwable as e: L("speed 0 failed %s" % e)
+        except Exception as e: L("speed 0 failed %s" % e)
         for fn in funcs:
             if fn == 0: L("F0 not switched off"); continue
             try: getattr(t, "setF%d" % fn)(False); L("F%d off" % fn)
-            except java.lang.Throwable, e: L("F%d off failed %s" % (fn, e))
-            except Exception, e: L("F%d off failed %s" % (fn, e))
+            except java.lang.Throwable as e: L("F%d off failed %s" % (fn, e))
+            except Exception as e: L("F%d off failed %s" % (fn, e))
         try: t.release(tl); L("throttle released")
-        except java.lang.Throwable, e: L("release failed %s" % e)
-        except Exception, e: L("release failed %s" % e)
+        except java.lang.Throwable as e: L("release failed %s" % e)
+        except Exception as e: L("release failed %s" % e)
     for s, l in reg:
         try: s.removePropertyChangeListener(l)
-        except java.lang.Throwable, e: L("listener removal failed %s" % e)
-        except Exception, e: L("listener removal failed %s" % e)
+        except java.lang.Throwable as e: L("listener removal failed %s" % e)
+        except Exception as e: L("listener removal failed %s" % e)
     if own[0]:
         try: os.remove("/tmp/speedrun.active")
-        except Exception, e: pass
+        except Exception: pass
     L("END")
