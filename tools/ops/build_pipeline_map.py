@@ -18,11 +18,14 @@ it, the viewer script inlined) and read back after it is written. The website co
 (PUBLIC_NAMES), whose real paths the site build treats as leaks, passes the site's leak check, and can carry a link
 back to the page that links to it.
 
-The agent-doc lane (domain "agents": boxes and links marked "gen": "agent-docs") is generated from the files by
-tools/ops/agent_docs_map.py: a plain run rewrites it in the graph file, and --check fails when the committed graph
-differs. Everything else in the graph is hand-kept. The order of the nodes is kept as it is: the layout breaks
-cycles in node order, so a sorted file draws a much wider map. Locally the file merges itself:
-tools/ops/merge_pipeline_map.py is its git merge driver.
+Two lanes are generated from the files (GENERATED): the agent-doc lane (domain "agents": boxes and links marked
+"gen": "agent-docs") by tools/ops/agent_docs_map.py, and the manifest lane (each check.sh step's script box and its
+links, "gen": "manifest") by tools/pipeline/map_lane.py from tools/pipeline/checks.toml. A plain run rewrites them in
+the graph file, and --check fails when the committed graph differs, naming each entry that differs; a hand edit to a
+generated entry is such a difference. Everything else in the graph is hand-kept. The order of the nodes is kept as
+it is: the layout breaks cycles in node order, so a sorted file draws a much wider map, and the manifest lane keeps
+its boxes where the file has them. Locally the file merges itself: tools/ops/merge_pipeline_map.py is its git merge
+driver.
 
 The graph file holds domains (the horizontal lanes), nodes and edges. A node's `path` must exist in the checkout
 unless the node says `"local": true` (a gitignored mirror or a file made on a host). A node marked `"runner": true`
@@ -84,6 +87,13 @@ class GraphError(Exception):
 _agent_spec = importlib.util.spec_from_file_location("agent_docs_map", Path(__file__).resolve().with_name("agent_docs_map.py"))
 AGENT_DOCS = importlib.util.module_from_spec(_agent_spec)
 _agent_spec.loader.exec_module(AGENT_DOCS)
+_lane_spec = importlib.util.spec_from_file_location("map_lane", ROOT / "tools" / "pipeline" / "map_lane.py")
+MANIFEST_LANE = importlib.util.module_from_spec(_lane_spec)
+_lane_spec.loader.exec_module(MANIFEST_LANE)
+# each generated lane's "gen" mark -> the file that generates it
+GENERATED = {AGENT_DOCS.GEN: "tools/ops/agent_docs_map.py",
+             MANIFEST_LANE.GEN: "tools/pipeline/map_lane.py, from tools/pipeline/checks.toml"}
+STALE_SHOWN = 12        # entries a stale-graph message names before it counts the rest
 
 
 @functools.cache
@@ -135,11 +145,48 @@ def graph_text(data: dict) -> str:
 
 
 def regenerate(data: dict) -> dict:
-    """The graph with its generated parts (the agent-doc lane, tools/ops/agent_docs_map.py) rebuilt from the files."""
+    """The graph with its generated lanes (GENERATED) rebuilt from the files: the agent-doc lane first, since the
+    manifest lane leaves to it the links it already draws."""
     try:
-        return AGENT_DOCS.regenerate(data)
+        data = AGENT_DOCS.regenerate(data)
     except AGENT_DOCS.AgentDocsMapError as err:
         raise GraphError(f"agent-doc lane: {err}") from None
+    try:
+        return MANIFEST_LANE.regenerate(data)
+    except MANIFEST_LANE.MapLaneError as err:
+        raise GraphError(f"manifest lane: {err}") from None
+
+
+def _lane_of(*entries) -> str:
+    gens = sorted({e["gen"] for e in entries if isinstance(e, dict) and e.get("gen")})
+    return f" ({', '.join(gens)} lane)" if gens else " (hand-kept)"
+
+
+def differences(old: dict, new: dict) -> list[str]:
+    """Each node and edge that `new` adds, drops or changes against `old`, named with its lane, then any other change
+    (order, the top-level keys). Both are graphs as read() gives them."""
+    out = []
+    for name, key, show in (("nodes", node_key, "node {!r}".format),
+                            ("edges", edge_key, lambda k: f"edge {k[0]} -> {k[1]}")):
+        before = {key(e): e for e in old.get(name, []) if isinstance(e, dict)}
+        after = {key(e): e for e in new.get(name, []) if isinstance(e, dict)}
+        for k in dict.fromkeys([*before, *after]):
+            a, b = before.get(k), after.get(k)
+            if a == b:
+                continue
+            if a is None:
+                out.append(f"{show(k)}{_lane_of(b)}: missing from the file")
+            elif b is None:
+                out.append(f"{show(k)}{_lane_of(a)}: in the file, but no lane generates it")
+            else:
+                fields = sorted(f for f in {*a, *b} if a.get(f) != b.get(f))
+                out.append(f"{show(k)}{_lane_of(a, b)}: {', '.join(fields)} differ from what is generated")
+        if not out and [key(e) for e in old.get(name, [])] != [key(e) for e in new.get(name, [])]:
+            out.append(f"the order of the {name} differs from what is generated")
+    if not out and {k: v for k, v in old.items() if k not in ("nodes", "edges")} != \
+            {k: v for k, v in new.items() if k not in ("nodes", "edges")}:
+        out.append("a top-level key differs from what is generated")
+    return out
 
 
 def load(path: Path) -> dict:
@@ -718,11 +765,17 @@ def rebuild_command(graph: Path) -> str:
 
 
 def current(graph: Path) -> tuple[dict, str | None]:
-    """The checked graph with its generated lane rebuilt, and why the file is stale (None when it is current)."""
-    data = validate(regenerate(read(graph)))
+    """The checked graph with its generated lanes rebuilt, and why the file is stale (None when it is current)."""
+    committed = read(graph)
+    data = validate(regenerate(committed))
     if graph.read_text(encoding="utf-8") == graph_text(data):
         return data, None
-    return data, (f"{graph} is out of date (its agent-doc lane is generated from the files): run "
+    found = differences(committed, data) or ["the file is not in the graph's own format (JSON, indent 1)"]
+    shown = "\n".join(f"  {line}" for line in found[:STALE_SHOWN])
+    more = f"\n  ... and {len(found) - STALE_SHOWN} more" if len(found) > STALE_SHOWN else ""
+    lanes = "; ".join(f"{gen}: {src}" for gen, src in GENERATED.items())
+    return data, (f"{graph} is out of date (its lanes are generated from the files, {lanes}):\n{shown}{more}\n"
+                  f"A hand edit to a generated entry is overwritten: change its source instead. Run "
                   f"{rebuild_command(graph)} and commit the graph")
 
 
@@ -780,7 +833,8 @@ def main(argv: list[str] | None = None) -> int:
                      (SITE_PAGE, build(data, public=True, back=SITE_BACK))]
         if stale:
             args.graph.write_text(graph_text(data), encoding="utf-8")
-            print(f"updated {args.graph.name}: the agent-doc lane, from the files; commit it")
+            print(f"updated {args.graph.name}: the generated lanes (agent-doc, manifest), from the files; "
+                  f"commit it")
         for out, page in pages:
             write_page(out, page)
             print(f"wrote {shown(out)}: {len(data['nodes'])} nodes, {len(data['edges'])} edges")

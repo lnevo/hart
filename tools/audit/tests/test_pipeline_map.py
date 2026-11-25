@@ -794,7 +794,7 @@ class PageTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             graph = Path(tmp, "g.json")
             graph.write_text(json.dumps(data))
-            with self.assertRaisesRegex(MAP.GraphError, "agent-doc lane is generated"):
+            with self.assertRaisesRegex(MAP.GraphError, "lanes are generated from the files"):
                 MAP.site_page(graph)
 
     def test_a_page_that_lost_its_parts_fails_its_check(self) -> None:

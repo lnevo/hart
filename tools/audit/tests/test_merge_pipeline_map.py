@@ -121,6 +121,34 @@ class MergeTest(unittest.TestCase):
         ours_only = kept.split("=======\n")[0] + kept.split("=======\n")[1].split("  },\n", 1)[1]
         self.assertEqual([n["desc"] for n in json.loads(ours_only)["nodes"]], ["ours", "", ""])
 
+    def test_a_hand_edit_to_a_node_made_generated_is_a_conflict_naming_the_lane(self) -> None:
+        """A branch from before the manifest lane edits a box main has since made generated."""
+        ours = graph([node("x", desc="from checks.toml", gen="manifest"), node("y")], [edge("x", "y")])
+        theirs = graph([node("x", desc="hand edit"), node("y")], [edge("x", "y")])
+        rc, err, out = self.merge(ours, theirs)
+        self.assertEqual(rc, 1)
+        self.assertIn("node 'x' (generated: the manifest lane)", err)
+        self.assertIn("keep either side of its block, then run python3 tools/ops/build_pipeline_map.py", err)
+        self.assertIn("<<<<<<< ours: node 'x'", out)
+        rc, err, _ = self.merge(ours, graph([node("x", desc="hand edit"), node("y", desc="t")], [edge("x", "y")]))
+        self.assertEqual(rc, 1)
+        self.assertNotIn("node 'y' (generated", err)          # only generated entries are named so
+
+    def test_a_clean_merge_names_the_generated_entries_it_took_from_the_other_branch(self) -> None:
+        base = graph([node("x", gen="manifest"), node("y")], [edge("x", "y", gen="manifest")])
+        theirs = graph([node("x", desc="edited", gen="manifest"), node("y", desc="hand")],
+                       [edge("x", "y", gen="manifest", label="new")])
+        rc, err, out = self.merge(base, theirs, base)
+        self.assertEqual(rc, 0, err)
+        self.assertEqual(json.loads(out), theirs)
+        self.assertIn("2 generated entries taken from the other branch, which python3 tools/ops/"
+                      "build_pipeline_map.py --check checks against the merged sources", err)
+        self.assertIn("node 'x' (manifest lane); edge x -> y (manifest lane)", err)
+        self.assertNotIn("node 'y'", err)
+        rc, err, _ = self.merge(theirs, base, base)          # ours changed them: nothing came from theirs
+        self.assertEqual(rc, 0, err)
+        self.assertNotIn("taken from the other branch", err)
+
     def test_delete_against_edit_is_a_conflict(self) -> None:
         base = graph([node("x"), node("y"), node("z")], [edge("x", "y"), edge("y", "z")])
         ours = graph([node("x"), node("y")], [edge("x", "y")])
