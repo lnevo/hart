@@ -215,8 +215,9 @@ non-empty field cell wins; a field row whose ID no generated row has stops, deci
 `{occupancy}` is the builder's to fill from `wiring.csv`), cached on both files' bytes. `field_index()` is a builder's
 one source of the owner's cells, `{(level, id): row}`; `allocated_names()` its one read-back of its own output (the
 numbers it gave). `write_generated` and `write_field` are the only text writers; `one_file_copy` and `pair_copy` make
-a test's copy. `devices.columns.csv` (`column,file,description`) describes every column and which file may hold it,
-and a test holds the two to each other both ways. Every row with a level carries an `id` (ADR-033): a key derived from
+a test's copy. `devices.columns.csv` (`column,file,description`, then the rule columns `tools/ops/check_data.py`
+checks, `docs/data/sidecars.md`) describes every column and which file may hold it, and a test holds the two to each
+other both ways. Every row with a level carries an `id` (ADR-033): a key derived from
 the plan, not from its name, unique on its level (`hartlib.device_ids` holds the grammar). `hartlib.track_names` is
 the name store (ADR-033 decision 2, naming-layers step 3): the field block rows with a track ID (`block:...`) and a
 name reach the schematic plugin's `name` and `end` edits and `left_end` when `layer_files.view` merges the plan view,

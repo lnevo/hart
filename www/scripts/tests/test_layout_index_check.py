@@ -1,7 +1,8 @@
-"""--check on the two layout index builders: the committed JSON is current, and a stale copy fails.
+"""--check on the two layout index builders: each builds in memory and passes its checks, and a PNG drawn from other
+inputs fails.
 
-A mast rename (16R, PR #441) used to leave www/data/layout-index.json behind
-until someone rebuilt it by hand; tools/check.sh now runs both checks.
+A mast rename (16R, PR #441) used to leave www/data/layout-index.json behind until someone rebuilt it by hand; since
+2026-11-25 the JSON is not committed (ADR-036) and is built wherever it is used.
 """
 from __future__ import annotations
 
@@ -15,9 +16,12 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from PIL import Image
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import build_cats_layout_index as cats_index  # noqa: E402
+import png_stamp  # noqa: E402
 import build_layout_index as le_index  # noqa: E402
 
 
@@ -37,48 +41,112 @@ class NamesFromTheMasterTest(unittest.TestCase):
 
 
 class LayoutIndexCheckTest(unittest.TestCase):
-    def check(self, mod, out: Path | None = None) -> tuple[int, str]:
-        err = io.StringIO()
-        patch = mock.patch.object(mod, "OUT_JSON", out) if out else contextlib.nullcontext()
-        with patch, contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
-            return mod.main(["--check"]), err.getvalue()
+    """--check builds each index in memory and runs its checks (ADR-036: the JSON is not committed); the PNG it
+    sits on is committed with a stamp of what it is drawn from."""
 
+    def check(self, mod, **patches) -> tuple[int, str, str]:
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.ExitStack() as stack:
+            for name, value in patches.items():
+                stack.enter_context(mock.patch.object(mod, name, value))
+            stack.enter_context(contextlib.redirect_stdout(out))
+            stack.enter_context(contextlib.redirect_stderr(err))
+            rc = mod.main(["--check"])
+        return rc, out.getvalue(), err.getvalue()
 
-    def test_committed_indexes_are_current(self) -> None:
+    def tmp(self) -> Path:
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        return tmp
+
+    def png(self, mod) -> Path:
+        return mod.SCHEMATIC if mod is le_index else mod.OUT_IMG
+
+    def png_patch(self, mod, path: Path) -> dict:
+        return {"SCHEMATIC" if mod is le_index else "OUT_IMG": path}
+
+    def test_the_indexes_build_and_pass_without_a_json_file(self) -> None:
+        # no www/data copy is read: a missing one changes nothing
         for mod in (le_index, cats_index):
             with self.subTest(index=mod.OUT_JSON.name):
-                self.assertEqual(self.check(mod), (0, ""))
+                rc, out, err = self.check(mod, OUT_JSON=self.tmp() / "absent.json")
+                self.assertEqual((rc, err), (0, ""))
+                self.assertIn("builds and passes its checks", out)
 
-    def test_a_stale_index_fails(self) -> None:
-        for mod in (le_index, cats_index):
-            with self.subTest(index=mod.OUT_JSON.name):
-                # The committed JSON is behind a mast rename: what --check builds now says "Mast 2LX".
-                # Changing the built side keeps the stale file out of www/data, where a parallel job
-                # (the deploy test's checkout guard) would see it.
-                build = mod.build
-                renamed = lambda: json.loads(json.dumps(build()).replace("Mast 2L", "Mast 2LX", 1))  # noqa: E731
-                self.assertNotEqual(json.dumps(build()), json.dumps(renamed()))
-                with mock.patch.object(mod, "build", renamed):
-                    rc, err = self.check(mod)
-                self.assertEqual(rc, 1)
-                self.assertIn("is stale", err)
+    def test_the_cats_index_joins_to_the_layout_index_built_in_memory(self) -> None:
+        # it used to read www/data/layout-index.json and join to nothing when the file was missing
+        items = cats_index.build()["items"]
+        self.assertTrue(any(it["mqtt"] for it in items), "no CATS hotspot got an MQTT address from the layout index")
+
+    def test_a_layout_index_with_no_items_stops_the_cats_index(self) -> None:
+        with self.assertRaisesRegex(cats_index.CatsIndexError, "has no items"):
+            cats_index.build({"items": []})
+        broken = mock.Mock(side_effect=le_index.LayoutIndexError("missing panel: x"))
+        with mock.patch.object(cats_index.build_layout_index, "build", broken):
+            with self.assertRaisesRegex(cats_index.CatsIndexError, "cannot build the layout index.*missing panel"):
+                cats_index.build()
 
     def test_a_change_to_what_the_png_is_drawn_from_fails(self) -> None:
-        # The JSON records a hash of the render inputs; a renderer (or geometry) change must show up.
         for mod in (le_index, cats_index):
             with self.subTest(index=mod.OUT_JSON.name):
-                tmp = Path(tempfile.mkdtemp())
-                self.addCleanup(shutil.rmtree, tmp)
-                render = tmp / mod.RENDER.name
+                render = self.tmp() / mod.RENDER.name
                 render.write_bytes(mod.RENDER.read_bytes() + b"\n# changed\n")
-                with mock.patch.object(mod, "RENDER", render):
-                    rc, err = self.check(mod)
+                rc, _, err = self.check(mod, RENDER=render)
                 self.assertEqual(rc, 1)
-                self.assertIn("is stale", err)
+                self.assertIn("was drawn from other inputs", err)
+                self.assertIn(f"run python3 www/scripts/{Path(mod.__file__).name}", err)
 
+    def test_a_png_without_a_stamp_fails(self) -> None:
+        for mod in (le_index, cats_index):
+            with self.subTest(index=mod.OUT_JSON.name):
+                bare = self.tmp() / "bare.png"
+                Image.new("RGB", png_stamp.size(self.png(mod))).save(bare)
+                rc, _, err = self.check(mod, **self.png_patch(mod, bare))
+                self.assertEqual(rc, 1)
+                self.assertIn("its stamp is None", err)
 
-if __name__ == "__main__":
-    unittest.main()
+    def test_a_missing_png_stops_with_the_command(self) -> None:
+        for mod in (le_index, cats_index):
+            with self.subTest(index=mod.OUT_JSON.name):
+                rc, _, err = self.check(mod, **self.png_patch(mod, self.tmp() / "gone.png"))
+                self.assertEqual(rc, 1)
+                self.assertIn("missing", err)
+                self.assertIn(f"run python3 www/scripts/{Path(mod.__file__).name}", err)
+                self.assertNotIn("Traceback", err)
+
+    def test_a_broken_source_is_a_clear_error_not_a_traceback(self) -> None:
+        # review of #1147: a tables.xml that is not XML, or a device master hartlib refuses, raised raw
+        bad = self.tmp() / "tables.xml"
+        bad.write_text("<layout-config>", encoding="utf-8")
+        for mod, patch in ((le_index, {"PANEL": bad}), (cats_index, {"PANEL": bad})):
+            with self.subTest(index=mod.OUT_JSON.name):
+                rc, _, err = self.check(mod, **patch)
+                self.assertEqual(rc, 1)
+                self.assertIn("ParseError", err)
+                self.assertNotIn("Traceback", err)
+        refused = mock.Mock(side_effect=le_index.railroad_facts.FactsError("devices.csv: cannot read it"))
+        with mock.patch.object(le_index, "load_names", refused), \
+                self.assertRaisesRegex(le_index.LayoutIndexError, "FactsError: devices.csv: cannot read it"):
+            le_index.build()
+
+    def test_a_built_index_that_does_not_add_up_fails(self) -> None:
+        for mod in (le_index, cats_index):
+            with self.subTest(index=mod.OUT_JSON.name):
+                good = mod.build()
+                self.assertEqual(mod.problems(good), [])
+                short = json.loads(json.dumps(good))
+                short["items"].pop()
+                twice = json.loads(json.dumps(good))
+                twice["items"][1]["id"] = twice["items"][0]["id"]
+                self.assertIn("counts.total", "\n".join(mod.problems(short)))
+                self.assertIn("repeated item ids", "\n".join(mod.problems(twice)))
+                with self.assertRaisesRegex(Exception, "fails its checks"):
+                    mod.index_text({**good, "items": [], "counts": {}})
+
+    def test_the_built_text_is_what_the_site_publishes(self) -> None:
+        # index_text is the one builder of the JSON text: the site build, the preview and --write all use it
+        self.assertEqual(json.loads(le_index.index_text()), le_index.build())
+        self.assertEqual(json.loads(cats_index.index_text()), cats_index.build())
 
 
 class MatchTurnoutTest(unittest.TestCase):
@@ -87,3 +155,7 @@ class MatchTurnoutTest(unittest.TestCase):
         by = {"switch 225": turnout, "switch 225b": {"kind": "occupancy", "publicName": "OS Switch 225b"}}
         self.assertIs(cats_index.match_turnout(by, set(), {"OS Switch 225b"}), turnout)
         self.assertIs(cats_index.match_turnout(by, set(), {"OS Switch 225"}), turnout)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -389,9 +389,9 @@ class Readers(Copy):
             self.assertEqual(tuple(next(csv.reader(fh))), R.SWITCH_COLUMNS)
         with (REPO.switches.parent / "switches.columns.csv").open(newline="", encoding="utf-8") as fh:
             rows = list(csv.reader(fh))
-        self.assertEqual(rows[0], ["column", "description"])
+        self.assertEqual(rows[0], ["column", "description", "type", "required", "key", "refs", "values"])  # check_data.py
         self.assertEqual(tuple(r[0] for r in rows[1:]), R.SWITCH_COLUMNS)
-        self.assertTrue(all(len(r) == 2 and r[1].strip() for r in rows[1:]), rows)
+        self.assertTrue(all(len(r) == len(rows[0]) and r[1].strip() for r in rows[1:]), rows)
 
     def test_the_views_of_switches_csv(self) -> None:
         """Staging switches (level 1, legs in row order, the first row's whole-switch columns), local switches (main and
