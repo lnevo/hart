@@ -1,0 +1,5 @@
+column,description,type,required,key,refs,values
+industry_id,"The industry's key: short, lower-case and never reused. Spots, waybills and the site's industries.json name an industry by it (ADR-039). Interchange has a row because the interchange waybills and the site's industry list name it.",str,yes,yes,,
+name,"The name the spot list, the waybill cards and the STS seed print (the Industry column of spot_assignments.csv and the industry column of HART_Spot_Waybills.csv copy it). Working values kept from those files: A Stucki Co and Ferrel Gas are spelled as the cards print them, open for the owner (docs/data/sidecars.md).",str,yes,,,
+public_name,"The name the website shows (the name of its entry in www/data/industries.json).",str,yes,,,
+slug,"The anchor of the industry's spot sheet on the site (crew/industries/#slug, the spot of its entry in www/data/industries.json, an id in crew.json spotsheet). Interchange's scully is a working value: it links to the Scully Yard sheet, open for the owner.",str,yes,,,

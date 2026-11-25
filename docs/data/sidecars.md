@@ -42,3 +42,15 @@ It finds sidecars with `git ls-files` (tracked, or untracked and not ignored) an
 
 - `jmri/layouts/hart/data/devices.columns.csv`: the device pair `devices_generated.csv` and `devices_field.csv`. Keys: `level` and `id` on rows with a level, `layer` and `user_name` on a Store's level-less rows. Its `cp`, `blocks`, `protects`, `part_of`, `facing` and `switch` must name stations, control points, devices and switches that exist.
 - `jmri/layouts/hart/data/switches.columns.csv`: `switches.csv`. Keys: `half` on main and upper, `os_block` on staging. Staging's legs and ids must name devices that exist, and an `owner` hand must be given.
+- `ops/hart-ops/data/industries.columns.csv`: `industries.csv`, the industry master. Key: `industry_id`.
+- `ops/hart-ops/data/spot_assignments.columns.csv`: `spot_assignments.csv`, the spot master. Key: `industry_id` and `Spot #`. `industry_id` must be in `industries.csv`.
+- `ops/hart-ops/data/HART_Spot_Waybills.columns.csv`: `HART_Spot_Waybills.csv`. Key: `card_id`. `industry_id` must be in `industries.csv`, and `usage` must be a usage in `spot_assignments.csv`.
+
+`www/scripts/tests/test_industry_ids.py` checks what a ref cannot: that each spot and waybill's name matches its `industry_id`, that a waybill's spots are spots of its industry, and that `www/data/industries.json` lists each industry once, under its `public_name` and `slug`, with the waybill count and commodities of its waybills.
+
+### Working values in `industries.csv`, open for the owner
+
+- `name` keeps the spelling the cards and the STS seed print: `A Stucki Co` and `Ferrel Gas`. Operations Pro, the STS location map and `crew.json` spell them `A. Stucki Co.` and `Ferrellgas`; the site shows `A. Stucki Company` and `Ferrellgas`.
+- Interchange has a row, so the interchange waybills and the site's entry have an id. Its `slug` is `scully`, the Scully Yard spot sheet, which Interchange has used as its link.
+- `spot_assignments.csv` and `HART_Spot_Waybills.csv` keep their name column beside `industry_id`, because `external/sts-helpers` reads the name.
+- `generate_waybill_cards.py` rewrites `HART_Spot_Waybills.csv` and numbers the cards from 1, so a run would close the gap at card 36 and renumber the cards after it.

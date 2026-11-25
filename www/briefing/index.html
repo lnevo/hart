@@ -85,8 +85,8 @@
 
     // "Who we switch": one compact placard per customer (logo, destination color, a few commodities),
     // each linking to its spot sheet, where the company history and spots are. Data: industries.json
-    // for logos, stripes, and commodities; crew.json for the colors. sec.exclude drops entries by spot
-    // id (Interchange is not a customer).
+    // for logos, stripes, and commodities; crew.json for the colors. sec.exclude drops entries by
+    // industry_id (Interchange is not a customer).
     // The operator sheet prints a deeper yellow; pure #FFFF00 washes out as a thin rule.
     var PRINT_HEX = { yellow: "#FFD400" };
 
@@ -106,7 +106,7 @@
         '<ul class="placard-grid">' +
         (data.industries.industries || [])
           .filter(function (ind) {
-            return exclude.indexOf(ind.spot) === -1;
+            return exclude.indexOf(ind.industry_id) === -1;
           })
           .map(function (ind) {
             var cs = (ind.stripes || []).filter(function (id) {

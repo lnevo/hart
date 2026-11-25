@@ -33,20 +33,21 @@ TEST_ID = "test_waybill_cards_behaviour"
 DEPENDS = "the frozen spot list in test_waybill_cards_behaviour.py, a seeded random module and the tables in generate_waybill_cards.py"
 NO_FILE = Path("/nonexistent/w4c-fixture.png")
 
-SPOT_CSV_TEXT = """Industry,Spot #,Usage,Cars Applicable
-Calgon Carbon,1,Coal Unload,Loaded Hopper; Empty Hopper
-Calgon Carbon,2,Coal Unload,Loaded Hopper; Empty Hopper
-Calgon Carbon,3,Carbon Load,Covered Hopper
-Calgon Carbon,4,Chemical Unload,Tank Car
-Calgon Carbon,5,Off Spot,Tank Car
-Ferrel Gas,1,LPG Unload,Tank Car
-Test Works,7,Widget Unload,Boxcar
-Test Works,8,Widget Shipping,Boxcar; Flatcar
-Test Works,9,Siding,Gondola
-Test Works,10,Storage,Gondola
-,11,Widget Unload,Boxcar
-Test Works,x,Widget Unload,Boxcar
-Test Works,12,Widget Unload,
+SPOT_CSV_TEXT = """industry_id,Industry,Spot #,Usage,Cars Applicable
+calgon,Calgon Carbon,1,Coal Unload,Loaded Hopper; Empty Hopper
+calgon,Calgon Carbon,2,Coal Unload,Loaded Hopper; Empty Hopper
+calgon,Calgon Carbon,3,Carbon Load,Covered Hopper
+calgon,Calgon Carbon,4,Chemical Unload,Tank Car
+calgon,Calgon Carbon,5,Off Spot,Tank Car
+ferrellgas,Ferrel Gas,1,LPG Unload,Tank Car
+test-works,Test Works,7,Widget Unload,Boxcar
+test-works,Test Works,8,Widget Shipping,Boxcar; Flatcar
+test-works,Test Works,9,Siding,Gondola
+test-works,Test Works,10,Storage,Gondola
+,,11,Widget Unload,Boxcar
+,Test Works,13,Widget Unload,Boxcar
+test-works,Test Works,x,Widget Unload,Boxcar
+test-works,Test Works,12,Widget Unload,
 """
 
 
@@ -138,8 +139,10 @@ class SpotCsv(unittest.TestCase):
         coal = groups[("Calgon Carbon", "Coal Unload")]
         self.assertEqual(coal["Spots"], "1-2")
         self.assertEqual(coal["CarTypes"], ("Hopper",))
+        self.assertEqual(coal["IndustryId"], "calgon")
 
     def test_skips_off_spot_storage_blank_and_unparseable_rows(self):
+        """Also a row with no industry_id (spot 13): the id is what the waybill CSV keys on."""
         usages = {(g["Industry"], g["Usage"]) for g in self.load()}
         self.assertNotIn(("Calgon Carbon", "Off Spot"), usages)
         self.assertNotIn(("Test Works", "Storage"), usages)
@@ -160,7 +163,7 @@ class SpotCsv(unittest.TestCase):
         self.assertIn("absent.csv", str(cm.exception))
 
     def test_header_only_csv_gives_no_groups(self):
-        self.assertEqual(self.load("Industry,Spot #,Usage,Cars Applicable\n"), [])
+        self.assertEqual(self.load("industry_id,Industry,Spot #,Usage,Cars Applicable\n"), [])
 
 
 class Specs(unittest.TestCase):

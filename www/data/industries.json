@@ -3,6 +3,7 @@
   "lede": "The customers and commodities that make the railroad work.",
   "industries": [
     {
+      "industry_id": "aristech",
       "name": "Aristech Plastics",
       "blurb": "On HART, plastic resins and monomers arrive by covered hopper and tank car; the prototype island plant made plasticizers for flexible PVC. Yellow block on the color board — worked by the Neville Island Turn.",
       "commodities": [
@@ -20,6 +21,7 @@
       ]
     },
     {
+      "industry_id": "stucki",
       "name": "A. Stucki Company",
       "blurb": "Railway springs, machined parts, and steel for the island's railroad supplier. On HART, a green destination.",
       "commodities": [
@@ -38,6 +40,7 @@
       ]
     },
     {
+      "industry_id": "calgon",
       "name": "Calgon Carbon",
       "blurb": "Activated carbon, coal, and process chemicals. On HART, the purple block — a busy spot for NVL.",
       "commodities": [
@@ -55,6 +58,7 @@
       ]
     },
     {
+      "industry_id": "ferrellgas",
       "name": "Ferrellgas",
       "blurb": "LPG in and out on tank cars. On HART, the red destination on the crew sheets.",
       "commodities": [
@@ -68,6 +72,7 @@
       ]
     },
     {
+      "industry_id": "kosmos",
       "name": "Kosmos Cement",
       "blurb": "Cement and aggregate. On HART, the pink block — covered hoppers and bulk moves.",
       "commodities": [
@@ -82,6 +87,7 @@
       ]
     },
     {
+      "industry_id": "shenango",
       "name": "Shenango Coke Works",
       "blurb": "Coke for steel customers. On HART, the black destination — CK1 works the pickup, the weigh, and the reload when hoppers fail the scale.",
       "commodities": [
@@ -95,6 +101,7 @@
       ]
     },
     {
+      "industry_id": "interchange",
       "name": "Interchange",
       "blurb": "Off-island shippers and receivers that feed the CSX and POHC connections — the reason cars keep arriving at South Yard.",
       "commodities": [

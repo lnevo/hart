@@ -8,6 +8,7 @@ Generate spot waybill cards and CC/waybill labels from the HART waybill matrix.
 
 - `data/HART_Spot_Waybills.csv`
 - `data/spot_assignments.csv`
+- `data/industries.csv`: the industry master; both CSVs name an industry by its `industry_id` (ADR-039)
 - `operator_logos/` for labels
 
 ## Outputs
