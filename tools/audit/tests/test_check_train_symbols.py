@@ -1,4 +1,5 @@
-"""check_train_symbols: crew jobs, Operations Pro trains and the CATS train list name trains of the master."""
+"""check_train_symbols: crew jobs, Operations Pro trains and the CATS train list name trains of the master. Fixtures
+only: unit-guards may not read ops/ or www/ (check_stamps.BY_KIND); the train-symbols step checks the repo."""
 from __future__ import annotations
 
 import sys
@@ -27,9 +28,6 @@ def rec(symbol: str, name: str, engine: str, font: str) -> str:
 
 
 class CheckTrainSymbols(unittest.TestCase):
-    def test_the_repo_passes(self) -> None:
-        self.assertEqual(C.main(), 0)
-
     def test_a_crew_job_code_must_be_a_symbol_and_other_jobs_are_left_out(self) -> None:
         crew = {"jobs": [{"id": "d749", "code": "D749", "kind": "crew"},
                          {"id": "x", "code": "X9", "kind": "crew"},

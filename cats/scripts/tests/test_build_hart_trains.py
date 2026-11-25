@@ -1,4 +1,6 @@
-"""cats/data/hart_trains.csv is built from the train master, in the CATS file's own columns."""
+"""cats/data/hart_trains.csv is built from the train master, in the CATS file's own columns. The tests use fixtures
+only: unit-cats may read code, jmri/ and cats/ (check_stamps.BY_KIND), not ops/; the hart-trains step checks the
+committed file."""
 from __future__ import annotations
 
 import importlib.util
@@ -25,9 +27,6 @@ class BuildHartTrains(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.dir = Path(self.tmp.name)
 
-    def test_the_committed_file_is_a_build_of_the_master(self) -> None:
-        self.assertEqual(self.mod.OUT.read_bytes(), self.mod.build().encode("utf-8"))
-
     def test_cats_columns_in_order_and_master_only_columns_left_out(self) -> None:
         master = self.dir / "trains.csv"
         master.write_text("train_symbol,train_name,engine,font,runs_job,opspro_name,notes\n"
@@ -45,12 +44,14 @@ class BuildHartTrains(unittest.TestCase):
         out = self.dir / "hart_trains.csv"
         out.write_text("stale\n", encoding="utf-8")
         master = self.dir / "trains.csv"
-        master.write_bytes(self.mod.MASTER.read_bytes())
+        master.write_text("train_symbol,train_name,engine,font,runs_job,opspro_name,notes\n"
+                          "X1,Extra 1,42,East,true,,DS-01 #1 \u2014 a note\n", encoding="utf-8")
         with mock.patch.object(self.mod, "OUT", out), mock.patch.object(self.mod, "MASTER", master):
             self.assertEqual(self.mod.main(["--check"]), 1)
             self.assertEqual(self.mod.main([]), 0)
             self.assertEqual(self.mod.main(["--check"]), 0)
-        self.assertEqual(out.read_bytes(), self.mod.OUT.read_bytes())
+        self.assertEqual(out.read_bytes(), "train_name,train_symbol,engine,font,runs_job,notes\n"
+                                           "Extra 1,X1,42,East,true,DS-01 #1 \u2014 a note\n".encode("utf-8"))
 
 
 if __name__ == "__main__":
