@@ -42,7 +42,7 @@ Goal: for each job that reran on the one-line ADR edit, the reason, and a narrow
 
 - Reproduce in a scratch worktree: add a line to a wiki page, run `check.sh`, and list the jobs that ran. For the reason, run `check_stamps.py why <job>` with check.sh's stamp environment (`CHECK_STAMPS_DIR` and the rest that `check.sh` sets), or add a `--why` line to the job's log; `CHECK_AUDIT=DIR FULL=1 tools/check.sh` then `check_stamps.py audit-report DIR` shows what each job read.
 - Narrow only from evidence: a job that read a wiki file keeps it. A job that fell back to its declaration because it ran bash or git keeps a declaration; narrow the declaration only to folders the audit shows it reads.
-- `static` and `public-text` stay on every file unless the audit shows a clear split; say what it would take if not.
+- `static` stays one job on every file (owner, 2026-11-24). `public-text` stays on every file unless the audit shows a clear split.
 - Tests: `tools/audit/tests/test_check_stamps.py` already checks that each job's declaration covers what the audit saw it read; extend it to any new or narrowed entry.
 - Report a table: job, reran on the wiki edit (yes or no, before and after), reason, change made.
 
@@ -52,13 +52,13 @@ Goal: for each job that reran on the one-line ADR edit, the reason, and a narrow
 
 **3b, cut (after 1 and 2 merge).** Act on 3a. Likely candidates, to be confirmed by it: check every job's stamp in one `check_stamps.py` process instead of one per job; let `test_redeploy_commit` (24 s) and the other always-run jobs be stamped if what makes them always run can be declared. Byte-identical results: the same jobs run and skip as before, for the same changes. Done when a no-change run is timed before and after.
 
-## Owner decisions
+## Owner decisions (2026-11-24)
 
-| # | Question | Recommended |
+| # | Question | Answer |
 |---|---|---|
-| 1 | Should the docs-only path be automatic, or only on request (`DOCS=1`)? | Automatic, with `FULL=1` for the full run, the same rule CI uses |
-| 2 | Should a docs-only local run record that it passed, so `/done` and the merge gate count it? | No: CI runs on every PR anyway, and a docs-only local run is a quick check |
-| 3 | If item 2 finds `static` must stay on every file, is a 34 s `static` on a wiki edit acceptable once item 1 skips it for docs-only branches? | Yes |
+| 1 | Should the docs-only path be automatic, or only on request? | Automatic, the same rule CI uses; `FULL=1` still runs everything |
+| 2 | Should a docs-only local run record a pass that `/done` and the merge gate count? | No: it is a quick check, and CI runs on every PR |
+| 3 | Should `static` (36 read-only checks, one stamped job, about 34 s) be split so an edit reruns only the checks that read it? | No, leave it whole. A docs-only branch skips it (item 1); the quick docs checks cover its checks that read the wiki |
 
 ## Not in this plan
 
