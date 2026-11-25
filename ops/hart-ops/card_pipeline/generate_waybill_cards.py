@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """Generate HART spot waybill cards from spot_assignments.csv.
 
-CSV columns: industry_id, Industry, Spot #, Usage, Cars Applicable (industry_id names a row of
-industries.csv; Industry is the name printed on the card)
+CSV columns: Industry, Spot #, Usage, Cars Applicable
 
 Rules:
   - Skip Off Spot and Storage usages.
@@ -144,12 +143,9 @@ def load_spot_groups() -> list[dict]:
     groups: dict[tuple, dict] = {}
     with SPOT_CSV.open(newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
-            industry_id = _norm(row.get("industry_id"))
             industry = _norm(row.get("Industry"))
             usage = _norm(row.get("Usage"))
-            if industry and not industry_id:
-                raise ValueError(f"{SPOT_CSV.name}: {industry} spot {row.get('Spot #', '')} has no industry_id")
-            if not industry_id or not industry or not usage:
+            if not industry or not usage:
                 continue
             if usage.lower() in SKIP_USAGES:
                 continue
@@ -159,10 +155,9 @@ def load_spot_groups() -> list[dict]:
             if not spot or not car_types:
                 continue
 
-            key = (industry_id, industry, usage, car_types)
+            key = (industry, usage, car_types)
             if key not in groups:
                 groups[key] = {
-                    "IndustryId": industry_id,
                     "Industry": industry,
                     "Usage": usage,
                     "CarTypes": car_types,

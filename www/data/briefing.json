@@ -90,10 +90,7 @@
       "link": {
         "label": "Shenango, Kosmos, Calgon, and Aristech all came out of one plant: see the Industry chart",
         "href": "plants/index.html"
-      },
-      "exclude": [
-        "interchange"
-      ]
+      }
     },
     {
       "id": "jobs",

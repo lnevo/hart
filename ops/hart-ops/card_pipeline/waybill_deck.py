@@ -331,14 +331,12 @@ def _spot_count(spots: str) -> int:
 def build_industry_empty_cards(groups: list[dict]) -> list[dict]:
     """One generic outbound EMPTY per spot not covered by an inbound-empty load track."""
     counts = _industry_outbound_empty_counts(groups)
-    ids = {group["Industry"]: group["IndustryId"] for group in groups}
     cards: list[dict] = []
     for industry in sorted(counts, key=lambda name: INDUSTRY_ORDER.get(name, 99)):
         routing = OUTBOUND_EMPTY_RETURN.get(industry, {})
         for _ in range(counts[industry]):
             cards.append(
                 {
-                    "IndustryId": ids[industry],
                     "Industry": industry,
                     "CardKind": "outbound_empty",
                     "Usage": "",
@@ -388,7 +386,6 @@ def build_waybill_records(groups: list[dict]) -> tuple[list[dict], list[tuple]]:
                     {
                         "GroupKey": group_key,
                         "DirectionKey": (group_key, flow),
-                        "IndustryId": group["IndustryId"],
                         "Industry": group["Industry"],
                         "Usage": group["Usage"],
                         "Spots": group["Spots"],
@@ -521,7 +518,6 @@ def sort_deck_by_industry(deck: list[dict]) -> list[dict]:
 def _card_to_csv_row(card: dict, card_id: int) -> dict[str, str]:
     return {
         "card_id": str(card_id),
-        "industry_id": card["IndustryId"],  # every card builder sets it; a missing one fails here
         "industry": card.get("Industry", ""),
         "card_kind": _card_kind(card),
         "usage": card.get("Usage", ""),
@@ -540,7 +536,6 @@ def export_waybill_csv(deck: list[dict], path: Path) -> None:
     """Write one row per card for editing outside the Word file."""
     fieldnames = [
         "card_id",
-        "industry_id",
         "industry",
         "card_kind",
         "usage",

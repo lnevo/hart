@@ -101,7 +101,7 @@
       ]
     },
     {
-      "industry_id": "interchange",
+      "category": "interchange",
       "name": "Interchange",
       "blurb": "Off-island shippers and receivers that feed the CSX and POHC connections — the reason cars keep arriving at South Yard.",
       "commodities": [

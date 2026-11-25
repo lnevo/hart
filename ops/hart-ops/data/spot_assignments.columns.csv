@@ -1,6 +1,6 @@
 column,description,type,required,key,refs,values
 industry_id,"The industry the spot belongs to. With Spot # it is the spot's key (ADR-039).",str,yes,yes,ops/hart-ops/data/industries.csv:industry_id,
-Industry,"The industry's name as the waybill cards and the STS seed print it: a copy of its industries.csv name, kept because external/sts-helpers reads this column. www/scripts/tests/test_industry_ids.py checks it matches the id's row.",str,yes,,ops/hart-ops/data/industries.csv:name,
+Industry,"The industry's name as the waybill cards and the STS seed print it, kept because external/sts-helpers reads this column. It still has the old spellings A Stucki Co and Ferrel Gas until the follow-up with sts-helpers; www/scripts/tests/test_industry_ids.py checks it against the id's industries.csv name through its alias list.",str,yes,,,
 Spot #,"The spot number within the industry, from 1.",int,yes,yes,,
 Usage,"What the spot is used for. One waybill group per industry, usage and car list; Off Spot and Storage get no waybills.",enum,yes,,,Aggregate Unload;Carbon Load;Cement Unload;Chemical Unload;Coal Unload;Crane Track;LPG Unload;Off Spot;Pellet Unload;Shipping Door;Storage;Team Track
 Cars Applicable,"The car types the spot takes, separated by ""; "". Loaded Hopper and Empty Hopper print as Hopper.",str,yes,,,

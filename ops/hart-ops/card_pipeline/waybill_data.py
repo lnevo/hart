@@ -214,7 +214,6 @@ SPOT_WAYBILL: dict[tuple[str, str], dict] = {
 # INDUSTRY_ORDER) must not appear as RouteFrom or RouteTo — those moves use
 # spot waybills instead.
 INTERCHANGE_HEADER = "INTERCHANGE"
-INTERCHANGE_ID = "interchange"  # its row in industries.csv
 
 # Names tied to on-layout industries (exact or operational alias).
 _LAYOUT_PARTY_NAMES = frozenset(
@@ -229,7 +228,6 @@ _LAYOUT_PARTY_NAMES = frozenset(
 
 def _ix_card(**fields) -> dict:
     return {
-        "IndustryId": INTERCHANGE_ID,
         "Industry": INTERCHANGE_HEADER,
         "CardKind": "interchange",
         "Spots": "—",
