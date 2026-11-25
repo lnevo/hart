@@ -49,6 +49,13 @@ class SiteInputs(unittest.TestCase):
         self.assertTrue(outside, "expected manifest sources outside the prefixes (jmri/)")
         self.assertEqual([outside[0]], portal_inputs.site_inputs([outside[0]], sources))
 
+    def test_the_map_page_tools_are_site_inputs(self) -> None:
+        # the build writes library/pipeline-map.html itself (ADR-036): a change to its builder runs the portal check
+        for path in portal_inputs.SITE_TOOLS:
+            self.assertTrue((ROOT / path).is_file(), path)
+            self.assertEqual([path], portal_inputs.site_inputs([path], set()))
+        self.assertEqual([], portal_inputs.site_inputs(["tools/ops/pipeline_query.py"], set()))
+
     def test_a_tables_or_cats_change_is_not_a_site_input(self) -> None:
         paths = ["jmri/layouts/hart/output/tables.xml", "cats/scripts/validate_cats_panel.py", "tools/check.sh"]
         self.assertEqual([], portal_inputs.site_inputs(paths, set()))

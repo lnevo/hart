@@ -126,6 +126,9 @@ class Review(unittest.TestCase):
         self.assertEqual(faults, [])
 
 
+    def test_built_pages_match_the_site_build(self):
+        self.assertEqual(share_cards.built_pages(), frozenset(build.BUILT_PAGES))
+
     def test_a_page_the_build_writes_needs_no_file_but_a_missing_page_is_a_fault(self):
         """A built page (prepare_github_pages.BUILT_PAGES, not committed: ADR-036) counts as a page; others must exist."""
         built = next(iter(build.BUILT_PAGES))

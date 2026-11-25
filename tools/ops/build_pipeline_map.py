@@ -649,8 +649,9 @@ _PAGE_DATA = re.compile(r"<script>const DATA = (\{.*?\});</script>", re.S)  # "<
 
 
 def check_page(page: str, data: dict, site: bool) -> None:
-    """GraphError unless the drawn page is whole: every template placeholder filled, the graph's every box and link in
-    its data, the viewer script inlined, and the site header in the website copy."""
+    """GraphError unless the drawn page is whole: every template placeholder filled, its data holding exactly the
+    graph's boxes (by id) and links (by their two ends), the viewer script inlined, and the site header in the website
+    copy. `data` is the graph the page was drawn from (the public copy for the website page)."""
     left = [p for p in PLACEHOLDERS if p in page]
     if left:
         raise GraphError(f"the page still holds template placeholders: {', '.join(left)}")
@@ -661,9 +662,17 @@ def check_page(page: str, data: dict, site: bool) -> None:
         shown = json.loads(found.group(1))
     except json.JSONDecodeError as err:
         raise GraphError(f"the page's graph data is not valid JSON: {err}") from None
-    for key in ("nodes", "edges"):
-        if len(shown.get(key, ())) != len(data[key]):
-            raise GraphError(f"the page holds {len(shown.get(key, ()))} {key}, the graph {len(data[key])}")
+    try:
+        keys = {"nodes": lambda e: e["id"], "edges": lambda e: (e["from"], e["to"])}
+        for key, ident in keys.items():
+            got, want = [ident(e) for e in shown.get(key, ())], [ident(e) for e in data[key]]
+            if len(got) != len(want) or set(got) != set(want):
+                missing, extra = sorted(map(str, set(want) - set(got))), sorted(map(str, set(got) - set(want)))
+                raise GraphError(f"the page holds {len(got)} {key}, the graph {len(want)}"
+                                 + (f"; missing {', '.join(missing[:5])}" if missing else "")
+                                 + (f"; not in the graph {', '.join(extra[:5])}" if extra else ""))
+    except (KeyError, TypeError) as err:
+        raise GraphError(f"the page's graph data has a malformed entry ({err!r})") from None
     if script_text() not in page:
         raise GraphError(f"the page does not inline {SCRIPT.name}")
     if site and SITE_HEADER not in page:
@@ -673,8 +682,9 @@ def check_page(page: str, data: dict, site: bool) -> None:
 def build(data: dict, public: bool, back: str = "") -> str:
     """One page from a checked graph, itself checked: the repo page, or the website copy (public=True: mirror paths
     renamed, site look, and the website's leak and private-name checks)."""
-    page = render(public_copy(data) if public else data, back, public)
-    check_page(page, data, public)
+    drawn = public_copy(data) if public else data
+    page = render(drawn, back, public)
+    check_page(page, drawn, public)
     if public:
         check_public_page(page)
     return page
@@ -692,8 +702,19 @@ def write_page(out: Path, page: str) -> None:
         raise GraphError(f"{out} reads back different from the page written")
 
 
+def check_untracked() -> None:
+    """GraphError when git tracks a page that is built, not committed (ADR-036): a branch from before it that kept its
+    copy in a modify/delete conflict, or a git add -f. The site build would stop on it at deploy time."""
+    tracked = [shown(p) for p in (PAGE, SITE_PAGE) if shown(p) in tracked_paths()]
+    if tracked:
+        raise GraphError(f"git tracks {', '.join(tracked)}, which are built, not committed (ADR-036): "
+                         f"git rm --cached {' '.join(tracked)}")
+
+
 def rebuild_command(graph: Path) -> str:
-    return BUILD + (f" --graph {shlex.quote(str(graph))}" if graph.resolve() != GRAPH.resolve() else "")
+    if graph.resolve() == GRAPH.resolve():
+        return f"{BUILD} (make map)"
+    return f"{BUILD} --graph {shlex.quote(str(graph))} --out <page>"
 
 
 def current(graph: Path) -> tuple[dict, str | None]:
@@ -702,7 +723,7 @@ def current(graph: Path) -> tuple[dict, str | None]:
     if graph.read_text(encoding="utf-8") == graph_text(data):
         return data, None
     return data, (f"{graph} is out of date (its agent-doc lane is generated from the files): run "
-                  f"{rebuild_command(graph)} (or make map) and commit the graph")
+                  f"{rebuild_command(graph)} and commit the graph")
 
 
 def site_page(graph: Path = GRAPH) -> str:
@@ -733,6 +754,8 @@ def main(argv: list[str] | None = None) -> int:
         ap.error("--check builds both pages in memory and writes nothing; it takes no --out, --public or --back")
     if args.public and not args.out:
         ap.error("--public writes the website copy; give it --out")
+    if not args.check and not args.out and args.graph.resolve() != GRAPH.resolve():
+        ap.error("another --graph writes no local page in its place; give it --out")
     try:
         data, stale = current(args.graph)
     except GraphError as err:
@@ -744,6 +767,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     try:
         if args.check:
+            check_untracked()
             build(data, public=False)
             build(data, public=True, back=SITE_BACK)
             print(f"pipeline map: the graph is current and both pages build ({len(data['nodes'])} nodes, "

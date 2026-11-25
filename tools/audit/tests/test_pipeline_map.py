@@ -5,6 +5,7 @@ import contextlib
 import importlib.util
 import io
 import json
+import re
 import shutil
 import subprocess
 import tempfile
@@ -805,12 +806,40 @@ class PageTest(unittest.TestCase):
             (page.replace(MAP.script_text(), ""), "does not inline pipeline_map.js"),
             (page + "__DATA__", "placeholders: __DATA__"),
             (page.replace('{"nodes":[{', '{"nodes":[{"id":"extra"},{', 1), r"holds \d+ nodes, the graph \d+"),
+            (page.replace('{"nodes":[{', '{"nodes":[{"id":"extra"},{', 1).replace('"x":0}', '"x":0}', 1),
+             r"not in the graph extra"),
+            (page.replace('"edges":[{', '"edges":[{"to":"y"},{', 1), "malformed entry"),
         )
         for broken, why in cases:
             with self.subTest(why=why), self.assertRaisesRegex(MAP.GraphError, why):
                 MAP.check_page(broken, data, site=False)
         with self.assertRaisesRegex(MAP.GraphError, "no site header"):
             MAP.check_page(page, data, site=True)
+
+    def test_a_swapped_box_fails_even_when_the_counts_match(self) -> None:
+        data = MAP.load(MAP.GRAPH)
+        first, second = data["nodes"][0]["id"], data["nodes"][1]["id"]
+        swapped = {**data, "nodes": [data["nodes"][1], *data["nodes"][1:]]}  # first box gone, second twice
+        page = MAP.render(swapped)
+        with self.assertRaisesRegex(MAP.GraphError, f"missing {re.escape(first)}"):
+            MAP.check_page(page, data, site=False)
+        self.assertIn(second, page)
+
+    def test_check_fails_when_git_tracks_a_built_page(self) -> None:
+        tracked = MAP.tracked_paths() | {"www/library/pipeline-map.html"}
+        with unittest.mock.patch.object(MAP, "tracked_paths", return_value=tracked):
+            rc, _, err = run_main(["--check"])
+        self.assertEqual(rc, 1)
+        self.assertIn("git rm --cached www/library/pipeline-map.html", err)
+
+    def test_another_graph_needs_an_out_file(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            graph = Path(tmp, "g.json")
+            graph.write_text(MAP.GRAPH.read_text())
+            with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as stop:
+                MAP.main(["--graph", str(graph)])
+            self.assertEqual(stop.exception.code, 2)
+            self.assertIn("--out <page>", MAP.rebuild_command(graph))
 
     def test_an_empty_or_missing_viewer_script_is_a_graph_error(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

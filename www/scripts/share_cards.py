@@ -18,6 +18,7 @@ would appear twice in the grid.
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import posixpath
 import re
@@ -180,12 +181,17 @@ def _image_size(path: Path) -> tuple[int, int] | None:
         return im.size
 
 
+@functools.cache
 def built_pages() -> frozenset[str]:
     """The pages the site build writes from their sources instead of copying (prepare_github_pages.BUILT_PAGES,
-    ADR-036): not in www/ unless someone built a local copy, yet published."""
-    import prepare_github_pages as build  # the build's own list
+    ADR-036): not in www/ unless someone built a local copy, yet published. Read from the builder's own SITE_REL
+    (tools/ops/build_pipeline_map.py, loaded once), so this does not import the whole site build."""
+    import importlib.util
 
-    return frozenset(build.BUILT_PAGES)
+    spec = importlib.util.spec_from_file_location("build_pipeline_map", PORTAL.parent / "tools/ops/build_pipeline_map.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return frozenset({module.SITE_REL})
 
 
 def _is_page(page: str, portal: Path) -> bool:
