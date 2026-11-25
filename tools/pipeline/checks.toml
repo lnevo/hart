@@ -702,12 +702,30 @@ cmd = ["python3", "tools/audit/check_train_symbols.py"]
 git = ["head", "base"]
 domain = "ops"
 label = "check_train_symbols.py"
-desc = "Checks that crew.json's crew job codes, the Operations Pro train names and the CATS desks' train list name trains of trains.csv (ADR-039)."
+desc = "Checks that the crew master's crew job codes, the Operations Pro train names and the CATS desks' train list name trains of trains.csv (ADR-039)."
 inputs = [
   { path = "ops/hart-ops/data/trains.csv", label = "symbols", side = "check" },
-  { path = "www/data/crew.json", label = "job codes", side = "check" },
+  { path = "ops/hart-ops/data/crew.json", label = "job codes", side = "check" },
   { path = "jmri/layouts/hart/operations", label = "train names", side = "check" },
   { path = "cats/data/generated_desk_header.xml", label = "desk train list", side = "check" },
+]
+
+[[step]]
+name = "crew-json"
+runner = "check"
+group = "static"
+cmd = ["python3", "ops/hart-ops/publications/build_crew_json.py", "--check"]
+git = ["head", "base"]
+domain = "website"
+label = "build_crew_json.py"
+desc = "Writes www/data/crew.json from the crew master ops/hart-ops/data/crew.json after its schema check, with the spot sheet's industry names from industries.csv and the schematic's revision from the title block (ADR-039); --check."
+inputs = [
+  { path = "ops/hart-ops/data/crew.json", label = "crew master" },
+  { path = "ops/hart-ops/data/industries.csv", label = "spot sheet names" },
+  { path = "jmri/layouts/hart/data/schematic/preferences.json", label = "title block, via hartlib.map_revision" },
+]
+outputs = [
+  "www/data/crew.json",
 ]
 
 [[step]]

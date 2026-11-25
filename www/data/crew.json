@@ -1,5 +1,5 @@
 {
-  "_note": "Hand-maintained from ops/hart-ops/publications/rebuild_*.py (crew dict, YM, DS, TT-23) and the published docx/pptx. The rebuild scripts and docx stay canonical; regenerate this file from them when they change.",
+  "_note": "Built from ops/hart-ops/data/crew.json and ops/hart-ops/data/industries.csv by ops/hart-ops/publications/build_crew_json.py (ADR-039). Edit those, then rebuild; never edit this file.",
   "colors": [
     {
       "id": "blue",

@@ -5,8 +5,9 @@
 
 It reads ops/hart-ops/data/trains.csv and checks three copies against it:
 
-- www/data/crew.json: the code of each crew job (kind "crew") is a train_symbol. The yardmaster and dispatcher jobs
-  are not trains; their codes are publication numbers (YM-01, DS-01), so they are left out.
+- ops/hart-ops/data/crew.json, the crew master (www/data/crew.json is built from it): the code of each crew job
+  (kind "crew") is a train_symbol. The yardmaster and dispatcher jobs are not trains; their codes are publication
+  numbers (YM-01, DS-01), so they are left out.
 - jmri/layouts/hart/operations/OperationsTrainRoster.xml: each Operations Pro train name is a train_symbol, or the
   opspro_name of one train. Each opspro_name must still be in the roster, so a stale mapping fails too. The Pi writes
   that roster (ADR-015); a mismatch is fixed in the master or by a decision about the Operations Pro train, never by
@@ -26,7 +27,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 MASTER = ROOT / "ops/hart-ops/data/trains.csv"
-CREW = ROOT / "www/data/crew.json"
+CREW = ROOT / "ops/hart-ops/data/crew.json"  # the crew master (ADR-039, lane L5)
 ROSTER = ROOT / "jmri/layouts/hart/operations/OperationsTrainRoster.xml"
 HEADER = ROOT / "cats/data/generated_desk_header.xml"
 
