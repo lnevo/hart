@@ -547,7 +547,29 @@ def new(topic: str, agent: str) -> Path:
             dst.symlink_to(src)
     init_check_submodules(path, main)
     install_merge_drivers(path)
+    build_status_page(path)
     return path
+
+
+STATUS_PAGE = "tools/ops/status_counts.py"  # builds the gitignored wiki/STATUS.md from wiki/status/ (ADR-038)
+
+
+def build_status_page(path: Path) -> bool:
+    """Build wiki/STATUS.md in the new worktree from its own STATUS_PAGE, so readers by path find it there too. A
+    checkout from before ADR-038 has no folder to build from. Warn on stderr and return False when it fails."""
+    script = path / STATUS_PAGE
+    if not (path / "wiki/status").is_dir() or not script.is_file():
+        return True
+    try:
+        done = subprocess.run([sys.executable, str(script), "--quiet"], cwd=path, capture_output=True, text=True,
+                              timeout=60)
+    except (OSError, subprocess.SubprocessError) as err:
+        print(f"warning: wiki/STATUS.md not built ({err}); run make status", file=sys.stderr)
+        return False
+    if done.returncode != 0:
+        print(f"warning: wiki/STATUS.md: {(done.stdout + done.stderr).strip()}; run make status", file=sys.stderr)
+        return False
+    return True
 
 
 MERGE_DRIVERS = "tools/ops/merge_pipeline_map.py"  # sets the pipeline map's git merge drivers (--install)

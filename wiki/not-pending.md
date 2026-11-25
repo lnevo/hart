@@ -34,7 +34,7 @@ The `whats-left` skill reads this page and drops everything it excludes. Add a r
 | Helix-top intermediate signals (A75/B75) | Dropped; the home signals at 127 and 131 (129 and 135 before the 2026-11-19 renumber) govern the helix. Never list or re-propose them. | [ADR-024](decisions/ADR-024-signals-by-rule.md) (ADR-031 superseded) | 2026-11-19 |
 | The Main West turnback (AnyRail draft 3) | Dropped and its branch deleted. Never propose it again. | [ADR-026](decisions/ADR-026-anyrail-5-3c-master-plan.md) | 2026-11-20 |
 | Further Layout Editor text-size steps (condensed-font metrics, helix label size, step C3) | Dropped after step C1 and the 14 px station names shipped (#898). The topic is closed; never list or propose it. | None; not tracked | 2026-11-21 |
-| Stock JMRI and CATS operating risks (MQTT startup race, CATS load risk) | Leave out of any "what is pending" answer. They are standing notes, not open work. | Operating notes in [`STATUS.md`](STATUS.md) | 2026-11-01 |
+| Stock JMRI and CATS operating risks (MQTT startup race, CATS load risk) | Leave out of any "what is pending" answer. They are standing notes, not open work. | Operating notes in [`status/current/`](status/current/) (`mqtt-startup-race.md`, `cats-load-risk.md`) | 2026-11-01 |
 | CPython repo tools in `jmri/layouts/hart/scripts/` beside the Jython scripts JMRI runs (19 of 39 files on 2026-11-23) | Leave them there; do not propose moving them. | Architecture review of 2026-11-23 (`wiki/STATUS_LOG.md`) | 2026-11-23 |
 | An audit that a Jython script never imports `hartlib` | Not needed; do not propose it. The rule stays in AGENTS.md and the scripts' comments. | Architecture review of 2026-11-23 (`wiki/STATUS_LOG.md`) | 2026-11-23 |
 
@@ -42,9 +42,9 @@ The `whats-left` skill reads this page and drops everything it excludes. Add a r
 
 | Item | Rule | Recorded instead | Owner date |
 |------|------|------------------|------------|
-| Operations Pro build follow-up (R1-R8, plugin fixes P1-P19) | Side project. List only under future goals; do not raise R2 or the follow-up list in what's-next answers. | [`docs/ops/OPSPRO_FOLLOWUP.md`](../docs/ops/OPSPRO_FOLLOWUP.md); "Future goals" in [`STATUS.md`](STATUS.md) | 2026-11-21 |
-| LCOS bridge move to the Pi | Future goal, not next. | "Future goals" in [`STATUS.md`](STATUS.md) | 2026-11-21 |
-| Speed matching follow-ups (decoder read-back, loop 2 lap survey) | Future goal, not next. | "Future goals" in [`STATUS.md`](STATUS.md); [`projects/speedmatching.md`](projects/speedmatching.md) | 2026-11-21 |
+| Operations Pro build follow-up (R1-R8, plugin fixes P1-P19) | Side project. List only under future goals; do not raise R2 or the follow-up list in what's-next answers. | [`docs/ops/OPSPRO_FOLLOWUP.md`](../docs/ops/OPSPRO_FOLLOWUP.md); "Future goals" in [`status/future/`](status/future/) | 2026-11-21 |
+| LCOS bridge move to the Pi | Future goal, not next. | "Future goals" in [`status/future/`](status/future/) | 2026-11-21 |
+| Speed matching follow-ups (decoder read-back, loop 2 lap survey) | Future goal, not next. | "Future goals" in [`status/future/`](status/future/); [`projects/speedmatching.md`](projects/speedmatching.md) | 2026-11-21 |
 
 ## Watch-only items
 

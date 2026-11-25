@@ -437,8 +437,9 @@
    "kind": "output",
    "status": "live",
    "domain": "agents",
-   "desc": "Project status page; the Counts line between markers is generated.",
-   "path": "wiki/STATUS.md"
+   "desc": "Project status page, built from the entry files in wiki/status/ by make status and the session-start hook, with the Counts line computed at build time; gitignored (ADR-038).",
+   "path": "wiki/STATUS.md",
+   "local": true
   },
   {
    "id": "cats/scripts/rewrite_button_icon_paths.py",
@@ -4048,6 +4049,16 @@
    "desc": "Project pages and hand-offs.",
    "path": "wiki/projects",
    "gen": "agent-docs"
+  },
+  {
+   "id": "wiki/status",
+   "label": "wiki/status/",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "The status entries, one file each (ADR-038); make status builds wiki/STATUS.md from them.",
+   "path": "wiki/status",
+   "gen": "agent-docs"
   }
  ],
  "edges": [
@@ -7256,10 +7267,9 @@
    "label": "published-files.json"
   },
   {
-   "from": "wiki/STATUS.md",
-   "to": "tools/check.sh",
-   "label": "status-counts --check",
-   "side": "check"
+   "from": "wiki/status",
+   "to": "tools/ops/status_counts.py",
+   "label": "entries"
   },
   {
    "from": "external/sts-docker-data/Rolling Stock photos",
@@ -8837,6 +8847,13 @@
   {
    "from": "AGENTS.md",
    "to": "wiki/projects",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": "wiki/status",
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"

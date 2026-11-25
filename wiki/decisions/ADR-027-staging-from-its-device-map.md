@@ -11,7 +11,7 @@ The main and upper levels were built from a device map from the start. Staging's
 
 ## Decision
 
-Every level of the "HART Railroad" panel is built from its device map (owner, 2026-11-17, [`STATUS.md`](../STATUS.md), "Staging from its device map"). The hand-drawn inputs, the conversion and the overlay are retired.
+Every level of the "HART Railroad" panel is built from its device map (owner, 2026-11-17, [status entry](../status/current/staging-from-its-device-map.md), "Staging from its device map"). The hand-drawn inputs, the conversion and the overlay are retired.
 
 **Staging's files**, in `jmri/layouts/hart/data/schematic/`:
 - `device_map_staging.csv` (since R9e, the level 1 rows of the device master), in the columns of the main and upper map: turnouts, feedback, blocks, occupancy, masts and heads.

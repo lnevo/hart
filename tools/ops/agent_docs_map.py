@@ -21,7 +21,7 @@ map does not walk on through them, since neither carries content:
   and those chains are the rest of the map.
 - "check": each box with a file that check_agent_docs.py reads links to that script, so the map shows what checks
   each doc. The other guards keep their hand-kept links (build_docs_index.py writes docs/INDEX.md, status_counts.py
-  the Counts line of wiki/STATUS.md; pipeline_map_coverage.py checks that every file matching GLOBS is a box).
+  builds wiki/STATUS.md from wiki/status/; pipeline_map_coverage.py checks that every file matching GLOBS is a box).
 """
 from __future__ import annotations
 
@@ -56,6 +56,8 @@ FOLDERS = {
     "wiki/decisions": ("wiki/decisions/ (ADRs)", "The architecture decision records and their README index."),
     "wiki/pipelines": ("wiki/pipelines/", "One page per pipeline and their README index."),
     "wiki/projects": ("wiki/projects/", "Project pages and hand-offs."),
+    "wiki/status": ("wiki/status/", "The status entries, one file each (ADR-038); make status builds wiki/STATUS.md "
+                                    "from them."),
     ".cursor": (".cursor/ (Cursor mirrors)", "Cursor's copies of the Claude rules: commands, the close-out rule "
                                              "and the main-branch guard."),
 }

@@ -7,7 +7,9 @@ on GitHub is caught at the next session start. The sweep also covers the worktre
 .claude/settings.json); no removal starts and no submodule is looked at after BUDGET, which leaves each removal TIMEOUT - BUDGET seconds, so a long
 backlog waits for the next sweep, or `make wt-sweep`, instead of being cut off mid-delete. At session start it
 also sets the pipeline map's git merge drivers (tools/ops/merge_pipeline_map.py --install, silent once set; a
-failure is shown in the session context), and starts tools/ops/orient.py --short (open claims and worktrees in
+failure is shown in the session context), builds wiki/STATUS.md in the session's checkout and the project's
+(tools/ops/status_counts.py --quiet, ADR-038: the page is gitignored, so readers by path find it; a problem with the
+entries is one line), and starts tools/ops/orient.py --short (open claims and worktrees in
 progress; local git and files only, no network) beside the sweep, under ORIENT_TIMEOUT. Its lines come first in the
 session context; it reads the worktrees while the sweep runs, so it may list one the sweep then removes. A timeout or
 failure is one line. Never blocks: any
@@ -24,6 +26,8 @@ from pathlib import Path
 TIMEOUT = 45  # seconds for the whole sweep; with DRIVER_TIMEOUT before it, under the hook's 60 s
 DRIVER_TIMEOUT = 8  # seconds for setting the merge drivers (well under 1 s when they are set)
 BUDGET = TIMEOUT - 25  # no removal starts after this many seconds of removing
+STATUS_TIMEOUT = 3  # seconds for each status page build (well under 1 s); two of them and DRIVER_TIMEOUT before the sweep stay under 60 s
+STATUS_SCRIPT = "tools/ops/status_counts.py"
 ORIENT_TIMEOUT = 10  # seconds orient may take; it runs beside the sweep, so the hook's total stays under 60 s
 MERGE = re.compile(r"(^|[;&|\n]\s*)gh\s+pr\s+merge\b")
 
@@ -40,6 +44,7 @@ def main() -> int:
     project = os.environ.get("CLAUDE_PROJECT_DIR") or cwd
     # first, so a sweep that fails or runs out of time cannot leave a fresh clone without them
     context = merge_drivers(project) if event == "SessionStart" else []
+    context += status_pages(project, cwd) if event == "SessionStart" else []
     orient = start_orient(project, cwd) if event == "SessionStart" else None
     script = Path(project) / "tools" / "agent" / "worktrees.py"
     lines = []
@@ -91,6 +96,30 @@ def orient_lines(proc: subprocess.Popen | str, started: float) -> list[str]:
         message = next((l for l in lines if l.startswith("orient:")), lines[-1] if lines else f"exit {proc.returncode}")
         return [f"Orient failed: {message.strip()}; run make orient"]
     return ["Who is working on what (make orient for PRs, deploys and the operating flag):", *out.splitlines()]
+
+
+def checkout_of(folder: str) -> Path | None:
+    """The checkout that holds `folder`: the nearest folder at or above it with STATUS_SCRIPT."""
+    here = Path(folder).resolve()
+    return next((p for p in (here, *here.parents) if (p / STATUS_SCRIPT).is_file()), None)
+
+
+def status_pages(project: str, cwd: str) -> list[str]:
+    """Build wiki/STATUS.md in the session's checkout and the project's (one build when they are the same). Return
+    one line per build that failed or found a problem with the entries; none when all is well."""
+    out = []
+    for root in dict.fromkeys(c for c in (checkout_of(cwd), checkout_of(project)) if c):
+        try:
+            done = subprocess.run([sys.executable, str(root / STATUS_SCRIPT), "--quiet"], cwd=root,
+                                  capture_output=True, text=True, timeout=STATUS_TIMEOUT)
+        except (OSError, subprocess.SubprocessError) as err:
+            out.append(f"wiki/STATUS.md not built in {root} ({err}); run make status")
+            continue
+        if done.returncode != 0:
+            lines = [l.strip() for l in (done.stdout + done.stderr).splitlines() if l.strip()]
+            out.append(f"wiki/STATUS.md in {root}: {'; '.join(lines[-3:]) or f'exit {done.returncode}'}; "
+                       "run make status")
+    return out
 
 
 def merge_drivers(project: str) -> list[str]:

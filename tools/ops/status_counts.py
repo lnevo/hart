@@ -1,13 +1,25 @@
 #!/usr/bin/env python3
-"""Keep the Counts line in wiki/STATUS.md in step with tables.xml and traininfo.
+"""Build wiki/STATUS.md from its entry files in wiki/status/, with the Counts line from tables.xml and traininfo.
 
-The line sits between <!-- counts:start --> and <!-- counts:end -->. A plain run
-rewrites it; --check exits 1 when it is stale.
+    python3 tools/ops/status_counts.py              (make status) write wiki/STATUS.md (gitignored, ADR-038)
+    python3 tools/ops/status_counts.py --out FILE   write the page to FILE instead
+    python3 tools/ops/status_counts.py --check      build the page in memory and write nothing; exit 1 on an entry
+                                                    over MAX_WORDS words, a stray file, a bad `order:` line, a
+                                                    doubled entry, or wiki/STATUS.md tracked by git again (check.sh)
+
+Each entry is one file, wiki/status/<section>/<slug>.md, holding the bullet's text without its "- ". Its Markdown
+links are relative to the entry file, so they work on GitHub; the build rebases them to wiki/. The sections are
+SECTIONS, in page order. An entry of an ordered section (owed) opens with an `order: N` line and the page lists them
+by N; every other section lists its entries by file name. The Counts line is computed when the page is built and
+goes at the end of Current state, between the counts markers. The page head and the section intros are PAGE_HEAD
+and SECTIONS below. The session-start hook and `make wt` build the page, so readers by path find it in every checkout.
 """
 from __future__ import annotations
 
 import argparse
+import posixpath
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -19,7 +31,24 @@ ROOT = paths.REPO_ROOT
 TABLES = paths.TABLES_XML
 TRAININFO = paths.LAYOUT_DIR / "dispatcher/traininfo"
 STATUS = ROOT / "wiki/STATUS.md"
+FOLDER = ROOT / "wiki/status"
 START, END = "<!-- counts:start -->", "<!-- counts:end -->"
+MAX_WORDS = 60          # owner, 2026-11-25 (ADR-038): the detail goes to the linked page or ADR
+ORDER = re.compile(r"order:\s*(-?\d+)\s*$")
+PAGE_HEAD = ("# Live status\n\n"
+             "One or two lines per fact, with the owner and date and a link to the detail. PR numbers, how each fact "
+             "came about and the full earlier wording are in [`STATUS_LOG.md`](STATUS_LOG.md) (the 2026-11-21 and "
+             "2026-11-25 \"Full text\" entries hold the last long versions).\n")
+# (folder, heading, intro paragraph, ordered); page order
+SECTIONS = (
+    ("now", "Now", "", False),
+    ("current", "Current state", "", False),
+    ("owed", "Owed", "In order; the first two are the main track (owner, 2026-11-21).", True),
+    ("in-progress", "In progress", "", False),
+    ("future", "Future goals", "", False),
+)
+COUNTS_SECTION = "current"
+LINK = re.compile(r"(\]\()([^)\s]+)(\))")
 
 
 def counts(tables: Path = TABLES, traininfo: Path = TRAININFO) -> dict:
@@ -52,13 +81,96 @@ def line(c: dict) -> str:
             f"{graph}, {nx}, {c['sml']:,} SML sources with {c['dest']:,} destinations, {trains}{uss}.")
 
 
-def rewrite(text: str, new: str) -> str:
-    if text.count(START) != 1 or text.count(END) != 1:
-        raise ValueError(f"STATUS.md needs exactly one {START} and one {END}")
-    a, b = text.index(START) + len(START), text.index(END)
-    if b < a:
-        raise ValueError(f"{END} comes before {START} in STATUS.md")
-    return text[:a] + "\n" + new + "\n" + text[b:]
+def rebase(text: str, src: str, dst: str) -> str:
+    """`text` with each relative Markdown link written from folder `src` rewritten to lead to the same file from folder
+    `dst` (both repo-relative). Web addresses, mailto:, absolute paths and anchors in the same page stay as they are."""
+    def one(m: re.Match) -> str:
+        target = m.group(2)
+        if "://" in target or target.startswith(("#", "/", "mailto:")):
+            return m.group(0)
+        path, hash_, anchor = target.partition("#")
+        new = posixpath.relpath(posixpath.normpath(posixpath.join(src, path)), dst)
+        if path.endswith("/") and not new.endswith("/"):
+            new += "/"
+        return f"{m.group(1)}{new}{hash_}{anchor}{m.group(3)}"
+    return LINK.sub(one, text)
+
+
+def words(text: str) -> int:
+    """The words of an entry: whitespace-separated tokens, a nested list's "-" markers left out."""
+    return sum(1 for tok in text.split() if tok != "-")
+
+
+class Entry:
+    def __init__(self, section: str, path: Path, text: str, order: int | None):
+        self.section, self.path, self.text, self.order = section, path, text, order
+
+
+def read_entries(folder: Path = FOLDER) -> tuple[list[Entry], list[str]]:
+    """Every entry file, in page order, and the problems found reading them."""
+    entries, problems = [], []
+    known = {s[0] for s in SECTIONS}
+    if not folder.is_dir():
+        return [], [f"{folder} is missing"]
+    for p in sorted(folder.iterdir()):
+        if p.name.startswith(".") or p.name == "README.md":
+            continue
+        if not (p.is_dir() and p.name in known):
+            problems.append(f"wiki/status/{p.name}: not a section ({', '.join(s[0] for s in SECTIONS)})")
+    for name, _heading, _intro, ordered in SECTIONS:
+        found = []
+        d = folder / name
+        for p in sorted(d.iterdir()) if d.is_dir() else ():
+            rel = f"wiki/status/{name}/{p.name}"
+            if p.name.startswith("."):
+                continue
+            if p.is_dir() or p.suffix != ".md" or p.name == "README.md":
+                problems.append(f"{rel}: not an entry (a section holds <slug>.md files only)")
+                continue
+            body = p.read_text(encoding="utf-8")
+            first, _, rest = body.partition("\n")
+            m = ORDER.fullmatch(first)
+            order = None
+            if ordered:
+                if not m:
+                    problems.append(f"{rel}: an {name} entry opens with an `order: N` line")
+                else:
+                    order, body = int(m.group(1)), rest
+            elif m:
+                problems.append(f"{rel}: only an ordered section's entry has an `order:` line")
+                body = rest
+            text = body.strip("\n")
+            if not text.strip():
+                problems.append(f"{rel}: empty entry")
+                continue
+            if "\n\n" in text:
+                problems.append(f"{rel}: a blank line inside an entry would break the list")
+            if text.startswith("- "):
+                problems.append(f"{rel}: the file holds the bullet's text; the build adds the \"- \"")
+            n = words(text)
+            if n > MAX_WORDS:
+                problems.append(f"{rel}: {n} words, over {MAX_WORDS}; move the detail to the linked page or ADR")
+            found.append(Entry(name, p, text, order))
+        if ordered:
+            found.sort(key=lambda e: (e.order if e.order is not None else 0, e.path.name))
+        entries += found
+    return entries, problems
+
+
+def page(entries: list[Entry], counts_line: str) -> str:
+    """The page: PAGE_HEAD, then each section's heading, intro and bullets; the Counts line ends Current state."""
+    out = [PAGE_HEAD]
+    for name, heading, intro, _ordered in SECTIONS:
+        block = [f"## {heading}\n"]
+        if intro:
+            block.append(intro + "\n")
+        bullets = ["- " + rebase(e.text, f"wiki/status/{name}", "wiki") for e in entries if e.section == name]
+        if name == COUNTS_SECTION:
+            bullets += [START, counts_line, END]
+        if bullets:
+            block.append("\n".join(bullets) + "\n")
+        out.append("\n".join(block))
+    return "\n".join(out)
 
 
 OPENING_WORDS = 8  # an entry with no bold lead is known by its first words; 8 flagged only real doubles in 331 versions
@@ -66,14 +178,14 @@ OPENING_WORDS = 8  # an entry with no bold lead is known by its first words; 8 f
 
 def opening(line_: str) -> str | None:
     """The first OPENING_WORDS words of a bullet with no bold lead, lower case; None for a bullet shorter than that."""
-    words = re.findall(r"\w+", line_[2:].lower())
-    return " ".join(words[:OPENING_WORDS]) if len(words) >= OPENING_WORDS else None
+    words_ = re.findall(r"\w+", line_[2:].lower())
+    return " ".join(words_[:OPENING_WORDS]) if len(words_) >= OPENING_WORDS else None
 
 
 def duplicates(text: str) -> list[str]:
-    """Entries a union merge (.gitattributes: wiki/STATUS.md merge=union) can leave twice: a bullet line repeated, two
-    bullets with the same bold lead ("- **Lead:**"), or two bullets with no bold lead that open with the same words
-    (two versions of one entry edited on both sides; 2026-11-25 a Future goals entry was left twice that way)."""
+    """Entries the page holds twice: a bullet line repeated, two bullets with the same bold lead ("- **Lead:**"), or two
+    bullets with no bold lead that open with the same words (two files for one entry; before ADR-038 a union merge of
+    the one committed file left such doubles, 2026-11-25 a Future goals entry)."""
     seen_line, seen_lead, seen_open, out = set(), {}, set(), []
     for line_ in text.splitlines():
         if not line_.startswith("- "):
@@ -95,34 +207,47 @@ def duplicates(text: str) -> list[str]:
     return out
 
 
+def tracked_page(root: Path = ROOT) -> bool:
+    """True when git tracks wiki/STATUS.md again (a branch from before ADR-038 that kept its side of the
+    modify/delete conflict)."""
+    done = subprocess.run(["git", "-C", str(root), "ls-files", "--error-unmatch", "wiki/STATUS.md"],
+                          capture_output=True, text=True)
+    return done.returncode == 0
+
+
+def build(folder: Path = FOLDER, tables: Path = TABLES, traininfo: Path = TRAININFO) -> tuple[str, list[str], int]:
+    """The page, every problem with its sources, and the number of entries."""
+    entries, problems = read_entries(folder)
+    text = page(entries, line(counts(tables, traininfo)))
+    problems += [f"the built page has {d}" for d in duplicates(text)]
+    return text, problems, len(entries)
+
+
 def main(argv: list[str]) -> int:
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--check", action="store_true", help="exit 1 if the line is stale; write nothing")
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--check", action="store_true", help="build in memory, write nothing; exit 1 on a problem")
+    ap.add_argument("--out", type=Path, help="write the page here instead of wiki/STATUS.md")
+    ap.add_argument("--quiet", action="store_true", help="print only problems (the session-start hook)")
     args = ap.parse_args(argv)
-    text = STATUS.read_text(encoding="utf-8")
-    try:
-        new = rewrite(text, line(counts()))
-    except ValueError as exc:
-        print(exc)
-        return 1
     if not args.check:
         paths.exit_if_overridden(Path(__file__).name)
-    dup = duplicates(text)
-    if dup:
-        print("wiki/STATUS.md has duplicated entries (a union merge keeps both sides); keep one of each:")
-        print("\n".join(f"  {d}" for d in dup))
+    text, problems, n = build()
+    if tracked_page():
+        problems.append("wiki/STATUS.md is tracked again: it is built (ADR-038); move its edit into the entry file "
+                        "under wiki/status/ and run git rm --cached wiki/STATUS.md")
+    if not args.check:
+        out = args.out or STATUS
+        if not out.exists() or out.read_text(encoding="utf-8") != text:
+            out.write_text(text, encoding="utf-8")
+        if not args.quiet:
+            print(f"wrote {out.relative_to(ROOT) if out.is_relative_to(ROOT) else out} "
+                  f"from wiki/status/ ({n} entries and the Counts line)")
+    if problems:
+        print("wiki/status/ has problems:")
+        print("\n".join(f"  {p}" for p in problems))
         return 1
     if args.check:
-        if new != text:
-            print("wiki/STATUS.md Counts line is stale; run python3 tools/ops/status_counts.py")
-            return 1
-        print("STATUS counts ok")
-        return 0
-    if new == text:
-        print("STATUS counts already current")
-        return 0
-    STATUS.write_text(new, encoding="utf-8")
-    print("STATUS counts updated")
+        print("STATUS entries ok")
     return 0
 
 

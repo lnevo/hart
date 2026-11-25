@@ -1,0 +1,1 @@
+Finish the Operations Pro build (owner moved it from parked to future, 2026-11-21): the live session test on the Pi, the plugin fixes, and real spur lengths ([`OPSPRO_FOLLOWUP.md`](../../../docs/ops/OPSPRO_FOLLOWUP.md)).

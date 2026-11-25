@@ -1,0 +1,1 @@
+**Generated outputs side by side (owner, 2026-11-14, [ADR-023](../../decisions/ADR-023-generated-outputs-side-by-side.md)):** generated CATS panels, Layout Editor panels and station pages sit beside the ones in use and replace them only after the owner approves each one.

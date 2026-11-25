@@ -11,7 +11,7 @@ The main and upper levels are in JMRI and on the CATS desks before their plant i
 
 ## Decision
 
-Every main and upper turnout, block sensor, signal head and mast in JMRI is an internal device named from what it is (owner, 2026-11-17, [`STATUS.md`](../STATUS.md), "Main and upper devices are virtual").
+Every main and upper turnout, block sensor, signal head and mast in JMRI is an internal device named from what it is (owner, 2026-11-17, [status entry](../status/current/main-and-upper-devices-are-virtual.md), "Main and upper devices are virtual").
 
 **Names**
 - Turnout: `IT:HART:C3:<switch number>`.

@@ -1,0 +1,1 @@
+**Network (2026-11-11):** the Pi (`RPi-JMRI`, 10.0.0.150) is on the house Wi-Fi and runs Mosquitto (the Pi profile uses `127.0.0.1`; Windows, the Mac and the LCOS bridge use `10.0.0.150`). Windows is `minipc-e5h6x.local` (10.0.0.28, SSH port 2222), not the broker.

@@ -1,0 +1,1 @@
+**The device master is two files (owner, 2026-11-21, [ADR-029](../../decisions/ADR-029-tables-xml-is-an-output.md) amendment, built 2026-11-21):** `devices_field.csv` holds the owner's cells (staging's devices, a Store's level-less devices), `devices_generated.csv` every row the builders make; `hartlib.devices` merges them, and a Store split writes only the field file.

@@ -1,0 +1,1 @@
+**Operating flag (owner, 2026-11-18, [ADR-025](../../decisions/ADR-025-operating-flag.md)):** `tools/hosts/operating.sh` sets `~/.hart_operating` while the owner runs trains or a speed-matching job is on the layout; while set, the guard hook blocks only what reaches the Pi and Windows.

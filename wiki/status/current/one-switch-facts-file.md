@@ -1,0 +1,1 @@
+**One switch-facts file (owner, 2026-11-21, ADR-021 amendment):** `jmri/layouts/hart/data/switches.csv` holds every level's switches, one row per OS block or switch half, with `hand_source` plan or owner (`build_hands.py` rewrites only plan rows).

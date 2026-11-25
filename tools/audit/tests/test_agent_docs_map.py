@@ -124,6 +124,7 @@ FILES = {
     "wiki/STATUS.md": "[log](STATUS_LOG.md) [np](not-pending.md) [git](AGENTS_GIT.md)",
     "wiki/decisions/README.md": "[h](../home.md)", "wiki/pipelines/README.md": "[h](../home.md)",
     "wiki/projects/a.md": "[d](../decisions/README.md) [pl](../pipelines/README.md)",
+    "wiki/status/now/a.md": "**A:** see [log](../../STATUS_LOG.md)",
     ".cursor/rules/r.mdc": "[a](../../AGENTS.md)",
     ".claude/skills/x/SKILL.md": "---\ndescription: Use for x.\n---\n",
     ".claude/agents/panel-tracer.md": "---\ndescription: Traces.\n---\n",
