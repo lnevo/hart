@@ -101,6 +101,9 @@ class LoadTest(Refusing):
         self.assertEqual(parse(step())[0].label, "a.py")
         self.assertRefused(step(name=None), "step 1: name: missing")
         self.assertRefused(step(docs_only='"yes"'), "docs_only: must be true or false")
+        self.assertRefused(step(after_edit="1"), "after_edit: must be true or false")
+        self.assertRefused(step(after_edit="true", cmd='["{python}", "tools/a.py"]'), "after_edit: the after-edit hook")
+        self.assertEqual(len(parse(step(after_edit="true"))), 1)
         self.assertRefused(step(cmd='"python3 tools/a.py"'), "cmd: must be a list")
         self.assertRefused(step(desc='"  "'), "desc: must be a str with text")
         self.assertRefused(step(runner='"panels"'), "runner: 'panels' is not one of check")
@@ -612,6 +615,10 @@ class DocsChecksShTest(unittest.TestCase):
                 '  [[ -z "${STUB_MANIFEST_FAIL:-}" ]] || { echo "manifest.py: stub error" >&2; exit 1; }\n'
                 '  printf %s "$STUB_DOCS"; exit 0\n'
                 'fi\n'
+                'if [[ "$1" == tools/ci/docs_unit_tests.py ]]; then\n'
+                '  [[ -z "${STUB_UNITS_FAIL:-}" ]] || { echo "docs_unit_tests.py: stub error" >&2; exit 1; }\n'
+                '  printf %s "${STUB_UNITS-unit-x python3 -m unittest discover -s t -p test_x.py}"; exit 0\n'
+                'fi\n'
                 '[[ "$1" != tools/eat.py ]] || cat >/dev/null\n'    # a check that reads its stdin to the end
                 'echo "ran $*"\n')
             (bin_dir / "python3").chmod(0o755)
@@ -632,7 +639,12 @@ class DocsChecksShTest(unittest.TestCase):
     def test_a_manifest_that_fails_or_lists_nothing_runs_nothing(self) -> None:
         for env, said in (({"STUB_MANIFEST_FAIL": "1", "STUB_DOCS": ""}, "jobs check --docs-only failed"),
                           ({"STUB_DOCS": ""}, "--docs-only listed no check"),
-                          ({"STUB_DOCS": "\n\n"}, "--docs-only listed no check")):
+                          ({"STUB_DOCS": "\n\n"}, "--docs-only listed no check"),
+                          # a run with no unit test to run fails, before any check, as an empty manifest list does
+                          ({"STUB_DOCS": "a python3 tools/a.py\n", "STUB_UNITS": ""}, "listed no unit test"),
+                          ({"STUB_DOCS": "a python3 tools/a.py\n", "STUB_UNITS": " \n"}, "listed no unit test"),
+                          ({"STUB_DOCS": "a python3 tools/a.py\n", "STUB_UNITS_FAIL": "1"},
+                           "docs_unit_tests.py failed")):
             with self.subTest(env=env):
                 done = self.run_docs(**env)
                 self.assertEqual(2, done.returncode)
@@ -649,7 +661,7 @@ class DocsChecksShTest(unittest.TestCase):
         done = self.run_docs(STUB_DOCS="ok python3 tools/a.py\nbad python3 'unclosed\n")
         self.assertEqual(1, done.returncode)
         self.assertIn("ran tools/a.py", done.stdout)
-        self.assertIn("quick docs checks FAILED: bad (its line from the manifest would not parse)", done.stdout)
+        self.assertIn("quick docs checks FAILED: bad (its line would not parse)", done.stdout)
 
 
 # The scripts tools/check.sh may name itself: its own machinery (what changed, submodules, the manifest's lines, the
