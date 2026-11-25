@@ -37,6 +37,7 @@ WRITE = "python3 tools/schematic/tests/test_bean_goldens.py --write"
 DERIVED = ("path", "properties")      # block paths (PanelPro) and mast properties (discovery): not a bean process's
 LOGIXNG = ("LogixNG", "ConditionalNG", "DigitalMany", "ActionSensor", "ActionTurnout")
 LEVELS = ("2", "3")
+HELIX = ("Track Helix Inner", "Track Helix Outer")     # staging blocks with a row on every level they climb through
 
 
 def committed() -> ET.Element:
@@ -101,9 +102,10 @@ class StagingBeans(unittest.TestCase):
         """GENERATED_LEVELS today: a main or upper row gives master_beans no bean (step 11 changes this)."""
         rows = devices.load()
         lengths = railroad.read_block_lengths(tb.BLOCK_LENGTHS)
-        made = {tables.user_name(el) for els in tb.master_beans(rows, lengths).values() for el in els}
-        level = {r["user_name"] for r in rows if r["level"] in LEVELS} - {r["user_name"] for r in rows
-                                                                          if r["level"] == "1"}
+        made = {n for els in tb.master_beans(rows, lengths).values() for el in els
+                for n in (tables.system_name(el), tables.user_name(el))}
+        level = {n for r in rows if r["level"] in LEVELS and r["user_name"] not in HELIX
+                 for n in (r["user_name"], r["jmri_name"]) if n}
         self.assertTrue(level)
         self.assertEqual(set(), made & level)
 
@@ -132,8 +134,10 @@ class MainUpperBeans(unittest.TestCase):
     def test_add_level_signals_makes_the_fixtures_heads_and_masts_from_masts_csv(self) -> None:
         root = tb.base().root
         lt.add_level_signals(root, le_names.read_level_masts())
-        got = sorted(line for line in golden_lines(root) if line.startswith(("signalheads", "signalmasts")))
-        want = sorted(line for line in self.golden if line.startswith(("signalheads", "signalmasts")))
+        # in order: base() and add_level_signals leave each section in JMRI order, as the build writes it
+        tb.jmri_sort(root)
+        got = [line for line in golden_lines(root) if line.startswith(("signalheads", "signalmasts"))]
+        want = [line for line in self.golden if line.startswith(("signalheads", "signalmasts"))]
         self.assertEqual(want, got, diff(want, got))
 
     def test_every_main_and_upper_row_has_its_beans_and_every_bean_its_row(self) -> None:
@@ -142,7 +146,6 @@ class MainUpperBeans(unittest.TestCase):
         and a layout block, except a helix block, which is staging's bean; a detector one internal sensor; a head and
         a mast one bean each."""
         rows = [r for r in devices.load() if r["level"] in LEVELS]
-        staging = {r["user_name"] for r in devices.load() if r["level"] == "1"}
         got = Counter()
         for sec in tables.elements(self.root):
             for el in tables.elements(sec):
@@ -153,7 +156,7 @@ class MainUpperBeans(unittest.TestCase):
             layer, user = r["layer"], r["user_name"]
             if layer == "turnout" and r["role"] == "turnout":
                 want[("turnout", user)] += 1
-            elif layer == "block" and user not in staging:
+            elif layer == "block" and user not in HELIX:
                 want[("block", user)] += 2
                 want[("layoutblock", user)] += 1
             elif layer == "occupancy":
@@ -168,7 +171,7 @@ class MainUpperBeans(unittest.TestCase):
 
     def test_every_added_turnout_and_detector_starts_clear_or_set(self) -> None:
         """add_level_clear: one ActionTurnout per main and upper turnout and one ActionSensor per block sensor."""
-        kinds = Counter(line.split("\t", 1)[1].split(" ", 1)[0].lstrip("<") for line in self.golden
+        kinds = Counter(ET.fromstring(line.split("\t", 1)[1]).tag for line in self.golden
                         if line.startswith("LogixNGDigitalActions"))
         beans = Counter(line.split("\t", 1)[0] for line in self.golden)
         self.assertEqual(kinds["ActionTurnout"], beans["turnouts InternalTurnoutManagerXml"])

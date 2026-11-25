@@ -41,7 +41,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 
 | # | Step | Size | Notes |
 |---|---|---|---|
-| 1 | Tests first | 1 day | Builder merge step 1: golden tests of every main and upper bean `le_tables` makes, unit tests of `master_beans` per assignment, `build_masts.generate` on staging, and the device-master merge. **In review (2026-11-24):** see [Step 1 findings](#step-1-findings) |
+| 1 | Tests first | 1 day | Builder merge step 1: golden tests of every main and upper bean `le_tables` makes, unit tests of `master_beans` per assignment, `build_masts.generate` on staging, and the device-master merge. **Done (2026-11-24):** see [Step 1 findings](#step-1-findings) |
 | 2 | `id` column | 0.5 day | The builders write an ID on every row (decision 1); `check_rows` holds it unique per level. Only `devices_generated.csv` changes |
 | 3 | The name store | 1.5 days | Check first that the generator can name every track from the plan before the drawing (the end switches come from the plan graph). Then `hartlib` resolves every name (decision 2); the `name` and `end` edits move to the owner layer, keyed by ID; `layer_files.view` writes them for the plugin; `cats_panel.py` and `le_names.py` read names from the store instead of the drawing. A check fails if `plan_overrides.json` holds a name again. Drawings byte-identical |
 | 4 | Owner file keyed by ID | 1 day | `devices_field.csv` rekeyed on `(level, id)`; `user_name` becomes an owner cell. The build prints new and gone IDs against the last generated file and stops as decision 3 says; a rename lists the Operations Pro copies (decision 5) and warns on a mast rename (decision 6) |

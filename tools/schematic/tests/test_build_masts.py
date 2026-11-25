@@ -431,6 +431,8 @@ class WriteGuard(unittest.TestCase):
 
     def test_a_link_outside_the_repo_that_points_into_it_may_be_swapped_but_not_written_through(self):
         """layer_files.view replaces a cache link to the checkout's data: the link moves, the repo does not."""
+        stray = Path(__file__).with_name("never_written.tmp")
+        self.addCleanup(lambda: stray.unlink(missing_ok=True))      # only there if the guard let it through
         with tempfile.TemporaryDirectory() as d, repo_read_only():
             tmp, link = Path(d) / "tmp.link", Path(d) / "view"
             os.symlink(Path(__file__).parent, tmp)
@@ -439,6 +441,8 @@ class WriteGuard(unittest.TestCase):
             with self.assertRaisesRegex(AssertionError, "data checks only read it"):
                 open(link / "never_written.tmp", "w")
             link.unlink()
+            with self.assertRaisesRegex(AssertionError, "data checks only read it"):
+                os.symlink(d, stray)                # a link made inside the repo is a write
 
 
 class CommittedData(RepoReadOnly, unittest.TestCase):

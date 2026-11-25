@@ -22,7 +22,7 @@ def in_repo(target, follow: bool = True) -> bool:
     stands, not where it points: rename, replace and unlink act on the link itself (layer_files.view swaps a cache
     link that points into the checkout)."""
     try:
-        p = Path(os.fspath(target))
+        p = Path(os.fsdecode(target))
     except TypeError:                                  # a file descriptor, not a path
         return False
     p = p.resolve() if follow else p.absolute().parent.resolve() / p.name
@@ -43,8 +43,11 @@ def _guard_open(real):
 
 def _guard_first(real, what):
     def guarded(first, *args, **kwargs):
-        follow = what not in ("rename", "replace", "unlink", "remove")      # these act on a link, not its target
-        if in_repo(first, follow) or (what in ("rename", "replace") and args and in_repo(args[0], follow)):
+        follow = what not in ("rename", "replace", "unlink", "remove", "rmdir")   # these act on a link, not its target
+        if what in ("symlink", "link"):          # (src, dst): what is made is the link at dst
+            if args and in_repo(args[0], False):
+                _refuse(what, args[0])
+        elif in_repo(first, follow) or (what in ("rename", "replace") and args and in_repo(args[0], follow)):
             _refuse(what, first)
         return real(first, *args, **kwargs)
     return guarded
@@ -57,8 +60,10 @@ def repo_read_only():
         for owner in (builtins, io):
             stack.enter_context(unittest.mock.patch.object(owner, "open", _guard_open(real_open)))
         stack.enter_context(unittest.mock.patch.object(Path, "open", _guard_open(Path.open)))
-        for owner, names in ((Path, ("mkdir", "unlink", "rmdir", "rename", "replace", "touch")),
-                             (os, ("rename", "replace", "remove", "unlink", "mkdir", "makedirs"))):
+        for owner, names in ((Path, ("mkdir", "unlink", "rmdir", "rename", "replace", "touch", "symlink_to",
+                                     "hardlink_to")),
+                             (os, ("rename", "replace", "remove", "unlink", "rmdir", "mkdir", "makedirs", "symlink",
+                                   "link"))):
             for name in names:
                 stack.enter_context(unittest.mock.patch.object(owner, name, _guard_first(getattr(owner, name), name)))
         yield

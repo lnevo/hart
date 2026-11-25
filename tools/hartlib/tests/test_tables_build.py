@@ -287,7 +287,7 @@ class MasterBeansByAssignment(unittest.TestCase):
                  blank(level="3", layer="head", role="head", user_name="Head 201R", assignment="virtual",
                        jmri_name="IH:HART:C3:201R")]
         root = tb.base(rows() + level, lengths=LENGTHS).root
-        self.assertEqual(set(), {r["user_name"] for r in level} & tb.bean_names(root))
+        self.assertEqual(set(), {n for r in level for n in (r["user_name"], r["jmri_name"])} & tb.bean_names(root))
 
 
 class CommentOrder(unittest.TestCase):
