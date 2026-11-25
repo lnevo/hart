@@ -53,9 +53,12 @@ PLANS = sorted(DRAWINGS.glob("P*.svg"))    # the plans, each labelled with every
 # A switch label on the plans: "Sw <n>" on P0; on P1 to P5 a number in the labels' bold grey, which no other number has
 P0_LABEL = re.compile(r"Sw (\d+)")
 LABEL_STYLE = ('font-weight="bold"', 'fill="#5f6e7a"')
-# A station's name in a drawing is a <text data-station="switch:<n>"> label, which must hold the station that
-# {{station:switch:<n>}} gives (stations.csv, through hartlib.railroad); a station name in any other text stops the build.
-STATION_LABEL = re.compile(r'<text\b([^>]*)\bdata-station="([^"]+)"([^>]*)>([^<]*)<')
+# A station's name in a drawing is a <text data-station="switch:<n>"> label (its text may sit in <tspan>s), which must
+# hold the station that {{station:switch:<n>}} gives (stations.csv, through hartlib.railroad); an untagged element
+# whose whole text is a station's name, in any case, stops the build. A name inside a longer label is not a station's.
+SVG_TEXT = re.compile(r"<(text|tspan|title|desc)\b([^>]*)>(.*?)</\1>", re.S)
+TSPAN = re.compile(r"<tspan\b[^>]*>(.*?)</tspan>", re.S)    # a line of a <text>, checked on its own too
+DATA_STATION = re.compile(r'\bdata-station="([^"]*)"')
 LABELS = {
     **{bid: f"Yard track Y{n}" for n, bid in enumerate(YARD, 1)},
     **{bid: f"Engine storage E{n}" for n, bid in enumerate(ENGINE, 1)},
@@ -75,14 +78,19 @@ OS = re.compile(r"os:(\d+)(:.+)?")             # an OS block's ID: its switch nu
 SWITCHES = re.compile(r"\{\{(turnouts?|dcc|station):([^}]+)\}\}")
 SWITCH_NAME = re.compile(r"Switch (\d+)")      # a turnout's name, whose number the plans print
 # What plans P3 and P4 (hand-edited files) must say: the page's figures.
-PLAN_TEXT = {P3: "Passing siding, {SIDING_IN} in long (about {SIDING_CARS} cars)",
+PLAN_TEXT = {P3: "Passing siding, {SIDING_IN} in long (about {SIDING_CARS} cars of 50 ft)",
              P4: "Yard tracks Y1 to Y5, {YARD_IN} in long"}
 
 
 def car_inches(scale_ratio: float | None = None) -> float:
     """The track one 50 ft car takes, coupler allowance included, in inches at the plan's scale."""
-    ratio = float(layer_files.merged_section("staging")["scale_ratio"]) if scale_ratio is None else scale_ratio
-    return (CAR_FT + COUPLER_FT) * 12 / ratio
+    if scale_ratio is None:
+        try:
+            scale_ratio = float(layer_files.merged_section("staging")["scale_ratio"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise SystemExit("build_layout_docs: plan_overrides.json has no staging scale_ratio to count the siding's "
+                             f"cars by ({exc!r})") from None
+    return (CAR_FT + COUPLER_FT) * 12 / scale_ratio
 
 
 def bare(name: str) -> str:
@@ -300,23 +308,32 @@ def check_switch_labels(master: dict, plans=PLANS) -> None:
                              f"device master has {', '.join(live)}; edit the drawing")
 
 
+def svg_texts(svg: str) -> list[tuple[str, str]]:
+    """(attributes, plain text) of each <text>, <tspan>, <title> and <desc> in `svg`, inner tags stripped."""
+    return [(attrs, html.unescape(re.sub(r"<[^>]*>", "", inner)).strip())
+            for _, attrs, inner in SVG_TEXT.findall(svg)]
+
+
 def check_station_labels(stations: list, master: dict, drawings=None) -> None:
     """The drawings (hand-edited files) name a station only in a data-station label, and each such label holds the
     name stations.csv gives the station at that switch; so a station renamed there stops here until they are edited."""
-    names = sorted({s.name for s in stations if str(s.level) == LEVEL}, key=len, reverse=True)
-    typed = re.compile(r"\b(" + "|".join(map(re.escape, names)) + r")\b") if names else None
+    names = {s.name.casefold() for s in stations if str(s.level) == LEVEL}
     for svg in sorted(DRAWINGS.glob("*.svg")) if drawings is None else drawings:
         text = Path(svg).read_text()
-        for _, did, _, body in STATION_LABEL.findall(text):
+        tagged = [(m.group(1), body) for attrs, body in svg_texts(text) if (m := DATA_STATION.search(attrs))]
+        for did, body in tagged:
             turnout(master, did)
             want = station_at(stations, did)
-            if html.unescape(body.strip()) != want:
-                raise SystemExit(f"build_layout_docs: {Path(svg).name} labels the station at {did} "
-                                 f"{body.strip()!r}, stations.csv has {want!r}; edit the drawing")
-        rest = " ".join(re.findall(r"<(?:text|tspan|title|desc)\b[^>]*>([^<]*)", STATION_LABEL.sub("", text)))
-        if typed and (m := typed.search(html.unescape(rest))):
-            raise SystemExit(f"build_layout_docs: {Path(svg).name} names {m.group(1)} outside a data-station label; "
-                             "label it <text data-station=\"switch:<n>\"> so the build checks it against stations.csv")
+            if body != want:
+                raise SystemExit(f"build_layout_docs: {Path(svg).name} labels the station at {did} {body!r}, "
+                                 f"stations.csv has {want!r}; edit the drawing")
+        untagged = SVG_TEXT.sub(lambda m: "" if DATA_STATION.search(m.group(2)) else m.group(0), text)
+        tspans = [html.unescape(re.sub(r"<[^>]*>", "", t)).strip() for t in TSPAN.findall(untagged)]
+        for body in [b for _, b in svg_texts(untagged)] + tspans:
+            if body.casefold() in names:
+                raise SystemExit(f"build_layout_docs: {Path(svg).name} names {body} outside a data-station label; "
+                                 "label it <text data-station=\"switch:<n>\"> so the build checks it against "
+                                 "stations.csv")
 
 
 def check_drawings() -> None:

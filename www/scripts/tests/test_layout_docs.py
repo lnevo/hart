@@ -11,6 +11,7 @@ import sys
 import tempfile
 import tokenize
 import unittest
+from unittest import mock
 from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parents[1]
@@ -97,8 +98,15 @@ class LayoutDocs(unittest.TestCase):
     def test_the_siding_counts_50_ft_cars_at_the_plans_scale(self):
         self.assertAlmostEqual(ld.car_inches(87.1), 55 * 12 / 87.1)
         self.assertAlmostEqual(ld.car_inches(87.1) - 7.58, 0, places=2)    # 6.9 in of body plus the couplers
-        self.assertEqual(ld.facts(ld.detected_sections())["SIDING_CARS"], "19")
-        self.assertIn("about 19 50 ft cars", ld.PAGE.read_text())
+        siding = next(s for s in ld.detected_sections() if s["id"] == ld.SIDING)
+        cars = str(round(float(f"{siding['inches']:.0f}") / ld.car_inches()))
+        self.assertEqual(ld.facts(ld.detected_sections())["SIDING_CARS"], cars)
+        self.assertIn(f"about {cars} cars of 50 ft", ld.PAGE.read_text())
+
+    def test_a_missing_scale_stops_by_name(self):
+        with mock.patch.object(ld.layer_files, "merged_section", return_value={}):
+            with self.assertRaisesRegex(SystemExit, "staging scale_ratio"):
+                ld.car_inches()
 
     def test_station_names_in_drawings_are_labels(self):
         master = ld.master_rows()
@@ -106,7 +114,7 @@ class LayoutDocs(unittest.TestCase):
         ld.check_station_labels(places, master)                               # the drawings today
         with tempfile.TemporaryDirectory() as tmp:
             svg = Path(tmp) / "P9.svg"
-            svg.write_text('<svg><text x="1">Passing siding at Plane</text></svg>')
+            svg.write_text('<svg><text x="1">Plane</text></svg>')
             with self.assertRaises(SystemExit):                              # a typed name, untagged
                 ld.check_station_labels(places, master, [svg])
             svg.write_text('<svg><text x="1" data-station="switch:5">Plane</text><text>siding</text></svg>')
@@ -114,6 +122,19 @@ class LayoutDocs(unittest.TestCase):
             svg.write_text('<svg><text data-station="switch:5">Barn</text></svg>')
             with self.assertRaises(SystemExit):                              # the wrong station for the switch
                 ld.check_station_labels(places, master, [svg])
+            svg.write_text('<svg><text data-station="switch:5"><tspan x="1">Plane</tspan></text></svg>')
+            ld.check_station_labels(places, master, [svg])                   # Inkscape puts the text in a tspan
+            svg.write_text('<svg><text data-station="switch:5"><tspan x="1">Barn</tspan></text></svg>')
+            with self.assertRaises(SystemExit):
+                ld.check_station_labels(places, master, [svg])
+            for typed in ('<text>PLANE</text>', '<text><tspan>Plane</tspan><tspan>West</tspan></text>',
+                          '<text data-station="switch:5">Plane</text><text>plane</text>'):
+                svg.write_text(f'<svg>{typed}</svg>')
+                with self.assertRaises(SystemExit, msg=typed):               # untagged, in any case
+                    ld.check_station_labels(places, master, [svg])
+            yard = ld.railroad.Station(9, 1, "Yard", ("15",), "", "YD")
+            svg.write_text('<svg><text>Yard lead</text><desc>The yard of five tracks</desc></svg>')
+            ld.check_station_labels(places + [yard], master, [svg])          # a word in a longer label is no name
 
     def test_d2_must_state_the_live_count(self):
         ld.check_d2(len(ld.detected_sections()))
