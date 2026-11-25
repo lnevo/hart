@@ -4,6 +4,8 @@ One page per **source → generated artifact** flow. Runtime desks (PanelPro, CA
 
 NextTrain / Google Sheets is **not** on this list (abandoned for hart).
 
+A generated file that only tools, CI or the website build read is a view: it is built where it is used and not committed ([ADR-036](../decisions/ADR-036-generated-views-not-committed.md)). The pipeline map pages are the first (`make map` to look at them). Outputs that hosts load (`tables.xml`, panels) and files people or agents read by path stay committed.
+
 | # | Pipeline | Status | Guide |
 |---|----------|--------|-------|
 | 1 | JMRI AnyRail panel | Retired (scripts in `archive/jmri-scripts/`) | [jmri-anyrail.md](jmri-anyrail.md) |
