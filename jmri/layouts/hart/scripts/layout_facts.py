@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Railroad facts about each switch, read from jmri/layouts/hart/data/.
+"""Railroad facts about each switch, read from jmri/layouts/hart/data/ through hartlib (hartlib.railroad for
+switches.csv, the device master, stations.csv and interlockings.csv; hartlib.hand_lists for mast_cells.csv and the
+USS board's grid): this module opens no data file itself (tools/audit/check_data_readers.py).
 
     switches.csv     every level's switches, one row per OS block (staging)
                      or half (main and upper); a staging switch's rows give
@@ -45,39 +47,21 @@ tables.xml, the CATS desks and the USS CTC agree with these files.
 """
 from __future__ import annotations
 
-import csv
 import re
 import sys
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import devices, paths, railroad, railroad_facts  # noqa: E402
+from hartlib import devices, hand_lists, paths, railroad, railroad_facts  # noqa: E402
 from hartlib.railroad import Leg, Switch  # noqa: E402,F401  one definition, in hartlib.railroad
 
 DATA = paths.LAYOUT_DATA
 _SWITCH_NAME = re.compile(r"(?:DCC |FB )?Switch (\d+)(?: [NR])?")
 
 
-@dataclass(frozen=True)
-class MastCell:
-    """A mast's icon on the USS CTC board, and its lamp on the hand-wired CATS desks (whose grid the board keeps)."""
-    mast: str
-    x: int             # the cell on the USS board's grid (uss_board_cells.csv)
-    y: int
-    edge: str          # hand-wired desks only: SEC_EDGE of the cell that holds the SECSIGNAL
-    uss_facing: str    # E or W on the USS board
-    uss_kind: str      # h2: mast icon (two heads); d1: head icon on the only head
-    uss_head: str      # that head for d1, blank for h2
-    sig_location: str = ""  # hand-wired desks only: PANELSIGNAL SIGLOCATION / SIGORIENT to set, blank to keep
-    sig_orient: str = ""
-
-
-def _rows(path: Path) -> list[dict[str, str]]:
-    with path.open(newline="", encoding="utf-8") as fh:
-        return [{k: (v or "").strip() for k, v in row.items()} for row in csv.DictReader(fh)]
+MastCell = hand_lists.MastCell          # one definition, in hartlib.hand_lists
 
 
 def staging_rows(data: Path = DATA) -> list[dict[str, str]]:
@@ -92,102 +76,29 @@ def load_switches(data: Path = DATA) -> dict[int, Switch]:
     return railroad.read_switches(s.switches, s.devices)
 
 
-EDGES = {"LEFT", "RIGHT", "TOP", "BOTTOM"}
+EDGES = hand_lists.EDGES
+USS_CELLS = hand_lists.USS_CELLS
+USS_PLANTS = hand_lists.USS_PLANTS
+USS_TRACKS = hand_lists.USS_TRACKS
 
 
 def load_mast_cells(data: Path = DATA) -> list[MastCell]:
-    """mast_cells.csv in file order (the order the USS board draws the icons)."""
-    out: list[MastCell] = []
-    seen: dict[str, int] = {}
-    cells: dict[tuple[int, int, str], int] = {}
-    for line, row in enumerate(_rows(data / "mast_cells.csv"), start=2):
-        where = f"mast_cells.csv line {line} ({row['mast']})"
-        cell = MastCell(row["mast"], int(row["x"]), int(row["y"]), row["edge"], row["uss_facing"],
-                        row["uss_kind"], row["uss_head"], row["sig_location"], row["sig_orient"])
-        key = (cell.x, cell.y, cell.edge)
-        for what, index, value in (("mast", seen, cell.mast), ("cell and edge", cells, key)):
-            if value in index:
-                raise ValueError(f"mast_cells.csv lines {index[value]} and {line}: same {what} {value}")
-            index[value] = line
-        if cell.edge not in EDGES or cell.uss_facing not in ("E", "W") or cell.uss_kind not in ("h2", "d1"):
-            raise ValueError(f"{where}: edge {EDGES}, uss_facing E/W, uss_kind h2/d1")
-        if (cell.uss_kind == "d1") != bool(cell.uss_head):
-            raise ValueError(f"{where}: uss_head is the head for d1 and blank for h2")
-        if bool(cell.sig_location) != bool(cell.sig_orient):
-            raise ValueError(f"{where}: sig_location and sig_orient go together")
-        out.append(cell)
-    return out
-
-
-USS_CELLS = "uss_board_cells.csv"
-USS_PLANTS = "uss_board_plants.csv"
-USS_TRACKS = {"HORIZONTAL", "VERTICAL", "UPPERSLASH", "LOWERSLASH", "UPPERBACKSLASH", "LOWERBACKSLASH"}
-
-
-def _noted_rows(path: Path, columns: list[str]) -> list[tuple[int, dict[str, str]]]:
-    """(line, row) of a CSV below its `# ` note line, values kept as written (a cell name may hold runs of
-    spaces)."""
-    with path.open(newline="", encoding="utf-8") as fh:
-        if not fh.readline().startswith("# "):
-            raise ValueError(f"{path.name} line 1: the note line (# ...) saying where the file came from")
-        reader = csv.DictReader(fh)
-        if reader.fieldnames != columns:
-            raise ValueError(f"{path.name}: columns {','.join(columns)}, not {','.join(reader.fieldnames or [])}")
-        out = []
-        for row in reader:
-            line = reader.line_num + 1              # + the note line, which the reader did not see
-            if None in row or any(v is None for v in row.values()):
-                have = sum(v is not None for k, v in row.items() if k is not None) + len(row.get(None) or [])
-                raise ValueError(f"{path.name} line {line}: {len(columns)} fields ({','.join(columns)}), not {have}")
-            out.append((line, row))
-        return out
+    """mast_cells.csv in file order (the order the USS board draws the icons): hartlib.hand_lists.read_mast_cells,
+    which stops (HandListError, a ValueError) on a row out of shape."""
+    return hand_lists.read_mast_cells(data)
 
 
 def load_uss_cells(data: Path = DATA) -> dict[tuple[int, int], dict]:
-    """The USS CTC board's grid (uss_board_cells.csv), frozen from the hand-wired CATS desk on 2026-11-15, in file
-    order: (x, y) -> {tracks: [CATS track kinds], name: the cell's label or None, blocks: [(edge, block or None,
-    occupancy sensor or None)]}, the shape gen_ctc_track_plan.build_block reads."""
-    out: dict[tuple[int, int], dict] = {}
-    for line, row in _noted_rows(data / USS_CELLS, ["x", "y", "tracks", "name", "blocks"]):
-        where = f"{USS_CELLS} line {line}"
-        try:
-            xy = (int(row["x"]), int(row["y"]))
-        except (TypeError, ValueError):
-            raise ValueError(f"{where}: x and y are whole numbers") from None
-        if xy in out:
-            raise ValueError(f"{where}: cell {xy} is listed twice")
-        tracks = [t for t in row["tracks"].split(";") if t]
-        if set(tracks) - USS_TRACKS:
-            raise ValueError(f"{where}: tracks are {', '.join(sorted(USS_TRACKS))}, not {row['tracks']!r}")
-        blocks = []
-        for item in [b for b in row["blocks"].split(";") if b]:
-            parts = item.split("|")
-            if len(parts) != 3 or parts[0] not in EDGES or not (parts[1] or parts[2]):
-                raise ValueError(f"{where}: a block is EDGE|block|sensor (block or sensor given), not {item!r}")
-            blocks.append((parts[0], parts[1] or None, parts[2] or None))
-        out[xy] = dict(tracks=tracks, name=row["name"] or None, blocks=blocks)
-    return out
+    """The USS CTC board's grid (uss_board_cells.csv), frozen from the hand-wired CATS desk on 2026-11-15:
+    hartlib.hand_lists.read_uss_cells, (x, y) -> {tracks, name, blocks}, the shape gen_ctc_track_plan.build_block
+    reads."""
+    return hand_lists.read_uss_cells(data)
 
 
 def load_uss_plants(data: Path = DATA) -> dict[tuple[int, int], str]:
-    """(x, y) -> OS block of each switch plant on the USS CTC board grid (uss_board_plants.csv), in its drawing
-    order. Each cell holds track in uss_board_cells.csv; the hand-wired CATS desks put their plants there too."""
-    cells = load_uss_cells(data)
-    out: dict[tuple[int, int], str] = {}
-    seen: dict[str, int] = {}
-    for line, row in _noted_rows(data / USS_PLANTS, ["os_block", "x", "y", "notes"]):
-        where = f"{USS_PLANTS} line {line} ({row['os_block']})"
-        try:
-            xy = (int(row["x"]), int(row["y"]))
-        except (TypeError, ValueError):
-            raise ValueError(f"{where}: x and y are whole numbers") from None
-        if not row["os_block"] or row["os_block"] in seen or xy in out:
-            raise ValueError(f"{where}: an OS block or cell that is empty or given twice")
-        if not cells.get(xy, {}).get("tracks"):
-            raise ValueError(f"{where}: {USS_CELLS} has no track in cell {xy}")
-        seen[row["os_block"]] = line
-        out[xy] = row["os_block"]
-    return out
+    """(x, y) -> OS block of each switch plant on the USS CTC board grid (uss_board_plants.csv):
+    hartlib.hand_lists.read_uss_plants."""
+    return hand_lists.read_uss_plants(data)
 
 
 def legs_by_os(switches: dict[int, Switch]) -> dict[str, tuple[Switch, Leg]]:
@@ -198,8 +109,8 @@ def load_control_points(data: Path = DATA) -> list[dict[str, str]]:
     """The control points of every level that has desk areas in schematic/stations.csv (staging's only so far; each
     row carries its ``level``), with switches.csv, in the older control_points.csv shape
     (hartlib.railroad_facts.station_group_rows); ``switches`` is the OS-block list, e.g. "23a,23b,33"."""
-    return railroad_facts.station_group_rows(data / "schematic" / "stations.csv",
-                                             data / "switches.csv")
+    s = railroad.Sources.under(data)
+    return railroad_facts.station_group_rows(s.stations, s.switches)
 
 
 def station_names(data: Path = DATA) -> set[str]:
@@ -219,8 +130,9 @@ def cp_levels(data: Path = DATA) -> dict[str, str]:
 def place_levels(data: Path = DATA) -> dict[str, str]:
     """Place name -> level of every station of stations.csv and control point of interlockings.csv: the places a
     line block's cp lists (build_device_map.line_cp)."""
-    out = {s.name: str(s.level) for s in railroad.read_stations(data / "schematic" / "stations.csv")}
-    out.update({i.name: str(i.level) for i in railroad.read_interlockings(railroad.Sources.under(data).interlockings)})
+    src = railroad.Sources.under(data)
+    out = {s.name: str(s.level) for s in railroad.read_stations(src.stations)}
+    out.update({i.name: str(i.level) for i in railroad.read_interlockings(src.interlockings)})
     return out
 
 

@@ -6,7 +6,7 @@ track from outside a control point meets one of its switches, unless no route it
 (reaches_signal; build_device_map.py's module text has the naming and head rules). band_level() maps a band title
 to its level by the `level` of its entry in a plan-overrides file (band_levels). The rules that replaced hand lists
 (owner, 2026-11-20): running_tracks (passing sidings between interlockings), signalled_spurs (exit dwarfs off a main track); read_block_splits reads the owner's block
-splits (block_overrides.csv kind split), which are a choice, not a rule; read_block_overrides is that file's one reader. mast_plan.py runs them all as the one mast process of every level.
+splits (block_overrides.csv kind split), which are a choice, not a rule; hartlib.hand_lists.read_block_overrides is that file's one reader. mast_plan.py runs them all as the one mast process of every level.
 """
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
-from hartlib import railroad
+from hartlib import hand_lists, railroad
 
 base = railroad.switch_number
 natural = railroad.natural
@@ -246,8 +246,9 @@ def track_names(found, helix=None) -> None:
 
 # ---------------------------------------------------------------- hand lists keyed by end switches
 
-TRACK_KEY_COLUMNS = ["switch_a", "switch_b", "parallel"]
-SWITCH_NUMBER = re.compile(r"\d+")
+# block_overrides.csv's reader and its row rules are hartlib.hand_lists' (naming-layers step 6); the names stay here
+TRACK_KEY_COLUMNS = hand_lists.TRACK_KEY_COLUMNS
+SWITCH_NUMBER = hand_lists.SWITCH_NUMBER
 
 
 def track_key(t: dict) -> tuple[str, str] | None:
@@ -261,145 +262,28 @@ def track_key(t: dict) -> tuple[str, str] | None:
     return (sw[0], sw[1] if len(sw) == 2 else "") if sw else None
 
 
-def key_problem(row: dict) -> str:
-    """Why a row's switch_a, switch_b and parallel are not a track key ("" when they are)."""
-    a, b, par = row["switch_a"], row["switch_b"], row["parallel"]
-    if not SWITCH_NUMBER.fullmatch(a) or (b and not SWITCH_NUMBER.fullmatch(b)):
-        return f"switch_a {a!r} and switch_b {b!r} are switch numbers (switch_b blank for a spur)"
-    if b and natural(a) > natural(b):
-        return f"switch_a {a} and switch_b {b} are in number order, lower first"
-    if par and par not in ("1", "2", "3", "4"):
-        return f"parallel {par!r} is blank or the track's place in plan order (plan_order), 1 to 4"
-    return ""
-
-
-OVERRIDES_NAME = "block_overrides.csv"     # in the schematic data folder, beside plan_overrides.json
-OVERRIDE_COLUMNS = ["level", "kind"] + TRACK_KEY_COLUMNS + ["end", "block", "cm", "inside", "notes"]
-OVERRIDE_KINDS = ("split", "track", "crossover_half")
+key_problem = hand_lists.key_problem
+override_problem = hand_lists.override_problem
+OVERRIDES_NAME = hand_lists.OVERRIDES_NAME     # in the schematic data folder, beside plan_overrides.json
+OVERRIDE_COLUMNS = hand_lists.OVERRIDE_COLUMNS
+OVERRIDE_KINDS = hand_lists.OVERRIDE_KINDS
+OS_ID = hand_lists.OS_ID
 
 
 def read_block_overrides(path: Path, kinds: tuple[str, ...] = OVERRIDE_KINDS) -> list[dict]:
-    """The rows of `kinds` of block_overrides.csv (OVERRIDE_COLUMNS), the owner's hand facts about blocks, each with
-    its `line` and its `cm` a number (None when blank); a short row's missing trailing fields are empty. Every row of every kind is checked for its shape, whichever
-    kinds are asked for, so a bad row stops every reader of the file; resolving a row against the drawing is the
-    reader's (read_block_splits, block_layer.read_exceptions). A row of any level (1 staging, 2 main, 3 upper), keyed
-    by switch numbers so a new export moves it with its track:
-    - split: the track switch_a to switch_b (lower first; parallel where two tracks run between them, resolve_track)
-      is two blocks parted at its turnback. The OWNER'S CHOICE, not a rule (owner, 2026-11-20: a rule would catch
-      every intermediate loop). No end, block, cm or inside.
-    - track: the track switch_a to switch_b (as for split), or with `end` one of them the piece of it at that end, is
-      part of `block`, an OS block by its device ID (os:15, a crossover half's os:35:A-39A; naming-layers step 5),
-      where the field wiring (or, on main and upper, the owner) says so; `cm` the piece's length, for a piece at one
-      end whose track keeps the rest; `inside` yes keeps it inside its OS block with no JMRI or layout block of its
-      own. block_layer's module text has the rules. The row comes back with `block` the OS block's generated name
-      (os_block_name) and `id` the ID, so an owner's rename of the OS block (devices_field.csv) changes no row here.
-    - crossover_half: switch_a the crossover's number, switch_b the switch its half's leg A track runs to, `block` the
-      half's own OS block's generated name (OS Switch 7b): the generator names the half from it, and the owner's name
-      for it goes in devices_field.csv. No parallel, end, cm or inside.
-    MapError naming the file and line on columns not OVERRIDE_COLUMNS, a level not 1 to 3, a kind not
-    OVERRIDE_KINDS, or a row not in its kind's shape."""
-    import csv
-    unknown = sorted(set(kinds) - set(OVERRIDE_KINDS))
-    if unknown:
-        raise MapError(f"{path.name}: no kind {', '.join(unknown)} (kinds: {', '.join(OVERRIDE_KINDS)})")
+    """hartlib.hand_lists.read_block_overrides (its text has the kinds and rows), its HandListError a MapError."""
     try:
-        with open(path, newline="", encoding="utf-8") as fh:
-            reader = csv.DictReader(fh)
-            rows = list(reader)
-    except OSError as exc:
-        raise MapError(f"cannot read {path.name}: {exc}") from None
-    if reader.fieldnames != OVERRIDE_COLUMNS:
-        raise MapError(f"{path.name}: columns {reader.fieldnames}, not {OVERRIDE_COLUMNS}")
-    out, bad, halves = [], [], {}
-    for i, r in enumerate(rows, 2):
-        if None in r:                       # a short row's missing trailing fields are empty, as csv reads them
-            bad.append(f"line {i}: more fields than the header's {len(OVERRIDE_COLUMNS)}")
-            continue
-        r = {k: (v or "").strip() for k, v in r.items()}
-        r["line"] = i
-        problem = override_problem(r)
-        if problem:
-            bad.append(f"line {i} (level {r['level']}, kind {r['kind']}): {problem}")
-            continue
-        r["cm"] = float(r["cm"]) if r["cm"] else None
-        if r["kind"] == "crossover_half":         # every half, whichever kinds are asked for: a track row's OS block
-            halves[(r["level"], r["switch_a"], r["switch_b"])] = r["block"]
-        if r["kind"] in kinds:
-            out.append(r)
-    for r in out if not bad else ():
-        if r["kind"] == "track":
-            r["id"] = r["block"]
-            try:
-                r["block"] = os_block_name(r["level"], r["id"], halves)
-            except MapError as exc:
-                bad.append(f"line {r['line']}: {exc}")
-    if bad:
-        raise MapError(f"{path.name}: " + "; ".join(bad))
-    return out
-
-
-OS_ID = re.compile(r"os:(?P<n>\d+)(?::A-(?P<to>\d+)[A-Z]?[A-D]|:(?P<corner>[A-D]))?")
+        return hand_lists.read_block_overrides(path, kinds)
+    except hand_lists.HandListError as exc:
+        raise MapError(str(exc)) from None
 
 
 def os_block_name(level: str, ident: str, halves: dict, names=None) -> str:
-    """The generated name of the OS block with device ID `ident`: os:<n> is OS Switch <n>; a crossover half,
-    os:<n>:A-<end>, is the half whose leg A runs to the end's switch, named by its crossover_half row (`halves`:
-    {(level, crossover, switch): name}); a double crossover's corner, os:<n>:<leg> (os:225:D), is named by the device
-    master (`names`, hartlib.devices.user_names, default the repo's: its letter is not its leg, OS Switch 225a is
-    os:225:C). MapError on an ID of no OS block, a half with no crossover_half row, or a corner the master lacks."""
-    m = OS_ID.fullmatch(ident)
-    if not m:
-        raise MapError(f"block {ident!r} is no OS block ID (os:<switch>, a crossover half's os:<switch>:A-<end>, or a "
-                       "double crossover corner's os:<switch>:<leg>)")
-    if m.group("corner"):
-        if names is None:
-            from hartlib import devices
-            names = devices.user_names()
-        name = names.get((level, ident))
-        if name is None:
-            raise MapError(f"block {ident}: no level {level} OS block of the device master has this id")
-        return name
-    if not m.group("to"):
-        return f"OS Switch {m.group('n')}"
-    name = halves.get((level, m.group("n"), m.group("to")))
-    if name is None:
-        raise MapError(f"block {ident}: no crossover_half row of Switch {m.group('n')} whose leg A runs to Switch "
-                       f"{m.group('to')}")
-    return name
-
-
-def override_problem(r: dict) -> str:
-    """Why a block_overrides.csv row (its fields stripped) is not in its kind's shape ("" when it is)."""
-    if r["level"] not in ("1", "2", "3") or r["kind"] not in OVERRIDE_KINDS:
-        return f"level is 1, 2 or 3 and kind one of {', '.join(OVERRIDE_KINDS)}"
-    kind = r["kind"]
-    if kind == "split":
-        if r["end"] or r["block"] or r["cm"] or r["inside"]:
-            return "a split is a track's switch_a, switch_b and parallel, with no end, block, cm or inside"
-        return key_problem(r)
-    if kind == "track" and not OS_ID.fullmatch(r["block"]):
-        return (f"block {r['block']!r} is no OS block ID (a piece of track is part of a switch's OS block: os:<switch>, "
-                "a crossover half's os:<switch>:A-<end>, or a double crossover corner's os:<switch>:<leg>)")
-    if kind == "crossover_half" and not r["block"].startswith("OS Switch "):
-        return f"block {r['block']!r} is no OS block (a crossover half's own OS block, OS Switch <n>[a-d])"
-    if kind == "crossover_half":
-        if not (SWITCH_NUMBER.fullmatch(r["switch_a"]) and SWITCH_NUMBER.fullmatch(r["switch_b"])) or \
-                r["parallel"] or r["end"] or r["cm"] or r["inside"]:
-            return ("a crossover half is switch_a (the crossover) and switch_b (where its leg A track runs), with no "
-                    "parallel, end, cm or inside")
-        return ""
+    """hartlib.hand_lists.os_block_name, its HandListError a MapError."""
     try:
-        cm = float(r["cm"]) if r["cm"] else None
-    except ValueError:
-        cm = -1.0
-    if cm is not None and not cm > 0:
-        return f"cm {r['cm']!r} is a length in cm, more than 0"
-    if r["inside"] not in ("", "yes"):
-        return f"inside is yes or empty, not {r['inside']!r}"
-    problem = key_problem(r)
-    if problem or not r["switch_b"] or (r["end"] and r["end"] not in (r["switch_a"], r["switch_b"])):
-        return problem or "a track between two switches, its end empty or one of them"
-    return ""
+        return hand_lists.os_block_name(level, ident, halves, names)
+    except hand_lists.HandListError as exc:
+        raise MapError(str(exc)) from None
 
 
 def resolve_track(row: dict, found: list[dict]) -> dict | None:

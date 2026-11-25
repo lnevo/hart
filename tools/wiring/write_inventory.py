@@ -39,14 +39,15 @@ from openpyxl.utils import get_column_letter
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import devices, paths, wiring  # noqa: E402
-from hartlib.railroad import FactsError, read_rows, read_switch_rows  # noqa: E402
+from hartlib import railroad  # noqa: E402
+from hartlib.railroad import FactsError  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 WIRING_DOCS = ROOT / "docs/wiring"
 OUT = WIRING_DOCS / "LCOS_Layout_Inventory_v86.xlsx"
-DATA = ROOT / "jmri/layouts/hart/data/schematic"
+SOURCES = railroad.Sources.under()               # the data files, read through hartlib.railroad
 DEVICE_MAP = devices.MASTER
-NODES = DATA / "lcos_nodes.csv"
+NODES = SOURCES.lcos_nodes
 
 LEVEL_NAME = {"1": "Staging", "2": "Main", "3": "Upper"}
 DESIGN = ("2", "3")                               # main and upper: the rule's draft, shaded
@@ -57,7 +58,7 @@ NODE_K = re.compile(r"^Node: (\d+) (Turnout|Signal|Sensor|Block): (\d+)")
 LEGACY = re.compile(r"\bwas ([CDM]\d+)\b")        # a staging node's old ID, as lcos_nodes.csv's source notes it
 NODE_ID = re.compile(r"^inventory v86: ([CDM]\d+)\b")    # a staging node's ID in the inventory (M1 main, D5 DCC)
 NODE_TYPE = {"C": "Client", "M": "Main", "D": "DCC"}
-SWITCHES = DATA.parent / "switches.csv"              # staging's legs: a wired mast's place at its switch
+SWITCHES = SOURCES.switches                          # staging's legs: a wired mast's place at its switch
 
 NODE_COLUMNS = ["Node ID", "Legacy Node ID", "Address", "Location", "Type", "DNOU8", "DNIN8", "12V Boards",
                 "5V Boards", "Num 12V", "12V Used", "12V Free", "Num Turnouts", "Turnout Output Ports",
@@ -87,13 +88,10 @@ def read_device_rows(path: Path = DEVICE_MAP) -> list[dict]:
 
 
 def read_node_rows(path: Path = NODES) -> list[dict]:
-    """Every row of the node file. FactsError on a level that is not 1, 2 or 3."""
-    out = []
-    for line, r in read_rows(path, ("level", "area", "node"), optional=("source",)):
-        if r["level"] not in LEVEL_NAME:
-            raise FactsError(f"{path.name} line {line}: level is 1, 2 or 3, not {r['level']!r}")
-        out.append(r)
-    return out
+    """Every row of the node file as text cells (level, area, node, source), read by hartlib.railroad.read_lcos_nodes,
+    which stops (FactsError) on a level that is not 1, 2 or 3, a node given twice or a row with no area."""
+    return [{"level": str(n.level), "area": n.area, "node": str(n.node), "source": n.source}
+            for n in railroad.read_lcos_nodes(path)]
 
 
 def natural(s: str):
@@ -323,7 +321,7 @@ def port_sheets(wb, nodes: dict[int, Node]) -> None:
 def staging_legs() -> dict[str, list]:
     """Staging's switches.csv rows by switch number: a crossover (7, 23, 35) has one row per OS block."""
     legs: dict[str, list] = {}
-    for r in read_switch_rows(SWITCHES):
+    for r in railroad.read_switch_rows(SWITCHES):
         if r.level == 1:
             legs.setdefault(str(r.switch), []).append(r)
     return legs

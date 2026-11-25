@@ -29,47 +29,50 @@ DEFAULT_LENGTHS = HERE.parents[1] / "data" / "block_lengths.csv"
 DEFAULT_TRUSTED = ("timed",)  # "plan" counts only when passed explicitly
 MM_PER_INCH = 25.4
 
-# The test routes: the blocks in running order, by their block_lengths.csv user_name. Only the
-# order is typed here. Each block's sensor is the occupancy sensor tables.xml gives it, written
-# into routes.json by build_routes.py (--check in tools/check.sh), so this file needs neither
-# hartlib nor tables.xml: the Pi's speed-match live publisher imports it. Names that are not
-# current fail tools/audit/check_name_copies.py. loop1 is the 2026-11-08 loop, east from East
-# Ext; loop2 runs through Scale, Barn and Track S-R and starts at Switch 5. A job, its log (the
-# CFG line) and the analysis all name the route.
+# The test routes: the staging blocks in running order, each by its device ID (devices_generated.csv's id column,
+# hartlib.device_ids; naming-layers step 6), so a rename in devices_field.csv changes no line here. Only the order is
+# typed here. build_routes.py (--check in tools/check.sh) gives each block its name from the name store
+# (hartlib.devices.user_names) and its sensor from tables.xml, and writes both into routes.json, so this file needs
+# neither hartlib nor tables.xml: the Pi's speed-match live publisher imports it. An ID the device master no longer
+# has stops build_routes.py. loop1 is the 2026-11-08 loop, east from East Ext (block:5B-7A); loop2 runs through
+# Scale, Barn and Track S-R and starts at Switch 5. A job, its log (the CFG line) and the analysis all name the route.
 ROUTE_BLOCKS = {
     "loop1": [
-        "Track East Ext", "OS Switch 7b", "Track Main East", "OS Switch 33", "Track East Lead",
-        "OS Switch 35a", "OS Switch 37", "Track K-2", "Track K-1", "OS Switch 39", "OS Switch 35b",
-        "Track West Ext", "OS Switch 23a", "Track Main West", "OS Switch 1", "Track Brick-Plane",
-        "OS Switch 5",
+        "block:5B-7A", "os:7:A-5B", "block:7B-33C", "os:33", "block:33A-35A",
+        "os:35:A-33A", "os:37", "block:37C-39C#1", "block:37C-39C#2", "os:39", "os:35:A-39A",
+        "block:23B-35B", "os:23:A-1A", "block:1A-23A", "os:1", "block:1C-5A#1+1C-5A#2",
+        "os:5",
     ],
     "loop2": [
-        "OS Switch 5", "Track Scale", "OS Switch 7", "Track Barn", "OS Switch 13", "OS Switch 15",
-        "Track S-R", "OS Switch 23b", "OS Switch 31", "OS Switch 33", "Track East Lead",
-        "OS Switch 35a", "OS Switch 37", "Track K-2", "Track K-1", "OS Switch 39", "OS Switch 35b",
-        "Track West Ext", "OS Switch 23a", "Track Main West", "OS Switch 1", "Track Brick-Plane",
+        "os:5", "block:5C-7B", "os:7:A-13C", "block:7A-13C", "os:13", "os:15",
+        "block:15B-23B", "os:23:A-31B", "os:31", "os:33", "block:33A-35A",
+        "os:35:A-33A", "os:37", "block:37C-39C#1", "block:37C-39C#2", "os:39", "os:35:A-39A",
+        "block:23B-35B", "os:23:A-1A", "block:1A-23A", "os:1", "block:1C-5A#1+1C-5A#2",
     ],
 }
 # The warm-up lap counter counts REF (the route's first sensor) lit again after MID, the sensor
-# of a block about half way round the route.
-ROUTE_MID_BLOCK = {"loop1": "OS Switch 23a", "loop2": "Track K-2"}
+# of a block about half way round the route (OS Switch 23a on loop1, Track K-2 on loop2), by its ID.
+ROUTE_MID_BLOCK = {"loop1": "os:23:A-1A", "loop2": "block:37C-39C#1"}
 
 
 ROUTES_JSON = HERE / "routes.json"
 
 
 def load_routes(path=ROUTES_JSON, order=ROUTE_BLOCKS, mid=ROUTE_MID_BLOCK):
-    """(ROUTES, ROUTE_MID) from routes.json: {route: [(block sensor, block)]}, {route: sensor}.
+    """(ROUTES, ROUTE_MID) from routes.json: {route: [(block sensor, block name)]}, {route: sensor}.
 
-    Stops when the file's blocks or mid blocks are not the ones typed here (rebuild it)."""
+    Stops when the file's block IDs (its `ids`, one per pair) or mid blocks are not the ones typed here (rebuild
+    it)."""
     try:
         data = json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, ValueError) as e:
         raise SystemExit("cannot read %s (%s); run speedmatch/build_routes.py" % (path, e))
     routes = {r: [tuple(pair) for pair in pairs] for r, pairs in data["routes"].items()}
+    ids = data.get("ids", {})
     stale = sorted(r for r in set(order) | set(routes)
-                   if [b for _, b in routes.get(r, [])] != list(order.get(r, [])))
-    by_block = {r: dict((b, s) for s, b in pairs) for r, pairs in routes.items()}
+                   if list(ids.get(r, [])) != list(order.get(r, []))
+                   or len(routes.get(r, [])) != len(order.get(r, [])))
+    by_block = {r: dict(zip(ids[r], (s for s, _ in pairs))) for r, pairs in routes.items() if r not in stale}
     stale += sorted(r for r, b in mid.items()
                     if r not in stale and data["mid"].get(r) != by_block.get(r, {}).get(b))
     if stale:
@@ -115,7 +118,11 @@ def load_lengths(path=DEFAULT_LENGTHS, trusted=DEFAULT_TRUSTED, loop=LOOP):
     """dict sensor -> length in mm, None where the CSV row is missing or its source is not trusted.
 
     block_lengths.csv (hartlib.railroad.BLOCK_LENGTH_COLUMNS): a `timed` row's length is its measured_in, a `plan`
-    row's its plan_in. Stops on a file without those columns."""
+    row's its plan_in. Stops on a file without those columns. A row is found by its user_name, the label the
+    length-labels step writes from the name store (plan_lengths.py --labels), which routes.json's names come from
+    too. Read here with the standard library, not through hartlib.railroad.read_block_lengths: the Pi's live
+    publisher runs this with a copy of the file and no hartlib (tools/hosts/deploy/stage.sh), so
+    tools/audit/check_data_readers.py lists this script by name."""
     with open(path, newline="") as fh:
         reader = csv.DictReader(fh)
         missing = {"user_name", "occupancy_sensor", "plan_in", "measured_in", "source"} - set(reader.fieldnames or [])

@@ -63,7 +63,7 @@ A rebuilt script reads these and nothing older:
 - `jmri/layouts/hart/data/switches.csv`, one row per OS block on every level (`hand_source` says where the hand
   comes from). `switch_legs.csv`, `hands.csv` and `local_switches_main_upper.csv` are gone.
 - `jmri/layouts/hart/data/schematic/block_overrides.csv` with its `kind` column (`split`, `track`,
-  `crossover_half`), read by `mast_rule.read_block_overrides`. It replaced `block_exceptions.csv` and
+  `crossover_half`), read by `hartlib.hand_lists.read_block_overrides`. It replaced `block_exceptions.csv` and
   `block_splits.csv`.
 - `jmri/layouts/hart/data/schematic/masts.csv`, every level's masts, through `hartlib.level_masts`. It replaced
   `staging_masts.csv`, `main_upper_masts.csv`, `staging_masts_virtual.csv` and `le_signal_boundaries.csv`. Hidden

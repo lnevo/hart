@@ -102,7 +102,7 @@ class BadHeader(Case):
     def test_a_node_level_that_is_no_level_stops(self) -> None:
         bad = self.tmp / "nodes.csv"
         bad.write_text(AM.NODES.read_text(encoding="utf-8") + "4,North,62,\n", encoding="utf-8")
-        with self.assertRaisesRegex(FactsError, r"nodes.csv line \d+: level is 1, 2 or 3, not '4'"):
+        with self.assertRaisesRegex(FactsError, r"nodes.csv line \d+: level is 1, 2 or 3 \(staging, main, upper\), not 4"):
             AM.read_node_rows(bad)
 
     def test_a_row_longer_than_the_header(self) -> None:

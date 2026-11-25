@@ -136,6 +136,8 @@ EXTRA: dict[str, tuple[str, ...]] = {
     "unit-guards test_publish_draft": ("docs/ops/**/*", "ops/**/*"),
     "unit-guards test_site_device_names": ("www/data/**/*", "www/scripts/**/*"),
     "unit-guards test_write_inventory": ("docs/wiring/**/*",),
+    # it runs check_data_readers.py over every tracked .py (docs/, ops/ and www/ included)
+    "unit-guards test_check_data_readers": ("**/*.py",),
     "unit-guards test_docs_index": ("docs/**/*",),
     "unit-hosts test_live_paths": ("docs/**/*",),
     "unit-hosts test_host_copies": ("ops/**/*",),

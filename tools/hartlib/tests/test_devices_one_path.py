@@ -10,7 +10,8 @@ write_generated, write_field).
 Limits that remain. A message sentence that names devices.csv holds whitespace, so it is allowed; a path built from
 pieces ("dev" + "ices.csv") or read from a config is not seen; a master path passed through a variable with another
 name into open() is not seen; Python 2 files (Jython) get a text scan for the quoted name only. ALLOWED lists the one
-file that may name them, with a test that pins its copies to hartlib.
+file that may name them, with a test that pins its copies to hartlib; CHECKS the check that holds every layout data
+file the same way (tools/audit/check_data_readers.py, which lists panel_stamps' two names too).
 """
 from __future__ import annotations
 
@@ -28,6 +29,7 @@ from hartlib import devices  # noqa: E402
 
 ALLOWED = ("tools/schematic/panel_stamps.py",)      # cannot import hartlib in its shell test; pinned below
 HOME = "tools/hartlib/"                  # hartlib itself, and its tests
+CHECKS = ("tools/audit/check_data_readers.py",)    # the data-readers check: its table names the files it allows
 NAME = re.compile(r"^\S*devices\S*\.csv\S*$")
 IO = {"open", "read_text", "write_text", "read_bytes", "write_bytes"}
 # an expression that holds the master's path
@@ -38,7 +40,7 @@ MASTER_REF = re.compile(r"\bdevices\.MASTER\b|\bdevice_master\.MASTER\b|\bDEVICE
 def tracked_py() -> list[str]:
     out = subprocess.run(["git", "ls-files", "*.py"], cwd=REPO, capture_output=True, text=True, check=True).stdout
     return [p for p in out.splitlines()
-            if not p.startswith((HOME, "reference/", "archive/", "external/")) and p not in ALLOWED
+            if not p.startswith((HOME, "reference/", "archive/", "external/")) and p not in ALLOWED + CHECKS
             and (REPO / p).is_file()]
 
 

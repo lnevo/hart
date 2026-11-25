@@ -103,6 +103,7 @@ HARTLIB_OTHER = {
     "map_revision": "the station maps' revision",
     "layer_files": "the schematic's layer files, a section per sheet",
     "wiring": "the physical wiring source (wiring.csv)",
+    "hand_lists": "the owner's hand lists: block overrides, main lines and the parked USS board",
     "film_pace": "the pace of the panel and schematic films",
     "coordinator": "the signal coordinator script and the modules it loads",
 }

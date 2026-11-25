@@ -40,7 +40,6 @@ next (the origin, Switch 1 at MP 5.7, stays in milepost_origin).
 from __future__ import annotations
 
 import argparse
-import csv
 import heapq
 import json
 import os
@@ -51,12 +50,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS and the pinned plugin
-from hartlib import devices, layer_files, track_names  # noqa: E402  (publish_draft put tools/hartlib/src on the path)
+from hartlib import hand_lists, layer_files, track_names  # noqa: E402  (publish_draft put tools/hartlib/src on the path)
 
-LINES = pd.DATA / "main_lines.csv"
+LINES = pd.DATA / hand_lists.MAIN_LINES_NAME
 GRAPH = pd.GRAPHS / "main.json"
-COLUMNS = ["sheet", "line", "from", "via", "to", "loop", "double", "count", "notes"]
-SHEETS = ("staging", "main_upper")
+COLUMNS = hand_lists.MAIN_LINE_COLUMNS
+SHEETS = hand_lists.SHEETS
 STAGING_GRAPH = pd.GRAPHS / "staging.json"
 TIE = 1e-6          # centimetres: two ways this close are a tie
 
@@ -65,80 +64,27 @@ class RouteError(ValueError):
     """The main lines cannot be worked out from the plan; the message says why."""
 
 
-def split(cell: str) -> list[str]:
-    return [p.strip() for p in cell.split(";") if p.strip()]
-
-
-STOP_CELLS = ("from", "via", "to", "loop")
-TRACK_PREFIX = "Track "
+# main_lines.csv's reader is hartlib.hand_lists' (naming-layers step 6); the names stay here
+split = hand_lists.split
+STOP_CELLS = hand_lists.STOP_CELLS
+TRACK_PREFIX = hand_lists.TRACK_PREFIX
 
 
 def resolve_stop(token: str, names, where: str) -> str:
-    """A stop as main_lines.csv gives it, with each track in it by its block id (naming-layers step 5), as the plan
-    graph names it: the track's name in the name store (`names`, hartlib.devices.user_names) less "Track ", so
-    "35@block:33A-35A" is "35@East Lead" and "block:39B-helix" "Helix Outer". A switch number is itself. The ids are
-    looked up on every level (a helix track's is staging's: its main or upper end carries the same name), so a rename
-    in devices_field.csv reaches the route with no row here changed. RouteError on a track given by name, or an id the
-    device master does not have."""
-    label, at, track = token.rpartition("@") if "@" in token else ("", "", token)
-    if not track.startswith("block:"):
-        if at or " " in token:
-            raise RouteError(f"{where}: stop {token!r} names a track by its name; give its block id "
-                             "(devices_generated.csv's id column, as 35@block:33A-35A or block:39B-helix)")
-        return token
-    hit = next((names[(lv, track)] for lv in ("1", "2", "3") if (lv, track) in names), None)
-    if hit is None:
-        raise RouteError(f"{where}: stop {token!r}: {track} is no block of the device master (a new export dropped "
-                         "it: give the track's new id)")
-    return f"{label}{at}{hit.removeprefix(TRACK_PREFIX)}"
+    """hartlib.hand_lists.resolve_stop (a stop's block ids by the name store's names), its error a RouteError."""
+    try:
+        return hand_lists.resolve_stop(token, names, where)
+    except hand_lists.HandListError as exc:
+        raise RouteError(str(exc)) from None
 
 
 def read_lines(sheet: str, path: Path = LINES, names=None) -> list[dict]:
-    """The main lines of one sheet. The whole file is checked first: its columns, a known sheet on every row, a line
-    name used once per sheet, from and to given, count yes or blank and only on staging (the main and upper mileposts
-    follow main_route), loop and double only on main_upper (staging_text reads neither); the sheet asked for must have a line.
-    Each stop's tracks are given by block id and come back by name (resolve_stop; `names` the name store's, default
-    hartlib.devices.user_names of the repo)."""
-    if sheet not in SHEETS:
-        raise RouteError(f"unknown sheet {sheet!r}: the sheets are {', '.join(SHEETS)}")
-    with open(path, newline="", encoding="utf-8") as fh:
-        reader = csv.DictReader(fh)
-        if reader.fieldnames != COLUMNS:
-            raise RouteError(f"{path.name}: expected the columns {', '.join(COLUMNS)}, got {reader.fieldnames}")
-        rows = list(reader)
-    seen = set()
-    for n, r in enumerate(rows, 2):
-        if None in r.values() or None in r:
-            raise RouteError(f"{path.name} line {n}: expected {len(COLUMNS)} cells ({', '.join(COLUMNS)})")
-        r["sheet"] = r["sheet"].strip()
-        if r["sheet"] not in SHEETS:
-            raise RouteError(f"{path.name} line {n}: sheet {r['sheet']!r} is not one of {', '.join(SHEETS)}")
-        if not r["line"].strip() or (r["sheet"], r["line"]) in seen:
-            raise RouteError(f"{path.name} line {n}: line name {r['line']!r} is empty or repeated on sheet {r['sheet']}")
-        seen.add((r["sheet"], r["line"]))
-        if not r["from"].strip() or not r["to"].strip():
-            raise RouteError(f"{path.name} line {n} ({r['line']}): from and to are both needed")
-        if r["count"].strip() not in ("", "yes"):
-            raise RouteError(f"{path.name} line {n} ({r['line']}): count is yes or blank, not {r['count']!r}")
-        if r["count"].strip() and r["sheet"] != "staging":
-            raise RouteError(f"{path.name} line {n} ({r['line']}): count is only read on the staging sheet; the "
-                             f"{r['sheet']} mileposts follow main_route")
-        if r["sheet"] == "staging" and (r["loop"].strip() or r["double"].strip()):
-            raise RouteError(f"{path.name} line {n} ({r['line']}): loop and double are only read on the main_upper "
-                             "sheet; a staging line names its junctions in via")
-    mine = [r for r in rows if r["sheet"] == sheet]
-    if not mine:
-        raise RouteError(f"{path.name} has no main line on sheet {sheet}")
-    if any("block:" in r[c] for r in mine for c in STOP_CELLS):
-        names = devices.user_names() if names is None else names
-    for n, r in enumerate(rows, 2):
-        if r["sheet"] != sheet:
-            continue
-        for c in STOP_CELLS:
-            r[c] = ";".join(resolve_stop(t, names, f"{path.name} line {n} ({r['line']}), {c}")
-                            for t in split(r[c])) if c in ("via", "loop") else \
-                resolve_stop(r[c].strip(), names, f"{path.name} line {n} ({r['line']}), {c}")
-    return mine
+    """The main lines of one sheet (hartlib.hand_lists.read_main_lines: the whole file checked, each stop's block
+    ids given back by name; `names` the name store's, default the repo's), its error a RouteError."""
+    try:
+        return hand_lists.read_main_lines(sheet, path, names)
+    except hand_lists.HandListError as exc:
+        raise RouteError(str(exc)) from None
 
 
 HALF = re.compile(r"(\d+)([AB])")

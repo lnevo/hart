@@ -1,7 +1,8 @@
 """Names that scripts used to type by hand and now look up from the data.
 
-- speedmatch/analyze.py: each route is a running order of blocks; build_routes.py writes the
-  blocks' occupancy sensors from tables.xml into routes.json, which analyze.py reads.
+- speedmatch/analyze.py: each route is a running order of blocks by staging device ID; build_routes.py
+  writes the blocks' names from the name store and their occupancy sensors from tables.xml into
+  routes.json, which analyze.py reads.
 - infer_block_lengths.py: the lap reference is loop1's first block.
 - audit_panel_contracts.py: the Dispatcher virtual masts are staging's hidden masts
   (role hidden) in devices.csv.
@@ -45,43 +46,73 @@ MINI = """<layout-config><blocks>
 </blocks></layout-config>"""
 
 
+# the name store's answer for MINI's blocks ({(level, id): user name}, as hartlib.devices.user_names gives it)
+NAMES = {("1", "block:A"): "Track A", ("1", "os:2"): "OS Switch 2", ("1", "block:NS"): "Track No Sensor",
+         ("1", "block:G"): "Track Gone"}
+
+
 class RouteLookupTest(unittest.TestCase):
     def test_sensors_come_from_the_full_block(self):
         root = ET.fromstring(MINI)
         sensors = build_routes.block_sensors(root)
         self.assertEqual({"Track A": "BS A", "OS Switch 2": "BS Switch 2 / BS A2"}, sensors)
-        data = build_routes.build(root, {"r": ["OS Switch 2", "Track A"]}, {"r": "Track A"})
+        data = build_routes.build(root, {"r": ["os:2", "block:A"]}, {"r": "block:A"}, NAMES)
         self.assertEqual([["BS Switch 2 / BS A2", "OS Switch 2"], ["BS A", "Track A"]], data["routes"]["r"])
+        self.assertEqual({"r": ["os:2", "block:A"]}, data["ids"])
         self.assertEqual({"r": "BS A"}, data["mid"])
 
     def test_a_block_without_a_sensor_stops_with_its_name(self):
         with self.assertRaises(SystemExit) as cm:
-            build_routes.build(ET.fromstring(MINI), {"r": ["Track A", "Track No Sensor", "Track Gone"]},
-                               {"r": "Track A"})
+            build_routes.build(ET.fromstring(MINI), {"r": ["block:A", "block:NS", "block:G"]}, {"r": "block:A"},
+                               NAMES)
         self.assertIn("Track Gone, Track No Sensor", str(cm.exception))
+
+    def test_an_id_the_device_master_lacks_stops_with_the_id(self):
+        with self.assertRaises(SystemExit) as cm:
+            build_routes.build(ET.fromstring(MINI), {"r": ["block:A", "block:X"]}, {"r": "block:A"}, NAMES)
+        self.assertIn("block:X", str(cm.exception))
+        with self.assertRaises(SystemExit) as cm:       # a main level block of the same id is not staging's
+            build_routes.build(ET.fromstring(MINI), {"r": ["block:A"]}, {"r": "block:A"}, {("2", "block:A"): "A"})
+        self.assertIn("block:A", str(cm.exception))
+
+    def test_a_rename_in_the_name_store_reaches_the_routes(self):
+        """naming-layers step 6: the routes are typed by ID, so an owner's new name for a block (devices_field.csv,
+        here the name store's answer) changes the name and sensor build_routes writes, and no line of analyze.py."""
+        root = ET.fromstring(MINI.replace("Track A<", "Track Renamed<"))
+        data = build_routes.build(root, {"r": ["block:A"]}, {"r": "block:A"}, {**NAMES, ("1", "block:A"): "Track Renamed"})
+        self.assertEqual([["BS A", "Track Renamed"]], data["routes"]["r"])
+        self.assertEqual({"r": ["block:A"]}, data["ids"])
 
     def test_routes_json_is_current_and_matches_the_typed_order(self):
         self.assertEqual(0, build_routes.main(["--check"]))
         order, mid = build_routes.route_order()
         self.assertEqual(order, analyze.ROUTE_BLOCKS)
         self.assertEqual(mid, analyze.ROUTE_MID_BLOCK)
+        names = devices.user_names()
         for route, blocks in analyze.ROUTE_BLOCKS.items():
             with self.subTest(route):
-                self.assertEqual(blocks, [b for _, b in analyze.ROUTES[route]])
+                self.assertEqual([names[("1", b)] for b in blocks], [b for _, b in analyze.ROUTES[route]])
         self.assertEqual([s for s, _ in analyze.LOOP], analyze.ORDER)
-        sensors = dict((b, s) for s, b in analyze.LOOP + analyze.LOOP2)
         for route, block in analyze.ROUTE_MID_BLOCK.items():
+            sensors = dict(zip(analyze.ROUTE_BLOCKS[route], (s for s, _ in analyze.ROUTES[route])))
             self.assertEqual(sensors[block], analyze.ROUTE_MID[route])
 
     def test_a_routes_json_out_of_step_with_the_order_stops(self):
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "routes.json"
-            p.write_text(json.dumps({"routes": {"r": [["BS A", "Track A"]]}, "mid": {"r": "BS A"}}))
-            routes, mid = analyze.load_routes(p, {"r": ["Track A"]}, {"r": "Track A"})
+            p.write_text(json.dumps({"routes": {"r": [["BS A", "Track A"]]}, "ids": {"r": ["block:A"]},
+                                     "mid": {"r": "BS A"}}))
+            routes, mid = analyze.load_routes(p, {"r": ["block:A"]}, {"r": "block:A"})
             self.assertEqual({"r": [("BS A", "Track A")]}, routes)
-            with self.assertRaises(SystemExit) as cm:
-                analyze.load_routes(p, {"r": ["Track A", "Track B"]}, {"r": "Track A"})
-            self.assertIn("build_routes.py", str(cm.exception))
+            for order, mid_block in (({"r": ["block:A", "block:B"]}, "block:A"),     # a block more
+                                     ({"r": ["block:B"]}, "block:B"),                 # another block
+                                     ({"r": ["block:A"]}, "block:B")):                # a mid block off the route
+                with self.subTest(order=order, mid=mid_block), self.assertRaises(SystemExit) as cm:
+                    analyze.load_routes(p, order, {"r": mid_block})
+                self.assertIn("build_routes.py", str(cm.exception))
+            p.write_text(json.dumps({"routes": {"r": [["BS A", "Track A"]]}, "mid": {"r": "BS A"}}))
+            with self.assertRaises(SystemExit):                 # a routes.json from before the ids
+                analyze.load_routes(p, {"r": ["block:A"]}, {"r": "block:A"})
 
     def test_a_log_with_a_sensor_off_the_route_stops_and_names_it(self):
         good = analyze.LOOP[0][0]
