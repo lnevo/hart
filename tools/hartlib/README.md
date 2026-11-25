@@ -125,6 +125,22 @@ the name store's name (`devices.user_names`, a detector's its block's) and `w.id
 `devices_field.csv` changes no row and the frozen pins stay. Only a button's, relay's or calibration relay's label is
 in `device`; a main or upper track detector keeps its plan key (switch_a, switch_b, parallel, half).
 
+### `hartlib.hand_lists`
+
+The one reader of each of the owner's hand lists (naming-layers step 6); each stops with `HandListError` (a
+`ValueError`) naming the file and line. `read_block_overrides(path, kinds)`: `block_overrides.csv`, every level's
+rows keyed by switch numbers, a track row's `block` an OS block ID given back with its generated name
+(`os_block_name`) and the ID in `id`; `mast_rule.read_block_overrides` wraps it (a `MapError`). `read_main_lines(sheet,
+path, names)`: `main_lines.csv`, each stop's block IDs named from the name store (`resolve_stop`);
+`build_main_route.read_lines` wraps it (a `RouteError`). `read_mast_cells(data)`, `read_uss_cells(data)` and
+`read_uss_plants(data)`: the parked USS CTC board (`mast_cells.csv`, `uss_board_cells.csv`, `uss_board_plants.csv`);
+`layout_facts.py` re-exports them as `load_mast_cells` and the others.
+
+`tools/audit/check_data_readers.py` (job `data-readers` in `tools/check.sh`) fails when a script outside hartlib names
+a file under `jmri/layouts/hart/data/`, unless its `ALLOWED` table lists the script and file with a reason (a writer of
+its own output, a schematic plan input, a stamp hash, a path handed to a hartlib reader, a reader not moved yet);
+Jython inside JMRI is held to naming none but the one `JYTHON_ALLOWED` lists. `--list` prints the table.
+
 ### `hartlib.railroad`
 
 The railroad's facts in one place: each fact file read once into typed objects, and the rules between the files

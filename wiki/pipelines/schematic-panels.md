@@ -45,7 +45,7 @@ until its ttlSize and drops the pair). `data/schematic/block_overrides.csv` (a `
 at its turnback, the owner's choice, not a rule), kind `track` (the wiring facts where the wiring says otherwise:
 13-15 in OS 15, 23-31 in OS 31, 35-37 in 35a, a part per end for 1-3 and 35-39; `inside` yes on a track row keeps
 the piece inside its OS block) and kind `crossover_half` (the crossover halves with detectors of their own).
-`mast_rule.read_block_overrides` reads it and checks every row's shape for its kind, naming the file and line; it
+`hartlib.hand_lists.read_block_overrides` reads it (through `mast_rule.read_block_overrides`, naming-layers step 6) and checks every row's shape for its kind, naming the file and line; it
 replaced `block_exceptions.csv` and `block_splits.csv` (2026-11-21). What a reader sees for a track can differ from its
 plan name: `preferences.json[main_upper]` `track_labels` (the schematic-maps plugin's sheet-wide preference, since
 plugin 0.1.50; keyed by the staging helix block's ID, which the merged view names) maps a plan name to the label drawn, McKees Rocks for Helix Outer and McKeesport for Helix Inner until
@@ -115,7 +115,7 @@ Stops with file, line and station on an unknown switch, a staging switch in no d
 
 ### Row main-route: how the routes are found
 
-Both from `main_lines.csv`, one file with a `sheet` column (staging or main_upper). Main and upper: worked out from its main_upper rows (the two main lines by helix end, end switch, turnback and double tracks) and the plan graph; stops when a stretch has two equally short ways or a pair of switches has two tracks nobody declared; staging: from its staging rows, each line naming the junctions it passes (a track must join each to the next; `count` yes marks the lines the mileposts run along)
+Both from `main_lines.csv`, one file with a `sheet` column (staging or main_upper), read by `hartlib.hand_lists.read_main_lines` (stops by block ID, named from the name store). Main and upper: worked out from its main_upper rows (the two main lines by helix end, end switch, turnback and double tracks) and the plan graph; stops when a stretch has two equally short ways or a pair of switches has two tracks nobody declared; staging: from its staging rows, each line naming the junctions it passes (a track must join each to the next; `count` yes marks the lines the mileposts run along)
 
 ### The Layout Editor build
 

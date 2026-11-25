@@ -46,7 +46,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 | 3 | The name store | 1.5 days | Generator names every track from the plan; `hartlib.track_names` keeps the owner's names by ID and gives them to the plugin; readers by ID; a check stops a name in `plan_overrides.json`. Drawings byte-identical. **Done (2026-11-24):** 3a the store ([Step 3 findings](#step-3-findings)); 3b the readers by ID ([Step 3b findings](#step-3b-findings)) |
 | 4 | Owner file keyed by ID | 1 day | `devices_field.csv` rekeyed on `(level, id)`; `user_name` becomes an owner cell. The build prints new and gone IDs against the last generated file and stops as decision 3 says; a rename lists the Operations Pro copies (decision 5) and warns on a mast rename (decision 6). **Done (2026-11-25):** see [Step 4 findings](#step-4-findings) |
 | 5 | Files keyed by ID | 1.5 to 2 days | `wiring.csv`, `block_lengths.csv`, `block_numbering.csv`, `block_overrides.csv`, `main_lines.csv` and switches.csv's staging legs key on device IDs; their names come from the name store, so a rename touches no row. **Done (2026-11-25):** see [Step 5 findings](#step-5-findings); 5b, `preferences.json` and `stations.csv` by block ID: [Step 5b findings](#step-5b-findings) |
-| 6 | Every read through `hartlib` | 1.5 days | `hartlib` readers for `block_overrides.csv`, `main_lines.csv` and `mast_cells.csv`; `layout_facts.py`, `write_inventory.py`, `check_hart_phase02.py` and `analyze.py` onto `hartlib.railroad` (was builder merge step 7, second half); mast rows read only through `hartlib.level_masts`. Then a check fails when a script outside `hartlib` opens a layout data file. Jython inside JMRI cannot import `hartlib` and reads only generated outputs; the check lists those scripts by name |
+| 6 | Every read through `hartlib` | 1.5 days | `hartlib.hand_lists` reads `block_overrides.csv`, `main_lines.csv` and `mast_cells.csv`; `layout_facts.py`, `write_inventory.py`, `check_hart_phase02.py` and the speed-match routes go through `hartlib`; a check fails a script outside `hartlib` that names a layout data file, Jython listed by name. **Done (2026-11-25):** see [Step 6 findings](#step-6-findings) |
 | 7 | Staging generated like main and upper | 1.5 days | `staging_rows` and `staging_wired_rows` go through the main and upper functions; a staging device with no owner row gets generated values instead of stopping; `FIELD_LEVEL` goes. Staging's owner values still win, so outputs stay the same |
 | 8 | Block names into the rows | 0.5 day | Builder merge step 2 (`block_numbering.csv` stays the source of main and upper numbers, owner 2026-11-23) |
 | 9 | `start` column and comment data | 0.5 day | Builder merge step 3 |
@@ -222,6 +222,44 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   message; `read_helix_tracks` refuses a plan name in `track_labels`; the `devices_generated.csv` readers are on
   the pipeline map.
 - **Open:** a field `jmri_comment` is free text (W-1's still says "Brick yard Track W-1"); a rename does not reach it.
+
+## Step 6 findings (2026-11-25)
+
+- **The readers.** `hartlib.hand_lists` is the one reader of `block_overrides.csv` (`read_block_overrides`,
+  `os_block_name`), `main_lines.csv` (`read_main_lines`, `resolve_stop`) and the parked USS board (`read_mast_cells`,
+  `read_uss_cells`, `read_uss_plants`), each stopping with `HandListError` (a `ValueError`) naming the file and line.
+  `mast_rule.read_block_overrides`, `build_main_route.read_lines` and `layout_facts.load_*` are thin wrappers that keep
+  their callers' errors (`MapError`, `RouteError`). `railroad.Sources` gained `stations`.
+- **The scripts.** `layout_facts.py` opens no file: switches, stations and interlockings through `hartlib.railroad`,
+  the board through `hand_lists`. `write_inventory.py` reads `lcos_nodes.csv` with `railroad.read_lcos_nodes` (which
+  also stops on a node given twice or a row with no area) and `switches.csv` with `read_switch_rows`.
+  `check_hart_phase02.py` takes staging's rows from `read_switch_rows`, so the whole file is held to its shape. Mast
+  rows were already read only through `hartlib.level_masts` (every `masts.csv` reader calls `level_masts.read` or
+  `read_masts`); nothing changed there.
+- **The speed-match routes, my call:** `analyze.py` types each route's blocks by staging device ID
+  (`block:5B-7A`, `os:7:A-5B`); `build_routes.py` names them from the name store and takes their sensors from
+  `tables.xml`, and `routes.json` keeps the IDs beside the pairs (`ids`) for `load_routes` to check. `analyze.py` still
+  reads `block_lengths.csv` itself, by the label the length-labels step writes: the Pi's live publisher runs it with a
+  copy of the file and no hartlib (`tools/hosts/deploy/stage.sh`), so the check allows it by name.
+- **The check.** `tools/audit/check_data_readers.py` (job `data-readers` in `check.sh`, tests in
+  `tools/audit/tests/test_check_data_readers.py`) fails a tracked script outside `tools/hartlib/` (tests, `reference/`,
+  `archive/` and `external/` left out) whose strings name a file under `jmri/layouts/hart/data/`, unless `ALLOWED` lists
+  that script and file with a reason; an allowed pair no longer named fails too. Jython (imports jmri or java, or
+  Python 2 only) must name none but `JYTHON_ALLOWED`'s: `loco_roster_import.py` and `new_locos.json`. 62 pairs in 31
+  scripts are allowed today: writers of their own output (approvals, baselines, the template), plan inputs
+  (`inputs/*.json`), stamp hashes, a text search (`check_name_copies.py`), paths handed to a hartlib reader, and ten
+  direct readers not moved yet.
+- **Open, for a later step:** the direct readers the check lists as not moved: `block_lengths.csv` in
+  `export_track_lengths.py`, `infer_block_lengths.py` (also its writer), `levels_page.py`, `build_layout_docs.py` and
+  `docs/ap/electrical/make_drawings.py`; `signals.json` in `render_le_layout.py`; `panel_items.json` (tools/schematic
+  `panel_items.load`), `block_numbering.csv` (`le_tables.load_numbering`), `retired_virtual_masts.csv`
+  (`mast_plan.read_retired`) and `sheets.csv` (`build_staging_sets.read_sheets`). The check sees names only: a path
+  built from pieces or read from a config is not seen.
+- **Outputs byte-identical:** the outputs of `write_inventory.py` (every cell and fill), `check_hart_phase02.py`,
+  `layout_facts.py`'s loaders, `analyze.py` (its routes, lengths and a run over two logs rebuilt from the 2026-11-08
+  transits) and both hand-list readers were dumped before and after: no difference. `routes.json`'s pairs are
+  unchanged (it gained `ids`). `make panels CHECK=1 FULL=1` all current, `check_approved.py --check` all matching. No
+  main or upper change.
 
 ## How to run this
 
