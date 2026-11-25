@@ -174,6 +174,17 @@ def listed(text: str) -> set[tuple[str, str]]:
     return set(entries(text))
 
 
+def prose(text: str) -> dict[str, int]:
+    """Per area, how many prose lines (a folder README's summary) the index text holds."""
+    area, count = "", {}
+    for line in text.splitlines():
+        if line.startswith("## "):
+            area = line[3:]
+        elif line.strip() and not line.startswith(("- ", "#")):
+            count[area] = count.get(area, 0) + 1
+    return count
+
+
 def repeated(text: str) -> list[tuple[str, str]]:
     """Entries listed more than once. The index merges with git's union driver (.gitattributes), which keeps both
     sides' lines: two branches that changed one row leave it twice, and a set comparison alone would not see it."""
@@ -191,7 +202,7 @@ def check(strict: bool = False) -> int:
     paths = tracked()
     index = ROOT / "docs/INDEX.md"
     text = index.read_text(encoding="utf-8") if index.is_file() else ""
-    have, want = listed(text), listed(render(paths))
+    have, want = listed(text), listed(rendered := render(paths))
     status = 0
     if twice := repeated(text):
         status = 1
@@ -199,6 +210,12 @@ def check(strict: bool = False) -> int:
               "run python3 tools/ops/build_docs_index.py and commit it", file=sys.stderr)
         for area, row in twice[:10]:
             print(f"  twice: {area}: {row}", file=sys.stderr)
+    extra = sorted(a for a, n in prose(text).items() if n > prose(rendered).get(a, 0))
+    if extra:
+        status = 1
+        print("build_docs_index.py: docs/INDEX.md has more intro text than it should (a union merge kept both "
+              "sides) under: " + ", ".join(a or "(top)" for a in extra) + "; run python3 tools/ops/build_docs_index.py "
+              "and commit it", file=sys.stderr)
     if have != want:
         status = 1
         print("build_docs_index.py: docs/INDEX.md is out of date; run python3 tools/ops/build_docs_index.py and commit it", file=sys.stderr)

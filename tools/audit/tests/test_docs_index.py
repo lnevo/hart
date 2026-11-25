@@ -234,8 +234,19 @@ class Tree(unittest.TestCase):
         self.write_index()
         text = (self.root / "docs/INDEX.md").read_text()
         line = next(l for l in text.splitlines() if l.startswith("- Plus "))
-        (self.root / "docs/INDEX.md").write_text(text.replace(line, line + "\n- Plus 9 image, css or script files"))
-        self.assertEqual(self.run_main(["--check"])[0], 1)
+        (self.root / "docs/INDEX.md").write_text(text.replace(line, line + "\n" + line))  # same line: only the repeat check sees it
+        status, _, err = self.run_main(["--check"])
+        self.assertEqual(status, 1)
+        self.assertIn("twice: ops: - Plus", err)
+
+    def test_an_intro_left_twice_by_a_union_merge_fails(self) -> None:
+        self.write_index()
+        text = (self.root / "docs/INDEX.md").read_text()
+        (self.root / "docs/INDEX.md").write_text(text.replace("The ops folder\n", "The ops folder\nThe ops folder, reworded\n"))
+        status, _, err = self.run_main(["--check"])
+        self.assertEqual(status, 1)
+        self.assertIn("more intro text than it should", err)
+        self.assertIn("ops", err)
 
     def test_removed_document_fails(self) -> None:
         self.write_index()
