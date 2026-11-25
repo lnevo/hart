@@ -3,7 +3,8 @@
 www/scripts/build_layout_index.py reads its device rows straight from tables.xml
 (it used to read a hand-kept JSON copy that kept the dwarf masts as AAR-1946:SL-1-low
 long after tables.xml moved them to basic:one-low). This checks the rows it builds
-and the published www/data/layout-index.json against tables.xml.
+and the published www/data/layout-index.json against tables.xml. The JSON is not committed (ADR-036): this builds it
+in memory with index_text(), the text the site build publishes, so no file on disk is read in its place.
 """
 from __future__ import annotations
 
@@ -19,7 +20,6 @@ from hartlib import paths  # noqa: E402
 from hartlib import devices  # noqa: E402
 
 ROOT = paths.REPO_ROOT
-INDEX = ROOT / "www/data/layout-index.json"
 SIGNAL_KINDS = ("signal mast", "signal head")
 
 
@@ -62,9 +62,10 @@ class SiteDeviceNamesTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         # The masts and heads the site covers (load_devices' own filter), and the published index.
-        cls.expected = {sn: d["userName"] for sn, d in _load_builder().load_devices(paths.TABLES_XML).items()
+        builder = _load_builder()
+        cls.expected = {sn: d["userName"] for sn, d in builder.load_devices(paths.TABLES_XML).items()
                         if d["kind"] in SIGNAL_KINDS}
-        cls.items = json.loads(INDEX.read_text(encoding="utf-8"))["items"]
+        cls.items = json.loads(builder.index_text())["items"]
         cls.published = {it["systemName"] for it in cls.items if it.get("systemName")}
 
     def test_filter_finds_the_signal_hardware(self) -> None:
