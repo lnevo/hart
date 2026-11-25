@@ -65,6 +65,7 @@ class Sources:
     block_lengths: Path
     masts: Path
     tables: Path
+    stations: Path
 
     @classmethod
     def under(cls, data: Path = paths.LAYOUT_DATA, tables_xml: Path | None = None) -> "Sources":
@@ -77,7 +78,8 @@ class Sources:
                    lcos_nodes=s / "lcos_nodes.csv",
                    plan_overrides=layer_files.path("plan_overrides", s), block_lengths=data / "block_lengths.csv",
                    masts=s / level_masts.PATH.name,
-                   tables=paths.TABLES_XML if tables_xml is None else tables_xml)
+                   tables=paths.TABLES_XML if tables_xml is None else tables_xml,
+                   stations=s / "stations.csv")
 
     def but(self, **changes: Path) -> "Sources":
         """These sources with some files swapped (a builder's patched path, a test's copy)."""

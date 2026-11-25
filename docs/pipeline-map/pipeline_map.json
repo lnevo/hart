@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-24",
+ "updated": "2026-11-25",
  "domains": [
   {
    "id": "layout",
@@ -3614,6 +3614,24 @@
    "path": "tools/jmri/mqtt_overlay/install_overlay.py"
   },
   {
+   "id": "tools/hartlib/src/hartlib/hand_lists.py",
+   "label": "hartlib hand_lists.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "The one reader of the owner's hand lists: block_overrides.csv, main_lines.csv (stops by block ID, named from the name store), mast_cells.csv and the USS board grid; each stops naming the file and line.",
+   "path": "tools/hartlib/src/hartlib/hand_lists.py"
+  },
+  {
+   "id": "tools/audit/check_data_readers.py",
+   "label": "check_data_readers",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Audit: no script outside hartlib names a layout data file (jmri/layouts/hart/data/) but the pairs it allows, each with its reason; Jython inside JMRI reads only generated outputs.",
+   "path": "tools/audit/check_data_readers.py"
+  },
+  {
    "id": ".claude/agents/archive-researcher.md",
    "label": "agent: archive-researcher",
    "kind": "unstructured",
@@ -4600,7 +4618,7 @@
   {
    "from": "jmri/layouts/hart/data/mast_cells.csv",
    "to": "jmri/layouts/hart/scripts/gen_ctc_track_plan.py",
-   "label": "reads"
+   "label": "reads, via hartlib.hand_lists"
   },
   {
    "from": "jmri/layouts/hart/data/mast_cells.csv",
@@ -4633,12 +4651,12 @@
   {
    "from": "jmri/layouts/hart/data/schematic/block_overrides.csv",
    "to": "tools/schematic/build_device_map.py",
-   "label": "reads"
+   "label": "reads, via hartlib.hand_lists"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/block_overrides.csv",
    "to": "tools/schematic/plan_lengths.py",
-   "label": "reads"
+   "label": "reads, via hartlib.hand_lists"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/block_numbering.csv",
@@ -4648,7 +4666,7 @@
   {
    "from": "jmri/layouts/hart/data/schematic/block_overrides.csv",
    "to": "tools/schematic/build_masts.py",
-   "label": "reads"
+   "label": "reads, via hartlib.hand_lists"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/discovered_sml.xml",
@@ -4741,7 +4759,8 @@
   },
   {
    "from": "jmri/layouts/hart/data/schematic/lcos_nodes.csv",
-   "to": "tools/wiring/write_inventory.py"
+   "to": "tools/wiring/write_inventory.py",
+   "label": "via hartlib.railroad"
   },
   {
    "from": "jmri/layouts/hart/data/switches.csv",
@@ -4751,7 +4770,7 @@
   {
    "from": "jmri/layouts/hart/data/schematic/main_lines.csv",
    "to": "tools/schematic/build_main_route.py",
-   "label": "reads"
+   "label": "reads, via hartlib.hand_lists"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/masts.csv",
@@ -4892,7 +4911,8 @@
   },
   {
    "from": "jmri/layouts/hart/data/switches.csv",
-   "to": "tools/wiring/write_inventory.py"
+   "to": "tools/wiring/write_inventory.py",
+   "label": "via hartlib.railroad"
   },
   {
    "from": "jmri/layouts/hart/data/switches.csv",
@@ -4906,7 +4926,7 @@
   {
    "from": "jmri/layouts/hart/data/uss_board_cells.csv",
    "to": "jmri/layouts/hart/scripts/gen_ctc_track_plan.py",
-   "label": "reads"
+   "label": "reads, via hartlib.hand_lists"
   },
   {
    "from": "jmri/layouts/hart/data/wiring.csv",
@@ -6905,7 +6925,7 @@
   {
    "from": "jmri/layouts/hart/data/switches.csv",
    "to": "jmri/scripts/check_hart_phase02.py",
-   "label": "staging rows"
+   "label": "staging rows, via hartlib.railroad"
   },
   {
    "from": "jmri/scripts/check_hart_phase02.py",
@@ -7111,7 +7131,7 @@
   {
    "from": "jmri/layouts/hart/data/block_lengths.csv",
    "to": "jmri/layouts/hart/scripts/speedmatch",
-   "label": "block lengths"
+   "label": "block lengths by label (analyze.py on the Pi: no hartlib)"
   },
   {
    "from": "docs/jmri/speedmatching",
@@ -7635,6 +7655,57 @@
    "from": "jmri/layouts/hart/data/devices_generated.csv",
    "to": "tools/schematic/build_device_map.py",
    "label": "generated names of stations.csv's track ids and preferences.json's block ids, the last build's (read_places, solve)"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/block_overrides.csv",
+   "to": "tools/hartlib/src/hartlib/hand_lists.py",
+   "label": "reads"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/main_lines.csv",
+   "to": "tools/hartlib/src/hartlib/hand_lists.py",
+   "label": "reads"
+  },
+  {
+   "from": "jmri/layouts/hart/data/mast_cells.csv",
+   "to": "tools/hartlib/src/hartlib/hand_lists.py",
+   "label": "reads"
+  },
+  {
+   "from": "jmri/layouts/hart/data/uss_board_cells.csv",
+   "to": "tools/hartlib/src/hartlib/hand_lists.py",
+   "label": "reads"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/hand_lists.py",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "imports (mast_rule, block_layer)"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/hand_lists.py",
+   "to": "tools/schematic/build_main_route.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/hand_lists.py",
+   "to": "jmri/layouts/hart/scripts/gen_ctc_track_plan.py",
+   "label": "imports (layout_facts)"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/hand_lists.py",
+   "to": "tools/audit/check_layout_facts.py",
+   "label": "imports (layout_facts)"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_generated.csv",
+   "to": "jmri/layouts/hart/scripts/speedmatch/build_routes.py",
+   "label": "route block names by ID (name store)"
+  },
+  {
+   "from": "tools/audit/check_data_readers.py",
+   "to": "tools/check.sh",
+   "label": "check data-readers",
+   "side": "check"
   },
   {
    "from": ".claude/agents/archive-researcher.md",
