@@ -19,7 +19,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 
-import build_device_map as bdm  # noqa: E402
 import sync_signals as sss  # noqa: E402
 from hartlib import devices, level_masts, paths, railroad, tables  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402

@@ -5,10 +5,10 @@ from __future__ import annotations
 from pathlib import Path
 
 from docx import Document
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docx.shared import Inches, Pt, RGBColor, Twips
+from docx.shared import Inches, Pt, RGBColor
 
 # Theme accent used by Heading styles in EQ-01 / standards
 ACCENT = RGBColor(0x0F, 0x47, 0x61)

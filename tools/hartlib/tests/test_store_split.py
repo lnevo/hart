@@ -335,7 +335,7 @@ class DeviceItems(unittest.TestCase):
                  jmri_name="IF$shsm:basic:one-searchlight(IH:HART:C1:2L)", jmri_comment="Brick | Switch 1")
 
     def masts(self, comment: str) -> str:
-        return (f'<signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">'
+        return ('<signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">'
                 + bean("signalmast", self.MAST["jmri_name"], "Mast 2L", comment,
                        **{"class": "jmri.implementation.configurexml.SignalHeadSignalMastXml"})
                 + "</signalmasts>")

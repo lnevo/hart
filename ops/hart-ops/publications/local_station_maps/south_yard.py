@@ -42,7 +42,6 @@ def draw_south_yard(meta: dict, hooks: Hooks) -> Image.Image:
     PX_PER_IN = 200.0
     LED_D = (3 / 16) * PX_PER_IN
     DOT_R = LED_D / 2
-    STEP_2LED = (3 / 8) * PX_PER_IN
     STEP_1LED = (3 / 4) * PX_PER_IN
     ladder_dx_step = 35.0
     track_gap = math.sqrt(STEP_1LED**2 - ladder_dx_step**2)

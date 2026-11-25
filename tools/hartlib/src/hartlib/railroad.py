@@ -44,7 +44,7 @@ from . import level_devices, level_masts, paths, tables  # noqa: F401  re-export
 # from hartlib.railroad (`from hartlib.railroad import X`, `railroad.X`).
 from .railroad_facts import *  # noqa: F401,F403
 from .railroad_facts import _int, _level, _where, _yes  # noqa: F401
-from .railroad_facts import (LAYERS, LEVEL_NUMBERS, WRITERS, BlockLength, DeviceMap, FactsError, Hand, HelixTrack, LayerError,
+from .railroad_facts import (LAYERS, LEVEL_NUMBERS, WRITERS, BlockLength, DeviceMap, FactsError, Hand, HelixTrack, LayerError,  # noqa: F401  re-exported (railroad.read_switches, railroad.read_masts)
                              Interlocking, LcosNode, LocalSwitch, MainUpperSwitch, PlanOverrides, StagingDevices,
                              Sources, Mast, Switch, SwitchRow, TablesNames, hands, join_main_upper,
                              local_switches, read_block_lengths, read_switch_rows, staging_switches,

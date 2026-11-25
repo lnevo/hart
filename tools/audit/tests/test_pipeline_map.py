@@ -738,7 +738,6 @@ class PageTest(unittest.TestCase):
     def test_relative_out_and_stale_hint(self) -> None:
         import contextlib
         import io
-        import os
         with tempfile.TemporaryDirectory() as tmp, contextlib.chdir(tmp):
             rel = "map.html"
             out = io.StringIO()

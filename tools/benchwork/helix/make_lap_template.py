@@ -11,9 +11,7 @@ GUIDE_OFFSET = (bushing_OD - bit_dia) / 2  -> guide bushing
 """
 from math import radians, degrees, cos, sin
 import numpy as np
-import trimesh
-from shapely.geometry import Polygon, LineString
-from shapely import affinity
+from shapely.geometry import Polygon
 from shapely.ops import unary_union
 import router_template_lattice as lat
 from stl_out import out_dir

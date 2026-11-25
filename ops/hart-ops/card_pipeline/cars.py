@@ -44,7 +44,7 @@ PIPELINE = Path(__file__).resolve().parent
 HART_ROOT = PIPELINE.parents[2]
 os.environ.setdefault("HART_CAR_CARDS_ROOT", str(HART_ROOT / "ops/car-cards"))
 
-from car_paths import DATA, FINAL_DIR, IMAGES_DIR, OUTPUT_DIR, ROOT  # noqa: E402
+from car_paths import DATA, FINAL_DIR, IMAGES_DIR, ROOT  # noqa: E402
 
 METADATA = DATA / "image_metadata.csv"
 QUEUE = DATA / "car_queue.csv"

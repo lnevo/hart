@@ -6,7 +6,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable
 
-from . import level_devices, level_masts, tables
+from . import level_devices
 from .railroad_facts import (LEVEL_NUMBERS, STAGING_LEVEL, StagingDevice, UNIQUE_HARDWARE, check_virtual_names, device_list, master_at, natural,
                              switch_groups, switch_number)
 
@@ -204,7 +204,6 @@ def _lcos_nodes(rr: Railroad) -> list[str]:
     bad = [f"no node in {rr.sources.lcos_nodes.name} for level {lv} {area} (switches "
            f"{', '.join(sorted((s for s, sw in rr.main_upper_switches.items() if (sw.level, sw.area) == (lv, area)), key=natural))})"
            for lv, area in sorted({(sw.level, sw.area) for sw in rr.main_upper_switches.values()} - pool)]
-    name = rr.sources.devices.name
     staging_nodes: dict[int, str] = {}
     wired: set[int] = set()            # LCOS turnouts and sensors; an IH number may be a panel lamp's (IH9990), on no node
     for r in rr.staging_devices.rows:
@@ -358,7 +357,6 @@ def _name_clash(rr: Railroad) -> list[str]:
     block too."""
     dm = {(r.layer, r.user_name): r for r in rr.device_map.rows}
     helix = {h.block for h in rr.helix_tracks.values()}
-    name = rr.sources.devices.name
     out = []
     for r in rr.staging_devices.rows:
         hit = dm.get((r.layer, r.user_name))

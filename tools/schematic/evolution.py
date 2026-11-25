@@ -236,7 +236,7 @@ def site(frames, todo, out=SITE, page=PAGE):
 
 
 def main(folder, with_site=False):
-    from PIL import Image
+    from PIL import Image  # noqa: F401  stops before the slow renders when Pillow is missing
     if with_site and not shutil.which("ffmpeg"):  # before the slow renders
         sys.exit("ffmpeg not found: install it (brew install ffmpeg), --site makes the mp4 with it")
     folder.mkdir(parents=True, exist_ok=True)

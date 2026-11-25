@@ -182,14 +182,14 @@ class RowRules(Master):
         got = cdm.check_rows(self.edited({("2", "Switch 101"): dict(system_name="M2T408", dcc="100"),
                                           ("2", "DCC Switch 101"): dict(dcc="100", system_name="MTT100")}),
                              self.helix)
-        one, alias = self.line("1", "Switch 1"), self.line("1", "DCC Switch 1")
-        self.assertProblem(rf"Switch 101 \(level 2, turnout\): system_name 'M2T408' is .*'s as well", got)
-        self.assertProblem(rf"Switch 101 \(level 2, turnout\): dcc '100' is .*'s as well", got)
-        self.assertProblem(rf"DCC Switch 101 \(level 2, turnout\): system_name 'MTT100' is .*'s as well", got)
+        self.line("1", "Switch 1"), self.line("1", "DCC Switch 1")       # each row is in the master once
+        self.assertProblem(r"Switch 101 \(level 2, turnout\): system_name 'M2T408' is .*'s as well", got)
+        self.assertProblem(r"Switch 101 \(level 2, turnout\): dcc '100' is .*'s as well", got)
+        self.assertProblem(r"DCC Switch 101 \(level 2, turnout\): system_name 'MTT100' is .*'s as well", got)
         # one device is one row whatever its layer: a head planned on a feedback sensor's name
         got = cdm.check_rows(self.edited({("3", "Head 202R Top"): dict(system_name="M2S470")}), self.helix)
-        fb = self.line("1", "FB Switch 1 N")
-        self.assertProblem(rf"Head 202R Top \(level 3, head\): system_name 'M2S470' is .*'s as well", got)
+        self.line("1", "FB Switch 1 N")
+        self.assertProblem(r"Head 202R Top \(level 3, head\): system_name 'M2S470' is .*'s as well", got)
 
     def test_an_lcc_alias_on_every_level(self):
         got = cdm.check_rows(self.edited({("2", "DCC Switch 101"): dict(jmri_name="IT:HART:C3:103"),

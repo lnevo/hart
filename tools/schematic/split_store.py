@@ -37,7 +37,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "hartlib" / "src"))
-from hartlib import devices, paths, tables  # noqa: E402
+from hartlib import devices, paths  # noqa: E402
 from hartlib import store_split as ss  # noqa: E402
 from hartlib import tables_build as tb  # noqa: E402
 

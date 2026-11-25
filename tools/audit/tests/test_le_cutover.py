@@ -11,10 +11,8 @@ from __future__ import annotations
 
 import contextlib
 import copy
-import functools
 import importlib
 import io
-import json
 import re
 import sys
 import tempfile
@@ -397,7 +395,6 @@ class ThreeLevels(unittest.TestCase):
     def test_owner_layout_rules_of_2026_11_16_second_round(self) -> None:
         import math
         xo = {t.get("turnoutname"): t for t in self.le.findall("layoutturnout") if "XOVER" in t.get("type")}
-        pt = lambda t, L: (float(t.get("x" + L)), float(t.get("y" + L)))      # noqa: E731
         # 101 and 103 (one three-way switch): each two plain turnouts on its one name, their throats on the shared
         # track two legs and Track 101-103's least length apart, each diagonal at 45 degrees
         plain = defaultdict(list)

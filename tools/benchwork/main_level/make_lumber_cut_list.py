@@ -179,7 +179,7 @@ def bar(parts, cap):
 
 
 def rows(parts):
-    out, seen = [], []
+    out = []
     for p in parts:
         if p.startswith("RB"):
             continue

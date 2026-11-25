@@ -8,7 +8,6 @@ so hotspot pixels align with assets/layout/HART_le_schematic.png.
 from __future__ import annotations
 
 import argparse
-import csv
 import hashlib
 import importlib.util
 import json

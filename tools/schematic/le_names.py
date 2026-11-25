@@ -11,7 +11,7 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
+import publish_draft as pd  # noqa: E402,F401  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 from hartlib import coordinator, devices, drawing_keys, level_devices, paths, railroad, tables  # noqa: E402
 from hartlib import level_masts as level_masts_lib  # noqa: E402  masts.csv and its virtual names
 from le_common import (  # noqa: E402

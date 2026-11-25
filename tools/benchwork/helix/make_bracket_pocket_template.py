@@ -11,11 +11,9 @@ Pocket file letter matches the lap template letter that fit your blanks
 Lattice plate + 100 % core modifier + two screw holes: see router_template_lattice.py.
 """
 from math import radians, degrees, cos, sin
-import numpy as np
-import trimesh
 from shapely.geometry import Polygon
 from shapely import affinity
-from make_lap_template import IN, GUIDE_OFFSET, RI, sector, band_past_line
+from make_lap_template import GUIDE_OFFSET, RI, sector, band_past_line
 from shapely.ops import unary_union
 import router_template_lattice as lat
 from stl_out import out_dir

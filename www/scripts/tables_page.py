@@ -175,7 +175,6 @@ def facts(raw: bytes, root) -> dict:
 
     # Blocks, layout blocks and the detectors they share.
     blocks = [b for b in _direct(root, "blocks", "block") if len(b) > 2]
-    names = {b.findtext("systemName"): b.findtext("userName") or b.findtext("systemName") for b in blocks}
     lbs = _direct(root, "layoutblocks", "layoutblock")
     # A layout block may name its sensor by system or user name; count each sensor once.
     sensor_user = {e.findtext("systemName"): e.findtext("userName") or e.findtext("systemName")

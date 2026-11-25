@@ -65,7 +65,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 import build_device_map as bdm  # noqa: E402  the device map's naming helpers (base, band_level, natural)
 import staging_device_map as sdm  # noqa: E402  the staging tracks and their blocks (the level 1 rows of the device master)
-from hartlib import level_devices, level_masts, paths, railroad  # noqa: E402
+from hartlib import level_devices, level_masts, paths, railroad  # noqa: E402,F401  the tests read B.level_masts, B.railroad
 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
 

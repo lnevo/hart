@@ -158,7 +158,7 @@ def main() -> int:
         action="store_true",
         help="Print table (the default)",
     )
-    args = ap.parse_args()
+    ap.parse_args()
 
     try:
         table = _get(f"{JMRI_JSON}/turnout")

@@ -96,7 +96,7 @@ class LiveStsTests(unittest.TestCase):
         self.assertIn("unexpected /health answer", out)
 
     def run_section_health(self, health):
-        real = self.fake_urlopen([])
+        self.fake_urlopen([])
         out = io.StringIO()
         env = {"STS_API_URL": "http://sts.example.invalid/sts/api/v1", "STS_API_TOKEN": "x"}
         import json as _json

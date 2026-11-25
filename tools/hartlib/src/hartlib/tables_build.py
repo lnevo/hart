@@ -36,7 +36,6 @@ from __future__ import annotations
 
 import argparse
 import copy
-import csv
 import difflib
 import functools
 import json

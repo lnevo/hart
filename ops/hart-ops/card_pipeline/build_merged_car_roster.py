@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 
 from engine_lookup import is_locomotive_row
-from roster_id import assign_freight_roster_id, manifest_car_id, road_code
+from roster_id import manifest_car_id, road_code
 
 BASE = Path(__file__).resolve().parent.parent  # Car Cards project root (scripts live in card_pipeline/)
 DATA = BASE / "data"

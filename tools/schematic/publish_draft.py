@@ -42,7 +42,6 @@ import contextlib
 import datetime
 import functools
 import hashlib
-import json
 import os
 import re
 import shutil
