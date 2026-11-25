@@ -196,19 +196,19 @@ class RegenerateTest(unittest.TestCase):
 class BuildCheckTest(unittest.TestCase):
     def test_check_fails_when_the_generated_lane_is_stale(self) -> None:
         data = json.loads(MAP.GRAPH.read_text())
-        data["edges"] = [e for e in data["edges"] if not (e.get("gen") and e["label"] == "check")]
+        data["edges"] = [e for e in data["edges"] if not (e.get("gen") == "agent-docs" and e["label"] == "check")]
         with tempfile.TemporaryDirectory() as tmp:
             graph = Path(tmp) / "g.json"
             graph.write_text(json.dumps(data))
             err = io.StringIO()
             with contextlib.redirect_stderr(err):
                 self.assertEqual(MAP.main(["--graph", str(graph), "--check"]), 1)
-            self.assertIn("agent-doc lane is generated", err.getvalue())
+            self.assertIn("lanes are generated from the files", err.getvalue())
             self.assertEqual(json.loads(graph.read_text()), data)    # --check writes nothing
 
     def test_only_the_plain_build_writes_the_graph(self) -> None:
         data = json.loads(MAP.GRAPH.read_text())
-        data["edges"] = [e for e in data["edges"] if not (e.get("gen") and e["label"] == "check")]
+        data["edges"] = [e for e in data["edges"] if not (e.get("gen") == "agent-docs" and e["label"] == "check")]
         with tempfile.TemporaryDirectory() as tmp:
             graph, out = Path(tmp) / "g.json", Path(tmp) / "m.html"
             graph.write_text(json.dumps(data))

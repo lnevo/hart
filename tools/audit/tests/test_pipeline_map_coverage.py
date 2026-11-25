@@ -159,15 +159,21 @@ class RepoTest(unittest.TestCase):
             COV.check(COV.BUILD.GRAPH)
         self.assertIn(mock.call("--others", "--exclude-standard"), files.call_args_list)
 
-    def test_the_scripts_check_sh_runs_from_the_manifest_count(self) -> None:
-        listing: list[str] = []
-        COV.check(COV.BUILD.GRAPH, listing)
-        frozen = [line for line in listing if " tools/wiring/check_wiring_frozen.py " in line]
-        self.assertEqual(len(frozen), 1, "check_wiring_frozen.py runs only from tools/pipeline/checks.toml")
-        self.assertIn("allowed: tools/wiring/check_wiring_frozen.py", frozen[0])
-        with mock.patch.object(COV.MANIFEST, "load", side_effect=COV.MANIFEST.ManifestError("t.toml: broken")):
-            with self.assertRaisesRegex(COV.CoverageError, "cannot be read:\nt.toml: broken"):
-                COV.check(COV.BUILD.GRAPH)
+    def test_check_sh_is_no_entry_file_since_the_map_draws_its_steps(self) -> None:
+        """ADR-037 stage 3: check.sh's checks are boxes by construction (the manifest lane), so coverage neither
+        scans check.sh nor counts the manifest's scripts, and none of them is ALLOWED."""
+        self.assertNotIn("tools/check.sh", COV.ENTRY_FILES)
+        self.assertFalse(hasattr(COV, "MANIFEST"))
+        lane = COV.BUILD.MANIFEST_LANE
+        steps = lane.MANIFEST.load()
+        graph = COV.BUILD.load(COV.BUILD.GRAPH)
+        boxes = {n["path"]: n for n in graph["nodes"] if n.get("path")}
+        for step in steps:
+            with self.subTest(step=step.name):
+                self.assertIn(step.script, boxes)
+                self.assertNotIn(step.script, COV.ALLOWED)
+                want = None if step.name in lane.HAND_KEPT_STEPS else lane.GEN
+                self.assertEqual(boxes[step.script].get("gen"), want)
 
     def test_the_repo_map_knows_every_pipeline_file(self) -> None:
         err = io.StringIO()

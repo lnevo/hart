@@ -16,6 +16,13 @@ page's layout depends on node order). A clean merge is checked with build_pipeli
 that each path is tracked (git has not written the merged tree yet; tools/check.sh runs that check after the
 merge); a result that fails, such as an edge to a node the other side deleted, is left in place and exits 1.
 
+Generated entries (marked "gen": the agent-doc and manifest lanes, build_pipeline_map.GENERATED) merge like the
+others, since each side's were current for that side's sources; the merge cannot rebuild them, because git has not
+merged those sources yet. So a conflict on a generated entry names its lane and says to keep either side and rebuild
+the lane, and a clean merge that takes a generated entry changed on the other branch names it, for --check to
+confirm against the merged sources. A hand edit to a generated entry (one a branch from before the lane existed
+made, say) is then a conflict or a --check failure naming it, never kept quietly.
+
 The pages built from the graph are not committed (ADR-036), so they never conflict; the driver for them that kept
 this branch's copy is retired, and --install removes its git config section (RETIRED) where it is still set.
 
@@ -57,7 +64,8 @@ DRIVERS = {
 # drivers this script no longer provides: --install removes their config section (the map pages' "keep ours"
 # driver, retired when the pages stopped being committed, ADR-036)
 RETIRED = ("pipeline-map-page",)
-CHECK = "python3 tools/ops/build_pipeline_map.py --check"
+BUILD = "python3 tools/ops/build_pipeline_map.py"
+CHECK = f"{BUILD} --check"
 
 # the lists merged entry by entry, and the fields that name an entry
 KEY_FIELDS = {"domains": ("id",), "presets": ("label",), "nodes": ("id",), "edges": ("from", "to")}
@@ -261,6 +269,21 @@ def render(data: dict, conflicts: list[Conflict]) -> str:
     return text
 
 
+def _lanes(*values) -> list[str]:
+    """The generated lanes (their "gen" marks) of the entries among `values`."""
+    return sorted({v["gen"] for v in values if isinstance(v, dict) and isinstance(v.get("gen"), str)})
+
+
+def from_theirs(data: dict, ours: dict) -> list[str]:
+    """The generated nodes and edges of the merged graph that differ from ours: taken from the other branch."""
+    out = []
+    for name in ("nodes", "edges"):
+        mine = {key_of(name, e): e for e in ours.get(name, [])}
+        out += [f"{show(name, key_of(name, e))} ({', '.join(_lanes(e))} lane)" for e in data.get(name, [])
+                if _lanes(e) and mine.get(key_of(name, e)) != e]
+    return out
+
+
 def merge(base_path: Path, ours_path: Path, theirs_path: Path, name: str) -> int:
     base, ours, theirs = (load_side(p, side) for p, side in
                           ((base_path, "base"), (ours_path, "ours"), (theirs_path, "theirs")))
@@ -269,8 +292,14 @@ def merge(base_path: Path, ours_path: Path, theirs_path: Path, name: str) -> int
     if conflicts:
         ours_path.write_text(text, encoding="utf-8")
         print(f"{name}: {len(conflicts)} conflict(s) the driver will not pick for you:", file=sys.stderr)
+        generated = False
         for c in conflicts:
-            print(f"  {c.where}", file=sys.stderr)
+            lanes = _lanes(c.ours, c.theirs)
+            generated = generated or bool(lanes)
+            print(f"  {c.where}" + (f" (generated: the {', '.join(lanes)} lane)" if lanes else ""), file=sys.stderr)
+        if generated:
+            print(f"A generated entry is rebuilt from its sources: keep either side of its block, then run {BUILD} "
+                  f"(make map) once the merge has its sources, so the lane is drawn from them.", file=sys.stderr)
         print(f"Edit the <<<<<<< blocks in {name}, check it with {CHECK}, and git add it.", file=sys.stderr)
         return 1
     if json.loads(text) != data:
@@ -284,6 +313,11 @@ def merge(base_path: Path, ours_path: Path, theirs_path: Path, name: str) -> int
         return 1
     print(f"{name}: merged by key ({len(data['nodes'])} nodes, {len(data['edges'])} edges); {CHECK} checks it "
           f"with every path tracked (make map rebuilds the local pages)", file=sys.stderr)
+    theirs_gen = from_theirs(data, ours)
+    if theirs_gen:
+        print(f"{name}: {len(theirs_gen)} generated entr{'y' if len(theirs_gen) == 1 else 'ies'} taken from the other "
+              f"branch, which {CHECK} checks against the merged sources (make map rebuilds them): "
+              f"{'; '.join(theirs_gen[:5])}{' ...' if len(theirs_gen) > 5 else ''}", file=sys.stderr)
     return 0
 
 
