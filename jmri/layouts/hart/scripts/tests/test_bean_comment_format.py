@@ -115,8 +115,8 @@ class BeanCommentFormatTest(unittest.TestCase):
         rows = [
             "level,kind,id,device,switch_a,switch_b,parallel,half,node,index,board,ports,status,notes",
             # each head by its device ID; the name store (the repo's device master) names it
-            '1,head,mast:23:A:east:top,,,,,,2,0,OU1,"1,2,3",wired,',
-            '1,head,mast:23:A:east:bottom,,,,,,2,6,OU1,"4,5,6",wired,',
+            '1,head,mast:23:A-1A:A:east:top,,,,,,2,0,OU1,"1,2,3",wired,',
+            '1,head,mast:23:A-1A:A:east:bottom,,,,,,2,6,OU1,"4,5,6",wired,',
             '1,head,mast:31:C:east:single,,,,,,12,2,OU2,"7,OU3-8,OU3-7",wired,',
         ]
         plan = "mast_user_name,heads,packed_ids\nMast 24RA,2,232 238\nMast 32R,1,1234\n"

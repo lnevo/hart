@@ -9,7 +9,7 @@
     "width": 3840,
     "height": 1815,
     "scale": 1.0,
-    "inputs_sha256": "3175ee050617467a6c0e7cc041dd0dd3292253cc38c1778d118ed81d8ad5b81d"
+    "inputs_sha256": "3f20a1a9268645de21d0932567786bb133ef0eaf8a48916bf51dded81e9fc292"
   },
   "items": [
     {
@@ -1157,12 +1157,12 @@
       "block": "OS Switch 209"
     },
     {
-      "id": "cats-sig-Mast-230LA",
+      "id": "cats-sig-Mast-230LB",
       "kind": "signal",
       "x": 2830.8,
       "y": 1360.8,
-      "systemName": "Mast 230LA",
-      "publicName": "Mast 230LA",
+      "systemName": "Mast 230LB",
+      "publicName": "Mast 230LB",
       "cp": "",
       "hardware": "",
       "mqtt": "",
@@ -1261,12 +1261,12 @@
       "block": "OS Switch 225a"
     },
     {
-      "id": "cats-sig-Mast-230LB",
+      "id": "cats-sig-Mast-230LA",
       "kind": "signal",
       "x": 2850.0,
       "y": 1459.2,
-      "systemName": "Mast 230LB",
-      "publicName": "Mast 230LB",
+      "systemName": "Mast 230LA",
+      "publicName": "Mast 230LA",
       "cp": "",
       "hardware": "",
       "mqtt": "",
@@ -1365,12 +1365,12 @@
       "block": ""
     },
     {
-      "id": "cats-sig-Mast-204RA",
+      "id": "cats-sig-Mast-204RB",
       "kind": "signal",
       "x": 310.8,
       "y": 1540.8,
-      "systemName": "Mast 204RA",
-      "publicName": "Mast 204RA",
+      "systemName": "Mast 204RB",
+      "publicName": "Mast 204RB",
       "cp": "",
       "hardware": "",
       "mqtt": "",
@@ -1391,12 +1391,12 @@
       "block": "OS Switch 207"
     },
     {
-      "id": "cats-sig-Mast-212LA",
+      "id": "cats-sig-Mast-212LB",
       "kind": "signal",
       "x": 673.2,
       "y": 1579.2,
-      "systemName": "Mast 212LA",
-      "publicName": "Mast 212LA",
+      "systemName": "Mast 212LB",
+      "publicName": "Mast 212LB",
       "cp": "",
       "hardware": "",
       "mqtt": "",
@@ -1456,12 +1456,12 @@
       "block": "OS Switch 217"
     },
     {
-      "id": "cats-sig-Mast-218RA",
+      "id": "cats-sig-Mast-218RB",
       "kind": "signal",
       "x": 1306.8,
       "y": 1540.8,
-      "systemName": "Mast 218RA",
-      "publicName": "Mast 218RA",
+      "systemName": "Mast 218RB",
+      "publicName": "Mast 218RB",
       "cp": "",
       "hardware": "",
       "mqtt": "",
@@ -1495,12 +1495,12 @@
       "block": "OS Switch 219"
     },
     {
-      "id": "cats-sig-Mast-222LA",
+      "id": "cats-sig-Mast-222LB",
       "kind": "signal",
       "x": 1650.0,
       "y": 1540.8,
-      "systemName": "Mast 222LA",
-      "publicName": "Mast 222LA",
+      "systemName": "Mast 222LB",
+      "publicName": "Mast 222LB",
       "cp": "",
       "hardware": "",
       "mqtt": "",
@@ -1664,12 +1664,12 @@
       "block": "OS Switch 201"
     },
     {
-      "id": "cats-sig-Mast-204RB",
+      "id": "cats-sig-Mast-204RA",
       "kind": "signal",
       "x": 330.0,
       "y": 1639.2,
-      "systemName": "Mast 204RB",
-      "publicName": "Mast 204RB",
+      "systemName": "Mast 204RA",
+      "publicName": "Mast 204RA",
       "cp": "",
       "hardware": "",
       "mqtt": "",
@@ -1690,12 +1690,12 @@
       "block": "OS Switch 203"
     },
     {
-      "id": "cats-sig-Mast-212LB",
+      "id": "cats-sig-Mast-212LA",
       "kind": "signal",
       "x": 673.2,
       "y": 1639.2,
-      "systemName": "Mast 212LB",
-      "publicName": "Mast 212LB",
+      "systemName": "Mast 212LA",
+      "publicName": "Mast 212LA",
       "cp": "",
       "hardware": "",
       "mqtt": "",
@@ -1755,12 +1755,12 @@
       "block": "OS Switch 217"
     },
     {
-      "id": "cats-sig-Mast-218RB",
+      "id": "cats-sig-Mast-218RA",
       "kind": "signal",
       "x": 1306.8,
       "y": 1600.8,
-      "systemName": "Mast 218RB",
-      "publicName": "Mast 218RB",
+      "systemName": "Mast 218RA",
+      "publicName": "Mast 218RA",
       "cp": "",
       "hardware": "",
       "mqtt": "",
@@ -1768,12 +1768,12 @@
       "block": ""
     },
     {
-      "id": "cats-sig-Mast-222LB",
+      "id": "cats-sig-Mast-222LA",
       "kind": "signal",
       "x": 1666.8,
       "y": 1639.2,
-      "systemName": "Mast 222LB",
-      "publicName": "Mast 222LB",
+      "systemName": "Mast 222LA",
+      "publicName": "Mast 222LA",
       "cp": "",
       "hardware": "",
       "mqtt": "",

@@ -10,7 +10,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from hartlib import devices as D  # noqa: E402
-from test_devices import BEAN, blank, mast, turnout, unplaced  # noqa: E402
+from test_devices import (BEAN, OTHER, blank, mast, setUpModule, tearDownModule,  # noqa: E402,F401
+                          turnout, unplaced)
 
 
 def generated(**cells) -> dict:
@@ -248,11 +249,11 @@ class ThePair(unittest.TestCase):
         with self.assertRaisesRegex(D.DevicesError, r"id 'test:mast:Mast 2L' \(Mast 2L \(level 1, mast\)\) is gone "
                                                     r"from the plan, and its field row holds user_name 'Mast 2L', "
                                                     r'notes "the owner.s": move them .* or remove the row'):
-            D.outputs_after_rows("build_masts.py", [], self.files, warn=lambda line: None)
+            D.outputs_after_rows(OTHER, [], self.files, warn=lambda line: None)
 
     def test_another_writers_rows_are_kept_as_written(self):
-        mine = [dict(r, notes="moved") for r in D.load(self.files) if r["written_by"] == "build_masts.py"]
-        text = D.outputs_after_rows("build_masts.py", mine, self.files)[self.files.master]
+        mine = [dict(r, notes="moved") for r in D.load(self.files) if r["written_by"] == OTHER]
+        text = D.outputs_after_rows(OTHER, mine, self.files)[self.files.master]
         self.assertIn(D.master_text([generated()]).splitlines()[1], text.splitlines())
 
     def test_write_field_and_write_generated_check_the_pair_first(self):

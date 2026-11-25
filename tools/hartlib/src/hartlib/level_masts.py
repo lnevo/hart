@@ -1,5 +1,6 @@
 """Every level's signal masts: schematic/masts.csv, one row per mast with its `level` (owner, 2026-11-21: the level is
-a column, never a file per level), written by tools/schematic/build_masts.py from the mast and head rows of
+a column, never a file per level), written by tools/schematic/build_masts.py from the mast and head rows (every
+level's build_device_map.py writes, naming-layers step 12) of
 The device master: its reader (read) and the naming rules the file keeps.
 
 Columns (FIELDS):
@@ -11,7 +12,7 @@ Columns (FIELDS):
 - system_name, head_system_names: its JMRI name and its heads' (system=user pairs, ";" between), and
   device_system_name the device map's system_name: the same on staging, the planned physical mast on main and upper.
 - the plan facts (PLAN_FIELDS): where the drawing puts the mast, for the masts the mast rule places from a block
-  layer of its own (staging today: build_masts.py): toward (the switch its run is toward), run (that switch and the
+  layer of its own (staging today: device_map_masts.py, read by build_masts.py): toward (the switch its run is toward), run (that switch and the
   far end, ";" between), names (the track names of its plan edge), edge_cm and cm_from_toward (the run's length and
   the mast's distance from its toward end), schematic_edge and schematic_toward_node (the plan graph's edge and node).
   A row has all of them or none: main and upper's are empty, since build_signals.py places those masts from the plan
@@ -46,7 +47,8 @@ FIELDS = ["level", *MAST_FIELDS, *PLAN_FIELDS]
 LIST = ";"                           # between the items of a run, names or head_system_names cell
 # `leg` of two masts sharing one facing and protected block pair, by their names' last letter (owner, 2026-11-16)
 LEGS = {"A": "normal", "B": "diverging"}
-# a level's internal head prefix: staging's C1, main and upper's C3 (hartlib.level_devices)
+# a level's internal head prefix, data by level: staging's C1, main and upper's C3 (hartlib.level_devices); every
+# level's builder names its heads by head_name (naming-layers step 12)
 HEAD_PREFIXES = {1: "IH:HART:C1:", 2: HEAD_PREFIX, 3: HEAD_PREFIX}
 # a mast's user name on any level: a home signal's (Mast 2L), a staging intermediate's by milepost
 # (Mast 67) or a main or upper one's with its line code (Mast A83; owner, 2026-11-19); a head's is its mast's key

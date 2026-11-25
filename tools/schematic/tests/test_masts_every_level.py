@@ -2,8 +2,9 @@
 
 - the committed mast file (masts.csv, every level with its `level` column: hartlib.level_masts.FIELDS), read as plain CSV,
   so the pins do not depend on how the device maps are laid out;
-- the one mast process's own output over the committed plan, under RepoReadOnly: build_masts.build() for
-  staging and build_device_map.plan_masts (mast_plan.plan, the function build() calls) for main and upper.
+- the one mast process's own output over the committed plan, under RepoReadOnly: build_masts.build() (staging's
+  masts by device_map_masts, with the owner's names) for staging and build_device_map.plan_masts (mast_plan.plan, the
+  function build() calls) for main and upper.
 
 A change here is a change to where masts stand or what they show, which needs the owner's approval of the panel. The
 one mast process (owner, 2026-11-20) changed exactly these entries from the per-level processes before it, and no
@@ -14,6 +15,10 @@ others:
 Step 5 part 2 (owner, 2026-11-20) changed only staging 8RA, from an anchor mast on Scale to a turnout mast at Switch 7
 (OS Switch 7 ends at the switch). Main and upper's links are parts of OS blocks but still JMRI blocks of their own, so
 the masts facing them keep their facing blocks.
+Naming-layers step 12 (2026-11-25, my call under the owner's rule of 2026-11-25) letters two masts of one number and
+direction in the plan order of the tracks they face (mast_rule.letter_order), not by drawn row: upper level 204R,
+212L, 218R, 222L, 230L and the virtual 210L, 216L, 244R, 246L traded their A and B (Mast 210LA now faces Track 209
+Spur 1). Staging's 6L and 8R pairs would too; the owner's names in the field file keep them.
 """
 from __future__ import annotations
 
@@ -92,19 +97,19 @@ MAIN_UPPER_VISIBLE = (
     ("B92", "one-searchlight", 1, "", "Track 227-241 2", "Track 227-241 1", "east"),
     ("B93", "one-searchlight", 1, "", "Track 227-241 1", "Track 227-241 2", "west"),
     ("202R", "two-low", 2, "201", "Track 201-205", "OS Switch 201", "east"),
-    ("204RA", "two-low", 2, "203", "Track 203-207", "OS Switch 203", "east"),
-    ("204RB", "two-searchlight", 2, "203", "Track 203-211", "OS Switch 203", "east"),
-    ("212LA", "two-low", 2, "211", "Track 207-211", "OS Switch 211", "west"),
-    ("212LB", "one-searchlight", 1, "211", "Track 203-211", "OS Switch 211", "west"),
+    ("204RA", "two-searchlight", 2, "203", "Track 203-211", "OS Switch 203", "east"),
+    ("204RB", "two-low", 2, "203", "Track 203-207", "OS Switch 203", "east"),
+    ("212LA", "one-searchlight", 1, "211", "Track 203-211", "OS Switch 211", "west"),
+    ("212LB", "two-low", 2, "211", "Track 207-211", "OS Switch 211", "west"),
     ("212RA", "one-searchlight", 1, "211", "Track 211-217 1", "OS Switch 211", "east"),
     ("212RB", "two-searchlight", 2, "211", "Track 211-217 2", "OS Switch 211", "east"),
     ("218LA", "one-searchlight", 1, "217", "Track 211-217 1", "OS Switch 217", "west"),
     ("218LB", "two-searchlight", 2, "217", "Track 211-217 2", "OS Switch 217", "west"),
-    ("218RA", "two-searchlight", 2, "217", "Track 217-219", "OS Switch 217", "east"),
-    ("218RB", "one-searchlight", 1, "217", "Track 217-221", "OS Switch 217", "east"),
+    ("218RA", "one-searchlight", 1, "217", "Track 217-221", "OS Switch 217", "east"),
+    ("218RB", "two-searchlight", 2, "217", "Track 217-219", "OS Switch 217", "east"),
     ("220R", "two-searchlight", 2, "219", "Track 217-219", "OS Switch 219", "east"),
-    ("222LA", "two-searchlight", 2, "221", "Track 221-223", "OS Switch 221", "west"),
-    ("222LB", "one-searchlight", 1, "221", "Track 217-221", "OS Switch 221", "west"),
+    ("222LA", "one-searchlight", 1, "221", "Track 217-221", "OS Switch 221", "west"),
+    ("222LB", "two-searchlight", 2, "221", "Track 221-223", "OS Switch 221", "west"),
     ("222R", "two-searchlight", 2, "221", "Track 127-221", "OS Switch 221", "east"),
     ("224LA", "one-searchlight", 1, "223", "Track 223-225 1", "OS Switch 223", "west"),
     ("224LB", "one-searchlight", 1, "223", "Track 223-225 2", "OS Switch 223", "west"),
@@ -113,8 +118,8 @@ MAIN_UPPER_VISIBLE = (
     ("226RB", "two-searchlight", 2, "225", "Track 223-225 2", "OS Switch 225d", "east"),
     ("228RA", "two-low", 2, "227", "Track 227-231", "OS Switch 227", "east"),
     ("228RB", "two-searchlight", 2, "227", "Track 227-241 1", "OS Switch 227", "east"),
-    ("230LA", "two-searchlight", 2, "229", "Track 229-241", "OS Switch 229", "west"),
-    ("230LB", "two-low", 2, "229", "Track 229-233", "OS Switch 229", "west"),
+    ("230LA", "two-low", 2, "229", "Track 229-233", "OS Switch 229", "west"),
+    ("230LB", "two-searchlight", 2, "229", "Track 229-241", "OS Switch 229", "west"),
     ("242L", "one-low", 1, "241", "Track 241 Spur", "OS Switch 241", "west"),
 )
 MAIN_UPPER_VIRTUAL = (
@@ -131,19 +136,19 @@ MAIN_UPPER_VIRTUAL = (
     ("130LB", "", "Track 129 Spur 2", "", "west"),
     # upper (14)
     ("206L", "", "Track 205 Spur", "", "west"),
-    ("210LA", "", "Track 209 Spur 2", "", "west"),
-    ("210LB", "", "Track 209 Spur 1", "", "west"),
+    ("210LA", "", "Track 209 Spur 1", "", "west"),
+    ("210LB", "", "Track 209 Spur 2", "", "west"),
     ("214L", "", "Track 213 Spur", "", "west"),
-    ("216LA", "", "Track 215 Spur 2", "", "west"),
-    ("216LB", "", "Track 215 Spur 1", "", "west"),
+    ("216LA", "", "Track 215 Spur 1", "", "west"),
+    ("216LB", "", "Track 215 Spur 2", "", "west"),
     ("232L", "", "Track 231 Spur", "", "west"),
     ("236R", "", "Track 235 Spur", "", "east"),
     ("240L", "", "Track 239 Spur", "", "west"),
     ("242R", "", "Track 241 Spur", "", "east"),
-    ("244RA", "", "Track 243 Spur 2", "", "east"),
-    ("244RB", "", "Track 243 Spur 1", "", "east"),
-    ("246LA", "", "Track 245 Spur 2", "", "west"),
-    ("246LB", "", "Track 245 Spur 1", "", "west"),
+    ("244RA", "", "Track 243 Spur 1", "", "east"),
+    ("244RB", "", "Track 243 Spur 2", "", "east"),
+    ("246LA", "", "Track 245 Spur 1", "", "west"),
+    ("246LB", "", "Track 245 Spur 2", "", "west"),
 )
 INTERMEDIATES = {"67", "68", "A83", "A84", "B92", "B93"}
 # masts the rule must not place: 126L faces Track 121-125 into Switch 125, and every route it would clear ends at

@@ -138,9 +138,9 @@ def device_row(layer, user, system, comment="", notes="", role=None):
 
 def write_master(path: Path, rows) -> Path:
     """A devices.csv of just these staging device-map rows (hartlib.devices makes the master rows and holds them)."""
-    mine = [devices.master_row(dict(r, id=f"test:{r['layer']}:{r['user_name']}"), "build_masts.py")
+    mine = [devices.master_row(dict(r, id=f"test:{r['layer']}:{r['user_name']}"), "build_device_map.py")
             for r in rows]                    # a test id: check_rows wants one on every row with a level
-    path.write_text(devices.master_text(devices.replace_rows([], "build_masts.py", mine)), encoding="utf-8")
+    path.write_text(devices.master_text(devices.replace_rows([], "build_device_map.py", mine)), encoding="utf-8")
     return path
 
 

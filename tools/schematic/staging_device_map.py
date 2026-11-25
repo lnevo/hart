@@ -6,8 +6,8 @@ conversion from them retired. The turnout and feedback rows of level 1 of the de
 which build_device_map.py writes from wiring.csv (stations.csv's desk areas are staging's control points, build_staging_sets.py); the block and occupancy
 rows are the one block builder's (build_device_map.py, block_layer: step 5 part 1, 2026-11-20), which carries each
 row's field facts over, writes its detector's wiring from wiring.csv (level 1 rows; step 6) and owns which
-blocks there are and what each holds; build_masts.py writes
-masts.csv's staging rows and the mast and head rows. Edit these files, not a panel. This module reads
+blocks there are and what each holds; it writes the mast and head rows too (device_map_masts.py, from those
+block rows; naming-layers step 12), and build_masts.py writes masts.csv from them. Edit these files, not a panel. This module reads
 them (load, load_masts, load_signal_masts, mast_facts) and stops on a file not in its shape; check_device_master.py --check
 (`make panels`, tools/check.sh) holds them, and every device row, to tables.xml and the schematic.
 
@@ -454,9 +454,12 @@ def normal_legs(band, names: dict) -> dict:
     return out
 
 
-def part_lines(device_map: Path = DEVICE_MAP) -> list[tuple[int, dict]]:
+def part_lines(device_map: Path = DEVICE_MAP, rows=None) -> list[tuple[int, dict]]:
     """(line, row) of staging's parts (role part: a piece of track inside another block, part_of naming it), which
-    the device maps leave out (hartlib.devices.OUT_OF_MAPS)."""
+    the device maps leave out (hartlib.devices.OUT_OF_MAPS): of the master at `device_map`, or of `rows` (master rows
+    a builder is writing, numbered from 2 as a file's lines)."""
+    if rows is not None:
+        return [(n, dict(r)) for n, r in enumerate(rows, 2) if r["level"] == str(LEVEL) and r["role"] == "part"]
     try:
         return devices.part_lines((str(LEVEL),), device_map)
     except railroad.FactsError as exc:
@@ -465,17 +468,25 @@ def part_lines(device_map: Path = DEVICE_MAP) -> list[tuple[int, dict]]:
 
 def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, stations_path: Path = STATIONS,
          turnout_idents: bool = True, with_masts: bool = True,
-         interlockings_path: Path = INTERLOCKINGS) -> dict:
+         interlockings_path: Path = INTERLOCKINGS, master_rows=None, with_normal: bool = True) -> dict:
     """The plugin's names for the staging band from the three files alone: turnouts, os, blocks, normal (from
     switches.csv), masts, and with `turnout_idents` each turnout's Layout Editor ident from switches.csv
     (le_ident, ADR-021); with_masts False leaves the masts out. Stops on a row that breaks the rules every row of
     the device master keeps (check_device_master.row_problems), any placeholder no row names, any row the drawing does not
     use, a piece of the drawing on no row or on two, a broken k/n run, or a mast row that is not well formed. A
     part (part_lines) is a JMRI block of its own on every level (owner, 2026-11-20): its pieces are its own block, and
-    staging_parts gives {part: the block it is part of} (os_layer reads the blocks as the masts do)."""
+    staging_parts gives {part: the block it is part of} (os_layer reads the blocks as the masts do). `master_rows`: the
+    master's rows as a builder writes them (build_device_map.py's staging masts, from the block rows it makes in the
+    same run), read in place of the file at `device_map` (which then only names it in messages). with_normal False
+    leaves out `normal` (switches.csv's closed legs, by block name: the masts do not read it, and in a build the
+    hands step writes those names only after the device map)."""
     import check_device_master as cdm       # the rules of every level's rows (it imports this module)
     try:
-        lines = [(n, r) for n, r in cdm.master_lines(device_map) if r["level"] == str(LEVEL)]
+        if master_rows is None:
+            lines = [(n, r) for n, r in cdm.master_lines(device_map) if r["level"] == str(LEVEL)]
+        else:                               # as master_lines reads a file: a device map's rows, placed ones
+            lines = [(n, dict(r)) for n, r in enumerate(master_rows, 2) if r["level"] == str(LEVEL)
+                     and r["role"] not in devices.OUT_OF_MAPS]
         interlockings = railroad.read_interlockings(interlockings_path)
         cps = cdm.control_points(interlockings, stations_path)
         places = cdm.known_places(interlockings, stations_path)
@@ -492,7 +503,7 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, stations
     turnout_ph, os_ph, strands = placeholders(band)
     by_ph = {ph: (r["layer"], r["user_name"], r["jmri_name"]) for r in rows for ph in split_names(r["trial_name"])}
     parts = {}
-    for n, r in part_lines(device_map):          # a part's pieces are its own JMRI block
+    for n, r in part_lines(device_map, master_rows):     # a part's pieces are its own JMRI block
         parts[r["user_name"]] = r["part_of"]
         for ph in split_names(r["trial_name"]):
             if ph in by_ph:
@@ -536,7 +547,8 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, stations
         bad.append(f"trial names the staging drawing does not have: {unused}")
     if bad:
         raise StagingMapError(f"{paths.rel(device_map)}: " + "; ".join(bad))
-    names["normal"] = normal_legs(band, os_layer(names, parts))  # switches.csv names a leg by its first OS block
+    if with_normal:             # switches.csv names a leg by its first OS block
+        names["normal"] = normal_legs(band, os_layer(names, parts))
     if turnout_idents:
         ident_of = switch_facts(lc.switch_idents)
         idents = {}
@@ -546,24 +558,24 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, stations
                 bad.append(f"{ph} has no le_ident in switches.csv")
             idents[n] = ident
         names["idents"] = dict(turnouts=idents, boundaries=[], ends={}, segments={})
-    if with_masts:              # build_masts.py reads the rest to write the masts
+    if with_masts:              # masts.csv's staging rows, for the readers of the drawn masts
         names["masts"] = load_masts(masts_path, cp_names, rows, device_map)
     if bad:
         raise StagingMapError("; ".join(bad))
     return names
 
 
-def staging_parts(device_map: Path = DEVICE_MAP) -> dict[str, str]:
-    """{part: the block it is part of} of staging's parts (part_lines): each a JMRI block of its own (owner,
-    2026-11-20) that the masts read inside its block (os_layer)."""
-    return {r["user_name"]: r["part_of"] for _n, r in part_lines(device_map)}
+def staging_parts(device_map: Path = DEVICE_MAP, rows=None) -> dict[str, str]:
+    """{part: the block it is part of} of staging's parts (part_lines, of the file or of `rows`): each a JMRI block of
+    its own (owner, 2026-11-20) that the masts read inside its block (os_layer)."""
+    return {r["user_name"]: r["part_of"] for _n, r in part_lines(device_map, rows)}
 
 
 def os_layer(names: dict, parts: dict) -> dict:
     """A copy of load()'s names with each part's pieces given to the block it is part of (`parts`, staging_parts),
     as the one mast process reads a level's block layer on every level (main and upper: block_layer.Layer.bands): a
     mast's place and the blocks it protects follow the OS blocks, a part being inside its OS block (mast_plan,
-    build_masts). StagingMapError on a part whose block is itself a part."""
+    device_map_masts). StagingMapError on a part whose block is itself a part."""
     bad = sorted(p for p, of in parts.items() if of in parts)
     if bad:
         raise StagingMapError(f"parts {bad} are part of another part")

@@ -67,7 +67,7 @@ A rebuilt script reads these and nothing older:
   `block_splits.csv`.
 - `jmri/layouts/hart/data/schematic/masts.csv`, every level's masts, through `hartlib.level_masts`. It replaced
   `staging_masts.csv`, `main_upper_masts.csv`, `staging_masts_virtual.csv` and `le_signal_boundaries.csv`. Hidden
-  masts are placed by rule (`build_masts.py`).
+  masts are placed by rule (`mast_plan.py`; `build_device_map.py` writes their rows, `build_masts.py` the file).
 - The helix is two blocks, Track Helix Outer and Track Helix Inner, named by their plan names in
   `plan_overrides.json` (`hartlib.railroad.read_helix_tracks`; `helix_tracks.csv` is gone). McKees Rocks and
   McKeesport are only labels, from the `track_labels` preference in `preferences.json[main_upper]`.
@@ -104,7 +104,7 @@ way to rebuild it.
 | `jmri/layouts/hart/parked/polish_hart_layout_editor.py` | puts Stage 1's lamps and labels back after the Store; finds block sensors by the `BS ` prefix | gone once the lamps and labels are drawn by the build; any reader that stays takes the role from the device master |
 | `jmri/layouts/hart/parked/retarget_dispatcher_traininfo_transits.py`, `repair_dispatcher_traininfo.py`, `fix_traininfo_detection.py`, `run_panelpro_traininfo_repair.sh` | edit the 374 traininfo files, which name the 3bd3ac64 transits and masts; the retarget script defaults to the Pi's `tables.xml` path | traininfo generated from the transits the build writes, with HEAD_AND_TAIL detection set by the generator |
 | `jmri/layouts/hart/parked/occupancy_lamps_display_only.py` | the lamps' display-only check, out of `tools/check.sh` | back into `tools/check.sh` with the lamps |
-| The hidden yard throats | Stage 1 needs the 12 throat blocks and their 12 masts (the rows of `retired_virtual_masts.csv` marked "restore on unpark") | a rule in `build_masts.py` and `block_overrides.csv` rows, as the parked README describes |
+| The hidden yard throats | Stage 1 needs the 12 throat blocks and their 12 masts (the rows of `retired_virtual_masts.csv` marked "restore on unpark") | a rule in `mast_plan.py` (staging's rows: `device_map_masts.py`) and `block_overrides.csv` rows, as the parked README describes |
 
 **The stations (parked 2026-11-22).** The stock Dispatcher System has no station table: a station is a block whose
 JMRI comment is "stop" or ends "; stop". Until 2026-11-22 the device master's `stop` column was `yes` on 12 staging

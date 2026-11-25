@@ -94,8 +94,8 @@
   </signalmastlogic>
   <signalmastlogic source="Mast 242L">
     <sourceSignalMast>Mast 242L</sourceSignalMast>
-    <destinationMast destination="Mast 230LA">
-      <destinationSignalMast>Mast 230LA</destinationSignalMast>
+    <destinationMast destination="Mast 230LB">
+      <destinationSignalMast>Mast 230LB</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -258,8 +258,8 @@
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
   </signalmastlogic>
-  <signalmastlogic source="Mast 212LB">
-    <sourceSignalMast>Mast 212LB</sourceSignalMast>
+  <signalmastlogic source="Mast 212LA">
+    <sourceSignalMast>Mast 212LA</sourceSignalMast>
     <destinationMast destination="Mast 218LA">
       <destinationSignalMast>Mast 218LA</destinationSignalMast>
       <comment />
@@ -283,8 +283,8 @@
   </signalmastlogic>
   <signalmastlogic source="Mast 212RA">
     <sourceSignalMast>Mast 212RA</sourceSignalMast>
-    <destinationMast destination="Mast 204RA">
-      <destinationSignalMast>Mast 204RA</destinationSignalMast>
+    <destinationMast destination="Mast 204RB">
+      <destinationSignalMast>Mast 204RB</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -293,8 +293,8 @@
       <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
-    <destinationMast destination="Mast 204RB">
-      <destinationSignalMast>Mast 204RB</destinationSignalMast>
+    <destinationMast destination="Mast 204RA">
+      <destinationSignalMast>Mast 204RA</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -306,8 +306,8 @@
   </signalmastlogic>
   <signalmastlogic source="Mast 218LA">
     <sourceSignalMast>Mast 218LA</sourceSignalMast>
-    <destinationMast destination="Mast 222LB">
-      <destinationSignalMast>Mast 222LB</destinationSignalMast>
+    <destinationMast destination="Mast 222LA">
+      <destinationSignalMast>Mast 222LA</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -327,8 +327,8 @@
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
   </signalmastlogic>
-  <signalmastlogic source="Mast 218RB">
-    <sourceSignalMast>Mast 218RB</sourceSignalMast>
+  <signalmastlogic source="Mast 218RA">
+    <sourceSignalMast>Mast 218RA</sourceSignalMast>
     <destinationMast destination="Mast 212RA">
       <destinationSignalMast>Mast 212RA</destinationSignalMast>
       <comment />
@@ -350,8 +350,8 @@
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
   </signalmastlogic>
-  <signalmastlogic source="Mast 222LB">
-    <sourceSignalMast>Mast 222LB</sourceSignalMast>
+  <signalmastlogic source="Mast 222LA">
+    <sourceSignalMast>Mast 222LA</sourceSignalMast>
     <destinationMast destination="Mast 128LB">
       <destinationSignalMast>Mast 128LB</destinationSignalMast>
       <comment />
@@ -375,8 +375,8 @@
   </signalmastlogic>
   <signalmastlogic source="Mast 224LA">
     <sourceSignalMast>Mast 224LA</sourceSignalMast>
-    <destinationMast destination="Mast 222LA">
-      <destinationSignalMast>Mast 222LA</destinationSignalMast>
+    <destinationMast destination="Mast 222LB">
+      <destinationSignalMast>Mast 222LB</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -388,8 +388,8 @@
   </signalmastlogic>
   <signalmastlogic source="Mast 224LB">
     <sourceSignalMast>Mast 224LB</sourceSignalMast>
-    <destinationMast destination="Mast 222LA">
-      <destinationSignalMast>Mast 222LA</destinationSignalMast>
+    <destinationMast destination="Mast 222LB">
+      <destinationSignalMast>Mast 222LB</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -440,8 +440,8 @@
   </signalmastlogic>
   <signalmastlogic source="Mast B93">
     <sourceSignalMast>Mast B93</sourceSignalMast>
-    <destinationMast destination="Mast 230LA">
-      <destinationSignalMast>Mast 230LA</destinationSignalMast>
+    <destinationMast destination="Mast 230LB">
+      <destinationSignalMast>Mast 230LB</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -599,8 +599,8 @@
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
   </signalmastlogic>
-  <signalmastlogic source="Mast 204RA">
-    <sourceSignalMast>Mast 204RA</sourceSignalMast>
+  <signalmastlogic source="Mast 204RB">
+    <sourceSignalMast>Mast 204RB</sourceSignalMast>
     <destinationMast destination="Mast 128LB">
       <destinationSignalMast>Mast 128LB</destinationSignalMast>
       <comment />
@@ -622,8 +622,8 @@
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
   </signalmastlogic>
-  <signalmastlogic source="Mast 212LA">
-    <sourceSignalMast>Mast 212LA</sourceSignalMast>
+  <signalmastlogic source="Mast 212LB">
+    <sourceSignalMast>Mast 212LB</sourceSignalMast>
     <destinationMast destination="Mast 218LA">
       <destinationSignalMast>Mast 218LA</destinationSignalMast>
       <comment />
@@ -668,8 +668,8 @@
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
   </signalmastlogic>
-  <signalmastlogic source="Mast 230LB">
-    <sourceSignalMast>Mast 230LB</sourceSignalMast>
+  <signalmastlogic source="Mast 230LA">
+    <sourceSignalMast>Mast 230LA</sourceSignalMast>
     <destinationMast destination="Mast 224LA">
       <destinationSignalMast>Mast 224LA</destinationSignalMast>
       <comment />
@@ -1401,8 +1401,8 @@
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
   </signalmastlogic>
-  <signalmastlogic source="Mast 204RB">
-    <sourceSignalMast>Mast 204RB</sourceSignalMast>
+  <signalmastlogic source="Mast 204RA">
+    <sourceSignalMast>Mast 204RA</sourceSignalMast>
     <destinationMast destination="Mast 128LB">
       <destinationSignalMast>Mast 128LB</destinationSignalMast>
       <comment />
@@ -1426,8 +1426,8 @@
   </signalmastlogic>
   <signalmastlogic source="Mast 212RB">
     <sourceSignalMast>Mast 212RB</sourceSignalMast>
-    <destinationMast destination="Mast 204RA">
-      <destinationSignalMast>Mast 204RA</destinationSignalMast>
+    <destinationMast destination="Mast 204RB">
+      <destinationSignalMast>Mast 204RB</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -1436,8 +1436,8 @@
       <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
-    <destinationMast destination="Mast 204RB">
-      <destinationSignalMast>Mast 204RB</destinationSignalMast>
+    <destinationMast destination="Mast 204RA">
+      <destinationSignalMast>Mast 204RA</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -1449,8 +1449,8 @@
   </signalmastlogic>
   <signalmastlogic source="Mast 218LB">
     <sourceSignalMast>Mast 218LB</sourceSignalMast>
-    <destinationMast destination="Mast 222LB">
-      <destinationSignalMast>Mast 222LB</destinationSignalMast>
+    <destinationMast destination="Mast 222LA">
+      <destinationSignalMast>Mast 222LA</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -1470,8 +1470,8 @@
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
   </signalmastlogic>
-  <signalmastlogic source="Mast 218RA">
-    <sourceSignalMast>Mast 218RA</sourceSignalMast>
+  <signalmastlogic source="Mast 218RB">
+    <sourceSignalMast>Mast 218RB</sourceSignalMast>
     <destinationMast destination="Mast 212RA">
       <destinationSignalMast>Mast 212RA</destinationSignalMast>
       <comment />
@@ -1516,40 +1516,10 @@
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
   </signalmastlogic>
-  <signalmastlogic source="Mast 222LA">
-    <sourceSignalMast>Mast 222LA</sourceSignalMast>
-    <destinationMast destination="Mast 212LB">
-      <destinationSignalMast>Mast 212LB</destinationSignalMast>
-      <comment />
-      <enabled>yes</enabled>
-      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-      <useLayoutEditor>yes</useLayoutEditor>
-      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-      <lockTurnouts>no</lockTurnouts>
-    </destinationMast>
-    <destinationMast destination="Mast 218RB">
-      <destinationSignalMast>Mast 218RB</destinationSignalMast>
-      <comment />
-      <enabled>yes</enabled>
-      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-      <useLayoutEditor>yes</useLayoutEditor>
-      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-      <lockTurnouts>no</lockTurnouts>
-    </destinationMast>
+  <signalmastlogic source="Mast 222LB">
+    <sourceSignalMast>Mast 222LB</sourceSignalMast>
     <destinationMast destination="Mast 212LA">
       <destinationSignalMast>Mast 212LA</destinationSignalMast>
-      <comment />
-      <enabled>yes</enabled>
-      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-      <useLayoutEditor>yes</useLayoutEditor>
-      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-      <lockTurnouts>no</lockTurnouts>
-    </destinationMast>
-    <destinationMast destination="Mast 204RB">
-      <destinationSignalMast>Mast 204RB</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -1568,8 +1538,8 @@
       <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
-    <destinationMast destination="Mast 206L">
-      <destinationSignalMast>Mast 206L</destinationSignalMast>
+    <destinationMast destination="Mast 212LB">
+      <destinationSignalMast>Mast 212LB</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -1578,8 +1548,28 @@
       <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
-    <destinationMast destination="Mast 210LA">
-      <destinationSignalMast>Mast 210LA</destinationSignalMast>
+    <destinationMast destination="Mast 204RA">
+      <destinationSignalMast>Mast 204RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 218RB">
+      <destinationSignalMast>Mast 218RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 206L">
+      <destinationSignalMast>Mast 206L</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -1598,6 +1588,16 @@
       <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
+    <destinationMast destination="Mast 210LA">
+      <destinationSignalMast>Mast 210LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
     <destinationMast destination="Mast 214L">
       <destinationSignalMast>Mast 214L</destinationSignalMast>
       <comment />
@@ -1608,8 +1608,8 @@
       <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
-    <destinationMast destination="Mast 216LA">
-      <destinationSignalMast>Mast 216LA</destinationSignalMast>
+    <destinationMast destination="Mast 216LB">
+      <destinationSignalMast>Mast 216LB</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -1618,8 +1618,8 @@
       <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
-    <destinationMast destination="Mast 216LB">
-      <destinationSignalMast>Mast 216LB</destinationSignalMast>
+    <destinationMast destination="Mast 216LA">
+      <destinationSignalMast>Mast 216LA</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -1631,38 +1631,8 @@
   </signalmastlogic>
   <signalmastlogic source="Mast 222R">
     <sourceSignalMast>Mast 222R</sourceSignalMast>
-    <destinationMast destination="Mast 212LB">
-      <destinationSignalMast>Mast 212LB</destinationSignalMast>
-      <comment />
-      <enabled>yes</enabled>
-      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-      <useLayoutEditor>yes</useLayoutEditor>
-      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-      <lockTurnouts>no</lockTurnouts>
-    </destinationMast>
-    <destinationMast destination="Mast 218RB">
-      <destinationSignalMast>Mast 218RB</destinationSignalMast>
-      <comment />
-      <enabled>yes</enabled>
-      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-      <useLayoutEditor>yes</useLayoutEditor>
-      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-      <lockTurnouts>no</lockTurnouts>
-    </destinationMast>
     <destinationMast destination="Mast 212LA">
       <destinationSignalMast>Mast 212LA</destinationSignalMast>
-      <comment />
-      <enabled>yes</enabled>
-      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-      <useLayoutEditor>yes</useLayoutEditor>
-      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-      <lockTurnouts>no</lockTurnouts>
-    </destinationMast>
-    <destinationMast destination="Mast 204RB">
-      <destinationSignalMast>Mast 204RB</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -1681,8 +1651,8 @@
       <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
-    <destinationMast destination="Mast 206L">
-      <destinationSignalMast>Mast 206L</destinationSignalMast>
+    <destinationMast destination="Mast 212LB">
+      <destinationSignalMast>Mast 212LB</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -1691,8 +1661,28 @@
       <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
-    <destinationMast destination="Mast 210LA">
-      <destinationSignalMast>Mast 210LA</destinationSignalMast>
+    <destinationMast destination="Mast 204RA">
+      <destinationSignalMast>Mast 204RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 218RB">
+      <destinationSignalMast>Mast 218RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 206L">
+      <destinationSignalMast>Mast 206L</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -1711,6 +1701,16 @@
       <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
+    <destinationMast destination="Mast 210LA">
+      <destinationSignalMast>Mast 210LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
     <destinationMast destination="Mast 214L">
       <destinationSignalMast>Mast 214L</destinationSignalMast>
       <comment />
@@ -1721,8 +1721,8 @@
       <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
-    <destinationMast destination="Mast 216LA">
-      <destinationSignalMast>Mast 216LA</destinationSignalMast>
+    <destinationMast destination="Mast 216LB">
+      <destinationSignalMast>Mast 216LB</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -1731,8 +1731,8 @@
       <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
-    <destinationMast destination="Mast 216LB">
-      <destinationSignalMast>Mast 216LB</destinationSignalMast>
+    <destinationMast destination="Mast 216LA">
+      <destinationSignalMast>Mast 216LA</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -1827,16 +1827,6 @@
       <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
-    <destinationMast destination="Mast 244RA">
-      <destinationSignalMast>Mast 244RA</destinationSignalMast>
-      <comment />
-      <enabled>yes</enabled>
-      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-      <useLayoutEditor>yes</useLayoutEditor>
-      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-      <lockTurnouts>no</lockTurnouts>
-    </destinationMast>
     <destinationMast destination="Mast 244RB">
       <destinationSignalMast>Mast 244RB</destinationSignalMast>
       <comment />
@@ -1847,8 +1837,8 @@
       <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
-    <destinationMast destination="Mast 246LA">
-      <destinationSignalMast>Mast 246LA</destinationSignalMast>
+    <destinationMast destination="Mast 244RA">
+      <destinationSignalMast>Mast 244RA</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -1859,6 +1849,16 @@
     </destinationMast>
     <destinationMast destination="Mast 246LB">
       <destinationSignalMast>Mast 246LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 246LA">
+      <destinationSignalMast>Mast 246LA</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -1930,16 +1930,6 @@
       <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
-    <destinationMast destination="Mast 244RA">
-      <destinationSignalMast>Mast 244RA</destinationSignalMast>
-      <comment />
-      <enabled>yes</enabled>
-      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-      <useLayoutEditor>yes</useLayoutEditor>
-      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-      <lockTurnouts>no</lockTurnouts>
-    </destinationMast>
     <destinationMast destination="Mast 244RB">
       <destinationSignalMast>Mast 244RB</destinationSignalMast>
       <comment />
@@ -1950,8 +1940,8 @@
       <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
-    <destinationMast destination="Mast 246LA">
-      <destinationSignalMast>Mast 246LA</destinationSignalMast>
+    <destinationMast destination="Mast 244RA">
+      <destinationSignalMast>Mast 244RA</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -1962,6 +1952,16 @@
     </destinationMast>
     <destinationMast destination="Mast 246LB">
       <destinationSignalMast>Mast 246LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 246LA">
+      <destinationSignalMast>Mast 246LA</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -1994,8 +1994,8 @@
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
   </signalmastlogic>
-  <signalmastlogic source="Mast 230LA">
-    <sourceSignalMast>Mast 230LA</sourceSignalMast>
+  <signalmastlogic source="Mast 230LB">
+    <sourceSignalMast>Mast 230LB</sourceSignalMast>
     <destinationMast destination="Mast 224LA">
       <destinationSignalMast>Mast 224LA</destinationSignalMast>
       <comment />

@@ -9,6 +9,7 @@ import os
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -73,6 +74,23 @@ class OneRowPath(RepoReadOnly, unittest.TestCase):
                                  warn=lambda line: None)
         # the generated file as it is, written again as hartlib.devices writes it
         self.assertEqual(out[files.master], devices.master_text(devices.generated_rows(files)))
+
+    def test_a_block_with_no_plan_length_keeps_the_masts_and_writes_the_rows(self):
+        """A new staging block has no plan length until plan_lengths.py adds it, which needs the block's rows: the
+        device map writes them with staging's last mast rows and says why (code review of naming-layers step 12)."""
+        import device_map_masts as dmm
+        files = self.copy()
+        real = dmm.block_cm
+        short = lambda rows, path=None: {k: v for k, v in real(rows, path).items() if k != "Track Barn"}  # noqa: E731
+        held = []
+        with unittest.mock.patch.object(dmm, "block_cm", short):
+            with self.assertRaisesRegex(dmm.MissingLengths, r"no plan length for \['Track Barn'\]"):
+                dmm.staging_masts(self.bands, self.joined, self.runs, list(devices.load(files)), files)
+            out = bdm.master_outputs(self.bands, self.joined, self.runs, self.main_rows, self.parts, files,
+                                     warn=lambda line: None, held=held)
+        self.assertEqual(out[files.master], devices.master_text(devices.generated_rows(files)))
+        self.assertEqual(len(held), 1)
+        self.assertIn("Track Barn", held[0])
 
     def test_a_staging_turnout_with_no_field_row_is_generated(self):
         """Switch 9's field row taken out: its turnout row is generated from the plan and wiring.csv (it stopped,

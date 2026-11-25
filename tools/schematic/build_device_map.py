@@ -52,7 +52,7 @@ Virtual names (owner, 2026-11-17), from each device's stable identity:
   but not on a node yet, NO_DETECTOR for a block that has none planned (dark until decided). Those facts are columns
   of their own (hartlib.railroad.DEVICE_FACTS): an occupancy row's `blocks` (its block) and `detector` (planned,
   not_wired or none), a mast row's `switch`, `facing` and `protects`; the notes and comment are text for people.
-- Head "Head <mast>[ Top|Bottom]": hartlib.level_devices.head_name (IH:HART:C3:108LA, IH:HART:C3:108R_Top); mast
+- Head "Head <mast>[ Top|Bottom]": hartlib.level_masts.head_name, the level's prefix data (IH:HART:C3:108LA); mast
   IF$shsm:basic:<type>(<head>)(<head>) over those heads.
 - Feedback rows have no JMRI device of their own (assignment none: a turnout's feedback is DIRECT until the plant is
   wired).
@@ -146,6 +146,7 @@ from mast_rule import (  # noqa: E402,F401  the track and mast rule, re-exported
     LOOP_HALF, TAU, MapError, band_levels, end_label, end_ref, facing_on_route, helix_blocks, helix_tags, masts,
     TRACK_KEY_COLUMNS, key_problem, read_helix_tracks, resolve_track, track_names, tracks)
 import block_layer  # noqa: E402  the one block process for every level
+import device_map_masts  # noqa: E402  staging's mast and head rows (build_masts.py part 1 until naming-layers step 12)
 import mast_plan  # noqa: E402  the one mast process for every level
 import mast_rule  # noqa: E402  read_block_splits, OVERRIDES_NAME
 import le_common  # noqa: E402  bare: a switch label as the plan prints it
@@ -205,6 +206,16 @@ def block_sensor(block: str) -> str:
     name that gives no clean key."""
     try:
         return level_devices.block_sensor(block)
+    except ValueError as exc:
+        raise MapError(str(exc)) from None
+
+
+def head_name(user: str, level) -> str:
+    """The internal system name of a head of `level` (hartlib.level_masts.head_name: the level's prefix is data,
+    HEAD_PREFIXES; every level's builder names its heads so, naming-layers step 12); MapError on a name out of the
+    grammar."""
+    try:
+        return level_masts.head_name(user, int(level))
     except ValueError as exc:
         raise MapError(str(exc)) from None
 
@@ -419,10 +430,39 @@ def plan_masts(bands, joined, runs, found, cp_of: dict, corners: dict | None
 
 
 def master_virtual_names(files: devices.Files | None = None) -> dict:
-    """{mast: system name} of the main and upper virtual masts as this script last wrote them (each keeps its
-    ordinal): name memory, its one read-back of its own output (devices.allocated_names)."""
-    return {u: r["jmri_name"] for u, r in devices.allocated_names(("2", "3"), "mast", files=files or device_files()).items()
+    """{mast id: (user name, system name)} of the main and upper virtual masts as this script last wrote them (each
+    keeps its ordinal by its ID, so a mast whose letter changed keeps its system name): name memory, its one
+    read-back of its own output (devices.allocated_names)."""
+    return {r["id"]: (u, r["jmri_name"])
+            for u, r in devices.allocated_names(("2", "3"), "mast", files=files or device_files()).items()
             if level_masts.virtual_ordinal(r["jmri_name"])}
+
+
+def owner_mast_names(files: devices.Files | None = None) -> dict:
+    """{mast id: the owner's user name} of the main and upper masts devices_field.csv names (by ID, hartlib.devices
+    .KEY): the owner's name wins, and the mast's heads are named from it (naming-layers step 12)."""
+    return {f["id"]: f["user_name"] for f in devices.field_index(files or device_files()).values()
+            if f["level"] in ("2", "3") and f["layer"] == "mast" and f["user_name"]}
+
+
+def virtual_memory(virtual: list[dict], old: dict) -> dict[int, dict]:
+    """{level: {"Mast <name>": system name}} of the virtual masts' old system names (`old`: master_virtual_names,
+    by ID), each under its mast's name now (`virtual`: the planned virtual masts, each with its `id` and final
+    `name`), an old ID the rule no longer places under its old name (mast_plan.virtual_system_names asks for it in
+    retired_virtual_masts.csv). MapError when that old name is now another mast's."""
+    now = {m["id"]: f"Mast {m['name']}" for m in virtual}
+    out, bad = {}, []
+    for ident, (user, system) in old.items():
+        key = now.get(ident, user)
+        mine = out.setdefault(level_masts.virtual_level(system), {})
+        if key in mine or (ident not in now and key in now.values()):
+            bad.append(f"{key}: the virtual mast of id {ident} had that name, and another mast now has it: add "
+                       f"{user} ({system}) to retired_virtual_masts.csv under another name, or give the mast its old "
+                       "ID back")
+        mine[key] = system
+    if bad:
+        raise MapError("; ".join(bad))
+    return out
 
 
 def check_frozen_cps(rows: list[dict], cps: frozenset, held_devices: set, held_blocks: set) -> None:
@@ -443,14 +483,15 @@ def check_frozen_cps(rows: list[dict], cps: frozenset, held_devices: set, held_b
 
 
 def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None, helix=None, pins=None, places=None,
-          virtual_names=None, frozen=None) -> tuple[dict, list[dict], list[dict]]:
+          virtual_names=None, frozen=None, owner=None) -> tuple[dict, list[dict], list[dict]]:
     """(control_points, device map rows, the parts' master rows: links inside an OS block, part_row). `local`: the switches in no control point (the local switches of switches.csv
     rows). Every switch on the main and upper bands must be in exactly one of the two. `corners`: dx_corners, needed
     when a band has a double crossover. `helix`: read_helix_tracks (None: plan_overrides.json; {}: no helix tracks);
     `pins`: read_pins (None: wiring.csv's detectors, resolved against the tracks found here); `virtual_names`:
-    {mast: system name} of the virtual masts that have one already (None: master_virtual_names); `frozen`:
-    frozen_wires (None: wiring.csv's); `places`: read_places (None: stations.csv's and interlockings.csv's), the cp of
-    every line block (line_cp)."""
+    {mast id: (user name, system name)} of the virtual masts that have one already (None: master_virtual_names);
+    `frozen`: frozen_wires (None: wiring.csv's); `places`: read_places (None: stations.csv's and interlockings.csv's),
+    the cp of every line block (line_cp); `owner`: {mast id: the owner's name} (None: owner_mast_names), which a mast
+    and its heads take."""
     helix = helix_tracks() if helix is None else helix
     places = read_places() if places is None else places
     by_level = labels_by_level(bands)
@@ -491,12 +532,6 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
                         and OS_BLOCK.fullmatch(w.device)}
     ms = planned["home"] + [dict(m, heads=1, kind="one-searchlight", switch="", intermediate=True)
                             for m in planned["intermediates"]]
-    old_virtual = master_virtual_names() if virtual_names is None else virtual_names
-    vnames = {}
-    for lv in (2, 3):                       # each level's ordinals from its own thousand (hartlib.level_masts)
-        vnames |= mast_plan.virtual_system_names([m["name"] for m in planned["virtual"] if m["level"] == lv], lv,
-                                                 {k: v for k, v in old_virtual.items()
-                                                  if level_masts.virtual_level(v) == lv})
     nodes = Nodes(node_rows)
     nodes.pin(pins)
     held_wires = frozen_wires() if frozen is None else frozen
@@ -669,16 +704,6 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
                 k, packed = nodes.take(bnode, "block")
             occupancy(t["level"], cp, name, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}", role=role)
 
-    groups = [(cp.level, cp.area, cp.name, cp.switches[0]) for cp in cps]
-    groups += [(loc[s].level, loc[s].area, "", s)
-               for s in sorted({m["switch"] for m in ms if not m["cp"] and m["switch"]}, key=natural)]
-    # heads last, once every node's boards are known: each group's masts in name order, but every two-head mast of
-    # every group before any one-head mast (a stable sort), since a two-head mast takes six of a board's eight pins and
-    # a one-head mast placed first would take a board of its own that a two-head mast of the area needs (owner,
-    # 2026-11-19: as many heads placed as the boards hold; the rest wait as HEAD_NOT_WIRED)
-    placing = [(lv, area, name, first, m) for lv, area, name, first in groups
-               for m in sorted((m for m in ms if m["cp"] == name and (name or m["switch"] == first)),
-                               key=lambda m: natural(m["name"]))]
     def facing_id(level, block: str) -> str:
         """The device ID of the block `block` a mast faces: its row on the mast's level, else its one row on
         another level (a helix block, a link drawn on the other band)."""
@@ -698,9 +723,44 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         label = le_common.bare(bands[m["band"]][1]["nodes"][m["node"]].get("label"))
         return device_ids.home_mast_id(label, m["leg"], m["dir"])
 
+    # every mast's ID, then the owner's name by it (devices_field.csv): a mast and its heads take it, as on staging
+    # (device_map_masts.owner_names; naming-layers step 12)
+    owner = owner_mast_names() if owner is None else owner
+    renamed = {}
+    for m in ms + planned["virtual"]:
+        m["id"] = mast_id(m)
+        name = owner.get(m["id"], "")
+        if name and name != f"Mast {m['name']}":
+            if not level_masts.MAST_USER.fullmatch(name):
+                raise MapError(f"{devices.FIELD_FILE}: mast {m['id']} named {name!r}, not Mast <number>[L|R][letter]")
+            renamed[m["name"]] = m["name"] = name.removeprefix("Mast ")
+    taken = [m["name"] for m in ms + planned["virtual"]]
+    twice = sorted({x for x in taken if taken.count(x) > 1}, key=natural)
+    if twice:
+        raise MapError(f"two masts are named {', '.join('Mast ' + x for x in twice)} (an owner's name in "
+                       f"{devices.FIELD_FILE} takes a generated one?)")
+    for m in planned["virtual"]:
+        m["needed_by"] = [renamed.get(x, x) for x in m["needed_by"]]
+    old_virtual = virtual_memory(planned["virtual"],
+                                 master_virtual_names() if virtual_names is None else virtual_names)
+    vnames = {}
+    for lv in (2, 3):                       # each level's ordinals from its own thousand (hartlib.level_masts)
+        vnames |= mast_plan.virtual_system_names([m["name"] for m in planned["virtual"] if m["level"] == lv], lv,
+                                                 old_virtual.get(lv, {}))
+
+    groups = [(cp.level, cp.area, cp.name, cp.switches[0]) for cp in cps]
+    groups += [(loc[s].level, loc[s].area, "", s)
+               for s in sorted({m["switch"] for m in ms if not m["cp"] and m["switch"]}, key=natural)]
+    # heads last, once every node's boards are known: each group's masts in name order, but every two-head mast of
+    # every group before any one-head mast (a stable sort), since a two-head mast takes six of a board's eight pins and
+    # a one-head mast placed first would take a board of its own that a two-head mast of the area needs (owner,
+    # 2026-11-19: as many heads placed as the boards hold; the rest wait as HEAD_NOT_WIRED)
+    placing = [(lv, area, name, first, m) for lv, area, name, first in groups
+               for m in sorted((m for m in ms if m["cp"] == name and (name or m["switch"] == first)),
+                               key=lambda m: natural(m["name"]))]
     for lv, area, name, first, m in sorted(placing, key=lambda g: -g[4]["heads"]):
         parts = ["Top", "Bottom"] if m["heads"] == 2 else [""]
-        mid = mast_id(m)
+        mid = m["id"]
         head_ids = {f"Head {m['name']}" + (f" {part}" if part else ""): device_ids.head_id(mid, device_ids.head_place(
             i, len(parts))) for i, part in enumerate(parts)}
         kind = m["kind"]
@@ -723,7 +783,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
             # the owner reworks once the masts are approved (2026-11-19); their virtual names do not change
             hnode, sysname = "", ""
             heads = [(f"Head {m['name']}" + (f" {part}" if part else ""), "", None, None) for part in parts]
-        virtual = f"IF$shsm:basic:{kind}(" + ")(".join(level_devices.head_name(h[0]) for h in heads) + ")"
+        virtual = f"IF$shsm:basic:{kind}(" + ")(".join(head_name(h[0], lv) for h in heads) + ")"
         if m.get("intermediate"):
             add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | intermediate",
                 notes=f"intermediate signal from {m['facing']} into {m['protects']} at MP {m['name'][0]} "
@@ -737,19 +797,19 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         for user, sysn, k, ports in heads:
             if not sysn:                    # no node yet: the mast's comment says where it stands
                 where = f"{name or area} | " + (f"Switch {m['switch']}" if m["switch"] else "intermediate")
-                add(lv, name, "head", user, "", "", where, notes=HEAD_NOT_WIRED, jmri=level_devices.head_name(user),
+                add(lv, name, "head", user, "", "", where, notes=HEAD_NOT_WIRED, jmri=head_name(user, lv),
                     role="head", ident=head_ids[user])
                 continue
             add(lv, name, "head", user, sysn, hnode,
                 f"Node: {hnode} Signal: {k} | {ports}",
-                jmri=level_devices.head_name(user), role="head", ident=head_ids[user])
+                jmri=head_name(user, lv), role="head", ident=head_ids[user])
     for m in planned["virtual"]:            # a destination for the visible masts' routes: hidden, no heads, no node
         sw = switches[m["switch"]]
         system = vnames[m["name"]]
         add(m["level"], sw.cp, "mast", f"Mast {m['name']}", system, "", f"{sw.cp or sw.area} | buffer stop",
             notes=f"virtual bumper mast facing {m['facing']} at its buffer stop: the destination of "
                   f"{', '.join('Mast ' + x for x in m['needed_by'])}",
-            jmri=system, facing=m["facing"], dir=m["dir"], role="hidden", ident=mast_id(m))
+            jmri=system, facing=m["facing"], dir=m["dir"], role="hidden", ident=m["id"])
     nodes.check_boards()
     nodes.check_pins()
     nodes.check_frozen()
@@ -810,13 +870,17 @@ def block_beans(rows: list[dict], numbering_path: Path | None = None) -> list[di
 
 
 def master_outputs(bands, joined, runs, rows, parts, files: devices.Files | None = None, warn=None,
-                   check: bool = False) -> dict[Path, str]:
+                   check: bool = False, held: list | None = None) -> dict[Path, str]:
     """{path: text} of the device master once this script has written every level's rows: main and upper's
-    (build()'s `rows` and `parts`, owned_rows) and staging's (staging_rows, staging_wired_rows), all generated from
-    the plan with the owner's values over them, in `files` (default device_files()). The cells that name a block the
+    (build()'s `rows` and `parts`, owned_rows) and staging's (staging_rows, staging_wired_rows, and its masts and
+    heads from those rows, device_map_masts.staging_masts), all generated from the plan with the owner's values over
+    them, in `files` (default device_files()). The cells that name a block the
     owner renamed (a part's part_of, a detector's blocks, a mast's facing and protects) follow the new name on every
     level at once (hartlib.devices.follow_renames: a main mast facing a renamed staging helix block too). `warn` and
-    `check`: hartlib.devices.outputs_after's. MapError, DevicesError (a FactsError) as those stop."""
+    `check`: hartlib.devices.outputs_after's. `held` gets why staging's masts were not placed again (a block with
+    no plan length: its last mast rows are kept, and main stops after the write). MapError, DevicesError (a
+    FactsError) as those stop."""
+    held = [] if held is None else held
     f = files or device_files()
     drawn: dict[str, str] = {}
     staging = staging_rows(bands, joined, runs, f, drawn=drawn)
@@ -827,6 +891,17 @@ def master_outputs(bands, joined, runs, rows, parts, files: devices.Files | None
     generated = made + [dict(r, user_name=drawn[r["id"]]) if r["layer"] == "block" and r["id"] in drawn else r
                         for r in staging]
     every = [dict(r) for r in devices.follow_renames(main + staging + wired, generated)]
+    # staging's masts and heads, from the block rows above (device_map_masts; naming-layers step 12: one writer of
+    # every level's mast and head rows)
+    try:
+        every += [devices.master_row(o, WRITER) for o in
+                  device_map_masts.staging_masts(bands, joined, runs, every, f)["rows"]]
+    except device_map_masts.MissingLengths as exc:
+        # a new staging block has no plan length yet: write the rows (plan_lengths.py needs them) with staging's
+        # last mast and head rows, and stop after the write (main)
+        every += [dict(r) for r in devices.load(f) if r["level"] == str(STAGING_LEVEL)
+                  and r["layer"] in device_map_masts.LAYERS and r["written_by"] == WRITER]
+        held.append(str(exc))
     # what a main or upper bean takes from its row: its start and bean comment (naming-layers steps 9 and 11)
     every = bean_cells(every, startup_thrown(bands))
     return devices.outputs_after(WRITER, [], f, master_rows=every, warn=warn, check=check)
@@ -954,8 +1029,9 @@ def main(argv=None) -> int:
         print(f"build_device_map.py: {exc}", file=sys.stderr)
         return 2
     try:
+        held: list[str] = []
         want = {GENERATED: generated_text(cp_keys),
-                **master_outputs(bands, joined, runs, rows, parts, check=args.check)}
+                **master_outputs(bands, joined, runs, rows, parts, check=args.check, held=held)}
     except (MapError, staging_map_error(), railroad.FactsError, layer_files.LayerFileError) as exc:
         # a DevicesError is a FactsError; a StagingMapError comes from staging's placeholder grammar
         print(f"build_device_map.py: {exc}", file=sys.stderr)
@@ -964,10 +1040,16 @@ def main(argv=None) -> int:
     if args.check:
         for p in stale:
             print(devices.stale_message(p, device_files(), "tools/schematic/build_device_map.py"), file=sys.stderr)
-        return 1 if stale else 0
+        if held:
+            print(f"build_device_map.py: staging's masts not placed again: {'; '.join(held)}", file=sys.stderr)
+        return 1 if stale or held else 0
     for p in stale:
         p.write_text(want[p], encoding="utf-8")
         print(f"wrote {p.relative_to(pd.DATA.parents[4]) if len(pd.DATA.parents) > 4 else p}")
+    if held:
+        print(f"build_device_map.py: rows written, staging's masts kept as they were: {'; '.join(held)}",
+              file=sys.stderr)
+        return 2
     counts = defaultdict(int)
     for r in rows:
         counts[r["layer"]] += 1

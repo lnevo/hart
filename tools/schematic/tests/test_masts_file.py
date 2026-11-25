@@ -129,7 +129,6 @@ class Rows(unittest.TestCase):
         (r,) = run(home("Mast 8RA", "", "Track Scale", level=1, protects="OS Switch 7", physical=False)
                    + [block("OS Switch 7", "os")])
         self.assertEqual((r["switch"], r["protects"]), ("", "OS Switch 7"))
-        self.assertEqual(bmm.ANCHOR_LEVELS, (bmm.PLANNED_LEVEL,))
 
     def test_a_virtual_mast(self):
         (r,) = run([row("mast", "Mast 102RA", "IF$vsm:basic:one-low($2001)", "IF$vsm:basic:one-low($2001)",
@@ -179,13 +178,20 @@ class Stops(unittest.TestCase):
         self.stops(home("Mast 8RA", "", "T", level=1, protects="OS Switch 7", physical=False)
                    + [block("OS Switch 7", "os", level=2)], "which is no level 1 block row")
 
-    def test_a_main_or_upper_home_mast_at_no_switch_is_no_anchor_mast(self):
-        """The old main and upper guard (2026-11-16): their OS blocks end at the switch, so a home mast at no switch
-        there lost its switch, even one protecting an OS block; an intermediate (its role) is the only mast at none."""
+    def test_one_anchor_rule_on_every_level(self):
+        """One anchor rule on every level (owner, 2026-11-23; naming-layers step 12): a main or upper home mast at no
+        switch is an anchor mast as a staging one is, and must protect an OS block of its level; an intermediate (its
+        role) protects a track block."""
         for level in (2, 3):
             with self.subTest(level=level):
+                (r,) = run(home("Mast 110L", "", "T", level=level, protects="OS Switch 109")
+                           + [block("OS Switch 109", "os", level=level, ident="os:109")])
+                self.assertEqual((r["switch"], r["protects"]), ("", "OS Switch 109"))
                 self.stops(home("Mast 110L", "", "T", level=level, protects="OS Switch 109"),
-                           f"level {level}'s OS blocks end at their switches, so it is no anchor mast")
+                           f"is an anchor mast protecting OS Switch 109, which is no level {level} block row")
+                self.stops(home("Mast 110L", "", "T", level=level, protects="Track 105-109")
+                           + [block("Track 105-109", "track", level=level, ident="block:105B-109A")],
+                           "so an anchor mast, but protects Track 105-109, no OS block")
         (r,) = run(home("Mast A83", "", "Track 107 Loop 2", protects="Track 107 Loop 1", physical=False,
                         role="intermediate"))
         self.assertEqual(r["mast"], "Mast A83")

@@ -19,7 +19,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 import build_device_map as bdm  # noqa: E402
-import build_masts as bsm  # noqa: E402
+import device_map_masts as dmm  # noqa: E402
 from hartlib import devices  # noqa: E402
 
 GENERATED = os.path.realpath(devices.MASTER)
@@ -85,17 +85,19 @@ class TheStagingRows(unittest.TestCase):
 
 
 class TheMasts(unittest.TestCase):
+    """device_map_masts (build_device_map.py's staging masts) reads the owner's cells by ID from the field file."""
+
     def test_the_owners_mast_and_head_cells_come_from_the_field_file(self):
         with opens() as got:
-            owned = bsm.field_rows()
-            wired = bsm.wiring_heads(owned["head"])
+            owned = dmm.field_by_id(devices.Files.here())
+            wired = dmm.wired_heads(owned)
         self.assertEqual(set(got), {FIELD})       # the field file only (wiring.csv names staging by it too)
-        self.assertEqual([r["user_name"] for r in owned["mast"]], ["Mast 6LB"])
-        self.assertEqual(wired["Mast 6LB"]["Head 6LB"]["notes"], "one high head (owner 2026-11-19); IH433 dropped")
+        self.assertIn("Mast 6LB", [r["user_name"] for r in owned.values() if r["layer"] == "mast"])
+        self.assertEqual(wired["mast:5:B:west:single"]["notes"], "one high head (owner 2026-11-19); IH433 dropped")
 
     def test_the_ordinals_are_the_one_read_back(self):
         with opens() as got:
-            masts = bsm.allocated_masts()
+            masts = list(devices.allocated_names(("1",), "mast").values())
         self.assertEqual(got, [GENERATED])
         self.assertTrue(any(r["jmri_name"].startswith("IF$vsm") for r in masts))
 

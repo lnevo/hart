@@ -1758,19 +1758,19 @@
       <comment>CP 201 | Switch 203 | internal, not wired | planned IH1432 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:212LA_Bottom</systemName>
-      <userName>Head 212LA Bottom</userName>
+      <systemName>IH:HART:C3:212LA</systemName>
+      <userName>Head 212LA</userName>
+      <comment>CP 211 | Switch 211 | internal, not wired | planned IH5436 (draft)</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C3:212LB_Bottom</systemName>
+      <userName>Head 212LB Bottom</userName>
       <comment>CP 211 | Switch 211 | internal, not wired | planned IH2433 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:212LA_Top</systemName>
-      <userName>Head 212LA Top</userName>
+      <systemName>IH:HART:C3:212LB_Top</systemName>
+      <userName>Head 212LB Top</userName>
       <comment>CP 211 | Switch 211 | internal, not wired | planned IH2432 (draft)</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:212LB</systemName>
-      <userName>Head 212LB</userName>
-      <comment>CP 211 | Switch 211 | internal, not wired | planned IH5436 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:212RA</systemName>
@@ -1803,19 +1803,19 @@
       <comment>CP 217 | Switch 217 | internal, not wired | planned IH5432 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:218RA_Bottom</systemName>
-      <userName>Head 218RA Bottom</userName>
+      <systemName>IH:HART:C3:218RA</systemName>
+      <userName>Head 218RA</userName>
+      <comment>CP 217 | Switch 217 | internal, not wired | planned IH5439 (draft)</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C3:218RB_Bottom</systemName>
+      <userName>Head 218RB Bottom</userName>
       <comment>CP 217 | Switch 217 | internal, not wired | planned IH5435 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:218RA_Top</systemName>
-      <userName>Head 218RA Top</userName>
+      <systemName>IH:HART:C3:218RB_Top</systemName>
+      <userName>Head 218RB Top</userName>
       <comment>CP 217 | Switch 217 | internal, not wired | planned IH5434 (draft)</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:218RB</systemName>
-      <userName>Head 218RB</userName>
-      <comment>CP 217 | Switch 217 | internal, not wired | planned IH5439 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:220R_Bottom</systemName>
@@ -1828,19 +1828,19 @@
       <comment>CP 201 | Switch 219 | internal, not wired | planned IH1434 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:222LA_Bottom</systemName>
-      <userName>Head 222LA Bottom</userName>
+      <systemName>IH:HART:C3:222LA</systemName>
+      <userName>Head 222LA</userName>
+      <comment>CP 201 | Switch 221 | internal, not wired | not on a node yet</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C3:222LB_Bottom</systemName>
+      <userName>Head 222LB Bottom</userName>
       <comment>CP 201 | Switch 221 | internal, not wired | planned IH1437 (draft)</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:222LA_Top</systemName>
-      <userName>Head 222LA Top</userName>
+      <systemName>IH:HART:C3:222LB_Top</systemName>
+      <userName>Head 222LB Top</userName>
       <comment>CP 201 | Switch 221 | internal, not wired | planned IH1436 (draft)</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:222LB</systemName>
-      <userName>Head 222LB</userName>
-      <comment>CP 201 | Switch 221 | internal, not wired | not on a node yet</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:222R_Bottom</systemName>
@@ -2068,8 +2068,8 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:212LB)</systemName>
-      <userName>Mast 212LB</userName>
+      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:212LA)</systemName>
+      <userName>Mast 212LA</userName>
       <comment>CP 211 | Switch 211 | West | planned IF$shsm:basic:one-searchlight(IH5436) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
@@ -2086,14 +2086,14 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:218RB)</systemName>
-      <userName>Mast 218RB</userName>
+      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:218RA)</systemName>
+      <userName>Mast 218RA</userName>
       <comment>CP 217 | Switch 217 | East | planned IF$shsm:basic:one-searchlight(IH5439) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:222LB)</systemName>
-      <userName>Mast 222LB</userName>
+      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:222LA)</systemName>
+      <userName>Mast 222LA</userName>
       <comment>CP 201 | Switch 221 | West | not on a node yet</comment>
       <unlit allowed="no" />
     </signalmast>
@@ -2188,14 +2188,14 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-low(IH:HART:C3:204RA_Top)(IH:HART:C3:204RA_Bottom)</systemName>
-      <userName>Mast 204RA</userName>
-      <comment>CP 201 | Switch 203 | East | planned IF$shsm:basic:two-low(IH2334)(IH2335) (draft)</comment>
+      <systemName>IF$shsm:basic:two-low(IH:HART:C3:204RB_Top)(IH:HART:C3:204RB_Bottom)</systemName>
+      <userName>Mast 204RB</userName>
+      <comment>CP 201 | Switch 203 | East | planned IF$shsm:basic:two-low(IH1432)(IH1433) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-low(IH:HART:C3:212LA_Top)(IH:HART:C3:212LA_Bottom)</systemName>
-      <userName>Mast 212LA</userName>
+      <systemName>IF$shsm:basic:two-low(IH:HART:C3:212LB_Top)(IH:HART:C3:212LB_Bottom)</systemName>
+      <userName>Mast 212LB</userName>
       <comment>CP 211 | Switch 211 | West | planned IF$shsm:basic:two-low(IH2432)(IH2433) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
@@ -2206,9 +2206,9 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-low(IH:HART:C3:230LB_Top)(IH:HART:C3:230LB_Bottom)</systemName>
-      <userName>Mast 230LB</userName>
-      <comment>CP 225 | Switch 229 | West | not on a node yet</comment>
+      <systemName>IF$shsm:basic:two-low(IH:HART:C3:230LA_Top)(IH:HART:C3:230LA_Bottom)</systemName>
+      <userName>Mast 230LA</userName>
+      <comment>CP 225 | Switch 229 | West | planned IF$shsm:basic:two-low(IH4136)(IH4137) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
@@ -2332,9 +2332,9 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:204RB_Top)(IH:HART:C3:204RB_Bottom)</systemName>
-      <userName>Mast 204RB</userName>
-      <comment>CP 201 | Switch 203 | East | planned IF$shsm:basic:two-searchlight(IH1432)(IH1433) (draft)</comment>
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:204RA_Top)(IH:HART:C3:204RA_Bottom)</systemName>
+      <userName>Mast 204RA</userName>
+      <comment>CP 201 | Switch 203 | East | planned IF$shsm:basic:two-searchlight(IH2334)(IH2335) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
@@ -2350,8 +2350,8 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:218RA_Top)(IH:HART:C3:218RA_Bottom)</systemName>
-      <userName>Mast 218RA</userName>
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:218RB_Top)(IH:HART:C3:218RB_Bottom)</systemName>
+      <userName>Mast 218RB</userName>
       <comment>CP 217 | Switch 217 | East | planned IF$shsm:basic:two-searchlight(IH5434)(IH5435) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
@@ -2362,8 +2362,8 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:222LA_Top)(IH:HART:C3:222LA_Bottom)</systemName>
-      <userName>Mast 222LA</userName>
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:222LB_Top)(IH:HART:C3:222LB_Bottom)</systemName>
+      <userName>Mast 222LB</userName>
       <comment>CP 201 | Switch 221 | West | planned IF$shsm:basic:two-searchlight(IH1436)(IH1437) (draft)</comment>
       <unlit allowed="no" />
     </signalmast>
@@ -2398,9 +2398,9 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:230LA_Top)(IH:HART:C3:230LA_Bottom)</systemName>
-      <userName>Mast 230LA</userName>
-      <comment>CP 225 | Switch 229 | West | planned IF$shsm:basic:two-searchlight(IH4136)(IH4137) (draft)</comment>
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:230LB_Top)(IH:HART:C3:230LB_Bottom)</systemName>
+      <userName>Mast 230LB</userName>
+      <comment>CP 225 | Switch 229 | West | not on a node yet</comment>
       <unlit allowed="no" />
     </signalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
@@ -2501,13 +2501,13 @@
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3002)</systemName>
-      <userName>Mast 210LA</userName>
+      <userName>Mast 210LB</userName>
       <comment>West | buffer stop</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3003)</systemName>
-      <userName>Mast 210LB</userName>
+      <userName>Mast 210LA</userName>
       <comment>West | buffer stop</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
@@ -2519,13 +2519,13 @@
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3005)</systemName>
-      <userName>Mast 216LA</userName>
+      <userName>Mast 216LB</userName>
       <comment>Peninsula | buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3006)</systemName>
-      <userName>Mast 216LB</userName>
+      <userName>Mast 216LA</userName>
       <comment>Peninsula | buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
@@ -2555,25 +2555,25 @@
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3011)</systemName>
-      <userName>Mast 244RA</userName>
-      <comment>Helix | buffer stop | East</comment>
-      <unlit allowed="yes" />
-    </virtualsignalmast>
-    <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:basic:one-low($3012)</systemName>
       <userName>Mast 244RB</userName>
       <comment>Helix | buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
+      <systemName>IF$vsm:basic:one-low($3012)</systemName>
+      <userName>Mast 244RA</userName>
+      <comment>Helix | buffer stop | East</comment>
+      <unlit allowed="yes" />
+    </virtualsignalmast>
+    <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3013)</systemName>
-      <userName>Mast 246LA</userName>
+      <userName>Mast 246LB</userName>
       <comment>Helix | buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3014)</systemName>
-      <userName>Mast 246LB</userName>
+      <userName>Mast 246LA</userName>
       <comment>Helix | buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
@@ -5324,8 +5324,8 @@
     </signalmastlogic>
     <signalmastlogic source="Mast 242L">
       <sourceSignalMast>Mast 242L</sourceSignalMast>
-      <destinationMast destination="Mast 230LA">
-        <destinationSignalMast>Mast 230LA</destinationSignalMast>
+      <destinationMast destination="Mast 230LB">
+        <destinationSignalMast>Mast 230LB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -5488,8 +5488,8 @@
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
-    <signalmastlogic source="Mast 212LB">
-      <sourceSignalMast>Mast 212LB</sourceSignalMast>
+    <signalmastlogic source="Mast 212LA">
+      <sourceSignalMast>Mast 212LA</sourceSignalMast>
       <destinationMast destination="Mast 218LA">
         <destinationSignalMast>Mast 218LA</destinationSignalMast>
         <comment />
@@ -5513,8 +5513,8 @@
     </signalmastlogic>
     <signalmastlogic source="Mast 212RA">
       <sourceSignalMast>Mast 212RA</sourceSignalMast>
-      <destinationMast destination="Mast 204RA">
-        <destinationSignalMast>Mast 204RA</destinationSignalMast>
+      <destinationMast destination="Mast 204RB">
+        <destinationSignalMast>Mast 204RB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -5523,8 +5523,8 @@
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      <destinationMast destination="Mast 204RB">
-        <destinationSignalMast>Mast 204RB</destinationSignalMast>
+      <destinationMast destination="Mast 204RA">
+        <destinationSignalMast>Mast 204RA</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -5536,8 +5536,8 @@
     </signalmastlogic>
     <signalmastlogic source="Mast 218LA">
       <sourceSignalMast>Mast 218LA</sourceSignalMast>
-      <destinationMast destination="Mast 222LB">
-        <destinationSignalMast>Mast 222LB</destinationSignalMast>
+      <destinationMast destination="Mast 222LA">
+        <destinationSignalMast>Mast 222LA</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -5557,8 +5557,8 @@
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
-    <signalmastlogic source="Mast 218RB">
-      <sourceSignalMast>Mast 218RB</sourceSignalMast>
+    <signalmastlogic source="Mast 218RA">
+      <sourceSignalMast>Mast 218RA</sourceSignalMast>
       <destinationMast destination="Mast 212RA">
         <destinationSignalMast>Mast 212RA</destinationSignalMast>
         <comment />
@@ -5580,8 +5580,8 @@
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
-    <signalmastlogic source="Mast 222LB">
-      <sourceSignalMast>Mast 222LB</sourceSignalMast>
+    <signalmastlogic source="Mast 222LA">
+      <sourceSignalMast>Mast 222LA</sourceSignalMast>
       <destinationMast destination="Mast 128LB">
         <destinationSignalMast>Mast 128LB</destinationSignalMast>
         <comment />
@@ -5605,8 +5605,8 @@
     </signalmastlogic>
     <signalmastlogic source="Mast 224LA">
       <sourceSignalMast>Mast 224LA</sourceSignalMast>
-      <destinationMast destination="Mast 222LA">
-        <destinationSignalMast>Mast 222LA</destinationSignalMast>
+      <destinationMast destination="Mast 222LB">
+        <destinationSignalMast>Mast 222LB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -5618,8 +5618,8 @@
     </signalmastlogic>
     <signalmastlogic source="Mast 224LB">
       <sourceSignalMast>Mast 224LB</sourceSignalMast>
-      <destinationMast destination="Mast 222LA">
-        <destinationSignalMast>Mast 222LA</destinationSignalMast>
+      <destinationMast destination="Mast 222LB">
+        <destinationSignalMast>Mast 222LB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -5670,8 +5670,8 @@
     </signalmastlogic>
     <signalmastlogic source="Mast B93">
       <sourceSignalMast>Mast B93</sourceSignalMast>
-      <destinationMast destination="Mast 230LA">
-        <destinationSignalMast>Mast 230LA</destinationSignalMast>
+      <destinationMast destination="Mast 230LB">
+        <destinationSignalMast>Mast 230LB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -5829,8 +5829,8 @@
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
-    <signalmastlogic source="Mast 204RA">
-      <sourceSignalMast>Mast 204RA</sourceSignalMast>
+    <signalmastlogic source="Mast 204RB">
+      <sourceSignalMast>Mast 204RB</sourceSignalMast>
       <destinationMast destination="Mast 128LB">
         <destinationSignalMast>Mast 128LB</destinationSignalMast>
         <comment />
@@ -5852,8 +5852,8 @@
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
-    <signalmastlogic source="Mast 212LA">
-      <sourceSignalMast>Mast 212LA</sourceSignalMast>
+    <signalmastlogic source="Mast 212LB">
+      <sourceSignalMast>Mast 212LB</sourceSignalMast>
       <destinationMast destination="Mast 218LA">
         <destinationSignalMast>Mast 218LA</destinationSignalMast>
         <comment />
@@ -5898,8 +5898,8 @@
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
-    <signalmastlogic source="Mast 230LB">
-      <sourceSignalMast>Mast 230LB</sourceSignalMast>
+    <signalmastlogic source="Mast 230LA">
+      <sourceSignalMast>Mast 230LA</sourceSignalMast>
       <destinationMast destination="Mast 224LA">
         <destinationSignalMast>Mast 224LA</destinationSignalMast>
         <comment />
@@ -6631,8 +6631,8 @@
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
-    <signalmastlogic source="Mast 204RB">
-      <sourceSignalMast>Mast 204RB</sourceSignalMast>
+    <signalmastlogic source="Mast 204RA">
+      <sourceSignalMast>Mast 204RA</sourceSignalMast>
       <destinationMast destination="Mast 128LB">
         <destinationSignalMast>Mast 128LB</destinationSignalMast>
         <comment />
@@ -6656,8 +6656,8 @@
     </signalmastlogic>
     <signalmastlogic source="Mast 212RB">
       <sourceSignalMast>Mast 212RB</sourceSignalMast>
-      <destinationMast destination="Mast 204RA">
-        <destinationSignalMast>Mast 204RA</destinationSignalMast>
+      <destinationMast destination="Mast 204RB">
+        <destinationSignalMast>Mast 204RB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -6666,8 +6666,8 @@
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      <destinationMast destination="Mast 204RB">
-        <destinationSignalMast>Mast 204RB</destinationSignalMast>
+      <destinationMast destination="Mast 204RA">
+        <destinationSignalMast>Mast 204RA</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -6679,8 +6679,8 @@
     </signalmastlogic>
     <signalmastlogic source="Mast 218LB">
       <sourceSignalMast>Mast 218LB</sourceSignalMast>
-      <destinationMast destination="Mast 222LB">
-        <destinationSignalMast>Mast 222LB</destinationSignalMast>
+      <destinationMast destination="Mast 222LA">
+        <destinationSignalMast>Mast 222LA</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -6700,8 +6700,8 @@
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
-    <signalmastlogic source="Mast 218RA">
-      <sourceSignalMast>Mast 218RA</sourceSignalMast>
+    <signalmastlogic source="Mast 218RB">
+      <sourceSignalMast>Mast 218RB</sourceSignalMast>
       <destinationMast destination="Mast 212RA">
         <destinationSignalMast>Mast 212RA</destinationSignalMast>
         <comment />
@@ -6746,40 +6746,10 @@
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
-    <signalmastlogic source="Mast 222LA">
-      <sourceSignalMast>Mast 222LA</sourceSignalMast>
-      <destinationMast destination="Mast 212LB">
-        <destinationSignalMast>Mast 212LB</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast 218RB">
-        <destinationSignalMast>Mast 218RB</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
+    <signalmastlogic source="Mast 222LB">
+      <sourceSignalMast>Mast 222LB</sourceSignalMast>
       <destinationMast destination="Mast 212LA">
         <destinationSignalMast>Mast 212LA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast 204RB">
-        <destinationSignalMast>Mast 204RB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -6798,8 +6768,8 @@
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      <destinationMast destination="Mast 206L">
-        <destinationSignalMast>Mast 206L</destinationSignalMast>
+      <destinationMast destination="Mast 212LB">
+        <destinationSignalMast>Mast 212LB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -6808,8 +6778,28 @@
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      <destinationMast destination="Mast 210LA">
-        <destinationSignalMast>Mast 210LA</destinationSignalMast>
+      <destinationMast destination="Mast 204RA">
+        <destinationSignalMast>Mast 204RA</destinationSignalMast>
+        <comment />
+        <enabled>yes</enabled>
+        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+        <useLayoutEditor>yes</useLayoutEditor>
+        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+        <lockTurnouts>no</lockTurnouts>
+      </destinationMast>
+      <destinationMast destination="Mast 218RB">
+        <destinationSignalMast>Mast 218RB</destinationSignalMast>
+        <comment />
+        <enabled>yes</enabled>
+        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+        <useLayoutEditor>yes</useLayoutEditor>
+        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+        <lockTurnouts>no</lockTurnouts>
+      </destinationMast>
+      <destinationMast destination="Mast 206L">
+        <destinationSignalMast>Mast 206L</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -6828,6 +6818,16 @@
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
+      <destinationMast destination="Mast 210LA">
+        <destinationSignalMast>Mast 210LA</destinationSignalMast>
+        <comment />
+        <enabled>yes</enabled>
+        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+        <useLayoutEditor>yes</useLayoutEditor>
+        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+        <lockTurnouts>no</lockTurnouts>
+      </destinationMast>
       <destinationMast destination="Mast 214L">
         <destinationSignalMast>Mast 214L</destinationSignalMast>
         <comment />
@@ -6838,8 +6838,8 @@
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      <destinationMast destination="Mast 216LA">
-        <destinationSignalMast>Mast 216LA</destinationSignalMast>
+      <destinationMast destination="Mast 216LB">
+        <destinationSignalMast>Mast 216LB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -6848,8 +6848,8 @@
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      <destinationMast destination="Mast 216LB">
-        <destinationSignalMast>Mast 216LB</destinationSignalMast>
+      <destinationMast destination="Mast 216LA">
+        <destinationSignalMast>Mast 216LA</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -6861,38 +6861,8 @@
     </signalmastlogic>
     <signalmastlogic source="Mast 222R">
       <sourceSignalMast>Mast 222R</sourceSignalMast>
-      <destinationMast destination="Mast 212LB">
-        <destinationSignalMast>Mast 212LB</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast 218RB">
-        <destinationSignalMast>Mast 218RB</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
       <destinationMast destination="Mast 212LA">
         <destinationSignalMast>Mast 212LA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast 204RB">
-        <destinationSignalMast>Mast 204RB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -6911,8 +6881,8 @@
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      <destinationMast destination="Mast 206L">
-        <destinationSignalMast>Mast 206L</destinationSignalMast>
+      <destinationMast destination="Mast 212LB">
+        <destinationSignalMast>Mast 212LB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -6921,8 +6891,28 @@
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      <destinationMast destination="Mast 210LA">
-        <destinationSignalMast>Mast 210LA</destinationSignalMast>
+      <destinationMast destination="Mast 204RA">
+        <destinationSignalMast>Mast 204RA</destinationSignalMast>
+        <comment />
+        <enabled>yes</enabled>
+        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+        <useLayoutEditor>yes</useLayoutEditor>
+        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+        <lockTurnouts>no</lockTurnouts>
+      </destinationMast>
+      <destinationMast destination="Mast 218RB">
+        <destinationSignalMast>Mast 218RB</destinationSignalMast>
+        <comment />
+        <enabled>yes</enabled>
+        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+        <useLayoutEditor>yes</useLayoutEditor>
+        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+        <lockTurnouts>no</lockTurnouts>
+      </destinationMast>
+      <destinationMast destination="Mast 206L">
+        <destinationSignalMast>Mast 206L</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -6941,6 +6931,16 @@
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
+      <destinationMast destination="Mast 210LA">
+        <destinationSignalMast>Mast 210LA</destinationSignalMast>
+        <comment />
+        <enabled>yes</enabled>
+        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+        <useLayoutEditor>yes</useLayoutEditor>
+        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+        <lockTurnouts>no</lockTurnouts>
+      </destinationMast>
       <destinationMast destination="Mast 214L">
         <destinationSignalMast>Mast 214L</destinationSignalMast>
         <comment />
@@ -6951,8 +6951,8 @@
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      <destinationMast destination="Mast 216LA">
-        <destinationSignalMast>Mast 216LA</destinationSignalMast>
+      <destinationMast destination="Mast 216LB">
+        <destinationSignalMast>Mast 216LB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -6961,8 +6961,8 @@
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      <destinationMast destination="Mast 216LB">
-        <destinationSignalMast>Mast 216LB</destinationSignalMast>
+      <destinationMast destination="Mast 216LA">
+        <destinationSignalMast>Mast 216LA</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -7057,16 +7057,6 @@
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      <destinationMast destination="Mast 244RA">
-        <destinationSignalMast>Mast 244RA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
       <destinationMast destination="Mast 244RB">
         <destinationSignalMast>Mast 244RB</destinationSignalMast>
         <comment />
@@ -7077,8 +7067,8 @@
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      <destinationMast destination="Mast 246LA">
-        <destinationSignalMast>Mast 246LA</destinationSignalMast>
+      <destinationMast destination="Mast 244RA">
+        <destinationSignalMast>Mast 244RA</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -7089,6 +7079,16 @@
       </destinationMast>
       <destinationMast destination="Mast 246LB">
         <destinationSignalMast>Mast 246LB</destinationSignalMast>
+        <comment />
+        <enabled>yes</enabled>
+        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+        <useLayoutEditor>yes</useLayoutEditor>
+        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+        <lockTurnouts>no</lockTurnouts>
+      </destinationMast>
+      <destinationMast destination="Mast 246LA">
+        <destinationSignalMast>Mast 246LA</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -7160,16 +7160,6 @@
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      <destinationMast destination="Mast 244RA">
-        <destinationSignalMast>Mast 244RA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
       <destinationMast destination="Mast 244RB">
         <destinationSignalMast>Mast 244RB</destinationSignalMast>
         <comment />
@@ -7180,8 +7170,8 @@
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      <destinationMast destination="Mast 246LA">
-        <destinationSignalMast>Mast 246LA</destinationSignalMast>
+      <destinationMast destination="Mast 244RA">
+        <destinationSignalMast>Mast 244RA</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -7192,6 +7182,16 @@
       </destinationMast>
       <destinationMast destination="Mast 246LB">
         <destinationSignalMast>Mast 246LB</destinationSignalMast>
+        <comment />
+        <enabled>yes</enabled>
+        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+        <useLayoutEditor>yes</useLayoutEditor>
+        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+        <lockTurnouts>no</lockTurnouts>
+      </destinationMast>
+      <destinationMast destination="Mast 246LA">
+        <destinationSignalMast>Mast 246LA</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -7224,8 +7224,8 @@
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
     </signalmastlogic>
-    <signalmastlogic source="Mast 230LA">
-      <sourceSignalMast>Mast 230LA</sourceSignalMast>
+    <signalmastlogic source="Mast 230LB">
+      <sourceSignalMast>Mast 230LB</sourceSignalMast>
       <destinationMast destination="Mast 224LA">
         <destinationSignalMast>Mast 224LA</destinationSignalMast>
         <comment />
@@ -10663,20 +10663,20 @@
     <layoutturnout ident="TOG41" type="LH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="2015.9" ycen="962.0" xa="1995.9" ya="942.0" xb="2075.9" yb="942.0" xc="2035.9" yc="982.0" xd="1955.9" yd="982.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHXOverXml" turnoutname="Switch 243" blockname="OS Switch 243" connectaname="TG133" connectbname="TG135" connectcname="TG155" connectdname="TG149" />
     <layoutturnout ident="TOG42" type="LH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="2131.9" ycen="1082.0" xa="2111.9" ya="1062.0" xb="2191.9" yb="1062.0" xc="2151.9" yc="1102.0" xd="2071.9" yd="1102.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHXOverXml" turnoutname="Switch 245" blockname="OS Switch 245" connectaname="TG142" connectbname="TG151" connectcname="TG144" connectdname="TG143" />
     <layoutturnout ident="TOG43" type="RH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1167.9" ycen="1082.0" xa="1107.9" ya="1062.0" xb="1187.9" yb="1062.0" xc="1227.9" yc="1102.0" xd="1147.9" yd="1102.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHXOverXml" turnoutname="Switch 221" blockname="OS Switch 221" connectaname="TG185" connectbname="TG186" connectcname="TG188" connectdname="TG189">
-      <signalBMast>Mast 222LA</signalBMast>
+      <signalBMast>Mast 222LB</signalBMast>
       <signalCMast>Mast 222R</signalCMast>
-      <signalDMast>Mast 222LB</signalDMast>
+      <signalDMast>Mast 222LA</signalDMast>
     </layoutturnout>
     <layoutturnout ident="TOG44" type="RH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="581.9" ycen="1082.0" xa="521.9" ya="1062.0" xb="601.9" yb="1062.0" xc="641.9" yc="1102.0" xd="561.9" yd="1102.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHXOverXml" turnoutname="Switch 211" blockname="OS Switch 211" connectaname="TG159" connectbname="TG187" connectcname="TG191" connectdname="TG184">
-      <signalAMast>Mast 212LA</signalAMast>
+      <signalAMast>Mast 212LB</signalAMast>
       <signalBMast>Mast 212RA</signalBMast>
       <signalCMast>Mast 212RB</signalCMast>
-      <signalDMast>Mast 212LB</signalDMast>
+      <signalDMast>Mast 212LA</signalDMast>
     </layoutturnout>
     <layoutturnout ident="TOG45" type="LH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="902.9" ycen="1082.0" xa="882.9" ya="1062.0" xb="962.9" yb="1062.0" xc="922.9" yc="1102.0" xd="842.9" yd="1102.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHXOverXml" turnoutname="Switch 217" blockname="OS Switch 217" connectaname="TG187" connectbname="TG190" connectcname="TG189" connectdname="TG191">
       <signalAMast>Mast 218LA</signalAMast>
-      <signalBMast>Mast 218RA</signalBMast>
-      <signalCMast>Mast 218RB</signalCMast>
+      <signalBMast>Mast 218RB</signalBMast>
+      <signalCMast>Mast 218RA</signalCMast>
       <signalDMast>Mast 218LB</signalDMast>
     </layoutturnout>
     <layoutturnout ident="TOG46" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="200.2" ycen="1102.0" xa="188.2" ya="1102.0" xb="212.2" yb="1102.0" xc="208.7" yc="1093.5" xd="188.2" yd="1102.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 201" blockname="OS Switch 201" connectaname="TG163" connectbname="TG167" connectcname="TG168">
@@ -10691,14 +10691,14 @@
     <layoutturnout ident="TOG49" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="642.2" ycen="1022.0" xa="630.2" ya="1022.0" xb="654.2" yb="1022.0" xc="650.7" yc="1013.5" xd="630.2" yd="1022.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 213" blockname="OS Switch 213" connectaname="TG162" connectbname="TG196" connectcname="TG208" />
     <layoutturnout ident="TOG50" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="481.5" ycen="982.0" xa="469.5" ya="982.0" xb="493.5" yb="982.0" xc="490.0" yc="973.5" xd="469.5" yd="982.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 209" blockname="OS Switch 209" connectaname="TG203" connectbname="TG204" connectcname="TG205" />
     <layoutturnout ident="TOG51" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="280.5" ycen="1102.0" xa="268.5" ya="1102.0" xb="292.5" yb="1102.0" xc="289.1" yc="1093.5" xd="268.5" yd="1102.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 203" blockname="OS Switch 203" connectaname="TG167" connectbname="TG184" connectcname="TG156">
-      <signalBMast>Mast 204RB</signalBMast>
-      <signalCMast>Mast 204RA</signalCMast>
+      <signalBMast>Mast 204RA</signalBMast>
+      <signalCMast>Mast 204RB</signalCMast>
     </layoutturnout>
     <layoutturnout ident="TOG52" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="320.7" ycen="1022.0" xa="308.7" ya="1022.0" xb="332.7" yb="1022.0" xc="329.2" yc="1013.5" xd="308.7" yd="1022.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 205" blockname="OS Switch 205" connectaname="TG170" connectbname="TG211" connectcname="TG201" />
     <layoutturnout ident="TOG53" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="802.9" ycen="1022.0" xa="790.9" ya="1022.0" xb="814.9" yb="1022.0" xc="811.4" yc="1013.5" xd="790.9" yd="1022.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 215" blockname="OS Switch 215" connectaname="TG196" connectbname="TG197" connectcname="TG198" />
     <layoutturnout ident="TOG54" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1816.9" ycen="1022.0" xa="1804.9" ya="1022.0" xb="1828.9" yb="1022.0" xc="1825.4" yc="1013.5" xd="1804.9" yd="1022.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 229" blockname="OS Switch 229" connectaname="TG171" connectbname="TG130" connectcname="TG172">
-      <signalBMast>Mast 230LB</signalBMast>
-      <signalCMast>Mast 230LA</signalCMast>
+      <signalBMast>Mast 230LA</signalBMast>
+      <signalCMast>Mast 230LB</signalCMast>
     </layoutturnout>
     <layoutturnout ident="TOG55" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="401.1" ycen="1062.0" xa="389.1" ya="1062.0" xb="413.1" yb="1062.0" xc="409.6" yc="1053.5" xd="389.1" yd="1062.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 207" blockname="OS Switch 207" connectaname="TG158" connectbname="TG159" connectcname="TG160" />
     <layoutturnout ident="TOG56" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1910.6" ycen="1102.0" xa="1898.6" ya="1102.0" xb="1922.6" yb="1102.0" xc="1919.1" yc="1093.5" xd="1898.6" yd="1102.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 237" blockname="OS Switch 237" connectaname="TG138" connectbname="TG139" connectcname="TG140" />
@@ -11017,19 +11017,19 @@
     <positionablepoint ident="AG50" type="ANCHOR" x="1876.9" y="764.0" connect1name="TG116" connect2name="TG117" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="AG51" type="ANCHOR" x="302.2" y="624.0" connect1name="TG122" connect2name="TG123" eastboundsignalmast="Mast A83" westboundsignalmast="Mast A84" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="AGE21" type="ANCHOR" x="1727.1" y="1102.0" connect1name="TG212" connect2name="TG218" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG22" type="END_BUMPER" x="2111.5" y="942.0" connect1name="TG135" eastboundsignalmast="Mast 244RA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG22" type="END_BUMPER" x="2111.5" y="942.0" connect1name="TG135" eastboundsignalmast="Mast 244RB" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EBG23" type="END_BUMPER" x="1910.6" y="1062.0" connect1name="TG146" eastboundsignalmast="Mast 232L" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG24" type="END_BUMPER" x="2232.1" y="1062.0" connect1name="TG151" eastboundsignalmast="Mast 246LA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG24" type="END_BUMPER" x="2232.1" y="1062.0" connect1name="TG151" eastboundsignalmast="Mast 246LB" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EBG25" type="END_BUMPER" x="2071.3" y="1142.0" connect1name="TG154" eastboundsignalmast="Mast 240L" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EBG26" type="END_BUMPER" x="2071.3" y="902.0" connect1name="TG181" eastboundsignalmast="Mast 242R" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG27" type="END_BUMPER" x="2191.9" y="1102.0" connect1name="TG144" eastboundsignalmast="Mast 246LB" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG27" type="END_BUMPER" x="2191.9" y="1102.0" connect1name="TG144" eastboundsignalmast="Mast 246LA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EBG28" type="END_BUMPER" x="1991.0" y="1022.0" connect1name="TG150" eastboundsignalmast="Mast 236R" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG29" type="END_BUMPER" x="2071.3" y="982.0" connect1name="TG155" eastboundsignalmast="Mast 244RB" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG29" type="END_BUMPER" x="2071.3" y="982.0" connect1name="TG155" eastboundsignalmast="Mast 244RA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EBG30" type="END_BUMPER" x="401.1" y="1022.0" connect1name="TG211" eastboundsignalmast="Mast 206L" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG31" type="END_BUMPER" x="923.5" y="982.0" connect1name="TG200" eastboundsignalmast="Mast 216LA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG32" type="END_BUMPER" x="883.3" y="1022.0" connect1name="TG197" eastboundsignalmast="Mast 216LB" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG33" type="END_BUMPER" x="602.0" y="942.0" connect1name="TG207" eastboundsignalmast="Mast 210LA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG34" type="END_BUMPER" x="561.8" y="982.0" connect1name="TG204" eastboundsignalmast="Mast 210LB" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG31" type="END_BUMPER" x="923.5" y="982.0" connect1name="TG200" eastboundsignalmast="Mast 216LB" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG32" type="END_BUMPER" x="883.3" y="1022.0" connect1name="TG197" eastboundsignalmast="Mast 216LA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG33" type="END_BUMPER" x="602.0" y="942.0" connect1name="TG207" eastboundsignalmast="Mast 210LB" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG34" type="END_BUMPER" x="561.8" y="982.0" connect1name="TG204" eastboundsignalmast="Mast 210LA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EBG35" type="END_BUMPER" x="762.7" y="982.0" connect1name="TG210" eastboundsignalmast="Mast 214L" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="AGE36" type="ANCHOR" x="1606.6" y="1142.0" connect1name="TG126" connect2name="TG219" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="AGE37" type="ANCHOR" x="1405.6" y="1142.0" connect1name="TG127" connect2name="TG220" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
@@ -11586,25 +11586,25 @@
     <signalmasticon signalmast="Mast 128LB" x="1424" y="1106" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 132RB" x="1542" y="1086" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 202R" x="200" y="1067" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="225" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 204RA" x="281" y="1067" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="225" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 204RB" x="301" y="1086" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 204RA" x="301" y="1086" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 204RB" x="281" y="1067" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="225" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 206L" x="380" y="1026" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 210LA" x="581" y="946" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 210LB" x="541" y="986" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 212LA" x="501" y="1066" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 212LB" x="518" y="1106" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 210LA" x="541" y="986" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 210LB" x="581" y="946" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 212LA" x="518" y="1106" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 212LB" x="501" y="1066" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 212RA" x="606" y="1046" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 212RB" x="646" y="1086" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 214L" x="742" y="986" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 216LA" x="902" y="986" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 216LB" x="862" y="1026" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 216LA" x="862" y="1026" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 216LB" x="902" y="986" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 218LA" x="839" y="1066" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 218LB" x="799" y="1106" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 218RA" x="967" y="1046" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 218RB" x="927" y="1086" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 218RA" x="927" y="1086" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 218RB" x="967" y="1046" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 220R" x="1028" y="1066" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 222LA" x="1192" y="1046" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 222LB" x="1104" y="1106" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 222LA" x="1104" y="1106" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 222LB" x="1192" y="1046" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 222R" x="1232" y="1086" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 224LA" x="1486" y="1011" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="225" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 224LB" x="1508" y="1046" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
@@ -11613,17 +11613,17 @@
     <signalmasticon signalmast="Mast 226RB" x="1590" y="1066" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 228RA" x="1783" y="1046" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 228RB" x="1786" y="1066" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="315" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 230LA" x="1817" y="971" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="225" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 230LB" x="1839" y="1006" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 230LA" x="1839" y="1006" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 230LB" x="1817" y="971" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="225" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 232L" x="1890" y="1066" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 236R" x="1970" y="1026" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 240L" x="2050" y="1146" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 242L" x="2013" y="886" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 242R" x="2050" y="906" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 244RA" x="2091" y="946" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 244RB" x="2050" y="986" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 246LA" x="2211" y="1066" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 246LB" x="2171" y="1106" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 244RA" x="2050" y="986" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 244RB" x="2091" y="946" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 246LA" x="2171" y="1106" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 246LB" x="2211" y="1066" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast B92" x="2411" y="978" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="180" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast B93" x="2435" y="1026" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <sensoricon sensor="Bridge HBLOOP" level="10" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml" x="2333" y="428">
@@ -12525,20 +12525,20 @@
     <layoutturnout ident="TOG41" type="LH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="2015.9" ycen="191.0" xa="1995.9" ya="171.0" xb="2075.9" yb="171.0" xc="2035.9" yc="211.0" xd="1955.9" yd="211.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHXOverXml" turnoutname="Switch 243" blockname="OS Switch 243" connectaname="TG133" connectbname="TG135" connectcname="TG155" connectdname="TG149" />
     <layoutturnout ident="TOG42" type="LH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="2131.9" ycen="311.0" xa="2111.9" ya="291.0" xb="2191.9" yb="291.0" xc="2151.9" yc="331.0" xd="2071.9" yd="331.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHXOverXml" turnoutname="Switch 245" blockname="OS Switch 245" connectaname="TG142" connectbname="TG151" connectcname="TG144" connectdname="TG143" />
     <layoutturnout ident="TOG43" type="RH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1167.9" ycen="311.0" xa="1107.9" ya="291.0" xb="1187.9" yb="291.0" xc="1227.9" yc="331.0" xd="1147.9" yd="331.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHXOverXml" turnoutname="Switch 221" blockname="OS Switch 221" connectaname="TG185" connectbname="TG186" connectcname="TG188" connectdname="TG189">
-      <signalBMast>Mast 222LA</signalBMast>
+      <signalBMast>Mast 222LB</signalBMast>
       <signalCMast>Mast 222R</signalCMast>
-      <signalDMast>Mast 222LB</signalDMast>
+      <signalDMast>Mast 222LA</signalDMast>
     </layoutturnout>
     <layoutturnout ident="TOG44" type="RH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="581.9" ycen="311.0" xa="521.9" ya="291.0" xb="601.9" yb="291.0" xc="641.9" yc="331.0" xd="561.9" yd="331.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHXOverXml" turnoutname="Switch 211" blockname="OS Switch 211" connectaname="TG159" connectbname="TG187" connectcname="TG191" connectdname="TG184">
-      <signalAMast>Mast 212LA</signalAMast>
+      <signalAMast>Mast 212LB</signalAMast>
       <signalBMast>Mast 212RA</signalBMast>
       <signalCMast>Mast 212RB</signalCMast>
-      <signalDMast>Mast 212LB</signalDMast>
+      <signalDMast>Mast 212LA</signalDMast>
     </layoutturnout>
     <layoutturnout ident="TOG45" type="LH_XOVER" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="902.9" ycen="311.0" xa="882.9" ya="291.0" xb="962.9" yb="291.0" xc="922.9" yc="331.0" xd="842.9" yd="331.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHXOverXml" turnoutname="Switch 217" blockname="OS Switch 217" connectaname="TG187" connectbname="TG190" connectcname="TG189" connectdname="TG191">
       <signalAMast>Mast 218LA</signalAMast>
-      <signalBMast>Mast 218RA</signalBMast>
-      <signalCMast>Mast 218RB</signalCMast>
+      <signalBMast>Mast 218RB</signalBMast>
+      <signalCMast>Mast 218RA</signalCMast>
       <signalDMast>Mast 218LB</signalDMast>
     </layoutturnout>
     <layoutturnout ident="TOG46" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="200.2" ycen="331.0" xa="188.2" ya="331.0" xb="212.2" yb="331.0" xc="208.7" yc="322.5" xd="188.2" yd="331.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 201" blockname="OS Switch 201" connectaname="TG163" connectbname="TG167" connectcname="TG168">
@@ -12553,14 +12553,14 @@
     <layoutturnout ident="TOG49" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="642.2" ycen="251.0" xa="630.2" ya="251.0" xb="654.2" yb="251.0" xc="650.7" yc="242.5" xd="630.2" yd="251.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 213" blockname="OS Switch 213" connectaname="TG162" connectbname="TG196" connectcname="TG208" />
     <layoutturnout ident="TOG50" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="481.5" ycen="211.0" xa="469.5" ya="211.0" xb="493.5" yb="211.0" xc="490.0" yc="202.5" xd="469.5" yd="211.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 209" blockname="OS Switch 209" connectaname="TG203" connectbname="TG204" connectcname="TG205" />
     <layoutturnout ident="TOG51" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="280.5" ycen="331.0" xa="268.5" ya="331.0" xb="292.5" yb="331.0" xc="289.1" yc="322.5" xd="268.5" yd="331.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 203" blockname="OS Switch 203" connectaname="TG167" connectbname="TG184" connectcname="TG156">
-      <signalBMast>Mast 204RB</signalBMast>
-      <signalCMast>Mast 204RA</signalCMast>
+      <signalBMast>Mast 204RA</signalBMast>
+      <signalCMast>Mast 204RB</signalCMast>
     </layoutturnout>
     <layoutturnout ident="TOG52" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="320.7" ycen="251.0" xa="308.7" ya="251.0" xb="332.7" yb="251.0" xc="329.2" yc="242.5" xd="308.7" yd="251.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 205" blockname="OS Switch 205" connectaname="TG170" connectbname="TG211" connectcname="TG201" />
     <layoutturnout ident="TOG53" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="802.9" ycen="251.0" xa="790.9" ya="251.0" xb="814.9" yb="251.0" xc="811.4" yc="242.5" xd="790.9" yd="251.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 215" blockname="OS Switch 215" connectaname="TG196" connectbname="TG197" connectcname="TG198" />
     <layoutturnout ident="TOG54" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1816.9" ycen="251.0" xa="1804.9" ya="251.0" xb="1828.9" yb="251.0" xc="1825.4" yc="242.5" xd="1804.9" yd="251.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 229" blockname="OS Switch 229" connectaname="TG171" connectbname="TG130" connectcname="TG172">
-      <signalBMast>Mast 230LB</signalBMast>
-      <signalCMast>Mast 230LA</signalCMast>
+      <signalBMast>Mast 230LA</signalBMast>
+      <signalCMast>Mast 230LB</signalCMast>
     </layoutturnout>
     <layoutturnout ident="TOG55" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="401.1" ycen="291.0" xa="389.1" ya="291.0" xb="413.1" yb="291.0" xc="409.6" yc="282.5" xd="389.1" yd="291.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 207" blockname="OS Switch 207" connectaname="TG158" connectbname="TG159" connectcname="TG160" />
     <layoutturnout ident="TOG56" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1910.6" ycen="331.0" xa="1898.6" ya="331.0" xb="1922.6" yb="331.0" xc="1919.1" yc="322.5" xd="1898.6" yd="331.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 237" blockname="OS Switch 237" connectaname="TG138" connectbname="TG139" connectcname="TG140" />
@@ -12681,19 +12681,19 @@
     <tracksegment ident="TG215" blockname="Track 227-241 2" connect1name="AG54" type1="POS_POINT" connect2name="AG95" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" arc="yes" flip="no" circle="yes" angle="90" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG216" blockname="Track 227-241 1" connect1name="AG95" type1="POS_POINT" connect2name="AG55" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" arc="yes" flip="no" circle="yes" angle="90" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <positionablepoint ident="AGE21" type="EDGE_CONNECTOR" x="1727.1" y="331.0" connect1name="TG212" linkedpanel="Staging Level" linkpointid="AGE2" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG22" type="END_BUMPER" x="2111.5" y="171.0" connect1name="TG135" eastboundsignalmast="Mast 244RA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG22" type="END_BUMPER" x="2111.5" y="171.0" connect1name="TG135" eastboundsignalmast="Mast 244RB" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EBG23" type="END_BUMPER" x="1910.6" y="291.0" connect1name="TG146" eastboundsignalmast="Mast 232L" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG24" type="END_BUMPER" x="2232.1" y="291.0" connect1name="TG151" eastboundsignalmast="Mast 246LA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG24" type="END_BUMPER" x="2232.1" y="291.0" connect1name="TG151" eastboundsignalmast="Mast 246LB" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EBG25" type="END_BUMPER" x="2071.3" y="371.0" connect1name="TG154" eastboundsignalmast="Mast 240L" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EBG26" type="END_BUMPER" x="2071.3" y="131.0" connect1name="TG181" eastboundsignalmast="Mast 242R" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG27" type="END_BUMPER" x="2191.9" y="331.0" connect1name="TG144" eastboundsignalmast="Mast 246LB" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG27" type="END_BUMPER" x="2191.9" y="331.0" connect1name="TG144" eastboundsignalmast="Mast 246LA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EBG28" type="END_BUMPER" x="1991.0" y="251.0" connect1name="TG150" eastboundsignalmast="Mast 236R" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG29" type="END_BUMPER" x="2071.3" y="211.0" connect1name="TG155" eastboundsignalmast="Mast 244RB" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG29" type="END_BUMPER" x="2071.3" y="211.0" connect1name="TG155" eastboundsignalmast="Mast 244RA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EBG30" type="END_BUMPER" x="401.1" y="251.0" connect1name="TG211" eastboundsignalmast="Mast 206L" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG31" type="END_BUMPER" x="923.5" y="211.0" connect1name="TG200" eastboundsignalmast="Mast 216LA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG32" type="END_BUMPER" x="883.3" y="251.0" connect1name="TG197" eastboundsignalmast="Mast 216LB" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG33" type="END_BUMPER" x="602.0" y="171.0" connect1name="TG207" eastboundsignalmast="Mast 210LA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="EBG34" type="END_BUMPER" x="561.8" y="211.0" connect1name="TG204" eastboundsignalmast="Mast 210LB" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG31" type="END_BUMPER" x="923.5" y="211.0" connect1name="TG200" eastboundsignalmast="Mast 216LB" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG32" type="END_BUMPER" x="883.3" y="251.0" connect1name="TG197" eastboundsignalmast="Mast 216LA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG33" type="END_BUMPER" x="602.0" y="171.0" connect1name="TG207" eastboundsignalmast="Mast 210LB" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="EBG34" type="END_BUMPER" x="561.8" y="211.0" connect1name="TG204" eastboundsignalmast="Mast 210LA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EBG35" type="END_BUMPER" x="762.7" y="211.0" connect1name="TG210" eastboundsignalmast="Mast 214L" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="AGE36" type="EDGE_CONNECTOR" x="1606.6" y="371.0" connect1name="TG126" linkedpanel="Main Level" linkpointid="AGE19" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="AGE37" type="EDGE_CONNECTOR" x="1405.6" y="371.0" connect1name="TG127" linkedpanel="Main Level" linkpointid="AGE20" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
@@ -12925,25 +12925,25 @@
     <signalmasticon signalmast="Mast 128LB" x="1424" y="335" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 132RB" x="1542" y="315" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 202R" x="200" y="296" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="225" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 204RA" x="281" y="296" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="225" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 204RB" x="301" y="315" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 204RA" x="301" y="315" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 204RB" x="281" y="296" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="225" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 206L" x="380" y="255" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 210LA" x="581" y="175" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 210LB" x="541" y="215" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 212LA" x="501" y="295" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 212LB" x="518" y="335" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 210LA" x="541" y="215" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 210LB" x="581" y="175" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 212LA" x="518" y="335" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 212LB" x="501" y="295" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 212RA" x="606" y="275" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 212RB" x="646" y="315" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 214L" x="742" y="215" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 216LA" x="902" y="215" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 216LB" x="862" y="255" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 216LA" x="862" y="255" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 216LB" x="902" y="215" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 218LA" x="839" y="295" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 218LB" x="799" y="335" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 218RA" x="967" y="275" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 218RB" x="927" y="315" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 218RA" x="927" y="315" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 218RB" x="967" y="275" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 220R" x="1028" y="295" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 222LA" x="1192" y="275" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 222LB" x="1104" y="335" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 222LA" x="1104" y="335" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 222LB" x="1192" y="275" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 222R" x="1232" y="315" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 224LA" x="1486" y="240" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="225" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 224LB" x="1508" y="275" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
@@ -12952,17 +12952,17 @@
     <signalmasticon signalmast="Mast 226RB" x="1590" y="295" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 228RA" x="1783" y="275" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 228RB" x="1786" y="295" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="315" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 230LA" x="1817" y="200" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="225" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 230LB" x="1839" y="235" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 230LA" x="1839" y="235" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 230LB" x="1817" y="200" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="225" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 232L" x="1890" y="295" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 236R" x="1970" y="255" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 240L" x="2050" y="375" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 242L" x="2013" y="115" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 242R" x="2050" y="135" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 244RA" x="2091" y="175" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 244RB" x="2050" y="215" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 246LA" x="2211" y="295" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 246LB" x="2171" y="335" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 244RA" x="2050" y="215" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 244RB" x="2091" y="175" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 246LA" x="2171" y="335" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
+    <signalmasticon signalmast="Mast 246LB" x="2211" y="295" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast B92" x="2411" y="207" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="180" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast B93" x="2435" y="255" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="0" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
   </LayoutEditor>

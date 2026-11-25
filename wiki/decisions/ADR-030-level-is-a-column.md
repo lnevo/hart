@@ -31,4 +31,6 @@ After level unification, several layout facts were still kept in a file per leve
 - Writers and checks no longer branch on level beyond the values a row carries.
 - Each step is a pure refactor: `tables.xml`, the desks, the Layout Editor panel, the drawings and the approved fingerprints are byte-identical. The exceptions are generated keys and notes, each listed in its PR.
 
+**Amended by ADR-033, naming-layers step 12 (2026-11-25):** the masts have one builder in rows too: `build_device_map.py` writes every level's mast and head rows (staging's through `device_map_masts.py`, part 1 of `build_masts.py` before), with one anchor rule and the head prefix by level as data (`hartlib.level_masts.HEAD_PREFIXES`); `build_masts.py` writes `masts.csv` from them.
+
 **Amended by ADR-033, naming-layers step 11 (2026-11-25):** the beans are one process for every level too (`hartlib.tables_build.master_beans` over every row); the level says only where a band's names come from in the Layout Editor build (staging's from the staging device map, `le_common.STAGING_LEVELS`). Main and upper bean comments take staging's form (owner, 2026-11-23).

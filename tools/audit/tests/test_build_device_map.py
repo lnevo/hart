@@ -483,7 +483,8 @@ class MastsLeaveOutDarkMasts(unittest.TestCase):
         for sid, (a, pa), (b, pb), cm in tracks:
             ref = lambda n: ("sw", n[1:]) if n.startswith("S") else ("bumper", None)       # noqa: E731
             found.append(dict(level=2, ends=(ref(a), ref(b)), legs=[(a, pa), (b, pb)], band=0, cm=cm, loop=False,
-                              main=False, row=0, strands=[sid], trial=[f"Track {sid}"], name=f"Track {sid}"))
+                              main=False, row=0, strands=[sid], trial=[f"Track {sid}"], name=f"Track {sid}",
+                              plan_ends=tuple(f"{n[1:]}{p}" if n.startswith("S") else "end" for n, p in ((a, pa), (b, pb)))))
         return [("Main level", band, {})], found
 
     def masts(self, tracks, cp_of, ends=None):

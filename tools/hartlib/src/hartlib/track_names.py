@@ -29,7 +29,7 @@ owner's split, K-1 and K-2). The `main` flags of the `name` edit are build_main_
 Generated names (the end-switch rule, "Track 17-19") are not drawn on the schematic, so they are not written here:
 block_layer.name_tracks makes them from the plan's track ends (mast_rule.plan_order for parallel tracks).
 
-The readers by ID (naming-layers step 3b): block_layer (name_tracks, the halves), cats_panel.py, build_masts.py and
+The readers by ID (naming-layers step 3b): block_layer (name_tracks, the halves), cats_panel.py, device_map_masts.py and
 staging_device_map.check_helix take a drawn strand's track name from piece_names, by the strand's ID part
 (staging_device_map.band_refs, strand_names), not from the drawing. The store reads only the folder it is given: a
 missing devices_field.csv or plan graph stops (a test whose copy holds only the layer files calls repo_inputs).
@@ -292,7 +292,7 @@ def piece_names(section: dict, pieces, owner: dict | None = None, data: Path = S
     section (its `helix` map holding block IDs): a run the owner names whole gives each of its pieces that name, a
     run named by piece its i-th piece the i-th name (owner_names on the section's levels; `owner` in its shape); a
     track up the helix from a switch of the section's `helix` map ("131AA-helix") the name of the staging helix block
-    the map gives it. The readers by ID (block_layer, cats_panel, build_masts, staging_device_map) take a strand's
+    the map gives it. The readers by ID (block_layer, cats_panel, device_map_masts, staging_device_map) take a strand's
     name from here, not from the drawing. TrackNameError on a helix entry with no named block row or with more than
     one drawn track up the helix from its switch, or a drawn piece of a run named by piece that has no name of its
     own (a name is never spread to a piece the owner did not name)."""

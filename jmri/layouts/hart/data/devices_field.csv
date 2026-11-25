@@ -167,5 +167,8 @@ level,cp,layer,role,id,user_name,assignment,system_name,jmri_name,node,dcc,wirin
 1,,occupancy,track,det:block:3B-end,BS W-1,field,,,,,,,,blocks Track W-1,,wired,,,,,,,,,,,,
 1,,occupancy,track,det:block:3C-end,BS W-2,field,,,,,,,,blocks Track W-2,,wired,,,,,,,,,,,,
 1,,occupancy,track,det:block:23B-35B,BS West Ext,field,,,,,,,,blocks Track West Ext,,wired,,,,,,,,,,,,
+1,,mast,,mast:5:C:west,Mast 6LA,,,,,,,,,,,,,,,,,,,,,,,
 1,,mast,,mast:5:B:west,Mast 6LB,,,,4,,,,,,,,,,,,,,,,,,,
+1,,mast,,mast:7:A-13C:B:east,Mast 8RA,,,,,,,,,,,,,,,,,,,,,,,
+1,,mast,,mast:7:A-5B:A:east,Mast 8RB,,,,,,,,,,,,,,,,,,,,,,,
 1,,head,,mast:5:B:west:single,Head 6LB,,,,,,,,,one high head (owner 2026-11-19); IH433 dropped,,,,,,,,,,,,,,

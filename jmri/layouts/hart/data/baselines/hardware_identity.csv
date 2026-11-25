@@ -250,23 +250,23 @@ signalhead,IH:HART:C3:204RA_Bottom,Head 204RA Bottom
 signalhead,IH:HART:C3:204RA_Top,Head 204RA Top
 signalhead,IH:HART:C3:204RB_Bottom,Head 204RB Bottom
 signalhead,IH:HART:C3:204RB_Top,Head 204RB Top
-signalhead,IH:HART:C3:212LA_Bottom,Head 212LA Bottom
-signalhead,IH:HART:C3:212LA_Top,Head 212LA Top
-signalhead,IH:HART:C3:212LB,Head 212LB
+signalhead,IH:HART:C3:212LA,Head 212LA
+signalhead,IH:HART:C3:212LB_Bottom,Head 212LB Bottom
+signalhead,IH:HART:C3:212LB_Top,Head 212LB Top
 signalhead,IH:HART:C3:212RA,Head 212RA
 signalhead,IH:HART:C3:212RB_Bottom,Head 212RB Bottom
 signalhead,IH:HART:C3:212RB_Top,Head 212RB Top
 signalhead,IH:HART:C3:218LA,Head 218LA
 signalhead,IH:HART:C3:218LB_Bottom,Head 218LB Bottom
 signalhead,IH:HART:C3:218LB_Top,Head 218LB Top
-signalhead,IH:HART:C3:218RA_Bottom,Head 218RA Bottom
-signalhead,IH:HART:C3:218RA_Top,Head 218RA Top
-signalhead,IH:HART:C3:218RB,Head 218RB
+signalhead,IH:HART:C3:218RA,Head 218RA
+signalhead,IH:HART:C3:218RB_Bottom,Head 218RB Bottom
+signalhead,IH:HART:C3:218RB_Top,Head 218RB Top
 signalhead,IH:HART:C3:220R_Bottom,Head 220R Bottom
 signalhead,IH:HART:C3:220R_Top,Head 220R Top
-signalhead,IH:HART:C3:222LA_Bottom,Head 222LA Bottom
-signalhead,IH:HART:C3:222LA_Top,Head 222LA Top
-signalhead,IH:HART:C3:222LB,Head 222LB
+signalhead,IH:HART:C3:222LA,Head 222LA
+signalhead,IH:HART:C3:222LB_Bottom,Head 222LB Bottom
+signalhead,IH:HART:C3:222LB_Top,Head 222LB Top
 signalhead,IH:HART:C3:222R_Bottom,Head 222R Bottom
 signalhead,IH:HART:C3:222R_Top,Head 222R Top
 signalhead,IH:HART:C3:224LA,Head 224LA
@@ -306,11 +306,11 @@ signalmast,IF$shsm:basic:one-searchlight(IH:HART:C1:68),Mast 68
 signalmast,IF$shsm:basic:one-searchlight(IH:HART:C1:6LA),Mast 6LA
 signalmast,IF$shsm:basic:one-searchlight(IH:HART:C1:8LB),Mast 8LB
 signalmast,IF$shsm:basic:one-searchlight(IH:HART:C1:8RA),Mast 8RA
-signalmast,IF$shsm:basic:one-searchlight(IH:HART:C3:212LB),Mast 212LB
+signalmast,IF$shsm:basic:one-searchlight(IH:HART:C3:212LA),Mast 212LA
 signalmast,IF$shsm:basic:one-searchlight(IH:HART:C3:212RA),Mast 212RA
 signalmast,IF$shsm:basic:one-searchlight(IH:HART:C3:218LA),Mast 218LA
-signalmast,IF$shsm:basic:one-searchlight(IH:HART:C3:218RB),Mast 218RB
-signalmast,IF$shsm:basic:one-searchlight(IH:HART:C3:222LB),Mast 222LB
+signalmast,IF$shsm:basic:one-searchlight(IH:HART:C3:218RA),Mast 218RA
+signalmast,IF$shsm:basic:one-searchlight(IH:HART:C3:222LA),Mast 222LA
 signalmast,IF$shsm:basic:one-searchlight(IH:HART:C3:224LA),Mast 224LA
 signalmast,IF$shsm:basic:one-searchlight(IH:HART:C3:224LB),Mast 224LB
 signalmast,IF$shsm:basic:one-searchlight(IH:HART:C3:A83),Mast A83
@@ -323,10 +323,10 @@ signalmast,IF$shsm:basic:two-low(IH:HART:C3:112L_Top)(IH:HART:C3:112L_Bottom),Ma
 signalmast,IF$shsm:basic:two-low(IH:HART:C3:118L_Top)(IH:HART:C3:118L_Bottom),Mast 118L
 signalmast,IF$shsm:basic:two-low(IH:HART:C3:126RB_Top)(IH:HART:C3:126RB_Bottom),Mast 126RB
 signalmast,IF$shsm:basic:two-low(IH:HART:C3:202R_Top)(IH:HART:C3:202R_Bottom),Mast 202R
-signalmast,IF$shsm:basic:two-low(IH:HART:C3:204RA_Top)(IH:HART:C3:204RA_Bottom),Mast 204RA
-signalmast,IF$shsm:basic:two-low(IH:HART:C3:212LA_Top)(IH:HART:C3:212LA_Bottom),Mast 212LA
+signalmast,IF$shsm:basic:two-low(IH:HART:C3:204RB_Top)(IH:HART:C3:204RB_Bottom),Mast 204RB
+signalmast,IF$shsm:basic:two-low(IH:HART:C3:212LB_Top)(IH:HART:C3:212LB_Bottom),Mast 212LB
 signalmast,IF$shsm:basic:two-low(IH:HART:C3:228RA_Top)(IH:HART:C3:228RA_Bottom),Mast 228RA
-signalmast,IF$shsm:basic:two-low(IH:HART:C3:230LB_Top)(IH:HART:C3:230LB_Bottom),Mast 230LB
+signalmast,IF$shsm:basic:two-low(IH:HART:C3:230LA_Top)(IH:HART:C3:230LA_Bottom),Mast 230LA
 signalmast,IF$shsm:basic:two-searchlight(IH:HART:C1:24RA_Top)(IH:HART:C1:24RA_Bottom),Mast 24RA
 signalmast,IF$shsm:basic:two-searchlight(IH:HART:C1:2L_Top)(IH:HART:C1:2L_Bottom),Mast 2L
 signalmast,IF$shsm:basic:two-searchlight(IH:HART:C1:34L_Top)(IH:HART:C1:34L_Bottom),Mast 34L
@@ -347,18 +347,18 @@ signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:128LA_Top)(IH:HART:C3:128LA_
 signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:128LB_Top)(IH:HART:C3:128LB_Bottom),Mast 128LB
 signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:132RA_Top)(IH:HART:C3:132RA_Bottom),Mast 132RA
 signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:132RB_Top)(IH:HART:C3:132RB_Bottom),Mast 132RB
-signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:204RB_Top)(IH:HART:C3:204RB_Bottom),Mast 204RB
+signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:204RA_Top)(IH:HART:C3:204RA_Bottom),Mast 204RA
 signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:212RB_Top)(IH:HART:C3:212RB_Bottom),Mast 212RB
 signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:218LB_Top)(IH:HART:C3:218LB_Bottom),Mast 218LB
-signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:218RA_Top)(IH:HART:C3:218RA_Bottom),Mast 218RA
+signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:218RB_Top)(IH:HART:C3:218RB_Bottom),Mast 218RB
 signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:220R_Top)(IH:HART:C3:220R_Bottom),Mast 220R
-signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:222LA_Top)(IH:HART:C3:222LA_Bottom),Mast 222LA
+signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:222LB_Top)(IH:HART:C3:222LB_Bottom),Mast 222LB
 signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:222R_Top)(IH:HART:C3:222R_Bottom),Mast 222R
 signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:224R_Top)(IH:HART:C3:224R_Bottom),Mast 224R
 signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:226RA_Top)(IH:HART:C3:226RA_Bottom),Mast 226RA
 signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:226RB_Top)(IH:HART:C3:226RB_Bottom),Mast 226RB
 signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:228RB_Top)(IH:HART:C3:228RB_Bottom),Mast 228RB
-signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:230LA_Top)(IH:HART:C3:230LA_Bottom),Mast 230LA
+signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:230LB_Top)(IH:HART:C3:230LB_Bottom),Mast 230LB
 signalmast,IF$vsm:basic:one-low($1001),Mast 4LA
 signalmast,IF$vsm:basic:one-low($1002),Mast 4LB
 signalmast,IF$vsm:basic:one-low($1005),Mast 12L
@@ -375,19 +375,19 @@ signalmast,IF$vsm:basic:one-low($2008),Mast 122R
 signalmast,IF$vsm:basic:one-low($2009),Mast 130LA
 signalmast,IF$vsm:basic:one-low($2010),Mast 130LB
 signalmast,IF$vsm:basic:one-low($3001),Mast 206L
-signalmast,IF$vsm:basic:one-low($3002),Mast 210LA
-signalmast,IF$vsm:basic:one-low($3003),Mast 210LB
+signalmast,IF$vsm:basic:one-low($3002),Mast 210LB
+signalmast,IF$vsm:basic:one-low($3003),Mast 210LA
 signalmast,IF$vsm:basic:one-low($3004),Mast 214L
-signalmast,IF$vsm:basic:one-low($3005),Mast 216LA
-signalmast,IF$vsm:basic:one-low($3006),Mast 216LB
+signalmast,IF$vsm:basic:one-low($3005),Mast 216LB
+signalmast,IF$vsm:basic:one-low($3006),Mast 216LA
 signalmast,IF$vsm:basic:one-low($3007),Mast 232L
 signalmast,IF$vsm:basic:one-low($3008),Mast 236R
 signalmast,IF$vsm:basic:one-low($3009),Mast 240L
 signalmast,IF$vsm:basic:one-low($3010),Mast 242R
-signalmast,IF$vsm:basic:one-low($3011),Mast 244RA
-signalmast,IF$vsm:basic:one-low($3012),Mast 244RB
-signalmast,IF$vsm:basic:one-low($3013),Mast 246LA
-signalmast,IF$vsm:basic:one-low($3014),Mast 246LB
+signalmast,IF$vsm:basic:one-low($3011),Mast 244RB
+signalmast,IF$vsm:basic:one-low($3012),Mast 244RA
+signalmast,IF$vsm:basic:one-low($3013),Mast 246LB
+signalmast,IF$vsm:basic:one-low($3014),Mast 246LA
 turnout,IT:HART:C3:101,Switch 101
 turnout,IT:HART:C3:103,Switch 103
 turnout,IT:HART:C3:105,Switch 105
