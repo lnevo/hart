@@ -2,9 +2,7 @@
 # (git's built-in union merge; tools/ops/status_counts.py --check stops on a duplicated entry it can leave).
 wiki/STATUS.md merge=union
 wiki/STATUS_LOG.md merge=union
-# The pipeline map's graph merges itself by node id and edge ends, and its two pages (the graph on one line) keep
-# this branch's copy to be rebuilt after the merge: tools/ops/merge_pipeline_map.py, set up by make wt and the
-# session-start hook (--install). GitHub never runs these drivers: merge origin/main into the branch locally.
+# The pipeline map's graph merges itself by node id and edge ends: tools/ops/merge_pipeline_map.py, set up by make wt
+# and the session-start hook (--install). GitHub never runs this driver: merge origin/main into the branch locally.
+# The two map pages built from it are not committed (ADR-036).
 docs/pipeline-map/pipeline_map.json merge=pipeline-map
-docs/pipeline-map/index.html merge=pipeline-map-page
-www/library/pipeline-map.html merge=pipeline-map-page

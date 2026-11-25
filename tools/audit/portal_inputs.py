@@ -14,7 +14,8 @@ with renames listed under both paths. A submodule checked out at another commit 
 recorded is not a change; a commit or a staged change that moves a submodule is.
 The site inputs are SITE_PREFIXES (www/, the folders prepare_github_pages.py copies from through
 MIRROR_PREFIXES, and the folders the www/scripts modules import from: ops/hart-ops/card_pipeline,
-tools/hartlib/src) plus every source named in www/scripts/published-files.json. The tables page
+tools/hartlib/src), the tools outside them it loads to write a page (SITE_TOOLS: the pipeline map, ADR-036)
+plus every source named in www/scripts/published-files.json. The tables page
 the build writes reads tables.xml, which check.sh checks on its own (tables-browser), so a
 tables-only change does not rebuild the site.
 
@@ -32,6 +33,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = Path("www/scripts/published-files.json")
 SITE_PREFIXES = ("www/", "ops/", "docs/", "external/", "media/", "tools/hartlib/src/")
+# Tools outside SITE_PREFIXES that the build loads to write a page it publishes (prepare_github_pages.BUILT_PAGES)
+SITE_TOOLS = ("tools/ops/build_pipeline_map.py", "tools/ops/pipeline_map.js", "tools/ops/agent_docs_map.py")
 NO_CHANGE = 3
 
 
@@ -82,7 +85,7 @@ def manifest_sources(root: Path) -> set[str]:
 
 
 def site_inputs(paths: list[str], sources: set[str]) -> list[str]:
-    return [p for p in paths if p.startswith(SITE_PREFIXES) or p in sources]
+    return [p for p in paths if p.startswith(SITE_PREFIXES) or p in SITE_TOOLS or p in sources]
 
 
 def main() -> int:

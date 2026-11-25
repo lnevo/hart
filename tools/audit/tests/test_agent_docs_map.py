@@ -198,11 +198,11 @@ class BuildCheckTest(unittest.TestCase):
         data = json.loads(MAP.GRAPH.read_text())
         data["edges"] = [e for e in data["edges"] if not (e.get("gen") and e["label"] == "check")]
         with tempfile.TemporaryDirectory() as tmp:
-            graph, out = Path(tmp) / "g.json", Path(tmp) / "m.html"
+            graph = Path(tmp) / "g.json"
             graph.write_text(json.dumps(data))
             err = io.StringIO()
             with contextlib.redirect_stderr(err):
-                self.assertEqual(MAP.main(["--graph", str(graph), "--out", str(out), "--check"]), 1)
+                self.assertEqual(MAP.main(["--graph", str(graph), "--check"]), 1)
             self.assertIn("agent-doc lane is generated", err.getvalue())
             self.assertEqual(json.loads(graph.read_text()), data)    # --check writes nothing
 
@@ -218,7 +218,6 @@ class BuildCheckTest(unittest.TestCase):
             self.assertEqual(json.loads(graph.read_text()), data)
             self.assertFalse(out.exists())
             self.assertIn(f"python3 tools/ops/build_pipeline_map.py --graph {graph}", err.getvalue())
-            self.assertIn(MAP.SITE_BUILD, err.getvalue())
             with contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(MAP.main(["--graph", str(graph), "--out", str(out)]), 0)
             self.assertEqual(graph.read_text(), MAP.GRAPH.read_text())
