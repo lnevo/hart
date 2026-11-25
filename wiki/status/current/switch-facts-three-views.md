@@ -1,1 +1,2 @@
+order: 190
 **Switch facts, three views (owner, 2026-11-18):** a switch's schematic, AnyRail part and Layout Editor drawing agree (straight leg level, diverging leg angled); Switches 9, 11 and 13 are left-hand as built (13's normal route is its diverging leg to the Barn), no switch is CATS-inverted, and Switch 243's crossover is drawn at 45.8 degrees (owner accepted). Exceptions: [`pipelines/switch-facts.md`](../../pipelines/switch-facts.md).

@@ -1,1 +1,2 @@
+order: 350
 **Layout documentation is a live document; the SOQ is frozen and no longer built or tested (owner, 2026-11-25):** [`www/behind/layout-docs.html`](https://www.hartrailroad.com/behind/layout-docs.html) takes its names, lengths and crossovers from the live data (`www/scripts/build_layout_docs.py`) and owns its drawings and photos. The SOQ's build is kept as a record ([`docs/ap/electrical/README.md`](../../../docs/ap/electrical/README.md)).

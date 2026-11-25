@@ -1,1 +1,2 @@
+order: 610
 **Pi on 64-bit trixie (owner, 2026-11-23, [ADR-032](../../decisions/ADR-032-pi-os-trixie-64-bit.md)):** the new card runs the layout Pi, with the live data restored and deployed; the old card is kept until 2026-12-23. Swap, checks and open items: [`docs/hosts/PI_OS_REBUILD.md`](../../../docs/hosts/PI_OS_REBUILD.md).

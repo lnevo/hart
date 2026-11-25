@@ -1,1 +1,2 @@
+order: 70
 **Staging from its device map (owner, 2026-11-17, [ADR-027](../../decisions/ADR-027-staging-from-its-device-map.md)):** every level of the "HART Railroad" panel is built from its device map; `check_device_master.py --check` holds every level of the device master to one set of rules. Pipeline: [`pipelines/schematic-panels.md`](../../pipelines/schematic-panels.md).

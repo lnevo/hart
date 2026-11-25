@@ -1,1 +1,2 @@
+order: 220
 **SML discovery inside make panels (owner, 2026-11-24):** when `sml-current` says stale, `make panels` on the Mac runs `run_sml_discover.sh` itself and goes on; elsewhere, while operating or on an unapproved panel it stops as before ([`pipelines/schematic-panels.md`](../../pipelines/schematic-panels.md)).

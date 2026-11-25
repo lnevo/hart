@@ -1,1 +1,2 @@
+order: 510
 **JMRI:** production 5.16 on the Mac, Pi and Windows, the newest CATS 3.2 supports; do not go past it until the CATS downloads page does. On a JMRI upgrade, rebase the web home override ([`projects/cats-integration.md`](../../projects/cats-integration.md), "Upgrading JMRI").

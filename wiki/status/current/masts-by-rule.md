@@ -1,1 +1,2 @@
+order: 380
 **Masts by rule (owner, 2026-11-19, [ADR-024](../../decisions/ADR-024-signals-by-rule.md)):** every mast on every level, hidden ones included, comes from `mast_rule.py`: high from running track, dwarf from yards, leads and industries, two heads where a route still diverges. Homes are numbered odd switch, even signal (ADR-005); APB intermediates by milepost (67/68, A83/A84, B92/B93); none in the helix.

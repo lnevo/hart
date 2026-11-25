@@ -1,5 +1,5 @@
-"""split_status: a one-file STATUS.md splits into one file per entry (ADR-038), and the page built from them is the
-canonical page byte for byte; a head, heading or intro the builder does not know, or two entries with one file name,
+"""split_status: a one-file STATUS.md splits into one file per entry (ADR-038), each with an order: line from the page's
+order, and the page built from them is the (tidied) page byte for byte; a head, heading or intro the builder does not know, or two entries with one file name,
 stop the split."""
 import importlib.util
 import tempfile
@@ -38,29 +38,45 @@ class Slug(unittest.TestCase):
 
 
 class Split(unittest.TestCase):
-    def test_canonical_sorts_by_file_name_keeps_owed_order_and_is_stable(self):
-        text = ss.canonical(page())
-        self.assertEqual(text, ss.canonical(text))
-        self.assertLess(text.index("**Active:**"), text.index("**Waits:**"))
-        self.assertLess(text.index("**Second:**"), text.index("**First:**"))
-        self.assertLess(text.index("**Zed:**"), text.index(sc.START))      # the Counts block ends Current state
-        self.assertNotIn("\n\n\n", text)
+    def test_tidy_drops_blank_lines_between_entries_and_moves_nothing(self):
+        text = page()
+        tidied = ss.tidy(text)
+        self.assertEqual(tidied, ss.tidy(tidied))
+        self.assertNotIn("\n\n\n", tidied)
+        self.assertIn("- **Second:** two\n  - nested [d](../docs/d.md)\n- **First:** one\n\n## In progress", tidied)
+        bullets = [line for line in text.splitlines() if line.startswith(("- ", "  ", "<!--"))]
+        self.assertEqual(bullets, [line for line in tidied.splitlines() if line.startswith(("- ", "  ", "<!--"))])
 
-    def test_the_built_page_is_the_canonical_page(self):
-        text = ss.canonical(page())
+    def test_the_built_page_is_the_page_in_its_own_order(self):
+        text = ss.tidy(page())
         with tempfile.TemporaryDirectory() as d:
             folder = Path(d) / "wiki/status"
             self.assertEqual(8, ss.split(text, folder))
             self.assertEqual("order: 10\n**Second:** two\n  - nested [d](../../../docs/d.md)\n",
                              (folder / "owed/second.md").read_text(encoding="utf-8"))
-            self.assertEqual("**Active:** a ([p](../../projects/p.md#x))\n",
+            self.assertEqual("order: 10\n**Waits:** b\n", (folder / "now/waits.md").read_text(encoding="utf-8"))
+            self.assertEqual("order: 20\n**Active:** a ([p](../../projects/p.md#x))\n",
                              (folder / "now/active.md").read_text(encoding="utf-8"))
+            self.assertEqual("order: 20\n" + sc.COUNTS_TOKEN + "\n",
+                             (folder / "current/counts.md").read_text(encoding="utf-8"))
             self.assertTrue((folder / "README.md").is_file())
             entries, problems = sc.read_entries(folder)
             self.assertEqual([], problems)
-            self.assertEqual(text, sc.page(entries, COUNTS))
+            self.assertEqual(text, sc.page(entries, COUNTS))                # Waits before Active, Counts mid-section
             ss.split(text, folder)                                          # re-runnable: replaces, adds nothing
-            self.assertEqual(8, len(sc.read_entries(folder)[0]))
+            self.assertEqual(9, len(sc.read_entries(folder)[0]))
+
+    def test_blank_lines_between_entries_are_reported_not_hidden(self):
+        with tempfile.TemporaryDirectory() as d:
+            src = Path(d) / "STATUS.md"
+            src.write_text(page(), encoding="utf-8")
+            out = Path(d) / "out.txt"
+            with open(out, "w") as fh:
+                import contextlib
+                with contextlib.redirect_stdout(fh):
+                    code = ss.main(["--from", str(src), "--folder", str(Path(d) / "wiki/status")])
+            self.assertEqual(1, code)
+            self.assertIn("--tidy first if only blank lines differ", out.read_text())
 
     def test_a_head_heading_or_intro_change_stops_it(self):
         for bad in (page().replace("One or two lines", "Two lines"), page().replace("## Owed", "## Debts"),
@@ -69,13 +85,13 @@ class Split(unittest.TestCase):
                 ss.parse(bad)
 
     def test_two_entries_with_one_file_name_stop_it(self):
-        with self.assertRaises(ss.SplitError):
-            ss.canonical(page(now=("- **Active:** a", "- **Active (owner):** b")))
+        with tempfile.TemporaryDirectory() as d, self.assertRaises(ss.SplitError):
+            ss.split(page(now=("- **Active:** a", "- **Active (owner):** b")), Path(d))
 
     def test_the_readme_links_resolve(self):
         with tempfile.TemporaryDirectory() as d:
             folder = Path(d) / "wiki/status"
-            ss.split(ss.canonical(page()), folder)
+            ss.split(ss.tidy(page()), folder)
             (Path(d) / "wiki/decisions").mkdir()
             (Path(d) / "wiki/decisions/ADR-038-one-file-per-status-entry.md").write_text("x")
             (Path(d) / "wiki/STATUS_LOG.md").write_text("x")

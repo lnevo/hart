@@ -1,1 +1,2 @@
+order: 130
 **Generated views not committed (owner, 2026-11-25, [ADR-036](../../decisions/ADR-036-generated-views-not-committed.md)):** the pipeline map pages are gitignored; `make map` builds them, the website build writes its own copy and stops when it cannot, and `check.sh` and CI build them in memory. How `docs/INDEX.md` is kept waits on the owner.

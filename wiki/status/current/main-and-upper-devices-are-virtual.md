@@ -1,1 +1,2 @@
+order: 80
 **Main and upper devices are virtual (owner, 2026-11-17, [ADR-028](../../decisions/ADR-028-main-upper-virtual-devices.md)):** every main and upper turnout, block sensor, head and mast is an internal device; its device-master row maps it to a draft physical device, swapped in later through the map alone. A LogixNG in `tables.xml` starts the block sensors clear.

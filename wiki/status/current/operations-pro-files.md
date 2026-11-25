@@ -1,1 +1,2 @@
+order: 650
 **Operations Pro files ([ADR-015](../../decisions/ADR-015-operations-files-in-repo.md)):** the repo is the master, in `jmri/layouts/hart/operations/`, with the two menu settings on in `Operations.xml`; a Pi deploy stops while a Pi session or Store is unpulled. The build is a future goal ([`docs/ops/OPSPRO_FOLLOWUP.md`](../../../docs/ops/OPSPRO_FOLLOWUP.md)).

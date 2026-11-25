@@ -1,1 +1,2 @@
+order: 680
 **STS to JMRI ([ADR-016](../../decisions/ADR-016-sts-refreshes-jmri-operations.md)):** STS is the master of car positions and refreshes JMRI Operations one way with **Send Cars to JMRI** ([`docs/ops/STS_TO_JMRI.md`](../../../docs/ops/STS_TO_JMRI.md)); `sts_car_sync.py` is in Start Up on the Pi and the Mac.

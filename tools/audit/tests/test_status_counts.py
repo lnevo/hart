@@ -73,6 +73,9 @@ class Rebase(unittest.TestCase):
         self.assertEqual(sc.words("**A:** one two\n  - three four"), 5)
 
 
+COUNTS_FILE = {"current/counts.md": "order: 900\n" + sc.COUNTS_TOKEN + "\n"}
+
+
 class Build(unittest.TestCase):
     def build(self, files: dict[str, str]) -> tuple[str, list[str]]:
         with tempfile.TemporaryDirectory() as d:
@@ -83,43 +86,60 @@ class Build(unittest.TestCase):
         return text, problems
 
     def test_page_order_intros_and_counts(self):
+        """Every section lists its files by their order: lines, not by name; the Counts line stands where its file is."""
         text, problems = self.build({
-            "now/b.md": "**B:** now two\n", "now/a.md": "**A:** now one\n",
-            "current/x.md": "**X:** see [p](../../projects/p.md)\n",
+            "now/a.md": "order: 20\n**A:** now second\n", "now/b.md": "order: 10\n**B:** now first\n",
+            "current/z.md": "order: 10\n**Z:** see [p](../../projects/p.md)\n",
+            "current/counts.md": "order: 15\n" + sc.COUNTS_TOKEN + "\n", "current/a.md": "order: 20\n**Y:** last\n",
             "owed/late.md": "order: 20\n**Late:** second\n", "owed/early.md": "order: 10\n**Early:** first\n",
-            "future/f.md": "A goal with\n  - a nested point\n",
+            "future/f.md": "order: 10\nA goal with\n  - a nested point\n",
         })
         self.assertEqual([], problems)
         head, _, rest = text.partition("## Now\n")
         self.assertEqual(sc.PAGE_HEAD + "\n", head)
         lines = rest.splitlines()
-        self.assertEqual(lines[:4], ["", "- **A:** now one", "- **B:** now two", ""])
-        self.assertEqual(lines[4:8], ["## Current state", "", "- **X:** see [p](projects/p.md)", sc.START])
+        self.assertEqual(lines[:4], ["", "- **B:** now first", "- **A:** now second", ""])
+        self.assertEqual(lines[4:8], ["## Current state", "", "- **Z:** see [p](projects/p.md)", sc.START])
         self.assertTrue(lines[8].startswith("- **Counts:** 3 masts"))
-        self.assertEqual(lines[9:16], [sc.END, "", "## Owed", "", sc.SECTIONS[2][2], "", "- **Early:** first"])
-        self.assertEqual(lines[16:], ["- **Late:** second", "", "## In progress", "", "## Future goals", "",
+        self.assertEqual(lines[9:17], [sc.END, "- **Y:** last", "", "## Owed", "", sc.SECTIONS[2][2], "",
+                                       "- **Early:** first"])
+        self.assertEqual(lines[17:], ["- **Late:** second", "", "## In progress", "", "## Future goals", "",
                                       "- A goal with", "  - a nested point"])
         self.assertTrue(text.endswith("  - a nested point\n"))
 
     def test_every_malformed_file_is_named(self):
         long = " ".join(["word"] * (sc.MAX_WORDS + 1))
-        _text, problems = self.build({
-            "now/long.md": long + "\n", "now/ok.md": " ".join(["other"] * sc.MAX_WORDS) + "\n",
-            "owed/no-order.md": "**N:** none\n", "current/ordered.md": "order: 5\n**O:** x\n",
-            "current/gap.md": "**G:** one\n\ntwo\n", "current/dash.md": "- **D:** x\n", "current/empty.md": "\n",
+        _text, problems = self.build({**COUNTS_FILE,
+            "now/long.md": "order: 10\n" + long + "\n", "now/ok.md": "order: 20\n" + " ".join(["other"] * sc.MAX_WORDS) + "\n",
+            "owed/no-order.md": "**N:** none\n", "current/no-order.md": "**O:** x\n",
+            "current/gap.md": "order: 10\n**G:** one\n\ntwo\n", "current/dash.md": "order: 20\n- **D:** x\n",
+            "current/empty.md": "order: 30\n\n", "future/counts.md": "order: 10\n" + sc.COUNTS_TOKEN + "\n",
             "current/notes.txt": "x", "misc/a.md": "x", "stray.md": "x",
         })
         want = ["wiki/status/misc: not a section", "wiki/status/stray.md: not a section",
-                f"wiki/status/now/long.md: {sc.MAX_WORDS + 1} words", "wiki/status/owed/no-order.md: an owed entry",
-                "wiki/status/current/ordered.md: only an ordered", "wiki/status/current/gap.md: a blank line",
+                f"wiki/status/now/long.md: {sc.MAX_WORDS + 1} words", "wiki/status/owed/no-order.md: an entry opens",
+                "wiki/status/current/no-order.md: an entry opens", "wiki/status/current/gap.md: a blank line",
                 "wiki/status/current/dash.md: the file holds", "wiki/status/current/empty.md: empty entry",
+                "wiki/status/future/counts.md: the Counts line stands in current/ only",
                 "wiki/status/current/notes.txt: not an entry"]
         for w in want:
             self.assertTrue(any(p.startswith(w) for p in problems), (w, problems))
         self.assertEqual(len(want), len(problems), problems)
 
+    def test_two_entries_with_one_order_number_fail(self):
+        _text, problems = self.build({**COUNTS_FILE, "owed/a.md": "order: 10\n**A:** one\n",
+                                      "owed/b.md": "order: 10\n**B:** two\n", "now/c.md": "order: 10\n**C:** x\n"})
+        self.assertEqual(["wiki/status/owed/: a.md and b.md have the same order: 10; give one a number between its "
+                          "neighbours'"], problems)
+
+    def test_the_counts_file_is_needed_once(self):
+        _text, problems = self.build({"current/a.md": "order: 10\n**A:** one\n"})
+        self.assertEqual(1, len(problems), problems)
+        self.assertIn("needs one file whose text is", problems[0])
+
     def test_two_files_for_one_entry_are_found(self):
-        _text, problems = self.build({"current/a.md": "**Same:** one\n", "current/b.md": "**Same:** two\n"})
+        _text, problems = self.build({**COUNTS_FILE, "current/a.md": "order: 10\n**Same:** one\n",
+                                      "current/b.md": "order: 20\n**Same:** two\n"})
         self.assertEqual(["the built page has two entries for: Same:"], problems)
 
     def test_the_repo_entries_pass(self):

@@ -1,1 +1,2 @@
+order: 420
 **One approved panel, no trial copy (owner, 2026-11-22, #958):** the generated three-level "HART Railroad" panel is approved and live; the trial cut-over copy, its fingerprint and the staging-alone guard are retired. `approved_le_panel.sha256` is the one Layout Editor approval, checked by `make panels`, `check.sh`, the deploy gate and `run_sml_discover.sh` (`HART_TABLES_REVIEW=1` for a review).

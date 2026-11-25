@@ -1,1 +1,2 @@
+order: 110
 **Layout data model (2026-11-14):** control points carry `level`, switches `hand`, the device master a `dcc` column, and mast desk cells live in `mast_cells.csv` ([`pipelines/switch-facts.md`](../../pipelines/switch-facts.md)). District grouping is not decided; main and upper hands follow the AnyRail plan (owner, 2026-11-18).

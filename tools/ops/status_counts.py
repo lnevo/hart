@@ -143,7 +143,8 @@ def read_entries(folder: Path = FOLDER) -> tuple[list[Entry], list[str]]:
             if text == COUNTS_TOKEN:
                 if name != COUNTS_SECTION:
                     problems.append(f"{rel}: the Counts line stands in {COUNTS_SECTION}/ only")
-                found.append(Entry(name, p, text, order))
+                else:
+                    found.append(Entry(name, p, text, order))
                 continue
             if "\n\n" in text:
                 problems.append(f"{rel}: a blank line inside an entry would break the list")
