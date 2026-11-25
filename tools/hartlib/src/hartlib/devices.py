@@ -685,19 +685,19 @@ def at(row: Mapping[str, str], files: "Files | Path | str | None" = None) -> str
 
 
 def read_dictionary(path: Path) -> dict[str, str]:
-    """{column: description} of devices.columns.csv; DevicesError unless it is exactly the columns
-    `column,file,description` with every master column once, each described, and its file column_file's."""
+    """{column: description} of devices.columns.csv; DevicesError unless the header is column,file,description (with or
+    without check_data.py's rule columns), every master column once, each described, and its file column_file's."""
     try:
         with path.open(newline="", encoding="utf-8") as fh:
             rows = list(csv.reader(fh))
     except OSError as exc:
         raise DevicesError(f"{path}: cannot read it ({exc.strerror})") from None
-    if not rows or rows[0] != ["column", "file", "description"]:
-        raise DevicesError(f"{path.name}: the header is column,file,description")
+    if not rows or ",".join(rows[0]) not in ((head := "column,file,description"), head + ",type,required,key,refs,values"):
+        raise DevicesError(f"{path.name}: the header is {head}, alone or with type,required,key,refs,values")
     out, bad = {}, []
     for line, r in enumerate(rows[1:], 2):
-        if len(r) != 3:
-            bad.append(f"line {line}: {len(r)} fields, expected 3")
+        if len(r) != len(rows[0]):
+            bad.append(f"line {line}: {len(r)} fields, expected {len(rows[0])}")
         elif r[0] in out:
             bad.append(f"line {line}: {r[0]} is described twice")
         elif not r[2].strip():

@@ -47,6 +47,7 @@ Documents about the CATS Digicon CTC desks, how their signals and turnouts get t
 Items inside a cell are separated by `;`, so the file needs no quoting
 
 - [README.md](data/README.md): Items inside a cell are separated by `;`, so the file needs no quoting
+- [sidecars.md](data/sidecars.md): A sidecar `<name>.columns.csv` sits beside a master CSV, describes each of its columns, and gives the rules `tools/ops/check_data.py` checks it against
 - Other files: [entities.csv](data/entities.csv)
 
 ## hosts
