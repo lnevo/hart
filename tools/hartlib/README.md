@@ -119,7 +119,11 @@ node. `wiring.read()` gives checked `Wire` rows; `w.address` is the JMRI system 
 and `w.wiring_text` the wiring text the device master and the JMRI comments carry ("Node: 4 Turnout: 0 | OU: 1 Ports: 1,2").
 Staging's rows are as wired in JMRI, plus the fascia buttons, relays and calibration relays, which have no JMRI
 device (kinds `button`, `relay` and `calibration`, no index); main and upper's are the detectors the owner placed (planned), the rest of those levels being
-given out by `build_device_map.py`'s rule.
+given out by `build_device_map.py`'s rule. A device row is keyed by its device ID (`id`: switch:35, fb:35:N, a head's
+mast:5:B:west:single, a detector's det:<block id>; naming-layers step 5) and holds no name: `read()` gives `w.device`
+the name store's name (`devices.user_names`, a detector's its block's) and `w.id` the ID, so a rename in
+`devices_field.csv` changes no row and the frozen pins stay. Only a button's, relay's or calibration relay's label is
+in `device`; a main or upper track detector keeps its plan key (switch_a, switch_b, parallel, half).
 
 ### `hartlib.railroad`
 
@@ -142,10 +146,10 @@ stale copy of its own output: `build_device_map.py` loads `upto="inputs"`, `buil
 | Name | What |
 |------|------|
 | `Railroad.staging_devices` | `StagingDevices`: staging's (level 1) rows of the device master in the device layers, `rows` (`StagingDevice`: the master's own columns), `by_name` ((layer, user name) -> row), `names(layer)` |
-| `Railroad.switch_rows`, `switches` | `[SwitchRow]`: switches.csv as read (`read_switch_rows`, every row held to its level's shape); `{number: Switch}` of its staging rows (`Switch`, `Leg`; `layout_facts.py` re-exports them) |
+| `Railroad.switch_rows`, `switches` | `[SwitchRow]`: switches.csv as read (`read_switch_rows`, every row held to its level's shape; a staging row's OS block and legs keyed by `os_id`, `closed_id`, `thrown_id`, their names labels `build_hands.py` writes from the name store); `{number: Switch}` of its staging rows (`Switch`, `Leg`; `layout_facts.py` re-exports them) |
 | `Railroad.interlockings` (every level), `level_control_points` (its main and upper rows), `local_switches`, `lcos_nodes`, `main_upper_switches` | `Interlocking`, `LocalSwitch`, `LcosNode`, `{number: MainUpperSwitch}` |
 | `Railroad.plan_overrides` | `PlanOverrides`: `data` (the whole file), `edits`, `relabel`, `helix` |
-| `Railroad.block_lengths`, `hands` | `{name: BlockLength}` (`plan_in`, `measured_in`, `source`, `jmri_in`; `plan_cm()` for the drawings and signal rules), `{label: Hand}` |
+| `Railroad.block_lengths`, `hands` | `{name: BlockLength}` (`plan_in`, `measured_in`, `source`, `jmri_in`; `plan_cm()` for the drawings and signal rules; each row keyed by `level` and `id`, its name a label the build keeps the name store's: `plan_lengths.py --labels`), `{label: Hand}` |
 | `Railroad.device_map` | `DeviceMap`: `rows` (`DeviceRow`), `blocks`, `occupancy` (block -> its occupancy row), `turnouts`, `heads_by_system`, `of(layer)` |
 | `Railroad.masts` | `hartlib.level_masts.read()` rows, every level (`read_masts(path, levels=...)` gives `[Mast]`: line, level, name, blocks) |
 | `Railroad.tables` | `TablesNames`: `root`, `turnouts`, `sensors`, `masts` (user -> system), `blocks` |
@@ -197,11 +201,16 @@ the name map's copy (2026-11-21): their facts are in `cp`, `system_name`, `dcc`,
   the new IDs of its level and layer; a rename lists the lines of the repo's Operations Pro files that hold the old name
   (decision 5; nothing rewrites them, STS is not checked); a mast rename warns that it needs a new SML discovery and the
   owner's panel approval (decision 6).
+- `user_names()` is the name store's `{(level, id): user name}` of the merged view, the one way a file keyed by ID
+  (wiring.csv, block_lengths.csv, switches.csv's staging legs, block_overrides.csv, block_numbering.csv,
+  main_lines.csv; naming-layers step 5) gets its names; `name_of` stops on an ID the master does not have (decision 3).
+  The merge follows a block's rename in the field file into the generated cells that name it (`BLOCK_REFS`: part_of,
+  blocks, facing, protects; `follow_renames`), so the view stays whole between the owner's edit and the next build.
 - `python3 -m hartlib.devices check`. Errors are `DevicesError` (a `FactsError`).
 - Staging (`FIELD_LEVEL`, level 1) is the field: each of its devices has a field row (its id, name, role and
   assignment, and the owner's cells), the input its builder iterates and finds by id (`staging_field`); a turnout,
-  alias or feedback row's `wiring.csv` row is found by the generated name its id gives (`wired_name`), so the owner may
-  rename it; a spare detector is `wiring.csv`'s alone. Main and upper builders do not take an owner's name yet (step 7).
+  alias or feedback row's `wiring.csv` row is found by its id (an alias by its turnout's), so the owner may rename
+  it; a spare detector is `wiring.csv`'s alone. Main and upper builders do not take an owner's name yet (step 7).
   A line block (`LINE_ROLES`) and its sensor list in `cp` the places it joins, `;` between (`build_device_map.line_cp`); any other row has one control point at most, and `check_rows` holds it.
 - A device's kind comes from its row, never from its name (hand-off row 8): `row_role(row, where)` is a row's `role`
   and stops with a `DevicesError` naming `where` (file and key) when the row has none; `is_os(row)` says whether a block
