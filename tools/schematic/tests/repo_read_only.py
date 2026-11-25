@@ -17,11 +17,15 @@ REPO = Path(paths.REPO_ROOT).resolve()
 CACHE = paths.cache_dir("x", REPO).parent.resolve()   # the shared cache root; writes there are the builders' caches
 
 
-def in_repo(target) -> bool:
+def in_repo(target, follow: bool = True) -> bool:
+    """Whether `target` is in the repo (and not the shared cache). `follow` False judges a symbolic link by where it
+    stands, not where it points: rename, replace and unlink act on the link itself (layer_files.view swaps a cache
+    link that points into the checkout)."""
     try:
-        p = Path(os.fspath(target)).resolve()
+        p = Path(os.fspath(target))
     except TypeError:                                  # a file descriptor, not a path
         return False
+    p = p.resolve() if follow else p.absolute().parent.resolve() / p.name
     return p.is_relative_to(REPO) and not p.is_relative_to(CACHE)
 
 
@@ -39,7 +43,8 @@ def _guard_open(real):
 
 def _guard_first(real, what):
     def guarded(first, *args, **kwargs):
-        if in_repo(first) or (what in ("rename", "replace") and args and in_repo(args[0])):
+        follow = what not in ("rename", "replace", "unlink", "remove")      # these act on a link, not its target
+        if in_repo(first, follow) or (what in ("rename", "replace") and args and in_repo(args[0], follow)):
             _refuse(what, first)
         return real(first, *args, **kwargs)
     return guarded

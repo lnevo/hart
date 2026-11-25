@@ -1,6 +1,6 @@
 # ADR-033: Generated values, then the owner's, then frozen wiring
 
-- **Status:** Proposed (2026-11-24); every question answered, Accepted when the owner starts the [hand-off](../projects/naming-layers-handoff.md)
+- **Status:** Accepted (2026-11-24, when the owner started the [hand-off](../projects/naming-layers-handoff.md))
 - **Date:** 2026-11-24
 - **Deciders:** lnevo
 - **Amends:** ADR-027 (staging from its device map), ADR-028 (main and upper virtual devices), ADR-029 amendment (the device master's key)

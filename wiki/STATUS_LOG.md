@@ -1,5 +1,6 @@
 # Status log
 
+Updated: 2026-11-24 — ADR-033 accepted: the owner started the naming-layers hand-off; step 1 (golden tests of both bean processes, `test_bean_goldens.py`) in review. Replaced in STATUS: "All questions answered; starts when the owner says go".
 Updated: 2026-11-24 — Naming layers planned (ADR-033, proposed): the parked builder merge is folded in. Replaced in STATUS Owed: "**Before the first swap (owner, 2026-11-23, deferred):** `tools/schematic/cats_panel.py` (~540) and `le_tables.py` (~282) still require the virtual names `IT:HART:C3:<n>` and the computed block sensor, so a physical `jmri_name` on main or upper stops `make panels`; ADR-028's \"jmri_name alone\" needs that fix and a swap test first."
 Updated: 2026-11-23 — ADR cleanup from the architecture review: ADR-031 superseded by ADR-024 (it repeated it with old mast names); ADR-024's outdated second virtual-masts section reduced to its history, and the retired file names in ADR-024, 027, 028 and 029 now point to the device master. The direct `switches.csv` readers were added to the parked builder merge (step 7).
 Updated: 2026-11-23 — Builder merge (ADR-030: one bean and row process for every level) planned and parked by the owner (about 8 PRs, 7 to 9 agent-days); plan and answers in [`projects/builder-merge.md`](projects/builder-merge.md).

@@ -7,6 +7,7 @@ from __future__ import annotations
 import contextlib
 import csv
 import io
+import os
 import sys
 import tempfile
 import unittest
@@ -427,6 +428,17 @@ class WriteGuard(unittest.TestCase):
             (Path(d) / "sub").mkdir()
             (Path(d) / "sub" / "a.txt").write_text("x", encoding="utf-8")
             self.assertEqual((Path(d) / "sub" / "a.txt").read_text(encoding="utf-8"), "x")
+
+    def test_a_link_outside_the_repo_that_points_into_it_may_be_swapped_but_not_written_through(self):
+        """layer_files.view replaces a cache link to the checkout's data: the link moves, the repo does not."""
+        with tempfile.TemporaryDirectory() as d, repo_read_only():
+            tmp, link = Path(d) / "tmp.link", Path(d) / "view"
+            os.symlink(Path(__file__).parent, tmp)
+            os.replace(tmp, link)
+            self.assertEqual(Path(__file__).parent, Path(os.readlink(link)))
+            with self.assertRaisesRegex(AssertionError, "data checks only read it"):
+                open(link / "never_written.tmp", "w")
+            link.unlink()
 
 
 class CommittedData(RepoReadOnly, unittest.TestCase):

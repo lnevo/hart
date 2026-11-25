@@ -237,6 +237,59 @@ class MasterBeans(unittest.TestCase):
         self.assertEqual([], tables.mast_logics(root))
 
 
+class MasterBeansByAssignment(unittest.TestCase):
+    """What master_beans makes of a row by its assignment (field is MasterBeans' fixture), pinned before the builder
+    merge sends every level through it (ADR-033 step 1)."""
+
+    def section(self, root: ET.Element, key: tuple) -> list[str]:
+        return [tables.system_name(e) for e in tables.elements({tb.section_key(s): s
+                                                                for s in tables.elements(root)}[key])]
+
+    def test_a_spare_detector_is_a_sensor_no_block_takes(self) -> None:
+        spare = blank(layer="occupancy", role="spare", user_name="unused Block 2-2", assignment="spare",
+                      system_name="M2S201", jmri_name="M2S201", wiring="Node: 2 Block: 2")
+        root = tb.base(rows() + [spare], lengths=LENGTHS).root
+        self.assertIn("M2S201", self.section(root, tb.MQTT_SENSORS))
+        self.assertEqual({"BS Switch 1"}, {b.findtext("occupancysensor") for b in tables.blocks(root)})
+
+    def test_a_virtual_part_with_a_jmri_block_takes_its_blocks_sensor(self) -> None:
+        part = blank(layer="block", role="part", user_name="Track 1-3 at 1", assignment="virtual",
+                     jmri_name="IB:AUTO:0052", layout_block="ILB52", part_of="OS Switch 1",
+                     jmri_comment="Part of OS Switch 1")
+        lengths = dict(LENGTHS, **{"Track 1-3 at 1": railroad.BlockLength(2, "Track 1-3 at 1", "Block 4-2", 3.0,
+                                                                         3.0, "timed")})
+        root = tb.base(rows() + [part], lengths=lengths).root
+        full = next(b for b in tables.blocks(root) if tables.system_name(b) == "IB:AUTO:0052")
+        self.assertEqual(("76.2", "BS Switch 1"), (full.get("length"), full.findtext("occupancysensor")))
+        lb = next(b for b in tables.layout_blocks(root) if tables.system_name(b) == "ILB52")
+        self.assertEqual(("Track 1-3 at 1", "BS Switch 1"), (tables.user_name(lb), lb.get("occupancysensor")))
+
+    def test_a_row_with_assignment_none_gives_no_bean(self) -> None:
+        part = blank(layer="block", role="part", user_name="Track 1-3 at 3", assignment="none", part_of="OS Switch 1")
+        root = tb.base(rows() + [part], lengths=LENGTHS).root
+        self.assertNotIn("Track 1-3 at 3", tb.bean_names(root))
+
+    def test_a_virtual_panel_lamp_is_an_internal_sensor(self) -> None:
+        lamp = blank(layer="sensor", role="panel_status", user_name="Test Lamp", assignment="virtual",
+                     system_name="IS:TEST_LAMP", jmri_name="IS:TEST_LAMP", jmri_comment="Test lamp; ACTIVE=on")
+        root = tb.base(rows() + [lamp], lengths=LENGTHS).root
+        self.assertIn("IS:TEST_LAMP", self.section(root, tb.INTERNAL_SENSORS))
+        self.assertNotIn("IS:TEST_LAMP", self.section(root, tb.MQTT_SENSORS))
+
+    def test_a_main_or_upper_row_gives_no_bean_whatever_its_assignment(self) -> None:
+        """GENERATED_LEVELS: the Layout Editor build makes these today; step 11 of the naming plan moves them here."""
+        level = [blank(level="2", layer="turnout", role="turnout", user_name="Switch 101", assignment="virtual",
+                       jmri_name="IT:HART:C3:101"),
+                 blank(level="2", layer="occupancy", role="track", user_name="BS 101-103", assignment="virtual",
+                       jmri_name="IS:HART:C3:B:101-103", blocks="Track 101-103"),
+                 blank(level="3", layer="mast", role="home", user_name="Mast 201R", assignment="virtual",
+                       jmri_name="IF$shsm:basic:one-searchlight(IH:HART:C3:201R)"),
+                 blank(level="3", layer="head", role="head", user_name="Head 201R", assignment="virtual",
+                       jmri_name="IH:HART:C3:201R")]
+        root = tb.base(rows() + level, lengths=LENGTHS).root
+        self.assertEqual(set(), {r["user_name"] for r in level} & tb.bean_names(root))
+
+
 class CommentOrder(unittest.TestCase):
     """The data reads first, the way the owner reads the tables (2026-11-22)."""
 
