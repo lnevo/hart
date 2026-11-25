@@ -11,8 +11,9 @@ where the owner's name wins), the track names the template gives by block ID ({{
 and DCC addresses it gives by turnout ID ({{turnout:switch:3}}, {{turnouts:switch:9,switch:11}}, {{dcc:switch:3}}),
 the station names it gives by a switch of the station ({{station:switch:5}}: stations.csv's level 1 station holding
 that switch, the smallest when two do) and the figures its text states (section count, RS-1, siding and yard
-lengths, the crossovers), and checks that drawing D2 states the same count, plans P3 and P4 the same lengths and
-the plans' switch labels the live switch numbers.
+lengths, the siding's 50 ft cars at the plan's scale, the crossovers), and checks that drawing D2 states the same
+count, plans P3 and P4 the same lengths, the plans' switch labels the live switch numbers and the drawings' station
+labels (data-station) the names stations.csv gives.
 
     python3 www/scripts/build_layout_docs.py           # write the page
     python3 www/scripts/build_layout_docs.py --check   # exit 1 if the page is out of date
@@ -27,7 +28,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import devices, railroad  # noqa: E402
+from hartlib import devices, layer_files, railroad  # noqa: E402
 
 PORTAL = Path(__file__).resolve().parents[1]
 ROOT = PORTAL.parent
@@ -52,6 +53,9 @@ PLANS = sorted(DRAWINGS.glob("P*.svg"))    # the plans, each labelled with every
 # A switch label on the plans: "Sw <n>" on P0; on P1 to P5 a number in the labels' bold grey, which no other number has
 P0_LABEL = re.compile(r"Sw (\d+)")
 LABEL_STYLE = ('font-weight="bold"', 'fill="#5f6e7a"')
+# A station's name in a drawing is a <text data-station="switch:<n>"> label, which must hold the station that
+# {{station:switch:<n>}} gives (stations.csv, through hartlib.railroad); a station name in any other text stops the build.
+STATION_LABEL = re.compile(r'<text\b([^>]*)\bdata-station="([^"]+)"([^>]*)>([^<]*)<')
 LABELS = {
     **{bid: f"Yard track Y{n}" for n, bid in enumerate(YARD, 1)},
     **{bid: f"Engine storage E{n}" for n, bid in enumerate(ENGINE, 1)},
@@ -60,7 +64,10 @@ LABELS = {
     "block:7B-33C": "Main line (east)", "block:37C-39C#2": "Return loop RS-2", "block:37C-39C#1": "Return loop RS-2",
     SIDING: "Passing siding", "block:7A-13C": "Yard lead", "block:3B-end": "Holding track",
     "block:3C-end": "Holding track"}
-CAR_IN = 7.5         # the page's car length, for the siding's "about n cars" (the SOQ's 144 in held about 19)
+# The siding's "about n 50 ft cars" (owner, 2026-11-25). A 50 ft car is 50 scale ft over the body, about 6.9 in at
+# 1:87.1; with 5 scale ft added for the couplers and the gap between cars (about 55 ft coupler face to coupler face),
+# each car takes about 7.6 in of track. The scale is the plan's (plan_overrides.json, staging scale_ratio).
+CAR_FT, COUPLER_FT = 50, 5
 NAME = re.compile(r"\{\{name:([^}]+)\}\}")     # {{name:<block id>}}: the store's name of a staging block, "S-1"
 OS = re.compile(r"os:(\d+)(:.+)?")             # an OS block's ID: its switch number, and a leg on a crossover half
 # {{turnout:<id>}} a turnout's name ("Switch 3"), {{turnouts:<id>,<id>}} several ("Switches 9 and 11"), {{dcc:<id>}} its
@@ -70,6 +77,12 @@ SWITCH_NAME = re.compile(r"Switch (\d+)")      # a turnout's name, whose number 
 # What plans P3 and P4 (hand-edited files) must say: the page's figures.
 PLAN_TEXT = {P3: "Passing siding, {SIDING_IN} in long (about {SIDING_CARS} cars)",
              P4: "Yard tracks Y1 to Y5, {YARD_IN} in long"}
+
+
+def car_inches(scale_ratio: float | None = None) -> float:
+    """The track one 50 ft car takes, coupler allowance included, in inches at the plan's scale."""
+    ratio = float(layer_files.merged_section("staging")["scale_ratio"]) if scale_ratio is None else scale_ratio
+    return (CAR_FT + COUPLER_FT) * 12 / ratio
 
 
 def bare(name: str) -> str:
@@ -209,7 +222,7 @@ def facts(rows: list[dict], master: dict | None = None) -> dict[str, str]:
         raise SystemExit("build_layout_docs: no crossover half in the section list; the page names the crossovers")
     listed = switches_text(xings)
     return {"SECTION_COUNT": str(len(rows)), "RS1_IN": f"{about([RS1])}{inches[RS1]:.0f}",
-            "SIDING_IN": f"{about([SIDING])}{inches[SIDING]:.0f}", "SIDING_CARS": str(round(inches[SIDING] / CAR_IN)),
+            "SIDING_IN": f"{about([SIDING])}{inches[SIDING]:.0f}", "SIDING_CARS": str(round(inches[SIDING] / car_inches())),
             "YARD_IN": f"{about(YARD)}{yard[0]:.0f} to {yard[-1]:.0f}",
             "CROSSOVERS": f"{'crossovers' if len(xings) > 1 else 'a crossover'} at {listed}"}
 
@@ -287,6 +300,25 @@ def check_switch_labels(master: dict, plans=PLANS) -> None:
                              f"device master has {', '.join(live)}; edit the drawing")
 
 
+def check_station_labels(stations: list, master: dict, drawings=None) -> None:
+    """The drawings (hand-edited files) name a station only in a data-station label, and each such label holds the
+    name stations.csv gives the station at that switch; so a station renamed there stops here until they are edited."""
+    names = sorted({s.name for s in stations if str(s.level) == LEVEL}, key=len, reverse=True)
+    typed = re.compile(r"\b(" + "|".join(map(re.escape, names)) + r")\b") if names else None
+    for svg in sorted(DRAWINGS.glob("*.svg")) if drawings is None else drawings:
+        text = Path(svg).read_text()
+        for _, did, _, body in STATION_LABEL.findall(text):
+            turnout(master, did)
+            want = station_at(stations, did)
+            if html.unescape(body.strip()) != want:
+                raise SystemExit(f"build_layout_docs: {Path(svg).name} labels the station at {did} "
+                                 f"{body.strip()!r}, stations.csv has {want!r}; edit the drawing")
+        rest = " ".join(re.findall(r"<(?:text|tspan|title|desc)\b[^>]*>([^<]*)", STATION_LABEL.sub("", text)))
+        if typed and (m := typed.search(html.unescape(rest))):
+            raise SystemExit(f"build_layout_docs: {Path(svg).name} names {m.group(1)} outside a data-station label; "
+                             "label it <text data-station=\"switch:<n>\"> so the build checks it against stations.csv")
+
+
 def check_drawings() -> None:
     """No SOQ wording in the visible text of the page's drawings."""
     for svg in sorted(DRAWINGS.glob("*.svg")):
@@ -296,9 +328,9 @@ def check_drawings() -> None:
                 raise SystemExit(f"build_layout_docs: {svg.relative_to(ROOT)} says {word!r}, SOQ wording; edit the drawing")
 
 
-def outputs(files=None, stations: Path | None = None, plans=None) -> dict[Path, str]:
+def outputs(files=None, stations: Path | None = None, plans=None, drawings=None) -> dict[Path, str]:
     """The page. `files` is the device master's (hartlib.devices.Files of a test's copy), `stations` a copy of
-    stations.csv and `plans` copies of the plans; None the repo's."""
+    stations.csv, `plans` copies of the plans and `drawings` copies of all the drawings; None the repo's."""
     master = master_rows(files)
     places = railroad.read_stations(railroad.Sources.under().stations if stations is None else stations)
     rows = detected_sections(master=master)
@@ -312,6 +344,7 @@ def outputs(files=None, stations: Path | None = None, plans=None) -> dict[Path, 
     check_d2(len(rows))
     check_plans(fact)
     check_switch_labels(master, PLANS if plans is None else plans)
+    check_station_labels(places, master, drawings)
     check_drawings()
     return {PAGE: page}
 
