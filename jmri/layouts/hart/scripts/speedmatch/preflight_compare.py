@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Compare the CVs a preflight read (jython/preflight.py) found with the roster entry.
 
-The roster entry is a DecoderPro XML file (~/JMRI_UserFiles/roster/<file>.xml on the Mac,
-the Pi is the master). Its <locomotive> holds <values> with one <CVvalue name="67" value="0"/>
+The roster entry is a DecoderPro XML file, roster/<file>.xml in the JMRI user files
+(hartlib.paths.JMRI_USER_FILES on the Mac; the Pi's, HART_PI_USERFILES, is the master). Its <locomotive> holds <values> with one <CVvalue name="67" value="0"/>
 per CV. The preflight log has lines "<epoch> CV <n> <value>" or "<epoch> CV <n> FAIL ...".
 
-    preflight_compare.py --log preflight.log --roster-xml ~/JMRI_UserFiles/roster/2738.xml \\
+    preflight_compare.py --log preflight.log --roster-xml <user files>/roster/2738.xml \\
         [--save cvs.json]
 
 Exit status 0 when every CV read matches, 1 on any difference or failed read. Run it before

@@ -428,6 +428,8 @@ def validate_reads(raw, what="reads"):
 
 # ---------------------------------------------------------------- files
 
+# The Pi's ledger: the guard runs in the Pi's JMRI and its python3 without hartlib, so ~ is the Pi user's home
+# (speedmatch.py pom passes LEDGER_DIR from HART_PI_USERFILES). On the Mac a dry run reads ~/speedmatch/ledger.
 DEFAULT_LEDGER_DIR = os.path.expanduser("~/speedmatch/ledger")
 ROSTER_TAG = "roster (may be a default)"
 

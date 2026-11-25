@@ -1,7 +1,9 @@
 # pom_write.py - programming on the main (POM) for the speed-matching tools, behind pom_guard.
 #
 # Runs inside the Pi's JMRI (Jython 2.7), the host that owns the LCC link to the CS-105,
-# dropped through jmri_cmd_watcher.py with its settings prepended as globals:
+# dropped through jmri_cmd_watcher.py with its settings prepended as globals. `speedmatch.py pom`
+# writes them (docs/jmri/speedmatching/POM_GUARD.md); <Pi home> below is the parent of
+# HART_PI_USERFILES (tools/env/load_env.sh), and the defaults are the Pi's own, as no hartlib runs here:
 #
 #   PROPOSAL = "/tmp/speedmatch/proposal.json"     the proposal (schema in pom_guard.py)
 #   GUARD_PATH = "/tmp/speedmatch/pom_guard.py"    the guard; no guard, no write
@@ -13,8 +15,8 @@
 #   ROSTER_OLD_OK = False                          True (exactly) lets an apply use roster values as old
 #                                                  values (they may be defaults); seed-ledger is better
 #   LOGF = "/tmp/pom_write.log"                    result lines, ends with END
-#   ROLLBACK = "/home/pi/speedmatch/rollback_<id>_<time>.json"   must not exist yet
-#   LEDGER_DIR = "/home/pi/speedmatch/ledger"      per-loco ledger (default ~/speedmatch/ledger)
+#   ROLLBACK = "<Pi home>/speedmatch/rollback_<id>_<time>.json"   must not exist yet
+#   LEDGER_DIR = "<Pi home>/speedmatch/ledger"     per-loco ledger (default ~/speedmatch/ledger)
 #   APPLY = False                                  True (exactly) to write; anything else is a dry run
 #   READ_FIRST = True                              try a POM read of each CV for the old values
 #   OP_TIMEOUT = 10.0                              seconds to wait for each ProgListener reply
