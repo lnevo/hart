@@ -625,6 +625,28 @@ inputs = [
   { path = "jmri/layouts/hart/data/devices_generated.csv", label = "loads" },
 ]
 
+# Every master CSV against the column sidecar beside it (ADR-039 decision 3, docs/data/sidecars.md). It lists the
+# sidecars with git ls-files, so a new sidecar is checked with no edit here; the inputs are today's masters and the
+# files their refs name.
+[[step]]
+name = "data-schemas"
+runner = "check"
+group = "static"
+cmd = ["python3", "tools/ops/check_data.py"]
+git = ["head", "base"]
+domain = "layout"
+label = "check_data.py"
+desc = "Checks every master CSV against its <name>.columns.csv sidecar: types, enum values, required cells, unique keys and references into other masters (ADR-039)."
+inputs = [
+  { path = "jmri/layouts/hart/data/devices_field.csv", label = "rules", side = "check" },
+  { path = "jmri/layouts/hart/data/devices_generated.csv", label = "rules", side = "check" },
+  { path = "jmri/layouts/hart/data/switches.csv", label = "rules", side = "check" },
+  { path = "jmri/layouts/hart/data/schematic/stations.csv", label = "refs", side = "check" },
+  { path = "jmri/layouts/hart/data/schematic/interlockings.csv", label = "refs", side = "check" },
+]
+# the sidecars it lists (check_data.SCAN_GLOBS)
+quiet_inputs = ["**/*.columns.csv"]
+
 [[step]]
 name = "name-copies"
 runner = "check"
