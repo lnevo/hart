@@ -2732,7 +2732,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "website",
-   "desc": "Builds the website wiring viewer JSON from the v86 inventory; tools/check.sh fails while stale.",
+   "desc": "Builds the website wiring viewer JSON from the wiring model (write_inventory.workbook(), in memory, never the v86 file; ADR-039); tools/check.sh fails while stale.",
    "path": "www/scripts/build_wiring_json.py",
    "gen": "manifest"
   },
@@ -2917,7 +2917,7 @@
    "kind": "output",
    "status": "live",
    "domain": "wiring",
-   "desc": "Generated per-level LCOS node, board and pin inventory workbook (never hand edited); feeds the wiring deck and the site's wiring viewer.",
+   "desc": "Generated per-level LCOS node, board and pin inventory workbook (never hand edited); an output only: the wiring deck and the site's wiring viewer read the same sheets from write_inventory.workbook() (ADR-039).",
    "path": "docs/wiring/LCOS_Layout_Inventory_v86.xlsx"
   },
   {
@@ -3219,7 +3219,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "wiring",
-   "desc": "Builds the per-node wiring schematic PowerPoint from the v86 inventory.",
+   "desc": "Builds the per-node wiring schematic PowerPoint from the wiring model: the inventory sheets write_inventory.workbook() builds in memory, never the v86 file (ADR-039).",
    "path": "tools/wiring/create_wiring_schematic_ppt.py"
   },
   {
@@ -4272,14 +4272,9 @@
    "label": "station maps"
   },
   {
-   "from": "docs/wiring/LCOS_Layout_Inventory_v86.xlsx",
-   "to": "tools/wiring/create_wiring_schematic_ppt.py"
-  },
-  {
-   "from": "docs/wiring/LCOS_Layout_Inventory_v86.xlsx",
-   "to": "www/scripts/build_wiring_json.py",
-   "label": "LCOS xlsx",
-   "gen": "manifest"
+   "from": "tools/wiring/write_inventory.py",
+   "to": "tools/wiring/create_wiring_schematic_ppt.py",
+   "label": "workbook(), in memory"
   },
   {
    "from": "docs/wiring/lcos/lcos_signal_logic.csv",
@@ -7087,6 +7082,12 @@
   {
    "from": "www/scripts/build_wiring_json.py",
    "to": "www/data/wiring-inventory.json",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/wiring/write_inventory.py",
+   "to": "www/scripts/build_wiring_json.py",
+   "label": "workbook(), in memory",
    "gen": "manifest"
   },
   {
