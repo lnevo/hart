@@ -24,6 +24,16 @@ check pipeline-map-site python3 tools/ops/build_pipeline_map.py --public --out w
 check public-text "$HOPS_PY" tools/audit/check_public_text.py
 check repo-guide python3 www/scripts/repo_guide_page.py --check
 check jmri-additions python3 www/scripts/jmri_additions_page.py --check
+# The unit tests that read Markdown docs or the wiki in the repo itself (tools/audit/check_stamps.py declares them on
+# docs/ or wiki/): only the test or class that reads them, so a docs-only change cannot break them unseen. The guard
+# tools/audit/tests/test_check_docs_only.py keeps this list in step with those declarations. A -k that matches no test
+# fails (unittest exits 5 when no test ran, Python 3.12 and later).
+# check_name_copies.py over the whole repo, Markdown included: a renamed device's old name left in a doc
+check unit-guards-test_name_copies python3 -m unittest discover -b -q -s tools/audit/tests -p test_name_copies.py
+# the agent-doc lane of docs/pipeline-map/pipeline_map.json is regenerated from the wiki and agent docs
+check unit-guards-test_agent_docs_map python3 -m unittest discover -b -q -s tools/audit/tests -p test_agent_docs_map.py -k BuildCheckTest.test_committed_graph_is_current
+# every log tag in docs/jmri/speedmatching/RUNBOOK.md is emitted by a runner
+check unit-jmri-test_speedmatch_distance python3 -m unittest discover -b -q -s jmri/layouts/hart/scripts/tests -p test_speedmatch_distance.py -k RunnerSource.
 if (( ${#failed[@]} > 0 )); then
   echo "quick docs checks FAILED: ${failed[*]}"
   exit 1

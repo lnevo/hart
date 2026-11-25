@@ -9,13 +9,14 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools" / "ci"))
 sys.path.insert(0, str(ROOT / "tools" / "audit"))
 import changed_kind  # noqa: E402
+import check_stamps  # noqa: E402
 import portal_inputs  # noqa: E402
 
 # check.sh's variables that pick a path; the tests start each run without them.
@@ -241,7 +242,7 @@ class OneList(unittest.TestCase):
 
     def test_each_docs_check_is_also_in_the_full_run(self) -> None:
         """The docs path skips the full run, so its checks must be ones the full run makes too (static or public-text)."""
-        checks = re.findall(r"^check [\w-]+ (?:python3|\"\$HOPS_PY\") (\S+)", (ROOT / "tools/ci/docs_checks.sh")
+        checks = re.findall(r"^check [\w-]+ (?:python3|\"\$HOPS_PY\") (?!-m )(\S+)", (ROOT / "tools/ci/docs_checks.sh")
                             .read_text(encoding="utf-8"), re.M)
         self.assertGreaterEqual(len(checks), 8)
         check_sh = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
@@ -264,8 +265,101 @@ class OneList(unittest.TestCase):
             done = subprocess.run(["bash", str(repo / "tools/ci/docs_checks.sh")], env=env, capture_output=True,
                                   text=True, timeout=30)
             self.assertEqual(1, done.returncode)
-            self.assertEqual(8, len(re.findall(r"^ran ", done.stdout, re.M)), done.stdout)
+            self.assertEqual(8 + len(docs_unit_tests()), len(re.findall(r"^ran ", done.stdout, re.M)), done.stdout)
             self.assertIn("quick docs checks FAILED: ai-speak", done.stdout)
+
+
+# check.sh's unit job kinds by test folder (tools/check.sh), for the stamp names of the tests docs_checks.sh runs.
+KIND_BY_DIR = {"tools/audit/tests": "unit-guards", "tools/hosts/tests": "unit-hosts",
+               "tools/schematic/tests": "unit-schematic", "jmri/layouts/hart/scripts/tests": "unit-jmri"}
+UNIT_LINE = re.compile(r"^check (?P<name>\S+) python3 -m unittest discover -b -q -s (?P<dir>\S+) -p (?P<file>test\w*\.py)"
+                       r"(?: -k (?P<k>\S+))?$")
+# The stamp declarations (tools/audit/check_stamps.py) that cover Markdown under docs/ or wiki/ but whose tests the
+# docs-only path leaves out, each with why (owner, 2026-11-24: a short list; whole suites that only partly read docs
+# stay out). A new or changed declaration on docs/ or wiki/ fails below until docs_checks.sh runs it or it is listed.
+LEFT_OUT = {
+    "static": "its checks that read docs are in docs_checks.sh's list; stays one job (owner, 2026-11-24)",
+    "public-text": "check_public_text.py is in docs_checks.sh's list",
+    "portal": "the portal build stays with the website deploy, as in CI (owner, 2026-11-24)",
+    "unit-portal": "whole suite of site builders (39 s); reads docs only as page sources",
+    "unit-hart-ops": "whole suite (car cards, publications); reads docs only in part",
+    "unit-schematic": "whole suite; reads wiki/pipelines/ only in part",
+    "unit-anyrail": "whole suite; reads docs/ only for the track plan article",
+    "unit-hosts test_deploy_stage": "stages a copy of every file for a deploy (36 s); copies docs, does not read them",
+    "unit-guards test_check_stamps": "the stamp machinery's own tests; hashes every file (38 s)",
+    "unit-guards test_hart_tables_writers": "reads the repo's git status, not the wiki's text",
+    "unit-guards test_jmri_process_patterns": "reads the .sh, .ps1 and .py files git lists, docs/ included; no Markdown",
+    "unit-guards test_pipeline_map": "its real-map tests read the graph and the pages, which only a full-path change "
+                                     "(docs/pipeline-map/) alters; the site copy is the pipeline-map-site check",
+    "unit-guards test_pipeline_map_coverage": "the agent docs it checks are .claude/ and AGENTS.md files: full path",
+    "unit-guards test_docs_index": "builds fake docs trees; the real index is the docs-index check",
+    "unit-guards test_publish_draft": "reads docs/ops/ drawings and JSON, no Markdown",
+    "unit-guards test_write_inventory": "reads docs/wiring/ CSV, no Markdown",
+    "unit-hosts test_live_paths": "reads the docs/ paths the deploy scripts name, not Markdown text",
+    "unit-jmri test_infer_block_lengths": "reads docs/jmri/ data files, no Markdown",
+    "unit-jmri test_speedmatch": "reads docs/jmri/ data files (block_events.csv), no Markdown",
+    "unit-jmri test_speedmatch_dashboard": "reads docs/jmri/ data files, no Markdown",
+    "unit-jmri test_speedmatch_publish_live": "reads docs/jmri/ data files, no Markdown",
+    "unit-jmri test_speedmatch_site_export": "reads docs/jmri/ and www/ai/ data files, no Markdown",
+}
+
+
+def docs_unit_tests() -> dict[str, re.Match]:
+    """docs_checks.sh's unit test lines by stamp name ("unit-guards test_name_copies")."""
+    found = {}
+    for line in (ROOT / "tools/ci/docs_checks.sh").read_text(encoding="utf-8").splitlines():
+        if line.startswith("check ") and " -m unittest" in line:
+            m = UNIT_LINE.match(line)
+            if m is None or m["dir"] not in KIND_BY_DIR:
+                raise AssertionError(f"docs_checks.sh: a unit test line not in the form the guard reads: {line}")
+            found[f"{KIND_BY_DIR[m['dir']]} {m['file'].removesuffix('.py')}"] = m
+    return found
+
+
+def covers_markdown_docs(patterns: tuple[str, ...]) -> bool:
+    """Whether a stamp declaration covers a Markdown file under docs/ or wiki/."""
+    probes = {"docs/x.md", "wiki/x.md"}
+    for p in patterns:
+        if p.startswith(("docs/", "wiki/")):
+            probes.add(p if p.endswith(".md") else p.split("*", 1)[0].rstrip("/") + "/x.md")
+    return any(PurePosixPath(probe).full_match(p) for p in patterns for probe in probes)
+
+
+class DocsUnitTests(unittest.TestCase):
+    """The unit tests docs_checks.sh runs follow the stamp declarations of what reads docs (tools/audit/check_stamps.py)."""
+
+    def test_each_listed_test_is_declared_on_docs_and_named_for_its_file(self) -> None:
+        tests = docs_unit_tests()
+        self.assertGreaterEqual(len(tests), 3)
+        for stamp, m in tests.items():
+            with self.subTest(stamp):
+                self.assertTrue((ROOT / m["dir"] / m["file"]).is_file())
+                self.assertEqual(stamp.replace(" ", "-"), m["name"])
+                extra = check_stamps.EXTRA.get(stamp)
+                self.assertIsNotNone(extra, f"{stamp}: check_stamps.EXTRA does not say it reads docs or the wiki")
+                self.assertTrue(covers_markdown_docs(extra), f"{stamp}: its declaration covers no Markdown doc")
+                self.assertNotIn(stamp, LEFT_OUT)
+
+    def test_every_declaration_on_markdown_docs_is_run_or_left_out_with_a_reason(self) -> None:
+        declared = {**check_stamps.BY_KIND, **check_stamps.EXTRA}
+        on_docs = {k for k, v in declared.items() if covers_markdown_docs(v)}
+        handled = set(docs_unit_tests()) | set(LEFT_OUT)
+        self.assertEqual([], sorted(on_docs - handled), "declared on docs/ or wiki/: run it in docs_checks.sh or "
+                                                        "add it to LEFT_OUT with the reason")
+        self.assertEqual([], sorted(set(LEFT_OUT) - on_docs), "LEFT_OUT names a job no longer declared on docs")
+
+    def test_the_probe_reads_patterns_as_the_stamps_do(self) -> None:
+        self.assertTrue(covers_markdown_docs(("**/*",)))
+        self.assertTrue(covers_markdown_docs(("docs/jmri/**/*",)))
+        self.assertTrue(covers_markdown_docs(("docs/INDEX.md",)))
+        self.assertFalse(covers_markdown_docs(("**/*.py", "www/**/*", "tools/**/*")))
+        self.assertFalse(covers_markdown_docs(("docs/x.json",)))
+
+    def test_a_unit_line_in_another_form_fails_the_guard(self) -> None:
+        bad = "check x python3 -m unittest tools/audit/tests/test_name_copies.py\n"
+        with mock.patch.object(Path, "read_text", return_value=bad):
+            with self.assertRaisesRegex(AssertionError, "not in the form the guard reads"):
+                docs_unit_tests()
 
 
 if __name__ == "__main__":
