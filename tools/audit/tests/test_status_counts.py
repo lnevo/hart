@@ -69,6 +69,12 @@ class Rebase(unittest.TestCase):
                                "[w](https://x.org/a.md) [top](#top) [m](mailto:a@example.invalid)")
         self.assertEqual(sc.rebase(page, "wiki", "wiki/status/current"), entry)
 
+    def test_a_path_with_parentheses_and_a_title(self):
+        entry = '[w](../../projects/a_(b).md "T") [x](../../x.md "two words")'
+        page = sc.rebase(entry, "wiki/status/current", "wiki")
+        self.assertEqual(page, '[w](projects/a_(b).md "T") [x](x.md "two words")')
+        self.assertEqual(sc.rebase(page, "wiki", "wiki/status/current"), entry)
+
     def test_words_leave_out_list_markers(self):
         self.assertEqual(sc.words("**A:** one two\n  - three four"), 5)
 
@@ -166,7 +172,45 @@ class Main(unittest.TestCase):
             self.assertEqual(sc.build()[0], out.read_text(encoding="utf-8"))
 
 
+class AtomicWrite(unittest.TestCase):
+    def test_the_page_is_replaced_whole_and_no_temp_file_is_left(self):
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d) / "STATUS.md"
+            out.write_text("old", encoding="utf-8")
+            sc.write_atomic(out, "new page\n")
+            self.assertEqual("new page\n", out.read_text(encoding="utf-8"))
+            self.assertEqual(["STATUS.md"], sorted(p.name for p in Path(d).iterdir()))
+
+    def test_a_failed_write_keeps_the_old_page(self):
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d) / "STATUS.md"
+            out.write_text("old", encoding="utf-8")
+            with self.assertRaises(TypeError):
+                sc.write_atomic(out, None)
+            self.assertEqual("old", out.read_text(encoding="utf-8"))
+            self.assertEqual(["STATUS.md"], sorted(p.name for p in Path(d).iterdir()))
+
+
 class Hook(unittest.TestCase):
+    def test_a_build_past_the_timeout_is_stopped_and_named(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d) / "slow"
+            (root / "tools/ops").mkdir(parents=True)
+            (root / hook.STATUS_SCRIPT).write_text("import time; time.sleep(30)\n", encoding="utf-8")
+            started = hook.start_status_pages(str(root), str(root))
+            old, hook.STATUS_TIMEOUT = hook.STATUS_TIMEOUT, 0.5
+            try:
+                lines = hook.status_lines(started)
+            finally:
+                hook.STATUS_TIMEOUT = old
+            self.assertEqual(1, len(lines), lines)
+            self.assertIn("was stopped; run make status", lines[0])
+
+    def test_the_builds_fit_the_hooks_budget(self):
+        """They run beside the sweep, so the hook's 60 s (.claude/settings.json) holds the drivers, then the longer
+        of the sweep and the builds."""
+        self.assertLess(hook.DRIVER_TIMEOUT + max(hook.TIMEOUT, hook.STATUS_TIMEOUT, hook.ORIENT_TIMEOUT), 60)
+
     def test_a_failed_build_is_one_line_and_a_good_one_says_nothing(self):
         with tempfile.TemporaryDirectory() as d:
             good, bad = Path(d) / "good", Path(d) / "bad"

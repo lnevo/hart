@@ -84,6 +84,17 @@ class Split(unittest.TestCase):
             with self.subTest(bad=bad[:30]), self.assertRaises(ss.SplitError):
                 ss.parse(bad)
 
+    def test_a_split_that_stops_leaves_the_folders_as_they_were(self):
+        with tempfile.TemporaryDirectory() as d:
+            folder = Path(d) / "wiki/status"
+            ss.split(ss.tidy(page()), folder)
+            before = {p.relative_to(folder).as_posix(): p.read_text(encoding="utf-8") for p in folder.rglob("*.md")}
+            bad = ss.tidy(page()).replace("- **First:** one", "- **Second (owner):** again")   # a name in Owed twice
+            with self.assertRaises(ss.SplitError):
+                ss.split(bad, folder)
+            after = {p.relative_to(folder).as_posix(): p.read_text(encoding="utf-8") for p in folder.rglob("*.md")}
+            self.assertEqual(before, after)
+
     def test_two_entries_with_one_file_name_stop_it(self):
         with tempfile.TemporaryDirectory() as d, self.assertRaises(ss.SplitError):
             ss.split(page(now=("- **Active:** a", "- **Active (owner):** b")), Path(d))

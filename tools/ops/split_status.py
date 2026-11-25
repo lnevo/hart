@@ -157,22 +157,25 @@ def tidy(text: str) -> str:
 
 
 def split(text: str, folder: Path) -> int:
-    """Write the entry files, current/counts.md and README; return how many entries (the counts file left out)."""
+    """Write the entry files, current/counts.md and README; return how many entries (the counts file left out).
+    Every section is parsed and named first, so a split that stops leaves the folders as they were."""
     entries = parse(text)
-    n = 0
+    plan = []
+    for name, _heading, _intro in sc.SECTIONS:
+        items = entries.get(name, [])
+        for i, (fname, item) in enumerate(zip(file_names(name, items), items)):
+            body = item if item == sc.COUNTS_TOKEN else sc.rebase(item, "wiki", f"wiki/status/{name}")
+            plan.append((name, fname, f"order: {(i + 1) * STEP}\n{body}\n", item != sc.COUNTS_TOKEN))
     folder.mkdir(parents=True, exist_ok=True)
     for name, _heading, _intro in sc.SECTIONS:
         d = folder / name
         d.mkdir(exist_ok=True)
         for old in d.glob("*.md"):
             old.unlink()
-        items = entries.get(name, [])
-        for i, (fname, item) in enumerate(zip(file_names(name, items), items)):
-            body = item if item == sc.COUNTS_TOKEN else sc.rebase(item, "wiki", f"wiki/status/{name}")
-            (d / fname).write_text(f"order: {(i + 1) * STEP}\n{body}\n", encoding="utf-8")
-            n += item != sc.COUNTS_TOKEN
+    for name, fname, body, _entry in plan:
+        (folder / name / fname).write_text(body, encoding="utf-8")
     (folder / "README.md").write_text(README, encoding="utf-8")
-    return n
+    return sum(entry for *_rest, entry in plan)
 
 
 def without_counts(text: str) -> str:

@@ -187,7 +187,7 @@ def reading_order(pairs: set[tuple[str, str]], start: str) -> list[tuple[str, st
 
 
 def doc_edges(set_nodes: dict[str, str], tracked: frozenset[str], read, checked: list[str],
-              checker: str) -> list[dict]:
+              checker: str, ignored=None) -> list[dict]:
     """The generated links. set_nodes maps each box path of the set to its id; `checked` is what check_agent_docs
     reads and `checker` is its box."""
     folders = tuple(p for p in set_nodes if p in FOLDERS)
@@ -199,9 +199,9 @@ def doc_edges(set_nodes: dict[str, str], tracked: frozenset[str], read, checked:
             names["/" + PurePosixPath(path).stem] = path
     found: set[tuple[str, str]] = set()
     for path, nid in set_nodes.items():
-        # a box's own file is read only when git tracks it: wiki/STATUS.md is built and gitignored (ADR-038), so it is
-        # a link target and its links are its entries' (the wiki/status folder box)
-        files = ([path] if path in tracked else []) if path not in FOLDERS else sorted(
+        # a box's own file is not read when git ignores it: wiki/STATUS.md is built from the wiki/status folder box
+        # (ADR-038), so it is only a link target; a new doc box not yet committed is read as before
+        files = ([] if (ignored or DOCS_CHECK.is_ignored)(path) else [path]) if path not in FOLDERS else sorted(
             f for f in tracked if f.startswith(path + "/"))
         for f in files:
             if not f.endswith(READ_SUFFIXES):
