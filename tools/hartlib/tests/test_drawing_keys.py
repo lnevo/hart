@@ -15,7 +15,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "src"))
-from hartlib import devices, drawing_keys, paths  # noqa: E402
+from hartlib import devices, drawing_keys  # noqa: E402
 
 
 class Committed(unittest.TestCase):
@@ -50,8 +50,9 @@ class Renamed(unittest.TestCase):
     def test_a_field_rename_moves_only_the_name(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             data = Path(tmp)
-            for name in (devices.GENERATED_FILE, devices.FIELD_FILE, "devices.columns.csv"):
-                shutil.copy(paths.LAYOUT_DATA / name, data / name)
+            here = devices.Files.here()
+            for src in (here.master, here.dictionary, here.field):
+                shutil.copy(src, data / src.name)
             field = devices.field_path(data)
             rows = list(csv.DictReader(io.StringIO(field.read_text(encoding="utf-8"))))
             row = dict.fromkeys(rows[0], "")

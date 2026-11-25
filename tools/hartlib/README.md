@@ -134,7 +134,24 @@ rows keyed by switch numbers, a track row's `block` an OS block ID given back wi
 path, names)`: `main_lines.csv`, each stop's block IDs named from the name store (`resolve_stop`);
 `build_main_route.read_lines` wraps it (a `RouteError`). `read_mast_cells(data)`, `read_uss_cells(data)` and
 `read_uss_plants(data)`: the parked USS CTC board (`mast_cells.csv`, `uss_board_cells.csv`, `uss_board_plants.csv`);
-`layout_facts.py` re-exports them as `load_mast_cells` and the others.
+`layout_facts.py` re-exports them as `load_mast_cells` and the others. Step 13 added three: `read_retired_masts(path)`:
+`retired_virtual_masts.csv`, `{mast: system name}` of the dropped virtual masts, each ordinal once
+(`mast_plan.read_retired` wraps it, a `MapError`); `read_sheet_rows(path)`: `sheets.csv` as `(line, row)` pairs
+(`railroad_facts.read_rows`, a `FactsError` on a missing column; `build_staging_sets.read_sheets` checks the cells);
+`read_panel_items(path)`: `panel_items.json` parsed (`panel_items.load` checks the items, an `ItemsError`). Their
+paths are `RETIRED_MASTS`, `SHEETS_FILE` and `PANEL_ITEMS`.
+
+### `hartlib.drawing_keys`
+
+Which device each piece of the drawing is, keyed by device ID (naming-layers step 13, builder merge step 7): the one
+reader of the device master's `trial_name` keys for every level. `read(levels, source=None, rows=None)` gives `Keys`:
+`ids` ({drawing key: device ID}, "Switch 101A", "OS 7 A-13C", "Track 1B-3A 1/2") and `rows` ({ID: merged row}) of the
+turnout and block rows of `levels`, parts among them, no LCC alias; `row(key)`, `name(key)` (the ID's name in the
+merged view: the owner's, else the generated), `keys(id)`, `of(layer, role, parts)`, `parts()`. `DrawingKeyError` (a
+`ValueError`) on a row with no key or no id, a key or id given twice, or a part of no block row. Its readers:
+`le_names.device_names` (the Layout Editor build's main and upper names), `staging_device_map.load` (staging's, the
+device map's masts and the CATS desks' tracks), and `cats_panel.drawn_keys` (the desks' balloon-loop halves and
+parts).
 
 ### `hartlib.block_numbering`
 
@@ -177,12 +194,12 @@ stale copy of its own output: `build_device_map.py` loads `upto="inputs"`, `buil
 | `Railroad.switch_rows`, `switches` | `[SwitchRow]`: switches.csv as read (`read_switch_rows`, every row held to its level's shape; a staging row's OS block and legs keyed by `os_id`, `closed_id`, `thrown_id`, their names labels `build_hands.py` writes from the name store); `{number: Switch}` of its staging rows (`Switch`, `Leg`; `layout_facts.py` re-exports them) |
 | `Railroad.interlockings` (every level), `level_control_points` (its main and upper rows), `local_switches`, `lcos_nodes`, `main_upper_switches` | `Interlocking`, `LocalSwitch`, `LcosNode`, `{number: MainUpperSwitch}` |
 | `Railroad.plan_overrides` | `PlanOverrides`: `data` (the whole file), `edits`, `relabel`, `helix` |
-| `Railroad.block_lengths`, `hands` | `{name: BlockLength}` (`plan_in`, `measured_in`, `source`, `jmri_in`; `plan_cm()` for the drawings and signal rules; each row keyed by `level` and `id`, its name a label the build keeps the name store's: `plan_lengths.py --labels`), `{label: Hand}` |
-| `Railroad.device_map` | `DeviceMap`: `rows` (`DeviceRow`), `blocks`, `occupancy` (block -> its occupancy row), `turnouts`, `heads_by_system`, `of(layer)` |
+| `Railroad.block_lengths`, `hands` | `{name: BlockLength}` (`plan_in`, `measured_in`, `source`, `note`, `jmri_in`; `read_block_lengths()` reads this checkout's file, `BLOCK_LENGTHS`; `plan_cm()` for the drawings and signal rules; each row keyed by `level` and `id`, its name a label the build keeps the name store's: `plan_lengths.py --labels`), `{label: Hand}` |
+| `Railroad.device_map` | `DeviceMap`: `rows` (`DeviceRow`, each with its `id`), `blocks`, `occupancy` (block -> its occupancy row, its detector by ID: `det:<block id>`), `turnouts` (by the switch number of the row's ID, `turnout_switch`), `heads_by_system`, `of(layer)` |
 | `Railroad.masts` | `hartlib.level_masts.read()` rows, every level (`read_masts(path, levels=...)` gives `[Mast]`: line, level, name, blocks) |
 | `Railroad.tables` | `TablesNames`: `root`, `turnouts`, `sensors`, `masts` (user -> system), `blocks` |
 | `read_*(path)` | each file alone; `FactsError` names the file and line |
-| `check_virtual_names(rows)`, `join_main_upper(cps, local)` | the rules `build_device_map.py` builds by |
+| `check_virtual_names(rows, owner_named=())`, `join_main_upper(cps, local)` | the rules `build_device_map.py` builds by; a turnout's number and a block's detector are read by ID (naming-layers step 13), and a device the owner names (`owner_named`: its field row's level and id; the device-map invariant passes them) keeps its generated virtual names, held to their form only |
 
 `KNOWN` in the module lists problems already reported to the owner, each by its exact message: they print and pass,
 anything else fails, and a `KNOWN` entry that no longer happens fails.
