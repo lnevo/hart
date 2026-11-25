@@ -477,14 +477,14 @@ class IngestTest(unittest.TestCase):
 
     def test_waiting(self):
         got = self.lines(pi=(0, "ops\ntables\n", ""), mac=(0, "waiting\n", ""), roster=(0, "waiting 3\n", ""))
-        self.assertEqual(got["JMRI tables, Pi"], "a PanelPro Store is waiting (make tables-pull-pi)")
-        self.assertEqual(got["JMRI tables, Mac"], "a PanelPro Store is waiting (make tables-pull)")
+        self.assertEqual(got["JMRI tables, Pi"], "a PanelPro Store not yet split in (pulled or not) (make tables-pull-pi)")
+        self.assertEqual(got["JMRI tables, Mac"], "a PanelPro Store not yet split in (pulled or not) (make tables-pull)")
         self.assertEqual(got["Operations Pro, Pi"], "the Pi's session changed the Operations files since the last "
                                                     "deploy or pull (make ops-pull)")
-        self.assertEqual(got["DecoderPro roster, Pi"], "3 files on the Pi differ from the Mac copy or are not on it "
+        self.assertEqual(got["DecoderPro roster, Pi"], "3 files on the Pi differ from the Mac copy or not on it (the sync overwrites the Mac's) "
                                                        "(./tools/hosts/sync_roster_from_pi.sh)")
         self.assertEqual(self.lines(pi=(0, "ops\n", ""))["JMRI tables, Pi"], "nothing waiting (make tables-pull-pi)")
-        self.assertIn("1 file on the Pi differ", self.lines(roster=(0, "waiting 1\n", ""))["DecoderPro roster, Pi"])
+        self.assertIn("1 file on the Pi differs from", self.lines(roster=(0, "waiting 1\n", ""))["DecoderPro roster, Pi"])
 
     def test_an_unreachable_pi_is_one_line_per_source(self):
         got = self.lines(pi=self.DOWN, roster=self.DOWN)
@@ -510,9 +510,19 @@ class IngestTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp, mock.patch.dict(os.environ, {"STS_PI_COPY": tmp}):
             (Path(tmp) / "db").mkdir()
             for name in ("sts_db3_20261124-210500.sql.gz", "sts_db3_20261125-102733.sql.gz", "other.sql.gz",
+                         "sts_db3_99999999-999999.sql.gz",
                          "sts_db3_20261126-000000.sql.gz.part"):
                 (Path(tmp) / "db" / name).write_text("")
             self.assertEqual(OR.last_sts_pull(), "last dump 2026-11-25 10:27")
+
+    def test_a_checkout_unlike_origin_main_says_so(self):
+        with mock.patch.object(OR, "run", return_value=(0, "", "")):
+            self.assertIsNone(OR.ingest_base_note())
+        with mock.patch.object(OR, "run", return_value=(1, "", "")) as run:
+            self.assertIn("differ from origin/main; merge it in", OR.ingest_base_note())
+        self.assertEqual(run.call_args[0][0][:4], ["git", "diff", "--quiet", "origin/main"])
+        with mock.patch.object(OR, "run", return_value=(128, "", "fatal: bad revision\n")):
+            self.assertIn("cannot tell whether it matches origin/main (fatal: bad revision)", OR.ingest_base_note())
 
     def test_the_checks_are_the_reused_read_only_ones(self):
         calls = []

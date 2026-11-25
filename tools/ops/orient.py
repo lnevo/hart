@@ -503,6 +503,23 @@ def not_checked(result: tuple[int | None, str, str], host: str) -> str | None:
     return f"cannot check (exit {code}: {first_line(err or out)})"
 
 
+# What the Pi and Mac checks compare a host with: the Store splits, the generated tables.xml and the Operations files.
+INGEST_REFS = ("jmri/layouts/hart/data/store_splits.csv", "jmri/layouts/hart/output/tables.xml",
+               "jmri/layouts/hart/operations")
+
+
+def ingest_base_note() -> str | None:
+    """A note when this checkout's copies of INGEST_REFS differ from origin/main's: the checks compare a host with
+    this checkout, so a split or an Operations pull merged since would still show as waiting."""
+    code, out, err = run(["git", "diff", "--quiet", BASE, "--", *INGEST_REFS], GIT_TIMEOUT)
+    if code == 0:
+        return None
+    if code == 1:
+        return (f"NOTE: compared with this checkout, whose Store splits, tables.xml or Operations files differ from "
+                f"{BASE}; merge it in for exact answers")
+    return f"NOTE: compared with this checkout; cannot tell whether it matches {BASE} ({first_line(err)})"
+
+
 def ingest_lines(pi: tuple[int | None, str, str], mac: tuple[int | None, str, str],
                  roster: tuple[int | None, str, str]) -> list[str]:
     """One line per source: what a host holds that the repo (or, for the roster, the Mac copy) lacks, and the
@@ -512,12 +529,12 @@ def ingest_lines(pi: tuple[int | None, str, str], mac: tuple[int | None, str, st
     words = set(pi[1].split()) if why is None else set()
     if why is None and words - {"ops", "tables"}:
         why = f"cannot read the check's answer {pi[1].strip()!r}"
-    lines.append("JMRI tables, Pi: " + (why or ("a PanelPro Store is waiting" if "tables" in words
+    lines.append("JMRI tables, Pi: " + (why or ("a PanelPro Store not yet split in (pulled or not)" if "tables" in words
                                                  else "nothing waiting")) + " (make tables-pull-pi)")
     code, out, err = mac
     answer = out.strip()
     if code == 0 and answer in ("waiting", "nothing", "absent"):
-        state = {"waiting": "a PanelPro Store is waiting", "nothing": "nothing waiting",
+        state = {"waiting": "a PanelPro Store not yet split in (pulled or not)", "nothing": "nothing waiting",
                  "absent": "nothing waiting (no ~/JMRI_UserFiles/tables.xml)"}[answer]
     else:
         state = not_checked(mac, "Mac") or f"cannot read the check's answer {answer!r}"
@@ -532,8 +549,8 @@ def ingest_lines(pi: tuple[int | None, str, str], mac: tuple[int | None, str, st
     m = re.fullmatch(r"waiting (\d+)", answer)
     if code == 0 and (m or answer == "nothing"):
         count = int(m.group(1)) if m else 0
-        state = (f"{count} file{'s' if count > 1 else ''} on the Pi differ from the Mac copy or are not on it"
-                 if count else "nothing waiting")
+        state = (f"{count} file{'s' if count > 1 else ''} on the Pi {'differ' if count > 1 else 'differs'} from "
+                 "the Mac copy or not on it (the sync overwrites the Mac's)" if count else "nothing waiting")
     else:
         state = not_checked(roster, "Pi") or f"cannot read the check's answer {answer!r}"
     lines.append(f"DecoderPro roster, Pi: {state} (./{ROSTER_SYNC})")
@@ -555,7 +572,13 @@ def last_sts_pull() -> str:
         return f"cannot read {folder} ({err})"
     if not stamps:
         return "no dump pulled to this Mac yet"
-    return f"last dump {datetime.strptime(max(stamps), '%Y%m%d-%H%M%S'):%Y-%m-%d %H:%M}"
+    times = []
+    for stamp in stamps:
+        try:
+            times.append(datetime.strptime(stamp, "%Y%m%d-%H%M%S"))
+        except ValueError:  # a hand-named file with digits that are no date
+            continue
+    return f"last dump {max(times):%Y-%m-%d %H:%M}" if times else "no dump pulled to this Mac yet"
 
 
 # ---------------------------------------------------------------- output
@@ -600,6 +623,8 @@ def report(short: bool, here: str) -> list[str]:
                                              roster_status)]
             prs, deploys, flag, pi, mac, roster = (j.result() for j in jobs)
         ingest = ingest_lines(pi, mac, roster)
+        note = ingest_base_note()
+        ingest += [note] if note else []
     limit = SHORT_LIMIT if short else None
     out = [] if short else [f"Orient {datetime.now():%Y-%m-%d %H:%M} ({fetched})", f"Operating flag: {flag}"]
     if any(t.ahead is None for t in trees):
