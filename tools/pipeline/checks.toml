@@ -200,13 +200,11 @@ group = "static"
 cmd = ["python3", "www/scripts/build_wiring_json.py", "--check"]
 domain = "website"
 label = "build_wiring_json.py"
-desc = "Builds the website wiring viewer JSON from v86 inventory and the v85 signal splits; tools/check.sh fails while stale."
+desc = "Builds the website wiring viewer JSON from the v86 inventory; tools/check.sh fails while stale."
 inputs = [
-  { path = "docs/wiring", label = "v85 split pins" },
   { path = "docs/wiring/LCOS_Layout_Inventory_v86.xlsx", label = "LCOS xlsx" },
 ]
 outputs = [
-  "www/data/signal-splits.json",
   "www/data/wiring-inventory.json",
 ]
 

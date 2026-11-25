@@ -17,7 +17,7 @@ SPEC = importlib.util.spec_from_file_location("build_wiring_json", ROOT / "www/s
 BW = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(BW)
 
-NAMES = ("wiring-inventory.json", "signal-splits.json")
+NAMES = ("wiring-inventory.json",)
 
 
 def run_check(out_dir: Path) -> tuple[int, str]:
@@ -75,7 +75,6 @@ class CheckTheRepo(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("STALE", out)
         self.assertIn("wiring-inventory.json", out)
-        self.assertNotIn("signal-splits.json differs", out)
         self.assertEqual(p.read_bytes(), before)
 
 

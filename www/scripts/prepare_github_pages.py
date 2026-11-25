@@ -69,7 +69,6 @@ SKIP_DIRS = {Path("scripts"), Path("review"), Path("review-data"), Path("tools")
 SKIP_FILES = {
     Path("README.md"),
     Path("guides/digicon-system.html"),
-    Path("data/signal-splits.json"),  # signal splits are under review; the wiring viewer hides that tab
     Path("data/invites.json"),  # invitation drafts; author reference only
     Path("data/panels.json"),
     Path("library/updated-history.txt"),
