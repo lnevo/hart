@@ -17,10 +17,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/audit"))
 import check_layout_facts as check  # noqa: E402
-from hartlib import devices  # noqa: E402
+from hartlib import devices, hand_lists  # noqa: E402
 
 DATA_FILES = ("switches.csv", devices.MASTER_FILE, "schematic/stations.csv", "schematic/interlockings.csv", "mast_cells.csv",
-              "uss_board_cells.csv", "uss_board_plants.csv")
+              "uss_board_cells.csv", "uss_board_plants.csv", f"schematic/{hand_lists.OVERRIDES_NAME}")
 
 
 def with_os9_paths(text: str, closed: str = "2", thrown: str = "4") -> str:
