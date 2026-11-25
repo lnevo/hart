@@ -60,7 +60,7 @@ Decided by the owner on 2026-11-21, from the pipeline-efficiency review (T6a). B
 
 **Decision:**
 - `devices_generated.csv` holds every row, written only by the build scripts. `written_by` still names the owning script.
-- `devices_field.csv` holds the owner's cells. Each row is keyed by (`level`, `layer`, `user_name`) and carries only the hand-owned columns: `dcc`, `layout_block`, `jmri_comment`, `notes`, `detector`, `stop` and `cp`; `system_name` and `jmri_name` on staging blocks; and the node and notes of a wired mast or head. A device added in PanelPro and taken in by a Store split is kept here in full, with no level and its `jmri_bean`.
+- `devices_field.csv` holds the owner's cells. Each row is keyed by (`level`, `layer`, `user_name`) and carries only the hand-owned columns (amended by ADR-033, naming-layers step 4, 2026-11-25: a row is keyed by (`level`, `id`), the device's ID from the plan, and `user_name` is one of the owner's cells): `dcc`, `layout_block`, `jmri_comment`, `notes`, `detector`, `stop` and `cp`; `system_name` and `jmri_name` on staging blocks; and the node and notes of a wired mast or head. A device added in PanelPro and taken in by a Store split is kept here in full, with no level and its `jmri_bean`.
 - `hartlib.devices` merges the two into the one view every reader gets. A field cell wins over the generated one.
 - Builders read `devices_field.csv` as an input and write `devices_generated.csv`. They never read their own last output.
 - `split_store.py` writes only to `devices_field.csv` and the template.

@@ -149,7 +149,7 @@ from device_map_staging import (  # noqa: E402,F401  staging's rows; re-exported
     BEAN_NAME, FIELD_LAYERS, PART_BLOCK_FIRST, STAGING_SHEET, WIRED_LAYERS, alias_note, field_row, helix_ends,
     level_keys, level_trials, line_cp, new_spare, part_bean_names, part_row, piece_trials, staging_field, staging_layer,
     staging_keys, staging_part_names, staging_rows, staging_trials, staging_wired_rows, taken_bean_names, wire_block,
-    wire_occupancy, wired_id)
+    wire_occupancy, wired_name)
 from device_map_schematic import (  # noqa: E402,F401  the drawing's tracks; re-exported: callers read them here
     block_overrides, check_helix_ends, corner_blocks_of, dx_corners, helix_tracks, home_and_posts,
     labels_by_level, line_role, loop_halves, main_upper_layer, named_tracks, overrides_keys, read_pins, split_edges,
@@ -758,7 +758,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
 
 
 def check_switch_ids(rows) -> None:
-    """Every switch number in a staging turnout, LCC alias or feedback ID (wired_id: read from the owner's row) is a
+    """Every switch number in a staging turnout, LCC alias or feedback ID (the field row's id, wired_name) is a
     switch the plan draws: it has an OS block ID (os:<n>, or a crossover half's os:<n>:...) among `rows`. MapError
     naming each that is not."""
     drawn = {r["id"].split(":")[1] for r in rows if r["layer"] == "block" and r["id"].startswith("os:")}
@@ -863,7 +863,7 @@ def main(argv=None) -> int:
         check_switch_ids(staging + wired)
         want = {GENERATED: generated_text(cp_keys),
                 **devices.outputs_after("build_device_map.py", rows, device_files(),
-                                        master_rows=staging + wired + parts)}
+                                        master_rows=staging + wired + parts, check=args.check)}
     except (MapError, staging_map_error(), railroad.FactsError, layer_files.LayerFileError) as exc:
         # a DevicesError is a FactsError; a StagingMapError comes from staging's placeholder grammar
         print(f"build_device_map.py: {exc}", file=sys.stderr)

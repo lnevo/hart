@@ -580,7 +580,8 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
                          ("spare", "spare", "M2S106", ""))
         # the master takes it and reads it back as written, and the next build over it gives the same rows
         wired = bdm.staging_wired_rows(files)
-        out = devices.outputs_after("build_device_map.py", [], files, master_rows=got + wired)
+        out = devices.outputs_after("build_device_map.py", [], files, master_rows=got + wired,
+                                    warn=lambda line: None)     # main and upper's rows are left out: gone
         self.assertIn("unused Block 1-7", out[files.master])
         devices.write_all(files, out)
         self.assertEqual(self.rows(extra_exception=extra, files=files), got)
@@ -593,6 +594,33 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
                                                   r"detector's \"occupancy Block 13-1"):
             self.rows(edit)
 
+    def test_an_owner_rename_is_kept_by_the_rows_id(self):
+        """naming-layers step 4: the field file is keyed by id, so a user name the owner changes there renames the
+        block (OS Switch 9, id os:9); its part (Track 9-11) and its detector's blocks cell follow, and its beans and
+        wiring stay."""
+        def edit(rows):
+            next(r for r in rows if r["id"] == "os:9")["user_name"] = "OS Engine House West"
+            return rows
+        got, want = self.by(self.rows(edit)), self.by(self.rows())
+        new, old = got[("block", "OS Engine House West")], want[("block", "OS Switch 9")]
+        self.assertEqual({c: new[c] for c in new if new[c] != old[c]},
+                         {"user_name": "OS Engine House West",
+                          "description": "Block OS Engine House West: the track through the points of its switch."})
+        self.assertNotIn(("block", "OS Switch 9"), got)
+        self.assertEqual(got[("block", "Track 9-11")]["part_of"], "OS Engine House West")
+        self.assertEqual(got[("occupancy", "BS Switch 9")]["blocks"], "OS Engine House West")
+
+    def test_a_field_row_whose_id_is_gone_stops_naming_the_row(self):
+        """Decision 3: a field row whose id the plan no longer gives names no row; the build stops and lists it,
+        and the drawn block with no field row of its id."""
+        def edit(rows):
+            next(r for r in rows if r["id"] == "os:9")["id"] = "os:99"
+            return rows
+        with self.assertRaisesRegex(bdm.MapError, r"staging block OS Switch 9 \(id os:9\): no row in "
+                                                  r"devices_field.csv .*the drawing has no block for: block OS Switch 9 "
+                                                  r"\(id os:99\)"):
+            self.rows(edit)
+
     def test_the_committed_rows_come_back_as_they_are(self):
         got = self.rows()
         want = [r for r in devices.load() if r["level"] == "1" and r["layer"] in ("block", "occupancy")]
@@ -600,13 +628,14 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
 
     def test_a_block_with_no_field_row_stops(self):
         drop = lambda rows: [r for r in rows if not (r["level"] == "1" and r["user_name"] == "Track Barn")]  # noqa
-        with self.assertRaisesRegex(bdm.MapError, "staging block Track Barn: no row in devices_field.csv"):
+        with self.assertRaisesRegex(bdm.MapError, r"staging block Track Barn \(id block:7A-13C\): no row in "
+                                                  "devices_field.csv"):
             self.rows(drop)
 
     def test_a_field_row_the_drawing_has_no_block_for_stops(self):
         def add(rows):
             extra = dict(self.field(rows, "Track Barn"), user_name="Track Nowhere", system_name="IB:AUTO:9999",
-                         jmri_name="IB:AUTO:9999", layout_block="ILB999")
+                         jmri_name="IB:AUTO:9999", layout_block="ILB999", id="test:nowhere")
             at = next(i for i, r in enumerate(rows) if r["level"] == "1" and r["layer"] == "block")
             return rows[:at] + [extra] + rows[at:]
         with self.assertRaisesRegex(bdm.MapError, "the drawing has no block for: block Track Nowhere"):
@@ -617,11 +646,25 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         def add(rows):
             occ = next(i for i, r in enumerate(rows) if r["level"] == "1" and r["layer"] == "occupancy")
             spare = dict.fromkeys(devices.COLUMNS, "")
-            spare.update(level="1", layer="occupancy", user_name="unused Block 2-2", role="spare", assignment="spare")
+            spare.update(level="1", layer="occupancy", user_name="unused Block 2-2", role="spare", assignment="spare",
+                         id="spare:M2S201")
             return rows[:occ] + [spare] + rows[occ:]
         with self.assertRaisesRegex(bdm.MapError, "occupancy unused Block 2-2 is a spare input .* remove the field "
                                                   "row"):
             self.rows(add)
+
+    def test_a_spare_in_the_field_file_with_no_name_is_found_by_its_id(self):
+        """Code review (2026-11-25): a field row's user name may be empty (the generated one stands), so a spare's
+        field row is found by its id too: one error for it, not a second "no block for" one."""
+        def add(rows):
+            occ = next(i for i, r in enumerate(rows) if r["level"] == "1" and r["layer"] == "occupancy")
+            spare = dict.fromkeys(devices.COLUMNS, "")
+            spare.update(level="1", layer="occupancy", role="spare", assignment="spare", id="spare:M2S201")
+            return rows[:occ] + [spare] + rows[occ:]
+        with self.assertRaises(bdm.MapError) as cm:
+            self.rows(add)
+        self.assertIn("occupancy unused Block 2-2 is a spare input", str(cm.exception))
+        self.assertNotIn("the drawing has no block for", str(cm.exception))
 
 
 class StagingWiredRows(RepoReadOnly, unittest.TestCase):
@@ -663,6 +706,56 @@ class StagingWiredRows(RepoReadOnly, unittest.TestCase):
                                                                         '1,turnout,Switch 13,,,,,13,5,OU3,"1,2"'))}
         self.assertEqual(got["Switch 13"]["system_name"], "M2T1313")
         self.assertIn("LCOS node 13", got["Switch 13"]["description"])
+
+    def test_a_turnout_renamed_by_the_owner_keeps_its_wiring(self):
+        """naming-layers step 4: a staging turnout renamed in its field row (id switch:1) keeps its wiring.csv row,
+        which knows it by the generated name its id gives (wired_name); a field row with no id grammar stops."""
+        d = Path(tempfile.mkdtemp())
+        self.addCleanup(os.rmdir, d)
+        files = devices.pair_copy(d)
+        for p in (files.master, files.field, files.dictionary):
+            self.addCleanup(os.remove, p)
+        rows = [dict(r) for r in devices.field_rows(files)]
+        next(r for r in rows if r["id"] == "switch:1")["user_name"] = "Switch Brick West"
+        files.field.write_text(devices.master_text(rows), encoding="utf-8")
+        got = {r["id"]: r for r in bdm.staging_wired_rows(files)}
+        want = {r["id"]: r for r in self.rows()}
+        self.assertEqual(got["switch:1"]["user_name"], "Switch Brick West")
+        self.assertEqual({c for c in got["switch:1"] if got["switch:1"][c] != want["switch:1"][c]},
+                         {"user_name", "description"})
+        self.assertEqual(bdm.wired_name({"role": "fb", "layer": "fb", "id": "fb:7:R"}), "FB Switch 7 R")
+        self.assertEqual(bdm.wired_name({"role": "lcc_alias", "layer": "turnout", "id": "dcc:7"}), "DCC Switch 7")
+        with self.assertRaisesRegex(ValueError, "id 'os:7' is not a turnout ID"):
+            bdm.wired_name({"role": "turnout", "layer": "turnout", "id": "os:7"})
+
+    def field_copy(self, edit) -> devices.Files:
+        """A copy of the master's two files with its field rows `edit`ed ({id: {column: value}})."""
+        d = Path(tempfile.mkdtemp())
+        self.addCleanup(os.rmdir, d)
+        files = devices.pair_copy(d)
+        for p in (files.master, files.field, files.dictionary):
+            self.addCleanup(os.remove, p)
+        rows = [dict(r) for r in devices.field_rows(files)]
+        for r in rows:
+            r.update(edit.get(r["id"], {}))
+        files.field.write_text(devices.master_text(rows), encoding="utf-8")
+        return files
+
+    def test_an_alias_note_names_its_turnout_as_readers_see_it(self):
+        """Code review (2026-11-25): the alias's note follows its turnout's owner name, by the switch number."""
+        got = {r["id"]: r for r in bdm.staging_wired_rows(self.field_copy({"switch:1": {"user_name": "Switch Brick"}}))}
+        self.assertEqual(got["dcc:1"]["notes"], "LCC alias of Switch Brick (M2T408)")
+
+    def test_a_turnout_bound_by_its_name_is_renamed_with_its_binding(self):
+        """Code review (2026-11-25), the main session's choice: Switch 23's panels bind it by its user name (its field
+        jmri_name), so a rename of the user name alone stops, naming both cells; both together pass."""
+        with self.assertRaisesRegex(bdm.MapError, r"staging turnout Switch East \(id switch:23\): its jmri_name "
+                                                  r"'Switch 23' binds it by its old user name; change jmri_name and "
+                                                  r"user_name together"):
+            bdm.staging_wired_rows(self.field_copy({"switch:23": {"user_name": "Switch East"}}))
+        got = {r["id"]: r for r in bdm.staging_wired_rows(
+            self.field_copy({"switch:23": {"user_name": "Switch East", "jmri_name": "Switch East"}}))}
+        self.assertEqual((got["switch:23"]["user_name"], got["switch:23"]["jmri_name"]), ("Switch East", "Switch East"))
 
     def test_rows_that_do_not_match_stop(self):
         for edit, msg in ((lambda t: t.replace('1,turnout,Switch 1,,,,,4,0,OU1,"1,2",wired,\n', ""),

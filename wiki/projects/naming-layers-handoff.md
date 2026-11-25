@@ -44,7 +44,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 | 1 | Tests first | 1 day | Builder merge step 1: golden tests of every main and upper bean `le_tables` makes, unit tests of `master_beans` per assignment, `build_masts.generate` on staging, and the device-master merge. **Done (2026-11-24):** see [Step 1 findings](#step-1-findings) |
 | 2 | `id` column | 0.5 day | The builders write an ID on every row (decision 1); `check_rows` holds it unique per level. Only `devices_generated.csv` changes. **Done (2026-11-24):** see [Step 2 findings](#step-2-findings) |
 | 3 | The name store | 1.5 days | Generator names every track from the plan; `hartlib.track_names` keeps the owner's names by ID and gives them to the plugin; readers by ID; a check stops a name in `plan_overrides.json`. Drawings byte-identical. **Done (2026-11-24):** 3a the store ([Step 3 findings](#step-3-findings)); 3b the readers by ID ([Step 3b findings](#step-3b-findings)) |
-| 4 | Owner file keyed by ID | 1 day | `devices_field.csv` rekeyed on `(level, id)`; `user_name` becomes an owner cell. The build prints new and gone IDs against the last generated file and stops as decision 3 says; a rename lists the Operations Pro copies (decision 5) and warns on a mast rename (decision 6) |
+| 4 | Owner file keyed by ID | 1 day | `devices_field.csv` rekeyed on `(level, id)`; `user_name` becomes an owner cell. The build prints new and gone IDs against the last generated file and stops as decision 3 says; a rename lists the Operations Pro copies (decision 5) and warns on a mast rename (decision 6). **Done (2026-11-25):** see [Step 4 findings](#step-4-findings) |
 | 5 | Files keyed by ID | 1.5 to 2 days | `block_lengths.csv`, `block_numbering.csv`, `wiring.csv`, `mast_cells.csv`, `masts.csv` (`facing`, `protects`), `block_overrides.csv` and `main_lines.csv` key on device IDs, so a rename touches no row. Frozen wiring rows keep their pins; their labels follow the name store |
 | 6 | Every read through `hartlib` | 1.5 days | `hartlib` readers for `block_overrides.csv`, `main_lines.csv` and `mast_cells.csv`; `layout_facts.py`, `write_inventory.py`, `check_hart_phase02.py` and `analyze.py` onto `hartlib.railroad` (was builder merge step 7, second half); mast rows read only through `hartlib.level_masts`. Then a check fails when a script outside `hartlib` opens a layout data file. Jython inside JMRI cannot import `hartlib` and reads only generated outputs; the check lists those scripts by name |
 | 7 | Staging generated like main and upper | 1.5 days | `staging_rows` and `staging_wired_rows` go through the main and upper functions; a staging device with no owner row gets generated values instead of stopping; `FIELD_LEVEL` goes. Staging's owner values still win, so outputs stay the same |
@@ -117,6 +117,38 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   not on `hartlib` code, so a `hartlib` change to the plugin's view is not redrawn by `--check` until the data
   changes (it was checked uncached here). Main and upper loop-half names still go onto the drawing from the device
   master (`cats_panel.name_loop_halves`, `le_names`), as step 13 plans.
+
+## Step 4 findings (2026-11-25)
+
+- **The field file is keyed by ID.** `hartlib.devices.KEY` is `(level, id)`; `key_of` gives it (a Store's level-less row,
+  which has no id, keeps `("", layer, user_name)`), `name_key` and `row_text` name a row in messages as before. A
+  field row with a level must carry its id and holds its `layer` (checked against its id's row) and `FIELD_COLUMNS`,
+  which now include `user_name`. The 148 field rows that had none got their id copied from `devices_generated.csv`;
+  no other cell changed. The generated file keeps every row's name, so `unmerge` leaves `user_name` like `id`, and
+  `redundant` skips it.
+- **What a write changes** is `hartlib.device_changes`, run by every `outputs_after_rows`: new and gone IDs per level
+  and layer (to stderr or a `warn` callable); a gone ID with owner's cells stops, naming the cells and the new IDs of
+  its level and layer (decision 3); a rename lists the lines of `jmri/layouts/hart/operations/*.xml` that hold the old
+  name, or a track's bare name as an attribute value, as Operations Pro names tracks (decision 5); a mast rename warns
+  that it needs SML discovery and panel approval (decision 6). Nothing prints today: every ID and name is unchanged.
+- **Staging's builder finds its field rows by ID** (`staging_field`): an owner's new name for a staging block or
+  detector renames the row, and a part's `part_of` and the detector's `blocks` follow; a turnout, alias or feedback
+  row's `wiring.csv` row is found by the generated name its id gives (`wired_name`, which replaces `wired_id`).
+  `track_names.owner_names` reads only `block:` ids now that OS rows carry theirs.
+- **Main and upper, my call under the owner's rule of 2026-11-25:** their builders take no owner's name yet, so a
+  main or upper field `user_name` other than the generated one stops the write (`unmerge` names both and says to drop
+  the cell); step 7 brings them onto the staging path. Staging's masts and heads are the rule's, so `build_masts.py`
+  still matches its two field rows by name and the same stop applies.
+- **Outputs byte-identical:** `make panels CHECK=1 FULL=1` all current, `check_approved.py --check` all matching.
+- **Code review (medium), fixed:** the LCC contract pairs a turnout and its alias by id; a turnout bound by its user
+  name (its field `jmri_name`, Q13) renamed without its `jmri_name` stops, naming both cells; an alias's note names
+  its turnout's owner name; the Operations Pro search counts a bare track name only as a track or location `name`
+  and not the tail of a longer name; the changes are said once, after the write merges back, marked check-only on a
+  `--check` run; a nameless field row is found by its id.
+- **Open for step 5:** a staging rename still breaks the files keyed by name (`wiring.csv`'s detector rows,
+  `block_lengths.csv`, `stations.csv` tracks, `masts.csv` `facing`), and names derived from a renamed block (a mast's
+  `facing`) are not followed. A trial rename of OS Switch 19 in the field file left only `devices_generated.csv` stale;
+  the other files were not traced one by one.
 
 ## How to run this
 

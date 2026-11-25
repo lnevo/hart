@@ -156,11 +156,12 @@ def carried(prior: dict | None, layer: str) -> dict:
 
 def field_rows(files: devices.Files | None = None) -> dict[str, list[dict]]:
     """{layer: field rows} of staging's mast and head rows in devices_field.csv (the owner's cells, CARRIED), read
-    from the field file alone."""
+    from the field file alone. The rule names masts and heads, so a field row is matched to its mast or head by the
+    user name it holds (the generated one; devices.unmerge stops a field user name the rule does not give)."""
     out: dict[str, list[dict]] = {"mast": [], "head": []}
-    for k, f in devices.field_index(files or device_files()).items():
-        if k[0] == str(PLANNED_LEVEL) and k[1] in out:
-            out[k[1]].append(dict(f))
+    for f in devices.field_index(files or device_files()).values():
+        if f["level"] == str(PLANNED_LEVEL) and f["layer"] in out:
+            out[f["layer"]].append(dict(f))
     return out
 
 
@@ -610,8 +611,9 @@ def plan(band, bands, joined, runs, names: dict, locks: dict, cm: dict) -> dict:
                           split=mast_rule.read_block_splits(bdm.block_overrides(), found, LEVELS))
 
 
-def build():
-    """({path: text} of every file this script writes, the visible masts, the virtual masts by rule)."""
+def build(check: bool = False):
+    """({path: text} of every file this script writes, the visible masts, the virtual masts by rule). `check`: a run
+    that writes nothing (--check, --show), so the device master's changes are said as check-only."""
     with pd.cache_on():
         band, _opts, _core = sdm.staging_band()
         bands, joined, runs, _corners = bdm.solve()
@@ -647,7 +649,7 @@ def build():
     mine = with_roles([r for r in device_rows(gm, vr, owned["mast"], wired, {m["mast"]: m["toward"] for m in vgen},
                                               ids, {m["mast"]: m["heads"] for m in gen})
                        if r["layer"] in WRITES], gen + vgen)   # the mast and head rows only
-    want = devices.outputs_after(WRITER, mine, files)
+    want = devices.outputs_after(WRITER, mine, files, check=check)
     master = devices.parse(want[files.master], files.master.name, files)     # every level's rows, as they will be written
     rows = file_rows(master, plan_facts(gen + vgen))
     kinds = {m["mast"]: level_masts.signal_kind(m) for m in rows if m["mast"] in {g["mast"] for g in gen + vgen}}
@@ -673,7 +675,7 @@ def main(argv=None) -> int:
         print(f"{WRITER}: {exc}", file=sys.stderr)
         return 2
     try:
-        want, gen, vgen = build()
+        want, gen, vgen = build(check=args.check or args.show)
     except (RuleError, sdm.StagingMapError, sdm.lc.BuildError, mast_rule.MapError, railroad.FactsError) as exc:   # DevicesError is a FactsError
         print(f"{WRITER}: {exc}", file=sys.stderr)
         return 2

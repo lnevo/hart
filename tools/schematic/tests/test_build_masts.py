@@ -382,7 +382,7 @@ class Cli(unittest.TestCase):
         self.missing = self.dir / devices.MASTER_FILE
         want = {self.current: "mast\nMast 2L\n", self.stale: "mast\nnew\n", self.missing: "level\n1\n"}
         gen = [dict(GEN[0]), dict(GEN[1], milepost=6.714)]
-        patch = unittest.mock.patch.object(bsm, "build", lambda: (want, gen, []))
+        patch = unittest.mock.patch.object(bsm, "build", lambda check=False: (want, gen, []))
         patch.start()
         self.addCleanup(patch.stop)
 
@@ -430,7 +430,7 @@ class Cli(unittest.TestCase):
             bsm.main(["--check", "--show"])
 
     def test_a_rule_error_is_exit_2(self):
-        def stop():
+        def stop(check=False):
             raise bsm.RuleError("the rule names a mast twice: ['Mast 2L']")
         with unittest.mock.patch.object(bsm, "build", stop):
             code, out, err = self.run_main("--check")

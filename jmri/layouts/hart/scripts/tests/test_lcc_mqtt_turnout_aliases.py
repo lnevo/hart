@@ -41,10 +41,10 @@ def master(rows: list[dict], path: Path) -> Path:
     return path
 
 
-TURNOUT = dict(level="1", layer="turnout", role="turnout", user_name="Switch 1", assignment="field",
+TURNOUT = dict(level="1", layer="turnout", role="turnout", id="switch:1", user_name="Switch 1", assignment="field",
                system_name="M2T408", jmri_name="M2T408", node="4", dcc="100",
                wiring="Node: 4 Turnout: 0 | OU: 1 Ports: 1,2", written_by="build_device_map.py", description="x")
-ALIAS = dict(TURNOUT, role="lcc_alias", user_name="DCC Switch 1", system_name="MTT100", jmri_name="MTT100")
+ALIAS = dict(TURNOUT, role="lcc_alias", id="dcc:1", user_name="DCC Switch 1", system_name="MTT100", jmri_name="MTT100")
 MQTT = """
   <turnout feedback="TWOSENSOR" sensor1="FB Switch 1 R" sensor2="FB Switch 1 N">
     <systemName>M2T408</systemName>
@@ -74,6 +74,19 @@ class LccMqttTurnoutAliasContractTest(unittest.TestCase):
 
     def test_a_plant_and_its_twin_hold(self) -> None:
         self.assertEqual(self.violations(MQTT + TWIN, [TURNOUT, ALIAS]), [])
+
+    def test_a_renamed_turnout_keeps_its_alias_by_id(self) -> None:
+        """naming-layers step 4: the owner renames a staging turnout in its field row; it still pairs with its alias by
+        the switch number of their ids (switch:1, dcc:1), not by name."""
+        plants, refused, bad = contract.field_plants(master([dict(TURNOUT, user_name="Switch Brick West"), ALIAS],
+                                                            self.tmp / devices.ONE_FILE))
+        self.assertEqual((refused, bad), (set(), []))
+        self.assertEqual((plants["M2T408"].user, plants["M2T408"].alias), ("Switch Brick West", "MTT100"))
+
+    def test_rows_with_test_ids_pair_by_name(self) -> None:
+        plants, _refused, bad = contract.field_plants(master([dict(TURNOUT, id=""), dict(ALIAS, id="")],
+                                                             self.tmp / devices.ONE_FILE))
+        self.assertEqual((bad, plants["M2T408"].alias), ([], "MTT100"))
 
     def test_the_alias_is_the_rows_dcc_not_the_comments(self) -> None:
         """The address comes from the turnout row's dcc column; a comment that says otherwise does not move it."""

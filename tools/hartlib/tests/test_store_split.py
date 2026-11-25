@@ -307,7 +307,7 @@ class DeviceItems(unittest.TestCase):
         blocks = bean("block", "IB:AUTO:0033", "OS Switch 1", "Owner note", systemName="IB:AUTO:0033")
         p = plan(doc(), doc(), doc(blocks=blocks))
         [d] = p.of(ss.DEVICE)
-        self.assertEqual((ss.Edit(("1", "block", "OS Switch 1"), "jmri_comment", "Brick CP, Switch 1", "Owner note"),), d.edits)
+        self.assertEqual((ss.Edit(("1", "test:block:OS Switch 1"), "jmri_comment", "Brick CP, Switch 1", "Owner note"),), d.edits)
 
     def detected(self) -> list[dict]:
         """ROWS with OS Switch 1's detector in its comment, as build_device_map.py fills it in."""
@@ -369,14 +369,15 @@ class DeviceItems(unittest.TestCase):
 
     def test_a_rename_of_a_wired_staging_turnout_says_where_to_rename_it(self) -> None:
         """Staging's turnout rows are build_device_map.py's since wiring.csv (2026-11-20); a rename is the owner's,
-        by hand in both files, not a rebuild's."""
+        by hand in its field row (keyed by id), not a rebuild's."""
         rows = [dict(r, written_by="build_device_map.py") if r["layer"] == "turnout" else r for r in ROWS]
         turnouts = (bean("turnout", "MTT100", "DCC Switch 1", "Node: 4 Turnout: 0")
                     + bean("turnout", "M2T408", "Switch 1A", "bound by its user name"))
         p = plan(doc(), doc(), doc(turnouts=turnouts), rows=rows)
         self.assertEqual([], p.of(ss.DEVICE))
         [g] = p.of(ss.DROPPED)
-        self.assertIn("rename it by hand in devices_field.csv and in wiring.csv's row", g.note)
+        self.assertIn("rename it by hand in its devices_field.csv row (keyed by its id): change user_name, and "
+                      "jmri_name with it when that binds the turnout by its user name", g.note)
 
     def test_a_rename_on_both_passes_is_one_question(self) -> None:
         """A block's names-only pass and full pass (and its layout block) carry one rename: one DEVICE item."""
@@ -387,7 +388,7 @@ class DeviceItems(unittest.TestCase):
         p = plan(doc(blocks=before), doc(blocks=before), doc(blocks=both))
         [d] = p.of(ss.DEVICE)
         self.assertEqual(1, len(d.also))
-        self.assertEqual([ss.Edit(("1", "block", "OS Switch 1"), "user_name", "OS Switch 1", "OS Switch 1A")], list(ss.device_edits(
+        self.assertEqual([ss.Edit(("1", "test:block:OS Switch 1"), "user_name", "OS Switch 1", "OS Switch 1A")], list(ss.device_edits(
             p, ss.Choices(merge=frozenset({d.id})))))
 
     def test_a_script_written_row_is_dropped(self) -> None:
@@ -417,14 +418,14 @@ class Choices(unittest.TestCase):
 
     def test_an_edit_on_a_cell_that_moved_stops(self) -> None:
         with self.assertRaises(ss.SplitError):
-            ss.edited_rows(ROWS, [ss.Edit(("1", "block", "OS Switch 1"), "jmri_comment", "not this", "new")])
-        with self.assertRaisesRegex(ss.SplitError, "has no row OS Switch 9"):
-            ss.edited_rows(ROWS, [ss.Edit(("1", "block", "OS Switch 9"), "jmri_comment", "", "new")])
+            ss.edited_rows(ROWS, [ss.Edit(("1", "test:block:OS Switch 1"), "jmri_comment", "not this", "new")])
+        with self.assertRaisesRegex(ss.SplitError, "has no row id 'test:block:OS Switch 9' \\(level 1\\)"):
+            ss.edited_rows(ROWS, [ss.Edit(("1", "test:block:OS Switch 9"), "jmri_comment", "", "new")])
 
     def test_edits_find_their_row_by_key_wherever_it_is(self) -> None:
         """A rename and its jmri_name edit name the row by its key: both land, whatever the row's place."""
         rows = list(reversed(ROWS))
-        key = ("1", "turnout", "Switch 1")
+        key = ("1", "test:turnout:Switch 1")         # a field row is keyed by (level, id)
         got = ss.edited_rows(rows, [ss.Edit(key, "user_name", "Switch 1", "Switch 1X"),
                                     ss.Edit(key, "jmri_name", "Switch 1", "Switch 1X")])
         row = next(r for r in got if r["system_name"] == "M2T408")

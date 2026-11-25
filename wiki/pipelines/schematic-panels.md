@@ -49,7 +49,7 @@ plugin 0.1.50) maps a plan name to the label drawn, McKees Rocks for Helix Outer
 the layout expands. The plugin draws it on every output it makes: the schematic and station sheets (helix letters
 follow the labels, so H1 is still the outer track), the Layout Editor panel and the CATS desks; `levels_page` reads the
 same key for the track-plan article. The desks' bindings stay keyed by plan name (Helix Outer, Helix Inner). `build_device_map.py` writes staging's block and occupancy rows
-from it (written_by `build_device_map.py`), each built on the owner's row of its name in `devices_field.csv`: the
+from it (written_by `build_device_map.py`), each built on the owner's row of its device ID in `devices_field.csv` (its user name the owner's): the
 system and layout-block names, comment, stop, notes, detector and an OS block's control point; the node, wiring and
 the detector's part of the comment (`{occupancy}` in the field text) come from `wiring.csv`, so a moved pin changes
 no hand file. A staging block change made in PanelPro is carried by hand into those three data files and the field
@@ -59,7 +59,10 @@ Main and upper wiring goes one way: the device map's rule proposes it in `device
 
 The device master is two files (ADR-029 amendment, built 2026-11-21): `devices_generated.csv`, every row the builders
 make, written only by `build_device_map.py`, `build_masts.py` and `panel_items.py`, and `devices_field.csv`, the
-owner's cells keyed by level, layer and user name (`hartlib.devices.FIELD_COLUMNS`) and a Store's level-less devices.
+owner's cells keyed by level and device ID since naming-layers step 4 (`hartlib.devices.KEY`, `FIELD_COLUMNS`; the user
+name is an owner's cell) and a Store's level-less devices. Each write lists its new and gone IDs against the last
+generated file, stops on a gone ID that holds owner's cells, lists the Operations Pro copies of a renamed device's old
+name and warns on a mast rename (`hartlib.device_changes`).
 `hartlib.devices` merges them into the one view every reader gets. A builder reads the owner's cells from the field
 file, never back from its own last output; its one read-back is its name numbering (`devices.allocated_names`: a
 part's block numbers, a virtual mast's ordinal), so a name never shifts. A builder that would drop a key the field

@@ -2,9 +2,10 @@
 
 The master holds one row per railroad device (ADR-029). Since the amendment of 2026-11-21 it is two files under
 jmri/layouts/hart/data: devices_generated.csv, every row the builders make (written by them alone, through
-outputs_after), and devices_field.csv, the owner's cells, each row keyed by (level, layer, user_name) and holding
-only FIELD_COLUMNS, plus the level-less devices a Store split takes in (full rows). load() and index() merge them
-(merge: a non-empty field cell wins; a keyed field row with no generated row is an error), so readers see one
+outputs_after), and devices_field.csv, the owner's cells, each row keyed by its device ID on its level (KEY: level,
+id; ADR-033 step 4) and holding its layer and FIELD_COLUMNS only (the user name is an owner's cell like the rest), plus
+the level-less devices a Store split takes in (full rows, keyed by layer and user name). load() and index() merge them
+(merge: a non-empty field cell wins; a field row whose ID no generated row has is an error), so readers see one
 master. A builder reads the owner's cells from field_index(), never back from its own last output; the one
 read-back it makes is its name memory (allocated_names). Before the split the master was one file, devices.csv. Staging, main and upper are one
 structure; a level differs only in column values. devices.columns.csv describes every column (column, description),
@@ -18,8 +19,11 @@ The master's values.
   system_name, if any, is the planned device), none (no JMRI name from this row), spare (a detector with no block).
 - role: what the device is (ROLES). Readers test it, never a name prefix.
 - id: the device's key from the plan, not its name (hartlib.device_ids, ADR-033): a generated column, set on every
-  row with a level and unique on its level; empty on a Store's level-less row. A field row gives it only where the
-  owner's name is kept by it (a named track, hartlib.track_names), and then it is the generated row's.
+  row with a level and unique on its level; empty on a Store's level-less row. Every field row with a level is keyed
+  by it (KEY), so a rename touches no key; the name store (hartlib.track_names) reads a field block row's name by it.
+- user_name: the generated file names every row; a field row's user_name is the owner's name, which the merged view
+  shows. A builder gives it as the row's name (staging's builders take it from the field row), and a write that
+  renames a device lists the Operations Pro copies of the old name and warns on a mast (hartlib.device_changes).
 - written_by: the script that writes the row, one of WRITERS (the one place a later merge of builders changes);
   every row with a level has one, and only a Store's level-less device (the field file's) has none. A writer
   replaces only the rows that carry its name (outputs_after_rows), stops on a key another writer or a Store's device
@@ -44,7 +48,7 @@ from dataclasses import dataclass, replace
 from functools import lru_cache
 from pathlib import Path
 from types import MappingProxyType
-from typing import Iterable, Mapping
+from typing import Callable, Iterable, Mapping
 
 from . import names, paths
 from .railroad_facts import DEVICE_COLUMNS, DEVICE_LIST, NAME_LAYERS, FactsError
@@ -82,14 +86,19 @@ SOURCE_PREFIXES = ("IT:HART:", "IS:HART:", "IH:HART:", "IB:HART:")
 COLUMNS = ("level", "cp", "layer", "role", "id", "user_name", "assignment", "system_name", "jmri_name", "node", "dcc",
            "wiring", "jmri_comment", "trial_name", "notes", "blocks", "detector", "stop", "layout_block",
            "part_of", "switch", "facing", "protects", "dir", "written_by", "description", "jmri_bean")
-KEY = ("level", "layer", "user_name")      # a row's key in both files
+# A field row's key (ADR-033 step 4): its device ID on its level, so a rename changes no key. A Store's level-less row
+# has no ID and is keyed by ("", layer, user_name) instead (key_of). NAME_KEY is unique in the merged view too, and is
+# how a message names a row (row_text).
+KEY = ("level", "id")
+NAME_KEY = ("level", "layer", "user_name")
 # The columns of a keyed field row (the owner's cells, ADR-029 amendment 2026-11-21): the cells a builder took from
 # the master's previous rows before the split, so the owner's value lives in one place. A field row also gives a
 # staging device's identity (role, assignment): staging's devices are the owner's, so its rows come from here.
-FIELD_COLUMNS = ("role", "assignment", "cp", "system_name", "jmri_name", "node", "dcc", "jmri_comment", "trial_name",
-                 "notes", "detector", "stop", "layout_block", "id")
-# A field row's id is not the owner's value but the key the owner's name is kept by (hartlib.track_names, naming-layers
-# step 3): it must be the generated row's id, which merge checks.
+FIELD_COLUMNS = ("user_name", "role", "assignment", "cp", "system_name", "jmri_name", "node", "dcc", "jmri_comment",
+                 "trial_name", "notes", "detector", "stop", "layout_block")
+# A field row with a level also holds its layer, which must be its generated row's (merge checks it): it orders the
+# file and tells a reader what the row is.
+FIELD_HELD = ("layer",)
 # In a field jmri_comment, where the builder puts the detector's wiring.csv text ("occupancy Block 4-2 / M2S401"): the
 # owner keeps the words around it, wiring.csv the pin, so a moved pin changes no hand file. The merged cell is the
 # generated one, which must be the field text with the mark filled in (merge checks it).
@@ -182,43 +191,62 @@ def _read(name: str, data: bytes) -> tuple[Mapping[str, str], ...]:
     return tuple(rows)
 
 
-def key_of(row: Mapping[str, str]) -> tuple[str, str, str]:
-    """A row's key (KEY): level, layer, user name."""
+def key_of(row: Mapping[str, str]) -> tuple[str, ...]:
+    """A row's key in both files: (level, id) (KEY) for a row with a level, ("", layer, user name) for a Store's
+    level-less row, which has no id."""
+    if row["level"]:
+        return (row["level"], row["id"])
+    return ("", row["layer"], row["user_name"])
+
+
+def name_key(row: Mapping[str, str]) -> tuple[str, str, str]:
+    """A row's name key (NAME_KEY): level, layer, user name; unique in the merged view."""
     return (row["level"], row["layer"], row["user_name"])
 
 
-def key_text(key: tuple[str, str, str]) -> str:
-    """A key as a message names it: "Track 12 (level 1, block)", or "X (no level, turnout)" for a Store's device."""
+def key_text(key: tuple[str, ...]) -> str:
+    """A key as a message names it: a name key "Track 12 (level 1, block)", or "X (no level, turnout)" for a Store's
+    device; an ID key (KEY) "id 'os:19' (level 1)"."""
+    if len(key) == 2:
+        return f"id {key[1]!r} (level {key[0]})"
     level, layer, name = key
     return f"{name} ({'level ' + level if level else 'no level'}, {layer})"
 
 
+def row_text(row: Mapping[str, str]) -> str:
+    """A row as a message names it: its name key's text (key_text), "Track 12 (level 1, block)"."""
+    return key_text(name_key(row))
+
+
 def check_field(rows: Iterable[Mapping[str, str]], name: str = FIELD_FILE) -> None:
-    """The field file's own rules: no writer; a keyed row (one with a level) holds its key and FIELD_COLUMNS cells
-    only; a key once; rows in level and layer order. A level-less row (a Store's device) is a full row, which
-    check_rows holds on the merged view. DevicesError listing every problem."""
+    """The field file's own rules: no writer; a keyed row (one with a level) holds its key (level, id), its layer
+    and FIELD_COLUMNS cells only; a key once; rows in level and layer order. A level-less row (a Store's device) is a
+    full row, which check_rows holds on the merged view. DevicesError listing every problem."""
     bad, seen, ranks = [], set(), []
     for r in rows:
         k = key_of(r)
-        at = f"{name}: {key_text(k)}"
+        at = f"{name}: {row_text(r)}"
         if r["written_by"]:
             bad.append(f"{at}: written_by {r['written_by']!r}; a field row has no writer (the builders write "
                        f"{GENERATED_FILE})")
         if r["level"]:
-            extra = [c for c in COLUMNS if c not in KEY and c not in FIELD_COLUMNS and r[c]]
+            extra = [c for c in COLUMNS if c not in KEY + FIELD_HELD + FIELD_COLUMNS and r[c]]
             if extra:
-                bad.append(f"{at}: {', '.join(extra)} set; a field row holds only "
-                           f"{', '.join(FIELD_COLUMNS)} (the builders make the rest)")
+                bad.append(f"{at}: {', '.join(extra)} set; a field row holds only its key ({', '.join(KEY)}), "
+                           f"layer and {', '.join(FIELD_COLUMNS)} (the builders make the rest)")
+            if not r["id"].strip():
+                bad.append(f"{at}: id is empty; a field row is keyed by its device's id on its level (the id of its "
+                           f"row in {GENERATED_FILE}, hartlib.device_ids)")
         if k in seen:
-            bad.append(f"{at}: the key is twice in the file")
+            bad.append(f"{at}: the key is twice in the file ({key_text(k)})")
         seen.add(k)
         if r["layer"] not in LAYERS or (r["level"] and r["level"] not in LEVELS):
             bad.append(f"{at}: level is one of {', '.join(LEVELS)} or empty, layer one of {', '.join(LAYERS)}")
         elif not r["written_by"]:               # a writer's row is refused above, and has no place here
-            ranks.append((_rank(r), k))
+            ranks.append((_rank(r), row_text(r)))
     for (a, ka), (b, kb) in zip(ranks, ranks[1:]):
         if b < a:
-            bad.append(f"{name}: {key_text(kb)} is out of order (level, then layer); it follows {key_text(ka)}")
+            bad.append(f"{name}: {kb} is out of order (level, then layer); it follows {ka}")
             break
     if bad:
         raise DevicesError("; ".join(bad))
@@ -229,7 +257,7 @@ def check_generated(rows: Iterable[Mapping[str, str]], name: str = GENERATED_FIL
     the field file's). DevicesError listing every problem."""
     bad = []
     for r in rows:
-        at = f"{name}: {key_text(key_of(r))}"
+        at = f"{name}: {row_text(r)}"
         if not r["level"]:
             bad.append(f"{at}: a level-less device (a Store's) is kept in {FIELD_FILE}")
         elif r["written_by"] not in WRITERS:
@@ -254,10 +282,13 @@ def merge(generated: Iterable[Mapping[str, str]], field: Iterable[Mapping[str, s
           names: tuple[str, str] = (GENERATED_FILE, FIELD_FILE)) -> tuple[Mapping[str, str], ...]:
     """The one view every reader gets: each generated row with its field row's cells over it (a non-empty field cell
     replaces the generated one; an empty one means no override), then the field file's level-less rows (a Store's
-    devices), in the master's order (_rank), checked (check_rows). A field jmri_comment with OCCUPANCY_MARK is the
-    builder's to fill: the generated cell stands, and must be the field text with the mark filled in. DevicesError on
-    a field cell outside FIELD_COLUMNS, a keyed field row with no generated row (a builder no longer makes it), a
-    templated comment the generated cell does not follow, or a merged row that breaks check_rows."""
+    devices), in the master's order (_rank), checked (check_rows). Rows are matched by KEY (level, id), so a field
+    user_name is the owner's name over the generated one. A field jmri_comment with OCCUPANCY_MARK is the builder's to
+    fill: the generated cell stands, and must be the field text with the mark filled in. DevicesError on a field cell
+    outside FIELD_COLUMNS, a field row whose id no generated row has (the plan no longer has that device: the owner
+    moves its cells to the device's new id or drops them, decision 3 of the naming-layers hand-off), a field row of
+    another layer than its id's row, a templated comment the generated cell does not follow, or a merged row that
+    breaks check_rows."""
     gname, fname = names
     field = list(field)
     check_field(field, fname)
@@ -270,24 +301,22 @@ def merge(generated: Iterable[Mapping[str, str]], field: Iterable[Mapping[str, s
             out.append(g)
             continue
         used.add(k)
+        if f["layer"] != g["layer"]:
+            bad.append(f"{fname}: {row_text(f)}: id {k[1]!r} is a {g['layer']} row in {gname}, not {f['layer']}")
+            continue
         row = dict(g)
         for c in FIELD_COLUMNS:
             v = f[c]
             if not v:
                 continue
-            if c == "id" and v != g[c]:
-                bad.append(f"{fname}: {key_text(k)}: id {v!r} is not the plan's, {g[c]!r} ({gname}): the track "
-                           "moved in a new export; give the row the new id, or remove it")
-                continue
             if c == "jmri_comment" and OCCUPANCY_MARK in v:
                 if not _templated(v, g[c]):
-                    bad.append(f"{fname}: {key_text(k)}: jmri_comment {v!r} needs its {OCCUPANCY_MARK} filled from "
+                    bad.append(f"{fname}: {row_text(f)}: jmri_comment {v!r} needs its {OCCUPANCY_MARK} filled from "
                                f"wiring.csv, but {gname} has {g[c]!r} (run make panels)")
                 continue
             row[c] = v
         out.append(MappingProxyType(row))
-    bad += [f"{fname}: {key_text(k)} has no row in {gname} (no builder makes it now): rename the field row to the "
-            "device's new name, or remove it" for k in keyed if k not in used]
+    bad += [gone_text(f, gname, fname) for k, f in keyed.items() if k not in used]
     if bad:
         raise DevicesError("; ".join(bad))
     out += [r for r in field if not r["level"]]
@@ -297,24 +326,33 @@ def merge(generated: Iterable[Mapping[str, str]], field: Iterable[Mapping[str, s
     return rows
 
 
+def gone_text(f: Mapping[str, str], gname: str = GENERATED_FILE, fname: str = FIELD_FILE) -> str:
+    """What merge says of field row `f` whose id no generated row has (decision 3: stop and list it)."""
+    return (f"{fname}: {row_text(f)}: id {f['id']!r} has no row in {gname} (the plan no longer has it): move the "
+            "row's cells to the device's new id, or remove the row")
+
+
 def redundant(generated: Iterable[Mapping[str, str]], field: Iterable[Mapping[str, str]]) -> list[str]:
-    """Warnings: each field cell equal to the generated cell it overrides (the value would be in two places)."""
+    """Warnings: each field cell equal to the generated cell it overrides (the value would be in two places). A
+    user_name is left out: the generated file names every row, so the owner's name is in both on purpose."""
     keyed = {key_of(r): r for r in field if r["level"]}
     out = []
     for g in generated:
         f = keyed.get(key_of(g))
         if f is not None:
-            out += [f"{FIELD_FILE}: {key_text(key_of(g))}: {c} {f[c]!r} is the generated value too (redundant)"
-                    for c in FIELD_COLUMNS if c != "id" and f[c] and f[c] == g[c]]     # an id is in both on purpose
+            out += [f"{FIELD_FILE}: {row_text(g)}: {c} {f[c]!r} is the generated value too (redundant)"
+                    for c in FIELD_COLUMNS if c != "user_name" and f[c] and f[c] == g[c]]
     return out
 
 
 def unmerge(rows: Iterable[Mapping[str, str]], field: Iterable[Mapping[str, str]],
             writer: str = "the builder") -> list[dict[str, str]]:
-    """The generated form of merged rows `rows` (a builder's rows, as readers will see them): each row's cells the
-    field file gives are left empty, so the owner's value lives in one place; a templated comment (OCCUPANCY_MARK)
-    stays, as the builder fills it, and so does the id, the key the field row's name is kept by. Level-less rows (the field file's own) are left out. DevicesError when a row
-    gives a field cell a value other than the field file's (the builder would override the owner)."""
+    """The generated form of merged rows `rows` (a builder's rows, as readers will see them), matched to the field
+    file by KEY (level, id): each row's cells the field file gives are left empty, so the owner's value lives in one
+    place; a templated comment (OCCUPANCY_MARK) stays, as the builder fills it, and so does the user_name (the
+    generated file names every row). Level-less rows (the field file's own) are left out. DevicesError when a row
+    gives a field cell a value other than the field file's (the builder would override the owner; for a user_name,
+    the builder does not take the owner's name for that device)."""
     keyed = {key_of(r): r for r in field if r["level"]}
     out, bad = [], []
     for r in rows:
@@ -327,17 +365,18 @@ def unmerge(rows: Iterable[Mapping[str, str]], field: Iterable[Mapping[str, str]
                 v = f[c]
                 if not v:
                     continue
-                if c == "id":           # the generated file keeps every id; the field row's must be the same
+                if c == "user_name":        # kept: the builder gives the owner's name, as readers see it
                     if row[c] != v:
-                        bad.append(f"{writer} gives {key_text(key_of(r))} id {row[c]!r}, but {FIELD_FILE} keeps its "
-                                   f"name by {v!r}: the track moved in a new export; give the field row the new id")
+                        bad.append(f"{writer} names id {row['id']!r} (level {row['level']}, {row['layer']}) "
+                                   f"{row[c]!r}, but {FIELD_FILE} names it {v!r}: {writer} does not take the owner's "
+                                   "name for this device; remove the field row's user_name to keep the generated one")
                     continue
                 if c == "jmri_comment" and OCCUPANCY_MARK in v:
                     if not _templated(v, row[c]):
-                        bad.append(f"{writer} gives {key_text(key_of(r))} jmri_comment {row[c]!r}, which is not "
+                        bad.append(f"{writer} gives {row_text(r)} jmri_comment {row[c]!r}, which is not "
                                    f"{FIELD_FILE}'s {v!r} with its {OCCUPANCY_MARK} filled")
                 elif row[c] != v:
-                    bad.append(f"{writer} gives {key_text(key_of(r))} {c} {row[c]!r}, but {FIELD_FILE} holds {v!r}")
+                    bad.append(f"{writer} gives {row_text(r)} {c} {row[c]!r}, but {FIELD_FILE} holds {v!r}")
                 else:
                     row[c] = ""
         out.append(row)
@@ -386,9 +425,9 @@ def field_rows(files: "Files | Path | str | None" = None) -> tuple[Mapping[str, 
     return rows
 
 
-def field_index(files: "Files | Path | str | None" = None) -> Mapping[tuple[str, str, str], Mapping[str, str]]:
-    """{key: field row} of the field file's keyed rows (those with a level): the owner's cells, the one place a
-    builder reads them from (it never reads them back from its own last output)."""
+def field_index(files: "Files | Path | str | None" = None) -> Mapping[tuple[str, ...], Mapping[str, str]]:
+    """{(level, id): field row} of the field file's keyed rows (those with a level, KEY): the owner's cells, the one
+    place a builder reads them from (it never reads them back from its own last output)."""
     return MappingProxyType({key_of(r): r for r in field_rows(files) if r["level"]})
 
 
@@ -511,12 +550,14 @@ class Index:
 
     def where(self, row: Mapping[str, str]) -> str:
         """"devices_field.csv: Track 12 (level 1, block)" for the master's row with `row`'s level, layer and user
-        name, for a message: the field file when it has a row of the key (the owner's cells), else the generated
-        file; the generated file's name alone when the master has no such row (a caller's own row, as in a test)."""
+        name, for a message: the field file when it has a row of that row's key (the owner's cells), else the
+        generated file; the generated file's name alone when the master has no such row (a caller's own row, as in a
+        test)."""
         k = (row.get("level", ""), row.get("layer", ""), row.get("user_name", ""))
-        if not any(r["level"] == k[0] for _n, r in self.by_key.get((k[1], k[2]), ())):
+        got = [r for _n, r in self.by_key.get((k[1], k[2]), ()) if r["level"] == k[0]]
+        if not got:
             return self.path.name
-        return f"{FIELD_FILE if k in self.field_keys else self.path.name}: {key_text(k)}"
+        return f"{FIELD_FILE if key_of(got[0]) in self.field_keys else self.path.name}: {key_text(k)}"
 
     def names(self, layer: str, roles: Iterable[str] | None = None, levels: Iterable[str] | None = None
               ) -> list[str]:
@@ -561,7 +602,7 @@ def column_file(column: str) -> str:
     """Which file may hold `column` on a row with a level: "field" for the key and FIELD_COLUMNS (the owner's cell
     in devices_field.csv when the row has a field row, else the builder's), "generated" for the rest (the builders'
     alone). A Store's level-less row holds every column in the field file."""
-    return "field" if column in KEY or column in FIELD_COLUMNS else "generated"
+    return "field" if column in KEY + FIELD_HELD + FIELD_COLUMNS else "generated"
 
 
 def at(row: Mapping[str, str], files: "Files | Path | str | None" = None) -> str:
@@ -652,7 +693,7 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "the device maste
     ranks = []
     parts, part_names, whole = [], set(), set()      # parts (row, level, part_of); (level, name)s
     for n, r in enumerate(rows, 2):
-        at = key_text(key_of(r))
+        at = row_text(r)
         if r["level"] and r["level"] not in LEVELS:
             bad.append(f"{at}: level is one of {', '.join(LEVELS)}, or empty for a device kept by its jmri_bean")
             continue
@@ -752,7 +793,7 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "the device maste
             other = [v for (_lv, b), v in block_id.items() if b == r["facing"]]
             got = other[0] if len(other) == 1 else None
         if got is not None and r["id"] != f"mast:{got}:{r['dir']}":
-            bad.append(f"{key_text(key_of(r))}: id {r['id']!r} does not name the block it faces, {r['facing']} "
+            bad.append(f"{row_text(r)}: id {r['id']!r} does not name the block it faces, {r['facing']} "
                        f"(id {got!r}), and its dir {r['dir']!r}")
     for at, level, target in parts:            # the block a part names is on the part's own level
         if (level, target) in part_names:
@@ -880,9 +921,9 @@ def replace_rows(rows: Iterable[Mapping[str, str]], writer: str,
                  new: Iterable[Mapping[str, str]]) -> list[dict[str, str]]:
     """`rows` with the rows `writer` holds replaced by `new` (master rows with written_by == writer), sorted into the
     master's order (stable). DevicesError when the writer is not in WRITERS, a new row names another writer or
-    would take a key (level, layer, user_name) a row held by someone else has (another writer's, or a Store's
+    would take an id or a name (key_of, name_key) a row held by someone else has (another writer's, or a Store's
     level-less device), or the result breaks check_rows. A row the field file names may not go: merge refuses the
-    pair (rename or remove the field row), so the owner's cells are never dropped silently."""
+    pair (move the field row to the new id or remove it), so the owner's cells are never dropped silently."""
     rows, new = [dict(r) for r in rows], [dict(r) for r in new]
     _writes_only_its_own(writer, new, [r for r in rows if r["written_by"] != writer])
     out = [r for r in rows if r["written_by"] != writer] + new
@@ -901,12 +942,12 @@ def _writes_only_its_own(writer: str, new: list[Mapping[str, str]], others: Iter
         raise DevicesError(f"{writer} would write {len(foreign)} row(s) held by someone else, first "
                            f"{foreign[0]['level']} {foreign[0]['layer']} {foreign[0]['user_name']!r} "
                            f"(written_by {foreign[0]['written_by']!r})")
-    held = {key_of(r): r["written_by"] for r in others}
-    clash = [k for k in (key_of(r) for r in new) if k in held]
+    held = {k(r): r["written_by"] for r in others for k in (key_of, name_key)}     # by id and by name
+    clash = [(r, held.get(name_key(r), held.get(key_of(r)))) for r in new if name_key(r) in held or key_of(r) in held]
     if clash:
         raise DevicesError(f"{writer} would rewrite row(s) it does not hold: "
-                           + ", ".join(f"{k[2]!r} ({k[1]}, level {k[0]}; held by {held[k] or FIELD_FILE})"
-                                       for k in clash[:5]))
+                           + ", ".join(f"{r['user_name']!r} ({r['layer']}, level {r['level']}, id {r['id']!r}; held by "
+                                       f"{by or FIELD_FILE})" for r, by in clash[:5]))
 
 
 def _text(columns: Iterable[str], rows: Iterable[Mapping[str, str]]) -> str:
@@ -967,47 +1008,70 @@ def texts(rows: list[Mapping[str, str]], files: Files | None = None) -> dict[Pat
     return {f.master: master_text(unmerge(rows, field_rows(f)) if f.field is not None else rows)}
 
 
-def outputs_after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Files | None = None) -> dict[Path, str]:
+def outputs_after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Files | None = None,
+                       warn: "Callable[[str], None] | None" = None, check: bool = False) -> dict[Path, str]:
     """{path: text} of the generated file once `writer` has written `new`, its rows as readers will see them (merged
     form, written_by set to it), in place of the rows it holds (replace_rows on the merged view). The writer's rows
     go in with the field file's cells left empty (unmerge); every other writer's generated row is kept as written.
-    The caller writes the texts (or compares them for --check); nothing is written here. DevicesError when the
-    writer would touch a row it does not hold, override a field cell, or the result does not merge back to what the
-    writer gave."""
+    Once the result has merged back, the write's new and gone IDs and its renames against the last generated file go
+    to `warn` (default: stderr; hartlib.device_changes, decisions 3, 5 and 6 of the naming-layers hand-off), each line
+    marked check-only when `check` (a --check run, which writes nothing). The caller writes the texts (or compares
+    them for --check); nothing is written here. DevicesError when the writer would touch a row it does not hold,
+    override a field cell, drop an ID the field file holds owner's cells for (device_changes.stop lists it and the new
+    IDs that may be its device's), or the result does not merge back to what the writer gave."""
+    from . import device_changes                # it reads this module
+    out, changes = _after_rows(writer, new, files)
+    if changes is not None:
+        device_changes.say(writer, changes, warn, check)
+    return out
+
+
+def _after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Files | None):
+    """(outputs_after_rows' texts, the write's device_changes.Changes, None for a one-file copy), nothing said."""
+    from . import device_changes                # it reads this module
     f = files or Files.here()
     if f.field is None:                     # a one-file copy: it holds every cell
-        return texts(replace_rows(load(f), writer, new), f)
+        return texts(replace_rows(load(f), writer, new), f), None
     # The old merged view is not read: after an owner's edit (a field row removed or renamed) it may not merge any
     # more, and this write is what makes the pair whole again.
     new = [dict(r) for r in new]
     field = field_rows(f)
-    keep = [dict(g) for g in generated_rows(f) if g["written_by"] != writer]
+    last = generated_rows(f)
+    keep = [dict(g) for g in last if g["written_by"] != writer]
     _writes_only_its_own(writer, new, keep + [r for r in field if not r["level"]])
     out = keep + unmerge(new, field, writer)
     out.sort(key=_rank)
+    changes = device_changes.stop(last, out, field)
     back = merge(out, field, (f.master.name, f.field.name))
     mine = {key_of(r): dict(r) for r in back if r["written_by"] == writer}
     if mine != {key_of(r): r for r in new}:
         raise DevicesError(f"{writer}: the rows written do not merge back to what it gave")
-    return {f.master: master_text(out)}
+    return {f.master: master_text(out)}, changes
+
+
 def outputs_after(writer: str, old_rows: Iterable[Mapping[str, str]], files: Files | None = None,
-                  master_rows: Iterable[Mapping[str, str]] = ()) -> dict[Path, str]:
+                  master_rows: Iterable[Mapping[str, str]] = (),
+                  warn: "Callable[[str], None] | None" = None, check: bool = False) -> dict[Path, str]:
     """outputs_after_rows for `old_rows`, old-form device-map rows each with the role its writer gives it (master_row
     gives each its master form), and
     `master_rows`, rows already in the master's form (a builder's staging rows, built on the owner's field rows, or
     rows the device maps leave out). What a reader of the master sees for these rows is what the writer gave; DevicesError
-    when it is not."""
+    when it is not. `warn` and `check`: where the write's ID changes and renames go, once it has read back
+    (outputs_after_rows)."""
+    from . import device_changes                # it reads this module
     f = files or Files.here()
     old_rows = list(old_rows)
     master_rows = [dict(r) for r in master_rows]
     new = [master_row(o, writer) for o in old_rows]
-    out = outputs_after_rows(writer, new + master_rows, f)
+    out, changes = _after_rows(writer, new + master_rows, f)
     want = {(str(o["level"]), o["layer"], o["user_name"]): {c: str(o[c]) for c in DEVICE_COLUMNS} for o in old_rows}
     whole = {(r["level"], r["layer"], r["user_name"]): r for r in master_rows}
-    back = {key_of(r): dict(r) for r in parse(out[f.master], f.master.name, f) if r["written_by"] == writer}
+    back = {name_key(r): dict(r) for r in parse(out[f.master], f.master.name, f) if r["written_by"] == writer}
     held = {k: device_map_row(r) for k, r in back.items() if k not in whole}
     if held != want or any(back.get(k) != r for k, r in whole.items()):
         raise DevicesError(f"{writer}: the rows written do not read back as given")
+    if changes is not None:
+        device_changes.say(writer, changes, warn, check)
     return out
 
 
