@@ -14,10 +14,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPTS = {
     "drop_job": ROOT / "jmri/layouts/hart/scripts/speedmatch/drop_job.sh",
-    "cs105_reboot": ROOT / "tools/ops/cs105_reboot.sh",
-    "cs105_roster_sync": ROOT / "tools/ops/cs105_roster_sync.sh",
+    "cs105_reboot": ROOT / "tools/ops/cs105.sh",
+    "cs105_roster_sync": ROOT / "tools/ops/cs105.sh",
     "loco_roster_import": ROOT / "tools/ops/loco_roster_import.sh",
 }
+# arguments after the script: drop_job.sh takes the job file; cs105.sh takes its subcommand
+ARGS = {"cs105_reboot": ["reboot"], "cs105_roster_sync": ["roster-sync"]}
 CLEAR = ("HART_PI_SSH", "PI_HOST", "HART_ENV_FILE", "HART_REPO_ROOT", "_hart_env_loaded")
 
 
@@ -39,7 +41,7 @@ def run(name: str, env: dict[str, str], file_text: str | None):
         base = {k: v for k, v in os.environ.items() if k not in CLEAR}
         base.update(env, HART_ENV_FILE=str(env_file), PATH=f"{stub}:/usr/bin:/bin",
                     HART_OPERATING_FLAG=str(tmp / "operating"))     # drop_job.sh sets it; never the real one
-        args = [str(job)] if name == "drop_job" else []
+        args = [str(job)] if name == "drop_job" else ARGS.get(name, [])
         done = subprocess.run(["bash", str(SCRIPTS[name]), *args], env=base, capture_output=True,
                               text=True, cwd=tmp)
         return done.returncode, done.stderr

@@ -40,6 +40,7 @@ import repo_guide_page  # noqa: E402
 import jmri_additions_page  # noqa: E402
 import provenance  # noqa: E402
 import share_cards  # noqa: E402
+import site_views  # noqa: E402
 from photo_tabs import tab_subs  # noqa: E402
 
 PORTAL = Path(__file__).resolve().parents[1]
@@ -48,19 +49,11 @@ sys.path.insert(0, str(PORTAL.parent / "ops/hart-ops/card_pipeline"))
 from private_name import contains_private_name  # noqa: E402
 
 
-def _load_tool(rel: str):
-    """A repo tool outside www/scripts, loaded by path once (tools/ops is not a package)."""
-    import importlib.util
-    spec = importlib.util.spec_from_file_location(Path(rel).stem, PORTAL.parent / rel)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-pipeline_map = _load_tool("tools/ops/build_pipeline_map.py")
-# Pages the site publishes that are built here from their sources instead of committed (ADR-036): the site path,
-# and the builder that returns the checked page or raises its GraphError.
-BUILT_PAGES = {pipeline_map.SITE_REL: pipeline_map.site_page}
+pipeline_map = site_views.pipeline_map  # loaded once, by site_views ("tools/ops/build_pipeline_map.py")
+# Files the site publishes that are built here from their sources instead of committed (ADR-036): the pipeline map
+# page and the generated JSON (site_views.VIEWS), each site path with the builder that returns its checked text or
+# raises one of site_views.ERRORS.
+BUILT_PAGES = site_views.VIEWS
 # Build scripts, the owner's review desk, and pages that only work at the layout (localhost tools,
 # workspace pointers) stay off the public site.
 SKIP_DIRS = {Path("scripts"), Path("review"), Path("review-data"), Path("tools"), Path("reference")}
@@ -1123,11 +1116,11 @@ def _webp_companions(dest_root: Path) -> int:
 
 
 def _refresh_tables_page(dest_root: Path) -> None:
-    """Rebuild the tables browser data and fill the tables file page from tables.xml, and fill the
+    """Fill the tables file page from tables.xml (its browser data is a built page, _build_pages), and fill the
     repository guide's lists and counts from the checkout, so the published copies always describe
     the current files even when the committed ones are stale."""
     if (dest_root / build_tables_browser.PAGE_REL).is_file():
-        build_tables_browser.write(dest_root)
+        build_tables_browser.write_page(dest_root)
     if (dest_root / repo_guide_page.PAGE_REL).is_file():
         # A repo change the guide does not describe yet must not stop a website deploy: keep the committed page and
         # say why. tools/check.sh (repo-guide) fails on the same thing, so it is fixed before the next merge.
@@ -1155,12 +1148,9 @@ def _build_pages(dest: Path) -> bool:
                   file=sys.stderr)
             return False
         try:
-            page = make()
-            if not isinstance(page, str) or not page.strip():
-                raise pipeline_map.GraphError("its builder returned no page")
-            pipeline_map.write_page(out, page)  # writes, then reads back
-        except pipeline_map.GraphError as e:
-            print(f"Cannot build {rel}:\n{e}", file=sys.stderr)
+            site_views.write(out, site_views.build(rel, make))  # writes, then reads back
+        except site_views.ViewError as e:
+            print(e, file=sys.stderr)
             return False
         print(f"Built {rel}")
     return True

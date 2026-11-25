@@ -29,6 +29,7 @@ import json
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import threading
 from pathlib import Path
@@ -45,6 +46,25 @@ PAPER = "linear-gradient(180deg,#edf2f5,var(--paper) 45%,var(--paper-2))"
 
 _site = ""  # http://127.0.0.1:<port>/ while serving()
 _tmp = Path()
+sys.path.insert(0, str(PORTAL / "scripts"))
+import site_views  # noqa: E402  (the files the site build makes instead of committing, ADR-036)
+
+_views: dict[str, str] = {}  # site path -> the copy this run built; a view that did not build is in _view_errors
+_view_errors: list[str] = []
+_view_lock = threading.Lock()
+
+
+def _view(rel: str) -> str:
+    """Where this run serves view `rel` from: built once into the scratch folder, as the site build makes it (ADR-036),
+    so a page never reads a missing or stale www/ copy. One that cannot be built is a 404 and an error in shot()."""
+    with _view_lock:
+        if rel not in _views:
+            _views[rel] = str(_tmp / "views" / rel)
+            try:
+                site_views.write(Path(_views[rel]), site_views.build(rel))
+            except site_views.ViewError as err:
+                _view_errors.append(str(err))
+        return _views[rel]
 
 
 class _Quiet(http.server.SimpleHTTPRequestHandler):
@@ -55,6 +75,8 @@ class _Quiet(http.server.SimpleHTTPRequestHandler):
         """Serve published files from their one source, as serve_portal.py does, and the gitignored
         car-card photos a page names as ../ops/car-cards/ from the checkout's mirror."""
         rel = unquote(urlsplit(path).path).removeprefix("/www/")
+        if rel in site_views.VIEWS:
+            return _view(rel)
         if source := PUBLISHED.get(rel):
             return str(REPO / source)
         if rel.startswith("ops/car-cards/"):
@@ -72,6 +94,7 @@ def serving():
     threading.Thread(target=server.serve_forever, daemon=True).start()
     with tempfile.TemporaryDirectory() as tmp:
         _site, _tmp = f"http://127.0.0.1:{server.server_address[1]}/www/", Path(tmp)
+        _views.clear(), _view_errors.clear()  # the views of an earlier serving() went with its scratch folder
         try:
             yield
         finally:
@@ -96,6 +119,8 @@ def shot(url: str, size: tuple[int, int] = (W, H), scale: int = 2, flags: tuple[
          "--virtual-time-budget=8000", *flags, f"--screenshot={out}", url],
         check=True, capture_output=True,
     )
+    if _view_errors:  # the page read a view that did not build: its picture shows the load error
+        raise SystemExit(f"{url}: a file the page reads does not build:\n" + "\n".join(_view_errors))
     return Image.open(out).convert("RGB")
 
 
@@ -432,7 +457,10 @@ def roster():
 
     brick = _panel().crop((228, 165, 528, 345))
     brick.resize((brick.width * 3, brick.height * 3), Image.LANCZOS).save(_tmp / "brick.png")
-    items = json.loads((PORTAL / "data/layout-index.json").read_text(encoding="utf-8"))["items"]
+    try:  # the published index is built, not committed (ADR-036): build it as the site does
+        items = json.loads(site_views.build("data/layout-index.json"))["items"]
+    except site_views.ViewError as err:
+        raise SystemExit(f"roster-index: {err}") from None
     wanted = [("turnout", "Switch 1"), ("turnout", "Switch 3"), ("signal", "Mast 2L"), ("signal", "Mast 4RA"),
               ("occupancy", "OS Switch 1"), ("occupancy", "OS Switch 3")]
     by_name = {(i["kind"], i.get("publicName")): i for i in items}
