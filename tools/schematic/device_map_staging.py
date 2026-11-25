@@ -447,6 +447,8 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
         else:
             if name not in ids:
                 bad.append(f"staging block {name}: the plan gives it no ends, so no device ID")
+                prior.pop(("block", name), None)           # one error for it, not a second "no block" one
+                prior.pop(("occupancy", occupancy_user(name)), None)
                 continue
             row = owned("block", name, trial_name=trials.get(name, ""), id=ids[name])
             at = (pin_of[name].node, pin_of[name].k) if name in pin_of else on_helix.get(name)

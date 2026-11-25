@@ -301,7 +301,10 @@ def status_rows(data: dict) -> list[dict]:
     for it in data["items"]:
         for m in it.get("members") or [it]:
             el = _element(m["xml"], f"item {it['id']}")
-            named.update(((el.tag, el.get(a)), it["id"]) for a in ("sensor", "signalhead") if el.get(a))
+            for k in ((el.tag, el.get(a)) for a in ("sensor", "signalhead") if el.get(a)):
+                if named.setdefault(k, it["id"]) != it["id"]:
+                    raise ItemsError(f"{k[0]} {k[1]!r} is in items {named[k]!r} and {it['id']!r}; a status bean "
+                                     "is in one item, which its device ID names")
     rows = []
     for layer, user, system, assignment, comment, attr, text in STATUS_BEANS:
         tag, name = ("sensoricon", user) if attr == "sensor" else ("signalheadicon", system)

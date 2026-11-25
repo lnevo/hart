@@ -444,12 +444,18 @@ def mast_ids(band, placed: list[dict], block_ids: dict) -> dict[str, str]:
 
 
 def device_rows(gen_masts: list[dict], virtual: list[dict], old_rows: list[dict], wired: dict,
-                toward: dict | None = None, ids: dict | None = None) -> list[dict]:
+                toward: dict | None = None, ids: dict | None = None,
+                head_counts: dict | None = None) -> list[dict]:
     """The staging device-map rows with their mast and head rows replaced: one mast row per mast (generated and virtual) and
     one head row per head of a visible mast, every name its JMRI name; a wired mast keeps its node (mast_node), a
     wired head its node and notes (wired_heads); other rows unchanged and in place. `ids`: {mast: device ID}
-    (mast_ids); a head's is its mast's and its place, top first. RuleError if a wired head would be dropped."""
-    ids = ids or {}
+    (mast_ids); a head's is its mast's and its place on a mast of `head_counts[mast]` heads (the rule's count,
+    generate()), top first. RuleError on a mast with no ID, a mast whose listed heads are not the rule's count, or a
+    wired head that would be dropped."""
+    ids, head_counts = ids or {}, head_counts or {}
+    no_id = sorted(r["mast"] for r in gen_masts + virtual if not ids.get(r["mast"]))
+    if no_id:
+        raise RuleError(f"mast(s) {', '.join(no_id)} have no device ID (mast_ids)")
     keep = [r for r in old_rows if r["layer"] not in ("mast", "head")]
     old_mast = {r["user_name"]: r for r in old_rows if r["layer"] == "mast"}
     masts, heads = [], []
@@ -460,18 +466,21 @@ def device_rows(gen_masts: list[dict], virtual: list[dict], old_rows: list[dict]
         switch = r["switch"] or (toward or {}).get(r["mast"], "")
         where = " | ".join(x for x in (r["cp"], f"Switch {switch}" if switch else "") if x)
         note = (f"facing {r['facing']} into {r['protects']}" if r["protects"] else f"facing {r['facing']}, buffer stop")
-        mid = ids.get(r["mast"], "")
+        mid = ids[r["mast"]]
         masts.append(dict(level="1", cp=r["cp"], layer="mast", id=mid, user_name=r["mast"],
                           system_name=r["system_name"],
                           jmri_name=r["system_name"], node=mast_node(r["mast"], old_mast.get(r["mast"]), on),
                           dcc="", comment=where, trial_name="", notes=note, **{**dict.fromkeys(FACTS, ""),
                           "switch": r["switch"], "facing": r["facing"], "protects": r["protects"], "dir": r["dir"]}))
         pairs = [x for x in r["head_system_names"].split(";") if x]
+        if pairs and head_counts.get(r["mast"]) != len(pairs):
+            raise RuleError(f"{r['mast']}: {len(pairs)} head(s) listed, the rule gives it "
+                            f"{head_counts.get(r['mast'], 'no count')}")
         for i, pair in enumerate(pairs):
             h, user = pair.split("=", 1)
             prev = on.get(user)
             wired_text = prev["comment"] if prev and WIRING_TEXT.match(prev["comment"]) else ""
-            hid = device_ids.head_id(mid, device_ids.head_place(i, len(pairs))) if mid else ""
+            hid = device_ids.head_id(mid, device_ids.head_place(i, head_counts[r["mast"]]))
             heads.append(dict(level="1", cp=r["cp"], layer="head", id=hid, user_name=user, system_name=h, jmri_name=h,
                               node=prev["node"] if prev else "", dcc="", comment=wired_text or where,
                               trial_name="",
@@ -633,7 +642,7 @@ def build():
                  if r["level"] == str(PLANNED_LEVEL) and r["layer"] == "block"}    # build_device_map.py's rows
     ids = mast_ids(band, gen + vgen, block_ids)
     mine = with_roles([r for r in device_rows(gm, vr, owned["mast"], wired, {m["mast"]: m["toward"] for m in vgen},
-                                              ids)
+                                              ids, {m["mast"]: m["heads"] for m in gen})
                        if r["layer"] in WRITES], gen + vgen)   # the mast and head rows only
     want = devices.outputs_after(WRITER, mine, files)
     master = devices.parse(want[files.master], files.master.name, files)     # every level's rows, as they will be written

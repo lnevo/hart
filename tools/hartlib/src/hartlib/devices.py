@@ -729,6 +729,19 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "the device maste
             whole.add((r["level"], r["user_name"]))
         if not unknown:
             ranks.append((_rank(r), at))
+    # an intermediate or hidden mast's id names the block it faces (hartlib.device_ids.block_mast_id): that
+    # block's row on the mast's level, else its one row on another level (a helix block)
+    block_id = {(r["level"], r["user_name"]): r["id"] for r in rows if r["layer"] == "block" and r["level"]}
+    for r in rows:
+        if r["layer"] != "mast" or r["role"] not in ("intermediate", "hidden") or not r["level"]:
+            continue
+        got = block_id.get((r["level"], r["facing"]))
+        if got is None:
+            other = [v for (_lv, b), v in block_id.items() if b == r["facing"]]
+            got = other[0] if len(other) == 1 else None
+        if got is not None and r["id"] != f"mast:{got}:{r['dir']}":
+            bad.append(f"{key_text(key_of(r))}: id {r['id']!r} does not name the block it faces, {r['facing']} "
+                       f"(id {got!r}), and its dir {r['dir']!r}")
     for at, level, target in parts:            # the block a part names is on the part's own level
         if (level, target) in part_names:
             bad.append(f"{at}: part_of {target!r} is itself a part (a part names a whole block: no chain or cycle)")

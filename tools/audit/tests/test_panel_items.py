@@ -164,6 +164,13 @@ class StatusRows(unittest.TestCase):
         with self.assertRaisesRegex(pi.ItemsError, "status bean 'SML Mode' .* has no sensoricon"):
             pi.status_rows(data)
 
+    def test_a_status_bean_in_two_items_stops(self):
+        data = self.committed()
+        first = next(it for it in data["items"] if any('sensor="SML Mode"' in m["xml"] for m in it.get("members", [])))
+        data["items"].append(dict(first, id="copy"))
+        with self.assertRaisesRegex(pi.ItemsError, r"sensoricon '[^']+' is in items 'status' and 'copy'"):
+            pi.status_rows(data)
+
     def test_the_committed_master_holds_them(self):
         self.assertEqual(pi.main(["--check"]), 0)
 

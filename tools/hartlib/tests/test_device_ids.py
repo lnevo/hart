@@ -58,6 +58,16 @@ class TheChecks(unittest.TestCase):
         self.assertIn("id is empty", problems([blank(level="1", layer="block", role="os", user_name="OS Switch 1",
                                                      assignment="none", description="Block.", id="")]))
 
+    def test_a_mast_at_a_block_names_that_blocks_id(self):
+        from test_devices import blank, problems
+        block = blank(level="1", layer="block", role="track", user_name="Track W-1", assignment="none",
+                      description="Block.", id="block:3B-end")
+        mast = blank(level="1", layer="mast", role="hidden", user_name="Mast 4LA", assignment="none",
+                     description="Mast.", facing="Track W-1", dir="west", id="mast:block:3B-end:west")
+        D.check_rows([block, mast])
+        self.assertIn("Mast 4LA (level 1, mast): id 'mast:block:9B-end:west' does not name the block it faces, "
+                      "Track W-1 (id 'block:3B-end')", problems([block, dict(mast, id="mast:block:9B-end:west")]))
+
     def test_a_field_row_may_not_hold_an_id(self):
         from test_devices import blank
         row = blank(level="1", layer="turnout", user_name="Switch 1", id="switch:1")
