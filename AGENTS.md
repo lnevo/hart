@@ -102,7 +102,7 @@ When a task changes or reuses a script of about 500 lines or more, or one with n
 - Stop a run with `pkill -f` on a shared script name. Use its PID or a pattern with your worktree path.
 - Spell out what HART stands for in any file, commit or page. The repo and website are public.
 - Normalize **P&CV** and **P&OV** to each other. They are different names on purpose.
-- List or fix the parked features (Entry/Exit, the Dispatcher System, the USS CTC machine, the occupancy lamps) in `jmri/layouts/hart/parked/`. Their rules for the day they return: [`docs/parked/UNPARK.md`](docs/parked/UNPARK.md).
+- List or fix the parked features (Entry/Exit, the Dispatcher System with its occupancy lamps, stations and yard throats, the USS CTC machine) in `jmri/layouts/hart/parked/`. Their rules for the day they return: [`docs/parked/UNPARK.md`](docs/parked/UNPARK.md).
 
 New JMRI track: **Mainline → Yes** (`mainline="yes"`). Geometry **1:1**. Hart has no `export_options.json`. New documents go in `docs/` (ADR-010).
 

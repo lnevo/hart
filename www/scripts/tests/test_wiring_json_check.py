@@ -1,4 +1,4 @@
-"""build_wiring_json.py --check: the wiring viewer's JSON must match the workbooks, apart from the build date."""
+"""build_wiring_json.py: the wiring viewer's JSON is built from the wiring model, and --check must match it apart from the build date."""
 from __future__ import annotations
 
 import importlib.util
@@ -56,6 +56,26 @@ class Stale(unittest.TestCase):
         for text in ("[]", '{"source": null}'):
             p.write_text(text, encoding="utf-8")
             self.assertTrue(BW.stale(p, self.data))
+
+
+class FromTheModel(unittest.TestCase):
+    """The JSON is built from the wiring model (write_inventory.workbook(), in memory); v86 is an output only."""
+
+    def test_it_builds_the_committed_json_without_opening_any_workbook(self):
+        never = mock.Mock(side_effect=AssertionError("a workbook file was opened"))
+        with mock.patch("openpyxl.load_workbook", never), mock.patch("openpyxl.reader.excel.load_workbook", never), \
+                mock.patch.object(BW.write_inventory, "load_workbook", never), \
+                mock.patch.object(BW.write_inventory, "OUT", Path(tempfile.gettempdir()) / "no-such-v86.xlsx"):
+            inv = BW.build_inventory()
+        never.assert_not_called()
+        self.assertEqual(inv["source"], {"file": "LCOS_Layout_Inventory_v86.xlsx", "version": "v86"})
+        self.assertFalse(BW.stale(ROOT / "www/data/wiring-inventory.json", inv))
+
+    def test_a_given_workbook_is_read_as_the_model_gives_it(self):
+        wb = BW.write_inventory.workbook()
+        wb["Nodes"].cell(2, 4, "Somewhere else")
+        inv = BW.build_inventory(wb)
+        self.assertEqual(inv["nodes"][0]["location"], "Somewhere else")
 
 
 class CheckTheRepo(unittest.TestCase):

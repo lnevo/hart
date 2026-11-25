@@ -1,6 +1,7 @@
 // Wiring viewer (behind/wiring.html): LCOS nodes as port grids, signal heads and their
 // R/Y/G pins, turnouts and block sensors, with one search across all of it.
-// Data: data/wiring-inventory.json, built by scripts/build_wiring_json.py from the LCOS inventory.
+// Data: data/wiring-inventory.json, built by scripts/build_wiring_json.py from the wiring model
+// (the sheets it writes as the v86 inventory, built in memory; the workbook file is never read).
 //
 // Shareable URLs: ?tab=signals&q=6LB · ?node=C4 (opens its port map) · ?node=C4&pin=C4-OU2-7
 (function () {
@@ -92,8 +93,7 @@
       var dlgBody = document.getElementById("wr-dialog-body");
 
       document.getElementById("wr-source").innerHTML =
-        "From the LCOS layout inventory " + esc(inv.source.version) +
-        (inv.source.modified ? " (" + esc(inv.source.modified) + ")" : "") + ".";
+        "From the LCOS layout inventory " + esc(inv.source.version) + ".";
 
       var nodeById = {};
       inv.nodes.forEach(function (n) {
