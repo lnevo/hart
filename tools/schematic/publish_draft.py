@@ -190,7 +190,8 @@ def apply_host_screen(opts, data=DATA):
     return host_screen.apply(opts, sections, map_revision.PAGE_SHEET)
 
 
-STAMP_VERSION = b"publish_draft check 3"
+STAMP_VERSION = b"publish_draft check 4"
+HARTLIB = Path(devices.__file__).resolve().parents[1]   # the hartlib source tree this run imports (tools/hartlib/src)
 STAMP_KEEP = 8                 # digests kept, newest first: one per worktree that runs --check in turn
 
 
@@ -214,8 +215,9 @@ def check_digest(plugin_dir):
     runs from), every file in DATA (the layer files and the graphs in GRAPHS below it), devices_field.csv beside it
     (the owner's track names, which the plugin's view carries), the merged plan overrides and preferences the view
     writes (hartlib.layer_files.merged: preferences.json's block IDs take generated names from devices_generated.csv,
-    which is not hashed whole), the published SVG and the
-    station sheets it is compared with, this script, and the Python the plugin runs under (bin/schematic runs the
+    which is not hashed whole), the hartlib code that builds that view (the whole HARTLIB tree: layer_files,
+    track_names, devices and what they import, so a change there draws again before the data changes), the published
+    SVG and the station sheets it is compared with, this script, and the Python the plugin runs under (bin/schematic runs the
     python3 on PATH, the real file it names, with the caller's PYTHONPATH). The station map pages and the staging
     lengths are not in it: --check reads those each time. Raises OSError when a file cannot be read."""
     h = hashlib.sha256(STAMP_VERSION + b"\0" + sys.version.encode() + b"\0")
@@ -224,6 +226,7 @@ def check_digest(plugin_dir):
     h.update(Path(__file__).read_bytes() + b"\0")
     _tree(h, Path(plugin_dir), "plugin")
     _tree(h, DATA, "data")
+    _tree(h, HARTLIB, "hartlib")
     field = devices.field_path(DATA.parent)       # the owner's track names the view draws (hartlib.track_names)
     h.update(b"field\0" + (field.read_bytes() if field.exists() else b"-") + b"\0")
     for kind in ("plan_overrides", "preferences"):      # what the plugin's view holds, its track names resolved
