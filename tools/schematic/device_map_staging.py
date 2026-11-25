@@ -340,8 +340,7 @@ def staging_wired_rows(files: devices.Files | None = None, path: Path | None = N
             STAGING_LEVEL, cp_of.get(s, ""), s, labels, Wired(w.address, w.node, w.wiring_text),
             {nr: Wired(wires[("fb", device_ids.fb_id(s, nr))].address, wires[("fb", device_ids.fb_id(s, nr))].node,
                        wires[("fb", device_ids.fb_id(s, nr))].wiring_text) for nr in "NR"},
-            dcc, jmri=w.address, alias_jmri=f"MTT{dcc}" if dcc else "", alias_notes="",
-            alias=bool(dcc) or f_alias is not None, fb_bound=True)
+            dcc, jmri=w.address, alias_notes="", alias=bool(dcc) or f_alias is not None)
         # the master's form (devices.master_row); the DCC address is put back after, as a field turnout's wiring
         # text holds none (a JMRI comment's "DCC: n" group is the dcc column's)
         rows = {r["id"]: dict(devices.master_row(dict(r, dcc=""), WRITER), dcc=str(r["dcc"])) for r in made}

@@ -417,10 +417,19 @@ def device_map_blocks() -> frozenset[str]:
     return frozenset(set(rows) | {re.sub(r"(?<=\d)[a-d]$", "", n) for n in corners})
 
 
+@functools.cache
+def field_sensors() -> frozenset[str]:
+    """The JMRI names of the main and upper detectors swapped to a field sensor by their row (assignment field,
+    ADR-028): a column of the row, not its level, says a block's sensor is virtual (naming-layers step 14)."""
+    return frozenset(r["jmri_name"] for r in devices.load(DEVICE_MAP) if r["level"] in level_devices.LEVELS
+                     and r["layer"] == "occupancy" and r["assignment"] == "field")
+
+
 def check_level_sensors(desk: str, root: ET.Element, t: Tables, r: Report) -> None:
     """Each main and upper desk block (a device map block row) reports, occupied (close) and unoccupied (throw), the
-    occupancy sensor its Layout Editor block has in tables.xml: a virtual IS:HART:C3:B: sensor (hartlib.level_devices)
-    of that name and system name. A desk-only block (the middle of a double crossover's X) reports none."""
+    occupancy sensor its Layout Editor block has in tables.xml: a virtual IS:HART:C3:B: sensor (hartlib.level_devices),
+    or the field sensor of a detector swapped in by its row (field_sensors), of that name and system name. A desk-only
+    block (the middle of a double crossover's X) reports none."""
     seen = set()
     for b in root.iter("BLOCK"):               # a desk block is listed once per edge it has: checked once
         name = b.get("NAME")
@@ -438,7 +447,8 @@ def check_level_sensors(desk: str, root: ET.Element, t: Tables, r: Report) -> No
         occ = b.find("OCCUPIEDSPEC/IOSPEC")
         occ_user = occ.get("USER_NAME") if occ is not None else None
         want = {"OCCUPIEDSPEC": [(system, "close")], "UNOCCUPIEDSPEC": [(system, "throw")]}
-        if not level_devices.is_block_sensor(system or "") or specs != want or occ_user != user:
+        if not (level_devices.is_block_sensor(system or "") or system in field_sensors()) or specs != want \
+                or occ_user != user:
             got = "; ".join(f"{tag} " + (" ".join(f"{sn} {cmd}" for sn, cmd in v) or "none")
                             for tag, v in specs.items())
             r.add(f"cats-track:{name}", f"{desk}: block {name} reports {got} (user name {occ_user}); tables.xml "

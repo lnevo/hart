@@ -85,11 +85,12 @@ def staging_tracks() -> list[dict]:
         raise SystemExit(f"build_cats_panel.py: staging device map: {exc}") from None
 
 
-def load_facts():
+def load_facts(rr: railroad.Railroad | None = None):
     """The facts from the repo (hartlib.railroad, every layer: the desks are built after the device map and the
     main and upper masts): tables.xml (read once) for its turnouts, sensors, layout blocks and masts, never a Layout
-    Editor panel; the staging tracks from the staging device map."""
-    rr = railroad.Railroad()
+    Editor panel; the staging tracks from the staging device map. `rr`: a Railroad over other sources (a test's copy
+    of the device master and its tables); default the repo's."""
+    rr = railroad.Railroad() if rr is None else rr
     try:
         t = rr.tables
         dm_levels = {r.level for r in rr.device_map.rows}       # main and upper: the device map's levels

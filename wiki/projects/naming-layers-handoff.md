@@ -54,7 +54,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 | 11 | Every level through `master_beans` | 1 day | Builder merge step 5. **Done (2026-11-25), pending `make panelpro-test` and the deploy:** see [Step 11 findings](#step-11-findings); a listed diff of 399 main and upper comments |
 | 12 | One mast step | 1 to 1.5 days | Builder merge step 6. **Done (2026-11-25), pending the SML discovery and the owner's panel approval:** see [Step 12 findings](#step-12-findings); nine upper mast pairs swap letters |
 | 13 | One reader | 1 day | Builder merge step 7, first half: `le_names.level_names` and `staging_device_map.load` become one reader keyed by ID. **Done (2026-11-25):** see [Step 13 findings](#step-13-findings) |
-| 14 | Level tests to column tests, and a swap test | 1 day | Builder merge step 8, then in the sandbox swap one main or upper turnout to a physical name by its owner row alone: `make panels`, `make panelpro-test`, then revert |
+| 14 | Level tests to column tests, and a swap test | 1 day | Builder merge step 8. **Code done (2026-11-25):** see [Step 14 findings](#step-14-findings); a turnout and a detector swap by their field rows alone in a test copy. **Pending:** the main session's sandbox swap (`make panels`, `make panelpro-test`, then revert) |
 
 ## Step 1 findings (2026-11-24)
 
@@ -509,6 +509,53 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   `level_signals` still match tracks through `DeviceMap` rows (tests build those by hand); a main detector's user name
   still does not follow its block's owner name (Step 7). Not this step's: `docs/ap/electrical/test_build_soq.py`
   fails on main too (57 detected sections in `block_lengths.csv`, the text says 43).
+
+## Step 14 findings (2026-11-25)
+
+- **A swap is one row edit.** A main or upper turnout or detector takes its physical name from its `devices_field.csv`
+  row alone (`assignment` field, `jmri_name` and `system_name` its LCOS address). `device_map_rows.switch_shape` gives a
+  switch's alias and feedback rows the shape of its turnout's assignment, not its level: a field turnout's LCC alias
+  is a turnout of its own (MTT<dcc>) and its feedback rows are their planned M2S sensors (TWOSENSOR); a virtual one's
+  alias names its bean and its feedback has none (DIRECT). `follow_swaps` applies it after the owner's rows go over
+  the generated ones, and wires a swapped detector. My call (owner's rule of 2026-11-25): the feedback comes with the
+  turnout, as staging's does, since `master_beans` stops a field turnout with none; a field row of its own overrides it.
+  A field `jmri_name` with no field `assignment` sets the assignment the name gives (`owner_over`), so the swap is that
+  one cell (code review).
+- **Step 13's open items closed.** `read_device_map` holds a field occupancy row to its wired M2S sensor, a virtual one
+  to its IS:HART:C3:B: sensor (`DeviceRow.assignment`, `swapped`); `check_virtual_names` exempts a field row by its
+  column, so the invariant no longer reads the field file for swaps. The desks' `device_name`, `inside_os` and
+  `level_signals` find blocks through `hartlib.drawing_keys` (`drawn_keys`), not the rows' `trial` cells, and an OS
+  block by its drawing key's name, so an owner's name reaches them. `check_layout_facts.py` takes a swapped detector's
+  field sensor (`field_sensors`).
+- **Level tests that became column tests:** `switches.csv`'s row shape (`SwitchRow.by_os`: keyed by its OS block's ID,
+  or by its half; a main or upper row keyed by its OS block still stops until its switches are bound to the live
+  panels, as `staging_switches` reads its turnout on staging, code review), `staging_switches` and `hands` by that key, `build_hands.py`'s two passes, the Store split's rename
+  instruction for any builder-made turnout or feedback row (`store_split`), the alias and feedback shape above.
+- **Kept as real level facts, with why:** the drawing bands (`le_common.STAGING_LEVELS`, the staging band bound to the
+  field, `build_cats_panel.BOUND_LEVEL`, `plan_lengths.MAIN_UPPER`); staging's plan graph, its masts
+  (`device_map_masts`) and its drawing keys with no plan "*" (`drawing_keys`); staging's LCOS nodes as built
+  (`build_device_map.Nodes`, the device-map invariant; wiring.csv's frozen rows already make main wiring data per
+  device); interlocking areas (staging's are `stations.csv` desk codes); `wiring.csv`'s main and upper detectors keyed
+  by plan key and its staging names read before the generated file exists (`wiring._Names`); bean comments
+  (`device_map_rows.BEAN_LEVELS`: staging's come from its wiring columns, a different words path); the head rules that
+  keep main and upper heads off MQTT until a head is swapped (`level_masts.WIRED_LEVELS`, `wiring.digicon_rows`: the
+  next swap, a head, needs them to read the head row's assignment); the main and upper device-map view and mast name
+  memory (`read_device_map`, `build_device_map.master_virtual_names`); level number checks.
+- **The swap test.** `tools/schematic/tests/test_swap_by_row.py` adds two field rows to a copy (Switch 107 to M2T3308,
+  BS 107 Loop 1 to M2S3305) and runs the device map, `tables_build.base`, every railroad invariant,
+  `check_device_master.check_tables` and `check_bean_cells`, and the CATS desks on it (each desk build reads the
+  drawing keys once per device map, code review): the beans are M2T3308 (TWOSENSOR
+  on M2S3367 and M2S3368), MTT123 and M2S3305, the desks' IOSPECs M2T 3308 and M2S 3305; only those six rows, their
+  beans and IOSPECs change. A scratch copy of the repo with the same two rows ran every `make panels` step:
+  all passed but `sml-current` (the discovery base changed) and `check_approved.py` (the desk fingerprints hold the
+  bindings).
+- **Outputs byte-identical:** `make panels CHECK=1 FULL=1` all current, `check_approved.py --check` all matching,
+  `build_tables.py --base-hash` unchanged, `test_bean_goldens` unchanged.
+- **For the main session's sandbox swap:** two rows at the end of `devices_field.csv` (it has no main or upper row
+  yet; level, then layer order), `2,,turnout,,switch:107,,field,M2T3308,M2T3308,,,,,,,,,,,,,,,,,,,,` and
+  `2,,occupancy,,det:block:107B-107C#1,,field,M2S3305,M2S3305,,,,,,,,,,,,,,,,,,,,`; then `make panels` (it rediscovers
+  SML on the Mac, writes the desks, then stops at `approved-desks`; `approved-live` is not reached),
+  `make panelpro-test`, then restore every changed file from git.
 
 ## How to run this
 

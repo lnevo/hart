@@ -354,6 +354,24 @@ class LayoutFactsTest(unittest.TestCase):
                 "(IS:HART:C3:B:X)")
         self.assertEqual([m for m in out if "101-111" in m], [f"{d}: {want}" for d in ("HART_CTC.xml", "HART_ABS.xml")])
 
+    def test_a_detector_swapped_in_by_its_row_reports_its_field_sensor(self) -> None:
+        """Naming-layers step 14: a main or upper block's sensor may be the field sensor of a detector the owner
+        swapped in by its row (assignment field), by that column, not the level; any other must be virtual."""
+        import unittest.mock
+        import xml.etree.ElementTree as ET
+        tables = self.copy(check.TABLES, lambda t: t.replace("<systemName>IS:HART:C3:B:101-111</systemName>",
+                                                             "<systemName>M2S3399</systemName>"))
+        tree = ET.parse(check.DESKS[0])
+        for b in tree.getroot().iter("BLOCK"):
+            if b.get("NAME") == "Track 101-111":
+                for io in b.findall("OCCUPIEDSPEC/IOSPEC") + b.findall("UNOCCUPIEDSPEC/IOSPEC"):
+                    io.set("JMRIPREFIX", "M2S")
+                    io.set("DECADDR", "3399")
+        desk = self.write(tree)
+        self.assertTrue([m for m in self.failures(tables=tables, desks=(desk,)) if "101-111" in m])
+        with unittest.mock.patch.object(check, "field_sensors", lambda: frozenset({"M2S3399"})):
+            self.assertEqual([m for m in self.failures(tables=tables, desks=(desk,)) if "101-111" in m], [])
+
     def desk_block(self, name: str, change) -> list[str]:
         """The failures with every BLOCK named `name` on a copy of the CTC desk changed by `change(block)`."""
         import xml.etree.ElementTree as ET

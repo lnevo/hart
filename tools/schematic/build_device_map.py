@@ -160,7 +160,7 @@ from device_map_staging import (  # noqa: E402,F401  staging's rows; re-exported
     staging_cps, staging_keys, staging_part_names, staging_rows, staging_switches, staging_trials, staging_wired_rows,
     taken_bean_names, wire_block, wire_occupancy)
 from device_map_rows import (  # noqa: E402,F401  every level's rows
-    Wired, bean_cells, device_row, owner_over, switch_device_rows)
+    Wired, bean_cells, device_row, follow_swaps, owner_over, switch_device_rows)
 from device_map_schematic import (  # noqa: E402,F401  the drawing's tracks; re-exported: callers read them here
     block_overrides, check_helix_ends, corner_blocks_of, dx_corners, helix_tracks, home_and_posts,
     labels_by_level, line_role, loop_halves, main_upper_layer, named_tracks, overrides_keys, read_pins, split_edges,
@@ -585,7 +585,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         # the one maker of a switch's rows (device_map_rows), as staging's; main and upper bind the virtual turnout
         rows.extend(switch_device_rows(
             lv, name, s, [lb for labels in by_level.values() for lb in labels if base(lb) == s],
-            Wired(f"M2T{packed}", node, where), fbs, dcc[s], jmri=VIRTUAL_TURNOUT + s, alias_jmri=VIRTUAL_TURNOUT + s,
+            Wired(f"M2T{packed}", node, where), fbs, dcc[s], jmri=VIRTUAL_TURNOUT + s,
             alias_notes="LCC alias of the MQTT turnout (ADR-005)", notes=note))
 
     CORNER = "xover_corner"                     # a double crossover's corner block and its occupancy row
@@ -829,7 +829,8 @@ def owned_rows(rows, parts, files: devices.Files | None = None) -> tuple[list[di
     (the device-map form) and `parts` (already master rows) in the master's form, each with the field row of its id
     in devices_field.csv over it (device_map_rows.owner_over, hartlib.devices.KEY), as staging's are: on every level
     the owner's name and values go over the generated ones the same way (naming-layers step 7). A virtual JMRI name
-    stays the generated one (hartlib.level_devices) unless the owner's row gives a jmri_name (a device swapped in by
+    stays the generated one (hartlib.level_devices) unless the owner's row gives a jmri_name (its assignment then
+    the name's unless the row gives one: a device swapped in by
     its row, ADR-028). A row with no field row is as build() gave it. master_outputs follows renames over both.
     Every block row but a helix block's gets its bean names (block_beans)."""
     field = devices.field_index(files or device_files())
@@ -838,7 +839,7 @@ def owned_rows(rows, parts, files: devices.Files | None = None) -> tuple[list[di
     for r in made:
         f = field.get(devices.key_of(r))
         out.append(owner_over(r, f) if f is not None else r)
-    return out, made
+    return follow_swaps(out, field), made
 
 
 def block_beans(rows: list[dict], numbering_path: Path | None = None) -> list[dict]:

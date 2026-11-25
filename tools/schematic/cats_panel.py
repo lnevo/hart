@@ -357,7 +357,11 @@ def drawn_keys(device=None):
     """The main and upper drawing keys (hartlib.drawing_keys: each schematic piece's device by ID, named from the
     merged view, the name store) of the master `device` was read from (a Facts.device; None: the committed master).
     SystemExit on a device made in memory (no path: its rows hold no parts and no ids, so the desk would mix it with
-    the committed master), and naming the file on keys that do not read as one device per piece."""
+    the committed master), and naming the file on keys that do not read as one device per piece. Read once per
+    device map `device` (kept on it: the desk build asks for every block); the committed master is read each call."""
+    cached = getattr(device, "_drawn_keys", None)
+    if cached is not None:
+        return cached
     if device is None:
         path = DEVICE_MAP
     elif getattr(device, "path", None):
@@ -366,9 +370,12 @@ def drawn_keys(device=None):
         raise SystemExit("cats_panel.drawn_keys: the device map was made in memory and names no master to read the "
                          "drawing keys of")
     try:
-        return drawing_keys.read(level_devices.LEVELS, path)
+        keys = drawing_keys.read(level_devices.LEVELS, path)
     except (drawing_keys.DrawingKeyError, FactsError) as exc:
         raise SystemExit(f"{paths.rel(path)}: {exc}") from None
+    if device is not None:
+        device._drawn_keys = keys
+    return keys
 
 
 def part_blocks(device=None) -> dict[str, tuple[str, str]]:
@@ -383,14 +390,28 @@ def part_blocks(device=None) -> dict[str, tuple[str, str]]:
             if keys.rows[i]["role"] == "part"}
 
 
+def block_names(device, parts: bool | None = None) -> dict[str, str]:
+    """{drawing key: block name} of the main and upper block rows of `device` (a Facts.device): read through the one
+    reader (drawn_keys: by device ID, the name store's name; parts alone when `parts` is True, none when False, both
+    when None), so a block is found by its ID, not by its row's own cells (naming-layers step 14). A device map made
+    in memory (a test's, no path, no parts) by its rows' trial cells."""
+    if device is not None and not getattr(device, "path", None):
+        return {} if parts else {t: n for n, r in device.blocks.items() for t in r.trial}
+    return dict(drawn_keys(device).of("block", parts=parts))
+
+
 def device_name(bands, cats, keys, F, log):
-    """The device map's name of the main or upper block made of block keys `keys`: OS Switch N for an OS block
-    (a crossover's halves are one block; switches whose OS blocks the plugin merges over a track too short to part
-    them take the lowest number, logged), else the device map track that holds the block's schematic tracks."""
+    """The device map's name of the main or upper block made of block keys `keys`: the OS block of switch N for an
+    OS block (a crossover's halves are one block; switches whose OS blocks the plugin merges over a track too short
+    to part them take the lowest number, logged), else the device map track that holds the block's schematic tracks.
+    Each is found by its drawing key through the one reader (drawn_keys, hartlib.drawing_keys: by device ID, so the
+    name is the name store's), not by a row's own cells (naming-layers step 14)."""
+    named = block_names(F.device, parts=False)              # {drawing key: its block's name}
     labels = sorted({cats.label_of(bands, k) for k in keys if k[0] == "os"} - {""}, key=bdm.natural)
     if labels:
         numbers = sorted({bdm.base(lb) for lb in labels}, key=bdm.natural)
-        name = f"OS Switch {numbers[0]}"
+        key = f"OS Switch {numbers[0]}"                     # the OS block's drawing key
+        name = named.get(key) or key                        # a double crossover's has none: its corners do
         if len(numbers) > 1:
             log.append(f"switches {', '.join(numbers)} share one OS block on the desk ({name}): the track between "
                        "them is too short to part them")
@@ -405,7 +426,7 @@ def device_name(bands, cats, keys, F, log):
         edges.add(placeholder(s))
         ends |= {band["nodes"][e[0]].get("label") or "" for e in (s["src"], s["dst"])
                  if band["nodes"][e[0]]["kind"] in ("switch", "dx")}
-    rows = sorted(n for n, r in F.device.blocks.items() if r.trial & edges)
+    rows = sorted({named[e] for e in edges if e in named})
     parts = part_blocks(F.device)
     if not rows and edges and edges <= set(parts):
         # a link inside an OS block that the desk draws as a block of its own: the part's name (its sensor is its OS
@@ -419,11 +440,12 @@ def device_name(bands, cats, keys, F, log):
     if not rows and len(numbers) == 1 and len(ends) > 1:
         # the track between a crossover's halves (drawn on two bands, 127 and 131): the device map counts it in the
         # crossover's OS block
-        name = f"OS Switch {numbers.pop()}"
+        key = f"OS Switch {numbers.pop()}"
+        name = named.get(key) or key
         if name not in F.device.blocks:
             raise SystemExit(f"{name}: no block row in {DEVICE_MAP.name}")
         return name
-    if len(rows) != 1 or not edges <= F.device.blocks[rows[0]].trial:
+    if len(rows) != 1 or not edges <= set(named):
         raise SystemExit(f"desk block {sorted(keys)}: the schematic tracks {', '.join(sorted(edges))} is in "
                          f"{', '.join(rows) or 'no'} device map block rows; it must lie in exactly one")
     return rows[0]
@@ -451,15 +473,17 @@ def planned_sensor(name, F):
     return None if row is None or not row.system_name else spec(row.system_name, row.user_name)
 
 
-def inside_os(bands, P, bound_bi, name, row):
-    """Why device map block `name` has no block of its own on the desk, checked on the drawing: each schematic track
-    it holds (its trial names) is drawn on main or upper from a switch to a switch (or through a turnback or a
-    connector), and the plugin gave every cell of it to their OS blocks (its track key is no block, or one joined to
-    an OS block). Anything else stops, naming the block."""
+def inside_os(bands, P, bound_bi, name, row, drawn=None):
+    """Why device map block `name` (its DeviceRow `row`) has no block of its own on the desk, checked on the drawing:
+    each schematic track it holds (its drawing keys, read by its ID through `drawn`, drawn_keys of the master `row`
+    came from; with no `drawn`, a device map made in memory, or a row with no ID, a test's: its trial names) is drawn on main or upper from a switch to a switch (or
+    through a turnback or a connector), and the plugin gave every cell of it to their OS blocks (its track key is no
+    block, or one joined to an OS block). Anything else stops, naming the block."""
+    held = drawn.keys(row.id, str(row.level)) if drawn is not None and row.id else row.trial
     found, cm = [], {}
     for bi, band, _opts in level_bands(bands, bound_bi):
         for sid, s in band["strands"].items():
-            if placeholder(s) not in row.trial:
+            if placeholder(s) not in held:
                 continue
             found.append((bi, sid))
             key = ("track", f"b{bi}:{sid}")
@@ -471,8 +495,8 @@ def inside_os(bands, P, bound_bi, name, row):
                 raise SystemExit(f"{name}: its schematic track {s['edge']} has no desk block and does not run "
                                  "between switches, so it is not inside their OS blocks")
             cm[plan_edge(s)] = s["cm"]     # as the device map measures it
-    if not found or not row.trial <= {placeholder(bands[bi][1]["strands"][sid]) for bi, sid in found}:
-        raise SystemExit(f"{name}: the device map's tracks {', '.join(sorted(row.trial))} are not all drawn on "
+    if not found or not held <= {placeholder(bands[bi][1]["strands"][sid]) for bi, sid in found}:
+        raise SystemExit(f"{name}: the device map's tracks {', '.join(sorted(held))} are not all drawn on "
                          "main or upper")
     length = round(sum(cm.values()), 1)
     return (f"inside its switches' OS blocks on the desk ({length:g} cm, too short at one cell per grid unit for a "
@@ -528,9 +552,10 @@ def dark_bindings(bands, cats, P, F, bound_bi, stored):
             log.append(f"blocks named {name} on the desk are one block")
         seen.add(name)
         out[panel_name] = e
+    drawn = drawn_keys(F.device) if getattr(F.device, "path", None) else None     # None: a test's map in memory
     for name, row in sorted(F.device.blocks.items()):
         if name not in seen and name not in missing:
-            missing[name] = inside_os(bands, P, bound_bi, name, row)
+            missing[name] = inside_os(bands, P, bound_bi, name, row, drawn)
     report = {}
     for name, why in sorted(missing.items()):
         report[name] = {"why": why}
@@ -648,11 +673,9 @@ def level_signals(bands, F, bound_bi):
     balloon loop are one schematic track drawn twice: each half's piece gets an edge of its own (loop_half_edge,
     which placeholder reads back as the one track), so a mast finds its own half. `bands` is changed in place (a copy:
     name_loop_halves). Stops on a mast drawn at no switch leg or at two."""
-    by_trial = {t: name for name, row in F.device.blocks.items() for t in row.trial}
-    # a part (a link inside an OS block) is a block of its own, its sensor its OS block's: a mast may face it
-    # (a trial name on a part and a block row both stops le_names.device_names; the facts' own blocks come first)
-    for t, (name, _of) in part_blocks(F.device).items():
-        by_trial.setdefault(t, name)
+    # each drawing key's block by ID through the one reader (drawn_keys; naming-layers step 14), parts among them: a
+    # part (a link inside an OS block) is a block of its own, its sensor its OS block's, so a mast may face it
+    by_trial = block_names(F.device)
     added = defaultdict(list)
     for r in F.level_masts:
         if level_masts.is_level_virtual(r["system_name"]):

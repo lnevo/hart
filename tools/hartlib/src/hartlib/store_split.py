@@ -448,11 +448,13 @@ def _device_items(key: tuple, b: ET.Element | None, g: ET.Element, s: ET.Element
         i = found[0]
         r = rows[i]
         who = _row_at(r)
-        if r["written_by"] == "build_device_map.py" and r["level"] == "1" and r["layer"] in ("turnout", "fb"):
-            out.append((p, None, f"{who} is staging's, wired in wiring.csv: rename it by hand in its devices_field.csv "
-                                 "row (keyed by its id): change user_name, and jmri_name with it when that binds the "
-                                 "turnout by its user name (the build stops on one without the other); wiring.csv "
-                                 "keeps the generated name the id gives"))
+        if r["written_by"] == "build_device_map.py" and r["layer"] in ("turnout", "fb") and p == "userName":
+            # by the row's layer and writer, not its level (naming-layers step 14): every level's switch rows are
+            # the builder's, the owner's name a devices_field.csv cell
+            out.append((p, None, f"{who} is a switch's row the builder makes: rename it by hand in its "
+                                 "devices_field.csv row (keyed by its id): change user_name, and jmri_name with it "
+                                 "when that binds the turnout by its user name (the build stops on one without the "
+                                 "other); wiring.csv keeps the generated name the id gives"))
             continue
         if r["written_by"] == "build_device_map.py" and r["layer"] == "block" and p == "userName":
             # a block of any level (main and upper's are virtual beans since naming-layers step 8): the owner's
