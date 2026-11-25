@@ -2010,6 +2010,15 @@
    "path": "ops/hart-ops/data/locos.csv"
   },
   {
+   "id": "ops/hart-ops/data/industries.csv",
+   "label": "industries.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Industry master (ADR-039): industry_id, the name the cards print, the public name, the site slug and the public blurb. Spots, waybills and industries.json refer to industry_id.",
+   "path": "ops/hart-ops/data/industries.csv"
+  },
+  {
    "id": "ops/hart-ops/data/spot_assignments.csv",
    "label": "spot_assignments.csv",
    "kind": "structured",
@@ -5956,6 +5965,24 @@
    "to": "ops/hart-ops/card_pipeline/site_gallery.py"
   },
   {
+   "from": "ops/hart-ops/data/industries.csv",
+   "to": "ops/hart-ops/data/spot_assignments.csv",
+   "label": "industry_id",
+   "side": "check"
+  },
+  {
+   "from": "ops/hart-ops/data/industries.csv",
+   "to": "ops/hart-ops/data/HART_Spot_Waybills.csv",
+   "label": "industry_id",
+   "side": "check"
+  },
+  {
+   "from": "ops/hart-ops/data/industries.csv",
+   "to": "www/data/industries.json",
+   "label": "industry_id",
+   "side": "check"
+  },
+  {
    "from": "ops/hart-ops/data/spot_assignments.csv",
    "to": "external/sts-helpers/seed/inputs",
    "label": "copy"
@@ -8733,6 +8760,27 @@
    "from": "tools/ops/check_data.py",
    "to": "tools/check.sh",
    "label": "check data-schemas",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/industries.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/spot_assignments.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/HART_Spot_Waybills.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
    "side": "check",
    "gen": "manifest"
   },
