@@ -18,13 +18,21 @@ names the reason:
 3. its one job "check" passed, with its "Run ./tools/check.sh" step a success;
 4. main's check stamps for SHA (the actions/cache entry check-stamps-SHA on refs/heads/main, which that run saves only
    after check.sh passed; tools/ci/stamp_gate.py "main's last full pass") are in CI's cache;
-5. the job's log shows a full run: the check.sh step recorded stamps (CHECK_RECORD_TO set), skipped none on older ones
-   (CHECK_SKIP_FROM empty), had no CHECK_ONLY, ended "ALL PASSED", ran the "panels" job (not "current, skipped"),
-   and its "--- tables" check printed "ok: jmri/layouts/hart/output/tables.xml current" and no SKIPPED.
+5. the commit pins the schematic-maps plugin (a gitlink at external/model-railroad-skills);
+6. the job's log shows a full run that did what G4 does. G4 is `SCHEMATIC_REQUIRED=1 build_tables.py --check` with the
+   plugin at the commit's pin; in CI that is the "tables" step of check.sh's "panels" job (build_panels.sh --check,
+   tools/pipeline/panels.toml). So the log must show: the check.sh step with SCHEMATIC_REQUIRED 1, stamps recorded
+   (CHECK_RECORD_TO set), none skipped on older ones (CHECK_SKIP_FROM empty) and no CHECK_ONLY; its last line
+   "ALL PASSED"; one "--- panels (Ns)" job heading, no "panels: ..., skipped" line, and that job ending "all current";
+   in it one "== tables" step that printed "plugin: submodule at <the pin>" (no other plugin line),
+   "ok: jmri/layouts/hart/output/tables.xml current (...)" and "   tables: ok, N s" as its last line, and no SKIPPED,
+   "skipped" or FAILED.
 
 The stamps themselves cannot be downloaded off a runner (GitHub has no API for a cache's contents), so the cache entry
 is read by its key and ref, and the run's own log is the record of what that check.sh run covered. Anything that cannot
-be read (no gh, no network, no login, an unexpected answer) is "stamps unreadable" and G4 runs.
+be read (no gh, no network, no login, an unexpected answer) is "stamps unreadable" and G4 runs. A log of another shape
+than check.sh prints (a format change) is "no CI pass", never a skip: tools/hosts/tests/fixtures/ci_pass/main_pass.txt
+is a real main run's log, and the tests keep this check passing on it.
 """
 from __future__ import annotations
 
@@ -41,7 +49,12 @@ ROOT = Path(__file__).resolve().parents[3]
 WORKFLOW = ".github/workflows/check.yml"
 JOB = "check"
 CHECK_STEP = "Run ./tools/check.sh"
+PLUGIN = "external/model-railroad-skills"
+PANELS_JOB = "panels"
+TABLES_STEP = "tables"
 TABLES_OK = "ok: jmri/layouts/hart/output/tables.xml current ("
+# check.sh's heading for a job that finished: "--- <name> (<s>s)", or "--- <name> FAILED (<s>s)"
+JOB_HEAD = re.compile(r"--- (?P<name>.+?)(?P<failed> FAILED)? \([^()]*s\)")
 SHA = re.compile(r"[0-9a-f]{40}")
 GITHUB_URL = re.compile(r"(?:https://github\.com/|git@github\.com:|ssh://git@github\.com/)([\w.-]+)/([\w.-]+?)(?:\.git)?/?")
 LOG_TIME = re.compile(r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z ?")
@@ -118,6 +131,15 @@ def check_checkout(root: Path, sha: str) -> None:
     if changes:
         raise NoPass(f"the checkout has {len(changes)} uncommitted or untracked path(s) (first: {changes[0].strip()}); "
                      "CI checked the commit, not these files")
+
+
+def plugin_pin(root: Path, sha: str) -> str:
+    """The schematic-maps plugin commit `sha` pins: G4 draws with it, so CI's tables step must have too."""
+    entry = git(root, "ls-tree", sha, "--", PLUGIN).strip()
+    mode, kind, pin = (entry.split("\t", 1)[0].split() + ["", "", ""])[:3]
+    if (mode, kind) != ("160000", "commit") or not SHA.fullmatch(pin):
+        raise NoPass(f"the commit pins no schematic-maps plugin at {PLUGIN} ({entry or 'no entry'}); G4 checks with it")
+    return pin
 
 
 def _json(text: str, what: str) -> dict:
@@ -199,18 +221,54 @@ def check_stamps(slug: str, sha: str, gh: Gh) -> None:
         raise NoPass(f"no check stamps {key[:25]} on main in CI's cache (not saved, or expired)")
 
 
-def _section(lines: list[str], start: int) -> list[str]:
-    """The lines after `start` up to the next "--- " heading."""
-    out = []
-    for line in lines[start + 1:]:
-        if line.startswith("--- "):
+def _panels_job(out: list[str]) -> list[str]:
+    """The panels job's own lines: after its "--- panels (Ns)" heading, up to the next job's heading."""
+    if any(re.fullmatch(rf"{PANELS_JOB}: .*, skipped", line) for line in out):
+        raise NoPass(f"its check.sh run skipped the {PANELS_JOB} job (current on older stamps): G4's tables check did "
+                     "not run in it")
+    heads = [(i, m) for i, m in ((i, JOB_HEAD.fullmatch(line)) for i, line in enumerate(out))
+             if m and m.group("name") == PANELS_JOB]
+    if len(heads) != 1:
+        raise NoPass(f"its check.sh log has {len(heads)} '--- {PANELS_JOB} (Ns)' job headings, not one")
+    at, head = heads[0]
+    if head.group("failed"):
+        raise NoPass(f"its {PANELS_JOB} job FAILED")
+    job = []
+    for line in out[at + 1:]:
+        if JOB_HEAD.fullmatch(line):
             break
-        out.append(line)
-    return out
+        job.append(line)
+    if "all current" not in job:
+        raise NoPass(f"its {PANELS_JOB} job did not end 'all current' (cut short, or another format)")
+    return job
 
 
-def check_log(text: str) -> None:
-    """The check.sh step's log shows a full run that passed and checked tables.xml (see the module docstring, 5)."""
+def _tables_step(job: list[str], pin: str) -> None:
+    """The panels job's tables step ran build_tables.py --check with the pinned plugin, and it passed."""
+    starts = [i for i, line in enumerate(job) if line == f"== {TABLES_STEP}"]
+    if len(starts) != 1:
+        raise NoPass(f"its {PANELS_JOB} job has {len(starts)} '== {TABLES_STEP}' steps, not one")
+    step = []
+    for line in job[starts[0] + 1:]:
+        if line.startswith("== ") or line == "all current":
+            break
+        step.append(line)
+    off = [line.strip() for line in step if any(word in line for word in ("SKIPPED", "skipped", "FAILED"))]
+    if off:
+        raise NoPass(f"its {TABLES_STEP} step was skipped or failed: {off[0]}")
+    if not step or not re.fullmatch(rf"   {TABLES_STEP}: ok, \d+ s", step[-1]):
+        raise NoPass(f"its {TABLES_STEP} step did not end '{TABLES_STEP}: ok' (cut short, or another format)")
+    plugins = [line for line in step if line.startswith("plugin: ")]
+    want = f"plugin: submodule at {pin[:8]}"
+    if not plugins or any(line != want for line in plugins):
+        raise NoPass(f"its {TABLES_STEP} step did not draw with the commit's plugin pin {pin[:8]} "
+                     f"(it printed {plugins[0] if plugins else 'no plugin line'!r})")
+    if not any(line.startswith(TABLES_OK) for line in step):
+        raise NoPass(f"its {TABLES_STEP} step did not print that tables.xml is current")
+
+
+def check_log(text: str, pin: str) -> None:
+    """The check.sh step's log shows a full run that passed and ran G4's tables check (the module docstring, 6)."""
     lines = [ANSI.sub("", LOG_TIME.sub("", raw)).rstrip("\r") for raw in text.splitlines()]
     starts = [i for i, line in enumerate(lines) if line == f"##[group]{CHECK_STEP}"]
     if len(starts) != 1:
@@ -231,35 +289,30 @@ def check_log(text: str) -> None:
         k, sep, v = line.strip().partition(":")
         if sep:
             env[k] = v.strip()
-    if not env.get("CHECK_RECORD_TO"):
-        raise NoPass("its check.sh run recorded no stamps (CHECK_RECORD_TO empty): not main's full run")
     if env.get("CHECK_SKIP_FROM"):
         raise NoPass("its check.sh run skipped jobs on older stamps (CHECK_SKIP_FROM set)")
+    if not env.get("CHECK_RECORD_TO"):
+        raise NoPass("its check.sh run recorded no stamps (CHECK_RECORD_TO empty): not main's full run")
     if "CHECK_ONLY" in env:
         raise NoPass("its check.sh run had CHECK_ONLY: a partial run")
-    out = step[end_at + 1:]
-    if "ALL PASSED" not in out:
-        raise NoPass("its check.sh log has no ALL PASSED line")
-    if not any(line.startswith("--- panels (") for line in out):
-        raise NoPass("its check.sh log shows no run of the panels job")
-    heads = [i for i, line in enumerate(out) if line == "--- tables"]
-    if len(heads) != 1:
-        raise NoPass(f"its check.sh log has {len(heads)} '--- tables' checks, not one")
-    body = _section(out, heads[0])
-    if any("SKIPPED" in line for line in body):
-        raise NoPass("its tables check printed SKIPPED")
-    if not any(line.startswith(TABLES_OK) for line in body):
-        raise NoPass("its tables check did not print that tables.xml is current")
+    if env.get("SCHEMATIC_REQUIRED") != "1":
+        raise NoPass(f"its check.sh run had SCHEMATIC_REQUIRED {env.get('SCHEMATIC_REQUIRED')!r}, not 1 as G4 runs: a "
+                     "missing plugin could have passed as SKIPPED")
+    out = [line for line in step[end_at + 1:] if line.strip()]
+    if not out or out[-1] != "ALL PASSED":
+        raise NoPass(f"its check.sh log does not end ALL PASSED (last line {out[-1] if out else 'none'!r})")
+    _tables_step(_panels_job(out), pin)
 
 
 def decide(sha: str, root: Path = ROOT, gh: Gh = run_gh) -> int:
     """The passing run's id; else a CiPassError naming why G4 must run."""
     check_checkout(root, sha)
+    pin = plugin_pin(root, sha)
     slug = repo_slug(root)
     run_id = find_run(slug, sha, gh)
     job_id = find_job(slug, sha, run_id, gh)
     check_stamps(slug, sha, gh)
-    check_log(gh(["api", f"repos/{slug}/actions/jobs/{job_id}/logs"], LOG_TIMEOUT))
+    check_log(gh(["api", f"repos/{slug}/actions/jobs/{job_id}/logs"], LOG_TIMEOUT), pin)
     return run_id
 
 
