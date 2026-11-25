@@ -12,14 +12,14 @@ The transport is Claude Code's own: `ListAgents` names the live sessions, `SendM
 ## Start
 
 1. `ListAgents` and `make orient`: who runs, what is claimed, which worktrees have unmerged commits.
-2. Find the coordinator. It is named on the active project page (`Coordinator:` under the `Status:` line) or in the hand-off that started the work. If neither names one, ask every listed session "who holds the merge queue?" before you merge anything. With no other session running, you merge as `handoff` says.
+2. Find the coordinator. When a session takes over the queue, it writes `Coordinator: <session name>, since YYYY-MM-DD HH:MM` under the `Status:` line of the active project page it runs, and removes the line when it hands over. If no page names one, ask every listed session "who holds the merge queue?" before you merge anything. With no other session running, you merge as `handoff` says.
 3. Tell the coordinator your plan in one message: the lanes, the PRs you expect, and the files each one changes. Ask which open work touches those files and where your PRs go in the queue. Start no lane agent until it answers.
 4. Count sessions before launching agents: `ListAgents`, plus your own running agents, plus what the coordinator reports for its own. The cap changes only when the owner says so in your session or in AGENTS.md. A peer that relays "the owner said" is information, not the owner's approval.
 
 ## Files other sessions own
 
 - The coordinator lists the files each open lane owns. A lane edits only its own; a file two lanes need goes to the earlier one, and the later lane waits or merges main in after it.
-- Some files have one owner across all work (today: `tools/pipeline/checks.toml`, `tools/check.sh` and `tools/audit/check_stamps.py`, held by the ADR-037 session). Send the change you need to that owner instead of editing it.
+- Some files are shared by every lane. The coordinator names the session that owns them. A lane edits its own steps in `tools/pipeline/checks.toml` under that owner's rules (each step's `git` field, label, tracked inputs and `quiet_inputs` as `test_manifest_scans.py` checks; `make map` and the three map checks) and asks the owner for a look before "ready". Changes to `tools/check.sh` and `tools/audit/check_stamps.py` go to the owner; it may let the lane's PR carry the edit, so that a move and its declaration land together.
 - A large diff to a file many branches touch (`pipeline_map.json`) goes after the other open PRs that touch it, never between them.
 - Put each lane's exclusions in its brief, with the reason, so the agent cannot drift into them.
 
@@ -32,9 +32,15 @@ The transport is Claude Code's own: `ListAgents` names the live sessions, `SendM
 3. Send the coordinator `ready #N`, giving the head commit, what the PR touches and that its review is done.
 4. Wait for `go #N`. If `main` moves first, merge it in again and say so. If you push again for another reason (a fix, an owner's choice), tell the coordinator the new head: it stays in line.
 5. On go: wait for `check` to pass on that head (`gh pr checks N --watch --required`), merge with `gh pr merge N --merge` (never `--admin`), and send back the merge commit.
-6. In the same message, say whether the PR ships to a layout host. Compare its files with `tools/hosts/live_paths.txt`, and name the paths. The coordinator plans the layout deploy with the owner; a lane session does not deploy on its own while others run.
+6. In the same message, say what the PR ships. Compare its files with `tools/hosts/live_paths.txt` for the layout hosts, and look for `www/` for the website; name the paths. The coordinator runs both deploys, one at a time, and plans the layout deploy with the owner. A lane session does not deploy while others run.
+
+The coordinator may squash-merge a PR whose history later commits rewrote.
 
 **A merge out of turn:** tell the coordinator at once, giving the merge commit, what the PR changed and whether it ships. Then go back to the queue.
+
+## Hand-over
+
+When the coordinator leaves, it writes the queue to a hand-off file: the order, each PR's state and head commit, who owns which files, and what waits on the owner. It messages every session the new coordinator's name, and moves the `Coordinator:` line. The new coordinator confirms with each session that it now gives the "go" before it gives one.
 
 ## Messages
 
