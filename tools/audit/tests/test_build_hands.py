@@ -112,7 +112,7 @@ class PlanAndOwnerRows(unittest.TestCase):
                              HEADER + STAGING.replace("OS Switch 3,Track Brick-Plane", "OS Brick West,Track Brick"))
 
     def test_a_staging_id_the_device_master_does_not_have_stops(self):
-        with self.assertRaisesRegex(SystemExit, r"line 2: thrown_id block:9Z-end is no staging device"):
+        with self.assertRaisesRegex(SystemExit, r"line 2: thrown_id block:9Z-end is no level 1 device"):
             import tempfile
             with tempfile.TemporaryDirectory() as tmp:
                 p = Path(tmp) / "switches.csv"

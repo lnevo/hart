@@ -54,7 +54,7 @@ class LoaderTest(unittest.TestCase):
         # a staging row's OS block is its os_id (os_block is the name store's label of it, naming-layers step 5)
         text = (self.data / "switches.csv").read_text().replace("Track EH-1,OS Switch 9,os:11,", "Track EH-1,OS Switch 9,os:9,")
         (self.data / "switches.csv").write_text(text)
-        with self.assertRaisesRegex(ValueError, r"line 8 \(Switch 11\): a staging row gives the device IDs of its OS block \(os_id os:11"):
+        with self.assertRaisesRegex(ValueError, r"line 8 \(Switch 11\): a row keyed by its OS block gives the device IDs of it \(os_id os:11"):
             facts.load_switches(self.data)
 
     def test_a_shared_lever_names_both_rows(self) -> None:

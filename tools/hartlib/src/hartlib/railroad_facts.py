@@ -251,22 +251,30 @@ class SwitchRow:
     thrown_id: str = ""
 
     @property
+    def by_os(self) -> bool:
+        """Whether the row is keyed by its OS block's device ID (os_id: staging's rows today), not by its half: its
+        shape follows this column, not its level (naming-layers step 14)."""
+        return bool(self.os_id)
+
+    @property
     def key(self) -> str:
-        return self.os_block if self.level == 1 else self.half
+        return self.os_block if self.by_os else self.half
 
 
 def read_switch_rows(path: Path) -> list[SwitchRow]:
-    """switches.csv's rows in file order, each held to its level's shape. Stops with FactsError naming the file and
-    line on: a missing column, a level that is not 1, 2 or 3, a switch number on two levels or on rows that are not
-    together, a key (staging's os_block, main and upper's half) given twice, an os_block that is not an OS Switch block
-    of the row's number, one leg without the other or legs without an os_block, a staging row without its os_block
-    and legs or with a half, a main or upper row with a staging-only column (STAGING_ONLY) or a half that is not its
-    number (107) or its number and A or B (101A), a main or upper switch whose rows are not either one half {n} or
-    both {n}A and {n}B, a hand that is not L, R or blank, a hand with no hand_source (plan or owner) or an owner
-    hand_source with no hand (a plan row's blank hand is build_hands.py's to fill), and a whole-switch column
-    (SWITCH_WIDE; on staging the hand too) on a switch's later row. A main
-    or upper row's os_block and legs are optional: none is given yet; station_group_rows reads an os_block on any
-    level, and only staging's legs are read so far (staging_switches)."""
+    """switches.csv's rows in file order, each held to the shape of its key, not its level (naming-layers step 14):
+    a row keyed by its OS block (an os_id: staging's rows today, SwitchRow.by_os) or by its half (main and upper's).
+    Stops with FactsError naming the file and line on: a missing column, a level that is not 1, 2 or 3, a switch
+    number on two levels or on rows that are not together, a key (an os_block, or a half) given twice, an os_block
+    that is not an OS Switch block of the row's number, one leg without the other or legs without an os_block, an
+    os_id that is not os:<n> or os:<n>:<half>, an OS-keyed row without its os_block, legs and their IDs or with a
+    half or a plan hand_source, a half-keyed row with a leg ID, a column of the live bindings (STAGING_ONLY) or a half
+    that is not its number (107) or its number and A or B (101A), a half-keyed switch whose rows are not either one
+    half {n} or both {n}A and {n}B, a hand that is not L, R or blank, a hand with no hand_source (plan or owner) or an
+    owner hand_source with no hand (a plan row's blank hand is build_hands.py's to fill), and a whole-switch column
+    (SWITCH_WIDE; on an OS-keyed switch the hand too) on a switch's later row. A half-keyed row's os_block and legs
+    are optional: none is given yet; station_group_rows reads an os_block on any row, and only OS-keyed rows' legs
+    are read so far (staging_switches)."""
     out: list[SwitchRow] = []
     keys: dict[str, int] = {}
     first_of: dict[int, tuple[int, int]] = {}          # switch -> (level, line of its first row)
@@ -285,10 +293,11 @@ def read_switch_rows(path: Path) -> list[SwitchRow]:
             if not later:
                 raise FactsError(f"{where}: Switch {n} is also on line {ln}; a switch's rows go together")
         first_of.setdefault(n, (level, line))
-        if level == 1:
+        by_os = bool(r["os_id"])                        # the row's key, not its level, gives its shape
+        if by_os:
             if not re.fullmatch(rf"os:{n}(:[A-Z0-9-]+)?", r["os_id"]) or not r["closed_id"] or not r["thrown_id"]:
-                raise FactsError(f"{where}: a staging row gives the device IDs of its OS block (os_id os:{n}, or "
-                                 f"os:{n}:<half>) and of its legs (closed_id, thrown_id), not {r['os_id']!r}, "
+                raise FactsError(f"{where}: a row keyed by its OS block gives the device IDs of it (os_id os:{n}, "
+                                 f"or os:{n}:<half>) and of its legs (closed_id, thrown_id), not {r['os_id']!r}, "
                                  f"{r['closed_id']!r}, {r['thrown_id']!r}")
             if not r["os_block"]:
                 raise FactsError(f"{where}: os_block is empty; build_hands.py writes the label of {r['os_id']}")
@@ -297,24 +306,27 @@ def read_switch_rows(path: Path) -> list[SwitchRow]:
             if not m or int(m.group(1)) != n:
                 raise FactsError(f"{where}: os_block is OS Switch {n} or a half of it (OS Switch {n}b), "
                                  f"not {r['os_block']!r}")
-        if level != 1 and any(r[c] for c in LEG_IDS.values()):
-            raise FactsError(f"{where}: os_id, closed_id and thrown_id are staging's; main and upper leave them blank")
+        if not by_os and any(r[c] for c in LEG_IDS.values()):
+            raise FactsError(f"{where}: closed_id and thrown_id go with an os_id (a row keyed by its OS block); a "
+                             "row keyed by its half leaves them blank")
         if (bool(r["closed_leg"]) != bool(r["thrown_leg"]) or (r["closed_leg"] and not r["os_block"])
-                or (level == 1 and not r["closed_leg"])):
+                or (by_os and not r["closed_leg"])):
             raise FactsError(f"{where}: a row gives both legs (closed_leg, thrown_leg) with its os_block, or neither; "
-                             "a staging row gives them")
-        if level == 1:
+                             "a row keyed by its OS block gives them")
+        if by_os:
             if r["half"]:
-                raise FactsError(f"{where}: a staging row has no half (its os_block is its key), not {r['half']!r}")
+                raise FactsError(f"{where}: a row keyed by its OS block has no half (its os_block is its key), not "
+                                 f"{r['half']!r}")
             if r["hand_source"] == "plan":
-                raise FactsError(f"{where}: hand_source plan is for main and upper (build_hands.py); staging's hands "
-                                 "are the owner's")
+                raise FactsError(f"{where}: hand_source plan is for rows keyed by their half (build_hands.py); the "
+                                 "hands of rows keyed by their OS block are the owner's")
         else:
             if r["half"] not in (str(n), f"{n}A", f"{n}B"):
                 raise FactsError(f"{where}: half is {n}, {n}A or {n}B, not {r['half']!r}")
             given = [c for c in STAGING_ONLY if r[c]]
             if given:
-                raise FactsError(f"{where}: {', '.join(given)} are staging columns; main and upper leave them blank")
+                raise FactsError(f"{where}: {', '.join(given)} bind a row keyed by its OS block (staging's) to the "
+                                 "live panels; a row keyed by its half leaves them blank")
         if r["hand"] not in HANDS:
             raise FactsError(f"{where}: hand is L, R or blank, got {r['hand']!r}")
         # a plan row may wait for build_hands.py to fill its hand; an owner row gives one
@@ -322,8 +334,8 @@ def read_switch_rows(path: Path) -> list[SwitchRow]:
                 or (r["hand_source"] == "owner" and not r["hand"])):
             raise FactsError(f"{where}: a hand needs a hand_source ({' or '.join(HAND_SOURCES)}), and an owner "
                              f"hand_source a hand; got hand {r['hand']!r}, hand_source {r['hand_source']!r}")
-        # staging's hand is a fact of the whole switch (Switch.hand); main and upper give one per half
-        wide = SWITCH_WIDE + (("hand", "hand_source") if level == 1 else ())
+        # an OS-keyed switch's hand is a fact of the whole switch (Switch.hand); a half-keyed one gives one per half
+        wide = SWITCH_WIDE + (("hand", "hand_source") if by_os else ())
         repeated = [c for c in wide if later and r[c]]
         if repeated:
             raise FactsError(f"{where}: {', '.join(repeated)} hold a fact of the whole switch: give them on its first "
@@ -333,11 +345,16 @@ def read_switch_rows(path: Path) -> list[SwitchRow]:
             raise FactsError(f"{path.name} lines {keys[row.key]} and {line}: both are {row.key}")
         keys[row.key] = line
         out.append(row)
-    for n, rs in switch_groups(out, LEVEL_NUMBERS).items():
+    for n, rs in switch_groups(out, ALL_LEVELS).items():
+        if any(r.by_os for r in rs):
+            if not all(r.by_os for r in rs):
+                raise FactsError(f"{_where(path, rs[0].line)} (Switch {n}): a switch's rows are all keyed by their OS "
+                                 "block (os_id) or all by their half")
+            continue
         halves = sorted(r.half for r in rs)
         if halves not in ([str(n)], [f"{n}A", f"{n}B"]):
-            raise FactsError(f"{_where(path, rs[0].line)} (Switch {n}): a main or upper switch has one row, half {n}, "
-                             f"or two, halves {n}A and {n}B; not {', '.join(halves)}")
+            raise FactsError(f"{_where(path, rs[0].line)} (Switch {n}): a switch keyed by its halves has one row, "
+                             f"half {n}, or two, halves {n}A and {n}B; not {', '.join(halves)}")
     return out
 
 
@@ -418,10 +435,11 @@ def switch_turnouts(devices_csv: Path, rows: list[tuple[int, dict[str, str]]] | 
 
 def staging_switches(rows: list[SwitchRow], path: Path, devices_csv: Path,
                      staging_rows: list[tuple[int, dict[str, str]]] | None = None) -> dict[int, Switch]:
-    """Switch number -> Switch of the level 1 rows (read_switch_rows of `path`), in file order; hardware
+    """Switch number -> Switch of the rows keyed by their OS block (SwitchRow.by_os, read_switch_rows of `path`;
+    staging's today: the switches bound to the live panels, desks and USS board), in file order; hardware
     (system_name), DCC address and control point from each switch's turnout row of `devices_csv` (switch_turnouts;
     `staging_rows` when the caller read them already). Stops on a switch whose first row lacks a whole-switch column, or a USS lever given twice."""
-    groups = switch_groups(rows, (1,))
+    groups = {n: rs for n, rs in switch_groups(rows, ALL_LEVELS).items() if rs[0].by_os}
     names = switch_turnouts(devices_csv, staging_rows, groups)
     out: dict[int, Switch] = {}
     lever: dict[int, tuple[int, int]] = {}
@@ -1047,10 +1065,10 @@ def switch_number(label: str) -> str:
 
 
 def hands(rows: list[SwitchRow]) -> dict[str, Hand]:
-    """{label: Hand} of the main and upper rows of switches.csv (read_switch_rows) that give a hand; `source` is the
-    row's hand_source (plan or owner)."""
+    """{label: Hand} of the rows of switches.csv keyed by their half (main and upper's; read_switch_rows) that give a
+    hand; `source` is the row's hand_source (plan or owner)."""
     return {r.half: Hand(r.line, r.half, r.hand, r.hand_source) for r in rows
-            if r.level in LEVEL_NUMBERS and r.hand}
+            if not r.by_os and r.hand}
 
 
 def read_hands(path: Path) -> dict[str, Hand]:
@@ -1084,7 +1102,15 @@ class DeviceRow:
     protects: str = ""
     dir: str = ""
     id: str = ""        # its device ID (hartlib.device_ids); empty on a row made without one (a test's)
+    assignment: str = ""    # the master's assignment (devices.ASSIGNMENTS): field for a device swapped in (ADR-028);
+                            # empty on a row made without one (a test's), read as virtual
     line: int = 0
+
+    @property
+    def swapped(self) -> bool:
+        """Whether the row is a field device (assignment field: swapped in by its row, ADR-028): its jmri_name is
+        the device's, held to no virtual-name rule (naming-layers step 14: a column test, not a level test)."""
+        return self.assignment == "field"
 
     def __post_init__(self) -> None:
         from . import devices
@@ -1198,15 +1224,16 @@ def read_device_map(path: Path) -> DeviceMap:
     """The main and upper rows of the device master at `path` (devices.device_map_lines). Stops on an unknown layer, a bad level, a (layer, user name) given twice (a turnout's LCC alias is its own
     row), a row whose fact columns do not hold (device_facts), an occupancy row whose jmri_name is not a virtual block
     sensor, whose planned detector is not M2S, or whose blocks are not the one block it is the detector of (by
-    ID: det:<the block's id>, so a block the owner renamed keeps its detector; naming-layers step 13). Each row
-    carries its `id`."""
+    ID: det:<the block's id>, so a block the owner renamed keeps its detector; naming-layers step 13); a field
+    occupancy row (swapped in, ADR-028) is held instead to its wired M2S sensor. Each row carries its `id` and
+    `assignment`."""
     out = DeviceMap(path=path)
     seen: dict[tuple[str, str], int] = {}
     from . import devices
     master = devices.load(path)         # device_map_lines numbers its rows by their place here, from 2
     block_ids: dict[tuple[str, str], str] = {}
     for line, r in ((n, {c: v.strip() for c, v in row.items()}) for n, row in devices.device_map_lines(("2", "3"), path)):
-        r["id"] = master[line - 2]["id"]
+        r["id"], r["assignment"] = master[line - 2]["id"], master[line - 2]["assignment"]
         where = master_at(path, r["user_name"], r["level"], r["layer"])
         if r["layer"] not in DEVICE_LAYERS or not r["user_name"]:
             raise FactsError(f"{where}: layer is one of {', '.join(DEVICE_LAYERS)} and user_name is given")
@@ -1223,7 +1250,14 @@ def read_device_map(path: Path) -> DeviceMap:
             out.blocks[row.user_name] = row
             block_ids[(r["level"], row.user_name)] = row.id
         elif row.layer == "occupancy":
-            if not level_devices.is_block_sensor(row.jmri_name) or \
+            # by the row's assignment, not its level (naming-layers step 14): a field detector (swapped in by its
+            # row, ADR-028) is its wired M2S sensor; any other is a virtual stand-in with a planned M2S one or none
+            if row.swapped:
+                if not (row.jmri_name.startswith("M2S") and row.jmri_name == row.system_name) or \
+                        row.detector != "wired":
+                    raise FactsError(f"{where}: occupancy {row.user_name} is a field detector: its jmri_name is its "
+                                     "system_name, an M2S sensor, and its detector is wired")
+            elif not level_devices.is_block_sensor(row.jmri_name) or \
                     not (row.system_name == "" or row.system_name.startswith("M2S")) or row.detector == "wired":
                 raise FactsError(f"{where}: occupancy {row.user_name} has no virtual {level_devices.SENSOR_PREFIX} "
                                  "jmri_name, or plans a detector that is not an M2S sensor, or calls it wired")
@@ -1263,8 +1297,8 @@ def check_virtual_names(rows: Iterable[DeviceRow], owner_named: Collection[tuple
     virtual name (but a turnout and its LCC alias, one JMRI turnout). By the (level, id) of the owner's rows in
     devices_field.csv (naming-layers step 13): `owner_named`, the rows the owner names, whose virtual names stay the
     generated ones (step 7), so such a block, its detector, a mast's heads and a head are held to their virtual name's
-    form only; `swapped`, the rows whose jmri_name the owner gives (a field device swapped in, ADR-028), held to no
-    virtual-name rule."""
+    form only. A row whose assignment is field (DeviceRow.swapped: a field device swapped in by its row, ADR-028;
+    naming-layers step 14), or one of `swapped`'s (level, id), is held to no virtual-name rule."""
     rows = list(rows)
     owner_named, swapped = set(owner_named), set(swapped)
 
@@ -1294,7 +1328,7 @@ def check_virtual_names(rows: Iterable[DeviceRow], owner_named: Collection[tuple
                    f"{sorted(k.removeprefix('name:') for k in set(want) ^ set(have))}")
     for key, b in sorted(want.items()):
         r = have.get(key)
-        if r is None or mine(r, swapped):
+        if r is None or r.swapped or mine(r, swapped):
             continue
         if owned(b) or owned(r):
             if not level_devices.is_block_sensor(r.jmri_name):
@@ -1308,7 +1342,7 @@ def check_virtual_names(rows: Iterable[DeviceRow], owner_named: Collection[tuple
         if r.jmri_name != sensor:
             bad.append(f"occupancy {r.user_name}: jmri_name {r.jmri_name!r}, not {sensor} (from block {b.user_name})")
     for r in rows:
-        if mine(r, swapped):
+        if r.swapped or mine(r, swapped):
             continue                            # a field device the owner swapped in: no virtual name
         if r.layer == "head" and owned(r):
             if not level_devices.HEAD.fullmatch(r.jmri_name):

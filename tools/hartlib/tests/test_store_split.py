@@ -369,15 +369,19 @@ class DeviceItems(unittest.TestCase):
 
     def test_a_rename_of_a_wired_staging_turnout_says_where_to_rename_it(self) -> None:
         """Staging's turnout rows are build_device_map.py's since wiring.csv (2026-11-20); a rename is the owner's,
-        by hand in its field row (keyed by id), not a rebuild's."""
-        rows = [dict(r, written_by="build_device_map.py") if r["layer"] == "turnout" else r for r in ROWS]
+        by hand in its field row (keyed by id), not a rebuild's. By the row's layer and writer, not its level
+        (naming-layers step 14): a main turnout swapped in the same way is told the same."""
         turnouts = (bean("turnout", "MTT100", "DCC Switch 1", "Node: 4 Turnout: 0")
                     + bean("turnout", "M2T408", "Switch 1A", "bound by its user name"))
-        p = plan(doc(), doc(), doc(turnouts=turnouts), rows=rows)
-        self.assertEqual([], p.of(ss.DEVICE))
-        [g] = p.of(ss.DROPPED)
-        self.assertIn("rename it by hand in its devices_field.csv row (keyed by its id): change user_name, and "
-                      "jmri_name with it when that binds the turnout by its user name", g.note)
+        for level in ("1", "2"):
+            with self.subTest(level=level):
+                rows = [dict(r, written_by="build_device_map.py", level=level) if r["layer"] == "turnout" else r
+                        for r in ROWS]
+                p = plan(doc(), doc(), doc(turnouts=turnouts), rows=rows)
+                self.assertEqual([], p.of(ss.DEVICE))
+                [g] = p.of(ss.DROPPED)
+                self.assertIn("rename it by hand in its devices_field.csv row (keyed by its id): change user_name, "
+                              "and jmri_name with it when that binds the turnout by its user name", g.note)
 
     def test_a_rename_of_a_built_block_says_where_to_rename_it(self) -> None:
         """Naming-layers step 8: a block row of the builder's (main and upper's are virtual beans with their names in

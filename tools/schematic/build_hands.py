@@ -85,7 +85,9 @@ def apply(path, hands, names=None):
         rows = railroad.read_switch_rows(path)
     except railroad.FactsError as exc:
         raise SystemExit(f"build_hands.py: {exc}") from None
-    by_half = {r.half: r for r in rows if r.level in railroad.LEVEL_NUMBERS}
+    # by each row's key, not its level (naming-layers step 14): plan hands for the rows keyed by their half, the
+    # labels for the rows keyed by their OS block's ID (railroad.SwitchRow.by_os)
+    by_half = {r.half: r for r in rows if not r.by_os}
     bad = [f"{name}: plan switch {label} has no row; add one (level, switch, half {label}, hand_source plan, "
            "hand blank) and run build_hands.py"
            for label in sorted(set(hands) - set(by_half), key=railroad.natural)]
@@ -100,17 +102,17 @@ def apply(path, hands, names=None):
     lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
     header = next(csv.reader(lines[:1]))
     col, half_col = header.index("hand"), header.index("half")
-    staging = [r for r in rows if r.level == 1]
+    staging = [r for r in rows if r.by_os]
     if staging:
         names = store_names(path) if names is None else names
     for r in staging:                   # the labels: the name store's names of the row's IDs
         cells = next(csv.reader(lines[r.line - 1:r.line]))
         changed = False
         for label, ident in railroad.LEG_IDS.items():
-            want = names.get(("1", getattr(r, ident)))
+            want = names.get((str(r.level), getattr(r, ident)))
             if want is None:
-                bad.append(f"{name} line {r.line}: {ident} {getattr(r, ident)} is no staging device of the device "
-                           "master (a new export dropped it: give the row the device's new id)")
+                bad.append(f"{name} line {r.line}: {ident} {getattr(r, ident)} is no level {r.level} device of the "
+                           "device master (a new export dropped it: give the row the device's new id)")
                 continue
             i = header.index(label)
             if cells[i] != want:

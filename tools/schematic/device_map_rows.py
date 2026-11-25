@@ -47,14 +47,25 @@ class Wired(NamedTuple):
     where: str
 
 
+def switch_shape(jmri: str, dcc) -> tuple[str, bool]:
+    """(the LCC alias's jmri_name, whether the feedback rows are JMRI sensors) of a switch whose turnout has JMRI name
+    `jmri`, by that name's assignment (hartlib.devices.assignment_of), not by its level (naming-layers step 14): a
+    field turnout's alias is a JMRI turnout of its own (MTT<dcc>, none without a DCC address) and its feedback rows
+    are sensors of their own system names (TWOSENSOR feedback), as staging's are; a virtual turnout's alias names the
+    turnout's bean (it gives none) and its feedback rows have no JMRI name (DIRECT feedback), as main and upper's are
+    until their plant is wired."""
+    if devices.assignment_of(jmri) == "field":
+        return (f"MTT{dcc}" if dcc else ""), True
+    return jmri, False
+
+
 def switch_device_rows(level, cp, s: str, labels, turnout: Wired, fbs: Mapping[str, Wired], dcc, *, jmri: str,
-                       alias_jmri: str, alias_notes: str, notes: str = "", alias: bool = True,
-                       fb_bound: bool = False) -> list[dict]:
+                       alias_notes: str, notes: str = "", alias: bool = True) -> list[dict]:
     """The rows of switch `s` (device_row form): its turnout "Switch <s>" (its trial name from its plan labels,
     `labels`; `notes`), its LCC alias "DCC Switch <s>" (MTT<dcc>, on the turnout's node and wiring, `alias_notes`; none
-    when `alias` is false) and its feedback "FB Switch <s> N" and "R" (`fbs`: {"N": Wired, "R": Wired}). `jmri`,
-    `alias_jmri`: the JMRI names the level binds the turnout and alias by; a feedback row is a JMRI sensor of its own
-    system name when `fb_bound` (staging's), else it has none (main and upper's: DIRECT feedback)."""
+    when `alias` is false) and its feedback "FB Switch <s> N" and "R" (`fbs`: {"N": Wired, "R": Wired}). `jmri`: the
+    JMRI name the turnout is bound by; the alias's and the feedback rows' follow it (switch_shape)."""
+    alias_jmri, fb_bound = switch_shape(jmri, dcc)
     trial = ", ".join(f"Switch {lb}" for lb in sorted(set(labels), key=railroad.natural))
     rows = [device_row(level, cp, "turnout", f"Switch {s}", turnout.system, turnout.node, turnout.where, trial, notes,
                        dcc, jmri=jmri, role="turnout", ident=device_ids.switch_id(s))]
@@ -88,6 +99,38 @@ def owner_over(row: Mapping[str, str], field: Mapping[str, str] | None) -> dict:
             continue
         out[c] = v
     out["description"] = devices.describe(out)
+    return out
+
+
+def follow_swaps(rows: list[Mapping[str, str]], field: Mapping[tuple, Mapping[str, str]]) -> list[dict]:
+    """`rows` (master rows with the owner's values over them, owner_over) with the LCC alias and feedback rows of
+    each turnout swapped to a field device by its own row alone (ADR-028: its jmri_name and assignment field) given
+    the shape switch_shape gives a field turnout: the alias a JMRI turnout of its own, the feedback rows sensors of
+    their system names (the planned pins, wired with the turnout); their descriptions written again. A detector
+    swapped in the same way (an occupancy row whose assignment is field) is wired, not planned. A row whose own
+    field row (`field`, {(level, id): row}) gives a jmri_name or an assignment (a detector: its detector) keeps the
+    owner's. So a swap is one row edit (naming-layers step 14); every other row as it is."""
+    turnouts = {(r["level"], r["id"].removeprefix("switch:")): r for r in rows
+                if r["layer"] == "turnout" and r["role"] == "turnout" and r["assignment"] == "field"}
+    out = []
+    for r in rows:
+        if r["layer"] == "occupancy" and r["assignment"] == "field" and r["detector"] == "planned" and \
+                not (field.get((r["level"], r["id"])) or {}).get("detector"):
+            r = dict(r, detector="wired")       # a detector swapped in is the wired one (railroad.read_device_map)
+            r["description"] = devices.describe(r)
+            out.append(r)
+            continue
+        kind, _, rest = r["id"].partition(":")
+        t = turnouts.get((r["level"], rest.split(":")[0])) if kind in ("dcc", "fb") else None
+        own = field.get((r["level"], r["id"])) or {}
+        if t is None or r["assignment"] == "field" or own.get("jmri_name") or own.get("assignment"):
+            out.append(r)
+            continue
+        alias_jmri, _bound = switch_shape(t["jmri_name"] or t["system_name"], r["dcc"] or t["dcc"])
+        jmri = alias_jmri if kind == "dcc" else r["system_name"]
+        r = dict(r, jmri_name=jmri, assignment=devices.assignment_of(jmri))
+        r["description"] = devices.describe(r)
+        out.append(r)
     return out
 
 

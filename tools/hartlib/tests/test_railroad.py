@@ -317,17 +317,18 @@ class Readers(Copy):
         text = self.src.switches.read_text(encoding="utf-8")
         cases = (
             # a staging row's OS block is its os_id; os_block is the name store's label (naming-layers step 5)
-            ("Track EH-3,os:9,", "Track EH-3,os:11,", r"line 7 \(Switch 9\): a staging row gives the device IDs of its "
-                                                       r"OS block \(os_id os:9, or os:9:<half>\)"),
+            ("Track EH-3,os:9,", "Track EH-3,os:11,", r"line 7 \(Switch 9\): a row keyed by its OS block gives the "
+                                                       r"device IDs of it \(os_id os:9, or os:9:<half>\)"),
             ("os:9,block:9B-end,block:9C-end,", "os:9,,block:9C-end,", "and of its legs \\(closed_id, thrown_id\\)"),
             ("1,9,,OS Switch 9,", "1,9,,,", r"line 7 \(Switch 9\): os_block is empty; build_hands.py writes the label of os:9"),
-            ("2,105,105,,,,,,,", "2,105,105,,,,os:105,,,", "os_id, closed_id and thrown_id are staging's"),
-            ("1,9,,OS Switch 9,Track EH-2,Track EH-3,", "1,9,,OS Switch 9,,,", "a staging row gives them"),
+            ("2,105,105,,,,,,,", "2,105,105,,,,,block:105B,,", "closed_id and thrown_id go with an os_id"),
+            ("2,105,105,,,,,,,", "2,105,105,,,,os:105,,,", "a row keyed by its OS block gives the device IDs"),
+            ("1,9,,OS Switch 9,Track EH-2,Track EH-3,", "1,9,,OS Switch 9,,,", "a row keyed by its OS block gives them"),
             ("1,9,,OS Switch 9,Track EH-2,", "1,9,,OS Switch 9,,", "gives both legs"),
-            ("1,9,,OS Switch 9,", "1,9,9,OS Switch 9,", "a staging row has no half"),
+            ("1,9,,OS Switch 9,", "1,9,9,OS Switch 9,", "a row keyed by its OS block has no half"),
             ("2,105,105,,,,", "2,105,105,,Track A,Track B,", "legs .* with its os_block, or neither"),
             ("2,105,105,,", "2,105,105,OS Switch 106,", r"os_block is OS Switch 105 or a half"),
-            ("block:9C-end,L,owner,", "block:9C-end,L,plan,", "hand_source plan is for main and upper"),
+            ("block:9C-end,L,owner,", "block:9C-end,L,plan,", "hand_source plan is for rows keyed by their half"),
             ("block:9C-end,L,owner,", "block:9C-end,L,,", "a hand needs a hand_source"),
             ("block:9C-end,L,owner,", "block:9C-end,,owner,", "a hand needs a hand_source"),
             ("block:9C-end,L,owner,", "block:9C-end,L,someone,", "a hand needs a hand_source"),
@@ -335,7 +336,7 @@ class Readers(Copy):
              r"line 6 \(Switch 7\): le_ident hold a fact of the whole switch: give them on its first row \(line 5\)"),
             ("2,105,105,", "2,105,106,", r"\(Switch 105\): half is 105, 105A or 105B, not '106'"),
             ("2,105,105,,,,,,,L,plan,West,,", "2,105,105,,,,,,,L,plan,West,TO1,",
-             "le_ident are staging columns; main and upper leave them blank"),
+             "le_ident bind a row keyed by its OS block .* a row keyed by its half leaves them blank"),
             ("2,105,105,", "4,105,105,", "level is 1, 2 or 3"),
             ("2,101,101B,", "2,101,101A,", r"lines \d+ and \d+: both are 101A"),
         )
@@ -351,8 +352,8 @@ class Readers(Copy):
             # an owner row gives its hand; only a plan row waits for build_hands.py
             ("2,105,105,,,,,,,L,plan,", "2,105,105,,,,,,,,owner,", "an owner hand_source a hand"),
             # one row, half N, or both halves NA and NB
-            ("2,105,105,", "2,105,105A,", r"\(Switch 105\): a main or upper switch has one row, half 105, or two, "
-                                          r"halves 105A and 105B; not 105A"),
+            ("2,105,105,", "2,105,105A,", r"\(Switch 105\): a switch keyed by its halves has one row, half 105, or "
+                                          r"two, halves 105A and 105B; not 105A"),
             ("2,101,101B,", "2,101,101,", r"\(Switch 101\): .* not 101, 101A"),
         )
         for old, new, msg in more:
@@ -363,6 +364,13 @@ class Readers(Copy):
         # a new plan row may leave its hand blank for build_hands.py; it is no hand until then
         self.src.switches.write_text(text.replace("2,105,105,,,,,,,L,plan,", "2,105,105,,,,,,,,plan,", 1), encoding="utf-8")
         self.assertNotIn("105", R.read_hands(self.src.switches))
+        # a row's shape is its key's, not its level's (naming-layers step 14): a main row keyed by its OS block, with
+        # its leg IDs and the live bindings, reads as a staging row does
+        self.src.switches.write_text(text.replace(
+            "2,105,105,,,,,,,L,plan,", "2,105,,OS Switch 105,Track A,Track B,os:105,block:105B,block:105C,L,owner,", 1),
+            encoding="utf-8")
+        row = next(r for r in R.read_switch_rows(self.src.switches) if r.switch == 105)
+        self.assertEqual((row.by_os, row.key, row.closed_id), (True, "OS Switch 105", "block:105B"))
         # a main or upper row may give its OS block and legs (none does yet)
         self.src.switches.write_text(text.replace("2,105,105,,,,", "2,105,105,OS Switch 105,Track A,Track B,", 1),
                                      encoding="utf-8")
@@ -510,6 +518,17 @@ class Readers(Copy):
         change(self.src.devices, occ, jmri_name="IS:OS101")
         self.fails(lambda: R.read_device_map(self.src.devices), "BS Switch 101 has no virtual IS:HART:C3:B:")
         change(self.src.devices, occ, jmri_name="IS:HART:C3:B:OS101")
+        # a detector swapped in by its row (assignment field, ADR-028) is held to its wired M2S sensor, by the
+        # column, not the level (naming-layers step 14)
+        swap = self.key("occupancy", "BS Switch 107")
+        system = R.read_device_map(self.src.devices).by_user("occupancy")["BS Switch 107"].system_name
+        text = self.src.devices.read_text(encoding="utf-8")
+        change(self.src.devices, swap, assignment="field", jmri_name=system, detector="wired", start="")
+        row = R.read_device_map(self.src.devices).by_user("occupancy")["BS Switch 107"]
+        self.assertEqual((row.swapped, row.jmri_name), (True, system))
+        change(self.src.devices, swap, detector="planned")
+        self.fails(lambda: R.read_device_map(self.src.devices), "BS Switch 107 is a field detector")
+        self.src.devices.write_text(text, encoding="utf-8")
         # the master holds a (level, layer, name) once, as its own loader checks before the map is read
         change(self.src.devices, self.key("turnout", "DCC Switch 103"), user_name="DCC Switch 101")
         self.fails(lambda: R.read_device_map(self.src.devices), r"DCC Switch 101 \(level 2, turnout\): the same level, layer and user_name twice")
@@ -818,6 +837,10 @@ class VirtualNames(unittest.TestCase):
         swap = [replace(ok[2], jmri_name="M2T408")] + ok[3:]
         self.assertTrue(R.check_virtual_names(swap, owner))
         self.assertEqual(R.check_virtual_names(swap, owner, swapped={(2, "switch:1")}), [])
+        # by the row's own column (naming-layers step 14): assignment field is a field device, its alias too
+        field = [replace(ok[2], jmri_name="M2T408", assignment="field"),
+                 replace(ok[3], jmri_name="MTT120", assignment="field")] + ok[4:]
+        self.assertEqual(R.check_virtual_names(field, owner), [])
 
     def test_a_block_or_occupancy_row_given_twice(self) -> None:
         """Two rows of one block (or of one occupancy sensor) are caught, not folded into one by a set."""

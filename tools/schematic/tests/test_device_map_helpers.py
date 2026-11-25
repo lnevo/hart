@@ -266,7 +266,7 @@ class RowMakers(unittest.TestCase):
         got = rm.switch_device_rows(
             1, "Brick", "7", ["7", "7"], rm.Wired("M2T1308", 13, "Node: 13 Turnout: 0"),
             {"N": rm.Wired("M2S1367", 13, "Node: 13 Sensor: 0"), "R": rm.Wired("M2S1368", 13, "Node: 13 Sensor: 1")},
-            "117", jmri="M2T1308", alias_jmri="MTT117", alias_notes="LCC alias", fb_bound=True)
+            "117", jmri="M2T1308", alias_notes="LCC alias")
         self.assertEqual([(r["id"], r["user_name"], r["jmri_name"], r["role"]) for r in got],
                          [("switch:7", "Switch 7", "M2T1308", "turnout"),
                           ("dcc:7", "DCC Switch 7", "MTT117", "lcc_alias"),
@@ -274,9 +274,45 @@ class RowMakers(unittest.TestCase):
         self.assertEqual(got[0]["trial_name"], "Switch 7")                  # the two halves' labels, once
         bare = rm.switch_device_rows(1, "", "9", ["9"], rm.Wired("M2T1310", 13, ""),
                                      {"N": rm.Wired("M2S1", 13, ""), "R": rm.Wired("M2S2", 13, "")}, "", jmri="",
-                                     alias_jmri="", alias_notes="", alias=False)
+                                     alias_notes="", alias=False)
         self.assertEqual([r["id"] for r in bare], ["switch:9", "fb:9:N", "fb:9:R"])
         self.assertEqual(bare[1]["jmri_name"], "")                          # DIRECT feedback: no sensor of its own
+
+    def test_a_switchs_rows_take_the_shape_of_its_turnouts_assignment(self):
+        """Naming-layers step 14: a field turnout's alias is a turnout of its own and its feedback sensors; a virtual
+        one's alias names its bean and its feedback has none, on any level."""
+        import device_map_rows as rm
+        self.assertEqual(rm.switch_shape("M2T3308", "123"), ("MTT123", True))
+        self.assertEqual(rm.switch_shape("IT:HART:C3:107", "123"), ("IT:HART:C3:107", False))
+        main = rm.switch_device_rows(
+            2, "CP 107", "107", ["107"], rm.Wired("M2T3308", 33, "Node: 33 Turnout: 0"),
+            {"N": rm.Wired("M2S3367", 33, ""), "R": rm.Wired("M2S3368", 33, "")}, 123, jmri="M2T3308",
+            alias_notes="")
+        self.assertEqual([r["jmri_name"] for r in main], ["M2T3308", "MTT123", "M2S3367", "M2S3368"])
+
+    def test_a_swap_by_one_row_brings_the_alias_and_feedback(self):
+        """follow_swaps: the owner's row makes Switch 107 a field turnout; its alias and feedback rows follow, a
+        detector swapped the same way is wired, and a row the owner gives its own jmri_name keeps it."""
+        import device_map_rows as rm
+
+        def row(layer, role, ident, system, jmri, assignment, **more):
+            r = dict.fromkeys(rm.devices.COLUMNS, "")
+            r.update(level="2", layer=layer, role=role, id=ident, user_name=ident, system_name=system,
+                     jmri_name=jmri, assignment=assignment, dcc="123" if layer == "turnout" else "", **more)
+            return r
+        rows = [row("turnout", "turnout", "switch:107", "M2T3308", "M2T3308", "field"),
+                row("turnout", "lcc_alias", "dcc:107", "MTT123", "IT:HART:C3:107", "virtual"),
+                row("fb", "fb", "fb:107:N", "M2S3367", "", "none"),
+                row("fb", "fb", "fb:107:R", "M2S3368", "", "none"),
+                row("occupancy", "track", "det:block:107B-107C#1", "M2S3305", "M2S3305", "field", detector="planned"),
+                row("turnout", "turnout", "switch:109", "M2T3309", "IT:HART:C3:109", "virtual"),
+                row("fb", "fb", "fb:109:N", "M2S3369", "", "none")]
+        got = {r["id"]: r for r in rm.follow_swaps(rows, {("2", "fb:107:R"): {"jmri_name": "M2S9999"}})}
+        self.assertEqual((got["dcc:107"]["jmri_name"], got["dcc:107"]["assignment"]), ("MTT123", "field"))
+        self.assertEqual((got["fb:107:N"]["jmri_name"], got["fb:107:N"]["assignment"]), ("M2S3367", "field"))
+        self.assertEqual(got["fb:107:R"]["jmri_name"], "")                  # the owner's own row: left to it
+        self.assertEqual(got["det:block:107B-107C#1"]["detector"], "wired")
+        self.assertEqual(got["fb:109:N"]["jmri_name"], "")                  # a virtual turnout's: as generated
 
     def test_the_owners_values_go_over_the_generated_ones(self):
         import device_map_rows as rm

@@ -317,13 +317,12 @@ def _device_map(rr: Railroad) -> list[str]:
     and system names given once, every turnout's one LCC alias), before tables.xml is built."""
     dm, mu, name = rr.device_map, rr.main_upper_switches, rr.sources.devices.name
     # a virtual name stays the generated one when the owner renames a device (naming-layers step 7), so a device the
-    # owner named is held to its virtual name's form only, and one whose jmri_name the owner gives (a swap, ADR-028)
-    # to none; a turnout to its ID's switch number (step 13)
+    # owner named is held to its virtual name's form only, and a field one (assignment field: a swap, ADR-028; step
+    # 14, by the row's column) to none; a turnout to its ID's switch number (step 13)
     from . import devices
     field = {(int(level), i): r for (level, i), r in devices.field_index(rr.sources.devices).items()
              if level in level_devices.LEVELS}
-    bad = list(check_virtual_names(dm.rows, owner_named={k for k, r in field.items() if r.get("user_name")},
-                                   swapped={k for k, r in field.items() if r.get("jmri_name")}))
+    bad = list(check_virtual_names(dm.rows, owner_named={k for k, r in field.items() if r.get("user_name")}))
     bad += device_row_problems(master_rows(rr), {h.block for h in rr.helix_tracks.values()}, name,
                                rr.sources.plan_overrides.name)
     turnouts = dm.turnouts

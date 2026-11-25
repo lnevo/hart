@@ -160,7 +160,7 @@ from device_map_staging import (  # noqa: E402,F401  staging's rows; re-exported
     staging_cps, staging_keys, staging_part_names, staging_rows, staging_switches, staging_trials, staging_wired_rows,
     taken_bean_names, wire_block, wire_occupancy)
 from device_map_rows import (  # noqa: E402,F401  every level's rows
-    Wired, bean_cells, device_row, owner_over, switch_device_rows)
+    Wired, bean_cells, device_row, follow_swaps, owner_over, switch_device_rows)
 from device_map_schematic import (  # noqa: E402,F401  the drawing's tracks; re-exported: callers read them here
     block_overrides, check_helix_ends, corner_blocks_of, dx_corners, helix_tracks, home_and_posts,
     labels_by_level, line_role, loop_halves, main_upper_layer, named_tracks, overrides_keys, read_pins, split_edges,
@@ -585,7 +585,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         # the one maker of a switch's rows (device_map_rows), as staging's; main and upper bind the virtual turnout
         rows.extend(switch_device_rows(
             lv, name, s, [lb for labels in by_level.values() for lb in labels if base(lb) == s],
-            Wired(f"M2T{packed}", node, where), fbs, dcc[s], jmri=VIRTUAL_TURNOUT + s, alias_jmri=VIRTUAL_TURNOUT + s,
+            Wired(f"M2T{packed}", node, where), fbs, dcc[s], jmri=VIRTUAL_TURNOUT + s,
             alias_notes="LCC alias of the MQTT turnout (ADR-005)", notes=note))
 
     CORNER = "xover_corner"                     # a double crossover's corner block and its occupancy row
@@ -838,7 +838,7 @@ def owned_rows(rows, parts, files: devices.Files | None = None) -> tuple[list[di
     for r in made:
         f = field.get(devices.key_of(r))
         out.append(owner_over(r, f) if f is not None else r)
-    return out, made
+    return follow_swaps(out, field), made
 
 
 def block_beans(rows: list[dict], numbering_path: Path | None = None) -> list[dict]:
