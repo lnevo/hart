@@ -25,6 +25,7 @@ sys.path.insert(0, str(HERE))
 import build_cats_layout_index  # noqa: E402
 import build_layout_index  # noqa: E402
 import build_tables_browser  # noqa: E402
+import build_wiring_json  # noqa: E402
 import png_stamp  # noqa: E402
 
 PORTAL = HERE.parent
@@ -65,10 +66,11 @@ VIEWS = {
     build_tables_browser.OUT_REL.as_posix(): build_tables_browser.view,
     build_layout_index.OUT_JSON.relative_to(PORTAL).as_posix(): _layout_index_text,
     build_cats_layout_index.OUT_JSON.relative_to(PORTAL).as_posix(): _cats_index_text,
+    build_wiring_json.OUT_REL: build_wiring_json.view,
 }
 # what a builder raises when its sources are broken or what it built fails a check
 ERRORS = (pipeline_map.GraphError, build_tables_browser.BrowserDataError, build_layout_index.LayoutIndexError,
-          build_cats_layout_index.CatsIndexError, png_stamp.PngError, OSError)
+          build_cats_layout_index.CatsIndexError, build_wiring_json.WiringDataError, png_stamp.PngError, OSError)
 
 
 def build(rel: str, make=None) -> str:

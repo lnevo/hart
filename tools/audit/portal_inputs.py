@@ -14,11 +14,11 @@ with renames listed under both paths. A submodule checked out at another commit 
 recorded is not a change; a commit or a staged change that moves a submodule is.
 The site inputs are SITE_PREFIXES (www/, the folders prepare_github_pages.py copies from through
 MIRROR_PREFIXES, and the folders the www/scripts modules import from: ops/hart-ops/card_pipeline,
-tools/hartlib/src), the tools outside them it loads to write a page (SITE_TOOLS: the pipeline map and the
-layout renderer the layout index loads, ADR-036) plus every source named in www/scripts/published-files.json. The
-tables page and the built JSON read tables.xml, the device master, stations.csv and the CATS desk, which check.sh
-checks on its own (tables-browser, layout-index, layout-index-cats build the same files in memory), so a data-only
-change does not rebuild the site.
+tools/hartlib/src), the tools outside them it loads to write a page (SITE_TOOLS: the pipeline map, the
+layout renderer the layout index loads and the wiring model's inventory sheets, ADR-036) plus every source
+named in www/scripts/published-files.json. The tables page and the built JSON read tables.xml, the device master,
+stations.csv, the CATS desk and the wiring model, which check.sh checks on its own (tables-browser, layout-index,
+layout-index-cats, wiring-json build the same files in memory), so a data-only change does not rebuild the site.
 
 When no merge base can be found (no origin/main, a shallow clone), or git fails, this says why and exits 0:
 run the check. tools/ci/changed_kind.py --git reads the changed paths the same way (check.sh's docs-only path).
@@ -36,7 +36,7 @@ MANIFEST = Path("www/scripts/published-files.json")
 SITE_PREFIXES = ("www/", "ops/", "docs/", "external/", "media/", "tools/hartlib/src/")
 # Tools outside SITE_PREFIXES that the build loads to write a page it publishes (prepare_github_pages.BUILT_PAGES)
 SITE_TOOLS = ("tools/ops/build_pipeline_map.py", "tools/ops/pipeline_map.js", "tools/ops/agent_docs_map.py",
-              "jmri/layouts/hart/scripts/render_le_layout.py")
+              "jmri/layouts/hart/scripts/render_le_layout.py", "tools/wiring/write_inventory.py")
 NO_CHANGE = 3
 
 

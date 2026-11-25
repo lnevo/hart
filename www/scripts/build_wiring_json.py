@@ -13,15 +13,15 @@ The signal-split view and its workbook were retired on 2026-11-25 (owner): the s
 generated for the whole layout. The split workbook, its v85 inventory and the last signal-splits.json are in
 archive/docs/wiring/.
 
-Re-run after a wiring change:
+The JSON is not committed (ADR-036): the site build and the local preview build it with view() (site_views.py,
+make site-data), and --check builds it in memory and runs its checks (problems()). To write it by hand:
 
-  python3 www/scripts/build_wiring_json.py
+  python3 www/scripts/build_wiring_json.py           # www/data/wiring-inventory.json (--out-dir for another folder)
+  python3 www/scripts/build_wiring_json.py --check   # build in memory, exit 1 when it cannot be built or fails a check
 
-Data problems found along the way are printed as warnings; they do not stop the build. Network details (IP addresses, hostnames, serial ports, machine paths,
-credentials) are scrubbed from every cell before it reaches the JSON.
-
---check builds without writing and exits 1 when the JSON file holds other data than the
-wiring model gives. The build date is ignored. tools/check.sh runs it.
+Data problems found along the way are printed as warnings; they do not stop the build. Network details (IP
+addresses, hostnames, serial ports, machine paths, credentials) are scrubbed from every cell before it reaches the
+JSON, and problems() fails a built JSON that still holds one.
 """
 
 from __future__ import annotations
@@ -37,11 +37,16 @@ from pathlib import Path
 PORTAL = Path(__file__).resolve().parents[1]
 ROOT = PORTAL.parent
 OUT_INV = PORTAL / "data" / "wiring-inventory.json"
+OUT_REL = OUT_INV.relative_to(PORTAL).as_posix()  # its path in the site (site_views.VIEWS)
 sys.path.insert(0, str(ROOT / "tools" / "wiring"))
 import write_inventory  # noqa: E402  (the wiring model's inventory sheets; it puts hartlib on the path)
 
 WARNINGS: list[str] = []
 SCRUBBED: list[str] = []
+
+
+class WiringDataError(Exception):
+    """The viewer data cannot be built from the wiring model, or fails a check; the message says why."""
 
 
 def warn(msg: str) -> None:
@@ -191,11 +196,17 @@ def pick_location(locs: list[str]) -> str:
 def build_inventory(wb=None, source: str = write_inventory.OUT.name) -> dict:
     """The viewer's data from the inventory sheets of wb: by default the workbook write_inventory.py builds in memory
     from the wiring model (source is the file it saves it as, for the JSON's source)."""
-    wb = wb if wb is not None else write_inventory.workbook()
+    WARNINGS.clear()  # each build reports its own warnings and scrubbed cells
+    SCRUBBED.clear()
+    try:
+        wb = wb if wb is not None else write_inventory.workbook()
+    except write_inventory.FactsError as err:
+        raise WiringDataError(f"the wiring model cannot be read: {err}") from None
     sheets = {ws.title: sheet_rows(ws) for ws in wb.worksheets}
-    for need in ("Nodes", "DNOU8", "DNIN8", "TurnoutSummary", "BlockSensors", "DigiconSignals"):
-        if need not in sheets:
-            raise SystemExit(f"{source}: missing sheet {need}")
+    missing = [need for need in ("Nodes", "DNOU8", "DNIN8", "TurnoutSummary", "BlockSensors", "DigiconSignals")
+               if need not in sheets]
+    if missing:
+        raise WiringDataError(f"{source}: missing sheet(s) {', '.join(missing)}")
 
     # Nodes
     node_rows = table(sheets["Nodes"], 0)
@@ -367,7 +378,9 @@ def build_inventory(wb=None, source: str = write_inventory.OUT.name) -> dict:
 
     # Signal heads: Digicon searchlights (DigiconSignals, lower deck) + RGB LED heads (DNOU8, upper deck)
     dig_rows = sheets["DigiconSignals"]
-    hdr = next(i for i, r in enumerate(dig_rows) if r and r[0] == "port_id")
+    hdr = next((i for i, r in enumerate(dig_rows) if r and r[0] == "port_id"), None)
+    if hdr is None:
+        raise WiringDataError(f"{source}: the DigiconSignals sheet has no port_id header row")
     mast_hdr = next((i for i, r in enumerate(dig_rows) if r and r[0] == "mast_user_name"), None)
     port_rows = table(dig_rows[: (mast_hdr - 1) if mast_hdr else None], hdr)
     mast_rows = table(dig_rows, mast_hdr) if mast_hdr else []
@@ -459,14 +472,14 @@ def build_inventory(wb=None, source: str = write_inventory.OUT.name) -> dict:
         # no such column and one row per turnout, so its label is the name.
         jmri = r["JMRI Turnout"] if "JMRI Turnout" in r else name
         if not jmri:
-            raise SystemExit(f"TurnoutSummary: row {name!r} has no JMRI Turnout; rebuild v86 with write_inventory.py")
+            raise WiringDataError(f"TurnoutSummary: row {name!r} has no JMRI Turnout; rebuild v86 with write_inventory.py")
         motor = {pos: device_ports.get(f"{jmri} {pos}", []) for pos in ("N", "R")}
         if not motor["N"] and not motor["R"]:
             warn(f"TurnoutSummary: {name} has no motor pins on the DNOU8 sheet")
         half = ""
         if name != jmri:                    # a crossover half: "<turnout> (<OS block>)"
             if not (name.startswith(jmri + " (") and name.endswith(")")):
-                raise SystemExit(f"TurnoutSummary: row {name!r} is not {jmri!r} or {jmri!r} (<OS block>)")
+                raise WiringDataError(f"TurnoutSummary: row {name!r} is not {jmri!r} or {jmri!r} (<OS block>)")
             half = name[len(jmri) + 2:-1]
         t = {
             "turnout": name,
@@ -561,24 +574,59 @@ def render(data: dict) -> str:
     return json.dumps(prune(data), indent=1, ensure_ascii=False) + "\n"
 
 
-DATES = ("built", "modified")  # when the JSON was built; "modified", a workbook's save date in a JSON built from the file
+# Lists every wiring model fills; an empty one means the model or the reader is broken.
+REQUIRED = ("nodes", "signals", "masts", "turnouts", "blocks")
 
 
-def stale(path: Path, data: dict) -> bool:
-    """True when the file at path is missing or holds other data than `data`, apart from the dates in source."""
-    if not path.is_file():
-        return True
-    try:
-        old = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return True
-    new = json.loads(render(data))
-    if not isinstance(old, dict) or not isinstance(old.get("source"), dict) or not isinstance(new.get("source"), dict):
-        return old != new
-    for key in DATES:
-        old["source"].pop(key, None)
-        new["source"].pop(key, None)
-    return old != new
+def _strings(x):
+    if isinstance(x, dict):
+        for k, v in x.items():
+            yield str(k)
+            yield from _strings(v)
+    elif isinstance(x, list):
+        for v in x:
+            yield from _strings(v)
+    elif isinstance(x, str):
+        yield x
+
+
+def problems(inv: dict) -> list[str]:
+    """What is wrong with built viewer data: no source, a required list that is empty, a node id empty or twice, or a
+    string that still looks like a network detail or a secret (clean() should have dropped it)."""
+    out = []
+    if not (inv.get("source") or {}).get("file"):
+        out.append("source.file is empty")
+    for key in REQUIRED:
+        if not isinstance(inv.get(key), list) or not inv[key]:
+            out.append(f"{key!r} has no entries")
+    ids = [n.get("id") for n in inv.get("nodes") or []]
+    twice = sorted({i for i in ids if ids.count(i) > 1})
+    if twice or not all(ids):
+        out.append(f"node ids are not one each: {twice or 'an empty id'}")
+    leaks = sorted({s for s in _strings(inv) if any(p.search(s) for p in UNSAFE)})
+    if leaks:
+        out.append(f"{len(leaks)} string(s) look like network details or secrets: {leaks[:3]}")
+    return out
+
+
+def data_text(inv: dict) -> str:
+    """The checked wiring-inventory.json text of built viewer data. WiringDataError when it fails a check."""
+    bad = problems(inv)
+    if bad:
+        raise WiringDataError("www/%s fails its checks:\n  %s" % (OUT_REL, "\n  ".join(bad)))
+    return render(inv)
+
+
+def build(wb=None) -> dict:
+    """The viewer data from the wiring model, dated today (its build date)."""
+    inv = build_inventory(wb)
+    inv["source"]["built"] = dt.date.today().isoformat()
+    return inv
+
+
+def view() -> str:
+    """The viewer data for the site build and the local preview (site_views.VIEWS)."""
+    return data_text(build())
 
 
 def main() -> int:
@@ -586,30 +634,25 @@ def main() -> int:
     ap.add_argument("--out-dir", type=Path, default=PORTAL / "data", help="where the JSON goes")
     ap.add_argument("-q", "--quiet", action="store_true", help="don't list data warnings")
     ap.add_argument("--check", action="store_true",
-                    help="write nothing; exit 1 if the JSON file is out of date with the wiring model")
+                    help="write nothing; build the JSON in memory and exit 1 when it cannot be built or fails a check")
     args = ap.parse_args()
     try:
-        inv = build_inventory()
-    except write_inventory.FactsError as exc:
+        inv = build()
+    except WiringDataError as exc:  # the model cannot be read: 2, as before ADR-036
         print(f"{Path(__file__).name}: {exc}", file=sys.stderr)
         return 2
-    inv["source"]["built"] = dt.date.today().isoformat()
-
-    outputs = (("wiring-inventory.json", inv),)
+    try:
+        text = data_text(inv)
+    except WiringDataError as exc:  # built, but fails a check
+        print(f"{Path(__file__).name}: {exc}", file=sys.stderr)
+        return 1
     if args.check:
-        old = [name for name, data in outputs if stale(args.out_dir / name, data)]
-        for name in old:
-            print(f"STALE: {shown(args.out_dir / name)} differs from the wiring model; "
-                  "rebuild with the same arguments, without --check")
-        if not old:
-            print("wiring viewer data is current with the wiring model")
-        return 1 if old else 0
-
-    args.out_dir.mkdir(parents=True, exist_ok=True)
-    for name, data in outputs:
-        p = args.out_dir / name
-        p.write_text(render(data), encoding="utf-8")
-        print(f"wrote {p} ({p.stat().st_size // 1024} KB)")
+        print(f"www/{OUT_REL} builds from the wiring model and passes its checks (not committed, ADR-036)")
+    else:
+        args.out_dir.mkdir(parents=True, exist_ok=True)
+        p = args.out_dir / OUT_INV.name
+        p.write_text(text, encoding="utf-8")
+        print(f"wrote {shown(p)} ({p.stat().st_size // 1024} KB)")
 
     n_pins = sum(len(b["pins"]) for n in inv["nodes"] for b in n["outputs"] + n["inputs"])
     print(f"{inv['source']['file']}: {len(inv['nodes'])} nodes, {n_pins} pins, {len(inv['signals'])} heads, "
