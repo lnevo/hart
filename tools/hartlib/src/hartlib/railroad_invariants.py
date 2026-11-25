@@ -268,12 +268,19 @@ def _staging_blocks(rr: Railroad) -> list[str]:
                     bad.append(f"Switch {sw.number} (switches.csv): {what} {b} is no staging block row of the device master")
     # block_lengths.csv holds every level's JMRI blocks (step 5 part 2): staging's blocks and main and upper's
     # block rows of the device master, their parts among them (a main or upper part is a JMRI block of its own on its OS
-    # block's sensor, owner 2026-11-20)
+    # block's sensor, owner 2026-11-20). Each row is keyed by its block's level and id, and its user_name label is the
+    # name store's (naming-layers step 5; plan_lengths.py --labels writes it)
     from hartlib import devices
-    level_blocks = {r["user_name"] for r in devices.load(rr.sources.devices)
-                    if r["level"] in ("2", "3") and r["layer"] == "block"}
-    bad += [f"{rr.sources.block_lengths.name}: {name} is no staging, main or upper block row "
-            "of the device master" for name in rr.block_lengths if name not in blocks | level_blocks]
+    names = {(r["level"], r["id"]): r["user_name"] for r in devices.load(rr.sources.devices)
+             if r["level"] and r["layer"] == "block"}
+    for name, b in rr.block_lengths.items():
+        have = names.get((b.level, b.id))
+        if have is None:
+            bad.append(f"{rr.sources.block_lengths.name} line {b.line}: {b.id} is no level {b.level} block row of "
+                       "the device master")
+        elif have != name:
+            bad.append(f"{rr.sources.block_lengths.name} line {b.line}: {b.id} is {have} in the name store, its label "
+                       f"says {name} (python3 tools/schematic/plan_lengths.py --labels)")
     return bad
 
 

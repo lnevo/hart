@@ -1301,7 +1301,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels step 1 (hands): writes the hand of switches.csv's plan rows from the plan graph and relabel edits; owner rows are left alone.",
+   "desc": "make panels step 1 (hands): writes the hand of switches.csv's plan rows from the plan graph and relabel edits, and each staging row's os_block, closed_leg and thrown_leg from the name store by their ids; owner hands are left alone.",
    "path": "tools/schematic/build_hands.py"
   },
   {
@@ -3446,7 +3446,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "layout",
-   "desc": "The device master's owner's cells, keyed by level, layer and user name: staging's devices (names, layout blocks, comments, DCC, control points) and a Store's level-less devices. Written by hand and by split_store.py; read by the builders.",
+   "desc": "The device master's owner's cells, keyed by level and device id: staging's devices (names, layout blocks, comments, DCC, control points) and a Store's level-less devices. Written by hand and by split_store.py; read by the builders.",
    "path": "jmri/layouts/hart/data/devices_field.csv"
   },
   {
@@ -6110,7 +6110,7 @@
   {
    "from": "tools/schematic/build_hands.py",
    "to": "jmri/layouts/hart/data/switches.csv",
-   "label": "step 1 hands"
+   "label": "step 1 hands; staging's leg labels by id"
   },
   {
    "from": "tools/schematic/build_layout_le.py",
@@ -6145,7 +6145,7 @@
   {
    "from": "tools/schematic/plan_lengths.py",
    "to": "jmri/layouts/hart/data/block_lengths.csv",
-   "label": "writes plan_in; check in panels"
+   "label": "writes plan_in and the user_name labels (--labels: length-labels step); check in panels"
   },
   {
    "from": "tools/schematic/publish_draft.py",
@@ -7595,6 +7595,26 @@
    "from": "tools/jmri/mqtt_overlay/install_overlay.py",
    "to": "host:panelpro",
    "label": "jmri.conf --cp:p"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_generated.csv",
+   "to": "tools/schematic/build_hands.py",
+   "label": "the name store's names of the staging legs' ids"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_field.csv",
+   "to": "tools/schematic/build_hands.py",
+   "label": "the owner's names by id (merged view)"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_generated.csv",
+   "to": "tools/schematic/build_main_route.py",
+   "label": "the names of main_lines.csv's block ids"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_field.csv",
+   "to": "tools/schematic/plan_lengths.py",
+   "label": "the owner's names by id (labels)"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

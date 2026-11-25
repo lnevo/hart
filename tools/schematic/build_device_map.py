@@ -476,7 +476,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     dxs = set(corner_blocks)
     os_pin_level = {}                       # an OS block pinned by its name: the level its row gives (checked below)
     if pins is None:
-        pins = read_pins(found=found, split=split_names)
+        pins = read_pins(found=found, split=split_names, ids={v: k for k, v in track_ids.items()})
         os_pin_level = {w.device: w.level for w in wiring_rows() if w.kind == "detector" and w.device
                         and OS_BLOCK.fullmatch(w.device)}
     ms = planned["home"] + [dict(m, heads=1, kind="one-searchlight", switch="", intermediate=True)

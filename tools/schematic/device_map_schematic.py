@@ -132,11 +132,13 @@ def split_edges(path: Path | None = None, found: list | None = None) -> dict:
     return block_layer.split_edges(found, bdm.LEVELS, path or block_overrides(), bdm.OVERRIDES.parent).get(bdm.SHEET, {})
 
 
-def read_pins(path: Path | None = None, found: list | None = None, split: set | None = None) -> dict:
-    """device_map_inputs.read_pins over `found` (tracks with names; default named_tracks, the solved schematic's) and
-    `split` (default split_tracks of `found`): the tracks its pins resolve against, which the readers do not solve."""
+def read_pins(path: Path | None = None, found: list | None = None, split: set | None = None,
+              ids: dict | None = None) -> dict:
+    """device_map_inputs.read_pins over `found` (tracks with names; default named_tracks, the solved schematic's),
+    `split` (default split_tracks of `found`) and `ids` ({block id: name} of this build's tracks, for a pin given by
+    id): the tracks its pins resolve against, which the readers do not solve."""
     found = named_tracks() if found is None else found
-    return inputs.read_pins(path, found, split_tracks(found=found) if split is None else split)
+    return inputs.read_pins(path, found, split_tracks(found=found) if split is None else split, ids)
 
 
 

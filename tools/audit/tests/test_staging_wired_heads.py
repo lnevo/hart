@@ -59,6 +59,14 @@ class CommittedMap(unittest.TestCase):
         self.assertEqual([(r["system_name"], r["jmri_name"]) for r in head], [("IH432", "IH432")])
 
 
+SIX_LB = "mast:5:B:west:single"          # Head 6LB's device ID: wiring.csv keys a head by it (naming-layers step 5)
+
+
+def head_id(user: str) -> str:
+    """The device ID of staging head `user` in the repo's name store."""
+    return next(i for (lv, i), name in devices.user_names().items() if lv == "1" and name == user)
+
+
 def wiring_file(text: str) -> Path:
     d = Path(tempfile.mkdtemp())
     p = d / "wiring.csv"
@@ -78,16 +86,16 @@ class WiringHeads(unittest.TestCase):
                          ("IH432", "4", "Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3", "wired (owner, 2026-11-18)"))
 
     def test_a_moved_head_follows_wiring_csv(self):
-        p = wiring_file(self.HEAD + '1,head,Head 6LB,,,,,4,1,OU2,"4,5,6",wired,\n')
+        p = wiring_file(self.HEAD + f'1,head,{SIX_LB},,,,,,4,1,OU2,"4,5,6",wired,\n')
         h = bsm.wiring_heads([owned()], p)["Mast 6LB"]["Head 6LB"]
         self.assertEqual((h["system_name"], h["comment"]), ("IH433", "Node: 4 Signal: 1 | OU: 2 Ports: 4,5,6"))
 
     def test_a_wired_heads_notes_are_the_owners_else_wiring_csvs_else_wired(self):
-        p = wiring_file(self.HEAD + '1,head,Head 6LB,,,,,4,0,OU2,"1,2,3",wired,\n')
+        p = wiring_file(self.HEAD + f'1,head,{SIX_LB},,,,,,4,0,OU2,"1,2,3",wired,\n')
         self.assertEqual(bsm.wiring_heads([owned(notes="one high head (owner)")], p)["Mast 6LB"]["Head 6LB"]["notes"],
                          "one high head (owner)")
         self.assertEqual(bsm.wiring_heads([], p)["Mast 6LB"]["Head 6LB"]["notes"], "wired")
-        noted = wiring_file(self.HEAD + '1,head,Head 6LB,,,,,4,0,OU2,"1,2,3",wired,from wiring\n')
+        noted = wiring_file(self.HEAD + f'1,head,{SIX_LB},,,,,,4,0,OU2,"1,2,3",wired,from wiring\n')
         self.assertEqual(bsm.wiring_heads([], noted)["Mast 6LB"]["Head 6LB"]["notes"], "from wiring")
 
     def test_a_wired_head_wiring_csv_does_not_list_stops(self):
@@ -95,9 +103,9 @@ class WiringHeads(unittest.TestCase):
                                                    r"wiring.csv: add its wiring there, or remove the field row"):
             bsm.wiring_heads([owned()], wiring_file(self.HEAD))
         with self.assertRaisesRegex(bsm.RuleError, "Head 6LB is on node 41, no staging node"):
-            bsm.wiring_heads([owned()], wiring_file(self.HEAD + '1,head,Head 6LB,,,,,41,0,OU2,"1,2,3",wired,\n'))
-        with self.assertRaisesRegex(bsm.RuleError, "is not a staging head name"):
-            bsm.wiring_heads([], wiring_file(self.HEAD + '1,head,Signal 6,,,,,4,0,OU2,"1,2,3",wired,\n'))
+            bsm.wiring_heads([owned()], wiring_file(self.HEAD + f'1,head,{SIX_LB},,,,,,41,0,OU2,"1,2,3",wired,\n'))
+        with self.assertRaisesRegex(bsm.RuleError, "a head.s id is its mast.s id and its place"):       # the mast's id, not a head's
+            bsm.wiring_heads([], wiring_file(self.HEAD + '1,head,mast:5:B:west,,,,,,4,0,OU2,"1,2,3",wired,\n'))
 
 
 class WiredHeads(unittest.TestCase):
@@ -181,9 +189,11 @@ class Rebuild(unittest.TestCase):
             return {p.name: t for p, t in want.items()}, gen
 
     @staticmethod
-    def wire(user, node, index, notes="wired (test)"):
-        """A wiring.csv edit that wires head `user` on `node` as LCOS Signal `index` (IH<node><32 + index>)."""
-        return lambda text: text + f'1,head,{user},,,,,{node},{index},OU4,"6,7,8",wired,{notes}\n'
+    def wire(user, node, index, notes="wired (test)", ident=None):
+        """A wiring.csv edit that wires head `user` (by its device ID, `ident` or the name store's) on `node` as LCOS
+        Signal `index` (IH<node><32 + index>)."""
+        ident = ident or head_id(user)
+        return lambda text: text + f'1,head,{ident},,,,,,{node},{index},OU4,"6,7,8",wired,{notes}\n'
 
     def test_the_wired_head_is_kept(self):
         rows = staging_rows(self.want[devices.Files.here().master])      # the master the build gives, its staging rows
@@ -212,15 +222,16 @@ class Rebuild(unittest.TestCase):
         self.assertEqual(level_masts.signal_kind(sig), "field")       # the kind follows from the wired head
         self.assertIn("IH1333=" + user, out[bsm.MASTS.name])
 
-    def test_a_wired_head_with_no_mast_stops(self):
-        with self.assertRaisesRegex(bsm.RuleError, r"masts the rule does not place: Mast 98L \(Head 98L\)"):
-            self.build_with(wiring_edit=self.wire("Head 98L", 13, 2))
+    def test_a_wired_head_the_device_master_does_not_have_stops(self):
+        # wiring.csv names a head by its device ID, so a head of no mast the rule places has no ID to give
+        with self.assertRaisesRegex(bsm.RuleError, "mast:97:A:west:single is no level 1 device of the device master"):
+            self.build_with(wiring_edit=self.wire("Head 98L", 13, 2, ident="mast:97:A:west:single"))
 
     def test_a_wired_head_whose_mast_has_other_heads_stops(self):
-        def gone(rows):         # the owner's notes of Head 6LB go with the name wiring.csv no longer has
-            return [r for r in rows if r["user_name"] != "Head 6LB"]
+        def top(rows):          # the owner names Mast 6LB's one head as a top head; wiring.csv's row follows its id
+            return [dict(r, user_name="Head 6LB Top") if r["user_name"] == "Head 6LB" else r for r in rows]
         with self.assertRaisesRegex(bsm.RuleError, "Mast 6LB: the rule gives 1 head"):
-            self.build_with(gone, lambda text: text.replace("1,head,Head 6LB,", "1,head,Head 6LB Top,"))
+            self.build_with(top)
 
 
 if __name__ == "__main__":

@@ -269,22 +269,23 @@ def staging_wired_rows(files: devices.Files | None = None, path: Path | None = N
     """Staging's turnout, LCC alias and feedback rows of the master: each the owner's field row (devices_field.csv:
     its id, user name, role, assignment, cp, dcc and the rest of the owner's cells) with its wiring cells from
     wiring.csv (`path`, default the committed file): node, the wiring text, the address (system name, and the JMRI
-    name unless the field row gives another: a turnout the panels bind by its user name). wiring.csv knows the device
-    by its generated name, which comes from the row's id (wired_name), so the owner may rename it; a field row with
-    no user name takes the generated one. An LCC alias ("DCC Switch <n>") takes its turnout's node and wiring and
+    name unless the field row gives another: a turnout the panels bind by its user name). wiring.csv keys the device
+    by its id (an alias by its turnout's, switch:<n>), so the owner may rename it; a field row with no user name takes
+    the generated one (wired_name). An LCC alias ("DCC Switch <n>") takes its turnout's node and wiring and
     keeps its MTT<dcc> names (the field row's); its note names the turnout and its address (alias_note). The
     description is written from the row (devices.describe), as it names the node. `nodes`: staging's (default
     staging_nodes()). MapError on a field row whose id is no turnout, alias or feedback ID, a field row with no wiring
     row, a wiring row with no field row or on a node that is not staging's."""
     bdm = builder()
     nodes = staging_nodes() if nodes is None else nodes
-    by = {(w.kind, w.device): w for w in wiring_rows(path) if w.level == int(FIELD_LEVEL) and w.kind in ("turnout", "fb")}
+    field = bdm.device_files() if files is None else files
+    by = {(w.kind, w.id): w for w in wiring_rows(path, (int(FIELD_LEVEL),), field)
+          if w.level == int(FIELD_LEVEL) and w.kind in ("turnout", "fb")}
     bad = [f"{WIRING.name} line {w.line}: {w.kind} {w.device} is on node {w.node}, no staging node of {NODES.name} "
            f"({', '.join(map(str, sorted(nodes)))})" for w in by.values() if w.node not in nodes]
-    field = bdm.device_files() if files is None else files
     rows = staging_field(field, tuple(WIRED_LAYERS)).values()
     out, seen = [], set()
-    turnout_address = {w.device: w.address for (kind, _d), w in by.items() if kind == "turnout"}
+    turnout_address = {d: w.address for (kind, d), w in by.items() if kind == "turnout"}
     # a turnout's name as readers see it (the owner's, else the generated one), by its switch number: its alias's note
     turnout_name = {r["id"].split(":", 1)[1]: r["user_name"] for r in rows
                     if r["role"] == "turnout" and r["id"].startswith("switch:") and r["user_name"]}
@@ -296,12 +297,13 @@ def staging_wired_rows(files: devices.Files | None = None, path: Path | None = N
             bad.append(f"staging {r['layer']} {r['user_name']}: {exc}")
             continue
         name = generated.removeprefix("DCC ") if alias else generated
-        w = by.get((WIRED_LAYERS[r["layer"]], name))
+        wid = device_ids.switch_id(r["id"].split(":", 1)[1]) if alias else r["id"]
+        w = by.get((WIRED_LAYERS[r["layer"]], wid))
         if w is None:
             bad.append(f"staging {r['layer']} {r['user_name'] or generated}: no {WIRED_LAYERS[r['layer']]} row for "
-                       f"{name} in {WIRING.name}")
+                       f"{wid} in {WIRING.name}")
             continue
-        seen.add((w.kind, w.device))
+        seen.add((w.kind, w.id))
         row = dict(r, user_name=r["user_name"] or generated, node=str(w.node), wiring=w.wiring_text,
                    written_by="build_device_map.py")
         if not alias:
@@ -316,11 +318,11 @@ def staging_wired_rows(files: devices.Files | None = None, path: Path | None = N
                 continue
         else:
             number = r["id"].split(":", 1)[1]
-            row["notes"] = alias_note(turnout_name.get(number, name), turnout_address.get(name, ""))
+            row["notes"] = alias_note(turnout_name.get(number, name), turnout_address.get(wid, ""))
         row["description"] = devices.describe(row)
         out.append(row)
-    for kind, device in sorted(set(by) - seen):
-        bad.append(f"{WIRING.name} line {by[kind, device].line}: staging {kind} {device} has no row in "
+    for kind, did in sorted(set(by) - seen):
+        bad.append(f"{WIRING.name} line {by[kind, did].line}: staging {kind} {did} has no row in "
                    f"{devices.FIELD_FILE}")
     if bad:
         raise MapError("; ".join(bad))
@@ -335,8 +337,8 @@ WIRED_ID = {"turnout": (re.compile(r"switch:(\d+)"), "Switch {}"),
 
 def wired_name(row: Mapping[str, str]) -> str:
     """The generated name of a staging turnout, LCC alias or feedback row, from its device ID (hartlib.device_ids:
-    switch:<n> "Switch <n>", dcc:<n> "DCC Switch <n>", fb:<n>:N|R "FB Switch <n> N|R"): the name wiring.csv knows it
-    by. The id is the field row's key (hartlib.devices.KEY); nothing ties these rows to the plan until staging is
+    switch:<n> "Switch <n>", dcc:<n> "DCC Switch <n>", fb:<n>:N|R "FB Switch <n> N|R"): the name a field row with
+    no user name takes (wiring.csv keys it by the id itself, naming-layers step 5). The id is the field row's key (hartlib.devices.KEY); nothing ties these rows to the plan until staging is
     generated (hand-off step 7), so build_device_map.check_switch_ids holds every number to a staging OS block of the
     plan. ValueError on an id out of that grammar for the row's kind."""
     kind = row["role"] if row["role"] in WIRED_ID else row["layer"]
@@ -424,15 +426,20 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
         beans = part_bean_names(list(lay.parts), mine, taken)
     except MapError as exc:
         raise MapError(f"staging parts: {exc}") from None
-    staging_pins = read_staging_pins(pins)
-    pin_of = {p.block: p for p in staging_pins if p.block}
-    on_helix = helix_pins(pins)
+    staging_pins = read_staging_pins(pins, files=f)
+    # a pin finds its block by the block's device ID (wiring.csv keys it so, naming-layers step 5): the drawn name of
+    # an OS block is the rule's, its row's name may be the owner's
+    pin_of = {p.id: p for p in staging_pins if p.id}
+    on_helix = helix_pins(pins, layer_files.read("plan_overrides", "main_upper", bdm.OVERRIDES.parent).get("helix", {}))
+    helix_ids = {ids[n] for n in helix if n in ids}
+    drawn_ids = {ids[n] for n in blocks | set(lay.parts) if n in ids}
+    part_ids = {ids[n] for n in lay.parts if n in ids}
     for p in staging_pins:
-        if p.block in helix:
+        if p.id in helix_ids:                   # by id: the pin's name may be the owner's
             bad.append(f"{PINS.name} line {p.line}: {p.block} is a helix block; its detector is its main or upper "
                        "row's")
-        elif p.block and p.block not in blocks and p.block not in lay.parts:
-            bad.append(f"{PINS.name} line {p.line}: staging has no block {p.block}")
+        elif p.id and p.id not in drawn_ids:
+            bad.append(f"{PINS.name} line {p.line}: staging has no block {p.block} ({p.id})")
 
     def owned(layer: str, did: str, name: str, **made) -> dict | None:
         """The row of the staging device `did` (its generated name `name`) built on its field row, found by its id
@@ -482,7 +489,8 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
                 drop("occupancy", occupancy_user(name))
                 continue
             row = owned("block", ids[name], name, trial_name=trials.get(name, ""), id=ids[name])
-            at = (pin_of[name].node, pin_of[name].k) if name in pin_of else on_helix.get(name)
+            pin = pin_of.get(ids[name])
+            at = (pin.node, pin.k) if pin else on_helix.get(ids[name])
             if row is not None and at is not None:
                 try:
                     row = wire_block(row, *at)
@@ -531,12 +539,12 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
                     blocks=block["user_name"] if block else b, cp=block["cp"] if block else "", id=did)
         if row is None:
             continue
-        if b not in pin_of:
+        if ids[b] not in pin_of:
             bad.append(f"staging block {b}: its detector {row['user_name']} has no level 1 row in {PINS.name}")
             continue
-        occupancy.append(wire_occupancy(row, pin_of[b]))
+        occupancy.append(wire_occupancy(row, pin_of[ids[b]]))
     # spare inputs: a pin with no block, and a pin whose block is now a part (its rails are still on that input)
-    spares = [new_spare(p) for p in staging_pins if not p.block or p.block in lay.parts]
+    spares = [new_spare(p) for p in staging_pins if not p.id or p.id in part_ids]
     taken_spare = [n for p in staging_pins
                    for n in drop("occupancy", f"unused {p.input}", device_ids.spare_id(p.sensor))]
     bad += [f"{devices.FIELD_FILE}: occupancy {n} is a spare input of {PINS.name}, which makes its row: remove the "

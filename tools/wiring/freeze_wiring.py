@@ -50,8 +50,9 @@ class FreezeError(Exception):
 
 
 def device_rows(path: Path | None = None) -> list[dict]:
-    """Every main and upper row of the master in the device-map form, values stripped."""
-    return [{c: v.strip() for c, v in r.items()} for _l, r in devices.device_map_lines(("2", "3"), path)]
+    """Every main and upper row of the master in the device-map form plus its role and id, values stripped."""
+    return [{c: v.strip() for c, v in {**devices.device_map_row(r), "role": r["role"], "id": r["id"]}.items()}
+            for r in devices.load(path) if r["level"] in ("2", "3") and r["role"] not in devices.OUT_OF_MAPS]
 
 
 def track_keys(found: list[dict] | None = None) -> dict[str, dict]:
@@ -111,7 +112,7 @@ def freeze_rows(cp: str, rows: list[dict], keys: dict[str, dict], helix: set[str
             first = f"{groups[0][0]}{groups[0][1]}"
             ports = [p if f"{kind}{board}" == first else f"{kind}{board}-{p}"
                      for kind, board, pins in groups for p in pins.split(",")]
-            out.append(base | dict(kind=KIND[m.group(2)], device=r["user_name"], node=m.group(1),
+            out.append(base | dict(kind=KIND[m.group(2)], id=r["id"], node=m.group(1),
                                    index=m.group(3), board=first, ports=",".join(ports)))
         elif r["layer"] == "occupancy" and r["node"]:
             m = BLOCK.match(r["comment"])
@@ -121,7 +122,7 @@ def freeze_rows(cp: str, rows: list[dict], keys: dict[str, dict], helix: set[str
                 continue
             row = base | dict(kind="detector", node=m.group(1), index=m.group(2))
             if devices.is_os(r, where(r)) or block in helix:        # its role is its block's
-                row["device"] = block
+                row["id"] = r["id"]                                 # det:<block id>: the name store names it
             elif block in keys:
                 row |= keys[block]
             else:
@@ -134,10 +135,11 @@ def freeze_rows(cp: str, rows: list[dict], keys: dict[str, dict], helix: set[str
 
 
 def key_of(r) -> tuple:
-    """A wiring.csv row's identity: its level, kind and device (or a track's switches and half)."""
+    """A wiring.csv row's identity: its level, kind and id (or a local device's label, or a track's switches and
+    half)."""
     get = r.get if isinstance(r, dict) else lambda c: getattr(r, c)
-    return (str(get("level")), get("kind"), get("device"), get("switch_a"), get("switch_b"), get("parallel"),
-            get("half"))
+    return (str(get("level")), get("kind"), get("id"), get("device"), get("switch_a"), get("switch_b"),
+            get("parallel"), get("half"))
 
 
 def merge(text: str, new: list[dict]) -> tuple[str, list[dict], list[dict]]:
@@ -154,7 +156,7 @@ def merge(text: str, new: list[dict]) -> tuple[str, list[dict], list[dict]]:
             added.append(r)
         elif rows[i]["status"] == "planned":
             if (rows[i]["node"], rows[i]["index"]) != (r["node"], r["index"]):
-                moved.append(f"{r['device'] or r['switch_a'] + '-' + r['switch_b']}: wiring.csv plans node "
+                moved.append(f"{r['id'] or r['switch_a'] + '-' + r['switch_b']}: wiring.csv plans node "
                              f"{rows[i]['node']} input {rows[i]['index']}, the device map has node {r['node']} "
                              f"input {r['index']}")
                 continue

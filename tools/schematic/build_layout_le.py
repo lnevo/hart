@@ -92,8 +92,9 @@ from le_names import (  # noqa: E402,F401  re-exported: callers and tests read t
 from le_checks import (  # noqa: E402,F401  re-exported: callers and tests read them here
     check_masts, mast_turnouts, check_unplaced, turnout_facts,
 )
+import le_tables  # noqa: E402  its numbering, read on first use (__getattr__)
 from le_tables import (  # noqa: E402,F401  re-exported: callers and tests read them here
-    BLOCK_NUMBERED_AS, APPENDED_BLOCKS, RETIRED_BLOCKS, NUMBERING, load_numbering, COMMENT, bean, r1, block_sort,
+    NUMBERING, NUMBERING_NAMES, load_numbering, numbering, COMMENT, bean, r1, block_sort,
     RETIRED_TURNOUT_PREFIX, retire_yard_ladder, replace, place, canon, is_level_bean, numbered_blocks, STRIPPED,
     strip_build_owned,
     level_sensors, SENSOR_COMMENT, add_level_sensors, MALE_DEBUGGER, MALE_ACTION, male_socket, add_level_clear,
@@ -319,6 +320,13 @@ def startup_thrown(bands) -> frozenset:
             if main["C"] and not main["B"]:
                 out.add(f"Switch {bdm.base(d['label'])}")
     return frozenset(out)
+
+
+def __getattr__(name: str):
+    """le_tables' numbering (BLOCK_NUMBERED_AS, APPENDED_BLOCKS, RETIRED_BLOCKS), re-exported as read on first use."""
+    if name in NUMBERING_NAMES:
+        return getattr(le_tables, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def main(argv=None) -> int:

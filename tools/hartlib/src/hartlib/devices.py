@@ -290,7 +290,7 @@ def merge(generated: Iterable[Mapping[str, str]], field: Iterable[Mapping[str, s
     another layer than its id's row, a templated comment the generated cell does not follow, or a merged row that
     breaks check_rows."""
     gname, fname = names
-    field = list(field)
+    field, generated = list(field), list(generated)
     check_field(field, fname)
     keyed = {key_of(r): r for r in field if r["level"]}
     out, bad, used = [], [], set()
@@ -319,11 +319,60 @@ def merge(generated: Iterable[Mapping[str, str]], field: Iterable[Mapping[str, s
     bad += [gone_text(f, gname, fname) for k, f in keyed.items() if k not in used]
     if bad:
         raise DevicesError("; ".join(bad))
+    out = follow_renames(out, generated)
     out += [r for r in field if not r["level"]]
     out.sort(key=_rank)
     rows = tuple(out)
     check_rows(rows, f"{gname} with {fname}")
     return rows
+
+
+# The generated columns that name another row's block by its user name: a rename in the field file reaches them in
+# the merged view at once, before a builder writes them again (naming-layers step 5).
+BLOCK_REFS = ("part_of", "blocks", "facing", "protects")
+
+
+def follow_renames(rows: list[Mapping[str, str]], generated: Iterable[Mapping[str, str]]) -> list[Mapping[str, str]]:
+    """`rows` (merged) with each block named in BLOCK_REFS by the name the merged view gives it: where the owner's
+    name (a field user_name) replaced a block's generated name, a part's part_of, a detector's blocks and a mast's
+    facing and protects that name the block follow it. A reference names a block on its own level first; one that
+    names no block of its level (a main or upper mast facing a helix block of another level) follows the block's
+    rename on the one other level whose block had that name, by the block's id, unless another level still has a
+    block of that name. So a rename leaves the view consistent (no part of a block that is no row) and a reader takes
+    the new name everywhere. Rows with no rename to follow are returned as they are."""
+    renamed: dict[str, dict[str, str]] = {}
+    new = {key_of(r): r["user_name"] for r in rows if r["level"] and r["layer"] == "block"}
+    for g in generated:
+        if g["level"] and g["layer"] == "block":
+            now = new.get(key_of(g))
+            if now is not None and now != g["user_name"]:
+                renamed.setdefault(g["level"], {})[g["user_name"]] = now
+    if not renamed:
+        return rows
+    on_level: dict[str, set[str]] = {}
+    for (level, _id), name in new.items():
+        on_level.setdefault(level, set()).add(name)
+    kept = {n for names in on_level.values() for n in names}          # names some block still has after the merge
+    elsewhere: dict[str, list[str]] = {}
+    for level, mine in renamed.items():
+        for old, now in mine.items():
+            elsewhere.setdefault(old, []).append(now)
+
+    def follow(level: str, b: str) -> str:
+        mine = renamed.get(level, {})
+        if b in mine:
+            return mine[b]
+        if b in on_level.get(level, ()) or b in kept:
+            return b
+        hits = elsewhere.get(b, [])
+        return hits[0] if len(hits) == 1 else b
+
+    out = []
+    for r in rows:
+        cells = {c: LIST.join(follow(r["level"], b) for b in r[c].split(LIST)) for c in BLOCK_REFS if r[c]}
+        changed = {c: v for c, v in cells.items() if v != r[c]}
+        out.append(MappingProxyType({**r, **changed}) if changed else r)
+    return out
 
 
 def gone_text(f: Mapping[str, str], gname: str = GENERATED_FILE, fname: str = FIELD_FILE) -> str:
@@ -479,6 +528,25 @@ def device_map_lines(levels: tuple[str, ...], source: "Files | Path | str | None
     old device map of those levels held, in its form plus `role`. The one way a reader gets them."""
     return [(n, {**device_map_row(r), "role": r["role"]}) for n, r in enumerate(load(source), 2)
             if r["level"] in levels and r["role"] not in OUT_OF_MAPS]
+
+
+def user_names(source: "Files | Path | str | None" = None) -> Mapping[tuple[str, str], str]:
+    """{(level, id): user name} of every row with a level, from the merged view (the owner's name wins): the name
+    store's answer for a device ID. The data files keyed by ID (wiring.csv, block_lengths.csv, block_numbering.csv,
+    block_overrides.csv, mast_cells.csv: naming-layers step 5) read their names here, so a rename in the field file
+    reaches them with no row of theirs changed."""
+    return MappingProxyType({(r["level"], r["id"]): r["user_name"] for r in load(source) if r["level"] and r["id"]})
+
+
+def name_of(names: Mapping[tuple[str, str], str], level: str, ident: str, where: str) -> str:
+    """The user name of device `ident` on `level` in `names` (user_names). DevicesError naming `where` (a file and
+    line) when the device master has no such device: an ID the plan no longer has (decision 3: the owner moves the
+    row to the new ID or drops it)."""
+    try:
+        return names[(str(level), ident)]
+    except KeyError:
+        raise DevicesError(f"{where}: {ident} is no level {level} device of the device master (a new export dropped "
+                           "it, or the ID is mistyped: give the device's id column)") from None
 
 
 def part_lines(levels: tuple[str, ...], source: "Files | Path | str | None" = None

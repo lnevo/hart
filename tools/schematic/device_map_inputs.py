@@ -22,7 +22,7 @@ from typing import NamedTuple
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, and the hartlib path
 from mast_rule import MapError, key_problem, resolve_track  # noqa: E402
-from hartlib import railroad, wiring  # noqa: E402
+from hartlib import layer_files, railroad, wiring  # noqa: E402
 
 SOURCES = railroad.Sources.under()
 CPS = SOURCES.interlockings
@@ -37,30 +37,36 @@ UID = {"block": 0, "turnout": 8, "signal": 32, "sensor": 67}     # LCOS packed I
 # The hand lists name a track by the switches at its ends (switch_a, switch_b: lower number first; switch_b blank for a
 # spur, whose other end is a bumper; mast_rule.track_key), so a renumbered switch moves its row with it. `parallel`
 # (1, 2 in mast_rule.plan_order) says which of two tracks between the same switches; `half` (1, 2) which half of a balloon
-# loop or split track, half 1 at the lower-numbered switch. A pin on a helix block, which the owner named
-# (plan_overrides.json), has its name in `device` and no switches (wiring.csv's detector rows).
+# loop or split track, half 1 at the lower-numbered switch. A pin on a helix or OS block has its id (det:<block id>) and
+# no switches (wiring.csv's detector rows); its name is the name store's.
 
 OS_BLOCK = re.compile(r"OS Switch \d+[a-d]?")        # a main or upper OS block, named by its switch
 
 
-def wiring_rows(path: Path | None = None) -> list:
-    """The rows of wiring.csv (hartlib.wiring.read, `path` default the committed file), its FactsError a MapError."""
+STAGING_NAMES = (int(FIELD_LEVEL),)    # a staging reader names staging's rows only, from the field file (ADR-029)
+
+
+def wiring_rows(path: Path | None = None, levels=None, files=None) -> list:
+    """The rows of wiring.csv (hartlib.wiring.read, `path` default the committed file; `levels` the levels whose rows
+    get their names; `files` the device master they are named from), its FactsError a MapError."""
     try:
-        return wiring.read(path or WIRING)
+        return wiring.read(path or WIRING, levels=levels, files=files)
     except railroad.FactsError as exc:
         raise MapError(str(exc)) from None
 
 
-def read_pins(path: Path | None, found: list, split: set) -> dict:
+def read_pins(path: Path | None, found: list, split: set, ids: dict | None = None) -> dict:
     """The low-level reader: callers that want the solved schematic's tracks by default use build_device_map.read_pins
     (device_map_schematic.read_pins). {block name: (node, input index from 0)} of wiring.csv's main and upper
     detector rows: detectors the owner put on a given input ("Block <k>" of a node, 1 to 8), which the rule then hands to no other block (owner, 2026-11-20:
     the helix node 41). `level` is the track's level (2 or 3; staging's rows, level 1, are read_staging_pins'), and
     the track is looked for on that level only. A track's block is named by its end switches (switch_a, switch_b,
     parallel), plus `half` for a balloon loop or a track in `split` (names, split_tracks): resolved in `found`
-    (tracks with names, build_device_map.named_tracks) to the generated block name. A helix block is named in `device`
-    with no switches. Stops on a track that does not resolve, a half missing from or given to a track that has none, a
-    helix block on another level, or a block given twice (wiring.read stops on the rest)."""
+    (tracks with names, build_device_map.named_tracks) to the generated block name. A helix or OS block is named by its
+    id (det:<block id>): `ids` ({block id: block name} of this build's tracks) names a track by it, so a helix track
+    the owner renamed is found under its new name before the device master is written again; without `ids`, the name
+    store's (Wire.device). Stops on a track that does not resolve, a half missing from or given to a track that has
+    none, a helix block on another level, or a block given twice (wiring.read stops on the rest)."""
     path = path or WIRING
     helix_level = {}
     for t in found:
@@ -73,17 +79,18 @@ def read_pins(path: Path | None, found: list, split: set) -> dict:
         if w.kind != "detector" or w.level == int(FIELD_LEVEL):
             continue
         i, node, k = w.line, w.node, w.index - 1
-        if w.device and OS_BLOCK.fullmatch(w.device):     # a switch's OS block (or a double crossover's corner)
-            name = w.device                                # by its own name: a switch number is stable
-        elif w.device:                                  # a helix block, named by the owner
-            if w.device not in helix_level:
-                bad.append(f"line {i}: block {w.device!r} is no helix block ({', '.join(sorted(helix_level))}); "
-                           "name any other track by switch_a and switch_b")
+        device = (ids or {}).get(w.id[len("det:"):], w.device) if w.id else w.device
+        if device and OS_BLOCK.fullmatch(device):       # a switch's OS block (or a double crossover's corner)
+            name = device                                # by its own name: a switch number is stable
+        elif device:                                    # a helix block, by its id
+            if device not in helix_level:
+                bad.append(f"line {i}: block {device!r} ({w.id}) is no helix block "
+                           f"({', '.join(sorted(helix_level))}); name any other track by switch_a and switch_b")
                 continue
-            if helix_level[w.device] != w.level:
-                bad.append(f"line {i}: {w.device} is a level {helix_level[w.device]} block, not level {w.level}")
+            if helix_level[device] != w.level:
+                bad.append(f"line {i}: {device} is a level {helix_level[device]} block, not level {w.level}")
                 continue
-            name = w.device
+            name = device
         else:
             r = dict(switch_a=w.switch_a, switch_b=w.switch_b, parallel=w.parallel, half=w.half)
             problem = key_problem(r)
@@ -107,12 +114,13 @@ def read_pins(path: Path | None, found: list, split: set) -> dict:
 
 
 class StagingPin(NamedTuple):
-    """A staging detector as wired (a level 1 detector row of wiring.csv): its block (empty for a spare input, one
-    with a sensor in JMRI but no block), node and input index from 0."""
+    """A staging detector as wired (a level 1 detector row of wiring.csv): its block's name (the name store's) and
+    device ID (both empty for a spare input, one with a sensor in JMRI but no block), node and input index from 0."""
     line: int
     block: str
     node: int
     k: int
+    id: str = ""            # the block's device ID (wiring.csv's det:<block id>), which the builder finds it by
 
     @property
     def sensor(self) -> str:
@@ -135,31 +143,55 @@ def staging_nodes() -> set:
         raise MapError(str(exc)) from None
 
 
-def read_staging_pins(path: Path | None = None, nodes: set | None = None) -> list[StagingPin]:
+def read_staging_pins(path: Path | None = None, nodes: set | None = None, files=None) -> list[StagingPin]:
     """Staging's detectors as wired: the level 1 detector rows of wiring.csv, each a block by its name (staging's
     names are the field's) or a spare input (no block), its node and input. `nodes`: staging's nodes (lcos_nodes.csv
     level 1; default the committed file's). Stops on a node that is not staging's (wiring.read stops on the rest)."""
     nodes = staging_nodes() if nodes is None else nodes
     path = path or WIRING
     out, bad = [], []
-    for w in wiring_rows(path):
+    for w in wiring_rows(path, STAGING_NAMES, files):
         if w.kind != "detector" or w.level != int(FIELD_LEVEL):
             continue
         if w.node not in nodes:
             bad.append(f"line {w.line}: node {w.node} is no staging node of {NODES.name} "
                        f"({', '.join(map(str, sorted(nodes)))})")
             continue
-        out.append(StagingPin(w.line, w.device, w.node, w.index - 1))
+        out.append(StagingPin(w.line, w.device, w.node, w.index - 1, w.id.removeprefix("det:")))
     if bad:
         raise MapError(f"{path.name}: " + "; ".join(bad))
     return out
 
 
-def helix_pins(path: Path | None = None) -> dict:
-    """{helix block: (node, input index from 0)} of wiring.csv's main and upper detector rows that name a block (the
-    helix tracks): a helix block's staging row names the detector its main or upper row has."""
-    return {w.device: (w.node, w.index - 1) for w in wiring_rows(path)
-            if w.kind == "detector" and w.level != int(FIELD_LEVEL) and w.device}
+HELIX_ID = re.compile(r"det:block:(?P<label>\d+[A-Z]?)[A-D]-helix")     # a main or upper helix track's detector
+
+
+def helix_pins(path: Path | None = None, helix_map: dict | None = None) -> dict:
+    """{staging helix block id: (node, input index from 0)} of wiring.csv's main and upper detector rows on a helix
+    track (det:block:<switch label><leg>-helix): a helix block's staging row names the detector its main or upper row
+    has. The main or upper switch label finds the staging block in `helix_map` (plan_overrides.json main_upper's
+    `helix`: {"131A": "block:39B-helix"}; default the one beside `path`'s data folder, else the committed one), by
+    ID, so a renamed helix track keeps its
+    detector. Stops on a helix row whose switch the map does not have."""
+    if helix_map is None:
+        beside = Path(path).parent / "schematic" if path else pd.DATA      # a copy's own plan overrides
+        folder = beside if layer_files.path("plan_overrides", beside).is_file() else pd.DATA
+        helix_map = layer_files.read("plan_overrides", "main_upper", folder).get("helix", {})
+    out, bad = {}, []
+    for w in wiring_rows(path, STAGING_NAMES):
+        if w.kind != "detector" or w.level == int(FIELD_LEVEL) or not w.id.startswith("det:block:"):
+            continue
+        m = HELIX_ID.fullmatch(w.id)
+        if not m:
+            continue
+        if m.group("label") not in helix_map:
+            bad.append(f"line {w.line}: {w.id} is on helix switch {m.group('label')}, which the helix map "
+                       f"({', '.join(sorted(helix_map))}) does not have")
+            continue
+        out[helix_map[m.group("label")]] = (w.node, w.index - 1)
+    if bad:
+        raise MapError(f"{(path or WIRING).name}: " + "; ".join(bad))
+    return out
 
 
 def loop_placeholder(placeholder: str, half: int | None) -> str:

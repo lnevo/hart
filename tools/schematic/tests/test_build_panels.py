@@ -26,6 +26,7 @@ STEPS = [
     ("staging-sets", "tools/schematic/build_staging_sets.py", False),
     ("main-route", "tools/schematic/build_main_route.py", False),
     ("device-map", "tools/schematic/build_device_map.py", False),
+    ("length-labels", "tools/schematic/plan_lengths.py --labels", False),
     ("plan-lengths", "tools/schematic/plan_lengths.py --check", True),
     ("masts", "tools/schematic/build_masts.py", False),
     ("panel-items", "tools/schematic/panel_items.py", False),
@@ -84,8 +85,10 @@ class StepList(unittest.TestCase):
         # so an edit to panel_items.json reaches tables.xml in one make panels
         for writer in ("device-map", "masts", "panel-items"):
             self.assertLess(NAMES.index(writer), NAMES.index("tables"), writer)
-        # plan_lengths.py --check finds the OS blocks in the device master: it checks the ones device-map just wrote
-        self.assertEqual(NAMES.index("plan-lengths"), NAMES.index("device-map") + 1)
+        # plan_lengths.py --check finds the OS blocks in the device master: it checks the ones device-map just wrote,
+        # once length-labels has given block_lengths.csv's rows the names device-map wrote (naming-layers step 5)
+        self.assertEqual(NAMES.index("length-labels"), NAMES.index("device-map") + 1)
+        self.assertEqual(NAMES.index("plan-lengths"), NAMES.index("length-labels") + 1)
 
 
 class DryRun(unittest.TestCase):
@@ -116,7 +119,8 @@ class DryRun(unittest.TestCase):
         self.assertNotIn("stopped", out)
 
     def test_a_write_stops_at_a_failed_check_and_does_not_say_it_writes(self):
-        for name, script in (("plan-lengths", "plan_lengths.py"), ("signals-sync", "sync_signals.py"),
+        # (plan-lengths runs plan_lengths.py as length-labels does, one step before it: device-master stands in)
+        for name, script in (("device-master", "check_device_master.py"), ("signals-sync", "sync_signals.py"),
                              ("sml-current", "check_sml_current.py")):
             with self.subTest(name):
                 code, out, ran = self.run_script(fail=script)

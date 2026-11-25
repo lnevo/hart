@@ -2,14 +2,17 @@ column,description
 level,"1 staging, 2 main, 3 upper. A switch number is on one level only; the numbers are unique railroad-wide."
 switch,"The switch number (the plate number). A switch's rows go together, its first row first: a crossover has one row per OS block (staging: 7 and 7b) or per half (main and upper: 101A and 101B)."
 half,"Main and upper: the label the drawings print for this row, the switch number (107) or the number and A or B for a crossover half (101A). It is the row's key. Staging leaves it blank: its rows are keyed by os_block."
-os_block,"The OS block through this row's points (OS Switch 7, OS Switch 7b). Staging gives it on every row, once per block; the first row's is the switch's primary OS block (the Layout Editor blockname and first CTC OS sensor). Main and upper may give it; none does yet."
+os_block,"The OS block through this row's points (OS Switch 7, OS Switch 7b). Staging gives it on every row, once per block; the first row's is the switch's primary OS block (the Layout Editor blockname and first CTC OS sensor). Main and upper may give it; none does yet. On staging it is a label: build_hands.py (the hands step of make panels) writes the name store's name of os_id, so a rename in devices_field.csv relabels the row (naming-layers step 5)."
 closed_leg,"The block the leg leads to when the switch is closed (CATS normal unless cats_inverted). Given with thrown_leg and os_block, or not at all; staging gives both on every row."
-thrown_leg,"The block the leg leads to when the switch is thrown."
+thrown_leg,"The block the leg leads to when the switch is thrown. On staging, closed_leg and thrown_leg are labels too, the names of closed_id and thrown_id."
+os_id,"Staging: the device ID of the OS block (os:<n>, or a crossover half's os:<n>:A-<end>; hartlib.device_ids), the row's key to the device master. Main and upper leave it blank."
+closed_id,Staging: the device ID of the block the closed leg leads to (block:<ends> or os:<n>).
+thrown_id,Staging: the device ID of the block the thrown leg leads to.
 hand,"L or R: the diverging side seen from the points, or blank where nobody has recorded it. Main and upper give it per half; staging on the switch's first row only (a crossover's later rows leave hand and hand_source blank)."
 hand_source,"Where the hand comes from: plan (main and upper only; tools/schematic/build_hands.py writes it from the AnyRail plan graph and rewrites only these rows) or owner (hand-kept; build_hands.py never touches it, and it needs a hand). A new plan row may leave hand blank: build_hands.py fills it. Blank when nobody has recorded a hand."
 area,"Main and upper: the LCOS node area of a local switch, one in no control point (a yard or industry spur). Blank for a control point switch, whose area is its interlocking's (interlockings.csv). On the switch's first row only."
-le_ident,"Staging: the live Layout Editor turnout ident (TOL3). On the switch's first row only; blank on main and upper."
+le_ident,Staging: the live Layout Editor turnout ident (TOL3). On the switch's first row only; blank on main and upper.
 cats_inverted,"Staging: yes when CATS normal is JMRI thrown, else no. On the switch's first row only; blank on main and upper."
 ctc_is,"Staging: the USS CTC lever's first internal sensor number (IS<n>), given to one switch only. On the switch's first row only; blank on main and upper."
 ctc_signals,"Staging: yes when the USS CTC lever column has signal levers, no for a switch-only column. On the switch's first row only; blank on main and upper."
-notes,"Free text for people. On the switch's first row only."
+notes,Free text for people. On the switch's first row only.

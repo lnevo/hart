@@ -13,9 +13,14 @@ Columns (COLUMNS):
   so the node's block detectors calibrate; every node with detectors has one reserved, owner 2026-11-21). Buttons
   and relays are wired on the nodes but have no JMRI device (owner, 2026-11-20: live today, more to come); their
   index is blank. A calibration row's status is wired where the relay is in, planned where the port is reserved.
-- device: the device's user name (Switch 1, FB Switch 1 N, Head 6LB), or a detector's block name. A main or upper
-  detector on a track is named by switch_a, switch_b, parallel and half instead (mast_rule.track_key: lower number
-  first), since those block names are placeholders. A staging detector with no block is a spare input.
+- id: the device's ID in the device master (hartlib.device_ids; naming-layers step 5): switch:<n>, fb:<n>:N|R, a
+  head's <mast id>:top|bottom|single, a detector's det:<block id> (det:block:17C-29C, det:os:19). The row holds no
+  name: `read` gives each Wire the device's user name from the name store (hartlib.devices.user_names; a detector's
+  is its block's), so a rename in devices_field.csv changes no row here and the frozen pins stay as they are. A main
+  or upper detector on a track is named by switch_a, switch_b, parallel and half instead (mast_rule.track_key: lower
+  number first), a key from the plan as well. A staging detector with neither is a spare input.
+- device: a button's, relay's or calibration relay's label (Switch 1 BTN, C4 calibration relay): they have no JMRI
+  device, so no ID. Empty on every other row.
 - node: the LCOS radio address. index: the LCOS number in the device's wiring text, "Turnout: <i>", "Sensor: <i>",
   "Signal: <i>" from 0, "Block: <i>" from 1 (1 to 8). board (OU<n> or IN<n>) and ports: where a turnout, feedback or
   head lands; a detector has neither (its input is the index). A head is on one node, but its three pins may span
@@ -36,11 +41,12 @@ from pathlib import Path
 from typing import NamedTuple
 
 from . import paths
+from .device_ids import HEAD_PLACES
 from .railroad_facts import FactsError
 
 PATH = paths.WIRING
 NODES = paths.LAYOUT_DATA / "schematic" / "lcos_nodes.csv"   # each node's level and area (board_location)
-COLUMNS = ["level", "kind", "device", "switch_a", "switch_b", "parallel", "half", "node", "index", "board", "ports",
+COLUMNS = ["level", "kind", "id", "device", "switch_a", "switch_b", "parallel", "half", "node", "index", "board", "ports",
            "status", "notes"]
 KINDS = ("turnout", "fb", "head", "detector", "button", "relay", "calibration")
 LOCAL = ("button", "relay", "calibration")      # on a node, no JMRI device: no index, no address
@@ -58,7 +64,7 @@ class Wire(NamedTuple):
     line: int
     level: int
     kind: str
-    device: str
+    device: str                           # the user name (the name store's for a row with an id), a detector's block's
     switch_a: str
     switch_b: str
     parallel: str
@@ -70,6 +76,14 @@ class Wire(NamedTuple):
     status: str
     notes: str
     boards: tuple[str, ...] = ()          # each port's board (a head's may span two OU boards); `board` if empty
+    id: str = ""                          # the device's ID (a detector's det:<block id>); empty on a local or spare row
+    mast: str = ""                        # a head's mast's user name (the name store's of its id less the place)
+
+    @property
+    def place(self) -> str:
+        """A head's place on its mast, from its id (mast:...:top|bottom|single); "" for any other row."""
+        tail = self.id.rsplit(":", 1)[-1] if self.kind == "head" else ""
+        return tail if tail in HEAD_PLACES else ""
 
     @property
     def pins(self) -> list[tuple[str, int]]:
@@ -114,11 +128,89 @@ class Wire(NamedTuple):
         return f"Block {self.node}-{self.index}"
 
 
-def read(path: Path | None = None) -> list[Wire]:
+ID_PREFIX = {"turnout": "switch:", "fb": "fb:", "head": "mast:", "detector": "det:"}    # a row's id by its kind
+
+
+def names_beside(path: Path):
+    """The name store's {(level, id): user name} for the wiring file `path`: the device master beside it (a test's
+    copy puts devices_generated.csv and devices_field.csv there), else the repo's."""
+    from . import devices
+    data = Path(path).parent
+    return devices.user_names(devices.Files.under(data) if (data / devices.GENERATED_FILE).is_file() else None)
+
+
+class _LoadFailed(FactsError):
+    """The device master or field file did not load: read() stops once with its message, not once per row."""
+
+
+GENERATED_NAMES = ((re.compile(r"switch:(\d+)"), "Switch {}"), (re.compile(r"fb:(\d+):([NR])"), "FB Switch {} {}"))
+
+
+class _Names:
+    """How read() names a row's id: `given` ({(level, id): user name}) when the caller passes one; else a staging
+    device by its field row's user name, or for a turnout or feedback row with none the name its id gives (Switch
+    <n>, FB Switch <n> N), from the field file alone (a device with no field row, a head the mast rule names, by the
+    merged view) (`files`' field file, else the one beside the wiring file, else the
+    repo's: a staging builder reads the owner's cells there and never its own last output, ADR-029); any other level's
+    by the merged view (`files`, else names_beside). Each file is read once, and only when a row needs it."""
+
+    def __init__(self, path: Path, given, files=None):
+        self.path, self.given, self.files, self.field, self.merged = path, given, files, None, None
+
+    def __call__(self, level: str, ident: str, where: str) -> str:
+        from . import devices
+        if self.given is not None:
+            return devices.name_of(self.given, level, ident, where)
+        if level == devices.FIELD_LEVEL:
+            if self.field is None:
+                files = self.files
+                if files is None:
+                    data = Path(self.path).parent
+                    files = devices.Files.under(data) if (data / devices.FIELD_FILE).is_file() else None
+                try:
+                    index = devices.field_index(files)
+                except FactsError as exc:
+                    raise _LoadFailed(str(exc)) from None
+                self.field = {k: r["user_name"] for k, r in index.items()}
+            name = self.field.get((level, ident))
+            if name:
+                return name
+            if name is not None:                # a field row with no user_name: the name its id gives
+                for pattern, form in GENERATED_NAMES:
+                    m = pattern.fullmatch(ident)
+                    if m:
+                        return form.format(*m.groups())
+                raise FactsError(f"{where}: {ident}'s row in {devices.FIELD_FILE} has no user_name: give it its name")
+            # no field row (a staging head or mast the mast rule names): the merged view; when that does not load
+            # either (a field row taken out or moved to another id), the row stays unnamed and the staging builder,
+            # which finds it by id, says what is missing
+        if self.merged is None:
+            try:
+                self.merged = devices.user_names(self.files) if self.files is not None else names_beside(self.path)
+            except FactsError as exc:
+                if level == devices.FIELD_LEVEL:
+                    self.merged = {}
+                    self.unloaded = str(exc)
+                else:
+                    raise _LoadFailed(str(exc)) from None
+        if level == devices.FIELD_LEVEL and getattr(self, "unloaded", None):
+            return ""
+        return devices.name_of(self.merged, level, ident, where)
+
+
+def read(path: Path | None = None, names=None, levels=None, files=None) -> list[Wire]:
     """The rows of wiring.csv, each checked. Stops (FactsError, naming the file and line) on a file not in COLUMNS, an
     unknown level, kind or status, a number that is not one, an index past its kind's range, a board or ports that do
-    not fit the kind, a device given twice on its level, two devices on one LCOS number or on one port of a board."""
+    not fit the kind, a device given twice on its level, two devices on one LCOS number or on one port of a board, or
+    an id the device master does not have. Each Wire's `device` is its id's user name in `names` ({(level, id): user
+    name}, hartlib.devices.user_names; default a staging device's field row, any other's the merged view: _Names), a
+    detector's its block's, so the wiring follows a rename with no row changed. `levels` (default every level): the
+    levels whose rows are named; a row of another level keeps its id and an empty `device`, so a staging builder that
+    reads only staging's names never opens the generated file. `files` (a hartlib.devices.Files): the device master
+    a copy's builder names its rows from."""
     path = path or PATH
+    store_name = _Names(path, names, files)
+    wanted = None if levels is None else {str(lv) for lv in levels}
     try:
         with open(path, newline="", encoding="utf-8") as fh:
             reader = csv.DictReader(fh)
@@ -171,24 +263,36 @@ def read(path: Path | None = None) -> list[Wire]:
             bad.append(f"{at}: a {kind}'s index is {low} to {low + CAP[kind] - 1}, not {index}")
             continue
         keyed = any(r[c] for c in ("switch_a", "switch_b", "parallel", "half"))
+        ident = r["id"]
+        if kind in LOCAL:
+            if ident or keyed or not r["device"]:
+                bad.append(f"{at}: a {kind} has no JMRI device, so no id or switches: give its label in device")
+                continue
+        elif r["device"]:
+            bad.append(f"{at}: a {kind} is named by its id, not device (device is a button's, relay's or calibration "
+                       "relay's label)")
+            continue
+        elif ident and not ident.startswith(ID_PREFIX[kind]):
+            bad.append(f"{at}: a {kind}'s id starts {ID_PREFIX[kind]}, not {ident!r}")
+            continue
         if kind == "detector":
             if r["board"] or ports:
                 bad.append(f"{at}: a detector has no board or ports (its input is its index)")
                 continue
             if keyed and r["level"] == "1":
-                bad.append(f"{at}: a staging detector is named by its block alone (device), not by switches")
+                bad.append(f"{at}: a staging detector is named by its block's id alone, not by switches")
                 continue
-            if keyed and r["device"]:
-                bad.append(f"{at}: a detector is named by its block or, on main and upper, by its switches, not both")
+            if keyed and ident:
+                bad.append(f"{at}: a detector is named by its id or, on main and upper, by its switches, not both")
                 continue
         else:
             m = BOARD.match(r["board"])
             want = LCOS[kind]
             if keyed:
-                bad.append(f"{at}: a {kind} is named by device alone")
+                bad.append(f"{at}: a {kind} is named by its id alone")
                 continue
-            if not r["device"]:
-                bad.append(f"{at}: a {kind} needs its device name")
+            if kind not in LOCAL and not ident:
+                bad.append(f"{at}: a {kind} needs its id")
                 continue
             if not m or m.group(1) != want[3]:
                 bad.append(f"{at}: a {kind} lands on an {want[3]} board ({want[3]}1 to {want[3]}4), not {r['board']!r}")
@@ -210,7 +314,23 @@ def read(path: Path | None = None) -> list[Wire]:
                 bad.append(f"{at}: a {kind} takes {want[4]} port(s) of 1 to 8, not {r['ports']!r}")
                 continue
         level = int(r["level"])
-        name = r["device"] or (",".join(r[c] for c in ("switch_a", "switch_b", "parallel", "half")) if keyed else "")
+        name = ident or r["device"] or (",".join(r[c] for c in ("switch_a", "switch_b", "parallel", "half"))
+                                        if keyed else "")
+        device, mast = r["device"], ""
+        if kind == "head" and ident and ident.rsplit(":", 1)[-1] not in HEAD_PLACES:
+            bad.append(f"{at}: a head's id is its mast's id and its place ({', '.join(HEAD_PLACES)}), not {ident!r}")
+            continue
+        if ident and (wanted is None or r["level"] in wanted):
+            try:
+                device = store_name(r["level"], ident[len("det:"):] if kind == "detector" else ident,
+                                    f"{path.name} {at}")
+                if kind == "head" and level == FIELD:     # a wired head's mast: digicon_rows, build_masts
+                    mast = store_name(r["level"], ident.rsplit(":", 1)[0], f"{path.name} {at}")
+            except _LoadFailed:
+                raise
+            except FactsError as exc:
+                bad.append(str(exc).removeprefix(f"{path.name} "))
+                continue
         if name and (level, kind, name) in names:
             bad.append(f"{at}: {kind} {name} is line {names[level, kind, name]}'s as well")
             continue
@@ -232,8 +352,8 @@ def read(path: Path | None = None) -> list[Wire]:
             numbers[number] = i
         for b, p in own:
             pins[node, b, p] = i
-        out.append(Wire(i, level, kind, r["device"], r["switch_a"], r["switch_b"], r["parallel"], r["half"], node,
-                        index, r["board"], ports, r["status"], r["notes"], boards))
+        out.append(Wire(i, level, kind, device, r["switch_a"], r["switch_b"], r["parallel"], r["half"], node,
+                        index, r["board"], ports, r["status"], r["notes"], boards, ident, mast))
     if bad:
         raise FactsError(f"{path.name}: " + "; ".join(bad))
     return out
@@ -260,19 +380,20 @@ def digicon_rows(path: Path | None = None) -> list[dict[str, str]]:
     for w in read(path):
         if w.kind != "head" or w.status != "wired" or w.level != 1:
             continue
-        m = HEAD_NAME.match(w.device)
-        if not m:
-            bad.append(f"line {w.line}: {w.device!r} is not a head name (Head <mast>[ Top| Bottom])")
+        # the mast and the place come from the head's id, not its name, so a renamed head keeps its lamps
+        key = w.mast.removeprefix("Mast ")
+        if not w.mast.startswith("Mast ") or not w.place:
+            bad.append(f"line {w.line}: {w.id!r} is no head of a mast (Mast <key>, its id ending top, bottom or single)")
             continue
-        role = {"Top": "T", "Bottom": "B"}.get(m.group("pos"), "S")
-        lamp_of = f"Head {m.group('key')} {role}" if role != "S" else f"Head {m.group('key')}"
+        role = {"top": "T", "bottom": "B"}.get(w.place, "S")
+        lamp_of = f"Head {key} {role}" if role != "S" else f"Head {key}"
         uid = LCOS["head"][1] + w.index
         packed = w.node * 100 + uid
         for (board, port), lamp in zip(w.pins, "RYG"):
             out.append(dict(port_id=f"C{w.node}-{board}-{port}", parent_node_id=f"C{w.node}",
                             mqtt_node=str(w.node), board_location=place.get(w.node, ""), signal_index=str(w.index),
                             uid=str(uid), packed=str(packed), system_name=f"IH{packed}",
-                            user_name=f"{lamp_of} {lamp}", mast_user_name=f"Mast {m.group('key')}",
+                            user_name=f"{lamp_of} {lamp}", mast_user_name=w.mast,
                             disc_role=role, head_role=role, lamp_color=lamp, topic=f"track/signalhead/{packed}",
                             device_type="Searchlight Signal Head", voltage_rail="5V",
                             notes=f"LCOS Signal {w.index} UID {uid}; STOP/APPROACH/CLEAR; lamp {lamp}"))

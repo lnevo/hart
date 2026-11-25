@@ -35,18 +35,25 @@ class TempFiles(unittest.TestCase):
 
 
 class Readers(TempFiles):
-    def test_helix_pins_are_the_named_main_and_upper_detectors(self):
+    def test_helix_pins_are_the_main_and_upper_helix_detectors_by_staging_block_id(self):
+        """naming-layers step 5: {staging helix block id: pin}, the main or upper helix track's switch label (131A of
+        det:block:131AA-helix) found in the helix map, so a renamed helix track keeps its detector."""
         p = self.file("wiring.csv", WIRING_HEAD
-                      + "3,detector,Track Helix Outer,,,,,41,2,,,planned,\n"
-                        "2,detector,,107,109,,,42,1,,,planned,\n"
-                        "1,detector,Track Barn,,,,,13,1,,,wired,\n")
-        self.assertEqual(bdm.helix_pins(p), {"Track Helix Outer": (41, 1)})
+                      + "2,detector,det:block:131AA-helix,,,,,,41,2,,,planned,\n"
+                        "2,detector,,,107,109,,,42,1,,,planned,\n"
+                        "2,detector,det:os:107,,,,,,42,2,,,planned,\n"
+                        "1,detector,det:block:7A-13C,,,,,,13,1,,,wired,\n")
+        self.assertEqual(bdm.helix_pins(p), {"block:39B-helix": (41, 1)})
+        self.assertEqual(bdm.helix_pins(p, {"131A": "block:37B-helix"}), {"block:37B-helix": (41, 1)})
+        with self.assertRaisesRegex(bdm.MapError, r"line 2: det:block:131AA-helix is on helix switch 131A, which the "
+                                                  r"helix map \(131B\) does not have"):
+            bdm.helix_pins(p, {"131B": "block:37B-helix"})
 
     def test_helix_pins_of_the_committed_file(self):
-        self.assertEqual(bdm.helix_pins()["Track Helix Outer"], (41, 1))
+        self.assertEqual(bdm.helix_pins(), {"block:39B-helix": (41, 1), "block:37B-helix": (41, 0)})
 
     def test_a_bad_wiring_file_is_a_map_error(self):
-        p = self.file("wiring.csv", WIRING_HEAD + "3,detector,Track Helix Outer,,,,,41,9,,,planned,\n")
+        p = self.file("wiring.csv", WIRING_HEAD + "2,detector,det:block:131AA-helix,,,,,,41,9,,,planned,\n")
         with self.assertRaisesRegex(bdm.MapError, "index is 1 to 8"):
             bdm.helix_pins(p)
 
@@ -211,9 +218,9 @@ class TheSplit(TempFiles):
 
     def test_a_patched_reader_path_reaches_the_builders_readers(self):
         """The readers' default paths are device_map_inputs' (its docstring): patched there, the builder reads it."""
-        p = self.file("wiring.csv", WIRING_HEAD + "3,detector,Track Helix Outer,,,,,41,3,,,planned,\n")
+        p = self.file("wiring.csv", WIRING_HEAD + "2,detector,det:block:131AA-helix,,,,,,41,3,,,planned,\n")
         with unittest.mock.patch.object(inputs, "WIRING", p):
-            self.assertEqual(bdm.helix_pins(), {"Track Helix Outer": (41, 2)})
+            self.assertEqual(bdm.helix_pins(), {"block:39B-helix": (41, 2)})
 
     def test_run_as_a_script_the_builder_is_the_running_module(self):
         """python3 build_device_map.py: builder() gets the running module, not a second copy loaded by name."""
@@ -233,7 +240,7 @@ class TheSplit(TempFiles):
         """The reader takes the tracks it resolves against; the builder's read_pins gives the solved schematic's."""
         with self.assertRaises(TypeError):
             inputs.read_pins(None)          # pylint: disable=no-value-for-parameter
-        p = self.file("wiring.csv", WIRING_HEAD + "2,detector,OS Switch 123,,,,,42,1,,,planned,\n")
+        p = self.file("wiring.csv", WIRING_HEAD + "2,detector,det:os:123,,,,,,42,1,,,planned,\n")
         self.assertEqual(inputs.read_pins(p, [], set()), {"OS Switch 123": (42, 0)})
         self.assertEqual(bdm.read_pins(p, found=[], split=set()), {"OS Switch 123": (42, 0)})
 

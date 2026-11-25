@@ -179,21 +179,20 @@ def wiring_heads(owned: list[dict], path: Path | None = None) -> dict:
     name."""
     by_user = {h["user_name"]: h for h in owned}
     try:
-        heads = [w for w in wiring.read(path) if w.level == 1 and w.kind == "head"]
+        heads = [w for w in wiring.read(path, levels=(1,)) if w.level == 1 and w.kind == "head"]
         nodes = bdm.staging_nodes()
     except (railroad.FactsError, bdm.MapError) as exc:
         raise RuleError(str(exc)) from None
     out, bad = {}, [f"{wiring.PATH.name} line {w.line}: {w.device} is on node {w.node}, no staging node "
                     f"({', '.join(map(str, sorted(nodes)))})" for w in heads if w.node not in nodes]
     for w in heads:
-        m = HEAD_USER.fullmatch(w.device)
-        if not m:
-            bad.append(f"{wiring.PATH.name} line {w.line}: {w.device!r} is not a staging head name (Head <mast>)")
+        if not w.mast.startswith("Mast "):          # the mast by the head's id (wiring.Wire.mast), not its name
+            bad.append(f"{wiring.PATH.name} line {w.line}: {w.id!r} is no head of a staging mast")
             continue
         prev = by_user.pop(w.device, None)              # the owner's notes of the head, if any
         row = dict(user_name=w.device, system_name=w.address, jmri_name=w.address, node=str(w.node),
                    comment=w.wiring_text, notes=carried(prev, "head").get("notes") or w.notes or "wired")
-        out.setdefault("Mast " + m.group(1), {})[w.device] = row
+        out.setdefault(w.mast, {})[w.device] = row
     for user in sorted(by_user):
         bad.append(f"{devices.FIELD_FILE}: {devices.key_text((str(PLANNED_LEVEL), 'head', user))} has no head row in "
                    f"{wiring.PATH.name}: add its wiring there, or remove the field row")
@@ -520,6 +519,8 @@ def file_rows(master: list[dict], plan: dict) -> list[dict]:
     heads = {(r["level"], r["jmri_name"]): r for r in master if r["layer"] == "head"}
     physical = {(r["level"], r["system_name"]): r for r in master if r["layer"] == "head" and r["system_name"]}
     blocks = {(r["level"], r["user_name"]): r for r in master if r["layer"] == "block"}   # a protected block's role
+    os_of = {(r["level"], r["id"]): r["user_name"] for r in master if r["layer"] == "block" and r["id"].startswith("os:")}
+
     out, bad = [], []
     for r in (r for r in master if r["layer"] == "mast"):
         level, name, jmri, switch = r["level"], r["user_name"], r["jmri_name"], r["switch"]
@@ -569,7 +570,9 @@ def file_rows(master: list[dict], plan: dict) -> list[dict]:
             if not planned or planned.group(1, 2) != m.group(1, 2) or got != names:
                 bad.append(f"{where}: system_name {r['system_name']!r} is not the planned physical mast of "
                            f"{jmri!r} (its heads' rows give {got})")
-        out.append(dict(row, protects=protects[0] if protects else f"OS Switch {switch}",
+        # the OS block of its switch by its id (os:<n>), so an owner's name for it is the one written here
+        own = protects[0] if protects else os_of.get((level, f"os:{switch}"), f"OS Switch {switch}")
+        out.append(dict(row, protects=own,
                         head_system_names=level_masts.LIST.join(f"{h}={heads[(level, h)]['user_name']}"
                                                                 for h in names)))
     pairs = {}

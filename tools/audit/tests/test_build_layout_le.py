@@ -1003,28 +1003,32 @@ class LoopAndCrossover(unittest.TestCase):
         self.assertEqual(B.RETIRED_BLOCKS, ("Track 131-H1", "Track 131-H2"))
 
     def test_a_bad_numbering_file_stops_with_its_line(self) -> None:
-        head = "block,numbered_as,append_order,retired,notes\n"
+        # a live block by its id (naming-layers step 5), named by the name store; a retired one by its old name
+        head = "id,numbered_as,append_order,retired,notes\n"
+        names = {("2", "block:a"): "A", ("3", "block:b"): "B"}
         cases = {
-            "A,,,,\n": "line 2 (A): give exactly one of numbered_as, append_order, retired",
-            "A,B,1,,\n": "line 2 (A): give exactly one of numbered_as, append_order, retired",
-            "A,B,,yes,\n": "line 2 (A): give exactly one of numbered_as, append_order, retired",
-            "A,,,no,\n": "retired is 'no'; give yes or leave it empty",
-            "A,,x,,\n": "append_order 'x' is not a whole number",
-            "A,,2,,\n": "must count 1, 2, 3",
-            "A,,1,,\nA,,2,,\n": "line 3: block 'A' is empty or listed twice",
-            "A,B,,,\nB,,1,,\n": "B is both a block and the name another is numbered as",
+            "block:a,,,,\n": "line 2 (A): give exactly one of numbered_as, append_order",
+            "block:a,B,1,,\n": "line 2 (A): give exactly one of numbered_as, append_order",
+            "block:a,B,,Old,\n": "line 2: give a block's id, or a retired block's old name in retired",
+            ",,,,\n": "line 2: give a block's id, or a retired block's old name in retired",
+            ",,1,Old,\n": "line 2 (Old): a retired block holds its number",
+            "block:a,,x,,\n": "append_order 'x' is not a whole number",
+            "block:a,,2,,\n": "must count 1, 2, 3",
+            "block:a,,1,,\nblock:a,,2,,\n": "line 3: block 'A' is listed twice",
+            "block:a,B,,,\nblock:b,,1,,\n": "B is both a block and the name another is numbered as",
+            "block:zz,,1,,\n": "line 2: block:zz is no main or upper device of the device master",
         }
         for body, why in cases.items():
             with tempfile.TemporaryDirectory() as tmp:
                 path = Path(tmp) / "block_numbering.csv"
                 path.write_text(head + body)
                 with self.assertRaisesRegex(B.BuildError, re.escape(why), msg=body):
-                    B.load_numbering(path)
+                    B.load_numbering(path, names)
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "block_numbering.csv"
-            path.write_text("block,numbered\nA,B\n")
+            path.write_text("block,numbered_as,append_order,retired,notes\nA,B,,,\n")
             with self.assertRaisesRegex(B.BuildError, "expected the columns"):
-                B.load_numbering(path)
+                B.load_numbering(path, names)
 
     def test_the_build_stops_on_a_row_for_a_block_that_is_gone(self) -> None:
         have = ["OS Switch 107", "Track 107 Loop 1", "Track 107 Loop 2", "OS Switch 225a", "OS Switch 225b",

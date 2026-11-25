@@ -129,6 +129,21 @@ class EdgeRuns(unittest.TestCase):
         self.assertIn("edge e1: ends at a bumper in the graph, at (2, 'C') in the plan file", str(stop.exception))
 
 
+# the device IDs of the fixture blocks: block_lengths.csv is keyed by (level, id) (naming-layers step 5)
+IDS = {("1", "Track A"): "block:A", ("1", "Track B"): "block:B", ("1", "OS Switch 1"): "os:1",
+       ("1", "Track 1-3 at 1"): "block:1B-3A:1/2", ("1", "Track Gone"): "block:gone",
+       ("2", "OS Switch 101"): "os:101", ("2", "Track 117-119"): "block:117B-119A", ("3", "Track 201-203"): "block:201B-203A"}
+
+
+def row(level, name, *rest):
+    """A block_lengths.csv row (BLOCK_LENGTH_COLUMNS) of block `name` on `level`, its id from IDS."""
+    return [level, IDS[(level, name)], name, *rest]
+
+
+def csv_with(*args, **kw):
+    return PL.csv_with(*args, ids=IDS, **kw)
+
+
 class CsvWith(unittest.TestCase):
     def write(self, rows):
         p = Path(tempfile.mkdtemp()) / "block_lengths.csv"
@@ -140,14 +155,14 @@ class CsvWith(unittest.TestCase):
         return p
 
     def test_plan_in_is_written_and_the_rest_kept(self):
-        p = self.write([["Track A", "x", "1.0", "", "plan", ""], ["OS Switch 1", "x", "1.0", "22.6", "timed", "laps"]])
-        got = list(csv.DictReader(io.StringIO(PL.csv_with({"Track A": 104.04, "OS Switch 1": 9.2}, {}, p))))
+        p = self.write([row("1", "Track A", "x", "1.0", "", "plan", ""), row("1", "OS Switch 1", "x", "1.0", "22.6", "timed", "laps")])
+        got = list(csv.DictReader(io.StringIO(csv_with({"Track A": 104.04, "OS Switch 1": 9.2}, {}, p))))
         self.assertEqual([(r["user_name"], r["plan_in"], r["measured_in"], r["note"]) for r in got],
                          [("Track A", "104.0", "", ""), ("OS Switch 1", "9.2", "22.6", "laps")])
 
     def test_main_and_upper_rows_are_written_after_staging_in_level_and_name_order(self):
-        p = self.write([["Track A", "x", "1.0", "", "plan", ""], ["Track 201-203", "BS 201-203", "3.0", "", "plan", ""]])
-        got = list(csv.DictReader(io.StringIO(PL.csv_with(
+        p = self.write([row("1", "Track A", "x", "1.0", "", "plan", ""), row("3", "Track 201-203", "BS 201-203", "3.0", "", "plan", "")])
+        got = list(csv.DictReader(io.StringIO(csv_with(
             {"Track A": 1.0}, {"Track 201-203": ("3", 7.04, "OS Switch 201"), "OS Switch 101": ("2", 16.0, "OS Switch 101"),
                                "Track 117-119": ("2", 0.0, "OS Switch 117")}, p))))
         # a part (201-203, 117-119) carries its OS block's sensor; a link whose turnouts touch is 0 in long
@@ -157,9 +172,9 @@ class CsvWith(unittest.TestCase):
                           ("Track 201-203", "BS Switch 201", "7.0", "plan")])  # a part: its block's sensor again
 
     def test_a_main_or_upper_row_keeps_its_own_columns(self):
-        p = self.write([["Track A", "x", "1.0", "", "plan", ""],
-                        ["Track 201-203", "BS Switch 201", "3.0", "4.4", "timed", "laps"]])
-        got = list(csv.DictReader(io.StringIO(PL.csv_with({"Track A": 1.0}, {"Track 201-203": ("3", 7.04, "OS Switch 201")},
+        p = self.write([row("1", "Track A", "x", "1.0", "", "plan", ""),
+                        row("3", "Track 201-203", "BS Switch 201", "3.0", "4.4", "timed", "laps")])
+        got = list(csv.DictReader(io.StringIO(csv_with({"Track A": 1.0}, {"Track 201-203": ("3", 7.04, "OS Switch 201")},
                                                           p))))
         self.assertEqual([(r["user_name"], r["plan_in"], r["measured_in"], r["source"], r["note"]) for r in got],
                          [("Track A", "1.0", "", "plan", ""), ("Track 201-203", "7.0", "4.4", "timed", "laps")])
@@ -167,10 +182,10 @@ class CsvWith(unittest.TestCase):
     def test_a_parts_sensor_follows_its_block_every_build(self):
         """A part reports on its block's detector (owner, 2026-11-20): its occupancy_sensor is set from that block's
         row on every build, staging and main or upper alike, so a rewired block takes its parts with it."""
-        p = self.write([["OS Switch 1", "Block 4-9", "9.0", "", "plan", ""],
-                        ["Track 1-3 at 1", "Block 4-2", "5.0", "", "plan", "kept"],
-                        ["Track 201-203", "BS Switch 299", "3.0", "", "plan", ""]])
-        got = list(csv.DictReader(io.StringIO(PL.csv_with(
+        p = self.write([row("1", "OS Switch 1", "Block 4-9", "9.0", "", "plan", ""),
+                        row("1", "Track 1-3 at 1", "Block 4-2", "5.0", "", "plan", "kept"),
+                        row("3", "Track 201-203", "BS Switch 299", "3.0", "", "plan", "")])
+        got = list(csv.DictReader(io.StringIO(csv_with(
             {"OS Switch 1": 9.0, "Track 1-3 at 1": 5.0}, {"Track 201-203": ("3", 7.04, "OS Switch 201")}, p,
             parts={"Track 1-3 at 1": "OS Switch 1"}))))
         self.assertEqual([(r["user_name"], r["occupancy_sensor"], r["note"]) for r in got],
@@ -178,12 +193,44 @@ class CsvWith(unittest.TestCase):
                           ("Track 201-203", "BS Switch 201", "")])
 
     def test_the_file_and_the_drawing_must_hold_the_same_blocks(self):
-        p = self.write([["Track A", "x", "1.0", "", "plan", ""]])
+        p = self.write([row("1", "Track A", "x", "1.0", "", "plan", "")])
         with self.assertRaisesRegex(PL.LengthError, r"only drawn \['Track B'\]"):
-            PL.csv_with({"Track A": 1.0, "Track B": 2.0}, {}, p)
-        p = self.write([["Track A", "x", "1.0", "", "plan", ""], ["Track Gone", "x", "1.0", "", "plan", ""]])
-        with self.assertRaisesRegex(PL.LengthError, r"rows of no drawn block on any level: \['Track Gone'\]"):
-            PL.csv_with({"Track A": 1.0}, {}, p)
+            csv_with({"Track A": 1.0, "Track B": 2.0}, {}, p)
+        p = self.write([row("1", "Track A", "x", "1.0", "", "plan", ""), row("1", "Track Gone", "x", "1.0", "", "plan", "")])
+        with self.assertRaisesRegex(PL.LengthError,
+                                    r"rows of no drawn block on any level: \['Track Gone \(block:gone\)'\]"):
+            csv_with({"Track A": 1.0}, {}, p)
+
+
+    def test_a_row_is_found_by_its_blocks_id_so_a_rename_keeps_it(self):
+        """naming-layers step 5: a length worked out by name finds its row by (level, id); a renamed block's row keeps
+        its measured length and takes the new name as its label. A block with no id stops."""
+        p = self.write([row("1", "OS Switch 1", "Block 4-9", "9.0", "22.6", "timed", "laps")])
+        got = list(csv.DictReader(io.StringIO(PL.csv_with({"OS Brick": 9.2}, {}, p, ids={("1", "OS Brick"): "os:1"}))))
+        self.assertEqual([(r["level"], r["id"], r["user_name"], r["plan_in"], r["measured_in"]) for r in got],
+                         [("1", "os:1", "OS Brick", "9.2", "22.6")])
+        with self.assertRaisesRegex(PL.LengthError, r"blocks with no device ID in the device master: \['Track Z'\]"):
+            PL.csv_with({"OS Switch 1": 9.0, "Track Z": 1.0}, {}, p, ids=IDS)
+
+
+class Labels(unittest.TestCase):
+    """plan_lengths.labelled (--labels, the length-labels step): each row's user_name is the name store's for its
+    (level, id), nothing else changed; no plan file needed."""
+
+    def test_a_stale_label_is_the_name_stores_again(self):
+        text = PL.LENGTHS.read_text(encoding="utf-8")
+        self.assertEqual(PL.labelled(), text)                    # the committed labels are current
+        p = Path(tempfile.mkdtemp()) / "block_lengths.csv"
+        p.write_text(text.replace("1,block:3B-end,Track W-1,", "1,block:3B-end,Track Old,"), encoding="utf-8")
+        self.assertEqual(PL.labelled(p), text)
+        self.assertEqual(PL.main(["--labels", "--check"]), 0)
+
+    def test_an_id_the_device_master_does_not_have_stops(self):
+        p = Path(tempfile.mkdtemp()) / "block_lengths.csv"
+        p.write_text(PL.LENGTHS.read_text(encoding="utf-8").replace("1,block:3B-end,", "1,block:3Z-end,"),
+                     encoding="utf-8")
+        with self.assertRaisesRegex(PL.LengthError, "line 2: block:3Z-end is no level 1 device of the device master"):
+            PL.labelled(p)
 
 
 class MainUpper(unittest.TestCase):
