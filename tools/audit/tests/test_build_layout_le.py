@@ -563,7 +563,7 @@ class DeviceNames(unittest.TestCase):
         self.assertEqual(got, {"Switch 101A": "Switch 101", "Switch 101B": "Switch 101", "Track 1A-2B": "Track 1-2"})
         for rows, why in (('2,,block,Track 1-2,,,,,,,\n', "has no trial_name"),
                           ('2,,block,Track 1-2,,,,,,Track 1A-2B,\n2,,block,Track 3-4,,,,,,Track 1A-2B,\n',
-                           "trial_name Track 1A-2B is given to Track 1-2 and Track 3-4"),
+                           r"trial_name Track 1A-2B is given to Track 1-2 \(level 2, block\) and Track 3-4"),
                           ('2,,turnout,Turnout 5,,,,,,Switch 5,\n', "is not named"),
                           ('2,,block,Siding,,,,,,Track 1A-2B,\n', "is not named"),
                           ('2,,fb,FB 1,,,,,,,\n', "no turnout or block rows")):

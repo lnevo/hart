@@ -468,6 +468,14 @@ class Readers(Copy):
         self.assertFalse(hasattr(timed, "jmri_in"))
         self.assertNotEqual(timed.plan_in, timed.measured_in)
         self.assertEqual(R.plan_cm({"Track Main West": timed})["Track Main West"], timed.plan_in * 2.54)
+        # each row's note, stripped, as the readers by name (the documentation pages) print it
+        with self.src.block_lengths.open(newline="", encoding="utf-8") as fh:
+            notes = {r["user_name"]: r["note"].strip() for r in csv.DictReader(fh)}
+        self.assertEqual({n: b.note for n, b in got.items()}, notes)
+        self.assertTrue(any(notes.values()))
+        # the default is this checkout's file, the one Sources.under names
+        self.assertEqual(R.BLOCK_LENGTHS, R.Sources.under().block_lengths)
+        self.assertEqual(R.read_block_lengths(), R.read_block_lengths(R.BLOCK_LENGTHS))
         text = self.src.block_lengths.read_text(encoding="utf-8")
         w1 = next(line for line in text.splitlines() if line.startswith("1,block:3B-end,Track W-1,"))
         for bad, why in ((w1.replace(",plan,", ",assigned,"), "source 'assigned' is not one of"),
@@ -782,6 +790,26 @@ class VirtualNames(unittest.TestCase):
         self.assertTrue(any("blocks and occupancy rows differ" in p for p in bad), bad)
         self.assertIn("turnout Switch 3: jmri_name 'IT:HART:C3:1', not IT:HART:C3:<switch number>", bad)
         self.assertIn("turnout rows: a virtual name is empty or given twice", bad)
+
+    def test_the_rule_reads_ids_not_names(self) -> None:
+        """Naming-layers step 13: a turnout's switch number comes from its id, a block's detector is det:<its id>,
+        and a block, detector or mast the owner names keeps its generated virtual names (held to their form only)."""
+        ok = [replace(self.row("block", "Track Coal Spur", ""), id="block:1B-end"),
+              replace(self.row("occupancy", "BS 1 Spur", "IS:HART:C3:B:1_Spur"), id="det:block:1B-end"),
+              replace(self.row("turnout", "Switch Coal", "IT:HART:C3:1"), id="switch:1"),
+              replace(self.row("turnout", "DCC Switch Coal", "IT:HART:C3:1", role="lcc_alias"), id="dcc:1"),
+              replace(self.row("head", "Head Coal", "IH:HART:C3:2L"), id="mast:1:B:west:single")]
+        owner = {(2, "block:1B-end"), (2, "switch:1"), (2, "mast:1:B:west")}
+        self.assertEqual(R.check_virtual_names(ok, owner), [])
+        bad = R.check_virtual_names(ok)             # the same names taken as generated
+        self.assertTrue(any(p.startswith("occupancy BS 1 Spur: jmri_name") for p in bad), bad)
+        self.assertTrue(any("Head Coal" in p for p in bad), bad)
+        self.assertFalse(any(p.startswith("turnout") for p in bad), bad)       # the number is the id's
+        moved = R.check_virtual_names([ok[0], replace(ok[1], id="det:block:3A-end")] + ok[2:], owner)
+        self.assertTrue(any("blocks and occupancy rows differ" in p for p in moved), moved)
+        self.assertIn("turnout Switch Coal: jmri_name 'IT:HART:C3:1', not IT:HART:C3:<switch number>",
+                      R.check_virtual_names([replace(ok[2], id="switch:3")], owner))
+        self.assertEqual(R.DeviceMap(rows=ok).turnouts, {"1": ok[2]})
 
     def test_a_block_or_occupancy_row_given_twice(self) -> None:
         """Two rows of one block (or of one occupancy sensor) are caught, not folded into one by a set."""

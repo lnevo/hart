@@ -12,7 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
-from hartlib import coordinator, devices, paths, railroad, tables  # noqa: E402
+from hartlib import coordinator, devices, drawing_keys, paths, railroad, tables  # noqa: E402
 from hartlib import level_masts as level_masts_lib  # noqa: E402  masts.csv and its virtual names
 from le_common import (  # noqa: E402
     band_key, band_levels, bare, STAGING_LEVELS, BuildError, DEVICE_MAP, main_upper_device_map,
@@ -97,6 +97,7 @@ def plan_lengths() -> dict:
 
 
 MM_PER_INCH = 25.4
+MAIN_UPPER = ("2", "3")      # the levels device_names reads (the build adds them to the staging base)
 MASTS = level_masts_lib.PATH      # masts.csv, every level's (build_masts.py)
 # the levels the build adds (main and upper), whose masts it draws on internal heads: every level the base holds none of
 ADDED_LEVELS = tuple(lv for lv in level_masts_lib.LEVELS if lv not in STAGING_LEVELS)
@@ -273,49 +274,27 @@ def placeholder_names(bands, le_mod, page=None) -> tuple[dict, dict]:
 
 
 def device_names(path: Path = DEVICE_MAP) -> dict:
-    """{placeholder: device-map user name} for the main and upper turnouts and blocks: each turnout or block row's
-    `trial_name` (comma separated: a crossover's two halves are one turnout, "Switch 101A, Switch 101B" -> "Switch
-    101") is the placeholder placeholder_names gives. Stops on a row with no trial name, a trial name given twice, a
-    turnout not named "Switch <n>" or a block not named "Track ..." or "OS Switch <n>". A part (the device master's part_of: a
-    link inside an OS block) is a JMRI block of its own under its own name (owner, 2026-11-20), whose occupancy sensor
-    is its OS block's (hartlib.tables_build.master_beans); the block it names must be a main or upper block row."""
-    out, bad = {}, []
-    for r in main_upper_device_map(path).rows:         # read and checked by hartlib.railroad
-        if r.layer not in ("turnout", "block"):
-            continue
-        user = r.user_name
-        if r.role == "lcc_alias":
-            continue                    # the LCC alias of a turnout: not a panel object
-        form = r"Switch \d+" if r.layer == "turnout" else r"(Track \S.*|OS Switch \d+[a-d]?)"
-        if not re.fullmatch(form, user):
-            bad.append(f"line {r.line}: {r.layer} {user!r} is not named {form}")
-            continue
-        # a trailing "*" marks a switch the plan's label carries one on (223, owner-confirmed hand); the drawing's
-        # placeholder is the bare name, as placeholder_names writes it
-        trial = [bare(t.strip()) for t in r.trial_name.split(",") if t.strip()]
-        if not trial:
-            bad.append(f"line {r.line}: {user} has no trial_name")
-        for t in trial:
-            if t in out:
-                bad.append(f"line {r.line}: trial_name {t} is given to {out[t]} and {user}")
-            out[t] = user
-    blocks = set(out.values())
+    """{placeholder: device-map user name} for the main and upper turnouts and blocks, parts among them: the one
+    reader of the drawing keys (hartlib.drawing_keys, keyed by device ID; naming-layers step 13) over levels 2 and 3,
+    each key named by its ID's row in the merged view (the owner's name, else the generated). A crossover's two halves
+    are one turnout ("Switch 101A", "Switch 101B" -> "Switch 101"). A part (the device master's part_of: a link
+    inside an OS block) is a JMRI block of its own under its own name (owner, 2026-11-20), whose occupancy sensor is
+    its OS block's (hartlib.tables_build.master_beans). Stops on a row with no trial name, a trial name given twice,
+    a part of no main or upper block row, a turnout not named "Switch <n>" or a block not named "Track ..." or
+    "OS Switch <n>"."""
+    main_upper_device_map(path)         # read and checked by hartlib.railroad (BuildError naming the file)
     try:
-        parts = devices.part_lines(("2", "3"), path)
-    except railroad.FactsError as exc:
-        raise BuildError(f"the device map: {exc}") from None
-    for line, r in parts:
-        if r["part_of"] not in blocks:
-            bad.append(f"part {r['user_name']} (level {r['level']}) names {r['part_of']}, no main or upper block row")
-        trial = [bare(t.strip()) for t in r["trial_name"].split(",") if t.strip()]
-        if not trial:
-            bad.append(f"part {r['user_name']} (level {r['level']}) has no trial_name")
-        for t in trial:
-            if t in out:
-                bad.append(f"trial_name {t} is given to {out[t]} and part {r['user_name']} (level {r['level']})")
-            out[t] = r["user_name"]
+        keys = drawing_keys.read(MAIN_UPPER, path)
+    except (drawing_keys.DrawingKeyError, railroad.FactsError) as exc:
+        raise BuildError(f"{paths.rel(path)}: {exc}") from None
+    bad = []
+    for r in keys.rows.values():
+        form = r"Switch \d+" if r["layer"] == "turnout" else r"(Track \S.*|OS Switch \d+[a-d]?)"
+        if r["role"] != "part" and not re.fullmatch(form, r["user_name"]):
+            bad.append(f"{devices.row_text(r)} is not named {form}")
     if bad:
         raise BuildError(f"{paths.rel(path)}: " + "; ".join(bad))
+    out = {key: keys.rows[device_id]["user_name"] for key, device_id in keys.ids.items()}
     if not out:
         raise BuildError(f"{paths.rel(path)}: no turnout or block rows")
     return out

@@ -32,15 +32,17 @@ keeps it as written, so panel_status.py finds its icons by the same names.
 """
 from __future__ import annotations
 
-import json
 import math
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir() and str(p / "tools/hartlib/src") not in sys.path][:1]
 
 import pi_dialog  # noqa: E402  the Pi's Dialog widths, for a member placed by its right edge
+from hartlib import hand_lists  # noqa: E402  the items file's reader (read_panel_items)
 
 POINTS = {"top-left": (0, 0), "top": (0.5, 0), "top-right": (1, 0), "left": (0, 0.5), "centre": (0.5, 0.5),
           "right": (1, 0.5), "bottom-left": (0, 1), "bottom": (0.5, 1), "bottom-right": (1, 1)}
@@ -120,12 +122,14 @@ def member_box(m: dict, what: str) -> tuple[float, tuple[float, float]]:
     return right - w, (float(w), float(h))
 
 
-def load(path: Path) -> dict:
-    """The file, checked: every item well formed (see the module text). ItemsError names the item."""
+def load(path: Path | None = None) -> dict:
+    """The file (ITEMS unless `path`; hartlib.hand_lists.read_panel_items), checked: every item well formed (see the
+    module text). ItemsError names the item."""
+    path = ITEMS if path is None else Path(path)
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise ItemsError(f"cannot read {path.name}: {exc}") from None
+        data = hand_lists.read_panel_items(path)
+    except hand_lists.HandListError as exc:
+        raise ItemsError(str(exc)) from None
     if not isinstance(data, dict) or not isinstance(data.get("items"), list) or not data["items"]:
         raise ItemsError(f"{path.name}: needs a non-empty items list")
     if set(data) - FILE_FIELDS:
@@ -264,7 +268,7 @@ def place(panel: ET.Element, data: dict, le_mod, slots_mod, fit: tuple[int, int]
 # ---------------------------------------------------------------- the status beans (device-master rows)
 
 WRITER = "panel_items.json"      # the device master written_by of the status beans, one of hartlib.devices.WRITERS
-ITEMS = Path(__file__).resolve().parents[2] / "jmri/layouts/hart/data/schematic/panel_items.json"
+ITEMS = hand_lists.PANEL_ITEMS   # the items file, kept by hand
 # The beans the status cluster's icons show (panel_status.py finds them by name): (layer, user name, system name,
 # assignment, JMRI comment, the icon attribute that names it, what the row says).
 STATUS_BEANS = (

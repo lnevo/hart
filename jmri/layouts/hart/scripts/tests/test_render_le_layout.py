@@ -119,6 +119,11 @@ class MastKinds(unittest.TestCase):
         path = self.write('{"signals": [{"mast": "2L", "kind": "field"}, {"mast": "4LA", "kind": "virtual"}]}')
         self.assertEqual(render_le_layout.mast_kinds(path), {"Mast 2L": "field", "Mast 4LA": "virtual"})
 
+    def test_the_default_signals_file_is_hartlibs(self):
+        from hartlib import layer_files, paths
+        self.assertEqual(render_le_layout.KINDS_FILE, layer_files.path("signals"))
+        self.assertEqual(render_le_layout.KINDS_FILE.parent, paths.LAYOUT_DATA / "schematic")
+
     def test_the_repo_signals_file_reads(self):
         kinds = render_le_layout.mast_kinds(render_le_layout.KINDS_FILE)
         self.assertTrue(kinds)

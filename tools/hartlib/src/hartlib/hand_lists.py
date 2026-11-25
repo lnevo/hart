@@ -6,6 +6,9 @@ HandListError naming the file and line (naming-layers step 6: every read of layo
     hand_lists.read_main_lines("staging")          # main_lines.csv: the main lines of a schematic sheet
     hand_lists.read_mast_cells()                   # mast_cells.csv: the masts on the parked USS CTC board
     hand_lists.read_uss_cells(), read_uss_plants() # uss_board_cells.csv, uss_board_plants.csv: that board's grid
+    hand_lists.read_retired_masts()                # retired_virtual_masts.csv: the virtual masts dropped from a level
+    hand_lists.read_sheet_rows()                   # sheets.csv: the station detail sheets, as rows
+    hand_lists.read_panel_items()                  # panel_items.json: the Layout Editor panel's own items, as loaded
 
 - block_overrides.csv (schematic/): read_block_overrides. Every level's rows, keyed by switch numbers, so a new
   export moves a row with its track; a track row's `block` is an OS block's device ID, named here from the plan and
@@ -17,17 +20,24 @@ HandListError naming the file and line (naming-layers step 6: every read of layo
   jmri/layouts/hart/scripts/layout_facts.py (for gen_ctc_track_plan.py) and tools/audit/check_layout_facts.py.
   mast_cells.csv keys masts by name: two of its masts no longer exist, and it is keyed by mast ID when the USS
   machine is unparked (step 5 findings).
+- retired_virtual_masts.csv (schematic/): read_retired_masts, {mast: system name} with each row checked, so a dropped
+  mast's ordinal stays taken. tools/schematic/mast_plan.py (read_retired) reads it here.
+- sheets.csv (schematic/): read_sheet_rows, the rows with their lines; tools/schematic/build_staging_sets.py
+  (read_sheets) checks them against the stations.
+- panel_items.json (schematic/): read_panel_items, the parsed file; tools/schematic/panel_items.py (load) checks its
+  items, for build_layout_le.py.
 """
 from __future__ import annotations
 
 import csv
+import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping
 
-from . import paths
-from .railroad_facts import natural
+from . import level_masts, paths
+from .railroad_facts import natural, read_rows
 
 DATA = paths.LAYOUT_DATA
 SCHEMATIC = DATA / "schematic"
@@ -272,6 +282,63 @@ def read_main_lines(sheet: str, path: Path = MAIN_LINES,
             r[c] = (";".join(resolve_stop(t, names, where) for t in split(r[c])) if c in ("via", "loop")
                     else resolve_stop(r[c].strip(), names, where))
     return mine
+
+
+# ---------------------------------------------------------------- retired_virtual_masts.csv
+
+RETIRED_MASTS = SCHEMATIC / "retired_virtual_masts.csv"
+RETIRED_MAST_COLUMNS = ["mast", "system_name", "dropped", "notes"]
+
+
+def read_retired_masts(path: Path = RETIRED_MASTS) -> dict[str, str]:
+    """{mast: system name} of the virtual masts dropped from any level (RETIRED_MAST_COLUMNS), so their ordinals stay
+    taken. Stops on other columns, or a row whose mast is empty or listed twice, whose system name is no
+    VirtualSignalMast's (level_masts.virtual_ordinal), or whose ordinal another row has."""
+    try:
+        with open(path, newline="", encoding="utf-8") as fh:
+            reader = csv.DictReader(fh)
+            rows = list(reader)
+    except OSError as exc:
+        raise HandListError(f"cannot read {path.name}: {exc}") from None
+    if reader.fieldnames != RETIRED_MAST_COLUMNS:
+        raise HandListError(f"{path.name}: columns {reader.fieldnames}, not {RETIRED_MAST_COLUMNS}")
+    out, seen = {}, set()
+    for n, r in enumerate(rows, 2):
+        m, sysname = (r["mast"] or "").strip(), (r["system_name"] or "").strip()
+        k = level_masts.virtual_ordinal(sysname)
+        if not m or m in out or k is None or k in seen:
+            raise HandListError(f"{path.name} line {n}: {m!r} {sysname!r} is empty, listed twice, not a virtual "
+                                "mast's system name, or reuses an ordinal")
+        out[m] = sysname
+        seen.add(k)
+    return out
+
+
+# ---------------------------------------------------------------- sheets.csv
+
+SHEETS_FILE = SCHEMATIC / "sheets.csv"
+SHEET_COLUMNS = ("level", "sheet", "stations")      # and notes, optional
+
+
+def read_sheet_rows(path: Path = SHEETS_FILE) -> list[tuple[int, dict[str, str]]]:
+    """(line, row) of each station detail sheet (SHEET_COLUMNS and notes, values stripped; railroad_facts.read_rows).
+    Stops (FactsError) on a missing column or a row of the wrong length; what the cells may hold is the reader's
+    (build_staging_sets.read_sheets)."""
+    return read_rows(path, SHEET_COLUMNS, optional=("notes",))
+
+
+# ---------------------------------------------------------------- panel_items.json
+
+PANEL_ITEMS = SCHEMATIC / "panel_items.json"
+
+
+def read_panel_items(path: Path = PANEL_ITEMS):
+    """The Layout Editor panel's own items file, parsed; HandListError when it cannot be read or parsed. Its shape is
+    checked by tools/schematic/panel_items.py (load)."""
+    try:
+        return json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise HandListError(f"cannot read {Path(path).name}: {exc}") from None
 
 
 # ---------------------------------------------------------------- the USS CTC board (parked)

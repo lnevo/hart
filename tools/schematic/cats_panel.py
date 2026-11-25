@@ -26,13 +26,16 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_device_map as bdm  # noqa: E402  the device map's naming helpers (base, band_level, natural)
 import mast_rule as mr  # noqa: E402  the helix tracks (plan_overrides.json)
-from hartlib import level_masts, paths  # noqa: E402
+from hartlib import drawing_keys, level_masts, paths  # noqa: E402
+from hartlib.railroad_facts import FactsError  # noqa: E402
+
+MAIN_UPPER = ("2", "3")     # the levels the desks name from the device master (staging's are the staging map's)
 from hartlib.cats import station_plate  # noqa: E402
 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
 from le_common import BuildError, plugin as schematic_plugin  # noqa: E402  the plugin's core: crossover halves
 
-from cats_panel_facts import DEVICE_MAP, load_device_map, mast_type, template_by_type  # noqa: E402
+from cats_panel_facts import DEVICE_MAP, mast_type, template_by_type  # noqa: E402
 
 # Main and upper: CTC on the CTC desk, CATS holds their signals and releases them (owner, 2026-11-17); ABS on the twin
 MAIN_UPPER_DISCIPLINE = "CTC"
@@ -322,8 +325,7 @@ def name_loop_halves(bands, device=None):
     (the helix tracks' McKees Rocks and McKeesport) in place of its name."""
     import build_layout_le as bl
     import staging_device_map as sdm
-    device = load_device_map() if device is None else device      # the caller's Facts.device, read once
-    by_trial = {t: name for name, row in device.blocks.items() for t in row.trial}
+    keys = drawn_keys(device)
     out = copy.deepcopy(bands)
     _sheet, le_mod, _core = bl.plugin()
     joined = le_mod.partners(out)
@@ -346,24 +348,31 @@ def name_loop_halves(bands, device=None):
         for sid, half in halves.items():
             band["strands"][sid]["loop_half"] = half
             trial = placeholder(band["strands"][sid])
-            if trial not in by_trial:
+            row = keys.row(trial)
+            if row is None or row["layer"] != "block":
                 raise SystemExit(f"{title}: balloon loop half {trial} has no block row in {DEVICE_MAP.name}")
-            band["strands"][sid]["name"] = by_trial[trial].removeprefix("Track ")
+            band["strands"][sid]["name"] = keys.name(trial).removeprefix("Track ")    # the name store's, by its ID
     return out
 
 
-def part_blocks() -> dict[str, tuple[str, str]]:
-    """{trial name: (part name, the block it is part of)} of the main and upper parts (the device master's part_of: a link
-    inside an OS block, step 5 part 2, owner 2026-11-20), which the device maps leave out: a block of its own on the
-    desk, bound to its OS block's sensor."""
-    out = {}
-    for line, r in bdm.devices.part_lines(("2", "3")):
-        for t in (x.strip() for x in r["trial_name"].split(",") if x.strip()):
-            if t in out:
-                raise SystemExit(f"{DEVICE_MAP.name}: {r['user_name']} (level {r['level']}, block): trial name {t} is "
-                                 "given to two parts")
-            out[t] = (r["user_name"], r["part_of"])
-    return out
+def drawn_keys(device=None):
+    """The main and upper drawing keys (hartlib.drawing_keys: each schematic piece's device by ID, named from the
+    merged view, the name store) of the master `device` was read from (a Facts.device; default the committed
+    master). SystemExit naming the file on keys that do not read as one device per piece."""
+    path = getattr(device, "path", None) or DEVICE_MAP
+    try:
+        return drawing_keys.read(MAIN_UPPER, path)
+    except (drawing_keys.DrawingKeyError, FactsError) as exc:
+        raise SystemExit(f"{paths.rel(path)}: {exc}") from None
+
+
+def part_blocks(device=None) -> dict[str, tuple[str, str]]:
+    """{trial name: (part name, the block it is part of)} of the main and upper parts (the device master's part_of: a
+    link inside an OS block, step 5 part 2, owner 2026-11-20), which the device maps leave out: a block of its own on
+    the desk, bound to its OS block's sensor. Read through drawn_keys, which stops on a key two rows give."""
+    keys = drawn_keys(device)
+    return {k: (keys.rows[i]["user_name"], keys.rows[i]["part_of"]) for k, i in keys.ids.items()
+            if keys.rows[i]["role"] == "part"}
 
 
 def device_name(bands, cats, keys, F, log):
@@ -389,7 +398,7 @@ def device_name(bands, cats, keys, F, log):
         ends |= {band["nodes"][e[0]].get("label") or "" for e in (s["src"], s["dst"])
                  if band["nodes"][e[0]]["kind"] in ("switch", "dx")}
     rows = sorted(n for n, r in F.device.blocks.items() if r.trial & edges)
-    parts = part_blocks()
+    parts = part_blocks(F.device)
     if not rows and edges and edges <= set(parts):
         # a link inside an OS block that the desk draws as a block of its own: the part's name (its sensor is its OS
         # block's, dark_bindings)
@@ -473,7 +482,7 @@ def dark_bindings(bands, cats, P, F, bound_bi, stored):
     band_of = lambda k: int(k[1].split(":", 1)[0][1:])
     out, log, seen, missing, joined = {}, [], set(), {}, set()
     helix = mr.read_helix_tracks()
-    part_of = dict(part_blocks().values())                  # {part: its OS block}
+    part_of = dict(part_blocks(F.device).values())                  # {part: its OS block}
     for root, keys in sorted(groups.items(), key=lambda kv: P.names[kv[0]]):
         panel_name = P.names[root]
         dark = [k for k in keys if level_band(bands, band_of(k), bound_bi)]
@@ -634,7 +643,7 @@ def level_signals(bands, F, bound_bi):
     by_trial = {t: name for name, row in F.device.blocks.items() for t in row.trial}
     # a part (a link inside an OS block) is a block of its own, its sensor its OS block's: a mast may face it
     # (a trial name on a part and a block row both stops le_names.device_names; the facts' own blocks come first)
-    for t, (name, _of) in part_blocks().items():
+    for t, (name, _of) in part_blocks(F.device).items():
         by_trial.setdefault(t, name)
     added = defaultdict(list)
     for r in F.level_masts:

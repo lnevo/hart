@@ -19,6 +19,7 @@ import build_device_map as bdm  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402
 
 devices = bdm.devices
+railroad = bdm.railroad
 
 
 def skip_or_fail(exc: Exception) -> None:
@@ -179,6 +180,13 @@ class OneRowPath(RepoReadOnly, unittest.TestCase):
         self.assertEqual(self.generated(files, "2", "block:103BB-end")["user_name"], "Track Coal Spur")
         self.assertTrue(any("Track 103 Spur" in line and "Track Coal Spur" in line for line in self.said),
                         self.said)          # the rename is said (hartlib.device_changes)
+        # step 13: the railroad's device-map check reads the detector and the virtual names by id, so the renamed
+        # block passes (before, read_device_map stopped: its detector BS 103 Spur is not named for Track Coal Spur)
+        dm = railroad.read_device_map(files.master)
+        self.assertEqual(dm.occupancy["Track Coal Spur"].user_name, "BS 103 Spur")
+        owner = {(int(lv), i) for (lv, i), r in devices.field_index(files).items() if r.get("user_name")}
+        self.assertEqual(railroad.check_virtual_names(dm.rows, owner), [])
+        self.assertTrue(railroad.check_virtual_names(dm.rows))      # taken as generated, its sensor is wrong
         # step 8: the blocks are numbered over the generated names, so the renamed block and every other keep theirs
         before = {k: (r["jmri_name"], r["layout_block"]) for k, r in self.write(self.copy()).items()}
         self.assertEqual({k: (r["jmri_name"], r["layout_block"]) for k, r in rows.items()}, before)

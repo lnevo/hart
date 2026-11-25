@@ -1,12 +1,11 @@
 """The layout documentation page matches its template and block_lengths.csv (one row per detector), drawing D2
 states the same section count, and the hand-edited drawings carry no SOQ wording."""
-import csv
 import io
 import re
 import sys
-import tempfile
 import tokenize
 import unittest
+from dataclasses import replace
 from pathlib import Path
 from unittest import mock
 
@@ -39,37 +38,23 @@ class LayoutDocs(unittest.TestCase):
             ld.label(s["name"])
 
     def test_parts_fold_into_their_detector(self):
-        rows = [
-            {"user_name": "OS Switch 1", "occupancy_sensor": "Block 4-2", "plan_in": "9.2", "measured_in": "22.6",
-             "source": "timed", "note": ""},
-            {"user_name": "Track 1-3 at 1", "occupancy_sensor": "Block 4-2", "plan_in": "5.0", "measured_in": "",
-             "source": "plan", "note": "a part of OS Switch 1, on its detector"},
-            {"user_name": "OS Switch 9", "occupancy_sensor": "Block 13-8", "plan_in": "9.2", "measured_in": "",
-             "source": "plan", "note": ""},
-            {"user_name": "Track 9-11", "occupancy_sensor": "Block 13-8", "plan_in": "10.3", "measured_in": "",
-             "source": "plan", "note": "a part of OS Switch 9, on its detector"},
-            {"user_name": "Track 109-111", "occupancy_sensor": "BS Switch 109", "plan_in": "5.4", "measured_in": "",
-             "source": "plan", "note": "main level"},
-        ]
-        with tempfile.TemporaryDirectory() as td:
-            path = Path(td) / "b.csv"
-            with path.open("w", newline="") as f:
-                w = csv.DictWriter(f, fieldnames=list(rows[0]))
-                w.writeheader()
-                w.writerows(rows)
-            with mock.patch.object(ld, "BLOCKS", path):
-                got = ld.detected_sections()
+        def row(name, sensor, plan, measured=None, note=""):
+            return ld.railroad.BlockLength(2, name, sensor, plan, measured, "timed" if measured else "plan", "1",
+                                           name, note)
+        rows = [row("OS Switch 1", "Block 4-2", 9.2, 22.6),
+                row("Track 1-3 at 1", "Block 4-2", 5.0, note="a part of OS Switch 1, on its detector"),
+                row("OS Switch 9", "Block 13-8", 9.2),
+                row("Track 9-11", "Block 13-8", 10.3, note="a part of OS Switch 9, on its detector"),
+                row("Track 109-111", "BS Switch 109", 5.4, note="main level")]
+        # the rows come from hartlib.railroad.read_block_lengths, in file order
+        with mock.patch.object(ld.railroad, "read_block_lengths", return_value={r.user_name: r for r in rows}):
+            got = ld.detected_sections()
         self.assertEqual([(s["name"], s["inches"], s["estimate"]) for s in got],
                          [("OS Switch 1", 22.6, False), ("OS Switch 9", 19.5, True)])
-        rows[3]["occupancy_sensor"] = "Block 4-2"        # 9-11 put on OS Switch 1's detector by mistake
-        with tempfile.TemporaryDirectory() as td:
-            path = Path(td) / "b.csv"
-            with path.open("w", newline="") as f:
-                w = csv.DictWriter(f, fieldnames=list(rows[0]))
-                w.writeheader()
-                w.writerows(rows)
-            with mock.patch.object(ld, "BLOCKS", path), self.assertRaises(SystemExit):
-                ld.detected_sections()
+        rows[3] = replace(rows[3], occupancy_sensor="Block 4-2")     # 9-11 put on OS Switch 1's detector by mistake
+        with mock.patch.object(ld.railroad, "read_block_lengths", return_value={r.user_name: r for r in rows}), \
+                self.assertRaises(SystemExit):
+            ld.detected_sections()
 
     def test_d2_must_state_the_live_count(self):
         ld.check_d2(len(ld.detected_sections()))

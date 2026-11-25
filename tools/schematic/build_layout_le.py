@@ -101,7 +101,7 @@ from le_tables import (  # noqa: E402,F401  re-exported: callers and tests read 
 )
 
 LEVELS = ("all", "staging")
-PANEL_ITEMS = pd.DATA / "panel_items.json"
+PANEL_ITEMS = panel_items.ITEMS     # the panel's own items (hartlib.hand_lists.PANEL_ITEMS)
 TEMPLATE_PANEL = "HART Railroad"     # the panel's name
 RETIRED_TRIAL = ("the viewing trials (tables_layout.xml, tables_layout_staging.xml) are retired (owner, 2026-11-17): "
                  "build with as_live=True")

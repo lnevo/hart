@@ -15,15 +15,17 @@ count.
 from __future__ import annotations
 
 import argparse
-import csv
 import html
 import re
 import sys
 from pathlib import Path
 
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import railroad  # noqa: E402
+
 PORTAL = Path(__file__).resolve().parents[1]
 ROOT = PORTAL.parent
-BLOCKS = ROOT / "jmri/layouts/hart/data/block_lengths.csv"
 TEMPLATE = PORTAL / "scripts/layout_docs_template.html"
 PAGE = PORTAL / "behind/layout-docs.html"
 DRAWINGS = PORTAL / "assets/behind/layout-docs/drawings"
@@ -63,26 +65,24 @@ def detected_sections() -> list[dict]:
     block's detector ("a part of OS Switch 1" in the note) is folded into that row. The length is
     the measured one when the detector was timed (it covers the whole detector), else the plan
     lengths added up, marked as an estimate."""
-    with BLOCKS.open() as f:
-        rows = list(csv.DictReader(f))
     by_sensor: dict[str, dict] = {}
-    for r in rows:
-        m = re.fullmatch(r"Block (\d+)-(\d+)", r["occupancy_sensor"])
+    for b in railroad.read_block_lengths().values():     # this checkout's file, in file order
+        m = re.fullmatch(r"Block (\d+)-(\d+)", b.occupancy_sensor)
         if not m:
             continue
-        whole = re.search(r"a part of (.+?),", r["note"])
+        whole = re.search(r"a part of (.+?),", b.note)
         part = bool(whole)
-        s = by_sensor.setdefault(r["occupancy_sensor"], {"node": int(m.group(1)), "ch": int(m.group(2)),
-                                                         "name": None, "plan": 0.0, "measured": None})
-        s["plan"] += float(r["plan_in"])
+        s = by_sensor.setdefault(b.occupancy_sensor, {"node": int(m.group(1)), "ch": int(m.group(2)),
+                                                      "name": None, "plan": 0.0, "measured": None})
+        s["plan"] += b.plan_in
         if not part:
             if s["name"]:
-                raise SystemExit(f"build_layout_docs: {r['occupancy_sensor']} has two sections, {s['name']} and {r['user_name']}")
-            s["name"] = r["user_name"].replace("Track ", "")
-            if r["source"] == "timed":
-                s["measured"] = float(r["measured_in"])
+                raise SystemExit(f"build_layout_docs: {b.occupancy_sensor} has two sections, {s['name']} and {b.user_name}")
+            s["name"] = b.user_name.replace("Track ", "")
+            if b.source == "timed":
+                s["measured"] = b.measured_in
         if part:
-            s.setdefault("parts", []).append((r["user_name"], whole.group(1)))
+            s.setdefault("parts", []).append((b.user_name, whole.group(1)))
     out = []
     for sensor, s in by_sensor.items():
         for piece, owner in s.get("parts", []):

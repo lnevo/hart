@@ -23,23 +23,27 @@ They are kept apart from the railroad's own schematics and wiring docs on purpos
   common to the frog) (owner, 2026-11-14).
 - Six protected districts on staging and the helix: four PSX-series circuit breakers
   and the two auto-reversers (owner, 2026-11-14).
-- Detected sections and their node channels: jmri/layouts/hart/data/block_lengths.csv.
+- Detected sections and their node channels: jmri/layouts/hart/data/block_lengths.csv, read through
+  hartlib.railroad.read_block_lengths.
 
     python3 docs/ap/electrical/make_drawings.py
 """
 from __future__ import annotations
 
-import csv
+import sys
 import textwrap
 import re
 from html import escape
 from pathlib import Path
 
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import railroad  # noqa: E402
+
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 OUT = HERE / "drawings"
 SCHEMATIC = ROOT / "docs/ops/schematic-system-draft.svg"
-BLOCKS = ROOT / "jmri/layouts/hart/data/block_lengths.csv"
 
 RED = "#b03a2e"
 BLUE = "#1f5fa8"
@@ -307,16 +311,14 @@ def detected_sections() -> list[dict]:
     Length is the whole detected section: each detector is one block (the hidden yard throat
     blocks are gone, 2026-11-20), at the length JMRI holds (measured, else the plan's).
     """
-    with BLOCKS.open() as f:
-        rows = list(csv.DictReader(f))
     out = []
-    for r in rows:
-        m = re.fullmatch(r"Block (\d+)-(\d+)", r["occupancy_sensor"])
+    for b in railroad.read_block_lengths().values():     # this checkout's file, in file order
+        m = re.fullmatch(r"Block (\d+)-(\d+)", b.occupancy_sensor)
         if not m:
             continue
-        timed = r["source"] == "timed"          # JMRI's length: the measured one, else the plan's
-        inches = float(r["measured_in"] if timed else r["plan_in"])
-        out.append({"name": r["user_name"].replace("Track ", ""), "node": int(m.group(1)), "ch": int(m.group(2)),
+        timed = b.source == "timed"             # JMRI's length: the measured one, else the plan's
+        inches = b.measured_in if timed else b.plan_in
+        out.append({"name": b.user_name.replace("Track ", ""), "node": int(m.group(1)), "ch": int(m.group(2)),
                     "inches": inches, "estimate": not timed})
     out.sort(key=lambda s: (s["node"], s["ch"]))
     return out
