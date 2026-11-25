@@ -2,7 +2,7 @@
 
 Maintain the supplier/customer/commodity matrix that feeds waybills and STS seed.
 
-**Status:** Live in `ops/hart-ops/industries/`.
+**Status:** Retired 2026-11-25 (owner: legacy, nothing uses it). The matrix, its scripts and notes are in `archive/docs/ops/industries/`; `industries.txt` stays in `ops/hart-ops/industries/`.
 
 ## Inputs
 
