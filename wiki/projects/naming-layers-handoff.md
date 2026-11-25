@@ -251,7 +251,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   direct readers not moved yet.
 - **Open, for a later step:** the direct readers the check lists as not moved: `block_lengths.csv` in
   `export_track_lengths.py`, `infer_block_lengths.py` (also its writer), `levels_page.py`, `build_layout_docs.py` and
-  `docs/ap/electrical/make_drawings.py`; `signals.json` in `render_le_layout.py`; `panel_items.json` (tools/schematic
+  `archive/docs/ap/electrical/make_drawings.py`; `signals.json` in `render_le_layout.py`; `panel_items.json` (tools/schematic
   `panel_items.load`), `block_numbering.csv` (`le_tables.load_numbering`), `retired_virtual_masts.csv`
   (`mast_plan.read_retired`) and `sheets.csv` (`build_staging_sets.read_sheets`). The check sees names only: a path
   built from pieces or read from a config is not seen.
