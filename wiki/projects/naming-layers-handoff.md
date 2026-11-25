@@ -519,6 +519,8 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   alias names its bean and its feedback has none (DIRECT). `follow_swaps` applies it after the owner's rows go over
   the generated ones, and wires a swapped detector. My call (owner's rule of 2026-11-25): the feedback comes with the
   turnout, as staging's does, since `master_beans` stops a field turnout with none; a field row of its own overrides it.
+  A field `jmri_name` with no field `assignment` sets the assignment the name gives (`owner_over`), so the swap is that
+  one cell (code review).
 - **Step 13's open items closed.** `read_device_map` holds a field occupancy row to its wired M2S sensor, a virtual one
   to its IS:HART:C3:B: sensor (`DeviceRow.assignment`, `swapped`); `check_virtual_names` exempts a field row by its
   column, so the invariant no longer reads the field file for swaps. The desks' `device_name`, `inside_os` and
@@ -526,7 +528,8 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   block by its drawing key's name, so an owner's name reaches them. `check_layout_facts.py` takes a swapped detector's
   field sensor (`field_sensors`).
 - **Level tests that became column tests:** `switches.csv`'s row shape (`SwitchRow.by_os`: keyed by its OS block's ID,
-  or by its half), `staging_switches` and `hands` by that key, `build_hands.py`'s two passes, the Store split's rename
+  or by its half; a main or upper row keyed by its OS block still stops until its switches are bound to the live
+  panels, as `staging_switches` reads its turnout on staging, code review), `staging_switches` and `hands` by that key, `build_hands.py`'s two passes, the Store split's rename
   instruction for any builder-made turnout or feedback row (`store_split`), the alias and feedback shape above.
 - **Kept as real level facts, with why:** the drawing bands (`le_common.STAGING_LEVELS`, the staging band bound to the
   field, `build_cats_panel.BOUND_LEVEL`, `plan_lengths.MAIN_UPPER`); staging's plan graph, its masts
@@ -540,7 +543,8 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   memory (`read_device_map`, `build_device_map.master_virtual_names`); level number checks.
 - **The swap test.** `tools/schematic/tests/test_swap_by_row.py` adds two field rows to a copy (Switch 107 to M2T3308,
   BS 107 Loop 1 to M2S3305) and runs the device map, `tables_build.base`, every railroad invariant,
-  `check_device_master.check_tables` and `check_bean_cells`, and the CATS desks on it: the beans are M2T3308 (TWOSENSOR
+  `check_device_master.check_tables` and `check_bean_cells`, and the CATS desks on it (each desk build reads the
+  drawing keys once per device map, code review): the beans are M2T3308 (TWOSENSOR
   on M2S3367 and M2S3368), MTT123 and M2S3305, the desks' IOSPECs M2T 3308 and M2S 3305; only those six rows, their
   beans and IOSPECs change. A scratch copy of the repo with the same two rows ran every `make panels` step:
   all passed but `sml-current` (the discovery base changed) and `check_approved.py` (the desk fingerprints hold the

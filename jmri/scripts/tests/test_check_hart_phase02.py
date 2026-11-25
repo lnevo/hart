@@ -62,12 +62,11 @@ class SecondaryOsBlocksTest(unittest.TestCase):
                 phase02.secondary_os_blocks(p)
 
     def test_a_row_hartlib_refuses_stops_with_its_line(self):
-        """The rows are read by hartlib.railroad.read_switch_rows, so a staging row with leg IDs and no OS block ID
-        stops (a row's shape follows its key: legs' IDs go with an os_id)."""
+        """The rows are read by hartlib.railroad.read_switch_rows, so a staging row with no OS block ID stops."""
         with tempfile.TemporaryDirectory() as tmp:
             p = switches_file(tmp, {("1", "9")}, lambda line: line.replace(",os:9,", ",,"))
-            with self.assertRaisesRegex(SystemExit, r"switches.csv line 2 \(Switch 9\): closed_id and thrown_id go "
-                                                    r"with an os_id"):
+            with self.assertRaisesRegex(SystemExit, r"switches.csv line 2 \(Switch 9\): a staging row is keyed by "
+                                                    r"its OS block"):
                 phase02.staging_rows(p)
 
     def test_repo_crossovers_have_two_rows(self):

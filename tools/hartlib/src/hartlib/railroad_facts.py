@@ -294,6 +294,12 @@ def read_switch_rows(path: Path) -> list[SwitchRow]:
                 raise FactsError(f"{where}: Switch {n} is also on line {ln}; a switch's rows go together")
         first_of.setdefault(n, (level, line))
         by_os = bool(r["os_id"])                        # the row's key, not its level, gives its shape
+        if by_os != (level == 1):
+            # only staging's switches are bound to the live panels (staging_switches, switch_turnouts) so far: a main
+            # or upper row is keyed by its half until its switches are bound (naming-layers step 14, a level fact)
+            raise FactsError(f"{where}: a staging row is keyed by its OS block and gives the device IDs of it (os_id "
+                             f"os:{n}, or os:{n}:<half>) and of its legs (closed_id, thrown_id); a main or upper row "
+                             f"is keyed by its half until its switches are bound; not os_id {r['os_id']!r}")
         if by_os:
             if not re.fullmatch(rf"os:{n}(:[A-Z0-9-]+)?", r["os_id"]) or not r["closed_id"] or not r["thrown_id"]:
                 raise FactsError(f"{where}: a row keyed by its OS block gives the device IDs of it (os_id os:{n}, "

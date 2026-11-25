@@ -829,7 +829,8 @@ def owned_rows(rows, parts, files: devices.Files | None = None) -> tuple[list[di
     (the device-map form) and `parts` (already master rows) in the master's form, each with the field row of its id
     in devices_field.csv over it (device_map_rows.owner_over, hartlib.devices.KEY), as staging's are: on every level
     the owner's name and values go over the generated ones the same way (naming-layers step 7). A virtual JMRI name
-    stays the generated one (hartlib.level_devices) unless the owner's row gives a jmri_name (a device swapped in by
+    stays the generated one (hartlib.level_devices) unless the owner's row gives a jmri_name (its assignment then
+    the name's unless the row gives one: a device swapped in by
     its row, ADR-028). A row with no field row is as build() gave it. master_outputs follows renames over both.
     Every block row but a helix block's gets its bean names (block_beans)."""
     field = devices.field_index(files or device_files())

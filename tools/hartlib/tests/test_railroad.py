@@ -322,7 +322,11 @@ class Readers(Copy):
             ("os:9,block:9B-end,block:9C-end,", "os:9,,block:9C-end,", "and of its legs \\(closed_id, thrown_id\\)"),
             ("1,9,,OS Switch 9,", "1,9,,,", r"line 7 \(Switch 9\): os_block is empty; build_hands.py writes the label of os:9"),
             ("2,105,105,,,,,,,", "2,105,105,,,,,block:105B,,", "closed_id and thrown_id go with an os_id"),
-            ("2,105,105,,,,,,,", "2,105,105,,,,os:105,,,", "a row keyed by its OS block gives the device IDs"),
+            ("2,105,105,,,,,,,", "2,105,105,,,,os:105,,,", "a main or upper row is keyed by its half until its "
+                                                           "switches are bound"),
+            # a staging row with its IDs blanked is told it needs them, not a half-keyed row's rules (code review)
+            ("os:9,block:9B-end,block:9C-end,", ",,,", r"line 7 \(Switch 9\): a staging row is keyed by its OS "
+                                                      r"block and gives the device IDs of it \(os_id os:9"),
             ("1,9,,OS Switch 9,Track EH-2,Track EH-3,", "1,9,,OS Switch 9,,,", "a row keyed by its OS block gives them"),
             ("1,9,,OS Switch 9,Track EH-2,", "1,9,,OS Switch 9,,", "gives both legs"),
             ("1,9,,OS Switch 9,", "1,9,9,OS Switch 9,", "a row keyed by its OS block has no half"),
@@ -364,13 +368,13 @@ class Readers(Copy):
         # a new plan row may leave its hand blank for build_hands.py; it is no hand until then
         self.src.switches.write_text(text.replace("2,105,105,,,,,,,L,plan,", "2,105,105,,,,,,,,plan,", 1), encoding="utf-8")
         self.assertNotIn("105", R.read_hands(self.src.switches))
-        # a row's shape is its key's, not its level's (naming-layers step 14): a main row keyed by its OS block, with
-        # its leg IDs and the live bindings, reads as a staging row does
+        # a row's shape is its key's (naming-layers step 14), but only staging's switches are bound to the live
+        # panels so far: a main row keyed by its OS block stops (code review: staging_switches and build_hands read
+        # OS-keyed rows as staging's)
         self.src.switches.write_text(text.replace(
             "2,105,105,,,,,,,L,plan,", "2,105,,OS Switch 105,Track A,Track B,os:105,block:105B,block:105C,L,owner,", 1),
             encoding="utf-8")
-        row = next(r for r in R.read_switch_rows(self.src.switches) if r.switch == 105)
-        self.assertEqual((row.by_os, row.key, row.closed_id), (True, "OS Switch 105", "block:105B"))
+        self.fails(lambda: R.read_switch_rows(self.src.switches), "keyed by its half until its switches are bound")
         # a main or upper row may give its OS block and legs (none does yet)
         self.src.switches.write_text(text.replace("2,105,105,,,,", "2,105,105,OS Switch 105,Track A,Track B,", 1),
                                      encoding="utf-8")

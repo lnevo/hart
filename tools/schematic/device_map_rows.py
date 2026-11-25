@@ -86,7 +86,8 @@ def owner_over(row: Mapping[str, str], field: Mapping[str, str] | None) -> dict:
     the builder gives what readers will see (a user name included: the owner's name is the device's on every level).
     A jmri_comment with hartlib.devices.OCCUPANCY_MARK is the builder's to fill: the generated cell stands when it
     is already the field text with the mark filled (as devices.merge takes it), else the field text is taken as it is
-    for the caller to fill (staging_rows' wire_block). The description is written again from the result
+    for the caller to fill (staging_rows' wire_block). A field jmri_name with no field assignment sets the
+    assignment its name gives (devices.assignment_of: a swap is that one cell, ADR-028). The description is written again from the result
     (devices.describe). `row` as it is (a copy) when `field` is None."""
     out = dict(row)
     if field is None:
@@ -98,6 +99,9 @@ def owner_over(row: Mapping[str, str], field: Mapping[str, str] | None) -> dict:
         if c == "jmri_comment" and devices.OCCUPANCY_MARK in v and devices.is_templated(v, out[c]):
             continue
         out[c] = v
+    if field["jmri_name"] and not field["assignment"]:
+        # a swap is one cell (ADR-028): the owner's JMRI name says how the device is in JMRI (naming-layers step 14)
+        out["assignment"] = devices.assignment_of(field["jmri_name"])
     out["description"] = devices.describe(out)
     return out
 

@@ -357,7 +357,11 @@ def drawn_keys(device=None):
     """The main and upper drawing keys (hartlib.drawing_keys: each schematic piece's device by ID, named from the
     merged view, the name store) of the master `device` was read from (a Facts.device; None: the committed master).
     SystemExit on a device made in memory (no path: its rows hold no parts and no ids, so the desk would mix it with
-    the committed master), and naming the file on keys that do not read as one device per piece."""
+    the committed master), and naming the file on keys that do not read as one device per piece. Read once per
+    device map `device` (kept on it: the desk build asks for every block); the committed master is read each call."""
+    cached = getattr(device, "_drawn_keys", None)
+    if cached is not None:
+        return cached
     if device is None:
         path = DEVICE_MAP
     elif getattr(device, "path", None):
@@ -366,9 +370,12 @@ def drawn_keys(device=None):
         raise SystemExit("cats_panel.drawn_keys: the device map was made in memory and names no master to read the "
                          "drawing keys of")
     try:
-        return drawing_keys.read(level_devices.LEVELS, path)
+        keys = drawing_keys.read(level_devices.LEVELS, path)
     except (drawing_keys.DrawingKeyError, FactsError) as exc:
         raise SystemExit(f"{paths.rel(path)}: {exc}") from None
+    if device is not None:
+        device._drawn_keys = keys
+    return keys
 
 
 def part_blocks(device=None) -> dict[str, tuple[str, str]]:

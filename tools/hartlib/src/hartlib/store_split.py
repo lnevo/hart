@@ -448,7 +448,7 @@ def _device_items(key: tuple, b: ET.Element | None, g: ET.Element, s: ET.Element
         i = found[0]
         r = rows[i]
         who = _row_at(r)
-        if r["written_by"] == "build_device_map.py" and r["layer"] in ("turnout", "fb"):
+        if r["written_by"] == "build_device_map.py" and r["layer"] in ("turnout", "fb") and p == "userName":
             # by the row's layer and writer, not its level (naming-layers step 14): every level's switch rows are
             # the builder's, the owner's name a devices_field.csv cell
             out.append((p, None, f"{who} is a switch's row the builder makes: rename it by hand in its "

@@ -382,6 +382,12 @@ class DeviceItems(unittest.TestCase):
                 [g] = p.of(ss.DROPPED)
                 self.assertIn("rename it by hand in its devices_field.csv row (keyed by its id): change user_name, "
                               "and jmri_name with it when that binds the turnout by its user name", g.note)
+                # a comment edit is no rename: it is not told to rename the row (code review of step 14)
+                edited = (bean("turnout", "MTT100", "DCC Switch 1", "Node: 4 Turnout: 0")
+                          + bean("turnout", "M2T408", "Switch 1", "an owner's note"))
+                notes = [d.note for d in plan(doc(), doc(), doc(turnouts=edited), rows=rows).of(ss.DROPPED)]
+                self.assertTrue(notes)
+                self.assertFalse([n for n in notes if "rename it by hand" in n], notes)
 
     def test_a_rename_of_a_built_block_says_where_to_rename_it(self) -> None:
         """Naming-layers step 8: a block row of the builder's (main and upper's are virtual beans with their names in

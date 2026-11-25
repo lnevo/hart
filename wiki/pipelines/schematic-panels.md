@@ -64,8 +64,8 @@ are as built). A staging block change made in PanelPro is carried by hand into t
 row.
 
 A swap is one row edit (naming-layers step 14, builder merge step 8; ADR-028): a main or upper turnout or detector
-gets its physical name by its `devices_field.csv` row alone (`assignment` field, `jmri_name` and `system_name` its
-LCOS address). A switch's rows take their shape from its turnout's assignment, not its level
+gets its physical name by its `devices_field.csv` row alone (its `jmri_name`, the LCOS address; the assignment
+follows the name unless the row gives one). A switch's rows take their shape from its turnout's assignment, not its level
 (`device_map_rows.switch_shape`, `follow_swaps`): a field turnout's LCC alias becomes a turnout of its own (MTT<dcc>)
 and its feedback rows its planned M2S sensors (TWOSENSOR), and a swapped detector is wired. The beans, the railroad and
 device-master checks, `check_layout_facts.py` and the CATS desks then bind the physical names

@@ -286,6 +286,13 @@ class LoopHalvesByID(unittest.TestCase):
             self.assertEqual(cp.part_blocks(B.DeviceMap()), {})         # a map made in memory holds no part
             with self.assertRaisesRegex(SystemExit, "made in memory"):
                 cp.drawn_keys(B.DeviceMap())
+            # read once per device map: the desk build asks for every block (code review of step 14)
+            from unittest import mock
+            fresh = SimpleNamespace(path=devices.master_path(data))
+            with mock.patch.object(cp.drawing_keys, "read", wraps=cp.drawing_keys.read) as read:
+                self.assertIs(cp.drawn_keys(fresh), cp.drawn_keys(fresh))
+                cp.block_names(fresh)
+            self.assertEqual(read.call_count, 1)
         from unittest import mock
         bad = cp.drawing_keys.DrawingKeyError("Track 107 Loop 2 (level 2, block) has no trial_name")
         with mock.patch.object(cp.drawing_keys, "read", side_effect=bad), \

@@ -290,6 +290,22 @@ class RowMakers(unittest.TestCase):
             alias_notes="")
         self.assertEqual([r["jmri_name"] for r in main], ["M2T3308", "MTT123", "M2S3367", "M2S3368"])
 
+    def test_a_swap_is_one_cell_the_jmri_name(self):
+        """Code review of step 14: an owner's row giving only a jmri_name sets the assignment its name gives (a swap
+        is one cell, ADR-028), so the alias and feedback follow; an owner's assignment wins; an internal name stays
+        virtual."""
+        import device_map_rows as rm
+        gen = dict.fromkeys(rm.devices.COLUMNS, "")
+        gen.update(level="2", layer="turnout", role="turnout", id="switch:107", user_name="Switch 107",
+                   system_name="M2T3308", jmri_name="IT:HART:C3:107", assignment="virtual", dcc="123")
+        field = dict.fromkeys(rm.devices.COLUMNS, "")
+        self.assertEqual(rm.owner_over(gen, dict(field, jmri_name="M2T3308"))["assignment"], "field")
+        self.assertEqual(rm.owner_over(gen, dict(field, jmri_name="IT:HART:C3:107"))["assignment"], "virtual")
+        self.assertEqual(rm.owner_over(gen, dict(field, jmri_name="M2T3308", assignment="none"))["assignment"], "none")
+        alias = dict(gen, role="lcc_alias", id="dcc:107", user_name="DCC Switch 107", system_name="MTT123")
+        got = rm.follow_swaps([rm.owner_over(gen, dict(field, jmri_name="M2T3308")), alias], {})
+        self.assertEqual((got[1]["jmri_name"], got[1]["assignment"]), ("MTT123", "field"))
+
     def test_a_swap_by_one_row_brings_the_alias_and_feedback(self):
         """follow_swaps: the owner's row makes Switch 107 a field turnout; its alias and feedback rows follow, a
         detector swapped the same way is wired, and a row the owner gives its own jmri_name keeps it."""
