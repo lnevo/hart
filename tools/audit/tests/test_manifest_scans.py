@@ -44,7 +44,8 @@ SCANS = {
     "pipeline-map": lambda: (*load("agent_docs_map", "tools/ops/agent_docs_map.py").scan_globs(), ".gitmodules"),
 }
 # the steps whose pages the site build makes, in the order the portal step lists their reads
-PORTAL_PAGES = ("tables-browser", "repo-guide", "jmri-additions", "pipeline-map", "layout-index", "layout-index-cats")
+PORTAL_PAGES = ("tables-browser", "repo-guide", "jmri-additions", "pipeline-map", "layout-index", "layout-index-cats",
+                "wiring-json")
 # what the site's data names outside www/ and the build copies in (prepare_github_pages._vendor_logo, MIRROR_PREFIXES)
 PORTAL_VENDORED = ("ops/hart-ops/operator_logos/**", "external/sts-docker-data/Rolling Stock photos/*.jpg")
 

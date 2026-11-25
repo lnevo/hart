@@ -15,6 +15,10 @@
 #   P_ID       roster id (for the log only)
 #   CVS        list of CV numbers to read
 #   CV_WAIT    seconds to wait for each read
+# Never runs: the names make_job.py puts in front of this file (its settings), listed for pyflakes
+# (ruff's undefined-name rule) so a misspelt name fails the check. job_settings stands for the settings.
+if False:
+    from job_settings import CVS, CV_WAIT, LOGF, P_ID
 import time, threading, os, jmri
 f = open(LOGF, "a")
 def L(m): f.write("%.3f %s\n" % (time.time(), m)); f.flush()
@@ -38,18 +42,18 @@ def run():
             pl = PL()
             try:
                 prog.readCV(str(cv), pl)
-            except Exception, e:
+            except Exception as e:
                 L("CV %d FAIL %s" % (cv, e)); continue
             if not pl.ev.wait(CV_WAIT):
                 # a late reply could be taken for the next CV, so stop instead of sending more
                 L("CV %d FAIL timeout" % cv); L("ABORTED after a read timeout"); return
             if pl.status == 0 and pl.value is not None and pl.value >= 0: L("CV %d %d" % (cv, pl.value))
             else: L("CV %d FAIL status %s" % (cv, pl.status))
-    except Exception, e: L("ERROR %s" % e)
+    except Exception as e: L("ERROR %s" % e)
     finally:
         if own[0]:
             try: os.remove("/tmp/speedrun.active")
-            except Exception, e: pass
+            except Exception: pass
         L("END")
 th = threading.Thread(target=run); th.setDaemon(True); th.start()
 RESULT = "started"

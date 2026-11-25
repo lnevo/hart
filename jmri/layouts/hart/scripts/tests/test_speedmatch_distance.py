@@ -352,7 +352,7 @@ class RunnerSource(unittest.TestCase):
             self.assertIn("check_guards(", src)
             self.assertIn("end_job(", src)
             self.assertNotRegex(src, r"\bf[\"']")
-            self.assertIn("except Exception, e", src)
+            self.assertIn("except Exception as e", src)
 
 
 class AnalyzeDistance(unittest.TestCase):
@@ -610,7 +610,7 @@ class Locate(unittest.TestCase):
 
 class FakeLayout(object):
     """A virtual clock and a loco on a ring of sensors, standing in for JMRI so the Jython runners
-    can be run for real as Python 3 (their `except X, e` lines are rewritten). The loco runs at
+    can be run for real as Python 3 (they are written so both parse them). The loco runs at
     SPEED_PER_STEP mm/s per throttle step; nothing leaves the process."""
     SPEED_PER_STEP = 10.0
 
@@ -740,8 +740,7 @@ class FakeLayout(object):
         """Run a job as Python 3 on the virtual clock."""
         import threading
         import time as _time
-        src = re.sub(r"except ([\w.]+), e:", r"except \1 as e:", job_text)
-        src = src.replace("/tmp/speedrun", str(tmp / "speedrun"))
+        src = job_text.replace("/tmp/speedrun", str(tmp / "speedrun"))
         saved = (_time.time, _time.sleep, threading.Thread, {k: sys.modules.get(k) for k in ("java", "jmri")})
         clock = self
 

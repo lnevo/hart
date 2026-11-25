@@ -161,7 +161,7 @@ cmd = ["python3", "www/scripts/build_wiring_json.py", "--check"]
 git = ["head", "base"]
 domain = "website"
 label = "build_wiring_json.py"
-desc = "Builds the website wiring viewer JSON from the wiring model (write_inventory.workbook(), in memory, never the v86 file; ADR-039); tools/check.sh fails while stale."
+desc = "Builds the website wiring viewer JSON (not committed, ADR-036) from the wiring model (write_inventory.workbook(), in memory, never the v86 file; ADR-039); --check builds it in memory and runs its checks."
 inputs = [
   { path = "tools/wiring/write_inventory.py", label = "workbook(), in memory" },
 ]
