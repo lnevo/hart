@@ -4,15 +4,17 @@
     python3 tools/ops/status_counts.py              (make status) write wiki/STATUS.md (gitignored, ADR-038)
     python3 tools/ops/status_counts.py --out FILE   write the page to FILE instead
     python3 tools/ops/status_counts.py --check      build the page in memory and write nothing; exit 1 on an entry
-                                                    over MAX_WORDS words, a stray file, a bad `order:` line, a
-                                                    doubled entry, or wiki/STATUS.md tracked by git again (check.sh)
+                                                    over MAX_WORDS words, a stray file, a missing or repeated
+                                                    `order:` line, a doubled entry, or wiki/STATUS.md tracked by
+                                                    git again (check.sh)
 
 Each entry is one file, wiki/status/<section>/<slug>.md, holding the bullet's text without its "- ". Its Markdown
 links are relative to the entry file, so they work on GitHub; the build rebases them to wiki/. The sections are
-SECTIONS, in page order. An entry of an ordered section (owed) opens with an `order: N` line and the page lists them
-by N; every other section lists its entries by file name. The Counts line is computed when the page is built and
-goes at the end of Current state, between the counts markers. The page head and the section intros are PAGE_HEAD
-and SECTIONS below. The session-start hook and `make wt` build the page, so readers by path find it in every checkout.
+SECTIONS, in page order. Every entry opens with an `order: N` line, and each section lists its entries by N, so
+entries on one topic stay together (owner, 2026-11-25; steps of 10 leave room for a new entry between two others).
+The Counts line is computed when the page is built: it stands where the Current state file whose text is
+COUNTS_TOKEN (current/counts.md) puts it, between the counts markers. The page head and the section intros are
+PAGE_HEAD and SECTIONS below. The session-start hook and `make wt` build the page, so readers by path find it in every checkout.
 """
 from __future__ import annotations
 
@@ -39,15 +41,16 @@ PAGE_HEAD = ("# Live status\n\n"
              "One or two lines per fact, with the owner and date and a link to the detail. PR numbers, how each fact "
              "came about and the full earlier wording are in [`STATUS_LOG.md`](STATUS_LOG.md) (the 2026-11-21 and "
              "2026-11-25 \"Full text\" entries hold the last long versions).\n")
-# (folder, heading, intro paragraph, ordered); page order
+# (folder, heading, intro paragraph); page order
 SECTIONS = (
-    ("now", "Now", "", False),
-    ("current", "Current state", "", False),
-    ("owed", "Owed", "In order; the first two are the main track (owner, 2026-11-21).", True),
-    ("in-progress", "In progress", "", False),
-    ("future", "Future goals", "", False),
+    ("now", "Now", ""),
+    ("current", "Current state", ""),
+    ("owed", "Owed", "In order; the first two are the main track (owner, 2026-11-21)."),
+    ("in-progress", "In progress", ""),
+    ("future", "Future goals", ""),
 )
 COUNTS_SECTION = "current"
+COUNTS_TOKEN = "<!-- counts: the Counts line is computed here when the page is built -->"
 LINK = re.compile(r"(\]\()([^)\s]+)(\))")
 
 
@@ -102,7 +105,7 @@ def words(text: str) -> int:
 
 
 class Entry:
-    def __init__(self, section: str, path: Path, text: str, order: int | None):
+    def __init__(self, section: str, path: Path, text: str, order: int):
         self.section, self.path, self.text, self.order = section, path, text, order
 
 
@@ -117,7 +120,7 @@ def read_entries(folder: Path = FOLDER) -> tuple[list[Entry], list[str]]:
             continue
         if not (p.is_dir() and p.name in known):
             problems.append(f"wiki/status/{p.name}: not a section ({', '.join(s[0] for s in SECTIONS)})")
-    for name, _heading, _intro, ordered in SECTIONS:
+    for name, _heading, _intro in SECTIONS:
         found = []
         d = folder / name
         for p in sorted(d.iterdir()) if d.is_dir() else ():
@@ -130,18 +133,17 @@ def read_entries(folder: Path = FOLDER) -> tuple[list[Entry], list[str]]:
             body = p.read_text(encoding="utf-8")
             first, _, rest = body.partition("\n")
             m = ORDER.fullmatch(first)
-            order = None
-            if ordered:
-                if not m:
-                    problems.append(f"{rel}: an {name} entry opens with an `order: N` line")
-                else:
-                    order, body = int(m.group(1)), rest
-            elif m:
-                problems.append(f"{rel}: only an ordered section's entry has an `order:` line")
-                body = rest
-            text = body.strip("\n")
+            if not m:
+                problems.append(f"{rel}: an entry opens with an `order: N` line (its place in the section)")
+                continue
+            order, text = int(m.group(1)), rest.strip("\n")
             if not text.strip():
                 problems.append(f"{rel}: empty entry")
+                continue
+            if text == COUNTS_TOKEN:
+                if name != COUNTS_SECTION:
+                    problems.append(f"{rel}: the Counts line stands in {COUNTS_SECTION}/ only")
+                found.append(Entry(name, p, text, order))
                 continue
             if "\n\n" in text:
                 problems.append(f"{rel}: a blank line inside an entry would break the list")
@@ -151,22 +153,27 @@ def read_entries(folder: Path = FOLDER) -> tuple[list[Entry], list[str]]:
             if n > MAX_WORDS:
                 problems.append(f"{rel}: {n} words, over {MAX_WORDS}; move the detail to the linked page or ADR")
             found.append(Entry(name, p, text, order))
-        if ordered:
-            found.sort(key=lambda e: (e.order if e.order is not None else 0, e.path.name))
+        found.sort(key=lambda e: (e.order, e.path.name))
+        for x, y in zip(found, found[1:]):
+            if x.order == y.order:
+                problems.append(f"wiki/status/{name}/: {x.path.name} and {y.path.name} have the same order: "
+                                f"{x.order}; give one a number between its neighbours'")
+        if name == COUNTS_SECTION and sum(e.text == COUNTS_TOKEN for e in found) != 1:
+            problems.append(f"wiki/status/{name}/: needs one file whose text is {COUNTS_TOKEN} (where the Counts "
+                            f"line goes), not {sum(e.text == COUNTS_TOKEN for e in found)}")
         entries += found
     return entries, problems
 
 
 def page(entries: list[Entry], counts_line: str) -> str:
-    """The page: PAGE_HEAD, then each section's heading, intro and bullets; the Counts line ends Current state."""
+    """The page: PAGE_HEAD, then each section's heading, intro and bullets, with the Counts line where its file is."""
     out = [PAGE_HEAD]
-    for name, heading, intro, _ordered in SECTIONS:
+    for name, heading, intro in SECTIONS:
         block = [f"## {heading}\n"]
         if intro:
             block.append(intro + "\n")
-        bullets = ["- " + rebase(e.text, f"wiki/status/{name}", "wiki") for e in entries if e.section == name]
-        if name == COUNTS_SECTION:
-            bullets += [START, counts_line, END]
+        bullets = ["\n".join((START, counts_line, END)) if e.text == COUNTS_TOKEN
+                   else "- " + rebase(e.text, f"wiki/status/{name}", "wiki") for e in entries if e.section == name]
         if bullets:
             block.append("\n".join(bullets) + "\n")
         out.append("\n".join(block))
@@ -220,7 +227,7 @@ def build(folder: Path = FOLDER, tables: Path = TABLES, traininfo: Path = TRAINI
     entries, problems = read_entries(folder)
     text = page(entries, line(counts(tables, traininfo)))
     problems += [f"the built page has {d}" for d in duplicates(text)]
-    return text, problems, len(entries)
+    return text, problems, sum(e.text != COUNTS_TOKEN for e in entries)
 
 
 def main(argv: list[str]) -> int:
