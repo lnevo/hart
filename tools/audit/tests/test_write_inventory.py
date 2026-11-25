@@ -131,7 +131,7 @@ class Inventory(unittest.TestCase):
     def test_a_planned_relay_says_so(self):
         import tempfile
         p = Path(tempfile.mkdtemp()) / "wiring.csv"
-        p.write_text(",".join(WI.wiring.COLUMNS) + "\n1,relay,C3 relay 2,,,,,3,,OU2,7,planned,\n", encoding="utf-8")
+        p.write_text(",".join(WI.wiring.COLUMNS) + "\n1,relay,,C3 relay 2,,,,,3,,OU2,7,planned,\n", encoding="utf-8")
         nodes = WI.gather([], WI.read_node_rows())
         WI.add_local(nodes, p)
         self.assertEqual(nodes[3].ou[2][7], ("C3 relay 2", "Relay", "5V", "planned, not connected"))

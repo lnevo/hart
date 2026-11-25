@@ -32,6 +32,13 @@ def lines_file(tmp, *rows):
     return path
 
 
+def file_rows(sheet):
+    """The committed main_lines.csv's rows of `sheet` as written: their stops give tracks by block id
+    (naming-layers step 5), as a copy must, where read_lines gives them back by name."""
+    with open(M.LINES, newline="", encoding="utf-8") as fh:
+        return [r for r in csv.DictReader(fh) if r["sheet"] == sheet]
+
+
 class RealPlan(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -62,14 +69,14 @@ class RealPlan(unittest.TestCase):
 
     def test_parallel_tracks_nobody_declared_stop_the_build(self):
         with tempfile.TemporaryDirectory() as tmp:
-            rows = M.read_lines("main_upper")
+            rows = file_rows("main_upper")
             path = lines_file(tmp, *[[r[c] for c in M.COLUMNS[:6]] + ["", "", r["notes"]] for r in rows])
             with self.assertRaisesRegex(M.RouteError, "225 are joined by 2 tracks|223 and 225 are joined by 2 tracks"):
                 M.route(self.plan, M.read_lines("main_upper", path))
 
     def test_a_double_that_is_one_track_or_not_crossed_stops(self):
         with tempfile.TemporaryDirectory() as tmp:
-            rows = [[r[c] for c in M.COLUMNS] for r in M.read_lines("main_upper")]
+            rows = [[r[c] for c in M.COLUMNS] for r in file_rows("main_upper")]
             rows[0][6] = "131A-127A"
             with self.assertRaisesRegex(M.RouteError, "which has one track"):
                 M.route(self.plan, M.read_lines("main_upper", lines_file(tmp, *rows)))
@@ -79,14 +86,14 @@ class RealPlan(unittest.TestCase):
 
     def test_a_stop_the_plan_does_not_have_names_it(self):
         with tempfile.TemporaryDirectory() as tmp:
-            rows = [[r[c] for c in M.COLUMNS] for r in M.read_lines("main_upper")]
+            rows = [[r[c] for c in M.COLUMNS] for r in file_rows("main_upper")]
             rows[0][4] = "999"
             with self.assertRaisesRegex(M.RouteError, "main line stop '999'"):
                 M.route(self.plan, M.read_lines("main_upper", lines_file(tmp, *rows)))
 
     def test_a_via_can_force_the_way_and_a_missing_track_is_named(self):
         with tempfile.TemporaryDirectory() as tmp:
-            rows = [[r[c] for c in M.COLUMNS] for r in M.read_lines("main_upper")]
+            rows = [[r[c] for c in M.COLUMNS] for r in file_rows("main_upper")]
             rows[0][3] = "119B"      # off the main line: 123 to 119B to 119A, the way round the crossover
             hops = M.route(self.plan, M.read_lines("main_upper", lines_file(tmp, *rows)))
             self.assertIn(["121B", "119B", "direct"], hops)
@@ -239,17 +246,38 @@ class StagingLines(unittest.TestCase):
 
     def test_a_stop_with_no_track_to_the_next_stops_with_the_line(self):
         with tempfile.TemporaryDirectory() as tmp:
-            rows = [[r[c] for c in STAGING_COLUMNS] for r in self.rows]
+            rows = [[r[c] for c in STAGING_COLUMNS] for r in file_rows("staging")]
             rows[0][2] = "33;37"          # no track from 1 to 33
             with self.assertRaisesRegex(M.RouteError, "Upper level: no track joins"):
                 M.staging_keys(self.overrides, self.plan, M.read_lines("staging", staging_file(tmp, *rows)))
 
     def test_an_unknown_switch_names_the_stop(self):
         with tempfile.TemporaryDirectory() as tmp:
-            rows = [[r[c] for c in STAGING_COLUMNS] for r in self.rows]
+            rows = [[r[c] for c in STAGING_COLUMNS] for r in file_rows("staging")]
             rows[0][2] = "99"
             with self.assertRaisesRegex(M.RouteError, "main line stop '99'"):
                 M.staging_keys(self.overrides, self.plan, M.read_lines("staging", staging_file(tmp, *rows)))
+
+    def test_a_track_in_a_stop_is_its_block_id(self):
+        """naming-layers step 5: a stop gives a track by its block id and read_lines gives it back by the name
+        store's name less "Track ", so a rename changes no row; a track by name, or an id the master lacks, stops."""
+        raw = file_rows("staging")
+        self.assertEqual((raw[1]["from"], self.rows[1]["from"]), ("35@block:33A-35A", "35@East Lead"))
+        self.assertEqual((raw[1]["to"], self.rows[1]["to"]), ("block:39B-helix", "Helix Outer"))
+        with tempfile.TemporaryDirectory() as tmp:
+            rows = [[r[c] for c in STAGING_COLUMNS] for r in raw]
+            path = staging_file(tmp, *rows)
+            names = {("1", "block:33A-35A"): "Track Lead East", ("1", "block:39B-helix"): "Track Helix West",
+                     ("1", "block:37B-helix"): "Track Helix Inner", ("1", "block:5B-7A"): "Track East Ext",
+                     ("1", "block:23B-35B"): "Track West Ext", ("1", "block:1A-23A"): "Track Main West"}
+            got = M.read_lines("staging", path, names)
+            self.assertEqual((got[1]["from"], got[1]["to"]), ("35@Lead East", "Helix West"))
+            for stop, msg in (("35@East Lead", r"stop '35@East Lead' names a track by its name; give its block id"),
+                              ("Helix Outer", r"stop 'Helix Outer' names a track by its name"),
+                              ("block:99Z-helix", r"block:99Z-helix is no block of the device master")):
+                with self.subTest(stop=stop), self.assertRaisesRegex(M.RouteError, msg):
+                    rows[1][1] = stop
+                    M.read_lines("staging", staging_file(tmp, *rows))
 
     def test_count_is_yes_or_blank(self):
         with tempfile.TemporaryDirectory() as tmp:

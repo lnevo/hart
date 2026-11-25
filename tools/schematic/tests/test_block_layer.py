@@ -22,8 +22,9 @@ devices = bdm.devices
 from repo_read_only import RepoReadOnly  # noqa: E402
 
 HEAD = ",".join(BL.mr.OVERRIDE_COLUMNS) + "\n"
-# a piece of track at one end inside an OS block, its length given (the row OS Switch 7 had until step 5 part 2)
-SCALE_AT_7 = "1,track,5,7,2,7,OS Switch 7,23,,a test row\n"
+# a piece of track at one end inside an OS block, its length given (the row OS Switch 7 had until step 5 part 2);
+# the OS block by its device ID (naming-layers step 5)
+SCALE_AT_7 = "1,track,5,7,2,7,os:7,23,,a test row\n"
 # the 25 main and upper links (tracks between two switches under LINK_CM), each in the lower-numbered switch's OS
 # block (owner, 2026-11-20: LINK_CM 50 on every level; at a double crossover the corner block of its leg), but where a
 # home mast stands at a switch's points facing the link: then in the OS block at its other end (125-129, 201-205,
@@ -144,7 +145,7 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         self.assertNotIn("Track 35-39", lay.tracks)
 
     def test_inside_is_yes_or_empty_and_only_for_a_track_row(self):
-        self.stops(HEAD + "1,track,9,11,,,OS Switch 9,,no,\n", "inside is yes or empty")
+        self.stops(HEAD + "1,track,9,11,,,os:9,,no,\n", "inside is yes or empty")
         self.stops(HEAD + "1,crossover_half,7,13,,,OS Switch 7,,yes,\n", "with no parallel, end, cm or inside")
 
     def test_a_piece_at_one_end_leaves_the_rest_its_own_block(self):
@@ -218,30 +219,41 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         self.stops(HEAD + "1,spur,9,11,,,OS Switch 9,,,\n", "kind one of split, track, crossover_half")
         self.stops(HEAD + "4,track,9,11,,,OS Switch 9,,,\n", "level is 1, 2 or 3")
         self.stops(HEAD + "1,track,9,11,,,Track Barn,,,\n", "is no OS block")
-        self.stops(HEAD + "1,track,11,9,,,OS Switch 9,,,\n", "lower first")
-        self.stops(HEAD + "1,track,9,11,,13,OS Switch 9,,,\n", "its end empty or one of them")
+        self.stops(HEAD + "1,track,11,9,,,os:9,,,\n", "lower first")
+        self.stops(HEAD + "1,track,9,11,,13,os:9,,,\n", "its end empty or one of them")
         self.stops(HEAD + "1,crossover_half,7,13,,7,OS Switch 7,,,\n", "with no parallel, end, cm or inside")
 
     def test_a_row_that_matches_no_track_or_half_stops(self):
-        self.stops(self.committed + "1,track,2,4,,,OS Switch 2,,,\n", "no track runs Switch 2 to Switch 4")
+        self.stops(self.committed + "1,track,2,4,,,os:2,,,\n", "no track runs Switch 2 to Switch 4")
         self.stops(self.committed + "1,crossover_half,7,9,,,OS Switch 7c,,,\n",
                    "no crossover half of Switch 7 has its leg A track running to Switch 9")
 
+    def test_a_track_rows_block_is_an_os_block_id(self):
+        """naming-layers step 5: a track row gives its OS block's device ID (os:<n>, a crossover half's
+        os:<n>:A-<end>), which comes back as the generated name; a name, or a half no crossover_half row has, stops."""
+        rows = BL.mr.read_block_overrides(bdm.block_overrides(), ("track",))
+        got = {(r["switch_a"], r["switch_b"], r["end"]): (r["id"], r["block"]) for r in rows if r["level"] == "1"}
+        self.assertEqual(got[("13", "15", "")], ("os:15", "OS Switch 15"))
+        self.assertEqual(got[("35", "37", "")], ("os:35:A-33A", "OS Switch 35a"))
+        self.stops(self.without("1,track,13,15,") + "1,track,13,15,,,OS Switch 15,,,\n", "is no OS block ID")
+        self.stops(self.committed + "1,track,9,11,,,os:9:A-99A,,,\n",
+                   "no crossover_half row of Switch 9 whose leg A runs to Switch 99")
+
     def test_a_row_given_twice_stops(self):
-        self.stops(self.committed + "1,track,13,15,,,OS Switch 15,,,\n", "Track 13-15 is given a block on line")
+        self.stops(self.committed + "1,track,13,15,,,os:15,,,\n", "Track 13-15 is given a block on line")
         self.stops(self.committed + "1,crossover_half,7,13,,,OS Switch 7,,,\n", "given its block on line")
 
     def test_a_block_that_is_not_the_os_block_at_its_end_stops(self):
-        self.stops(self.without("1,track,13,15,") + "1,track,13,15,,,OS Switch 17,,,\n",
+        self.stops(self.without("1,track,13,15,") + "1,track,13,15,,,os:17,,,\n",
                    "Track 13-15 is given OS Switch 17, the OS block of neither")
-        self.stops(self.without("1,track,1,3,,1,") + "1,track,1,3,,1,OS Switch 3,,,\n",
+        self.stops(self.without("1,track,1,3,,1,") + "1,track,1,3,,1,os:3,,,\n",
                    "the piece of Track 1-3 at Switch 1 is given OS Switch 3, not that switch's OS block OS Switch 1")
 
     def test_one_crossover_half_alone_stops(self):
         self.stops(self.without("1,crossover_half,7,5,"), "crossover 7: give both halves")
 
     def test_a_split_track_with_rows_stops(self):
-        self.stops(self.committed + "1,track,37,39,,,OS Switch 37,,,\n", "split in halves and given to OS blocks")
+        self.stops(self.committed + "1,track,37,39,,,os:37,,,\n", "split in halves and given to OS blocks")
 
     def test_a_split_comes_from_the_same_file_as_the_other_rows_on_staging(self):
         """staging_layer reads every kind of block_overrides.csv from the one file it is given: without the Princess
@@ -262,11 +274,11 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         self.assertNotIn("Track 227-241 1", lay.tracks)
 
     def test_a_main_or_upper_row_applies_on_its_level(self):
-        lay = self.main_upper(self.committed + "2,track,113,115,,,OS Switch 115,,,\n")
+        lay = self.main_upper(self.committed + "2,track,113,115,,,os:115,,,\n")
         self.assertEqual(lay.parts["Track 113-115"]["part_of"], "OS Switch 115")
         self.assertIn("block_overrides.csv line", lay.parts["Track 113-115"]["why"])
         with self.assertRaisesRegex(BL.BlockError, r"\(level 3\): no track runs Switch 113 to Switch 115"):
-            self.main_upper(self.committed + "3,track,113,115,,,OS Switch 115,,,\n")
+            self.main_upper(self.committed + "3,track,113,115,,,os:115,,,\n")
 
     # ---------------------------------------------------------------- lengths
 
@@ -285,7 +297,7 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         self.stops(self.committed + SCALE_AT_7.replace(",23,", ",,"), "Track Scale at 7: give its cm")
         self.stops(self.committed + SCALE_AT_7.replace(",23,", ",500,"), "is not under the track's")
         self.stops(self.committed + SCALE_AT_7.replace(",23,", ",x,"), "cm 'x' is a length")
-        self.stops(self.without("1,track,13,15,") + "1,track,13,15,,,OS Switch 15,10,,\n", "only a piece at one end")
+        self.stops(self.without("1,track,13,15,") + "1,track,13,15,,,os:15,10,,\n", "only a piece at one end")
 
     # ---------------------------------------------------------------- halves
 
@@ -466,8 +478,8 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         """Track Barn and Track EH-1 swap inputs in wiring.csv: both detectors' node, sensor and wiring, and both
         blocks' node and comment, follow; nothing else changes, and no hand file is edited."""
         def swap(text):
-            return (text.replace("1,detector,Track Barn,,,,,13,1,,,wired,", "1,detector,Track Barn,,,,,13,7,,,wired,")
-                        .replace("1,detector,Track EH-1,,,,,13,7,,,wired,", "1,detector,Track EH-1,,,,,13,1,,,wired,"))
+            return (text.replace("1,detector,det:block:7A-13C,,,,,,13,1,,,wired,", "1,detector,det:block:7A-13C,,,,,,13,7,,,wired,")
+                        .replace("1,detector,det:block:11B-end,,,,,,13,7,,,wired,", "1,detector,det:block:11B-end,,,,,,13,1,,,wired,"))
         got = self.by(self.rows(pins=swap))
         want = self.by(self.rows())
         occ, blk = got[("occupancy", "BS Barn")], got[("block", "Track Barn")]
@@ -486,8 +498,8 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         """OS Switch 9 and OS Switch 11 swap inputs in wiring.csv: their parts (Track 9-11 and Track 11-13) take the
         rewired block's detector (the occupancy part of its comment) on the same build."""
         def swap(text):
-            return (text.replace("1,detector,OS Switch 9,,,,,13,8,", "1,detector,OS Switch 9,,,,,13,2,")
-                        .replace("1,detector,OS Switch 11,,,,,13,2,", "1,detector,OS Switch 11,,,,,13,8,"))
+            return (text.replace("1,detector,det:os:9,,,,,,13,8,", "1,detector,det:os:9,,,,,,13,2,")
+                        .replace("1,detector,det:os:11,,,,,,13,2,", "1,detector,det:os:11,,,,,,13,8,"))
         got, want = self.by(self.rows(pins=swap)), self.by(self.rows())
         for part, block in (("Track 9-11", "OS Switch 9"), ("Track 11-13", "OS Switch 11")):
             p, b = got[("block", part)], got[("block", block)]
@@ -533,12 +545,16 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
 
     def test_pins_that_do_not_fit_stop(self):
         for pins, msg in (
-                (lambda t: t.replace("1,detector,Track Barn,,,,,13,1,,,wired,\n", ""),
+                (lambda t: t.replace("1,detector,det:block:7A-13C,,,,,,13,1,,,wired,\n", ""),
                  "staging block Track Barn: its detector BS Barn has no level 1 row"),
-                (lambda t: t + "1,detector,Track Nowhere,,,,,5,1,,,wired,\n", "staging has no block Track Nowhere"),
-                (lambda t: t.replace("1,detector,Track Barn,,,,,13,1,,,wired,", "1,detector,Track Helix Inner,,,,,13,1,,,wired,"),
+                # wiring.csv keys a pin by its block's id: an id staging draws no block for, and one the master lacks
+                (lambda t: t + "1,detector,det:mast:5:B:west,,,,,,5,1,,,wired,\n",
+                 r"staging has no block Mast 6LB \(mast:5:B:west\)"),
+                (lambda t: t + "1,detector,det:block:99Z-end,,,,,,5,1,,,wired,\n",
+                 "block:99Z-end is no level 1 device of the device master"),
+                (lambda t: t.replace("1,detector,det:block:7A-13C,,,,,,13,1,,,wired,", "1,detector,det:block:37B-helix,,,,,,13,1,,,wired,"),
                  "Track Helix Inner is a helix block"),
-                (lambda t: t.replace("2,detector,Track Helix Outer,,,,,41,2,,,planned,", "2,detector,Track Helix Outer,,,,,41,x,,,planned,"),
+                (lambda t: t.replace("2,detector,det:block:131AA-helix,,,,,,41,2,,,planned,", "2,detector,det:block:131AA-helix,,,,,,41,x,,,planned,"),
                  "node, index and ports are numbers")):
             with self.subTest(msg=msg), self.assertRaisesRegex(bdm.MapError, msg):
                 self.rows(pins=pins)
@@ -546,8 +562,8 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
     def test_a_block_swapped_onto_a_spare_input_moves_the_spare(self):
         """Track Barn moves to the spare input 2-2 in wiring.csv alone: BS Barn follows, 13-1 becomes a new
         spare row and the old spare row of 2-2 goes: a spare is wiring.csv's alone, so nothing stops."""
-        got = self.rows(pins=lambda t: t.replace("1,detector,Track Barn,,,,,13,1,,,wired,", "1,detector,,,,,,13,1,,,wired,")
-                        .replace("1,detector,,,,,,2,2,,,wired,", "1,detector,Track Barn,,,,,2,2,,,wired,"))
+        got = self.rows(pins=lambda t: t.replace("1,detector,det:block:7A-13C,,,,,,13,1,,,wired,", "1,detector,,,,,,,13,1,,,wired,")
+                        .replace("1,detector,,,,,,,2,2,,,wired,", "1,detector,det:block:7A-13C,,,,,,2,2,,,wired,"))
         by = self.by(got)
         self.assertEqual(by[("occupancy", "BS Barn")]["system_name"], "M2S201")
         spare = by[("occupancy", "unused Block 13-1")]
@@ -560,7 +576,7 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         stops and names them. Once the owner removes them, its block row is a part, its detector's input a spare, and
         the part, a JMRI block of its own, takes its OS block's control point and detector; the next build over that
         output gives the same rows."""
-        extra = "1,track,33,35,,,OS Switch 33,,,\n"
+        extra = "1,track,33,35,,,os:33,,,\n"
         with self.assertRaisesRegex(bdm.MapError, r"staging block Track East Lead is now part of OS Switch 33 .* still "
                                                   r"has its block row Track East Lead and occupancy row BS East Lead: "
                                                   r"remove them"):
@@ -687,9 +703,9 @@ class StagingWiredRows(RepoReadOnly, unittest.TestCase):
         """Switches 1 and 3 swap their LCOS numbers and ports: both turnouts and their aliases follow; the alias keeps
         its MTT name and Switch 23 keeps the JMRI name the panel binds ("Switch 23")."""
         def swap(t):
-            return (t.replace('1,turnout,Switch 1,,,,,4,0,OU1,"1,2"', "1,turnout,Switch 1,,,,,4,9,OU1,X")
-                     .replace('1,turnout,Switch 3,,,,,4,1,OU1,"3,4"', '1,turnout,Switch 3,,,,,4,0,OU1,"1,2"')
-                     .replace("1,turnout,Switch 1,,,,,4,9,OU1,X", '1,turnout,Switch 1,,,,,4,1,OU1,"3,4"'))
+            return (t.replace('1,turnout,switch:1,,,,,,4,0,OU1,"1,2"', "1,turnout,switch:1,,,,,,4,9,OU1,X")
+                     .replace('1,turnout,switch:3,,,,,,4,1,OU1,"3,4"', '1,turnout,switch:3,,,,,,4,0,OU1,"1,2"')
+                     .replace("1,turnout,switch:1,,,,,,4,9,OU1,X", '1,turnout,switch:1,,,,,,4,1,OU1,"3,4"'))
         by = {r["user_name"]: r for r in self.rows(swap)}
         self.assertEqual((by["Switch 1"]["system_name"], by["Switch 1"]["jmri_name"], by["Switch 1"]["wiring"]),
                          ("M2T409", "M2T409", "Node: 4 Turnout: 1 | OU: 1 Ports: 3,4"))
@@ -702,8 +718,8 @@ class StagingWiredRows(RepoReadOnly, unittest.TestCase):
         self.assertEqual(by["DCC Switch 3"]["notes"], "LCC alias of Switch 3 (M2T408)")
 
     def test_the_description_names_the_new_node(self):
-        got = {r["user_name"]: r for r in self.rows(lambda t: t.replace('1,turnout,Switch 13,,,,,4,3,OU1,"7,8"',
-                                                                        '1,turnout,Switch 13,,,,,13,5,OU3,"1,2"'))}
+        got = {r["user_name"]: r for r in self.rows(lambda t: t.replace('1,turnout,switch:13,,,,,,4,3,OU1,"7,8"',
+                                                                        '1,turnout,switch:13,,,,,,13,5,OU3,"1,2"'))}
         self.assertEqual(got["Switch 13"]["system_name"], "M2T1313")
         self.assertIn("LCOS node 13", got["Switch 13"]["description"])
 
@@ -758,11 +774,12 @@ class StagingWiredRows(RepoReadOnly, unittest.TestCase):
         self.assertEqual((got["switch:23"]["user_name"], got["switch:23"]["jmri_name"]), ("Switch East", "Switch East"))
 
     def test_rows_that_do_not_match_stop(self):
-        for edit, msg in ((lambda t: t.replace('1,turnout,Switch 1,,,,,4,0,OU1,"1,2",wired,\n', ""),
-                           "staging turnout Switch 1: no turnout row for Switch 1"),
-                          (lambda t: t + '1,turnout,Switch 999,,,,,5,0,OU1,"1,2",wired,\n',
-                           "staging turnout Switch 999 has no row in devices_field.csv"),
-                          (lambda t: t.replace('1,turnout,Switch 13,,,,,4,3,', '1,turnout,Switch 13,,,,,41,3,'),
+        for edit, msg in ((lambda t: t.replace('1,turnout,switch:1,,,,,,4,0,OU1,"1,2",wired,\n', ""),
+                           "staging turnout Switch 1: no turnout row for switch:1 in wiring.csv"),
+                          # wiring.csv keys a turnout by its id: one the device master lacks is refused as it is read
+                          (lambda t: t + '1,turnout,switch:999,,,,,,5,0,OU1,"1,2",wired,\n',
+                           "switch:999 is no level 1 device of the device master"),
+                          (lambda t: t.replace('1,turnout,switch:13,,,,,,4,3,', '1,turnout,switch:13,,,,,,41,3,'),
                            "turnout Switch 13 is on node 41, no staging node")):
             with self.subTest(msg=msg), self.assertRaisesRegex(bdm.MapError, msg):
                 self.rows(edit)
@@ -778,19 +795,24 @@ class StagingPins(unittest.TestCase):
         return bdm.read_staging_pins(p, {1, 2, 13})
 
     def test_read(self):
-        got = self.read("1,detector,Track Barn,,,,,13,1,,,wired,\n1,detector,,,,,,2,2,,,wired,spare\n3,detector,Track Helix Inner,,,,,41,1,,,planned,\n")
-        self.assertEqual([(p.block, p.sensor, p.wiring, p.input) for p in got],
-                         [("Track Barn", "M2S1300", "Node: 13 Block: 1", "Block 13-1"),
-                          ("", "M2S201", "Node: 2 Block: 2", "Block 2-2")])
+        got = self.read("1,detector,det:block:7A-13C,,,,,,13,1,,,wired,\n1,detector,,,,,,,2,2,,,wired,spare\n"
+                        "3,detector,det:block:131BB-helix,,,,,,41,1,,,planned,\n")
+        self.assertEqual([(p.block, p.id, p.sensor, p.wiring, p.input) for p in got],
+                         [("Track Barn", "block:7A-13C", "M2S1300", "Node: 13 Block: 1", "Block 13-1"),
+                          ("", "", "M2S201", "Node: 2 Block: 2", "Block 2-2")])
         self.assertEqual(len(bdm.read_staging_pins()), 45)                       # the committed file: 43 and 2 spares
 
     def test_bad_rows_stop(self):
-        for text, msg in (("1,detector,Track Barn,7,13,,,13,1,,,wired,\n", "named by its block alone"),
-                          ("1,detector,Track Barn,,,,,41,1,,,wired,\n", "node 41 is no staging node"),
-                          ("1,detector,Track Barn,,,,,13,9,,,wired,\n", "a detector's index is 1 to 8, not 9"),
-                          ("1,detector,Track Barn,,,,,13,x,,,wired,\n", "node, index and ports are numbers"),
-                          ("1,detector,Track Barn,,,,,13,1,,,wired,\n1,detector,Track EH-1,,,,,13,1,,,wired,\n", "node 13 Block 1 is line 2's as well"),
-                          ("1,detector,Track Barn,,,,,13,1,,,wired,\n1,detector,Track Barn,,,,,13,2,,,wired,\n", "Track Barn is line 2's as well")):
+        barn, eh1 = "1,detector,det:block:7A-13C,", "1,detector,det:block:11B-end,"
+        for text, msg in ((barn + ",7,13,,,13,1,,,wired,\n", "named by its block's id alone"),
+                          (barn + ",,,,,41,1,,,wired,\n", "node 41 is no staging node"),
+                          (barn + ",,,,,13,9,,,wired,\n", "a detector's index is 1 to 8, not 9"),
+                          (barn + ",,,,,13,x,,,wired,\n", "node, index and ports are numbers"),
+                          (barn + ",,,,,13,1,,,wired,\n" + eh1 + ",,,,,13,1,,,wired,\n", "node 13 Block 1 is line 2's as well"),
+                          (barn + ",,,,,13,1,,,wired,\n" + barn + ",,,,,13,2,,,wired,\n",
+                           "det:block:7A-13C is line 2's as well"),
+                          ("1,detector,,Track Barn,,,,,13,1,,,wired,\n", "a detector is named by its id, not device"),
+                          ("1,detector,block:7A-13C,,,,,,13,1,,,wired,\n", "a detector's id starts det:")):
             with self.subTest(msg=msg), self.assertRaisesRegex(bdm.MapError, msg):
                 self.read(text)
 

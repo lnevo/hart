@@ -31,9 +31,12 @@ def row(layer, user, jmri, system="", level=2, role=None, **kw):
     return r
 
 
-def block(user, role, level=1):
-    """A block row a mast may protect, with its role."""
-    return row("block", user, "", level=level, role=role)
+def block(user, role, level=1, ident=None):
+    """A block row a mast may protect, with its role and device ID (an OS block's os:<switch>)."""
+    if ident is None:
+        number = user.removeprefix("OS Switch ")
+        ident = f"os:{number}" if role == "os" and number.isdigit() else "block:" + user.replace(" ", "-")
+    return row("block", user, "", level=level, role=role, id=ident)
 
 
 def home(user, switch, facing, kind="one-searchlight", level=2, protects="", physical=True, role="home"):
@@ -113,6 +116,14 @@ class Rows(unittest.TestCase):
     def test_a_given_protected_block_is_kept(self):
         (r,) = run(home("Mast 226L", "225", "Track 223-225", protects="OS Switch 225a"))
         self.assertEqual(r["protects"], "OS Switch 225a")
+
+    def test_a_home_mast_protects_its_switchs_os_block_by_its_id(self):
+        """The OS block of the mast's switch is found by its device ID (os:<switch>; naming-layers step 5), so the
+        owner's name for it is the one written; with no such block row, the generated name."""
+        (r,) = run(home("Mast 110L", "109", "Track 105-109") + [block("OS Ladder", "os", level=2, ident="os:109")])
+        self.assertEqual(r["protects"], "OS Ladder")
+        (r,) = run(home("Mast 110L", "109", "Track 105-109"))
+        self.assertEqual(r["protects"], "OS Switch 109")
 
     def test_an_anchor_mast_protects_its_os_block_at_no_switch(self):
         (r,) = run(home("Mast 8RA", "", "Track Scale", level=1, protects="OS Switch 7", physical=False)

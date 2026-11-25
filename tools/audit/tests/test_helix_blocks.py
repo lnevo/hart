@@ -136,7 +136,8 @@ def track(name, a, b=None, row=0, trial=None, loop=False, helix=False, level=3):
 
 class Pins(unittest.TestCase):
     HEAD = ",".join(wiring.COLUMNS) + "\n"
-    PINS = HEAD + "3,detector,Track Helix Inner,,,,,41,1,,,planned,\n3,detector,,227,241,,2,41,4,,,planned,\n"
+    # a helix block's detector by its id (det:<block id>; the name store names it), a track by its switches
+    PINS = HEAD + "3,detector,det:block:131BB-helix,,,,,,41,1,,,planned,\n3,detector,,,227,241,,2,41,4,,,planned,\n"
     FOUND = [track("Track 227-241", "241", "227"), track("Track Helix Inner", "131", helix=True),
              track("Track Helix Outer", "131", helix=True, row=1, level=2), track("Track 241 Spur", "241")]
     SPLIT = {"Track 227-241"}
@@ -147,24 +148,38 @@ class Pins(unittest.TestCase):
     def test_read(self):
         self.assertEqual(self.read(self.PINS), {"Track Helix Inner": (41, 0), "Track 227-241 2": (41, 3)})
         # staging's rows (level 1) are read_staging_pins': this reader passes them by
-        self.assertEqual(self.read(self.PINS + "1,detector,Track Barn,,,,,13,1,,,wired,\n"), self.read(self.PINS))
+        self.assertEqual(self.read(self.PINS + "1,detector,det:block:7A-13C,,,,,,13,1,,,wired,\n"), self.read(self.PINS))
         self.assertEqual(bdm.read_pins()["Track Helix Outer"], (41, 1))        # the committed file
 
+    def test_a_pin_by_id_finds_a_renamed_helix_track(self):
+        """`ids` ({block id: name} of this build's tracks) names a helix pin's track, so a helix track the owner
+        renamed is found under its new name before the device master is written again (naming-layers step 5)."""
+        found = [track("Track 227-241", "241", "227"), track("Track Helix Big", "131", helix=True),
+                 track("Track Helix Outer", "131", helix=True, row=1, level=2)]
+        got = bdm.read_pins(write(self.PINS), found, self.SPLIT, ids={"block:131BB-helix": "Track Helix Big"})
+        self.assertEqual(got, {"Track Helix Big": (41, 0), "Track 227-241 2": (41, 3)})
+
     def test_bad_pins_stop(self):
-        for text, msg in ((self.PINS + "2,detector,Track Helix Outer,,,,,41,1,,,planned,\n", "node 41 Block 1 is line 2's as well"),
-                          (self.PINS + "2,detector,Track Helix Outer,,,,,41,4,,,planned,\n", "node 41 Block 4 is line 3's as well"),
-                          (self.PINS + "2,detector,Track Helix Outer,,,,,41,9,,,planned,\n", "a detector's index is 1 to 8, not 9"),
-                          (self.PINS + "3,detector,Helix,,,,,41,2,,,planned,\n", "is no helix block"),
-                          (self.PINS + "3,detector,Track Helix Inner,37,39,,,41,2,,,planned,\n", "by its switches, not both"),
-                          (self.PINS + "2,detector,Track Helix Outer,,,,,forty,2,,,planned,\n", "node, index and ports are numbers"),
-                          (self.PINS + "3,detector,,227,241,,,41,2,,,planned,\n", "in two halves"),            # half missing
-                          (self.PINS + "3,detector,,241,,,1,41,2,,,planned,\n", "one block: no half"),          # half on a plain track
-                          (self.PINS + "3,detector,,241,227,,1,41,2,,,planned,\n", "lower first"),
-                          (self.PINS + "3,detector,,9,10,,,41,2,,,planned,\n", "no track runs Switch 9 to Switch 10"),
-                          # the level: a track is looked for on its row's level only, a helix block is on one
-                          (self.PINS + "2,detector,,241,,,,41,2,,,planned,\n", "no track runs Switch 241 spur"),
-                          (self.PINS + "3,detector,Track Helix Outer,,,,,41,2,,,planned,\n", "level 2 block, not level 3"),
-                          (self.PINS + ",detector,Track Helix Outer,,,,,41,2,,,planned,\n", "level is 1, 2 or 3, not ''"),
+        outer = "det:block:131AA-helix"          # Track Helix Outer, the main level's helix track
+        for text, msg in ((self.PINS + f"2,detector,{outer},,,,,,41,1,,,planned,\n", "node 41 Block 1 is line 2's as well"),
+                          (self.PINS + f"2,detector,{outer},,,,,,41,4,,,planned,\n", "node 41 Block 4 is line 3's as well"),
+                          (self.PINS + f"2,detector,{outer},,,,,,41,9,,,planned,\n", "a detector's index is 1 to 8, not 9"),
+                          (self.PINS + "3,detector,det:block:227B-231A,,,,,,41,2,,,planned,\n", "is no helix block"),
+                          (self.PINS + "3,detector,det:block:131BB-helix,,37,39,,,41,2,,,planned,\n",
+                           "by its switches, not both"),
+                          (self.PINS + f"2,detector,{outer},,,,,,forty,2,,,planned,\n", "node, index and ports are numbers"),
+                          (self.PINS + "3,detector,,,227,241,,,41,2,,,planned,\n", "in two halves"),            # half missing
+                          (self.PINS + "3,detector,,,241,,,1,41,2,,,planned,\n", "one block: no half"),          # half on a plain track
+                          (self.PINS + "3,detector,,,241,227,,1,41,2,,,planned,\n", "lower first"),
+                          (self.PINS + "3,detector,,,9,10,,,41,2,,,planned,\n", "no track runs Switch 9 to Switch 10"),
+                          # the level: a track is looked for on its row's level only, a helix block is on one (its
+                          # id is the device master's on that level alone)
+                          (self.PINS + "2,detector,,,241,,,,41,2,,,planned,\n", "no track runs Switch 241 spur"),
+                          (self.PINS + f"3,detector,{outer},,,,,,41,2,,,planned,\n",
+                           "block:131AA-helix is no level 3 device of the device master"),
+                          (self.PINS + f",detector,{outer},,,,,,41,2,,,planned,\n", "level is 1, 2 or 3, not ''"),
+                          # a device by name is refused: its id names it
+                          (self.PINS + "2,detector,,Track Helix Outer,,,,,41,2,,,planned,\n", "named by its id, not device"),
                           ("switch_a,switch_b,parallel,half,block,node,block_input,notes\n,,,,Track Helix Inner,41,1,\n",
                            "columns")):
             with self.subTest(msg=msg), self.assertRaisesRegex(bdm.MapError, msg):

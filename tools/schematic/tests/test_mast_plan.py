@@ -225,7 +225,7 @@ class BlockSplits(unittest.TestCase):
         self.assertEqual(self.read(HEAD + split(3, 227, 241, notes="x"), {"Staging level": 1}), set())
 
     def test_the_other_kinds_are_not_splits(self):
-        text = HEAD + "3,track,227,241,,,OS Switch 227,,,x\n" + split(1, 5, 7)
+        text = HEAD + "3,track,227,241,,,os:227,,,x\n" + split(1, 5, 7)
         self.assertEqual(self.read(text), set())
 
     def test_errors(self):
@@ -253,11 +253,13 @@ class BlockOverrides(unittest.TestCase):
             return mr.read_block_overrides(path, kinds)
 
     def test_rows_of_the_kinds_asked_for_with_their_lines(self):
-        text = (HEAD + split(3, 227, 241, notes="the owner's choice") + "1,track,1,3,,1,OS Switch 1,12.5,,a\n"
+        text = (HEAD + split(3, 227, 241, notes="the owner's choice") + "1,track,1,3,,1,os:1,12.5,,a\n"
                 + "1,crossover_half,7,13,,,OS Switch 7,,,b\n")
         rows = self.read(text)
         self.assertEqual([(r["line"], r["kind"]) for r in rows], [(2, "split"), (3, "track"), (4, "crossover_half")])
         self.assertEqual(rows[1]["cm"], 12.5)
+        # a track row's OS block comes back by its generated name, its id beside it
+        self.assertEqual((rows[1]["block"], rows[1]["id"]), ("OS Switch 1", "os:1"))
         self.assertIsNone(rows[0]["cm"])
         self.assertEqual(rows[0]["notes"], "the owner's choice")
         self.assertEqual([r["line"] for r in self.read(text, ("split",))], [2])
@@ -266,7 +268,7 @@ class BlockOverrides(unittest.TestCase):
     def test_a_bad_row_of_another_kind_still_stops(self):
         text = HEAD + split(3, 227, 241) + "1,track,1,3,,1,Track 1-3,,,\n"
         with self.assertRaisesRegex(mr.MapError, r"block_overrides.csv: line 3 \(level 1, kind track\): block "
-                                                 "'Track 1-3' is no OS block"):
+                                                 "'Track 1-3' is no OS block ID"):
             self.read(text, ("split",))
 
     def test_shapes(self):
@@ -274,14 +276,17 @@ class BlockOverrides(unittest.TestCase):
                          ("3,split,227,241,,,OS Switch 227,,,\n", "no end, block, cm or inside"),
                          ("3,split,227,241,,241,,,,\n", "no end, block, cm or inside"),
                          ("3,split,227,241,,,,,yes,\n", "no end, block, cm or inside"),
-                         ("1,track,9,11,,,OS Switch 9,,no,\n", "inside is yes or empty"),
-                         ("1,track,9,11,,9,OS Switch 9,0,,\n", "cm '0' is a length in cm, more than 0"),
-                         ("1,track,9,11,,9,OS Switch 9,abc,,\n", "cm 'abc' is a length"),
-                         ("1,track,9,,,,OS Switch 9,,,\n", "a track between two switches"),
+                         ("1,track,9,11,,,os:9,,no,\n", "inside is yes or empty"),
+                         ("1,track,9,11,,9,os:9,0,,\n", "cm '0' is a length in cm, more than 0"),
+                         ("1,track,9,11,,9,os:9,abc,,\n", "cm 'abc' is a length"),
+                         ("1,track,9,,,,os:9,,,\n", "a track between two switches"),
                          ("1,crossover_half,7,13,,,OS Switch 7,,yes,\n", "with no parallel, end, cm or inside"),
                          ("1,crossover_half,7,13,,,Track 7,,,\n", "is no OS block"),
                          ("1,track,9,11\n", "block '' is no OS block"),        # short: its trailing fields empty
-                         ("1,track,9,11,,,OS Switch 9,,,a,extra\n", "more fields than the header's 10")):
+                         ("1,track,9,11,,,OS Switch 9,,,\n", "block 'OS Switch 9' is no OS block ID"),   # by name
+                         ("1,track,9,11,,,os:9:A-13C,,,\n", "no crossover_half row of Switch 9 whose leg A runs to "
+                                                              "Switch 13"),
+                         ("1,track,9,11,,,os:9,,,a,extra\n", "more fields than the header's 10")):
             with self.subTest(row=row), self.assertRaisesRegex(mr.MapError, f"block_overrides.csv: line 2.*{msg}"):
                 self.read(HEAD + row)
 

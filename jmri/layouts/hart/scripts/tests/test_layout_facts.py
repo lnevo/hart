@@ -38,22 +38,23 @@ class LoaderTest(unittest.TestCase):
         self.assertEqual((switches[9].hardware, switches[9].dcc), ("M2T1310", "119"))
 
     def test_a_number_reused_on_another_level_names_both_rows(self) -> None:
-        self.append("switches.csv", "2,9,9,,,,,,,,,,,")
+        self.append("switches.csv", "2,9,9,,,,,,,,,,,,,,")
         with self.assertRaisesRegex(ValueError, r"lines 7 \(level 1\) and \d+ \(level 2\) both use Switch 9"):
             facts.load_switches(self.data)
 
     def test_an_os_block_on_two_rows_names_both(self) -> None:
         path = self.data / "switches.csv"
         lines = path.read_text().splitlines(keepends=True)
-        lines.insert(7, "1,9,,OS Switch 9,Track EH-1,Track EH-3,,,,,,,,\n")       # right after Switch 9's row
+        lines.insert(7, "1,9,,OS Switch 9,Track EH-1,Track EH-3,os:9,block:11B-end,block:9C-end,,,,,,,,\n")       # right after Switch 9's row
         path.write_text("".join(lines))
         with self.assertRaisesRegex(ValueError, r"lines 7 and 8: both are OS Switch 9"):
             facts.load_switches(self.data)
 
     def test_an_os_block_of_another_switch_is_refused(self) -> None:
-        text = (self.data / "switches.csv").read_text().replace("1,11,,OS Switch 11,", "1,11,,OS Switch 9,")
+        # a staging row's OS block is its os_id (os_block is the name store's label of it, naming-layers step 5)
+        text = (self.data / "switches.csv").read_text().replace("Track EH-1,OS Switch 9,os:11,", "Track EH-1,OS Switch 9,os:9,")
         (self.data / "switches.csv").write_text(text)
-        with self.assertRaisesRegex(ValueError, r"line 8 \(Switch 11\): os_block is OS Switch 11 or a half"):
+        with self.assertRaisesRegex(ValueError, r"line 8 \(Switch 11\): a staging row gives the device IDs of its OS block \(os_id os:11"):
             facts.load_switches(self.data)
 
     def test_a_shared_lever_names_both_rows(self) -> None:
@@ -99,7 +100,7 @@ class LoaderTest(unittest.TestCase):
         self.assertEqual([n for n, s in switches.items() if s.level == "1" and not s.hand], [])
 
     def test_a_hand_other_than_l_r_or_blank_is_refused(self) -> None:
-        text = (self.data / "switches.csv").read_text().replace("Track EH-3,L,owner", "Track EH-3,left,owner")
+        text = (self.data / "switches.csv").read_text().replace("block:9C-end,L,owner", "block:9C-end,left,owner")
         (self.data / "switches.csv").write_text(text)
         with self.assertRaisesRegex(ValueError, r"Switch 9\): hand is L, R or blank, got 'left'"):
             facts.load_switches(self.data)
