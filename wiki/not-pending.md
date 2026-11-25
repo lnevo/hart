@@ -50,4 +50,5 @@ The `whats-left` skill reads this page and drops everything it excludes. Add a r
 
 | Item | Rule | Recorded instead | Owner date |
 |------|------|------------------|------------|
+| Power districts and terminal blocks (the empty Power District column in the LCOS inventory, the unverified `docs/wiring/terminal_blocks.md`) | Not important for now. Never list them as data gaps or to-dos in the data-masters work. | None; not tracked | 2026-11-25 |
 | Pi LCC serial write timeouts right after PanelPro shutdown | Ignore. Report LCC serial trouble only if it shows while JMRI runs, or if a shutdown hangs and needs a kill. | None; not tracked | 2026-11-12 |

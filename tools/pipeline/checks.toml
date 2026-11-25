@@ -105,6 +105,7 @@ inputs = [
   "docs/pipeline-map/pipeline_map.json",
   { path = "tools/ops/pipeline_map.js", label = "inlined" },
   { path = "tools/pipeline/checks.toml", label = "manifest lane" },
+  { path = "tools/pipeline/panels.toml", label = "manifest lane" },
 ]
 outputs = [
   { path = "docs/pipeline-map/index.html", label = "make map" },
@@ -219,13 +220,11 @@ cmd = ["python3", "www/scripts/build_wiring_json.py", "--check"]
 git = ["head", "base"]
 domain = "website"
 label = "build_wiring_json.py"
-desc = "Builds the website wiring viewer JSON from v86 inventory and the v85 signal splits; tools/check.sh fails while stale."
+desc = "Builds the website wiring viewer JSON from the v86 inventory; tools/check.sh fails while stale."
 inputs = [
-  { path = "docs/wiring", label = "v85 split pins" },
   { path = "docs/wiring/LCOS_Layout_Inventory_v86.xlsx", label = "LCOS xlsx" },
 ]
 outputs = [
-  "www/data/signal-splits.json",
   "www/data/wiring-inventory.json",
 ]
 
@@ -336,7 +335,8 @@ outputs = [
 ]
 
 # Every output drawn from the schematic, checked by its own pipeline (make panels CHECK=1): each step of
-# tools/schematic/build_panels.sh with --check, in build order, from the hands to the approved fingerprints, with
+# tools/schematic/build_panels.sh (tools/pipeline/panels.toml) with --check, in build order, from the hands to the
+# approved fingerprints, with
 # tables.xml among them (an output, ADR-029: a Store is never copied over it; make tables-pull and split_store.py).
 # One list of panel checks for check.sh, CI and make panels. Its own stamps (shared with make panels) skip the steps
 # current here; CI, FULL=1 and an audit run pass --full and run them all, and so does a run with HART_TABLES (stamps
@@ -354,8 +354,9 @@ label = "build_panels.sh (make panels)"
 desc = "make panels: runs the schematic builders and guards in order (hands to CATS: head-plan and panel-items steps and the sml-current guard included), skipping a step whose stamped inputs are unchanged (FULL=1 runs all)."
 # not a repo path, so not listed: writes ext:panel-stamps (records a stamp after a step passes)
 # not a repo path, so not listed: ext:panel-stamps (skips a current step)
+# Its links to the steps it runs, and the guards' links back to it, come from tools/pipeline/panels.toml.
 inputs = [
-  { path = "tools/schematic/check_sml_current.py", label = "guard before tables", side = "check" },
+  { path = "tools/pipeline/panels.toml", label = "the steps, in order" },
 ]
 
 # The track plan article: its drawings against the owner's plan (SKIPPED where the plan is not), and the article

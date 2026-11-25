@@ -25,7 +25,7 @@ A generated file that only tools, CI or the website build read is a view: it is 
 | 13 | Waybills | Live (hart-ops, ADR-010) | [waybills.md](waybills.md) |
 | 14 | STS | Live (`external/sts-docker-data`) | [sts.md](sts.md) |
 | 15 | Ops publications | Live (`docs/ops`, ADR-010) | [ops-publications.md](ops-publications.md) |
-| 16 | Industry routing | Live (hart-ops, ADR-010) | [industry-routing.md](industry-routing.md) |
+| 16 | Industry routing | Retired 2026-11-25 (legacy; owner) | [archive](../../archive/wiki/pipelines/industry-routing.md) |
 | 17 | Website | Live | [`www/README.md`](../../www/README.md) |
 | 18 | MQTT mimic | Tool | [mqtt-mimic.md](mqtt-mimic.md) |
 | 19 | Panels from the schematic | Live | [schematic-panels.md](schematic-panels.md) |

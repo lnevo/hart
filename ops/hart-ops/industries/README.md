@@ -1,6 +1,6 @@
 # ops/hart-ops/industries
 
-The OPSIG industries list and the scripts that keep the industry routing matrix in step with it ([pipeline 16](../../../wiki/pipelines/industry-routing.md)).
+The OPSIG industries list. The industry routing matrix it once fed, its scripts and notes were retired as legacy on 2026-11-25 (owner) and are in [`archive/docs/ops/industries/`](../../../archive/docs/ops/industries/); nothing reads them.
 
 ## industries.txt
 
@@ -27,8 +27,3 @@ awk -F'\t' '$4=="PA" && $5 ~ /B&O/' industries.txt            # Pennsylvania on 
 awk -F'\t' '$3=="Washington" && $4=="PA"' industries.txt      # Washington, PA, 3 rows
 ```
 
-## Scripts and notes
-
-- `validate_and_update_matrix.py`, `update_railroads.py`, `update_railroad_timelines_era.py`, `fix_railroad_timelines.py`: keep `HART_Industry_Routing_Matrix.xlsx` in step with the list.
-- `Supplier_Customer_Analysis.md`: which suppliers and customers in the list fit the layout's industries.
-- `SCRIPT_IMPROVEMENTS.md`: open ideas for the scripts.
