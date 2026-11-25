@@ -529,12 +529,12 @@ class PrivateNameAndTables(unittest.TestCase):
                                              (step.replace("python3", "{python}") + "after_edit = true\n",
                                               "but its name or cmd"), (None, "cannot read it"))):
                 path = Path(tmp, f"{i}.toml")
-                if text is not None:
-                    path.write_text(text, encoding="utf-8")
+                _ = text is None or path.write_text(text, encoding="utf-8")
                 with self.subTest(why), self.assertRaisesRegex(after.ManifestLoadError, why):
                     after.manifest_checks(str(ROOT), path)
-            with self.assertRaisesRegex(after.NotMarked, "has no tools/pipeline/manifest.py"):
-                after.manifest_checks(tmp)
+            self.assertRaisesRegex(after.NotMarked, "has no tools/pipeline/manifest.py", after.manifest_checks, tmp)
+            shutil.copytree(ROOT / "tools/pipeline", Path(tmp, "tools/pipeline"), ignore=lambda d, n: ["checks.toml"])
+            Path(tmp, "tools/pipeline/checks.toml").write_text(step, encoding="utf-8")    # split, but no marks yet
             with contextlib.redirect_stderr(io.StringIO()) as err:      # a worktree from before the marks
                 self.assertEqual(after.quick_checks(tmp), after.quick_checks(str(ROOT)))
             self.assertIn("ran the checks", err.getvalue())

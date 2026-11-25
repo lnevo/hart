@@ -42,8 +42,8 @@ Nothing is skipped or recorded while HART_TABLES is set or the schematic plugin 
 (panel_stamps.unstampable), for a trace that is missing or short of a Python process, or when a file the job read
 changed while it ran; check.sh never skips when CI is set, FULL=1 or CHECK_AUDIT (FULL=1 still records). Stamps hold
 content hashes and repo-relative paths, so they sit in one per-user folder (<main checkout>/.cache/hart/check-stamps,
-gitignored, or CHECK_STAMPS_DIR) that every worktree and `make remote` run shares; a file hash is reused while its
-size and mtime stay.
+gitignored, or CHECK_STAMPS_DIR) that every worktree shares; on the Windows box `make remote` keeps one per ref,
+copied from the shared one first (tools/hosts/win_run.sh); a file hash is reused while its size and mtime stay.
 
 tests/test_check_stamps.py checks that a recorded read set holds everything an independent audit hook
 (tools/audit/stamp_audit/sitecustomize.py, CHECK_AUDIT) saw the same jobs open or list. What neither hook can see:
@@ -508,9 +508,9 @@ def not_stampable(name: str, ck: Checker | None = None) -> str | None:
     return ck.unstampable() if ck else ps.unstampable(ROOT)
 
 
-# check.sh, the loader that turns the manifest's entries into its job lines, and the hook: an edit to one reruns every
-# job. tools/pipeline/checks.toml is not here: each manifest job's key holds its own entry (manifest_key).
-ALWAYS = ("tools/check.sh", "tools/pipeline/manifest.py", *traced.HOOK_FILES)
+# check.sh, the loader that makes the manifest's job lines (manifest.py and its parts, pm.FILES), and the hook: an edit
+# to one reruns every job. tools/pipeline/checks.toml is not here: each job's key holds its own entry (manifest_key).
+ALWAYS = ("tools/check.sh", *pm.FILES, *traced.HOOK_FILES)
 
 
 def _patterns(name: str, programs: list[str]) -> tuple[str, ...]:

@@ -1,6 +1,7 @@
 """tools/ci/stamp_gate.py and check.sh's CI stamp modes: a pull request run skips only the jobs main's last full pass
 covered, and any doubt about the stamps runs everything; each passing pull request run records what it skipped, and
 the weekly full run fails when a job one of them skipped fails in full."""
+import importlib.util
 import json
 import os
 import subprocess
@@ -8,6 +9,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools" / "ci"))
@@ -87,6 +89,22 @@ class DecideTest(unittest.TestCase):
         for p in ("tools/check.sh.bak", "tools/cia.py", ".github/workflows/other.yml", "tools/audit/tracedx.py"):
             with self.subTest(p):
                 self.assertIsNone(self.decide(changed=[p]))
+
+    def test_each_part_of_the_manifest_loader_forces_full(self) -> None:
+        """manifest.py's FILES (it and the parts it imports) are each MACHINERY: a split part is no way around it."""
+        spec = importlib.util.spec_from_file_location("stamp_gate_test_manifest", ROOT / "tools/pipeline/manifest.py")
+        manifest = importlib.util.module_from_spec(spec)
+        path_before = list(sys.path)
+        with mock.patch.dict(sys.modules, {spec.name: manifest}):  # its dataclasses look their module up there
+            spec.loader.exec_module(manifest)
+        self.assertEqual(sys.path, path_before)         # tools/pipeline is on sys.path only while the parts import
+        on_disk = {p.relative_to(ROOT).as_posix() for p in (ROOT / "tools/pipeline").glob("manifest*.py")}
+        self.assertEqual(set(manifest.FILES), on_disk)  # a new manifest_*.py part must be in PARTS, so in FILES
+        self.assertGreater(len(manifest.FILES), 1)
+        for p in manifest.FILES:
+            with self.subTest(p):
+                self.assertIn(p, gate.MACHINERY)
+                self.assertIn("machinery", self.decide(changed=[*DATA, p]))
 
     def test_no_changed_paths_or_no_base_means_full(self) -> None:
         self.assertIn("no changed paths", self.decide(changed=["", " "]))

@@ -70,6 +70,10 @@ def manifest_checks(root, manifest_file=None):
     name = "hart_after_edit_manifest"
     if not os.path.isfile(script):
         raise NotMarked(f"{root} has no {MANIFEST_PY}")
+    here = os.path.realpath(os.path.dirname(script))
+    for part in [k for k, m in sys.modules.items() if k.startswith("manifest_")   # parts of another checkout's
+                 and os.path.dirname(os.path.realpath(getattr(m, "__file__", None) or here)) != here]:
+        del sys.modules[part]   # manifest.py imports its parts by name: a fallback load must not get the first's
     try:
         spec = importlib.util.spec_from_file_location(name, script)
         if spec is None:

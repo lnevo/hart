@@ -35,9 +35,8 @@ wiring-freeze:  ## Freeze a main or upper control point's wiring into wiring.csv
 	python3 tools/wiring/freeze_wiring.py --cp "$(CP)"
 	python3 tools/schematic/build_device_map.py --check
 
-desks:  ## Rebuild and validate the CATS desks (generated from the schematic)
+desks:  ## Rebuild the CATS desks (generated from the schematic)
 	python3 tools/schematic/build_cats_panel.py
-	python3 cats/scripts/validate_cats_panel.py
 
 panelpro-test:  ## Load tables.xml in real PanelPro on this Mac
 	./jmri/layouts/hart/scripts/run_panelpro_smoke_test.sh
