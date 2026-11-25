@@ -164,7 +164,7 @@ inputs = [
   { path = "docs/wiring/LCOS_Layout_Inventory_v86.xlsx", label = "LCOS xlsx" },
   { path = "docs/wiring/history", label = "v85 split pins" },
 ]
-outputs = ["www/data/wiring-inventory.json", "www/data/signal-splits.json"]
+outputs = ["www/data/wiring-inventory.json"]  # signal-splits.json was archived 2026-11-25 (#1133)
 ```
 
 The non-Python case (today `check_stamps.py:84`):
