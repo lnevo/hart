@@ -5,8 +5,10 @@ from __future__ import annotations
 import csv
 import importlib.util
 import json
+import shutil
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -51,11 +53,29 @@ class RepoTests(unittest.TestCase):
         self.assertEqual([locos.roster_entry(rows[e["id"]]) for e in committed], committed)
 
     def test_publish_takes_only_queued_locos(self) -> None:
-        """A row added to the master without a loco_queue.csv entry is not published or carded."""
-        with (ROOT / "ops/hart-ops/data/loco_queue.csv").open(newline="", encoding="utf-8") as fh:
-            queue = list(csv.DictReader(fh))
-        self.assertEqual([q["roster_id"] for q in queue if not q["published"]], [])
-        self.assertEqual([q["roster_id"] for q in queue if not q["card_printed"]], [])
+        """Publish on copies of the repo's master and queue: the rows with no open queue entry change nothing."""
+        data = ROOT / "ops/hart-ops/data"
+        saved = (locos.LOCOS, locos.LOCO_QUEUE, locos.ENGINE_ROSTER, locos.IMPORT_LIST)
+        with tempfile.TemporaryDirectory() as d:
+            t = Path(d)
+            for src, name in ((data / "locos.csv", "locos.csv"), (data / "loco_queue.csv", "queue.csv"),
+                              (ROOT / "jmri/layouts/hart/operations/OperationsEngineRoster.xml", "engines.xml"),
+                              (ROOT / "jmri/layouts/hart/data/new_locos.json", "new_locos.json")):
+                shutil.copy(src, t / name)
+            before = {p.name: p.read_bytes() for p in t.iterdir()}
+            locos.LOCOS, locos.LOCO_QUEUE = t / "locos.csv", t / "queue.csv"
+            locos.ENGINE_ROSTER, locos.IMPORT_LIST = t / "engines.xml", t / "new_locos.json"
+            try:
+                self.assertEqual(locos.cmd_publish(None, None), 0)
+            finally:
+                locos.LOCOS, locos.LOCO_QUEUE, locos.ENGINE_ROSTER, locos.IMPORT_LIST = saved
+            self.assertEqual({p.name: p.read_bytes() for p in t.iterdir()}, before)
+        with (data / "loco_queue.csv").open(newline="", encoding="utf-8") as fh:   # bin/cars cards: the same queue
+            self.assertEqual([q["roster_id"] for q in csv.DictReader(fh) if not q["card_printed"]], [])
+
+    def test_two_rows_with_one_operations_pro_id(self) -> None:
+        found = L.gaps([row("BO", "572"), row("B-O", "572")], {}, {})
+        self.assertEqual([v for _, v, _ in found], ["B-O 572"])
 
 
 if __name__ == "__main__":

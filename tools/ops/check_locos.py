@@ -71,7 +71,12 @@ def gaps(rows: list[dict], rosters: dict[str, list[str]], trains: dict[str, list
         want = locos.loco_roster_id(r["road_name"], r["road_number"])
         if r["roster_id"] != want:
             found.append((rel(MASTER), r["roster_id"], f"roster_id should be {want!r}"))
-    ops_ids = {locos.ops_id(r["road_name"], r["road_number"]) for r in rows}
+    ops_ids: dict[str, str] = {}
+    for r in rows:
+        oid = locos.ops_id(r["road_name"], r["road_number"])
+        if oid in ops_ids:
+            found.append((rel(MASTER), r["roster_id"], f"the same Operations Pro id {oid!r} as {ops_ids[oid]}"))
+        ops_ids.setdefault(oid, r["roster_id"])
     for name, ids in rosters.items():
         for eid in ids:
             if eid not in ops_ids:
@@ -89,8 +94,12 @@ def gaps(rows: list[dict], rosters: dict[str, list[str]], trains: dict[str, list
 
 
 def main() -> int:
-    rows = read_master()
-    found = gaps(rows, {rel(p): roster_ids(p) for p in ROSTERS}, {rel(TRAINS): train_engines()})
+    try:
+        rows = read_master()
+        found = gaps(rows, {rel(p): roster_ids(p) for p in ROSTERS}, {rel(TRAINS): train_engines()})
+    except (OSError, ET.ParseError, KeyError) as exc:
+        print(f"FAIL     check_locos: a file it reads is missing or unreadable: {exc}")
+        return 1
     failed = reported = 0
     for file, value, problem in found:
         if (file, value) in REPORTED:
