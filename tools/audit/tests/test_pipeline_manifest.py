@@ -220,7 +220,7 @@ class EdgesTest(Refusing):
 
 
 class DeclarationsTest(unittest.TestCase):
-    """manifest.declarations, is_code, covers and undeclared: what the trace audit (check_stamps.step_reads) compares a
+    """manifest.declarations, covers and undeclared: what the trace audit (check_stamps.step_reads) compares a
     job's reads with."""
     TEXT = (step(name='"a"', group='"static"', inputs='["data/sub", { path = "data/x.csv", label = "l" }]',
                  outputs='["www/index.html"]', quiet_inputs='["lib/*.txt"]')
@@ -249,10 +249,11 @@ class DeclarationsTest(unittest.TestCase):
         a = self.decls(self.TEXT)["a"][0]
         reads = ["data/sub/y.csv", "data/x.csv", "www/index.html", "lib/n.txt", "tools/fixture.json", "jmri/x.py",
                  "data/subway.csv", "lib/deep/n.txt", "wiki/STATUS.md", "wiki/STATUS.md"]
-        self.assertEqual(M.undeclared(a, reads), ["data/subway.csv", "lib/deep/n.txt", "wiki/STATUS.md"])
-        self.assertTrue(M.is_code("tools/pipeline/checks.toml"))
-        self.assertTrue(M.is_code("www/scripts/x.py"))
-        self.assertFalse(M.is_code("www/scripts/published-files.json"))
+        # a data file under tools/ and a .py file read as data are reads like any other (the code a job imported or
+        # ran never reaches undeclared: check_stamps.step_reads leaves it out by the trace's "c" lines)
+        self.assertEqual(M.undeclared(a, reads), ["data/subway.csv", "jmri/x.py", "lib/deep/n.txt",
+                                                  "tools/fixture.json", "wiki/STATUS.md"])
+        self.assertEqual(M.undeclared(a, ["tools/a.py"]), [])          # its own script
 
     def test_errors_are_manifest_errors(self) -> None:
         for text, why in ((step(cmd='"python3 tools/a.py"'), "cmd: not a list of words"),

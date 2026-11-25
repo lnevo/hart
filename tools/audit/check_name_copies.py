@@ -70,6 +70,9 @@ SKIP_PREFIXES = (
 # and old-name handling (rename_extension_tracks).
 SKIP_PARTS = ("/tests/",)
 TEXT_SUFFIXES = (".py", ".sh", ".js", ".mjs", ".csv", ".json", ".xml", ".html", ".svg", ".txt", ".cmd", ".yml", ".yaml")
+# The tracked files it lists, as git globs: one per suffix (readable() then leaves out SKIP_PREFIXES and tests). The
+# step's quiet_inputs in tools/pipeline/checks.toml are these (tools/audit/tests/test_manifest_scans.py).
+SCAN_GLOBS = tuple(f"**/*{s}" for s in TEXT_SUFFIXES)
 
 # Dated records that keep a name that is no longer current: file -> (names, reason);
 # names None allows any. Keep this short: a copy still in use belongs on the data.
@@ -170,7 +173,8 @@ def tracked_files(root: Path) -> list[str]:
     """The checkout's tracked files. Needs git: walking the folder would also read untracked
     and gitignored files (media mirrors, local runs), so there is no fallback."""
     try:
-        out = subprocess.run(["git", "-C", str(root), "ls-files", "-z"], capture_output=True, check=True)
+        out = subprocess.run(["git", "-C", str(root), "ls-files", "-z", "--", *(f":(glob){g}" for g in SCAN_GLOBS)],
+                             capture_output=True, check=True)
     except (OSError, subprocess.CalledProcessError) as e:
         detail = e.stderr.decode("utf-8", "replace").strip() if isinstance(e, subprocess.CalledProcessError) else e
         raise SystemExit(f"check_name_copies.py needs git to list the tracked files of {root}: {detail}")
