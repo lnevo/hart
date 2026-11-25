@@ -369,14 +369,14 @@ class DeviceItems(unittest.TestCase):
 
     def test_a_rename_of_a_wired_staging_turnout_says_where_to_rename_it(self) -> None:
         """Staging's turnout rows are build_device_map.py's since wiring.csv (2026-11-20); a rename is the owner's,
-        by hand in both files, not a rebuild's."""
+        by hand in its field row (keyed by id), not a rebuild's."""
         rows = [dict(r, written_by="build_device_map.py") if r["layer"] == "turnout" else r for r in ROWS]
         turnouts = (bean("turnout", "MTT100", "DCC Switch 1", "Node: 4 Turnout: 0")
                     + bean("turnout", "M2T408", "Switch 1A", "bound by its user name"))
         p = plan(doc(), doc(), doc(turnouts=turnouts), rows=rows)
         self.assertEqual([], p.of(ss.DEVICE))
         [g] = p.of(ss.DROPPED)
-        self.assertIn("rename it by hand in devices_field.csv and in wiring.csv's row", g.note)
+        self.assertIn("rename it by hand in its devices_field.csv row (keyed by its id; wiring.csv keeps", g.note)
 
     def test_a_rename_on_both_passes_is_one_question(self) -> None:
         """A block's names-only pass and full pass (and its layout block) carry one rename: one DEVICE item."""
