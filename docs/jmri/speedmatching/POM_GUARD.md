@@ -151,7 +151,7 @@ pattern as `tools/ops/cs105_roster_sync.sh`):
 
 ```
 ssh pi 'mkdir -p /tmp/speedmatch /home/pi/speedmatch/ledger'
-scp jmri/layouts/hart/scripts/speedmatch/pom_guard.py \
+scp jmri/layouts/hart/scripts/speedmatch/pom_guard.py jmri/layouts/hart/scripts/speedmatch/pom_guard_cli.py \
     jmri/layouts/hart/scripts/cs105_consist.py proposal.json pi:/tmp/speedmatch/
 { cat <<'EOF'
 PROPOSAL = "/tmp/speedmatch/proposal.json"

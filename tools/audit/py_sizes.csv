@@ -5,7 +5,6 @@ jmri/layouts/hart/scripts/gen_ctc_track_plan.py,1375
 jmri/layouts/hart/scripts/panel_status.py,978
 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py,811
 jmri/layouts/hart/scripts/refresh_bean_comments.py,934
-jmri/layouts/hart/scripts/speedmatch/pom_guard.py,934
 jmri/layouts/hart/scripts/tests/test_pom_guard.py,976
 jmri/layouts/hart/scripts/tests/test_signal_coordinator_behaviour.py,2059
 jmri/layouts/hart/scripts/tests/test_speedmatch_distance.py,976
