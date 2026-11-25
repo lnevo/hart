@@ -57,7 +57,7 @@ FIELDS: dict[str, tuple[type, bool]] = {
     "name": (str, True), "runner": (str, True), "cmd": (list, True), "domain": (str, True), "label": (str, True),
     "desc": (str, True),
     "group": (str, False), "docs_only": (bool, False), "inputs": (list, False), "outputs": (list, False),
-    "programs": (dict, False),
+    "programs": (dict, False), "quiet_inputs": (list, False),
 }
 EDGE_KEYS = {"inputs": ("path", "label", "side"), "outputs": ("path", "label")}
 
@@ -97,6 +97,7 @@ class Step:
     inputs: tuple[Edge, ...] = ()
     outputs: tuple[Edge, ...] = ()
     programs: tuple[tuple[str, tuple[str, ...]], ...] = ()
+    quiet_inputs: tuple[str, ...] = ()          # read, not drawn on the map: for the trace audit only
 
 
 @dataclass(frozen=True)
@@ -287,6 +288,16 @@ def _step_problems(entry: dict, where: Repo) -> list[str]:
     out += [f"cmd: {msg}" for msg in _cmd_problems(entry["cmd"], "group" in entry, where)]
     for key in EDGE_KEYS:
         out += [f"{key}: {msg}" for msg in _edge_problems(entry.get(key, []), EDGE_KEYS[key], where)]
+    quiet = entry.get("quiet_inputs", [])
+    if not all(isinstance(p, str) for p in quiet):
+        out.append("quiet_inputs: must be a list of paths (no label or side: they are not drawn)")
+    else:
+        out += [f"quiet_inputs: {msg}" for msg in _path_list_problems(quiet, where)]
+        drawn = {i if isinstance(i, str) else i.get("path") for i in entry.get("inputs", [])
+                 if isinstance(i, (str, dict))}
+        both = sorted(set(quiet) & drawn)
+        if both:
+            out.append(f"quiet_inputs: {', '.join(both)} also in inputs; a read is drawn or quiet, not both")
     for prog, globs in entry.get("programs", {}).items():
         if not PROGRAM_RE.fullmatch(prog):
             out.append(f"programs: {prog!r} is not a program name")
@@ -418,6 +429,7 @@ def _step(entry: dict) -> Step:
         script=_script(cmd), group=entry.get("group", ""), docs_only=entry.get("docs_only", False),
         inputs=_edges(entry.get("inputs", [])), outputs=_edges(entry.get("outputs", [])),
         programs=tuple((p, tuple(g)) for p, g in entry.get("programs", {}).items()),
+        quiet_inputs=tuple(entry.get("quiet_inputs", ())),
     )
 
 
@@ -428,6 +440,18 @@ def job_digests(path: Path = MANIFEST) -> dict[str, str]:
     and the map: check.sh ran `jobs` on the file before any job started, and that checks it all. An entry with no name,
     a name or group that is not text, or two jobs of one name is a ManifestError."""
     data, shown = read(path)
+    jobs = _jobs(data, shown)
+    try:
+        return {job: hashlib.sha256(json.dumps({"job": job, "steps": entries}, sort_keys=True, ensure_ascii=False,
+                                               separators=(",", ":")).encode()).hexdigest()
+                for job, entries in jobs.items()}
+    except (TypeError, ValueError) as err:     # a TOML date or time: no field of a step takes one
+        raise ManifestError(f"{shown}: a step holds a value JSON cannot hold (a date or time?): {err}") from None
+
+
+def _jobs(data: dict, shown: str) -> dict[str, list[dict]]:
+    """check.sh's job name -> the manifest entries it runs, in file order (see job_digests). An entry with no name, a
+    name or group that is not text, or two jobs of one name is a ManifestError."""
     jobs: dict[str, list[dict]] = {}
     own: set[str] = set()                   # jobs of one step each
     for i, entry in enumerate(_entries(data, shown), 1):
@@ -441,12 +465,89 @@ def job_digests(path: Path = MANIFEST) -> dict[str, str]:
         if not group:
             own.add(job)
         jobs.setdefault(job, []).append(entry)
-    try:
-        return {job: hashlib.sha256(json.dumps({"job": job, "steps": entries}, sort_keys=True, ensure_ascii=False,
-                                               separators=(",", ":")).encode()).hexdigest()
-                for job, entries in jobs.items()}
-    except (TypeError, ValueError) as err:     # a TOML date or time: no field of a step takes one
-        raise ManifestError(f"{shown}: a step holds a value JSON cannot hold (a date or time?): {err}") from None
+    return jobs
+
+
+# ---- the trace audit (ADR-037 stage 4a; build-graph-design.md 4.5): warn only, it never changes a skip
+
+@dataclass(frozen=True)
+class Declared:
+    """What the trace audit needs of one step: the words its traced Python process runs with (after the program, as
+    the process's argv shows them), its script, and every path or glob it declares it reads: inputs, quiet_inputs,
+    outputs (a --check reads what it would write) and the programs' paths."""
+    name: str
+    words: tuple[str, ...]
+    python: bool                    # run by Python (traced); a bash step's reads are not in the job's trace
+    script: str
+    patterns: tuple[str, ...]
+
+
+def declarations(path: Path = MANIFEST) -> dict[str, tuple[Declared, ...]]:
+    """check.sh's job name -> its steps as the audit sees them (Declared), in file order. Read like job_digests,
+    without the checks against git and the map (check.sh ran `jobs` before any job started), but each field the audit
+    uses must have its type: otherwise a ManifestError, never an audit that quietly checks less."""
+    data, shown = read(path)
+    out: dict[str, tuple[Declared, ...]] = {}
+    for job, entries in _jobs(data, shown).items():
+        steps = []
+        for entry in entries:
+            who = f"{shown}: step {entry['name']!r}"
+            cmd = entry.get("cmd")
+            if not isinstance(cmd, list) or not cmd or not all(isinstance(w, str) and w for w in cmd):
+                raise ManifestError(f"{who}: cmd: not a list of words (manifest.py check names every problem)")
+            env, words = _split_env(cmd)
+            if len(words) < 2:
+                raise ManifestError(f"{who}: cmd: runs nothing (manifest.py check names every problem)")
+            patterns: list[str] = []
+            for key in ("inputs", "outputs", "quiet_inputs"):
+                items = entry.get(key, [])
+                if not isinstance(items, list):
+                    raise ManifestError(f"{who}: {key}: not a list (manifest.py check names every problem)")
+                for item in items:
+                    p = item.get("path") if isinstance(item, dict) else item
+                    if path_problem(p):
+                        raise ManifestError(f"{who}: {key}: {path_problem(p)} (manifest.py check names every problem)")
+                    patterns.append(p)
+            programs = entry.get("programs", {})
+            if not isinstance(programs, dict) or not all(isinstance(g, list) for g in programs.values()):
+                raise ManifestError(f"{who}: programs: not a table of path lists (manifest.py check names every problem)")
+            for globs in programs.values():
+                for p in globs:
+                    if path_problem(p):
+                        raise ManifestError(f"{who}: programs: {path_problem(p)} "
+                                            f"(manifest.py check names every problem)")
+                    patterns.append(p)
+            steps.append(Declared(entry["name"], tuple(words[1:]), words[0] != "bash", _script(tuple(cmd)),
+                                  tuple(dict.fromkeys(patterns))))
+        out[job] = tuple(steps)
+    for job, steps in out.items():           # a traced process is told to its step by its words: no two alike
+        seen: dict[tuple[str, ...], str] = {}
+        for s in steps:
+            if s.python and s.words in seen:
+                raise ManifestError(f"{shown}: job {job!r}: steps {seen[s.words]!r} and {s.name!r} run the same "
+                                    f"words, so the audit cannot tell their reads apart")
+            seen.setdefault(s.words, s.name)
+    return out
+
+
+def is_code(path: str) -> bool:
+    """Whether a read is code, which the audit leaves out (design 4.5): anything under tools/ (the checks, hartlib,
+    their fixtures) and any .py file (the trace cannot tell an import from a read of the source)."""
+    return path.startswith("tools/") or path.endswith(".py")
+
+
+def covers(pattern: str, path: str) -> bool:
+    """Whether a declared path or glob covers a repo file: the file itself, a folder above it, or a glob match."""
+    if any(c in pattern for c in "*?"):
+        return bool(glob_regex(pattern).fullmatch(path))
+    return path == pattern or path.startswith(pattern + "/")
+
+
+def undeclared(step: Declared, reads) -> list[str]:
+    """The files of `reads` (repo paths the step's processes read) that are not code, not the step's own script and
+    not covered by any path the step declares, sorted."""
+    return sorted(r for r in set(reads) if not is_code(r) and r != step.script
+                  and not any(covers(p, r) for p in step.patterns))
 
 
 def shell_line(step: Step) -> str:
