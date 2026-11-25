@@ -34,7 +34,7 @@ The plan lists one line per roster entry: CREATE (the CS-105 has no train for th
 tools/ops/cs105.sh reboot
 ```
 
-Sends the CS-105 the OpenLCB Reset/Reboot datagram through the Pi's JMRI, waits for it to come back and lists every node on the bus, naming the ones that disappeared. Use it after deleting trains from the CS-105 roster (`Train.Delete From Roster?`), because deleted trains stay on the bus as live nodes until the command station restarts. Track power drops for a few seconds, so run it only when nothing is moving.
+Sends the CS-105 the OpenLCB Reset/Reboot datagram through the Pi's JMRI, waits for it to come back and lists every node on the bus, naming the ones that disappeared. Use it after deleting trains from the CS-105 roster (`Train.Delete From Roster?`), because deleted trains stay on the bus as live nodes until the command station restarts. Track power drops for a few seconds, so run it only when nothing is moving. While the operating flag is set it is refused; `cs105.sh reboot --force` restarts a hung CS-105 during a session (owner, 2026-11-25).
 
 ## Consists
 

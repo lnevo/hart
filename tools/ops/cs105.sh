@@ -2,7 +2,7 @@
 # The TCS CS-105 through the Pi's running JMRI. Each subcommand drops a Jython script into the Pi's
 # jmri_cmd_watcher channel (/tmp/jmri_cmd.py) and prints what comes back (docs/jmri/CS105_ROSTER_SYNC.md).
 #
-#   cs105.sh reboot                                   restart the CS-105 over LCC and list the nodes that come back;
+#   cs105.sh reboot [--force]                         restart the CS-105 over LCC and list the nodes that come back;
 #                                                     track power drops for a few seconds, so not while trains move
 #   cs105.sh roster-sync                              plan the JMRI roster to CS-105 sync, write nothing
 #   cs105.sh roster-sync --apply                      create missing trains, update labels
@@ -15,7 +15,8 @@
 #   cs105.sh consist detach LEAD FOLLOW               drop the listener on both nodes, then query both
 #
 # consist sends LCC Train Control messages (jmri/layouts/hart/scripts/cs105_consist.py), so it is refused while
-# the operating flag is set (tools/hosts/operating.sh), with no override. A train node is six hex bytes,
+# the operating flag is set (tools/hosts/operating.sh), with no override. reboot is refused too; --force reboots a
+# hung CS-105 during a session (owner, 2026-11-25). A train node is six hex bytes,
 # 06.01.00.00.C8.49 for long address 2121. CS105_TIMEOUT sets the wait in seconds.
 set -euo pipefail
 
@@ -57,8 +58,11 @@ drop_and_wait() {
 }
 
 cmd_reboot() {
+  local force=0
   [[ "${1:-}" != -h && "${1:-}" != --help ]] || { usage; exit 0; }
-  [[ $# -eq 0 ]] || die "reboot takes no arguments"
+  [[ "${1:-}" != --force ]] || { force=1; shift; }
+  [[ $# -eq 0 ]] || die "reboot takes no argument but --force"
+  [[ $force -eq 1 ]] || refuse_while_operating reboot "To restart a hung CS-105 now, track power drops: cs105.sh reboot --force"
   drop_and_wait "$ROOT/jmri/layouts/hart/scripts/cs105_reboot.py" "${CS105_TIMEOUT:-180}" "restarting the CS-105"
 }
 
@@ -92,12 +96,13 @@ cmd_roster_sync() {
 
 node_ok() { [[ "$1" =~ ^([0-9A-Fa-f]{2}\.){5}[0-9A-Fa-f]{2}$ ]]; }
 
-refuse_while_operating() {
+refuse_while_operating() {   # $1: the subcommand, $2: how to override it, if it can be
   local flag="${HART_OPERATING_FLAG:-$HOME/.hart_operating}"
   [[ -e "$flag" || -L "$flag" ]] || return 0
-  echo "REFUSED: the operating flag is set, so cs105.sh consist sends nothing to the CS-105." >&2
+  echo "REFUSED: the operating flag is set, so cs105.sh $1 sends nothing to the CS-105." >&2
   "$ROOT/tools/hosts/operating.sh" status >&2 || true
   echo "  It runs once the owner clears the flag (tools/hosts/operating.sh off --owner) or the speed-matching run ends." >&2
+  [[ -z "${2:-}" ]] || echo "  $2" >&2
   exit 3
 }
 
@@ -128,7 +133,7 @@ cmd_consist() {
     *) die "consist takes query, attach or detach, not '$action'" ;;
   esac
   for n in "${nodes[@]}"; do node_ok "$n" || die "train node '$n' is not six hex bytes (06.01.00.00.C8.49)"; done
-  refuse_while_operating
+  refuse_while_operating consist
 
   DROP="$(mktemp)"
   {

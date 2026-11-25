@@ -85,6 +85,17 @@ class Cs105Cli(unittest.TestCase):
         self.assertIn("restarting the CS-105 (up to 3s)", done.stdout)
         self.assertIn("fakepi.invalid mv /tmp/jmri_cmd.py.tmp /tmp/jmri_cmd.py", self.ssh_calls())
 
+    def test_reboot_is_refused_while_operating_unless_forced(self) -> None:
+        self.flag.write_text("by=owner\nsince=now\nreason=session\n", encoding="utf-8")
+        done = self.run_cli("reboot")
+        self.assertEqual(done.returncode, 3, done.stderr)
+        self.assertIn("REFUSED: the operating flag is set, so cs105.sh reboot", done.stderr)
+        self.assertIn("cs105.sh reboot --force", done.stderr)
+        self.assertEqual(self.ssh_calls(), "")
+        done = self.run_cli("reboot", "--force")
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertEqual(self.dropped(), REBOOT.read_text(encoding="utf-8"))
+
     def test_roster_sync_prepends_its_settings(self) -> None:
         if not ROSTER.is_file():
             self.skipTest("external/jmri-cs105-roster-sync is not checked out here")
