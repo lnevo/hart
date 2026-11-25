@@ -185,7 +185,7 @@ def _image_size(path: Path) -> tuple[int, int] | None:
 def built_pages() -> frozenset[str]:
     """The files the site build writes from their sources instead of copying (prepare_github_pages.BUILT_PAGES,
     site_views.VIEWS, ADR-036): not in www/ unless someone built a local copy, yet published. Read from site_views,
-    so this does not import the whole site build."""
+    the one list, which loads the builders (hartlib and the map tool) but not the site build itself."""
     import site_views
 
     return frozenset(site_views.VIEWS)

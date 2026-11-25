@@ -101,6 +101,20 @@ class Refresh(unittest.TestCase):
         self.assertFalse((self.root / "data/a.json").exists(), "a stale copy would be served")
         self.assertTrue((self.root / "data/b.json").is_file())
 
+    def test_a_broken_tables_file_removes_the_stale_layout_index(self) -> None:
+        # review of #1147: the real builders' source errors reach refresh as view errors, not a traceback
+        (self.root / "data").mkdir()
+        (self.root / "data/layout-index.json").write_text("stale\n")
+        bad = self.root / "tables.xml"
+        bad.write_text("<layout-config>", encoding="utf-8")
+        site_views._layout_index.cache_clear()
+        self.addCleanup(site_views._layout_index.cache_clear)
+        with mock.patch.object(site_views.build_layout_index, "PANEL", bad):
+            failed = site_views.refresh(self.root, {"data/layout-index.json": site_views.VIEWS["data/layout-index.json"]})
+        self.assertEqual(len(failed), 1)
+        self.assertIn("ParseError", failed[0])
+        self.assertFalse((self.root / "data/layout-index.json").exists())
+
     def test_a_root_that_is_not_a_folder_stops(self) -> None:
         with self.assertRaisesRegex(site_views.ViewError, "is not a folder"):
             site_views.refresh(self.root / "absent", {})

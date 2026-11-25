@@ -186,7 +186,15 @@ def render_inputs_sha256() -> str:
 
 
 def build(le_index: dict | None = None) -> dict:
-    """The CATS index, joined to `le_index` (build_layout_index.build(), built now when None)."""
+    """The CATS index, joined to `le_index` (build_layout_index.build(), built now when None). CatsIndexError when a
+    source is missing or cannot be read."""
+    try:
+        return _build(le_index)
+    except (ET.ParseError, ValueError, OSError) as err:
+        raise CatsIndexError(f"cannot build the CATS index from its sources: {type(err).__name__}: {err}") from None
+
+
+def _build(le_index: dict | None) -> dict:
     for path in (PANEL, RENDER, OUT_IMG):
         if not path.is_file():
             raise CatsIndexError(f"missing {paths.rel(path)}" + (f": run {BUILD}" if path == OUT_IMG else ""))

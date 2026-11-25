@@ -185,7 +185,8 @@ EXTRA: dict[str, tuple[str, ...]] = {
     "unit-guards test_merge_pipeline_map": (".gitattributes",),
     "unit-guards test_portal_inputs": ("www/scripts/**/*",),
     "unit-guards test_publish_draft": ("docs/ops/**/*", "ops/**/*"),
-    "unit-guards test_site_device_names": ("www/data/**/*", "www/scripts/**/*"),
+    # it builds the layout index in memory, which reads the schematic PNG's render stamp (ADR-036, 2026-11-25)
+    "unit-guards test_site_device_names": ("www/assets/layout/*.png", "www/scripts/**/*"),
     "unit-guards test_write_inventory": ("docs/wiring/**/*",),
     # it runs check_data_readers.py over every tracked .py (docs/, ops/ and www/ included)
     "unit-guards test_check_data_readers": ("**/*.py",),

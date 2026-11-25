@@ -114,6 +114,21 @@ class LayoutIndexCheckTest(unittest.TestCase):
                 self.assertIn(f"run python3 www/scripts/{Path(mod.__file__).name}", err)
                 self.assertNotIn("Traceback", err)
 
+    def test_a_broken_source_is_a_clear_error_not_a_traceback(self) -> None:
+        # review of #1147: a tables.xml that is not XML, or a device master hartlib refuses, raised raw
+        bad = self.tmp() / "tables.xml"
+        bad.write_text("<layout-config>", encoding="utf-8")
+        for mod, patch in ((le_index, {"PANEL": bad}), (cats_index, {"PANEL": bad})):
+            with self.subTest(index=mod.OUT_JSON.name):
+                rc, _, err = self.check(mod, **patch)
+                self.assertEqual(rc, 1)
+                self.assertIn("ParseError", err)
+                self.assertNotIn("Traceback", err)
+        refused = mock.Mock(side_effect=le_index.railroad_facts.FactsError("devices.csv: cannot read it"))
+        with mock.patch.object(le_index, "load_names", refused), \
+                self.assertRaisesRegex(le_index.LayoutIndexError, "FactsError: devices.csv: cannot read it"):
+            le_index.build()
+
     def test_a_built_index_that_does_not_add_up_fails(self) -> None:
         for mod in (le_index, cats_index):
             with self.subTest(index=mod.OUT_JSON.name):

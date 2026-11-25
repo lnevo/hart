@@ -22,6 +22,7 @@ import json
 import re
 import subprocess
 import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
@@ -221,6 +222,15 @@ def render_inputs_sha256(geometry) -> str:
 
 
 def build():
+    """The layout index from its sources. LayoutIndexError when a source is missing or cannot be read (a tables.xml
+    that is not XML, a device master or stations.csv hartlib refuses)."""
+    try:
+        return _build()
+    except (ET.ParseError, railroad_facts.FactsError, ValueError, OSError) as err:
+        raise LayoutIndexError(f"cannot build the layout index from its sources: {type(err).__name__}: {err}") from None
+
+
+def _build():
     for path, what in ((PANEL, "panel"), (NAMES, "names"), (STATIONS, "stations")):
         if not path.is_file():
             raise LayoutIndexError(f"missing {what}: {path}")
