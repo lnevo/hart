@@ -9,6 +9,9 @@ appends one line per event to the log ("<pid>\\t<kind>\\t<data>"):
 
     s  a process started: ppid, the spawn token it inherited, start time (ns), argv[0]
     r  a file opened for reading (an import's .pyc counts as its source)      w  a file written, renamed or removed
+    c  a file opened for reading as code: imported, run as the main script or by runpy, or shown in a traceback.
+       The stamps hash it like an "r" read; the declaration audit takes only the "r" lines (a file read both ways
+       has both, so its data read is still audited)
     m  a file probed (opened or stat'ed) and not there                         p  a file or folder stat'ed and there
     d  a folder listed (listdir, scandir, glob)                                x  a subprocess spawned: token, cwd, argv
     h  a shutil.which lookup on the starting PATH: the name, what it found      k  a unittest skip: the test's id, reason
@@ -157,12 +160,39 @@ def _on_open(args) -> None:
         if os.path.isdir(p):
             _write_listing(p)       # a folder opened by os.open (os.walk with fd, shutil) is a listing
         elif os.path.exists(p):
-            _write("r", p)
+            code = _opened_as_code()
             real = os.path.realpath(p)
-            if real != p:
-                _write("r", real)   # a link (a .cache view linking back to the data folder) reads its target
+            for q in (p, real) if real != p else (p,):    # a link (a .cache view of the data) reads its target too
+                _write("c" if code else "r", q)
         else:
             _write("m", p)
+
+
+# The frames that open a file as code, by file name: the frozen importlib module, or its source file in an
+# interpreter built without the frozen copy.
+_IMPORTLIB = ("<frozen importlib._bootstrap_external>", os.path.join("importlib", "_bootstrap_external.py"))
+
+
+def _opened_as_code(frame=None) -> bool:
+    """Whether the open being traced loads code, by the first frame above the hook (`frame`, for tests): none at all
+    (the interpreter opening the main script), zipimport (asking whether the script is a zip of code), importlib's
+    get_data called by its get_code (an import: the source or its .pyc), runpy reading a script it runs, or
+    tokenize.open called by linecache (the source of a frame in a traceback or a warning). Every other open reads the
+    file as data: pkgutil.get_data and importlib.resources included."""
+    f = frame if frame is not None else sys._getframe(1)
+    while frame is None and f is not None and f.f_code.co_filename == __file__:
+        f = f.f_back
+    if f is None:
+        return True
+    name, file, up = f.f_code.co_name, f.f_code.co_filename, f.f_back
+    if file.endswith(_IMPORTLIB) and name == "get_data":
+        return up is not None and up.f_code.co_filename.endswith(_IMPORTLIB) and up.f_code.co_name == "get_code"
+    if name == "_get_code_from_file" and (file == "<frozen runpy>" or os.path.basename(file) == "runpy.py"):
+        return True
+    if file == "<frozen zipimport>" or os.path.basename(file) == "zipimport.py":
+        return True         # the import system asks whether a script or a sys.path entry is a zip of code
+    return (name == "open" and os.path.basename(file) == "tokenize.py" and up is not None
+            and os.path.basename(up.f_code.co_filename) == "linecache.py")
 
 
 def _on_list(args) -> None:
@@ -346,6 +376,7 @@ class Trace:
 
     def __init__(self) -> None:
         self.reads: set[str] = set()
+        self.code: set[str] = set()                             # "c" lines: reads (in reads too) that loaded code
         self.writes: set[str] = set()
         self.misses: set[str] = set()
         self.present: dict[str, str] = {}
@@ -402,6 +433,9 @@ def parse(log: str | os.PathLike) -> Trace:
             t.runner_ns.append(int(rest[0]))
         elif kind == "h" and len(rest) == 2:
             t.which.add((rest[0], rest[1]))
+        elif kind == "c" and rest:
+            t.reads.add(rest[0])        # code is read like data for the stamps; t.code says which
+            t.code.add(rest[0])
         elif rest:
             {"r": t.reads, "w": t.writes, "m": t.misses, "d": t.listed}.get(kind, set()).add(rest[0])
     return t
@@ -521,16 +555,22 @@ def untraced(t: Trace, root: str, also_inside: tuple[str, ...] = ()) -> tuple[li
 
 
 def git_replay(cmds: list[list[str]], root: str) -> list[str]:
-    """sha256 of each recorded git command's exit code and output, run now in this checkout."""
+    """sha256 of each recorded git command's exit code and output, run now in this checkout. The checkout's own path
+    in the output is hashed as ROOT_MARK, as it is in the arguments: `rev-parse --show-toplevel` names the checkout,
+    and make remote runs each check in a worktree of its own, so its stamps never matched the next run's (2026-11-25)."""
     import hashlib
     import subprocess
     out = []
+    forms = sorted({f.encode() for f in _root_forms(root)}, key=len, reverse=True)
     for cmd in cmds:
         cmd = [a.replace(ROOT_MARK, os.path.normpath(root), 1) for a in cmd]
         cwd, argv = cmd[0], cmd[1:]
         try:
             done = subprocess.run(argv, cwd=cwd if os.path.isdir(cwd) else None, capture_output=True, timeout=60)
-            out.append(hashlib.sha256(f"{done.returncode}\0".encode() + done.stdout).hexdigest())
+            text = done.stdout
+            for form in forms:
+                text = text.replace(form, ROOT_MARK.encode())
+            out.append(hashlib.sha256(f"{done.returncode}\0".encode() + text).hexdigest())
         except (OSError, subprocess.SubprocessError) as exc:
             out.append(f"unavailable:{type(exc).__name__}")
     return out

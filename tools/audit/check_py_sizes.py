@@ -28,6 +28,9 @@ from typing import NamedTuple
 ROOT = Path(__file__).resolve().parents[2]
 SIZES = ROOT / "tools/audit/py_sizes.csv"
 LIMIT = 800
+# What it reads, as git globs (then in_scope); the step's quiet_inputs in tools/pipeline/checks.toml are these
+# (tools/audit/tests/test_manifest_scans.py)
+SCAN_GLOBS = ("**/*.py",)
 # Code this repo does not grow: vendored or submodule code, the archive, parked features (docs/parked/UNPARK.md)
 # and the third-party STRR speed-match scripts. The same set ruff.toml leaves out.
 EXCLUDED = ("archive/", "external/", "reference/", "tools/cats/src-repo/", "jmri/layouts/hart/parked/")
@@ -51,7 +54,8 @@ def in_scope(path: str) -> bool:
 def tracked(root: Path | None = None) -> list[str]:
     root = root or ROOT
     try:
-        done = subprocess.run(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "*.py"],
+        done = subprocess.run(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--",
+                               *(f":(glob){g}" for g in SCAN_GLOBS)],
                               cwd=root, capture_output=True, text=True, timeout=60)
     except (OSError, subprocess.SubprocessError) as e:
         raise SizeError(f"git ls-files could not run: {e}") from e

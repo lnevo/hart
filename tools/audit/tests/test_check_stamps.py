@@ -1011,8 +1011,10 @@ class DeclarationAuditTest(RepoCase):
     HAND = ["0\tb",
             "100\ts\t50\t\t1\tpython3\ttools/a.py",
             "100\tr\t{root}/data/in.csv",
-            "100\tr\t{root}/tools/lib/fixture.json",            # code: under tools/
-            "100\tr\t{root}/jmri/scripts/x.py",                 # code: a .py file
+            "100\tc\t{root}/tools/lib/mod.py",                  # imported (a "c" line): code, not audited
+            "100\tc\t{root}/jmri/scripts/x.py",                 # imported, and read as text below: audited
+            "100\tr\t{root}/tools/levels/main.svg",             # data under tools/, and a .py read as text: audited
+            "100\tr\t{root}/jmri/scripts/x.py",
             "100\tr\t{root}/.cache/hart/x.json",                # a shared cache: no input
             "100\tr\t/usr/lib/python3/x.txt",                   # outside the repo
             "100\tx\ttok1\t{root}\tbash\t-c\tpython3 helper.py",
@@ -1026,7 +1028,7 @@ class DeclarationAuditTest(RepoCase):
     def test_every_process_of_a_job_is_its_steps(self) -> None:
         audit = cs.step_reads("a", self.trace(self.HAND), self.root, cs.manifest_steps("a", self.root))
         self.assertEqual(audit, {"steps": {"a": ["data/child.csv", "data/helper.csv", "data/in.csv",
-                                                 "data/nostart.csv"]},
+                                                 "data/nostart.csv", "jmri/scripts/x.py", "tools/levels/main.svg"]},
                                  "unowned": {}, "absent": [], "bash": []})
 
     def test_a_job_of_more_than_one_step_is_refused(self) -> None:
@@ -1050,7 +1052,8 @@ class DeclarationAuditTest(RepoCase):
         self.assertIn("    a: in tools/pipeline/checks.toml, not in the stamp; run the job again", lines)
 
     def test_the_report_names_each_undeclared_read_and_how_to_see_it_again(self) -> None:
-        self.edit_step("a", 'inputs = ["data/in.csv"]\nquiet_inputs = ["data/helper.csv"]\n')
+        self.edit_step("a", 'inputs = ["data/in.csv"]\n'
+                            'quiet_inputs = ["data/helper.csv", "tools/*/*.svg", "jmri/**/*.py"]\n')
         steps = cs.manifest_steps("a", self.root)
         lines, count = cs.audit_lines("a", cs.step_reads("a", self.trace(self.HAND), self.root, steps), steps)
         self.assertEqual(count, 2)
@@ -1075,7 +1078,7 @@ class DeclarationAuditTest(RepoCase):
         self.assertEqual(audit, {"steps": {}, "unowned": {}, "absent": [], "bash": ["b"]})
         self.assertEqual(cs.audit_lines("b", audit, steps),
                          (["stamp audit: b: every data read is declared in tools/pipeline/checks.toml "
-                           "(code under tools/ and .py files are not audited) "
+                           "(the code the job imported or ran is not audited) "
                            "(b: bash, which the trace cannot see, so not audited)"], 0))
 
     def test_an_audit_that_cannot_run_says_so(self) -> None:

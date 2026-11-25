@@ -111,6 +111,43 @@ class ReadSetTest(unittest.TestCase):
         stamp = self.record(code)
         self.assertIn("lib/mod.py", stamp["state"]["files"])
 
+    def test_code_is_marked_and_data_is_not(self) -> None:
+        """The "c" lines (ADR-037 stage 4c): the main script, an import (from its source and from its .pyc), runpy and
+        a traceback's source are code; a .py read with open(), pkgutil.get_data and a file under tools/ are data.
+        Every one of them is still a read, which the stamps hash."""
+        for rel, text in (("lib/mod.py", "X = 1\n"), ("lib/pkg/__init__.py", ""), ("lib/pkg/res.txt", "r\n"),
+                          ("lib/text.py", "Y = 2\n"), ("lib/run.py", "Z = 3\n"), ("lib/boom.py", "def f():\n  1/0\n"),
+                          ("tools/levels/main.svg", "<svg/>\n")):
+            (self.root / rel).parent.mkdir(parents=True, exist_ok=True)
+            (self.root / rel).write_text(text)
+        code = ("import sys, runpy, pkgutil, traceback\nsys.path.insert(0, 'lib')\nimport mod, pkg, boom\n"
+                "open('lib/text.py').read()\npkgutil.get_data('pkg', 'res.txt')\nrunpy.run_path('lib/run.py')\n"
+                "open('tools/levels/main.svg').read()\n"
+                "try:\n    boom.f()\nexcept ZeroDivisionError:\n    traceback.format_exc()\n")
+        for _ in range(2):                     # the second run imports mod and boom from their .pyc
+            self.record(code)
+            t = traced.parse(self.log)
+            reads = {r for r in (traced.keep(p, str(self.root), ()) for p in t.reads) if r and not os.path.isabs(r)}
+            marked = {r for r in (traced.keep(p, str(self.root), ()) for p in t.code) if r and not os.path.isabs(r)}
+            self.assertEqual(marked, {"job.py", "lib/mod.py", "lib/pkg/__init__.py", "lib/run.py", "lib/boom.py"})
+            self.assertLessEqual(marked, reads)
+            self.assertNotIn(f"\tr\t{self.root}/job.py\n", self.log.read_text())    # a code open is no data read
+            self.assertLessEqual({"lib/text.py", "lib/pkg/res.txt", "tools/levels/main.svg"}, reads - marked)
+
+    def test_opened_as_code_reads_the_calling_frame(self) -> None:
+        def frame(name: str, file: str, up=None):
+            return unittest.mock.Mock(f_code=unittest.mock.Mock(co_name=name, co_filename=file), f_back=up)
+        boot = "<frozen importlib._bootstrap_external>"
+        self.assertTrue(traced._opened_as_code(frame("get_data", boot, frame("get_code", boot))))
+        self.assertFalse(traced._opened_as_code(frame("get_data", boot, frame("get_data", "/py/pkgutil.py"))))
+        self.assertFalse(traced._opened_as_code(frame("get_data", boot)))
+        self.assertTrue(traced._opened_as_code(frame("_get_code_from_file", "/py/runpy.py")))
+        self.assertTrue(traced._opened_as_code(frame("_get_code_from_file", "<frozen runpy>")))
+        self.assertTrue(traced._opened_as_code(frame("_read_directory", "<frozen zipimport>")))
+        self.assertTrue(traced._opened_as_code(frame("open", "/py/tokenize.py", frame("updatecache", "/py/linecache.py"))))
+        self.assertFalse(traced._opened_as_code(frame("open", "/py/tokenize.py", frame("main", "/repo/job.py"))))
+        self.assertFalse(traced._opened_as_code(frame("<module>", "/repo/job.py")))
+
     def test_a_python_child_is_traced(self) -> None:
         stamp = self.record("import subprocess, sys\n"
                             "subprocess.run([sys.executable, '-c', \"open('data/sub/c.csv').read()\"], check=True)\n")
@@ -143,6 +180,19 @@ class ReadSetTest(unittest.TestCase):
         self.assertEqual(traced.git_replay(cmds, str(self.root)), before)
         (self.root / "data/brand-new.csv").write_text("x\n")
         self.assertNotEqual(traced.git_replay(cmds, str(self.root)), before)
+
+    def test_a_replayed_answer_that_names_the_checkout_holds_in_a_copy_of_it(self) -> None:
+        """make remote runs each check in a new worktree: `rev-parse --show-toplevel` names it, so the checkout's
+        path is hashed as {root}; a path outside the checkout is still compared as it is."""
+        env = {**os.environ, "GIT_CONFIG_GLOBAL": os.devnull}
+        copy = self.root.parent / "copy"
+        for root in (self.root, copy):
+            root.mkdir(exist_ok=True)
+            subprocess.run(["git", "init", "-q"], cwd=root, check=True, env=env)
+        cmds = [[traced.ROOT_MARK, "git", "-C", traced.ROOT_MARK, "rev-parse", "--show-toplevel"]]
+        self.assertEqual(traced.git_replay(cmds, str(copy)), traced.git_replay(cmds, str(self.root)))
+        outside = [[traced.ROOT_MARK, "git", "-C", str(copy), "rev-parse", "--show-toplevel"]]
+        self.assertNotEqual(traced.git_replay(outside, str(self.root)), traced.git_replay(cmds, str(self.root)))
 
     def test_a_writing_git_command_is_untraced(self) -> None:
         code = "import subprocess\nsubprocess.run(['git', 'init', '-q'], capture_output=True)\n"
