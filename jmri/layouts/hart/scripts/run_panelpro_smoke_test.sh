@@ -21,11 +21,11 @@ export HART_PANELPRO_SMOKE_MARKER="$MARKER"
 # The parked features (hartlib.parked.PARKED): the smoke test expects them absent.
 HART_PARKED="$(PYTHONPATH="$ROOT/tools/hartlib/src" python3 -m hartlib.parked features | tr '\n' ' ')"
 export HART_PARKED
-# The main and upper blocks on a field sensor (a detector swapped in by its device row, ADR-028), from the tables
-# PanelPro loads (hartlib.level_devices.field_detected): the smoke test holds each to that sensor, every other main
-# and upper block to its virtual one.
+# The main and upper blocks on a field sensor (a detector swapped in by its device row, ADR-028), from the file
+# PanelPro loads (PP_TABLES_FILE, the one pp_begin names in the profile; hartlib.level_devices.field_detected): the
+# smoke test holds each to that sensor, every other main and upper block to its virtual one.
 HART_FIELD_DETECTED="$(PYTHONPATH="$ROOT/tools/hartlib/src" python3 -m hartlib.level_devices field-detected \
-  "$ROOT/jmri/layouts/hart/output/tables.xml" | tr '\n' ';')"
+  "$PP_TABLES_FILE" | tr '\n' ';')"
 export HART_FIELD_DETECTED
 
 pp_launch "$LOG"

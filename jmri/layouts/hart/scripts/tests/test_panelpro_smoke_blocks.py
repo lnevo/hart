@@ -10,6 +10,7 @@ import ast
 import os
 import sys
 import unittest
+import unittest.mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[5]
@@ -17,11 +18,12 @@ SCRIPT = ROOT / "jmri/layouts/hart/scripts/panelpro_smoke_test.py"
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
 from hartlib import level_devices  # noqa: E402
 
-PLAIN = ("LEVEL_BLOCK_PREFIX", "LEVEL_SENSOR_PREFIX", "field_detected", "block_sensor_errors")
+PLAIN = ("LEVEL_BLOCK_PREFIX", "LEVEL_SENSOR_PREFIX", "field_detected", "block_sensor_errors", "level_sensors",
+         "level_block_errors")
 
 
 def plain_parts() -> dict:
-    """The script's prefixes and its two plain functions, run in a namespace of their own."""
+    """The script's prefixes and its plain functions, run in a namespace of their own."""
     tree = ast.parse(SCRIPT.read_text(encoding="utf-8"))
     keep = [n for n in tree.body
             if (isinstance(n, ast.FunctionDef) and n.name in PLAIN)
@@ -76,11 +78,58 @@ class SmokeBlocks(unittest.TestCase):
             self.ns["field_detected"]("A;")
 
 
+class _Bean:
+    def __init__(self, system, user=None, sensor=None):
+        self.system, self.user, self.sensor = system, user, sensor
+
+    def getSystemName(self):
+        return self.system
+
+    def getDisplayName(self):
+        return self.user or self.system
+
+    def getSensor(self):
+        return self.sensor
+
+
+class _Manager:
+    def __init__(self, beans):
+        self.beans = beans
+
+    def getNamedBeanSet(self):
+        return self.beans
+
+
+class LevelBlockErrors(unittest.TestCase):
+    """level_block_errors over the managers, HART_FIELD_DETECTED read from the environment."""
+
+    def run_check(self, env):
+        ns = plain_parts()
+        virtual = _Bean("IS:HART:C3:B:107-109")
+        field = _Bean("M2S3305")
+        blocks = _Manager([_Bean("IB:C3:0041", "Track 107 Loop 1", field),
+                           _Bean("IB:C3:0042", "Track 107-109", virtual)])
+        with unittest.mock.patch.dict(os.environ, env, clear=False):
+            return ns["level_block_errors"](blocks, _Manager([virtual, field]))
+
+    def test_the_swapped_block_passes(self):
+        self.assertEqual(self.run_check({"HART_FIELD_DETECTED": "IB:C3:0041 M2S3305;"}), [])
+
+    def test_a_bad_variable_is_a_failure_line_not_a_traceback(self):
+        self.assertEqual(self.run_check({"HART_FIELD_DETECTED": "IB:C3:0041;"}),
+                         ["HART_FIELD_DETECTED: 'IB:C3:0041' is not <block> <sensor>"])
+
+
 class WrapperPassesIt(unittest.TestCase):
     def test_the_wrapper_exports_the_field_detected_blocks_of_the_tables_it_loads(self):
         text = (SCRIPT.parent / "run_panelpro_smoke_test.sh").read_text(encoding="utf-8")
         self.assertIn("python3 -m hartlib.level_devices field-detected", text)
-        self.assertIn('"$ROOT/jmri/layouts/hart/output/tables.xml"', text)
+        self.assertIn('"$PP_TABLES_FILE"', text)
+        # the file pp_begin has PanelPro load, in place
+        session = (ROOT / "tools/hosts/panelpro_session.sh").read_text(encoding="utf-8")
+        self.assertIn('TABLES_URI="$PP_TABLES_FILE"', session)
+        self.assertIn('TABLES_URI="home:${PP_TABLES_FILE#"$HOME"/}"', session)
+        self.assertIn('load-tables --profile "$PROFILE_XML" --tables "$TABLES_URI"', session)
         self.assertIn("export HART_FIELD_DETECTED", text)
 
 

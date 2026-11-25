@@ -89,9 +89,14 @@ def level_block_errors(block_manager, sensor_manager):
     blocks = [b for b in block_manager.getNamedBeanSet() if b.getSystemName().startswith(LEVEL_BLOCK_PREFIX)]
     if not blocks:
         out.append("no main and upper block (%s*)" % LEVEL_BLOCK_PREFIX)
+    try:
+        field = field_detected(os.environ.get("HART_FIELD_DETECTED", ""))
+    except ValueError as exc:
+        out.append(str(exc))
+        return out
     out.extend(block_sensor_errors(
         [(b.getDisplayName(), b.getSystemName(), b.getSensor().getSystemName() if b.getSensor() is not None else None)
-         for b in blocks], field_detected(os.environ.get("HART_FIELD_DETECTED", ""))))
+         for b in blocks], field))
     return out
 
 

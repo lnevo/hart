@@ -23,7 +23,7 @@ from typing import Mapping, NamedTuple
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from mast_rule import MapError  # noqa: E402
 from hartlib import device_ids, devices, level_devices, railroad  # noqa: E402
-from hartlib.level_masts import mast_heads  # noqa: E402  a mast's heads, in order
+from hartlib.level_masts import SHSM, mast_heads  # noqa: E402  a mast's name over its heads; its heads, in order
 from hartlib.tables_build import with_direction  # noqa: E402  a mast's comment names the way it faces
 
 
@@ -150,16 +150,16 @@ def mast_on_heads(mast: Mapping[str, str], heads: Mapping[tuple, Mapping[str, st
     place (hartlib.device_ids.head_place, top first), in `heads` ({(level, id): row}), and takes that row's
     jmri_name; the assignment is the new name's and the description written again. A mast with no field head, a
     hidden (IF$vsm) mast, or one whose heads are not all rows of `heads`, as it is."""
-    jmri = mast["jmri_name"]
-    names = mast_heads(jmri)
-    if not names or len(names) > 2 or not mast["id"].startswith("mast:"):
+    m = SHSM.fullmatch(mast["jmri_name"])
+    names = mast_heads(mast["jmri_name"])
+    if not m or not names or len(names) > 2 or not mast["id"].startswith("mast:"):
         return mast
     rows = [heads.get((mast["level"], device_ids.head_id(mast["id"], device_ids.head_place(i, len(names)))))
             for i in range(len(names))]
     if None in rows or not any(h["assignment"] == "field" for h in rows):
         return mast
-    for old, h in zip(names, rows):
-        jmri = jmri.replace(f"({old})", f"({h['jmri_name']})", 1)
+    # one pass over the head list, so a head's new name is never taken for another head's old one
+    jmri = f"IF$shsm:{m.group(1)}:{m.group(2)}" + "".join(f"({h['jmri_name']})" for h in rows)
     if jmri == mast["jmri_name"]:
         return mast
     r = dict(mast, jmri_name=jmri, assignment=devices.assignment_of(jmri))
