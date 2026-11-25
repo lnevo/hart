@@ -29,7 +29,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import le_names  # noqa: E402
 import le_tables as lt  # noqa: E402
-from hartlib import devices, paths, railroad, tables  # noqa: E402
+from hartlib import devices, level_devices, paths, railroad, tables  # noqa: E402
 from hartlib import tables_build as tb  # noqa: E402
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "main_upper_beans.txt"
@@ -176,6 +176,53 @@ class MainUpperBeans(unittest.TestCase):
         beans = Counter(line.split("\t", 1)[0] for line in self.golden)
         self.assertEqual(kinds["ActionTurnout"], beans["turnouts InternalTurnoutManagerXml"])
         self.assertEqual(kinds["ActionSensor"], beans["sensors InternalSensorManagerXml"])
+
+
+class RowCellsAreTheGoldenBeans(unittest.TestCase):
+    """The start and bean_comment cells build_device_map.py writes on every main and upper row (naming-layers step 9)
+    are what the fixture's beans hold: each bean's comment is its row's bean_comment, and the startup LogixNG sets
+    each turnout and sensor to its row's start. So step 11 can make these beans from the rows alone."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.rows = [r for r in devices.load() if r["level"] in LEVELS]
+        cls.beans = [(line.split("\t", 1)[0], ET.fromstring(line.split("\t", 1)[1])) for line in read_fixture()
+                     if not line.startswith("detector")]
+
+    def test_every_beans_comment_is_its_rows_bean_comment(self) -> None:
+        layer = {"turnout": "turnout", "sensor": "occupancy", "block": "block", "signalhead": "head",
+                 "signalmast": "mast", "virtualsignalmast": "mast"}
+        cells = {(r["layer"], r["user_name"]): r["bean_comment"] for r in self.rows if r["bean_comment"]}
+        got, seen = {}, set()
+        for _sec, el in self.beans:
+            if el.tag not in layer or el.find("comment") is None:
+                continue                # a names-only block pass and a layout block carry no comment
+            key = (layer[el.tag], tables.user_name(el))
+            seen.add(key)
+            got[key] = el.findtext("comment")
+        self.assertEqual(len(got), 39 + 120 + 97 + 76 + 68)
+        bad = [f"{k}: tables.xml {got[k]!r}, row {cells.get(k)!r}" for k in sorted(got) if cells.get(k) != got[k]]
+        self.assertEqual([], bad[:10], f"{len(bad)} beans")
+        self.assertEqual(sorted(set(cells) - seen), [], "rows with a bean_comment and no bean")
+
+    def test_the_startup_logixng_sets_each_rows_start(self) -> None:
+        actions = [el for sec, el in self.beans if el.tag in ("ActionTurnout", "ActionSensor")]
+        got = {a.findtext("namedBean/name"): a.findtext("state/enum") for a in actions}
+        want = {r["jmri_name"]: level_devices.START_ENUM[r["start"]] for r in self.rows if r["start"]}
+        self.assertEqual(len(want), 39 + 97)
+        self.assertEqual(want, got)
+        self.assertEqual({r["user_name"] for r in self.rows if r["start"] == "thrown"}, {"Switch 227", "Switch 229"})
+
+    def test_bean_cells_on_the_rows_as_generated_are_the_committed_cells(self) -> None:
+        """device_map_rows.bean_cells, given the committed rows with the two cells emptied and the committed thrown
+        switches, writes back the committed cells (no plugin needed)."""
+        import device_map_rows
+        thrown = frozenset(r["id"].removeprefix("switch:") for r in self.rows if r["start"] == "thrown")
+        blank = [dict(r, start="", bean_comment="") for r in devices.load()]
+        got = device_map_rows.bean_cells(blank, thrown)
+        want = [dict(r) for r in devices.load()]
+        self.assertEqual([(r["start"], r["bean_comment"]) for r in want], [(r["start"], r["bean_comment"]) for r in got])
+        self.assertFalse(any(r["start"] or r["bean_comment"] for r in got if r["level"] not in LEVELS))
 
 
 class BlockLengthFormats(unittest.TestCase):

@@ -22,6 +22,8 @@ from __future__ import annotations
 import re
 import xml.etree.ElementTree as ET
 
+# The levels this naming rule is for, main and upper: their beans are virtual until their plant is wired
+LEVELS = ("2", "3")
 TURNOUT_PREFIX = "IT:HART:C3:"
 SENSOR_PREFIX = "IS:HART:C3:B:"
 HEAD_PREFIX = "IH:HART:C3:"
@@ -41,6 +43,28 @@ CLEAR_ACTION = "IQDA$HART:C3:B:"          # + the block key: one ActionSensor pe
 CLEAR_USER = "Main and upper block sensors clear on start"
 TURNOUT_ACTION = "IQDA$HART:C3:T:"          # + the switch number: one ActionTurnout per virtual turnout, same LogixNG
 CLEAR_PREFIX = re.compile(r"IQ(?:C|DA)?\$HART:C3:")
+# The JMRI word the startup LogixNG sets for a device-master row's start (hartlib.devices.START)
+START_ENUM = {"inactive": "Inactive", "closed": "Closed", "thrown": "Thrown"}
+
+# The comments the Layout Editor build gives the main and upper beans, which build_device_map.py writes into each
+# row's bean_comment (device_map_rows.bean_cells, naming-layers step 9) and le_tables reads back. Step 11 unifies
+# them with staging's (owner, 2026-11-23); until then these words are tables.xml's as it stands.
+LEVEL_COMMENT = "Main and upper level, internal until the import (device map name; build_layout_le.py)"  # turnout, block
+SENSOR_COMMENT = "Main and upper level occupancy, virtual (device map; build_layout_le.py)"
+SIGNAL_NOTE = "virtual (device map); planned"     # + the planned physical head or mast, a draft
+UNPLANNED_NOTE = "virtual (device map); not on a node yet"    # no board room on the draft plant (ADR-024)
+
+
+def sensor_comment(planned: str, notes: str) -> str:
+    """A main or upper block sensor's comment: the planned detector (`planned`, a draft M2S name), else why there is
+    none (the occupancy row's `notes`)."""
+    return f"{SENSOR_COMMENT}; " + (f"planned {planned} (draft)" if planned else notes)
+
+
+def signal_note(planned: str | None) -> str:
+    """A main or upper head's or mast's comment after its place: the planned physical device (the device map's
+    system name, a draft), or that it has none yet."""
+    return f"{SIGNAL_NOTE} {planned}" if planned else UNPLANNED_NOTE
 
 
 def block_key(block: str) -> str:

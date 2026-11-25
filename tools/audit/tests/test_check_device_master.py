@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import contextlib
+import copy
 import io
 import re
 import sys
@@ -301,6 +302,36 @@ class TablesCheck(Master):
                       self.problems(drop={("1", "Head 24L")}))
         self.assertIn("mast Mast 108LA: planned heads ['IH3332'] are no head row's system name",
                       self.problems({("2", "Head 108LA Top"): dict(system_name="IH3399")}))
+
+
+class BeanCellsCheck(Master):
+    """check_bean_cells holds each main and upper row's bean_comment and start to tables.xml (naming-layers step 9)."""
+
+    def problems(self, edit=None, drop=()):
+        return cdm.check_bean_cells([r for _n, r in self.edited(edit, drop)], self.rr.tables.root)
+
+    def test_the_committed_rows_hold(self):
+        self.assertEqual(self.problems(), [])
+
+    def test_a_comment_or_start_of_another_text(self):
+        self.assertProblem(r"^mast Mast 108LA: tables.xml's comment is '.*', not its bean_comment 'x'$",
+                           self.problems({("2", "Mast 108LA"): dict(bean_comment="x")}))
+        self.assertIn("IT:HART:C3:227: tables.xml starts it Thrown, its row Closed",
+                      self.problems({("3", "Switch 227"): dict(start="closed")}))
+        self.assertIn("IS:HART:C3:B:107-109: tables.xml starts it Inactive, its row unset",
+                      self.problems({("2", "BS 107-109"): dict(start="")}))
+
+    def test_a_bean_missing_or_given_twice(self):
+        self.assertIn("mast Mast 999: tables.xml has no bean of that name with a comment, for its bean_comment 'x'",
+                      self.problems({("2", "Mast 108LA"): dict(user_name="Mast 999", bean_comment="x")}))
+        root = copy.deepcopy(self.rr.tables.root)
+        masts = root.find("signalmasts")
+        twin = copy.deepcopy(next(m for m in masts if cdm.tables.user_name(m) == "Mast 108LA"))
+        twin.tag = "virtualsignalmast"
+        masts.append(twin)
+        got = cdm.check_bean_cells([r for _n, r in self.lines], root)
+        self.assertIn("mast Mast 108LA: tables.xml has 2 beans of that name with a comment (signalmast, "
+                      "virtualsignalmast), not one", got)
 
 
 class Command(unittest.TestCase):

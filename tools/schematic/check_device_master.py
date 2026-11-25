@@ -33,6 +33,8 @@ name or jmri_name when the row has one and its layout block's its layout_block (
 build_device_map.py copies from block_numbering.csv), its stop as its comment marks a station, and its detector its
 occupancy row's; a turnout's jmri_name that turnout, its feedback sensors fb rows', both of them for a field
 turnout; a head's user name; a mast's heads its head rows, and its planned heads the head rows' planned devices.
+A main or upper row's bean_comment is its bean's comment and its start what the startup LogixNG sets it to
+(check_bean_cells, naming-layers step 9).
 
 Against the drawing: the end switches of the main and upper tracks (build_device_map.named_tracks), for the cp rule
 above; staging's rows (the owner's, devices_field.csv) are read on their band (staging_device_map.load: staging's
@@ -56,7 +58,7 @@ import le_common as lc  # noqa: E402  the plugin
 import mast_rule as mr  # noqa: E402  MapError of the helix tracks file
 import publish_draft as pd  # noqa: E402  the plugin cache
 import staging_device_map as sdm  # noqa: E402  staging's rows, band and mast files
-from hartlib import devices, layer_files, level_masts, paths, railroad, railroad_invariants, tables  # noqa: E402
+from hartlib import devices, layer_files, level_devices, level_masts, paths, railroad, railroad_invariants, tables  # noqa: E402,E501
 
 DEVICE_MAP = sdm.DEVICE_MAP
 STATIONS = sdm.STATIONS                         # staging's control points: the desk areas of its stations
@@ -332,6 +334,45 @@ def check_tables(rows: list[dict], rr: railroad.Railroad) -> list[str]:
     return bad
 
 
+BEAN_TAGS = {"turnout": ("turnout",), "occupancy": ("sensor",), "block": ("block",), "head": ("signalhead",),
+             "mast": ("signalmast", "virtualsignalmast")}
+
+
+def check_bean_cells(rows: list[dict], root) -> list[str]:
+    """Each row's bean_comment is its bean's comment in tables `root` (a block's full pass), and the startup LogixNG
+    sets each row's start and nothing else (hartlib.level_devices.turnout_states, clear_sensors): the cells
+    build_device_map.py writes on the main and upper rows (naming-layers step 9), which the Layout Editor build reads.
+    Problems naming the row and what differs."""
+    comments: dict[tuple[str, str], str | None] = {}
+    for sec in tables.elements(root):
+        for el in tables.elements(sec):
+            if el.find("comment") is not None:
+                comments[(el.tag, tables.user_name(el))] = el.findtext("comment")
+    bad = []
+    for r in rows:
+        if not r["bean_comment"]:
+            continue
+        got = [comments[(t, r["user_name"])] for t in BEAN_TAGS.get(r["layer"], ()) if (t, r["user_name"]) in comments]
+        if not got:
+            bad.append(f"{r['layer']} {r['user_name']}: tables.xml has no bean of that name with a comment, for its "
+                       f"bean_comment {r['bean_comment']!r}")
+        elif len(got) > 1:
+            bad.append(f"{r['layer']} {r['user_name']}: tables.xml has {len(got)} beans of that name with a comment "
+                       f"({', '.join(BEAN_TAGS[r['layer']])}), not one")
+        elif got[0] != r["bean_comment"]:
+            bad.append(f"{r['layer']} {r['user_name']}: tables.xml's comment is {got[0]!r}, not its bean_comment "
+                       f"{r['bean_comment']!r}")
+    try:
+        states = {**level_devices.turnout_states(root),
+                  **{s: "Inactive" for s in level_devices.clear_sensors(root)}}
+    except ValueError as exc:
+        return bad + [f"tables.xml's startup LogixNG: {exc}"]
+    want = {r["jmri_name"]: level_devices.START_ENUM[r["start"]] for r in rows if r["start"]}
+    bad += [f"{n}: tables.xml starts it {states.get(n, 'unset')}, its row {want.get(n, 'unset')}"
+            for n in sorted(set(want) | set(states)) if want.get(n) != states.get(n)]
+    return bad
+
+
 def stop_token(comment: str | None) -> bool:
     """Whether a JMRI block comment marks a Dispatcher System station: "stop", or ending "; stop" (the stock
     Dispatcher System's station mark)."""
@@ -399,6 +440,8 @@ def check(band=None) -> list[str]:
         _part(bad, lambda: check_drawing(band, lines, rr.sources.plan_overrides.parent))
     _part(bad, read_mast_files)
     _part(bad, lambda: check_tables([r for _n, r in lines], rr))
+    # every row, parts too (master_lines leaves them out): a part's block bean has its comment as well
+    _part(bad, lambda: check_bean_cells([dict(r) for r in devices.load(DEVICE_MAP)], rr.tables.root))
     return bad
 
 

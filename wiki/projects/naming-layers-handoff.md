@@ -49,7 +49,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 | 6 | Every read through `hartlib` | 1.5 days | `hartlib.hand_lists` reads `block_overrides.csv`, `main_lines.csv` and `mast_cells.csv`; `layout_facts.py`, `write_inventory.py`, `check_hart_phase02.py` and the speed-match routes go through `hartlib`; a check fails a script outside `hartlib` that names a layout data file, Jython listed by name. **Done (2026-11-25):** see [Step 6 findings](#step-6-findings) |
 | 7 | Staging generated like main and upper | 1.5 days | `staging_rows` and `staging_wired_rows` go through the main and upper row makers; a staging device with no owner row gets generated values instead of stopping; `FIELD_LEVEL` goes. **Done (2026-11-25):** see [Step 7 findings](#step-7-findings) |
 | 8 | Block names into the rows | 0.5 day | Builder merge step 2 (`block_numbering.csv` stays the source of main and upper numbers, owner 2026-11-23). **Done (2026-11-25):** see [Step 8 findings](#step-8-findings) |
-| 9 | `start` column and comment data | 0.5 day | Builder merge step 3 |
+| 9 | `start` column and comment data | 0.5 day | Builder merge step 3: main and upper rows carry `start` and `bean_comment`; `le_tables` reads them. **Done (2026-11-25):** see [Step 9 findings](#step-9-findings) |
 | 10 | Bean shapes by column | 1 day | Builder merge step 4 |
 | 11 | Every level through `master_beans` | 1 day | Builder merge step 5: deletes `add_level_*` and the `IT:HART:C3` patterns in `cats_panel.py` and `le_tables.py`, so the bean name is always the row's `jmri_name`. Listed comment diff (owner's 2026-11-23 answer), `make panelpro-test`, deploy |
 | 12 | One mast step | 1 to 1.5 days | Builder merge step 6: `build_masts.py` part 1 into the builder, so one writer makes every level's mast and head rows; any main or upper mast change goes to panel approval |
@@ -329,6 +329,38 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   generated rows are stale against `block_numbering.csv` (`stale_block_beans`: run `build_device_map.py`); an owner's
   field `jmri_name` is not judged. A Store rename of a built block says to rename its `devices_field.csv` row. A
   numbering message names the file read (`Numbering.source`). The committed-rows test numbers over the generated names.
+
+## Step 9 findings (2026-11-25)
+
+- **Two new generated columns.** `start` (the bean's state when the tables load: `inactive` on a detector, `closed` or
+  `thrown` on a turnout; `hartlib.devices.START`, checked by `check_rows`) and `bean_comment` (the bean's JMRI
+  comment). `build_device_map.master_outputs` writes them on the merged rows (`device_map_rows.bean_cells`), so an
+  owner's cp or notes reach the text; staging rows leave both empty. The words are `hartlib.level_devices`'
+  (`LEVEL_COMMENT`, `sensor_comment`, `signal_note`), the text `tables.xml` already held.
+- **The rule moved.** `startup_thrown` (thrown where the main route runs through leg C: 227 and 229) is
+  `build_device_map`'s now; `build_layout_le.startup_thrown` is gone.
+- **`le_tables` reads the cells** (`level_cells`, `cell_of`): each turnout's, block's, sensor's, head's and mast's
+  comment and each turnout's startup position come from its row, and a row with none, or a sensor whose start is not
+  inactive, stops with "run build_device_map.py". Breaking one cell in a copy made `build_tables.py --check` stale.
+  `check_device_master.check_bean_cells` holds `tables.xml`'s comments and startup LogixNG to the rows.
+- **`devices_generated.csv` diff:** two columns after `dir` on every row; 400 main and upper rows filled (39 turnouts,
+  2 of them thrown; 120 blocks; 97 detectors; 68 masts; 76 heads). `devices_field.csv` gains the two empty columns
+  (the files share one header). No other cell changed.
+- **Tests:** `test_bean_goldens.RowCellsAreTheGoldenBeans` (each golden bean's comment is its row's `bean_comment`;
+  the LogixNG sets each row's `start`; `bean_cells` gives the committed cells back), `test_le_tables` (comments and
+  start from the rows), `test_level_signal_comments` (moved to `bean_cells`), `test_turnout_startup`,
+  `test_check_device_master.BeanCellsCheck`, `test_devices` (the start rule). `test_blocks_every_level`'s digests
+  skip the two columns, which the golden test pins.
+- **Outputs byte-identical:** `make panels CHECK=1 FULL=1` all current, `check_approved.py --check` all matching,
+  `build_tables.py --base-hash` unchanged against main's stamp, `test_bean_goldens`' fixture unchanged. No visible
+  main or upper change.
+- **Code review (medium), fixed:** only the rows the build makes a bean for get cells (`device_map_rows.makes_bean`:
+  no spare detector, helix block, LCC alias or feedback row); a thrown switch with no main or upper turnout row stops
+  `bean_cells`; `level_cells` stops on a layer and name on both levels; `check_bean_cells` says when a bean is missing
+  or given twice; one main and upper level constant (`level_devices.LEVELS`); the cells are read once per build
+  (`build_layout_le.build`) and handed down.
+- **For step 11:** a main or upper bean is now its row's names, length, `start` and `bean_comment`; step 11 changes
+  `bean_cells`' words to staging's (the listed comment diff) and makes the LogixNG from `start`.
 
 ## How to run this
 

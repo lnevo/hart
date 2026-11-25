@@ -58,6 +58,9 @@ Virtual names (owner, 2026-11-17), from each device's stable identity:
 - Block "<name>" (parts too, not a helix block, whose beans are staging's): jmri_name IB:C3:<nnnn> and layout_block
   ILB<1000 + nnnn>, today's numbers copied from block_numbering.csv (hartlib.block_numbering; owner, 2026-11-23:
   kept until the levels are wired for good); build_layout_le.py reads them off the rows (naming-layers step 8).
+- What the Layout Editor build reads off every main and upper row it makes a bean for (naming-layers step 9,
+  device_map_rows.bean_cells): `start`, inactive for a detector and closed or thrown for a turnout (startup_thrown:
+  thrown where the main route runs through leg C), and `bean_comment`, the bean's JMRI comment.
 
 Naming rules (ADR-005 grammar, LCOS conventions):
 - Turnout "Switch <n>" (a crossover is one turnout), feedback "FB Switch <n> N|R", OS block "OS Switch <n>" (one per
@@ -152,7 +155,8 @@ from device_map_staging import (  # noqa: E402,F401  staging's rows; re-exported
     level_keys, level_trials, line_cp, new_spare, part_bean_names, part_row, piece_trials, staging_field, staging_layer,
     staging_cps, staging_keys, staging_part_names, staging_rows, staging_switches, staging_trials, staging_wired_rows,
     taken_bean_names, wire_block, wire_occupancy)
-from device_map_rows import Wired, device_row, owner_over, switch_device_rows  # noqa: E402,F401  every level's rows
+from device_map_rows import (  # noqa: E402,F401  every level's rows
+    Wired, bean_cells, device_row, owner_over, switch_device_rows)
 from device_map_schematic import (  # noqa: E402,F401  the drawing's tracks; re-exported: callers read them here
     block_overrides, check_helix_ends, corner_blocks_of, dx_corners, helix_tracks, home_and_posts,
     labels_by_level, line_role, loop_halves, main_upper_layer, named_tracks, overrides_keys, read_pins, split_edges,
@@ -820,7 +824,29 @@ def master_outputs(bands, joined, runs, rows, parts, files: devices.Files | None
     generated = made + [dict(r, user_name=drawn[r["id"]]) if r["layer"] == "block" and r["id"] in drawn else r
                         for r in staging]
     every = [dict(r) for r in devices.follow_renames(main + staging + wired, generated)]
+    # what the Layout Editor build reads off a main or upper row: its start and bean comment (naming-layers step 9)
+    every = bean_cells(every, startup_thrown(bands))
     return devices.outputs_after(WRITER, [], f, master_rows=every, warn=warn, check=check)
+
+
+def startup_thrown(bands) -> frozenset:
+    """The switch numbers of the levels the Layout Editor build adds (not le_common.BASE_LEVELS: the base's are the
+    field's) whose virtual turnout starts Thrown: those whose main route runs through leg C and not leg B, so every
+    virtual turnout lines the main line when the tables load (owner, 2026-11-19: 227 and 229 at the peninsula loop).
+    A double crossover or a crossover half stays Closed (straight through). bean_cells writes it as the turnout
+    row's start, which the build reads (naming-layers step 9; build_layout_le.py held this rule before)."""
+    out = set()
+    for (_title, band, _opts), level in zip(bands, le_common.band_levels(bands)):
+        if level in le_common.BASE_LEVELS:
+            continue
+        for d in band["nodes"].values():
+            if d["kind"] != "switch":
+                continue
+            main = {p: bool(sid and band["strands"][sid]["main"])
+                    for p in "BC" for sid in [d["ins"].get(p) or d["outs"].get(p)]}
+            if main["C"] and not main["B"]:
+                out.add(base(d["label"]))
+    return frozenset(out)
 
 
 def check_switch_ids(rows) -> None:
