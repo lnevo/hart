@@ -1292,7 +1292,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels step 7, with its modules device_map_inputs.py (the readers), device_map_schematic.py (the drawing's tracks) and device_map_staging.py (staging's rows): writes level 2 and 3 rows of devices_generated.csv and (T6b) the plan_generated.json main_upper section from the solved sheet; reads the owner's cells from devices_field.csv.",
+   "desc": "make panels step 7, with its modules device_map_inputs.py (the readers), device_map_schematic.py (the drawing's tracks), device_map_rows.py (every level's row makers and the owner's values over them) and device_map_staging.py (staging's rows): writes every level's turnout, feedback, block and occupancy rows and main and upper's masts and heads to devices_generated.csv, each generated from the plan with the owner's cells from devices_field.csv over it (naming-layers step 7), and (T6b) the plan_generated.json main_upper section from the solved sheet.",
    "path": "tools/schematic/build_device_map.py"
   },
   {
@@ -4720,6 +4720,11 @@
   {
    "from": "jmri/layouts/hart/data/schematic/inputs/parts.json",
    "to": "tools/schematic/plan_lengths.py",
+   "label": "reads"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/inputs/staging.json",
+   "to": "tools/schematic/build_device_map.py",
    "label": "reads"
   },
   {

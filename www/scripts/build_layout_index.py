@@ -50,7 +50,7 @@ def load_names(path: Path):
     proposed, as the page keys them), cp, system name (hardware) and JMRI comment (hartlib.devices.comment_of)."""
     by_hw, by_name = {}, {}
     for row in device_master.load(path):
-        if row["level"] != device_master.FIELD_LEVEL:
+        if row["level"] != railroad_facts.STAGING_LEVEL:
             continue
         rec = {
             "current": row["user_name"],

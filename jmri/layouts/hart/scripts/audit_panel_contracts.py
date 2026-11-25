@@ -45,7 +45,7 @@ def station_comments(rows=None) -> dict[str, str]:
     docs/parked/UNPARK.md)."""
     out: dict[str, str] = {}
     for row in devices.load() if rows is None else rows:
-        if row["level"] != devices.FIELD_LEVEL or row["layer"] != "block" or row.get("stop") != "yes":
+        if row["level"] != railroad_facts.STAGING_LEVEL or row["layer"] != "block" or row.get("stop") != "yes":
             continue
         name, comment = row["user_name"], row["jmri_comment"]
         if not (comment == "stop" or comment.endswith("; stop")):
@@ -173,7 +173,7 @@ def dispatcher_virtuals(expected: set[str], devices_csv: Path = devices.MASTER) 
     masts: staging's hidden masts in the device master (role hidden, a virtual signal mast IF$vsm:...($10nn))."""
     virtual = {
         row["user_name"] for row in devices.load(devices_csv)
-        if row["level"] == devices.FIELD_LEVEL and row["layer"] == "mast" and row["role"] == "hidden"
+        if row["level"] == railroad_facts.STAGING_LEVEL and row["layer"] == "mast" and row["role"] == "hidden"
     }
     return expected & virtual
 

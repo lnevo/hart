@@ -58,6 +58,13 @@ class Read(unittest.TestCase):
         self.assertEqual([w.device for w in W.read(d / "wiring.csv", names)][:4],
                          ["Switch One", "FB Switch 1 N", "Head 6LB", "Track Barn Lead"])
 
+    def test_a_staging_turnout_with_no_field_row_is_named_by_its_id(self):
+        """Naming-layers step 7: the builder generates a staging turnout or feedback with no field row, so read names
+        it as the generator does (Switch <n>, FB Switch <n> N); whether the plan has that switch is the device-map
+        builder's to hold (staging_wired_rows stops on a wiring row that names no switch of the plan)."""
+        got = self.read(GOOD + "1,turnout,switch:2,,,,,,4,1,OU1,\"3,4\",wired,\n1,fb,fb:2:R,,,,,,4,5,IN1,3,wired,\n")
+        self.assertEqual([(w.id, w.device) for w in got[-2:]], [("switch:2", "Switch 2"), ("fb:2:R", "FB Switch 2 R")])
+
     def test_the_committed_file(self):
         rows = W.read()
         count = lambda lv, kind: sum(w.level == lv and w.kind == kind for w in rows)  # noqa: E731
@@ -94,7 +101,6 @@ class Read(unittest.TestCase):
                            # naming-layers step 5: a device by its ID only, which the device master must have
                            ("1,turnout,,Switch 3,,,,,4,1,OU1,\"3,4\",wired,", "a turnout is named by its id, not device"),
                            ("1,turnout,fb:3:N,,,,,,4,1,OU1,\"3,4\",wired,", "a turnout's id starts switch:"),
-                           ("1,turnout,switch:2,,,,,,4,1,OU1,\"3,4\",wired,", "switch:2 is no level 1 device"),
                            ("1,detector,det:block:9Z-end,,,,,,4,3,,,wired,", "block:9Z-end is no level 1 device"),
                            ("1,button,switch:1,Switch 1 BTN,,,,,4,,IN2,1,wired,", "a button has no JMRI device, so no id"),
                            ("1,relay,,,,,,,4,,OU2,7,wired,", "give its label in device")):

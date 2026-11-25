@@ -377,5 +377,19 @@ class HandProblems(unittest.TestCase):
                                           "left_end": "block:3B-end"}), [])
 
 
+class PlanSwitches(unittest.TestCase):
+    """plan_switches: the switches of a plan graph by number, labelled by the relabel edit (naming-layers step 7)."""
+
+    def test_the_staging_plan_has_its_twenty_switches(self) -> None:
+        got = T.plan_switches("staging", L.read("plan_overrides", "staging", T.SCHEMATIC))
+        self.assertEqual(list(got), [str(n) for n in range(1, 40, 2)])
+        self.assertEqual((got["7"], got["35"], got["1"]), (["7", "7"], ["35", "35"], ["1"]))   # a crossover's halves
+
+    def test_a_switch_the_relabel_edit_leaves_unnumbered_stops(self) -> None:
+        section = {"edits": []}                     # no relabel edit: the plan's own labels (T33) are no numbers
+        with self.assertRaisesRegex(T.TrackNameError, r"has label 'T\d+', no switch number"):
+            T.plan_switches("staging", section)
+
+
 if __name__ == "__main__":
     unittest.main()

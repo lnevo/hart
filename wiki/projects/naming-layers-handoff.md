@@ -47,7 +47,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 | 4 | Owner file keyed by ID | 1 day | `devices_field.csv` rekeyed on `(level, id)`; `user_name` becomes an owner cell. The build prints new and gone IDs against the last generated file and stops as decision 3 says; a rename lists the Operations Pro copies (decision 5) and warns on a mast rename (decision 6). **Done (2026-11-25):** see [Step 4 findings](#step-4-findings) |
 | 5 | Files keyed by ID | 1.5 to 2 days | `wiring.csv`, `block_lengths.csv`, `block_numbering.csv`, `block_overrides.csv`, `main_lines.csv` and switches.csv's staging legs key on device IDs; their names come from the name store, so a rename touches no row. **Done (2026-11-25):** see [Step 5 findings](#step-5-findings); 5b, `preferences.json` and `stations.csv` by block ID: [Step 5b findings](#step-5b-findings) |
 | 6 | Every read through `hartlib` | 1.5 days | `hartlib.hand_lists` reads `block_overrides.csv`, `main_lines.csv` and `mast_cells.csv`; `layout_facts.py`, `write_inventory.py`, `check_hart_phase02.py` and the speed-match routes go through `hartlib`; a check fails a script outside `hartlib` that names a layout data file, Jython listed by name. **Done (2026-11-25):** see [Step 6 findings](#step-6-findings) |
-| 7 | Staging generated like main and upper | 1.5 days | `staging_rows` and `staging_wired_rows` go through the main and upper functions; a staging device with no owner row gets generated values instead of stopping; `FIELD_LEVEL` goes. Staging's owner values still win, so outputs stay the same |
+| 7 | Staging generated like main and upper | 1.5 days | `staging_rows` and `staging_wired_rows` go through the main and upper row makers; a staging device with no owner row gets generated values instead of stopping; `FIELD_LEVEL` goes. **Done (2026-11-25):** see [Step 7 findings](#step-7-findings) |
 | 8 | Block names into the rows | 0.5 day | Builder merge step 2 (`block_numbering.csv` stays the source of main and upper numbers, owner 2026-11-23) |
 | 9 | `start` column and comment data | 0.5 day | Builder merge step 3 |
 | 10 | Bean shapes by column | 1 day | Builder merge step 4 |
@@ -260,6 +260,41 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   transits) and both hand-list readers were dumped before and after: no difference. `routes.json`'s pairs are
   unchanged (it gained `ids`). `make panels CHECK=1 FULL=1` all current, `check_approved.py --check` all matching. No
   main or upper change.
+
+## Step 7 findings (2026-11-25)
+
+- **One row path.** `tools/schematic/device_map_rows.py` holds the row makers every level uses: `device_row` (the
+  body of `build`'s `add`), `switch_device_rows` (a switch's turnout, LCC alias and two feedback rows; `build`'s
+  `switch_rows` and `staging_wired_rows` both call it) and `owner_over` (a device's field row over its generated row,
+  description rewritten). `build_device_map.master_outputs` writes every level: `owned_rows` puts the owner's cells
+  over main and upper's rows and parts and follows a block rename into `blocks`, `part_of`, `facing` and `protects`
+  (`devices.follow_renames`); their virtual JMRI names stay the generated ones.
+- **Staging from the plan.** `staging_wired_rows` makes rows for each switch of the staging plan graph
+  (`track_names.plan_switches`, relabelled), so a switch number comes from the plan, not from a field row's id
+  (step 2's open item closed; `check_switch_ids` still holds the plan graph to the drawing). `staging_rows` generates
+  each block and detector (role from its id or its track's ends, an OS block's cp its interlocking's, a comment
+  marking its detector) and then takes the owner's row. A block with no field row is numbered as a part is
+  (`part_bean_names`, assignment virtual, the builder's name memory); a turnout with none is bound to its address;
+  an alias takes the owner's DCC address from the turnout's or its own field row, and a switch with none has no
+  alias. `wiring.read` names a staging turnout or feedback with no field row by its id (Switch <n>).
+- **Still stops:** a staging device with no `wiring.csv` row (staging's nodes are as built; the builder proposes
+  none), a field or wiring row whose id the plan has not, a staging turnout bound by its old user name (Q13).
+- **`FIELD_LEVEL` is gone** from `hartlib.devices` and `device_map_inputs`; the readers that filtered staging's
+  rows by it use `railroad.STAGING_LEVEL` (`wiring._Names`, the mimic, `check_name_copies.py`,
+  `build_layout_index.py`, `audit_panel_contracts.py`, `refresh_bean_comments.py`). `wired_name` and `WIRED_ID` went.
+- **Tests:** `tools/schematic/tests/test_one_row_path.py`: the committed files come back byte-identical; Switch 9's
+  and Track Barn's field rows taken out are generated instead of stopping; a field row naming main's Track 103 Spur
+  "Track Coal Spur" reaches the device master, its detector's `blocks` follows and the rename is said.
+  `test_block_layer`, `test_device_map_helpers`, `test_track_names` and `test_wiring` follow.
+- **Outputs byte-identical:** `devices_generated.csv` unchanged, `make panels CHECK=1 FULL=1` all current,
+  `check_approved.py --check` all matching, `test_blocks_every_level` and `test_bean_goldens` pass. No main or upper
+  change.
+- **Open, for later steps:** staging's masts and heads are still `build_masts.py`'s, its two field rows matched by
+  name (step 12). A main or upper turnout or block given an owner's name passes the builder, but
+  `railroad.check_virtual_names` and the `device-map` invariant still read a switch number and a block's sensor from
+  the user name, so `python3 -m hartlib.railroad check` would flag it (step 13 or 14: read them by id). A main
+  detector's user name ("BS 103 Spur") does not follow its block's owner name, as staging's does. Wired or proposed
+  is still per level in the callers (staging bound to its addresses, main and upper virtual), not data.
 
 ## How to run this
 

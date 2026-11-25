@@ -166,20 +166,23 @@ class StagingHelpers(unittest.TestCase):
         self.assertEqual({layer for layer, _n in got}, {"block", "occupancy"})
         self.assertTrue(all(set(r) == set(devices.COLUMNS) and r["level"] == "1" for r in got.values()))
 
-    def test_taken_bean_names_leave_out_staging_parts_own(self):
-        def row(level, role, *names):
-            return dict(level=level, role=role, system_name=names[0], jmri_name=names[1], layout_block=names[2])
+    def test_taken_bean_names_leave_out_the_staging_blocks_the_builder_numbers(self):
+        """Naming-layers step 7: the builder numbers staging's parts and any block with no field row, so its own
+        level 1 block rows' names are its memory, not taken; a field row's (no writer) and other levels' are."""
+        def row(level, role, *names, writer="build_device_map.py"):
+            return dict(level=level, layer="block", role=role, system_name=names[0], jmri_name=names[1],
+                        layout_block=names[2], written_by=writer)
         got = bdm.taken_bean_names([row("1", "part", "", "IB:AUTO:0060", "ILB60"),
+                                    row("1", "track", "", "IB:AUTO:0062", "ILB62"),
                                     row("2", "part", "", "IB:AUTO:0061", "ILB61"),
-                                    row("1", "track", "IB:AUTO:0010", "", "ILB10")])
-        self.assertNotIn("IB:AUTO:0060", got)
-        self.assertNotIn("ILB60", got)
+                                    row("1", "track", "IB:AUTO:0010", "", "ILB10", writer="")])
+        self.assertFalse({"IB:AUTO:0060", "ILB60", "IB:AUTO:0062", "ILB62"} & got)
         self.assertLessEqual({"IB:AUTO:0061", "ILB61", "IB:AUTO:0010", "ILB10"}, got)
 
 
 class TheSplit(TempFiles):
     """The readers live in device_map_inputs.py, which never loads the builder; build_device_map re-exports them."""
-    READERS = ("CPS", "FIELD_LEVEL", "NODES", "OS_BLOCK", "PINS", "STATIONS", "UID", "WIRING", "Places", "StagingPin",
+    READERS = ("CPS", "NODES", "OS_BLOCK", "PINS", "STATIONS", "UID", "WIRING", "Places", "StagingPin",
                "frozen_wires", "helix_pins", "loop_placeholder", "read_places", "read_staging_pins", "staging_nodes",
                "wiring_rows")
 
@@ -191,8 +194,9 @@ class TheSplit(TempFiles):
 
     STAGING = ("BEAN_NAME", "FIELD_LAYERS", "PART_BLOCK_FIRST", "STAGING_SHEET", "WIRED_LAYERS", "alias_note",
                "field_row", "helix_ends", "level_trials", "line_cp", "new_spare", "part_bean_names", "part_row",
-               "piece_trials", "staging_field", "staging_layer", "staging_part_names", "staging_rows",
-               "staging_trials", "staging_wired_rows", "taken_bean_names", "wire_block", "wire_occupancy")
+               "piece_trials", "staging_cps", "staging_field", "staging_layer", "staging_part_names", "staging_rows",
+               "staging_switches", "staging_trials", "staging_wired_rows", "taken_bean_names", "wire_block",
+               "wire_occupancy")
 
     def test_the_builder_re_exports_the_staging_layer(self):
         for name in self.STAGING:
@@ -252,6 +256,40 @@ class TheSplit(TempFiles):
         p = self.file("wiring.csv", WIRING_HEAD + "2,detector,det:os:123,,,,,,42,1,,,planned,\n")
         self.assertEqual(inputs.read_pins(p, [], set()), {"OS Switch 123": (42, 0)})
         self.assertEqual(bdm.read_pins(p, found=[], split=set()), {"OS Switch 123": (42, 0)})
+
+
+class RowMakers(unittest.TestCase):
+    """device_map_rows: one maker of a switch's rows and one way the owner's values go over a generated row."""
+
+    def test_a_switch_gives_its_turnout_alias_and_feedback(self):
+        import device_map_rows as rm
+        got = rm.switch_device_rows(
+            1, "Brick", "7", ["7", "7"], rm.Wired("M2T1308", 13, "Node: 13 Turnout: 0"),
+            {"N": rm.Wired("M2S1367", 13, "Node: 13 Sensor: 0"), "R": rm.Wired("M2S1368", 13, "Node: 13 Sensor: 1")},
+            "117", jmri="M2T1308", alias_jmri="MTT117", alias_notes="LCC alias", fb_bound=True)
+        self.assertEqual([(r["id"], r["user_name"], r["jmri_name"], r["role"]) for r in got],
+                         [("switch:7", "Switch 7", "M2T1308", "turnout"),
+                          ("dcc:7", "DCC Switch 7", "MTT117", "lcc_alias"),
+                          ("fb:7:N", "FB Switch 7 N", "M2S1367", "fb"), ("fb:7:R", "FB Switch 7 R", "M2S1368", "fb")])
+        self.assertEqual(got[0]["trial_name"], "Switch 7")                  # the two halves' labels, once
+        bare = rm.switch_device_rows(1, "", "9", ["9"], rm.Wired("M2T1310", 13, ""),
+                                     {"N": rm.Wired("M2S1", 13, ""), "R": rm.Wired("M2S2", 13, "")}, "", jmri="",
+                                     alias_jmri="", alias_notes="", alias=False)
+        self.assertEqual([r["id"] for r in bare], ["switch:9", "fb:9:N", "fb:9:R"])
+        self.assertEqual(bare[1]["jmri_name"], "")                          # DIRECT feedback: no sensor of its own
+
+    def test_the_owners_values_go_over_the_generated_ones(self):
+        import device_map_rows as rm
+        gen = dict.fromkeys(devices.COLUMNS, "")
+        gen.update(level="2", layer="block", role="spur", id="block:103BB-end", user_name="Track 103 Spur",
+                   assignment="none", notes="111.0 cm", written_by="build_device_map.py")
+        gen["description"] = devices.describe(gen)
+        self.assertEqual(rm.owner_over(gen, None), gen)
+        field = dict.fromkeys(devices.COLUMNS, "")
+        field.update(level="2", layer="block", id="block:103BB-end", user_name="Track Coal Spur")
+        got = rm.owner_over(gen, field)
+        self.assertEqual({c for c in got if got[c] != gen[c]}, {"user_name", "description"})   # empty: no override
+        self.assertIn("Track Coal Spur", got["description"])
 
 
 if __name__ == "__main__":

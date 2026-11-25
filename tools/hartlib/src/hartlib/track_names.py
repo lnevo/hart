@@ -191,6 +191,29 @@ def plan_runs(sheet: str, section: dict, data: Path = SCHEMATIC) -> dict[str, li
     return out
 
 
+def plan_switches(sheet: str, section: dict, data: Path = SCHEMATIC) -> dict[str, list[str]]:
+    """{switch number: its labels, sorted} of the switches of the sheet's plan graph, each labelled by the section's
+    `relabel` edit (a crossover's halves share a number: "7", "7"; a moved switch keeps its star, "223*", in its
+    label, not its number): the switches the plan has, with no drawing (naming-layers step 7, staging's turnouts from
+    the plan, not from the owner's rows). TrackNameError on a switch the relabel edit gives no number."""
+    graph = json.loads(_beside(data, PLAN_GRAPHS[sheet], "the plan graph").read_text(encoding="utf-8"))
+    relabel = {}
+    for e in section.get("edits", ()):
+        if e.get("op") == "relabel":
+            relabel.update(e["map"])
+    out: dict[str, list[str]] = {}
+    for n, d in graph["nodes"].items():
+        if d["kind"] == "end":
+            continue
+        label = relabel.get(d.get("label") or n, d.get("label") or n)
+        m = re.match(r"\d+", label)
+        if not m:
+            raise TrackNameError(f"{PLAN_GRAPHS[sheet]}: switch {n} ({d.get('label')}) has label {label!r}, no switch "
+                                 "number (the section's relabel edit gives each plan switch its number)")
+        out.setdefault(m.group(0), []).append(label)
+    return {k: sorted(v) for k, v in sorted(out.items(), key=lambda kv: int(kv[0]))}
+
+
 def _far(graph, n, port):
     for ed in graph["edges"]:
         if (ed["u"], ed["up"]) == (n, port):

@@ -400,7 +400,7 @@ def load_cps() -> dict[str, dict[str, str]]:
     if not DEVICES.is_file():
         return {"turnout": turnout, "occupancy": occupancy, "block": block, "mast": mast}
     for row in devices.load(DEVICES):
-        if row["level"] != devices.FIELD_LEVEL:
+        if row["level"] != railroad.STAGING_LEVEL:
             continue
         layer, name = row["layer"], row["user_name"]
         plant = infer_plant(name, "" if row["role"] == "lcc_alias" else row["cp"])

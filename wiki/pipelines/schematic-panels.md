@@ -52,10 +52,15 @@ plugin 0.1.50; keyed by the staging helix block's ID, which the merged view name
 the layout expands. The plugin draws it on every output it makes: the schematic and station sheets (helix letters
 follow the labels, so H1 is still the outer track), the Layout Editor panel and the CATS desks; `levels_page` reads the
 same key for the track-plan article. The desks' bindings stay keyed by plan name (Helix Outer, Helix Inner). `build_device_map.py` writes staging's block and occupancy rows
-from it (written_by `build_device_map.py`), each built on the owner's row of its device ID in `devices_field.csv` (its user name the owner's): the
-system and layout-block names, comment, stop, notes, detector and an OS block's control point; the node, wiring and
-the detector's part of the comment (`{occupancy}` in the field text) come from `wiring.csv`, so a moved pin changes
-no hand file. A staging block change made in PanelPro is carried by hand into those three data files and the field
+from it (written_by `build_device_map.py`). Since naming-layers step 7 every level goes one row path: the builder makes
+each device's row from the plan (staging's turnouts, aliases and feedback for each switch of the staging plan graph)
+with the same row makers (`tools/schematic/device_map_rows.py`), then puts the owner's row of its device ID in
+`devices_field.csv` over it: on staging the system and layout-block names, comment, stop, notes, detector and an OS
+block's control point; on any level the user name. A device with no field row keeps the generated values (a staging
+block is numbered as a part is; a staging turnout is bound to its address), so a missing owner row no longer stops the
+build. The node, wiring and the detector's part of the comment (`{occupancy}` in the field text) come from
+`wiring.csv`, so a moved pin changes no hand file; a staging device with no `wiring.csv` row stops (staging's nodes
+are as built). A staging block change made in PanelPro is carried by hand into those three data files and the field
 row.
 
 Main and upper wiring goes one way: the device map's rule proposes it in `devices_generated.csv` on every build, `make wiring-freeze` is the only writer into `wiring.csv` (a control point's proposal copied in as wired rows), and for a frozen control point `build_device_map.py` reads `wiring.csv` (`hartlib.wiring.held`) and proposes nothing. `check_wiring_frozen.py` (in `check.sh`) fails on any other change to `wiring.csv`. The step stamps follow what each step reads (traced), so `wiring.csv` is an input of the device map because it reads it, and the freeze is no step.

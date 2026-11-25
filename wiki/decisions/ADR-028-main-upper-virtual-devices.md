@@ -39,3 +39,5 @@ Every main and upper turnout, block sensor, signal head and mast in JMRI is an i
 - The physical plant for both levels is not reviewed, and no device has been swapped in.
 - The user names and control point names are placeholders until the owner names the levels.
 - Occupancy detection for these levels (35 detectors, main line only, in `STATUS.md`) is not installed.
+
+**Amended by ADR-033, naming-layers step 7 (2026-11-25):** a main or upper device takes the owner's name from its field row, as staging's do; its virtual JMRI name stays the generated one (`hartlib.level_devices`), the device's identity.

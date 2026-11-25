@@ -42,7 +42,7 @@ from typing import NamedTuple
 
 from . import paths
 from .device_ids import HEAD_PLACES
-from .railroad_facts import FactsError
+from .railroad_facts import STAGING_LEVEL, FactsError
 
 PATH = paths.WIRING
 NODES = paths.LAYOUT_DATA / "schematic" / "lcos_nodes.csv"   # each node's level and area (board_location)
@@ -148,9 +148,9 @@ GENERATED_NAMES = ((re.compile(r"switch:(\d+)"), "Switch {}"), (re.compile(r"fb:
 
 class _Names:
     """How read() names a row's id: `given` ({(level, id): user name}) when the caller passes one; else a staging
-    device by its field row's user name, or for a turnout or feedback row with none the name its id gives (Switch
-    <n>, FB Switch <n> N), from the field file alone (a device with no field row, a head the mast rule names, by the
-    merged view) (`files`' field file, else the one beside the wiring file, else the
+    device by its field row's user name, or for a turnout or feedback row with none (or no field row) the name its id
+    gives (Switch <n>, FB Switch <n> N), from the field file alone (any other device with no field row, a head the
+    mast rule names, by the merged view) (`files`' field file, else the one beside the wiring file, else the
     repo's: a staging builder reads the owner's cells there and never its own last output, ADR-029); any other level's
     by the merged view (`files`, else names_beside). Each file is read once, and only when a row needs it."""
 
@@ -161,7 +161,7 @@ class _Names:
         from . import devices
         if self.given is not None:
             return devices.name_of(self.given, level, ident, where)
-        if level == devices.FIELD_LEVEL:
+        if level == STAGING_LEVEL:
             if self.field is None:
                 files = self.files
                 if files is None:
@@ -175,25 +175,27 @@ class _Names:
             name = self.field.get((level, ident))
             if name:
                 return name
-            if name is not None:                # a field row with no user_name: the name its id gives
-                for pattern, form in GENERATED_NAMES:
-                    m = pattern.fullmatch(ident)
-                    if m:
-                        return form.format(*m.groups())
+            # a turnout or feedback with no owner's name (no field row, or one with no user_name): the name its id
+            # gives, as the builder generates it (naming-layers step 7: a staging device needs no field row)
+            for pattern, form in GENERATED_NAMES:
+                m = pattern.fullmatch(ident)
+                if m:
+                    return form.format(*m.groups())
+            if name is not None:
                 raise FactsError(f"{where}: {ident}'s row in {devices.FIELD_FILE} has no user_name: give it its name")
-            # no field row (a staging head or mast the mast rule names): the merged view; when that does not load
-            # either (a field row taken out or moved to another id), the row stays unnamed and the staging builder,
-            # which finds it by id, says what is missing
+            # no field row (a staging head or mast the mast rule names, a detector): the merged view; when that does
+            # not load either (a field row taken out or moved to another id), the row stays unnamed and the staging
+            # builder, which finds it by id, says what is missing
         if self.merged is None:
             try:
                 self.merged = devices.user_names(self.files) if self.files is not None else names_beside(self.path)
             except FactsError as exc:
-                if level == devices.FIELD_LEVEL:
+                if level == STAGING_LEVEL:
                     self.merged = {}
                     self.unloaded = str(exc)
                 else:
                     raise _LoadFailed(str(exc)) from None
-        if level == devices.FIELD_LEVEL and getattr(self, "unloaded", None):
+        if level == STAGING_LEVEL and getattr(self, "unloaded", None):
             return ""
         return devices.name_of(self.merged, level, ident, where)
 

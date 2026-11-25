@@ -627,26 +627,34 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         self.assertEqual(got[("occupancy", "BS Switch 9")]["blocks"], "OS Engine House West")
 
     def test_a_field_row_whose_id_is_gone_stops_naming_the_row(self):
-        """Decision 3: a field row whose id the plan no longer gives names no row; the build stops and lists it,
-        and the drawn block with no field row of its id."""
+        """Decision 3: a field row whose id the plan no longer gives names no row; the build stops and lists it
+        (the drawn block with no field row of its id is generated, naming-layers step 7)."""
         def edit(rows):
             next(r for r in rows if r["id"] == "os:9")["id"] = "os:99"
             return rows
-        with self.assertRaisesRegex(bdm.MapError, r"staging block OS Switch 9 \(id os:9\): no row in "
-                                                  r"devices_field.csv .*the drawing has no block for: block OS Switch 9 "
-                                                  r"\(id os:99\)"):
+        with self.assertRaises(bdm.MapError) as cm:
             self.rows(edit)
+        self.assertEqual(str(cm.exception), f"staging rows of {devices.FIELD_FILE} the drawing has no block for: "
+                                            "block OS Switch 9 (id os:99)")
 
     def test_the_committed_rows_come_back_as_they_are(self):
         got = self.rows()
         want = [r for r in devices.load() if r["level"] == "1" and r["layer"] in ("block", "occupancy")]
         self.assertEqual(got, [dict(r) for r in want])
 
-    def test_a_block_with_no_field_row_stops(self):
-        drop = lambda rows: [r for r in rows if not (r["level"] == "1" and r["user_name"] == "Track Barn")]  # noqa
-        with self.assertRaisesRegex(bdm.MapError, r"staging block Track Barn \(id block:7A-13C\): no row in "
-                                                  "devices_field.csv"):
-            self.rows(drop)
+    def test_a_block_with_no_field_rows_is_generated(self):
+        """Naming-layers step 7: Track Barn's block and detector rows taken out of the field file are generated, as
+        main and upper's are, instead of stopping; only the owner's cells they had change."""
+        drop = lambda rows: [r for r in rows if not (r["level"] == "1" and r["id"].endswith("block:7A-13C"))]  # noqa
+        got, want = self.by(self.rows(drop)), self.by(self.rows())
+        new, old = got[("block", "Track Barn")], want[("block", "Track Barn")]
+        # its layout block may come back as it was: the next free number can be the one the owner's row held
+        self.assertEqual({c for c in new if new[c] != old[c]} - {"layout_block"},
+                         {"assignment", "system_name", "jmri_name", "jmri_comment"})
+        self.assertEqual((new["assignment"], new["system_name"], new["jmri_comment"]),
+                         ("virtual", "", "Track Barn; occupancy Block 13-1 / M2S1300"))
+        self.assertRegex(new["jmri_name"] + " " + new["layout_block"], r"^IB:AUTO:00(\d\d) ILB\1$")
+        self.assertEqual(got[("occupancy", "BS Barn")], want[("occupancy", "BS Barn")])
 
     def test_a_field_row_the_drawing_has_no_block_for_stops(self):
         def add(rows):
@@ -725,7 +733,7 @@ class StagingWiredRows(RepoReadOnly, unittest.TestCase):
 
     def test_a_turnout_renamed_by_the_owner_keeps_its_wiring(self):
         """naming-layers step 4: a staging turnout renamed in its field row (id switch:1) keeps its wiring.csv row,
-        which knows it by the generated name its id gives (wired_name); a field row with no id grammar stops."""
+        which knows it by its id."""
         d = Path(tempfile.mkdtemp())
         self.addCleanup(os.rmdir, d)
         files = devices.pair_copy(d)
@@ -739,10 +747,6 @@ class StagingWiredRows(RepoReadOnly, unittest.TestCase):
         self.assertEqual(got["switch:1"]["user_name"], "Switch Brick West")
         self.assertEqual({c for c in got["switch:1"] if got["switch:1"][c] != want["switch:1"][c]},
                          {"user_name", "description"})
-        self.assertEqual(bdm.wired_name({"role": "fb", "layer": "fb", "id": "fb:7:R"}), "FB Switch 7 R")
-        self.assertEqual(bdm.wired_name({"role": "lcc_alias", "layer": "turnout", "id": "dcc:7"}), "DCC Switch 7")
-        with self.assertRaisesRegex(ValueError, "id 'os:7' is not a turnout ID"):
-            bdm.wired_name({"role": "turnout", "layer": "turnout", "id": "os:7"})
 
     def field_copy(self, edit) -> devices.Files:
         """A copy of the master's two files with its field rows `edit`ed ({id: {column: value}})."""
@@ -778,7 +782,7 @@ class StagingWiredRows(RepoReadOnly, unittest.TestCase):
                            "staging turnout Switch 1: no turnout row for switch:1 in wiring.csv"),
                           # wiring.csv keys a turnout by its id: one the device master lacks is refused as it is read
                           (lambda t: t + '1,turnout,switch:999,,,,,,5,0,OU1,"1,2",wired,\n',
-                           "switch:999 is no level 1 device of the device master"),
+                           "staging turnout switch:999 names no switch of the plan"),
                           (lambda t: t.replace('1,turnout,switch:13,,,,,,4,3,', '1,turnout,switch:13,,,,,,41,3,'),
                            "turnout Switch 13 is on node 41, no staging node")):
             with self.subTest(msg=msg), self.assertRaisesRegex(bdm.MapError, msg):

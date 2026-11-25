@@ -13,7 +13,7 @@ import audit_panel_contracts as apc  # noqa: E402
 devices = apc.devices
 
 
-def row(name, comment, *, level=devices.FIELD_LEVEL, layer="block", stop="yes"):
+def row(name, comment, *, level=apc.railroad_facts.STAGING_LEVEL, layer="block", stop="yes"):
     return {"level": level, "layer": layer, "user_name": name, "jmri_comment": comment, "stop": stop}
 
 

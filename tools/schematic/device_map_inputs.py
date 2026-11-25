@@ -30,7 +30,7 @@ NODES = SOURCES.lcos_nodes
 WIRING = wiring.PATH                              # wiring.csv: the physical wiring source (hartlib.wiring)
 PINS = WIRING
 STATIONS = pd.DATA / "stations.csv"
-FIELD_LEVEL = "1"                   # staging: its plant is the field, so its block rows carry their field facts
+STAGING = int(railroad.STAGING_LEVEL)   # staging's level, as wiring.csv and lcos_nodes.csv number it
 UID = {"block": 0, "turnout": 8, "signal": 32, "sensor": 67}     # LCOS packed ID = node * 100 + UID + index
 
 
@@ -43,7 +43,7 @@ UID = {"block": 0, "turnout": 8, "signal": 32, "sensor": 67}     # LCOS packed I
 OS_BLOCK = re.compile(r"OS Switch \d+[a-d]?")        # a main or upper OS block, named by its switch
 
 
-STAGING_NAMES = (int(FIELD_LEVEL),)    # a staging reader names staging's rows only, from the field file (ADR-029)
+STAGING_NAMES = (STAGING,)    # a staging reader names staging's rows only, from the field file (ADR-029)
 
 
 def wiring_rows(path: Path | None = None, levels=None, files=None) -> list:
@@ -76,7 +76,7 @@ def read_pins(path: Path | None, found: list, split: set, ids: dict | None = Non
                                f"and {t['level']}")
     out, bad = {}, []
     for w in wiring_rows(path):
-        if w.kind != "detector" or w.level == int(FIELD_LEVEL):
+        if w.kind != "detector" or w.level == STAGING:
             continue
         i, node, k = w.line, w.node, w.index - 1
         device = (ids or {}).get(w.id[len("det:"):], w.device) if w.id else w.device
@@ -138,7 +138,7 @@ class StagingPin(NamedTuple):
 def staging_nodes() -> set:
     """Staging's LCOS nodes: the level 1 rows of lcos_nodes.csv (as built)."""
     try:
-        return {n.node for n in railroad.read_lcos_nodes(NODES) if n.level == int(FIELD_LEVEL)}
+        return {n.node for n in railroad.read_lcos_nodes(NODES) if n.level == STAGING}
     except railroad.FactsError as exc:
         raise MapError(str(exc)) from None
 
@@ -151,7 +151,7 @@ def read_staging_pins(path: Path | None = None, nodes: set | None = None, files=
     path = path or WIRING
     out, bad = [], []
     for w in wiring_rows(path, STAGING_NAMES, files):
-        if w.kind != "detector" or w.level != int(FIELD_LEVEL):
+        if w.kind != "detector" or w.level != STAGING:
             continue
         if w.node not in nodes:
             bad.append(f"line {w.line}: node {w.node} is no staging node of {NODES.name} "
@@ -179,7 +179,7 @@ def helix_pins(path: Path | None = None, helix_map: dict | None = None) -> dict:
         helix_map = layer_files.read("plan_overrides", "main_upper", folder).get("helix", {})
     out, bad = {}, []
     for w in wiring_rows(path, STAGING_NAMES):
-        if w.kind != "detector" or w.level == int(FIELD_LEVEL) or not w.id.startswith("det:block:"):
+        if w.kind != "detector" or w.level == STAGING or not w.id.startswith("det:block:"):
             continue
         m = HELIX_ID.fullmatch(w.id)
         if not m:

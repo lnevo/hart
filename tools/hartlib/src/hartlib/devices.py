@@ -92,8 +92,9 @@ COLUMNS = ("level", "cp", "layer", "role", "id", "user_name", "assignment", "sys
 KEY = ("level", "id")
 NAME_KEY = ("level", "layer", "user_name")
 # The columns of a keyed field row (the owner's cells, ADR-029 amendment 2026-11-21): the cells a builder took from
-# the master's previous rows before the split, so the owner's value lives in one place. A field row also gives a
-# staging device's identity (role, assignment): staging's devices are the owner's, so its rows come from here.
+# the master's previous rows before the split, so the owner's value lives in one place. On every level the builder
+# makes each device's row from the plan and puts its field row's cells over it (naming-layers step 7): a device with no
+# field row keeps the generated values.
 FIELD_COLUMNS = ("user_name", "role", "assignment", "cp", "system_name", "jmri_name", "node", "dcc", "jmri_comment",
                  "trial_name", "notes", "detector", "stop", "layout_block")
 # A field row with a level also holds its layer, which must be its generated row's (merge checks it): it orders the
@@ -104,8 +105,6 @@ FIELD_HELD = ("layer",)
 # generated one, which must be the field text with the mark filled in (merge checks it).
 OCCUPANCY_MARK = "{occupancy}"
 OCCUPANCY_TEXT = r"occupancy Block \d+-\d+ / M2S\d+"
-# staging: its plant is the field, so its devices are the owner's (each a field row in devices_field.csv)
-FIELD_LEVEL = "1"
 LIST = DEVICE_LIST              # the separator of a list column (blocks, protects, a line block's cp)
 # the columns an old-form device-map row shares with the master; its comment is built, the rest of the master is left out
 _SHARED = tuple(c for c in DEVICE_COLUMNS if c not in ("comment",))

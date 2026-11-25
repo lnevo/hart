@@ -36,7 +36,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import devices, paths, tables  # noqa: E402
+from hartlib import devices, paths, railroad, tables  # noqa: E402
 
 DEVICES_REL = devices.MASTER.relative_to(paths.REPO_ROOT).as_posix()
 FIELD_REL = devices.FIELD.relative_to(paths.REPO_ROOT).as_posix()
@@ -126,7 +126,7 @@ def load_names(devices_csv: Path) -> tuple[set[str], set[str]]:
     """(current names, every name the master holds: the same set, as it keeps no alias rows) of staging's blocks and
     masts, the user names of their rows in the device master. DevicesError when it cannot be read."""
     names = {row["user_name"].strip() for row in devices.load(devices_csv)
-             if row["level"] == devices.FIELD_LEVEL and row["layer"] in LAYERS}
+             if row["level"] == railroad.STAGING_LEVEL and row["layer"] in LAYERS}
     return names, set(names)
 
 
