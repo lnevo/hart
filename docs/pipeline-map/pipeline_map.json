@@ -2552,8 +2552,9 @@
    "kind": "output",
    "status": "live",
    "domain": "website",
-   "desc": "Generated node, port, signal head, turnout and block sensor maps for wiring viewer.",
-   "path": "www/data/wiring-inventory.json"
+   "desc": "Generated node, port, signal head, turnout and block sensor maps for wiring viewer; not committed (ADR-036): the site build writes its own copy and the local preview builds this one (www/scripts/site_views.py, make site-data).",
+   "path": "www/data/wiring-inventory.json",
+   "local": true
   },
   {
    "id": "www/docs",
@@ -2735,7 +2736,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "website",
-   "desc": "Builds the website wiring viewer JSON from the wiring model (write_inventory.workbook(), in memory, never the v86 file; ADR-039); tools/check.sh fails while stale.",
+   "desc": "Builds the website wiring viewer JSON (wiring-inventory.json; not committed, ADR-036: the site build and the preview build it through site_views.py) from the wiring model (write_inventory.workbook(), in memory, never the v86 file; ADR-039); --check builds it in memory and runs its checks (lists filled, no network detail left).",
    "path": "www/scripts/build_wiring_json.py",
    "gen": "manifest"
   },
@@ -6969,10 +6970,6 @@
    "label": "wiring.js"
   },
   {
-   "from": "www/data/wiring-inventory.json",
-   "to": "www/scripts/prepare_github_pages.py"
-  },
-  {
    "from": "www/docs",
    "to": "www/scripts/prepare_github_pages.py"
   },
@@ -8655,6 +8652,16 @@
    "from": "www/scripts/site_views.py",
    "to": "www/data/layout-index.json",
    "label": "make site-data, local preview"
+  },
+  {
+   "from": "www/scripts/site_views.py",
+   "to": "www/data/wiring-inventory.json",
+   "label": "make site-data, local preview"
+  },
+  {
+   "from": "www/scripts/build_wiring_json.py",
+   "to": "www/scripts/site_views.py",
+   "label": "view()"
   },
   {
    "from": "www/scripts/site_views.py",

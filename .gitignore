@@ -42,6 +42,7 @@ tools/env/hart.env
 /www/data/tables-browser.json
 /www/data/layout-index.json
 /www/data/layout-index-cats.json
+/www/data/wiring-inventory.json
 # The status page, built from wiki/status/ by make status and the session-start hook (ADR-038)
 /wiki/STATUS.md
 

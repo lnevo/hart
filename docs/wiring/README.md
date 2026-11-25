@@ -224,7 +224,7 @@ What stands between the main and upper levels' draft wiring and their being in s
 ```bash
 make panels    # runs build_device_map.py (device-map step): the device master's wiring cells, staging's from wiring.csv
 python3 tools/wiring/write_inventory.py        # v86 (tools/check.sh fails while it is stale)
-python3 www/scripts/build_wiring_json.py       # the website's wiring viewer (tools/check.sh fails while it is stale)
+make site-data                                 # the website's wiring viewer data, for the local preview (not committed, ADR-036)
 # needs python-pptx:
 python3 tools/wiring/create_wiring_schematic_ppt.py
 ```

@@ -247,7 +247,7 @@ cmd = ["python3", "www/scripts/build_wiring_json.py", "--check"]
 git = ["head", "base"]
 domain = "website"
 label = "build_wiring_json.py"
-desc = "Builds the website wiring viewer JSON from the wiring model (write_inventory.workbook(), in memory, never the v86 file; ADR-039); tools/check.sh fails while stale."
+desc = "Builds the website wiring viewer JSON (wiring-inventory.json; not committed, ADR-036: the site build and the preview build it through site_views.py) from the wiring model (write_inventory.workbook(), in memory, never the v86 file; ADR-039); --check builds it in memory and runs its checks (lists filled, no network detail left)."
 inputs = [
   { path = "tools/wiring/write_inventory.py", label = "workbook(), in memory" },
 ]
@@ -832,8 +832,9 @@ inputs = [
 ]
 # The site build (prepare_github_pages.py) reads: the site tree; the sources www/scripts/published-files.json names,
 # as their folder and suffix; the files the site's data names outside www/ that it copies in (the operator logos,
-# the rolling stock photos: its _vendor_logo and MIRROR_PREFIXES); and what the six steps whose pages and data it builds read (tables-browser,
-# repo-guide, jmri-additions, pipeline-map, layout-index, layout-index-cats: their inputs and quiet_inputs, in that order). tools/audit/tests/test_manifest_scans.py
+# the rolling stock photos: its _vendor_logo and MIRROR_PREFIXES); and what the seven steps whose pages and data it builds read (tables-browser,
+# repo-guide, jmri-additions, pipeline-map, layout-index, layout-index-cats, wiring-json: their inputs and quiet_inputs, in that order).
+# tools/audit/tests/test_manifest_scans.py
 # keeps this list equal to those.
 quiet_inputs = [
   "www/**",
@@ -856,4 +857,6 @@ quiet_inputs = [
   ".claude/commands/*.md", "*/AGENTS.md", "*/*/AGENTS.md", ".gitmodules",
   "jmri/layouts/hart/data/schematic/stations.csv", "jmri/layouts/hart/data/schematic/block_overrides.csv",
   "jmri/layouts/hart/scripts/render_le_layout.py", "cats/panels/HART_CTC.xml", "cats/scripts/render_cats_panel.py",
+  "tools/wiring/write_inventory.py", "jmri/layouts/hart/data/schematic/lcos_nodes.csv",
+  "jmri/layouts/hart/data/wiring.csv", "jmri/layouts/hart/output/signal_head_plan.csv",
 ]
