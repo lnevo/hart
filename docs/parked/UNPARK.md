@@ -16,10 +16,10 @@ lists what has to be rebuilt, and every warning, skip and stale name the parked 
 |---------|--------------|----------------------|
 | Entry/Exit (NX): 36 pairs, 23 ISNX sensors, their panel slots | 2026-11-17 (helix-join release) | `jmri/layouts/hart/parked/tables_parked.xml` (feature `nx`) |
 | Stock Dispatcher System: 197 sections, 187 transits, its panel, 377 sensors, the MoveTo and move-in-progress icons, its Logix and LogixNG | 2026-11-17 | `tables_parked.xml` (feature `dispatcher`); the 374 traininfo files and `dispatcheroptions.xml` in `jmri/layouts/hart/dispatcher/` |
-| The 12 yard throat blocks, with their 10 yard-end masts and the 2 Dispatcher rear masts (36L, 40RB) | 2026-11-20 | `jmri/layouts/hart/data/schematic/retired_virtual_masts.csv`; the throat rows at commit 5a5bff0a (parked README, "Hidden yard throats") |
+| Dispatcher System: the 12 yard throat blocks, with their 10 yard-end masts and the 2 Dispatcher rear masts (36L, 40RB) | 2026-11-20 | `jmri/layouts/hart/data/schematic/retired_virtual_masts.csv`; the throat rows at commit 5a5bff0a (parked README, "Hidden yard throats") |
 | USS CTC machine: `<ctcdata>` (20 code buttons), its Panel Editor panel, 264 sensors, its Logix and LogixNG | 2026-11-17 | `tables_parked.xml` (feature `uss`); `GUIObjects.xml` and icons in `jmri/layouts/hart/ctc/`; `data/mast_cells.csv`, `data/uss_board_cells.csv`, `data/uss_board_plants.csv` |
-| Occupancy lamps and Dispatcher station clusters (79 panel items) | 2026-11-17 off the staging panel; 2026-11-21 on every level, with their code and checks | `jmri/layouts/hart/parked/staging_panel_lamps.json`, `parked/occupancy_lamps_display_only.py` and its test; the two staging `le_labels` rules in `preferences.json` |
-| Dispatcher stations: the `; stop` at the end of 12 staging block comments and the master's `stop` column (empty, kept in the schema) | 2026-11-22, with the stations topic | The station list and the rule below |
+| Dispatcher System: occupancy lamps and station clusters (79 panel items) | 2026-11-17 off the staging panel; 2026-11-21 on every level, with their code and checks | `jmri/layouts/hart/parked/staging_panel_lamps.json`, `parked/occupancy_lamps_display_only.py` and its test; the two staging `le_labels` rules in `preferences.json` |
+| Dispatcher System: the stations, the `; stop` at the end of 12 staging block comments and the master's `stop` column (empty, kept in the schema) | 2026-11-22, with the stations topic | The station list and the rule below |
 
 `tables_parked.xml` is a frozen snapshot of the deployed tables at commit 3bd3ac64, before the helix was joined.
 `python3 -m hartlib.parked check` (in `tools/check.sh`) holds it and `tables.xml` apart. The CATS desks, the signal
