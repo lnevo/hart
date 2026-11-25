@@ -122,7 +122,8 @@ EXTRA: dict[str, tuple[str, ...]] = {
                                         "ops/hart-ops/AGENTS.md", ".gitmodules"),
     # the agent-doc cells it checks are in the wiki (home.md, the decisions, pipelines, projects, STATUS.md)
     "unit-guards test_agent_docs_cells": ("wiki/**/*",),
-    # check_ai_speak.DEFAULT_GLOBS: it lists their folders and fails a glob that matches nothing
+    # check_ai_speak.DEFAULT_GLOBS (a test keeps the two the same): it lists their folders and fails a glob that
+    # matches nothing
     "unit-guards test_ai_speak": ("www/ai/*.html", "www/library/*.html", "www/behind/*.html", "www/guides/*.html",
                                   "www/ap/*.html", "www/exam/index.html", "www/exam/run.html"),
     # check_public_text.py imports private_name from ops/hart-ops/card_pipeline (on sys.path)
@@ -359,9 +360,10 @@ class Checker:
 
 # The git refs a job's key holds besides the git commands its trace replays: the read-only checks and the portal
 # build compare against them, test_redeploy_commit's deploy script (bash, untraced) stages HEAD's tree and refuses
-# a commit that is not on origin/main, and its tests skip by that answer, and test_deploy_stage stages from a clone of
-# the committed HEAD (tools/hosts/deploy/stage.sh) while its read set hashes the working tree, so committing an edit
-# already in the tree must rerun it.
+# a commit that is not on origin/main, and its tests skip by that answer, and test_deploy_stage stages from a git clone
+# of the committed HEAD (its StampNamesWhatWasShipped setUpClass, tools/hosts/tests/test_deploy_stage.py) while its
+# read set hashes the working tree, so committing an edit already in the tree must rerun it (and any other commit
+# reruns it too: the price of keying on HEAD).
 GIT_REFS = {"head": ("rev-parse", "HEAD"), "base": ("merge-base", "HEAD", "origin/main"),
             "origin": ("rev-parse", "origin/main")}
 REFS_OF: dict[str, tuple[str, ...]] = {

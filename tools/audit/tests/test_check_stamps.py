@@ -2,6 +2,7 @@
 audit that a recorded read set holds what an independent audit hook saw the same jobs read (a quick sample here)."""
 from __future__ import annotations
 
+import importlib.util
 import os
 import re
 import shutil
@@ -130,6 +131,12 @@ class DeclarationTest(unittest.TestCase):
                 self.assertEqual(cs.uncovered(name, files, dirs), [])
                 self.assertEqual(cs.uncovered(name, files | {outside}, dirs), [outside])
                 self.assertEqual(cs.uncovered(name, files, dirs | {"media/photos"}), ["media/photos/"])
+
+    def test_the_ai_speak_declaration_is_its_default_globs(self) -> None:
+        spec = importlib.util.spec_from_file_location("check_ai_speak", REPO / "tools/audit/check_ai_speak.py")
+        cas = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cas)
+        self.assertEqual(cs.EXTRA["unit-guards test_ai_speak"], tuple(cas.DEFAULT_GLOBS))
 
     def test_a_listed_folder_is_covered_only_where_a_pattern_reaches(self) -> None:
         for d, pat, want in (("wiki", "wiki/STATUS.md", True), ("wiki/decisions", "wiki/STATUS.md", False),
@@ -583,7 +590,7 @@ class GitRefsTest(RepoCase):
         self.assertFalse(self.current(name))
 
     def test_the_deploy_stage_job_reruns_when_an_edit_in_the_tree_is_committed(self) -> None:
-        """test_deploy_stage stages a clone of HEAD (stage.sh), not the working tree its read set hashes."""
+        """test_deploy_stage stages a git clone of HEAD (its setUpClass), not the working tree its read set hashes."""
         self.git("init", "-q")
         self.git("add", "-A")
         self.git("commit", "-q", "-m", "one")
@@ -592,12 +599,14 @@ class GitRefsTest(RepoCase):
         self.assertRegex(cs.outside_state(name, ck), "(?m)^head=[0-9a-f]{40}$")
         self.assertNotRegex(cs.outside_state(name, ck), "(?m)^(base|origin)=")
         (self.root / "tools/edit.txt").write_text("in the tree, not yet committed\n")
-        self.assertIsNone(self.record(name))
+        self.assertIsNone(self.record(name, code="open('tools/edit.txt').read()\n"))
         self.assertTrue(self.current(name))
-        tree = subprocess.run(["git", "status", "--porcelain"], cwd=self.root, capture_output=True, text=True).stdout
+        status = ["git", "status", "--porcelain", "tools/edit.txt"]
+        self.assertEqual(subprocess.run(status, cwd=self.root, capture_output=True, text=True).stdout,
+                         "?? tools/edit.txt\n", "the job read an edit that is in the tree, not in HEAD")
         self.git("add", "tools/edit.txt")
         self.git("commit", "-q", "-m", "two")
-        self.assertNotEqual(tree, "", "the edit was in the tree before the commit")
+        self.assertEqual(subprocess.run(status, cwd=self.root, capture_output=True, text=True).stdout, "")
         self.assertFalse(self.current(name), "the commit changed nothing in the tree, but HEAD moved")
 
 
@@ -629,7 +638,6 @@ class CheckShCacheTest(unittest.TestCase):
                                   capture_output=True, text=True, timeout=30)
             self.assertEqual(done.returncode, 0, "the run goes on")
             self.assertIn(f"cannot make {d}/file/.cache", done.stdout)
-
 
 
 class RootListingTest(RepoCase):
