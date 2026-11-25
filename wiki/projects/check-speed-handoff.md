@@ -35,7 +35,7 @@ Goal: when every path the branch changes is docs by `tools/ci/changed_kind.py`, 
 - `FULL=1` and `CI` take the normal path, as now. No new variable to force the docs path.
 - Tests: a docs-only branch takes the quick path; a branch with one `.py`, one `.claude/` file, `AGENTS.md` or a `docs/pipeline-map/` file does not; an untracked `.md` counts; no merge base (a shallow clone) takes the full path with the reason printed.
 - Done when an ADR edit's `check.sh` is timed on the Mac and the time is in this page.
-- Timed 2026-11-24 19:26 on the Mac, one line added to an ADR, load average 9.6: 10.9 s on the docs-only path, against 110 s before. The run used a copy of `check.sh` that diffs against HEAD, since this branch's own code commit is not on `origin/main` yet; every other line is the branch's.
+- Timed 2026-11-24 19:39 on the Mac, one line added to an ADR, load average 6.3: 13.3 s on the docs-only path, against 110 s before (10.9 s at 19:26, before the three unit tests that read Markdown joined the docs checks). The run used a copy of `check.sh` that diffs against HEAD, since this branch's own commits are not on `origin/main` yet; every other line is the branch's.
 
 ### 2. Narrow what reruns on a wiki edit
 
