@@ -1,7 +1,7 @@
 # The commands agents and people use most. Each target runs the real script, so
 # these stay short. `make` lists them.
 .DEFAULT_GOAL := help
-.PHONY: help mqtt-clean mqtt-watch wt wt-sweep orient status check remote portal-check panels desks panelpro-test docs-index map site-data publications waybills submodules tables-pull tables-pull-pi ops-pull sts-pull shot deploy-layout deploy-all deploy-status backup-status redeploy deploy-site
+.PHONY: help mqtt-clean mqtt-watch wt wt-sweep orient status check remote portal-check panels desks panelpro-test docs-index map site-data publications waybills submodules tables-pull tables-pull-pi ops-pull sts-pull shot deploy-layout deploy-all deploy-status backup-status redeploy deploy-site speedmatch
 
 help:  ## List the commands
 	@grep -hE '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -71,6 +71,9 @@ waybills:  ## Regenerate the blank car-card template and the spot waybill deck
 
 submodules:  ## Check out every external/ submodule at the commit hart records
 	git submodule update --init --recursive
+
+speedmatch:  ## Speed-matching tools in one command: make speedmatch ARGS="pom proposal.json" (ARGS="--help" lists them)
+	python3 jmri/layouts/hart/scripts/speedmatch/speedmatch.py $(ARGS)
 
 shot:  ## Screenshot a page: make shot PAGE=www/index.html
 	python3 tools/ops/screenshot.py $(PAGE)

@@ -54,8 +54,14 @@ jmri/layouts/hart/scripts/mimic_relay.py
 jmri/layouts/hart/scripts/speedmatch/analyze.py
 jmri/layouts/hart/scripts/speedmatch/liverule.py
 jmri/layouts/hart/scripts/speedmatch/routes.json
-jmri/layouts/hart/scripts/speedmatch/dashboard
+# The publisher's modules; static/ is the source of the Pi page (publish_live.py --build-page). server.py and
+# the rest of dashboard/ are the Mac's live dashboard and do not ship.
+jmri/layouts/hart/scripts/speedmatch/dashboard/dashstate.py
+jmri/layouts/hart/scripts/speedmatch/dashboard/dashsources.py
+jmri/layouts/hart/scripts/speedmatch/dashboard/export_site_runs.py
+jmri/layouts/hart/scripts/speedmatch/dashboard/publish_live.py
+jmri/layouts/hart/scripts/speedmatch/dashboard/static
 jmri/layouts/hart/data/block_lengths.csv
-docs/jmri/speedmatching/profile-2026-11-08/speed_by_step.csv
+jmri/layouts/hart/data/speed_by_step_2026-11-08.csv
 jmri/layouts/hart/dispatcher
 jmri/layouts/hart/ctc
