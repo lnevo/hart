@@ -37,9 +37,10 @@ echo "backup_pi_pull: start $STAMP from ${HOST:-local paths}"
 # The newest finished snapshot (names sort by time; .part ones are skipped).
 prev="$(find "$DEST" -mindepth 1 -maxdepth 1 -type d -name '20*' ! -name '*.part' | sort | tail -n 1)"
 
-copy() {  # <remote folder> <name in the snapshot>
+copy() {  # <remote folder> <name in the snapshot> [optional]
   # Jython's compiled caches ($py.class) are rewritten while PanelPro runs and rebuilt from the .py files.
-  local opts=(-a --exclude='*$py.class') from="$1/" rc=0
+  # --timeout: a link that drops (the Mac sleeps, Wi-Fi goes) ends the run instead of hanging it.
+  local opts=(-a --timeout=120 --exclude='*$py.class') from="$1/" rc=0
   if [[ -n "$HOST" ]]; then
     opts+=(-e "ssh -o BatchMode=yes -o ConnectTimeout=10 -o LogLevel=ERROR")
     from="$HOST:$from"
@@ -50,6 +51,10 @@ copy() {  # <remote folder> <name in the snapshot>
   # 24: a file vanished while it was read (JMRI rewrote it); what is there is a good copy of the rest.
   if [[ "$rc" == 24 ]]; then
     echo "backup_pi_pull: $2: some files changed while copying (rsync 24); kept the rest" >&2
+  elif [[ "$rc" != 0 && "${3:-}" == optional ]]; then
+    # The small extras must not cost the profile and roster their snapshot; say so loudly instead.
+    echo "backup_pi_pull: WARNING $2: rsync failed (exit $rc); snapshot kept without it" >&2
+    warned=1
   elif [[ "$rc" != 0 ]]; then
     echo "backup_pi_pull: $2: rsync failed (exit $rc); no snapshot made" >&2
     exit "$rc"
@@ -59,15 +64,16 @@ copy() {  # <remote folder> <name in the snapshot>
 # A run that stopped part way left a .part folder; it is never used, so remove it.
 find "$DEST" -mindepth 1 -maxdepth 1 -type d -name '20*.part' -exec rm -rf {} +
 mkdir -p "$SNAP.part"
+warned=0
 pi_home="${USERFILES%/*}"  # ~/.jmri and ~/speedmatch sit beside the user files
 copy "$pi_home/.jmri" jmri
 copy "$USERFILES" JMRI_UserFiles
 copy "$pi_home/speedmatch" speedmatch
 # Small, and restored by hand at the 2026-11-23 swap (docs/hosts/PI_OS_REBUILD.md, Phase 4).
-copy "$pi_home/Desktop" Desktop
-copy "$pi_home/.java" java
-copy "$pi_home/.local/share/applications" applications
-copy "$pi_home/jmrihelp" jmrihelp
+copy "$pi_home/Desktop" Desktop optional
+copy "$pi_home/.java" java optional
+copy "$pi_home/.local/share/applications" applications optional
+copy "$pi_home/jmrihelp" jmrihelp optional
 mv "$SNAP.part" "$SNAP"
 echo "backup_pi_pull: snapshot $SNAP ($(du -sh "$SNAP" | cut -f1), linked to ${prev:-nothing})"
 
@@ -80,4 +86,8 @@ if [[ "${BACKUP_PI_SKIP_STS:-0}" != 1 ]]; then
 fi
 
 date '+%Y-%m-%d %H:%M:%S' > "$DEST/last-ok"
-echo "backup_pi_pull: done"
+if [[ "$warned" == 1 ]]; then
+  echo "backup_pi_pull: done, with warnings above"
+else
+  echo "backup_pi_pull: done"
+fi

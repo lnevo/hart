@@ -25,7 +25,8 @@ KEEP_DAYS="${BACKUP_WIN_KEEP_DAYS:-90}"
 MAIN="$(dirname "$(git -C "$HERE" rev-parse --path-format=absolute --git-common-dir)")"
 STAMP="$(date +%Y%m%d-%H%M%S)"
 
-# name|folder on the Mac. Names are the folders on the Windows side.
+# name|folder on the Mac. Names are the folders on the Windows side, with no spaces: the
+# remote command line goes through Windows' sshd and wsl.exe, which split it on spaces.
 FOLDERS=(
   "media|$MAIN/media"
   "car-cards|$MAIN/ops/car-cards"
@@ -33,7 +34,7 @@ FOLDERS=(
   "sts-pi|$MAIN/external/sts-docker-data/pi"
   "pi-snapshots|$ROOT/pi"
   "Layout|$HOME/Documents/Layout"
-  "NMRA AP|$HOME/Documents/NMRA AP"
+  "NMRA-AP|$HOME/Documents/NMRA AP"
 )
 if [[ -n "${BACKUP_WIN_FOLDERS:-}" ]]; then  # tests: newline-separated name|folder lines
   FOLDERS=()
@@ -48,7 +49,8 @@ remote() {  # run a bash script (stdin) in WSL, or locally for tests
   fi
 }
 
-opts=(-a --delete --backup)
+# -H keeps the Pi snapshots' hard links, so 30 snapshots cost one copy plus changes, as on the Mac.
+opts=(-a -H --delete --backup --timeout=300)
 if [[ -n "$HOST" ]]; then
   opts+=(-e "ssh -o BatchMode=yes -o ConnectTimeout=10 -o LogLevel=ERROR -p $PORT"
          --rsync-path="wsl.exe -d $DISTRO -- rsync")
@@ -68,6 +70,10 @@ echo "backup_win_push: start $STAMP to ${HOST:-local}:$TARGET"
 failed=0
 for entry in "${FOLDERS[@]}"; do
   name="${entry%%|*}" from="${entry#*|}"
+  if [[ "$name" == *[[:space:]]* ]]; then
+    echo "backup_win_push: the Windows name '$name' has a space; use one without" >&2
+    exit 2
+  fi
   if [[ ! -d "$from" ]]; then
     echo "backup_win_push: MISSING $from; $name skipped" >&2
     failed=1
@@ -77,10 +83,14 @@ for entry in "${FOLDERS[@]}"; do
   to="$TARGET/$name/"
   dest="${HOST:+$HOST:}$to"
   # --backup-dir is read on the receiving side, relative to the target folder.
-  if rsync "${opts[@]}" --backup-dir="../replaced/$STAMP/$name" "$from/" "$dest" < /dev/null; then
+  rc=0
+  rsync "${opts[@]}" --backup-dir="../replaced/$STAMP/$name" "$from/" "$dest" < /dev/null || rc=$?
+  if [[ "$rc" == 0 ]]; then
     echo "backup_win_push: $name ok"
+  elif [[ "$rc" == 24 ]]; then  # a file vanished while it was read; the rest copied
+    echo "backup_win_push: $name ok, but some files changed while copying (rsync 24)" >&2
   else
-    echo "backup_win_push: $name FAILED (rsync exit $?)" >&2
+    echo "backup_win_push: $name FAILED (rsync exit $rc)" >&2
     failed=1
   fi
 done

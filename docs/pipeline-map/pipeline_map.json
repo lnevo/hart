@@ -3664,7 +3664,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "ops",
-   "desc": "Daily: snapshots the Pi's ~/.jmri, JMRI user files and ~/speedmatch into ~/Backups/hart/pi on the Mac, then runs the STS pull (ADR-035).",
+   "desc": "Daily: snapshots the Pi's ~/.jmri, JMRI user files, ~/speedmatch, ~/Desktop, ~/.java, app launchers and ~/jmrihelp into ~/Backups/hart/pi on the Mac, then runs the STS pull (ADR-035).",
    "path": "tools/hosts/backup_pi_pull.sh"
   },
   {

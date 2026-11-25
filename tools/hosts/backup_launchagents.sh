@@ -54,7 +54,10 @@ status() {
     if launchctl print "$DOMAIN/$label" >/dev/null 2>&1; then loaded=loaded; else loaded="NOT LOADED"; rc=1; fi
     if [[ -f "$file" ]]; then
       when="$(cat "$file")"
-      age=$(( ($(date +%s) - $(date -j -f '%Y-%m-%d %H:%M:%S' "$when" +%s)) / 86400 ))
+      if ! epoch="$(date -j -f '%Y-%m-%d %H:%M:%S' "$when" +%s 2>/dev/null)"; then
+        echo "$label: $loaded; last-ok file $file is unreadable ('$when')"; rc=1; continue
+      fi
+      age=$(( ($(date +%s) - epoch) / 86400 ))
       if (( age >= days )); then
         echo "$label: $loaded; last full run $when, $age days ago: OVERDUE (expected within $days days)"; rc=1
       else
@@ -90,6 +93,12 @@ case "${1:-}" in
     done
     ;;
   status) status ;;
+  plist)  # print the plists (tests)
+    for entry in "${JOBS[@]}"; do
+      label="$(field "$entry" 1)"
+      plist "$label" "$(field "$entry" 2)" "$(field "$entry" 3)" "hart-backup-${label##*.backup-}"
+    done
+    ;;
   run)
     for entry in "${JOBS[@]}"; do
       label="$(field "$entry" 1)"
