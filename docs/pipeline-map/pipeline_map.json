@@ -1979,21 +1979,12 @@
   },
   {
    "id": "ops/hart-ops/industries",
-   "label": "industries/ routing matrix",
+   "label": "industries/ OPSIG list",
    "kind": "structured",
    "status": "live",
    "domain": "ops",
-   "desc": "industries.txt and HART_Industry_Routing_Matrix.xlsx (supplier, customer, commodity, car type) with validate/update scripts. Outside git sync with waybills.",
+   "desc": "industries.txt, the OPSIG industries list. The routing matrix and its scripts were retired on 2026-11-25 (archive/docs/ops/industries/).",
    "path": "ops/hart-ops/industries"
-  },
-  {
-   "id": "ops/hart-ops/industries/validate_and_update_matrix.py",
-   "label": "validate_and_update_matrix.py",
-   "kind": "generator",
-   "status": "live",
-   "domain": "ops",
-   "desc": "Validates and updates routing matrix rows; sibling scripts update railroads and timelines.",
-   "path": "ops/hart-ops/industries/validate_and_update_matrix.py"
   },
   {
    "id": "ops/hart-ops/operator_logos",
@@ -2476,15 +2467,6 @@
    "path": "www/data/publications.json"
   },
   {
-   "id": "www/data/signal-splits.json",
-   "label": "signal-splits.json",
-   "kind": "output",
-   "status": "live",
-   "domain": "website",
-   "desc": "Generated per-control-point signal splits; under review, in SKIP_FILES so not published and wiring tab hidden.",
-   "path": "www/data/signal-splits.json"
-  },
-  {
    "id": "www/data/site.json",
    "label": "site.json",
    "kind": "structured",
@@ -2718,7 +2700,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "website",
-   "desc": "Builds the website wiring viewer JSON from v86 inventory and the v85 signal splits; tools/check.sh fails while stale.",
+   "desc": "Builds the website wiring viewer JSON from the v86 inventory; tools/check.sh fails while stale.",
    "path": "www/scripts/build_wiring_json.py",
    "gen": "manifest"
   },
@@ -2914,15 +2896,6 @@
    "domain": "wiring",
    "desc": "Per-node wiring schematic deck generated from the inventory.",
    "path": "docs/wiring/Wiring_Schematic.pptx"
-  },
-  {
-   "id": "docs/wiring/history",
-   "label": "frozen history xlsx",
-   "kind": "unstructured",
-   "status": "retired",
-   "domain": "wiring",
-   "desc": "Frozen v85 inventory, signals_asbuilt_abs_v2.xlsx, signals_split_v8.xlsx, Layout Documentation.pptx; no generator. v85 pins feed signal splits.",
-   "path": "docs/wiring"
   },
   {
    "id": "docs/wiring/lcos/lcos_signal_logic.csv",
@@ -4221,12 +4194,6 @@
    "from": "docs/wiring/LCOS_Layout_Inventory_v86.xlsx",
    "to": "www/scripts/build_wiring_json.py",
    "label": "LCOS xlsx",
-   "gen": "manifest"
-  },
-  {
-   "from": "docs/wiring/history",
-   "to": "www/scripts/build_wiring_json.py",
-   "label": "v85 split pins",
    "gen": "manifest"
   },
   {
@@ -5791,15 +5758,6 @@
    "label": "manual sync when lanes change"
   },
   {
-   "from": "ops/hart-ops/industries",
-   "to": "ops/hart-ops/industries/validate_and_update_matrix.py"
-  },
-  {
-   "from": "ops/hart-ops/industries/validate_and_update_matrix.py",
-   "to": "ops/hart-ops/industries",
-   "label": "updates matrix xlsx"
-  },
-  {
    "from": "ops/hart-ops/operator_logos",
    "to": "ops/hart-ops/card_pipeline/generate_cc_waybill_labels.py",
    "label": "logos"
@@ -6735,16 +6693,6 @@
    "to": "www/index.html"
   },
   {
-   "from": "www/data/signal-splits.json",
-   "to": "www/behind",
-   "label": "wiring.js (local only)"
-  },
-  {
-   "from": "www/data/signal-splits.json",
-   "to": "www/scripts/prepare_github_pages.py",
-   "label": "skipped"
-  },
-  {
    "from": "www/data/site.json",
    "to": "www/index.html"
   },
@@ -6908,11 +6856,6 @@
    "to": "tools/check.sh",
    "label": "check wiring-json",
    "side": "check",
-   "gen": "manifest"
-  },
-  {
-   "from": "www/scripts/build_wiring_json.py",
-   "to": "www/data/signal-splits.json",
    "gen": "manifest"
   },
   {

@@ -19,7 +19,7 @@ Refresh LCOS inventory workbooks and the per-node PowerPoint from hart CSVs.
 - `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx`
 - `www/data/wiring-inventory.json`: the website's viewer
 
-History, frozen (no generator): `LCOS_Layout_Inventory_v85.xlsx`, `signals_asbuilt_abs_v2.xlsx`, `signals_split_v8.xlsx`. The v84 import and the refresh that turned it into v85 are in `archive/` (2026-11-20).
+History, frozen (no generator): `signals_asbuilt_abs_v2.xlsx`. `LCOS_Layout_Inventory_v85.xlsx` and `signals_split_v8.xlsx` were archived on 2026-11-25 (`archive/docs/wiring/`). The v84 import and the refresh that turned it into v85 are in `archive/` (2026-11-20).
 
 ## Run
 
