@@ -450,6 +450,43 @@ class NetworkPartsTest(unittest.TestCase):
                          "deploy_status.sh exit 3: boom")
 
 
+class SiteDeployTest(unittest.TestCase):
+    """make orient's website line, read from the main checkout's .deploy-manifest.json (ADR-040)."""
+
+    def lines(self, record: dict | None, git_results=((0, "0\n", ""), (0, "", ""))) -> list[str]:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            if record is not None:
+                (root / ".deploy-manifest.json").write_text(json.dumps(record), encoding="utf-8")
+            with mock.patch.object(OR, "ROOT_MAIN", root), mock.patch.object(OR, "run", side_effect=list(git_results)):
+                return OR.site_deploy_lines()
+
+    def test_no_record_and_counts_only(self):
+        self.assertEqual(self.lines(None), ["website: no deploy record"])
+        self.assertEqual(self.lines({"files": 3}), ["website: the last deploy kept counts only (before ADR-040)"])
+
+    def test_record_on_main(self):
+        record = {"files": 3, "deploy": {"commit": "0123456789abcdef", "branch": "main", "dirty": False,
+                                         "worktree": "/elsewhere", "finished": "2026-11-25T21:40:00Z"}}
+        self.assertEqual(self.lines(record), ["website: 01234567 at 2026-11-25T21:40:00Z (main, /elsewhere)"])
+
+    def test_record_behind_and_off_main(self):
+        record = {"deploy": {"commit": "0123456789abcdef", "branch": "agent/x", "dirty": True,
+                             "worktree": "/w", "finished": "t"}}
+        self.assertEqual(self.lines(record, ((0, "2\n", ""), (1, "", ""))), [
+            "website: 01234567 at t (agent/x, /w, uncommitted changes)",
+            "  origin/main has 2 commit(s) under www/ that the site lacks",
+            "  NOTE: the deployed commit is not on origin/main",
+        ])
+
+
+class SiteDeployUnknownCommitTest(SiteDeployTest):
+    def test_unknown_commit_is_named(self):
+        record = {"deploy": {"commit": "0123456789abcdef", "branch": "main", "worktree": "/w", "finished": "t"}}
+        self.assertEqual(self.lines(record, ((128, "", "fatal: bad revision\n"),))[1:],
+                         ["  cannot compare the deployed commit with origin/main (fatal: bad revision)"])
+
+
 class HookTest(unittest.TestCase):
     def proc(self, code: str) -> subprocess.Popen:
         return subprocess.Popen([sys.executable, "-c", code], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)

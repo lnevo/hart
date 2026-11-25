@@ -25,9 +25,12 @@ Deploys from your **local working tree** (any branch, work in progress included)
 
 **Deploy safety** (`deploy_hartrailroad.sh`):
 
+- Stops when this checkout lacks commits on `origin/main`, or when `origin/main` cannot be fetched, since `rsync --delete` would take the missing pages off the site; `--allow-behind` overrides. Warns, without stopping, when deploying from a branch other than `main` ([ADR-040](../wiki/decisions/ADR-040-site-deploys-recorded-current-one-at-a-time.md)).
+- One deploy at a time: a lock (`hart-site-deploy.lock` in the shared git dir) stops a second deploy from any worktree while the first runs, and is taken over when its PID is gone.
+- After the copy, the manifest records the commit, branch, dirty flag, worktree and time; `make orient` shows them on its `website:` line, and `deploy_hartrailroad.sh --status` prints the record.
 - Refuses to run when `ops/hart-ops/operator_logos` is missing (logos would drop out, and `rsync --delete` would remove them live). Warns, without stopping, when the portal has uncommitted changes.
 - Runs `scripts/check_portal_build.py --dist` on the build: every internal `href`/`src` in the HTML and every link/asset field in `data/*.json` must resolve to a built file. Run it alone (`python3 www/scripts/check_portal_build.py`) to build into a temp folder and check.
-- Prints a manifest (file count, archive items, industry logos, gallery and fleet items) and compares it with the last deploy's, kept in the gitignored `.deploy-manifest.json` at the main checkout's root (found through the shared git dir, so a worktree deploy uses the same record). A count down more than 10%, or no manifest at all, stops the deploy unless `--force` is passed. The manifest is saved only after a successful rsync.
+- Prints a manifest (file count, HTML pages, share cards, archive items, industry logos, gallery and fleet items) and compares it with the last deploy's, kept in the gitignored `.deploy-manifest.json` at the main checkout's root (found through the shared git dir, so a worktree deploy uses the same record). A count down more than 10%, or no manifest at all, stops the deploy unless `--force` is passed. The manifest is saved only after a successful rsync.
 - Stops before building when a public photo's original is missing (`--require-mirrors`). The layout, rolling-stock and archive originals live in the gitignored `media/` and `ops/car-cards/`, which only the main checkout has. To deploy from a worktree, symlink both from the main checkout first; `--force` does not skip this check.
 
 Server notes (ssh `lnevo@www.easte.net` for admin work):

@@ -3912,6 +3912,16 @@
    "gen": "agent-docs"
   },
   {
+   "id": ".claude/skills/coordinate/SKILL.md",
+   "label": "skill: coordinate",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Use when more than one Claude session works on the repo at once, before merging any PR while another session runs, when a session messages about a merge queue (\"ready",
+   "path": ".claude/skills/coordinate/SKILL.md",
+   "gen": "agent-docs"
+  },
+  {
    "id": ".claude/skills/deploy/SKILL.md",
    "label": "skill: deploy",
    "kind": "unstructured",
@@ -8780,6 +8790,13 @@
    "side": "check"
   },
   {
+   "from": ".claude/skills/coordinate/SKILL.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs",
+   "side": "check"
+  },
+  {
    "from": ".claude/skills/deploy/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -8915,6 +8932,13 @@
   {
    "from": "AGENTS.md",
    "to": ".claude/commands/done.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": ".claude/skills/coordinate/SKILL.md",
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"
