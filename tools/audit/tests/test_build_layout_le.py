@@ -595,8 +595,10 @@ class DeviceNames(unittest.TestCase):
         from hartlib import devices
         text = self.HEAD + rows.replace("\n", "," * len(T_railroad.DEVICE_FACTS) + "\n")
         old = list(csv.DictReader(io.StringIO(text)))
-        mine = [devices.master_row(dict(r, role=(roles or {}).get(r["user_name"]) or self.LAYER_ROLES[r["layer"]]),
-                                   "build_device_map.py") for r in old]
+        # each with a test id, which check_rows wants on every row with a level
+        mine = [devices.master_row(dict(r, role=(roles or {}).get(r["user_name"]) or self.LAYER_ROLES[r["layer"]],
+                                        id=f"test:{r['layer']}:{r['user_name']}"), "build_device_map.py")
+                for r in old]
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / devices.ONE_FILE
             path.write_text(devices.master_text(devices.replace_rows([], "build_device_map.py", mine)), encoding="utf-8")

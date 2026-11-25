@@ -32,9 +32,12 @@ cleanup = load_module(
 
 
 def master(rows: list[dict], path: Path) -> Path:
-    """A devices.csv of `rows` (blank but for the columns given) at `path`."""
+    """A devices.csv of `rows` (blank but for the columns given; a row with a level gets a test id, which
+    check_rows wants) at `path`."""
     blank = dict.fromkeys(contract.devices.COLUMNS, "")
-    path.write_text(contract.devices.master_text([dict(blank, **r) for r in rows]), encoding="utf-8")
+    full = [dict(blank, **r) for r in rows]
+    full = [dict(r, id=r["id"] or (f"test:{r['layer']}:{r['user_name']}" if r["level"] else "")) for r in full]
+    path.write_text(contract.devices.master_text(full), encoding="utf-8")
     return path
 
 
