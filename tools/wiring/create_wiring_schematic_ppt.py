@@ -17,6 +17,7 @@ from pptx.enum.text import PP_ALIGN
 from pptx.dml.color import RGBColor
 from collections import defaultdict
 import os
+import sys
 
 import write_inventory  # tools/wiring/, the script's own folder: the wiring model's inventory sheets
 
@@ -32,7 +33,11 @@ print("=" * 80)
 
 # The inventory workbook, built in memory from the wiring model
 print(f"Using the wiring model (the sheets of {write_inventory.OUT.name}, built in memory)")
-wb = write_inventory.workbook()
+try:
+    wb = write_inventory.workbook()
+except write_inventory.FactsError as exc:       # bad wiring data: one line and exit 2, as write_inventory.py does
+    print(f"{os.path.basename(__file__)}: {exc}", file=sys.stderr)
+    raise SystemExit(2)
 ws_nodes = wb['Nodes']
 ws_dnou8 = wb['DNOU8']
 ws_dnin8 = wb['DNIN8']

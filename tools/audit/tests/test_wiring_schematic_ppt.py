@@ -51,6 +51,14 @@ class ReadsTheModel(unittest.TestCase):
             slides = Presentation(out).slides
             text = [" ".join(sh.text_frame.text for sh in s.shapes if sh.has_text_frame) for s in slides]
         never.assert_not_called()
+        bad = mock.Mock(side_effect=write_inventory.FactsError("node 99 is not in lcos_nodes.csv"))
+        err = io.StringIO()
+        with mock.patch.object(write_inventory, "workbook", bad), redirect_stdout(io.StringIO()), \
+                mock.patch.object(sys, "stderr", err), mock.patch.object(sys, "argv", [str(SCRIPT), "--out", "x"]):
+            with self.assertRaises(SystemExit) as stop:
+                runpy.run_path(str(SCRIPT), run_name="__main__")
+        self.assertEqual(stop.exception.code, 2)          # bad wiring data: one line, no traceback
+        self.assertIn("node 99 is not in lcos_nodes.csv", err.getvalue())
         self.assertEqual(len(text), 2 + len(ids))         # the node and turnout summaries, then one per client node
         for nid in ids:
             self.assertTrue(any(t.startswith(f"Node {nid} ") for t in text[2:]), f"no slide for node {nid}")

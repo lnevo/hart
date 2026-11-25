@@ -527,6 +527,7 @@ def build_inventory(wb=None, source: str = write_inventory.OUT.name) -> dict:
     for rec in out_pins.values():
         rec.pop("_note", None)
     inv = {
+        # a label: the workbook these sheets are saved as (write_inventory.OUT), which this build never reads
         "source": {"file": source, "version": version_of(Path(source))},
         "nodes": sorted(nodes.values(), key=lambda n: node_sort(n["id"])),
         "signals": sorted(heads.values(), key=lambda h: (node_sort(h["node"]), h["head"])),
