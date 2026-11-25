@@ -259,8 +259,9 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
     base_ix = {i for i, lv in enumerate(levels_of) if lv in BASE_LEVELS}    # a hidden join has band None: in none
     base_beans = bean_names(root)       # before the build adds any: a base level's names must be the base's own
     if adds:
-        add_level_objects(root, P, names, lengths, skip)
-        add_level_signals(root, level_rows)
+        cells = le_tables.level_cells()     # each main and upper row's start and bean_comment, read once
+        add_level_objects(root, P, names, lengths, skip, cells)
+        add_level_signals(root, level_rows, cells)
     check_bound(root, P, names, skip, base_ix, base_beans, BASE_NAME)
 
     try:

@@ -354,6 +354,11 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 - **Outputs byte-identical:** `make panels CHECK=1 FULL=1` all current, `check_approved.py --check` all matching,
   `build_tables.py --base-hash` unchanged against main's stamp, `test_bean_goldens`' fixture unchanged. No visible
   main or upper change.
+- **Code review (medium), fixed:** only the rows the build makes a bean for get cells (`device_map_rows.makes_bean`:
+  no spare detector, helix block, LCC alias or feedback row); a thrown switch with no main or upper turnout row stops
+  `bean_cells`; `level_cells` stops on a layer and name on both levels; `check_bean_cells` says when a bean is missing
+  or given twice; one main and upper level constant (`level_devices.LEVELS`); the cells are read once per build
+  (`build_layout_le.build`) and handed down.
 - **For step 11:** a main or upper bean is now its row's names, length, `start` and `bean_comment`; step 11 changes
   `bean_cells`' words to staging's (the listed comment diff) and makes the LogixNG from `start`.
 

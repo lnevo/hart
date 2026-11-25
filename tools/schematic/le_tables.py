@@ -295,13 +295,26 @@ def stale_block_beans(path: Path = DEVICE_MAP, numbering_path: Path = NUMBERING)
 def level_cells(path: Path = DEVICE_MAP) -> dict[tuple[str, str], tuple[str, str]]:
     """{(layer, user name): (start, bean_comment)} of every main and upper row of the device master that has a
     bean_comment: build_device_map.py writes them (device_map_rows.bean_cells, naming-layers step 9), and the build
-    gives each bean it makes its row's comment and startup state. BuildError when the master does not load."""
+    gives each bean it makes its row's comment and startup state. The build reads it once (build_layout_le.build) and
+    hands it down. The build finds a bean's row by its user name alone (a panel's turnout or block name has no
+    level), so a layer and user name on both levels stops. BuildError when the master does not load, or on such a
+    pair."""
     try:
         rows = devices.load(path)
     except devices.DevicesError as exc:
         raise BuildError(f"{paths.rel(path)}: {exc}") from None
-    return {(r["layer"], r["user_name"]): (r["start"], r["bean_comment"]) for r in rows
-            if r["level"] in block_numbering.LEVELS and r["bean_comment"]}
+    out, twice = {}, []
+    for r in rows:
+        if r["level"] not in level_devices.LEVELS or not r["bean_comment"]:
+            continue
+        key = (r["layer"], r["user_name"])
+        if key in out:
+            twice.append(f"{key[0]} {key[1]}")
+        out[key] = (r["start"], r["bean_comment"])
+    if twice:
+        raise BuildError(f"{paths.rel(path)}: main and upper rows named on both levels, so a bean's row is not one: "
+                         + ", ".join(twice))
+    return out
 
 
 def cell_of(cells: dict, layer: str, user: str, path: Path = DEVICE_MAP) -> tuple[str, str]:
@@ -313,16 +326,16 @@ def cell_of(cells: dict, layer: str, user: str, path: Path = DEVICE_MAP) -> tupl
     return got
 
 
-def level_sensors(path: Path = DEVICE_MAP) -> dict:
+def level_sensors(path: Path = DEVICE_MAP, cells: dict | None = None) -> dict:
     """{block: (sensor system name, sensor user name, comment)} for every main and upper block of the device map:
     its occupancy row's virtual sensor (jmri_name, hartlib.level_devices.block_sensor) and the row's bean_comment (the
     planned detector or why there is none, level_cells). A part (the device master's part_of: a link inside an OS
     block) takes its OS block's sensor (owner, 2026-11-20). Stops on a block with no occupancy row, a row whose
     jmri_name is not the block's, whose start is not inactive (the sensors-clear LogixNG clears every one) or that
-    has no bean_comment, or a part whose block has none."""
+    has no bean_comment, or a part whose block has none. `cells`: level_cells of `path` (read here when not given)."""
     device = main_upper_device_map(path)               # read and checked by hartlib.railroad
     occ = device.occupancy                             # {block: the occupancy row serving it}, by its blocks column
-    cells = level_cells(path)
+    cells = level_cells(path) if cells is None else cells
     out, bad = {}, []
     for block in device.blocks:
         o = occ.get(block)
@@ -341,7 +354,7 @@ def level_sensors(path: Path = DEVICE_MAP) -> dict:
             continue
         out[block] = (want, o.user_name, comment)
     try:
-        parts = devices.part_lines(("2", "3"), path)
+        parts = devices.part_lines(level_devices.LEVELS, path)
     except railroad.FactsError as exc:
         raise BuildError(f"{paths.rel(path)}: {exc}") from None
     for line, r in parts:
@@ -552,7 +565,8 @@ def check_bound(root: ET.Element, P, names: dict, base_keys: set, base_ix: set, 
                          + "; ".join(bad))
 
 
-def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, base_keys: set) -> None:
+def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, base_keys: set,
+                      cells: dict | None = None) -> None:
     """The levels the build adds (every band in `names` but `base_keys`, the bands of a level the base holds:
     le_common.BASE_LEVELS): their turnouts, blocks and layout blocks in the tables, under the device-map user names
     (level_names) on internal system names (TURNOUT_SYS; a block's BLOCK_SYS and ILB names are its device-master
@@ -560,7 +574,8 @@ def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, base_keys
     virtual occupancy sensor (add_level_sensors), set clear on load (add_level_clear); a base band's block the panel
     draws on another level too (a helix block) is bound to the device map's sensor. Each turnout's and block's comment
     and each turnout's startup position are its row's bean_comment and start (level_cells, naming-layers step 9).
-    Stops on a block the device map gives no sensor, or a turnout or block row with no bean_comment."""
+    `cells`: level_cells (read here when not given). Stops on a block the device map gives no sensor, or a turnout or
+    block row with no bean_comment."""
     if not base_keys or base_keys - set(names):
         raise BuildError(f"the base's bands {sorted(base_keys)} are not all among the bands named {sorted(names)}")
     staging_blocks = {b for k in base_keys for b in band_blocks(names[k])}
@@ -598,7 +613,7 @@ def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, base_keys
     if clash or len(set(new_users)) != len(new_users) or len(set(new_sys)) != len(new_sys):
         raise BuildError(f"names collide: {clash}")
 
-    cells = level_cells()
+    cells = level_cells() if cells is None else cells
     turnout_cell = {t: cell_of(cells, "turnout", t) for t in new_turnouts}
     block_comment = {b: cell_of(cells, "block", b)[1] for b in new_blocks}
     bad = sorted(t for t, (start, _c) in turnout_cell.items() if start not in ("closed", "thrown"))
@@ -619,7 +634,7 @@ def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, base_keys
     place(root.find("layoutblocks"),
           [bean("layoutblock", {"systemName": lb_sys[b], "occupiedsense": "2", "trackcolor": "gray",
                                 "occupiedcolor": "red", "extracolor": "white"}, lb_sys[b], b) for b in new_blocks], 2)
-    sensors = level_sensors()
+    sensors = level_sensors(cells=cells)
     if set(new_blocks) - set(sensors):
         raise BuildError(f"main and upper blocks with no occupancy row in the device map: "
                          f"{sorted(set(new_blocks) - set(sensors))}")

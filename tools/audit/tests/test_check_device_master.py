@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import contextlib
+import copy
 import io
 import re
 import sys
@@ -319,6 +320,18 @@ class BeanCellsCheck(Master):
                       self.problems({("3", "Switch 227"): dict(start="closed")}))
         self.assertIn("IS:HART:C3:B:107-109: tables.xml starts it Inactive, its row unset",
                       self.problems({("2", "BS 107-109"): dict(start="")}))
+
+    def test_a_bean_missing_or_given_twice(self):
+        self.assertIn("mast Mast 999: tables.xml has no bean of that name with a comment, for its bean_comment 'x'",
+                      self.problems({("2", "Mast 108LA"): dict(user_name="Mast 999", bean_comment="x")}))
+        root = copy.deepcopy(self.rr.tables.root)
+        masts = root.find("signalmasts")
+        twin = copy.deepcopy(next(m for m in masts if cdm.tables.user_name(m) == "Mast 108LA"))
+        twin.tag = "virtualsignalmast"
+        masts.append(twin)
+        got = cdm.check_bean_cells([r for _n, r in self.lines], root)
+        self.assertIn("mast Mast 108LA: tables.xml has 2 beans of that name with a comment (signalmast, "
+                      "virtualsignalmast), not one", got)
 
 
 class Command(unittest.TestCase):

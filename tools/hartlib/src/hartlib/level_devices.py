@@ -22,6 +22,8 @@ from __future__ import annotations
 import re
 import xml.etree.ElementTree as ET
 
+# The levels this naming rule is for, main and upper: their beans are virtual until their plant is wired
+LEVELS = ("2", "3")
 TURNOUT_PREFIX = "IT:HART:C3:"
 SENSOR_PREFIX = "IS:HART:C3:B:"
 HEAD_PREFIX = "IH:HART:C3:"

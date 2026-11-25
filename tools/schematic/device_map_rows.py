@@ -93,7 +93,19 @@ def owner_over(row: Mapping[str, str], field: Mapping[str, str] | None) -> dict:
 
 # ---------------------------------------------------------------- what the Layout Editor build reads off a row
 
-BEAN_LEVELS = ("2", "3")        # the levels whose beans the Layout Editor build makes until step 11
+BEAN_LEVELS = level_devices.LEVELS      # the levels whose beans the Layout Editor build makes until step 11
+
+
+def makes_bean(r: Mapping[str, str]) -> bool:
+    """Whether the Layout Editor build makes a bean for master row `r` (and so reads its start and bean_comment): a
+    main or upper row with a JMRI name that is a turnout (not its LCC alias), a block (not a helix block, whose beans
+    are staging's, whatever jmri_name its row is given), a detector (not a spare one: the device maps leave it out),
+    a mast or a head. A feedback row gives none (DIRECT feedback), nor a row with assignment none."""
+    if r["level"] not in BEAN_LEVELS or r["assignment"] == "none" or r["role"] in ("lcc_alias", "spare"):
+        return False
+    if r["layer"] == "block":
+        return r["role"] != "helix"
+    return r["layer"] in ("turnout", "occupancy", "mast", "head")
 
 
 def bean_cells(rows: list[Mapping[str, str]], thrown: frozenset = frozenset()) -> list[dict]:
@@ -110,8 +122,14 @@ def bean_cells(rows: list[Mapping[str, str]], thrown: frozenset = frozenset()) -
     - a mast: its cp and switch (or "intermediate"), the planned device and its direction
       (tables_build.with_direction); a virtual (hidden) mast its cp and "buffer stop";
     - a head: its mast's place and the planned head (by its place in the mast's planned system name).
-    MapError on a head with no mast row of its id."""
+    Only the rows makes_bean names get cells. MapError on a head with no mast row of its id, or a switch in `thrown`
+    that is no main or upper turnout row's (the rule and the rows disagree: nothing would start it Thrown)."""
     masts = {r["id"]: r for r in rows if r["level"] in BEAN_LEVELS and r["layer"] == "mast"}
+    turnouts = {r["id"].removeprefix("switch:") for r in rows if makes_bean(r) and r["layer"] == "turnout"}
+    stray = sorted(set(thrown) - turnouts)
+    if stray:
+        raise MapError(f"switches {', '.join(stray)} start Thrown (the main route through leg C), but no main or "
+                       "upper turnout row is theirs")
 
     def where(m) -> str:
         return " | ".join(x for x in (m["cp"], f"Switch {m['switch']}" if m["switch"] else "intermediate") if x)
@@ -119,7 +137,7 @@ def bean_cells(rows: list[Mapping[str, str]], thrown: frozenset = frozenset()) -
     out = []
     for r in rows:
         r = dict(r, start="", bean_comment="")
-        if r["level"] not in BEAN_LEVELS or r["assignment"] == "none" or r["role"] == "lcc_alias":
+        if not makes_bean(r):
             out.append(r)
             continue
         layer = r["layer"]

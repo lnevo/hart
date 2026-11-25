@@ -30,7 +30,7 @@ from . import level_devices, paths
 
 PATH = paths.LAYOUT_DATA / "schematic" / "block_numbering.csv"
 COLUMNS = ["id", "numbered_as", "append_order", "retired", "notes"]
-LEVELS = ("2", "3")
+LEVELS = level_devices.LEVELS      # main and upper
 
 
 class NumberingError(ValueError):

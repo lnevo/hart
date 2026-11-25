@@ -177,6 +177,16 @@ class AddLevelObjects(unittest.TestCase):
         stale = le_tables.stale_block_beans(numbering_path=path)
         self.assertIn("Track 227-241 1 (IB:C3:0108, not IB:C3:0122)", stale)
 
+    def test_level_cells_stop_on_a_name_given_on_both_levels(self):
+        """The build finds a bean's row by layer and user name, so the same pair on main and upper stops."""
+        rows = [dict(level=lv, layer="turnout", user_name="Switch 105", start="closed", bean_comment="c")
+                for lv in ("2", "3")]
+        with mock.patch.object(le_tables.devices, "load", return_value=rows[:1]):
+            self.assertEqual(le_tables.level_cells(), {("turnout", "Switch 105"): ("closed", "c")})
+        with mock.patch.object(le_tables.devices, "load", return_value=rows), \
+                self.assertRaisesRegex(BuildError, "named on both levels.*turnout Switch 105"):
+            le_tables.level_cells()
+
     def test_a_staging_name_is_never_added(self):
         names = dict(NAMES, **{STAGING: dict(NAMES[STAGING], turnouts={"s1": "Switch 999"})})
         root = self.run_it(names=names)

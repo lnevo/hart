@@ -353,9 +353,15 @@ def check_bean_cells(rows: list[dict], root) -> list[str]:
         if not r["bean_comment"]:
             continue
         got = [comments[(t, r["user_name"])] for t in BEAN_TAGS.get(r["layer"], ()) if (t, r["user_name"]) in comments]
-        if got != [r["bean_comment"]]:
-            bad.append(f"{r['layer']} {r['user_name']}: tables.xml's comment is "
-                       f"{got[0] if got else 'none'!r}, not its bean_comment {r['bean_comment']!r}")
+        if not got:
+            bad.append(f"{r['layer']} {r['user_name']}: tables.xml has no bean of that name with a comment, for its "
+                       f"bean_comment {r['bean_comment']!r}")
+        elif len(got) > 1:
+            bad.append(f"{r['layer']} {r['user_name']}: tables.xml has {len(got)} beans of that name with a comment "
+                       f"({', '.join(BEAN_TAGS[r['layer']])}), not one")
+        elif got[0] != r["bean_comment"]:
+            bad.append(f"{r['layer']} {r['user_name']}: tables.xml's comment is {got[0]!r}, not its bean_comment "
+                       f"{r['bean_comment']!r}")
     try:
         states = {**level_devices.turnout_states(root),
                   **{s: "Inactive" for s in level_devices.clear_sensors(root)}}

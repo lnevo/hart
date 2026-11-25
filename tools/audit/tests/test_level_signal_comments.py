@@ -20,7 +20,7 @@ V = "IH:HART:C3:"
 
 
 def master(**cells) -> dict:
-    return dict(dict.fromkeys(devices.COLUMNS, ""), level="3", cp="CP 107", **cells)
+    return {**dict.fromkeys(devices.COLUMNS, ""), "level": "3", "cp": "CP 107", **cells}
 
 
 def rows(mast, heads, device):
@@ -54,6 +54,34 @@ class Comments(unittest.TestCase):
     def test_a_head_with_no_mast_row_stops(self):
         with self.assertRaises(DR.MapError):
             DR.bean_cells(rows("120RA", ["120RA_Top"], "")[1:])
+
+    def test_only_rows_the_build_makes_a_bean_for_get_cells(self):
+        """A spare detector, a helix block (even one given a jmri_name), an LCC alias, a feedback row, a row with
+        assignment none and a staging row get no cells (makes_bean); a main turnout and detector do."""
+        made = [master(level="2", layer="turnout", role="turnout", id="switch:101", user_name="Switch 101",
+                       assignment="virtual", jmri_name="IT:HART:C3:101"),
+                master(level="2", layer="turnout", role="lcc_alias", id="dcc:101", user_name="DCC Switch 101",
+                       assignment="virtual", jmri_name="IT:HART:C3:101"),
+                master(level="2", layer="fb", role="fb", id="fb:101:N", user_name="FB Switch 101 N"),
+                master(level="2", layer="occupancy", role="os", id="det:os:101", user_name="BS Switch 101",
+                       assignment="virtual", jmri_name="IS:HART:C3:B:OS101", notes="no detector"),
+                master(level="2", layer="occupancy", role="spare", id="spare:M2S1", user_name="Spare 1",
+                       assignment="spare", system_name="M2S1", jmri_name="M2S1"),
+                master(level="2", layer="block", role="helix", id="block:131A-helix", user_name="Track Helix Outer",
+                       assignment="virtual", jmri_name="IB:C3:0999"),
+                master(level="1", layer="turnout", role="turnout", id="switch:1", user_name="Switch 1",
+                       assignment="field", jmri_name="Switch 1")]
+        got = {r["user_name"]: (r["start"], bool(r["bean_comment"])) for r in DR.bean_cells(made)}
+        self.assertEqual(got, {"Switch 101": ("closed", True), "DCC Switch 101": ("", False),
+                               "FB Switch 101 N": ("", False), "BS Switch 101": ("inactive", True),
+                               "Spare 1": ("", False), "Track Helix Outer": ("", False), "Switch 1": ("", False)})
+        self.assertEqual(DR.bean_cells(made, frozenset({"101"}))[0]["start"], "thrown")
+
+    def test_a_thrown_switch_with_no_turnout_row_stops(self):
+        made = [master(level="2", layer="turnout", role="turnout", id="switch:101", user_name="Switch 101",
+                       assignment="virtual", jmri_name="IT:HART:C3:101")]
+        with self.assertRaisesRegex(DR.MapError, "switches 999 start Thrown"):
+            DR.bean_cells(made, frozenset({"101", "999"}))
 
     def test_add_level_signals_puts_each_rows_comment_on_its_bean(self):
         root = ET.Element("layout-config")
