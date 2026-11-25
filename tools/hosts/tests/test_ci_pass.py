@@ -42,7 +42,7 @@ def log_text(env: dict[str, str] | None = None, out: list[str] | None = None) ->
     env = {"SCHEMATIC_REQUIRED": "1", "CHECK_SKIP_FROM": "", "CHECK_SKIP_NOTE": "",
            "CHECK_RECORD_TO": "/home/runner/work/repo/repo/.cache/ci/main-stamps"} if env is None else env
     out = [
-        "--- static (20s)",
+        "--- panels (20s)",
         "--- tables-browser",
         "--- tables",
         "plugin: submodule at 19261998",
@@ -50,7 +50,7 @@ def log_text(env: dict[str, str] | None = None, out: list[str] | None = None) ->
         "--- levels-svg",
         "levels_svg: SKIPPED, the plan is not on this machine",
         "--- unit-hosts (40s)",
-        "1 job(s) printed SKIPPED and checked only part of their inputs: static",
+        "1 job(s) printed SKIPPED and checked only part of their inputs: levels-svg",
         "ALL PASSED",
     ] if out is None else out
     lines = ["##[group]Run actions/checkout@v4", "##[endgroup]",
@@ -195,12 +195,12 @@ class CiPassTest(unittest.TestCase):
 
     def test_a_run_that_did_not_check_the_tables_does_not_count(self) -> None:
         cases = (
-            (["--- static (20s)", "ALL PASSED"], "0 '--- tables' checks"),
-            (["static: current, skipped", "--- tables", "ok: jmri/layouts/hart/output/tables.xml current (1)",
-              "ALL PASSED"], "no run of the static job"),
-            (["--- static (2s)", "--- tables", "SKIPPED tables check: no plugin", "ALL PASSED"], "printed SKIPPED"),
-            (["--- static (2s)", "--- tables", "STALE: tables.xml", "ALL PASSED"], "did not print that tables.xml is current"),
-            (["--- static (2s)", "--- tables", "ok: jmri/layouts/hart/output/tables.xml current (1)", "FAILED"],
+            (["--- panels (20s)", "ALL PASSED"], "0 '--- tables' checks"),
+            (["panels: current, skipped", "--- tables", "ok: jmri/layouts/hart/output/tables.xml current (1)",
+              "ALL PASSED"], "no run of the panels job"),
+            (["--- panels (2s)", "--- tables", "SKIPPED tables check: no plugin", "ALL PASSED"], "printed SKIPPED"),
+            (["--- panels (2s)", "--- tables", "STALE: tables.xml", "ALL PASSED"], "did not print that tables.xml is current"),
+            (["--- panels (2s)", "--- tables", "ok: jmri/layouts/hart/output/tables.xml current (1)", "FAILED"],
              "no ALL PASSED line"),
         )
         for out, text in cases:

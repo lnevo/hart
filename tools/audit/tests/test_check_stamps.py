@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 import unittest.mock
 from pathlib import Path
@@ -65,9 +66,9 @@ WIDENED_READS: dict[str, tuple[set[str], set[str], str]] = {   # job -> (files r
 
 class DeclarationTest(unittest.TestCase):
     def test_every_job_kind_in_check_sh_is_declared(self) -> None:
-        kinds = {m.group(1) for m in re.finditer(r"^\s*(?:unit|later)\s+\"?(unit-[a-z-]+|static)\b", CHECK_SH, re.M)}
+        kinds = {m.group(1) for m in re.finditer(r"^\s*(?:unit|later)\s+\"?(unit-[a-z-]+)\b", CHECK_SH, re.M)}
         kinds |= {"unit-jmri", "unit-hosts", "unit-guards"}     # their names are built in a loop
-        kinds |= set(cs.pm.job_digests())                        # the jobs check.sh queues from the step manifest
+        kinds |= set(cs.pm.job_keys())                           # the jobs check.sh queues from the step manifest
         self.assertTrue(kinds)
         for kind in sorted(kinds):
             with self.subTest(kind=kind):
@@ -78,15 +79,26 @@ class DeclarationTest(unittest.TestCase):
         self.assertIsNone(cs.declared("portal skipped in CI"))
 
     def test_the_manifest_jobs_are_the_stampable_jobs_that_are_not_unit_tests(self) -> None:
-        """check_stamps.from_manifest says which jobs' keys hold manifest entries: exactly the manifest's jobs."""
-        theirs = {k for k in cs.BY_KIND if cs.from_manifest(k)}
-        self.assertEqual(theirs, set(cs.pm.job_digests()), "a job of tools/pipeline/checks.toml needs a BY_KIND "
-                                                           "declaration, and BY_KIND's other kinds are unit-*")
+        """check_stamps.from_manifest says which jobs' keys hold manifest entries: every job of the manifest (one per
+        step), and BY_KIND's other kinds are unit-*. A step with no BY_KIND line falls back to MANIFEST_CHECK."""
+        jobs = set(cs.pm.job_keys())
+        self.assertTrue(all(cs.from_manifest(job) for job in jobs))
+        self.assertEqual({k for k in cs.BY_KIND if not k.startswith("unit-")} - jobs, set(),
+                         "BY_KIND names a job that is neither a unit kind nor a step of tools/pipeline/checks.toml")
+        self.assertEqual(cs.declared("phase02"), (*cs.MANIFEST_CHECK, "tools/check.sh"))
         self.assertFalse(cs.from_manifest("portal skipped in CI"))
         self.assertFalse(cs.from_manifest("unit-guards test_x"))
+        self.assertFalse(cs.from_manifest("unit-mimic"))
+        self.assertIsNone(cs.declared("Two Words"))
+
+    def test_the_one_static_job_is_gone(self) -> None:
+        """Its 35 checks are jobs of their own (ADR-037 stage 4b); a stamp left under its name is dropped."""
+        self.assertNotIn("static", cs.BY_KIND)
+        self.assertNotIn("static", cs.pm.job_keys())
+        self.assertIn("static", cs.RETIRED)
 
     def test_check_sh_is_an_input_of_every_job(self) -> None:
-        for kind in cs.BY_KIND:
+        for kind in (*cs.BY_KIND, *cs.pm.job_keys()):
             self.assertIn("tools/check.sh", cs.declared(kind))
 
     def test_a_pattern_with_a_question_mark_is_walked_like_a_star(self) -> None:
@@ -178,7 +190,9 @@ class DeclarationTest(unittest.TestCase):
                              (cs.RUNS_JOBS, {"unit-guards test_x": ("unit-guards test_check_stamps",)}),
                              (cs.RUNS_JOBS, {"unit-guards test_x": ("portal skipped in CI",)}),
                              (cs.REFS_OF, {"unit-guards test_x": ("tip",)}),
-                             (cs.REFS_OF, {"portal skipped in CI": ("head",)})):
+                             (cs.REFS_OF, {"portal skipped in CI": ("head",)}),
+                             (cs.REFS_OF, {"phase02": ("head",)}),
+                             (cs.GIT_REFS, {"tip": ("rev-parse", "tip")})):
             with self.subTest(entry=entry), unittest.mock.patch.dict(table, entry):
                 with self.assertRaises(ValueError):
                     cs.check_tables()
@@ -209,6 +223,23 @@ class SkipConditionTest(unittest.TestCase):
         self.assertEqual(missing, {})
         self.assertIn("CHECK_AUDIT", found, "the scan no longer sees test_check_stamps' own skip")
 
+    def test_the_cache_folder_and_the_jmri_guard_are_in_the_key(self) -> None:
+        """HART_CACHE_DIR picks the cache folders a job reads (the trace leaves .cache paths out), and
+        HART_GUARD_JMRI_RUNNING forces the answer the table writers and their tests refuse or skip on: a job run with
+        either changed must run again, whatever it read."""
+        self.assertIn("HART_CACHE_DIR", cs.KEY_ENV)
+        self.assertIn("HART_GUARD_JMRI_RUNNING", cs.KEY_ENV)
+        ck = cs.Checker(Path(tempfile.mkdtemp()), Path(tempfile.mkdtemp()))
+        for var, value in (("HART_CACHE_DIR", "/elsewhere/cache"), ("HART_GUARD_JMRI_RUNNING", "1"),
+                           ("HART_GUARD_JMRI_RUNNING", "0")):
+            with self.subTest(var=var, value=value):
+                env = {k: v for k, v in os.environ.items() if k not in ("HART_CACHE_DIR", "HART_GUARD_JMRI_RUNNING")}
+                with unittest.mock.patch.dict(os.environ, env, clear=True):
+                    base = cs.outside_state("unit-mimic", ck)
+                    with unittest.mock.patch.dict(os.environ, {var: value}):
+                        self.assertNotEqual(cs.outside_state("unit-mimic", ck), base)
+                        self.assertIn(f"{var}={value}", cs.outside_state("unit-mimic", ck))
+
     def test_the_environment_and_the_user_are_in_the_key(self) -> None:
         ck = cs.Checker(Path(tempfile.mkdtemp()), Path(tempfile.mkdtemp()))
         base = cs.outside_state("unit-mimic", ck)
@@ -234,11 +265,14 @@ class StoreTest(unittest.TestCase):
         self.assertEqual(ignored.returncode, 0, "the stamp folder is not git-ignored")
 
 
-# A step manifest for the fake repos: the jobs check.sh runs from it (static, and three jobs of their own). Only
-# manifest.job_digests reads it here, which does not check paths against git or the map.
+# A step manifest for the fake repos: the jobs check.sh runs from it, one per step (a and b in the static group, a
+# keyed on HEAD and the merge base, b on no ref, and three in no group). Only manifest.job_keys reads it here, which
+# does not check paths against git or the map.
 MANIFEST = "".join(f'[[step]]\nname = "{name}"\nrunner = "check"\n{group}cmd = ["python3", "tools/{name}.py"]\n'
-                   for name, group in (("a", 'group = "static"\n'), ("b", 'group = "static"\n'), ("public-text", ""),
-                                       ("ruff", ""), ("portal", "")))
+                   f'git = {refs}\n'
+                   for name, group, refs in (("a", 'group = "static"\n', '["head", "base"]'),
+                                             ("b", 'group = "static"\n', "[]"), ("public-text", "", "[]"),
+                                             ("ruff", "", "[]"), ("portal", "", '["head", "base"]')))
 
 
 class RepoCase(unittest.TestCase):
@@ -309,21 +343,21 @@ class StampTest(RepoCase):
         self.assertTrue(self.current(), "outside unit-hartlib's declaration")
 
     def test_another_worktree_inside_the_checkout_is_not_an_input(self) -> None:
-        self.record("static", code=self.JOB + "import subprocess\nsubprocess.run(['sh', '-c', 'true'])\n")
+        self.record("a", code=self.JOB + "import subprocess\nsubprocess.run(['sh', '-c', 'true'])\n")
         (self.root / ".claude/worktrees/other/tools/y.py").write_text("v2\n")
-        self.assertTrue(self.current("static"))
+        self.assertTrue(self.current("a"))
 
     def test_the_private_plan_and_the_interpreter_packages_are_inputs(self) -> None:
         plan = self.tmp / "plan.any"
         plan.write_text("p1\n")
         with unittest.mock.patch.dict(os.environ, {"ANYRAIL_PLAN": str(plan)}):
-            self.record("static")
-            self.assertTrue(self.current("static"))
+            self.record("a")
+            self.assertTrue(self.current("a"))
             plan.write_text("p2\n")
-            self.assertFalse(self.current("static"))
-            self.record("static")
+            self.assertFalse(self.current("a"))
+            self.record("a")
             with unittest.mock.patch.object(cs, "venv_state", return_value="other interpreter"):
-                self.assertFalse(self.current("static"))
+                self.assertFalse(self.current("a"))
 
     def test_a_stamp_helper_answer_other_than_0_or_1_is_not_a_skip(self) -> None:
         self.assertEqual(cs.main(["current", "no such job"]), 2)
@@ -354,11 +388,27 @@ class StampTest(RepoCase):
         plan = self.tmp / "plan.any"
         plan.write_text("p1\n")
         with unittest.mock.patch.dict(os.environ, {"ANYRAIL_PLAN": str(plan)}):
-            before = cs.snapshot("static", self.root, self.store)
+            before = cs.snapshot("a", self.root, self.store)
             log = self.run_job()
             plan.write_text("p2\n")             # the job saw p1; the key worked out now would hold p2
-            self.assertIn("changed while the job ran", cs.record("static", log, self.root, self.store, before=before))
-            self.assertFalse(self.current("static"))
+            self.assertIn("changed while the job ran", cs.record("a", log, self.root, self.store, before=before))
+            self.assertFalse(self.current("a"))
+
+    def test_a_job_that_is_one_bash_program_records_on_its_declaration(self) -> None:
+        """check.sh's panels job: bash alone, with no Python process in its trace. It records, keyed on every file,
+        so any edit reruns it (in the one static job, the other checks' processes carried such a trace)."""
+        log = self.tmp / "bash.log"
+        log.write_text(f"0\tt\t{time.time_ns()}\n0\tx\tcheck.sh-run\t{self.root}\tbash\ttools/b.sh\t--check\n")
+        self.assertIsNone(cs.record("a", log, self.root, self.store))
+        self.assertTrue(self.current("a"))
+        (self.root / "docs/a.md").write_text("edited while it ran\n")
+        self.assertIn("docs/a.md changed while the job ran", cs.record("a", log, self.root, self.store))
+        log.write_text(f"0\tt\t{time.time_ns()}\n0\tx\tcheck.sh-run\t{self.root}\tbash\ttools/b.sh\t--check\n")
+        self.assertIsNone(cs.record("a", log, self.root, self.store))
+        self.assertTrue(self.current("a"))
+        self.assertEqual(cs.traced.load(cs._file("a", self.store))["programs"], ["bash"])
+        (self.root / "docs/a.md").write_text("v2\n")
+        self.assertFalse(self.current("a"))
 
     def test_a_short_trace_records_nothing_and_drops_the_old_stamp(self) -> None:
         self.record()
@@ -374,7 +424,7 @@ class BatchTest(RepoCase):
     verdict, reason and snapshot for every job, whatever changed."""
 
     SHELL = RepoCase.JOB + "import subprocess\nsubprocess.run(['sh', '-c', 'true'])\n"
-    NAMES = ["unit-hartlib", "unit-mimic", "static", "unit-hosts test_redeploy_commit", "unit-jmri test_x",
+    NAMES = ["unit-hartlib", "unit-mimic", "a", "unit-hosts test_redeploy_commit", "unit-jmri test_x",
              "unit-hart-ops skipped (no ops/hart-ops/.venv)"]
 
     def setUp(self) -> None:
@@ -384,8 +434,8 @@ class BatchTest(RepoCase):
         self.addCleanup(patch.stop)
         self.record("unit-hartlib")
         self.record("unit-mimic")
-        # an untraceable program: the declaration (every file for static, CODE for unit-jmri)
-        self.record("static", code=self.SHELL, script="shell_job.py")
+        # an untraceable program: the declaration (every file for a manifest check, CODE for unit-jmri)
+        self.record("a", code=self.SHELL, script="shell_job.py")
         self.record("unit-jmri test_x", code=self.SHELL, script="shell_job.py")
         # unit-hosts test_redeploy_commit has no stamp; the placeholder is not stampable
 
@@ -432,7 +482,7 @@ class BatchTest(RepoCase):
 
     def test_an_edit_only_the_declarations_cover(self) -> None:
         """The jobs that ran an untraceable program fall back to their declarations; the traced ones did not read it."""
-        (self.root / "www/index.html").write_text("v2\n")           # in static's declaration, not in CODE
+        (self.root / "www/index.html").write_text("v2\n")           # in a's declaration, not in CODE
         self.same([0, 0, 1, 1, 0, 2])
         (self.root / "jmri/layouts/hart/data/switches.csv").write_text("v2\n")
         self.same([0, 0, 1, 1, 1, 2])
@@ -466,6 +516,22 @@ class BatchTest(RepoCase):
         self.assertFalse((folder / "1.stamp").exists())
         self.assertFalse(cs._file("unit-mimic", self.store).exists())
         self.assertEqual(self.alone()[1][:2], (1, "no stamp"))
+
+    def test_a_retired_job_loses_its_stamp_and_may_not_be_queued(self) -> None:
+        """The one static job's stamp (until ADR-037 stage 4b) is dropped by the first batch; queueing it is an error,
+        not a job that quietly runs or skips."""
+        old = cs._file("static", self.store)
+        old.write_text("{}")
+        folder = Path(tempfile.mkdtemp(dir=self.tmp))
+        cs.current_batch(["unit-mimic"], folder, False, self.root, self.store)
+        self.assertFalse(old.exists())
+        with unittest.mock.patch.object(Path, "unlink", side_effect=PermissionError("read-only")):
+            err = io.StringIO()
+            with contextlib.redirect_stderr(err):
+                self.assertEqual(cs.current_batch(["unit-mimic"], folder, False, self.root, self.store), [0])
+            self.assertIn("cannot drop the retired 'static' stamp: read-only", err.getvalue())
+        with self.assertRaisesRegex(cs.BatchError, "'static', a job name check_stamps.RETIRED says it no longer runs"):
+            cs.current_batch(["unit-mimic", "static"], folder, False, self.root, self.store)
 
     def test_a_batch_that_cannot_check_at_all_gives_no_verdicts(self) -> None:
         folder = self.tmp / "absent"
@@ -601,12 +667,51 @@ class GitRefsTest(RepoCase):
         state = cs.outside_state(name, ck)
         for ref in ("head=", "base=", "origin="):
             self.assertRegex(state, f"(?m)^{ref}")
-        self.assertNotRegex(cs.outside_state("static", ck), "(?m)^origin=")
+        self.assertNotRegex(cs.outside_state("a", ck), "(?m)^origin=")
         self.assertNotRegex(cs.outside_state("unit-mimic", ck), "(?m)^(head|base|origin)=")
         self.assertIsNone(self.record(name))
         self.assertTrue(self.current(name))
         self.git("commit", "-q", "--allow-empty", "-m", "two")
         self.assertFalse(self.current(name))
+
+    def test_a_manifest_job_holds_the_refs_its_git_field_names(self) -> None:
+        """A read-only check whose entry names head reruns after a commit that changes nothing it read; one whose entry
+        says [] (its trace replays every git read it makes) stays current; a unit job's REFS_OF is not consulted."""
+        unstamp = unittest.mock.patch.object(cs.ps, "unstampable", return_value=None)
+        unstamp.start()
+        self.addCleanup(unstamp.stop)
+        self.git("init", "-q")
+        self.git("add", "-A")
+        self.git("commit", "-q", "-m", "one")
+        ck = cs.Checker(self.root, self.store)
+        self.assertRegex(cs.outside_state("a", ck), "(?m)^head=[0-9a-f]{40}\nbase=")
+        self.assertNotRegex(cs.outside_state("b", ck), "(?m)^(head|base|origin)=")
+        for name in ("a", "b"):
+            self.assertIsNone(self.record(name))
+            self.assertTrue(self.current(name))
+        self.git("commit", "-q", "--allow-empty", "-m", "two")
+        self.assertFalse(self.current("a"), "HEAD moved: a's key holds it")
+        self.assertTrue(self.current("b"), "b names no ref and read nothing that changed")
+        self.assertIn("the code, command", cs.why_not_current("a", self.root, self.store))
+
+    def test_a_git_command_a_check_ran_is_replayed_without_head_in_its_key(self) -> None:
+        """What lets a check drop HEAD: a read-only git command its trace holds is run again at compare time, so a
+        commit that changes its answer reruns the check, and one that does not leaves it current."""
+        unstamp = unittest.mock.patch.object(cs.ps, "unstampable", return_value=None)
+        unstamp.start()
+        self.addCleanup(unstamp.stop)
+        self.git("init", "-q")
+        self.git("add", "-A")
+        self.git("commit", "-q", "-m", "one")
+        code = "import subprocess\nsubprocess.run(['git', 'ls-files', 'tools'], check=True, capture_output=True)\n"
+        self.assertIsNone(self.record("b", code=code))
+        stamp = cs.traced.load(cs._file("b", self.store))
+        self.assertEqual((stamp["programs"], [c[1:] for c in stamp["git"]]), ([], [["git", "ls-files", "tools"]]))
+        self.git("commit", "-q", "--allow-empty", "-m", "two")
+        self.assertTrue(self.current("b"), "the same answer: b reads nothing that changed")
+        (self.root / "tools/new.txt").write_text("n\n")
+        self.git("add", "tools/new.txt")
+        self.assertFalse(self.current("b"), "git ls-files answers otherwise now")
 
     def test_the_deploy_stage_job_reruns_when_an_edit_in_the_tree_is_committed(self) -> None:
         """test_deploy_stage stages a git clone of HEAD (its setUpClass), not the working tree its read set hashes."""
@@ -632,7 +737,7 @@ class GitRefsTest(RepoCase):
 class ManifestKeyTest(RepoCase):
     """A manifest job's key holds its own entries (tools/pipeline/checks.toml): an edit to one entry reruns that job
     and no other, and a manifest that cannot be read leaves the job to run and record nothing."""
-    JOBS = ("static", "public-text", "ruff", "portal", "unit-hartlib", "unit-guards test_x")
+    JOBS = ("a", "b", "public-text", "ruff", "portal", "unit-hartlib", "unit-guards test_x")
 
     def setUp(self) -> None:
         super().setUp()
@@ -658,14 +763,23 @@ class ManifestKeyTest(RepoCase):
 
     def test_an_edited_cmd_reruns_its_own_job_only(self) -> None:
         self.assertEqual(self.rerun_after('"tools/ruff.py"]', '"tools/ruff.py", "--fix"]'), ["ruff"])
-        self.assertEqual(self.rerun_after('"tools/b.py"]', '"tools/b.py", "--check"]'), ["static"])
+        self.assertEqual(self.rerun_after('"tools/b.py"]', '"tools/b.py", "--check"]'), ["b"])
         self.assertEqual(self.rerun_after('"tools/portal.py"]', '"tools/portal2.py"]'), ["portal"])
 
-    def test_a_step_added_to_the_static_group_reruns_static_only(self) -> None:
+    def test_a_step_added_to_the_static_group_reruns_no_other_job(self) -> None:
         self.assertEqual(self.rerun_after('[[step]]\nname = "public-text"',
                                           '[[step]]\nname = "c"\nrunner = "check"\ngroup = "static"\n'
-                                          'cmd = ["python3", "tools/c.py"]\n[[step]]\nname = "public-text"'),
-                         ["static"])
+                                          'cmd = ["python3", "tools/c.py"]\ngit = []\n[[step]]\nname = "public-text"'),
+                         [])
+
+    def test_an_edited_git_field_reruns_its_own_job_only(self) -> None:
+        self.assertEqual(self.rerun_after('cmd = ["python3", "tools/b.py"]\ngit = []',
+                                          'cmd = ["python3", "tools/b.py"]\ngit = ["origin"]'), ["b"])
+
+    def test_a_git_field_the_key_cannot_use_is_an_error_not_a_skip(self) -> None:
+        self.edit('cmd = ["python3", "tools/b.py"]\ngit = []', 'cmd = ["python3", "tools/b.py"]\ngit = ["tip"]')
+        with self.assertRaisesRegex(cs.pm.ManifestError, "step 'b': git: 'tip': not a ref name"):
+            cs.outside_state("a", cs.Checker(self.root, self.store))
 
     def test_a_comment_reruns_nothing(self) -> None:
         self.assertEqual(self.rerun_after('[[step]]\nname = "a"', '# why a\n[[step]]\nname = "a"'), [])
@@ -702,7 +816,7 @@ class ManifestKeyTest(RepoCase):
             cs.outside_state("ruff", cs.Checker(self.root, self.store))
         (self.root / cs.MANIFEST).write_text("[[step]\n")
         with self.assertRaisesRegex(cs.pm.ManifestError, "not valid TOML"):
-            cs.outside_state("static", cs.Checker(self.root, self.store))
+            cs.outside_state("a", cs.Checker(self.root, self.store))
         # a unit job does not read the manifest
         self.assertNotIn("manifest=", cs.outside_state("unit-hartlib", cs.Checker(self.root, self.store)))
 
@@ -715,13 +829,13 @@ class ManifestKeyTest(RepoCase):
         self.assertIn("checks.toml: cannot read it", (out / "0.stamplog").read_text())
 
     def test_the_command_line_says_so_without_a_traceback(self) -> None:
-        self.assertIsNone(self.record("static"))           # a stamp, so `why` works out the key
+        self.assertIsNone(self.record("a"))                # a stamp, so `why` works out the key
         (self.root / cs.MANIFEST).write_text("[[step]\n")
         err = io.StringIO()
         real = cs.Checker
         with unittest.mock.patch.object(cs, "Checker", lambda *a, **k: real(self.root, self.store)), \
                 contextlib.redirect_stderr(err):
-            rc = cs.main(["why", "static"])
+            rc = cs.main(["why", "a"])
         self.assertEqual(rc, 2)
         self.assertIn("check_stamps.py: not stamped:", err.getvalue())
         self.assertIn("not valid TOML", err.getvalue())
@@ -878,9 +992,10 @@ class AuditTest(unittest.TestCase):
 
 
 class DeclarationAuditTest(RepoCase):
-    """The trace audit of a manifest job's declarations (ADR-037 stage 4a): each process's reads go to the step that
-    started it, code is left out, undeclared reads are warned about and kept in the stamp for `check_stamps.py audit`,
-    and nothing about it changes a key or a verdict. An audit that cannot run says so; it is never silent."""
+    """The trace audit of a manifest job's declarations (ADR-037 stage 4a): every job is one step (stage 4b), so every
+    process's reads are its step's; code is left out, undeclared reads are warned about and kept in the stamp for
+    `check_stamps.py audit`, and nothing about it changes a key or a verdict. An audit that cannot run says so; it is
+    never silent."""
 
     def setUp(self) -> None:
         super().setUp()
@@ -893,7 +1008,7 @@ class DeclarationAuditTest(RepoCase):
         log.write_text("".join(line.replace("{root}", str(self.root)) + "\n" for line in lines))
         return log
 
-    HAND = ["0\tb", "0\tb",
+    HAND = ["0\tb",
             "100\ts\t50\t\t1\tpython3\ttools/a.py",
             "100\tr\t{root}/data/in.csv",
             "100\tr\t{root}/tools/lib/fixture.json",            # code: under tools/
@@ -901,56 +1016,48 @@ class DeclarationAuditTest(RepoCase):
             "100\tr\t{root}/.cache/hart/x.json",                # a shared cache: no input
             "100\tr\t/usr/lib/python3/x.txt",                   # outside the repo
             "100\tx\ttok1\t{root}\tbash\t-c\tpython3 helper.py",
-            "200\ts\t999\ttok1\t2\tpython3\thelper.py",          # a's grandchild, by the token it inherited
+            "200\ts\t999\ttok1\t2\tpython3\thelper.py",          # a's grandchild
             "200\tr\t{root}/data/helper.csv",
-            "300\ts\t100\t\t3\tpython3\tother.py",              # a's child, by its parent
+            "300\ts\t100\t\t3\tpython3\tother.py",              # a's child
             "300\tr\t{root}/data/child.csv",
             "300\ts\t300\tfork\t0\tfork",                       # its fork
-            "400\ts\t51\t\t4\tpython3\tstray.py",               # no step started it
-            "400\tr\t{root}/data/stray.csv",
-            "500\tr\t{root}/data/nostart.csv"]                  # no start line at all
+            "500\tr\t{root}/data/nostart.csv"]                  # no start line: still the job's
 
-    def test_reads_go_to_the_step_that_started_the_process(self) -> None:
-        audit = cs.step_reads("static", self.trace(self.HAND), self.root, cs.manifest_steps("static", self.root))
-        self.assertEqual(audit["steps"], {"a": ["data/child.csv", "data/helper.csv", "data/in.csv"], "b": []})
-        self.assertEqual(audit["unowned"], {"pid 500, no start line": ["data/nostart.csv"],
-                                            "python3 stray.py": ["data/stray.csv"]})
-        self.assertEqual(audit["absent"], ["b"])
-        self.assertEqual(audit["bash"], [])
+    def test_every_process_of_a_job_is_its_steps(self) -> None:
+        audit = cs.step_reads("a", self.trace(self.HAND), self.root, cs.manifest_steps("a", self.root))
+        self.assertEqual(audit, {"steps": {"a": ["data/child.csv", "data/helper.csv", "data/in.csv",
+                                                 "data/nostart.csv"]},
+                                 "unowned": {}, "absent": [], "bash": []})
 
-    def test_a_step_started_by_a_reused_pid_is_still_its_own(self) -> None:
-        # a's process 100 ended; the job's bash got pid 100 and started b's process: b's reads are b's
-        reused = [*self.HAND, "600\ts\t100\t\t5\tpython3\ttools/b.py", "600\tr\t{root}/data/b.csv"]
-        audit = cs.step_reads("static", self.trace(reused), self.root, cs.manifest_steps("static", self.root))
-        self.assertEqual(audit["steps"]["b"], ["data/b.csv"])
-        self.assertNotIn("data/b.csv", audit["steps"]["a"])
-        self.assertEqual(audit["absent"], [])
+    def test_a_job_of_more_than_one_step_is_refused(self) -> None:
+        steps = (*cs.manifest_steps("a", self.root), *cs.manifest_steps("b", self.root))
+        with self.assertRaisesRegex(cs.AuditError, "a has 2 steps in tools/pipeline/checks.toml; each job is one step"):
+            cs.step_reads("a", self.trace(self.HAND), self.root, steps)
+
+    def test_a_stamp_of_the_one_static_job_is_read_and_says_to_run_again(self) -> None:
+        """Stage 4a's stamps held several steps per job; read against a job of one step, the others are named."""
+        old = {"steps": {"a": [], "b": ["data/b.csv"]}, "unowned": {"python3 stray.py": ["data/stray.csv"]},
+               "absent": [], "bash": []}
+        lines, count = cs.audit_lines("a", old, cs.manifest_steps("a", self.root))
+        self.assertEqual(count, 2)
+        self.assertIn("    b: in the stamp, not in tools/pipeline/checks.toml now; run the job again", lines)
+        self.assertIn("    no step started this process (python3 stray.py): data/stray.csv", lines)
 
     def test_a_step_added_after_the_stamp_is_not_reported_clean(self) -> None:
-        steps = cs.manifest_steps("static", self.root)
-        audit = {"steps": {"a": []}, "unowned": {}, "absent": [], "bash": []}     # b is in no stamp
-        lines, count = cs.audit_lines("static", audit, steps)
+        audit = {"steps": {}, "unowned": {}, "absent": [], "bash": []}
+        lines, count = cs.audit_lines("a", audit, cs.manifest_steps("a", self.root))
         self.assertEqual(count, 1)
-        self.assertIn("    b: in tools/pipeline/checks.toml, not in the stamp; run the job again", lines)
-
-    def test_a_job_of_one_step_owns_every_process(self) -> None:
-        audit = cs.step_reads("ruff", self.trace(self.HAND), self.root, cs.manifest_steps("ruff", self.root))
-        self.assertEqual(audit["steps"]["ruff"], ["data/child.csv", "data/helper.csv", "data/in.csv",
-                                                  "data/stray.csv"])
-        self.assertEqual(audit["unowned"], {"pid 500, no start line": ["data/nostart.csv"]})
-        self.assertEqual(audit["absent"], [])
+        self.assertIn("    a: in tools/pipeline/checks.toml, not in the stamp; run the job again", lines)
 
     def test_the_report_names_each_undeclared_read_and_how_to_see_it_again(self) -> None:
         self.edit_step("a", 'inputs = ["data/in.csv"]\nquiet_inputs = ["data/helper.csv"]\n')
-        steps = cs.manifest_steps("static", self.root)
-        lines, count = cs.audit_lines("static", cs.step_reads("static", self.trace(self.HAND), self.root, steps), steps)
-        self.assertEqual(count, 4)          # child.csv, the stray and the startless process's reads, b absent
-        self.assertTrue(lines[0].startswith("WARNING: stamp audit: static: 4 read(s) not declared"), lines[0])
+        steps = cs.manifest_steps("a", self.root)
+        lines, count = cs.audit_lines("a", cs.step_reads("a", self.trace(self.HAND), self.root, steps), steps)
+        self.assertEqual(count, 2)
+        self.assertTrue(lines[0].startswith("WARNING: stamp audit: a: 2 read(s) not declared"), lines[0])
         self.assertIn("warn only", lines[0])
-        self.assertIn("    a: data/child.csv", lines)
-        self.assertIn("    no step started this process (python3 stray.py): data/stray.csv", lines)
-        self.assertIn("    b: no process of it in the trace, so its reads are not audited", lines)
-        self.assertEqual(lines[-1], "    again: python3 tools/audit/check_stamps.py audit static")
+        self.assertIn("    a: data/child.csv, data/nostart.csv", lines)
+        self.assertEqual(lines[-1], "    again: python3 tools/audit/check_stamps.py audit a")
 
     def test_a_long_list_is_cut_in_the_run_and_whole_on_demand(self) -> None:
         steps = cs.manifest_steps("ruff", self.root)
@@ -963,36 +1070,34 @@ class DeclarationAuditTest(RepoCase):
 
     def test_a_bash_step_is_named_as_not_audited(self) -> None:
         self.edit_step("b", "", cmd='["bash", "tools/b.sh"]')
-        steps = cs.manifest_steps("static", self.root)
-        audit = cs.step_reads("static", self.trace(self.HAND[:4]), self.root, steps)
-        self.assertEqual((audit["bash"], audit["absent"]), (["b"], []))
-        lines, count = cs.audit_lines("static", audit, steps)
-        self.assertEqual(count, 1)
-        self.assertIn("    not audited: b (bash, which the trace cannot see)", lines)
-        self.edit_step("a", 'inputs = ["data/in.csv"]\n')
-        self.assertEqual(cs.audit_lines("static", audit, cs.manifest_steps("static", self.root)),
-                         (["stamp audit: static: every data read is declared in tools/pipeline/checks.toml "
+        steps = cs.manifest_steps("b", self.root)
+        audit = cs.step_reads("b", self.trace(["0\tx\tcheck.sh-run\t{root}\tbash\ttools/b.sh"]), self.root, steps)
+        self.assertEqual(audit, {"steps": {}, "unowned": {}, "absent": [], "bash": ["b"]})
+        self.assertEqual(cs.audit_lines("b", audit, steps),
+                         (["stamp audit: b: every data read is declared in tools/pipeline/checks.toml "
                            "(code under tools/ and .py files are not audited) "
                            "(b: bash, which the trace cannot see, so not audited)"], 0))
 
     def test_an_audit_that_cannot_run_says_so(self) -> None:
-        with self.assertRaisesRegex(cs.AuditError, "cannot read the trace of static"):
-            cs.step_reads("static", self.tmp / "gone.trace", self.root, cs.manifest_steps("static", self.root))
+        with self.assertRaisesRegex(cs.AuditError, "cannot read the trace of a"):
+            cs.step_reads("a", self.tmp / "gone.trace", self.root, cs.manifest_steps("a", self.root))
         with self.assertRaisesRegex(cs.AuditError, "holds no process start"):
-            cs.step_reads("static", self.trace(["0\tb", "5\tr\t{root}/data/in.csv"]), self.root,
-                          cs.manifest_steps("static", self.root))
+            cs.step_reads("a", self.trace(["0\tb", "5\tr\t{root}/data/in.csv"]), self.root,
+                          cs.manifest_steps("a", self.root))
         with self.assertRaisesRegex(cs.AuditError, "'unit-hartlib' is no job of"):
             cs.manifest_steps("unit-hartlib", self.root)
+        with self.assertRaisesRegex(cs.AuditError, "'static' is no job of"):
+            cs.manifest_steps("static", self.root)
         self.assertEqual(cs.audit_trace("unit-hartlib", self.trace(self.HAND), self.root), ([], None))
-        lines, audit = cs.audit_trace("static", self.tmp / "gone.trace", self.root)
+        lines, audit = cs.audit_trace("a", self.tmp / "gone.trace", self.root)
         self.assertIsNone(audit)
         self.assertEqual(len(lines), 1)
-        self.assertTrue(lines[0].startswith("STAMP AUDIT FAILED: static: cannot read the trace"), lines)
+        self.assertTrue(lines[0].startswith("STAMP AUDIT FAILED: a: cannot read the trace"), lines)
         (self.root / cs.MANIFEST).write_text("[[step]\n")
-        lines, audit = cs.audit_trace("static", self.trace(self.HAND), self.root)
+        lines, audit = cs.audit_trace("a", self.trace(self.HAND), self.root)
         self.assertIsNone(audit)
         self.assertIn("not valid TOML", lines[0])
-        self.assertTrue(lines[0].startswith("STAMP AUDIT FAILED: static:"))
+        self.assertTrue(lines[0].startswith("STAMP AUDIT FAILED: a:"))
 
     def edit_step(self, name: str, fields: str, cmd: str | None = None) -> None:
         path = self.root / cs.MANIFEST
@@ -1012,40 +1117,38 @@ class DeclarationAuditTest(RepoCase):
         return rc, out.getvalue(), err.getvalue()
 
     def test_the_stamp_keeps_the_audit_and_the_command_reads_it_against_the_manifest_now(self) -> None:
-        self.edit_step("b", "", cmd='["bash", "tools/b.sh"]')        # one traced step, one the trace cannot see
         log = self.run_job("open('jmri/layouts/hart/data/switches.csv').read()\n", script="tools/a.py")
-        lines, audit = cs.audit_trace("static", log, self.root)
+        lines, audit = cs.audit_trace("a", log, self.root)
         self.assertEqual(audit["steps"]["a"], ["jmri/layouts/hart/data/switches.csv"])
         self.assertIn("    a: jmri/layouts/hart/data/switches.csv", lines)
-        self.assertIsNone(cs.record("static", log, self.root, self.store, audit=audit))
-        stamp = cs.traced.load(cs._file("static", self.store))
+        self.assertIsNone(cs.record("a", log, self.root, self.store, audit=audit))
+        stamp = cs.traced.load(cs._file("a", self.store))
         self.assertEqual(stamp["audit"], audit)
-        rc, out, _ = self.audit_cmd("static")
+        rc, out, _ = self.audit_cmd("a")
         self.assertEqual(rc, 1)
         self.assertIn("    a: jmri/layouts/hart/data/switches.csv", out)
         self.edit_step("a", 'quiet_inputs = ["jmri/layouts/hart/data/switches.csv"]\n')
-        rc, out, _ = self.audit_cmd("static")
+        rc, out, _ = self.audit_cmd("a")
         self.assertEqual(rc, 0, out)
-        self.assertIn("stamp audit: static: every data read is declared", out)
+        self.assertIn("stamp audit: a: every data read is declared", out)
 
     def test_the_audit_is_in_no_key_and_changes_no_verdict(self) -> None:
         log = self.run_job("open('jmri/layouts/hart/data/switches.csv').read()\n", script="tools/a.py")
-        self.assertIsNone(cs.record("static", log, self.root, self.store))
-        plain = cs.traced.load(cs._file("static", self.store))
+        self.assertIsNone(cs.record("a", log, self.root, self.store))
+        plain = cs.traced.load(cs._file("a", self.store))
         self.assertNotIn("audit", plain)
-        self.assertIsNone(cs.record("static", log, self.root, self.store, audit=cs.audit_trace("static", log,
-                                                                                                self.root)[1]))
-        audited = cs.traced.load(cs._file("static", self.store))
+        self.assertIsNone(cs.record("a", log, self.root, self.store, audit=cs.audit_trace("a", log, self.root)[1]))
+        audited = cs.traced.load(cs._file("a", self.store))
         self.assertEqual(plain["key"], audited["key"])
         self.assertEqual(plain["state"], audited["state"])
-        self.assertTrue(self.current("static"))
+        self.assertTrue(self.current("a"))
 
     def test_the_command_says_why_it_cannot_audit(self) -> None:
-        rc, _, err = self.audit_cmd("static")
+        rc, _, err = self.audit_cmd("a")
         self.assertEqual(rc, 2)
-        self.assertIn("stamp audit: static: no stamp; a pass of the job records one", err)
-        self.assertIsNone(self.record("static", script="tools/a.py"))           # a stamp with no audit in it
-        rc, _, err = self.audit_cmd("static")
+        self.assertIn("stamp audit: a: no stamp; a pass of the job records one", err)
+        self.assertIsNone(self.record("a", script="tools/a.py"))                # a stamp with no audit in it
+        rc, _, err = self.audit_cmd("a")
         self.assertEqual(rc, 2)
         self.assertIn("its stamp holds no audit", err)
         rc, _, err = self.audit_cmd("unit-hartlib")
@@ -1053,9 +1156,9 @@ class DeclarationAuditTest(RepoCase):
         self.assertIn("unit-hartlib: no job of tools/pipeline/checks.toml", err)
         rc, _, err = self.audit_cmd()                                           # every manifest job: none stamped
         self.assertEqual(rc, 2)
-        self.assertEqual(err.count("no stamp;") + err.count("holds no audit"), 4)
+        self.assertEqual(err.count("no stamp;") + err.count("holds no audit"), 5)
         (self.root / cs.MANIFEST).write_text("[[step]\n")
-        rc, _, err = self.audit_cmd("static")
+        rc, _, err = self.audit_cmd("a")
         self.assertEqual(rc, 2)
         self.assertIn("stamp audit: cannot run:", err)
         self.assertIn("not valid TOML", err)

@@ -13,6 +13,8 @@ appends one line per event to the log ("<pid>\\t<kind>\\t<data>"):
     d  a folder listed (listdir, scandir, glob)                                x  a subprocess spawned: token, cwd, argv
     h  a shutil.which lookup on the starting PATH: the name, what it found      k  a unittest skip: the test's id, reason
     b  written by the runner, not the hook: one Python process it starts and expects to see a "s" line from
+    t  written by the runner: the time (ns) it started a program the hook cannot see, so a log with no "s" line
+       still says since when a file the job read must be unchanged (changed_since)
 
 Paths are relative to the repo root (HART_TRACE_ROOT) or absolute for files outside it. A spawn hands its child a
 token (HART_TRACE_SPAWN); a child whose "s" line carries it, as the spawner's child or its exec, was traced. Any other
@@ -353,12 +355,13 @@ class Trace:
         self.start_argv: list[list[str]] = []                   # the argv of each start, in the same order
         self.spawns: list[tuple[int, str, str, list[str]]] = []  # pid, token, cwd, argv
         self.expected_roots = 0
+        self.runner_ns: list[int] = []                          # "t" lines: when the runner started a program
         self.skips: list[tuple[str, str]] = []                  # (test id, reason), one per skip reported
         self.which: set[tuple[str, str]] = set()                # (name, what shutil.which found or "")
 
     @property
     def started_ns(self) -> int | None:
-        times = [t for *_, t in self.starts if t]
+        times = [t for *_, t in self.starts if t] + self.runner_ns
         return min(times) if times else None
 
 
@@ -395,6 +398,8 @@ def parse(log: str | os.PathLike) -> Trace:
             t.present.setdefault(rest[1], rest[0])
         elif kind == "k" and len(rest) == 2:
             t.skips.append((rest[0], rest[1]))
+        elif kind == "t" and len(rest) == 1 and rest[0].isdigit():
+            t.runner_ns.append(int(rest[0]))
         elif kind == "h" and len(rest) == 2:
             t.which.add((rest[0], rest[1]))
         elif rest:
@@ -422,9 +427,17 @@ def traced_spawns(t: Trace) -> set[str]:
     return done
 
 
+RUNNER_PID = 0      # the pid a runner writes its own lines with ("b", and "x" for a program it starts unhooked)
+
+
 def problem(t: Trace) -> str | None:
-    """Why the log is no trace to record, or None: no process loaded the hook, or fewer than the runner started."""
+    """Why the log is no trace to record, or None: no process loaded the hook, or fewer than the runner started. A
+    log with no process start is a trace only when the runner expected no Python process, wrote every spawn in it
+    itself and said when it started them ("t"): a job that is one program the hook cannot see (check.sh's panels
+    check, bash), whose stamp then falls back to its declaration."""
     if not t.starts:
+        if t.expected_roots == 0 and t.spawns and all(s[0] == RUNNER_PID for s in t.spawns) and t.runner_ns:
+            return None
         return "the trace hook did not load (no process start in the log)"
     tokens = {s[1] for s in t.spawns}
     roots = [s for s in t.starts if s[2] not in tokens and s[2] != "fork"]
