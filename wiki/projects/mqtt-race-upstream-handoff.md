@@ -10,7 +10,7 @@ Watch JMRI/JMRI pull request [#16004](https://github.com/JMRI/JMRI/pull/16004) a
 - #16003 (issue) has the cause, the results and the diff, plus a comment that the fix targets the 5.19 series and `master`, not 5.18 or the 5.17.6 pre-release.
 - #16004 (pull request, opened 2026-11-23 about 23:00) is commit `ed9e77ab` on `lnevo/JMRI` branch `fix-mqtt-listener-race`: the fix, `MqttAdapterTest` changes with two new tests, and a release note under MQTT. All 363 MQTT tests passed locally on JDK 11.
 - At hand-off, JMRI's checks showed two expected failures: `check-pr` (JMRI blocks merging for 24 hours after a pull request opens; label "New PR") and "Approved after last commit" (waits for a maintainer review). The release-note check passed. JMRI's build and test workflows had not started; most likely they wait for a maintainer to approve runs from a first-time contributor, not confirmed.
-- The hosts stay on stock JMRI 5.16 meanwhile (`wiki/STATUS.md`, Future goals).
+- The hosts run JMRI 5.16 with the fix as a one-class overlay meanwhile (2026-11-24, [ADR-034](../decisions/ADR-034-jmri-mqtt-race-overlay.md), `tools/jmri/mqtt_overlay/`). A change asked for in #16004 goes into `tools/jmri/mqtt_overlay/MqttAdapter.java` too, then `build.sh` and a deploy.
 
 ## The watcher
 
@@ -27,4 +27,4 @@ In a fresh session, schedule a recurring check (for example every 3 hours, off t
 
 ## Closing the topic
 
-When #16004 is merged: in a new worktree, replace the race item in `wiki/STATUS.md` Future goals with the merge date and the first JMRI release that carries it, log the old text in `wiki/STATUS_LOG.md`, set this page to `Status: done (YYYY-MM-DD)` and drop it from the active list in `wiki/home.md`. Then ask the owner whether to remove the test tools on the Windows box's WSL (JDK 11, JDK 21 runtime, Maven, Ant, Mosquitto with its service off, `~/jmri-pr`, `~/mqtt-race-repro`) and `C:\Users\lnevo\mqtt-race-win`. Moving the hosts to the fixed JMRI waits for a release that CATS supports (`wiki/STATUS.md`, JMRI line).
+When #16004 is merged: in a new worktree, replace the race item in `wiki/STATUS.md` Future goals with the merge date and the first JMRI release that carries it, log the old text in `wiki/STATUS_LOG.md`, set this page to `Status: done (YYYY-MM-DD)` and drop it from the active list in `wiki/home.md`. Then ask the owner whether to remove the test tools on the Windows box's WSL (JDK 11, JDK 21 runtime, Maven, Ant, Mosquitto with its service off, `~/jmri-pr`, `~/mqtt-race-repro`) and `C:\Users\lnevo\mqtt-race-win`. Moving the hosts to the fixed JMRI waits for a release that CATS supports (`wiki/STATUS.md`, JMRI line); once they run it, remove `tools/jmri/mqtt_overlay/` and the deploy lines that call it (ADR-034).

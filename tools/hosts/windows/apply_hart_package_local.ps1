@@ -321,6 +321,24 @@ foreach ($path in $retired) {
   }
 }
 
+# JMRI's MQTT startup race overlay, loaded by every JMRI app through %USERPROFILE%\JMRI\jmri.conf
+# (ADR-034). It installs only over the JMRI build it was made from; on any other it takes itself out.
+$overlayPy = Join-Path $hart 'jmri\mqtt_overlay\install_overlay.py'
+if (Test-Path $overlayPy) {
+  $jmriHome = @('C:\Program Files\JMRI', 'C:\Program Files (x86)\JMRI', 'C:\JMRI') |
+    Where-Object { Test-Path (Join-Path $_ 'jmri.jar') } | Select-Object -First 1
+  if (-not $python) {
+    Write-Host 'WARNING MQTT overlay: no Python 3 found; not installed'
+  } elseif (-not $jmriHome) {
+    Write-Host 'WARNING MQTT overlay: no JMRI install with jmri.jar found; not installed'
+  } else {
+    $pre = @($python.Pre)
+    & $python.Exe @pre $overlayPy --jar (Join-Path $hart 'jmri\mqtt_overlay\hart-mqtt-race-fix.jar') `
+      --settings-dir (Join-Path $env:USERPROFILE 'JMRI') --jmri-home $jmriHome
+    if ($LASTEXITCODE -ne 0) { Write-Host "WARNING MQTT overlay: install_overlay.py exited $LASTEXITCODE" }
+  }
+}
+
 Write-Host 'apply_hart_package_local done'
 
 $desk = Join-Path $hart 'cats\scripts\windows\create_cats_desktop.ps1'
