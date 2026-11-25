@@ -192,6 +192,20 @@ class ByPiece(unittest.TestCase):
         with self.assertRaisesRegex(T.TrackNameError, "piece 37C-39C: its run is named by piece"):
             T.piece_names({"level": 1}, ["37C-39C"], owner=self.OWNER)
 
+    def test_a_name_is_never_spread_to_a_piece_the_owner_did_not_name(self) -> None:
+        with self.assertRaisesRegex(T.TrackNameError, r"pieces \[2\] are named, not every piece from #1"):
+            T.piece_names({"level": 1}, ["37C-39C #1", "37C-39C #2"], owner={("1", "block:37C-39C#2"): "K-1"})
+        with self.assertRaisesRegex(T.TrackNameError, r"piece 37C-39C #2: its run is named by piece \(#1 K-2\)"):
+            T.piece_names({"level": 1}, ["37C-39C #1", "37C-39C #2"], owner={("1", "block:37C-39C#1"): "K-2"})
+        self.assertEqual(T.piece_names({"level": 1}, ["37C-39C #1", "37C-39C #2"],
+                                       owner={("1", "block:37C-39C#1"): "K", ("1", "block:37C-39C#2"): "K"}),
+                         {"37C-39C #1": "K", "37C-39C #2": "K"})
+
+    def test_two_tracks_up_the_helix_from_one_switch_stop(self) -> None:
+        sec = {"level": 2, "helix": {"131A": "block:39B-helix"}}
+        with self.assertRaisesRegex(T.TrackNameError, "helix track from switch 131A: 2 drawn tracks"):
+            T.piece_names(sec, ["131AA-helix", "131AB-helix"], owner=self.OWNER)
+
 
 class EndKeys(unittest.TestCase):
     def test_one_end_key_for_the_plan_and_the_main_lines(self) -> None:

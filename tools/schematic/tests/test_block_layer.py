@@ -382,6 +382,8 @@ class Drawings(RepoReadOnly, unittest.TestCase):
         try:
             with self.assertRaises(BL.BlockError):
                 BL.drawings(folder)
+            with self.assertRaisesRegex(BL.BlockError, "plan_overrides"):    # the store's lookup too
+                BL.store_names([], [], {}, {}, folder)
         finally:
             os.rmdir(folder)
 

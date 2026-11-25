@@ -169,10 +169,16 @@ def strand_names(bands, joined: dict, bi: int, section: dict, owner: dict | None
     return _names_by_ref(band_refs(bands, joined, bi), section, owner, data, bands[bi][0])
 
 
-def staging_names(band, section: dict | None = None, owner: dict | None = None) -> dict[str, str]:
-    """strand_names of the staging band alone (`band`, no connector: piece_refs), by staging's hand section
-    (overrides(), default)."""
-    return _names_by_ref(piece_refs(band), overrides() if section is None else section, owner, None, "staging")
+def staging_names(band, data: Path, section: dict | None = None, owner: dict | None = None) -> dict[str, str]:
+    """strand_names of the staging band alone (`band`, no connector: piece_refs), from the schematic folder `data` the
+    band was solved from: staging's hand section there (`section`, default) and the owner rows beside it (`owner`,
+    default)."""
+    if section is None:
+        try:
+            section = layer_files.read("plan_overrides", SHEET, data)
+        except layer_files.LayerFileError as exc:
+            raise StagingMapError(str(exc)) from None
+    return _names_by_ref(piece_refs(band), section, owner, data, "staging")
 
 
 def _names_by_ref(refs: dict, section: dict, owner, data, where: str) -> dict[str, str]:
@@ -315,12 +321,11 @@ def occupancy_blocks(r: dict) -> list[str]:
     return railroad.device_list(r["blocks"])
 
 
-def check_helix(band, names: dict, helix: dict | None = None, stored: dict | None = None) -> list[str]:
+def check_helix(band, names: dict, stored: dict, helix: dict | None = None) -> list[str]:
     """Each helix track of plan_overrides.json is drawn on the staging band from its staging_switch, and its staging
     piece is that file's block (load()'s names). A strand is the helix track the name store names it by its ID
-    (`stored`: staging_names, default the band's)."""
+    (`stored`: staging_names of the band, from the caller's data folder)."""
     helix = mr.read_helix_tracks() if helix is None else helix
-    stored = staging_names(band) if stored is None else stored
     bad = []
     for plan, h in sorted(helix.items()):
         sids = [sid for sid in band["strands"] if stored.get(sid) == plan]

@@ -213,7 +213,19 @@ def hand_problems(section: dict) -> list[str]:
 
 
 def _names_of_runs(owner: dict, levels: set[str]) -> dict[str, str | list[str]]:
-    """{run: name, or names by piece from the lower end} of the owner's names on `levels`."""
+    """{run: name, or names by piece from the lower end} of the owner's names on `levels`: one name when the run is
+    named whole or every piece from #1 has that name, else the list. TrackNameError on a run named whole and by
+    piece, or whose named pieces do not run from #1 with no gap."""
+    out = {}
+    for run, by in _pieces_of_runs(owner, levels).items():
+        names = [by[p] for p in sorted(by)]
+        out[run] = names[0] if 0 in by or len(set(names)) == 1 else names
+    return out
+
+
+def _pieces_of_runs(owner: dict, levels: set[str]) -> dict[str, dict[int, str]]:
+    """{run: {piece: name}} of the owner's names on `levels` (piece 0: the run named whole), checked: no run named
+    whole and by piece, and named pieces from #1 with no gap (TrackNameError)."""
     pieces: dict[str, dict[int, str]] = {}
     bad = []
     for (level, bid), name in sorted(owner.items()):
@@ -229,20 +241,14 @@ def _names_of_runs(owner: dict, levels: set[str]) -> dict[str, str | list[str]]:
             p = int(m.group("piece") or 0)
             if got.setdefault(p, name) != name:
                 bad.append(f"run {m.group('run')} piece {p} is named {got[p]!r} and {name!r}")
-    out = {}
     for run, by in pieces.items():
-        names = [by[p] for p in sorted(by)]
         if 0 in by and len(by) > 1:
             bad.append(f"run {run} is named whole and by piece")
-        elif len(set(names)) == 1:
-            out[run] = names[0]
-        elif sorted(by) != list(range(1, len(by) + 1)):
+        elif 0 not in by and sorted(by) != list(range(1, len(by) + 1)):
             bad.append(f"run {run}: pieces {sorted(by)} are named, not every piece from #1")
-        else:
-            out[run] = names
     if bad:
         raise TrackNameError(f"{FIELD_FILE}: " + "; ".join(bad))
-    return out
+    return pieces
 
 
 HELIX_END = "-helix"
@@ -255,10 +261,11 @@ def piece_names(section: dict, pieces, owner: dict | None = None, data: Path = S
     run named by piece its i-th piece the i-th name (owner_names on the section's levels; `owner` in its shape); a
     track up the helix from a switch of the section's `helix` map ("131AA-helix") the name of the staging helix block
     the map gives it. The readers by ID (block_layer, cats_panel, build_masts, staging_device_map) take a strand's
-    name from here, not from the drawing. TrackNameError on a helix entry with no named block row, or a piece a run
-    named by piece does not have."""
+    name from here, not from the drawing. TrackNameError on a helix entry with no named block row or with more than
+    one drawn track up the helix from its switch, or a drawn piece of a run named by piece that has no name of its
+    own (a name is never spread to a piece the owner did not name)."""
     owner = owner_names(data) if owner is None else owner
-    names = _names_of_runs(owner, section_levels(section))
+    named = _pieces_of_runs(owner, section_levels(section))
     any_level = {bid: name for (_level, bid), name in owner.items()}     # a helix track is staging's block
     relabel = {}
     for e in section.get("edits", ()):
@@ -270,19 +277,26 @@ def piece_names(section: dict, pieces, owner: dict | None = None, data: Path = S
             bad.append(f"helix {ref}: {bid} has no named block row in {FIELD_FILE}")
         else:
             helix[str(relabel.get(ref, ref)).rstrip("*")] = any_level[bid]
-    out = {}
-    for piece in pieces:
+    out, up = {}, {}
+    for piece in sorted(set(pieces)):
         run, _sep, i = piece.partition(" #")
-        got = names.get(run)
-        if isinstance(got, list):
-            if not i or not 1 <= int(i) <= len(got):
-                bad.append(f"piece {piece}: its run is named by piece ({', '.join(got)}), and it is not one of them")
+        by = named.get(run)
+        if by:
+            got = by[0] if 0 in by else by.get(int(i)) if i else None
+            if got is None:
+                given = ", ".join(f"#{p} {n}" for p, n in sorted(by.items()))
+                bad.append(f"piece {piece}: its run is named by piece ({given}), and this piece has no name of its own")
                 continue
-            got = got[int(i) - 1]
-        elif got is None and run.endswith(HELIX_END):
-            got = helix.get(run.removesuffix(HELIX_END)[:-1])         # the end key less its leg: the switch label
-        if got:
             out[piece] = got
+        elif run.endswith(HELIX_END):
+            label = run.removesuffix(HELIX_END)[:-1]                   # the end key less its leg: the switch label
+            if label in helix:
+                up.setdefault(label, set()).add(run)
+                out[piece] = helix[label]
+    for label, runs in sorted(up.items()):
+        if len(runs) > 1:
+            bad.append(f"helix track from switch {label}: {len(runs)} drawn tracks run up the helix from it "
+                       f"({', '.join(sorted(runs))}); the `helix` map names one")
     if bad:
         raise TrackNameError("; ".join(bad))
     return out

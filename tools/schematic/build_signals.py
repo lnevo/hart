@@ -173,15 +173,10 @@ def main_upper_rows() -> list[dict]:
     2026-11-19) as signal rows: each
     home mast at its switch's leg on the track it faces, each APB intermediate on its loop or split track at the
     turnback, measured from the switch the track starts at (half of the track's length)."""
-    import block_layer
     import build_device_map as bdm
-    import mast_rule as mr
     from hartlib import level_masts as lm
     bands, joined, runs, corners = bdm.solve()
-    ov = layer_files.merged(bdm.OVERRIDES.parent)[bdm.SHEET]        # its helix names are the name store's
-    found = mr.tracks(bands, runs, joined, mr.helix_tags(bands, ov), mr.band_levels(ov))
-    mr.track_names(found, mr.helix_blocks(ov))      # as build_device_map.py names them
-    block_layer.store_names(found, bands, joined, mr.band_levels(ov), bdm.OVERRIDES.parent)  # the halves' names
+    found = bdm.named_tracks(bands, joined, runs)       # as build_device_map.py names them: the store, then the rule
     rr = railroad.Railroad(bdm.sources(), upto="inputs")
     sw = railroad.join_main_upper(rr.level_control_points, rr.local_switches, bdm.SWITCHES.name)
     cp_of = {s: v.cp for s, v in sw.items() if v.cp}

@@ -77,7 +77,7 @@ class StagingSwitches(unittest.TestCase):
         k = built()
         self.F, self.band, self.opts = k["F"], k["bands"][k["bi"]][1], k["bands"][k["bi"]][2]
         self.committed = k["committed"]
-        self.stored = B.staging_names(self.band)
+        self.stored = B.staging_names(self.band, B.pd.DATA)
         self.os_of = B.os_blocks(self.band, self.F, self.stored)
 
     def test_os_blocks_one_per_switch_node(self):
@@ -143,17 +143,24 @@ class Helix(unittest.TestCase):
             self.assertEqual(B.track_block(plan, k["F"].helix), h["block"])
         self.assertEqual(B.track_block("K-2", k["F"].helix), "Track K-2")
         band = k["bands"][k["bi"]][1]
-        stored = B.staging_names(band)
+        stored = B.staging_names(band, B.pd.DATA)
         found = {}
         for sid, s in band["strands"].items():
             got = B.helix_block(("track", f"b{k['bi']}:{sid}"), helix, stored)
             if got:
                 found.setdefault(got, set()).add(s["name"])
         self.assertEqual(found, {h["block"]: {plan} for plan, h in helix.items()})
-        # the name store's names, by strand ID, not the drawing's: a strand drawn with a helix name is not a helix
+        # the name store's names, by strand ID, not the drawing's
         drawn = {sid: s["name"] for sid, s in band["strands"].items() if s["name"]}
         self.assertEqual({sid: n for sid, n in stored.items() if sid in drawn}, drawn)
-        self.assertIsNone(B.helix_block(("track", f"b{k['bi']}:{next(iter(drawn))}"), helix, {}))
+        key = lambda sid: ("track", f"b{k['bi']}:{sid}")         # noqa: E731
+        drawn_helix = next(sid for sid, n in drawn.items() if n in helix)
+        plain = next(sid for sid, s in band["strands"].items() if not s["name"])
+        # a strand drawn with a helix name but stored as another track (or not at all) is no helix block
+        self.assertIsNone(B.helix_block(key(drawn_helix), helix, {**stored, drawn_helix: "K-2"}))
+        self.assertIsNone(B.helix_block(key(drawn_helix), helix, {}))
+        # a strand drawn with no name that the store names a helix track is that helix block
+        self.assertEqual(B.helix_block(key(plain), helix, {plain: "Helix Outer"}), helix["Helix Outer"]["block"])
 
     def test_each_helix_block_is_bound_once_from_the_device_map(self):
         blocks = built()["committed"]["blocks"]
@@ -170,7 +177,7 @@ class Blocks(unittest.TestCase):
         k = built()
         self.k = k
         band = k["bands"][k["bi"]][1]
-        self.stored = B.staging_names(band)
+        self.stored = B.staging_names(band, B.pd.DATA)
         out_sw = B.switch_bindings(band, k["F"], B.os_blocks(band, k["F"], self.stored), self.stored)
         named = {key: {"block": v["block"]} for key, v in out_sw.items()}
         level_sw = self.level_switches()

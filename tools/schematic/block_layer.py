@@ -150,7 +150,10 @@ def store_names(found: list[dict], bands, joined, levels: dict, data: Path | Non
     them. BlockError when a name cannot be looked up."""
     import staging_device_map as sdm        # band_refs, the strands' IDs (it does not import this module)
     folder = Path(pd.DATA if data is None else data)
-    whole = layer_files.read_file("plan_overrides", folder)
+    try:
+        whole = layer_files.read_file("plan_overrides", folder)
+    except layer_files.LayerFileError as exc:
+        raise BlockError(str(exc)) from None
     sheet = sheet_of(bands, levels, folder)
     named = {}
     for bi, name in sheet.items():

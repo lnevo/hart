@@ -243,6 +243,28 @@ def main_upper_rule(no_pruning: bool = False) -> dict:
     return planned
 
 
+class SignalsNameTracksAsTheDeviceMap(RepoReadOnly, unittest.TestCase):
+    def test_build_signals_takes_the_device_maps_named_tracks(self):
+        """build_signals.main_upper_rows names its tracks with build_device_map.named_tracks (the name store, then the
+        rule), so a stored main or upper name cannot give the signals other track names than the device map's."""
+        import build_layout_le as bl
+        import build_signals as bs
+        try:
+            bdm.solve()
+        except bl.BuildError as exc:
+            skip_or_fail(exc)
+        calls = []
+        real = bdm.named_tracks
+
+        def spy(*a, **k):
+            calls.append(a)
+            return real(*a, **k)
+        with unittest.mock.patch.object(bdm, "named_tracks", spy):
+            rows = bs.main_upper_rows()
+        self.assertTrue(calls)
+        self.assertTrue(rows)
+
+
 class RuleOutput(RepoReadOnly, unittest.TestCase):
     """The rule over the committed plan gives the pinned masts (needs the plugin at its pinned commit; skipped
     without it). Data checks: a failure can mean the plan changed, not the code."""

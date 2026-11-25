@@ -132,7 +132,7 @@ def bindings(bands, cats, F, o, page):
     (cats.options), `page` the schematic's page preferences (the solved sheet's opts)."""
     bi = bound_index(bands)
     _, band, opts = bands[bi]
-    stored = staging_names(band)        # the staging track names, from the name store by strand ID
+    stored = staging_names(band, pd.DATA)       # the staging names, from the store of the folder solved from
     os_of = os_blocks(band, F, stored)
     out_sw = switch_bindings(band, F, os_of, stored)
     le_mod = cats_le(cats)

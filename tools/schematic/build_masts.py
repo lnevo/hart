@@ -627,7 +627,7 @@ def build():
     cm = block_cm()
     parts = sdm.staging_parts(DEVICE_MAP)
     planned = plan(band, bands, joined, runs, sdm.os_layer(names, parts), locks, cm)   # parts inside their blocks
-    stored = sdm.staging_names(band)            # the name store's, by each strand's ID
+    stored = sdm.staging_names(band, pd.DATA)     # the name store's of the folder solved from, by each strand's ID
     gen = generate(band, names, planned, cm, wired, parts, stored)
     unplaced = sorted(set(wired) - {m["mast"] for m in gen})
     if unplaced:

@@ -110,13 +110,13 @@ def switch_of(F, d):
         raise SystemExit(f"switch {d.get('label')!r} on the staging band is not in switches.csv") from None
 
 
-def staging_names(band) -> dict:
-    """{strand: track name} of the staging band, from the name store by each strand's ID
-    (staging_device_map.staging_names), never read off the drawing: what os_blocks, dest, block_bindings and
-    helix_block take as `stored`."""
+def staging_names(band, data) -> dict:
+    """{strand: track name} of the staging band, from the name store of the schematic folder `data` the band was
+    solved from, by each strand's ID (staging_device_map.staging_names), never read off the drawing: what os_blocks,
+    dest, block_bindings and helix_block take as `stored`."""
     import staging_device_map as sdm
     try:
-        return sdm.staging_names(band)
+        return sdm.staging_names(band, data)
     except sdm.StagingMapError as exc:
         raise SystemExit(f"the staging track names: {exc}") from None
 
