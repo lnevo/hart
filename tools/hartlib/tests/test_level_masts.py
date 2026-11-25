@@ -63,7 +63,11 @@ class ReadTest(unittest.TestCase):
         for h, level, refused in (("IH:HART:C3:108LA", 2, None), ("IH3332", 1, None),   # a wired head on staging
                                   ("IH:HART:C3:108LB", 2, "neither its internal name IH:HART:C3:108LA"),
                                   ("IH:HART:C1:108LA", 2, "neither its internal name IH:HART:C3:108LA"),
-                                  ("IH3332", 2, "is the wired LCOS head 'IH3332', but a level 2 head is internal")):
+                                  # a head swapped in by its row: the planned physical head at its place
+                                  ("IH3332", 2, None),
+                                  # a wired head that is not the planned one: refused on every level
+                                  ("IH4240", 2, "is the wired LCOS head 'IH4240', but a level 2 head is internal"),
+                                  ("IH4240", 1, "is the wired LCOS head 'IH4240', but a level 1 head is internal")):
             text = line(row.format(h=h), level)
             if level == 1:          # staging's internal prefix, so only the wired head is tried
                 text = text.replace("CP 107", "Brick")
@@ -74,6 +78,18 @@ class ReadTest(unittest.TestCase):
                 else:
                     with self.assertRaisesRegex(ValueError, refused):
                         L.read(self.path)
+
+    def test_every_committed_staging_row_is_bound_to_its_physical_mast(self):
+        """read() takes a wired head only as its row's planned one (WIRED_LEVELS is gone), which keeps staging's
+        wired heads only while every staging row's device_system_name is its system_name, with the same heads."""
+        import csv
+        with L.PATH.open(encoding="utf-8", newline="") as fh:
+            staging = [r for r in csv.DictReader(fh) if r["level"] == "1"]
+        self.assertTrue(staging)
+        self.assertEqual([r["mast"] for r in staging if r["device_system_name"] != r["system_name"]
+                          or L.mast_heads(r["device_system_name"]) != L.mast_heads(r["system_name"])], [])
+        wired = [r for r in L.read(levels=(1,)) if any(L.WIRED_HEAD.fullmatch(h) for h, _u in r["heads"])]
+        self.assertEqual([r["mast"] for r in wired], ["Mast 6LB"])
 
     def test_levels_go_by_keyword_and_a_positional_one_is_refused(self):
         with self.assertRaisesRegex(TypeError, "takes the path, then levels= by keyword"):

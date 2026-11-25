@@ -105,12 +105,17 @@ ADDED_LEVELS = tuple(lv for lv in level_masts_lib.LEVELS if lv not in STAGING_LE
 def read_level_masts(path: Path = MASTS) -> list[dict]:
     """masts.csv's rows of the levels the build adds (ADDED_LEVELS; hartlib.level_masts.read: each with `heads` as
     [(internal system name, user name)]), checked again against signal_coordinator.py's own test: no mast or head on
-    a name it would enrol or publish (lcos_named)."""
+    a name it would enrol or publish (lcos_named), but a head swapped in by its device row (the row's planned physical
+    head at its place, which level_masts.read holds it to) and a mast on such a head: those are meant for the field."""
     try:
         rows = level_masts_lib.read(path, levels=ADDED_LEVELS)
     except ValueError as exc:
         raise BuildError(str(exc)) from None      # hartlib names the file and the line itself
-    bad = lcos_named([r["system_name"] for r in rows] + [h for r in rows for h, _u in r["heads"]])
+    swapped = {h for r in rows for h, planned in zip(level_masts_lib.mast_heads(r["system_name"]),
+                                                      level_masts_lib.mast_heads(r["device_system_name"]))
+               if h == planned and level_masts_lib.WIRED_HEAD.fullmatch(h)}
+    bad = lcos_named([r["system_name"] for r in rows if not swapped & set(level_masts_lib.mast_heads(r["system_name"]))]
+                     + [h for r in rows for h, _u in r["heads"] if h not in swapped])
     if bad:
         raise BuildError(f"{paths.rel(path)}: names signal_coordinator.py takes for LCOS heads, which would reach "
                          f"MQTT and the field before the cut-over: {bad}")

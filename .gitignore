@@ -33,6 +33,11 @@ tools/env/hart.env
 .pages-dist/
 .deploy-manifest.json
 
+# Views built where they are used, not committed (ADR-036): `make map` builds both pipeline map pages, the website
+# build writes its own copy, and check.sh and CI build them in memory (build_pipeline_map.py --check)
+/docs/pipeline-map/index.html
+/www/library/pipeline-map.html
+
 # STS runtime data
 external/sts-docker-data/backups/
 external/sts-docker-data/database/

@@ -105,7 +105,7 @@ class StagingSwitches(unittest.TestCase):
             if "label" in e:
                 by_number.setdefault(number, set()).add(e["label"])
                 leg = next(l for l in sw.legs if l.os_block == e["block"])
-                self.assertEqual(B.half_label(sw, leg), e["label"])
+                self.assertEqual(B.half_label(sw, leg, self.F.half_letters), e["label"])
         self.assertTrue(by_number)
         for number, labels in by_number.items():
             self.assertEqual(labels, {f"{number}{c}" for c in "ABCD"[:len(self.F.switches[number].legs)]})

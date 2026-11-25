@@ -306,6 +306,33 @@ class RowMakers(unittest.TestCase):
         got = rm.follow_swaps([rm.owner_over(gen, dict(field, jmri_name="M2T3308")), alias], {})
         self.assertEqual((got[1]["jmri_name"], got[1]["assignment"]), ("MTT123", "field"))
 
+    def test_a_mast_follows_its_swapped_heads_in_one_pass(self):
+        """mast_on_heads: the mast's name is rebuilt from its heads by ID and place, in one pass, so heads whose names
+        trade places (top to the bottom's old name) still land each in its own slot; a mast with no field head, or
+        the owner's own mast row, is kept."""
+        import device_map_rows as rm
+
+        def row(layer, ident, jmri, assignment):
+            r = dict.fromkeys(rm.devices.COLUMNS, "")
+            r.update(level="2", layer=layer, role="head" if layer == "head" else "home", id=ident,
+                     user_name=ident, jmri_name=jmri, assignment=assignment)
+            return r
+        mast = row("mast", "mast:107:B:west", "IF$shsm:basic:two-searchlight(IH3332)(IH3333)", "field")
+        top = row("head", "mast:107:B:west:top", "IH3333", "field")         # A->B
+        bottom = row("head", "mast:107:B:west:bottom", "IH3334", "field")   # B->C
+        heads = {(r["level"], r["id"]): r for r in (top, bottom)}
+        self.assertEqual(rm.mast_on_heads(mast, heads)["jmri_name"], "IF$shsm:basic:two-searchlight(IH3333)(IH3334)")
+        virtual = row("mast", "mast:107:B:west", "IF$shsm:basic:two-searchlight(IH:HART:C3:108LA_Top)"
+                      "(IH:HART:C3:108LA_Bottom)", "virtual")
+        unswapped = {k: dict(v, jmri_name=f"IH:HART:C3:108LA_{k[1].rsplit(':', 1)[1].title()}", assignment="virtual")
+                     for k, v in heads.items()}
+        self.assertIs(rm.mast_on_heads(virtual, unswapped), virtual)
+        got = rm.follow_swaps([virtual, top, bottom], {})
+        self.assertEqual((got[0]["jmri_name"], got[0]["assignment"]),
+                         ("IF$shsm:basic:two-searchlight(IH3333)(IH3334)", "field"))
+        own = dict.fromkeys(rm.devices.COLUMNS, "") | {"jmri_name": virtual["jmri_name"]}
+        self.assertEqual(rm.follow_swaps([virtual, top, bottom], {("2", "mast:107:B:west"): own})[0], virtual)
+
     def test_a_swap_by_one_row_brings_the_alias_and_feedback(self):
         """follow_swaps: the owner's row makes Switch 107 a field turnout; its alias and feedback rows follow, a
         detector swapped the same way is wired, and a row the owner gives its own jmri_name keeps it."""

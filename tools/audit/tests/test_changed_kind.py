@@ -25,7 +25,7 @@ class ChangedKind(unittest.TestCase):
             self.assertEqual(kind([p]), "full", p)
 
     def test_pipeline_map_is_full(self):
-        self.assertEqual(kind(["docs/pipeline-map/index.html"]), "full")
+        self.assertEqual(kind(["docs/pipeline-map/pipeline_map.json"]), "full")
         self.assertEqual(kind(["docs/pipeline-map/x.md"]), "full")
 
     def test_python_is_full(self):

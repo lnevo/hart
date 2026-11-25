@@ -3374,7 +3374,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "extras",
-   "desc": "git merge driver for pipeline_map.json (by node id and edge ends) and its two pages (keep ours, rebuild); set by make wt and the session-start hook.",
+   "desc": "git merge driver for pipeline_map.json (by node id and edge ends); set by make wt and the session-start hook.",
    "path": "tools/ops/merge_pipeline_map.py"
   },
   {
@@ -3401,8 +3401,9 @@
    "kind": "output",
    "status": "live",
    "domain": "extras",
-   "desc": "The repo copy of the pipeline map page.",
-   "path": "docs/pipeline-map/index.html"
+   "desc": "The repo copy of the pipeline map page; not committed (ADR-036): make map builds it, check.sh and CI build it in memory (--check).",
+   "path": "docs/pipeline-map/index.html",
+   "local": true
   },
   {
    "id": "www/library/pipeline-map.html",
@@ -3410,8 +3411,9 @@
    "kind": "output",
    "status": "live",
    "domain": "website",
-   "desc": "Website copy of the pipeline map, mirror paths renamed, linked from the repository guide.",
-   "path": "www/library/pipeline-map.html"
+   "desc": "Local copy of the website's pipeline map, for the site preview; not committed (ADR-036): make map builds it, and the website build writes its own copy (site_page()).",
+   "path": "www/library/pipeline-map.html",
+   "local": true
   },
   {
    "id": "tools/ops/pipeline_query.py",
@@ -3430,6 +3432,24 @@
    "domain": "extras",
    "desc": "check.sh pipeline-map-coverage: fails when a script check.sh, the Makefile, make panels or a deploy runs, or a file in an output folder, is not in pipeline_map.json.",
    "path": "tools/ops/pipeline_map_coverage.py"
+  },
+  {
+   "id": "tools/pipeline/checks.toml",
+   "label": "checks.toml",
+   "kind": "structured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "The step manifest (ADR-037): one [[step]] per check.sh read-only check, with its command, lane and the files it reads and writes. Stage 1: only manifest.py and its test read it; check.sh keeps its own list.",
+   "path": "tools/pipeline/checks.toml"
+  },
+  {
+   "id": "tools/pipeline/manifest.py",
+   "label": "manifest.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Loads and checks the step manifest against git and the map (names, commands, paths, lanes); prints each runner's job lines (jobs) and the steps (list). No runner reads it yet (ADR-037 stage 1).",
+   "path": "tools/pipeline/manifest.py"
   },
   {
    "id": "jmri/layouts/hart/scripts/speedmatch",
@@ -3648,6 +3668,33 @@
    "domain": "extras",
    "desc": "Audit: no script outside hartlib names a layout data file (jmri/layouts/hart/data/) but the pairs it allows, each with its reason; Jython inside JMRI reads only generated outputs.",
    "path": "tools/audit/check_data_readers.py"
+  },
+  {
+   "id": "tools/hosts/backup_launchagents.sh",
+   "label": "backup_launchagents.sh (make backup-status)",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Installs and checks the Mac LaunchAgents that run the daily Pi pull and the weekly Windows push (ADR-035).",
+   "path": "tools/hosts/backup_launchagents.sh"
+  },
+  {
+   "id": "tools/hosts/backup_pi_pull.sh",
+   "label": "backup_pi_pull.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Daily: snapshots the Pi's ~/.jmri, JMRI user files, ~/speedmatch, ~/Desktop, ~/.java, app launchers and ~/jmrihelp into ~/Backups/hart/pi on the Mac, then runs the STS pull (ADR-035).",
+   "path": "tools/hosts/backup_pi_pull.sh"
+  },
+  {
+   "id": "tools/hosts/backup_win_push.sh",
+   "label": "backup_win_push.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Weekly: mirrors the Mac's gitignored data, the Pi snapshots and the AnyRail plans into WSL on the Windows box (ADR-035).",
+   "path": "tools/hosts/backup_win_push.sh"
   },
   {
    "id": ".claude/agents/archive-researcher.md",
@@ -7127,18 +7174,13 @@
   {
    "from": "tools/ops/build_pipeline_map.py",
    "to": "tools/check.sh",
-   "label": "check pipeline-map-site",
+   "label": "check pipeline-map",
    "side": "check"
   },
   {
    "from": "tools/ops/merge_pipeline_map.py",
    "to": "docs/pipeline-map/pipeline_map.json",
    "label": "git merge driver"
-  },
-  {
-   "from": "www/library/pipeline-map.html",
-   "to": "ext:site-dist",
-   "label": "served"
   },
   {
    "from": "docs/pipeline-map/pipeline_map.json",
@@ -7800,6 +7842,52 @@
    "label": "reads staging plan lengths by id (masts)"
   },
   {
+   "from": "tools/hosts/backup_launchagents.sh",
+   "to": "tools/hosts/backup_pi_pull.sh",
+   "label": "daily"
+  },
+  {
+   "from": "tools/hosts/backup_launchagents.sh",
+   "to": "tools/hosts/backup_win_push.sh",
+   "label": "weekly"
+  },
+  {
+   "from": "tools/hosts/backup_pi_pull.sh",
+   "to": "tools/hosts/pi_sts_pull_backups.sh",
+   "label": "runs"
+  },
+  {
+   "from": "external/sts-docker-data/pi",
+   "to": "tools/hosts/backup_win_push.sh",
+   "label": "copied"
+  },
+  {
+   "from": "media",
+   "to": "tools/hosts/backup_win_push.sh",
+   "label": "copied"
+  },
+  {
+   "from": "ops/car-cards",
+   "to": "tools/hosts/backup_win_push.sh",
+   "label": "copied"
+  },
+  {
+   "from": "tools/pipeline/checks.toml",
+   "to": "tools/pipeline/manifest.py",
+   "label": "loads"
+  },
+  {
+   "from": "docs/pipeline-map/pipeline_map.json",
+   "to": "tools/pipeline/manifest.py",
+   "label": "domains, edge sides, local nodes",
+   "side": "check"
+  },
+  {
+   "from": "tools/ops/build_pipeline_map.py",
+   "to": "www/scripts/prepare_github_pages.py",
+   "label": "site_page(): library/pipeline-map.html"
+  },
+  {
    "from": ".claude/agents/archive-researcher.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -8169,6 +8257,13 @@
    "label": "check",
    "gen": "agent-docs",
    "side": "check"
+  },
+  {
+   "from": "wiki/decisions",
+   "to": "tools/ops/pipeline_query.py",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "wiki/home.md",

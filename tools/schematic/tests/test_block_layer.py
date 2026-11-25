@@ -23,7 +23,7 @@ from repo_read_only import RepoReadOnly  # noqa: E402
 HEAD = ",".join(BL.mr.OVERRIDE_COLUMNS) + "\n"
 # a piece of track at one end inside an OS block, its length given (the row OS Switch 7 had until step 5 part 2);
 # the OS block by its device ID (naming-layers step 5)
-SCALE_AT_7 = "1,track,5,7,2,7,os:7,23,,a test row\n"
+SCALE_AT_7 = "1,track,5,7,2,7,os:7:A-13C,23,,a test row\n"
 # the 25 main and upper links (tracks between two switches under LINK_CM), each in the lower-numbered switch's OS
 # block (owner, 2026-11-20: LINK_CM 50 on every level; at a double crossover the corner block of its leg), but where a
 # home mast stands at a switch's points facing the link: then in the OS block at its other end (125-129, 201-205,
@@ -145,11 +145,11 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
 
     def test_inside_is_yes_or_empty_and_only_for_a_track_row(self):
         self.stops(HEAD + "1,track,9,11,,,os:9,,no,\n", "inside is yes or empty")
-        self.stops(HEAD + "1,crossover_half,7,13,,,OS Switch 7,,yes,\n", "with no parallel, end, cm or inside")
+        self.stops(HEAD + "1,crossover_half,7,13,1,,os:7:A-13C,,yes,\n", "with no end, cm or inside")
 
     def test_a_piece_at_one_end_leaves_the_rest_its_own_block(self):
         lay = self.layer(self.committed + SCALE_AT_7)
-        self.assertEqual(lay.parts["Track Scale at 7"]["part_of"], "OS Switch 7")
+        self.assertEqual(lay.parts["Track Scale at 7"]["part_of"], "OS Switch 7a")  # generated; the field name wins
         self.assertIn("Track Scale", lay.tracks)
 
     def test_os_switch_7_ends_at_the_switch(self):
@@ -220,11 +220,14 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         self.stops(HEAD + "1,track,9,11,,,Track Barn,,,\n", "is no OS block")
         self.stops(HEAD + "1,track,11,9,,,os:9,,,\n", "lower first")
         self.stops(HEAD + "1,track,9,11,,13,os:9,,,\n", "its end empty or one of them")
-        self.stops(HEAD + "1,crossover_half,7,13,,7,OS Switch 7,,,\n", "with no parallel, end, cm or inside")
+        self.stops(HEAD + "1,crossover_half,7,13,1,7,os:7:A-13C,,,\n", "with no end, cm or inside")
+        self.stops(HEAD + "1,crossover_half,7,13,,,os:7:A-13C,,,\n", r"parallel 1 or 2 \(its letter a or b\)")
+        self.stops(HEAD + "1,crossover_half,7,13,1,,OS Switch 7,,,\n", "is no crossover half's OS block ID")
+        self.stops(HEAD + "1,crossover_half,7,13,1,,os:7:A-5B,,,\n", "as its block ID has them")
 
     def test_a_row_that_matches_no_track_or_half_stops(self):
         self.stops(self.committed + "1,track,2,4,,,os:2,,,\n", "no track runs Switch 2 to Switch 4")
-        self.stops(self.committed + "1,crossover_half,7,9,,,OS Switch 7c,,,\n",
+        self.stops(self.without("1,crossover_half,7,13,") + "1,crossover_half,7,9,1,,os:7:A-9B,,,\n",
                    "no crossover half of Switch 7 has its leg A track running to Switch 9")
 
     def test_a_track_rows_block_is_an_os_block_id(self):
@@ -240,7 +243,9 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
 
     def test_a_row_given_twice_stops(self):
         self.stops(self.committed + "1,track,13,15,,,os:15,,,\n", "Track 13-15 is given a block on line")
-        self.stops(self.committed + "1,crossover_half,7,13,,,OS Switch 7,,,\n", "given its block on line")
+        self.stops(self.committed + "1,crossover_half,7,13,1,,os:7:A-13C,,,\n", "Switch 7's half a is given on line")
+        self.stops(self.without("1,crossover_half,7,5,") + "1,crossover_half,7,13,2,,os:7:A-13C,,,\n",
+                   "given its block on line")
 
     def test_a_block_that_is_not_the_os_block_at_its_end_stops(self):
         self.stops(self.without("1,track,13,15,") + "1,track,13,15,,,os:17,,,\n",

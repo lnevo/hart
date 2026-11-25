@@ -63,15 +63,20 @@ build. The node, wiring and the detector's part of the comment (`{occupancy}` in
 are as built). A staging block change made in PanelPro is carried by hand into those three data files and the field
 row.
 
-A swap is one row edit (naming-layers step 14, builder merge step 8; ADR-028): a main or upper turnout or detector
-gets its physical name by its `devices_field.csv` row alone (its `jmri_name`, the LCOS address; the assignment
+A swap is one row edit (naming-layers step 14, builder merge step 8; ADR-028): a main or upper turnout, detector or
+signal head gets its physical name by its `devices_field.csv` row alone (its `jmri_name`, the LCOS address; the assignment
 follows the name unless the row gives one). A switch's rows take their shape from its turnout's assignment, not its level
 (`device_map_rows.switch_shape`, `follow_swaps`): a field turnout's LCC alias becomes a turnout of its own (MTT<dcc>)
 and its feedback rows its planned M2S sensors (TWOSENSOR), and a swapped detector is wired. The beans, the railroad and
 device-master checks, `check_layout_facts.py` and the CATS desks then bind the physical names
 (`tools/schematic/tests/test_swap_by_row.py` swaps Switch 107 and BS 107 Loop 1 in a copy). The swap changes the SML
 discovery base (`sml-current` stale: the Mac's `make panels` rediscovers) and the desks' approval fingerprints, which
-hold the bindings (`check_approved.py`: the owner approves, or the swap is reverted).
+hold the bindings (`check_approved.py`: the owner approves, or the swap is reverted). A swapped head brings its mast
+with it (`device_map_rows.mast_on_heads`: the mast stands on its heads' JMRI names), masts.csv takes the wired head as
+its row's planned one (`level_masts.read`), and it is a Digicon head by its row's assignment (`wiring.digicon_rows`,
+`field_heads`), so `signal_coordinator.py` drives it (`tools/schematic/tests/test_swap_head_by_row.py` swaps Mast
+108LA's heads). The PanelPro smoke test holds a block on a field sensor to the one its tables bind
+(`level_devices.field_detected`, passed by `run_panelpro_smoke_test.sh`).
 
 Main and upper wiring goes one way: the device map's rule proposes it in `devices_generated.csv` on every build, `make wiring-freeze` is the only writer into `wiring.csv` (a control point's proposal copied in as wired rows), and for a frozen control point `build_device_map.py` reads `wiring.csv` (`hartlib.wiring.held`) and proposes nothing. `check_wiring_frozen.py` (in `check.sh`) fails on any other change to `wiring.csv`. The step stamps follow what each step reads (traced), so `wiring.csv` is an input of the device map because it reads it, and the freeze is no step.
 

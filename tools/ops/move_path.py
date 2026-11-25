@@ -281,14 +281,13 @@ def apply_plan(root: Path, plan: Plan) -> None:
 
 
 def rebuild(root: Path, plan: Plan) -> None:
-    """The generated pages that list paths: the docs index, and the pipeline-map pages when the map changed."""
+    """The generated files that list paths: the docs index, and, when the map changed, the map's agent-doc lane and
+    its local pages (one plain build_pipeline_map.py run writes all three; the pages are not committed, ADR-036)."""
     steps = []
     if (root / "tools/ops/build_docs_index.py").is_file():
         steps.append([sys.executable, "tools/ops/build_docs_index.py"])
     if "docs/pipeline-map/pipeline_map.json" in plan.edits and (root / "tools/ops/build_pipeline_map.py").is_file():
         steps.append([sys.executable, "tools/ops/build_pipeline_map.py"])
-        steps.append([sys.executable, "tools/ops/build_pipeline_map.py", "--public", "--out", "www/library/pipeline-map.html",
-                      "--back", "repository-guide.html"])
     for cmd in steps:
         done = subprocess.run(cmd, cwd=root, capture_output=True, text=True)
         print(f"rebuilt: {' '.join(cmd[1:2])}" if done.returncode == 0 else

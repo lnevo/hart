@@ -6,11 +6,11 @@ level,kind,switch_a,switch_b,parallel,end,block,cm,inside,notes
 1,track,35,37,,,os:35:A-33A,,,"Princess: the track from Switch 35 to Switch 37 is all OS Switch 35a, its gap at Switch 37's points (owner, 2026-11-19/20)"
 1,track,35,39,,35,os:35:A-39A,,yes,"Princess: the track from Switch 35 to Switch 39 is wired in two halves, the half at Switch 35 in OS Switch 35b; inside its OS block, no JMRI or layout block of its own (owner, 2026-11-20): as a block of its own it made Mast 36RB's route to Mast 68 5 blocks, one more than the wrong way round the Princess balloon (35-37, OS Switch 37, K-2), and JMRI's discovery dropped that pair"
 1,track,35,39,,39,os:39,,yes,"Princess: the half at Switch 39 in OS Switch 39; inside its OS block, no JMRI or layout block of its own (owner, 2026-11-20): as a block of its own it made Mast 36RB's route to Mast 68 5 blocks, one more than the wrong way round the Princess balloon (35-37, OS Switch 37, K-2), and JMRI's discovery dropped that pair"
-1,crossover_half,7,13,,,OS Switch 7,,,Barn: the crossover half whose leg A runs to Switch 13 has its own detector (Block 13-3)
-1,crossover_half,7,5,,,OS Switch 7b,,,Barn: the crossover half whose leg A runs to Switch 5 has its own detector (Block 13-4)
-1,crossover_half,23,1,,,OS Switch 23a,,,East End: the crossover half whose leg A runs to Switch 1 has its own detector (Block 12-4)
-1,crossover_half,23,31,,,OS Switch 23b,,,East End: the crossover half whose leg A runs to Switch 31 has its own detector (Block 12-6)
-1,crossover_half,35,33,,,OS Switch 35a,,,Princess: the crossover half whose leg A runs to Switch 33 has its own detector (Block 1-6)
-1,crossover_half,35,39,,,OS Switch 35b,,,Princess: the crossover half whose leg A runs to Switch 39 has its own detector (Block 1-5)
+1,crossover_half,7,13,1,,os:7:A-13C,,,Barn: the crossover half whose leg A runs to Switch 13 has its own detector (Block 13-3)
+1,crossover_half,7,5,2,,os:7:A-5B,,,Barn: the crossover half whose leg A runs to Switch 5 has its own detector (Block 13-4)
+1,crossover_half,23,1,1,,os:23:A-1A,,,East End: the crossover half whose leg A runs to Switch 1 has its own detector (Block 12-4)
+1,crossover_half,23,31,2,,os:23:A-31B,,,East End: the crossover half whose leg A runs to Switch 31 has its own detector (Block 12-6)
+1,crossover_half,35,33,1,,os:35:A-33A,,,Princess: the crossover half whose leg A runs to Switch 33 has its own detector (Block 1-6)
+1,crossover_half,35,39,2,,os:35:A-39A,,,Princess: the crossover half whose leg A runs to Switch 39 has its own detector (Block 1-5)
 3,split,227,241,,,,,,"OWNER'S CHOICE, not a rule (owner, 2026-11-20): the peninsula loop is two blocks parted at its turnback for an APB pair (owner, 2026-11-19); half 1 is at Switch 227, the lower number. Keyed by its end switches, which survive a new export (the plan edge it is drawn on is found at build time)"
 1,split,37,39,,,,,,"OWNER'S CHOICE, not a rule (owner, 2026-11-20): the Princess balloon is two blocks parted at its turnback, Track K-2 at Switch 37 (half 1, the lower number) and Track K-1 at Switch 39, each with its own detector (Blocks 1-2 and 1-1) and Masts 67 and 68 between them. Keyed by its end switches; each half is named by its plan name"

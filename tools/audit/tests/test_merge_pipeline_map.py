@@ -19,7 +19,7 @@ SPEC = importlib.util.spec_from_file_location("merge_pipeline_map", ROOT / "tool
 MERGE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MERGE)
 GRAPH = "docs/pipeline-map/pipeline_map.json"
-PAGE = "docs/pipeline-map/index.html"
+PAGES = ("docs/pipeline-map/index.html", "www/library/pipeline-map.html")  # built, not committed (ADR-036)
 
 DOMAINS = [{"id": "a", "label": "A", "color": "#000"}, {"id": "b", "label": "B", "color": "#111"}]
 
@@ -79,7 +79,7 @@ class MergeTest(unittest.TestCase):
         self.assertEqual([n["id"] for n in data["nodes"]], ["x", "y", "o", "t"])  # ours, then theirs' new ones
         self.assertEqual([(e["from"], e["to"]) for e in data["edges"]], [("x", "y"), ("y", "o"), ("x", "t")])
         self.assertEqual(out, text(data))  # the file's own format
-        self.assertIn("now rebuild the pages", err)
+        self.assertIn("build_pipeline_map.py --check checks it", err)
 
     def test_new_entry_lands_after_the_one_it_follows(self) -> None:
         base = graph([node("x"), node("y"), node("z")], [edge("x", "y"), edge("y", "z")])
@@ -297,8 +297,8 @@ class GitMergeTest(unittest.TestCase):
         (self.repo / "tools").symlink_to(ROOT / "tools")
         (self.repo / ".git/info/exclude").write_text("tools\n")
         (self.repo / ".gitattributes").write_text((ROOT / ".gitattributes").read_text())
-        self.write(BASE, "page base")
-        sh("git", "add", ".gitattributes", GRAPH, PAGE, cwd=self.repo)
+        self.write(BASE)
+        sh("git", "add", ".gitattributes", GRAPH, cwd=self.repo)
         sh("git", "commit", "-q", "-m", "base", cwd=self.repo)
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
@@ -308,19 +308,18 @@ class GitMergeTest(unittest.TestCase):
     def tearDown(self) -> None:
         self.tmp.cleanup()
 
-    def write(self, data: dict, page: str) -> None:
+    def write(self, data: dict) -> None:
         (self.repo / GRAPH).parent.mkdir(parents=True, exist_ok=True)
         (self.repo / GRAPH).write_text(text(data))
-        (self.repo / PAGE).write_text(page + "\n")
 
-    def branch(self, name: str, data: dict, page: str, start: str = "main") -> None:
+    def branch(self, name: str, data: dict, start: str = "main") -> None:
         sh("git", "checkout", "-q", "-b", name, start, cwd=self.repo)
-        self.write(data, page)
+        self.write(data)
         sh("git", "commit", "-q", "-am", name, cwd=self.repo)
 
     def merge_theirs(self, ours: dict, theirs: dict) -> subprocess.CompletedProcess:
-        self.branch("theirs", theirs, "page theirs")
-        self.branch("ours", ours, "page ours", "main")
+        self.branch("theirs", theirs)
+        self.branch("ours", ours, "main")
         sub = self.repo / "docs"  # git runs the driver from the top of the worktree, wherever the merge starts
         return sh("git", "merge", "--no-edit", "theirs", cwd=sub, check=False)
 
@@ -342,7 +341,6 @@ class GitMergeTest(unittest.TestCase):
         merged = (self.repo / GRAPH).read_text()
         self.assertIn("<<<<<<< ours", merged)
         self.assertIn(">>>>>>> theirs", merged)
-        self.assertIn("<<<<<<< ours", (self.repo / PAGE).read_text())
 
     def test_install_outside_a_checkout_is_a_clear_error(self) -> None:
         err = io.StringIO()
@@ -351,15 +349,14 @@ class GitMergeTest(unittest.TestCase):
         self.assertIn("is not a git checkout", err.getvalue())
         self.assertNotIn("Traceback", err.getvalue())
 
-    def test_clean_merge_and_page_kept(self) -> None:
+    def test_clean_merge(self) -> None:
         ours = graph([node("x"), node("y"), node("o")], [edge("x", "y"), edge("y", "o")])
         theirs = graph([node("x"), node("y"), node("t")], [edge("x", "y"), edge("x", "t")])
         done = self.merge_theirs(ours, theirs)
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         data = json.loads((self.repo / GRAPH).read_text())
         self.assertEqual([n["id"] for n in data["nodes"]], ["x", "y", "o", "t"])
-        self.assertEqual((self.repo / PAGE).read_text(), "page ours\n")
-        self.assertIn("and commit the pages", done.stderr)
+        self.assertIn("build_pipeline_map.py --check checks it", done.stderr)
         self.assertEqual(sh("git", "status", "--porcelain", cwd=self.repo).stdout, "")
 
     def test_conflicting_edit_stops_the_merge(self) -> None:
@@ -372,7 +369,7 @@ class GitMergeTest(unittest.TestCase):
 
     def test_dangling_edge_stops_the_merge(self) -> None:
         base3 = graph([node("x"), node("y"), node("z")], [edge("x", "y"), edge("x", "z")])
-        self.write(base3, "page base")
+        self.write(base3)
         sh("git", "commit", "-q", "-am", "three", cwd=self.repo)
         done = self.merge_theirs(graph([node("x"), node("y"), node("z")], [edge("x", "y"), edge("x", "z"), edge("z", "y")]),
                                  graph([node("x"), node("z")], [edge("x", "z")]))
@@ -427,7 +424,7 @@ class SetupSpotsTest(unittest.TestCase):
         path = self.scratch(repo=True)
         first = self.HOOK.merge_drivers(str(path))
         self.assertEqual(first[0], "Merge drivers:")
-        self.assertIn("set git config merge.pipeline-map-page.driver", first)
+        self.assertIn("set git config merge.pipeline-map.driver", first)
         self.assertEqual(self.HOOK.merge_drivers(str(path)), [])
 
     def test_hook_reports_a_failure(self) -> None:
@@ -441,14 +438,76 @@ class SetupSpotsTest(unittest.TestCase):
             self.assertTrue(self.WT.install_merge_drivers(Path(tmp)))
 
 
+class RetiredDriverTest(unittest.TestCase):
+    """--install removes the retired page driver's config section (ADR-036), once, and says so; a git config failure
+    is a clear error, not a traceback."""
+
+    def setUp(self) -> None:
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.repo = Path(tmp.name)
+        sh("git", "init", "-q", cwd=self.repo)
+
+    def install(self) -> tuple[int, str, str]:
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            rc = MERGE.main(["--install", "--repo", str(self.repo)])
+        return rc, out.getvalue(), err.getvalue()
+
+    def test_a_left_over_page_driver_is_removed_once(self) -> None:
+        sh("git", "config", "merge.pipeline-map-page.name", "old", cwd=self.repo)
+        sh("git", "config", "merge.pipeline-map-page.driver", "exec old --page %O %A %B %P", cwd=self.repo)
+        rc, out, err = self.install()
+        self.assertEqual(rc, 0, err)
+        self.assertIn("removed git config merge.pipeline-map-page (a retired driver)", out)
+        left = sh("git", "config", "--get-regexp", "^merge\\.pipeline-map-page\\.", cwd=self.repo, check=False)
+        self.assertEqual(left.returncode, 1, left.stdout)
+        rc, out, err = self.install()
+        self.assertEqual((rc, out), (0, ""), err)
+
+    def test_nothing_to_remove_says_nothing_about_it(self) -> None:
+        rc, out, err = self.install()
+        self.assertEqual(rc, 0, err)
+        self.assertNotIn("removed", out)
+
+    def test_a_failed_removal_is_a_clear_error(self) -> None:
+        sh("git", "config", "merge.pipeline-map-page.name", "old", cwd=self.repo)
+        real = MERGE.git_config
+
+        def failing(repo, *args):
+            if "--remove-section" in args:
+                return subprocess.CompletedProcess(args, 3, "", "could not lock config file")
+            return real(repo, *args)
+
+        with unittest.mock.patch.object(MERGE, "git_config", side_effect=failing):
+            rc, _, err = self.install()
+        self.assertEqual(rc, 2)
+        self.assertIn("git config --remove-section merge.pipeline-map-page failed", err)
+        self.assertIn("could not lock config file", err)
+        self.assertNotIn("Traceback", err)
+
+    def test_the_page_mode_is_gone(self) -> None:
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as stop:
+            MERGE.main(["--page", "a", "b", "c"])
+        self.assertEqual(stop.exception.code, 2)
+
+
 class RepoTest(unittest.TestCase):
-    def test_gitattributes_name_the_drivers(self) -> None:
-        for path, driver in ((GRAPH, "pipeline-map"), (PAGE, "pipeline-map-page"),
-                             ("www/library/pipeline-map.html", "pipeline-map-page")):
+    def test_gitattributes_name_the_driver_and_no_page_driver(self) -> None:
+        for path, driver in ((GRAPH, "pipeline-map"), *((page, "unspecified") for page in PAGES)):
             got = subprocess.run(["git", "check-attr", "merge", "--", path], cwd=ROOT, capture_output=True,
                                  text=True, check=True).stdout.strip()
             self.assertEqual(got, f"{path}: merge: {driver}")
-        self.assertEqual(set(MERGE.DRIVERS), {"pipeline-map", "pipeline-map-page"})
+        self.assertEqual(set(MERGE.DRIVERS), {"pipeline-map"})
+        self.assertEqual(set(MERGE.RETIRED) & set(MERGE.DRIVERS), set())
+
+    def test_the_pages_are_ignored_not_tracked(self) -> None:
+        for page in PAGES:
+            tracked = subprocess.run(["git", "ls-files", "--error-unmatch", "--", page], cwd=ROOT,
+                                     capture_output=True, text=True)
+            self.assertNotEqual(tracked.returncode, 0, f"{page} is tracked; it is built, not committed (ADR-036)")
+            ignored = subprocess.run(["git", "check-ignore", "-q", "--no-index", "--", page], cwd=ROOT)
+            self.assertEqual(ignored.returncode, 0, f"{page} is not in .gitignore")
 
 
 # Merges of origin/main into PR #895's branch (agent/claude/anyplan-from-plugin) where both sides had changed the

@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from hartlib import paths, railroad_facts as rf  # noqa: E402
+from hartlib import hand_lists, paths, railroad_facts as rf  # noqa: E402
 
 STATIONS = paths.LAYOUT_DATA / "schematic" / "stations.csv"
 SWITCHES = paths.LAYOUT_DATA / "switches.csv"
@@ -187,11 +187,22 @@ class StationGroupRows(Files):
         (d / "switches.csv").write_text(SW_HEAD + "".join(rows))
         return d / "stations.csv", d / "switches.csv"
 
+    def halves(self, st: Path, *rows: str) -> None:
+        """The crossover_half rows (level 1, switch 7) beside `st`: "<to>,<parallel>,<id>" each."""
+        text = "".join(f"1,crossover_half,7,{r.split(',')[0]},{r.split(',')[1]},,{r.split(',')[2]},,,\n" for r in rows)
+        (st.parent / hand_lists.OVERRIDES_NAME).write_text(",".join(hand_lists.OVERRIDE_COLUMNS) + "\n" + text)
+
     def test_a_crossover_is_listed_by_its_halves_in_order(self):
         st, sw = self.files('1,X Y,"7,5",,XX,n\n', "1,7,OS Switch 7b,os:7:A-5B\n1,7,OS Switch 7,os:7:A-13C\n"
                                                         "1,5,OS Switch 5\n")
+        self.halves(st, "13,1,os:7:A-13C", "5,2,os:7:A-5B")
         self.assertEqual(rf.station_group_rows(st, sw),
                          [dict(cp_id="x_y", cp_name="X Y", level="1", switches="7,7b,5", notes="n", code="XX")])
+
+    def test_half_text(self):
+        self.assertEqual([rf.half_text(7, "OS Switch 7", "a"), rf.half_text(7, "OS Switch 7", "b"),
+                          rf.half_text(23, "OS Switch 23b", "a"), rf.half_text(23, "OS East West", "b")],
+                         ["7", "7b", "23a", "23b"])
 
     def test_every_level_is_given(self):
         st, sw = self.files("1,X,5,,XX,\n2,Y,105,,YY,\n", "1,5,OS Switch 5\n2,105,OS Switch 105\n")
@@ -213,13 +224,23 @@ class StationGroupRows(Files):
 
     def test_a_renamed_os_block_is_listed_by_its_switch(self):
         """naming-layers step 5: a staging OS block is keyed by its id, so an owner's name for it (os_block is the
-        name store's label) still lists as its switch number; a renamed crossover half stops (its letter is the
-        name's)."""
+        name store's label) still lists as its switch number, and a renamed crossover half as its number and the
+        letter block_overrides.csv's crossover_half row gives its ID; with no such row it stops."""
         st, sw = self.files("1,X,5,,XX,\n", "1,5,OS Brick East\n")
         self.assertEqual(rf.station_group_rows(st, sw)[0]["switches"], "5")
         st, sw = self.files('1,X,"7",,XX,\n', "1,7,OS Barn West,os:7:A-13C\n1,7,OS Switch 7b,os:7:A-5B\n")
-        with self.assertRaisesRegex(rf.FactsError, r"switches.csv line 2 \(Switch 7\): os:7:A-13C is named "
-                                                   r"'OS Barn West'; a crossover half's name gives its half letter"):
+        self.halves(st, "13,1,os:7:A-13C", "5,2,os:7:A-5B")
+        self.assertEqual(rf.station_group_rows(st, sw)[0]["switches"], "7a,7b")
+        # the letter is the ID's, never the name's: halves named like each other's keep their own letters
+        st, sw = self.files('1,X,"7",,XX,\n', "1,7,OS Switch 7b,os:7:A-13C\n1,7,OS Switch 7a,os:7:A-5B\n")
+        self.halves(st, "13,1,os:7:A-13C", "5,2,os:7:A-5B")
+        self.assertEqual(rf.station_group_rows(st, sw)[0]["switches"], "7a,7b")
+        self.halves(st, "5,2,os:7:A-5B")
+        with self.assertRaisesRegex(rf.FactsError, r"switches.csv line 2 \(Switch 7\): os:7:A-13C \(OS Switch 7b\) "
+                                                   "is a crossover half with no crossover_half row"):
+            rf.station_group_rows(st, sw)
+        (st.parent / hand_lists.OVERRIDES_NAME).unlink()
+        with self.assertRaisesRegex(rf.FactsError, "cannot read"):
             rf.station_group_rows(st, sw)
 
 
