@@ -304,7 +304,7 @@ LEFT_OUT = {
     "unit-guards test_check_stamps": "the stamp machinery's own tests (38 s); declared on its sample jobs' "
                                      "declarations (RUNS_JOBS), docs/ through unit-anyrail's",
     "unit-guards test_hart_tables_writers": "runs each table writer only to see it refuse to write under "
-                                            "HART_TABLES; status_counts.py reads wiki/STATUS.md on the way",
+                                            "HART_TABLES; status_counts.py reads wiki/status/ on the way",
     "unit-guards test_jmri_process_patterns": "reads the .sh, .ps1 and .py files git lists, docs/ included; no Markdown",
     "unit-guards test_pipeline_map": "its real-map tests read the graph and the pages, which only a full-path change "
                                      "(docs/pipeline-map/) alters; both pages are the pipeline-map check",
@@ -316,8 +316,10 @@ LEFT_OUT = {
                                  "what the pipeline-map check's build_pipeline_map.py --check also fails on",
     "unit-guards test_agent_docs_cells": "its runs of check_agent_docs.py on the real wiki and AGENTS.md are what "
                                          "the agent-docs check in docs_checks.sh's list checks",
-    "unit-guards test_status_merge": "its one test on the real wiki/STATUS.md (no doubled entries) is what the "
-                                     "status-counts check in docs_checks.sh's list also fails on",
+    "unit-guards test_status_merge": "its tests on the built page (no doubled entries) are what the status-counts "
+                                     "check in docs_checks.sh's list also fails on",
+    "unit-guards test_status_counts": "its tests on the real wiki/status/ are what the status-counts check in "
+                                      "docs_checks.sh's list also fails on",
     "unit-guards test_helix_stl_index": "lists the docs/benchwork/helix/stl/ models, no Markdown",
     "unit-guards test_publish_draft": "reads docs/ops/ drawings and JSON, no Markdown",
     "unit-guards test_write_inventory": "reads docs/wiring/ CSV, no Markdown",

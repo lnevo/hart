@@ -324,14 +324,15 @@ cmd = ["python3", "tools/ops/status_counts.py", "--check"]
 git = ["head", "base"]
 domain = "extras"
 label = "status_counts.py"
-desc = "Rewrites the Counts line of wiki/STATUS.md from tables.xml masts/SML and dispatcher traininfo; --check in tools/check.sh."
+desc = "Builds wiki/STATUS.md from the entry files in wiki/status/ and the Counts line from tables.xml masts/SML and dispatcher traininfo (make status, ADR-038); --check fails an entry over 60 words and builds the page in memory."
 docs_only = true
 inputs = [
   "jmri/layouts/hart/dispatcher/traininfo",
   "jmri/layouts/hart/output/tables.xml",
+  { path = "wiki/status", label = "entries" },
 ]
 outputs = [
-  { path = "wiki/STATUS.md", label = "Counts line" },
+  { path = "wiki/STATUS.md", label = "built page" },
 ]
 
 # Every output drawn from the schematic, checked by its own pipeline (make panels CHECK=1): each step of
