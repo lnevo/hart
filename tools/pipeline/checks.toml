@@ -660,9 +660,29 @@ inputs = [
   { path = "jmri/layouts/hart/data/switches.csv", label = "rules", side = "check" },
   { path = "jmri/layouts/hart/data/schematic/stations.csv", label = "refs", side = "check" },
   { path = "jmri/layouts/hart/data/schematic/interlockings.csv", label = "refs", side = "check" },
+  { path = "ops/hart-ops/data/locos.csv", label = "rules", side = "check" },
 ]
 # the sidecars it lists (check_data.SCAN_GLOBS)
 quiet_inputs = ["**/*.columns.csv"]
+
+# The loco master against its copies (ADR-039 lane L4d): every engine of both Operations Pro rosters and every
+# train's engine must be a locos.csv row, or a gap the script reports by name until the owner settles it.
+[[step]]
+name = "loco-refs"
+runner = "check"
+group = "static"
+cmd = ["python3", "tools/ops/check_locos.py"]
+git = ["head", "base"]
+domain = "ops"
+label = "check_locos.py"
+desc = "Checks that every engine in both Operations Pro engine rosters and every engine in the train list is a row of the loco master locos.csv, keyed on roster_id (ADR-039)."
+inputs = [
+  { path = "ops/hart-ops/data/locos.csv", label = "master", side = "check" },
+  { path = "jmri/layouts/hart/operations", label = "engine roster", side = "check" },
+  { path = "ops/hart-ops/data/OperationsEngineRoster.xml", label = "snapshot roster", side = "check" },
+]
+# the train list: no map box yet (lane L4b adds it; then move it to inputs)
+quiet_inputs = ["cats/data/hart_trains.csv"]
 
 [[step]]
 name = "name-copies"
