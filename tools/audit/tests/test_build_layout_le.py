@@ -1041,11 +1041,14 @@ class LevelMasts(unittest.TestCase):
             with self.assertRaisesRegex(B.BuildError, r"^masts\.csv line \d+: mast Mast 108LA: head Head 108LA Top is "
                                                       r"'IH:HART:C3:108LB_Top', neither its internal name"):
                 B.read_level_masts(path)                # a virtual name not from its user name: the file's own rule
-            path.write_text(text.replace("IH:HART:C3:108LA_Top", "IH3332"), encoding="utf-8")
-            with self.assertRaisesRegex(B.BuildError, r"head Head 108LA Top is the wired LCOS head 'IH3332', but a "
+            path.write_text(text.replace("IH:HART:C3:108LA_Top", "IH4240"), encoding="utf-8")
+            with self.assertRaisesRegex(B.BuildError, r"head Head 108LA Top is the wired LCOS head 'IH4240', but a "
                                                       r"level 2 head is internal"):
-                B.read_level_masts(path)                # a field (LCOS) name: no main or upper head is wired yet,
-            # so the file's reader refuses it before the coordinator's own test below would
+                B.read_level_masts(path)                # a field (LCOS) name that is not its planned head: the
+            # file's reader refuses it before the coordinator's own test below would
+            path.write_text(text.replace("IH:HART:C3:108LA_Top", "IH3332"), encoding="utf-8")
+            [m] = [r for r in B.read_level_masts(path) if r["mast"] == "Mast 108LA"]   # its planned head: a swap
+            self.assertEqual(m["heads"][0], ("IH3332", "Head 108LA Top"))
         # and the coordinator's own test, which read_level_masts runs as well: no virtual name is an LCOS head
         self.assertEqual(B.lcos_named(["IH3332", "IF$shsm:basic:one-low(IH3332)", "IH:HART:C3:108LA",
                                        "IF$shsm:basic:one-low(IH:HART:C3:108LA)"]),

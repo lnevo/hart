@@ -154,6 +154,32 @@ class Digicon(unittest.TestCase):
     def test_the_committed_heads_are_6lb(self):
         self.assertEqual({r["system_name"] for r in W.digicon_rows()}, {"IH432"})
 
+    def test_a_main_head_is_a_digicon_head_by_its_rows_assignment(self):
+        """A main or upper head is a Digicon head when its device row's assignment is field (a head swapped in by its
+        row), its pins from the row's wiring text; a virtual one is not, whatever wiring.csv freezes for it."""
+        import unittest.mock
+        from hartlib import devices
+
+        def head(assignment, jmri, wiring="Node: 33 Signal: 0 | OU: 3 Ports: 1 | OU: 4 Ports: 2 | OU: 3 Ports: 3", place="top"):
+            return dict.fromkeys(devices.COLUMNS, "") | dict(
+                level="2", layer="head", id=f"mast:107:B:west:{place}", user_name=f"Head 108LA {place.title()}",
+                assignment=assignment, jmri_name=jmri, wiring=wiring)
+        mast = dict.fromkeys(devices.COLUMNS, "") | dict(level="2", layer="mast", id="mast:107:B:west",
+                                                         user_name="Mast 108LA")
+        p = self.read('2,head,mast:107:B:west:bottom,,,,,,33,1,OU3,"4,5,6",wired,\n')
+        bottom = head("virtual", "IH:HART:C3:108LA_Bottom", "Node: 33 Signal: 1 | OU: 3 Ports: 4,5,6", "bottom")
+        with unittest.mock.patch.object(devices, "load", lambda files=None: [mast, head("field", "IH3332"), bottom]):
+            rows = W.digicon_rows(p)
+        self.assertEqual([(r["port_id"], r["system_name"], r["user_name"], r["mast_user_name"]) for r in rows],
+                         [("C33-OU3-1", "IH3332", "Head 108LA T R", "Mast 108LA"),
+                          ("C33-OU4-2", "IH3332", "Head 108LA T Y", "Mast 108LA"),
+                          ("C33-OU3-3", "IH3332", "Head 108LA T G", "Mast 108LA")])
+        for bad, msg in ((head("field", "IH3333"), "jmri_name 'IH3333' is not the LCOS head IH3332"),
+                         (head("field", "IH3332", "Node: 33 Block: 1"), "is not Node: <n> Signal: <i>")):
+            with self.subTest(msg=msg), unittest.mock.patch.object(devices, "load", lambda files=None, b=bad: [mast, b]), \
+                    self.assertRaisesRegex(FactsError, msg):
+                W.field_heads()
+
     def test_a_head_that_is_not_named_as_a_head_stops(self):
         # mast:5:B:west is the mast, Mast 6LB, not one of its heads: a head's id ends in its place
         with self.assertRaisesRegex(FactsError, "a head's id is its mast's id and its place"):
