@@ -158,6 +158,15 @@ class StaticPanelChecks(unittest.TestCase):
             return list(manifest.select(manifest.load(), "check", group="static"))
 
     @staticmethod
+    def panel_scripts() -> list[str]:
+        """The scripts make panels runs: the steps of tools/pipeline/panels.toml (build_panels.sh runs them)."""
+        spec = importlib.util.spec_from_file_location("check_sh_tables_manifest", ROOT / "tools/pipeline/manifest.py")
+        manifest = importlib.util.module_from_spec(spec)
+        with mock.patch.dict(sys.modules, {spec.name: manifest}):
+            spec.loader.exec_module(manifest)
+            return [s.script for s in manifest.panel_steps()]
+
+    @staticmethod
     def static_body() -> str:
         text = CHECK.read_text(encoding="utf-8")
         return text[text.index("\nstatic_lines() {\n"):text.index("\nlater static static_checks\n")]
@@ -166,9 +175,8 @@ class StaticPanelChecks(unittest.TestCase):
         steps = self.static_steps()
         self.assertIn(("panels", ("bash", "tools/schematic/build_panels.sh", "--check")),
                       [(s.name, s.cmd) for s in steps])
-        panel = re.findall(r"^(?:step|guard) [a-z-]+ python3 (\S+\.py)", (ROOT / "tools/schematic/build_panels.sh")
-                           .read_text(encoding="utf-8"), re.M)
-        self.assertGreaterEqual(len(panel), 16, "build_panels.sh's step lines were not found")
+        panel = self.panel_scripts()
+        self.assertGreaterEqual(len(panel), 16, "tools/pipeline/panels.toml's steps were not found")
         scripts = {s.script for s in steps}
         self.assertEqual([], sorted(set(panel) & scripts), "a panel step checked twice: build_panels.sh --check runs it")
 

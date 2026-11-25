@@ -1,0 +1,414 @@
+# The steps of make panels (tools/schematic/build_panels.sh), one [[step]] each, in the order they run (ADR-037,
+# docs/pipeline-map/build-graph-design.md). build_panels.sh reads this list through
+# `python3 tools/pipeline/manifest.py jobs panels`, tools/schematic/panel_stamps.py takes each step's outputs, publish
+# flag and programs from it, and the map draws each step's script from it (tools/pipeline/map_lane.py). A file that
+# does not load, or a list with no step, stops make panels before any step runs. The order is the file order: the
+# loader checks it (writers before readers), it does not sort it. Check an edit with
+# `python3 tools/pipeline/manifest.py check`.
+#
+# Fields (manifest.py checks each one and refuses any other):
+#   name        the step name as build_panels.sh prints it; the stamps key on it, so a rename reruns the step once
+#   mode        "step" (writes its outputs; skipped while its traced stamp holds) or "guard" (only checks, in both
+#               modes; always runs, and a failed guard stops a write)
+#   cmd         argv: python3 and the script, then its arguments (letters, digits and . _ / = - only)
+#   check_args  what make panels CHECK=1 adds to cmd ([] when cmd already only checks)
+#   box         the map box the script is drawn in, when it is not the script's own (approval.py's box holds
+#               check_approved.py)
+#   domain, label, desc
+#               the map box's lane, name and text; a step whose box an earlier step already has sets none of them
+#   inputs      what the step reads, as map edges into its box: a path, or { path, label, side, written_later }.
+#               written_later names the steps that write the file after this one runs (it reads the last run's
+#               file, or rows those steps do not write); without it every writer of the file must come earlier
+#   outputs     what the step writes: the paths and globs the stamp hashes (panel_stamps.py) and the map's edges out
+#               of its box. A glob is drawn to the boxes it matches that no other item names, else to the box of
+#               its folder. { path, drawn = false } is stamped but left off the map (the schematic's title-block
+#               write to preferences.json would draw a cycle through every reader of the plan)
+#   updates     outputs the step also reads and rewrites in part, carrying the other writers' parts over. Two steps
+#               may write one file only when both list it here; a step's read of a file it updates is not ordered
+#   programs    a program the trace cannot see into (matched by name) and the files it reads; panel_stamps.py
+#               stamps a step that ran only these
+#   publishes   reads main's published files through git: the merge base with origin/main is in the stamp key
+# Every path is from the repo root and names a tracked file or folder, or a map node marked "local". Inputs were
+# taken from the map's edges into each script (2026-11-25); code, the plugin and the schematic cache stay hand-kept
+# edges of docs/pipeline-map/pipeline_map.json.
+
+# The plan rows' hands in switches.csv, from the plan graph.
+[[step]]
+name = "hands"
+mode = "step"
+cmd = ["python3", "tools/schematic/build_hands.py"]
+check_args = ["--check"]
+domain = "layout"
+label = "build_hands.py"
+desc = "make panels step 1 (hands): writes the hand of switches.csv's plan rows from the plan graph and relabel edits, and each staging row's os_block, closed_leg and thrown_leg from the name store by their ids; owner hands are left alone."
+inputs = [
+  { path = "jmri/layouts/hart/data/schematic/inputs/main.json", label = "reads hand" },
+  { path = "jmri/layouts/hart/data/schematic/plan_overrides.json", label = "relabel edits" },
+  { path = "jmri/layouts/hart/data/devices_generated.csv", label = "the name store's names of the staging legs' ids", written_later = ["device-map", "panel-items"] },
+  { path = "jmri/layouts/hart/data/devices_field.csv", label = "the owner's names by id (merged view)" },
+]
+outputs = [
+  { path = "jmri/layouts/hart/data/switches.csv", label = "step 1 hands; staging's leg labels by id" },
+]
+
+# Staging's control points, stations and detail sheets in the staging sections of plan_generated.json and
+# preferences_generated.json, from stations.csv (the desk areas by its desk_code column) and sheets.csv (the layer
+# files hold a section per sheet: hartlib.layer_files).
+[[step]]
+name = "staging-sets"
+mode = "step"
+cmd = ["python3", "tools/schematic/build_staging_sets.py"]
+check_args = ["--check"]
+domain = "layout"
+label = "build_staging_sets.py"
+desc = "make panels step 2: writes staging control points and stations into plan_generated.json and detail sheets into preferences_generated.json."
+inputs = [
+  { path = "jmri/layouts/hart/data/schematic/sheets.csv", label = "reads, via hartlib.hand_lists" },
+  { path = "jmri/layouts/hart/data/schematic/stations.csv", label = "reads" },
+  { path = "jmri/layouts/hart/data/switches.csv", label = "reads" },
+  { path = "jmri/layouts/hart/data/devices_field.csv", label = "the names of stations.csv's tracks by block id (station_tracks)" },
+  { path = "jmri/layouts/hart/data/devices_generated.csv", label = "generated names of stations.csv's track ids, the last build's (station_tracks)", written_later = ["device-map", "panel-items"] },
+]
+# plan_generated.json is an output of staging-sets, main-route and device-map (each replaces only its own keys, so it
+# reads the file it writes to carry the others' keys over) and an input of every step that draws from the plan.
+outputs = [
+  { path = "jmri/layouts/hart/data/schematic/plan_generated.json", label = "step 2 staging section" },
+  { path = "jmri/layouts/hart/data/schematic/preferences_generated.json", label = "detail_sheets" },
+]
+updates = ["jmri/layouts/hart/data/schematic/plan_generated.json"]
+
+# main_route in plan_generated.json's main_upper section, from main_lines.csv (main_upper rows) and the plan graph;
+# staging's name_main and milepost_route, from its staging rows.
+[[step]]
+name = "main-route"
+mode = "step"
+cmd = ["python3", "tools/schematic/build_main_route.py"]
+check_args = ["--check"]
+domain = "layout"
+label = "build_main_route.py"
+desc = "make panels step 3: writes main_route, staging milepost_route and name_main (the runs of the staging main lines, which the name store flags main in the plugin's name edit) into plan_generated.json from main_lines.csv."
+inputs = [
+  { path = "jmri/layouts/hart/data/schematic/inputs/main.json", label = "reads" },
+  { path = "jmri/layouts/hart/data/schematic/inputs/staging.json", label = "reads" },
+  { path = "jmri/layouts/hart/data/schematic/main_lines.csv", label = "reads, via hartlib.hand_lists" },
+  { path = "jmri/layouts/hart/data/schematic/plan_overrides.json", label = "merged view (layer_files.view): the plan graph with its edits" },
+  { path = "jmri/layouts/hart/data/devices_field.csv", label = "the owner's track names by id (hartlib.track_names, in the merged view)" },
+  { path = "jmri/layouts/hart/data/devices_generated.csv", label = "the names of main_lines.csv's block ids", written_later = ["device-map", "panel-items"] },
+]
+outputs = [
+  { path = "jmri/layouts/hart/data/schematic/plan_generated.json", label = "step 3 main_route, name_main, milepost_route" },
+]
+updates = ["jmri/layouts/hart/data/schematic/plan_generated.json"]
+
+# Every level's rows of the device master, and plan_generated.json's main_upper section, from the solved sheet; the
+# schematic reads both, so it runs before publishing. It reads signals.json, preferences.json and block_lengths.csv as
+# the last run left them: device-map and masts give the same outputs with every signal dropped from signals.json (the
+# solve's signals layer places mast icons only), so there is no cycle.
+[[step]]
+name = "device-map"
+mode = "step"
+cmd = ["python3", "tools/schematic/build_device_map.py"]
+check_args = ["--check"]
+domain = "layout"
+label = "build_device_map.py"
+desc = "make panels step 7, with its modules device_map_inputs.py (the readers), device_map_schematic.py (the drawing's tracks), device_map_rows.py (every level's row makers and the owner's values over them), device_map_staging.py (staging's rows) and device_map_masts.py (staging's masts, build_masts.py part 1 until naming-layers step 12): writes every level's turnout, feedback, block, occupancy, mast and head rows to devices_generated.csv, each generated from the plan with the owner's cells from devices_field.csv over it (naming-layers step 7), and (T6b) the plan_generated.json main_upper section from the solved sheet."
+inputs = [
+  { path = "jmri/layouts/hart/data/schematic/block_overrides.csv", label = "reads, via hartlib.hand_lists" },
+  { path = "jmri/layouts/hart/data/schematic/block_numbering.csv", label = "reads, via hartlib.block_numbering" },
+  { path = "jmri/layouts/hart/data/schematic/plan_overrides.json", label = "reads" },
+  { path = "jmri/layouts/hart/data/schematic/inputs/main.json", label = "reads" },
+  { path = "jmri/layouts/hart/data/schematic/inputs/parts.json", label = "reads" },
+  { path = "jmri/layouts/hart/data/schematic/inputs/staging.json", label = "reads" },
+  { path = "jmri/layouts/hart/data/schematic/interlockings.csv", label = "reads" },
+  { path = "jmri/layouts/hart/data/schematic/lcos_nodes.csv", label = "reads" },
+  { path = "jmri/layouts/hart/data/switches.csv", label = "reads" },
+  { path = "jmri/layouts/hart/data/schematic/preferences.json", label = "reads", written_later = ["schematic"] },
+  { path = "jmri/layouts/hart/data/schematic/signals.json", label = "reads", written_later = ["signals"] },
+  { path = "jmri/layouts/hart/data/wiring.csv", label = "reads (detectors, turnouts, and staging's wired heads by id)" },
+  { path = "jmri/layouts/hart/data/devices_field.csv", label = "owner's cells by id, staging masts' names and wired cells too" },
+  { path = "jmri/layouts/hart/data/devices_generated.csv", label = "generated names of stations.csv's track ids and preferences.json's block ids, the last build's (read_places, solve)" },
+  { path = "jmri/layouts/hart/data/schematic/retired_virtual_masts.csv", label = "reads (virtual mast ordinals), via hartlib.hand_lists" },
+  { path = "jmri/layouts/hart/data/block_lengths.csv", label = "reads staging plan lengths by id (masts)", written_later = ["length-labels"] },
+]
+outputs = [
+  { path = "jmri/layouts/hart/data/devices_generated.csv", label = "every level's rows, masts and heads too (naming-layers step 12); wiring cells" },
+  { path = "jmri/layouts/hart/data/schematic/plan_generated.json", label = "main_upper section" },
+]
+updates = [
+  "jmri/layouts/hart/data/devices_generated.csv",
+  "jmri/layouts/hart/data/schematic/plan_generated.json",
+]
+
+# block_lengths.csv's user_name labels, the name store's for each row's (level, id) (plan_lengths.py --labels; no plan
+# file needed), so a rename in devices_field.csv relabels the row and plan-lengths, the readers by name and the Pi's
+# speed-match copy follow it. After device-map, which writes the generated names it reads.
+[[step]]
+name = "length-labels"
+mode = "step"
+cmd = ["python3", "tools/schematic/plan_lengths.py", "--labels"]
+check_args = ["--check"]
+domain = "layout"
+label = "plan_lengths.py"
+desc = "Writes block_lengths.csv plan_in from the AnyRail plan, run by hand; make panels only checks it."
+inputs = [
+  { path = "jmri/layouts/hart/data/devices_generated.csv", label = "reads blocks", written_later = ["panel-items"] },
+  { path = "jmri/layouts/hart/data/devices_field.csv", label = "the owner's names by id (labels)" },
+]
+outputs = [
+  { path = "jmri/layouts/hart/data/block_lengths.csv", label = "writes plan_in and the user_name labels (--labels: length-labels step); check in panels" },
+]
+updates = ["jmri/layouts/hart/data/block_lengths.csv"]
+
+# block_lengths.csv's plan_in (the AnyRail plan 5.3c lengths) is written by plan_lengths.py, run by hand (it reads the
+# private plan file): this only checks it, in both modes. After device-map, since it finds the OS blocks in the device
+# master that device-map writes.
+[[step]]
+name = "plan-lengths"
+mode = "guard"
+cmd = ["python3", "tools/schematic/plan_lengths.py", "--check"]
+check_args = []
+inputs = [
+  { path = "jmri/layouts/hart/data/schematic/block_overrides.csv", label = "reads, via hartlib.hand_lists" },
+  { path = "jmri/layouts/hart/data/schematic/inputs/main.json", label = "reads" },
+  { path = "jmri/layouts/hart/data/schematic/inputs/parts.json", label = "reads" },
+  { path = "jmri/layouts/hart/data/schematic/inputs/staging.json", label = "reads" },
+  { path = "jmri/layouts/hart/data/devices_generated.csv", label = "reads blocks", written_later = ["panel-items"] },
+]
+
+# masts.csv, every level's masts: from the device master's mast and head rows, which build_device_map.py writes
+# (naming-layers step 12); build_masts.py only reads the device master (hartlib.devices.WRITERS). After device-map,
+# whose rows it reads; panel-items writes only the status beans' rows, which it does not read.
+[[step]]
+name = "masts"
+mode = "step"
+cmd = ["python3", "tools/schematic/build_masts.py"]
+check_args = ["--check"]
+domain = "layout"
+label = "build_masts.py"
+desc = "make panels masts step: masts.csv for every level from the device master's mast and head rows (build_device_map.py writes them since naming-layers step 12), with staging's plan facts from the same plan (device_map_masts.staging_masts)."
+inputs = [
+  { path = "jmri/layouts/hart/data/block_lengths.csv", label = "reads" },
+  { path = "jmri/layouts/hart/data/schematic/block_overrides.csv", label = "reads, via hartlib.hand_lists" },
+  { path = "jmri/layouts/hart/data/schematic/interlockings.csv", label = "reads" },
+  { path = "jmri/layouts/hart/data/schematic/retired_virtual_masts.csv", label = "reads, via hartlib.hand_lists (mast_plan)" },
+  { path = "jmri/layouts/hart/data/wiring.csv", label = "reads heads" },
+  { path = "jmri/layouts/hart/data/devices_generated.csv", label = "reads every level's mast/head rows", written_later = ["panel-items"] },
+  { path = "jmri/layouts/hart/data/devices_field.csv", label = "staging masts' owner cells by id (through device_map_masts)" },
+]
+outputs = [
+  { path = "jmri/layouts/hart/data/schematic/masts.csv", label = "writes (every level)" },
+]
+
+# The status beans' rows of the device master (panel_items.py, written_by panel_items.json), from panel_items.json;
+# like device-map it writes the device master, so it runs before tables, which reads its rows.
+[[step]]
+name = "panel-items"
+mode = "step"
+cmd = ["python3", "tools/schematic/panel_items.py"]
+check_args = ["--check"]
+domain = "layout"
+label = "panel_items.py"
+desc = "Reads panel_items.json (fixed icons, labels, status cluster, panel attributes) for build_layout_le.py and writes the status beans' rows of devices_generated.csv (make panels' panel-items step, before tables); --check in check.sh."
+inputs = [
+  { path = "jmri/layouts/hart/data/schematic/panel_items.json", label = "reads, via hartlib.hand_lists" },
+]
+outputs = [
+  { path = "jmri/layouts/hart/data/devices_generated.csv", label = "status beans rows" },
+]
+updates = ["jmri/layouts/hart/data/devices_generated.csv"]
+
+# signals.json (a section per sheet), from the plan graph and masts.csv; the schematic reads it. After masts, so one
+# run draws the masts it writes.
+[[step]]
+name = "signals"
+mode = "step"
+cmd = ["python3", "tools/schematic/build_signals.py"]
+check_args = ["--check"]
+domain = "layout"
+label = "build_signals.py"
+desc = "make panels step 6: writes signals.json from the plan graph and the mast CSVs."
+inputs = [
+  { path = "jmri/layouts/hart/data/block_lengths.csv", label = "reads" },
+  { path = "jmri/layouts/hart/data/schematic/inputs/main.json", label = "reads" },
+  { path = "jmri/layouts/hart/data/schematic/inputs/staging.json", label = "reads" },
+  { path = "jmri/layouts/hart/data/schematic/masts.csv", label = "reads" },
+  { path = "jmri/layouts/hart/data/devices_field.csv", label = "the owner's track and helix names by id (hartlib.track_names, in the merged view)" },
+  { path = "jmri/layouts/hart/data/schematic/plan_generated.json", label = "merged view (layer_files.view)" },
+  { path = "jmri/layouts/hart/data/schematic/plan_overrides.json", label = "merged view (layer_files.view)" },
+]
+outputs = [
+  { path = "jmri/layouts/hart/data/schematic/signals.json", label = "step 6 signals" },
+]
+
+# signal_head_plan.csv (build_hart_signal_heads.py --wiring-only), from wiring.csv's wired heads; the CATS desks read
+# its templates, so it runs before cats.
+[[step]]
+name = "head-plan"
+mode = "step"
+cmd = ["python3", "jmri/layouts/hart/scripts/build_hart_signal_heads.py", "--wiring-only"]
+check_args = ["--check"]
+domain = "wiring"
+label = "build_hart_signal_heads.py"
+desc = "make panels head-plan step: with --wiring-only writes the Digicon signal head plan from wiring.csv heads (the old mast plan is archived)."
+inputs = [
+  { path = "jmri/layouts/hart/data/wiring.csv", label = "--wiring-only" },
+]
+outputs = [
+  "jmri/layouts/hart/output/signal_head_plan.csv",
+]
+
+# The schematic draft and stations (publish_draft.py). Chrome prints the drawn sheet (an output) to PDF; the title
+# block's date and revision are counted from main's published files.
+[[step]]
+name = "schematic"
+mode = "step"
+cmd = ["python3", "tools/schematic/publish_draft.py"]
+check_args = ["--check"]
+domain = "layout"
+label = "publish_draft.py"
+desc = "make panels step 9: draws the system schematic and station sheets with the plugin, prints PDF via Chrome, updates map revision data."
+publishes = true
+programs = { chrom = [] }
+inputs = [
+  { path = "jmri/layouts/hart/data/block_lengths.csv", label = "plan lengths" },
+  { path = "jmri/layouts/hart/data/schematic/inputs/main.json", label = "reads" },
+  { path = "jmri/layouts/hart/data/schematic/inputs/staging.json", label = "reads" },
+  { path = "jmri/layouts/hart/data/schematic/plan_overrides.json", label = "reads" },
+  { path = "jmri/layouts/hart/data/schematic/preferences.json", label = "reads" },
+  { path = "jmri/layouts/hart/data/schematic/sheets.csv", label = "reads" },
+  { path = "jmri/layouts/hart/data/schematic/signals.json", label = "reads" },
+  { path = "jmri/layouts/hart/data/schematic/stations.csv", label = "reads" },
+  { path = "jmri/layouts/hart/data/devices_field.csv", label = "the owner's track names by id (hartlib.track_names, in the merged view)" },
+  { path = "jmri/layouts/hart/data/schematic/plan_generated.json", label = "merged view (layer_files.view)" },
+  { path = "jmri/layouts/hart/data/schematic/preferences_generated.json", label = "merged view (layer_files.view)" },
+  { path = "jmri/layouts/hart/data/devices_generated.csv", label = "generated names of preferences.json's block ids (merged view)" },
+]
+outputs = [
+  "docs/ops/schematic-system-draft.*",
+  { path = "docs/ops/schematic-system-draft.pdf", label = "Chrome print" },
+  { path = "docs/ops/schematic-system-draft.svg", label = "step 9 schematic" },
+  { path = "docs/ops/stations/*", label = "station sheets" },
+  { path = "www/crew/maps/*/index.html", drawn = false },
+  { path = "jmri/layouts/hart/data/schematic/preferences.json", drawn = false },
+]
+updates = ["jmri/layouts/hart/data/schematic/preferences.json"]
+
+# The discovered Signal Mast Logic was discovered from the beans the sources give now:
+# data/schematic/discovered_sml.stamp holds the sha256 of the discovery base it came from (run_sml_discover.sh writes
+# it). On a mismatch, a write on the Mac runs run_sml_discover.sh itself (PanelPro, about 3 min) and checks again
+# (owner, 2026-11-24; build_panels.sh, "SML discovery"); CHECK=1 only names it stale.
+[[step]]
+name = "sml-current"
+mode = "guard"
+cmd = ["python3", "tools/schematic/check_sml_current.py"]
+check_args = ["--check"]
+domain = "layout"
+label = "check_sml_current.py"
+desc = "make panels guard: discovered_sml.stamp equals the discovery base the sources give now (run_sml_discover.sh again if not)."
+inputs = [
+  { path = "jmri/layouts/hart/data/schematic/discovered_sml.stamp", label = "compared", side = "check" },
+]
+
+# tables.xml (build_tables.py): the template, the beans of the device master, the Layout Editor build
+# (build_layout_le.build, in memory), the discovered Signal Mast Logic (ADR-029: tables.xml is an output).
+[[step]]
+name = "tables"
+mode = "step"
+cmd = ["python3", "tools/schematic/build_tables.py"]
+check_args = ["--check"]
+domain = "layout"
+label = "build_tables.py"
+desc = "make panels step 12: writes tables.xml from the template, the device master's beans, the LE build and discovered SML; applies Digicon boot rule."
+inputs = [
+  { path = "jmri/layouts/hart/data/block_lengths.csv", label = "block lengths" },
+  { path = "jmri/layouts/hart/data/schematic/discovered_sml.xml", label = "SML merge" },
+  { path = "jmri/layouts/hart/data/tables_template.xml", label = "reads" },
+  { path = "jmri/layouts/hart/data/wiring.csv", label = "bean comments" },
+  { path = "jmri/layouts/hart/data/devices_generated.csv", label = "beans" },
+]
+outputs = [
+  { path = "jmri/layouts/hart/output/tables.xml", label = "step 12 tables" },
+]
+
+# Every level's heads and masts in tables.xml follow masts.csv (sync_signals.py --check), in both modes; after tables,
+# which generates them from the device master.
+[[step]]
+name = "signals-sync"
+mode = "guard"
+cmd = ["python3", "tools/schematic/sync_signals.py", "--check"]
+check_args = []
+domain = "layout"
+label = "sync_signals.py"
+desc = "Check only in make panels: every level's heads and masts in tables.xml follow masts.csv."
+inputs = [
+  { path = "jmri/layouts/hart/data/schematic/masts.csv", label = "check only", side = "check" },
+  { path = "jmri/layouts/hart/output/tables.xml", label = "check only", side = "check" },
+]
+
+# The device master is checked against tables.xml and the schematic (check_device_master.py --check), in both modes;
+# after tables, which it checks.
+[[step]]
+name = "device-master"
+mode = "guard"
+cmd = ["python3", "tools/schematic/check_device_master.py", "--check"]
+check_args = []
+domain = "layout"
+label = "check_device_master.py"
+desc = "Check only in make panels: device master rules (both files), rows against tables.xml and schematic."
+inputs = [
+  { path = "jmri/layouts/hart/output/tables.xml", label = "check only", side = "check" },
+  { path = "jmri/layouts/hart/data/devices_generated.csv", label = "check only", side = "check" },
+]
+
+# The CATS desks (build_cats_panel.py); after tables, whose turnouts, sensors, layout blocks and masts they read, so
+# one make panels leaves the desks current with the tables.
+[[step]]
+name = "cats"
+mode = "step"
+cmd = ["python3", "tools/schematic/build_cats_panel.py"]
+check_args = ["--check"]
+domain = "layout"
+label = "build_cats_panel.py"
+desc = "make panels/make desks step: generates CATS CTC and ABS desks and bindings via the plugin's cats module from switches, devices, tables and signals."
+inputs = [
+  { path = "cats/data/occupancy_bindings.csv", label = "reads" },
+  { path = "jmri/layouts/hart/output/signal_head_plan.csv", label = "reads" },
+  { path = "jmri/layouts/hart/data/schematic/signals.json", label = "staging masts" },
+  { path = "jmri/layouts/hart/data/switches.csv", label = "reads" },
+  { path = "jmri/layouts/hart/output/tables.xml", label = "turnouts, sensors, masts" },
+  { path = "jmri/layouts/hart/data/devices_generated.csv", label = "reads" },
+]
+outputs = [
+  { path = "cats/panels/HART_ABS.xml", label = "ABS twin" },
+  { path = "cats/panels/HART_CTC.bindings.json", label = "writes" },
+  { path = "cats/panels/HART_CTC.xml", label = "step cats" },
+]
+
+# The approved-* guards stop a write that drifts from the owner-approved fingerprints, before anything else reads it:
+# check_approved.py on the desks, straight after they are written, then on the live panel.
+[[step]]
+name = "approved-desks"
+mode = "guard"
+cmd = ["python3", "tools/schematic/check_approved.py", "cats-ctc", "cats-abs"]
+check_args = ["--check"]
+box = "tools/schematic/approval.py"
+domain = "layout"
+label = "approval.py / check_approved.py"
+desc = "Fingerprints panel elements; check_approved runs in make panels (desks, live panel) and stops drift from owner-approved hashes."
+inputs = [
+  { path = "cats/panels/HART_ABS.xml", label = "check cats-abs", side = "check" },
+  { path = "cats/panels/HART_CTC.xml", label = "check cats-ctc", side = "check" },
+  { path = "jmri/layouts/hart/data/schematic/approved_cats_abs.sha256", label = "compares", side = "check" },
+  { path = "jmri/layouts/hart/data/schematic/approved_cats_ctc.sha256", label = "compares", side = "check" },
+]
+
+[[step]]
+name = "approved-live"
+mode = "guard"
+cmd = ["python3", "tools/schematic/check_approved.py", "le-panel"]
+check_args = ["--check"]
+box = "tools/schematic/approval.py"
+inputs = [
+  { path = "jmri/layouts/hart/data/schematic/approved_le_panel.sha256", label = "compares", side = "check" },
+  { path = "jmri/layouts/hart/output/tables.xml", label = "check le-panel", side = "check" },
+]
