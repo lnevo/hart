@@ -1,0 +1,2 @@
+order: 540
+**CATS panels (ADR-012 amendment, ADR-023):** `HART_CTC.xml` and `HART_ABS.xml` are generated for all three levels by `tools/schematic/build_cats_panel.py`; window 1920 x 1032, the layout hosts' 1920 x 1080 screen less a 48 px taskbar (owner, 2026-11-21), from `host_screen` in `preferences.json`'s `main_upper` section, as the Layout Editor panel's window is; the other choices are `cats_*` there ([`pipelines/cats-panels.md`](../../pipelines/cats-panels.md)).

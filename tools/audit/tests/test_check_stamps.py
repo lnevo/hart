@@ -33,7 +33,7 @@ NARROWED = ("unit-guards test_check_stamps", "unit-hosts test_deploy_stage", "un
 # stay covered by its declaration (the audit sees Python only; the comments in check_stamps.EXTRA say what the
 # untraced programs read).
 NARROWED_READS: dict[str, tuple[set[str], set[str]]] = {   # job -> (files read, folders listed)
-    "unit-guards test_hart_tables_writers": ({"wiki/STATUS.md", "www/scripts/build_layout_index.py"},
+    "unit-guards test_hart_tables_writers": ({"wiki/status/current/backups.md", "www/scripts/build_layout_index.py"},
                                              {"www/scripts"}),
     "unit-portal": ({"docs/ops/stations/barn.md", "docs/wiring/inventory.md", "www/scripts/tests/test_x.py",
                      "www/play/runs.js", "www/index.html"},
@@ -60,7 +60,7 @@ WIDENED_READS: dict[str, tuple[set[str], set[str], str]] = {   # job -> (files r
     "unit-guards test_pipeline_map": ({".gitmodules"}, {"ops/hart-ops/card_pipeline"}, "ops/hart-ops/README.md"),
     "unit-guards test_public_text": ({"ops/hart-ops/card_pipeline/private_name.py"}, {"ops/hart-ops/card_pipeline"},
                                      "ops/hart-ops/README.md"),
-    "unit-guards test_status_merge": ({".gitattributes", "wiki/STATUS.md"}, set(), "wiki/STATUS_LOG.md"),
+    "unit-guards test_status_merge": ({".gitattributes", "wiki/status/current/backups.md"}, set(), "wiki/STATUS_LOG.md"),
 }
 
 

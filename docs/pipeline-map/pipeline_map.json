@@ -391,7 +391,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "extras",
-   "desc": "Rewrites the Counts line of wiki/STATUS.md from tables.xml masts/SML and dispatcher traininfo; --check in tools/check.sh.",
+   "desc": "Builds wiki/STATUS.md from the entry files in wiki/status/ and the Counts line from tables.xml masts/SML and dispatcher traininfo (make status, ADR-038); --check fails an entry over 60 words and builds the page in memory.",
    "path": "tools/ops/status_counts.py",
    "gen": "manifest"
   },
@@ -446,8 +446,9 @@
    "kind": "output",
    "status": "live",
    "domain": "agents",
-   "desc": "Project status page; the Counts line between markers is generated.",
-   "path": "wiki/STATUS.md"
+   "desc": "Project status page, built from the entry files in wiki/status/ by make status and the session-start hook, with the Counts line computed at build time; gitignored (ADR-038).",
+   "path": "wiki/STATUS.md",
+   "local": true
   },
   {
    "id": "cats/scripts/rewrite_button_icon_paths.py",
@@ -4067,6 +4068,16 @@
    "desc": "Project pages and hand-offs.",
    "path": "wiki/projects",
    "gen": "agent-docs"
+  },
+  {
+   "id": "wiki/status",
+   "label": "wiki/status/",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "The status entries, one file each (ADR-038); make status builds wiki/STATUS.md from them.",
+   "path": "wiki/status",
+   "gen": "agent-docs"
   }
  ],
  "edges": [
@@ -6435,7 +6446,13 @@
   {
    "from": "tools/ops/status_counts.py",
    "to": "wiki/STATUS.md",
-   "label": "Counts line",
+   "label": "built page",
+   "gen": "manifest"
+  },
+  {
+   "from": "wiki/status",
+   "to": "tools/ops/status_counts.py",
+   "label": "entries",
    "gen": "manifest"
   },
   {
@@ -7273,12 +7290,6 @@
    "from": "docs/ops/schematic-system-draft.pdf",
    "to": "www/scripts/prepare_github_pages.py",
    "label": "published-files.json"
-  },
-  {
-   "from": "wiki/STATUS.md",
-   "to": "tools/check.sh",
-   "label": "status-counts --check",
-   "side": "check"
   },
   {
    "from": "external/sts-docker-data/Rolling Stock photos",
@@ -8868,6 +8879,13 @@
   {
    "from": "AGENTS.md",
    "to": "wiki/projects",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": "wiki/status",
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"

@@ -37,6 +37,8 @@ tools/env/hart.env
 # build writes its own copy, and check.sh and CI build them in memory (build_pipeline_map.py --check)
 /docs/pipeline-map/index.html
 /www/library/pipeline-map.html
+# The status page, built from wiki/status/ by make status and the session-start hook (ADR-038)
+/wiki/STATUS.md
 
 # STS runtime data
 external/sts-docker-data/backups/

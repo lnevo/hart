@@ -1,0 +1,2 @@
+order: 480
+**Dispatcher stations parked (owner, 2026-11-22):** with the stations topic. No block comment in `tables.xml` ends "; stop" and the master's `stop` column is empty; the 12 former stations and how to bring them back are in [`docs/parked/UNPARK.md`](../../../docs/parked/UNPARK.md).

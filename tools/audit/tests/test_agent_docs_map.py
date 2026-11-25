@@ -124,6 +124,7 @@ FILES = {
     "wiki/STATUS.md": "[log](STATUS_LOG.md) [np](not-pending.md) [git](AGENTS_GIT.md)",
     "wiki/decisions/README.md": "[h](../home.md)", "wiki/pipelines/README.md": "[h](../home.md)",
     "wiki/projects/a.md": "[d](../decisions/README.md) [pl](../pipelines/README.md)",
+    "wiki/status/now/a.md": "**A:** see [log](../../STATUS_LOG.md)",
     ".cursor/rules/r.mdc": "[a](../../AGENTS.md)",
     ".claude/skills/x/SKILL.md": "---\ndescription: Use for x.\n---\n",
     ".claude/agents/panel-tracer.md": "---\ndescription: Traces.\n---\n",
@@ -191,6 +192,21 @@ class RegenerateTest(unittest.TestCase):
         bad = dict(FILES, **{".claude/agents/panel-tracer.md": "no front matter"})
         with self.assertRaisesRegex(GEN.AgentDocsMapError, "panel-tracer.md has no front matter"):
             regen(files=bad)
+
+
+class IgnoredBoxTest(unittest.TestCase):
+    def test_an_ignored_box_is_not_read_and_an_untracked_one_is(self) -> None:
+        """wiki/STATUS.md is built and gitignored (ADR-038): a link target only. A doc box not yet committed still
+        adds its links."""
+        files = {"AGENTS.md": "[n](wiki/new.md) [s](wiki/STATUS.md)", "wiki/new.md": "[g](AGENTS_GIT.md)",
+                 "wiki/STATUS.md": "[g](AGENTS_GIT.md)", "wiki/AGENTS_GIT.md": ""}
+        nodes = {p: p for p in (*files, "tools/audit/check_agent_docs.py")}
+        edges = GEN.doc_edges(nodes, frozenset({"AGENTS.md", "wiki/AGENTS_GIT.md"}), files.__getitem__, ["AGENTS.md"],
+                              "tools/audit/check_agent_docs.py", ignored=lambda p: p == "wiki/STATUS.md")
+        pairs = {(e["from"], e["to"]) for e in edges}
+        self.assertIn(("wiki/new.md", "wiki/AGENTS_GIT.md"), pairs)
+        self.assertIn(("AGENTS.md", "wiki/STATUS.md"), pairs)
+        self.assertNotIn(("wiki/STATUS.md", "wiki/AGENTS_GIT.md"), pairs)
 
 
 class BuildCheckTest(unittest.TestCase):

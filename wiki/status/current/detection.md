@@ -1,0 +1,2 @@
+order: 360
+**Detection (2026-11-12):** occupancy depends on current draw. Standing locos with lights off, and cars, are often not detected (K-1, K-2, Barn and the engine house tracks), and a starting loco can make its block pulse.

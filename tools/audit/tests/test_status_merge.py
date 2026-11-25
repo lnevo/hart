@@ -1,6 +1,8 @@
-"""STATUS.md is merged with git's union driver (.gitattributes), so two branches that each add an entry no longer
-conflict; status_counts.py --check stops on the duplicate a union merge can leave. The schematic plugin must sit at the
-commit the branch pins before check.sh runs (hart_plugin_pin_problem)."""
+"""Since ADR-038 the status page is one file per entry under wiki/status/: two branches that each add an entry merge
+without a conflict, two that edit the same entry conflict as a real conflict (no union merge keeps both), and the log
+(wiki/STATUS_LOG.md) still merges with git's union driver (.gitattributes). status_counts.py --check stops on a
+doubled entry in the built page. The schematic plugin must sit at the commit the branch pins before check.sh runs
+(hart_plugin_pin_problem)."""
 from __future__ import annotations
 
 import os
@@ -56,33 +58,53 @@ class Duplicates(unittest.TestCase):
                 "- **B:** the same eight opening words come here and more\n")
         self.assertEqual([], status_counts.duplicates(text))
 
-    def test_the_committed_status_has_none(self) -> None:
-        self.assertEqual([], status_counts.duplicates((ROOT / "wiki/STATUS.md").read_text(encoding="utf-8")))
+    def test_the_built_status_has_none(self) -> None:
+        self.assertEqual([], status_counts.duplicates(status_counts.build()[0]))
 
 
-class UnionMerge(unittest.TestCase):
-    def test_two_added_entries_merge_without_a_conflict(self) -> None:
+class EntryMerge(unittest.TestCase):
+    def repo(self, d: str) -> Path:
+        repo = Path(d)
+        git(repo, "init", "-q", "-b", "main")
+        (repo / "wiki/status/current").mkdir(parents=True)
+        (repo / ".gitattributes").write_text((ROOT / ".gitattributes").read_text(encoding="utf-8"), encoding="utf-8")
+        (repo / "wiki/status/current/old.md").write_text("**Old:** kept\n", encoding="utf-8")
+        (repo / "wiki/STATUS_LOG.md").write_text("# Status log\n\nUpdated: base\n", encoding="utf-8")
+        git(repo, "add", "-A")
+        git(repo, "commit", "-qm", "base")
+        return repo
+
+    def branch(self, repo: Path, name: str, files: dict[str, str]) -> None:
+        git(repo, "checkout", "-q", "main")
+        git(repo, "checkout", "-qb", name)
+        for rel, body in files.items():
+            (repo / rel).write_text(body, encoding="utf-8")
+        git(repo, "add", "-A")
+        git(repo, "commit", "-qm", name)
+
+    def test_two_added_entries_and_two_log_lines_merge_without_a_conflict(self) -> None:
         with tempfile.TemporaryDirectory() as d:
-            repo = Path(d)
-            git(repo, "init", "-q", "-b", "main")
-            (repo / "wiki").mkdir()
-            (repo / ".gitattributes").write_text((ROOT / ".gitattributes").read_text(encoding="utf-8"), encoding="utf-8")
-            status = repo / "wiki/STATUS.md"
-            status.write_text("# Live status\n\n- **Old:** kept\n", encoding="utf-8")
-            git(repo, "add", "-A")
-            git(repo, "commit", "-qm", "base")
-            git(repo, "checkout", "-qb", "a")
-            status.write_text("# Live status\n\n- **A:** from a\n- **Old:** kept\n", encoding="utf-8")
-            git(repo, "commit", "-qam", "a")
-            git(repo, "checkout", "-q", "main")
-            git(repo, "checkout", "-qb", "b")
-            status.write_text("# Live status\n\n- **B:** from b\n- **Old:** kept\n", encoding="utf-8")
-            git(repo, "commit", "-qam", "b")
+            repo = self.repo(d)
+            self.branch(repo, "a", {"wiki/status/current/a.md": "**A:** from a\n",
+                                    "wiki/STATUS_LOG.md": "# Status log\n\nUpdated: a\nUpdated: base\n"})
+            self.branch(repo, "b", {"wiki/status/current/b.md": "**B:** from b\n",
+                                    "wiki/STATUS_LOG.md": "# Status log\n\nUpdated: b\nUpdated: base\n"})
             git(repo, "merge", "-q", "--no-edit", "a")          # check=True: a conflict would raise
-            text = status.read_text(encoding="utf-8")
-            for entry in ("- **A:** from a", "- **B:** from b", "- **Old:** kept"):
-                self.assertEqual(1, text.count(entry), text)
-            self.assertNotIn("<<<<<<<", text)
+            names = sorted(p.name for p in (repo / "wiki/status/current").iterdir())
+            self.assertEqual(["a.md", "b.md", "old.md"], names)
+            log = (repo / "wiki/STATUS_LOG.md").read_text(encoding="utf-8")
+            for line in ("Updated: a", "Updated: b", "Updated: base"):
+                self.assertEqual(1, log.splitlines().count(line), log)
+
+    def test_two_edits_of_one_entry_conflict_instead_of_keeping_both(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            repo = self.repo(d)
+            self.branch(repo, "a", {"wiki/status/current/old.md": "**Old:** edited on a\n"})
+            self.branch(repo, "b", {"wiki/status/current/old.md": "**Old:** edited on b\n"})
+            done = subprocess.run(["git", "-c", "commit.gpgsign=false", "merge", "-q", "--no-edit", "a"], cwd=repo,
+                                  env=git_env(), capture_output=True, text=True)
+            self.assertNotEqual(0, done.returncode, done.stdout)
+            self.assertIn("<<<<<<<", (repo / "wiki/status/current/old.md").read_text(encoding="utf-8"))
 
 
 class PluginPin(unittest.TestCase):

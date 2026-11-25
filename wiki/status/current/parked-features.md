@@ -1,0 +1,2 @@
+order: 470
+**Parked features (owner, 2026-11-17):** NX, the stock Dispatcher System and the USS CTC are out of the active `tables.xml`, data kept in `jmri/layouts/hart/parked/` ([`README.md`](../../../jmri/layouts/hart/parked/README.md)); waking one up: [`docs/parked/UNPARK.md`](../../../docs/parked/UNPARK.md). The CATS desks, masts and SML stay live. State when parked: 2026-11-17 entry of the log.

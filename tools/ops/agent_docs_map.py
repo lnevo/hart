@@ -21,7 +21,7 @@ map does not walk on through them, since neither carries content:
   and those chains are the rest of the map.
 - "check": each box with a file that check_agent_docs.py reads links to that script, so the map shows what checks
   each doc. The other guards keep their hand-kept links (build_docs_index.py writes docs/INDEX.md, status_counts.py
-  the Counts line of wiki/STATUS.md; pipeline_map_coverage.py checks that every file matching GLOBS is a box).
+  builds wiki/STATUS.md from wiki/status/; pipeline_map_coverage.py checks that every file matching GLOBS is a box).
 """
 from __future__ import annotations
 
@@ -56,6 +56,8 @@ FOLDERS = {
     "wiki/decisions": ("wiki/decisions/ (ADRs)", "The architecture decision records and their README index."),
     "wiki/pipelines": ("wiki/pipelines/", "One page per pipeline and their README index."),
     "wiki/projects": ("wiki/projects/", "Project pages and hand-offs."),
+    "wiki/status": ("wiki/status/", "The status entries, one file each (ADR-038); make status builds wiki/STATUS.md "
+                                    "from them."),
     ".cursor": (".cursor/ (Cursor mirrors)", "Cursor's copies of the Claude rules: commands, the close-out rule "
                                              "and the main-branch guard."),
 }
@@ -185,7 +187,7 @@ def reading_order(pairs: set[tuple[str, str]], start: str) -> list[tuple[str, st
 
 
 def doc_edges(set_nodes: dict[str, str], tracked: frozenset[str], read, checked: list[str],
-              checker: str) -> list[dict]:
+              checker: str, ignored=None) -> list[dict]:
     """The generated links. set_nodes maps each box path of the set to its id; `checked` is what check_agent_docs
     reads and `checker` is its box."""
     folders = tuple(p for p in set_nodes if p in FOLDERS)
@@ -197,7 +199,10 @@ def doc_edges(set_nodes: dict[str, str], tracked: frozenset[str], read, checked:
             names["/" + PurePosixPath(path).stem] = path
     found: set[tuple[str, str]] = set()
     for path, nid in set_nodes.items():
-        files = [path] if path not in FOLDERS else sorted(f for f in tracked if f.startswith(path + "/"))
+        # a box's own file is not read when git ignores it: wiki/STATUS.md is built from the wiki/status folder box
+        # (ADR-038), so it is only a link target; a new doc box not yet committed is read as before
+        files = ([] if (ignored or DOCS_CHECK.is_ignored)(path) else [path]) if path not in FOLDERS else sorted(
+            f for f in tracked if f.startswith(path + "/"))
         for f in files:
             if not f.endswith(READ_SUFFIXES):
                 continue

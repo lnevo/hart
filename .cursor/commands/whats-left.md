@@ -1,3 +1,3 @@
 # What's left
 
-Follow `.claude/skills/whats-left/SKILL.md`: build the list from `wiki/STATUS.md`, the active hand-offs, open PRs and worktrees, and drop what `wiki/not-pending.md` excludes.
+Follow `.claude/skills/whats-left/SKILL.md`: build the list from `wiki/STATUS.md` (`make status` builds it from `wiki/status/`), the active hand-offs, open PRs and worktrees, and drop what `wiki/not-pending.md` excludes.

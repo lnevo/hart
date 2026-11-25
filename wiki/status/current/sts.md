@@ -1,0 +1,2 @@
+order: 670
+**STS ([ADR-020](../../decisions/ADR-020-live-sts-on-the-pi.md)):** live on the Pi at `http://RPi-JMRI.local:8980/sts/`, updated only with `tools/hosts/pi_sts_update.sh`; the owner approves every change on the Mac copy (8980 UAT, 8981 sandbox) first. Skill `sts-live`; coal lanes and backups in the 2026-11-18 "Full text" log entry.

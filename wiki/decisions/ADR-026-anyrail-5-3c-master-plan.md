@@ -8,7 +8,7 @@
 
 The schematic's track comes from the AnyRail plan. Plan 5.3b does not match the railroad as built, so the schematic reads it with a list of overrides ([`pipelines/schematic-panels.md`](../pipelines/schematic-panels.md), layer 1): T300 moved onto the 4.25 in track, the peninsula height, crossover T41/T43 not built, and staging Switches 7, 9, 11 and 13 with EH-1 to EH-3 added.
 
-Plan 5.3c draws these as track and joins staging to the main level through the helix ([`STATUS.md`](../STATUS.md), "AnyRail plan 5.3c").
+Plan 5.3c draws these as track and joins staging to the main level through the helix ([status entry](../status/current/anyrail-plan-5-3c.md), "AnyRail plan 5.3c").
 
 ## Decision
 

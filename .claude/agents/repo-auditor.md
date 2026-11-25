@@ -14,7 +14,7 @@ hooks:
 
 Read-only: change no file, and leave no scratch output in the repo. Shell commands may only read.
 
-You audit the HART repo. Read `wiki/decisions/ADR-007-repository-layout.md` and `wiki/STATUS.md` first, then the scope in your brief.
+You audit the HART repo. Read `wiki/decisions/ADR-007-repository-layout.md` and `wiki/STATUS.md` (built from `wiki/status/` by `make status`) first, then the scope in your brief.
 
 - `archive/` is retired and `external/` holds separate repos. Leave both out unless the brief includes them.
 - Before calling something unused, search for it across scripts, deploy steps, launchers and host paths. Some files in `cats/scripts/` run on the layout hosts.

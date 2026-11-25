@@ -1,0 +1,2 @@
+order: 150
+**One step manifest (owner, 2026-11-25, [ADR-037](../../decisions/ADR-037-one-step-manifest.md)):** the checks, and later the panels steps, are declared once in `tools/pipeline/`; check.sh, the panels build and the map are generated from it, in stages; the panels stage waits for ADR-033. Which stages are done: the [design's migration table](../../../docs/pipeline-map/build-graph-design.md#5-migration).

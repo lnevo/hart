@@ -1,0 +1,2 @@
+order: 560
+**MQTT startup race:** a stock JMRI 5.16 bug ([`MQTT_STARTUP_RACE.md`](../../../docs/jmri/MQTT_STARTUP_RACE.md)). Since 2026-11-24 every host loads the fix from JMRI/JMRI#16004 as a one-class overlay through the user's `jmri.conf` (owner; [ADR-034](../../decisions/ADR-034-jmri-mqtt-race-overlay.md), `tools/jmri/mqtt_overlay/`). A `Can't subscribe` at start now means the overlay is not loaded.

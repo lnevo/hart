@@ -145,8 +145,8 @@ EXTRA: dict[str, tuple[str, ...]] = {
     # cs105_roster_sync.sh (bash) refuses when the submodule is not checked out, and the test skips on that answer
     "unit-hosts test_pi_ssh_scripts": ("external/jmri-cs105-roster-sync/**/*",),
     "unit-guards test_check_sh_tables": ("www/**/*",),
-    # tools/ops/status_counts.py reads wiki/STATUS.md; its git status only compares the tree before and after
-    "unit-guards test_hart_tables_writers": ("wiki/STATUS.md", "www/scripts/**/*"),
+    # tools/ops/status_counts.py reads wiki/status/ (ADR-038); its git status only compares the tree before and after
+    "unit-guards test_hart_tables_writers": ("wiki/status/**/*", "tools/ops/status_counts.py", "www/scripts/**/*"),
     # it lists the STL folder to check every file there is classified
     "unit-guards test_helix_stl_index": ("www/scripts/**/*", "docs/benchwork/helix/stl/**/*"),
     "unit-guards test_jmri_process_patterns": ("docs/**/*", "ops/**/*", "www/scripts/**/*"),
@@ -175,8 +175,9 @@ EXTRA: dict[str, tuple[str, ...]] = {
                                   "www/ap/*.html", "www/exam/index.html", "www/exam/run.html"),
     # check_public_text.py imports private_name from ops/hart-ops/card_pipeline (on sys.path)
     "unit-guards test_public_text": ("ops/hart-ops/card_pipeline/**/*",),
-    # it checks wiki/STATUS.md for doubled entries and merges in a scratch repo under the repo's .gitattributes
-    "unit-guards test_status_merge": ("wiki/STATUS.md", ".gitattributes"),
+    # both read the real wiki/status/ entries (ADR-038); test_status_merge also merges under .gitattributes
+    "unit-guards test_status_merge": ("wiki/status/**/*", "tools/ops/status_counts.py", ".gitattributes"),
+    "unit-guards test_status_counts": ("wiki/status/**/*", "tools/ops/status_counts.py"),
     # the merge drivers run under the repo's own .gitattributes in a scratch repo
     "unit-guards test_merge_pipeline_map": (".gitattributes",),
     "unit-guards test_portal_inputs": ("www/scripts/**/*",),
@@ -715,7 +716,7 @@ def uncovered(name: str, files: set[str], dirs: set[str]) -> list[str]:
 
 def _reaches(d: str, pat: str) -> bool:
     """Whether listing folder `d` is covered by pattern `pat`: `d` is on the way to a file it names, or inside the
-    folder its wildcard spans. A file pattern ("Makefile", "wiki/STATUS.md") reaches only its parent folders, and a
+    folder its wildcard spans. A file pattern ("Makefile", "AGENTS.md") reaches only its parent folders, and a
     root wildcard only "**" (every folder), not "*.md" (root files)."""
     if "*" not in pat:
         return pat.startswith(d + "/")
