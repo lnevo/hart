@@ -71,7 +71,7 @@ class DeclarationTest(unittest.TestCase):
     def test_a_job_that_runs_jobs_covers_their_declarations(self) -> None:
         for tk, jobs in cs.RUNS_JOBS.items():
             mine = set(cs.declared(tk))
-            self.assertIn(".gitmodules", mine)
+            self.assertEqual(sorted(set(cs.RUNS_JOBS_ALSO) - mine), [])
             for job in jobs:
                 with self.subTest(runner=tk, job=job):
                     self.assertEqual(sorted(set(cs.declared(job)) - mine), [])
@@ -91,6 +91,16 @@ class DeclarationTest(unittest.TestCase):
                 # and the check compares what it claims: a read outside the declaration is reported
                 self.assertEqual(cs.uncovered(name, files | {"wiki/decisions/ADR-001-layout-identity.md"}, dirs),
                                  ["wiki/decisions/ADR-001-layout-identity.md"])
+                self.assertEqual(cs.uncovered(name, files, dirs | {"wiki/decisions", "media/photos"}),
+                                 ["media/photos/", "wiki/decisions/"])
+
+    def test_a_listed_folder_is_covered_only_where_a_pattern_reaches(self) -> None:
+        for d, pat, want in (("wiki", "wiki/STATUS.md", True), ("wiki/decisions", "wiki/STATUS.md", False),
+                             ("media", "Makefile", False), ("media", "*.md", False), ("media/x", "**/*.py", True),
+                             ("tools", "tools/**/*", True), ("tools/hosts/pi", "tools/**/*", True),
+                             ("docs", "docs/jmri/**/*", True), ("docs/ops", "docs/jmri/**/*", False)):
+            with self.subTest(folder=d, pattern=pat):
+                self.assertEqual(cs._reaches(d, pat), want)
 
     def test_audit_report_takes_v_and_refuses_a_missing_folder(self) -> None:
         import contextlib
@@ -289,8 +299,9 @@ class AuditTest(unittest.TestCase):
                         self.assertRegex(done.stdout, r"skipped=\d", f"{name} recorded no stamp")
                         continue
                     verified += 1
+                    # every sample job, traced or not: this test's own declaration is built from theirs (RUNS_JOBS)
+                    self.assertEqual(cs.uncovered(name, files, dirs - {"tools/audit/stamp_audit"}), [])
                     if stamp["programs"]:
-                        self.assertEqual(cs.uncovered(name, files, dirs), [])
                         continue
                     kept = {k for k in (cs.traced.keep(str(REPO / f), str(REPO), skip) for f in files) if k}
                     # the two hooks' own folders (sys.path entries the audit run adds) are no input

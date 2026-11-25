@@ -8,7 +8,8 @@
     check_stamps.py why     NAME                         say why NAME is not current
     check_stamps.py declared NAME                        the patterns NAME falls back to (an untraceable program)
     check_stamps.py audit-report DIR [-v]                compare the files a CHECK_AUDIT run opened with the declarations
-                                                         (-v: the folders each job read, for every job)
+                                                         (-v: for every job, the first two path parts
+                                                         of each file it read)
 
 check.sh runs each job under the trace hook of tools/audit/traced.py (shared with make panels): every repo file the
 job's Python processes open, every file they probe and find absent, every folder they list and every subprocess they
@@ -68,8 +69,9 @@ BY_KIND: dict[str, tuple[str, ...]] = {
     "static": EVERYTHING,
     "public-text": EVERYTHING,
     "portal": (*CODE, *SITE),
-    # its node scripts (www/scripts/tests/*.js, build_exam_answers.js, build_play_answers.js) read only www/
-    "unit-portal": (*CODE, "www/**/*", "docs/**/*", "ops/**/*"),
+    # its node scripts (www/scripts/tests/*.js, build_exam_answers.js, build_play_answers.js) read only www/, and a
+    # package.json on the way up from them (none today) would set how node loads them
+    "unit-portal": (*CODE, "www/**/*", "docs/**/*", "ops/**/*", "package.json"),
     "unit-hart-ops": (*CODE, *SITE),
     "unit-schematic": (*CODE, "docs/ops/**/*", "wiki/pipelines/**/*", "www/crew/**/*", "www/data/**/*", "ops/**/*"),
     "unit-anyrail": (*CODE, "www/build/**/*", "docs/**/*"),
@@ -130,11 +132,15 @@ LISTED_ONLY: dict[str, tuple[str, ...]] = {
 AUDIT_SAMPLE = ("unit-hartlib", "unit-mimic", "unit-anyrail", "unit-cats", "unit-jmri-scripts",
                 "unit-guards test_turnout_startup", "unit-hosts test_load_env", "unit-jmri test_speedmatch_distance")
 # "kind test" -> the jobs it runs through a check.sh of its own (bash, untraced, so its stamp falls back to its
-# declaration): it reads what their declarations name, and .gitmodules (check.sh's start-up: worktrees.py submodules
-# and the plugin pin check); the rest of that start-up and the stamp helper read only tools/.
+# declaration): it reads what their declarations name (its AuditTest checks that they cover what each read), and
+# RUNS_JOBS_ALSO: .gitmodules (check.sh's start-up: worktrees.py submodules and the plugin pin check) and .gitignore
+# (git check-ignore and ls-files in the sample jobs and the stamp helper). The rest of that start-up and the stamp
+# helper read tools/, except portal_inputs.py (www/scripts/published-files.json and git), whose answer only names
+# the portal job, which CHECK_ONLY leaves out of that run.
 RUNS_JOBS: dict[str, tuple[str, ...]] = {
     "unit-guards test_check_stamps": AUDIT_SAMPLE,
 }
+RUNS_JOBS_ALSO = (".gitmodules", ".gitignore")
 
 
 def _test_key(name: str) -> str | None:
@@ -151,7 +157,7 @@ def declared(name: str) -> tuple[str, ...] | None:
         return None
     tk = _test_key(name)
     extra = EXTRA.get(tk, ()) if tk else ()
-    inner = (*(p for job in RUNS_JOBS[tk] for p in _declared_job(job)), ".gitmodules") if tk in RUNS_JOBS else ()
+    inner = (*(p for job in RUNS_JOBS[tk] for p in _declared_job(job)), *RUNS_JOBS_ALSO) if tk in RUNS_JOBS else ()
     return tuple(dict.fromkeys((*pats, *extra, *inner, "tools/check.sh")))
 
 
@@ -403,16 +409,22 @@ def uncovered(name: str, files: set[str], dirs: set[str]) -> list[str]:
     for d in sorted(dirs):
         if d in (".", "") or d in listed:
             continue
-        reach = False
-        for pat in pats:
-            head = pat.split("*", 1)[0]
-            literal = head.rsplit("/", 1)[0] if "/" in head else ""
-            if d == literal or d.startswith(literal + "/") or literal.startswith(d + "/") or literal == "":
-                reach = True
-                break
-        if not reach:
+        if not any(_reaches(d, pat) for pat in pats):
             bad.append(d + "/")
     return bad
+
+
+def _reaches(d: str, pat: str) -> bool:
+    """Whether listing folder `d` is covered by pattern `pat`: `d` is on the way to a file it names, or inside the
+    folder its wildcard spans. A file pattern ("Makefile", "wiki/STATUS.md") reaches only its parent folders, and a
+    root wildcard only "**" (every folder), not "*.md" (root files)."""
+    if "*" not in pat:
+        return pat.startswith(d + "/")
+    head = pat.split("*", 1)[0]
+    if "/" not in head:
+        return pat.startswith("**")
+    literal = head.rsplit("/", 1)[0]
+    return d == literal or d.startswith(literal + "/") or literal.startswith(d + "/")
 
 
 def main(argv: list[str] | None = None) -> int:
