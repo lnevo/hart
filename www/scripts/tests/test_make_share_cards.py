@@ -109,3 +109,35 @@ class ExamRunTitleTest(unittest.TestCase):
         with mock.patch.object(gen.Path, "read_text", return_value="<html><head lang=en></head></html>"):
             with self.assertRaises(SystemExit):
                 gen.link_exam_run_title()
+
+
+class BuiltViews(unittest.TestCase):
+    """review of #1151: a page shot reads the files the site build makes (ADR-036) as built now, never a missing or
+    stale www/ copy, and a view that does not build stops the card instead of saving the page's error state."""
+
+    def setUp(self):
+        import tempfile
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        for patch in (mock.patch.object(gen, "_tmp", Path(tmp.name)), mock.patch.object(gen, "_views", {}),
+                      mock.patch.object(gen, "_view_errors", [])):
+            patch.start()
+            self.addCleanup(patch.stop)
+        self.handler = gen._Quiet.__new__(gen._Quiet)
+        self.handler.directory = str(gen.REPO)
+
+    def test_a_view_is_served_from_this_runs_build(self):
+        with mock.patch.dict(gen.site_views.VIEWS, {"data/wiring-inventory.json": lambda: '{"nodes": []}\n'}):
+            path = Path(self.handler.translate_path("/www/data/wiring-inventory.json"))
+        self.assertTrue(path.is_relative_to(gen._tmp))
+        self.assertEqual(path.read_text(encoding="utf-8"), '{"nodes": []}\n')
+        self.assertEqual(gen._view_errors, [])
+
+    def test_a_view_that_does_not_build_stops_the_shot(self):
+        boom = mock.Mock(side_effect=gen.site_views.build_wiring_json.WiringDataError("'blocks' has no entries"))
+        with mock.patch.dict(gen.site_views.VIEWS, {"data/wiring-inventory.json": boom}):
+            path = Path(self.handler.translate_path("/www/data/wiring-inventory.json"))
+        self.assertFalse(path.exists(), "nothing is served in its place")
+        with mock.patch.object(gen, "_chrome", return_value="chrome"), mock.patch.object(gen.subprocess, "run"), \
+                mock.patch("PIL.Image.open"), self.assertRaisesRegex(SystemExit, "'blocks' has no entries"):
+            gen.shot("http://x/behind/wiring.html")

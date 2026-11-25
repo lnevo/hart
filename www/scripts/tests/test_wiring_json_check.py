@@ -97,6 +97,13 @@ class Errors(unittest.TestCase):
             with self.assertRaisesRegex(BW.WiringDataError, "wiring model cannot be read: wiring.csv"):
                 BW.view()
 
+    def test_check_exits_2_when_the_model_cannot_be_read(self):
+        boom = BW.write_inventory.FactsError("wiring.csv: no such file")
+        with mock.patch.object(BW.write_inventory, "workbook", side_effect=boom):
+            code, _, err = run_main("--check")
+        self.assertEqual(code, 2)
+        self.assertIn("wiring.csv: no such file", err)
+
     def test_a_missing_sheet_is_named(self):
         wb = BW.write_inventory.workbook()
         del wb["BlockSensors"]

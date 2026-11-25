@@ -638,8 +638,12 @@ def main() -> int:
     args = ap.parse_args()
     try:
         inv = build()
+    except WiringDataError as exc:  # the model cannot be read: 2, as before ADR-036
+        print(f"{Path(__file__).name}: {exc}", file=sys.stderr)
+        return 2
+    try:
         text = data_text(inv)
-    except WiringDataError as exc:
+    except WiringDataError as exc:  # built, but fails a check
         print(f"{Path(__file__).name}: {exc}", file=sys.stderr)
         return 1
     if args.check:
