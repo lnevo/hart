@@ -26,6 +26,7 @@ from urllib.parse import quote
 ROOT = Path(__file__).resolve().parents[2]
 TOOLING = (".py", ".sh", ".scad", ".stl", ".3mf", ".gitignore")
 ASSETS = (".jpg", ".jpeg", ".png", ".gif", ".webp", ".ico", ".css", ".js", ".woff", ".woff2", ".ttf", ".otf")
+DOCS_DIR = "docs"      # the folder it lists and reads: the docs-index step's input in tools/pipeline/checks.toml
 SKIP = ("docs/INDEX.md",)
 MAX_SUMMARY = 160
 SKIP_PREFIXES = ("|", "`", "<", "#", "![")
@@ -40,7 +41,7 @@ def doc_files() -> list[str]:
     built before a commit matches the one CI builds after it (a new doc, not yet staged, was once left out).
     """
     out = subprocess.check_output(
-        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "docs"], cwd=ROOT, text=True
+        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", DOCS_DIR], cwd=ROOT, text=True
     )
     paths = sorted({p for p in out.split("\0") if p and (ROOT / p).is_file()})
     return [p for p in paths if not p.startswith(SKIP) and not p.endswith(TOOLING)]
@@ -48,7 +49,7 @@ def doc_files() -> list[str]:
 
 def untracked() -> list[str]:
     """The files doc_files() lists that git does not track yet."""
-    out = subprocess.check_output(["git", "ls-files", "-z", "--others", "--exclude-standard", "docs"], cwd=ROOT, text=True)
+    out = subprocess.check_output(["git", "ls-files", "-z", "--others", "--exclude-standard", DOCS_DIR], cwd=ROOT, text=True)
     return sorted(p for p in out.split("\0") if p and not p.startswith(SKIP) and not p.endswith(TOOLING))
 
 

@@ -162,6 +162,9 @@ EXTRA: dict[str, tuple[str, ...]] = {
     # the step manifest's loader checks domains, edge sides and local nodes against the map (manifest.repo())
     "unit-guards test_pipeline_manifest": ("docs/pipeline-map/pipeline_map.json",),
     "unit-guards test_check_docs_only": ("docs/pipeline-map/pipeline_map.json",),
+    # the scanners' scan lists against the manifest: the map (manifest.repo()), the site build's sources and imports
+    "unit-guards test_manifest_scans": ("docs/pipeline-map/pipeline_map.json", "www/scripts/**/*",
+                                        "ops/hart-ops/card_pipeline/**/*"),
     "unit-guards test_agent_docs_map": ("docs/pipeline-map/**/*", "www/scripts/**/*", "wiki/**/*", "docs/INDEX.md",
                                         "ops/hart-ops/AGENTS.md", ".gitmodules"),
     # it builds the committed map with both lanes, as test_agent_docs_map does
@@ -347,8 +350,12 @@ class HashCache:
         return sha
 
     def save(self) -> None:
+        """Write the cache, less the files whose folder is gone (a removed worktree: make remote makes one per run,
+        so on the Windows box the file grew to 747k entries for 152 worktrees, 5.6k of them live, 2026-11-25)."""
         if not self.dirty:
             return
+        alive = {d: not d or os.path.isdir(d) for d in {os.path.dirname(k) for k in self.data}}   # "": no folder part
+        self.data = {k: v for k, v in self.data.items() if alive[os.path.dirname(k)]}
         self.path.parent.mkdir(parents=True, exist_ok=True)
         tmp = self.path.with_suffix(f".{os.getpid()}.tmp")
         tmp.write_text(json.dumps(self.data))
@@ -743,9 +750,9 @@ def step_reads(name: str, trace_log, root: Path, steps) -> dict:
     """Job `name`'s data reads, from its trace: {"steps": {step: [files]}, "unowned": {}, "absent": [the step, when
     Python runs it and the trace holds no process], "bash": [the step, when bash runs it, whose reads the trace cannot
     see]}. Every job of the manifest is one step (ADR-037 stage 4b), so every process in its trace is that step's.
-    Files are repo paths that are not code (manifest.is_code). The shape is the one stage 4a's stamps hold, so
-    `audit` still reads those. Raises AuditError when the job is not one step, or the trace cannot be read or holds
-    no process."""
+    Files are the repo paths its processes read as data, the trace's "r" lines: an open as code (a "c" line: imported,
+    run, shown in a traceback) is not one, but the same file read as text is. The shape is stage 4a's, so `audit`
+    still reads those. Raises AuditError when the job is not one step, or the trace cannot be read or holds none."""
     if len(steps) != 1:
         raise AuditError(f"{name} has {len(steps)} steps in {MANIFEST.as_posix()}; each job is one step")
     (step,) = steps
@@ -765,7 +772,7 @@ def step_reads(name: str, trace_log, root: Path, steps) -> dict:
             started += 1
         elif kind == "r":
             rel = traced.keep(rest[0], str(root), skip)
-            if rel is not None and not os.path.isabs(rel) and not pm.is_code(rel):
+            if rel is not None and not os.path.isabs(rel):
                 reads.add(rel)
     if not started and step.python:
         raise AuditError(f"the trace of {name} ({trace_log}) holds no process start")
@@ -804,8 +811,8 @@ def audit_lines(name: str, audit: dict, steps, full: bool = False) -> tuple[list
     bash = [s.name for s in steps if not s.python]          # from the manifest now, not the stamp
     tail = f" ({', '.join(bash)}: bash, which the trace cannot see, so not audited)" if bash else ""
     if not count:
-        return [f"stamp audit: {name}: every data read is declared in tools/pipeline/checks.toml (code under "
-                f"tools/ and .py files are not audited){tail}"], 0
+        return [f"stamp audit: {name}: every data read is declared in tools/pipeline/checks.toml (the code "
+                f"the job imported or ran is not audited){tail}"], 0
     return ([f"WARNING: stamp audit: {name}: {count} read(s) not declared in tools/pipeline/checks.toml "
              f"(inputs, or quiet_inputs for a read not drawn on the map); {AUDIT_HOW}", *rows,
              *([f"    not audited: {', '.join(bash)} (bash, which the trace cannot see)"] if bash else []),
