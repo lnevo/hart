@@ -37,6 +37,25 @@ class Duplicates(unittest.TestCase):
         found = status_counts.duplicates("- **A:** one\n- **B:** two\n- **A:** other\n- **B:** two\n")
         self.assertEqual(["two entries for: A:", "repeated line: - **B:** two"], found)
 
+    def test_two_versions_of_an_unled_entry_are_found(self) -> None:
+        """2026-11-25: a union merge kept two versions of one Future goals bullet that differed further in."""
+        text = ("- Verify the stock bugs and send fixes upstream if they hold: the hosts run the overlay.\n"
+                "- Other goal with its own words entirely here.\n"
+                "- Verify the stock bugs and send fixes upstream if they hold: the hosts stay on stock.\n")
+        self.assertEqual(["two entries opening: verify the stock bugs and send fixes upstream"],
+                         status_counts.duplicates(text))
+
+    def test_unled_entries_that_differ_early_or_are_short_pass(self) -> None:
+        text = ("- Move the LCOS bridge from the Windows box to the Pi.\n"
+                "- Move the speed matching runs to the second loop next week.\n"
+                "- Short one.\n- Short one too.\n")
+        self.assertEqual([], status_counts.duplicates(text))
+
+    def test_a_bold_led_entry_is_judged_by_its_lead_not_its_words(self) -> None:
+        text = ("- **A:** the same eight opening words come here and more\n"
+                "- **B:** the same eight opening words come here and more\n")
+        self.assertEqual([], status_counts.duplicates(text))
+
     def test_the_committed_status_has_none(self) -> None:
         self.assertEqual([], status_counts.duplicates((ROOT / "wiki/STATUS.md").read_text(encoding="utf-8")))
 
