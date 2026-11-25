@@ -12,6 +12,8 @@ Watch JMRI/JMRI pull request [#16004](https://github.com/JMRI/JMRI/pull/16004) a
 - At hand-off, JMRI's checks showed two expected failures: `check-pr` (JMRI blocks merging for 24 hours after a pull request opens; label "New PR") and "Approved after last commit" (waits for a maintainer review). The release-note check passed. JMRI's build and test workflows had not started; most likely they wait for a maintainer to approve runs from a first-time contributor, not confirmed.
 - The hosts run JMRI 5.16 with the fix as a one-class overlay meanwhile (2026-11-24, [ADR-034](../decisions/ADR-034-jmri-mqtt-race-overlay.md), `tools/jmri/mqtt_overlay/`). A change asked for in #16004 goes into `tools/jmri/mqtt_overlay/MqttAdapter.java` too, then `build.sh` and a deploy.
 
+- Open on #16004, found by this repo's code review (2026-11-24): a `subscribe()` that gets a topic's list from `computeIfAbsent` just as `unsubscribe()` empties it and removes it from the map adds its listener to a list the map no longer holds, so that bean gets no messages and the broker subscription is gone. It needs the last listener of a topic to unsubscribe while another subscribes (a bean deleted at run time), which the layout does not do. Fix: do the add and the remove-if-empty in one `compute` per key. Proposing it on #16004 is public: owner's yes first; the overlay follows whatever JMRI takes.
+
 ## The watcher
 
 In a fresh session, schedule a recurring check (for example every 3 hours, off the hour) with this prompt:

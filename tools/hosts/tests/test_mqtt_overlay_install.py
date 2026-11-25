@@ -53,13 +53,27 @@ class EditConf(unittest.TestCase):
         self.assertEqual(out.splitlines()[0], '# default_options="--cp:p=/x/hart-mqtt-race-fix.jar"')
         self.assertEqual(out.splitlines()[1], 'default_options="--cp:p=/y/hart-mqtt-race-fix.jar --cp:p=/x/other.jar"')
 
+    def test_other_forms_refuse_rather_than_shadow(self):
+        for src in ("default_options='-J-Xmx2g'\n", 'export default_options="-J-Xmx2g"\n',
+                    'default_options="-J-Xmx2g" # heap\n', "default_options=-J-Xmx2g\n"):
+            with self.subTest(src=src), self.assertRaises(io_.UnknownConf):
+                io_.edit_conf(src, "/u/hart-mqtt-race-fix.jar")
+
+    def test_multi_entry_prepend_keeps_the_others(self):
+        out = io_.edit_conf('default_options="--cp:p=/opt/extra.jar:/u/hart-mqtt-race-fix.jar"\n', None)
+        self.assertEqual(out, 'default_options="--cp:p=/opt/extra.jar"\n')
+        out = io_.edit_conf('default_options="--cp:p=C:\\x\\a.jar;C:\\u\\hart-mqtt-race-fix.jar"\n', None)
+        self.assertEqual(out, 'default_options="--cp:p=C:\\x\\a.jar"\n')
+
     def test_remove_from_absent_line_changes_nothing(self):
         self.assertEqual(io_.edit_conf("# only a comment\n", None), "# only a comment\n")
 
 
 class Install(unittest.TestCase):
     def setUp(self):
-        self.tmp = Path(tempfile.mkdtemp())
+        d = tempfile.TemporaryDirectory()
+        self.addCleanup(d.cleanup)
+        self.tmp = Path(d.name)
         self.settings = self.tmp / "settings"
 
     def run_main(self, *args: str) -> tuple[int, str]:
@@ -90,6 +104,22 @@ class Install(unittest.TestCase):
         self.assertIn("WARNING", out)
         self.assertFalse((self.settings / io_.JAR_NAME).exists())
         self.assertNotIn(io_.JAR_NAME, (self.settings / "jmri.conf").read_text())
+
+    def test_missing_jmri_jar_warns_and_runs_stock(self):
+        rc, out = self.run_main("--jar", str(JAR), "--settings-dir", str(self.settings),
+                                "--jmri-home", str(self.tmp / "nowhere"))
+        self.assertEqual(rc, 0)
+        self.assertIn("WARNING", out)
+
+    def test_unknown_conf_form_is_left_alone(self):
+        home = fake_jmri(self.tmp / "jmri")
+        self.settings.mkdir()
+        conf = self.settings / "jmri.conf"
+        conf.write_text("default_options='-J-Xmx2g'\n")
+        rc, out = self.run_main("--jar", str(JAR), "--settings-dir", str(self.settings), "--jmri-home", str(home))
+        self.assertEqual(rc, 0)
+        self.assertIn("by hand", out)
+        self.assertEqual(conf.read_text(), "default_options='-J-Xmx2g'\n")
 
     def test_committed_jar_names_its_base(self):
         self.assertEqual(io_.overlay_base(JAR), "5.16.0 909e15189e")

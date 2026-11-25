@@ -325,7 +325,7 @@ foreach ($path in $retired) {
 # (ADR-034). It installs only over the JMRI build it was made from; on any other it takes itself out.
 $overlayPy = Join-Path $hart 'jmri\mqtt_overlay\install_overlay.py'
 if (Test-Path $overlayPy) {
-  $jmriHome = @('C:\Program Files\JMRI', 'C:\Program Files (x86)\JMRI', 'C:\JMRI') |
+  $jmriHome = @('C:\Program Files\JMRI', 'C:\Program Files (x86)\JMRI', 'C:\JMRI', (Join-Path $env:USERPROFILE 'JMRI')) |
     Where-Object { Test-Path (Join-Path $_ 'jmri.jar') } | Select-Object -First 1
   if (-not $python) {
     Write-Host 'WARNING MQTT overlay: no Python 3 found; not installed'

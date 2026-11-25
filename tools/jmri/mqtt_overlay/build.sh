@@ -35,7 +35,9 @@ printf 'Manifest-Version: 1.0\nHART-JMRI-Base: %s\nHART-Fix: JMRI/JMRI#16004\n' 
 if [[ "${1:-}" == "--check" ]]; then
   mkdir -p "$tmp/a" "$tmp/b"
   (cd "$tmp/a" && unzip -q "$tmp/out.jar") && (cd "$tmp/b" && unzip -q "$JAR")
-  diff -r "$tmp/a" "$tmp/b" >/dev/null || { echo "build.sh: $JAR does not match MqttAdapter.java; run build.sh" >&2; exit 1; }
+  # Classes and the HART-* manifest lines only: the jar tool's Created-By names the JDK.
+  diff -r "$tmp/a/jmri" "$tmp/b/jmri" >/dev/null \
+    && diff <(grep '^HART-' "$tmp/a/META-INF/MANIFEST.MF") <(grep '^HART-' "$tmp/b/META-INF/MANIFEST.MF") >/dev/null || { echo "build.sh: $JAR does not match MqttAdapter.java; run build.sh" >&2; exit 1; }
   echo "build.sh: committed jar matches the source"
 else
   cp -f "$tmp/out.jar" "$JAR"

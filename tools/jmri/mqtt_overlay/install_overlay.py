@@ -24,7 +24,13 @@ import zipfile
 from pathlib import Path
 
 JAR_NAME = "hart-mqtt-race-fix.jar"
-_OPTIONS_RE = re.compile(r'^(\s*default_options\s*=\s*)"(.*)"\s*$')
+_OPTIONS_RE = re.compile(r'^(\s*default_options\s*=\s*)"([^"$`]*)"\s*$')
+# Any assignment the launcher's `source` would see, in whatever form (export, single quotes, a comment after).
+_ANY_ASSIGN_RE = re.compile(r'^\s*(export\s+)?default_options\s*=')
+
+
+class UnknownConf(Exception):
+    """jmri.conf sets default_options in a form this script does not rewrite safely."""
 _NEW_CONF = (
     "# JMRI launcher options for this user. The --cp:p entry is HART's MQTT race overlay,\n"
     "# written by tools/jmri/mqtt_overlay/install_overlay.py; other options here are kept.\n"
@@ -53,8 +59,19 @@ def overlay_base(jar: Path) -> str:
     raise SystemExit(f"{jar}: no HART-JMRI-Base in its manifest")
 
 
-def _is_ours(token: str) -> bool:
-    return token.startswith("--cp:p=") and token.rstrip("\"'").replace("\\", "/").endswith("/" + JAR_NAME)
+def _is_ours_entry(entry: str) -> bool:
+    return entry.replace("\\", "/").endswith("/" + JAR_NAME)
+
+
+def _drop_ours(token: str) -> str | None:
+    """The token without our jar; None when nothing is left of it."""
+    if not token.startswith("--cp:p="):
+        return token
+    value = token[len("--cp:p="):]
+    # ';' separates entries on Windows (whose paths hold a drive colon), ':' elsewhere.
+    sep = ";" if (";" in value or re.match(r"[A-Za-z]:[\\/]", value)) else ":"
+    kept = [e for e in value.split(sep) if e and not _is_ours_entry(e)]
+    return ("--cp:p=" + sep.join(kept)) if kept else None
 
 
 def edit_conf(text: str | None, jar_path: str | None) -> str:
@@ -66,8 +83,10 @@ def edit_conf(text: str | None, jar_path: str | None) -> str:
     lines = [] if text is None else text.splitlines(keepends=True)
     idx = None
     for i, line in enumerate(lines):
-        if _OPTIONS_RE.match(line.rstrip("\r\n")):
+        if _ANY_ASSIGN_RE.match(line):
             idx = i
+    if idx is not None and not _OPTIONS_RE.match(lines[idx].rstrip("\r\n")):
+        raise UnknownConf(lines[idx].strip())
     if idx is None:
         if jar_path is None:
             return text or ""
@@ -81,7 +100,7 @@ def edit_conf(text: str | None, jar_path: str | None) -> str:
     eol = raw[len(raw.rstrip("\r\n")):] or "\n"
     m = _OPTIONS_RE.match(raw.rstrip("\r\n"))
     assert m
-    tokens = [t for t in m.group(2).split() if not _is_ours(t)]
+    tokens = [k for k in (_drop_ours(t) for t in m.group(2).split()) if k is not None]
     if jar_path is not None:
         tokens.insert(0, f"--cp:p={jar_path}")
     lines[idx] = f'{m.group(1)}"{" ".join(tokens)}"{eol}'
@@ -99,17 +118,28 @@ def _write_conf(conf: Path, new: str) -> bool:
 
 def remove(settings: Path) -> None:
     conf = settings / "jmri.conf"
-    if conf.is_file() and _write_conf(conf, edit_conf(conf.read_text(encoding="utf-8"), None)):
-        print(f"MQTT overlay: taken out of {conf}")
+    try:
+        if conf.is_file() and _write_conf(conf, edit_conf(conf.read_text(encoding="utf-8"), None)):
+            print(f"MQTT overlay: taken out of {conf}")
+    except UnknownConf as e:
+        print(f"WARNING MQTT overlay: {conf} sets default_options as `{e}`; left as it is, edit it by hand")
     dest = settings / JAR_NAME
     if dest.is_file():
-        dest.unlink()
-        print(f"MQTT overlay: removed {dest}")
+        try:
+            dest.unlink()
+            print(f"MQTT overlay: removed {dest}")
+        except OSError as e:  # Windows refuses while a JVM has it open
+            print(f"WARNING MQTT overlay: could not remove {dest} ({e}); deploy again with JMRI closed")
 
 
 def install(jar: Path, settings: Path, jmri_home: Path) -> int:
     want = overlay_base(jar)
-    have = jmri_build(jmri_home / "jmri.jar")
+    try:
+        have = jmri_build(jmri_home / "jmri.jar")
+    except (OSError, KeyError, zipfile.BadZipFile) as e:
+        print(f"WARNING MQTT overlay: cannot read {jmri_home / 'jmri.jar'} ({e}); JMRI runs stock")
+        remove(settings)
+        return 0
     if have != want:
         print(f"WARNING MQTT overlay: {jmri_home} is JMRI {have}, the overlay is for {want}; "
               "JMRI runs stock (rebuild the overlay for this JMRI or drop it)")
@@ -134,7 +164,13 @@ def install(jar: Path, settings: Path, jmri_home: Path) -> int:
         print(f"MQTT overlay: {dest}")
     conf = settings / "jmri.conf"
     old = conf.read_text(encoding="utf-8") if conf.is_file() else None
-    if _write_conf(conf, edit_conf(old, str(dest))):
+    try:
+        new = edit_conf(old, str(dest))
+    except UnknownConf as e:
+        print(f"WARNING MQTT overlay: {conf} sets default_options as `{e}`, which this script does not "
+              f"rewrite; add --cp:p={dest} to it by hand. Not loaded.")
+        return 0
+    if _write_conf(conf, new):
         print(f"MQTT overlay: {conf} loads it (--cp:p)")
     else:
         print(f"MQTT overlay: {conf} already loads it")
