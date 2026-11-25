@@ -288,7 +288,9 @@ def change_text(a: ET.Element | None, b: ET.Element | None) -> str:
 def row_index(rows: Iterable[Mapping[str, str]]) -> dict[tuple[str, str], list[int]]:
     """{(section tag, bean name): [device-master row numbers]}: the rows a bean of the tables comes from. A turnout by
     its system or JMRI name; a sensor, head, mast or block by its JMRI name; a layout block by its layout_block or
-    "user:" and its block's user name (the main and upper layout blocks are numbered by the Layout Editor build)."""
+    "user:" and its block's user name (every block row with a JMRI name has its layout_block since naming-layers step
+    8, the main and upper ones copied from block_numbering.csv; the user name is kept for a Store's layout block JMRI
+    renumbered)."""
     out: dict[tuple[str, str], list[int]] = {}
 
     def add(tag: str, name: str, i: int) -> None:
@@ -451,6 +453,12 @@ def _device_items(key: tuple, b: ET.Element | None, g: ET.Element, s: ET.Element
                                  "row (keyed by its id): change user_name, and jmri_name with it when that binds the "
                                  "turnout by its user name (the build stops on one without the other); wiring.csv "
                                  "keeps the generated name the id gives"))
+            continue
+        if r["written_by"] == "build_device_map.py" and r["layer"] == "block" and p == "userName":
+            # a block of any level (main and upper's are virtual beans since naming-layers step 8): the owner's
+            # name is a devices_field.csv cell, its bean names stay (numbered over the generated name)
+            out.append((p, None, f"{who} is a block the builder names: rename it by hand in its devices_field.csv "
+                                 "row (keyed by its id): change user_name; its jmri_name and layout_block stay"))
             continue
         if r["written_by"]:
             out.append((p, None, f"{r['written_by']} writes {who}: change its inputs and rebuild"))

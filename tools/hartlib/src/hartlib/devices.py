@@ -30,8 +30,9 @@ The master's values.
   holds, and cannot drop a key the field file names (merge: rename or remove the field row).
 
 Row order is level, layer (LAYERS), then the writer (WRITERS order; a Store's level-less rows after every level),
-then the order the writer gave, so a rebuild changes only its own rows and `check` can hold each file to it. Block
-and mast numbers that le_tables.block_sort and block_numbering.csv set are not touched here.
+then the order the writer gave, so a rebuild changes only its own rows and `check` can hold each file to it. The
+main and upper block numbers (hartlib.block_numbering, written into the rows by build_device_map.py) and the mast
+numbers are set by their writers, not here.
 
     python3 -m hartlib.devices check         # the master and its dictionary are valid
 
@@ -50,7 +51,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Callable, Iterable, Mapping
 
-from . import names, paths
+from . import level_devices, names, paths
 from .railroad_facts import DEVICE_COLUMNS, DEVICE_LIST, NAME_LAYERS, FactsError
 
 # The one place the master's file names and paths are written (T6a): every other module asks for them here, and
@@ -81,7 +82,8 @@ WRITERS = ("build_masts.py", "build_device_map.py", "panel_items.json")
 # piece of track inside another block: a JMRI block on its block's occupancy sensor, built by its level's builder, with
 # no occupancy row or detector of its own)
 OUT_OF_MAPS = ("spare", "panel_status", "part")
-SOURCE_PREFIXES = ("IT:HART:", "IS:HART:", "IH:HART:", "IB:HART:")
+# internal names: a virtual device. level_devices.BLOCK_PREFIX: a main or upper block (hartlib.block_numbering)
+SOURCE_PREFIXES = ("IT:HART:", "IS:HART:", "IH:HART:", "IB:HART:", level_devices.BLOCK_PREFIX)
 
 COLUMNS = ("level", "cp", "layer", "role", "id", "user_name", "assignment", "system_name", "jmri_name", "node", "dcc",
            "wiring", "jmri_comment", "trial_name", "notes", "blocks", "detector", "stop", "layout_block",

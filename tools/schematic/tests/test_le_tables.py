@@ -3,7 +3,9 @@
 guard counts as the other levels', and what the mast checks stop on. These pin the behaviour the level unification
 (archive/wiki/projects/level-unification-handoff.md, step 4) keeps while it takes the level branches out.
 """
+import os
 import sys
+import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -50,19 +52,24 @@ NAMES = {
     "Upper": dict(turnouts={"n3": "Switch 201"}, os={"n3": "OS Switch 201"}, blocks={}),
 }
 LEVEL_BLOCKS = ["OS Switch 105", "OS Switch 201", "Track 105-109"]
+# each level block's bean names as its device-master row gives them (build_device_map.py copies them from
+# block_numbering.csv; naming-layers step 8)
+BEANS = {b: (f"IB:C3:{i:04d}", f"ILB{1000 + i}") for i, b in enumerate(LEVEL_BLOCKS, 1)}
 
 
 class AddLevelObjects(unittest.TestCase):
     """add_level_objects adds every band's turnouts but staging's, every drawn block staging does not hold, a sensor
     for each and for a staging block the device map gives one (the helix), and the startup positions."""
 
-    def run_it(self, names=NAMES, drawn=None, lengths=None, thrown=frozenset({"Switch 105"}), sensors=None):
+    def run_it(self, names=NAMES, drawn=None, lengths=None, thrown=frozenset({"Switch 105"}), sensors=None,
+               beans=None):
         root = base_root()
         P = SimpleNamespace(blocks=set(drawn if drawn is not None else LEVEL_BLOCKS + ["Track Helix Outer"]))
         lengths = {b: 100.0 for b in LEVEL_BLOCKS} if lengths is None else lengths
         sensors = sensors_for(LEVEL_BLOCKS + ["Track Helix Outer"]) if sensors is None else sensors
         with mock.patch.multiple(le_tables, BLOCK_NUMBERED_AS={}, APPENDED_BLOCKS=(), RETIRED_BLOCKS=()), \
-                mock.patch.object(le_tables, "level_sensors", return_value=sensors):
+                mock.patch.object(le_tables, "level_sensors", return_value=sensors), \
+                mock.patch.object(le_tables, "level_block_beans", return_value=BEANS if beans is None else beans):
             le_tables.add_level_objects(root, P, names, lengths, {STAGING}, thrown)
         return root
 
@@ -100,6 +107,48 @@ class AddLevelObjects(unittest.TestCase):
             self.run_it(lengths={"OS Switch 105": 1.0, "OS Switch 201": 1.0})
         with self.assertRaisesRegex(BuildError, r"no occupancy row in the device map: \['OS Switch 201'\]"):
             self.run_it(sensors=sensors_for(["OS Switch 105", "Track 105-109"]))
+
+    def test_a_blocks_names_are_its_rows(self):
+        """The build numbers no block: it takes each block's jmri_name and layout_block from its row, so a row given
+        another number moves the bean to it, in system name order."""
+        beans = dict(BEANS, **{"OS Switch 105": ("IB:C3:0042", "ILB1042")})
+        root = self.run_it(beans=beans)
+        added = [(tables.system_name(b), tables.user_name(b)) for b in tables.blocks(root)
+                 if tables.system_name(b).startswith("IB:C3:")]
+        self.assertEqual(added, [("IB:C3:0002", "OS Switch 201"), ("IB:C3:0003", "Track 105-109"),
+                                 ("IB:C3:0042", "OS Switch 105")])
+        lbs = {tables.user_name(b): tables.system_name(b) for b in tables.layout_blocks(root)}
+        self.assertEqual(lbs["OS Switch 105"], "ILB1042")
+
+    def test_a_block_whose_row_has_no_names_or_bad_ones_stops(self):
+        with self.assertRaisesRegex(BuildError, r"row gives no jmri_name and layout_block: \['Track 105-109'\]"):
+            self.run_it(beans={b: v for b, v in BEANS.items() if b != "Track 105-109"})
+        with self.assertRaisesRegex(BuildError, r"Track 105-109 \(IB:AUTO:0003, ILB1003\)"):
+            self.run_it(beans=dict(BEANS, **{"Track 105-109": ("IB:AUTO:0003", "ILB1003")}))
+        with self.assertRaisesRegex(BuildError, "names collide"):
+            self.run_it(beans=dict(BEANS, **{"Track 105-109": BEANS["OS Switch 105"]}))
+
+    def test_the_rows_names_are_checked_against_the_numbering(self):
+        """level_block_beans stops on a row whose layout block is not its block's pair, and on rows a
+        block_numbering.csv edit left stale (stale_block_beans: build_device_map.py was not run since)."""
+        row = dict(level="2", layer="block", user_name="Track 105-109", jmri_name="IB:C3:0003", layout_block="ILB1004")
+        with mock.patch.object(le_tables.devices, "load", return_value=[row]), \
+                mock.patch.object(le_tables, "stale_block_beans", return_value=[]):
+            with self.assertRaisesRegex(BuildError, "layout_block 'ILB1004' is not the pair of jmri_name 'IB:C3:0003'"):
+                le_tables.level_block_beans()
+            row["layout_block"] = "ILB1003"
+            self.assertEqual(le_tables.level_block_beans(), {"Track 105-109": ("IB:C3:0003", "ILB1003")})
+        self.assertEqual(le_tables.stale_block_beans(), [])             # the committed rows and file agree
+        d = Path(tempfile.mkdtemp())
+        self.addCleanup(os.rmdir, d)
+        path = d / le_tables.NUMBERING.name
+        text = le_tables.NUMBERING.read_text(encoding="utf-8")
+        old = "block:227C-241B#1,Track 227-241,,,"
+        self.assertIn(old, text)
+        path.write_text(text.replace(old, "block:227C-241B#1,,6,,"), encoding="utf-8")
+        self.addCleanup(os.remove, path)
+        stale = le_tables.stale_block_beans(numbering_path=path)
+        self.assertIn("Track 227-241 1 (IB:C3:0108, not IB:C3:0122)", stale)
 
     def test_a_staging_name_is_never_added(self):
         names = dict(NAMES, **{STAGING: dict(NAMES[STAGING], turnouts={"s1": "Switch 999"})})

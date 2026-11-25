@@ -3,13 +3,12 @@ the tables, and the panel put in place."""
 from __future__ import annotations
 
 import copy
-import csv
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from hartlib import devices, paths, railroad, tables  # noqa: E402
+from hartlib import block_numbering, devices, paths, railroad, tables  # noqa: E402
 from hartlib import level_devices  # noqa: E402  the main and upper virtual names and the sensors-clear LogixNG
 from hartlib import level_masts as level_masts_lib  # noqa: E402  masts.csv and its virtual names
 from hartlib.tables_build import with_direction  # noqa: E402  a mast's comment names the way it faces
@@ -18,62 +17,22 @@ from le_common import (  # noqa: E402
 )
 
 
-# Blocks added after the cut-over take the next numbers at the end (owner, 2026-11-16: append), so no main or upper
-# system name shifts. block_numbering.csv holds them: a renamed block gets the sort place of the name it replaces
-# (numbered_as), an appended one comes last in append_order, and a retired one (a block gone from the levels, such as
-# the main and upper helix pieces joined into one staging block per helix track on 2026-11-20) keeps its number
-# taken, unused, so no block after it is renumbered. Read and checked here, so a stale row stops the build. A live
-# block is given by its device ID (naming-layers step 5), its name the name store's, so a rename changes no row; a
-# retired block has no ID any more, so its row gives the name it had (retired), and numbered_as is the name whose
-# sort place a block takes (a name no block has now).
-NUMBERING = paths.LAYOUT_DATA / "schematic" / "block_numbering.csv"
-NUMBERING_COLUMNS = ["id", "numbered_as", "append_order", "retired", "notes"]
+# The main and upper blocks' numbers (IB:C3:<nnnn>, ILB<1000 + n>) are hartlib.block_numbering's: block_numbering.csv
+# read and checked there, the rule there, and build_device_map.py copies them into the block rows' jmri_name and
+# layout_block (naming-layers step 8). The build reads them off the rows (level_block_beans) and keeps the numbering
+# checks here (a retired block drawn again, a stale row), so a stale row stops the build.
+NUMBERING = block_numbering.PATH
+NUMBERING_COLUMNS = block_numbering.COLUMNS
 
 
 def load_numbering(path: Path = NUMBERING, names=None) -> tuple[dict, tuple, tuple]:
-    """(BLOCK_NUMBERED_AS, APPENDED_BLOCKS, RETIRED_BLOCKS) from block_numbering.csv, by block name. A row gives a
-    main or upper block's id and exactly one of numbered_as or append_order, or no id and the retired block's name in
-    retired; blocks are listed once, append_order counts 1, 2, 3 ... without a gap, and a name a block is numbered as is
-    not itself a listed block. Each id is named by `names` (hartlib.devices.user_names, default the repo's), on
-    level 2 or 3; BuildError on an id neither level has."""
-    with open(path, newline="", encoding="utf-8") as fh:
-        rows = list(csv.DictReader(fh))
-    if not rows or list(rows[0]) != NUMBERING_COLUMNS:
-        raise BuildError(f"{path.name}: expected the columns {', '.join(NUMBERING_COLUMNS)}")
-    if names is None and any(r["id"].strip() for r in rows):
-        names = devices.user_names()
-    numbered, appended, retired, seen = {}, {}, [], set()
-    for n, r in enumerate(rows, 2):
-        ident, as_, order, gone = (r[c].strip() for c in ("id", "numbered_as", "append_order", "retired"))
-        if bool(ident) == bool(gone):
-            raise BuildError(f"{path.name} line {n}: give a block's id, or a retired block's old name in retired")
-        name = gone or next((names[(lv, ident)] for lv in ("2", "3") if (lv, ident) in names), "")
-        if not name:
-            raise BuildError(f"{path.name} line {n}: {ident} is no main or upper device of the device master (a new "
-                             "export dropped it: give the block's new id)")
-        if name in seen:
-            raise BuildError(f"{path.name} line {n}: block {name!r} is listed twice")
-        seen.add(name)
-        if gone and (as_ or order):
-            raise BuildError(f"{path.name} line {n} ({name}): a retired block holds its number; no numbered_as or "
-                             "append_order")
-        if not gone and bool(as_) == bool(order):
-            raise BuildError(f"{path.name} line {n} ({name}): give exactly one of numbered_as, append_order")
-        if gone:
-            retired.append(name)
-        elif as_:
-            numbered[name] = as_
-        elif not order.isdigit():
-            raise BuildError(f"{path.name} line {n} ({name}): append_order {order!r} is not a whole number")
-        else:
-            appended[int(order)] = name
-    if sorted(appended) != list(range(1, len(appended) + 1)):
-        raise BuildError(f"{path.name}: append_order must count 1, 2, 3 ... without a gap or repeat, got "
-                         f"{sorted(appended)}")
-    clash = sorted(set(numbered.values()) & seen)
-    if clash:
-        raise BuildError(f"{path.name}: {', '.join(clash)} is both a block and the name another is numbered as")
-    return numbered, tuple(appended[k] for k in sorted(appended)), tuple(retired)
+    """(BLOCK_NUMBERED_AS, APPENDED_BLOCKS, RETIRED_BLOCKS) from block_numbering.csv, by block name
+    (hartlib.block_numbering.read, its ids named by `names`, default the repo's); BuildError on any problem."""
+    try:
+        n = block_numbering.read(path, names)
+    except block_numbering.NumberingError as exc:
+        raise BuildError(str(exc)) from None
+    return dict(n.numbered_as), n.appended, n.retired
 
 
 NUMBERING_NAMES = ("BLOCK_NUMBERED_AS", "APPENDED_BLOCKS", "RETIRED_BLOCKS")
@@ -133,11 +92,7 @@ def r1(v: float) -> str:
     return f"{round(v, 1):.1f}"
 
 
-def block_sort(name: str):
-    kind = 0 if name.startswith("OS ") else 1
-    tail = name.split(" ")[-1].split("+")[0]
-    digits = "".join(c for c in tail if c.isdigit())
-    return (kind, int(digits or 0), name)
+block_sort = block_numbering.block_sort
 
 
 # Retired (owner, 2026-11-17): the hand-wired Digicon desk's yard-ladder buttons, internal turnouts IT:HART:YL:*
@@ -283,18 +238,59 @@ def strip_build_owned(root: ET.Element) -> dict[str, int]:
 
 
 def numbered_blocks(blocks, require_listed: bool = False) -> list:
-    """The main and upper blocks in the order their system names are numbered: by block_sort (a block in
-    BLOCK_NUMBERED_AS in the place of the name it replaces), then APPENDED_BLOCKS. Give it RETIRED_BLOCKS too to keep
-    their numbers taken. With require_listed (the build), a block named in block_numbering.csv that is not among
-    `blocks` stops it: the row is stale."""
-    blocks = set(blocks)
-    numbered_as, appended, retired = numbering()
-    missing = sorted((set(numbered_as) | set(appended) | set(retired)) - blocks) if require_listed else []
-    if missing:
-        raise BuildError(f"{NUMBERING.name} names {', '.join(missing)}, which the main and upper levels no longer "
-                         "have; take the row out or rename it")
-    tail = [b for b in appended if b in blocks]
-    return sorted(blocks - set(tail), key=lambda b: block_sort(numbered_as.get(b, b))) + tail
+    """The main and upper blocks in the order their system names are numbered (hartlib.block_numbering.order over
+    BLOCK_NUMBERED_AS, APPENDED_BLOCKS and RETIRED_BLOCKS). Give it RETIRED_BLOCKS too to keep their numbers taken.
+    With require_listed (the build), a block named in block_numbering.csv that is not among `blocks` stops it: the row
+    is stale."""
+    try:
+        return block_numbering.order(blocks, block_numbering.Numbering(*numbering()), require_listed)
+    except block_numbering.NumberingError as exc:
+        raise BuildError(str(exc)) from None
+
+
+def level_block_beans(path: Path = DEVICE_MAP) -> dict[str, tuple[str, str]]:
+    """{block: (jmri_name, layout_block)} of every main and upper block row of the device master that has its bean
+    names: build_device_map.py copies them from block_numbering.csv (hartlib.block_numbering, naming-layers step 8).
+    A helix block row has none (its beans are staging's). BuildError on a row with one of the two only."""
+    try:
+        rows = devices.load(path)
+    except devices.DevicesError as exc:
+        raise BuildError(f"{paths.rel(path)}: {exc}") from None
+    out, bad = {}, []
+    for r in rows:
+        if r["level"] not in block_numbering.LEVELS or r["layer"] != "block":
+            continue
+        jn, lb = r["jmri_name"], r["layout_block"]
+        if bool(jn) != bool(lb):
+            bad.append(f"{r['user_name']}: jmri_name {jn!r} and layout_block {lb!r}, not both or neither")
+        elif jn:
+            out[r["user_name"]] = (jn, lb)
+            if jn.startswith(BLOCK_SYS) and (not jn[len(BLOCK_SYS):].isdigit() or
+                                             lb != block_numbering.layout_block_name(int(jn[len(BLOCK_SYS):]))):
+                bad.append(f"{r['user_name']}: layout_block {lb!r} is not the pair of jmri_name {jn!r}")
+    if bad:
+        raise BuildError(f"{paths.rel(path)}: " + "; ".join(bad))
+    stale = stale_block_beans(path)
+    if stale:
+        raise BuildError(f"{paths.rel(path)}: main and upper block rows whose jmri_name and layout_block are not "
+                         f"{NUMBERING.name}'s: {', '.join(stale)}; run build_device_map.py")
+    return out
+
+
+def stale_block_beans(path: Path = DEVICE_MAP, numbering_path: Path = NUMBERING) -> list[str]:
+    """The generated main and upper block rows (not a helix block's) whose jmri_name and layout_block are not the
+    numbers block_numbering.csv gives now (hartlib.block_numbering over the generated names, as build_device_map.py
+    numbers them): the file was edited after the last device-map build. An owner's field jmri_name (a swap) is not
+    judged. BuildError on a numbering problem."""
+    try:
+        rows = [r for r in devices.generated_rows(path) if r["level"] in block_numbering.LEVELS
+                and r["layer"] == "block" and r["role"] != "helix"]
+        names = {(r["level"], r["id"]): r["user_name"] for r in rows}
+        want = block_numbering.bean_names(names.values(), block_numbering.read(numbering_path, names))
+    except (devices.DevicesError, block_numbering.NumberingError) as exc:
+        raise BuildError(str(exc)) from None
+    return [f"{r['user_name']} ({r['jmri_name'] or 'none'}, not {want[r['user_name']][0]})" for r in rows
+            if (r["jmri_name"], r["layout_block"]) != want[r["user_name"]]]
 
 
 def level_sensors(path: Path = DEVICE_MAP) -> dict:
@@ -534,8 +530,8 @@ def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, base_keys
                       thrown: frozenset = frozenset()) -> None:
     """The levels the build adds (every band in `names` but `base_keys`, the bands of a level the base holds:
     le_common.BASE_LEVELS): their turnouts, blocks and layout blocks in the tables, under the device-map user names
-    (level_names) on internal system names (TURNOUT_SYS, BLOCK_SYS, ILB from LAYOUT_BLOCK_FIRST), so nothing reaches
-    MQTT or the field, and each block's virtual occupancy sensor (add_level_sensors), set clear on load
+    (level_names) on internal system names (TURNOUT_SYS; a block's BLOCK_SYS and ILB names are its device-master
+    row's jmri_name and layout_block, level_block_beans), so nothing reaches MQTT or the field, and each block's virtual occupancy sensor (add_level_sensors), set clear on load
     (add_level_clear); a base band's block the panel draws on another level too (a helix block) is bound to the
     device map's sensor. Stops on a block the device map gives no sensor."""
     if not base_keys or base_keys - set(names):
@@ -548,8 +544,18 @@ def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, base_keys
     if drawn & retired:
         raise BuildError(f"retired blocks drawn again: {sorted(drawn & retired)}; take them out of "
                          f"{NUMBERING.name}'s retired rows")
-    order = numbered_blocks(drawn | retired, require_listed=True)       # a retired block keeps its number, unused
-    new_blocks = [b for b in order if b not in retired]
+    numbered_blocks(drawn | retired, require_listed=True)           # a stale block_numbering.csv row stops
+    # each block's names from its device-master row (build_device_map.py copies them from block_numbering.csv)
+    beans = level_block_beans()
+    unnamed = sorted(drawn - set(beans))
+    if unnamed:
+        raise BuildError(f"main and upper blocks whose device-master row gives no jmri_name and layout_block: "
+                         f"{unnamed}; run build_device_map.py")
+    bad = sorted(b for b in drawn if not beans[b][0].startswith(BLOCK_SYS) or not beans[b][1].startswith("ILB"))
+    if bad:
+        raise BuildError(f"main and upper blocks whose jmri_name is not {BLOCK_SYS}<n> or layout_block not ILB<n>: "
+                         + ", ".join(f"{b} ({beans[b][0]}, {beans[b][1]})" for b in bad))
+    new_blocks = sorted(drawn, key=lambda b: (beans[b][0], b))     # in system name order, as numbered
     if set(new_blocks) - set(lengths):
         raise BuildError(f"blocks with no source: {sorted(set(new_blocks) - set(lengths))}")
     taken_users = {tables.user_name(b) for b in tables.turnouts(root) + tables.blocks(root, full=False)
@@ -557,8 +563,8 @@ def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, base_keys
     taken_sys = {tables.system_name(b) for b in tables.turnouts(root) + tables.blocks(root, full=False)
                  + tables.layout_blocks(root)}
     turnout_sys = {t: TURNOUT_SYS + t.split(" ", 1)[1] for t in new_turnouts}
-    block_sys = {b: f"{BLOCK_SYS}{i:04d}" for i, b in enumerate(order, 1) if b in drawn}
-    lb_sys = {b: f"ILB{LAYOUT_BLOCK_FIRST + i}" for i, b in enumerate(order) if b in drawn}
+    block_sys = {b: beans[b][0] for b in new_blocks}
+    lb_sys = {b: beans[b][1] for b in new_blocks}
     new_users = new_turnouts + new_blocks
     new_sys = list(turnout_sys.values()) + list(block_sys.values()) + list(lb_sys.values())
     clash = sorted((set(new_users) & taken_users) | (set(new_sys) & taken_sys))

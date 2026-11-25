@@ -77,6 +77,9 @@ def is_block_sensor(system_name: str) -> bool:
 # ("BS Helix Outer"; the blocks themselves, "Track Helix Outer", are staging's beans, owner 2026-11-20).
 # Staging numbers stop at 40, and its masts 2035 and 2036 have four digits.
 BLOCK_PREFIX = "IB:C3:"
+# the main and upper layout blocks: ILB1001 up (hartlib.block_numbering numbers them with the blocks); staging's stop
+# well below
+LAYOUT_BLOCK_FIRST = 1001
 LEVEL_USER = re.compile(r"(?:Switch|OS Switch|Track|BS|BS Switch|Mast|Head) [12]\d\d(?!\d).*|(?:Mast|Head) [AB]\d+(?: .*)?"
                         r"|BS Helix .+")
 

@@ -366,8 +366,9 @@ STAGING_LAYER = {
 # (rows, sha256) of each level's block and occupancy rows but the parts, every column but written_by, part_of,
 # jmri_bean (only ever set on a level-less row), id (test_device_ids pins it) and trial_name (pinned row by row
 # above, on every level), joined by
-# commas, one row a line, in file order
-DIGESTS = {"1": (90, 'fcb723b226464d86c120a15aba08dada9592f82296b95d1a9eecf8bfcc788d41'), "2": (76, '62227d85579edaeb7e3b505dbbfc4ce239ea0f6ffc458d7ae5e695e865c69dec'), "3": (118, '21df617dd401a843a58f2e970d621af6b84926e155d51c0e696ed1e35727dfc4')}
+# commas, one row a line, in file order. Main and upper changed in naming-layers step 8 (each block row gained its
+# jmri_name and layout_block from block_numbering.csv, assignment virtual); staging did not
+DIGESTS = {"1": (90, 'fcb723b226464d86c120a15aba08dada9592f82296b95d1a9eecf8bfcc788d41'), "2": (76, '27639cbd8556d60fcc7bfc2c43bc6826ce3bbcff34d86e7d1151bf91fbddca44'), "3": (118, 'a27b641b432813ec8f05a6fe45da42212679a7759b0a029a0015ebde17495cf6')}
 SKIP = {level: ("written_by", "trial_name", "part_of", "jmri_bean", "id") for level in "123"}
 
 

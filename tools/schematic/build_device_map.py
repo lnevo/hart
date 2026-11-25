@@ -54,8 +54,10 @@ Virtual names (owner, 2026-11-17), from each device's stable identity:
   not_wired or none), a mast row's `switch`, `facing` and `protects`; the notes and comment are text for people.
 - Head "Head <mast>[ Top|Bottom]": hartlib.level_devices.head_name (IH:HART:C3:108LA, IH:HART:C3:108R_Top); mast
   IF$shsm:basic:<type>(<head>)(<head>) over those heads.
-- Feedback rows have no JMRI device of their own (a turnout's feedback is DIRECT until the plant is wired), and
-  block rows none here: build_layout_le.py numbers their blocks.
+- Feedback rows have no JMRI device of their own (a turnout's feedback is DIRECT until the plant is wired).
+- Block "<name>" (parts too, not a helix block, whose beans are staging's): jmri_name IB:C3:<nnnn> and layout_block
+  ILB<1000 + nnnn>, today's numbers copied from block_numbering.csv (hartlib.block_numbering; owner, 2026-11-23:
+  kept until the levels are wired for good); build_layout_le.py reads them off the rows (naming-layers step 8).
 
 Naming rules (ADR-005 grammar, LCOS conventions):
 - Turnout "Switch <n>" (a crossover is one turnout), feedback "FB Switch <n> N|R", OS block "OS Switch <n>" (one per
@@ -141,7 +143,7 @@ import block_layer  # noqa: E402  the one block process for every level
 import mast_plan  # noqa: E402  the one mast process for every level
 import mast_rule  # noqa: E402  read_block_splits, OVERRIDES_NAME
 import le_common  # noqa: E402  bare: a switch label as the plan prints it
-from hartlib import device_ids, devices, layer_files, level_devices, level_masts, railroad, wiring  # noqa: E402  names, facts, the master
+from hartlib import block_numbering, device_ids, devices, layer_files, level_devices, level_masts, railroad, wiring  # noqa: E402,E501  names, facts, the master
 from device_map_inputs import (  # noqa: E402,F401  the readers; re-exported: callers read them from this module
     CPS, NODES, OS_BLOCK, PINS, SOURCES, STATIONS, UID, WIRING, Places, StagingPin, frozen_wires,
     helix_pins, loop_placeholder, read_places, read_staging_pins, staging_nodes, wiring_rows)
@@ -761,14 +763,43 @@ def owned_rows(rows, parts, files: devices.Files | None = None) -> tuple[list[di
     in devices_field.csv over it (device_map_rows.owner_over, hartlib.devices.KEY), as staging's are: on every level
     the owner's name and values go over the generated ones the same way (naming-layers step 7). A virtual JMRI name
     stays the generated one (hartlib.level_devices) unless the owner's row gives a jmri_name (a device swapped in by
-    its row, ADR-028). A row with no field row is as build() gave it. master_outputs follows renames over both."""
+    its row, ADR-028). A row with no field row is as build() gave it. master_outputs follows renames over both.
+    Every block row but a helix block's gets its bean names (block_beans)."""
     field = devices.field_index(files or device_files())
-    made = [devices.master_row(o, WRITER) for o in rows] + [dict(p) for p in parts]
+    made = block_beans([devices.master_row(o, WRITER) for o in rows] + [dict(p) for p in parts])
     out = []
     for r in made:
         f = field.get(devices.key_of(r))
         out.append(owner_over(r, f) if f is not None else r)
     return out, made
+
+
+def block_beans(rows: list[dict], numbering_path: Path | None = None) -> list[dict]:
+    """`rows` (main and upper master rows, as generated) with each block row's jmri_name and layout_block, a helix
+    block's left out (its beans are staging's): the numbers block_numbering.csv gives (hartlib.block_numbering.read
+    and bean_names; owner, 2026-11-23: today's numbers until the levels are wired for good). They are numbered over
+    the generated names, not the owner's, so an owner's rename in devices_field.csv keeps a block's numbers (my call,
+    naming-layers step 8: before it the Layout Editor build sorted the owner's names, and a rename with no numbered_as
+    row shifted every block after it). Its assignment becomes virtual (an internal name) and its description is
+    written again. `numbering_path`: block_numbering.csv (default the repo's). MapError on a numbering problem."""
+    def numbered(r) -> bool:
+        return r["layer"] == "block" and r["level"] in block_numbering.LEVELS and r["role"] != "helix"
+
+    names = {(r["level"], r["id"]): r["user_name"] for r in rows if numbered(r)}
+    try:
+        numbering = block_numbering.read(numbering_path or block_numbering.PATH, names)
+        beans = block_numbering.bean_names(names.values(), numbering)
+    except block_numbering.NumberingError as exc:
+        raise MapError(str(exc)) from None
+    out = []
+    for r in rows:
+        if numbered(r):
+            r = dict(r)
+            r["jmri_name"], r["layout_block"] = beans[r["user_name"]]
+            r["assignment"] = devices.assignment_of(r["jmri_name"])
+            r["description"] = devices.describe(r)
+        out.append(r)
+    return out
 
 
 def master_outputs(bands, joined, runs, rows, parts, files: devices.Files | None = None, warn=None,

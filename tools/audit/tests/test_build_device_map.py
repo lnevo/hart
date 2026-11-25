@@ -289,8 +289,12 @@ class Output(unittest.TestCase):
                         self.assertTrue(level_masts.mast_heads(x["jmri_name"]))
                         for h in level_masts.mast_heads(x["jmri_name"]):
                             self.assertEqual(unwired.get(h), BD.HEAD_NOT_WIRED, h)
-                elif x["layer"] in ("fb", "block"):
-                    self.assertEqual(x["jmri_name"], "")
+                elif x["layer"] == "fb" or (x["layer"] == "block" and x["role"] == "helix"):
+                    self.assertEqual(x["jmri_name"], "")        # DIRECT feedback; a helix block's beans are staging's
+                elif x["layer"] == "block":
+                    # a block's: today's number, block_numbering.csv's (owner, 2026-11-23; naming-layers step 8,
+                    # hartlib.block_numbering, whose tests pin the order and the layout block beside it)
+                    self.assertRegex(x["jmri_name"], r"^IB:C3:\d{4}$")
                 if x["layer"] != "fb" and x["layer"] != "block":
                     self.assertTrue(x["jmri_name"])
         self.assertEqual(len(set(occ.values())), len(occ))

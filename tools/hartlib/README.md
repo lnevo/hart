@@ -136,6 +136,18 @@ path, names)`: `main_lines.csv`, each stop's block IDs named from the name store
 `read_uss_plants(data)`: the parked USS CTC board (`mast_cells.csv`, `uss_board_cells.csv`, `uss_board_plants.csv`);
 `layout_facts.py` re-exports them as `load_mast_cells` and the others.
 
+### `hartlib.block_numbering`
+
+The main and upper blocks' JMRI numbers (naming-layers step 8, builder merge step 2). `read(path, names)`:
+`block_numbering.csv`, its ids named by `names` (default `devices.user_names()`), a `Numbering` of `numbered_as`,
+`appended` and `retired` by block name, `NumberingError` (a `ValueError`) naming the file and line. `order(blocks,
+numbering, require_listed)`: OS blocks first, then by the number at the end of the name (`block_sort`), a block in
+`numbered_as` in the place of the name it replaces, the appended ones last. `bean_names(blocks, numbering)`: `{block:
+(IB:C3:<nnnn>, ILB<1000 + nnnn>)}` (`level_devices.BLOCK_PREFIX`, `LAYOUT_BLOCK_FIRST`), the retired blocks holding
+their numbers. `build_device_map.block_beans` writes them into every main and upper block row but a helix block's,
+numbered over the generated names so an owner's rename keeps them; `le_tables` reads them off the rows
+(`level_block_beans`) and keeps the stale-row check (`numbered_blocks`).
+
 `tools/audit/check_data_readers.py` (job `data-readers` in `tools/check.sh`) fails when a script outside hartlib names
 a file under `jmri/layouts/hart/data/`, unless its `ALLOWED` table lists the script and file with a reason (a writer of
 its own output, a schematic plan input, a stamp hash, a path handed to a hartlib reader, a reader not moved yet);
@@ -257,8 +269,11 @@ the name map's copy (2026-11-21): their facts are in `cp`, `system_name`, `dcc`,
   found by its `blocks` column (`DeviceMap.occupancy`), not by building the sensor's name. Kept on purpose:
   `level_devices.block_key` and `occupancy_user`, the owner's naming rule that builds a virtual sensor's name from
   its block's name (2026-11-17), with the checks that hold the rows to it (`check_virtual_names`, `read_device_map`).
-- `layout_block` (staging block rows) is the block's JMRI layout block (`ILB...`), which JMRI numbered once; the
-  main and upper layout blocks are numbered by the Layout Editor build. A wired head's comment is its `wiring`.
+- `layout_block` (block rows) is the block's JMRI layout block (`ILB...`): staging's, which JMRI numbered once; main
+  and upper's, `ILB<1000 + n>` beside `jmri_name` `IB:C3:<n>`, which `build_device_map.py` copies from
+  `block_numbering.csv` (`hartlib.block_numbering`, naming-layers step 8) and the Layout Editor build reads. Those rows
+  are `assignment` virtual (`IB:C3:` is in `SOURCE_PREFIXES`); a helix block's main or upper row has neither name,
+  its beans are staging's. A wired head's comment is its `wiring`.
 
 ### `hartlib.tables_build`
 

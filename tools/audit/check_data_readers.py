@@ -78,7 +78,6 @@ ALLOWED: dict[str, dict[str, str]] = {
     "tools/schematic/build_staging_sets.py": {"sheets.csv": LATER, "stations.csv": THROUGH, "switches.csv": THROUGH},
     "tools/schematic/device_map_inputs.py": {"stations.csv": THROUGH},
     "tools/schematic/le_common.py": {"stations.csv": THROUGH},
-    "tools/schematic/le_tables.py": {"block_numbering.csv": LATER},
     "tools/schematic/mast_plan.py": {"retired_virtual_masts.csv": LATER},
     "tools/schematic/panel_items.py": {"panel_items.json": TAG},
     "tools/schematic/panel_stamps.py": {

@@ -25,7 +25,7 @@ BASE_LEVELS = frozenset(int(v) for v in tables_build.GENERATED_LEVELS)
 
 TURNOUT_SYS = level_devices.TURNOUT_PREFIX     # internal turnouts: nothing reaches the field
 BLOCK_SYS = level_devices.BLOCK_PREFIX
-LAYOUT_BLOCK_FIRST = 1001            # ILB1001 up; the live file stops well below
+LAYOUT_BLOCK_FIRST = level_devices.LAYOUT_BLOCK_FIRST
 
 
 class BuildError(RuntimeError):

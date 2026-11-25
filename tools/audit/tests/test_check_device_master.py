@@ -219,8 +219,18 @@ class TablesCheck(Master):
     def test_a_block_of_another_system_name_or_none(self):
         self.assertIn("block Track Barn: tables.xml has IB15, not IB99",
                       self.problems({("1", "Track Barn"): dict(system_name="IB99")}))
-        self.assertIn("block Track Nowhere: tables.xml has none, not a block of that name",
+        self.assertIn("block Track Nowhere: tables.xml has none, not IB:C3:0076",
                       self.problems({("2", "Track 101-111"): dict(user_name="Track Nowhere")}))
+        self.assertIn("block Track Nowhere: tables.xml has none, not a block of that name",
+                      self.problems({("2", "Track Helix Outer"): dict(user_name="Track Nowhere")}))
+
+    def test_a_main_or_upper_block_is_its_rows_jmri_name_and_layout_block(self):
+        """Naming-layers step 8: the builder writes a main or upper block's bean names into its row, and the Layout
+        Editor build makes the beans by them."""
+        self.assertIn("block OS Switch 101: tables.xml has IB:C3:0001, not IB:C3:0999",
+                      self.problems({("2", "OS Switch 101"): dict(jmri_name="IB:C3:0999")}))
+        self.assertIn("block OS Switch 101: tables.xml's layout block is ILB1001, not ILB1999",
+                      self.problems({("2", "OS Switch 101"): dict(layout_block="ILB1999")}))
 
     def test_a_station_is_its_comment(self):
         # the stations are parked (owner, 2026-11-22): no row is a stop and no comment marks one
