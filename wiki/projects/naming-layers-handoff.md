@@ -574,8 +574,20 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 
 - `panelpro_smoke_test.py`: accept a swapped (field) main or upper detector (above).
 - A head swap: `level_masts.WIRED_LEVELS` and `wiring.digicon_rows` read the level, not the head row's assignment.
-- `publish_draft --check` does not key its drawing stamp on `hartlib` code (Step 3b findings).
-- A crossover half cannot be renamed: its half letter comes from its name.
+- **Done (2026-11-25):** `publish_draft --check` keys its drawing stamp on the whole `tools/hartlib/src` tree too
+  (`STAMP_VERSION` 4): the view is built by `layer_files`, `track_names`, `devices` and what they import, so the
+  whole tree is simpler and safer than a list; a `hartlib` edit costs one drawing.
+- **Done (2026-11-25):** a staging crossover half can be renamed by its `devices_field.csv` row alone.
+  `block_overrides.csv`'s `crossover_half` rows give the half's OS block ID (`os:23:A-1A`) and its letter in
+  `parallel` (1 a, 2 b; `hand_lists.half_letters`); the generator names the half `OS Switch <n><letter>` (the field
+  row's name wins, so `OS Switch 7` stays). The CATS half label (`cats_panel.half_label`), the desk plate of a renamed
+  OS block (`os_plates`: its number and letter, not the first word of its name) and the desk-area label
+  (`railroad_facts.os_label`) take the letter by ID. A trial in the worktree renamed OS Switch 23a, OS Switch 7 and
+  OS Switch 35b in the field file only and ran every `make panels` step but `sml-current` by hand: the device master,
+  `switches.csv`, `block_lengths.csv`, `masts.csv`, `tables.xml` and both desks took the new names, the labels stayed
+  23A, 7A, 35B, and only the approvals (renamed labels; the Princess plate moved three cells) and the SML stamp went
+  stale; reverted. `test_rename_by_id.RenameCrossoverHalf` pins the readers. Outputs on the committed data are
+  byte-identical.
 - `docs/ap/electrical/test_build_soq.py` counts 57 detected sections where its text says 43 (owner's call; not this plan's).
 
 ## How to run this
