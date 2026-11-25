@@ -176,7 +176,14 @@ the plan, not from its name, unique on its level (`hartlib.device_ids` holds the
 the name store (ADR-033 decision 2, naming-layers step 3): the field block rows with a track ID (`block:...`) and a
 name reach the schematic plugin's `name` and `end` edits and `left_end` when `layer_files.view` merges the plan view,
 each track found in the plan graph by its ID's switch labels and legs, so `plan_overrides.json` holds no track name
-(`track_names.hand_problems`, which every merge runs). Staging, main and upper are one structure, a level differs in
+(`track_names.hand_problems`, which every merge runs). `preferences.json` and `stations.csv` name tracks by block ID
+too (naming-layers step 5b): the preferences' track keys (`min_cells` track names, `turnbacks`, `track_labels` keys,
+and the label options `extra_steps`, `extra_follow`, `name_columns`, `name_steps`, `optional_block_contents` and
+`hidden_names`) get their names in the merged view (`layer_files.merged(data, "preferences")`, through
+`track_names.pref_section`), and `track_names.pref_problems` stops a hand section that names a track or holds a
+"Track ..." string; `stations.csv`'s `tracks` cell is block IDs, named by `railroad_facts.station_tracks`.
+`track_names.names_by_id` answers both: the owner's name in `devices_field.csv`, else the generated one in
+`devices_generated.csv`. Staging, main and upper are one structure, a level differs in
 column values only. Every reader gets its rows from here (R9b-2, 2026-11-20): `load()` (the master rows) and
 `device_map_lines` (the old device-map rows of some levels, plus `role`); `comment_of(row)` is a row's JMRI comment.
 The two device maps and `public_name_map.csv` are gone (R9e, 2026-11-20), and so are the six `pnm_` columns that kept

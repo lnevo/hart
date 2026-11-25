@@ -922,7 +922,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "layout",
-   "desc": "Schematic drawing preferences per level, detail_sheets (staging generated), host_screen (the LE and CATS windows), le_stretch.",
+   "desc": "Schematic drawing preferences per level, detail_sheets (staging generated), host_screen (the LE and CATS windows), le_stretch. Tracks are named by block ID (min_cells, turnbacks, track_labels, the label options); hartlib.layer_files.merged gives them their names from the name store.",
    "path": "jmri/layouts/hart/data/schematic/preferences.json"
   },
   {
@@ -958,7 +958,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "layout",
-   "desc": "Schematic desk areas per control point; used to place OS blocks into control points in layout index.",
+   "desc": "Schematic desk areas per control point; used to place OS blocks into control points in layout index. Its tracks cell gives block IDs, named by the name store (hartlib.railroad_facts.station_tracks).",
    "path": "jmri/layouts/hart/data/schematic/stations.csv"
   },
   {
@@ -7615,6 +7615,11 @@
    "from": "jmri/layouts/hart/data/devices_field.csv",
    "to": "tools/schematic/plan_lengths.py",
    "label": "the owner's names by id (labels)"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_field.csv",
+   "to": "tools/schematic/build_staging_sets.py",
+   "label": "the names of stations.csv's tracks by block id (station_tracks)"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

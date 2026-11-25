@@ -33,8 +33,11 @@ Main and upper's are numbered by the Layout Editor build; staging's carry their 
 generator writes staging's beans. The masts read a part inside its OS block (`staging_device_map.os_layer`, as
 `block_layer.Layer.bands` on main and upper) and face the JMRI block next to them (Mast 32R faces Track 29-31).
 A part's block contents icon is optional on every level: `optional_block_contents` in `preferences.json` lists
-every level's parts (the plugin takes the list from the preferences only; `test_blocks_every_level` holds it to
-the device master). A piece that `block_overrides.csv` marks `inside` stays inside its OS block with no JMRI or
+every level's parts by block ID (the plugin takes the list from the preferences only, named in the merged view;
+`test_blocks_every_level` holds it to the device master). Every track key of `preferences.json` (`min_cells` track
+names, `turnbacks`, `track_labels`, the label options' track lists) and `stations.csv`'s `tracks` cell name tracks
+by block ID since naming-layers step 5b; `hartlib.layer_files.merged` and `railroad_facts.station_tracks` give them
+the name store's names, so a rename in `devices_field.csv` changes neither file. A piece that `block_overrides.csv` marks `inside` stays inside its OS block with no JMRI or
 layout block of its own (owner, 2026-11-20: the two halves of 35-39, in OS 35b and OS 39, so Mast 36RB's route
 to Mast 68 is shorter than the wrong way round the Princess balloon, which JMRI's discovery otherwise follows
 until its ttlSize and drops the pair). `data/schematic/block_overrides.csv` (a `level` column, rows of any level, a
@@ -45,7 +48,7 @@ the piece inside its OS block) and kind `crossover_half` (the crossover halves w
 `mast_rule.read_block_overrides` reads it and checks every row's shape for its kind, naming the file and line; it
 replaced `block_exceptions.csv` and `block_splits.csv` (2026-11-21). What a reader sees for a track can differ from its
 plan name: `preferences.json[main_upper]` `track_labels` (the schematic-maps plugin's sheet-wide preference, since
-plugin 0.1.50) maps a plan name to the label drawn, McKees Rocks for Helix Outer and McKeesport for Helix Inner until
+plugin 0.1.50; keyed by the staging helix block's ID, which the merged view names) maps a plan name to the label drawn, McKees Rocks for Helix Outer and McKeesport for Helix Inner until
 the layout expands. The plugin draws it on every output it makes: the schematic and station sheets (helix letters
 follow the labels, so H1 is still the outer track), the Layout Editor panel and the CATS desks; `levels_page` reads the
 same key for the track-plan article. The desks' bindings stay keyed by plan name (Helix Outer, Helix Inner). `build_device_map.py` writes staging's block and occupancy rows
@@ -205,7 +208,7 @@ Already rules in the spike:
 
 ### Layer 3: the owner's preferences for this sheet
 
-- Turnbacks: staging's Brick-Plane is drawn as the turnback (`turnbacks` in `preferences.json`'s `staging` section, plugin 0.1.45), as approved; with the 5.3c lengths the cheapest drawing would turn Main West back instead.
+- Turnbacks: staging's Brick-Plane is drawn as the turnback (`turnbacks` in `preferences.json`'s `staging` section, by its block ID, plugin 0.1.45), as approved; with the 5.3c lengths the cheapest drawing would turn Main West back instead.
 - Order from the top: staging, main, upper (owner, 2026-11-14, REV 3). Helix at the east end of every band (a 180-degree turn of the two upper bands was tried and undone; east and west on the looped mains are to be settled later by following the main line, perhaps on the CATS diagram; ADR-022 stands meanwhile).
 - All bands the same width; main band 95% and nudged left; upper band nudged so H2 sits under H1.
 - Helix marks: three-turn coil with H1 or H2 and "Helix to …". Connectors between main and upper: circled A and B.

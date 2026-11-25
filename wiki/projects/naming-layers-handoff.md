@@ -45,7 +45,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 | 2 | `id` column | 0.5 day | The builders write an ID on every row (decision 1); `check_rows` holds it unique per level. Only `devices_generated.csv` changes. **Done (2026-11-24):** see [Step 2 findings](#step-2-findings) |
 | 3 | The name store | 1.5 days | Generator names every track from the plan; `hartlib.track_names` keeps the owner's names by ID and gives them to the plugin; readers by ID; a check stops a name in `plan_overrides.json`. Drawings byte-identical. **Done (2026-11-24):** 3a the store ([Step 3 findings](#step-3-findings)); 3b the readers by ID ([Step 3b findings](#step-3b-findings)) |
 | 4 | Owner file keyed by ID | 1 day | `devices_field.csv` rekeyed on `(level, id)`; `user_name` becomes an owner cell. The build prints new and gone IDs against the last generated file and stops as decision 3 says; a rename lists the Operations Pro copies (decision 5) and warns on a mast rename (decision 6). **Done (2026-11-25):** see [Step 4 findings](#step-4-findings) |
-| 5 | Files keyed by ID | 1.5 to 2 days | `wiring.csv`, `block_lengths.csv`, `block_numbering.csv`, `block_overrides.csv`, `main_lines.csv` and switches.csv's staging legs key on device IDs; their names come from the name store, so a rename touches no row. **Done (2026-11-25):** see [Step 5 findings](#step-5-findings) |
+| 5 | Files keyed by ID | 1.5 to 2 days | `wiring.csv`, `block_lengths.csv`, `block_numbering.csv`, `block_overrides.csv`, `main_lines.csv` and switches.csv's staging legs key on device IDs; their names come from the name store, so a rename touches no row. **Done (2026-11-25):** see [Step 5 findings](#step-5-findings); 5b, `preferences.json` and `stations.csv` by block ID: [Step 5b findings](#step-5b-findings) |
 | 6 | Every read through `hartlib` | 1.5 days | `hartlib` readers for `block_overrides.csv`, `main_lines.csv` and `mast_cells.csv`; `layout_facts.py`, `write_inventory.py`, `check_hart_phase02.py` and `analyze.py` onto `hartlib.railroad` (was builder merge step 7, second half); mast rows read only through `hartlib.level_masts`. Then a check fails when a script outside `hartlib` opens a layout data file. Jython inside JMRI cannot import `hartlib` and reads only generated outputs; the check lists those scripts by name |
 | 7 | Staging generated like main and upper | 1.5 days | `staging_rows` and `staging_wired_rows` go through the main and upper functions; a staging device with no owner row gets generated values instead of stopping; `FIELD_LEVEL` goes. Staging's owner values still win, so outputs stay the same |
 | 8 | Block names into the rows | 0.5 day | Builder merge step 2 (`block_numbering.csv` stays the source of main and upper numbers, owner 2026-11-23) |
@@ -185,6 +185,30 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   (W-1;W-2) needs block IDs or run keys, read through `hartlib.railroad.read_stations` and `read_places`. A renamed
   crossover half stops (`railroad_facts.os_label`): its half letter comes from its name. The speed-match routes in
   `analyze.py` name blocks (step 6). A helix track rename was not tried.
+
+## Step 5b findings (2026-11-25)
+
+- **The keys.** `preferences.json`: every track key holds block IDs: staging's `min_cells` track names, `turnbacks`,
+  `le_labels` (`extra_steps`, `extra_follow`, `name_columns`, `name_steps`, `optional_block_contents`), main's and
+  upper's `le_band_labels` (`hidden_names`, `optional_block_contents`) and `track_labels` (by the staging helix block,
+  `block:39B-helix`). `layer_files.merged(data, "preferences")` names them (`track_names.pref_section`: "Track S-1"
+  or "S-1", as each key takes it), so the plugin's folder holds the same names as before; `pref_problems` stops a
+  hand section with a non-ID in a track key or a "Track ..." string anywhere. `stations.csv`'s `tracks`:
+  `block:3B-end;block:3C-end`, checked by `read_stations` and named by `railroad_facts.station_tracks` for
+  `read_places` and `build_staging_sets.py`. Both go through `track_names.names_by_id`: the owner's name, else the
+  generated one in `devices_generated.csv`.
+- **Also changed:** `read_helix_tracks` and `build_main_route.prepared` read the merged preferences, not the hand
+  file. `publish_draft.check_digest` hashes the merged view, as a generated name can change it with no hand file
+  changed (stamp version 3).
+- **The rename proof.** `test_rename_by_id.RenameInPreferencesAndStations` renames Track S-1 and Track W-1 in a copy's
+  field file. A scratch copy of the repo with the same two renames (no git there, so the steps were run one by one, the
+  plugin given as the copy's own pinned submodule through `SCHEMATIC_PLUGIN`): every step passed to `schematic`, which
+  reported the drawing and five station sheets changed as expected; `sml-current` stopped, as expected; `tables`,
+  `sync_signals`, `check_device_master` and the desks then passed. `preferences.json` and `stations.csv` did not
+  change; `plan_generated.json`'s `station_tracks` and `signals.json` took the new name.
+- **Outputs byte-identical:** the merged view's names unchanged, `make panels CHECK=1 FULL=1` all current,
+  `check_approved.py --check` all matching. No main or upper change.
+- **Open:** a field `jmri_comment` is free text (W-1's still says "Brick yard Track W-1"); a rename does not reach it.
 
 ## How to run this
 
