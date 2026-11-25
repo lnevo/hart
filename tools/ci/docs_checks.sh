@@ -2,6 +2,8 @@
 # The quick docs checks: what a change of Markdown docs only (tools/ci/changed_kind.py) is checked with, in CI
 # (.github/workflows/check.yml, "Quick docs checks") and by tools/check.sh's docs-only path. One list for both, so
 # they cannot drift. Each check runs, a failure does not stop the rest, and the exit is 1 when any failed.
+# The checks are the steps marked docs_only in the step manifest, tools/pipeline/checks.toml (ADR-037), each also in
+# check.sh's full run; a manifest that does not load, or lists no docs check, stops here with exit 2 and runs nothing.
 # HOPS_PY is the Python for the public text check (tools/check.sh passes ops/hart-ops/.venv's, which has pypdf; CI
 # installs it into python3).
 set -uo pipefail
@@ -15,16 +17,24 @@ check() {
   echo "--- $name"
   "$@" || failed+=("$name")
 }
-check docs-index python3 tools/ops/build_docs_index.py --check --strict
-check status-counts python3 tools/ops/status_counts.py --check
-check ai-speak python3 tools/audit/check_ai_speak.py
-check agent-docs python3 tools/audit/check_agent_docs.py
-# the map's agent-doc lane is generated from the wiki and agent docs, so a docs-only change can leave it stale;
-# --check also draws both map pages in memory (they are not committed, ADR-036)
-check pipeline-map python3 tools/ops/build_pipeline_map.py --check
-check public-text "$HOPS_PY" tools/audit/check_public_text.py
-check repo-guide python3 www/scripts/repo_guide_page.py --check
-check jmri-additions python3 www/scripts/jmri_additions_page.py --check
+if ! lines="$(python3 tools/pipeline/manifest.py jobs check --docs-only)"; then
+  echo "STOP: tools/pipeline/manifest.py jobs check --docs-only failed (its error is above); no docs check ran"
+  exit 2
+fi
+# A line is a step's name, then its command, shell-quoted ("$HOPS_PY" for the public text check's Python). It is
+# parsed in a subshell first: a line that will not parse, eval'd here, leaves bash 3.2 unable to read the rest of
+# this file.
+check_line() { ( eval "set -- $1" ) || return 1; eval "check $1"; }
+ran=0
+while IFS= read -r line; do
+  [[ -z "$line" ]] && continue
+  ran=$((ran + 1))
+  check_line "$line" || failed+=("${line%% *} (its line from the manifest would not parse)")
+done <<<"$lines"
+if (( ran == 0 )); then
+  echo "STOP: tools/pipeline/manifest.py jobs check --docs-only listed no check; no docs check ran"
+  exit 2
+fi
 # The unit tests that read Markdown docs or the wiki in the repo itself (tools/audit/check_stamps.py declares them on
 # docs/ or wiki/): only the test or class that reads them, so a docs-only change cannot break them unseen. The guard
 # tools/audit/tests/test_check_docs_only.py keeps this list in step with those declarations. A -k that matches no test

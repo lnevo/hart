@@ -17,7 +17,9 @@ What must be in the map:
   other variable ($dest/x.py, $PI_DROP/...) or a prefix (preference:jython/x.py) is a copy destination or a host
   path, not a call, and is not read; one inside a submodule belongs to that repo, and a module whose top package is
   not in <dir> (unittest) is not a repo script. Any other path that names no file in the checkout (tracked, or new
-  and not ignored) fails: it is a call to a file that is gone. Comments are not read.
+  and not ignored) fails: it is a call to a file that is gone. Comments are not read. check.sh runs its read-only
+  checks from the step manifest (tools/pipeline/checks.toml, ADR-037), so each step's script counts too, as if
+  check.sh named it.
 - Outputs: every tracked file under OUTPUT_ROOTS, and every repo path an entry file gives to `--out`.
 - Agent docs: every file, tracked or new and not ignored, that matches GLOBS in tools/ops/agent_docs_map.py (the
   .claude skills, subagents and commands, and the
@@ -43,6 +45,11 @@ ROOT = Path(__file__).resolve().parents[2]
 _spec = importlib.util.spec_from_file_location("build_pipeline_map", ROOT / "tools/ops/build_pipeline_map.py")
 BUILD = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(BUILD)
+if "pipeline_manifest" not in sys.modules:      # once per process: tools/audit/check_stamps.py loads it under this name
+    _spec = importlib.util.spec_from_file_location("pipeline_manifest", ROOT / "tools/pipeline/manifest.py")
+    sys.modules["pipeline_manifest"] = importlib.util.module_from_spec(_spec)    # its dataclasses look it up there
+    _spec.loader.exec_module(sys.modules["pipeline_manifest"])
+MANIFEST = sys.modules["pipeline_manifest"]
 ME = "tools/ops/pipeline_map_coverage.py"
 
 # The files that run the pipeline: what they call is the pipeline. A folder means every .sh file directly in it.
@@ -309,6 +316,12 @@ def check(graph: Path, listing: list[str] | None = None) -> list[str]:
     # new files not yet added count too, so a check before the commit does not call them gone
     files = frozenset(_git_files() + _git_files("--others", "--exclude-standard"))
     scripts, outputs = scan(files, _submodules(), lambda f: (ROOT / f).read_text())
+    try:
+        steps = MANIFEST.load()
+    except MANIFEST.ManifestError as err:
+        raise CoverageError(f"the step manifest check.sh runs its checks from cannot be read:\n{err}") from None
+    for step in steps:
+        scripts.setdefault(step.script, MANIFEST.MANIFEST.relative_to(ROOT).as_posix())
     shown = graph.relative_to(ROOT) if graph.is_relative_to(ROOT) else graph
     try:
         docs = BUILD.AGENT_DOCS.glob_files() + BUILD.AGENT_DOCS.glob_files(others=True)

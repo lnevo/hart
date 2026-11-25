@@ -3439,7 +3439,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "extras",
-   "desc": "The step manifest (ADR-037): one [[step]] per check.sh read-only check, with its command, lane and the files it reads and writes. Stage 1: only manifest.py and its test read it; check.sh keeps its own list.",
+   "desc": "The step manifest (ADR-037): one [[step]] per check.sh read-only check, with its command, lane and the files it reads and writes. check.sh and docs_checks.sh run their checks from it (ADR-037).",
    "path": "tools/pipeline/checks.toml"
   },
   {
@@ -3448,7 +3448,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "extras",
-   "desc": "Loads and checks the step manifest against git and the map (names, commands, paths, lanes); prints each runner's job lines (jobs) and the steps (list). No runner reads it yet (ADR-037 stage 1).",
+   "desc": "Loads and checks the step manifest against git and the map (names, commands, paths, lanes); prints each runner's job lines (jobs) and the steps (list); check.sh and docs_checks.sh run those lines, and the job stamps key on each job's entries (job_digests).",
    "path": "tools/pipeline/manifest.py"
   },
   {
@@ -7870,6 +7870,11 @@
    "from": "tools/pipeline/checks.toml",
    "to": "tools/pipeline/manifest.py",
    "label": "loads"
+  },
+  {
+   "from": "tools/pipeline/manifest.py",
+   "to": "tools/check.sh",
+   "label": "jobs check: the static group and its own jobs"
   },
   {
    "from": "docs/pipeline-map/pipeline_map.json",
