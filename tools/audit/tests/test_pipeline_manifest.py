@@ -201,6 +201,9 @@ class EdgesTest(Refusing):
         self.assertRefused(step(quiet_inputs='"data/x.csv"'), "quiet_inputs: must be a list")
         self.assertRefused(step(inputs='[{ path = "data/x.csv", label = "l" }]', quiet_inputs='["data/x.csv"]'),
                            "quiet_inputs: data/x.csv also in inputs")
+        # an input whose path is no text is named as such, beside quiet_inputs, not a TypeError
+        self.assertRefused(step(inputs='[{ path = ["data/x.csv"] }]', quiet_inputs='["data/x.csv"]'),
+                           "is not a path")
 
 
 class DeclarationsTest(unittest.TestCase):

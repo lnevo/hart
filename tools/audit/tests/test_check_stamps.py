@@ -903,7 +903,7 @@ class DeclarationAuditTest(RepoCase):
             "100\tx\ttok1\t{root}\tbash\t-c\tpython3 helper.py",
             "200\ts\t999\ttok1\t2\tpython3\thelper.py",          # a's grandchild, by the token it inherited
             "200\tr\t{root}/data/helper.csv",
-            "300\ts\t100\t\t3\tpython3\ttools/b.py",            # a's child, by its parent, whatever it runs
+            "300\ts\t100\t\t3\tpython3\tother.py",              # a's child, by its parent
             "300\tr\t{root}/data/child.csv",
             "300\ts\t300\tfork\t0\tfork",                       # its fork
             "400\ts\t51\t\t4\tpython3\tstray.py",               # no step started it
@@ -917,6 +917,21 @@ class DeclarationAuditTest(RepoCase):
                                             "python3 stray.py": ["data/stray.csv"]})
         self.assertEqual(audit["absent"], ["b"])
         self.assertEqual(audit["bash"], [])
+
+    def test_a_step_started_by_a_reused_pid_is_still_its_own(self) -> None:
+        # a's process 100 ended; the job's bash got pid 100 and started b's process: b's reads are b's
+        reused = [*self.HAND, "600\ts\t100\t\t5\tpython3\ttools/b.py", "600\tr\t{root}/data/b.csv"]
+        audit = cs.step_reads("static", self.trace(reused), self.root, cs.manifest_steps("static", self.root))
+        self.assertEqual(audit["steps"]["b"], ["data/b.csv"])
+        self.assertNotIn("data/b.csv", audit["steps"]["a"])
+        self.assertEqual(audit["absent"], [])
+
+    def test_a_step_added_after_the_stamp_is_not_reported_clean(self) -> None:
+        steps = cs.manifest_steps("static", self.root)
+        audit = {"steps": {"a": []}, "unowned": {}, "absent": [], "bash": []}     # b is in no stamp
+        lines, count = cs.audit_lines("static", audit, steps)
+        self.assertEqual(count, 1)
+        self.assertIn("    b: in tools/pipeline/checks.toml, not in the stamp; run the job again", lines)
 
     def test_a_job_of_one_step_owns_every_process(self) -> None:
         audit = cs.step_reads("ruff", self.trace(self.HAND), self.root, cs.manifest_steps("ruff", self.root))
@@ -957,6 +972,7 @@ class DeclarationAuditTest(RepoCase):
         self.edit_step("a", 'inputs = ["data/in.csv"]\n')
         self.assertEqual(cs.audit_lines("static", audit, cs.manifest_steps("static", self.root)),
                          (["stamp audit: static: every data read is declared in tools/pipeline/checks.toml "
+                           "(code under tools/ and .py files are not audited) "
                            "(b: bash, which the trace cannot see, so not audited)"], 0))
 
     def test_an_audit_that_cannot_run_says_so(self) -> None:

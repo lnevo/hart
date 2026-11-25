@@ -722,7 +722,9 @@ def step_reads(name: str, trace_log, root: Path, steps) -> dict:
             started += 1
             ppid = int(rest[0]) if rest[0].isdigit() else -1
             words = tuple(rest[4:])
-            owner[pid] = (owner.get(ppid) or token_owner.get(rest[1]) or only or by_words.get(words)
+            # the spawn token is unique, and a step's own command words name it; a parent pid comes last, as an
+            # untraced process (the job's bash) may have been given the pid of a traced one that ended before
+            owner[pid] = (only or token_owner.get(rest[1]) or by_words.get(words) or owner.get(ppid)
                           or "?" + " ".join(rest[3:]))
         elif kind == "x" and len(rest) >= 2 and pid in owner:
             token_owner[rest[0]] = owner[pid]
@@ -761,10 +763,16 @@ def audit_lines(name: str, audit: dict, steps, full: bool = False) -> tuple[list
     for step in audit.get("absent", []):
         count += 1
         rows.append(f"    {step}: no process of it in the trace, so its reads are not audited")
-    bash = audit.get("bash", [])
+    recorded = set(audit.get("steps", {})) | set(audit.get("absent", []))
+    for s in steps:                 # a step added to the manifest after the stamp was recorded
+        if s.python and s.name not in recorded:
+            count += 1
+            rows.append(f"    {s.name}: in tools/pipeline/checks.toml, not in the stamp; run the job again")
+    bash = [s.name for s in steps if not s.python]          # from the manifest now, not the stamp
     tail = f" ({', '.join(bash)}: bash, which the trace cannot see, so not audited)" if bash else ""
     if not count:
-        return [f"stamp audit: {name}: every data read is declared in tools/pipeline/checks.toml{tail}"], 0
+        return [f"stamp audit: {name}: every data read is declared in tools/pipeline/checks.toml (code under "
+                f"tools/ and .py files are not audited){tail}"], 0
     return ([f"WARNING: stamp audit: {name}: {count} read(s) not declared in tools/pipeline/checks.toml "
              f"(inputs, or quiet_inputs for a read not drawn on the map); {AUDIT_HOW}", *rows,
              *([f"    not audited: {', '.join(bash)} (bash, which the trace cannot see)"] if bash else []),

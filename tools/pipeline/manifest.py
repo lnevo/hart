@@ -298,8 +298,8 @@ def _step_problems(entry: dict, where: Repo) -> list[str]:
         out.append("quiet_inputs: must be a list of paths (no label or side: they are not drawn)")
     else:
         out += [f"quiet_inputs: {msg}" for msg in _path_list_problems(quiet, where)]
-        drawn = {i if isinstance(i, str) else i.get("path") for i in entry.get("inputs", [])
-                 if isinstance(i, (str, dict))}
+        drawn = {p for i in entry.get("inputs", []) for p in [i.get("path") if isinstance(i, dict) else i]
+                 if isinstance(p, str)}         # a path that is no text is _edge_problems' to name
         both = sorted(set(quiet) & drawn)
         if both:
             out.append(f"quiet_inputs: {', '.join(both)} also in inputs; a read is drawn or quiet, not both")
