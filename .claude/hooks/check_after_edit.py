@@ -4,8 +4,8 @@
 PostToolUse hook for Edit, Write and MultiEdit. A failing check exits 2 with its output on
 stderr, which Claude sees. The table checks are the steps marked after_edit in the step
 manifest, tools/pipeline/checks.toml (ADR-037), read from the edited file's checkout without
-git or the map check; a manifest that does not load, or marks no step, stops the hook with
-exit 2 and the reason, as it stops check.sh. They take about a second together. The unit-jmri job
+git or the map check; a manifest that does not load stops the hook with exit 2 and the reason,
+as it stops check.sh (a worktree from before the marks takes them from this hook's checkout). They take about a second together. The unit-jmri job
 (about 14 s) runs after an edit to a data file (tables.xml, the signal CSVs). After an edit
 to a script it is replaced by the test files that name that script (matching_tests), each
 well under a second; a script no test file names gets the whole unit-jmri job, and the hook
@@ -34,6 +34,7 @@ WATCHED = re.compile(
     r"|jmri/scripts/(signal_coordinator|sml_[a-z_]+)\.py)$"  # the script and the sibling modules it loads
 )
 MANIFEST_PY = "tools/pipeline/manifest.py"
+HOME = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # the checkout holding this hook
 # A unit-test job of tools/check.sh, so not a manifest step (ADR-037 point 4); test_guards checks check.sh has it.
 UNIT_JMRI = "unit-jmri"
 UNIT_JMRI_ARGV = ["python3", "-m", "unittest", "discover", "-b", "-q", "-s", "jmri/layouts/hart/scripts/tests"]
@@ -53,6 +54,10 @@ class ManifestLoadError(Exception):
     """The step manifest could not be read, so the hook cannot tell which checks to run."""
 
 
+class NotMarked(ManifestLoadError):
+    """The checkout has no manifest.py, or marks no step after_edit: a branch from before the marks."""
+
+
 def manifest_checks(root, manifest_file=None):
     """(name, argv) of each step of root's checks.toml marked after_edit, in file order.
 
@@ -63,6 +68,8 @@ def manifest_checks(root, manifest_file=None):
     """
     script = os.path.join(root, MANIFEST_PY)
     name = "hart_after_edit_manifest"
+    if not os.path.isfile(script):
+        raise NotMarked(f"{root} has no {MANIFEST_PY}")
     try:
         spec = importlib.util.spec_from_file_location(name, script)
         if spec is None:
@@ -72,6 +79,7 @@ def manifest_checks(root, manifest_file=None):
         spec.loader.exec_module(module)
         data, shown = module.read(module.MANIFEST if manifest_file is None else pathlib.Path(manifest_file))
     except (Exception, SystemExit) as err:  # a broken manifest is a failure to see, not a reason to pass
+        sys.modules.pop(name, None)
         raise ManifestLoadError(f"{MANIFEST_PY} did not load the step manifest: {err}") from err
     steps = data.get("step")
     if not isinstance(steps, list) or not all(isinstance(s, dict) for s in steps):
@@ -87,13 +95,23 @@ def manifest_checks(root, manifest_file=None):
                                     f"here (manifest.py check names the problem)")
         out.append((step, list(cmd)))
     if not out:
-        raise ManifestLoadError(f"{shown}: no step is marked after_edit")
+        raise NotMarked(f"{shown}: no step is marked after_edit")
     return out
 
 
 def quick_checks(root):
-    """The checks for an edit to a watched file: the manifest's after_edit steps, then the whole unit-jmri job."""
-    return manifest_checks(root) + [(UNIT_JMRI, UNIT_JMRI_ARGV)]
+    """The checks for an edit to a watched file: the manifest's after_edit steps, then the whole unit-jmri job.
+
+    A worktree branched before the after_edit marks (NotMarked) takes them from the checkout that holds this hook,
+    and says so; a manifest that is there but broken stops the hook."""
+    try:
+        checks = manifest_checks(root)
+    except NotMarked as err:
+        if os.path.realpath(HOME) == os.path.realpath(root):
+            raise
+        checks = manifest_checks(HOME)
+        print(f"check_after_edit: {err}; ran the checks {HOME}'s manifest marks after_edit", file=sys.stderr)
+    return checks + [(UNIT_JMRI, UNIT_JMRI_ARGV)]
 
 
 def matching_tests(root, script):

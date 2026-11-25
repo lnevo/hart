@@ -17,6 +17,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import tomllib
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -509,17 +510,16 @@ class PrivateNameAndTables(unittest.TestCase):
 
     def test_after_edit_reads_its_checks_from_the_manifest(self) -> None:
         after = load(ROOT / ".claude/hooks/check_after_edit.py", "hart_check_after_edit_test")
-        manifest = sys.modules["hart_after_edit_manifest"] if after.manifest_checks(str(ROOT)) else None
-        marked = {e["name"] for e in manifest.read()[0]["step"] if e.get("after_edit")}
-        want = [(s.name, list(s.cmd)) for s in manifest.load() if s.name in marked]   # load() checks every field
+        steps = tomllib.loads((ROOT / "tools/pipeline/checks.toml").read_text(encoding="utf-8"))["step"]
+        want = [(e["name"], e["cmd"]) for e in steps if e.get("after_edit")]    # `manifest.py check` checks each field
         # Read without git: a hook that ran git, or the map check, here would cost seconds on every edit.
         with mock.patch("subprocess.run", side_effect=AssertionError("the manifest read ran a process")):
             got = after.manifest_checks(str(ROOT))
         self.assertEqual((got, len(got) >= 7), (want, True))
         self.assertEqual(after.quick_checks(str(ROOT))[-1], (after.UNIT_JMRI, after.UNIT_JMRI_ARGV))
         # unit-jmri is a unit-test job, not a manifest step (ADR-037 point 4): check.sh runs it as the hook does.
-        check_sh = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
-        self.assertIn(f"unit {after.UNIT_JMRI} " + " ".join(after.UNIT_JMRI_ARGV), check_sh)
+        self.assertIn(f"unit {after.UNIT_JMRI} " + " ".join(after.UNIT_JMRI_ARGV),
+                      (ROOT / "tools/check.sh").read_text(encoding="utf-8"))
 
     def test_after_edit_manifest_problems_are_errors_not_an_empty_list(self) -> None:
         after = load(ROOT / ".claude/hooks/check_after_edit.py", "hart_check_after_edit_broken_test")
@@ -533,8 +533,13 @@ class PrivateNameAndTables(unittest.TestCase):
                     path.write_text(text, encoding="utf-8")
                 with self.subTest(why), self.assertRaisesRegex(after.ManifestLoadError, why):
                     after.manifest_checks(str(ROOT), path)
-            with self.assertRaisesRegex(after.ManifestLoadError, "did not load"):   # a checkout with no manifest.py
+            with self.assertRaisesRegex(after.NotMarked, "has no tools/pipeline/manifest.py"):
                 after.manifest_checks(tmp)
+            with contextlib.redirect_stderr(io.StringIO()) as err:      # a worktree from before the marks
+                self.assertEqual(after.quick_checks(tmp), after.quick_checks(str(ROOT)))
+            self.assertIn("ran the checks", err.getvalue())
+            after.HOME = tmp
+            self.assertRaises(after.NotMarked, after.quick_checks, tmp)
 
     def test_real_signal_coordinator_edit_runs_its_own_test_files(self) -> None:
         after = load(ROOT / ".claude/hooks/check_after_edit.py", "hart_check_after_edit_real_test")
@@ -585,8 +590,7 @@ class AfterEditMatchingTests(unittest.TestCase):
         # The real hook watches one script; the made-up ones stand in for it here.
         self.after.WATCHED = re.compile(self.after.WATCHED.pattern.replace("signal_coordinator", "(one|many|lonely)"))
         self.after.toplevel = lambda directory: str(self.root)
-        self.after.manifest_checks = lambda root: [("one-check", ["python3", "tools/one.py"]),
-                                                   ("two-check", ["python3", "tools/two.py", "--check"])]
+        self.after.manifest_checks = lambda root: [("one", ["python3", "t/one.py"]), ("two", ["python3", "t/two.py"])]
         self.ran: list[list[str]] = []
         self.fail_code = 0
 
@@ -669,8 +673,7 @@ class AfterEditMatchingTests(unittest.TestCase):
         self.after.manifest_checks = mock.Mock(side_effect=self.after.ManifestLoadError("checks.toml: not valid TOML"))
         for rel in ("jmri/layouts/hart/output/tables.xml", "jmri/scripts/one.py"):
             code, err = self.hook(rel)
-            self.assertEqual((code, "not run after editing" in err, "not valid TOML. Run ./tools/check.sh." in err),
-                             (2, True, True), err)
+            self.assertEqual((code, "not run after editing" in err and "TOML. Run ./tools/check.sh." in err), (2, True))
         self.assertEqual(self.ran, [])
 
     def test_unwatched_file_runs_nothing(self) -> None:
