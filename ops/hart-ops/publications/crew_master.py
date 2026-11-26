@@ -4,8 +4,8 @@ The master holds the crew jobs (key: `code`, the train symbol for a crew job), t
 TT-23 timetable, the spot sheet, EQ-01 and the station map text. Two kinds of reader use it:
 
 - build_crew_json.py writes www/data/crew.json from site_view(): the master less every `docx` object, with the spot
-  sheet's industry names and anchors from ops/hart-ops/data/industries.csv, the yardmaster and dispatcher rules
-  appended to their summaries, each lineup row's route put before its action, and the schematic's revision and date
+  sheet's industry names and anchors from ops/hart-ops/data/industries.csv, a job's `site_note` (a sentence only the
+  site prints) and the yardmaster and dispatcher rules appended to their summaries, each lineup row's route put before its action, and the schematic's revision and date
   from the title block (hartlib.map_revision.fields).
 - the rebuild_*.py docx scripts read the jobs, colors and timetable through the functions below. A `docx` object in
   the master holds what only the printed sheet uses (a photo, a legend order) or wording the sheet prints
@@ -53,10 +53,10 @@ def _drop_docx(value):
 def _site_job(j: dict) -> dict:
     out = {}
     for k, v in j.items():
-        if k == "rules":
+        if k in ("rules", "site_note"):
             continue
-        if k == "summary" and j.get("rules"):
-            v = " ".join([v, *j["rules"]])
+        if k == "summary":
+            v = " ".join([v, *([j["site_note"]] if j.get("site_note") else []), *j.get("rules", [])])
         if k == "lineup":
             v = [{"n": r["n"], "train": r["train"], "action": f"{r['route']} {r['action']}",
                   **({"colors": r["colors"]} if "colors" in r else {})} for r in v]

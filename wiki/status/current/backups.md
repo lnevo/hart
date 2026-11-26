@@ -1,2 +1,2 @@
 order: 140
-**Backups (owner, 2026-11-25, [ADR-035](../../decisions/ADR-035-backups.md)):** the Mac pulls the Pi's profile, user files, speedmatch and STS dump daily, and copies its gitignored data and plans to the Windows box weekly; `make backup-status` shows the last full runs. No card image and no off-site copy, by choice.
+**Backups (owner, 2026-11-25, [ADR-035](../../decisions/ADR-035-backups.md)):** the Mac pulls the Pi's profile, user files, speedmatch and STS dump daily, and copies its gitignored data, plans and secrets (owner-only there) to the Windows box weekly; `make backup-status` shows the last full runs. No card image and no off-site copy, by choice.
