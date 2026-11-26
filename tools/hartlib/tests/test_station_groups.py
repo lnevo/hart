@@ -7,7 +7,8 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from hartlib import hand_lists, paths, railroad_facts as rf  # noqa: E402
+from hartlib import devices, hand_lists, paths, railroad_facts as rf  # noqa: E402
+from master_edit import name_store  # noqa: E402  a fixture's name store
 
 STATIONS = paths.LAYOUT_DATA / "schematic" / "stations.csv"
 SWITCHES = paths.LAYOUT_DATA / "switches.csv"
@@ -174,17 +175,22 @@ class NestedStations(unittest.TestCase):
 class StationGroupRows(Files):
     def files(self, stations: str, os_blocks: str) -> tuple[Path, Path]:
         """stations.csv and a switches.csv whose rows are `os_blocks`: one "level,switch,os_block[,os_id]" per line,
-        each given legs. A staging row's os_id is os:<switch> unless given; its legs' ids are placeholders (the reader
-        holds only their shape)."""
+        each given legs. A staging row's os_id is os:<switch> unless given, and a name store beside the files names
+        it os_block; its legs' ids are placeholders the store names Track A and Track B. A main or upper row is keyed
+        by its half and has no OS block (its os_block is left out)."""
         d = self.dir()
         (d / "stations.csv").write_text(HEAD + stations)
-        rows = []
+        rows, names = [], {"block:A": "Track A", "block:B": "Track B"}
         for spec in os_blocks.splitlines():
             level, n, os_block, *os_id = spec.split(",")
-            half = "" if level == "1" else n
-            ids = f"{os_id[0] if os_id else 'os:' + n},block:A,block:B" if level == "1" else ",,"
-            rows.append(f"{level},{n},{half},{os_block},Track A,Track B,{ids},,,,,,,,\n")
+            if level == "1":
+                ident = os_id[0] if os_id else "os:" + n
+                names[ident] = os_block
+                rows.append(f"{level},{n},,{ident},block:A,block:B,,,,,,,,\n")
+            else:
+                rows.append(f"{level},{n},{n},,,,,,,,,,,\n")
         (d / "switches.csv").write_text(SW_HEAD + "".join(rows))
+        name_store(d / devices.ONE_FILE, names)
         return d / "stations.csv", d / "switches.csv"
 
     def halves(self, st: Path, *rows: str) -> None:
@@ -205,8 +211,12 @@ class StationGroupRows(Files):
                          ["7", "7b", "23a", "23b"])
 
     def test_every_level_is_given(self):
-        st, sw = self.files("1,X,5,,XX,\n2,Y,105,,YY,\n", "1,5,OS Switch 5\n2,105,OS Switch 105\n")
-        self.assertEqual([(r["cp_name"], r["level"]) for r in rf.station_group_rows(st, sw)], [("X", "1"), ("Y", "2")])
+        st, sw = self.files("1,X,5,,XX,\n1,Y,7,,YY,\n", "1,5,OS Switch 5\n1,7,OS Switch 7\n")
+        self.assertEqual([(r["cp_name"], r["level"]) for r in rf.station_group_rows(st, sw)], [("X", "1"), ("Y", "1")])
+        # a main or upper switch is keyed by its half and has no OS block yet, so a desk area of it stops
+        st, sw = self.files("2,Y,105,,YY,\n", "2,105,\n")
+        with self.assertRaisesRegex(rf.FactsError, r"stations.csv line 2 \(Y\): switch 105 has no OS block"):
+            rf.station_group_rows(st, sw)
 
     def test_a_switch_with_no_os_block_names_the_station_that_holds_it(self):
         st, sw = self.files('1,Brick,"1,3",none,BK,\n1,West Yard,3,,BK,\n', "1,1,OS Switch 1\n")
@@ -218,13 +228,10 @@ class StationGroupRows(Files):
         with self.assertRaisesRegex(rf.FactsError,
                                     r"stations.csv line 2 \(X\): switch 9 has no OS block in switches.csv"):
             rf.station_group_rows(st, sw)
-        st, sw = self.files("2,X,105,,XX,\n", "2,105,Track 105\n")
-        with self.assertRaisesRegex(rf.FactsError, r"switches.csv line 2 \(Switch 105\): os_block is OS Switch 105"):
-            rf.station_group_rows(st, sw)
 
     def test_a_renamed_os_block_is_listed_by_its_switch(self):
-        """naming-layers step 5: a staging OS block is keyed by its id, so an owner's name for it (os_block is the
-        name store's label) still lists as its switch number, and a renamed crossover half as its number and the
+        """naming-layers step 5: a staging OS block is keyed by its id, so an owner's name for it (os_block, the
+        name store's name of the id) still lists as its switch number, and a renamed crossover half as its number and the
         letter block_overrides.csv's crossover_half row gives its ID; with no such row it stops."""
         st, sw = self.files("1,X,5,,XX,\n", "1,5,OS Brick East\n")
         self.assertEqual(rf.station_group_rows(st, sw)[0]["switches"], "5")

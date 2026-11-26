@@ -803,9 +803,9 @@ class PageTest(unittest.TestCase):
         MAP.check_page(page, data, site=False)
         cases = (
             (page.replace("const DATA = ", "const XDATA = "), "no graph data"),
-            (page.replace(MAP.script_text(), ""), "does not inline pipeline_map_layout.js, pipeline_map_view.js"),
-            (page.replace(MAP.script_parts()[1][1], ""), r"does not inline pipeline_map_view\.js$"),
-            (page.replace(MAP.script_text(), MAP.script_parts()[1][1] + MAP.script_parts()[0][1]), "in order, as one script"),
+            (page.replace(MAP.script_text(), ""), "does not inline pipeline_map_layout.js, pipeline_map_helpers.js, pipeline_map_view.js"),
+            (page.replace(MAP.script_parts()[1][1], ""), r"does not inline pipeline_map_helpers\.js$"),
+            (page.replace(MAP.script_text(), "".join(t for _, t in MAP.script_parts()[::-1])), "in order, as one script"),
             (page + "__DATA__", "placeholders: __DATA__"),
             (page.replace('{"nodes":[{', '{"nodes":[{"id":"extra"},{', 1), r"holds \d+ nodes, the graph \d+"),
             (page.replace('{"nodes":[{', '{"nodes":[{"id":"extra"},{', 1).replace('"x":0}', '"x":0}', 1),

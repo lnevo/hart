@@ -40,15 +40,15 @@ cmd = ["python3", "tools/schematic/build_hands.py"]
 check_args = ["--check"]
 domain = "layout"
 label = "build_hands.py"
-desc = "make panels step 1 (hands): writes the hand of switches.csv's plan rows from the plan graph and relabel edits, and each staging row's os_block, closed_leg and thrown_leg from the name store by their ids; owner hands are left alone."
+desc = "make panels step 1 (hands): writes the hand of switches.csv's plan rows from the plan graph and relabel edits; owner hands are left alone. Staging rows give device ids only, which the read checks against the name store."
 inputs = [
   { path = "jmri/layouts/hart/data/schematic/inputs/main.json", label = "reads hand" },
   { path = "jmri/layouts/hart/data/schematic/plan_overrides.json", label = "relabel edits" },
-  { path = "jmri/layouts/hart/data/devices_generated.csv", label = "the name store's names of the staging legs' ids", written_later = ["device-map", "panel-items"] },
+  { path = "jmri/layouts/hart/data/devices_generated.csv", label = "the name store the staging legs' ids are checked against", written_later = ["device-map", "panel-items"] },
   { path = "jmri/layouts/hart/data/devices_field.csv", label = "the owner's names by id (merged view)" },
 ]
 outputs = [
-  { path = "jmri/layouts/hart/data/switches.csv", label = "step 1 hands; staging's leg labels by id" },
+  { path = "jmri/layouts/hart/data/switches.csv", label = "step 1 hands" },
 ]
 
 # Staging's control points, stations and detail sheets in the staging sections of plan_generated.json and
