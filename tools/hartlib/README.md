@@ -460,7 +460,7 @@ it in `--check`.
   `save` on the repo file today, but on a fresh Store it drops the stylesheet line and the
   "Written by JMRI" comment and changes the declaration's quotes. A script moved onto
   hartlib keeps them.
-- Scripts that edit tables.xml as text with regexes (`refresh_bean_comments.py`) keep untouched bytes by design.
+- Scripts that edit tables.xml as text with regexes (`check_bean_comments.py`) keep untouched bytes by design.
   Move them only if the regex work is replaced by element edits and the output is the same.
 
 ### `hartlib.names`

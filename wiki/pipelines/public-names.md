@@ -20,7 +20,7 @@ Apply the live naming grammar to JMRI beans and generated panels. Hardware MQTT 
 ```bash
 export JMRI_LAYOUT=hart
 PYTHONPATH=tools/hartlib/src python3 -m hartlib.devices check   # after an edit of the device master
-python3 jmri/layouts/hart/scripts/refresh_bean_comments.py
+python3 jmri/layouts/hart/scripts/check_bean_comments.py
 python3 jmri/layouts/hart/scripts/audit_panel_contracts.py --strict
 ```
 

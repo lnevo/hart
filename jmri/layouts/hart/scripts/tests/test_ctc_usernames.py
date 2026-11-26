@@ -30,7 +30,7 @@ def load_module(name: str, path: Path):
     return module
 
 
-refresh = load_module("refresh_bean_comments", SCRIPTS / "refresh_bean_comments.py")
+refresh = load_module("check_bean_comments", SCRIPTS / "check_bean_comments.py")
 
 
 class CtcInternalNamesTest(unittest.TestCase):
