@@ -132,3 +132,6 @@ docs/ap/operations.log
 
 # make panels stamps (tools/schematic/panel_stamps.py), per checkout
 /.cache/
+
+# agent status lines (handoff skill); never committed
+/.claude/progress/
