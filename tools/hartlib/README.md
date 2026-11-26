@@ -395,6 +395,14 @@ level's internal name or a wired LCOS head that is the row's planned physical he
 swaps it in, so nothing else of theirs reaches MQTT); a virtual mast is in its level's thousand and stands at a buffer
 stop.
 
+### `hartlib.operations`
+
+Reads Operations Pro roster files: `cars(path)`, `engines(path)` and `trains(path)` give the `<car>`, `<engine>` and
+`<train>` elements of their section (`./cars/car` and so on), in file order; `section(path, name)` is the general
+form, `ids(elements)` their ids. `ROSTERS` names the repo's files in `jmri/layouts/hart/operations/` (ADR-015);
+the car pipeline passes its own copies in `ops/hart-ops/data/`. A broken file raises `ET.ParseError` naming it.
+It only reads: the tools that change a roster keep JMRI's header and layout themselves.
+
 ### `hartlib.parked`
 
 The features parked out of the active tables (`PARKED`: Entry/Exit, the Dispatcher System, the USS CTC machine;

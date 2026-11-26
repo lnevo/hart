@@ -5,9 +5,14 @@ from __future__ import annotations
 
 import csv
 import re
+import sys
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from pathlib import Path
+
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import operations  # noqa: E402
 
 from engine_lookup import is_locomotive_row
 from roster_id import manifest_car_id, road_code
@@ -225,8 +230,7 @@ def merge_roster() -> tuple[dict[str, dict[str, str]], list[str]]:
             attrs["color"] = color
 
     if SOURCE_ROSTER.is_file():
-        root = ET.parse(SOURCE_ROSTER).getroot()
-        for el in root.findall("./cars/car"):
+        for el in operations.cars(SOURCE_ROSTER):
             attrs = attrs_from_element(el)
             cid = attrs["id"]
             if cid not in cars:

@@ -45,6 +45,7 @@ HART_ROOT = PIPELINE.parents[2]
 os.environ.setdefault("HART_CAR_CARDS_ROOT", str(HART_ROOT / "ops/car-cards"))
 
 from car_paths import DATA, FINAL_DIR, IMAGES_DIR, ROOT  # noqa: E402
+from hartlib import operations  # noqa: E402  (car_paths put tools/hartlib/src on sys.path)
 
 METADATA = DATA / "image_metadata.csv"
 QUEUE = DATA / "car_queue.csv"
@@ -202,7 +203,7 @@ def cmd_import_legacy(_args: argparse.Namespace) -> int:
     rows, columns = read_rows()
     known = {row_id(r) for r in rows}
     added = 0
-    for car in ET.parse(OPS).getroot().findall("./cars/car"):
+    for car in operations.cars(OPS):
         cid = car.get("id", "")
         if cid in known:
             continue
@@ -600,8 +601,7 @@ def ops_out_of_service(path: Path) -> set[str]:
     if not path.is_file():
         return set()
     return {
-        c.get("id", "") for c in ET.parse(path).getroot().findall("./cars/car")
-        if c.get("outOfService") == "true"
+        c.get("id", "") for c in operations.cars(path) if c.get("outOfService") == "true"
     }
 
 
@@ -793,7 +793,7 @@ def seed_marks() -> set[str]:
 def ops_ids(path: Path) -> set[str]:
     if not path.is_file():
         return set()
-    return {c.get("id", "") for c in ET.parse(path).getroot().findall("./cars/car")}
+    return set(operations.ids(operations.cars(path)))
 
 
 def seed_copy_report(inputs: Path, masters: tuple[Path, ...]) -> list[str]:
@@ -909,7 +909,7 @@ def field_diffs(expected: dict[str, dict], tool: dict[str, dict], fields: dict[s
 
 
 def ops_car_attrs(path: Path) -> dict[str, dict]:
-    return {c.get("id", ""): dict(c.attrib) for c in ET.parse(path).getroot().findall("./cars/car")}
+    return {c.get("id", ""): dict(c.attrib) for c in operations.cars(path)}
 
 
 def print_diffs(diffs: list[tuple], show_all: bool) -> None:
@@ -1231,7 +1231,7 @@ def seed_extra_changes() -> list[str]:
                 with path.open(newline="", encoding="utf-8") as fh:
                     return {row_id(r): r.get("out_of_service") or "" for r in csv.DictReader(fh) if row_id(r)}
             return {c.get("id", ""): c.get("outOfService") or ""
-                    for c in ET.parse(path).getroot().findall("./cars/car")}
+                    for c in operations.cars(path)}
 
         want, have = flags(master), flags(copy)
         for label, ids in (("added", sorted(want.keys() - have.keys())),
