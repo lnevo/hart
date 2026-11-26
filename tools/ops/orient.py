@@ -2,7 +2,8 @@
 """Who is working on what: one screen to read at the start of a session, so two agents do not work on top of each other.
 
     python3 tools/ops/orient.py              the full view (make orient): claims, worktrees in progress, the operating
-                                             flag, what each layout host last got, open PRs
+                                             flag, open PRs, what each layout host last got, and what a host holds
+                                             that is waiting to come into the repo
     python3 tools/ops/orient.py --short      claims and worktrees in progress only, no network (the session-start hook)
     python3 tools/ops/orient.py claim PAGE   write this worktree's Claimed line under PAGE's Status line
     python3 tools/ops/orient.py unclaim PAGE [--branch B]   remove it (this branch's, or B's)
@@ -22,6 +23,13 @@ its lock (tools/agent/worktrees.py reads the lock). The full view fetches origin
 and the counts use the local ref); --short never fetches. A clone without origin/main (a fresh or CI one) says so
 in one line and lists every worktree but the main checkout, with commits ahead unknown. A part that cannot be read (gh, a host, the flag) prints
 one line saying so; only a failure to read the worktrees themselves stops the run (exit 2).
+
+"Waiting to ingest" (full view only) is one line per source, each naming the command that brings it in. It asks the
+checks the pulls and the deploy gate already make, read-only: tools/hosts/deploy/pi_unpulled.sh (the gate's Pi check:
+a Store, Operations Pro files), tools/ops/pull_tables.sh --status (the Mac's Store) and
+tools/hosts/sync_roster_from_pi.sh --status (the DecoderPro roster against the Mac copy). The live STS is not checked:
+its database keeps no change marker, so only a dump (make sts-pull) shows a change; the line gives the last dump's
+time. A Pi that does not answer is one line per source ("Pi unreachable, not checked").
 """
 from __future__ import annotations
 
@@ -42,7 +50,7 @@ PROJECTS = Path("wiki/projects")
 BASE = "origin/main"
 GIT_TIMEOUT = 20
 FETCH_TIMEOUT = 20
-NET_TIMEOUT = 40  # gh and the deploy stamps (ssh ConnectTimeout is 10 s per host)
+NET_TIMEOUT = 40  # gh, the deploy stamps and the ingest checks (their ssh ConnectTimeout is 10 s per host)
 SHORT_LIMIT = 10  # lines per section in --short, then "and N more"
 
 STATUS = re.compile(r"^Status:\s*(\S.*)$")
@@ -463,6 +471,116 @@ def site_deploy_lines() -> list[str]:
     return lines
 
 
+# ---------------------------------------------------------------- waiting to ingest (full view only)
+
+PI_UNPULLED = "tools/hosts/deploy/pi_unpulled.sh"
+MAC_TABLES = "tools/ops/pull_tables.sh"
+ROSTER_SYNC = "tools/hosts/sync_roster_from_pi.sh"
+SSH_DOWN = 255  # ssh's own status when the host did not answer (or refused the key)
+
+
+def pi_unpulled() -> tuple[int | None, str, str]:
+    return run([str(ROOT / PI_UNPULLED)], NET_TIMEOUT)
+
+
+def mac_tables() -> tuple[int | None, str, str]:
+    return run([str(ROOT / MAC_TABLES), "--status"], NET_TIMEOUT)
+
+
+def roster_status() -> tuple[int | None, str, str]:
+    return run([str(ROOT / ROSTER_SYNC), "--status"], NET_TIMEOUT)
+
+
+def not_checked(result: tuple[int | None, str, str], host: str) -> str | None:
+    """Why a check gave no answer ("Pi unreachable, not checked (...)"), or None when it answered."""
+    code, out, err = result
+    if code == 0:
+        return None
+    if code is None:
+        return f"{host} check {err}, not checked"
+    if code == SSH_DOWN:
+        return f"{host} unreachable, not checked ({first_line(err)})"
+    return f"cannot check (exit {code}: {first_line(err or out)})"
+
+
+# What the Pi and Mac checks compare a host with: the Store splits, the generated tables.xml and the Operations files.
+INGEST_REFS = ("jmri/layouts/hart/data/store_splits.csv", "jmri/layouts/hart/output/tables.xml",
+               "jmri/layouts/hart/operations")
+
+
+def ingest_base_note() -> str | None:
+    """A note when this checkout's copies of INGEST_REFS differ from origin/main's: the checks compare a host with
+    this checkout, so a split or an Operations pull merged since would still show as waiting."""
+    code, out, err = run(["git", "diff", "--quiet", BASE, "--", *INGEST_REFS], GIT_TIMEOUT)
+    if code == 0:
+        return None
+    if code == 1:
+        return (f"NOTE: compared with this checkout, whose Store splits, tables.xml or Operations files differ from "
+                f"{BASE}; merge it in for exact answers")
+    return f"NOTE: compared with this checkout; cannot tell whether it matches {BASE} ({first_line(err)})"
+
+
+def ingest_lines(pi: tuple[int | None, str, str], mac: tuple[int | None, str, str],
+                 roster: tuple[int | None, str, str]) -> list[str]:
+    """One line per source: what a host holds that the repo (or, for the roster, the Mac copy) lacks, and the
+    command that brings it in."""
+    lines = []
+    why = not_checked(pi, "Pi")
+    words = set(pi[1].split()) if why is None else set()
+    if why is None and words - {"ops", "tables"}:
+        why = f"cannot read the check's answer {pi[1].strip()!r}"
+    lines.append("JMRI tables, Pi: " + (why or ("a PanelPro Store not yet split in (pulled or not)" if "tables" in words
+                                                 else "nothing waiting")) + " (make tables-pull-pi)")
+    code, out, err = mac
+    answer = out.strip()
+    if code == 0 and answer in ("waiting", "nothing", "absent"):
+        state = {"waiting": "a PanelPro Store not yet split in (pulled or not)", "nothing": "nothing waiting",
+                 "absent": "nothing waiting (no ~/JMRI_UserFiles/tables.xml)"}[answer]
+    else:
+        state = not_checked(mac, "Mac") or f"cannot read the check's answer {answer!r}"
+    lines.append(f"JMRI tables, Mac: {state} (make tables-pull)")
+    lines.append("Operations Pro, Pi: " + (why or ("the Pi's session changed the Operations files since the last "
+                                                    "deploy or pull" if "ops" in words else "nothing waiting"))
+                 + " (make ops-pull)")
+    lines.append(f"STS, Pi: not checked: the live database keeps no change marker, only a dump shows a change; "
+                 f"{last_sts_pull()} (make sts-pull)")
+    code, out, err = roster
+    answer = out.strip()
+    m = re.fullmatch(r"waiting (\d+)", answer)
+    if code == 0 and (m or answer == "nothing"):
+        count = int(m.group(1)) if m else 0
+        state = (f"{count} file{'s' if count > 1 else ''} on the Pi {'differ' if count > 1 else 'differs'} from "
+                 "the Mac copy or not on it (the sync overwrites the Mac's)" if count else "nothing waiting")
+    else:
+        state = not_checked(roster, "Pi") or f"cannot read the check's answer {answer!r}"
+    lines.append(f"DecoderPro roster, Pi: {state} (./{ROSTER_SYNC})")
+    return lines
+
+
+STS_DUMP = re.compile(r"^sts_db3_(\d{8}-\d{6})\.sql\.gz$")
+
+
+def last_sts_pull() -> str:
+    """When make sts-pull last kept a dump of the live database (tools/hosts/pi_sts_pull_backups.sh writes
+    sts_db3_<time>.sql.gz into STS_PI_COPY/db, else the main checkout's external/sts-docker-data/pi/db)."""
+    folder = Path(os.environ.get("STS_PI_COPY") or ROOT_MAIN / "external/sts-docker-data/pi") / "db"
+    try:
+        stamps = [m.group(1) for m in (STS_DUMP.match(p.name) for p in folder.iterdir()) if m]
+    except FileNotFoundError:
+        return "no dump pulled to this Mac yet"
+    except OSError as err:
+        return f"cannot read {folder} ({err})"
+    if not stamps:
+        return "no dump pulled to this Mac yet"
+    times = []
+    for stamp in stamps:
+        try:
+            times.append(datetime.strptime(stamp, "%Y%m%d-%H%M%S"))
+        except ValueError:  # a hand-named file with digits that are no date
+            continue
+    return f"last dump {max(times):%Y-%m-%d %H:%M}" if times else "no dump pulled to this Mac yet"
+
+
 # ---------------------------------------------------------------- output
 
 def tree_line(t: Tree, prs: dict[str, int], here: str) -> str:
@@ -498,10 +616,15 @@ def report(short: bool, here: str) -> list[str]:
     prs: list[dict] | str = []
     deploys: list[str] = []
     flag = ""
+    ingest: list[str] = []
     if not short:
-        with ThreadPoolExecutor(max_workers=3) as pool:
-            prs_job, deploy_job, flag_job = pool.submit(open_prs), pool.submit(deploy_summary), pool.submit(operating)
-            prs, deploys, flag = prs_job.result(), deploy_job.result(), flag_job.result()
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            jobs = [pool.submit(f) for f in (open_prs, deploy_summary, operating, pi_unpulled, mac_tables,
+                                             roster_status)]
+            prs, deploys, flag, pi, mac, roster = (j.result() for j in jobs)
+        ingest = ingest_lines(pi, mac, roster)
+        note = ingest_base_note()
+        ingest += [note] if note else []
     limit = SHORT_LIMIT if short else None
     out = [] if short else [f"Orient {datetime.now():%Y-%m-%d %H:%M} ({fetched})", f"Operating flag: {flag}"]
     if any(t.ahead is None for t in trees):
@@ -528,6 +651,8 @@ def report(short: bool, here: str) -> list[str]:
     out.append("Last deploys (compared with this checkout):")
     out += ["  " + line for line in deploys]
     out += ["  " + line for line in site_deploy_lines()]
+    out.append("Waiting to ingest (what a host holds that the repo lacks):")
+    out += ["  " + line for line in ingest]
     return out
 
 

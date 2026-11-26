@@ -12,7 +12,7 @@ wt:  ## Start a task in its own worktree: make wt TOPIC=short-topic
 wt-sweep:  ## Remove agent worktrees whose PR is merged
 	python3 tools/agent/worktrees.py sweep
 
-orient:  ## Who works on what: claims, worktrees in progress, operating flag, last deploys, open PRs
+orient:  ## Who works on what: claims, worktrees in progress, operating flag, last deploys, open PRs, what waits to be pulled in
 	@python3 tools/ops/orient.py
 
 status:  ## Build wiki/STATUS.md (gitignored) from the entry files in wiki/status/, with the Counts line (ADR-038)

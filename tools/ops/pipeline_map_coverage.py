@@ -67,7 +67,8 @@ ALLOWED = {
     # make plumbing: they schedule or route jobs and read or write no pipeline file (check.sh is no entry file:
     # its own plumbing is not scanned)
     "tools/agent/worktrees.py": "makes and sweeps agent worktrees (make wt); no pipeline file",
-    "tools/ops/orient.py": "prints claims, worktrees in progress, deploys and PRs (make orient); no pipeline file",
+    "tools/ops/orient.py": "prints claims, worktrees in progress, deploys, PRs and what waits to be pulled in (make "
+                           "orient), asking the pulls' and the gate's read-only checks; writes no pipeline file",
     "tools/hosts/win_run.sh":"runs a command on the Windows box (make remote); no pipeline file",
     "tools/env/load_env.sh": "loads .env.local host settings for the deploy steps",
     "tools/ops/screenshot.py": "screenshots any page for a check by eye (make shot); writes only scratch images",
