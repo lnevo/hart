@@ -15,6 +15,7 @@ The owner's call on 2026-11-26 at 01:45: every loose end from the what's-left li
 | N4 Map view split | `tools/ops/pipeline_map_view.js` (1417 lines) into parts under the 800-line limit, the map drawing unchanged | `tools/ops/pipeline_map_view*.js`, the map page that loads it | the agent experience session's report | `general-purpose`, opus; `/code-review medium`; site deploy |
 | N5 Archive and stale notes | archive the 2026-11-08 speed-matching scripts (`runner/step_runner.py`, `runner/move_to.py`, `analyze_profile.py`, `propose_table.py`) and the two `STRR_*.py` with their exclusions, through `move_path.py`; correct the stale lines: STATUS "Generated, then the owner's" (its left items are done on [naming-layers](naming-layers-handoff.md)), cleanup-streamline section A, the #1149 deploy owed on pipeline-coverage (shipped by every deploy since) | `docs/jmri/speedmatching/`, `archive/`, `wiki/status/`, those project pages | [pipeline-coverage](pipeline-coverage-handoff.md) lane C, [cleanup-streamline](cleanup-streamline-handoff.md) A | `general-purpose`, sonnet; docs and moves, no review |
 | N6 Punch list designs | drafts of item 4 (control point signs sized for a stick in the benchwork), item 5 (the big crew board in sign-up order) and item 6 (mock signals for the interlocking gaps) for the owner to choose from | new files under `docs/ops/session4/` | [punch list](../../docs/ops/SESSION4_PUNCH_LIST.md) items 4 to 6 | `general-purpose`, sonnet; owner approves each look before anything is published |
+| N7 Data-masters answers | the owner's answers 1 to 3 on 2026-11-26: full colour key names, the TT-23 site wording, the YM-01 NONE row on the site legend; the docx overrides go | `ops/hart-ops/data/crew.json`, `ops/hart-ops/publications/`, `www/data/crew.json` | [data-masters](data-masters.md), Open for the owner | run by hart-95 |
 
 Merged on 2026-11-26: N5 #1209, N4 #1211, N3 #1213, N2 #1214, N1 #1216, and hart-c4's #1215. The site was deployed at 02:31, and the Pi and Windows got 9424352cc at 02:38 (both stamps clean). N6 is draft #1212, waiting on the owner's picks.
 
@@ -22,11 +23,9 @@ N1 to N5 run at once; N6 starts when one of them ends. The cap is 8 sessions wit
 
 ## Owner's parts
 
-Settled on 2026-11-26: group D is taken as good without the live try (owner, in hart-95, about 02:35); L7 was done by #1173 on 2026-11-25 with no STS write; the owner removed the leftover worktrees.
+Settled on 2026-11-26: group D is taken as good without the live try (owner, in hart-95, about 02:35); L7 was done by #1173 on 2026-11-25 with no STS write; the owner removed the leftover worktrees; the data-masters questions are answered (lane N7 for three, phase 2 for the roster, [data-masters](data-masters.md)); the Barn 3D plate keeps its placeholders until the owner sends the frame measurements, and is rebuilt to them before any print ([`docs/benchwork/station_maps_3d/`](../../docs/benchwork/station_maps_3d/README.md)). N6 (02:55 to 03:00): control point signs option A (plate), crew board option B (columns), no mock signals (punch-list items 6 and 8 not wanted).
 
-- The data-masters questions still on working values ([data-masters](data-masters.md), Open for the owner).
-- 3D station maps: the Barn frame measurements ([`docs/benchwork/station_maps_3d/`](../../docs/benchwork/station_maps_3d/README.md)).
-- N6: pick a design for each of items 4 to 6.
+Nothing is left for the owner on this page.
 
 ## Rules
 
