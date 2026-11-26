@@ -5316,6 +5316,15 @@
    "path": "docs/jmri/speedmatching/profile-2026-11-08/block_speeds.py"
   },
   {
+   "id": "tools/ci/docs_unit_tests.py",
+   "label": "docs_unit_tests.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Lists the unit tests a docs-only change runs, from check_stamps.py's declarations of what reads docs/ or wiki/; docs_checks.sh runs them.",
+   "path": "tools/ci/docs_unit_tests.py"
+  },
+  {
    "id": ".claude/agents/archive-researcher.md",
    "label": "agent: archive-researcher",
    "kind": "unstructured",
@@ -12450,6 +12459,16 @@
    "label": "check crew-json",
    "side": "check",
    "gen": "manifest"
+  },
+  {
+   "from": "tools/audit/check_stamps.py",
+   "to": "tools/ci/docs_unit_tests.py",
+   "label": "imports (stamp declarations)"
+  },
+  {
+   "from": "tools/ci/docs_unit_tests.py",
+   "to": "tools/ci/docs_checks.sh",
+   "label": "unit test lines"
   },
   {
    "from": ".claude/agents/archive-researcher.md",
