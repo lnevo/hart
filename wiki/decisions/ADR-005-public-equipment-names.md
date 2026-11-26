@@ -51,7 +51,7 @@ After a rename: `systemName` columns identical; public strings follow the CSV `p
 
 ## Mapping SoR
 
-[`jmri/layouts/hart/data/public_name_map.csv`](../../jmri/layouts/hart/data/public_name_map.csv)
+`jmri/layouts/hart/data/public_name_map.csv`, retired 2026-11-20 (ADR-029). The source of record is now the device master, `hartlib.devices`: [`devices_generated.csv`](../../jmri/layouts/hart/data/devices_generated.csv) and the owner's cells in [`devices_field.csv`](../../jmri/layouts/hart/data/devices_field.csv) (ADR-039); see the amendment at the top. This section records the file as it was.
 
 Identity rows are `current` == `proposed` == live userName, with Device-map text in **`comment`** and a turnout's DCC address in **`dcc`** (since 2026-11-14; `hartlib.names` puts it back as the comment's second group for JMRI). Historical alias rows keep pre-convert names. Rebuild with `sync_public_name_map.py` (from the HART Device map canvas + live `tables.xml`). For the next rename pass: edit **`proposed`** on the live identity rows; leave historical alias rows pointing at the same `proposed`. ADR-002’s `block_display_names.csv` is a live-name index, not the apply map.
 

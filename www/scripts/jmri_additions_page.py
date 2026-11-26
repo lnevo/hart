@@ -170,7 +170,24 @@ def _facts(root: Path) -> dict:
         "other-dests": dests(sources) - dests(wired_src),
         "plant": len(plant),
         "hosts": host_lists(root),
+        "parts": _parts(root),
     }
+
+
+def _parts(root: Path) -> dict[str, tuple[str, ...]]:
+    """Each split script's parts, in load order, keyed by the script's file name."""
+    try:
+        return {Path(script).name: coordinator.sibling_modules(root / script) for script in (COORDINATOR, PANEL_STATUS)}
+    except coordinator.CoordinatorError as e:
+        raise PageError(str(e)) from None
+
+
+def _parts_sentence(parts: tuple[str, ...]) -> str:
+    files = _and(["<code>%s.py</code>" % m for m in parts])
+    n = word(len(parts)).capitalize()
+    if len(parts) == 1:
+        return "One module beside it holds the rest of its code and is deployed with it: %s." % files
+    return "%s modules beside it hold the rest of its code and are deployed with it: %s." % (n, files)
 
 
 def _hosts_cell(script: str, hosts: dict) -> str:
@@ -200,6 +217,8 @@ def regions(f: dict) -> dict:
     }
     for s in SCRIPTS:
         vals["hosts-" + s[:-3].replace("_", "-")] = _hosts_cell(s, f["hosts"])
+    for s, parts in f["parts"].items():
+        vals["parts-" + s[:-3].replace("_", "-")] = _parts_sentence(parts)
     return vals
 
 

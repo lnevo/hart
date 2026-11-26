@@ -5677,6 +5677,16 @@
    "gen": "agent-docs"
   },
   {
+   "id": ".claude/agents/tool-fixer.md",
+   "label": "agent: tool-fixer",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Refactors that change no behaviour (a script split under its size limit, a module move) and fixes to repo tools and checks (tools/ops/, tools/audit/, tools/pipeline/, tools/hosts/ tests, hooks, Jython and speed-match scripts). Use when no other named agent owns the paths. Give it one bounded job; it always runs in a worktree.",
+   "path": ".claude/agents/tool-fixer.md",
+   "gen": "agent-docs"
+  },
+  {
    "id": ".claude/agents/voice-reviewer.md",
    "label": "agent: voice-reviewer",
    "kind": "unstructured",
@@ -13266,6 +13276,13 @@
    "side": "check"
   },
   {
+   "from": ".claude/agents/tool-fixer.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs",
+   "side": "check"
+  },
+  {
    "from": ".claude/agents/voice-reviewer.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -13702,6 +13719,13 @@
   {
    "from": "wiki/AGENTS_GIT.md",
    "to": ".claude/agents/site-reviewer.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/AGENTS_GIT.md",
+   "to": ".claude/agents/tool-fixer.md",
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"
