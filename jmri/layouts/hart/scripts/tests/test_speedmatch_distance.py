@@ -584,15 +584,10 @@ class Locate(unittest.TestCase):
             lines.append("%.3f PASSDONE reason=passed" % (ev[-1][0] + 1))
             (d / name).write_text("\n".join(lines) + "\n")
         out = io.StringIO()
-        old = sys.argv
-        sys.argv = ["infer_block_lengths.py", "--route", "loop2", "--locate", "--pass-log",
-                    str(d / "a.log"), str(d / "b.log")]
-        try:
-            with redirect_stdout(out), mock.patch.object(ibl.plan_routes, "plan_routes",
-                                                         return_value=lengths_fixture.PLAN_ROUTES):
-                ibl.main()          # the fixture's 5.3c values: CI has no plan file
-        finally:
-            sys.argv = old
+        argv = ["infer_block_lengths.py", "--route", "loop2", "--locate", "--pass-log", str(d / "a.log"), str(d / "b.log")]
+        with redirect_stdout(out), mock.patch.object(sys, "argv", argv), \
+                mock.patch.object(ibl.plan_routes, "plan_routes", return_value=lengths_fixture.PLAN_ROUTES):
+            ibl.main()          # the fixture's 5.3c values: CI has no plan file
         text = out.getvalue()
         self.assertIn("pass 1:", text)
         self.assertIn("pass 2:", text)
