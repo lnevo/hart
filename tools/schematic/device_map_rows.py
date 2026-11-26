@@ -64,13 +64,14 @@ def switch_device_rows(level, cp, s: str, labels, turnout: Wired, fbs: Mapping[s
     """The rows of switch `s` (device_row form): its turnout "Switch <s>" (its trial name from its plan labels,
     `labels`; `notes`), its LCC alias "DCC Switch <s>" (MTT<dcc>, on the turnout's node and wiring, `alias_notes`; none
     when `alias` is false) and its feedback "FB Switch <s> N" and "R" (`fbs`: {"N": Wired, "R": Wired}). `jmri`: the
-    JMRI name the turnout is bound by; the alias's and the feedback rows' follow it (switch_shape)."""
+    JMRI name the turnout is bound by; the alias's and the feedback rows' follow it (switch_shape). The turnout and
+    alias rows get no cp (devices.place gives a turnout's place from the switch lists); the feedback rows get `cp`."""
     alias_jmri, fb_bound = switch_shape(jmri, dcc)
     trial = ", ".join(f"Switch {lb}" for lb in sorted(set(labels), key=railroad.natural))
-    rows = [device_row(level, cp, "turnout", f"Switch {s}", turnout.system, turnout.node, turnout.where, trial, notes,
+    rows = [device_row(level, "", "turnout", f"Switch {s}", turnout.system, turnout.node, turnout.where, trial, notes,
                        dcc, jmri=jmri, role="turnout", ident=device_ids.switch_id(s))]
     if alias:
-        rows.append(device_row(level, cp, "turnout", f"DCC Switch {s}", f"MTT{dcc}", turnout.node, turnout.where,
+        rows.append(device_row(level, "", "turnout", f"DCC Switch {s}", f"MTT{dcc}", turnout.node, turnout.where,
                                notes=alias_notes, dcc=dcc, jmri=alias_jmri, role="lcc_alias",
                                ident=device_ids.dcc_id(s)))
     for nr in "NR":
@@ -195,7 +196,7 @@ def bean_cells(rows: list[Mapping[str, str]], thrown: frozenset = frozenset()) -
 
     - a turnout (not its LCC alias): start (a virtual one's only: a field device reports its own state) closed, or
       thrown when its switch number is in `thrown`
-      (build_device_map.startup_thrown: the main route runs through leg C); comment its cp, "Switch <n>", the note
+      (build_device_map.startup_thrown: the main route runs through leg C); comment its place (devices.place), "Switch <n>", the note
       and its planned turnout: "CP 107 | Switch 107 | internal, not wired | planned M2T3308 (draft)";
     - a block (not a helix block, whose beans are staging's): its detector (a part: its block's) and the
       detector's sensor, then its jmri_comment, or for a part with none the block it is part of: "BS 107-109 /
@@ -253,7 +254,7 @@ def bean_cells(rows: list[Mapping[str, str]], thrown: frozenset = frozenset()) -
         if layer == "turnout":
             number = r["id"].removeprefix("switch:")
             r["start"] = virtual_start(r, "thrown" if number in thrown else "closed")
-            r["bean_comment"] = joined(r["cp"], f"Switch {number}", *drafted(r, r["system_name"]))
+            r["bean_comment"] = joined(devices.place(r), f"Switch {number}", *drafted(r, r["system_name"]))
         elif layer == "block":
             d = detector.get((r["level"], r["part_of"] or r["user_name"]))
             if d is None:

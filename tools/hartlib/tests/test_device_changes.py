@@ -109,7 +109,7 @@ class TheReport(Temp):
         new = [generated(id="switch:2", user_name="Switch 2")]
         with self.assertRaisesRegex(D.DevicesError, r"id 'switch:1' \(Switch 1 \(level 1, turnout\)\) is gone from "
                                                     r"the plan, and its field row holds user_name 'Switch 1', role "
-                                                    r"'turnout', assignment 'field', cp 'Brick', dcc '100': move them "
+                                                    r"'turnout', assignment 'field', dcc '100': move them "
                                                     r"to the device's new id \(new on level 1, turnout: switch:2\), "
                                                     r"or remove the row"):
             C.report("build_device_map.py", old, new, [field(id="switch:1")], lambda line: None, self.ops)

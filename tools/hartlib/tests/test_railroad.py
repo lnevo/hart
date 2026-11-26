@@ -196,10 +196,10 @@ class Readers(Copy):
         twice = rows + [(1000, self.staging_row(layer="turnout", user_name="Switch 1"))]
         self.fails(lambda: R.switch_turnouts(self.src.devices, twice, [1]), "two rows are both the turnout Switch 1")
 
-    def test_a_switchs_hardware_dcc_and_cp_are_its_turnout_rows_own_columns(self) -> None:
-        change(self.src.devices, ("1", "turnout", "Switch 1"), dcc="140", cp="Plane")
+    def test_a_switchs_hardware_and_dcc_are_its_turnout_rows_own_columns_its_cp_the_switch_lists(self) -> None:
+        change(self.src.devices, ("1", "turnout", "Switch 1"), dcc="140")
         sw = R.Railroad(self.src).switches[1]
-        self.assertEqual((sw.hardware, sw.dcc, sw.cp), ("M2T408", "140", "Plane"))
+        self.assertEqual((sw.hardware, sw.dcc, sw.cp), ("M2T408", "140", "Brick"))      # stations.csv's desk area
 
     def test_a_tables_file_that_cannot_be_read(self) -> None:
         bad = self.tmp / "tables.xml"
@@ -621,7 +621,7 @@ class Invariants(Copy):
         change(self.src.devices, self.key("turnout", "Switch 107"), level="3")
         got = self.problems("device-map")
         self.assertIn("Switch 103 (local, level 2): no turnout row in devices.csv", got)
-        self.assertTrue(any("Switch 107 is level 3 CP 107, the control points say level 2 CP 107" in p for p in got),
+        self.assertTrue(any("Switch 107 is level 3 local, the control points say level 2 CP 107" in p for p in got),
                         got)
 
     def test_device_map_nodes_dcc_and_names(self) -> None:

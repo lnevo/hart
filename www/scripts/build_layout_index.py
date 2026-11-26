@@ -71,7 +71,7 @@ def load_names(path: Path):
         rec = {
             "current": row["user_name"],
             "proposed": row["user_name"],
-            "cp": row["cp"],
+            "cp": device_master.place(row),
             "hardware": row["system_name"],
             "comment": device_master.comment_of(row),
         }

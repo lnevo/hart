@@ -87,10 +87,10 @@ def freeze_rows(cp: str, rows: list[dict], keys: dict[str, dict], helix: set[str
     no such control point or a head with no node."""
     # a line block's cp lists the places it joins (devices.LIST), its own level's first (build_device_map.line_cp):
     # its detector is frozen with that first one
-    first = lambda r: r["cp"].split(devices.LIST)[0]  # noqa: E731
+    first = lambda r: devices.place(r).split(devices.LIST)[0]  # noqa: E731  a turnout's from the switch lists
     mine = [r for r in rows if first(r) == cp]
     if not mine:
-        cps = sorted({first(r) for r in rows if r["cp"]}, key=lambda c: [int(t) if t.isdigit() else t
+        cps = sorted({first(r) for r in rows if first(r)}, key=lambda c: [int(t) if t.isdigit() else t
                                                                          for t in re.split(r"(\d+)", c)])
         raise FreezeError(f"no main or upper control point {cp!r}; they are {', '.join(cps)}")
     note = wiring.freeze_note(cp, today)

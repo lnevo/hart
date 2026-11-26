@@ -14,7 +14,9 @@ ROOT = HERE.parents[2]
 sys.path[:0] = [str(HERE.parent), str(ROOT / "tools/hartlib/src"), str(ROOT / "tools/wiring")]
 import build_device_map as bdm  # noqa: E402
 import freeze_wiring as fw  # noqa: E402
-from hartlib import railroad, wiring  # noqa: E402
+from unittest import mock  # noqa: E402
+
+from hartlib import places, railroad, wiring  # noqa: E402
 
 HEAD = ",".join(wiring.COLUMNS) + "\n"
 
@@ -197,9 +199,9 @@ class TheBuild(unittest.TestCase):
 
 class TheCommand(unittest.TestCase):
     """freeze_wiring.py's rows and merge."""
-    ROWS = [dict(level="2", cp="CP 9", layer="turnout", role="turnout", user_name="Switch 9", system_name="M2T4208", node="42",
+    ROWS = [dict(level="2", cp="", layer="turnout", role="turnout", user_name="Switch 9", system_name="M2T4208", node="42",
                  comment="Node: 42 Turnout: 0 | OU: 1 Ports: 1,2", blocks="", id="switch:9"),
-            dict(level="2", cp="CP 9", layer="turnout", role="lcc_alias", user_name="DCC Switch 9", system_name="MTT150", node="42",
+            dict(level="2", cp="", layer="turnout", role="lcc_alias", user_name="DCC Switch 9", system_name="MTT150", node="42",
                  comment="Node: 42 Turnout: 0 | OU: 1 Ports: 1,2", blocks="", id="dcc:9"),
             dict(level="2", cp="CP 9", layer="occupancy", role="os", user_name="BS Switch 9", system_name="M2S4200", node="42",
                  comment="Node: 42 Block: 1", blocks="OS Switch 9", id="det:os:9"),
@@ -208,6 +210,13 @@ class TheCommand(unittest.TestCase):
             dict(level="2", cp="CP 9", layer="occupancy", role="spur", user_name="BS 9 Spur", system_name="", node="",
                  comment="", blocks="Track 9 Spur", id="det:block:9C-end")]
     KEYS = {"Track 9-11": dict(switch_a="9", switch_b="11", parallel="", half="")}
+
+    def setUp(self):
+        # a turnout row has no cp: its place is its switch's in the switch lists (devices.place), here CP 9's
+        patch = mock.patch.object(places, "switch_place", lambda level, s: "CP 9" if (str(level), str(s)) == ("2", "9")
+                                  else "")
+        patch.start()
+        self.addCleanup(patch.stop)
 
     def test_rows(self):
         got = fw.freeze_rows("CP 9", self.ROWS, self.KEYS, set(), "2026-11-21")
