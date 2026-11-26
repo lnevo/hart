@@ -358,13 +358,17 @@ start_jobs() {
     pids[$n]=$!
   done
 }
-# job_status I: whether job I passed, from the exit code it wrote itself. wait only waits for it: bash 3.2 (macOS)
-# can drop a finished background job from its table while more jobs start, and `wait PID` then fails with "pid N
-# is not a child of this shell" (status 127) for a job that passed, which marked it FAILED. A job that wrote no code
-# (killed before it finished) fails.
+# job_status I: whether job I passed. The code the job wrote itself counts first; else wait's own status, unless wait
+# answered 127 "pid N is not a child of this shell": bash 3.2 (macOS) can drop a background job from its table
+# under load, finished or still running, and then wait returns at once. A job that is still alive then is waited
+# for by polling until it writes its code or ends; one that ended without writing a code fails.
 job_status() {
-  local rc
-  wait "${pids[$1]}" 2>/dev/null
+  local rc pid="${pids[$1]}" w=0
+  wait "$pid" 2>/dev/null || w=$?
+  if [[ ! -e "$JOBS/$1.rc" ]]; then
+    (( w != 127 )) && return "$w"
+    while [[ ! -e "$JOBS/$1.rc" ]] && kill -0 "$pid" 2>/dev/null; do sleep 0.2; done
+  fi
   rc="$(cat "$JOBS/$1.rc" 2>/dev/null)" || return 1
   [[ "$rc" == 0 ]]
 }

@@ -44,7 +44,9 @@ class JobStatus(unittest.TestCase):
         self.assertNotEqual(status(self.jobs, self.not_a_child), 0)
 
     def test_a_job_that_wrote_no_code_fails(self) -> None:
-        self.assertNotEqual(status(self.jobs, self.not_a_child), 0)
+        gone = subprocess.Popen(["true"])
+        gone.wait()
+        self.assertNotEqual(status(self.jobs, gone.pid), 0)
 
     def test_a_garbled_code_fails(self) -> None:
         (self.jobs / "0.rc").write_text("ok\n")
@@ -57,11 +59,34 @@ class JobStatus(unittest.TestCase):
         done = subprocess.run(["/bin/bash", "-c", script], capture_output=True, text=True, timeout=30)
         self.assertEqual(done.returncode, 0, done.stderr)
 
-    def test_every_job_writes_its_code_before_it_exits(self) -> None:
+    def test_a_dropped_job_that_is_still_running_is_waited_for(self) -> None:
+        """wait fails at once (the pid is not bash's child) while the job runs; its code is written 0.5 s later."""
+        alive = subprocess.Popen(["sleep", "1.5"])     # alive, and not a child of the bash below
+        self.addCleanup(alive.kill)
+        script = (job_status_function()
+                  + f'JOBS="{self.jobs}"; ( sleep 0.5; echo 0 >"$JOBS/0.rc" ) & '
+                  + f'pids[0]={alive.pid}; job_status 0\n')
+        done = subprocess.run(["/bin/bash", "-c", script], capture_output=True, text=True, timeout=30)
+        self.assertEqual(done.returncode, 0, done.stderr)
+
+    def test_a_dropped_job_that_ended_without_a_code_fails(self) -> None:
+        gone = subprocess.Popen(["true"])
+        gone.wait()
+        self.assertNotEqual(status(self.jobs, gone.pid), 0)
+
+    def test_without_a_code_file_waits_own_status_counts(self) -> None:
+        """A real child that exits 0 but could not write its code (a full disk) still passes; one that exits 3 fails."""
+        for code, want in ((0, 0), (3, 3)):
+            script = job_status_function() + f'JOBS="{self.jobs}"; ( exit {code} ) & pids[0]=$!; job_status 0\n'
+            done = subprocess.run(["/bin/bash", "-c", script], capture_output=True, text=True, timeout=30)
+            self.assertEqual(done.returncode, want, done.stderr)
+
+    def test_collect_takes_each_result_from_job_status(self) -> None:
         text = CHECK_SH.read_text(encoding="utf-8")
-        self.assertIn('echo "$rc" >"$JOBS/$n.rc"', text)
-        self.assertIn('elif job_status "$i"; then', text)
-        self.assertNotIn('elif wait "${pids[$i]}"; then', text)
+        collect = re.search(r"^collect\(\) \{\n(.*?)^\}\n", text, re.M | re.S).group(1)
+        self.assertRegex(collect, r"job_status \S+")
+        self.assertNotRegex(collect, r"\bwait\b")
+        self.assertRegex(text, r'>\s*"\$JOBS/\$n\.rc"')   # each job writes its code
 
 
 if __name__ == "__main__":
