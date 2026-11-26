@@ -949,7 +949,7 @@ quiet_inputs = [
   "docs/benchwork/roadbed/*.pdf", "docs/benchwork/staging_level/*.pdf", "docs/ops/*.pdf", "docs/ops/*.svg",
   "docs/ops/stations/*.svg", "jmri/layouts/hart/scripts/speedmatch/dashboard/static/*.css",
   "jmri/layouts/hart/scripts/speedmatch/dashboard/static/*.js", "ops/hart-ops/publications/assets/*.png",
-  "ops/station_maps/maps/*.png", "tools/benchwork/helix/*.py",
+  "ops/station_maps/maps/*.png",
   "ops/hart-ops/operator_logos/**", "external/sts-docker-data/Rolling Stock photos/*.jpg",
   "jmri/layouts/hart/output/tables.xml", "jmri/layouts/hart/data/switches.csv",
   "jmri/layouts/hart/parked/tables_parked.xml", "jmri/layouts/hart/data/devices_field.csv",

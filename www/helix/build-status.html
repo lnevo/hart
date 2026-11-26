@@ -35,6 +35,7 @@
     </div>
     <div class="guide-body helix-wrap prose">
 <h2>HART Railroad — Neville Island Helix: Build Status</h2>
+<p>The single living status file for the helix build: as-built facts, decisions that override the handoff and the PDF plan, every fixture and script, and open items.</p>
 <p><strong>Last updated 2026-10-15.</strong> This is the single living status document. <strong>Update it in place; don't start new addenda.</strong> It replaces the six dated addenda (2026-09-30 through 2026-10-13), which are archived unchanged in <code>archive/docs/benchwork/helix/history/</code> if the history is ever needed.</p>
 <p>Other <code>superseded/</code> mentions below mean <code>archive/docs/benchwork/helix/history/superseded/</code>; the obsolete STLs are in <code>archive/docs/benchwork/helix/history/superseded/obsolete_stl/</code>.</p>
 <p><strong>Read in this order:</strong>
@@ -210,27 +211,27 @@
 <tbody>
 <tr>
 <td><code>roadbed_halflap_template_A/B.3mf</code> (+ <code>.stl</code>, <code>_CORE100.stl</code>)</td>
-<td><a href="scripts/make_lap_template.py"><code>make_lap_template.py</code></a> + <a href="scripts/router_template_lattice.py"><code>router_template_lattice.py</code></a></td>
+<td><code>make_lap_template.py</code> + <code>router_template_lattice.py</code></td>
 <td>Lip hooks the end cut, fence hooks the 26 in edge. Window to a radial shoulder at 3.75°, r 25.5–32.75. 1/2 in plate, lattice with a 0.25 in <strong>100% core modifier</strong> around the window. 2 countersunk #6 holes. <strong>Open the 3MF</strong> (Bambu-style, part + modifier).</td>
 </tr>
 <tr>
 <td><code>bracket_pocket_template_A/B.3mf</code> (+ <code>.stl</code>, <code>_CORE100.stl</code>)</td>
-<td><a href="scripts/make_bracket_pocket_template.py"><code>make_bracket_pocket_template.py</code></a></td>
+<td><code>make_bracket_pocket_template.py</code></td>
 <td>Slot 0.6625 wide, centered on the joint line, r 25.5 → 29.95, <strong>3/4 in plate, 1/2 in bit</strong>, 3/32 deep. Same letter pairs with the same lap letter.</td>
 </tr>
 <tr>
 <td><a href="stl/bracket_pocket_template_MID.3mf"><code>bracket_pocket_template_MID.3mf</code></a> (+ <code>.stl</code>, <code>_CORE100.stl</code>)</td>
-<td><a href="scripts/make_mid_pocket_template.py"><code>make_mid_pocket_template.py</code></a></td>
+<td><code>make_mid_pocket_template.py</code></td>
 <td>Mid-piece brackets (odd n). Symmetric, rides the 26 in edge, no lip. Center on the pencil line (V-notch). Regular piece: chord <strong>20.683</strong> from each inside corner. P1: <strong>19.900</strong> from the butt-end corner. #6 × 1-1/4.</td>
 </tr>
 <tr>
 <td><a href="stl/router_depth_block.stl"><code>router_depth_block.stl</code></a></td>
-<td><a href="scripts/make_router_depth_block.py"><code>make_router_depth_block.py</code></a></td>
+<td><code>make_router_depth_block.py</code></td>
 <td>Double-sided; wells 3/32·1/4·3/8 / 1/2·5/8·3/4 (the user's order; keep it). Face 1 = LAP B / PKT A. Print standing on its end with a brim.</td>
 </tr>
 <tr>
 <td><a href="stl/router_depth_gauge.stl"><code>router_depth_gauge.stl</code></a></td>
-<td><a href="scripts/make_router_depth_gauge.py"><code>make_router_depth_gauge.py</code></a></td>
+<td><code>make_router_depth_gauge.py</code></td>
 <td>Checks POCKET 3/32, LOWER 1/4, UPPER 1/2 (3/4-stock values).</td>
 </tr>
 </tbody>
@@ -248,7 +249,7 @@
 <tbody>
 <tr>
 <td><a href="stl/p1_height_template.stl"><code>p1_height_template.stl</code></a></td>
-<td><a href="scripts/make_height_spacers.py"><code>make_height_spacers.py</code></a></td>
+<td><code>make_height_spacers.py</code></td>
 <td><strong>1-1/32 in</strong> = P1 top at bracket 0. Sockets on top.</td>
 </tr>
 <tr>
@@ -258,17 +259,17 @@
 </tr>
 <tr>
 <td><code>first_loop_pier_post2…7.stl</code></td>
-<td><a href="scripts/make_first_loop_piers.py"><code>make_first_loop_piers.py</code></a></td>
+<td><code>make_first_loop_piers.py</code></td>
 <td>Sized as top − 3/4 (0.03 low; accepted). Top at grade, arrow uphill. Trellis webs, two screw tabs. Posts 1 and 8 skipped.</td>
 </tr>
 <tr>
 <td><a href="stl/layer_spacer_4in_pitch.stl"><code>layer_spacer_4in_pitch.stl</code></a></td>
-<td><a href="scripts/make_layer_spacer.py"><code>make_layer_spacer.py</code></a></td>
+<td><code>make_layer_spacer.py</code></td>
 <td>Loop-to-loop check, <strong>3.280 in</strong> = 4.000 − 0.72. 1 in OD, 2 mm wall + internal + ribs, 1.5 in 45° flared foot. ~22 g. Normal mode.</td>
 </tr>
 <tr>
 <td><a href="stl/layer_spacer_4in_pitch_vase.stl"><code>layer_spacer_4in_pitch_vase.stl</code></a></td>
-<td><a href="scripts/make_layer_spacer_vase.py"><code>make_layer_spacer_vase.py</code></a></td>
+<td><code>make_layer_spacer_vase.py</code></td>
 <td>Same envelope, <strong>spiral vase</strong>. Solid with a 1-turn 0.1 mm spiral slit, so a 3-line (~1.95 mm) wall from one path, ~10 g. Vase on, bottom 3–4 layers, <strong>slice gap closing radius 0.01</strong>, outer line 0.45 (<code>LINE_W</code>). <strong>2026-10-18:</strong> 10 mm fillet where the flare meets the cylinder (cracks started there); same 1.5 in foot and 1/4 in flare height. Old files in <code>superseded/</code>.</td>
 </tr>
 <tr>
@@ -278,7 +279,7 @@
 </tr>
 <tr>
 <td><a href="stl/rail_spacer_4in_pitch_vase.stl"><code>rail_spacer_4in_pitch_vase.stl</code></a></td>
-<td><a href="scripts/make_rail_spacer_vase.py"><code>make_rail_spacer_vase.py</code></a></td>
+<td><code>make_rail_spacer_vase.py</code></td>
 <td><strong>Railhead</strong> version for the outside track (2026-10-18): railhead to the underside above = 4.000 − 0.72 − T = <strong>3.120 in</strong> with T = 0.160 nominal (<strong>caliper T and re-run</strong>). The 1-line vase body (fillet + gussets) with two 1.8 × 1.2 mm grooves 16.5 mm gauge + 1 mm head, open ends; the groove roofs sit on the railheads. Vase on, <strong>bottom shell layers 15 (≥ 3 mm)</strong> so the grooves and their roof print as solid layers before the spiral starts; gap closing radius 0.01; elephant foot compensation on. Not test-printed yet.</td>
 </tr>
 </tbody>
@@ -305,7 +306,7 @@
 </tr>
 <tr>
 <td><a href="stl/corner_spacer_P1.stl"><code>corner_spacer_P1.stl</code></a></td>
-<td><a href="scripts/make_corner_offset_spacer.py"><code>make_corner_offset_spacer.py</code></a></td>
+<td><code>make_corner_offset_spacer.py</code></td>
 <td>Barrel under each P1 wing corner (wings are 1.25 in on a 6 in roadbed). <strong>0.376 tall (9.56 mm)</strong> = 0.311 + 1.65 mm field correction (<code>FIELD_ADD</code>; the 0.311 prints were short). 5/8 OD, 1/4 hole. Print 2 at 100% infill.</td>
 </tr>
 </tbody>
@@ -322,24 +323,24 @@
 <tbody>
 <tr>
 <td><a href="stl/bracket_edge_shim.stl"><code>bracket_edge_shim.stl</code></a></td>
-<td><a href="scripts/make_bracket_edge_shim.py"><code>make_bracket_edge_shim.py</code></a></td>
+<td><code>make_bracket_edge_shim.py</code></td>
 <td>Fills the gap between the 26 in edge and the 2x4 face above the bend. 0.62625 tall (0.72 − 3/32), 1.5 wide, 0.274 thick (r 26 curve vs the 2x4 face at r 25.7258), with a bracket notch. Also the radial gauge. 29 needed. Change <code>POST_FACE_R</code> if the posts are off.</td>
 </tr>
 <tr>
 <td><a href="stl/bracket_plumb_shim.stl"><code>bracket_plumb_shim.stl</code></a></td>
-<td><a href="scripts/make_bracket_plumb_shim.py"><code>make_bracket_plumb_shim.py</code></a></td>
+<td><code>make_bracket_plumb_shim.py</code></td>
 <td><strong>Brackets lean sideways with the grade.</strong> Strip tapered across its width, 0.20 → 0.56 mm (grade 2.29% × 0.62). <strong>Notched (thick) edge uphill.</strong> Fits the pocket's 0.35 mm slack. Prints flat, 0.2 first layer, 0.08–0.1 after. One per bracket.</td>
 </tr>
 <tr>
 <td><code>bracket_wedge_gap_{1,2,3,4}_64.stl</code></td>
-<td><a href="scripts/make_bracket_wedges.py"><code>make_bracket_wedges.py</code></a></td>
+<td><code>make_bracket_wedges.py</code></td>
 <td>For a <strong>gap between the leg and the post</strong> (a bend that isn't square, or a roadbed tilted across its width). Taper along the length; notches = gap in 64ths. Bottom of the leg off the post: thick end toward the tip. Top off: thick end toward the post. Set the height by the roadbed top.</td>
 </tr>
 </tbody>
 </table>
 <h3>Paper</h3>
 <ul>
-<li><a href="files/lap_screw_template.pdf"><code>lap_screw_template.pdf</code></a> (<a href="scripts/make_lap_screw_template.py"><code>make_lap_screw_template.py</code></a>): US Letter, <strong>print at 100%</strong> (print only that page; it is also page 13 of the construction plan PDF), check the 2 in / 50 mm bars. Arc on the 26 in edge, seam line on the visible top seam (symmetric, either hand). Six screws at r 26.75 / 29.25 / 30.85, ±0.56 / 0.62 / 0.60 off the joint line, ≥ 3/16 from the pocket and ≥ 0.31 from the seams.</li>
+<li><a href="files/lap_screw_template.pdf"><code>lap_screw_template.pdf</code></a> (<code>make_lap_screw_template.py</code>): US Letter, <strong>print at 100%</strong> (print only that page; it is also page 13 of the construction plan PDF), check the 2 in / 50 mm bars. Arc on the 26 in edge, seam line on the visible top seam (symmetric, either hand). Six screws at r 26.75 / 29.25 / 30.85, ±0.56 / 0.62 / 0.60 off the joint line, ≥ 3/16 from the pocket and ≥ 0.31 from the seams.</li>
 </ul>
 <h3>Shop tool</h3>
 <ul>
@@ -356,7 +357,7 @@
 </ul>
 <h2>6. Regenerating</h2>
 <ul>
-<li>Scripts live in <code>tools/benchwork/helix/</code>. Use the repo environment: <code>pip install -r requirements.txt</code> into <code>.venv</code>, then <code>.venv/bin/python tools/benchwork/helix/&lt;script&gt;.py --out &lt;folder&gt;</code>.</li>
+<li>Scripts live in <code>archive/tools/benchwork/helix/</code>. Use the repo environment: <code>pip install -r requirements.txt</code> into <code>.venv</code>, then <code>.venv/bin/python archive/tools/benchwork/helix/&lt;script&gt;.py --out &lt;folder&gt;</code>.</li>
 <li>Run with <code>PYTHONDONTWRITEBYTECODE=1</code> to keep <code>__pycache__</code> out of the folder.</li>
 </ul>
 <h2>7. Process lessons</h2>

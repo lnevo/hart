@@ -4,7 +4,7 @@ and splice them into the plan PDF in place of the stale ones.
 As built: 5-3/8 in straight + 45 deg curve from 4:30 to the entry butt joint (bracket 0), bracket grid
 from the butt joint, 0.72 in plywood, P1 top 1-1/32 in above the -15 deck (the height stack, not the
 old grade chain). Needs reportlab and pymupdf.
-Run: python tools/benchwork/helix/make_entry_pages.py files/helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf
+Run: python archive/tools/benchwork/helix/make_entry_pages.py files/helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf
 """
 import io
 import math

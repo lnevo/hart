@@ -227,7 +227,7 @@ class ScriptRuleTest(unittest.TestCase):
         steps are a node per file."""
         self.assertEqual(set(COV.FAMILIES), {
             "tools/hartlib/src/hartlib", "ops/hart-ops/card_pipeline", "ops/hart-ops/publications",
-            "tools/benchwork/helix", "tools/benchwork/main_level", "ops/station_maps/scripts", "tools/hosts/pi-os"})
+            "ops/station_maps/scripts", "tools/hosts/pi-os"})
 
 
 class RepoTest(unittest.TestCase):
