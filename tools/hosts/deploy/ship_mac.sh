@@ -32,7 +32,7 @@ install_jython_scripts() {
       echo "Dispatcher traininfo parked: not installed; $profile/dispatcher left as it is"
     elif [[ -d "$traininfo" ]] && compgen -G "$traininfo/*.xml" >/dev/null; then
       mkdir -p "$profile/dispatcher/traininfo"
-      rsync -a --delete "$traininfo/" "$profile/dispatcher/traininfo/"
+      rsync -a --delete --exclude '.DS_Store' --exclude '._*' "$traininfo/" "$profile/dispatcher/traininfo/"  # Finder litter never copied
       echo "Dispatcher traininfo -> $profile/dispatcher/traininfo"
     fi
     local profxml="${HOME}/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/profile/profile.xml"
