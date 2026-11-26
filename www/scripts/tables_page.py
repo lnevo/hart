@@ -21,11 +21,14 @@ import collections
 import html
 import re
 import sys
+from collections.abc import Iterable
 from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import level_devices, parked, paths, railroad_facts  # noqa: E402
+import xml.etree.ElementTree as ET  # noqa: E402
+
+from hartlib import level_devices, parked, paths, railroad_facts, tables  # noqa: E402
 
 REGION = re.compile(r"<!--tf:([a-z0-9-]+)-->(.*?)<!--/tf-->", re.S)
 
@@ -120,19 +123,29 @@ def _sections(raw: bytes) -> list[tuple[str, int, str]]:
     return out
 
 
-def _direct(root, manager: str, child: str) -> list:
-    return [c for m in root.findall(manager) for c in m if c.tag == child]
-
-
-def _one(items: list, what: str):
+def _one(items: list[ET.Element], what: str) -> ET.Element:
     if len(items) != 1:
         raise PageError(f"tables.xml: expected one {what}, found {len(items)}")
     return items[0]
 
 
-def facts(raw: bytes, root) -> dict:
+def facts(raw: bytes, root: ET.Element) -> dict:
     """Everything the page says about the file, worked out from it."""
-    f: dict = {}
+    f: dict = {"version": _version(root), "bytes": len(raw), "lines": raw.count(b"\n") + (0 if raw.endswith(b"\n") else 1)}
+    f.update(_layout(raw, root))
+    f.update(_detectors(root))
+    f.update(_examples(root))
+    ctc = root.find("ctcdata")
+    if ctc is None and "uss" in parked.PARKED:      # the CTC data is parked with the USS CTC machine
+        ctc = next((t.find("ctcdata") for t in parked.read().iter("tables") if t.find("ctcdata") is not None), None)
+    f["ctcColumns"] = len(ctc.findall("ctcCodeButtonData")) if ctc is not None else 0
+    f["logix"] = len(tables.section(root, "logixs", "logix"))
+    f.update(_logixng(root))
+    return f
+
+
+def _version(root: ET.Element) -> str:
+    """The JMRI version the file was stored by, such as 5.13.1."""
     jv = root.find("jmriversion")
     if jv is None:
         raise PageError("tables.xml: no <jmriversion>")
@@ -141,9 +154,12 @@ def facts(raw: bytes, root) -> dict:
         ver += f".{jv.findtext('test')}"
     if (jv.findtext("modifier") or "").strip():
         ver += jv.findtext("modifier").strip()
-    f["version"] = ver
-    f["bytes"] = len(raw)
-    f["lines"] = raw.count(b"\n") + (0 if raw.endswith(b"\n") else 1)
+    return ver
+
+
+def _layout(raw: bytes, root: ET.Element) -> dict:
+    """The table of the file's top-level sections by group, with their shares of the file and the parked rows."""
+    f: dict = {}
     secs = _sections(raw)
     if len(secs) != len(list(root)):
         raise PageError(f"tables.xml: found {len(secs)} sections by text but {len(list(root))} by XML")
@@ -172,13 +188,17 @@ def facts(raw: bytes, root) -> dict:
     f["panels"] = sum(1 for r in rows if r["group"] == "panels" and not r["parked"])
     biggest = max(rows, key=lambda r: r["share"])
     f["largest"] = (biggest["label"], biggest["share"])
+    return f
 
-    # Blocks, layout blocks and the detectors they share.
-    blocks = [b for b in _direct(root, "blocks", "block") if len(b) > 2]
-    lbs = _direct(root, "layoutblocks", "layoutblock")
+
+def _detectors(root: ET.Element) -> dict:
+    """Layout blocks and the detectors they share; the file stores no block paths."""
+    f: dict = {}
+    blocks = tables.blocks(root)
+    lbs = tables.layout_blocks(root)
     # A layout block may name its sensor by system or user name; count each sensor once.
     sensor_user = {e.findtext("systemName"): e.findtext("userName") or e.findtext("systemName")
-                   for e in _direct(root, "sensors", "sensor")}
+                   for e in tables.sensors(root)}
     users = collections.defaultdict(list)
     for lb in lbs:
         occ = lb.get("occupancysensor") or ""
@@ -196,20 +216,25 @@ def facts(raw: bytes, root) -> dict:
         if d not in shared:
             raise PageError(f"tables.xml: detector {d!r} is no longer shared by several layout blocks; pick another in EXAMPLE_DETECTORS")
         f["sharedExamples"].append((d, shared[d]))
+    return f
 
-    # The example sensor, block, Signal Mast Logic and turnout.
-    s = _one([e for e in _direct(root, "sensors", "sensor") if e.findtext("userName") == EXAMPLE_SENSOR],
+
+def _examples(root: ET.Element) -> dict:
+    """The example sensor, block, Signal Mast Logic and turnout the page quotes."""
+    f: dict = {}
+    s = _one([e for e in tables.sensors(root) if e.findtext("userName") == EXAMPLE_SENSOR],
              f"sensor named {EXAMPLE_SENSOR!r}")
     f["sensor"] = (s.findtext("systemName"), EXAMPLE_SENSOR, (s.findtext("comment") or "").strip())
     if not f["sensor"][2]:
         raise PageError(f"tables.xml: sensor {EXAMPLE_SENSOR!r} has no comment, and the page quotes it")
 
-    b = _one([e for e in blocks if e.findtext("userName") == EXAMPLE_BLOCK], f"block named {EXAMPLE_BLOCK!r}")
+    b = _one([e for e in tables.blocks(root) if e.findtext("userName") == EXAMPLE_BLOCK],
+             f"block named {EXAMPLE_BLOCK!r}")
     try:
         legs = [r for r in railroad_facts.read_switch_rows(SWITCHES) if r.os_block == EXAMPLE_BLOCK
                 and f"Switch {r.switch}" == EXAMPLE_BLOCK_TURNOUT]
     except railroad_facts.FactsError as exc:
-        raise PageError(str(exc)) from None
+        raise PageError(str(exc)) from exc
     if len(legs) != 1:
         raise PageError(f"{SWITCHES.name}: block {EXAMPLE_BLOCK!r} no longer has one row with a closed and a thrown "
                         f"leg for {EXAMPLE_BLOCK_TURNOUT!r}: {legs}")
@@ -219,45 +244,45 @@ def facts(raw: bytes, root) -> dict:
         raise PageError(f"tables.xml: block {EXAMPLE_BLOCK!r} has no occupancy sensor")
 
     src, dst = EXAMPLE_SML
-    sml = _one([e for e in _direct(root, "signalmastlogics", "signalmastlogic") if e.findtext("sourceSignalMast") == src],
+    sml = _one([e for e in tables.section(root, "signalmastlogics", "signalmastlogic")
+                if e.findtext("sourceSignalMast") == src],
                f"Signal Mast Logic from {src!r}")
     d = _one([x for x in sml.findall("destinationMast") if x.findtext("destinationSignalMast") == dst],
              f"Signal Mast Logic destination {src!r} to {dst!r}")
     keys = ("enabled", "useLayoutEditor", "useLayoutEditorTurnouts", "useLayoutEditorBlocks", "associatedSection")
     f["sml"] = {"src": src, "dst": dst, **{k: (d.findtext(k) or "").strip() for k in keys}}
-    section_names = {n for e in _direct(root, "sections", "section") for n in (e.findtext("systemName"), e.findtext("userName"))}
+    section_names = {n for e in tables.section(root, "sections", "section")
+                     for n in (e.findtext("systemName"), e.findtext("userName"))}
     if not f["sml"]["associatedSection"] and "dispatcher" in parked.PARKED:
         # the Dispatcher's sections are parked (hartlib.parked): the pair's section is named in the parked file
         f["sml"]["associatedSection"], section_names = _parked_section(src, dst), None
     if section_names is not None and f["sml"]["associatedSection"] not in section_names:
         raise PageError(f"tables.xml: section {f['sml']['associatedSection']!r} named by {src} to {dst} does not exist")
 
-    t = _one([e for e in _direct(root, "turnouts", "turnout") if e.findtext("userName") == EXAMPLE_TURNOUT],
+    t = _one([e for e in tables.turnouts(root) if e.findtext("userName") == EXAMPLE_TURNOUT],
              f"turnout named {EXAMPLE_TURNOUT!r}")
     if t.get("feedback") != "TWOSENSOR" or not (t.get("sensor1") and t.get("sensor2")):
         raise PageError(f"tables.xml: turnout {EXAMPLE_TURNOUT!r} no longer reports through two sensors, as the page says")
     f["turnout"] = (EXAMPLE_TURNOUT, t.get("sensor1"), t.get("sensor2"))
+    return f
 
-    ctc = root.find("ctcdata")
-    if ctc is None and "uss" in parked.PARKED:      # the CTC data is parked with the USS CTC machine
-        ctc = next((t.find("ctcdata") for t in parked.read().iter("tables") if t.find("ctcdata") is not None), None)
-    f["ctcColumns"] = len(ctc.findall("ctcCodeButtonData")) if ctc is not None else 0
-    f["logix"] = len(_direct(root, "logixs", "logix"))
 
-    # Two LogixNGs: the one in the Initialization Table, its ConditionalNGs and their single actions; and the one
-    # that sets the main and upper virtual block sensors clear (hartlib.tables_build.start_logixng).
+def _logixng(root: ET.Element) -> dict:
+    """Two LogixNGs: the one in the Initialization Table, its ConditionalNGs and their single actions; and the one
+    that sets the main and upper virtual block sensors clear (hartlib.tables_build.start_logixng)."""
+    f: dict = {}
     init = [x.text for m in root.findall("LogixNGs") for it in m.findall("InitializationTable") for x in it.findall("LogixNG")]
-    ngs = _direct(root, "LogixNGs", "LogixNG")
+    ngs = tables.section(root, "LogixNGs", "LogixNG")
     ng = _one([n for n in ngs if n.findtext("systemName") in init], "LogixNG in the Initialization Table")
     ng_sys = ng.findtext("systemName")
-    cng = {c.findtext("systemName"): c for c in _direct(root, "LogixNGConditionalNGs", "ConditionalNG")}
+    cng = {c.findtext("systemName"): c for c in tables.section(root, "LogixNGConditionalNGs", "ConditionalNG")}
     acts = {a.findtext("systemName"): a for m in root.findall("LogixNGDigitalActions") for a in m}
     clear = _one([n for n in ngs if n is not ng], "LogixNG besides the Initialization Table's")
     cs = [cng.get(x.text) for x in clear.findall("ConditionalNGs/systemName")]
     try:
         sensors = level_devices.clear_sensors(root)
     except ValueError as exc:
-        raise PageError(f"tables.xml: {exc}") from None
+        raise PageError(f"tables.xml: {exc}") from exc
     if clear.findtext("systemName") != level_devices.CLEAR_LOGIXNG or len(cs) != 1 or cs[0] is None \
             or cs[0].findtext("Socket/systemName") != level_devices.CLEAR_MANY or not sensors \
             or not all(level_devices.is_block_sensor(x) for x in sensors):
@@ -266,7 +291,7 @@ def facts(raw: bytes, root) -> dict:
     try:
         states = level_devices.turnout_states(root)
     except ValueError as exc:
-        raise PageError(f"tables.xml: {exc}") from None
+        raise PageError(f"tables.xml: {exc}") from exc
     thrown = sorted((t.removeprefix(level_devices.TURNOUT_PREFIX) for t, st in states.items() if st == "Thrown"),
                     key=lambda n: (len(n), n))
     f["clear"] = {"name": clear.findtext("userName") or clear.findtext("systemName"), "count": len(sensors),
@@ -299,7 +324,7 @@ def facts(raw: bytes, root) -> dict:
     return f
 
 
-def _add_parked_rows(rows: list[dict], features, tags: set[str], panel_names: set[str]) -> None:
+def _add_parked_rows(rows: list[dict], features: Iterable[str], tags: set[str], panel_names: set[str]) -> None:
     """Put a row for each parked section and panel the file no longer holds in its place among `rows` (GROUPS and
     PANELS order), marked Parked, with no share of the file."""
     order = list(GROUPS)

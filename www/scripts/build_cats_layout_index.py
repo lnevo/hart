@@ -26,11 +26,13 @@ import re
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
+from collections.abc import Sequence
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_layout_index  # noqa: E402
 import png_stamp  # noqa: E402
+from build_layout_index import Item  # noqa: E402
 from build_layout_index import paths  # noqa: E402  (hartlib.paths, put on sys.path by build_layout_index)
 
 PORTAL = Path(__file__).resolve().parents[1]
@@ -91,12 +93,12 @@ def render() -> None:
         raise CatsIndexError(f"render failed: {RENDER.name} {PANEL}")
 
 
-def le_by_keys(le_index: dict) -> dict[str, dict]:
+def le_by_keys(le_index: dict) -> dict[str, Item]:
     """The layout index's items by every name a Digicon cell may use for them."""
     items = le_index.get("items")
     if not isinstance(items, list) or not items:
         raise CatsIndexError("the layout index it joins to has no items")
-    out: dict[str, dict] = {}
+    out: dict[str, Item] = {}
     # Names first; they are authoritative.
     for it in items:
         for key in (
@@ -146,8 +148,10 @@ def cell_origin(x: int, y: int, minx: int, miny: int) -> tuple[float, float]:
     return PAD_X + (x - minx) * CELL, PAD_Y + (y - miny) * CELL
 
 
-def match_turnout(by: dict, stations: set[str], blocks: set[str]) -> dict | None:
-    is_turnout = lambda it: it is not None and it.get("kind") == "turnout"
+def match_turnout(by: dict[str, Item], stations: set[str], blocks: set[str]) -> Item | None:
+    def is_turnout(it: Item | None) -> bool:
+        return it is not None and it.get("kind") == "turnout"
+
     for bl in blocks:
         name = bl.replace("OS ", "").lower()
         # a double crossover's corner block (OS Switch 225b) is a block of the Layout Editor, not a turnout: its
@@ -191,150 +195,131 @@ def build(le_index: dict | None = None) -> dict:
     try:
         return _build(le_index)
     except (ET.ParseError, ValueError, OSError) as err:
-        raise CatsIndexError(f"cannot build the CATS index from its sources: {type(err).__name__}: {err}") from None
+        raise CatsIndexError(f"cannot build the CATS index from its sources: {type(err).__name__}: {err}") from err
 
 
-def _build(le_index: dict | None) -> dict:
+Cell = tuple[int, int]  # a TRACKPLAN section's X, Y
+
+
+def read_sections() -> list[ET.Element]:
+    """The desk's TRACKPLAN sections; CatsIndexError when a source is missing or the plan has none."""
     for path in (PANEL, RENDER, OUT_IMG):
         if not path.is_file():
             raise CatsIndexError(f"missing {paths.rel(path)}" + (f": run {BUILD}" if path == OUT_IMG else ""))
-    root = ET.parse(PANEL).getroot()
-    tp = root.find("TRACKPLAN")
+    tp = ET.parse(PANEL).getroot().find("TRACKPLAN")
     if tp is None or not tp.findall("SECTION"):
         raise CatsIndexError(f"{paths.rel(PANEL)} has no TRACKPLAN sections")
-    sections = tp.findall("SECTION")
-    xs = [int(s.get("X")) for s in sections]
-    ys = [int(s.get("Y")) for s in sections]
-    minx, miny = min(xs), min(ys)
+    return tp.findall("SECTION")
 
-    if le_index is None:
-        try:
-            le_index = build_layout_index.build()
-        except build_layout_index.LayoutIndexError as err:
-            raise CatsIndexError(f"cannot build the layout index it joins to: {err}") from None
-    by = le_by_keys(le_index)
-    items: list[dict] = []
 
-    # (x, y) -> OS blocks / stations on that cell's edges, for switch cells that carry none.
-    cell_blocks: dict[tuple[int, int], list[tuple[str, str]]] = {}
+def cell_of(s: ET.Element) -> Cell:
+    return int(s.get("X")), int(s.get("Y"))
+
+
+def blocks_by_cell(sections: Sequence[ET.Element]) -> dict[Cell, list[tuple[str, str]]]:
+    """(x, y) -> (OS block, station) on that cell's edges, for switch cells that carry none."""
+    out: dict[Cell, list[tuple[str, str]]] = {}
     for s in sections:
-        key = (int(s.get("X")), int(s.get("Y")))
         for e in s.findall("SEC_EDGE"):
             for b in e.findall("BLOCK"):
                 if b.get("NAME"):
-                    cell_blocks.setdefault(key, []).append((b.get("NAME"), b.get("STATION") or ""))
-    seen_masts: set[str] = set()
+                    out.setdefault(cell_of(s), []).append((b.get("NAME"), b.get("STATION") or ""))
+    return out
 
+
+def signal_item(sig: ET.Element, name: str, cell: Cell, origin: tuple[float, float], by: dict[str, Item]) -> Item:
+    """The hotspot of one SECSIGNAL, joined to the layout index by its mast name."""
+    key = name.lower()
+    panel = sig.find("PANELSIGNAL")
+    loc = (panel.get("SIGLOCATION") if panel is not None else None) or "CENTER"
+    fx, fy = SIG_LOC.get(loc.upper(), SIG_LOC["CENTER"])
+    px, py = HOTSPOT_OVERRIDE.get(key) or (origin[0] + fx * CELL, origin[1] + fy * CELL)
+    match = by.get(key)
+    if not match:
+        bare = re.sub(r"^mast\s+", "", name, flags=re.I).strip().lower()
+        match = by.get(bare) or by.get(f"mast {bare}")
+    m = match or {}
+    return build_layout_index.item(
+        f"cats-sig-{re.sub(r'[^a-zA-Z0-9]+', '-', name).strip('-')}", "signal", (px, py),
+        m.get("systemName") or name, m.get("publicName") or name, m.get("cp") or "", m.get("hardware") or "",
+        m.get("mqtt") or "", m.get("comment") or f"Digicon SECSIGNAL @ cell ({cell[0]},{cell[1]}) {loc}",
+        m.get("block") or "")
+
+
+def plant_item(cell: Cell, origin: tuple[float, float], stations: set[str], blocks: set[str],
+               near_blocks: dict[Cell, list[tuple[str, str]]], by: dict[str, Item]) -> Item:
+    """The hotspot of a cell with switch points, joined to the layout index's turnout."""
+    x, y = cell
+    if not blocks and not stations:
+        # Points cell with no OS of its own: take the OS that surrounds it.
+        near: dict[tuple[str, str], int] = {}
+        for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            for nb in near_blocks.get((x + dx, y + dy), []):
+                near[nb] = near.get(nb, 0) + 1
+        if near:
+            name, station = max(near, key=near.get)
+            blocks.add(name)
+            if station:
+                stations.add(station)
+    m = match_turnout(by, stations, blocks) or {}
+    public = m.get("publicName")
+    if not public:
+        public = next((STATION_TO_SWITCH[st] for st in stations if st in STATION_TO_SWITCH), None)
+    if not public:
+        if stations:
+            public = f"Plant {', '.join(sorted(stations))}"
+        elif blocks:
+            public = sorted(blocks)[0]
+        else:
+            public = f"Plant ({x},{y})"
+    where = f"Digicon plant @ {x},{y}" + (f"; OS {', '.join(sorted(blocks))}" if blocks else "")
+    return build_layout_index.item(
+        f"cats-to-{x}-{y}", "turnout", (origin[0] + CELL / 2, origin[1] + CELL / 2), m.get("systemName") or "",
+        public, m.get("cp") or (sorted(stations)[0] if stations else ""), m.get("hardware") or "",
+        m.get("mqtt") or "", m.get("comment") or where, m.get("block") or (sorted(blocks)[0] if blocks else ""))
+
+
+def section_items(sections: Sequence[ET.Element], by: dict[str, Item]) -> list[Item]:
+    """Each cell's signals (each mast once, where it first appears) and, for a cell with points, its turnout."""
+    minx, miny = min(cell_of(s)[0] for s in sections), min(cell_of(s)[1] for s in sections)
+    near_blocks = blocks_by_cell(sections)
+    seen_masts: set[str] = set()
+    items: list[Item] = []
     for s in sections:
-        x, y = int(s.get("X")), int(s.get("Y"))
-        x0, y0 = cell_origin(x, y, minx, miny)
+        cell = cell_of(s)
+        origin = cell_origin(*cell, minx, miny)
         stations: set[str] = set()
         blocks: set[str] = set()
         has_points = False
-
         for e in s.findall("SEC_EDGE"):
-            if e.find("SWITCHPOINTS") is not None:
-                has_points = True
+            has_points = has_points or e.find("SWITCHPOINTS") is not None
             for b in e.findall("BLOCK"):
                 if b.get("STATION"):
                     stations.add(b.get("STATION"))
                 if b.get("NAME"):
                     blocks.add(b.get("NAME"))
-
             for sig in e.findall("SECSIGNAL"):
                 name = mast_name(sig)
-                if not name:
-                    continue
-                key = name.lower()
-                if key in seen_masts:
-                    continue
-                seen_masts.add(key)
-                panel = sig.find("PANELSIGNAL")
-                loc = (panel.get("SIGLOCATION") if panel is not None else None) or "CENTER"
-                fx, fy = SIG_LOC.get(loc.upper(), SIG_LOC["CENTER"])
-                px = x0 + fx * CELL
-                py = y0 + fy * CELL
-                override = HOTSPOT_OVERRIDE.get(key)
-                if override:
-                    px, py = override
-                match = by.get(key) or by.get(name.lower())
-                if not match:
-                    bare = re.sub(r"^mast\s+", "", name, flags=re.I).strip().lower()
-                    match = by.get(bare) or by.get(f"mast {bare}")
-                items.append(
-                    {
-                        "id": f"cats-sig-{re.sub(r'[^a-zA-Z0-9]+', '-', name).strip('-')}",
-                        "kind": "signal",
-                        "x": round(px, 1),
-                        "y": round(py, 1),
-                        "systemName": (match or {}).get("systemName") or name,
-                        "publicName": (match or {}).get("publicName") or name,
-                        "cp": (match or {}).get("cp") or "",
-                        "hardware": (match or {}).get("hardware") or "",
-                        "mqtt": (match or {}).get("mqtt") or "",
-                        "comment": (match or {}).get("comment")
-                        or f"Digicon SECSIGNAL @ cell ({x},{y}) {loc}",
-                        "block": (match or {}).get("block") or "",
-                    }
-                )
+                if name and name.lower() not in seen_masts:
+                    seen_masts.add(name.lower())
+                    items.append(signal_item(sig, name, cell, origin, by))
+        if has_points:
+            items.append(plant_item(cell, origin, stations, blocks, near_blocks, by))
+    return items
 
-        if not has_points:
-            continue
 
-        if not blocks and not stations:
-            # Points cell with no OS of its own: take the OS that surrounds it.
-            near: dict[tuple[str, str], int] = {}
-            for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
-                for nb in cell_blocks.get((x + dx, y + dy), []):
-                    near[nb] = near.get(nb, 0) + 1
-            if near:
-                name, station = max(near, key=near.get)
-                blocks.add(name)
-                if station:
-                    stations.add(station)
-
-        match = match_turnout(by, stations, blocks)
-        public = (match or {}).get("publicName")
-        if not public:
-            for st in stations:
-                if st in STATION_TO_SWITCH:
-                    public = STATION_TO_SWITCH[st]
-                    break
-        if not public:
-            if stations:
-                public = f"Plant {', '.join(sorted(stations))}"
-            elif blocks:
-                public = sorted(blocks)[0]
-            else:
-                public = f"Plant ({x},{y})"
-
-        items.append(
-            {
-                "id": f"cats-to-{x}-{y}",
-                "kind": "turnout",
-                "x": round(x0 + CELL / 2, 1),
-                "y": round(y0 + CELL / 2, 1),
-                "systemName": (match or {}).get("systemName") or "",
-                "publicName": public,
-                "cp": (match or {}).get("cp") or (sorted(stations)[0] if stations else ""),
-                "hardware": (match or {}).get("hardware") or "",
-                "mqtt": (match or {}).get("mqtt") or "",
-                "comment": (match or {}).get("comment")
-                or (
-                    f"Digicon plant @ {x},{y}; OS {', '.join(sorted(blocks))}"
-                    if blocks
-                    else f"Digicon plant @ {x},{y}"
-                ),
-                "block": (match or {}).get("block") or (sorted(blocks)[0] if blocks else ""),
-            }
-        )
-
+def _build(le_index: dict | None) -> dict:
+    sections = read_sections()
+    if le_index is None:
+        try:
+            le_index = build_layout_index.build()
+        except build_layout_index.LayoutIndexError as err:
+            raise CatsIndexError(f"cannot build the layout index it joins to: {err}") from err
+    items = section_items(sections, le_by_keys(le_index))
     try:
         w, h = png_stamp.size(OUT_IMG)
     except png_stamp.PngError as err:
-        raise CatsIndexError(str(err)) from None
-    n_to = sum(1 for it in items if it["kind"] == "turnout")
-    n_sig = sum(1 for it in items if it["kind"] == "signal")
+        raise CatsIndexError(str(err)) from err
     return {
         "source": {
             "workspace": "hart",
@@ -350,8 +335,8 @@ def _build(le_index: dict | None) -> dict:
         },
         "items": items,
         "counts": {
-            "turnout": n_to,
-            "signal": n_sig,
+            "turnout": sum(1 for it in items if it["kind"] == "turnout"),
+            "signal": sum(1 for it in items if it["kind"] == "signal"),
             "occupancy": 0,
             "sensor": 0,
             "mapped": len(items),

@@ -15,11 +15,14 @@ block_lengths_measured.csv beside it (the lengths speed matching measured): a bl
 measured one where it has a row there (source `timed`), else its plan length (source `plan`). Only trusted
 sources are used: --trusted defaults to timed; a plan length counts only if you pass plan.
 """
+from __future__ import annotations
+
 import argparse
 import csv
 import json
 import re
 import sys
+from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -31,7 +34,7 @@ DEFAULT_TRUSTED = ("timed",)  # "plan" counts only when passed explicitly
 MM_PER_INCH = 25.4
 
 # The test routes: the staging blocks in running order, each by its device ID (devices_generated.csv's id column,
-# hartlib.device_ids; naming-layers step 6), so a rename in devices_field.csv changes no line here. Only the order is
+# hartlib.device_ids), so a rename in devices_field.csv changes no line here. Only the order is
 # typed here. build_routes.py (--check in tools/check.sh) gives each block its name from the name store
 # (hartlib.devices.user_names) and its sensor from tables.xml, and writes both into routes.json, so this file needs
 # neither hartlib nor tables.xml: the Pi's speed-match live publisher imports it. An ID the device master no longer
@@ -185,7 +188,130 @@ def check_names(lines, source=""):
                          "speedmatch/rename_extension_tracks.py --apply" % (source or "a log"))
 
 
-def parse_log(lines, loco=None, direction=None, source=""):
+Event = tuple[float, str]  # (epoch, sensor) a sensor went ACTIVE
+
+
+class _LogParser:
+    """The state of parse_log() while it reads one log: the runs so far, the current run and step,
+    and every sensor's last state. One method per message kind (HANDLERS)."""
+
+    def __init__(self, loco: str | None, direction: str | None, source: str) -> None:
+        self.loco, self.direction, self.source = loco, direction, source
+        self.runs: list[dict] = []
+        self.run: dict | None = None
+        self.cur: dict | None = None  # the current step
+        self.seen: dict[int, int] = {}  # step -> times seen in this run
+        self.active: dict[str, str] = {}  # sensor -> last state
+        self.sensed: dict[int, set[str]] = {}  # id(run) -> sensor names the run logged, for check_route_sensors
+        self.last_active: Event | None = None
+
+    def new_run(self, loco: str, direction: str, t: float) -> dict:
+        run: dict = {"loco": loco, "direction": direction, "steps": [], "cfg": {},
+               "lengths": None, "log": self.source, "complete": False, "t0": t}
+        self.runs.append(run)
+        return run
+
+    def on_run(self, t: float, msg: str) -> None:
+        mm = _RUN.match(msg)
+        if not mm:
+            return
+        self.run = self.new_run(mm.group(1), mm.group(2), t)
+        self.seen.clear()
+        self.active.clear()
+        self.cur = None
+
+    def on_step(self, t: float, msg: str) -> None:
+        if self.run is None:
+            if self.loco is None or self.direction is None:
+                raise ValueError("log has no RUN line: give loco and direction")
+            self.run = self.new_run(self.loco, self.direction, t)
+        n = int(msg.split()[1])
+        self.seen[n] = self.seen.get(n, 0) + 1
+        self.cur = {"step": n, "occurrence": self.seen[n], "events": []}
+        if self.run["cfg"].get("mode") == "distance":
+            self.cur["measuring"] = False  # events count from this step's MEASURE line to its FREEZE
+        self.run["steps"].append(self.cur)
+
+    def on_cfg(self, t: float, msg: str) -> None:
+        run = self.run
+        if run is None:
+            return
+        for key, val in _CFG.findall(msg[4:]):
+            if key in CFG_KEYS:
+                name, conv = CFG_KEYS[key]
+                run["cfg"][name] = conv(val)
+        if run["cfg"].get("mode") == "pass":  # a pass-job log has no steps: not a run
+            print("note: %s is a pass-job log (mode=pass), skipped here; use infer_block_lengths.py "
+                  "--pass-log" % (self.source or "log"), file=sys.stderr)
+            self.runs.remove(run)
+            self.run = self.cur = None
+
+    def on_lengths(self, t: float, msg: str) -> None:
+        if self.run is not None:
+            self.run["lengths"] = json.loads(msg[8:])
+
+    def on_stop(self, t: float, msg: str) -> None:
+        if self.run is not None:
+            self.run["complete"] = msg.strip() == "STOP all steps complete"
+
+    def on_warmup(self, t: float, msg: str) -> None:
+        self.cur = None
+
+    def on_freeze(self, t: float, msg: str) -> None:
+        if self.cur is not None and "measuring" in self.cur:  # distance mode: the runner took no block after this line
+            self.cur["measuring"] = False
+
+    def on_stepdone(self, t: float, msg: str) -> None:
+        if self.cur is None:
+            return
+        m = re.match(r"STEPDONE \d+ reason=(\w*)", msg)
+        self.cur["done_reason"] = m.group(1) if m else ""
+        if "measuring" in self.cur:  # distance mode: later events belong to the next step
+            self.cur["measuring"] = False
+
+    def on_settle(self, t: float, msg: str) -> None:
+        if self.cur is not None:
+            self.cur["measuring"] = False  # distance mode: events count only from MEASURE on
+
+    def on_measure(self, t: float, msg: str) -> None:
+        if self.cur is None or self.last_active is None:
+            return
+        # the runner logs the SENS line of the event first, then MEASURE for it
+        m = re.match(r"MEASURE \d+ from=(.*)$", msg)
+        self.cur["measuring"] = True
+        if m and self.last_active[1] == m.group(1):
+            self.cur["events"].append(self.last_active)
+
+    def on_sens(self, t: float, msg: str) -> None:
+        name, st = msg[5:].rsplit(" ", 1)
+        if self.run is not None:
+            self.sensed.setdefault(id(self.run), set()).add(name)
+        if st == "ACTIVE" and self.active.get(name) != "ACTIVE":
+            self.last_active = (t, name)
+            if self.cur is not None and self.cur.get("measuring", True):
+                self.cur["events"].append((t, name))
+        if st in STATES:  # any state counts: UNKNOWN between two ACTIVEs is a new ACTIVE
+            self.active[name] = st
+
+    # the message prefix each handler takes, checked in this order
+    HANDLERS = (("RUN ", on_run), ("STEP ", on_step), ("CFG ", on_cfg), ("LENGTHS ", on_lengths),
+                ("STOP ", on_stop), ("WARMUP ", on_warmup), ("FREEZE ", on_freeze),
+                ("STEPDONE ", on_stepdone), ("SETTLE ", on_settle), ("MEASURE ", on_measure),
+                ("SENS ", on_sens))
+
+    def line(self, line: str) -> None:
+        m = _LINE.match(line.strip())
+        if not m:
+            return
+        t, msg = float(m.group(1)), m.group(2)
+        for prefix, handler in self.HANDLERS:
+            if msg.startswith(prefix):
+                handler(self, t, msg)
+                return
+
+
+def parse_log(lines: Sequence[str], loco: str | None = None, direction: str | None = None,
+              source: str = "") -> list[dict]:
     """Split runner log lines into runs: list of dicts
     {loco, direction, log, complete, cfg, lengths, steps: [{step, occurrence, events}]}.
     Every RUN line starts a new run (the same loco and direction twice stay two runs);
@@ -194,82 +320,12 @@ def parse_log(lines, loco=None, direction=None, source=""):
     Warm-up events (between WARMUP and the first STEP) are dropped. A log without a RUN
     line (older logs) needs loco and direction given."""
     check_names(lines, source)
-    runs, run, cur, seen, active = [], None, None, {}, {}
-    sensed = {}  # id(run) -> sensor names the run logged, for check_route_sensors
-    last_active = None
+    parser = _LogParser(loco, direction, source)
     for line in lines:
-        m = _LINE.match(line.strip())
-        if not m:
-            continue
-        t, msg = float(m.group(1)), m.group(2)
-        if msg.startswith("RUN "):
-            mm = _RUN.match(msg)
-            if not mm:
-                continue
-            run = {"loco": mm.group(1), "direction": mm.group(2), "steps": [], "cfg": {},
-                   "lengths": None, "log": source, "complete": False, "t0": t}
-            runs.append(run)
-            seen.clear()
-            active.clear()
-            cur = None
-        elif msg.startswith("STEP "):
-            if run is None:
-                if loco is None or direction is None:
-                    raise ValueError("log has no RUN line: give loco and direction")
-                run = {"loco": loco, "direction": direction, "steps": [], "cfg": {},
-                       "lengths": None, "log": source, "complete": False, "t0": t}
-                runs.append(run)
-            n = int(msg.split()[1])
-            seen[n] = seen.get(n, 0) + 1
-            cur = {"step": n, "occurrence": seen[n], "events": []}
-            if run["cfg"].get("mode") == "distance":
-                cur["measuring"] = False  # events count from this step's MEASURE line to its FREEZE
-            run["steps"].append(cur)
-        elif msg.startswith("CFG ") and run is not None:
-            for key, val in _CFG.findall(msg[4:]):
-                if key in CFG_KEYS:
-                    name, conv = CFG_KEYS[key]
-                    run["cfg"][name] = conv(val)
-            if run["cfg"].get("mode") == "pass":  # a pass-job log has no steps: not a run
-                print("note: %s is a pass-job log (mode=pass), skipped here; use infer_block_lengths.py "
-                      "--pass-log" % (source or "log"), file=sys.stderr)
-                runs.remove(run)
-                run = cur = None
-        elif msg.startswith("LENGTHS ") and run is not None:
-            run["lengths"] = json.loads(msg[8:])
-        elif msg.startswith("STOP ") and run is not None:
-            run["complete"] = msg.strip() == "STOP all steps complete"
-        elif msg.startswith("WARMUP "):
-            cur = None
-        elif msg.startswith("FREEZE ") and cur is not None:
-            if "measuring" in cur:  # distance mode: the runner took no block after this line
-                cur["measuring"] = False
-        elif msg.startswith("STEPDONE ") and cur is not None:
-            m = re.match(r"STEPDONE \d+ reason=(\w*)", msg)
-            cur["done_reason"] = m.group(1) if m else ""
-            if "measuring" in cur:  # distance mode: later events belong to the next step
-                cur["measuring"] = False
-        elif msg.startswith("SETTLE ") and cur is not None:
-            cur["measuring"] = False  # distance mode: events count only from MEASURE on
-        elif msg.startswith("MEASURE ") and cur is not None and last_active is not None:
-            # the runner logs the SENS line of the event first, then MEASURE for it
-            m = re.match(r"MEASURE \d+ from=(.*)$", msg)
-            cur["measuring"] = True
-            if m and last_active[1] == m.group(1):
-                cur["events"].append(last_active)
-        elif msg.startswith("SENS "):
-            name, st = msg[5:].rsplit(" ", 1)
-            if run is not None:
-                sensed.setdefault(id(run), set()).add(name)
-            if st == "ACTIVE" and active.get(name) != "ACTIVE":
-                last_active = (t, name)
-                if cur is not None and cur.get("measuring", True):
-                    cur["events"].append((t, name))
-            if st in STATES:  # any state counts: UNKNOWN between two ACTIVEs is a new ACTIVE
-                active[name] = st
-    for run in runs:
-        check_route_sensors(sensed.get(id(run), ()), run["cfg"].get("route", DEFAULT_ROUTE), source)
-    return runs
+        parser.line(line)
+    for run in parser.runs:
+        check_route_sensors(parser.sensed.get(id(run), ()), run["cfg"].get("route", DEFAULT_ROUTE), source)
+    return parser.runs
 
 
 def check_route_sensors(names, route, source=""):
@@ -377,8 +433,42 @@ def travel(events, order=ORDER):
     return "east" if up > down else "west" if down > up else ""
 
 
-def summarize_runs(runs, lengths, k=lr.STOP_K, rel=lr.STOP_REL, max_n=lr.MAX_READINGS,
-                   use_logged=True, csv_lengths=False, route_lengths=None, **kw):
+def _window_row(run: dict, s: dict, n: int, order: Sequence[str], lengths: Mapping[str, float | None],
+                rule: tuple[int, float, int], reader_kw: Mapping[str, int]) -> dict:
+    """One step of a time-window run: the readings replayed through the runner's stop rule."""
+    k_, rel_, max_ = rule
+    rd = step_readings(s["events"], s["step"], lengths, order=order, **reader_kw)
+    speeds = [r[0] for r in rd]
+    row = {"loco": run["loco"], "direction": run["direction"], "step": s["step"],
+           "occurrence": s["occurrence"], "travel": travel(s["events"], order),
+           "n": len(speeds), "blocks": rd[-1][3] if rd else 0, "run": n}
+    if speeds:
+        used, why, win = lr.replay(speeds, k_, rel_, max_)
+        row.update(used=used, reason=why or "open", median=lr.median(win),
+                   rel_sd=lr.rel_stdev(win) if len(win) > 1 else None,
+                   settled=(why == "settled"))
+    else:
+        row.update(used=0, reason="no readings", median=None, rel_sd=None,
+                   settled=False)
+    return row
+
+
+def _run_rows(run: dict, n: int, order: Sequence[str], lengths: Mapping[str, float | None], p: dict,
+              use_logged: bool) -> list[dict]:
+    """The rows of one run; p is the stop-rule settings with route already taken out."""
+    k_, rel_, max_ = p.pop("k"), p.pop("rel"), p.pop("max_n")
+    logged = {name: p.pop(name, None) for name in ("mode", "target_mm", "min_blocks", "max_s")}
+    if (run.get("cfg") or {}).get("mode") == "distance":  # the log's own mode, whatever use_logged says
+        dist = logged if use_logged else {"target_mm": None, "min_blocks": None, "max_s": None}
+        rel_d = rel_ if use_logged else lr.DIST_REL
+        return [distance_row(run, s, n, order, lengths, dist, rel_d) for s in run["steps"]]
+    return [_window_row(run, s, n, order, lengths, (k_, rel_, max_), p) for s in run["steps"]]
+
+
+def summarize_runs(runs: Iterable[dict], lengths: Mapping[str, float | None], k: int = lr.STOP_K,
+                   rel: float = lr.STOP_REL, max_n: int = lr.MAX_READINGS, use_logged: bool = True,
+                   csv_lengths: bool = False, route_lengths: Mapping[str, Mapping[str, float | None]] | None = None,
+                   **kw: object) -> list[dict]:
     """One entry per run, oldest first by the time in the log (the RUN line, else the first
     STEP line; equal or missing times keep input order), so the highest run number is the
     latest run whatever order the logs were given in: {run, loco, direction, log, complete, rows}.
@@ -392,12 +482,11 @@ def summarize_runs(runs, lengths, k=lr.STOP_K, rel=lr.STOP_REL, max_n=lr.MAX_REA
     out = []
     runs = sorted(runs, key=lambda r: r.get("t0") or 0.0)  # stable
     for n, run in enumerate(runs, start=1):
-        rows = []
-        p = {"k": k, "rel": rel, "max_n": max_n}
+        p: dict[str, object] = {"k": k, "rel": rel, "max_n": max_n}
         p.update(kw)
         if use_logged:
             p.update(run.get("cfg") or {})
-        route = p.pop("route", DEFAULT_ROUTE)
+        route = str(p.pop("route", DEFAULT_ROUTE))
         try:
             order = route_order(route)
         except ValueError as e:
@@ -407,33 +496,9 @@ def summarize_runs(runs, lengths, k=lr.STOP_K, rel=lr.STOP_REL, max_n=lr.MAX_REA
         run_lengths = (route_lengths or {}).get(route, lengths)
         if use_logged and not csv_lengths:
             run_lengths = run.get("lengths") or run_lengths
-        k_, rel_, max_ = p.pop("k"), p.pop("rel"), p.pop("max_n")
-        logged = {name: p.pop(name, None) for name in ("mode", "target_mm", "min_blocks", "max_s")}
-        if (run.get("cfg") or {}).get("mode") == "distance":  # the log's own mode, whatever use_logged says
-            dist = logged if use_logged else {"target_mm": None, "min_blocks": None, "max_s": None}
-            rel_d = rel_ if use_logged else lr.DIST_REL
-            for s in run["steps"]:
-                rows.append(distance_row(run, s, n, order, run_lengths, dist, rel_d))
-            out.append({"run": n, "loco": run["loco"], "direction": run["direction"], "route": route,
-                        "log": run.get("log", ""), "complete": bool(run.get("complete")), "rows": rows})
-            continue
-        for s in run["steps"]:
-            rd = step_readings(s["events"], s["step"], run_lengths, order=order, **p)
-            speeds = [r[0] for r in rd]
-            row = {"loco": run["loco"], "direction": run["direction"], "step": s["step"],
-                   "occurrence": s["occurrence"], "travel": travel(s["events"], order),
-                   "n": len(speeds), "blocks": rd[-1][3] if rd else 0, "run": n}
-            if speeds:
-                used, why, win = lr.replay(speeds, k_, rel_, max_)
-                row.update(used=used, reason=why or "open", median=lr.median(win),
-                           rel_sd=lr.rel_stdev(win) if len(win) > 1 else None,
-                           settled=(why == "settled"))
-            else:
-                row.update(used=0, reason="no readings", median=None, rel_sd=None,
-                           settled=False)
-            rows.append(row)
         out.append({"run": n, "loco": run["loco"], "direction": run["direction"], "route": route,
-                    "log": run.get("log", ""), "complete": bool(run.get("complete")), "rows": rows})
+                    "log": run.get("log", ""), "complete": bool(run.get("complete")),
+                    "rows": _run_rows(run, n, order, run_lengths, p, use_logged)})
     return out
 
 
