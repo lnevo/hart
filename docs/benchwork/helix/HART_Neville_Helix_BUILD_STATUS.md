@@ -162,7 +162,7 @@ A/B hand logic: templates print plate-down and are flipped for use. One lap hand
 - Thin parts (wedges, plumb shims) print slower. Vase parts need the gap-closing setting above.
 
 ## 6. Regenerating
-- Scripts live in `tools/benchwork/helix/`. Use the repo environment: `pip install -r requirements.txt` into `.venv`, then `.venv/bin/python tools/benchwork/helix/<script>.py --out <folder>`.
+- Scripts live in `archive/tools/benchwork/helix/`. Use the repo environment: `pip install -r requirements.txt` into `.venv`, then `.venv/bin/python archive/tools/benchwork/helix/<script>.py --out <folder>`.
 - Run with `PYTHONDONTWRITEBYTECODE=1` to keep `__pycache__` out of the folder.
 
 ## 7. Process lessons

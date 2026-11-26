@@ -2,7 +2,7 @@
 import argparse
 from pathlib import Path
 
-STL_DIR = Path(__file__).resolve().parents[3] / "docs/benchwork/helix/stl"
+STL_DIR = Path(__file__).resolve().parents[4] / "docs/benchwork/helix/stl"
 
 
 def out_dir(doc=None):

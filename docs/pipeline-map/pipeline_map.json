@@ -330,31 +330,31 @@
    "gen": "manifest"
   },
   {
-   "id": "tools/benchwork/helix",
+   "id": "archive/tools/benchwork/helix",
    "label": "helix fixture scripts",
    "kind": "generator",
    "status": "live",
    "domain": "extras",
    "desc": "make_* scripts for helix brackets, shims, templates, spacers and entry pages; output via stl_out.py.",
-   "path": "tools/benchwork/helix"
+   "path": "archive/tools/benchwork/helix"
   },
   {
-   "id": "tools/benchwork/main_level",
+   "id": "archive/tools/benchwork/main_level",
    "label": "main level benchwork scripts",
    "kind": "generator",
    "status": "live",
    "domain": "extras",
    "desc": "Geometry, plywood cut plan, lumber cut list, joist construction PDF and plywood page generators.",
-   "path": "tools/benchwork/main_level"
+   "path": "archive/tools/benchwork/main_level"
   },
   {
-   "id": "tools/benchwork/station_maps_3d/check_stl.py",
+   "id": "archive/tools/benchwork/station_maps_3d/check_stl.py",
    "label": "check_stl.py",
    "kind": "generator",
    "status": "live",
    "domain": "extras",
    "desc": "Validates the exported station map STLs.",
-   "path": "tools/benchwork/station_maps_3d/check_stl.py"
+   "path": "archive/tools/benchwork/station_maps_3d/check_stl.py"
   },
   {
    "id": "tools/check.sh",
@@ -5909,7 +5909,7 @@
   },
   {
    "from": "docs/benchwork/station_maps_3d/build.sh",
-   "to": "tools/benchwork/station_maps_3d/check_stl.py"
+   "to": "archive/tools/benchwork/station_maps_3d/check_stl.py"
   },
   {
    "from": "docs/benchwork/station_maps_3d/station_map_barn.scad",
@@ -7833,20 +7833,20 @@
    "gen": "manifest"
   },
   {
-   "from": "tools/benchwork/helix",
+   "from": "archive/tools/benchwork/helix",
    "to": "docs/benchwork/helix"
   },
   {
-   "from": "tools/benchwork/helix",
+   "from": "archive/tools/benchwork/helix",
    "to": "www/scripts/published-files.json",
    "label": "mapped sources"
   },
   {
-   "from": "tools/benchwork/main_level",
+   "from": "archive/tools/benchwork/main_level",
    "to": "docs/benchwork/main_level"
   },
   {
-   "from": "tools/benchwork/station_maps_3d/check_stl.py",
+   "from": "archive/tools/benchwork/station_maps_3d/check_stl.py",
    "to": "docs/benchwork/station_maps_3d/stl",
    "label": "check",
    "side": "check"
