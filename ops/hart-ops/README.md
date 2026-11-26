@@ -79,7 +79,7 @@ export HART_STS_HELPERS=../hart/external/sts-helpers   # if needed
 
 Published documents live in the hart repo at `docs/ops/`.
 | `industries/` | 16 Industry routing matrix |
-| `operator_logos/` | Logos for sheets and labels; where each came from is in `operator_logos/SOURCES.md` |
+| `operator_logos/` | Logos for sheets and labels; where each came from is in the `logo` rows of `www/scripts/archive_catalogue.csv` (`operator_logos/SOURCES.md` points there) |
 
 ## Meta-repo
 

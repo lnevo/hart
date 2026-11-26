@@ -209,7 +209,7 @@ CREW = {
 }
 INDUSTRIES = {"industries": [
     {"name": "Shenango Coke Works", "blurb": "Coke for steel customers.", "commodities": ["Coke"], "spot": "shenango", "logo": "ops-logo.png"},
-    {"name": "Interchange", "blurb": "Off-island shippers.", "spot": "scully"},
+    {"name": "Interchange", "blurb": "Off-island shippers.", "spot": "interchange"},
     {"name": "Orphan", "blurb": "No sheet.", "spot": "nowhere"},
 ]}
 

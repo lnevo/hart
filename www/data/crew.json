@@ -1233,14 +1233,14 @@
         }
       ],
       "colors": [
-        "blue",
         "yellow",
         "green",
         "purple",
         "red",
         "pink",
-        "black",
-        "orange"
+        "blue",
+        "orange",
+        "black"
       ],
       "maps": [
         "south-yard",

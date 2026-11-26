@@ -137,6 +137,14 @@ class DocxViews(unittest.TestCase):
     def test_yard_sequence_ends_in_its_color_names(self):
         seq = dict((n, a) for n, _t, a in cm.yard_sequence(MASTER))
         self.assertTrue(seq["2"].endswith("(Yellow, Green, Purple, Red, Pink)"), seq["2"])
+        self.assertTrue(seq["3"].endswith("sort. (Black)"), seq["3"])  # owner, 2026-11-25: like rows 1, 2 and 4
+
+    def test_blocking_list_follows_the_jobs_colors_then_the_extra_rows(self):
+        ym = cm.job(MASTER, "yardmaster")
+        labels = [row[0] for row in cm.block_legend(MASTER)]
+        colors = {c["id"]: c["label"] for c in MASTER["colors"]}
+        self.assertEqual(labels, [colors[i] for i in ym["colors"]] + [e["label"] for e in ym["docx"]["legend_extra"]])
+        self.assertEqual(labels[:5], ["YELLOW", "GREEN", "PURPLE", "RED", "PINK"])  # the printed Rev E order
 
     def test_crew_engine_line_spacing(self):
         d749 = next(c for c in cm.crews(MASTER) if c["train"] == "D749")
