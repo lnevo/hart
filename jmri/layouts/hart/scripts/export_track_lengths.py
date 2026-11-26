@@ -93,8 +93,7 @@ def main():
     if "--tables" in sys.argv:
         # tables.xml is generated (ADR-029): build_tables.py writes the operating lengths into it.
         paths.exit_if_overridden(Path(__file__).name)
-        tables_build.refuse_generated(TABLES, Path(__file__).name)
-        sys.exit(f"--tables writes nothing: {paths.rel(TABLES)} takes its lengths from tools/schematic/build_tables.py")
+        tables_build.refuse_generated(TABLES, Path(__file__).name)      # always refuses: the file is generated
     if "--check" not in sys.argv:
         paths.exit_if_overridden(Path(__file__).name)
         DOC.write_text(text, encoding="utf-8")

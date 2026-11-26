@@ -5,7 +5,7 @@
 2) bare "{addr}" topics        — ACTIVE|INACTIVE at broker root (bug from
    MqttSensor.setKnownState with an empty JMRI send-topic template)
 3) _discard/cmd/sensor/#       — retired 11.3 sink retain
-4) track/signalhead/IH*        — legacy leaf; live is track/signalhead/<packed>
+4) track/signalhead/IH<digits> — legacy leaf; live is track/signalhead/<packed>
 5) track/sensor/<non-digits>   — JMRI auto-creates M2SBlock 1-1 from those topics
 
 Does not touch track/sensor/{addr}, track/turnout/{addr}, or packed
