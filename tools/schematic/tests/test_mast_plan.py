@@ -88,18 +88,21 @@ class Numbers(unittest.TestCase):
 
 class AssignNumbers(unittest.TestCase):
     """Two pairs a tenth apart share a westward number (6.6 and 6.7 both give 67): the lower milepost keeps it, the
-    other takes the next number of its parity no intermediate holds or would hold, and the shift is printed (owner,
-    2026-11-22)."""
+    other takes the next number of its parity no intermediate holds or would hold, and the shift is printed."""
 
     @staticmethod
     def masts(*mps, code="", west=True):
-        return [dict(code=code, number=mp.signal_number(m, west, code), mp=m, dir="west" if west else "east",
-                     milepost=round(m, 3)) for m in mps]
+        return [mp.Pending(code, mp.signal_number(m, west, code), m,
+                           dict(dir="west" if west else "east", milepost=round(m, 3))) for m in mps]
+
+    def named(self, masts):
+        with unittest.mock.patch("sys.stderr") as err:
+            got = mp.assign_numbers(masts)
+        return got, "".join(c.args[0] for c in err.write.call_args_list)
 
     def names(self, masts):
-        with unittest.mock.patch("sys.stderr") as err:
-            mp.assign_numbers(masts)
-        return [m["name"] for m in masts], "".join(c.args[0] for c in err.write.call_args_list)
+        got, printed = self.named(masts)
+        return [m["name"] for m in got], printed
 
     def test_no_clash_keeps_every_natural_number_and_prints_nothing(self):
         got, printed = self.names(self.masts(6.6) + self.masts(6.6, west=False) + self.masts(6.9))
@@ -116,10 +119,14 @@ class AssignNumbers(unittest.TestCase):
         got, _ = self.names(self.masts(6.6, 6.7, 6.9))
         self.assertEqual(got, ["67", "71", "69"])
 
-    def test_name_comes_first_and_the_working_keys_are_dropped(self):
-        masts = self.masts(6.7)
-        self.names(masts)
-        self.assertEqual(masts, [dict(name="67", dir="west", milepost=6.7)])
+    def test_name_comes_first_and_the_working_fields_are_left_out(self):
+        got, _ = self.named(self.masts(6.7))
+        self.assertEqual(got, [dict(name="67", dir="west", milepost=6.7)])
+        self.assertEqual(list(got[0]), ["name", "dir", "milepost"])
+
+    def test_the_masts_keep_their_order(self):
+        got, _ = self.names(self.masts(6.9, 6.6, 6.7))
+        self.assertEqual(got, ["69", "67", "71"])
 
     def test_the_line_code_keeps_the_levels_apart(self):
         got, _ = self.names(self.masts(6.7) + self.masts(6.7, code="A") + self.masts(6.6, code="A"))
@@ -552,6 +559,8 @@ class SystemNames(unittest.TestCase):
         with self.assertRaisesRegex(mr.MapError, "no longer places Mast 104R: add each to retired_virtual_masts.csv"):
             mp.virtual_system_names(["102RA"], 2, {"Mast 102RA": "IF$vsm:basic:one-low($2001)",
                                                    "Mast 104R": "IF$vsm:basic:one-low($2003)"}, {})
+        with self.assertRaisesRegex(mr.MapError, "'IH:HART:C1:8LC' is not a virtual mast system name"):
+            mp.virtual_system_names(["10RA"], 1, {}, {"Mast 8LC": "IH:HART:C1:8LC"})
 
     def test_read_retired(self):
         with tempfile.TemporaryDirectory() as d:

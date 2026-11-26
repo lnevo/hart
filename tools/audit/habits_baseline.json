@@ -315,9 +315,6 @@
  "tools/schematic/build_staging_sets.py": {
   "dated-note": 2
  },
- "tools/schematic/cats_panel.py": {
-  "dated-note": 1
- },
  "tools/schematic/device_map_inputs.py": {
   "dated-note": 1
  },
@@ -365,9 +362,6 @@
   "dated-note": 1
  },
  "tools/schematic/tests/test_device_map_masts.py": {
-  "dated-note": 1
- },
- "tools/schematic/tests/test_mast_plan.py": {
   "dated-note": 1
  },
  "tools/schematic/tests/test_masts_file.py": {
