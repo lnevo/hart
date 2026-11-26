@@ -8,10 +8,12 @@ from java.lang import Runnable
 
 OUT = os.environ.get("HART_SNAPSHOT_OUT", "/tmp/hart_panel.png")
 MARK = OUT + ".done"
+ERROR = OUT + ".error"
+PANEL = "HART Railroad"
 
 def find():
     for p in jmri.InstanceManager.getDefault(jmri.jmrit.display.EditorManager).getList():
-        if isinstance(p, jmri.jmrit.display.layoutEditor.LayoutEditor) and p.getLayoutName() == "HART Railroad":
+        if isinstance(p, jmri.jmrit.display.layoutEditor.LayoutEditor) and p.getLayoutName() == PANEL:
             return p
     return None
 
@@ -32,9 +34,15 @@ class Paint(Runnable):
         ImageIO.write(img, "png", File(OUT))
         open(MARK, "w").write("%dx%d\n" % (w, h))
 
-deadline = time.time() + 120
+WAIT = 120              # seconds for the panel to appear
+deadline = time.time() + WAIT
 while find() is None and time.time() < deadline:
     time.sleep(1)
+if find() is None:      # nothing to paint: say so in OUT.error, which panel_snapshot.sh prints
+    msg = 'no Layout Editor panel "%s" appeared within %d s; nothing painted' % (PANEL, WAIT)
+    print(msg)
+    open(ERROR, "w").write(msg + "\n")
+    java.lang.System.exit(1)
 time.sleep(15)          # let icons, lamps and labels finish loading
 class Grow(Runnable):
     def run(self):

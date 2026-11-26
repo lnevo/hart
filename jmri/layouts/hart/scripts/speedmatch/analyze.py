@@ -9,6 +9,8 @@ reverse, and the other way round), and reports the drift of the repeated top ste
 
     analyze.py LOG [LOG ...] [--route loop1|loop2] [--events-out CSV] [--lengths CSV] [--trusted timed] [--out DIR]
                [--pair "CSX 2121,CSX 2738"]
+    analyze.py speed-by-step (--laps CSV | --log LOG) ... --out CSV    speed per loco and step from whole laps
+                                                                       (speed_table.py)
 
 Lengths come from jmri/layouts/hart/data/block_lengths.csv (the AnyRail plan 5.3c length, inches) and
 block_lengths_measured.csv beside it (the lengths speed matching measured): a block's operating length is its
@@ -24,10 +26,14 @@ import re
 import sys
 from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
+from typing import TypedDict
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import liverule as lr  # noqa: E402
+from analyze_records import (  # noqa: E402  the records and errors, re-exported as analyze.<name>
+    AnalyzeError, BlockReading, DistanceReplay, Event, EventRow, Lengths, LengthsError, LogError, PassRecord,
+    ProfileRow, RoutesError, RunRecord, RunSummary, StepRecord, UnknownRouteError)
 
 DEFAULT_LENGTHS = HERE.parents[1] / "data" / "block_lengths.csv"
 DEFAULT_TRUSTED = ("timed",)  # "plan" counts only when passed explicitly
@@ -62,37 +68,46 @@ ROUTE_MID_BLOCK = {"loop1": "os:23:A-1A", "loop2": "block:37C-39C#1"}
 ROUTES_JSON = HERE / "routes.json"
 
 
-def load_routes(path=ROUTES_JSON, order=ROUTE_BLOCKS, mid=ROUTE_MID_BLOCK):
+def load_routes(path: Path = ROUTES_JSON, order: Mapping[str, Sequence[str]] = ROUTE_BLOCKS,
+                mid: Mapping[str, str] = ROUTE_MID_BLOCK) -> tuple[dict[str, list[tuple[str, str]]], dict[str, str]]:
     """(ROUTES, ROUTE_MID) from routes.json: {route: [(block sensor, block name)]}, {route: sensor}.
 
-    Stops when the file's block IDs (its `ids`, one per pair) or mid blocks are not the ones typed here (rebuild
-    it)."""
+    RoutesError when the file cannot be read or its block IDs (its `ids`, one per pair) or mid blocks are not the
+    ones typed here (rebuild it)."""
     try:
         data = json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, ValueError) as e:
-        raise SystemExit("cannot read %s (%s); run speedmatch/build_routes.py" % (path, e))
-    routes = {r: [tuple(pair) for pair in pairs] for r, pairs in data["routes"].items()}
+        raise RoutesError("cannot read %s (%s); run speedmatch/build_routes.py" % (path, e)) from e
+    try:
+        routes = {r: [(str(pair[0]), str(pair[1])) for pair in pairs] for r, pairs in data["routes"].items()}
+        mids = dict(data["mid"])
+    except (KeyError, TypeError, AttributeError, IndexError) as e:
+        raise RoutesError("%s has no routes or mid in the expected shape (%r); run speedmatch/build_routes.py"
+                          % (path, e)) from e
     ids = data.get("ids", {})
     stale = sorted(r for r in set(order) | set(routes)
                    if list(ids.get(r, [])) != list(order.get(r, []))
                    or len(routes.get(r, [])) != len(order.get(r, [])))
     by_block = {r: dict(zip(ids[r], (s for s, _ in pairs))) for r, pairs in routes.items() if r not in stale}
     stale += sorted(r for r, b in mid.items()
-                    if r not in stale and data["mid"].get(r) != by_block.get(r, {}).get(b))
+                    if r not in stale and mids.get(r) != by_block.get(r, {}).get(b))
     if stale:
-        raise SystemExit("%s does not match ROUTE_BLOCKS / ROUTE_MID_BLOCK for %s; run "
+        raise RoutesError("%s does not match ROUTE_BLOCKS / ROUTE_MID_BLOCK for %s; run "
                          "speedmatch/build_routes.py" % (path, ", ".join(stale)))
-    return routes, dict(data["mid"])
+    return routes, mids
 
 
-def block_ids(path=ROUTES_JSON):
+def block_ids(path: Path = ROUTES_JSON) -> dict[str, str]:
     """{block name: block ID} of every block on the routes (routes.json's pairs and their `ids`)."""
     data = json.loads(Path(path).read_text(encoding="utf-8"))
     return {name: ident for r, pairs in data["routes"].items()
             for (_sensor, name), ident in zip(pairs, data.get("ids", {}).get(r, []))}
 
 
-ROUTES, ROUTE_MID = load_routes()
+try:
+    ROUTES, ROUTE_MID = load_routes()
+except RoutesError as e:  # every importer needs the routes: stop with the message, as main() would
+    raise SystemExit(str(e)) from e
 BLOCK_IDS = block_ids()
 LOOP, LOOP2 = ROUTES["loop1"], ROUTES["loop2"]
 DEFAULT_ROUTE = "loop1"
@@ -109,40 +124,46 @@ ROUTE_LINEUP = {
 }
 
 
-def route_loop(route):
-    """The (sensor, csv row) list of a route; SystemExit-friendly ValueError for an unknown one."""
+def route_loop(route: str) -> list[tuple[str, str]]:
+    """The (sensor, block name) list of a route; UnknownRouteError for a route routes.json does not have."""
     if route not in ROUTES:
-        raise ValueError("unknown route %r: give one of %s" % (route, ", ".join(sorted(ROUTES))))
+        raise UnknownRouteError("unknown route %r: give one of %s" % (route, ", ".join(sorted(ROUTES))))
     return ROUTES[route]
 
 
-def route_mid(route):
+def route_mid(route: str) -> str:
+    """The sensor of the route's mid block (the warm-up lap counter's MID)."""
     mid = ROUTE_MID[route]
-    assert mid in route_order(route), (route, mid)
+    if mid not in route_order(route):
+        raise RoutesError("routes.json: mid sensor %s of %s is not on the route; run speedmatch/build_routes.py"
+                          % (mid, route))
     return mid
 
 
-def route_order(route):
+def route_order(route: str) -> list[str]:
+    """The sensors of a route in running order."""
     return [s for s, _ in route_loop(route)]
 
 
-def measured_path(path):
+def measured_path(path: str | Path) -> Path:
     """The measured file beside a plan file: block_lengths.csv -> block_lengths_measured.csv
     (hartlib.block_lengths.measured_path)."""
     path = Path(path)
     return path.with_name(path.stem + "_measured.csv")
 
 
-def _id_rows(path, need):
+def _id_rows(path: str | Path, need: Iterable[str]) -> dict[str, dict[str, str]]:
+    """The rows of a lengths file by id; LengthsError when a needed column is missing."""
     with open(path, newline="") as fh:
         reader = csv.DictReader(fh)
         missing = set(need) - set(reader.fieldnames or [])
         if missing:
-            raise ValueError(f"{path}: no column {', '.join(sorted(missing))}")
+            raise LengthsError(f"{path}: no column {', '.join(sorted(missing))}")
         return {r["id"]: r for r in reader}
 
 
-def load_lengths(path=DEFAULT_LENGTHS, trusted=DEFAULT_TRUSTED, loop=LOOP, measured=None):
+def load_lengths(path: str | Path = DEFAULT_LENGTHS, trusted: Iterable[str] = DEFAULT_TRUSTED,
+                 loop: Iterable[tuple[str, str]] = LOOP, measured: str | Path | None = None) -> dict[str, float | None]:
     """dict sensor -> length in mm, None where the block has no row or its source is not trusted.
 
     The operating length (hartlib.block_lengths.operating_lengths): a block with a row in the measured file
@@ -152,17 +173,21 @@ def load_lengths(path=DEFAULT_LENGTHS, trusted=DEFAULT_TRUSTED, loop=LOOP, measu
     the Pi's live publisher runs this with copies of both files and no hartlib (tools/hosts/deploy/stage.sh), so
     tools/audit/check_data_readers.py lists this script by name; tools/hartlib/tests/test_block_lengths.py holds its
     answer to hartlib's."""
+    trusted = tuple(trusted)
     plan = _id_rows(path, ("id", "plan_in"))
     timed = _id_rows(measured or measured_path(path), ("id", "measured_in"))
-    out = {}
+    out: dict[str, float | None] = {}
     for sensor, name in loop:
         ident = BLOCK_IDS.get(name)
-        source = "timed" if ident in timed else "plan" if ident in plan else None
-        if source is None or source not in trusted:
-            out[sensor] = None
-            continue
-        row = timed[ident] if source == "timed" else plan[ident]
-        out[sensor] = float(row["measured_in" if source == "timed" else "plan_in"]) * MM_PER_INCH
+        if ident is None:
+            source, inches = "", ""
+        elif ident in timed:
+            source, inches = "timed", timed[ident]["measured_in"]
+        elif ident in plan:
+            source, inches = "plan", plan[ident]["plan_in"]
+        else:
+            source, inches = "", ""
+        out[sensor] = float(inches) * MM_PER_INCH if source and source in trusted else None
     return out
 
 
@@ -178,17 +203,15 @@ CFG_KEYS = {"k": ("k", int), "rel": ("rel", float), "max": ("max_n", int),
             "max_s": ("max_s", float)}
 
 
-def check_names(lines, source=""):
-    """Stop on a log that still uses the extension-track names from before 2026-11-13: its East and
+_OLD_EXT = re.compile(r"(East|West)[ _-]Main[ _-]Ext", re.I)
+
+
+def check_names(lines: Iterable[str], source: str = "") -> None:
+    """LogError for a log that still uses the old extension-track names East/West Main Ext: its East and
     West extension blocks would not match and the laps would come out short or missing."""
-    import re
-    old = re.compile(r"(East|West)[ _-]Main[ _-]Ext", re.I)
-    if any(old.search(line) for line in lines):
-        raise SystemExit("%s uses the old names East/West Main Ext; convert it first with "
-                         "speedmatch/rename_extension_tracks.py --apply" % (source or "a log"))
-
-
-Event = tuple[float, str]  # (epoch, sensor) a sensor went ACTIVE
+    if any(_OLD_EXT.search(line) for line in lines):
+        raise LogError("%s uses the old names East/West Main Ext; convert it first with "
+                       "speedmatch/rename_extension_tracks.py --apply" % (source or "a log"))
 
 
 class _LogParser:
@@ -197,17 +220,17 @@ class _LogParser:
 
     def __init__(self, loco: str | None, direction: str | None, source: str) -> None:
         self.loco, self.direction, self.source = loco, direction, source
-        self.runs: list[dict] = []
-        self.run: dict | None = None
-        self.cur: dict | None = None  # the current step
+        self.runs: list[RunRecord] = []
+        self.run: RunRecord | None = None
+        self.cur: StepRecord | None = None  # the current step
         self.seen: dict[int, int] = {}  # step -> times seen in this run
         self.active: dict[str, str] = {}  # sensor -> last state
         self.sensed: dict[int, set[str]] = {}  # id(run) -> sensor names the run logged, for check_route_sensors
         self.last_active: Event | None = None
 
-    def new_run(self, loco: str, direction: str, t: float) -> dict:
-        run: dict = {"loco": loco, "direction": direction, "steps": [], "cfg": {},
-               "lengths": None, "log": self.source, "complete": False, "t0": t}
+    def new_run(self, loco: str, direction: str, t: float) -> RunRecord:
+        run: RunRecord = {"loco": loco, "direction": direction, "steps": [], "cfg": {},
+                          "lengths": None, "log": self.source, "complete": False, "t0": t}
         self.runs.append(run)
         return run
 
@@ -223,7 +246,7 @@ class _LogParser:
     def on_step(self, t: float, msg: str) -> None:
         if self.run is None:
             if self.loco is None or self.direction is None:
-                raise ValueError("log has no RUN line: give loco and direction")
+                raise LogError("%s has no RUN line: give loco and direction" % (self.source or "the log"))
             self.run = self.new_run(self.loco, self.direction, t)
         n = int(msg.split()[1])
         self.seen[n] = self.seen.get(n, 0) + 1
@@ -287,9 +310,9 @@ class _LogParser:
         if self.run is not None:
             self.sensed.setdefault(id(self.run), set()).add(name)
         if st == "ACTIVE" and self.active.get(name) != "ACTIVE":
-            self.last_active = (t, name)
+            self.last_active = Event(t, name)
             if self.cur is not None and self.cur.get("measuring", True):
-                self.cur["events"].append((t, name))
+                self.cur["events"].append(self.last_active)
         if st in STATES:  # any state counts: UNKNOWN between two ACTIVEs is a new ACTIVE
             self.active[name] = st
 
@@ -311,9 +334,8 @@ class _LogParser:
 
 
 def parse_log(lines: Sequence[str], loco: str | None = None, direction: str | None = None,
-              source: str = "") -> list[dict]:
-    """Split runner log lines into runs: list of dicts
-    {loco, direction, log, complete, cfg, lengths, steps: [{step, occurrence, events}]}.
+              source: str = "") -> list[RunRecord]:
+    """Split runner log lines into runs (RunRecord, its steps StepRecord).
     Every RUN line starts a new run (the same loco and direction twice stay two runs);
     complete is True when the runner logged "STOP all steps complete".
 
@@ -324,28 +346,29 @@ def parse_log(lines: Sequence[str], loco: str | None = None, direction: str | No
     for line in lines:
         parser.line(line)
     for run in parser.runs:
-        check_route_sensors(parser.sensed.get(id(run), ()), run["cfg"].get("route", DEFAULT_ROUTE), source)
+        check_route_sensors(parser.sensed.get(id(run), set()), str(run["cfg"].get("route", DEFAULT_ROUTE)), source)
     return parser.runs
 
 
-def check_route_sensors(names, route, source=""):
-    """Stop on a sensor the route does not have: a log recorded before a block or sensor rename
+def check_route_sensors(names: Iterable[str], route: str, source: str = "") -> None:
+    """LogError for a sensor the route does not have: a log recorded before a block or sensor rename
     (its blocks would not match and laps would come out short), or a log of another route."""
     if route not in ROUTES:
         return  # route_loop() names the unknown route when the run is analysed
     known = {s for s, _ in ROUTES[route]}
     stray = sorted(set(names) - known)
     if stray:
-        raise SystemExit("%s logs sensor(s) not on route %s: %s. If a block or sensor was renamed, "
-                         "convert the log first (as speedmatch/rename_extension_tracks.py did for the "
-                         "2026-11-13 rename)" % (source or "a log", route, ", ".join(stray)))
+        raise LogError("%s logs sensor(s) not on route %s: %s. If a block or sensor was renamed, "
+                       "convert the log first (as speedmatch/rename_extension_tracks.py does for the "
+                       "extension tracks)" % (source or "a log", route, ", ".join(stray)))
 
 
-def step_readings(events, step, lengths, order=ORDER, settle=lr.SETTLE_EVENTS,
-                  low_max=lr.LOW_MAX, high_span=lr.HIGH_SPAN):
+def step_readings(events: Iterable[Event], step: int, lengths: Lengths, order: Sequence[str] = ORDER,
+                  settle: int = lr.SETTLE_EVENTS, low_max: int = lr.LOW_MAX,
+                  high_span: int = lr.HIGH_SPAN) -> list[tuple[float, float, float, int]]:
     """Readings for one step, taken the way the runner took them live.
 
-    Each is (mm_per_s, seconds, mm, blocks)."""
+    Each is liverule.SpanReader's tuple (mm_per_s, seconds, mm, blocks); liverule runs in Jython too."""
     reader = lr.SpanReader(order, lengths, settle)
     reader.restart(lr.span_for_step(step, low_max, high_span))
     out = []
@@ -359,13 +382,16 @@ def step_readings(events, step, lengths, order=ORDER, settle=lr.SETTLE_EVENTS,
 _PASS = re.compile(r"PASS step=(\d+) from=(.*) to=(.*)$")
 
 
-def parse_pass_log(lines, source=""):
-    """The passes in a pass-job log (jython/pass_runner.py): list of dicts {loco, direction,
-    step, frm, to, path (the PATH line before PASS: sensors expected from frm to to, [] in older
-    logs), events [(epoch, sensor)] of every ACTIVE after the PASS line, reason (from PASSDONE,
-    '' if the log has none), log}. Every PASS line starts a pass."""
+def parse_pass_log(lines: Sequence[str], source: str = "") -> list[PassRecord]:
+    """The passes in a pass-job log (jython/pass_runner.py). path is the PATH line before PASS (sensors
+    expected from frm to to, [] in older logs), events every ACTIVE after the PASS line, reason the PASSDONE
+    one ('' if the log has none). Every PASS line starts a pass."""
     check_names(lines, source)
-    passes, loco, direction, cur, active, path = [], "", "", None, {}, []
+    passes: list[PassRecord] = []
+    loco = direction = ""
+    cur: PassRecord | None = None
+    active: dict[str, str] = {}
+    path: list[str] = []
     for line in lines:
         m = _LINE.match(line.strip())
         if not m:
@@ -392,37 +418,38 @@ def parse_pass_log(lines, source=""):
         elif msg.startswith("SENS "):
             name, st = msg[5:].rsplit(" ", 1)
             if cur is not None and st == "ACTIVE" and active.get(name) != "ACTIVE":
-                cur["events"].append((t, name))
+                cur["events"].append(Event(t, name))
             if st in STATES:
                 active[name] = st
     return passes
 
 
-def replay_distance(events, order, lengths, target_mm, min_blocks, max_s, rel):
+def replay_distance(events: Iterable[Event], order: Sequence[str], lengths: Lengths, target_mm: float,
+                    min_blocks: int, max_s: float, rel: float) -> DistanceReplay:
     """Distance mode, replayed as the runner took it: events are the ACTIVE events from the
-    MEASURE one on. Returns (blocks [(sensor, mm, s)], reason, relsd, extra); reason is
-    'settled', 'timed', 'max' or '' (the data ended first)."""
+    MEASURE one on."""
     reader = lr.SpanReader(order, lengths, 0, True)
     reader.restart(1)
     step = lr.DistanceStep(target_mm, min_blocks, max_s, rel)
-    blocks, t0 = [], None
+    blocks: list[BlockReading] = []
+    t0: float | None = None
     for t, sensor in events:
         if t0 is None:
             t0 = t
         done, why = step.check(t - t0)  # the clock may run out between two events
         if done and why in ("max", "timed"):
-            return blocks, why, step.relsd, step.extra
+            return DistanceReplay(blocks, why, step.relsd, step.extra)
         b = reader.feed(t, sensor)
         if b is not None:
-            blocks.append((b[4], b[2], b[1]))  # (sensor, mm, seconds), as the BLOCK line has them
+            blocks.append(BlockReading(b[4], b[2], b[1]))
             step.add(b[2], b[1])
             done, why = step.check(t - t0)
             if done:
-                return blocks, why, step.relsd, step.extra
-    return blocks, "", step.relsd, step.extra
+                return DistanceReplay(blocks, why, step.relsd, step.extra)
+    return DistanceReplay(blocks, "", step.relsd, step.extra)
 
 
-def travel(events, order=ORDER):
+def travel(events: Sequence[tuple[float, str]], order: Sequence[str] = ORDER) -> str:
     """'east' (the order of LOOP) or 'west', from the order the sensors lit; '' if unclear."""
     up = down = 0
     for (_, a), (_, b) in zip(events, events[1:]):
@@ -433,45 +460,44 @@ def travel(events, order=ORDER):
     return "east" if up > down else "west" if down > up else ""
 
 
-def _window_row(run: dict, s: dict, n: int, order: Sequence[str], lengths: Mapping[str, float | None],
-                rule: tuple[int, float, int], reader_kw: Mapping[str, int]) -> dict:
+def _window_row(run: RunRecord, s: StepRecord, n: int, order: Sequence[str], lengths: Lengths,
+                rule: tuple[int, float, int], reader_kw: Mapping[str, int]) -> ProfileRow:
     """One step of a time-window run: the readings replayed through the runner's stop rule."""
     k_, rel_, max_ = rule
     rd = step_readings(s["events"], s["step"], lengths, order=order, **reader_kw)
     speeds = [r[0] for r in rd]
-    row = {"loco": run["loco"], "direction": run["direction"], "step": s["step"],
-           "occurrence": s["occurrence"], "travel": travel(s["events"], order),
-           "n": len(speeds), "blocks": rd[-1][3] if rd else 0, "run": n}
+    used, reason, median, rel_sd = 0, "no readings", None, None
     if speeds:
         used, why, win = lr.replay(speeds, k_, rel_, max_)
-        row.update(used=used, reason=why or "open", median=lr.median(win),
-                   rel_sd=lr.rel_stdev(win) if len(win) > 1 else None,
-                   settled=(why == "settled"))
-    else:
-        row.update(used=0, reason="no readings", median=None, rel_sd=None,
-                   settled=False)
-    return row
+        reason, median = why or "open", lr.median(win)
+        rel_sd = lr.rel_stdev(win) if len(win) > 1 else None
+    return {"loco": run["loco"], "direction": run["direction"], "step": s["step"],
+            "occurrence": s["occurrence"], "travel": travel(s["events"], order),
+            "n": len(speeds), "blocks": rd[-1][3] if rd else 0, "run": n,
+            "used": used, "reason": reason, "median": median, "rel_sd": rel_sd, "settled": reason == "settled"}
 
 
-def _run_rows(run: dict, n: int, order: Sequence[str], lengths: Mapping[str, float | None], p: dict,
-              use_logged: bool) -> list[dict]:
-    """The rows of one run; p is the stop-rule settings with route already taken out."""
-    k_, rel_, max_ = p.pop("k"), p.pop("rel"), p.pop("max_n")
+def _run_rows(run: RunRecord, n: int, order: Sequence[str], lengths: Lengths,
+              p: dict[str, int | float | str], use_logged: bool) -> list[ProfileRow]:
+    """The rows of one run; p is the stop-rule settings with route already taken out, and what is left of it
+    after the stop rule and the distance settings are the SpanReader settings (settle, low_max, high_span)."""
+    k_, rel_, max_ = int(p.pop("k")), float(p.pop("rel")), int(p.pop("max_n"))
     logged = {name: p.pop(name, None) for name in ("mode", "target_mm", "min_blocks", "max_s")}
     if (run.get("cfg") or {}).get("mode") == "distance":  # the log's own mode, whatever use_logged says
         dist = logged if use_logged else {"target_mm": None, "min_blocks": None, "max_s": None}
         rel_d = rel_ if use_logged else lr.DIST_REL
         return [distance_row(run, s, n, order, lengths, dist, rel_d) for s in run["steps"]]
-    return [_window_row(run, s, n, order, lengths, (k_, rel_, max_), p) for s in run["steps"]]
+    reader_kw = {name: int(v) for name, v in p.items()}
+    return [_window_row(run, s, n, order, lengths, (k_, rel_, max_), reader_kw) for s in run["steps"]]
 
 
-def summarize_runs(runs: Iterable[dict], lengths: Mapping[str, float | None], k: int = lr.STOP_K,
+def summarize_runs(runs: Iterable[RunRecord], lengths: Lengths, k: int = lr.STOP_K,
                    rel: float = lr.STOP_REL, max_n: int = lr.MAX_READINGS, use_logged: bool = True,
-                   csv_lengths: bool = False, route_lengths: Mapping[str, Mapping[str, float | None]] | None = None,
-                   **kw: object) -> list[dict]:
+                   csv_lengths: bool = False, route_lengths: Mapping[str, Lengths] | None = None,
+                   **kw: int | float | str) -> list[RunSummary]:
     """One entry per run, oldest first by the time in the log (the RUN line, else the first
     STEP line; equal or missing times keep input order), so the highest run number is the
-    latest run whatever order the logs were given in: {run, loco, direction, log, complete, rows}.
+    latest run whatever order the logs were given in.
 
     A run's own CFG line (stop rule settings) and LENGTHS line (the lengths the job was built
     with) are replayed as the runner had them; the arguments are used only for logs that lack
@@ -479,21 +505,21 @@ def summarize_runs(runs: Iterable[dict], lengths: Mapping[str, float | None], k:
     given (the logged stop-rule settings still apply). Each run is replayed over the route its
     CFG line names (loop1 for logs that do not); route_lengths (route -> lengths) gives
     csv_lengths a set per route."""
-    out = []
+    out: list[RunSummary] = []
     runs = sorted(runs, key=lambda r: r.get("t0") or 0.0)  # stable
     for n, run in enumerate(runs, start=1):
-        p: dict[str, object] = {"k": k, "rel": rel, "max_n": max_n}
+        p: dict[str, int | float | str] = {"k": k, "rel": rel, "max_n": max_n}
         p.update(kw)
         if use_logged:
             p.update(run.get("cfg") or {})
         route = str(p.pop("route", DEFAULT_ROUTE))
         try:
             order = route_order(route)
-        except ValueError as e:
+        except UnknownRouteError as e:
             print("warning: run of %s %s in %s skipped: %s" % (
                 run["loco"], run["direction"], run.get("log") or "log", e), file=sys.stderr)
             continue
-        run_lengths = (route_lengths or {}).get(route, lengths)
+        run_lengths: Lengths = (route_lengths or {}).get(route, lengths)
         if use_logged and not csv_lengths:
             run_lengths = run.get("lengths") or run_lengths
         out.append({"run": n, "loco": run["loco"], "direction": run["direction"], "route": route,
@@ -502,12 +528,14 @@ def summarize_runs(runs: Iterable[dict], lengths: Mapping[str, float | None], k:
     return out
 
 
-def distance_row(run, s, n, order, lengths, cfg, rel):
-    """One profile row for a distance-mode step: speed = sum(mm) / sum(s) over the whole blocks."""
+def distance_row(run: RunRecord, s: StepRecord, n: int, order: Sequence[str], lengths: Lengths,
+                 cfg: Mapping[str, int | float | str | None], rel: float) -> ProfileRow:
+    """One profile row for a distance-mode step: speed = sum(mm) / sum(s) over the whole blocks. A cfg value
+    that is None or 0 takes liverule's default."""
     blocks, why, relsd, _ = replay_distance(
-        s["events"], order, lengths, cfg["target_mm"] or lr.DIST_TARGET_MM,
-        cfg["min_blocks"] or lr.DIST_MIN_BLOCKS, cfg["max_s"] or lr.DIST_MAX_S, rel)
-    cnt, mm, secs, v, rsd = lr.aggregate([(b[1], b[2]) for b in blocks])
+        s["events"], order, lengths, float(cfg["target_mm"] or lr.DIST_TARGET_MM),
+        int(cfg["min_blocks"] or lr.DIST_MIN_BLOCKS), float(cfg["max_s"] or lr.DIST_MAX_S), rel)
+    cnt, mm, secs, v, rsd = lr.aggregate([(b.mm, b.s) for b in blocks])
     reason = why or s.get("done_reason") or ("open" if s["events"] else "no readings")
     return {"loco": run["loco"], "direction": run["direction"], "step": s["step"],
             "occurrence": s["occurrence"], "travel": travel(s["events"], order),
@@ -521,7 +549,7 @@ EVENT_FIELDS = ["loco", "log", "step", "lap_index", "block", "block_len_mm", "en
                 "next_entry_epoch", "transit_s", "mm_per_s"]
 
 
-def block_events(runs, route=DEFAULT_ROUTE):
+def block_events(runs: Iterable[RunRecord], route: str = DEFAULT_ROUTE) -> list[EventRow]:
     """Rows in the shape of docs/jmri/speedmatching/profile-2026-11-08/block_events.csv, for
     infer_block_lengths.py. A block's transit is the time from its sensor lighting to the next
     sensor of the route lighting (the next one in the direction the loco ran, found from the
@@ -530,15 +558,15 @@ def block_events(runs, route=DEFAULT_ROUTE):
     everything before the first sensor are dropped, and a block whose next sensor is not the
     expected one (a missed or doubled event) gets no row. A run's own CFG route wins over the
     route argument; a run with no rows is reported on stderr."""
-    rows = []
+    rows: list[EventRow] = []
     for run in runs:
         cfg = run.get("cfg") or {}
         try:
-            order = route_order(cfg.get("route", route))
-        except ValueError as e:
+            order = route_order(str(cfg.get("route", route)))
+        except UnknownRouteError as e:
             print("warning: events of a run in %s skipped: %s" % (run.get("log") or "log", e), file=sys.stderr)
             continue
-        settle = 0 if cfg.get("mode") == "distance" else cfg.get("settle", lr.SETTLE_EVENTS)
+        settle = 0 if cfg.get("mode") == "distance" else int(cfg.get("settle", lr.SETTLE_EVENTS))
         first = order[0]
         before = len(rows)
         for s in run["steps"]:
@@ -566,16 +594,16 @@ def block_events(runs, route=DEFAULT_ROUTE):
     return rows
 
 
-def write_events(rows, path):
+def write_events(rows: Iterable[EventRow], path: str | Path) -> None:
     with open(path, "w", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=EVENT_FIELDS)
         w.writeheader()
         w.writerows(rows)
 
 
-def latest_runs(summaries):
+def latest_runs(summaries: Iterable[RunSummary]) -> dict[tuple[str, str], list[ProfileRow]]:
     """dict (loco, direction) -> rows of the latest complete run (else the latest run)."""
-    pick = {}
+    pick: dict[tuple[str, str], RunSummary] = {}
     for r in summaries:
         key = (r["loco"], r["direction"])
         old = pick.get(key)
@@ -584,34 +612,56 @@ def latest_runs(summaries):
     return {k: v["rows"] for k, v in pick.items()}
 
 
-def summarize(runs, lengths, *args, **kw):
-    """dict (loco, direction) -> rows of the latest complete run of that loco and direction.
-    Runs are never merged; summarize_runs keeps all of them."""
-    return latest_runs(summarize_runs(runs, lengths, *args, **kw))
+def summarize(runs: Iterable[RunRecord], lengths: Lengths, k: int = lr.STOP_K, rel: float = lr.STOP_REL,
+              max_n: int = lr.MAX_READINGS, use_logged: bool = True) -> dict[tuple[str, str], list[ProfileRow]]:
+    """dict (loco, direction) -> rows of the latest complete run of that loco and direction, with
+    summarize_runs's settings. Runs are never merged; summarize_runs keeps all of them."""
+    return latest_runs(summarize_runs(runs, lengths, k, rel, max_n, use_logged))
 
 
-def step_label(row):
+def step_label(row: ProfileRow) -> str:
+    """The step as profile.csv names it: '96', or '96#2' for its repeat."""
     return str(row["step"]) if row["occurrence"] == 1 else "%d#%d" % (row["step"], row["occurrence"])
 
 
-def top_drift(rows):
+class Drift(TypedDict):
+    """The highest step's last repeat against its first measurement (mm/s)."""
+    step: int
+    first: float
+    last: float
+    drift_pct: float
+
+
+class Comparison(TypedDict):
+    """One step of compare(): b's first median against a's."""
+    step: int
+    a: float
+    b: float
+    b_vs_a_pct: float
+    same_travel: bool
+
+
+def top_drift(rows: Sequence[ProfileRow]) -> Drift | None:
     """Percent change of the last repeat of the highest step against its first measurement."""
     if not rows:
         return None
     top = max(r["step"] for r in rows)
-    same = [r for r in rows if r["step"] == top and r["median"] is not None]
+    same = [m for r in rows if r["step"] == top and (m := r["median"]) is not None]
     if len(same) < 2:
         return None
-    return {"step": top, "first": same[0]["median"], "last": same[-1]["median"],
-            "drift_pct": 100.0 * (same[-1]["median"] - same[0]["median"]) / same[0]["median"]}
+    return {"step": top, "first": same[0], "last": same[-1],
+            "drift_pct": 100.0 * (same[-1] - same[0]) / same[0]}
 
 
-def first_by_step(rows):
+def first_by_step(rows: Iterable[ProfileRow]) -> dict[int, float]:
     """step -> median of the first measurement of that step."""
-    return {r["step"]: r["median"] for r in rows if r["occurrence"] == 1 and r["median"] is not None}
+    return {r["step"]: m for r in rows if r["occurrence"] == 1 and (m := r["median"]) is not None}
 
 
-def compare(result, a, b):
+Key = tuple[str, str]  # (loco, direction)
+
+
+def compare(result: Mapping[Key, Sequence[ProfileRow]], a: Key, b: Key) -> list[Comparison]:
     """Compare run key a = (loco, direction) with b: per step, b against a in percent.
 
     same_travel is False when the two ran in different physical directions round the loop."""
@@ -619,7 +669,7 @@ def compare(result, a, b):
     sa, sb = first_by_step(ra), first_by_step(rb)
     ta = {r["step"]: r["travel"] for r in ra if r["occurrence"] == 1}
     tb = {r["step"]: r["travel"] for r in rb if r["occurrence"] == 1}
-    out = []
+    out: list[Comparison] = []
     for step in sorted(set(sa) & set(sb)):
         out.append({"step": step, "a": sa[step], "b": sb[step],
                     "b_vs_a_pct": 100.0 * (sb[step] - sa[step]) / sa[step],
@@ -627,17 +677,19 @@ def compare(result, a, b):
     return out
 
 
-def pairings(first, second):
+def pairings(first: str, second: str) -> list[tuple[Key, Key]]:
     """The consist pairings: first forward with second reversed, and the other way round."""
     return [((first, "forward"), (second, "reverse")),
             ((first, "reverse"), (second, "forward"))]
 
 
-def fmt(x, nd=1):
+def fmt(x: float | None, nd: int = 1) -> float | str:
+    """x rounded to nd places for a CSV cell, '' for None."""
     return "" if x is None else round(x, nd)
 
 
-def write_outputs(result, pair, out_dir, summaries=None):
+def write_outputs(result: Mapping[Key, list[ProfileRow]], pair: Sequence[str] | None, out_dir: str | Path,
+                  summaries: Sequence[RunSummary] | None = None) -> None:
     """profile.csv and drift.csv hold every run (one `run` number each); compare.csv uses the
     latest complete run of each loco and direction. Without summaries, result is one run."""
     out_dir = Path(out_dir)
@@ -675,7 +727,25 @@ def write_outputs(result, pair, out_dir, summaries=None):
                                 fmt(c["b_vs_a_pct"], 1), c["same_travel"]])
 
 
-def main(argv=None):
+def main(argv: Sequence[str] | None = None) -> None:
+    """The CLI; an AnalyzeError stops with its message (exit status 1)."""
+    args = list(sys.argv[1:] if argv is None else argv)
+    try:
+        if args[:1] == ["speed-by-step"]:
+            # imported here, not at the top: the Pi's publisher imports this module and the bundle does not ship
+            # speed_table.py (tools/hosts/deploy/stage.sh)
+            try:
+                import speed_table
+            except ImportError as e:
+                raise AnalyzeError("speed-by-step runs on the Mac: speed_table.py is not in this bundle") from e
+            speed_table.main(args[1:])
+        else:
+            _main(args)
+    except AnalyzeError as e:
+        raise SystemExit(str(e)) from e
+
+
+def _main(argv: Sequence[str] | None) -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("logs", nargs="+")
     ap.add_argument("--lengths", default=str(DEFAULT_LENGTHS),

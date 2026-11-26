@@ -107,6 +107,10 @@ done
 HART_HOST_NAMES="$_hart_host_names"
 unset _n _hart_host_names
 
+# The JMRI profile PanelPro and CATS run on the Pi ("<name>.<id>"; its folder is ~/.jmri/<name>.jmri). The Pi's
+# own launch_cats.sh runs without this repo and keeps a copy (tools/hosts/tests/test_host_copies.py).
+export HART_PI_PROFILE="${HART_PI_PROFILE:-TCS_MQTT.3f32a166}"
+
 export HART_RUNTIME_ROOT="${HART_RUNTIME_ROOT:-${HART_REPO_ROOT}}"
 export HART_LIVE_ROOT="${HART_LIVE_ROOT:-${HART_REPO_ROOT}}"
 export HART_OPS_ROOT="${HART_OPS_ROOT:-${HART_REPO_ROOT}/ops/hart-ops}"

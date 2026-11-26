@@ -73,9 +73,16 @@ New `basis` values record where each length came from:
    measured on neighbouring `anyrail` blocks in the same lap. Use every step from 24 up (steady
    speed, no momentum effects), both locos, and record the median and spread. Prefer
    neighbours on level track, because grades change speed.
-5. **Check it.** With the new lengths, re-run `block_speeds.py` on the 2026-11-08 logs. Each
-   block's ratio to the loop mean should come out close to 1.00. The spread is the error bar
-   for the record.
+5. **Check it.** Run `jmri/layouts/hart/scripts/speedmatch/analyze.py` on the 2026-11-08 logs
+   with `--events-out events.csv`: each row is one block transit (`transit_s`). With the new
+   lengths, each block's speed (length / transit time) against the lap mean at that step should
+   come out close to 1.00. The spread is the error bar for the record. `analyze.py
+   speed-by-step --log LOG ... --route loop1` gives the speed per step over the new loop length
+   (one route per table; while some blocks have no trusted length yet, add `--loop-mm` or
+   `--trusted timed,plan`).
+   The logs use the names of that date: convert the extension tracks with
+   `rename_extension_tracks.py`, and read "BS Switch 37 / BS McKeesport" and "BS Switch 39 /
+   BS McKees Rocks" as BS Switch 37 and BS Switch 39.
 6. **Write the record.** Update the CSV with basis and a note per row, add the method to
    `docs/jmri/TRACK_LENGTHS.md`, regenerate, and bring the lengths into `tables.xml`. That
    changes tables, so it needs `./tools/check.sh`, `make panelpro-test` and a deploy. Dispatcher

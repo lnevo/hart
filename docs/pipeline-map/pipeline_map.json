@@ -4511,6 +4511,24 @@
    "path": "jmri/layouts/hart/scripts/speedmatch/analyze.py"
   },
   {
+   "id": "jmri/layouts/hart/scripts/speedmatch/analyze_records.py",
+   "label": "analyze_records.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "The records (TypedDict, NamedTuple) and named errors of analyze.py: runs, steps, profile rows, passes, block events. Shipped in the Pi publisher with analyze.py.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/analyze_records.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/speed_table.py",
+   "label": "speed_table.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "analyze.py speed-by-step: speed per loco and step from whole laps (lap CSVs or runner logs) over a route length; writes the speed_by_step table.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/speed_table.py"
+  },
+  {
    "id": "jmri/layouts/hart/scripts/speedmatch/liverule.py",
    "label": "liverule.py",
    "kind": "generator",
@@ -5582,6 +5600,42 @@
    "path": "tools/pipeline/manifest_panels.py"
   },
   {
+   "id": "tools/pipeline/step_timings.sh",
+   "label": "step_timings.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Sourced by check.sh and build_panels.sh: appends one line per step run (seconds, ok/failed/skipped, cold/warm) to the local step-timings log; a log it cannot write fails nothing.",
+   "path": "tools/pipeline/step_timings.sh"
+  },
+  {
+   "id": "ext:step-timings",
+   "label": ".cache/hart/step-timings.tsv (local)",
+   "kind": "output",
+   "status": "live",
+   "domain": "extras",
+   "desc": "The local step-timings log in the shared cache (gitignored): one line per make panels or check.sh step run.",
+   "path": ""
+  },
+  {
+   "id": "tools/pipeline/timings.py",
+   "label": "timings.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "make timings: summarizes the step-timings log into timings.json (median warm and cold seconds, skip rate, last run per step); --check fails on a step the manifests no longer name.",
+   "path": "tools/pipeline/timings.py"
+  },
+  {
+   "id": "docs/pipeline-map/timings.json",
+   "label": "timings.json",
+   "kind": "output",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Step timings for the pipeline map: per step, runs, median warm and cold seconds, skip rate and last run day; step names and numbers only. Written by make timings.",
+   "path": "docs/pipeline-map/timings.json"
+  },
+  {
    "id": "tools/ctc_history/film_cats.py",
    "label": "film_cats.py",
    "kind": "generator",
@@ -5652,15 +5706,6 @@
    "domain": "ops",
    "desc": "Prints the sts-helpers checkout apply_hart_seed.sh uses (HART_STS_HELPERS or the submodule).",
    "path": "ops/hart-ops/bin/sts_helpers_root.sh"
-  },
-  {
-   "id": "docs/jmri/speedmatching/profile-2026-11-08/block_speeds.py",
-   "label": "block_speeds.py",
-   "kind": "generator",
-   "status": "live",
-   "domain": "layout",
-   "desc": "2026-11-08 session: per-block and per-step speed tables (block_events, block_summary, speed_by_step.csv) from that session's runner logs; kept with its data.",
-   "path": "docs/jmri/speedmatching/profile-2026-11-08/block_speeds.py"
   },
   {
    "id": "tools/ci/docs_unit_tests.py",
@@ -11702,11 +11747,6 @@
    "side": "check"
   },
   {
-   "from": "docs/jmri/speedmatching/profile-2026-11-08/block_speeds.py",
-   "to": "jmri/layouts/hart/data/speed_by_step_2026-11-08.csv",
-   "label": "speed_by_step.csv, copied"
-  },
-  {
    "from": "jmri/layouts/hart/data/speed_by_step_2026-11-08.csv",
    "to": "jmri/layouts/hart/scripts/speedmatch/dashboard/dashsources.py",
    "label": "REF_CSV"
@@ -13146,16 +13186,6 @@
    "label": "sts-helpers folder"
   },
   {
-   "from": "docs/jmri/speedmatching",
-   "to": "docs/jmri/speedmatching/profile-2026-11-08/block_speeds.py",
-   "label": "the session's logs"
-  },
-  {
-   "from": "docs/jmri/speedmatching/profile-2026-11-08/block_speeds.py",
-   "to": "docs/jmri/speedmatching",
-   "label": "CSV tables"
-  },
-  {
    "from": "www/data/fleet-gallery.json",
    "to": "tools/ops/check_fleet_gallery.py",
    "label": "copy",
@@ -13548,6 +13578,66 @@
    "from": ".claude/hooks/shell_parse.py",
    "to": ".claude/hooks/subagent_guard.py",
    "label": "imports"
+  },
+  {
+   "from": "tools/pipeline/step_timings.sh",
+   "to": "tools/check.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/pipeline/step_timings.sh",
+   "to": "tools/schematic/build_panels.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/pipeline/step_timings.sh",
+   "to": "ext:step-timings",
+   "label": "appends"
+  },
+  {
+   "from": "ext:step-timings",
+   "to": "tools/pipeline/timings.py",
+   "label": "reads"
+  },
+  {
+   "from": "tools/pipeline/checks.toml",
+   "to": "tools/pipeline/timings.py",
+   "label": "step names"
+  },
+  {
+   "from": "tools/pipeline/panels.toml",
+   "to": "tools/pipeline/timings.py",
+   "label": "step names"
+  },
+  {
+   "from": "tools/pipeline/timings.py",
+   "to": "docs/pipeline-map/timings.json",
+   "label": "make timings"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/analyze_records.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/analyze.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/analyze_records.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "publisher files"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/analyze.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/speed_table.py",
+   "label": "speed-by-step"
+  },
+  {
+   "from": "docs/jmri/speedmatching",
+   "to": "jmri/layouts/hart/scripts/speedmatch/speed_table.py",
+   "label": "results.csv, manual_laps.csv"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/speed_table.py",
+   "to": "jmri/layouts/hart/data/speed_by_step_2026-11-08.csv",
+   "label": "--out"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

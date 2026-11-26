@@ -46,7 +46,7 @@ PIPELINE = Path(__file__).resolve().parent
 HART_ROOT = PIPELINE.parents[2]
 os.environ.setdefault("HART_CAR_CARDS_ROOT", str(HART_ROOT / "ops/car-cards"))
 
-from car_paths import DATA, FINAL_DIR, IMAGES_DIR, ROOT  # noqa: E402
+from car_paths import DATA, FINAL_DIR, IMAGES_DIR, ROOT, CardPipelineError  # noqa: E402
 from car_records import (  # noqa: E402
     CarMerge, CarRow, FieldDiff, FieldTarget, IntakeContext, MergeOutcome, QueueItem,
 )
@@ -162,7 +162,7 @@ def parse_sets(pairs: list[str]) -> dict[str, str]:
     values = {}
     for pair in pairs:
         if "=" not in pair:
-            raise SystemExit(f"--set needs field=value, got {pair!r}")
+            raise CardPipelineError(f"--set needs field=value, got {pair!r}")
         key, value = pair.split("=", 1)
         values[key.strip()] = value.strip()
     return values
@@ -194,7 +194,7 @@ def finish_row(row: CarRow, columns: list[str]) -> str:
     assign_freight_roster_id(row)
     roster_id = row.get("roster_id", "")
     if not roster_id:
-        raise SystemExit("A car needs reporting marks and a road number.")
+        raise CardPipelineError("A car needs reporting marks and a road number.")
     length = row.get("roster_length_ft", "")
     if length and not (row.get("roster_weight_oz") and row.get("roster_weight_tons")):
         row["roster_weight_oz"], row["roster_weight_tons"] = default_weights(length)
@@ -270,7 +270,7 @@ def process_photo(png: Path) -> dict[str, str]:
     parsed = proc._parse_markings(text)
     marks, number = proc._find_road_mark(text, proc.load_roster())
     if not final.finalize_one(stem):
-        raise SystemExit(f"Could not finalize {png.name}")
+        raise CardPipelineError(f"Could not finalize {png.name}")
     CARD_FILL_PRINT_DIR.mkdir(parents=True, exist_ok=True)
     sharpen_for_print(Image.open(FINAL_DIR / f"{stem}.png")).save(
         CARD_FILL_PRINT_DIR / f"{stem}.png"
@@ -460,7 +460,7 @@ def cmd_add(args: argparse.Namespace) -> int:
     ask(row, parse_sets(args.set), args.yes)
     roster_id = finish_row(row, columns)
     if find_car(rows, roster_id):
-        raise SystemExit(f"{roster_id} is already in the repository.")
+        raise CardPipelineError(f"{roster_id} is already in the repository.")
     rows.append(row)
     enqueue(queue, roster_id, "new car")
     write_rows(rows, columns)
@@ -519,7 +519,7 @@ def cmd_cards(args: argparse.Namespace) -> int:
     for item in pending:
         row = find_car(rows, item["roster_id"])
         if row is None:
-            raise SystemExit(f"Queued car {item['roster_id']} is not in the repository.")
+            raise CardPipelineError(f"Queued car {item['roster_id']} is not in the repository.")
         record, image = gen.row_to_card(row, roster, engines)
         cards.append((record, image, row))
         print(f"  {record['RoadName']} {record['RoadNumber']}: {'photo' if image else 'no photo'}")
@@ -527,7 +527,7 @@ def cmd_cards(args: argparse.Namespace) -> int:
     for item in loco_pending:
         loco = loco_rows.get(item["roster_id"])
         if loco is None:
-            raise SystemExit(f"Queued loco {item['roster_id']} is not in the locomotive repository.")
+            raise CardPipelineError(f"Queued loco {item['roster_id']} is not in the locomotive repository.")
         card, engine = locos.card_row(loco)
         engines = {**engines, (loco["road_name"], loco["road_number"]): engine}
         record, image = gen.row_to_card(card, roster, engines)
@@ -603,7 +603,7 @@ def merge_ops(
         if roster_id in have:
             continue
         if roster_id not in source:
-            raise SystemExit(f"{roster_id} is missing from {MERGED.name}")
+            raise CardPipelineError(f"{roster_id} is missing from {MERGED.name}")
         car = source[roster_id]
         cars_el.append(car)
         added.append(roster_id)
@@ -641,19 +641,16 @@ def publish_gate(args: argparse.Namespace) -> None:
         skip=args.skip_check,
     )
     if problems:
-        print("Publish stopped:", file=sys.stderr)
-        for line in problems:
-            print(f"  {line}", file=sys.stderr)
-        raise SystemExit(1)
+        raise CardPipelineError("\n".join(["Publish stopped:", *(f"  {line}" for line in problems)]))
 
 
 def sync_seed_copies(inputs: Path, masters: tuple[Path, ...]) -> None:
     """Copy the master car files into the STS seed inputs and nothing else."""
     if not inputs.is_dir():
-        raise SystemExit(NO_SEED_DIR.format(path=inputs))
+        raise CardPipelineError(NO_SEED_DIR.format(path=inputs))
     for source in masters:
         if not source.is_file():
-            raise SystemExit(f"Master file is missing: {source}")
+            raise CardPipelineError(f"Master file is missing: {source}")
     for source in masters:
         shutil.copy2(source, inputs / source.name)
     print(f"Copied the repository and roster to {inputs}")
@@ -677,7 +674,7 @@ def cmd_publish(args: argparse.Namespace) -> int:
     if args.only:
         unknown = [i for i in args.only if i not in {q["roster_id"] for q in queue}]
         if unknown:
-            raise SystemExit(f"Not in the queue: {' '.join(unknown)}")
+            raise CardPipelineError(f"Not in the queue: {' '.join(unknown)}")
 
     def chosen(item: dict) -> bool:
         """With --only, the rest of the queue is left exactly as it is."""
@@ -729,7 +726,7 @@ def cmd_service(args: argparse.Namespace) -> int:
     for roster_id in args.roster_ids:
         matches = [r for r in rows if row_id(r) == roster_id]
         if not matches:
-            raise SystemExit(f"{roster_id} is not in the repository.")
+            raise CardPipelineError(f"{roster_id} is not in the repository.")
         for row in matches:
             row["out_of_service"] = "yes" if args.state == "out" else ""
     write_rows(rows, columns)
@@ -1473,7 +1470,10 @@ def main() -> int:
     p.add_argument("--sts-url", metavar="URL", help="STS API base URL for this run")
     p.set_defaults(run=cmd_sync)
     args = parser.parse_args()
-    return args.run(args)
+    try:
+        return args.run(args)
+    except CardPipelineError as exc:
+        raise SystemExit(str(exc)) from exc
 
 
 if __name__ == "__main__":

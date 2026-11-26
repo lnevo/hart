@@ -56,7 +56,7 @@ class MergeCarTest(unittest.TestCase):
         self.assertEqual(queue[0]["reason"], "photo added")
 
     def test_row_without_marks_stops(self) -> None:
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(cars.CardPipelineError):
             cars.merge_car(new_row(reporting_marks=""), [], COLUMNS, [], dry_run=False)
 
 

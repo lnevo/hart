@@ -154,14 +154,14 @@ class SeedCopyTests(unittest.TestCase):
         self.assertEqual((self.inputs / "other.txt").read_text(), "keep")
 
     def test_sync_stops_clearly_without_the_submodule(self):
-        with self.assertRaises(SystemExit) as ctx:
+        with self.assertRaises(cars.CardPipelineError) as ctx:
             cars.sync_seed_copies(self.inputs / "nope", self.masters)
         self.assertIn("submodule", str(ctx.exception))
 
     def test_sync_stops_on_missing_master_before_copying(self):
         self.masters[1].unlink()
         (self.inputs / "a.csv").write_text("old")
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(cars.CardPipelineError):
             cars.sync_seed_copies(self.inputs, self.masters)
         self.assertEqual((self.inputs / "a.csv").read_text(), "old")
 

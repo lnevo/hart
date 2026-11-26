@@ -142,5 +142,26 @@ class PulledDir(unittest.TestCase):
         self.assertFalse(inside.parent.exists())          # refused before anything was made
 
 
+class UnrestoredProfile(unittest.TestCase):
+    def test_a_left_backup_stops_with_the_restore_command_under_set_u(self) -> None:
+        with tempfile.TemporaryDirectory() as home:
+            profile = Path(home) / "Library/Preferences/JMRI/My_JMRI_Railroad.jmri/profile/profile.xml"
+            profile.parent.mkdir(parents=True)
+            Path(f"{profile}.hart-run.bak").write_text("<profile/>")
+            done = subprocess.run(
+                ["bash", "-c", f'set -u; unset ROOT; source "{GUARD}"; refuse_unrestored_profile "start JMRI"'],
+                capture_output=True, text=True, env={**os.environ, "HOME": home}, timeout=30)
+        self.assertEqual(1, done.returncode, done.stderr)
+        self.assertNotIn("unbound variable", done.stderr)
+        self.assertIn("not going to start JMRI", done.stderr)
+        self.assertIn(f"python3 {ROOT}/tools/hosts/panelpro_profile.py restore --profile {profile}", done.stderr)
+
+    def test_no_backup_passes(self) -> None:
+        with tempfile.TemporaryDirectory() as home:
+            done = subprocess.run(["bash", "-c", f'set -u; source "{GUARD}"; refuse_unrestored_profile x'],
+                                  capture_output=True, text=True, env={**os.environ, "HOME": home}, timeout=30)
+        self.assertEqual(0, done.returncode, done.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -155,11 +155,11 @@ class Lengths(unittest.TestCase):
 
     def test_a_file_without_the_columns_stops(self):
         p = self.write(["user_name", "occupancy_sensor", "inches", "flag"], [["Track K-2", "x", "114.5", "inferred"]])
-        with self.assertRaisesRegex(ValueError, "no column id, plan_in"):
+        with self.assertRaisesRegex(analyze.LengthsError, "no column id, plan_in"):
             analyze.load_lengths(p)
         good = write_lengths(Path(tempfile.mkdtemp()) / "bl.csv", {"Track K-2": (122.9, 113.6)})
         analyze.measured_path(good).write_text("id,inches\nblock:37C-39C#1,114.5\n")
-        with self.assertRaisesRegex(ValueError, "no column measured_in"):
+        with self.assertRaisesRegex(analyze.LengthsError, "no column measured_in"):
             analyze.load_lengths(good)
 
     def test_the_repo_csv_loads(self):
@@ -220,7 +220,7 @@ class OnTheOldData(unittest.TestCase):
 
     def test_older_log_needs_loco_and_direction(self):
         old = [l for l in self.log_2738 if " RUN " not in l]
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(analyze.LogError, "the log has no RUN line"):
             analyze.parse_log(old)
         runs = analyze.parse_log(old, "CSX 2738", "forward")
         self.assertEqual(runs[0]["loco"], "CSX 2738")

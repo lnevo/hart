@@ -136,9 +136,10 @@ class NameCopiesTest(unittest.TestCase):
             check.run(self.tmp, [], devices_csv=self.tmp / "missing.csv")
 
     def test_a_folder_that_is_not_a_checkout_stops_instead_of_walking_it(self):
-        with self.assertRaises(SystemExit) as cm:
+        with self.assertRaises(check.NameCopiesError) as cm:
             check.tracked_files(self.tmp)
         self.assertIn("needs git", str(cm.exception))
+        self.assertIsInstance(cm.exception.__cause__, check.files.GitError)
 
     def test_allow_covers_only_its_names_and_reports_unused(self):
         f = self.write("tools/x.py", '"Mast 32L", "Mast 99Z"\n')
