@@ -1,12 +1,15 @@
 /* Extra East: the game's core: helpers, the railroad, the map, the 1949 run, the end screen and
    the start screen. The 1949 event pools and the modern, signals and yard runs are in run-1949.js,
    run-modern.js, run-signals.js and run-yard.js.
-   Plain script, like signals.js: its names are globals shared with run.js, run-1949.js, run-modern.js,
-   run-signals.js and run-yard.js, which run.html loads in that order. */
+   Each of run.js, run-1949.js, run-modern.js, run-signals.js and run-yard.js runs inside its own function; they
+   share window.ExtraEast, which run.js fills with its helpers and the run's state and each later file adds to.
+   run.html loads them in that order. */
+(function(){
 "use strict";
+const X=window.ExtraEast={}; // the names the five files share; the later files add theirs
 /* ---------- helpers ---------- */
-const {esc,store,MAX_MARKS}=window.GameEngine; // the engine both games share (js/game-engine.js)
-const fmt=m=>window.GameEngine.fmt(m,false); // the clock runs on past 24:00
+const {esc,store,MAX_MARKS,srcLabel,DECK_SECTIONS:SEC}=window.GameEngine; // shared with play (js/game-engine.js)
+const fmt=m=>window.GameEngine.fmt(m); // a 24-hour clock: a minute past midnight reads 0:01, as in play
 const $=id=>document.getElementById(id);
 /* Random streams: one sets up the run, one writes the train orders, one orders the answers. */
 let randSetup=Math.random,randOrders=Math.random,randChoices=Math.random;
@@ -14,16 +17,10 @@ const rnd=(a,b,r=randSetup)=>window.GameEngine.rnd(a,b,r);
 const pick=(a,r=randSetup)=>window.GameEngine.pick(a,r);
 const shuffle=(a,r=randSetup)=>window.GameEngine.shuffle(a,r);
 const reduced=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
-/* deck sections, for the links back to the study guide */
 /* the runs: labels for the status line and best list */
 const RUNS={tto:{short:"1949",train:"Extra 812 East"},twc:{short:"Modern",train:"KV 812 East"},
   yard:{short:"Yard job",train:"Ironton yard job"},
   sigs:{short:"Speed signals",train:"Extra 812 East"},sigr:{short:"Route signals",train:"KV 812 East"}};
-const SEC={def:"Definitions",sup:"Superiority & movement",to:"Train orders",sig:"Signals & whistles",sem:"Semaphores",
-  yl:"Yard limits",twc:"Track warrants",gcor:"GCOR crew & speed"};
-const SRC={SC:"1949 Standard Code",GC:"GCOR",TT:"TT&TO primer",YL:"Yard Limits guide",TW:"Track Warrants guide",
-  SG:"Signals guide",SM:"Semaphores guide"};
-const srcLabel=s=>s.replace(/^(SC|GC|TT|YL|TW|SG|SM)\b/,m=>SRC[m]||m);
 
 /* ---------- the railroad ---------- */
 const STATIONS=[
@@ -39,8 +36,8 @@ const STATIONS=[
 const LAST=STATIONS.length-1;
 const DOUBLE_TRACK_FROM=7; // double track from Hollis (index 7) to Ironton
 
-/** @type {ExamRun|null} */
-let state=null; // the run
+/* The run: one object for the page's life, which begin() empties and refills, so the other files can hold it. */
+const state=/** @type {ExamRun} */({});
 
 /**
  * One run: the engine's RunState (js/game-engine.js) plus the railroad's own fields. Each era's start function adds
@@ -62,13 +59,13 @@ function newState(era){
 const ENGINE=window.GameEngine.createEngine({
   state:()=>state,render:()=>{renderStatus();renderSheet()},hereName:()=>hereName(),addTime:m=>addTime(m),
   costMinutes:c=>c.min,choiceRandom:()=>randChoices,srcHtml:o=>esc(srcLabel(o.src)),finish:(t,f)=>finish(t,f),
-    wrapClock:false,lockGo:true,
+    lockGo:true,
   words:{endVerdict:"Run over.",endText:"The run ended here.",
     marksText:"Five marks on the record. You are pulled from service.",
     smallTag:"<small style='font-size:14px;font-family:var(--mono)'>"}});
 const {push,front,next,log,scene,ask,info}=ENGINE;
 function addTime(m){state.clock+=m}
-function hereName(){if(state.era==="yard")return YLOC[state.yloc].n;
+function hereName(){if(state.era==="yard")return X.YLOC[state.yloc].n;
   return state.moving?state.moving:STATIONS[state.pos].n}
 
 /* ---------- map ---------- */
@@ -76,7 +73,7 @@ let MW=600; // map width in SVG units; narrower on phones so the labels stay rea
 const MX=mp=>24+(mp-100)/46*(MW-48);
 let trainMp=100;
 function renderMap(){
-  if(state.era==="yard"){renderYardMap();return}
+  if(state.era==="yard"){X.renderYardMap();return}
   const box=$("xwMap");MW=box.clientWidth&&box.clientWidth<560?340:600;
   const W=MW,y=52,trainX=MX(trainMp);
   let s=`<svg viewBox="0 0 ${W} 94" role="img" aria-label="Line map, Ashby to Ironton, train at ${esc(hereName())}">`;
@@ -128,7 +125,7 @@ function animateTo(idx,done){
 
 /* ---------- status ---------- */
 function renderStatus(){
-  const at=state.era==="yard"?(/Ironton/.test(YLOC[state.yloc].n)?"":"Ironton, ")+YLOC[state.yloc].n:state.moving?("between "+state.moving):STATIONS[state.pos].n+(state.inSiding&&state.pos>0&&state.pos<LAST?" (siding)":"");
+  const at=state.era==="yard"?(/Ironton/.test(X.YLOC[state.yloc].n)?"":"Ironton, ")+X.YLOC[state.yloc].n:state.moving?("between "+state.moving):STATIONS[state.pos].n+(state.inSiding&&state.pos>0&&state.pos<LAST?" (siding)":"");
   let h=`<span><span class="lbl">Time</span><b>${fmt(state.clock)}</b></span><span><span `+
       `class="lbl">At</span>${esc(at)}</span><span><span `+
       `class="lbl">${state.era==="yard"?"Job":"Train"}</span>${RUNS[state.era].train}</span><span `+
@@ -562,8 +559,8 @@ function semSvg(a){
   return `<svg viewBox="0 0 120 120" width="110" height="110" aria-label="Semaphore, blade at ${a} degrees" role="img" style="align-self:flex-start"><rect x="57" y="20" width="6" height="96" fill="#1d2733"/><circle cx="60" cy="16" r="5" fill="#1d2733"/><g transform="rotate(${-a} 60 40)"><rect x="60" y="34" width="52" height="11" fill="#a3302b" stroke="#1d2733" stroke-width="1.5"/><rect x="100" y="34" width="4" height="11" fill="#fff"/></g><circle cx="52" cy="40" r="6" fill="#f3ecbf" stroke="#1d2733" stroke-width="1.5"/></svg>`;
 }
 
-function drawRoad(){return drawFrom("road",state.era==="tto"?ROAD_TTO:ROAD_TWC,.7)}
-function drawStation(){return drawFrom("stn",state.era==="tto"?STN_TTO:[],.6)}
+function drawRoad(){return drawFrom("road",state.era==="tto"?X.ROAD_TTO:X.ROAD_TWC,.7)}
+function drawStation(){return drawFrom("stn",state.era==="tto"?X.STN_TTO:[],.6)}
 function drawFrom(key,pool,p){
   if(!pool.length)return null;
   // Each kind of draw has its own stream, so the n-th draw does not depend on how many draws of other kinds came first.
@@ -681,13 +678,14 @@ function renderSheet(){
 /* ---------- start ---------- */
 function begin(era){
   randSetup=randOrders=randChoices=Math.random;
-  state=newState(era);ENGINE.reset();
+  for(const k of Object.keys(state))delete state[k];
+  Object.assign(state,newState(era));ENGINE.reset();
   $("xwLog").innerHTML="";trainMp=100;
   $("xwStart").hidden=true;$("xwGame").hidden=false;
   renderStatus();renderSheet();
   window.scrollTo({top:$("xw").getBoundingClientRect().top+scrollY-80,behavior:reduced?"auto":"smooth"});
-  if(era==="tto")startTTO();else if(era==="yard")startYARD();
-    else if(era==="sigs"||era==="sigr")startSIG(era==="sigs"?"speed":"route");else startTWC();
+  if(era==="tto")startTTO();else if(era==="yard")X.startYARD();
+    else if(era==="sigs"||era==="sigr")X.startSIG(era==="sigs"?"speed":"route");else X.startTWC();
 }
 function showStart(){
   $("xwStart").hidden=false;$("xwGame").hidden=true;
@@ -786,3 +784,6 @@ $("sigSys").checked=store.get("xw_sigsys","sigs")==="sigr";
 $("sigSys").onchange=()=>{store.set("xw_sigsys",sigEra());showStart()};
 document.querySelectorAll("[data-era]").forEach(b=>b.onclick=()=>begin(b.dataset.era==="sig"?sigEra():b.dataset.era));
 showStart();
+Object.assign(X,{state,$,fmt,esc,rnd,pick,shuffle,randSetup:()=>randSetup(),reduced,STATIONS,LAST,addTime,renderMap,
+  animateTo,renderStatus,renderSheet,runTime,drawRoad,drawStation,semSvg,finish,push,front,next,log,scene,ask,info});
+})();

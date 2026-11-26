@@ -1,7 +1,9 @@
 /* Extra East: the 1949 run's event pools, drawn on the road and at stations by run.js (drawRoad, drawStation).
-   Plain script, like signals.js: its names are globals shared with run.js, run-1949.js, run-modern.js,
-   run-signals.js and run-yard.js, which run.html loads in that order. */
+   Runs inside its own function; the names it shares with run.js are on window.ExtraEast (see run.js). */
+(function(){
 "use strict";
+const X=window.ExtraEast;
+const {reduced,state,semSvg,drawRoad,drawStation,next,ask}=X;
 /* ---------- events on the road and at stations (1949) ---------- */
 const ROAD_TTO=[
   ()=>ask({sec:"sig",src:"SC · Rule 14(l)",title:"Crossing at grade",
@@ -403,3 +405,5 @@ const STN_TTO=[
       "interconnected that their movements must succeed each other in proper sequence. It may be worked by "+
       "hand or automatically."})
 ];
+Object.assign(X,{ROAD_TTO,STN_TTO});
+})();

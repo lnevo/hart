@@ -1,7 +1,10 @@
 /* Extra East: the signals runs, speed semaphores or route signals, on the data in signals.js.
-   Plain script, like signals.js: its names are globals shared with run.js, run-1949.js, run-modern.js,
-   run-signals.js and run-yard.js, which run.html loads in that order. */
+   Runs inside its own function; the names it shares with run.js are on window.ExtraEast (see run.js). */
+(function(){
 "use strict";
+const X=window.ExtraEast;
+const {fmt,$,randSetup,rnd,pick,shuffle,STATIONS,LAST,state,addTime,renderMap,animateTo,runTime,finish,
+  push,front,next,log,ask,info}=X;
 /* ---------- the signals runs: speed semaphores (Standard Code 281-292) or route signals (Signals guide) ---------- */
 /* Signal data and drawings come from signals.js, shared with the study deck. A question drawn at a signal carries gen:
    the answer key lists those from the tables in signals.js instead of reading each call. */
@@ -249,3 +252,5 @@ function startSIG(sys){
     finish((sp?"Extra 812 East":"KV 812 East")+" is in at Ironton at "+fmt(state.clock)+".",false)});
   next();
 }
+Object.assign(X,{startSIG});
+})();

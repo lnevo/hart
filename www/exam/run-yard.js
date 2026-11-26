@@ -1,7 +1,9 @@
 /* Extra East: the Ironton yard job under GCOR: the yard sketch and the job's scenes.
-   Plain script, like signals.js: its names are globals shared with run.js, run-1949.js, run-modern.js,
-   run-signals.js and run-yard.js, which run.html loads in that order. */
+   Runs inside its own function; the names it shares with run.js are on window.ExtraEast (see run.js). */
+(function(){
 "use strict";
+const X=window.ExtraEast;
+const {fmt,$,randSetup,rnd,pick,state,addTime,renderStatus,finish,renderSheet,esc,push,next,log,ask,info}=X;
 /* ---------- the Ironton yard job (GCOR) ---------- */
 /* Places on the yard sketch: x,y in the sketch's units, n = name shown in the status line. */
 const YLOC={
@@ -179,3 +181,5 @@ function startYARD(){
   );
   next();
 }
+Object.assign(X,{YLOC,renderYardMap,startYARD});
+})();

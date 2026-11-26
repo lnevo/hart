@@ -17,12 +17,8 @@ const reduced=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").
 /* Sources. GC/YL point into the C&E study deck; PV is Mark Connolly's P&OV blog, linked post by post. */
 const DECK="../exam/index.html";
 const POV="../library/pittsburgh-ohio-valley-railway.html";
-const SEC={gcor:"GCOR crew & speed",sig:"Signals & whistles",def:"Definitions",yl:"Yard limits",pov:"The P&OV jobs",
-  sup:"Superiority & movement",to:"Train orders",sem:"Semaphores",twc:"Track warrants"};
-const SRC={GC:"GCOR",YL:"Yard Limits guide",PV:"Mark Connolly's P&OV blog,",SC:"1949 Standard Code",TT:"TT&TO primer",
-  SG:"Signals guide",SM:"Semaphores guide"};
-const srcLabel=s=>s.replace(/^(?:(GC|YL|PV)\b( ·)?|(SC|TT|SG|SM)\b)/,(m,k,_,j)=>SRC[k||j]);
-  // GC, YL and PV drop their dot; the Standard Code and guides keep it
+const SEC=window.GameEngine.SECTIONS; // the section and source names both games share (js/game-engine.js)
+const srcLabel=s=>window.GameEngine.srcLabel(s,window.GameEngine.PLAY_DOTLESS); // "GCOR 6.3", no dot
 const studyHref=sec=>sec==="pov"?POV:DECK+"#learn-"+sec;
 const TUMBLR="https://www.tumblr.com/pittsburghohiovalleyrailroad/";
 
@@ -190,7 +186,7 @@ const srcHtml=o=>{const t=esc(srcLabel(o.src));
   return o.url?`<a href="${o.url.startsWith("http")?o.url:TUMBLR+o.url}" rel="noopener">${t}</a>`:t};
 const ENGINE=window.GameEngine.createEngine({
   state:()=>state,render:()=>{renderStatus();renderSheet()},hereName:()=>hereName(),addTime:m=>addTime(m),
-  costMinutes:c=>Math.round(c.min*state.pace),srcHtml:o=>srcHtml(o),finish:(t,f)=>finish(t,f),wrapClock:true,
+  costMinutes:c=>Math.round(c.min*state.pace),srcHtml:o=>srcHtml(o),finish:(t,f)=>finish(t,f),
     lockGo:false,
   choiceRandom:o=>state.daily?seeded(state.daily+"|"+o.title+"|"+o.right):randChoices,
   afterScene:el=>sceneIntoView(el),afterResult:(res,go)=>resultIntoView(res,go),
@@ -334,9 +330,7 @@ function reliefToday(){
 }
 /* The deck's eight sections in its order; each run lists the ones it asks (covers, checked against its questions by
    test_play_answers.py). TAG is the short name on a run's row. */
-const SECTIONS=[["def","Definitions"],["sup","Superiority & movement"],["to","Train orders"],
-  ["sig","Signals & whistles"],
-  ["sem","Semaphores"],["yl","Yard limits"],["twc","Track warrants"],["gcor","GCOR crew & speed"]];
+const SECTIONS=Object.entries(window.GameEngine.DECK_SECTIONS);
 const TAG={def:"Definitions",sup:"Superiority",to:"Train orders",sig:"Signals",sem:"Semaphores",yl:"Yard limits",
   twc:"Warrants",gcor:"GCOR"};
 /* How long a run is, for its card: the typical number of questions over many draws (play_through_test.js prints the means). */

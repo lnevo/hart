@@ -191,6 +191,7 @@ from share_card_recipes.page_figures import (  # noqa: E402
     wiring_node,
 )
 from share_card_recipes.panel_image import jmri_additions, roster  # noqa: E402
+from share_card_recipes import CardError  # noqa: E402
 
 
 CARDS = {
@@ -242,11 +243,19 @@ def main() -> int:
     if unknown := [n for n in args.names if n not in CARDS]:
         parser.error(f"unknown card(s): {', '.join(unknown)}; see --list")
     args.out.mkdir(parents=True, exist_ok=True)
-    with serving():
-        for name in args.names or CARDS:
-            CARDS[name]().save(args.out / f"{name}.jpg", "JPEG", quality=88, optimize=True, progressive=True)
-            print(f"Wrote {args.out / (name + '.jpg')}")
+    try:
+        _make(args.names or list(CARDS), args.out)
+    except CardError as err:
+        print(f"make_share_cards: {err}", file=sys.stderr)
+        return 1
     return 0
+
+
+def _make(names: list[str], out: Path) -> None:
+    with serving():
+        for name in names:
+            CARDS[name]().save(out / f"{name}.jpg", "JPEG", quality=88, optimize=True, progressive=True)
+            print(f"Wrote {out / (name + '.jpg')}")
 
 
 if __name__ == "__main__":

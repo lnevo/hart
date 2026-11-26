@@ -6,6 +6,8 @@
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
+/* The section and source names, and the source labels, the game shows (js/game-engine.js). */
+const ENGINE = require(path.join(__dirname, "..", "js", "game-engine.js"));
 
 const EXAM = path.join(__dirname, "..", "exam");
 /* The game's scripts in the order run.html loads them; the key reads them as one text. */
@@ -99,7 +101,7 @@ const FRIENDLY = [
   [/\[\w+(?:\.[\w\[\]]+)*(?:\(…\))?\]/g, m => (/[.(]/.test(m) ? "[…]" : m)],
 ];
 const friendly = s => FRIENDLY.reduce((t, [re, to]) => t.replace(re, to), String(s));
-const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const { esc, srcLabel } = ENGINE;
 const text = v => (v == null ? "" : friendly(v));
 const ENT = { "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#39;": "'", "&nbsp;": " " };
 const plain = s => s.replace(/<[^>]+>/g, " ").replace(/&(?:amp|lt|gt|quot|#39|nbsp);/g, e => ENT[e]).replace(/\s+/g, " ");
@@ -116,8 +118,6 @@ function poolRanges(src) {
   }
   return out;
 }
-
-const readSections = src => literal(src, "const SEC=");
 
 /* Fields the key shows. Others (ok, okText, note, after, miss) only matter during a run. */
 const SHOWN = ["sec", "src", "title", "body", "right", "wrong", "why", "extra", "ref"];
@@ -136,11 +136,6 @@ function fieldCode(code, key) {
   return hit ? hit.replace(/^\s*\w+\s*:/, "") : "";
 }
 
-function readSources(src) {
-  const SRC = literal(src, "const SRC=");
-  const re = new RegExp(`^(${Object.keys(SRC).join("|")})\\b`);
-  return s => s.replace(re, k => SRC[k]); // the same label the game shows (srcLabel)
-}
 
 /* The modern run's code starts at its warrant tables in run-modern.js. Everything after it in readRun()'s text is
    modern, but for the runs in FUNC_RUNS, which are checked first; any other question before TW_SEL is 1949. */
@@ -165,7 +160,6 @@ function extract(src) {
   const modern = modernRange(src);
   const runs = funcRanges(src);
   const scope = scopeWith(figures(src));
-  const srcLabel = readSources(src);
   const qs = [];
   let generated = 0;
   const re = /\bask\(\{/g;
@@ -475,7 +469,7 @@ function main() {
   const calls = (src.match(/\bask\(\{/g) || []).length;
   if (qs.length + qs.generated !== calls) throw new Error(`read ${qs.length} questions and ${qs.generated} signal templates but run.js has ${calls} ask({ calls`);
   const GEN = qs.generated ? generatedHtml(loadSignals()) : { n: 0, html: "" };
-  const html = render(qs, readSections(src), references(src), GEN);
+  const html = render(qs, ENGINE.DECK_SECTIONS, references(src), GEN);
   if (process.argv.includes("--check")) {
     const cur = fs.existsSync(OUT) ? fs.readFileSync(OUT, "utf8") : "";
     if (cur !== html) {
@@ -492,4 +486,4 @@ function main() {
 if (require.main === module) {
   try { main(); } catch (e) { console.error(`build_exam_answers: ${e.message}`); process.exit(1); }
 }
-module.exports = { readRun, extract, render, readSections, references, warrantHtml, loadSignals, generatedHtml };
+module.exports = { readRun, extract, render, references, warrantHtml, loadSignals, generatedHtml };

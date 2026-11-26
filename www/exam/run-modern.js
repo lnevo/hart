@@ -1,7 +1,10 @@
 /* Extra East: the modern run under track warrants: the warrant form, the run and its road events.
-   Plain script, like signals.js: its names are globals shared with run.js, run-1949.js, run-modern.js,
-   run-signals.js and run-yard.js, which run.html loads in that order. */
+   Runs inside its own function; the names it shares with run.js are on window.ExtraEast (see run.js). */
+(function(){
 "use strict";
+const X=window.ExtraEast;
+const {fmt,$,randSetup,rnd,reduced,STATIONS,LAST,state,addTime,renderMap,animateTo,renderStatus,runTime,
+  drawRoad,finish,esc,push,front,next,log,scene,ask,info}=X;
 /* ---------- modern: track warrant control ---------- */
 const TW_SEL={s:STATIONS.map(x=>x.n),t:["Main","Main 1","Main 2"],w:["101","102","103","104"],
   train:["2211 West","640 East","844 East"],time:["6:15","6:20","6:25","7:00","8:00","9:00"],mph:["10","20","30","40"],
@@ -567,3 +570,5 @@ const ROAD_TWC=[
     why:"GCOR: a train is one or more engines coupled, with or without cars, displaying a marker, and "+
       "authorized to operate on a main track."})
 ];
+Object.assign(X,{startTWC,ROAD_TWC});
+})();

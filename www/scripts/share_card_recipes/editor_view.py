@@ -9,6 +9,7 @@ import re
 
 import make_share_cards as kit
 from make_share_cards import REPO
+from share_card_recipes import CardError
 
 
 # ---- Editor view of the bridge code -----------------------------------------------------------
@@ -30,10 +31,37 @@ def _highlight(line: str) -> str:
     return "".join(out) + html.escape(line[i:])
 
 
-def ai_electronics(first: int = 136, last: int = 160):
+BRIDGE_SOURCE = "external/lcos-bridge/lcos_mqtt_bridge.cpp"
+SHOWN_FUNCTION = "appearanceToLcosAspect"  # the signal colour to aspect function
+
+
+def function_lines(src: list[str], name: str) -> tuple[int, int]:
+    """The 1-based first and last line of C function `name` in `src`: from the doc comment just above its definition
+    to the brace that closes it at the start of a line. Raises CardError when the function is not there once."""
+    heads = [i for i, line in enumerate(src) if re.match(rf"\s*(?:static\s+)?[\w\s\*]+\b{name}\s*\(", line)
+             and not line.rstrip().endswith(";")]
+    if len(heads) != 1:
+        raise CardError(f"ai-electronics: {BRIDGE_SOURCE} defines {name}() {len(heads)} times, not once; "
+                        "name another function in SHOWN_FUNCTION")
+    first = heads[0]
+    if first > 0 and src[first - 1].strip() == "*/":
+        while first > 0 and not src[first].lstrip().startswith("/**"):
+            first -= 1
+    end = next((i for i in range(heads[0], len(src)) if src[i].startswith("}")), None)
+    if end is None:
+        raise CardError(f"ai-electronics: {name}() in {BRIDGE_SOURCE} has no closing brace at the start of a line")
+    return first + 1, end + 1
+
+
+def ai_electronics():
     """ai-electronics: lines of external/lcos-bridge/lcos_mqtt_bridge.cpp (the signal colour to
     aspect function) drawn as an editor view. Needs the lcos-bridge submodule."""
-    src = (REPO / "external/lcos-bridge/lcos_mqtt_bridge.cpp").read_text(encoding="utf-8").splitlines()
+    path = REPO / BRIDGE_SOURCE
+    if not path.is_file():
+        raise CardError(f"ai-electronics: {BRIDGE_SOURCE} is missing; run git submodule update --init external/lcos-bridge")
+    src = path.read_text(encoding="utf-8").splitlines()
+    first, last = function_lines(src, SHOWN_FUNCTION)
+    at = next(n for n in range(first, last + 1) if SHOWN_FUNCTION in src[n - 1])  # the cursor, on the definition
     rows = "".join(f"<div class=l><span class=g>{n}</span>{_highlight(src[n - 1]) or ' '}</div>" for n in range(first, last + 1))
     files = ["lcos-bridge.ino", "lcos_mqtt_bridge.cpp", "lcos_mqtt_bridge.h", "mqtt_serial.cpp", "mqtt_serial.h",
              "gateways.h", "serial_to_mqtt.py", "README.md"]
@@ -54,5 +82,5 @@ def ai_electronics(first: int = 136, last: int = 160):
     )
     body = (f"<div class=side><h4>EXPLORER</h4><div class=rp>LCOS-BRIDGE</div>{side}</div>"
             f"<div class=tabs><span class=tab>lcos_mqtt_bridge.cpp</span></div><div class=code>{rows}</div>"
-            f"<div class=st>C++ &nbsp;·&nbsp; UTF-8 &nbsp;·&nbsp; Ln {first + 4}, Col 1</div>")
+            f"<div class=st>C++ &nbsp;·&nbsp; UTF-8 &nbsp;·&nbsp; Ln {at}, Col 1</div>")
     return kit.card(kit.draw("ide", body, style, ()))

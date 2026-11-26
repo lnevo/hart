@@ -23,6 +23,7 @@ import re
 import sys
 from collections.abc import Iterable
 from pathlib import Path
+from typing import TypedDict, cast
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
@@ -40,7 +41,7 @@ EXAMPLE_BLOCK, EXAMPLE_BLOCK_TURNOUT = "OS Switch 13", "Switch 13"
 SWITCHES = paths.LAYOUT_DATA / "switches.csv"
 EXAMPLE_SML = ("Mast 40LA", "Mast 24L")
 EXAMPLE_TURNOUT = "Switch 35"
-EXAMPLE_DETECTORS = ()   # none is shared since the yard throats went (2026-11-20)
+EXAMPLE_DETECTORS: tuple[str, ...] = ()   # none is shared since the yard throats went (2026-11-20)
 
 # Top-level sections in groups. Consecutive sections of one group share a row on the page.
 # A section not listed here stops the build: describe it before it reaches the page.
@@ -92,6 +93,64 @@ class PageError(SystemExit):
     """The page and the file disagree in a way only a person can fix."""
 
 
+class Row(TypedDict):
+    """One row of the sections table: a group of top-level sections, a panel, or a parked section."""
+    group: str
+    label: str
+    note: str | None  # None: the Logix row, whose note is the count
+    share: float
+    parked: bool
+
+
+class Block(TypedDict):
+    """The example block, its sensor, and the legs its switch leads to."""
+    name: str
+    sensor: str
+    turnout: str
+    closed: str
+    thrown: str
+
+
+class Clear(TypedDict):
+    """The LogixNG that sets the main and upper block sensors clear."""
+    name: str
+    count: int
+    turnouts: int
+    thrown: str
+
+
+class LogixNG(TypedDict):
+    """The Initialization Table's LogixNG: (ConditionalNG, action kind, what it does, script name or "")."""
+    name: str
+    rows: list[tuple[str, str, str, str]]
+
+
+class Facts(TypedDict):
+    """Everything the page says about the file (facts()); regions() turns it into the page's text."""
+    version: str
+    bytes: int
+    lines: int
+    top: int
+    rows: list[Row]
+    share: dict[str, float]
+    parked: list[str]
+    panels: int
+    largest: tuple[str, float]
+    layoutBlocks: int
+    detectors: int
+    paths: int
+    sharedCount: int
+    sharedExamples: list[tuple[str, list[str]]]
+    sensor: tuple[str, str, str]  # system name, user name, comment
+    block: Block
+    sml: dict[str, str]  # src, dst and the destination's flags, by their tables.xml names
+    turnout: tuple[str, str, str]  # user name, sensor1, sensor2
+    ctcColumns: int
+    logix: int
+    logixng: LogixNG
+    clear: Clear
+
+
 def word(n: int) -> str:
     return WORDS[n] if 0 <= n < len(WORDS) else f"{n:,}"
 
@@ -129,7 +188,7 @@ def _one(items: list[ET.Element], what: str) -> ET.Element:
     return items[0]
 
 
-def facts(raw: bytes, root: ET.Element) -> dict:
+def facts(raw: bytes, root: ET.Element) -> Facts:
     """Everything the page says about the file, worked out from it."""
     f: dict = {"version": _version(root), "bytes": len(raw), "lines": raw.count(b"\n") + (0 if raw.endswith(b"\n") else 1)}
     f.update(_layout(raw, root))
@@ -141,7 +200,10 @@ def facts(raw: bytes, root: ET.Element) -> dict:
     f["ctcColumns"] = len(ctc.findall("ctcCodeButtonData")) if ctc is not None else 0
     f["logix"] = len(tables.section(root, "logixs", "logix"))
     f.update(_logixng(root))
-    return f
+    missing = sorted(set(Facts.__annotations__) - set(f))
+    if missing:
+        raise PageError(f"{Path(__file__).name}: facts() did not work out {', '.join(missing)}")
+    return cast(Facts, f)  # the parts fill it key by key; every key is checked just above
 
 
 def _version(root: ET.Element) -> str:
@@ -152,8 +214,9 @@ def _version(root: ET.Element) -> str:
     ver = f"{jv.findtext('major')}.{jv.findtext('minor')}"
     if (jv.findtext("test") or "0") != "0":
         ver += f".{jv.findtext('test')}"
-    if (jv.findtext("modifier") or "").strip():
-        ver += jv.findtext("modifier").strip()
+    modifier = (jv.findtext("modifier") or "").strip()
+    if modifier:
+        ver += modifier
     return ver
 
 
@@ -165,23 +228,23 @@ def _layout(raw: bytes, root: ET.Element) -> dict:
         raise PageError(f"tables.xml: found {len(secs)} sections by text but {len(list(root))} by XML")
     f["top"] = len(secs)
     total = sum(n for _, n, _ in secs)
-    share = collections.Counter()
-    rows: list[dict] = []
+    share: dict[str, float] = {}
+    rows: list[Row] = []
     for tag, n, name in secs:
         if tag not in GROUPS:
             raise PageError(f"tables.xml has a top-level <{tag}> the page does not describe; add it to GROUPS in {Path(__file__).name}")
         group, label, note = GROUPS[tag]
-        share[group] += n / total
+        share[group] = share.get(group, 0.0) + n / total
         if group == "panels":
             if name not in PANELS:
                 raise PageError(f"tables.xml has a panel {name!r} the page does not describe; add it to PANELS in {Path(__file__).name}")
             label, note = name, PANELS[name]
+        if label is None:
+            raise PageError(f"GROUPS[{tag!r}] has no label and is not a panel")
         if rows and rows[-1]["group"] == group and rows[-1]["label"] == label:
             rows[-1]["share"] += n / total
             continue
-        rows.append({"group": group, "label": label, "note": note, "share": n / total})
-    for row in rows:
-        row["parked"] = False
+        rows.append({"group": group, "label": label, "note": note, "share": n / total, "parked": False})
     _add_parked_rows(rows, parked.PARKED, {tag for tag, _n, _name in secs}, {name for _t, _n, name in secs if name})
     f["rows"], f["share"] = rows, dict(share)
     f["parked"] = sorted(parked.PARKED)
@@ -251,7 +314,7 @@ def _examples(root: ET.Element) -> dict:
              f"Signal Mast Logic destination {src!r} to {dst!r}")
     keys = ("enabled", "useLayoutEditor", "useLayoutEditorTurnouts", "useLayoutEditorBlocks", "associatedSection")
     f["sml"] = {"src": src, "dst": dst, **{k: (d.findtext(k) or "").strip() for k in keys}}
-    section_names = {n for e in tables.section(root, "sections", "section")
+    section_names: set[str | None] | None = {n for e in tables.section(root, "sections", "section")
                      for n in (e.findtext("systemName"), e.findtext("userName"))}
     if not f["sml"]["associatedSection"] and "dispatcher" in parked.PARKED:
         # the Dispatcher's sections are parked (hartlib.parked): the pair's section is named in the parked file
@@ -324,19 +387,19 @@ def _logixng(root: ET.Element) -> dict:
     return f
 
 
-def _add_parked_rows(rows: list[dict], features: Iterable[str], tags: set[str], panel_names: set[str]) -> None:
+def _add_parked_rows(rows: list[Row], features: Iterable[str], tags: set[str], panel_names: set[str]) -> None:
     """Put a row for each parked section and panel the file no longer holds in its place among `rows` (GROUPS and
     PANELS order), marked Parked, with no share of the file."""
     order = list(GROUPS)
     panel_order = list(PANELS)
 
-    def key(r: dict) -> tuple[int, int]:
+    def key(r: Row) -> tuple[int, int]:
         if r["group"] == "panels":
             return order.index("paneleditor"), panel_order.index(r["label"]) if r["label"] in panel_order else 99
         tag = next((t for t, g in GROUPS.items() if g[1] == r["label"] and g[0] == r["group"]), None)
         return (order.index(tag) if tag else 99), 0
 
-    added = set()
+    added: set[str] = set()
     for feature in sorted(features):
         # its whole sections, and the Logix sections it empties (both Logix are parked)
         whole = parked.WHOLE.get(feature, ()) + (("logixs", "conditionals") if feature in parked.LOGIX else ())
@@ -346,8 +409,10 @@ def _add_parked_rows(rows: list[dict], features: Iterable[str], tags: set[str], 
         if feature in parked.PANELS and parked.PANELS[feature][1] not in panel_names:
             title = parked.PANELS[feature][1]
             new.append((title, ("panels", title, PANELS.get(title, ""))))
-        for _tag, (group, label, note) in new:
-            row = {"group": group, "label": label, "note": f"{note} Parked.", "share": 0.0, "parked": True}
+        for tag, (group, label, note) in new:
+            if label is None:
+                raise PageError(f"GROUPS[{tag!r}] has no label for its parked row")
+            row: Row = {"group": group, "label": label, "note": f"{note} Parked.", "share": 0.0, "parked": True}
             k = key(row)
             at = next((i for i, r in enumerate(rows) if key(r) > k), len(rows))
             rows.insert(at, row)
@@ -382,12 +447,12 @@ def bar(obj: float, pan: float) -> str:
     return "\n          ".join(rects + texts)
 
 
-def regions(f: dict) -> dict[str, str]:
-    """Each region's HTML."""
-    e = lambda s: html.escape(str(s), quote=False)  # noqa: E731
-    obj, pan = f["share"].get("objects", 0), f["share"].get("panels", 0)
-    bar_svg = bar(obj, pan)
+def _e(s: object) -> str:
+    return html.escape(str(s), quote=False)
 
+
+def _section_rows(f: Facts) -> str:
+    """The sections table's rows, a heading row before each group."""
     body, group = [], None
     for r in f["rows"]:
         if r["group"] != group:
@@ -395,34 +460,49 @@ def regions(f: dict) -> dict[str, str]:
             body.append(f'<tr><td colspan="3"><strong>{GROUP_HEADS[group]}</strong></td></tr>')
         note = r["note"] if r["note"] is not None else f"{count(f['logix'], 'older-style logic item', 'older-style logic items').capitalize()}."
         share = "parked" if r.get("parked") else pct(r["share"])
-        body.append(f'<tr><td>{e(r["label"])}</td><td>{note}</td><td class="num">{share}</td></tr>')
-    sections = "\n            ".join(body)
+        body.append(f'<tr><td>{_e(r["label"])}</td><td>{note}</td><td class="num">{share}</td></tr>')
+    return "\n            ".join(body)
 
-    ex = [f'"{e(d)}" serves {e(and_list(u))}' for d, u in f["sharedExamples"]]
+
+def _shared_sentence(f: Facts) -> str:
+    """How many detectors several layout blocks share, with the named examples."""
     n = f["sharedCount"]
     if n == 0:
-        shared = "No detector is shared."
-    else:
-        shared = f"{count(n, 'detector', 'detectors').capitalize()} {'is' if n == 1 else 'are'} shared." + (f" {', and '.join(ex)}." if ex else "")
+        return "No detector is shared."
+    ex = [f'"{_e(d)}" serves {_e(and_list(u))}' for d, u in f["sharedExamples"]]
+    return f"{count(n, 'detector', 'detectors').capitalize()} {'is' if n == 1 else 'are'} shared." + (f" {', and '.join(ex)}." if ex else "")
 
-    blk = f["block"]
-    bx = ["<block>", f"  <userName>{blk['name']}</userName>", f"  <occupancysensor>{blk['sensor']}</occupancysensor>",
-          "</block>"]
 
-    s = f["sml"]
+def _block_xml(blk: Block) -> str:
+    return _xml(["<block>", f"  <userName>{blk['name']}</userName>", f"  <occupancysensor>{blk['sensor']}</occupancysensor>",
+                 "</block>"])
+
+
+def _sml_xml(s: dict[str, str]) -> str:
     sx = [f'<signalmastlogic source="{s["src"]}">', f'  <destinationMast destination="{s["dst"]}">']
     sx += [f"    <{k}>{s[k]}</{k}>" for k in ("enabled", "useLayoutEditor", "useLayoutEditorTurnouts",
                                            "useLayoutEditorBlocks", "associatedSection")]
     sx += ["  </destinationMast>", "</signalmastlogic>"]
+    return _xml(sx)
 
-    name, s1, s2 = f["turnout"]
-    tx = ['<turnout feedback="TWOSENSOR"', f'         sensor1="{s1}"', f'         sensor2="{s2}">',
-          f"  <userName>{name}</userName>", "</turnout>"]
 
-    ng_rows = "\n            ".join(
-        f"<tr><td>{e(n)}</td><td>{e(kind)}: {e(what)}{f'<code>{e(code)}</code>' if code else ''}</td></tr>"
-        for n, kind, what, code in f["logixng"]["rows"])
+def _turnout_xml(turnout: tuple[str, str, str]) -> str:
+    name, s1, s2 = turnout
+    return _xml(['<turnout feedback="TWOSENSOR"', f'         sensor1="{s1}"', f'         sensor2="{s2}">',
+                 f"  <userName>{name}</userName>", "</turnout>"])
 
+
+def _logixng_rows(ng: LogixNG) -> str:
+    return "\n            ".join(
+        f"<tr><td>{_e(n)}</td><td>{_e(kind)}: {_e(what)}{f'<code>{_e(code)}</code>' if code else ''}</td></tr>"
+        for n, kind, what, code in ng["rows"])
+
+
+def regions(f: Facts) -> dict[str, str]:
+    """Each region's HTML."""
+    e = _e
+    obj, pan = f["share"].get("objects", 0), f["share"].get("panels", 0)
+    blk, s = f["block"], f["sml"]
     sys_name, user, comment = f["sensor"]
     return {
         "version": e(f["version"]),
@@ -435,28 +515,28 @@ def regions(f: dict) -> dict[str, str]:
         "objects": f"{max(1, round(obj * 100))}%",  # prose says "about N%", so never "under 1%"
         "panels": f"{max(1, round(pan * 100))}%",
         "panel-count": count(f["panels"], "panel", "panels"),
-        "bar": bar_svg,
+        "bar": bar(obj, pan),
         "largest": e(f["largest"][0]),
         "largest-share": pct(f["largest"][1]),
-        "sections": sections,
+        "sections": _section_rows(f),
         "layout-blocks": str(f["layoutBlocks"]),
         "detectors": str(f["detectors"]),
-        "shared": shared,
+        "shared": _shared_sentence(f),
         "block-name": e(blk["name"]),
         "block-sensor": e(blk["sensor"]),
-        "block-xml": _xml(bx),
+        "block-xml": _block_xml(blk),
         "block-sentence": (f"from {e(blk['name'])} you can go to {e(blk['closed'])} when {e(blk['turnout'])} is closed, "
                            f"and to {e(blk['thrown'])} when it is thrown"),
-        "sml-xml": _xml(sx),
+        "sml-xml": _sml_xml(s),
         "sml-section": e(s["associatedSection"]),
         "parked": parked_note(f["parked"]),
         "sml-parked": (" Sections, transits and Entry/Exit are parked since the helix-join release (November 2026); "
                        "the masts and pairs stay live." if {"dispatcher", "nx"} <= set(f["parked"]) else ""),
-        "turnout-xml": _xml(tx),
+        "turnout-xml": _turnout_xml(f["turnout"]),
         "ctc-columns": str(f["ctcColumns"]),
         "logixng-name": e(f["logixng"]["name"]),
         "logixng-count": count(len(f["logixng"]["rows"]), "ConditionalNG", "ConditionalNGs"),
-        "logixng-rows": ng_rows,
+        "logixng-rows": _logixng_rows(f["logixng"]),
         "clear-name": e(f["clear"]["name"]),
         "clear-count": str(f["clear"]["count"]),
         "clear-turnouts": str(f["clear"]["turnouts"]),
@@ -476,7 +556,7 @@ def parked_note(features: list[str]) -> str:
             f"place.")
 
 
-def fill(page: str, f: dict) -> str:
+def fill(page: str, f: Facts) -> str:
     """The page with every region replaced; stops on an unknown or missing region."""
     values = regions(f)
     seen = set()

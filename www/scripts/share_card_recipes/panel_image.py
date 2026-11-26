@@ -10,12 +10,25 @@ from typing import TYPE_CHECKING
 
 import make_share_cards as kit
 from make_share_cards import H, PAPER, SOURCES, W, site_views
+from share_card_recipes import CardError
 
 if TYPE_CHECKING:
     from PIL.Image import Image as PILImage
 
 
 # ---- Cards that use the captured panel image ------------------------------------------------
+
+# Places in panel-frame.png (1500 x 750), in its pixels: boxes are (left, top, right, bottom).
+LAMP_ROWS_Y = (569, 597, 625, 653)    # the centre lines of the LCOS, Turnouts, Signals and Track Power lamp rows
+LAMP_ROW_X, LAMP_ROW_HALF = (18, 146), 14  # each lamp row's left and right edge, and half its height
+LAMP_ZOOM = 1.9                       # how much the lamps are enlarged in front of the panel
+BRICK_TO_EAST_END = (250, 70, 1450, 700)  # the panel from Brick to East End, the jmri-additions card's ground
+PANEL_BLUE_AT = (300, 600)            # a pixel of plain panel background, for the lamps' box
+TITLE_EDGE = (560, 0, 900, 14)        # on the card: the bottom edge of the panel's title, painted over
+BRICK_CORNER = (228, 165, 528, 345)   # the Brick corner, for the roster card
+# The device viewer rows the roster card shows: (kind, public name)
+ROSTER_ROWS = (("turnout", "Switch 1"), ("turnout", "Switch 3"), ("signal", "Mast 2L"), ("signal", "Mast 4RA"),
+               ("occupancy", "OS Switch 1"), ("occupancy", "OS Switch 3"))
 
 def _panel() -> PILImage:
     from PIL import Image
@@ -28,47 +41,51 @@ def jmri_additions() -> PILImage:
     from PIL import Image, ImageDraw, ImageFilter
 
     im = _panel()
-    k = 1.9
-    rows = [im.crop((18, c - 14, 146, c + 14)) for c in (569, 597, 625, 653)]  # LCOS, Turnouts, Signals, Track Power
+    (left, right), half, k = LAMP_ROW_X, LAMP_ROW_HALF, LAMP_ZOOM
+    rows = [im.crop((left, c - half, right, c + half)) for c in LAMP_ROWS_Y]
     rows = [r.resize((round(r.width * k), round(r.height * k)), Image.LANCZOS) for r in rows]
     rw, rh = rows[0].size
     pad, gx, gy = 20, 26, 14
     w, h = 2 * rw + gx + 2 * pad, 2 * rh + gy + 2 * pad
     x, y = 24, H - h - 22
-    out = im.crop((250, 70, 1450, 700)).convert("RGBA")
+    out = im.crop(BRICK_TO_EAST_END).convert("RGBA")
     shadow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     ImageDraw.Draw(shadow).rounded_rectangle((x + 3, y + 7, x + w + 3, y + h + 7), 14, fill=(18, 26, 34, 110))
     out.alpha_composite(shadow.filter(ImageFilter.GaussianBlur(9)))
     pen = ImageDraw.Draw(out)
-    panel_blue = im.getpixel((300, 600))
+    panel_blue = im.getpixel(PANEL_BLUE_AT)
     pen.rounded_rectangle((x, y, x + w, y + h), 14, fill=panel_blue, outline=(10, 61, 74), width=4)
     for i, row in enumerate(rows):
         out.paste(row, (x + pad + (i % 2) * (rw + gx), y + pad + (i // 2) * (rh + gy)))
-    pen.rectangle((560, 0, 900, 14), fill=panel_blue)  # the bottom edge of the panel's title
+    pen.rectangle(TITLE_EDGE, fill=panel_blue)
     return out.convert("RGB")
+
+
+def roster_rows(items: list[dict[str, str]]) -> str:
+    """The table rows of ROSTER_ROWS from the layout index's items (JSON: kind, publicName, cp, hardware).
+    Raises CardError naming every row the index no longer has."""
+    by_name = {(i["kind"], i.get("publicName")): i for i in items}
+    gone = [f"{kind} {name}" for kind, name in ROSTER_ROWS if (kind, name) not in by_name]
+    if gone:
+        raise CardError(f"roster-index: the layout index has no {', '.join(gone)}; pick other rows for the card")
+    return "".join(
+        f"<tr><td>{kind}</td><td><b>{html.escape(name)}</b></td><td>{html.escape(by_name[kind, name].get('cp') or '')}</td>"
+        f"<td>{html.escape(by_name[kind, name].get('hardware') or '')}</td></tr>"
+        for kind, name in ROSTER_ROWS
+    )
 
 
 def roster() -> PILImage:
     """roster-index: the Brick corner of the panel beside six Brick rows of the device viewer."""
     from PIL import Image
 
-    brick = _panel().crop((228, 165, 528, 345))
+    brick = _panel().crop(BRICK_CORNER)
     brick.resize((brick.width * 3, brick.height * 3), Image.LANCZOS).save(kit._tmp / "brick.png")
     try:  # the published index is built, not committed (ADR-036): build it as the site does
         items = json.loads(site_views.build("data/layout-index.json"))["items"]
     except site_views.ViewError as err:
-        raise SystemExit(f"roster-index: {err}") from err
-    wanted = [("turnout", "Switch 1"), ("turnout", "Switch 3"), ("signal", "Mast 2L"), ("signal", "Mast 4RA"),
-              ("occupancy", "OS Switch 1"), ("occupancy", "OS Switch 3")]
-    by_name = {(i["kind"], i.get("publicName")): i for i in items}
-    gone = [f"{kind} {name}" for kind, name in wanted if (kind, name) not in by_name]
-    if gone:
-        raise SystemExit(f"roster-index: the layout index has no {', '.join(gone)}; pick other rows for the card")
-    tr = "".join(
-        f"<tr><td>{kind}</td><td><b>{html.escape(name)}</b></td><td>{html.escape(by_name[kind, name].get('cp') or '')}</td>"
-        f"<td>{html.escape(by_name[kind, name].get('hardware') or '')}</td></tr>"
-        for kind, name in wanted
-    )
+        raise CardError(f"roster-index: {err}") from err
+    tr = roster_rows(items)
     style = (
         f"body{{background:{PAPER}}}"
         ".pn{position:absolute;left:36px;top:150px;width:500px;height:300px;border:4px solid var(--brand);border-radius:12px;"
