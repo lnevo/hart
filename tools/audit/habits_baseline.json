@@ -139,9 +139,6 @@
   "import-exit": 1,
   "lost-cause": 1
  },
- "ops/hart-ops/card_pipeline/apply_visual_review.py": {
-  "dated-note": 1
- },
  "ops/hart-ops/publications/build_crew_json.py": {
   "import-exit": 1
  },
