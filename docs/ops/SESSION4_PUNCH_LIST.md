@@ -24,14 +24,14 @@ Status: active. The Open sections are live (owner, 2026-11-21); the Done section
 |---|------|-------|
 | 4 | Control point signs for every interlocking rail gap, sized for a stick in the benchwork | Printable |
 | 5 | Big crew board listing the jobs in sign-up order | Printable |
-| 6 | Mock signal design for the interlocking gaps, if wanted | Printable or STL |
+| 6 | Mock signal design for the interlocking gaps, if wanted | Not wanted (owner, 2026-11-26) |
 
 ## Open: owner
 
 | # | Item | Notes |
 |---|------|-------|
 | 7 | Resistor wheels | Needed before standing cars between Princess and East End show, and before the train label "bounce" is looked at |
-| 8 | Put up mock signals at every interlocking rail gap so crews know where to stop | With the CP signs (item 4) beside them |
+| 8 | Put up mock signals at every interlocking rail gap so crews know where to stop | Not wanted (owner, 2026-11-26) |
 | 9 | Print and mount the crew board (item 5) | |
 | 3 | Mark the rail gap between East End and Princess | On the layout |
 | 10 | Wire the drill signal on the Barn lead | The signal is already installed, not yet wired. See below |
