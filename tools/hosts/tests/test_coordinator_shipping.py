@@ -1,4 +1,5 @@
-"""Every deploy list ships each of signal_coordinator.py's sibling modules, and none makes one a Start Up item.
+"""Every deploy list ships each of signal_coordinator.py's sibling modules and of panel_status.py's parts, and none
+makes one a Start Up item.
 
 The script loads the modules named in its SIBLING_MODULES from the jython folder it runs in, and stops with an
 error naming the one that is missing. So each list that installs the script into preference:jython must name
@@ -23,6 +24,9 @@ PI_APPLY = ROOT / "tools/hosts/pi/apply_hart_package_local.sh"
 WIN_APPLY = ROOT / "tools/hosts/windows/apply_hart_package_local.ps1"
 LIVE_PATHS = ROOT / "tools/hosts/live_paths.txt"
 SIBLINGS = coordinator.sibling_modules()
+# The Mac's copy loop: the Start Up scripts, the coordinator's modules and panel_status.py's parts.
+MAC_LOOP = ('for f in "${JYTHON_STARTUP_SCRIPTS[@]}" "${JYTHON_SIBLING_MODULES[@]}" '
+            '"${JYTHON_PANEL_STATUS_PARTS[@]}"; do')
 
 
 def read(path: Path) -> str:
@@ -54,8 +58,7 @@ class CoordinatorShipping(unittest.TestCase):
         siblings = named_modules(block(common, "JYTHON_SIBLING_MODULES=(", "common.sh"), "/")
         self.assertEqual(siblings, list(SIBLINGS), "common.sh JYTHON_SIBLING_MODULES, in load order")
         self.assertFalse(set(startup) & set(SIBLINGS), "a sibling module is in JYTHON_STARTUP_SCRIPTS")
-        self.assertIn('for f in "${JYTHON_STARTUP_SCRIPTS[@]}" "${JYTHON_SIBLING_MODULES[@]}"; do',
-                      read(DEPLOY / "ship_mac.sh"))
+        self.assertIn(MAC_LOOP, read(DEPLOY / "ship_mac.sh"))
         self.assertIn('cp -f "$ROOT/jmri/scripts/signal_coordinator.py" "${JYTHON_SIBLING_MODULES[@]}" '
                       '"$stage/jmri/scripts/"', read(DEPLOY / "stage.sh"))
 
@@ -93,8 +96,7 @@ class CoordinatorShipping(unittest.TestCase):
         return found[0]
 
     def test_each_site_deletes_the_compiled_class_of_what_it_copies(self) -> None:
-        mac = self.copy_loop(read(DEPLOY / "ship_mac.sh"),
-                             'for f in "${JYTHON_STARTUP_SCRIPTS[@]}" "${JYTHON_SIBLING_MODULES[@]}"; do', "ship_mac.sh")
+        mac = self.copy_loop(read(DEPLOY / "ship_mac.sh"), MAC_LOOP, "ship_mac.sh")
         self.assertIn(self.MAC_RM, mac)
         pi = self.copy_loop(read(PI_APPLY), 'for f in "${JYTHON[@]}"; do', "Pi apply")
         self.assertIn(self.PI_RM, pi)
@@ -122,6 +124,63 @@ class CoordinatorShipping(unittest.TestCase):
             block("X=(\n  a\n)\n", "JYTHON=(", "here")
         with self.assertRaisesRegex(AssertionError, "found 2"):
             block("JYTHON=(\n  a\n)\nJYTHON=(\n  b\n)\n", "JYTHON=(", "here")
+
+
+PARTS = coordinator.panel_status_parts()
+
+
+def named_parts(text: str, sep: str) -> list[str]:
+    """The panel_status*.py names under jmri/layouts/hart/scripts a list holds, in order."""
+    return re.findall(r"jmri{0}layouts{0}hart{0}scripts{0}(panel_status\w*)\.py".format(re.escape(sep)), text)
+
+
+class PanelStatusShipping(unittest.TestCase):
+    """The same holds for panel_status.py and its PARTS: every list that installs the script names exactly those
+    parts beside it, and none is a Start Up item (panel_status.py stops, naming the part, when one is missing)."""
+
+    def assert_lists_parts(self, names: list[str], where: str) -> None:
+        self.assertIn("panel_status", names, f"{where} no longer installs panel_status.py")
+        self.assertEqual(sorted(n for n in names if n != "panel_status"), sorted(PARTS),
+                         f"{where} must list exactly panel_status.py's PARTS")
+
+    def test_there_are_parts(self) -> None:
+        self.assertGreater(len(PARTS), 0)
+
+    def test_mac_and_package_lists(self) -> None:
+        common = read(DEPLOY / "common.sh")
+        startup = named_parts(block(common, "JYTHON_STARTUP_SCRIPTS=(", "common.sh"), "/")
+        parts = named_parts(block(common, "JYTHON_PANEL_STATUS_PARTS=(", "common.sh"), "/")
+        self.assertEqual(parts, list(PARTS), "common.sh JYTHON_PANEL_STATUS_PARTS, in PARTS order")
+        self.assertEqual(startup, ["panel_status"], "only the script itself is a Start Up item")
+        self.assertIn(MAC_LOOP, read(DEPLOY / "ship_mac.sh"))
+        self.assertIn('cp -f "${JYTHON_PANEL_STATUS_PARTS[@]}" "$stage/jmri/layouts/hart/scripts/"',
+                      read(DEPLOY / "stage.sh"))
+
+    def test_pi_list(self) -> None:
+        self.assert_lists_parts(named_parts(block(read(PI_APPLY), "JYTHON=(", "Pi apply"), "/"), "Pi apply")
+
+    def test_windows_list(self) -> None:
+        text = block(read(WIN_APPLY), "$jythonSrc = @(", "Windows apply")
+        self.assert_lists_parts(named_parts(text, "\\"), "Windows apply")
+
+    def test_live_paths(self) -> None:
+        lines = {ln.strip() for ln in read(LIVE_PATHS).splitlines()}
+        missing = [m for m in PARTS if f"jmri/layouts/hart/scripts/{m}.py" not in lines]
+        self.assertEqual(missing, [], "live_paths.txt")
+
+    def test_no_part_is_a_start_up_item(self) -> None:
+        texts = {p.name: read(p) for p in [*sorted(DEPLOY.glob("*.sh")), PI_APPLY]}
+        for name, text in texts.items():
+            for m in PARTS:
+                self.assertNotRegex(text, rf"--script\s+(?:\S*/)?{m}\.py", f"{name} makes {m}.py a Start Up item")
+        retarget = block(read(WIN_APPLY), "$retargetNames = @(", "Windows apply")
+        for m in PARTS:
+            self.assertNotIn(f"'{m}.py'", retarget)
+
+    def test_parts_reader(self) -> None:
+        self.assertEqual(named_parts("x jmri/layouts/hart/scripts/panel_status_a.py jmri/scripts/panel_status_b.py",
+                                     "/"), ["panel_status_a"])
+        self.assertEqual(named_parts("'jmri\\layouts\\hart\\scripts\\panel_status.py'", "\\"), ["panel_status"])
 
 
 if __name__ == "__main__":

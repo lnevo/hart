@@ -199,6 +199,20 @@ class StageOnly(unittest.TestCase):
                 self.assertTrue(staged.is_file(), f"{host}: {staged.name}")
                 self.assertTrue(filecmp.cmp(path, staged, shallow=False), f"{host}: {staged.name}")
 
+    def test_panel_status_ships_with_its_parts(self) -> None:
+        """panel_status.py and every part it runs (its PARTS, hartlib.coordinator) land, unchanged, in both
+        packages, in the folder the host apply scripts copy them from."""
+        import sys
+        sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+        from hartlib import coordinator
+        files = coordinator.files(coordinator.PANEL_STATUS)
+        self.assertGreater(len(files), 1)
+        for host in ("pi", "win"):
+            for path in files:
+                staged = self.out / host / path.relative_to(ROOT)
+                self.assertTrue(staged.is_file(), f"{host}: {staged.name}")
+                self.assertTrue(filecmp.cmp(path, staged, shallow=False), f"{host}: {staged.name}")
+
     def test_host_scripts_keep_their_package_paths(self) -> None:
         """tools/hosts/pi and tools/hosts/windows land at cats/scripts/pi and cats/scripts/windows."""
         for host in ("pi", "win"):

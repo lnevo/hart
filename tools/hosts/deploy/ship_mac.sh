@@ -20,7 +20,7 @@ install_jython_scripts() {
     local dest="$profile/jython"
     mkdir -p "$dest"
     local f
-    for f in "${JYTHON_STARTUP_SCRIPTS[@]}" "${JYTHON_SIBLING_MODULES[@]}"; do
+    for f in "${JYTHON_STARTUP_SCRIPTS[@]}" "${JYTHON_SIBLING_MODULES[@]}" "${JYTHON_PANEL_STATUS_PARTS[@]}"; do
       [[ -f "$f" ]] && cp -f "$f" "$dest/"
       # Jython's compiled copy of a module it imported: one not older than the new .py would be reused.
       rm -f "$dest/$(basename "$f" .py)\$py.class"

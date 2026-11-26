@@ -73,8 +73,11 @@ from jmri.jmrix.mqtt import MqttEventListener
 # (tools/hosts/tests/test_coordinator_shipping.py holds every host's list to this tuple).
 SIBLING_MODULES = (
     "sml_beans",
+    "sml_quit",
+    "sml_ui",
     "sml_claims",
     "sml_handoff",
+    "sml_events",
 )
 
 
@@ -156,6 +159,9 @@ from sml_claims import (  # noqa: E402
 from sml_handoff import (  # noqa: E402
     SmlHandoff,
 )
+from sml_events import SmlEvents  # noqa: E402
+from sml_quit import SmlQuit  # noqa: E402
+from sml_ui import SmlUi  # noqa: E402
 
 
 class _BulkRun(object):
@@ -192,6 +198,9 @@ class DigiconMqttSml(
     SmlBeans,
     SmlClaims,
     SmlHandoff,
+    SmlEvents,
+    SmlQuit,
+    SmlUi,
     PropertyChangeListener,
     MqttEventListener,
 ):
@@ -359,216 +368,6 @@ class DigiconMqttSml(
             print("mqtt_signalhead: ShutDownTask register failed: " + _ascii(exc))
         self._add_quit_window_hook()
 
-    def _add_quit_window_hook(self):
-        """WINDOW_CLOSING still has MQTT; File->Exit / window X both hit this."""
-        try:
-            from apps import Apps
-            from java.awt.event import WindowAdapter
-
-            space = Apps.buttonSpace()
-            frame = space.getTopLevelAncestor() if space is not None else None
-            if frame is None:
-                print("mqtt_signalhead: no main frame for window close hook")
-                return
-            hook = self
-
-            class _Quit(Runnable):
-                def run(_self):
-                    hook._on_jmri_shutdown()
-
-            class _Close(WindowAdapter):
-                def windowClosing(_self, event):
-                    # The release Holds for HOLD_WAIT_MS; never sleep on the Swing thread.
-                    print("mqtt_signalhead: main window closing")
-                    Thread(_Quit(), "digicon-sml-quit").start()
-
-            listener = _Close()
-            frame.addWindowListener(listener)
-            self._close_frame = frame
-            self._close_listener = listener
-            print(
-                "mqtt_signalhead: window close hook on %s"
-                % _ascii(frame.getTitle())
-            )
-        except Exception as exc:
-            print("mqtt_signalhead: window close hook failed: " + _ascii(exc))
-
-    def _owns_digicon_now(self):
-        if self._global_enabled or self._enabling_originator:
-            return True
-        try:
-            for mast in self._masts:
-                if self._enabled_dest_count(mast) > 0:
-                    return True
-        except Exception:
-            pass
-        return False
-
-    def _on_jmri_shutdown(self):
-        """Quit: Hold/wait/Unheld then sml_mode disabled. Idempotent.
-
-        The window-close worker and the ShutDownTask can both call this; the lock makes
-        the later caller wait for the release instead of running it a second time.
-        """
-        with self._shutdown_lock:
-            self._on_jmri_shutdown_locked()
-
-    def _on_jmri_shutdown_locked(self):
-        if self._shutdown_released:
-            return
-        self._shutting_down = True
-        try:
-            if self._abort_in_progress:
-                print(
-                    "mqtt_signalhead: shutdown skip (abort; other agent owns Digicon)"
-                )
-                self._shutdown_released = True
-                return
-            if not self._owns_digicon_now():
-                print("mqtt_signalhead: shutdown skip (SML not enabled)")
-                self._shutdown_released = True
-                return
-            print("mqtt_signalhead: shutdown Hold/wait/Unheld then disabled")
-            self._busy = True
-            try:
-                self._release_on_quit()
-            finally:
-                self._busy = False
-            self._shutdown_released = True
-        except Exception as exc:
-            print("mqtt_signalhead: shutdown task failed: " + _ascii(exc))
-
-    def _release_on_quit(self):
-        """MQTT Unheld + disabled before dest uncheck so a layout hang cannot skip RELEASE.
-
-        JMRI is exiting, so its pairs stop driving Digicon anyway. An abort during the
-        Hold means another agent is taking Digicon: no Unheld and no disabled over its
-        enabling. While it runs, any other host's claim wins.
-        """
-        self._releasing = True
-        try:
-            self._release_on_quit_steps()
-        finally:
-            self._releasing = False
-
-    def _release_on_quit_steps(self):
-        abort_gen = self._abort_gen
-        print(
-            "mqtt_signalhead: Hold Digicon masts, wait %d ms before Unheld / disabled"
-            % HOLD_WAIT_MS
-        )
-        self._set_masts_held(True)
-        Thread.sleep(HOLD_WAIT_MS)
-        if self._abort_gen != abort_gen:
-            print("mqtt_signalhead: shutdown aborted during Hold -- no Unheld, no disabled")
-        else:
-            print(
-                "mqtt_signalhead: shutdown publishing Unheld for %d MQTT head(s)"
-                % len(self._heads)
-            )
-        for head in self._heads:
-            if self._abort_gen != abort_gen:
-                break
-            self._publish_unheld(head)
-        sent = False
-        with self._claim_lock:
-            if self._abort_gen == abort_gen:
-                self._publish_mode("disabled")
-                sent = True
-                # Not the owner from here on: no head SET may follow disabled.
-                self._global_enabled = False
-                self._enabling_originator = False
-                self._claim = None
-        if sent:
-            # The release is out: a later failure must not make a second caller
-            # send disabled again.
-            self._shutdown_released = True
-            self._sync_sml_mode_sensor()
-            print("mqtt_signalhead: shutdown sml_mode disabled -- unchecking SML pairs")
-        else:
-            print("mqtt_signalhead: shutdown -- unchecking SML pairs (no disabled sent)")
-        suppress = self._suppress_sml
-        self._suppress_sml = True  # the uncheck itself publishes nothing
-        try:
-            if self._set_all_digicon_sml_destinations(False) is not True:
-                print(
-                    "mqtt_signalhead: shutdown FAILED to turn all SML pairs off "
-                    "(still on: %s)" % self._pairs_still_on()
-                )
-            try:
-                self._snapshot_mast_sml_state()
-            except Exception as exc:
-                print("mqtt_signalhead: shutdown snapshot failed: " + _ascii(exc))
-        finally:
-            self._suppress_sml = suppress
-            # A failed bulk set must not leave the masts Held or this host owning.
-            self._set_masts_held(False)
-            self._global_enabled = False
-            self._enabling_originator = False
-            self._claim = None
-            self._sync_sml_mode_sensor()
-
-    def _stored_enabled_source_names(self):
-        """UserNames of Digicon sources that loaded with any dest Enabled."""
-        names = []
-        n = 0
-        for mast in self._masts:
-            c = self._enabled_dest_count(mast)
-            if c <= 0:
-                continue
-            n += c
-            try:
-                name = mast.getUserName() or mast.getSystemName()
-            except Exception:
-                name = "?"
-            names.append(_ascii(name))
-        return n, names
-
-    def _warn_if_stored_sml_enabled(self):
-        """Popup if tables.xml stored Digicon SML Enabled. Does not stop boot."""
-        n, sources = self._stored_enabled_source_names()
-        if n == 0:
-            return False
-        preview = ", ".join(sources[:8])
-        if len(sources) > 8:
-            preview += ", ..."
-        print(
-            "mqtt_signalhead: stored SML Enabled "
-            "(%d dests on %d sources) -- warning popup"
-            % (n, len(sources))
-        )
-        msg = (
-            "Digicon SML was stored Enabled in tables.xml "
-            "(%d destination(s) on %d source(s)).\n"
-            "This warning returns at every start until you Store "
-            "with SML Disabled.\n\n"
-            "Sources: %s\n\n"
-            "Startup continues."
-            % (n, len(sources), preview)
-        )
-
-        class _Warn(Runnable):
-            def run(_self):
-                try:
-                    from jmri.util.swing import JmriJOptionPane
-
-                    JmriJOptionPane.showMessageDialog(
-                        None,
-                        msg,
-                        "Digicon SML stored Enabled",
-                        JmriJOptionPane.WARNING_MESSAGE,
-                    )
-                except Exception:
-                    JOptionPane.showMessageDialog(
-                        None,
-                        msg,
-                        "Digicon SML stored Enabled",
-                        JOptionPane.WARNING_MESSAGE,
-                    )
-
-        SwingUtilities.invokeLater(_Warn())
-        return True
-
     def _set_all_digicon_sml_destinations(self, enabled):
         """Flip Enabled checkbox for every Digicon source→dest pair (SML table).
 
@@ -700,183 +499,6 @@ class DigiconMqttSml(
                 return True
             return _do(_BulkRun())
 
-    def _subscribe_mqtt(self):
-        try:
-            self.mqtt.subscribe(SML_MODE_TOPIC, self)
-            self.mqtt.subscribe(SML_CLAIM_TOPIC, self)
-            # signalmast first (roster + paint). signalhead is SET/Unheld; do not enroll.
-            self.mqtt.subscribe(MAST_TOPIC_PREFIX + "#", self)
-            self.mqtt.subscribe(TOPIC_PREFIX + "#", self)
-        except Exception as exc:
-            print("mqtt_signalhead: MQTT subscribe failed: " + _ascii(exc))
-
-    def _enroll_packed(self, packed):
-        """Add packed disc to MQTT roster from track/signalmast (not signalhead)."""
-        packed = str(packed).strip()
-        if not _packed_is_lcos_signal(packed):
-            return
-        sys_name = "IH" + packed
-        if sys_name in self.mqtt_wanted:
-            return
-        hm = _head_manager()
-        if hm is None:
-            return
-        head = hm.getSignalHead(sys_name)
-        if head is None:
-            print(
-                "mqtt_signalhead: skip enroll %s (no IH bean)"
-                % _ascii(sys_name)
-            )
-            return
-        self.mqtt_wanted.add(sys_name)
-        if head not in self._heads:
-            self._heads.append(head)
-            try:
-                head.addPropertyChangeListener(self)
-            except Exception as exc:
-                print(
-                    "mqtt_signalhead: listener %s: %s"
-                    % (_ascii(sys_name), _ascii(exc))
-                )
-        print("mqtt_signalhead: enrolled %s from signalmast" % _ascii(sys_name))
-        if self._global_enabled:
-            self._publish_head_set(head)
-
-    def _add_toggle_button(self, attempt=0):
-        """PanelPro main-window strip — kept in addition to the LE Signals lamp."""
-        max_attempts = 12
-        delay_ms = 500
-
-        def _try_attach():
-            try:
-                from apps import Apps
-
-                space = Apps.buttonSpace()
-                if space is None:
-                    raise RuntimeError("Apps.buttonSpace() is None")
-                # Already on the strip (retry). A button left by an earlier run drives
-                # that run's controller, so take it off rather than reuse it.
-                for i in range(space.getComponentCount() - 1, -1, -1):
-                    c = space.getComponent(i)
-                    try:
-                        if c is self._button:
-                            space.revalidate()
-                            space.repaint()
-                            return True
-                        if c.getText() in ("SML Enabled", "SML Disabled"):
-                            space.remove(c)
-                            print("mqtt_signalhead: removed SML button left by an earlier run")
-                    except Exception:
-                        pass
-                if self._button is None:
-                    self._button = JButton("SML Disabled")
-                    self._button.addActionListener(lambda e: self._on_toggle())
-                space.add(self._button)
-                space.revalidate()
-                space.repaint()
-                print("mqtt_signalhead: SML toggle on PanelPro button strip")
-                return True
-            except Exception as exc:
-                print(
-                    "mqtt_signalhead: buttonSpace attempt %d failed: %s"
-                    % (attempt + 1, _ascii(exc))
-                )
-                return False
-
-        class _Attach(Runnable):
-            def run(_self):
-                # Detached by a re-run (or quitting): leave the strip to the new one.
-                if self._shutting_down:
-                    return
-                if _try_attach():
-                    self._set_button_label()
-                    return
-                if attempt + 1 >= max_attempts:
-                    print(
-                        "mqtt_signalhead: giving up on main-window SML button "
-                        "(panel Signals lamp still works)"
-                    )
-                    return
-                self._add_toggle_button(attempt + 1)
-
-        if attempt == 0 and self._button is None:
-            self._button = JButton("SML Disabled")
-            self._button.addActionListener(lambda e: self._on_toggle())
-
-        if attempt == 0:
-            SwingUtilities.invokeLater(_Attach())
-        else:
-
-            class _Retry(Runnable):
-                def run(_self):
-                    Thread.sleep(delay_ms)
-                    if not self._shutting_down:
-                        SwingUtilities.invokeLater(_Attach())
-
-            Thread(_Retry(), "mqtt-sml-button").start()
-
-    def _set_button_busy(self):
-        """Grey the button while a worker runs (on the Swing thread)."""
-        button = self._button
-        if button is None:
-            return
-
-        class _Grey(Runnable):
-            def run(_self):
-                button.setEnabled(False)
-
-        SwingUtilities.invokeLater(_Grey())
-
-    def _set_button_label(self):
-        if self._button is None:
-            return
-        label = "SML Enabled" if self._global_enabled else "SML Disabled"
-
-        class _Set(Runnable):
-            def run(_self):
-                self._button.setText(label)
-                self._button.setEnabled(True)
-
-        SwingUtilities.invokeLater(_Set())
-
-    def _publish(self, topic, payload, retain=False):
-        if self.mqtt is None:
-            return
-        try:
-            # Always name the retain flag: JMRI's two-argument MqttAdapter.publish(topic, data)
-            # retains (its `retained` field defaults to true), so it cannot send a plain message.
-            # The three-argument form needs JMRI 5.9.1 or later (hosts run 5.16); on an older
-            # JMRI this raises and is printed below, with no two-argument fallback.
-            self.mqtt.publish(topic, payload, bool(retain))
-        except Exception as exc:
-            print(
-                "mqtt_signalhead: publish failed %s %s: %s"
-                % (_ascii(topic), _ascii(payload), _ascii(exc))
-            )
-
-    def _publish_mode(self, mode):
-        """Retained sml_mode word; enabling / enabled then this host's claim.
-
-        The word goes first: a host that hears it while idle stands back before the
-        claim reaches it, and one already claiming compares the claim.
-        """
-        claim = self._claim
-        if mode in ("enabling", "enabled") and claim is None:
-            # Lost or aborted on another thread just now: nothing to announce.
-            print("mqtt_signalhead: no claim -- %s not sent" % mode)
-            return
-        self._retained_mode = mode
-        self._publish(SML_MODE_TOPIC, mode, retain=True)
-        if mode not in ("enabling", "enabled"):
-            return
-        stamp, force = claim
-        payload = "%s %s %d" % (mode, self._host, stamp)
-        if force:
-            # On enabled too: both hosts must rank an owner with the same key.
-            payload += " force"
-        self._retained_host = self._host
-        self._publish(SML_CLAIM_TOPIC, payload, retain=True)
-
     def notifyMqttMessage(self, topic, message):
         topic = _ascii(topic)
         message = _ascii(message).strip()
@@ -918,84 +540,6 @@ class DigiconMqttSml(
         self._enroll_packed(leaf)
         self._apply_mast_payload_to_head(leaf, message)
 
-    def _on_sml_claim(self, message):
-        """A claim from track/bridge/sml_claim (this host's own echo included)."""
-        mode, host, stamp, force = _parse_claim(message)
-        if mode not in ("enabling", "enabled") or stamp is None:
-            print("mqtt_signalhead: sml_claim %r not understood -- ignored" % message)
-            return
-        with self._claim_lock:
-            # The last claim on the broker; read at boot with the retained mode.
-            self._retained_host = host
-            if self._is_own_claim(host, stamp):
-                return
-            if self._claim is not None:
-                self._resolve_claim_race(mode, host, stamp, force)
-
-    def _on_sml_mode(self, message):
-        words = message.split()
-        mode = words[0].lower() if words else ""
-        with self._claim_lock:
-            self._on_sml_mode_locked(mode)
-
-    def _on_sml_mode_locked(self, mode):
-        bridge_release = mode == "disabled" and self._bridge_release_pending
-        if mode == "disabling":
-            self._bridge_release_pending = True
-        elif mode in ("enabled", "enabling", "aborting", "aborted", "disabled"):
-            self._bridge_release_pending = False
-        if mode == "enabled" and self._probe_active:
-            self._probe_saw_enabled = True
-        if mode in (
-            "enabled",
-            "disabled",
-            "query",
-            "disabling",
-            "enabling",
-            "aborting",
-            "aborted",
-        ):
-            # Do not let our probe query wipe a known enabled retain for the fast path.
-            if not (self._probe_active and mode == "query"):
-                self._retained_mode = mode
-        if mode in ("enabling", "enabled") and self._claim is not None:
-            # Claiming or owning: this host's own echo, or a rival whose claim follows
-            # on sml_claim and is compared there.
-            if mode == "enabling" and self._enabling_originator:
-                print(
-                    "mqtt_signalhead: own enabling -- leave SML, wait to announce enabled"
-                )
-            return
-        if mode == "enabling":
-            print("mqtt_signalhead: saw enabling -- abort SML")
-            self._abort_sml_immediate()
-            return
-        # Live Digicon: answer query and disabling so the LCOS bridge can abort RELEASE.
-        # ACK while owning or taking (Hold included). Do not ACK our Enable probe
-        # or during abort (unchecked, not yet re-enabled).
-        if mode in ("query", "disabling") and self._should_ack_sml_alive():
-            self._publish_mode("enabled")
-            print("mqtt_signalhead: ACK %s -> enabled" % mode)
-            return
-        # The bridge found nobody owning a retained enabled (query, disabling, then
-        # disabled): e.g. a stale retain after a power cut made this host stay Disabled
-        # at boot. Take the boot decision again. An operator Disable on another host
-        # publishes disabled alone, and stays as the operator set it.
-        if bridge_release and self._idle_for_take():
-            print("mqtt_signalhead: bridge released sml_mode -- take Digicon (enable)")
-            self._enter_enabled(force=True, from_boot=True)
-
-    def _idle_for_take(self):
-        """Not owning, taking, aborting, booting or quitting Digicon."""
-        return not (
-            self._is_busy()
-            or self._boot_pending
-            or self._shutting_down
-            or self._global_enabled
-            or self._enabling_originator
-            or self._owns_digicon_now()
-        )
-
     def _should_ack_sml_alive(self):
         """True while this instance owns or is taking Digicon (including Hold)."""
         if self._probe_active or self._abort_in_progress:
@@ -1027,50 +571,6 @@ class DigiconMqttSml(
             return
         if name == "Appearance":
             self._publish_head_set(source)
-
-    def _on_sml_property(self, sml):
-        # Global button / boot bulk setDisabled owns Unheld.
-        if self._is_busy() or self._boot_pending:
-            return
-        if not self._global_enabled:
-            return
-        try:
-            mast = sml.getSourceMast()
-        except Exception:
-            return
-        if mast not in self._masts:
-            return
-        now_map = self._dest_enable_map(sml)
-        was_map = self._dest_enable_maps.get(sml) or {}
-        self._dest_enable_maps[sml] = now_map
-        self._mast_sml_was_enabled[mast] = any(now_map.values())
-        if not was_map:
-            return
-        disabled = []
-        enabled = []
-        keys = set(now_map.keys()) | set(was_map.keys())
-        for dest in keys:
-            now_on = now_map.get(dest)
-            was_on = was_map.get(dest)
-            if was_on is None or now_on is None:
-                continue
-            if was_on and not now_on:
-                disabled.append(dest)
-            elif (not was_on) and now_on:
-                enabled.append(dest)
-        if disabled:
-            print(
-                "mqtt_signalhead: dest Enabled off %s -> %s"
-                % (_ascii(mast.getDisplayName()), _ascii(disabled[0]))
-            )
-            self._hand_source_to_field(mast)
-            return
-        if enabled:
-            print(
-                "mqtt_signalhead: dest Enabled on %s -> %s"
-                % (_ascii(mast.getDisplayName()), _ascii(enabled[0]))
-            )
-            self._hand_source_to_sml(mast)
 
 
 class DigiconSmlQuitTask(jmri.implementation.AbstractShutDownTask):

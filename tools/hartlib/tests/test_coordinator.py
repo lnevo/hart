@@ -72,6 +72,30 @@ class Coordinator(unittest.TestCase):
         with self.assertRaisesRegex(coordinator.CoordinatorError, "cannot read"):
             coordinator.sibling_modules(Path(tempfile.gettempdir()) / "no-such-dir" / "signal_coordinator.py")
 
+    def test_the_real_panel_status(self) -> None:
+        names = coordinator.panel_status_parts()
+        self.assertEqual(names, coordinator.sibling_modules(coordinator.PANEL_STATUS))
+        got = coordinator.files(coordinator.PANEL_STATUS)
+        self.assertEqual(got[0], coordinator.PANEL_STATUS)
+        self.assertEqual([p.stem for p in got[1:]], list(names))
+        self.assertTrue(all(n.startswith("panel_status_") for n in names), names)
+
+    def test_panel_status_reads_parts_not_sibling_modules(self) -> None:
+        path = self.script('SIBLING_MODULES = (\n    "sml_a",\n)\nPARTS = (\n    "sml_b",\n)\n')
+        ps = path.with_name("panel_status.py")
+        path.rename(ps)
+        self.assertEqual(coordinator.sibling_modules(ps), ("sml_b",))
+        ps.write_text('SIBLING_MODULES = (\n    "sml_a",\n)\n', encoding="utf-8")
+        with self.assertRaisesRegex(coordinator.CoordinatorError, "one PARTS = .* found 0"):
+            coordinator.sibling_modules(ps)
+
+    def test_a_script_without_parts(self) -> None:
+        path = self.script('SIBLING_MODULES = (\n    "sml_a",\n)\n')
+        other = path.with_name("mimic_relay.py")
+        path.rename(other)
+        with self.assertRaisesRegex(coordinator.CoordinatorError, "not a script with parts"):
+            coordinator.sibling_modules(other)
+
 
 if __name__ == "__main__":
     unittest.main()

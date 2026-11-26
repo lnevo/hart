@@ -1177,6 +1177,24 @@
    "path": "jmri/layouts/hart/scripts/panel_status.py"
   },
   {
+   "id": "jmri/layouts/hart/scripts/panel_status_turnouts.py",
+   "label": "panel_status_turnouts.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Part of panel_status.py, run in its namespace: the Turnouts lamp (which plants it counts, its colour, the click that flips TWOSENSOR and DIRECT).",
+   "path": "jmri/layouts/hart/scripts/panel_status_turnouts.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/panel_status_clicks.py",
+   "label": "panel_status_clicks.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Part of panel_status.py, run in its namespace: the status lamp clicks at any zoom and the lift of buried block labels.",
+   "path": "jmri/layouts/hart/scripts/panel_status_clicks.py"
+  },
+  {
    "id": "jmri/layouts/hart/scripts/render_le_layout.py",
    "label": "render_le_layout.py",
    "kind": "generator",
@@ -3223,6 +3241,33 @@
    "domain": "wiring",
    "desc": "Jython module of signal_coordinator.py: the boot check, Enable / Disable, and each head's hand-off between SML and the field.",
    "path": "jmri/scripts/sml_handoff.py"
+  },
+  {
+   "id": "jmri/scripts/sml_events.py",
+   "label": "sml_events.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "wiring",
+   "desc": "Jython module of signal_coordinator.py: its MQTT subscriptions and publishes, the roster from track/signalmast and its reports painted on heads and masts, its sml_mode and sml_claim answers.",
+   "path": "jmri/scripts/sml_events.py"
+  },
+  {
+   "id": "jmri/scripts/sml_quit.py",
+   "label": "sml_quit.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "wiring",
+   "desc": "Jython module of signal_coordinator.py: the quit release (Hold, Unheld, sml_mode disabled, then the pairs off).",
+   "path": "jmri/scripts/sml_quit.py"
+  },
+  {
+   "id": "jmri/scripts/sml_ui.py",
+   "label": "sml_ui.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "wiring",
+   "desc": "Jython module of signal_coordinator.py: the main-window SML button and the stored-Enabled warning popup.",
+   "path": "jmri/scripts/sml_ui.py"
   },
   {
    "id": "tools/hartlib/src/hartlib/coordinator.py",
@@ -7848,6 +7893,27 @@
    "gen": "manifest"
   },
   {
+   "from": "jmri/scripts/sml_events.py",
+   "to": "tools/audit/check_mqtt_no_static_lists.py",
+   "label": "check",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/scripts/sml_quit.py",
+   "to": "tools/audit/check_mqtt_no_static_lists.py",
+   "label": "check",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/scripts/sml_ui.py",
+   "to": "tools/audit/check_mqtt_no_static_lists.py",
+   "label": "check",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
    "from": "tools/audit/check_name_copies.py",
    "to": "tools/check.sh",
    "label": "check name-copies",
@@ -10900,6 +10966,36 @@
    "label": "jython"
   },
   {
+   "from": "jmri/layouts/hart/scripts/panel_status_turnouts.py",
+   "to": "tools/hosts/sync_hart_package.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/panel_status_turnouts.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/panel_status_turnouts.py",
+   "to": "jmri/layouts/hart/scripts/panel_status.py",
+   "label": "runs in"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/panel_status_clicks.py",
+   "to": "tools/hosts/sync_hart_package.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/panel_status_clicks.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/panel_status_clicks.py",
+   "to": "jmri/layouts/hart/scripts/panel_status.py",
+   "label": "runs in"
+  },
+  {
    "from": "jmri/layouts/hart/scripts/jmri_cmd_watcher.py",
    "to": "tools/hosts/deploy/stage.sh",
    "label": "jython"
@@ -10936,6 +11032,51 @@
   },
   {
    "from": "jmri/scripts/sml_handoff.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/scripts/sml_events.py",
+   "to": "jmri/scripts/signal_coordinator.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/scripts/sml_events.py",
+   "to": "tools/hosts/sync_hart_package.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/scripts/sml_events.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/scripts/sml_quit.py",
+   "to": "jmri/scripts/signal_coordinator.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/scripts/sml_quit.py",
+   "to": "tools/hosts/sync_hart_package.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/scripts/sml_quit.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/scripts/sml_ui.py",
+   "to": "jmri/scripts/signal_coordinator.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/scripts/sml_ui.py",
+   "to": "tools/hosts/sync_hart_package.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/scripts/sml_ui.py",
    "to": "tools/hosts/deploy/stage.sh",
    "label": "jython"
   },
