@@ -320,6 +320,15 @@
    "path": "tools/audit/py_sizes.csv"
   },
   {
+   "id": "tools/audit/mypy_baseline.json",
+   "label": "mypy_baseline.json",
+   "kind": "structured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "mypy's error count per CPython file outside hartlib, which may only go down; check_mypy.py --update lowers it and refuses a rise.",
+   "path": "tools/audit/mypy_baseline.json"
+  },
+  {
    "id": "tools/audit/check_wiring_crosswalk.py",
    "label": "check_wiring_crosswalk",
    "kind": "generator",
@@ -4059,6 +4068,16 @@
    "domain": "extras",
    "desc": "Fails when a .py or .js file over 800 lines, or a .sh file over 500, grows past its row in tools/audit/py_sizes.csv; warns at 90 percent of the limit; --update tightens the list, --accept raises a row by name.",
    "path": "tools/audit/check_py_sizes.py",
+   "gen": "manifest"
+  },
+  {
+   "id": "tools/audit/check_mypy.py",
+   "label": "check_mypy",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "mypy (mypy.ini) over the CPython files: hartlib with no errors, every other file at or below its error count in tools/audit/mypy_baseline.json; --update lowers the baseline and refuses a rise.",
+   "path": "tools/audit/check_mypy.py",
    "gen": "manifest"
   },
   {
@@ -13371,6 +13390,18 @@
    "from": "docs/ops/session4/make_signs.py",
    "to": "docs/ops/session4/out",
    "label": "signs and boards"
+  },
+  {
+   "from": "tools/audit/mypy_baseline.json",
+   "to": "tools/audit/check_mypy.py",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/audit/check_mypy.py",
+   "to": "tools/check.sh",
+   "label": "check mypy",
+   "side": "check",
+   "gen": "manifest"
   },
   {
    "from": ".claude/hooks/shell_parse.py",

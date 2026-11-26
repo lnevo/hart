@@ -1,9 +1,9 @@
-"""A device's ID (ADR-033, decision 1 of the naming-layers hand-off, owner 2026-11-24): a key that is not its name.
+"""A device's ID (ADR-033, decision 1 of the naming-layers hand-off): a key that is not its name.
 
 The builders derive each ID from the plan (the AnyRail plan's switch numbers and legs, as the solved schematic gives
 them), never from a user name, so an ID stays the same when the owner renames the device. Every row of the device
 master with a level carries one in its `id` column, unique on its level (hartlib.devices.check_rows); a Store's
-level-less row has none. The owner's track names are kept by it (hartlib.track_names, step 3); other keys follow in steps 4 and 5.
+level-less row has none. The owner's track names are kept by it (hartlib.track_names).
 
 The grammar, one function per kind below:
 - switch:<n>          a turnout (a crossover drawn as halves 101A and 101B is one turnout, one ID)
@@ -14,25 +14,25 @@ The grammar, one function per kind below:
                       1B-3A, "107B-107C#1" for the first piece of a run, several strands joined by "+"
 - os:<n>              the OS block of switch n
 - os:<n>:A-<end>      a staging single crossover's half (7, 23, 35), told apart by where its leg A runs, as
-                      block_overrides.csv's crossover_half rows do: os:7:A-13C. The a and b are the owner's (owner,
-                      2026-11-24), kept by ID in those rows (their `parallel`), not in the name
+                      block_overrides.csv's crossover_half rows do: os:7:A-13C. The a and b are the owner's, kept by ID
+                      in those rows (their `parallel`), not in the name
 - os:<n>:<leg>        a double crossover's corner block by the schematic leg it serves (A to D, the letters the track
                       ends use: os:225:D is the corner at track 225D-229A), not the Layout Editor corner, which turns
-                      with the drawing (owner, 2026-11-24)
+                      with the drawing
 - det:<block id>      a block's detector (occupancy row)
 - spare:<system name> a spare detector (no block)
 - mast:<switch>:<leg>:<dir>   a home mast, by the switch label it stands at (a crossover half's label: 101A), the leg
                       and the way it looks (east, west); at a staging single crossover's half, whose two halves share
-                      one label, the label and the half as its OS block has them: mast:7:A-13C:B:east (naming-layers
-                      step 12; before it both halves gave mast:7:...)
+                      one label, the label and the half as its OS block has them: mast:7:A-13C:B:east
 - mast:<block id>:<dir>       an intermediate or a hidden (buffer stop) mast, by the block it faces
 - <mast id>:<top|bottom|single>   a head, by its place on its mast
 - panel:<item key>:<system name>  a panel lamp of panel_items.json, by its item and the system name of the bean its
-                      icon shows (owner, 2026-11-24)
+                      icon shows
 """
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 
 HEAD_PLACES = ("top", "bottom", "single")
 DIRS = ("east", "west")
@@ -48,21 +48,21 @@ def _need(ok: bool, what: str) -> None:
         raise ValueError(f"no device ID for {what}")
 
 
-def _number(n) -> str:
-    n = str(n)
-    _need(bool(_NUMBER.fullmatch(n)), f"switch number {n!r} (digits)")
-    return n
+def _number(n: int | str) -> str:
+    text = str(n)
+    _need(bool(_NUMBER.fullmatch(text)), f"switch number {text!r} (digits)")
+    return text
 
 
-def switch_id(n) -> str:
+def switch_id(n: int | str) -> str:
     return f"switch:{_number(n)}"
 
 
-def dcc_id(n) -> str:
+def dcc_id(n: int | str) -> str:
     return f"dcc:{_number(n)}"
 
 
-def fb_id(n, position: str) -> str:
+def fb_id(n: int | str, position: str) -> str:
     _need(position in ("N", "R"), f"feedback position {position!r} (N or R)")
     return f"fb:{_number(n)}:{position}"
 
@@ -75,14 +75,14 @@ def strand_key(piece: str, k: int = 1, count: int = 1) -> str:
     return key if count == 1 else f"{key}:{k}/{count}"
 
 
-def block_id(strands) -> str:
+def block_id(strands: Iterable[str]) -> str:
     """block:<strand keys (strand_key), joined by "+">, in the order given."""
-    strands = list(strands)
-    _need(bool(strands) and all(strands), f"a block with strands {strands}")
-    return "block:" + "+".join(strands)
+    keys = list(strands)
+    _need(bool(keys) and all(keys), f"a block with strands {keys}")
+    return "block:" + "+".join(keys)
 
 
-def os_id(n, half: str = "") -> str:
+def os_id(n: int | str, half: str = "") -> str:
     """os:<n>, or os:<n>:<half> for a crossover half (A-<end>) or a double crossover's corner (its leg)."""
     return f"os:{_number(n)}:{half}" if half else f"os:{_number(n)}"
 

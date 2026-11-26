@@ -16,7 +16,7 @@ def station_plate(name: str) -> str:
 def mast_templates(path: Path | None = None, systems: dict[str, str] | None = None) -> dict[str, str]:
     """CATS signal template (PHYSIGNAL) per mast user name, from signal_head_plan.csv. With `systems` ({mast user
     name: system name}, the tables' masts), only the rows whose mast_system_name is that mast's: a plan row for a mast
-    the tables now hold with other heads or another type (staging's rule-built masts, 2026-11-19) gives no template."""
+    the tables now hold with other heads or another type (staging's rule-built masts) gives no template."""
     with (path or paths.SIGNAL_HEAD_PLAN).open(newline="") as f:
         rows = list(csv.DictReader(f))
     return {row["mast_user_name"].strip(): row["physignal"].strip() for row in rows

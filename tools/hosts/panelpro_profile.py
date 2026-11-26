@@ -7,7 +7,8 @@
   backup / seal   copy profile.xml to <profile.xml>.hart-run.bak; after patching, record the patched
                   file's hash in <profile.xml>.hart-run.sha256
   restore         put the backup back and remove it and the hash
-  jmri-running    exit 0 while PanelPro, DecoderPro, DispatcherPro or CATS runs (hartlib's check)
+  jmri-running    exit 0 while PanelPro, DecoderPro, DispatcherPro or CATS runs (hartlib's check), 1 while none
+                  does, 2 (printing "unknown") when the check cannot say
 
 After a wrapper was killed with SIGKILL, quit the PanelPro it left, then
 
@@ -166,7 +167,11 @@ def restore_profile(profile: Path, force: bool = False) -> str:
     current = _sha(profile) if profile.is_file() else None
     unexpected = current not in (sealed, _sha(bak))
     if not force:
-        if tables.jmri_running():
+        try:
+            running = tables.jmri_running()
+        except tables.JmriCheckError as exc:
+            raise SystemExit(f"{exc}; not restored (restore --force skips this check)") from exc
+        if running:
             raise SystemExit("PanelPro, DecoderPro or CATS is running; quit it, then restore")
         if sealed is None:
             raise SystemExit(f"{seal} is missing (the run stopped while patching): compare {profile} "
@@ -339,6 +344,9 @@ def check_profile(profile: Path, launch: str, user_files: str | None) -> Path:
     return found
 
 
+JMRI_UNKNOWN = 2      # jmri-running's exit when the check cannot say (pgrep missing or failing)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("action", choices=("check-profile", "quiet-startup", "backup", "seal", "restore",
@@ -350,7 +358,10 @@ def main() -> None:
     ap.add_argument("--force", action="store_true", help="restore: skip the running and changed checks")
     args = ap.parse_args()
     if args.action == "jmri-running":
-        sys.exit(0 if tables.jmri_running() else 1)
+        state = tables.jmri_state()
+        if state is tables.JmriState.UNKNOWN:
+            print("unknown", file=sys.stderr)
+        sys.exit({tables.JmriState.RUNNING: 0, tables.JmriState.STOPPED: 1}.get(state, JMRI_UNKNOWN))
     if args.profile is None:
         ap.error(f"{args.action} requires --profile")
     if args.action == "check-profile":
