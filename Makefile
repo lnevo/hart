@@ -1,7 +1,7 @@
 # The commands agents and people use most. Each target runs the real script, so
 # these stay short. `make` lists them.
 .DEFAULT_GOAL := help
-.PHONY: help mqtt-clean mqtt-watch wt wt-sweep orient status check remote portal-check panels desks panelpro-test docs-index map site-data publications waybills submodules tables-pull tables-pull-pi ops-pull sts-pull shot deploy-layout deploy-all deploy-status backup-status redeploy deploy-site speedmatch
+.PHONY: help mqtt-clean mqtt-watch wt wt-sweep orient status check static remote portal-check panels desks panelpro-test docs-index map site-data publications waybills submodules tables-pull tables-pull-pi ops-pull sts-pull shot deploy-layout deploy-all deploy-status backup-status redeploy deploy-site speedmatch
 
 help:  ## List the commands
 	@grep -hE '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -20,6 +20,9 @@ status:  ## Build wiki/STATUS.md (gitignored) from the entry files in wiki/statu
 
 check:  ## Run every repo check
 	./tools/check.sh
+
+static:  ## Quick local checks before a push or make remote: check.sh's static group, less the panels-* jobs (about 20 s warm)
+	CHECK_ONLY="^($$(python3 tools/pipeline/manifest.py jobs check --group static | awk '{print $$1}' | grep -v '^panels-' | paste -sd'|' -))$$" ./tools/check.sh
 
 remote:  ## Run a command on the Windows box's WSL (pushed branch): make remote CMD="./tools/check.sh"
 	@test -n "$(CMD)" || { echo 'make remote: set CMD="..."' >&2; exit 2; }
