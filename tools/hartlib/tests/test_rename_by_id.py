@@ -5,7 +5,7 @@ Switch 19, os:19) in its field file, as the owner would, and nothing else; then:
 - the merged device master follows the renames into part_of and blocks (hartlib.devices.follow_renames);
 - wiring.csv names the detectors by the new names (hartlib.wiring.read, by id);
 - block_lengths.csv's labels come out renamed and its lengths unchanged (plan_lengths.labelled);
-- switches.csv's staging labels come out renamed (build_hands.apply);
+- switches.csv's staging rows read the new names by their IDs (railroad.read_switch_rows), the file unedited;
 - main_lines.csv's stop 35@block:33A-35A reads 35@Princess Lead (build_main_route.read_lines).
 A second copy (step 5b, RenameInPreferencesAndStations) renames Track S-1 (block:17C-29C) and a West Yard track,
 Track W-1 (block:3B-end), and checks that preferences.json and stations.csv, which name tracks by block ID, are left
@@ -110,14 +110,16 @@ class RenameById(unittest.TestCase):
         self.assertEqual(len(got), len(before))
 
     def test_switches_csv_labels_follow_the_store(self) -> None:
+        """switches.csv gives IDs only: its rows read the new names from the master beside it, the file unedited
+        (test_only_the_field_file_was_edited) and nothing for build_hands.py to write."""
         import build_hands
         path = self.data / "switches.csv"
-        hands = {r.half: r.hand for r in railroad.read_switch_rows(path) if r.level in railroad.LEVEL_NUMBERS and r.hand}
-        text = build_hands.apply(path, hands, self.names)
-        labels = [c for r in csv.DictReader(io.StringIO(text)) if r["level"] == "1"
-                  for c in (r["os_block"], r["closed_leg"], r["thrown_leg"])]
+        labels = [c for r in railroad.read_switch_rows(path) if r.level == 1
+                  for c in (r.os_block, r.closed_leg, r.thrown_leg)]
         self.assertEqual(labels.count("OS South 19"), 2)     # Switch 19's own row and Switch 17's closed leg
         self.assertFalse(set(labels) & OLD)
+        hands = {r.half: r.hand for r in railroad.read_switch_rows(path) if r.level in railroad.LEVEL_NUMBERS and r.hand}
+        self.assertEqual(build_hands.apply(path, hands), path.read_text(encoding="utf-8"))
 
     def test_main_lines_name_the_renamed_track(self) -> None:
         import build_main_route
@@ -223,14 +225,8 @@ class RenameCrossoverHalf(unittest.TestCase):
         cls.tmp.cleanup()
 
     def relabelled_switches(self) -> Path:
-        """switches.csv with its labels from the renamed store, as the hands step writes it (build_hands.apply)."""
-        import build_hands
-        path = self.data / "switches.csv"
-        hands = {r.half: r.hand for r in railroad.read_switch_rows(path) if r.level in railroad.LEVEL_NUMBERS and r.hand}
-        out = self.data / "relabelled" / "switches.csv"
-        out.parent.mkdir(exist_ok=True)
-        out.write_text(build_hands.apply(path, hands, self.names), encoding="utf-8")
-        return out
+        """switches.csv as committed: it gives IDs only, so its rows read the renamed store beside it."""
+        return self.data / "switches.csv"
 
     def test_only_the_field_file_was_edited(self) -> None:
         changed = {str(k) for k, v in self.before.items() if (self.data / k).read_bytes() != v}

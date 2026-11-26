@@ -13,7 +13,7 @@ Fixes where the Digicon desk gets each turnout's state (feedback versus command)
    - **114** THROWN = OS K-2 (BOTTOM, default); CLOSED = OS McKeesport (RIGHT)
    - **115** THROWN = K-1 (TOP); CLOSED = OS McKees Rocks (RIGHT) — confirmed good
 4. If Digicon shows the **wrong direction**, fix **that one switch only** in
-   `jmri/layouts/hart/data/switches.csv` (its `closed_leg` and `thrown_leg`, or
+   `jmri/layouts/hart/data/switches.csv` (its `closed_id` and `thrown_id`, or
    `cats_inverted`), rewire, reload. See
    [`wiki/pipelines/switch-facts.md`](../../wiki/pipelines/switch-facts.md). Do **not** publish MQTT or command JMRI turnouts to “fix” paint.
 5. Agents / `launch_cats.sh` must **not** throw field points.

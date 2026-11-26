@@ -180,7 +180,7 @@ class Readers(Copy):
         self.src.switches.write_text("\n".join(l.rsplit(",", 1)[0] for l in lines) + "\n", encoding="utf-8")
         self.fails(lambda: R.read_switch_rows(self.src.switches), "switches.csv: no column notes")
         self.src.switches.write_text(text + "1,99,,OS Switch 99,Track A,Track B\n", encoding="utf-8")   # short
-        self.fails(lambda: R.read_switch_rows(self.src.switches), rf"switches.csv line {len(lines) + 1}: 17 fields .*, not 6")
+        self.fails(lambda: R.read_switch_rows(self.src.switches), rf"switches.csv line {len(lines) + 1}: 14 fields .*, not 6")
         self.src.block_lengths.write_text(",".join(block_lengths.PLAN_COLUMNS) + ",extra\n"
                                           "1,block:3B-end,105.2,,x\n", encoding="utf-8")
         self.assertEqual(block_lengths.read_plan(self.src.block_lengths)["block:3B-end"].plan_in, 105.2)
@@ -304,10 +304,12 @@ class Readers(Copy):
         self.fails(lambda: R.read_staging_devices(self.src.devices), "dcc is a number or blank, not '1x'")
 
     def test_switches_are_the_adr021_loader(self) -> None:
-        self.append("switches", "2,9,9,,,,,,,,,,,,,,")
+        self.append("switches", "2,9,9,,,,,,,,,,,")
         self.fails(lambda: R.Railroad(self.src).switches, r"lines 7 \(level 1\) and \d+ \(level 2\) both use Switch 9")
-        self.edit("switches", "2,9,9,,,,,,,,,,,,,,",
-                  "1,99,,OS Switch 99,Track A,Track B,os:99,block:99B-end,block:99C-end,,,,TO999,maybe,99,no,")
+        self.add_staging_row(layer="block", role="os", id="os:99", user_name="OS Switch 99", assignment="none",
+                             description="Block OS Switch 99.")
+        self.edit("switches", "2,9,9,,,,,,,,,,,",
+                  "1,99,,os:99,block:9B-end,block:9C-end,,,,TO999,maybe,99,no,")
         self.fails(lambda: R.Railroad(self.src).switches, r"\(Switch 99\): expected yes or no, got 'maybe'")
         self.edit("switches", "TO999,maybe,99,no,", ",,,,")
         self.fails(lambda: R.Railroad(self.src).switches,
@@ -317,22 +319,19 @@ class Readers(Copy):
         """Each row is held to its level's shape and names its file and line (read_switch_rows)."""
         text = self.src.switches.read_text(encoding="utf-8")
         cases = (
-            # a staging row's OS block is its os_id; os_block is the name store's label (naming-layers step 5)
-            ("Track EH-3,os:9,", "Track EH-3,os:11,", r"line 7 \(Switch 9\): a row keyed by its OS block gives the "
-                                                       r"device IDs of it \(os_id os:9, or os:9:<half>\)"),
+            # a staging row's OS block is its os_id; its name is the name store's (naming-layers step 5)
+            ("1,9,,os:9,", "1,9,,os:11,", r"line 7 \(Switch 9\): a row keyed by its OS block gives the "
+                                          r"device IDs of it \(os_id os:9, or os:9:<half>\)"),
             ("os:9,block:9B-end,block:9C-end,", "os:9,,block:9C-end,", "and of its legs \\(closed_id, thrown_id\\)"),
-            ("1,9,,OS Switch 9,", "1,9,,,", r"line 7 \(Switch 9\): os_block is empty; build_hands.py writes the label of os:9"),
-            ("2,105,105,,,,,,,", "2,105,105,,,,,block:105B,,", "closed_id and thrown_id go with an os_id"),
-            ("2,105,105,,,,,,,", "2,105,105,,,,os:105,,,", "a main or upper row is keyed by its half until its "
-                                                           "switches are bound"),
+            ("os:9,block:9B-end,", "os:9,block:9X-end,", r"line 7 \(Switch 9\): closed_id block:9X-end is no level 1 "
+                                                         r"device of the device master"),
+            ("2,105,105,,,,", "2,105,105,,block:105B,,", "closed_id and thrown_id go with an os_id"),
+            ("2,105,105,,,,", "2,105,105,os:105,,,", "a main or upper row is keyed by its half until its "
+                                                      "switches are bound"),
             # a staging row with its IDs blanked is told it needs them, not a half-keyed row's rules (code review)
             ("os:9,block:9B-end,block:9C-end,", ",,,", r"line 7 \(Switch 9\): a staging row is keyed by its OS "
                                                       r"block and gives the device IDs of it \(os_id os:9"),
-            ("1,9,,OS Switch 9,Track EH-2,Track EH-3,", "1,9,,OS Switch 9,,,", "a row keyed by its OS block gives them"),
-            ("1,9,,OS Switch 9,Track EH-2,", "1,9,,OS Switch 9,,", "gives both legs"),
-            ("1,9,,OS Switch 9,", "1,9,9,OS Switch 9,", "a row keyed by its OS block has no half"),
-            ("2,105,105,,,,", "2,105,105,,Track A,Track B,", "legs .* with its os_block, or neither"),
-            ("2,105,105,,", "2,105,105,OS Switch 106,", r"os_block is OS Switch 105 or a half"),
+            ("1,9,,os:9,", "1,9,9,os:9,", "a row keyed by its OS block has no half"),
             ("block:9C-end,L,owner,", "block:9C-end,L,plan,", "hand_source plan is for rows keyed by their half"),
             ("block:9C-end,L,owner,", "block:9C-end,L,,", "a hand needs a hand_source"),
             ("block:9C-end,L,owner,", "block:9C-end,,owner,", "a hand needs a hand_source"),
@@ -340,7 +339,7 @@ class Readers(Copy):
             ("os:7:A-13C,,,,,", "os:7:A-13C,,,,TO117,",
              r"line 6 \(Switch 7\): le_ident hold a fact of the whole switch: give them on its first row \(line 5\)"),
             ("2,105,105,", "2,105,106,", r"\(Switch 105\): half is 105, 105A or 105B, not '106'"),
-            ("2,105,105,,,,,,,L,plan,West,,", "2,105,105,,,,,,,L,plan,West,TO1,",
+            ("2,105,105,,,,L,plan,West,,", "2,105,105,,,,L,plan,West,TO1,",
              "le_ident bind a row keyed by its OS block .* a row keyed by its half leaves them blank"),
             ("2,105,105,", "4,105,105,", "level is 1, 2 or 3"),
             ("2,101,101B,", "2,101,101A,", r"lines \d+ and \d+: both are 101A"),
@@ -352,10 +351,10 @@ class Readers(Copy):
                 self.fails(lambda: R.read_switch_rows(self.src.switches), msg)
         more = (
             # a crossover's later staging row gives no hand: staging's hand is the switch's (Switch.hand)
-            ("OS Switch 7,os:7:A-5B,block:7B-33C,os:7:A-13C,,,", "OS Switch 7,os:7:A-5B,block:7B-33C,os:7:A-13C,R,owner,",
+            ("1,7,,os:7:A-5B,block:7B-33C,os:7:A-13C,,,", "1,7,,os:7:A-5B,block:7B-33C,os:7:A-13C,R,owner,",
              r"line 6 \(Switch 7\): hand, hand_source hold a fact of the whole switch"),
             # an owner row gives its hand; only a plan row waits for build_hands.py
-            ("2,105,105,,,,,,,L,plan,", "2,105,105,,,,,,,,owner,", "an owner hand_source a hand"),
+            ("2,105,105,,,,L,plan,", "2,105,105,,,,,owner,", "an owner hand_source a hand"),
             # one row, half N, or both halves NA and NB
             ("2,105,105,", "2,105,105A,", r"\(Switch 105\): a switch keyed by its halves has one row, half 105, or "
                                           r"two, halves 105A and 105B; not 105A"),
@@ -367,20 +366,20 @@ class Readers(Copy):
                 self.src.switches.write_text(text.replace(old, new, 1), encoding="utf-8")
                 self.fails(lambda: R.read_switch_rows(self.src.switches), msg)
         # a new plan row may leave its hand blank for build_hands.py; it is no hand until then
-        self.src.switches.write_text(text.replace("2,105,105,,,,,,,L,plan,", "2,105,105,,,,,,,,plan,", 1), encoding="utf-8")
+        self.src.switches.write_text(text.replace("2,105,105,,,,L,plan,", "2,105,105,,,,,plan,", 1), encoding="utf-8")
         self.assertNotIn("105", R.read_hands(self.src.switches))
         # a row's shape is its key's (naming-layers step 14), but only staging's switches are bound to the live
         # panels so far: a main row keyed by its OS block stops (code review: staging_switches and build_hands read
         # OS-keyed rows as staging's)
         self.src.switches.write_text(text.replace(
-            "2,105,105,,,,,,,L,plan,", "2,105,,OS Switch 105,Track A,Track B,os:105,block:105B,block:105C,L,owner,", 1),
+            "2,105,105,,,,L,plan,", "2,105,,os:105,block:105B,block:105C,L,owner,", 1),
             encoding="utf-8")
         self.fails(lambda: R.read_switch_rows(self.src.switches), "keyed by its half until its switches are bound")
-        # a main or upper row may give its OS block and legs (none does yet)
-        self.src.switches.write_text(text.replace("2,105,105,,,,", "2,105,105,OS Switch 105,Track A,Track B,", 1),
-                                     encoding="utf-8")
-        self.assertEqual(next(r for r in R.read_switch_rows(self.src.switches) if r.half == "105").closed_leg, "Track A")
-        self.src.switches.write_text(text + "1,9,,OS Switch 9b,Track A,Track B,os:9:B,block:9B-end,block:9C-end,,,,,,,,\n",
+        # a main or upper row has no OS block or legs
+        self.src.switches.write_text(text, encoding="utf-8")
+        self.assertEqual({(r.os_block, r.closed_leg, r.thrown_leg) for r in R.read_switch_rows(self.src.switches)
+                          if not r.by_os}, {("", "", "")})
+        self.src.switches.write_text(text + "1,9,,os:9:B,block:9B-end,block:9C-end,,,,,,,,\n",
                                      encoding="utf-8")
         self.fails(lambda: R.read_switch_rows(self.src.switches), r"Switch 9 is also on line 7; a switch's rows go together")
 
@@ -437,14 +436,14 @@ class Readers(Copy):
             R.join_main_upper(rr.interlockings, [])
 
     def test_local_switches_and_nodes(self) -> None:
-        self.append("switches", "2,101,101A,,,,,,,L,plan,Peninsula,,,,,again")
+        self.append("switches", "2,101,101A,,,,L,plan,Peninsula,,,,,again")
         self.fails(lambda: R.read_local_switches(self.src.switches),
                    r"\(Switch 101\): Switch 101 is also on line 25; a switch's rows go together")
         self.append("lcos_nodes", "3,West,42,again")
         self.fails(lambda: R.read_lcos_nodes(self.src.lcos_nodes), "both list node 42")
 
     def test_a_switch_in_a_control_point_and_local(self) -> None:
-        self.edit("switches", "2,107,107,,,,,,,L,plan,,,,,,", "2,107,107,,,,,,,L,plan,West,,,,,also")
+        self.edit("switches", "2,107,107,,,,L,plan,,,,,,", "2,107,107,,,,L,plan,West,,,,,also")
         self.fails(lambda: R.Railroad(self.src).main_upper_switches,
                    r"switch 107 is in a control point and in switches.csv \(line \d+, CP 107\)")
 
@@ -472,7 +471,7 @@ class Readers(Copy):
         self.assertEqual(R.read_plan_overrides(self.src.plan_overrides, "staging").name, "plan_overrides.json[staging]")
 
     def test_hands_read_strictly(self) -> None:
-        self.edit("switches", "2,101,101A,,,,,,,L,", "2,101,101A,,,,,,,X,")
+        self.edit("switches", "2,101,101A,,,,L,", "2,101,101A,,,,X,")
         self.fails(lambda: R.read_hands(self.src.switches), r"switches.csv line 25 \(Switch 101\): hand is L, R or blank")
 
     def test_device_map(self) -> None:
@@ -534,15 +533,15 @@ class Invariants(Copy):
         """Every main and upper switch has rows in switches.csv, on its control point's level, and no row is for a
         number that is no main or upper switch."""
         self.edit("switches", "2,107,107,", "3,107,107,")
-        self.edit("switches", "3,225,225,,,,,,,,,,,,,,double crossover: no hand\n", "")
-        self.append("switches", "3,299,299,,,,,,,,,,,,,,")
+        self.edit("switches", "3,225,225,,,,,,,,,,,double crossover: no hand\n", "")
+        self.append("switches", "3,299,299,,,,,,,,,,,")
         got = self.problems("switch-numbers")
         self.assertTrue(any("Switch 107 is level 3, its control point CP 107 level 2" in p for p in got), got)
         self.assertIn("Switch 225 (CP 225, level 3): no row in switches.csv", got)
         self.assertTrue(any("Switch 299 is in no main or upper control point and gives no area" in p for p in got), got)
 
     def test_lcos_nodes(self) -> None:
-        self.edit("switches", "2,101,101A,,,,,,,L,plan,Peninsula,", "2,101,101A,,,,,,,L,plan,Attic,")
+        self.edit("switches", "2,101,101A,,,,L,plan,Peninsula,", "2,101,101A,,,,L,plan,Attic,")
         self.edit("lcos_nodes", "1,West,4,", "2,West,4,")           # a staging node given to the main level
         self.edit("lcos_nodes", "1,North,12,", "1,North,62,")        # and one that staging uses, left out
         got = self.problems("lcos-nodes")
@@ -585,8 +584,9 @@ class Invariants(Copy):
                       self.problems("masts"))
 
     def test_staging_blocks(self) -> None:
-        self.edit("switches", "1,1,,OS Switch 1,OS Switch 3,Track Brick-Plane", "1,1,,OS Switch 1,OS Switch 3,Track Nowhere")
-        self.assertIn("Switch 1 (switches.csv): thrown leg Track Nowhere is no staging block row of the device master",
+        # a leg's ID is a device of the master (read_switch_rows), but here an occupancy, not a block
+        self.edit("switches", "1,1,,os:1,os:3,block:1C-5A#1+1C-5A#2,", "1,1,,os:1,os:3,det:os:3,")
+        self.assertIn("Switch 1 (switches.csv): thrown leg BS Switch 3 is no staging block row of the device master",
                       self.problems("staging-blocks"))
 
     def test_plan_overrides(self) -> None:
@@ -611,7 +611,7 @@ class Invariants(Copy):
         self.assertIn("block_lengths.csv line 3: block:3Z-end is no level 1 block row of the device master", got)
 
     def test_hands(self) -> None:
-        self.append("switches", "3,299,299,,,,,,,L,owner,,,,,,test")
+        self.append("switches", "3,299,299,,,,L,owner,,,,,,test")
         got = self.problems("hands")
         self.assertTrue(any("299 is no label the plan's relabel gives" in p for p in got), got)
         self.assertTrue(any("299 is no main or upper switch" in p for p in got), got)
