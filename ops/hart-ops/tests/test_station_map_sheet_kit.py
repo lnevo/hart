@@ -94,5 +94,20 @@ class Fonts(unittest.TestCase):
         self.assertIn("/nowhere/Missing.ttf", err.getvalue())
 
 
+class Arrow(unittest.TestCase):
+    def test_arrow_points_the_named_way(self):
+        from PIL import Image, ImageDraw
+        img = Image.new("RGB", (60, 40), sheet_kit.WHITE)
+        d = ImageDraw.Draw(img)
+        sheet_kit.arrow(d, (10, 20), "left", size=20)
+        sheet_kit.arrow(d, (50, 20), "right", size=20, fill=(255, 0, 0))
+        self.assertEqual(img.getpixel((25, 20)), sheet_kit.TRACK)
+        self.assertEqual(img.getpixel((40, 20)), (255, 0, 0))
+        self.assertEqual(img.getpixel((5, 20)), sheet_kit.WHITE)
+
+    def test_sheet_is_eight_by_five_inches(self):
+        self.assertEqual((sheet_kit.W, sheet_kit.H), (8 * sheet_kit.DPI, 5 * sheet_kit.DPI))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -27,25 +27,20 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import paths  # noqa: E402
 ROOT = paths.REPO_ROOT
 OUT_CATS = ROOT / "ops/station_maps/maps/Neville_Island_Station_Map_Barn_0.png"
-HOPS = ROOT / "ops/hart-ops"
+HOPS = ROOT / sheet_kit.HOPS_REL
 DOCX_NAME = "Neville_Island_Station_Map_Barn.docx"
-DOCX_TEMPLATE = ROOT / "docs/ops/Neville_Island_Station_Map_West_Yard.docx"
+DOCX_TEMPLATE = ROOT / sheet_kit.SM_DOCX_TEMPLATE_REL
 
 # 8 in × 5 in landscape, same as SM-02…SM-05.
-DPI = 200
-W = 8 * DPI
-H = 5 * DPI
+DPI, W, H = sheet_kit.DPI, sheet_kit.W, sheet_kit.H
 IN = float(DPI)
 
-TRACK = (20, 20, 20)
-INK = (16, 20, 24)
-BADGE = (15, 71, 97)  # same teal as SM-02…SM-05
-BADGE_INK = (255, 255, 255)
+TRACK, INK, BADGE, BADGE_INK = sheet_kit.TRACK, sheet_kit.INK, sheet_kit.BADGE, sheet_kit.BADGE_INK
 DOT_R = 16
 # Clear air between the frog and the pill (103/111 sit off the circle, not on it).
 BADGE_GAP = 18
 COMPASS_RING = (40, 70, 110)
-COMPASS_GOLD = (201, 154, 40)
+COMPASS_GOLD = sheet_kit.COMPASS_GOLD
 COMPASS_N = (70, 110, 160)
 
 # Shared slope: down-right (screen y grows down). Reverse is up-left.
@@ -85,13 +80,7 @@ _font = sheet_kit.arial
 _line = partial(sheet_kit.capped_line, fill=TRACK)
 
 
-def _arrow(d: ImageDraw.ImageDraw, tip, direction: str, size=14):
-    x, y = tip
-    if direction == "left":
-        pts = [(x, y), (x + size, y - size * 0.55), (x + size, y + size * 0.55)]
-    else:
-        pts = [(x, y), (x - size, y - size * 0.55), (x - size, y + size * 0.55)]
-    d.polygon(pts, fill=TRACK)
+_arrow = partial(sheet_kit.arrow, fill=TRACK)
 
 
 _dot = partial(sheet_kit.dot, r=DOT_R, fill=TRACK)

@@ -27,15 +27,12 @@ from hartlib import paths  # noqa: E402
 ROOT = paths.REPO_ROOT
 SRC = ROOT / "ops/station_maps/maps/src/south_yard_sheet.png"
 OUT_CATS = ROOT / "ops/station_maps/maps/Neville_Island_Station_Map_South_Yard_0.png"
-HOPS = ROOT / "ops/hart-ops"
+HOPS = ROOT / sheet_kit.HOPS_REL
 DOCX_NAME = "Neville_Island_Station_Map_South_Yard.docx"
 DOCX_TEMPLATE = ROOT / "docs/ops/Neville_Island_Station_Map_South_Yard.docx"
 
-WHITE = (255, 255, 255)
-TRACK = (20, 20, 20)
-INK = (16, 20, 24)
-BADGE = (15, 71, 97)
-BADGE_INK = (255, 255, 255)
+WHITE, TRACK, INK = sheet_kit.WHITE, sheet_kit.TRACK, sheet_kit.INK
+BADGE, BADGE_INK = sheet_kit.BADGE, sheet_kit.BADGE_INK
 DOT_R = 16
 BADGE_GAP = 18
 # Same slope as the Barn sheet (and East End 111 / 110–107).

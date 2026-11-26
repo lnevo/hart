@@ -19,6 +19,7 @@ the .docx writer and the command line.
 from __future__ import annotations
 
 import sys
+from typing import Any
 from pathlib import Path
 
 from docx import Document
@@ -40,7 +41,7 @@ from hart_pub_helpers import (  # noqa: E402
     set_letter_portrait,
     set_page_size,
 )
-from rebuild_station_map import _paste_compass  # noqa: E402
+import station_compass  # noqa: E402
 
 import local_station_maps  # noqa: E402
 
@@ -209,6 +210,11 @@ def _chrome(
     draw.text((width - margin, height - 78), "EAST →", font=dir_font, fill=MUTED_INK, anchor="rm")
 
     return margin + 20, 120, width - margin - 20, foot_y - 36
+
+
+def _paste_compass(base: Image.Image, **place: Any) -> None:
+    """The station compass, its letters in this module's fallback font loader (_font, read at call time)."""
+    station_compass.paste_compass(base, load_font=_font, **place)
 
 
 def _hooks() -> Hooks:
