@@ -12,14 +12,16 @@ import tempfile
 import unittest
 import unittest.mock
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[3]
 SPEC = importlib.util.spec_from_file_location("build_pipeline_map", ROOT / "tools/ops/build_pipeline_map.py")
+assert SPEC is not None and SPEC.loader is not None
 MAP = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MAP)
 EFF = MAP.EFF
 StepRef = EFF.StepRef
-NODE = shutil.which("node")
+NODE = shutil.which("node") or ""
 DOMAINS = [{"id": "a", "label": "A", "color": "#000"}, {"id": "b", "label": "B", "color": "#111"},
            {"id": "c", "label": "C", "color": "#222"}]
 
@@ -194,7 +196,7 @@ class PageTest(unittest.TestCase):
 
 @unittest.skipUnless(NODE, "node is not installed")
 class OverviewHelpersTest(unittest.TestCase):
-    def js(self, expr: str, arg: object) -> object:
+    def js(self, expr: str, arg: object) -> Any:
         script = f"const m = require({json.dumps(str(MAP.LAYOUT_JS))}); const a = JSON.parse(process.argv[1]); " \
                  f"console.log(JSON.stringify({expr}));"
         out = subprocess.run([NODE, "-e", script, json.dumps(arg)], capture_output=True, text=True, check=True)

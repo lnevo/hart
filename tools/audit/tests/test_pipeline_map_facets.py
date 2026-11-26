@@ -13,9 +13,10 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[3]
 SPEC = importlib.util.spec_from_file_location("build_pipeline_map", ROOT / "tools/ops/build_pipeline_map.py")
+assert SPEC is not None and SPEC.loader is not None
 MAP = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MAP)
-NODE = shutil.which("node")
+NODE = shutil.which("node") or ""
 # the values the page knows for each facet (pipeline_map_view_rail.js, KNOWN), cut down
 KNOWN = {"lane": ["a", "b", "c"], "kind": ["structured", "generator", "output", "host"],
          "status": ["live", "parked", "retired"], "step": ["stamped", "guard", "none"],
