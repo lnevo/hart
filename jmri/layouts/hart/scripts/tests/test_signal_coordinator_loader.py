@@ -1,4 +1,4 @@
-"""signal_coordinator.py's sibling-module loader (_load_siblings), run against jmri_fake.
+"""signal_coordinator.py's sibling modules, loaded through jython_siblings.py, run against jmri_fake.
 
 JMRI runs the script from preference:jython with no __file__ and that folder off sys.path, and keeps
 imported modules across runs. The loader puts the folder on sys.path, reloads every sibling on a
@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import contextlib
 import re
-import shutil
 import sys
 import tempfile
 import types
@@ -42,10 +41,7 @@ class Loader(unittest.TestCase):
         holder = tempfile.TemporaryDirectory()
         self.addCleanup(holder.cleanup)
         self.folder = Path(holder.name) / "jython"
-        self.folder.mkdir()
-        for path in coordinator.files():
-            shutil.copy(path, self.folder / path.name)
-        self.script = self.folder / coordinator.SCRIPT.name
+        self.script = jf.stage_jython(coordinator.SCRIPT, self.folder)
         self.layout = jf.Layout(mqtt=False)
         self.layout.jython_dir = self.folder
 
@@ -111,6 +107,25 @@ class Loader(unittest.TestCase):
         self.assertIn("no jython folder", str(caught.exception))
         self.assertIn("absent", str(caught.exception))
 
+
+    def test_no_shared_loader_stops_the_script(self) -> None:
+        (self.folder / jf.SIBLING_LOADER.name).unlink()
+        with self.assertRaises(ImportError) as caught:
+            self.load()
+        self.assertIn("no jython folder holding jython_siblings.py", str(caught.exception))
+
+    def test_a_rerun_reloads_the_shared_loader(self) -> None:
+        self.load()
+        loader = self.folder / jf.SIBLING_LOADER.name
+        loader.write_text(loader.read_text(encoding="utf-8") + "\nRELOADED = True\n", encoding="utf-8")
+        self.load()
+        self.assertTrue(sys.modules["jython_siblings"].RELOADED)
+
+    def test_a_sibling_whose_bytes_do_not_decode_stops_the_script(self) -> None:
+        # the loader compiles each file's bytes, as an import reads them (Jython 2.7 applies PEP 263)
+        first = self.folder / f"{SIBLINGS[0]}.py"
+        first.write_bytes(first.read_bytes() + b'\nBAD = "\xff"\n')
+        self.assert_load_fails(f"{SIBLINGS[0]}.py in {self.folder} does not compile")
 
     def test_every_sibling_is_ascii_or_declares_its_encoding(self) -> None:
         # JMRI runs the script from a string, but imports the modules: Jython 2.7 applies PEP 263 to them and

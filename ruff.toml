@@ -35,8 +35,5 @@ select = ["F"]
 "jmri/layouts/hart/scripts/cs105_consist.py" = ["F821"]
 "jmri/layouts/hart/scripts/ctc_default_reverse_levers.py" = ["F821"]
 "jmri/layouts/hart/scripts/panel_status.py" = ["F821"]
-# panel_status.py's parts (its PARTS) run in its namespace: their names come from it as well as from JMRI.
-"jmri/layouts/hart/scripts/panel_status_clicks.py" = ["F821"]
-"jmri/layouts/hart/scripts/panel_status_turnouts.py" = ["F821"]
 "jmri/layouts/hart/scripts/panelpro_smoke_test.py" = ["F821"]
 # A deliberate star import of main_level_geometry (its own noqa covers F403): the names it uses come from there.

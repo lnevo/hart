@@ -69,7 +69,8 @@ from javax.swing import JButton, JOptionPane, SwingUtilities
 from jmri.jmrix.mqtt import MqttEventListener
 
 # Sibling modules beside this script in preference:jython, in load order: each comes after
-# every module it imports. The deploy ships each one beside it
+# every module it imports. The script imports them through jython_siblings.py, which reloads
+# each on a re-run. The deploy ships each one beside it
 # (tools/hosts/tests/test_coordinator_shipping.py holds every host's list to this tuple).
 SIBLING_MODULES = (
     "sml_beans",
@@ -81,69 +82,34 @@ SIBLING_MODULES = (
 )
 
 
-class SiblingModuleError(ImportError):
-    """A sibling module is missing from the jython folder, or was loaded from another one."""
-
-
-try:
-    _reload = reload  # Jython 2.7: a builtin
-except NameError:  # CPython 3, where the tests run the script
-    from importlib import reload as _reload
-
-
-def _load_siblings(names):
-    """Import each sibling from preference:jython, or reload it if an earlier run imported it.
+def _sibling_loader():
+    """jython_siblings.py from preference:jython, reloaded if an earlier run imported it; returns (module, folder).
 
     JMRI runs this script with no __file__ and without its folder on sys.path, so the folder
-    is added. A re-run in the same JMRI would otherwise get the modules the earlier run
-    cached: a redeployed script with the old modules. Every file is found and compiled
-    before any is loaded, so a missing or broken one stops a re-run before it reloads the
-    earlier run's modules under its live controller.
+    comes from FileUtil and goes on sys.path. panel_status.py starts the same way: these lines
+    run before the shared loader is imported.
     """
     import os
 
     folder = jmri.util.FileUtil.getExternalFilename("preference:jython")
-    if not folder or not os.path.isdir(folder):
-        raise SiblingModuleError(
-            "signal_coordinator: no jython folder (preference:jython is %r)" % (folder,)
+    if not folder or not os.path.isfile(os.path.join(folder, "jython_siblings.py")):
+        raise ImportError(
+            "signal_coordinator: no jython folder holding jython_siblings.py (preference:jython is %r)"
+            % (folder,)
         )
     if folder not in sys.path:
         sys.path.insert(0, folder)
-    want = os.path.normcase(os.path.realpath(folder))
-    for name in names:
-        path = os.path.join(folder, name + ".py")
-        if not os.path.isfile(path):
-            raise SiblingModuleError(
-                "signal_coordinator: %s.py is missing from %s; the deploy ships it beside "
-                "this script" % (name, folder)
-            )
-        try:
-            with open(path) as f:
-                compile(f.read(), path, "exec")
-        except Exception as exc:
-            raise SiblingModuleError(
-                "signal_coordinator: %s.py in %s does not compile: %s" % (name, folder, exc)
-            )
-    for name in names:
-        try:
-            module = sys.modules.get(name)
-            if module is None:
-                module = __import__(name)
-            else:
-                module = _reload(module)
-        except Exception as exc:
-            raise SiblingModuleError(
-                "signal_coordinator: cannot import %s from %s: %s" % (name, folder, exc)
-            )
-        got = os.path.dirname(getattr(module, "__file__", None) or "")
-        if os.path.normcase(os.path.realpath(got)) != want:
-            raise SiblingModuleError(
-                "signal_coordinator: %s was loaded from %r, not from %s" % (name, got, folder)
-            )
-    print("mqtt_signalhead: modules %s from %s" % (", ".join(names), folder))
+    cached = sys.modules.get("jython_siblings")
+    if cached is None:
+        import jython_siblings as cached
+    else:
+        cached = cached.reload_module(cached)
+    return cached, folder
 
 
-_load_siblings(SIBLING_MODULES)
+_loader, _folder = _sibling_loader()
+_loader.load("signal_coordinator", _folder, SIBLING_MODULES)
+print("mqtt_signalhead: modules %s from %s" % (", ".join(SIBLING_MODULES), _folder))
 
 from sml_beans import (  # noqa: E402
     TOPIC_PREFIX, MAST_TOPIC_PREFIX, SML_MODE_TOPIC, SML_CLAIM_TOPIC, SML_MODE_SENSOR,
