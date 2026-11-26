@@ -345,8 +345,9 @@ class RunGhTest(unittest.TestCase):
 
     def test_no_gh(self) -> None:
         os.environ["PATH"] = str(self.bin)
-        with self.assertRaisesRegex(ci_pass.Unreadable, "gh \\(the GitHub CLI\\) is not installed"):
+        with self.assertRaisesRegex(ci_pass.Unreadable, "gh \\(the GitHub CLI\\) is not installed") as cm:
             ci_pass.run_gh(["api", "repos/x"], 5)
+        self.assertIsInstance(cm.exception.__cause__, FileNotFoundError)
 
     def test_a_failing_gh_names_its_last_error_line(self) -> None:
         gh = self.bin / "gh"
@@ -361,8 +362,9 @@ class RunGhTest(unittest.TestCase):
         gh.write_text("#!/bin/sh\nprintf 'log \\377\\376 bytes\\n'\n", encoding="utf-8")
         gh.chmod(0o755)
         os.environ["PATH"] = f"{self.bin}{os.pathsep}{self.path}"
-        with self.assertRaisesRegex(ci_pass.Unreadable, "not UTF-8"):
+        with self.assertRaisesRegex(ci_pass.Unreadable, "not UTF-8") as cm:
             ci_pass.run_gh(["api", "repos/x/logs"], 5)
+        self.assertIsInstance(cm.exception.__cause__, UnicodeDecodeError)
 
     def test_a_hung_gh_times_out(self) -> None:
         gh = self.bin / "gh"

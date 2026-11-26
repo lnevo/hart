@@ -18,10 +18,10 @@ CHECK=0
 [[ "${1:-}" == "--check" ]] && CHECK=1
 [[ $# -le 1 && ( $# -eq 0 || $CHECK -eq 1 ) ]] || { echo "usage: $0 [--check]" >&2; exit 2; }
 
-# the profile PanelPro runs on the Pi: the one pi_start_panelpro.sh starts (its PROFILE, "<name>.<id>"), whose
-# folder is ~/.jmri/<name>.jmri; the Pi keeps other profiles (MQTT, Offline, Test ...) this leaves alone
-PROFILE="$(sed -n 's/^PROFILE="\(.*\)"$/\1/p' "$ROOT/tools/hosts/pi_start_panelpro.sh")"
-[[ -n "$PROFILE" ]] || { echo "STOP: no PROFILE in tools/hosts/pi_start_panelpro.sh" >&2; exit 1; }
+# the profile PanelPro runs on the Pi (HART_PI_PROFILE, "<name>.<id>", load_env.sh), whose folder is
+# ~/.jmri/<name>.jmri; the Pi keeps other profiles (MQTT, Offline, Test ...) this leaves alone
+PROFILE="$HART_PI_PROFILE"
+[[ "$PROFILE" == ?*.?* ]] || { echo "STOP: HART_PI_PROFILE is not <name>.<id>: '$PROFILE'" >&2; exit 1; }
 REMOTE="$(ssh -o BatchMode=yes -o ConnectTimeout=10 "$PI_HOST" \
   "ls -d ~/.jmri/${PROFILE%%.*}.jmri/profile/*/user-interface.xml 2>/dev/null")" || true
 n="$(grep -c . <<<"$REMOTE" || true)"

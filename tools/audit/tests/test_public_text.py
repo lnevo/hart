@@ -5,6 +5,7 @@ import importlib.util
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -71,6 +72,20 @@ class Files(unittest.TestCase):
 
     def test_clean_text_file_passes(self) -> None:
         self.assertEqual(self.check("a.md", b"# Notes\nNothing private.\n"), [])
+
+    def test_a_damaged_office_file_is_reported(self) -> None:
+        found = self.check("a.docx", b"not a zip")
+        self.assertEqual(len(found), 1, found)
+        self.assertIn("cannot read", found[0])
+
+    def test_text_over_the_limit_is_reported_and_binary_is_not(self) -> None:
+        limit = mock.patch.object(cpt, "MAX_TEXT", 10)
+        limit.start()
+        self.addCleanup(limit.stop)
+        found = self.check("a.md", b"# Notes\nNothing private here.\n")
+        self.assertEqual(len(found), 1, found)
+        self.assertIn("over the 10-byte limit", found[0])
+        self.assertEqual(self.check("a.bin", b"\0" * 40), [])
 
     @unittest.skipUnless(HAVE_PYPDF, "pypdf not installed")
     def test_pdf_text_is_read(self) -> None:

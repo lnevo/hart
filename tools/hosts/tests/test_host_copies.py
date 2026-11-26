@@ -58,6 +58,12 @@ class HostCopiesTest(unittest.TestCase):
         self.assertEqual(one(r'environ\.get\("HART_PI_USERFILES", "([^"]+)"\)', rel),
                          self.d["HART_PI_USERFILES"])
 
+    def test_pi_launch_cats_profile(self) -> None:
+        """The Pi's launch_cats.sh runs without load_env.sh; its default profile is load_env's HART_PI_PROFILE."""
+        got = one(r'^JMRI_PROFILE="\$\{JMRI_PROFILE:-([^}]+)\}"$', "tools/hosts/pi/launch_cats.sh")
+        want = one(r'^export HART_PI_PROFILE="\$\{HART_PI_PROFILE:-([^}]+)\}"$', "tools/env/load_env.sh")
+        self.assertEqual(got, want)
+
     def test_host_side_files_name_only_the_pi_address(self) -> None:
         """Any 10.0.0.x address in the files that ship to the hosts is the Pi's."""
         for folder in ("tools/hosts/windows", "tools/hosts/pi", "ops/packages"):
