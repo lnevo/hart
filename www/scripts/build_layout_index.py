@@ -24,7 +24,6 @@ import subprocess
 import sys
 import xml.etree.ElementTree as ET
 from collections.abc import Sequence
-from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
 from typing import NamedTuple, TypedDict
@@ -208,8 +207,7 @@ def cp_for(public: str, pairs: Sequence[tuple[str, str]], fallback: str) -> str:
     return ""
 
 
-@dataclass(frozen=True)
-class Overview:
+class Overview(NamedTuple):
     """Panel coordinates to pixels on the schematic, as render_le_layout.render_view draws its overview
     (xmin=None)."""
     bx0: float

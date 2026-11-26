@@ -34,54 +34,58 @@ class Fixture(NamedTuple):
     note: str
 
 
-# (group, its parts)
-GROUPS: list[tuple[str, list[Fixture]]] = [
+# (group, [(files, script, note)]): a plain literal, which tools/audit/tests/test_helix_stl_index.py reads
+GROUPS = [
     ('Router templates', [
-        Fixture(['roadbed_halflap_template_A.3mf', 'roadbed_halflap_template_A.stl', 'roadbed_halflap_template_A_CORE100.stl',
+        (['roadbed_halflap_template_A.3mf', 'roadbed_halflap_template_A.stl', 'roadbed_halflap_template_A_CORE100.stl',
           'roadbed_halflap_template_B.3mf', 'roadbed_halflap_template_B.stl', 'roadbed_halflap_template_B_CORE100.stl'],
          'make_lap_template.py', 'Half-lap router template, hands A and B. Hooks the end cut and the 26 in edge; window to a radial shoulder at 3.75°. Open the 3MF (body + 100% core modifier).'),
-        Fixture(['bracket_pocket_template_A.3mf', 'bracket_pocket_template_A.stl', 'bracket_pocket_template_A_CORE100.stl',
+        (['bracket_pocket_template_A.3mf', 'bracket_pocket_template_A.stl', 'bracket_pocket_template_A_CORE100.stl',
           'bracket_pocket_template_B.3mf', 'bracket_pocket_template_B.stl', 'bracket_pocket_template_B_CORE100.stl'],
          'make_bracket_pocket_template.py', 'Bracket pocket at a lap joint: slot 0.6625 wide on the joint line, 3/32 deep, 1/2 in bit. Pair with the same lap letter.'),
-        Fixture(['bracket_pocket_template_MID.3mf', 'bracket_pocket_template_MID.stl', 'bracket_pocket_template_MID_CORE100.stl'],
+        (['bracket_pocket_template_MID.3mf', 'bracket_pocket_template_MID.stl', 'bracket_pocket_template_MID_CORE100.stl'],
          'make_mid_pocket_template.py', 'Mid-piece bracket pocket (odd n). Rides the 26 in edge; center the V-notch on the pencil line (chord 20.683, P1 19.900).'),
-        Fixture(['router_depth_block.stl'], 'make_router_depth_block.py', 'Two-sided depth block, wells 3/32 · 1/4 · 3/8 / 1/2 · 5/8 · 3/4. Print on its end with a brim.'),
-        Fixture(['router_depth_gauge.stl'], 'make_router_depth_gauge.py', 'Checks POCKET 3/32, LOWER 1/4, UPPER 1/2 (3/4-stock values).'),
+        (['router_depth_block.stl'], 'make_router_depth_block.py', 'Two-sided depth block, wells 3/32 · 1/4 · 3/8 / 1/2 · 5/8 · 3/4. Print on its end with a brim.'),
+        (['router_depth_gauge.stl'], 'make_router_depth_gauge.py', 'Checks POCKET 3/32, LOWER 1/4, UPPER 1/2 (3/4-stock values).'),
     ]),
     ('Heights', [
-        Fixture(['p1_height_template.stl'], 'make_height_spacers.py', 'P1 roadbed top at bracket 0: 1-1/32 in above the deck.'),
-        Fixture(['height_base_1_4in.stl', 'height_spacer_1_4in.stl', 'height_spacer_1_2in.stl', 'height_spacer_3_4in.stl',
+        (['p1_height_template.stl'], 'make_height_spacers.py', 'P1 roadbed top at bracket 0: 1-1/32 in above the deck.'),
+        (['height_base_1_4in.stl', 'height_spacer_1_4in.stl', 'height_spacer_1_2in.stl', 'height_spacer_3_4in.stl',
           'height_spacer_1in.stl', 'height_spacer_1_1_2in.stl'],
          'make_height_spacers.py', 'Stacking height blocks (pegs + crush ribs). Template + 1/2 in per 45° marks the plywood top.'),
-        Fixture(['first_loop_pier_post2.stl', 'first_loop_pier_post3.stl', 'first_loop_pier_post4.stl',
+        (['first_loop_pier_post2.stl', 'first_loop_pier_post3.stl', 'first_loop_pier_post4.stl',
           'first_loop_pier_post5.stl', 'first_loop_pier_post6.stl', 'first_loop_pier_post7.stl'],
          'make_first_loop_piers.py', 'First-loop piers, posts 2–7. Top at grade, arrow uphill; two screw tabs.'),
-        Fixture(['layer_spacer_4in_pitch.stl'], 'make_layer_spacer.py', 'Loop-to-loop check, 3.280 in (4.000 − 0.72). Normal mode, ~22 g.'),
-        Fixture(['layer_spacer_4in_pitch_vase.stl', 'layer_spacer_4in_pitch_vase_1line.stl'], 'make_layer_spacer_vase.py',
+        (['layer_spacer_4in_pitch.stl'], 'make_layer_spacer.py', 'Loop-to-loop check, 3.280 in (4.000 − 0.72). Normal mode, ~22 g.'),
+        (['layer_spacer_4in_pitch_vase.stl', 'layer_spacer_4in_pitch_vase_1line.stl'], 'make_layer_spacer_vase.py',
          'Same spacer in spiral vase mode (~10 g, or ~4 g single line). Slice gap closing radius 0.01.'),
     ]),
     ('Entry', [
-        Fixture(['entry_wedge_riser_inside.stl', 'entry_wedge_riser_outside.stl'], None, 'Tongue risers, 1 × 2.25 in, 1.261 tall, step 0.864. Engraved R / L.'),
-        Fixture(['cork_to_plywood_transition_shim.stl'], None, 'The “offset bracket” under P1: low foot 0.375 (tongue), high foot 0.611 (P1). Sits in a ~0.300 deep deck pocket.'),
-        Fixture(['corner_spacer_P1.stl'], 'make_corner_offset_spacer.py', 'Barrel under each P1 wing corner, 0.311 tall, 5/8 OD. Print 2 at 100% infill; measure the gap first.'),
+        (['entry_wedge_riser_inside.stl', 'entry_wedge_riser_outside.stl'], None, 'Tongue risers, 1 × 2.25 in, 1.261 tall, step 0.864. Engraved R / L.'),
+        (['cork_to_plywood_transition_shim.stl'], None, 'The “offset bracket” under P1: low foot 0.375 (tongue), high foot 0.611 (P1). Sits in a ~0.300 deep deck pocket.'),
+        (['corner_spacer_P1.stl'], 'make_corner_offset_spacer.py', 'Barrel under each P1 wing corner, 0.311 tall, 5/8 OD. Print 2 at 100% infill; measure the gap first.'),
     ]),
     ('Brackets', [
-        Fixture(['bracket_edge_shim.stl'], 'make_bracket_edge_shim.py', 'Fills the 26 in edge to 2x4 face gap above the bend; also the radial go/no-go gauge. 29 needed.'),
-        Fixture(['bracket_plumb_shim.stl'], 'make_bracket_plumb_shim.py', 'Tapered strip (0.20 → 0.56 mm) for the sideways lean from grade. Notched edge uphill. One per bracket.'),
+        (['bracket_edge_shim.stl'], 'make_bracket_edge_shim.py', 'Fills the 26 in edge to 2x4 face gap above the bend; also the radial go/no-go gauge. 29 needed.'),
+        (['bracket_plumb_shim.stl'], 'make_bracket_plumb_shim.py', 'Tapered strip (0.20 → 0.56 mm) for the sideways lean from grade. Notched edge uphill. One per bracket.'),
     ]),
     ('Field fit', [
-        Fixture(['bracket_wedge_gap_1_64.stl', 'bracket_wedge_gap_2_64.stl', 'bracket_wedge_gap_3_64.stl', 'bracket_wedge_gap_4_64.stl'],
+        (['bracket_wedge_gap_1_64.stl', 'bracket_wedge_gap_2_64.stl', 'bracket_wedge_gap_3_64.stl', 'bracket_wedge_gap_4_64.stl'],
          'make_bracket_wedges.py', 'Tapered wedges for a gap between a bracket leg and its post. Notches show the gap in 64ths.'),
-        Fixture(['rail_spacer_4in_pitch_vase.stl'], 'make_rail_spacer_vase.py', 'Railhead-to-underside spacer for the outside track, 3.120 in with track height 0.160 in. Spiral vase.'),
+        (['rail_spacer_4in_pitch_vase.stl'], 'make_rail_spacer_vase.py', 'Railhead-to-underside spacer for the outside track, 3.120 in with track height 0.160 in. Spiral vase.'),
     ]),
     ('Shop tool', [
-        Fixture(['router_sigerio_test_plate.stl', 'router_sigerio_test_plate_body.stl', 'router_sigerio_test_plate_screw_rings.stl'],
+        (['router_sigerio_test_plate.stl', 'router_sigerio_test_plate_body.stl', 'router_sigerio_test_plate_screw_rings.stl'],
          None, 'MW104 router to Sigerio circle-jig adapter, test plate. Hole sizes and center bore are estimates.'),
     ]),
 ]
 OBSOLETE = ['bracket_pocket_template.stl', 'entry_transition_shim.stl', 'entry_transition_shim_inside.stl',
             'entry_transition_shim_outside.stl', 'entry_wedge_riser.stl']
 EXTRA_SCRIPTS = ['router_template_lattice.py', 'stl_text.py', 'make_lap_screw_template.py']
+
+
+# GROUPS with each part as a Fixture
+PARTS: list[tuple[str, list[Fixture]]] = [(g, [Fixture(*row) for row in rows]) for g, rows in GROUPS]
 
 
 def size(n: int) -> str:
@@ -99,7 +103,7 @@ def dims(path: Path) -> tuple[str, str, int]:
 
 def listed_files() -> set[str]:
     """Every STL and 3MF the index lists; exits when one on disk is not classified or a listed one is gone."""
-    listed = {f for _, rows in GROUPS for row in rows for f in row.files}
+    listed = {f for _, rows in PARTS for row in rows for f in row.files}
     on_disk = {p.name for p in SRC.iterdir() if p.name.endswith(('.stl', '.3mf'))}
     missing = on_disk - listed - set(OBSOLETE)
     gone = listed - on_disk
@@ -111,7 +115,7 @@ def listed_files() -> set[str]:
 def stl_rows() -> list[str]:
     """The STL index's table rows: a heading row per group, then a row per file with its part's script and note."""
     rows_html = []
-    for group, rows in GROUPS:
+    for group, rows in PARTS:
         rows_html.append(f'<tr class="grp"><th colspan="5">{group}</th></tr>')
         for row in rows:
             cells = []
@@ -196,9 +200,9 @@ def main() -> None:
     # The generators are archived (archive/code/benchwork-tools/helix/); their names stay as plain text.
     head = HEAD.read_text(encoding="utf-8")
     (OUT / 'build-status.html').write_text(status_page(head, published), encoding="utf-8")
-    n_files = sum(len(row.files) for _, rows in GROUPS for row in rows)
+    n_files = sum(len(row.files) for _, rows in PARTS for row in rows)
     (OUT / 'index.html').write_text(index_page(head, stl_rows(), n_files), encoding="utf-8")
-    scripts = {row.script for _, rows in GROUPS for row in rows if row.script} | set(EXTRA_SCRIPTS)
+    scripts = {row.script for _, rows in PARTS for row in rows if row.script} | set(EXTRA_SCRIPTS)
     print('files', n_files, 'scripts', len(scripts))
 
 

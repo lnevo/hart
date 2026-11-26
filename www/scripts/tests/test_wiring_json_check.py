@@ -17,7 +17,6 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parents[3]
 SPEC = importlib.util.spec_from_file_location("build_wiring_json", ROOT / "www/scripts/build_wiring_json.py")
 BW = importlib.util.module_from_spec(SPEC)
-sys.modules[SPEC.name] = BW  # dataclasses look their module up by name
 SPEC.loader.exec_module(BW)
 
 INV = BW.build().data  # built once for the tests that read the real model

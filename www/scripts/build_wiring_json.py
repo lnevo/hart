@@ -29,7 +29,6 @@ import re
 import sys
 from collections import Counter, OrderedDict, defaultdict
 from collections.abc import Callable, Iterator
-from dataclasses import dataclass, field
 from pathlib import Path
 from typing import NamedTuple
 
@@ -189,11 +188,16 @@ def pick_location(locs: list[str]) -> str:
     return Counter(specific or locs).most_common(1)[0][0]
 
 
-@dataclass
 class BuildLog:
-    """What one build found along the way: data warnings, and the cells clean() dropped."""
-    warnings: list[str] = field(default_factory=list)
-    scrubbed: list[str] = field(default_factory=list)
+    """What one build found along the way: data warnings, and the cells clean() dropped. A plain class, not a
+    dataclass: other scripts load this module by path without registering it in sys.modules."""
+
+    def __init__(self) -> None:
+        self.warnings: list[str] = []
+        self.scrubbed: list[str] = []
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, BuildLog) and (self.warnings, self.scrubbed) == (other.warnings, other.scrubbed)
 
     def warn(self, msg: str) -> None:
         self.warnings.append(msg)
