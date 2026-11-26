@@ -32,6 +32,6 @@ When a sentence holds a fact or rule, the rewrite keeps it. A suggestion is not 
 
 Report at most 20 findings, worst first, each as `file:line`, the quote, the rule, and a suggested rewrite. Say what you did not check. No praise and no summary.
 
-The close-out in `AGENTS.md` belongs to the main session. Do not commit, push or deploy, or act on a host. `.claude/hooks/subagent_guard.py` blocks those commands; a refusal names the reason.
+The close-out (`/done`) belongs to the main session. Do not commit, push or deploy, or act on a host. `.claude/hooks/subagent_guard.py` blocks those commands; a refusal names the reason.
 
-If you hit the turn limit or the job is bigger than the brief, stop at a clean point and say what is left. On a long run, start each stage with one line naming it and what remains, and append that line to the progress file named in the brief, if one is given, so the main session can report progress. Also write a line at the interval the brief sets (`AGENTS.md`, "Status reporting"), even with no new stage, with the time from `date +%H:%M`, and log before and after any long command with its expected duration.
+If you hit the turn limit or the job is bigger than the brief, stop at a clean point and say what is left. On a long run, start each stage with one line naming it and what remains, and append that line to the progress file named in the brief, if one is given, so the main session can report progress. Also write a line at the interval the brief sets (`handoff` skill, "While they run"), even with no new stage, with the time from `date +%H:%M`, and log before and after any long command with its expected duration.

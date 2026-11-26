@@ -30,7 +30,7 @@ Examples: `agent/composer/naming-csv`, `spike/duplicate-blocks`.
    `make wt` checks out the `model-railroad-skills` submodule the schematic and Layout Editor checks import; in a worktree it did not make (a subagent's), `tools/check.sh` checks it out on its first run.  
    `docs/pipeline-map/pipeline_map.json` merges itself locally by box id and link ends (`tools/ops/merge_pipeline_map.py`, a git merge driver set in the shared git config by `make wt` and the session-start hook; `--install` sets it by hand). GitHub never runs it: when a PR shows a conflict there, merge `origin/main` into the branch locally and run `python3 tools/ops/build_pipeline_map.py --check`. The map pages are built, not committed (`make map` for a local look; [ADR-036](decisions/ADR-036-generated-views-not-committed.md)).  
 5. **Who works on what:** `make orient` (`tools/ops/orient.py`) prints the claims, every worktree with commits not on `origin/main` or locked by a running session (branch, last commit, lock, PR), the operating flag, what each layout host last got, the open PRs, and what a host holds that is waiting to come into the repo (one line per source with the command that pulls it in: a PanelPro Store on the Pi or the Mac, the Pi's Operations Pro files, the DecoderPro roster against the Mac copy; the live STS is not checked, and the line says why), asked read-only of the checks the pulls and the deploy gate make; a part it cannot read, or a Pi that does not answer, is one line. The session-start hook prints the claims and worktrees only, with no network. A claim is one line directly under the `Status:` line of an active `wiki/projects/` page, `Claimed: <branch>, <absolute worktree path>, since YYYY-MM-DD HH:MM`; more claims follow each other. `orient.py claim <page>` writes it in your worktree when you start on that project and `orient.py unclaim <page>` removes it in the commit that ends the work, so main never carries one. Orient reads every worktree's copy of the pages, committed or not, so a claim shows as soon as it is written; one whose worktree is gone or on another branch shows as stale, and a malformed or misplaced line, or a claim on a page that is not active, as a problem.  
-6. **Close-out:** the definition of done in [`AGENTS.md`](../AGENTS.md).  
+6. **Close-out:** the definition of done in [`.claude/commands/done.md`](../.claude/commands/done.md) (`/done`).  
 7. Update `wiki/` when a decision changes; chat is not SoR. Each status entry is its own file under `wiki/status/` ([README](status/README.md), ADR-038), so branches that each add an entry do not conflict and two that edit one entry get a real conflict; `wiki/STATUS.md` is built (`make status`) and not committed. A branch from before the split that edited `wiki/STATUS.md` moves its edit into the entry file and runs `git rm wiki/STATUS.md`. `wiki/STATUS_LOG.md` still merges with git's union driver (`.gitattributes`).
 
 ## Hooks
@@ -43,8 +43,9 @@ A fresh clone needs `git config core.hooksPath .githooks` to enable the pre-comm
 
 | What | Where | Holds |
 |------|-------|-------|
-| Rules for every tool | `AGENTS.md` | Commands, close-out, do-nots |
-| Scoped rules | `cats/AGENTS.md` | Only what applies under that folder |
+| Rules for every tool | `AGENTS.md` | Daily commands, the close-out rule, owner, subagents, do-nots; capped by `check_agent_docs.py` |
+| Close-out steps | `.claude/commands/done.md` | The definition of done; Cursor's close-out points at it |
+| Scoped rules | `cats/`, `jmri/`, `tools/schematic/`, `ops/hart-ops/` `AGENTS.md` | Only what applies under that folder; loaded when a session works there |
 | Cursor | `.cursor/rules/close-out.mdc`, `.cursor/commands/done.md`, `.cursor/hooks.json`, `.cursor/hooks/main_guard.py` | Pointers, plus a hook that runs the Claude guard's rules on every shell command; Cursor also reads `AGENTS.md`. When a rule or guard changes, carry it here too |
 | Claude Code | `.claude/commands/done.md`, `.claude/settings.json`, `.claude/hooks/main_guard.py` | Pointer and guard hook; Claude Code reads `AGENTS.md` |
 | Subagents | `.claude/agents/` | Six project agents; see below |

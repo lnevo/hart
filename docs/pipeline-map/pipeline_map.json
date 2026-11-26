@@ -5508,12 +5508,22 @@
    "gen": "agent-docs"
   },
   {
+   "id": ".claude/agents/data-lane.md",
+   "label": "agent: data-lane",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Builds one ADR-039 data-masters lane (a master file, its sidecar, its readers and checks) outside tools/schematic/ and tools/hartlib/. Use for data-masters work on ops/, cats/data/, www/data/ and docs/data/. Give it one lane; it always runs in a worktree.",
+   "path": ".claude/agents/data-lane.md",
+   "gen": "agent-docs"
+  },
+  {
    "id": ".claude/agents/finding-verifier.md",
    "label": "agent: finding-verifier",
    "kind": "unstructured",
    "status": "live",
    "domain": "agents",
-   "desc": "Read-only check of one claimed bug against the code. Use to triage a single /code-review or audit finding. It answers CONFIRMED, PLAUSIBLE or WRONG with the file and line that show it.",
+   "desc": "Read-only check of one claimed bug against the code. Use for every /code-review or audit finding before it is fixed, one finding per launch. It answers CONFIRMED, PLAUSIBLE or WRONG with the file and line that show it.",
    "path": ".claude/agents/finding-verifier.md",
    "gen": "agent-docs"
   },
@@ -5718,6 +5728,16 @@
    "gen": "agent-docs"
   },
   {
+   "id": "jmri/AGENTS.md",
+   "label": "jmri/AGENTS.md",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Agent instructions for this folder.",
+   "path": "jmri/AGENTS.md",
+   "gen": "agent-docs"
+  },
+  {
    "id": "ops/hart-ops/AGENTS.md",
    "label": "ops/hart-ops/AGENTS.md",
    "kind": "unstructured",
@@ -5725,6 +5745,16 @@
    "domain": "agents",
    "desc": "Agent instructions for this folder.",
    "path": "ops/hart-ops/AGENTS.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": "tools/schematic/AGENTS.md",
+   "label": "tools/schematic/AGENTS.md",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Agent instructions for this folder.",
+   "path": "tools/schematic/AGENTS.md",
    "gen": "agent-docs"
   },
   {
@@ -12862,6 +12892,13 @@
    "side": "check"
   },
   {
+   "from": ".claude/agents/data-lane.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs",
+   "side": "check"
+  },
+  {
    "from": ".claude/agents/finding-verifier.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -12881,6 +12918,13 @@
    "label": "check",
    "gen": "agent-docs",
    "side": "check"
+  },
+  {
+   "from": ".claude/agents/schematic-builder.md",
+   "to": ".claude/skills/panel-approval/SKILL.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": ".claude/agents/schematic-builder.md",
@@ -12918,6 +12962,27 @@
    "side": "check"
   },
   {
+   "from": ".claude/commands/done.md",
+   "to": "wiki/STATUS.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": ".claude/commands/done.md",
+   "to": "wiki/STATUS_LOG.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": ".claude/commands/done.md",
+   "to": "wiki/status",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
    "from": ".claude/skills/coordinate/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -12930,6 +12995,20 @@
    "label": "check",
    "gen": "agent-docs",
    "side": "check"
+  },
+  {
+   "from": ".claude/skills/deploy/SKILL.md",
+   "to": "wiki/STATUS.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": ".claude/skills/handoff/SKILL.md",
+   "to": "docs/INDEX.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": ".claude/skills/handoff/SKILL.md",
@@ -12953,6 +13032,20 @@
    "side": "check"
   },
   {
+   "from": ".claude/skills/ops-pull/SKILL.md",
+   "to": "wiki/STATUS.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": ".claude/skills/ops-pull/SKILL.md",
+   "to": "wiki/decisions",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
    "from": ".claude/skills/panel-approval/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -12974,6 +13067,13 @@
    "side": "check"
   },
   {
+   "from": ".claude/skills/sts-live/SKILL.md",
+   "to": "wiki/decisions",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
    "from": ".claude/skills/tables-pull/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -12986,6 +13086,62 @@
    "label": "check",
    "gen": "agent-docs",
    "side": "check"
+  },
+  {
+   "from": ".cursor",
+   "to": ".claude/agents/archive-researcher.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": ".cursor",
+   "to": ".claude/agents/data-lane.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": ".cursor",
+   "to": ".claude/agents/panel-tracer.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": ".cursor",
+   "to": ".claude/agents/repo-auditor.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": ".cursor",
+   "to": ".claude/agents/schematic-builder.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": ".cursor",
+   "to": ".claude/agents/site-builder.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": ".cursor",
+   "to": ".claude/agents/site-reviewer.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": ".cursor",
+   "to": ".claude/agents/voice-reviewer.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": ".cursor",
@@ -13002,8 +13158,22 @@
    "side": "check"
   },
   {
-   "from": "AGENTS.md",
-   "to": ".claude/agents/archive-researcher.md",
+   "from": ".cursor",
+   "to": "wiki/STATUS.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": ".cursor",
+   "to": "wiki/STATUS_LOG.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": ".cursor",
+   "to": "wiki/status",
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"
@@ -13011,48 +13181,6 @@
   {
    "from": "AGENTS.md",
    "to": ".claude/agents/finding-verifier.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "AGENTS.md",
-   "to": ".claude/agents/panel-tracer.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "AGENTS.md",
-   "to": ".claude/agents/repo-auditor.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "AGENTS.md",
-   "to": ".claude/agents/schematic-builder.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "AGENTS.md",
-   "to": ".claude/agents/site-builder.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "AGENTS.md",
-   "to": ".claude/agents/site-reviewer.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "AGENTS.md",
-   "to": ".claude/agents/voice-reviewer.md",
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"
@@ -13087,63 +13215,7 @@
   },
   {
    "from": "AGENTS.md",
-   "to": ".claude/skills/operating-flag/SKILL.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "AGENTS.md",
-   "to": ".claude/skills/ops-pull/SKILL.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "AGENTS.md",
-   "to": ".claude/skills/panel-approval/SKILL.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "AGENTS.md",
-   "to": ".claude/skills/panelpro/SKILL.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "AGENTS.md",
-   "to": ".claude/skills/sts-live/SKILL.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "AGENTS.md",
-   "to": ".claude/skills/tables-pull/SKILL.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "AGENTS.md",
    "to": ".cursor",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "AGENTS.md",
-   "to": "cats/AGENTS.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "AGENTS.md",
-   "to": "docs/INDEX.md",
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"
@@ -13165,20 +13237,6 @@
   {
    "from": "AGENTS.md",
    "to": "wiki/AGENTS_GIT.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "AGENTS.md",
-   "to": "wiki/STATUS.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "AGENTS.md",
-   "to": "wiki/STATUS_LOG.md",
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"
@@ -13219,14 +13277,28 @@
    "side": "pointer"
   },
   {
-   "from": "AGENTS.md",
-   "to": "wiki/status",
+   "from": "cats/AGENTS.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs",
+   "side": "check"
+  },
+  {
+   "from": "jmri/AGENTS.md",
+   "to": ".claude/skills/tables-pull/SKILL.md",
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"
   },
   {
-   "from": "cats/AGENTS.md",
+   "from": "jmri/AGENTS.md",
+   "to": "AGENTS.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "jmri/AGENTS.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
    "gen": "agent-docs",
@@ -13240,6 +13312,90 @@
    "side": "check"
   },
   {
+   "from": "tools/schematic/AGENTS.md",
+   "to": ".claude/agents/schematic-builder.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "tools/schematic/AGENTS.md",
+   "to": ".claude/skills/panel-approval/SKILL.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "tools/schematic/AGENTS.md",
+   "to": "AGENTS.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "tools/schematic/AGENTS.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs",
+   "side": "check"
+  },
+  {
+   "from": "wiki/AGENTS_GIT.md",
+   "to": ".claude/agents/archive-researcher.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/AGENTS_GIT.md",
+   "to": ".claude/agents/panel-tracer.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/AGENTS_GIT.md",
+   "to": ".claude/agents/repo-auditor.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/AGENTS_GIT.md",
+   "to": ".claude/agents/schematic-builder.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/AGENTS_GIT.md",
+   "to": ".claude/agents/site-builder.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/AGENTS_GIT.md",
+   "to": ".claude/agents/site-reviewer.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/AGENTS_GIT.md",
+   "to": ".claude/agents/voice-reviewer.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/AGENTS_GIT.md",
+   "to": "docs/INDEX.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
    "from": "wiki/AGENTS_GIT.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -13247,8 +13403,78 @@
    "side": "check"
   },
   {
+   "from": "wiki/AGENTS_GIT.md",
+   "to": "wiki/STATUS.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/AGENTS_GIT.md",
+   "to": "wiki/STATUS_LOG.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/AGENTS_GIT.md",
+   "to": "wiki/status",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/decisions",
+   "to": ".claude/agents/schematic-builder.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/decisions",
+   "to": ".claude/skills/operating-flag/SKILL.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/decisions",
+   "to": "docs/INDEX.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
    "from": "wiki/decisions",
    "to": "tools/ops/pipeline_query.py",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/decisions",
+   "to": "wiki/STATUS.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/decisions",
+   "to": "wiki/STATUS_LOG.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/decisions",
+   "to": "wiki/status",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/home.md",
+   "to": "docs/INDEX.md",
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"
@@ -13261,8 +13487,106 @@
    "side": "check"
   },
   {
+   "from": "wiki/home.md",
+   "to": "wiki/STATUS.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/home.md",
+   "to": "wiki/status",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/not-pending.md",
+   "to": "wiki/STATUS_LOG.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/not-pending.md",
+   "to": "wiki/status",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
    "from": "wiki/pipelines",
    "to": "ops/hart-ops/AGENTS.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/pipelines",
+   "to": "wiki/STATUS.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/pipelines",
+   "to": "wiki/status",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/projects",
+   "to": ".claude/agents/repo-auditor.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/projects",
+   "to": ".claude/agents/schematic-builder.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/projects",
+   "to": ".claude/agents/voice-reviewer.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/projects",
+   "to": "docs/INDEX.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/projects",
+   "to": "wiki/STATUS.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/projects",
+   "to": "wiki/STATUS_LOG.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/projects",
+   "to": "wiki/status",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/status",
+   "to": ".claude/skills/tables-pull/SKILL.md",
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"
