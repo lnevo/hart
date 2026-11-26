@@ -12,7 +12,7 @@
 #     made it
 #
 # Names the runner may use: L, NAMES, reg, why, ab, own, hit, claim, scan, check_guards,
-# request_throttle, guard_hit, end_job, TL, and for route runners last, state, lock, HOOK, SL,
+# request_throttle, guard_hit, end_job, _guarded, TL, and for route runners last, state, lock, HOOK, SL,
 # wait, pause.
 # Never runs: the names make_job.py puts in front of this file (its settings), listed for pyflakes
 # (ruff's undefined-name rule) so a misspelt name fails the check. job_settings stands for the settings.

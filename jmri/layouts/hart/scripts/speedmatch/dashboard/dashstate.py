@@ -190,7 +190,12 @@ def warm_caches():
         route_blocks(r)
 
 
-@dataclass(eq=False)
+def _is_length(v: object) -> bool:
+    """A LENGTHS value the route can use: a number of mm, or None for an unknown length."""
+    return v is None or (isinstance(v, (int, float)) and not isinstance(v, bool))
+
+
+@dataclass(eq=False, repr=False)
 class Run:
     """The state of one run log, fed line by line (feed_line). Identity, not value, is equality:
     the Store keeps one Run per log."""
@@ -235,6 +240,9 @@ class Run:
 
     def __post_init__(self) -> None:
         self.kind = kind_of_log(self.id)
+
+    def __repr__(self) -> str:
+        return "Run(%r, status=%r, step=%r)" % (self.id, self.status, self.step)
 
     # -- helpers
     def event(self, t: float, text: str, level: Level = "info") -> None:
@@ -306,7 +314,10 @@ class Run:
         if not isinstance(lengths, dict):
             self.event(t, "LENGTHS line is not a JSON object: using the CSV lengths", "warn")
             return
-        self.lengths = lengths
+        bad = sorted(k for k, v in lengths.items() if not _is_length(v))
+        if bad:
+            self.event(t, "LENGTHS line has no number for %s: using the CSV lengths there" % ", ".join(bad), "warn")
+        self.lengths = {k: v for k, v in lengths.items() if _is_length(v)}
 
     def _on_warmup(self, t: float, toks: list[str], rest: str) -> None:
         self.status = "warming"
@@ -399,6 +410,10 @@ class Run:
             self.status = "measuring"
 
     def _on_stepdone(self, t: float, toks: list[str], rest: str) -> None:
+        # the step has ended whether or not the line can be read: no more blocks count
+        self.frozen = True
+        if self.status == "computing":
+            self.status = "measuring"
         n = num(toks[0]) if toks else self.step
         if n is None:  # a None key would break every snapshot (sorted steps)
             self.event(t, "STEPDONE line names no step: ignored (%s)" % rest, "warn")
@@ -408,9 +423,6 @@ class Run:
         nb = num(d.get("n"))
         reason = d.get("reason")
         # no reading (n=0 or a zero speed) is a gap, never 0 mm/s; max and stalled steps are not valid
-        self.frozen = True
-        if self.status == "computing":
-            self.status = "measuring"
         has = mm_s is not None and mm_s > 0 and nb != 0
         valid = has and (reason is None or lr.is_valid_reason(reason))
         self.done[n] = {"mm_s": mm_s if has else None, "n": nb, "mm": num(d.get("mm")),

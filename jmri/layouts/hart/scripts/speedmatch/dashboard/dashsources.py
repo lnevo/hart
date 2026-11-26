@@ -207,6 +207,13 @@ def pass_sequence(names: Sequence[str], frm: str, to: str) -> list[str]:
     return lr.path_between(names, frm, to) + [lr.next_after(names, frm, to)]
 
 
+DEMO_LOCOS = ("2121", "2738")
+
+
+class DemoError(RuntimeError):
+    """The demo logs cannot be made (no reference speeds to run at)."""
+
+
 DEMO_BIAS = {("2121", "forward"): 1.0, ("2121", "reverse"): 0.97,
              ("2738", "forward"): 1.0, ("2738", "reverse"): 1.04}
 
@@ -225,6 +232,10 @@ class _Demo:
     def __init__(self, seed: int, t0: float) -> None:
         self.rng = random.Random(seed)
         self.ref = {k: {r["step"]: r["mm_s"] for r in v} for k, v in reference_curves().items()}
+        missing = [loco for loco in DEMO_LOCOS if loco not in self.ref]
+        if missing:
+            raise DemoError("the demo needs reference speeds for %s from %s; none were read for them"
+                            % (", ".join(missing), REF_CSV))
         self.t = t0
         self.lines: list[str] = []
 
@@ -380,7 +391,7 @@ def demo_logs(seed: int = 7, t0: float = 1794300000.0) -> LogSet:
     (liverule.DistanceStep), so slow steps end as "max" and show as not valid."""
     demo = _Demo(seed, t0)
     logs: LogSet = []
-    for loco in ("2121", "2738"):
+    for loco in DEMO_LOCOS:
         warm = True
         for direction in ("forward", "reverse"):
             lines = _DistanceRun(demo, loco, direction, warm).run()
