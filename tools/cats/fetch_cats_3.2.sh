@@ -34,7 +34,7 @@ fi
 
 rm -rf "$DEST"
 mkdir -p "$DEST"
-unzip -qo "$ZIP" -d "$DEST"
+python3 -m zipfile -e "$ZIP" "$DEST"     # python3, not unzip: every host and CI has it
 chmod +x "$DEST/cats.csh" "$DEST/designer.csh" 2>/dev/null || true
 echo "Installed → $DEST"
 echo "Next: ./tools/cats/install_into_jmri.sh"
