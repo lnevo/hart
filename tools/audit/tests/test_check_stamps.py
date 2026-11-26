@@ -1091,13 +1091,13 @@ class DeclarationAuditTest(RepoCase):
             cs.manifest_steps("unit-hartlib", self.root)
         with self.assertRaisesRegex(cs.AuditError, "'static' is no job of"):
             cs.manifest_steps("static", self.root)
-        self.assertEqual(cs.audit_trace("unit-hartlib", self.trace(self.HAND), self.root), ([], None))
-        lines, audit = cs.audit_trace("a", self.tmp / "gone.trace", self.root)
+        self.assertEqual(cs.audit_trace("unit-hartlib", self.trace(self.HAND), self.root), ([], None, 0))
+        lines, audit, _ = cs.audit_trace("a", self.tmp / "gone.trace", self.root)
         self.assertIsNone(audit)
         self.assertEqual(len(lines), 1)
         self.assertTrue(lines[0].startswith("STAMP AUDIT FAILED: a: cannot read the trace"), lines)
         (self.root / cs.MANIFEST).write_text("[[step]\n")
-        lines, audit = cs.audit_trace("a", self.trace(self.HAND), self.root)
+        lines, audit, _ = cs.audit_trace("a", self.trace(self.HAND), self.root)
         self.assertIsNone(audit)
         self.assertIn("not valid TOML", lines[0])
         self.assertTrue(lines[0].startswith("STAMP AUDIT FAILED: a:"))
@@ -1121,7 +1121,7 @@ class DeclarationAuditTest(RepoCase):
 
     def test_the_stamp_keeps_the_audit_and_the_command_reads_it_against_the_manifest_now(self) -> None:
         log = self.run_job("open('jmri/layouts/hart/data/switches.csv').read()\n", script="tools/a.py")
-        lines, audit = cs.audit_trace("a", log, self.root)
+        lines, audit, _ = cs.audit_trace("a", log, self.root)
         self.assertEqual(audit["steps"]["a"], ["jmri/layouts/hart/data/switches.csv"])
         self.assertIn("    a: jmri/layouts/hart/data/switches.csv", lines)
         self.assertIsNone(cs.record("a", log, self.root, self.store, audit=audit))
