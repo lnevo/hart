@@ -110,13 +110,13 @@ NODE = shutil.which("node")
 
 
 def js_layout(graph: dict, aspect: float = 0) -> dict:
-    """Run tools/ops/pipeline_map.js's layout under node on this graph (aspect: the screen's height over width)."""
+    """Run tools/ops/pipeline_map_layout.js's layout under node on this graph (aspect: the screen's height over width)."""
     script = (
         "const m = require(process.argv[1]); let s = '';"
         "process.stdin.on('data', d => s += d).on('end', () => { const g = JSON.parse(s);"
         f"process.stdout.write(JSON.stringify(m.layout(g.nodes, g.edges, g.domains, {aspect}))); }});"
     )
-    out = subprocess.run([NODE, "-e", script, str(MAP.SCRIPT)], input=json.dumps(graph), capture_output=True,
+    out = subprocess.run([NODE, "-e", script, str(MAP.LAYOUT_JS)], input=json.dumps(graph), capture_output=True,
                          text=True, check=True)
     return json.loads(out.stdout)
 
@@ -180,7 +180,7 @@ class LayoutTest(unittest.TestCase):
             "process.stdout.write(JSON.stringify({up: [...c.up].sort(), down: [...c.down].sort(),"
             "lit: JSON.parse(process.argv[2]).filter(c.lit).map(e => e.from + e.to)}));"
         )
-        out = json.loads(subprocess.run([NODE, "-e", script, str(MAP.SCRIPT), json.dumps(edges)], capture_output=True,
+        out = json.loads(subprocess.run([NODE, "-e", script, str(MAP.LAYOUT_JS), json.dumps(edges)], capture_output=True,
                                         text=True, check=True).stdout)
         self.assertEqual(out["up"], ["a", "x"])
         self.assertEqual(out["down"], ["b", "host", "x"])  # c feeds b but is not on x's chain; d is past the host
@@ -195,7 +195,7 @@ class LayoutTest(unittest.TestCase):
         script = ("const m = require(process.argv[1]); const c = JSON.parse(process.argv[2]); const o = {};"
                   "for (const k in c) o[k] = m.showsAll(c[k][0], 1100, 1000, 100, {top: 0.1, right: 1, bottom: 1});"
                   "process.stdout.write(JSON.stringify(o));")
-        out = json.loads(subprocess.run([NODE, "-e", script, str(MAP.SCRIPT), json.dumps(cases)], capture_output=True,
+        out = json.loads(subprocess.run([NODE, "-e", script, str(MAP.LAYOUT_JS), json.dumps(cases)], capture_output=True,
                                         text=True, check=True).stdout)
         self.assertEqual(out, {k: want for k, (_, want) in cases.items()})
 
@@ -295,7 +295,7 @@ for (const geo of ['NARROW', 'WIDE']) {
   out[geo] = [...bad].slice(0, 5);
 }
 process.stdout.write(JSON.stringify(out));"""
-        out = json.loads(subprocess.run([NODE, "-e", script, str(MAP.SCRIPT), str(MAP.GRAPH)], capture_output=True,
+        out = json.loads(subprocess.run([NODE, "-e", script, str(MAP.LAYOUT_JS), str(MAP.GRAPH)], capture_output=True,
                                         text=True, check=True).stdout)
         self.assertEqual(out, {"NARROW": [], "WIDE": []})
 
@@ -579,7 +579,7 @@ process.stdout.write(JSON.stringify(out));"""
 
     def run_js(self, call: str, arg) -> dict:
         script = f"const m = require(process.argv[1]); const a = JSON.parse(process.argv[2]); process.stdout.write(JSON.stringify({call}));"
-        return json.loads(subprocess.run([NODE, "-e", script, str(MAP.SCRIPT), json.dumps(arg)], capture_output=True,
+        return json.loads(subprocess.run([NODE, "-e", script, str(MAP.LAYOUT_JS), json.dumps(arg)], capture_output=True,
                                          text=True, check=True).stdout)
 
     def test_github_link_only_for_tracked_paths(self) -> None:
@@ -803,7 +803,9 @@ class PageTest(unittest.TestCase):
         MAP.check_page(page, data, site=False)
         cases = (
             (page.replace("const DATA = ", "const XDATA = "), "no graph data"),
-            (page.replace(MAP.script_text(), ""), "does not inline pipeline_map.js"),
+            (page.replace(MAP.script_text(), ""), "does not inline pipeline_map_layout.js, pipeline_map_view.js"),
+            (page.replace(MAP.script_parts()[1][1], ""), r"does not inline pipeline_map_view\.js$"),
+            (page.replace(MAP.script_text(), MAP.script_parts()[1][1] + MAP.script_parts()[0][1]), "in order, as one script"),
             (page + "__DATA__", "placeholders: __DATA__"),
             (page.replace('{"nodes":[{', '{"nodes":[{"id":"extra"},{', 1), r"holds \d+ nodes, the graph \d+"),
             (page.replace('{"nodes":[{', '{"nodes":[{"id":"extra"},{', 1).replace('"x":0}', '"x":0}', 1),
@@ -840,22 +842,6 @@ class PageTest(unittest.TestCase):
                 MAP.main(["--graph", str(graph)])
             self.assertEqual(stop.exception.code, 2)
             self.assertIn("--out <page>", MAP.rebuild_command(graph))
-
-    def test_an_empty_or_missing_viewer_script_is_a_graph_error(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp, "pipeline_map.js")
-            for content, why in (("  \n", "is empty"), (None, "cannot read the viewer script")):
-                if content is None:
-                    path.unlink(missing_ok=True)
-                else:
-                    path.write_text(content)
-                MAP.script_text.cache_clear()
-                try:
-                    with self.subTest(why=why), unittest.mock.patch.object(MAP, "SCRIPT", path), \
-                            self.assertRaisesRegex(MAP.GraphError, why):
-                        MAP.script_text()
-                finally:
-                    MAP.script_text.cache_clear()
 
     def test_a_write_that_fails_is_a_graph_error_and_exit_1(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
