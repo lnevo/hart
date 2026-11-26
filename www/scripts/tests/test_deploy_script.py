@@ -37,7 +37,7 @@ class DeployScriptTest(unittest.TestCase):
         self.lock = Path(_git(self.repo, "rev-parse", "--path-format=absolute", "--git-common-dir")) / "hart-site-deploy.lock"
 
     def deploy(self, *args: str) -> subprocess.CompletedProcess:
-        env = {**os.environ, "HART_WEB_HOST": "nowhere.invalid"}  # skips the openrsync check; rsync is never reached
+        env = {**os.environ, "HART_WEB_HOST": "nowhere.invalid", "HART_WEB_DOCROOT": "/nowhere/"}  # skips the openrsync check; rsync is never reached
         return subprocess.run(["bash", str(self.repo / "www" / "scripts" / SCRIPT.name), *args],
                               capture_output=True, text=True, env=env)
 

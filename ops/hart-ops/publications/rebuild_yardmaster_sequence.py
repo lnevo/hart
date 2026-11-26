@@ -58,8 +58,8 @@ _MASTER = crew_master.load()
 _JOB = crew_master.job(_MASTER, "yardmaster")
 PUBLICATION = crew_master.publication(_JOB)
 
-# Color, fill, text, destination, block, in the order the sheet prints (the job's docx.legend), then the
-# uncolored storage row.
+# Color, fill, text, destination, block, in the job's color order (the site shows the same), then the
+# uncolored storage row (docx.legend_extra).
 BLOCK_LEGEND: list[tuple[str, str, str, str, str]] = crew_master.block_legend(_MASTER)
 
 # Yard rules printed under the blocking list (Session #4 punch list).

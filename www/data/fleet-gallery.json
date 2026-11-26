@@ -911,13 +911,13 @@
       "type": "MOW"
     },
     {
-      "id": "ttc-4678",
+      "id": "prc-4678",
       "album": "mow",
       "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9186.png",
-      "title": "TTC 4678",
-      "caption": "TTC · Streetcar · Toronto Transit Commission PCC streetcar",
+      "title": "PRC 4678",
+      "caption": "PRC · Streetcar · PCC streetcar for Route 23",
       "credit": "HART car roster",
-      "road": "TTC",
+      "road": "PRC",
       "number": "4678",
       "type": "Streetcar"
     },
