@@ -164,14 +164,14 @@ jobs:
       - name: Quick docs checks
         if: steps.kind.outputs.kind == 'docs'
         run: bash tools/ci/docs_checks.sh     # the one list, shared with tools/check.sh's docs-only path
-      # A run whose plugin pin differs from its base's (a pull request that bumps the plugin, or main's push of its
-      # merge) and whose exact cache key missed restores a cache solved with another plugin: it misses every entry,
-      # and check.sh's parallel jobs would each solve the sheet cold at once (12-34 min runs). Every other run skips
-      # this step (no added time), and so does the docs-only path.
+      # A run whose exact cache key missed (the plugin pin, the builders or their data changed) restores a cache
+      # solved from other inputs: it misses the entries for the new ones, and check.sh's parallel jobs (one per panels
+      # step since ADR-037 stage 6, beside the Layout Editor job) would each solve the sheet cold at once (12-34 min
+      # runs with a new pin). A run whose key hit skips this step (no added time), and so does the docs-only path.
       # The panels pipeline in --check mode solves it once, one step after another (the first step solves, the rest
       # read the cache), so the jobs after it start warm. Its verdict is not this step's: check.sh runs the same checks.
-      - name: Warm the schematic cache for a new plugin pin
-        if: steps.kind.outputs.kind != 'docs' && steps.schematic-cache.outputs.cache-hit != 'true' && steps.pin.outputs.changed == 'true'
+      - name: Warm the schematic cache when its exact key missed
+        if: steps.kind.outputs.kind != 'docs' && steps.schematic-cache.outputs.cache-hit != 'true'
         env:
           SCHEMATIC_REQUIRED: "1"
         run: |

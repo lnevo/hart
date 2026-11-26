@@ -456,9 +456,16 @@ run_check() {
 # The read-only checks are queued here, the panels jobs first and the rest after the Layout Editor job below: the
 # panels checks were the longest of them (78 s of the 107 s the one static job took on the Windows box, 2026-11-25),
 # the solve-heavy ones (device-map, schematic, tables, cats) a few seconds each once the schematic cache is warm.
-for line in "${STATIC_LINES[@]}"; do
-  [[ "${line%% *}" == panels-* ]] || continue
-  later "${line%% *}" run_line "$line"
+# panels-schematic (45 s in CI) and panels-cats, the slowest, go first.
+for pass in slow rest; do
+  for line in "${STATIC_LINES[@]}"; do
+    case "${line%% *}" in
+      panels-schematic|panels-cats) [[ $pass == slow ]] || continue ;;
+      panels-*) [[ $pass == rest ]] || continue ;;
+      *) continue ;;
+    esac
+    later "${line%% *}" run_line "$line"
+  done
 done
 # The longest jobs start first, so none of them waits behind the quick ones: the Layout Editor job, unit-jmri, then
 # the per-file guard and host jobs, with the files in SLOW of each folder (each 10-20 s) ahead of the rest.
