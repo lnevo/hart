@@ -30,7 +30,9 @@ def load(path: Path, name: str):
     return module
 
 
+sys.path.insert(0, str(ROOT / "tools/ops"))   # orient.py imports orient_pages from its own folder, as when it runs
 OR = load(ROOT / "tools/ops/orient.py", "hart_orient_test")
+import orient_pages as PAGES  # noqa: E402
 WT = load(ROOT / "tools/agent/worktrees.py", "hart_worktrees_for_orient_test")
 HOOK = load(ROOT / ".claude/hooks/worktree_sweep.py", "hart_sweep_hook_for_orient_test")
 
@@ -131,8 +133,8 @@ class ParsePageTest(unittest.TestCase):
         got = OR.parse_page("p.md", "Wrap it in `<!--` and ``a ` <!-- b``; an open ` tick.\nStatus: active\n"
                                     f"{CLAIM}\n")
         self.assertEqual((got.status, len(got.claims), got.problems), ("active", 1, []))
-        self.assertEqual(OR.comment_start("`x` <!-- y"), 4)
-        self.assertEqual(OR.comment_start("` <!-- y"), 2)  # an unclosed backtick is literal
+        self.assertEqual(PAGES.comment_start("`x` <!-- y"), 4)
+        self.assertEqual(PAGES.comment_start("` <!-- y"), 2)  # an unclosed backtick is literal
 
     def test_a_claim_on_a_page_that_is_not_active(self):
         self.assertEqual(self.problems(f"Status: done (2026-11-24)\n{CLAIM}\n"),

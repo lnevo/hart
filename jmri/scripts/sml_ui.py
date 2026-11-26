@@ -3,7 +3,7 @@
 # the PanelPro main-window strip and the stored-Enabled warning popup.
 #
 # signal_coordinator.py loads this from preference:jython after sml_quit and reloads it on every run
-# (see _load_siblings there).
+# (jython_siblings.py).
 
 from java.lang import Runnable, Thread
 from javax.swing import JButton, JOptionPane, SwingUtilities

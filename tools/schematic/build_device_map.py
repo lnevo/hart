@@ -57,11 +57,9 @@ Virtual names, from each device's stable identity:
 - Feedback rows have no JMRI device of their own (assignment none: a turnout's feedback is DIRECT until the plant is
   wired).
 - Block "<name>" (parts too, not a helix block, whose beans are staging's): jmri_name IB:C3:<nnnn> and layout_block
-  ILB<1000 + nnnn>, today's numbers copied from block_numbering.csv (hartlib.block_numbering; owner, 2026-11-23:
-  kept until the levels are wired for good); hartlib.tables_build.master_beans names the beans from the rows
-  (naming-layers steps 8 and 11).
-- What a main and upper bean takes from its row beyond its names (naming-layers steps 9 and 11,
-  device_map_rows.bean_cells): `start`, inactive for a detector and closed or thrown for a turnout (startup_thrown:
+  ILB<1000 + nnnn>, today's numbers copied from block_numbering.csv (hartlib.block_numbering; kept until the
+  levels are wired for good); hartlib.tables_build.master_beans names the beans from the rows.
+- What a main and upper bean takes from its row beyond its names (device_map_rows.bean_cells): `start`, inactive for a detector and closed or thrown for a turnout (startup_thrown:
   thrown where the main route runs through leg C), which the startup LogixNG sets, and `bean_comment`, the bean's
   JMRI comment in staging's form.
 
@@ -139,7 +137,8 @@ import re
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Literal
+from collections.abc import Iterable, Mapping, Sequence
+from typing import Any, Literal, NamedTuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS and the pinned plugin
@@ -147,7 +146,7 @@ from mast_rule import (  # noqa: E402,F401  the track and mast rule, re-exported
     LOOP_HALF, TAU, MapError, band_levels, end_label, end_ref, facing_on_route, helix_blocks, helix_tags, masts,
     TRACK_KEY_COLUMNS, key_problem, read_helix_tracks, resolve_track, track_names, tracks)
 import block_layer  # noqa: E402  the one block process for every level
-import device_map_masts  # noqa: E402  staging's mast and head rows (build_masts.py part 1 until naming-layers step 12)
+import device_map_masts  # noqa: E402  staging's mast and head rows
 import mast_plan  # noqa: E402  the one mast process for every level
 import mast_rule  # noqa: E402  read_block_splits, OVERRIDES_NAME
 import le_common  # noqa: E402  bare: a switch label as the plan prints it
@@ -160,6 +159,8 @@ from device_map_staging import (  # noqa: E402,F401  staging's rows; re-exported
     level_keys, level_trials, line_cp, new_spare, part_bean_names, part_row, piece_trials, staging_field, staging_layer,
     staging_cps, staging_keys, staging_part_names, staging_rows, staging_switches, staging_trials, staging_wired_rows,
     taken_bean_names, wire_block, wire_occupancy)
+from device_map_nodes import (  # noqa: E402,F401  the LCOS node allocator; re-exported for callers
+    CAP, MAX_OU, STAGING_LEVEL, NoBoardRoom, Nodes)
 from device_map_rows import (  # noqa: E402,F401  every level's rows
     Wired, bean_cells, device_row, follow_swaps, owner_over, switch_device_rows)
 from device_map_schematic import (  # noqa: E402,F401  the drawing's tracks; re-exported: callers read them here
@@ -173,7 +174,6 @@ GENERATED = layer_files.path(layer_files.GENERATED, OVERRIDES.parent)   # plan_g
 SHEET = railroad.PlanOverrides.SHEET
 OUT = SOURCES.devices                             # the device master, whose levels 2 and 3 this script writes
 LEVELS = band_levels(layer_files.read("plan_overrides", SHEET, OVERRIDES.parent))     # {band title: level} of main and upper
-STAGING_LEVEL = 1                                 # staging: its nodes are as built (lcos_nodes.csv)
 
 def device_files() -> devices.Files:
     """The master and its generated files as main() writes them: OUT, as it is when it runs (a test may patch it)."""
@@ -185,8 +185,6 @@ def sources() -> railroad.Sources:
     return railroad.Sources.under().but(interlockings=CPS, lcos_nodes=NODES, switches=SWITCHES,
                                         plan_overrides=OVERRIDES, devices=OUT)
 
-CAP = {"turnout": 8, "block": 8, "signal": 16, "sensor": 16}
-MAX_OU = 4                            # DNOU8 boards per node: the most any node has in LCOS_Layout_Inventory_v85
 COLUMNS = list(railroad.DEVICE_COLUMNS)
 DCC_FIRST = 120                       # staging uses 100-119 (MTT100-MTT119); the owner continues from 120
 VIRTUAL_TURNOUT = level_devices.TURNOUT_PREFIX   # + switch number: the internal turnout the panels and desks use
@@ -235,191 +233,7 @@ def load_cps(path: Path = CPS) -> list[railroad.Interlocking]:
         raise MapError(str(exc)) from exc
 
 
-# ---------------------------------------------------------------- LCOS nodes
-
-class NoBoardRoom(MapError):
-    """The draft plant has no 5V board room left in an area for a mast's heads: the heads wait for the wiring plan
-    (HEAD_NOT_WIRED). Any other MapError still stops the build."""
-
-
 MastKind = Literal["home", "intermediate", "virtual"]    # mast_plan's three lists of masts
-
-
-class Nodes:
-    """Hands out LCOS UIDs per node, in each level and area's node order. Staging's rows of lcos_nodes.csv are the
-    nodes as built, never handed out or pinned here."""
-
-    def __init__(self, rows):
-        self.pool = defaultdict(list)
-        for r in rows:
-            if r.level != STAGING_LEVEL:
-                self.pool[(r.level, r.area)].append(r.node)
-        self.used = defaultdict(lambda: defaultdict(int))
-        self.taken = defaultdict(set)         # (node, what) -> the indices given out or pinned
-        self.pins = {}                        # block -> (node, index): wiring.csv's main and upper detectors
-        self.boards = defaultdict(lambda: defaultdict(set))   # node -> {OU board: the pins its heads use}
-        self.frozen = {}                      # (kind, device) -> wiring.csv's Wire of a frozen main or upper device
-        self.turnout_boards = defaultdict(set)  # node -> the OU boards its frozen turnouts are on (12V)
-        self.frozen_turnouts = defaultdict(set)  # node -> its frozen turnouts' LCOS numbers
-
-    def pin(self, pins):
-        """Hold each pinned detector's input (read_pins: {block: (node, input index)}) before any other is given out,
-        so the rule never hands it to another block."""
-        known = {n for nodes in self.pool.values() for n in nodes}
-        for block, (node, k) in sorted(pins.items()):
-            if node not in known:
-                raise MapError(f"{PINS.name}: {block} is pinned to node {node}, which {NODES.name} does not list")
-            self.taken[(node, "block")].add(k)
-            self.used[node]["block"] += 1
-        self.pins = dict(pins)
-
-    def freeze(self, wires):
-        """Hold the node, LCOS number and pins of each frozen main or upper device (wiring.csv's turnout, fb and head
-        rows of levels 2 and 3: a control point wired and frozen, freeze_wiring.py) before any other is given out,
-        so the rule hands them to nothing else and gives the device the same values again (take_frozen)."""
-        known = {n for nodes in self.pool.values() for n in nodes}
-        what = {"turnout": "turnout", "fb": "sensor", "head": "signal"}
-        for w in wires:
-            if w.node not in known:
-                raise MapError(f"{PINS.name} line {w.line}: {w.device} is on node {w.node}, which {NODES.name} does "
-                               "not list for main or upper")
-            self.taken[(w.node, what[w.kind])].add(w.index)
-            self.used[w.node][what[w.kind]] += 1
-            if w.kind == "head":                     # its pins, on one board or two
-                for board, port in w.pins:
-                    self.boards[w.node][int(board[2:])].add(port)
-            elif w.kind == "turnout":
-                self.turnout_boards[w.node].add(int(w.board[2:]))
-                self.frozen_turnouts[w.node].add(w.index)
-            self.frozen[(w.kind, w.device)] = w
-
-    def take_frozen(self, kind, device):
-        """wiring.csv's Wire of a frozen device, once; None when it is not frozen."""
-        return self.frozen.pop((kind, device), None)
-
-    def check_frozen(self):
-        """Stop when a frozen row names a device the map does not give (a stale or misspelt row)."""
-        if self.frozen:
-            raise MapError(f"{PINS.name}: frozen rows for devices the device map does not give: "
-                           f"{sorted(f'{k} {d}' for k, d in self.frozen)}")
-
-    def room(self, node, what, n=1):
-        return self.used[node][what] + n <= CAP[what]
-
-    def staging(self, level):
-        if level == STAGING_LEVEL:
-            raise MapError(f"level {level} is staging: its nodes in {NODES.name} are as built, and the rule hands "
-                           "none out")
-
-    def pick(self, level, area, what, n=1, prefer=()):
-        self.staging(level)
-        for node in list(prefer) + self.pool[(level, area)]:
-            if self.room(node, what, n):
-                return node
-        raise MapError(f"level {level} {area}: no LCOS node left with room for {n} {what}(s); "
-                       f"add one to {NODES.name}")
-
-    def take(self, node, what):
-        """The node's lowest free index of `what` (one a pin holds is not free), and its packed id. A turnout's index
-        is its board (index // 4 + 1, assign_ports): one on a board a frozen head is on is not free."""
-        heads = {b for b, used in self.boards[node].items() if used}
-        k = next((i for i in range(CAP[what]) if i not in self.taken[(node, what)]
-                  and not (what == "turnout" and i // 4 + 1 in heads)), None)
-        if k is None:
-            raise MapError(f"node {node}: no {what} left (frozen heads in wiring.csv hold boards {sorted(heads)})")
-        self.taken[(node, what)].add(k)
-        self.used[node][what] += 1
-        return k, node * 100 + UID[what] + k
-
-    def take_pinned(self, block):
-        """(node, index, packed id) of `block`'s pinned detector, once; None when it has no pin."""
-        if block not in self.pins:
-            return None
-        node, k = self.pins.pop(block)
-        return node, k, node * 100 + UID["block"] + k
-
-    def detector(self, block: str, level: int, area: str, prefer: str, pin_level: dict[str, int]) -> tuple[str, int, int]:
-        """(node, index, packed id) of `block`'s detector: its pin, else the next free block input of the node `pick`
-        gives (`prefer` first). MapError on a pin of another level (`pin_level`: {block: level} of the pins)."""
-        pinned = self.take_pinned(block)
-        if pinned and pin_level.get(block, level) != level:
-            raise MapError(f"{PINS.name}: {block} is a level {level} block, not level {pin_level[block]}")
-        node = pinned[0] if pinned else self.pick(level, area, "block", prefer=[prefer])
-        return pinned or (node, *self.take(node, "block"))
-
-    def check_pins(self):
-        """Stop when a pin names a block the map has no detector row for (a stale or misspelt pin)."""
-        if self.pins:
-            raise MapError(f"{PINS.name}: pins for blocks the device map gives no detector: {sorted(self.pins)}")
-
-    # 5V boards for heads, after the node's 12V turnout boards (call once every turnout and detector is placed)
-    def twelve(self, node):
-        """The node's turnout boards (12V): the rule's turnouts' (index // 4 + 1, assign_ports) and the frozen
-        turnouts' own boards."""
-        rule = {k // 4 + 1 for k in self.taken[(node, "turnout")] if k not in self.frozen_turnouts[node]}
-        return rule | self.turnout_boards[node]
-
-    def n12(self, node):
-        """The node's last 12V board, the highest a turnout is on (0 with none): the rule's heads go after it."""
-        return max(self.twelve(node), default=0)
-
-    def _free(self, node, board):
-        """The pins of one 5V OU board a head may use: all eight but those taken, and pin 8 of the first 5V board on a
-        node with detectors (its calibration relay)."""
-        cal = board == self.n12(node) + 1 and self.used[node]["block"]
-        return [p for p in range(1, 9) if p not in self.boards[node][board] and not (cal and p == 8)]
-
-    def five_volt(self, node):
-        """The node's 5V boards with a head on them, in board order."""
-        return sorted(b for b, used in self.boards[node].items() if used and b > self.n12(node))
-
-    def _fit(self, node, pins):
-        """(OU board, first pin) where `pins` consecutive pins fit, or None: the lowest run on the first 5V board with
-        room (any of them, not only the last), else the next new board while the node has OU room."""
-        last = max([self.n12(node)] + self.five_volt(node))
-        for board in range(self.n12(node) + 1, last + 2):
-            if board > MAX_OU:
-                break
-            free = set(self._free(node, board))
-            for first in range(1, 10 - pins):
-                if all(p in free for p in range(first, first + pins)):
-                    return board, first
-        return None
-
-    def pick_mast(self, level, area, heads, prefer=()):
-        self.staging(level)
-        for node in list(prefer) + self.pool[(level, area)]:
-            if self.room(node, "signal", heads) and self._fit(node, 3 * heads):
-                return node
-        raise NoBoardRoom(f"level {level} {area}: no LCOS node left with board room for a {heads}-head mast; "
-                       f"add one to {NODES.name}")
-
-    def place_mast(self, node, heads):
-        """[(signal index, packed id, OU board, first pin)] for the mast's heads, on one 5V board."""
-        board, first = self._fit(node, 3 * heads)
-        out = []
-        for h in range(heads):
-            k, packed = self.take(node, "signal")
-            out.append((k, packed, board, first + 3 * h))
-        self.boards[node][board].update(range(first, first + 3 * heads))
-        return out
-
-    def check_boards(self):
-        """A node with detectors needs a 5V board for the calibration pin; no node may need more than MAX_OU; no head
-        is on a 12V board, or on a detector node's calibration relay pin (pin 8 of its first 5V board)."""
-        for node, boards in self.boards.items():
-            n12 = self.n12(node)
-            on12 = sorted(b for b, used in boards.items() if used and b in self.twelve(node))
-            if on12:
-                raise MapError(f"node {node}: heads on OU{', OU'.join(map(str, on12))}, a 12V board a turnout is on; "
-                               "move the frozen head or turnout in wiring.csv")
-            if self.used[node]["block"] and 8 in boards.get(n12 + 1, set()):
-                raise MapError(f"node {node}: a head is on OU{n12 + 1}-8, the calibration relay's pin of a node with "
-                               "detectors; move it in wiring.csv")
-        for node, used in self.used.items():
-            five = max(len(self.five_volt(node)), 1 if used["block"] else 0)
-            if self.n12(node) + five > MAX_OU:
-                raise MapError(f"node {node} needs {self.n12(node) + five} DNOU8 boards; the limit is {MAX_OU}")
 
 
 # ---------------------------------------------------------------- the map
@@ -495,31 +309,56 @@ def check_frozen_cps(rows: list[dict], cps: frozenset, held_devices: set, held_b
                        f"{', '.join(sorted(bad))} for them: wire and freeze again (make wiring-freeze CP=...)")
 
 
-def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None, helix=None, pins=None, places=None,
-          virtual_names=None, frozen=None, owner=None) -> tuple[dict, list[dict], list[dict]]:
-    """(control_points, device map rows, the parts' master rows: links inside an OS block, part_row). `local`: the switches in no control point (the local switches of switches.csv
-    rows). Every switch on the main and upper bands must be in exactly one of the two. `corners`: dx_corners, needed
-    when a band has a double crossover. `helix`: read_helix_tracks (None: plan_overrides.json; {}: no helix tracks);
-    `pins`: read_pins (None: wiring.csv's detectors, resolved against the tracks found here); `virtual_names`:
-    {mast id: (user name, system name)} of the virtual masts that have one already (None: master_virtual_names);
-    `frozen`: frozen_wires (None: wiring.csv's); `places`: read_places (None: stations.csv's and interlockings.csv's),
-    the cp of every line block (line_cp); `owner`: {mast id: the owner's name} (None: owner_mast_names), which a mast
-    and its heads take."""
+DeviceMapRow = dict[str, Any]   # a device-map row (device_map_rows.device_row); csv_text writes it under COLUMNS
+CORNER = "xover_corner"         # a double crossover's corner block and its occupancy row
+LAYER_ORDER = {"turnout": 0, "fb": 1, "block": 2, "occupancy": 3, "mast": 4, "head": 5}   # build()'s row order
+
+
+class MapBuild(NamedTuple):
+    """What build()'s stages share: the plan facts read once at the start, the node allocator, and the rows made so
+    far. `rows`, `block_ids`, `home` and `area_of` are filled in place, stage by stage, in build()'s order (a node's
+    12V turnout boards come before its 5V head boards)."""
+    bands: list[Any]                    # the plugin's bands
+    by_level: dict[int, set[str]]       # labels_by_level: {level: the switch labels drawn on it}
+    switches: dict[str, railroad.MainUpperSwitch]   # every main and upper switch, by number
+    cp_of: dict[str, str]               # {switch: its control point}
+    loc: dict[str, railroad.MainUpperSwitch]        # the switches in no control point (level, area, notes)
+    found: list[dict[str, Any]]         # named_tracks: the main and upper tracks
+    corner_blocks: dict[str, dict[str, str]]        # {double crossover: {schematic leg: corner block}}
+    split_names: set[str]               # the split tracks' names
+    lay: block_layer.Layer
+    trials: dict[str, str]              # {block: trial_name} (level_keys)
+    track_ids: dict[str, str]           # {block: device ID} (level_keys)
+    places: Places
+    helix: dict[str, Any]               # read_helix_tracks
+    nodes: Nodes
+    os_pin_level: dict[str, int]        # {OS block pinned by its name: the level its wiring.csv row gives}
+    dcc: dict[str, int]                 # {switch: its DCC address}
+    rows: list[DeviceMapRow]
+    block_ids: dict[tuple[str, str], str]   # (level, block) -> its device ID, for its detector and the masts facing it
+    home: dict[str, int]                # switch -> its turnout's node
+    area_of: dict[str, tuple[int, str]]     # switch -> (level, area)
+
+
+def build(bands: list[Any], joined: Any, runs: Any, overrides: Mapping[str, Any],
+          cps: Sequence[railroad.Interlocking], node_rows: Iterable[Any], local: Iterable[Any] = (),
+          corners: dict[str, Any] | None = None, helix: dict[str, Any] | None = None,
+          pins: dict[str, tuple[int, int]] | None = None, places: Places | None = None,
+          virtual_names: dict[str, tuple[str, str]] | None = None, frozen: list[Any] | None = None,
+          owner: dict[str, str] | None = None) -> tuple[dict[str, Any], list[DeviceMapRow], list[DeviceMapRow]]:
+    """(control_points, device map rows, the parts' master rows: links inside an OS block, part_row). `local`: the
+    switches in no control point (the local switches of switches.csv rows). Every switch on the main and upper bands
+    must be in exactly one of the two. `corners`: dx_corners, needed when a band has a double crossover. `helix`:
+    read_helix_tracks (None: plan_overrides.json; {}: no helix tracks); `pins`: read_pins (None: wiring.csv's
+    detectors, resolved against the tracks found here); `virtual_names`: {mast id: (user name, system name)} of the
+    virtual masts that have one already (None: master_virtual_names); `frozen`: frozen_wires (None: wiring.csv's);
+    `places`: read_places (None: stations.csv's and interlockings.csv's), the cp of every line block (line_cp);
+    `owner`: {mast id: the owner's name} (None: owner_mast_names), which a mast and its heads take."""
     helix = helix_tracks() if helix is None else helix
     places = read_places() if places is None else places
     by_level = labels_by_level(bands)
     cp_keys = overrides_keys(cps, by_level)
-    try:
-        switches = railroad.join_main_upper(cps, local, SWITCHES.name)
-    except railroad.FactsError as exc:
-        raise MapError(str(exc)) from exc
-    cp_of = {s: sw.cp for s, sw in switches.items() if sw.cp}
-    loc = {s: sw for s, sw in switches.items() if not sw.cp}          # in no control point: level, area, notes
-    on_bands = {base(lb) for labels in by_level.values() for lb in labels}
-    missing = sorted(on_bands - set(cp_of) - set(loc), key=natural)
-    if missing:
-        raise MapError(f"switch {', '.join(missing)} is in no control point and not a local switch (an area) "
-                       f"in {SWITCHES.name}")
+    switches, cp_of, loc = _switch_facts(cps, local, by_level)
     found = named_tracks(bands, joined, runs, overrides, helix)
     check_helix_ends(bands, joined, found, helix)
     planned, corner_blocks, split_names, lay = plan_masts(bands, joined, runs, found, cp_of, corners)
@@ -527,298 +366,376 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         raise MapError(f"{mast_rule.OVERRIDES_NAME} keeps {', '.join(sorted(lay.inside))} inside an OS block on "
                        "main or upper, whose drawing gives each strand one block; leave inside empty (a part)")
     trials, track_ids = level_keys(bands, joined, lay)
-
-    def trial_of(name: str) -> str:
-        if name not in trials:
-            raise MapError(f"{name}: the block layer draws it on no strand, so it has no trial name")
-        return trials[name]
-
-    def track_id(name: str) -> str:
-        trial_of(name)                      # the same plan ends: no trial name, no ID
-        return track_ids[name]
-
-    dxs = set(corner_blocks)
-    os_pin_level = {}                       # an OS block pinned by its name: the level its row gives (checked below)
+    os_pin_level: dict[str, int] = {}
     if pins is None:
         pins = read_pins(found=found, split=split_names, ids={v: k for k, v in track_ids.items()})
         os_pin_level = {w.device: w.level for w in wiring_rows() if w.kind == "detector" and w.device
                         and OS_BLOCK.fullmatch(w.device)}
-    ms = planned["home"] + [dict(m, heads=1, kind="one-searchlight", switch="", intermediate=True)
-                            for m in planned["intermediates"]]
     nodes = Nodes(node_rows)
     nodes.pin(pins)
     held_wires = frozen_wires() if frozen is None else frozen
     nodes.freeze(held_wires)
     frozen_cps = frozenset(cp for w in held_wires if (cp := wiring.frozen_cp(w)))
     held_devices, held_blocks = {(w.kind, w.device) for w in held_wires}, set(pins)
-    rows = []
-    block_ids = {}                          # (level, block) -> its device ID, for its detector and the masts facing it
-
-    def add(level, cp, layer, user, system="", node="", comment="", trial="", notes="", dcc="", jmri="", *, role,
-            ident, **facts):
-        """A device-map row with the role (hartlib.devices.ROLES) its caller says it has: no role is read off a name;
-        and its device ID (`ident`, hartlib.device_ids), from the plan facts its caller holds."""
-        rows.append(device_row(level, cp, layer, user, system, node, comment, trial, notes, dcc, jmri, role=role,
-                               ident=ident, **facts))
-        if layer == "block":
-            block_ids[(str(level), user)] = ident
-
-    def occupancy(level, cp, block, system="", node="", comment="", notes="", *, role):
-        """The occupancy row of `block`, whose role (`role`) it shares: its virtual sensor (jmri_name), the block it
-        serves and its detector: planned on an input (`system`, M2S), planned with no input yet (NOT_WIRED) or none
-        planned (NO_DETECTOR). Its ID is its block's (det:<block id>): add the block row first."""
-        detector = "planned" if system else {NOT_WIRED: "not_wired", NO_DETECTOR: "none"}.get(notes)
-        if detector is None:
-            raise MapError(f"occupancy of {block}: no detector and no reason why ({notes!r})")
-        add(level, cp, "occupancy", occupancy_user(block), system, node, comment, notes=notes,
-            jmri=block_sensor(block), blocks=block, detector=detector, role=role,
-            ident=device_ids.det_id(block_ids[(str(level), block)]))
-
     dcc = {s: DCC_FIRST + i for i, s in enumerate(sorted(set(cp_of) | set(loc), key=natural))}
-    home, area_of = {}, {}                  # switch -> its turnout's node, its area
+    st = MapBuild(bands, by_level, switches, cp_of, loc, found, corner_blocks, split_names, lay, trials, track_ids,
+                  places, helix, nodes, os_pin_level, dcc, [], {}, {}, {})
+    _switch_and_os_rows(st, cps)
+    part_rows = _part_rows(st)
+    _track_rows(st)
+    ms = planned["home"] + [dict(m, heads=1, kind="one-searchlight", switch="", intermediate=True)
+                            for m in planned["intermediates"]]
+    vnames = _name_masts(st, ms, planned["virtual"], owner_mast_names() if owner is None else owner,
+                         virtual_names)
+    _head_rows(st, cps, ms)
+    _virtual_mast_rows(st, planned["virtual"], vnames)
+    nodes.check_boards()
+    nodes.check_pins()
+    nodes.check_frozen()
+    check_frozen_cps(st.rows, frozen_cps, held_devices, held_blocks)
+    check_virtual(st.rows)
+    assign_ports(st.rows)
+    st.rows.sort(key=lambda r: (r["level"], LAYER_ORDER[r["layer"]], natural(r["user_name"])))
+    return cp_keys, st.rows, part_rows
 
-    def switch_rows(lv, area, name, s, node, note=""):
-        frozen = nodes.take_frozen("turnout", f"Switch {s}")    # wired and frozen (wiring.csv): its own values
-        if frozen:
-            node, k, packed = frozen.node, frozen.index, frozen.node * 100 + UID["turnout"] + frozen.index
-            where = frozen.wiring_text
-        else:
-            k, packed = nodes.take(node, "turnout")
-            where = f"Node: {node} Turnout: {k}"
-        home[s], area_of[s] = node, (lv, area)
-        fbs = {}
-        for nr in "NR":
-            fb = nodes.take_frozen("fb", f"FB Switch {s} {nr}")
-            if fb:
-                fbs[nr] = Wired(fb.address, fb.node, fb.wiring_text)
-                continue
-            fnode = nodes.pick(lv, area, "sensor", prefer=[node])
-            kk, pp = nodes.take(fnode, "sensor")
-            fbs[nr] = Wired(f"M2S{pp}", fnode, f"Node: {fnode} Sensor: {kk}")
-        # the one maker of a switch's rows (device_map_rows), as staging's; main and upper bind the virtual turnout
-        rows.extend(switch_device_rows(
-            lv, name, s, [lb for labels in by_level.values() for lb in labels if base(lb) == s],
-            Wired(f"M2T{packed}", node, where), fbs, dcc[s], jmri=VIRTUAL_TURNOUT + s,
-            alias_notes="LCC alias of the MQTT turnout (ADR-005)", notes=note))
 
-    CORNER = "xover_corner"                     # a double crossover's corner block and its occupancy row
+def _switch_facts(cps: Sequence[railroad.Interlocking], local: Iterable[Any], by_level: Mapping[int, set[str]]
+                  ) -> tuple[dict[str, railroad.MainUpperSwitch], dict[str, str], dict[str, railroad.MainUpperSwitch]]:
+    """(every main and upper switch, {switch: its control point}, the switches in no control point). MapError on a
+    switch the bands draw that is in neither."""
+    try:
+        switches = railroad.join_main_upper(cps, local, SWITCHES.name)
+    except railroad.FactsError as exc:
+        raise MapError(str(exc)) from exc
+    cp_of = {s: sw.cp for s, sw in switches.items() if sw.cp}
+    loc = {s: sw for s, sw in switches.items() if not sw.cp}
+    on_bands = {base(lb) for labels in by_level.values() for lb in labels}
+    missing = sorted(on_bands - set(cp_of) - set(loc), key=natural)
+    if missing:
+        raise MapError(f"switch {', '.join(missing)} is in no control point and not a local switch (an area) "
+                       f"in {SWITCHES.name}")
+    return switches, cp_of, loc
 
-    def os_rows(lv, area, name, s, comment, detect=True):
-        if s in dxs:                            # a double crossover: a block per corner, corner a detected
-            # each corner's ID by the schematic leg it serves (xover_corners: {leg: block}), in block name order
-            for leg, block in sorted(corner_blocks[s].items(), key=lambda kv: kv[1]):
-                ident = device_ids.os_id(s, leg)
-                note = f"corner {block[-1].upper()} of the double crossover"
-                if not detect:
-                    add(lv, name, "block", block, "", "", comment, block, note + ", no detector: off the main line",
-                        role=CORNER, ident=ident)
-                    occupancy(lv, name, block, notes=NO_DETECTOR, role=CORNER)
-                elif not block.endswith("a"):             # wired later: no node or input yet
-                    add(lv, name, "block", block, "", "", comment, block, note, role=CORNER, ident=ident)
-                    occupancy(lv, name, block, notes=NOT_WIRED, role=CORNER)
-                else:                                     # corner a keeps the switch's detector
-                    bnode, k, packed = nodes.detector(block, lv, area, home[s], os_pin_level)
-                    add(lv, name, "block", block, "", bnode, comment, block, note, role=CORNER, ident=ident)
-                    occupancy(lv, name, block, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}", role=CORNER)
-            return
-        block = f"OS Switch {s}"
-        if not detect:
-            add(lv, name, "block", block, "", "", comment, block, "no detector: off the main line", role="os",
-                ident=device_ids.os_id(s))
-            occupancy(lv, name, block, notes=NO_DETECTOR, role="os")
-            return
-        bnode, k, packed = nodes.detector(block, lv, area, home[s], os_pin_level)
-        add(lv, name, "block", block, "", bnode, comment, block, role="os", ident=device_ids.os_id(s))
-        occupancy(lv, name, block, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}", role="os")
 
-    for cp in cps:                               # turnouts first: a node's 12V boards come before its 5V boards
-        loose = [s for s in cp.switches if ("turnout", f"Switch {s}") not in nodes.frozen]
-        node = nodes.pick(cp.level, cp.area, "turnout", len(loose)) if loose else None
+def _trial_of(st: MapBuild, name: str) -> str:
+    """A block's trial name (level_keys); MapError when the block layer draws it on no strand."""
+    if name not in st.trials:
+        raise MapError(f"{name}: the block layer draws it on no strand, so it has no trial name")
+    return st.trials[name]
+
+
+def _track_id(st: MapBuild, name: str) -> str:
+    """A block's device ID, from the same plan ends as its trial name: no trial name, no ID (MapError)."""
+    _trial_of(st, name)
+    return st.track_ids[name]
+
+
+def _add(st: MapBuild, level: Any, cp: str, layer: str, user: str, system: str = "", node: Any = "",
+         comment: str = "", trial: str = "", notes: str = "", dcc: Any = "", jmri: str = "", *, role: str,
+         ident: str, **facts: Any) -> None:
+    """A device-map row with the role (hartlib.devices.ROLES) its caller says it has: no role is read off a name;
+    and its device ID (`ident`, hartlib.device_ids), from the plan facts its caller holds. A block row's ID is kept
+    in st.block_ids for its detector and the masts facing it."""
+    st.rows.append(device_row(level, cp, layer, user, system, node, comment, trial, notes, dcc, jmri, role=role,
+                              ident=ident, **facts))
+    if layer == "block":
+        st.block_ids[(str(level), user)] = ident
+
+
+def _occupancy(st: MapBuild, level: Any, cp: str, block: str, system: str = "", node: Any = "", comment: str = "",
+               notes: str = "", *, role: str) -> None:
+    """The occupancy row of `block`, whose role (`role`) it shares: its virtual sensor (jmri_name), the block it
+    serves and its detector: planned on an input (`system`, M2S), planned with no input yet (NOT_WIRED) or none
+    planned (NO_DETECTOR). Its ID is its block's (det:<block id>): add the block row first."""
+    detector = "planned" if system else {NOT_WIRED: "not_wired", NO_DETECTOR: "none"}.get(notes)
+    if detector is None:
+        raise MapError(f"occupancy of {block}: no detector and no reason why ({notes!r})")
+    _add(st, level, cp, "occupancy", occupancy_user(block), system, node, comment, notes=notes,
+         jmri=block_sensor(block), blocks=block, detector=detector, role=role,
+         ident=device_ids.det_id(st.block_ids[(str(level), block)]))
+
+
+def _switch_and_os_rows(st: MapBuild, cps: Sequence[railroad.Interlocking]) -> None:
+    """Every switch's turnout, alias and feedback rows, control points first and then the local switches, then
+    every switch's OS block rows: turnouts first, as a node's 12V boards come before its 5V boards."""
+    for cp in cps:
+        loose = [s for s in cp.switches if ("turnout", f"Switch {s}") not in st.nodes.frozen]
+        node = st.nodes.pick(cp.level, cp.area, "turnout", len(loose)) if loose else None
         for s in cp.switches:
-            switch_rows(cp.level, cp.area, cp.name, s, node)
-    for s in sorted(loc, key=natural):           # no control point: turnout and feedback, no signals or detection
-        r = loc[s]
-        node = nodes.pick(r.level, r.area, "turnout") if ("turnout", f"Switch {s}") not in nodes.frozen else None
-        switch_rows(r.level, r.area, "", s, node, "no control point: " + r.notes)
+            _switch_rows(st, cp.level, cp.area, cp.name, s, node)
+    for s in sorted(st.loc, key=natural):       # no control point: turnout and feedback, no signals or detection
+        r = st.loc[s]
+        node = st.nodes.pick(r.level, r.area, "turnout") if ("turnout", f"Switch {s}") not in st.nodes.frozen else None
+        _switch_rows(st, r.level, r.area, "", s, node, "no control point: " + r.notes)
     for cp in cps:
         for s in cp.switches:
-            os_rows(cp.level, cp.area, cp.name, s, cp.name)
-    for s in sorted(loc, key=natural):
-        os_rows(loc[s].level, loc[s].area, "", s, loc[s].area, detect=False)
+            _os_rows(st, cp.level, cp.area, cp.name, s, cp.name)
+    for s in sorted(st.loc, key=natural):
+        _os_rows(st, st.loc[s].level, st.loc[s].area, "", s, st.loc[s].area, detect=False)
 
-    part_rows = []
-    for name, part in sorted(lay.parts.items(), key=lambda kv: natural(kv[0])):
+
+def _switch_rows(st: MapBuild, lv: int, area: str, name: str, s: str, node: int | None, note: str = "") -> None:
+    """A switch's turnout, LCC alias and feedback rows (device_map_rows.switch_device_rows, the one maker, as
+    staging's): a frozen device's own wiring.csv values, else the node's next free turnout and sensor inputs. Main
+    and upper bind the virtual turnout. Sets st.home and st.area_of for the switch."""
+    frozen = st.nodes.take_frozen("turnout", f"Switch {s}")    # wired and frozen (wiring.csv): its own values
+    if frozen:
+        node, k, packed = frozen.node, frozen.index, frozen.node * 100 + UID["turnout"] + frozen.index
+        where = frozen.wiring_text
+    else:
+        if node is None:            # build() picks a node for every control point with a switch not frozen
+            raise MapError(f"Switch {s}: not frozen in {PINS.name}, and no node was picked for its turnout")
+        k, packed = st.nodes.take(node, "turnout")
+        where = f"Node: {node} Turnout: {k}"
+    st.home[s], st.area_of[s] = node, (lv, area)
+    fbs = {}
+    for nr in "NR":
+        fb = st.nodes.take_frozen("fb", f"FB Switch {s} {nr}")
+        if fb:
+            fbs[nr] = Wired(fb.address, fb.node, fb.wiring_text)
+            continue
+        fnode = st.nodes.pick(lv, area, "sensor", prefer=[node])
+        kk, pp = st.nodes.take(fnode, "sensor")
+        fbs[nr] = Wired(f"M2S{pp}", fnode, f"Node: {fnode} Sensor: {kk}")
+    st.rows.extend(switch_device_rows(
+        lv, name, s, [lb for labels in st.by_level.values() for lb in labels if base(lb) == s],
+        Wired(f"M2T{packed}", node, where), fbs, st.dcc[s], jmri=VIRTUAL_TURNOUT + s,
+        alias_notes="LCC alias of the MQTT turnout (ADR-005)", notes=note))
+
+
+def _os_rows(st: MapBuild, lv: int, area: str, name: str, s: str, comment: str, detect: bool = True) -> None:
+    """A switch's OS block row and its occupancy row; a double crossover's one per corner, corner a detected.
+    `detect` False: no detector (off the main line)."""
+    if s in st.corner_blocks:
+        _corner_rows(st, lv, area, name, s, comment, detect)
+        return
+    block = f"OS Switch {s}"
+    if not detect:
+        _add(st, lv, name, "block", block, "", "", comment, block, "no detector: off the main line", role="os",
+             ident=device_ids.os_id(s))
+        _occupancy(st, lv, name, block, notes=NO_DETECTOR, role="os")
+        return
+    bnode, k, packed = st.nodes.detector(block, lv, area, st.home[s], st.os_pin_level)
+    _add(st, lv, name, "block", block, "", bnode, comment, block, role="os", ident=device_ids.os_id(s))
+    _occupancy(st, lv, name, block, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}", role="os")
+
+
+def _corner_rows(st: MapBuild, lv: int, area: str, name: str, s: str, comment: str, detect: bool) -> None:
+    """A double crossover's block per corner, each corner's ID by the schematic leg it serves (xover_corners: {leg:
+    block}), in block name order: corner a keeps the switch's detector, the others are wired later (NOT_WIRED)."""
+    for leg, block in sorted(st.corner_blocks[s].items(), key=lambda kv: kv[1]):
+        ident = device_ids.os_id(s, leg)
+        note = f"corner {block[-1].upper()} of the double crossover"
+        if not detect:
+            _add(st, lv, name, "block", block, "", "", comment, block, note + ", no detector: off the main line",
+                 role=CORNER, ident=ident)
+            _occupancy(st, lv, name, block, notes=NO_DETECTOR, role=CORNER)
+        elif not block.endswith("a"):
+            _add(st, lv, name, "block", block, "", "", comment, block, note, role=CORNER, ident=ident)
+            _occupancy(st, lv, name, block, notes=NOT_WIRED, role=CORNER)
+        else:
+            bnode, k, packed = st.nodes.detector(block, lv, area, st.home[s], st.os_pin_level)
+            _add(st, lv, name, "block", block, "", bnode, comment, block, note, role=CORNER, ident=ident)
+            _occupancy(st, lv, name, block, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}", role=CORNER)
+
+
+def _part_rows(st: MapBuild) -> list[DeviceMapRow]:
+    """The master rows of the parts (links inside an OS block), each on the level of its OS block's row, its
+    switch's (a link between the halves of the crossovers 127 and 131 drawn on the upper band is in a main level OS
+    block). MapError on a piece at one end of a track, or a part of no main or upper switch's OS block."""
+    out = []
+    for name, part in sorted(st.lay.parts.items(), key=lambda kv: natural(kv[0])):
         if name != part["track"]["name"]:
             raise MapError(f"{name}: a piece at one end of a main or upper track ({part['why']}); the main and upper "
                            "drawing gives each strand one block, so give the whole track to an OS block")
-        # the part's row is on the level of the OS block's row, its switch's (a link between the halves of the
-        # crossovers 127 and 131 drawn on the upper band is in a main level OS block)
         m = re.fullmatch(r"OS Switch (\d+)[a-d]?", part["part_of"])
-        if not m or m.group(1) not in switches:
+        if not m or m.group(1) not in st.switches:
             raise MapError(f"{name} (level {part['level']}) is part of {part['part_of']}, the OS block of no main or "
                            "upper switch")
-        lv = str(switches[m.group(1)].level)
-        part_rows.append(dict(part_row(lv, name, part, trial_of(name), track_id(name)),
-                              cp=line_cp(name, lv, part["track"], places)))
-        block_ids[(lv, name)] = track_id(name)
-    for t in sorted(found, key=lambda t: natural(t["name"])):
+        lv = str(st.switches[m.group(1)].level)
+        out.append(dict(part_row(lv, name, part, _trial_of(st, name), _track_id(st, name)),
+                        cp=line_cp(name, lv, part["track"], st.places)))
+        st.block_ids[(lv, name)] = _track_id(st, name)
+    return out
+
+
+def _track_rows(st: MapBuild) -> None:
+    """Each main and upper track's block row and occupancy row (a balloon loop's or a split track's, one per half),
+    but a part's. MapError on a track ending at a switch of neither level."""
+    for t in sorted(st.found, key=lambda t: natural(t["name"])):
         sws = [v for k, v in t["ends"] if k == "sw"]
-        stray = [s for s in sws if s not in area_of]
+        stray = [s for s in sws if s not in st.area_of]
         if stray:
             raise MapError(f"{t['name']} ends at switch {', '.join(stray)}, which is on neither the main nor the "
                            "upper level")
-        if t["name"] in lay.parts:                  # a link inside an OS block: its part row, no block or detector
+        if t["name"] in st.lay.parts:               # a link inside an OS block: its part row, no block or detector
             continue
-        ends_cp = sorted({cp_of[v] for v in sws if v in cp_of}, key=natural)
-        detect = t["main"] and sws
-        split = t["name"] in split_names
-        halves = sorted(LOOP_HALF.values()) if (t["loop"] or split) else [None]
-        for half in halves:
-            name, role = loop_placeholder(t["name"], half), line_role(t, half)
-            cp = line_cp(name, t["level"], t, places, helix_ends(helix))
-            cm = round(t["cm"] / 2, 1) if half else t["cm"]
-            note = f"{cm} cm" + ("" if t["main"] else " no detector: off the main line")
-            if half and split:
-                note += f", half {half} of the split track ({mast_rule.OVERRIDES_NAME})"
-            elif half:
-                note += f", half of the balloon loop from leg {'BC'[half - 1]}"
-            add(t["level"], cp, "block", name, "", "", " / ".join(ends_cp),
-                trial_of(name), note, role=role, ident=track_id(name))
-            pinned = nodes.take_pinned(name)
-            if not detect:
-                if pinned:
-                    raise MapError(f"{PINS.name} pins a detector for {name}, which the rule gives none "
-                                   "(off the main line)")
-                occupancy(t["level"], cp, name, notes=NO_DETECTOR, role=role)
-                continue
-            if pinned:                                            # the owner's input (wiring.csv)
-                bnode, k, packed = pinned
-            elif half and half > 1:                               # wired later: no node or input yet
-                occupancy(t["level"], cp, name, notes=NOT_WIRED, role=role)
-                continue
-            else:
-                sws.sort(key=lambda s: area_of[s][0] != t["level"])      # a node on the track's own level first
-                lv, area = t["level"], area_of[sws[0]][1]                 # the track's level, its switch's area
-                bnode = nodes.pick(lv, area, "block", prefer=[home[s] for s in sws if area_of[s][0] == lv])
-                k, packed = nodes.take(bnode, "block")
-            occupancy(t["level"], cp, name, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}", role=role)
+        split = t["name"] in st.split_names
+        for half in sorted(LOOP_HALF.values()) if (t["loop"] or split) else [None]:
+            _track_half_rows(st, t, sws, half, split)
 
-    def facing_id(level, block: str) -> str:
-        """The device ID of the block `block` a mast faces: its row on the mast's level, else its one row on
-        another level (a helix block, a link drawn on the other band)."""
-        got = block_ids.get((str(level), block))
-        if got is None:
-            other = [v for (lv_, b), v in block_ids.items() if b == block]
-            if len(other) != 1:
-                raise MapError(f"a mast faces {block}, which has {len(other)} block rows: no device ID to name it by")
-            got = other[0]
-        return got
 
-    def mast_id(m: dict, kind: MastKind) -> str:
-        """A mast's device ID (hartlib.device_ids): a home mast's by its switch label, leg and way, others' by block."""
-        if kind != "home":
-            return device_ids.block_mast_id(facing_id(m["level"], m["facing"]), m["dir"])
-        label = le_common.bare(bands[m["band"]][1]["nodes"][m["node"]].get("label"))
-        return device_ids.home_mast_id(label, m["leg"], m["dir"])
+def _track_half_rows(st: MapBuild, t: dict[str, Any], sws: list[str], half: int | None, split: bool) -> None:
+    """The block row and occupancy row of track `t` (or of its `half`): its detector the owner's pin, none off the
+    main line, not wired yet for a second half, else the next free block input of a node on the track's own level
+    first. MapError on a pin the rule gives no detector."""
+    ends_cp = sorted({st.cp_of[v] for v in sws if v in st.cp_of}, key=natural)
+    detect = t["main"] and sws
+    name, role = loop_placeholder(t["name"], half), line_role(t, half)
+    cp = line_cp(name, t["level"], t, st.places, helix_ends(st.helix))
+    cm = round(t["cm"] / 2, 1) if half else t["cm"]
+    note = f"{cm} cm" + ("" if t["main"] else " no detector: off the main line")
+    if half and split:
+        note += f", half {half} of the split track ({mast_rule.OVERRIDES_NAME})"
+    elif half:
+        note += f", half of the balloon loop from leg {'BC'[half - 1]}"
+    _add(st, t["level"], cp, "block", name, "", "", " / ".join(ends_cp), _trial_of(st, name), note, role=role,
+         ident=_track_id(st, name))
+    pinned = st.nodes.take_pinned(name)
+    if not detect:
+        if pinned:
+            raise MapError(f"{PINS.name} pins a detector for {name}, which the rule gives none (off the main line)")
+        _occupancy(st, t["level"], cp, name, notes=NO_DETECTOR, role=role)
+        return
+    if pinned:                                            # the owner's input (wiring.csv)
+        bnode, k, packed = pinned
+    elif half and half > 1:                               # wired later: no node or input yet
+        _occupancy(st, t["level"], cp, name, notes=NOT_WIRED, role=role)
+        return
+    else:
+        sws.sort(key=lambda s: st.area_of[s][0] != t["level"])      # a node on the track's own level first
+        lv, area = t["level"], st.area_of[sws[0]][1]                 # the track's level, its switch's area
+        bnode = st.nodes.pick(lv, area, "block", prefer=[st.home[s] for s in sws if st.area_of[s][0] == lv])
+        k, packed = st.nodes.take(bnode, "block")
+    _occupancy(st, t["level"], cp, name, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}", role=role)
 
-    # every mast's ID, then the owner's name by it (devices_field.csv): a mast and its heads take it, as on staging
-    # (device_map_masts.owner_names)
-    owner = owner_mast_names() if owner is None else owner
+
+def _facing_id(st: MapBuild, level: Any, block: str) -> str:
+    """The device ID of the block `block` a mast faces: its row on the mast's level, else its one row on another
+    level (a helix block, a link drawn on the other band). MapError when it has none or several there."""
+    got = st.block_ids.get((str(level), block))
+    if got is None:
+        other = [v for (_lv, b), v in st.block_ids.items() if b == block]
+        if len(other) != 1:
+            raise MapError(f"a mast faces {block}, which has {len(other)} block rows: no device ID to name it by")
+        got = other[0]
+    return got
+
+
+def _mast_id(st: MapBuild, m: Mapping[str, Any], kind: MastKind) -> str:
+    """A mast's device ID (hartlib.device_ids): a home mast's by its switch label, leg and way, others' by block."""
+    if kind != "home":
+        return device_ids.block_mast_id(_facing_id(st, m["level"], m["facing"]), m["dir"])
+    label = le_common.bare(st.bands[m["band"]][1]["nodes"][m["node"]].get("label"))
+    return device_ids.home_mast_id(label, m["leg"], m["dir"])
+
+
+def _name_masts(st: MapBuild, ms: list[dict[str, Any]], virtual: list[dict[str, Any]], owner: Mapping[str, str],
+                old_names: dict[str, tuple[str, str]] | None) -> dict[str, str]:
+    """Every mast's ID, then the owner's name by it (devices_field.csv): a mast and its heads take it, as on staging
+    (device_map_masts.owner_names); a virtual mast's needed_by follows the renames. Returns {virtual mast name: its
+    system name}, each level's ordinals from its own thousand (hartlib.level_masts); `old_names`: build()'s
+    virtual_names (None: master_virtual_names). MapError on an owner's name out
+    of the grammar or two masts with one name."""
     renamed = {}
-    kinds: list[tuple[dict, MastKind]] = [(m, "intermediate" if m.get("intermediate") else "home") for m in ms]
-    kinds += [(m, "virtual") for m in planned["virtual"]]
+    kinds: list[tuple[dict[str, Any], MastKind]] = [(m, "intermediate" if m.get("intermediate") else "home")
+                                                    for m in ms]
+    kinds += [(m, "virtual") for m in virtual]
     for mast, kind in kinds:
-        mast["id"] = mast_id(mast, kind)
+        mast["id"] = _mast_id(st, mast, kind)
         name = owner.get(mast["id"], "")
         if name and name != f"Mast {mast['name']}":
             if not level_masts.MAST_USER.fullmatch(name):
                 raise MapError(f"{devices.FIELD_FILE}: mast {mast['id']} named {name!r}, not Mast <number>[L|R][letter]")
             renamed[mast["name"]] = mast["name"] = name.removeprefix("Mast ")
-    taken = [m["name"] for m in ms + planned["virtual"]]
+    taken = [m["name"] for m in ms + virtual]
     twice = sorted({x for x in taken if taken.count(x) > 1}, key=natural)
     if twice:
         raise MapError(f"two masts are named {', '.join('Mast ' + x for x in twice)} (an owner's name in "
                        f"{devices.FIELD_FILE} takes a generated one?)")
-    for m in planned["virtual"]:
+    for m in virtual:
         m["needed_by"] = [renamed.get(x, x) for x in m["needed_by"]]
-    old_virtual = virtual_memory(planned["virtual"],
-                                 master_virtual_names() if virtual_names is None else virtual_names)
-    vnames = {}
-    for lv in (2, 3):                       # each level's ordinals from its own thousand (hartlib.level_masts)
-        vnames |= mast_plan.virtual_system_names([m["name"] for m in planned["virtual"] if m["level"] == lv], lv,
+    old_virtual = virtual_memory(virtual, master_virtual_names() if old_names is None else old_names)
+    vnames: dict[str, str] = {}
+    for lv in (2, 3):
+        vnames |= mast_plan.virtual_system_names([m["name"] for m in virtual if m["level"] == lv], lv,
                                                  old_virtual.get(lv, {}))
+    return vnames
 
-    groups = [(cp.level, cp.area, cp.name, cp.switches[0]) for cp in cps]
-    groups += [(loc[s].level, loc[s].area, "", s)
+
+def _head_rows(st: MapBuild, cps: Sequence[railroad.Interlocking], ms: list[dict[str, Any]]) -> None:
+    """The home and intermediate masts' rows and their heads', last, once every node's boards are known: each
+    group's masts in name order, but every two-head mast of every group before any one-head mast (a stable sort),
+    since a two-head mast takes six of a board's eight pins and a one-head mast placed first would take a board of
+    its own that a two-head mast of the area needs. As many heads are placed as the boards hold; the rest wait as
+    HEAD_NOT_WIRED."""
+    groups: list[tuple[int, str, str, str]] = [(cp.level, cp.area, cp.name, cp.switches[0]) for cp in cps]
+    groups += [(st.loc[s].level, st.loc[s].area, "", s)
                for s in sorted({m["switch"] for m in ms if not m["cp"] and m["switch"]}, key=natural)]
-    # heads last, once every node's boards are known: each group's masts in name order, but every two-head mast of
-    # every group before any one-head mast (a stable sort), since a two-head mast takes six of a board's eight pins and
-    # a one-head mast placed first would take a board of its own that a two-head mast of the area needs (owner,
-    # 2026-11-19: as many heads placed as the boards hold; the rest wait as HEAD_NOT_WIRED)
     placing = [(lv, area, name, first, m) for lv, area, name, first in groups
                for m in sorted((m for m in ms if m["cp"] == name and (name or m["switch"] == first)),
                                key=lambda m: natural(m["name"]))]
     for lv, area, name, first, m in sorted(placing, key=lambda g: -g[4]["heads"]):
-        parts = ["Top", "Bottom"] if m["heads"] == 2 else [""]
-        mid = m["id"]
-        head_ids = {f"Head {m['name']}" + (f" {part}" if part else ""): device_ids.head_id(mid, device_ids.head_place(
-            i, len(parts))) for i, part in enumerate(parts)}
-        kind = m["kind"]
-        users = [f"Head {m['name']}" + (f" {part}" if part else "") for part in parts]
-        frozen = [nodes.take_frozen("head", u) for u in users]
-        try:
-            if any(frozen):                          # wired and frozen (wiring.csv): every head of the mast, one node
-                if not all(frozen) or len({w.node for w in frozen}) != 1:
-                    raise MapError(f"Mast {m['name']}: wiring.csv freezes {sum(map(bool, frozen))} of its "
-                                   f"{len(users)} head(s), or puts them on two nodes; freeze the mast whole")
-                hnode = frozen[0].node
-                heads = [(u, w.address, w.index, w.port_text) for u, w in zip(users, frozen)]
-            else:
-                hnode = nodes.pick_mast(lv, area, m["heads"], prefer=[home[first]])
-                heads = [(u, f"IH{packed}", k, f"OU: {board} Ports: {pin},{pin + 1},{pin + 2}")
-                         for u, (k, packed, board, pin) in zip(users, nodes.place_mast(hnode, m["heads"]))]
-            sysname = f"IF$shsm:basic:{kind}(" + ")(".join(h[1] for h in heads) + ")"
-        except NoBoardRoom:
-            # the draft plant has no board room left in this area: the heads wait for the wiring plan, which
-            # the owner reworks once the masts are approved (2026-11-19); their virtual names do not change
-            hnode, sysname = "", ""
-            heads = [(f"Head {m['name']}" + (f" {part}" if part else ""), "", None, None) for part in parts]
-        virtual = f"IF$shsm:basic:{kind}(" + ")(".join(head_name(h[0], lv) for h in heads) + ")"
-        if m.get("intermediate"):
-            add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | intermediate",
-                notes=f"intermediate signal from {m['facing']} into {m['protects']} at MP {m['name'][0]} "
-                      f"{m['milepost']:.2f}", jmri=virtual, facing=m["facing"], protects=m["protects"], dir=m["dir"],
-                role="intermediate", ident=mid)
+        _mast_rows(st, lv, area, name, first, m)
+
+
+def _mast_rows(st: MapBuild, lv: int, area: str, name: str, first: str, m: dict[str, Any]) -> None:
+    """One home or intermediate mast's row and its heads' rows: a frozen mast's heads on their wiring.csv node, else
+    a node with board room (Nodes.pick_mast, its first switch's node first). With no board room left in the area
+    (NoBoardRoom) its heads wait for the wiring plan: no node, their virtual names unchanged. MapError on a mast
+    frozen in part, or on two nodes."""
+    parts = ["Top", "Bottom"] if m["heads"] == 2 else [""]
+    mid = m["id"]
+    users = [f"Head {m['name']}" + (f" {part}" if part else "") for part in parts]
+    head_ids = {u: device_ids.head_id(mid, device_ids.head_place(i, len(parts))) for i, u in enumerate(users)}
+    kind = m["kind"]
+    frozen = [st.nodes.take_frozen("head", u) for u in users]
+    heads: list[tuple[str, str, Any, Any]]
+    try:
+        if any(frozen):                          # wired and frozen (wiring.csv): every head of the mast, one node
+            if not all(frozen) or len({w.node for w in frozen}) != 1:
+                raise MapError(f"Mast {m['name']}: wiring.csv freezes {sum(map(bool, frozen))} of its "
+                               f"{len(users)} head(s), or puts them on two nodes; freeze the mast whole")
+            hnode = frozen[0].node
+            heads = [(u, w.address, w.index, w.port_text) for u, w in zip(users, frozen)]
         else:
-            add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | Switch {m['switch']}",
-                notes=f"home signal from {m['track']}" + (f" into {m['protects']}" if m["protects"] else ""),
-                jmri=virtual, switch=m["switch"], facing=m["facing"], protects=m["protects"], dir=m["dir"],
-                role="home", ident=mid)
-        for user, sysn, k, ports in heads:
-            if not sysn:                    # no node yet: the mast's comment says where it stands
-                where = f"{name or area} | " + (f"Switch {m['switch']}" if m["switch"] else "intermediate")
-                add(lv, name, "head", user, "", "", where, notes=HEAD_NOT_WIRED, jmri=head_name(user, lv),
-                    role="head", ident=head_ids[user])
-                continue
-            add(lv, name, "head", user, sysn, hnode,
-                f"Node: {hnode} Signal: {k} | {ports}",
-                jmri=head_name(user, lv), role="head", ident=head_ids[user])
-    for m in planned["virtual"]:            # a destination for the visible masts' routes: hidden, no heads, no node
-        sw = switches[m["switch"]]
+            hnode = st.nodes.pick_mast(lv, area, m["heads"], prefer=[st.home[first]])
+            heads = [(u, f"IH{packed}", k, f"OU: {board} Ports: {pin},{pin + 1},{pin + 2}")
+                     for u, (k, packed, board, pin) in zip(users, st.nodes.place_mast(hnode, m["heads"]))]
+        sysname = f"IF$shsm:basic:{kind}(" + ")(".join(h[1] for h in heads) + ")"
+    except NoBoardRoom:
+        hnode, sysname = "", ""
+        heads = [(u, "", None, None) for u in users]
+    virtual = f"IF$shsm:basic:{kind}(" + ")(".join(head_name(h[0], lv) for h in heads) + ")"
+    if m.get("intermediate"):
+        _add(st, lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | intermediate",
+             notes=f"intermediate signal from {m['facing']} into {m['protects']} at MP {m['name'][0]} "
+                   f"{m['milepost']:.2f}", jmri=virtual, facing=m["facing"], protects=m["protects"], dir=m["dir"],
+             role="intermediate", ident=mid)
+    else:
+        _add(st, lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | Switch {m['switch']}",
+             notes=f"home signal from {m['track']}" + (f" into {m['protects']}" if m["protects"] else ""),
+             jmri=virtual, switch=m["switch"], facing=m["facing"], protects=m["protects"], dir=m["dir"],
+             role="home", ident=mid)
+    for user, sysn, k, ports in heads:
+        if not sysn:                    # no node yet: the mast's comment says where it stands
+            where = f"{name or area} | " + (f"Switch {m['switch']}" if m["switch"] else "intermediate")
+            _add(st, lv, name, "head", user, "", "", where, notes=HEAD_NOT_WIRED, jmri=head_name(user, lv),
+                 role="head", ident=head_ids[user])
+            continue
+        _add(st, lv, name, "head", user, sysn, hnode, f"Node: {hnode} Signal: {k} | {ports}",
+             jmri=head_name(user, lv), role="head", ident=head_ids[user])
+
+
+def _virtual_mast_rows(st: MapBuild, virtual: list[dict[str, Any]], vnames: Mapping[str, str]) -> None:
+    """Each virtual mast's row: a destination for the visible masts' routes, hidden, with no heads and no node."""
+    for m in virtual:
+        sw = st.switches[m["switch"]]
         system = vnames[m["name"]]
-        add(m["level"], sw.cp, "mast", f"Mast {m['name']}", system, "", f"{sw.cp or sw.area} | buffer stop",
-            notes=f"virtual bumper mast facing {m['facing']} at its buffer stop: the destination of "
-                  f"{', '.join('Mast ' + x for x in m['needed_by'])}",
-            jmri=system, facing=m["facing"], dir=m["dir"], role="hidden", ident=m["id"])
-    nodes.check_boards()
-    nodes.check_pins()
-    nodes.check_frozen()
-    check_frozen_cps(rows, frozen_cps, held_devices, held_blocks)
-    check_virtual(rows)
-    order = {"turnout": 0, "fb": 1, "block": 2, "occupancy": 3, "mast": 4, "head": 5}
-    assign_ports(rows)
-    rows.sort(key=lambda r: (r["level"], order[r["layer"]], natural(r["user_name"])))
-    return cp_keys, rows, part_rows
+        _add(st, m["level"], sw.cp, "mast", f"Mast {m['name']}", system, "", f"{sw.cp or sw.area} | buffer stop",
+             notes=f"virtual bumper mast facing {m['facing']} at its buffer stop: the destination of "
+                   f"{', '.join('Mast ' + x for x in m['needed_by'])}",
+             jmri=system, facing=m["facing"], dir=m["dir"], role="hidden", ident=m["id"])
 
 
 WRITER = "build_device_map.py"
@@ -845,10 +762,9 @@ def owned_rows(rows, parts, files: devices.Files | None = None) -> tuple[list[di
 def block_beans(rows: list[dict], numbering_path: Path | None = None) -> list[dict]:
     """`rows` (main and upper master rows, as generated) with each block row's jmri_name and layout_block, a helix
     block's left out (its beans are staging's): the numbers block_numbering.csv gives (hartlib.block_numbering.read
-    and bean_names; owner, 2026-11-23: today's numbers until the levels are wired for good). They are numbered over
-    the generated names, not the owner's, so an owner's rename in devices_field.csv keeps a block's numbers (my call,
-    naming-layers step 8: before it the Layout Editor build sorted the owner's names, and a rename with no numbered_as
-    row shifted every block after it). Its assignment becomes virtual (an internal name) and its description is
+    and bean_names: today's numbers until the levels are wired for good). They are numbered over the generated
+    names, not the owner's, so an owner's rename in devices_field.csv keeps a block's numbers (sorting the owner's
+    names would shift every block after a rename with no numbered_as row). Its assignment becomes virtual (an internal name) and its description is
     written again. `numbering_path`: block_numbering.csv (default the repo's). MapError on a numbering problem."""
     def numbered(r) -> bool:
         return r["layer"] == "block" and r["level"] in block_numbering.LEVELS and r["role"] != "helix"
@@ -892,8 +808,8 @@ def master_outputs(bands, joined, runs, rows, parts, files: devices.Files | None
     generated = made + [dict(r, user_name=drawn[r["id"]]) if r["layer"] == "block" and r["id"] in drawn else r
                         for r in staging]
     every = [dict(r) for r in devices.follow_renames(main + staging + wired, generated)]
-    # staging's masts and heads, from the block rows above (device_map_masts; naming-layers step 12: one writer of
-    # every level's mast and head rows)
+    # staging's masts and heads, from the block rows above (device_map_masts: one writer of every level's mast and
+    # head rows)
     try:
         every += [devices.master_row(o, WRITER) for o in
                   device_map_masts.staging_masts(bands, joined, runs, every, f)["rows"]]
@@ -903,7 +819,7 @@ def master_outputs(bands, joined, runs, rows, parts, files: devices.Files | None
         every += [dict(r) for r in devices.load(f) if r["level"] == str(STAGING_LEVEL)
                   and r["layer"] in device_map_masts.LAYERS and r["written_by"] == WRITER]
         held.append(str(exc))
-    # what a main or upper bean takes from its row: its start and bean comment (naming-layers steps 9 and 11)
+    # what a main or upper bean takes from its row: its start and bean comment
     every = bean_cells(every, startup_thrown(bands))
     return devices.outputs_after(WRITER, [], f, master_rows=every, warn=warn, check=check)
 
@@ -913,7 +829,7 @@ def startup_thrown(bands) -> frozenset:
     field's) whose virtual turnout starts Thrown: those whose main route runs through leg C and not leg B, so every
     virtual turnout lines the main line when the tables load (227 and 229 at the peninsula loop).
     A double crossover or a crossover half stays Closed (straight through). bean_cells writes it as the turnout
-    row's start, which hartlib.tables_build's startup LogixNG sets (naming-layers steps 9 and 11)."""
+    row's start, which hartlib.tables_build's startup LogixNG sets."""
     out = set()
     for (_title, band, _opts), level in zip(bands, le_common.band_levels(bands)):
         if level in le_common.STAGING_LEVELS:
