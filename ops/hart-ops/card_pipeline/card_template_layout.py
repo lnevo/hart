@@ -36,10 +36,10 @@ H_DATA_SECTION = 1450  # data block; tuned with revision gap below data table
 # Visual gap between image bordered box and data table (c_img bottom + c_data top).
 DATA_TABLE_TOP_PAD = 140   # c_data top margin (gap below image box)
 IMG_OUTER_PAD_TOP = 50
-IMG_OUTER_PAD_BOTTOM = 80  # was 140; partial reclaim for taller image box
+IMG_OUTER_PAD_BOTTOM = 80  # kept small so the image box can be taller
 IMG_INNER_PAD = 20
 WORK_FLOW_COMMODITY_GAP = 36  # space below INBOUND/OUTBOUND, before commodity
-H_FOOTER = 110     # exact height for one 5.5pt revision line (was 323)
+H_FOOTER = 110     # exact height for one 5.5pt revision line
 H_FOOTER_LINE_TWIPS = 110  # 5.5pt exact line in revision cell
 
 # ── style constants ─────────────────────────────────────────────────────────

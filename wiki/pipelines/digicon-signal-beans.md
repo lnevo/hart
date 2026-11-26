@@ -21,7 +21,7 @@ Packed MQTT leaf = radio node × 100 + UID (example: node 4, UID 0 → `432` / `
 python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only
 ```
 
-Head IH numbers in `tables.xml` follow the wiring plan (packed = radio address × 100 + slot); `tools/audit/check_wiring_crosswalk.py` fails in `./tools/check.sh` when a head on a physical mast differs from `wiring.csv`. The script has one mode: it writes the head and mast plan CSVs from `wiring.csv`'s wired heads (`--wiring-only` is still accepted). A head is wired by its row in `jmri/layouts/hart/data/wiring.csv`; `tables.xml` is generated from the device master (ADR-029). Interim builds with fewer heads than planned (Mast 6LB) are listed in `FITTED_HEADS` in the script.
+Head IH numbers in `tables.xml` follow the wiring plan (packed = radio address × 100 + slot); `tools/audit/check_wiring_crosswalk.py` fails in `./tools/check.sh` when a head on a physical mast differs from `wiring.csv`. The script has one mode: it writes the head and mast plan CSVs from `wiring.csv`'s wired heads (`--wiring-only` is still accepted). A head is wired by its row in `jmri/layouts/hart/data/wiring.csv`; `tables.xml` is generated from the device master (ADR-029). An interim build with fewer heads than planned (Mast 6LB) has only its wired heads' rows in `wiring.csv`, and the head plan follows them.
 
 Facing / SML chaining: [`docs/ctc/SIGNAL_FACING.md`](../../docs/ctc/SIGNAL_FACING.md). Decision: [`ADR-006-co-1980-signals.md`](../decisions/ADR-006-co-1980-signals.md).
 

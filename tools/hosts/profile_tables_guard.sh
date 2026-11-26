@@ -125,7 +125,7 @@ refuse_unrestored_profile() {
   local profile="${HOME}/Library/Preferences/JMRI/My_JMRI_Railroad.jmri/profile/profile.xml"
   if [[ -e "$profile.hart-run.bak" || -e "$profile.hart-run.sha256" ]]; then
     echo "STOP: $profile.hart-run.bak is left from a PanelPro wrapper run that did not finish; not going to $1." >&2
-    echo "Quit the PanelPro it left, then run: python3 $ROOT/tools/hosts/panelpro_profile.py restore --profile $profile" >&2
+    echo "Quit the PanelPro it left, then run: python3 $_HART_GUARD_ROOT/tools/hosts/panelpro_profile.py restore --profile $profile" >&2
     exit 1
   fi
 }

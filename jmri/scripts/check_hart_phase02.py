@@ -21,11 +21,11 @@ SWITCHES = railroad.Sources.under().switches
 
 def staging_rows(path: Path = SWITCHES) -> list[railroad.SwitchRow]:
     """The staging (level 1) rows of switches.csv, one per OS block, in file order (hartlib.railroad.read_switch_rows,
-    which checks every row's shape). A file it refuses stops with its message."""
+    which checks every row's shape). FactsError, its message prefixed with the path, on a file it refuses."""
     try:
         rows = railroad.read_switch_rows(path)
     except railroad.FactsError as exc:
-        raise SystemExit(f"{path}: {exc}") from None
+        raise railroad.FactsError(f"{path}: {exc}") from exc
     return [row for row in rows if row.level == 1]
 
 
@@ -55,6 +55,14 @@ def crossover_row_errors(root: ET.Element, switches: Path = SWITCHES) -> list[st
 
 
 def main() -> int:
+    try:
+        return _check()
+    except railroad.FactsError as exc:
+        print(f"FAIL\n  - {exc}")
+        return 1
+
+
+def _check() -> int:
     errors: list[str] = []
     if not PANEL.is_file():
         errors.append(f"missing panel {PANEL}")

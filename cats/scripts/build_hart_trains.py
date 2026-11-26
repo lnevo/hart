@@ -26,17 +26,21 @@ OUT = ROOT / "cats/data/hart_trains.csv"
 COLUMNS = ("train_name", "train_symbol", "engine", "font", "runs_job", "notes")
 
 
+class TrainsError(ValueError):
+    """The train master lacks a column the CATS list needs, or a row's on_desks is not yes or no."""
+
+
 def build(master: Path = MASTER) -> str:
-    """The text of the CATS train list built from the master."""
+    """The text of the CATS train list built from the master. TrainsError on a missing column or a bad on_desks."""
     with master.open(newline="", encoding="utf-8") as fh:
         reader = csv.DictReader(fh)
         missing = [c for c in (*COLUMNS, "on_desks") if c not in (reader.fieldnames or ())]
         if missing:
-            raise SystemExit(f"build_hart_trains: {master} has no column {', '.join(missing)}")
+            raise TrainsError(f"build_hart_trains: {master} has no column {', '.join(missing)}")
         rows = list(reader)
     bad = [row["train_symbol"] for row in rows if row["on_desks"] not in ("yes", "no")]
     if bad:
-        raise SystemExit(f"build_hart_trains: on_desks must be yes or no: {', '.join(bad)}")
+        raise TrainsError(f"build_hart_trains: on_desks must be yes or no: {', '.join(bad)}")
     rows = [row for row in rows if row["on_desks"] == "yes"]
     buf = io.StringIO()
     writer = csv.writer(buf, lineterminator="\n")
@@ -50,7 +54,11 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     ap.add_argument("--check", action="store_true", help="write nothing; exit 1 when the CATS file is stale")
     args = ap.parse_args(argv)
-    text = build(MASTER)
+    try:
+        text = build(MASTER)
+    except TrainsError as exc:
+        print(exc, file=sys.stderr)
+        return 1
     rel = OUT.relative_to(ROOT) if OUT.is_relative_to(ROOT) else OUT
     if args.check:
         current = OUT.read_bytes() if OUT.exists() else b""

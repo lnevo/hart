@@ -371,7 +371,10 @@ def main() -> None:
     elif args.action == "quiet-startup":
         if not args.run:
             ap.error("quiet-startup requires --run")
-        print("\n".join(quiet_startup(args.profile, args.run)))
+        try:
+            print("\n".join(quiet_startup(args.profile, args.run)))
+        except patch_jmri_startup.StartupPatchError as exc:     # one line, as the profile checks above
+            sys.exit(f"{args.profile}: {exc}")
     elif args.action == "backup":
         print(backup_profile(args.profile))
     elif args.action == "seal":

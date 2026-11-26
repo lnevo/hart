@@ -1,8 +1,10 @@
 """pi_quit_panelpro.sh answers only JMRI's store-on-quit request, and only with No."""
 from __future__ import annotations
 
+import os
 import re
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -16,6 +18,24 @@ JMRI_BUNDLE_DENIED = (
     "<html>Table and/or panel changes have been made since the last store but<br> "
     "you don't have permission to store. Do you want to abort the shutdown?</html>"
 )
+
+
+DEFAULT_PROFILE = "TCS_MQTT.3f32a166"
+
+
+def ssh_calls(tmp: Path, name: str, env: dict[str, str]) -> list[str]:
+    """Run tools/hosts/<name> with a stub ssh that logs its arguments and fails; return the logged calls."""
+    stub = tmp / "bin"
+    stub.mkdir()
+    log = tmp / "ssh.log"
+    (stub / "ssh").write_text(f'#!/bin/sh\necho "$*" >> "{log}"\nexit 1\n', encoding="utf-8")
+    (stub / "ssh").chmod(0o755)
+    base = {k: v for k, v in os.environ.items() if k not in ("_hart_env_loaded", "HART_PI_PROFILE")}
+    base.update(env, PATH=f"{stub}:/usr/bin:/bin", HART_PI_SSH="pi.example.invalid",
+                HART_ENV_FILE=str(tmp / "hart.env"))
+    subprocess.run(["bash", str(ROOT / "tools/hosts" / name)], env=base, capture_output=True, text=True,
+                   cwd=tmp, timeout=60)
+    return log.read_text(encoding="utf-8").splitlines() if log.exists() else []
 
 
 def jython() -> str:
@@ -76,11 +96,17 @@ class PiQuitPanelProTest(unittest.TestCase):
         for banned in ("storeAll", "StoreXml", "ConfigureManager", "mosquitto_pub", "track/cmd", "publish("):
             self.assertNotIn(banned, text, banned)
 
-    def test_matches_the_start_script_profile(self) -> None:
-        start = (ROOT / "tools/hosts/pi_start_panelpro.sh").read_text(encoding="utf-8")
-        profile = re.search(r'PROFILE="([^"]+)"', start).group(1)
-        self.assertIn('PROFILE="%s"' % profile, SCRIPT.read_text(encoding="utf-8"))
-
+    def test_every_pi_panelpro_script_sends_the_profile_load_env_names(self) -> None:
+        """pi_quit, pi_start and pi_panel_window_sizes take the profile from HART_PI_PROFILE (load_env.sh);
+        a stub ssh records what each sends and fails, so nothing reaches a host."""
+        for env, want in (({}, DEFAULT_PROFILE), ({"HART_PI_PROFILE": "Rehearsal.0badf00d"}, "Rehearsal.0badf00d")):
+            for name in ("pi_quit_panelpro.sh", "pi_start_panelpro.sh", "pi_panel_window_sizes.sh"):
+                with self.subTest(script=name, env=env), tempfile.TemporaryDirectory() as tmp:
+                    calls = ssh_calls(Path(tmp), name, env)
+                    self.assertTrue(calls, name)
+                    folder = want.split(".")[0]
+                    self.assertTrue(f" {want} " in f" {calls[0]} " or f"~/.jmri/{folder}.jmri/" in calls[0],
+                                    calls[0])
 
 if __name__ == "__main__":
     unittest.main()
