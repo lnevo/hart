@@ -1,4 +1,5 @@
-"""build_hands.py: switches.csv holds the current plan hands (not the drawn ones), and only plan rows are rewritten."""
+"""build_hands.py: switches.csv holds the current plan hands (not the drawn ones), and only plan rows are rewritten;
+staging rows, which give IDs only, are left as they are."""
 from __future__ import annotations
 
 import csv
@@ -47,8 +48,9 @@ class BuildHands(unittest.TestCase):
 
 
 HEADER = ",".join(BH.railroad.SWITCH_COLUMNS) + "\n"
-# a staging row keys its OS block and legs by device ID (os_id, closed_id, thrown_id); its labels are the name store's
-STAGING = "1,1,,OS Switch 1,OS Switch 3,Track Brick-Plane,os:1,os:3,block:1C-5A#1+1C-5A#2,L,owner,,TO1,no,3,yes,\n"
+# a staging row gives its OS block and legs by device ID only (os_id, closed_id, thrown_id); their names are the name
+# store's, which the reader looks up (railroad.read_switch_rows)
+STAGING = "1,1,,os:1,os:3,block:1C-5A#1+1C-5A#2,L,owner,,TO1,no,3,yes,\n"
 
 
 class PlanAndOwnerRows(unittest.TestCase):
@@ -63,56 +65,54 @@ class PlanAndOwnerRows(unittest.TestCase):
             return BH.apply(p, plan)
 
     def test_a_plan_row_takes_the_plan_hand_and_an_owner_row_keeps_its_own(self):
-        body = ("2,101,101A,,,,,,,L,plan,Peninsula,,,,,Yard throat crossover\n"
-                "2,101,101B,,,,,,,L,owner,,,,,,\n"
-                "2,105,105,,,,,,,R,plan,West,,,,,\"Yard ladder, west\"\n")
+        body = ("2,101,101A,,,,L,plan,Peninsula,,,,,Yard throat crossover\n"
+                "2,101,101B,,,,L,owner,,,,,,\n"
+                "2,105,105,,,,R,plan,West,,,,,\"Yard ladder, west\"\n")
         got = self.apply(body, {"101A": "R", "101B": "R", "105": "R"})
-        self.assertEqual(got, HEADER + STAGING + "2,101,101A,,,,,,,R,plan,Peninsula,,,,,Yard throat crossover\n"
-                         "2,101,101B,,,,,,,L,owner,,,,,,\n"
-                         "2,105,105,,,,,,,R,plan,West,,,,,\"Yard ladder, west\"\n")
+        self.assertEqual(got, HEADER + STAGING + "2,101,101A,,,,R,plan,Peninsula,,,,,Yard throat crossover\n"
+                         "2,101,101B,,,,L,owner,,,,,,\n"
+                         "2,105,105,,,,R,plan,West,,,,,\"Yard ladder, west\"\n")
 
     def test_a_file_already_current_comes_back_byte_for_byte(self):
-        body = "2,105,105,,,,,,,R,plan,West,,,,,\"Yard ladder\"\n"      # quoting the writer would not use is kept
+        body = "2,105,105,,,,R,plan,West,,,,,\"Yard ladder\"\n"      # quoting the writer would not use is kept
         self.assertEqual(self.apply(body, {"105": "R"}), HEADER + STAGING + body)
 
     def test_a_new_plan_row_with_no_hand_is_filled(self):
         """The way to add a plan switch, as the no-row message says: a row with hand_source plan and the hand blank."""
-        body = "2,105,105,,,,,,,R,plan,West,,,,,\n3,247,247,,,,,,,,plan,Helix,,,,,\n"
+        body = "2,105,105,,,,R,plan,West,,,,,\n3,247,247,,,,,plan,Helix,,,,,\n"
         self.assertEqual(self.apply(body, {"105": "R", "247": "L"}),
-                         HEADER + STAGING + "2,105,105,,,,,,,R,plan,West,,,,,\n3,247,247,,,,,,,L,plan,Helix,,,,,\n")
+                         HEADER + STAGING + "2,105,105,,,,R,plan,West,,,,,\n3,247,247,,,,L,plan,Helix,,,,,\n")
 
     def test_cells_are_compared_as_the_reader_strips_them(self):
-        body = "2,105,105 ,,,,,,, L ,plan,West,,,,,\n"
-        self.assertEqual(self.apply(body, {"105": "R"}), HEADER + STAGING + "2,105,105 ,,,,,,,R,plan,West,,,,,\n")
+        body = "2,105,105 ,,,, L ,plan,West,,,,,\n"
+        self.assertEqual(self.apply(body, {"105": "R"}), HEADER + STAGING + "2,105,105 ,,,,R,plan,West,,,,,\n")
 
     def test_a_plan_label_with_no_row_stops(self):
         with self.assertRaisesRegex(SystemExit, "plan switch 107 has no row; add one"):
-            self.apply("2,105,105,,,,,,,R,plan,West,,,,,\n", {"105": "R", "107": "L"})
+            self.apply("2,105,105,,,,R,plan,West,,,,,\n", {"105": "R", "107": "L"})
 
     def test_a_plan_row_the_plan_has_no_hand_for_stops(self):
         with self.assertRaisesRegex(SystemExit, r"line 3 \(105\): hand_source plan, but the plan has no hand"):
-            self.apply("2,105,105,,,,,,,R,plan,West,,,,,\n", {})
+            self.apply("2,105,105,,,,R,plan,West,,,,,\n", {})
 
     def test_a_plan_label_on_a_row_with_no_hand_source_stops(self):
         with self.assertRaisesRegex(SystemExit, r"line 3 \(105\): the plan has a hand for it \(R\); set hand_source"):
-            self.apply("2,105,105,,,,,,,,,West,,,,,\n", {"105": "R"})
+            self.apply("2,105,105,,,,,,West,,,,,\n", {"105": "R"})
 
-    def test_a_staging_row_takes_the_name_stores_labels_of_its_ids(self):
-        """naming-layers step 5: os_block, closed_leg and thrown_leg are the names of os_id, closed_id and thrown_id;
-        a stale label is rewritten, a renamed device relabels the row, and every other cell stays."""
+    def test_a_staging_row_is_left_as_it_is(self):
+        """naming-layers step 5: a staging row holds IDs only, so a renamed device changes no cell of it; the read
+        checks the IDs against the name store given (or the repo's)."""
         import tempfile
-        stale = STAGING.replace("OS Switch 3,Track Brick-Plane", "Track A,Track B")
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "switches.csv"
-            p.write_text(HEADER + stale, encoding="utf-8")
+            p.write_text(HEADER + STAGING, encoding="utf-8")
             self.assertEqual(BH.apply(p, {}), HEADER + STAGING)              # the repo's name store
             names = {("1", "os:1"): "OS Switch 1", ("1", "os:3"): "OS Brick West",
                      ("1", "block:1C-5A#1+1C-5A#2"): "Track Brick"}
-            self.assertEqual(BH.apply(p, {}, names),
-                             HEADER + STAGING.replace("OS Switch 3,Track Brick-Plane", "OS Brick West,Track Brick"))
+            self.assertEqual(BH.apply(p, {}, names), HEADER + STAGING)
 
     def test_a_staging_id_the_device_master_does_not_have_stops(self):
-        with self.assertRaisesRegex(SystemExit, r"line 2: thrown_id block:9Z-end is no level 1 device"):
+        with self.assertRaisesRegex(SystemExit, r"line 2 \(Switch 1\): thrown_id block:9Z-end is no level 1 device"):
             import tempfile
             with tempfile.TemporaryDirectory() as tmp:
                 p = Path(tmp) / "switches.csv"
@@ -121,7 +121,7 @@ class PlanAndOwnerRows(unittest.TestCase):
 
     def test_a_row_the_reader_refuses_stops_with_its_line(self):
         with self.assertRaisesRegex(SystemExit, r"switches.csv line 3 \(Switch 105\): a hand needs a hand_source"):
-            self.apply("2,105,105,,,,,,,R,,West,,,,,\n", {"105": "R"})
+            self.apply("2,105,105,,,,R,,West,,,,,\n", {"105": "R"})
 
 
 class Refusals(unittest.TestCase):

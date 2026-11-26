@@ -46,7 +46,7 @@ class SecondaryOsBlocksTest(unittest.TestCase):
         renamed = lambda line: ",".join(idents.get(c, c) for c in line.split(","))  # noqa: E731
         with tempfile.TemporaryDirectory() as tmp:
             one = switches_file(tmp, {("1", "7"), ("1", "9")},
-                                lambda line: "" if line.startswith("1,7,,OS Switch 7b,") else renamed(line))
+                                lambda line: "" if line.startswith("1,7,,os:7:A-5B,") else renamed(line))
             one.write_text("\n".join(x for x in one.read_text(encoding="utf-8").splitlines() if x) + "\n",
                            encoding="utf-8")
             self.assertEqual(["Switch 7 is a crossover (TO1) but switches.csv has 1 row(s) for it, not 2"],
@@ -57,7 +57,7 @@ class SecondaryOsBlocksTest(unittest.TestCase):
     def test_a_file_without_the_columns_stops(self):
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "switches.csv"
-            p.write_text("switch,os_block\n7,OS Switch 7\n", encoding="utf-8")
+            p.write_text("switch,os_id\n7,os:7\n", encoding="utf-8")
             with self.assertRaisesRegex(SystemExit, "switches.csv: no column level, half"):
                 phase02.secondary_os_blocks(p)
 

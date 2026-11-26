@@ -1369,7 +1369,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels step 1 (hands): writes the hand of switches.csv's plan rows from the plan graph and relabel edits, and each staging row's os_block, closed_leg and thrown_leg from the name store by their ids; owner hands are left alone.",
+   "desc": "make panels step 1 (hands): writes the hand of switches.csv's plan rows from the plan graph and relabel edits; owner hands are left alone. Staging rows give device ids only, which the read checks against the name store.",
    "path": "tools/schematic/build_hands.py",
    "gen": "manifest"
   },
@@ -8223,7 +8223,7 @@
   {
    "from": "tools/schematic/build_hands.py",
    "to": "jmri/layouts/hart/data/switches.csv",
-   "label": "step 1 hands; staging's leg labels by id",
+   "label": "step 1 hands",
    "gen": "manifest"
   },
   {
@@ -9911,7 +9911,7 @@
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
    "to": "tools/schematic/build_hands.py",
-   "label": "the name store's names of the staging legs' ids",
+   "label": "the name store the staging legs' ids are checked against",
    "gen": "manifest"
   },
   {
@@ -10518,6 +10518,13 @@
    "from": "jmri/layouts/hart/data/block_lengths.csv",
    "to": "tools/ops/check_data.py",
    "label": "refs",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/lcos_nodes.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "refs (switches.csv area)",
    "side": "check",
    "gen": "manifest"
   },

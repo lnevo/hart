@@ -15,6 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from hartlib import devices, railroad_facts as rf  # noqa: E402
+from master_edit import name_store  # noqa: E402  a fixture's name store
 
 
 class Tmp(unittest.TestCase):
@@ -138,17 +139,27 @@ def sw(**cells) -> dict:
     return {c: "" for c in rf.SWITCH_COLUMNS} | {k: str(v) for k, v in cells.items()}
 
 
+# The fixture's name store: the staging blocks its rows give by ID (a one-file master beside the fixture, SwitchFiles)
+NAMES = {"os:1": "OS Switch 1", "block:1B-end": "Track A", "block:1C-end": "Track B", "os:7:A-13C": "OS Switch 7",
+         "block:5C-7B": "Track Scale", "os:7:A-5B": "OS Switch 7b", "block:c": "Track C", "block:d": "Track D"}
+
+
+def write_names(path: Path, names: dict[str, str] = NAMES) -> Path:
+    """A one-file device master at `path` holding a level 1 block of each {id: user name} in `names`."""
+    return name_store(path, names)
+
+
 def switch_rows() -> list[dict]:
     """Staging Switch 1 (one OS block) and the Switch 7 crossover (two), main 101 (halves A and B) and the local
     switch 107, and upper 201. The rows sit on lines 2 to 8."""
     return [
-        sw(level=1, switch=1, os_block="OS Switch 1", closed_leg="Track A", thrown_leg="Track B", os_id="os:1",
+        sw(level=1, switch=1, os_id="os:1",
            closed_id="block:1B-end", thrown_id="block:1C-end", hand="L", hand_source="owner", le_ident="TOL1",
            cats_inverted="no", ctc_is=1, ctc_signals="yes"),
-        sw(level=1, switch=7, os_block="OS Switch 7", closed_leg="Track Scale", thrown_leg="OS Switch 7b",
+        sw(level=1, switch=7,
            os_id="os:7:A-13C", closed_id="block:5C-7B", thrown_id="os:7:A-5B", hand="L", hand_source="owner",
            le_ident="TO117", cats_inverted="yes", ctc_is=7, ctc_signals="no"),
-        sw(level=1, switch=7, os_block="OS Switch 7b", closed_leg="Track C", thrown_leg="Track D", os_id="os:7:A-5B",
+        sw(level=1, switch=7, os_id="os:7:A-5B",
            closed_id="block:c", thrown_id="block:d"),
         sw(level=2, switch=101, half="101A", hand="R", hand_source="plan"),
         sw(level=2, switch=101, half="101B", hand_source="plan"),
@@ -165,9 +176,11 @@ def staging_rows() -> list[tuple[int, dict[str, str]]]:
 
 
 class SwitchFiles(Tmp):
-    """switches.csv fixtures; no tests of its own, so a subclass runs only its own."""
+    """switches.csv fixtures, each with its name store beside it (a one-file devices.csv of NAMES, which
+    read_switch_rows finds there); no tests of its own, so a subclass runs only its own."""
 
     def path(self, rows=None) -> Path:
+        write_names(self.tmp / devices.ONE_FILE)
         return self.write_rows("switches.csv", rf.SWITCH_COLUMNS, switch_rows() if rows is None else rows)
 
     def changed(self, line: int, **cells) -> Path:
@@ -208,16 +221,13 @@ class SwitchRows(SwitchFiles):
             ((8, dict(level=4)), r"line 8 \(Switch 201\): level is 1, 2 or 3"),
             ((8, dict(level=2, switch=101, half=101)), r"line 8 \(Switch 101\): Switch 101 is also on line 5; a switch's rows "
                                                      r"go together"),
-            ((8, dict(level=1, switch=101, half="", os_block="OS Switch 101", closed_leg="A", thrown_leg="B",
-                      os_id="os:101", closed_id="a", thrown_id="b")),
+            ((8, dict(level=1, switch=101, half="", os_id="os:101", closed_id="a", thrown_id="b")),
              r"switches.csv lines 5 \(level 2\) and 8 \(level 1\) both use Switch 101"),
             ((6, dict(half="101A")), r"switches.csv lines 5 and 6: both are 101A"),
             ((8, dict(half="201C")), r"line 8 \(Switch 201\): half is 201, 201A or 201B, not '201C'"),
-            ((8, dict(os_block="OS Switch 9")), r"line 8 \(Switch 201\): os_block is OS Switch 201 or a half of it"),
             ((8, dict(le_ident="TO1")), r"line 8 \(Switch 201\): le_ident bind"),
             ((8, dict(os_id="os:201")), r"line 8 \(Switch 201\): a staging row is keyed by its OS block.*not os_id 'os:201'"),
             ((8, dict(closed_id="block:x")), r"line 8 \(Switch 201\): closed_id and thrown_id go with an os_id"),
-            ((8, dict(closed_leg="Track X")), r"line 8 \(Switch 201\): a row gives both legs"),
             ((8, dict(hand="X", hand_source="owner")), r"line 8 \(Switch 201\): hand is L, R or blank, got 'X'"),
             ((8, dict(hand="L")), r"line 8 \(Switch 201\): a hand needs a hand_source.*got hand 'L', hand_source ''$"),
             ((8, dict(hand_source="owner")), r"line 8 \(Switch 201\): a hand needs a hand_source.*got hand '', hand_source 'owner'$"),
@@ -228,7 +238,9 @@ class SwitchRows(SwitchFiles):
             ((2, dict(hand_source="plan")), r"line 2 \(Switch 1\): hand_source plan is for rows keyed by their half"),
             ((2, dict(os_id="os:2")), r"line 2 \(Switch 1\): a row keyed by its OS block gives the device IDs"),
             ((2, dict(thrown_id="")), r"line 2 \(Switch 1\): a row keyed by its OS block gives the device IDs"),
-            ((2, dict(os_block="")), r"line 2 \(Switch 1\): os_block is empty; build_hands.py writes the label of os:1"),
+            ((2, dict(closed_id="block:x")), r"line 2 \(Switch 1\): closed_id block:x is no level 1 device of the "
+                                             r"device master"),
+            ((4, dict(os_id="os:7:A-9")), r"line 4 \(Switch 7\): os_id os:7:A-9 is no level 1 device"),
             ((2, dict(os_id="")), r"line 2 \(Switch 1\): a staging row is keyed by its OS block"),
         )
         for (line, cells), pattern in cases:
@@ -246,6 +258,34 @@ class SwitchRows(SwitchFiles):
         p = self.write_rows("switches.csv", rf.SWITCH_COLUMNS[:-1], switch_rows(),
                            dropped=rf.SWITCH_COLUMNS[-1:])
         self.fails(lambda: rf.read_switch_rows(p), r"switches.csv: no column notes")
+
+    def test_the_labels_are_the_name_stores_names_of_the_ids(self) -> None:
+        rows = rf.read_switch_rows(self.path())
+        self.assertEqual([(r.os_block, r.closed_leg, r.thrown_leg) for r in rows[:3]],
+                         [("OS Switch 1", "Track A", "Track B"), ("OS Switch 7", "Track Scale", "OS Switch 7b"),
+                          ("OS Switch 7b", "Track C", "Track D")])
+        self.assertEqual({(r.os_block, r.closed_leg, r.thrown_leg) for r in rows[3:]}, {("", "", "")})
+
+    def test_a_rename_in_the_name_store_relabels_the_row(self) -> None:
+        """A rename by ID in the device master alone reaches SwitchRow, with switches.csv as it was."""
+        path = self.path()
+        before = path.read_bytes()
+        write_names(self.tmp / devices.ONE_FILE, NAMES | {"os:1": "OS Brick", "block:1B-end": "Track Brick Lead"})
+        row = rf.read_switch_rows(path)[0]
+        self.assertEqual((row.os_block, row.closed_leg, row.thrown_leg, row.key),
+                         ("OS Brick", "Track Brick Lead", "Track B", "OS Brick"))
+        self.assertEqual(path.read_bytes(), before)
+
+    def test_a_callers_names_win(self) -> None:
+        names = {("1", i): n.upper() for i, n in NAMES.items()}
+        self.assertEqual(rf.read_switch_rows(self.path(), names)[0].closed_leg, "TRACK A")
+
+    def test_a_name_column_stops(self) -> None:
+        """The file holds IDs only: a label column back in the header stops the read, whatever its cells hold."""
+        for label in rf.LABEL_COLUMNS:
+            with self.subTest(label):
+                p = self.write_rows("switches.csv", rf.SWITCH_COLUMNS + (label,), switch_rows())
+                self.fails(lambda: rf.read_switch_rows(p), rf"switches.csv: {label} are no columns")
 
 
 class StagingSwitches(SwitchFiles):

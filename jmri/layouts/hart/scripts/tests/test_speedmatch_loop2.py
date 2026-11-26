@@ -16,6 +16,7 @@ from test_speedmatch import SM, analyze, make_job  # noqa: E402
 
 sys.path.insert(0, str(SM))
 import correct  # noqa: E402
+from hartlib import railroad_facts  # noqa: E402  switches.csv's rows with their names
 
 sys.path.insert(0, str(SM.parent))
 import infer_block_lengths as ibl  # noqa: E402
@@ -24,8 +25,9 @@ DATA = SM.parents[1] / "data"
 TABLES = SM.parents[1] / "output" / "tables.xml"
 BS_NAMES = set(re.findall(r"<userName>(BS [^<]*)</userName>", TABLES.read_text()))
 CSV_ROWS = {r["user_name"]: r for r in csv.DictReader(open(DATA / "block_lengths.csv", newline=""))}
-LEGS = {(r["switch"], r["os_block"]): r for r in csv.DictReader(open(DATA / "switches.csv", newline=""))
-        if r["level"] == "1"}                     # staging: one row per OS block
+# staging: one row per OS block; its names are the name store's of its IDs (hartlib.railroad_facts.read_switch_rows)
+LEGS = {(str(r.switch), r.os_block): dict(switch=str(r.switch), closed_leg=r.closed_leg, thrown_leg=r.thrown_leg)
+        for r in railroad_facts.read_switch_rows(DATA / "switches.csv") if r.level == 1}
 
 
 class Routes(unittest.TestCase):
@@ -360,9 +362,7 @@ class LineupWalk(unittest.TestCase):
     """Each switch on a route, set as the lineup says, joins the blocks either side of it."""
 
     def test_every_route_switch_joins_its_neighbours(self):
-        import csv as _csv
-        legs_csv = Path(__file__).resolve().parents[1].parent / "data" / "switches.csv"
-        legs = {r["os_block"]: r for r in _csv.DictReader(open(legs_csv, newline="")) if r["level"] == "1"}
+        legs = {os_block: r for (_, os_block), r in LEGS.items()}
         for route, pairs in analyze.ROUTES.items():
             rows = [row for _, row in pairs]
             lineup = {str(k): v for k, v in dict(analyze.ROUTE_LINEUP[route]).items()}

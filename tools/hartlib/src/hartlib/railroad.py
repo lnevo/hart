@@ -86,8 +86,10 @@ class Railroad:
 
     @cached_property
     def switch_rows(self) -> list[SwitchRow]:
-        """switches.csv as read, once: the staging switches, the local switches and the hands are views of it."""
-        return read_switch_rows(self.sources.switches)
+        """switches.csv as read, once: the staging switches, the local switches and the hands are views of it. Its
+        staging rows' names are the name store's of these sources' device master."""
+        from . import devices
+        return read_switch_rows(self.sources.switches, devices.user_names(self.sources.devices))
 
     @cached_property
     def switches(self) -> dict[int, Switch]:

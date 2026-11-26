@@ -282,6 +282,26 @@ class TheRepo(unittest.TestCase):
         with (ROOT / "jmri/layouts/hart/data/switches.csv").open(newline="", encoding="utf-8") as fh:
             self.assertEqual(names, next(csv.reader(fh)))
 
+    def test_a_switch_area_is_an_lcos_node_area(self) -> None:
+        """switches.csv's area refers to lcos_nodes.csv's: every area used is there, and one that is not fails."""
+        data = ROOT / "jmri/layouts/hart/data"
+        nodes = data / "schematic/lcos_nodes.csv"
+        with nodes.open(newline="", encoding="utf-8") as fh:
+            areas = {r["area"] for r in csv.DictReader(fh)}
+        with (data / "switches.csv").open(newline="", encoding="utf-8") as fh:
+            used = {r["area"] for r in csv.DictReader(fh) if r["area"]}
+        self.assertEqual(used, {"Helix", "North", "Peninsula", "West"})
+        self.assertLessEqual(used, areas)
+        with tempfile.TemporaryDirectory() as d:
+            side = Path(d) / "switches.columns.csv"
+            side.write_bytes((data / "switches.columns.csv").read_bytes())
+            text = (data / "switches.csv").read_text(encoding="utf-8")
+            self.assertIn(",plan,West,", text)
+            (Path(d) / "switches.csv").write_text(text.replace(",plan,West,", ",plan,Attic,", 1), encoding="utf-8")
+            found = " | ".join(C.Checker().check(side))
+        self.assertRegex(found, r"area names what is not in jmri/layouts/hart/data/schematic/lcos_nodes.csv:area")
+        self.assertIn("Attic", found)
+
 
 if __name__ == "__main__":
     unittest.main()
