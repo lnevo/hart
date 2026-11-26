@@ -1,59 +1,54 @@
-"""cats/data/occupancy_bindings.csv: the occupancy sensor and CATS discipline of each block the CATS desks bind.
+"""The blocks the CATS desks bind: each block row of the device master with a cats_discipline, and its occupancy sensor.
 
-    occupancy_bindings.rows()      [{block_id, block_user_name, occupancy_sensor_user_name, cats_discipline}]
+    occupancy_bindings.rows()      [{level, block_id, block_user_name, occupancy_sensor_user_name, cats_discipline}]
 
-A row names its block by its block `id` (block_lengths.csv, as block:3B-end or os:23:A-1A; ADR-039 lane L4c), never
-by its public name, which can change (ADR-005). rows() gives each row the block's name as well, from the name store
-(hartlib.track_names.names_by_id: the owner's name in devices_field.csv, else the generated one), so the readers bind
-by the name JMRI and CATS know. A block id is unique on its level only; an id two levels have stops the read, as does
-an id that is no block. `tools/ops/check_data.py` holds the ids to block_lengths.csv (occupancy_bindings.columns.csv).
+The discipline is the owner's cell `cats_discipline` of the block's row in devices_field.csv (CTC or YARD,
+devices.CATS_DISCIPLINES; ADR-039 lane L12, owner 2026-11-25). cats/data/occupancy_bindings.csv held it, with copies
+of the block and sensor names, until then. rows() gives each block its user name from the merged master and its
+occupancy sensor's user name: the occupancy row on its level whose `blocks` cell names it (or the block it is
+part_of), else level_devices.occupancy_user (a helix block, whose sensor is the main and upper levels' virtual one).
+`hartlib.devices` checks the cell (a block row, one of CTC or YARD); devices.columns.csv gives check_data.py the same
+values.
 
 Readers: cats/scripts/digicon_lib.py (the CATS desk builders), jmri/layouts/hart/scripts/audit_panel_contracts.py,
 tools/audit/check_layout_facts.py and tools/mqtt-mimic/lcos_mqtt_mimic.py.
 
-Every failure is a railroad_facts.FactsError naming the file and line.
+Every failure is a railroad_facts.FactsError (devices.DevicesError for the master).
 """
 from __future__ import annotations
 
-import csv
-from pathlib import Path
+from typing import Mapping
 
-from . import paths, track_names
-from .railroad_facts import FactsError
+from . import devices, level_devices
+from .railroad_facts import device_list
 
-PATH = paths.CATS_DIR / "data" / "occupancy_bindings.csv"
-COLUMNS = ("block_id", "occupancy_sensor_user_name", "cats_discipline")
+COLUMNS = ("level", "block_id", "block_user_name", "occupancy_sensor_user_name", "cats_discipline")
 
 
-def rows(path: Path = PATH, data: Path = track_names.SCHEMATIC) -> list[dict[str, str]]:
-    """The rows of `path` in file order, cells stripped, each with `block_user_name` the name of its `block_id` (the
-    name store beside the schematic folder `data`). FactsError on a header that is not COLUMNS, a row with no
-    block_id, a block_id given twice, or an id the name store has no block for."""
-    path = Path(path)
-    try:
-        fh = path.open(newline="", encoding="utf-8")
-    except OSError as exc:
-        raise FactsError(f"{path}: cannot read it ({exc.strerror})") from None
-    with fh:
-        reader = csv.DictReader(fh)
-        if tuple(reader.fieldnames or ()) != COLUMNS:
-            raise FactsError(f"{path.name}: the header is {','.join(reader.fieldnames or [])}, not "
-                             f"{','.join(COLUMNS)}")
-        out, seen = [], {}
-        for r in reader:
-            line = reader.line_num
-            row = {c: (r.get(c) or "").strip() for c in COLUMNS}
-            bid = row["block_id"]
-            if not bid:
-                raise FactsError(f"{path.name} line {line}: no block_id")
-            if bid in seen:
-                raise FactsError(f"{path.name} line {line}: block_id {bid} is on line {seen[bid]} too")
-            seen[bid] = line
-            out.append(row)
-    try:
-        names = track_names.names_by_id([r["block_id"] for r in out], data, path.name)
-    except track_names.TrackNameError as exc:
-        raise FactsError(str(exc)) from None
-    for r in out:
-        r["block_user_name"] = names[r["block_id"]]
+def sensors(master: tuple[Mapping[str, str], ...]) -> dict[tuple[str, str], str]:
+    """{(level, block user name): occupancy sensor user name} of the occupancy rows of `master` (the first occupancy
+    row that names a block wins, as hartlib.block_lengths takes it)."""
+    out: dict[tuple[str, str], str] = {}
+    for r in master:
+        if r["level"] and r["layer"] == "occupancy":
+            for b in device_list(r["blocks"]):
+                out.setdefault((r["level"], b), r["user_name"])
+    return out
+
+
+def rows(files=None) -> list[dict[str, str]]:
+    """The block rows of the device master (`files`: a devices.Files or the generated file's path, as devices.load
+    takes it; default the repo's) that have a cats_discipline, in master order, each as COLUMNS."""
+    master = devices.load(files)
+    by_sensor = sensors(master)
+    out = []
+    for r in master:
+        if not (r["level"] and r["layer"] == "block" and r["cats_discipline"]):
+            continue
+        name = r["user_name"]
+        sensor = (by_sensor.get((r["level"], name))
+                  or (by_sensor.get((r["level"], r["part_of"])) if r["part_of"] else None)
+                  or level_devices.occupancy_user(name))
+        out.append({"level": r["level"], "block_id": r["id"], "block_user_name": name,
+                    "occupancy_sensor_user_name": sensor, "cats_discipline": r["cats_discipline"]})
     return out

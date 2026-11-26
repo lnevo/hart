@@ -33,7 +33,6 @@ jmri/resources/jmri-web
 tools/mqtt-mimic/build_mimic_web.py
 tools/mqtt-mimic/lcos_mqtt_mimic.py
 tools/hartlib/src
-cats/data/occupancy_bindings.csv
 jmri/layouts/hart/output/signal_head_plan.csv
 jmri/layouts/hart/data/devices_generated.csv
 jmri/layouts/hart/data/devices_field.csv

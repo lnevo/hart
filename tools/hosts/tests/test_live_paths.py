@@ -250,7 +250,7 @@ class RealList(unittest.TestCase):
 
     def test_mimic_builder_inputs_are_listed(self) -> None:
         files = self.run_builder("tools/mqtt-mimic/build_mimic_web.py", "--out", "OUT")
-        self.assertIn("cats/data/occupancy_bindings.csv", files)
+        self.assertIn("jmri/layouts/hart/output/signal_head_plan.csv", files)
         self.assert_inputs_listed(files)
 
     def test_speedmatch_page_builder_inputs_are_listed(self) -> None:

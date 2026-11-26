@@ -69,7 +69,7 @@ Agent: `general-purpose`. `/code-review medium`.
 
 - One `speedmatch` CLI with subcommands: `job` (`make_job.py`), `drop` (`drop_job.sh`), `pom` (`pom_write.py`), `compare` (`preflight_compare.py`, `stoptest_compare.py`), `to-roster` (`profile_to_roster.py`), `lengths` (`infer_block_lengths.py`) and `rename-ext` (`rename_extension_tracks.py`).
 - `pom` replaces the hand procedure in `POM_GUARD.md` (lines 150 to 168), which skips the operating-flag gate and the "runner active" check.
-- `stage.sh` ships the 2026-11-08 `speed_by_step.csv` from `docs/`. That becomes a named data file under `jmri/layouts/hart/data/`.
+- `stage.sh` ships the 2026-11-08 `speed_by_step.csv` from `docs/`. That became `jmri/layouts/hart/data/speed_by_step_2026-11-08.csv`, the one copy since data-masters L12.
 - `tools/hosts/live_paths.txt` lists the whole `dashboard/` folder. The Mac-only `server.py` and `static/` come out of it.
 - Host paths come from `tools/env/load_env.sh`: `pom_write.py`, `dashboard/server.py`, `preflight_compare.py` and `pom_guard.py`.
 - Split `pom_guard.py` (934 lines) in a commit that changes no behaviour. Add tests for `dashboard/server.py` beyond `Hub`.

@@ -613,15 +613,6 @@
    "path": "tools/hosts/windows"
   },
   {
-   "id": "cats/data/occupancy_bindings.csv",
-   "label": "occupancy_bindings.csv",
-   "kind": "structured",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Per block, by block id (block_lengths.csv): its occupancy sensor and CATS discipline; read through hartlib.occupancy_bindings, which names each block, by the CATS desk builder (digicon_lib) and the audits.",
-   "path": "cats/data/occupancy_bindings.csv"
-  },
-  {
    "id": "cats/data/hart_trains.csv",
    "label": "hart_trains.csv",
    "kind": "output",
@@ -802,15 +793,6 @@
    "domain": "layout",
    "desc": "USS CTC machine GUI objects and icons; not shipped while uss is parked.",
    "path": "jmri/layouts/hart/ctc"
-  },
-  {
-   "id": "jmri/layouts/hart/data/baselines",
-   "label": "data/baselines",
-   "kind": "structured",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Frozen audit baselines (block sensors, cats bindings, SML pairs, signalling) that check scripts compare against.",
-   "path": "jmri/layouts/hart/data/baselines"
   },
   {
    "id": "jmri/layouts/hart/data/block_lengths.csv",
@@ -3417,16 +3399,6 @@
    "gen": "manifest"
   },
   {
-   "id": "jmri/layouts/hart/scripts/capture_public_name_baseline.py",
-   "label": "capture_public_name_baseline.py",
-   "kind": "generator",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Snapshots user names and bindings from tables.xml (and the CATS CTC panel) into data/baselines before a rename; --check in check.sh.",
-   "path": "jmri/layouts/hart/scripts/capture_public_name_baseline.py",
-   "gen": "manifest"
-  },
-  {
    "id": "jmri/layouts/hart/scripts/speedmatch/build_routes.py",
    "label": "speedmatch/build_routes.py",
    "kind": "generator",
@@ -5855,23 +5827,6 @@
    "gen": "manifest"
   },
   {
-   "from": "cats/data/occupancy_bindings.csv",
-   "to": "tools/audit/check_layout_facts.py",
-   "label": "check",
-   "side": "check",
-   "gen": "manifest"
-  },
-  {
-   "from": "cats/data/occupancy_bindings.csv",
-   "to": "tools/mqtt-mimic/lcos_mqtt_mimic.py"
-  },
-  {
-   "from": "cats/data/occupancy_bindings.csv",
-   "to": "tools/schematic/build_cats_panel.py",
-   "label": "reads",
-   "gen": "manifest"
-  },
-  {
    "from": "cats/panels/HART_ABS.xml",
    "to": "tools/hosts/sync_hart_package.sh",
    "label": "LIVE_PANELS"
@@ -6487,13 +6442,6 @@
    "from": "jmri/layouts/hart/ctc",
    "to": "tools/hosts/sync_hart_package.sh",
    "label": "not shipped (parked)"
-  },
-  {
-   "from": "jmri/layouts/hart/data/baselines",
-   "to": "jmri/layouts/hart/scripts/audit_panel_contracts.py",
-   "label": "compares",
-   "side": "check",
-   "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/block_lengths.csv",
@@ -9120,31 +9068,6 @@
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
-   "to": "jmri/layouts/hart/scripts/capture_public_name_baseline.py",
-   "label": "names, bindings",
-   "gen": "manifest"
-  },
-  {
-   "from": "cats/panels/HART_CTC.xml",
-   "to": "jmri/layouts/hart/scripts/capture_public_name_baseline.py",
-   "label": "bindings",
-   "gen": "manifest"
-  },
-  {
-   "from": "jmri/layouts/hart/scripts/capture_public_name_baseline.py",
-   "to": "jmri/layouts/hart/data/baselines",
-   "label": "snapshot",
-   "gen": "manifest"
-  },
-  {
-   "from": "jmri/layouts/hart/scripts/capture_public_name_baseline.py",
-   "to": "tools/check.sh",
-   "label": "check baselines",
-   "side": "check",
-   "gen": "manifest"
-  },
-  {
-   "from": "jmri/layouts/hart/output/tables.xml",
    "to": "jmri/layouts/hart/scripts/speedmatch/build_routes.py",
    "label": "block sensors",
    "gen": "manifest"
@@ -10538,13 +10461,6 @@
   },
   {
    "from": "www/scripts/archive_catalogue.csv",
-   "to": "tools/ops/check_data.py",
-   "label": "rules",
-   "side": "check",
-   "gen": "manifest"
-  },
-  {
-   "from": "cats/data/occupancy_bindings.csv",
    "to": "tools/ops/check_data.py",
    "label": "rules",
    "side": "check",
@@ -12344,6 +12260,12 @@
    "from": "cats/scripts/mac/install_desktop_icons.sh",
    "to": "tools/schematic/build_cats_panel.py",
    "label": "runs when a desk is missing"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_field.csv",
+   "to": "tools/schematic/build_cats_panel.py",
+   "label": "cats_discipline",
+   "gen": "manifest"
   },
   {
    "from": "cats/scripts/mac/install_desktop_icons.sh",

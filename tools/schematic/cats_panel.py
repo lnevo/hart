@@ -5,7 +5,7 @@ bands.
 One builder for all three levels. A band's level says where its facts come from, never how a binding is made:
 
   level      band                         switches and OS blocks              blocks                    masts
-  bound (1)  bound_bi (staging)           switches.csv,                       occupancy_bindings.csv,   signals.json
+  bound (1)  bound_bi (staging)           switches.csv,                       cats_discipline blocks,   signals.json
                                           M2T turnouts (Facts.turnout_io)     M2S detectors             [staging]
   2 and 3    level_band (bdm.band_level)  the rows' turnouts (tables.xml),    the device master block rows,   main_upper_
                                           the drawing's crossover halves      virtual sensors           masts.csv
@@ -37,7 +37,7 @@ from cats_panel_facts import DEVICE_MAP, mast_type, template_by_type  # noqa: E4
 
 # Main and upper: CTC on the CTC desk, CATS holds their signals and releases them (owner, 2026-11-17); ABS on the twin
 MAIN_UPPER_DISCIPLINE = "CTC"
-# The discipline of a staging block occupancy_bindings.csv gives none
+# The discipline of a staging block with no cats_discipline in the device master (hartlib.occupancy_bindings)
 STAGING_DISCIPLINE = "CTC"
 # The staging turnouts and detectors: LCOS over MQTT (M2T, M2S)
 STAGING_TURNOUT_PREFIX = "M2T"
@@ -113,7 +113,7 @@ def mast_template(name, F, by_type):
     return F.templates.get(name) or by_type.get(mast_type(F.mast_system.get(name)))
 
 
-# --- the bound level (staging): switches.csv, occupancy_bindings.csv -------------------------------------------
+# --- the bound level (staging): switches.csv, the cats_discipline blocks --------------------------------------
 
 def switch_of(F, d):
     try:
@@ -269,7 +269,7 @@ def block_bindings(band, F, names, stored):
             s = strands.get(sid) if sid else None
             ends = [nodes[e[0]] for e in (s["src"], s["dst"])] if s else []
             if not s or stored.get(sid) or not all(d["kind"] == "switch" for d in ends):
-                raise SystemExit(f"block {name}: no JMRI block {name} or Track {name} in occupancy_bindings.csv / "
+                raise SystemExit(f"block {name}: no JMRI block {name} or Track {name} in the CATS bindings / "
                                  "tables.xml, and it is not a short unnamed track between two switches")
             a, b = (switch_of(F, d).le_ident for d in ends)
             out[name] = {"name": F.layout.block_between(a, b, f"block {name}")}

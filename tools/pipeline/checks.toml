@@ -331,34 +331,14 @@ domain = "layout"
 label = "audit_panel_contracts.py"
 desc = "Audits tables.xml panel contracts; also run at deploy."
 inputs = [
-  { path = "jmri/layouts/hart/data/baselines", label = "compares", side = "check" },
   { path = "jmri/layouts/hart/dispatcher/traininfo", label = "audit", side = "check" },
   { path = "jmri/layouts/hart/output/tables.xml", label = "audit", side = "check" },
 ]
 # read through hartlib, seen in the 2026-11-25 traced full run (ADR-037 stage 4a)
 quiet_inputs = ["jmri/layouts/hart/data/schematic/interlockings.csv",
                 "jmri/layouts/hart/data/schematic/stations.csv",
-                "cats/data/occupancy_bindings.csv", "jmri/layouts/hart/data/devices_field.csv",
+                "jmri/layouts/hart/data/devices_field.csv",
                 "jmri/layouts/hart/data/devices_generated.csv", "jmri/layouts/hart/data/schematic/masts.csv"]
-
-[[step]]
-name = "baselines"
-runner = "check"
-group = "static"
-cmd = ["python3", "jmri/layouts/hart/scripts/capture_public_name_baseline.py", "--check"]
-git = ["head", "base"]
-domain = "layout"
-label = "capture_public_name_baseline.py"
-desc = "Snapshots user names and bindings from tables.xml (and the CATS CTC panel) into data/baselines before a rename; --check in check.sh."
-inputs = [
-  { path = "cats/panels/HART_CTC.xml", label = "bindings" },
-  { path = "jmri/layouts/hart/output/tables.xml", label = "names, bindings" },
-]
-outputs = [
-  { path = "jmri/layouts/hart/data/baselines", label = "snapshot" },
-]
-# read through hartlib.parked, seen in the 2026-11-25 traced full run (ADR-037 stage 4a)
-quiet_inputs = ["jmri/layouts/hart/parked/tables_parked.xml"]
 
 [[step]]
 name = "digicon-disabled"
@@ -610,7 +590,6 @@ domain = "extras"
 label = "check_layout_facts"
 desc = "Audit: switches.csv, the device master (devices_generated.csv and devices_field.csv), tables.xml and CATS desk panels agree."
 inputs = [
-  { path = "cats/data/occupancy_bindings.csv", label = "check", side = "check" },
   { path = "cats/panels/HART_ABS.xml", label = "check", side = "check" },
   { path = "cats/panels/HART_CTC.xml", label = "check", side = "check" },
   { path = "jmri/layouts/hart/data/devices_field.csv", label = "check", side = "check" },
@@ -697,7 +676,6 @@ inputs = [
   { path = "jmri/layouts/hart/data/switches.csv", label = "rules", side = "check" },
   { path = "jmri/layouts/hart/data/schematic/stations.csv", label = "rules", side = "check" },
   { path = "jmri/layouts/hart/data/schematic/interlockings.csv", label = "rules", side = "check" },
-  { path = "cats/data/occupancy_bindings.csv", label = "rules", side = "check" },
   { path = "jmri/layouts/hart/data/block_lengths.csv", label = "refs", side = "check" },
   { path = "jmri/layouts/hart/data/block_lengths_measured.csv", label = "rules", side = "check" },
   { path = "ops/hart-ops/data/industries.csv", label = "rules", side = "check" },

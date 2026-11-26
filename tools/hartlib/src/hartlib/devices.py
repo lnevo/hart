@@ -18,6 +18,8 @@ The master's values.
 - assignment: field (the physical device is in JMRI: jmri_name is system_name), virtual (an internal stand-in; the
   system_name, if any, is the planned device), none (no JMRI name from this row), spare (a detector with no block).
 - role: what the device is (ROLES). Readers test it, never a name prefix.
+- cats_discipline: a field cell of the block rows the CATS desks bind, one of CATS_DISCIPLINES (CTC, YARD); empty
+  elsewhere. hartlib.occupancy_bindings reads it.
 - id: the device's key from the plan, not its name (hartlib.device_ids, ADR-033): a generated column, set on every
   row with a level and unique on its level; empty on a Store's level-less row. Every field row with a level is keyed
   by it (KEY), so a rename touches no key; the name store (hartlib.track_names) reads a field block row's name by it.
@@ -88,8 +90,11 @@ SOURCE_PREFIXES = ("IT:HART:", "IS:HART:", "IH:HART:", "IB:HART:", level_devices
 
 COLUMNS = ("level", "cp", "layer", "role", "id", "user_name", "assignment", "system_name", "jmri_name", "node", "dcc",
            "wiring", "jmri_comment", "trial_name", "notes", "blocks", "detector", "stop", "layout_block",
-           "part_of", "switch", "facing", "protects", "dir", "start", "bean_comment", "written_by", "description",
+           "cats_discipline", "part_of", "switch", "facing", "protects", "dir", "start", "bean_comment", "written_by", "description",
            "jmri_bean")
+# The CATS disciplines a block row's cats_discipline may hold (owner's cell; hartlib.occupancy_bindings gives the
+# CATS desk builders the blocks that have one)
+CATS_DISCIPLINES = ("CTC", "YARD")
 # A row's start: its bean's state when the tables load, by layer (hartlib.level_devices.START_ENUM gives the JMRI
 # word); empty where JMRI's default stands (naming-layers step 9)
 START = {"occupancy": ("inactive",), "turnout": ("closed", "thrown")}
@@ -103,7 +108,7 @@ NAME_KEY = ("level", "layer", "user_name")
 # makes each device's row from the plan and puts its field row's cells over it (naming-layers step 7): a device with no
 # field row keeps the generated values.
 FIELD_COLUMNS = ("user_name", "role", "assignment", "cp", "system_name", "jmri_name", "node", "dcc", "jmri_comment",
-                 "trial_name", "notes", "detector", "stop", "layout_block")
+                 "trial_name", "notes", "detector", "stop", "layout_block", "cats_discipline")
 # A field row with a level also holds its layer, which must be its generated row's (merge checks it): it orders the
 # file and tells a reader what the row is.
 FIELD_HELD = ("layer",)
@@ -744,7 +749,7 @@ def _unplaced_problems(r: Mapping[str, str]) -> list[str]:
     if r["assignment"] != "field" or not r["jmri_name"] or r["system_name"] != r["jmri_name"]:
         bad.append("a level-less device is assignment field with system_name equal to jmri_name")
     set_cols = [c for c in ("cp", "role", "id", "written_by", "wiring", "part_of", "blocks", "detector", "stop", "switch",
-                            "facing", "protects", "dir") if r[c]]
+                            "facing", "protects", "dir", "cats_discipline") if r[c]]
     if set_cols:
         bad.append(f"a level-less device has no {', '.join(set_cols)} (they come with its level)")
     try:
@@ -834,6 +839,9 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "the device maste
             bad.append(f"{at}: role panel_status and written_by panel_items.json go together")
         if r["layout_block"] and (r["layer"] != "block" or not r["layout_block"].startswith("ILB")):
             bad.append(f"{at}: layout_block {r['layout_block']!r} is for a block row, an ILB name")
+        if r["cats_discipline"] and (r["layer"] != "block" or r["cats_discipline"] not in CATS_DISCIPLINES):
+            bad.append(f"{at}: cats_discipline {r['cats_discipline']!r} is for a block row, one of "
+                       f"{', '.join(CATS_DISCIPLINES)}")
         if LIST in r["cp"] and r["role"] not in LINE_ROLES:
             bad.append(f"{at}: cp {r['cp']!r} is a list, but a {r['role'] or r['layer']} sits in one control point "
                        f"(only a line block, roles {', '.join(LINE_ROLES)}, lists the places it joins)")

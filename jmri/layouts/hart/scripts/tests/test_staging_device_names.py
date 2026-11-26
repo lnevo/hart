@@ -2,7 +2,6 @@
 map that once held them (public_name_map.csv, then the pnm_ columns) is gone (R9e, ADR-029)."""
 from __future__ import annotations
 
-import csv
 import re
 import sys
 import unittest
@@ -17,7 +16,6 @@ from hartlib import devices, railroad  # noqa: E402
 
 CSV_PATH = HART_ROOT / "data" / devices.MASTER_FILE
 TABLES_PATH = HART_ROOT / "output" / "tables.xml"
-BASELINE_PATH = HART_ROOT / "data" / "baselines" / "hardware_identity.csv"
 
 # ADR-024 adds milepost intermediates (Mast 67, Mast A84): a bare number, lettered by level off staging.
 MAST_PROPOSED_RE = re.compile(r"^Mast (?:\d{1,3}[LR][ABC]?|\d{4}|[A-Z]?\d{2,3})$")
@@ -151,24 +149,13 @@ class StagingDeviceNamesTest(unittest.TestCase):
 
         self.assertEqual(missing, [])
 
-    def test_hardware_identity_baseline_if_present(self) -> None:
-        if not BASELINE_PATH.is_file():
-            self.skipTest(
-                f"baseline not found at {BASELINE_PATH.relative_to(HART_ROOT)}; skipping"
-            )
-        with BASELINE_PATH.open(newline="", encoding="utf-8") as handle:
-            reader = csv.DictReader(handle)
-            rows = list(reader)
-        violations: list[str] = []
-        for row in rows:
-            system_name = (row.get("systemName") or "").strip()
-            if not system_name.startswith(("M2T", "M2S", "IH", "MTT")):
-                continue
-            if system_name not in self.tables_system_names:
-                violations.append(
-                    f"baseline systemName {system_name!r} missing from tables.xml"
-                )
-        self.assertEqual(violations, [])
+    def test_field_hardware_is_in_tables(self) -> None:
+        """Each staging device the master has in the field (assignment field) under an M2T, M2S, IH or MTT system name
+        is a system name in tables.xml."""
+        names = [row["system_name"] for row in self.rows
+                 if row["assignment"] == "field" and row["system_name"].startswith(("M2T", "M2S", "IH", "MTT"))]
+        self.assertGreater(len(names), 0)
+        self.assertEqual([n for n in names if n not in self.tables_system_names], [])
 
     def test_wired_hardware_carries_its_wiring_comment(self) -> None:
         """MQTT occupancy, feedback, head and turnout rows carry their wiring comment."""

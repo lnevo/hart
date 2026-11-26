@@ -367,7 +367,7 @@ domain = "layout"
 label = "build_cats_panel.py"
 desc = "make panels/make desks step: generates CATS CTC and ABS desks and bindings via the plugin's cats module from switches, devices, tables and signals."
 inputs = [
-  { path = "cats/data/occupancy_bindings.csv", label = "reads" },
+  { path = "jmri/layouts/hart/data/devices_field.csv", label = "cats_discipline" },
   { path = "jmri/layouts/hart/output/signal_head_plan.csv", label = "reads" },
   { path = "jmri/layouts/hart/data/schematic/signals.json", label = "staging masts" },
   { path = "jmri/layouts/hart/data/switches.csv", label = "reads" },
