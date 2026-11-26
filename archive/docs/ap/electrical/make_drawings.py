@@ -26,7 +26,7 @@ They are kept apart from the railroad's own schematics and wiring docs on purpos
 - Detected sections and their node channels: jmri/layouts/hart/data/block_lengths.csv, read through
   hartlib.railroad.read_block_lengths.
 
-    python3 docs/ap/electrical/make_drawings.py
+    python3 archive/docs/ap/electrical/make_drawings.py
 """
 from __future__ import annotations
 

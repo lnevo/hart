@@ -197,6 +197,8 @@ EXTRA: dict[str, tuple[str, ...]] = {
     "unit-jmri test_speedmatch_publish_live": ("docs/jmri/**/*",),
     "unit-jmri test_speedmatch_site_export": ("docs/jmri/**/*", "www/ai/**/*"),
 }
+# "kind test" of EXTRA -> the -k filter tools/ci/docs_unit_tests.py runs it with: the one class that reads docs
+DOCS_K: dict[str, str] = {"unit-jmri test_speedmatch_distance": "RunnerSource."}  # RUNBOOK.md's log tags
 
 
 # "kind test" -> folders the job only lists (a bare exists-or-not look; no file in them is read), left out of the stamp.
@@ -506,9 +508,9 @@ def not_stampable(name: str, ck: Checker | None = None) -> str | None:
     return ck.unstampable() if ck else ps.unstampable(ROOT)
 
 
-# check.sh, the loader that turns the manifest's entries into its job lines, and the hook: an edit to one reruns every
-# job. tools/pipeline/checks.toml is not here: each manifest job's key holds its own entry (manifest_key).
-ALWAYS = ("tools/check.sh", "tools/pipeline/manifest.py", *traced.HOOK_FILES)
+# check.sh, the loader that makes the manifest's job lines (manifest.py and its parts, pm.FILES), and the hook: an edit
+# to one reruns every job. tools/pipeline/checks.toml is not here: each job's key holds its own entry (manifest_key).
+ALWAYS = ("tools/check.sh", *pm.FILES, *traced.HOOK_FILES)
 
 
 def _patterns(name: str, programs: list[str]) -> tuple[str, ...]:
