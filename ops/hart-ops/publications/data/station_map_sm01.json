@@ -1,0 +1,42 @@
+{
+  "publication": {
+    "title": "Station Map",
+    "pub_id": "SM-01",
+    "revision": "A",
+    "effective": "21 July 2026"
+  },
+  "masthead": {
+    "railroad": "HART RAILROAD",
+    "division": "Pittsburgh & Chartiers Valley Division  ·  Neville Island Operations"
+  },
+  "diagram_title": "SUBDIVISION DIAGRAM",
+  "footer_official": "Official Publication",
+  "spine_y": {
+    "east_upper": 0,
+    "brick": 200,
+    "plane": 380,
+    "barn": 720,
+    "east_lower": 1240,
+    "princess": 1510,
+    "interchange": 1710
+  },
+  "labels": {
+    "to_princess": "To Princess",
+    "brick": "Brick",
+    "west_yard": "West Yard",
+    "plane": "Plane",
+    "barn": "Barn",
+    "scale": "Scale",
+    "south_yard": "South Yard",
+    "east_end": "East End",
+    "princess": "Princess",
+    "shenango": "Shenango",
+    "interchange": "McKeesport / McKees Rocks"
+  },
+  "industries": [
+    "Aristech",
+    "A. Stucki Co. / Ferrellgas",
+    "Kosmos Cement",
+    "Calgon Carbon"
+  ]
+}
