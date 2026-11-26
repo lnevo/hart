@@ -19,6 +19,7 @@ the .docx writer and the command line.
 from __future__ import annotations
 
 import sys
+from typing import Any
 from pathlib import Path
 
 from docx import Document
@@ -213,7 +214,10 @@ def _chrome(
 
 def _hooks() -> Hooks:
     """Fonts, canvas and compass as this module holds them now (read at call time)."""
-    return Hooks(font=_font, canvas=_canvas, paste_compass=_paste_compass)
+    def paste_compass(base: Image.Image, **place: Any) -> None:
+        _paste_compass(base, load_font=_font, **place)
+
+    return Hooks(font=_font, canvas=_canvas, paste_compass=paste_compass)
 
 
 def draw_west_yard(meta: dict) -> Image.Image:

@@ -136,3 +136,27 @@ class Drawing(unittest.TestCase):
         img = rsm.draw_subdivision_map(width=1000, height=2400, include_title=False,
                                        include_footer=False, fill=True)
         self.assertEqual(img.getpixel((500, 2400 - 160)), rsm.BG)
+
+
+class CompassFontLoader(unittest.TestCase):
+    def test_paste_compass_uses_the_given_loader(self):
+        from PIL import Image
+
+        calls = []
+
+        def loader(path, size):
+            calls.append(path)
+            return ImageFont.load_default()
+
+        with mock.patch.object(station_compass, "font", side_effect=AssertionError("strict loader used")):
+            station_compass.paste_compass(Image.new("RGB", (300, 300)), cx=150, cy=150, size=200, load_font=loader)
+        self.assertEqual(calls, [pub_fonts.ARIAL_BOLD])
+
+    def test_local_maps_hand_their_fallback_loader_to_the_compass(self):
+        from PIL import Image
+
+        import rebuild_local_station_maps as rlsm
+
+        with mock.patch.object(rlsm, "_font", default_font), \
+                mock.patch.object(station_compass, "font", side_effect=AssertionError("strict loader used")):
+            rlsm._hooks().paste_compass(Image.new("RGB", (300, 300)), cx=150, cy=150, size=200, north="up")

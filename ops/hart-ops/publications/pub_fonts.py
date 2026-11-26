@@ -1,7 +1,9 @@
 """Font paths and the font loader of the drawn publications (station maps SM-01 to SM-05).
 
-The maps are drawn on the Mac with its system fonts. A missing font raises FontMissing:
-the PIL bitmap default would change every label, so the drawing stops instead.
+The maps are drawn on the Mac with its system fonts. For SM-01 a missing font raises
+FontMissing: the PIL bitmap default would change every label, so the drawing stops instead.
+The local maps (SM-02 to SM-05) load through local_station_maps.kit._font, which falls back
+to the PIL default with a warning, and hand that loader to the compass too.
 """
 
 from __future__ import annotations

@@ -7,9 +7,10 @@ cardinal letters follow it while staying upright.
 from __future__ import annotations
 
 import math
+from collections.abc import Callable
 from typing import Literal, NamedTuple
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 from pub_fonts import ARIAL_BOLD, font
 
@@ -65,8 +66,15 @@ def _needle(
     draw.polygon([t, dark, (cx, cy)], fill=shades[1])
 
 
-def compass_rose(size: int = 180, north: str = "right") -> Image.Image:
-    """The rose on a transparent square ``size`` px wide, North (gold) pointing ``north``."""
+FontLoader = Callable[[str, int], "ImageFont.FreeTypeFont | ImageFont.ImageFont"]
+
+
+def compass_rose(size: int = 180, north: str = "right", load_font: FontLoader | None = None) -> Image.Image:
+    """The rose on a transparent square ``size`` px wide, North (gold) pointing ``north``.
+
+    ``load_font`` loads the letter font; without one, pub_fonts.font, which raises FontMissing
+    when the font is absent.
+    """
     o = _orientation(north)
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
@@ -74,7 +82,7 @@ def compass_rose(size: int = 180, north: str = "right") -> Image.Image:
     r = size * 0.32  # room for the letters outside the ring
     ring_w = max(2, int(size * 0.018))
     thin = max(1, ring_w // 2)
-    letter_font = font(ARIAL_BOLD, max(11, int(size * 0.13)))
+    letter_font = (load_font or font)(ARIAL_BOLD, max(11, int(size * 0.13)))
 
     draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=COMPASS_FILL, outline=COMPASS_RING, width=ring_w)
     r_in = r * 0.82
@@ -103,7 +111,9 @@ def compass_rose(size: int = 180, north: str = "right") -> Image.Image:
     return img
 
 
-def paste_compass(base: Image.Image, *, cx: float, cy: float, size: int, north: str = "right") -> None:
-    """Paste the rose centred on (cx, cy)."""
-    rose = compass_rose(size, north)
+def paste_compass(
+    base: Image.Image, *, cx: float, cy: float, size: int, north: str = "right", load_font: FontLoader | None = None
+) -> None:
+    """Paste the rose centred on (cx, cy), its letters in a font from ``load_font``."""
+    rose = compass_rose(size, north, load_font)
     base.paste(rose, (int(cx - size / 2), int(cy - size / 2)), rose)
