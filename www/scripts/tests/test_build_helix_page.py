@@ -37,6 +37,7 @@ class Helix(unittest.TestCase):
         self.assertTrue(page.startswith("Helix build status|helix-status|"))
 
 
+@unittest.skipUnless(HAVE, "markdown and trimesh not installed")
 class MainExitTest(unittest.TestCase):
     def test_main_exits_with_the_list_of_files(self) -> None:
         with mock.patch.object(helix, "listed_files", side_effect=helix.HelixPageError("unclassified: ['x.stl']")), \
