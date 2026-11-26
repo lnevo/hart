@@ -29,14 +29,13 @@ from __future__ import annotations
 
 import argparse
 import re
-import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import devices, paths, railroad, tables  # noqa: E402
+from hartlib import devices, files, paths, railroad, tables  # noqa: E402
 
 DEVICES_REL = devices.MASTER.relative_to(paths.REPO_ROOT).as_posix()
 FIELD_REL = devices.FIELD.relative_to(paths.REPO_ROOT).as_posix()
@@ -173,12 +172,9 @@ def tracked_files(root: Path) -> list[str]:
     """The checkout's tracked files. Needs git: walking the folder would also read untracked
     and gitignored files (media mirrors, local runs), so there is no fallback."""
     try:
-        out = subprocess.run(["git", "-C", str(root), "ls-files", "-z", "--", *(f":(glob){g}" for g in SCAN_GLOBS)],
-                             capture_output=True, check=True)
-    except (OSError, subprocess.CalledProcessError) as e:
-        detail = e.stderr.decode("utf-8", "replace").strip() if isinstance(e, subprocess.CalledProcessError) else e
-        raise SystemExit(f"check_name_copies.py needs git to list the tracked files of {root}: {detail}")
-    return [p for p in out.stdout.decode("utf-8").split("\0") if p]
+        return files.tracked_files(root, *(f":(glob){g}" for g in SCAN_GLOBS))
+    except files.GitError as e:
+        raise SystemExit(f"check_name_copies.py needs git to list the tracked files of {root}: {e}")
 
 
 def readable(rel: str) -> bool:
