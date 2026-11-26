@@ -11,7 +11,7 @@ import infer_block_lengths as ibl  # noqa: E402
 import lengths_fixture  # noqa: E402  the routes' values on the plan 5.3c
 import plan_routes as pr  # noqa: E402
 
-PLAN_C = Path.home() / "Documents/Layout/Lee Nevo Design Version 5.3c.any"
+PLAN_C = pr.plan_path()     # plan_lengths.PLAN: ANYRAIL_PLAN, else the owner's copy; absent on GitHub CI
 
 
 def turnout(index, x0=0.0):
@@ -108,7 +108,6 @@ class Routes(unittest.TestCase):
             pr.plan_routes.cache_clear()
 
 
-@unittest.skipUnless(PLAN_C.exists(), "the owner's plan 5.3c is not on this machine")
 class ReaderFails(unittest.TestCase):
     def test_a_plugin_that_will_not_load_is_a_plan_route_error(self) -> None:
         pr._plan_lengths()                      # puts tools/schematic on the path, so le_common imports
@@ -121,6 +120,7 @@ class ReaderFails(unittest.TestCase):
                 pr.read_plan(Path("plan.any"))
 
 
+@unittest.skipUnless(PLAN_C.exists(), "the owner's plan 5.3c is not on this machine")
 class Plan53c(unittest.TestCase):
     """The values read from the plan file are the fixture's, which the tests without the plan use."""
 

@@ -10,6 +10,7 @@ import re
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from contextlib import redirect_stdout
 from pathlib import Path
 
@@ -19,6 +20,7 @@ from lengths_fixture import LOOP2, write_lengths  # noqa: E402  LOOP2: loop 2 on
 
 sys.path.insert(0, str(SM.parent))
 import infer_block_lengths as ibl  # noqa: E402
+import lengths_fixture  # noqa: E402
 
 
 def read_rows(path, **kw):
@@ -586,8 +588,9 @@ class Locate(unittest.TestCase):
         sys.argv = ["infer_block_lengths.py", "--route", "loop2", "--locate", "--pass-log",
                     str(d / "a.log"), str(d / "b.log")]
         try:
-            with redirect_stdout(out):
-                ibl.main()
+            with redirect_stdout(out), mock.patch.object(ibl.plan_routes, "plan_routes",
+                                                         return_value=lengths_fixture.PLAN_ROUTES):
+                ibl.main()          # the fixture's 5.3c values: CI has no plan file
         finally:
             sys.argv = old
         text = out.getvalue()
