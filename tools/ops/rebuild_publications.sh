@@ -32,5 +32,8 @@ for s in "${SCRIPTS[@]}"; do
   "$PY" "$s"
 done
 
+# the site's copy of the crew master (www/data/crew.json); stdlib only
+"$PY" publications/build_crew_json.py
+
 echo "Outputs: $DOCS/"
 ls -1 "$DOCS"/*.docx 2>/dev/null | wc -l | xargs echo "docx in docs/ops:"

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Rebuild HART Railroad Scale Operating Instructions (Revision D).
 
-Source of truth for instruction body + layout. Preserves masthead artwork
+The body text comes from the crew master, ops/hart-ops/data/crew.json ("scale"); this holds the layout. Preserves masthead artwork
 from the canonical docx, then rewrites publication lines and everything
 from SECTION 1 onward.
 
@@ -15,6 +15,7 @@ Writes:
 from __future__ import annotations
 
 import shutil
+import sys
 from copy import deepcopy
 from pathlib import Path
 
@@ -32,162 +33,47 @@ TEMPLATE_CANDIDATES = [
     DOCS / "HART Railroad Scale Operating Instructions.docx",
 ]
 
-REVISION = "D"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import crew_master  # noqa: E402
+
+# The title, publication line and body come from the crew master (ops/hart-ops/data/crew.json, "scale", ADR-039).
+_SCALE = crew_master.load()["scale"]
+REVISION = _SCALE["revision"]
 PUBLICATION = {
-    "title_line": "Scale Operating Instructions  ·  Revision D",
+    "title_line": f"{_SCALE['title']}  ·  Revision {REVISION}",
     "ops": "Neville Island Operations",
     "authority": "Issuing Authority: Office of the Superintendent",
-    "eq": "Publication EQ-01",
-    "effective": "Effective 15 July 1999",
-    "revision": "Revision D",
+    "eq": f"Publication {_SCALE['pub']}",
+    "effective": f"Effective {_SCALE['effective']}",
+    "revision": f"Revision {REVISION}",
     "official": "Official Publication",
 }
 
-# Body content after Official Publication.
-# kind: h1 | h2 | intro | steps | spacer
-# spacer = empty Heading 1 used for column vertical rhythm (user edit).
-CONTENT: list[dict] = [
-    {
-        "kind": "h1",
-        "text": "SECTION 1 — GENERAL RULES",
-        "space_before": "0",
-    },
-    {
-        "kind": "intro",
-        "text": (
-            "The scale is used to verify and log proper loading of outbound "
-            "cars prior to departure from South Yard."
-        ),
-    },
-    {
-        "kind": "h2",
-        "text": "1.1 Pre-Scale Alignment & Approach",
-    },
-    {
-        "kind": "steps",
-        "items": [
-            "Bring the train to a complete stop well before the scale approach track.",
-            "Ensure all handbrakes are fully released and train air is completely cut in.",
-        ],
-    },
-    {
-        "kind": "h2",
-        "text": "1.2 Slack Management (Coupled Tension)",
-    },
-    {
-        "kind": "steps",
-        "items": [
-            "Begin the move by gently stretching out the entire string of cars.",
-            "The train must be 100% fully stretched (in draft) before the first car reaches the scale track.",
-            "Maintain this constant tension throughout the entire weigh run.",
-        ],
-    },
-    {
-        "kind": "h2",
-        "text": "1.3 Speed & Braking",
-    },
-    {
-        "kind": "steps",
-        "items": [
-            "Maintain a strict, uniform speed between 3 and 5 MPH.",
-            "Avoid throttle adjustments, rapid acceleration, or drifting while cars are on the scale.",
-            "Do not use independent, dynamic, or automatic brakes during weighing.",
-            "All scale movements must be performed at restricted speed.",
-        ],
-    },
-    {
-        "kind": "h2",
-        "text": "1.4 Safety & Operating Notes",
-    },
-    {
-        "kind": "steps",
-        "items": [
-            "Never leave the Track Scale Terminal unattended while a car is under weigh.",
-            "Protect shove movements at all times.",
-            "Report scale failures or abnormal readings immediately.",
-        ],
-    },
-    {
-        "kind": "h1",
-        "text": "SECTION 2 — SCALE CALIBRATION PROCEDURE",
-        "column_break_before": True,
-        "space_before": "0",
-        "heading_color": "0F4761",
-    },
-    {
-        "kind": "h2",
-        "text": "2.1 Preparing the Scale",
-    },
-    {
-        "kind": "steps",
-        "items": [
-            "Verify the scale is completely clear.",
-            "Open the Track Scale Terminal and select Calibrate mode.",
-        ],
-    },
-    {
-        "kind": "h2",
-        "text": "2.2 Calibration Procedure",
-    },
-    {
-        "kind": "steps",
-        "items": [
-            "Place the Scale Test Car on the LEFT sensor position and weigh the car.",
-            "Adjust the LEFT sensor until Error reads 0.00 tons, then lock the sensor.",
-            "Repeat for the CENTER and RIGHT sensor positions.",
-            "When all three sensors show zero error and the terminal indicates READY, select Save calibration.",
-        ],
-    },
-    {
-        "kind": "h2",
-        "text": "2.3 Returning the Scale to Service",
-    },
-    {
-        "kind": "steps",
-        "items": [
-            "Clear the scale and return the Track Scale Terminal to Weigh mode.",
-            "Return the Scale Test Car to South Yard.",
-        ],
-    },
-    # User edit: blank Heading 1 before Section 3 for column alignment rhythm.
-    {"kind": "spacer"},
-    {
-        "kind": "h1",
-        "text": "SECTION 3 — WEIGHING OUTBOUND CARS",
-    },
-    {
-        "kind": "h2",
-        "text": "3.1 Preparing for Weighing",
-    },
-    {
-        "kind": "steps",
-        "items": [
-            "Open the Track Scale Terminal and select Weigh mode.",
-            "Observe Section 1 movement rules, then spot the car on the scale.",
-            "Select the car from Cars at Scale / Inbound Train.",
-        ],
-    },
-    {
-        "kind": "h2",
-        "text": "3.2 Track Scale Display",
-    },
-    {
-        "kind": "intro",
-        "text": (
-            "The terminal displays Adjusted Gross Weight and Net Load for "
-            "the car on the scale."
-        ),
-    },
-    {
-        "kind": "steps",
-        "items": [
-            "PASS — Record the certified net weight. The car is within prescribed tolerance and approved for outbound movement.",
-            "REJECTED — Overload or left/right imbalance beyond prescribed tolerance; do not release the car.",
-            "Assign a reload order for return to the originating industry.",
-            "Rejected cars must not depart South Yard until reweighed and approved.",
-        ],
-    },
-]
+# Layout of each section's heading, by section number (the Revision D layout). A spacer is an empty Heading 1 that
+# keeps the column rhythm (user edit) before Section 3.
+SECTION_LAYOUT: dict[int, dict] = {
+    1: {"space_before": "0"},
+    2: {"column_break_before": True, "space_before": "0", "heading_color": "0F4761"},
+    3: {"spacer_before": True},
+}
+
+
+def _content() -> list[dict]:
+    """Body content after Official Publication. kind: h1 | h2 | intro | steps | spacer."""
+    out: list[dict] = []
+    n = 0
+    for block in crew_master.scale_blocks({"scale": _SCALE}):
+        if block["kind"] == "h1":
+            n += 1
+            layout = dict(SECTION_LAYOUT.get(n, {}))
+            if layout.pop("spacer_before", False):
+                out.append({"kind": "spacer"})
+            block = {**block, **layout}
+        out.append(block)
+    return out
+
+
+CONTENT: list[dict] = _content()
 
 
 def _ensure_pPr(p_el):

@@ -1,0 +1,151 @@
+"""Schema check of the crew master ops/hart-ops/data/crew.json (ADR-039, lane L5).
+
+The master is nested JSON (jobs with steps, sequences and lineups; maps with tracks), which the column sidecar format
+(docs/data/sidecars.md) cannot describe, so this checks it instead: the keys are unique, the required fields are
+there, every reference names a record that exists (a job's colors and maps, a map's connections and sheets, the spot
+sheet's industries in industries.csv), and each `docx` object holds only the fields the docx scripts read.
+build_crew_json.py runs it before it builds; ops/hart-ops/tests/test_crew_master.py tests it.
+"""
+from __future__ import annotations
+
+import re
+
+TOP = ("_about", "colors", "timetable", "spotsheet", "scale", "overview", "maps", "jobs", "sheets", "levels",
+       "schematic")
+COLOR_FIELDS = ("id", "label", "hex", "ink", "dest", "train", "group", "spot")
+GROUPS = ("interchange", "island")
+JOB_FIELDS = ("id", "code", "kind", "name", "title", "pub", "revision", "effective", "summary", "colors", "maps",
+              "talk", "source")
+KINDS = ("crew", "yardmaster", "dispatcher")
+HEX = re.compile(r"#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})")
+# where a docx object may sit, and the fields it may hold
+DOCX = {
+    "color": {"key_label"},
+    "timetable": {"subtitle", "note"},
+    "scale part": {"lead_items"},
+    "crew job": {"photo", "intro", "engine", "steps"},
+    "yardmaster job": {"legend", "legend_extra"},
+    "sequence row": {"action"},
+}
+
+
+def _dupes(values) -> list:
+    seen, out = set(), []
+    for v in values:
+        if v in seen and v not in out:
+            out.append(v)
+        seen.add(v)
+    return out
+
+
+def _docx(where: str, obj: dict, place: str, out: list[str]) -> None:
+    d = obj.get("docx")
+    if d is None:
+        return
+    if not isinstance(d, dict) or not d:
+        out.append(f"{where}: docx must be a non-empty object")
+        return
+    extra = sorted(set(d) - DOCX[place])
+    if extra:
+        out.append(f"{where}: docx holds {', '.join(extra)}; a {place} may hold only {', '.join(sorted(DOCX[place]))}")
+
+
+def problems(master: dict, industries: dict[str, dict]) -> list[str]:
+    """Every problem in the master, each naming the record; [] when it is sound."""
+    out: list[str] = []
+    missing = [k for k in TOP if k not in master]
+    if missing:
+        return [f"top level: no {', '.join(missing)}"]
+    out += [f"top level: unknown key {k!r}" for k in master if k not in TOP]
+
+    colors = master["colors"]
+    for c in colors:
+        where = f"color {c.get('id')!r}"
+        out += [f"{where}: no {f}" for f in COLOR_FIELDS if not c.get(f)]
+        if c.get("group") and c["group"] not in GROUPS:
+            out.append(f"{where}: group {c['group']!r} is not one of {', '.join(GROUPS)}")
+        for f in ("hex", "ink"):
+            if c.get(f) and not HEX.fullmatch(c[f]):
+                out.append(f"{where}: {f} {c[f]!r} is not #rgb or #rrggbb")
+        _docx(where, c, "color", out)
+    out += [f"colors: id {v!r} is given twice" for v in _dupes(c.get("id") for c in colors)]
+    color_ids = {c.get("id") for c in colors}
+
+    maps = master["maps"]
+    map_ids = {m.get("id") for m in maps} | {master["overview"].get("id")}
+    out += [f"maps: id {v!r} is given twice" for v in _dupes(m.get("id") for m in maps)]
+    sheets = master["sheets"]
+    for m in maps:
+        where = f"map {m.get('id')!r}"
+        out += [f"{where}: connects to {v!r}, which is no map" for v in m.get("connects", []) if v not in map_ids]
+        out += [f"{where}: sheet {v!r} is not in sheets" for v in m.get("sheets", []) if v not in sheets]
+    out += [f"levels: {v!r} is not in sheets" for v in master["levels"] if v not in sheets]
+
+    tt = master["timetable"]
+    out += [f"timetable row {i + 1}: {len(r)} cells for {len(tt['columns'])} columns"
+            for i, r in enumerate(tt["rows"]) if len(r) != len(tt["columns"])]
+    _docx("timetable", tt, "timetable", out)
+
+    for sec in master["scale"]["sections"]:
+        for part in sec["parts"]:
+            where = f"scale part {part.get('h')!r}"
+            _docx(where, part, "scale part", out)
+            lead = part.get("docx", {}).get("lead_items", 0)
+            if not isinstance(lead, int) or not 0 <= lead < len(part.get("items", [])):
+                out.append(f"{where}: lead_items {lead!r} must leave at least one step")
+
+    sheet = master["spotsheet"]
+    for ind in sheet["industries"]:
+        iid = ind.get("industry_id")
+        where = f"spot sheet industry {iid!r}"
+        if iid not in industries:
+            out.append(f"{where}: not in ops/hart-ops/data/industries.csv")
+        out += [f"{where}: {f} must come from industries.csv, not the crew master" for f in ("id", "name") if f in ind]
+        if ind.get("color") not in color_ids:
+            out.append(f"{where}: color {ind.get('color')!r} is no color")
+    for entry in sheet["industries"] + sheet.get("offline", []) + sheet.get("desk", []):
+        if entry.get("map") and entry["map"] not in map_ids:
+            out.append(f"spot sheet {entry.get('industry_id') or entry.get('id')!r}: map {entry['map']!r} is no map")
+    out += [f"spot sheet: industry {v!r} is given twice" for v in _dupes(i.get("industry_id") for i in sheet["industries"])]
+
+    jobs = master["jobs"]
+    out += [f"jobs: id {v!r} is given twice" for v in _dupes(j.get("id") for j in jobs)]
+    out += [f"jobs: code {v!r} is given twice" for v in _dupes(j.get("code") for j in jobs)]
+    for j in jobs:
+        where = f"job {j.get('id')!r}"
+        out += [f"{where}: no {f}" for f in JOB_FIELDS if f not in j]
+        kind = j.get("kind")
+        if kind not in KINDS:
+            out.append(f"{where}: kind {kind!r} is not one of {', '.join(KINDS)}")
+            continue
+        out += [f"{where}: color {v!r} is no color" for v in j.get("colors", []) if v not in color_ids]
+        out += [f"{where}: map {v!r} is no map" for v in j.get("maps", []) if v not in map_ids]
+        needs = {"crew": ("steps",), "yardmaster": ("sequence",), "dispatcher": ("lineup", "priority")}[kind]
+        out += [f"{where}: a {kind} job needs {f} (its docx prints it)" for f in needs if not j.get(f)]
+        if kind == "yardmaster" and not (j.get("docx") or {}).get("legend"):
+            out.append(f"{where}: a yardmaster job needs docx.legend (YM-01's blocking list order)")
+        if kind == "crew":
+            if not (j.get("engine") or {}).get("label"):
+                out.append(f"{where}: a crew job needs engine.label")
+            _docx(where, j, "crew job", out)
+        elif j.get("docx") is not None and kind != "yardmaster":
+            out.append(f"{where}: a {kind} job holds no docx object")
+        if kind in ("yardmaster", "dispatcher") and not j.get("rules"):
+            out.append(f"{where}: no rules (the sheet prints them and the site appends them to the summary)")
+        for row in j.get("sequence", []) + j.get("lineup", []):
+            rw = f"{where} row {row.get('n')!r}"
+            out += [f"{rw}: color {v!r} is no color" for v in row.get("colors", []) if v not in color_ids]
+            _docx(rw, row, "sequence row", out)
+        for row in j.get("lineup", []):
+            if not row.get("route") or not row.get("action"):
+                out.append(f"{where} row {row.get('n')!r}: a lineup row needs route and action")
+        if kind == "yardmaster":
+            _docx(where, j, "yardmaster job", out)
+            legend = (j.get("docx") or {}).get("legend", [])
+            out += [f"{where}: legend color {v!r} is no color" for v in legend if v not in color_ids]
+            out += [f"{where}: legend gives {v!r} twice" for v in _dupes(legend)]
+
+    if {"revision", "effective"} & set(master["schematic"]):
+        out.append("schematic: revision and effective come from the title block (hartlib.map_revision); "
+                   "leave them out of the master")
+    return out

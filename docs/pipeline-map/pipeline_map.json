@@ -2027,6 +2027,15 @@
    "path": "ops/hart-ops/data/trains.csv"
   },
   {
+   "id": "ops/hart-ops/data/crew.json",
+   "label": "crew master crew.json",
+   "kind": "structured",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Crew master (ADR-039): crew jobs keyed on code, destination colors, TT-23, the spot sheet, EQ-01 and the station map text; docx-only fields in docx objects; checked by crew_schema.py.",
+   "path": "ops/hart-ops/data/crew.json"
+  },
+  {
    "id": "ops/hart-ops/data/industries.csv",
    "label": "industries.csv",
    "kind": "structured",
@@ -2068,7 +2077,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "ops",
-   "desc": "Python content dicts and rebuild scripts for EQ-01, DS-01, YM-01, CI, SM, HB-01 plus update_tt23_station_map.py and hart_pub_helpers.",
+   "desc": "Rebuild scripts for EQ-01, DS-01, YM-01, CI, SM, HB-01 plus update_tt23_station_map.py and hart_pub_helpers; the crew, YM, DS and EQ-01 text comes from the crew master through crew_master.py.",
    "path": "ops/hart-ops/publications"
   },
   {
@@ -2449,7 +2458,7 @@
    "kind": "output",
    "status": "live",
    "domain": "website",
-   "desc": "Crew pages and spot sheet data; schematic revision and effective date are written by map_revision.py.",
+   "desc": "Crew pages and spot sheet data, built from the crew master by build_crew_json.py; the schematic revision and effective date come from the title block, which map_revision.py also writes.",
    "path": "www/data/crew.json"
   },
   {
@@ -3826,7 +3835,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "ops",
-   "desc": "Checks that crew.json's crew job codes, the Operations Pro train names and the CATS desks' train list name trains of trains.csv (ADR-039).",
+   "desc": "Checks that the crew master's crew job codes, the Operations Pro train names and the CATS desks' train list name trains of trains.csv (ADR-039).",
    "path": "tools/audit/check_train_symbols.py",
    "gen": "manifest"
   },
@@ -3858,6 +3867,16 @@
    "domain": "website",
    "desc": "Checks archive.json and the lineage charts against the archive catalogue archive_catalogue.csv: each archive item's file and credit are its row's, and each lineage logo cites a catalogue id (ADR-039); --write sets the logos from their ids.",
    "path": "www/scripts/archive_catalogue.py",
+   "gen": "manifest"
+  },
+  {
+   "id": "ops/hart-ops/publications/build_crew_json.py",
+   "label": "build_crew_json.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Writes www/data/crew.json from the crew master ops/hart-ops/data/crew.json after its schema check, with the spot sheet's industry names from industries.csv and the schematic's revision from the title block (ADR-039); --check.",
+   "path": "ops/hart-ops/publications/build_crew_json.py",
    "gen": "manifest"
   },
   {
@@ -4815,10 +4834,6 @@
   {
    "from": "human:www-authoring",
    "to": "www/data/chartiers-lineage.json"
-  },
-  {
-   "from": "human:www-authoring",
-   "to": "www/data/crew.json"
   },
   {
    "from": "human:www-authoring",
@@ -8855,13 +8870,6 @@
    "gen": "manifest"
   },
   {
-   "from": "www/data/crew.json",
-   "to": "tools/audit/check_train_symbols.py",
-   "label": "job codes",
-   "side": "check",
-   "gen": "manifest"
-  },
-  {
    "from": "jmri/layouts/hart/operations",
    "to": "tools/audit/check_train_symbols.py",
    "label": "train names",
@@ -8879,6 +8887,13 @@
    "from": "tools/audit/check_train_symbols.py",
    "to": "tools/check.sh",
    "label": "check train-symbols",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/crew.json",
+   "to": "tools/audit/check_train_symbols.py",
+   "label": "job codes",
    "side": "check",
    "gen": "manifest"
   },
@@ -9012,6 +9027,46 @@
    "from": "www/scripts/archive_catalogue.py",
    "to": "tools/check.sh",
    "label": "check archive-catalogue",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "human:owner-csv-edits",
+   "to": "ops/hart-ops/data/crew.json",
+   "label": "edits"
+  },
+  {
+   "from": "ops/hart-ops/data/crew.json",
+   "to": "ops/hart-ops/publications",
+   "label": "crew_master.py"
+  },
+  {
+   "from": "ops/hart-ops/data/crew.json",
+   "to": "ops/hart-ops/publications/build_crew_json.py",
+   "label": "crew master",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/industries.csv",
+   "to": "ops/hart-ops/publications/build_crew_json.py",
+   "label": "spot sheet names",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/preferences.json",
+   "to": "ops/hart-ops/publications/build_crew_json.py",
+   "label": "title block, via hartlib.map_revision",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/publications/build_crew_json.py",
+   "to": "www/data/crew.json",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/publications/build_crew_json.py",
+   "to": "tools/check.sh",
+   "label": "check crew-json",
    "side": "check",
    "gen": "manifest"
   },
