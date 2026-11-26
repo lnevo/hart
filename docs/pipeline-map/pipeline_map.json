@@ -1783,7 +1783,7 @@
    "kind": "output",
    "status": "live",
    "domain": "ops",
-   "desc": "Expanded and sharpened print copies of car photos; preferred over CarImagesFinal by the card builder.",
+   "desc": "Sharpened print copies of car photos; preferred over CarImagesFinal by the card builder.",
    "path": "ops/car-cards/CarImagesCardFillPrint",
    "local": true
   },
@@ -1888,7 +1888,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "ops",
-   "desc": "crop_car_image, crop_picker, loco_backdrop, expand/sharpen card fill images, finalize_car_images: photo to card-ready image.",
+   "desc": "crop_car_image, crop_picker, loco_backdrop, sharpen_card_fill_images, finalize_car_images: photo to card-ready image.",
    "path": "ops/hart-ops/card_pipeline/crop_car_image.py"
   },
   {
@@ -7781,7 +7781,7 @@
   {
    "from": "ops/car-cards/car-images/CarImagesFinal",
    "to": "ops/car-cards/CarImagesCardFillPrint",
-   "label": "expand/sharpen"
+   "label": "sharpen"
   },
   {
    "from": "ops/car-cards/car-images/CarImagesFinal",
