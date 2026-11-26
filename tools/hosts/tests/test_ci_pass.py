@@ -2,9 +2,9 @@
 
 Each test builds a throwaway git repo (its origin a GitHub URL) and answers gh with canned GitHub API replies; nothing
 reaches GitHub. The API replies follow the shapes of a real main push run (2026-11-24, run 45488560774); the job
-log (fixtures/ci_pass/main_pass.txt) is a real one, run 45712383076, with its one panels job rewritten by hand into
-the shape check.sh prints since ADR-037 stage 6 (one panels-<step> job per panels step, the lines each step printed
-kept), until main has a run of that shape to take a fresh copy from; the others are edited copies, one failure each.
+log (fixtures/ci_pass/main_pass.txt) is a real one, run 45741317490 (attempt 2), main's first passing push run in
+the shape check.sh prints since ADR-037 stage 6 (one panels-<step> job per panels step); the others are edited copies,
+one failure each.
 """
 from __future__ import annotations
 
@@ -41,15 +41,16 @@ def git(repo: Path, *args: str) -> str:
 
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures/ci_pass"
-# The plugin commit main pinned at 85a4c80d, the commit of the real log in main_pass.txt (its tables step printed
+# The plugin commit main pinned at 05e73a40, the commit of the real log in main_pass.txt (its tables step printed
 # "plugin: submodule at 09bcf066"); each test repo pins it too.
 PIN = "09bcf066d71545fb2081e89fce5bb7e75bac1e79"
 
 
 def fixture(name: str) -> str:
-    """A job log as GitHub serves it. main_pass.txt is check.yml run 45712383076 (job 139549798008, push of 85a4c80d to
-    main, 2026-11-25), trimmed to the check.sh step's env block, the panels jobs and a few after them, and the step's
-    last lines, its panels job rewritten into stage 6's panels-<step> jobs; the others are edited copies of it."""
+    """A job log as GitHub serves it. main_pass.txt is check.yml run 45741317490 (attempt 2, job 139655918018, push of
+    05e73a40 to main, 2026-11-26 UTC), trimmed as before: the log's first three lines, the check.sh step's env block,
+    the panels-<step> jobs and the static jobs after them up to levels-page, the step's last lines (from ruff) and the
+    stamp manifest step; no token lines. The others are edited copies of it (one failure each)."""
     return (FIXTURES / name).read_text(encoding="utf-8")
 
 

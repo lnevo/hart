@@ -98,7 +98,6 @@ Checked and needed: the two `tables.xml` checks that look like repeats (they cov
 ## Follow-ups
 
 - The entry-file scan in `pipeline_map_coverage.py` (older than lane A), from the #1168 review: a comment line ending in `\` swallows the next line (important); an apostrophe in an unquoted word; only the first `PYTHONPATH` entry is read; reused shell variable names; a cut-off `--help` description; a brittle `hasattr` test.
-- `tools/schematic/build_cats_panel.py` line 7 still names the deleted `validate_cats_panel.py`; in data-masters lane L4c's brief.
 - The `--pi --win` deploy for #1149 (stage.sh, the Pi speed-match publisher and its data file) is owed; the coordinator plans it with the owner.
 - `unit-jmri` and the edit hook's budget: row 7 in section E.
 

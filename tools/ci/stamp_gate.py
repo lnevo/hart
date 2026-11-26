@@ -60,6 +60,8 @@ MACHINERY = (
     "tools/pipeline/manifest_panels.py",
     "tools/ci/",
     "tools/audit/check_stamps.py",
+    "tools/audit/stamps_cache.py",          # its parts (check_stamps.FILES)
+    "tools/audit/stamps_audit.py",
     "tools/audit/traced.py",
     "tools/audit/trace_hook/",
     "tools/schematic/panel_stamps.py",

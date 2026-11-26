@@ -78,7 +78,10 @@ outputs = [
 updates = ["jmri/layouts/hart/data/schematic/plan_generated.json"]
 
 # main_route in plan_generated.json's main_upper section, from main_lines.csv (main_upper rows) and the plan graph;
-# staging's name_main and milepost_route, from its staging rows.
+# staging's name_main and milepost_route, from its staging rows. Its merged plan view (build_main_route.prepared)
+# also carries device-map's main_upper control_points and stations, written later in the run, but they do not change
+# the route: main-route gives the same outputs with both keys removed from plan_generated.json (2026-11-25), so the
+# read is not declared written_later.
 [[step]]
 name = "main-route"
 mode = "step"
