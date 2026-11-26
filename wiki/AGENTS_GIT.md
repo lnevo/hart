@@ -48,7 +48,7 @@ A fresh clone needs `git config core.hooksPath .githooks` to enable the pre-comm
 | Scoped rules | `cats/`, `jmri/`, `tools/schematic/`, `ops/hart-ops/` `AGENTS.md` | Only what applies under that folder; loaded when a session works there |
 | Cursor | `.cursor/rules/close-out.mdc`, `.cursor/commands/done.md`, `.cursor/hooks.json`, `.cursor/hooks/main_guard.py` | Pointers, plus a hook that runs the Claude guard's rules on every shell command; Cursor also reads `AGENTS.md`. When a rule or guard changes, carry it here too |
 | Claude Code | `.claude/commands/done.md`, `.claude/settings.json`, `.claude/hooks/main_guard.py` | Pointer and guard hook; Claude Code reads `AGENTS.md` |
-| Subagents | `.claude/agents/` | Six project agents; see below |
+| Subagents | `.claude/agents/` | The project agents; see below |
 | Facts and decisions | `wiki/`, ADRs | Never in chat or tool memory |
 | Build handoffs | `docs/benchwork/helix/` | Update `HART_Neville_Helix_BUILD_STATUS.md` in place; old handoffs go to `archive/docs/benchwork/helix/history/` |
 | Tool memory | Per-machine, outside git | Preferences only. Anything every agent needs goes in `AGENTS.md` or an ADR |
@@ -66,6 +66,7 @@ A fresh clone needs `git config core.hooksPath .githooks` to enable the pre-comm
 | `voice-reviewer` | Any text against the writing rules | Read-only | Sonnet |
 | `schematic-builder` | Schematic, panel and device-map code | Edits in a worktree, no commit | Opus |
 | `finding-verifier` | One claimed bug against the code | Read-only | Sonnet |
+| `data-lane` | One ADR-039 data-masters lane outside `tools/schematic/` and `tools/hartlib/` | Edits in a worktree | Opus |
 
 - The definition holds the standing rules. The brief holds only the goal, the scope and what is already ruled out.
 - The main session commits, pushes, deploys and verifies. `.claude/hooks/subagent_guard.py` blocks those commands in subagents, but `Bash` can still write, so read-only also rests on the agent's instructions.

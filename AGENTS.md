@@ -47,8 +47,10 @@ CPython tools import `hartlib` (`tools/hartlib/README.md`); Jython scripts insid
 ## Do not
 
 - Deploy before saving what the Pi wrote live (Operations Pro files, a Store); `HART_DISCARD_PI_CHANGES=1` is the owner's call.
-- Publish to MQTT from an agent, script launch or test, or pass a publish command through a shell, even as test input. Field turnouts are the owner's.
+- Command field turnouts, or publish to MQTT from an agent, script launch or test, or pass a publish command through a shell, even as test input. Field turnouts are the owner's.
 - Patch or wrap JMRI or CATS (one exception: ADR-034). Fix the source data or the template.
+- Explode or decompile `cats.jar` (source: [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/master/)), or store JMRI tables from a CATS session: PanelPro owns `tables.xml`.
+- List or fix the parked features in `jmri/layouts/hart/parked/` ([`docs/parked/UNPARK.md`](docs/parked/UNPARK.md)).
 - Stop a run with `pkill -f` on a shared script name; use its PID or your worktree path.
 - Spell out what HART stands for in any file, commit or page: the repo and site are public.
 - Normalize **P&CV** and **P&OV** to each other. They are different names on purpose.

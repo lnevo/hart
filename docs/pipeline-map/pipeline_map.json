@@ -13348,6 +13348,13 @@
   },
   {
    "from": "wiki/AGENTS_GIT.md",
+   "to": ".claude/agents/data-lane.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/AGENTS_GIT.md",
    "to": ".claude/agents/panel-tracer.md",
    "label": "points to",
    "gen": "agent-docs",
