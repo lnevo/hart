@@ -1,0 +1,10 @@
+column,description,type,required,key,refs,values
+mast,"The mast's user name. With head it keys the row, matched to the wired heads of wiring.csv and to lcos_signal_logic.csv (build_lcos_signal_manager_plan.py stops when they differ).",str,yes,yes,jmri/layouts/hart/data/schematic/masts.csv:mast,
+head,"The head of the mast, as wiring.csv's disc_role gives it.",str,yes,yes,,
+plant,"The switch plant the head stands at (Switch 5), copied to the plan's Plant column.",str,,,,
+turnouts,"The switches the head watches, by user name, separated by |. Each must be a turnout in tables.xml with a Node:Turnout comment, or the build stops.",str,,,,
+signal_role,"The head's role, copied to the plan's Signal role (main_exit).",str,,,,
+blocks_throat,"Up to two detectors before the facing-point entrance, by user name, separated by |. Each must be a detector in tables.xml with a Node:Block comment, or the build stops.",str,,,,
+blocks_main,"Up to two detectors on the normal (main) path, as blocks_throat.",str,,,,
+blocks_diverge,"Up to two detectors on the diverging path, as blocks_throat.",str,,,,
+boundary_note,"Text copied to the plan's Boundary note.",str,,,,

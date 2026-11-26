@@ -76,13 +76,13 @@ class LayoutFactsTest(unittest.TestCase):
         """The generated tables store no paths, so a crossover's legs are held to the panel's track."""
         data = self.data_copy()
         legs = data / "switches.csv"
-        legs.write_text(legs.read_text().replace("1,7,,OS Switch 7,Track Scale,OS Switch 7b,",
-                                                 "1,7,,OS Switch 7,Track Barn,OS Switch 7b,"))
+        legs.write_text(legs.read_text().replace("1,7,,os:7:A-13C,block:5C-7B,os:7:A-5B,",
+                                                 "1,7,,os:7:A-13C,block:7A-13C,os:7:A-5B,"))    # Track Barn
         out = [m for m in self.failures(data=data) if m.startswith("Switch 7:")]
         self.assertTrue(any("closes OS Switch 7 to Track Barn, the panel's track from that half's closed end reaches ['Track Scale']" in m
                             for m in out), out)
-        legs.write_text(legs.read_text().replace("1,7,,OS Switch 7b,Track Main East,OS Switch 7,",
-                                                 "1,7,,OS Switch 7b,Track Main East,Track Scale,"))
+        legs.write_text(legs.read_text().replace("1,7,,os:7:A-5B,block:7B-33C,os:7:A-13C,",
+                                                 "1,7,,os:7:A-5B,block:7B-33C,block:5C-7B,"))    # Track Scale
         out = [m for m in self.failures(data=data) if m.startswith("Switch 7:")]
         self.assertTrue(any("throws OS Switch 7b to Track Scale" in m for m in out), out)
 
@@ -183,7 +183,7 @@ class LayoutFactsTest(unittest.TestCase):
                 shutil.copy(check.facts.DATA / name, data / name)
         legs = data / "switches.csv"
         legs.write_text(legs.read_text().replace(
-            "1,9,,OS Switch 9,Track EH-2,Track EH-3,", "1,9,,OS Switch 9,Track EH-3,Track EH-2,"))
+            "1,9,,os:9,block:9B-end,block:9C-end,", "1,9,,os:9,block:9C-end,block:9B-end,"))   # EH-2 and EH-3 swapped
         out = [m for m in self.failures(data=data) if m.startswith("Switch 9:")]
         self.assertTrue(any("Layout Editor TO10" in m for m in out), out)
         self.assertFalse(any("block paths" in m for m in out), out)      # the generated tables store none

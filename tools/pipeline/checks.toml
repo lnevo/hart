@@ -115,6 +115,7 @@ inputs = [
   "docs/pipeline-map/pipeline_map.json",
   { path = "tools/ops/pipeline_map_page.html", label = "template" },
   { path = "tools/ops/pipeline_map_layout.js", label = "inlined" },
+  { path = "tools/ops/pipeline_map_helpers.js", label = "inlined" },
   { path = "tools/ops/pipeline_map_view.js", label = "inlined" },
   { path = "tools/pipeline/checks.toml", label = "manifest lane" },
   { path = "tools/pipeline/panels.toml", label = "manifest lane" },
@@ -700,15 +701,43 @@ inputs = [
   { path = "cats/data/occupancy_bindings.csv", label = "rules", side = "check" },
   { path = "jmri/layouts/hart/data/block_lengths.csv", label = "refs", side = "check" },
   { path = "jmri/layouts/hart/data/block_lengths_measured.csv", label = "rules", side = "check" },
+  { path = "jmri/layouts/hart/data/schematic/lcos_nodes.csv", label = "refs (switches.csv area)", side = "check" },
   { path = "ops/hart-ops/data/industries.csv", label = "rules", side = "check" },
   { path = "ops/hart-ops/data/spot_assignments.csv", label = "rules", side = "check" },
   { path = "ops/hart-ops/data/HART_Spot_Waybills.csv", label = "rules", side = "check" },
   { path = "ops/hart-ops/data/locos.csv", label = "rules", side = "check" },
   { path = "ops/hart-ops/data/trains.csv", label = "rules", side = "check" },
   { path = "www/scripts/archive_catalogue.csv", label = "rules", side = "check" },
+  { path = "jmri/layouts/hart/data/schematic/block_overrides.csv", label = "rules", side = "check" },
+  { path = "jmri/layouts/hart/data/schematic/block_numbering.csv", label = "rules", side = "check" },
+  { path = "jmri/layouts/hart/data/schematic/main_lines.csv", label = "rules", side = "check" },
+  { path = "jmri/layouts/hart/data/schematic/retired_virtual_masts.csv", label = "rules", side = "check" },
+  { path = "jmri/layouts/hart/data/schematic/masts.csv", label = "refs", side = "check" },
+  { path = "docs/wiring/lcos/lcos_signal_logic.csv", label = "rules", side = "check" },
+  { path = "docs/wiring/lcos/lcos_signal_plan_notes.csv", label = "rules", side = "check" },
 ]
 # the sidecars it lists (check_data.SCAN_GLOBS)
 quiet_inputs = ["**/*.columns.csv"]
+
+# The hand-kept JSON files that builds read, each against its schema in check_json.py (ADR-039 lane L11): the keys
+# and types their readers depend on, and that each published-files.json source is a file.
+[[step]]
+name = "json-schemas"
+runner = "check"
+group = "static"
+cmd = ["python3", "tools/ops/check_json.py"]
+# git = []: its trace (2026-11-25) shows one Python process that runs no git and opens nothing under .git, so its
+# read set holds all it reads; HEAD in its key would only rerun it after every commit
+git = []
+domain = "layout"
+label = "check_json.py"
+desc = "Checks plan_overrides.json, preferences.json, panel_items.json and published-files.json against a schema each: the keys, types and values their readers depend on (ADR-039)."
+inputs = [
+  { path = "jmri/layouts/hart/data/schematic/plan_overrides.json", label = "schema", side = "check" },
+  { path = "jmri/layouts/hart/data/schematic/preferences.json", label = "schema", side = "check" },
+  { path = "jmri/layouts/hart/data/schematic/panel_items.json", label = "schema", side = "check" },
+  { path = "www/scripts/published-files.json", label = "schema", side = "check" },
+]
 
 # The loco master against its copies (ADR-039 lane L4d): every engine of both Operations Pro rosters and every
 # train's engine must be a locos.csv row, or a gap the script reports by name until the owner settles it.
@@ -996,7 +1025,8 @@ quiet_inputs = [
   "jmri/layouts/hart/data/schematic/stations.csv", "jmri/scripts/sml_beans.py", "jmri/scripts/sml_claims.py",
   "jmri/scripts/sml_handoff.py", "tools/hosts/deploy/common.sh", "tools/hosts/pi/apply_hart_package_local.sh",
   "tools/hosts/windows/apply_hart_package_local.ps1", "docs/pipeline-map/pipeline_map.json",
-  "tools/ops/pipeline_map_page.html", "tools/ops/pipeline_map_layout.js", "tools/ops/pipeline_map_view.js",
+  "tools/ops/pipeline_map_page.html", "tools/ops/pipeline_map_layout.js", "tools/ops/pipeline_map_helpers.js",
+  "tools/ops/pipeline_map_view.js",
   "tools/pipeline/checks.toml", "tools/pipeline/panels.toml", "AGENTS.md", "wiki/home.md", "wiki/AGENTS_GIT.md",
   "wiki/STATUS_LOG.md", "wiki/not-pending.md", "wiki/STATUS.md", "docs/INDEX.md", "wiki/decisions/**",
   "wiki/pipelines/**", "wiki/projects/**", "wiki/status/**", ".cursor/**", ".claude/skills/*/SKILL.md",

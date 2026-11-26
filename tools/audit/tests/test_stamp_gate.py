@@ -128,6 +128,22 @@ class DecideTest(unittest.TestCase):
                 self.assertIn(p, gate.MACHINERY)
                 self.assertIn("machinery", self.decide(changed=[*DATA, p]))
 
+    def test_each_part_of_the_trace_hook_forces_full(self) -> None:
+        """traced.HOOK_FILES (traced.py, its traced_*.py parts and the hook) are each MACHINERY: a split part of the
+        trace code is no way around it."""
+        spec = importlib.util.spec_from_file_location("stamp_gate_test_traced", ROOT / "tools/audit/traced.py")
+        traced = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(traced)
+        on_disk = {p.relative_to(ROOT).as_posix() for p in (ROOT / "tools/audit").glob("traced_*.py")}
+        self.assertTrue(on_disk)
+        self.assertEqual(set(traced.HOOK_FILES),
+                         {"tools/audit/traced.py", "tools/audit/trace_hook/sitecustomize.py", *on_disk})
+        for p in traced.HOOK_FILES:
+            with self.subTest(p):
+                folder = "tools/audit/trace_hook/"
+                self.assertIn(folder if p.startswith(folder) else p, gate.MACHINERY)
+                self.assertIn("machinery", self.decide(changed=[*DATA, p]))
+
     def test_no_changed_paths_or_no_base_means_full(self) -> None:
         self.assertIn("no changed paths", self.decide(changed=["", " "]))
         self.assertIn("no merge base", self.decide(base=""))
