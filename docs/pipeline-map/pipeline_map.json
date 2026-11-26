@@ -5624,15 +5624,6 @@
    "path": "docs/ops/session4/make_signs.py"
   },
   {
-   "id": "docs/ops/session4/make_signals.py",
-   "label": "make_signals",
-   "kind": "generator",
-   "status": "live",
-   "domain": "ops",
-   "desc": "Builds the session 4 draft mock signal STLs, one per colour.",
-   "path": "docs/ops/session4/make_signals.py"
-  },
-  {
    "id": "docs/ops/session4/out",
    "label": "session 4 design drafts",
    "kind": "output",
@@ -13283,11 +13274,6 @@
    "label": "job colours"
   },
   {
-   "from": "ops/hart-ops/data/trains.csv",
-   "to": "docs/ops/session4/facts.py",
-   "label": "lineup"
-  },
-  {
    "from": "docs/ops/session4/facts.py",
    "to": "docs/ops/session4/make_signs.py",
    "label": "facts"
@@ -13296,11 +13282,6 @@
    "from": "docs/ops/session4/make_signs.py",
    "to": "docs/ops/session4/out",
    "label": "signs and boards"
-  },
-  {
-   "from": "docs/ops/session4/make_signals.py",
-   "to": "docs/ops/session4/out",
-   "label": "STL"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

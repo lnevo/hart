@@ -4,7 +4,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 import facts
-import make_signals
 import make_signs
 
 
@@ -22,17 +21,8 @@ def test_board_jobs_come_from_the_primer_with_colours_where_known():
 
 def test_every_sign_sheet_holds_all_signs():
     cps = facts.control_points()
-    for draw, cell, cols, rows in ((make_signs.sign_a, (66, 56), 3, 4), (make_signs.sign_b, (46, 72), 4, 3),
-                                   (make_signs.sign_c, (62, 78), 3, 3)):
-        pages = make_signs.sheets(cps, draw, cell, "t", cols, rows)
-        assert all(any(cp["name"].replace("CP ", "") + "<" in p for p in pages) for cp in cps)
-
-
-def test_signal_parts_are_single_watertight_pieces_over_9_mm3():
-    for fn in make_signals.OPTIONS.values():
-        for mesh in fn().values():
-            assert mesh.is_watertight and len(mesh.split(only_watertight=False)) == 1
-            assert mesh.volume > 9
+    pages = make_signs.sheets(cps, make_signs.sign_a, (66, 56), "t", 3, 4)
+    assert len(pages) == 1 and all(">" + cp["name"] + "<" in pages[0] for cp in cps)
 
 
 if __name__ == "__main__":

@@ -2,11 +2,10 @@
 
 Control points: the interlockings of every level, read through hartlib (railroad_facts.read_interlockings).
 Jobs: www/data/briefing.json, section "jobs" (the crew board order the primer prints).
-Job colours and train symbols: ops/hart-ops/data/crew.json and ops/hart-ops/data/trains.csv.
+Job colours and the colour key: ops/hart-ops/data/crew.json.
 """
 from __future__ import annotations
 
-import csv
 import json
 import sys
 from pathlib import Path
@@ -14,7 +13,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 BRIEFING = ROOT / "www/data/briefing.json"
 CREW = ROOT / "ops/hart-ops/data/crew.json"
-TRAINS = ROOT / "ops/hart-ops/data/trains.csv"
 LEVEL_NAMES = {"1": "Staging", "2": "Main", "3": "Upper"}
 # The primer calls the yardmaster and dispatcher jobs by title; crew.json codes them by sheet.
 ALIAS = {"Yardmaster": "YM-01", "Dispatcher": "DS-01"}
@@ -40,9 +38,3 @@ def board_jobs() -> list[dict]:
 def colour_key() -> list[dict]:
     """The destination colours of crew.json: id, label, hex, ink, dest, train."""
     return json.loads(CREW.read_text())["colors"]
-
-
-def lineup() -> list[dict]:
-    """The DS-01 lineup trains in lineup order (trains.csv rows whose notes carry a DS-01 number)."""
-    with TRAINS.open(newline="") as f:
-        return [r for r in csv.DictReader(f) if r["notes"].startswith("DS-01")]
