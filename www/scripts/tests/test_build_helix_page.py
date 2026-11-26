@@ -21,7 +21,7 @@ class Helix(unittest.TestCase):
     def test_an_unclassified_or_missing_file_stops_the_build(self) -> None:
         with tempfile.TemporaryDirectory() as d:
             (Path(d) / "stray.stl").write_bytes(b"")
-            with mock.patch.object(helix, "SRC", Path(d)), self.assertRaises(SystemExit) as cm:
+            with mock.patch.object(helix, "SRC", Path(d)), self.assertRaises(helix.HelixPageError) as cm:
                 helix.listed_files()
         self.assertIn("unclassified: ['stray.stl']", str(cm.exception))
         self.assertIn("router_depth_block.stl", str(cm.exception))
@@ -35,6 +35,14 @@ class Helix(unittest.TestCase):
         self.assertIn("<code>b.stl</code>", page)
         self.assertIn("<h2>Status</h2>", page)
         self.assertTrue(page.startswith("Helix build status|helix-status|"))
+
+
+class MainExitTest(unittest.TestCase):
+    def test_main_exits_with_the_list_of_files(self) -> None:
+        with mock.patch.object(helix, "listed_files", side_effect=helix.HelixPageError("unclassified: ['x.stl']")), \
+                self.assertRaises(SystemExit) as cm:
+            helix.main()
+        self.assertEqual(cm.exception.code, "unclassified: ['x.stl']")
 
 
 if __name__ == "__main__":

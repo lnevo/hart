@@ -38,7 +38,7 @@ class Box(unittest.TestCase):
 
     def test_bad_boxes_refused(self):
         for text in ("1,2,3", "a,b,c,d", "0,0,10,10"):
-            with self.assertRaises(SystemExit):
+            with self.assertRaises(cp.CardPipelineError):
                 cp.parse_box(text)
 
 

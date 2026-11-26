@@ -20,6 +20,8 @@ import xml.etree.ElementTree as ET
 from datetime import date
 from pathlib import Path
 
+from car_paths import CardPipelineError
+
 HART_OPS = Path(__file__).resolve().parents[1]
 HART_ROOT = HART_OPS.parents[1]
 LOCOS = HART_OPS / "data/locos.csv"
@@ -103,7 +105,7 @@ def upsert(rows: list[dict], queue: list[dict], fields: dict) -> str:
     """Add or update a locomotive. Returns "added" or "updated"."""
     rid = loco_roster_id(fields.get("road_name", ""), fields.get("road_number", ""))
     if not fields.get("road_name") or not fields.get("road_number"):
-        raise SystemExit("A locomotive needs a road name and a road number.")
+        raise CardPipelineError("A locomotive needs a road name and a road number.")
     fields = {**fields, "roster_id": rid}
     for row in rows:
         if row["roster_id"] == rid:
@@ -134,7 +136,7 @@ def cmd_set(args, parse_sets) -> int:
     rows = read_locos()
     row = next((r for r in rows if r["roster_id"] == args.roster_id), None)
     if row is None:
-        raise SystemExit(f"{args.roster_id} is not in the locomotive repository.")
+        raise CardPipelineError(f"{args.roster_id} is not in the locomotive repository.")
     row.update(parse_sets(args.fields))
     write_table(LOCOS, COLUMNS, rows)
     print(f"Updated {args.roster_id}; still missing: {' '.join(missing_fields(row)) or 'nothing'}")
@@ -260,7 +262,7 @@ def cmd_publish(args, _parse_sets, final_dir: Path | None = None) -> int:
     for rid, miss in bad.items():
         print(f"  {rid}: missing {' '.join(miss)}")
     if bad:
-        raise SystemExit("Fill the missing fields with: cars.py locos set ID FIELD=VALUE")
+        raise CardPipelineError("Fill the missing fields with: cars.py locos set ID FIELD=VALUE")
     added = merge_engines(ENGINE_ROSTER, todo)
     entries = []
     if IMPORT_LIST.is_file():

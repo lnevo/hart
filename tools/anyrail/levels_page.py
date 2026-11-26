@@ -57,8 +57,12 @@ def read_meta(levels):
     meta = json.loads((levels / "levels_meta.json").read_text())
     for need in ("plan", "levels", "helix", "ramps", "max_grade_pct"):
         if need not in meta:
-            raise SystemExit(f"{levels / 'levels_meta.json'} has no {need!r}; rerun levels_svg.py")
+            raise LevelsPageError(f"{levels / 'levels_meta.json'} has no {need!r}; rerun levels_svg.py")
     return meta
+
+
+class LevelsPageError(Exception):
+    """The plan, the block tables or the drawings disagree with what the page says; the message names the source and the fix."""
 
 
 def block_rows():
@@ -67,7 +71,7 @@ def block_rows():
     try:
         return block_lengths.plan_blocks(), block_lengths.measured_lengths()     # this checkout's files
     except railroad.FactsError as exc:
-        raise SystemExit(str(exc)) from None
+        raise LevelsPageError(str(exc)) from exc
 
 
 def timed_rows(blocks, measured, names):
@@ -76,7 +80,7 @@ def timed_rows(blocks, measured, names):
     out = []
     for name in names:
         if name not in measured:
-            raise SystemExit(f"block_lengths_measured.csv: {name} is not a timed block")
+            raise LevelsPageError(f"block_lengths_measured.csv: {name} is not a timed block")
         m = SPREAD.search(measured[name].note)
         out.append((name, blocks[name].plan_in, measured[name].measured_in, float(m.group(1)) if m else None,
                     int(m.group(2)) if m else None))
@@ -87,7 +91,7 @@ def loop_names():
     """The test loop's blocks in running order from LOOP_START."""
     names = [name for _sensor, name in analyze.route_loop("loop1")]
     if LOOP_START not in names:
-        raise SystemExit(f"{LOOP_START} is not in the test loop's blocks")
+        raise LevelsPageError(f"{LOOP_START} is not in the test loop's blocks")
     first = names.index(LOOP_START)
     return names[first:] + names[:first]
 
@@ -96,7 +100,7 @@ def loop_fit_plan(rows, notes):
     """The plan version the loop timings were fitted to, from the blocks' notes ("timed share of the AnyRail 5.3b loop")."""
     found = {m.group(1) for r in rows for m in [FITTED.search(notes[r[0]])] if m}
     if len(found) != 1:
-        raise SystemExit(f"the loop blocks' notes name {sorted(found) or 'no'} plan versions; expected one")
+        raise LevelsPageError(f"the loop blocks' notes name {sorted(found) or 'no'} plan versions; expected one")
     return found.pop()
 
 
@@ -109,15 +113,15 @@ def run_passes(rows, notes):
         for text in PASSES_ANY.findall(notes[r[0]]):
             m = PASSES.fullmatch(text)
             if not m:
-                raise SystemExit(f"{r[0]}'s note names passes as {text!r}; write it as "
+                raise LevelsPageError(f"{r[0]}'s note names passes as {text!r}; write it as "
                                  "'(LOCO, Switch 5 to Switch 15, steps N and M)'")
             found.add(m.groups())
     if len(found) != 1:
-        raise SystemExit(f"the run blocks' notes name {sorted(found) or 'no'} timed passes (loco and two steps); "
+        raise LevelsPageError(f"the run blocks' notes name {sorted(found) or 'no'} timed passes (loco and two steps); "
                          "expected one")
     loco, first, second = found.pop()
     if first == second:
-        raise SystemExit(f"the run's two timed passes are both at step {first}; the page says they ran at different speeds")
+        raise LevelsPageError(f"the run's two timed passes are both at step {first}; the page says they ran at different speeds")
     return loco, first, second
 
 
@@ -165,7 +169,7 @@ def summary_table(meta):
 def switch_note(lv):
     """What the level's switch parts are: the double crossover and three-way, and the numbers two parts share."""
     if lv["threeways"] > 1 or lv["crossovers"] > 1:
-        raise SystemExit("the level has more than one three-way or double crossover; switch_note needs a rewrite")
+        raise LevelsPageError("the level has more than one three-way or double crossover; switch_note needs a rewrite")
     bits = [name for name, n in (("a three-way", lv["threeways"]), ("a double crossover", lv["crossovers"])) if n]
     twice = sorted((s for s, n in collections.Counter(lv["labels"]).items() if n > 1), key=switch_key)
     note = ""
@@ -187,16 +191,16 @@ def helix_rows(meta, blocks):
     try:
         helix = railroad.read_helix_tracks(HELIX_SOURCE)
     except railroad.FactsError as exc:
-        raise SystemExit(str(exc)) from None
+        raise LevelsPageError(str(exc)) from exc
     named = {(h.staging_switch, h.level_switch): h for h in helix.values()}
     rows = []
     for t in meta["helix"]:
         h = named.get((t["foot"], t["top"]))
         if h is None:
-            raise SystemExit(f"{HELIX_SOURCE.name} has no helix track from Switch {t['foot']} to Switch {t['top']}")
+            raise LevelsPageError(f"{HELIX_SOURCE.name} has no helix track from Switch {t['foot']} to Switch {t['top']}")
         run = inches(t["cm"])
         if abs(run - blocks[h.block].plan_in) > HELIX_PLAN_TOLERANCE_IN:
-            raise SystemExit(f"the plan's run from Switch {t['foot']} to {t['top']} is {run:.1f} in; "
+            raise LevelsPageError(f"the plan's run from Switch {t['foot']} to {t['top']} is {run:.1f} in; "
                              f"block_lengths.csv has {blocks[h.block].plan_in} in for {h.block}")
         rows.append((h.shown, t["foot"], t["top"], run, inches(t["below_cut_cm"]), run - inches(t["below_cut_cm"])))
     return rows
@@ -211,10 +215,10 @@ def sections(levels, meta):
     helix = helix_rows(meta, blocks)
     stage_labels = set(lv["staging"]["labels"])
     if not {"7", "9", "11", "13"} <= stage_labels:
-        raise SystemExit("the staging drawing has no Switch 7, 9, 11 and 13; the engine terminal text needs them")
+        raise LevelsPageError("the staging drawing has no Switch 7, 9, 11 and 13; the engine terminal text needs them")
     climbs = [r for r in meta["ramps"] if r["foot"] == "main" and r["top"] == "upper"]
     if len(meta["helix"]) != 2 or len(climbs) != 1 or len(meta["ramps"]) != 3:
-        raise SystemExit("the plan's ramps are not two helix tracks and one climb from main to upper; the helix text needs a rewrite")
+        raise LevelsPageError("the plan's ramps are not two helix tracks and one climb from main to upper; the helix text needs a rewrite")
     cut = meta["cut_cm"]
     loop = timed_rows(blocks, measured, loop_names())
     on_loop = {r[0] for r in loop}
@@ -222,7 +226,7 @@ def sections(levels, meta):
                  if n not in on_loop and n in measured]  # in running order
     stray = sorted(n for n in measured if n not in on_loop and n not in run_names)
     if stray:
-        raise SystemExit(f"timed blocks on neither the test loop nor the Switch 5 to 15 run: {', '.join(stray)}; "
+        raise LevelsPageError(f"timed blocks on neither the test loop nor the Switch 5 to 15 run: {', '.join(stray)}; "
                          "the lengths section needs a row group for them")
     run = timed_rows(blocks, measured, run_names)
     low, mid, high = lv["staging"], lv["main"], lv["upper"]
@@ -394,7 +398,7 @@ def render(levels):
     meta = read_meta(levels)
     plan = meta["plan"]
     if not re.fullmatch(r"\d+(\.\d+)*[a-z]?", plan):
-        raise SystemExit(f"the plan version is a number like 5.3c, not {plan!r}")
+        raise LevelsPageError(f"the plan version is a number like 5.3c, not {plan!r}")
     b = body(sections(levels, meta))
     return (SITE % (CSS, b)).replace("@PLAN@", plan), (ART % (CSS, b)).replace("@PLAN@", plan)
 
@@ -409,7 +413,10 @@ def main(argv=None):
     a = ap.parse_args(argv)
     if a.panel and not a.artifact:
         ap.error("--panel goes into the artifact copy only; give --artifact too")
-    site, art = render(Path(a.levels))
+    try:
+        site, art = render(Path(a.levels))
+    except LevelsPageError as exc:
+        raise SystemExit(str(exc)) from exc
     if a.check:
         if not Path(a.site).is_file() or Path(a.site).read_text() != site:
             sys.exit(f"{a.site} differs from what levels_page.py builds; rerun it without --check")

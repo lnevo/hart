@@ -49,5 +49,18 @@ class LiveIds(unittest.TestCase):
         self.assertEqual(err.getvalue(), "")
 
 
+class PlanErrors(unittest.TestCase):
+    def test_a_malformed_port_id_raises_the_plan_error(self) -> None:
+        with self.assertRaisesRegex(PLAN.SignalPlanError, "bad port_id nonsense"):
+            PLAN.port_index("nonsense")
+
+    def test_main_exits_with_the_plan_error(self) -> None:
+        with mock.patch.object(PLAN, "load_live_ids", return_value=({}, {})), \
+                mock.patch.object(PLAN, "signal_rows", side_effect=PLAN.SignalPlanError("signals differ: ['X']")), \
+                self.assertRaises(SystemExit) as stop:
+            PLAN.main()
+        self.assertEqual(stop.exception.code, "signals differ: ['X']")
+
+
 if __name__ == "__main__":
     unittest.main()

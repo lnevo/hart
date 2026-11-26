@@ -89,10 +89,14 @@ LEGEND = [
 ]
 
 
+class SignalPlanError(Exception):
+    """The wired heads, the signal logic and the notes disagree, or a port id is malformed; the message names them."""
+
+
 def port_index(port_id: str) -> int:
     m = PORT_RE.match(port_id)
     if not m:
-        raise SystemExit(f"bad port_id {port_id}")
+        raise SignalPlanError(f"bad port_id {port_id}")
     return (int(m.group(2)) - 1) * 8 + (int(m.group(3)) - 1)
 
 
@@ -169,7 +173,7 @@ def signal_rows(blocks, turnouts) -> tuple[list[list], set[str]]:
     notes = load_keyed(NOTES)
     missing = (set(heads) ^ set(logic)) | (set(heads) ^ set(notes))
     if missing:
-        raise SystemExit(f"signals differ between wiring, logic and notes: {sorted(missing)}")
+        raise SignalPlanError(f"signals differ between wiring, logic and notes: {sorted(missing)}")
     unknown: set[str] = set()
     rows = []
     for key, head in heads.items():
@@ -193,7 +197,10 @@ def signal_rows(blocks, turnouts) -> tuple[list[list], set[str]]:
 
 def main() -> int:
     blocks, turnouts = load_live_ids()
-    rows, unknown = signal_rows(blocks, turnouts)
+    try:
+        rows, unknown = signal_rows(blocks, turnouts)
+    except SignalPlanError as exc:
+        raise SystemExit(str(exc)) from exc
     if unknown:
         raise SystemExit(f"names not in live tables: {sorted(unknown)}")
 

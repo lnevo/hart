@@ -10,14 +10,17 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
+from car_paths import CardPipelineError
+
 DATA = Path(__file__).resolve().parent.parent / "data"
 MERGED = DATA / "HART_MergedCarRoster.xml"
 OPERATIONS = DATA / "OperationsCarRoster.xml"
 
 
-def main() -> None:
+def export_roster() -> None:
+    """Write OPERATIONS from MERGED with a fresh export stamp; CardPipelineError when MERGED is missing."""
     if not MERGED.is_file():
-        raise SystemExit(f"Missing {MERGED} — run build_car_roster_sor.py first")
+        raise CardPipelineError(f"Missing {MERGED} — run build_car_roster_sor.py first")
 
     text = MERGED.read_text(encoding="utf-8")
     stamp = datetime.now().strftime("%a %b %d %H:%M:%S %Y")
@@ -34,6 +37,13 @@ def main() -> None:
 
     OPERATIONS.write_text(text, encoding="utf-8")
     print(f"Wrote {OPERATIONS.name} from {MERGED.name}")
+
+
+def main() -> None:
+    try:
+        export_roster()
+    except CardPipelineError as exc:
+        raise SystemExit(str(exc)) from exc
 
 
 if __name__ == "__main__":

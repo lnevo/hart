@@ -14,6 +14,8 @@ import subprocess
 import time
 from pathlib import Path
 
+from car_paths import CardPipelineError
+
 CHECKS = ("batches", "committed", "pi", "backup")
 BACKUP_MAX_AGE_HOURS = 12
 OPS_FILES = ["Operations.xml", "OperationsCarRoster.xml", "OperationsEngineRoster.xml",
@@ -90,7 +92,7 @@ def run_gate(*, batch_root, tracked, ops_local, pi_host, pi_dir, backups_dir,
     problems = []
     for name in skip:
         if name not in CHECKS:
-            raise SystemExit(f"--skip-check takes one of: {' '.join(CHECKS)}")
+            raise CardPipelineError(f"--skip-check takes one of: {' '.join(CHECKS)}")
         print(f"  gate: skipping the {name} check")
     steps = {
         "batches": lambda: [] if only else unfinished_batches(batch_root),
