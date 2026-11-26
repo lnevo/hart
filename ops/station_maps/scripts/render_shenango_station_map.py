@@ -14,14 +14,13 @@ text kept upright (as the original rotated sheet was).
 from __future__ import annotations
 
 import sys
-import zipfile
-from io import BytesIO
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import render_barn_station_map as barn  # noqa: E402  (reuse docx writer, compass, fonts)
+import render_barn_station_map as barn  # noqa: E402  (sheet size, colours, docx template)
+import sheet_kit  # noqa: E402
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
@@ -49,14 +48,7 @@ LOOP = [(838, 305), (1293, 305), (1382, 396), (1382, 522), (1293, 611), (838, 61
 CY = Y_W + Y_E  # y' = CY - y
 
 
-def _serif(size, bold=False):
-    name = "Georgia Bold.ttf" if bold else "Georgia.ttf"
-    for base in (Path("/System/Library/Fonts/Supplemental"), Path("/Library/Fonts"),
-                 Path("/usr/share/fonts/truetype/msttcorefonts")):
-        p = base / name
-        if p.is_file():
-            return ImageFont.truetype(str(p), size)
-    return barn._font(size, bold=bold)
+_serif = sheet_kit.georgia
 
 
 def _compass(d, cx, cy, r, flip):
@@ -77,7 +69,7 @@ def _compass(d, cx, cy, r, flip):
               fill=(60, 82, 112))
     d.polygon([(cx, cy + k * n), (cx - 11, cy), (cx, cy - k * 2)], fill=(150, 165, 185))
     d.ellipse([cx - 5, cy - 5, cx + 5, cy + 5], fill=(40, 58, 88))
-    f = barn._font(28, bold=True)
+    f = sheet_kit.arial(28, bold=True)
     top, bot, left, right = ("S", "N", "E", "W") if flip else ("N", "S", "W", "E")
     off = r + 28
     d.text((cx, cy - off), top, font=f, fill=ring, anchor="mm")
@@ -92,15 +84,15 @@ def render(out: Path, rotated: bool) -> None:
 
     img = Image.new("RGB", (W, H), (255, 255, 255))
     d = ImageDraw.Draw(img)
-    f_title = barn._font(56, bold=True)
-    f_track = barn._font(22, bold=True)
-    f_princess = barn._font(38, bold=True)
-    f_num = barn._font(20, bold=True)
+    f_title = sheet_kit.arial(56, bold=True)
+    f_track = sheet_kit.arial(22, bold=True)
+    f_princess = sheet_kit.arial(38, bold=True)
+    f_num = sheet_kit.arial(20, bold=True)
     f_dest = _serif(20)
     f_ind = _serif(27, bold=True)
 
     def line(a, b, w=4):
-        barn._line(d, T(a), T(b), w)
+        sheet_kit.capped_line(d, T(a), T(b), w, TRACK)
 
     def text(x, y, s, font, anchor="mm", fill=INK):
         """Place text by its ink box in plan coordinates; keep it upright."""
@@ -130,7 +122,7 @@ def render(out: Path, rotated: bool) -> None:
         tip = T((X_ARROW, y))
         barn._arrow(d, tip, "right" if rotated else "left", size=17)
     for p in X_113 + [(X_SW115, Y_W), (X_SW115, Y_E)]:
-        barn._dot(d, T(p), DOT_R)
+        sheet_kit.dot(d, T(p), DOT_R, TRACK)
 
     badge(680, 378, "39")
     badge(570, 463, "35")
@@ -177,28 +169,12 @@ def render(out: Path, rotated: bool) -> None:
 
 
 def _write_docx(png: Path, dest: Path, media_name: str) -> None:
-    """Clone the SM-series landscape docx and swap the embedded map PNG."""
-    tpl = barn.DOCX_TEMPLATE
-    if not tpl.is_file():
-        raise SystemExit(f"missing template {tpl}")
-    png_bytes = png.read_bytes()
-    buf = BytesIO()
-    with zipfile.ZipFile(tpl) as src, zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as out:
-        for item in src.infolist():
-            data = src.read(item.filename)
-            if item.filename == "word/media/image1.png":
-                data = png_bytes
-            elif item.filename == "word/document.xml":
-                data = data.replace(b"station_map_west_yard.png", media_name.encode())
-            elif item.filename == "docProps/core.xml":
-                title = "Neville Island Station Map \u2014 Shenango"
-                if "Rotated" in dest.name:
-                    title += " (rotated)"
-                data = barn._patch_core_title(data, title)
-            out.writestr(item, data)
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_bytes(buf.getvalue())
-    print(f"wrote {dest}")
+    """The SM-series landscape docx with the Shenango map in it."""
+    title = "Neville Island Station Map \u2014 Shenango"
+    if "Rotated" in dest.name:
+        title += " (rotated)"
+    sheet_kit.write_sheet_docx(barn.DOCX_TEMPLATE, png, dest,
+                               media_names=("station_map_west_yard.png", media_name), title=title)
 
 
 def main() -> None:

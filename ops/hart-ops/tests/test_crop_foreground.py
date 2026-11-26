@@ -34,5 +34,20 @@ class TrimForeground(unittest.TestCase):
         self.assertGreater(cut, 44)
 
 
+class CropSettingsTest(unittest.TestCase):
+    def test_settings_are_frozen(self) -> None:
+        import dataclasses
+
+        with self.assertRaises(dataclasses.FrozenInstanceError):
+            crop.CROP.tone.track_thresh = 1  # type: ignore[misc]
+
+    def test_tuned_values_are_kept(self) -> None:
+        c = crop.CROP
+        self.assertEqual((c.frame.y0, c.frame.y1, c.frame.min_rotation_deg), (0.36, 0.90, 0.05))
+        self.assertEqual((c.tone.content_thresh, c.tone.track_thresh, c.tone.body_thresh), (238, 95, 120))
+        self.assertEqual(c.tone.fleet_lightbox_wall, (212.8, 208.8, 203.8))
+        self.assertEqual(c.span.full_dark_frac, 0.25)
+
+
 if __name__ == "__main__":
     unittest.main()

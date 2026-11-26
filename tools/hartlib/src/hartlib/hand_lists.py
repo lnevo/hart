@@ -1,5 +1,5 @@
 """The owner's hand lists in jmri/layouts/hart/data/: each file's one reader, which checks its shape and stops with
-HandListError naming the file and line (naming-layers step 6: every read of layout data goes through hartlib).
+HandListError naming the file and line (every read of layout data goes through hartlib).
 
     from hartlib import hand_lists
     hand_lists.read_block_overrides(path)          # block_overrides.csv: the owner's hand facts about blocks
@@ -16,10 +16,10 @@ HandListError naming the file and line (naming-layers step 6: every read of layo
 - main_lines.csv (schematic/): read_main_lines. Each stop's tracks are block IDs and come back by the name store's
   names (resolve_stop), so a rename in devices_field.csv changes no row. build_main_route.py reads it here.
 - mast_cells.csv, uss_board_cells.csv, uss_board_plants.csv: the parked USS CTC machine's board (its grid frozen
-  from the hand-wired CATS desk on 2026-11-15) and the hand-wired desks' lamp placements. Read by
+  from the hand-wired CATS desk) and the hand-wired desks' lamp placements. Read by
   jmri/layouts/hart/scripts/layout_facts.py (for gen_ctc_track_plan.py) and tools/audit/check_layout_facts.py.
   mast_cells.csv keys masts by name: two of its masts no longer exist, and it is keyed by mast ID when the USS
-  machine is unparked (step 5 findings).
+  machine is unparked.
 - retired_virtual_masts.csv (schematic/): read_retired_masts, {mast: system name} with each row checked, so a dropped
   mast's ordinal stays taken. tools/schematic/mast_plan.py (read_retired) reads it here.
 - sheets.csv (schematic/): read_sheet_rows, the rows with their lines; tools/schematic/build_staging_sets.py
@@ -34,16 +34,18 @@ import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from . import level_masts, paths
 from .railroad_facts import natural, read_rows
+from .errors import HartlibError
 
 DATA = paths.LAYOUT_DATA
 SCHEMATIC = DATA / "schematic"
 
 
-class HandListError(ValueError):
+class HandListError(HartlibError, ValueError):
     """A hand list that cannot be read or is not in its shape; the message names the file and line."""
 
 
@@ -81,10 +83,10 @@ def read_block_overrides(path: Path = SCHEMATIC / OVERRIDES_NAME, kinds: tuple[s
     reader's (mast_rule.read_block_splits, block_layer.read_exceptions). A row of any level (1 staging, 2 main, 3
     upper), keyed by switch numbers so a new export moves it with its track:
     - split: the track switch_a to switch_b (lower first; parallel where two tracks run between them,
-      mast_rule.resolve_track) is two blocks parted at its turnback. The OWNER'S CHOICE, not a rule (owner,
-      2026-11-20: a rule would catch every intermediate loop). No end, block, cm or inside.
+      mast_rule.resolve_track) is two blocks parted at its turnback. The OWNER'S CHOICE, not a rule (a rule
+      would catch every intermediate loop). No end, block, cm or inside.
     - track: the track switch_a to switch_b (as for split), or with `end` one of them the piece of it at that end, is
-      part of `block`, an OS block by its device ID (os:15, a crossover half's os:35:A-39A; naming-layers step 5),
+      part of `block`, an OS block by its device ID (os:15, a crossover half's os:35:A-39A),
       where the field wiring (or, on main and upper, the owner) says so; `cm` the piece's length, for a piece at one
       end whose track keeps the rest; `inside` yes keeps it inside its OS block with no JMRI or layout block of its
       own. block_layer's module text has the rules. The row comes back with `block` the OS block's generated name
@@ -107,10 +109,13 @@ def read_block_overrides(path: Path = SCHEMATIC / OVERRIDES_NAME, kinds: tuple[s
             reader = csv.DictReader(fh)
             rows = list(reader)
     except OSError as exc:
-        raise HandListError(f"cannot read {path.name}: {exc}") from None
+        raise HandListError(f"cannot read {path.name}: {exc}") from exc
     if reader.fieldnames != OVERRIDE_COLUMNS:
         raise HandListError(f"{path.name}: columns {reader.fieldnames}, not {OVERRIDE_COLUMNS}")
-    out, bad, halves, letters = [], [], {}, {}
+    out: list[dict[str, Any]] = []
+    bad: list[str] = []
+    halves: dict[tuple[str, str, str], str] = {}      # (level, switch, switch_b) -> the half's OS block
+    letters: dict[tuple[str, str, str], int] = {}     # (level, switch, half letter) -> its line
     for i, r in enumerate(rows, 2):
         if None in r:                       # a short row's missing trailing fields are empty, as csv reads them
             bad.append(f"line {i}: more fields than the header's {len(OVERRIDE_COLUMNS)}")
@@ -150,7 +155,8 @@ def half_letters(path: Path = SCHEMATIC / OVERRIDES_NAME) -> dict[tuple[str, str
     return {(r["level"], r["id"]): r["half"] for r in read_block_overrides(path, ("crossover_half",))}
 
 
-def os_block_name(level: str, ident: str, halves: dict, names: Mapping[tuple[str, str], str] | None = None) -> str:
+def os_block_name(level: str, ident: str, halves: Mapping[tuple[str, str, str], str],
+                  names: Mapping[tuple[str, str], str] | None = None) -> str:
     """The generated name of the OS block with device ID `ident`: os:<n> is OS Switch <n>; a crossover half,
     os:<n>:A-<end>, is the half whose leg A runs to the end's switch, named by its crossover_half row (`halves`:
     {(level, crossover, switch): name}); a double crossover's corner, os:<n>:<leg> (os:225:D), is named by the device
@@ -229,8 +235,8 @@ def split(cell: str) -> list[str]:
     return [p.strip() for p in cell.split(";") if p.strip()]
 
 
-def resolve_stop(token: str, names: Mapping[tuple[str, str], str], where: str) -> str:
-    """A stop as main_lines.csv gives it, with each track in it by its block id (naming-layers step 5), as the plan
+def resolve_stop(token: str, names: Mapping[tuple[str, str], str] | None, where: str) -> str:
+    """A stop as main_lines.csv gives it, with each track in it by its block id, as the plan
     graph names it: the track's name in the name store (`names`, hartlib.devices.user_names) less "Track ", so
     "35@block:33A-35A" is "35@East Lead" and "block:39B-helix" "Helix Outer". A switch number is itself. The ids are
     looked up on every level (a helix track's is staging's: its main or upper end carries the same name), so a rename
@@ -242,6 +248,9 @@ def resolve_stop(token: str, names: Mapping[tuple[str, str], str], where: str) -
             raise HandListError(f"{where}: stop {token!r} names a track by its name; give its block id "
                                 "(devices_generated.csv's id column, as 35@block:33A-35A or block:39B-helix)")
         return token
+    if names is None:
+        from . import devices
+        names = devices.user_names()
     hit = next((names[(lv, track)] for lv in ("1", "2", "3") if (lv, track) in names), None)
     if hit is None:
         raise HandListError(f"{where}: stop {token!r}: {track} is no block of the device master (a new export "
@@ -264,7 +273,7 @@ def read_main_lines(sheet: str, path: Path = MAIN_LINES,
             reader = csv.DictReader(fh)
             rows = list(reader)
     except OSError as exc:
-        raise HandListError(f"cannot read {path.name}: {exc}") from None
+        raise HandListError(f"cannot read {path.name}: {exc}") from exc
     if reader.fieldnames != MAIN_LINE_COLUMNS:
         raise HandListError(f"{path.name}: expected the columns {', '.join(MAIN_LINE_COLUMNS)}, got {reader.fieldnames}")
     seen = set()
@@ -321,7 +330,7 @@ def read_retired_masts(path: Path = RETIRED_MASTS) -> dict[str, str]:
             reader = csv.DictReader(fh)
             rows = list(reader)
     except OSError as exc:
-        raise HandListError(f"cannot read {path.name}: {exc}") from None
+        raise HandListError(f"cannot read {path.name}: {exc}") from exc
     if reader.fieldnames != RETIRED_MAST_COLUMNS:
         raise HandListError(f"{path.name}: columns {reader.fieldnames}, not {RETIRED_MAST_COLUMNS}")
     out, seen = {}, set()
@@ -354,13 +363,13 @@ def read_sheet_rows(path: Path = SHEETS_FILE) -> list[tuple[int, dict[str, str]]
 PANEL_ITEMS = SCHEMATIC / "panel_items.json"
 
 
-def read_panel_items(path: Path = PANEL_ITEMS):
+def read_panel_items(path: Path = PANEL_ITEMS) -> Any:     # the JSON as json.loads gives it
     """The Layout Editor panel's own items file, parsed; HandListError when it cannot be read or parsed. Its shape is
     checked by tools/schematic/panel_items.py (load)."""
     try:
         return json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        raise HandListError(f"cannot read {Path(path).name}: {exc}") from None
+        raise HandListError(f"cannot read {Path(path).name}: {exc}") from exc
 
 
 # ---------------------------------------------------------------- the USS CTC board (parked)
@@ -411,15 +420,17 @@ def read_mast_cells(data: Path = DATA) -> list[MastCell]:
         where = f"{MAST_CELLS} line {line} ({row['mast']})"
         try:
             x, y = int(row["x"]), int(row["y"])
-        except ValueError:
-            raise HandListError(f"{where}: x and y are whole numbers, not {row['x']!r} and {row['y']!r}") from None
+        except ValueError as exc:
+            raise HandListError(f"{where}: x and y are whole numbers, not {row['x']!r} and {row['y']!r}") from exc
         cell = MastCell(row["mast"], x, y, row["edge"], row["uss_facing"],
                         row["uss_kind"], row["uss_head"], row["sig_location"], row["sig_orient"])
         key = (cell.x, cell.y, cell.edge)
-        for what, index, value in (("mast", seen, cell.mast), ("cell and edge", cells, key)):
-            if value in index:
-                raise HandListError(f"{MAST_CELLS} lines {index[value]} and {line}: same {what} {value}")
-            index[value] = line
+        if cell.mast in seen:
+            raise HandListError(f"{MAST_CELLS} lines {seen[cell.mast]} and {line}: same mast {cell.mast}")
+        seen[cell.mast] = line
+        if key in cells:
+            raise HandListError(f"{MAST_CELLS} lines {cells[key]} and {line}: same cell and edge {key}")
+        cells[key] = line
         if cell.edge not in EDGES or cell.uss_facing not in ("E", "W") or cell.uss_kind not in ("h2", "d1"):
             raise HandListError(f"{where}: edge {EDGES}, uss_facing E/W, uss_kind h2/d1")
         if (cell.uss_kind == "d1") != bool(cell.uss_head):
@@ -451,7 +462,7 @@ def _noted_rows(path: Path, columns: list[str]) -> list[tuple[int, dict[str, str
 
 
 def read_uss_cells(data: Path = DATA) -> dict[tuple[int, int], dict]:
-    """The USS CTC board's grid (uss_board_cells.csv in `data`), frozen from the hand-wired CATS desk on 2026-11-15,
+    """The USS CTC board's grid (uss_board_cells.csv in `data`), frozen from the hand-wired CATS desk,
     in file order: (x, y) -> {tracks: [CATS track kinds], name: the cell's label or None, blocks: [(edge, block or
     None, occupancy sensor or None)]}, the shape gen_ctc_track_plan.build_block reads."""
     out: dict[tuple[int, int], dict] = {}
@@ -459,8 +470,8 @@ def read_uss_cells(data: Path = DATA) -> dict[tuple[int, int], dict]:
         where = f"{USS_CELLS} line {line}"
         try:
             xy = (int(row["x"]), int(row["y"]))
-        except (TypeError, ValueError):
-            raise HandListError(f"{where}: x and y are whole numbers") from None
+        except (TypeError, ValueError) as exc:
+            raise HandListError(f"{where}: x and y are whole numbers") from exc
         if xy in out:
             raise HandListError(f"{where}: cell {xy} is listed twice")
         tracks = [t for t in row["tracks"].split(";") if t]
@@ -487,8 +498,8 @@ def read_uss_plants(data: Path = DATA) -> dict[tuple[int, int], str]:
         where = f"{USS_PLANTS} line {line} ({row['os_block']})"
         try:
             xy = (int(row["x"]), int(row["y"]))
-        except (TypeError, ValueError):
-            raise HandListError(f"{where}: x and y are whole numbers") from None
+        except (TypeError, ValueError) as exc:
+            raise HandListError(f"{where}: x and y are whole numbers") from exc
         if not row["os_block"] or row["os_block"] in seen or xy in out:
             raise HandListError(f"{where}: an OS block or cell that is empty or given twice")
         if not cells.get(xy, {}).get("tracks"):

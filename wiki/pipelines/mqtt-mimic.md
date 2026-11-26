@@ -12,7 +12,7 @@ Cross-cutting pipelines 3, 5 and 9: LCOS Digicon aspect QA without the physical 
 | `tools/mqtt-mimic/build_mimic_web.py` | Deploy step: writes the page's `mimic_layout.json` from the same sources as the Mac mimic |
 | `tools/mqtt-mimic/lcos_mqtt_mimic.py` | Mac mimic (own web server on 127.0.0.1:8765); reads the device master (`devices_field.csv` + `devices_generated.csv`, through `hartlib.devices`). Its launch agent `com.hart.mqtt-mimic` is disabled since 2026-11-11 |
 | `jmri/scripts/signal_coordinator.py` | JMRI jython publisher |
-| `LCOS_ESP32_MQTT_Client/serial_to_mqtt.py` | Host serial ↔ MQTT bridge |
+| `LCOS_ESP32_MQTT_Client/serial_to_mqtt.py` | Host serial ↔ MQTT bridge (Pi, `lcos-bridge` service) |
 
 ## Levels
 
@@ -23,7 +23,7 @@ The JMRI page has Staging, Main and Upper tabs. Staging is the LCOS plant: click
 - **Live roster:** non-empty `track/signalmast/<packed>` from LCOS — not static allow-lists.
 - **Topics:** `track/signalhead/<packed>` (SET), `track/signalmast/<packed>` (field status).
 - **Packed ID:** deploy `IH*` digits, the same as the IH number of the head in `wiring.csv` (`hartlib.wiring.digicon_rows`, `check_wiring_crosswalk.py`).
-- **Bridge:** Windows serial bridge runs **foreground** only (do not `Start-Process` Hidden).
+- **Bridge:** runs on the Pi as the `lcos-bridge` systemd service (`~/lcos-bridge/bridge status|log|restart`). Never start a second bridge beside it.
 
 ## Broker setting
 
@@ -34,7 +34,7 @@ The Mac tools (`tools/mqtt/`, `tools/mqtt-mimic/`, `diagnose_turnout_states.py`)
 ```bash
 # JMRI PanelPro with signal_coordinator active
 python3 tools/mqtt-mimic/lcos_mqtt_mimic.py --help
-python -u ../LCOS_ESP32_MQTT_Client/serial_to_mqtt.py --com COM3 --broker 10.0.0.150
+ssh pi@rpi-jmri.local '~/lcos-bridge/bridge status'   # the bridge runs on the Pi
 ```
 
 ## Bridge smoke test

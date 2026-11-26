@@ -1,4 +1,4 @@
-"""The naming rule of the main and upper levels' virtual JMRI devices, in one place (owner, 2026-11-17).
+"""The naming rule of the main and upper levels' virtual JMRI devices, in one place.
 
 The main and upper physical plant is not reviewed yet, so every main and upper turnout, block sensor, signal head and
 mast in tables.xml and on the CATS desks is an internal device whose system name comes from its own user name, never
@@ -13,7 +13,7 @@ device, so a physical device is later swapped in by that mapping alone.
 - The LogixNG that sets every block sensor INACTIVE when the tables load (CLEAR_*; tables_build.start_logixng, from
   each row's start)
   and its reader clear_sensors; the same LogixNG sets every virtual turnout to its startup position, Closed except
-  where the main route runs through the diverging leg (owner, 2026-11-19), read by turnout_states.
+  where the main route runs through the diverging leg, read by turnout_states.
 
 Used by tools/schematic/build_device_map.py (and its device_map_masts.py), hartlib.tables_build, build_cats_panel.py,
 hartlib.level_masts, tools/audit/check_layout_facts.py and www/scripts/tables_page.py.
@@ -29,7 +29,7 @@ TURNOUT_PREFIX = "IT:HART:C3:"
 SENSOR_PREFIX = "IS:HART:C3:B:"
 HEAD_PREFIX = "IH:HART:C3:"
 # a device-map head's user name: a home signal's (Head 108LA, Head 108R Top) or an intermediate's, named from its
-# milepost with the line code, A main and B upper (Head A87; owner, 2026-11-19)
+# milepost with the line code, A main and B upper (Head A87)
 HEAD_USER = re.compile(r"Head (\d+[LR][A-Z]?|[AB]\d+)(?: (Top|Bottom))?")
 MAST_USER = re.compile(r"Mast (\d+[LR][A-Z]?|[AB]\d+)")     # a main or upper mast's user name: its heads' key
 HEAD = re.compile(re.escape(HEAD_PREFIX) + r"(?:\d+[LR][A-Z]?|[AB]\d+)(?:_Top|_Bottom)?")    # its virtual system name
@@ -48,8 +48,8 @@ CLEAR_PREFIX = re.compile(r"IQ(?:C|DA)?\$HART:C3:")
 START_ENUM = {"inactive": "Inactive", "closed": "Closed", "thrown": "Thrown"}
 
 # The words of the main and upper beans' comments, which build_device_map.py writes into each row's bean_comment
-# (device_map_rows.bean_cells) and hartlib.tables_build.master_beans puts on the bean. Staging's form (owner,
-# 2026-11-23, naming-layers step 11): the parts joined by " | ", the place first; a bean no field device drives says
+# (device_map_rows.bean_cells) and hartlib.tables_build.master_beans puts on the bean. Staging's form: the parts joined
+# by " | ", the place first; a bean no field device drives says
 # VIRTUAL_NOTE, as a staging head on an internal name does, then the planned physical device, a draft.
 VIRTUAL_NOTE = "internal, not wired"
 UNPLACED_NOTE = "not on a node yet"     # a head or mast with no board room on the draft plant (ADR-024, ADR-028)
@@ -89,10 +89,10 @@ def is_block_sensor(system_name: str) -> bool:
 
 # Every main and upper name, by rule, for references to a device that is no longer in the tables. System names: the
 # prefixes above, the build's blocks (BLOCK_PREFIX) and a mast over virtual heads (its system name holds the head's).
-# User names: the main and upper switch numbers, 101 to 245 (owner, 2026-11-14), after the device kind, as the device
+# User names: the main and upper switch numbers, 101 to 245, after the device kind, as the device
 # map writes them ("Switch 107", "Track 107-109", "OS Switch 225b", "BS 107-109", "Mast <n><L|R>", "Head 108R Top"),
 # and intermediates by line code and milepost ("Mast A87", "Head B88"), and the helix blocks' virtual occupancy sensors
-# ("BS Helix Outer"; the blocks themselves, "Track Helix Outer", are staging's beans, owner 2026-11-20).
+# ("BS Helix Outer"; the blocks themselves, "Track Helix Outer", are staging's beans).
 # Staging numbers stop at 40, and its masts 2035 and 2036 have four digits.
 BLOCK_PREFIX = "IB:C3:"
 # the main and upper layout blocks: ILB1001 up (hartlib.block_numbering numbers them with the blocks); staging's stop
@@ -208,7 +208,7 @@ def field_detected(root: ET.Element) -> dict[str, str]:
     return out
 
 
-def main(argv=None) -> int:
+def main(argv: list[str] | None = None) -> int:
     """python3 -m hartlib.level_devices field-detected TABLES: one line "<block system name> <sensor system name>"
     per main or upper block on a field sensor (field_detected), for run_panelpro_smoke_test.sh."""
     import argparse

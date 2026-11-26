@@ -864,7 +864,7 @@ inputs = [
 # the tracked text files it reads (check_name_copies.SCAN_GLOBS: one glob per suffix, less .mjs and .yaml, which no
 # tracked file has: a glob here must match one)
 quiet_inputs = ["**/*.py", "**/*.sh", "**/*.js", "**/*.csv", "**/*.json", "**/*.xml", "**/*.html", "**/*.svg",
-                "**/*.txt", "**/*.cmd", "**/*.yml"]
+                "**/*.txt", "**/*.yml"]
 
 [[step]]
 name = "ai-speak"
@@ -994,6 +994,24 @@ label = "check_ruff"
 desc = "Pyflakes (ruff F rules, ruff.toml) over every .py file; the edit hook runs it on each edited file."
 # ruff is a program the trace cannot see into: what it reads (check_stamps.BY_KIND["ruff"])
 programs = { ruff = ["**/*.py", "ruff.toml", "requirements.txt", ".gitignore", "**/.gitignore"] }
+
+# mypy (mypy.ini): hartlib must have no errors, and no other file may rise above its count in the baseline.
+# --update rewrites the baseline and refuses a rise. It lists files with git ls-files, so it keeps HEAD.
+[[step]]
+name = "mypy"
+runner = "check"
+cmd = ["python3", "tools/audit/check_mypy.py"]
+git = ["head", "base"]
+domain = "extras"
+label = "check_mypy"
+desc = "mypy (mypy.ini) over the CPython files: hartlib with no errors, every other file at or below its error count in tools/audit/mypy_baseline.json; --update lowers the baseline and refuses a rise."
+inputs = [
+  "tools/audit/mypy_baseline.json",
+]
+# the file list comes from ruff.toml's excludes and Jython ignores and mypy.ini's exclude; the pin from requirements.txt
+quiet_inputs = ["mypy.ini", "ruff.toml", "requirements.txt"]
+# mypy runs as `python -m mypy` from the main checkout's .venv: it reads every .py file it checks and mypy.ini
+programs = { mypy = ["**/*.py", "mypy.ini"] }
 
 # check.sh queues it only off CI and when tools/audit/portal_inputs.py does not exit 3 (no site input changed), or
 # with PORTAL_CHECK=1; the condition is in check.sh, keyed on this step's name

@@ -10,9 +10,7 @@ import numpy as np
 from PIL import Image, ImageOps
 
 from crop_car_image import (
-    BODY_THRESH,
-    MIN_ROTATION_DEG,
-    TRACK_THRESH,
+    CROP,
     _backdrop_color,
     _centered_crop_box,
     _crop_at_fixed_size,
@@ -115,7 +113,7 @@ def _level_for_finalize(src_path: Path, stem: str) -> tuple[Image.Image, float]:
         img = match_lightbox_white_balance(img)
     if stem in ROTATION_OVERRIDES:
         angle = ROTATION_OVERRIDES[stem]
-        if abs(angle) < MIN_ROTATION_DEG:
+        if abs(angle) < CROP.frame.min_rotation_deg:
             return img, angle
         leveled = img.rotate(
             angle,
@@ -131,11 +129,11 @@ def _rolling_stock_span(gray: np.ndarray) -> tuple[int, int]:
     """Coupler tips just outside the visible body silhouette."""
     h, w = gray.shape
     mid = gray[int(h * 0.30) : int(h * 0.70), :]
-    body = (mid < BODY_THRESH).mean(axis=0)
+    body = (mid < CROP.tone.body_thresh).mean(axis=0)
     cols = np.where(body > 0.15)[0]
     if not cols.size:
         lower = gray[int(h * 0.70) :, :]
-        lfrac = (lower < TRACK_THRESH).mean(axis=0)
+        lfrac = (lower < CROP.tone.track_thresh).mean(axis=0)
         strong = np.where(lfrac > 0.22)[0]
         if strong.size:
             return int(strong[0]), int(strong[-1])
@@ -143,7 +141,7 @@ def _rolling_stock_span(gray: np.ndarray) -> tuple[int, int]:
 
     blo, bhi = int(cols[0]), int(cols[-1])
     lower = gray[int(h * 0.72) :, :]
-    lfrac = (lower < TRACK_THRESH).mean(axis=0)
+    lfrac = (lower < CROP.tone.track_thresh).mean(axis=0)
     reach = max(30, int(w * 0.035))
     l0 = max(0, blo - reach)
     left_tip = l0 + int(np.argmax(lfrac[l0 : blo + 1]))
@@ -157,7 +155,7 @@ def _tie_pitch(gray: np.ndarray, lo: int, hi: int) -> float:
     band = gray[int(h * 0.75) :, max(0, lo) : hi]
     if band.size == 0 or hi <= lo:
         return 28.0
-    col = (band < TRACK_THRESH).mean(axis=0)
+    col = (band < CROP.tone.track_thresh).mean(axis=0)
     smooth = np.convolve(col, np.ones(5) / 5, mode="same")
     peaks = [
         i

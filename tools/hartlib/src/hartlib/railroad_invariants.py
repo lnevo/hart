@@ -4,46 +4,49 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Callable
+from collections.abc import Callable, Iterable, Mapping
+from pathlib import Path
+from typing import TYPE_CHECKING
 
 from . import level_devices
-from .railroad_facts import (LEVEL_NUMBERS, STAGING_LEVEL, StagingDevice, UNIQUE_HARDWARE, check_virtual_names, device_list, master_at, natural,
-                             switch_groups, switch_number)
+from .railroad_facts import (LEVEL_NUMBERS, STAGING_LEVEL, DeviceRow, StagingDevice, UNIQUE_HARDWARE,
+                             check_virtual_names, device_list, master_at, natural, switch_groups, switch_number)
 
 if TYPE_CHECKING:
     from .railroad import Railroad
 
 # ---------------------------------------------------------------- the rows of the device master, every level
 
-def _key(r) -> str:
+def _key(r: Mapping[str, str]) -> str:
     """A master row's key as a message names it (hartlib.devices.row_text)."""
     return f"{r['user_name']} (level {r['level']}, {r['layer']})"
 
 
-def _at(n: int, r, where: str) -> str:
+def _at(n: int, r: Mapping[str, str], where: str) -> str:
     """A master row as a message names it: its file and key, never a line (the master is two merged files)."""
     return f"{where}: {_key(r)}"
 
 
-def _obj_at(path, r) -> str:
+def _obj_at(path: Path, r: StagingDevice | DeviceRow) -> str:
     """A StagingDevice or DeviceRow of the master at `path` as a message names it (railroad_facts.master_at)."""
     return master_at(path, r.user_name, getattr(r, "level", STAGING_LEVEL), r.layer)
 
 
-def device_row_problems(lines, helix_blocks: set[str], where: str = "the device master",
+def device_row_problems(lines: Iterable[tuple[int, Mapping[str, str]]], helix_blocks: set[str],
+                        where: str = "the device master",
                         helix_file: str = "plan_overrides.json") -> list[str]:
     """The rules between the rows of the device master, one for every level, as problems naming the rows. `lines` are
     (line, master row) of every level (outside devices.OUT_OF_MAPS); `helix_blocks` the helix tracks' blocks.
     - every block has exactly one occupancy row naming it, on any level; a block named on more than one level is a
-      helix block (one JMRI block from its staging switch up the helix, owner 2026-11-20), and every helix block is;
+      helix block (one JMRI block from its staging switch up the helix), and every helix block is;
     - no two rows of one layer share a user name (but a helix block's rows), a system name (a turnout, sensor or head's
       is no other such row's, of any of those layers) or a jmri_name (but a virtual LCC alias, which stands on its
       turnout's); no two turnouts share a DCC address;
     - every turnout has exactly one LCC alias "DCC <its user name>" on its DCC address, MTT<dcc>, bound by its own
       system name when it is a field device and by its turnout's jmri_name when it is virtual (one internal turnout)."""
     lines = list(lines)
-    bad = []
-    block_levels = defaultdict(list)
+    bad: list[str] = []
+    block_levels: defaultdict[str, list[tuple[int, Mapping[str, str]]]] = defaultdict(list)
     for n, r in lines:
         if r["layer"] == "block":
             block_levels[r["user_name"]].append((n, r))
@@ -51,7 +54,7 @@ def device_row_problems(lines, helix_blocks: set[str], where: str = "the device 
     if shared != helix_blocks:
         bad.append(f"{where}: blocks named on more than one level: {sorted(shared) or 'none'}; exactly the helix "
                    f"blocks of {helix_file} ({sorted(helix_blocks)}) are")
-    served = defaultdict(list)
+    served: defaultdict[str, list[str]] = defaultdict(list)
     for n, r in lines:
         if r["layer"] == "occupancy":
             for b in device_list(r["blocks"]):
@@ -64,7 +67,7 @@ def device_row_problems(lines, helix_blocks: set[str], where: str = "the device 
             bad.append(f"{where}: {rows_}: block {b} has {len(served[b])} occupancy rows naming it "
                        f"({', '.join(served[b]) or 'none'}), not one")
     for col in ("system_name", "user_name", "jmri_name", "dcc"):
-        seen: dict[tuple[str, str], int] = {}
+        seen: dict[tuple[str, str], str] = {}          # (kind, value) -> the row that has it
         for n, r in lines:
             v = r[col]
             if not v or (col == "user_name" and r["layer"] == "block" and v in shared) or \
@@ -78,7 +81,7 @@ def device_row_problems(lines, helix_blocks: set[str], where: str = "the device 
                 bad.append(f"{_at(n, r, where)}: {col} {v!r} is {seen[key]}'s as well")
             seen.setdefault(key, _key(r))
     turnouts = {(r["level"], r["dcc"]): r for _n, r in lines if r["role"] == "turnout" and r["dcc"]}
-    aliases = defaultdict(int)
+    aliases: defaultdict[tuple[str, str], int] = defaultdict(int)
     for n, r in lines:
         if r["role"] != "lcc_alias":
             continue
@@ -100,7 +103,7 @@ def device_row_problems(lines, helix_blocks: set[str], where: str = "the device 
     return bad
 
 
-def master_rows(rr: Railroad) -> list[tuple[int, dict]]:
+def master_rows(rr: Railroad) -> list[tuple[int, Mapping[str, str]]]:
     """(line, row) of every level's rows of the device master that a device map holds (hartlib.devices): not a level-less
     device, which is on no level's map yet."""
     from . import devices
@@ -130,8 +133,11 @@ class Invariant:
 INVARIANTS: list[Invariant] = []
 
 
-def invariant(name: str, layer: str):
-    def wrap(fn):
+Check = Callable[["Railroad"], list[str]]
+
+
+def invariant(name: str, layer: str) -> Callable[[Check], Check]:
+    def wrap(fn: Check) -> Check:
         INVARIANTS.append(Invariant(name, layer, fn, (fn.__doc__ or "").strip()))
         return fn
     return wrap
@@ -143,9 +149,9 @@ def switch_levels(rr: Railroad) -> dict[str, dict[int, str]]:
     out: dict[str, dict[int, str]] = {}
     for n, sw in rr.switches.items():
         out.setdefault(str(n), {})[int(sw.level)] = rr.sources.switches.name
-    for s, sw in rr.main_upper_switches.items():
-        src = rr.sources.interlockings.name if sw.cp else rr.sources.switches.name
-        out.setdefault(s, {})[sw.level] = src
+    for s, mu in rr.main_upper_switches.items():
+        src = rr.sources.interlockings.name if mu.cp else rr.sources.switches.name
+        out.setdefault(s, {})[mu.level] = src
     return out
 
 
@@ -208,7 +214,9 @@ def _lcos_nodes(rr: Railroad) -> list[str]:
     wired: set[int] = set()            # LCOS turnouts and sensors; an IH number may be a panel lamp's (IH9990), on no node
     for r in rr.staging_devices.rows:
         for address in _packed_addresses(r):
-            node = int(_PACKED.fullmatch(address).group(1)) // 100
+            m = _PACKED.fullmatch(address)
+            assert m is not None, address       # _packed_addresses gives only addresses _PACKED matches
+            node = int(m.group(1)) // 100
             staging_nodes.setdefault(node, f"{r.layer} {r.user_name} ({address})")
             if address.startswith("M2"):
                 wired.add(node)
@@ -265,9 +273,9 @@ def _staging_blocks(rr: Railroad) -> list[str]:
             for what, b in (("OS block", leg.os_block), ("closed leg", leg.closed), ("thrown leg", leg.thrown)):
                 if b not in blocks:
                     bad.append(f"Switch {sw.number} (switches.csv): {what} {b} is no staging block row of the device master")
-    # block_lengths.csv holds every level's JMRI blocks (step 5 part 2): staging's blocks and main and upper's
+    # block_lengths.csv holds every level's JMRI blocks: staging's blocks and main and upper's
     # block rows of the device master, their parts among them (a main or upper part is a JMRI block of its own on its OS
-    # block's sensor, owner 2026-11-20). Each row is keyed by its block's level and id (naming-layers step 5), and
+    # block's sensor). Each row is keyed by its block's level and id, and
     # each measured row names a row of it (ADR-039 lane L8)
     from hartlib import block_lengths
     from hartlib.railroad_facts import FactsError
@@ -311,9 +319,9 @@ def _device_map(rr: Railroad) -> list[str]:
     rows of every level hold to each other (device_row_problems: one occupancy row per block, names, DCC addresses
     and system names given once, every turnout's one LCC alias), before tables.xml is built."""
     dm, mu, name = rr.device_map, rr.main_upper_switches, rr.sources.devices.name
-    # a virtual name stays the generated one when the owner renames a device (naming-layers step 7), so a device the
-    # owner named is held to its virtual name's form only, and a field one (assignment field: a swap, ADR-028; step
-    # 14, by the row's column) to none; a turnout to its ID's switch number (step 13)
+    # a virtual name stays the generated one when the owner renames a device, so a device the
+    # owner named is held to its virtual name's form only, and a field one (assignment field: a swap, ADR-028,
+    # by the row's column) to none; a turnout to its ID's switch number
     from . import devices
     field = {(int(level), i): r for (level, i), r in devices.field_index(rr.sources.devices).items()
              if level in level_devices.LEVELS}
@@ -324,6 +332,7 @@ def _device_map(rr: Railroad) -> list[str]:
     for s in sorted(set(mu) | set(turnouts), key=natural):
         r, sw = turnouts.get(s), mu.get(s)
         if r is None:
+            assert sw is not None               # s is in mu or in turnouts
             bad.append(f"Switch {s} ({sw.cp or 'local'}, level {sw.level}): no turnout row in {name}")
             continue
         if sw is None:
@@ -335,7 +344,7 @@ def _device_map(rr: Railroad) -> list[str]:
                        f"say level {sw.level} {sw.cp or 'local'}")
     nodes = {n.node: n for n in rr.lcos_nodes if n.level != 1}     # staging's nodes are as built: none is the map's
     # a helix block runs from staging up to main or upper: its detector may be on either main or upper level's node
-    # (owner, 2026-11-20: both helix tracks on helix node 41)
+    # (both helix tracks on helix node 41)
     helix = {b for h in rr.helix_tracks.values() for b in (h.block, level_devices.occupancy_user(h.block))}
     for r in dm.rows:
         if r.node and (not r.node.isdigit() or int(r.node) not in nodes or
@@ -370,7 +379,7 @@ def _masts(rr: Railroad) -> list[str]:
     dwarf at a local switch has no control point, ADR-024); its facing and protected blocks are device map blocks;
     and every device map mast has a row. A virtual mast (a destination at a buffer stop) stands at no switch,
     protects nothing, and its control point is its track's switch's, if any. A main or upper part (a link inside an
-    OS block, the device master part_of) is a JMRI block of its own (owner, 2026-11-20), so a mast may face or protect it,
+    OS block, the device master part_of) is a JMRI block of its own, so a mast may face or protect it,
     as Signal Mast Logic discovery does."""
     name = rr.sources.masts.name
     staging = {int(STAGING_LEVEL)}                      # the level the staging rows (rr.staging_devices) are

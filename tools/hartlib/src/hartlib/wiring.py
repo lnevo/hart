@@ -1,5 +1,5 @@
-"""The physical wiring source: jmri/layouts/hart/data/wiring.csv, one row per device on an LCOS node (owner,
-2026-11-20: the repo keeps the wiring the inventory workbook holds, edited here).
+"""The physical wiring source: jmri/layouts/hart/data/wiring.csv, one row per device on an LCOS node: the repo keeps
+the wiring the inventory workbook holds, edited here.
 
 Staging's rows are what JMRI holds, as wired (status `wired`), and the ports assigned to devices not connected yet
 (status `planned`: a button or relay on its port with nothing connected, a reserved calibration relay port). Main
@@ -10,10 +10,10 @@ control point is wired and frozen).
 Columns (COLUMNS):
 - level 1, 2 or 3; kind: turnout, fb (turnout feedback), head (signal head), detector (block occupancy), button (a
   fascia button on an input), relay (on an output) or calibration (the relay on an output that resets the DCC power
-  so the node's block detectors calibrate; every node with detectors has one reserved, owner 2026-11-21). Buttons
-  and relays are wired on the nodes but have no JMRI device (owner, 2026-11-20: live today, more to come); their
+  so the node's block detectors calibrate; every node with detectors has one reserved). Buttons
+  and relays are wired on the nodes but have no JMRI device (live today, more to come); their
   index is blank. A calibration row's status is wired where the relay is in, planned where the port is reserved.
-- id: the device's ID in the device master (hartlib.device_ids; naming-layers step 5): switch:<n>, fb:<n>:N|R, a
+- id: the device's ID in the device master (hartlib.device_ids): switch:<n>, fb:<n>:N|R, a
   head's <mast id>:top|bottom|single, a detector's det:<block id> (det:block:17C-29C, det:os:19). The row holds no
   name: `read` gives each Wire the device's user name from the name store (hartlib.devices.user_names; a detector's
   is its block's), so a rename in devices_field.csv changes no row here and the frozen pins stay as they are. A main
@@ -24,10 +24,10 @@ Columns (COLUMNS):
 - node: the LCOS radio address. index: the LCOS number in the device's wiring text, "Turnout: <i>", "Sensor: <i>",
   "Signal: <i>" from 0, "Block: <i>" from 1 (1 to 8). board (OU<n> or IN<n>) and ports: where a turnout, feedback or
   head lands; a detector has neither (its input is the index). A head is on one node, but its three pins may span
-  two OU boards (owner, 2026-11-21): a port that is on another board than `board` names it, "OU<n>-<pin>"
+  two OU boards: a port that is on another board than `board` names it, "OU<n>-<pin>"
   (board OU2, ports "7,OU3-8,OU3-7"). Every other device is on one board.
-- status: wired or planned. notes: text for people. (Power districts are not mapped yet; the owner,
-  2026-11-21: the inventory's were old names, not real.)
+- status: wired or planned. notes: text for people. (Power districts are not mapped yet: the inventory's were
+  old names, not real.)
 
 The JMRI address follows from node and index (address), and the wiring text from all four (wiring_text): the device master
 holds both only as written from here.
@@ -37,24 +37,42 @@ from __future__ import annotations
 import csv
 import io
 import re
+from collections.abc import Iterable, Mapping
 from pathlib import Path
-from typing import NamedTuple
+from typing import TYPE_CHECKING, Any, Literal, NamedTuple, cast, get_args
 
 from . import paths
 from .device_ids import HEAD_PLACES
+from .levels import Level, parse_level
 from .railroad_facts import STAGING_LEVEL, FactsError
+
+if TYPE_CHECKING:
+    from . import devices as devices_mod
 
 PATH = paths.WIRING
 NODES = paths.LAYOUT_DATA / "schematic" / "lcos_nodes.csv"   # each node's level and area (board_location)
 COLUMNS = ["level", "kind", "id", "device", "switch_a", "switch_b", "parallel", "half", "node", "index", "board", "ports",
            "status", "notes"]
-KINDS = ("turnout", "fb", "head", "detector", "button", "relay", "calibration")
+Kind = Literal["turnout", "fb", "head", "detector", "button", "relay", "calibration"]
+KINDS: tuple[Kind, ...] = get_args(Kind)
 LOCAL = ("button", "relay", "calibration")      # on a node, no JMRI device: no index, no address
 STATUSES = ("wired", "planned")
-# kind -> (system name prefix, LCOS UID offset, the word in the wiring text, the board it lands on, ports per device)
-LCOS = {"turnout": ("M2T", 8, "Turnout", "OU", 2), "fb": ("M2S", 67, "Sensor", "IN", 1),
-        "head": ("IH", 32, "Signal", "OU", 3), "detector": ("M2S", 0, "Block", "", 0),
-        "button": ("", 0, "", "IN", 1), "relay": ("", 0, "", "OU", 1), "calibration": ("", 0, "", "OU", 1)}
+
+
+class LcosKind(NamedTuple):
+    """How one kind of device sits on an LCOS node."""
+    prefix: str         # the JMRI system name prefix
+    uid: int            # the LCOS UID offset
+    word: str           # the word in the wiring text
+    board: str          # the board it lands on (OU or IN)
+    ports: int          # ports per device
+
+
+LCOS: dict[str, LcosKind] = {
+    "turnout": LcosKind("M2T", 8, "Turnout", "OU", 2), "fb": LcosKind("M2S", 67, "Sensor", "IN", 1),
+    "head": LcosKind("IH", 32, "Signal", "OU", 3), "detector": LcosKind("M2S", 0, "Block", "", 0),
+    "button": LcosKind("", 0, "", "IN", 1), "relay": LcosKind("", 0, "", "OU", 1),
+    "calibration": LcosKind("", 0, "", "OU", 1)}
 CAP = {"turnout": 8, "fb": 16, "head": 16, "detector": 8}     # LCOS numbers per node (a detector's from 1)
 BOARD = re.compile(r"^(OU|IN)([1-4])$")
 OWN_BOARD = re.compile(r"(OU[1-4])-([1-8])")       # a head's pin on another board than its row's: "OU3-8"
@@ -62,15 +80,15 @@ OWN_BOARD = re.compile(r"(OU[1-4])-([1-8])")       # a head's pin on another boa
 
 class Wire(NamedTuple):
     line: int
-    level: int
-    kind: str
+    level: Level
+    kind: Kind
     device: str                           # the user name (the name store's for a row with an id), a detector's block's
     switch_a: str
     switch_b: str
     parallel: str
     half: str
     node: int
-    index: int | None
+    index: int | None   # type: ignore[assignment]  # a field named index hides tuple.index; callers read w.index
     board: str
     ports: tuple[int, ...]
     status: str
@@ -108,13 +126,20 @@ class Wire(NamedTuple):
         if self.kind in LOCAL:
             raise ValueError(f"a {self.kind} has no JMRI address")
         prefix, uid, _word, _board, _n = LCOS[self.kind]
-        return f"{prefix}{self.node * 100 + uid + self.index - (self.kind == 'detector')}"
+        return f"{prefix}{self.node * 100 + uid + self.lcos_index - (self.kind == 'detector')}"
+
+    @property
+    def lcos_index(self) -> int:
+        """The LCOS index of a device with a JMRI address; ValueError for a button, relay or calibration relay."""
+        if self.index is None:
+            raise ValueError(f"line {self.line}: a {self.kind} has no LCOS index")
+        return self.index
 
     @property
     def wiring_text(self) -> str:
         """The device's wiring as the device master and the JMRI comment tell it: "Node: 4 Turnout: 0 | OU: 1 Ports: 1,2",
         a detector's "Node: 13 Block: 1"."""
-        word = LCOS[self.kind][2]
+        word = LCOS[self.kind].word
         if self.kind in LOCAL:
             return f"Node: {self.node} | {self.port_text}"
         text = f"Node: {self.node} {word}: {self.index}"
@@ -131,7 +156,7 @@ class Wire(NamedTuple):
 ID_PREFIX = {"turnout": "switch:", "fb": "fb:", "head": "mast:", "detector": "det:"}    # a row's id by its kind
 
 
-def names_beside(path: Path):
+def names_beside(path: Path) -> Mapping[tuple[str, str], str]:
     """The name store's {(level, id): user name} for the wiring file `path`: the device master beside it (a test's
     copy puts devices_generated.csv and devices_field.csv there), else the repo's."""
     from . import devices
@@ -154,9 +179,13 @@ class _Names:
     repo's: a staging builder reads the owner's cells there and never its own last output, ADR-029); any other level's
     by the merged view (`files`, else names_beside). Each file is read once, and only when a row needs it."""
 
-    def __init__(self, path: Path, given, files=None):
-        self.path, self.given, self.files, self.field, self.merged = path, given, files, None, None
-        self._plan = None
+    def __init__(self, path: Path, given: Mapping[tuple[str, str], str] | None,
+                 files: devices_mod.Files | None = None) -> None:
+        self.path, self.given, self.files = path, given, files
+        self.field: dict[tuple[str, str], str] | None = None
+        self.merged: Mapping[tuple[str, str], str] | None = None
+        self.unloaded = ""                  # why the merged view did not load, for a staging row
+        self._plan: set[str] | None = None
 
     def plan_switches(self) -> set[str]:
         """The switch numbers of the staging plan graph (track_names.plan_switches): the schematic folder beside the
@@ -169,7 +198,7 @@ class _Names:
                 self._plan = set(track_names.plan_switches(
                     "staging", layer_files.read("plan_overrides", "staging", folder), folder))
             except (track_names.TrackNameError, layer_files.LayerFileError) as exc:
-                raise _LoadFailed(str(exc)) from None
+                raise _LoadFailed(str(exc)) from exc
         return self._plan
 
     def __call__(self, level: str, ident: str, where: str) -> str:
@@ -185,13 +214,13 @@ class _Names:
                 try:
                     index = devices.field_index(files)
                 except FactsError as exc:
-                    raise _LoadFailed(str(exc)) from None
-                self.field = {k: r["user_name"] for k, r in index.items()}
+                    raise _LoadFailed(str(exc)) from exc
+                self.field = {(k[0], k[1]): r["user_name"] for k, r in index.items()}
             name = self.field.get((level, ident))
             if name:
                 return name
             # a turnout or feedback with no owner's name (no field row, or one with no user_name): the name its id
-            # gives, as the builder generates it (naming-layers step 7: a staging device needs no field row)
+            # gives, as the builder generates it (a staging device needs no field row)
             for pattern, form in GENERATED_NAMES:
                 m = pattern.fullmatch(ident)
                 if m:
@@ -213,13 +242,198 @@ class _Names:
                     self.merged = {}
                     self.unloaded = str(exc)
                 else:
-                    raise _LoadFailed(str(exc)) from None
-        if level == STAGING_LEVEL and getattr(self, "unloaded", None):
+                    raise _LoadFailed(str(exc)) from exc
+        if level == STAGING_LEVEL and self.unloaded:
             return ""
-        return devices.name_of(self.merged, level, ident, where)
+        return devices.name_of(self.merged or {}, level, ident, where)
 
 
-def read(path: Path | None = None, names=None, levels=None, files=None) -> list[Wire]:
+class _BadRow(Exception):
+    """One row's problem: read() collects its message and goes on to the next row."""
+
+
+class _Numbers(NamedTuple):
+    """A row's node, LCOS index and pins as numbers (_numbers)."""
+    node: int
+    lcos: int | None        # the LCOS index (None for a button, relay or calibration relay)
+    ports: tuple[int, ...]
+    boards: tuple[str, ...]
+    spans: tuple[re.Match[str] | None, ...]     # each port's "OU<n>-<pin>" match, None for a pin on the row's board
+
+
+def _read_rows(path: Path) -> list[dict[str | None, Any]]:
+    # csv.DictReader's rows: Any, as a None key holds a long row's extra fields (a list), every other key a str
+    """wiring.csv's rows as csv reads them, after its header is checked against COLUMNS."""
+    try:
+        with open(path, newline="", encoding="utf-8") as fh:
+            reader = csv.DictReader(fh)
+            rows, header = list(reader), reader.fieldnames or []
+    except OSError as exc:
+        raise FactsError(f"cannot read {path.name}: {exc}") from exc
+    if list(header) != COLUMNS:
+        raise FactsError(f"{path.name}: columns {list(header)}, not {COLUMNS}")
+    return rows
+
+
+def _check_words(r: Mapping[str, str], at: str) -> None:
+    """The row's level, kind and status are known words."""
+    if r["level"] not in ("1", "2", "3"):
+        raise _BadRow(f"{at}: level is 1, 2 or 3, not {r['level']!r}")
+    if r["kind"] not in KINDS:
+        raise _BadRow(f"{at}: kind is one of {', '.join(KINDS)}, not {r['kind']!r}")
+    if r["status"] not in STATUSES:
+        raise _BadRow(f"{at}: status is wired or planned, not {r['status']!r}")
+
+
+def _numbers(r: Mapping[str, str], kind: Kind, at: str) -> _Numbers:
+    """The row's node, index and pins, each a number in its kind's range."""
+    try:
+        node = int(r["node"])
+        index = None if kind in LOCAL and not r["index"] else int(r["index"])
+        items = [p.strip() for p in r["ports"].split(",")] if r["ports"] else []
+        spans = tuple(OWN_BOARD.fullmatch(p) for p in items)
+        odd = [p for p, m in zip(items, spans) if not m and not p.isdigit()]
+        if odd:
+            raise _BadRow(f"{at}: port {odd[0]!r} is a pin 1 to 8, or a pin on another board as OU<1-4>-<1-8>")
+        ports = tuple(int(m.group(2)) if m else int(p) for p, m in zip(items, spans))
+        boards = tuple(m.group(1) if m else r["board"] for m in spans)
+    except ValueError as exc:
+        raise _BadRow(f"{at}: node, index and ports are numbers") from exc
+    if any(spans) and kind != "head":
+        raise _BadRow(f"{at}: only a head's pins may span two boards; a {kind} is on its board alone")
+    low = 1 if kind == "detector" else 0
+    if kind in LOCAL:
+        if index is not None:
+            raise _BadRow(f"{at}: a {kind} has no JMRI device, so no index")
+    elif index is None or not low <= index < low + CAP[kind]:
+        raise _BadRow(f"{at}: a {kind}'s index is {low} to {low + CAP[kind] - 1}, not {index}")
+    return _Numbers(node, index, ports, boards, spans)
+
+
+def _check_naming(r: Mapping[str, str], kind: Kind, keyed: bool, at: str) -> None:
+    """A local device has a label and nothing else; any other is named by its id, which starts with its kind's
+    prefix."""
+    ident = r["id"]
+    if kind in LOCAL:
+        if ident or keyed or not r["device"]:
+            raise _BadRow(f"{at}: a {kind} has no JMRI device, so no id or switches: give its label in device")
+    elif r["device"]:
+        raise _BadRow(f"{at}: a {kind} is named by its id, not device (device is a button's, relay's or calibration "
+                      "relay's label)")
+    elif ident and not ident.startswith(ID_PREFIX[kind]):
+        raise _BadRow(f"{at}: a {kind}'s id starts {ID_PREFIX[kind]}, not {ident!r}")
+
+
+def _check_pins(r: Mapping[str, str], kind: Kind, keyed: bool, nums: _Numbers, at: str) -> None:
+    """A detector has no pins; any other device's pins fit its kind's board and port count."""
+    ident = r["id"]
+    if kind == "detector":
+        if r["board"] or nums.ports:
+            raise _BadRow(f"{at}: a detector has no board or ports (its input is its index)")
+        if keyed and r["level"] == "1":
+            raise _BadRow(f"{at}: a staging detector is named by its block's id alone, not by switches")
+        if keyed and ident:
+            raise _BadRow(f"{at}: a detector is named by its id or, on main and upper, by its switches, not both")
+        return
+    m = BOARD.match(r["board"])
+    want = LCOS[kind]
+    if keyed:
+        raise _BadRow(f"{at}: a {kind} is named by its id alone")
+    if kind not in LOCAL and not ident:
+        raise _BadRow(f"{at}: a {kind} needs its id")
+    if not m or m.group(1) != want.board:
+        raise _BadRow(f"{at}: a {kind} lands on an {want.board} board ({want.board}1 to {want.board}4), "
+                      f"not {r['board']!r}")
+    spans, boards, ports = nums.spans, nums.boards, nums.ports
+    if spans and spans[0]:
+        raise _BadRow(f"{at}: the first pin {r['ports'].split(',')[0].strip()} is on the row's board {r['board']}: "
+                      "give it as a pin alone")
+    if any(s and s.group(1) == r["board"] for s in spans):
+        raise _BadRow(f"{at}: a pin on the row's own board {r['board']} is given as a pin alone, not "
+                      f"{r['board']}-<pin>")
+    if len(set(boards)) > 2:
+        raise _BadRow(f"{at}: a head spans at most two boards, not {', '.join(sorted(set(boards)))}")
+    if any(boards[j] == r["board"] and boards[j - 1] != r["board"] for j in range(1, len(boards))):
+        raise _BadRow(f"{at}: a head's pins on {r['board']} come first, then those on the other board")
+    if len(ports) != want.ports or not all(1 <= p <= 8 for p in ports):
+        raise _BadRow(f"{at}: a {kind} takes {want.ports} port(s) of 1 to 8, not {r['ports']!r}")
+
+
+def _device_names(r: Mapping[str, str], kind: Kind, level: Level, store_name: _Names, wanted: set[str] | None,
+                  where: str, at: str) -> tuple[str, str]:
+    """(device, mast): the row's user name from the name store and, for a wired staging head, its mast's."""
+    ident = r["id"]
+    device, mast = r["device"], ""
+    if kind == "head" and ident and ident.rsplit(":", 1)[-1] not in HEAD_PLACES:
+        raise _BadRow(f"{at}: a head's id is its mast's id and its place ({', '.join(HEAD_PLACES)}), not {ident!r}")
+    if ident and (wanted is None or r["level"] in wanted):
+        try:
+            device = store_name(r["level"], ident[len("det:"):] if kind == "detector" else ident, f"{where} {at}")
+            if kind == "head" and level == FIELD:     # a wired head's mast: digicon_rows, device_map_masts
+                mast = store_name(r["level"], ident.rsplit(":", 1)[0], f"{where} {at}")
+        except _LoadFailed:
+            raise
+        except FactsError as exc:
+            raise _BadRow(str(exc).removeprefix(f"{where} ")) from exc
+    return device, mast
+
+
+class _Claims:
+    """Who holds each device name, LCOS number and pin so far: a second row on one is refused."""
+
+    def __init__(self) -> None:
+        self.names: dict[tuple[int, str, str], int] = {}
+        self.numbers: dict[tuple[int, str, int | None], int] = {}
+        self.pins: dict[tuple[int, str, int], int] = {}
+
+    def claim(self, line: int, level: int, kind: Kind, name: str, nums: _Numbers, ports_text: str, at: str) -> None:
+        """Record the row's name, number and pins; _BadRow when another row holds one, and nothing is recorded."""
+        if name and (level, kind, name) in self.names:
+            raise _BadRow(f"{at}: {kind} {name} is line {self.names[level, kind, name]}'s as well")
+        number = (nums.node, LCOS[kind].word, nums.lcos)
+        if kind not in LOCAL and number in self.numbers:
+            raise _BadRow(f"{at}: node {nums.node} {LCOS[kind].word} {nums.lcos} is line "
+                          f"{self.numbers[number]}'s as well")
+        own = list(zip(nums.boards, nums.ports))
+        if len(set(own)) != len(own):
+            raise _BadRow(f"{at}: a pin is given twice ({ports_text})")
+        taken = [(b, p) for b, p in own if (nums.node, b, p) in self.pins]
+        if taken:
+            raise _BadRow(f"{at}: node {nums.node} " + ", ".join(f"{b}-{p} is line {self.pins[nums.node, b, p]}'s"
+                                                                 for b, p in taken))
+        if name:
+            self.names[level, kind, name] = line
+        if kind not in LOCAL:
+            self.numbers[number] = line
+        for b, p in own:
+            self.pins[nums.node, b, p] = line
+
+
+def _row(raw: Mapping[str | None, object], line: int, where: str, store_name: _Names, wanted: set[str] | None,
+         claims: _Claims) -> Wire:
+    """One csv row as a checked Wire; _BadRow naming its line otherwise."""
+    at = f"line {line}"
+    if None in raw:
+        raise _BadRow(f"{at}: more fields than columns")
+    r = {str(k): str(v or "").strip() for k, v in raw.items()}
+    _check_words(r, at)
+    kind = cast(Kind, r["kind"])
+    nums = _numbers(r, kind, at)
+    keyed = any(r[c] for c in ("switch_a", "switch_b", "parallel", "half"))
+    _check_naming(r, kind, keyed, at)
+    _check_pins(r, kind, keyed, nums, at)
+    level = cast(Level, int(r["level"]))
+    ident = r["id"]
+    name = ident or r["device"] or (",".join(r[c] for c in ("switch_a", "switch_b", "parallel", "half"))
+                                    if keyed else "")
+    device, mast = _device_names(r, kind, level, store_name, wanted, where, at)
+    claims.claim(line, level, kind, name, nums, r["ports"], at)
+    return Wire(line, level, kind, device, r["switch_a"], r["switch_b"], r["parallel"], r["half"], nums.node,
+                nums.lcos, r["board"], nums.ports, r["status"], r["notes"], nums.boards, ident, mast)
+
+
+def read(path: Path | None = None, names: Mapping[tuple[str, str], str] | None = None,
+         levels: Iterable[int | str] | None = None, files: devices_mod.Files | None = None) -> list[Wire]:
     """The rows of wiring.csv, each checked. Stops (FactsError, naming the file and line) on a file not in COLUMNS, an
     unknown level, kind or status, a number that is not one, an index past its kind's range, a board or ports that do
     not fit the kind, a device given twice on its level, two devices on one LCOS number or on one port of a board, or
@@ -232,149 +446,14 @@ def read(path: Path | None = None, names=None, levels=None, files=None) -> list[
     path = path or PATH
     store_name = _Names(path, names, files)
     wanted = None if levels is None else {str(lv) for lv in levels}
-    try:
-        with open(path, newline="", encoding="utf-8") as fh:
-            reader = csv.DictReader(fh)
-            rows, header = list(reader), reader.fieldnames or []
-    except OSError as exc:
-        raise FactsError(f"cannot read {path.name}: {exc}") from None
-    if list(header) != COLUMNS:
-        raise FactsError(f"{path.name}: columns {list(header)}, not {COLUMNS}")
+    rows = _read_rows(path)
     out, bad = [], []
-    names, numbers, pins = {}, {}, {}
+    claims = _Claims()
     for i, raw in enumerate(rows, 2):
-        if None in raw:
-            bad.append(f"line {i}: more fields than columns")
-            continue
-        r = {k: (v or "").strip() for k, v in raw.items()}
-        at = f"line {i}"
-        if r["level"] not in ("1", "2", "3"):
-            bad.append(f"{at}: level is 1, 2 or 3, not {r['level']!r}")
-            continue
-        if r["kind"] not in KINDS:
-            bad.append(f"{at}: kind is one of {', '.join(KINDS)}, not {r['kind']!r}")
-            continue
-        if r["status"] not in STATUSES:
-            bad.append(f"{at}: status is wired or planned, not {r['status']!r}")
-            continue
-        kind = r["kind"]
         try:
-            node = int(r["node"])
-            index = None if kind in LOCAL and not r["index"] else int(r["index"])
-            items = [p.strip() for p in r["ports"].split(",")] if r["ports"] else []
-            spans = [OWN_BOARD.fullmatch(p) for p in items]
-            odd = [p for p, m in zip(items, spans) if not m and not p.isdigit()]
-            if odd:
-                bad.append(f"{at}: port {odd[0]!r} is a pin 1 to 8, or a pin on another board as OU<1-4>-<1-8>")
-                continue
-            ports = tuple(int(m.group(2)) if m else int(p) for p, m in zip(items, spans))
-            boards = tuple(m.group(1) if m else r["board"] for m in spans)
-        except ValueError:
-            bad.append(f"{at}: node, index and ports are numbers")
-            continue
-        if any(spans) and kind != "head":
-            bad.append(f"{at}: only a head's pins may span two boards; a {kind} is on its board alone")
-            continue
-        low = 1 if kind == "detector" else 0
-        if kind in LOCAL:
-            if index is not None:
-                bad.append(f"{at}: a {kind} has no JMRI device, so no index")
-                continue
-        elif not low <= index < low + CAP[kind]:
-            bad.append(f"{at}: a {kind}'s index is {low} to {low + CAP[kind] - 1}, not {index}")
-            continue
-        keyed = any(r[c] for c in ("switch_a", "switch_b", "parallel", "half"))
-        ident = r["id"]
-        if kind in LOCAL:
-            if ident or keyed or not r["device"]:
-                bad.append(f"{at}: a {kind} has no JMRI device, so no id or switches: give its label in device")
-                continue
-        elif r["device"]:
-            bad.append(f"{at}: a {kind} is named by its id, not device (device is a button's, relay's or calibration "
-                       "relay's label)")
-            continue
-        elif ident and not ident.startswith(ID_PREFIX[kind]):
-            bad.append(f"{at}: a {kind}'s id starts {ID_PREFIX[kind]}, not {ident!r}")
-            continue
-        if kind == "detector":
-            if r["board"] or ports:
-                bad.append(f"{at}: a detector has no board or ports (its input is its index)")
-                continue
-            if keyed and r["level"] == "1":
-                bad.append(f"{at}: a staging detector is named by its block's id alone, not by switches")
-                continue
-            if keyed and ident:
-                bad.append(f"{at}: a detector is named by its id or, on main and upper, by its switches, not both")
-                continue
-        else:
-            m = BOARD.match(r["board"])
-            want = LCOS[kind]
-            if keyed:
-                bad.append(f"{at}: a {kind} is named by its id alone")
-                continue
-            if kind not in LOCAL and not ident:
-                bad.append(f"{at}: a {kind} needs its id")
-                continue
-            if not m or m.group(1) != want[3]:
-                bad.append(f"{at}: a {kind} lands on an {want[3]} board ({want[3]}1 to {want[3]}4), not {r['board']!r}")
-                continue
-            if spans and spans[0]:
-                bad.append(f"{at}: the first pin {items[0]} is on the row's board {r['board']}: give it as a pin alone")
-                continue
-            if any(m and m.group(1) == r["board"] for m in spans):
-                bad.append(f"{at}: a pin on the row's own board {r['board']} is given as a pin alone, not "
-                           f"{r['board']}-<pin>")
-                continue
-            if len(set(boards)) > 2:
-                bad.append(f"{at}: a head spans at most two boards, not {', '.join(sorted(set(boards)))}")
-                continue
-            if any(boards[j] == r["board"] and boards[j - 1] != r["board"] for j in range(1, len(boards))):
-                bad.append(f"{at}: a head's pins on {r['board']} come first, then those on the other board")
-                continue
-            if len(ports) != want[4] or not all(1 <= p <= 8 for p in ports):
-                bad.append(f"{at}: a {kind} takes {want[4]} port(s) of 1 to 8, not {r['ports']!r}")
-                continue
-        level = int(r["level"])
-        name = ident or r["device"] or (",".join(r[c] for c in ("switch_a", "switch_b", "parallel", "half"))
-                                        if keyed else "")
-        device, mast = r["device"], ""
-        if kind == "head" and ident and ident.rsplit(":", 1)[-1] not in HEAD_PLACES:
-            bad.append(f"{at}: a head's id is its mast's id and its place ({', '.join(HEAD_PLACES)}), not {ident!r}")
-            continue
-        if ident and (wanted is None or r["level"] in wanted):
-            try:
-                device = store_name(r["level"], ident[len("det:"):] if kind == "detector" else ident,
-                                    f"{path.name} {at}")
-                if kind == "head" and level == FIELD:     # a wired head's mast: digicon_rows, device_map_masts
-                    mast = store_name(r["level"], ident.rsplit(":", 1)[0], f"{path.name} {at}")
-            except _LoadFailed:
-                raise
-            except FactsError as exc:
-                bad.append(str(exc).removeprefix(f"{path.name} "))
-                continue
-        if name and (level, kind, name) in names:
-            bad.append(f"{at}: {kind} {name} is line {names[level, kind, name]}'s as well")
-            continue
-        number = (node, LCOS[kind][2], index)
-        if kind not in LOCAL and number in numbers:
-            bad.append(f"{at}: node {node} {LCOS[kind][2]} {index} is line {numbers[number]}'s as well")
-            continue
-        own = list(zip(boards, ports))
-        if len(set(own)) != len(own):
-            bad.append(f"{at}: a pin is given twice ({r['ports']})")
-            continue
-        taken = [(b, p) for b, p in own if (node, b, p) in pins]
-        if taken:
-            bad.append(f"{at}: node {node} " + ", ".join(f"{b}-{p} is line {pins[node, b, p]}'s" for b, p in taken))
-            continue
-        if name:
-            names[level, kind, name] = i
-        if kind not in LOCAL:
-            numbers[number] = i
-        for b, p in own:
-            pins[node, b, p] = i
-        out.append(Wire(i, level, kind, device, r["switch_a"], r["switch_b"], r["parallel"], r["half"], node,
-                        index, r["board"], ports, r["status"], r["notes"], boards, ident, mast))
+            out.append(_row(raw, i, path.name, store_name, wanted, claims))
+        except _BadRow as exc:
+            bad.append(str(exc))
     if bad:
         raise FactsError(f"{path.name}: " + "; ".join(bad))
     return out
@@ -390,7 +469,7 @@ _HEAD_TEXT = re.compile(r"Node: (\d+) Signal: (\d+)((?: \| OU: [1-4] Ports: \d+(
 _HEAD_PORTS = re.compile(r"OU: ([1-4]) Ports: (\d+(?:,\d+)*)")
 
 
-def field_heads(files=None) -> list[Wire]:
+def field_heads(files: devices_mod.Files | None = None) -> list[Wire]:
     """The main and upper heads swapped in by their device rows (a head row whose assignment is field, ADR-028), as
     Wires from the row's node and wiring text ("Node: 33 Signal: 0 | OU: 3 Ports: 1,2,3": wiring.csv's frozen pins, or
     the rule's), in the device master's order. `files` (a hartlib.devices.Files): the device master to read, default
@@ -409,7 +488,8 @@ def field_heads(files=None) -> list[Wire]:
                        "Node: <n> Signal: <i> | OU: <b> Ports: <p,p,p>")
             continue
         pins = [(f"OU{b}", int(p)) for b, ps in _HEAD_PORTS.findall(m.group(3)) for p in ps.split(",")]
-        w = Wire(0, int(r["level"]), "head", r["user_name"], "", "", "", "", int(m.group(1)), int(m.group(2)),
+        level = parse_level(r["level"], f"head {r['user_name']}")
+        w = Wire(0, level, "head", r["user_name"], "", "", "", "", int(m.group(1)), int(m.group(2)),
                  pins[0][0], tuple(p for _b, p in pins), "wired", r["notes"], tuple(b for b, _p in pins), r["id"],
                  masts.get((r["level"], r["id"].rsplit(":", 1)[0]), ""))
         if w.address != r["jmri_name"]:
@@ -422,7 +502,7 @@ def field_heads(files=None) -> list[Wire]:
     return out
 
 
-def digicon_rows(path: Path | None = None, files=None) -> list[dict[str, str]]:
+def digicon_rows(path: Path | None = None, files: devices_mod.Files | None = None) -> list[dict[str, str]]:
     """The wired Digicon searchlight heads, one row per lamp pin, in the columns the old signal_wiring.csv had
     (DIGICON_COLUMNS): staging's wiring.csv head rows of status wired (staging's heads are bound as built), and each
     main or upper head whose device row's assignment is field (field_heads, from `files`, else the device master
@@ -448,7 +528,7 @@ def digicon_rows(path: Path | None = None, files=None) -> list[dict[str, str]]:
             continue
         role = {"top": "T", "bottom": "B"}.get(w.place, "S")
         lamp_of = f"Head {key} {role}" if role != "S" else f"Head {key}"
-        uid = LCOS["head"][1] + w.index
+        uid = LCOS["head"].uid + w.lcos_index
         packed = w.node * 100 + uid
         for (board, port), lamp in zip(w.pins, "RYG"):
             out.append(dict(port_id=f"C{w.node}-{board}-{port}", parent_node_id=f"C{w.node}",
