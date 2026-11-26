@@ -28,6 +28,10 @@ SHARE_DESCRIPTION = (
 )
 
 
+class PortalBuildError(Exception):
+    """A public-site build stage found something it must not publish or cannot build; the message names the file."""
+
+
 def _manifest() -> dict[str, str]:
     return json.loads((PORTAL / "scripts/published-files.json").read_text(encoding="utf-8"))
 

@@ -94,7 +94,7 @@ class SkipRules(unittest.TestCase):
 class LeakGuard(unittest.TestCase):
     def test_local_host_in_the_index_fails_the_build_and_leaves_no_file(self):
         root = _site({"a/index.html": _page(body="<h1>Tools</h1><p>Open the service at http://localhost:8760 on the layout PC.</p>")})
-        with self.assertRaises(SystemExit) as raised:
+        with self.assertRaises(build.PortalBuildError) as raised:
             _index(root)
         self.assertNotIn("localhost", str(raised.exception))  # the text is not echoed
         self.assertIn("a/index.html", str(raised.exception))
@@ -103,7 +103,7 @@ class LeakGuard(unittest.TestCase):
     def test_private_name_check_runs_over_every_field(self):
         root = _site({"a/index.html": _page()})
         with mock.patch.object(search, "contains_private_name", side_effect=lambda t: t == "Session paperwork") as m:
-            with self.assertRaises(SystemExit) as raised:
+            with self.assertRaises(build.PortalBuildError) as raised:
                 _index(root)
         self.assertIn("(title)", str(raised.exception))
         self.assertTrue(m.called)

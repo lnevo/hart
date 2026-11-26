@@ -78,7 +78,7 @@ class GateTests(unittest.TestCase):
             self.assertEqual([p.split("]")[0] for p in one], ["[backup"])
 
     def test_unknown_skip_name(self):
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(gate.CardPipelineError):
             gate.run_gate(batch_root=Path("."), tracked=[], ops_local=Path("."), pi_host="p",
                           pi_dir="/", backups_dir=Path("."), only=False, skip=["nope"])
 
@@ -117,8 +117,46 @@ class PublishOnlyTests(unittest.TestCase):
 
         with mock.patch.object(cars, "publish_gate"), mock.patch("build_car_roster_sor.main"), \
              mock.patch.object(cars, "read_queue", return_value=[]):
-            with self.assertRaises(SystemExit):
+            with self.assertRaises(cars.CardPipelineError):
                 cars.cmd_publish(SimpleNamespace(only=["ZZ9"], skip_check=[], ops_live="/x"))
+
+
+class PipelineErrorTests(unittest.TestCase):
+    """Library steps raise CardPipelineError; cars.py main() turns it into the exit message."""
+
+    def test_gate_problems_stop_publish_with_every_line(self):
+        import unittest.mock as mock
+
+        fake_paths = SimpleNamespace(backups_dir=lambda: Path("."))
+        with mock.patch.dict(sys.modules, {"sts_paths": fake_paths}), \
+             mock.patch.object(gate, "run_gate", return_value=["[pi] differs", "[backup] none"]):
+            with self.assertRaises(cars.CardPipelineError) as ctx:
+                cars.publish_gate(SimpleNamespace(only=[], skip_check=[]))
+        self.assertEqual(str(ctx.exception), "Publish stopped:\n  [pi] differs\n  [backup] none")
+
+    def test_main_exits_with_the_message(self):
+        import unittest.mock as mock
+
+        with mock.patch.object(sys, "argv", ["cars.py", "locos", "set", "NO SUCH LOCO 0"]):
+            with self.assertRaises(SystemExit) as ctx:
+                cars.main()
+        self.assertEqual(ctx.exception.code, "NO SUCH LOCO 0 is not in the locomotive repository.")
+        self.assertIsInstance(ctx.exception.__cause__, cars.CardPipelineError)
+
+    def test_export_without_the_merged_roster_raises(self):
+        import unittest.mock as mock
+
+        import export_operations_roster as export
+
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.object(export, "MERGED", Path(tmp) / "none.xml"), \
+                 mock.patch.object(export, "OPERATIONS", Path(tmp) / "out.xml"):
+                with self.assertRaises(export.CardPipelineError):
+                    export.export_roster()
+                with self.assertRaises(SystemExit) as ctx:
+                    export.main()
+                self.assertFalse((Path(tmp) / "out.xml").exists())
+        self.assertIn("run build_car_roster_sor.py first", str(ctx.exception.code))
 
 
 class LocoCardTests(unittest.TestCase):
