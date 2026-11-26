@@ -71,7 +71,7 @@
     spreadCtl.hidden = !lay || !lay.nodes.length;
     if (spreadCtl.hidden) return;
     const a = freeArea(), top = showRulers() ? a.top - STRIP_H - 3 : a.top + 4;
-    spreadCtl.style.top = `${top}px`; spreadCtl.style.left = `${Math.max(0, a.right - spreadCtl.offsetWidth - 8)}px`;
+    spreadCtl.style.top = `${top}px`; spreadCtl.style.left = `${wrapEl.offsetLeft + Math.max(0, a.right - spreadCtl.offsetWidth - 8)}px`;  // the filter rail moves the map right
   }
   function drawRulers() {
     steps.style.visibility = "";  // shown again after a Steps preview

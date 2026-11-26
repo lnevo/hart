@@ -17,8 +17,9 @@ MAP = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MAP)
 CACHED = (MAP.script_parts, MAP.script_text, MAP.page_template)
 NODE = shutil.which("node")
-NAMES = ("pipeline_map_layout.js", "pipeline_map_helpers.js", "pipeline_map_view.js", "pipeline_map_view_frame.js",
-         "pipeline_map_view_lanes.js", "pipeline_map_view_input.js")
+NAMES = ("pipeline_map_layout.js", "pipeline_map_helpers.js", "pipeline_map_facets.js", "pipeline_map_view.js",
+         "pipeline_map_view_frame.js", "pipeline_map_view_lanes.js", "pipeline_map_view_rail.js", "pipeline_map_view_nav.js",
+         "pipeline_map_view_input.js")
 
 
 class PagePartsTest(unittest.TestCase):
@@ -63,18 +64,20 @@ class PagePartsTest(unittest.TestCase):
         self.assertEqual({p: text.count(p) for p in MAP.PLACEHOLDERS}, dict.fromkeys(MAP.PLACEHOLDERS, 1))
 
     def test_the_script_is_the_layout_then_the_viewer(self) -> None:
-        """One script, layout first, then its helpers: the viewer uses their functions and the "use strict" directive.
-        The viewer is app() cut into four files, joined in order: the first opens app(), the last closes and calls it."""
-        layout, helpers, view, frame, lanes, end = (path.read_text(encoding="utf-8") for path in MAP.SCRIPTS)
-        self.assertEqual(MAP.SCRIPTS, (MAP.LAYOUT_JS, MAP.HELPERS_JS, MAP.VIEW_JS, MAP.VIEW_FRAME_JS, MAP.VIEW_LANES_JS,
-                                       MAP.VIEW_INPUT_JS))
-        self.assertEqual(MAP.script_text(), layout + helpers + view + frame + lanes + end)
+        """One script, layout first, then its helpers and the filters' pure functions: the viewer uses their functions
+        and the "use strict" directive. The viewer is app() cut into six files, joined in order: the first opens app(),
+        the last closes and calls it."""
+        layout, helpers, facets, view, frame, lanes, rail, nav, end = (path.read_text(encoding="utf-8") for path in MAP.SCRIPTS)
+        self.assertEqual(MAP.SCRIPTS, (MAP.LAYOUT_JS, MAP.HELPERS_JS, MAP.FACETS_JS, MAP.VIEW_JS, MAP.VIEW_FRAME_JS,
+                                       MAP.VIEW_LANES_JS, MAP.VIEW_RAIL_JS, MAP.VIEW_NAV_JS, MAP.VIEW_INPUT_JS))
+        self.assertEqual(MAP.script_text(), layout + helpers + facets + view + frame + lanes + rail + nav + end)
         self.assertEqual([name for name, _ in MAP.script_parts()], list(NAMES))
         self.assertNotIn("app()", helpers)
+        self.assertNotIn("app()", facets)
         self.assertIn("\nfunction app() {\n", view)
-        for part in (view, frame, lanes):
+        for part in (view, frame, lanes, rail, nav):
             self.assertNotIn("\napp();", part)
-        view = view + frame + lanes + end
+        view = view + frame + lanes + rail + nav + end
         self.assertTrue(re.sub(r"^/\*.*?\*/\s*", "", layout, flags=re.S).startswith('"use strict";'))
         self.assertNotIn('\n"use strict";', view)
         self.assertNotIn("app()", layout)
@@ -98,7 +101,7 @@ class PagePartsTest(unittest.TestCase):
             return subprocess.run([NODE, "--check", str(path)], capture_output=True, text=True).returncode == 0
         parts = MAP.script_parts()
         self.assertTrue(parses(MAP.script_text()))
-        for index in (2, len(parts) - 1):
+        for index in (NAMES.index("pipeline_map_view.js"), len(parts) - 1):
             with self.subTest(left_out=parts[index][0]):
                 self.assertFalse(parses("".join(text for i, (_, text) in enumerate(parts) if i != index)))
 

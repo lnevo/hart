@@ -34,10 +34,11 @@ carries no content on to the next step: "check" (a check or comparison reads it)
 "pull" (a Store pull back into the sources), "mirror" (a folder holds a copy), "capture" (a page screenshot),
 "history" (git history of a file). A hovered line's chain on the page stops at runners and does not walk side links;
 both are still drawn, and a click still traces the full reach. This script checks the graph and
-writes one self-contained page from tools/ops/pipeline_map_page.html; the layout (tools/ops/pipeline_map_layout.js and
-tools/ops/pipeline_map_helpers.js) and
-the viewer (tools/ops/pipeline_map_view.js, pipeline_map_view_frame.js, pipeline_map_view_lanes.js and
-pipeline_map_view_input.js: one function, app(), cut into four files that only work joined in that order) are inlined
+writes one self-contained page from tools/ops/pipeline_map_page.html; the layout (tools/ops/pipeline_map_layout.js,
+tools/ops/pipeline_map_helpers.js and tools/ops/pipeline_map_facets.js, the filters and search) and
+the viewer (tools/ops/pipeline_map_view.js, pipeline_map_view_frame.js, pipeline_map_view_lanes.js,
+pipeline_map_view_rail.js, pipeline_map_view_nav.js and pipeline_map_view_input.js: one function, app(), cut into six
+files that only work joined in that order) are inlined
 into it as one script, so the page can redraw any subset (some lanes, or the chain around one file) without build
 tools. The page opens on a lane overview drawn from summaries worked out here (tools/ops/pipeline_map_eff.py: how each
 step runs, writers per output, the links between lanes, step times from docs/pipeline-map/timings.json when it
@@ -69,11 +70,15 @@ TEMPLATE = Path(__file__).resolve().with_name("pipeline_map_page.html")
 LAYOUT_JS = Path(__file__).resolve().with_name("pipeline_map_layout.js")
 HELPERS_JS = Path(__file__).resolve().with_name("pipeline_map_helpers.js")
 VIEW_JS = Path(__file__).resolve().with_name("pipeline_map_view.js")
-# app()'s body goes on in these three, in this order; none of the four view files is a script on its own
+# app()'s body goes on in these five, in this order; none of the six view files is a script on its own
 VIEW_FRAME_JS = Path(__file__).resolve().with_name("pipeline_map_view_frame.js")
 VIEW_LANES_JS = Path(__file__).resolve().with_name("pipeline_map_view_lanes.js")
+VIEW_RAIL_JS = Path(__file__).resolve().with_name("pipeline_map_view_rail.js")
+VIEW_NAV_JS = Path(__file__).resolve().with_name("pipeline_map_view_nav.js")
 VIEW_INPUT_JS = Path(__file__).resolve().with_name("pipeline_map_view_input.js")
-SCRIPTS = (LAYOUT_JS, HELPERS_JS, VIEW_JS, VIEW_FRAME_JS, VIEW_LANES_JS, VIEW_INPUT_JS)
+# the filters, search, trail and status line as pure functions (node loads it for the unit tests), after the helpers
+FACETS_JS = Path(__file__).resolve().with_name("pipeline_map_facets.js")
+SCRIPTS = (LAYOUT_JS, HELPERS_JS, FACETS_JS, VIEW_JS, VIEW_FRAME_JS, VIEW_LANES_JS, VIEW_RAIL_JS, VIEW_NAV_JS, VIEW_INPUT_JS)
 # the website copy: its path in the site (under www/ locally, under the build's output folder on a deploy) and the
 # page its back link returns to
 SITE_REL = "library/pipeline-map.html"
@@ -332,7 +337,7 @@ body{display:flex;flex-direction:column;font:14px/1.4 var(--font-body);backgroun
 #bar button{cursor:pointer}
 #bar button:hover,.menu>summary:hover{border-color:var(--brand-2)}
 #strip2{border-top-color:var(--rule);color:var(--ink-soft)}
-#back,#lanelist a,#info a,#tree a{color:var(--brand-2)}
+#back,#crumbs .crumb,#rail .only,#info a,#tree a{color:var(--brand-2)}
 #view{color:var(--ink-soft)}
 #info h2{font:700 1.3rem/1.1 var(--font-display);letter-spacing:.03em;color:var(--brand)}
 #info .off{color:var(--muted)}

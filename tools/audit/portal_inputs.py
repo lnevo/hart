@@ -37,7 +37,9 @@ SITE_PREFIXES = ("www/", "ops/", "docs/", "external/", "media/", "tools/hartlib/
 # Tools outside SITE_PREFIXES that the build loads to write a page it publishes (prepare_github_pages.BUILT_PAGES)
 SITE_TOOLS = ("tools/ops/build_pipeline_map.py", "tools/ops/pipeline_map_page.html", "tools/ops/pipeline_map_layout.js",
               "tools/ops/pipeline_map_helpers.js", "tools/ops/pipeline_map_view.js", "tools/ops/pipeline_map_view_frame.js",
-              "tools/ops/pipeline_map_view_lanes.js", "tools/ops/pipeline_map_view_input.js",
+              "tools/ops/pipeline_map_facets.js", "tools/ops/pipeline_map_view_lanes.js",
+              "tools/ops/pipeline_map_view_rail.js", "tools/ops/pipeline_map_view_nav.js",
+              "tools/ops/pipeline_map_view_input.js",
               "tools/ops/pipeline_map_eff.py", "tools/ops/agent_docs_map.py",
               "jmri/layouts/hart/scripts/render_le_layout.py", "tools/wiring/write_inventory.py")
 NO_CHANGE = 3

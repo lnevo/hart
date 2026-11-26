@@ -53,13 +53,6 @@ function pointerPick(c) {
   return {};
 }
 
-/* What is hidden after an "only" beside k is clicked, for kinds or lanes: everything in all (kind or lane ids) but k (off: what is hidden
-   now). A second click on the one already shown alone shows them all again. */
-function onlyOne(all, off, k) {
-  const alone = all.every(x => x === k || off.includes(x)) && !off.includes(k);
-  return alone ? [] : all.filter(x => x !== k);
-}
-
 /* The id of the first box in boxes ({id, x, y, w, h}) that holds the point x, y, or null. */
 function boxAt(boxes, x, y) {
   const b = boxes.find(n => x >= n.x && x <= n.x + n.w && y >= n.y && y <= n.y + n.h);
@@ -475,5 +468,5 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { onlyOne, stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, growRank, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, laneTagTops, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, mergeLinks, groupByFolder, collapseLanes, laneOverview, githubUrl };
+  module.exports = { stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, growRank, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, laneTagTops, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, mergeLinks, groupByFolder, collapseLanes, laneOverview, githubUrl };
 }

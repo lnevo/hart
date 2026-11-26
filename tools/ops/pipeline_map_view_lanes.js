@@ -1,5 +1,5 @@
   /* pipeline_map_view_lanes.js: part of app()'s body, inlined after pipeline_map_view_frame.js and before
-     pipeline_map_view_input.js (see pipeline_map_view.js). Not a script on its own. It holds the lane overview, the
+     pipeline_map_view_rail.js (see pipeline_map_view.js). Not a script on its own. It holds the lane overview, the
      lanes opened from it, and the efficiency overlay.
 
      The lane overview is what the page opens on (an address with no view in it): one card per lane, drawn from the
@@ -8,9 +8,10 @@
      (collapseLanes), keeping their links counted. A click on an arrow opens the two lanes it joins. The address keeps
      the open lanes (lane=) and the overlay (eff=1); map=all marks the whole map when nothing else does.
 
-     For the history and breadcrumbs: every change of view goes through goOverview, openLanes, openLane or
-     showWholeMap (and focusOn, in pipeline_map_view_input.js), then writeHash; after each drawing the page sends a
-     "pipelinemap:view" event on document with the view as its detail (viewDetail). */
+     Every change of view goes through goOverview, openLanes, openLane or showWholeMap (and focusOn, in
+     pipeline_map_view_input.js): each starts a history step (navStep, pipeline_map_view_nav.js) before it draws, so
+     Back returns to the view before. After each drawing the page sends a "pipelinemap:view" event on document with
+     the view as its detail (viewDetail). */
   const ovKeys = ["eff", "hover", "near"];  // address keys that leave the overview as it is
   const laneOf = {};
   DATA.lanes.forEach(l => (laneOf[l.id] = l));
@@ -41,10 +42,6 @@
     return `${plural(outs.length, "output")}: ${bad} with two or more writers, ${none} with none`;
   }
   let ovSvg = null;
-  /* The band between the overview's hint line and the lane cards, kept for the timeline of milestones: height (in the
-     overview's units) and draw(width, height), which returns SVG markup for <g id="ovtimeline">, laid with its top
-     left at (0, 0) and the cards' width. Height 0 and no draw leave the band out. */
-  const ovTimeline = { height: 0, draw: null };
   function drawOverview() {
     lay = null; svg = null; vb = null; sub = { nodes: [], edges: [] }; nodeEl = {}; edgeEls = []; visible = new Set(); baseIds = new Set();
     groups = { members: {}, groupOf: {} }; gNodes = {};
@@ -60,9 +57,7 @@
     const lines = Math.max(...Object.values(texts).map(t => t.length)) + (view.eff ? 1 : 0);  // and the overlay's writer line
     const o = laneOverview(DATA.domains, DATA.bundles, cw, 50 + lines * 18, narrow ? 14 : 16, narrow ? 22 : 34);
     const name = id => domainLabel[id] || id, p = [];
-    const th = ovTimeline.height > 0 ? ovTimeline.height + 12 : 0;  // the timeline band, above the cards
-    p.push(`<g id="ovtimeline" transform="translate(0,${-th})">${ovTimeline.draw && th ? ovTimeline.draw(cw, ovTimeline.height) : ""}</g>`);
-    p.push(`<text class="ovhint" x="${cw / 2}" y="${-14 - th}" text-anchor="middle">Click a lane to open it, or an arrow to open the two lanes it joins${DATA.timed ? "" : ". No step times are logged yet"}</text>`);
+    p.push(`<text class="ovhint" x="${cw / 2}" y="-14" text-anchor="middle">Click a lane to open it, or an arrow to open the two lanes it joins${DATA.timed ? "" : ". No step times are logged yet"}</text>`);
     o.arcs.slice().sort((a, b) => b.n - a.n).forEach(a => {  // the thickest first, so thin arcs stay on top to click
       const side = a.side ? `, ${a.side} of them side links that carry nothing on` : "", c = esc(DATA.domainColor[a.from]);
       p.push(`<g class="bundle" data-from="${esc(a.from)}" data-to="${esc(a.to)}" tabindex="0" role="button" aria-label="${esc(`${name(a.from)} to ${name(a.to)}: ${a.n} links. Open both lanes`)}">`,
@@ -86,7 +81,7 @@
       if (view.eff) p.push(`<text class="cl" x="${x0}" y="${58 + texts[c.id].length * 18}">${esc(writerLine(c.id))}</text>`);
       p.push("</g>");
     }
-    const a = freeArea(), pad = 24, top = 30 + th;  // room above the cards for the hint and the timeline
+    const a = freeArea(), pad = 24, top = 30;  // room above the cards for the hint
     const fullW = o.width, fullH = o.height + top;
     const s = Math.min((a.right - 2 * pad) / fullW, narrow ? Infinity : (a.bottom - a.top - 2 * pad) / fullH, 1.25);
     const pxH = Math.max(a.r.height, a.top + pad + fullH * s + pad);  // a phone scrolls down the cards
@@ -117,17 +112,19 @@
   });
 
   /* ---- moving between the overview, open lanes and the whole map */
-  function resetFilters() {  // as Clear filters, without drawing
-    view.lanes = new Set(allLanes); view.kindsOff.clear(); view.parked = view.retired = false;
+  function resetFilters() {  // the filters and View's boxes and links options as they start, without drawing
+    view.f = emptyFacets(); view.hide = false;
     view.compact = true; view.group = false; view.open.clear(); view.trim = false;
     document.getElementById("labels").checked = true;
   }
-  function goOverview() {
+  function goOverview() {  // the lane cards summarize every box, so the filters go back to none
+    navStep();
     view.focus = null; selected = null; view.laneOpen.clear(); resetFilters(); fileIn.value = "";
     view.overview = true;
     render(false); writeHash();
   }
   function openLanes(ids) {  // these lanes open, the others closed to one box each; every lane open is the whole map
+    navStep();
     view.overview = false; view.focus = null; selected = null; fileIn.value = "";
     view.laneOpen = new Set(ids.filter(id => allLanes.includes(id)));
     if (view.laneOpen.size === allLanes.length) view.laneOpen.clear();
@@ -137,13 +134,12 @@
     openLanes([...view.laneOpen, lane]);
     if (then && visible.has(then)) { select(then); centreOn(then, false); }
   }
-  function showWholeMap() {
-    view.overview = false; view.focus = null; view.laneOpen.clear(); if (view.trim) selected = null; view.lanes = new Set(allLanes);
-    view.kindsOff.clear(); view.group = false; view.open.clear(); fileIn.value = "";
+  function showWholeMap() {  // every lane drawn in full; the filters stay as they are
+    navStep();
+    view.overview = false; view.focus = null; view.laneOpen.clear(); if (view.trim) selected = null; fileIn.value = "";
     syncControls(); render(false); writeHash();
   }
   document.getElementById("showall").onclick = showWholeMap;
-  document.getElementById("lanesbtn").onclick = goOverview;
   const closedLaneName = d => `${domainLabel[d]} (closed)`;
 
   /* ---- efficiency overlay (E, or the Efficiency button): badges drawn with every box (effMarks), shown while the page

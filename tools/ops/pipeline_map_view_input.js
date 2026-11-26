@@ -1,4 +1,4 @@
-  /* pipeline_map_view_input.js: the end of app()'s body, inlined straight after pipeline_map_view_frame.js (see
+  /* pipeline_map_view_input.js: the end of app()'s body, inlined straight after pipeline_map_view_nav.js (see
      pipeline_map_view.js); it closes app() and calls it. Not a script on its own. */
   /* ---- magnifier: while Shift is held over the map, a round lens under the pointer shows that part of the drawing
      big enough to read (a copy of the drawing as it is, selection and search included). */
@@ -99,9 +99,9 @@
       <p><code>${esc(n.path || n.id)}</code>${githubUrl(n, DATA.codeLinks) ? ` · <a class="gh" href="${esc(githubUrl(n, DATA.codeLinks))}" target="_blank" rel="noopener" title="Open this file's code on GitHub">GitHub ↗</a>` : ""}</p><p>${esc(n.desc || "")}</p>
       ${effInfo(n)}
       ${isFocus ? "" : '<p><button id="fgo">Show only this file\'s chain</button></p>'}
-      ${view.kindsOff.size ? `<div class="off">Links as drawn: ${[...view.kindsOff].every(dropKind) ? "the hidden boxes left out with their links" : "hidden boxes bridged over, and those where chains stop (hosts lane, hand work, caches) left out with their links"}.</div>` : ""}
-      <b>Fed by</b><ul>${((view.kindsOff.size ? ins1 : insAll)[id] || []).map(e => `<li>${link(e.from)}${e.label ? " — " + esc(e.label) : ""}</li>`).join("") || "<li>nothing (a source)</li>"}</ul>
-      <b>Feeds</b><ul>${((view.kindsOff.size ? outs1 : outsAll)[id] || []).map(e => `<li>${link(e.to)}${e.label ? " — " + esc(e.label) : ""}</li>`).join("") || "<li>nothing (an end product)</li>"}</ul>
+      ${bridging() ? '<div class="off">Links as drawn: the hidden boxes bridged over, and those where chains stop (hosts lane, hand work, caches) left out with their links.</div>' : ""}
+      <b>Fed by</b>${boxList(((bridging() ? ins1 : insAll)[id] || []).map(e => ({ id: e.from, e })), it => link(it.id) + (it.e.label ? " — " + esc(it.e.label) : ""), "nothing (a source)")}
+      <b>Feeds</b>${boxList(((bridging() ? outs1 : outsAll)[id] || []).map(e => ({ id: e.to, e })), it => link(it.id) + (it.e.label ? " — " + esc(it.e.label) : ""), "nothing (an end product)")}
       <div style="color:#666">${fullUp} upstream, ${fullDown} downstream in the whole map.</div>`;
     info.style.display = "block";
     nav.classList.add("focus");
@@ -116,7 +116,7 @@
     info.innerHTML = `<button class="close" title="Close (Esc)">×</button><h2>${esc(g.label)}</h2>
       <div>${g.lane ? "Closed lane" : "Folder"} · ${list.length} boxes · ${esc(domainLabel[g.domain])}</div>
       <p><button id="fopen">${g.lane ? "Open this lane too" : "Open this folder"}</button></p>
-      <b>Boxes in it</b><ul>${list.map(m => `<li><a data-go="${esc(m)}">${esc(byId[m].label)}</a></li>`).join("")}</ul>`;
+      <b>Boxes in it</b>${boxList(list.map(m => ({ id: m })), it => `<a data-go="${esc(it.id)}">${esc(byId[it.id].label)}</a>`, "none")}`;
     info.style.display = "block";
     setVB(vb.x, vb.y, vb.width, vb.height);  // clamped again for the narrower free area
     info.querySelector(".close").onclick = () => clearFocus(true);
@@ -134,13 +134,14 @@
     if (into && gNodes[into].lane) { openLane(gNodes[into].lane, id); return; }  // a box inside a closed lane
     if (into) { openFolder(folderOf(byId[id]), id); return; }  // a box inside a closed folder
     if (pickable(id)) { pick(id, "pan"); return; }
-    view.lanes = new Set(allLanes);
-    if (byId[id].status in view) view[byId[id].status] = true;
+    if (view.hide) view.f.lane.clear();  // every lane drawn, so the chain is not cut off
+    view.f.status = withStatus(view.f, view.hide, byId[id].status || "live");
     focusOn(id, !view.focus);
   }
   /* Draw one file's chain. fresh (the default) starts both sides at the whole chain; fresh = false keeps the current
      step counts, as moving from one file view to another does. */
   function focusOn(id, fresh = true) {
+    navStep();
     fileIn.value = byId[id].path || byId[id].label;
     if (fresh) { view.up = Infinity; view.down = Infinity; }
     view.focus = id; selected = id;
@@ -187,35 +188,6 @@
     else if (g) focusOn(g.dataset.id, !view.focus);
   });
 
-  /* ---- search */
-  const q = document.getElementById("q"), hits = document.getElementById("hits");
-  let found = [], fi = 0;
-  function runSearch(keepIndex) {
-    if (svg) svg.querySelectorAll(".node.hit").forEach(g => g.classList.remove("hit"));
-    const t = q.value.trim().toLowerCase();
-    found = !t ? [] : DATA.nodes.filter(n => (n.label + " " + n.id + " " + (n.path || "") + " " + (n.desc || "")).toLowerCase().includes(t)).map(n => n.id);
-    const where = id => (visible.has(id) ? id : visible.has(groups.groupOf[id]) ? groups.groupOf[id] : null);
-    const shown = found.filter(where);
-    shown.forEach(id => nodeEl[where(id)].classList.add("hit"));
-    hits.textContent = !t ? "" : !svg ? `${found.length} found` + (found.length ? " · Enter opens" : "")
-      : `${shown.length} found` + (found.length > shown.length ? ` (+${found.length - shown.length} not shown)` : "") + (found.length ? " · Enter steps" : "");
-    if (!keepIndex) fi = 0;
-    updateFar();
-  }
-  q.addEventListener("input", () => runSearch(false));
-  q.addEventListener("keydown", e => {
-    if (e.key !== "Enter" || !found.length) return;
-    const id = found[fi++ % found.length];
-    if (!pickable(id)) goTo(id);
-    else pick(id, "zoom");
-  });
-  document.addEventListener("keydown", e => {
-    if (e.target.matches("input:not([type=checkbox]):not([type=radio]):not([type=button]),textarea,select") || e.target.isContentEditable || e.metaKey || e.ctrlKey || e.altKey) return;  // typing in any field, the site header's search too
-    if (e.key === "Escape") clearFocus(true);
-    if (e.key === "f" || e.key === "F") fit();
-    if ((e.key === "h" || e.key === "H") && !e.shiftKey) setClean(!clean);  // not with Shift, held for the magnifier
-  });
-
   /* ---- steps either side of a file: how far the chain runs left (what feeds it) and right (what it feeds) */
   const depthBox = document.getElementById("depth");
   const stepText = n => (n === Infinity ? "all" : String(n));
@@ -229,12 +201,14 @@
     for (let d = 1; d < 400; d++) { if (reach(view.focus, adj, key, d, true).size === reach(view.focus, adj, key, d - 1, true).size) break; n = d; }
     return n;
   }
-  function step(side, change) {
-    const adj = side === "up" ? [ins1, "from"] : [outs1, "to"], most = maxSteps(...adj);
-    let n = view[side] === Infinity ? most : view[side];
-    n = change === "all" ? Infinity : Math.max(0, n + change);
-    if (most > 0 && n >= most) n = Infinity;  // a side with no links stays at the number chosen
-    view[side] = n;
+  function step(sides, change) {  // sides: "up", "down" or both in a list (the [ and ] keys)
+    for (const side of [].concat(sides)) {
+      const adj = side === "up" ? [ins1, "from"] : [outs1, "to"], most = maxSteps(...adj);
+      let n = view[side] === Infinity ? most : view[side];
+      n = change === "all" ? Infinity : Math.max(0, n + change);
+      if (most > 0 && n >= most) n = Infinity;  // a side with no links stays at the number chosen
+      view[side] = n;
+    }
     render(true); writeHash();
   }
   depthBox.addEventListener("click", e => {
@@ -251,7 +225,7 @@
   function pickFile() {
     const text = fileIn.value.trim();
     if (!text) {  // an emptied box goes back to the whole map
-      if (view.focus) { view.focus = null; syncControls(); render(false); writeHash(); }
+      if (view.focus) { navStep(); view.focus = null; syncControls(); render(false); writeHash(); }
       return;
     }
     const id = byName[text.toLowerCase()];
@@ -294,9 +268,13 @@
   });
   fileIn.addEventListener("keydown", e => { if (e.key === "Enter") pickFile(); });
 
-  /* ---- start-here buttons: a preset file view for the questions people ask first */
+  /* ---- Start: a preset file view for each question people ask first; the tooltip says what it draws */
+  const WORDS = ["no", "one", "two", "three", "four", "five"];
+  const stepsText = (n, what) => (n === "all" ? `everything ${what}` : n === 0 ? "" : `${WORDS[n] || n} step${n === 1 ? "" : "s"} of ${what}`);
+  const presetTip = pr => `Draws ${byId[pr.focus].label} with ` +
+    ([stepsText(pr.up, "what feeds it"), stepsText(pr.down, "what it feeds")].filter(Boolean).join(" and ") || "nothing else");
   const presetBtns = DATA.presets.map((pr, i) =>
-    `<button data-preset="${i}" title="${esc(byId[pr.focus].label)}, ${pr.up} back and ${pr.down} on">${esc(pr.label)}</button>`).join("");
+    `<button data-preset="${i}" title="${esc(presetTip(pr))}">${esc(pr.label)}</button>`).join("");
   document.getElementById("presets").innerHTML = presetBtns;
   document.getElementById("startmenu").hidden = !DATA.presets.length;
   function usePreset(e) {
@@ -304,8 +282,9 @@
     if (!b) return;
     const pr = DATA.presets[Number(b.dataset.preset)], steps = v => (v === "all" ? Infinity : v);
     document.getElementById("startmenu").open = false; document.getElementById("more").open = false;
+    navStep();
     view.focus = selected = pr.focus; view.up = steps(pr.up); view.down = steps(pr.down);
-    view.lanes = new Set(allLanes); view.kindsOff.clear(); view.trim = false;  // the preset's step counts as written
+    view.f = emptyFacets(); view.hide = false; view.trim = false;  // the preset's step counts as written
     fileIn.value = byId[pr.focus].path || byId[pr.focus].label;
     syncControls(); render(false); writeHash();
   }
@@ -322,7 +301,7 @@
     if (e.target.closest && e.target.closest("details.menu")) return;
     menus.forEach(m => (m.open = false));
   });
-  const moveIds = ["startmenu", "viewmenu", "lanes", "browse", "btns"], more = document.getElementById("morebody");
+  const moveIds = ["startmenu", "viewmenu", "browse", "btns"], more = document.getElementById("morebody");
   const homes = moveIds.map(id => { const el = document.getElementById(id), ph = document.createComment(id); el.before(ph); return [el, ph]; });
   const phone = matchMedia("(max-width: 900px)");
   // Fit stays on the toolbar on a phone, beside More, as the control used most
@@ -341,25 +320,25 @@
   const tour = document.getElementById("tour"), TOUR_KEY = "pipelineMapTourDone";
   const TOUR = [
     { at: [], title: "The lanes",
-      text: `The map opens on its ${DATA.domains.length} lanes. Each card counts the lane's boxes by kind and its make panels and check.sh steps; the arrows are the links between lanes, thicker for more. Click a lane to open it, or an arrow to open the two lanes it joins. Whole map draws every lane, and Lanes comes back here.` },
+      text: `The map opens on its ${DATA.domains.length} lanes. Each card counts the lane's boxes by kind and its make panels and check.sh steps; the arrows are the links between lanes, thicker for more. Click a lane to open it, or an arrow to open the two lanes it joins. Whole map draws every lane. The trail under the toolbar, Back and Esc go back a level.` },
     { at: ["#file", "#browse"], title: "Pick a file",
       text: "Type a file's name, or find it by folder under Browse. The map then draws its chain: everything it is built from on the left, everything built from it on the right." },
-    { at: ["#startmenu"], title: "Or start from a common chain",
-      text: "Start opens the chains people ask about most" + (DATA.presets.length ? ": " + DATA.presets.map(p => p.label).join(", ") + "." : ".") },
+    { at: ["#startmenu"], title: "Or start from a question",
+      text: "Start lists the questions people ask most, each drawing one chain" + (DATA.presets.length ? `, such as “${DATA.presets[0].label}”` : "") + "." },
     { at: [], title: "Click a box",
       text: "A click lights up what feeds the box (amber) and what it feeds (blue), and opens its details on the right. Double-click a box to draw its chain on its own." },
     { at: ["#viewmenu"], title: "Change how it looks",
       text: "View holds the drawing options: compact boxes (names only, on to start with), group by folder, edge labels and highlighted chain only (just the chain of the box you clicked); two pointer settings, hover highlights and near pipeline on click; and dark background and clean view." },
-    { at: ["#lanes"], title: "Filter",
-      text: "Filters picks the lanes and kinds of box, and whether parked features and retired tools show. Clear filters, at the foot of Filters or under the toolbar, puts them back." },
-    { at: ["#q"], title: "Find text",
-      text: "Find highlights the boxes whose name, path or description holds the text you type." },
+    { at: ["#railbtn"], title: "Filter",
+      text: "Filters opens a panel of lanes, kinds, status, step types, writers and link types, each value with its count. Ticked values are kept and the rest fade, or with Hide the rest are left out. Each filter in use shows as a chip under the toolbar. List (L) shows the boxes as a table." },
+    { at: ["#q"], title: "Find a box",
+      text: "Find (or /) lists the boxes that hold the text, best match first. Arrows and Enter draw a box's chain." },
     { at: [], title: "Hover",
       text: "Zoomed out, hover a line to light its chain and grow its boxes to a readable size, or hover a box to do the same for its neighbours. The note by the pointer names where the chain stops. Click a line to open the box it leads to, Cmd-click (Ctrl-click off a Mac) for the box it comes from. Click a lane's name to zoom to that lane, and hold Shift for a magnifier." },
     { at: ["#effbtn"], title: "Efficiency",
       text: "Efficiency, or the E key, marks how each step runs: green for a step that is skipped while its inputs are unchanged, blue for a guard that always runs, a bar for its logged time. Each output shows how many scripts write it, red when two or more do and the manifests do not allow it." },
     { at: ["#fit", "#btns"], title: "Move around and share",
-      text: "Scroll or pinch to zoom and drag to pan; Fit shows the whole map. Share copies a link that opens this exact view. The ? button runs this tour again." },
+      text: "Scroll or pinch to zoom and drag to pan; Fit (F) shows the whole map. Share copies a link that opens this exact view. Start over goes back to the lanes with nothing set. The ? button runs this tour again." },
   ];
   let tourAt = -1, tourOn = [];
   const shown = el => el && el.offsetParent !== null && !(el.closest("#morebody") && !document.getElementById("more").open);  // inside a shut phone Menu counts as hidden
@@ -412,61 +391,18 @@
     else done("Copy the address bar to share");
   };
 
-  /* ---- lanes, kinds and status filters */
-  const kindsBox = document.getElementById("kindlist");
-  /* Every kind but folder can be hidden; boxes where chains stop are then left out rather than bridged over
-     (filtered()). */
-  const hideable = k => Object.hasOwn(DATA.kinds, k) && k !== "folder" && k !== "lane";
-  kindsBox.innerHTML = Object.entries(DATA.kinds).filter(([k]) => hideable(k)).map(([k, [label, fill, ink]]) =>
-    `<label><input type="checkbox" data-kind="${esc(k)}" checked> <span class="sw" style="background:${esc(fill)};border-color:${esc(ink)}"></span>${esc(label)}</label>` +
-    ` <a data-kindonly="${esc(k)}">only</a>`).join("<br>");
-  kindsBox.addEventListener("change", e => {
-    const k = e.target.dataset.kind;
-    if (!k) return;
-    if (e.target.checked) view.kindsOff.delete(k); else view.kindsOff.add(k);
-    renderKeeping(); writeHash();
-  });
-  // "only": every other kind hidden as if unticked (bridged over, but chain stops left out with their links), and the
-  // view refit as a lane's "only" does; a second click on it shows every kind again (onlyOne)
-  kindsBox.addEventListener("click", e => {
-    const only = e.target.dataset && e.target.dataset.kindonly;
-    if (!only) return;
-    view.kindsOff = new Set(onlyOne(Object.keys(DATA.kinds).filter(hideable), [...view.kindsOff], only));
-    syncControls(); render(false); writeHash();
-  });
+  /* ---- View's options (the filters are in pipeline_map_view_rail.js) */
   document.getElementById("compact").onchange = e => { view.compact = e.target.checked; renderKeeping(); writeHash(); };
   document.getElementById("group").onchange = e => { view.group = e.target.checked; view.open.clear(); renderKeeping(); writeHash(); };
-  const lanesBox = document.getElementById("lanerows");
-  lanesBox.innerHTML = DATA.domains.map(d =>
-    `<label><input type="checkbox" data-lane="${esc(d.id)}" checked> <span class="sw" style="background:${esc(d.color)}"></span>${esc(d.label)}</label>` +
-    ` <a data-only="${esc(d.id)}">only</a>`).join("<br>");
   function syncControls() {
-    lanesBox.querySelectorAll("input[data-lane]").forEach(c => (c.checked = view.lanes.has(c.dataset.lane)));
-    document.getElementById("parked").checked = view.parked;
-    document.getElementById("retired").checked = view.retired;
+    syncRail();
     document.getElementById("trim").checked = view.trim;
-    kindsBox.querySelectorAll("input[data-kind]").forEach(c => (c.checked = !view.kindsOff.has(c.dataset.kind)));
     document.getElementById("compact").checked = view.compact;
     document.getElementById("group").checked = view.group;
     document.getElementById("hover").checked = view.hover;
     document.getElementById("near").checked = view.near;
     syncSpread();
   }
-  lanesBox.addEventListener("change", e => {
-    const lane = e.target.dataset.lane;
-    if (!lane) return;
-    if (e.target.checked) view.lanes.add(lane); else view.lanes.delete(lane);
-    renderKeeping(); writeHash();
-  });
-  lanesBox.addEventListener("click", e => {
-    const only = e.target.dataset && e.target.dataset.only;
-    if (!only) return;
-    // a second click on the lane shown alone shows every lane again, as a kind's "only" does (onlyOne)
-    const off = onlyOne(allLanes, allLanes.filter(d => !view.lanes.has(d)), only);
-    view.lanes = new Set(allLanes.filter(d => !off.includes(d))); syncControls(); render(false); writeHash();
-  });
-  document.getElementById("parked").onchange = e => { view.parked = e.target.checked; renderKeeping(); writeHash(); };
-  document.getElementById("retired").onchange = e => { view.retired = e.target.checked; renderKeeping(); writeHash(); };
   document.getElementById("trim").onchange = e => { view.trim = e.target.checked; render(selected === null); writeHash(); };
   document.getElementById("hover").onchange = e => {  // hover highlights on or off; off clears a hover now showing
     view.hover = e.target.checked;
@@ -484,90 +420,7 @@
     document.getElementById("elabels").classList.toggle("hidden", !e.target.checked); showStatus(sub);
   };
 
-  /* ---- address bar: #focus=<id>&up=all&down=2&lanes=a,b&show=parked,retired&trim=1&hidekind=generator&compact=0
-     &folders=1&open=<folder>,<folder>&node=<id>, and with share also at=<x>,<y>,<width>,<aspect> (the zoom, position and lane stretch) */
-  function writeHash(withView = false) {
-    const h = new URLSearchParams();
-    const steps = n => (n === Infinity ? "all" : String(n));
-    if (view.focus) { h.set("focus", view.focus); h.set("up", steps(view.up)); h.set("down", steps(view.down)); }
-    else if (view.laneOpen.size) h.set("lane", [...view.laneOpen].join(","));
-    if (view.lanes.size !== allLanes.length) h.set("lanes", view.lanes.size ? [...view.lanes].join(",") : "none");
-    const show = [view.parked && "parked", view.retired && "retired"].filter(Boolean);
-    if (show.length) h.set("show", show.join(","));
-    if (view.trim) h.set("trim", "1");
-    if (view.kindsOff.size) h.set("hidekind", [...view.kindsOff].join(","));
-    if (!view.compact) h.set("compact", "0");  // compact is the default
-    if (!view.hover) h.set("hover", "0");  // hover highlights are on by default
-    if (view.near) h.set("near", "1");
-    if (view.steps) h.set("steps", String(view.steps));
-    if (withView && view.steps && view.boxCap) h.set("cap", String(+view.boxCap.toFixed(3)));  // with the sharer's box size  // (an older width= link is ignored: it meant wider boxes)
-    if (view.group) { h.set("folders", "1"); if (view.open.size) h.set("open", [...view.open].join(",")); }
-    if (selected) h.set("node", selected);
-    if (view.eff) h.set("eff", "1");
-    if (!view.overview && [...h.keys()].every(k => ovKeys.includes(k))) h.set("map", "all");  // the whole map: an empty address is the overview
-    if (withView && lay) h.set("at", [vb.x, vb.y, vb.width].map(v => Math.round(v)).concat(lay.aspect ? [+lay.aspect.toFixed(4)] : []).join(","));  // with the sharer's lane stretch
-    const s = h.toString();
-    history.replaceState(null, "", s ? "#" + s : location.pathname + location.search);
-  }
-  function readHash() {
-    const h = new URLSearchParams(location.hash.slice(1));
-    view.overview = [...h.keys()].every(k => ovKeys.includes(k));  // an address with no view in it opens on the lanes
-    view.laneOpen = new Set((h.get("lane") || "").split(",").filter(l => allLanes.includes(l)));
-    setEff(h.get("eff") === "1", true);
-    const focus = h.get("focus");
-    view.focus = focus && Object.hasOwn(byId, focus) ? focus : null;
-    const steps = v => (v !== null && /^\d+$/.test(v) ? Number(v) : Infinity);
-    view.up = steps(h.get("up")); view.down = steps(h.get("down"));
-    if (h.get("up") === null && h.get("down") === null) {  // older links: dir=both|up|down and depth=N
-      const depth = steps(h.get("depth")), dir = h.get("dir");
-      view.up = dir === "down" ? 0 : depth; view.down = dir === "up" ? 0 : depth;
-    }
-    const lanes = (h.get("lanes") || "").split(",").filter(l => allLanes.includes(l));
-    view.lanes = new Set(lanes.length || h.get("lanes") === "none" ? lanes : allLanes);
-    const show = (h.get("show") || "").split(","), hide = h.get("hide");
-    if (hide !== null) { view.parked = !hide.includes("parked"); view.retired = !hide.includes("retired"); }  // older links
-    else if (h.get("show") === null && (h.get("dir") !== null || h.get("depth") !== null)) view.parked = view.retired = true;  // older file links showed every status
-    else { view.parked = show.includes("parked"); view.retired = show.includes("retired"); }
-    view.trim = h.get("trim") === "1";
-    view.kindsOff = new Set((h.get("hidekind") || "").split(",").filter(hideable));
-    view.compact = h.get("compact") !== "0";
-    view.hover = h.get("hover") !== "0";
-    view.near = h.get("near") === "1";
-    const st = Math.round(Number(h.get("steps")) || 0);
-    view.steps = st > 0 ? Math.max(3, st) : 0;  // at least 3, as the slider; clamped to the map's columns when it is drawn
-    const cap = Number(h.get("cap"));
-    view.sharedCap = cap > 0 ? Math.min(BOX_GROW, Math.max(1, cap)) : 0;
-    view.group = h.get("folders") === "1";
-    view.open = new Set(view.group && h.get("open") ? h.get("open").split(",") : []);
-    const node = h.get("node");
-    selected = node && (Object.hasOwn(byId, node) || node.startsWith("folder:")) ? node : null;
-    if (selected && Object.hasOwn(byId, selected) && !view.focus && byId[selected].status in view) view[byId[selected].status] = true;  // keep a shared box in view
-    fileIn.value = view.focus ? byId[view.focus].path || byId[view.focus].label : "";
-    syncControls();
-  }
-  /* A shared link's view: at=x,y,width[,aspect], the zoom and position, and the screen shape the sharer's lanes were
-     stretched to (so the same y lands in the same lane); null when there is none or it is malformed. */
-  function sharedView() {
-    const at = (new URLSearchParams(location.hash.slice(1)).get("at") || "").split(",").map(Number);
-    if (at.length < 3 || at.length > 4 || at.some(v => !Number.isFinite(v)) || at[2] <= 0 || at[3] < 0) return null;
-    return at;
-  }
-  function restoreView(at) {  // kept to the window's shape
-    if (!at) return false;
-    const r = wrapEl.getBoundingClientRect();
-    setVB(at[0], at[1], at[2], at[2] * r.height / r.width);
-    return true;
-  }
-  function arrive(first) {  // first load: a file view opens at Fit; a later address change pans to the selected box
-    readHash();
-    const at = sharedView();
-    render(false, at ? at[3] || 0 : undefined);  // an older link without the shape: no stretch, as it was drawn then
-    if (restoreView(at) || !selected || !visible.has(selected) || view.trim) return;
-    if (!view.focus) centreOn(selected, true);
-    else if (!first) centreOn(selected, false);
-  }
   arrive(true);
-  window.addEventListener("hashchange", () => arrive(false));
 }
 
 app();
