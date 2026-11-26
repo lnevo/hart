@@ -35,6 +35,8 @@
  "jmri/layouts/hart/scripts/tests/test_reconcile_dispatcher_stations.py": 38,
  "jmri/layouts/hart/scripts/tests/test_reconcile_generated_panel.py": 40,
  "jmri/layouts/hart/scripts/tests/test_signal_coordinator_behaviour.py": 185,
+ "jmri/layouts/hart/scripts/tests/test_signal_coordinator_routing.py": 1,
+ "jmri/layouts/hart/scripts/tests/test_sml_handoff_holds.py": 17,
  "jmri/layouts/hart/scripts/tests/test_staging_device_names.py": 21,
  "jmri/layouts/hart/scripts/tests/test_sts_car_sync.py": 3,
  "jmri/layouts/hart/scripts/tests/test_sts_car_sync_worker.py": 2,
