@@ -2,6 +2,7 @@
 
 Status: active (wave 2, from 2026-11-26 14:15)
 Coordinator: hart-bb, since 2026-11-26 14:15 (holds the merge queue and the deploys; a background wave 2 coordinator runs the lanes)
+Dashboard: https://claude.ai/artifact/XbLG38xfSzSdbE4eoutFQ7 (lanes, events and agents, kept live by the wave 2 coordinator)
 
 A read-only review on 2026-11-26 graded the repo's 781 scripts at B- overall. The code was decent, with recurring AI habits:
 - helpers copied between files until the copies drift
@@ -44,7 +45,9 @@ Other PRs: wave page #1226, wiki decisions #1235, bridge docs #846. All merged.
 - mypy runs in `check.sh` and CI, with hartlib strict and clean. `check_habits.py` and a mypy baseline ratchet every other file. Counts that fall pass with a note.
 - Shipped: #1229 and #1230 to the Pi and Windows, and #1232 to the site. The Windows LcosBridge task and its logon tabs were removed, so the bridge runs on the Pi.
 
-## Left
+## Left after wave 1
+
+Wave 2 (below) closed every item here except the WSL venv note and the parked `gen_ctc_track_plan.py`.
 
 - publications: the station-map and rebuild scripts still have long drawing functions. `rebuild_station_map.py` is a D.
 - tools/schematic: `build_device_map.build` (324 lines), `device_map_staging.staging_rows` (205) and `build_layout_le.build` (160).
@@ -56,3 +59,43 @@ Other PRs: wave page #1226, wiki decisions #1235, bridge docs #846. All merged.
 - Each `requirements.txt` bump must be installed by hand in the Windows WSL venv (`uv pip install --python .venv/bin/python ...`).
 - `docs/jmri/speedmatching/profile-2026-11-08/block_speeds.py` is proposed for the archive.
 - `gen_ctc_track_plan.py` stays as it is, because it is parked.
+
+## Wave 2 (2026-11-26, 14:15 to 18:00)
+
+A read-only sweep graded the 362 files that wave 1 had graded from metrics only (3 auditors, `sweep-final.jsonl` in the wave's scratchpad): 12 A, 71 A-, 110 B+, 84 B, 36 B-, 25 C+, 3 C, 2 D, 19 parked. Its bugs and problems fed the tier 3 lanes. Every PR passed the six "no failed PRs" gates (handoff skill, Merge) before it opened.
+
+| Lane | What | PR | Ships |
+|---|---|---|---|
+| A | SM-01 drawing split; shared compass, fonts and sheet kit; typed EQ-01 and crew sheets | #1240 | nothing |
+| A2 | Local station map drawers, primer text in data, TT-23, CC label, full map | #1244 | nothing |
+| B | Typed mast plan and CATS binding records | #1242 | nothing |
+| B2 | LE and device-map builds in typed stages | #1245 | nothing |
+| C | One source table for both games; the Extra East clock wraps to 0:01 (owner); typed tables page | #1243 | site |
+| D1 | Typed speedmatch analyze; `speed-by-step` replaces `block_speeds.py` (archived), CSV byte-identical (owner) | #1247 | Pi, Windows |
+| D2 | Shared film helper, typed levels_svg, frozen promo format, typed mimic loader | #1241 | Pi, Windows (mimic) |
+| E | Device master rows are `DeviceRow` records; `Switch.level` is a `Level` | #1256 | nothing |
+| F2 | Named errors instead of SystemExit: card pipeline, www/scripts, levels page, wiring | #1249 | nothing |
+| F1 | Named errors instead of SystemExit: tools/schematic | #1254 | nothing |
+| G | Jython parts and traced/orient parts as real modules; the Turnouts lamp found by tooltip (owner: ship it) | #1246 | Pi, Windows, site |
+| H | tools/audit held to mypy strict; `check_mypy` reads the strict folders from `mypy.ini` | #1259 | nothing |
+| T3a | Host-script bugs (STS dump prune, unset ROOT, snapshot); retired-file deletes dropped, Start Up strip kept and extended to Windows per-computer profiles (owner) | #1250 | Pi, Windows |
+| T3c | Mimic view escaping, launch_cats folder, retain clear, turnout feedback, dead code | #1251 | Pi, Windows |
+| T3d | Card pipeline: sharpen folders, two scripts archived (owner), shared sticker-grid helpers and road table | #1253 | nothing |
+| T3s | Test-loop values from the AnyRail 5.3c plan (owner); typed `correct.py` | #1255 | nothing |
+| T3e | Missing Pillow, search thumbs, route lookup, promo and worktree exits; `build_masts.file_rows` split | #1257 | nothing |
+| T3p | CATS 3.2 zip pinned by sha256 (owner) | #1258 | nothing |
+
+Decisions found only in comments, recorded here:
+- A home mast at no switch is an anchor mast, by one rule on every level (was in `build_masts.py`).
+- The step runners never treat BS W-1 and W-2 (the Brick yard spurs off Switch 3) as route sensors (`jobkit.NOT_ROUTE`).
+- `generated_desk_header.xml` was frozen from the live desk on 2026-11-15 (was in `cats_panel_dress.py`).
+
+### Left after wave 2
+
+- mypy strict: tools/ops (96 errors in 17 files) and tools/schematic (442 in 42), one folder at a time.
+- `paths.exit_if_overridden` and `tables_build.refuse_generated` still exit (about 20 callers, some parked); `hartlib.hosts` still exits, because the MQTT tools and the mimic read it at import (each entry script must catch a named error first); `evolution.py`; `render_le_layout.py` is at its size limit.
+- About 100 callers still read device rows by key through `DeviceRow`'s mapping view.
+- `block_lengths_measured.csv` keeps its 5.3b values until the next `infer_block_lengths.py --apply` (owner's call).
+- `analyze.py` (788 of 800 lines) and the mimic (782) need a split before they grow.
+- Small review notes left in each PR's review comment.
+
