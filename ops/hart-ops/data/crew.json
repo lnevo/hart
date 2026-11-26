@@ -1067,7 +1067,7 @@
         "label": "CR 1993 · GE B23-7",
         "img": "assets/crew/loco-cr-1993-thumb.jpg"
       },
-      "summary": "CSX turn between Demmler / McKeesport and Neville Island. The train starts tied down in West Yard. Deliver the Demmler inbound to South Yard, hostle the engine to the engine terminal, then return for the Demmler / McKeesport outbound block, depart eastbound toward McKeesport, and terminate again in West Yard. D749 is a real CSX train number; this job's work is invented for the layout.",
+      "summary": "CSX turn between Demmler / McKeesport and Neville Island. The train starts tied down in West Yard. Deliver the Demmler inbound to South Yard, hostle the engine to the engine terminal, then return for the Demmler / McKeesport outbound block, depart toward McKeesport, and terminate again in West Yard. D749 is a real CSX train number; this job's work is invented for the layout.",
       "steps": [
         "Find the train tied down in West Yard with the inbound Demmler block.",
         "Obtain dispatcher clearance and run the inbound to South Yard.",
@@ -1097,8 +1097,7 @@
       ],
       "source": "../docs/ops/Neville_Island_Crew_D749.docx",
       "docx": {
-        "photo": "1993.jpg",
-        "intro": "CSX turn between Demmler / McKeesport and Neville Island. The train starts tied down in West Yard. Deliver the Demmler inbound to South Yard, hostle the engine to the engine terminal, then return for the Demmler / McKeesport outbound block, depart westbound, and terminate again in West Yard."
+        "photo": "1993.jpg"
       }
     },
     {
@@ -1196,10 +1195,7 @@
           "href": "crew/scale/index.html"
         }
       ],
-      "source": "../docs/ops/Neville_Island_Crew_CK1.docx",
-      "docx": {
-        "engine": "Unassigned"
-      }
+      "source": "../docs/ops/Neville_Island_Crew_CK1.docx"
     },
     {
       "id": "yardmaster",
