@@ -103,7 +103,7 @@ Source of record (ADR-010) for the published crew and dispatcher Word and PowerP
 - [build-graph-design.md](pipeline-map/build-graph-design.md): A manifest of the pipeline's steps, from which the check.sh check list, the make panels step list and the map's script nodes and edges are generated
 - [checks-and-remote.md](pipeline-map/checks-and-remote.md): How `./tools/check.sh` decides what to run, and how heavy jobs go to the Windows box instead of the Mac
 - [efficiency-plan.md](pipeline-map/efficiency-plan.md): Plan to cut panel rebuilds and full workflow runs, based on logged step timings, reviewed by the owner on 2026-11-21
-- Other files: [pipeline_map.json](pipeline-map/pipeline_map.json)
+- Other files: [pipeline_map.json](pipeline-map/pipeline_map.json), [timings.json](pipeline-map/timings.json)
 
 ## website
 

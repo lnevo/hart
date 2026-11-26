@@ -44,6 +44,14 @@ for arg in "$@"; do
     *) echo "usage: $0 [--check] [--full]" >&2; exit 2 ;;
   esac
 done
+# A write logs each step it runs (ok, failed, or skipped while its stamp holds) to the local timings log
+# (tools/pipeline/step_timings.sh; make timings summarizes it). mode is cold with --full or an empty schematic cache.
+step_timing() { :; }
+timing_mode=""
+if [ ${#check[@]} -eq 0 ] && source tools/pipeline/step_timings.sh 2>/dev/null; then
+  step_timings_open "$PWD"
+  timing_mode=$(step_timings_mode "$full" "${SCHEMATIC_CACHE-$(hart_cache_dir "$PWD" schematic 2>/dev/null)}")
+fi
 # The step lines (manifest.py panel_lines): mode, name, how many check_args, the check_args, then the command; plain
 # words, split on spaces. All are read and checked before the first step runs, so no step reads them on its stdin.
 manifest_stop() { echo "stopped: $1; no step ran" >&2; exit 2; }
@@ -88,6 +96,7 @@ run_step() {
   echo "== $name"
   if [ "$kind" = stamped ] && [ "$full" -eq 0 ] && "${STAMPS[@]}" current "$name" "$@" 2>/dev/null; then
     echo "   $name: current, skipped"
+    step_timing panels "$name" $((SECONDS - start)) skipped "$timing_mode"
     return
   fi
   local out; out=$(mktemp)
@@ -102,6 +111,7 @@ run_step() {
   [ "$rc" -eq 0 ] && [ "$tee_rc" -ne 0 ] && { echo "   $name: could not save its output ($out)"; rc=$tee_rc; }
   if [ "$rc" -eq 0 ]; then
     echo "   $name: ok, $((SECONDS - start)) s"
+    step_timing panels "$name" $((SECONDS - start)) ok "$timing_mode"
     # a step that printed SKIPPED did not really run (plugin off its pin): it must not stamp
     if [ -n "$trace" ]; then
       if grep -q '^SKIPPED' "$out"; then
@@ -115,6 +125,7 @@ run_step() {
   else
     rm -f "$out" ${trace:+"$trace" "$trace.before"}
     echo "   $name: FAILED, $((SECONDS - start)) s"
+    step_timing panels "$name" $((SECONDS - start)) failed "$timing_mode"
     [ "$kind" = stamped ] && "${STAMPS[@]}" forget "$name"
     if [ "$name" = sml-current ] && [ "$rc" -eq 4 ] && [ "$discovered" -eq 0 ] && discover_sml; then
       run_step "$stop" "$kind" "$name" "$@"     # once: discovered=1 now, so a second stale verdict stops the run

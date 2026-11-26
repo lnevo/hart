@@ -190,11 +190,25 @@ class DryRun(unittest.TestCase):
             fake.chmod(fake.stat().st_mode | stat.S_IXUSR)
             log = Path(tmp) / "log"
             log.touch()
+            timings = Path(tmp) / "timings" / "step-timings.tsv"     # the stub runs stay out of the real log
             env = dict(os.environ, PATH=f"{tmp}{os.pathsep}{os.environ['PATH']}", PANELS_LOG=str(log),
                        PANELS_FAIL=fail or "none", HART_PANELS_OS="Linux",    # no SML discovery here: SmlDiscovery
-                       REAL_PYTHON=sys.executable, MANIFEST_STUB=manifest)
+                       REAL_PYTHON=sys.executable, MANIFEST_STUB=manifest, HART_STEP_TIMINGS_LOG=str(timings))
             r = subprocess.run(["bash", str(SCRIPT), *args], cwd=REPO, env=env, capture_output=True, text=True)
+            self.timings = timings.read_text(encoding="utf-8").splitlines() if timings.exists() else []
             return r.returncode, r.stdout + r.stderr, log.read_text(encoding="utf-8").splitlines()
+
+    def test_a_write_logs_each_step_it_runs_and_a_check_logs_none(self):
+        code, out, _ran = self.run_script(fail="build_signals.py")
+        cols = [line.split("\t") for line in self.timings]
+        self.assertEqual(code, 1, out)
+        self.assertEqual([(c[1], c[2], c[4]) for c in cols],
+                         [("panels", n, "ok") for n in NAMES[:NAMES.index("signals")]] + [("panels", "signals", "failed")])
+        self.assertTrue(all(len(c) == 6 and c[3].isdigit() and c[5] in ("warm", "cold") for c in cols), cols)
+        self.run_script("--full")
+        self.assertEqual({line.split("\t")[5] for line in self.timings}, {"cold"})
+        self.run_script("--check")
+        self.assertEqual(self.timings, [])
 
     def test_a_write_runs_every_step_in_order(self):
         code, out, ran = self.run_script()
@@ -291,7 +305,8 @@ class SmlDiscovery(unittest.TestCase):
             env.update(PATH=f"{tmp}{os.pathsep}{os.environ['PATH']}", PANELS_LOG=str(log),
                        DISCOVERED=str(tmp / "discovered"), HART_PANELS_OS=os_name,
                        HART_SML_DISCOVER_CMD=str(discover), HART_OPERATING_FLAG=str(flag),
-                       HART_SML_DISCOVER_LOCK=str(lock), REAL_PYTHON=sys.executable, **extra)
+                       HART_SML_DISCOVER_LOCK=str(lock), REAL_PYTHON=sys.executable, HART_STEP_TIMINGS_LOG="",
+                       **extra)
             r = subprocess.run(["bash", str(SCRIPT), *args], cwd=REPO, env=env, capture_output=True, text=True)
             self.lock_left = lock.exists()
             return r.returncode, r.stdout + r.stderr, log.read_text(encoding="utf-8").splitlines()
@@ -414,7 +429,7 @@ class StaleMastsCsv(unittest.TestCase):
             log.touch()
             env = dict(os.environ, PATH=f"{tmp}{os.pathsep}{os.environ['PATH']}", PANELS_LOG=str(log),
                        REAL_PYTHON=sys.executable, STALE_RUNNER=str(tmp / "runner.py"), SCHEMATIC_DIR=str(HERE),
-                       STALE_CSV=str(current if whole else stale))
+                       STALE_CSV=str(current if whole else stale), HART_STEP_TIMINGS_LOG="")
             r = subprocess.run(["bash", str(SCRIPT), *args], cwd=REPO, env=env, capture_output=True, text=True)
             return r.returncode, r.stdout + r.stderr, log.read_text(encoding="utf-8").splitlines()
 

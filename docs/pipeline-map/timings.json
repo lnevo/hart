@@ -1,0 +1,51 @@
+{
+ "source": "efficiency-plan.md",
+ "steps": {
+  "panels:cats": {
+   "cold_s": 4.0,
+   "last": "2026-11-23",
+   "runner": "panels",
+   "runs": 1,
+   "skip_rate": 0.0,
+   "step": "cats",
+   "warm_s": null
+  },
+  "panels:plan-lengths": {
+   "cold_s": 37.0,
+   "last": "2026-11-23",
+   "runner": "panels",
+   "runs": 1,
+   "skip_rate": 0.0,
+   "step": "plan-lengths",
+   "warm_s": null
+  },
+  "panels:schematic": {
+   "cold_s": 38.0,
+   "last": "2026-11-23",
+   "runner": "panels",
+   "runs": 1,
+   "skip_rate": 0.0,
+   "step": "schematic",
+   "warm_s": null
+  },
+  "panels:sml-current": {
+   "cold_s": 343.0,
+   "last": "2026-11-23",
+   "runner": "panels",
+   "runs": 1,
+   "skip_rate": 0.0,
+   "step": "sml-current",
+   "warm_s": null
+  },
+  "panels:tables": {
+   "cold_s": 2.0,
+   "last": "2026-11-23",
+   "runner": "panels",
+   "runs": 1,
+   "skip_rate": 0.0,
+   "step": "tables",
+   "warm_s": null
+  }
+ },
+ "updated": "2026-11-23"
+}

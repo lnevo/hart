@@ -596,5 +596,7 @@ if (( ${#names[@]} == 0 )); then
 fi
 start_jobs
 collect
+# Each step-manifest job's run goes to the local timings log (tools/pipeline/step_timings.sh; make timings), not from CI or an audit run.
+[[ -n "${CI:-}${CHECK_AUDIT:-}" ]] || { source tools/pipeline/step_timings.sh && step_timings_jobs "$ROOT" "$JOBS" "$MANIFEST_JOBS" ${names[@]+"${names[@]}"}; } 2>/dev/null
 if [[ "$fail" -eq 0 ]]; then echo "ALL PASSED"; else echo "FAILED"; fi
 exit "$fail"

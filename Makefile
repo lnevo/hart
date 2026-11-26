@@ -1,7 +1,7 @@
 # The commands agents and people use most. Each target runs the real script, so
 # these stay short. `make` lists them.
 .DEFAULT_GOAL := help
-.PHONY: help mqtt-clean mqtt-watch wt wt-sweep orient status check static remote portal-check panels desks panelpro-test docs-index map site-data publications waybills submodules tables-pull tables-pull-pi ops-pull roster-pull sts-pull shot deploy-layout deploy-all deploy-status backup-status redeploy deploy-site speedmatch
+.PHONY: help mqtt-clean mqtt-watch wt wt-sweep orient status check static remote portal-check panels desks panelpro-test timings docs-index map site-data publications waybills submodules tables-pull tables-pull-pi ops-pull roster-pull sts-pull shot deploy-layout deploy-all deploy-status backup-status redeploy deploy-site speedmatch
 
 help:  ## List the commands
 	@grep -hE '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -33,6 +33,9 @@ portal-check:  ## Build the website and test its links
 
 panels:  ## Rebuild every panel drawn from the schematic, in order (CHECK=1 only checks)
 	./tools/schematic/build_panels.sh $(if $(filter 1 yes true,$(CHECK)),--check) $(if $(filter 1 yes true,$(FULL)),--full)
+
+timings:  ## Summarize the local step-timings log (make panels, check.sh) into docs/pipeline-map/timings.json
+	python3 tools/pipeline/timings.py summarize
 
 wiring-freeze:  ## Freeze a main or upper control point's wiring into wiring.csv once it is wired: make wiring-freeze CP="CP 107"
 	python3 tools/wiring/freeze_wiring.py --cp "$(CP)"
