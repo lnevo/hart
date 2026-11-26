@@ -53,13 +53,6 @@ function pointerPick(c) {
   return {};
 }
 
-/* What is hidden after an "only" beside k is clicked, for kinds or lanes: everything in all (kind or lane ids) but k (off: what is hidden
-   now). A second click on the one already shown alone shows them all again. */
-function onlyOne(all, off, k) {
-  const alone = all.every(x => x === k || off.includes(x)) && !off.includes(k);
-  return alone ? [] : all.filter(x => x !== k);
-}
-
 /* The id of the first box in boxes ({id, x, y, w, h}) that holds the point x, y, or null. */
 function boxAt(boxes, x, y) {
   const b = boxes.find(n => x >= n.x && x <= n.x + n.w && y >= n.y && y <= n.y + n.h);
@@ -363,8 +356,33 @@ function folderOf(n) {
   return i < 0 ? "top level" : p.slice(0, i);
 }
 
+/* The links of a graph whose boxes groupOf maps into group boxes (isGroup: whether an id is one): links between two
+   boxes are merged and counted, links inside one group dropped. A merged link of two or more is labelled "N links", one
+   touching a group takes `one` (a single link's own label means little there), and a merged link is a side link only
+   when every link in it is. */
+function mergeLinks(edges, groupOf, isGroup, one = "") {
+  const merged = new Map();
+  for (const e of edges) {
+    const from = groupOf[e.from] || e.from, to = groupOf[e.to] || e.to;
+    if (from === to) continue;
+    const key = from + "\u0000" + to;
+    if (!merged.has(key)) merged.set(key, { from, to, n: 0, label: e.label, side: e.side });
+    const m = merged.get(key);
+    m.n++;
+    if (!e.side) m.side = undefined;
+  }
+  return [...merged.values()].map(m => {
+    const grouped = isGroup(m.from) || isGroup(m.to);
+    const label = m.n > 1 ? `${m.n} links` : grouped ? one : m.label;
+    const e = label ? { from: m.from, to: m.to, label } : { from: m.from, to: m.to };
+    if (m.side) e.side = m.side;
+    return e;
+  });
+}
+
 /* One box per folder that holds two or more of the boxes, except the folders named in open; links between
-   folders are merged and counted, links inside one folder dropped. members maps each group id to its box ids. */
+   folders are merged and counted, links inside one folder dropped (mergeLinks). members maps each group id to its
+   box ids. */
 function groupByFolder(nodes, edges, open) {
   const byFolder = new Map();
   nodes.forEach(n => { const f = folderOf(n); if (!byFolder.has(f)) byFolder.set(f, []); byFolder.get(f).push(n); });
@@ -378,24 +396,61 @@ function groupByFolder(nodes, edges, open) {
     out.push({ id, folder: f, label: f.startsWith("outside") ? f : f === "top level" ? "repository root" : f + "/", kind: "folder", status: "live", domain,
                desc: `${list.length} boxes`, path: "" });
   }
-  const merged = new Map();
-  for (const e of edges) {
-    const from = groupOf[e.from] || e.from, to = groupOf[e.to] || e.to;
-    if (from === to) continue;
-    const key = from + "\u0000" + to;
-    if (!merged.has(key)) merged.set(key, { from, to, n: 0, label: e.label, side: e.side });
-    const m = merged.get(key);
-    m.n++;
-    if (!e.side) m.side = undefined;  // a merged link is a side link only when every link in it is
+  const isGroup = id => Object.hasOwn(members, id) || id.startsWith("folder:");
+  return { nodes: out, edges: mergeLinks(edges, groupOf, isGroup), members, groupOf };
+}
+
+/* The lanes not in open, each closed to one box ("lane:<domain>", kind "lane") where its first box was, so the lane is
+   a thin strip that keeps its links to the open lanes, merged and counted (mergeLinks; a single one reads "1 link").
+   label(domain, count) gives the closed box its name. members and groupOf as groupByFolder's. */
+function collapseLanes(nodes, edges, open, label) {
+  const groupOf = {}, members = {}, out = [];
+  for (const n of nodes) {
+    if (open.has(n.domain)) { out.push(n); continue; }
+    const id = "lane:" + n.domain;
+    groupOf[n.id] = id;
+    if (!members[id]) { members[id] = []; out.push({ id, lane: n.domain, kind: "lane", status: "live", domain: n.domain, path: "" }); }
+    members[id].push(n.id);
   }
-  const outEdges = [...merged.values()].map(m => {
-    const grouped = groupOf[m.from] || groupOf[m.to] || m.from.startsWith("folder:") || m.to.startsWith("folder:");
-    const label = m.n > 1 ? `${m.n} links` : grouped ? "" : m.label;
-    const e = label ? { from: m.from, to: m.to, label } : { from: m.from, to: m.to };
-    if (m.side) e.side = m.side;
-    return e;
+  out.forEach(n => { if (n.kind === "lane") { n.label = label(n.lane, members[n.id].length); n.desc = `${members[n.id].length} boxes, closed`; } });
+  return { nodes: out, edges: mergeLinks(edges, groupOf, id => id.startsWith("lane:"), "1 link"), members, groupOf };
+}
+
+/* The lane overview's drawing, in its own units: one card per lane stacked in the graph's order (cards: {id, x, y, w,
+   h}), and one arc per bundle of links between two lanes (arcs: {from, to, n, d, lx, ly, w}): a bundle down the list
+   on the right of the cards, one up it on the left, bulging further the more lanes it spans, so arcs nest; each card
+   side spreads the ends of its arcs over its height. w is the arc's stroke width, by its share of the biggest bundle,
+   and head the arrowhead at its end, sized to the stroke (a marker would scale with it). left, width and height: the
+   drawing's extent, arcs included. */
+function laneOverview(lanes, bundles, cardW = 600, cardH = 96, gap = 28, span = 34) {
+  const cards = lanes.map((l, i) => ({ id: l.id, x: 0, y: i * (cardH + gap), w: cardW, h: cardH }));
+  const at = {};
+  cards.forEach((c, i) => (at[c.id] = i));
+  const list = bundles.filter(b => b.from in at && b.to in at && b.from !== b.to);
+  const ends = {};  // card index and side -> its arcs' ends, ordered by the other end, to spread over the card's height
+  list.forEach((b, k) => {
+    const i = at[b.from], j = at[b.to], side = j > i ? "r" : "l";
+    (ends[i + side] ||= []).push([j, k, "from"]);
+    (ends[j + side] ||= []).push([i, k, "to"]);
   });
-  return { nodes: out, edges: outEdges, members, groupOf };
+  const y = {};
+  for (const key in ends) {
+    const i = Number(key.slice(0, -1)), c = cards[i], list2 = ends[key].sort((p, q) => p[0] - q[0] || p[1] - q[1]);
+    list2.forEach(([, k, end], m) => ((y[k] ||= {})[end] = c.y + 12 + (c.h - 24) * (m + 0.5) / list2.length));
+  }
+  const most = Math.max(1, ...list.map(b => b.n));
+  let reach = 0;
+  const arcs = list.map((b, k) => {
+    const i = at[b.from], j = at[b.to], right = j > i, bulge = 26 + Math.abs(j - i) * span;
+    const x0 = right ? cardW : 0, dir = right ? 1 : -1, cx = x0 + dir * bulge, y0 = y[k].from, y1 = y[k].to;
+    const w = 1.5 + 9 * Math.sqrt(b.n / most), len = 5 + w * 0.7, half = 3 + w * 0.6, f = v => v.toFixed(1);
+    reach = Math.max(reach, bulge * 0.75 + 24);
+    return { from: b.from, to: b.to, n: b.n, side: b.side || 0, w, lx: x0 + dir * bulge * 0.75, ly: (y0 + y1) / 2,
+             d: `M${x0},${f(y0)} C${cx},${f(y0)} ${cx},${f(y1)} ${f(x0 + dir * len * 0.8)},${f(y1)}`,
+             head: `M${x0},${f(y1)} L${f(x0 + dir * len)},${f(y1 - half)} L${f(x0 + dir * len)},${f(y1 + half)} z` };
+  });
+  const height = cards.length ? cards[cards.length - 1].y + cardH : 0;
+  return { cards, arcs, left: -reach, width: cardW + 2 * reach, height };
 }
 
 /* The box's file on GitHub, or "" for a box with no path or one outside the tracked files (a gitignored mirror or a
@@ -413,5 +468,5 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { onlyOne, stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, growRank, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, laneTagTops, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, growRank, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, laneTagTops, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, mergeLinks, groupByFolder, collapseLanes, laneOverview, githubUrl };
 }
