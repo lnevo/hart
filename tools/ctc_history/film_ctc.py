@@ -5,18 +5,24 @@ Run it with `python3 tools/ctc_history/films.py ctc`.
 
 from __future__ import annotations
 
-import subprocess
-import sys
 import tempfile
 from pathlib import Path
+from typing import NamedTuple
 
-from PIL import Image, ImageDraw, ImageFont
+from film_common import (
+    CAPTION_INK,
+    HISTORY,
+    Box,
+    Font,
+    concat_input,
+    load_font,
+    mp4_command,
+    open_frame,
+    run_ffmpeg,
+    write_concat_list,
+)
+from PIL import Image, ImageDraw
 
-sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
-                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import film_pace  # noqa: E402
-
-HISTORY = Path(__file__).resolve().parents[2] / "docs/ctc/history"
 DESKTOP = HISTORY
 OUT_MP4 = HISTORY / "CTC_Panel_Evolution.mp4"
 OUT_GIF = HISTORY / "CTC_Panel_Evolution.gif"
@@ -34,40 +40,31 @@ TRACK_ANCHOR_Y = 20
 FULL_PANEL_MIN_W = 980
 PAD_COLOR = (180, 155, 95)  # tan panel background
 
+
+class Frame(NamedTuple):
+    name: str     # screenshot file in docs/ctc/history
+    caption: str
+
+
 # Chronological evolution (Desktop captures, Aug 19 – Sep 28 2026; Nov 11 painted by PanelPro)
-FRAMES: list[tuple[str, str]] = [
-    ("66e68918-4180-46f9-938b-cc55f4fa56a2.png", "Pilot — Brick + Plane (3 columns)"),
-    ("Screenshot 2026-08-19 at 5.44.55\u202fPM.png", "Wireframe track + lever machine"),
-    ("Screenshot 2026-08-19 at 8.37.11\u202fPM.png", "Station labels — Brick through Princess"),
-    ("Screenshot 2026-08-19 at 8.44.31\u202fPM.png", "Main West / South Yard routing"),
-    ("Screenshot 2026-08-19 at 9.36.05\u202fPM.png", "Engine Terminal + yard ladders"),
-    ("Screenshot 2026-08-19 at 9.48.51\u202fPM.png", "West Yard W-1 / W-2 stubs"),
-    ("Screenshot 2026-08-19 at 10.06.35\u202fPM.png", "Full plant geometry"),
-    ("Screenshot 2026-08-19 at 10.41.20\u202fPM.png", "Engine House + McKees stubs"),
-    ("Screenshot 2026-08-19 at 11.33.05\u202fPM.png", "Title banner + live lever art"),
-    ("Screenshot 2026-08-19 at 11.35.49\u202fPM.png", "Connected — occupancy + aspects"),
-    ("Screenshot 2026-08-20 at 1.34.22\u202fAM.png", "HART RAILROAD — NEVILLE ISLAND"),
-    ("Screenshot 2026-08-20 at 7.42.19\u202fAM.png", "Running: lamps lit on the levers"),
-    ("Screenshot 2026-08-23 at 8.52.10\u202fPM.png", "Redrawn by the generator; ? until JMRI reports"),
-    ("Screenshot 2026-08-27 at 5.22.14\u202fPM.png", "Straight mains, OS track names, 20 columns"),
-    ("Screenshot 2026-09-28 at 4.37.37\u202fPM.png", "Public names: Track S-1, Track EH-1, Track K-1"),
-    ("uss_ctc_20261111_panelpro.png", "Princess mains redrawn; every signal icon in view"),
+FRAMES: list[Frame] = [
+    Frame("66e68918-4180-46f9-938b-cc55f4fa56a2.png", "Pilot — Brick + Plane (3 columns)"),
+    Frame("Screenshot 2026-08-19 at 5.44.55\u202fPM.png", "Wireframe track + lever machine"),
+    Frame("Screenshot 2026-08-19 at 8.37.11\u202fPM.png", "Station labels — Brick through Princess"),
+    Frame("Screenshot 2026-08-19 at 8.44.31\u202fPM.png", "Main West / South Yard routing"),
+    Frame("Screenshot 2026-08-19 at 9.36.05\u202fPM.png", "Engine Terminal + yard ladders"),
+    Frame("Screenshot 2026-08-19 at 9.48.51\u202fPM.png", "West Yard W-1 / W-2 stubs"),
+    Frame("Screenshot 2026-08-19 at 10.06.35\u202fPM.png", "Full plant geometry"),
+    Frame("Screenshot 2026-08-19 at 10.41.20\u202fPM.png", "Engine House + McKees stubs"),
+    Frame("Screenshot 2026-08-19 at 11.33.05\u202fPM.png", "Title banner + live lever art"),
+    Frame("Screenshot 2026-08-19 at 11.35.49\u202fPM.png", "Connected — occupancy + aspects"),
+    Frame("Screenshot 2026-08-20 at 1.34.22\u202fAM.png", "HART RAILROAD — NEVILLE ISLAND"),
+    Frame("Screenshot 2026-08-20 at 7.42.19\u202fAM.png", "Running: lamps lit on the levers"),
+    Frame("Screenshot 2026-08-23 at 8.52.10\u202fPM.png", "Redrawn by the generator; ? until JMRI reports"),
+    Frame("Screenshot 2026-08-27 at 5.22.14\u202fPM.png", "Straight mains, OS track names, 20 columns"),
+    Frame("Screenshot 2026-09-28 at 4.37.37\u202fPM.png", "Public names: Track S-1, Track EH-1, Track K-1"),
+    Frame("uss_ctc_20261111_panelpro.png", "Princess mains redrawn; every signal icon in view"),
 ]
-
-
-def load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
-    for name in (
-        "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
-        "/System/Library/Fonts/Helvetica.ttc",
-        "/Library/Fonts/Arial Bold.ttf",
-    ):
-        p = Path(name)
-        if p.exists():
-            try:
-                return ImageFont.truetype(str(p), size=size)
-            except OSError:
-                continue
-    return ImageFont.load_default()
 
 
 def is_dark(rgb: tuple[int, int, int]) -> bool:
@@ -200,7 +197,7 @@ def panel_crop(img: Image.Image) -> Image.Image:
 # Later captures (Aug 20 to Sep 28) show a wider machine than the first eleven, so
 # the fixed-width alignment would cut off its right side. These use an explicit
 # crop to the gold panel, measured from each screenshot, and are fitted whole.
-EXPLICIT_CROPS: dict[str, tuple[int, int, int, int]] = {
+EXPLICIT_CROPS: dict[str, Box] = {
     "Screenshot 2026-08-20 at 7.42.19\u202fAM.png": (1, 3, 1130, 721),
     "Screenshot 2026-08-23 at 8.52.10\u202fPM.png": (2, 36, 1131, 754),
     "Screenshot 2026-08-27 at 5.22.14\u202fPM.png": (0, 0, 1324, 718),
@@ -209,11 +206,7 @@ EXPLICIT_CROPS: dict[str, tuple[int, int, int, int]] = {
 }
 
 
-def compose_frame(img: Image.Image, caption: str, font) -> Image.Image:
-    return compose_frame_cropped(img, None, caption, font)
-
-
-def compose_frame_cropped(img: Image.Image, box, caption: str, font) -> Image.Image:
+def compose_frame_cropped(img: Image.Image, box: Box | None, caption: str, font: Font) -> Image.Image:
     canvas = Image.new("RGB", CANVAS, BG)
     draw = ImageDraw.Draw(canvas)
 
@@ -235,33 +228,20 @@ def compose_frame_cropped(img: Image.Image, box, caption: str, font) -> Image.Im
     draw.text(
         ((CANVAS[0] - tw) / 2, CANVAS[1] - CAPTION_H),
         caption,
-        fill=(220, 200, 140),
+        fill=CAPTION_INK,
         font=font,
     )
     return canvas
 
 
-def build_frames(work: Path, font) -> list[Path]:
+def build_frames(work: Path, font: Font) -> list[Path]:
     paths: list[Path] = []
     for i, (name, caption) in enumerate(FRAMES):
-        src = DESKTOP / name
-        if not src.exists():
-            raise FileNotFoundError(src)
-        frame = compose_frame_cropped(Image.open(src), EXPLICIT_CROPS.get(name), caption, font)
+        frame = compose_frame_cropped(open_frame(DESKTOP / name), EXPLICIT_CROPS.get(name), caption, font)
         out = work / f"frame_{i:03d}.png"
         frame.save(out, optimize=True)
         paths.append(out)
     return paths
-
-
-def write_concat_list(frame_paths: list[Path], list_path: Path) -> None:
-    lines = []
-    for i, p in enumerate(frame_paths):
-        dur = film_pace.durations(len(frame_paths))[i]
-        lines.append(f"file '{p}'")
-        lines.append(f"duration {dur:.3f}")
-    lines.append(f"file '{frame_paths[-1]}'")
-    list_path.write_text("\n".join(lines) + "\n")
 
 
 def main() -> None:
@@ -271,76 +251,16 @@ def main() -> None:
         frame_paths = build_frames(work, font)
         list_path = work / "concat.txt"
         write_concat_list(frame_paths, list_path)
+        run_ffmpeg(mp4_command(list_path, len(frame_paths),
+                               ["-c:v", "libx264", "-pix_fmt", "yuv420p", "-movflags", "+faststart"], OUT_MP4))
 
-        subprocess.run(
-            [
-                "ffmpeg",
-                "-y",
-                "-f",
-                "concat",
-                "-safe",
-                "0",
-                "-i",
-                str(list_path),
-                "-vf",
-                "fps=30,format=yuv420p",
-                "-t",
-                str(film_pace.film_length(len(frame_paths))),
-                "-c:v",
-                "libx264",
-                "-pix_fmt",
-                "yuv420p",
-                "-movflags",
-                "+faststart",
-                str(OUT_MP4),
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-
-        # GIF — shorter loop-friendly version
+        # GIF: a palette pass, then the film at 5 fps through that palette
         palette = work / "palette.png"
-        subprocess.run(
-            [
-                "ffmpeg",
-                "-y",
-                "-f",
-                "concat",
-                "-safe",
-                "0",
-                "-i",
-                str(list_path),
-                "-vf",
-                f"fps=5,scale={CANVAS[0]}:{CANVAS[1]}:flags=lanczos,palettegen",
-                str(palette),
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        subprocess.run(
-            [
-                "ffmpeg",
-                "-y",
-                "-f",
-                "concat",
-                "-safe",
-                "0",
-                "-i",
-                str(list_path),
-                "-i",
-                str(palette),
-                "-lavfi",
-                f"fps=5,scale={CANVAS[0]}:{CANVAS[1]}:flags=lanczos[x];[x][1:v]paletteuse=dither=bayer",
-                str(OUT_GIF),
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
+        scale = f"fps=5,scale={CANVAS[0]}:{CANVAS[1]}:flags=lanczos"
+        run_ffmpeg([*concat_input(list_path), "-vf", f"{scale},palettegen", str(palette)])
+        run_ffmpeg([*concat_input(list_path), "-i", str(palette),
+                    "-lavfi", f"{scale}[x];[x][1:v]paletteuse=dither=bayer", str(OUT_GIF)])
 
     print(f"Wrote {OUT_MP4}")
     print(f"Wrote {OUT_GIF}")
     print(f"Frames: {len(FRAMES)}")
-
