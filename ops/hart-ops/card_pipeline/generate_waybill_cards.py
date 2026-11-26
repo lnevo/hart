@@ -26,7 +26,6 @@ import os
 import shutil
 import sys
 from collections import defaultdict
-from copy import deepcopy
 from pathlib import Path
 
 from docx import Document
@@ -106,22 +105,10 @@ def load_spot_groups() -> list[dict]:
     return merged
 
 
-
-def _blank_sticker_grid():
-    scratch_path = BASE / ".scratch_waybill.docx"
-    shutil.copy2(car_paths.STICKER_SHEET, scratch_path)
-    scratch = Document(scratch_path)
-    card_template_sheet.keep_sticker_grid(scratch)
-    grid = deepcopy(scratch.tables[0]._tbl)
-    scratch_path.unlink(missing_ok=True)
-    return grid
-
-
-
 def generate(deck: list[dict]) -> None:
     car_paths.require_sticker_sheet()
 
-    blank_grid = _blank_sticker_grid()
+    blank_grid = card_template_sheet.blank_sticker_grid(car_paths.STICKER_SHEET)
     temp_path = OUTPUT.with_suffix(".tmp.docx")
     shutil.copy2(car_paths.STICKER_SHEET, temp_path)
     doc = Document(temp_path)
@@ -133,7 +120,7 @@ def generate(deck: list[dict]) -> None:
     wsheet._fill_page(sheet, pages[0], 0)
 
     for page_idx, batch in enumerate(pages[1:], start=1):
-        sheet = wsheet._append_grid(doc, blank_grid)
+        sheet = card_template_sheet.append_grid(doc, blank_grid)
         wsheet._fill_page(sheet, batch, page_idx)
 
     card_template_sheet.add_document_tail(doc.element.body)

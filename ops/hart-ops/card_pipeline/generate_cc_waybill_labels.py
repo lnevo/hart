@@ -17,12 +17,9 @@ import json
 import os
 import shutil
 import subprocess
-from copy import deepcopy
 from pathlib import Path
 
 from docx import Document
-from docx.oxml import OxmlElement
-from docx.oxml.ns import qn
 from docx.table import Table
 
 import car_paths
@@ -235,42 +232,6 @@ def _pad_to_page(deck: list[dict]) -> list[dict]:
     return out
 
 
-def _set_page_break_before_table(tbl) -> None:
-    first_row = tbl.findall(qn("w:tr"))[0]
-    first_cell = first_row.findall(qn("w:tc"))[0]
-    p = first_cell.find(qn("w:p"))
-    if p is None:
-        p = OxmlElement("w:p")
-        first_cell.insert(0, p)
-    pPr = p.find(qn("w:pPr"))
-    if pPr is None:
-        pPr = OxmlElement("w:pPr")
-        p.insert(0, pPr)
-    if pPr.find(qn("w:pageBreakBefore")) is None:
-        pPr.insert(0, OxmlElement("w:pageBreakBefore"))
-
-
-def _append_grid(doc: Document, grid_xml) -> Table:
-    body = doc.element.body
-    tbl = deepcopy(grid_xml)
-    _set_page_break_before_table(tbl)
-    card_template_sheet.insert_before_sect(body, tbl)
-    card_template_sheet.ensure_sect_pr_last(body)
-    table = Table(body.findall(qn("w:tbl"))[-1], doc)
-    card_template_sheet.strip_grid_guides(table)
-    return table
-
-
-def _blank_sticker_grid():
-    scratch_path = BASE / ".scratch_cc_waybill.docx"
-    shutil.copy2(car_paths.STICKER_SHEET, scratch_path)
-    scratch = Document(scratch_path)
-    card_template_sheet.keep_sticker_grid(scratch)
-    grid = deepcopy(scratch.tables[0]._tbl)
-    scratch_path.unlink(missing_ok=True)
-    return grid
-
-
 def _fill_page(sheet: Table, batch: list[dict], page_idx: int) -> None:
     for i, record in enumerate(batch):
         r, c = card_template_layout.CARD_SLOTS[i]
@@ -285,7 +246,7 @@ def generate(labels: list[dict], output: Path = OUTPUT) -> None:
     car_paths.require_sticker_sheet()
 
     deck = _pad_to_page(labels)
-    blank_grid = _blank_sticker_grid()
+    blank_grid = card_template_sheet.blank_sticker_grid(car_paths.STICKER_SHEET)
     temp_path = output.with_suffix(".tmp.docx")
     output.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(car_paths.STICKER_SHEET, temp_path)
@@ -296,7 +257,7 @@ def generate(labels: list[dict], output: Path = OUTPUT) -> None:
     sheet = doc.tables[0]
     _fill_page(sheet, pages[0], 0)
     for page_idx, batch in enumerate(pages[1:], start=1):
-        sheet = _append_grid(doc, blank_grid)
+        sheet = card_template_sheet.append_grid(doc, blank_grid)
         _fill_page(sheet, batch, page_idx)
 
     card_template_sheet.add_document_tail(doc.element.body)

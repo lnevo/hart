@@ -118,9 +118,6 @@
  "jmri/layouts/hart/scripts/tests/test_speedmatch_review.py": {
   "exec-parts": 2
  },
- "ops/hart-ops/card_pipeline/apply_visual_review.py": {
-  "dated-note": 1
- },
  "ops/hart-ops/publications/build_crew_json.py": {
   "import-exit": 1
  },
