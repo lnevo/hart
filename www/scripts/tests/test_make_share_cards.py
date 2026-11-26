@@ -20,6 +20,14 @@ class Recipes(unittest.TestCase):
         for name, fn in gen.CARDS.items():
             self.assertTrue(fn.__doc__.strip().startswith(name + ":"), name)
 
+    def test_a_recipe_module_imported_first_loads(self):
+        # review of the split: the recipes and make_share_cards import each other; the package loads it first
+        import subprocess
+        for mod in ("composites", "page_figures"):
+            done = subprocess.run([sys.executable, "-c", f"import share_card_recipes.{mod}, make_share_cards as k; "
+                                   "print(len(k.CARDS))"], cwd=SCRIPTS, capture_output=True, text=True)
+            self.assertEqual((done.returncode, done.stdout.strip()), (0, str(len(gen.CARDS))), done.stderr)
+
     def test_captured_sources_are_in_the_repo(self):
         for name in ("panel-frame.png", "track-scale-weighed.png"):
             self.assertTrue((gen.SOURCES / name).is_file(), name)

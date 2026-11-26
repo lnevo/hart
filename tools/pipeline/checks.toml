@@ -934,7 +934,7 @@ inputs = [
 ]
 # The site build (prepare_github_pages.py) reads: the site tree; the sources www/scripts/published-files.json names,
 # as their folder and suffix; the files the site's data names outside www/ that it copies in (the operator logos,
-# the rolling stock photos: its _vendor_logo and MIRROR_PREFIXES); and what the seven steps whose pages and data it builds read (tables-browser,
+# the rolling stock photos: portal_photos._vendor_logo and portal_common.MIRROR_PREFIXES); and what the seven steps whose pages and data it builds read (tables-browser,
 # repo-guide, jmri-additions, pipeline-map, layout-index, layout-index-cats, wiring-json: their inputs and quiet_inputs, in that order).
 # tools/audit/tests/test_manifest_scans.py
 # keeps this list equal to those.
