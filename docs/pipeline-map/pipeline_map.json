@@ -316,7 +316,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "extras",
-   "desc": "The line count each Python file over 800 lines may not pass (owner, 2026-11-25); check_py_sizes.py --update tightens it, --accept raises a row by name.",
+   "desc": "The line count each .py or .js file over 800 lines, or .sh file over 500, may not pass (owner, 2026-11-25); check_py_sizes.py --update tightens it, --accept raises a row by name.",
    "path": "tools/audit/py_sizes.csv"
   },
   {
@@ -4002,7 +4002,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "extras",
-   "desc": "Fails when a Python file over 800 lines grows past its row in tools/audit/py_sizes.csv; --update tightens the list, --accept raises a row by name.",
+   "desc": "Fails when a .py or .js file over 800 lines, or a .sh file over 500, grows past its row in tools/audit/py_sizes.csv; warns at 90 percent of the limit; --update tightens the list, --accept raises a row by name.",
    "path": "tools/audit/check_py_sizes.py",
    "gen": "manifest"
   },
@@ -5280,6 +5280,24 @@
    "domain": "extras",
    "desc": "Traced stamps of check.sh's jobs: a job whose recorded reads are unchanged since its last pass is skipped.",
    "path": "tools/audit/check_stamps.py"
+  },
+  {
+   "id": "tools/audit/stamps_cache.py",
+   "label": "stamps_cache.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "check_stamps.py's shared ground: the walk of a pattern set, the file-hash cache and the Checker.",
+   "path": "tools/audit/stamps_cache.py"
+  },
+  {
+   "id": "tools/audit/stamps_audit.py",
+   "label": "stamps_audit.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "check_stamps.py's audits: the CHECK_AUDIT folder's reads and the declaration audit of the step-manifest jobs.",
+   "path": "tools/audit/stamps_audit.py"
   },
   {
    "id": "tools/audit/traced.py",
@@ -12481,6 +12499,21 @@
    "from": "tools/audit/check_stamps.py",
    "to": "tools/check.sh",
    "label": "current, record"
+  },
+  {
+   "from": "tools/audit/stamps_cache.py",
+   "to": "tools/audit/check_stamps.py",
+   "label": "re-exported"
+  },
+  {
+   "from": "tools/audit/stamps_audit.py",
+   "to": "tools/audit/check_stamps.py",
+   "label": "re-exported"
+  },
+  {
+   "from": "tools/audit/stamps_cache.py",
+   "to": "tools/audit/stamps_audit.py",
+   "label": "imports"
   },
   {
    "from": "tools/audit/check_stamps.py",
