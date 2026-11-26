@@ -53,16 +53,16 @@ def height_text(cm):
     return "%g in (%.1f cm)" % (round(inches(abs(cm)), 2), abs(cm))
 
 
+class LevelsPageError(Exception):
+    """The plan, the block tables or the drawings disagree with what the page says; the message names the source and the fix."""
+
+
 def read_meta(levels):
     meta = json.loads((levels / "levels_meta.json").read_text())
     for need in ("plan", "levels", "helix", "ramps", "max_grade_pct"):
         if need not in meta:
             raise LevelsPageError(f"{levels / 'levels_meta.json'} has no {need!r}; rerun levels_svg.py")
     return meta
-
-
-class LevelsPageError(Exception):
-    """The plan, the block tables or the drawings disagree with what the page says; the message names the source and the fix."""
 
 
 def block_rows():

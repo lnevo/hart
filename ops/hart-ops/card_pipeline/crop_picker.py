@@ -20,7 +20,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from car_paths import CardPipelineError
+from card_errors import CardPipelineError
 
 VIEW_DIR = "picker"  # inside the batch folder; gitignored with it
 DATA_FILE = "picker.json"

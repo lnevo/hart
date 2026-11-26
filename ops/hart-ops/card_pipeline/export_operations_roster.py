@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
-from car_paths import CardPipelineError
+from card_errors import CardPipelineError
 
 DATA = Path(__file__).resolve().parent.parent / "data"
 MERGED = DATA / "HART_MergedCarRoster.xml"
@@ -40,6 +40,7 @@ def export_roster() -> None:
 
 
 def main() -> None:
+    """The command: export the roster, a CardPipelineError printed and exit 1."""
     try:
         export_roster()
     except CardPipelineError as exc:

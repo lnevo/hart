@@ -14,7 +14,7 @@ import subprocess
 import time
 from pathlib import Path
 
-from car_paths import CardPipelineError
+from card_errors import CardPipelineError
 
 CHECKS = ("batches", "committed", "pi", "backup")
 BACKUP_MAX_AGE_HOURS = 12

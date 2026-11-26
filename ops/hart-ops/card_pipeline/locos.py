@@ -20,7 +20,7 @@ import xml.etree.ElementTree as ET
 from datetime import date
 from pathlib import Path
 
-from car_paths import CardPipelineError
+from card_errors import CardPipelineError
 
 HART_OPS = Path(__file__).resolve().parents[1]
 HART_ROOT = HART_OPS.parents[1]

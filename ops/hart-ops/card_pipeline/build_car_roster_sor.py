@@ -2,7 +2,7 @@
 """Build canonical car roster SoR and export to OperationsCarRoster.xml."""
 
 from build_merged_car_roster import main as build_main
-from car_paths import CardPipelineError
+from card_errors import CardPipelineError
 from export_operations_roster import export_roster
 
 

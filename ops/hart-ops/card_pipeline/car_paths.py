@@ -10,8 +10,7 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import paths  # noqa: E402
 
 
-class CardPipelineError(Exception):
-    """A card pipeline step cannot go on; the message says what to fix. The command's main() exits with it."""
+from card_errors import CardPipelineError  # noqa: E402,F401  re-exported: callers that already import car_paths
 
 
 PIPELINE = Path(__file__).resolve().parent

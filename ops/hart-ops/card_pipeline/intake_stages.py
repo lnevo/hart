@@ -24,7 +24,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from car_paths import CardPipelineError  # noqa: E402
+from card_errors import CardPipelineError  # noqa: E402
 from hartlib import paths  # noqa: E402
 HART_ROOT = paths.REPO_ROOT
 BATCH_ROOT = Path(os.environ.get("HART_INTAKE_ROOT", HART_ROOT / "ops/intake"))
