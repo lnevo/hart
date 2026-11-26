@@ -164,6 +164,15 @@ class SubagentGuard(unittest.TestCase):
         self.assertEqual(run(SUBAGENT_GUARD, "make deploy-site", str(ROOT)).returncode, 2)
         self.assertEqual(run(SUBAGENT_GUARD, "make check", str(ROOT)).returncode, 0)
 
+    def test_pulls_from_the_pi_are_blocked(self) -> None:
+        for command in ("make ops-pull", "make roster-pull", "tools/ops/pull_ops.sh", "./tools/ops/pull_roster.sh",
+                        "bash tools/ops/pull_roster.sh", "timeout 60 tools/ops/pull_roster.sh"):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 2)
+        for command in ("grep -n roster-pull Makefile", "sed -n 1,20p tools/ops/pull_roster.sh"):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 0)
+
     def test_ssh_that_only_reads_is_allowed(self) -> None:
         for command in (
             "ssh pi tail -n 50 ~/JMRI_UserFiles/messages.log",

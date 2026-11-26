@@ -189,10 +189,9 @@ class NoHardCodedHosts(unittest.TestCase):
 
     def test_scripts_source_load_env(self) -> None:
         for path in self.MAC_SIDE:
-            if path.name in ("pack_roster_stage.sh", "profile_tables_guard.sh", "panelpro_session.sh", "operating.sh",
-                             "run_panelpro_roundtrip.sh", "roster_digest.sh"):
-                continue  # local packing, Mac-only helpers, the Mac PanelPro round trip and the roster digest (it
-                # reads the folder it is given, piped to the Pi by sync_roster_from_pi.sh): no host
+            if path.name in ("profile_tables_guard.sh", "panelpro_session.sh", "operating.sh",
+                             "run_panelpro_roundtrip.sh"):
+                continue  # Mac-only helpers and the Mac PanelPro round trip: no host
             text = path.read_text(encoding="utf-8")
             if path.name == "sync_hart_package.sh":   # the entry point sources it through the steps' shared file
                 text += (ROOT / "tools/hosts/deploy/common.sh").read_text(encoding="utf-8")

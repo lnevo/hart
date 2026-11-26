@@ -13,6 +13,7 @@ Scripts and tools that were taken out of use. Nothing here runs, and the paths i
 | `f-root-review/` | The local review desk for the old Desktop files, from `www/` |
 | `jmri-scripts/` | Old JMRI scripts for the linear layouts and the hart panel |
 | `nexttrain-dispatcher/` | The NextTrain dispatcher workbook export |
+| `roster-sync/` | The DecoderPro roster copy from the Pi to the Mac and Windows and its helpers, from `tools/hosts/`; retired once the repo held the roster master (ADR-039) |
 | `schematic-experiments/` | A one-band schematic solver experiment |
 | `speedmatching/` | Speed-match and profile scripts, from `docs/jmri/speedmatching/` |
 | `tables-scripts/` | Two old tables.xml scripts |

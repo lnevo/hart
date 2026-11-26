@@ -2153,15 +2153,6 @@
    "path": "tools/hosts/pi_sts_update.sh"
   },
   {
-   "id": "tools/hosts/sync_roster_from_pi.sh",
-   "label": "sync_roster_from_pi.sh",
-   "kind": "generator",
-   "status": "live",
-   "domain": "ops",
-   "desc": "Pulls DecoderPro roster from the Pi to Mac and Windows JMRI_UserFiles for visibility and backup; not committed. --status (make orient) only compares the Pi with the Mac copy.",
-   "path": "tools/hosts/sync_roster_from_pi.sh"
-  },
-  {
    "id": "tools/ops/cs105.sh",
    "label": "cs105.sh {reboot,consist,roster-sync}",
    "kind": "generator",
@@ -4179,15 +4170,6 @@
    "path": "tools/hosts/pi/apply_hart_package_local.sh"
   },
   {
-   "id": "tools/hosts/pack_roster_stage.sh",
-   "label": "pack_roster_stage.sh",
-   "kind": "generator",
-   "status": "live",
-   "domain": "hosts",
-   "desc": "Writes a tar stream of a roster stage folder with relative names; sync_roster_from_pi.sh pipes it to the Windows box.",
-   "path": "tools/hosts/pack_roster_stage.sh"
-  },
-  {
    "id": "tools/hosts/panelpro_profile.py",
    "label": "panelpro_profile.py",
    "kind": "generator",
@@ -5607,15 +5589,6 @@
    "path": "tools/hosts/deploy/pi_unpulled.sh"
   },
   {
-   "id": "tools/hosts/roster_digest.sh",
-   "label": "roster_digest.sh",
-   "kind": "generator",
-   "status": "live",
-   "domain": "hosts",
-   "desc": "Prints a sha256 line per DecoderPro roster file in a user files folder; sync_roster_from_pi.sh --status runs it on the Pi and the Mac.",
-   "path": "tools/hosts/roster_digest.sh"
-  },
-  {
    "id": "jmri/layouts/hart/roster",
    "label": "hart/roster (DecoderPro roster)",
    "kind": "structured",
@@ -6234,10 +6207,6 @@
    "from": "ext:decoderpro-roster",
    "to": "host:pi",
    "label": "lives on"
-  },
-  {
-   "from": "ext:decoderpro-roster",
-   "to": "tools/hosts/sync_roster_from_pi.sh"
   },
   {
    "from": "ext:decoderpro-roster",
@@ -8279,16 +8248,6 @@
    "from": "tools/hosts/sync_hart_package.sh",
    "to": "jmri/layouts/hart/scripts/sts_car_sync.py",
    "label": "installs"
-  },
-  {
-   "from": "tools/hosts/sync_roster_from_pi.sh",
-   "to": "host:mac",
-   "label": "roster copy"
-  },
-  {
-   "from": "tools/hosts/sync_roster_from_pi.sh",
-   "to": "host:windows",
-   "label": "roster copy"
   },
   {
    "from": "tools/hosts/windows",
@@ -11327,16 +11286,6 @@
    "label": "installs, enables, restarts"
   },
   {
-   "from": "tools/hosts/sync_roster_from_pi.sh",
-   "to": "tools/hosts/pack_roster_stage.sh",
-   "label": "runs"
-  },
-  {
-   "from": "tools/hosts/pack_roster_stage.sh",
-   "to": "host:windows",
-   "label": "tar stream of the roster stage"
-  },
-  {
    "from": "cats/scripts/patch_jmri_startup.py",
    "to": "tools/hosts/panelpro_profile.py",
    "label": "imports"
@@ -13186,17 +13135,6 @@
    "from": "tools/ops/orient_pages.py",
    "to": "tools/ops/orient.py",
    "label": "re-exported"
-  },
-  {
-   "from": "tools/hosts/roster_digest.sh",
-   "to": "tools/hosts/sync_roster_from_pi.sh",
-   "label": "--status digests"
-  },
-  {
-   "from": "ext:decoderpro-roster",
-   "to": "tools/hosts/roster_digest.sh",
-   "label": "roster files",
-   "side": "check"
   },
   {
    "from": "www/scripts/portal_common.py",

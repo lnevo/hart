@@ -353,9 +353,11 @@ speeds in mm/s, as in JMRI 5.16 `RosterSpeedProfile`), saves the roster entry an
 index, and logs the profile read back (`STOP written`). It touches no throttle, power, turnout
 or CV, and holds `/tmp/speedrun.active` like the other jobs.
 
-**The Pi is the roster master.** The write happens in the Pi's JMRI. Afterwards sync the roster
-to the Mac and Windows with `tools/hosts/sync_roster_from_pi.sh`; do not edit the roster on
-another host in between.
+**The write happens in the Pi's JMRI.** The repo holds the roster master
+(`jmri/layouts/hart/roster`, ADR-039), and the deploy installs it on every host. Afterwards bring
+the Pi's roster into the repo with `make roster-pull`, then commit and merge before the next
+deploy, which would otherwise stop on the unpulled roster. Do not edit the roster on another host
+in between.
 
 ## Distance mode
 
