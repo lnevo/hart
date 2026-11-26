@@ -25,7 +25,7 @@ SHELL_PYTHON = '"$HOPS_PY"'
 # field -> (type, required); the item lists are checked further below
 FIELDS: dict[str, tuple[type, bool]] = {
     "name": (str, True), "runner": (str, True), "cmd": (list, True), "domain": (str, True), "label": (str, True),
-    "desc": (str, True),
+    "desc": (str, True), "after_edit": (bool, False),
     "group": (str, False), "docs_only": (bool, False), "inputs": (list, False), "outputs": (list, False),
     "programs": (dict, False), "quiet_inputs": (list, False), "git": (list, True), "reads_all": (str, False),
 }
@@ -110,7 +110,8 @@ def _step_problems(entry: dict, where: Repo) -> list[str]:
         out.append(f"group: {entry['group']!r} is not one of {', '.join(GROUPS)}")
     if entry["domain"] not in where.domains:
         out.append(f"domain: {entry['domain']!r} is not a map domain ({', '.join(sorted(where.domains))})")
-    out += [f"cmd: {msg}" for msg in _cmd_problems(entry["cmd"], "group" in entry, where)]
+    out += [f"cmd: {msg}" for msg in _cmd_problems(entry["cmd"], "group" in entry, where,
+                                                                  entry.get("after_edit") is True)]
     why = git_problem(entry["git"])
     if why:
         out.append(f"git: {why}")
@@ -202,9 +203,9 @@ def _split_env(cmd: tuple[str, ...] | list[str]) -> tuple[list[tuple[str, str]],
     return env, rest
 
 
-def _cmd_problems(cmd: list, grouped: bool, where: Repo) -> list[str]:
+def _cmd_problems(cmd: list, grouped: bool, where: Repo, after_edit: bool = False) -> list[str]:
     """Why `cmd` is not a command check.sh can run as this step, or []. grouped: a static check, which check.sh's
-    run_check runs."""
+    run_check runs. after_edit: .claude/hooks/check_after_edit.py also runs it, as written."""
     if not cmd or not all(isinstance(w, str) and w.strip() for w in cmd):
         return [f"{cmd!r} must be a list of words, none empty"]
     assigned, words = _split_env(cmd)
@@ -220,6 +221,8 @@ def _cmd_problems(cmd: list, grouped: bool, where: Repo) -> list[str]:
     if prog == PYTHON and grouped:
         return [f"{PYTHON} ($HOPS_PY) is for a step in no group; check.sh's run_check runs a static check with "
                 f"python3 or bash"]
+    if prog == PYTHON and after_edit:
+        return [f"after_edit: the after-edit hook runs the command as written, so it cannot hold {PYTHON!r}"]
     if prog == "bash" and env:
         return ["env ... bash: check.sh's run_check takes env only before python3"]
     if prog not in ("python3", PYTHON, "bash"):

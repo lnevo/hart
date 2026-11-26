@@ -89,6 +89,7 @@ CI sample (2,456 runs, 2026-10-31 to 11-25): 138 failed; 93 real faults, 29 stal
 | 4 | The docs-only unit-test list in `docs_checks.sh`, kept by four guard tests | Generated from the stamps declarations |
 | 5 | `desks` (`validate_cats_panel.py`) | Removed with its `make desks` call; the desks are generated and byte-checked |
 | 6 | `phase02` may repeat `check_layout_facts.py` | **Kept** (checked 2026-11-25): it alone catches an OS block in the master with no `switches.csv` row, a missing secondary OS block, and a repeated block name in a Store candidate |
+| 7 | Follow-up, not a duplicate: under load `unit-jmri` goes over the edit hook's 20 s budget, so a `tables.xml` edit reports a failure (seen 2026-11-25, #1162) | The hook prints "not run in the edit hook (over the 20 s budget; check.sh runs it)" as its own visible line: never a silent pass, never a failure. Tracked only, not built |
 
 Checked and needed: the two `tables.xml` checks that look like repeats (they cover Store candidates and the deploy gate), CI's second panels run on a plugin bump, the stamps machinery, and the map checks.
 

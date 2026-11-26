@@ -24,6 +24,8 @@
 #               until the step's trace shows it reads git only through commands it replays, then [] with the reason
 #               in a comment (check_stamps.py: a wrongly skipped check is the worst failure here)
 #   docs_only   also run on the docs-only path (tools/ci/docs_checks.sh)
+#   after_edit  also run by .claude/hooks/check_after_edit.py after an edit to tables.xml or the signal files;
+#               keep these quick (the hook has 20 s for all of them) and free of "{python}"
 #   inputs      what the step reads, as map edges into its script: a path or glob, or { path, label, side }, side
 #               one of the map's edge sides ("check": a check or comparison reads it)
 #   outputs     what the step writes when run without --check (the map's edges out of its script)
@@ -45,6 +47,7 @@
 name = "phase02"
 runner = "check"
 group = "static"
+after_edit = true
 cmd = ["python3", "jmri/scripts/check_hart_phase02.py"]
 # git = []: its trace (2026-11-25) shows one Python process that runs no git and opens nothing under .git, so
 # its read set holds all it reads; HEAD in its key only reran it after every commit (ADR-037 stage 4b)
@@ -63,6 +66,7 @@ inputs = [
 name = "tables-browser"
 runner = "check"
 group = "static"
+after_edit = true
 cmd = ["python3", "www/scripts/build_tables_browser.py", "--check"]
 git = ["head", "base"]
 domain = "website"
@@ -263,6 +267,7 @@ quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv", "jmri/layouts/hart/d
 name = "track-lengths"
 runner = "check"
 group = "static"
+after_edit = true
 cmd = ["python3", "jmri/layouts/hart/scripts/export_track_lengths.py", "--check"]
 git = ["head", "base"]
 domain = "layout"
@@ -302,6 +307,7 @@ quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv", "jmri/layouts/hart/s
 name = "panel-contracts"
 runner = "check"
 group = "static"
+after_edit = true
 cmd = ["python3", "jmri/layouts/hart/scripts/audit_panel_contracts.py", "--strict"]
 git = ["head", "base"]
 domain = "layout"
@@ -464,6 +470,7 @@ quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv"]
 name = "sml-invariants"
 runner = "check"
 group = "static"
+after_edit = true
 cmd = ["python3", "tools/audit/check_sml_invariants.py"]
 # git = []: its trace (2026-11-25) shows one Python process that runs no git and opens nothing under .git, so
 # its read set holds all it reads; HEAD in its key only reran it after every commit (ADR-037 stage 4b)
@@ -497,6 +504,7 @@ inputs = [
 name = "mqtt-static"
 runner = "check"
 group = "static"
+after_edit = true
 cmd = ["python3", "tools/audit/check_mqtt_no_static_lists.py"]
 git = ["head", "base"]
 domain = "extras"
@@ -529,6 +537,7 @@ quiet_inputs = ["**/*.py"]
 name = "wiring-crosswalk"
 runner = "check"
 group = "static"
+after_edit = true
 cmd = ["python3", "tools/audit/check_wiring_crosswalk.py"]
 git = ["head", "base"]
 domain = "extras"
@@ -702,12 +711,30 @@ cmd = ["python3", "tools/audit/check_train_symbols.py"]
 git = ["head", "base"]
 domain = "ops"
 label = "check_train_symbols.py"
-desc = "Checks that crew.json's crew job codes, the Operations Pro train names and the CATS desks' train list name trains of trains.csv (ADR-039)."
+desc = "Checks that the crew master's crew job codes, the Operations Pro train names and the CATS desks' train list name trains of trains.csv (ADR-039)."
 inputs = [
   { path = "ops/hart-ops/data/trains.csv", label = "symbols", side = "check" },
-  { path = "www/data/crew.json", label = "job codes", side = "check" },
+  { path = "ops/hart-ops/data/crew.json", label = "job codes", side = "check" },
   { path = "jmri/layouts/hart/operations", label = "train names", side = "check" },
   { path = "cats/data/generated_desk_header.xml", label = "desk train list", side = "check" },
+]
+
+[[step]]
+name = "crew-json"
+runner = "check"
+group = "static"
+cmd = ["python3", "ops/hart-ops/publications/build_crew_json.py", "--check"]
+git = ["head", "base"]
+domain = "website"
+label = "build_crew_json.py"
+desc = "Writes www/data/crew.json from the crew master ops/hart-ops/data/crew.json after its schema check, with the spot sheet's industry names from industries.csv and the schematic's revision from the title block (ADR-039); --check."
+inputs = [
+  { path = "ops/hart-ops/data/crew.json", label = "crew master" },
+  { path = "ops/hart-ops/data/industries.csv", label = "spot sheet names" },
+  { path = "jmri/layouts/hart/data/schematic/preferences.json", label = "title block, via hartlib.map_revision" },
+]
+outputs = [
+  "www/data/crew.json",
 ]
 
 [[step]]
