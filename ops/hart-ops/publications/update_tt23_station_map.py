@@ -195,7 +195,7 @@ def update_pptx(pptx_path: Path = PPTX, *, archive_original: bool = True) -> Pat
     return pptx_path
 
 
-def main() -> None:
+def update_and_report() -> None:
     out = update_pptx()
     print(f"Updated {out}")
     print(f"Original map archive: {ORIG_MAP}")
@@ -203,14 +203,14 @@ def main() -> None:
         print(f"Pre-replace pptx:   {BACKUP_PPTX}")
 
 
-def run() -> None:
-    """main(), with a missing deck or archive printed to stderr and exit 1."""
+def main() -> None:
+    """update_and_report(), with a missing deck or archive printed to stderr and exit 1."""
     try:
-        main()
+        update_and_report()
     except TT23Missing as e:
         print(e, file=sys.stderr)
         sys.exit(1)
 
 
 if __name__ == "__main__":
-    run()
+    main()

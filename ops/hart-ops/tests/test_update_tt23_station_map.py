@@ -83,7 +83,7 @@ class UpdateDeck(unittest.TestCase):
         with mock.patch.object(tt23, "update_pptx", side_effect=tt23.TT23Missing("x.pptx: gone")), \
                 mock.patch("sys.stderr") as err:
             with self.assertRaises(SystemExit) as caught:
-                tt23.run()
+                tt23.main()
         self.assertEqual(caught.exception.code, 1)
         self.assertIn("x.pptx: gone", "".join(c.args[0] for c in err.write.call_args_list))
 
