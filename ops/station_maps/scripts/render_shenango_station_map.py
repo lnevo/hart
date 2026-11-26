@@ -19,7 +19,6 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import render_barn_station_map as barn  # noqa: E402  (sheet size, colours, docx template)
 import sheet_kit  # noqa: E402
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
@@ -32,8 +31,10 @@ OUT = MAPS / "Neville_Island_Station_Map_Shenango_0.png"
 OUT_ROT = MAPS / "Neville_Island_Station_Map_Shenango_Rotated_0.png"
 DOCS = ROOT / "docs/ops"
 
-W, H = barn.W, barn.H
-TRACK, INK, BADGE, BADGE_INK = barn.TRACK, barn.INK, barn.BADGE, barn.BADGE_INK
+W, H = sheet_kit.W, sheet_kit.H
+TRACK, INK, BADGE, BADGE_INK = sheet_kit.TRACK, sheet_kit.INK, sheet_kit.BADGE, sheet_kit.BADGE_INK
+DOCX_TEMPLATE = ROOT / sheet_kit.SM_DOCX_TEMPLATE_REL
+HOPS = ROOT / sheet_kit.HOPS_REL
 DOT_R = 19
 
 # Plan geometry (pixels, normal orientation).
@@ -63,7 +64,7 @@ def _compass(d, cx, cy, r, flip):
                     (cx + sx * (r - 1) * 0.707, cy + sy * (r - 1) * 0.707)], fill=ring, width=2)
     n = 58
     d.polygon([(cx, cy - k * n), (cx + 11, cy), (cx, cy + k * 2), (cx - 11, cy)],
-              fill=barn.COMPASS_GOLD)
+              fill=sheet_kit.COMPASS_GOLD)
     d.polygon([(cx, cy - k * n), (cx - 11, cy), (cx, cy + k * 2)], fill=(168, 126, 28))
     d.polygon([(cx, cy + k * n), (cx + 11, cy), (cx, cy - k * 2), (cx - 11, cy)],
               fill=(60, 82, 112))
@@ -120,7 +121,7 @@ def render(out: Path, rotated: bool) -> None:
         line(a, b)
     for y in (Y_W, Y_E):
         tip = T((X_ARROW, y))
-        barn._arrow(d, tip, "right" if rotated else "left", size=17)
+        sheet_kit.arrow(d, tip, "right" if rotated else "left", size=17)
     for p in X_113 + [(X_SW115, Y_W), (X_SW115, Y_E)]:
         sheet_kit.dot(d, T(p), DOT_R, TRACK)
 
@@ -173,14 +174,14 @@ def _write_docx(png: Path, dest: Path, media_name: str) -> None:
     title = "Neville Island Station Map \u2014 Shenango"
     if "Rotated" in dest.name:
         title += " (rotated)"
-    sheet_kit.write_sheet_docx(barn.DOCX_TEMPLATE, png, dest,
+    sheet_kit.write_sheet_docx(DOCX_TEMPLATE, png, dest,
                                media_names=("station_map_west_yard.png", media_name), title=title)
 
 
 def main() -> None:
     render(OUT, False)
     render(OUT_ROT, True)
-    if barn.HOPS.is_dir():
+    if HOPS.is_dir():
         _write_docx(OUT, DOCS / "Neville_Island_Station_Map_Shenango.docx",
                     "station_map_shenango.png")
         _write_docx(OUT_ROT, DOCS / "Neville_Island_Station_Map_Shenango_Rotated.docx",
