@@ -184,9 +184,26 @@ class ScriptRuleTest(unittest.TestCase):
 
     def test_excluded_folders_and_tests_are_not_checked(self) -> None:
         files = ["archive/old.py", "external/sub/x.py", "reference/v.sh", "tools/cats/src-repo/a.py",
-                 "tools/tests/helper.py", "tools/test/run.sh", "tools/test_a.py", "tools/a_test.py",
+                 "tools/tests/helper.py", "tools/test/run.sh", "tools/test_a.py",
                  "tools/conftest.py", "tools/a.py", "tools/b.sh", "tools/c.js", "tools/archive/kept.py"]
         self.assertEqual(COV.rule_scripts(files), ["tools/a.py", "tools/archive/kept.py", "tools/b.sh"])
+
+    def test_scripts_named_like_tests_are_checked(self) -> None:
+        """Review finding: panelpro_smoke_test.py (make panelpro-test) and stop_test.py are pipeline scripts."""
+        files = ["jmri/layouts/hart/scripts/panelpro_smoke_test.py", "jmri/layouts/hart/scripts/run_panelpro_smoke_test.sh",
+                 "jmri/layouts/hart/scripts/speedmatch/jython/stop_test.py", "tools/test_run.sh"]
+        self.assertEqual(COV.rule_scripts(files), sorted(files))
+
+    def test_a_new_untracked_script_is_checked_before_the_commit(self) -> None:
+        """Review finding: the rule reads new files too, so a check before `git add` fails as it would after."""
+        real = COV._git_files
+
+        def files(*args):
+            return real(*args) + (["tools/hosts/pi/brand_new_unmapped.sh"] if args else [])
+        with mock.patch.object(COV, "_git_files", side_effect=files):
+            problems = COV.check(COV.BUILD.GRAPH)
+        self.assertTrue(any(p.startswith("script tools/hosts/pi/brand_new_unmapped.sh is only under folder node")
+                            for p in problems), problems)
 
     def test_families_entries_cannot_go_stale(self) -> None:
         [p] = self.gaps([], {}, families={"lib/gone": "a library"})

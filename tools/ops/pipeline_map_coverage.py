@@ -9,9 +9,9 @@ so the map agents query (tools/ops/pipeline_query.py) cannot fall behind without
 
 What must be in the map:
 
-- Every script (owner, 2026-11-25): each tracked .py and .sh file outside EXCLUDED (archive/, external/,
-  reference/, tools/cats/src-repo/) and outside tests (a tests/ or test/ folder, test_*.py, *_test.py, conftest.py)
-  is a node of its own: a node whose path is the file, or a box named after it (its id is the file, as panels.toml's
+- Every script (owner, 2026-11-25): each .py and .sh file, tracked or new and not ignored, outside EXCLUDED
+  (archive/, external/, reference/, tools/cats/src-repo/) and outside tests (a tests/ or test/ folder, test_*.py,
+  conftest.py) is a node of its own: a node whose path is the file, or a box named after it (its id is the file, as panels.toml's
   `box` names approval.py's box, which runs check_approved.py). The only other way is a folder node FAMILIES names, a
   library or a family of generators, each with its reason. A folder node not in FAMILIES covers no script under it,
   and ALLOWED does not apply to scripts. A FAMILIES entry that is no folder node, or covers no script, fails, so the
@@ -305,10 +305,11 @@ def agent_doc_gaps(docs: list[str], node_paths: dict[str, str], graph_name: str,
 
 
 def is_test(path: str) -> bool:
-    """A test file: in a tests/ or test/ folder, or named test_*.py, *_test.py or conftest.py."""
+    """A test file: in a tests/ or test/ folder, or named test_*.py or conftest.py. A name ending in _test is no test:
+    panelpro_smoke_test.py and speedmatch's stop_test.py are pipeline scripts."""
     p = PurePosixPath(path)
-    return (any(part in ("tests", "test") for part in p.parts[:-1]) or p.name.startswith("test_")
-            or p.stem.endswith("_test") or p.name == "conftest.py")
+    return (any(part in ("tests", "test") for part in p.parts[:-1])
+            or (p.name.startswith("test_") and p.suffix == ".py") or p.name == "conftest.py")
 
 
 def rule_scripts(files: Iterable[str], excluded: Iterable[str] = EXCLUDED) -> list[str]:
@@ -353,16 +354,15 @@ def check(graph: Path, listing: list[str] | None = None) -> list[str]:
     """The problems for this checkout. Raises GraphError or CoverageError when the graph or the scan cannot be read."""
     data = BUILD.load(graph)
     node_paths = {n["path"].rstrip("/"): n["id"] for n in data["nodes"] if n.get("path")}
-    tracked = _git_files()
     # new files not yet added count too, so a check before the commit does not call them gone
-    files = frozenset(tracked + _git_files("--others", "--exclude-standard"))
+    files = frozenset(_git_files() + _git_files("--others", "--exclude-standard"))
     scripts, outputs = scan(files, _submodules(), lambda f: (ROOT / f).read_text())
     shown = graph.relative_to(ROOT) if graph.is_relative_to(ROOT) else graph
     try:
         docs = BUILD.AGENT_DOCS.glob_files() + BUILD.AGENT_DOCS.glob_files(others=True)
     except BUILD.AGENT_DOCS.AgentDocsMapError as err:
         raise CoverageError(str(err)) from None
-    ruled = rule_scripts(tracked)
+    ruled = rule_scripts(files)     # a new script fails before the commit, as it would after
     ruled_set = set(ruled)
     entry_only = {path: where for path, where in scripts.items() if path not in ruled_set}
     return (script_gaps(ruled, node_paths, (n["id"] for n in data["nodes"]), FAMILIES, str(shown), listing)
