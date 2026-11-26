@@ -7,13 +7,13 @@ The LCOS wiring documentation, refreshed against current public names and Digico
 | File | Role |
 |------|------|
 | [`LCOS_Layout_Inventory_v86.xlsx`](LCOS_Layout_Inventory_v86.xlsx) | Current inventory of every level, an output only: `tools/wiring/write_inventory.py` writes it from the wiring model (nobody edits it, and no script reads it as input; only `write_inventory.py --check` opens it, to compare; ADR-039). Staging is what JMRI has wired, from `jmri/layouts/hart/data/wiring.csv` (the physical wiring source, owner 2026-11-20); main and upper are the draft `tools/schematic/build_device_map.py` gives them, shaded light blue on the Nodes, DNOU8, DNIN8, TurnoutSummary and BlockSensors sheets. **Node ID = C{radio Address}**; **Legacy Node ID** is a staging node's old sequential label. On **TurnoutSummary** a staging crossover (Switches 7, 23 and 35: one turnout, two OS blocks) has one row per half, labelled `Switch 7 (OS Switch 7)` and `Switch 7 (OS Switch 7b)`, each with its own entry and exit signal slots (a mast goes to the half it faces into, its `protects` column); both rows repeat the turnout's feedback and button and carry the turnout's own name in the **JMRI Turnout** column, which the site viewer and the slide deck group the halves by (owner, 2026-11-21). Every other switch has one row. The **DigiconSignals** sheet is `wiring.csv`'s wired heads, one row per lamp pin. |
-| [`LCOS_Layout_Inventory_v85.xlsx`](../../archive/docs/wiring/LCOS_Layout_Inventory_v85.xlsx) | History, frozen: the staging inventory as the old refresh wrote it from the v84 import, with the old signal plan's ports. Archived 2026-11-25 with the signal split, its only reader. Its generator is in `archive/tools-wiring/`. |
+| [`LCOS_Layout_Inventory_v85.xlsx`](../../archive/data/wiring/LCOS_Layout_Inventory_v85.xlsx) | History, frozen: the staging inventory as the old refresh wrote it from the v84 import, with the old signal plan's ports. Archived 2026-11-25 with the signal split, its only reader. Its generator is in `archive/code/wiring-refresh/`. |
 | [`Wiring_Schematic.pptx`](Wiring_Schematic.pptx) | One slide per client node, written by `create_wiring_schematic_ppt.py` from the wiring model: the inventory's sheets as `write_inventory.py` builds them in memory, never the v86 file (2026-11-25). |
 | [`Layout Documentation.pptx`](Layout%20Documentation.pptx) | History, superseded: the hand-drawn track bus, power district, bus wiring and node slides. Kept in place (owner, 2026-11-22). `www/behind/layout-docs.html` replaces it: it began as the SOQ's text and drawings and is now maintained on its own (`www/scripts/build_layout_docs.py`). |
 | [`terminal_blocks.md`](terminal_blocks.md) | Terminal block wiring recovered from an October 2025 draft. Not verified against the railroad. |
 | [`signals_asbuilt_abs_v2.xlsx`](signals_asbuilt_abs_v2.xlsx) | History, frozen: the lower-deck Digicon ABS matrix of the old signal plan (100L, 117LA, 114LA, …). |
-| [`signals_split_v8.xlsx`](../../archive/docs/wiring/signals_split_v8.xlsx) | Archived 2026-11-25 (owner: the signals and their rules are generated for the whole layout), with the last `signal-splits.json`. Frozen Nov 2025 **planned RGB** matrix. Lower-deck switch columns use CTC names. Upper-deck plants are Switch 61+ / heads 62L…. Historical `S4-1` IDs are in Notes. |
-| [`archive/docs/wiring-imported/`](../../archive/docs/wiring-imported/) | Unmodified Desktop snapshots (v84, asbuilt v1, split v8, v84 changelog), moved to the archive on 2026-11-20. Sequential C1–C13 IDs. |
+| [`signals_split_v8.xlsx`](../../archive/data/wiring/signals_split_v8.xlsx) | Archived 2026-11-25 (owner: the signals and their rules are generated for the whole layout), with the last `signal-splits.json`. Frozen Nov 2025 **planned RGB** matrix. Lower-deck switch columns use CTC names. Upper-deck plants are Switch 61+ / heads 62L…. Historical `S4-1` IDs are in Notes. |
+| [`archive/data/wiring-imported/`](../../archive/data/wiring-imported/) | Unmodified Desktop snapshots (v84, asbuilt v1, split v8, v84 changelog), moved to the archive on 2026-11-20. Sequential C1–C13 IDs. |
 
 LCOS Signal Manager punch list (ports + Main/Diverged + OR): [`docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx`](../../docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx). Source table: [`docs/wiring/lcos/lcos_signal_logic.csv`](../../docs/wiring/lcos/lcos_signal_logic.csv).
 
@@ -241,11 +241,11 @@ python3 tools/wiring/node_grid_svg.py
 
 ## History: what v85 changed vs Desktop v84 (frozen)
 
-v85 and its refresh from the v84 import are history since 2026-11-20: v86 is written from `wiring.csv`, and the v84 snapshots and the refresh code are in `archive/docs/wiring-imported/` and `archive/tools-wiring/`.
+v85 and its refresh from the v84 import are history since 2026-11-20: v86 is written from `wiring.csv`, and the v84 snapshots and the refresh code are in `archive/data/wiring-imported/` and `archive/code/wiring-refresh/`.
 
 
 - Lower-deck **BlockSensors** names follow the panel: Scale, Barn, S-1…S-5, W-1/W-2, EH-1…EH-3, OS 100… (MQTT `Block n-n` stays in Notes).
 - **DNOU8** ports listed in `signal_wiring.csv` are overlayed as searchlight heads (replacing planned RGB on those ports). Previous RGB label is kept in Notes.
 - **D1-OU2/OU3** Princess rows were a mistaken overlay (D1 is DCC radio 5, now labeled **D5**). Princess is on C1; do not recreate D5 signal boards.
 - Upper-deck RGB is labeled as defined heads on CP4 / CP5 / CP6 using CTC numbers from 62 up (`64R`, `70RB`, …). 66RA+66RB share Switch 65; 70RB is Switch 69 reverse; 74RB is Switch 73 reverse.
-- **Node ID = radio Address**. Digicon heads: C4 Brick+Plane, C13 Barn, C12 East End 34, C2 East End west 24, C1 Princess west, C11 Princess east + balloon. v84 sequential C1–C13 IDs live in **Legacy Node ID** and `archive/docs/wiring-imported/`.
+- **Node ID = radio Address**. Digicon heads: C4 Brick+Plane, C13 Barn, C12 East End 34, C2 East End west 24, C1 Princess west, C11 Princess east + balloon. v84 sequential C1–C13 IDs live in **Legacy Node ID** and `archive/data/wiring-imported/`.

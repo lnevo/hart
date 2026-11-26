@@ -2,7 +2,7 @@
 
 **Status:** Next-gen HART panel (phases 0–2) — naming + cleanup from linear6.
 
-**SoR:** [`archive/wiki/projects/hart-panel.md`](../../../archive/wiki/projects/hart-panel.md) · ADRs 001–003
+**SoR:** [`archive/history/wiki/projects/hart-panel.md`](../../../archive/history/wiki/projects/hart-panel.md) · ADRs 001–003
 
 ## Principles
 
@@ -10,11 +10,11 @@
 - **Connectivity / positions:** from the AnyRail panel (`anyrail/hart.xml`)
 - **JMRI config:** `output/tables.xml` is the one tables file (ADR-008)
 - **Public names:** [ADR-005](../../../wiki/decisions/ADR-005-public-equipment-names.md) master `data/devices_field.csv` and `data/devices_generated.csv`
-- Do **not** run `fit_panel_height`, `fit_panel_canvas`, or `polish_layout_geometry` (archived in `archive/jmri-scripts/`) unless explicitly asked
+- Do **not** run `fit_panel_height`, `fit_panel_canvas`, or `polish_layout_geometry` (archived in `archive/code/jmri-scripts/`) unless explicitly asked
 
 ## Bootstrap
 
-The hart layout was bootstrapped once from the AnyRail panel; that script is kept for history at `archive/jmri-scripts/bootstrap_hart_from_linear6.py` and is not re-run, because `tables.xml` now carries later JMRI work. A new level or panel goes through the schematic pipeline ([`wiki/pipelines/schematic-panels.md`](../../../wiki/pipelines/schematic-panels.md)); the AnyRail pipeline it replaced is history ([`wiki/pipelines/jmri-anyrail.md`](../../../wiki/pipelines/jmri-anyrail.md)).
+The hart layout was bootstrapped once from the AnyRail panel; that script is kept for history at `archive/code/jmri-scripts/bootstrap_hart_from_linear6.py` and is not re-run, because `tables.xml` now carries later JMRI work. A new level or panel goes through the schematic pipeline ([`wiki/pipelines/schematic-panels.md`](../../../wiki/pipelines/schematic-panels.md)); the AnyRail pipeline it replaced is history ([`wiki/pipelines/jmri-anyrail.md`](../../../wiki/pipelines/jmri-anyrail.md)).
 
 For the complete live configuration, deploy/load **`output/tables.xml`**. It
 contains the Layout Editor and native SML. The Dispatcher System, Entry/Exit (NX) and USS CTC data are parked since the helix-join release (November 2026) and kept in `parked/`.

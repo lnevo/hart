@@ -8,7 +8,7 @@ A generated file that only tools, CI or the website build read is a view: it is 
 
 | # | Pipeline | Status | Guide |
 |---|----------|--------|-------|
-| 1 | JMRI AnyRail panel | Retired (scripts in `archive/jmri-scripts/`) | [jmri-anyrail.md](jmri-anyrail.md) |
+| 1 | JMRI AnyRail panel | Retired (scripts in `archive/code/jmri-scripts/`) | [jmri-anyrail.md](jmri-anyrail.md) |
 | 2 | Public names + comments | Live | [public-names.md](public-names.md) |
 | 3 | Digicon signal beans | Live | [digicon-signal-beans.md](digicon-signal-beans.md) |
 | 4 | Native SML + NX | SML live; NX parked | [native-sml.md](native-sml.md) |
@@ -25,7 +25,7 @@ A generated file that only tools, CI or the website build read is a view: it is 
 | 13 | Waybills | Live (hart-ops, ADR-010) | [waybills.md](waybills.md) |
 | 14 | STS | Live (`external/sts-docker-data`) | [sts.md](sts.md) |
 | 15 | Ops publications | Live (`docs/ops`, ADR-010) | [ops-publications.md](ops-publications.md) |
-| 16 | Industry routing | Retired 2026-11-25 (legacy; owner) | [archive](../../archive/wiki/pipelines/industry-routing.md) |
+| 16 | Industry routing | Retired 2026-11-25 (legacy; owner) | [archive](../../archive/history/wiki/pipelines/industry-routing.md) |
 | 17 | Website | Live | [`www/README.md`](../../www/README.md) |
 | 18 | MQTT mimic | Tool | [mqtt-mimic.md](mqtt-mimic.md) |
 | 19 | Panels from the schematic | Live | [schematic-panels.md](schematic-panels.md) |

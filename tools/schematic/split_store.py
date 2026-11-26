@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Split a pulled PanelPro Store back into the sources of tables.xml (ADR-029, R9d; design in
-archive/wiki/projects/project-health-handoff.md, "R9d redesign"). make tables-pull-pi and tables-pull keep the Store and
+archive/history/wiki/projects/project-health-handoff.md, "R9d redesign"). make tables-pull-pi and tables-pull keep the Store and
 name this command; run it in a task worktree (make wt TOPIC=...).
 
     python3 tools/schematic/split_store.py STORE                   # the report: what is kept, reviewed, dropped

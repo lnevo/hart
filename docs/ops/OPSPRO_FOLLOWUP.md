@@ -8,7 +8,7 @@ Written 2026-11-02 after the owner's review of the build on branch `agent/claude
 
 | # | Item | Who | When |
 |---|---|---|---|
-| R1 | **Done 2026-11-02:** merged and deployed. The Pi's previous files are saved in [`archive/operations-pi-2026-11-02/`](../../archive/operations-pi-2026-11-02/) | owner | next |
+| R1 | **Done 2026-11-02:** merged and deployed. The Pi's previous files are saved in [`archive/data/operations-pi-2026-11-02/`](../../archive/data/operations-pi-2026-11-02/) | owner | next |
 | R2 | Run the `Session` automation on the Pi with the plugin's live lane (`ops_install_agent`, then `ops_live_automation`), through one real session. The ordered test on copies proved the order; a live JMRI has not run it | owner with an agent | first session after deploy |
 | R3 | Replace the 60 ft per spot (70 at A. Stucki) with measured spur lengths, and the halved South Yard lengths with the real split, when the main level is built | owner | main level |
 | R4 | Place the 29 unplaced cars if they should enter service: 10 no-photo freight cars and HART 1776 can go to South Yard as empties; the passenger cars and cabooses need a track that takes their types | owner | any time, `place_car` |
@@ -18,7 +18,7 @@ Written 2026-11-02 after the owner's review of the build on branch `agent/claude
 
 ## 2. The plugin
 
-**Done 2026-11-02:** all 19 items closed in plugin 0.2.0 (PR 13, merge 99173a9), 850 tests passing, installed here at local scope. Per-fault results are in [`archive/docs/ops/opspro-build/plugin_faults.csv`](../../archive/docs/ops/opspro-build/plugin_faults.csv).
+**Done 2026-11-02:** all 19 items closed in plugin 0.2.0 (PR 13, merge 99173a9), 850 tests passing, installed here at local scope. Per-fault results are in [`archive/history/opspro-build/plugin_faults.csv`](../../archive/history/opspro-build/plugin_faults.csv).
 
 Three came out differently from this list's proposal:
 
@@ -28,7 +28,7 @@ Three came out differently from this list's proposal:
 
 Two were not what the fault said. A same-named schedule (F13) was already refused, not shared silently; `schedule` and `share_schedule` now give a way through. `update_car type` (F17) already worked but was unlisted; it is now listed and checked.
 
-`ops_dry_run` with `order` replaced `archive/docs/ops/opspro-build/ordered_session.py`, which is retired. On a copy of this folder the same eleven builds took seconds in one JMRI, against about six minutes chained, and nine of eleven car counts matched [`archive/docs/ops/opspro-build/ordered_session.csv`](../../archive/docs/ops/opspro-build/ordered_session.csv); the other two differed by one car, within the builder's randomness. To repeat it:
+`ops_dry_run` with `order` replaced `archive/history/opspro-build/ordered_session.py`, which is retired. On a copy of this folder the same eleven builds took seconds in one JMRI, against about six minutes chained, and nine of eleven car counts matched [`archive/history/opspro-build/ordered_session.csv`](../../archive/history/opspro-build/ordered_session.csv); the other two differed by one car, within the builder's randomness. To repeat it:
 
 `["D749", ["NVL", "CK1"], "STG-DEMMLER", "D749 Return", "STG-SCULLY", "D749", ["NVL", "CK1"], "STG-DEMMLER", "D749 Return"]`
 
@@ -38,7 +38,7 @@ Two were not what the fault said. A same-named schedule (F13) was already refuse
 
 | # | Item | Who | When |
 |---|---|---|---|
-| O2 | **Done 2026-11-02:** fresh-session check of plugin 0.2.0 passed. Results are below and in [`archive/docs/ops/opspro-build/fresh_session_check.csv`](../../archive/docs/ops/opspro-build/fresh_session_check.csv) | agent | before O3 |
+| O2 | **Done 2026-11-02:** fresh-session check of plugin 0.2.0 passed. Results are below and in [`archive/history/opspro-build/fresh_session_check.csv`](../../archive/history/opspro-build/fresh_session_check.csv) | agent | before O3 |
 | O3 | Mark the plugin production: drop "in development" from its README and any marketplace text, ship it as one PR on the plugin repo, then test a marketplace install | owner decides | when ready |
 
 ### O2 result

@@ -1,7 +1,7 @@
 # Schematic maps: specification (stream B1)
 
 - **Status:** approved 2026-11-17 with the helix-join release (revision 10; drafted 2026-11-13).
-- **Read with:** [`wiki/pipelines/schematic-panels.md`](../../wiki/pipelines/schematic-panels.md) (the three input layers, the contract) and [`archive/wiki/projects/schematic-maps.md`](../../archive/wiki/projects/schematic-maps.md) (the original plan).
+- **Read with:** [`wiki/pipelines/schematic-panels.md`](../../wiki/pipelines/schematic-panels.md) (the three input layers, the contract) and [`archive/history/wiki/projects/schematic-maps.md`](../../archive/history/wiki/projects/schematic-maps.md) (the original plan).
 - **Used by:** B2 (tested modules in `model-railroad-skills`), A1 (file split), C1 (CATS panel from the same grid).
 
 This page fixes three things: the file format of each input layer, each generation rule with how it is tested, and the golden drawings the modules must reproduce.

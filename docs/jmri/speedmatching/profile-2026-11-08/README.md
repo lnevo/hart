@@ -29,14 +29,14 @@ The two extension tracks are named East Ext and West Ext here and in the CSVs. T
 - 2738 ran **east** (its forward) and 2121 ran **west** (its forward). The K loop and
   the grades are driven in opposite directions, so a direction effect is mixed into
   the comparison. Not yet separated.
-- Tools (in `archive/` since 2026-11-25, kept for the record and not run again): [`runner/step_runner.py`](../../../../archive/docs/jmri/speedmatching/profile-2026-11-08/runner/step_runner.py) runs inside the Pi's JMRI
-  (dropped through `jmri_cmd_watcher`), [`runner/move_to.py`](../../../../archive/docs/jmri/speedmatching/profile-2026-11-08/runner/move_to.py)
-  moved a loco to a stopping condition, [`analyze_profile.py`](../../../../archive/docs/jmri/speedmatching/profile-2026-11-08/analyze_profile.py)
+- Tools (in `archive/` since 2026-11-25, kept for the record and not run again): [`runner/step_runner.py`](../../../../archive/code/speedmatching/profile-2026-11-08/runner/step_runner.py) runs inside the Pi's JMRI
+  (dropped through `jmri_cmd_watcher`), [`runner/move_to.py`](../../../../archive/code/speedmatching/profile-2026-11-08/runner/move_to.py)
+  moved a loco to a stopping condition, [`analyze_profile.py`](../../../../archive/code/speedmatching/profile-2026-11-08/analyze_profile.py)
   turns the runner logs into [`results.csv`](results.csv). The raw `steprun_*.log` files
   are not in the repo (the tracked-file policy forbids `*.log`); `results.csv` and
   `manual_laps.csv` hold every lap used, and the runner writes the same log format again
   on a re-run.
-  [`propose_table.py`](../../../../archive/docs/jmri/speedmatching/profile-2026-11-08/propose_table.py) calculates the draft table.
+  [`propose_table.py`](../../../../archive/code/speedmatching/profile-2026-11-08/propose_table.py) calculates the draft table.
 
 ## Results (mean of the timed laps, loop = 31,292.8 mm)
 
@@ -174,7 +174,7 @@ the loop total with a tape (or time a loco over a measured distance), correct
 | `post_programming_sample.csv` | 2738 re-measure after programming, against 2121 |
 | `reverse_2121_laps.csv` | 2121 run in reverse (east): whole-lap times at steps 24, 48, 64 |
 | `momentum_test.csv` | sensor times of the four stop tests (2 locos, steps 32 and 96) |
-| `block_speeds.py`; `analyze_profile.py` and `propose_table.py` in [`archive/`](../../../../archive/docs/jmri/speedmatching/profile-2026-11-08/) | produce the above |
+| `block_speeds.py`; `analyze_profile.py` and `propose_table.py` in [`archive/`](../../../../archive/code/speedmatching/profile-2026-11-08/) | produce the above |
 
 ## Data quality notes
 

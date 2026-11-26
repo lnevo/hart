@@ -69,7 +69,7 @@ Size: S.
 
 ## 4. Long wiki cells
 
-Twelve table cells run over 80 words. The longest is row 8 of [`source-data-exceptions-handoff.md`](../../archive/wiki/projects/source-data-exceptions-handoff.md) at 508 words. Others are in `pipelines/schematic-panels.md` (6), `level-unification-handoff.md` (2), `pipelines/switch-facts.md` (2) and one more in the source-data hand-off.
+Twelve table cells run over 80 words. The longest is row 8 of [`source-data-exceptions-handoff.md`](../../archive/history/wiki/projects/source-data-exceptions-handoff.md) at 508 words. Others are in `pipelines/schematic-panels.md` (6), `level-unification-handoff.md` (2), `pipelines/switch-facts.md` (2) and one more in the source-data hand-off.
 
 1. Cut each cell to one to three sentences and move the detail to a section below the table, linked from the cell, as row 10 already does.
 2. Add a rule to `check_agent_docs.py` (or the static job's wiki check): a table cell in `wiki/` or `AGENTS.md` over 80 words fails. `STATUS_LOG.md` and `archive/` are exempt, since they hold history.

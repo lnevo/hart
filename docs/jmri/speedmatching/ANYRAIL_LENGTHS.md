@@ -8,7 +8,7 @@ test loop. The yard, spurs and engine terminal keep their old values for now.
 ## What the plan file holds
 
 Plan **5.3b** (`~/Documents/Layout`, not in the repo) was decoded with the prototype reader in
-[`archive/tools-anyrail-prototype/`](../../../archive/tools-anyrail-prototype/) (archived 2026-11-23). It is a Boost binary archive.
+[`archive/code/anyrail-prototype/`](../../../archive/code/anyrail-prototype/) (archived 2026-11-23). It is a Boost binary archive.
 Coordinates are doubles in centimetres. Each track part has its part number, then tagged
 endpoints (id, x, y, height, angle, track system). Flex track is a chain of cubic Bezier
 segments, so its length is the arc length. A turnout has three endpoints; a route through it is

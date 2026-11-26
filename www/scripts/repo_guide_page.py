@@ -50,7 +50,8 @@ FOLDERS = {
     "external": (True, "The {n} submodules, and the STS data folder."),
     "wiki": (True, "Decision records, the live status of the railroad, and one page per pipeline."),
     "media": (False, "Photos, video and research material. Kept on the Mac, not in git."),
-    "archive": (True, "Retired files, kept for reference. Nothing in it runs."),
+    "archive": (True, "Retired files, kept for reference, grouped into <code>code/</code>, <code>data/</code> and "
+                       "<code>history/</code>. Nothing in it runs."),
 }
 
 # Folders under jmri/layouts/hart/, in page order. Keys are joined with ", " when they share a row.

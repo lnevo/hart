@@ -19,8 +19,8 @@ Panel lamps (`SECSIGNAL` / `PANELSIGNAL`) tip **into** the named BLOCK on that e
 | `LAMP2` / double | 2 | Main / CP home — high vs medium or restricting (two speed classes) |
 | `LAMP3` / triple | 3 | High + medium + slow at one mast (none on HART Master today) |
 
-SoR desks: `tools/schematic/build_cats_panel.py` (the hand-wired builder, `archive/cats-scripts/wire_digicon.py`, is archived)  
-Plan (history, archived 2026-11-21): `archive/docs/wiring/signals/signal_mast_plan.csv`
+SoR desks: `tools/schematic/build_cats_panel.py` (the hand-wired builder, `archive/code/cats-scripts/wire_digicon.py`, is archived)  
+Plan (history, archived 2026-11-21): `archive/data/wiring/signals/signal_mast_plan.csv`
 
 ---
 
@@ -91,7 +91,7 @@ Aaron’s screenshots correctly showed: bind by name, and CATS speaks rule-code 
 
 **CTC opposing faces:** lining the switch only opens the frog. Digicon still grants **one direction of authority** per route. An active eastbound route holds the opposing face via `CONFLICTINGSIGNALLOCK` until cancelled. Into W-Y stubs expect Restricting, not Clear.
 
-**OS W-1 / OS W-2 spur ends:** Digicon “Joins to adjacent track” unchecked on the west faces is encoded as BLK cuts (the hand-wired desks, `archive/cats-scripts/wire_digicon.py`): spur tip | mid-spur gap | anon lamp mate | OS101 lamp. That marks the yards as dead-end stubs for aspect search.
+**OS W-1 / OS W-2 spur ends:** Digicon “Joins to adjacent track” unchecked on the west faces is encoded as BLK cuts (the hand-wired desks, `archive/code/cats-scripts/wire_digicon.py`): spur tip | mid-spur gap | anon lamp mate | OS101 lamp. That marks the yards as dead-end stubs for aspect search.
 
 ### Digicon → virtual heads + SHSM (Basic)
 
@@ -103,7 +103,7 @@ Princess east exits are **2-head** (main vs OS McKees Rocks/OS McKeesport). Ball
 
 - Packing: `displayNode*100 + UID` (`UID = 32 + signal_index`) — see `mqtt_serial.h`
 - Appearances: stock Basic `two-searchlight` / `one-low`)
-- Digicon `PHYSIGNAL`: templates remapped to Basic names (archived `archive/cats-scripts/aar_aspect_bridge.py`); CATS CTC is `HOLD_ONLY`; CATS ABS is `HOLD_ONLY` too, with SECSIGNAL bound to the JMRI masts.
+- Digicon `PHYSIGNAL`: templates remapped to Basic names (archived `archive/code/cats-scripts/aar_aspect_bridge.py`); CATS CTC is `HOLD_ONLY`; CATS ABS is `HOLD_ONLY` too, with SECSIGNAL bound to the JMRI masts.
 - Layout Editor facing: `build_layout_le.py` binds each mast in the slot that resolves to its facing and protected blocks (`masts.csv`; `signalAMast` / `eastboundsignalmast`). Balloon anchor AG40 (A48 on the hand-drawn panel) joins the east ends of the two loop blocks, so the mast named for its approach track must protect the opposite block: **OS K-2 / `IH1133` protects OS K-1 and OS 39** (`westboundsignalmast`), while **OS K-1 / `IH1134` protects OS K-2 and OS 37** (`eastboundsignalmast`). CATS display locations and physical IH wiring remain OS K-2 at (45,7) TOP and K-1 at (45,6) BOTTOM; do not swap those outputs to correct the Layout Editor facing. 114/115 C homes face west (CATS SIGORIENT LEFT, LE deg 270); dest West Ext `111a` when 113 is normal, OS East Lead when 113 is reverse. OS McKees Rocks / OS McKeesport dwarfs dest the same westbound next masts (`111a` / OS East Lead), not the opposing 113a/113b faces. South line (Plane East Ext ↔ OS Barn D) dest each other across Track East Ext — not East End OS Main West.
 - SML dests: **native** — discovered by Layout Editor (`jmri/layouts/hart/scripts/run_sml_discover.sh`, one-shot) and stored in `tables.xml` with `useLayoutEditor=yes`; JMRI re-paths them on every load. The old hand-pair injector `apply_sml_cats_pairs.py` was removed on 2026-11-14 (its pairs and the home-made prediction script were retired on 2026-11-16; signal logic is checked by running stock Discover / Stage 1 in the sandbox rehearsal and comparing the stored pairs with the previous tables); the startup Jython re-apply is removed from all profiles. Runtime criteria can be inspected with `jmri/layouts/hart/scripts/dump_sml_criteria.py` (one-shot, same harness env as `discover_sml.py`). CATS ABS is the visual reference only — it must not `setAspect` on JMRI masts.
 - Plant dests (CATS MQTT compare): OS Barn D (lower west) dests OS 33 when 117 is closed (east into OS Main East), not back across Track East Ext. 117b dests Plane East Ext when 117 is closed (westbound). OS East Lead dests 117b only when 112 is thrown (diverge to OS Main East). OS 33 dests 113a when 112 is thrown. OS 31 dests 113a only when 110 is thrown **and** 112 is closed (ladder into OS East Lead); 110 closed → Stop. 111 through (closed): 111a dests Brick, West OS Main West dests 113b; 111 thrown → both Stop.
