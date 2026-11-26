@@ -72,8 +72,8 @@ Agent: `general-purpose`. `/code-review medium`.
 - `stage.sh` ships the 2026-11-08 `speed_by_step.csv` from `docs/`. That became `jmri/layouts/hart/data/speed_by_step_2026-11-08.csv`, the one copy since data-masters L12.
 - `tools/hosts/live_paths.txt` lists the whole `dashboard/` folder. The Mac-only `server.py` and `static/` come out of it.
 - Host paths come from `tools/env/load_env.sh`: `pom_write.py`, `dashboard/server.py`, `preflight_compare.py` and `pom_guard.py`.
-- Split `pom_guard.py` (934 lines) in a commit that changes no behaviour. Add tests for `dashboard/server.py` beyond `Hub`.
-- The Jython runners share names through `execfile`, so `ruff.toml` turns F821 off for them. Make the names explicit so a typo fails.
+- Split `pom_guard.py` (934 lines) in a commit that changes no behaviour. Add tests for `dashboard/server.py` beyond `Hub` (done 2026-11-25, 1bf32470b: `test_speedmatch_server.py`).
+- The Jython runners share names through `execfile`, so `ruff.toml` turns F821 off for them. Make the names explicit so a typo fails (done 2026-11-25, 7d31977dc: the runners name them in an `if False:` block, and F821 checks them).
 - Old runs: the 2026-11-13 session is in the run viewer (`www/ai/speed-runs.html`). Add the 2026-11-08 session with `export_site_runs.py` if its raw logs are in the Pi backup (`~/speedmatch`, ADR-035); not checked yet.
 - Agent: `general-purpose`, opus. `/code-review high`, because the code runs on the Pi.
 

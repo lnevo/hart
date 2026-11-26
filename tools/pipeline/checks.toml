@@ -903,12 +903,14 @@ desc = "Audit that repo paths named in agent docs (AGENTS.md etc.) exist."
 docs_only = true
 inputs = [
   { path = ".claude/agents/archive-researcher.md", label = "check", side = "check" },
+  { path = ".claude/agents/data-lane.md", label = "check", side = "check" },
   { path = ".claude/agents/finding-verifier.md", label = "check", side = "check" },
   { path = ".claude/agents/panel-tracer.md", label = "check", side = "check" },
   { path = ".claude/agents/repo-auditor.md", label = "check", side = "check" },
   { path = ".claude/agents/schematic-builder.md", label = "check", side = "check" },
   { path = ".claude/agents/site-builder.md", label = "check", side = "check" },
   { path = ".claude/agents/site-reviewer.md", label = "check", side = "check" },
+  { path = ".claude/agents/tool-fixer.md", label = "check", side = "check" },
   { path = ".claude/agents/voice-reviewer.md", label = "check", side = "check" },
   { path = ".claude/commands/done.md", label = "check", side = "check" },
   { path = ".claude/skills/deploy/SKILL.md", label = "check", side = "check" },
