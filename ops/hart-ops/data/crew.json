@@ -1,5 +1,5 @@
 {
-  "_about": "Master for the crew jobs, destination colors and their text (ADR-039; key: a job's code, a color's id). www/data/crew.json is built from it and from ops/hart-ops/data/industries.csv by ops/hart-ops/publications/build_crew_json.py, and the rebuild_*.py docx read it through crew_master.py. A \"docx\" object holds what only the printed sheet uses, or wording the sheet prints differently from the site.",
+  "_about": "Master for the crew jobs, destination colors and their text (ADR-039; key: a job's code, a color's id). www/data/crew.json is built from it and from ops/hart-ops/data/industries.csv by ops/hart-ops/publications/build_crew_json.py, and the rebuild_*.py docx read it through crew_master.py. A \"docx\" object holds what only the printed sheet uses, or wording the sheet prints differently from the site. A job's \"site_note\" is a sentence only the site prints, after the summary.",
   "colors": [
     {
       "id": "blue",
@@ -1067,7 +1067,8 @@
         "label": "CR 1993 · GE B23-7",
         "img": "assets/crew/loco-cr-1993-thumb.jpg"
       },
-      "summary": "CSX turn between Demmler / McKeesport and Neville Island. The train starts tied down in West Yard. Deliver the Demmler inbound to South Yard, hostle the engine to the engine terminal, then return for the Demmler / McKeesport outbound block, depart toward McKeesport, and terminate again in West Yard. D749 is a real CSX train number; this job's work is invented for the layout.",
+      "summary": "CSX turn between Demmler / McKeesport and Neville Island. The train starts tied down in West Yard. Deliver the Demmler inbound to South Yard, hostle the engine to the engine terminal, then return for the Demmler / McKeesport outbound block, depart toward McKeesport, and terminate again in West Yard.",
+      "site_note": "D749 is a real CSX train number; this job's work is invented for the layout.",
       "steps": [
         "Find the train tied down in West Yard with the inbound Demmler block.",
         "Obtain dispatcher clearance and run the inbound to South Yard.",
@@ -1113,7 +1114,8 @@
         "label": "POHC 2091 · EMD GP20",
         "img": "assets/crew/loco-pohc-2091-thumb.jpg"
       },
-      "summary": "Neville Island turn from Scully Yard. Interchange at South Yard, work Neville Island industries, then return to McKees Rocks / Scully with the outbound block. NVL is a real POHC train number; this job's work is invented for the layout.",
+      "summary": "Neville Island turn from Scully Yard. Interchange at South Yard, work Neville Island industries, then return to McKees Rocks / Scully with the outbound block.",
+      "site_note": "NVL is a real POHC train number; this job's work is invented for the layout.",
       "steps": [
         "Assign on the train at Scully Yard with the inbound Scully block.",
         "Obtain dispatcher clearance and run to South Yard.",
@@ -1147,8 +1149,7 @@
       ],
       "source": "../docs/ops/Neville_Island_Crew_NVL.docx",
       "docx": {
-        "photo": "2091.jpg",
-        "intro": "Neville Island turn from Scully Yard. Interchange at South Yard, work Neville Island industries, then return to McKees Rocks / Scully with the outbound block."
+        "photo": "2091.jpg"
       }
     },
     {

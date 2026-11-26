@@ -114,6 +114,8 @@ def problems(master: dict, industries: dict[str, dict]) -> list[str]:
     for j in jobs:
         where = f"job {j.get('id')!r}"
         out += [f"{where}: no {f}" for f in JOB_FIELDS if f not in j]
+        if "site_note" in j and not (isinstance(j["site_note"], str) and j["site_note"].strip()):
+            out.append(f"{where}: site_note must be a non-empty sentence")
         kind = j.get("kind")
         if kind not in KINDS:
             out.append(f"{where}: kind {kind!r} is not one of {', '.join(KINDS)}")
