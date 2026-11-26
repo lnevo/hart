@@ -1,19 +1,24 @@
 #!/usr/bin/env python3
-"""Fail when a Python file over LIMIT lines grows (owner, 2026-11-25; wiki/projects/cleanup-streamline-handoff.md, D).
+"""Fail when a .py, .js or .sh file over its line limit grows (wiki/projects/cleanup-streamline-handoff.md, D).
 
-Every tracked .py file outside EXCLUDED that is over LIMIT lines has a row in SIZES (path, lines): the size it may not
-pass. The check fails when such a file grows past its row, when a file crosses LIMIT with no row, and when a file
-shrank, fell to LIMIT or below, or is gone, so the list is tightened in the same change (a ratchet).
+Owner, 2026-11-25 (.py); .js and .sh joined in the size sweep of the same day. LIMITS gives each kind its limit:
+.py and .js 800 lines, .sh 500. Every tracked file of those kinds outside EXCLUDED (and outside any node_modules
+folder) that is over its limit has a row in SIZES (path, lines): the size it may not pass. The check fails when such a
+file grows past its row, when a file crosses its limit with no row, and when a file shrank, fell to its limit or
+below, or is gone, so the list is tightened in the same change (a ratchet). A file at 90 percent of its limit or more
+(WARN_SHARE, warn_at: 720 lines for .py and .js, 450 for .sh) with no row gets a WARNING line, which does not fail
+the check, so the guard speaks before the crossing. The warning is advisory: it shows when the py-sizes job runs, not
+when its stamp lets check.sh skip it.
 
     python3 tools/audit/check_py_sizes.py            check (exit 1 on a problem, 2 when it cannot run)
-    python3 tools/audit/check_py_sizes.py --update   rewrite SIZES for files that shrank, fell under LIMIT or went
-                                                     away; it never raises a size or adds a file
+    python3 tools/audit/check_py_sizes.py --update   rewrite SIZES for files that shrank, fell under their limit or
+                                                     went away; it never raises a size or adds a file
     python3 tools/audit/check_py_sizes.py --update --accept PATH [--accept PATH ...]
-                                                     also take PATH's current size: growth, or a new file over LIMIT,
-                                                     accepted by name, so the diff of SIZES shows it
+                                                     also take PATH's current size: growth, or a new file over its
+                                                     limit, accepted by name, so the diff of SIZES shows it
 
-Lines are newlines, as `wc -l` counts them, plus a last line with no newline. Untracked .py files that git does not
-ignore are measured too, so a new file over LIMIT fails before it is staged.
+Lines are newlines, as `wc -l` counts them, plus a last line with no newline. Untracked files that git does not
+ignore are measured too, so a new file over its limit fails before it is staged.
 """
 from __future__ import annotations
 
@@ -27,14 +32,18 @@ from typing import NamedTuple
 
 ROOT = Path(__file__).resolve().parents[2]
 SIZES = ROOT / "tools/audit/py_sizes.csv"
-LIMIT = 800
+# The line limit of each kind of file the check covers, by suffix. Shell is lower: check.sh grew from 47 to 526 lines
+# in 14 days, and at 800 no shell file in the repo would have a row (tools/audit size sweep, 2026-11-25).
+LIMITS = {".py": 800, ".js": 800, ".sh": 500}
 # What it reads, as git globs (then in_scope); the step's quiet_inputs in tools/pipeline/checks.toml are these
 # (tools/audit/tests/test_manifest_scans.py)
-SCAN_GLOBS = ("**/*.py",)
+SCAN_GLOBS = tuple(f"**/*{suffix}" for suffix in LIMITS)
 # Code this repo does not grow: vendored or submodule code, the archive (the third-party STRR speed-match scripts
-# are there) and parked features (docs/parked/UNPARK.md). The same set ruff.toml leaves out.
+# are there) and parked features (docs/parked/UNPARK.md). The same set ruff.toml leaves out. No vendored or minified
+# .js is tracked outside them (2026-11-25: the longest .js lines are hand-written data in www/exam/run.js).
 EXCLUDED = ("archive/", "external/", "reference/", "tools/cats/src-repo/", "jmri/layouts/hart/parked/")
 HEADER = ("path", "lines")
+WARN_SHARE = 0.9        # the share of its limit at which a file with no row gets a WARNING
 
 
 class SizeError(Exception):
@@ -46,8 +55,21 @@ class Problem(NamedTuple):  # a NamedTuple, not a dataclass: tests load this fil
     text: str
 
 
+def limit_of(path: str) -> int | None:
+    """The line limit of `path`'s kind, or None for a kind the check does not cover."""
+    return LIMITS.get(Path(path).suffix)
+
+
+def warn_at(limit: int) -> int:
+    """The line count from which a file under `limit` with no row is warned about (720 of 800, 450 of 500)."""
+    return int(limit * WARN_SHARE)
+
+
 def in_scope(path: str) -> bool:
-    return path.endswith(".py") and not path.startswith(EXCLUDED)
+    """A kind LIMITS covers, outside EXCLUDED and outside node_modules (an npm install's untracked vendor code, which
+    .gitignore does not leave out)."""
+    return (limit_of(path) is not None and not path.startswith(EXCLUDED)
+            and "node_modules" not in path.split("/")[:-1])
 
 
 def tracked(root: Path | None = None) -> list[str]:
@@ -69,9 +91,13 @@ def count_lines(path: Path) -> int:
 
 
 def measure(root: Path | None = None) -> dict[str, int]:
-    """Lines of every in-scope .py file git lists (tracked, or new and not ignored) that exists on disk."""
+    """Lines of every in-scope file git lists (tracked, or new and not ignored) that exists on disk."""
     root = root or ROOT
     return {p: count_lines(root / p) for p in tracked(root) if (root / p).is_file()}
+
+
+def kinds() -> str:
+    return ", ".join(LIMITS)
 
 
 def read_sizes(path: Path | None = None) -> dict[str, int]:
@@ -89,9 +115,10 @@ def read_sizes(path: Path | None = None) -> dict[str, int]:
         if name in sizes:
             raise SizeError(f"{path.name} row {n}: {name} is listed twice")
         if not in_scope(name):
-            raise SizeError(f"{path.name} row {n}: {name} is not a .py file this check covers")
-        if lines <= LIMIT:
-            raise SizeError(f"{path.name} row {n}: {name} at {lines} lines is not over {LIMIT}; take the row out")
+            raise SizeError(f"{path.name} row {n}: {name} is not a {kinds()} file this check covers")
+        limit = limit_of(name)
+        if lines <= limit:
+            raise SizeError(f"{path.name} row {n}: {name} at {lines} lines is not over {limit}; take the row out")
         sizes[name] = lines
     return sizes
 
@@ -99,12 +126,13 @@ def read_sizes(path: Path | None = None) -> dict[str, int]:
 def problems(now: dict[str, int], sizes: dict[str, int]) -> list[Problem]:
     out = []
     for path, lines in sorted(now.items()):
-        if lines <= LIMIT:
+        limit = limit_of(path)
+        if lines <= limit:
             continue
         allowed = sizes.get(path)
         if allowed is None:
-            out.append(Problem(path, f"{lines} lines, over {LIMIT} with no row in {SIZES.name}: split it, or accept it "
-                                     f"by name (--update --accept {path})"))
+            out.append(Problem(path, f"{lines} lines, over {limit} with no row in {SIZES.name}: split it, or accept "
+                                     f"it by name (--update --accept {path})"))
         elif lines > allowed:
             out.append(Problem(path, f"grew from {allowed} to {lines} lines: split it, or accept it by name "
                                      f"(--update --accept {path})"))
@@ -113,24 +141,36 @@ def problems(now: dict[str, int], sizes: dict[str, int]) -> list[Problem]:
     for path, allowed in sorted(sizes.items()):
         if path not in now:
             out.append(Problem(path, f"listed at {allowed} lines but gone: run --update to drop its row"))
-        elif now[path] <= LIMIT:
-            out.append(Problem(path, f"now {now[path]} lines, at or under {LIMIT}: run --update to drop its row"))
+        elif now[path] <= limit_of(path):
+            out.append(Problem(path, f"now {now[path]} lines, at or under {limit_of(path)}: run --update to drop "
+                                     f"its row"))
+    return out
+
+
+def warnings(now: dict[str, int], sizes: dict[str, int]) -> list[Problem]:
+    """The files at WARN_SHARE of their limit or more, not over it, with no row: they fail on the line that crosses."""
+    out = []
+    for path, lines in sorted(now.items()):
+        limit = limit_of(path)
+        if warn_at(limit) <= lines <= limit and path not in sizes:
+            out.append(Problem(path, f"{lines} lines, at {lines * 100 // limit} percent of its {limit}-line limit; "
+                                     f"over {limit} it fails without a row: split it first"))
     return out
 
 
 def updated(now: dict[str, int], sizes: dict[str, int], accept: set[str]) -> dict[str, int]:
-    """The new list: rows lowered or dropped where files shrank, fell under LIMIT or went away; rows raised or added
-    only for paths in `accept`. A path in `accept` that does not need it is an error, so a typo is not ignored."""
+    """The new list: rows lowered or dropped where files shrank, fell under their limit or went away; rows raised or
+    added only for paths in `accept`. A path in `accept` that does not need it is an error, so a typo is not ignored."""
     for path in sorted(accept):
         if path not in now:
-            raise SizeError(f"--accept {path}: no .py file this check covers has that path")
-        if now[path] <= LIMIT:
-            raise SizeError(f"--accept {path}: it is {now[path]} lines, not over {LIMIT}")
+            raise SizeError(f"--accept {path}: no {kinds()} file this check covers has that path")
+        if now[path] <= limit_of(path):
+            raise SizeError(f"--accept {path}: it is {now[path]} lines, not over {limit_of(path)}")
         if path in sizes and now[path] <= sizes[path]:
             raise SizeError(f"--accept {path}: it did not grow ({now[path]} lines, row {sizes[path]})")
     new = {}
     for path, lines in now.items():
-        if lines <= LIMIT:
+        if lines <= limit_of(path):
             continue
         if path in accept:
             new[path] = lines
@@ -151,6 +191,10 @@ def write_sizes(sizes: dict[str, int], path: Path | None = None) -> None:
         raise SizeError(f"{path.name} did not read back as written")
 
 
+def limits_text() -> str:
+    return ", ".join(f"{suffix} {limit}" for suffix, limit in LIMITS.items())
+
+
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--update", action="store_true", help="tighten the list; never raises a size unless --accept")
@@ -166,22 +210,23 @@ def main(argv: list[str]) -> int:
         if args.update:
             new = updated(now, sizes, set(args.accept))
             if new == sizes:
-                print(f"check_py_sizes: {SIZES.name} already current ({len(new)} files over {LIMIT} lines)")
+                print(f"check_py_sizes: {SIZES.name} already current ({len(new)} files over their limit)")
             else:
                 write_sizes(new)
-                print(f"check_py_sizes: wrote {SIZES.name} ({len(new)} files over {LIMIT} lines)")
-            left = problems(now, new)
-        else:
-            left = problems(now, sizes)
+                print(f"check_py_sizes: wrote {SIZES.name} ({len(new)} files over their limit)")
+            sizes = new
+        left = problems(now, sizes)
     except SizeError as e:
         print(f"check_py_sizes: {e}", file=sys.stderr)
         return 2
+    for w in warnings(now, sizes):
+        print(f"check_py_sizes: WARNING: {w.path}: {w.text}")
     if left:
-        print(f"check_py_sizes: {len(left)} problem(s) with Python files over {LIMIT} lines:")
+        print(f"check_py_sizes: {len(left)} problem(s) with files over their line limit ({limits_text()}):")
         for p in left:
             print(f"  {p.path}: {p.text}")
         return 1
-    print(f"check_py_sizes: no Python file over {LIMIT} lines grew ({len(sizes if not args.update else new)} listed)")
+    print(f"check_py_sizes: no file over its line limit ({limits_text()}) grew ({len(sizes)} listed)")
     return 0
 
 
