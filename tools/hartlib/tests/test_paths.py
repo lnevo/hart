@@ -1,7 +1,9 @@
 """hartlib.paths: one checkout, one layout, and a check that the old shims are gone."""
 import importlib
 import os
+import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -9,7 +11,7 @@ from unittest import mock
 HERE = Path(__file__).resolve()
 sys.path.insert(0, str(HERE.parents[1] / "src"))
 
-from hartlib import paths  # noqa: E402
+from hartlib import devices, paths  # noqa: E402
 
 CHECKOUT = HERE.parents[3]
 
@@ -18,7 +20,7 @@ class CheckoutTest(unittest.TestCase):
     def test_root_is_the_checkout_holding_hartlib(self):
         self.assertEqual(paths.REPO_ROOT, CHECKOUT)
         self.assertTrue(paths.TABLES_XML.is_file())
-        self.assertTrue(paths.DEVICES.is_file())
+        self.assertTrue(devices.MASTER.is_file())
         self.assertTrue(paths.WIRING.is_file())
         self.assertTrue(paths.SIGNAL_HEAD_PLAN.is_file())
         self.assertEqual(paths.TABLES_XML, CHECKOUT / "jmri/layouts/hart/output/tables.xml")
@@ -184,6 +186,66 @@ class TablesOverrideTest(unittest.TestCase):
             out = self.probe(str(profile), home=home)
         self.assertNotEqual(0, out.returncode)
         self.assertIn("is in the JMRI profile", out.stderr)
+
+
+class SharedFoldersTest(unittest.TestCase):
+    """Caches and pulled Stores live in the main checkout, gitignored, shared by every worktree."""
+
+    def ignored(self, path):
+        """Whether this checkout's .gitignore ignores `path` (taken relative to the main checkout, which holds
+        the same tracked .gitignore; the main checkout itself may be a bare repo's parent on a build host)."""
+        rel = path.relative_to(paths.main_checkout())
+        return subprocess.run(["git", "-C", str(paths.REPO_ROOT), "check-ignore", "-q", str(rel)]).returncode == 0
+
+    def test_defaults_are_in_the_main_checkout_and_git_ignored(self):
+        with mock.patch.dict(os.environ, {"HART_CACHE_DIR": ""}):
+            cache = paths.cache_dir("schematic")
+        main = paths.main_checkout()
+        self.assertEqual(main / ".cache/hart/schematic", cache)
+        self.assertTrue(self.ignored(cache))
+        self.assertEqual(main / "media/pulled-stores", paths.pulled_stores_dir())
+        self.assertTrue(self.ignored(paths.main_checkout() / "media"))   # media/ is a link in a worktree: ask about the folder itself
+
+    def test_the_override_moves_the_cache_base(self):
+        with mock.patch.dict(os.environ, {"HART_CACHE_DIR": "/x/c"}):
+            self.assertEqual(Path("/x/c/web-jpeg"), paths.cache_dir("web-jpeg"))
+
+    def test_pulled_stores_dir_honours_the_override_and_refuses_a_worktree_or_unignored_folder(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.dict(os.environ, {"HART_PULLED_DIR": str(Path(tmp) / "kept")}):
+                self.assertEqual(Path(tmp) / "kept", paths.pulled_stores_dir())          # outside every checkout
+            inside = paths.REPO_ROOT / "jmri/layouts/hart/output/pulled-test/kept"      # not ignored
+            with mock.patch.dict(os.environ, {"HART_PULLED_DIR": str(inside)}):
+                with self.assertRaises(ValueError):
+                    paths.pulled_stores_dir()
+            self.assertFalse(inside.parent.exists())
+        with mock.patch.dict(os.environ, {"HART_PULLED_DIR": ""}):
+            self.assertEqual(paths.main_checkout() / "media/pulled-stores", paths.pulled_stores_dir())
+
+    def test_a_linked_worktree_folder_is_refused(self):
+        env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+        env.update(GIT_CONFIG_GLOBAL="/dev/null", GIT_CONFIG_SYSTEM="/dev/null")
+        def git(*args):
+            subprocess.run(["git", "-c", "commit.gpgsign=false", "-c", "user.name=t", "-c", "user.email=t@example.invalid",
+                            *args], check=True, env=env, capture_output=True)
+        with tempfile.TemporaryDirectory() as tmp:
+            main, work = Path(tmp).resolve() / "main", Path(tmp).resolve() / "work"
+            git("init", "-q", str(main))
+            git("-C", str(main), "commit", "-q", "--allow-empty", "-m", "x")
+            git("-C", str(main), "worktree", "add", "-q", str(work), "-b", "t")
+            self.assertEqual(main, paths.main_checkout(work))
+            with mock.patch.dict(os.environ, {"HART_PULLED_DIR": str(work / "media/stores")}):
+                with self.assertRaises(ValueError) as stop:
+                    paths.pulled_stores_dir(work)
+                self.assertIn("never in a worktree", str(stop.exception))
+
+    def test_the_cache_base_is_trimmed_and_expanded(self):
+        with mock.patch.dict(os.environ, {"HART_CACHE_DIR": "  ~/c  "}):
+            self.assertEqual(Path.home() / "c/x", paths.cache_dir("x"))
+
+    def test_a_tree_git_cannot_read_answers_with_itself(self):
+        with tempfile.TemporaryDirectory() as d:
+            self.assertEqual(Path(d), paths.main_checkout(Path(d)))
 
 
 if __name__ == "__main__":

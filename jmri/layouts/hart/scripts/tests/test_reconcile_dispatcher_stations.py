@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import io
 import sys
 import tempfile
 import unittest
@@ -252,7 +254,10 @@ class ReconcileDispatcherStationsTest(unittest.TestCase):
             override = reconciler.paths.exit_if_overridden
             reconciler.paths.exit_if_overridden = lambda name: None     # the test writes a temp panel, whatever HART_TABLES says
             try:
-                self.assertEqual(reconciler.main(["--panel", str(panel), "--no-sync"]), 0)
+                with contextlib.redirect_stdout(io.StringIO()) as out:     # a quiet skip (docs/parked/UNPARK.md)
+                    self.assertEqual(reconciler.main(["--panel", str(panel), "--no-sync"]), 0)
+                self.assertIn("SKIPPED: the Dispatcher System is parked", out.getvalue())
+                self.assertIn("docs/parked/UNPARK.md", out.getvalue())
                 self.assertEqual(len(parses), 1)
                 self.assertEqual(panel.read_bytes(), original)
                 panel.write_text("<layout-config>", encoding="utf-8")
@@ -332,10 +337,14 @@ class StageOneLampsAndSensorsTest(unittest.TestCase):
         tree = reconciler.parse_xml(tables)
         # the stations' occupancy lamps were parked with the lamps of the generated panel, not in the parked tables
         # (jmri/layouts/hart/parked/staging_panel_lamps.json, owner 2026-11-17): put back from the tables alone, the
-        # reconciler adds exactly those, one per station, and nothing else
+        # reconciler adds exactly those, one per station; the stations' "; stop" marks were parked with the stations
+        # topic (owner, 2026-11-22, docs/parked/UNPARK.md), so it puts each of those back too, and nothing else
         details = reconciler.reconcile(tree).details
-        self.assertEqual(len(details), 12, details)
-        self.assertTrue(all(d.startswith("created icon BS ") for d in details), details)
+        self.assertEqual(len(details), 24, details)
+        icons = [d for d in details if d.startswith("created icon BS ")]
+        stops = sorted(d.removeprefix("added stop token: ") for d in details if d.startswith("added stop token: "))
+        self.assertEqual(len(icons), 12, details)
+        self.assertEqual(stops, sorted(reconciler.STATIONS), details)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,121 @@
+﻿2026-11-26T02:41:47.3295201Z Current runner version: '2.338.2'
+2026-11-26T02:41:47.3321675Z ##[group]Runner Image Provisioner
+2026-11-26T02:41:47.3322588Z Hosted Compute Agent
+2026-11-26T02:42:17.7910590Z ##[group]Run ./tools/check.sh
+2026-11-26T02:42:17.7910956Z [36;1m./tools/check.sh[0m
+2026-11-26T02:42:17.7943604Z shell: /usr/bin/bash -e {0}
+2026-11-26T02:42:17.7943926Z env:
+2026-11-26T02:42:17.7944279Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-26T02:42:17.7944883Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.18/x64/lib/pkgconfig
+2026-11-26T02:42:17.7945486Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-26T02:42:17.7946018Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-26T02:42:17.7946784Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-26T02:42:17.7947320Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.18/x64/lib
+2026-11-26T02:42:17.7947783Z   SCHEMATIC_REQUIRED: 1
+2026-11-26T02:42:17.7948087Z   CHECK_SKIP_FROM: 
+2026-11-26T02:42:17.7948367Z   CHECK_SKIP_NOTE: 
+2026-11-26T02:42:17.7948777Z   CHECK_RECORD_TO: /home/runner/work/hart/hart/.cache/ci/main-stamps
+2026-11-26T02:42:17.7949298Z   CHECK_AUDIT_FAILS: 
+2026-11-26T02:42:17.7949686Z   CHECK_RESULTS_TO: /home/runner/work/_temp/check-results.tsv
+2026-11-26T02:42:17.7950136Z ##[endgroup]
+2026-11-26T02:47:24.5317735Z --- unit-guards layout-editor (test_build_layout_le test_le_cutover test_le_mast_parity) (13s)
+2026-11-26T02:47:24.5364114Z ----------------------------------------------------------------------
+2026-11-26T02:47:24.5370031Z Ran 99 tests in 11.745s
+2026-11-26T02:47:24.5370561Z 
+2026-11-26T02:47:24.5370898Z OK
+2026-11-26T02:47:24.5434853Z --- phase02 (1s)
+2026-11-26T02:47:24.5481056Z PASS hart phase 0–2 checks
+2026-11-26T02:47:24.5491463Z --- stamps (phase02):
+2026-11-26T02:47:24.5492775Z stamp audit: phase02: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.5544631Z --- tables-browser (1s)
+2026-11-26T02:47:24.5602210Z tables-file.html is current and tables-browser.json builds and passes its checks
+2026-11-26T02:47:24.5603381Z --- stamps (tables-browser):
+2026-11-26T02:47:24.5604748Z stamp audit: tables-browser: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.5655544Z --- repo-guide (1s)
+2026-11-26T02:47:24.5710330Z repository-guide.html is current
+2026-11-26T02:47:24.5711200Z --- stamps (repo-guide):
+2026-11-26T02:47:24.5712524Z stamp audit: repo-guide: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.5767693Z --- pipeline-map (2s)
+2026-11-26T02:47:24.5821679Z pipeline map: the graph is current and both pages build (620 nodes, 1396 edges)
+2026-11-26T02:47:24.5822802Z --- stamps (pipeline-map):
+2026-11-26T02:47:24.5824131Z stamp audit: pipeline-map: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.5872916Z --- pipeline-map-coverage (0s)
+2026-11-26T02:47:24.5933346Z --- stamps (pipeline-map-coverage):
+2026-11-26T02:47:24.5939895Z stamp audit: pipeline-map-coverage: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.5995045Z --- jmri-additions (0s)
+2026-11-26T02:47:24.6038654Z jmri-additions.html is current
+2026-11-26T02:47:24.6049000Z --- stamps (jmri-additions):
+2026-11-26T02:47:24.6050406Z stamp audit: jmri-additions: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.6103849Z --- layout-index (1s)
+2026-11-26T02:47:24.6152154Z www/data/layout-index.json builds and passes its checks (448 items, the PNG's render stamp is current)
+2026-11-26T02:47:24.6167665Z --- stamps (layout-index):
+2026-11-26T02:47:24.6169024Z stamp audit: layout-index: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.6214116Z --- layout-docs (1s)
+2026-11-26T02:47:24.6252115Z build_layout_docs: up to date
+2026-11-26T02:47:24.6262148Z --- stamps (layout-docs):
+2026-11-26T02:47:24.6263497Z stamp audit: layout-docs: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.6314227Z --- layout-index-cats (1s)
+2026-11-26T02:47:24.6364794Z www/data/layout-index-cats.json builds and passes its checks (146 items, the PNG's render stamp is current)
+2026-11-26T02:47:24.6371391Z --- stamps (layout-index-cats):
+2026-11-26T02:47:24.6372803Z stamp audit: layout-index-cats: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.6422452Z --- wiring-json (2s)
+2026-11-26T02:47:24.6461447Z www/data/wiring-inventory.json builds from the wiring model and passes its checks (not committed, ADR-036)
+2026-11-26T02:47:24.6472171Z LCOS_Layout_Inventory_v86.xlsx: 23 nodes, 640 pins, 63 heads, 62 turnouts, 81 block sensors
+2026-11-26T02:47:24.6473295Z 4 data warning(s):
+2026-11-26T02:47:24.6474671Z   - TurnoutSummary: Switch 7 (OS Switch 7) button → C13-IN2-1 (planned), but DNIN8 has nothing there
+2026-11-26T02:47:24.6476383Z   - TurnoutSummary: Switch 7 (OS Switch 7b) button → C13-IN2-1 (planned), but DNIN8 has nothing there
+2026-11-26T02:47:24.6478195Z   - TurnoutSummary: Switch 9 button → C13-IN2-3 (planned), but DNIN8 has nothing there
+2026-11-26T02:47:24.6479721Z   - TurnoutSummary: Switch 11 button → C13-IN2-2 (planned), but DNIN8 has nothing there
+2026-11-26T02:47:24.6480809Z --- stamps (wiring-json):
+2026-11-26T02:47:24.6482112Z stamp audit: wiring-json: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.6524791Z --- track-lengths (1s)
+2026-11-26T02:47:24.6597270Z track lengths OK
+2026-11-26T02:47:24.6597930Z --- stamps (track-lengths):
+2026-11-26T02:47:24.6623855Z stamp audit: track-lengths: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.6636780Z --- speedmatch-routes (0s)
+2026-11-26T02:47:24.6670701Z jmri/layouts/hart/scripts/speedmatch/routes.json is current
+2026-11-26T02:47:24.6687075Z --- stamps (speedmatch-routes):
+2026-11-26T02:47:24.6710287Z stamp audit: speedmatch-routes: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.6737026Z --- panel-contracts (1s)
+2026-11-26T02:47:24.6751647Z deployment: jmri/layouts/hart/output/tables.xml (panel=HART Railroad, errors=0, warnings=0)
+2026-11-26T02:47:24.6756731Z source drift: 0 difference(s)
+2026-11-26T02:47:24.6757453Z RESULT: PASS (strict; hard errors=0, warnings=0, drift=0)
+2026-11-26T02:47:24.6758161Z --- stamps (panel-contracts):
+2026-11-26T02:47:24.6759311Z stamp audit: panel-contracts: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.6817048Z --- baselines (1s)
+2026-11-26T02:47:24.6834525Z Baselines match tables.xml
+2026-11-26T02:47:24.6835106Z --- stamps (baselines):
+2026-11-26T02:47:24.6836186Z stamp audit: baselines: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.6876201Z --- digicon-disabled (0s)
+2026-11-26T02:47:24.6916876Z ok: jmri/layouts/hart/output/tables.xml Digicon SML destinations Enabled=no (masts=1)
+2026-11-26T02:47:24.6947082Z --- stamps (digicon-disabled):
+2026-11-26T02:47:24.6977702Z stamp audit: digicon-disabled: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.6979225Z --- status-counts (0s)
+2026-11-26T02:47:24.7007068Z STATUS entries ok
+2026-11-26T02:47:24.7037059Z --- stamps (status-counts):
+2026-11-26T02:47:24.7067611Z stamp audit: status-counts: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.7069170Z --- levels-svg (1s)
+2026-11-26T02:47:24.7097586Z levels_svg: SKIPPED, /home/runner/Documents/Layout/Lee Nevo Design Version 5.3c.any is not on this machine
+2026-11-26T02:47:24.7140279Z --- levels-page (1s)
+2026-11-26T02:47:24.7174519Z levels_page: the site article is current
+2026-11-26T02:47:24.7187265Z --- stamps (levels-page):
+2026-11-26T02:47:24.7197507Z stamp audit: levels-page: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:55.2664957Z --- ruff (2s)
+2026-11-26T02:47:55.2689772Z check_ruff: no pyflakes findings
+2026-11-26T02:47:55.2690605Z --- stamps (ruff):
+2026-11-26T02:47:55.2691730Z stamp audit: ruff: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:55.2724034Z --- portal skipped in CI (0s)
+2026-11-26T02:47:55.3742538Z 1 job(s) printed SKIPPED and checked only part of their inputs: levels-svg
+2026-11-26T02:47:55.3743409Z ALL PASSED
+2026-11-26T02:47:55.4729415Z ##[group]Run python3 tools/ci/stamp_gate.py manifest .cache/ci/main-stamps --sha "$GITHUB_SHA"
+2026-11-26T02:47:55.4730265Z [36;1mpython3 tools/ci/stamp_gate.py manifest .cache/ci/main-stamps --sha "$GITHUB_SHA"[0m
+2026-11-26T02:47:55.4763664Z shell: /usr/bin/bash -e {0}
+2026-11-26T02:47:55.4763994Z env:
+2026-11-26T02:47:55.4764346Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-26T02:47:55.4764943Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.18/x64/lib/pkgconfig
+2026-11-26T02:47:55.4765525Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-26T02:47:55.4766229Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-26T02:47:55.4766959Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-26T02:47:55.4767509Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.18/x64/lib
+2026-11-26T02:47:55.4767970Z ##[endgroup]
+2026-11-26T02:47:55.5246371Z wrote .cache/ci/main-stamps/manifest.json: 222 stamps for 05e73a40d7b5

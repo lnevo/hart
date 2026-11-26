@@ -7,7 +7,7 @@ same reconciliation independently to ``jmri/layouts/hart/output/tables.xml``;
 it never copies one complete configuration over the other.  Use ``--no-sync``
 to skip the deployment bundle.  ``--check`` validates without writing.
 
-The main panel must be a generated one (build_layout_le.py --as-live; it holds
+The main panel must be a generated one (tools/schematic/build_tables.py writes one; it holds
 hartlib.tables.GENERATED_PANEL_MARKER). Each cluster icon stays where it stands: where the same
 icon stands on the ``--reference`` panel (the copy taken before Stage 1, which deletes and
 re-adds the cluster icons; run_panelpro_stage1.sh passes it), else where the panel's own one
@@ -23,10 +23,7 @@ from __future__ import annotations
 
 import argparse
 import copy
-import os
-import stat
 import sys
-import tempfile
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -34,7 +31,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import parked, paths, tables  # noqa: E402
+from hartlib import files, parked, paths, tables  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 DEFAULT_PANEL = paths.TABLES_XML
@@ -670,25 +667,11 @@ def validate(root: ET.Element) -> None:
 
 
 def write_atomic(tree: ET.ElementTree, destination: Path) -> None:
+    """Indent the tree and write it through hartlib.files.write_atomic (the old file's mode kept)."""
     ET.indent(tree, space="  ")
     destination.parent.mkdir(parents=True, exist_ok=True)
-    fd, temporary_name = tempfile.mkstemp(
-        prefix=f".{destination.name}.", suffix=".tmp", dir=destination.parent
-    )
-    os.close(fd)
-    temporary = Path(temporary_name)
-    try:
-        tree.write(
-            temporary,
-            encoding="UTF-8",
-            xml_declaration=True,
-            short_empty_elements=True,
-        )
-        if destination.exists():
-            os.chmod(temporary, stat.S_IMODE(destination.stat().st_mode))
-        temporary.replace(destination)
-    finally:
-        temporary.unlink(missing_ok=True)
+    data = ET.tostring(tree.getroot(), encoding="UTF-8", xml_declaration=True, short_empty_elements=True)
+    files.write_atomic(destination, data, follow_links=False)
 
 
 def safe_panel_path(path: Path) -> Path:
@@ -747,7 +730,7 @@ def main(argv: list[str] | None = None) -> int:
     if "dispatcher" in parked.parked_in(tree.getroot()):
         # parked (hartlib.parked): tables without the Dispatcher System hold no station to reconcile
         print("SKIPPED: the Dispatcher System is parked (hartlib.parked.PARKED); its stations are in "
-              f"{paths.rel(parked.PARKED_XML)}")
+              f"{paths.rel(parked.PARKED_XML)}; waking it up: docs/parked/UNPARK.md")
         return 0
     try:
         reference = None

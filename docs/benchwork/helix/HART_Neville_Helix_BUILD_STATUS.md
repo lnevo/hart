@@ -1,8 +1,10 @@
 # HART Railroad — Neville Island Helix: Build Status
 
-**Last updated 2026-10-15.** This is the single living status document. **Update it in place; don't start new addenda.** It replaces the six dated addenda (2026-09-30 through 2026-10-13), which are archived unchanged in `archive/docs/benchwork/helix/history/` if the history is ever needed.
+The single living status file for the helix build: as-built facts, decisions that override the handoff and the PDF plan, every fixture and script, and open items.
 
-Other `superseded/` mentions below mean `archive/docs/benchwork/helix/history/superseded/`; the obsolete STLs are in `archive/docs/benchwork/helix/history/superseded/obsolete_stl/`.
+**Last updated 2026-10-15.** This is the single living status document. **Update it in place; don't start new addenda.** It replaces the six dated addenda (2026-09-30 through 2026-10-13), which are archived unchanged in `archive/history/helix/` if the history is ever needed.
+
+Other `superseded/` mentions below mean `archive/history/helix/superseded/`; the obsolete STLs are in `archive/history/helix/superseded/obsolete_stl/`.
 
 **Read in this order:**
 1. `helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf`: fabrication drawings. Entry pages 2, 3 and 8 were redrawn from §1 on 2026-10-22 (`make_entry_pages.py`). **Page 13 is the half-lap screw template** (added 2026-10-15; same as `lap_screw_template.pdf`).
@@ -160,7 +162,7 @@ A/B hand logic: templates print plate-down and are flipped for use. One lap hand
 - Thin parts (wedges, plumb shims) print slower. Vase parts need the gap-closing setting above.
 
 ## 6. Regenerating
-- Scripts live in `tools/benchwork/helix/`. Use the repo environment: `pip install -r requirements.txt` into `.venv`, then `.venv/bin/python tools/benchwork/helix/<script>.py --out <folder>`.
+- Scripts live in `archive/code/benchwork-tools/helix/`. Use the repo environment: `pip install -r requirements.txt` into `.venv`, then `.venv/bin/python archive/code/benchwork-tools/helix/<script>.py --out <folder>`.
 - Run with `PYTHONDONTWRITEBYTECODE=1` to keep `__pycache__` out of the folder.
 
 ## 7. Process lessons

@@ -272,15 +272,15 @@ def schematic(n: int) -> Iterator[Image.Image]:
 
 
 def ctc_pan(n: int) -> Iterator[Image.Image]:
-    """Pan across the USS CTC machine while its last changes come in."""
+    """Pan across the USS CTC machine while its changes come in (the whole film, about 8 s)."""
     src = EVOLUTION / "uss-panel-evolution.mp4"
     ph = 800 if LAND else 1120
     pw = round(1200 * ph / 652)
     view = STAGE[2] - STAGE[0]
     vf = f"fps={FPS},crop=1200:652:0:62,scale={pw}:{ph}:flags=lanczos"
-    frames = list(video_frames(src, vf, (pw, ph), start=19.0))
+    frames = list(video_frames(src, vf, (pw, ph)))
     if not frames:
-        raise SystemExit(f"no frames from {src} after 19 s; is it shorter now?")
+        raise SystemExit(f"no frames from {src}")
     bg = (34, 34, 42)
     for i in range(n):
         t = i / max(n - 1, 1)

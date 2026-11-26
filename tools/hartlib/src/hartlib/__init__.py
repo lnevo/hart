@@ -1,6 +1,6 @@
-"""Shared helpers for the repo's CPython tools: tables.xml, paths, hosts and the name map.
+"""Shared helpers for the repo's CPython tools: tables.xml, paths, hosts and the device master.
 
 CPython 3.9+ only, standard library only. Jython scripts that run inside JMRI must not
 import it. See tools/hartlib/README.md for the API and the rules for moving a script.
 """
-__all__ = ["cats", "hosts", "names", "parked", "paths", "railroad", "tables"]
+__all__ = ["cats", "files", "hosts", "names", "operations", "parked", "paths", "railroad", "tables"]

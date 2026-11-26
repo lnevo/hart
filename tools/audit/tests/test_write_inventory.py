@@ -32,6 +32,18 @@ class Inventory(unittest.TestCase):
     def test_v86_is_current(self):
         self.assertEqual(WI.main(["--check"]), 0)
 
+    def test_a_detector_names_its_block_by_its_blocks_column_never_its_name(self):
+        by_name = {"Track 9-11": {}, "OS Switch 9": {}}
+        occ = dict(role="os", user_name="BS Switch 9", blocks="Track 9-11")
+        self.assertEqual(WI.block_name(occ, by_name), "Track 9-11")
+        self.assertIsNone(WI.block_name(dict(occ, role="spare", blocks=""), by_name))
+        with self.assertRaisesRegex(SystemExit, "occupancy BS Switch 9 names no block in its blocks column"):
+            WI.block_name(dict(occ, blocks=""), by_name)
+        with self.assertRaisesRegex(SystemExit, "detects Track 1-3, which has no block row"):
+            WI.block_name(dict(occ, blocks="Track 1-3"), by_name)
+        with self.assertRaisesRegex(WI.devices.DevicesError, "has no role"):
+            WI.block_name(dict(occ, role=""), by_name)
+
     def test_every_node_is_listed(self):
         self.assertEqual({r[2] for r in V86["Nodes"][1:]}, set(NODES))
         self.assertEqual(next(r for r in V86["Nodes"] if r[0] == "C2")[1], "C3")     # its legacy ID, from the source
@@ -109,20 +121,95 @@ class Inventory(unittest.TestCase):
         self.assertEqual([x[:2] for x in c13], [("C13-IN2-1", "Switch 7 BTN"), ("C13-IN2-2", "Switch 11 BTN"),
                                                 ("C13-IN2-3", "Switch 9 BTN")])
         self.assertTrue(all(x[2] == "planned, not connected; (owner, 2026-11-21)" for x in c13))
-        self.assertEqual(turnouts["Switch 7"][4], "C13-IN2-1 (planned)")
+        self.assertEqual(turnouts["Switch 7 (OS Switch 7)"][4], "C13-IN2-1 (planned)")
         self.assertIn("Switch 7 BTN (planned)", next(r for r in V86["Nodes"] if r[0] == "C13")[
             WI.NODE_COLUMNS.index("Button Devices")])
-        self.assertEqual(turnouts["Switch 35"][4], "C1-IN2-1")
+        self.assertEqual(turnouts["Switch 35 (OS Switch 35b)"][4], "C1-IN2-1")
         c1 = next(r for r in V86["Nodes"] if r[0] == "C1")
         self.assertEqual(c1[WI.NODE_COLUMNS.index("Num Buttons")], 3)
 
     def test_a_planned_relay_says_so(self):
         import tempfile
         p = Path(tempfile.mkdtemp()) / "wiring.csv"
-        p.write_text(",".join(WI.wiring.COLUMNS) + "\n1,relay,C3 relay 2,,,,,3,,OU2,7,planned,\n", encoding="utf-8")
+        p.write_text(",".join(WI.wiring.COLUMNS) + "\n1,relay,,C3 relay 2,,,,,3,,OU2,7,planned,\n", encoding="utf-8")
         nodes = WI.gather([], WI.read_node_rows())
         WI.add_local(nodes, p)
         self.assertEqual(nodes[3].ou[2][7], ("C3 relay 2", "Relay", "5V", "planned, not connected"))
+
+    def test_a_mast_role_is_matched_against_every_row_of_its_switch(self):
+        """A crossover has a row per OS block: a facing on the first half's closed leg is a normal exit, not an entry
+        because only the last row was read (owner, 2026-11-21). One row behaves as it always did."""
+        from types import SimpleNamespace as Row
+        one = [Row(closed_leg="A", thrown_leg="B")]
+        self.assertEqual([WI.mast_role(one, f) for f in ("A", "B", "C")], ["Normal Exit", "Reverse Exit", "Entry"])
+        two = [Row(closed_leg="A", thrown_leg="X"), Row(closed_leg="C", thrown_leg="A")]
+        self.assertEqual([WI.mast_role(two, f) for f in ("A", "C", "X", "Z")],
+                         ["Normal Exit", "Normal Exit", "Reverse Exit", "Entry"])
+        with self.assertRaisesRegex(WI.FactsError, "no switches.csv rows"):
+            WI.mast_role([], "A")
+
+    def test_staging_legs_hold_a_row_per_os_block(self):
+        legs = WI.staging_legs()
+        self.assertIs(type(legs), dict)
+        self.assertEqual([len(legs[s]) for s in ("5", "23")], [1, 2])
+
+    def test_two_wired_masts_in_one_role_of_one_half_stop(self):
+        place = {}
+        WI.take_role(place, "23", "Normal Exit", "24L", ["a", "b", "c"], "OS Switch 23a")
+        with self.assertRaisesRegex(WI.FactsError,
+                                    r"Switch 23 \(OS Switch 23a\): masts 24L and 24RB are both wired.*Normal Exit"):
+            WI.take_role(place, "23", "Normal Exit", "24RB", ["d", "e", "f"], "OS Switch 23a")
+        WI.take_role(place, "23", "Entry", "24RA", ["g", "h", "i"], "OS Switch 23a")     # another role is free
+        WI.take_role(place, "23", "Normal Exit", "24RB", ["d", "e", "f"], "OS Switch 23b")   # the other half is free
+        WI.take_role(place, "5", "Normal Exit", "A", [])
+        with self.assertRaisesRegex(WI.FactsError, "Switch 5: masts A and B .*one Normal Exit slot per switch"):
+            WI.take_role(place, "5", "Normal Exit", "B", [])
+
+    def test_a_crossover_mast_goes_to_the_half_it_faces_into(self):
+        legs = WI.staging_legs()
+        self.assertIsNone(WI.mast_half(legs["5"], "5", "6LB", "anything"))        # one OS block: no halves
+        self.assertEqual(WI.mast_half(legs["7"], "7", "8LB", "OS Switch 7b"), "OS Switch 7b")
+        self.assertEqual(WI.mast_half(legs["7"], "7", "8LA", "OS Switch 7"), "OS Switch 7")
+        with self.assertRaisesRegex(WI.FactsError, "devices.csv line 12: Mast 8LA on crossover Switch 7 protects 'OS Switch 9'"):
+            WI.mast_half(legs["7"], "7", "8LA", "OS Switch 9", "devices.csv line 12")
+
+    def test_a_main_or_upper_mast_never_lands_in_a_staging_slot(self):
+        place = {}
+        WI.take_role(place, "5", "Entry", "6LB", ["a", "b", "c"])
+        WI.take_role(place, "5", "Entry", "M5", ["d", "e", "f"], design=True)     # same number, other level kind
+        self.assertEqual((place[(False, "5", None)]["Entry"][0], place[(True, "5", None)]["Entry"][0]), ("6LB", "M5"))
+        rows = [dict(zip(WI.TURNOUT_COLUMNS, r)) for r in V86["TurnoutSummary"][1:]]
+        self.assertTrue(all(r["JMRI Turnout"] and r["Turnout"].startswith(r["JMRI Turnout"]) for r in rows))
+
+    def test_a_crossover_has_a_row_per_half_and_a_plain_switch_one(self):
+        rows = [r for r in V86["TurnoutSummary"][1:] if r[0].startswith("Switch ")]
+        for sw, halves in (("7", ("OS Switch 7", "OS Switch 7b")), ("23", ("OS Switch 23a", "OS Switch 23b")),
+                           ("35", ("OS Switch 35b", "OS Switch 35a"))):
+            got = [r for r in rows if r[-1] == f"Switch {sw}"]            # the JMRI Turnout column
+            self.assertEqual([r[0] for r in got], [f"Switch {sw} ({h})" for h in halves])
+            self.assertEqual(len({r[1:7] for r in got}), 1)             # the turnout's facts repeat on both
+        self.assertEqual([r[0] for r in rows if r[0].startswith("Switch 5")], ["Switch 5"])
+
+    def test_each_half_of_a_crossover_has_its_own_slots(self):
+        """Switch 7's four masts wired: 8RA faces Track Scale, the closed leg of half OS Switch 7 (normal exit), and
+        8LA faces Track Barn into it (entry); 8LB faces Track Main East, the closed leg of 7b, and 8RB enters 7b."""
+        def mast(name, facing, protects):
+            return {"user_name": f"Mast {name}", "switch": "7", "facing": facing, "protects": protects}
+        by_name = {m["user_name"]: m for m in (mast("8LA", "Track Barn", "OS Switch 7"),
+                                               mast("8RA", "Track Scale", "OS Switch 7"),
+                                               mast("8LB", "Track Main East", "OS Switch 7b"),
+                                               mast("8RB", "Track East Ext", "OS Switch 7b"))}
+        nodes = WI.gather(MAP + WI.spare_rows(), WI.read_node_rows())
+        WI.add_local(nodes)
+        n13 = next(n for n in nodes.values() if n.id == "C13")
+        n13.heads = [(f"Head {m}", [(3, i * 3 + p) for p in (1, 2, 3)]) for i, m in enumerate(("8LA", "8RA", "8LB", "8RB"))]
+        wb = WI.Workbook()
+        WI.turnout_sheet(wb, nodes, by_name)
+        rows = {r[0]: dict(zip(WI.TURNOUT_COLUMNS, r)) for r in wb["TurnoutSummary"].iter_rows(min_row=2, values_only=True)}
+        a, b = rows["Switch 7 (OS Switch 7)"], rows["Switch 7 (OS Switch 7b)"]
+        self.assertEqual((a["Entry Signal"], a["Normal Exit Signal"], a["Reverse Exit Signal"]), ("8LA", "8RA", None))
+        self.assertEqual((b["Entry Signal"], b["Normal Exit Signal"], b["Reverse Exit Signal"]), ("8RB", "8LB", None))
+        self.assertEqual(a["Entry Signal R Port"], "C13-OU3-1")
 
     def test_a_wired_staging_mast_is_on_its_switchs_row(self):
         """Mast 6LB stands on Switch 5's closed leg (Track East Ext): its normal exit signal."""
@@ -159,7 +246,7 @@ class Inventory(unittest.TestCase):
     def test_a_device_on_an_unlisted_node_stops(self):
         row = dict(next(x for x in MAP if x["layer"] == "turnout" and x["node"] and x["system_name"].startswith("M2T")),
                    node="77")
-        with self.assertRaisesRegex(SystemExit, "node 77 is in devices.csv but not in lcos_nodes.csv"):
+        with self.assertRaisesRegex(SystemExit, "node 77 is in devices_generated.csv but not in lcos_nodes.csv"):
             WI.gather([row], WI.read_node_rows())
 
 

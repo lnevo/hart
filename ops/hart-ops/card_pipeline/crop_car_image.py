@@ -737,7 +737,7 @@ def detect_car_bbox(img: Image.Image) -> tuple[int, int, int, int]:
     by0 = y0 + ry0
     by1 = y0 + ry1
 
-    cw, ch = bx1 - bx0, by1 - by0
+    ch = by1 - by0
     by1 += int(ch * 0.02)
     by0 -= int(ch * 0.02)
 

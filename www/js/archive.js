@@ -511,7 +511,7 @@
         var full = resolveSrc(it.src);
         lbImg.src = full;
         lbImg.alt = it.title || "";
-        lbFull.href = full;
+        lbFull.href = it.full ? resolveSrc(it.full) : full;  // a map's large copy loads only when asked for
         var tags = (it.tags || [])
           .map(function (t) { return '<span class="chip">' + esc(tagLabel(t)) + "</span>"; })
           .join("");

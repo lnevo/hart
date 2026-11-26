@@ -35,14 +35,13 @@ from urllib.parse import urlparse
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import devices, level_devices, paths, railroad, tables  # noqa: E402
+from hartlib import devices, level_devices, occupancy_bindings, paths, railroad, tables  # noqa: E402
 from hartlib.hosts import default as host_default, mqtt_broker, mqtt_port  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 TABLES = paths.TABLES_XML
-DEVICES = paths.DEVICES
-OCC_CSV = ROOT / "cats" / "data" / "occupancy_bindings.csv"
-HEAD_CSV = ROOT / "docs/wiring/signals/signal_head_plan.csv"
+DEVICES = devices.MASTER
+HEAD_CSV = paths.SIGNAL_HEAD_PLAN
 HTML = Path(__file__).with_suffix(".html")
 # Style and render code shared with the JMRI-hosted page; served here at /<name>.
 SHARED_WEB = ROOT / "jmri" / "resources" / "jmri-web" / "mimic"
@@ -167,20 +166,25 @@ def load_layout(levels: bool = True) -> dict:
             by_user[un] = addr
 
     occ_names: dict[str, list[str]] = {}
-    if OCC_CSV.is_file():
-        with OCC_CSV.open(newline="", encoding="utf-8") as f:
-            for row in csv.DictReader(f):
-                un = (row.get("occupancy_sensor_user_name") or "").strip()
-                name = (row.get("block_user_name") or "").strip()
-                if un and name:
-                    occ_names.setdefault(un, [])
-                    if name not in occ_names[un]:
-                        occ_names[un].append(name)
+    for row in occupancy_bindings.rows():      # the blocks the CATS desks bind, from the device master
+        un, name = row["occupancy_sensor_user_name"], row["block_user_name"]
+        occ_names.setdefault(un, [])
+        if name not in occ_names[un]:
+            occ_names[un].append(name)
 
+    # a device's kind is its device-master row's (layer, role), never its name (hand-off row 8)
+    index = devices.index(DEVICES)
+    detectors = set(index.names("occupancy", roles=set(devices.ROLES) - {"spare"}))
+    switches = set(index.names("turnout", roles=("turnout",)))
     blocks = []
     for addr, rec in sensors.items():
         un = rec["userName"]
-        if not un.startswith("BS "):
+        if not any(index.has(layer, un) for layer in ("occupancy", "fb", "sensor")):
+            # a Store not split yet can hold it: say so, and leave it out (hartlib.devices is the one source of kinds)
+            print(f"lcos_mqtt_mimic: sensor {rec['systemName']} ({un or 'no user name'}) in {paths.rel(TABLES)} has "
+                  f"no row in {paths.rel(DEVICES)}; left out", file=sys.stderr)
+            continue
+        if un not in detectors:
             continue
         names = occ_names.get(un, [])
         label = " / ".join(names) if names else un
@@ -206,7 +210,11 @@ def load_layout(levels: bool = True) -> dict:
         if not addr:
             continue
         un = _txt(el, "userName")
-        if not un.startswith("Switch "):
+        if not index.has("turnout", un):
+            print(f"lcos_mqtt_mimic: turnout {sn} ({un or 'no user name'}) in {paths.rel(TABLES)} has no row in "
+                  f"{paths.rel(DEVICES)}; left out", file=sys.stderr)
+            continue
+        if un not in switches:
             continue
         try:
             num = int(un.split()[-1])
@@ -301,7 +309,7 @@ def load_levels(root, rr: railroad.Railroad | None = None) -> dict:
 
     def group(r: railroad.DeviceRow) -> str:
         if r.cp:
-            return r.cp
+            return first_place(r.cp)
         for num in re.findall(r"\d+[a-z]?", r.user_name):
             if region.get(num):
                 return region[num]
@@ -345,10 +353,16 @@ def load_levels(root, rr: railroad.Railroad | None = None) -> dict:
     return {"blocks": blocks, "turnouts": turnouts, "heads": heads}
 
 
+def first_place(cp: str) -> str:
+    """The plant of a cp: the control point, or for a line block's list (the stations or control points it joins,
+    its own level's first: build_device_map.line_cp) its first, so a block is grouped once, on its own level."""
+    return cp.split(";")[0]
+
+
 def infer_plant(name: str, cp: str = "") -> str:
-    """Control point for mimic grouping. Empty map cp is filled from the public name."""
+    """Control point for mimic grouping (first_place of a list). An empty cp is filled from the public name."""
     if cp:
-        return cp
+        return first_place(cp)
     blob = (name or "").lower()
     if blob.startswith("os eh") or blob.startswith("track eh") or blob.startswith("bs eh") or "engine house" in blob:
         return "Engine House"
@@ -372,33 +386,29 @@ def infer_plant(name: str, cp: str = "") -> str:
 
 
 def load_cps() -> dict[str, dict[str, str]]:
-    """Identity rows of the name map of devices.csv (hartlib.devices.name_map_lines): name/hardware → cp."""
+    """Staging's rows of the device master: user name (and an occupancy sensor's system name) -> its cp, by layer. An LCC
+    alias (DCC Switch N) is grouped by its name alone (infer_plant), as the name map, which gave it no cp, had it."""
     turnout: dict[str, str] = {}
     occupancy: dict[str, str] = {}
     block: dict[str, str] = {}
     mast: dict[str, str] = {}
     if not DEVICES.is_file():
         return {"turnout": turnout, "occupancy": occupancy, "block": block, "mast": mast}
-    for _line, row in devices.name_map_lines(DEVICES):
-        layer = (row.get("layer") or "").strip()
-        current = (row.get("current") or "").strip()
-        proposed = (row.get("proposed") or "").strip()
-        if current != proposed or not proposed:
+    for row in devices.load(DEVICES):
+        if row["level"] != railroad.STAGING_LEVEL:
             continue
-        if proposed.endswith(" alias"):
-            continue
-        plant = infer_plant(proposed, (row.get("cp") or "").strip())
-        hardware = (row.get("hardware") or "").strip()
+        layer, name = row["layer"], row["user_name"]
+        plant = infer_plant(name, "" if row["role"] == "lcc_alias" else devices.place(row))
         if layer == "turnout":
-            turnout[proposed] = plant
+            turnout[name] = plant
         elif layer == "occupancy":
-            occupancy[proposed] = plant
-            for token in hardware.split():
-                occupancy[token] = plant
+            occupancy[name] = plant
+            if row["system_name"]:
+                occupancy[row["system_name"]] = plant
         elif layer == "block":
-            block[proposed] = plant
+            block[name] = plant
         elif layer == "mast":
-            mast[proposed] = plant
+            mast[name] = plant
     return {"turnout": turnout, "occupancy": occupancy, "block": block, "mast": mast}
 
 
@@ -677,7 +687,7 @@ def main() -> int:
     try:
         layout = load_layout(levels=False)
     except devices.DevicesError as exc:      # a bad row anywhere in the master stops the load, naming file, line and row
-        raise SystemExit(f"lcos_mqtt_mimic.py: devices.csv cannot be used: {exc}") from None
+        raise SystemExit(f"lcos_mqtt_mimic.py: the device master cannot be used: {exc}") from None
     bus = Bus(host)
     bus.start()
     html = HTML.read_bytes()

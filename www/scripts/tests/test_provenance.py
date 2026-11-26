@@ -148,7 +148,7 @@ class BuildPass(unittest.TestCase):
             self.assertNotIn("ld+json", (root / "crew/old.html").read_text())
             self.assertNotIn("ld+json", (root / "404.html").read_text())
             sitemap = (root / "sitemap.xml").read_text()
-            self.assertIn(f"{pgp.SITE_URL}crew/</loc>", sitemap)
+            self.assertIn(f"{pgp.portal_common.SITE_URL}crew/</loc>", sitemap)
             self.assertNotIn("old.html", sitemap)
             self.assertIn("- [Crew](", (root / "llms.txt").read_text())
             self.assertTrue((root / "robots.txt").is_file())
@@ -176,6 +176,8 @@ class RealMap(unittest.TestCase):
         for name in out.stdout.split():
             rel = Path(name)
             if rel in pgp.SKIP_FILES or any(d in rel.parents for d in pgp.SKIP_DIRS) or not (PORTAL / rel).is_file():
+                continue
+            if rel.as_posix() in pgp.INDEX_SKIP_PAGES:  # the build's provenance step leaves these out too
                 continue
             pages[rel] = (PORTAL / rel).read_text(encoding="utf-8")
         self.assertEqual(provenance.unclassified(pages, data), [])

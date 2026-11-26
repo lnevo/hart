@@ -1,0 +1,88 @@
+---
+name: handoff
+description: Use when the owner says go on a hand-off or a plan with several independent items, when a job is split across parallel subagents, or when briefing, tracking, merging or closing out several agents' work.
+---
+
+# Run a hand-off as parallel agents
+
+`AGENTS.md`, "Subagents", says how to pick an agent and when to ask first; the agents' own descriptions say which fits a job. The progress intervals are under "While they run". On "go" for a hand-off, run its independent items as parallel agents without being asked.
+
+## Split
+
+- When another session runs (`ListAgents`), follow the `coordinate` skill first: find the merge queue's coordinator and the files other lanes own.
+- Run `make orient` first: an item on a project page another branch has claimed, or in files a worktree in progress changes, waits or goes to that agent.
+- Up to 5 agents, launched in one message, one item each. Items that edit the same files go to one agent, or run one after another.
+- Generated files that several PRs regenerate (`docs/INDEX.md` and the like): each branch regenerates its own. On a rebase conflict, take main's copy and run the generator again (`python3 tools/ops/build_docs_index.py` for the index). Never merge a generated file by hand.
+- `isolation: "worktree"` branches from main, so an item that needs an unmerged branch waits for that merge.
+- Deploys, live hosts, signal logic and LE geometry decisions stay in the main session.
+- Check the Mac's load (`uptime`) first. Keep about 2 heavy local jobs per session; agents run full checks and suites through `make remote` after pushing.
+
+## Model
+
+Agents in `.claude/agents/` carry their own model. For others: `haiku` for read-only sweeps (every file that names X, is a page stale); `sonnet` for bounded edits, regenerations and site work; `opus` for logic, data-model, refactor and plugin or tool code, passed explicitly: unnamed subagents default to Sonnet (`CLAUDE_CODE_SUBAGENT_MODEL` in `.claude/settings.json`). Say which agent and model got each item.
+
+## Brief
+
+```
+Repo: <path>. Read AGENTS.md first and follow it.
+Worktree: create branch agent/claude/<topic> from origin/main (or make wt TOPIC=<topic>).
+Claim: <page in wiki/projects/, or none>. First, in your worktree:
+  python3 tools/ops/orient.py claim <page>; in your last commit, orient.py unclaim <page>.
+Goal: <one or two sentences>. Already ruled out: <...>.
+Scope: <paths you may change>. Do not touch: <paths other agents own>.
+Quality (code only): 1 clear domain errors, not raw exceptions; 2 no silent fallbacks
+  (guessing, defaulting, skipping); 3 invariant checks after mutations; 4 inputs validated
+  up front; 5 no duplicated helpers or per-call rebuilds. Test the error paths. Check your
+  whole diff against these five before reporting. Reviews here keep finding: paths
+  (symlinked worktree mirrors such as media/ and ops/car-cards/, cwd-relative names,
+  ../ and ./ segments), git or subprocess failures shown as tracebacks, graph or tree
+  walks (shortest level first, cycles), Markdown parsing (wrapped paragraphs, code
+  fences, HTML comments, multi-line list items, lines that start with bold), links
+  copied into another file without rewriting, and checks that compare more than they
+  claim. Test the ones that apply. Also the AGENTS.md "Scripts" habits: no copied
+  helpers, `from exc` not `from None`, no dated history in comments, behaviour tests
+  not source greps, typed records, annotations that pass mypy.
+Checks: single tests while iterating; make static (about 20 s) before each push;
+  the full ./tools/check.sh once, through make remote CMD="./tools/check.sh" after
+  pushing. Take timings from logs, not re-runs. Rules the static checks enforce, to
+  keep in mind while writing: no script outside hartlib reads a layout data file
+  (data-readers); every new script or file in an output folder gets a map box, through
+  make map (pipeline-map-coverage); Python files stay under their size limit (py-sizes);
+  plain writing (ai-speak, public-text).
+  Stop your own background jobs by PID or a pattern holding your worktree path, never
+  pkill -f a shared script name: other sessions run the same scripts.
+Review (code only): after pushing, run /code-review medium (high for the code `/done`
+  step 3 names) on your branch while
+  make remote runs, fix what it confirms with a test each, push again, and list
+  its findings and what you did with each in the report.
+Close: commit (stage by name, conventional message), git push -u origin HEAD,
+  gh pr create. Do NOT merge.
+Progress (required): append one line per milestone, blocker or failed check to
+  <scratchpad>/progress/<topic>.log, format "HH:MM <topic> step done/total ETA note"
+  (time from date +%H:%M). Interval for this job: <start and end only | every 3 min |
+  every 5 min>; with no milestone, write "still on step X, why, new ETA". Before a
+  long command (check.sh, make remote, a build), log it and its expected duration;
+  log again when it returns.
+Report: PR URL, files changed, checks and where they ran, what was skipped, failed,
+  left or not checked.
+```
+
+Agents defined in `.claude/agents/` cannot commit, push or open PRs (`subagent_guard.py`). For them, replace Close with: leave changes uncommitted and list the files to stage; the main session commits and opens the PR.
+
+## While they run
+
+Set each brief's interval by the job's expected length: under about 10 minutes, start and end lines only; 10 to 30 minutes, a line at least every 3 minutes; longer, every 5. The main session follows the same intervals in its own reports, and logs before and after each long command (full `check.sh`, `make remote`, a build) with its expected duration. Watch the progress folder with a Monitor that polls every `*.log` in it and tracks each file's line count (`tail -F *.log` misses files created after it starts), prefixes each new line with the file's topic, and pass new lines to the owner as they arrive, as one short table of every agent (item, agent, model, stage, ETA). Never report a pending agent's result before it arrives.
+
+## Merge
+
+The main session merges, never with `--admin`. `main` requires the branch to be up to date (`strict` is on) and `check` to pass on its head. When another session runs, merges go through its merge queue (`coordinate` skill): no auto-merge, one at a time. Alone, queue auto-merge (`gh pr merge <n> --merge --auto`) once a PR's reviews are done, never before, or a fast CI merges ahead of the findings. Either way, merge `origin/main` into the branch before it merges and regenerate what it owns. CI on `main` after each merge catches what two PRs break together.
+
+`docs/pipeline-map/pipeline_map.json` merges itself locally (`tools/ops/merge_pipeline_map.py`, a git merge driver that `make wt` and the session-start hook set up); it stops only on two different edits to one box or link, or a link left pointing at a deleted box. GitHub never runs it, so a PR that shows a conflict there needs `origin/main` merged into the branch locally, then `python3 tools/ops/build_pipeline_map.py --check`. A branch from before ADR-036 that still changes `docs/pipeline-map/index.html` or `www/library/pipeline-map.html` gets a modify/delete conflict on them when it merges main: `git rm` them.
+
+1. Code PRs are reviewed once, by their own agent (brief, Review). The main session does not review them again: it checks that each confirmed finding was fixed, and runs `/code-review low` only when those fixes changed code beyond the finding's own lines. When the agent could not run a review, the main session runs the `/done` step 3 review. Send each finding through `finding-verifier` first; fix what it confirms, check each PLAUSIBLE one against the code, and leave performance and style for later unless trivial. Add a finding that recurs to the list in the brief's Quality line. After a review, check `git branch --show-current` before committing; it can leave a detached HEAD.
+2. Queue PRs that others build on first. When one merges, merge `origin/main` into each remaining one (no rebase: force-push is blocked) and regenerate its committed generated files.
+3. Deploy once after the last merge if live artifacts changed (`deploy` skill).
+
+## Finish
+
+End with what is done (PR, agent, model), then "nothing left in progress" or what is and why, then loose ends grouped as waiting on the owner, parked, and outside our control. If `not-pending.md` exists in `wiki/` (a parallel PR adds it), drop anything it lists. Ask several owner decisions as multiple choice, up to 4 at a time, recommended option first.

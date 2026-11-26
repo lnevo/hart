@@ -1,0 +1,2 @@
+order: 40
+Roster sync generic detection: draft [lnevo/jmri-cs105-roster-sync#1](https://github.com/lnevo/jmri-cs105-roster-sync/pull/1) (1.1.0) finds the command station by LCC event; it waits only on the MRC user's plan-only log, then merge, move the submodule pointer and deploy. HART stays on 1.0.0 until then.

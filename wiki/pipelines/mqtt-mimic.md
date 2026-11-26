@@ -10,13 +10,13 @@ Cross-cutting pipelines 3, 5 and 9: LCOS Digicon aspect QA without the physical 
 | `jmri/resources/jmri-web/mimic/mimic.css`, `mimic_view.js` | Markup, style and `render()` shared by both mimic pages; each page keeps only its transport. The Mac server serves them at `/mimic.css` and `/mimic_view.js` |
 | `jmri/layouts/hart/scripts/mimic_relay.py` | Pi Start Up script: publishes the page's clicks (memory `IMHART_MIMIC`) as retained `track/sensor` / `track/turnout`, never `track/cmd` |
 | `tools/mqtt-mimic/build_mimic_web.py` | Deploy step: writes the page's `mimic_layout.json` from the same sources as the Mac mimic |
-| `tools/mqtt-mimic/lcos_mqtt_mimic.py` | Mac mimic (own web server on 127.0.0.1:8765); reads `devices.csv`. Its launch agent `com.hart.mqtt-mimic` is disabled since 2026-11-11 |
+| `tools/mqtt-mimic/lcos_mqtt_mimic.py` | Mac mimic (own web server on 127.0.0.1:8765); reads the device master (`devices_field.csv` + `devices_generated.csv`, through `hartlib.devices`). Its launch agent `com.hart.mqtt-mimic` is disabled since 2026-11-11 |
 | `jmri/scripts/signal_coordinator.py` | JMRI jython publisher |
 | `LCOS_ESP32_MQTT_Client/serial_to_mqtt.py` | Host serial ↔ MQTT bridge (Pi, `lcos-bridge` service) |
 
 ## Levels
 
-The JMRI page has Staging, Main and Upper tabs. Staging is the LCOS plant: clicks go through `mimic_relay.py` as MQTT feedback. Main and upper run on virtual JMRI devices (`hartlib.level_devices`), listed from the main and upper rows of `devices.csv` and grouped by control point or region; their clicks post the turnout or sensor state to JMRI over the JSON WebSocket, only for names with the `IT:HART:C3:` or `IS:HART:C3:B:` prefix, and nothing reaches MQTT. The Mac mimic talks only MQTT, so it shows staging alone.
+The JMRI page has Staging, Main and Upper tabs. Staging is the LCOS plant: clicks go through `mimic_relay.py` as MQTT feedback. Main and upper run on virtual JMRI devices (`hartlib.level_devices`), listed from the main and upper rows of the device master and grouped by control point or region; their clicks post the turnout or sensor state to JMRI over the JSON WebSocket, only for names with the `IT:HART:C3:` or `IS:HART:C3:B:` prefix, and nothing reaches MQTT. The Mac mimic talks only MQTT, so it shows staging alone.
 
 ## Behavior
 
@@ -27,7 +27,7 @@ The JMRI page has Staging, Main and Upper tabs. Staging is the LCOS plant: click
 
 ## Broker setting
 
-The Mac tools (`tools/mqtt/`, `tools/mqtt-mimic/`, `seed_default_thrown_turnouts.py`) read the broker and JMRI address through `tools/hartlib/src/hartlib/hosts.py`. Set `HART_MQTT_BROKER`, `HART_MQTT_PORT` and `HART_JMRI_JSON` in the environment or in `tools/env/hart.env`; the default is the Pi, from `tools/env/defaults.env`. The older `MQTT_HOST` and `JMRI_JSON` still work, and the environment beats `hart.env`.
+The Mac tools (`tools/mqtt/`, `tools/mqtt-mimic/`, `diagnose_turnout_states.py`) read the broker and JMRI address through `tools/hartlib/src/hartlib/hosts.py`. Set `HART_MQTT_BROKER`, `HART_MQTT_PORT` and `HART_JMRI_JSON` in the environment or in `tools/env/hart.env`; the default is the Pi, from `tools/env/defaults.env`. The older `MQTT_HOST` and `JMRI_JSON` still work, and the environment beats `hart.env`.
 
 ## Run
 

@@ -34,9 +34,9 @@ class NameCopiesTest(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp)
-        self.map = self.tmp / check.DEVICES_REL
+        self.map = (self.tmp / check.DEVICES_REL).with_name(devices.ONE_FILE)     # a one-file copy of the master
         self.map.parent.mkdir(parents=True)
-        self.map.write_text(MAP.read_text(encoding="utf-8"), encoding="utf-8")
+        devices.one_file_copy(self.map)          # the master as one file (no field file beside it)
         self.tables = self.tmp / check.TABLES_REL
         self.tables.parent.mkdir(parents=True)
         self.tables.write_text(TABLES.read_text(encoding="utf-8"), encoding="utf-8")
@@ -57,7 +57,7 @@ class NameCopiesTest(unittest.TestCase):
         self.tables.write_text(text, encoding="utf-8")
 
     def stale(self, files: list[str], allow=None) -> list[str]:
-        hits, _counts, _used = check.run(self.tmp, files, allow=allow or {})
+        hits, _counts, _used = check.run(self.tmp, files, allow=allow or {}, devices_csv=self.map)
         return [str(h) for h in hits]
 
     def test_repo_is_clean(self):
@@ -92,10 +92,10 @@ class NameCopiesTest(unittest.TestCase):
         tables_xml.write_text(text.replace(">Track Scale<", ">Track Weigh<"), encoding="utf-8")
         hits, _counts, _used = check.run(ROOT, devices_csv=renamed, tables_xml=tables_xml)
         files = {h.path for h in hits}
-        self.assertEqual({"Mast 24RB"}, {h.name for h in hits})
-        # Known hand-kept copies of a mast name today: the staging mast and signal facts. (A renamed track's old name
+        # No hand-kept copy of a mast name is left: masts.csv, which held the staging masts' copies as
+        # staging_masts.csv did, is generated (build_masts.py --check names a stale one). (A renamed track's old name
         # is no longer matched, the master having no alias rows.)
-        self.assertIn("jmri/layouts/hart/data/schematic/staging_masts.csv", files)
+        self.assertEqual(set(), {h.name for h in hits}, files)
         # Generated files under their own --check and the map itself are not read.
         self.assertFalse(any(f.startswith(check.SKIP_PREFIXES) for f in files), files)
 
@@ -126,7 +126,7 @@ class NameCopiesTest(unittest.TestCase):
         sch = "jmri/layouts/hart/data/schematic/"
         for rel in ("staging_le/masts.csv", "staging_le/overlay.json", "plan_overrides.json"):
             self.assertTrue(check.readable(sch + rel), rel)
-        for rel in ("signals.json", "main_upper_masts.csv", "inputs/staging.json"):
+        for rel in ("signals.json", "masts.csv", "inputs/staging.json"):
             self.assertFalse(check.readable(sch + rel), rel)
         hand = self.write(sch + "staging_le/masts.csv", "mast\nMast 32L\n")
         self.assertEqual([f"{hand}:2: 'Mast 32L' is not a current name"], self.stale([hand]))
@@ -144,7 +144,7 @@ class NameCopiesTest(unittest.TestCase):
         f = self.write("tools/x.py", '"Mast 32L", "Mast 99Z"\n')
         allow = {"tools/x.py": (frozenset({"Mast 32L", "Mast 31L"}), "dated record")}
         self.assertEqual(["tools/x.py:1: 'Mast 99Z' is not a current name"], self.stale([f], allow))
-        _hits, _counts, used = check.run(self.tmp, [f], allow=allow)
+        _hits, _counts, used = check.run(self.tmp, [f], allow=allow, devices_csv=self.map)
         self.assertEqual(["ALLOW tools/x.py: 'Mast 31L' is no longer there; remove it"],
                          check.unused_allow(allow, used))
 

@@ -6,11 +6,11 @@ build with --dist), then checks href/src in every built HTML page and the asset
 and link fields of every built data/*.json. External links and #fragments are
 skipped; "/x" resolves from the site root.
 
---manifest writes a summary of the build (file count, archive items, industry
-logos, gallery items); with --previous it also stops when a count dropped by
+--manifest writes a summary of the build (files, HTML pages, share cards, archive
+items, industry logos, gallery and fleet items); with --previous it also stops when a count dropped by
 more than 10% since that manifest (deploy_hartrailroad.sh passes --force through
 as --allow-drop). A --previous path that does not exist also stops, since there
-is nothing to compare with (a worktree, or a first deploy); --allow-drop accepts it.
+is nothing to compare with (a first deploy); --allow-drop accepts it.
 
 Usage: check_portal_build.py [--dist DIR] [--manifest OUT] [--previous OLD] [--allow-drop]
 """
@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import subprocess
 import sys
 import tempfile
@@ -242,6 +241,8 @@ def _items(root: Path, name: str, key: str = "items") -> list:
 def manifest(root: Path) -> dict[str, int]:
     return {
         "files": sum(1 for p in root.rglob("*") if p.is_file()),
+        "html_pages": sum(1 for p in root.rglob("*.html") if p.is_file()),
+        "share_cards": sum(1 for p in (root / "assets" / "share").glob("*.jpg")),
         "archive_items": len(_items(root, "archive.json")),
         "industry_logos": sum(1 for i in _items(root, "industries.json", "industries") if i.get("logo")),
         "gallery_items": len(_items(root, "gallery.json")),
@@ -298,7 +299,7 @@ def main() -> int:
             status = status or 3
     elif args.previous:
         old = json.loads(Path(args.previous).read_text(encoding="utf-8"))
-        print("Last deploy: " + ", ".join(f"{k} {v}" for k, v in old.items()))
+        print("Last deploy: " + ", ".join(f"{k} {v}" for k, v in old.items() if isinstance(v, int)))
         if lost := drops(summary, old):
             print(f"Counts dropped more than {MAX_DROP:.0%} since the last deploy:", file=sys.stderr)
             print("\n".join("  " + d for d in lost), file=sys.stderr)

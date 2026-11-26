@@ -1,4 +1,5 @@
 """Per-page share thumbnails: the build names the page's own card, and gaps are reported."""
+import html
 import json
 import sys
 import tempfile
@@ -41,7 +42,7 @@ class HeadTags(unittest.TestCase):
             other = build._head_tags(Path("guides/b.html"), "B")
         finally:
             share_cards.load = orig
-        self.assertIn(f'og:image" content="{build.SITE_URL}assets/share/a.jpg"', own)
+        self.assertIn(f'og:image" content="{build.portal_common.SITE_URL}assets/share/a.jpg"', own)
         self.assertIn('og:image:alt" content="The &quot;A&quot; board"', own)
         self.assertIn("assets/icons/share-card.jpg", other)
 
@@ -51,7 +52,7 @@ class HeadTags(unittest.TestCase):
         self.assertNotIn('name="description"', own)  # the page's own tag stays the only one
         default = build._head_tags(Path("guides/b.html"), "B")
         self.assertIn('name="description"', default)
-        self.assertIn(build.html.escape(build.SHARE_DESCRIPTION, quote=True), default)
+        self.assertIn(html.escape(build.SHARE_DESCRIPTION, quote=True), default)
 
     def test_build_reads_the_page_description_from_its_head(self):
         page = (
@@ -69,6 +70,25 @@ class HeadTags(unittest.TestCase):
         self.assertIn('og:description" content="Rules &amp; orders"', a)
         self.assertEqual(b.count('name="description"'), 1)
         self.assertIn("Neville Island", b)
+
+    def test_pages_with_content_get_a_www_canonical_and_stubs_do_not(self):
+        pages = {
+            "guides/index.html": "<html><head><title>G</title></head><body>Guides</body></html>",
+            "fleet/index.html": '<html><head><title>F</title><meta http-equiv="refresh" content="0; url=../photos/"></head></html>',
+            "a.html": '<html><head><title>A</title><meta content="noindex" name="robots"></head></html>',
+            "404.html": "<html><head><title>Not found</title></head><body>Annulled</body></html>",
+            "docs/view.html": "<html><head><title>V</title></head><body></body></html>",
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for rel, text in pages.items():
+                (root / rel).parent.mkdir(parents=True, exist_ok=True)
+                (root / rel).write_text(text, encoding="utf-8")
+            build._add_head_tags(root)
+            out = {rel: (root / rel).read_text(encoding="utf-8") for rel in pages}
+        self.assertIn(f'<link rel="canonical" href="{build.portal_common.SITE_URL}guides/">', out["guides/index.html"])
+        for rel in ("fleet/index.html", "a.html", "404.html", "docs/view.html"):
+            self.assertNotIn('rel="canonical"', out[rel], rel)
 
     def test_the_404_page_gets_site_root_icon_links(self):
         tags = build._head_tags(Path("404.html"), "Page not found")
@@ -124,6 +144,31 @@ class Review(unittest.TestCase):
             finally:
                 share_cards._image_size = orig
         self.assertEqual(faults, [])
+
+
+    def test_built_pages_match_the_site_build(self):
+        self.assertEqual(share_cards.built_pages(), frozenset(build.BUILT_PAGES))
+
+    def test_a_page_the_build_writes_needs_no_file_but_a_missing_page_is_a_fault(self):
+        """A built page (prepare_github_pages.BUILT_PAGES, not committed: ADR-036) counts as a page; others must exist."""
+        built = next(iter(build.BUILT_PAGES))
+        with tempfile.TemporaryDirectory() as tmp:
+            root = _portal(tmp)
+            (root / "assets" / "share").mkdir(parents=True)
+            for name in ("m.jpg", "g.jpg"):
+                (root / "assets" / "share" / name).write_bytes(b"")
+            share_cards._image_size, orig = (lambda p: share_cards.SIZE), share_cards._image_size
+            try:
+                cards = {built: {"image": "assets/share/m.jpg", "alt": "Map"},
+                         "library/gone.html": {"image": "assets/share/g.jpg", "alt": "Gone"}}
+                _, faults = share_cards.review([], cards, root)
+                links = share_cards.review_links({built + "#focus=x": {"image": "assets/share/m.jpg", "alt": "Map"},
+                                                  "library/gone.html": {"image": "assets/share/g.jpg", "alt": "G"}}, root)
+            finally:
+                share_cards._image_size = orig
+        self.assertFalse((root / built).exists())
+        self.assertEqual(faults, ["library/gone.html: no such page"])
+        self.assertEqual(links, ["link library/gone.html: no such page"])
 
 
 class CardThumbs(unittest.TestCase):

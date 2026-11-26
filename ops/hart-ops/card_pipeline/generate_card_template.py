@@ -13,97 +13,29 @@ Design source: train_card.prompt
 
 Sticker sheet: Poker Size Sticker Sheet Template.docx (9 cards per 8.5x11 page)
 
-Layout constants, OOXML helpers, the waybill builders and the sheet assembly live in
-the card_template_* modules beside this file; every name stays reachable here.
+Layout constants (card_template_layout), OOXML helpers (card_template_docx), the waybill
+builders (card_template_waybill) and the sheet assembly (card_template_sheet) live beside this
+file; import them from those modules. This module holds the equipment card, its image paths and
+the wrappers that pass those paths to the waybill builders.
 """
 
 import shutil
 from pathlib import Path
+
+import car_paths  # noqa: F401  (first: puts hartlib and publications/ on sys.path)
 
 from docx import Document
 from docx.enum.table import WD_ALIGN_VERTICAL, WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Inches, Pt
 
-from car_paths import (
-    ASSETS,
-    DATA,
-    OUTPUT_DIR,
-    PIPELINE,
-    ROOT as BASE,
-    STICKER_SHEET,
-    require_sticker_sheet,
-)
-
-import card_template_docx
-import card_template_layout
-import card_template_sheet
+from car_paths import ASSETS, OUTPUT_DIR, STICKER_SHEET, require_sticker_sheet
 import card_template_waybill
-
-_HERE = Path(__file__).resolve().parent
-for _mod in (card_template_docx, card_template_layout, card_template_sheet, card_template_waybill):
-    if Path(_mod.__file__).resolve().parent != _HERE:
-        raise ImportError(f"{_mod.__name__} came from {_mod.__file__}, not from {_HERE}; "
-                          "check sys.path for another card_pipeline checkout")
-
-# Re-exported for build_card below and for callers that use them as gct.<NAME>.
-# The helpers and the waybill builders read their own copies: patch a constant
-# on card_template_layout, and a helper on card_template_docx, not here.
-from card_template_layout import (  # noqa: E402
-    CARD_DROP_TWIPS,
-    CARD_SLOTS,
-    CARD_TOP_PAD,
-    CARD_W,
-    CENTER_OFFSET,
-    COL_A,
-    COL_B,
-    COL_C,
-    CONTENT_MARGIN,
-    DATA_TABLE_TOP_PAD,
-    DIVIDER_CLR,
-    FONT,
-    FRAME_ARCSIZE,
-    FRAME_GROW_PT,
-    FRAME_GROW_TWIPS,
-    FRAME_MARGIN,
-    FRAME_STROKE_PT,
-    GRAY_FILL,
-    H_DATA_SECTION,
-    H_FOOTER,
-    H_FOOTER_LINE_TWIPS,
-    H_HEADER,
-    H_IMAGE,
-    ICON,
-    IMAGE_BORDER,
-    IMG_INNER_PAD,
-    IMG_OUTER_PAD_BOTTOM,
-    IMG_OUTER_PAD_TOP,
-    INNER_BORDER,
-    LABEL_CLR,
-    PAGE2_SLOT_W,
-    PAGE_MAR_BOTTOM,
-    PAGE_MAR_LEFT,
-    PAGE_MAR_RIGHT,
-    PAGE_MAR_TOP,
-    SIDE_PAD,
-    SLOT_H,
-    SLOT_W,
-    TARGET_CARD_W,
-    TARGET_FRAME_W,
-    VALUE_CLR,
-    WORK_FLOW_COMMODITY_GAP,
-)
-from card_template_docx import (  # noqa: E402
-    _NBSP,
-    _tc_pr,
-    _tighten_paragraph,
+from card_template_docx import (
     add_round_frame,
     borders,
-    bottom_rule,
-    box,
     grid,
     hrule,
-    keep_address_together,
     linebreak,
     merge_field,
     minimize_cell_tail,
@@ -111,27 +43,40 @@ from card_template_docx import (  # noqa: E402
     pad,
     para,
     row_h,
-    shade,
-    split_on_commas,
     tbl_width_dxa,
-    tbl_width_pct,
     text,
     tighten_cell,
     tighten_revision_cell,
     width,
-    write_label_lines,
 )
-from card_template_sheet import (  # noqa: E402
-    _add_document_tail,
-    _ensure_sect_pr_last,
-    _insert_before_sect,
-    _minimal_body_paragraph,
-    _page4_grid,
-    clear_cell_borders,
-    keep_sticker_grid,
-    strip_grid_guides,
+from card_template_layout import (
+    CARD_SLOTS,
+    CARD_TOP_PAD,
+    CARD_W,
+    CENTER_OFFSET,
+    DATA_TABLE_TOP_PAD,
+    DIVIDER_CLR,
+    FRAME_GROW_PT,
+    FRAME_GROW_TWIPS,
+    FRAME_MARGIN,
+    H_DATA_SECTION,
+    H_FOOTER,
+    H_HEADER,
+    H_IMAGE,
+    IMAGE_BORDER,
+    IMG_INNER_PAD,
+    IMG_OUTER_PAD_BOTTOM,
+    IMG_OUTER_PAD_TOP,
+    INNER_BORDER,
+    LABEL_CLR,
+    PAGE2_SLOT_W,
+    SIDE_PAD,
+    SLOT_W,
+    TARGET_FRAME_W,
+    VALUE_CLR,
 )
-from card_template_waybill import STS_COLOR_HEX, CardImages, _via_interchange_label  # noqa: E402
+from card_template_sheet import add_document_tail, keep_sticker_grid
+from card_template_waybill import CardImages
 
 LOGO = ASSETS / "Logo.png"
 ICON_ROAD_NAME = ASSETS / "icon_railroad.png"   # tracks-in-a-circle line icon
@@ -385,10 +330,10 @@ def main() -> None:
     for i, (r, c) in enumerate(CARD_SLOTS):
         build_card(sheet.rows[r].cells[c], advance_record=(i > 0), idx=i)
 
-    _add_document_tail(doc.element.body)
+    add_document_tail(doc.element.body)
     doc.save(OUTPUT)
     print(f"Wrote {OUTPUT}")
-    print(f"  9 cards · 3×3 sticker grid · mail-merge ready")
+    print("  9 cards · 3×3 sticker grid · mail-merge ready")
     if LOGO.exists():
         print(f"  Logo: {LOGO.name}")
 

@@ -14,9 +14,9 @@
 2. JMRI and PanelPro edit it, git tracks it, and the Mac is the master for the hosts.
 3. In PanelPro, Store to that path. Run scripts with PanelPro and CATS closed.
 4. Deploy stops if a profile copy changed since the last deploy.
-5. Older table files are in `archive/tables/`.
+5. Older table files are in `archive/data/tables/`.
 
 ## Consequences
 
 - Git branches take over the staging role of the working copy.
-- `hart_prod.xml` is retired to `archive/layouts/`. The panel lives in `tables.xml`, and script `--sync-output` flags no longer do anything.
+- `hart_prod.xml` is retired to `archive/data/layouts/`. The panel lives in `tables.xml`, and script `--sync-output` flags no longer do anything.

@@ -83,7 +83,7 @@ class Order(unittest.TestCase):
         self.assertEqual(resolve({"PI_HOST": "oldpi"}, "HART_PI_SSH=filepi\n")["HART_PI_SSH"], "filepi")
 
     def test_sts_helpers_still_put_pi_host_first(self) -> None:
-        for name in ("pi_docker_static.sh", "pi_sts_update.sh", "pi_sts_pull_backups.sh"):
+        for name in ("pi_sts_update.sh", "pi_sts_pull_backups.sh"):
             text = (ROOT / "tools/hosts" / name).read_text(encoding="utf-8")
             self.assertIn('HOST="${PI_HOST:-$HART_PI_SSH}"', text, name)
         for name in ("sync_hart_package.sh", "pi_quit_panelpro.sh", "pi_start_panelpro.sh"):
@@ -189,10 +189,13 @@ class NoHardCodedHosts(unittest.TestCase):
 
     def test_scripts_source_load_env(self) -> None:
         for path in self.MAC_SIDE:
-            if path.name in ("pack_roster_stage.sh", "profile_tables_guard.sh", "panelpro_session.sh", "operating.sh",
+            if path.name in ("profile_tables_guard.sh", "panelpro_session.sh", "operating.sh",
                              "run_panelpro_roundtrip.sh"):
-                continue  # local packing, Mac-only helpers and the Mac PanelPro round trip: no host
-            self.assertIn("load_env.sh", path.read_text(encoding="utf-8"), path.name)
+                continue  # Mac-only helpers and the Mac PanelPro round trip: no host
+            text = path.read_text(encoding="utf-8")
+            if path.name == "sync_hart_package.sh":   # the entry point sources it through the steps' shared file
+                text += (ROOT / "tools/hosts/deploy/common.sh").read_text(encoding="utf-8")
+            self.assertIn("load_env.sh", text, path.name)
 
     def test_no_host_literals(self) -> None:
         for path in self.MAC_SIDE:

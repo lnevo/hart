@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from hartlib import devices as D, paths, railroad, tables  # noqa: E402
+from hartlib import devices as D, level_devices, paths, tables  # noqa: E402
 from hartlib import tables_build as tb  # noqa: E402
 
 
@@ -24,13 +24,13 @@ def rows() -> list[dict]:
     """A small staging: one turnout with its alias and feedback, a block and its detector, a wired and a virtual
     head, a head mast and a hidden mast."""
     return [
-        blank(layer="turnout", role="turnout", user_name="Switch 1", assignment="field", system_name="M2T408",
+        blank(layer="turnout", role="turnout", id="switch:1", user_name="Switch 1", assignment="field", system_name="M2T408",
               jmri_name="M2T408", dcc="100", wiring="Node: 4 Turnout: 0 | OU: 1 Ports: 1,2"),
-        blank(layer="turnout", role="lcc_alias", user_name="DCC Switch 1", assignment="field", system_name="MTT100",
+        blank(layer="turnout", role="lcc_alias", id="dcc:1", user_name="DCC Switch 1", assignment="field", system_name="MTT100",
               jmri_name="MTT100", dcc="100", wiring="Node: 4 Turnout: 0 | OU: 1 Ports: 1,2"),
-        blank(layer="fb", role="fb", user_name="FB Switch 1 N", assignment="field", system_name="M2S470",
+        blank(layer="fb", role="fb", id="fb:1:N", user_name="FB Switch 1 N", assignment="field", system_name="M2S470",
               jmri_name="M2S470", wiring="Node: 4 Sensor: 3 | IN: 1 Ports: 1"),
-        blank(layer="fb", role="fb", user_name="FB Switch 1 R", assignment="field", system_name="M2S471",
+        blank(layer="fb", role="fb", id="fb:1:R", user_name="FB Switch 1 R", assignment="field", system_name="M2S471",
               jmri_name="M2S471", wiring="Node: 4 Sensor: 4 | IN: 1 Ports: 2"),
         blank(layer="block", role="os", user_name="OS Switch 1", assignment="field", system_name="IB:AUTO:0033",
               jmri_name="IB:AUTO:0033", layout_block="ILB33", jmri_comment="Brick CP, Switch 1"),
@@ -49,7 +49,7 @@ def rows() -> list[dict]:
     ]
 
 
-LENGTHS = {"OS Switch 1": railroad.BlockLength(2, "OS Switch 1", "Block 4-2", 9.2, 22.6, "timed")}
+LENGTHS = {"OS Switch 1": 9.2}       # block name -> operating length in inches (block_lengths.operating_lengths)
 
 
 class Template(unittest.TestCase):
@@ -108,7 +108,7 @@ class Template(unittest.TestCase):
         def add_block(root):
             el = ET.SubElement(root.find("blocks"), "block", systemName="IB99")
             ET.SubElement(el, "systemName").text = "IB99"
-        with self.assertRaisesRegex(tb.TablesBuildError, "holds block IB99, but .* come from devices.csv"):
+        with self.assertRaisesRegex(tb.TablesBuildError, "holds block IB99, but .* come from the device master"):
             tb.read_template(self.copy(add_block))
 
         def add_mast(root):
@@ -167,7 +167,7 @@ class MasterBeans(unittest.TestCase):
 
     def test_a_turnout_without_its_feedback_stops(self) -> None:
         bad = [r for r in rows() if r["user_name"] != "FB Switch 1 R"]
-        with self.assertRaisesRegex(tb.TablesBuildError, "Switch 1.*no feedback row FB Switch 1 R"):
+        with self.assertRaisesRegex(tb.TablesBuildError, "Switch 1.*no feedback bean fb:1:R"):
             tb.base(bad, lengths=LENGTHS)
 
     def test_a_block_with_no_length_or_layout_block_stops(self) -> None:
@@ -230,11 +230,305 @@ class MasterBeans(unittest.TestCase):
             with self.assertRaisesRegex(D.DevicesError, "role 'nonsense'"):
                 tb.base(D.load(p), lengths=LENGTHS)
 
-    def test_the_committed_staging_reads_into_a_base(self) -> None:
+    def test_the_committed_master_reads_into_a_base(self) -> None:
+        """Every level's blocks (naming-layers step 11): staging's 45 and its 14 parts (owner, 2026-11-20), and main
+        and upper's 120; and the startup LogixNG of the main and upper virtual detectors and turnouts."""
         root = tb.base().root
-        self.assertEqual(59, len(tables.blocks(root)))      # 45 and staging's 14 parts (owner, 2026-11-20)
+        self.assertEqual(59 + 120, len(tables.blocks(root)))
         self.assertIsNone(root.find("LayoutEditor"))
         self.assertEqual([], tables.mast_logics(root))
+        self.assertEqual(97, len(level_devices.clear_sensors(root)))
+        self.assertEqual(39, len(level_devices.turnout_states(root)))
+
+
+class MasterBeansByAssignment(unittest.TestCase):
+    """What master_beans makes of a row by its assignment (field is MasterBeans' fixture), pinned before the builder
+    merge sends every level through it (ADR-033 step 1)."""
+
+    def section(self, root: ET.Element, key: tuple) -> list[str]:
+        return [tables.system_name(e) for e in tables.elements({tb.section_key(s): s
+                                                                for s in tables.elements(root)}[key])]
+
+    def test_a_spare_detector_is_a_sensor_no_block_takes(self) -> None:
+        spare = blank(layer="occupancy", role="spare", user_name="unused Block 2-2", assignment="spare",
+                      system_name="M2S201", jmri_name="M2S201", wiring="Node: 2 Block: 2")
+        root = tb.base(rows() + [spare], lengths=LENGTHS).root
+        self.assertIn("M2S201", self.section(root, tb.MQTT_SENSORS))
+        self.assertEqual({"BS Switch 1"}, {b.findtext("occupancysensor") for b in tables.blocks(root)})
+
+    def test_a_virtual_part_with_a_jmri_block_takes_its_blocks_sensor(self) -> None:
+        part = blank(layer="block", role="part", user_name="Track 1-3 at 1", assignment="virtual",
+                     jmri_name="IB:AUTO:0052", layout_block="ILB52", part_of="OS Switch 1",
+                     jmri_comment="Part of OS Switch 1")
+        lengths = dict(LENGTHS, **{"Track 1-3 at 1": 3.0})
+        root = tb.base(rows() + [part], lengths=lengths).root
+        full = next(b for b in tables.blocks(root) if tables.system_name(b) == "IB:AUTO:0052")
+        self.assertEqual(("76.2", "BS Switch 1"), (full.get("length"), full.findtext("occupancysensor")))
+        lb = next(b for b in tables.layout_blocks(root) if tables.system_name(b) == "ILB52")
+        self.assertEqual(("Track 1-3 at 1", "BS Switch 1"), (tables.user_name(lb), lb.get("occupancysensor")))
+
+    def test_a_row_with_assignment_none_gives_no_bean(self) -> None:
+        part = blank(layer="block", role="part", user_name="Track 1-3 at 3", assignment="none", part_of="OS Switch 1")
+        root = tb.base(rows() + [part], lengths=LENGTHS).root
+        self.assertNotIn("Track 1-3 at 3", tb.bean_names(root))
+
+    def test_a_virtual_panel_lamp_is_an_internal_sensor(self) -> None:
+        lamp = blank(layer="sensor", role="panel_status", user_name="Test Lamp", assignment="virtual",
+                     system_name="IS:TEST_LAMP", jmri_name="IS:TEST_LAMP", jmri_comment="Test lamp; ACTIVE=on")
+        root = tb.base(rows() + [lamp], lengths=LENGTHS).root
+        self.assertIn("IS:TEST_LAMP", self.section(root, tb.INTERNAL_SENSORS))
+        self.assertNotIn("IS:TEST_LAMP", self.section(root, tb.MQTT_SENSORS))
+
+    def test_a_main_or_upper_row_gives_its_bean_in_the_base(self) -> None:
+        """Every level's rows give beans (naming-layers step 11: GENERATED_LEVELS went), a virtual one on its
+        jmri_name with its row's bean_comment."""
+        level = [blank(level="2", layer="turnout", role="turnout", id="switch:101", user_name="Switch 101",
+                       assignment="virtual", system_name="M2T3408", jmri_name="IT:HART:C3:101", bean_comment="t"),
+                 blank(level="2", layer="occupancy", role="track", user_name="BS 101-103", assignment="virtual",
+                       jmri_name="IS:HART:C3:B:101-103", blocks="Track 101-103", bean_comment="s"),
+                 blank(level="3", layer="mast", role="home", user_name="Mast 201R", assignment="virtual",
+                       jmri_name="IF$shsm:basic:one-searchlight(IH:HART:C3:201R)", bean_comment="m"),
+                 blank(level="3", layer="head", role="head", user_name="Head 201R", assignment="virtual",
+                       jmri_name="IH:HART:C3:201R", bean_comment="h")]
+        root = tb.base(rows() + level, lengths=LENGTHS).root
+        self.assertLessEqual({n for r in level for n in (r["user_name"], r["jmri_name"])}, tb.bean_names(root))
+        self.assertNotIn("M2T3408", tb.bean_names(root))         # a virtual turnout's planned name is a draft
+        self.assertEqual("t", next(t.findtext("comment") for t in tables.turnouts(root)
+                                   if tables.user_name(t) == "Switch 101"))
+
+
+def main_rows() -> list[dict]:
+    """A small main level as build_device_map.py writes it: a virtual switch with its planned LCC alias and two
+    feedback rows with assignment none, an OS block and a part of it with their detector (start inactive), and a
+    helix block with assignment none whose detector binds staging's helix block."""
+    lvl = dict(level="2", assignment="virtual")
+    return [
+        blank(**lvl, layer="turnout", role="turnout", id="switch:101", user_name="Switch 101", system_name="M2T3408",
+              jmri_name="IT:HART:C3:101", start="closed", bean_comment="Main and upper level, internal"),
+        blank(**lvl, layer="turnout", role="lcc_alias", id="dcc:101", user_name="DCC Switch 101", system_name="MTT120",
+              jmri_name="IT:HART:C3:101", wiring="Node: 34 Turnout: 0"),
+        blank(level="2", assignment="none", layer="fb", role="fb", id="fb:101:N", user_name="FB Switch 101 N",
+              system_name="M2S3467"),
+        blank(level="2", assignment="none", layer="fb", role="fb", id="fb:101:R", user_name="FB Switch 101 R",
+              system_name="M2S3468"),
+        blank(**lvl, layer="block", role="os", id="os:101", user_name="OS Switch 101", jmri_name="IB:C3:0001",
+              layout_block="ILB1001", jmri_comment="Peninsula", bean_comment="Main and upper level, internal"),
+        blank(**lvl, layer="block", role="part", id="block:101AB-103AA", user_name="Track 101-103",
+              jmri_name="IB:C3:0075", layout_block="ILB1075", part_of="OS Switch 101",
+              bean_comment="Main and upper level, internal"),
+        blank(**lvl, layer="occupancy", role="os", id="det:os:101", user_name="BS Switch 101",
+              jmri_name="IS:HART:C3:B:OS101", blocks="OS Switch 101", start="inactive",
+              bean_comment="Main and upper level occupancy, virtual"),
+        blank(level="2", assignment="none", layer="block", role="helix", id="block:131AA-helix",
+              user_name="Track Helix Outer", jmri_comment="CP 127"),
+        blank(**lvl, layer="occupancy", role="helix", id="det:block:131AA-helix", user_name="BS Helix Outer",
+              system_name="M2S4101", jmri_name="IS:HART:C3:B:Helix_Outer", blocks="Track Helix Outer",
+              start="inactive", bean_comment="Main and upper level occupancy, virtual"),
+    ]
+
+
+STAGING_HELIX = blank(layer="block", role="helix", id="block:39B-helix", user_name="Track Helix Outer",
+                      assignment="field", system_name="IB23", jmri_name="IB23", layout_block="ILB76",
+                      jmri_comment="Helix track, outer")
+ALL_LENGTHS = dict(LENGTHS, **{n: 10.0 for n in ("OS Switch 101", "Track 101-103", "Track Helix Outer")})
+
+
+class ShapeByColumn(unittest.TestCase):
+    """Each rule master_beans shapes a bean by (naming-layers step 10, builder merge step 4), on a small main level
+    run through it with staging (levels 1 and 2, as base() runs every level) and on staging alone."""
+
+    def beans(self, extra=(), levels=("1", "2")) -> dict:
+        return tb.master_beans(rows() + [STAGING_HELIX] + main_rows() + list(extra), ALL_LENGTHS, levels)
+
+    def named(self, beans: dict, key: tuple) -> dict[str, ET.Element]:
+        return {tables.system_name(e): e for e in beans.get(key, [])}
+
+    def test_a_field_row_is_its_system_name_and_any_other_its_jmri_name(self) -> None:
+        self.assertEqual("M2T1308", tb.bean_name(blank(layer="turnout", assignment="field", system_name="M2T1308",
+                                                       jmri_name="Switch 7")))
+        # any other field row is its jmri_name, the device tables.xml uses; system_name may be a draft (ADR-028)
+        self.assertEqual("IS:X", tb.bean_name(blank(layer="occupancy", assignment="field", system_name="M2S4101",
+                                                    jmri_name="IS:X")))
+        self.assertEqual("IT:HART:C3:101", tb.bean_name(main_rows()[0]))      # system_name is the planned M2T3408
+        turnouts = self.named(self.beans(), tb.INTERNAL_TURNOUTS)
+        self.assertEqual(["IT:HART:C3:101"], list(turnouts))
+        self.assertNotIn("M2T3408", self.named(self.beans(), tb.MQTT_TURNOUTS))
+
+    def test_feedback_is_twosensor_on_two_fb_beans_and_direct_on_none(self) -> None:
+        beans = self.beans()
+        staging = self.named(beans, tb.MQTT_TURNOUTS)["M2T408"]
+        self.assertEqual(("TWOSENSOR", "FB Switch 1 R", "FB Switch 1 N"),
+                         (staging.get("feedback"), staging.get("sensor1"), staging.get("sensor2")))
+        main = self.named(beans, tb.INTERNAL_TURNOUTS)["IT:HART:C3:101"]
+        self.assertEqual({"feedback": "DIRECT", "inverted": "false", "automate": "Off"}, dict(main.attrib))
+        one = [dict(r, assignment="virtual", jmri_name="IS:HART:C3:FB101N", jmri_comment="x")
+               if r["id"] == "fb:101:N" else r for r in main_rows()]
+        with self.assertRaisesRegex(tb.TablesBuildError, "Switch 101'.*no feedback bean fb:101:R"):
+            tb.master_beans(one, ALL_LENGTHS, ("2",))
+
+    def test_a_field_turnout_with_no_feedback_beans_stops(self) -> None:
+        """Staging must match exactly: only a virtual turnout is DIRECT."""
+        for gone in ("none", "drop"):
+            with self.subTest(gone=gone):
+                bad = [r if r["layer"] != "fb" else dict(r, assignment="none") for r in rows()
+                       if gone == "none" or r["layer"] != "fb"]
+                with self.assertRaisesRegex(tb.TablesBuildError, "'Switch 1'.*no feedback bean fb:1:R, fb:1:N"):
+                    tb.master_beans(bad, LENGTHS)
+
+    def test_an_alias_whose_turnout_row_is_missing_or_gives_no_bean_stops(self) -> None:
+        gone = [r for r in main_rows() if r["id"] != "switch:101"]
+        with self.assertRaisesRegex(tb.TablesBuildError, "DCC Switch 101'.*no turnout row switch:101 on level 2"):
+            tb.master_beans(gone, ALL_LENGTHS, ("2",))
+        none = [dict(r, assignment="none") if r["id"] == "switch:101" else r for r in main_rows()]
+        with self.assertRaisesRegex(tb.TablesBuildError, "DCC Switch 101'.*switch:101, whose assignment is none"):
+            tb.master_beans(none, ALL_LENGTHS, ("2",))
+
+    def test_a_detector_binds_only_its_own_levels_block_but_a_helix_one(self) -> None:
+        """A main detector naming a block a staging block shares the name of does not bind it; a helix one does."""
+        twin = blank(level="2", layer="occupancy", role="os", id="det:os:1", user_name="BS Twin",
+                     assignment="virtual", jmri_name="IS:HART:C3:B:Twin", blocks="OS Switch 1", start="inactive",
+                     bean_comment="x")
+        beans = self.beans([twin])
+        full = {tables.system_name(b): b.findtext("occupancysensor") for b in beans[tb.BLOCKS]}
+        self.assertEqual(("BS Switch 1", "BS Helix Outer"), (full["IB:AUTO:0033"], full["IB23"]))
+
+    def test_feedback_rows_are_found_on_the_turnouts_own_level(self) -> None:
+        """A main switch numbered like a staging one would not take staging's feedback rows."""
+        twin = [dict(r, id=r["id"].replace("101", "1")) if r["layer"] in ("turnout", "fb") else r for r in main_rows()]
+        main = self.named(tb.master_beans(rows() + twin, ALL_LENGTHS, ("1", "2")), tb.INTERNAL_TURNOUTS)
+        self.assertEqual("DIRECT", main["IT:HART:C3:101"].get("feedback"))
+
+    def test_an_lcc_alias_naming_its_turnouts_bean_gives_none(self) -> None:
+        beans = self.beans()
+        self.assertEqual(1, sum(1 for e in beans[tb.INTERNAL_TURNOUTS] if tables.system_name(e) == "IT:HART:C3:101"))
+        self.assertIn("MTT100", self.named(beans, tb.LCC_TURNOUTS))           # staging's alias is a bean of its own
+        own = [dict(r, jmri_name="IT:HART:C3:DCC101") if r["id"] == "dcc:101" else r for r in main_rows()]
+        self.assertIn("IT:HART:C3:DCC101", self.named(tb.master_beans(own, ALL_LENGTHS, ("2",)), tb.INTERNAL_TURNOUTS))
+
+    def test_a_turnout_with_no_switch_id_stops(self) -> None:
+        bad = [dict(r, id="") if r["id"] == "switch:101" else r for r in main_rows()]
+        with self.assertRaisesRegex(tb.TablesBuildError, "Switch 101'.*id '' is not switch:<n>"):
+            tb.master_beans(bad, ALL_LENGTHS, ("2",))
+
+    def test_the_comment_is_the_bean_comment_where_set(self) -> None:
+        beans = self.beans()
+        self.assertEqual("Main and upper level, internal",
+                         self.named(beans, tb.INTERNAL_TURNOUTS)["IT:HART:C3:101"].findtext("comment"))
+        full = {tables.system_name(b): b for b in beans[tb.BLOCKS]}
+        self.assertEqual("Main and upper level, internal", full["IB:C3:0001"].findtext("comment"))   # not "Peninsula"
+        self.assertEqual("Brick CP, Switch 1", full["IB:AUTO:0033"].findtext("comment"))           # wiring columns
+        self.assertEqual("x", tb.row_comment(blank(layer="sensor", bean_comment="x", jmri_comment="y")))
+
+    def test_a_block_gives_three_beans_and_a_part_its_blocks_sensor(self) -> None:
+        beans = self.beans()
+        names = [tables.system_name(b) for b in beans[("blocks-names",) + tb.BLOCKS]]
+        self.assertIn("IB:C3:0001", names)
+        full = {tables.system_name(b): b for b in beans[tb.BLOCKS]}
+        self.assertEqual(("254.0", "BS Switch 101"), (full["IB:C3:0075"].get("length"),
+                                                      full["IB:C3:0075"].findtext("occupancysensor")))
+        lbs = {tables.system_name(b): b for b in beans[tb.LAYOUT_BLOCKS]}
+        self.assertEqual("BS Switch 101", lbs["ILB1075"].get("occupancysensor"))
+
+    def test_a_helix_block_is_staging_s_bean_on_the_main_or_upper_sensor(self) -> None:
+        beans = self.beans()
+        full = [b for b in beans[tb.BLOCKS] if tables.user_name(b) == "Track Helix Outer"]
+        self.assertEqual([("IB23", "BS Helix Outer")], [(tables.system_name(b), b.findtext("occupancysensor"))
+                                                        for b in full])
+        alone = tb.master_beans(rows() + [STAGING_HELIX] + main_rows(), ALL_LENGTHS, ("1",))      # staging alone
+        full = [b for b in alone[tb.BLOCKS] if tables.user_name(b) == "Track Helix Outer"]
+        self.assertEqual([None], [b.find("occupancysensor") for b in full])
+        self.assertNotIn(tb.START_ACTIONS, alone)
+
+    def test_a_virtual_row_with_a_start_is_set_when_the_tables_load(self) -> None:
+        actions = self.beans()[tb.START_ACTIONS]
+        got = [(a.tag, a.findtext("systemName"), a.findtext("namedBean/name"), a.findtext("state/enum"))
+               for a in actions]
+        self.assertEqual([("ActionSensor", "IQDA$HART:C3:B:Helix_Outer", "IS:HART:C3:B:Helix_Outer", "Inactive"),
+                          ("ActionSensor", "IQDA$HART:C3:B:OS101", "IS:HART:C3:B:OS101", "Inactive"),
+                          ("ActionTurnout", "IQDA$HART:C3:T:101", "IT:HART:C3:101", "Closed")], got)
+        self.assertEqual(["MaleSocket"], [c.tag for c in actions[0]][-1:])
+
+    def test_a_start_on_a_field_row_or_a_name_with_no_action_stops(self) -> None:
+        field = [dict(r, start="closed") if r["user_name"] == "Switch 1" else r for r in rows()]
+        with self.assertRaisesRegex(tb.TablesBuildError, "Switch 1'.*start 'closed' on a field turnout row"):
+            tb.master_beans(field, LENGTHS)
+        odd = [dict(r, jmri_name="IT:ODD:101") if r["id"] in ("switch:101", "dcc:101") else r for r in main_rows()]
+        with self.assertRaisesRegex(tb.TablesBuildError, "not a main or upper virtual turnout"):
+            tb.master_beans(odd, ALL_LENGTHS, ("2",))
+
+    def test_base_wraps_the_startup_actions_in_the_startup_logixng(self) -> None:
+        """base() puts the startup LogixNG around master_beans' actions (start_logixng, naming-layers step 11): its
+        DigitalMany's sockets A1, A2, ... name the actions in their order, and level_devices reads them back."""
+        root = tb.base(rows() + [STAGING_HELIX] + main_rows(), lengths=ALL_LENGTHS).root
+        self.assertEqual(["IS:HART:C3:B:Helix_Outer", "IS:HART:C3:B:OS101"], level_devices.clear_sensors(root))
+        self.assertEqual({"IT:HART:C3:101": "Closed"}, level_devices.turnout_states(root))
+        many = next(e for e in root.find("LogixNGDigitalActions") if e.tag == "DigitalMany")
+        self.assertEqual([("A1", "IQDA$HART:C3:B:Helix_Outer"), ("A2", "IQDA$HART:C3:B:OS101"),
+                          ("A3", "IQDA$HART:C3:T:101")],
+                         [(s.findtext("socketName"), s.findtext("systemName")) for s in many.find("Actions")])
+        lx = [e for e in root.find("LogixNGs") if e.tag == "LogixNG"]
+        self.assertEqual(level_devices.CLEAR_LOGIXNG, tables.system_name(lx[-1]))     # after the template's
+        self.assertIsNone(tb.base(rows(), lengths=LENGTHS).root.find(
+            f"LogixNGs/LogixNG[systemName='{level_devices.CLEAR_LOGIXNG}']"))         # no start: no LogixNG
+
+    def test_level_turnouts_are_the_rows_whatever_their_bean(self) -> None:
+        """The main and upper turnouts by their rows (the desk checks pick plants by them): an LCC alias, a feedback
+        row and a staging turnout are not one; a turnout swapped to a field name still is."""
+        got = tb.level_turnouts(rows() + main_rows())
+        self.assertEqual({"Switch 101": "IT:HART:C3:101"}, got)
+        swapped = [dict(r, assignment="field", jmri_name="M2T3408") if r["id"] == "switch:101" else r
+                   for r in main_rows()]
+        self.assertEqual({"Switch 101": "M2T3408"}, tb.level_turnouts(swapped))
+
+    def test_every_layer_has_its_beans_named(self) -> None:
+        self.assertEqual({"turnout", "fb", "occupancy", "sensor", "head", "mast", "block"}, set(tb.LAYER_BEANS))
+
+
+class CommentOrder(unittest.TestCase):
+    """The data reads first, the way the owner reads the tables (2026-11-22)."""
+
+    def test_a_mast_names_its_direction_after_its_place(self) -> None:
+        self.assertEqual("Brick | Switch 1 | West", tb.with_direction("Brick | Switch 1", "west"))
+        self.assertEqual("Switch 241 | East", tb.with_direction("Switch 241", "east"))
+        self.assertEqual("Switch 241 | East", tb.with_direction("Switch 241 | East", "east"))
+        self.assertEqual("Brick", tb.with_direction("Brick", ""))
+        self.assertEqual("Brick | West", tb.with_direction("Brick | West", "west"))      # named already: once
+
+    def test_occupancy_back_undoes_occupancy_first(self) -> None:
+        for master in ("Princess balloon, Track K-1; occupancy Block 1-1 / M2S100; stop",
+                       "Brick CP, Switch 1; occupancy Block 4-2 / M2S401",
+                       "Helix track; occupancy Block 41-2 / M2S4101 (main and upper device map); stop",
+                       "occupancy Block 4-2 / M2S401"):
+            self.assertEqual(master, tb.occupancy_back(tb.occupancy_first(master)))
+        self.assertIsNone(tb.occupancy_back("Brick CP, Switch 1; occupancy Block 4-2 / M2S401"))
+
+    def test_a_block_puts_its_detector_first_without_the_word_occupancy(self) -> None:
+        self.assertEqual("Block 1-1 / M2S100; Princess balloon, Track K-1; stop",
+                         tb.occupancy_first("Princess balloon, Track K-1; occupancy Block 1-1 / M2S100; stop"))
+        self.assertEqual("Block 41-2 / M2S4101 (main and upper device map); Helix track, outer; stop",
+                         tb.occupancy_first("Helix track, outer; occupancy Block 41-2 / M2S4101 "
+                                            "(main and upper device map); stop"))
+        self.assertEqual("Block 4-2 / M2S401", tb.occupancy_first("occupancy Block 4-2 / M2S401"))
+        self.assertEqual("Brick CP, Switch 1", tb.occupancy_first("Brick CP, Switch 1"))
+
+    def test_the_built_tables_carry_the_new_order(self) -> None:
+        rs = rows()
+        for r in rs:
+            if r["user_name"] == "Mast 2L":
+                r["dir"] = "west"
+            if r["user_name"] == "OS Switch 1":
+                r["jmri_comment"] = "Brick CP, Switch 1; occupancy Block 4-2 / M2S401"
+        rs.append(blank(layer="mast", role="home", user_name="Mast 6LB", assignment="field", dir="west",
+                        system_name="IF$shsm:basic:one-searchlight(IH432)",
+                        jmri_name="IF$shsm:basic:one-searchlight(IH432)", jmri_comment="Plane | Switch 5"))
+        root = tb.base(rs, lengths=LENGTHS).root
+        heads = {tables.system_name(h): h.findtext("comment") for h in tables.signal_heads(root)}
+        self.assertEqual("Plane | Switch 5 | Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3", heads["IH432"])
+        self.assertEqual("Brick | Switch 1 | internal, not wired", heads["IH:HART:C1:2L"])   # a virtual head as it was
+        masts = {tables.user_name(m): m.findtext("comment") for m in tables.masts(root)}
+        self.assertEqual("Brick | Switch 1 | West", masts["Mast 2L"])
+        self.assertEqual("Brick", masts["Mast 4LA"])                          # no dir: nothing added
+        self.assertEqual("Block 4-2 / M2S401; Brick CP, Switch 1", tables.blocks(root)[0].findtext("comment"))
 
 
 class MissingLogic(unittest.TestCase):

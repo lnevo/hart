@@ -1,0 +1,2 @@
+order: 250
+**MQTT sensor send topic is stock (owner, 2026-11-24):** the Mac's JMRI option 11.3 went from `_discard/cmd/sensor/{0}` back to the stock `track/sensor/{0}`; the Mac was the only host with it, and the `_discard` topics came from it. A future need gets its reason recorded in [`docs/ctc/MQTT_SENSOR_STATUS_ONLY.md`](../../../docs/ctc/MQTT_SENSOR_STATUS_ONLY.md).

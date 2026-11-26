@@ -1,5 +1,7 @@
 # Speed matching
 
+Status: active
+
 - **Owner:** lnevo
 - **Status:** Re-run done on the layout 2026-11-13: both locos profiled both ways, 2738 matched to 2121 within 4% from step 24 up (CV66, CV69, CV70 on 2738), momentum matched, roster profiles written. Left: programming-track read-back, and the loop 2 lengths still plan only (Track S-R, OS Switch 31, OS Switch 23b, OS Switch 7). Record: [`profile-2026-11-13/`](../../docs/jmri/speedmatching/profile-2026-11-13/README.md).
 - **Saved:** 2026-08-21 from [jmriusers #254859](https://groups.io/g/jmriusers/message/254859)
@@ -26,10 +28,10 @@ Owner decisions: tolerance 5% (run-to-run repeat is about ±2%, more at slow ste
 
 Left, in order:
 
-1. **Read back** both decoders on the programming track, update the roster (Pi first, then
-   `tools/hosts/sync_roster_from_pi.sh --all`), then `pom_guard.py archive-ledger "CSX 2738"` on
-   the Pi. Until then the roster holds 2738's old CV66, CV69 and CV70.
-2. **Loop 2 lengths:** Scale (144.9 in) and Barn (34.1 in) are timed in `block_lengths.csv` (flag `timed`). Track S-R, OS Switch 31, OS Switch 23b and OS Switch 7 are still plan lengths; time them with PanelPro closed. A proper survey needs
+1. **Read back** both decoders on the programming track, update the roster (on the Pi, then
+   `make roster-pull`, commit and merge), then `pom_guard.py archive-ledger "CSX 2738" --ledger-dir ...` on
+   the Pi ([`POM_GUARD.md`](../../docs/jmri/speedmatching/POM_GUARD.md), ledger commands). Until then the roster holds 2738's old CV66, CV69 and CV70.
+2. **Loop 2 lengths:** Scale (144.9 in) and Barn (34.1 in) are timed in `block_lengths_measured.csv` (the operating length over `block_lengths.csv`'s plan length; the block names come from the device master). Track S-R, OS Switch 31, OS Switch 23b and OS Switch 7 are still plan lengths; time them with PanelPro closed. A proper survey needs
    a higher `--max` so each step gets 3 or more laps; the 2026-11-13 survey got one.
 3. **Pair stop test:** the coupled run was spoiled (Switch 33 closed under it); repeat it from East
    Lead at steps 32 and 96 when convenient.
@@ -60,7 +62,7 @@ are profiled.
 **Handoff for the test agent (2026-11-12, evening):** Parts A to C of the re-run plan are not
 built yet, so Part D cannot start; the tools are still the 2026-11-08 ones. 2121 and 2738 are
 still in the CS-105 consist, so driving either moves both (an unexpected move of the pair caused
-a short at Switch 9 earlier the same day); break it with `cs105_consist.py` only after asking the
+a short at Switch 9 earlier the same day); break it with `tools/ops/cs105.sh consist detach` only after asking the
 owner. 2121 stands in East Ext; 2738 was on Scale (not Barn, as JMRI had it) before the pair
 moved together, so confirm where it is now with the owner. K-1 and K-2 are clear. Other locos,
 as last reported: 1827 on W-2, 572 on W-1, 9602 on EH-1, 4678 on EH-2, 1993 on McKeesport.
@@ -83,8 +85,8 @@ Open: consist testing; step 126 drift check; opposite-direction check; a clean t
 | File | Role |
 |------|------|
 | [`STRR Speed Match-Measure Table SOP Rev2.pdf`](../../docs/ops/STRR%20Speed%20Match-Measure%20Table%20SOP%20Rev2.pdf) | Club SOP (37 pages) |
-| [`STRR_Speed_Match_Script_N-Scale_v4.2(NC+STRR_99_XtraSteps).py`](../../docs/jmri/speedmatching/STRR_Speed_Match_Script_N-Scale_v4.2%28NC+STRR_99_XtraSteps%29.py) | Automated speed **matching** (load this first) |
-| [`STRR_Speed_Measure_Script_v1.1.py`](../../docs/jmri/speedmatching/STRR_Speed_Measure_Script_v1.1.py) | Live speed **measuring** + stddev (sound / POM workaround) |
+| [`STRR_Speed_Match_Script_N-Scale_v4.2(NC+STRR_99_XtraSteps).py`](../../archive/code/speedmatching/STRR_Speed_Match_Script_N-Scale_v4.2%28NC+STRR_99_XtraSteps%29.py) | Automated speed **matching** (load this first) |
+| [`STRR_Speed_Measure_Script_v1.1.py`](../../archive/code/speedmatching/STRR_Speed_Measure_Script_v1.1.py) | Live speed **measuring** + stddev (sound / POM workaround) |
 
 Load Matching, then Measuring. Reverse order throws errors (Bradford has not fixed that yet).
 

@@ -31,5 +31,16 @@
 | [027](ADR-027-staging-from-its-device-map.md) | Staging is built from its device map | Accepted |
 | [028](ADR-028-main-upper-virtual-devices.md) | Main and upper levels run on virtual devices named by identity | Accepted |
 | [029](ADR-029-tables-xml-is-an-output.md) | `tables.xml` is an output of one device master and a template | Accepted |
+| [030](ADR-030-level-is-a-column.md) | The level is a column: one file per fact for every level | Accepted |
+| [031](ADR-031-signal-rule.md) | Signals by rule, with prototype mileposts and line codes | Superseded by ADR-024 (2026-11-23) |
+| [032](ADR-032-pi-os-trixie-64-bit.md) | The layout Pi runs 64-bit trixie, built from the repo | Accepted |
+| [033](ADR-033-generated-then-owner.md) | Generated values, then the owner's, then frozen wiring | Accepted |
+| [034](ADR-034-jmri-mqtt-race-overlay.md) | JMRI's MQTT race fix as an overlay until JMRI ships it | Accepted |
+| [035](ADR-035-backups.md) | What is backed up, where and how often | Accepted |
+| [036](ADR-036-generated-views-not-committed.md) | Generated views are built where they are used, not committed | Accepted |
+| [037](ADR-037-one-step-manifest.md) | One step manifest for the checks and the panels build | Accepted |
+| [038](ADR-038-one-file-per-status-entry.md) | One file per STATUS entry | Accepted, amends 036 |
+| [039](ADR-039-data-masters-in-git.md) | One master per kind of record, kept in git | Accepted |
+| [040](ADR-040-site-deploys-recorded-current-one-at-a-time.md) | Website deploys are recorded, current and one at a time | Accepted |
 
 Older consolidation decisions are in git history, and ADR-007 records what became of them.

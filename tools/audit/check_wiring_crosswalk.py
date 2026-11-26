@@ -16,15 +16,14 @@ head (hartlib.wiring.digicon_rows gives its pins, IH number and mast). This chec
 
 Hidden virtual masts (IF$vsm) carry no wiring and are not checked. The main and upper levels' masts stand on
 virtual heads named from their user names (IH:HART:C3:108R_Top; hartlib.level_masts) while their plant is a draft:
-they are not in the wiring plan yet, so each must carry exactly the heads main_upper_masts.csv gives it, and no wired
+they are not in the wiring plan yet, so each must carry exactly the heads masts.csv gives it, and no wired
 head is theirs.
 Staging's masts stand on internal heads too (IH:HART:C1:24RA_Top; ADR-024), all but Mast 6LB, the one wired mast
-(IH432, one high head): each must carry the heads staging_masts.csv gives it. The wiring plan lists wired heads only;
+(IH432, one high head): each must carry the heads masts.csv gives it. The wiring plan lists wired heads only;
 the rest is planned when the owner wires them.
 """
 from __future__ import annotations
 
-import csv
 import re
 import sys
 import xml.etree.ElementTree as ET
@@ -114,20 +113,24 @@ def planned_masts(heads: dict[str, dict]) -> dict[str, list[str]]:
     return {m: [n for _o, n in sorted(v)] for m, v in masts.items()}
 
 
-STAGING_HEAD = "IH:HART:C1:"        # staging's internal heads (ADR-024): not wired, so not in the wiring plan
-STAGING_MASTS = paths.LAYOUT_DATA / "schematic" / "staging_masts.csv"
+# every level's internal heads (ADR-024; hartlib.level_masts.HEAD_PREFIXES): not wired, so not in the wiring plan
+INTERNAL_HEADS = tuple(sorted(set(level_masts.HEAD_PREFIXES.values())))
+MASTS = level_masts.PATH
 
 
-def is_staging_mast(system_name: str) -> bool:
+def is_internal_head(system_name: str) -> bool:
+    return system_name.startswith(INTERNAL_HEADS)
+
+
+def is_internal_mast(system_name: str) -> bool:
     heads = level_masts.mast_heads(system_name)
-    return bool(heads) and all(h.startswith(STAGING_HEAD) for h in heads)
+    return bool(heads) and all(is_internal_head(h) for h in heads)
 
 
-def staging_heads(path: Path = STAGING_MASTS) -> dict[str, list[str]]:
-    """{mast: [head system names]} of staging_masts.csv's rows on internal heads."""
-    with path.open(newline="", encoding="utf-8") as f:
-        return {r["mast"]: level_masts.mast_heads(r["system_name"]) for r in csv.DictReader(f)
-                if is_staging_mast(r["system_name"])}
+def internal_heads(path: Path = MASTS) -> dict[str, list[str]]:
+    """{mast: [head system names]} of masts.csv's rows on internal heads, every level (hartlib.level_masts.read)."""
+    return {r["mast"]: [h for h, _u in r["heads"]] for r in level_masts.read(path)
+            if is_internal_mast(r["system_name"])}
 
 
 def read_tables(
@@ -147,7 +150,7 @@ def read_tables(
             continue
         user = tables.user_name(el) or sn
         m = SHSM_RE.match(sn)
-        if not m and not level_masts.is_level_mast(sn) and not is_staging_mast(sn):
+        if not m and not is_internal_mast(sn):
             bad.append(f"{user}: head mast {sn} does not name its heads by IH number")
             continue
         if user in masts:
@@ -157,10 +160,26 @@ def read_tables(
     return head_comments, masts, bad
 
 
+DIRECTIONS = ("East", "West")       # the word a mast's comment carries after its place (tables_build.with_direction)
+
+
+def mast_places(root: ET.Element) -> dict[str, str]:
+    """{head system name: its head mast's place}, the mast's comment without its direction, as a wired head's
+    comment starts (tables_build.bean_comment)."""
+    out: dict[str, str] = {}
+    for el in tables.masts(root, tags=("signalmast",)):
+        place = " | ".join(x for x in tables.text(el, "comment").split(" | ") if x and x not in DIRECTIONS)
+        for h in re.findall(r"\(([^()]+)\)", tables.text(el, "systemName")):
+            if place:
+                out.setdefault(h, place)
+    return out
+
+
 def problems(wiring_rows: list[dict[str, str]], tables_root: ET.Element) -> list[str]:
     heads = load_wiring(wiring_rows)
     plan = planned_masts(heads)
     head_comments, masts, out = read_tables(tables_root)
+    places = mast_places(tables_root)
 
     for mast, want in sorted(plan.items()):
         have = masts.get(mast)
@@ -170,19 +189,13 @@ def problems(wiring_rows: list[dict[str, str]], tables_root: ET.Element) -> list
         if have != want:
             out.append(f"{mast}: heads {' '.join(have)}, wiring plan {' '.join(want)}")
 
-    level = {r["mast"]: [h for h, _u in r["heads"]] for r in level_masts.read()}
-    staging = staging_heads()
+    internal = internal_heads()
     for mast in sorted(set(masts) - set(plan)):
         have = masts[mast]
-        if have and all(h.startswith(STAGING_HEAD) for h in have):
-            if staging.get(mast) != have:       # staging, internal until wired: as staging_masts.csv
-                out.append(f"{mast}: internal heads {' '.join(have)}, staging_masts.csv "
-                           f"{' '.join(staging.get(mast) or ['none'])}")
-            continue
-        if have and all(level_masts.is_level_head(h) for h in have):
-            if level.get(mast) != have:         # main and upper, virtual until wired: as main_upper_masts.csv
-                out.append(f"{mast}: virtual heads {' '.join(have)}, main_upper_masts.csv "
-                           f"{' '.join(level.get(mast) or ['none'])}")
+        if have and all(is_internal_head(h) for h in have):
+            if internal.get(mast) != have:      # internal until wired, every level: as masts.csv gives them
+                out.append(f"{mast}: internal heads {' '.join(have)}, {MASTS.name} "
+                           f"{' '.join(internal.get(mast) or ['none'])}")
             continue
         out.append(f"{mast}: head mast {' '.join(have)} has no head in wiring.csv")
 
@@ -194,7 +207,11 @@ def problems(wiring_rows: list[dict[str, str]], tables_root: ET.Element) -> list
         if name not in on_mast:
             out.append(f"{name} ({h['mast']} {h['role']}): wired head is on no mast")
         want = expected_comment(h)
-        if head_comments[name] != want:
+        place = places.get(name)        # a wired head reads its mast's place first: "Plane | Switch 5 | Node: 4 ..."
+        if place:
+            want = f"{place} | {want}"
+        got = head_comments[name]
+        if got != want:
             out.append(f"{name}: comment {head_comments[name]!r}, wiring {want!r}")
     return out
 

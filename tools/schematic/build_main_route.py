@@ -1,6 +1,6 @@
 """build_main_route.py [--check]
 
-Write the `main_route` key of plan_overrides.json's main_upper section from the main_upper rows of main_lines.csv
+Write the `main_route` key of plan_generated.json's main_upper section from the main_upper rows of main_lines.csv
 and the plan graph, and staging's main track and mileposts from its staging rows (see the end of this text).
 
 The schematic marks as main track what lies on `main_route`, hop by hop. Written by hand, each hop named two plan part
@@ -11,8 +11,9 @@ by what the railroad calls things, and this works the hops out:
 
   sheet   the schematic sheet the line is on: staging or main_upper (one file for every level, a section per sheet);
   line    its name, once per sheet;
-  from    the helix end the line starts at (its name, McKees Rocks), or a switch number;
-  via     switch numbers the line must pass, in order, where the shortest way would leave it (";" between them);
+  from    the helix end the line starts at (its helix track's block id: block:39B-helix), or a switch number;
+  via     switch numbers the line must pass, in order, where the shortest way would leave it (";" between them); the
+          half of a crossover is its number and the block id of a track that meets it there (35@block:33A-35A);
   to      the switch the line ends at;
   loop    the switches of the turnback the line ends in, in order, ";" between them: the line runs from `to` round them
           and back to `to` (a balloon on one switch repeats `to`);
@@ -30,17 +31,15 @@ line runs; switches are named by their number, so the hops do not depend on the 
 --check regenerates in memory and exits 1 if a file differs.
 
 Staging (the rows whose sheet is staging). Staging's drawings take no main_route (it
-would turn on the direction letters of a route), so its lines write two other things in plan_overrides.json's staging
-section.
-Each track on a line gets "main" in the `name` edit and every other track in it loses it; a track on a line that the
-edit does not name must be a helix end or the short link between the halves of a crossover, which the plugin marks
-itself. A line with `count` yes is the way the mileposts run: milepost_route is its stops, one hop from each to the
+would turn on the direction letters of a route), so its lines write two other things in plan_generated.json's staging
+section (name_main, the runs of the tracks on a main line: "1A-23A", hartlib.track_names.run_of). The name store
+gives each of them an entry flagged "main" in the plugin's `name` edit, and no other track is flagged; a helix end and
+the short link between the halves of a crossover are left out, as the plugin marks them itself. A line with `count` yes is the way the mileposts run: milepost_route is its stops, one hop from each to the
 next (the origin, Switch 1 at MP 5.7, stays in milepost_origin).
 """
 from __future__ import annotations
 
 import argparse
-import csv
 import heapq
 import json
 import os
@@ -51,12 +50,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS and the pinned plugin
-from hartlib import layer_files  # noqa: E402  (publish_draft put tools/hartlib/src on the path)
+from hartlib import hand_lists, layer_files, track_names  # noqa: E402  (publish_draft put tools/hartlib/src on the path)
 
-LINES = pd.DATA / "main_lines.csv"
+LINES = pd.DATA / hand_lists.MAIN_LINES_NAME
 GRAPH = pd.GRAPHS / "main.json"
-COLUMNS = ["sheet", "line", "from", "via", "to", "loop", "double", "count", "notes"]
-SHEETS = ("staging", "main_upper")
+COLUMNS = hand_lists.MAIN_LINE_COLUMNS
+SHEETS = hand_lists.SHEETS
 STAGING_GRAPH = pd.GRAPHS / "staging.json"
 TIE = 1e-6          # centimetres: two ways this close are a tie
 
@@ -65,45 +64,27 @@ class RouteError(ValueError):
     """The main lines cannot be worked out from the plan; the message says why."""
 
 
-def split(cell: str) -> list[str]:
-    return [p.strip() for p in cell.split(";") if p.strip()]
+# main_lines.csv's reader is hartlib.hand_lists' (naming-layers step 6); the names stay here
+split = hand_lists.split
+STOP_CELLS = hand_lists.STOP_CELLS
+TRACK_PREFIX = hand_lists.TRACK_PREFIX
 
 
-def read_lines(sheet: str, path: Path = LINES) -> list[dict]:
-    """The main lines of one sheet. The whole file is checked first: its columns, a known sheet on every row, a line
-    name used once per sheet, from and to given, count yes or blank and only on staging (the main and upper mileposts
-    follow main_route), loop and double only on main_upper (staging_text reads neither); the sheet asked for must have a line."""
-    if sheet not in SHEETS:
-        raise RouteError(f"unknown sheet {sheet!r}: the sheets are {', '.join(SHEETS)}")
-    with open(path, newline="", encoding="utf-8") as fh:
-        reader = csv.DictReader(fh)
-        if reader.fieldnames != COLUMNS:
-            raise RouteError(f"{path.name}: expected the columns {', '.join(COLUMNS)}, got {reader.fieldnames}")
-        rows = list(reader)
-    seen = set()
-    for n, r in enumerate(rows, 2):
-        if None in r.values() or None in r:
-            raise RouteError(f"{path.name} line {n}: expected {len(COLUMNS)} cells ({', '.join(COLUMNS)})")
-        r["sheet"] = r["sheet"].strip()
-        if r["sheet"] not in SHEETS:
-            raise RouteError(f"{path.name} line {n}: sheet {r['sheet']!r} is not one of {', '.join(SHEETS)}")
-        if not r["line"].strip() or (r["sheet"], r["line"]) in seen:
-            raise RouteError(f"{path.name} line {n}: line name {r['line']!r} is empty or repeated on sheet {r['sheet']}")
-        seen.add((r["sheet"], r["line"]))
-        if not r["from"].strip() or not r["to"].strip():
-            raise RouteError(f"{path.name} line {n} ({r['line']}): from and to are both needed")
-        if r["count"].strip() not in ("", "yes"):
-            raise RouteError(f"{path.name} line {n} ({r['line']}): count is yes or blank, not {r['count']!r}")
-        if r["count"].strip() and r["sheet"] != "staging":
-            raise RouteError(f"{path.name} line {n} ({r['line']}): count is only read on the staging sheet; the "
-                             f"{r['sheet']} mileposts follow main_route")
-        if r["sheet"] == "staging" and (r["loop"].strip() or r["double"].strip()):
-            raise RouteError(f"{path.name} line {n} ({r['line']}): loop and double are only read on the main_upper "
-                             "sheet; a staging line names its junctions in via")
-    mine = [r for r in rows if r["sheet"] == sheet]
-    if not mine:
-        raise RouteError(f"{path.name} has no main line on sheet {sheet}")
-    return mine
+def resolve_stop(token: str, names, where: str) -> str:
+    """hartlib.hand_lists.resolve_stop (a stop's block ids by the name store's names), its error a RouteError."""
+    try:
+        return hand_lists.resolve_stop(token, names, where)
+    except hand_lists.HandListError as exc:
+        raise RouteError(str(exc)) from None
+
+
+def read_lines(sheet: str, path: Path = LINES, names=None) -> list[dict]:
+    """The main lines of one sheet (hartlib.hand_lists.read_main_lines: the whole file checked, each stop's block
+    ids given back by name; `names` the name store's, default the repo's), its error a RouteError."""
+    try:
+        return hand_lists.read_main_lines(sheet, path, names)
+    except hand_lists.HandListError as exc:
+        raise RouteError(str(exc)) from None
 
 
 HALF = re.compile(r"(\d+)([AB])")
@@ -261,17 +242,21 @@ def prepared(overrides: dict, layer: str = "main_upper", graph: Path = GRAPH):
     """(the plugin's graph with the overrides applied and no main_route, node_ref: how a route names a junction)."""
     import build_layout_le as bl
     sheet, _le, _core = bl.plugin()
-    from schematic import edits   # the plugin's package: bl.plugin() has put it on the path
-    opts = dict(sheet.options(layer, pd.DATA))
+    from schematic import edits, layers   # the plugin's package: bl.plugin() has put it on the path
+    # the hand preferences name tracks by block ID: the plugin takes the merged view's, which gives their names
+    prefs = layer_files.merged(pd.DATA, "preferences").get(layer, {})
+    opts = dict(sheet.DEFAULTS, **layers.merge(layers.load(layer, pd.DATA, preferences=False), prefs))
+    # the plan with the name store's track names but without the main flags this script writes (name_main), so a
+    # stale or old-form name_main never stops the script that rewrites it
+    opts.update({k: v for k, v in layer_files.merged(pd.DATA, main=False)[layer].items() if not k.startswith("_")})
     opts.pop("main_route", None)
     g = sheet.prepare(json.loads(graph.read_text()), opts, set())
     return g, edits.node_ref
 
 
-def overrides_section(overrides: dict, hops: list) -> dict:
-    over = dict(overrides)
-    over["main_route"] = hops
-    return over
+def generated_main_upper(hops: list) -> dict:
+    """The keys of plan_generated.json's main_upper section this writes."""
+    return {"main_route": hops}
 
 
 def line_edges(plan: Plan, rows: list[dict]) -> set[str]:
@@ -296,9 +281,11 @@ def milepost_route(plan: Plan, rows: list[dict]) -> list[list[str]]:
     return hops
 
 
-def staging_section(overrides: dict, plan: Plan, rows: list[dict]) -> dict:
-    """plan_overrides.json's staging section with its `name` edit's main flags and its milepost_route from the lines."""
-    from schematic import edits
+def staging_keys(overrides: dict, plan: Plan, rows: list[dict]) -> dict:
+    """The keys of plan_generated.json's staging section this writes: name_main (the runs of the tracks on a main
+    line, hartlib.track_names.edge_run: "1A-23A", which the name store's `name` edit flags main) and milepost_route,
+    from the lines. A crossover's link between its halves and a helix track are left out: the plugin marks those
+    main itself. `overrides` (the hand section) is not read: the plan graph names every junction."""
     g = plan.g
     N = g["nodes"]
 
@@ -306,27 +293,13 @@ def staging_section(overrides: dict, plan: Plan, rows: list[dict]) -> dict:
         la, lb = (N[n].get("label") for n in (e["u"], e["v"]))
         return (la and la == lb) or any(N[n]["kind"] == "end" and N[n].get("sub") == "helix" for n in (e["u"], e["v"]))
 
-    main_ids = line_edges(plan, rows)
-    over = json.loads(json.dumps(overrides))
-    named = [ed for ed in over["edits"] if ed.get("op") == "name"]
-    if len(named) != 1:
-        raise RouteError(f"plan_overrides.json[staging]: expected one `name` edit, found {len(named)}")
-    seen, tracks = set(), []
-    for a, b, name, *rest in named[0]["tracks"]:
-        port = rest[0] if rest and rest[0] in ("A", "B", "C", "D") else None
-        e = edits.edge_between(g, a, b, port)[0]
-        seen.add(e["id"])
-        tracks.append([a, b, name, *[r for r in rest if r != "main"], *(["main"] if e["id"] in main_ids else [])])
-    named[0]["tracks"] = tracks
-    lost = [e for e in g["edges"] if e["id"] in main_ids - seen and not owned_by_plugin(e)]
-    if lost:
-        raise RouteError("a main line runs over track the `name` edit does not name: "
-                         + ", ".join(f"{plan.name(e['u'])} to {plan.name(e['v'])}" for e in lost))
-    over["milepost_route"] = milepost_route(plan, rows)
-    over["_main_lines"] = ("The main flags of the `name` edit and milepost_route are written by "
-                           "tools/schematic/build_main_route.py from the staging rows of main_lines.csv; edit that "
-                           "file, not these.")
-    return over
+    main_ids = line_edges(plan, rows)     # each run by the name store's end keys (track_names.edge_run, as plan_runs)
+    flagged = sorted({track_names.edge_run(N, e) for e in g["edges"] if e["id"] in main_ids and not owned_by_plugin(e)})
+    return {layer_files.NAME_MAIN: flagged, "milepost_route": milepost_route(plan, rows),
+            "_main_lines": ("name_main (the runs of the tracks on a main line, which the name store's `name` edit "
+                            "flags main: hartlib.track_names) and milepost_route are written by "
+                            "tools/schematic/build_main_route.py from the staging rows of main_lines.csv; edit that "
+                            "file, not these.")}
 
 
 def main(argv=None) -> int:
@@ -340,9 +313,9 @@ def main(argv=None) -> int:
         hops = route(Plan(g, by_label), read_lines("main_upper"))
         st = layer_files.read("plan_overrides", "staging", pd.DATA)
         sg, sby = prepared(st, "staging", STAGING_GRAPH)
-        updates = {("plan_overrides", "main_upper"): overrides_section(overrides, hops),
-                   ("plan_overrides", "staging"): staging_section(st, Plan(sg, sby), read_lines("staging"))}
-        want = layer_files.texts(updates, pd.DATA)
+        updates = {"main_upper": generated_main_upper(hops),
+                   "staging": staging_keys(st, Plan(sg, sby), read_lines("staging"))}
+        want = layer_files.generated_texts(updates, pd.DATA)
     except bl.BuildError as exc:      # the plugin is not checked out
         if not args.check:
             raise
@@ -353,8 +326,8 @@ def main(argv=None) -> int:
         return 2
     # which section differs, to say what is stale: main_upper's main_route, staging's main flags and milepost_route
     what = {"main_upper": f"main_route ({len(hops)} hops)", "staging": "main flags and milepost_route"}
-    stale = [what[sheet] for (_k, sheet), sec in updates.items()
-             if layer_files.read("plan_overrides", sheet, pd.DATA) != sec]
+    stale = [what[sheet] for sheet, keys in updates.items()
+             if any(layer_files.read(layer_files.GENERATED, sheet, pd.DATA).get(k) != v for k, v in keys.items())]
     stale_files = [p for p, text in want.items() if p.read_text(encoding="utf-8") != text]
     if args.check:
         for p in stale_files:

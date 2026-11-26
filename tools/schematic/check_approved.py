@@ -3,8 +3,8 @@
 Check the owner-approved built outputs against their fingerprints (tools/schematic/approval.py): the three-level
 "HART Railroad" Layout Editor panel in tables.xml and the CATS desks. Exit 1 naming each output that drifted.
 --approve records outputs as approved, only the ones named (or all of them with --all); run it only after the owner
-has approved them. Keys: le-panel (the live tables.xml), le-candidate (the cut-over candidate; checked only when
-named), cats-ctc, cats-abs. Checking with no key covers every output but le-candidate.
+has approved them. Keys: le-panel (the "HART Railroad" panel in tables.xml), cats-ctc, cats-abs. Checking with no
+key covers every output.
 """
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ def main(argv: list[str] | None = None) -> int:
     keys = {o.key: o for o in approval.OUTPUTS}
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--approve", action="store_true", help="record the named outputs as approved")
-    ap.add_argument("--all", action="store_true", help="with --approve: every output but le-candidate")
+    ap.add_argument("--all", action="store_true", help="with --approve: every output")
     ap.add_argument("--check", action="store_true", help="the default; accepted so build_panels.sh can pass it")
     ap.add_argument("keys", nargs="*", metavar="key", help=", ".join(keys))
     args = ap.parse_args(argv)
@@ -34,8 +34,7 @@ def main(argv: list[str] | None = None) -> int:
         ap.error("--approve and --check are different jobs")
     if args.approve and args.all == bool(args.keys):
         ap.error("--approve takes the outputs to approve (" + ", ".join(keys) + ") or --all, not both and not neither")
-    defaults = [o for o in approval.OUTPUTS if o.default]
-    chosen = [keys[k] for k in args.keys] or defaults
+    chosen = [keys[k] for k in args.keys] or list(approval.OUTPUTS)
     bad = 0
     for out in chosen:
         try:

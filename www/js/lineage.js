@@ -3,7 +3,8 @@
 //   title, lede, article, years {min, max, start}, pick ("Who ran it in"), trunkColor,
 //   trunk [cards and {handoff}], split, lanes [{id, title, hart | link {label, href}, color, steps, end}],
 //   merge {lanes [ids], label, steps, end}, table {headers, rows, note}.
-// A card is {name, years, from, to, made, logo | wordmark, note, pcc, maybe [from, to]}.
+// A card is {name, years, from, to, made, logo_id + logo | wordmark, note, pcc, maybe [from, to]}. logo_id is the
+// row of www/scripts/archive_catalogue.csv that credits the logo, and logo is that row's path (archive_catalogue.py checks).
 // "to": null means still running. "maybe" marks years the articles leave open.
 (function () {
   var esc = HARTOps.esc;

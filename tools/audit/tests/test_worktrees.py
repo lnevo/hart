@@ -195,6 +195,37 @@ class Sweep(Repo):
         self.assertFalse(os.path.exists(self.wt))
         self.assertEqual(sh("git", "branch", "--list", "agent/claude/x", cwd=self.main), "")
 
+    def lock(self, reason: str) -> None:
+        sh("git", "worktree", "lock", "--reason", reason, self.wt, cwd=self.main)
+
+    def lock_text(self) -> str:
+        return next((t.lock_reason for t in WT.worktrees(self.main) if t.path == self.wt and t.locked), "")
+
+    def test_a_dead_sessions_lock_is_lifted_and_the_worktree_removed(self) -> None:
+        self.lock("claude agent agent-x (pid 111 start Sat Nov 21 14:25:32 2026)")
+        with mock.patch.object(WT, "pid_running", return_value=False), \
+                mock.patch.object(WT, "idle_since", return_value=LONG_AGO):
+            lines = self.sweep(lambda t: LONG_AGO if t.branch == "agent/claude/x" else None)
+        self.assertTrue(lines and lines[0].startswith("removed"), lines)
+        self.assertFalse(os.path.exists(self.wt))
+
+    def test_a_live_sessions_lock_keeps_the_worktree(self) -> None:
+        self.lock(f"claude agent agent-x (pid {os.getpid()})")
+        lines = self.sweep(lambda t: LONG_AGO if t.branch == "agent/claude/x" else None)
+        self.assertTrue(os.path.exists(self.wt))
+        self.assertTrue(any("locked" in l for l in lines), lines)
+
+    def test_a_refused_removal_puts_the_lock_back(self) -> None:
+        reason = "claude agent agent-x (pid 111 start Sat Nov 21 14:25:32 2026)"
+        self.lock(reason)
+        with mock.patch.object(WT, "pid_running", return_value=False), \
+                mock.patch.object(WT, "idle_since", return_value=LONG_AGO), \
+                mock.patch.object(WT, "remove_worktree", return_value="refused for the test"):
+            lines = self.sweep(lambda t: LONG_AGO if t.branch == "agent/claude/x" else None)
+        self.assertTrue(os.path.exists(self.wt))
+        self.assertTrue(any("refused for the test" in l for l in lines), lines)
+        self.assertEqual(self.lock_text(), reason)
+
     def add_submodule(self) -> str:
         """Give the worktree a checked-out submodule cloned from a local 'remote' repo; return its path."""
         src = os.path.dirname(self.main) + "/subsrc"
@@ -393,7 +424,7 @@ class MainCheckoutRules(Repo):
     def test_main_checkout_allows_staying_on_main(self) -> None:
         for cmd in ("git checkout main", "git switch main", "git checkout -- f.txt", "git checkout .gitignore",
                     "git pull --ff-only",
-                    "git status", f"git worktree add ../wt2 -b agent/claude/z"):
+                    "git status", "git worktree add ../wt2 -b agent/claude/z"):
             self.assertEqual(self.bash(cmd, self.main), 0, cmd)
 
     def test_worktree_commits_and_branches_pass(self) -> None:
@@ -444,6 +475,59 @@ class SubmodulePlanTest(unittest.TestCase):
         remove, kept = self.run_plan([locked, mine], when, keep=["/r/mine/sub"])
         self.assertEqual(remove, [])
         self.assertEqual(len(kept), 2)
+
+    def test_a_lock_whose_session_has_exited_does_not_keep_it(self):
+        dead = WT.Worktree("/r/dead", "abc", "b", True, "claude agent agent-x (pid 111 start Sat Nov 21 14:25:32 2026)")
+        live = WT.Worktree("/r/live", "abc", "b", True, "claude agent agent-y (pid 222 start Sat Nov 21 14:25:32 2026)")
+        bare = WT.Worktree("/r/bare", "abc", "b", True, "")
+        when = {t.path: SWEEP_NOW - timedelta(days=1) for t in (dead, live, bare)}
+        with mock.patch.object(WT, "pid_running", side_effect=lambda pid: pid == 222), \
+                mock.patch.object(WT, "process_start", return_value=datetime(2026, 11, 21, 14, 25, 32)), \
+                mock.patch.object(WT, "idle_since", return_value=SWEEP_NOW - timedelta(hours=2)):
+            remove, kept = self.run_plan([dead, live, bare], when)
+        self.assertEqual(remove, [dead])
+        self.assertEqual({t.path: why for t, why in kept}, {live.path: "locked", bare.path: "locked"})
+
+    def test_a_dead_sessions_worktree_waits_until_it_is_idle(self):
+        dead = WT.Worktree("/r/dead", "abc", "b", True, "claude agent agent-x (pid 111 start Sat Nov 21 14:25:32 2026)")
+        with mock.patch.object(WT, "pid_running", return_value=False):
+            with mock.patch.object(WT, "idle_since", return_value=SWEEP_NOW - timedelta(minutes=20)):
+                self.assertTrue(WT.lock_held(dead, SWEEP_NOW))
+            with mock.patch.object(WT, "idle_since", return_value=None):
+                self.assertTrue(WT.lock_held(dead, SWEEP_NOW))
+            with mock.patch.object(WT, "idle_since", return_value=SWEEP_NOW - timedelta(hours=2)):
+                self.assertFalse(WT.lock_held(dead, SWEEP_NOW))
+
+    def test_a_reused_pid_counts_as_a_gone_session(self):
+        reason = "claude agent agent-x (pid 333 start Sat Nov 21 14:25:32 2026)"
+        with mock.patch.object(WT, "pid_running", return_value=True):
+            with mock.patch.object(WT, "process_start", return_value=datetime(2026, 11, 22, 9, 0, 0)):
+                self.assertTrue(WT.lock_session_gone(reason))
+            with mock.patch.object(WT, "process_start", return_value=datetime(2026, 11, 21, 14, 25, 33)):
+                self.assertFalse(WT.lock_session_gone(reason))
+            with mock.patch.object(WT, "process_start", return_value=None):
+                self.assertFalse(WT.lock_session_gone(reason))
+
+    def test_a_lock_written_in_utc_matches_a_local_ps_time(self):
+        """Claude Code records the session start in UTC; ps prints local time. The same moment is the same
+        session, so a live session's lock must not count as gone (it did, hours off, before 2026-11-25)."""
+        local = datetime(2026, 11, 24, 23, 8, 5)
+        utc = local.astimezone(timezone.utc).replace(tzinfo=None)
+        reason = f"claude agent agent-x (pid 333 start {utc:%a %b %d %H:%M:%S %Y})"
+        with mock.patch.object(WT, "pid_running", return_value=True), \
+                mock.patch.object(WT, "process_start", return_value=local):
+            self.assertFalse(WT.lock_session_gone(reason))
+        with mock.patch.object(WT, "pid_running", return_value=True), \
+                mock.patch.object(WT, "process_start", return_value=local + timedelta(minutes=7)):
+            self.assertTrue(WT.lock_session_gone(reason))
+
+    def test_odd_pids_never_count_as_gone(self):
+        self.assertFalse(WT.lock_session_gone("pid 99999999999999999999 start x"))  # too long for the pattern
+        with mock.patch.object(WT.os, "kill", side_effect=OverflowError):
+            self.assertTrue(WT.pid_running(2 ** 40))
+        with mock.patch.object(WT.os, "kill", side_effect=ProcessLookupError):
+            self.assertFalse(WT.pid_running(12345))
+        self.assertTrue(WT.pid_running(os.getpid()))
 
     def test_a_merged_worktree_outside_the_home_folder_is_kept(self):
         inside, outside = fake_tree("main/.claude/worktrees/a"), fake_tree("elsewhere/b")

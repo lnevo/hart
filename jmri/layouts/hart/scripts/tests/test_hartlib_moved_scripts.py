@@ -46,17 +46,12 @@ def run(script: str, *args: str, home: Path) -> subprocess.CompletedProcess:
 
 class DefaultPathsTest(unittest.TestCase):
     def test_default_tables_are_this_checkouts_file(self):
-        for name, attr in (
-            ("capture_public_name_baseline", "DEFAULT_TABLES"),
-        ):
-            with self.subTest(name):
-                self.assertEqual(TABLES, getattr(load(name), attr))
         self.assertEqual([TABLES], load("apply_nx_layer").DEFAULTS)
         self.assertEqual(TABLES, load("audit_panel_contracts").DEFAULT_SOURCES[0][1])
 
     def test_other_inputs_are_in_this_checkout(self):
         audit = load("audit_panel_contracts")
-        self.assertEqual(paths.LAYOUT_DATA / "schematic" / "staging_masts.csv", audit.STAGING_MASTS)
+        self.assertEqual(paths.LAYOUT_DATA / "schematic" / "masts.csv", audit.MASTS)
         self.assertEqual(paths.LAYOUT_DIR / "dispatcher" / "traininfo", audit.TRAININFO)
 
 

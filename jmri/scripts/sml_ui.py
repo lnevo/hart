@@ -1,0 +1,173 @@
+# -*- coding: utf-8 -*-
+# JMRI jython -- part of signal_coordinator.py: the Swing side: the SML Enabled / Disabled button on
+# the PanelPro main-window strip and the stored-Enabled warning popup.
+#
+# signal_coordinator.py loads this from preference:jython after sml_quit and reloads it on every run
+# (see _load_siblings there).
+
+from java.lang import Runnable, Thread
+from javax.swing import JButton, JOptionPane, SwingUtilities
+
+from sml_beans import _ascii
+
+
+class SmlUi(object):
+    """DigiconMqttSml's main-window button and stored-Enabled popup."""
+
+    def _stored_enabled_source_names(self):
+        """UserNames of Digicon sources that loaded with any dest Enabled."""
+        names = []
+        n = 0
+        for mast in self._masts:
+            c = self._enabled_dest_count(mast)
+            if c <= 0:
+                continue
+            n += c
+            try:
+                name = mast.getUserName() or mast.getSystemName()
+            except Exception:
+                name = "?"
+            names.append(_ascii(name))
+        return n, names
+
+    def _warn_if_stored_sml_enabled(self):
+        """Popup if tables.xml stored Digicon SML Enabled. Does not stop boot."""
+        n, sources = self._stored_enabled_source_names()
+        if n == 0:
+            return False
+        preview = ", ".join(sources[:8])
+        if len(sources) > 8:
+            preview += ", ..."
+        print(
+            "mqtt_signalhead: stored SML Enabled "
+            "(%d dests on %d sources) -- warning popup"
+            % (n, len(sources))
+        )
+        msg = (
+            "Digicon SML was stored Enabled in tables.xml "
+            "(%d destination(s) on %d source(s)).\n"
+            "This warning returns at every start until you Store "
+            "with SML Disabled.\n\n"
+            "Sources: %s\n\n"
+            "Startup continues."
+            % (n, len(sources), preview)
+        )
+
+        class _Warn(Runnable):
+            def run(_self):
+                try:
+                    from jmri.util.swing import JmriJOptionPane
+
+                    JmriJOptionPane.showMessageDialog(
+                        None,
+                        msg,
+                        "Digicon SML stored Enabled",
+                        JmriJOptionPane.WARNING_MESSAGE,
+                    )
+                except Exception:
+                    JOptionPane.showMessageDialog(
+                        None,
+                        msg,
+                        "Digicon SML stored Enabled",
+                        JOptionPane.WARNING_MESSAGE,
+                    )
+
+        SwingUtilities.invokeLater(_Warn())
+        return True
+
+    def _add_toggle_button(self, attempt=0):
+        """PanelPro main-window strip — kept in addition to the LE Signals lamp."""
+        max_attempts = 12
+        delay_ms = 500
+
+        def _try_attach():
+            try:
+                from apps import Apps
+
+                space = Apps.buttonSpace()
+                if space is None:
+                    raise RuntimeError("Apps.buttonSpace() is None")
+                # Already on the strip (retry). A button left by an earlier run drives
+                # that run's controller, so take it off rather than reuse it.
+                for i in range(space.getComponentCount() - 1, -1, -1):
+                    c = space.getComponent(i)
+                    try:
+                        if c is self._button:
+                            space.revalidate()
+                            space.repaint()
+                            return True
+                        if c.getText() in ("SML Enabled", "SML Disabled"):
+                            space.remove(c)
+                            print("mqtt_signalhead: removed SML button left by an earlier run")
+                    except Exception:
+                        pass
+                if self._button is None:
+                    self._button = JButton("SML Disabled")
+                    self._button.addActionListener(lambda e: self._on_toggle())
+                space.add(self._button)
+                space.revalidate()
+                space.repaint()
+                print("mqtt_signalhead: SML toggle on PanelPro button strip")
+                return True
+            except Exception as exc:
+                print(
+                    "mqtt_signalhead: buttonSpace attempt %d failed: %s"
+                    % (attempt + 1, _ascii(exc))
+                )
+                return False
+
+        class _Attach(Runnable):
+            def run(_self):
+                # Detached by a re-run (or quitting): leave the strip to the new one.
+                if self._shutting_down:
+                    return
+                if _try_attach():
+                    self._set_button_label()
+                    return
+                if attempt + 1 >= max_attempts:
+                    print(
+                        "mqtt_signalhead: giving up on main-window SML button "
+                        "(panel Signals lamp still works)"
+                    )
+                    return
+                self._add_toggle_button(attempt + 1)
+
+        if attempt == 0 and self._button is None:
+            self._button = JButton("SML Disabled")
+            self._button.addActionListener(lambda e: self._on_toggle())
+
+        if attempt == 0:
+            SwingUtilities.invokeLater(_Attach())
+        else:
+
+            class _Retry(Runnable):
+                def run(_self):
+                    Thread.sleep(delay_ms)
+                    if not self._shutting_down:
+                        SwingUtilities.invokeLater(_Attach())
+
+            Thread(_Retry(), "mqtt-sml-button").start()
+
+    def _set_button_busy(self):
+        """Grey the button while a worker runs (on the Swing thread)."""
+        button = self._button
+        if button is None:
+            return
+
+        class _Grey(Runnable):
+            def run(_self):
+                button.setEnabled(False)
+
+        SwingUtilities.invokeLater(_Grey())
+
+    def _set_button_label(self):
+        if self._button is None:
+            return
+        label = "SML Enabled" if self._global_enabled else "SML Disabled"
+
+        class _Set(Runnable):
+            def run(_self):
+                self._button.setText(label)
+                self._button.setEnabled(True)
+
+        SwingUtilities.invokeLater(_Set())

@@ -11,11 +11,11 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
-from hartlib import devices, paths, railroad, tables  # noqa: E402
-from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its virtual names
+import publish_draft as pd  # noqa: E402,F401  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
+from hartlib import coordinator, devices, drawing_keys, level_devices, paths, railroad, tables  # noqa: E402
+from hartlib import level_masts as level_masts_lib  # noqa: E402  masts.csv and its virtual names
 from le_common import (  # noqa: E402
-    band_key, band_levels, bare, BASE_LEVELS, BuildError, DEVICE_MAP, main_upper_device_map,
+    band_key, band_levels, bare, STAGING_LEVELS, BuildError, DEVICE_MAP, main_upper_device_map,
 )
 
 
@@ -86,29 +86,35 @@ def staging_lengths(names: dict, plan_inches: dict | None = None) -> dict:
 
 @functools.lru_cache(maxsize=1)
 def plan_lengths() -> dict:
-    """{block: plan inches} of block_lengths.csv (hartlib.railroad); read once. BuildError on a file hartlib cannot
-    read."""
-    from hartlib import railroad
+    """{block: plan inches} of block_lengths.csv (hartlib.block_lengths, the plan side); read once. BuildError on a
+    file hartlib cannot read."""
+    from hartlib import block_lengths, railroad
     try:
-        rows = railroad.read_block_lengths(railroad.Sources.under().block_lengths)
+        return block_lengths.plan_lengths()
     except railroad.FactsError as exc:
         raise BuildError(f"block_lengths.csv: {exc}") from None
-    return {name: r.plan_in for name, r in rows.items()}
 
 
 MM_PER_INCH = 25.4
-MAIN_UPPER_MASTS = level_masts_lib.PATH      # build_main_upper_masts.py, from the device map
+MASTS = level_masts_lib.PATH      # masts.csv, every level's (build_masts.py)
+# the levels the build adds (main and upper), whose masts it draws on internal heads: every level the base holds none of
+ADDED_LEVELS = tuple(lv for lv in level_masts_lib.LEVELS if lv not in STAGING_LEVELS)
 
 
-def read_level_masts(path: Path = MAIN_UPPER_MASTS) -> list[dict]:
-    """main_upper_masts.csv's rows (hartlib.level_masts.read: each with `heads` as [(internal system name, user
-    name)], every head internal), checked again against signal_coordinator.py's own test: no mast or head on a name
-    it would enrol or publish (lcos_named)."""
+def read_level_masts(path: Path = MASTS) -> list[dict]:
+    """masts.csv's rows of the levels the build adds (ADDED_LEVELS; hartlib.level_masts.read: each with `heads` as
+    [(internal system name, user name)]), checked again against signal_coordinator.py's own test: no mast or head on
+    a name it would enrol or publish (lcos_named), but a head swapped in by its device row (the row's planned physical
+    head at its place, which level_masts.read holds it to) and a mast on such a head: those are meant for the field."""
     try:
-        rows = level_masts_lib.read(path)
+        rows = level_masts_lib.read(path, levels=ADDED_LEVELS)
     except ValueError as exc:
         raise BuildError(str(exc)) from None      # hartlib names the file and the line itself
-    bad = lcos_named([r["system_name"] for r in rows] + [h for r in rows for h, _u in r["heads"]])
+    swapped = {h for r in rows for h, planned in zip(level_masts_lib.mast_heads(r["system_name"]),
+                                                      level_masts_lib.mast_heads(r["device_system_name"]))
+               if h == planned and level_masts_lib.WIRED_HEAD.fullmatch(h)}
+    bad = lcos_named([r["system_name"] for r in rows if not swapped & set(level_masts_lib.mast_heads(r["system_name"]))]
+                     + [h for r in rows for h, _u in r["heads"] if h not in swapped])
     if bad:
         raise BuildError(f"{paths.rel(path)}: names signal_coordinator.py takes for LCOS heads, which would reach "
                          f"MQTT and the field before the cut-over: {bad}")
@@ -118,9 +124,12 @@ def read_level_masts(path: Path = MAIN_UPPER_MASTS) -> list[dict]:
 @functools.lru_cache(maxsize=None)
 def lcos_rule():
     """signal_coordinator.py's own test for an LCOS head's system name (_is_lcos_ih_sys) and the pattern it finds
-    heads in a mast's system name by (_HEAD_IN_MAST), read from its source (it is Jython and imports jmri): the
-    functions and constants they use, run here in CPython."""
-    src = (pd.REPO / "jmri/scripts/signal_coordinator.py").read_text(encoding="utf-8")
+    heads in a mast's system name by (_HEAD_IN_MAST), read from its source and its sibling modules' (hartlib.coordinator;
+    it is Jython and imports jmri): the functions and constants they use, run here in CPython."""
+    try:
+        src = coordinator.source()
+    except coordinator.CoordinatorError as exc:
+        raise BuildError(str(exc)) from None
     parts = []
     for name in ("_LCOS_SIGNAL_UID_MIN", "_LCOS_SIGNAL_UID_MAX", "_HEAD_IN_MAST"):
         m = re.search(rf"^{name} = .*$", src, re.M)
@@ -129,7 +138,8 @@ def lcos_rule():
         m = re.search(rf"^def {name}\(.*?(?=^\S)", src, re.M | re.S)
         parts.append(m.group(0) if m else None)
     if None in parts:
-        raise BuildError("signal_coordinator.py no longer defines its LCOS head test as lcos_rule reads it")
+        raise BuildError("signal_coordinator.py and its sibling modules no longer define its LCOS head test as "
+                         "lcos_rule reads it")
     ns = {"re": re}
     # the module is Jython (it imports jmri, and Java names CPython cannot parse), so only these pieces are run
     exec(compile("\n".join(parts), "signal_coordinator.py", "exec"), ns)  # noqa: S102
@@ -150,7 +160,7 @@ def lcos_named(names: list[str]) -> list[str]:
 
 def level_masts(names: dict, rows: list[dict], skip: set) -> None:
     """Give each main and upper band in `names` (every key but `skip`: the bands of a level the base holds,
-    le_common.base_keys) its masts (main_upper_masts.csv rows) for the plugin: each in the
+    le_common.base_keys) its masts (masts.csv rows) for the plugin: each in the
     band whose drawing has its facing track and its protected OS block (127-221 and Helix Inner meet Switches 127 and 131
     on the upper band), as a turnout mast with its icon's size (hartlib.tables.mast_icon_size) and `leg` where two
     masts share one facing and protected block; a virtual mast (a destination, no switch) hidden in the end bumper
@@ -195,7 +205,7 @@ def level_masts(names: dict, rows: list[dict], skip: set) -> None:
 # ---------------------------------------------------------------- main and upper placeholders
 
 def placeholder_names(bands, le_mod, page=None) -> tuple[dict, dict]:
-    """({band key: names}, {block: length mm}) for every band of a level the build adds (not BASE_LEVELS: the
+    """({band key: names}, {block: length mm}) for every band but staging's (not STAGING_LEVELS: the
     staging band, whose names are the staging device map's, by its level). `bands` are the solved sheet's, titles
     unchanged (build_layout_le passes the plugin's drawn_bands, which keep them): each band's level is found by its
     title in plan_overrides.json (le_common.band_levels), so a band the plan does not title stops with BuildError.
@@ -208,7 +218,7 @@ def placeholder_names(bands, le_mod, page=None) -> tuple[dict, dict]:
     import build_device_map as bdm
     out, lengths, counted = {}, defaultdict(float), set()
     for bi, ((title, band, _), level) in enumerate(zip(bands, band_levels(bands))):
-        if level in BASE_LEVELS:
+        if level in STAGING_LEVELS:
             continue
         key = band_key(title)
         nodes, strands = band["nodes"], band["strands"]
@@ -267,49 +277,32 @@ def placeholder_names(bands, le_mod, page=None) -> tuple[dict, dict]:
 
 
 def device_names(path: Path = DEVICE_MAP) -> dict:
-    """{placeholder: device-map user name} for the main and upper turnouts and blocks: each turnout or block row's
-    `trial_name` (comma separated: a crossover's two halves are one turnout, "Switch 101A, Switch 101B" -> "Switch
-    101") is the placeholder placeholder_names gives. Stops on a row with no trial name, a trial name given twice, a
-    turnout not named "Switch <n>" or a block not named "Track ..." or "OS Switch <n>". A part (devices.csv part_of: a
-    link inside an OS block) is a JMRI block of its own under its own name (owner, 2026-11-20), whose occupancy sensor
-    is its OS block's (le_tables.level_sensors); the block it names must be a main or upper block row."""
-    out, bad = {}, []
-    for r in main_upper_device_map(path).rows:         # read and checked by hartlib.railroad
-        if r.layer not in ("turnout", "block"):
-            continue
-        user = r.user_name
-        if r.role == "lcc_alias":
-            continue                    # the LCC alias of a turnout: not a panel object
-        form = r"Switch \d+" if r.layer == "turnout" else r"(Track \S.*|OS Switch \d+[a-d]?)"
-        if not re.fullmatch(form, user):
-            bad.append(f"line {r.line}: {r.layer} {user!r} is not named {form}")
-            continue
-        # a trailing "*" marks a switch the plan's label carries one on (223, owner-confirmed hand); the drawing's
-        # placeholder is the bare name, as placeholder_names writes it
-        trial = [bare(t.strip()) for t in r.trial_name.split(",") if t.strip()]
-        if not trial:
-            bad.append(f"line {r.line}: {user} has no trial_name")
-        for t in trial:
-            if t in out:
-                bad.append(f"line {r.line}: trial_name {t} is given to {out[t]} and {user}")
-            out[t] = user
-    blocks = set(out.values())
+    """{placeholder: device-map user name} for the main and upper turnouts and blocks, parts among them: the one
+    reader of the drawing keys (hartlib.drawing_keys, keyed by device ID; naming-layers step 13) over levels 2 and 3,
+    each key named by its ID's row in the merged view (the owner's name, else the generated). A crossover's two halves
+    are one turnout ("Switch 101A", "Switch 101B" -> "Switch 101"). A part (the device master's part_of: a link
+    inside an OS block) is a JMRI block of its own under its own name (owner, 2026-11-20), whose occupancy sensor is
+    its OS block's (hartlib.tables_build.master_beans). Stops on a row with no trial name, a trial name given twice,
+    a part of no main or upper block row, or a generated name out of form: a turnout not named "Switch <n>" or a
+    block not named "Track ..." or "OS Switch <n>". A name the owner gives in devices_field.csv is the owner's to
+    choose (naming-layers step 13: as hartlib.railroad.check_virtual_names takes it)."""
+    main_upper_device_map(path)         # read and checked by hartlib.railroad (BuildError naming the file)
     try:
-        parts = devices.part_lines(("2", "3"), path)
+        keys = drawing_keys.read(level_devices.LEVELS, path)
+    except (drawing_keys.DrawingKeyError, railroad.FactsError) as exc:
+        raise BuildError(f"{paths.rel(path)}: {exc}") from None
+    try:            # the rows the owner names (devices_field.csv): their names are free, as railroad's check holds
+        owned = {k for k, f in devices.field_index(path).items() if f.get("user_name")}
     except railroad.FactsError as exc:
-        raise BuildError(f"the device map: {exc}") from None
-    for line, r in parts:
-        if r["part_of"] not in blocks:
-            bad.append(f"line {line}: part {r['user_name']} names {r['part_of']}, no main or upper block row")
-        trial = [bare(t.strip()) for t in r["trial_name"].split(",") if t.strip()]
-        if not trial:
-            bad.append(f"line {line}: part {r['user_name']} has no trial_name")
-        for t in trial:
-            if t in out:
-                bad.append(f"line {line}: trial_name {t} is given to {out[t]} and part {r['user_name']}")
-            out[t] = r["user_name"]
+        raise BuildError(f"{paths.rel(path)}: {exc}") from None
+    bad = []
+    for key, r in keys.rows.items():
+        form = r"Switch \d+" if r["layer"] == "turnout" else r"(Track \S.*|OS Switch \d+[a-d]?)"
+        if r["role"] != "part" and key not in owned and not re.fullmatch(form, r["user_name"]):
+            bad.append(f"{devices.row_text(r)} is not named {form}")
     if bad:
         raise BuildError(f"{paths.rel(path)}: " + "; ".join(bad))
+    out = {key: keys.rows[device_id]["user_name"] for key, device_id in keys.ids.items()}
     if not out:
         raise BuildError(f"{paths.rel(path)}: no turnout or block rows")
     return out
@@ -366,18 +359,42 @@ def shared_turnouts(names: dict, skip: set) -> None:
             nm["shared_turnouts"] = sorted(t for t in set(nm["turnouts"].values()) if len(bands_of[t]) > 1)
 
 
-def named_bands(bands, names: dict):
+def block_roles(path: Path = DEVICE_MAP) -> dict[str, str]:
+    """{block: role} of the main and upper block rows of the device map at `path`, parts among them (placed rows of
+    levels 2 and 3 only: a Store's level-less row is no block of the drawing). BuildError when the map cannot be
+    read."""
+    out = {name: r.role for name, r in main_upper_device_map(path).blocks.items()}
+    try:
+        out.update((r["user_name"], r["role"]) for _line, r in devices.part_lines(("2", "3"), path))
+    except railroad.FactsError as exc:
+        raise BuildError(f"the device map: {exc}") from None
+    return out
+
+
+def named_bands(bands, names: dict, roles: dict[str, str] | None = None):
     """A copy of `bands` in which each main and upper track block is named on one of its tracks (the longest; its
     name the block's without "Track "), so the plugin's label layer writes the device-map track names there; every
-    other main and upper track is unnamed, but a helix track keeps its plan name (McKees Rocks, McKeesport): the
-    plugin joins the helix ends of two levels by that name (le.partners), so it is the label there too. A band of a
-    level the base holds (BASE_LEVELS: staging, by its level) is left as it is. `bands` are the solved sheet's,
+    other main and upper track is unnamed, but a helix track keeps its plan name (Helix Outer, Helix Inner): the
+    plugin joins the helix ends of two levels by that name (le.partners) and draws its track_labels label (McKees
+    Rocks for Helix Outer) in its place. A track block is a line block by its role (devices.LINE_ROLES, a part among
+    them; an OS block or crossover corner is not) in `roles` (block_roles: default the main and upper rows of
+    DEVICE_MAP, the map level_names reads by default; give block_roles(path) for names made from another map): a
+    block it does not hold stops with BuildError. A band of
+    the staging level (STAGING_LEVELS, by its level) is left as it is. `bands` are the solved sheet's,
     titles unchanged, as for placeholder_names: a band plan_overrides.json does not title stops with BuildError.
     The label options (preferences.json[main_upper]'s le_labels and le_band_labels, a name left off the panel among
     them: hidden_names) reach the plugin through each band's own preferences, unchanged here."""
     out = []
+
+    def line_block(block: str) -> bool:
+        nonlocal roles
+        roles = block_roles() if roles is None else roles      # read once a band names a block
+        if block not in roles:
+            raise BuildError(f"the device map has no main or upper block row {block!r}")
+        return roles[block] in devices.LINE_ROLES
+
     for (title, band, opts), level in zip(bands, band_levels(bands)):
-        if level in BASE_LEVELS:
+        if level in STAGING_LEVELS:
             out.append((title, band, opts))
             continue
         key = band_key(title)
@@ -398,7 +415,7 @@ def named_bands(bands, names: dict):
         for sid, blocks in names[key]["blocks"].items():
             if len(blocks) != 1:
                 raise BuildError(f"{title}: track {sid} has blocks {blocks}, not one")
-            if blocks[0].startswith("Track "):
+            if line_block(blocks[0]):
                 by_block[blocks[0]].append(sid)
         helix = {sid for sid, s in band["strands"].items()
                  if any(nodes[e[0]].get("sub") == "helix" for e in (s["src"], s["dst"]))}

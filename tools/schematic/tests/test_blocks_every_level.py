@@ -1,4 +1,4 @@
-"""The block layer of every level, pinned (wiki/projects/level-unification-handoff.md, step 5). Two views:
+"""The block layer of every level, pinned (archive/history/wiki/projects/level-unification-handoff.md, step 5). Two views:
 
 - the committed block and occupancy rows of devices.csv, read as plain CSV: staging's row by row (name, role, control
   point, trial name; its parts: name, part_of, trial name; occupancy: blocks and detector), and every level's other
@@ -18,7 +18,6 @@ panel (the approval fingerprints rule).
 """
 from __future__ import annotations
 
-import csv
 import hashlib
 import os
 import re
@@ -31,6 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 
 import build_device_map as bdm  # noqa: E402
 import staging_device_map as sdm  # noqa: E402
+from hartlib import devices  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402
 
 DEVICES = bdm.OUT
@@ -59,28 +59,28 @@ STAGING_BLOCKS = (
     ('OS Switch 35b', 'xover_corner', 'Princess', 'OS 35 A-39A, Track 35A-39A 1/2'),
     ('OS Switch 37', 'os', 'Princess', 'OS Switch 37'),
     ('OS Switch 39', 'os', 'Princess', 'OS Switch 39, Track 35A-39A 2/2'),
-    ('Track Barn', 'track', '', 'Track 7A-13C'),
-    ('Track Brick-Plane', 'track', '', 'Track 1C-5A #1, Track 1C-5A #2'),
-    ('Track EH-1', 'track', '', 'Track 11B-end'),
-    ('Track EH-2', 'track', '', 'Track 9B-end'),
-    ('Track EH-3', 'track', '', 'Track 9C-end'),
-    ('Track East Ext', 'track', '', 'Track 5B-7A'),
-    ('Track East Lead', 'track', '', 'Track 33A-35A'),
-    ('Track Helix Inner', 'helix', '', 'Track 37B-helix'),
-    ('Track Helix Outer', 'helix', '', 'Track 39B-helix'),
-    ('Track K-1', 'track', '', 'Track 37C-39C #2'),
-    ('Track K-2', 'track', '', 'Track 37C-39C #1'),
-    ('Track Main East', 'track', '', 'Track 7B-33C'),
-    ('Track Main West', 'track', '', 'Track 1A-23A'),
-    ('Track S-1', 'track', '', 'Track 17C-29C'),
-    ('Track S-2', 'track', '', 'Track 19C-27C'),
-    ('Track S-3', 'track', '', 'Track 21C-25C'),
-    ('Track S-4', 'track', '', 'Track 21B-25B'),
-    ('Track S-R', 'track', '', 'Track 15B-23B'),
-    ('Track Scale', 'track', '', 'Track 5C-7B'),
-    ('Track W-1', 'track', '', 'Track 3B-end'),
-    ('Track W-2', 'track', '', 'Track 3C-end'),
-    ('Track West Ext', 'track', '', 'Track 23B-35B'),
+    ('Track Barn', 'track', 'Barn;Engine House', 'Track 7A-13C'),
+    ('Track Brick-Plane', 'track', 'Brick;Plane', 'Track 1C-5A #1, Track 1C-5A #2'),
+    ('Track EH-1', 'track', 'Barn;Engine House', 'Track 11B-end'),
+    ('Track EH-2', 'track', 'Barn;Engine House', 'Track 9B-end'),
+    ('Track EH-3', 'track', 'Barn;Engine House', 'Track 9C-end'),
+    ('Track East Ext', 'track', 'Plane;Barn', 'Track 5B-7A'),
+    ('Track East Lead', 'track', 'East End;Princess', 'Track 33A-35A'),
+    ('Track Helix Inner', 'helix', 'Princess;CP 127', 'Track 37B-helix'),
+    ('Track Helix Outer', 'helix', 'Princess;CP 127', 'Track 39B-helix'),
+    ('Track K-1', 'track', 'Princess', 'Track 37C-39C #2'),
+    ('Track K-2', 'track', 'Princess', 'Track 37C-39C #1'),
+    ('Track Main East', 'track', 'Barn;East End', 'Track 7B-33C'),
+    ('Track Main West', 'track', 'Brick;East End', 'Track 1A-23A'),
+    ('Track S-1', 'track', 'South Yard;East End', 'Track 17C-29C'),
+    ('Track S-2', 'track', 'South Yard;East End', 'Track 19C-27C'),
+    ('Track S-3', 'track', 'South Yard;East End', 'Track 21C-25C'),
+    ('Track S-4', 'track', 'South Yard;East End', 'Track 21B-25B'),
+    ('Track S-R', 'track', 'South Yard;East End', 'Track 15B-23B'),
+    ('Track Scale', 'track', 'Plane;Barn', 'Track 5C-7B'),
+    ('Track W-1', 'track', 'Brick;West Yard', 'Track 3B-end'),
+    ('Track W-2', 'track', 'Brick;West Yard', 'Track 3C-end'),
+    ('Track West Ext', 'track', 'East End;Princess', 'Track 23B-35B'),
 )
 # (name, part_of, trial_name) of staging's parts: pieces of track inside another block (owner, 2026-11-20)
 STAGING_PARTS = (
@@ -220,8 +220,8 @@ MAIN_UPPER_TRIALS = (
     ('2', 'Track 101 Spur 2', 'Track 101BB-end'),
     ('2', 'Track 101-111', 'Track 101BA-111C'),
     ('2', 'Track 103 Spur', 'Track 103BB-end'),
-    ('2', 'Track 103-105 1', 'Track 103BA-105C'),
-    ('2', 'Track 103-105 2', 'Track 103AB-105B'),
+    ('2', 'Track 103-105 1', 'Track 103AB-105B'),
+    ('2', 'Track 103-105 2', 'Track 103BA-105C'),
     ('2', 'Track 107 Loop 1', 'Track 107B-107C #1'),
     ('2', 'Track 107 Loop 2', 'Track 107B-107C #2'),
     ('2', 'Track 107-109', 'Track 107A-109B'),
@@ -270,13 +270,13 @@ MAIN_UPPER_TRIALS = (
     ('3', 'Track 205 Spur', 'Track 205B-end'),
     ('3', 'Track 207-211', 'Track 207B-211AA'),
     ('3', 'Track 207-213', 'Track 207C-213A'),
-    ('3', 'Track 209 Spur 1', 'Track 209C-end'),
-    ('3', 'Track 209 Spur 2', 'Track 209B-end'),
+    ('3', 'Track 209 Spur 1', 'Track 209B-end'),
+    ('3', 'Track 209 Spur 2', 'Track 209C-end'),
     ('3', 'Track 211-217 1', 'Track 211AB-217BB'),
     ('3', 'Track 211-217 2', 'Track 211BA-217AA'),
     ('3', 'Track 213 Spur', 'Track 213C-end'),
-    ('3', 'Track 215 Spur 1', 'Track 215C-end'),
-    ('3', 'Track 215 Spur 2', 'Track 215B-end'),
+    ('3', 'Track 215 Spur 1', 'Track 215B-end'),
+    ('3', 'Track 215 Spur 2', 'Track 215C-end'),
     ('3', 'Track 217-219', 'Track 217BA-219C'),
     ('3', 'Track 217-221', 'Track 217AB-221BB'),
     ('3', 'Track 221-223', 'Track 221AB-223A'),
@@ -292,10 +292,10 @@ MAIN_UPPER_TRIALS = (
     ('3', 'Track 237-245', 'Track 237C-245BB'),
     ('3', 'Track 239 Spur', 'Track 239B-end'),
     ('3', 'Track 241 Spur', 'Track 241C-end'),
-    ('3', 'Track 243 Spur 1', 'Track 243BA-end'),
-    ('3', 'Track 243 Spur 2', 'Track 243AB-end'),
-    ('3', 'Track 245 Spur 1', 'Track 245BA-end'),
-    ('3', 'Track 245 Spur 2', 'Track 245AB-end'),
+    ('3', 'Track 243 Spur 1', 'Track 243AB-end'),
+    ('3', 'Track 243 Spur 2', 'Track 243BA-end'),
+    ('3', 'Track 245 Spur 1', 'Track 245AB-end'),
+    ('3', 'Track 245 Spur 2', 'Track 245BA-end'),
     ('3', 'Track Helix Inner', 'Track 131BB-helix'),
 )
 
@@ -364,10 +364,15 @@ STAGING_LAYER = {
 }
 
 # (rows, sha256) of each level's block and occupancy rows but the parts, every column but written_by, part_of,
-# jmri_bean (only ever set on a level-less row) and trial_name (pinned row by row above, on every level), joined by
-# commas, one row a line, in file order
-DIGESTS = {"1": (90, 'ad63b0020d35c033f89db37d6008e69f9fcbfee42168039db7e4f2499bf90533'), "2": (76, 'b01092f5730c42b7520dd82fe07a3aafa5271e56b853def4e1bda0abcdefa611'), "3": (118, '3d609c5d7c184cae0d76b7cfc8aaa651f3d98fdcc4d5f7d2de04a179b3880bb8')}
-SKIP = {level: ("written_by", "trial_name", "part_of", "jmri_bean") for level in "123"}
+# jmri_bean (only ever set on a level-less row), id (test_device_ids pins it) and trial_name (pinned row by row
+# above, on every level), joined by
+# commas, one row a line, in file order. Main and upper changed in naming-layers step 8 (each block row gained its
+# jmri_name and layout_block from block_numbering.csv, assignment virtual); staging did not. Staging changed on
+# 2026-11-25: its two spare detectors gained detector none (owner)
+DIGESTS = {"1": (90, '13524895795db40f896526a17529683fecfc34cceabffe91310db5d52087c72c'), "2": (76, '27639cbd8556d60fcc7bfc2c43bc6826ce3bbcff34d86e7d1151bf91fbddca44'), "3": (118, 'a27b641b432813ec8f05a6fe45da42212679a7759b0a029a0015ebde17495cf6')}
+# cats_discipline: the owner's CATS cell on 45 staging blocks (lane L12); the pins hold what the builders make
+SKIP = {level: ("written_by", "trial_name", "part_of", "jmri_bean", "id", "start", "bean_comment", "cats_discipline")
+        for level in "123"}
 
 
 def skip_or_fail(exc: Exception) -> None:
@@ -378,8 +383,8 @@ def skip_or_fail(exc: Exception) -> None:
 
 
 def committed() -> list[dict]:
-    with open(DEVICES, newline="", encoding="utf-8") as fh:
-        return list(csv.DictReader(fh))
+    # devices.load also validates the master on load, which the plain csv read did not; the rows are the same
+    return [dict(r) for r in devices.load(DEVICES)]
 
 
 def digest(rows: list[dict], level: str) -> tuple[int, str]:
@@ -416,13 +421,14 @@ class Committed(unittest.TestCase):
     def test_every_parts_label_is_optional_on_every_level(self):
         """A part's block contents icon may be left out on every level (owner, 2026-11-20): preferences.json's
         optional_block_contents (staging's le_labels, main's and upper's le_band_labels) lists exactly the level's
-        parts. The plugin reads the list from the preferences only, so it is kept there and held to devices.csv here."""
+        parts, by block ID (the plugin reads their names from the merged view, hartlib.layer_files.merged). The
+        plugin reads the list from the preferences only, so it is kept there and held to the device master here."""
         import json
         prefs = json.loads((bdm.OVERRIDES.parent / "preferences.json").read_text(encoding="utf-8"))
         got = {"1": prefs["staging"]["le_labels"]["optional_block_contents"],
                "2": prefs["main_upper"]["le_band_labels"]["Main"]["optional_block_contents"],
                "3": prefs["main_upper"]["le_band_labels"]["Upper"]["optional_block_contents"]}
-        want = {lv: [r["user_name"] for r in self.rows if r["level"] == lv and r["role"] == "part"] for lv in "123"}
+        want = {lv: [r["id"] for r in self.rows if r["level"] == lv and r["role"] == "part"] for lv in "123"}
         self.assertEqual(got, want)
 
     def test_main_and_upper_trial_names(self):
@@ -483,7 +489,7 @@ class Readers(RepoReadOnly, unittest.TestCase):
         rr = bdm.railroad.Railroad(bdm.sources(), upto="inputs")
         _cp, rows, parts = bdm.build(bands, joined, runs, rr.plan_overrides.data, rr.level_control_points,
                                      rr.lcos_nodes, rr.local_switches, corners)
-        staging, _adopts, _drops = bdm.staging_rows(bands, joined, runs)
+        staging = bdm.staging_rows(bands, joined, runs)
         return sorted((str(r["level"]), r["user_name"], r["trial_name"]) for r in rows + parts + staging
                       if r["layer"] == "block")
 

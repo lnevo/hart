@@ -85,8 +85,8 @@
     },
     "behind/layout-docs.html": {
       "image": "assets/share/behind-layout-docs.jpg",
-      "alt": "A bus wiring slide from the layout documentation, showing boosters, control nodes and the DCC control bus.",
-      "from": "www/assets/behind/layout-docs/slide-04.png"
+      "alt": "The power panel: DCC Specialties circuit breaker boards with their green lamps lit, terminal strips with red and black wire, and the TCS B-106 booster.",
+      "from": "www/assets/behind/layout-docs/photos/power-board.jpg"
     },
     "behind/panel-evolution.html": {
       "image": "assets/share/behind-panel-evolution.jpg",
@@ -272,6 +272,11 @@
       "from": "www/assets/behind/sts/scale-instructions.jpg",
       "shared": true
     },
+    "play/index.html": {
+      "image": "assets/share/play-neville.jpg",
+      "alt": "A Pittsburgh & Ohio Valley switching order for job #105 with SW9 #4, 1981: two ore drags to the car dumper, fuel between trips, tie up in the West Yard at 3:30, stamped Extra East, HART Railroad, on a desk lit like the coke works at dusk.",
+      "from": "drawn by make_share_cards.py play-neville, in the manner of ap-exam-run"
+    },
     "exam/run.html": {
       "image": "assets/share/ap-exam-run.jpg",
       "alt": "A Kestrel Valley Railroad Clearance Form A at Ashby: Extra 812 East has 2 orders, Nos 14 and 15, OK 6 14 am, stamped Extra East.",
@@ -318,6 +323,11 @@
       "alt": "The car-cards review page with three photos from the plugin's tests: a flatcar, a CSX hopper and a CSX locomotive, each with fields to correct.",
       "from": "screenshot of review.html from cards review on the plugin's test photos (www/assets/behind/car-cards/review-page.png)"
     },
+    "library/schematic-maps-article.html": {
+      "image": "assets/share/library-schematic-maps-article.jpg",
+      "alt": "A schematic sheet drawn by the plugin: a yard with ladders either side of a main line, switch numbers beside each turnout.",
+      "from": "plugin sheet for AnyRail example D12 (www/assets/behind/schematic-maps/sheets/D12.svg), rendered and cropped"
+    },
     "library/coke-making-in-beehive-ovens.html": {
       "image": "assets/share/library-coke-making-in-beehive-ovens.jpg",
       "alt": "A bank of beehive coke ovens with arched doors, in a still from the film.",
@@ -341,7 +351,7 @@
     "library/pipeline-map.html": {
       "image": "assets/share/library-pipeline-map.jpg",
       "alt": "The pipeline map filtered to run_sml_discover.sh: tables.xml, discover_sml.py and build_tables.py feed it, and it feeds discovered_sml.xml, in the Layout control lane.",
-      "from": "the map's own filtered view library/pipeline-map.html#focus=jmri/layouts/hart/scripts/run_sml_discover.sh&up=1&down=1, drawn by the page with its toolbar, legend, overview and info panel hidden (make_share_cards.py pipeline_map); update the alt if that file's links change"
+      "from": "the map's own filtered view library/pipeline-map.html#focus=jmri/layouts/hart/scripts/run_sml_discover.sh&up=1&down=1&compact=0, drawn by the page with its toolbar, legend, overview and info panel hidden (make_share_cards.py pipeline_map); update the alt if that file's links change"
     },
     "library/operations-pro-article.html": {
       "image": "assets/share/library-operations-pro-article.jpg",
@@ -393,9 +403,24 @@
       "image": "assets/share/roster-index.jpg",
       "alt": "The Brick control point on the panel beside its device viewer rows: two switches, two signal masts and two occupancy detectors with their hardware addresses.",
       "from": "live image of the HART Railroad panel from JMRI's web server (2026-11-09, Brick) with six Brick rows from www/data/layout-index.json"
+    },
+    "build/roadbed.html": {
+      "image": "assets/share/build-roadbed.jpg",
+      "alt": "Cork roadbed sheet laid along the plywood edge of the main level, with the printed backdrop of a plant and hills behind it.",
+      "from": "hart-research photos/cork-roadbed-main-level-2025-12-21.heic (iPhone photo, 2025-12-21), centre crop focus 78,50 zoom 1.2"
     }
   },
   "links": {
+    "play/index.html": {
+      "image": "assets/share/link-play-title.jpg",
+      "alt": "The Extra East: HART Railroad title screen in pixel art: Pittsburgh & Chartiers Valley, with a green switcher shoving ore hoppers along the river at dusk in front of the coke works and furnace.",
+      "from": "make_share_cards.py link-play-title (the title canvas on play/index.html)"
+    },
+    "exam/run.html#xw": {
+      "image": "assets/share/link-exam-run-title.jpg",
+      "alt": "The Extra East title screen in pixel art: Kestrel Valley Railroad, Extra East, Ashby to Ironton, 46 miles, with the steam freight and its red caboose on the line below the tan hills.",
+      "from": "make_share_cards.py link-exam-run-title (the title canvas on exam/run.html)"
+    },
     "build/index.html#staging": {
       "image": "assets/share/link-build-staging.jpg",
       "alt": "A camera-car view along the staging level tracks with a train of passenger cars beside the backdrop.",

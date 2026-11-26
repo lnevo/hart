@@ -1,9 +1,6 @@
 # Drive HART Railroad status lamps and wire clicks on LCOS / Turnouts /
 # Signals / Track Power panel icons. Never setCommandedState on M2T*/MTT*.
 #
-# The Digicon yard-ladder buttons, their internal turnouts and routes
-# IO:AUTO:0201-0210, and their lamp painting are gone (owner, 2026-11-17).
-#
 # Turnouts lamp (Green / Yellow / Red): among M2T* and MTT* that have both FB
 # sensors assigned — all TWOSENSOR → Green; all DIRECT → Red; mixed → Yellow.
 # Click: toggle those plants between TWOSENSOR and DIRECT.
@@ -16,10 +13,66 @@
 # quietly afterward (do not block on Layout Editor — EditorManager often lags).
 
 import jmri
-from java.awt.event import ActionListener, MouseAdapter, MouseEvent
+from java.awt.event import ActionListener, MouseAdapter, MouseEvent  # noqa: F401 (MouseAdapter, MouseEvent: a part)
 from java.beans import PropertyChangeListener
 from java.lang import Runnable
 from javax.swing import SwingUtilities, Timer
+
+# The parts of this script, beside it in preference:jython, in the order they run. They are not modules: each is
+# this script's own text, cut out to keep the file short, and runs in this namespace at the place it was cut from
+# (_run_part below), so every name and global stays the script's and a re-run reads each part afresh. The deploy
+# ships each one beside the script (tools/hosts/tests/test_coordinator_shipping.py holds every host's list to
+# this tuple).
+PARTS = (
+    "panel_status_turnouts",
+    "panel_status_clicks",
+)
+
+
+class PanelStatusPartError(ImportError):
+    """A part of this script is missing from the jython folder, does not compile, or did not run."""
+
+
+def _compile_parts(names):
+    """Read and compile every part from preference:jython; returns name -> code.
+
+    JMRI runs this script with no __file__ and not from its folder, so the folder is found as
+    signal_coordinator.py finds its modules (the two scripts live in different repo folders and import nothing
+    from each other, so these few lines are copied, not shared). Every part is found and compiled before any
+    runs, so a missing or broken one stops the script before it changes anything. Each is read as UTF-8 and
+    compiled from that text, as JMRI compiles this script (it reads it as UTF-8, with no coding line).
+    """
+    import os
+
+    folder = jmri.util.FileUtil.getExternalFilename("preference:jython")
+    if not folder or not os.path.isdir(folder):
+        raise PanelStatusPartError("panel_status: no jython folder (preference:jython is %r)" % (folder,))
+    codes = {}
+    for name in names:
+        path = os.path.join(folder, name + ".py")
+        if not os.path.isfile(path):
+            raise PanelStatusPartError(
+                "panel_status: %s.py is missing from %s; the deploy ships it beside this script" % (name, folder)
+            )
+        try:
+            with open(path, "rb") as f:
+                text = f.read().decode("utf-8")
+            codes[name] = compile(text, path, "exec")
+        except Exception as exc:
+            raise PanelStatusPartError("panel_status: %s.py in %s does not compile: %s" % (name, folder, exc))
+    print("panel_status: parts %s from %s" % (", ".join(names), folder))
+    return codes
+
+
+_part_code = _compile_parts(PARTS)
+
+
+def _run_part(name):
+    """Run one part here, once, in this script's namespace."""
+    code = _part_code.pop(name, None)
+    if code is None:
+        raise PanelStatusPartError("panel_status: part %s is not in PARTS or has already run" % name)
+    exec(code, globals())
 
 TWOSENSOR = jmri.Turnout.TWOSENSOR
 DIRECT = jmri.Turnout.DIRECT
@@ -104,285 +157,9 @@ def _drop_ours(listeners, remove, keep=None):
     return n
 
 
-def _has_two_fb_sensors(to):
-    try:
-        return to.getFirstSensor() is not None and to.getSecondSensor() is not None
-    except Exception:
-        return False
+_run_part("panel_status_turnouts")
 
 
-def _is_plant(to):
-    sn = to.getSystemName()
-    return sn.startswith("M2T") or sn.startswith("MTT")
-
-
-def _included_plant_turnouts():
-    """M2T/MTT (MQTT/LCC plant) turnouts with both feedback sensors assigned."""
-    out = []
-    try:
-        for to in turnouts.getNamedBeanSet():
-            if _is_plant(to) and _has_two_fb_sensors(to):
-                out.append(to)
-    except Exception as e:
-        print("panel_status: scan turnouts failed: %s" % e)
-    return out
-
-
-def _feedback_mode(to):
-    try:
-        return to.getFeedbackMode()
-    except Exception:
-        return None
-
-
-def _rescan_plant_modes():
-    """Full scan: refill the mode cache from every plant turnout."""
-    global _plant_modes
-    modes = {}
-    for to in _included_plant_turnouts():
-        modes[to.getSystemName()] = _feedback_mode(to)
-    _plant_modes = modes
-
-
-def _note_plant(to):
-    """One turnout changed: update only its entry (it may also have gained or lost a feedback sensor)."""
-    try:
-        sn = to.getSystemName()
-        if _is_plant(to) and _has_two_fb_sensors(to):
-            _plant_modes[sn] = _feedback_mode(to)
-        else:
-            _plant_modes.pop(sn, None)
-    except Exception as e:
-        print("panel_status: plant update failed: %s" % e)
-
-
-def _ensure_turnout_fb_head():
-    """Return IH9990, creating a VirtualSignalHead if tables omitted it."""
-    try:
-        mgr = jmri.InstanceManager.getDefault(jmri.SignalHeadManager)
-        head = mgr.getSignalHead(TURNOUT_FB_HEAD)
-        if head is None:
-            try:
-                head = mgr.getBySystemName(TURNOUT_FB_HEAD)
-            except Exception:
-                head = None
-        if head is not None:
-            return head
-        from jmri.implementation import VirtualSignalHead
-
-        head = VirtualSignalHead(TURNOUT_FB_HEAD)
-        mgr.register(head)
-        print("panel_status: created VirtualSignalHead %s" % TURNOUT_FB_HEAD)
-        return head
-    except Exception as e:
-        print("panel_status: Turnouts lamp head unavailable: %s" % e)
-        return None
-
-
-def _set_head_appearance(head, appearance):
-    """Apply appearance on the EDT; clear held so icon is not '?'."""
-
-    class _Set(Runnable):
-        def run(self):
-            try:
-                try:
-                    head.setHeld(False)
-                except Exception:
-                    pass
-                try:
-                    head.setLit(True)
-                except Exception:
-                    pass
-                head.setAppearance(appearance)
-            except Exception as e:
-                print("panel_status: setAppearance failed: %s" % e)
-
-    try:
-        if SwingUtilities.isEventDispatchThread():
-            _Set().run()
-        else:
-            SwingUtilities.invokeLater(_Set())
-    except Exception:
-        _Set().run()
-
-
-def _rebind_turnout_fb_icons(head):
-    """Once: if the LE icon loaded before the bean existed, re-point it."""
-    global _icon_rebound
-    if head is None or _icon_rebound:
-        return
-    try:
-        from jmri.jmrit.display import EditorManager, SignalHeadIcon
-    except Exception:
-        return
-    em = jmri.InstanceManager.getDefault(EditorManager)
-    if em is None:
-        return
-    rebound = False
-    for ed in list(em.getAll()):
-        try:
-            contents = list(ed.getContents())
-        except Exception:
-            continue
-        for icon in contents:
-            try:
-                if not isinstance(icon, SignalHeadIcon):
-                    continue
-                hn = _head_sys(icon)
-                if hn == TURNOUT_FB_HEAD:
-                    rebound = True
-                    continue
-                try:
-                    if abs(int(icon.getX()) - 24) > 8 or abs(int(icon.getY()) - 588) > 8:
-                        continue
-                except Exception:
-                    continue
-                try:
-                    icon.setSignalHead(TURNOUT_FB_HEAD)
-                    rebound = True
-                    print(
-                        "panel_status: rebound Turnouts icon -> %s"
-                        % TURNOUT_FB_HEAD
-                    )
-                except Exception:
-                    try:
-                        icon.setSignalHead(head)
-                        rebound = True
-                    except Exception:
-                        pass
-            except Exception:
-                pass
-    if rebound:
-        _icon_rebound = True
-
-
-def sync_turnout_fb_lamp():
-    """Set IH9990 Green/Yellow/Red from included plant feedback modes (full scan of the turnouts)."""
-    _rescan_plant_modes()
-    _paint_turnout_fb_lamp()
-
-
-def _paint_turnout_fb_lamp():
-    """Set IH9990 from the mode cache, without scanning the turnouts."""
-    global _last_fb_appearance
-    head = _ensure_turnout_fb_head()
-    if head is None:
-        return
-    _rebind_turnout_fb_icons(head)
-
-    count = len(_plant_modes)
-    if not count:
-        appearance = YELLOW
-        label = "yellow(empty)"
-    else:
-        modes = set(_plant_modes.values())
-        if modes == {TWOSENSOR}:
-            appearance = GREEN
-            label = "green(all TWOSENSOR, n=%d)" % count
-        elif modes == {DIRECT}:
-            appearance = RED
-            label = "red(all DIRECT, n=%d)" % count
-        else:
-            appearance = YELLOW
-            label = "yellow(mixed %s, n=%d)" % (
-                sorted(str(m) for m in modes),
-                count,
-            )
-
-    try:
-        _set_head_appearance(head, appearance)
-        if appearance != _last_fb_appearance:
-            _last_fb_appearance = appearance
-            print("panel_status: Turnouts lamp %s" % label)
-    except Exception as e:
-        print("panel_status: Turnouts lamp set failed: %s" % e)
-
-
-def _show_amber_head():
-    """Pending click feedback on Turnouts lamp (yellow)."""
-    global _last_fb_appearance
-    head = _ensure_turnout_fb_head()
-    if head is None:
-        return
-    _set_head_appearance(head, YELLOW)
-    _last_fb_appearance = YELLOW
-
-
-def _show_amber_sensor(sys_name):
-    """Pending click feedback on LCOS/Signals (INCONSISTENT → yellow icon)."""
-    try:
-        s = sensors.getSensor(sys_name)
-        if s is None:
-            s = sensors.provideSensor(sys_name)
-        s.setKnownState(jmri.Sensor.INCONSISTENT)
-    except Exception as e:
-        print("panel_status: amber %s failed: %s" % (sys_name, e))
-
-
-def _after_paint(fn, delay_ms=80):
-    """Run fn after delay so amber can paint first (EDT redraw)."""
-
-    class _Go(ActionListener):
-        def actionPerformed(self, event):
-            event.getSource().stop()
-            try:
-                fn()
-            except Exception as e:
-                print("panel_status: deferred action failed: %s" % e)
-
-    t = Timer(delay_ms, _Go())
-    t.setRepeats(False)
-    t.start()
-
-
-def _toggle_turnout_fb_mode_body():
-    included = _included_plant_turnouts()
-    if not included:
-        print("panel_status: no 2-sensor M2T/MTT plants to toggle")
-        sync_turnout_fb_lamp()
-        return
-    modes = set()
-    for to in included:
-        try:
-            modes.add(to.getFeedbackMode())
-        except Exception:
-            pass
-    if modes == {TWOSENSOR}:
-        target = DIRECT
-        label = "DIRECT"
-    else:
-        target = TWOSENSOR
-        label = "TWOSENSOR"
-    n = 0
-    for to in included:
-        try:
-            to.setFeedbackMode(target)
-            if target == TWOSENSOR:
-                try:
-                    to.setInitialKnownStateFromFeedback()
-                except Exception:
-                    pass
-            n += 1
-        except Exception as e:
-            print(
-                "panel_status: setFeedbackMode %s failed: %s"
-                % (to.getSystemName(), e)
-            )
-    print(
-        "panel_status: Turnouts lamp click → %s on %d plant(s)"
-        % (label, n)
-    )
-    sync_turnout_fb_lamp()
-
-
-# Hold amber long enough to feel like a click landed (FB flip itself is near-instant).
-_LAMP_AMBER_MS = 500
-
-
-def toggle_turnout_fb_mode():
-    """Click Turnouts lamp: amber hold, then flip TWOSENSOR ↔ DIRECT, then final."""
-    _show_amber_head()
-    _after_paint(_toggle_turnout_fb_mode_body, delay_ms=_LAMP_AMBER_MS)
 
 
 def _mqtt_publish(topic, payload):
@@ -438,8 +215,8 @@ def publish_lcos_resubscribe():
         s = sensors.getSensor(LCOS_SENSOR)
         if s is not None:
             prev = s.getKnownState()
-    except Exception:
-        pass
+    except Exception as e:
+        print("panel_status: LCOS lamp state unreadable, restoring to INACTIVE: %s" % e)
     _show_amber_sensor(LCOS_SENSOR)
 
     def _do():
@@ -453,30 +230,18 @@ def publish_lcos_resubscribe():
     _after_paint(_do)
 
 
-def _digicon_controller():
-    """Find DigiconMqttSml from INSTANCE / __main__ (same JMRI jython engine)."""
-    try:
-        import __main__
+# While Digicon is busy (a hold or hand-off), the Signals lamp watch polls every
+# _SML_WATCH_MS for up to _SML_WATCH_MAX_ATTEMPTS tries (20 s) before it repaints.
+_SML_WATCH_MS = 500
+_SML_WATCH_MAX_ATTEMPTS = 40
 
-        ctrl = getattr(__main__, "digicon_sml_controller", None)
-        if ctrl is not None:
-            return ctrl
-    except Exception:
-        pass
-    try:
-        for obj in globals().values():
-            cls = getattr(obj, "__class__", None)
-            if cls is not None and getattr(cls, "__name__", "") == "DigiconMqttSml":
-                inst = getattr(cls, "INSTANCE", None)
-                if inst is not None:
-                    return inst
-    except Exception:
-        pass
-    try:
-        cls = DigiconMqttSml  # noqa: F821
-        return getattr(cls, "INSTANCE", None)
-    except NameError:
-        return None
+
+def _digicon_controller():
+    """The running DigiconMqttSml, or None: signal_coordinator.py keeps it on __main__
+    (shared by every script in this JMRI) as digicon_sml_controller."""
+    import __main__
+
+    return getattr(__main__, "digicon_sml_controller", None)
 
 
 def _watch_sml_amber_clear():
@@ -494,8 +259,8 @@ def _watch_sml_amber_clear():
                     return
                 ctrl = _digicon_controller()
                 busy = bool(ctrl is not None and getattr(ctrl, "_busy", False))
-                if busy and self.attempt < 40:
-                    t = Timer(500, _Watch(self.attempt + 1))
+                if busy and self.attempt < _SML_WATCH_MAX_ATTEMPTS:
+                    t = Timer(_SML_WATCH_MS, _Watch(self.attempt + 1))
                     t.setRepeats(False)
                     t.start()
                     return
@@ -503,14 +268,14 @@ def _watch_sml_amber_clear():
                     try:
                         ctrl._sync_sml_mode_sensor()
                         return
-                    except Exception:
-                        pass
-                # Fallback: assume disabled if Digicon missing.
+                    except Exception as e:
+                        print("panel_status: Digicon lamp sync failed, lamp set INACTIVE: %s" % e)
+                # No controller to repaint the lamp: show it Disabled.
                 s.setKnownState(jmri.Sensor.INACTIVE)
             except Exception as e:
                 print("panel_status: SML amber clear failed: %s" % e)
 
-    t = Timer(500, _Watch(0))
+    t = Timer(_SML_WATCH_MS, _Watch(0))
     t.setRepeats(False)
     t.start()
 
@@ -530,8 +295,8 @@ def toggle_sml_mode():
                 sensors.provideSensor(SML_MODE_SENSOR).setKnownState(
                     jmri.Sensor.INACTIVE
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                print("panel_status: Signals lamp reset failed: %s" % e)
             return
         try:
             ctrl.toggle_from_panel()
@@ -667,225 +432,9 @@ class _TurnoutListener(PropertyChangeListener):
             print("panel_status: listener error: %s" % e)
 
 
-def _sensor_sys(icon):
-    try:
-        s = icon.getSensor()
-        if s is None:
-            return None
-        return s.getSystemName()
-    except Exception:
-        return None
+_run_part("panel_status_clicks")
 
 
-def _head_sys(icon):
-    try:
-        h = icon.getSignalHead()
-        if h is None:
-            return None
-        return h.getSystemName()
-    except Exception:
-        return None
-
-
-def _disable_icon_control(icon):
-    try:
-        icon.setControlling(False)
-    except Exception:
-        pass
-    try:
-        if hasattr(icon, "setClickMode"):
-            icon.setClickMode(0)
-    except Exception:
-        pass
-
-
-def _run_lamp_action(action):
-    global _click_busy
-    if _click_busy:
-        return
-    _click_busy = True
-    try:
-        action()
-    except Exception as e:
-        print("panel_status: lamp click failed: %s" % e)
-    finally:
-        _click_busy = False
-
-
-def _lamp_at(lamps, scale, x, y):
-    """The action of the lamp drawn under panel point (x, y), or None.
-
-    The editor paints its contents scaled by its zoom (Editor.getPaintScale) but leaves each icon's Swing bounds
-    unscaled, so a listener on the icon itself only fires where the unscaled icon would be: at zoom to fit the lamp
-    is drawn in one place and clickable in another. Convert the click the way the editor does (divide by the scale)
-    and test it against the icon's unscaled bounds; like the editor, the topmost hit wins and hidden icons count.
-    """
-    if not scale or scale <= 0:
-        scale = 1.0
-    px, py = x / float(scale), y / float(scale)
-    hits = []
-    for icon, action in lamps:
-        try:
-            ix, iy = icon.getX(), icon.getY()
-            if ix <= px < ix + icon.getWidth() and iy <= py < iy + icon.getHeight():
-                hits.append((icon.getDisplayLevel(), action))
-        except Exception:
-            continue
-    if not hits:
-        return None
-    # the editor acts on the topmost item (highest display level), so overlapping lamps resolve the same way
-    hits.sort(key=lambda h: h[0], reverse=True)
-    return hits[0][1]
-
-
-class _PanelLampClick(MouseAdapter):
-    """One listener on an editor's target panel that finds the clicked status lamp at any zoom."""
-
-    hart_panel_status = True  # _MARK: a re-run finds and replaces it
-
-    def __init__(self, editor):
-        self._editor = editor
-        self.lamps = []
-        self._scale_warned = False
-
-    def mouseClicked(self, event):
-        # the same filter as LayoutEditor.mouseClicked: a plain left click only (Ctrl-click is the Mac popup,
-        # Shift/Ctrl/Meta/Alt-click amend the edit selection)
-        if event.getButton() != MouseEvent.BUTTON1:
-            return
-        if (event.isPopupTrigger() or event.isMetaDown() or event.isAltDown() or event.isShiftDown()
-                or event.isControlDown()):
-            return
-        try:
-            scale = self._editor.getPaintScale()
-        except Exception as e:
-            if not self._scale_warned:
-                print("panel_status: getPaintScale failed, lamp clicks assume 100%% zoom: %s" % e)
-                self._scale_warned = True
-            scale = 1.0
-        action = _lamp_at(self.lamps, scale, event.getX(), event.getY())
-        if action is not None:
-            _run_lamp_action(action)
-
-
-def _arm_status_lamp_clicks():
-    """Attach left-click handlers on LCOS / Turnouts / Signals / Track Power icons."""
-    global _clicks_armed
-    if _clicks_armed:
-        return True
-    try:
-        from jmri.jmrit.display import EditorManager, SensorIcon, SignalHeadIcon
-    except Exception as e:
-        print("panel_status: display imports failed: %s" % e)
-        return False
-
-    em = jmri.InstanceManager.getDefault(EditorManager)
-    if em is None:
-        return False
-
-    found = {"lcos": 0, "turnouts": 0, "signals": 0, "power": 0}
-    for ed in list(em.getAll()):
-        try:
-            contents = list(ed.getContents())
-        except Exception:
-            continue
-        lamps = []
-        for icon in contents:
-            try:
-                if isinstance(icon, SensorIcon):
-                    sn = _sensor_sys(icon)
-                    if sn == LCOS_SENSOR:
-                        _disable_icon_control(icon)
-                        lamps.append((icon, publish_lcos_resubscribe))
-                        found["lcos"] += 1
-                    elif sn == SML_MODE_SENSOR:
-                        _disable_icon_control(icon)
-                        lamps.append((icon, toggle_sml_mode))
-                        found["signals"] += 1
-                    elif sn == TRACK_POWER_SENSOR:
-                        _disable_icon_control(icon)
-                        lamps.append((icon, toggle_track_power))
-                        found["power"] += 1
-                elif isinstance(icon, SignalHeadIcon):
-                    if _head_sys(icon) == TURNOUT_FB_HEAD:
-                        _disable_icon_control(icon)
-                        lamps.append((icon, toggle_turnout_fb_mode))
-                        found["turnouts"] += 1
-            except Exception as e:
-                print("panel_status: icon wire failed: %s" % e)
-        if lamps:
-            try:
-                # a retry (not every lamp found yet) refreshes this editor's lamps instead of adding a second listener
-                handler = _panel_clicks.get(id(ed))
-                if handler is None:
-                    handler = _PanelLampClick(ed)
-                    target = ed.getTargetPanel()
-                    _drop_ours(target.getMouseListeners(), target.removeMouseListener)
-                    target.addMouseListener(handler)
-                    _panel_clicks[id(ed)] = handler
-                handler.lamps = lamps
-            except Exception as e:
-                print("panel_status: panel click wire failed on %s: %s" % (ed, e))
-
-    if found["lcos"] and found["turnouts"] and found["signals"] and found["power"]:
-        _clicks_armed = True
-        print(
-            "panel_status: status lamp clicks ready "
-            "(LCOS/Turnouts/Signals/Track Power)"
-        )
-        return True
-    return False
-
-
-_BCI_LEVEL = 4
-_bci_raised = False
-
-
-def _raise_block_labels():
-    """Lift buried BlockContentsIcon labels (Stage 1 Store writes level 0)."""
-    global _bci_raised
-    if _bci_raised:
-        return 0
-    try:
-        from jmri.jmrit.display import BlockContentsIcon, EditorManager
-    except Exception as e:
-        print("panel_status: BlockContentsIcon import failed: %s" % e)
-        return 0
-    em = jmri.InstanceManager.getDefault(EditorManager)
-    if em is None:
-        return 0
-    titles = set(["HART Railroad", "HART", "My Layout"])
-    n = 0
-    for ed in list(em.getAll()):
-        try:
-            if (ed.getTitle() or "") not in titles:
-                continue
-            contents = list(ed.getContents())
-        except Exception:
-            continue
-        for icon in contents:
-            try:
-                if not isinstance(icon, BlockContentsIcon):
-                    continue
-                if icon.getDisplayLevel() != _BCI_LEVEL:
-                    icon.setDisplayLevel(_BCI_LEVEL)
-                    n += 1
-            except Exception as e:
-                print("panel_status: raise BCI failed: %s" % e)
-        if n:
-            try:
-                frame = ed.getTargetFrame()
-                if frame is not None:
-                    frame.repaint()
-            except Exception:
-                pass
-    if n:
-        print(
-            "panel_status: raised %d BlockContentsIcon(s) to level %d"
-            % (n, _BCI_LEVEL)
-        )
-    _bci_raised = True
-    return n
 
 
 def _arm_listeners():
@@ -971,6 +520,9 @@ class _RetryClicks(ActionListener):
         else:
             print("panel_status: status lamp icons not found on panel")
 
+
+if _part_code:
+    raise PanelStatusPartError("panel_status: parts in PARTS that never ran: %s" % ", ".join(sorted(_part_code)))
 
 print("panel_status: loaded; arming in %dms" % _ARM_FIRST_MS)
 _t0 = Timer(_ARM_FIRST_MS, _ArmAttempt(0))

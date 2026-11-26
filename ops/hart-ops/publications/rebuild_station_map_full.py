@@ -13,7 +13,6 @@ Writes assets/station_map_full.png
 
 from __future__ import annotations
 
-import math
 import sys
 from pathlib import Path
 
@@ -22,12 +21,12 @@ from PIL import Image, ImageDraw
 PUB = Path(__file__).resolve().parent
 sys.path.insert(0, str(PUB))
 
+import crew_master  # noqa: E402
 from rebuild_local_station_maps import (  # noqa: E402
     ARIAL_BOLD,
     BG,
     GEORGIA,
     GEORGIA_BOLD,
-    INK,
     SWNUM,
     _color_chip,
     _dot,
@@ -231,11 +230,12 @@ def main() -> None:
 
     # S-R label, then yard tracks with industries
     lab((x103 + 100, S[0] - 18), "Track S-R", track_font, "lm")
+    swatch = crew_master.swatches(crew_master.load())   # the industry colours, from the master
     rows = [
-        ("Track S-1", [("FFFF00", "Aristech Plastics")], "Pellets  ·  Chemicals  ·  Shipping"),
-        ("Track S-2", [("FF0000", "Ferrellgas"), ("008000", "A. Stucki Co.")], "LPG  ·  Crane  ·  Team"),
-        ("Track S-3", [("FFC0CB", "Kosmos Cement")], "Cement  ·  Aggregate"),
-        ("Track S-4", [("800080", "Calgon Carbon")], "Coal  ·  Carbon  ·  Chemical"),
+        ("Track S-1", [(swatch["yellow"].fill, "Aristech Plastics")], "Pellets  ·  Chemicals  ·  Shipping"),
+        ("Track S-2", [(swatch["red"].fill, "Ferrellgas"), (swatch["green"].fill, "A. Stucki Co.")], "LPG  ·  Crane  ·  Team"),
+        ("Track S-3", [(swatch["pink"].fill, "Kosmos Cement")], "Cement  ·  Aggregate"),
+        ("Track S-4", [(swatch["purple"].fill, "Calgon Carbon")], "Coal  ·  Carbon  ·  Chemical"),
     ]
     chip = 28
     for i, (name, parts, spots) in enumerate(rows, start=1):

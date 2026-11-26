@@ -1,5 +1,7 @@
 # Speed-match live dashboard
 
+Describes the read-only browser dashboard on the Mac that shows a speed-match run live, and how to start it.
+
 A browser page for the Mac that shows a speed-match run while it happens on the layout:
 which loco, which throttle step, how fast it is going, which block it is in, and how the
 speed curve is filling in. It only reads. Nothing is sent to JMRI, the layout or MQTT, and

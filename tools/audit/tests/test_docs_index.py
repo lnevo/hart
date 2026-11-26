@@ -1,4 +1,4 @@
-"""docs/INDEX.md links must survive file names with odd spaces (macOS screenshots use U+202F)."""
+"""docs/INDEX.md: link encoding, the summary rule, grouping, asset filtering and --check / --strict."""
 from __future__ import annotations
 
 import contextlib
@@ -23,33 +23,281 @@ class DocLinkTest(unittest.TestCase):
         self.assertEqual(INDEX.doc_link("docs/ops/STRR Speed Match.pdf"), "ops/STRR%20Speed%20Match.pdf")
 
     def test_narrow_no_break_space(self) -> None:
-        link = INDEX.doc_link("docs/ctc/history/Screenshot 2026-08-19 at 5.44.55\u202fPM.png")
+        link = INDEX.doc_link("docs/ctc/history/Screenshot 2026-08-19 at 5.44.55 PM.png")
         self.assertEqual(link, "ctc/history/Screenshot%202026-08-19%20at%205.44.55%E2%80%AFPM.png")
         self.assertFalse(any(ch.isspace() for ch in link))
 
 
+class Summary(unittest.TestCase):
+    """summarize(): the first plain prose line after the first '# ' heading, or a summary: line."""
+
+    def test_plain_line_after_heading(self) -> None:
+        self.assertEqual(INDEX.summarize("# T\n\nHello there.\nMore"), "Hello there")
+
+    def test_each_skipped_prefix(self) -> None:
+        for skipped in ("| a | b |", "- item", "* item", "> quote", "`code`", "<div>", "## sub", "![img](x.png)", "1. step", "12. step"):
+            self.assertEqual(INDEX.summarize(f"# T\n{skipped}\n\nReal text."), "Real text", skipped)
+
+    def test_digit_without_dot_is_prose(self) -> None:
+        self.assertEqual(INDEX.summarize("# T\n2026 was the year."), "2026 was the year")
+
+    def test_cut_at_first_sentence_end(self) -> None:
+        self.assertEqual(INDEX.summarize("# T\nOne. Two. Three."), "One")
+
+    def test_line_without_sentence_end_is_whole_line(self) -> None:
+        self.assertEqual(INDEX.summarize("# T\nNo full stop here"), "No full stop here")
+
+    def test_long_summary_is_capped(self) -> None:
+        out = INDEX.summarize("# T\n" + "word " * 100)
+        self.assertLessEqual(len(out), INDEX.MAX_SUMMARY)
+        self.assertTrue(out.endswith("..."))
+
+    def test_summary_line_wins(self) -> None:
+        self.assertEqual(INDEX.summarize("# T\nProse line.\nsummary: Chosen. Both sentences."), "Chosen. Both sentences.")
+
+    def test_summary_line_works_without_heading(self) -> None:
+        self.assertEqual(INDEX.summarize("summary: Only this"), "Only this")
+
+    def test_summary_line_after_ten_lines_is_ignored(self) -> None:
+        self.assertEqual(INDEX.summarize("\n".join(["x"] * 10 + ["summary: late"])), "")
+
+    def test_no_heading_no_summary(self) -> None:
+        self.assertEqual(INDEX.summarize("Plain text without a heading."), "")
+
+    def test_text_before_heading_is_ignored(self) -> None:
+        self.assertEqual(INDEX.summarize("Before.\n# T\nAfter."), "After")
+
+    def test_heading_only(self) -> None:
+        self.assertEqual(INDEX.summarize("# T\n\n- only a list"), "")
+
+    def test_wrapped_paragraph_is_joined(self) -> None:
+        text = "# T\nThe scripts are rebuilt to read today's sources and\nto write their pages. Second sentence."
+        self.assertEqual(INDEX.summarize(text), "The scripts are rebuilt to read today's sources and to write their pages")
+
+    def test_paragraph_stops_at_blank_line(self) -> None:
+        self.assertEqual(INDEX.summarize("# T\nFirst line\n\nSecond paragraph."), "First line")
+
+    def test_continuation_of_a_skipped_block_is_skipped(self) -> None:
+        for block in ("- item\n  of the sticker", "| a |\ncontinued row", "> quote\nstill quote", "1. step\n   more step"):
+            self.assertEqual(INDEX.summarize(f"# T\n{block}\n\nReal text."), "Real text", block)
+
+    def test_block_skipped_through_blank_lines_between_items(self) -> None:
+        self.assertEqual(INDEX.summarize("# T\n- a\n\n- b\n\nReal text."), "Real text")
+
+    def test_code_fence_is_skipped(self) -> None:
+        self.assertEqual(INDEX.summarize("# T\n```\ncode line\n\nmore code\n```\nAfter code."), "After code")
+
+    def test_html_comment_is_skipped(self) -> None:
+        self.assertEqual(INDEX.summarize("# T\n<!--\nhidden words\n-->\nShown."), "Shown")
+        self.assertEqual(INDEX.summarize("# T\n<!-- one line -->\nShown."), "Shown")
+
+    def test_links_keep_only_their_text(self) -> None:
+        self.assertEqual(INDEX.summarize("# T\nSee [the guide](../../archive/x.md) and ![p](a.png) now."), "See the guide and p now")
+        self.assertEqual(INDEX.summarize("summary: Read [it](../a.md)"), "Read it")
+
+    def test_bold_start_is_prose_but_star_bullet_is_not(self) -> None:
+        self.assertEqual(INDEX.summarize("# T\n**Bold** start of prose."), "**Bold** start of prose")
+        self.assertEqual(INDEX.summarize("# T\n* bullet\n\nProse."), "Prose")
+        self.assertEqual(INDEX.summarize("# T\n-dash start of prose."), "-dash start of prose")
+
+    def test_sentence_end_needs_capital_and_not_abbreviation(self) -> None:
+        self.assertEqual(INDEX.summarize("# T\nUse e.g. the tool, i.e. this one. Then more."), "Use e.g. the tool, i.e. this one")
+        self.assertEqual(INDEX.summarize("# T\nVersion v1.0 shipped. Next."), "Version v1.0 shipped")
+        self.assertEqual(INDEX.summarize("# T\nIs it done? Yes."), "Is it done?")
+        self.assertEqual(INDEX.summarize("# T\nA lower. case follows."), "A lower. case follows")
+
+
+class Tree(unittest.TestCase):
+    """A fake docs tree in a temporary ROOT, with `doc_files` patched to its files."""
+
+    FILES = {
+        "docs/AI.md": "# AI\nTop level doc.\n",
+        "docs/ops/README.md": "# Ops\nThe ops folder.\n",
+        "docs/ops/A B.md": "# A\nSpaced name.\n",
+        "docs/ops/sheet.docx": "x",
+        "docs/ops/pic.jpg": "x",
+        "docs/ops/site.css": "x",
+        "docs/ops/old.PNG": "x",
+        "docs/wiring/bare.md": "# Bare\n- list only\n",
+        "docs/wiring/x.csv": "a,b",
+    }
+
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        for name, body in self.FILES.items():
+            (self.root / name).parent.mkdir(parents=True, exist_ok=True)
+            (self.root / name).write_text(body)
+        for patch in (mock.patch.object(INDEX, "ROOT", self.root),
+                      mock.patch.object(INDEX, "doc_files", return_value=sorted(self.FILES)),
+                      mock.patch.object(INDEX, "untracked", return_value=[])):
+            patch.start()
+            self.addCleanup(patch.stop)
+
+    def run_main(self, argv):
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            status = INDEX.main(argv)
+        return status, out.getvalue(), err.getvalue()
+
+    def write_index(self) -> None:
+        (self.root / "docs/INDEX.md").write_text(INDEX.render(sorted(self.FILES)))
+
+    def test_grouping_and_rows(self) -> None:
+        text = INDEX.render(sorted(self.FILES))
+        self.assertLess(text.index("## general"), text.index("## ops"))
+        self.assertLess(text.index("## ops"), text.index("## wiring"))
+        ops = text.split("## ops")[1].split("## wiring")[0]
+        self.assertIn("The ops folder\n", ops)          # folder README summary opens the group
+        self.assertIn("- [A B.md](ops/A%20B.md): Spaced name", ops)
+        self.assertIn("- [AI.md](AI.md): Top level doc", text.split("## general")[1].split("## ops")[0])
+
+    def test_assets_are_counted_not_listed(self) -> None:
+        text = INDEX.render(sorted(self.FILES))
+        for asset in ("pic.jpg", "site.css", "old.PNG"):
+            self.assertNotIn(asset, text)
+        self.assertIn("- Plus 3 image, css or script files", text)
+        self.assertNotIn("- Plus", text.split("## wiring")[1])
+
+    def test_other_documents_are_listed_compactly(self) -> None:
+        text = INDEX.render(sorted(self.FILES))
+        self.assertIn("- Other files: [sheet.docx](ops/sheet.docx)", text)
+        self.assertIn("- Other files: [x.csv](wiring/x.csv)", text)
+
+    def test_row_without_summary_has_no_colon(self) -> None:
+        self.assertIn("- [bare.md](wiring/bare.md)\n", INDEX.render(sorted(self.FILES)))
+
+    def test_check_warns_about_missing_summary_but_passes(self) -> None:
+        self.write_index()
+        status, out, err = self.run_main(["--check"])
+        self.assertEqual(status, 0)
+        self.assertIn("WARNING: 1 Markdown documents have no summary", err)
+        self.assertIn("docs/wiring/bare.md", err)
+        self.assertIn("lists all", out)
+
+    def test_strict_fails_on_missing_summary(self) -> None:
+        self.write_index()
+        status, out, err = self.run_main(["--check", "--strict"])
+        self.assertEqual(status, 1)
+        self.assertIn("ERROR: 1 Markdown documents have no summary", err)
+        self.assertIn("docs/wiring/bare.md", err)
+
+    def test_strict_passes_when_all_have_summaries(self) -> None:
+        (self.root / "docs/wiring/bare.md").write_text("# Bare\nNow it has one.\n")
+        self.write_index()
+        self.assertEqual(self.run_main(["--check", "--strict"])[0], 0)
+
+    def test_check_ignores_summary_edits_but_not_new_files(self) -> None:
+        self.write_index()
+        (self.root / "docs/ops/A B.md").write_text("# A\nChanged words.\n")
+        self.assertEqual(self.run_main(["--check"])[0], 0)
+        (self.root / "docs/ops/new.md").write_text("# N\nNew doc.\n")
+        with mock.patch.object(INDEX, "doc_files", return_value=sorted(self.FILES) + ["docs/ops/new.md"]):
+            status, _, err = self.run_main(["--check"])
+        self.assertEqual(status, 1)
+        self.assertIn("missing: ops: ops/new.md", err)
+
+    def test_check_reads_only_the_rows_own_link(self) -> None:
+        self.write_index()
+        text = (self.root / "docs/INDEX.md").read_text().replace("Spaced name", "Spaced name see [x](../gone.md)")
+        (self.root / "docs/INDEX.md").write_text(text)
+        self.assertEqual(self.run_main(["--check"])[0], 0)
+
+    def test_svg_is_a_listed_document_and_other_files_use_the_area_path(self) -> None:
+        files = sorted(self.FILES) + ["docs/ops/maps/st.svg"]
+        (self.root / "docs/ops/maps").mkdir()
+        (self.root / "docs/ops/maps/st.svg").write_text("x")
+        text = INDEX.render(files)
+        self.assertIn("[maps/st.svg](ops/maps/st.svg)", text)
+        self.assertIn("[sheet.docx](ops/sheet.docx)", text)
+        self.assertIn("- Plus 3 image", text)
+
+    def test_new_asset_changes_the_count_and_fails(self) -> None:
+        self.write_index()
+        with mock.patch.object(INDEX, "doc_files", return_value=sorted(self.FILES) + ["docs/ops/more.png"]):
+            status, _, err = self.run_main(["--check"])
+        self.assertEqual(status, 1)
+        self.assertIn("Plus 4 image", err)
+
+    def test_a_row_left_twice_by_a_union_merge_fails(self) -> None:
+        """Two branches changed one row's summary; git's union merge kept both lines."""
+        self.write_index()
+        text = (self.root / "docs/INDEX.md").read_text()
+        row = "- [A B.md](ops/A%20B.md): Spaced name"
+        (self.root / "docs/INDEX.md").write_text(text.replace(row, row + "\n- [A B.md](ops/A%20B.md): Other words"))
+        status, out, err = self.run_main(["--check"])
+        self.assertEqual(status, 1)
+        self.assertIn("twice: ops: ops/A%20B.md", err)
+        self.assertNotIn("lists all", out)
+
+    def test_two_asset_counts_after_a_union_merge_fail(self) -> None:
+        self.write_index()
+        text = (self.root / "docs/INDEX.md").read_text()
+        line = next(l for l in text.splitlines() if l.startswith("- Plus "))
+        (self.root / "docs/INDEX.md").write_text(text.replace(line, line + "\n" + line))  # same line: only the repeat check sees it
+        status, _, err = self.run_main(["--check"])
+        self.assertEqual(status, 1)
+        self.assertIn("twice: ops: - Plus", err)
+
+    def test_an_intro_left_twice_by_a_union_merge_fails(self) -> None:
+        self.write_index()
+        text = (self.root / "docs/INDEX.md").read_text()
+        (self.root / "docs/INDEX.md").write_text(text.replace("The ops folder\n", "The ops folder\nThe ops folder, reworded\n"))
+        status, _, err = self.run_main(["--check"])
+        self.assertEqual(status, 1)
+        self.assertIn("more intro text than it should", err)
+        self.assertIn("ops", err)
+
+    def test_removed_document_fails(self) -> None:
+        self.write_index()
+        kept = [f for f in sorted(self.FILES) if f != "docs/wiring/x.csv"]
+        with mock.patch.object(INDEX, "doc_files", return_value=kept):
+            status, _, err = self.run_main(["--check"])
+        self.assertEqual(status, 1)
+        self.assertIn("not in docs/: wiring: wiring/x.csv", err)
+
+    def test_missing_index_fails(self) -> None:
+        status, _, err = self.run_main(["--check"])
+        self.assertEqual(status, 1)
+        self.assertIn("out of date", err)
+
+    def test_no_argument_writes_the_index(self) -> None:
+        status, _, _ = self.run_main([])
+        self.assertEqual(status, 0)
+        self.assertIn("- [A B.md](ops/A%20B.md): Spaced name", (self.root / "docs/INDEX.md").read_text())
+
+    def test_check_writes_nothing(self) -> None:
+        self.run_main(["--check"])
+        self.assertFalse((self.root / "docs/INDEX.md").exists())
+
+
 class Arguments(unittest.TestCase):
-    """The script has no options: --help and any other argument stop before git is read, and write no index."""
+    """--help and any bad argument stop before git is read, and write no index."""
 
     def run_main(self, argv):
         with tempfile.TemporaryDirectory() as tmp:
             (Path(tmp) / "docs").mkdir()
             out, err = io.StringIO(), io.StringIO()
-            with mock.patch.object(INDEX, "ROOT", Path(tmp)), mock.patch.object(INDEX, "tracked") as tracked, \
-                    mock.patch.object(INDEX, "last_changed") as last_changed, \
+            with mock.patch.object(INDEX, "ROOT", Path(tmp)), mock.patch.object(INDEX, "doc_files") as tracked, \
                     contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
                 status = INDEX.main(argv)
             tracked.assert_not_called()
-            last_changed.assert_not_called()
             self.assertEqual(list((Path(tmp) / "docs").iterdir()), [])
         return status, out.getvalue(), err.getvalue()
 
     def test_unknown_argument_is_refused(self) -> None:
-        for argv in (["--chek"], ["--check", "docs"], ["docs"]):
+        cases = ((["--chek"], "--chek"), (["--check", "docs"], "docs"), (["docs"], "docs"), (["--check", "--strict", "x"], "x"))
+        for argv, bad in cases:
             status, out, err = self.run_main(argv)
             self.assertEqual(status, 2, argv)
-            self.assertIn(repr(argv[-1] if argv[0] == "--check" else argv[0]), err)
+            self.assertIn(repr(bad), err)
             self.assertEqual(out, "")
+
+    def test_strict_alone_is_refused(self) -> None:
+        status, _, err = self.run_main(["--strict"])
+        self.assertEqual(status, 2)
+        self.assertIn("not a valid combination", err)
 
     def test_help_prints_the_usage(self) -> None:
         for argv in (["--help"], ["-h"], ["--check", "--help"], ["-h", "docs"]):
@@ -62,65 +310,38 @@ class Arguments(unittest.TestCase):
         """python -OO strips the docstring; --help still prints the usage line, not 'None'."""
         with mock.patch.object(INDEX, "__doc__", None):
             status, out, err = self.run_main(["--help"])
-        self.assertEqual((status, out, err), (0, "build_docs_index.py [--check]\n", ""))
+        self.assertEqual((status, out, err), (0, INDEX.USAGE + "\n", ""))
 
-    def test_no_argument_writes_the_index(self) -> None:
+
+class DocFiles(unittest.TestCase):
+    """doc_files(): tracked and new files under docs/, without ignored or deleted ones, so a local run matches CI's."""
+
+    def test_new_untracked_doc_is_listed_and_deleted_or_ignored_are_not(self) -> None:
+        import os
+        import subprocess
+
         with tempfile.TemporaryDirectory() as tmp:
-            (Path(tmp) / "docs").mkdir()
-            with mock.patch.object(INDEX, "ROOT", Path(tmp)), \
-                    mock.patch.object(INDEX, "tracked", return_value=["docs/ctc/A B.md"]), \
-                    mock.patch.object(INDEX, "last_changed", return_value={"docs/ctc/A B.md": "2026-11-01"}), \
-                    contextlib.redirect_stdout(io.StringIO()):
-                self.assertEqual(INDEX.main([]), 0)
-            self.assertIn("| 2026-11-01 | [A B.md](ctc/A%20B.md) | md |", (Path(tmp) / "docs/INDEX.md").read_text())
+            root = Path(tmp)
+            env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}  # a hook's GIT_DIR must not leak in
+            git = ["git", "-c", "user.email=t@t", "-c", "user.name=t", "-c", "commit.gpgsign=false",
+                   "-c", "core.hooksPath=/dev/null"]
 
+            def run(*args: str) -> None:
+                subprocess.run([*git, *args], cwd=root, check=True, env=env)
 
-class Check(unittest.TestCase):
-    """--check compares the documents the index lists with the tracked ones, never their dates."""
-
-    PATHS = ["docs/ctc/A B.md", "docs/wiring/x.csv"]
-
-    def run_check(self, index_text, paths=None):
-        with tempfile.TemporaryDirectory() as tmp:
-            (Path(tmp) / "docs").mkdir()
-            if index_text is not None:
-                (Path(tmp) / "docs/INDEX.md").write_text(index_text)
-            out, err = io.StringIO(), io.StringIO()
-            with mock.patch.object(INDEX, "ROOT", Path(tmp)), \
-                    mock.patch.object(INDEX, "tracked", return_value=paths or self.PATHS), \
-                    mock.patch.object(INDEX, "last_changed") as last_changed, \
-                    contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
-                status = INDEX.main(["--check"])
-            last_changed.assert_not_called()          # CI's shallow clone has no history to date from
-            wrote = sorted(f.name for f in (Path(tmp) / "docs").iterdir())
-            self.assertEqual(wrote, ["INDEX.md"] if index_text is not None else [])     # --check writes nothing
-        return status, out.getvalue(), err.getvalue()
-
-    def test_current_index_passes_whatever_its_dates(self) -> None:
-        text = INDEX.render(self.PATHS, {"docs/ctc/A B.md": "2026-11-01", "docs/wiring/x.csv": "2026-10-01"})
-        status, out, err = self.run_check(text)
-        self.assertEqual((status, err), (0, ""))
-        self.assertIn("lists all 2 documents", out)
-
-    def test_new_document_fails(self) -> None:
-        status, _, err = self.run_check(INDEX.render(self.PATHS[:1], {}))
-        self.assertEqual(status, 1)
-        self.assertIn("out of date", err)
-        self.assertIn("missing: wiring: [x.csv](wiring/x.csv) | csv", err)
-
-    def test_removed_document_fails(self) -> None:
-        status, _, err = self.run_check(INDEX.render(self.PATHS, {}), self.PATHS[:1])
-        self.assertEqual(status, 1)
-        self.assertIn("not tracked: wiring: [x.csv](wiring/x.csv) | csv", err)
-
-    def test_moved_to_another_area_fails(self) -> None:
-        status, _, err = self.run_check(INDEX.render(["docs/ctc/A B.md", "docs/ops/x.csv"], {}))
-        self.assertEqual(status, 1)
-
-    def test_missing_index_fails(self) -> None:
-        status, _, err = self.run_check(None)
-        self.assertEqual(status, 1)
-        self.assertIn("out of date", err)
+            run("init", "-q")
+            (root / "docs").mkdir()
+            for name in ("kept.md", "gone.md"):
+                (root / "docs" / name).write_text("# T\n\nText.\n")
+            run("add", "docs")
+            run("commit", "-q", "-m", "x")
+            (root / "docs" / "gone.md").unlink()
+            (root / "docs" / "new.md").write_text("# T\n\nText.\n")
+            (root / ".gitignore").write_text("docs/ignored.md\n")
+            (root / "docs" / "ignored.md").write_text("# T\n")
+            with mock.patch.object(INDEX, "ROOT", root), mock.patch.dict(os.environ, env, clear=True):
+                self.assertEqual(INDEX.doc_files(), ["docs/kept.md", "docs/new.md"])
+                self.assertEqual(INDEX.untracked(), ["docs/new.md"])
 
 
 if __name__ == "__main__":

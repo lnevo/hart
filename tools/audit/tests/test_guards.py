@@ -8,49 +8,27 @@ could be found even if something tried to run one.
 from __future__ import annotations
 
 import contextlib
-import importlib.util
 import io
 import json
 import os
-import re
-import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from guards_case import GIT_ONLY_PATH, ROOT, load, mock_env, run  # noqa: E402
+
 MAIN_GUARD = ROOT / ".claude/hooks/main_guard.py"
 SUBAGENT_GUARD = ROOT / ".claude/hooks/subagent_guard.py"
 CURSOR_GUARD = ROOT / ".cursor/hooks/main_guard.py"
 
+
 # Command text for the publish rule. Never executed: a reserved .invalid host and a TEST topic.
 PUBLISH_CMD = " ".join(["mosquitto_pub", "-h", "example.invalid", "-t", "track/cmd/TEST", "-m", "NONE"])
 OTHER_PUBLISH_CMD = " ".join(["mosquitto_pub", "-h", "example.invalid", "-t", "lab/test", "-m", "NONE"])
-
-_BIN = tempfile.TemporaryDirectory()
-os.symlink(shutil.which("git"), os.path.join(_BIN.name, "git"))
-GIT_ONLY_PATH = _BIN.name
-
-
-# The guard reads the Mac's operating flag (tools/hosts/operating.sh); these tests never see the real one.
-os.environ["HART_OPERATING_FLAG"] = "/nonexistent/hart-test-operating-flag"
-os.environ.pop("HART_GUARD_OPERATING", None)
-
-
-def load(path: Path, name: str):
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-def run(hook: Path, command: str, cwd: str):
-    """Start a hook as Claude Code does, with no MQTT client reachable on PATH."""
-    env = dict(os.environ, CLAUDE_PROJECT_DIR=cwd, PATH=GIT_ONLY_PATH)
-    payload = json.dumps({"tool_input": {"command": command}, "cwd": cwd})
-    return subprocess.run([sys.executable, str(hook)], input=payload, capture_output=True, text=True, env=env)
 
 
 def in_process(command: str, cwd: str) -> tuple[int, str]:
@@ -65,20 +43,6 @@ def in_process(command: str, cwd: str) -> tuple[int, str]:
     finally:
         sys.stdin = saved
     return code, out.getvalue()
-
-
-@contextlib.contextmanager
-def mock_env(**values):
-    saved = {k: os.environ.get(k) for k in values}
-    os.environ.update(values)
-    try:
-        yield
-    finally:
-        for k, v in saved.items():
-            if v is None:
-                os.environ.pop(k, None)
-            else:
-                os.environ[k] = v
 
 
 def git_repo(test: unittest.TestCase) -> str:
@@ -200,6 +164,15 @@ class SubagentGuard(unittest.TestCase):
         self.assertEqual(run(SUBAGENT_GUARD, "make deploy-site", str(ROOT)).returncode, 2)
         self.assertEqual(run(SUBAGENT_GUARD, "make check", str(ROOT)).returncode, 0)
 
+    def test_pulls_from_the_pi_are_blocked(self) -> None:
+        for command in ("make ops-pull", "make roster-pull", "tools/ops/pull_ops.sh", "./tools/ops/pull_roster.sh",
+                        "bash tools/ops/pull_roster.sh", "timeout 60 tools/ops/pull_roster.sh"):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 2)
+        for command in ("grep -n roster-pull Makefile", "sed -n 1,20p tools/ops/pull_roster.sh"):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 0)
+
     def test_ssh_that_only_reads_is_allowed(self) -> None:
         for command in (
             "ssh pi tail -n 50 ~/JMRI_UserFiles/messages.log",
@@ -286,6 +259,8 @@ class SubagentGuard(unittest.TestCase):
             "timeout 5 git push",
             "sudo make deploy-layout",
             "./tools/hosts/sync_hart_package.sh --pi --win",
+            "./tools/hosts/deploy/ship_pi.sh /tmp/stage/pi",
+            "bash tools/hosts/deploy/ship_win.sh /tmp/stage/win",
             "run_serial_mqtt.cmd verbose",
             # third review: wrapper option values, conditions, interpreters, host scripts, follow
             "sudo -u pi git push",
@@ -338,8 +313,14 @@ class SubagentGuard(unittest.TestCase):
 class OperatingFlag(unittest.TestCase):
     """While the operating flag is set, what reaches the Pi and Windows waits; the Mac's own work does not."""
 
-    def op_code(self, command: str, flag: str | None) -> int:
-        """The guard's exit code with the operating flag file holding `flag` (None: no file)."""
+    HOSTS = {"HART_PI_SSH": "pi", "HART_PI_WEB_HOST": "RPi-JMRI.local", "HART_MQTT_BROKER": "10.0.0.150",
+             "HART_WIN_SSH": "lnevo@minipc-e5h6x.local"}
+    FAKE_HOSTS = {"HART_PI_SSH": "fakepi.test", "HART_PI_WEB_HOST": "fakeweb.test", "HART_MQTT_BROKER": "192.0.2.1",
+                  "HART_WIN_SSH": "user@fakewin.test"}
+
+    def op_code(self, command: str, flag: str | None, hosts: dict[str, str] | None = None) -> int:
+        """The guard's exit code with the operating flag file holding `flag` (None: no file) and the layout
+        hosts named by `hosts` (HOSTS when None)."""
         with tempfile.TemporaryDirectory() as tmp:
             path = os.path.join(tmp, "operating")
             if flag is not None:
@@ -351,9 +332,7 @@ class OperatingFlag(unittest.TestCase):
             saved = sys.stdin
             sys.stdin = io.StringIO(json.dumps({"tool_input": {"command": command}, "cwd": str(ROOT)}))
             try:
-                with mock_env(CLAUDE_PROJECT_DIR=str(ROOT), HART_GUARD_OPERATING="", HART_PI_SSH="pi",
-                              HART_PI_WEB_HOST="RPi-JMRI.local", HART_MQTT_BROKER="10.0.0.150",
-                              HART_WIN_SSH="lnevo@minipc-e5h6x.local"), \
+                with mock_env(CLAUDE_PROJECT_DIR=str(ROOT), HART_GUARD_OPERATING="", **(hosts or self.HOSTS)), \
                         contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
                     return guard.main()
             finally:
@@ -373,11 +352,21 @@ class OperatingFlag(unittest.TestCase):
                    "ssh -p 2222 lnevo@minipc-e5h6x.local taskkill /IM python.exe",
                    "bash -c 'tools/hosts/pi_quit_panelpro.sh --for-deploy'", "zsh -c \"ssh pi pkill -f PanelPro\"",
                    "env HART_PI_RESTART=0 timeout 60 tools/hosts/pi_quit_panelpro.sh",
-                   "jmri/layouts/hart/scripts/speedmatch/drop_job.sh /tmp/job.py")
+                   "jmri/layouts/hart/scripts/speedmatch/drop_job.sh /tmp/job.py",
+                   "python3 jmri/layouts/hart/scripts/speedmatch/speedmatch.py drop /tmp/job.py",
+                   "python3 -u jmri/layouts/hart/scripts/speedmatch/speedmatch.py pom p.json --send",
+                   "python3 jmri/layouts/hart/scripts/speedmatch/speedmatch.py pom p.json --se",
+                   "python3 jmri/layouts/hart/scripts/speedmatch/speedmatch.py pom p.json --s --apply",
+                   "python3 -W ignore jmri/layouts/hart/scripts/speedmatch/speedmatch.py pom p.json --send",
+                   "python3 -X dev -W ignore -u jmri/layouts/hart/scripts/speedmatch/speedmatch.py drop /tmp/j.py",
+                   "python3 -Wignore jmri/layouts/hart/scripts/speedmatch/speedmatch.py drop /tmp/j.py",
+                   "cd jmri/layouts/hart/scripts/speedmatch && python3 -m speedmatch pom p.json --send",
+                   'make speedmatch ARGS="pom p.json --apply --consists-broken --send"',
+                   "make speedmatch ARGS='drop /tmp/job.py'")
         for cmd in blocked:
             self.assertEqual(self.op_code(cmd, owner), 2, cmd)
             self.assertEqual(self.op_code(cmd, None), 0, cmd)          # no flag: allowed
-        # the Mac's own work stays open; Windows stays guarded, as it runs the LCOS bridge (owner, 2026-11-18)
+        # the Mac's own work stays open; Windows stays guarded, as it runs the LCOS bridge
         for cmd in ("make tables-pull", "./tools/hosts/sync_hart_package.sh", "make panelpro-test",
                     "osascript -e 'tell application \"PanelPro\" to quit'", "open -a /Applications/JMRI/PanelPro.app",
                     "jmri/layouts/hart/scripts/run_sml_discover.sh", "make deploy-site", "./tools/check.sh",
@@ -386,12 +375,73 @@ class OperatingFlag(unittest.TestCase):
                     "cat tools/hosts/pi_quit_panelpro.sh",
                     "tools/hosts/operating.sh off --owner", "tools/hosts/operating.sh status",
                     "jmri/layouts/hart/scripts/speedmatch/drop_job.sh --fetch /tmp/x.log",
-                    "jmri/layouts/hart/scripts/speedmatch/drop_job.sh --kill"):
+                    "jmri/layouts/hart/scripts/speedmatch/drop_job.sh --kill",
+                    "python3 jmri/layouts/hart/scripts/speedmatch/speedmatch.py pom p.json --out /tmp/d.py",
+                    "python3 jmri/layouts/hart/scripts/speedmatch/speedmatch.py drop --kill",
+                    "python3 -W ignore jmri/layouts/hart/scripts/speedmatch/speedmatch.py pom p.json --out /tmp/d.py",
+                    "python3 -c 'print(1)'",
+                    'make speedmatch ARGS="job steps --loco x --out /tmp/j.py"', "make speedmatch"):
             self.assertEqual(self.op_code(cmd, owner), 0, cmd)
         # a speed-matching run's own flag lets the run's next job through, never a host deploy
         speed = "by=speedmatch\nsince=2026-11-18T15:00:00-0500\nreason=job\n"
         self.assertEqual(self.op_code("jmri/layouts/hart/scripts/speedmatch/drop_job.sh /tmp/job.py", speed), 0)
         self.assertEqual(self.op_code("make deploy-layout", speed), 2)
+
+    def test_ssh_behind_substitutions_pipes_and_wrappers_waits(self) -> None:
+        owner = "by=owner\nsince=2026-11-18T15:00:00-0500\nreason=ops session\n"
+        blocked = ("ssh fakepi.test reboot", "echo $(ssh fakepi.test reboot)", "echo `ssh fakepi.test reboot`",
+                   "echo $(echo $(ssh fakepi.test reboot))", "echo `echo \\`ssh fakepi.test reboot\\``",
+                   'echo "$(ssh fakepi.test reboot)"', "a=$(ssh fakepi.test reboot)",
+                   "echo fakepi.test | xargs -I{} ssh {} reboot",
+                   "echo fakepi.test | xargs -n1 -P2 -I {} ssh {} reboot", "echo reboot | xargs ssh fakepi.test",
+                   "bash -c 'ssh fakepi.test reboot'", 'sh -c "ssh fakepi.test reboot"',
+                   "zsh -lc 'ssh fakepi.test reboot'", "env A=1 ssh fakepi.test reboot",
+                   "nohup ssh fakepi.test reboot", "time ssh fakepi.test reboot",
+                   "timeout -s KILL 10 ssh fakepi.test reboot", "sudo -u x ssh fakepi.test reboot",
+                   "nice -n 5 ssh fakepi.test reboot", "exec ssh fakepi.test reboot",
+                   "command ssh fakepi.test reboot", "watch -n 2 'ssh fakepi.test reboot'",
+                   "if ssh fakepi.test reboot; then :; fi", "while true; do ssh fakepi.test reboot; done",
+                   "until ssh fakepi.test reboot; do :; done", "for h in fakepi.test; do ssh $h reboot; done",
+                   "ls; ssh fakepi.test reboot", "true && ssh fakepi.test reboot", "false || ssh fakepi.test reboot",
+                   "ls | ssh fakepi.test reboot", "(ssh fakepi.test reboot)", "{ ssh fakepi.test reboot; }",
+                   "find . -exec ssh {} reboot \\;", "ssh user@fakewin.test taskkill /IM java.exe",
+                   "ssh $HART_PI_SSH reboot", "H=fakepi.test; ssh $H reboot",
+                   "cat <<EOF | ssh fakepi.test\nreboot\nEOF", "ssh fakepi.test bash -s <<EOF\nreboot\nEOF",
+                   "bash <<EOF\nssh fakepi.test reboot\nEOF", "2>/dev/null ssh fakepi.test reboot",
+                   "2>&1 ssh fakepi.test reboot", "setsid ssh fakepi.test reboot",
+                   "flock /tmp/l ssh fakepi.test reboot", "$(echo ssh) fakepi.test reboot",
+                   # lines the parser cannot split block when they name a layout host
+                   "echo $(ssh fakepi.test reboot", "ssh fakepi.test 'reboot", "echo `ssh fakepi.test reboot")
+        for cmd in blocked:
+            with self.subTest(cmd=cmd):
+                self.assertEqual(self.op_code(cmd, owner, self.FAKE_HOSTS), 2)
+                self.assertEqual(self.op_code(cmd, None, self.FAKE_HOSTS), 0)
+        for cmd in ("echo ssh", "echo ssh fakepi.test reboot", "grep fakepi.test file",
+                    "grep -rn 'ssh fakepi.test reboot' .", "ssh other.test reboot", "echo $(ssh other.test reboot)",
+                    "bash -c 'ssh other.test reboot'", "ssh fakepi.test uptime", "echo $(ssh fakepi.test uptime)",
+                    "ssh fakepi.test cat ~/x.sh", "echo 'unbalanced",
+                    "$(git rev-parse --show-toplevel)/tools/check.sh", "2>/dev/null ssh other.test reboot",
+                    "git commit -m \"$(cat <<'EOF'\nit's done on fakepi.test\nEOF\n)\""):
+            with self.subTest(cmd=cmd):
+                self.assertEqual(self.op_code(cmd, owner, self.FAKE_HOSTS), 0)
+
+    def test_the_env_files_are_read_once_per_call(self) -> None:
+        guard = load(MAIN_GUARD, "hart_main_guard_env_once")
+        reads = []
+        real = guard.layout_env
+        guard.layout_env = lambda: reads.append(1) or real()
+        guard.main_checkout = lambda target: False
+        guard.on_main = lambda target, branched: False
+        command = "ls; echo $(date); bash -c 'ls; pwd' && ssh other.test uptime"
+        saved = sys.stdin
+        sys.stdin = io.StringIO(json.dumps({"tool_input": {"command": command}, "cwd": str(ROOT)}))
+        try:
+            with mock_env(CLAUDE_PROJECT_DIR=str(ROOT), HART_GUARD_OPERATING="1", **self.FAKE_HOSTS), \
+                    contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(guard.main(), 0)
+        finally:
+            sys.stdin = saved
+        self.assertEqual(len(reads), 1)
 
     def test_the_flag_can_be_forced(self) -> None:
         guard = load(MAIN_GUARD, "hart_main_guard_operating_force")
@@ -402,222 +452,6 @@ class OperatingFlag(unittest.TestCase):
             self.assertIsNone(guard.operating())
         with mock_env(HART_GUARD_OPERATING=""):
             self.assertIsNone(guard.operating())
-
-
-class PrivateNameAndTables(unittest.TestCase):
-    """The private name stays out of publishing text, and table work is no longer blocked.
-
-    Checked in this process with the command as data. The name check is replaced by a stand-in
-    for a marker word, so no test file holds the real name.
-    """
-    MARK = "zz-private-marker"
-
-    def guard(self):
-        guard = load(MAIN_GUARD, "hart_main_guard_names_test")
-        guard.contains_private_name = lambda text: self.MARK in text
-        guard.main_checkout = lambda target: False  # CI's clone is a main checkout; tested in test_worktrees
-        guard.on_main = lambda target, branched: False  # the checkout's branch must not matter; MainGuard tests the rule
-        return guard
-
-    def code(self, command: str) -> int:
-        guard = self.guard()
-        saved = sys.stdin
-        sys.stdin = io.StringIO(json.dumps({"tool_input": {"command": command}, "cwd": str(ROOT)}))
-        try:
-            with mock_env(CLAUDE_PROJECT_DIR=str(ROOT)), contextlib.redirect_stdout(io.StringIO()), \
-                    contextlib.redirect_stderr(io.StringIO()):
-                return guard.main()
-        finally:
-            sys.stdin = saved
-
-    def test_table_writers_and_deploys_pass(self) -> None:
-        # Owner's call (2026-11-18): a PanelPro or CATS open on the Mac blocks nothing; JMRI changes
-        # tables.xml only on a Store, and the Mac is expendable. What must be kept lives on the Pi.
-        for cmd in ("make tables-pull", "make ops-pull", "make deploy-all", "make redeploy COMMIT=abc123 HOSTS=--pi",
-                    "./tools/hosts/sync_hart_package.sh --pi --win", "./tools/ops/pull_tables.sh"):
-            self.assertEqual(self.code(cmd), 0, cmd)
-
-    def test_private_name_blocked_in_publishing_text(self) -> None:
-        m = self.MARK
-        for cmd in (f'git commit -m "fix {m} text"', f"git -C . commit --message='{m}'",
-                    f'gh pr create --title "{m}" --body ok', f'gh pr edit 3 --body "see {m}"',
-                    f'gh issue create --title t --body "{m}"',
-                    f'git commit -m "$(cat <<EOF\nfirst line\nmore {m}\nEOF\n)"'):
-            self.assertEqual(self.code(cmd), 2, cmd)
-
-    def test_clean_publishing_text_passes(self) -> None:
-        for cmd in ('gh pr create --title t --body "clean"', f"echo {self.MARK}", "gh pr view 3"):
-            self.assertEqual(self.code(cmd), 0, cmd)
-
-    def test_private_name_in_body_file_blocked(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            bad, good = Path(tmp, "bad.md"), Path(tmp, "good.md")
-            bad.write_text(f"body {self.MARK}\n")
-            good.write_text("body\n")
-            self.assertEqual(self.code(f"gh pr create --title t --body-file {bad}"), 2)
-            self.assertEqual(self.code(f"git commit -F {bad}"), 2)
-            self.assertEqual(self.code(f"gh pr create --title t --body-file {good}"), 0)
-
-    def test_more_publishing_text_checked(self) -> None:
-        m = self.MARK
-        for cmd in (f'gh pr comment 3 --body "{m}"', f'gh issue comment 3 --body "{m}"',
-                    f'gh issue edit 3 --body "{m}"', f'gh pr review 3 --comment --body "{m}"',
-                    f'gh release create v1 --notes "{m}"', f'git tag -a v1 -m "{m}"'):
-            self.assertEqual(self.code(cmd), 2, cmd)
-
-    def test_attached_body_file_forms_read(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            bad = Path(tmp, "bad.md")
-            bad.write_text(f"body {self.MARK}\n")
-            for cmd in (f"gh pr create --title t --body-file={bad}", f"git commit -F{bad}",
-                        f"git commit --file={bad}"):
-                self.assertEqual(self.code(cmd), 2, cmd)
-
-    def test_name_in_an_earlier_part_does_not_block_a_clean_commit(self) -> None:
-        cmd = f"git grep -n {self.MARK} ; git commit -m 'remove the leaked name'"
-        self.assertEqual(self.code(cmd), 0)
-
-    def test_publishing_blocked_when_name_check_cannot_load(self) -> None:
-        guard = load(MAIN_GUARD, "hart_main_guard_missing_check_test")
-        guard.NAME_CHECK = str(ROOT / "no" / "such" / "private_name.py")
-        saved = sys.stdin
-        sys.stdin = io.StringIO(json.dumps({"tool_input": {"command": "gh pr create --title t --body ok"},
-                                            "cwd": str(ROOT)}))
-        try:
-            with mock_env(CLAUDE_PROJECT_DIR=str(ROOT)), contextlib.redirect_stderr(io.StringIO()):
-                self.assertEqual(guard.main(), 2)
-        finally:
-            sys.stdin = saved
-
-    def test_after_edit_checks_match_check_sh(self) -> None:
-        after = load(ROOT / ".claude/hooks/check_after_edit.py", "hart_check_after_edit_test")
-        check_sh = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
-        for name, argv in after.CHECKS:
-            # unit tests run through `unit` (no HART_TABLES), the table checks through `run`
-            step = "unit" if "unittest" in argv else "run"
-            self.assertIn(f"{step} {name} " + " ".join(argv), check_sh, name)
-
-    def test_real_signal_coordinator_edit_runs_its_own_test_files(self) -> None:
-        after = load(ROOT / ".claude/hooks/check_after_edit.py", "hart_check_after_edit_real_test")
-        tests = after.matching_tests(str(ROOT), "jmri/scripts/signal_coordinator.py")
-        self.assertIn("jmri/layouts/hart/scripts/tests/test_signal_coordinator_behaviour.py", tests)
-        check_sh = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
-        for folder in after.TEST_DIRS:  # each searched folder is a unit job of check.sh, so nothing only runs here
-            self.assertIn(f"python3 -m unittest discover -q -s {folder}\n", check_sh, folder)
-
-    def test_real_name_check_loads_and_passes_clean_text(self) -> None:
-        guard = load(MAIN_GUARD, "hart_main_guard_real_name_test")
-        self.assertFalse(guard.contains_private_name("a clean commit message about masts"))
-
-
-class AfterEditMatchingTests(unittest.TestCase):
-    """check_after_edit.py: an edited script runs the test files that name it; data files keep every check.
-
-    The checks themselves are not started: run() records each argv and answers with fail_code.
-    """
-
-    TESTS = "jmri/layouts/hart/scripts/tests"
-    FILES = {
-        f"{TESTS}/test_one.py": "import one\n",
-        f"{TESTS}/test_many_a.py": "from many import thing\n",
-        f"{TESTS}/test_lists.py": 'SCRIPTS = ["jmri/scripts/many.py"]\n',
-        f"{TESTS}/test_other.py": "import many_more, someone\n",
-        f"{TESTS}/helper.py": "import one, many, lonely\n",
-        "jmri/scripts/tests/test_many_b.py": 'SCRIPT = ROOT / "jmri/scripts/many.py"\n',
-        "cats/scripts/tests/test_cats.py": "import unrelated\n",
-    }
-
-    def setUp(self) -> None:
-        self.after = load(ROOT / ".claude/hooks/check_after_edit.py", "hart_check_after_edit_matching_test")
-        tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(tmp.cleanup)
-        self.root = Path(os.path.realpath(tmp.name))
-        for rel, text in self.FILES.items():
-            (self.root / rel).parent.mkdir(parents=True, exist_ok=True)
-            (self.root / rel).write_text(text, encoding="utf-8")
-        # The real hook watches one script; the made-up ones stand in for it here.
-        self.after.WATCHED = re.compile(self.after.WATCHED.pattern.replace("signal_coordinator", "(one|many|lonely)"))
-        self.after.toplevel = lambda directory: str(self.root)
-        self.ran: list[list[str]] = []
-        self.fail_code = 0
-
-        def run(argv, **kwargs):
-            self.assertEqual(kwargs["cwd"], str(self.root))
-            self.ran.append(argv)
-            return subprocess.CompletedProcess(argv, self.fail_code, "", "boom" if self.fail_code else "")
-
-        self.after.subprocess = type("FakeSubprocess", (), {
-            "run": staticmethod(run), "TimeoutExpired": subprocess.TimeoutExpired})
-
-    def hook(self, rel: str) -> tuple[int, str]:
-        saved, err = sys.stdin, io.StringIO()
-        sys.stdin = io.StringIO(json.dumps({"tool_input": {"file_path": str(self.root / rel)}}))
-        try:
-            with contextlib.redirect_stderr(err):
-                return self.after.main(), err.getvalue()
-        finally:
-            sys.stdin = saved
-
-    def unit_runs(self) -> list[list[str]]:
-        return [argv[5:] for argv in self.ran if "unittest" in argv]
-
-    def every_check(self) -> list[list[str]]:
-        return [argv for name, argv in self.after.CHECKS]
-
-    def test_script_with_one_matching_test_file_runs_only_that_file(self) -> None:
-        code, err = self.hook("jmri/scripts/one.py")
-        self.assertEqual(code, 0, err)
-        self.assertEqual(self.unit_runs(), [["-s", self.TESTS, "-p", "test_one.py"]])
-        self.assertEqual([argv for argv in self.ran if "unittest" not in argv],
-                         [argv for argv in self.every_check() if "unittest" not in argv])
-        self.assertIn("test_one.py", err)
-
-    def test_script_with_several_matching_test_files_runs_each(self) -> None:
-        code, err = self.hook("jmri/scripts/many.py")
-        self.assertEqual(code, 0, err)
-        self.assertEqual(self.unit_runs(), [["-s", self.TESTS, "-p", "test_lists.py"],
-                                            ["-s", self.TESTS, "-p", "test_many_a.py"],
-                                            ["-s", "jmri/scripts/tests", "-p", "test_many_b.py"]])
-        self.assertIn("3 test file(s)", err)
-
-    def test_script_with_no_matching_test_file_falls_back_to_the_whole_job_and_says_so(self) -> None:
-        code, err = self.hook("jmri/scripts/lonely.py")  # only helper.py names it, and that is not a test file
-        self.assertEqual(code, 0, err)
-        self.assertEqual(self.ran, self.every_check())
-        self.assertIn("no test file names lonely.py; ran the whole unit-jmri job", err)
-
-    def test_tables_edit_runs_every_check_as_before(self) -> None:
-        self.assertIn("unit-jmri", [name for name, argv in self.after.CHECKS])
-        for rel in ("jmri/layouts/hart/output/tables.xml", "docs/wiring/signals/signal_heads.csv"):
-            self.ran.clear()
-            self.assertEqual(self.hook(rel), (0, ""), rel)
-            self.assertEqual(self.ran, self.every_check(), rel)
-
-    def test_failing_matched_test_file_is_reported(self) -> None:
-        self.fail_code = 1
-        code, err = self.hook("jmri/scripts/one.py")
-        self.assertEqual(code, 2)
-        self.assertIn(f"--- unit {self.TESTS}/test_one.py FAILED", err)
-        self.assertIn("boom", err)
-
-    def test_unsearchable_tests_stop_the_hook_with_a_reason(self) -> None:
-        for rel in self.FILES:
-            (self.root / rel).unlink()
-        code, err = self.hook("jmri/scripts/one.py")
-        self.assertEqual(code, 2)
-        self.assertIn("Quick checks not run after editing one.py: no test files under", err)
-        self.assertEqual(self.ran, [])
-
-    def test_unreadable_test_file_stops_the_hook_with_a_reason(self) -> None:
-        (self.root / self.TESTS / "test_bad.py").write_bytes(b"\xff\xfe one")
-        code, err = self.hook("jmri/scripts/one.py")
-        self.assertEqual(code, 2)
-        self.assertIn(f"cannot read {self.TESTS}/test_bad.py", err)
-        self.assertEqual(self.ran, [])
-
-    def test_unwatched_file_runs_nothing(self) -> None:
-        self.assertEqual(self.hook("jmri/scripts/README.md"), (0, ""))
-        self.assertEqual(self.ran, [])
 
 
 if __name__ == "__main__":

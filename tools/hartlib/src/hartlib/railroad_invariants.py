@@ -6,23 +6,34 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable
 
-from . import level_devices, level_masts, tables
-from .railroad_facts import (LEVEL_NUMBERS, NameRow, UNIQUE_HARDWARE, check_virtual_names, device_list, natural,
+from . import level_devices
+from .railroad_facts import (LEVEL_NUMBERS, STAGING_LEVEL, StagingDevice, UNIQUE_HARDWARE, check_virtual_names, device_list, master_at, natural,
                              switch_groups, switch_number)
 
 if TYPE_CHECKING:
     from .railroad import Railroad
 
-# ---------------------------------------------------------------- the rows of devices.csv, every level
+# ---------------------------------------------------------------- the rows of the device master, every level
+
+def _key(r) -> str:
+    """A master row's key as a message names it (hartlib.devices.row_text)."""
+    return f"{r['user_name']} (level {r['level']}, {r['layer']})"
+
 
 def _at(n: int, r, where: str) -> str:
-    return f"{where} line {n} (level {r['level']} {r['layer']} {r['user_name']})"
+    """A master row as a message names it: its file and key, never a line (the master is two merged files)."""
+    return f"{where}: {_key(r)}"
 
 
-def device_row_problems(lines, helix_blocks: set[str], where: str = "devices.csv",
-                        helix_file: str = "helix_tracks.csv") -> list[str]:
-    """The rules between the rows of devices.csv, one for every level, as problems naming the rows. `lines` are
-    (line, master row) of every level (outside devices.OUT_OF_MAPS); `helix_blocks` the blocks of helix_tracks.csv.
+def _obj_at(path, r) -> str:
+    """A StagingDevice or DeviceRow of the master at `path` as a message names it (railroad_facts.master_at)."""
+    return master_at(path, r.user_name, getattr(r, "level", STAGING_LEVEL), r.layer)
+
+
+def device_row_problems(lines, helix_blocks: set[str], where: str = "the device master",
+                        helix_file: str = "plan_overrides.json") -> list[str]:
+    """The rules between the rows of the device master, one for every level, as problems naming the rows. `lines` are
+    (line, master row) of every level (outside devices.OUT_OF_MAPS); `helix_blocks` the helix tracks' blocks.
     - every block has exactly one occupancy row naming it, on any level; a block named on more than one level is a
       helix block (one JMRI block from its staging switch up the helix, owner 2026-11-20), and every helix block is;
     - no two rows of one layer share a user name (but a helix block's rows), a system name (a turnout, sensor or head's
@@ -44,14 +55,14 @@ def device_row_problems(lines, helix_blocks: set[str], where: str = "devices.csv
     for n, r in lines:
         if r["layer"] == "occupancy":
             for b in device_list(r["blocks"]):
-                served[b].append(n)
+                served[b].append(_key(r))
     for b in sorted(set(block_levels) | set(served)):
         if b not in block_levels:
-            bad.append(f"{where} line(s) {', '.join(map(str, served[b]))}: occupancy of {b}, which is no block row")
+            bad.append(f"{where}: {', '.join(served[b])}: occupancy of {b}, which is no block row")
         elif len(served[b]) != 1:
-            lines_ = ", ".join(str(n) for n, _r in block_levels[b])
-            bad.append(f"{where} line {lines_}: block {b} has {len(served[b])} occupancy rows naming it "
-                       f"({', '.join(map(str, served[b])) or 'none'}), not one")
+            rows_ = ", ".join(_key(r) for _n, r in block_levels[b])
+            bad.append(f"{where}: {rows_}: block {b} has {len(served[b])} occupancy rows naming it "
+                       f"({', '.join(served[b]) or 'none'}), not one")
     for col in ("system_name", "user_name", "jmri_name", "dcc"):
         seen: dict[tuple[str, str], int] = {}
         for n, r in lines:
@@ -64,8 +75,8 @@ def device_row_problems(lines, helix_blocks: set[str], where: str = "devices.csv
             kind = "hardware" if col == "system_name" and r["layer"] in UNIQUE_HARDWARE else r["layer"]
             key = (kind, v)
             if key in seen:
-                bad.append(f"{_at(n, r, where)}: {col} {v!r} is line {seen[key]}'s as well")
-            seen.setdefault(key, n)
+                bad.append(f"{_at(n, r, where)}: {col} {v!r} is {seen[key]}'s as well")
+            seen.setdefault(key, _key(r))
     turnouts = {(r["level"], r["dcc"]): r for _n, r in lines if r["role"] == "turnout" and r["dcc"]}
     aliases = defaultdict(int)
     for n, r in lines:
@@ -90,7 +101,7 @@ def device_row_problems(lines, helix_blocks: set[str], where: str = "devices.csv
 
 
 def master_rows(rr: Railroad) -> list[tuple[int, dict]]:
-    """(line, row) of every level's rows of devices.csv that a device map holds (hartlib.devices): not a level-less
+    """(line, row) of every level's rows of the device master that a device map holds (hartlib.devices): not a level-less
     device, which is on no level's map yet."""
     from . import devices
     return [(n, r) for n, r in enumerate(devices.load(rr.sources.devices), 2)
@@ -172,23 +183,39 @@ def _switch_numbers(rr: Railroad) -> list[str]:
     return bad
 
 
+# a packed LCOS address (node * 100 + port) in a staging system name: the whole name of a turnout, sensor or head
+# (M2T408, M2S1301, IH432), or each head inside a mast's (IF$shsm:basic:one-searchlight(IH432))
+_PACKED = re.compile(r"(?:M2T|M2S|IH)(\d{3,})")
+_MAST_HEAD = re.compile(r"\((IH\d{3,})\)")
+
+
+def _packed_addresses(r: StagingDevice) -> list[str]:
+    if r.layer == "mast":
+        return _MAST_HEAD.findall(r.system_name)
+    return [r.system_name] if _PACKED.fullmatch(r.system_name) else []
+
+
 @invariant("lcos-nodes", "inputs")
 def _lcos_nodes(rr: Railroad) -> list[str]:
-    """Every level and area a main or upper switch is in has an LCOS node to put it on, every staging node (the node
-    of a staging turnout's or sensor's packed address, the name map of devices.csv) is a staging row of the node
-    file, and no main or upper row is a staging node."""
+    """Every level and area a main or upper switch is in has an LCOS node to put it on; every staging node (the node
+    of a staging turnout's, sensor's, head's or mast head's packed address in its system_name, the device master) is a
+    staging row of the node file and is the row's own node column; and no main or upper row is a staging node."""
     pool = {(n.level, n.area) for n in rr.lcos_nodes}
     bad = [f"no node in {rr.sources.lcos_nodes.name} for level {lv} {area} (switches "
            f"{', '.join(sorted((s for s, sw in rr.main_upper_switches.items() if (sw.level, sw.area) == (lv, area)), key=natural))})"
            for lv, area in sorted({(sw.level, sw.area) for sw in rr.main_upper_switches.values()} - pool)]
     staging_nodes: dict[int, str] = {}
-    for r in rr.name_map.live.values():
-        m = re.fullmatch(r"(?:M2T|M2S|IH)(\d+)", r.hardware)
-        if m and len(m.group(1)) >= 3:
-            staging_nodes.setdefault(int(m.group(1)) // 100, f"{r.layer} {r.proposed} ({r.hardware})")
-    wired = {int(m.group(1)) // 100 for r in rr.name_map.live.values()
-             if (m := re.fullmatch(r"M2[TS](\d{3,})", r.hardware))}     # LCOS turnouts and sensors; an IH number may
-    level_of = {n.node: n for n in rr.lcos_nodes}                            # be a panel lamp's (IH9990), on no node
+    wired: set[int] = set()            # LCOS turnouts and sensors; an IH number may be a panel lamp's (IH9990), on no node
+    for r in rr.staging_devices.rows:
+        for address in _packed_addresses(r):
+            node = int(_PACKED.fullmatch(address).group(1)) // 100
+            staging_nodes.setdefault(node, f"{r.layer} {r.user_name} ({address})")
+            if address.startswith("M2"):
+                wired.add(node)
+            if r.node and r.node != str(node):
+                bad.append(f"{_obj_at(rr.sources.devices, r)}: {r.layer} {r.user_name} is on node {r.node}, but its address "
+                           f"{address} is node {node}'s")
+    level_of = {n.node: n for n in rr.lcos_nodes}
     for node, what in sorted(staging_nodes.items()):
         n = level_of.get(node)
         if n is None:
@@ -200,59 +227,55 @@ def _lcos_nodes(rr: Railroad) -> list[str]:
     return bad
 
 
-@invariant("name-map", "inputs")
-def _name_map(rr: Railroad) -> list[str]:
-    """The name map of devices.csv resolves: every historical alias names a live row of its layer; every staging switch has
-    a live turnout row with hardware and a DCC address; no two live turnouts share a DCC address; and no two live
-    turnouts, feedback sensors, occupancy sensors or heads share hardware."""
-    nm = rr.name_map
-    bad = [f"{nm.path.name}: {r.layer} {r.current!r} is an alias of {r.proposed!r}, which has no "
-           f"live row (current == proposed)" for r in nm.aliases if (r.layer, r.proposed) not in nm.live]
+@invariant("staging-devices", "inputs")
+def _staging_devices(rr: Railroad) -> list[str]:
+    """Staging's rows of the device master resolve: every staging switch has a turnout row with a system name and a DCC
+    address; no two staging turnouts share a DCC address; and no two staging turnouts, feedback sensors, occupancy
+    sensors or heads share a system name."""
+    sd, name = rr.staging_devices, rr.sources.devices.name
+    bad = []
     for n, sw in rr.switches.items():
         if not sw.hardware or not sw.dcc:
-            bad.append(f"Switch {n} (switches.csv): {nm.path.name} has no live turnout row with hardware and dcc")
-    dcc: dict[str, NameRow] = {}
-    hardware: dict[tuple[str, str], NameRow] = {}
-    for r in nm.live.values():
-        if r.layer == "turnout" and r.dcc:
+            bad.append(f"Switch {n} (switches.csv): {name} has no staging turnout row with a system_name and dcc")
+    dcc: dict[str, StagingDevice] = {}
+    system: dict[tuple[str, str], StagingDevice] = {}
+    for r in sd.rows:
+        if r.layer == "turnout" and r.role == "turnout" and r.dcc:
             if r.dcc in dcc:
-                bad.append(f"{nm.path.name} lines {dcc[r.dcc].line} and {r.line}: DCC {r.dcc} is "
-                           f"{dcc[r.dcc].proposed} and {r.proposed}")
+                bad.append(f"{name}: {dcc[r.dcc].user_name} and {r.user_name} (level 1, turnout): DCC {r.dcc} is "
+                           f"{dcc[r.dcc].user_name} and {r.user_name}")
             dcc.setdefault(r.dcc, r)
-        if r.layer in UNIQUE_HARDWARE and r.hardware:
-            key = (r.layer, r.hardware)
-            if key in hardware:
-                bad.append(f"{nm.path.name} lines {hardware[key].line} and {r.line}: {r.layer}s "
-                           f"{hardware[key].proposed} and {r.proposed} are both {r.hardware}")
-            hardware.setdefault(key, r)
+        if r.layer in UNIQUE_HARDWARE and r.system_name:
+            key = (r.layer, r.system_name)
+            if key in system:
+                bad.append(f"{name}: {system[key].user_name} and {r.user_name} (level 1, {r.layer}): {r.layer}s "
+                           f"{system[key].user_name} and {r.user_name} are both {r.system_name}")
+            system.setdefault(key, r)
     return bad
 
 
 @invariant("staging-blocks", "inputs")
 def _staging_blocks(rr: Railroad) -> list[str]:
-    """Every block a staging switch leg (switches.csv), a staging mast (staging_masts.csv) or a measured
-    length (block_lengths.csv) names is a live block of the name map of devices.csv, and every staging mast a live mast."""
-    blocks, masts = rr.name_map.names("block"), rr.name_map.names("mast")
+    """Every block a staging switch leg (switches.csv) or a block length (block_lengths.csv, and the measured rows
+    beside it) names is a block row of the device master (the masts' blocks are the masts invariant's: masts.csv is a later layer)."""
+    blocks = rr.staging_devices.names("block")
     bad = []
     for sw in rr.switches.values():
         for leg in sw.legs:
             for what, b in (("OS block", leg.os_block), ("closed leg", leg.closed), ("thrown leg", leg.thrown)):
                 if b not in blocks:
-                    bad.append(f"Switch {sw.number} (switches.csv): {what} {b} is no live block of the name map")
-    for m in rr.staging_masts:
-        where = f"{rr.sources.staging_masts.name}: {m.mast}"
-        if m.mast not in masts:
-            bad.append(f"{where}: no live mast {m.mast} in the name map")
-        bad += [f"{where}: block {b} is no live block of the name map" for b in (m.facing, *m.protects)
-                if b not in blocks]
-    # block_lengths.csv holds every level's JMRI blocks (step 5 part 2): staging's live blocks and main and upper's
-    # block rows of devices.csv, their parts among them (a main or upper part is a JMRI block of its own on its OS
-    # block's sensor, owner 2026-11-20)
-    from hartlib import devices
-    level_blocks = {r["user_name"] for r in devices.load(rr.sources.devices)
-                    if r["level"] in ("2", "3") and r["layer"] == "block"}
-    bad += [f"{rr.sources.block_lengths.name}: {name} is no live block of the name map or main and upper block row "
-            "of devices.csv" for name in rr.block_lengths if name not in blocks | level_blocks]
+                    bad.append(f"Switch {sw.number} (switches.csv): {what} {b} is no staging block row of the device master")
+    # block_lengths.csv holds every level's JMRI blocks (step 5 part 2): staging's blocks and main and upper's
+    # block rows of the device master, their parts among them (a main or upper part is a JMRI block of its own on its OS
+    # block's sensor, owner 2026-11-20). Each row is keyed by its block's level and id (naming-layers step 5), and
+    # each measured row names a row of it (ADR-039 lane L8)
+    from hartlib import block_lengths
+    from hartlib.railroad_facts import FactsError
+    try:
+        block_lengths.plan_blocks(rr.sources.block_lengths, rr.sources.devices)
+        block_lengths.read_measured(plan=rr.sources.block_lengths)
+    except FactsError as exc:
+        bad += str(exc).split("; ")
     return bad
 
 
@@ -288,9 +311,15 @@ def _device_map(rr: Railroad) -> list[str]:
     rows of every level hold to each other (device_row_problems: one occupancy row per block, names, DCC addresses
     and system names given once, every turnout's one LCC alias), before tables.xml is built."""
     dm, mu, name = rr.device_map, rr.main_upper_switches, rr.sources.devices.name
-    bad = list(check_virtual_names(dm.rows))
+    # a virtual name stays the generated one when the owner renames a device (naming-layers step 7), so a device the
+    # owner named is held to its virtual name's form only, and a field one (assignment field: a swap, ADR-028; step
+    # 14, by the row's column) to none; a turnout to its ID's switch number (step 13)
+    from . import devices
+    field = {(int(level), i): r for (level, i), r in devices.field_index(rr.sources.devices).items()
+             if level in level_devices.LEVELS}
+    bad = list(check_virtual_names(dm.rows, owner_named={k for k, r in field.items() if r.get("user_name")}))
     bad += device_row_problems(master_rows(rr), {h.block for h in rr.helix_tracks.values()}, name,
-                               rr.sources.helix_tracks.name)
+                               rr.sources.plan_overrides.name)
     turnouts = dm.turnouts
     for s in sorted(set(mu) | set(turnouts), key=natural):
         r, sw = turnouts.get(s), mu.get(s)
@@ -298,11 +327,11 @@ def _device_map(rr: Railroad) -> list[str]:
             bad.append(f"Switch {s} ({sw.cp or 'local'}, level {sw.level}): no turnout row in {name}")
             continue
         if sw is None:
-            bad.append(f"{name} line {r.line}: Switch {s} is in no control point and not a local switch (an area) in "
+            bad.append(f"{_obj_at(rr.sources.devices, r)}: Switch {s} is in no control point and not a local switch (an area) in "
                        f"{rr.sources.switches.name}")
             continue
         if (r.level, r.cp) != (sw.level, sw.cp):
-            bad.append(f"{name} line {r.line}: Switch {s} is level {r.level} {r.cp or 'local'}, the control points "
+            bad.append(f"{_obj_at(rr.sources.devices, r)}: Switch {s} is level {r.level} {r.cp or 'local'}, the control points "
                        f"say level {sw.level} {sw.cp or 'local'}")
     nodes = {n.node: n for n in rr.lcos_nodes if n.level != 1}     # staging's nodes are as built: none is the map's
     # a helix block runs from staging up to main or upper: its detector may be on either main or upper level's node
@@ -311,44 +340,62 @@ def _device_map(rr: Railroad) -> list[str]:
     for r in dm.rows:
         if r.node and (not r.node.isdigit() or int(r.node) not in nodes or
                        (nodes[int(r.node)].level != r.level and r.user_name not in helix)):
-            bad.append(f"{name} line {r.line}: {r.layer} {r.user_name} is on node {r.node}, no level {r.level} node "
+            bad.append(f"{_obj_at(rr.sources.devices, r)}: {r.layer} {r.user_name} is on node {r.node}, no level {r.level} node "
                        f"of {rr.sources.lcos_nodes.name}")
     return bad
 
 
 @invariant("name-clash", "device_map")
 def _name_clash(rr: Railroad) -> list[str]:
-    """No name-map row of devices.csv, live or historical alias, uses a name the device map gives a main or upper
-    device of the same layer: a rename pass that maps the alias would rename the main or upper device. A helix block
-    (helix_tracks.csv) is one block from staging up the helix, so its live row names the device map's block too."""
+    """No staging row of the device master uses a name the device map gives a main or upper device of the same layer. A
+    helix block (Track <plan name>) is one block from staging up the helix, so its staging row names the device map's
+    block too."""
     dm = {(r.layer, r.user_name): r for r in rr.device_map.rows}
     helix = {h.block for h in rr.helix_tracks.values()}
     out = []
-    for r in rr.name_map.rows:
-        hit = dm.get((r.layer, r.current))
-        if hit is not None and not (r.layer == "block" and r.identity and r.current in helix):
-            what = "live" if r.identity else f"an alias of {r.proposed}"
-            out.append(f"{rr.name_map.path.name}: {r.layer} {r.current} is {what} there and level "
-                       f"{hit.level} {r.layer} {hit.user_name} in {rr.sources.devices.name}")
+    for r in rr.staging_devices.rows:
+        hit = dm.get((r.layer, r.user_name))
+        if hit is not None and not (r.layer == "block" and r.user_name in helix):
+            out.append(f"{_obj_at(rr.sources.devices, r)}: staging {r.layer} {r.user_name} is level {hit.level} "
+                       f"{r.layer} {hit.user_name} as well")
     return out
 
 
-@invariant("level-masts", "masts")
-def _level_masts(rr: Railroad) -> list[str]:
-    """Each main_upper_masts.csv mast is a device map mast of the same control point, on its virtual and planned
-    names; its switch is in that control point (an APB intermediate has no switch; a spur's exit dwarf at a local
-    switch has no control point, ADR-024); its facing and protected blocks are device map blocks; and every device
-    map mast has a row. A virtual mast (a destination at a buffer stop, level_masts.is_level_virtual) stands at no
-    switch, protects nothing, and its control point is its track's switch's, if any. A main or upper part (a link
-    inside an OS block, devices.csv part_of) is a JMRI block of its own (owner, 2026-11-20), so a mast may face or
-    protect it, as Signal Mast Logic discovery does."""
+@invariant("masts", "masts")
+def _masts(rr: Railroad) -> list[str]:
+    """Every masts.csv row is a mast of the device rows of its level, its blocks theirs. The rows of the levels
+    the staging device rows hold (staging): a mast row of theirs, facing and protecting their block rows. The rows
+    of the levels the device map holds (main and upper): each a device map mast of the same control point, on its
+    virtual and planned names; its switch is in that control point (an APB intermediate has no switch; a spur's exit
+    dwarf at a local switch has no control point, ADR-024); its facing and protected blocks are device map blocks;
+    and every device map mast has a row. A virtual mast (a destination at a buffer stop) stands at no switch,
+    protects nothing, and its control point is its track's switch's, if any. A main or upper part (a link inside an
+    OS block, the device master part_of) is a JMRI block of its own (owner, 2026-11-20), so a mast may face or protect it,
+    as Signal Mast Logic discovery does."""
+    name = rr.sources.masts.name
+    staging = {int(STAGING_LEVEL)}                      # the level the staging rows (rr.staging_devices) are
+    st_blocks, st_masts = rr.staging_devices.names("block"), rr.staging_devices.names("mast")
+    bad = []
+    for r in (r for r in rr.masts if r["level"] in staging):
+        where = f"{name}: {r['mast']}"
+        if r["mast"] not in st_masts:
+            bad.append(f"{where}: no level {r['level']} mast row {r['mast']} in the device master")
+        bad += [f"{where}: block {b} is no level {r['level']} block row of the device master"
+                for b in (r["facing"], *(x for x in r["protects"].split(";") if x)) if b not in st_blocks]
+    return bad + _device_map_masts(rr)
+
+
+def _device_map_masts(rr: Railroad) -> list[str]:
+    """The masts invariant's rows of the levels the device map holds (main and upper)."""
     from hartlib import devices
-    dm, name = rr.device_map, rr.sources.level_masts.name
+    dm, name = rr.device_map, rr.sources.masts.name
+    levels = {r.level for r in dm.rows}
     masts = dm.by_user("mast")
-    blocks = set(dm.blocks) | {r["user_name"] for _line, r in devices.part_lines(("2", "3"), rr.sources.devices)}
+    blocks = set(dm.blocks) | {r["user_name"] for _line, r in
+                               devices.part_lines(tuple(map(str, sorted(levels))), rr.sources.devices)}
     cps = {cp.name: cp for cp in rr.level_control_points}
     bad, seen = [], set()
-    for r in rr.level_masts:
+    for r in (r for r in rr.masts if r["level"] in levels):
         seen.add(r["mast"])
         m = masts.get(r["mast"])
         if m is None:
@@ -357,7 +404,7 @@ def _level_masts(rr: Railroad) -> list[str]:
         if (r["cp"], r["system_name"], r["device_system_name"]) != (m.cp, m.jmri_name, m.system_name):
             bad.append(f"{name}: {r['mast']} is {r['cp']} {r['system_name']} on {r['device_system_name']}; the "
                        f"device map says {m.cp} {m.jmri_name} on {m.system_name}")
-        if level_masts.is_level_virtual(r["system_name"]):
+        if r["system_name"].startswith("IF$vsm:"):
             if r["switch"] or r["protects"]:
                 bad.append(f"{name}: virtual {r['mast']} stands at a switch or protects a block; it stands at a "
                            "buffer stop")
@@ -386,8 +433,7 @@ def _level_masts(rr: Railroad) -> list[str]:
 @invariant("tables", "tables")
 def _tables(rr: Railroad) -> list[str]:
     """tables.xml holds the fact files' devices: every staging switch's turnout and the blocks of its legs
-    (switches.csv), and every mast of both mast files (staging_masts.csv, main_upper_masts.csv) on
-    the system name its file gives it. The rows of devices.csv, every level's, are held to their beans by
+    (switches.csv), and every mast of masts.csv on the system name the file gives it. The rows of the device master, every level's, are held to their beans by
     tools/schematic/check_device_master.py (check_tables)."""
     t, bad = rr.tables, []
     for sw in rr.switches.values():
@@ -395,8 +441,7 @@ def _tables(rr: Railroad) -> list[str]:
             bad.append(f"Switch {sw.number} (switches.csv): no turnout {sw.turnout} in tables.xml")
         bad += [f"Switch {sw.number} (switches.csv): no block {b} in tables.xml"
                 for leg in sw.legs for b in (leg.os_block, leg.closed, leg.thrown) if b not in t.blocks]
-    masts = [(rr.sources.staging_masts.name, m.mast, m.system_name) for m in rr.staging_masts]
-    masts += [(rr.sources.level_masts.name, r["mast"], r["system_name"]) for r in rr.level_masts]
+    masts = [(rr.sources.masts.name, r["mast"], r["system_name"]) for r in rr.masts]
     for name, mast, system in masts:
         if not system:
             bad.append(f"{name}: {mast} has no system name")

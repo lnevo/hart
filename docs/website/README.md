@@ -1,5 +1,7 @@
 # Website source material
 
+Holds source material for the website that is kept for reference and not published, currently the original Rule 1 sticker photo.
+
 - `rule1-sticker-original.png`: the original photo (a frame grabbed Sep 30, 2026)
   of the "Rule 1 / Rule 2" sticker. The About page shows a recreation,
   `www/assets/about/house-rules-sticker.jpg`, made to look like a straight-on photo

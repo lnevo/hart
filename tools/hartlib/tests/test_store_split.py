@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from hartlib import devices as D, tables  # noqa: E402
 from hartlib import store_split as ss  # noqa: E402
 from hartlib import tables_build as tb  # noqa: E402
+from master_edit import fixture_id  # noqa: E402
 
 TURNOUTS = 'class="jmri.jmrix.openlcb.configurexml.OlcbTurnoutManagerXml"'
 MEMORIES = 'class="jmri.managers.configurexml.DefaultMemoryManagerXml"'
@@ -26,6 +27,8 @@ ISENSORS = 'class="jmri.jmrix.internal.configurexml.InternalSensorManagerXml"'
 def blank(**cells) -> dict:
     row = {c: "" for c in D.COLUMNS}
     row.update({"level": "1", "description": "A device.", **cells})
+    if row["level"] and "id" not in cells:          # check_rows wants one on every row with a level
+        row["id"] = fixture_id(row)
     return row
 
 
@@ -266,7 +269,7 @@ class UnplacedRows(unittest.TestCase):
     def test_a_device_deleted_in_the_store_deletes_its_row(self) -> None:
         p = plan(self.repo, self.repo, doc(turnouts=TURNOUTS_NOW), rows=self.rows)
         [d] = p.of(ss.DEVICE)
-        self.assertEqual((ss.RowDelete(len(ROWS), "Test 999"),), d.edits)
+        self.assertEqual((ss.RowDelete(("", "turnout", "Test 999")),), d.edits)        # by key, never by place
         self.assertEqual(ROWS, ss.edited_rows(self.rows, d.edits))
 
     def test_a_repo_edit_since_the_deploy_survives_an_owner_rename(self) -> None:
@@ -305,7 +308,50 @@ class DeviceItems(unittest.TestCase):
         blocks = bean("block", "IB:AUTO:0033", "OS Switch 1", "Owner note", systemName="IB:AUTO:0033")
         p = plan(doc(), doc(), doc(blocks=blocks))
         [d] = p.of(ss.DEVICE)
-        self.assertEqual((ss.Edit(2, "jmri_comment", "Brick CP, Switch 1", "Owner note"),), d.edits)
+        self.assertEqual((ss.Edit(("1", "test:block:OS Switch 1"), "jmri_comment", "Brick CP, Switch 1", "Owner note"),), d.edits)
+
+    def detected(self) -> list[dict]:
+        """ROWS with OS Switch 1's detector in its comment, as build_device_map.py fills it in."""
+        return [dict(r, jmri_comment="Brick CP, Switch 1; occupancy Block 4-2 / M2S401")
+                if r["user_name"] == "OS Switch 1" else r for r in ROWS]
+
+    def blocks(self, comment: str) -> str:
+        return bean("block", "IB:AUTO:0033", "OS Switch 1", comment, systemName="IB:AUTO:0033")
+
+    def test_a_detector_first_block_comment_goes_back_in_the_masters_order(self) -> None:
+        built = doc(blocks=self.blocks("Block 4-2 / M2S401; Brick CP, Switch 1"))
+        store = doc(blocks=self.blocks("Block 4-2 / M2S401; Brick CP, Switch 1 east"))
+        [d] = plan(built, built, store, rows=self.detected()).of(ss.DEVICE)
+        self.assertEqual(["Brick CP, Switch 1 east; occupancy Block 4-2 / M2S401"], [e.new for e in d.edits])
+
+    def test_a_block_comment_without_its_detector_first_is_dropped(self) -> None:
+        built = doc(blocks=self.blocks("Block 4-2 / M2S401; Brick CP, Switch 1"))
+        store = doc(blocks=self.blocks("Brick CP, Switch 1; occupancy Block 4-2 / M2S401"))
+        p = plan(built, built, store, rows=self.detected())
+        self.assertEqual([], p.of(ss.DEVICE))
+        self.assertIn("starts with its detector", p.of(ss.DROPPED)[0].note)
+
+    MAST = blank(layer="mast", role="home", user_name="Mast 2L", assignment="virtual", dir="west",
+                 system_name="IF$shsm:basic:one-searchlight(IH:HART:C1:2L)",
+                 jmri_name="IF$shsm:basic:one-searchlight(IH:HART:C1:2L)", jmri_comment="Brick | Switch 1")
+
+    def masts(self, comment: str) -> str:
+        return ('<signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">'
+                + bean("signalmast", self.MAST["jmri_name"], "Mast 2L", comment,
+                       **{"class": "jmri.implementation.configurexml.SignalHeadSignalMastXml"})
+                + "</signalmasts>")
+
+    def test_a_masts_direction_is_left_out_of_its_jmri_comment(self) -> None:
+        built = doc(extra=self.masts("Brick | Switch 1 | West"))
+        store = doc(extra=self.masts("Brick | Switch 1 | West | home"))
+        [d] = plan(built, built, store, rows=ROWS + [self.MAST]).of(ss.DEVICE)
+        self.assertEqual(["Brick | Switch 1 | home"], [e.new for e in d.edits])
+
+    def test_a_mast_comment_without_its_direction_is_dropped(self) -> None:
+        built = doc(extra=self.masts("Brick | Switch 1 | West"))
+        p = plan(built, built, doc(extra=self.masts("Brick | Switch 1")), rows=ROWS + [self.MAST])
+        self.assertEqual([], p.of(ss.DEVICE))
+        self.assertIn("direction", p.of(ss.DROPPED)[0].note)
 
     def test_a_wiring_comment_is_dropped(self) -> None:
         turnouts = (bean("turnout", "MTT100", "DCC Switch 1", "Owner note")
@@ -324,14 +370,37 @@ class DeviceItems(unittest.TestCase):
 
     def test_a_rename_of_a_wired_staging_turnout_says_where_to_rename_it(self) -> None:
         """Staging's turnout rows are build_device_map.py's since wiring.csv (2026-11-20); a rename is the owner's,
-        by hand in both files, not a rebuild's."""
-        rows = [dict(r, written_by="build_device_map.py") if r["layer"] == "turnout" else r for r in ROWS]
+        by hand in its field row (keyed by id), not a rebuild's. By the row's layer and writer, not its level
+        (naming-layers step 14): a main turnout swapped in the same way is told the same."""
         turnouts = (bean("turnout", "MTT100", "DCC Switch 1", "Node: 4 Turnout: 0")
                     + bean("turnout", "M2T408", "Switch 1A", "bound by its user name"))
-        p = plan(doc(), doc(), doc(turnouts=turnouts), rows=rows)
+        for level in ("1", "2"):
+            with self.subTest(level=level):
+                rows = [dict(r, written_by="build_device_map.py", level=level) if r["layer"] == "turnout" else r
+                        for r in ROWS]
+                p = plan(doc(), doc(), doc(turnouts=turnouts), rows=rows)
+                self.assertEqual([], p.of(ss.DEVICE))
+                [g] = p.of(ss.DROPPED)
+                self.assertIn("rename it by hand in its devices_field.csv row (keyed by its id): change user_name, "
+                              "and jmri_name with it when that binds the turnout by its user name", g.note)
+                # a comment edit is no rename: it is not told to rename the row (code review of step 14)
+                edited = (bean("turnout", "MTT100", "DCC Switch 1", "Node: 4 Turnout: 0")
+                          + bean("turnout", "M2T408", "Switch 1", "an owner's note"))
+                notes = [d.note for d in plan(doc(), doc(), doc(turnouts=edited), rows=rows).of(ss.DROPPED)]
+                self.assertTrue(notes)
+                self.assertFalse([n for n in notes if "rename it by hand" in n], notes)
+
+    def test_a_rename_of_a_built_block_says_where_to_rename_it(self) -> None:
+        """Naming-layers step 8: a block row of the builder's (main and upper's are virtual beans with their names in
+        the row) is renamed by hand in its field row, not by changing the builder's inputs."""
+        rows = [dict(r, written_by="build_device_map.py") if r["layer"] == "block" else r for r in ROWS]
+        before = bean("block", "IB:AUTO:0033", "OS Switch 1", "Brick CP, Switch 1", systemName="IB:AUTO:0033")
+        after = bean("block", "IB:AUTO:0033", "OS Switch 1A", "Brick CP, Switch 1", systemName="IB:AUTO:0033")
+        p = plan(doc(blocks=before), doc(blocks=before), doc(blocks=after), rows=rows)
         self.assertEqual([], p.of(ss.DEVICE))
-        [g] = p.of(ss.DROPPED)
-        self.assertIn("rename it by hand in devices.csv and in wiring.csv's row", g.note)
+        self.assertTrue(any("rename it by hand in its devices_field.csv row (keyed by its id): change user_name; its "
+                            "jmri_name and layout_block stay" in g.note for g in p.of(ss.DROPPED)),
+                        [g.note for g in p.of(ss.DROPPED)])
 
     def test_a_rename_on_both_passes_is_one_question(self) -> None:
         """A block's names-only pass and full pass (and its layout block) carry one rename: one DEVICE item."""
@@ -342,7 +411,7 @@ class DeviceItems(unittest.TestCase):
         p = plan(doc(blocks=before), doc(blocks=before), doc(blocks=both))
         [d] = p.of(ss.DEVICE)
         self.assertEqual(1, len(d.also))
-        self.assertEqual([ss.Edit(2, "user_name", "OS Switch 1", "OS Switch 1A")], list(ss.device_edits(
+        self.assertEqual([ss.Edit(("1", "test:block:OS Switch 1"), "user_name", "OS Switch 1", "OS Switch 1A")], list(ss.device_edits(
             p, ss.Choices(merge=frozenset({d.id})))))
 
     def test_a_script_written_row_is_dropped(self) -> None:
@@ -372,7 +441,18 @@ class Choices(unittest.TestCase):
 
     def test_an_edit_on_a_cell_that_moved_stops(self) -> None:
         with self.assertRaises(ss.SplitError):
-            ss.edited_rows(ROWS, [ss.Edit(2, "jmri_comment", "not this", "new")])
+            ss.edited_rows(ROWS, [ss.Edit(("1", "test:block:OS Switch 1"), "jmri_comment", "not this", "new")])
+        with self.assertRaisesRegex(ss.SplitError, "has no row id 'test:block:OS Switch 9' \\(level 1\\)"):
+            ss.edited_rows(ROWS, [ss.Edit(("1", "test:block:OS Switch 9"), "jmri_comment", "", "new")])
+
+    def test_edits_find_their_row_by_key_wherever_it_is(self) -> None:
+        """A rename and its jmri_name edit name the row by its key: both land, whatever the row's place."""
+        rows = list(reversed(ROWS))
+        key = ("1", "switch:1")                      # a field row is keyed by (level, id)
+        got = ss.edited_rows(rows, [ss.Edit(key, "user_name", "Switch 1", "Switch 1X"),
+                                    ss.Edit(key, "jmri_name", "Switch 1", "Switch 1X")])
+        row = next(r for r in got if r["system_name"] == "M2T408")
+        self.assertEqual((row["user_name"], row["jmri_name"]), ("Switch 1X", "Switch 1X"))
 
 
 class NewTemplate(unittest.TestCase):

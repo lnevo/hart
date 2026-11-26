@@ -9,4 +9,4 @@ The SOQ was emailed to the member's evaluator on 15 November 2026. The package i
 
 The member copy above was regenerated two minutes after the emailed attachment by the same code, so its bytes may differ from the attachment; the exact file sent is in Mail's Sent folder.
 
-While this file exists, `build_soq.py` refuses to build or fill. If the evaluator asks for changes, run it with `--unfreeze "reason"`, then update or remove this file in the same PR.
+While this file exists, `build_soq.py` refuses to build or fill. The build is kept as a record only: it is out of the pipeline and no longer matches the live sources (owner, 2026-11-22). If the evaluator asks for changes, make them as a one-off edit by hand to the PDF or the member copy, and note it here.

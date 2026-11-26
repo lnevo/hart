@@ -4,8 +4,8 @@ Generate the live CATS Designer desks for all three levels (staging, main, upper
 schematic-maps plugin's cats module (the code behind `schematic cats --bindings`): cats/panels/HART_CTC.xml (CTC)
 and its ABS twin HART_ABS.xml, the desks the deploy installs (sync_hart_package.sh LIVE_PANELS) and the launchers
 open (CATS cut-over; ADR-023). This script is their only writer; the hand-wired Designer panel HART_Digicon.xml is not
-read. tools/check.sh validates the desks with cats/scripts/validate_cats_panel.py and checks them against the layout
-facts (tools/audit/check_layout_facts.py).
+read. tools/check.sh compares the desks byte for byte with --check, holds them to their approval fingerprints
+(check_approved.py) and checks them against the layout facts (tools/audit/check_layout_facts.py).
 
 Bands stack in the sheet's order (staging on top). Staging is bound to the live JMRI objects through the bindings
 file cats/panels/HART_CTC.bindings.json, which this script writes from the railroad's facts, never by
@@ -13,23 +13,24 @@ hand:
   switches.csv (level 1 rows)      which OS block each switch's points are in (and a crossover half's label, 23A
                                   or 23B, from its OS block's letter), which leg is closed and which thrown,
                                   and whether CATS normal is JMRI thrown (cats_inverted); Switch 9 and 13 follow them
-  devices.csv + tables.xml          each switch's M2T turnout (cats_turnout_io.load_turnouts)
-  occupancy_bindings.csv + tables.xml  each block's M2S sensor and discipline (digicon_lib.load_occupancy: the
+  The device master + tables.xml          each switch's M2T turnout (cats_turnout_io.load_turnouts)
+  cats_discipline blocks + tables.xml   each block's M2S sensor and discipline (digicon_lib.load_occupancy: the
                                   layout block table and the sensors, not a Layout Editor panel)
   signals.json[staging] + signal_head_plan.csv the masts drawn on staging (field and planned) and their templates
-  devices.csv (level 1)   the block of a short unnamed track between two switches that has no JMRI block of its own:
+  The device master (level 1)   the block of a short unnamed track between two switches that has no JMRI block of its own:
                          the one block the staging device map's track between them holds
                          (staging_device_map.staging_chains)
 Main and upper blocks are CTC on the CTC desk, as staging's are (owner, 2026-11-17: CATS holds their signals and
 releases them, so a route set from staging up the helix stops at the first main or upper signal); the ABS twin
 turns them ABS with the rest. They take their names from the block rows of
-the main and upper rows of jmri/layouts/hart/data/devices.csv (by the schematic tracks each holds). Their switches
-command and report their internal turnouts (LEVEL_TURNOUT: IT:HART:C3:<n>, closed on the drawn leg B, which is
+the main and upper rows of the device master (by the schematic tracks each holds). Their switches
+command and report the turnouts their device-master rows give (internal today, IT:HART:C3:<n>; cats_panel's
+split_system_name), closed on the drawn leg B, which is
 NORMAL; double crossover 225 too, its one turnout moving all four points, and a desk block per corner as in the
 Layout Editor, OS Switch 225a to d on their corners' detectors, with the middle of its X a block of its own and no
 detector: the plugin's `corners` binding, which opens a row between its tracks on the upper level; owner,
 2026-11-17), and their
-control-point masts (main_upper_masts.csv, on virtual heads) are drawn and bound as staging's are: each on the track
+control-point masts (masts.csv, on virtual heads) are drawn and bound as staging's are: each on the track
 it faces at the switch it protects (level_signals), its CATS template the one staging's masts of its appearance type
 take. Every main and upper desk block is bound to its virtual occupancy sensor (the device map's jmri_name,
 IS:HART:C3:B:<block key>, hartlib.level_devices), as OCCUPIEDSPEC / UNOCCUPIEDSPEC (owner,
@@ -63,18 +64,19 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 import build_device_map as bdm  # noqa: E402  the device map's naming helpers (base, band_level, natural)
-import staging_device_map as sdm  # noqa: E402  the staging tracks and their blocks (the level 1 rows of devices.csv)
-from hartlib import level_devices, level_masts, paths, railroad  # noqa: E402
+import staging_device_map as sdm  # noqa: E402  the staging tracks and their blocks (the level 1 rows of the device master)
+from hartlib import level_devices, level_masts, paths, railroad  # noqa: E402,F401  the tests read B.level_masts, B.railroad
 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
 
 from cats_panel_facts import (DEVICE_MAP, DeviceMap, Facts, StagingTracks, load_device_map, load_facts,  # noqa: E402,F401
                               mast_type, staging_tracks, template_by_type)
-from cats_panel import (LEVEL_TURNOUT, LEVEL_TURNOUT_PREFIX, MAIN_UPPER_DISCIPLINE, block_bindings,  # noqa: E402,F401
+from cats_panel import (split_system_name, MAIN_UPPER_DISCIPLINE, block_bindings,  # noqa: E402,F401
                         dark_bindings, dest, device_name, half_label, helix_block, inside_os, intermediate_signal,
                         legs_of, level_bands, level_mast_bindings, level_signals, level_switch_bindings,
-                        loop_half_edge, mast_bindings, name_loop_halves, os_blocks, plan_edge, placeholder,
-                        planned_sensor, spec, switch_bindings, switch_of, track_block, virtual_sensor, xover_corners)
+                        loop_half_edge, mast_bindings, name_loop_halves, os_blocks, os_plates, plan_edge, placeholder,
+                        planned_sensor, spec, staging_names, switch_bindings, switch_of, track_block, virtual_sensor,
+                        xover_corners)
 from cats_panel_dress import (ABS_PLATE, HEADER, ORDER, PLATE_PX, dress, frozen_header, label_clashes,  # noqa: E402,F401
                               plate_box, right_edge, station_plates)
 
@@ -84,11 +86,10 @@ OUT = pd.REPO / "cats/panels/HART_CTC.xml"
 OUT_ABS = OUT.with_name("HART_ABS.xml")
 BINDINGS = OUT.with_name("HART_CTC.bindings.json")
 BOUND_LEVEL = 1        # the level bound to JMRI: staging's band (its `level` in plan_overrides.json's staging section)
-# The release candidate tables (build_layout_le.py --as-live): every name the desk binds must be in it
-TABLES_CANDIDATE = paths.LAYOUT_OUTPUT / "trial/tables_cutover.xml"
 # The desks' window, cells per grid unit, helix blocks and row gaps are page preferences (preferences.json[main_upper]:
 # cats_window, cats_cells_per_unit, cats_helix_blocks, cats_band_gap, cats_title_gap) the plugin reads (schematic/cats_prefs.py, cats.options),
-# which also gives the cells the desk must fit in that window.
+# which also gives the cells the desk must fit in that window. cats_window is not set there: publish_draft.solved_sheet
+# derives it from the page's host_screen (host_screen.py), the layout hosts' screen, as the Layout Editor's le_window.
 
 
 def plugin_modules(plugin):
@@ -132,8 +133,9 @@ def bindings(bands, cats, F, o, page):
     (cats.options), `page` the schematic's page preferences (the solved sheet's opts)."""
     bi = bound_index(bands)
     _, band, opts = bands[bi]
-    os_of = os_blocks(band, F)
-    out_sw = switch_bindings(band, F, os_of)
+    stored = staging_names(band, pd.DATA)       # the staging names, from the store of the folder solved from
+    os_of = os_blocks(band, F, stored)
+    out_sw = switch_bindings(band, F, os_of, stored)
     le_mod = cats_le(cats)
     level_sw = level_switch_bindings(bands, F, bi, bdm.dx_corners(bands, le_mod, page))
     # the panel's block names once the switches name their OS blocks (and a double crossover its corners)
@@ -142,9 +144,9 @@ def bindings(bands, cats, F, o, page):
     P = cats.panel(bands, scale=o["scale"], helix_blocks=o["helix_blocks"],   # names only: no column trimming
                    band_gap=o["band_gap"], title_gap=o["title_gap"],
                    bindings={"switches": named})
-    dark, log, missing, joined = dark_bindings(bands, cats, P, F, bi)
+    dark, log, missing, joined = dark_bindings(bands, cats, P, F, bi, stored)
     names = {k: v for k, v in P.names.items() if k[1].startswith(f"b{bi}:") and k not in joined}
-    blocks = block_bindings(band, F, names)
+    blocks = block_bindings(band, F, names, stored)
     print("\n".join(log))
     check_apart(blocks, dark)
     masts, level = mast_bindings(opts, F), level_mast_bindings(bands, F, bi)
@@ -199,7 +201,10 @@ def generate(plugin, out, bindings_out, out_abs=None):
     """Build the sheet once and write the bindings and the desks with the same plugin code."""
     cats, sheet = plugin_modules(plugin)
     F = load_facts()
-    s = pd.solved_sheet(sheet)
+    try:
+        s = pd.solved_sheet(sheet)
+    except pd.host_screen.HostScreenError as exc:       # the desks' window: the page's host_screen
+        sys.exit(f"error: {exc}")
     bands = name_loop_halves(s.bands, F.device)
     o = desk_options(cats, s.opts, bands)
     window, fit = o["window"], o["fit"]

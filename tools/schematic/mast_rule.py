@@ -1,12 +1,12 @@
 """The track and mast rule of the schematic levels, out of build_device_map.py so every level can use it.
 
 tracks() lists each track of a band between its ends (switch, helix or bumper), track_names() names them ("Track
-<a>-<b>", "Track <n> Spur", "Track <n> Loop", " 1"/" 2" for parallel tracks), and masts() places a home signal where a
+<a>-<b>", "Track <n> Spur", "Track <n> Loop", " 1"/" 2" for parallel tracks, in plan_order), and masts() places a home signal where a
 track from outside a control point meets one of its switches, unless no route it governs reaches another signal
 (reaches_signal; build_device_map.py's module text has the naming and head rules). band_level() maps a band title
 to its level by the `level` of its entry in a plan-overrides file (band_levels). The rules that replaced hand lists
 (owner, 2026-11-20): running_tracks (passing sidings between interlockings), signalled_spurs (exit dwarfs off a main track); read_block_splits reads the owner's block
-splits, which are a choice, not a rule. mast_plan.py runs them all as the one mast process of every level.
+splits (block_overrides.csv kind split), which are a choice, not a rule; hartlib.hand_lists.read_block_overrides is that file's one reader. mast_plan.py runs them all as the one mast process of every level.
 """
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
-from hartlib import railroad
+from hartlib import hand_lists, railroad
 
 base = railroad.switch_number
 natural = railroad.natural
@@ -106,6 +106,50 @@ def end_label(bands, joined, bi, node_id) -> str:
     return ""
 
 
+def end_leg(bands, joined, bi, end) -> str:
+    """A track end (node, port) by its plan switch label and leg ("103AB", "113C"; a moved switch's star dropped),
+    followed through a connector to the switch beyond it as end_ref does; "helix" at a helix end, "end" at any other
+    (a bumper). The same key staging_device_map.end_key gives a run's end, so it comes from the plan, not the drawing."""
+    band = bands[bi][1]
+    node, port = end
+    d = band["nodes"][node]
+    if d["kind"] in ("switch", "dx"):
+        return f"{(d.get('label') or '').rstrip('*')}{port}"
+    if d.get("sub") == "helix":
+        return "helix"
+    if d.get("sub") == "link" and (bi, node) in joined:
+        bj, m = joined[(bi, node)]
+        other = bands[bj][1]
+        sid = next(iter(list(other["nodes"][m]["ins"].values()) + list(other["nodes"][m]["outs"].values())))
+        s = other["strands"][sid]
+        return end_leg(bands, joined, bj, s["dst"] if s["src"][0] == m else s["src"])
+    return "end"
+
+
+def leg_order(key: str):
+    """The sort key of a track end as end_leg gives it: a switch leg by its number, half letter and leg ("103AB"
+    before "103BA" before "105B"), any other end ("end", "helix") after every switch leg."""
+    m = re.fullmatch(r"(\d+)([A-Z]?)([A-D])", key)
+    return (0, int(m.group(1)), m.group(2), m.group(3)) if m else (1, 0, "", key)
+
+
+
+def plan_order(t: dict) -> tuple:
+    """The order of tracks that share their end switches (parallel tracks): by their ends' plan labels and legs, lower
+    end first (the order of their device IDs, block:103AB-105B before block:103BA-105C), so the numbers in "Track
+    103-105 1" and "2", and block_overrides.csv's `parallel`, come from the plan and not from the drawn rows (owner,
+    2026-11-24, naming-layers step 3)."""
+    return tuple(sorted((leg_order(k) for k in t["plan_ends"]))) + (t["trial"],)
+
+
+def letter_order(t: dict, half: int, leg: str) -> tuple:
+    """The order of two home masts of one number and direction (their A and B): by the plan order of the tracks they
+    face (plan_order, so the A mast faces a Spur 1 and the B mast its Spur 2, as the track numbers run), then a
+    balloon loop's half (the A mast faces Loop 1, from leg B), then the leg they stand at. From the plan, not the drawn rows (naming-layers step
+    12, my call under the owner's rule of 2026-11-25)."""
+    return plan_order(t) + (half, leg)
+
+
 def helix_tags(bands, overrides) -> dict[int, str]:
     """{level: "H1"|"H2"}: the helix tracks in the overrides' order, each on the band holding its switch."""
     relabel = next(e["map"] for e in overrides["edits"] if e["op"] == "relabel")
@@ -118,29 +162,30 @@ def helix_tags(bands, overrides) -> dict[int, str]:
     return out
 
 
-HELIX_TRACKS = railroad.Sources.under().helix_tracks
+HELIX_SOURCE = railroad.Sources.under().plan_overrides     # plan_overrides.json: the helix ends and map
 
 
 def read_helix_tracks(path: Path | None = None) -> dict[str, dict]:
-    """{plan helix track name: {block, staging_switch, level_switch}} from helix_tracks.csv (hartlib.railroad
-    .read_helix_tracks, which checks it): each helix track is one JMRI block from its staging switch to its main or
-    upper switch (owner, 2026-11-20). Its FactsError as a MapError."""
+    """{plan helix track name: {block, staging_switch, level_switch, shown}} from the plan overrides (hartlib.railroad
+    .read_helix_tracks, which checks them): each helix track is one JMRI block, "Track <plan name>" by the ordinary
+    rule, from its staging switch to its main or upper switch (owner, 2026-11-20/21); `shown` is the name a reader
+    sees (preferences.json track_labels). Its FactsError as a MapError."""
     try:
-        got = railroad.read_helix_tracks(path or HELIX_TRACKS)
+        got = railroad.read_helix_tracks(path or HELIX_SOURCE)
     except railroad.FactsError as exc:
         raise MapError(str(exc)) from None
-    return {h.helix: {"block": h.block, "staging_switch": h.staging_switch, "level_switch": h.level_switch}
-            for h in got.values()}
+    return {h.helix: {"block": h.block, "staging_switch": h.staging_switch, "level_switch": h.level_switch,
+                      "shown": h.shown} for h in got.values()}
 
 
 def helix_blocks(overrides, helix=None) -> dict[str, str]:
     """{helix tag ("H1", "H2", as helix_tags gives them): block} for the main and upper levels: the overrides' helix
-    tracks in order, each named in helix_tracks.csv. Stops on a helix track the file does not name, or one it names
-    that the overrides do not have."""
+    tracks in order, each "Track <plan name>" (read_helix_tracks). Stops on a helix track of `overrides` that
+    `helix` does not hold, or one it holds that the overrides do not have."""
     helix = read_helix_tracks() if helix is None else helix
     plan = list(overrides.get("helix", {}).values())
     if sorted(plan) != sorted(helix):
-        raise MapError(f"{HELIX_TRACKS.name} names helix tracks {sorted(helix)}, the plan overrides {sorted(plan)}")
+        raise MapError(f"the helix tracks are {sorted(helix)}, the plan overrides' helix map {sorted(plan)}")
     return {f"H{i + 1}": helix[name]["block"] for i, name in enumerate(plan)}
 
 
@@ -151,7 +196,7 @@ def tracks(bands, runs, joined, helix_tag, levels) -> list[dict]:
         lv = band_level(title, levels)
         if not lv:
             continue
-        nodes, strands, srow = band["nodes"], band["strands"], band["R"]["srow"]
+        strands, srow = band["strands"], band["R"]["srow"]
         for start, chain, end in runs(band):
             a = end_ref(bands, joined, bi, start[0], helix_tag, levels)
             b = end_ref(bands, joined, bi, end[0], helix_tag, levels)
@@ -168,7 +213,8 @@ def tracks(bands, runs, joined, helix_tag, levels) -> list[dict]:
                 continue
             seen.add(key)
             ends = [(start[0], start[1]), (end[0], end[1])]
-            found.append(dict(level=lv, ends=(a, b), legs=ends, band=bi, cm=round(sum(edges.values()), 1),
+            found.append(dict(level=lv, ends=(a, b), legs=ends, band=bi,
+                              plan_ends=tuple(end_leg(bands, joined, bi, e) for e in ends), cm=round(sum(edges.values()), 1),
                               loop=start[0] == end[0] and a[0] == "sw",
                               main=any(strands[sid]["main"] for sid, _ in chain),
                               row=min(srow.get(sid, 0) for sid, _ in chain),
@@ -192,7 +238,7 @@ def track_names(found, helix=None) -> None:
         if hx and helix is not None:
             if len(hx) != 1 or hx[0] not in helix:
                 raise MapError(f"track {', '.join(t['trial'])} reaches helix {', '.join(hx)}, which "
-                               f"{HELIX_TRACKS.name} names no block for")
+                               "is no helix track of the plan overrides")
             groups[helix[hx[0]]].append(t)
             continue
         if len(sw) == 2 and sw[0] == sw[1]:
@@ -203,21 +249,23 @@ def track_names(found, helix=None) -> None:
             stem = "Track " + "-".join(sw + hx)
         groups[stem].append(t)
     for stem, ts in groups.items():
-        ts.sort(key=lambda t: (t["row"], t["trial"]))
+        if len(ts) > 1:
+            ts.sort(key=plan_order)
         for i, t in enumerate(ts, 1):
             t["name"] = stem if len(ts) == 1 else f"{stem} {i}"
 
 
 # ---------------------------------------------------------------- hand lists keyed by end switches
 
-TRACK_KEY_COLUMNS = ["switch_a", "switch_b", "parallel"]
-SWITCH_NUMBER = re.compile(r"\d+")
+# block_overrides.csv's reader and its row rules are hartlib.hand_lists' (naming-layers step 6); the names stay here
+TRACK_KEY_COLUMNS = hand_lists.TRACK_KEY_COLUMNS
+SWITCH_NUMBER = hand_lists.SWITCH_NUMBER
 
 
 def track_key(t: dict) -> tuple[str, str] | None:
     """The end switches of a track entry, lower number first: (a, b) between two switches, (n, n) for a balloon loop
     and (n, "") for a spur (one switch, a bumper at the other end). None for a track up the helix, which its helix
-    block names (helix_tracks.csv). Hand lists name a track by this key, so a renumbered switch moves the row with
+    block names ("Track <plan name>"). Hand lists name a track by this key, so a renumbered switch moves the row with
     it, where a generated name ("Track 119-121") would have to be retyped."""
     if any(k == "helix" for k, _v in t["ends"]):
         return None
@@ -225,51 +273,37 @@ def track_key(t: dict) -> tuple[str, str] | None:
     return (sw[0], sw[1] if len(sw) == 2 else "") if sw else None
 
 
-def key_problem(row: dict) -> str:
-    """Why a row's switch_a, switch_b and parallel are not a track key ("" when they are)."""
-    a, b, par = row["switch_a"], row["switch_b"], row["parallel"]
-    if not SWITCH_NUMBER.fullmatch(a) or (b and not SWITCH_NUMBER.fullmatch(b)):
-        return f"switch_a {a!r} and switch_b {b!r} are switch numbers (switch_b blank for a spur)"
-    if b and natural(a) > natural(b):
-        return f"switch_a {a} and switch_b {b} are in number order, lower first"
-    if par and par not in ("1", "2", "3", "4"):
-        return f"parallel {par!r} is blank or the track's place from the top, 1 to 4"
-    return ""
+key_problem = hand_lists.key_problem
+override_problem = hand_lists.override_problem
+OVERRIDES_NAME = hand_lists.OVERRIDES_NAME     # in the schematic data folder, beside plan_overrides.json
+OVERRIDE_COLUMNS = hand_lists.OVERRIDE_COLUMNS
+OVERRIDE_KINDS = hand_lists.OVERRIDE_KINDS
+OS_ID = hand_lists.OS_ID
 
 
-def read_track_rows(path: Path, columns: list[str]) -> list[dict]:
-    """The rows of a hand list keyed by end switches (`columns` holds TRACK_KEY_COLUMNS), each with its `line`.
-    switch_a and switch_b are switch numbers, lower first; switch_b is blank for a spur (a bumper at the other end);
-    `parallel` (1, 2, from the top row, as the generated names count) is needed only where two tracks run between
-    the same switches. Stops on columns not in that shape or a malformed row, naming the line."""
-    import csv
+def read_block_overrides(path: Path, kinds: tuple[str, ...] = OVERRIDE_KINDS) -> list[dict]:
+    """hartlib.hand_lists.read_block_overrides (its text has the kinds and rows), its HandListError a MapError."""
     try:
-        with open(path, newline="", encoding="utf-8") as fh:
-            reader = csv.DictReader(fh)
-            rows = list(reader)
-    except OSError as exc:
-        raise MapError(f"cannot read {path.name}: {exc}") from None
-    if reader.fieldnames != columns:
-        raise MapError(f"{path.name}: columns {reader.fieldnames}, not {columns}")
-    out, bad = [], []
-    for i, r in enumerate(rows, 2):
-        r = {k: (v or "").strip() for k, v in r.items()}
-        r["line"] = i
-        problem = key_problem(r)
-        if problem:
-            bad.append(f"line {i}: {problem}")
-        else:
-            out.append(r)
-    if bad:
-        raise MapError(f"{path.name}: " + "; ".join(bad))
-    return out
+        return hand_lists.read_block_overrides(path, kinds)
+    except hand_lists.HandListError as exc:
+        raise MapError(str(exc)) from None
+
+
+def os_block_name(level: str, ident: str, halves: dict, names=None) -> str:
+    """hartlib.hand_lists.os_block_name, its HandListError a MapError."""
+    try:
+        return hand_lists.os_block_name(level, ident, halves, names)
+    except hand_lists.HandListError as exc:
+        raise MapError(str(exc)) from None
 
 
 def resolve_track(row: dict, found: list[dict]) -> dict | None:
     """The one track entry of `found` the row's switches (and `parallel`) name, or None with the reason in
-    row["problem"]: no track, or several with no `parallel` to choose (the candidates named, in top-row order)."""
+    row["problem"]: no track, or several with no `parallel` to choose (the candidates named, in plan_order)."""
     key = (row["switch_a"], row["switch_b"])
-    same = sorted((t for t in found if track_key(t) == key), key=lambda t: (t["row"], t["trial"]))
+    same = [t for t in found if track_key(t) == key]
+    if len(same) > 1:
+        same.sort(key=plan_order)
     label = f"Switch {key[0]}" + (f" to Switch {key[1]}" if key[1] else " spur")
     if not same:
         near = sorted({t["name"] for t in found if track_key(t) and set(key[:1 + bool(key[1])]) & set(track_key(t))})
@@ -284,7 +318,7 @@ def resolve_track(row: dict, found: list[dict]) -> dict | None:
         return same[k - 1]
     if len(same) > 1:
         row["problem"] = (f"{len(same)} tracks run {label} ({', '.join(t['name'] for t in same)}): "
-                          "give parallel, 1 from the top row")
+                          "give parallel, 1 for the first by plan ends (mast_rule.plan_order)")
         return None
     return same[0]
 
@@ -373,27 +407,22 @@ def signalled_spurs(found, cp_of: dict) -> set[str]:
     return out
 
 
-SPLIT_COLUMNS = ["level"] + TRACK_KEY_COLUMNS + ["notes"]
-
-
 def read_block_splits(path: Path, found: list[dict], levels) -> set[str]:
-    """The names of the tracks block_splits.csv parts into two blocks at their turnback, among `found` and the
-    `levels` ({band key: level}) asked for. Each row is the OWNER'S CHOICE, not a rule (owner, 2026-11-20: a rule would
-    catch every intermediate loop): `level` and the track's end switches (read_track_rows' key), resolved at build
-    time. Stops on a file not in that shape, a level that is not 1 to 3, a row naming no track or a track on another
-    level, or a track two rows name. A row of a level not asked for is checked for shape only."""
+    """The names of the tracks block_overrides.csv's split rows (read_block_overrides) part into two blocks at their
+    turnback, among `found` and the `levels` ({band key: level}) asked for, each row's end switches resolved at build
+    time. Stops on a row naming no track or a track on another level, or a track two rows name. A row of a level not
+    asked for is checked for shape only."""
     wanted = set(levels.values())
-    rows = read_track_rows(path, SPLIT_COLUMNS)
-    bad = [f"line {r['line']}: level {r['level']!r} is 1, 2 or 3" for r in rows if r["level"] not in ("1", "2", "3")]
-    out, seen = set(), {}
+    rows = read_block_overrides(path, ("split",))
+    out, seen, bad = set(), {}, []
     for r in rows:
-        if bad or int(r["level"]) not in wanted:
+        if int(r["level"]) not in wanted:
             continue
         t = resolve_track(r, [t for t in found if t["level"] == int(r["level"])])
         if t is None:
             bad.append(f"line {r['line']}: level {r['level']}: {r['problem']}")
         elif t["name"] in seen:
-            bad.append(f"line {r['line']}: {t['name']} is already named on line {seen[t['name']]}")
+            bad.append(f"line {r['line']}: {t['name']} is already split on line {seen[t['name']]}")
         else:
             seen[t["name"]] = r["line"]
             out.add(t["name"])
@@ -419,7 +448,7 @@ def masts(bands, cps, found, cp_of, corner_blocks=None, running_extra=frozenset(
     for t in found:
         for (n, p), far in zip(t["legs"], reversed(t["ends"])):
             by_leg[(t["band"], n, p)] = (t, far)
-    out = []
+    out, order = [], {}             # order: {id(mast): letter_order of the track it faces}
     for bi, (title, band, _) in enumerate(bands):
         lv = band_level(title, levels)
         if not lv:
@@ -444,6 +473,7 @@ def masts(bands, cps, found, cp_of, corner_blocks=None, running_extra=frozenset(
                                     dir="west" if TAU[p] * rail[n] == 1 else "east", protects="", heads=1,
                                     row=srow.get(sid, 0), track=t["name"], band=bi, half=0, node=n, leg=p,
                                     strand=sid, running=False, kind="one-low"))
+                    order[id(out[-1])] = letter_order(t, 0, p)
                     continue
                 loop = kind == "sw" and far == num and t["loop"]   # comes back to this switch
                 inside = kind == "sw" and cp_of.get(far) == cp and not loop
@@ -470,6 +500,7 @@ def masts(bands, cps, found, cp_of, corner_blocks=None, running_extra=frozenset(
                                 half=LOOP_HALF[p] if t["loop"] else 0, node=n, leg=p, strand=sid, running=running,
                                 kind=("two-searchlight" if heads == 2 else
                                       "one-searchlight" if running else "one-low")))
+                order[id(out[-1])] = letter_order(t, LOOP_HALF[p] if t["loop"] else 0, p)
     # a home mast governs something only when a route it would clear reaches another signal (owner, 2026-11-19: no
     # hand-made exceptions); one whose every route ends at a bumper or in dark track is left out, and again until none
     # is: a mast kept only by a mast the rule leaves out reaches no signal either
@@ -487,8 +518,9 @@ def masts(bands, cps, found, cp_of, corner_blocks=None, running_extra=frozenset(
     for (num, letter), ms in groups.items():
         if len(ms) > 2:
             raise MapError(f"switch {num - 1}: {len(ms)} masts for direction {letter}; ADR-005 names two (A and B)")
-        # a balloon loop's A mast faces Loop 1 (leg B, the normal leg) and its B mast Loop 2 (owner, 2026-11-16)
-        ms.sort(key=lambda m: (m["band"], m["half"], m["row"]))
+        # A and B in the plan order of the tracks they face (letter_order): a balloon loop's A mast faces Loop 1
+        # (leg B, the normal leg) and its B mast Loop 2 (owner, 2026-11-16)
+        ms.sort(key=lambda m: order[id(m)])
         for i, m in enumerate(ms):
             m["name"] = f"{num}{letter}" + ("AB"[i] if len(ms) == 2 else "")
     return out

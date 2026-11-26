@@ -6,18 +6,18 @@ The LCOS wiring documentation, refreshed against current public names and Digico
 
 | File | Role |
 |------|------|
-| [`LCOS_Layout_Inventory_v86.xlsx`](LCOS_Layout_Inventory_v86.xlsx) | Current inventory of every level, a view written by `tools/wiring/write_inventory.py` (nobody edits it). Staging is what JMRI has wired, from `jmri/layouts/hart/data/wiring.csv` (the physical wiring source, owner 2026-11-20); main and upper are the draft `tools/schematic/build_device_map.py` gives them, shaded light blue on the Nodes, DNOU8, DNIN8, TurnoutSummary and BlockSensors sheets. **Node ID = C{radio Address}**; **Legacy Node ID** is a staging node's old sequential label. The **DigiconSignals** sheet is `wiring.csv`'s wired heads, one row per lamp pin. |
-| [`LCOS_Layout_Inventory_v85.xlsx`](LCOS_Layout_Inventory_v85.xlsx) | History, frozen: the staging inventory as the old refresh wrote it from the v84 import, with the old signal plan's ports. The website's signal-splits view still reads its lamp pins. Its generator is in `archive/tools-wiring/`. |
-| [`Wiring_Schematic.pptx`](Wiring_Schematic.pptx) | One slide per client node, regenerated from v86 (2026-11-21) by `create_wiring_schematic_ppt.py`. |
-| [`Layout Documentation.pptx`](Layout%20Documentation.pptx) | Editable source of the track bus, power district, bus wiring and node drawings published at `www/behind/layout-docs.html`. |
+| [`LCOS_Layout_Inventory_v86.xlsx`](LCOS_Layout_Inventory_v86.xlsx) | Current inventory of every level, an output only: `tools/wiring/write_inventory.py` writes it from the wiring model (nobody edits it, and no script reads it as input; only `write_inventory.py --check` opens it, to compare; ADR-039). Staging is what JMRI has wired, from `jmri/layouts/hart/data/wiring.csv` (the physical wiring source, owner 2026-11-20); main and upper are the draft `tools/schematic/build_device_map.py` gives them, shaded light blue on the Nodes, DNOU8, DNIN8, TurnoutSummary and BlockSensors sheets. **Node ID = C{radio Address}**; **Legacy Node ID** is a staging node's old sequential label. On **TurnoutSummary** a staging crossover (Switches 7, 23 and 35: one turnout, two OS blocks) has one row per half, labelled `Switch 7 (OS Switch 7)` and `Switch 7 (OS Switch 7b)`, each with its own entry and exit signal slots (a mast goes to the half it faces into, its `protects` column); both rows repeat the turnout's feedback and button and carry the turnout's own name in the **JMRI Turnout** column, which the site viewer and the slide deck group the halves by (owner, 2026-11-21). Every other switch has one row. The **DigiconSignals** sheet is `wiring.csv`'s wired heads, one row per lamp pin. |
+| [`LCOS_Layout_Inventory_v85.xlsx`](../../archive/data/wiring/LCOS_Layout_Inventory_v85.xlsx) | History, frozen: the staging inventory as the old refresh wrote it from the v84 import, with the old signal plan's ports. Archived 2026-11-25 with the signal split, its only reader. Its generator is in `archive/code/wiring-refresh/`. |
+| [`Wiring_Schematic.pptx`](Wiring_Schematic.pptx) | One slide per client node, written by `create_wiring_schematic_ppt.py` from the wiring model: the inventory's sheets as `write_inventory.py` builds them in memory, never the v86 file (2026-11-25). |
+| [`Layout Documentation.pptx`](Layout%20Documentation.pptx) | History, superseded: the hand-drawn track bus, power district, bus wiring and node slides. Kept in place (owner, 2026-11-22). `www/behind/layout-docs.html` replaces it: it began as the SOQ's text and drawings and is now maintained on its own (`www/scripts/build_layout_docs.py`). |
 | [`terminal_blocks.md`](terminal_blocks.md) | Terminal block wiring recovered from an October 2025 draft. Not verified against the railroad. |
 | [`signals_asbuilt_abs_v2.xlsx`](signals_asbuilt_abs_v2.xlsx) | History, frozen: the lower-deck Digicon ABS matrix of the old signal plan (100L, 117LA, 114LA, …). |
-| [`signals_split_v8.xlsx`](signals_split_v8.xlsx) | Frozen Nov 2025 **planned RGB** matrix. Lower-deck switch columns use CTC names. Upper-deck plants are Switch 61+ / heads 62L…. Historical `S4-1` IDs are in Notes. |
-| [`archive/docs/wiring-imported/`](../../archive/docs/wiring-imported/) | Unmodified Desktop snapshots (v84, asbuilt v1, split v8, v84 changelog), moved to the archive on 2026-11-20. Sequential C1–C13 IDs. |
+| [`signals_split_v8.xlsx`](../../archive/data/wiring/signals_split_v8.xlsx) | Archived 2026-11-25 (owner: the signals and their rules are generated for the whole layout), with the last `signal-splits.json`. Frozen Nov 2025 **planned RGB** matrix. Lower-deck switch columns use CTC names. Upper-deck plants are Switch 61+ / heads 62L…. Historical `S4-1` IDs are in Notes. |
+| [`archive/data/wiring-imported/`](../../archive/data/wiring-imported/) | Unmodified Desktop snapshots (v84, asbuilt v1, split v8, v84 changelog), moved to the archive on 2026-11-20. Sequential C1–C13 IDs. |
 
 LCOS Signal Manager punch list (ports + Main/Diverged + OR): [`docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx`](../../docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx). Source table: [`docs/wiring/lcos/lcos_signal_logic.csv`](../../docs/wiring/lcos/lcos_signal_logic.csv).
 
-Source of truth for Digicon ports: the head rows of [`jmri/layouts/hart/data/wiring.csv`](../../jmri/layouts/hart/data/wiring.csv) (`signal_wiring.csv` is folded into it, 2026-11-21). Public block names: [`occupancy_bindings.csv`](../../cats/data/occupancy_bindings.csv) / [ADR-005](../../wiki/decisions/ADR-005-public-equipment-names.md).
+Source of truth for Digicon ports: the head rows of [`jmri/layouts/hart/data/wiring.csv`](../../jmri/layouts/hart/data/wiring.csv) (`signal_wiring.csv` is folded into it, 2026-11-21). Public block names: the device master ([`devices_field.csv`](../../jmri/layouts/hart/data/devices_field.csv)) / [ADR-005](../../wiki/decisions/ADR-005-public-equipment-names.md).
 
 **Enclosure = radio Address.** Cabinets sit with their plants: **C4** Brick+Plane, **C13** Barn, **C12** East End 34, **C2** East End west 24, **C1** Princess west (36+38), **C11** Princess east (40) + balloon. **C3** is Switch 15–21 motors only (no Digicon heads). Packed MQTT = radio. Never **D5**.
 
@@ -151,7 +151,7 @@ Place **OU2** at Switch 39 (40LA), **OU3** at 40LB + balloon. 2035/2036 are sepa
 | 2036 | | `IH1133` | OU3-4 | OU3-5 | OU3-6 |
 | 2035 | | `IH1134` | OU3-7 | OU3-8 | OU2-7 |
 
-`signals_split_v8.xlsx` stays the frozen RGB plan.
+`signals_split_v8.xlsx` is archived (2026-11-25); the signals come from the generated mast plan and signal rule.
 
 ### LCOS Signal Manager (Unheld)
 
@@ -210,15 +210,26 @@ Calibration relays (the relay on each node with detectors that resets the DCC po
 
 The nodes, boards and pins of the main and upper levels are the device map's draft (`tools/schematic/build_device_map.py`, the shaded rows of v86), from the node list in `jmri/layouts/hart/data/schematic/lcos_nodes.csv`. A control point's wiring becomes static once it is wired and frozen (`make wiring-freeze CP="CP 123"`). The August 2026 upper-deck plan (Switches 61 to 91 on C14, C21 to C24 and C32) is gone; it is in v85, frozen history.
 
+## Finalize wiring: what is left
+
+What stands between the main and upper levels' draft wiring and their being in service (owner, 2026-11-21; moved here from the Owed entry of the status page, which links to this section):
+
+- **Place every head.** The draft board plan has no room for 14 heads: CP 107's 120RB (two heads), A83 and A84; CP 127's 132RA and 132RB (two each); CP 201's 222LB; CP 225's 230LB (two), B92 and B93; and 242L (no control point). A control point with an unplaced head cannot be frozen.
+- **Map the power districts.** None is recorded on any level (owner, 2026-11-21).
+- **Before the first swap:** a turnout, detector or head swap is one owner-row edit (its `jmri_name`, the LCOS address; the assignment follows the name, a turnout's alias and feedback and a head's mast follow it); it changes the SML discovery base and the desks' approval fingerprints. The PanelPro smoke test takes a swapped detector's field sensor; a detector and a head swapped by their field rows passed `make panelpro-test` in a sandbox (#1113) ([Left after the plan](../../wiki/projects/naming-layers-handoff.md#left-after-the-plan), 2026-11-25).
+- **Wire, freeze and swap, control point by control point** (the 35 main-line detectors with them): wire it as the device map has it, `make wiring-freeze CP="CP 123"`, then swap its virtual devices for the physical ones through the device map (`jmri_name`), with stock SML discovery and the owner's approval of the panel and desks. CP 123, 211, 217 and 223 can be frozen now. Wiring flows one way (rules, proposal in the generated rows, `make wiring-freeze`, `wiring.csv`, device map), and `check_wiring_frozen.py` fails when `wiring.csv` changes any other way.
+
 ## Refresh
 
 ```bash
-python3 tools/schematic/build_device_map.py    # devices.csv's wiring cells, staging's from wiring.csv
+make panels    # runs build_device_map.py (device-map step): the device master's wiring cells, staging's from wiring.csv
 python3 tools/wiring/write_inventory.py        # v86 (tools/check.sh fails while it is stale)
-python3 www/scripts/build_wiring_json.py       # the website's wiring viewer
+make site-data                                 # the website's wiring viewer data, for the local preview (not committed, ADR-036)
 # needs python-pptx:
 python3 tools/wiring/create_wiring_schematic_ppt.py
 ```
+
+The three outputs come from one model and do not depend on each other: `write_inventory.workbook()` builds the inventory's sheets in memory from the device master, `wiring.csv` (`hartlib.wiring`), `lcos_nodes.csv` and `signal_head_plan.csv`. `write_inventory.py` saves them as v86; the viewer JSON and the deck read the same sheets from memory, so they never wait on a v86 refresh and never read a stale one (ADR-039).
 
 A wiring change is a row of `jmri/layouts/hart/data/wiring.csv` (`hartlib.wiring`): a staging device moved or added, or a main or upper device once it is wired. When a main or upper control point is wired as the device map has it, freeze it: `make wiring-freeze CP="CP 123"` (`tools/wiring/freeze_wiring.py`) copies its turnouts, feedback, heads and detectors into `wiring.csv` as wired rows, and `build_device_map.py` keeps those values from then on. A control point with a head the board rule could not place cannot be frozen until that head has a place. Refresh only after the JMRI XML is applied, so the workbooks match the live beans. For Signal Manager punching, use `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx`.
 
@@ -230,11 +241,11 @@ python3 tools/wiring/node_grid_svg.py
 
 ## History: what v85 changed vs Desktop v84 (frozen)
 
-v85 and its refresh from the v84 import are history since 2026-11-20: v86 is written from `wiring.csv`, and the v84 snapshots and the refresh code are in `archive/docs/wiring-imported/` and `archive/tools-wiring/`.
+v85 and its refresh from the v84 import are history since 2026-11-20: v86 is written from `wiring.csv`, and the v84 snapshots and the refresh code are in `archive/data/wiring-imported/` and `archive/code/wiring-refresh/`.
 
 
 - Lower-deck **BlockSensors** names follow the panel: Scale, Barn, S-1…S-5, W-1/W-2, EH-1…EH-3, OS 100… (MQTT `Block n-n` stays in Notes).
 - **DNOU8** ports listed in `signal_wiring.csv` are overlayed as searchlight heads (replacing planned RGB on those ports). Previous RGB label is kept in Notes.
 - **D1-OU2/OU3** Princess rows were a mistaken overlay (D1 is DCC radio 5, now labeled **D5**). Princess is on C1; do not recreate D5 signal boards.
 - Upper-deck RGB is labeled as defined heads on CP4 / CP5 / CP6 using CTC numbers from 62 up (`64R`, `70RB`, …). 66RA+66RB share Switch 65; 70RB is Switch 69 reverse; 74RB is Switch 73 reverse.
-- **Node ID = radio Address**. Digicon heads: C4 Brick+Plane, C13 Barn, C12 East End 34, C2 East End west 24, C1 Princess west, C11 Princess east + balloon. v84 sequential C1–C13 IDs live in **Legacy Node ID** and `archive/docs/wiring-imported/`.
+- **Node ID = radio Address**. Digicon heads: C4 Brick+Plane, C13 Barn, C12 East End 34, C2 East End west 24, C1 Princess west, C11 Princess east + balloon. v84 sequential C1–C13 IDs live in **Legacy Node ID** and `archive/data/wiring-imported/`.

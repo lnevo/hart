@@ -1,5 +1,5 @@
 """The CATS desk bindings each level's builder gives, on the committed railroad (the sheet, tables.xml, devices.csv,
-switches.csv, main_upper_masts.csv), held to cats/panels/HART_CTC.bindings.json part by part: the
+switches.csv, masts.csv), held to cats/panels/HART_CTC.bindings.json part by part: the
 staging switches, OS blocks, destinations, half labels, blocks and masts, and the main and upper switches, blocks,
 helix blocks and masts. These pin the builders' behaviour so they can be merged into one without a desk changing.
 They go through build_cats_panel (the names it exports), so they hold for any module layout behind it.
@@ -18,6 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import build_cats_panel as B  # noqa: E402
+from hartlib import level_devices  # noqa: E402
 
 BUILT = {}
 PLUGIN = B.pd.REPO / "external/model-railroad-skills/plugins/schematic-maps"     # where publish_draft.plugin looks
@@ -60,16 +61,16 @@ class Whole(unittest.TestCase):
 
     def test_the_counts_follow_the_sources(self):
         """One staging switch binding per staging row of switches.csv, the main and upper ones the internal turnouts of
-        tables.xml, one mast per drawn staging mast and visible main_upper_masts.csv row."""
+        tables.xml, one mast per drawn staging mast and visible main or upper masts.csv row."""
         k = built()
         c, F = k["committed"], k["F"]
         self.assertEqual(sum(staging_turnout(e) for e in c["switches"].values()),
                          sum(len(sw.legs) for sw in F.switches.values()))
         level = {B.bdm.base(key) for key, e in c["switches"].items() if not staging_turnout(e)}
         self.assertEqual(level, {u.removeprefix("Switch ") for u, sn in F.turnouts.items()
-                                 if sn.startswith(B.LEVEL_TURNOUT)})
+                                 if sn.startswith(level_devices.TURNOUT_PREFIX)})
         staging_masts = [sg for sg in k["bands"][k["bi"]][2].get("signals") or () if sg["kind"] != "virtual"]
-        self.assertEqual(len(c["masts"]), len(staging_masts) + len(B.level_masts.visible_names()))
+        self.assertEqual(len(c["masts"]), len(staging_masts) + len(B.level_masts.visible_names(levels=(2, 3))))
 
 
 class StagingSwitches(unittest.TestCase):
@@ -77,7 +78,8 @@ class StagingSwitches(unittest.TestCase):
         k = built()
         self.F, self.band, self.opts = k["F"], k["bands"][k["bi"]][1], k["bands"][k["bi"]][2]
         self.committed = k["committed"]
-        self.os_of = B.os_blocks(self.band, self.F)
+        self.stored = B.staging_names(self.band, B.pd.DATA)
+        self.os_of = B.os_blocks(self.band, self.F, self.stored)
 
     def test_os_blocks_one_per_switch_node(self):
         nodes = {n for n, d in self.band["nodes"].items() if d["kind"] == "switch"}
@@ -87,14 +89,14 @@ class StagingSwitches(unittest.TestCase):
         self.assertEqual(set(self.os_of.values()), legs)              # every staging row of switches.csv drawn once
 
     def test_switch_bindings_are_the_committed_staging_ones(self):
-        got = B.switch_bindings(self.band, self.F, self.os_of)
+        got = B.switch_bindings(self.band, self.F, self.os_of, self.stored)
         want = {k: e for k, e in self.committed["switches"].items() if staging_turnout(e)}
         self.assertEqual(got, want)
 
     def test_half_labels(self):
         """A switch with several staging rows of switches.csv is drawn as halves, labelled its number and A, B, ... one per
         row; a switch with one row has no label."""
-        got = B.switch_bindings(self.band, self.F, self.os_of)
+        got = B.switch_bindings(self.band, self.F, self.os_of, self.stored)
         by_number = {}
         for key, e in got.items():
             number = int(key.split("/")[0])
@@ -103,7 +105,7 @@ class StagingSwitches(unittest.TestCase):
             if "label" in e:
                 by_number.setdefault(number, set()).add(e["label"])
                 leg = next(l for l in sw.legs if l.os_block == e["block"])
-                self.assertEqual(B.half_label(sw, leg), e["label"])
+                self.assertEqual(B.half_label(sw, leg, self.F.half_letters), e["label"])
         self.assertTrue(by_number)
         for number, labels in by_number.items():
             self.assertEqual(labels, {f"{number}{c}" for c in "ABCD"[:len(self.F.switches[number].legs)]})
@@ -111,14 +113,14 @@ class StagingSwitches(unittest.TestCase):
     def test_destinations_are_the_closed_and_thrown_legs(self):
         """Each staging switch's legs B and C lead to its switches.csv closed and thrown blocks, the closed one
         on the leg its binding closes the turnout for."""
-        got = B.switch_bindings(self.band, self.F, self.os_of)
+        got = B.switch_bindings(self.band, self.F, self.os_of, self.stored)
         by_block = {e["block"]: (k, e) for k, e in got.items()}
         dests = set()
         for n, os_name in sorted(self.os_of.items()):
             d = self.band["nodes"][n]
             sw = self.F.switches[int(d["label"])]
             leg = next(l for l in sw.legs if l.os_block == os_name)
-            to = {p: B.dest(self.band, self.os_of, n, p, self.F.helix) for p in "BC"}
+            to = {p: B.dest(self.band, self.os_of, n, p, self.F.helix, self.stored) for p in "BC"}
             with self.subTest(os=os_name):
                 self.assertEqual(sorted(to.values()), sorted((leg.closed, leg.thrown)))
                 _key, e = by_block[os_name]
@@ -127,27 +129,39 @@ class StagingSwitches(unittest.TestCase):
             dests |= set(to.values())
         # the helix tracks lead up the helix as one block each (owner, 2026-11-20)
         self.assertLessEqual(set(self.F.helix.values()), dests)
-        self.assertFalse({"Track " + plan for plan in self.F.helix} & dests)
+        self.assertEqual(set(self.F.helix.values()), {"Track " + plan for plan in self.F.helix})    # the ordinary rule
 
 
 class Helix(unittest.TestCase):
     def test_the_helix_blocks(self):
-        """Each helix track of helix_tracks.csv is its block on staging: by track_block, and by helix_block on the
+        """Each helix track is its block on staging: by track_block, and by helix_block on the
         staging band's strands of that plan name; any other track is Track <name>."""
         k = built()
-        helix = B.bdm.mast_rule.read_helix_tracks()          # helix_tracks.csv rows, as dark_bindings reads them
-        self.assertTrue(helix)
+        helix = B.bdm.mast_rule.read_helix_tracks()          # by plan name, as dark_bindings reads them
+        self.assertEqual(set(helix), {"Helix Outer", "Helix Inner"})
         self.assertEqual(k["F"].helix, {plan: h["block"] for plan, h in helix.items()})
         for plan, h in helix.items():
             self.assertEqual(B.track_block(plan, k["F"].helix), h["block"])
         self.assertEqual(B.track_block("K-2", k["F"].helix), "Track K-2")
         band = k["bands"][k["bi"]][1]
+        stored = B.staging_names(band, B.pd.DATA)
         found = {}
         for sid, s in band["strands"].items():
-            got = B.helix_block(band, ("track", f"b{k['bi']}:{sid}"), helix)
+            got = B.helix_block(("track", f"b{k['bi']}:{sid}"), helix, stored)
             if got:
                 found.setdefault(got, set()).add(s["name"])
         self.assertEqual(found, {h["block"]: {plan} for plan, h in helix.items()})
+        # the name store's names, by strand ID, not the drawing's
+        drawn = {sid: s["name"] for sid, s in band["strands"].items() if s["name"]}
+        self.assertEqual({sid: n for sid, n in stored.items() if sid in drawn}, drawn)
+        key = lambda sid: ("track", f"b{k['bi']}:{sid}")         # noqa: E731
+        drawn_helix = next(sid for sid, n in drawn.items() if n in helix)
+        plain = next(sid for sid, s in band["strands"].items() if not s["name"])
+        # a strand drawn with a helix name but stored as another track (or not at all) is no helix block
+        self.assertIsNone(B.helix_block(key(drawn_helix), helix, {**stored, drawn_helix: "K-2"}))
+        self.assertIsNone(B.helix_block(key(drawn_helix), helix, {}))
+        # a strand drawn with no name that the store names a helix track is that helix block
+        self.assertEqual(B.helix_block(key(plain), helix, {plain: "Helix Outer"}), helix["Helix Outer"]["block"])
 
     def test_each_helix_block_is_bound_once_from_the_device_map(self):
         blocks = built()["committed"]["blocks"]
@@ -163,7 +177,9 @@ class Blocks(unittest.TestCase):
     def setUp(self):
         k = built()
         self.k = k
-        out_sw = B.switch_bindings(k["bands"][k["bi"]][1], k["F"], B.os_blocks(k["bands"][k["bi"]][1], k["F"]))
+        band = k["bands"][k["bi"]][1]
+        self.stored = B.staging_names(band, B.pd.DATA)
+        out_sw = B.switch_bindings(band, k["F"], B.os_blocks(band, k["F"], self.stored), self.stored)
         named = {key: {"block": v["block"]} for key, v in out_sw.items()}
         level_sw = self.level_switches()
         named.update({key: {"corners": v["corners"]} for key, v in level_sw.items() if "corners" in v})
@@ -178,9 +194,9 @@ class Blocks(unittest.TestCase):
 
     def test_staging_and_main_upper_blocks_are_the_committed_ones(self):
         k = self.k
-        dark, log, missing, joined = B.dark_bindings(k["bands"], k["cats"], self.P, k["F"], k["bi"])
+        dark, log, missing, joined = B.dark_bindings(k["bands"], k["cats"], self.P, k["F"], k["bi"], self.stored)
         names = {key: v for key, v in self.P.names.items() if key[1].startswith(f"b{k['bi']}:") and key not in joined}
-        staging = B.block_bindings(k["bands"][k["bi"]][1], k["F"], names)
+        staging = B.block_bindings(k["bands"][k["bi"]][1], k["F"], names, self.stored)
         self.assertFalse(set(staging) & set(dark))
         self.assertEqual(dict(staging, **dark), k["committed"]["blocks"])
         self.assertEqual(missing, k["committed"]["_main_upper_not_on_desk"])
@@ -195,8 +211,16 @@ class Blocks(unittest.TestCase):
     def test_main_upper_switches_are_the_committed_ones(self):
         want = {key: e for key, e in self.k["committed"]["switches"].items() if not staging_turnout(e)}
         self.assertEqual(self.level_switches(), want)
-        self.assertEqual({e["routes"]["B"]["ROUTECOMMAND"]["JMRIPREFIX"] for e in want.values()},
-                         {B.LEVEL_TURNOUT_PREFIX})
+        self.assertEqual({e["routes"]["B"]["ROUTECOMMAND"]["JMRIPREFIX"] for e in want.values()}, {"IT"})
+
+    def test_a_switch_takes_the_turnout_tables_xml_holds_for_it(self):
+        """A main or upper switch binds whatever turnout its row gives tables.xml (a swap to a physical turnout is
+        one row edit, ADR-028), split into the desk's JMRIPREFIX and DECADDR."""
+        self.assertEqual(("IT", ":HART:C3:107"), B.split_system_name("IT:HART:C3:107"))
+        self.assertEqual(("M2T", "3308"), B.split_system_name("M2T3308"))
+        self.assertEqual(("MT", "T100"), B.split_system_name("MTT100"))
+        with self.assertRaises(SystemExit):
+            B.split_system_name("Switch 107")
 
 
 class Masts(unittest.TestCase):
@@ -206,7 +230,7 @@ class Masts(unittest.TestCase):
         level = B.level_mast_bindings(k["bands"], k["F"], k["bi"])
         self.assertFalse(set(staging) & set(level))
         self.assertEqual(dict(staging, **level), k["committed"]["masts"])
-        self.assertEqual({e["name"] for e in level.values()}, B.level_masts.visible_names())
+        self.assertEqual({e["name"] for e in level.values()}, B.level_masts.visible_names(levels=(2, 3)))
 
     def test_intermediates_stand_on_their_own_loop_half(self):
         """The APB intermediates (rows with no switch) stand at a turnback, on an edge of their loop half's own."""
@@ -226,6 +250,54 @@ class Masts(unittest.TestCase):
                 self.assertEqual(sg["toward"], "")
                 self.assertEqual(sg["dir"], rows[name]["dir"])
                 self.assertEqual(sg["heads"], len(rows[name]["heads"]))
+
+
+class LoopHalvesByID(unittest.TestCase):
+    """Naming-layers step 13: a balloon loop half on the desk takes its block's name by ID through the one reader
+    (hartlib.drawing_keys over the master its Facts.device was read from), so an owner's name in the field file
+    reaches it; a master whose keys do not read stops naming the file."""
+
+    def test_an_owners_name_reaches_the_loop_half(self):
+        import csv
+        import shutil
+        import tempfile
+        from types import SimpleNamespace
+        from hartlib import devices
+        k = built()
+        halves = {s["name"] for _t, band, _o in k["bands"] for s in band["strands"].values() if s.get("loop_half")}
+        self.assertIn("107 Loop 1", halves)
+        with tempfile.TemporaryDirectory() as tmp:
+            data = Path(tmp)
+            here = devices.Files.here()
+            for src in (here.master, here.dictionary, here.field):
+                shutil.copy(src, data / src.name)
+            field = devices.field_path(data)
+            rows = list(csv.DictReader(io.StringIO(field.read_text(encoding="utf-8"))))
+            row = dict.fromkeys(rows[0], "")
+            row.update(level="2", layer="block", id="block:107B-107C#1", user_name="Track Balloon East")
+            field.write_text(devices.master_text(rows + [row]), encoding="utf-8")
+            device = SimpleNamespace(path=devices.master_path(data))
+            bands = B.name_loop_halves(B.pd.solved_sheet(B.plugin_modules(B.pd.plugin())[1]).bands, device)
+            named = {s["name"] for _t, band, _o in bands for s in band["strands"].values() if s.get("loop_half")}
+            self.assertIn("Balloon East", named)
+            self.assertNotIn("107 Loop 1", named)
+            cp = sys.modules["cats_panel"]
+            self.assertEqual(cp.part_blocks(device), cp.part_blocks())
+            self.assertEqual(cp.part_blocks(B.DeviceMap()), {})         # a map made in memory holds no part
+            with self.assertRaisesRegex(SystemExit, "made in memory"):
+                cp.drawn_keys(B.DeviceMap())
+            # read once per device map: the desk build asks for every block (code review of step 14)
+            from unittest import mock
+            fresh = SimpleNamespace(path=devices.master_path(data))
+            with mock.patch.object(cp.drawing_keys, "read", wraps=cp.drawing_keys.read) as read:
+                self.assertIs(cp.drawn_keys(fresh), cp.drawn_keys(fresh))
+                cp.block_names(fresh)
+            self.assertEqual(read.call_count, 1)
+        from unittest import mock
+        bad = cp.drawing_keys.DrawingKeyError("Track 107 Loop 2 (level 2, block) has no trial_name")
+        with mock.patch.object(cp.drawing_keys, "read", side_effect=bad), \
+                self.assertRaisesRegex(SystemExit, r"devices_generated\.csv: Track 107 Loop 2 .* has no trial_name"):
+            B.name_loop_halves(k["bands"])
 
 
 if __name__ == "__main__":

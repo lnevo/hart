@@ -26,7 +26,7 @@ Sandbox (agent tests), then UAT (the owner approves), then live. This covers cod
 
 - Do not rebuild on the Pi while the owner is operating. A rebuild loads the Pi (JMRI, Mosquitto, Apache and MariaDB run there) for some minutes.
 - The sts-helpers never run on the Pi.
-- Docker on the Pi is the static 64-bit build (`tools/hosts/pi_docker_static.sh`, `--status` to look); `apt upgrade` does not update it.
+- Docker on the Pi comes from Docker's apt repository on 64-bit trixie since 2026-11-23 (ADR-032); `apt upgrade` updates it.
 
 ## After a session
 
@@ -43,5 +43,5 @@ Name the stack each step ran on, the commit or calls applied, the owner's UAT ap
 ## Sources
 
 - `wiki/decisions/ADR-020-live-sts-on-the-pi.md` (with the 2026-11-11 and 2026-11-12 amendments)
-- `tools/hosts/pi_sts_update.sh`, `tools/hosts/pi_sts_pull_backups.sh`, `tools/hosts/pi_docker_static.sh`
+- `tools/hosts/pi_sts_update.sh`, `tools/hosts/pi_sts_pull_backups.sh`, `wiki/decisions/ADR-032-pi-os-trixie-64-bit.md`
 - The `sts:sts-api` skill for the operating cycle and API details

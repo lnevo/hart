@@ -1,13 +1,13 @@
 # ADR-029 — `tables.xml` is an output of one device master and a template
 
-- **Status:** Accepted
+- **Status:** Accepted. Amended 2026-11-21: the device master is two files (see the amendment at the end; built 2026-11-21).
 - **Date:** 2026-11-20
 - **Deciders:** lnevo
 - **Builds on:** ADR-008 (one tables file), ADR-014 (hosts load `preference:tables.xml`), ADR-027 (staging from its device map), ADR-028 (main and upper on virtual devices)
 
 ## Context
 
-Device facts are kept three times: `public_name_map.csv`, `device_map_staging.csv` and `device_map_main_upper.csv` each hold parts of them, and `tables.xml` holds them again. The DCC group is parsed from JMRI comments, and the build finds its own items by comment and name. Staging has no generator: `build_layout_le.py` builds on the live `tables.xml`, so for staging `tables.xml` is still a source. The inventory and design are in the project-health hand-off, row 9 ([`projects/project-health-handoff.md`](../projects/project-health-handoff.md)).
+Device facts are kept three times: `public_name_map.csv`, `device_map_staging.csv` and `device_map_main_upper.csv` each hold parts of them, and `tables.xml` holds them again. The DCC group is parsed from JMRI comments, and the build finds its own items by comment and name. Staging has no generator: `build_layout_le.py` builds on the live `tables.xml`, so for staging `tables.xml` is still a source. The inventory and design are in the project-health hand-off, row 9 ([`projects/project-health-handoff.md`](../../archive/history/wiki/projects/project-health-handoff.md)).
 
 ## Decision
 
@@ -50,4 +50,35 @@ The `AGENTS.md` rule "fix the data in `tables.xml`" becomes "fix the source data
 
 ## Open
 
-- R9b to R9e are built in that order ([`projects/project-health-handoff.md`](../projects/project-health-handoff.md)). The level-unification mast builder (step 2) waits on R9b.
+- R9b to R9e were built in that order and are done (2026-11-21; [`project-health-handoff.md`](../../archive/history/wiki/projects/project-health-handoff.md)). `devices.csv` in the Decision above is now two files, merged by `hartlib.devices` (amendment below).
+
+## Amendment 2026-11-21: the device master is two files
+
+Decided by the owner on 2026-11-21, from the pipeline-efficiency review (T6a). Built on 2026-11-21 (branch `agent/claude/devices-two-files`): the merged view of the two files is the last `devices.csv` byte for byte, and `make panels` gives every output unchanged.
+
+**Why:** No row of `devices.csv` is hand-kept any more, because the builders took over the last ones on 2026-11-20. The owner's facts survive only as staging cells that `build_device_map.py` and the mast builder copy forward from the file's previous contents. So each builder reads its own last output to recover the owner's cells, and a Store split writes into a file the builders also write.
+
+**Decision:**
+- `devices_generated.csv` holds every row, written only by the build scripts. `written_by` still names the owning script.
+- `devices_field.csv` holds the owner's cells. Each row is keyed by (`level`, `layer`, `user_name`) and carries only the hand-owned columns (amended by ADR-033, naming-layers step 4, 2026-11-25: a row is keyed by (`level`, `id`), the device's ID from the plan, and `user_name` is one of the owner's cells): `dcc`, `layout_block`, `jmri_comment`, `notes`, `detector`, `stop` and `cp`; `system_name` and `jmri_name` on staging blocks; and the node and notes of a wired mast or head. A device added in PanelPro and taken in by a Store split is kept here in full, with no level and its `jmri_bean`.
+- `hartlib.devices` merges the two into the one view every reader gets. A field cell wins over the generated one.
+- Builders read `devices_field.csv` as an input and write `devices_generated.csv`. They never read their own last output.
+- `split_store.py` writes only to `devices_field.csv` and the template.
+- Checks and messages name a row by its key, not a line number. The row-order rule applies to each file on its own.
+
+**What changes in this ADR:** "one structure" now means one merged view, not one file. An empty `written_by` no longer marks a hand row (there are none), and the `adopts` mechanism goes. `devices.columns.csv` describes both files.
+
+**As built (2026-11-21):**
+- `FIELD_COLUMNS` are the cells the builders carried before: `role`, `assignment`, `cp`, `system_name`, `jmri_name`, `node`, `dcc`, `jmri_comment`, `trial_name`, `notes`, `detector`, `stop`, `layout_block`. The field file has 170 rows: staging's 80 turnouts, LCC aliases and feedback sensors, 45 blocks and 43 occupancy sensors (each with its identity, `role` and `assignment`), the wired Mast 6LB's node and Head 6LB's notes. `devices.columns.csv` says which file may hold each column. `tools/schematic/split_device_master.py` made the split once; it and its test were deleted on 2026-11-22 (see git history at commit 6889bf0c), and `hartlib.devices` checks the column rule.
+- A wired block's comment is the owner's words with `{occupancy}` where the builder puts the detector's `wiring.csv` text, so a moved pin changes no hand file (`hartlib.devices.OCCUPANCY_MARK`).
+- A spare detector has no field row: `wiring.csv`'s spare inputs make it, and it holds no owner cell.
+- The one read-back a builder makes of its own output is its name numbering (`hartlib.devices.allocated_names`): staging parts' block and layout-block numbers and the virtual masts' ordinals on every level. The builders cannot write the owner's file, and numbering again would shift names, so they keep the numbers they gave. No owner cell is ever read back.
+- A block that becomes a part stops the build while its field rows stand, naming them: its names and comment are the owner's and would be lost. Once the owner removes them, its input becomes a spare.
+- A writer does not read the old merged view, so a field row the owner removed or renamed never blocks the rebuild that makes the pair whole again.
+
+**Acceptance:** the split is a pure refactor. `tables.xml`, the CATS desks, the Layout Editor panel and the approved fingerprints come out byte-identical, so the owner approves nothing again.
+
+
+**Amended by ADR-033, naming-layers step 7 (2026-11-25):** a staging device no longer needs a field row. The builder makes every level's rows from the plan and puts each device's field row over its generated row by id, so the owner's values still win and a device with no field row keeps the generated values (a staging block is numbered as a part is, a staging turnout is bound to its address). A field row is the owner's cells only; the main and upper builder takes the owner's name the same way. `FIELD_LEVEL` is gone.
+
+**Amended by ADR-033, naming-layers step 11 (2026-11-25):** one bean process. `hartlib.tables_build.base` makes every level's beans from the device master (`master_beans`, and the startup LogixNG, `start_logixng`); the Layout Editor build adds only the panels and checks that every name they bind is a bean of the base. `GENERATED_LEVELS` and `le_tables.add_level_*` are gone, and with them the build's strip of its own beans from earlier tables (`strip_build_owned`): the build never starts from `tables.xml`.

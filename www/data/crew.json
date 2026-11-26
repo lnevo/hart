@@ -1,5 +1,5 @@
 {
-  "_note": "Hand-maintained from ops/hart-ops/publications/rebuild_*.py (crew dict, YM, DS, TT-23) and the published docx/pptx. The rebuild scripts and docx stay canonical; regenerate this file from them when they change.",
+  "_note": "Built from ops/hart-ops/data/crew.json and ops/hart-ops/data/industries.csv by ops/hart-ops/publications/build_crew_json.py (ADR-039). Edit those, then rebuild; never edit this file.",
   "colors": [
     {
       "id": "blue",
@@ -1060,7 +1060,7 @@
         "label": "CR 1993 · GE B23-7",
         "img": "assets/crew/loco-cr-1993-thumb.jpg"
       },
-      "summary": "CSX turn between Demmler / McKeesport and Neville Island. The train starts tied down in West Yard. Deliver the Demmler inbound to South Yard, hostle the engine to the engine terminal, then return for the Demmler / McKeesport outbound block, depart eastbound toward McKeesport, and terminate again in West Yard. D749 is a real CSX train number; this job's work is invented for the layout.",
+      "summary": "CSX turn between Demmler / McKeesport and Neville Island. The train starts tied down in West Yard. Deliver the Demmler inbound to South Yard, hostle the engine to the engine terminal, then return for the Demmler / McKeesport outbound block, depart toward McKeesport, and terminate again in West Yard. D749 is a real CSX train number; this job's work is invented for the layout.",
       "steps": [
         "Find the train tied down in West Yard with the inbound Demmler block.",
         "Obtain dispatcher clearance and run the inbound to South Yard.",
@@ -1233,14 +1233,14 @@
         }
       ],
       "colors": [
-        "blue",
         "yellow",
         "green",
         "purple",
         "red",
         "pink",
-        "black",
-        "orange"
+        "blue",
+        "orange",
+        "black"
       ],
       "maps": [
         "south-yard",
@@ -1256,7 +1256,16 @@
           "why": "When road moves will cross the shared leads at South Yard."
         }
       ],
-      "source": "../docs/ops/Neville_Island_Yardmaster_Sequence.docx"
+      "source": "../docs/ops/Neville_Island_Yardmaster_Sequence.docx",
+      "legend_extra": [
+        {
+          "label": "NONE",
+          "hex": "#FFFFFF",
+          "ink": "#000000",
+          "dest": "No card color",
+          "train": "Yard storage"
+        }
+      ]
     },
     {
       "id": "dispatcher",
@@ -1425,7 +1434,7 @@
     "svg": "crew/maps/schematic/system-schematic.svg",
     "pdf": "crew/maps/schematic/system-schematic.pdf",
     "alt": "System schematic of the whole layout: staging, main level and upper level, with switch numbers, track names and masts.",
-    "revision": "18",
-    "effective": "20 November 2026"
+    "revision": "19",
+    "effective": "25 November 2026"
   }
 }

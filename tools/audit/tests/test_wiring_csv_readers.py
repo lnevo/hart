@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
 
 from hartlib import devices  # noqa: E402
-from hartlib.railroad import DEVICE_COLUMNS, FactsError  # noqa: E402
+from hartlib.railroad import FactsError  # noqa: E402
 
 
 def load(name: str, rel: str):
@@ -46,7 +46,7 @@ class Case(unittest.TestCase):
         rows = plain(source)
         keep = [c for c in rows[0] if c != column]
         self.assertLess(len(keep), len(rows[0]), f"{source.name} has no column {column}")
-        out = self.tmp / source.name
+        out = self.tmp / (devices.ONE_FILE if source.name == devices.GENERATED_FILE else source.name)   # one file
         with out.open("w", newline="", encoding="utf-8") as fh:
             w = csv.DictWriter(fh, keep, extrasaction="ignore", lineterminator="\n")
             w.writeheader()
@@ -102,7 +102,7 @@ class BadHeader(Case):
     def test_a_node_level_that_is_no_level_stops(self) -> None:
         bad = self.tmp / "nodes.csv"
         bad.write_text(AM.NODES.read_text(encoding="utf-8") + "4,North,62,\n", encoding="utf-8")
-        with self.assertRaisesRegex(FactsError, r"nodes.csv line \d+: level is 1, 2 or 3, not '4'"):
+        with self.assertRaisesRegex(FactsError, r"nodes.csv line \d+: level is 1, 2 or 3 \(staging, main, upper\), not 4"):
             AM.read_node_rows(bad)
 
     def test_a_row_longer_than_the_header(self) -> None:

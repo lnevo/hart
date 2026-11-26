@@ -25,9 +25,13 @@ Examples: `agent/composer/naming-csv`, `spike/duplicate-blocks`.
 2. Agents do not push to `main`. `main` takes a change only through a pull request whose `check` has passed on its last commit, and since 2026-11-17 that holds for admins too (branch protection "Do not allow bypassing"), so `gh pr merge` from the owner's account is refused until the check passes.  
 3. Do not amend pushed commits.  
 4. Every agent works in its own worktree, `.claude/worktrees/<topic>/` (`make wt TOPIC=<topic>`, or `isolation: "worktree"` for a subagent). Never edit, commit or switch branches in the main checkout; it stays on `main` for pulls and deploys, and hooks enforce it. A second session in a shared checkout can switch the branch under the first, so its next commit lands on the wrong branch. Merged, clean worktrees are removed after `gh pr merge` and at session start (`tools/agent/worktrees.py`). The sweep finds a worktree by its branch, so one switched to a detached `origin/main` (to deploy from it) is never swept: remove it by hand once it is clean.  
+   Cursor: `make wt TOPIC=<topic> AGENT=cursor`, then open that folder as the workspace.  
+   The sweep removes a merged worktree and its local branch once the merge is 30 minutes old; one with uncommitted work or new commits, and the running session's own, are kept (`make wt-sweep` runs it by hand). Claude Code locks each `agent-<id>` worktree to its session's pid: the sweep keeps it while that session runs and removes it once the session has exited and the worktree has sat untouched for an hour. A long session clears its own merged agent worktrees with `git worktree unlock <path>` and then `make wt-sweep`, which keeps the checks for uncommitted work and unpushed submodule commits.  
    `make wt` checks out the `model-railroad-skills` submodule the schematic and Layout Editor checks import; in a worktree it did not make (a subagent's), `tools/check.sh` checks it out on its first run.  
-5. **Close-out:** the definition of done in [`AGENTS.md`](../AGENTS.md).  
-6. Update `wiki/` when a decision changes; chat is not SoR.
+   `docs/pipeline-map/pipeline_map.json` merges itself locally by box id and link ends (`tools/ops/merge_pipeline_map.py`, a git merge driver set in the shared git config by `make wt` and the session-start hook; `--install` sets it by hand). GitHub never runs it: when a PR shows a conflict there, merge `origin/main` into the branch locally and run `python3 tools/ops/build_pipeline_map.py --check`. The map pages are built, not committed (`make map` for a local look; [ADR-036](decisions/ADR-036-generated-views-not-committed.md)).  
+5. **Who works on what:** `make orient` (`tools/ops/orient.py`) prints the claims, every worktree with commits not on `origin/main` or locked by a running session (branch, last commit, lock, PR), the operating flag, what each layout host last got, the open PRs, and what a host holds that is waiting to come into the repo (one line per source with the command that pulls it in: a PanelPro Store on the Pi or the Mac, the Pi's Operations Pro files, the DecoderPro roster against the Mac copy; the live STS is not checked, and the line says why), asked read-only of the checks the pulls and the deploy gate make; a part it cannot read, or a Pi that does not answer, is one line. The session-start hook prints the claims and worktrees only, with no network. A claim is one line directly under the `Status:` line of an active `wiki/projects/` page, `Claimed: <branch>, <absolute worktree path>, since YYYY-MM-DD HH:MM`; more claims follow each other. `orient.py claim <page>` writes it in your worktree when you start on that project and `orient.py unclaim <page>` removes it in the commit that ends the work, so main never carries one. Orient reads every worktree's copy of the pages, committed or not, so a claim shows as soon as it is written; one whose worktree is gone or on another branch shows as stale, and a malformed or misplaced line, or a claim on a page that is not active, as a problem.  
+6. **Close-out:** the definition of done in [`.claude/commands/done.md`](../.claude/commands/done.md) (`/done`).  
+7. Update `wiki/` when a decision changes; chat is not SoR. Each status entry is its own file under `wiki/status/` ([README](status/README.md), ADR-038), so branches that each add an entry do not conflict and two that edit one entry get a real conflict; `wiki/STATUS.md` is built (`make status`) and not committed. A branch from before the split that edited `wiki/STATUS.md` moves its edit into the entry file and runs `git rm wiki/STATUS.md`. `wiki/STATUS_LOG.md` still merges with git's union driver (`.gitattributes`).
 
 ## Hooks
 
@@ -39,13 +43,14 @@ A fresh clone needs `git config core.hooksPath .githooks` to enable the pre-comm
 
 | What | Where | Holds |
 |------|-------|-------|
-| Rules for every tool | `AGENTS.md` | Commands, close-out, do-nots |
-| Scoped rules | `cats/AGENTS.md` | Only what applies under that folder |
+| Rules for every tool | `AGENTS.md` | Daily commands, the close-out rule, owner, subagents, do-nots; capped by `check_agent_docs.py` |
+| Close-out steps | `.claude/commands/done.md` | The definition of done; Cursor's close-out points at it |
+| Scoped rules | `cats/`, `jmri/`, `tools/schematic/`, `ops/hart-ops/` `AGENTS.md` | Only what applies under that folder; loaded when a session works there |
 | Cursor | `.cursor/rules/close-out.mdc`, `.cursor/commands/done.md`, `.cursor/hooks.json`, `.cursor/hooks/main_guard.py` | Pointers, plus a hook that runs the Claude guard's rules on every shell command; Cursor also reads `AGENTS.md`. When a rule or guard changes, carry it here too |
 | Claude Code | `.claude/commands/done.md`, `.claude/settings.json`, `.claude/hooks/main_guard.py` | Pointer and guard hook; Claude Code reads `AGENTS.md` |
-| Subagents | `.claude/agents/` | Five project agents; see below |
+| Subagents | `.claude/agents/` | The project agents; see below |
 | Facts and decisions | `wiki/`, ADRs | Never in chat or tool memory |
-| Build handoffs | `docs/benchwork/helix/` | Update `HART_Neville_Helix_BUILD_STATUS.md` in place; old handoffs go to `archive/docs/benchwork/helix/history/` |
+| Build handoffs | `docs/benchwork/helix/` | Update `HART_Neville_Helix_BUILD_STATUS.md` in place; old handoffs go to `archive/history/helix/` |
 | Tool memory | Per-machine, outside git | Preferences only. Anything every agent needs goes in `AGENTS.md` or an ADR |
 | Submodules | Their own repos | `external/*` rules travel with each repo |
 
@@ -58,11 +63,16 @@ A fresh clone needs `git config core.hooksPath .githooks` to enable the pre-comm
 | `panel-tracer` | Why the panel or signals behave as they do | Read-only | Opus |
 | `repo-auditor` | Dead code, stale docs, structure | Read-only | Sonnet |
 | `archive-researcher` | History and archive proposals | Read-only | Sonnet |
+| `voice-reviewer` | Any text against the writing rules | Read-only | Sonnet |
+| `schematic-builder` | Schematic, panel and device-map code | Edits in a worktree, no commit | Opus |
+| `finding-verifier` | One claimed bug against the code | Read-only | Sonnet |
+| `data-lane` | One ADR-039 data-masters lane outside `tools/schematic/` and `tools/hartlib/` | Edits in a worktree | Opus |
+| `tool-fixer` | Splits with no change in behaviour, and fixes to repo tools and checks where no other agent owns the paths | Edits in a worktree, no commit | Opus |
 
 - The definition holds the standing rules. The brief holds only the goal, the scope and what is already ruled out.
 - The main session commits, pushes, deploys and verifies. `.claude/hooks/subagent_guard.py` blocks those commands in subagents, but `Bash` can still write, so read-only also rests on the agent's instructions.
 - Split a job likely to pass 50 turns into stages. At `maxTurns` the agent stops with partial output and can be resumed.
-- Run builders one at a time. `isolation: "worktree"` branches from `main`, not the current branch, so it suits only work that does not depend on unmerged changes.
+- Agents that edit files may run in parallel, each in its own worktree, when they touch different files and do not need each other's unmerged work (`isolation: "worktree"` branches from `main`, not the current branch). One agent at a time owns a shared generated output (`tables.xml`, panels, `docs/INDEX.md`); the others regenerate it on rebase. Heavy builds and checks go to the Windows box (`make remote`). Mac-only PanelPro jobs (`make panelpro-test`, SML discovery, screenshots) run one at a time across all sessions.
 - Add an agent only when a task recurs. Do not add agents for deploys or live hardware; those stay visible in the main session.
 
 ## JMRI command watcher

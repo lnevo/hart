@@ -1,5 +1,5 @@
-"""build_layout_le.py: the three-level cut-over candidate (--as-live), drawn like the schematic, on the generator's
-base (hartlib.tables_build.base: the template and the staging beans of devices.csv; ADR-029). The all-levels viewing trial these tests once read
+"""build_layout_le.py: the three-level build (levels all), drawn like the schematic, on the generator's
+base (hartlib.tables_build.base: the template and every level's beans of devices.csv; ADR-029, naming-layers step 11). The all-levels viewing trial these tests once read
 (tables_layout.xml) is retired (owner, 2026-11-17); its behaviour checks read the candidate, which test_le_cutover.py
 and test_le_mast_parity.py share."""
 from __future__ import annotations
@@ -21,7 +21,7 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
-from hartlib import level_devices, paths, tables  # noqa: E402
+from hartlib import device_ids, level_devices, paths, tables  # noqa: E402
 from hartlib import railroad as T_railroad  # noqa: E402  the device map's columns
 
 TABLES = paths.TABLES_XML       # the generated tables.xml (build_tables.py), which the build no longer reads
@@ -51,9 +51,9 @@ LIVE_PANEL = "HART Railroad"
 def _level_counts() -> tuple[int, int, int, int]:
     """(blocks, sensors, masts, heads) of the main and upper levels in the committed data: the blocks the build adds,
     the device map's block rows (the 107 Loop's halves, 225's corners and Track 227-241's halves among them) less the
-    helix blocks, which are staging's beans (helix_tracks.csv, 2026-11-20), and the parts (links inside an OS block,
+    helix blocks, which are staging's beans (Track <plan name>, 2026-11-20/21), and the parts (links inside an OS block,
     each a block of its own, step 5 part 2); a virtual sensor for every block row, the helix blocks' too, which the
-    parts share with their OS blocks; and main_upper_masts.csv."""
+    parts share with their OS blocks; and masts.csv."""
     from hartlib import devices
     helix = {h["block"] for h in sys.modules["mast_rule"].read_helix_tracks().values()}
     rows = [r["user_name"] for _n, r in devices.device_map_lines(("2", "3"), B.DEVICE_MAP) if r["layer"] == "block"]
@@ -64,7 +64,7 @@ def _level_counts() -> tuple[int, int, int, int]:
 
 
 LEVEL_BLOCKS, LEVEL_SENSORS, LEVEL_MASTS, LEVEL_HEADS = _level_counts()
-HELIX_BLOCKS = {"Track Helix Outer", "Track Helix Inner"}       # helix_tracks.csv: staging's beans, bound by the build
+HELIX_BLOCKS = {"Track Helix Outer", "Track Helix Inner"}       # the helix tracks: staging's beans, bound by the build
 
 
 @functools.lru_cache(maxsize=None)
@@ -77,20 +77,13 @@ def stripped() -> ET.Element:
     return tables.loads(_stripped_bytes()).root
 
 
+LEVEL_NAMES = B.level_bean_names()      # the system names of the beans the main and upper rows give
+
+
 def is_new(el) -> bool:
-    if el.tag == "LayoutEditor":            # the generated panel replaces the live one: no new panel
-        return False
-    sysname = tables.system_name(el) if el.find("systemName") is not None else (el.get("systemName") or "")
-    if el.tag == "turnout":
-        return sysname.startswith(B.TURNOUT_SYS)
-    if el.tag == "block":
-        return sysname.startswith(B.BLOCK_SYS)
-    if el.tag == "layoutblock":
-        return sysname.startswith("ILB") and sysname[3:].isdigit() and int(sysname[3:]) >= B.LAYOUT_BLOCK_FIRST
-    if el.tag in ("signalhead", "signalmast", "sensor", "LogixNG", "ConditionalNG", "DigitalMany", "ActionSensor",
-                  "ActionTurnout"):
-        return B.is_level_bean(el)
-    return False
+    """A main or upper bean (a bean a main or upper row of the device master gives: le_tables.level_bean_names), which
+    the base holds since naming-layers step 11; the generated panel is never one."""
+    return el.tag != "LayoutEditor" and B.is_level_bean(el, LEVEL_NAMES)
 
 
 def is_new_name(name) -> bool:
@@ -128,10 +121,10 @@ def crossover_legs(facts: dict) -> dict:
 
 @functools.lru_cache(maxsize=None)
 def built():
-    """(candidate bytes, Panel, names, bands) of the three-level cut-over candidate (--levels all --as-live; the
+    """(tables bytes, Panel, names, bands) of the three-level build (levels all, as build_tables.py builds it; the
     approval fingerprint is its own test, test_le_cutover.py): built once for every test module that needs it."""
     with mock.patch.object(B.sdm, "load", wraps=B.sdm.load) as load, contextlib.redirect_stdout(io.StringIO()):
-        out = B.build(levels="all", as_live=True, approved=None)
+        out = B.build(levels="all", as_live=True)
     STAGING_MAP_LOADS.append(load.call_count)
     return out
 
@@ -140,9 +133,17 @@ STAGING_MAP_LOADS: list = []     # sdm.load calls in the one cached build above
 
 
 @functools.lru_cache(maxsize=None)
+def staging_alone():
+    """(tables bytes, Panel, names, bands) of staging drawn alone (levels staging), whose grid the three-level build
+    is drawn at: built once for every test module that needs it."""
+    with contextlib.redirect_stdout(io.StringIO()):
+        return B.build(levels="staging", as_live=True)
+
+
+@functools.lru_cache(maxsize=None)
 def le_window() -> tuple:
-    """(width, height): the window the panels open in, the page's le_window (preferences.json[main_upper]), read by
-    the plugin as the build reads it."""
+    """(width, height): the window the panels open in, the page's le_window (derived from preferences.json[main_upper]
+    host_screen by publish_draft.solved_sheet), read by the plugin as the build reads it."""
     return B.plugin()[1].window(B.schematic()[1])
 
 
@@ -156,7 +157,7 @@ class PagePreferences(unittest.TestCase):
                            ({"le_window": [1900]}, "le_window must be"), ({"le_row": 0}, "le_row must be")):
             bad = {k: v for k, v in dict(page, **prefs).items() if v is not None}
             with self.subTest(prefs=prefs), self.assertRaisesRegex(B.BuildError, why):
-                B.build(as_live=True, approved=None, page=bad)
+                B.build(as_live=True, page=bad)
 
 
 class Built(unittest.TestCase):
@@ -294,10 +295,6 @@ class Built(unittest.TestCase):
                 self.assertEqual(cn.findtext("Socket/systemName"), level_devices.CLEAR_MANY)
                 internal = next(s for s in root.findall("sensors") if "InternalSensorManager" in s.get("class"))
                 self.assertEqual(internal.findtext("defaultInitialState"), "unknown")   # the other lamps unchanged
-        with self.assertRaisesRegex(B.BuildError, "already hold"):
-            B.add_level_clear(tables.read(paths.TABLES_XML), ["IS:HART:C3:B:X"])
-        with self.assertRaisesRegex(B.BuildError, "not all main and upper virtual sensors"):
-            B.add_level_clear(stripped(), ["IS:SML_MODE"])
 
     def test_the_clear_logixng_reader_names_a_broken_action(self) -> None:
         root = tables.read(paths.TABLES_XML)
@@ -307,53 +304,14 @@ class Built(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, f"socket A1 names {re.escape(first)}, which is not an ActionSensor"):
             level_devices.clear_sensors(root)
 
-    def test_the_clear_logixng_takes_exactly_the_sensors_added(self) -> None:
-        """add_level_sensors returns the sensors it bound (only blocks in the tables); add_level_objects stops when
-        that is not every main and upper block's, so the LogixNG never names a sensor the tables lack."""
-        root = stripped()
-        sensors = B.level_sensors()
-        b = sorted(sensors)[0]
-        el = ET.SubElement(root.find("blocks"), "block", {"systemName": "IBX1"})
-        for tag, text in (("systemName", "IBX1"), ("userName", b), ("permissive", "no")):
-            ET.SubElement(el, tag).text = text
-        self.assertEqual(B.add_level_sensors(root, {x: sensors[x] for x in sorted(sensors)[:2]}), [sensors[b][0]])
-        with mock.patch.object(sys.modules["le_tables"], "add_level_sensors", return_value=[]), \
-                self.assertRaisesRegex(B.BuildError, "whose sensor was not added"):
-            with contextlib.redirect_stdout(io.StringIO()):
-                B.build(as_live=True, approved=None)
-
-    def test_add_level_sensors_is_by_name_not_order(self) -> None:
-        """The sensors a block gets do not depend on the order blocks come in: a block added earlier in the drawing
-        changes no other block's sensor. A taken name or an already bound block stops."""
-        def run(order):
-            root = stripped()
-            sensors = B.level_sensors()
-            first = sorted(sensors)[:3]
-            for b in first:      # three stand-in blocks, bound to the device map's sensors
-                ET.SubElement(root.find("blocks"), "block", {"systemName": "IBX" + b}).extend(
-                    [ET.Element("systemName"), ET.Element("userName"), ET.Element("permissive")])
-                el = root.find("blocks")[-1]
-                el[0].text, el[1].text, el[2].text = "IBX" + b, b, "no"
-            B.add_level_sensors(root, {b: sensors[b] for b in order(first)})
-            return {tables.user_name(b): b.findtext("occupancysensor") for b in tables.blocks(root)
-                    if b.get("systemName", "").startswith("IBX")}, \
-                {tables.user_name(s): tables.system_name(s) for s in tables.sensors(root) if B.is_level_bean(s)}
-        self.assertEqual(run(lambda xs: xs), run(lambda xs: list(reversed(xs))))
-        root = stripped()
-        live = tables.blocks(root)[0]
-        with self.assertRaisesRegex(B.BuildError, "already in the tables"):
-            B.add_level_sensors(root, {tables.user_name(live): ("IS:SML_MODE", "BS X", "c")})
-        with self.assertRaisesRegex(B.BuildError, "already have an occupancy sensor"):
-            B.add_level_sensors(root, {tables.user_name(live): ("IS:HART:C3:B:X", "BS X", "c")})
-
     def test_blocks_match_track(self) -> None:
         new_lb = {tables.user_name(b) for b in tables.layout_blocks(self.root) if is_new(b)}
         new_b = {tables.user_name(b) for b in tables.blocks(self.root, full=False) if is_new(b)}
         full_b = {tables.user_name(b) for b in tables.blocks(self.root) if is_new(b)}
-        live_lb = {tables.user_name(b) for b in tables.layout_blocks(self.live)}
+        staging_lb = {tables.user_name(b) for b in tables.layout_blocks(self.live) if not is_new(b)}
         self.assertEqual(new_b, new_lb)
         self.assertEqual(full_b, new_lb)
-        self.assertEqual(used_blocks(self.le) - live_lb, new_lb)
+        self.assertEqual(used_blocks(self.le) - staging_lb, new_lb)
 
     # ---- the panel
     def test_no_dangling_connection_names(self) -> None:
@@ -396,7 +354,7 @@ class Built(unittest.TestCase):
         self.assertEqual({el.get("sensor") for el in self.le.iter("sensoricon")}, status)
         self.assertEqual(B.base_band(self.bands), 0)            # staging, found by its level, is drawn first
         self.assertTrue(self.P.masts)
-        # main and upper: their control-point masts (main_upper_masts.csv), every one placed
+        # main and upper: their control-point masts (masts.csv), every one placed
         level = {m["mast"] for m in self.P.masts if m["band"] != 0}
         self.assertEqual(level, {r["mast"] for r in B.read_level_masts()})
         self.assertEqual(len(level), LEVEL_MASTS)
@@ -404,7 +362,7 @@ class Built(unittest.TestCase):
     # ---- size: the panel holds what it draws (the window: test_le_cutover.py, the panel scrolls)
     def test_everything_drawn_lies_on_the_panel(self) -> None:
         w, h = int(self.le.get("panelwidth")), int(self.le.get("panelheight"))
-        self.assertEqual(le_window(), (1900, 1140))                   # the preference: the owner's display
+        self.assertEqual(le_window(), (1920, 1032))   # host_screen: the layout hosts' 1920 x 1080 less the taskbar
         # everything drawn lies on the panel: track, turnout legs, labels (at the width JMRI draws) and icons
         xs, ys = [], []
         for p in self.le.findall("positionablepoint"):
@@ -440,17 +398,21 @@ class Built(unittest.TestCase):
         drawn = {(lb.get("text"), int(lb.get("size"))) for lb in self.le.findall("positionablelabel")
                  if lb.get("text") is not None}
         self.assertLessEqual({(lb["text"], lb["size"]) for lb in self.P.labels}, drawn)
+        # station names at the page's station_size (14, owner 2026-11-21), the rest at the drawing's own sizes
+        station = B.schematic()[1]["le_labels"]["station_size"]
+        number = B.schematic()[1]["le_labels"]["switch_size"]     # switch numbers at the page's size (C1: 12)
         unscaled = {le_mod.LABEL_SIZE, le_mod.LABEL_SIZE - 1, le_mod.LABEL_SIZE - 2, le_mod.NUMBER_SIZE,
-                    le_mod.TITLE_SIZE}
+                    le_mod.TITLE_SIZE, station, number}
         self.assertLessEqual(sizes, unscaled)
+        self.assertEqual({lb["size"] for lb in self.P.labels if lb["kind"] == "station"}, {station})
         self.assertIn(le_mod.TITLE_SIZE, sizes)
         self.assertNotEqual(self.P.scale, (1.0, 1.0))         # the grid is scaled (staging's fit, stretched)
 
     # ---- the live file
-    def test_tables_unchanged_but_for_the_additions(self) -> None:
-        """With the main and upper objects taken out again, the candidate is the staging candidate it holds, parked
-        and its yard ladder retired as the build does, but for the panel (the staging guard compares the panels:
-        test_le_cutover.py)."""
+    def test_the_build_adds_no_bean(self) -> None:
+        """Every level's beans are the base's (naming-layers step 11): the three-level candidate is the staging
+        candidate, parked and its yard ladder retired as the build does, but for the panel (the staging guard compares
+        the panels: test_le_cutover.py)."""
         def no_panel(doc):
             """The tables without the panel, layout whitespace dropped (what is taken out leaves its own)."""
             doc.root.remove(tables.layout_editor(doc.root, LIVE_PANEL))
@@ -459,25 +421,21 @@ class Built(unittest.TestCase):
                 el.tail = None if el.tail is not None and not el.tail.strip() else el.tail
             return ET.tostring(doc.root)
         doc = tables.loads(self.data)
-        removed = B.strip_build_owned(doc.root)
         # turnouts, blocks (2 passes) and layout blocks, their sensors, the startup LogixNG (LogixNG, ConditionalNG,
-        # DigitalMany, an ActionSensor per block, an ActionTurnout per turnout), heads and masts; no logic or path:
-        # discovery adds them
+        # DigitalMany, an ActionSensor per block, an ActionTurnout per turnout), heads and masts
         objects = 39 + 3 * LEVEL_BLOCKS + LEVEL_SENSORS + 3 + LEVEL_SENSORS + 39 + LEVEL_HEADS + LEVEL_MASTS
-        # the helix blocks' binding (block and layout block each) goes too: they are staging's beans
-        self.assertEqual(removed, dict.fromkeys(B.STRIPPED, 0) | {B.STRIPPED[0]: objects, B.STRIPPED[5]: 4})
-        base = tables.loads(self.P.staging_data)
+        self.assertEqual(objects, sum(1 for sec in tables.elements(doc.root) for el in tables.elements(sec)
+                                      if is_new(el)))
+        base = tables.loads(staging_alone()[0])
         B.parked.split(base.root, B.PARKED)
         B.retire_yard_ladder(base.root)
         self.assertEqual(no_panel(doc), no_panel(base))
 
     def test_no_name_collisions(self) -> None:
-        live_users = {tables.user_name(b) for b in tables.turnouts(self.live) + tables.blocks(self.live)
-                      + tables.layout_blocks(self.live)}
-        live_sys = {tables.system_name(b) for b in tables.turnouts(self.live) + tables.blocks(self.live)
-                    + tables.layout_blocks(self.live)}
-        new = [b for b in tables.turnouts(self.root) + tables.blocks(self.root, full=False)
-               + tables.layout_blocks(self.root) if is_new(b)]
+        beans = tables.turnouts(self.root) + tables.blocks(self.root, full=False) + tables.layout_blocks(self.root)
+        live_users = {tables.user_name(b) for b in beans if not is_new(b)}
+        live_sys = {tables.system_name(b) for b in beans if not is_new(b)}
+        new = [b for b in beans if is_new(b)]
         self.assertFalse({tables.user_name(b) for b in new} & live_users)
         self.assertFalse({tables.system_name(b) for b in new} & live_sys)
         for t in tables.turnouts(self.root):
@@ -499,16 +457,6 @@ class Built(unittest.TestCase):
             audit = AUDIT.audit_source("candidate", path, staging, generated=True)
         self.assertEqual(audit.errors, [])
         self.assertEqual(audit.facts["panel"], LIVE_PANEL)
-
-    def test_check_mode(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(
-                B, "build", return_value=(self.data, self.P, self.names, self.bands)):
-            out = Path(tmp) / "t.xml"
-            with contextlib.redirect_stdout(io.StringIO()):
-                self.assertEqual(B.main(["--as-live", "--out", str(out)]), 0)
-                self.assertEqual(B.main(["--as-live", "--check", "--out", str(out)]), 0)
-                out.write_bytes(out.read_bytes() + b" ")
-                self.assertEqual(B.main(["--as-live", "--check", "--out", str(out)]), 1)
 
     def test_renderer_draws_arcs_and_labels(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -553,27 +501,15 @@ class FactsReaders(unittest.TestCase):
                     self.lc.switch_idents()
 
     def test_a_bad_device_map_stops_with_a_build_error(self) -> None:
+        from hartlib import devices
         with tempfile.TemporaryDirectory() as tmp:
-            bad = Path(tmp) / "devices.csv"
-            text = B.DEVICE_MAP.read_text(encoding="utf-8")
-            block = next(line for line in text.splitlines() if line.startswith("2,") and ",block," in line)
-            bad.write_text(text + block + "\n", encoding="utf-8")                      # a block row twice
-            for read in (B.level_sensors, B.device_names):
+            rows = list(devices.load(B.DEVICE_MAP))
+            block = next(r for r in rows if r["level"] == "2" and r["layer"] == "block")
+            bad = devices.write_one_file(rows + [block], Path(tmp) / devices.ONE_FILE)     # a block row twice
+            for read in (B.device_names,):
                 with self.subTest(read=read.__name__), \
                         self.assertRaisesRegex(B.BuildError, r"^the device map: devices.csv: .*the same level, layer"):
                     read(bad)
-
-    def test_level_sensors_read_every_block(self) -> None:
-        from hartlib import railroad
-        device = railroad.read_device_map(B.DEVICE_MAP)
-        from hartlib import devices
-        sensors = B.level_sensors()
-        parts = {r["user_name"]: r["part_of"] for _n, r in devices.part_lines(("2", "3"), B.DEVICE_MAP)}
-        self.assertEqual(list(sensors), list(device.blocks) + list(parts))
-        for block, (system, user, _comment) in sensors.items():
-            self.assertEqual(device.sensors[user], system)
-        for part, block in parts.items():          # a part is read with its OS block's sensor (step 5 part 2)
-            self.assertEqual(sensors[part], sensors[block])
 
 
 class DeviceNames(unittest.TestCase):
@@ -581,25 +517,66 @@ class DeviceNames(unittest.TestCase):
     else stops."""
     HEAD = ",".join(T_railroad.DEVICE_COLUMNS) + "\n"    # the fact columns (DEVICE_FACTS) left empty in each row
 
-    def read(self, rows: str) -> dict:
-        """device_names of a master made of these device-map rows (old form, the fact columns left out)."""
+    LAYER_ROLES = {"turnout": "turnout", "fb": "fb", "block": "track"}
+
+    def read(self, rows: str, roles: dict | None = None, reader=None) -> dict:
+        """device_names of a master made of these device-map rows (old form, the fact columns left out), each with the
+        role its writer gives it: `roles` ({user name: role}), else its layer's in LAYER_ROLES; `reader` (default
+        device_names) reads the master's path."""
         import csv
         import io
         from hartlib import devices
         text = self.HEAD + rows.replace("\n", "," * len(T_railroad.DEVICE_FACTS) + "\n")
         old = list(csv.DictReader(io.StringIO(text)))
-        mine = [devices.master_row(r, "build_device_map.py") for r in old]
+        # each with an id, which check_rows wants on every row with a level: a turnout's names its switch
+        # (switch:<n>, dcc:<n>: check_rows holds it to that), any other row's is a test id
+        def ident(r):
+            if r["layer"] != "turnout":
+                return f"test:{r['layer']}:{r['user_name']}"
+            n = r["user_name"].split()[-1]
+            return device_ids.dcc_id(n) if r["user_name"].startswith("DCC ") else device_ids.switch_id(n)
+        mine = [devices.master_row(dict(r, role=(roles or {}).get(r["user_name"]) or self.LAYER_ROLES[r["layer"]],
+                                        id=ident(r)), "build_device_map.py")
+                for r in old]
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "devices.csv"
+            path = Path(tmp) / devices.ONE_FILE
             path.write_text(devices.master_text(devices.replace_rows([], "build_device_map.py", mine)), encoding="utf-8")
-            return B.device_names(path)
+            return (reader or B.device_names)(path)
+
+    def test_block_roles_are_the_given_maps_main_and_upper_blocks(self) -> None:
+        """named_bands' roles come from the map the names were made from: block_roles(path) reads that file's main
+        and upper block rows (not the committed master's), with the role each row gives."""
+        got = self.read('2,,block,Track 1-2,,,,,,Track 1A-2B,\n2,,block,OS Switch 1,,,,,,Switch 1,\n'
+                        '1,,block,Track Barn,,,,,,,\n', roles={"OS Switch 1": "os"},
+                        reader=sys.modules["le_names"].block_roles)
+        self.assertEqual(got, {"Track 1-2": "track", "OS Switch 1": "os"})        # staging's Track Barn left out
+        self.assertNotIn("Track 101-103", got)
+
+    def test_an_owners_name_is_free_of_the_generated_form(self) -> None:
+        """Naming-layers step 13: a main turnout the owner names "Switch Coal" in the field file reaches the drawing
+        by its id; the name form holds only generated names, as hartlib.railroad.check_virtual_names does."""
+        import csv
+        import shutil
+        from hartlib import devices
+        with tempfile.TemporaryDirectory() as tmp:
+            data = Path(tmp)
+            here = devices.Files.here()
+            for src in (here.master, here.dictionary, here.field):
+                shutil.copy(src, data / src.name)
+            field = devices.field_path(data)
+            rows = list(csv.DictReader(io.StringIO(field.read_text(encoding="utf-8"))))
+            row = dict.fromkeys(rows[0], "")
+            row.update(level="2", layer="turnout", id="switch:101", user_name="Switch Coal")
+            field.write_text(devices.master_text(rows + [row]), encoding="utf-8")
+            got = B.device_names(devices.master_path(data))
+        self.assertEqual((got["Switch 101A"], got["Switch 101B"]), ("Switch Coal", "Switch Coal"))
 
     def test_the_committed_map(self) -> None:
         got = B.device_names()
         self.assertEqual(got["Switch 101A"], "Switch 101")
         self.assertEqual(got["Switch 101B"], "Switch 101")
         self.assertEqual(got["Switch 223"], "Switch 223")
-        self.assertEqual(got["Track 131BB-helix"], "Track Helix Inner")    # one block with staging's McKeesport track
+        self.assertEqual(got["Track 131BB-helix"], "Track Helix Inner")    # one block with staging's Helix Inner track
         self.assertEqual(got["Track 115A-117C"], "Track 115-117")       # a part: a block of its own (step 5 part 2)
         self.assertEqual(len(got), 51 + LEVEL_SENSORS + 26)          # the 25 parts: 26 trial names (201-219 has two pieces)
 
@@ -607,11 +584,11 @@ class DeviceNames(unittest.TestCase):
         got = self.read('2,,turnout,DCC Switch 101,MTT120,,34,120,,,\n'
                         '2,,turnout,Switch 101,M2T1,,34,120,,"Switch 101A, Switch 101B",\n'
                         '2,,fb,FB Switch 101 N,M2S1,,34,,,,\n'
-                        '2,,block,Track 1-2,,,,,,Track 1A-2B,\n')
+                        '2,,block,Track 1-2,,,,,,Track 1A-2B,\n', roles={"DCC Switch 101": "lcc_alias"})
         self.assertEqual(got, {"Switch 101A": "Switch 101", "Switch 101B": "Switch 101", "Track 1A-2B": "Track 1-2"})
         for rows, why in (('2,,block,Track 1-2,,,,,,,\n', "has no trial_name"),
                           ('2,,block,Track 1-2,,,,,,Track 1A-2B,\n2,,block,Track 3-4,,,,,,Track 1A-2B,\n',
-                           "trial_name Track 1A-2B is given to Track 1-2 and Track 3-4"),
+                           r"trial_name Track 1A-2B is given to Track 1-2 \(level 2, block\) and Track 3-4"),
                           ('2,,turnout,Turnout 5,,,,,,Switch 5,\n', "is not named"),
                           ('2,,block,Siding,,,,,,Track 1A-2B,\n', "is not named"),
                           ('2,,fb,FB 1,,,,,,,\n', "no turnout or block rows")):
@@ -682,7 +659,7 @@ class DeviceNames(unittest.TestCase):
             self.assertIs(o, given)                             # the preferences reach the plugin as they are
         named = [s["name"] for s in main["strands"].values() if s["name"]]
         self.assertEqual(len(named), len(set(named)))           # one track per block
-        self.assertIn("McKees Rocks", named)                    # the helix track keeps its plan name
+        self.assertIn("Helix Outer", named)                     # the helix track keeps its plan name
         self.assertIn("101-103", named)                         # named here; the plugin leaves it off (hidden_names)
         # a part (a link inside an OS block, step 5 part 2) keeps its track name as a label, so no track moves
         self.assertLessEqual({"109-111", "115-117", "125-129"}, set(named))
@@ -739,14 +716,6 @@ class ReviewFixes(unittest.TestCase):
         with self.assertRaises(B.BuildError):
             B.runs(ring)
 
-    def test_tables_with_no_names_only_block_pass_stop(self) -> None:
-        doc = tables.loads(_stripped_bytes())
-        blocks_el = doc.root.find("blocks")
-        for b in tables.blocks(doc.root, full=False):
-            blocks_el.remove(b)
-        with contextlib.redirect_stdout(io.StringIO()), self.assertRaisesRegex(B.BuildError, "names-only"):
-            B.build(bands=Built.bands, as_live=True, approved=None, base_data=doc.tobytes())
-
 
 class BaseNames(unittest.TestCase):
     """The staging candidate binds staging's turnouts, blocks and masts to the base's beans and adds none: one the
@@ -758,7 +727,7 @@ class BaseNames(unittest.TestCase):
                    if any(name in (tables.system_name(e), tables.user_name(e)) for e in tables.elements(s)))
         sec.remove(next(e for e in tables.elements(sec) if name in (tables.system_name(e), tables.user_name(e))))
         with contextlib.redirect_stdout(io.StringIO()), B.pd.cache_on():
-            return B.build(levels="staging", as_live=True, approved=None, base_data=doc.tobytes())
+            return B.build(levels="staging", as_live=True, base_data=doc.tobytes())
 
     def test_a_staging_turnout_block_or_mast_the_base_lacks_stops(self) -> None:
         _data, _P, all_names, bands = built()
@@ -773,7 +742,7 @@ class BaseNames(unittest.TestCase):
     def test_the_staging_candidate_adds_no_bean(self) -> None:
         base = tables.loads(B.base_tables()).root
         with contextlib.redirect_stdout(io.StringIO()), B.pd.cache_on():
-            data = B.build(levels="staging", as_live=True, approved=None)[0]
+            data = B.build(levels="staging", as_live=True)[0]
         root = tables.loads(data).root
         for section in ("turnouts", "sensors", "blocks", "layoutblocks", "signalheads", "signalmasts"):
             with self.subTest(section=section):
@@ -821,19 +790,6 @@ class SecondReview(unittest.TestCase):
             B.check_masts(P, {"Staging": [dict(want["Staging"][0], mast="N")]}, le_mod, {})
         with self.assertRaisesRegex(B.BuildError, "M was not asked for"):      # a mast no band lists
             B.check_masts(P, {"Staging": []}, le_mod, {})
-
-    def test_the_build_is_never_written_over_the_live_tables(self) -> None:
-        self.assertTrue(B.live_target(paths.TABLES_XML))
-        self.assertTrue(B.live_target(paths.JMRI_USER_FILES / "tables.xml"))
-        for out in (B.CUTOVER, B.CUTOVER_STAGING):
-            self.assertFalse(B.live_target(out), out)
-        with mock.patch.object(B, "build") as built_, contextlib.redirect_stdout(io.StringIO()) as out:
-            self.assertEqual(B.main(["--as-live", "--out", str(paths.TABLES_XML)]), 1)
-            self.assertEqual(B.main(["--levels", "staging", "--as-live", "--out",
-                                     str(paths.JMRI_USER_FILES / "x.xml")]), 1)
-        built_.assert_not_called()
-        self.assertIn("written beside them, never over them", out.getvalue())
-        self.assertIn("for looking at only", B.__doc__)
 
     def test_renderer_sizes_icons_by_mast_type(self) -> None:
         data = built()[0]
@@ -954,15 +910,18 @@ class FinalReview(unittest.TestCase):
         # through the page), and each level's own keys are band-keyed (le_band_labels), as the plugin combines them
         bands, page = B.schematic()
         _sheet, le_mod, _core = B.plugin()
-        self.assertEqual(page["le_labels"], {"switch_prefix": "SW-", "switch_size": 13})
+        self.assertEqual(page["le_labels"], {"switch_prefix": "SW-", "switch_size": 12, "station_size": 14,
+                                             "station_gap": 10})
         # a copy of the page, as the build passes it (dict(page, band_align=...)): a band-only key in the flat
         # le_labels would stop there
         opts = dict(zip((B.band_key(t) for t, _b, _o in bands), le_mod.le_labels.options(bands, dict(page))))
         for key in ("Staging", "Main", "Upper"):
-            self.assertEqual((opts[key]["switch_prefix"], opts[key]["switch_size"]), ("SW-", 13), key)
-        self.assertEqual((opts["Staging"]["names_last"], opts["Staging"]["block_contents_size"]), (False, 13))
+            self.assertEqual((opts[key]["switch_prefix"], opts[key]["switch_size"]), ("SW-", 12), key)
+            # station and CP names at 14, 10 px apart (owner, 2026-11-21)
+            self.assertEqual((opts[key]["station_size"], opts[key]["station_gap"]), (14, 10), key)
+        self.assertEqual((opts["Staging"]["names_last"], opts["Staging"]["block_contents_size"]), (False, 11))
         for key in ("Main", "Upper"):
-            self.assertEqual((opts[key]["names_last"], opts[key]["block_contents_size"]), (True, 12), key)
+            self.assertEqual((opts[key]["names_last"], opts[key]["block_contents_size"]), (True, 11), key)
         self.assertEqual((opts["Main"]["numbers_below"], opts["Upper"]["numbers_below"]), (["101"], []))
         self.assertEqual((opts["Main"]["hidden_names"], opts["Upper"]["hidden_names"]), (["101-103"], []))
         # every part's icon is optional on every level (owner, 2026-11-20): the level's parts in devices.csv
@@ -994,28 +953,32 @@ class LoopAndCrossover(unittest.TestCase):
         self.assertEqual(B.RETIRED_BLOCKS, ("Track 131-H1", "Track 131-H2"))
 
     def test_a_bad_numbering_file_stops_with_its_line(self) -> None:
-        head = "block,numbered_as,append_order,retired,notes\n"
+        # a live block by its id (naming-layers step 5), named by the name store; a retired one by its old name
+        head = "id,numbered_as,append_order,retired,notes\n"
+        names = {("2", "block:a"): "A", ("3", "block:b"): "B"}
         cases = {
-            "A,,,,\n": "line 2 (A): give exactly one of numbered_as, append_order, retired",
-            "A,B,1,,\n": "line 2 (A): give exactly one of numbered_as, append_order, retired",
-            "A,B,,yes,\n": "line 2 (A): give exactly one of numbered_as, append_order, retired",
-            "A,,,no,\n": "retired is 'no'; give yes or leave it empty",
-            "A,,x,,\n": "append_order 'x' is not a whole number",
-            "A,,2,,\n": "must count 1, 2, 3",
-            "A,,1,,\nA,,2,,\n": "line 3: block 'A' is empty or listed twice",
-            "A,B,,,\nB,,1,,\n": "B is both a block and the name another is numbered as",
+            "block:a,,,,\n": "line 2 (A): give exactly one of numbered_as, append_order",
+            "block:a,B,1,,\n": "line 2 (A): give exactly one of numbered_as, append_order",
+            "block:a,B,,Old,\n": "line 2: give a block's id, or a retired block's old name in retired",
+            ",,,,\n": "line 2: give a block's id, or a retired block's old name in retired",
+            ",,1,Old,\n": "line 2 (Old): a retired block holds its number",
+            "block:a,,x,,\n": "append_order 'x' is not a whole number",
+            "block:a,,2,,\n": "must count 1, 2, 3",
+            "block:a,,1,,\nblock:a,,2,,\n": "line 3: block 'A' is listed twice",
+            "block:a,B,,,\nblock:b,,1,,\n": "B is both a block and the name another is numbered as",
+            "block:zz,,1,,\n": "line 2: block:zz is no main or upper device of the device master",
         }
         for body, why in cases.items():
             with tempfile.TemporaryDirectory() as tmp:
                 path = Path(tmp) / "block_numbering.csv"
                 path.write_text(head + body)
                 with self.assertRaisesRegex(B.BuildError, re.escape(why), msg=body):
-                    B.load_numbering(path)
+                    B.load_numbering(path, names)
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "block_numbering.csv"
-            path.write_text("block,numbered\nA,B\n")
+            path.write_text("block,numbered_as,append_order,retired,notes\nA,B,,,\n")
             with self.assertRaisesRegex(B.BuildError, "expected the columns"):
-                B.load_numbering(path)
+                B.load_numbering(path, names)
 
     def test_the_build_stops_on_a_row_for_a_block_that_is_gone(self) -> None:
         have = ["OS Switch 107", "Track 107 Loop 1", "Track 107 Loop 2", "OS Switch 225a", "OS Switch 225b",
@@ -1045,18 +1008,11 @@ class LoopAndCrossover(unittest.TestCase):
         self.assertNotIn(n, names["Upper"]["os"])
 
 
-def head(user: str, jmri: str):
-    """A device map head row (hartlib.railroad.DeviceRow), as build_main_upper_masts.virtual takes it."""
-    from hartlib import railroad
-    return railroad.DeviceRow(level=2, layer="head", user_name=user, jmri_name=jmri)
-
-
 class LevelMasts(unittest.TestCase):
-    """main_upper_masts.csv (build_main_upper_masts.py) and how the build takes it."""
+    """masts.csv's main and upper rows (build_masts.py; tools/schematic/tests/test_masts_file.py holds the file to the
+    device map) and how the build takes them."""
 
-    def test_the_file_is_current_and_from_the_device_map(self) -> None:
-        gen = _load("build_main_upper_masts", ROOT / "tools/schematic/build_main_upper_masts.py")
-        self.assertEqual(gen.build(), B.MAIN_UPPER_MASTS.read_text(encoding="utf-8"))
+    def test_the_rows_the_build_adds(self) -> None:
         rows = B.read_level_masts()
         self.assertEqual((LEVEL_BLOCKS, len(rows), sum(len(r["heads"]) for r in rows)), (120, 68, 76))
         r = next(r for r in rows if r["mast"] == "Mast 108LB")
@@ -1084,15 +1040,21 @@ class LevelMasts(unittest.TestCase):
         self.assertEqual([p for p, n in pairs.items() if n > 1], [])
 
     def test_an_lcos_name_stops_the_build(self) -> None:
-        text = B.MAIN_UPPER_MASTS.read_text(encoding="utf-8")
+        text = B.MASTS.read_text(encoding="utf-8")
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "m.csv"
-            for old, new in (("IH:HART:C3:108LA", "IH3332"),            # a field (LCOS) name
-                             ("IH:HART:C3:108LA", "IH:HART:C3:108LB")):  # a virtual name not from its user name
-                path.write_text(text.replace(old, new), encoding="utf-8")
-                with self.subTest(head=new), self.assertRaisesRegex(
-                        B.BuildError, r"^m\.csv line \d+: mast Mast 108LA: heads .* virtual heads$"):   # the file once
-                    B.read_level_masts(path)
+            path = Path(tmp) / "masts.csv"
+            path.write_text(text.replace("IH:HART:C3:108LA_Top", "IH:HART:C3:108LB_Top"), encoding="utf-8")
+            with self.assertRaisesRegex(B.BuildError, r"^masts\.csv line \d+: mast Mast 108LA: head Head 108LA Top is "
+                                                      r"'IH:HART:C3:108LB_Top', neither its internal name"):
+                B.read_level_masts(path)                # a virtual name not from its user name: the file's own rule
+            path.write_text(text.replace("IH:HART:C3:108LA_Top", "IH4240"), encoding="utf-8")
+            with self.assertRaisesRegex(B.BuildError, r"head Head 108LA Top is the wired LCOS head 'IH4240', but a "
+                                                      r"level 2 head is internal"):
+                B.read_level_masts(path)                # a field (LCOS) name that is not its planned head: the
+            # file's reader refuses it before the coordinator's own test below would
+            path.write_text(text.replace("IH:HART:C3:108LA_Top", "IH3332"), encoding="utf-8")
+            [m] = [r for r in B.read_level_masts(path) if r["mast"] == "Mast 108LA"]   # its planned head: a swap
+            self.assertEqual(m["heads"][0], ("IH3332", "Head 108LA Top"))
         # and the coordinator's own test, which read_level_masts runs as well: no virtual name is an LCOS head
         self.assertEqual(B.lcos_named(["IH3332", "IF$shsm:basic:one-low(IH3332)", "IH:HART:C3:108LA",
                                        "IF$shsm:basic:one-low(IH:HART:C3:108LA)"]),
@@ -1100,14 +1062,15 @@ class LevelMasts(unittest.TestCase):
         rows = B.read_level_masts()
         self.assertEqual(B.lcos_named([r["system_name"] for r in rows] + [h for r in rows for h, _u in r["heads"]]),
                          [])
-        gen = _load("build_main_upper_masts", ROOT / "tools/schematic/build_main_upper_masts.py")
-        for bad in ("Head 108", "Mast 108LA", "Head 108LA Middle"):
-            with self.subTest(head=bad), self.assertRaisesRegex(SystemExit, "mast Mast 1: head"):
-                gen.virtual(head(bad, "IH:HART:C3:108LA"), "Mast 1")
-        with self.assertRaisesRegex(SystemExit, "has jmri_name 'IH93332', not IH:HART:C3:108LA"):
-            gen.virtual(head("Head 108LA", "IH93332"), "Mast 1")
-        self.assertEqual(gen.virtual(head("Head 108R Top", "IH:HART:C3:108R_Top"), "Mast 1"),
-                         "IH:HART:C3:108R_Top")
+        from hartlib import level_masts
+        for bad in ("Mast 108LA", "Head 108LA Middle"):
+            with self.subTest(head=bad):
+                self.assertIn("is not named Head", level_masts.head_problem("IH:HART:C3:108LA", bad, 2, False))
+        self.assertIn("neither its internal name IH:HART:C3:108LA",
+                      level_masts.head_problem("IH:HART:C3:108LB", "Head 108LA", 2, False))
+        self.assertIsNone(level_masts.head_problem("IH:HART:C3:108R_Top", "Head 108R Top", 2, False))
+        self.assertIn("until it is a field head", level_masts.head_problem("IH3332", "Head 108LA", 2, False))
+        self.assertIsNone(level_masts.head_problem("IH3332", "Head 108LA", 2, True))
 
     def test_a_mast_no_band_draws_stops(self) -> None:
         rows = [dict(r, facing="Track Nowhere") if r["mast"] == "Mast 110L" else r for r in B.read_level_masts()]

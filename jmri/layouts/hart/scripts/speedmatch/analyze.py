@@ -10,9 +10,10 @@ reverse, and the other way round), and reports the drift of the repeated top ste
     analyze.py LOG [LOG ...] [--route loop1|loop2] [--events-out CSV] [--lengths CSV] [--trusted timed] [--out DIR]
                [--pair "CSX 2121,CSX 2738"]
 
-Lengths come from jmri/layouts/hart/data/block_lengths.csv (inches). Only trusted rows are
-used: the row's `source` must be in --trusted, which defaults to timed (the measured
-lengths). A `plan` row (the AnyRail plan 5.3c length) counts only if you pass it.
+Lengths come from jmri/layouts/hart/data/block_lengths.csv (the AnyRail plan 5.3c length, inches) and
+block_lengths_measured.csv beside it (the lengths speed matching measured): a block's operating length is its
+measured one where it has a row there (source `timed`), else its plan length (source `plan`). Only trusted
+sources are used: --trusted defaults to timed; a plan length counts only if you pass plan.
 """
 import argparse
 import csv
@@ -29,47 +30,50 @@ DEFAULT_LENGTHS = HERE.parents[1] / "data" / "block_lengths.csv"
 DEFAULT_TRUSTED = ("timed",)  # "plan" counts only when passed explicitly
 MM_PER_INCH = 25.4
 
-# The test routes: the blocks in running order, by their block_lengths.csv user_name. Only the
-# order is typed here. Each block's sensor is the occupancy sensor tables.xml gives it, written
-# into routes.json by build_routes.py (--check in tools/check.sh), so this file needs neither
-# hartlib nor tables.xml: the Pi's speed-match live publisher imports it. Names that are not
-# current fail tools/audit/check_name_copies.py. loop1 is the 2026-11-08 loop, east from East
-# Ext; loop2 runs through Scale, Barn and Track S-R and starts at Switch 5. A job, its log (the
-# CFG line) and the analysis all name the route.
+# The test routes: the staging blocks in running order, each by its device ID (devices_generated.csv's id column,
+# hartlib.device_ids; naming-layers step 6), so a rename in devices_field.csv changes no line here. Only the order is
+# typed here. build_routes.py (--check in tools/check.sh) gives each block its name from the name store
+# (hartlib.devices.user_names) and its sensor from tables.xml, and writes both into routes.json, so this file needs
+# neither hartlib nor tables.xml: the Pi's speed-match live publisher imports it. An ID the device master no longer
+# has stops build_routes.py. loop1 is the 2026-11-08 loop, east from East Ext (block:5B-7A); loop2 runs through
+# Scale, Barn and Track S-R and starts at Switch 5. A job, its log (the CFG line) and the analysis all name the route.
 ROUTE_BLOCKS = {
     "loop1": [
-        "Track East Ext", "OS Switch 7b", "Track Main East", "OS Switch 33", "Track East Lead",
-        "OS Switch 35a", "OS Switch 37", "Track K-2", "Track K-1", "OS Switch 39", "OS Switch 35b",
-        "Track West Ext", "OS Switch 23a", "Track Main West", "OS Switch 1", "Track Brick-Plane",
-        "OS Switch 5",
+        "block:5B-7A", "os:7:A-5B", "block:7B-33C", "os:33", "block:33A-35A",
+        "os:35:A-33A", "os:37", "block:37C-39C#1", "block:37C-39C#2", "os:39", "os:35:A-39A",
+        "block:23B-35B", "os:23:A-1A", "block:1A-23A", "os:1", "block:1C-5A#1+1C-5A#2",
+        "os:5",
     ],
     "loop2": [
-        "OS Switch 5", "Track Scale", "OS Switch 7", "Track Barn", "OS Switch 13", "OS Switch 15",
-        "Track S-R", "OS Switch 23b", "OS Switch 31", "OS Switch 33", "Track East Lead",
-        "OS Switch 35a", "OS Switch 37", "Track K-2", "Track K-1", "OS Switch 39", "OS Switch 35b",
-        "Track West Ext", "OS Switch 23a", "Track Main West", "OS Switch 1", "Track Brick-Plane",
+        "os:5", "block:5C-7B", "os:7:A-13C", "block:7A-13C", "os:13", "os:15",
+        "block:15B-23B", "os:23:A-31B", "os:31", "os:33", "block:33A-35A",
+        "os:35:A-33A", "os:37", "block:37C-39C#1", "block:37C-39C#2", "os:39", "os:35:A-39A",
+        "block:23B-35B", "os:23:A-1A", "block:1A-23A", "os:1", "block:1C-5A#1+1C-5A#2",
     ],
 }
 # The warm-up lap counter counts REF (the route's first sensor) lit again after MID, the sensor
-# of a block about half way round the route.
-ROUTE_MID_BLOCK = {"loop1": "OS Switch 23a", "loop2": "Track K-2"}
+# of a block about half way round the route (OS Switch 23a on loop1, Track K-2 on loop2), by its ID.
+ROUTE_MID_BLOCK = {"loop1": "os:23:A-1A", "loop2": "block:37C-39C#1"}
 
 
 ROUTES_JSON = HERE / "routes.json"
 
 
 def load_routes(path=ROUTES_JSON, order=ROUTE_BLOCKS, mid=ROUTE_MID_BLOCK):
-    """(ROUTES, ROUTE_MID) from routes.json: {route: [(block sensor, block)]}, {route: sensor}.
+    """(ROUTES, ROUTE_MID) from routes.json: {route: [(block sensor, block name)]}, {route: sensor}.
 
-    Stops when the file's blocks or mid blocks are not the ones typed here (rebuild it)."""
+    Stops when the file's block IDs (its `ids`, one per pair) or mid blocks are not the ones typed here (rebuild
+    it)."""
     try:
         data = json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, ValueError) as e:
         raise SystemExit("cannot read %s (%s); run speedmatch/build_routes.py" % (path, e))
     routes = {r: [tuple(pair) for pair in pairs] for r, pairs in data["routes"].items()}
+    ids = data.get("ids", {})
     stale = sorted(r for r in set(order) | set(routes)
-                   if [b for _, b in routes.get(r, [])] != list(order.get(r, [])))
-    by_block = {r: dict((b, s) for s, b in pairs) for r, pairs in routes.items()}
+                   if list(ids.get(r, [])) != list(order.get(r, []))
+                   or len(routes.get(r, [])) != len(order.get(r, [])))
+    by_block = {r: dict(zip(ids[r], (s for s, _ in pairs))) for r, pairs in routes.items() if r not in stale}
     stale += sorted(r for r, b in mid.items()
                     if r not in stale and data["mid"].get(r) != by_block.get(r, {}).get(b))
     if stale:
@@ -78,7 +82,15 @@ def load_routes(path=ROUTES_JSON, order=ROUTE_BLOCKS, mid=ROUTE_MID_BLOCK):
     return routes, dict(data["mid"])
 
 
+def block_ids(path=ROUTES_JSON):
+    """{block name: block ID} of every block on the routes (routes.json's pairs and their `ids`)."""
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    return {name: ident for r, pairs in data["routes"].items()
+            for (_sensor, name), ident in zip(pairs, data.get("ids", {}).get(r, []))}
+
+
 ROUTES, ROUTE_MID = load_routes()
+BLOCK_IDS = block_ids()
 LOOP, LOOP2 = ROUTES["loop1"], ROUTES["loop2"]
 DEFAULT_ROUTE = "loop1"
 ORDER = [s for s, _ in LOOP]  # loop1 aliases: LOOP and ORDER
@@ -111,24 +123,42 @@ def route_order(route):
     return [s for s, _ in route_loop(route)]
 
 
-def load_lengths(path=DEFAULT_LENGTHS, trusted=DEFAULT_TRUSTED, loop=LOOP):
-    """dict sensor -> length in mm, None where the CSV row is missing or its source is not trusted.
+def measured_path(path):
+    """The measured file beside a plan file: block_lengths.csv -> block_lengths_measured.csv
+    (hartlib.block_lengths.measured_path)."""
+    path = Path(path)
+    return path.with_name(path.stem + "_measured.csv")
 
-    block_lengths.csv (hartlib.railroad.BLOCK_LENGTH_COLUMNS): a `timed` row's length is its measured_in, a `plan`
-    row's its plan_in. Stops on a file without those columns."""
+
+def _id_rows(path, need):
     with open(path, newline="") as fh:
         reader = csv.DictReader(fh)
-        missing = {"user_name", "occupancy_sensor", "plan_in", "measured_in", "source"} - set(reader.fieldnames or [])
+        missing = set(need) - set(reader.fieldnames or [])
         if missing:
             raise ValueError(f"{path}: no column {', '.join(sorted(missing))}")
-        rows = {r["user_name"]: r for r in reader}
+        return {r["id"]: r for r in reader}
+
+
+def load_lengths(path=DEFAULT_LENGTHS, trusted=DEFAULT_TRUSTED, loop=LOOP, measured=None):
+    """dict sensor -> length in mm, None where the block has no row or its source is not trusted.
+
+    The operating length (hartlib.block_lengths.operating_lengths): a block with a row in the measured file
+    (`measured`, default the one beside `path`) has source `timed` and its measured_in, any other its plan_in from
+    `path` and source `plan`. Stops on a file without the id and length columns. A block is found by its ID, which
+    routes.json gives each block of the loop (BLOCK_IDS). Read here with the standard library, not through hartlib:
+    the Pi's live publisher runs this with copies of both files and no hartlib (tools/hosts/deploy/stage.sh), so
+    tools/audit/check_data_readers.py lists this script by name; tools/hartlib/tests/test_block_lengths.py holds its
+    answer to hartlib's."""
+    plan = _id_rows(path, ("id", "plan_in"))
+    timed = _id_rows(measured or measured_path(path), ("id", "measured_in"))
     out = {}
     for sensor, name in loop:
-        row = rows.get(name)
-        source = (row or {}).get("source", "").strip()
-        if row is None or source not in trusted:
+        ident = BLOCK_IDS.get(name)
+        source = "timed" if ident in timed else "plan" if ident in plan else None
+        if source is None or source not in trusted:
             out[sensor] = None
             continue
+        row = timed[ident] if source == "timed" else plan[ident]
         out[sensor] = float(row["measured_in" if source == "timed" else "plan_in"]) * MM_PER_INCH
     return out
 
@@ -583,9 +613,11 @@ def write_outputs(result, pair, out_dir, summaries=None):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("logs", nargs="+")
-    ap.add_argument("--lengths", default=str(DEFAULT_LENGTHS))
+    ap.add_argument("--lengths", default=str(DEFAULT_LENGTHS),
+                    help="the plan lengths file; its measured file is read beside it (measured_path)")
     ap.add_argument("--trusted", default=",".join(DEFAULT_TRUSTED),
-                    help="block_lengths.csv sources that count as trusted; default timed, add plan only on purpose")
+                    help="length sources that count as trusted (timed: block_lengths_measured.csv, plan: "
+                         "block_lengths.csv); default timed, add plan only on purpose")
     ap.add_argument("--out", default=".")
     ap.add_argument("--pair", default="CSX 2121,CSX 2738",
                     help="the consist pair: leader,follower (follower runs reversed)")

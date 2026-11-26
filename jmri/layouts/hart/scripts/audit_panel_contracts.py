@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import csv
 import importlib
 import os
 import re
@@ -17,12 +16,15 @@ from typing import Iterable
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import devices, level_devices, level_masts, parked, paths, railroad_facts, tables  # noqa: E402
+from hartlib import (devices, level_devices, level_masts, occupancy_bindings, parked, paths,  # noqa: E402
+                     railroad_facts, tables, tables_build)
 
 REPO_ROOT = paths.REPO_ROOT
 DEFAULT_SOURCES = (("deployment", paths.TABLES_XML),)
-STAGING_MASTS = paths.LAYOUT_DATA / "schematic" / "staging_masts.csv"     # written by build_staging_masts.py
-OCCUPANCY_BINDINGS = paths.CATS_DIR / "data" / "occupancy_bindings.csv"
+MASTS = level_masts.PATH      # masts.csv, every level's masts (build_masts.py)
+# the staging level (its field masts), and the main and upper levels (on virtual heads)
+STAGING_LEVELS = (int(railroad_facts.STAGING_LEVEL),)
+ADDED_LEVELS = tuple(lv for lv in level_masts.LEVELS if lv not in STAGING_LEVELS)
 TRAININFO = paths.LAYOUT_DIR / "dispatcher" / "traininfo"
 DISPATCHER_START_SCRIPT = "program:jython/DispatcherSystem/Startup.py"
 PANEL_NAMES = {"HART", "HART Railroad"}
@@ -32,11 +34,27 @@ MQTT_SENSOR_SYSNAME = re.compile(r"^M2S\d+$")
 sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
 from lcc_turnout_contract import contract_violations
 from nx_contract import EXPECTED_NX_PAIRS, ISNX_SYSTEM, LAYOUT_PANEL, NXTYPE_SML
-from refresh_bean_comments import BLOCK_COMMENTS
-from reconcile_dispatcher_stations import STATIONS as DISPATCHER_STATIONS
 
-# The Dispatcher stations come from reconcile_dispatcher_stations.STATIONS.
-STATION_COMMENTS = {name: BLOCK_COMMENTS[name] for name in DISPATCHER_STATIONS}
+
+def station_comments(rows=None) -> dict[str, str]:
+    """{block: its JMRI comment} of the Dispatcher stations: the device master's staging block rows marked `stop` (the
+    Dispatcher stations are parked with the stations topic since 2026-11-22, so the master marks none and the audit
+    holds tables.xml to no block comment marking a stop; the 12 former stations are in docs/parked/UNPARK.md). The master is the one copy of the station list and the comments (the parked scripts' own copies are listed in
+    docs/parked/UNPARK.md)."""
+    out: dict[str, str] = {}
+    for row in devices.load() if rows is None else rows:
+        if row["level"] != railroad_facts.STAGING_LEVEL or row["layer"] != "block" or row.get("stop") != "yes":
+            continue
+        name, comment = row["user_name"], row["jmri_comment"]
+        if not (comment == "stop" or comment.endswith("; stop")):
+            raise devices.DevicesError(f"station {name!r} is marked stop in the device master but its comment "
+                                       f"{comment!r} does not end in 'stop'")
+        comment = tables_build.occupancy_first(comment)       # as the tables build writes it: detector first
+        if out.setdefault(name, comment) != comment:
+            raise devices.DevicesError(f"station {name!r} has two comments in the device master: "
+                                       f"{out[name]!r} and {comment!r}")
+    return out
+
 
 def text(element: ET.Element | None, child: str) -> str:
     if element is None:
@@ -54,14 +72,9 @@ def sensor_key(block_name: str) -> str:
 
 
 def occupancy_binding_map() -> dict[str, str]:
-    out: dict[str, str] = {}
-    with OCCUPANCY_BINDINGS.open(newline="", encoding="utf-8") as fh:
-        for row in csv.DictReader(fh):
-            name = (row.get("block_user_name") or "").strip()
-            sensor = (row.get("occupancy_sensor_user_name") or "").strip()
-            if name and sensor:
-                out[name] = sensor
-    return out
+    """{block name: occupancy sensor} of the blocks the CATS desks bind (hartlib.occupancy_bindings: the block rows of
+    the device master with a cats_discipline)."""
+    return {r["block_user_name"]: r["occupancy_sensor_user_name"] for r in occupancy_bindings.rows()}
 
 
 @dataclass
@@ -83,10 +96,10 @@ class SetupError(Exception):
     """The audit cannot run (a tool it needs is missing): main() reports it as one line and exits 1."""
 
 
-def load_staging_masts(path: Path | None = None) -> list[railroad_facts.StagingMast]:
-    """The staging masts the mast rule writes (staging_masts.csv): the audit's expected set."""
-    # stops on a mast named twice or with no facing block
-    return railroad_facts.read_staging_masts(STAGING_MASTS if path is None else path)
+def load_staging_masts(path: Path | None = None) -> list[railroad_facts.Mast]:
+    """The masts of the base levels (masts.csv's staging rows) the mast rule writes: the audit's expected set."""
+    # stops on a file that breaks its rules (hartlib.level_masts.read)
+    return railroad_facts.read_masts(MASTS if path is None else path, levels=STAGING_LEVELS)
 
 
 def slots_index(panel: ET.Element):
@@ -148,40 +161,39 @@ def audit_forbidden_mqtt_sensors(root: ET.Element, audit: Audit) -> None:
         )
 
 
-def dispatcher_virtuals(expected: set[str], devices_csv: Path = paths.DEVICES) -> set[str]:
+def dispatcher_virtuals(expected: set[str], devices_csv: Path = devices.MASTER) -> set[str]:
     """The expected masts that are hidden virtual masts for Dispatcher Stage 1, not field
-    masts: those whose name-map hardware (devices.csv, pnm_hardware) is `virtual $10nn`."""
+    masts: staging's hidden masts in the device master (role hidden, a virtual signal mast IF$vsm:...($10nn))."""
     virtual = {
-        row["proposed"] for _line, row in devices.name_map_lines(devices_csv)
-        if row["layer"] == "mast" and row["current"] == row["proposed"]
-        and row["hardware"].startswith("virtual")
+        row["user_name"] for row in devices.load(devices_csv)
+        if row["level"] == railroad_facts.STAGING_LEVEL and row["layer"] == "mast" and row["role"] == "hidden"
     }
     return expected & virtual
 
 
 # The main and upper levels' masts, on virtual heads named from their user names (IH:HART:C3:108R_Top)
-# (hartlib.level_masts; tools/schematic/build_main_upper_masts.py): counted apart from the staging field masts.
+# (hartlib.level_masts; tools/schematic/build_masts.py): counted apart from the staging field masts.
 
 
 def split_protects(value: str) -> list[str]:
-    """The protected blocks of a mast file's `protects` column (";" separated, as read_staging_masts reads it)."""
+    """The protected blocks of a mast file's `protects` column (";" separated, as read_masts reads it)."""
     return [b for b in (value or "").split(";") if b]
 
 
 def draws_levels(panel: ET.Element | None) -> bool:
     """Whether a panel draws the main and upper levels: a turnout of it holds an OS block a main or upper mast
-    protects (main_upper_masts.csv)."""
+    protects (masts.csv's main and upper rows)."""
     if panel is None:
         return False
-    protects = {b for r in level_masts.read() for b in split_protects(r["protects"])}   # a hidden mast protects none
+    protects = {b for r in level_masts.read(levels=ADDED_LEVELS) for b in split_protects(r["protects"])}   # a hidden mast protects none
     return any(t.get(a) in protects for t in panel.iter("layoutturnout")
                for a in ("blockname", "blockbname", "blockcname", "blockdname"))
 
 
-def audit_masts(root: ET.Element, staging: list[railroad_facts.StagingMast], audit: Audit, *,
-                levels: bool = False, devices_csv: Path = paths.DEVICES) -> None:
-    """The signal mast table: the staging field masts exactly (staging_masts.csv, those not virtual), the Dispatcher virtuals, no CATS runtime virtuals;
-    and the main and upper masts on virtual heads, every one of main_upper_masts.csv when the panel draws those
+def audit_masts(root: ET.Element, staging: list[railroad_facts.Mast], audit: Audit, *,
+                levels: bool = False, devices_csv: Path = devices.MASTER) -> None:
+    """The signal mast table: the staging field masts exactly (masts.csv's staging rows, those not virtual), the Dispatcher virtuals, no CATS runtime virtuals;
+    and the main and upper masts on virtual heads, every main and upper row of masts.csv when the panel draws those
     levels (`levels`), else none but its own."""
     masts = root.find("signalmasts")
     names: set[str] = set()
@@ -210,18 +222,18 @@ def audit_masts(root: ET.Element, staging: list[railroad_facts.StagingMast], aud
             if name:
                 names.add(name)
     if level or levels:
-        want = level_masts.names()
+        want = level_masts.names(levels=ADDED_LEVELS)
         if level != want:
             audit.error(f"main and upper masts on virtual heads differ from {level_masts.PATH.name}: missing="
                         f"{sorted(want - level) or 'none'}, extra={sorted(level - want) or 'none'}")
     audit.facts["level_masts"] = len(level)
     expected = {m.mast for m in staging}
-    virtuals = {m.mast for m in staging if m.system_name.startswith("IF$vsm:")}     # staging_masts.csv's own word
+    virtuals = {m.mast for m in staging if m.system_name.startswith("IF$vsm:")}     # masts.csv's own word
     in_devices = dispatcher_virtuals(expected, devices_csv)
     if in_devices != virtuals:
-        audit.error(f"virtual staging masts differ between staging_masts.csv and devices.csv: only in "
-                    f"staging_masts.csv={sorted(virtuals - in_devices) or 'none'}, only in "
-                    f"devices.csv={sorted(in_devices - virtuals) or 'none'}")
+        audit.error(f"virtual staging masts differ between {MASTS.name} and the device master: only in "
+                    f"{MASTS.name}={sorted(virtuals - in_devices) or 'none'}, only in "
+                    f"the device master={sorted(in_devices - virtuals) or 'none'}")
     field_expected = expected - virtuals
     missing = sorted(field_expected - names)
     extra = sorted(names - field_expected)
@@ -239,9 +251,9 @@ def audit_masts(root: ET.Element, staging: list[railroad_facts.StagingMast], aud
     audit.facts["cats_virtual"] = tuple(sorted(cats_virtual))
 
 
-def audit_bindings(panel: ET.Element | None, staging: list[railroad_facts.StagingMast], audit: Audit, *,
+def audit_bindings(panel: ET.Element | None, staging: list[railroad_facts.Mast], audit: Audit, *,
                    levels: bool = False) -> None:
-    """Every staging mast (staging_masts.csv), and every main and upper mast (main_upper_masts.csv) when the panel
+    """Every staging mast (masts.csv), and every main and upper mast (the file's other rows) when the panel
     draws those levels, is bound in exactly one slot, and that slot resolves (the plugin's slot index, the rule the LE
     build places masts by) to the mast's facing block and protected blocks. A mast bound twice, or in a slot facing
     another block, is an error; so is a bound mast no file names, or a turnout or anchor ident used twice (the
@@ -251,7 +263,7 @@ def audit_bindings(panel: ET.Element | None, staging: list[railroad_facts.Stagin
         return
     want = {m.mast: (m.facing, sorted(m.protects)) for m in staging}
     if levels:
-        want |= {r["mast"]: (r["facing"], split_protects(r["protects"])) for r in level_masts.read()}
+        want |= {r["mast"]: (r["facing"], split_protects(r["protects"])) for r in level_masts.read(levels=ADDED_LEVELS)}
     idents = Counter((el.tag, el.get("ident")) for tag in ("layoutturnout", "positionablepoint")
                      for el in panel.iter(tag))
     for (tag, ident), n in sorted(idents.items(), key=str):
@@ -392,7 +404,7 @@ def audit_nx_slots(root: ET.Element, problem) -> None:
 
 
 # What stock Discover and Dispatcher System Stage 1 store, per panel. The hand-drawn panel: staging only. The generated
-# three-level panel (build_layout_le.py --as-live): unjoined (2026-11-16 cut-over) staging kept its NX and transits but
+# three-level panel (build_layout_le.build, written by build_tables.py): unjoined (2026-11-16 cut-over) staging kept its NX and transits but
 # lost the 8 head-on pairs 10RA/10RB/12R/14R -> 22L/26L, and the main and upper control points added 71 SML destinations
 # and 98 sections of their own (163 SML, 197 sections). Joined at the helix (the helix-join release, owner 2026-11-17),
 # stock SML discovery in a sandbox stored 171: staging gains 10RA/10RB/12R/14R -> 16L and loses 36RB -> 40RB
@@ -402,9 +414,9 @@ def audit_nx_slots(root: ET.Element, problem) -> None:
 # gained, the head-on 10RA/10RB/12R/14R -> 22L/26L and 36RB -> 40RB. The Dispatcher graph is parked
 # (hartlib.parked): no section or transit while it is.
 EXPECTED_SML = {False: 100, True: 177}    # True: stock discovery from an empty list on the 2026-11-20 one-mast-process candidate (virtual masts only as destinations on every level: staging 5, main 10, upper 14; Scale running track)
-# A generated panel before stock discovery (the cut-over candidate as built, build_layout_le.py --as-live) carries the
+# A generated panel before stock discovery (the three-level build as built, build_layout_le.build) carries the
 # Signal Mast Logic of the live tables.xml it was built on (owner, 2026-11-18), less every logic and destination that
-# names a main or upper object (strip_build_owned): exactly the live tables' destinations between staging masts
+# names a main or upper object: exactly the live tables' destinations between staging masts
 # (carried_destinations), allowed with a warning that discovery is still to run. Since the device-map switch-over
 # that is 104 of the 180 then, but the audit reads it from the live tables, so a later discovery moves it too. A
 # generated panel before its Stage 1 with the Dispatcher System unparked still carries the hand-drawn panel's graph
@@ -474,7 +486,8 @@ def block_definitions(root: ET.Element) -> dict[str, list[str]]:
 
 
 def audit_occupancy_bindings(root: ET.Element, audit: Audit, *, required: bool) -> None:
-    """Plate names in occupancy_bindings.csv must match block occupancysensor."""
+    """The occupancy sensor hartlib.occupancy_bindings gives each block the CATS desks bind must be its JMRI block's
+    occupancysensor."""
     problem = audit.error if required else audit.warn
     expected = occupancy_binding_map()
     found: dict[str, set[str]] = {}
@@ -489,10 +502,10 @@ def audit_occupancy_bindings(root: ET.Element, audit: Audit, *, required: bool) 
         if not actual:
             continue
         if actual != {sensor}:
-            mismatches.append(f"{name}: csv {sensor!r}, xml {sorted(actual)}")
+            mismatches.append(f"{name}: master {sensor!r}, xml {sorted(actual)}")
     if mismatches:
         problem(
-            "occupancy_bindings.csv disagrees with block occupancysensor: "
+            "the device master's CATS bindings disagree with block occupancysensor: "
             + "; ".join(mismatches[:8])
             + (" ..." if len(mismatches) > 8 else "")
         )
@@ -582,7 +595,7 @@ def audit_lcc_mqtt_turnout_aliases(
 ) -> None:
     """Every MQTT DCC turnout has MTT{dcc} named and wired from the device map."""
     problem = audit.error if required else audit.warn
-    csv_path = paths.DEVICES
+    csv_path = devices.MASTER
     issues = contract_violations(root, csv_path)
     if issues:
         problem(
@@ -597,13 +610,18 @@ def audit_stations(
     root: ET.Element, panel: ET.Element | None, audit: Audit, *, required: bool
 ) -> None:
     problem = audit.error if required else audit.warn
+    try:
+        expected_comments = station_comments()
+    except devices.DevicesError as e:
+        audit.error(f"Dispatcher stations: {e}")
+        return
     definitions = block_definitions(root)
     station_names = {
         name
         for name, comments in definitions.items()
         if any(comment == "stop" or comment.endswith("; stop") for comment in comments)
     }
-    expected_names = set(STATION_COMMENTS)
+    expected_names = set(expected_comments)
     if station_names != expected_names:
         problem(
             "Dispatcher station block names differ; "
@@ -611,7 +629,7 @@ def audit_stations(
             f"extra={sorted(station_names - expected_names) or 'none'}"
         )
     station_snapshot: list[tuple[str, str]] = []
-    for name, expected_comment in STATION_COMMENTS.items():
+    for name, expected_comment in expected_comments.items():
         comments = definitions.get(name, [])
         if expected_comment not in comments:
             problem(
@@ -630,7 +648,7 @@ def audit_stations(
     expected_icons: set[str] = set()
     # the Dispatcher System parked (hartlib.parked): the station blocks keep their comments, but no MoveTo or
     # move-in-progress sensor or icon is left in the tables
-    for name in (() if "dispatcher" in parked.parked_in(root) else STATION_COMMENTS):
+    for name in (() if "dispatcher" in parked.parked_in(root) else expected_comments):
         key = sensor_key(name)
         expected_sensors.update(
             {f"MoveTo{key}_stored", f"MoveInProgress{key}"}
@@ -731,22 +749,49 @@ def audit_dispatcher_startup(root: ET.Element, audit: Audit) -> None:
     audit.facts["dispatcher_startup_script"] = tuple(actions)
 
 
-def expected_bundle(parked_features=None) -> tuple[int, int, int]:
+def expected_bundle(parked_features=None, band_panels: bool = True) -> tuple[int, int, int]:
     """(ctcdata, Panel Editor panels, Layout Editor panels) the deployment tables hold: the USS CTC machine's data and
-    panel, the main panel and the Dispatcher System's, less those parked (hartlib.parked)."""
+    panel, the main panel, its band panels (tables.BAND_PANEL_NAMES, 2026-11-22; `band_panels` False for the Layout
+    Editor build alone, before build_tables.py adds them) and the Dispatcher System's, less those parked
+    (hartlib.parked)."""
     parked_features = parked.PARKED if parked_features is None else parked_features
     uss = 0 if "uss" in parked_features else 1
-    return uss, uss, 1 if "dispatcher" in parked_features else 2
+    bands = len(tables.BAND_PANEL_NAMES) if band_panels else 0
+    return uss, uss, 1 + bands + (0 if "dispatcher" in parked_features else 1)
 
 
-def audit_generated_dispatcher(root: ET.Element, audit: Audit, *, generated: bool = False) -> None:
+def band_panels_in(root: ET.Element) -> bool:
+    """Whether the tables hold the band panels: all of them (True) or none (False, the Layout Editor build before
+    build_tables.py adds them); ValueError on some but not all, naming the missing ones."""
+    names = {(p.get("name") or "").strip() for p in tables.layout_editors(root)}
+    want = set(tables.BAND_PANEL_NAMES.values())
+    if not names & want:
+        return False
+    if want - names:
+        raise ValueError(f"band panels missing: {', '.join(sorted(want - names))} (build_tables.py adds all three)")
+    return True
+
+
+def audit_generated_dispatcher(root: ET.Element, audit: Audit, *, generated: bool = False,
+                               band_panels: bool = True) -> None:
+    """`band_panels`: the tables must hold the band panels (build_tables.py's output, the deployment); False for the
+    Layout Editor build alone, which must hold none."""
     ctc_bundle = (
         len(root.findall("ctcdata")),
         len(root.findall("paneleditor")),
         len(root.findall("LayoutEditor")),
     )
     left_out = parked.parked_in(root)      # the parked features these tables leave out (hartlib.parked)
-    want_bundle = expected_bundle(left_out)
+    try:
+        bands = band_panels_in(root)
+    except ValueError as exc:
+        audit.error(str(exc))
+        bands = band_panels
+    if bands != band_panels:
+        audit.error("the band panels (" + ", ".join(tables.BAND_PANEL_NAMES.values()) + ") are "
+                    + ("missing: build_tables.py adds them" if band_panels else "in tables the Layout Editor build "
+                       "made alone"))
+    want_bundle = expected_bundle(left_out, band_panels)
     if ctc_bundle != want_bundle:
         audit.error(
             "deployment bundle expected ctcdata={}, paneleditor={}, LayoutEditor={}; found {}".format(
@@ -797,8 +842,10 @@ def audit_generated_dispatcher(root: ET.Element, audit: Audit, *, generated: boo
 
 
 def audit_source(
-    label: str, path: Path, staging: list[railroad_facts.StagingMast], *, generated: bool = False
+    label: str, path: Path, staging: list[railroad_facts.Mast], *, generated: bool = False, band_panels: bool = True
 ) -> Audit:
+    """`band_panels` False: the tables are the Layout Editor build alone (a test), before build_tables.py adds the
+    band panels."""
     audit = Audit(label=label, path=path)
     try:
         root = tables.read(path)
@@ -827,7 +874,7 @@ def audit_source(
         audit_lcc_mqtt_turnout_aliases(root, audit, required=True)
         audit_dispatcher_startup(root, audit)
         if label == "deployment":
-            audit_generated_dispatcher(root, audit, generated=is_generated)
+            audit_generated_dispatcher(root, audit, generated=is_generated, band_panels=band_panels)
     else:
         # hart_prod.xml is intentionally a standalone monitor artifact, not a
         # complete JMRI configuration. Audit only its visual/topology contract.
@@ -846,7 +893,7 @@ def audit_source(
         audit.error(str(exc))
         marked = True
     if generated and not marked:
-        audit.error("--generated, but the panel has no generated-panel marker (build_layout_le.py --as-live "
+        audit.error("--generated, but the panel has no generated-panel marker (tools/schematic/build_tables.py "
                     "writes it)")
     audit.facts["generated_panel"] = marked
     audit_block_contents_visible(panel, audit)
@@ -928,7 +975,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--generated",
         action="store_true",
-        help="the panel is generated (build_layout_le.py --as-live): fail if it has no generated-panel "
+        help="the panel is generated (tools/schematic/build_tables.py): fail if it has no generated-panel "
         "marker (a marked panel is recognised without this flag)",
     )
     return parser.parse_args(argv)

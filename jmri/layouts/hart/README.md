@@ -2,19 +2,19 @@
 
 **Status:** Next-gen HART panel (phases 0–2) — naming + cleanup from linear6.
 
-**SoR:** [`archive/wiki/projects/hart-panel.md`](../../../archive/wiki/projects/hart-panel.md) · ADRs 001–003
+**SoR:** [`archive/history/wiki/projects/hart-panel.md`](../../../archive/history/wiki/projects/hart-panel.md) · ADRs 001–003
 
 ## Principles
 
 - **Name:** `hart` · `export JMRI_LAYOUT=hart`
 - **Connectivity / positions:** from the AnyRail panel (`anyrail/hart.xml`)
 - **JMRI config:** `output/tables.xml` is the one tables file (ADR-008)
-- **Public names:** [ADR-005](../../../wiki/decisions/ADR-005-public-equipment-names.md) master `data/devices.csv`
-- Do **not** run `fit_panel_height`, `fit_panel_canvas`, or `polish_layout_geometry` (archived in `archive/jmri-scripts/`) unless explicitly asked
+- **Public names:** [ADR-005](../../../wiki/decisions/ADR-005-public-equipment-names.md) master `data/devices_field.csv` and `data/devices_generated.csv`
+- Do **not** run `fit_panel_height`, `fit_panel_canvas`, or `polish_layout_geometry` (archived in `archive/code/jmri-scripts/`) unless explicitly asked
 
 ## Bootstrap
 
-The hart layout was bootstrapped once from the AnyRail panel; that script is kept for history at `archive/jmri-scripts/bootstrap_hart_from_linear6.py` and is not re-run, because `tables.xml` now carries later JMRI work. A new level or panel goes through the schematic pipeline ([`wiki/pipelines/schematic-panels.md`](../../../wiki/pipelines/schematic-panels.md)); the AnyRail pipeline it replaced is history ([`wiki/pipelines/jmri-anyrail.md`](../../../wiki/pipelines/jmri-anyrail.md)).
+The hart layout was bootstrapped once from the AnyRail panel; that script is kept for history at `archive/code/jmri-scripts/bootstrap_hart_from_linear6.py` and is not re-run, because `tables.xml` now carries later JMRI work. A new level or panel goes through the schematic pipeline ([`wiki/pipelines/schematic-panels.md`](../../../wiki/pipelines/schematic-panels.md)); the AnyRail pipeline it replaced is history ([`wiki/pipelines/jmri-anyrail.md`](../../../wiki/pipelines/jmri-anyrail.md)).
 
 For the complete live configuration, deploy/load **`output/tables.xml`**. It
 contains the Layout Editor and native SML. The Dispatcher System, Entry/Exit (NX) and USS CTC data are parked since the helix-join release (November 2026) and kept in `parked/`.
@@ -23,8 +23,7 @@ contains the Layout Editor and native SML. The Dispatcher System, Entry/Exit (NX
 |------|------|
 | `anyrail/hart.xml` | Geometry source snapshot |
 | `output/tables.xml` | The one tables file: Layout Editor + SML. JMRI loads it and deploy ships it |
-| `data/devices.csv`, `data/devices.columns.csv` | The device master for all three levels: one row per device with its public name (`user_name`), JMRI names, wiring and DCC address; the column dictionary describes every column (`hartlib.devices`, ADR-029) |
-| `data/devices.csv` | The device master for all three levels (ADR-029). Its `pnm_` columns hold the hardware ID, DCC address, control point and wiring comment of the rows the old public name map covered |
+| `data/devices_field.csv`, `data/devices_generated.csv`, `data/devices.columns.csv` | The device master for all three levels, two files merged into one view (`hartlib.devices`, ADR-029 amendment): the owner's cells (field) and every row the builders make (generated), one row per device with its public name (`user_name`), JMRI names, wiring and DCC address; the column dictionary describes every column and which file holds it |
 | `data/switches.csv`, `data/switches.columns.csv` | Every level's switches, one row per OS block (staging) or switch half (main and upper): closed and thrown legs, hand and where it comes from (plan or owner), a local switch's area, and staging's Layout Editor turnout, CATS inversion and USS CTC lever; the column dictionary describes every column (`hartlib.railroad_facts.read_switch_rows`, ADR-021) |
 | `data/mast_cells.csv` | Per mast: its cell on the USS CTC board's grid (the USS CTC machine is parked; the data is kept for unparking) and its icon (`gen_ctc_track_plan.py`); `edge`, `sig_location`, `sig_orient` are the hand-wired CATS desks' lamp placement (`check_layout_facts.py` reads them) |
 | `data/uss_board_cells.csv`, `data/uss_board_plants.csv` | The USS CTC board's grid (each cell's track, label and block edges) and its switch plant cells, frozen from the hand-wired CATS desk on 2026-11-15, kept while the USS CTC machine is parked; read by `gen_ctc_track_plan.py` and `check_layout_facts.py` |
@@ -34,7 +33,7 @@ contains the Layout Editor and native SML. The Dispatcher System, Entry/Exit (NX
 ```bash
 python3 jmri/scripts/check_hart_phase02.py
 python3 jmri/layouts/hart/scripts/audit_panel_contracts.py
-PYTHONPATH=tools/hartlib/src python3 -m hartlib.devices check   # devices.csv and the files it generates agree
+PYTHONPATH=tools/hartlib/src python3 -m hartlib.devices check   # the device master and the files it generates agree
 
 ```
 

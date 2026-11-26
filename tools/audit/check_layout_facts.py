@@ -5,7 +5,7 @@
 
 The facts are the staging rows of jmri/layouts/hart/data/switches.csv (read by
 layout_facts.py), with hardware, DCC address and control point from
-the name map of devices.csv and the desk areas of stations.csv. For every switch this checks:
+staging's rows of the device master and the desk areas of stations.csv. For every switch this checks:
 
 Layout Editor (tables.xml)
   - the turnout's hardware and DCC address, and the layout turnout's name and OS block;
@@ -24,16 +24,16 @@ CATS desks (HART_CTC.xml, HART_ABS.xml: the live desks, generated from the schem
     levels), and each main and upper desk block reports, occupied and unoccupied, the virtual sensor
     (IS:HART:C3:B:) its block has in tables.xml; only the desk-only middle of a double crossover's X reports none;
   - the desk's staging masts are mast_cells.csv's, each once, its lamp on the edge of the block it
-    protects (schematic/staging_masts.csv, hartlib.railroad); each is in the name map and tables.xml, with one head
+    protects (schematic/masts.csv's staging rows, hartlib.railroad); each is a staging mast row of the device master and in tables.xml, with one head
     (the one named) for a d1 icon and two for h2;
   - main and upper (bound to their internal turnouts IT:HART:C3:<n>, their masts and their blocks' virtual
     sensors): each plant commands and reports one internal turnout of tables.xml, NORMAL on its close
     leg, and no plain turnout's close and throw legs are the Layout Editor's swapped; every internal
     turnout has a plant (a double crossover four points, one turnout); each mast of
-    main_upper_masts.csv has one lamp, on the edge of the block it protects (a double crossover's
+    masts.csv's main and upper rows has one lamp, on the edge of the block it protects (a double crossover's
     corner is its one desk block), and is that mast in tables.xml.
-Levels (stations.csv desk areas, switches.csv, the name map of devices.csv)
-  - each control point's switches are on its level, and every cp in the name map has a row;
+Levels (stations.csv desk areas, switches.csv, staging's rows of the device master)
+  - each control point's switches are on its level, and every cp of a staging row has a desk area;
   - every mast and block has one level: its switch's, its control point's, or, for a
     main between control points, the one level of the blocks it joins (its stored paths, else the panel's track).
 USS CTC (CTC code buttons in tables.xml, ctc/GUIObjects.xml and the copy in tables.xml)
@@ -52,7 +52,6 @@ longer happens fails so the list stays honest.
 from __future__ import annotations
 
 import argparse
-import csv
 import functools
 import re
 import sys
@@ -62,7 +61,8 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import devices, level_devices, level_masts, parked, paths, railroad, tables as hart_tables  # noqa: E402
+from hartlib import devices, level_devices, level_masts, occupancy_bindings, parked, paths, railroad, tables_build  # noqa: E402,E501
+from hartlib import tables as hart_tables  # noqa: E402
 from hartlib.names import split_dcc  # noqa: E402
 
 ROOT = paths.REPO_ROOT
@@ -76,9 +76,11 @@ import digicon_trace as trace  # noqa: E402
 TABLES = paths.TABLES_XML
 GUI = HART / "ctc/GUIObjects.xml"
 DESKS = (ROOT / "cats/panels/HART_CTC.xml", ROOT / "cats/panels/HART_ABS.xml")
-MASTS = railroad.Sources.under().staging_masts     # each staging mast's facing and protected blocks
-OCCUPANCY = ROOT / "cats/data/occupancy_bindings.csv"
-DEVICE_MAP = railroad.Sources.under().devices     # devices.csv: the main and upper block names
+MASTS = railroad.Sources.under().masts     # masts.csv: each mast's level, facing and protected blocks
+# the staging level (its field masts and turnouts), and the main and upper levels (on virtual heads and turnouts)
+STAGING_LEVELS = (int(railroad.STAGING_LEVEL),)
+ADDED_LEVELS = tuple(lv for lv in level_masts.LEVELS if lv not in STAGING_LEVELS)
+DEVICE_MAP = railroad.Sources.under().devices     # the device master: the main and upper block names
 
 CLOSED, THROWN = "2", "4"
 PLAIN_TURNOUTS = {"RH_TURNOUT", "LH_TURNOUT", "WYE_TURNOUT"}
@@ -135,7 +137,7 @@ def parse_tables(path: Path) -> ET.Element:
 # ---------------------------------------------------------------- tables.xml
 
 def part_map(master: Path) -> dict[str, str]:
-    """{part: the block it is part of} of every level's parts (devices.csv part_of) in the master at `master`: the
+    """{part: the block it is part of} of every level's parts (the device master's part_of) in the master at `master`: the
     master that goes with the tables being checked."""
     return {r["user_name"]: r["part_of"] for _n, r in devices.part_lines(("1", "2", "3"), master)}
 
@@ -175,11 +177,16 @@ class Tables:
             if user:
                 self.turnouts[user] = ((t.findtext("systemName") or "").strip(),
                                        (t.findtext("comment") or "").strip())
-        self.layout_turnouts = {lt.get("ident"): lt for lt in self.root.iter("layoutturnout")}
-        self.segments = {s.get("ident"): s for s in self.root.iter("tracksegment")}
-        self.points = {p.get("ident"): p for p in self.root.iter("positionablepoint")}
+        # the full panel only: the band panels (tables.BAND_PANEL_NAMES, 2026-11-22) copy its elements under the same
+        # idents, and a lookup over the whole file would take the copy
+        panel = hart_tables.layout_editor(self.root)
+        if panel is None:
+            raise ValueError(f"{path}: no main Layout Editor panel ({', '.join(hart_tables.MAIN_PANEL_NAMES)})")
+        self.layout_turnouts = {lt.get("ident"): lt for lt in panel.iter("layoutturnout")}
+        self.segments = {s.get("ident"): s for s in panel.iter("tracksegment")}
+        self.points = {p.get("ident"): p for p in panel.iter("positionablepoint")}
         self.paths_stored = bool(self.paths)
-        # a part (devices.csv part_of) is a JMRI block of its own inside another block (owner, 2026-11-20); the
+        # a part (the device master's part_of) is a JMRI block of its own inside another block (owner, 2026-11-20); the
         # legs in switches.csv name the blocks a part is inside, as the masts read them (staging_device_map.os_layer)
         self.part_of: dict[str, str] = dict(parts or {})
         self.sensor_system = {
@@ -310,7 +317,9 @@ def check_tables(sw: facts.Switch, t: Tables, r: Report) -> None:
         r.add(f"le:{n}", f"{n}: no turnout {sw.turnout!r} in tables.xml")
         return
     if sw.hardware and system != sw.hardware:
-        r.add(f"le:{n}", f"{n}: tables.xml turnout is {system}, the name map of devices.csv says {sw.hardware}")
+        r.add(f"le:{n}", f"{n}: tables.xml turnout is {system}, the device master says {sw.hardware}")
+    # a witness of tables.xml (an output) against the device master's dcc column: the address is read out of the built
+    # comment only to hold the build to the master, never used as a fact
     try:
         dcc = split_dcc(comment)[1]
     except ValueError as err:
@@ -318,7 +327,7 @@ def check_tables(sw: facts.Switch, t: Tables, r: Report) -> None:
         r.add(f"le:{n}", f"{n}: tables.xml {err}")
     if sw.dcc and dcc != sw.dcc:
         r.add(f"le:{n}", f"{n}: tables.xml comment DCC {dcc or '-'}, "
-                         f"the name map of devices.csv says DCC {sw.dcc}")
+                         f"the device master says DCC {sw.dcc}")
     lt = t.layout_turnouts.get(sw.le_ident)
     if lt is None:
         r.add(f"le:{n}", f"{n}: switches.csv names layout turnout {sw.le_ident}, not in tables.xml")
@@ -367,7 +376,7 @@ def check_tables(sw: facts.Switch, t: Tables, r: Report) -> None:
 def desk_plants(path: Path, r: Report) -> tuple[dict, dict[str, tuple[int, int]]]:
     cells = trace.track_cells(parse(path).getroot().find("TRACKPLAN"))
     try:
-        plants = trace.desk_plants(cells, bound=True)      # the dark main and upper plants bind nothing
+        plants = trace.desk_plants(cells, bound=True, level_turnouts=level_turnouts())     # staging's plants
     except trace.PlantError as err:
         r.add(f"cats:{path.name}", f"{path.name}: {err}")
         plants = {}
@@ -375,26 +384,50 @@ def desk_plants(path: Path, r: Report) -> tuple[dict, dict[str, tuple[int, int]]
 
 
 @functools.cache
+def level_turnouts() -> dict[str, str]:
+    """{user name: bean name} of the main and upper turnouts, from the device master's rows
+    (hartlib.tables_build.level_turnouts), so a swapped turnout is still one."""
+    return tables_build.level_turnouts(devices.load(DEVICE_MAP))
+
+
+@functools.cache
 def device_map_rows() -> frozenset[str]:
-    """The main and upper block names (the block rows of levels 2 and 3 of devices.csv)."""
-    names = {row["user_name"] for _n, row in devices.device_map_lines(("2", "3"), DEVICE_MAP) if row["layer"] == "block"}
-    if not names:
+    """The main and upper block names (the block rows of levels 2 and 3 of the device master)."""
+    return frozenset(block_rows())
+
+
+def block_rows() -> dict[str, tuple[int, dict[str, str]]]:
+    """{block name: (line, row)} of the block rows of levels 2 and 3 of the device master."""
+    rows = {row["user_name"]: (n, row) for n, row in devices.device_map_lines(("2", "3"), DEVICE_MAP)
+            if row["layer"] == "block"}
+    if not rows:
         raise SystemExit(f"{paths.rel(DEVICE_MAP)} has no block rows")
-    return frozenset(names)
+    return rows
 
 
 @functools.cache
 def device_map_blocks() -> frozenset[str]:
-    """The device map's main and upper block names, a double crossover's corners also without the corner letter (the
-    middle of its X, a desk-only block)."""
-    names = device_map_rows()
-    return frozenset(names | {re.sub(r"(?<=\d)[a-d]$", "", n) for n in names if n.startswith("OS Switch ")})
+    """The device map's main and upper block names, a double crossover's corners (role xover_corner) also without
+    the corner letter (the middle of its X, a desk-only block)."""
+    rows = block_rows()
+    corners = {n for n, (line, r) in rows.items()
+               if devices.row_role(r, f"{paths.rel(DEVICE_MAP)}: {devices.row_text(r)}") == "xover_corner"}
+    return frozenset(set(rows) | {re.sub(r"(?<=\d)[a-d]$", "", n) for n in corners})
+
+
+@functools.cache
+def field_sensors() -> frozenset[str]:
+    """The JMRI names of the main and upper detectors swapped to a field sensor by their row (assignment field,
+    ADR-028): a column of the row, not its level, says a block's sensor is virtual (naming-layers step 14)."""
+    return frozenset(r["jmri_name"] for r in devices.load(DEVICE_MAP) if r["level"] in level_devices.LEVELS
+                     and r["layer"] == "occupancy" and r["assignment"] == "field")
 
 
 def check_level_sensors(desk: str, root: ET.Element, t: Tables, r: Report) -> None:
     """Each main and upper desk block (a device map block row) reports, occupied (close) and unoccupied (throw), the
-    occupancy sensor its Layout Editor block has in tables.xml: a virtual IS:HART:C3:B: sensor (hartlib.level_devices)
-    of that name and system name. A desk-only block (the middle of a double crossover's X) reports none."""
+    occupancy sensor its Layout Editor block has in tables.xml: a virtual IS:HART:C3:B: sensor (hartlib.level_devices),
+    or the field sensor of a detector swapped in by its row (field_sensors), of that name and system name. A desk-only
+    block (the middle of a double crossover's X) reports none."""
     seen = set()
     for b in root.iter("BLOCK"):               # a desk block is listed once per edge it has: checked once
         name = b.get("NAME")
@@ -412,7 +445,8 @@ def check_level_sensors(desk: str, root: ET.Element, t: Tables, r: Report) -> No
         occ = b.find("OCCUPIEDSPEC/IOSPEC")
         occ_user = occ.get("USER_NAME") if occ is not None else None
         want = {"OCCUPIEDSPEC": [(system, "close")], "UNOCCUPIEDSPEC": [(system, "throw")]}
-        if not level_devices.is_block_sensor(system or "") or specs != want or occ_user != user:
+        if not (level_devices.is_block_sensor(system or "") or system in field_sensors()) or specs != want \
+                or occ_user != user:
             got = "; ".join(f"{tag} " + (" ".join(f"{sn} {cmd}" for sn, cmd in v) or "none")
                             for tag, v in specs.items())
             r.add(f"cats-track:{name}", f"{desk}: block {name} reports {got} (user name {occ_user}); tables.xml "
@@ -498,19 +532,19 @@ def same_place(desk: str | None, le: str | None) -> bool:
 
 def check_level_desk(path: Path, t: Tables, r: Report) -> None:
     """The main and upper part of a generated desk: its plants against the internal turnouts and the Layout Editor in
-    tables.xml, its masts against main_upper_masts.csv and tables.xml."""
+    tables.xml, its masts against masts.csv's main and upper rows and tables.xml."""
     desk = path.name
     cells = trace.track_cells(parse(path).getroot().find("TRACKPLAN"))
     try:
-        plants = trace.level_plants(cells)
+        plants = trace.level_plants(cells, level_turnouts())
     except trace.PlantError as err:
         r.add(f"cats:{desk}", f"{desk}: {err}")
         return
-    level = {user: system for user, (system, _c) in t.turnouts.items() if system.startswith("IT:HART:C3:")}
+    level = {user: t.turnouts[user][0] for user in level_turnouts() if user in t.turnouts}
     if not level:
         if t.block_names() & device_map_blocks():
-            r.add(f"cats:{desk}", f"{desk}: tables.xml holds main/upper blocks but no IT:HART:C3: turnout for the "
-                                  "desk's main and upper plants to command")
+            r.add(f"cats:{desk}", f"{desk}: tables.xml holds main/upper blocks but none of the device master's main "
+                                  "and upper turnouts for the desk's main and upper plants to command")
         return              # a staging-only candidate (test_le_cutover): tables with no main or upper level to check
     commanded: set[str] = set()
     for os_name, xy, points in plants:
@@ -527,7 +561,7 @@ def check_level_desk(path: Path, t: Tables, r: Report) -> None:
             users.add(user)
             if level.get(user) != system:
                 r.add(f"cats:{user}", f"{desk}: plant at {xy} in {os_name} commands {user} ({system}); tables.xml "
-                                      f"has {level.get(user) or 'no such internal turnout'}")
+                                      f"has {level.get(user) or 'no such main or upper turnout'}")
             if report is None or (report.text or "").strip() != cmd or report.get("USER_NAME") != user:
                 r.add(f"cats:{user}", f"{desk}: plant at {xy} in {os_name} leg {edge} does not report the {cmd} "
                                       f"of {user} it commands")
@@ -550,11 +584,11 @@ def check_level_desk(path: Path, t: Tables, r: Report) -> None:
                 r.add(f"cats:{user}", f"{desk}: {user} closes to {cmds['close']} and throws to {cmds['throw']}; the "
                                       f"Layout Editor ({lt.get('ident')}) closes to {closed} and throws to {thrown}")
     for user in sorted(set(level) - commanded):
-        r.add(f"cats:{user}", f"{desk}: no plant commands internal turnout {user}")
+        r.add(f"cats:{user}", f"{desk}: no plant commands main or upper turnout {user}")
     have = desk_mast_blocks(path)
     blocks = {b.get("NAME") for b in parse(path).getroot().iter("BLOCK") if b.get("NAME")}
     masts = {hart_tables.user_name(m): hart_tables.system_name(m) for m in hart_tables.masts(t.root)}
-    for row in level_masts.read():
+    for row in level_masts.read(MASTS, levels=ADDED_LEVELS):
         mast, lamps = row["mast"], have.get(row["mast"], [])
         if level_masts.is_level_virtual(row["system_name"]):
             if lamps:                   # a hidden destination mast at a buffer stop: no lamp on the desk
@@ -571,10 +605,10 @@ def check_level_desk(path: Path, t: Tables, r: Report) -> None:
 
 # ---------------------------------------------------------------- USS CTC
 
-def occupancy_sensors(path: Path) -> dict[str, str]:
-    with path.open(newline="", encoding="utf-8") as fh:
-        return {row["block_user_name"].strip(): row["occupancy_sensor_user_name"].strip()
-                for row in csv.DictReader(fh)}
+def occupancy_sensors(device_map: Path) -> dict[str, str]:
+    """{block name: occupancy sensor} of the CATS desks' blocks in the master at `device_map` (occupancy_bindings)."""
+    return {row["block_user_name"]: row["occupancy_sensor_user_name"]
+            for row in occupancy_bindings.rows(device_map)}
 
 
 def check_ctc_buttons(switches: dict[int, facts.Switch], t: Tables, occ: dict[str, str], r: Report) -> None:
@@ -668,10 +702,10 @@ def check_data(switches: dict[int, facts.Switch], data: Path, r: Report) -> None
     for sw in switches.values():
         n = f"Switch {sw.number}"
         if not sw.hardware:
-            r.add(f"data:{n}", f"{n}: no canonical turnout row (current == proposed) in the name map of devices.csv")
+            r.add(f"data:{n}", f"{n}: no staging turnout row with a system_name in the device master")
         if sw.number in listed and sw.cp != listed[sw.number]:
             r.add(f"data:{n}", f"{n}: stations.csv puts it at {listed[sw.number]}, "
-                               f"the name map of devices.csv at {sw.cp or '-'}")
+                               f"the device master at {sw.cp or '-'}")
     for num in sorted(set(listed) - set(switches)):
         r.add(f"data:Switch {num}", f"Switch {num}: in stations.csv, not in switches.csv")
 
@@ -700,20 +734,20 @@ def desk_mast_blocks(path: Path) -> dict[str, list[str | None]]:
 
 
 def protected_blocks(path: Path = MASTS) -> dict[str, str]:
-    """Mast -> the block it protects (";" between several), from the staging masts (schematic/staging_masts.csv,
-    hartlib.railroad.read_staging_masts)."""
-    return {m.mast: ";".join(m.protects) for m in railroad.read_staging_masts(path) if m.protects}
+    """Mast -> the block it protects (";" between several), from the staging masts (schematic/masts.csv's base level
+    rows, hartlib.railroad.read_masts)."""
+    return {m.mast: ";".join(m.protects) for m in railroad.read_masts(path, levels=STAGING_LEVELS) if m.protects}
 
 
-def staging_mast_rows(path: Path = MASTS) -> list[dict[str, str]]:
-    with path.open(newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
+def staging_mast_rows(path: Path = MASTS) -> list[dict]:
+    """masts.csv's base level (staging) rows (hartlib.level_masts.read, which checks the file)."""
+    return level_masts.read(path, levels=STAGING_LEVELS)
 
 
 def check_mast_cells(data: Path, rows: list[dict[str, str]], desks, t: Tables, r: Report) -> None:
     """mast_cells.csv against the USS board's grid, the CATS desks (each of its masts once, its lamp on the edge of
-    the block it protects, and no other mast), the name map and the masts' heads in tables.xml."""
-    # the desks draw staging's visible masts, as the rule places them (staging_masts.csv, ADR-024); mast_cells.csv
+    the block it protects, and no other mast), staging's mast rows of the device master and the masts' heads in tables.xml."""
+    # the desks draw staging's visible masts, as the rule places them (masts.csv, ADR-024); mast_cells.csv
     # is the USS board's, checked only while the board is in the tables (it is parked with it, owner 2026-11-19)
     want = {m["mast"] for m in staging_mast_rows() if not m["system_name"].startswith("IF$vsm:")}
     uss_parked = "uss" in parked.parked_in(t.root)
@@ -724,7 +758,7 @@ def check_mast_cells(data: Path, rows: list[dict[str, str]], desks, t: Tables, r
             r.add(f"mast:{c.mast}", f"{c.mast}: mast_cells.csv puts it at ({c.x}, {c.y}), a cell with no track on "
                                     f"the USS board's grid ({facts.USS_CELLS})")
     protects = protected_blocks()
-    level = level_masts.names()               # main and upper: check_level_desk
+    level = level_masts.names(MASTS, levels=ADDED_LEVELS)      # main and upper: check_level_desk
     for desk in desks:
         have = desk_mast_blocks(Path(desk))
         name = Path(desk).name
@@ -737,13 +771,13 @@ def check_mast_cells(data: Path, rows: list[dict[str, str]], desks, t: Tables, r
             elif lamps[0] != protects.get(mast):
                 r.add(f"mast:{mast}", f"{mast}: {name} has its lamp on the edge of {lamps[0]}, "
                                       f"but it protects {protects.get(mast)} ({MASTS.name})")
-    named = {row["proposed"] for row in rows if row["layer"] == "mast"}
+    named = {row["user_name"] for row in rows if row["layer"] == "mast"}
     heads = {}
     for m in hart_tables.masts(t.root):
         heads[hart_tables.user_name(m)] = re.findall(r"\((IH\d+)\)", hart_tables.system_name(m))
     for c in cells:
         if c.mast not in named:
-            r.add(f"mast:{c.mast}", f"{c.mast}: in mast_cells.csv, not a mast row in the name map of devices.csv")
+            r.add(f"mast:{c.mast}", f"{c.mast}: in mast_cells.csv, not a staging mast row of the device master")
         if c.mast not in heads:
             r.add(f"mast:{c.mast}", f"{c.mast}: in mast_cells.csv, not a mast in tables.xml")
             continue
@@ -764,37 +798,41 @@ def check_levels(switches: dict[int, facts.Switch], data: Path, rows: list[dict[
             if sw and sw.level != cp["level"]:
                 r.add(f"level:Switch {sw.number}", f"Switch {sw.number}: switches.csv level {sw.level}, "
                                                    f"stations.csv puts {cp['cp_name']} on level {cp['level']}")
-    for cp in sorted({row["cp"] for row in rows if row["cp"]} - set(by_cp)):
-        r.add(f"level:{cp}", f"{cp}: a cp in the name map of devices.csv with no desk area (and no level) in stations.csv")
+    # a line block's cp lists stations and control points of any level (check_device_master holds it); one row's is
+    # a desk area of stations.csv
+    for cp in sorted({row["cp"] for row in rows if row["cp"] and row["role"] not in devices.LINE_ROLES} - set(by_cp)):
+        r.add(f"level:{cp}", f"{cp}: a cp of a staging row of the device master with no desk area (and no level) in stations.csv")
     # A block's level from its switches (throat blocks through their track) against its control point's.
     by_block = facts.switch_block_levels(switches)
-    block_cp = {row["proposed"]: row["cp"] for row in rows if row["layer"] == "block"}
-    for name, cp in block_cp.items():
+    block_cp = {row["user_name"]: row["cp"] for row in rows if row["layer"] == "block"}
+    for name, cps in block_cp.items():
         from_switch = by_block.get(t.track_name(name), set())
         if len(from_switch) > 1:
             r.add(f"level:{name}", f"{name}: its switches in switches.csv are on levels {sorted(from_switch)}")
-        elif from_switch and cp in by_cp and by_cp[cp] not in from_switch:
-            r.add(f"level:{name}", f"{name}: is in {cp} (level {by_cp[cp]}), its switches in switches.csv "
-                                   f"say level {next(iter(from_switch))}")
-    levels = facts.name_map_levels(data, switches, rows, t.track_name)
+            continue
+        for cp in (p for p in cps.split(";") if p in by_cp):
+            if from_switch and by_cp[cp] not in from_switch:
+                r.add(f"level:{name}", f"{name}: is in {cp} (level {by_cp[cp]}), its switches in switches.csv "
+                                       f"say level {next(iter(from_switch))}")
+    levels = facts.staging_levels(data, switches, rows, t.track_name)
     for row in rows:
-        key = (row["layer"], row["proposed"])
+        key = (row["layer"], row["user_name"])
         if row["layer"] not in ("mast", "block") or key in levels:
             continue
-        name = row["proposed"]
+        name = row["user_name"]
         try:
             near = {levels.get(("block", t.track_name(b))) for b in t.joined_blocks(name)} - {None}
         except ValueError as exc:
             r.add(f"level:{name}", str(exc))
             continue
         if len(near) != 1:
-            r.add(f"level:{name}", f"{name}: no control point and no switch in the name map of devices.csv or "
+            r.add(f"level:{name}", f"{name}: no control point and no switch in the device master or "
                                    f"switches.csv, and the blocks it joins in tables.xml are on levels "
                                    f"{sorted(near) or 'none'}; give it a cp")
 
 
 def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path = GUI,
-        occupancy: Path = OCCUPANCY, device_map: Path = DEVICE_MAP) -> Report:
+        device_map: Path = DEVICE_MAP) -> Report:
     """`device_map`: the master that goes with `tables` (its parts, part_map)."""
     import gen_ctc_track_plan as gen
 
@@ -803,7 +841,7 @@ def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path =
     parts = part_map(device_map)
     t = Tables(tables, parts=parts)
     check_data(switches, data, r)
-    rows = facts.identity_rows(data)  # the name map of devices.csv, read once for the checks below
+    rows = facts.staging_rows(data)  # staging's rows of the device master, read once for the checks below
     check_levels(switches, data, rows, t, r)
     check_mast_cells(data, rows, desks, t, r)
     for sw in switches.values():
@@ -821,7 +859,7 @@ def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path =
         uss = Tables(tables, root=uss_root, parts=parts)
         pe = next(iter(uss_root.iter("paneleditor")), None)       # only the USS panel is read from the text
         uss_text = ET.tostring(pe, encoding="unicode") if pe is not None else ""
-    check_ctc_buttons(switches, uss, occupancy_sensors(occupancy), r)
+    check_ctc_buttons(switches, uss, occupancy_sensors(device_map), r)
     cells = facts.load_uss_cells(data)  # the board's grid, frozen from the hand-wired desk (uss_board_cells.csv)
     gui_text = Path(gui).read_text(encoding="utf-8")
     for label, text in (("GUIObjects.xml", gui_text), ("tables.xml USS panel", uss_text)):

@@ -49,13 +49,43 @@ class JmriAdditions(unittest.TestCase):
     def test_a_list_must_close_on_its_own_line(self):
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)
-        for rel, _ in ja.HOST_LISTS.values():
+        coordinator = [p.relative_to(ja.ROOT).as_posix() for script in (ja.COORDINATOR, ja.PANEL_STATUS)
+                       for p in ja.coordinator.files(ja.ROOT / script)]
+        for rel in [r for r, _ in ja.HOST_LISTS.values()] + coordinator:
             (tmp / rel).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(ja.ROOT / rel, tmp / rel)
         pi = tmp / ja.HOST_LISTS["Pi"][0]
         text = pi.read_text(encoding="utf-8")
         pi.write_text(text.replace("JYTHON=(", "JYTHON=(  # (see the README)", 1), encoding="utf-8")
         self.assertEqual(ja.host_lists(tmp), self.facts["hosts"])   # a comment's bracket does not end the list
+
+    def test_coordinator_modules_are_parts_not_scripts(self):
+        parts = ja._siblings(ja.ROOT)
+        self.assertIn("sml_beans.py", parts)
+        self.assertIn("panel_status_turnouts.py", parts)       # panel_status.py's PARTS are parts too
+        for host, names in self.facts["hosts"].items():
+            self.assertFalse(names & parts, host)
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        (tmp / ja.COORDINATOR).parent.mkdir(parents=True)
+        shutil.copy(ja.ROOT / ja.COORDINATOR, tmp / ja.COORDINATOR)      # the script without its modules
+        with self.assertRaisesRegex(ja.PageError, "no .py beside it"):
+            ja._siblings(tmp)
+        with self.assertRaisesRegex(ja.PageError, "no .py beside it"):
+            ja._lcos_range(tmp)
+
+    def test_every_part_of_a_split_script_is_on_the_page(self):
+        for script, parts in self.facts["parts"].items():
+            self.assertTrue(parts, script)
+            for m in parts:
+                self.assertIn("<code>%s.py</code>" % m, self.page, script)
+
+    def test_parts_sentence_counts_its_modules(self):
+        self.assertEqual(ja._parts_sentence(("a",)),
+                         "One module beside it holds the rest of its code and is deployed with it: <code>a.py</code>.")
+        self.assertEqual(ja._parts_sentence(("a", "b", "c")),
+                         "Three modules beside it hold the rest of its code and are deployed with it: "
+                         "<code>a.py</code>, <code>b.py</code> and <code>c.py</code>.")
 
     def test_unknown_and_missing_regions_stop(self):
         with self.assertRaisesRegex(ja.PageError, "unknown region ja:nope"):

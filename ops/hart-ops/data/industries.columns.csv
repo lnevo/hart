@@ -1,0 +1,6 @@
+column,description,type,required,key,refs,values
+industry_id,"The industry's key: short, lower-case and never reused. Spots, waybills and the site's industries.json name an industry by it (ADR-039). Interchange is a kind of traffic, not an industry, so it has no row (owner, 2026-11-25).",str,yes,yes,,
+name,"The industry's name as Operations Pro spells it (owner, 2026-11-25). The name columns of spot_assignments.csv and HART_Spot_Waybills.csv still print A Stucki Co and Ferrel Gas, because the STS seed in external/sts-helpers has those spellings in its code; one later follow-up renames them together. Until then www/scripts/tests/test_industry_ids.py maps them through its alias list.",str,yes,,,
+public_name,"The name the website shows (the name of its entry in www/data/industries.json).",str,yes,,,
+slug,"The anchor of the industry's spot sheet on the site (crew/industries/#slug, the spot of its entry in www/data/industries.json, an id in crew.json spotsheet).",str,yes,,,
+blurb,"The short public description: the blurb of its entry in www/data/industries.json (the site search shows it) copies it. Every row has a public page, so it is required on every row. Filled from industries.json on 2026-11-25; lane L5 settles the text.",str,yes,,,

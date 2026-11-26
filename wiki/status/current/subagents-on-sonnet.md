@@ -1,0 +1,2 @@
+order: 240
+**Subagents on Sonnet (owner, 2026-11-24):** `CLAUDE_CODE_SUBAGENT_MODEL=sonnet` in `.claude/settings.json` puts `/code-review` (a general-purpose fork; 330 Opus runs in 14 days) and unnamed subagents on Sonnet; agents with a `model:` line and launches that pass `model` keep theirs. Hand-offs review each PR once ([`AGENTS.md`](../../../AGENTS.md) step 3, [`handoff`](../../../.claude/skills/handoff/SKILL.md)).

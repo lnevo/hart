@@ -2,9 +2,11 @@
 
 Each row is a photograph the SOQ document has a place for but no existing photo could fill. Until the file exists, the PDF shows a dashed "Photograph pending" box in its place.
 
+Status: done (2026-11-15). The SOQ was submitted and is frozen ([`SUBMITTED.md`](SUBMITTED.md)).
+
 All items are in the SOQ (batch of 2026-11-15). The full-size originals are in `~/Documents/NMRA AP/SOQ photos incoming/`; the copies in `docs/ap/electrical/photos/` are about 1400 px on the long side. To replace one, save the new photo under the same file name there, then rebuild:
 
-    python3 docs/ap/electrical/build_soq.py
+    python3 archive/code/ap-electrical/build_soq.py
 
 The build checks this table: every pending photo in the document must have its file name here.
 

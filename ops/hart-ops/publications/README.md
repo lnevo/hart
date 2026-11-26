@@ -2,8 +2,13 @@
 
 Rebuild scripts for official HART Railroad operating documents.
 
-Outputs are written to `docs/ops/` in the hart repo. Edit the content dicts in these
-scripts, then regenerate.
+Outputs are written to `docs/ops/` in the hart repo. The crew jobs (CI-D749, CI-NVL, CI-CK1), YM-01, DS-01, EQ-01,
+the destination colors and the TT-23 back page take their text from the crew master
+`ops/hart-ops/data/crew.json` (ADR-039), through `crew_master.py`; the site's `www/data/crew.json` is built from the
+same master. Edit the master, then regenerate the docx and the site copy. A `docx` object in the master holds what
+only the printed sheet uses, or wording the sheet prints differently from the site (none on colors or the timetable). A job's `site_note` is a sentence only the
+site prints, after the summary. The other scripts still hold
+their content in their own dicts.
 
 | Script | Publication |
 |--------|-------------|
@@ -16,6 +21,9 @@ scripts, then regenerate.
 | `rebuild_operator_primer.py` | HB-01 New Operator Primer |
 | `update_tt23_station_map.py` | Swap SM-01 schematic into TT-23 trifold left panel |
 | `hart_pub_helpers.py` | Shared masthead / table helpers; diagram + narrow TT-23 page |
+| `crew_master.py` | Reads the crew master and builds the site and docx views of it (standard library only) |
+| `crew_schema.py` | Schema check of the crew master: keys, required fields, references, `docx` fields |
+| `build_crew_json.py` | Writes `www/data/crew.json` from the crew master; `--check` (the `crew-json` step of `check.sh`) |
 
 ```bash
 .venv/bin/python publications/rebuild_scale_operating_instructions.py
@@ -26,6 +34,7 @@ scripts, then regenerate.
 .venv/bin/python publications/rebuild_local_station_maps.py
 .venv/bin/python publications/rebuild_operator_primer.py
 .venv/bin/python publications/update_tt23_station_map.py
+python3 publications/build_crew_json.py
 ```
 
 **TT-23 station map archives** (under `publications/assets/`):

@@ -8,7 +8,6 @@ is reached. HEAD is usually this branch's unmerged commit, hence --allow-unmerge
 from __future__ import annotations
 
 import filecmp
-import os
 import re
 import shutil
 import subprocess
@@ -138,6 +137,12 @@ class RedeployHead(unittest.TestCase):
         self.assertEqual(git("branch", "--list", "redeploy/*").stdout.strip(), "")
 
 
+def has_stamp(commit: str) -> bool:
+    """Whether the commit's deploy writes the stamp: in the entry point (older commits) or in deploy/common.sh."""
+    return any("write_deploy_stamp" in git("show", f"{commit}:{rel}", check=False).stdout
+               for rel in (SYNC_REL, "tools/hosts/deploy/common.sh"))
+
+
 class Refusals(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = Path(tempfile.mkdtemp())
@@ -190,9 +195,18 @@ class Refusals(unittest.TestCase):
         self.assert_refused(run(self.env, f"{first}^", "--allow-unmerged", "--stage-only", str(self.tmp / "s")),
                             "predates the deploy's move to tools/hosts/")
 
+    def test_the_stamp_is_found_in_either_file(self) -> None:
+        """redeploy_commit.sh accepts write_deploy_stamp in the entry point (older commits) or in deploy/common.sh
+        (since the split into steps); a commit with neither is refused (test_commit_before_the_stamp)."""
+        self.assertIn("write_deploy_stamp", git("show", "HEAD:tools/hosts/deploy/common.sh").stdout)
+        self.assertNotIn("write_deploy_stamp", git("show", f"HEAD:{SYNC_REL}").stdout)
+        script = (ROOT / "tools/hosts/redeploy_commit.sh").read_text(encoding="utf-8")
+        self.assertIn('"$SHA:$SYNC_REL"', script)
+        self.assertIn('"$SHA:tools/hosts/deploy/common.sh"', script)
+
     def test_commit_before_the_stamp(self) -> None:
         first = self.first_with_script()
-        if not first or "write_deploy_stamp" in git("show", f"{first}:{SYNC_REL}").stdout:
+        if not first or has_stamp(first):
             self.skipTest("no commit with the script but without the stamp in this clone")
         self.assert_refused(run(self.env, first, "--allow-unmerged", "--stage-only", str(self.tmp / "s")),
                             "predates the deploy stamp")
@@ -219,7 +233,7 @@ class Source(unittest.TestCase):
         self.assertIn('HART_OVERWRITE_OPS="${HART_OVERWRITE_OPS:-0}"', source)
 
     def test_store_test_is_shared_with_the_deploy(self) -> None:
-        for path in (REDEPLOY, ROOT / SYNC_REL):
+        for path in (REDEPLOY, ROOT / "tools/hosts/deploy/common.sh"):   # common.sh: the steps' shared file
             text = path.read_text(encoding="utf-8")
             self.assertIn("profile_tables_guard.sh", text, path.name)
             self.assertIn("profile_tables_unpulled", text, path.name)

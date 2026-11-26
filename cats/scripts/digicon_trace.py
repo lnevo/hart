@@ -12,6 +12,7 @@ not the plant's own OS block. It returns None when the drawing is ambiguous
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
+from typing import Collection
 
 from digicon_lib import TRACK_ENDS, cell_edges, points_edge
 
@@ -84,24 +85,24 @@ def plant_os(cells: dict[tuple[int, int], ET.Element], xy: tuple[int, int]) -> s
     return behind
 
 
-# The JMRI prefix of the main and upper levels' internal turnouts (IT:HART:C3:<n>) on the generated desks
-LEVEL_PREFIX = "IT"
+def plant_users(sec: ET.Element) -> set[str]:
+    """The turnout USER_NAME of every IOSPEC on a plant cell's routes (empty for a plant bound to nothing)."""
+    return {io.get("USER_NAME") or "" for io in sec.findall("SEC_EDGE/SWITCHPOINTS/ROUTEINFO/*/IOSPEC")} - {""}
 
 
-def plant_prefixes(sec: ET.Element) -> set[str]:
-    """The JMRIPREFIX of every IOSPEC on a plant cell's routes (empty for a plant bound to nothing)."""
-    return {io.get("JMRIPREFIX") or "" for io in sec.findall("SEC_EDGE/SWITCHPOINTS/ROUTEINFO/*/IOSPEC")}
-
-
-def desk_plants(cells: dict[tuple[int, int], ET.Element], bound: bool = False) -> dict[str, tuple[int, int]]:
+def desk_plants(cells: dict[tuple[int, int], ET.Element], bound: bool = False,
+                level_turnouts: Collection[str] = ()) -> dict[str, tuple[int, int]]:
     """OS block -> its plant cell, for every wired plant (SWITCHPOINTS with ROUTEINFO); with `bound`, only the plants
-    whose routes command a field turnout (an IOSPEC not on LEVEL_PREFIX): on the generated desks the main and upper
-    plants command internal turnouts (level_plants) or nothing, and a crossover's halves there share one OS block."""
+    whose routes command a staging turnout: not one of `level_turnouts` (the main and upper turnouts' user names, from
+    the device master's rows: hartlib.tables_build.level_turnouts). On the generated desks the main and upper plants
+    (level_plants) command those turnouts, whatever bean their rows give, or nothing, and a crossover's halves there
+    share one OS block."""
     out: dict[str, tuple[int, int]] = {}
+    level = set(level_turnouts)
     for xy, sec in cells.items():
         if sec.find("SEC_EDGE/SWITCHPOINTS/ROUTEINFO") is None:
             continue
-        if bound and (not plant_prefixes(sec) or LEVEL_PREFIX in plant_prefixes(sec)):
+        if bound and (not plant_users(sec) or plant_users(sec) & level):
             continue
         os_name = plant_os(cells, xy)
         if os_name in out:
@@ -110,14 +111,16 @@ def desk_plants(cells: dict[tuple[int, int], ET.Element], bound: bool = False) -
     return out
 
 
-def level_plants(cells: dict[tuple[int, int], ET.Element]) -> list[tuple[str, tuple[int, int], str]]:
-    """(OS block, plant cell, points edge) for every set of points commanding a main or upper internal turnout
-    (LEVEL_PREFIX), in cell order: a crossover's halves there are two plants in one OS block, and a double
-    crossover's cells hold two points each (its OS is then the first block name out through the points, which its
-    OS reaches past)."""
+def level_plants(cells: dict[tuple[int, int], ET.Element],
+                 level_turnouts: Collection[str]) -> list[tuple[str, tuple[int, int], str]]:
+    """(OS block, plant cell, points edge) for every set of points commanding a main or upper turnout (one of
+    `level_turnouts`, their user names from the device master's rows), in cell order: a crossover's halves there are
+    two plants in one OS block, and a double crossover's cells hold two points each (its OS is then the first block
+    name out through the points, which its OS reaches past)."""
     out = []
+    level = set(level_turnouts)
     for xy, sec in sorted(cells.items(), key=lambda kv: (kv[0][1], kv[0][0])):
-        if LEVEL_PREFIX not in plant_prefixes(sec):
+        if not plant_users(sec) & level:
             continue
         edges = [se.get("EDGE") for se in sec.findall("SEC_EDGE") if se.find("SWITCHPOINTS/ROUTEINFO") is not None]
         for edge in edges:

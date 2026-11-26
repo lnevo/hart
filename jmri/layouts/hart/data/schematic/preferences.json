@@ -1,6 +1,6 @@
 {
  "_sections": true,
- "_note": "Layer 3 for both sheets, one section per input name (publish_draft.INPUTS): the owner's look for each sheet; main_upper's sets the page and its title block. Read with hartlib.layer_files.",
+ "_note": "Layer 3 for both sheets, one section per input name (publish_draft.INPUTS): the owner's look for each sheet; main_upper's sets the page and its title block. Read with hartlib.layer_files. A track is named by its block ID (block:17C-29C, the id of its row in devices_field.csv) in min_cells, turnbacks, track_labels and the label options' track lists; the merged view the plugin reads gives each its name from the name store (hartlib.track_names.pref_section, naming-layers step 5b), so a rename touches no line here, and a track name put here stops the build.",
  "staging": {
   "_layer": 3,
   "_note": "The owner's look for this sheet. Optional; never needed for a correct drawing.",
@@ -14,13 +14,13 @@
     "5",
     "7",
     5,
-    "Scale"
+    "block:5C-7B"
    ],
    [
     "5",
     "7",
     5,
-    "East Ext"
+    "block:5B-7A"
    ],
    [
     "7",
@@ -36,8 +36,8 @@
     "21",
     "25",
     4,
-    "S-3",
-    "S-4"
+    "block:21C-25C",
+    "block:21B-25B"
    ],
    [
     "33",
@@ -45,93 +45,16 @@
     7
    ]
   ],
-  "_min_cells_east_lead": "Owner, 2026-11-13: East Lead (33-35) longer so its name and Mast 34L fit; South Yard tracks shorter (6 to 4 cells) to give the length back. Owner, 2026-11-14: Switch 13 to 15 drawn short (one cell, as on the upper level); the cells go to East Lead (7 cells), which lengthens West Ext beside it.",
+  "_min_cells_east_lead": "Owner, 2026-11-13: East Lead (33-35) longer so its name and Mast 34L fit; South Yard tracks shorter (6 to 4 cells) to give the length back. Owner, 2026-11-14: Switch 13 to 15 drawn short (one cell, as on the upper level); the cells go to East Lead (7 cells), which lengthens West Ext beside it. The plugin draws 13 to 15 at one cell by itself, so its `shorten` entry went (2026-11-21, row 10 of the source-data hand-off: no output changed without it).",
   "turnbacks": [
-   "Brick-Plane"
+   "block:1C-5A#1+1C-5A#2"
   ],
   "_turnbacks": "Brick-Plane turns back on the sheet, as the owner approved it (2026-11-17). With the plan 5.3c the cheapest drawing turned Main West back instead (2026-11-19), so it is pinned.",
-  "shorten": [
-   [
-    "13",
-    "15"
-   ]
-  ],
   "facing_letters": false,
   "direction_arrows": true,
   "capacity": {
    "car_in": 7.4
   },
-  "detail_sheets": {
-   "Brick and Plane": [
-    "1",
-    "3",
-    "5"
-   ],
-   "Barn": [
-    "7",
-    "9",
-    "11",
-    "13"
-   ],
-   "South Yard": [
-    "7",
-    "9",
-    "11",
-    "13",
-    "15",
-    "17",
-    "19",
-    "21"
-   ],
-   "South Yard and East End": [
-    "15",
-    "17",
-    "19",
-    "21",
-    "23",
-    "25",
-    "27",
-    "29",
-    "31",
-    "33"
-   ],
-   "East End": [
-    "23",
-    "25",
-    "27",
-    "29",
-    "31",
-    "33"
-   ],
-   "Princess": [
-    "35",
-    "37",
-    "39"
-   ],
-   "Staging level": [
-    "1",
-    "3",
-    "5",
-    "7",
-    "9",
-    "11",
-    "13",
-    "15",
-    "17",
-    "19",
-    "21",
-    "23",
-    "25",
-    "27",
-    "29",
-    "31",
-    "33",
-    "35",
-    "37",
-    "39"
-   ]
-  },
-  "_detail_sheets": "Layer 3: the station sheets `schematic detail` draws, name to switches. May overlap the stations above. South Yard covers the yard and the Barn (owner, 2026-11-14); West Yard pairs the hand map with Brick and Plane; Princess is the hand map's Shenango.",
   "station_side": {
    "West Yard": "top"
   },
@@ -148,51 +71,52 @@
   "le_labels": {
    "extra_steps": [
     [
-     "Track EH-1",
-     "Track EH-2",
-     "Track EH-3"
+     "block:11B-end",
+     "block:9B-end",
+     "block:9C-end"
     ]
    ],
    "extra_follow": [
     [
-     "Track W-1",
-     "Track W-2"
+     "block:3B-end",
+     "block:3C-end"
     ]
    ],
    "name_columns": [
     [
-     "S-R",
-     "S-1",
-     "S-2",
-     "S-3",
-     "S-4"
+     "block:15B-23B",
+     "block:17C-29C",
+     "block:19C-27C",
+     "block:21C-25C",
+     "block:21B-25B"
     ]
    ],
    "name_steps": [
     [
-     "EH-1",
-     "EH-2",
-     "EH-3"
+     "block:11B-end",
+     "block:9B-end",
+     "block:9C-end"
     ]
    ],
    "optional_block_contents": [
-    "Track 1-3 at 1",
-    "Track 1-3 at 3",
-    "Track 9-11",
-    "Track 11-13",
-    "Track 13-15",
-    "Track 15-17",
-    "Track 17-19",
-    "Track 19-21",
-    "Track 23-31",
-    "Track 25-27",
-    "Track 27-29",
-    "Track 29-31",
-    "Track 31-33",
-    "Track 35-37"
-   ]
+    "block:1B-3A:1/2",
+    "block:1B-3A:2/2",
+    "block:9A-11C",
+    "block:11A-13B",
+    "block:13A-15A",
+    "block:15C-17A",
+    "block:17B-19A",
+    "block:19B-21A",
+    "block:23A-31B",
+    "block:25A-27B",
+    "block:27A-29B",
+    "block:29A-31C",
+    "block:31A-33B",
+    "block:35B-37A"
+   ],
+   "block_contents_size": 11
   },
-  "_le_labels": "Layout Editor station buttons (owner, 2026-11-16): the engine house's three step along one slope, one row apart; West Yard's W-2 steps from W-1 as the engine house's buttons step, so the two follow W-2's curve up to switch 3. South Yard's track names stand on one centre x, in the middle of the yard between its ladders (name_columns). The engine house's track names step with their tracks' west ends as EH-1 and EH-2 do, each the same distance in from its track's end (name_steps; owner, 2026-11-18: EH-3 had drifted 30 px east of that line). A part's block contents icon is optional on every level (optional_block_contents: staging's parts here, main's and upper's in le_band_labels; owner, 2026-11-20): a short block that is tight on the panel needs no label, and one with no clean spot is left out (logged). The occupancy lamps' column (lamp_columns) went with the lamps, parked and off every panel (owner, 2026-11-21).",
+  "_le_labels": "Layout Editor station buttons (owner, 2026-11-16): the engine house's three step along one slope, one row apart; West Yard's W-2 steps from W-1 as the engine house's buttons step, so the two follow W-2's curve up to switch 3. South Yard's track names stand on one centre x, in the middle of the yard between its ladders (name_columns). The engine house's track names step with their tracks' west ends as EH-1 and EH-2 do, each the same distance in from its track's end (name_steps; owner, 2026-11-18: EH-3 had drifted 30 px east of that line). A part's block contents icon is optional on every level (optional_block_contents: staging's parts here, main's and upper's in le_band_labels; owner, 2026-11-20): a short block that is tight on the panel needs no label, and one with no clean spot is left out (logged). The occupancy lamps' column (lamp_columns) went with the lamps, parked and off every panel (owner, 2026-11-21). Its block contents icons are 11 px, as main's and upper's (candidate C1, owner, 2026-11-21).",
   "le_band_align": {
    "1": "left"
   },
@@ -217,8 +141,8 @@
    "Staging, main and upper level",
    "Stage 0 proof, as built"
   ],
-  "date": "2026-11-20",
-  "revision": 18,
+  "date": "2026-11-25",
+  "revision": 19,
   "sheet": "1 of 1",
   "num_px": 6.5,
   "helix_style": "coil",
@@ -252,12 +176,6 @@
     ]
    }
   ],
-  "levels": {
-   "assign": {
-    "127B": 10.8,
-    "131B": 10.8
-   }
-  },
   "shorten": [
    [
     "221A",
@@ -265,16 +183,6 @@
    ]
   ],
   "min_cells": [
-   [
-    "111",
-    "101B",
-    6
-   ],
-   [
-    "105",
-    "103A",
-    6
-   ],
    [
     "105",
     "103B",
@@ -291,29 +199,17 @@
     9
    ],
    [
-    "111",
-    "117",
-    6
-   ],
-   [
-    "221B",
-    "127B",
-    5
-   ],
-   [
     "221A",
     "223",
     9
    ]
   ],
   "level_leg": {
-   "233": "C",
-   "237": "B",
    "115": "C",
    "235": "C",
    "239": "C"
   },
-  "_level_leg": "Exceptions to the plugin's straight-level rule (R8), each drawn with its diverging leg level (owner, 2026-11-18). 233 and 237 as before. 115: straight-level put Track 101B-111's climb in the same CATS desk cell as the west end of Track 113's siding, and CATS would drop the points. 235 and 239 (243 before the upper renumber, 2026-11-19): straight-level widened the upper level from 38 to 43 columns, so Track 225-227 came out shorter than its switches' legs on the Layout Editor panel and the CATS desk ran past its 62 columns. The plugin reports both CATS causes (schematic-maps 0.1.48, cats.faults; build_cats_panel.py prints 'CATS desk faults: N' and stops on one): without 115 the desk has two blocks in one cell, and without 235 and 239 the desk is wider than its window. Removing 233 or 237 leaves the desks unchanged (checked 2026-11-20).",
+  "_level_leg": "Exceptions to the plugin's straight-level rule (R8), each drawn with its diverging leg level (owner, 2026-11-18). 115: straight-level put Track 101B-111's climb in the same CATS desk cell as the west end of Track 113's siding, and CATS would drop the points. 235 and 239 (243 before the upper renumber, 2026-11-19): straight-level widened the upper level from 38 to 43 columns, so Track 225-227 came out shorter than its switches' legs on the Layout Editor panel and the CATS desk ran past its 62 columns. The plugin reports both CATS causes (schematic-maps 0.1.48, cats.faults; build_cats_panel.py prints 'CATS desk faults: N' and stops on one): without 115 the desk has two blocks in one cell, and without 235 and 239 the desk is wider than its window. 233 and 237 went on 2026-11-21 (row 10 of the source-data hand-off): without them every output, the drawings, the Layout Editor panels, tables.xml and the desks, came out byte for byte the same. 235 is also read by le_longer_straights (its leg B is the straight that entry lengthens), so plan_lengths.py stops without it.",
   "facing_letters": false,
   "direction_arrows": true,
   "capacity": {
@@ -391,25 +287,23 @@
   "le_title_clear": 8,
   "_le_title_clear": "The cut-over candidate (owner, 2026-11-16): each level's title 8 px below the lowest thing of the level above (for staging, everything its candidate holds: the status cluster stands in the gap), so the gaps between the levels are as small as is clean.",
   "le_stretch": {
-   "factor": 1.307,
+   "factor": 1.3,
    "tolerance": 0.03
   },
-  "_le_stretch": "The cut-over candidate's grid (owner, 2026-11-16): staging's own fit to the 1900 x 1140 window widened by the factor, so the three-level panel has the shape of the window's panel area (about 1.74 wide to 1 high) and fills it when zoomed to fit. The build stops when the panel's shape drifts more than the tolerance from it, naming the factor that would fit.",
+  "_le_stretch": "The cut-over candidate's grid (owner, 2026-11-16): staging's own fit to the window (host_screen: 1920 x 1032) widened by the factor, so the three-level panel has the shape of the window's panel area (1902 x 972, about 1.96 wide to 1 high) and fills it when zoomed to fit. 1.3 since candidate C1 (below); 1.437 from when the window became the layout hosts' screen (2026-11-21; it was 1.307 for a 1900 x 1140 window, about 1.74 to 1). The build stops when the panel's shape drifts more than the tolerance from it, naming the factor that would fit. Candidate C1 of the 1:1 sizing sweep (owner, 2026-11-21): le_row 40, le_stretch 1.3, switch numbers 12 px bold with the SW- prefix kept, block contents icons 11 px on every level, station and control point names 14 px, so the three-level panel zooms to fit the hosts' window larger than before (0.683). Before it: le_row 48, factor 1.437, SW- at 13 px, icons 12 (main, upper) and 13 (staging).",
   "le_crossover_angle": {
    "Main": 45,
    "Upper": 45
   },
   "_le_crossover_angle": "The angle each level's crossovers (single and double) cross at on the Layout Editor cut-over candidates (owner, 2026-11-16): staging at the schematic's own diverging angle, one grid column across per row, so 45 degrees; main and upper at 45 too, double crossover included (after a round at 30). A crossover with no room for its angle is drawn as steep as it must be (the plugin logs which). The fitted viewing trials draw them as they fall.",
-  "le_window": [
-   1900,
-   1140
-  ],
-  "_le_window": "The window the Layout Editor panels open in at 100% zoom on the owner's 1900 x 1200 display (the plugin fits the panel inside it less Layout Editor's 18 x 60 px frame allowance). Width: the whole 1900, so the panel is at most 1882 (the live panel's window is 1882 wide). Height: 1200 less the macOS menu bar (37 px on a notched display, 25 else) and 23 px spare for the Dock's edge is 1140; the 60 px allowance covers the title bar (28 px) and the thin edit toolbar, leaving the panel at most 1080. build_layout_le.py fits staging's own grid into it and sizes the cut-over candidates' window by it.",
-  "cats_window": [
-   1900,
-   1020
-  ],
-  "_cats_window": "The window CATS opens the desks in on the Windows box, where the owner mainly runs CATS: its screen is 2040 x 1075, so 1020 high clears the taskbar (it was 1150, taller than that screen, and the desk's bottom rows were cut off; owner, 2026-11-18). CATS has no zoom and draws 30 px cells, so the plugin fits the desk to what shows inside it less CATS's own frame, title, menu and status lines: 62 columns by 30 rows (build_cats_panel.py, the CTC desk and its ABS twin).",
+  "host_screen": {
+   "size": [
+    1920,
+    1080
+   ],
+   "taskbar": 48
+  },
+  "_host_screen": "The layout hosts' screen (owner, 2026-11-21): the Pi and the Windows box both drive the same \"HDMI Matrix\" monitor at 1920 x 1080, 100% scale (measured on the Pi with xrandr and wlr-randr, its bottom wf-panel holding 32 px icons; on Windows the AMD Radeon output, 1920 x 1080 at 96 DPI; its 1920 x 960 adapter is the RDP session, not the monitor). Less a 48 px taskbar that leaves a 1920 x 1032 window, which both the Layout Editor panel (le_window) and the CATS desks (cats_window) open in: tools/schematic/host_screen.py derives the two from this, and each tool keeps its own frame allowance inside it (Layout Editor 18 x 60 px, CATS its frame, title, menu and status lines). The panels fit the layout hosts, not the Mac; the earlier 1900 x 1200 (Mac) and 2040 x 1075 (Windows) sizes were wrong.",
   "cats_band_gap": 1,
   "_cats_band_gap": "One empty row between a band's lowest track and the next band's title, not two, so the three levels fit the Windows box's screen (owner, 2026-11-18).",
   "cats_title_gap": 0,
@@ -418,71 +312,74 @@
   "_cats_cells_per_unit": "One CATS cell per schematic grid unit is what fits all three levels in cats_window.",
   "cats_helix_blocks": "one",
   "_cats_helix_blocks": "A helix track drawn on staging and on main or upper is one desk block over both bands, as it is one JMRI block from its staging switch up the helix (owner, 2026-11-20; it was a block on each band from 2026-11-17).",
-  "le_row": 48,
-  "_le_row": "Staging's rows on the Layout Editor panels, in px (build_layout_le.py: staging's fit to le_window and the cut-over candidates' grid). Staging alone fills the window's width long before its height, so its rows may be as far apart as the live panel's yard tracks (about 47 px), leaving room between them for the live panel's icons and labels. It is the page's (this file sets the page) though it is staging's rows.",
+  "le_row": 40,
+  "_le_row": "Staging's rows on the Layout Editor panels, in px (build_layout_le.py: staging's fit to le_window and the cut-over candidates' grid). Staging alone fills the window's width long before its height, so its rows may be as far apart as the live panel's yard tracks (about 47 px), leaving room between them for the live panel's icons and labels. It is the page's (this file sets the page) though it is staging's rows. Candidate C1 of the 1:1 sizing sweep (owner, 2026-11-21): le_row 40, le_stretch 1.3, switch numbers 12 px bold with the SW- prefix kept, block contents icons 11 px on every level, station and control point names 14 px, so the three-level panel zooms to fit the hosts' window larger than before (0.683). Before it: le_row 48, factor 1.437, SW- at 13 px, icons 12 (main, upper) and 13 (staging).",
   "le_mast_room": {
    "Main": true,
    "Upper": true
   },
   "_le_mast_room": "Levels whose drawing lets in room for a mast icon: a mast whose straight track before its boundary is shorter than its icon, or whose icon still has no clean spot there, has its level let out along its rows at that track (Masts 108R and 110LA on track 107-109, 128RB and 130LA on 127-129 (now 126RA and 128LA on 125-127), 228RA on 227-233 (now 227-231) stood on 16 to 19 px of straight; 2026-11-17). Main and upper only: staging is drawn as the owner approved it.",
   "le_name_room": {
-   "Main": true,
-   "Upper": true
+   "Main": true
   },
-  "_le_name_room": "Levels whose drawing, in the same pass, lets a named track's straight out to its name's width, while the level stays no wider than the widest: main uses its spare width so Tracks 107-109 and 125-127 (now 123-125) get their names beside 109-111 and 127-129 (now 125-127) (owner, 2026-11-17: \"Use main's spare width\"); upper is the widest, so its short tracks keep their length (noted). Not staging.",
+  "_le_name_room": "Levels whose drawing, in the same pass, lets a named track's straight out to its name's width, while the level stays no wider than the widest: main uses its spare width so Tracks 107-109 and 125-127 (now 123-125) get their names beside 109-111 and 127-129 (now 125-127) (owner, 2026-11-17: \"Use main's spare width\"); upper is the widest, so its short tracks keep their length, and its entry, which changed nothing, went on 2026-11-21 (row 10 of the source-data hand-off). Not staging.",
   "le_labels": {
    "switch_prefix": "SW-",
-   "switch_size": 13
+   "switch_size": 12,
+   "station_size": 14,
+   "station_gap": 10
   },
-  "_le_labels": "The label layer's page-wide options on every Layout Editor panel, staging included (this file sets the page, so they reach every band; they are main's and upper's own too): switch numbers as the hand-drawn panel wrote them (\"SW-13\", 13 px bold), block contents icons on with the plugin's reserve. The all-levels trial's smaller set, 9 px numbers and no block contents, retired with it (owner, 2026-11-17). Keys for one level only go in le_band_labels.",
+  "_le_labels": "The label layer's page-wide options on every Layout Editor panel, staging included (this file sets the page, so they reach every band; they are main's and upper's own too): switch numbers with the hand-drawn panel's prefix (\"SW-13\", 12 px bold), block contents icons on with the plugin's reserve. Station and control point names (BRICK, WEST YARD, CP 107, ...) at 14 px bold, up from the plugin's 10, each 10 px from every other station name so Plane and Brick read as two: the owner saw them at 14 and said they look better (owner, 2026-11-21); the label layer places and checks them at that size, and the drawing keeps its room for them unchanged. The all-levels trial's smaller set, 9 px numbers and no block contents, retired with it (owner, 2026-11-17). Keys for one level only go in le_band_labels. Candidate C1 of the 1:1 sizing sweep (owner, 2026-11-21): le_row 40, le_stretch 1.3, switch numbers 12 px bold with the SW- prefix kept, block contents icons 11 px on every level, station and control point names 14 px, so the three-level panel zooms to fit the hosts' window larger than before (0.683). Before it: le_row 48, factor 1.437, SW- at 13 px, icons 12 (main, upper) and 13 (staging).",
   "le_band_labels": {
    "Main": {
     "names_last": true,
-    "block_contents_size": 12,
+    "block_contents_size": 11,
     "numbers_below": [
      "101"
     ],
     "hidden_names": [
-     "101-103"
+     "block:101AB-103AA"
     ],
     "optional_block_contents": [
-     "Track 101-103",
-     "Track 105-109",
-     "Track 109-111",
-     "Track 111-117",
-     "Track 113-115",
-     "Track 115-117",
-     "Track 117-119",
-     "Track 121-123",
-     "Track 123-125",
-     "Track 125-129",
-     "Track 127-131 2"
+     "block:101AB-103AA",
+     "block:105A-109C",
+     "block:109A-111B",
+     "block:111A-117B",
+     "block:113A-115C",
+     "block:115A-117C",
+     "block:117A-119AA",
+     "block:121BA-123C",
+     "block:123A-125AA",
+     "block:125BA-129A",
+     "block:127BA-131BA"
     ]
    },
    "Upper": {
     "names_last": true,
-    "block_contents_size": 12,
+    "block_contents_size": 11,
     "optional_block_contents": [
-     "Track 201-203",
-     "Track 201-205",
-     "Track 201-219",
-     "Track 205-209",
-     "Track 213-215",
-     "Track 219-221",
-     "Track 225-227",
-     "Track 225-229",
-     "Track 227-231",
-     "Track 229-233",
-     "Track 231-237",
-     "Track 235-243",
-     "Track 237-239",
-     "Track 239-245"
-    ],
-    "crowded_block_contents": [
-     "OS Switch 235"
+     "block:201B-203A",
+     "block:201C-205A",
+     "block:201A-219B#1+201A-219B#2",
+     "block:205C-209A",
+     "block:213B-215A",
+     "block:219A-221AA",
+     "block:225A-227A",
+     "block:225D-229A",
+     "block:227B-231A",
+     "block:229B-233A",
+     "block:231C-237A",
+     "block:235B-243AA",
+     "block:237B-239A",
+     "block:239C-245AA"
     ]
    }
   },
-  "_le_band_labels": "Each level's own label options (owner, 2026-11-16). Main and upper at staging's grid (the three-level candidate) are denser than staging, so every block's contents icon comes first and a track name with no room is left out (logged; names_last), and the icons are 12 px, the short reserve still tried before none: at 13 px three have no clean spot at any reserve (staging keeps 13). numbers_below: SW-101 on its crossover's bottom track side, clear of 103 drawn tight above it. hidden_names: track 101-103, the short track inside the 101/103 three-way, has no name on the Layout Editor panel; it keeps it everywhere else. optional_block_contents: Track 227-231 (227-233 before the upper renumber) is 16 px between switches 227 and 231, and with Masts 228RA and 228RB beside it no clean spot is left for its icon, which may be left out (logged; 2026-11-16). crowded_block_contents: OS Switch 235's icon has no clean spot since the plan 5.3c lengths shifted the upper columns; the owner wants it drawn anyway, overlaps allowed, for review (2026-11-20). Every part's block contents icon is optional (optional_block_contents: the level's parts in devices.csv; owner, 2026-11-20)."
+  "_le_band_labels": "Each level's own label options (owner, 2026-11-16). Main and upper at staging's grid (the three-level candidate) are denser than staging, so every block's contents icon comes first and a track name with no room is left out (logged; names_last), and the icons are 12 px, the short reserve still tried before none: at 13 px three have no clean spot at any reserve (staging keeps 13). numbers_below: SW-101 on its crossover's bottom track side, clear of 103 drawn tight above it. hidden_names: track 101-103, the short track inside the 101/103 three-way, has no name on the Layout Editor panel; it keeps it everywhere else. optional_block_contents: Track 227-231 (227-233 before the upper renumber) is 16 px between switches 227 and 231, and with Masts 228RA and 228RB beside it no clean spot is left for its icon, which may be left out (logged; 2026-11-16). crowded_block_contents (OS Switch 235, 2026-11-20) went on 2026-11-21 (row 10 of the source-data hand-off): its icon finds a clean spot again (with the short reserve, room made by moving Track 235 Spur's name and icon), so the entry changed nothing; give it back if the icon is dropped again. Every part's block contents icon is optional (optional_block_contents: the level's parts in devices.csv; owner, 2026-11-20).",
+  "track_labels": {
+   "block:39B-helix": "McKees Rocks",
+   "block:37B-helix": "McKeesport"
+  },
+  "_track_labels": "The label drawn for a track in place of its plan name, keyed by the staging helix block's ID (owner, 2026-11-21), on every output: the schematic and station sheets (the plugin's track_labels, sheet-wide, so this one section gives it for staging too), the Layout Editor labels, the CATS desks and the track-plan article (HART's builders read this same key). The helix tracks' plan names, Helix Outer and Helix Inner, name their blocks by the ordinary rule (Track <plan name>); the labels are the places each runs toward. Temporary: a moving target until the layout expands, when these labels change or go."
  }
 }

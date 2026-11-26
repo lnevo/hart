@@ -12,7 +12,6 @@ import json
 import os
 import sys
 import tempfile
-import time
 import types
 import unittest
 from contextlib import redirect_stdout
@@ -24,9 +23,10 @@ SPEEDMATCH = HERE.parent / "speedmatch"
 GUARD_PATH = SPEEDMATCH / "pom_guard.py"
 WRITER_PATH = SPEEDMATCH / "pom_write.py"
 
-spec = importlib.util.spec_from_file_location("pom_guard", GUARD_PATH)
-g = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(g)
+for _n in ("pom_guard", "pom_guard_cli"):  # in sys.modules, so pom_guard_cli imports this copy of the guard
+    spec = importlib.util.spec_from_file_location(_n, SPEEDMATCH / (_n + ".py"))
+    spec.loader.exec_module(sys.modules.setdefault(_n, importlib.util.module_from_spec(spec)))
+g, gc = sys.modules["pom_guard"], sys.modules["pom_guard_cli"]
 
 N2121 = "06.01.00.00.C8.49"
 N2738 = "06.01.00.00.CA.B2"
@@ -381,9 +381,8 @@ class CvRefusals(GuardCase):
 
 
 def cli(argv):
-    out = io.StringIO()
-    with redirect_stdout(out):
-        rc = g._main(argv)
+    with redirect_stdout(io.StringIO()) as out:
+        rc = gc._main(argv)
     return rc, out.getvalue()
 
 
@@ -517,7 +516,7 @@ class Ledger(GuardCase):
         lf = self.lf()
         os.makedirs(os.path.dirname(lf))
         Path(lf).write_text(json.dumps({"roster_id": "CSX 2121", "next_seq": 1, "cvs": {}}))
-        self.refused("not 'CSX 2738'", g.clear_ledger, os.path.dirname(lf), "CSX 2738", ["CV67"])
+        self.refused("not 'CSX 2738'", gc.clear_ledger, os.path.dirname(lf), "CSX 2738", ["CV67"])
         Path(lf).write_text("{broken")
         rc, out = cli(["clear-ledger", "CSX 2738", "67", "--ledger-dir", os.path.dirname(lf)])
         self.assertEqual(rc, 2)
@@ -541,17 +540,17 @@ class Ledger(GuardCase):
         Path(pf).write_text(json.dumps({"roster_id": "CSX 2738", "cvs": {"67": 300}}))
         self.assertEqual(cli(["seed-ledger", "CSX 2738", pf, "--ledger-dir", ldir])[0], 2)
         Path(pf).write_text("CV67 = 9\nCV67 = 10\n")
-        self.refused("twice", g.parse_preflight, Path(pf).read_text(), "CSX 2738")
+        self.refused("twice", gc.parse_preflight, Path(pf).read_text(), "CSX 2738")
 
     def test_parse_the_log_preflight_py_writes(self):
         # the exact line shapes of jython/preflight.py
         log = ("1794549064.101 PREFLIGHT CSX 2738 cvs=3\n1794549064.102 CVS 3,29,67\n"
                "1794549064.103 PROGRAMMER x\n1794549065.200 CV 3 26\n1794549066.300 CV 29 50\n"
                "1794549067.400 CV 67 FAIL status 4\n1794549067.500 END\n")
-        self.assertEqual(g.parse_preflight(log, "CSX 2738"), {3: 26, 29: 50})
-        self.refused("is for", g.parse_preflight, log, "CSX 2121")
-        self.refused("no END", g.parse_preflight, log.replace("END", ""), "CSX 2738")
-        self.refused("did not finish", g.parse_preflight,
+        self.assertEqual(gc.parse_preflight(log, "CSX 2738"), {3: 26, 29: 50})
+        self.refused("is for", gc.parse_preflight, log, "CSX 2121")
+        self.refused("no END", gc.parse_preflight, log.replace("END", ""), "CSX 2738")
+        self.refused("did not finish", gc.parse_preflight,
                      log.replace("END", "ABORTED after a read timeout\nEND"), "CSX 2738")
 
     def test_lock_is_exclusive(self):
@@ -828,7 +827,7 @@ class PomWriteScript(GuardCase):
                "CONSIST_SCRIPT": fake_query, "LOGF": logf, "ROLLBACK": rb, "APPLY": apply,
                "CONSISTS_BROKEN": consists_broken, "ROSTER_OLD_OK": roster_old_ok,
                "LEDGER_DIR": ledger_dir or os.path.join(self.dir, "ledger"), "RUN_INLINE": True,
-               "OP_TIMEOUT": 0.05, "CONSIST_TIMEOUT": 2.0,
+               "OP_TIMEOUT": 0.05, "CONSIST_TIMEOUT": 2.0, "ACTIVE_FILE": os.path.join(self.dir, "speedrun.active"),
                "execfile": lambda path, e: exec(Path(path).read_text(), e)}
         if absent_ok is not None:
             env["ABSENT_OK"] = absent_ok

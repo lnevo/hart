@@ -42,6 +42,8 @@ The blog does not say when control passed from U.S. Steel to Shenango. By the 19
 
 The only place the blog lists every job is Mark Connolly's answer to modeler Steve Raque, who asked what the numbers meant and what each job did ([p.2](https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176)). Mark said the number stood for the shift and the duty. There were five numbered jobs and an EXTRA. Two were daylight jobs with different work. The others were the second trick, the midnight trick, and a relief job that covered the days those jobs had off. Photo captions supply the moves.
 
+You can work a shift on each of these jobs in [Extra East: HART Railroad](../play/).
+
 | Job | Shift | When it worked |
 |---|---|---|
 | #105 | 7:00 a.m. – 3:30 p.m. | Monday–Friday. Off Saturday and Sunday. |

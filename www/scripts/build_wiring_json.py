@@ -1,31 +1,27 @@
 #!/usr/bin/env python3
-"""Build the public wiring viewer data (behind/wiring.html) from the LCOS workbooks.
+"""Build the public wiring viewer data (behind/wiring.html) from the wiring model.
 
-Reads the LCOS Layout Inventory and the signal-split workbook and writes:
+Reads the LCOS inventory's sheets as tools/wiring/write_inventory.py builds them in memory from the wiring model
+(the device master, hartlib.wiring's wiring.csv, lcos_nodes.csv and signal_head_plan.csv), the same sheets it saves
+as LCOS_Layout_Inventory_v86.xlsx. The workbook file is an output only: this script never opens it (ADR-039). It
+writes:
 
   data/wiring-inventory.json  nodes with DNOU8 / DNIN8 / block-detector port maps,
                               signal heads with their R/Y/G pins, turnouts, block sensors
-  data/signal-splits.json     per control point: each signal's routes, the turnout
-                              positions and occupancy behind each aspect, and the lamp pins
 
-The signal splits take their lamp pins from --splits-inventory (default: the inventory the split workbook was
-recorded against, v85 for signals_split_v8); the nodes and pins come from --inventory. signal-splits.json names
-that inventory in source.inventory, and the viewer links split pins only when it matches the published one.
+The signal-split view and its workbook were retired on 2026-11-25 (owner): the signals and their rules are
+generated for the whole layout. The split workbook, its v85 inventory and the last signal-splits.json are in
+archive/data/wiring/.
 
-Re-run after a version bump:
+The JSON is not committed (ADR-036): the site build and the local preview build it with view() (site_views.py,
+make site-data), and --check builds it in memory and runs its checks (problems()). To write it by hand:
 
-  python3 www/scripts/build_wiring_json.py \
-      --inventory docs/wiring/LCOS_Layout_Inventory_v86.xlsx \
-      --splits docs/wiring/signals_split_v9.xlsx
+  python3 www/scripts/build_wiring_json.py           # www/data/wiring-inventory.json (--out-dir for another folder)
+  python3 www/scripts/build_wiring_json.py --check   # build in memory, exit 1 when it cannot be built or fails a check
 
-With no arguments it picks the highest-numbered workbook of each kind in docs/wiring/
-(the live git copy). Data problems found along the way are printed as warnings; they do
-not stop the build. Network details (IP addresses, hostnames, serial ports, machine paths,
-credentials) are scrubbed from every cell before it reaches the JSON.
-
---check builds without writing and exits 1 when either JSON file holds other data than the
-workbooks give. The build date and the workbook's save date are ignored, so re-saving a
-workbook with no change does not fail it. tools/check.sh runs it.
+Data problems found along the way are printed as warnings; they do not stop the build. Network details (IP
+addresses, hostnames, serial ports, machine paths, credentials) are scrubbed from every cell before it reaches the
+JSON, and problems() fails a built JSON that still holds one.
 """
 
 from __future__ import annotations
@@ -38,20 +34,19 @@ import sys
 from collections import Counter, OrderedDict, defaultdict
 from pathlib import Path
 
-import openpyxl
-
 PORTAL = Path(__file__).resolve().parents[1]
 ROOT = PORTAL.parent
-WIRING = ROOT / "docs" / "wiring"
 OUT_INV = PORTAL / "data" / "wiring-inventory.json"
-OUT_SPLIT = PORTAL / "data" / "signal-splits.json"
-# The inventory each signal-split workbook's lamp pins were recorded against. signals_split_v8 is the frozen Nov 2025
-# RGB plan; its pins are rows of v85, and v86 replaced the old upper-deck rows with the main and upper levels, so it
-# keeps reading v85 (owner: keep the old data). A split workbook not listed here reads the newest inventory.
-SPLITS_INVENTORY = {"signals_split_v8.xlsx": WIRING / "LCOS_Layout_Inventory_v85.xlsx"}
+OUT_REL = OUT_INV.relative_to(PORTAL).as_posix()  # its path in the site (site_views.VIEWS)
+sys.path.insert(0, str(ROOT / "tools" / "wiring"))
+import write_inventory  # noqa: E402  (the wiring model's inventory sheets; it puts hartlib on the path)
 
 WARNINGS: list[str] = []
 SCRUBBED: list[str] = []
+
+
+class WiringDataError(Exception):
+    """The viewer data cannot be built from the wiring model, or fails a check; the message says why."""
 
 
 def warn(msg: str) -> None:
@@ -132,11 +127,6 @@ def version_of(path: Path) -> str:
     return f"v{m.group(1)}" if m else path.stem
 
 
-def latest(pattern: str) -> Path | None:
-    found = sorted(WIRING.glob(pattern), key=lambda p: int(re.search(r"_v(\d+)", p.stem).group(1)))
-    return found[-1] if found else None
-
-
 def split_list(s: str) -> list[str]:
     return [x.strip() for x in s.split(",") if x.strip()] if s else []
 
@@ -203,12 +193,20 @@ def pick_location(locs: list[str]) -> str:
     return Counter(specific or locs).most_common(1)[0][0]
 
 
-def build_inventory(path: Path) -> tuple[dict, dict]:
-    wb = openpyxl.load_workbook(path, data_only=True)
+def build_inventory(wb=None, source: str = write_inventory.OUT.name) -> dict:
+    """The viewer's data from the inventory sheets of wb: by default the workbook write_inventory.py builds in memory
+    from the wiring model (source is the file it saves it as, for the JSON's source)."""
+    WARNINGS.clear()  # each build reports its own warnings and scrubbed cells
+    SCRUBBED.clear()
+    try:
+        wb = wb if wb is not None else write_inventory.workbook()
+    except write_inventory.FactsError as err:
+        raise WiringDataError(f"the wiring model cannot be read: {err}") from None
     sheets = {ws.title: sheet_rows(ws) for ws in wb.worksheets}
-    for need in ("Nodes", "DNOU8", "DNIN8", "TurnoutSummary", "BlockSensors", "DigiconSignals"):
-        if need not in sheets:
-            raise SystemExit(f"{path.name}: missing sheet {need}")
+    missing = [need for need in ("Nodes", "DNOU8", "DNIN8", "TurnoutSummary", "BlockSensors", "DigiconSignals")
+               if need not in sheets]
+    if missing:
+        raise WiringDataError(f"{source}: missing sheet(s) {', '.join(missing)}")
 
     # Nodes
     node_rows = table(sheets["Nodes"], 0)
@@ -380,7 +378,9 @@ def build_inventory(path: Path) -> tuple[dict, dict]:
 
     # Signal heads: Digicon searchlights (DigiconSignals, lower deck) + RGB LED heads (DNOU8, upper deck)
     dig_rows = sheets["DigiconSignals"]
-    hdr = next(i for i, r in enumerate(dig_rows) if r and r[0] == "port_id")
+    hdr = next((i for i, r in enumerate(dig_rows) if r and r[0] == "port_id"), None)
+    if hdr is None:
+        raise WiringDataError(f"{source}: the DigiconSignals sheet has no port_id header row")
     mast_hdr = next((i for i, r in enumerate(dig_rows) if r and r[0] == "mast_user_name"), None)
     port_rows = table(dig_rows[: (mast_hdr - 1) if mast_hdr else None], hdr)
     mast_rows = table(dig_rows, mast_hdr) if mast_hdr else []
@@ -468,11 +468,23 @@ def build_inventory(path: Path) -> tuple[dict, dict]:
         name = r.get("Turnout", "")
         if not name:
             continue
-        motor = {pos: device_ports.get(f"{name} {pos}", []) for pos in ("N", "R")}
+        # The turnout's own name; a crossover's half rows (labelled by OS block) share it. The older workbook (v85) has
+        # no such column and one row per turnout, so its label is the name.
+        jmri = r["JMRI Turnout"] if "JMRI Turnout" in r else name
+        if not jmri:
+            raise WiringDataError(f"TurnoutSummary: row {name!r} has no JMRI Turnout; rebuild v86 with write_inventory.py")
+        motor = {pos: device_ports.get(f"{jmri} {pos}", []) for pos in ("N", "R")}
         if not motor["N"] and not motor["R"]:
             warn(f"TurnoutSummary: {name} has no motor pins on the DNOU8 sheet")
+        half = ""
+        if name != jmri:                    # a crossover half: "<turnout> (<OS block>)"
+            if not (name.startswith(jmri + " (") and name.endswith(")")):
+                raise WiringDataError(f"TurnoutSummary: row {name!r} is not {jmri!r} or {jmri!r} (<OS block>)")
+            half = name[len(jmri) + 2:-1]
         t = {
             "turnout": name,
+            "name": jmri,
+            "half": half,
             "node": r.get("Parent Node", ""),
             "area": r.get("Location/Area", ""),
             "elements": r.get("Switch Elements", ""),
@@ -509,7 +521,7 @@ def build_inventory(path: Path) -> tuple[dict, dict]:
             if not pid:
                 continue
             dev = next((x["device"] for b in nodes.get(pid.split("-")[0], {}).get("inputs", []) for x in b["pins"] if x["port"] == pid), None)
-            if dev != f"{name} {want}":
+            if dev != f"{jmri} {want}":
                 warn(f"TurnoutSummary: {name} {f} → {pid}, but DNIN8 has {dev or 'nothing'} there")
         turnouts.append(t)
 
@@ -527,155 +539,16 @@ def build_inventory(path: Path) -> tuple[dict, dict]:
         b.pop("_locs", None)
     for rec in out_pins.values():
         rec.pop("_note", None)
-    modified = wb.properties.modified.date().isoformat() if wb.properties.modified else ""
     inv = {
-        "source": {"file": path.name, "version": version_of(path), "modified": modified},
+        # a label: the workbook these sheets are saved as (write_inventory.OUT), which this build never reads
+        "source": {"file": source, "version": version_of(Path(source))},
         "nodes": sorted(nodes.values(), key=lambda n: node_sort(n["id"])),
         "signals": sorted(heads.values(), key=lambda h: (node_sort(h["node"]), h["head"])),
         "masts": masts,
         "turnouts": turnouts,
         "blocks": blocks,
     }
-    return inv, {"out_pins": out_pins, "heads": heads}
-
-
-# —— Signal splits ——————————————————————————————————————————————————
-
-def build_splits(path: Path, ctx: dict) -> dict:
-    wb = openpyxl.load_workbook(path, data_only=True)
-    heads = ctx["heads"]
-    out_pins = ctx["out_pins"]
-
-    def lamp_pins(sig: str):
-        h = heads.get(sig)
-        if h:
-            return h["head"], h["lamps"], h["node"]
-        return None, None, None
-
-    cps = []
-    for ws in wb.worksheets:
-        m = re.match(r"control_point_(\d+)$", ws.title)
-        if not m:
-            continue
-        rows = sheet_rows(ws)
-        if not rows:
-            continue
-        header = rows[0]
-        width = max(i + 1 for i, h in enumerate(header) if h)
-        header = header[:width]
-        idx = {h: i for i, h in enumerate(header) if h}
-        sw_cols = [(i, h) for i, h in enumerate(header) if h.startswith("Switch ")]
-        block_cols = [i for i, h in enumerate(header) if re.match(r"Block ?\d$", h)]
-        get = lambda r, k: r[idx[k]] if k in idx and idx[k] < len(r) else ""
-        # A switch heading used twice is a double crossover's two halves (Switch 23 → 23a, 23b).
-        dups = {h for h, c in Counter(h for _, h in sw_cols).items() if c > 1}
-        if dups:
-            warn(f"{ws.title}: switch column(s) {sorted(dups)} appear twice; shown as a / b halves")
-            seen: Counter = Counter()
-            renamed = []
-            for i, h in sw_cols:
-                if h in dups:
-                    renamed.append((i, h + "ab"[seen[h]]))
-                    seen[h] += 1
-                else:
-                    renamed.append((i, h))
-            sw_cols = renamed
-
-        area = ""
-        signals: "OrderedDict[str, dict]" = OrderedDict()
-        for r in rows[1:]:
-            sig = get(r, "Signal")
-            if not sig:
-                continue
-            area = area or get(r, "Location")
-            s = signals.get(sig)
-            if s is None:
-                head, lamps, node = lamp_pins(sig)
-                s = {"signal": sig, "mast": get(r, "Mast"), "routes": []}
-                if head:
-                    s["head"] = head
-                    s["node"] = node
-                    s["lamps"] = lamps
-                elif re.match(r"S\d-\d+$", sig):
-                    s["planned"] = True  # Nov 2025 RGB ID; the lower deck now has Digicon heads
-                else:
-                    warn(f"{ws.title}: signal {sig} has no lamp pins in the inventory")
-                signals[sig] = s
-            sw = OrderedDict()
-            for i, h in sw_cols:
-                v = r[i] if i < len(r) else ""
-                if v:
-                    if h in sw and sw[h] != v:
-                        warn(f"{ws.title}: {sig} row sets {h} both {sw[h]} and {v}")
-                    sw[h] = v
-            blocks_ = [r[i] for i in block_cols if i < len(r) and r[i]]
-            key = (get(r, "Route_From"), get(r, "Route_To"), tuple(blocks_), tuple(sw.items()))
-            route = next((x for x in s["routes"] if x["_key"] == key), None)
-            if route is None:
-                route = {
-                    "_key": key,
-                    "from": get(r, "Route_From") or get(r, "Signal_Block"),
-                    "to": get(r, "Route_To"),
-                    "blocks": blocks_,
-                    "switches": [{"switch": k, "pos": v} for k, v in sw.items()],
-                    "aspects": [],
-                }
-                s["routes"].append(route)
-            b1, b2 = get(r, "B1").upper() == "X", get(r, "B2").upper() == "X"
-            when = "B1" if b1 else ("B2" if b2 else "clear")
-            if b1 and b2:
-                warn(f"{ws.title}: {sig} row marks both B1 and B2 occupied")
-            aspect = get(r, "BO_Aspect").strip()
-            rule = get(r, "BO_Rule")
-            if not aspect:
-                warn(f"{ws.title}: {sig} {route['from']}→{route['to']} has an empty aspect")
-            if any(a["when"] == when for a in route["aspects"]):
-                warn(f"{ws.title}: {sig} {route['from']}→{route['to']} lists the '{when}' case twice")
-            route["aspects"].append({"when": when, "aspect": aspect, "rule": rule})
-            note = get(r, "Notes") if "Notes" in idx else ""
-            if note:
-                route["note"] = note
-            check_rule(ws.title, sig, rule, aspect)
-
-        for s in signals.values():
-            for rt in s["routes"]:
-                rt.pop("_key")
-                order = {"clear": 0, "B2": 1, "B1": 2}
-                rt["aspects"].sort(key=lambda a: order[a["when"]])
-        cps.append({
-            "id": m.group(1),
-            "sheet": ws.title,
-            "area": area,
-            "switches": list(OrderedDict.fromkeys(h for _, h in sw_cols)),
-            "signals": list(signals.values()),
-        })
-
-    cps.sort(key=lambda c: int(c["id"]))
-    modified = wb.properties.modified.date().isoformat() if wb.properties.modified else ""
-    return {
-        "source": {"file": path.name, "version": version_of(path), "modified": modified},
-        "controlPoints": cps,
-    }
-
-
-# C&O 1980 rule numbers (stock JMRI xml/signals/C&O-1980/aspects.xml), for a sanity check only.
-CO_RULES = {
-    "281": "Clear", "282": "Approach Medium", "283": "Medium Clear", "284": "Approach Slow",
-    "285": "Approach", "286": "Medium Approach", "287": "Slow Clear", "288": "Slow Approach",
-    "290": "Restricting", "291": "Stop and Proceed", "292": "Stop",
-}
-_rule_seen: set[tuple] = set()
-
-
-def check_rule(sheet: str, sig: str, rule: str, aspect: str) -> None:
-    want = CO_RULES.get(str(rule))
-    norm = aspect.replace("&", "and").strip().lower()
-    if want and want.lower() != norm and (rule, aspect) not in _rule_seen:
-        _rule_seen.add((rule, aspect))
-        warn(f"{sheet}: rule {rule} labeled '{aspect}' (C&O 1980 {rule} is '{want}'); first seen on {sig}")
-    elif not want and rule and (rule, aspect) not in _rule_seen:
-        _rule_seen.add((rule, aspect))
-        warn(f"{sheet}: rule {rule} ('{aspect}') is not a C&O 1980 rule number; first seen on {sig}")
+    return inv
 
 
 def prune(x):
@@ -701,84 +574,89 @@ def render(data: dict) -> str:
     return json.dumps(prune(data), indent=1, ensure_ascii=False) + "\n"
 
 
-DATES = ("built", "modified")  # when the JSON was built and when the workbook was last saved
+# Lists every wiring model fills; an empty one means the model or the reader is broken.
+REQUIRED = ("nodes", "signals", "masts", "turnouts", "blocks")
 
 
-def stale(path: Path, data: dict) -> bool:
-    """True when the file at path is missing or holds other data than `data`, apart from the dates in source."""
-    if not path.is_file():
-        return True
-    try:
-        old = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return True
-    new = json.loads(render(data))
-    if not isinstance(old, dict) or not isinstance(old.get("source"), dict) or not isinstance(new.get("source"), dict):
-        return old != new
-    for key in DATES:
-        old["source"].pop(key, None)
-        new["source"].pop(key, None)
-    return old != new
+def _strings(x):
+    if isinstance(x, dict):
+        for k, v in x.items():
+            yield str(k)
+            yield from _strings(v)
+    elif isinstance(x, list):
+        for v in x:
+            yield from _strings(v)
+    elif isinstance(x, str):
+        yield x
+
+
+def problems(inv: dict) -> list[str]:
+    """What is wrong with built viewer data: no source, a required list that is empty, a node id empty or twice, or a
+    string that still looks like a network detail or a secret (clean() should have dropped it)."""
+    out = []
+    if not (inv.get("source") or {}).get("file"):
+        out.append("source.file is empty")
+    for key in REQUIRED:
+        if not isinstance(inv.get(key), list) or not inv[key]:
+            out.append(f"{key!r} has no entries")
+    ids = [n.get("id") for n in inv.get("nodes") or []]
+    twice = sorted({i for i in ids if ids.count(i) > 1})
+    if twice or not all(ids):
+        out.append(f"node ids are not one each: {twice or 'an empty id'}")
+    leaks = sorted({s for s in _strings(inv) if any(p.search(s) for p in UNSAFE)})
+    if leaks:
+        out.append(f"{len(leaks)} string(s) look like network details or secrets: {leaks[:3]}")
+    return out
+
+
+def data_text(inv: dict) -> str:
+    """The checked wiring-inventory.json text of built viewer data. WiringDataError when it fails a check."""
+    bad = problems(inv)
+    if bad:
+        raise WiringDataError("www/%s fails its checks:\n  %s" % (OUT_REL, "\n  ".join(bad)))
+    return render(inv)
+
+
+def build(wb=None) -> dict:
+    """The viewer data from the wiring model, dated today (its build date)."""
+    inv = build_inventory(wb)
+    inv["source"]["built"] = dt.date.today().isoformat()
+    return inv
+
+
+def view() -> str:
+    """The viewer data for the site build and the local preview (site_views.VIEWS)."""
+    return data_text(build())
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--inventory", type=Path, default=latest("LCOS_Layout_Inventory_v*.xlsx"),
-                    help="LCOS Layout Inventory workbook (default: newest in docs/wiring/)")
-    ap.add_argument("--splits", type=Path, default=latest("signals_split_v*.xlsx"),
-                    help="signal split workbook (default: newest in docs/wiring/)")
-    ap.add_argument("--splits-inventory", type=Path, default=None,
-                    help="inventory that holds the split plan's lamp pins (default: the one SPLITS_INVENTORY names "
-                         "for the split workbook, v85 for signals_split_v8; else --inventory)")
     ap.add_argument("--out-dir", type=Path, default=PORTAL / "data", help="where the JSON goes")
     ap.add_argument("-q", "--quiet", action="store_true", help="don't list data warnings")
     ap.add_argument("--check", action="store_true",
-                    help="write nothing; exit 1 if either JSON file is out of date with the workbooks")
+                    help="write nothing; build the JSON in memory and exit 1 when it cannot be built or fails a check")
     args = ap.parse_args()
-    if not args.inventory or not args.inventory.exists():
-        ap.error(f"inventory workbook not found: {args.inventory}")
-    if not args.splits or not args.splits.exists():
-        ap.error(f"split workbook not found: {args.splits}")
-
-    if args.splits_inventory is None:
-        args.splits_inventory = SPLITS_INVENTORY.get(args.splits.name, args.inventory)
-    if not args.splits_inventory.exists():
-        ap.error(f"split inventory workbook not found: {args.splits_inventory}")
-
-    inv, ctx = build_inventory(args.inventory)
-    if args.splits_inventory.resolve() == args.inventory.resolve():
-        split_inv, split_ctx = inv, ctx
-    else:                                   # read only for the splits' pins: its own data warnings are not reported
-        kept = len(WARNINGS)
-        split_inv, split_ctx = build_inventory(args.splits_inventory)
-        del WARNINGS[kept:]
-    splits = build_splits(args.splits, split_ctx)
-    stamp = dt.date.today().isoformat()
-    inv["source"]["built"] = stamp
-    splits["source"]["built"] = stamp
-    splits["source"]["inventory"] = split_inv["source"]["version"]
-
-    outputs = (("wiring-inventory.json", inv), ("signal-splits.json", splits))
+    try:
+        inv = build()
+    except WiringDataError as exc:  # the model cannot be read: 2, as before ADR-036
+        print(f"{Path(__file__).name}: {exc}", file=sys.stderr)
+        return 2
+    try:
+        text = data_text(inv)
+    except WiringDataError as exc:  # built, but fails a check
+        print(f"{Path(__file__).name}: {exc}", file=sys.stderr)
+        return 1
     if args.check:
-        old = [name for name, data in outputs if stale(args.out_dir / name, data)]
-        for name in old:
-            print(f"STALE: {shown(args.out_dir / name)} differs from {args.inventory.name} / {args.splits.name}; "
-                  "rebuild with the same arguments, without --check")
-        if not old:
-            print(f"wiring viewer data is current with {args.inventory.name} and {args.splits.name}")
-        return 1 if old else 0
-
-    args.out_dir.mkdir(parents=True, exist_ok=True)
-    for name, data in outputs:
-        p = args.out_dir / name
-        p.write_text(render(data), encoding="utf-8")
-        print(f"wrote {p} ({p.stat().st_size // 1024} KB)")
+        print(f"www/{OUT_REL} builds from the wiring model and passes its checks (not committed, ADR-036)")
+    else:
+        args.out_dir.mkdir(parents=True, exist_ok=True)
+        p = args.out_dir / OUT_INV.name
+        p.write_text(text, encoding="utf-8")
+        print(f"wrote {shown(p)} ({p.stat().st_size // 1024} KB)")
 
     n_pins = sum(len(b["pins"]) for n in inv["nodes"] for b in n["outputs"] + n["inputs"])
     print(f"{inv['source']['file']}: {len(inv['nodes'])} nodes, {n_pins} pins, {len(inv['signals'])} heads, "
           f"{len(inv['turnouts'])} turnouts, {len(inv['blocks'])} block sensors")
-    print(f"{splits['source']['file']}: {len(splits['controlPoints'])} control points, "
-          f"{sum(len(c['signals']) for c in splits['controlPoints'])} signals")
     if SCRUBBED:
         print(f"scrubbed {len(SCRUBBED)} cell(s) that looked like network details or secrets")
     if WARNINGS:

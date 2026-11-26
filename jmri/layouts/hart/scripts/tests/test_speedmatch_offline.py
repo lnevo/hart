@@ -12,6 +12,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lengths_fixture import write_lengths  # noqa: E402
 from test_speedmatch import FORBIDDEN_EVERYWHERE, SM, analyze, make_job, mover  # noqa: E402
 
 sys.path.insert(0, str(SM))
@@ -203,7 +204,7 @@ class ProfileJob(unittest.TestCase):
                                            "emergency", "OpsMode"]:
             self.assertNotIn(bad, src, bad)
         for need in ["clearCurrentProfile", "updateFile()", "writeRoster()", "APPLY is not True",
-                     "/tmp/speedrun.active", "os.remove", 'L("END")', "java.lang.Throwable", "except Exception, e",
+                     "/tmp/speedrun.active", "os.remove", 'L("END")', "java.lang.Throwable", "except Exception as e",
                      'show("OLD"', 'show("NEW"']:
             self.assertIn(need, src, need)
         self.assertLess(src.index("APPLY is not True"), src.index("clearCurrentProfile"))
@@ -274,7 +275,7 @@ class Jobkit(unittest.TestCase):
     def test_each_job_has_the_kit_once_and_the_runners_keep_no_copy(self):
         d = Path(tempfile.mkdtemp())
         csvp = d / "bl.csv"
-        csvp.write_text("user_name,occupancy_sensor,plan_in,measured_in,source,note\nTrack Main West,x,231,220,timed,\n")
+        write_lengths(csvp, {"Track Main West": (231, 220)})
         make_job.main(["steps", "--loco", "L", "--direction", "forward", "--guard", "none",
                        "--lengths", str(csvp), "--out", str(d / "a.py")])
         make_job.main(["move", "--loco", "L", "--direction", "forward", "--guard", "none",

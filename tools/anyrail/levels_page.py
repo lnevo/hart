@@ -6,16 +6,16 @@
 DIR (default `tools/anyrail/levels/`) holds what levels_svg.py wrote from the plan: staging.svg, main.svg, upper.svg and
 levels_meta.json, which names the plan version printed on the page. HTML (default www/build/track-plan.html) is the
 Build section article; never edit it by hand, rerun this. Every number on the page comes from levels_meta.json, from
-block_lengths.csv (plan and timed block lengths) or from helix_tracks.csv; nothing is typed here. A figure that
+block_lengths.csv and block_lengths_measured.csv (plan and timed block lengths, hartlib.block_lengths) or from the helix tracks (hartlib.railroad.read_helix_tracks:
+plan_overrides.json, and preferences.json's track_labels for the names shown); nothing is typed here. A figure that
 disagrees with another source stops the build with the reason.
 
-Staging is drawn and signalled on the plan's lengths. block_lengths.csv keeps a timed length only for the blocks a loco
+Staging is drawn and signalled on the plan's lengths. block_lengths_measured.csv holds a timed length only for the blocks a loco
 was timed over (the test loop and the Switch 5 to Switch 15 run); the page sets those next to the plan's.
 """
 import argparse
 import base64
 import collections
-import csv
 import json
 import re
 import sys
@@ -23,7 +23,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, railroad  # noqa: E402
+from hartlib import block_lengths, paths, railroad  # noqa: E402
 
 sys.path.insert(0, str(paths.LAYOUT_SCRIPTS / "speedmatch"))
 import analyze  # noqa: E402  the test loop's blocks in running order (routes.json)
@@ -32,8 +32,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from levels_svg import switch_key  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
-BLOCK_CSV = paths.LAYOUT_DATA / "block_lengths.csv"
-HELIX_CSV = paths.LAYOUT_DATA / "schematic" / "helix_tracks.csv"
+HELIX_SOURCE = railroad.Sources.under().plan_overrides     # the helix tracks: hartlib.railroad.read_helix_tracks
 SITE_HTML = paths.REPO_ROOT / "www/build/track-plan.html"
 CM_PER_IN = 2.54
 FITTED = re.compile(r"AnyRail (\d+(?:\.\d+)*[a-z]?) loop")
@@ -63,23 +62,24 @@ def read_meta(levels):
 
 
 def block_rows():
-    """{user_name: BlockLength} of block_lengths.csv, and {user_name: note}."""
-    blocks = railroad.read_block_lengths(BLOCK_CSV)
-    with open(BLOCK_CSV, newline="") as f:
-        notes = {r["user_name"]: r["note"] for r in csv.DictReader(f)}
-    return blocks, notes
+    """{user_name: Block} of block_lengths.csv (the plan lengths), and {user_name: Measured} of the timed blocks
+    (block_lengths_measured.csv), which the page prints beside them."""
+    try:
+        return block_lengths.plan_blocks(), block_lengths.measured_lengths()     # this checkout's files
+    except railroad.FactsError as exc:
+        raise SystemExit(str(exc)) from None
 
 
-def timed_rows(blocks, notes, names):
+def timed_rows(blocks, measured, names):
     """[(name, plan_in, timed_in, spread_in or None, laps or None)] of the blocks in `names`, each of which must be
     timed. A loop block must give its spread and laps in its note."""
     out = []
     for name in names:
-        b = blocks[name]
-        if b.source != "timed":
-            raise SystemExit(f"block_lengths.csv: {name} is not a timed block")
-        m = SPREAD.search(notes[name])
-        out.append((name, b.plan_in, b.measured_in, float(m.group(1)) if m else None, int(m.group(2)) if m else None))
+        if name not in measured:
+            raise SystemExit(f"block_lengths_measured.csv: {name} is not a timed block")
+        m = SPREAD.search(measured[name].note)
+        out.append((name, blocks[name].plan_in, measured[name].measured_in, float(m.group(1)) if m else None,
+                    int(m.group(2)) if m else None))
     return out
 
 
@@ -102,7 +102,7 @@ def loop_fit_plan(rows, notes):
 
 def run_passes(rows, notes):
     """(loco, first step, second step) of the timed passes over the Switch 5 to Switch 15 run, as the run blocks' notes
-    in block_lengths.csv give them ("timed passes of 2026-11-13 (CSX 2121, Switch 5 to Switch 15, steps 24 and 48)").
+    in block_lengths_measured.csv give them ("timed passes of 2026-11-13 (CSX 2121, Switch 5 to Switch 15, steps 24 and 48)").
     A note that names passes in other words, or two equal steps, stops the build."""
     found = set()
     for r in rows:
@@ -182,25 +182,28 @@ def _and(items):
 
 
 def helix_rows(meta, blocks):
-    """[(name, foot, top, run_in, below_cut_in, above_cut_in)]: each helix track by the owner's name, from the plan's
-    runs; every run must match its block's plan length."""
-    with open(HELIX_CSV, newline="") as f:
-        named = {(r["staging_switch"], r["level_switch"]): r for r in csv.DictReader(f)}
+    """[(name, foot, top, run_in, below_cut_in, above_cut_in)]: each helix track by the name shown for it
+    (preferences.json track_labels), from the plan's runs; every run must match its block's plan length."""
+    try:
+        helix = railroad.read_helix_tracks(HELIX_SOURCE)
+    except railroad.FactsError as exc:
+        raise SystemExit(str(exc)) from None
+    named = {(h.staging_switch, h.level_switch): h for h in helix.values()}
     rows = []
     for t in meta["helix"]:
-        row = named.get((t["foot"], t["top"]))
-        if row is None:
-            raise SystemExit(f"{HELIX_CSV.name} has no helix track from Switch {t['foot']} to Switch {t['top']}")
+        h = named.get((t["foot"], t["top"]))
+        if h is None:
+            raise SystemExit(f"{HELIX_SOURCE.name} has no helix track from Switch {t['foot']} to Switch {t['top']}")
         run = inches(t["cm"])
-        if abs(run - blocks[row["block"]].plan_in) > HELIX_PLAN_TOLERANCE_IN:
+        if abs(run - blocks[h.block].plan_in) > HELIX_PLAN_TOLERANCE_IN:
             raise SystemExit(f"the plan's run from Switch {t['foot']} to {t['top']} is {run:.1f} in; "
-                             f"block_lengths.csv has {blocks[row['block']].plan_in} in for {row['block']}")
-        rows.append((row["helix"], t["foot"], t["top"], run, inches(t["below_cut_cm"]), run - inches(t["below_cut_cm"])))
+                             f"block_lengths.csv has {blocks[h.block].plan_in} in for {h.block}")
+        rows.append((h.shown, t["foot"], t["top"], run, inches(t["below_cut_cm"]), run - inches(t["below_cut_cm"])))
     return rows
 
 
 def sections(levels, meta):
-    blocks, notes = block_rows()
+    blocks, measured = block_rows()
     plan = meta["plan"]
     lv = meta["levels"]
     svg = {k: (levels / (k + ".svg")).read_text() for k in lv}
@@ -213,15 +216,15 @@ def sections(levels, meta):
     if len(meta["helix"]) != 2 or len(climbs) != 1 or len(meta["ramps"]) != 3:
         raise SystemExit("the plan's ramps are not two helix tracks and one climb from main to upper; the helix text needs a rewrite")
     cut = meta["cut_cm"]
-    loop = timed_rows(blocks, notes, loop_names())
+    loop = timed_rows(blocks, measured, loop_names())
     on_loop = {r[0] for r in loop}
     run_names = [n for _sensor, n in analyze.route_loop("loop2")
-                 if n not in on_loop and blocks.get(n) and blocks[n].source == "timed"]  # in running order
-    stray = sorted(n for n, b in blocks.items() if b.source == "timed" and n not in on_loop and n not in run_names)
+                 if n not in on_loop and n in measured]  # in running order
+    stray = sorted(n for n in measured if n not in on_loop and n not in run_names)
     if stray:
         raise SystemExit(f"timed blocks on neither the test loop nor the Switch 5 to 15 run: {', '.join(stray)}; "
                          "the lengths section needs a row group for them")
-    run = timed_rows(blocks, notes, run_names)
+    run = timed_rows(blocks, measured, run_names)
     low, mid, high = lv["staging"], lv["main"], lv["upper"]
     t = {}
     t["intro"] = (
@@ -239,6 +242,7 @@ def sections(levels, meta):
         'The plan includes the Switch 7 crossover, Switches 9, 11 and 13, and the engine terminal tracks EH-1 to EH-3.%s</p>'
         % (low["switches"], low["flex_m"], low["ramp_m"], switch_note(low)))
     laps = laps_note(loop)
+    notes = {name: m.note for name, m in measured.items()}
     loop_plan = loop_fit_plan(loop, notes)
     loco, slow, fast = run_passes(run, notes)
     t["lengths"] = (

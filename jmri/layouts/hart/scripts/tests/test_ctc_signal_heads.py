@@ -67,7 +67,7 @@ class CtcSignalHeadsTest(unittest.TestCase):
     def test_icon_kind_follows_mast_head_count(self) -> None:
         """d1 (head icon) only for one-head masts, on that head; h2 (mast icon) only for two-head masts."""
         self.skipTest("USS CTC is parked (hartlib.parked); its SIGNALS predate the ADR-024 staging masts "
-                      "(Mast 67/68, head counts, 8L/40L letters) and are redrawn on unpark")
+                      "(Mast 67/68, head counts, 8L/40L letters) and are redrawn on unpark (docs/parked/UNPARK.md)")
         masts = mast_heads()
         for mast, _x, _y, _facing, kind, head in gen.SIGNALS:
             with self.subTest(mast=mast):
@@ -90,7 +90,7 @@ class CtcSignalHeadsTest(unittest.TestCase):
 
     def test_icons_are_drawn_and_face_as_on_the_live_desks(self) -> None:
         self.skipTest("USS CTC is parked (hartlib.parked); its SIGNALS predate the ADR-024 staging masts "
-                      "(Mast 67/68, head counts, 8L/40L letters) and are redrawn on unpark")
+                      "(Mast 67/68, head counts, 8L/40L letters) and are redrawn on unpark (docs/parked/UNPARK.md)")
         for desk in DESKS:
             lamps = desk_lamps(desk)
             for mast, _x, _y, face, kind, _head in gen.SIGNALS:

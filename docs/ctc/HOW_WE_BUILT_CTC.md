@@ -1,5 +1,9 @@
 # How We Built the HART CTC Panel
 
+Overview for clubs of how the Neville Island USS CTC lever machine was built in JMRI; the machine is now parked and the CATS desks are the live dispatcher desks.
+
+Status: historical (2026-11-17). The USS machine is parked; the live desks are generated CATS desks ([`HART_DIGICON_SYSTEM.md`](HART_DIGICON_SYSTEM.md), [`docs/parked/UNPARK.md`](../parked/UNPARK.md)).
+
 Short overview for clubs and operators asking how the Neville Island (HART) CTC
 machine was implemented. For day-to-day dispatching, see
 [`DISPATCHER_GUIDE.md`](../../jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md). For the separate CATS Digicon panel,
@@ -34,12 +38,12 @@ classes the **Tools → CTC** editor uses — we did **not** click through the G
 for fifteen plants.
 
 - Full plant (15 columns, Barn inserted): `jmri/layouts/hart/scripts/build_ctc_full_15col.py`. It built the machine that is now parked; it is not safe to re-run (ADR-005), and an unpark restores the parked data instead (`jmri/layouts/hart/parked/README.md`).
-- Earlier steps it replaced, kept for history in `archive/jmri-scripts/`: the Brick + Plane pilot (`build_ctc_brick_plane.py`) and the East End + Princess extension (`build_ctc_east_end_princess.py`).
+- Earlier steps it replaced, kept for history in `archive/code/jmri-scripts/`: the Brick + Plane pilot (`build_ctc_brick_plane.py`) and the East End + Princess extension (`build_ctc_east_end_princess.py`).
 
 Each script defines O.S. sections (sensors, turnouts, signal masts, crossover vs.
 switch), then runs **`Topology`** auto-generation so traffic-locking rules come from
 the existing **Signal Mast Logic (SML)** graph. A few ladder entrances needed
-hand-tuned TRL patches (`patch_ctc_locking.py`, deleted in commit af6d5551 and readable from git, and `revert_barn_ladder_signals.py`, kept in `archive/jmri-scripts/`).
+hand-tuned TRL patches (`patch_ctc_locking.py`, deleted in commit af6d5551 and readable from git, and `revert_barn_ladder_signals.py`, kept in `archive/code/jmri-scripts/`).
 
 Output lands in `tables.xml` (`<ctcdata>`) and is loaded on the layout Pi.
 

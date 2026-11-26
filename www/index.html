@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-site-verification" content="DncY6KgZlZbKnJClGIo5SwM2GqkZIJI3O2g_b7PAqVI">
   <title>HART Railroad — Neville Island</title>
   <meta name="description" content="A proto-freelanced HO model railroad set on the real Neville Island, Pennsylvania: the island's history with sources, the layout's operating sessions, and how it was built.">
   <link rel="stylesheet" href="css/ops.css">
@@ -42,35 +43,36 @@
         HART Railroad is an HO scale layout inspired by Neville Island, the industrial island in the Ohio
         River just below Pittsburgh. From 1899 until January 1994 the Pittsburgh &amp; Ohio Valley Railway
         switched the island's furnaces and coke ovens. HART's Pittsburgh &amp; Chartiers Valley Division
-        takes up that work on the layout, set between 1996 and 2016. The sections below cover the island's
-        sourced history, operating sessions, how the layout is built and controlled, and how AI helped.
+        takes up that work on the layout, set between 1996 and 2016. Explore the sections below,
+        or experience a shift on the railroad with <a href="#extra-east">Extra East: HART Railroad</a>, a study guide trivia game.
       </p>
       <div class="section-doors">
         <section class="section-door">
           <p class="kind">The island and its story</p>
           <h3><a href="history/index.html">Prototype</a></h3>
           <p>
-            The Pittsburgh &amp; Ohio Valley and the furnaces and coke ovens it switched, how the plants
-            and railroads changed hands, and a century of photographs, ads, and maps.
+            How the island went from farms to furnaces and coke ovens, who owned the plants and railroads, and the
+            old photographs, advertisements and maps. Articles cover the Pittsburgh &amp; Ohio Valley and the Chartiers Branch.
           </p>
           <ul class="door-links">
             <li><a href="plants/index.html">Industry</a></li>
             <li><a href="railroads/index.html">Railroads</a></li>
             <li><a href="photos/index.html#historical">Photos</a></li>
+            <li><a href="articles/index.html">Articles</a></li>
           </ul>
           <a class="btn btn-ink" href="history/index.html">Explore Prototype</a>
         </section>
         <section class="section-door is-ops">
-          <p class="kind">The layout and how it runs</p>
+          <p class="kind">Running a session</p>
           <h3><a href="operators/index.html">Operations</a></h3>
           <p>
-            Start with the primer, the glossary, and a tour of the layout room before your first session.
-            After that come the crew sheets, station maps, and timetable you work from, and the guides
-            behind the dispatcher's desk.
+            Read the primer, car cards and station maps before a first session. Regular crews work from the crew
+            sheets and timetable, and the dispatcher guides cover the CTC panels.
           </p>
           <ul class="door-links">
             <li><a href="briefing/index.html">Primer</a></li>
             <li><a href="operators/cards/index.html">Car cards</a></li>
+            <li><a href="crew/maps/index.html">Station maps</a></li>
             <li><a href="crew/index.html">Crew sheets</a></li>
           </ul>
           <a class="btn" href="operators/index.html">Explore Operations</a>
@@ -79,12 +81,14 @@
           <p class="kind">How the layout works</p>
           <h3><a href="behind/index.html">Behind the Scenes</a></h3>
           <p>
-            The signals, the radios under the benchwork, and the software that decides which cars move.
+            The build, and the radio nodes, signals and software that run the trains. Reference pages generated from
+            the railroad's data, free tools for other layouts, and progress toward NMRA and OPSIG awards.
           </p>
           <ul class="door-links">
             <li><a href="build/index.html">The Build</a></li>
-            <li><a href="behind/index.html#electronics">Electronics</a></li>
-            <li><a href="behind/index.html#operations">Car forwarding</a></li>
+            <li><a href="behind/layout-docs.html">Documentation</a></li>
+            <li><a href="behind/bridge.html">LCOS</a></li>
+            <li><a href="behind/signals.html">Signals</a></li>
           </ul>
           <a class="btn" href="behind/index.html">Explore Behind the Scenes</a>
         </section>
@@ -92,18 +96,27 @@
           <p class="kind">AI in model railroading</p>
           <h3><a href="ai/index.html">The Diverging Route</a></h3>
           <p>
-            Many ways to reach the same layout: how AI can lend a hand with research, wiring, scripts and
-            paperwork, and a few good first things to try.
+            How AI helped with each craft on this layout, from research and 3D-printed parts to wiring, scripts and
+            paperwork. Each job says what was asked, what came out and how well it went.
           </p>
           <ul class="door-links">
+            <li><a href="library/how-it-was-built-article.html">The Story</a></li>
             <li><a href="ai/index.html#topics">The topics</a></li>
             <li><a href="ai/index.html#start">Getting started</a></li>
-            <li><a href="library/how-it-was-built-article.html">The story in order</a></li>
             <li><a href="ai/clinic.html">Clinic</a></li>
           </ul>
           <a class="btn" href="ai/index.html">Explore The Diverging Route</a>
         </section>
       </div>
+      <a class="play-band" id="extra-east" href="play/index.html">
+        <span class="play-band-art"><canvas id="xwTitleCv" width="256" height="114" data-still aria-hidden="true"></canvas></span>
+        <span class="play-band-text">
+          <span class="play-band-kind">Operations</span>
+          <span class="play-band-h">Extra East: HART Railroad</span>
+          <span class="play-band-p">Work the ore job or the midnight job on the P&amp;OV, or take a train up the Chartiers Branch, and learn the rules and signals of railroading as you go.</span>
+          <span class="play-band-go">Work a shift <b aria-hidden="true">&rarr;</b></span>
+        </span>
+      </a>
       <p class="home-about">
         New here? <a href="about/index.html">About HART</a> explains what the layout models and the
         island history behind it.
@@ -120,6 +133,7 @@
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="js/nav.js"></script>
+  <script src="play/title-art.js" defer></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       HARTOps.mountChrome("home").catch(function (err) {

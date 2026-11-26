@@ -13,19 +13,17 @@ import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths an
 import mast_rule  # noqa: E402  band_levels: a band's level from its plan-overrides section (after pd: hartlib's path)
 from hartlib import layer_files, railroad  # noqa: E402  the layer files; the railroad's facts, each read and checked once
 from hartlib import level_devices  # noqa: E402  the main and upper naming rule
-from hartlib import tables_build  # noqa: E402  GENERATED_LEVELS: the levels whose beans the base holds
 
 
-DEVICE_MAP = railroad.Sources.under().devices    # devices.csv: main and upper names (trial_name: the drawing's placeholder)
-# The levels whose turnouts, blocks, sensors and masts the generator's base holds (hartlib.tables_build's
-# GENERATED_LEVELS: devices.csv's level 1 rows): a band of one of them binds the base's beans and adds none, and its
-# candidate is the one the owner approves alone (the staging candidate). Every other level's beans the build adds,
-# virtual (le_tables.add_level_objects, add_level_signals).
-BASE_LEVELS = frozenset(int(v) for v in tables_build.GENERATED_LEVELS)
+DEVICE_MAP = railroad.Sources.under().devices    # the device master: main and upper names (trial_name: the drawing's placeholder)
+# The staging level: its band's names are the staging device map's (staging_device_map.load) and every other band is
+# drawn under it; its candidate is the one the owner approves alone (the staging candidate). Every level's beans are
+# the generator's base's (hartlib.tables_build.base, naming-layers step 11), so the level says only where a band's
+# names come from.
+STAGING_LEVELS = frozenset({int(railroad.STAGING_LEVEL)})
 
-TURNOUT_SYS = level_devices.TURNOUT_PREFIX     # internal turnouts: nothing reaches the field
 BLOCK_SYS = level_devices.BLOCK_PREFIX
-LAYOUT_BLOCK_FIRST = 1001            # ILB1001 up; the live file stops well below
+LAYOUT_BLOCK_FIRST = level_devices.LAYOUT_BLOCK_FIRST
 
 
 class BuildError(RuntimeError):
@@ -49,7 +47,10 @@ def plugin():
 def schematic():
     """(bands, page options) of the solved schematic (the inputs of publish_draft.py), solved once per run."""
     sheet = plugin()[0]
-    built = pd.solved_sheet(sheet)
+    try:
+        built = pd.solved_sheet(sheet)
+    except pd.host_screen.HostScreenError as exc:       # the panel's window: the page's host_screen
+        raise BuildError(str(exc)) from None
     return built.bands, built.opts
 
 
@@ -59,9 +60,16 @@ def slots_module():
 
 
 def plugin_module(name: str):
-    """The plugin's module schematic.<name> (the plugin found and checked once: plugin())."""
-    plugin()
-    return importlib.import_module(f"schematic.{name}")
+    """The plugin's module schematic.<name> (the plugin found and checked once: plugin()); BuildError when the plugin
+    has no such module (a SCHEMATIC_PLUGIN older than the module)."""
+    folder = plugin()[0].__file__
+    try:
+        return importlib.import_module(f"schematic.{name}")
+    except ModuleNotFoundError as exc:
+        if exc.name != f"schematic.{name}":
+            raise                       # the module is there but imports something missing: its own fault, shown
+        raise BuildError(f"the schematic-maps plugin at {Path(folder).parents[1]} has no schematic.{name}: "
+                         "update it (git submodule update, or a newer SCHEMATIC_PLUGIN)") from None
 
 
 def band_key(title: str) -> str:
@@ -174,25 +182,25 @@ def find_band(bands, level: int, height=ANY, data: Path | None = None) -> int:
 
 
 def base_bands(bands) -> list[int]:
-    """The indexes of the bands of a level the base holds (BASE_LEVELS): the staging candidate's bands."""
-    return [i for i, lv in enumerate(band_levels(bands)) if lv in BASE_LEVELS]
+    """The indexes of the staging level's bands (STAGING_LEVELS): the staging candidate's bands."""
+    return [i for i, lv in enumerate(band_levels(bands)) if lv in STAGING_LEVELS]
 
 
 def base_band(bands) -> int:
-    """The index of the one band of a level the base holds (find_band at each of BASE_LEVELS): the staging
+    """The index of the one band of the staging level (find_band at each of STAGING_LEVELS): the staging
     candidate's band. BuildError when there is none, or more than one."""
     places = band_places(bands)
-    found = sorted(i for lv in BASE_LEVELS for i in _at(places, lv))
+    found = sorted(i for lv in STAGING_LEVELS for i in _at(places, lv))
     if len(found) != 1:
         if not found:
-            find_band(bands, min(BASE_LEVELS))       # stops, naming every band's place
-        raise BuildError(f"the base levels {sorted(BASE_LEVELS)} have {len(found)} bands ("
+            find_band(bands, min(STAGING_LEVELS))       # stops, naming every band's place
+        raise BuildError(f"the staging levels {sorted(STAGING_LEVELS)} have {len(found)} bands ("
                          + ", ".join(repr(bands[i][0]) for i in found) + "); the build draws one")
     return found[0]
 
 
 def base_keys(bands) -> set[str]:
-    """The plugin's keys (band_key) of the bands of a level the base holds (base_bands): the names le_names leaves
+    """The plugin's keys (band_key) of the staging level's bands (base_bands): the names le_names leaves
     to the staging device map."""
     return {band_key(bands[i][0]) for i in base_bands(bands)}
 
@@ -296,7 +304,7 @@ def bare(label: str) -> str:
 @functools.lru_cache(maxsize=None)
 def staging_switches() -> dict[int, railroad.Switch]:
     """The staging switches, read once per run (hartlib.railroad: the level 1 rows of switches.csv and each switch's
-    live turnout row of the name map of devices.csv). BuildError names the file and row that cannot be read."""
+    turnout row of the device master). BuildError names the file and row that cannot be read."""
     try:
         return railroad.Railroad(upto="inputs").switches
     except railroad.FactsError as exc:
@@ -309,7 +317,7 @@ def switch_idents() -> dict[str, str]:
 
 
 def main_upper_device_map(path: Path = DEVICE_MAP) -> railroad.DeviceMap:
-    """The main and upper rows of devices.csv (hartlib.railroad.read_device_map, every row checked); BuildError names the
+    """The main and upper rows of the device master (hartlib.railroad.read_device_map, every row checked); BuildError names the
     file and row that cannot be read."""
     try:
         return railroad.read_device_map(path)

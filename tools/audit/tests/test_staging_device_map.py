@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/schematic"))
 import check_device_master as cdm  # noqa: E402
 import staging_device_map as sdm  # noqa: E402
+from hartlib import devices  # noqa: E402
 
 
 def band(nodes, strands):
@@ -24,10 +25,11 @@ def sw(label, **legs):
     return dict(kind="switch", label=label, ins={}, outs={}, **legs)
 
 
-def row(layer, user, system, jmri, notes="", level="1", **facts):
-    """A device map row (build_device_map.COLUMNS, and its role) of staging, kept by hand, a field device."""
+def row(layer, user, system, jmri, notes="", level="1", role="track", **facts):
+    """A device map row (build_device_map.COLUMNS, and its role: a track block's or its sensor's unless given) of
+    staging, kept by hand, a field device."""
     return dict(level=level, cp="", layer=layer, user_name=user, system_name=system, jmri_name=jmri, node="", dcc="",
-                comment="", trial_name="", notes=notes, role=sdm.devices.role_of(layer, user, system, jmri),
+                comment="", trial_name="", notes=notes, role=role,
                 assignment="field", written_by="", **{c: facts.get(c, "") for c in sdm.railroad.DEVICE_FACTS})
 
 
@@ -41,8 +43,11 @@ class SwitchFacts(unittest.TestCase):
     StagingMapError, as every other staging map problem does."""
 
     def test_closed_legs_are_the_staging_rows_of_switches_csv(self):
+        # the file gives IDs; their names are the name store's
+        names = devices.user_names()
         with (ROOT / "jmri/layouts/hart/data/switches.csv").open(newline="", encoding="utf-8") as fh:
-            want = {r["os_block"]: r["closed_leg"] for r in csv.DictReader(fh) if r["level"] == "1"}
+            want = {names[("1", r["os_id"])]: names[("1", r["closed_id"])] for r in csv.DictReader(fh)
+                    if r["level"] == "1"}
         self.assertEqual(sdm.closed_legs(), want)
 
     def test_a_facts_error_is_a_staging_map_error(self):
@@ -150,7 +155,8 @@ class Pure(unittest.TestCase):
         rows = [row("block", "Track S-1", "IB1", "IB1"), row("block", "Track S-1 West", "IB2", "IB2"),
                 row("occupancy", "BS S-1", "M2S206", "M2S206", blocks="Track S-1", detector="wired")]
         self.assertEqual(cdm.check_rows(numbered(rows), set()),
-                         ["devices.csv line 3: block Track S-1 West has 0 occupancy rows naming it (none), not one"])
+                         ["devices_generated.csv: Track S-1 West (level 1, block): block Track S-1 West has 0 occupancy "
+                          "rows naming it (none), not one"])
 
     def test_a_shared_detector_serves_both_blocks(self):
         rows = [row("block", "Track S-1", "IB1", "IB1"), row("block", "Track S-1 West", "IB2", "IB2"),
@@ -216,12 +222,38 @@ class Files(unittest.TestCase):
         self.assertEqual(len(self.names["masts"]), 30)
         self.assertEqual(self.names["idents"]["turnouts"]["TOL34511"], "TO1")         # switches.csv le_ident
 
+    def test_the_helix_tracks_are_found_by_the_name_stores_names_not_the_drawings(self):
+        """check_helix finds each helix track by the name store's name of its strand (staging_names, by the strand's
+        ID): the drawn names are not read (naming-layers step 3b)."""
+        import copy
+        stored = sdm.staging_names(self.band, sdm.pd.DATA)
+        self.assertEqual({stored[s] for s in stored if stored[s].startswith("Helix")}, {"Helix Outer", "Helix Inner"})
+        drawn = copy.deepcopy(self.band)
+        for s in drawn["strands"].values():
+            s["name"] = ""
+        self.assertEqual(sdm.check_helix(drawn, self.names, sdm.staging_names(drawn, sdm.pd.DATA)), [])
+        self.assertEqual(len(sdm.check_helix(self.band, self.names, {})), 2)      # no stored name: not found
+
+    def test_the_names_come_from_the_folder_given(self):
+        """staging_names reads the store of the schematic folder it is given, not publish_draft.DATA."""
+        with tempfile.TemporaryDirectory() as root:
+            data = Path(root) / "schematic"
+            shutil.copytree(sdm.pd.DATA, data, symlinks=True)
+            field = Path(root) / devices.FIELD_FILE
+            text = devices.field_path(sdm.pd.DATA.parent).read_text(encoding="utf-8")
+            self.assertIn(",Track S-1,", text)
+            field.write_text(text.replace(",Track S-1,", ",Track S-9,", 1), encoding="utf-8")
+            got = sdm.staging_names(self.band, data)
+        self.assertIn("S-9", got.values())
+        self.assertNotIn("S-1", got.values())
+        self.assertIn("S-1", sdm.staging_names(self.band, sdm.pd.DATA).values())
+
     def _copy(self, edit):
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)
         rows = [dict(r) for r in sdm.devices.load(sdm.DEVICE_MAP)]        # the master's rows, whole
         edit(rows)
-        out = tmp / "devices.csv"
+        out = tmp / devices.ONE_FILE
         out.write_text(sdm.devices.master_text(rows), encoding="utf-8")
         return out, sdm.read_device_rows(out)
 
@@ -232,8 +264,15 @@ class Files(unittest.TestCase):
         return self._copy(edit)[0]
 
     def test_a_missing_block_of_a_split_track_stops(self):
-        with self.assertRaisesRegex(sdm.StagingMapError, "track 1B-3A: blocks .* are not 1/n to n/n"):
+        # a row left with no key stops the one reader (hartlib.drawing_keys); a k/n key moved off its row stops load
+        with self.assertRaisesRegex(sdm.StagingMapError, r"Track 1-3 at 1 \(level 1, block\) has no trial_name"):
             sdm.load(self.band, device_map=self._without("Track 1B-3A 1/2"))
+
+        def edit(rows):
+            hit = next(r for r in rows if r["user_name"] == "Track 1-3 at 1" and r["layer"] == "block")
+            hit["trial_name"] = "Track 1B-3A 3/3"
+        with self.assertRaisesRegex(sdm.StagingMapError, "track 1B-3A: blocks .* are not 1/n to n/n"):
+            sdm.load(self.band, device_map=self._copy(edit)[0])
 
     def test_a_part_is_a_block_of_its_own_inside_the_block_it_names(self):
         """A part row (part_of) carries its pieces' trial names; load() draws them as the part's own JMRI block, and
@@ -249,19 +288,30 @@ class Files(unittest.TestCase):
                          (["OS Switch 35a"], ["OS Switch 3", "OS Switch 1"]))
 
     def test_a_piece_on_no_row_stops(self):
+        def edit(rows):         # the part row of 35B-37A gone
+            rows[:] = [r for r in rows if not (r["user_name"] == "Track 35-37" and r["layer"] == "block")]
         with self.assertRaisesRegex(sdm.StagingMapError, r"track 35B-37A \(e\d+\) is on no block row"):
-            sdm.load(self.band, device_map=self._without("Track 35B-37A"))
+            sdm.load(self.band, device_map=self._copy(edit)[0])
 
     def test_a_piece_on_two_rows_stops(self):
         def edit(rows):
             hit = next(r for r in rows if r["user_name"] == "OS Switch 37" and r["layer"] == "block")
             hit["trial_name"] += ", Track 35B-37A"
-        with self.assertRaisesRegex(sdm.StagingMapError, "Track 35-37's trial_name Track 35B-37A is another row's"):
+        with self.assertRaisesRegex(sdm.StagingMapError,
+                                    r"trial_name Track 35B-37A is given to OS Switch 37 \(level 1, block\) and "
+                                    r"Track 35-37 \(level 1, block\)"):
             sdm.load(self.band, device_map=self._copy(edit)[0])
 
     def test_a_missing_turnout_placeholder_stops(self):
-        with self.assertRaisesRegex(sdm.StagingMapError, "no turnout row has trial_name Switch 1"):
+        with self.assertRaisesRegex(sdm.StagingMapError, r"Switch 1 \(level 1, turnout\) has no trial_name"):
             sdm.load(self.band, device_map=self._without("Switch 1"))
+
+        def edit(rows):         # Switch 1's key on its LCC alias, which holds no piece
+            for r in rows:
+                if r["level"] == "1" and r["layer"] == "turnout" and r["user_name"] == "Switch 1":
+                    r["trial_name"] = "Switch 999"
+        with self.assertRaisesRegex(sdm.StagingMapError, "no turnout row has trial_name Switch 1"):
+            sdm.load(self.band, device_map=self._copy(edit)[0])
 
     def test_a_device_not_in_tables_stops(self):
         from hartlib import railroad
@@ -277,7 +327,7 @@ class Files(unittest.TestCase):
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)
         bad = tmp / "masts.csv"
-        bad.write_text(sdm.MASTS.read_text(encoding="utf-8").replace("Mast 2L,Brick,1,", "Mast 2L,Brick,99,"),
+        bad.write_text(sdm.MASTS.read_text(encoding="utf-8").replace("Mast 2L,st:brick,1,", "Mast 2L,st:brick,99,"),
                        encoding="utf-8")
         with self.assertRaisesRegex(sdm.StagingMapError, "Mast 2L is on switch '99', which no turnout row"):
             sdm.load(self.band, masts_path=bad)
@@ -322,7 +372,7 @@ class DeviceMapBuild(unittest.TestCase):
         except blb.BuildError as exc:
             raise unittest.SkipTest(f"plugin not available: {exc}")
         with contextlib.redirect_stdout(io.StringIO()):     # on the generator's base (ADR-029)
-            cls.data, cls.P, cls.names, _bands = blb.build(levels="staging", as_live=True, approved=None)
+            cls.data, cls.P, cls.names, _bands = blb.build(levels="staging", as_live=True)
         from hartlib import tables
         cls.tables = tables
         cls.panel = tables.layout_editor(tables.loads(cls.data).root, blb.TEMPLATE_PANEL)

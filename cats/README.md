@@ -28,7 +28,6 @@ The layout deploy and the Pi and Windows host scripts live in [`tools/hosts/`](.
 
 | File | Use in Designer |
 |------|-----------------|
-| [`data/occupancy_bindings.csv`](data/occupancy_bindings.csv) | Block → occupancy sensor userName |
 
 ## Decisions (Accepted)
 
@@ -36,10 +35,10 @@ The layout deploy and the Pi and Windows host scripts live in [`tools/hosts/`](.
 - CTC throws: **CATS**
 - Digicon desks: **generated from the schematic** since the CATS cut-over (ADR-023); **start here:** [`wiki/pipelines/cats-panels.md`](../wiki/pipelines/cats-panels.md)
   ```bash
-  python3 tools/schematic/build_cats_panel.py   # writes HART_CTC.xml and HART_ABS.xml (all three levels)
+  make desks   # writes HART_CTC.xml and HART_ABS.xml (all three levels)
   ```
   - Plant map: [`docs/ctc/DIGICON_SCHEMATIC.md`](../docs/ctc/DIGICON_SCHEMATIC.md)
-- Validate: `python3 cats/scripts/validate_cats_panel.py`
+- Check: `make panels CHECK=1` (the desks are byte-checked against a rebuild and against the approved fingerprints)
 
 ## Install + run (macOS)
 
@@ -69,8 +68,6 @@ Agent-launched JMRI inherits **Cursor**’s Local Network permission. PanelPro o
 Fallback if Cursor is still blocked: `CATS_LAUNCH_VIA=terminal`.
 
 `readelf` warnings on macOS from `cats.csh` are harmless ARM probes.
-
-Also: sample `panels/reference_ArmstrongMagnet.xml`.
 
 ## Authority rule
 

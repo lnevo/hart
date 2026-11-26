@@ -36,6 +36,12 @@ def strand(src, dst, name="", trial=None):
     return {"src": src, "dst": dst, "name": name, **({"trial": trial} if trial else {})}
 
 
+def named(b) -> dict:
+    """The name store's names of a hand-built band's strands, as cats_panel.staging_names gives the real band's: the
+    test bands keep them in their strands' `name`, which the code under test no longer reads."""
+    return {sid: st["name"] for sid, st in b["strands"].items() if st.get("name")}
+
+
 def band():
     nodes = {
         "N1": node("1", "T1", {"A": "w"}, {"B": "s12", "C": "y"}),
@@ -69,14 +75,15 @@ CHAINS = [{"ends": [("TO1", "B"), ("TO2", "A")], "blocks": ["OS Switch 1", "OS S
 def facts(**kw):
     switches = {
         1: Switch(1, "1", "TO1", False, 1, True, (Leg("OS Switch 1", "OS Switch 2a", "Track Yard"),)),
-        2: Switch(2, "1", "TO2", True, 2, True, (Leg("OS Switch 2a", "Track Main", "OS Switch 2b"),
-                                                 Leg("OS Switch 2b", "Track East", "OS Switch 2a"))),
+        2: Switch(2, "1", "TO2", True, 2, True, (Leg("OS Switch 2a", "Track Main", "OS Switch 2b", "os:2:A-1B"),
+                                                 Leg("OS Switch 2b", "Track East", "OS Switch 2a", "os:2:A-loop"))),
     }
     occupancy = {n: (str(i), "BS " + n) for i, n in enumerate(
         ["OS Switch 1", "OS Switch 2a", "OS Switch 2b", "Track West", "Track Yard", "Track Main", "Track East",
          "Track Loop"])}
     f = B.Facts(switches, {"TO1": ("11", "Switch 1"), "TO2": ("12", "Switch 2")}, occupancy, {},
-                B.StagingTracks(CHAINS), {"Mast 1L": "single"}, {"Mast 1L"})
+                B.StagingTracks(CHAINS), {"Mast 1L": "single"}, {"Mast 1L"},
+                half_letters={("1", "os:2:A-1B"): "a", ("1", "os:2:A-loop"): "b"})
     for k, v in kw.items():
         setattr(f, k, v)
     return f
@@ -85,52 +92,53 @@ def facts(**kw):
 class OsBlocks(unittest.TestCase):
     def test_by_named_track_then_by_elimination(self):
         b = band()
-        self.assertEqual(B.os_blocks(b, facts()), {"N1": "OS Switch 1", "N2a": "OS Switch 2a", "N2b": "OS Switch 2b"})
+        self.assertEqual(B.os_blocks(b, facts(), named(b)),
+                         {"N1": "OS Switch 1", "N2a": "OS Switch 2a", "N2b": "OS Switch 2b"})
         b["strands"]["e"]["name"] = ""            # 2b touches no named track of its row: the row left over
         b["strands"]["e"]["dst"] = ("END:e", "E")
-        self.assertEqual(B.os_blocks(b, facts())["N2b"], "OS Switch 2b")
+        self.assertEqual(B.os_blocks(b, facts(), named(b))["N2b"], "OS Switch 2b")
 
     def test_two_nodes_on_one_row_stop(self):
         b = band()
         b["strands"]["e"]["name"] = "Main"        # both halves touch Track Main
         with self.assertRaisesRegex(SystemExit, "would both be OS Switch 2a"):
-            B.os_blocks(b, facts())
+            B.os_blocks(b, facts(), named(b))
 
     def test_a_switch_not_in_the_facts_stops(self):
         b = band()
         b["nodes"]["N1"]["label"] = "9"
         with self.assertRaisesRegex(SystemExit, "not in switches.csv"):
-            B.os_blocks(b, facts())
+            B.os_blocks(b, facts(), named(b))
 
 
 class Dest(unittest.TestCase):
     def test_named_track_next_switch_and_through_a_turnback(self):
         b = band()
-        os_of = B.os_blocks(b, facts())
-        self.assertEqual(B.dest(b, os_of, "N1", "C"), "Track Yard")
-        self.assertEqual(B.dest(b, os_of, "N1", "B"), "OS Switch 2a")
-        self.assertEqual(B.dest(b, os_of, "N2b", "A"), "Track Loop")
+        os_of = B.os_blocks(b, facts(), named(b))
+        self.assertEqual(B.dest(b, os_of, "N1", "C", None, named(b)), "Track Yard")
+        self.assertEqual(B.dest(b, os_of, "N1", "B", None, named(b)), "OS Switch 2a")
+        self.assertEqual(B.dest(b, os_of, "N2b", "A", None, named(b)), "Track Loop")
 
     def test_a_track_to_nowhere_stops(self):
         b = band()
-        os_of = B.os_blocks(b, facts())
+        os_of = B.os_blocks(b, facts(), named(b))
         b["strands"]["loop1"]["name"] = ""
         with self.assertRaisesRegex(SystemExit, "reaches no named track or switch"):
-            B.dest(b, os_of, "N2b", "A")
+            B.dest(b, os_of, "N2b", "A", None, named(b))
 
     def test_a_turnback_loop_stops_instead_of_hanging(self):
         b = band()
-        os_of = B.os_blocks(b, facts())
+        os_of = B.os_blocks(b, facts(), named(b))
         b["strands"]["loop1"] = strand(("turn", 1), ("turn", 0))
         b["nodes"]["turn"]["outs"] = {0: "loop0", 1: "loop1"}
         with self.assertRaises(SystemExit):
-            B.dest(b, os_of, "N2b", "A")
+            B.dest(b, os_of, "N2b", "A", None, named(b))
 
 
 class Switches(unittest.TestCase):
     def test_routes_by_closed_and_thrown_leg(self):
         b = band()
-        out = B.switch_bindings(b, facts(), B.os_blocks(b, facts()))
+        out = B.switch_bindings(b, facts(), B.os_blocks(b, facts(), named(b)), named(b))
         self.assertEqual(set(out), {"1", "2/2a", "2/2b"})
         one = out["1"]                            # closed leg OS Switch 2a is leg B
         self.assertEqual((one["block"], one["normal"]), ("OS Switch 1", "B"))
@@ -140,35 +148,43 @@ class Switches(unittest.TestCase):
         self.assertEqual((out["2/2a"]["label"], out["2/2b"]["label"]), ("2A", "2B"))   # crossover halves lettered
         self.assertNotIn("label", out["1"])
 
-    def test_a_crossover_half_without_a_letter_is_a(self):
-        sw = Switch(7, "1", "TO7", False, 7, True, (Leg("OS Switch 7", "Track A", "OS Switch 7b"),
-                                                     Leg("OS Switch 7b", "Track B", "OS Switch 7")))
-        self.assertEqual([B.half_label(sw, l) for l in sw.legs], ["7A", "7B"])
-        both = Switch(7, "1", "TO7", False, 7, True, (Leg("OS Switch 7", "Track A", "OS X"),
-                                                       Leg("OS X", "Track B", "OS Switch 7")))
-        with self.assertRaises(SystemExit):
-            B.half_label(both, both.legs[0])
-        with self.assertRaises(SystemExit):                   # the second, unlettered leg too
-            B.half_label(both, both.legs[1])
-        taken = Switch(7, "1", "TO7", False, 7, True, (Leg("OS Switch 7", "Track A", "OS Switch 7a"),
-                                                        Leg("OS Switch 7a", "Track B", "OS Switch 7")))
-        with self.assertRaises(SystemExit):                   # 7 cannot be A when 7a already is
-            B.half_label(taken, taken.legs[0])
+    def test_a_crossover_half_is_lettered_by_its_id_not_its_name(self):
+        # the letters are the crossover_half rows', by the half's OS block ID: an owner's name for
+        # the half (OS Barn West, OS X) changes no label, and its plate is its number and letter
+        letters = {("1", "os:7:A-13C"): "a", ("1", "os:7:A-5B"): "b"}
+        for a, b in (("OS Switch 7", "OS Switch 7b"), ("OS Barn West", "OS Switch 7b"), ("OS Switch 7", "OS X"),
+                     ("OS Switch 7b", "OS Switch 7a")):        # names swapped: label and plate still by the ID
+            sw = Switch(7, "1", "TO7", False, 7, True, (Leg(a, "Track A", b, "os:7:A-13C"),
+                                                         Leg(b, "Track B", a, "os:7:A-5B")))
+            with self.subTest(names=(a, b)):
+                self.assertEqual([B.half_label(sw, leg, letters) for leg in sw.legs], ["7A", "7B"])
+                plates = B.os_plates(facts(switches={7: sw}, half_letters=letters))
+                self.assertEqual((plates[a], plates[b]), ("7" if a == "OS Switch 7" else "7a", "7b"))
+                self.assertEqual([plates[a][-1:].upper(), plates[b][-1:].upper()],
+                                 ["7" if a == "OS Switch 7" else "A", "B"])
+        sw = Switch(7, "1", "TO7", False, 7, True, (Leg("OS Barn West", "Track A", "OS Switch 7b", "os:7:A-13C"),
+                                                     Leg("OS Switch 7b", "Track B", "OS Barn West", "os:7:A-5B")))
+        self.assertEqual(B.os_plates(facts(switches={7: sw}, half_letters=letters)),
+                         {"OS Barn West": "7a", "OS Switch 7b": "7b"})
+        with self.assertRaisesRegex(SystemExit, "no crossover_half row"):
+            B.half_label(sw, sw.legs[0], {("1", "os:7:A-5B"): "b"})
+        one = Switch(19, "1", "TO19", False, 19, True, (Leg("OS South 19", "Track A", "Track B", "os:19"),))
+        self.assertEqual(B.os_plates(facts(switches={19: one})), {"OS South 19": "19"})   # a renamed OS block
 
     def test_fit_comes_from_the_window(self):
         o = desk_options()
-        self.assertEqual((o["window"], o["fit"]), ((1900, 1020), (62, 30)))   # (1900 - 20) // 30, (1020 - 100) // 30
+        self.assertEqual((o["window"], o["fit"]), ((1920, 1032), (63, 31)))   # (1920 - 20) // 30, (1032 - 100) // 30
         with self.assertRaisesRegex(SystemExit, "no cats_window"):
             B.desk_options(plugin_cats(), {}, [])
         with self.assertRaisesRegex(SystemExit, "the desks need \"one\""):
-            B.desk_options(plugin_cats(), {"cats_window": [1900, 1020], "cats_helix_blocks": "apart"}, [])
+            B.desk_options(plugin_cats(), {"cats_window": [1920, 1032], "cats_helix_blocks": "apart"}, [])
 
     def test_legs_disagreeing_with_the_switch_facts_stop(self):
         f = facts()
         f.switches[1] = Switch(1, "1", "TO1", False, 1, True, (Leg("OS Switch 1", "Track Main", "Track Yard"),))
         b = band()
         with self.assertRaisesRegex(SystemExit, "switches.csv says"):
-            B.switch_bindings(b, f, B.os_blocks(b, f))
+            B.switch_bindings(b, f, B.os_blocks(b, f, named(b)), named(b))
 
 
 class StagingTracks(unittest.TestCase):
@@ -208,10 +224,10 @@ class Blocks(unittest.TestCase):
         b = band()
         names = {("os", "b0:N1"): "OS Switch 1", ("track", "b0:w"): "West", ("track", "b0:s12"): "1-2"}
         with self.assertRaisesRegex(SystemExit, "block 1-2: .* holds blocks OS Switch 1, OS Switch 2a"):
-            B.block_bindings(b, facts(), names)       # the staging track holds two blocks
+            B.block_bindings(b, facts(), names, named(b))       # the staging track holds two blocks
         F = facts()
         F.layout = B.StagingTracks([{"ends": [("TO1", "C"), ("TO2", "A")], "blocks": ["OS Switch 1"]}])
-        out = B.block_bindings(b, F, names)
+        out = B.block_bindings(b, F, names, named(b))
         self.assertNotIn("name", out["OS Switch 1"])
         self.assertEqual(out["OS Switch 1"]["occupied"]["USER_NAME"], "BS OS Switch 1")
         self.assertEqual(out["West"]["name"], "Track West")
@@ -223,17 +239,17 @@ class Blocks(unittest.TestCase):
         F = facts()
         F.occupancy.pop("Track West")
         with self.assertRaisesRegex(SystemExit, "block West: no JMRI block West or Track West"):
-            B.block_bindings(band(), F, {("track", "b0:w"): "West"})
+            B.block_bindings(band(), F, {("track", "b0:w"): "West"}, named(band()))
 
     def test_a_helix_track_takes_its_helix_block(self):
-        helix = {"McKeesport": "Track Helix Inner"}
-        self.assertEqual(B.track_block("McKeesport", helix), "Track Helix Inner")
+        helix = {"Helix Inner": "Track Helix Inner"}
+        self.assertEqual(B.track_block("Helix Inner", helix), "Track Helix Inner")
         self.assertEqual(B.track_block("K-2", helix), "Track K-2")
-        b = {"strands": {"h": {"name": "McKeesport"}, "k": {"name": "K-2"}}}
-        self.assertEqual(B.helix_block(b, ("track", "b0:h"), {"McKeesport": {"block": "Track Helix Inner"}}),
+        b = {"strands": {"h": {"name": "Helix Inner"}, "k": {"name": "K-2"}}}
+        self.assertEqual(B.helix_block(("track", "b0:h"), {"Helix Inner": {"block": "Track Helix Inner"}}, named(b)),
                          "Track Helix Inner")
-        self.assertIsNone(B.helix_block(b, ("track", "b0:k"), {"McKeesport": {"block": "Track Helix Inner"}}))
-        self.assertIsNone(B.helix_block(b, ("os", "b0:N1"), {}))
+        self.assertIsNone(B.helix_block(("track", "b0:k"), {"Helix Inner": {"block": "Track Helix Inner"}}, named(b)))
+        self.assertIsNone(B.helix_block(("os", "b0:N1"), {}, named(b)))
 
     def test_a_block_with_no_jmri_block_that_is_no_short_track_stops(self):
         b = band()
@@ -243,7 +259,7 @@ class Blocks(unittest.TestCase):
             with self.subTest(names=names):
                 b["strands"]["m"]["name"] = "Mainline"
                 with self.assertRaisesRegex(SystemExit, "not a short unnamed track between two switches"):
-                    B.block_bindings(b, facts(), names)
+                    B.block_bindings(b, facts(), names, named(b))
 
 
 class Masts(unittest.TestCase):
@@ -267,19 +283,26 @@ class StubCats:
 
 def block(*trial):
     """A main level block row of the device map holding the schematic tracks `trial`."""
-    return B.railroad.DeviceRow(level=2, layer="block", user_name="", trial_name=", ".join(trial))
+    return B.railroad.DeviceRow(level=2, layer="block", user_name="", role="track", trial_name=", ".join(trial))
+
+
+def occupancy(user, jmri, block, role, planned=""):
+    """A main level occupancy row: the block it serves (its blocks column), its virtual sensor and planned detector."""
+    return B.railroad.DeviceRow(level=2, layer="occupancy", user_name=user, role=role, jmri_name=jmri,
+                                system_name=planned, blocks=block)
 
 
 def device():
+    rows = [occupancy("BS Switch 101", "IS:HART:C3:B:OS101", "OS Switch 101", "os", "M2S3300"),
+            occupancy("BS Switch 103", "IS:HART:C3:B:OS103", "OS Switch 103", "os"),
+            occupancy("BS 101-111", "IS:HART:C3:B:101-111", "Track 101-111", "track", "M2S3306")]
     return B.DeviceMap(
+        rows=rows,
         blocks={"OS Switch 101": block("OS Switch 101"),
                 "OS Switch 103": block("OS Switch 103"),
                 "Track 101-111": block("Track 101BC-end"),
                 "Track 101-103": block("Track 101AC-103AA"),
-                "Track 135-H1": block("Track 101AB-end #1", "Track 101AB-end #2")},
-        sensors={"BS Switch 101": "IS:HART:C3:B:OS101", "BS Switch 103": "IS:HART:C3:B:OS103",
-                 "BS 101-111": "IS:HART:C3:B:101-111"},
-        planned={"BS Switch 101": "M2S3300", "BS 101-111": "M2S3306"})
+                "Track 135-H1": block("Track 101AB-end #1", "Track 101AB-end #2")})
 
 
 def dark_bands():
@@ -331,13 +354,16 @@ class MainAndUpper(unittest.TestCase):
 
     def test_the_device_map_reads_blocks_and_detectors(self):
         dm = B.load_device_map()
-        self.assertEqual(set(dm.sensors), {B.bdm.occupancy_user(b) for b in dm.blocks})   # one per block
-        self.assertEqual(len(dm.sensors), 97)     # Track 227-241 two blocks (APB B92/B93); the 25 links are parts
-        self.assertTrue(all(dm.sensors[B.bdm.occupancy_user(b)] == B.bdm.block_sensor(b) for b in dm.blocks))
-        self.assertEqual(len(dm.planned), 36)        # 227-241 2 on Block 41-4 since 2026-11-20
-        self.assertTrue(all(v.startswith("M2S") for v in dm.planned.values()))
+        occ = dm.occupancy
+        self.assertEqual(set(occ), set(dm.blocks))                          # one per block
+        self.assertEqual(len(occ), 97)     # Track 227-241 two blocks (APB B92/B93); the 25 links are parts
+        self.assertTrue(all(occ[b].user_name == B.bdm.occupancy_user(b) for b in dm.blocks))
+        self.assertTrue(all(occ[b].jmri_name == B.bdm.block_sensor(b) for b in dm.blocks))
+        planned = {r.user_name: r.system_name for r in occ.values() if r.system_name}
+        self.assertEqual(len(planned), 36)        # 227-241 2 on Block 41-4 since 2026-11-20
+        self.assertTrue(all(v.startswith("M2S") for v in planned.values()))
         # Loop 2 and 225's corners b to d wait for wiring: a virtual sensor and no planned detector (owner, 2026-11-16)
-        self.assertFalse({"BS 107 Loop 2", "BS Switch 225b", "BS Switch 225c", "BS Switch 225d"} & set(dm.planned))
+        self.assertFalse({"BS 107 Loop 2", "BS Switch 225b", "BS Switch 225c", "BS Switch 225d"} & set(planned))
         self.assertEqual(dm.blocks["Track 107-109"].trial, {"Track 107A-109B"})
 
     def test_a_block_missing_from_the_desk_is_checked_on_the_drawing(self):
@@ -405,14 +431,18 @@ class MainAndUpper(unittest.TestCase):
         self.assertEqual(B.label_clashes(log), log[:2])
 
     def test_desk_preferences(self):
-        """The desks' window (the Windows box's screen, owner 2026-11-18), one cell per grid unit, each helix track
-        one block over both bands (owner, 2026-11-20) and the tighter rows between bands (owner, 2026-11-18) are the
-        page's CATS preferences, which the plugin reads."""
+        """The desks' window (the layout hosts' 1920 x 1080 screen less a 48 px taskbar, owner 2026-11-21, derived
+        from host_screen as the Layout Editor panel's is), one cell per grid unit, each helix track one block over
+        both bands (owner, 2026-11-20) and the tighter rows between bands (owner, 2026-11-18) are the page's CATS
+        preferences, which the plugin reads."""
         page = B.pd.page_prefs().read()
-        keys = ("cats_window", "cats_cells_per_unit", "cats_helix_blocks", "cats_band_gap", "cats_title_gap")
+        keys = ("cats_cells_per_unit", "cats_helix_blocks", "cats_band_gap", "cats_title_gap")
         self.assertEqual({k: page[k] for k in keys},
-                         {"cats_window": [1900, 1020], "cats_cells_per_unit": 1, "cats_helix_blocks": "one",
-                          "cats_band_gap": 1, "cats_title_gap": 0})
+                         {"cats_cells_per_unit": 1, "cats_helix_blocks": "one", "cats_band_gap": 1, "cats_title_gap": 0})
+        self.assertEqual(page["host_screen"], {"size": [1920, 1080], "taskbar": 48})
+        self.assertNotIn("cats_window", page)                 # derived, never written: host_screen is the one source
+        s = B.pd.solved_sheet(B.plugin_modules(B.pd.plugin())[1])
+        self.assertEqual((s.opts["cats_window"], s.opts["le_window"]), ([1920, 1032], [1920, 1032]))
 
     def test_every_main_and_upper_desk_block_reports_its_virtual_sensor(self):
         """Every desk block of main and upper is bound to its block's virtual sensor, which tables.xml holds under
@@ -508,12 +538,16 @@ class LevelSwitches(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "double crossover 225: no corners found"):
             B.level_switch_bindings(level_bands(), level_facts(), 0, {})
 
-    def test_a_turnout_that_is_not_internal_stops(self):
-        for turnouts in ({}, {"Switch 109": "M2T1300"}):
-            with self.subTest(turnouts=turnouts), self.assertRaisesRegex(SystemExit, "no internal turnout Switch"):
-                f = level_facts()
-                f.turnouts = {k: v for k, v in f.turnouts.items() if k != "Switch 109"} | turnouts
-                B.level_switch_bindings(level_bands(), f, 0)
+    def test_a_switch_binds_the_turnout_tables_xml_holds_and_stops_on_none(self):
+        """The desk takes the turnout tables.xml holds for Switch <n>, its device-master row's bean (naming-layers
+        step 11): a row swapped to a physical turnout (ADR-028) binds that one; no turnout stops."""
+        f = level_facts()
+        f.turnouts = dict(f.turnouts, **{"Switch 109": "M2T1300"})
+        cmd = B.level_switch_bindings(level_bands(), f, 0)["109"]["routes"]["B"]["ROUTECOMMAND"]
+        self.assertEqual(("M2T", "1300"), (cmd["JMRIPREFIX"], cmd["DECADDR"]))
+        f.turnouts = {k: v for k, v in f.turnouts.items() if k != "Switch 109"}
+        with self.assertRaisesRegex(SystemExit, "tables.xml has no turnout Switch 109"):
+            B.level_switch_bindings(level_bands(), f, 0)
 
     def test_a_crossover_half_whose_thrown_leg_goes_elsewhere_stops(self):
         bands = level_bands()
@@ -656,7 +690,7 @@ def intermediate_bands(order=None):
 
 
 def intermediate_facts(blocks=None):
-    """Facts whose only level masts are APB intermediates A83 and A84 at the e33 loop's turnback (main_upper_masts.csv
+    """Facts whose only level masts are APB intermediates A83 and A84 at the e33 loop's turnback (masts.csv
     rows with no switch), as CP 107's are."""
     f = level_facts(device=B.DeviceMap(blocks=blocks or {
         "Track 107 Loop 1": block("Track 107B-107C #1"), "Track 107 Loop 2": block("Track 107B-107C #2"),
@@ -672,7 +706,7 @@ def intermediate_facts(blocks=None):
 
 
 class IntermediateMasts(unittest.TestCase):
-    """APB intermediates (a main_upper_masts.csv row with no switch) stand at the turnback where the half they face
+    """APB intermediates (a main or upper masts.csv row with no switch) stand at the turnback where the half they face
     meets the half they protect."""
 
     def test_they_stand_at_their_turnback_on_their_own_half(self):
@@ -766,47 +800,45 @@ class IntermediateMasts(unittest.TestCase):
 
 
 class CommittedMainAndUpper(unittest.TestCase):
-    """The committed bindings and desk against the release candidate tables (every name bound must be in it)."""
+    """The committed bindings and desk against the committed tables.xml (every name bound must be in it)."""
 
     @classmethod
     def setUpClass(cls):
-        if not B.TABLES_CANDIDATE.exists():
-            raise unittest.SkipTest("no release candidate tables (make panels writes them)")
-        from hartlib import tables
-        root = tables.read(B.TABLES_CANDIDATE)
+        from hartlib import paths, tables
+        root = tables.read(paths.REPO_TABLES_XML)
         cls.turnouts = {tables.system_name(t): tables.user_name(t) for t in tables.turnouts(root)}
         cls.sensors = {tables.system_name(s): tables.user_name(s) for s in tables.sensors(root)}
         cls.masts = {tables.user_name(m) for m in tables.masts(root)}
         cls.bound = json.loads(B.BINDINGS.read_text(encoding="utf-8"))
 
-    def test_every_bound_name_is_in_the_candidate_tables(self):
+    def test_every_bound_name_is_in_the_tables(self):
         for key, e in self.bound["switches"].items():
             for leg in e["routes"].values():
-                for io in leg.values():
+                for pin in leg.values():
                     with self.subTest(switch=key):
-                        system = io["JMRIPREFIX"] + io["DECADDR"]
-                        self.assertEqual(self.turnouts.get(system), io["USER_NAME"])
+                        system = pin["JMRIPREFIX"] + pin["DECADDR"]
+                        self.assertEqual(self.turnouts.get(system), pin["USER_NAME"])
         for key, e in self.bound["blocks"].items():
             if "occupied" in e:
                 with self.subTest(block=key):
-                    io = e["occupied"]
-                    self.assertEqual(self.sensors.get(io["JMRIPREFIX"] + io["DECADDR"]), io["USER_NAME"])
+                    pin = e["occupied"]
+                    self.assertEqual(self.sensors.get(pin["JMRIPREFIX"] + pin["DECADDR"]), pin["USER_NAME"])
         self.assertLessEqual({e["name"] for e in self.bound["masts"].values()}, self.masts)
 
     def test_main_and_upper_turnouts_and_masts_are_bound(self):
         level = {k: e for k, e in self.bound["switches"].items()
-                 if e["routes"]["B"]["ROUTECOMMAND"]["JMRIPREFIX"] == B.LEVEL_TURNOUT_PREFIX}
+                 if e["routes"]["B"]["ROUTECOMMAND"]["JMRIPREFIX"] == "IT"}
         numbers = {B.bdm.base(k) for k in level}
-        internal = {u.removeprefix("Switch ") for s, u in self.turnouts.items() if s.startswith(B.LEVEL_TURNOUT)}
+        internal = {u.removeprefix("Switch ") for s, u in self.turnouts.items() if s.startswith(B.level_devices.TURNOUT_PREFIX)}
         self.assertEqual(numbers, internal)                         # double crossover 225 too
         self.assertEqual(len(numbers), 39)                         # 121 and 125: one crossover each (2026-11-19)
         # closed on leg B, but for the crossover halves the plan joins by their leg B: closed on leg C
         self.assertEqual({k for k, e in level.items() if e["normal"] != "B"}, {"121B", "125B"})
         self.assertEqual({e["normal"] for e in level.values()}, {"B", "C"})
         names = {e["name"] for e in self.bound["masts"].values()}
-        self.assertLessEqual(B.level_masts.visible_names(), names)
-        self.assertEqual(len(B.level_masts.visible_names()), 44)    # main_upper_masts.csv, APB intermediates too
-        hidden = B.level_masts.names() - B.level_masts.visible_names()
+        self.assertLessEqual(B.level_masts.visible_names(levels=(2, 3)), names)
+        self.assertEqual(len(B.level_masts.visible_names(levels=(2, 3))), 44)    # masts.csv main and upper rows, APB intermediates too
+        hidden = B.level_masts.names(levels=(2, 3)) - B.level_masts.visible_names(levels=(2, 3))
         self.assertEqual(len(hidden), 24)                            # buffer-stop destinations, never on a desk
         self.assertFalse(hidden & names)
 
@@ -829,6 +861,8 @@ class CommittedMainAndUpper(unittest.TestCase):
                 self.assertNotIn(name, self.bound["_main_upper_not_on_desk"])
         names = {e.get("name", k) for k, e in self.bound["blocks"].items()}
         self.assertFalse(names & {"Track 131-H1", "Track 131-H2", "Track McKees Rocks", "Track McKeesport"})
+        helix = {e.get("name", k) for k, e in self.bound["blocks"].items() if e.get("station") == "Helix"}
+        self.assertEqual(helix, {"Track Helix Outer", "Track Helix Inner"})     # "Track <plan name>", the ordinary rule
 
 
 class LevelSensorsFromTheDeviceMap(unittest.TestCase):

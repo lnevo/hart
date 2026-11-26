@@ -28,19 +28,19 @@ class Pure(unittest.TestCase):
         self.assertEqual([BD.base(x) for x in ("129A", "135B", "223*", "105")], ["129", "135", "223", "105"])
 
     def test_a_split_track_is_named_and_its_edge_found_at_build_time(self):
-        """block_splits.csv names tracks by their level and end switches, which survive a new export; the plan edge
+        """block_overrides.csv splits tracks by level and end switches, which survive a new export; the plan edge
         each is drawn on is looked up when the map is built."""
         found = [dict(t, level=3) for t in (track("Track 227-241", "241", "227", trial=["Track e63"]),
                                             track("Track 241 Spur", "241", trial=["Track e64"]),
                                             track("Track 1-2", "1", "2", trial=["Track e1", "Track e2"]))]
-        head = "level,switch_a,switch_b,parallel,notes\n"
+        head = ",".join(BD.mast_rule.OVERRIDE_COLUMNS) + "\n"
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "split.csv"
-            for text, want in ((head + "3,227,241,,\n", {"e63": "Track 227-241"}),
-                               (head + "3,9,10,,\n", "no track runs Switch 9 to Switch 10"),
-                               (head + "3,1,2,,\n", "drawn on Track e1, Track e2"),
-                               (head + "3,227,241,,\n3,227,241,,\n", "already named on line 2"),
-                               (head + "2,227,241,,\n", "no track runs Switch 227 to Switch 241"),
+            for text, want in ((head + "3,split,227,241,,,,,,\n", {"e63": "Track 227-241"}),
+                               (head + "3,split,9,10,,,,,,\n", "no track runs Switch 9 to Switch 10"),
+                               (head + "3,split,1,2,,,,,,\n", "drawn on Track e1, Track e2"),
+                               (head + "3,split,227,241,,,,,,\n3,split,227,241,,,,,,\n", "already split on line 2"),
+                               (head + "2,split,227,241,,,,,,\n", "no track runs Switch 227 to Switch 241"),
                                ("edge,track\ne63,Track 227-241\n", "columns")):
                 p.write_text(text, encoding="utf-8")
                 with self.subTest(text=text):
@@ -81,24 +81,15 @@ class Pure(unittest.TestCase):
 
     def test_track_names(self):
         sw, hx, bump = (lambda n: ("sw", n)), (lambda h: ("helix", h)), ("bumper", None)
-        found = [dict(ends=(sw("101"), sw("105")), row=2, trial=["Track e2"]),
-                 dict(ends=(sw("105"), sw("101")), row=1, trial=["Track e1"]),
+        # parallel tracks are numbered by their ends' plan legs (mast_rule.plan_order), not by the drawn row
+        found = [dict(ends=(sw("101"), sw("105")), row=1, plan_ends=("101C", "105A"), trial=["Track e2"]),
+                 dict(ends=(sw("105"), sw("101")), row=2, plan_ends=("105B", "101B"), trial=["Track e1"]),
                  dict(ends=(sw("113"), bump), row=0, trial=["Track e3"]),
                  dict(ends=(sw("107"), sw("107")), row=0, trial=["Track e4"]),
                  dict(ends=(sw("135"), hx("H1")), row=0, trial=["Track e5"])]
         BD.track_names(found)
         self.assertEqual([t["name"] for t in found],
                          ["Track 101-105 2", "Track 101-105 1", "Track 113 Spur", "Track 107 Loop", "Track 135-H1"])
-
-    def test_a_helix_block_is_a_stop_at_its_level_switch(self):
-        """The helix stop on main and upper is at the helix's main-level end, helix_tracks.csv's level_switch
-        (owner, 2026-11-20): every helix block the file names is a stop, keyed by its block."""
-        helix = {"McKees Rocks": dict(block="Track Helix Outer", staging_switch="39", level_switch="131A"),
-                 "McKeesport": dict(block="Track Helix Inner", staging_switch="37", level_switch="131B")}
-        self.assertEqual(BD.helix_stops(helix), {"Track Helix Outer": "131A", "Track Helix Inner": "131B"})
-        self.assertEqual(BD.helix_stops({}), {})
-        with self.assertRaisesRegex(BD.MapError, "Track Helix Outer: no level_switch"):
-            BD.helix_stops({"McKees Rocks": dict(block="Track Helix Outer", staging_switch="39", level_switch="")})
 
     def test_a_staging_part_keeps_its_bean_names_and_a_new_one_takes_the_next_free(self):
         """A part of a level whose beans the generator writes (staging) is a JMRI block of its own (owner,
@@ -144,9 +135,10 @@ class Output(unittest.TestCase):
             want = sorted(["block"] * len(os) + ["fb", "fb"] + ["occupancy"] * len(os) + ["turnout", "turnout"])
             self.assertEqual(kinds, want, s)
 
-    def test_the_helix_blocks_are_stops_and_no_other_main_or_upper_block(self):
-        stops = sorted((x["level"], x["user_name"]) for x in rows() if x["layer"] == "block" and x["stop"])
-        self.assertEqual(stops, [("2", "Track Helix Outer"), ("3", "Track Helix Inner")])
+    def test_no_block_is_a_stop_while_the_stations_are_parked(self):
+        """The Dispatcher stations are parked with the stations topic (owner, 2026-11-22): the helix rows marked a
+        stop at Switch 131A and 131B until then (docs/parked/UNPARK.md)."""
+        self.assertEqual([x["user_name"] for x in rows() if x["layer"] == "block" and x["stop"]], [])
         self.assertTrue(all(x["stop"] in ("", "yes") for x in rows()))
 
     def test_dcc_continues_from_120_in_switch_order(self):
@@ -285,7 +277,7 @@ class Output(unittest.TestCase):
                 if x["layer"] == "turnout":
                     self.assertEqual(x["jmri_name"], "IT:HART:C3:" + x["user_name"].rpartition(" ")[2])
                 elif x["layer"] == "head":
-                    self.assertEqual(x["jmri_name"], level_masts.head_name(x["user_name"]))
+                    self.assertEqual(x["jmri_name"], level_masts.head_name(x["user_name"], int(x["level"])))
                 elif x["layer"] == "mast" and level_masts.is_level_virtual(x["jmri_name"]):
                     self.assertEqual(x["system_name"], x["jmri_name"])        # a hidden virtual mast, no heads
                 elif x["layer"] == "mast":
@@ -297,8 +289,12 @@ class Output(unittest.TestCase):
                         self.assertTrue(level_masts.mast_heads(x["jmri_name"]))
                         for h in level_masts.mast_heads(x["jmri_name"]):
                             self.assertEqual(unwired.get(h), BD.HEAD_NOT_WIRED, h)
-                elif x["layer"] in ("fb", "block"):
-                    self.assertEqual(x["jmri_name"], "")
+                elif x["layer"] == "fb" or (x["layer"] == "block" and x["role"] == "helix"):
+                    self.assertEqual(x["jmri_name"], "")        # DIRECT feedback; a helix block's beans are staging's
+                elif x["layer"] == "block":
+                    # a block's: today's number, block_numbering.csv's (owner, 2026-11-23; naming-layers step 8,
+                    # hartlib.block_numbering, whose tests pin the order and the layout block beside it)
+                    self.assertRegex(x["jmri_name"], r"^IB:C3:\d{4}$")
                 if x["layer"] != "fb" and x["layer"] != "block":
                     self.assertTrue(x["jmri_name"])
         self.assertEqual(len(set(occ.values())), len(occ))
@@ -335,7 +331,7 @@ class Output(unittest.TestCase):
                 BD.block_sensor(bad)
 
     def test_check_virtual_stops_on_a_block_without_occupancy_or_a_name_twice(self):
-        row = lambda layer, user, jmri="": dict(level=2, layer=layer, user_name=user, jmri_name=jmri)
+        row = lambda layer, user, jmri="": dict(level=2, layer=layer, user_name=user, jmri_name=jmri, role="track")
         ok = [row("block", "Track 1-3"), row("occupancy", "BS 1-3", "IS:HART:C3:B:1-3")]
         BD.check_virtual(ok)
         with self.assertRaisesRegex(BD.MapError, "blocks and occupancy rows differ"):
@@ -349,12 +345,28 @@ class Output(unittest.TestCase):
         with self.assertRaisesRegex(BD.MapError, "not one corner per leg"):
             BD.xover_corners("7", {"A": "A", "B": "A", "C": "C", "D": "D"})
 
+    def test_a_line_blocks_role_comes_from_its_ends_never_its_name(self):
+        """build() states each row's role (hand-off row 8): a line block's from its track's ends and loop flag, so a
+        name that reads like another kind gives no role."""
+        t = lambda name, *ends, loop=False: dict(name=name, ends=list(ends), loop=loop)    # noqa: E731
+        self.assertEqual(BD.line_role(t("Track 1-3", ("sw", "1"), ("sw", "3")), None), "track")
+        self.assertEqual(BD.line_role(t("Track 1-3", ("sw", "1"), ("sw", "3")), 2), "track")       # a split half
+        self.assertEqual(BD.line_role(t("Track Helix", ("bumper", None), ("sw", "1")), None), "spur")
+        self.assertEqual(BD.line_role(t("Track 1 Spur", ("sw", "1"), ("helix", "H")), None), "helix")
+        self.assertEqual(BD.line_role(t("Track 1-1", ("sw", "1"), ("sw", "1"), loop=True), 1), "loop_half")
+        with self.assertRaisesRegex(BD.MapError, "a balloon loop is two blocks"):
+            BD.line_role(t("Track 1 Loop", ("sw", "1"), ("sw", "1"), loop=True), None)
+        for ends, said in ((((("bumper", None), ("bumper", None))), "bumper and bumper"),
+                           ((("sw", "1"),), "sw"), ((("sw", "1"), ("link", "x")), "link and sw"), ((), "nothing")):
+            with self.subTest(ends=ends), self.assertRaisesRegex(BD.MapError, f"Track X: a line block ends at {said};"):
+                BD.line_role(t("Track X", *ends), None)
+
     def test_helix_top_crossover_tracks_are_not_loops(self):
         names = {x["user_name"] for x in rows() if x["layer"] == "block"}
         self.assertFalse({"Track 129 Loop", "Track 135 Loop"} & names)
 
-    def test_overrides_match_the_control_point_file(self):
-        over = BD.layer_files.read("plan_overrides", "main_upper", BD.OVERRIDES.parent)
+    def test_generated_keys_match_the_control_point_file(self):
+        over = BD.layer_files.read("plan_generated", "main_upper", BD.OVERRIDES.parent)
         names = [c.name for c in BD.load_cps()]
         self.assertEqual(list(over["control_points"]), names)
         self.assertEqual({k: v["switches"] for k, v in over["stations"].items()},
@@ -471,7 +483,8 @@ class MastsLeaveOutDarkMasts(unittest.TestCase):
         for sid, (a, pa), (b, pb), cm in tracks:
             ref = lambda n: ("sw", n[1:]) if n.startswith("S") else ("bumper", None)       # noqa: E731
             found.append(dict(level=2, ends=(ref(a), ref(b)), legs=[(a, pa), (b, pb)], band=0, cm=cm, loop=False,
-                              main=False, row=0, strands=[sid], trial=[f"Track {sid}"], name=f"Track {sid}"))
+                              main=False, row=0, strands=[sid], trial=[f"Track {sid}"], name=f"Track {sid}",
+                              plan_ends=tuple(f"{n[1:]}{p}" if n.startswith("S") else "end" for n, p in ((a, pa), (b, pb)))))
         return [("Main level", band, {})], found
 
     def masts(self, tracks, cp_of, ends=None):
@@ -530,19 +543,23 @@ class NoBoardRoomOnly(unittest.TestCase):
         self.assertEqual(len(north), 12)
 
 
-def track(name, a, b=None, row=0, trial=None, loop=False):
-    """An in-memory track entry as mast_rule.tracks gives them: between switches a and b, or a spur when b is None."""
+def track(name, a, b=None, row=0, trial=None, loop=False, legs=("B", "A")):
+    """An in-memory track entry as mast_rule.tracks gives them: between switches a and b, or a spur when b is None;
+    `legs` the legs it leaves a and b by (its plan_ends, which order parallel tracks)."""
     return dict(name=name, ends=(("sw", a), ("sw", b) if b else ("bumper", None)), row=row,
-                trial=trial or [f"Track e{row}"], loop=loop)
+                plan_ends=(a + legs[0], b + legs[1] if b else "end"), trial=trial or [f"Track e{row}"], loop=loop)
 
 
 class SwitchPairLists(unittest.TestCase):
-    """Hand lists (block_splits.csv) name a track by its end switches, so a renumber does not break them (source-data
-    row 5). The rows below are level 2 rows; the tracks are level 2 tracks."""
-    HEAD = "level,switch_a,switch_b,parallel,notes\n"
+    """Hand lists (block_overrides.csv) name a track by its end switches, so a renumber does not break them (source
+    data row 5). The rows below are level 2 rows; the tracks are level 2 tracks."""
+    HEAD = ",".join(BD.mast_rule.OVERRIDE_COLUMNS) + "\n"
 
     def names(self, text, found):
-        text = "".join("2," + line + "\n" for line in text.splitlines())
+        """read_block_splits over block_overrides.csv split rows of level 2, one per line of `text` (switch_a,
+        switch_b, parallel, notes)."""
+        text = "".join("2,split," + line.rsplit(",", 1)[0] + ",,,,," + line.rsplit(",", 1)[1] + "\n"
+                       for line in text.splitlines())
         found = [dict(t, level=2) for t in found]
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "list.csv"
@@ -558,7 +575,8 @@ class SwitchPairLists(unittest.TestCase):
         self.assertEqual(self.names("241,,,\n", found), {"Track 241 Spur"})
 
     def test_two_tracks_between_one_pair_need_parallel(self):
-        found = [track("Track 211-217 1", "211", "217", row=5), track("Track 211-217 2", "211", "217", row=6)]
+        found = [track("Track 211-217 2", "211", "217", row=5, legs=("C", "A")),
+                 track("Track 211-217 1", "211", "217", row=6, legs=("B", "B"))]
         with self.assertRaisesRegex(BD.MapError, r"list.csv: line 2: level 2: 2 tracks run Switch 211 to Switch 217 "
                                                   r"\(Track 211-217 1, Track 211-217 2\): give parallel"):
             self.names("211,217,,\n", found)
@@ -574,7 +592,7 @@ class SwitchPairLists(unittest.TestCase):
 
     def test_one_track_named_twice_and_bad_rows_stop(self):
         found = [track("Track 119-121", "119", "121")]
-        for text, msg in (("119,121,,\n119,121,,\n", "already named on line 2"),
+        for text, msg in (("119,121,,\n119,121,,\n", "already split on line 2"),
                           ("121,119,,\n", "lower first"),
                           ("x,121,,\n", "are switch numbers"),
                           ("119,121,5,\n", "parallel '5'")):

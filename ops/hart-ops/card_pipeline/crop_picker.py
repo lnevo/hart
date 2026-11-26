@@ -32,8 +32,8 @@ def parse_box(text: str) -> tuple[int, int, int, int, float]:
     try:
         x, y, w, h = (int(round(float(p))) for p in parts[:4])
         angle = float(parts[4]) if len(parts) == 5 else 0.0
-    except ValueError:
-        raise SystemExit(f"Crop must be numbers: {text!r}") from None
+    except ValueError as exc:
+        raise SystemExit(f"Crop must be numbers: {text!r}") from exc
     if w < 50 or h < 50:
         raise SystemExit(f"Crop {text!r} is too small (at least 50 x 50 pixels).")
     return x, y, w, h, angle

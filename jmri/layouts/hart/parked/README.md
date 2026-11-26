@@ -1,5 +1,7 @@
 # Parked features
 
+Waking a feature up, and the log of warnings the parked features leave: [`docs/parked/UNPARK.md`](../../../../docs/parked/UNPARK.md).
+
 Since the helix-join release (owner, 2026-11-17) three features are out of the active
 `jmri/layouts/hart/output/tables.xml`, with all their data kept here. `tables_parked.xml` is a frozen snapshot of the
 live elements: split verbatim, once, from `tables.xml` as deployed at commit **3bd3ac64** (main before the release;
@@ -37,7 +39,7 @@ sensors section holds only the parked sensors, a `LayoutEditor` element named "H
 icons), and `<bindings>` names each slot, list entry or child the split cleared (panel, element, ident, slot,
 value). It is not a JMRI file.
 
-The cut-over build (`tools/schematic/build_layout_le.py --as-live`) leaves the same features out of the candidate
+The Layout Editor build (`build_layout_le.build`, run by `tools/schematic/build_tables.py`) leaves the same features out of the tables it builds
 it builds from the live `tables.xml` (which holds none of them since the release); it does not write this file.
 
 Files outside tables.xml stay in the repo but are not shipped while their feature is parked
@@ -69,7 +71,7 @@ Still used by active tools, so they must keep working while parked:
 
 The three scripts that edit the panel work on the generated panel only (`hartlib.tables.require_generated_panel`: it
 holds the generated-panel marker, `hartlib.tables.GENERATED_PANEL_MARKER`) and refuse any other: the hand-drawn
-panel's pixel tables and the one-off edit scripts are gone (the one-off scripts are in `archive/jmri-scripts/`). Every
+panel's pixel tables and the one-off edit scripts are gone (the one-off scripts are in `archive/code/jmri-scripts/`). Every
 position comes from the panel itself or from `--reference`, the tables before Stage 1, which `run_panelpro_stage1.sh`
 passes:
 
@@ -137,7 +139,7 @@ that is missing once the feature is back.
    put back: `hartlib.parked.with_parked_file([feature])` (`with_parked`, through `restore`, puts the elements and
    bindings in place; it does nothing for a feature already out of `PARKED`).
 2. Take the feature out of `PARKED` in `tools/hartlib/src/hartlib/parked.py`, then build on that copy
-   (`build_layout_le.py --as-live --tables <copy>`): the build starts from the tables it is given, and the live
+   (`build_layout_le.build(base_data=<copy>)`, then `build_tables.py`; there is no command-line option for this yet): the build starts from the tables it is given, and the live
    `tables.xml` holds none of the parked data. Its items on the "HART Railroad" panel (NX slots, MoveTo buttons
    and lamps) are not drawn by the build; Stage 1 or NX Discover in step 3 puts them back.
 3. The snapshot is the data that comes back; it matches the 3bd3ac64 geometry (helix unjoined). Refresh it against
@@ -159,7 +161,7 @@ Dispatcher must restore the throat blocks and their rear and yard-end masts**. T
 `git show 5a5bff0a:<path>`.
 
 - **Blocks** (12, each a short block at one end of its yard track, sharing that track's detector and drawn at 15.748 in,
-  400 mm). The rows are the level 1 block rows of `jmri/layouts/hart/data/devices.csv` (before ADR-029, `device_map_staging.csv`), each a block row plus its name in
+  400 mm). The rows are the level 1 block rows of the device master (before ADR-029, `device_map_staging.csv`), each a block row plus its name in
   the occupancy row's `blocks ...` note. The yard track's `trial_name` took the middle share, `Track <edge> 2/3`, or
   `1/2` for East Lead and `2/2` for K-1. In `block_lengths.csv` they had source `stub`, and the tools of that commit
   read them: `plan_lengths.py` fixed lengths, speed-profile detector sums and the electrical drawings.
@@ -185,12 +187,12 @@ Dispatcher must restore the throat blocks and their rear and yard-end masts**. T
   - Dispatcher rear masts:
     - 36L ($1025), Track East Lead East into Track East Lead;
     - 40RB ($1026), Track K-1 West into Track K-1.
-  - Put them in by a rule in `build_staging_masts.py`, or bring back the hand-kept files and the code that read
-    them (`read_virtual` in `build_staging_masts.py` at 5a5bff0a; both were removed when nothing was left in them).
+  - Put them in by a rule in `build_masts.py`, or bring back the hand-kept files and the code that read
+    them (`read_virtual` in `build_staging_masts.py` at 5a5bff0a, now `build_masts.py`; both were removed when nothing was left in them).
 - **tables.xml**: each throat's `<block>` (both passes) and `<layoutblock>`. Its block paths were moved onto its
   track: the track's path to the throat became the throat's path to its OS block (with the turnout setting), and
   the OS block's path to the throat now points at the track. Take them from `tables.xml` at 5a5bff0a.
-- Then `make panels`, `sync_staging_signals.py`, stock discovery in a sandbox and the owner's approval, as for any
+- Then `make panels`, `sync_signals.py --check`, stock discovery in a sandbox and the owner's approval, as for any
   staging change (ADR-024).
 
 Exception to ADR-010 (owner, 2026-11-20): the notes for a parked feature live with its parked data, so `DISPATCHER_LAYOUT_HOOPS.md` is here and not in `docs/`.

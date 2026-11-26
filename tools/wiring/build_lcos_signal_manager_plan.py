@@ -24,7 +24,7 @@ from openpyxl.styles import Font
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths  # noqa: E402
+from hartlib import devices, paths  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 LCOS = ROOT / "docs/wiring/lcos"
@@ -115,19 +115,32 @@ def load_keyed(path: Path) -> dict[tuple[str, str], dict[str, str]]:
 
 
 def load_live_ids() -> tuple[dict[str, tuple[int, int]], dict[str, tuple[int, int]]]:
-    """Live BS name → (node, block) and Switch name → (node, turnout)."""
+    """Live BS name → (node, block) and Switch name → (node, turnout): the detectors and turnouts the device master holds
+    (by layer and role, never by name: hand-off row 8), as tables.xml's comments place them."""
     root = ET.parse(TABLES).getroot()
+    index = devices.index()
+    detectors = set(index.names("occupancy", roles=set(devices.ROLES) - {"spare"}))
+    switches = set(index.names("turnout", roles=("turnout",)))
     blocks: dict[str, tuple[int, int]] = {}
     for sensor in root.iter("sensor"):
         name = (sensor.findtext("userName") or "").strip()
         m = BLOCK_RE.search(sensor.findtext("comment") or "")
-        if name.startswith("BS ") and m:
+        if m and not index.has("occupancy", name):
+            # a Store not split yet can hold it: say so, and leave it out
+            print(f"build_lcos_signal_manager_plan: sensor {sensor.findtext('systemName')} ({name or 'no user name'}) "
+                  f"has a block comment in {paths.rel(TABLES)} but no occupancy row in the device master; left out",
+                  file=sys.stderr)
+        if name in detectors and m:
             blocks[name] = (int(m.group(1)), int(m.group(2)))
     turnouts: dict[str, tuple[int, int]] = {}
     for turnout in root.iter("turnout"):
         name = (turnout.findtext("userName") or "").strip()
         m = TURNOUT_RE.search(turnout.findtext("comment") or "")
-        if name.startswith("Switch ") and m:
+        if m and not index.has("turnout", name):
+            print(f"build_lcos_signal_manager_plan: turnout {turnout.findtext('systemName')} "
+                  f"({name or 'no user name'}) in {paths.rel(TABLES)} has no turnout row in the device master; left out",
+                  file=sys.stderr)
+        if name in switches and m:
             turnouts[name] = (int(m.group(1)), int(m.group(2)))
     return blocks, turnouts
 

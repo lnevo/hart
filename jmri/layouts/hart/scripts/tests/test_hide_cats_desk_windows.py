@@ -293,17 +293,6 @@ def cats_desk(**kw):
     return desk
 
 
-def wrapped(inner):
-    """A content pane as the old top Help/Quit wrap left it."""
-    wrap = JPanel(BorderLayout())
-    wrap.setName("HART:CATS:Wrapped")
-    tools = JPanel()
-    tools.setName("HART:CATS:Toolbar")
-    wrap.add(tools, BorderLayout.NORTH)
-    wrap.add(inner, BorderLayout.CENTER)
-    return wrap
-
-
 # --- tests ----------------------------------------------------------------------------
 
 
@@ -432,7 +421,7 @@ class Hiding(unittest.TestCase):
 
     def test_the_window_is_not_hidden_twice_once_hidden(self):
         desk = cats_desk()
-        desk.dispatcher.title = "not yet"            # keeps the passes going
+        desk.space = None                            # no button strip: keeps the passes going
         desk.load(self)
         desk.railroad.visible = True                 # the operator shows it again
         desk.tick(limit=3)
@@ -455,7 +444,7 @@ class NoCatsWindows(unittest.TestCase):
         self.assertEqual(desk.tick(), 39)            # the first pass ran at load
         self.assertEqual(desk.delayed, [])
         self.assertEqual(desk.script["_state"], {"tries": 40, "hid": False, "chrome": False})
-        self.assertEqual(desk.printed(), ["HART: CATS Help/Quit incomplete (ctc=False desk=False)"])
+        self.assertEqual(desk.printed(), ["HART: CATS Help/Quit incomplete (CTC Panel button strip not found)"])
 
     def test_a_window_that_opens_later_is_hidden_on_a_later_pass(self):
         desk = Desk(command=CATS)
@@ -482,7 +471,7 @@ class NoCatsWindows(unittest.TestCase):
             desk.load(self)
             desk.tick()
             self.assertEqual(desk.script["_state"], {"tries": 40, "hid": True, "chrome": False})
-            self.assertEqual(desk.printed()[-1], "HART: CATS Help/Quit incomplete (ctc=False desk=True)")
+            self.assertEqual(desk.printed()[-1], "HART: CATS Help/Quit incomplete (CTC Panel button strip not found)")
 
     def test_a_python_error_at_load_is_printed_not_raised(self):
         desk = Desk(command=CATS)
@@ -492,9 +481,9 @@ class NoCatsWindows(unittest.TestCase):
 
     def test_a_python_error_in_one_panel_is_printed_and_the_pass_goes_on(self):
         desk = cats_desk()
-        desk.ctc.getJMenuBar = mock.Mock(side_effect=RuntimeError("menu gone"))
+        desk.space.add = mock.Mock(side_effect=RuntimeError("strip gone"))
         desk.load(self)
-        self.assertEqual(desk.printed()[1], "HART: CATS Help/Quit CTC Panel failed: menu gone")
+        self.assertEqual(desk.printed()[1], "HART: CATS Help/Quit CTC Panel failed: strip gone")
         self.assertEqual([ms for _, ms in desk.delayed], [500])
         self.assertEqual(desk.script["_state"]["tries"], 1)
 
@@ -502,9 +491,9 @@ class NoCatsWindows(unittest.TestCase):
         """Fault, not fixed here: `except Exception` in _pass does not catch a Java exception in
         Jython, so it leaves _pass on the GUI thread before the next pass is scheduled."""
         desk = cats_desk()
-        desk.dispatcher.title = "not yet"
+        desk.space = None
         desk.load(self)
-        desk.ctc.getJMenuBar = mock.Mock(side_effect=JavaException("IllegalStateException"))
+        desk.space, desk.space_error = JPanel(), JavaException("IllegalStateException")
         with self.assertRaises(JavaException):
             desk.tick()
         self.assertEqual(desk.delayed, [])
@@ -555,36 +544,29 @@ class Chrome(unittest.TestCase):
         desk.space.children[0].click()
         self.assertEqual(desk.help, ["index", "package.apps.PanelPro.PanelPro"])
 
-    def test_ctc_panel_alone_gets_its_buttons_and_waits_quietly_for_the_dispatcher_panel(self):
-        desk = cats_desk()
-        desk.dispatcher.title = "not yet"
+    def test_a_late_hart_railroad_keeps_the_passes_going_until_it_is_hidden(self):
+        desk = Desk(command=CATS)
+        desk.ctc = desk.jmri_frame("CTC Panel")
+        desk.space = JPanel()
         desk.load(self)
         self.assertEqual(len(desk.space.children), 2)
+        desk.tick(limit=2)
+        railroad = desk.jmri_frame("HART Railroad")
         desk.tick()
-        self.assertEqual(desk.script["_state"], {"tries": 40, "hid": True, "chrome": True})
+        self.assertFalse(railroad.visible)
+        self.assertEqual(desk.script["_state"], {"tries": 3, "hid": True, "chrome": True})
+        self.assertEqual(desk.delayed, [])
         self.assertEqual(len(desk.space.children), 2)
         self.assertNotIn("incomplete", desk.out.getvalue())
 
-    def test_the_dispatcher_panel_found_by_title_stops_the_passes(self):
+    def test_the_passes_stop_without_the_dispatcher_panel(self):
         desk = cats_desk()
         desk.dispatcher.title = "not yet"
         desk.load(self)
-        desk.tick(limit=2)
-        desk.dispatcher.title = "Dispatcher Panel"
-        desk.tick()
-        self.assertEqual(desk.script["_state"]["tries"], 3)
         self.assertEqual(desk.delayed, [])
+        self.assertEqual(desk.script["_state"], {"tries": 0, "hid": True, "chrome": True})
 
-    def test_an_old_top_toolbar_wrap_is_removed_from_both_panels(self):
-        desk = cats_desk()
-        inner_ctc, inner_desk = desk.ctc.content, desk.dispatcher.content
-        desk.ctc.content, desk.dispatcher.content = wrapped(inner_ctc), wrapped(inner_desk)
-        desk.load(self)
-        self.assertIs(desk.ctc.content, inner_ctc)
-        self.assertIs(desk.dispatcher.content, inner_desk)
-        self.assertEqual((desk.ctc.refreshed, desk.dispatcher.refreshed), (1, 1))
-
-    def test_panels_without_the_wrap_keep_their_content_and_get_no_buttons_inside(self):
+    def test_panels_keep_their_content_and_get_no_buttons_inside(self):
         desk = cats_desk()
         inner_ctc, inner_desk = desk.ctc.content, desk.dispatcher.content
         desk.load(self)
@@ -593,39 +575,26 @@ class Chrome(unittest.TestCase):
         self.assertEqual((inner_ctc.children, inner_desk.children), ([], []))
         self.assertEqual((desk.ctc.refreshed, desk.dispatcher.refreshed), (0, 0))
 
-    def test_file_menu_loses_quit_when_it_has_exit(self):
+    def test_menus_are_left_as_they_are(self):
         desk = cats_desk()
-        file_menu = Menu("File", Item("Open..."), Item("Quit", "HART:CATS:QuitItem"), None, Item(" QUIT "),
-                         Item("Exit"))
-        edit_menu = Menu("Edit", Item("Quit"))
-        desk.ctc.menu_bar = MenuBar(file_menu, None, edit_menu)
+        file_menu = Menu("File", Item("Open..."), Item("Quit"), Item("Exit"))
+        desk.ctc.menu_bar = MenuBar(file_menu)
+        desk.dispatcher.menu_bar = MenuBar(Menu("File", Item("Quit"), Item("Quit")))
         desk.load(self)
-        self.assertEqual(file_menu.labels(), ["Open...", None, "Exit"])
-        self.assertEqual(edit_menu.labels(), ["Quit"])
-        self.assertEqual(desk.ctc.menu_bar.refreshed, 1)
+        self.assertEqual(file_menu.labels(), ["Open...", "Quit", "Exit"])
+        self.assertEqual(desk.dispatcher.menu_bar.menus[0].labels(), ["Quit", "Quit"])
+        self.assertEqual((desk.ctc.menu_bar.refreshed, desk.dispatcher.menu_bar.refreshed), (0, 0))
 
-    def test_file_menu_without_exit_keeps_its_first_quit(self):
+    def test_a_window_that_fails_on_its_title_is_printed(self):
+        class Broken(Frame):
+            def getTitle(self):
+                raise RuntimeError("disposed")
         desk = cats_desk()
-        file_menu = Menu("File", Item("Quit"), Item("Quit"), Item("Quit", "HART:CATS:QuitItem"))
-        desk.dispatcher.menu_bar = MenuBar(file_menu)
+        desk.windows.insert(0, Broken("x"))
+        del desk.jmri_frames["HART Railroad"]
         desk.load(self)
-        self.assertEqual(len(file_menu.items), 1)
-        self.assertIsNone(file_menu.items[0].name)
-
-    def test_install_window_toolbar_is_kept_but_not_used_at_load(self):
-        desk = cats_desk()
-        script = desk.load(self)
-        frame = Frame("Spare")
-        inner = frame.content
-        self.assertTrue(script["install_window_toolbar"](frame))
-        self.assertEqual(frame.content.name, "HART:CATS:Wrapped")
-        self.assertTrue(script["install_window_toolbar"](frame))       # a second call wraps nothing more
-        self.assertIs(frame.content.layout.getLayoutComponent(BorderLayout.CENTER), inner)
-        self.assertTrue(script["remove_window_toolbar"](frame))
-        self.assertIs(frame.content, inner)
-        self.assertFalse(script["remove_window_toolbar"](frame))
-        self.assertFalse(script["remove_window_toolbar"](None))
-        self.assertFalse(script["install_window_toolbar"](None))
+        self.assertFalse(desk.railroad.visible)
+        self.assertIn("HART: CATS desk window title failed: disposed", desk.printed())
 
 
 class Source(unittest.TestCase):

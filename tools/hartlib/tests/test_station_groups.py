@@ -7,13 +7,13 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from hartlib import paths, railroad_facts as rf  # noqa: E402
+from hartlib import devices, hand_lists, paths, railroad_facts as rf  # noqa: E402
+from master_edit import name_store  # noqa: E402  a fixture's name store
 
 STATIONS = paths.LAYOUT_DATA / "schematic" / "stations.csv"
 SWITCHES = paths.LAYOUT_DATA / "switches.csv"
 HEAD = "level,station,switches,tracks,desk_code,notes\n"
-SW_HEAD = ("level,switch,half,os_block,closed_leg,thrown_leg,hand,hand_source,area,le_ident,cats_inverted,ctc_is,"
-           "ctc_signals,notes\n")
+SW_HEAD = ",".join(rf.SWITCH_COLUMNS) + "\n"
 
 
 class Files(unittest.TestCase):
@@ -64,13 +64,23 @@ class TheRepo(Files):
         self.assertEqual(rows["East End"]["switches"].split(",")[:2], ["25", "27"])
         self.assertIn("23a", rows["East End"]["switches"].split(","))
         self.assertEqual(rows["Barn"]["switches"], "7,7b")
-        self.assertEqual(rows["Engine House"]["cp_id"], "engine_house")
+        self.assertEqual(rows["Engine House"]["cp_key"], "engine_house")
         self.assertEqual({r["level"] for r in rows.values()}, {"1"})
+
+
+class StationTracks(Files):
+    def test_an_empty_entry_or_a_name_in_tracks_stops(self):
+        with self.assertRaisesRegex(rf.FactsError, "has an empty entry"):
+            rf.read_stations(self.stations("1,West Yard,3,block:3B-end;;block:3C-end,BK,\n"))
+        with self.assertRaisesRegex(rf.FactsError, "not 'W-1'"):
+            rf.read_stations(self.stations("1,West Yard,3,W-1;block:3C-end,BK,\n"))
+        st = rf.read_stations(self.stations("1,West Yard,3,block:3B-end;block:3C-end,BK,\n1,B,5,none,BB,\n1,C,7,,CC,\n"))
+        self.assertEqual([s.track_ids for s in st], [("block:3B-end", "block:3C-end"), (), None])
 
 
 class DeskAreas(Files):
     def test_stations_that_share_a_code_are_one_area_named_by_the_first(self):
-        areas = self.areas('1,Brick,"1,3",none,BK,a\n1,West Yard,3,W-1;W-2,BK,b\n1,Plane,5,,PL,\n')
+        areas = self.areas('1,Brick,"1,3",none,BK,a\n1,West Yard,3,block:3B-end;block:3C-end,BK,b\n1,Plane,5,,PL,\n')
         self.assertEqual([(a.name, a.code, a.switches, a.stations, a.notes, a.line) for a in areas],
                          [("Brick", "BK", ("1", "3"), ("Brick", "West Yard"), "a", 2),
                           ("Plane", "PL", ("5",), ("Plane",), "", 4)])
@@ -164,26 +174,49 @@ class NestedStations(unittest.TestCase):
 
 class StationGroupRows(Files):
     def files(self, stations: str, os_blocks: str) -> tuple[Path, Path]:
-        """stations.csv and a switches.csv whose rows are `os_blocks`: one "level,switch,os_block" per line, each
-        given legs."""
+        """stations.csv and a switches.csv whose rows are `os_blocks`: one "level,switch,os_block[,os_id]" per line,
+        each given legs. A staging row's os_id is os:<switch> unless given, and a name store beside the files names
+        it os_block; its legs' ids are placeholders the store names Track A and Track B. A main or upper row is keyed
+        by its half and has no OS block (its os_block is left out)."""
         d = self.dir()
         (d / "stations.csv").write_text(HEAD + stations)
-        rows = []
+        rows, names = [], {"block:A": "Track A", "block:B": "Track B"}
         for spec in os_blocks.splitlines():
-            level, n, os_block = spec.split(",")
-            half = "" if level == "1" else n
-            rows.append(f"{level},{n},{half},{os_block},Track A,Track B,,,,,,,,\n")
+            level, n, os_block, *os_id = spec.split(",")
+            if level == "1":
+                ident = os_id[0] if os_id else "os:" + n
+                names[ident] = os_block
+                rows.append(f"{level},{n},,{ident},block:A,block:B,,,,,,,,\n")
+            else:
+                rows.append(f"{level},{n},{n},,,,,,,,,,,\n")
         (d / "switches.csv").write_text(SW_HEAD + "".join(rows))
+        name_store(d / devices.ONE_FILE, names)
         return d / "stations.csv", d / "switches.csv"
 
+    def halves(self, st: Path, *rows: str) -> None:
+        """The crossover_half rows (level 1, switch 7) beside `st`: "<to>,<parallel>,<id>" each."""
+        text = "".join(f"1,crossover_half,7,{r.split(',')[0]},{r.split(',')[1]},,{r.split(',')[2]},,,\n" for r in rows)
+        (st.parent / hand_lists.OVERRIDES_NAME).write_text(",".join(hand_lists.OVERRIDE_COLUMNS) + "\n" + text)
+
     def test_a_crossover_is_listed_by_its_halves_in_order(self):
-        st, sw = self.files('1,X Y,"7,5",,XX,n\n', "1,7,OS Switch 7b\n1,7,OS Switch 7\n1,5,OS Switch 5\n")
+        st, sw = self.files('1,X Y,"7,5",,XX,n\n', "1,7,OS Switch 7b,os:7:A-5B\n1,7,OS Switch 7,os:7:A-13C\n"
+                                                        "1,5,OS Switch 5\n")
+        self.halves(st, "13,1,os:7:A-13C", "5,2,os:7:A-5B")
         self.assertEqual(rf.station_group_rows(st, sw),
-                         [dict(cp_id="x_y", cp_name="X Y", level="1", switches="7,7b,5", notes="n", code="XX")])
+                         [dict(cp_key="x_y", cp_name="X Y", level="1", switches="7,7b,5", notes="n", code="XX")])
+
+    def test_half_text(self):
+        self.assertEqual([rf.half_text(7, "OS Switch 7", "a"), rf.half_text(7, "OS Switch 7", "b"),
+                          rf.half_text(23, "OS Switch 23b", "a"), rf.half_text(23, "OS East West", "b")],
+                         ["7", "7b", "23a", "23b"])
 
     def test_every_level_is_given(self):
-        st, sw = self.files("1,X,5,,XX,\n2,Y,105,,YY,\n", "1,5,OS Switch 5\n2,105,OS Switch 105\n")
-        self.assertEqual([(r["cp_name"], r["level"]) for r in rf.station_group_rows(st, sw)], [("X", "1"), ("Y", "2")])
+        st, sw = self.files("1,X,5,,XX,\n1,Y,7,,YY,\n", "1,5,OS Switch 5\n1,7,OS Switch 7\n")
+        self.assertEqual([(r["cp_name"], r["level"]) for r in rf.station_group_rows(st, sw)], [("X", "1"), ("Y", "1")])
+        # a main or upper switch is keyed by its half and has no OS block yet, so a desk area of it stops
+        st, sw = self.files("2,Y,105,,YY,\n", "2,105,\n")
+        with self.assertRaisesRegex(rf.FactsError, r"stations.csv line 2 \(Y\): switch 105 has no OS block"):
+            rf.station_group_rows(st, sw)
 
     def test_a_switch_with_no_os_block_names_the_station_that_holds_it(self):
         st, sw = self.files('1,Brick,"1,3",none,BK,\n1,West Yard,3,,BK,\n', "1,1,OS Switch 1\n")
@@ -195,8 +228,26 @@ class StationGroupRows(Files):
         with self.assertRaisesRegex(rf.FactsError,
                                     r"stations.csv line 2 \(X\): switch 9 has no OS block in switches.csv"):
             rf.station_group_rows(st, sw)
-        st, sw = self.files("1,X,5,,XX,\n", "1,5,Track 5\n")
-        with self.assertRaisesRegex(rf.FactsError, r"switches.csv line 2 \(Switch 5\): os_block is OS Switch 5"):
+
+    def test_a_renamed_os_block_is_listed_by_its_switch(self):
+        """naming-layers step 5: a staging OS block is keyed by its id, so an owner's name for it (os_block, the
+        name store's name of the id) still lists as its switch number, and a renamed crossover half as its number and the
+        letter block_overrides.csv's crossover_half row gives its ID; with no such row it stops."""
+        st, sw = self.files("1,X,5,,XX,\n", "1,5,OS Brick East\n")
+        self.assertEqual(rf.station_group_rows(st, sw)[0]["switches"], "5")
+        st, sw = self.files('1,X,"7",,XX,\n', "1,7,OS Barn West,os:7:A-13C\n1,7,OS Switch 7b,os:7:A-5B\n")
+        self.halves(st, "13,1,os:7:A-13C", "5,2,os:7:A-5B")
+        self.assertEqual(rf.station_group_rows(st, sw)[0]["switches"], "7a,7b")
+        # the letter is the ID's, never the name's: halves named like each other's keep their own letters
+        st, sw = self.files('1,X,"7",,XX,\n', "1,7,OS Switch 7b,os:7:A-13C\n1,7,OS Switch 7a,os:7:A-5B\n")
+        self.halves(st, "13,1,os:7:A-13C", "5,2,os:7:A-5B")
+        self.assertEqual(rf.station_group_rows(st, sw)[0]["switches"], "7a,7b")
+        self.halves(st, "5,2,os:7:A-5B")
+        with self.assertRaisesRegex(rf.FactsError, r"switches.csv line 2 \(Switch 7\): os:7:A-13C \(OS Switch 7b\) "
+                                                   "is a crossover half with no crossover_half row"):
+            rf.station_group_rows(st, sw)
+        (st.parent / hand_lists.OVERRIDES_NAME).unlink()
+        with self.assertRaisesRegex(rf.FactsError, "cannot read"):
             rf.station_group_rows(st, sw)
 
 

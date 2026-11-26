@@ -8,6 +8,9 @@
 #   operating.sh on [--by owner|speedmatch] [REASON...]   set it (default --by owner)
 #   operating.sh off [--owner]                            clear it; an owner flag needs --owner
 #   operating.sh status                                   print it; exit 0 when set, 1 when clear
+#   operating.sh guard WHAT                               for a layout deploy: exit 0 when clear, else say so
+#                                                         and exit 3; HART_DEPLOY_WHILE_OPERATING=1 is the owner's
+#                                                         override. An unreadable flag counts as set (fail closed).
 #
 # The owner asks an agent to set it ("I'm operating") and to clear it. An agent clears only a
 # flag it set (--by speedmatch, after the run's log ends); clearing the owner's takes --owner,
@@ -15,7 +18,7 @@
 # speedmatch flag, so the session is not cleared with the run; any other second `on` keeps the first.
 set -euo pipefail
 FLAG="${HART_OPERATING_FLAG:-$HOME/.hart_operating}"
-usage() { sed -n '2,15p' "$0"; }
+usage() { sed -n '2,18p' "$0"; }
 
 field() { sed -n "s/^$1=//p" "$FLAG" 2>/dev/null | head -1; }
 
@@ -63,6 +66,23 @@ case "${1:-}" in
       echo "operating: by=$(field by) since=$(field since) reason=$(field reason)"; exit 0
     fi
     echo "not operating"; exit 1
+    ;;
+  guard)
+    # sync_hart_package.sh (to the Pi or Windows) and redeploy_commit.sh call this, so a deploy run from a terminal
+    # stops too, not only one an agent types (owner, 2026-11-23, ADR-025 amendment).
+    what="${2:-a deploy to the Pi or Windows}"
+    [[ -e "$FLAG" ]] || exit 0
+    if [[ "${HART_DEPLOY_WHILE_OPERATING:-0}" == 1 ]]; then
+      echo "operating flag is set, but HART_DEPLOY_WHILE_OPERATING=1: going ahead with $what" >&2
+      exit 0
+    fi
+    if [[ -r "$FLAG" ]]; then
+      echo "REFUSED: the operating flag is set (by=$(field by) since=$(field since) reason=$(field reason)), so $what waits." >&2
+    else
+      echo "REFUSED: the operating flag file $FLAG cannot be read; it counts as set, so $what waits." >&2
+    fi
+    echo "  Clear it when the session is over (tools/hosts/operating.sh off --owner), or override with HART_DEPLOY_WHILE_OPERATING=1." >&2
+    exit 3
     ;;
   ""|-h|--help) usage ;;
   *) usage >&2; exit 2 ;;

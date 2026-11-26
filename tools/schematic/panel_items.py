@@ -23,22 +23,33 @@ at its anchor point plus dx, dy (plus the member's dx, dy):
 `at` is one of the nine points of the box: top-left, top, top-right, left, centre, right, bottom-left, bottom and
 bottom-right. `xml` is a Layout Editor element without x and y (the placement writes them). `size` is the item's
 drawn size in px [w, h]: the panel grows to hold every item EDGE px beyond the furthest one (a [0, 0] backdrop
-does not count). Only the item tags below are taken, and an item whose element names a sensor, head or text it
-had before keeps it as written, so panel_status.py finds its icons by the same names.
+does not count). A text label member may give `right` in place of dx and size: its right edge stands at that dx,
+its size measured from its text, font size and style with the Pi's Dialog widths (pi_dialog: what JMRI draws on
+the Pi), so captions of different lengths line up on their right edges beside their lamps there (on the Mac and
+Windows, whose Dialog is another font, they may differ by a pixel). The label must name fontFamily and fontname
+Dialog. Only the item tags below are taken, and an item whose element names a sensor, head or text it had before
+keeps it as written, so panel_status.py finds its icons by the same names.
 """
 from __future__ import annotations
 
-import json
 import math
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir() and str(p / "tools/hartlib/src") not in sys.path][:1]
+
+import pi_dialog  # noqa: E402  the Pi's Dialog widths, for a member placed by its right edge
+from hartlib import hand_lists  # noqa: E402  the items file's reader (read_panel_items)
 
 POINTS = {"top-left": (0, 0), "top": (0.5, 0), "top-right": (1, 0), "left": (0, 0.5), "centre": (0.5, 0.5),
           "right": (1, 0.5), "bottom-left": (0, 1), "bottom": (0.5, 1), "bottom-right": (1, 1)}
 TAGS = ("sensoricon", "positionablelabel", "signalheadicon", "turnouticon", "memoryicon", "signalmasticon")
 EDGE = 20               # px kept free beyond the furthest item at the right and the bottom
 ITEM_FIELDS = {"id", "anchor", "xml", "size", "members", "note"}
-MEMBER_FIELDS = {"dx", "dy", "xml", "size"}
+MEMBER_FIELDS = {"dx", "dy", "xml", "size", "right"}
 ANCHOR_FIELDS = {"to", "at", "block", "dx", "dy"}
 FILE_FIELDS = {"_note", "attributes", "drawing_options", "items"}    # the panel is the build's (TEMPLATE_PANEL)
 # the panel attributes the build writes (the plugin's to_xml: name, place and size), never the file
@@ -86,12 +97,39 @@ def _element(text, what) -> ET.Element:
     return el
 
 
-def load(path: Path) -> dict:
-    """The file, checked: every item well formed (see the module text). ItemsError names the item."""
+def member_box(m: dict, what: str) -> tuple[float, tuple[float, float]]:
+    """(dx, (w, h)) of a member: as written, or for one with `right`, its text label's width and height on the Pi
+    (pi_dialog) and the dx that puts its right edge at `right`. ItemsError names the member."""
+    if "right" not in m:
+        return _number(m.get("dx", 0), what), _size(m.get("size"), what)
+    if "dx" in m or "size" in m:
+        raise ItemsError(f"{what}: right places a label by its right edge and measures its size; give no dx or size")
+    right = _number(m["right"], what)
+    el = _element(m.get("xml"), what)
+    text, size, style = el.get("text"), el.get("size"), el.get("style", "0")
+    if el.tag != "positionablelabel" or not text:
+        raise ItemsError(f"{what}: right needs a positionablelabel with text")
+    if el.get("fontFamily") != "Dialog" or el.get("fontname") != "Dialog":
+        raise ItemsError(f"{what}: right measures the Dialog font; the label must name fontFamily and fontname "
+                         f"Dialog, not {el.get('fontFamily')!r} and {el.get('fontname')!r}")
+    if style not in ("0", "1") or not (size or "").isdigit():
+        raise ItemsError(f"{what}: right needs a whole font size and style 0 or 1, not size {size!r} style {style!r}")
+    bold = style == "1"
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise ItemsError(f"cannot read {path.name}: {exc}") from None
+        w, h = pi_dialog.width(text, int(size), bold), pi_dialog.height(int(size), bold)
+    except pi_dialog.PiTextError as exc:
+        raise ItemsError(f"{what}: {exc}") from None
+    return right - w, (float(w), float(h))
+
+
+def load(path: Path | None = None) -> dict:
+    """The file (ITEMS unless `path`; hartlib.hand_lists.read_panel_items), checked: every item well formed (see the
+    module text). ItemsError names the item."""
+    path = ITEMS if path is None else Path(path)
+    try:
+        data = hand_lists.read_panel_items(path)
+    except hand_lists.HandListError as exc:
+        raise ItemsError(str(exc)) from None
     if not isinstance(data, dict) or not isinstance(data.get("items"), list) or not data["items"]:
         raise ItemsError(f"{path.name}: needs a non-empty items list")
     if set(data) - FILE_FIELDS:
@@ -134,11 +172,10 @@ def load(path: Path) -> dict:
         for k, m in enumerate(members):
             mw = f"{what} member {k}"
             if not isinstance(m, dict) or set(m) - MEMBER_FIELDS:
-                raise ItemsError(f"{mw}: fields are dx, dy, xml, size")
-            _number(m.get("dx", 0), mw)
+                raise ItemsError(f"{mw}: fields are dx, dy, xml, size (or right in place of dx and size)")
             _number(m.get("dy", 0), mw)
-            _size(m.get("size"), mw)
             _element(m.get("xml"), mw)
+            member_box(m, mw)
     return data
 
 
@@ -209,12 +246,12 @@ def place(panel: ET.Element, data: dict, le_mod, slots_mod, fit: tuple[int, int]
         members = it.get("members") or [dict(dx=0, dy=0, xml=it["xml"], size=it["size"])]
         for m in members:
             el = _element(m["xml"], what)
-            x, y = round(ax + m.get("dx", 0)), round(ay + m.get("dy", 0))
+            dx, (w, h) = member_box(m, what)
+            x, y = round(ax + dx), round(ay + m.get("dy", 0))
             if x < 0 or y < 0:
                 raise ItemsError(f"{what}: placed at {x}, {y}, off the panel")
             el.set("x", str(x))
             el.set("y", str(y))
-            w, h = _size(m["size"], what)
             if w and h:
                 right, bottom = max(right, x + w + EDGE), max(bottom, y + h + EDGE)
                 lowest = y + h if lowest is None else max(lowest, y + h)
@@ -228,10 +265,10 @@ def place(panel: ET.Element, data: dict, le_mod, slots_mod, fit: tuple[int, int]
     return dict(count=n, size=(w, h), bottom=lowest)
 
 
-# ---------------------------------------------------------------- the status beans (devices.csv rows)
+# ---------------------------------------------------------------- the status beans (device-master rows)
 
-WRITER = "panel_items.json"      # the devices.csv written_by of the status beans, one of hartlib.devices.WRITERS
-ITEMS = Path(__file__).resolve().parents[2] / "jmri/layouts/hart/data/schematic/panel_items.json"
+WRITER = "panel_items.json"      # the device master written_by of the status beans, one of hartlib.devices.WRITERS
+ITEMS = hand_lists.PANEL_ITEMS   # the items file, kept by hand
 # The beans the status cluster's icons show (panel_status.py finds them by name): (layer, user name, system name,
 # assignment, JMRI comment, the icon attribute that names it, what the row says).
 STATUS_BEANS = (
@@ -259,34 +296,40 @@ def _devices():
 
 
 def status_rows(data: dict) -> list[dict]:
-    """The devices.csv rows (hartlib.devices.COLUMNS) of the status beans STATUS_BEANS, each held by this file
+    """The device master rows (hartlib.devices.COLUMNS) of the status beans STATUS_BEANS, each held by this file
     (written_by panel_items.json). ItemsError when no item of `data` (load()) has an icon naming one of them: the
     file and the rows would disagree about what the panel shows."""
     devices = _devices()
-    named = set()
+    from hartlib import device_ids
+    named = {}                  # (icon tag, the bean it names) -> the key of the item it is in
     for it in data["items"]:
         for m in it.get("members") or [it]:
             el = _element(m["xml"], f"item {it['id']}")
-            named.update((el.tag, el.get(a)) for a in ("sensor", "signalhead") if el.get(a))
+            for k in ((el.tag, el.get(a)) for a in ("sensor", "signalhead") if el.get(a)):
+                if named.setdefault(k, it["id"]) != it["id"]:
+                    raise ItemsError(f"{k[0]} {k[1]!r} is in items {named[k]!r} and {it['id']!r}; a status bean "
+                                     "is in one item, which its device ID names")
     rows = []
     for layer, user, system, assignment, comment, attr, text in STATUS_BEANS:
         tag, name = ("sensoricon", user) if attr == "sensor" else ("signalheadicon", system)
         if (tag, name) not in named:
             raise ItemsError(f"status bean {user!r} ({system}) has no {tag} naming {name!r} in the items file")
         row = {c: "" for c in devices.COLUMNS}
-        row.update(level="1", layer=layer, role="panel_status", user_name=user, assignment=assignment,
-                   system_name=system, jmri_name=system, jmri_comment=comment, written_by=WRITER, description=text)
+        # its device ID: the item its icon is in and the bean's system name (hartlib.device_ids.panel_id)
+        row.update(level="1", layer=layer, role="panel_status", id=device_ids.panel_id(named[(tag, name)], system),
+                   user_name=user, assignment=assignment, system_name=system, jmri_name=system, jmri_comment=comment,
+                   written_by=WRITER, description=text)
         rows.append(row)
     return rows
 
 
 def main(argv=None) -> int:
-    """python3 tools/schematic/panel_items.py [--check]: write the status beans' rows of devices.csv (and the files it
+    """python3 tools/schematic/panel_items.py [--check]: write the status beans' rows of the device master (and the files it
     generates), or, with --check, exit 1 when they are not as the items file gives them."""
     import argparse
     import sys
     ap = argparse.ArgumentParser(description=main.__doc__.split("\n")[0])
-    ap.add_argument("--check", action="store_true", help="exit 1 if devices.csv is out of date")
+    ap.add_argument("--check", action="store_true", help="exit 1 if the device master is out of date")
     args = ap.parse_args(argv)
     try:
         devices = _devices()

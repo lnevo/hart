@@ -9,14 +9,17 @@ from __future__ import annotations
 import filecmp
 import hashlib
 import os
+import re
 import shutil
 import subprocess
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 SYNC = ROOT / "tools/hosts/sync_hart_package.sh"
+STEPS = ROOT / "tools/hosts/deploy"   # the entry point's steps: gate, stage, ship_mac, ship_pi, ship_win; common.sh is shared
 WRAPPER = ROOT / "cats/scripts/sync_hart_package.sh"
 PI_SRC = ROOT / "tools/hosts/pi"
 WIN_SRC = ROOT / "tools/hosts/windows"
@@ -29,7 +32,9 @@ def python_stub(tmp: Path, digicon_dry: bool = False) -> None:
     which regenerates the whole panel and is tools/check.sh's own job): it logs the call in tables_check.log and
     passes, or fails as a stale file does while `tmp`/tables_stale exists (as a missing plugin does, exit 3, while
     `tmp`/tables_no_plugin exists, and a source error, exit 2, while `tmp`/tables_source_error exists); the Digicon check fails while
-    `tmp`/digicon_enabled exists. With `digicon_dry` (keep_repo_tables) a
+    `tmp`/digicon_enabled exists. The gate's CI pass check (ci_pass.py) is logged in ci_pass.log and says CI covers
+    the commit while `tmp`/ci_pass_skip exists, crashes (exit 7) while `tmp`/ci_pass_crash exists, says no with no reason while `tmp`/ci_pass_silent exists, and otherwise
+    runs for real against the gh stand-in (fake_bin), which fails. With `digicon_dry` (keep_repo_tables) a
     writing call of the Digicon SML script runs as a dry run and is logged in gates.log. Every other python3 call
     goes to the real one unchanged."""
     real = shutil.which("python3")
@@ -44,6 +49,20 @@ for a in "$@"; do
 {dry}  if [[ "$a" == */disable_digicon_sml_in_tables.py && -f "{tmp}/digicon_enabled" ]]; then
     echo "ERROR: tables.xml has 1 Digicon SML destination(s) Enabled=yes" >&2
     exit 1
+  fi
+  if [[ "$a" == */tools/hosts/deploy/ci_pass.py ]]; then
+    echo "python3 $*" >>"{tmp}/ci_pass.log"
+    if [[ -f "{tmp}/ci_pass_skip" ]]; then
+      echo "skipped G4: CI full pass for 0123456789ab (stand-in)"
+      exit 0
+    fi
+    if [[ -f "{tmp}/ci_pass_silent" ]]; then
+      exit 1
+    fi
+    if [[ -f "{tmp}/ci_pass_crash" ]]; then
+      echo "Traceback (stand-in)" >&2
+      exit 7
+    fi
   fi
   if [[ "$a" == */tools/schematic/build_tables.py ]]; then
     echo "python3 $*" >>"{tmp}/tables_check.log"
@@ -68,14 +87,19 @@ exec "{real}" "$@"
 
 
 def fake_bin(tmp: Path) -> Path:
-    """ssh and scp that record any call and fail, so a stage that reached for the network fails; and the python3
-    stand-in for the tables freshness check (python_stub)."""
+    """ssh and scp that record any call and fail, so a stage that reached for the network fails; a gh that logs to
+    gh.log and fails, so the gate's CI pass check (tools/hosts/deploy/ci_pass.py) never reaches GitHub and G4 runs;
+    and the python3 stand-in for the tables freshness check (python_stub)."""
     bin_dir = tmp / "bin"
     bin_dir.mkdir()
     for name in ("ssh", "scp"):
         tool = bin_dir / name
         tool.write_text(f'#!/bin/sh\necho "{name} $*" >>"{tmp}/network.log"\nexit 99\n', encoding="utf-8")
         tool.chmod(0o755)
+    gh = bin_dir / "gh"
+    gh.write_text(f'#!/bin/sh\necho "gh $*" >>"{tmp}/gh.log"\necho "stand-in: no GitHub in the tests" >&2\nexit 4\n',
+                  encoding="utf-8")
+    gh.chmod(0o755)
     python_stub(tmp)
     return bin_dir
 
@@ -101,13 +125,22 @@ def stage_env(tmp: Path) -> dict[str, str]:
         HART_WIN_SSH_PORT="1",
         HART_PI_USERFILES="/srv/fake-pi/JMRI_UserFiles",
         HART_WIN_USERFILES="X:/fake-win/JMRI_UserFiles",
+        # the gate's own pull of a changed Pi (autopull_pi_changes) runs only in the tests that stub it
+        HART_NO_AUTOPULL="1",
+        # the owner's own operating flag must not stop a test deploy
+        HART_OPERATING_FLAG=str(tmp / "no-operating-flag"),
+        # the gate's origin/main check (check_on_main) against HEAD itself: passes on any branch, and no fetch
+        HART_MAIN_REF="HEAD",
+        # the stage's python3 calls import modules of the tree they run from: their bytecode goes under tmp, not
+        # into __pycache__ folders of the live checkout
+        PYTHONPYCACHEPREFIX=str(tmp / "pycache"),
     )
     return env
 
 
 def run(script: Path, out: Path, env: dict[str, str], *flags: str, cwd: Path = ROOT) -> subprocess.CompletedProcess:
     return subprocess.run(["bash", str(script), *flags, "--stage-only", str(out)],
-                          cwd=cwd, env=env, capture_output=True, text=True, timeout=300)
+                          cwd=cwd, env=env, capture_output=True, text=True, timeout=600)  # 106 s alone, near 300 s on a loaded box
 
 
 def read_stamp(path: Path) -> dict[str, str]:
@@ -121,7 +154,7 @@ def tree(root: Path) -> list[str]:
 
 def live_panels() -> list[str]:
     """The panels the deploy ships: the LIVE_PANELS array in the script."""
-    src = SYNC.read_text(encoding="utf-8")
+    src = (STEPS / "common.sh").read_text(encoding="utf-8")
     block = src[src.index("LIVE_PANELS=(") + len("LIVE_PANELS=("):]
     return block[:block.index(")")].split()
 
@@ -156,6 +189,33 @@ class StageOnly(unittest.TestCase):
             self.assertTrue((pkg / "cats/panels/HART_CTC.xml").is_file(), host)
             self.assertTrue((pkg / "operations/Operations.xml").is_file(), host)
 
+    def test_signal_coordinator_ships_with_its_modules(self) -> None:
+        """The script and every sibling module it loads (hartlib.coordinator) land, unchanged, in both packages."""
+        import sys
+        sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+        from hartlib import coordinator
+        files = coordinator.files()
+        self.assertGreater(len(files), 1)
+        for host in ("pi", "win"):
+            for path in files:
+                staged = self.out / host / path.relative_to(ROOT)
+                self.assertTrue(staged.is_file(), f"{host}: {staged.name}")
+                self.assertTrue(filecmp.cmp(path, staged, shallow=False), f"{host}: {staged.name}")
+
+    def test_panel_status_ships_with_its_parts(self) -> None:
+        """panel_status.py and every part it runs (its PARTS, hartlib.coordinator) land, unchanged, in both
+        packages, in the folder the host apply scripts copy them from."""
+        import sys
+        sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+        from hartlib import coordinator
+        files = coordinator.files(coordinator.PANEL_STATUS)
+        self.assertGreater(len(files), 1)
+        for host in ("pi", "win"):
+            for path in files:
+                staged = self.out / host / path.relative_to(ROOT)
+                self.assertTrue(staged.is_file(), f"{host}: {staged.name}")
+                self.assertTrue(filecmp.cmp(path, staged, shallow=False), f"{host}: {staged.name}")
+
     def test_host_scripts_keep_their_package_paths(self) -> None:
         """tools/hosts/pi and tools/hosts/windows land at cats/scripts/pi and cats/scripts/windows."""
         for host in ("pi", "win"):
@@ -187,7 +247,7 @@ class StageOnly(unittest.TestCase):
             self.assertTrue((pkg / "jmri/layouts/hart/scripts/hide_cats_desk_windows.py").is_file(), host)
 
     def test_apply_scripts_are_where_deploy_calls_them(self) -> None:
-        source = SYNC.read_text(encoding="utf-8")
+        source = (STEPS / "ship_pi.sh").read_text(encoding="utf-8") + (STEPS / "ship_win.sh").read_text(encoding="utf-8")
         self.assertIn("${PI_DROP}/cats/scripts/pi/apply_hart_package_local.sh", source)
         self.assertIn("\\\\cats\\\\scripts\\\\windows\\\\apply_hart_package_local.ps1", source)
         self.assertTrue((self.out / "pi/cats/scripts/pi/apply_hart_package_local.sh").is_file())
@@ -228,13 +288,21 @@ class StagedOnce(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_name:
             tmp = Path(tmp_name)
             env = stage_env(tmp)
-            real = shutil.which("python3")
+            # Log every python3 call, then hand it to the shared stub (python_stub), which stands in for the deploy's
+            # build_tables.py --check. That check regenerates the whole panel: on a CI runner whose schematic cache is
+            # cold (a branch that bumps the plugin) it ran past 600 s (2026-11-21, #876, #889, #898). It is
+            # test_deploy_gates' and check.sh's job; this test counts the builds of the package.
+            python_stub(tmp)
+            stub = tmp / "bin/python3-stub"
+            (tmp / "bin/python3").rename(stub)
             tool = tmp / "bin/python3"
-            tool.write_text(f'#!/bin/bash\necho "$*" >>"{tmp}/python.log"\nexec "{real}" "$@"\n', encoding="utf-8")
+            tool.write_text(f'#!/bin/bash\necho "$*" >>"{tmp}/python.log"\nexec "{stub}" "$@"\n', encoding="utf-8")
             tool.chmod(0o755)
             done = run(SYNC, tmp / "stage", env, "--pi", "--win")
             self.assertEqual(done.returncode, 0, done.stderr[-2000:])
             calls = (tmp / "python.log").read_text(encoding="utf-8").splitlines()
+            # the tables check went to the stub, not a real whole-panel solve
+            self.assertIn("build_tables.py --check", (tmp / "tables_check.log").read_text(encoding="utf-8"))
             self.assertEqual(1, sum("build_mimic_web.py" in c for c in calls), calls)
             self.assertEqual(1, sum("publish_live.py --build-page" in c for c in calls), calls)
             # the panels are rewritten per host, each panel once per host
@@ -245,6 +313,20 @@ class StagedOnce(unittest.TestCase):
                 self.assertEqual(2, sum(f"/cats/panels/{p} " in c for c in rewrites), (p, rewrites))
             for host in ("pi", "win"):
                 self.assertEqual(read_stamp(tmp / "stage" / host / "cats/deploy_stamp.txt")["target"], host)
+
+
+def private_clone(tmp: Path) -> tuple[Path, dict[str, str]]:
+    """A clone of HEAD at `tmp`/repo with this checkout's own tools/hosts and roster master copied in (uncommitted
+    edits to the deploy scripts are what runs), and stage_env for it, with the deploy audit's plugin taken from this checkout (the clone
+    has no submodule checkout). A test that writes into the tree it stages from uses one, never the live checkout."""
+    repo = tmp / "repo"
+    subprocess.run(["git", "clone", "-q", "--shared", str(ROOT), str(repo)], check=True, capture_output=True)
+    shutil.copytree(ROOT / "tools/hosts", repo / "tools/hosts", dirs_exist_ok=True)
+    # the DecoderPro roster master the stage packs (stage.sh), as this checkout has it
+    shutil.copytree(ROOT / "jmri/layouts/hart/roster", repo / "jmri/layouts/hart/roster", dirs_exist_ok=True)
+    env = stage_env(tmp)
+    env["SCHEMATIC_PLUGIN"] = str(ROOT / "external/model-railroad-skills/plugins/schematic-maps")
+    return repo, env
 
 
 class StampNamesWhatWasShipped(unittest.TestCase):
@@ -259,15 +341,10 @@ class StampNamesWhatWasShipped(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.tmp = Path(tempfile.mkdtemp())
         cls.addClassCleanup(shutil.rmtree, cls.tmp, ignore_errors=True)
-        cls.repo = cls.tmp / "repo"
-        subprocess.run(["git", "clone", "-q", "--shared", str(ROOT), str(cls.repo)], check=True, capture_output=True)
-        shutil.copytree(ROOT / "tools/hosts", cls.repo / "tools/hosts", dirs_exist_ok=True)
+        cls.repo, env = private_clone(cls.tmp)
         (cls.repo / cls.MARKER).write_text("untracked\n", encoding="utf-8")
         cls.changes = git("status", "--porcelain", repo=cls.repo).splitlines()
         cls.out = cls.tmp / "stage"
-        env = stage_env(cls.tmp)
-        # the clone has no submodule checkout; the deploy audit needs the plugin, so it uses this checkout's
-        env["SCHEMATIC_PLUGIN"] = str(ROOT / "external/model-railroad-skills/plugins/schematic-maps")
         cls.done = run(cls.repo / "tools/hosts/sync_hart_package.sh", cls.out, env, cwd=cls.repo)
         if cls.done.returncode != 0:
             raise RuntimeError("staging from the clone failed:\n" + cls.done.stderr[-2000:])
@@ -296,26 +373,63 @@ class StampNamesWhatWasShipped(unittest.TestCase):
 
 
 class FinderLitterStaysOut(unittest.TestCase):
-    """A gitignored .DS_Store in a staged folder of the checkout must not reach the package.
+    """A gitignored .DS_Store or ._ file in a staged folder must not reach the package.
 
-    Only .DS_Store is planted: it is gitignored, so a run killed before its cleanup leaves the checkout clean.
+    The litter is planted in a private clone the stage runs from (private_clone), never in the live checkout, where
+    a killed run would leave it and other runs staging at the same time would copy it.
     """
 
     PLANTED = ("jmri/resources/jmri-web/.DS_Store", "jmri/resources/jmri-web/servlet/.DS_Store",
-               "tools/hosts/pi/.DS_Store", "tools/hosts/windows/.DS_Store")
+               "tools/hosts/pi/.DS_Store", "tools/hosts/windows/._apply_hart_package_local.ps1")
 
     def test_package_has_no_finder_files(self) -> None:
-        for rel in self.PLANTED:
-            path = ROOT / rel
-            if not path.exists():
-                path.write_bytes(b"\0")
-                self.addCleanup(path.unlink, missing_ok=True)
-        with tempfile.TemporaryDirectory() as tmp:
-            out = Path(tmp) / "stage"
-            done = run(SYNC, out, stage_env(Path(tmp)))
+        with tempfile.TemporaryDirectory() as name:
+            tmp = Path(name)
+            repo, env = private_clone(tmp)
+            for rel in self.PLANTED:
+                self.assertTrue((repo / rel).parent.is_dir(), rel)     # a folder the stage copies
+                (repo / rel).write_bytes(b"\0")
+            out = tmp / "stage"
+            done = run(repo / "tools/hosts/sync_hart_package.sh", out, env, cwd=repo)
             self.assertEqual(done.returncode, 0, done.stderr[-2000:])
+            self.assertTrue((out / "pi").is_dir() and (out / "win").is_dir(), tree(out)[:20])
             litter = [p for p in tree(out) if Path(p).name == ".DS_Store" or Path(p).name.startswith("._")]
             self.assertEqual(litter, [])
+
+
+class StageRsyncsSkipLitter(unittest.TestCase):
+    """Every rsync in stage.sh skips Finder litter as it copies, so a .DS_Store that vanishes mid-copy (Finder
+    writes and removes them in the checkout) is never read and cannot stop rsync with code 24."""
+
+    def rsync_calls(self, script: str) -> list[str]:
+        """Every rsync call in a deploy step, with backslash continuations joined and comments dropped, wherever
+        rsync sits on the line (after &&, inside if ...; then)."""
+        text = re.sub(r"\\\n\s*", " ", (STEPS / script).read_text(encoding="utf-8"))
+        lines = [line.split("#", 1)[0] if line.lstrip().startswith("#") else line for line in text.splitlines()]
+        return [line.strip() for line in lines if re.search(r"(^|[\s;&|(])rsync\s", line)]
+
+    def test_every_rsync_in_stage_sh_carries_the_litter_excludes(self) -> None:
+        text = (STEPS / "stage.sh").read_text(encoding="utf-8")
+        self.assertIn("LITTER_EXCLUDES=(--exclude '.DS_Store' --exclude '._*')", text)
+        calls = self.rsync_calls("stage.sh")
+        self.assertGreater(len(calls), 0)
+        for call in calls:
+            self.assertIn('"${LITTER_EXCLUDES[@]}"', call, call)
+
+    def test_the_mac_deploys_traininfo_rsync_skips_litter(self) -> None:
+        calls = [c for c in self.rsync_calls("ship_mac.sh") if "traininfo" in c]
+        self.assertEqual(len(calls), 1, calls)
+        self.assertIn("--exclude '.DS_Store'", calls[0])
+        self.assertIn("--exclude '._*'", calls[0])
+
+    def test_the_call_finder_sees_chained_and_split_rsyncs(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            fake = Path(tmp) / "fake.sh"
+            fake.write_text('[[ -d x ]] && rsync -a "$a/" "$b/"\nif true; then rsync \\\n  -a "$c/" "$d/"; fi\n'
+                            '# rsync -a "$commented/" out\n', encoding="utf-8")
+            with unittest.mock.patch(f"{__name__}.STEPS", Path(tmp)):
+                calls = self.rsync_calls("fake.sh")
+        self.assertEqual(len(calls), 2, calls)
 
 
 class StageOnlyRefusals(unittest.TestCase):
@@ -336,7 +450,7 @@ class StageOnlyRefusals(unittest.TestCase):
             self.assertFalse((Path(tmp) / "network.log").exists())
 
     def test_apply_steps_get_the_configured_user_files(self) -> None:
-        source = SYNC.read_text(encoding="utf-8")
+        source = (STEPS / "ship_pi.sh").read_text(encoding="utf-8") + (STEPS / "ship_win.sh").read_text(encoding="utf-8")
         self.assertIn("JMRI_USERFILES='${PI_USERFILES}'", source)
         self.assertIn('-UserFiles \\"${WIN_USERFILES}\\"', source)
         win = (WIN_SRC / "apply_hart_package_local.ps1").read_text(encoding="utf-8")
@@ -374,10 +488,10 @@ class DirtyListUnderPipefail(unittest.TestCase):
     """A long dirty-path list must warn, not kill the deploy with SIGPIPE (exit 141)."""
 
     def test_long_list_prints_ten_and_exits_zero(self) -> None:
-        line = next(l for l in SYNC.read_text(encoding="utf-8").splitlines()
-                    if 'printf \'%s\\n\' "$DEPLOY_CHANGES" |' in l and "wc -l" not in l)
+        line = next(l for l in (STEPS / "common.sh").read_text(encoding="utf-8").splitlines()
+                    if 'printf \'%s\\n\' "$changes" |' in l and "wc -l" not in l)
         script = ("set -euo pipefail\n"
-                  "DEPLOY_CHANGES=\"$(seq 1 20000 | sed 's/^/ M file/')\"\n"
+                  "changes=\"$(seq 1 20000 | sed 's/^/ M file/')\"\n"
                   + line.strip() + "\necho done\n")
         done = subprocess.run(["bash", "-c", script], capture_output=True, text=True)
         self.assertEqual(done.returncode, 0, done.stderr)

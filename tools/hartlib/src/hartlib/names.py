@@ -1,15 +1,16 @@
-"""The name map of devices.csv: the DCC address column and the JMRI comment a row stands for.
+"""The DCC address of a device-master row and the JMRI comment it stands for.
 
-The map keeps a turnout's DCC address in its own ``dcc`` column and the rest of the
-wiring text in ``comment``. JMRI's turnout comment carries the address as the group
+The device master keeps a turnout's DCC address in its own ``dcc`` column and the rest of the
+wiring text in ``wiring``. JMRI's turnout comment carries the address as the group
 after the first one (ADR-005), groups joined by exactly `` | ``::
 
-    comment  Node: 4 Turnout: 0 | OU: 1 Ports: 1,2
+    wiring   Node: 4 Turnout: 0 | OU: 1 Ports: 1,2
     dcc      100
     JMRI     Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2
 
-LCC aliases (``DCC Switch N``, hardware ``MTTN``) leave ``dcc`` blank: their address
-is their system name and their JMRI comment has no DCC group.
+LCC aliases (``DCC Switch N``, system name ``MTTN``) fill ``dcc`` too, with the address
+their system name carries, but their JMRI comment has no DCC group
+(hartlib.devices.comment_of puts it in for a field turnout only).
 
 ``split_dcc`` only takes a DCC group out when ``jmri_comment`` puts the very same
 text back; a comment that mentions DCC any other way raises instead of being reordered.
@@ -53,8 +54,3 @@ def split_dcc(comment: str) -> tuple[str, str]:
     if not m or _DCC_ANY.search(rest) or jmri_comment(rest, m.group(1)) != comment:
         raise ValueError(f"comment {comment!r}: DCC is not a 'DCC: N' second group; fix the comment by hand")
     return rest, m.group(1)
-
-
-def row_comment(row: dict) -> str:
-    """The JMRI comment for a name-map row (a dict with dcc and comment)."""
-    return jmri_comment(row.get("comment") or "", row.get("dcc") or "")

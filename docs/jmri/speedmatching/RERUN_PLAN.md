@@ -1,5 +1,7 @@
 # Plan: better speed-matching tools and a re-run of CSX 2121 and CSX 2738
 
+Plan for better speed-matching tools and the re-run measuring CSX 2121 and CSX 2738 again, written 2026-11-12 and carried out on 2026-11-13.
+
 Written 2026-11-12. Follows the first profile of 2026-11-08
 ([`profile-2026-11-08/README.md`](profile-2026-11-08/README.md)) and takes over what is useful
 from the STRR club procedure ([`README.md`](README.md), the SOP PDF in `docs/ops/`).
@@ -103,7 +105,7 @@ scripts").
    back-EMF CVs before each run, and stop if they differ from the roster. Settle back-EMF before
    matching. Note the known decoder traps: Digitrax CV57 limits the lowest speed, and some TCS
    decoders stall at table values of 250 and up.
-6. **Measured correction.** `propose_table.py` currently assumes table entry k acts at step
+6. **Measured correction.** The 2026-11-08 [`propose_table.py`](../../../archive/code/speedmatching/profile-2026-11-08/propose_table.py) assumes table entry k acts at step
    126k/28 and writes the table once. The new step: after the write, measure each anchor step
    again, adjust that entry by the measured error, write it on the main (Part C), and repeat
    until every anchor is within tolerance (default ±3%, about the top-end repeatability) or a
@@ -127,7 +129,7 @@ every write goes through:
    shares the address.
 2. **No consist in the path.** 2121 leads an LCC consist with 2738. Refuse to write while either
    loco is in an active consist; the consist is broken first and made again afterwards with
-   `cs105_consist.py`. Never write to a consist address.
+   `tools/ops/cs105.sh consist`. Never write to a consist address.
 3. **Allowed CVs only:** 3, 4, 25, 66, 67 to 94, 95. Never CV1, CV17 to 19 (addresses and
    consist) or CV8 (reset). CV29 is set on the programming track only (decided 2026-11-13):
    without RailCom its real value cannot be read on the main, so a whole-byte write could flip

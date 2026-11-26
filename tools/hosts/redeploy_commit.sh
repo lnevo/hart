@@ -22,6 +22,7 @@
 #   - With --pi or --all, Operations Pro files or a tables.xml Store changed on the Pi since the
 #     last deploy or pull stop it (make ops-pull, make tables-pull-pi). HART_DISCARD_PI_CHANGES=1
 #     replaces them.
+#   - With --pi, --win or --all, a set operating flag stops it (ADR-025); HART_DEPLOY_WHILE_OPERATING=1 overrides.
 #   - With --pi, --win or --all, every host named must answer over ssh before anything is built or
 #     sent, as for a deploy (older commits' own deploys lack that check).
 #
@@ -45,9 +46,10 @@ MAC=0
 STAGE_ONLY=""
 DRY_RUN=0
 ALLOW_UNMERGED=0
+LAYOUT_HOST=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --pi|--win|--all) PASS+=("$1"); HOST_FLAG=1 ;;
+    --pi|--win|--all) PASS+=("$1"); HOST_FLAG=1; LAYOUT_HOST=1 ;;
     --mac) MAC=1; HOST_FLAG=1 ;;
     --dry-run) PASS+=("$1"); DRY_RUN=1 ;;
     --allow-unmerged) ALLOW_UNMERGED=1 ;;
@@ -85,6 +87,12 @@ fi
 REAL=0
 [[ -n "$STAGE_ONLY" || "$DRY_RUN" -eq 1 ]] || REAL=1
 
+# While the owner operates (ADR-025), a real redeploy to the Pi or Windows stops here: an older commit's own deploy
+# may not check the flag. The override is passed to that deploy below.
+if [[ "$LAYOUT_HOST" -eq 1 && "$REAL" -eq 1 ]]; then
+  "$ROOT/tools/hosts/operating.sh" guard "a redeploy to the Pi or Windows" || exit $?
+fi
+
 SHA="$(git -C "$ROOT" rev-parse --verify --quiet "${COMMIT}^{commit}" || true)"
 if [[ -z "$SHA" ]]; then
   echo "REFUSED: $COMMIT is not a commit in this checkout (git fetch origin, or check the hash)." >&2
@@ -107,7 +115,9 @@ if ! git -C "$ROOT" cat-file -e "$SHA:$SYNC_REL" 2>/dev/null; then
   exit 1
 fi
 # grep reads to the end: with -q it stops at the match, git can die of SIGPIPE, and pipefail refuses a good commit.
-if ! git -C "$ROOT" show "$SHA:$SYNC_REL" | grep 'write_deploy_stamp' >/dev/null; then
+# The stamp function is in the entry point of older commits and in tools/hosts/deploy/common.sh since the deploy was split into steps.
+if ! { git -C "$ROOT" show "$SHA:$SYNC_REL"; git -C "$ROOT" show "$SHA:tools/hosts/deploy/common.sh" 2>/dev/null || true; } \
+    | grep 'write_deploy_stamp' >/dev/null; then
   echo "REFUSED: $SHORT predates the deploy stamp (cats/deploy_stamp.txt), so make deploy-status" \
     "could not tell what the hosts run. Pick a later commit." >&2
   exit 1
@@ -145,7 +155,7 @@ if ! hosts="$(bash -c 'set -eu; source "$1/tools/env/load_env.sh"
 fi
 CHILD_ENV=(PATH="$PATH" HOME="$HOME" HART_ENV_FILE="$BASE/no-hart.env"
            HART_OVERWRITE_OPS="${HART_OVERWRITE_OPS:-0}" HART_REDEPLOY_FROM="$(git -C "$ROOT" rev-parse HEAD)")
-for n in USER LOGNAME TERM LANG LC_ALL TMPDIR SSH_AUTH_SOCK HART_OVERWRITE_PROFILE_TABLES HART_PI_RESTART HART_DISCARD_PI_CHANGES MIMIC_PORT; do
+for n in USER LOGNAME TERM LANG LC_ALL TMPDIR SSH_AUTH_SOCK HART_OVERWRITE_PROFILE_TABLES HART_PI_RESTART HART_DISCARD_PI_CHANGES HART_NO_AUTOPULL HART_DEPLOY_WHILE_OPERATING HART_OPERATING_FLAG MIMIC_PORT; do
   [[ -z "${!n:-}" ]] || CHILD_ENV+=("$n=${!n}")
 done
 while IFS= read -r line; do

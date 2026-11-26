@@ -16,9 +16,11 @@ ROOT = Path(__file__).resolve().parents[3]
 SPEC = importlib.util.spec_from_file_location("publish_draft", ROOT / "tools/schematic/publish_draft.py")
 PD = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(PD)
+from hartlib import track_names  # noqa: E402  (publish_draft put tools/hartlib/src on the path)
 
 TODAY = datetime.date(2026, 12, 1)
 REAL_STAMP_FILE = PD.stamp_file
+REAL_HARTLIB = PD.HARTLIB
 
 
 def setUpModule() -> None:
@@ -185,7 +187,6 @@ class SignalsCheck(unittest.TestCase):
         self.assertRegex(self.bs.leg_problems(dict(row, leg="B"), plain)[0], "is no loop")
 
     def test_the_committed_loop_masts_name_their_legs(self) -> None:
-        import json
         rows = PD.layer_files.read("signals", "main_upper")["signals"]
         legs = {r["mast"]: r.get("leg") for r in rows if r["_edge"] == "e33"}
         self.assertEqual(legs, {"A83": "C", "A84": "B", "108LA": "B", "108LB": "C"})
@@ -244,12 +245,14 @@ class SignalsCheck(unittest.TestCase):
     def run_with(self, committed, masts=None):
         """main(["--check"]) against `committed` as signals.json's staging section, from the staging device map's masts (or `masts`
         rows, in staging_device_map.load_signal_masts' shape, with the device map's tracks)."""
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
+        with tempfile.TemporaryDirectory() as root:
+            tmp = Path(root) / "schematic"
+            tmp.mkdir()
             real_data, real_facts = self.bs.pd.DATA, self.bs.staging_facts
             for f in real_data.iterdir():       # both levels (staging, main_upper) solve from these
                 if f.is_file():
                     (tmp / f.name).write_bytes(f.read_bytes())
+            track_names.repo_inputs(tmp)     # the name store's plan graphs and owner rows: the repo's, by opt-in
             PD.layer_files.write({("signals", "staging"): committed}, tmp)
             if masts is not None:
                 chains = real_facts()[1]
@@ -320,8 +323,8 @@ class Inputs(unittest.TestCase):
                 self.assertTrue(abs(e["x"]) > 1e-6 or abs(e["y"]) > 1e-6, "endpoint at the origin: corrupt read")
 
     def test_no_turnout_is_short(self) -> None:
-        """tools/anyrail/anyplan.py reads every turnout's three end points (the old reader lost part 0's in 5.3b): a
-        turnout part with fewer is a misread."""
+        """The plan reader (the schematic-maps plugin's `schematic anyplan`) reads every turnout's three end points
+        (the old reader lost part 0's in 5.3b): a turnout part with fewer is a misread."""
         parts = json.loads((PD.GRAPHS / "parts.json").read_text())
         turnouts = {p["name"] for p in parts if len(p["eps"]) >= 3}
         self.assertEqual([i for i, p in enumerate(parts) if p["name"] in turnouts and len(p["eps"]) < 3], [])
@@ -392,16 +395,19 @@ class StationMapRevision(unittest.TestCase):
 
 class CheckStamp(unittest.TestCase):
     """--check skips the drawing when its inputs match the last pass (the stamp), and draws on any change to the
-    plugin, a layer file, a graph, the published SVG or a station sheet, and when the stamp is missing or unreadable."""
+    plugin, the hartlib code that builds its view, a layer file, a graph, the published SVG or a station sheet, and
+    when the stamp is missing or unreadable."""
 
     def setUp(self) -> None:
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(lambda: __import__("shutil").rmtree(tmp))
         self.plugin, data, out = tmp / "plugin", tmp / "data", tmp / "ops"
-        for d in (self.plugin / "schematic", data / "inputs", out / "stations"):
+        self.hartlib = tmp / "hartlib_src"
+        for d in (self.plugin / "schematic", data / "inputs", out / "stations", self.hartlib / "hartlib"):
             d.mkdir(parents=True)
         (self.plugin / "schematic/sheet.py").write_text("SOLVE = 1\n")
         (self.plugin / "schematic/__pycache__").mkdir()
+        (self.hartlib / "hartlib/track_names.py").write_text("RULE = 1\n")
         (data / "preferences.json").write_text("{}\n")
         (data / "inputs/staging.json").write_text("{}\n")
         (out / "schematic-system-draft.svg").write_text("<svg/>")
@@ -412,7 +418,7 @@ class CheckStamp(unittest.TestCase):
         def draw():
             self.drawn += 1
             return "<svg/>"
-        for name, value in (("plugin", lambda: self.plugin), ("DATA", data), ("OUT", out),
+        for name, value in (("plugin", lambda: self.plugin), ("DATA", data), ("OUT", out), ("HARTLIB", self.hartlib),
                             ("STATIONS", out / "stations"), ("stamp_file", lambda: self.stamp), ("draw", draw),
                             ("draw_stations", lambda: {"barn.svg": "<svg>barn</svg>"})):
             patcher = mock.patch.object(PD, name, value)
@@ -430,15 +436,33 @@ class CheckStamp(unittest.TestCase):
         self.assertEqual(self.check(), (True, []))
         self.assertEqual(self.drawn, 1)
 
+    def test_the_hartlib_hashed_is_the_one_imported(self) -> None:
+        self.assertEqual(REAL_HARTLIB, ROOT / "tools/hartlib/src")
+        self.assertTrue((REAL_HARTLIB / "hartlib/layer_files.py").is_file())
+
     def test_python_caches_are_not_inputs(self) -> None:
         self.check()
         (self.plugin / "schematic/__pycache__/sheet.cpython-313.pyc").write_bytes(b"\0")
         self.check()
         self.assertEqual(self.drawn, 1)
 
+    def test_a_name_the_view_resolves_differently_draws_again(self) -> None:
+        # preferences.json names tracks by block ID (naming-layers step 5b); a generated name comes from
+        # devices_generated.csv, which is not hashed whole, so the merged view the plugin reads is
+        name = ["Brick-Plane"]
+        with mock.patch.object(PD.layer_files, "merged", side_effect=lambda data, kind: {"turnbacks": list(name)}):
+            self.check()
+            self.check()
+            self.assertEqual(self.drawn, 1)
+            name[0] = "Brick West"
+            self.check()
+        self.assertEqual(self.drawn, 2)
+
     def test_any_input_change_draws_again(self) -> None:
         for change in (lambda: (self.plugin / "schematic/sheet.py").write_text("SOLVE = 2\n"),
                        lambda: (self.plugin / "schematic/new.py").write_text(""),
+                       lambda: (self.hartlib / "hartlib/track_names.py").write_text("RULE = 2\n"),
+                       lambda: (self.hartlib / "hartlib/new.py").write_text(""),
                        lambda: (self.data / "preferences.json").write_text('{"x": 1}\n'),
                        lambda: (self.data / "inputs/staging.json").write_text('{"x": 1}\n'),
                        lambda: (self.out / "stations/barn.svg").write_text("<svg>barn</svg>\n"),

@@ -10,11 +10,11 @@ tables.xml is an output. tools/schematic/build_tables.py writes it from:
                                                       blockrouting, logicDelay, the timebase), the memories, the clock
                                                       sensor, and the "Hide windows on start" LogixNG with its thread,
                                                       initialisation table and clipboard
-    jmri/layouts/hart/data/devices.csv                the level 1 rows (staging and the panel status beans): turnouts,
-                                                      sensors, heads, masts, blocks and layout blocks (base). The main
-                                                      and upper rows are drawn into the tables by the Layout Editor
-                                                      build (tools/schematic/le_tables.py), on top of this base
-    jmri/layouts/hart/data/block_lengths.csv          each staging block's length (railroad.read_block_lengths)
+    The device master                every level's rows (naming-layers step 11): turnouts, sensors,
+                                                      heads, masts, blocks and layout blocks, and the startup LogixNG
+                                                      that sets each virtual detector and turnout when the tables load
+                                                      (base); the Layout Editor build adds only the panels on top
+    jmri/layouts/hart/data/block_lengths.csv          each block's operating length (block_lengths.operating_lengths)
     jmri/layouts/hart/data/schematic/discovered_sml.xml   DISCOVERED: the Signal Mast Logic and the mast properties
                                                       (intermediateSignal) stock discovery wrote, taken from a
                                                       discovery Store by build_tables.py --discovered-from, the only
@@ -26,7 +26,7 @@ The envelope is fixed: PROLOG and EPILOG around the root, jmriversion as the tem
 Store writes each time (ENVELOPE_DROPS: the file history, the "Written by" comment, the clock's time, the memory
 values). strip_envelope takes those out of a Store.
 
-Order. Every section's beans, the template's, the master's and the Layout Editor build's together, stand in the
+Order. Every section's beans, the template's and the master's together, stand in the
 order a JMRI 5.16 Store writes them (jmri_sort: by system name, AlphanumComparator), so a load and Store gives the
 same bytes after normalise_store. The discovered logic keeps the order discovery wrote.
 
@@ -36,7 +36,6 @@ from __future__ import annotations
 
 import argparse
 import copy
-import csv
 import difflib
 import functools
 import json
@@ -48,7 +47,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Iterable, Mapping
 
-from . import devices, paths, railroad, tables
+from . import block_lengths, devices, level_devices, paths, railroad, tables
 
 TEMPLATE = paths.LAYOUT_DATA / "tables_template.xml"
 DISCOVERED = paths.LAYOUT_DATA / "schematic" / "discovered_sml.xml"
@@ -83,8 +82,8 @@ CONDITIONALNGS = ("LogixNGConditionalNGs", "jmri.jmrit.logixng.implementation.co
 DIGITAL_ACTIONS = ("LogixNGDigitalActions", "jmri.jmrit.logixng.implementation.configurexml.DefaultDigitalActionManagerXml")
 SECTIONS = (("jmriversion", None), MQTT_SENSORS, INTERNAL_SENSORS, LCC_TURNOUTS, INTERNAL_TURNOUTS, MQTT_TURNOUTS,
             MEMORIES, HEADS, MASTS, BLOCKS, LAYOUT_BLOCKS, LOGICS, TIMEBASE, LOGIXNGS, CONDITIONALNGS, DIGITAL_ACTIONS)
-# The sections whose beans come from the master and the Layout Editor build only: the template holds their settings
-# and no bean (read_template), so a block or mast never has two sources.
+# The sections whose beans come from the master only: the template holds their settings and no bean (read_template),
+# so a block or mast never has two sources.
 MASTER_SECTIONS = (MQTT_SENSORS, LCC_TURNOUTS, INTERNAL_TURNOUTS, MQTT_TURNOUTS, HEADS, MASTS, BLOCKS, LAYOUT_BLOCKS)
 # The manager section of a sensor or turnout, by the system name's prefix (the connection's).
 SENSOR_SECTIONS = (("M2S", MQTT_SENSORS), ("IS", INTERNAL_SENSORS))
@@ -93,10 +92,10 @@ TURNOUT_SECTIONS = (("M2T", MQTT_TURNOUTS), ("MTT", LCC_TURNOUTS), ("IT", INTERN
 HEAD_CLASS = "jmri.implementation.configurexml.VirtualSignalHeadXml"
 MAST_CLASS = "jmri.implementation.configurexml.SignalHeadSignalMastXml"
 VIRTUAL_MAST_CLASS = "jmri.implementation.configurexml.VirtualSignalMastXml"
-VIRTUAL_HEAD_NOTE = "internal, not wired"      # a staging head on an internal name: no field head drives it
+VIRTUAL_HEAD_NOTE = level_devices.VIRTUAL_NOTE  # a staging head on an internal name: no field head drives it
 LAYOUT_BLOCK_ATTRS = (("occupiedsense", "2"), ("trackcolor", "gray"), ("occupiedcolor", "red"),
                       ("extracolor", "white"))
-GENERATED_LEVELS = ("1",)       # the master rows whose beans this module writes; 2 and 3 are the Layout Editor build's
+HELIX_LEVEL = railroad.STAGING_LEVEL   # the helix blocks' beans are staging's; a main or upper helix detector binds them
 _LCOS_HEAD = re.compile(r"\(IH\d+\)")
 
 
@@ -104,7 +103,7 @@ class TablesBuildError(ValueError):
     """The template, the master rows, the discovered logic or the result cannot make a tables file."""
 
 
-GENERATED_NOTE = ("tables.xml is generated (ADR-029): change devices.csv, the template (data/tables_template.xml) "
+GENERATED_NOTE = ("tables.xml is generated (ADR-029): change the device master, the template (data/tables_template.xml) "
                   "or the other sources, then run python3 tools/schematic/build_tables.py")
 
 
@@ -184,7 +183,7 @@ def read_template(path: Path = TEMPLATE) -> tables.Tables:
              if section_key(sec) in MASTER_SECTIONS for el in tables.elements(sec) if tables.system_name(el)]
     if owned:
         raise TablesBuildError(f"{where}: holds {', '.join(owned[:6])}, but turnouts, MQTT sensors, heads, masts, "
-                               "blocks and layout blocks come from devices.csv and the Layout Editor build")
+                               "blocks and layout blocks come from the device master")
     return doc
 
 
@@ -358,16 +357,79 @@ def _sub(el: ET.Element, tag: str, text: str | None = None, **attrs) -> ET.Eleme
     return child
 
 
-def bean_comment(r: Mapping[str, str]) -> str:
+DIRECTION_WORD = {"east": "East", "west": "West"}
+_OCCUPANCY = re.compile(r"(?:^|; )occupancy (Block \d+-\d+ / M2S\d+(?: \([^()]*\))?)(?=;|$)")
+_HEADS_OF_MAST = re.compile(r"\(([^()]+)\)")
+
+
+def with_direction(comment: str, direction: str) -> str:
+    """A mast's comment (its place) with the way it faces ("East" or "West", from the dir column) after it (owner,
+    2026-11-22): "Brick | Switch 1 | West". A main or upper mast's planned device follows (device_map_rows.bean_cells)."""
+    word = DIRECTION_WORD.get(direction)
+    if not word:
+        return comment
+    parts = comment.split(" | ") if comment else []
+    if word in parts:                       # a comment that names it already
+        return comment
+    return " | ".join(parts + [word])
+
+
+def occupancy_first(comment: str) -> str:
+    """A block's comment with its detector first, without the word occupancy (owner, 2026-11-22):
+    "Princess balloon, Track K-1; occupancy Block 1-1 / M2S100; stop" -> "Block 1-1 / M2S100; Princess balloon,
+    Track K-1; stop". A comment with no detector text is as it was."""
+    m = _OCCUPANCY.search(comment)
+    if not m:
+        return comment
+    rest = (comment[: m.start()] + comment[m.end():]).strip("; ")
+    return "; ".join(x for x in (m.group(1), rest) if x)
+
+
+_DETECTOR_FIRST = re.compile(r"(Block \d+-\d+ / M2S\d+(?: \([^()]*\))?)(?:; (.*))?", re.S)
+
+
+def occupancy_back(comment: str) -> str | None:
+    """The master's form of a built block comment (occupancy_first undone): "Block 1-1 / M2S100; Princess balloon;
+    stop" -> "Princess balloon; occupancy Block 1-1 / M2S100; stop". None when it does not start with a detector."""
+    m = _DETECTOR_FIRST.fullmatch(comment)
+    if not m or "occupancy Block" in (m.group(2) or ""):
+        return None
+    det, rest = f"occupancy {m.group(1)}", m.group(2) or ""
+    if rest == "stop" or rest.endswith("; stop"):
+        head = rest[: -len("stop")].rstrip("; ")
+        return "; ".join(x for x in (head, det, "stop") if x)
+    return "; ".join(x for x in (rest, det) if x)
+
+
+def mast_places(rows: Iterable[Mapping[str, str]]) -> dict[str, str]:
+    """{head jmri_name: the comment of the head mast it lights}, so a wired head reads its place first."""
+    out: dict[str, str] = {}
+    for r in rows:
+        if r["layer"] == "mast" and r["jmri_name"].startswith("IF$shsm:") and r["jmri_comment"]:
+            for h in _HEADS_OF_MAST.findall(r["jmri_name"]):
+                out.setdefault(h, r["jmri_comment"])
+    return out
+
+
+def bean_comment(r: Mapping[str, str], places: Mapping[str, str] | None = None) -> str:
     """The JMRI comment of a master row, from its wiring columns: the device-map comment (jmri_comment, else the
     wiring text with a field turnout's DCC group, hartlib.devices.device_map_row), and for a staging head on an
-    internal name VIRTUAL_HEAD_NOTE after it. TablesBuildError when the row gives no comment."""
+    internal name VIRTUAL_HEAD_NOTE after it. A wired head reads its mast's place first ("Plane | Switch 5 | Node:
+    4 ..."; `places`, mast_places), a mast its direction after its place (with_direction), a block its detector
+    first (occupancy_first). TablesBuildError when the row gives no comment."""
     comment = devices.device_map_row(r)["comment"]
     if not comment:
-        raise TablesBuildError(f"devices.csv: {r['layer']} {r['user_name']!r} has neither wiring nor jmri_comment, "
+        raise TablesBuildError(f"the device master: {r['layer']} {r['user_name']!r} has neither wiring nor jmri_comment, "
                                "so it gives no JMRI comment")
-    if r["layer"] == "head" and r["role"] == "head" and r["assignment"] == "virtual":
+    layer = r["layer"]
+    if layer == "head" and r["role"] == "head" and r["assignment"] == "virtual":
         comment = f"{comment} | {VIRTUAL_HEAD_NOTE}"
+    elif layer == "head" and not r["jmri_comment"] and places and r["jmri_name"] in places:
+        comment = f"{places[r['jmri_name']]} | {comment}"
+    elif layer == "mast":
+        comment = with_direction(comment, r["dir"])
+    elif layer == "block":
+        comment = occupancy_first(comment)
     return comment
 
 
@@ -375,7 +437,7 @@ def _route(name: str, table, what: str) -> tuple[str, str]:
     for prefix, key in table:
         if name.startswith(prefix):
             return key
-    raise TablesBuildError(f"devices.csv: {what} {name!r} has no manager section for its prefix "
+    raise TablesBuildError(f"the device master: {what} {name!r} has no manager section for its prefix "
                            f"({', '.join(p for p, _ in table)})")
 
 
@@ -389,7 +451,7 @@ def _named(tag: str, attrs: dict, system: str, user: str, comment: str) -> ET.El
 
 # ---------------------------------------------------------------- a device not on the layout yet (jmri_bean)
 #
-# A device the owner adds in PanelPro (a test turnout, a DCC accessory) has a devices.csv row with no level, cp or role
+# A device the owner adds in PanelPro (a test turnout, a DCC accessory) has a device-master row with no level, cp or role
 # until its details are known (owner, 2026-11-20), and the beans exactly as the Store wrote them in its jmri_bean
 # column, as compact JSON:
 #     {"beans": [{"section": [tag, class], "element": NODE}, ...]}
@@ -446,7 +508,7 @@ def bean_json(beans: Iterable[tuple[tuple[str, str | None], ET.Element]], row: M
 def row_beans(row: Mapping[str, str]) -> list[tuple[tuple[str, str | None], ET.Element]]:
     """[(section key, element)] of a row's jmri_bean (bean_json); TablesBuildError when the text is not that shape, a
     section is not one the master gives (MASTER_SECTIONS), or a bean names no system name."""
-    where = f"devices.csv: {row['layer']} {row['user_name']!r}"
+    where = f"the device master: {row['layer']} {row['user_name']!r}"
     try:
         doc = json.loads(row["jmri_bean"])
     except json.JSONDecodeError as exc:
@@ -458,7 +520,7 @@ def row_beans(row: Mapping[str, str]) -> list[tuple[tuple[str, str | None], ET.E
     for b in beans:
         sec = tuple(b.get("section") or ()) if isinstance(b, dict) else ()
         if sec not in MASTER_SECTIONS:
-            raise TablesBuildError(f"{where}: jmri_bean section {list(sec)} is not one a devices.csv row gives")
+            raise TablesBuildError(f"{where}: jmri_bean section {list(sec)} is not one a device master row gives")
         el = _element(b.get("element"), row, where)
         if not tables.system_name(el):
             raise TablesBuildError(f"{where}: a <{el.tag}> in jmri_bean has no system name")
@@ -479,27 +541,212 @@ def kept_beans(rows: Iterable[Mapping[str, str]]) -> dict[tuple, list[ET.Element
                 key = ("blocks-names",) + BLOCKS if sec == BLOCKS and _sort_group(el) == "block-names" else sec
                 out.setdefault(key, []).append(el)
         except TablesBuildError as exc:
-            bad.append(str(exc).removeprefix("devices.csv: "))
+            bad.append(str(exc).removeprefix("the device master: "))
     if bad:
-        raise TablesBuildError("devices.csv: " + "; ".join(bad))
+        raise TablesBuildError("the device master: " + "; ".join(bad))
     return out
 
 
-def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, railroad.BlockLength]
-                 ) -> dict[tuple, list[ET.Element]]:
-    """{section: [bean, ...]} of the GENERATED_LEVELS rows of the master, a block's names-only pass first under
-    ("blocks-names", ...). A row with assignment none gives no bean. A part (part_of; staging's 14, owner 2026-11-20)
-    that is a JMRI block of its own (a jmri_name and layout block, owner 2026-11-20) takes its block's occupancy
-    sensor. TablesBuildError on a row
-    the module has no bean for, a turnout without both feedback rows, a block with no length, no layout block or two
-    detectors, or a name given twice."""
-    rows = [r for r in rows if r["level"] in GENERATED_LEVELS and r["assignment"] != "none"]
-    by_user = {(r["layer"], r["user_name"]): r for r in rows}
-    detector: dict[str, list[str]] = {}
+# ---------------------------------------------------------------- a bean's shape, by its row's columns
+#
+# master_beans makes every level's beans from their rows' columns alone (builder merge steps 4 and 5, naming-layers
+# steps 10 and 11): the bean's name (bean_name), its comment (row_comment), a
+# turnout's feedback (turnout_feedback), whether an LCC alias is a bean of its own (alias_is_turnout), and the state a
+# virtual bean is set to when the tables load (start_actions). Which beans a row gives is its layer's (LAYER_BEANS);
+# on the main and upper rows they give the row-to-bean map of naming-layers step 1. The startup LogixNG around the
+# actions is start_logixng's.
+
+LAYER_BEANS = {"turnout": "one turnout (an LCC alias none when it names its turnout's bean)",
+               "fb": "one sensor", "occupancy": "one sensor", "sensor": "one sensor", "head": "one signal head",
+               "mast": "one head mast (IF$shsm:) or virtual mast (IF$vsm:)",
+               "block": "a names-only block, a full block and a layout block"}
+START_ACTIONS = ("start-actions",) + DIGITAL_ACTIONS     # master_beans' key for the startup actions (start_actions)
+ACTION_CLASS = {"occupancy": ("ActionSensor", "jmri.jmrit.logixng.actions.configurexml.ActionSensorXml"),
+                "turnout": ("ActionTurnout", "jmri.jmrit.logixng.actions.configurexml.ActionTurnoutXml")}
+MALE_DEBUGGER = "jmri.jmrit.logixng.tools.debugger.configurexml.DebuggerMaleDigitalActionSocketXml"
+MALE_ACTION = "jmri.jmrit.logixng.implementation.configurexml.DefaultMaleDigitalActionSocketXml"
+
+
+def bean_name(r: Mapping[str, str]) -> str:
+    """The system name of a row's bean: a field turnout's system_name (its jmri_name may be its user name, bound by
+    name, Q13), every other row's jmri_name. jmri_name is the device tables.xml uses and system_name a main or upper
+    row's planned draft (ADR-028), so a swap is a jmri_name edit."""
+    return r["system_name"] if r["assignment"] == "field" and r["layer"] == "turnout" else r["jmri_name"]
+
+
+def level_turnouts(rows: Iterable[Mapping[str, str]]) -> dict[str, str]:
+    """{user name: bean name} of the main and upper turnouts (level_devices.LEVELS, layer turnout, role turnout, a
+    bean): by the rows, so a turnout swapped to a physical name (ADR-028) is still one. The CATS desk checks and the
+    desk build pick the main and upper plants by it."""
+    return {r["user_name"]: bean_name(r) for r in rows if r["level"] in level_devices.LEVELS
+            and r["layer"] == "turnout" and r["role"] == "turnout" and r["assignment"] != "none"}
+
+
+def row_comment(r: Mapping[str, str], places: Mapping[str, str] | None = None) -> str:
+    """A bean's comment: its row's bean_comment where set (the main and upper rows, naming-layers step 9), else the
+    one its wiring columns give (bean_comment)."""
+    return r["bean_comment"] or bean_comment(r, places)
+
+
+def _switch_number(r: Mapping[str, str], at: str) -> str:
+    kind, _, number = r["id"].partition(":")
+    if kind not in ("switch", "dcc") or not number:
+        raise TablesBuildError(f"the device master: {at}: id {r['id']!r} is not switch:<n> or dcc:<n>")
+    return number
+
+
+def _gives_bean(row: Mapping[str, str] | None) -> bool:
+    return row is not None and row["assignment"] != "none"
+
+
+def turnout_feedback(r: Mapping[str, str], by_id: Mapping[str, Mapping[str, str]], at: str) -> dict[str, str]:
+    """A turnout's (or its LCC alias's) feedback attributes: TWOSENSOR on its two feedback rows (fb:<n>:R as sensor1,
+    fb:<n>:N as sensor2, by user name) when both give beans (`by_id`: every row of its level, by id); DIRECT when
+    neither does and the turnout is not a field row (a virtual stand-in). TablesBuildError when only one does, or a
+    field turnout has none (staging's are wired with both)."""
+    number = _switch_number(r, at)
+    ids = [f"fb:{number}:{pos}" for pos in ("R", "N")]
+    fb = [by_id.get(i) for i in ids]
+    lost = [i for i, f in zip(ids, fb) if not _gives_bean(f)]
+    if len(lost) == 2 and r["assignment"] != "field":
+        return {"feedback": "DIRECT", "inverted": "false", "automate": "Off"}
+    if lost:
+        raise TablesBuildError(f"the device master: {at}: no feedback bean {', '.join(lost)}; a field turnout has "
+                               "two, a virtual one two or none")
+    return {"feedback": "TWOSENSOR", "sensor1": fb[0]["user_name"], "sensor2": fb[1]["user_name"],
+            "inverted": "false", "automate": "Off"}
+
+
+def alias_is_turnout(r: Mapping[str, str], by_id: Mapping[str, Mapping[str, str]], at: str) -> bool:
+    """Whether LCC alias row `r` names its turnout's bean (a virtual turnout's alias, main and upper today): it then
+    gives no bean of its own. `by_id`: as turnout_feedback's. TablesBuildError when its level has no switch:<n> row,
+    or that row gives no bean while the alias names it."""
+    tid = f"switch:{_switch_number(r, at)}"
+    turnout = by_id.get(tid)
+    if turnout is None:
+        raise TablesBuildError(f"the device master: {at}: no turnout row {tid} on level {r['level']}")
+    if bean_name(turnout) != bean_name(r):
+        return False
+    if not _gives_bean(turnout):
+        raise TablesBuildError(f"the device master: {at}: names the bean of {tid}, whose assignment is none")
+    return True
+
+
+def male_socket(el: ET.Element) -> None:
+    """The <MaleSocket> PanelPro 5.16 stores under a digital action (as on IQDA:AUTO:0001 in tables.xml)."""
+    m = _sub(el, "MaleSocket")
+    _sub(m, "AbstractDebuggerMaleSocket", **{"class": MALE_DEBUGGER})
+    a = _sub(m, "AbstractMaleSocket", enabled="yes", locked="no", system="no", catchAbortExecution="no",
+             **{"class": MALE_ACTION})
+    _sub(a, "errorHandling", "Default")
+
+
+def start_action(layer: str, name: str, bean: str, state: str) -> ET.Element:
+    """The startup LogixNG's action `name` that sets `bean` (a sensor for layer occupancy, a turnout for layer
+    turnout) to `state` (Inactive, Closed or Thrown: hartlib.level_devices.START_ENUM), as PanelPro 5.16 stores it."""
+    tag, cls = ACTION_CLASS[layer]
+    a = ET.Element(tag, {"class": cls})
+    _sub(a, "systemName", name)
+    nb = _sub(a, "namedBean")
+    for t, text in (("addressing", "Direct"), ("name", bean), ("listenToMemory", "no")):
+        _sub(nb, t, text)
+    st = _sub(a, "state")
+    for t, text in (("addressing", "Direct"), ("enum", state), ("listenToMemory", "no")):
+        _sub(st, t, text)
+    male_socket(a)
+    return a
+
+
+def start_actions(rows: Iterable[Mapping[str, str]]) -> list[ET.Element]:
+    """The startup actions of the rows with a start (hartlib.devices.START): one ActionSensor per detector, then one
+    ActionTurnout per turnout, each group in name order, as the main and upper LogixNG holds them. Only a virtual
+    bean is set: a field device reports its own state. TablesBuildError on a start on a row that is not a virtual
+    detector or turnout, or on a bean the startup LogixNG has no action name for (hartlib.level_devices.clear_action,
+    turnout_action)."""
+    groups: dict[str, list[tuple[str, str, str]]] = {"occupancy": [], "turnout": []}
+    bad = []
+    for r in rows:
+        if not r["start"]:
+            continue
+        at = f"{r['layer']} {r['user_name']!r}"
+        if r["assignment"] != "virtual" or r["layer"] not in groups:
+            bad.append(f"{at}: start {r['start']!r} on a {r['assignment']} {r['layer']} row; only a virtual detector "
+                       "or turnout is set when the tables load")
+            continue
+        name = bean_name(r)
+        action = level_devices.clear_action if r["layer"] == "occupancy" else level_devices.turnout_action
+        try:
+            groups[r["layer"]].append((name, action(name), level_devices.START_ENUM[r["start"]]))
+        except (ValueError, KeyError) as exc:
+            bad.append(f"{at}: {exc}")
+    if bad:
+        raise TablesBuildError("the device master: " + "; ".join(bad))
+    return [start_action(layer, action, bean, state)
+            for layer, group in groups.items() for bean, action, state in sorted(group)]
+
+
+def block_beans(r: Mapping[str, str], name: str, length: float, sensor: str | None,
+                comment: str) -> tuple[ET.Element, ET.Element, ET.Element]:
+    """A block row's names-only block, full block (`length`: its operating length in inches) and layout block, the last two on `sensor` (a
+    detector's user name) when it has one."""
+    user = r["user_name"]
+    names_only = ET.Element("block", {"systemName": name})
+    _sub(names_only, "systemName", name)
+    _sub(names_only, "userName", user)
+    full = _named("block", {"systemName": name, "length": f"{length * MM_PER_INCH:.1f}", "curve": "0"},
+                  name, user, comment)
+    _sub(full, "permissive", "no")
+    lb_attrs = {"systemName": r["layout_block"]}
+    if sensor:
+        _sub(full, "occupancysensor", sensor)
+        lb_attrs["occupancysensor"] = sensor
+    lb = ET.Element("layoutblock", {**lb_attrs, **dict(LAYOUT_BLOCK_ATTRS)})
+    _sub(lb, "systemName", r["layout_block"])
+    _sub(lb, "userName", user)
+    return names_only, full, lb
+
+
+def mast_bean(name: str, user: str, comment: str) -> ET.Element | None:
+    """A mast's bean by its system name: a SignalHeadSignalMast (IF$shsm:, unlit not allowed) or a VirtualSignalMast
+    (IF$vsm:, unlit allowed); None for any other."""
+    if name.startswith("IF$vsm:"):
+        el = _named("virtualsignalmast", {"class": VIRTUAL_MAST_CLASS}, name, user, comment)
+        _sub(el, "unlit", allowed="yes")
+    elif name.startswith("IF$shsm:"):
+        el = _named("signalmast", {"class": MAST_CLASS}, name, user, comment)
+        _sub(el, "unlit", allowed="no")
+    else:
+        return None
+    return el
+
+
+def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, float],
+                 levels: Iterable[str] | None = None) -> dict[tuple, list[ET.Element]]:
+    """{section: [bean, ...]} of the master rows of `levels` (default every level a row has: what build_tables.py
+    writes; a level-less row's beans are its jmri_bean's, kept_beans), a block's names-only pass first under
+    ("blocks-names", ...) and the startup actions under START_ACTIONS (start_actions; staging has none, main and
+    upper one per virtual detector and turnout). A row with assignment none gives no bean; every other row gives
+    its layer's beans (LAYER_BEANS), shaped by its columns: bean_name, row_comment, turnout_feedback and
+    alias_is_turnout. A block takes the sensor of the detector whose blocks column names it, on any of `levels` (a
+    helix block: the main or upper detector's); a part (part_of) its block's. TablesBuildError on a row the module has
+    no bean for, a turnout with one feedback row, a block with no length, no layout block or two detectors, or a
+    start the startup LogixNG cannot set."""
+    rows = list(rows)
+    levels = tuple({r["level"] for r in rows if r["level"]} if levels is None else levels)
+    every = [r for r in rows if r["level"] and r["level"] in levels]
+    rows = [r for r in every if r["assignment"] != "none"]
+    by_id: dict[str, dict[str, Mapping[str, str]]] = {}
+    for r in every:
+        if r["id"]:
+            by_id.setdefault(r["level"], {})[r["id"]] = r
+    places = mast_places(rows)
+    detector: dict[tuple[str, str], list[str]] = {}       # {(level, block): detectors}
     for r in rows:
         if r["layer"] == "occupancy":
+            # a helix detector binds staging's helix block, the one block that climbs through the levels
+            level = HELIX_LEVEL if r["role"] == "helix" else r["level"]
             for b in filter(None, (x.strip() for x in r["blocks"].split(";"))):
-                detector.setdefault(b, []).append(r["user_name"])
+                detector.setdefault((level, b), []).append(r["user_name"])
     out: dict[tuple, list[ET.Element]] = {}
     bad: list[str] = []
 
@@ -507,33 +754,24 @@ def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, railro
         out.setdefault(key, []).append(el)
 
     for r in rows:
-        layer, user, jn = r["layer"], r["user_name"], r["jmri_name"]
+        layer, user, name = r["layer"], r["user_name"], bean_name(r)
         at = f"{layer} {user!r}"
         try:
             if layer == "turnout":
-                number = user.removeprefix("DCC ") if r["role"] == "lcc_alias" else user
-                fb = [f"FB {number} {pos}" for pos in ("R", "N")]
-                lost = [f for f in fb if ("fb", f) not in by_user]
-                if lost:
-                    bad.append(f"{at}: no feedback row {', '.join(lost)}")
+                ids = by_id.get(r["level"], {})
+                if r["role"] == "lcc_alias" and alias_is_turnout(r, ids, at):
                     continue
-                attrs = {"feedback": "TWOSENSOR", "sensor1": fb[0], "sensor2": fb[1], "inverted": "false",
-                         "automate": "Off"}
-                system = r["system_name"]
-                add(_route(system, TURNOUT_SECTIONS, at), _named("turnout", attrs, system, user, bean_comment(r)))
+                attrs = turnout_feedback(r, ids, at)
+                add(_route(name, TURNOUT_SECTIONS, at), _named("turnout", attrs, name, user, row_comment(r)))
             elif layer in ("fb", "occupancy", "sensor"):
-                add(_route(jn, SENSOR_SECTIONS, at), _named("sensor", {"inverted": "false"}, jn, user, bean_comment(r)))
+                add(_route(name, SENSOR_SECTIONS, at), _named("sensor", {"inverted": "false"}, name, user,
+                                                               row_comment(r)))
             elif layer == "head":
-                add(HEADS, _named("signalhead", {"class": HEAD_CLASS}, jn, user, bean_comment(r)))
+                add(HEADS, _named("signalhead", {"class": HEAD_CLASS}, name, user, row_comment(r, places)))
             elif layer == "mast":
-                if jn.startswith("IF$vsm:"):
-                    el = _named("virtualsignalmast", {"class": VIRTUAL_MAST_CLASS}, jn, user, bean_comment(r))
-                    _sub(el, "unlit", allowed="yes")
-                elif jn.startswith("IF$shsm:"):
-                    el = _named("signalmast", {"class": MAST_CLASS}, jn, user, bean_comment(r))
-                    _sub(el, "unlit", allowed="no")
-                else:
-                    bad.append(f"{at}: jmri_name {jn!r} is neither a head mast (IF$shsm:) nor a virtual one (IF$vsm:)")
+                el = mast_bean(name, user, row_comment(r))
+                if el is None:
+                    bad.append(f"{at}: bean name {name!r} is neither a head mast (IF$shsm:) nor a virtual one (IF$vsm:)")
                     continue
                 add(MASTS, el)
             elif layer == "block":
@@ -544,53 +782,50 @@ def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, railro
                 if not r["layout_block"]:
                     bad.append(f"{at}: no layout_block")
                     continue
-                sensors = detector.get(r["part_of"] or user, [])       # a part: its block's sensor
+                sensors = detector.get((r["level"], r["part_of"] or user), [])       # a part: its block's sensor
                 if len(sensors) > 1:
                     bad.append(f"{at}: detected by {len(sensors)} occupancy rows ({', '.join(sensors)})")
                     continue
-                names_only = ET.Element("block", {"systemName": jn})
-                _sub(names_only, "systemName", jn)
-                _sub(names_only, "userName", user)
+                names_only, full, lb = block_beans(r, name, length, sensors[0] if sensors else None, row_comment(r))
                 add(("blocks-names",) + BLOCKS, names_only)
-                full = _named("block", {"systemName": jn, "length": f"{length.plan_in * MM_PER_INCH:.1f}",
-                                        "curve": "0"}, jn, user, bean_comment(r))
-                _sub(full, "permissive", "no")
-                lb_attrs = {"systemName": r["layout_block"]}
-                if sensors:
-                    _sub(full, "occupancysensor", sensors[0])
-                    lb_attrs["occupancysensor"] = sensors[0]
                 add(BLOCKS, full)
-                lb = ET.Element("layoutblock", {**lb_attrs, **dict(LAYOUT_BLOCK_ATTRS)})
-                _sub(lb, "systemName", r["layout_block"])
-                _sub(lb, "userName", user)
                 add(LAYOUT_BLOCKS, lb)
             else:
                 bad.append(f"{at}: no bean for layer {layer!r}")
         except TablesBuildError as exc:
-            bad.append(str(exc).removeprefix("devices.csv: "))
+            bad.append(str(exc).removeprefix("the device master: "))
+    try:
+        actions = start_actions(rows)
+    except TablesBuildError as exc:
+        bad.append(str(exc).removeprefix("the device master: "))
+        actions = []
     if bad:
-        raise TablesBuildError("devices.csv: " + "; ".join(bad))
+        raise TablesBuildError("the device master: " + "; ".join(bad))
+    if actions:
+        out[START_ACTIONS] = actions
     return out
 
 
 def base(rows: Iterable[Mapping[str, str]] | None = None, template: Path = TEMPLATE,
-         lengths: Mapping[str, railroad.BlockLength] | None = None) -> tables.Tables:
-    """The template with the master's staging beans in it (master_beans), each section's beans in JMRI order: what
-    the Layout Editor build draws on. TablesBuildError when a master bean's system or user name is the template's
-    too, or two beans of one kind share a name (check_names)."""
+         lengths: Mapping[str, float] | None = None) -> tables.Tables:
+    """The template with every level's master beans in it (master_beans, naming-layers step 11) and the startup
+    LogixNG around their startup actions (start_logixng), each section's beans in JMRI order: what the Layout Editor
+    build draws its panels on, adding no bean. TablesBuildError when a master bean's system or user name is the
+    template's too, or two beans of one kind share a name (check_names)."""
     doc = read_template(template)
     rows = devices.load() if rows is None else list(rows)
     try:
-        lengths = railroad.read_block_lengths(BLOCK_LENGTHS) if lengths is None else lengths
+        lengths = block_lengths.operating_lengths(BLOCK_LENGTHS) if lengths is None else lengths     # ADR-039 L8
     except railroad.FactsError as exc:
         raise TablesBuildError(str(exc)) from None
     beans = master_beans(rows, lengths)
+    actions = beans.pop(START_ACTIONS, [])
     made = {n for els in beans.values() for el in els for n in (tables.system_name(el), tables.user_name(el)) if n}
     kept = kept_beans(rows)
     twice = sorted({tables.system_name(el) for key, els in kept.items() if key[0] != "blocks-names" for el in els
                     if tables.system_name(el) in made})
     if twice:
-        raise TablesBuildError(f"devices.csv: a level-less device's jmri_bean names a bean a level row makes too "
+        raise TablesBuildError(f"the device master: a level-less device's jmri_bean names a bean a level row makes too "
                                f"({', '.join(twice[:8])}); a bean has one source")
     for key, els in kept.items():
         beans.setdefault(key, []).extend(els)
@@ -608,9 +843,61 @@ def base(rows: Iterable[Mapping[str, str]] | None = None, template: Path = TEMPL
         if key == BLOCKS:
             continue                # with the names-only pass below
         _fill(sec, els, beans.get(BLOCKS, []) if key[0] == "blocks-names" else None)
+    if actions:
+        start_logixng(doc.root, actions)
     finish(doc.root)
     check_names(doc.root)
     return doc
+
+
+def _insert(parent: ET.Element, new: list[ET.Element], after: ET.Element | None = None) -> None:
+    """Put `new` into `parent` after `after` (default: at the end); finish indents them."""
+    at = list(parent).index(after) + 1 if after is not None else len(parent)
+    for k, el in enumerate(new):
+        parent.insert(at + k, el)
+
+
+def start_logixng(root: ET.Element, actions: list[ET.Element]) -> None:
+    """The LogixNG that runs `actions` (start_actions: an ActionSensor per virtual detector, an ActionTurnout per
+    virtual turnout) once when the tables load, into tables `root` (edited in place), as PanelPro 5.16 stores it
+    (hartlib.level_devices: LogixNG CLEAR_LOGIXNG after the template's LogixNGs, its ConditionalNG CLEAR_CONDITIONAL
+    with one socket naming the DigitalMany CLEAR_MANY, whose sockets A1, A2, ... name the actions in their order, the
+    DigitalMany and the actions after the template's digital actions). A ConditionalNG executes at startup unless told
+    not to (DefaultLogixNG.execute), so the masts are not held at Stop by UNKNOWN blocks (owner, 2026-11-17).
+    TablesBuildError when the template lacks a LogixNG section or holds these names."""
+    secs = {key: next((s for s in tables.elements(root) if section_key(s) == key), None)
+            for key in (LOGIXNGS, CONDITIONALNGS, DIGITAL_ACTIONS)}
+    gone = [k[0] for k, v in secs.items() if v is None]
+    if gone:
+        raise TablesBuildError(f"the template has no {', '.join(gone)} section for the startup LogixNG")
+    if any(level_devices.CLEAR_PREFIX.match(tables.system_name(e) or "") for v in secs.values()
+           for e in tables.elements(v)):
+        raise TablesBuildError("the template holds the startup LogixNG's names (hartlib.level_devices CLEAR_*); "
+                               "the device master's start column makes it")
+    logixngs, conditionals, digital = secs.values()
+    lx = ET.Element("LogixNG", {"enabled": "yes", "inline": "no"})
+    _sub(lx, "systemName", level_devices.CLEAR_LOGIXNG)
+    _sub(lx, "userName", level_devices.CLEAR_USER)
+    _sub(_sub(lx, "ConditionalNGs"), "systemName", level_devices.CLEAR_CONDITIONAL)
+    last = [e for e in logixngs if e.tag == "LogixNG"]
+    _insert(logixngs, [lx], last[-1] if last else None)
+    cn = ET.Element("ConditionalNG", {"enabled": "yes"})
+    _sub(cn, "systemName", level_devices.CLEAR_CONDITIONAL)
+    _sub(cn, "userName", level_devices.CLEAR_USER)
+    _sub(cn, "thread", "0")
+    sock = _sub(cn, "Socket")
+    _sub(sock, "socketName", "A")
+    _sub(sock, "systemName", level_devices.CLEAR_MANY)
+    _insert(conditionals, [cn])
+    many = ET.Element("DigitalMany", {"class": "jmri.jmrit.logixng.actions.configurexml.DigitalManyXml"})
+    _sub(many, "systemName", level_devices.CLEAR_MANY)
+    acts = _sub(many, "Actions")
+    for i, a in enumerate(actions, 1):
+        s = _sub(acts, "Socket")
+        _sub(s, "socketName", f"A{i}")
+        _sub(s, "systemName", tables.system_name(a))
+    male_socket(many)
+    _insert(digital, [many] + list(actions))
 
 
 def _fill(sec: ET.Element, beans: list[ET.Element], full_pass: list[ET.Element] | None) -> None:
@@ -846,7 +1133,7 @@ def read_path_counts(path: Path) -> dict[str, tuple[str, int]]:
 
 def roundtrip_report(store: Path, counts: Path, generated: Path) -> tuple[bool, list[str]]:
     """(passed, lines) of a PanelPro round trip: the normalised Store against the generated file, and the block
-    paths JMRI derived for the blocks of devices.csv (every staging block must have at least one)."""
+    paths JMRI derived for the blocks of the device master (every staging block must have at least one)."""
     lines, ok = [], True
     try:
         diff = roundtrip_differences(store.read_bytes(), generated.read_bytes())
@@ -854,7 +1141,7 @@ def roundtrip_report(store: Path, counts: Path, generated: Path) -> tuple[bool, 
     except OSError as exc:
         return False, [f"cannot read {exc.filename}: {exc.strerror}"]
     staging = [r["jmri_name"] for r in devices.load()
-               if r["level"] in GENERATED_LEVELS and r["layer"] == "block" and r["assignment"] != "none"
+               if r["level"] == railroad.STAGING_LEVEL and r["layer"] == "block" and r["assignment"] != "none"
                and not r["part_of"]]
     none = [b for b in staging if paths_of.get(b, ("", 0))[1] == 0]
     total = sum(n for _u, n in paths_of.values())

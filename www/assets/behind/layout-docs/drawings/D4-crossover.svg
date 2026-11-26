@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 580" width="1000" height="580" role="img" aria-labelledby="t d" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif">
+<title id="t">D4 · Crossover: frogs, gaps and position indication</title><desc id="d">Top: two parallel tracks joined by a crossover of two turnouts, each frog powered by its own machine, with both crossover rails gapped between the frogs. Bottom: the position contacts of the two machines wired in series to one normal and one reverse input, so the panel shows a position only when both halves agree.</desc>
+<rect width="1000" height="580" fill="#fff"/>
+<path d="M40,56 L700,56 M40,64 L700,64" stroke="#121a22" stroke-width="1.6"/>
+<path d="M40,166 L700,166 M40,174 L700,174" stroke="#121a22" stroke-width="1.6"/>
+<path d="M220,64 L500,166" fill="none" stroke="#121a22" stroke-width="1.6"/>
+<path d="M240,64 L520,166" fill="none" stroke="#121a22" stroke-width="1.6"/>
+<circle cx="273.6" cy="76.2" r="5" fill="#b03a2e"/><circle cx="466.4" cy="153.8" r="5" fill="#b03a2e"/>
+<text x="283.6" y="80.24" font-size="10" fill="#b03a2e" text-anchor="start" font-weight="bold">frog A (half a)</text>
+<text x="456.4" y="157.76" font-size="10" fill="#b03a2e" text-anchor="end" font-weight="bold">frog B (half b)</text>
+<path d="M356.0,109.0 L364.0,121.0 M361.0,107.0 L369.0,119.0" fill="none" stroke="#121a22" stroke-width="2.2"/>
+<path d="M376.0,109.0 L384.0,121.0 M381.0,107.0 L389.0,119.0" fill="none" stroke="#121a22" stroke-width="2.2"/>
+<text x="398.0" y="115.0" font-size="10" fill="#121a22" text-anchor="start" font-weight="bold">gap in both crossover rails, between the frogs</text>
+<path d="M147,51 L147,69 M153,51 L153,69" stroke="#5f6e7a" stroke-width="2.4"/>
+<path d="M147,161 L147,179 M153,161 L153,179" stroke="#5f6e7a" stroke-width="2.4"/>
+<path d="M597,51 L597,69 M603,51 L603,69" stroke="#5f6e7a" stroke-width="2.4"/>
+<path d="M597,161 L597,179 M603,161 L603,179" stroke="#5f6e7a" stroke-width="2.4"/>
+<text x="40" y="44" font-size="9.5" fill="#5f6e7a" text-anchor="start" font-weight="normal">track a: half a is its own detected section</text>
+<text x="40" y="198" font-size="9.5" fill="#5f6e7a" text-anchor="start" font-weight="normal">track b: half b is its own detected section</text>
+<path d="M20,222 L720,222" fill="none" stroke="#5f6e7a" stroke-width="0.8" stroke-dasharray="3 3"/>
+<text x="20" y="240" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="bold">Position indication: contact 2 of each machine, in series on the crossover&#x27;s one N/R input pair</text>
+<circle cx="170" cy="410" r="4" fill="#fff" stroke="#121a22" stroke-width="1.6"/><circle cx="240" cy="380" r="4" fill="#fff" stroke="#121a22" stroke-width="1.6"/><circle cx="240" cy="440" r="4" fill="#fff" stroke="#121a22" stroke-width="1.6"/><path d="M170,410 L235,384" fill="none" stroke="#121a22" stroke-width="2.4"/><text x="160" y="414" font-size="10" fill="#121a22" text-anchor="end" font-weight="bold">C</text><text x="254" y="372" font-size="10" fill="#121a22" text-anchor="middle" font-weight="bold">N</text><text x="240" y="460" font-size="10" fill="#121a22" text-anchor="middle" font-weight="bold">R</text>
+<circle cx="570" cy="410" r="4" fill="#fff" stroke="#121a22" stroke-width="1.6"/><circle cx="500" cy="380" r="4" fill="#fff" stroke="#121a22" stroke-width="1.6"/><circle cx="500" cy="440" r="4" fill="#fff" stroke="#121a22" stroke-width="1.6"/><path d="M570,410 L505,384" fill="none" stroke="#121a22" stroke-width="2.4"/><text x="580" y="414" font-size="10" fill="#121a22" text-anchor="start" font-weight="bold">C</text><text x="486" y="372" font-size="10" fill="#121a22" text-anchor="middle" font-weight="bold">N</text><text x="500" y="460" font-size="10" fill="#121a22" text-anchor="middle" font-weight="bold">R</text>
+<rect x="15" y="468" width="150" height="52" rx="3" fill="#e4ebf0" stroke="#121a22"/>
+<text x="90.0" y="485.3" font-size="10" text-anchor="middle" font-weight="bold" fill="#121a22">Half a: MP4</text>
+<text x="90.0" y="497.3" font-size="10" text-anchor="middle" fill="#121a22">contact 1 to frog A</text>
+<text x="90.0" y="509.3" font-size="10" text-anchor="middle" fill="#121a22">contact 2 (shown normal)</text>
+<rect x="575" y="468" width="150" height="52" rx="3" fill="#e4ebf0" stroke="#121a22"/>
+<text x="650.0" y="485.3" font-size="10" text-anchor="middle" font-weight="bold" fill="#121a22">Half b: MP4</text>
+<text x="650.0" y="497.3" font-size="10" text-anchor="middle" fill="#121a22">contact 1 to frog B</text>
+<text x="650.0" y="509.3" font-size="10" text-anchor="middle" fill="#121a22">contact 2 (shown normal)</text>
+<rect x="30" y="270" width="150" height="40" rx="3" fill="#e4ebf0" stroke="#121a22"/>
+<text x="105.0" y="287.3" font-size="10" text-anchor="middle" font-weight="bold" fill="#121a22">Node input: N</text>
+<text x="105.0" y="299.3" font-size="10" text-anchor="middle" fill="#121a22">FB Switch n N</text>
+<rect x="560" y="270" width="150" height="40" rx="3" fill="#e4ebf0" stroke="#121a22"/>
+<text x="635.0" y="287.3" font-size="10" text-anchor="middle" font-weight="bold" fill="#121a22">Node input: R</text>
+<text x="635.0" y="299.3" font-size="10" text-anchor="middle" fill="#121a22">FB Switch n R</text>
+<rect x="295" y="270" width="150" height="40" rx="3" fill="#e4ebf0" stroke="#121a22"/>
+<text x="370.0" y="287.3" font-size="10" text-anchor="middle" font-weight="bold" fill="#121a22">Node input common</text>
+<text x="370.0" y="299.3" font-size="10" text-anchor="middle" fill="#121a22"></text>
+<path d="M240,380 L240,290.0 L180,290.0" fill="none" stroke="#1f5fa8" stroke-width="2.2"/>
+<path d="M170,410 L170,550 L570,550 L570,410" fill="none" stroke="#1f5fa8" stroke-width="2.2"/>
+<path d="M500,380 L500,340 L420,340 L420,310" fill="none" stroke="#1f5fa8" stroke-width="2.2"/>
+<path d="M240,440 L300,440 L300,310" fill="none" stroke="#121a22" stroke-width="1.5"/>
+<path d="M500,440 L564,440 A6,6 0 0 1 576,440 L660,440 L660,310" fill="none" stroke="#121a22" stroke-width="1.5"/>
+<text x="370" y="566" font-size="9.5" fill="#121a22" text-anchor="middle" font-weight="normal">commons of the two contacts tied together</text>
+<text x="745" y="40" font-size="12" fill="#121a22" text-anchor="start" font-weight="bold">What the panel shows</text>
+<text x="745" y="62" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="bold">Half a</text>
+<text x="797" y="62" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="bold">Half b</text>
+<text x="849" y="62" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="bold">N</text>
+<text x="891" y="62" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="bold">R</text>
+<text x="929" y="62" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="bold">Panel</text>
+<text x="745" y="80" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="normal">Normal</text>
+<text x="797" y="80" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="normal">Normal</text>
+<text x="849" y="80" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="normal">closed</text>
+<text x="891" y="80" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="normal">open</text>
+<text x="929" y="80" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="normal">Normal</text>
+<text x="745" y="98" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="normal">Reverse</text>
+<text x="797" y="98" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="normal">Reverse</text>
+<text x="849" y="98" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="normal">open</text>
+<text x="891" y="98" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="normal">closed</text>
+<text x="929" y="98" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="normal">Reverse</text>
+<text x="745" y="116" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="normal">Normal</text>
+<text x="797" y="116" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="normal">Reverse</text>
+<text x="849" y="116" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="normal">open</text>
+<text x="891" y="116" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="normal">open</text>
+<text x="929" y="116" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="normal">Inconsistent</text>
+<text x="745" y="134" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="normal">Reverse</text>
+<text x="797" y="134" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="normal">Normal</text>
+<text x="849" y="134" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="normal">open</text>
+<text x="891" y="134" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="normal">open</text>
+<text x="929" y="134" font-size="10.5" fill="#121a22" text-anchor="start" font-weight="normal">Inconsistent</text>
+<text x="745" y="170" font-size="11.5" fill="#121a22" text-anchor="start" font-weight="bold">Frogs</text>
+<text x="745" y="186" font-size="11" fill="#121a22" text-anchor="start" font-weight="normal">Each half is wired as D3. Contact 1 of</text>
+<text x="745" y="200.5" font-size="11" fill="#121a22" text-anchor="start" font-weight="normal">each machine powers its own frog, so</text>
+<text x="745" y="215.0" font-size="11" fill="#121a22" text-anchor="start" font-weight="normal">the rails between the frogs are</text>
+<text x="745" y="229.5" font-size="11" fill="#121a22" text-anchor="start" font-weight="normal">gapped.</text>
+<text x="745" y="251.0" font-size="11.5" fill="#121a22" text-anchor="start" font-weight="bold">Detection</text>
+<text x="745" y="267.0" font-size="11" fill="#121a22" text-anchor="start" font-weight="normal">Each half is its own detected section</text>
+<text x="745" y="281.5" font-size="11" fill="#121a22" text-anchor="start" font-weight="normal">(grey gaps).</text>
+<text x="745" y="303.0" font-size="11.5" fill="#121a22" text-anchor="start" font-weight="bold">Indication</text>
+<text x="745" y="319.0" font-size="11" fill="#121a22" text-anchor="start" font-weight="normal">Both machines throw together. Their</text>
+<text x="745" y="333.5" font-size="11" fill="#121a22" text-anchor="start" font-weight="normal">contact 2s are in series: N closes</text>
+<text x="745" y="348.0" font-size="11" fill="#121a22" text-anchor="start" font-weight="normal">only when both halves are normal, R</text>
+<text x="745" y="362.5" font-size="11" fill="#121a22" text-anchor="start" font-weight="normal">only when both are reverse (blue: both</text>
+<text x="745" y="377.0" font-size="11" fill="#121a22" text-anchor="start" font-weight="normal">normal). If they disagree, neither</text>
+<text x="745" y="391.5" font-size="11" fill="#121a22" text-anchor="start" font-weight="normal">closes and JMRI shows Inconsistent.</text>
+<text x="745" y="413.0" font-size="11.5" fill="#121a22" text-anchor="start" font-weight="bold">Mixed</text>
+<text x="745" y="429.0" font-size="11" fill="#121a22" text-anchor="start" font-weight="normal">Half a normal and half b reverse joins</text>
+<text x="745" y="443.5" font-size="11" fill="#121a22" text-anchor="start" font-weight="normal">N to R with no common. That is</text>
+<text x="745" y="458.0" font-size="11" fill="#121a22" text-anchor="start" font-weight="normal">expected, not a fault.</text>
+<text x="745" y="479.5" font-size="11.5" fill="#121a22" text-anchor="start" font-weight="bold">Where</text>
+<text x="745" y="495.5" font-size="11" fill="#121a22" text-anchor="start" font-weight="normal">Switches 7, 23 (23a, 23b) and 35 (35a,</text>
+<text x="745" y="510.0" font-size="11" fill="#121a22" text-anchor="start" font-weight="normal">35b).</text>
+</svg>

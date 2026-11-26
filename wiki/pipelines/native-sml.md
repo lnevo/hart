@@ -10,7 +10,7 @@ NX is **SML mode** (`nxType="signalmastlogic"`). JMRI computes auto-turnouts at 
 
 ## Inputs
 
-- LE mast bindings: the generated panel, which `build_layout_le.py` places from `staging_masts.csv` and `main_upper_masts.csv` (the plugin's slot rule); `audit_panel_contracts.py` holds the stored panel to them
+- LE mast bindings: the generated panel, which `build_layout_le.py` places from `masts.csv` (the plugin's slot rule); `audit_panel_contracts.py` holds the stored panel to them
 - Frozen NX ids: [`jmri/layouts/hart/scripts/nx_contract.py`](../../jmri/layouts/hart/scripts/nx_contract.py)
 - Stub `END_BUMPER` mast slots: [`DISPATCHER_LAYOUT_HOOPS.md`](../../jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md)
 
@@ -22,14 +22,14 @@ NX is **SML mode** (`nxType="signalmastlogic"`). JMRI computes auto-turnouts at 
 ## Run
 
 ```bash
-# PanelPro, not CATS. Modal dialogs — do not hide them.
+# PanelPro, not CATS. Modal dialogs — do not hide them. On the Mac, make panels runs it itself when sml-current is stale.
 ./jmri/layouts/hart/scripts/run_sml_discover.sh
 # the wrapper Stores to a temporary file, then: python3 tools/schematic/build_tables.py --discovered-from <Store>
 # (the generator stores the Digicon destinations disabled)
 ./jmri/layouts/hart/scripts/run_nx_discover.sh   # if NX needs a refresh
 ```
 
-Signal logic is checked by running stock Discover / Stage 1 in the sandbox rehearsal and comparing the stored pairs with the previous tables (`data/baselines/sml_pairs.csv`); the home-made prediction script was retired on 2026-11-16. Every SML dest comes from Discover; there are no manual pairs. The two Princess pairs `Mast 36RA→Mast 40LA` and `Mast 36RB→Mast 38LA` were retired on 2026-11-15: Discover refuses them ("Signal mast in the wrong direction") because 40LA and 38LA are westbound homes and 36RA/36RB govern eastbound, and no section, NX pair or route used them ([`DISPATCHER_LAYOUT_HOOPS.md`](../../jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md)). Digicon source dests must stay **Enabled=no** in stored tables until the MQTT publisher enables them.
+Signal logic is checked by running stock Discover / Stage 1 in the sandbox rehearsal and comparing the stored pairs with the previous tables; the home-made prediction script was retired on 2026-11-16. Every SML dest comes from Discover; there are no manual pairs. The two Princess pairs `Mast 36RA→Mast 40LA` and `Mast 36RB→Mast 38LA` were retired on 2026-11-15: Discover refuses them ("Signal mast in the wrong direction") because 40LA and 38LA are westbound homes and 36RA/36RB govern eastbound, and no section, NX pair or route used them ([`DISPATCHER_LAYOUT_HOOPS.md`](../../jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md)). Digicon source dests must stay **Enabled=no** in stored tables until the MQTT publisher enables them.
 
 The PanelPro wrappers share `tools/hosts/panelpro_session.sh`: every Start Up item that runs code is off for the run except a short allowlist (`tools/hosts/panelpro_profile.py`), the PanelPro they started is stopped on a timeout, Ctrl-C or SIGTERM, and the profile comes back from `profile.xml.hart-run.bak`. After a `kill -9`, quit that PanelPro and run `python3 tools/hosts/panelpro_profile.py restore --profile <profile.xml>`; until then the wrappers, deploy and `launch_cats.sh` refuse. NX Discover paints every occupancy sensor INACTIVE in PanelPro before discovery (no MQTT publish, but JMRI's own listeners react), so run it with the layout idle. The Brick smoke is opt-in (`HART_NX_SMOKE=1`); `HART_NX_THROW=1` with it sets a real route and commands MQTT turnouts. Rehearsal steps on a copy of the profile are in the header of `panelpro_session.sh`.
 

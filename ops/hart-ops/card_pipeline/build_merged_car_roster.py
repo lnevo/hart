@@ -5,32 +5,23 @@ from __future__ import annotations
 
 import csv
 import re
+import sys
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from pathlib import Path
 
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import operations  # noqa: E402
+
 from engine_lookup import is_locomotive_row
-from roster_id import assign_freight_roster_id, manifest_car_id, road_code
+from roster_id import manifest_car_id, road_code
 
 BASE = Path(__file__).resolve().parent.parent  # Car Cards project root (scripts live in card_pipeline/)
 DATA = BASE / "data"
 SOURCE_ROSTER = DATA / "OperationsCarRoster.xml"
 MANIFEST_CSV = DATA / "image_metadata.csv"
 OUTPUT_ROSTER = DATA / "HART_MergedCarRoster.xml"
-
-# Wrong roster ids mapped to the right ones (see apply_visual_review corrections).
-ROSTER_TYPO_IDS = {
-    "BO446063": "BO466063",
-    "UTLX32638": "UTLX32642",
-    "UTLX39084": "UTLX39042",
-    "CO37700": "CO377700",
-    "CO306585": "CO306607",
-    "PRR474261": "PRR474563",
-    "SHPX22425": "SHPX22329",
-    "GATX31028": "GATX31090",
-    "MSTL52763": "MSTL52673",
-    "BO371604": "PRR371604",  # wrong road, not a misread number
-}
 
 JMRI_COLORS = [
     "Black",
@@ -239,12 +230,9 @@ def merge_roster() -> tuple[dict[str, dict[str, str]], list[str]]:
             attrs["color"] = color
 
     if SOURCE_ROSTER.is_file():
-        root = ET.parse(SOURCE_ROSTER).getroot()
-        for el in root.findall("./cars/car"):
+        for el in operations.cars(SOURCE_ROSTER):
             attrs = attrs_from_element(el)
             cid = attrs["id"]
-            if cid in ROSTER_TYPO_IDS:
-                continue
             if cid not in cars:
                 cars[cid] = attrs
             else:
@@ -253,10 +241,6 @@ def merge_roster() -> tuple[dict[str, dict[str, str]], list[str]]:
                 for flag in ("caboose", "passenger"):
                     if flag in attrs and flag not in cars[cid]:
                         cars[cid][flag] = attrs[flag]
-
-    for cid in list(cars):
-        if cid in ROSTER_TYPO_IDS:
-            del cars[cid]
 
     return cars, skipped
 
@@ -279,7 +263,7 @@ def collect_sections(cars: dict[str, dict[str, str]], source_root: ET.Element) -
 
 
 def write_roster(cars: dict[str, dict[str, str]], skipped: list[str]) -> None:
-    source_root = ET.parse(SOURCE_ROSTER).getroot()
+    source_root = operations.root(SOURCE_ROSTER)
     sections = collect_sections(cars, source_root)
     sorted_cars = [cars[cid] for cid in sorted(cars, key=lambda i: car_sort_key(cars[i]))]
 

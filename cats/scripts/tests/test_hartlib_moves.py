@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import contextlib
-import csv
 import io
 import sys
 import unittest
@@ -16,6 +15,7 @@ sys.path.insert(0, str(ROOT / "cats/scripts"))
 
 import cats_turnout_io as tio  # noqa: E402
 import digicon_lib as le  # noqa: E402
+from hartlib import occupancy_bindings, track_names  # noqa: E402  (digicon_lib put tools/hartlib/src on the path)
 
 
 class LookupsMatchOldLoops(unittest.TestCase):
@@ -53,12 +53,13 @@ class LookupsMatchOldLoops(unittest.TestCase):
             occ = (lb.get("occupancysensor") or "").strip()
             if un and occ and occ in addr:
                 want[un] = (addr[occ], occ)
-        with le.OCC_CSV.open(newline="", encoding="utf-8") as fh:
-            for row in csv.DictReader(fh):
-                name = row["block_user_name"].strip()
-                sens = row["occupancy_sensor_user_name"].strip()
-                if name not in want and sens in addr:
-                    want[name] = (addr[sens], sens)
+        rows = occupancy_bindings.rows()        # the blocks the desks bind, from the device master
+        names = track_names.names_by_id([row["block_id"] for row in rows])     # each named by its block id
+        for row in rows:
+            name = names[row["block_id"]]
+            sens = row["occupancy_sensor_user_name"]
+            if name not in want and sens in addr:
+                want[name] = (addr[sens], sens)
         self.assertTrue(want)
         self.assertEqual(le.load_occupancy(), want)
 

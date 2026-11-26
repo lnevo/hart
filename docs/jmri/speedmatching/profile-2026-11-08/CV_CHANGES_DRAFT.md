@@ -1,5 +1,7 @@
 # CV changes: match CSX 2738 to CSX 2121
 
+Record of the CV changes programmed on 2026-11-08 to match CSX 2738 to CSX 2121, with the read-back result.
+
 **PROGRAMMED on 2026-11-08** on the programming track through the Pi's JMRI (Direct Byte
 mode), then read back: 32 CVs, 0 mismatches. The roster entry (`2738.xml`) was then edited by
 hand to the same values (CV3, CV4, CV25, CV29, CV67 to CV94 and the matching sheet
@@ -28,7 +30,7 @@ Originally drafted for the owner's review. The goal is that
 
 ### Speed table (CV67 to CV94)
 
-Calculated by `propose_table.py` from the measured curves:
+Calculated by [`propose_table.py`](../../../../archive/code/speedmatching/profile-2026-11-08/propose_table.py) from the measured curves:
 
 ```
 12, 27, 50, 73, 94, 115, 135, 146, 155, 165, 174, 179, 184, 190,

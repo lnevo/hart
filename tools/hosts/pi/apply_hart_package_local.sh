@@ -18,6 +18,9 @@ mkdir -p "$UF"
 
 # First, so unpulled session state stops the deploy before anything changes.
 bash "$HART/cats/scripts/install_ops_files.sh" "$HART/operations" "$UF/operations" --guard
+# The DecoderPro roster (ADR-039 amendment 2026-11-26): the repo's, with what it replaces backed up. The gate
+# stopped on an unpulled roster before anything was sent (G2), so what it replaces is what the last deploy installed.
+bash "$HART/cats/scripts/pi/install_roster.sh" "$HART/roster" "$UF"
 
 # CATS has no JMRI home: it opens real paths, so its files live here.
 CATS_HOME="$UF/cats"
@@ -105,20 +108,41 @@ rm -f "$HART/cats/scripts/windows/install_cats_masts.ps1"
 rm -rf "$HART/tools/jmri/patches"
 echo "Pi retired signal sets removed"
 
+# JMRI's MQTT startup race overlay, loaded by every JMRI app through ~/.jmri/jmri.conf (ADR-034).
+# It installs only over the JMRI build it was made from; on any other it takes itself out.
+if [[ -f "$HART/jmri/mqtt_overlay/install_overlay.py" ]]; then
+  python3 "$HART/jmri/mqtt_overlay/install_overlay.py" \
+    --jar "$HART/jmri/mqtt_overlay/hart-mqtt-race-fix.jar" \
+    --settings-dir "$HOME/.jmri" --jmri-home "${JMRI_HOME:-$HOME/JMRI}"
+fi
+
 # Panels and launchers replaced by HART_CTC.xml / HART_ABS.xml (ADR-012).
 rm -f "$HART"/cats/panels/HART_Master*.xml "$HART"/launch_hart_master*.sh
 
 JYTHON=(
   "$HART/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
+  "$HART/jmri/layouts/hart/scripts/hide_band_panels.py"
   "$HART/jmri/layouts/hart/scripts/panel_status.py"
+  # panel_status.py's PARTS: installed beside it, not Start Up items.
+  "$HART/jmri/layouts/hart/scripts/panel_status_turnouts.py"
+  "$HART/jmri/layouts/hart/scripts/panel_status_clicks.py"
   "$HART/jmri/layouts/hart/scripts/jmri_cmd_watcher.py"
   "$HART/jmri/layouts/hart/scripts/sts_car_sync.py"
   "$HART/jmri/layouts/hart/scripts/mimic_relay.py"
   "$HART/jmri/scripts/signal_coordinator.py"
+  # signal_coordinator.py's SIBLING_MODULES: installed beside it, not Start Up items.
+  "$HART/jmri/scripts/sml_beans.py"
+  "$HART/jmri/scripts/sml_claims.py"
+  "$HART/jmri/scripts/sml_handoff.py"
+  "$HART/jmri/scripts/sml_events.py"
+  "$HART/jmri/scripts/sml_quit.py"
+  "$HART/jmri/scripts/sml_ui.py"
 )
 mkdir -p "$UF/jython"
 for f in "${JYTHON[@]}"; do
   [[ -f "$f" ]] && cp -f "$f" "$UF/jython/"
+  # Jython's compiled copy of a module it imported: one not older than the new .py would be reused.
+  rm -f "$UF/jython/$(basename "$f" .py)\$py.class"
 done
 rm -f "$UF/jython/hart_dispatcher_startup.py" "$UF/jython/patch_dispatcher_facing.py"
 for d in "$UF/jython" "$HOME"/.jmri/*.jmri/jython; do

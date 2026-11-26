@@ -24,7 +24,7 @@ Switch later: python3 jmri/layouts/hart/parked/apply_nx_layer.py --mode lock && 
 A mast whose NX sensor is already bound somewhere on the panel (a turnout leg's
 <sensorX> or an anchor's east/westboundsensor) gets no second binding.
 
-The main panel must be a generated one (build_layout_le.py --as-live; it holds
+The main panel must be a generated one (tools/schematic/build_tables.py writes one; it holds
 the hidden hartlib.tables.GENERATED_PANEL_MARKER label). It shows no NX sensor
 icon (owner, 2026-11-16): the sensors bound in the mast slots are what Entry/Exit
 discovery and the pairs use, so no icon is added or moved.

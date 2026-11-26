@@ -13,8 +13,7 @@ import shutil
 import sys
 from pathlib import Path
 
-import numpy as np
-from PIL import Image, ImageOps
+from PIL import Image
 
 from crop_car_image import _crop_at_fixed_size
 from finalize_car_images import (

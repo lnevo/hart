@@ -7,13 +7,13 @@ railroad's data with a region:
 
 fill() replaces each region's contents with the value read from the checkout:
 
-- the masts the device master plans (devices.csv, all levels), split into those with
+- the masts the device master plans (the device master, all levels), split into those with
   lamps and the hidden staging masts (virtual, IF$vsm);
 - the masts signal_coordinator.py hands over (those whose heads are LCOS heads, IH plus node and signal number, the
-  same rule as its _collect_beans) and their Signal Mast Logic destinations in tables.xml, against the rest;
+  same rule as its _collect_beans, now in sml_beans.py) and their Signal Mast Logic destinations in tables.xml, against the rest;
 - the plant switches panel_status.py flips (M2T/MTT turnouts with both feedback sensors, its
   _included_plant_turnouts);
-- which hosts install each Jython script (sync_hart_package.sh for the Mac, the Pi and Windows apply scripts).
+- which hosts install each Jython script (tools/hosts/deploy/common.sh for the Mac, the Pi and Windows apply scripts).
 
 A region the code does not know, or a known one missing from the page, stops the build. The prose around the
 regions is written by hand and checked by the repo audits (www/README.md, "Pages that describe the repo").
@@ -30,16 +30,20 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-sys.path[:0] = [str(ROOT / "tools/hartlib/src")]
-from hartlib import devices, tables as T  # noqa: E402
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import coordinator, devices, paths, tables as T  # noqa: E402
+
+ROOT = paths.REPO_ROOT
 
 PAGE_REL = "behind/jmri-additions.html"
 REGION = re.compile(r"<!--ja:([a-z0-9-]+)-->(.*?)<!--/ja-->", re.S)
-DEVICES = "jmri/layouts/hart/data/devices.csv"
+DATA = "jmri/layouts/hart/data"          # the master is under it (devices.master_path)
 DEVICE_LEVELS = {"main and upper": ("2", "3"), "staging": ("1",)}      # the master's levels of each group of masts
 COORDINATOR = "jmri/scripts/signal_coordinator.py"
+PANEL_STATUS = "jmri/layouts/hart/scripts/panel_status.py"
 TABLES = "jmri/layouts/hart/output/tables.xml"
+SPLIT_SCRIPTS = (COORDINATOR, PANEL_STATUS)   # the Jython scripts whose code is split into parts beside them
 HEAD_IN_MAST = re.compile(r"\(IH(\d+)\)")   # signal_coordinator._HEAD_IN_MAST, without the brackets
 WORDS = "zero one two three four five six seven eight nine ten eleven twelve".split()
 
@@ -48,12 +52,13 @@ WORDS = "zero one two three four five six seven eight nine ten eleven twelve".sp
 HOST_LISTS = {
     "Pi": ("tools/hosts/pi/apply_hart_package_local.sh", "JYTHON=("),
     "Windows": ("tools/hosts/windows/apply_hart_package_local.ps1", "$jythonSrc = @("),
-    "Mac": ("tools/hosts/sync_hart_package.sh", "JYTHON_STARTUP_SCRIPTS=("),
+    "Mac": ("tools/hosts/deploy/common.sh", "JYTHON_STARTUP_SCRIPTS=("),
 }
 HOST_ORDER = ("Pi", "Windows", "Mac")
 HOST_NAMES = {"Pi": "the Pi", "Windows": "Windows", "Mac": "the Mac"}
 LIST_END = re.compile(r"^\s*\)\s*$", re.M)
-SCRIPTS = ("signal_coordinator.py", "panel_status.py", "hide_cats_desk_windows.py", "jmri_cmd_watcher.py",
+SCRIPTS = ("signal_coordinator.py", "panel_status.py", "hide_cats_desk_windows.py", "hide_band_panels.py",
+           "jmri_cmd_watcher.py",
            "sts_car_sync.py", "mimic_relay.py")
 
 
@@ -71,9 +76,22 @@ def _and(items: list[str]) -> str:
     return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " and " + items[-1]
 
 
+def _siblings(root: Path) -> set[str]:
+    """The .py files of the modules signal_coordinator.py loads and of the parts panel_status.py runs
+    (hartlib.coordinator): shipped as parts of those scripts."""
+    try:
+        return {f"{m}.py" for script in SPLIT_SCRIPTS
+                for m in coordinator.sibling_modules(root / script)}
+    except coordinator.CoordinatorError as e:
+        raise PageError(str(e)) from None
+
+
 def _lcos_range(root: Path) -> tuple[int, int]:
-    """The LCOS signal numbers signal_coordinator.py accepts, read from it so the two cannot differ."""
-    src = (root / COORDINATOR).read_text(encoding="utf-8")
+    """The LCOS signal numbers signal_coordinator.py accepts, read from it and its modules so the two cannot differ."""
+    try:
+        src = coordinator.source(root / COORDINATOR)
+    except coordinator.CoordinatorError as e:
+        raise PageError(str(e)) from None
     got = {k: int(v) for k, v in re.findall(r"^_LCOS_SIGNAL_UID_(MIN|MAX)\s*=\s*(\d+)", src, re.M)}
     if set(got) != {"MIN", "MAX"}:
         raise PageError("signal_coordinator.py no longer sets _LCOS_SIGNAL_UID_MIN and _MAX; update this script")
@@ -87,7 +105,10 @@ def is_lcos_head(packed: str, lo: int, hi: int) -> bool:
 
 
 def host_lists(root: Path = ROOT) -> dict[str, set[str]]:
-    """The Jython scripts each host's deploy copies into its profile's jython folder."""
+    """The Jython scripts each host's deploy copies into its profile's jython folder. The modules
+    signal_coordinator.py loads and the parts panel_status.py runs are parts of them, not scripts of their own,
+    so they are left out."""
+    parts = _siblings(root)
     out = {}
     for host, (rel, opener) in HOST_LISTS.items():
         text = (root / rel).read_text(encoding="utf-8")
@@ -95,7 +116,7 @@ def host_lists(root: Path = ROOT) -> dict[str, set[str]]:
         end = LIST_END.search(text, start + len(opener)) if start >= 0 else None
         if end is None:
             raise PageError("%s: no %r list of Jython scripts closed by a line holding only ')'" % (rel, opener))
-        out[host] = set(re.findall(r"([a-z_]+\.py)", text[start + len(opener):end.start()]))
+        out[host] = set(re.findall(r"([a-z_]+\.py)", text[start + len(opener):end.start()])) - parts
     unknown = set().union(*out.values()) - set(SCRIPTS)
     if unknown:
         raise PageError("hosts install Jython scripts the page does not list: %s" % sorted(unknown))
@@ -115,7 +136,7 @@ def facts(root: Path = ROOT) -> dict:
 def _facts(root: Path) -> dict:
     planned = {}
     for label, levels in DEVICE_LEVELS.items():
-        planned[label] = [r for _line, r in devices.device_map_lines(levels, root / DEVICES) if r["layer"] == "mast"]
+        planned[label] = [r for _line, r in devices.device_map_lines(levels, devices.master_path(root / DATA)) if r["layer"] == "mast"]
     masts = [m for rows in planned.values() for m in rows]
     hidden = [m for m in masts if m["role"] == "hidden"]
 
@@ -150,7 +171,24 @@ def _facts(root: Path) -> dict:
         "other-dests": dests(sources) - dests(wired_src),
         "plant": len(plant),
         "hosts": host_lists(root),
+        "parts": _parts(root),
     }
+
+
+def _parts(root: Path) -> dict[str, tuple[str, ...]]:
+    """Each split script's parts, in load order, keyed by the script's file name."""
+    try:
+        return {Path(script).name: coordinator.sibling_modules(root / script) for script in SPLIT_SCRIPTS}
+    except coordinator.CoordinatorError as e:
+        raise PageError(str(e)) from None
+
+
+def _parts_sentence(parts: tuple[str, ...]) -> str:
+    files = _and(["<code>%s.py</code>" % m for m in parts])
+    n = word(len(parts)).capitalize()
+    if len(parts) == 1:
+        return "One module beside it holds the rest of its code and is deployed with it: %s." % files
+    return "%s modules beside it hold the rest of its code and are deployed with it: %s." % (n, files)
 
 
 def _hosts_cell(script: str, hosts: dict) -> str:
@@ -180,6 +218,8 @@ def regions(f: dict) -> dict:
     }
     for s in SCRIPTS:
         vals["hosts-" + s[:-3].replace("_", "-")] = _hosts_cell(s, f["hosts"])
+    for s, parts in f["parts"].items():
+        vals["parts-" + s[:-3].replace("_", "-")] = _parts_sentence(parts)
     return vals
 
 

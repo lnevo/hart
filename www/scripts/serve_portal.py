@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Serve the website tree + archive and gallery edit APIs, local only."""
+"""Serve the website tree + archive and gallery edit APIs, local only.
+
+The files the site build makes instead of committing (site_views.VIEWS, ADR-036: the pipeline map page and the
+generated JSON) are built into www/ at start, so the preview never shows a missing or stale one; one that cannot
+be built is removed and named, with the command that says why (make site-data).
+"""
 
 from __future__ import annotations
 
@@ -7,14 +12,23 @@ import argparse
 import json
 import os
 import re
+import sys
 from datetime import datetime, timezone
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
-ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import archive_catalogue  # noqa: E402  (the master that archive.json copies credits and paths from, ADR-039)
+import site_views  # noqa: E402
+
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+ROOT = paths.REPO_ROOT
 ARCHIVE_PATH = ROOT / "www/data/archive.json"
 ARCHIVE_LOG = ROOT / "www/review-data/archive_review_log.jsonl"
+CATALOGUE_PATH = archive_catalogue.CATALOGUE
 API_ARCHIVE = "/api/archive/item"
 API_ARCHIVE_PING = "/api/archive/ping"
 API_ARCHIVE_TO_LAYOUT = "/api/archive/to-layout"
@@ -188,6 +202,7 @@ def _update_archive_item(body: dict) -> tuple[int, dict]:
     tmp = ARCHIVE_PATH.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     os.replace(tmp, ARCHIVE_PATH)
+    archive_catalogue.sync_item(item, CATALOGUE_PATH)  # a credit, link or rights fix belongs to the catalogue
     ARCHIVE_LOG.parent.mkdir(parents=True, exist_ok=True)
     with ARCHIVE_LOG.open("a", encoding="utf-8") as fh:
         entry = {"ts": datetime.now(timezone.utc).isoformat(), "id": item_id, "before": before, "after": changes}
@@ -239,6 +254,7 @@ def _move_archive_item_to_layout(body: dict) -> tuple[int, dict]:
     data["items"] = [it for it in items if it.get("id") != item_id]
     _write_json_atomic(GALLERY_PATH, gallery)
     _write_json_atomic(ARCHIVE_PATH, data)
+    archive_catalogue.drop_item(item_id, CATALOGUE_PATH)
     ARCHIVE_LOG.parent.mkdir(parents=True, exist_ok=True)
     with ARCHIVE_LOG.open("a", encoding="utf-8") as fh:
         entry = {"ts": datetime.now(timezone.utc).isoformat(), "id": item_id, "before": {"bucket": item.get("bucket")}, "after": {"moved_to": "layout-photos"}}
@@ -288,6 +304,7 @@ def _update_gallery_item(body: dict) -> tuple[int, dict]:
         del items[idx]
         after = {"moved_to": "photos-review", "id": new_id}
         _write_json_atomic(ARCHIVE_PATH, data)
+        archive_catalogue.sync_item(data["items"][-1], CATALOGUE_PATH)
     else:
         albums = {a.get("id") for a in gallery.get("albums", [])}
         if "album" in body:
@@ -324,6 +341,13 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("port", nargs="?", type=int, default=8760, help="port on 127.0.0.1 (default %(default)s)")
     port = parser.parse_args().port
+    failed = site_views.refresh()
+    if failed:
+        print("\n".join(failed), file=sys.stderr)
+        print(f"NOT SERVED: {len(failed)} of {len(site_views.VIEWS)} built files (pages that read them show an "
+              f"error); fix the source and run {site_views.BUILD}", file=sys.stderr, flush=True)
+    else:
+        print(f"built {len(site_views.VIEWS)} files the site build makes: " + ", ".join(site_views.VIEWS), flush=True)
     server = HTTPServer(("127.0.0.1", port), PortalHandler)
     print(f"HART portal → http://127.0.0.1:{port}/www/", flush=True)
     print(f"Archive → http://127.0.0.1:{port}/www/photos/index.html#historical (edits save to data/archive.json)", flush=True)

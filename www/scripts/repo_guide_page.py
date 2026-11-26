@@ -50,15 +50,17 @@ FOLDERS = {
     "external": (True, "The {n} submodules, and the STS data folder."),
     "wiki": (True, "Decision records, the live status of the railroad, and one page per pipeline."),
     "media": (False, "Photos, video and research material. Kept on the Mac, not in git."),
-    "archive": (True, "Retired files, kept for reference. Nothing in it runs."),
+    "archive": (True, "Retired files, kept for reference, grouped into <code>code/</code>, <code>data/</code> and "
+                       "<code>history/</code>. Nothing in it runs."),
 }
 
 # Folders under jmri/layouts/hart/, in page order. Keys are joined with ", " when they share a row.
 LAYOUT_TREE = {
     ("output",): "<code>tables.xml</code>, the one tables file, with all three panels in it",
-    ("data",): "The name map, switch files, block lengths, control points, the schematic's inputs and device maps, "
+    ("data",): "The device master, switch files, block lengths, control points, the schematic's inputs, "
                "and HART's settings for the STS-to-JMRI refresh",
     ("operations",): "The {ops} Operations Pro files",
+    ("roster",): "The DecoderPro roster: roster.xml and one entry file per loco, which the deploy installs on every host",
     ("scripts",): "{scripts} scripts: most build, repair and check the tables on the Mac, and some run inside JMRI",
     ("ctc", "dispatcher"): "The USS CTC machine's icons and guide; the Dispatcher System's options and train files. "
                            "Parked since the helix-join release (November 2026)",
@@ -89,10 +91,13 @@ SUBMODULES = {
 HARTLIB_MAIN = ("paths", "tables", "hosts", "railroad")
 HARTLIB_PARTS = {"railroad_facts": "railroad", "railroad_invariants": "railroad"}
 HARTLIB_OTHER = {
-    "names": "the name map's columns",
-    "devices": "the device master (devices.csv), its dictionary and its checks",
+    "names": "the DCC group of a JMRI comment",
+    "devices": "the device master, its dictionary and its checks",
+    "device_ids": "each device's ID, taken from the track plan rather than its name",
+    "device_changes": "what a build changes in the device master: new, gone and renamed devices",
+    "track_names": "the owner's track names, kept by ID, and how they reach the schematic drawing",
     "tables_build": "the template and the other parts the generated tables.xml is built from",
-    "store_split": "the split of a pulled PanelPro Store back into the template and devices.csv",
+    "store_split": "the split of a pulled PanelPro Store back into the template and the device master",
     "cats": "the CATS desk conventions",
     "parked": "the parked features",
     "level_devices": "the main and upper levels' device names",
@@ -100,6 +105,16 @@ HARTLIB_OTHER = {
     "map_revision": "the station maps' revision",
     "layer_files": "the schematic's layer files, a section per sheet",
     "wiring": "the physical wiring source (wiring.csv)",
+    "block_numbering": "the main and upper blocks' JMRI numbers, from block_numbering.csv",
+    "hand_lists":"the owner's hand lists: block overrides, main lines and the parked USS board",
+    "drawing_keys": "which device each piece of the drawing is, keyed by device ID",
+    "film_pace": "the pace of the panel and schematic films",
+    "files": "an atomic file write and the list of tracked files",
+    "operations": "the Operations Pro rosters' cars, engines and trains",
+    "coordinator": "the signal coordinator script and the modules it loads",
+    "places": "the stations and control points by id, as the devices and masts name them",
+    "occupancy_bindings": "the CATS desks' occupancy bindings, each block by its ID",
+    "block_lengths": "each block's plan length and measured length, and the operating length the Dispatcher takes",
 }
 
 

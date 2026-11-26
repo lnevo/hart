@@ -15,9 +15,16 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from test_speedmatch import SM, analyze, lr, make_job, mover  # noqa: E402
+from lengths_fixture import write_lengths  # noqa: E402
 
 sys.path.insert(0, str(SM.parent))
 import infer_block_lengths as ibl  # noqa: E402
+
+
+def read_rows(path, **kw):
+    """The CSV's rows, with the file closed after reading."""
+    with open(path, **kw) as f:
+        return list(csv.DictReader(f))
 
 RUNBOOK = SM.parents[4] / "docs/jmri/speedmatching/RUNBOOK.md"
 ORDER1 = analyze.route_order("loop1")
@@ -346,7 +353,7 @@ class RunnerSource(unittest.TestCase):
             self.assertIn("check_guards(", src)
             self.assertIn("end_job(", src)
             self.assertNotRegex(src, r"\bf[\"']")
-            self.assertIn("except Exception, e", src)
+            self.assertIn("except Exception as e", src)
 
 
 class AnalyzeDistance(unittest.TestCase):
@@ -419,7 +426,7 @@ class AnalyzeDistance(unittest.TestCase):
                            (16, steady(ORDER1, ORDER1[0], 500.0, LEN1, 12, t0=500.0))])
         d = Path(tempfile.mkdtemp())
         analyze.write_outputs(analyze.latest_runs(sm), None, d, sm)
-        rows = list(csv.DictReader(open(d / "profile.csv")))
+        rows = read_rows(d / "profile.csv")
         self.assertEqual([(r["step"], r["median_mm_s"], r["settled"]) for r in rows],
                          [("8", "250.0", "True"), ("16", "500.0", "True")])
 
@@ -432,7 +439,7 @@ class AnalyzeDistance(unittest.TestCase):
         self.assertAlmostEqual(row["median"], 56.0, delta=0.01)
         d = Path(tempfile.mkdtemp())
         analyze.write_outputs(analyze.latest_runs(sm), None, d, sm)
-        self.assertEqual(list(csv.DictReader(open(d / "profile.csv")))[0]["settled"], "True")
+        self.assertEqual(read_rows(d / "profile.csv")[0]["settled"], "True")
         import correct as corr
         got, skipped = corr.read_profile(d / "profile.csv", "CSX 2121", "forward")
         self.assertIn(8, got)
@@ -604,7 +611,7 @@ class Locate(unittest.TestCase):
 
 class FakeLayout(object):
     """A virtual clock and a loco on a ring of sensors, standing in for JMRI so the Jython runners
-    can be run for real as Python 3 (their `except X, e` lines are rewritten). The loco runs at
+    can be run for real as Python 3 (they are written so both parse them). The loco runs at
     SPEED_PER_STEP mm/s per throttle step; nothing leaves the process."""
     SPEED_PER_STEP = 10.0
 
@@ -734,8 +741,7 @@ class FakeLayout(object):
         """Run a job as Python 3 on the virtual clock."""
         import threading
         import time as _time
-        src = re.sub(r"except ([\w.]+), e:", r"except \1 as e:", job_text)
-        src = src.replace("/tmp/speedrun", str(tmp / "speedrun"))
+        src = job_text.replace("/tmp/speedrun", str(tmp / "speedrun"))
         saved = (_time.time, _time.sleep, threading.Thread, {k: sys.modules.get(k) for k in ("java", "jmri")})
         clock = self
 
@@ -763,10 +769,7 @@ class FakeLayout(object):
 
 
 def loop_csv(path, loop):
-    rows = ["user_name,occupancy_sensor,plan_in,measured_in,source,note"]
-    for sensor, name in loop:
-        rows.append("%s,%s,60,59.055,timed," % (name, sensor))  # 59.055 in is 1500 mm
-    path.write_text("\n".join(rows) + "\n")
+    write_lengths(path, {name: (60, 59.055) for _sensor, name in loop})  # 59.055 in is 1500 mm
 
 
 class SimulatedRuns(unittest.TestCase):

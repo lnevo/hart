@@ -10,7 +10,6 @@ appearance (what CATS ABS paints / LCOS sees). `held` is CATS ABS Hold.
 """
 from __future__ import annotations
 
-import csv
 import json
 import re
 import subprocess
@@ -24,12 +23,12 @@ SUB = "/opt/local/bin/mosquitto_sub"
 OUT = Path(__file__).resolve().parent
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import level_masts, paths, tables as tables_mod  # noqa: E402
+from hartlib import level_masts, paths, railroad, tables as tables_mod  # noqa: E402
 from hartlib.hosts import jmri_json_url, mqtt_broker  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 sys.path.insert(0, str(ROOT / "tools" / "audit"))
-from check_wiring_crosswalk import STAGING_MASTS, read_tables  # noqa: E402
+from check_wiring_crosswalk import read_tables  # noqa: E402
 
 HOST = mqtt_broker()
 JMRI_JSON = jmri_json_url()
@@ -118,10 +117,11 @@ def capture_baseline() -> dict:
     return base
 
 
-def load_live_masts(path: Path = STAGING_MASTS) -> set[str]:
-    """Staging's visible masts (head masts, IF$shsm) from staging_masts.csv; its hidden virtual masts are left out."""
-    with path.open(newline="", encoding="utf-8") as f:
-        return {r["mast"] for r in csv.DictReader(f) if r["system_name"].startswith("IF$shsm:")}
+def load_live_masts(path: Path = level_masts.PATH) -> set[str]:
+    """The live level's visible masts (head masts, IF$shsm): masts.csv's staging rows (hartlib.railroad
+    STAGING_LEVEL, the level the QA runs on); the hidden virtual masts are left out."""
+    live = (int(railroad.STAGING_LEVEL),)
+    return {r["mast"] for r in level_masts.read(path, levels=live) if r["system_name"].startswith("IF$shsm:")}
 
 
 LIVE_MASTS = load_live_masts()

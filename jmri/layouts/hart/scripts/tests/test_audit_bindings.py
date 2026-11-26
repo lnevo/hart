@@ -1,4 +1,4 @@
-"""audit_panel_contracts.audit_bindings holds every staging mast (staging_masts.csv) to one slot that resolves to its
+"""audit_panel_contracts.audit_bindings holds every staging mast (masts.csv) to one slot that resolves to its
 facing and protected blocks, by the plugin's slot index, the rule the LE build places masts by. It replaces the
 recorded idents and slots of le_signal_boundaries.csv (retired)."""
 from __future__ import annotations
@@ -102,11 +102,13 @@ class AuditBindings(unittest.TestCase):
 
     def test_load_staging_masts_follows_a_patch_of_its_path(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "m.csv"
-            path.write_text("mast,facing,protects,system_name\nMast X,Track A,OS 1;OS 2,IF$vsm:x\n", encoding="utf-8")
-            with mock.patch.object(self.apc, "STAGING_MASTS", path):
+            path = Path(tmp) / "masts.csv"
+            lines = self.apc.MASTS.read_text(encoding="utf-8").splitlines(keepends=True)
+            path.write_text("".join(lines[:3]), encoding="utf-8")         # the header and two staging rows
+            with mock.patch.object(self.apc, "MASTS", path):
                 rows = self.apc.load_staging_masts()
-        self.assertEqual([("Mast X", ("OS 1", "OS 2"), "IF$vsm:x")], [(m.mast, m.protects, m.system_name) for m in rows])
+        self.assertEqual([("Mast 2L", 1, ("OS Switch 1",)), ("Mast 2R", 1, ("OS Switch 1",))],
+                         [(m.mast, m.level, m.protects) for m in rows])
 
 
     def test_a_staging_mast_missing_from_the_panel_is_an_error(self) -> None:
@@ -161,7 +163,7 @@ class AuditSettings(unittest.TestCase):
                    for m in staging]
         audit = self.apc.Audit("t", Path("t"))
         self.apc.audit_masts(root, flipped, audit)
-        self.assertTrue(any("differ between staging_masts.csv and devices.csv" in e for e in audit.errors))
+        self.assertTrue(any("differ between masts.csv and the device master" in e for e in audit.errors))
 
 
 if __name__ == "__main__":

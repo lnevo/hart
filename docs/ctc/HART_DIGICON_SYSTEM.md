@@ -1,5 +1,7 @@
 # HART Digicon (CATS) — System Overview
 
+End-to-end overview of the Digicon CATS panels, how they talk to JMRI and MQTT, and how LCOS signal heads are addressed.
+
 **Publication:** DS-DIGICON · Rev B · Eff 2026-11-09 (Rev A 2026-08-11)  
 **Railroad:** HART Railroad · Pittsburgh & Chartiers Valley Division · Neville Island Operations  
 **Scope:** Digicon CTC / ABS panels, JMRI MQTT bridge, LCOS signal heads
@@ -29,7 +31,7 @@ Two Digicon desks for Neville Island ops, CATS CTC and CATS ABS, built from one 
 | **CATS CTC** | `cats/panels/HART_CTC.xml` | **Live CTC** — Digicon codes routes / throws; signals `HOLD_ONLY`; **JMRI SML** owns aspects |
 | **CATS ABS** | `cats/panels/HART_ABS.xml` | **Live ABS** — `HOLD_ONLY`; SECSIGNALs bound to JMRI masts so Digicon **paints SML**. |
 
-Both desks are generated from the schematic (`tools/schematic/build_cats_panel.py`, all three levels; owner approved in real CATS on 2026-11-15, live since the CATS cut-over). Never edit a desk by hand: change the schematic, the switch facts or the build, then rebuild. `HART_Digicon.xml` and `wire_digicon.py` (now `archive/cats-scripts/wire_digicon.py`) built the earlier hand-wired desks; the last of those are in git history at commit `42192d9c`, before the CATS cut-over (`git show 42192d9c:cats/panels/HART_CTC.xml`). The retired West Yard sheet scripts are in `archive/cats-scripts/west_yard/`.
+Both desks are generated from the schematic (`tools/schematic/build_cats_panel.py`, all three levels; owner approved in real CATS on 2026-11-15, live since the CATS cut-over). Never edit a desk by hand: change the schematic, the switch facts or the build, then rebuild. `HART_Digicon.xml` and `wire_digicon.py` (now `archive/code/cats-scripts/wire_digicon.py`) built the earlier hand-wired desks; the last of those are in git history at commit `42192d9c`, before the CATS cut-over (`git show 42192d9c:cats/panels/HART_CTC.xml`). The retired West Yard sheet scripts are in `archive/code/cats-scripts/west_yard/`.
 
 Each desk carries a publication title row (Y=1):
 
@@ -40,7 +42,7 @@ Each desk carries a publication title row (Y=1):
 Rebuild both desks (`make desks` also validates them):
 
 ```bash
-python3 tools/schematic/build_cats_panel.py
+make desks
 ```
 
 ---
@@ -76,7 +78,7 @@ python3 tools/schematic/build_cats_panel.py
 
 (`unhold_signal_masts.py` is retired: masts boot Unheld, so SML runs ABS by default; **Held is CATS CTC's channel** — it holds homes at panel load and unholds when the dispatcher lines a route. A blanket unhold watchdog fought that.)
 
-SML dests are **native**: Layout Editor Discover generates them (`jmri/layouts/hart/scripts/run_sml_discover.sh` one-shot) and they are stored in `tables.xml` with `useLayoutEditor=yes`, so JMRI re-paths them on every load. Re-running Discover is safe; the discover wrapper takes the Store's logic into `data/schematic/discovered_sml.xml` and regenerates `tables.xml` (`tools/schematic/build_tables.py --discovered-from`), which stores Digicon source→dest pairs **Enabled=no** until the Digicon MQTT script enables them (do not Store tables from a live Enabled Digicon session if you want that boot default to stick). The old hand-pair injector `apply_sml_cats_pairs.py` was removed on 2026-11-14; its pairs and the home-made prediction script were retired on 2026-11-16: JMRI's own discovery is the reference, so check signal logic by running stock Discover / Stage 1 in the sandbox rehearsal and comparing the stored pairs with the previous tables (`data/baselines/sml_pairs.csv`). Facing is set by the generated panel (`build_layout_le.py` places each mast from `staging_masts.csv` and `main_upper_masts.csv`). Advanced routing is `blockrouting="yes"` on `<layoutblocks>`. Two-head masts use stock **Basic** `two-searchlight` and dwarfs `one-low` (ADR-011); facing and binding are in [`SIGNAL_FACING.md`](SIGNAL_FACING.md).
+SML dests are **native**: Layout Editor Discover generates them (`jmri/layouts/hart/scripts/run_sml_discover.sh` one-shot) and they are stored in `tables.xml` with `useLayoutEditor=yes`, so JMRI re-paths them on every load. Re-running Discover is safe; the discover wrapper takes the Store's logic into `data/schematic/discovered_sml.xml` and regenerates `tables.xml` (`tools/schematic/build_tables.py --discovered-from`), which stores Digicon source→dest pairs **Enabled=no** until the Digicon MQTT script enables them (do not Store tables from a live Enabled Digicon session if you want that boot default to stick). The old hand-pair injector `apply_sml_cats_pairs.py` was removed on 2026-11-14; its pairs and the home-made prediction script were retired on 2026-11-16: JMRI's own discovery is the reference, so check signal logic by running stock Discover / Stage 1 in the sandbox rehearsal and comparing the stored pairs with the previous tables. Facing is set by the generated panel (`build_layout_le.py` places each mast from `masts.csv`). Advanced routing is `blockrouting="yes"` on `<layoutblocks>`. Two-head masts use stock **Basic** `two-searchlight` and dwarfs `one-low` (ADR-011); facing and binding are in [`SIGNAL_FACING.md`](SIGNAL_FACING.md).
 
 **PanelPro vs CATS (same profile, sequential — never simultaneous):**
 
@@ -107,7 +109,7 @@ Blank Digicon cells come from CATS source behaviour, not the tables: see [`CATS_
 
 Digicon schematic covers West Yard / Brick / Plane / OS Barn, South Yard ladder, East End and Princess, matching the Neville Island station maps and the CSX/POV-era trackplan reference.
 
-Princess (ADR-017): east of Switches 39 and 37 the mainline stubs are **Track McKees Rocks** and **Track McKeesport**, and the loop legs are **Track K-1** and **Track K-2**. The desks draw K-1 / K-2 on the outer rows running off the east edge, with the mains in the centre; the Layout Editor panel keeps the physical loop. Mast **40LA** / **38LA** are two-head on the mains and **40LB** / **38LB** are dwarfs on K-1 / K-2. None of the four has field hardware yet.
+Princess (ADR-017): east of Switches 39 and 37 the mainline stubs are **Track Helix Outer** and **Track Helix Inner**, and the loop legs are **Track K-1** and **Track K-2**. The desks draw K-1 / K-2 on the outer rows running off the east edge, with the mains in the centre; the Layout Editor panel keeps the physical loop. Mast **40LA** / **38LA** are two-head on the mains and **40LB** / **38LB** are dwarfs on K-1 / K-2. None of the four has field hardware yet.
 
 ### Discipline
 
@@ -186,9 +188,9 @@ Mast icons use the Basic `default` image set (JMRI draws it with its stock AAR-1
 
 ### Mast index (Digicon name → JMRI)
 
-Full table: [`docs/wiring/signals/signal_head_plan.csv`](../wiring/signals/signal_head_plan.csv), every wired mast and its JMRI binding  
+Full table: [`jmri/layouts/hart/output/signal_head_plan.csv`](../../jmri/layouts/hart/output/signal_head_plan.csv), every wired mast and its JMRI binding  
 Port / topic / LCOS inventory: the head rows of [`jmri/layouts/hart/data/wiring.csv`](../../jmri/layouts/hart/data/wiring.csv) (`hartlib.wiring.digicon_rows` gives the pins, IH number and topic)  
-The old plan's mast table (history, archived 2026-11-21): [`archive/docs/wiring/signals/signal_mast_plan.csv`](../../archive/docs/wiring/signals/signal_mast_plan.csv)
+The old plan's mast table (history, archived 2026-11-21): [`archive/data/wiring/signals/signal_mast_plan.csv`](../../archive/data/wiring/signals/signal_mast_plan.csv)
 
 Pin map: [`docs/wiring/README.md`](../../docs/wiring/README.md#digicon-heads-and-ou-boards) · CSVs above.
 
@@ -205,13 +207,14 @@ Digicon SML MQTT controller — toggle **SML Enabled / SML Disabled**, SET publi
 
 Mast 2L is the same packed-head path (`IH438`/`IH439` on C3-OU3). JMRI no longer publishes `track/signalmast/432`.
 
-Refresh the wiring CSVs from the head plan (publisher roster is dynamic):
+Rebuild the head plan (publisher roster is dynamic): `make panels` runs it as its head-plan step, writing `jmri/layouts/hart/output/signal_head_plan.csv`; `make panels CHECK=1` checks it:
 
 ```bash
-python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only
+make panels
+make panels CHECK=1
 ```
 
-Head IH numbers in `tables.xml` follow the wiring plan (packed = radio address × 100 + slot); `tools/audit/check_wiring_crosswalk.py` fails in `./tools/check.sh` when a head on a physical mast differs from `wiring.csv`. The full run (no flag) refuses to rewrite `tables.xml`, because its generated block would drop the virtual masts, IH9990 and the mast comments. Change heads and masts in `tables.xml` directly (PanelPro and CATS closed), then run `--wiring-only` and check that `git diff` shows only what you meant. Interim builds with fewer heads than planned (Mast 6LB) are listed in `FITTED_HEADS` in the script.
+Head IH numbers in `tables.xml` follow the wiring plan (packed = radio address × 100 + slot); `tools/audit/check_wiring_crosswalk.py` fails in `./tools/check.sh` when a head on a physical mast differs from `wiring.csv`. The full run (no flag) refuses to rewrite `tables.xml`, because its generated block would drop the virtual masts, IH9990 and the mast comments. Change heads and masts in `tables.xml` directly (PanelPro and CATS closed), then run `make panels` and check that `git diff` shows only what you meant. Interim builds with fewer heads than planned (Mast 6LB) are listed in `FITTED_HEADS` in the script.
 
 LE `signalmasticon`s use the stock Basic `default` image set (no custom imagelinks). Digicon binds by userName either way.
 
@@ -261,13 +264,13 @@ Windows runs Win32-OpenSSH 10.4 (winget `Microsoft.OpenSSH.Preview`) on port 222
 | Script | Purpose |
 |--------|---------|
 | `tools/schematic/build_cats_panel.py` | Builds `HART_CTC.xml`, `HART_ABS.xml` and `HART_CTC.bindings.json` from the schematic and the railroad's facts (`--check`) |
-| `archive/cats-scripts/wire_digicon.py` | Archived: built the hand-wired desks from `HART_Digicon.xml` before the CATS cut-over |
+| `archive/code/cats-scripts/wire_digicon.py` | Archived: built the hand-wired desks from `HART_Digicon.xml` before the CATS cut-over |
 | `cats/scripts/cats_turnout_io.py` | Turnout CSV → SWITCHPOINTS IO (used by `build_cats_panel.py`) |
-| `archive/cats-scripts/aar_aspect_bridge.py` | Archived with `wire_digicon.py`: Digicon R-codes ↔ Basic aspect names |
+| `archive/code/cats-scripts/aar_aspect_bridge.py` | Archived with `wire_digicon.py`: Digicon R-codes ↔ Basic aspect names |
 | `jmri/layouts/hart/scripts/discover_sml.py` | PanelPro one-shot SML Discover (background; do not leave on Start Up) |
 | `jmri/layouts/hart/scripts/run_sml_discover.sh` | Launch PanelPro, Discover, store `tables.xml`, quit; then disable Digicon SML dests |
 | `jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py` | `--check`: Digicon SML dests are Enabled=no in `tables.xml` (`tools/check.sh`). The generator applies the rule and the deploy ships the committed bytes (R9c); `--panel` patches another tables file only |
-| `archive/cats-scripts/digicon_header.py` | Archived with `wire_digicon.py`: the publication title row (now `cats/data/generated_desk_header.xml`) |
+| `archive/code/cats-scripts/digicon_header.py` | Archived with `wire_digicon.py`: the publication title row (now `cats/data/generated_desk_header.xml`) |
 | `jmri/layouts/hart/scripts/build_hart_signal_heads.py` | The head and mast plan CSVs from `wiring.csv`'s wired heads (one mode; `--wiring-only` still accepted). `tables.xml` is generated (ADR-029) |
 | `tools/hosts/sync_hart_package.sh` | Stage the package to a temporary folder on the host; **rsync** to Pi, **tar+scp** to Windows (no git pull). Host apply copies into `JMRI_UserFiles`. `--dry-run`. Before copy, sets Digicon (MQTT) SML dests to Enabled=no in the shipped `tables.xml` |
 | `cats/scripts/install_jmri_web_override.sh` | STS link into JMRI `web/` (Mac/Pi) |
@@ -283,4 +286,4 @@ Windows runs Win32-OpenSSH 10.4 (winget `Microsoft.OpenSSH.Preview`) on port 222
 2. Never publish turnout “fix” commands at launch.
 3. Digicon Refresh Screen = safe (JMRI → Digicon). Refresh Layout pushes Digicon → JMRI — avoid for boot paint fixes.
 4. All Digicon lamps are packed `IH*` SHSM — two-head homes on **Basic** (`two-searchlight`), dwarfs on **`one-low`**. No aspects are disabled. Mast 2L is `IH438`/`IH439`.
-5. After a schematic or switch-fact change, run `build_cats_panel.py`. It rebuilds both desks, so `HOLD_ONLY` and mast bindings stay in sync.
+5. After a schematic or switch-fact change, run `make panels` (its cats step), or `make desks` for the desks alone. Both rebuild both desks, so `HOLD_ONLY` and mast bindings stay in sync.

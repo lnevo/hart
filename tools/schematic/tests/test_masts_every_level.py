@@ -1,9 +1,10 @@
-"""The masts of every level, pinned mast by mast (wiki/projects/level-unification-handoff.md, Masts). Two views:
+"""The masts of every level, pinned mast by mast (archive/history/wiki/projects/level-unification-handoff.md, Masts). Two views:
 
-- the committed mast files (staging_masts.csv, main_upper_masts.csv: hartlib.level_masts.FIELDS), read as plain CSV,
+- the committed mast file (masts.csv, every level with its `level` column: hartlib.level_masts.FIELDS), read as plain CSV,
   so the pins do not depend on how the device maps are laid out;
-- the one mast process's own output over the committed plan, under RepoReadOnly: build_staging_masts.build() for
-  staging and build_device_map.plan_masts (mast_plan.plan, the function build() calls) for main and upper.
+- the one mast process's own output over the committed plan, under RepoReadOnly: build_masts.build() (staging's
+  masts by device_map_masts, with the owner's names) for staging and build_device_map.plan_masts (mast_plan.plan, the
+  function build() calls) for main and upper.
 
 A change here is a change to where masts stand or what they show, which needs the owner's approval of the panel. The
 one mast process (owner, 2026-11-20) changed exactly these entries from the per-level processes before it, and no
@@ -14,6 +15,10 @@ others:
 Step 5 part 2 (owner, 2026-11-20) changed only staging 8RA, from an anchor mast on Scale to a turnout mast at Switch 7
 (OS Switch 7 ends at the switch). Main and upper's links are parts of OS blocks but still JMRI blocks of their own, so
 the masts facing them keep their facing blocks.
+Naming-layers step 12 (2026-11-25, my call under the owner's rule of 2026-11-25) letters two masts of one number and
+direction in the plan order of the tracks they face (mast_rule.letter_order), not by drawn row: upper level 204R,
+212L, 218R, 222L, 230L and the virtual 210L, 216L, 244R, 246L traded their A and B (Mast 210LA now faces Track 209
+Spur 1). Staging's 6L and 8R pairs would too; the owner's names in the field file keep them.
 """
 from __future__ import annotations
 
@@ -30,7 +35,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 
 import build_device_map as bdm  # noqa: E402
-import build_staging_masts as bsm  # noqa: E402
+import build_masts as bsm  # noqa: E402
 import mast_rule  # noqa: E402
 from hartlib import level_masts  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402
@@ -92,19 +97,19 @@ MAIN_UPPER_VISIBLE = (
     ("B92", "one-searchlight", 1, "", "Track 227-241 2", "Track 227-241 1", "east"),
     ("B93", "one-searchlight", 1, "", "Track 227-241 1", "Track 227-241 2", "west"),
     ("202R", "two-low", 2, "201", "Track 201-205", "OS Switch 201", "east"),
-    ("204RA", "two-low", 2, "203", "Track 203-207", "OS Switch 203", "east"),
-    ("204RB", "two-searchlight", 2, "203", "Track 203-211", "OS Switch 203", "east"),
-    ("212LA", "two-low", 2, "211", "Track 207-211", "OS Switch 211", "west"),
-    ("212LB", "one-searchlight", 1, "211", "Track 203-211", "OS Switch 211", "west"),
+    ("204RA", "two-searchlight", 2, "203", "Track 203-211", "OS Switch 203", "east"),
+    ("204RB", "two-low", 2, "203", "Track 203-207", "OS Switch 203", "east"),
+    ("212LA", "one-searchlight", 1, "211", "Track 203-211", "OS Switch 211", "west"),
+    ("212LB", "two-low", 2, "211", "Track 207-211", "OS Switch 211", "west"),
     ("212RA", "one-searchlight", 1, "211", "Track 211-217 1", "OS Switch 211", "east"),
     ("212RB", "two-searchlight", 2, "211", "Track 211-217 2", "OS Switch 211", "east"),
     ("218LA", "one-searchlight", 1, "217", "Track 211-217 1", "OS Switch 217", "west"),
     ("218LB", "two-searchlight", 2, "217", "Track 211-217 2", "OS Switch 217", "west"),
-    ("218RA", "two-searchlight", 2, "217", "Track 217-219", "OS Switch 217", "east"),
-    ("218RB", "one-searchlight", 1, "217", "Track 217-221", "OS Switch 217", "east"),
+    ("218RA", "one-searchlight", 1, "217", "Track 217-221", "OS Switch 217", "east"),
+    ("218RB", "two-searchlight", 2, "217", "Track 217-219", "OS Switch 217", "east"),
     ("220R", "two-searchlight", 2, "219", "Track 217-219", "OS Switch 219", "east"),
-    ("222LA", "two-searchlight", 2, "221", "Track 221-223", "OS Switch 221", "west"),
-    ("222LB", "one-searchlight", 1, "221", "Track 217-221", "OS Switch 221", "west"),
+    ("222LA", "one-searchlight", 1, "221", "Track 217-221", "OS Switch 221", "west"),
+    ("222LB", "two-searchlight", 2, "221", "Track 221-223", "OS Switch 221", "west"),
     ("222R", "two-searchlight", 2, "221", "Track 127-221", "OS Switch 221", "east"),
     ("224LA", "one-searchlight", 1, "223", "Track 223-225 1", "OS Switch 223", "west"),
     ("224LB", "one-searchlight", 1, "223", "Track 223-225 2", "OS Switch 223", "west"),
@@ -113,8 +118,8 @@ MAIN_UPPER_VISIBLE = (
     ("226RB", "two-searchlight", 2, "225", "Track 223-225 2", "OS Switch 225d", "east"),
     ("228RA", "two-low", 2, "227", "Track 227-231", "OS Switch 227", "east"),
     ("228RB", "two-searchlight", 2, "227", "Track 227-241 1", "OS Switch 227", "east"),
-    ("230LA", "two-searchlight", 2, "229", "Track 229-241", "OS Switch 229", "west"),
-    ("230LB", "two-low", 2, "229", "Track 229-233", "OS Switch 229", "west"),
+    ("230LA", "two-low", 2, "229", "Track 229-233", "OS Switch 229", "west"),
+    ("230LB", "two-searchlight", 2, "229", "Track 229-241", "OS Switch 229", "west"),
     ("242L", "one-low", 1, "241", "Track 241 Spur", "OS Switch 241", "west"),
 )
 MAIN_UPPER_VIRTUAL = (
@@ -153,15 +158,18 @@ DROPPED = {"126L"}
 SYSTEM = re.compile(r"IF\$(shsm|vsm):basic:([\w-]+)\(")
 
 
-def file_masts(path: Path) -> tuple[list, list]:
-    """(visible, virtual) pins of a committed mast file, one per row (a duplicated row shows), in the shape of the
-    tables above. Fails on a system name
+STAGING, MAIN_UPPER = {"1"}, {"2", "3"}
+
+
+def file_masts(path: Path, levels: set) -> tuple[list, list]:
+    """(visible, virtual) pins of the committed mast file's rows of `levels`, one per row (a duplicated row shows), in
+    the shape of the tables above. Fails on a system name
     that is no basic SignalHeadSignalMast or VirtualSignalMast."""
     with open(path, newline="", encoding="utf-8") as fh:
         reader = csv.DictReader(fh)
         if reader.fieldnames != list(level_masts.FIELDS):
             raise AssertionError(f"{path.name}: columns {reader.fieldnames}, not {list(level_masts.FIELDS)}")
-        rows = list(reader)
+        rows = [r for r in reader if r["level"] in levels]
     visible, virtual = [], []
     for r in rows:
         hit = SYSTEM.match(r["system_name"])
@@ -182,23 +190,22 @@ class CommittedMastFiles(unittest.TestCase):
     """The committed mast files hold exactly the pinned masts (no plugin needed)."""
 
     def test_staging(self):
-        visible, virtual = file_masts(bsm.MASTS)
+        visible, virtual = file_masts(level_masts.PATH, STAGING)
         self.assertEqual(sorted(visible), sorted(STAGING_VISIBLE))
         self.assertEqual(sorted(virtual), sorted(STAGING_VIRTUAL))
 
     def test_main_and_upper(self):
-        visible, virtual = file_masts(level_masts.PATH)
+        visible, virtual = file_masts(level_masts.PATH, MAIN_UPPER)
         self.assertEqual(sorted(visible), sorted(MAIN_UPPER_VISIBLE))
         self.assertEqual(sorted(virtual), sorted(MAIN_UPPER_VIRTUAL))
 
     def test_mast_names_are_unique_on_every_level(self):
-        for path in (bsm.MASTS, level_masts.PATH):
-            names = [r[0] for part in file_masts(path) for r in part]
-            self.assertEqual(len(names), len(set(names)), f"{path.name}: a mast name is given twice")
+        names = [r[0] for part in file_masts(level_masts.PATH, STAGING | MAIN_UPPER) for r in part]
+        self.assertEqual(len(names), len(set(names)), "masts.csv: a mast name is given twice")
 
     def test_virtual_mast_counts_per_level(self):
-        self.assertEqual(len(file_masts(bsm.MASTS)[1]), 5)
-        levels = [level_masts.virtual_level(r["system_name"]) for r in level_masts.read()
+        self.assertEqual(len(file_masts(level_masts.PATH, STAGING)[1]), 5)
+        levels = [level_masts.virtual_level(r["system_name"]) for r in level_masts.read(levels=(2, 3))
                   if r["system_name"].startswith("IF$vsm:")]
         self.assertEqual((levels.count(2), levels.count(3)), (10, 14))      # by each level's ordinal thousand
 
@@ -211,7 +218,7 @@ class CommittedMastFiles(unittest.TestCase):
         self.assertEqual(got, INTERMEDIATES)
 
     def test_dropped_masts_are_in_no_file(self):
-        names = {r[0] for path in (bsm.MASTS, level_masts.PATH) for part in file_masts(path) for r in part}
+        names = {r[0] for part in file_masts(level_masts.PATH, STAGING | MAIN_UPPER) for r in part}
         self.assertFalse(names & DROPPED)
 
 
@@ -239,6 +246,28 @@ def main_upper_rule(no_pruning: bool = False) -> dict:
             stack.enter_context(unittest.mock.patch.object(mast_rule, "reaches_signal", lambda *a, **k: True))
         planned, _corners, _split, _layer = bdm.plan_masts(bands, joined, runs, found, cp_of, corners)
     return planned
+
+
+class SignalsNameTracksAsTheDeviceMap(RepoReadOnly, unittest.TestCase):
+    def test_build_signals_takes_the_device_maps_named_tracks(self):
+        """build_signals.main_upper_rows names its tracks with build_device_map.named_tracks (the name store, then the
+        rule), so a stored main or upper name cannot give the signals other track names than the device map's."""
+        import build_layout_le as bl
+        import build_signals as bs
+        try:
+            bdm.solve()
+        except bl.BuildError as exc:
+            skip_or_fail(exc)
+        calls = []
+        real = bdm.named_tracks
+
+        def spy(*a, **k):
+            calls.append(a)
+            return real(*a, **k)
+        with unittest.mock.patch.object(bdm, "named_tracks", spy):
+            rows = bs.main_upper_rows()
+        self.assertTrue(calls)
+        self.assertTrue(rows)
 
 
 class RuleOutput(RepoReadOnly, unittest.TestCase):

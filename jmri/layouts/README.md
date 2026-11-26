@@ -1,7 +1,7 @@
 # JMRI layouts
 
 One subdirectory per layout. The only active layout is **hart** (`export JMRI_LAYOUT=hart`); see
-[`hart/README.md`](hart/README.md). The earlier layouts (mac, linear3 to linear6, new) are in `archive/layouts/`.
+[`hart/README.md`](hart/README.md). The earlier layouts (mac, linear3 to linear6, new) are in `archive/data/layouts/`.
 
 ## hart
 
@@ -17,10 +17,10 @@ layouts/hart/
   scripts/      hart's build, check and maintenance scripts
 ```
 
-See [`docs/AI_CONTEXT.md`](../../docs/AI_CONTEXT.md).
+See [`wiki/home.md`](../../wiki/home.md).
 
 ## Starting a new layout
 
 There is no supported path for a layout other than hart. The AnyRail scripts that turned an export into a blocked
-panel are retired in `archive/jmri-scripts/` ([`wiki/pipelines/jmri-anyrail.md`](../../wiki/pipelines/jmri-anyrail.md)),
+panel are retired in `archive/code/jmri-scripts/` ([`wiki/pipelines/jmri-anyrail.md`](../../wiki/pipelines/jmri-anyrail.md)),
 and hart's new levels come from the schematic (`make panels`).

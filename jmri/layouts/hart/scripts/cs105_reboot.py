@@ -1,7 +1,7 @@
 """Restart the TCS CS-105 over LCC, then list the nodes that come back.
 
 Runs inside the Pi's JMRI (drop it through jmri_cmd_watcher with
-tools/ops/cs105_reboot.sh). It finds the CS-105 by its SNIP model name,
+tools/ops/cs105.sh reboot). It finds the CS-105 by its SNIP model name,
 sends the OpenLCB Memory Configuration "Reset/Reboot" datagram (0x20 0xA9),
 waits for the node to restart, refreshes JMRI's node store and reports every
 node on the bus. The CS-105 does not acknowledge the datagram; it just reboots.

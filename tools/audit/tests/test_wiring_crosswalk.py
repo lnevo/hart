@@ -70,9 +70,27 @@ def tables(comments=COMMENTS, masts=MASTS) -> ET.Element:
     )
 
 
+def with_place(root: ET.Element, mast: str, comment: str, head: str, head_comment: str) -> ET.Element:
+    for el in root.iter("signalmast"):
+        if el.findtext("userName") == mast:
+            ET.SubElement(el, "comment").text = comment
+    for el in root.iter("signalhead"):
+        if el.findtext("systemName") == head:
+            el.find("comment").text = head_comment
+    return root
+
+
 class WiringCrosswalkTest(unittest.TestCase):
     def test_matching_tables_pass(self):
         self.assertEqual(check.problems(WIRING, tables()), [])
+
+    def test_a_wired_head_reads_its_masts_place_first(self):
+        """The mast's comment without its direction leads the head's (owner, 2026-11-22)."""
+        wiring_text = COMMENTS["IH432"]
+        good = with_place(tables(), "Mast 6LB", "Plane | Switch 5 | West", "IH432", f"Plane | Switch 5 | {wiring_text}")
+        self.assertEqual(check.problems(WIRING, good), [])
+        wrong = with_place(tables(), "Mast 6LB", "Plane | Switch 5 | West", "IH432", f"Brick | Switch 3 | {wiring_text}")
+        self.assertEqual(1, len(check.problems(WIRING, wrong)))
 
     def test_wrong_ih_number_on_mast_fails(self):
         masts = dict(MASTS, **{"Mast 24RA": "IF$shsm:basic:two-searchlight(IH1232)(IH1233)"})
@@ -151,28 +169,28 @@ class WiringCrosswalkTest(unittest.TestCase):
         root = ET.parse(paths.TABLES_XML).getroot()
         self.assertEqual(check.problems(rows, root), [])
 
-    def test_main_and_upper_masts_are_checked_against_their_own_file(self):
+    def test_main_and_upper_masts_are_checked_against_masts_csv(self):
         """A main or upper mast on virtual heads (IH:HART:C3:...) is not in the wiring plan yet: it must carry the
-        heads main_upper_masts.csv gives it, and its virtual heads are no reason to fail the read."""
+        heads masts.csv gives it, and its virtual heads are no reason to fail the read."""
         rows = wiring.digicon_rows()
         root = ET.parse(paths.TABLES_XML).getroot()
         mast = next(m for m in root.iter("signalmast") if (m.findtext("userName") or "") == "Mast 108LA")
         mast.find("systemName").text = "IF$shsm:basic:two-searchlight(IH:HART:C3:108LA_Top)(IH:HART:C3:108LB_Top)"
         self.assertEqual(check.problems(rows, root),
-                         ["Mast 108LA: virtual heads IH:HART:C3:108LA_Top IH:HART:C3:108LB_Top, main_upper_masts.csv "
+                         ["Mast 108LA: internal heads IH:HART:C3:108LA_Top IH:HART:C3:108LB_Top, masts.csv "
                           "IH:HART:C3:108LA_Top IH:HART:C3:108LA_Bottom"])
 
-    def test_staging_masts_are_checked_against_staging_masts_csv(self):
-        """A staging mast on internal heads (IH:HART:C1:...; ADR-024) must carry the heads staging_masts.csv
-        gives it, in order."""
+    def test_staging_masts_are_checked_against_masts_csv(self):
+        """A staging mast on internal heads (IH:HART:C1:...; ADR-024) must carry the heads masts.csv gives it, in
+        order."""
         rows = wiring.digicon_rows()
-        want = check.staging_heads()
+        want = {m: h for m, h in check.internal_heads().items() if h[0].startswith("IH:HART:C1:")}
         mast, heads = next((m, h) for m, h in sorted(want.items()) if len(h) == 2)
         root = ET.parse(paths.TABLES_XML).getroot()
         el = next(m for m in root.iter("signalmast") if (m.findtext("userName") or "") == mast)
         el.find("systemName").text = f"IF$shsm:basic:two-searchlight({heads[1]})({heads[0]})"
         self.assertEqual(check.problems(rows, root),
-                         [f"{mast}: internal heads {heads[1]} {heads[0]}, staging_masts.csv {heads[0]} {heads[1]}"])
+                         [f"{mast}: internal heads {heads[1]} {heads[0]}, masts.csv {heads[0]} {heads[1]}"])
 
 
 if __name__ == "__main__":

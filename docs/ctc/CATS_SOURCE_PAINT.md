@@ -1,5 +1,7 @@
 # CATS source: why Digicon paints (or doesn’t)
 
+Explains from the CATS source why a Digicon desk paints track or leaves it blank, and how to read the launch log when it does not.
+
 Upstream (open source): [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/master/). Clone with `./tools/cats/fetch_cats_src.sh` → `tools/cats/src-repo/` (gitignored). Do **not** explode `cats.jar` into `cats/`.
 
 ## Paint gate
@@ -50,7 +52,7 @@ OS always reaches back through its approach cell. `CTC-Tests/Chubb_CTC.xml`
 ## Other load-time traps
 
 - `DISCIPLINE` only accepts `UNDEFINED|ABS|APB|CTC|DTC` (`Discipline.java`).
-  The `YARD` values in `cats/data/occupancy_bindings.csv` are **not** valid CATS
+  The `YARD` values in the `cats_discipline` column of `devices_field.csv` are **not** valid CATS
   disciplines and are written as `CTC`.
 - `Compression` ("Compress Screen", `tools/cats/src-repo/cats/src/cats/gui/Compression.java`) defaults to
   **true** and shrinks every horizontal-only column to a sliver. `BooleanGui.
@@ -84,8 +86,8 @@ A two-track cell is a turnout: the edge shared by both tracks carries
 ## HART tooling
 
 ```bash
-python3 tools/schematic/build_cats_panel.py   # the live desks (generated)
-python3 cats/scripts/dump_cats_grid.py cats/panels/HART_CTC.xml   # inspect any panel
+make desks   # the live desks (generated)
+python3 cats/scripts/cats_inspect.py grid cats/panels/HART_CTC.xml   # inspect any panel
 ```
 
 Cell map: [`DIGICON_SCHEMATIC.md`](DIGICON_SCHEMATIC.md).

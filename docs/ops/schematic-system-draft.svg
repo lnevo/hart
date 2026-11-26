@@ -470,17 +470,17 @@
 <path d="M1570.4,890.8 L1570.4,898.8 M1570.4,894.8 L1566.4,894.8" stroke-width="0.9"/>
 <circle cx="1562.8" cy="894.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <g transform="translate(95.0,1046.8) rotate(136.6)"><path d="M0,-4.0 L0,4.0 M0,0 L4.0,0" stroke-width="0.9"/><circle cx="7.6" cy="0" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/><circle cx="14.8" cy="0" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/></g>
-<path d="M188.1,1031.7 L188.1,1039.7 M188.1,1035.7 L184.1,1035.7" stroke-width="0.9"/>
-<circle cx="180.5" cy="1035.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
-<circle cx="173.3" cy="1035.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <path d="M172.4,1058.8 L172.4,1066.8 M172.4,1062.8 L168.4,1062.8" stroke-width="0.9"/>
 <circle cx="164.8" cy="1062.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <circle cx="157.6" cy="1062.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<path d="M188.1,1031.7 L188.1,1039.7 M188.1,1035.7 L184.1,1035.7" stroke-width="0.9"/>
+<circle cx="180.5" cy="1035.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<circle cx="173.3" cy="1035.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<path d="M356.2,1073.2 L356.2,1081.2 M356.2,1077.2 L360.2,1077.2" stroke-width="0.9"/>
+<circle cx="363.8" cy="1077.2" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <path d="M326.6,1044.3 L326.6,1052.3 M326.6,1048.3 L330.6,1048.3" stroke-width="0.9"/>
 <circle cx="334.2" cy="1048.3" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <circle cx="341.4" cy="1048.3" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
-<path d="M356.2,1073.2 L356.2,1081.2 M356.2,1077.2 L360.2,1077.2" stroke-width="0.9"/>
-<circle cx="363.8" cy="1077.2" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <path d="M365.8,1031.7 L365.8,1039.7 M365.8,1035.7 L361.8,1035.7" stroke-width="0.9"/>
 <circle cx="358.2" cy="1035.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <path d="M395.4,1058.8 L395.4,1066.8 M395.4,1062.8 L391.4,1062.8" stroke-width="0.9"/>
@@ -491,19 +491,19 @@
 <path d="M563.5,1073.2 L563.5,1081.2 M563.5,1077.2 L567.5,1077.2" stroke-width="0.9"/>
 <circle cx="571.1" cy="1077.2" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <circle cx="578.3" cy="1077.2" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<path d="M616.7,1058.8 L616.7,1066.8 M616.7,1062.8 L612.7,1062.8" stroke-width="0.9"/>
+<circle cx="609.1" cy="1062.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <path d="M632.3,1031.7 L632.3,1039.7 M632.3,1035.7 L628.3,1035.7" stroke-width="0.9"/>
 <circle cx="624.7" cy="1035.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <circle cx="617.5" cy="1035.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
-<path d="M616.7,1058.8 L616.7,1066.8 M616.7,1062.8 L612.7,1062.8" stroke-width="0.9"/>
-<circle cx="609.1" cy="1062.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <path d="M711.6,1044.3 L711.6,1052.3 M711.6,1048.3 L715.6,1048.3" stroke-width="0.9"/>
 <circle cx="719.2" cy="1048.3" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <circle cx="726.4" cy="1048.3" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<path d="M770.8,1073.2 L770.8,1081.2 M770.8,1077.2 L774.8,1077.2" stroke-width="0.9"/>
+<circle cx="778.4" cy="1077.2" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <path d="M780.4,1030.8 L780.4,1038.8 M780.4,1034.8 L776.4,1034.8" stroke-width="0.9"/>
 <circle cx="772.8" cy="1034.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <circle cx="765.6" cy="1034.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
-<path d="M770.8,1073.2 L770.8,1081.2 M770.8,1077.2 L774.8,1077.2" stroke-width="0.9"/>
-<circle cx="778.4" cy="1077.2" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <path d="M810.0,1058.8 L810.0,1066.8 M810.0,1062.8 L806.0,1062.8" stroke-width="0.9"/>
 <circle cx="802.4" cy="1062.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <circle cx="795.2" cy="1062.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
@@ -524,10 +524,10 @@
 <circle cx="1246.6" cy="1035.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <circle cx="1239.4" cy="1035.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <g transform="translate(1298.8,1092.8) rotate(-136.6)"><path d="M0,-4.0 L0,4.0 M0,0 L4.0,0" stroke-width="0.9"/><circle cx="7.6" cy="0" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/><circle cx="14.8" cy="0" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/></g>
-<g transform="translate(1288.9,980.8) rotate(136.6)"><path d="M0,-4.0 L0,4.0 M0,0 L4.0,0" stroke-width="0.9"/><circle cx="7.6" cy="0" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/><circle cx="14.8" cy="0" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/></g>
 <path d="M1283.8,1003.7 L1283.8,1011.7 M1283.8,1007.7 L1279.8,1007.7" stroke-width="0.9"/>
 <circle cx="1276.2" cy="1007.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <circle cx="1269.0" cy="1007.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<g transform="translate(1288.9,980.8) rotate(136.6)"><path d="M0,-4.0 L0,4.0 M0,0 L4.0,0" stroke-width="0.9"/><circle cx="7.6" cy="0" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/><circle cx="14.8" cy="0" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/></g>
 <path d="M1416.3,919.7 L1416.3,927.7 M1416.3,923.7 L1412.3,923.7" stroke-width="0.9"/>
 <circle cx="1408.7" cy="923.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <path d="M1099.5,1014.0 L1099.5,1020.0" stroke-width="1"/>
@@ -550,22 +550,22 @@
 <text x="1027.3" y="1174.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">CP 223</text>
 <text x="1249.4" y="1174.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">CP 225</text>
 <text x="991.2" y="1079.5" font-size="6.5" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >128LB</text>
-<text x="174.9" y="1065.1" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >204RB</text>
+<text x="174.9" y="1065.1" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >204RA</text>
 <text x="576.6" y="1050.6" font-size="6.5" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >218LA</text>
-<text x="619.2" y="1065.1" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >218RB</text>
+<text x="619.2" y="1065.1" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >218RA</text>
 <text x="1063.4" y="1037.1" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >224LB</text>
 <text x="1303.5" y="1088.9" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >228RB</text>
-<text x="1263.4" y="1010.0" font-size="6.5" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >230LB</text>
+<text x="1263.4" y="1010.0" font-size="6.5" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >230LA</text>
 <text x="1418.8" y="926.0" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >242L</text>
 <text x="599.7" y="1035.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >217B</text>
 <text x="596.1" y="1083.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >217A</text>
-<text x="324.1" y="1050.6" font-size="6.5" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >212LA</text>
+<text x="324.1" y="1050.6" font-size="6.5" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >212LB</text>
 <text x="397.9" y="1065.1" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >212RB</text>
 <text x="561.0" y="1079.5" font-size="6.5" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >218LB</text>
-<text x="634.8" y="1038.0" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >218RA</text>
+<text x="634.8" y="1038.0" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >218RB</text>
 <text x="812.5" y="1065.1" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >222R</text>
 <text x="747.8" y="1035.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >221A</text>
-<text x="782.9" y="1037.1" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >222LA</text>
+<text x="782.9" y="1037.1" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >222LB</text>
 <text x="1034.3" y="1055.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >223</text>
 <text x="1005.2" y="1051.5" font-size="6.5" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >224R</text>
 <text x="1126.0" y="1009.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">EAST →</text>
@@ -573,17 +573,17 @@
 <text x="1079.0" y="1065.1" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >132RB</text>
 <text x="1572.9" y="1121.1" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >B92</text>
 <text x="1572.9" y="897.1" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >B93</text>
-<text x="190.6" y="1038.0" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >204RA</text>
-<text x="353.7" y="1079.5" font-size="6.5" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >212LB</text>
+<text x="190.6" y="1038.0" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >204RB</text>
+<text x="353.7" y="1079.5" font-size="6.5" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >212LA</text>
 <text x="368.3" y="1038.0" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >212RA</text>
 <text x="709.1" y="1050.6" font-size="6.5" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >220R</text>
-<text x="768.3" y="1079.5" font-size="6.5" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >222LB</text>
+<text x="768.3" y="1079.5" font-size="6.5" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >222LA</text>
 <text x="1079.0" y="1009.1" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >224LA</text>
 <text x="1153.3" y="1023.5" font-size="6.5" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >226RA</text>
 <text x="1153.3" y="1051.5" font-size="6.5" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >226RB</text>
 <text x="1256.7" y="1038.0" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >228RA</text>
 <text x="1264.2" y="1035.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >231</text>
-<text x="1293.7" y="972.4" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >230LA</text>
+<text x="1293.8" y="972.3" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >230LB</text>
 <text x="1227.6" y="1035.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >227</text>
 <text x="339.2" y="1035.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >211A</text>
 <text x="797.4" y="1083.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >221B</text>
@@ -644,9 +644,9 @@
 <text x="34" y="766" font-size="11" font-weight="normal" letter-spacing="1">STAGING, MAIN AND UPPER LEVEL</text>
 <text x="34" y="784" font-size="11" font-weight="normal" letter-spacing="1">STAGE 0 PROOF, AS BUILT</text>
 <rect x="354" y="728" width="104" height="64" fill="#fff" stroke="#000" stroke-width="1.5"/>
-<text x="362" y="742.5" font-size="9.5" letter-spacing="1">NOV 20, 2026</text>
+<text x="362" y="742.5" font-size="9.5" letter-spacing="1">NOV 25, 2026</text>
 <path d="M354,749.3 L458,749.3" stroke="#000" stroke-width="0.8"/>
-<text x="362" y="763.8" font-size="9.5" letter-spacing="1">REV 18</text>
+<text x="362" y="763.8" font-size="9.5" letter-spacing="1">REV 19</text>
 <path d="M354,770.7 L458,770.7" stroke="#000" stroke-width="0.8"/>
 <text x="362" y="785.2" font-size="9.5" letter-spacing="1">SHEET 1 OF 1</text>
 </svg>

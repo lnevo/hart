@@ -26,10 +26,10 @@ Main is where this branch left origin/main (`git merge-base HEAD origin/main`). 
 (no origin/main, a shallow clone), publishing stops before it writes anything and names the git command that
 brings it in; it also stops if git fails to read a file there. --check and --preview never need it.
 The station map pages are drawn from this sheet, so publishing then copies the title block's revision and date to
-them with hartlib.map_revision (also the command www/scripts/map_revision.py), and --check fails while any of them differs.
+them with hartlib.map_revision (which rebuilds www/data/crew.json from the crew master), and --check fails while any of them differs.
 After a commit that changes the drawing, run tools/schematic/evolution.py.
 
-The plugin's solved-sheet cache (SCHEMATIC_CACHE, default ~/.cache/hart/schematic, a folder only this user can open)
+The plugin's solved-sheet cache (SCHEMATIC_CACHE, default <main checkout>/.cache/hart/schematic, shared by every worktree; HART_CACHE_DIR moves the base; a folder only this user can open)
 is on for the plugin commands this runs and for solved_sheet(), the one way build_layout_le.py, build_cats_panel.py
 and build_device_map.py get the solved bands, so they and publishing solve the same inputs once between them. The
 key covers the source of the plugin code the solve runs, the graphs and the layer files, so a SCHEMATIC_PLUGIN trial
@@ -42,7 +42,6 @@ import contextlib
 import datetime
 import functools
 import hashlib
-import json
 import os
 import re
 import shutil
@@ -53,10 +52,10 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import layer_files, map_revision, paths  # noqa: E402
+from hartlib import devices, layer_files, map_revision, paths  # noqa: E402
 
 REPO = paths.REPO_ROOT
-CACHE = Path.home() / ".cache/hart/schematic"
+CACHE = paths.cache_dir("schematic")      # <main checkout>/.cache/hart/schematic, shared by every worktree
 DATA = REPO / "jmri/layouts/hart/data/schematic"
 GRAPHS = DATA / "inputs"
 OUT = REPO / "docs/ops"
@@ -64,6 +63,8 @@ STATIONS = OUT / "stations"                                              # one S
 INPUTS = [("staging.json", "staging"), ("main.json", "main_upper")]     # graph, layer file stem; the last sets the page
 sys.path.insert(0, str(REPO / "tools/ops"))  # screenshot.py is a script, not a package: import it by folder
 from screenshot import find_chrome  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import host_screen  # noqa: E402
 
 # the plugin's title box (it grows for a long title line), drawn after the drawing itself
 TITLE_BOX = re.compile(r'<rect x="24" y="728" width="([\d.]+)" height="64"')
@@ -167,12 +168,30 @@ def cache_on():
 
 def solved_sheet(sheet):
     """The solved Sheet of the schematic (INPUTS from GRAPHS, layer files in DATA), from the plugin's `sheet` module,
-    through the cache. Every builder gets its bands here, so they share one cache key with publishing."""
+    through the cache. Every builder gets its bands here, so they share one cache key with publishing. Its page
+    options gain le_window and cats_window, both from the page's host_screen (apply_host_screen): the one place the
+    Layout Editor panel's and the CATS desks' windows are derived. host_screen.HostScreenError when that stops; a
+    caller turns it into its own error (le_common.schematic: BuildError)."""
     with cache_on():
-        return sheet.build([(str(GRAPHS / g), n) for g, n in INPUTS], str(DATA))
+        built = sheet.build([(str(GRAPHS / g), n) for g, n in INPUTS], str(layer_files.view(DATA)))
+    apply_host_screen(built.opts)
+    return built
 
 
-STAMP_VERSION = b"publish_draft check 2"
+def apply_host_screen(opts, data=DATA):
+    """`opts` (the solved page options) with le_window and cats_window from preferences.json's host_screen
+    (host_screen.apply, over every section of the file in `data`). Every stop is a host_screen.HostScreenError,
+    a preferences file that cannot be read included."""
+    try:
+        map_revision.page_prefs(data)                   # stops on a sheet.preferences.json beside it
+        sections = layer_files.read_file("preferences", data)
+    except ValueError as exc:                           # LayerFileError is one
+        raise host_screen.HostScreenError(f"the page's preferences: {exc}") from None
+    return host_screen.apply(opts, sections, map_revision.PAGE_SHEET)
+
+
+STAMP_VERSION = b"publish_draft check 4"
+HARTLIB = Path(devices.__file__).resolve().parents[1]   # the hartlib source tree this run imports (tools/hartlib/src)
 STAMP_KEEP = 8                 # digests kept, newest first: one per worktree that runs --check in turn
 
 
@@ -193,8 +212,12 @@ def _tree(h, root, label):
 
 def check_digest(plugin_dir):
     """A hex digest of everything the --check drawing comparison reads: the plugin's code (the folder bin/schematic
-    runs from), every file in DATA (the layer files and the graphs in GRAPHS below it), the published SVG and the
-    station sheets it is compared with, this script, and the Python the plugin runs under (bin/schematic runs the
+    runs from), every file in DATA (the layer files and the graphs in GRAPHS below it), devices_field.csv beside it
+    (the owner's track names, which the plugin's view carries), the merged plan overrides and preferences the view
+    writes (hartlib.layer_files.merged: preferences.json's block IDs take generated names from devices_generated.csv,
+    which is not hashed whole), the hartlib code that builds that view (the whole HARTLIB tree: layer_files,
+    track_names, devices and what they import, so a change there draws again before the data changes), the published
+    SVG and the station sheets it is compared with, this script, and the Python the plugin runs under (bin/schematic runs the
     python3 on PATH, the real file it names, with the caller's PYTHONPATH). The station map pages and the staging
     lengths are not in it: --check reads those each time. Raises OSError when a file cannot be read."""
     h = hashlib.sha256(STAMP_VERSION + b"\0" + sys.version.encode() + b"\0")
@@ -203,6 +226,15 @@ def check_digest(plugin_dir):
     h.update(Path(__file__).read_bytes() + b"\0")
     _tree(h, Path(plugin_dir), "plugin")
     _tree(h, DATA, "data")
+    _tree(h, HARTLIB, "hartlib")
+    field = devices.field_path(DATA.parent)       # the owner's track names the view draws (hartlib.track_names)
+    h.update(b"field\0" + (field.read_bytes() if field.exists() else b"-") + b"\0")
+    for kind in ("plan_overrides", "preferences"):      # what the plugin's view holds, its track names resolved
+        try:
+            merged = layer_files.dumps(layer_files.merged(DATA, kind)).encode()
+        except layer_files.LayerFileError:
+            merged = b"-"           # the drawing stops on it; the hand files above are hashed whole
+        h.update(kind.encode() + b"\0" + merged + b"\0")
     target = OUT / "schematic-system-draft.svg"
     h.update(b"target\0" + (b"+" + target.read_bytes() if target.exists() else b"-") + b"\0")
     if STATIONS.exists():
@@ -277,7 +309,7 @@ def compare_drawing():
 def draw():
     with tempfile.TemporaryDirectory() as tmp:
         svg = Path(tmp) / "sheet.svg"
-        run = subprocess.run([str(plugin() / "bin/schematic"), "draw", str(svg), "--data", str(DATA),
+        run = subprocess.run([str(plugin() / "bin/schematic"), "draw", str(svg), "--data", str(layer_files.view(DATA)),
                               *(f"{GRAPHS}/{g}:{n}" for g, n in INPUTS)],
                              capture_output=True, text=True, env=cache_env())
         print(run.stdout + run.stderr, end="")
@@ -290,7 +322,7 @@ def draw_stations():
     """{file name: SVG} of every station detail sheet (the detail_sheets preference), drawn from both
     inputs so the sheet-wide look (helix coils, mileposts) reaches them as it does the overall sheet."""
     with tempfile.TemporaryDirectory() as tmp:
-        run = subprocess.run([str(plugin() / "bin/schematic"), "detail", f"{tmp}/", "--data", str(DATA),
+        run = subprocess.run([str(plugin() / "bin/schematic"), "detail", f"{tmp}/", "--data", str(layer_files.view(DATA)),
                               *(f"{GRAPHS}/{g}:{n}" for g, n in INPUTS)],
                              capture_output=True, text=True, env=cache_env())
         print(run.stdout + run.stderr, end="")
@@ -385,6 +417,8 @@ def main(argv):
         print(f"station sheets differ: {', '.join(differ)}" if differ else "station sheets are current")
         try:
             pages = [p.relative_to(REPO).as_posix() for p in map_revision.drift(prefs=page_prefs())]
+            pages = [f"{p} (differs from crew_master.build: the crew master or the title block)"
+                     if p == "www/data/crew.json" else p for p in pages]
         except ValueError as e:
             pages = [str(e)]
         print(f"station map pages differ from the title block: {', '.join(pages)}" if pages

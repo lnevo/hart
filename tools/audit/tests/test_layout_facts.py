@@ -17,9 +17,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/audit"))
 import check_layout_facts as check  # noqa: E402
+from hartlib import devices, hand_lists  # noqa: E402
 
-DATA_FILES = ("switches.csv", "devices.csv", "schematic/stations.csv", "mast_cells.csv",
-              "uss_board_cells.csv", "uss_board_plants.csv")
+DATA_FILES = ("switches.csv", devices.MASTER_FILE, "schematic/stations.csv", "schematic/interlockings.csv", "mast_cells.csv",
+              "uss_board_cells.csv", "uss_board_plants.csv", f"schematic/{hand_lists.OVERRIDES_NAME}")
 
 
 def with_os9_paths(text: str, closed: str = "2", thrown: str = "4") -> str:
@@ -75,13 +76,13 @@ class LayoutFactsTest(unittest.TestCase):
         """The generated tables store no paths, so a crossover's legs are held to the panel's track."""
         data = self.data_copy()
         legs = data / "switches.csv"
-        legs.write_text(legs.read_text().replace("1,7,,OS Switch 7,Track Scale,OS Switch 7b,",
-                                                 "1,7,,OS Switch 7,Track Barn,OS Switch 7b,"))
+        legs.write_text(legs.read_text().replace("1,7,,os:7:A-13C,block:5C-7B,os:7:A-5B,",
+                                                 "1,7,,os:7:A-13C,block:7A-13C,os:7:A-5B,"))    # Track Barn
         out = [m for m in self.failures(data=data) if m.startswith("Switch 7:")]
         self.assertTrue(any("closes OS Switch 7 to Track Barn, the panel's track from that half's closed end reaches ['Track Scale']" in m
                             for m in out), out)
-        legs.write_text(legs.read_text().replace("1,7,,OS Switch 7b,Track Main East,OS Switch 7,",
-                                                 "1,7,,OS Switch 7b,Track Main East,Track Scale,"))
+        legs.write_text(legs.read_text().replace("1,7,,os:7:A-5B,block:7B-33C,os:7:A-13C,",
+                                                 "1,7,,os:7:A-5B,block:7B-33C,block:5C-7B,"))    # Track Scale
         out = [m for m in self.failures(data=data) if m.startswith("Switch 7:")]
         self.assertTrue(any("throws OS Switch 7b to Track Scale" in m for m in out), out)
 
@@ -124,7 +125,7 @@ class LayoutFactsTest(unittest.TestCase):
         self.assertEqual(given.os_of("Track X"), "OS Switch 1")
         # run() takes the parts from the master it is given: a master with no part rows leaves Switch 1's leg a part
         rows = [r for r in check.devices.load(check.DEVICE_MAP) if r["role"] != "part"]
-        master = self.tmp / "devices.csv"
+        master = self.tmp / devices.ONE_FILE
         master.write_text(check.devices.master_text(rows), encoding="utf-8")
         self.assertEqual(check.part_map(master), {})
         self.assertEqual(len(check.part_map(check.DEVICE_MAP)), 39)          # 14 staging, 11 main, 14 upper
@@ -135,7 +136,7 @@ class LayoutFactsTest(unittest.TestCase):
         block's parts, a part as the block it is in), so a swapped plant is never hidden by a part's own name."""
         t = check.Tables(check.TABLES, parts=check.part_map(check.DEVICE_MAP))
         cells = check.trace.track_cells(check.parse(check.DESKS[0]).getroot().find("TRACKPLAN"))
-        plants = {os_name: (xy, points) for os_name, xy, points in check.trace.level_plants(cells)}
+        plants = {os_name: (xy, points) for os_name, xy, points in check.trace.level_plants(cells, check.level_turnouts())}
 
         def legs(os_name):
             xy, points = plants[os_name]
@@ -176,10 +177,13 @@ class LayoutFactsTest(unittest.TestCase):
         data.mkdir()
         for name in DATA_FILES:
             (data / name).parent.mkdir(exist_ok=True)
-            shutil.copy(check.facts.DATA / name, data / name)
+            if name == devices.MASTER_FILE:      # the master's two files, as the reader finds them in the folder
+                devices.pair_copy(data)
+            else:
+                shutil.copy(check.facts.DATA / name, data / name)
         legs = data / "switches.csv"
         legs.write_text(legs.read_text().replace(
-            "1,9,,OS Switch 9,Track EH-2,Track EH-3,", "1,9,,OS Switch 9,Track EH-3,Track EH-2,"))
+            "1,9,,os:9,block:9B-end,block:9C-end,", "1,9,,os:9,block:9C-end,block:9B-end,"))   # EH-2 and EH-3 swapped
         out = [m for m in self.failures(data=data) if m.startswith("Switch 9:")]
         self.assertTrue(any("Layout Editor TO10" in m for m in out), out)
         self.assertFalse(any("block paths" in m for m in out), out)      # the generated tables store none
@@ -191,7 +195,10 @@ class LayoutFactsTest(unittest.TestCase):
         data.mkdir(exist_ok=True)
         for name in DATA_FILES:
             (data / name).parent.mkdir(exist_ok=True)
-            shutil.copy(check.facts.DATA / name, data / name)
+            if name == devices.MASTER_FILE:      # the master's two files, as the reader finds them in the folder
+                devices.pair_copy(data)
+            else:
+                shutil.copy(check.facts.DATA / name, data / name)
         return data
 
     def test_a_control_point_on_another_level_than_its_switches_fails(self) -> None:
@@ -206,15 +213,24 @@ class LayoutFactsTest(unittest.TestCase):
         data = self.data_copy()
         stations = data / "schematic" / "stations.csv"
         stations.write_text("".join(line for line in stations.read_text().splitlines(True)
-                                    if not line.startswith("1,Engine House,")))
-        out = self.failures(data=data)
-        self.assertIn("Engine House: a cp in the name map of devices.csv with no desk area (and no level) in "
-                      "stations.csv", out)
+                                    if not line.startswith("st:engine-house,1,Engine House,")))
+        # the copy's master reads its cp cells by the copy's lists (hartlib.places.lists_beside), so the load stops
+        # on the id no row of them has, naming the file and line
+        with self.assertRaisesRegex(devices.DevicesError, r"devices_generated.csv line \d+: st:engine-house is no "
+                                                          "station_id of stations.csv"):
+            self.failures(data=data)
 
-    def test_a_main_takes_the_level_of_the_blocks_it_joins(self) -> None:
-        # switches.csv keeps staging switches (the ones with legs) on level 1, so the switch is moved in memory
+    def test_a_block_in_no_place_takes_the_level_of_the_blocks_it_joins(self) -> None:
+        # every staging line block lists the places it joins (cp, owner 2026-11-21), so Track Main West's is emptied
+        # in a copy; switches.csv keeps staging switches (the ones with legs) on level 1, so the switch is moved in
+        # memory
         import dataclasses
         from unittest import mock
+        sys.path.insert(0, str(ROOT / "tools/hartlib/tests"))
+        from master_edit import change
+        data = self.data_copy()
+        change(data / devices.MASTER_FILE, ("1", "block", "Track Main West"), cp="")
+        import gen_ctc_track_plan  # noqa: F401  it reads switches.csv once at import: before the patch moves Switch 1
         real = check.facts.load_switches
 
         def moved(data=check.facts.DATA):
@@ -222,7 +238,7 @@ class LayoutFactsTest(unittest.TestCase):
             out[1] = dataclasses.replace(out[1], level="2")
             return out
         with mock.patch.object(check.facts, "load_switches", moved):
-            out = self.failures()
+            out = self.failures(data=data)
         self.assertTrue(any(m.startswith("Track Main West: no control point") and "are on levels ['1', '2']" in m
                             for m in out), out)
 
@@ -230,7 +246,7 @@ class LayoutFactsTest(unittest.TestCase):
         out = self.failures(desks=(self.copy(check.DESKS[0], lambda t: t.replace(">Mast 24L<", ">Mast 24LX<", 1)),
                                    check.DESKS[1]))
         self.assertIn("Mast 24L: HART_CTC.xml has 0 lamps for it, not one", out)
-        self.assertIn("Mast 24LX: HART_CTC.xml has a lamp for it, staging_masts.csv has no such visible mast", out)
+        self.assertIn("Mast 24LX: HART_CTC.xml has a lamp for it, masts.csv has no such visible mast", out)
 
     def test_a_mast_on_the_wrong_block_edge_fails(self) -> None:
         # Mast 24L protects OS Switch 23a: its lamp on another block's edge is named
@@ -244,7 +260,7 @@ class LayoutFactsTest(unittest.TestCase):
 
         out = self.failures(desks=(self.copy(check.DESKS[0], move), check.DESKS[1]))
         self.assertIn("Mast 24L: HART_CTC.xml has its lamp on the edge of Track West Ext, but it protects "
-                      "OS Switch 23a (staging_masts.csv)", out)
+                      "OS Switch 23a (masts.csv)", out)
 
     def test_mast_cells_are_not_checked_while_the_uss_board_is_parked(self) -> None:
         # mast_cells.csv and the board's grid are the parked USS machine's (owner, 2026-11-19): a wrong head or a
@@ -273,13 +289,10 @@ class LayoutFactsTest(unittest.TestCase):
         self.assertEqual(report.failures(known),
                          ["EH-1: GUIObjects.xml labels (1,1) 'EH-1'; the CATS desk does not"])
 
-    # ---- main and upper: plants on internal turnouts, masts from main_upper_masts.csv
+    # ---- main and upper: plants on internal turnouts, masts from masts.csv
 
-    def test_main_and_upper_pass_on_the_release_candidate_tables(self) -> None:
-        candidate = check.HART / "output/trial/tables_cutover.xml"
-        if not candidate.exists():
-            self.skipTest("no release candidate tables (make panels writes them)")
-        self.assertEqual(self.failures(tables=candidate), [])
+    def test_main_and_upper_pass_on_the_live_tables(self) -> None:
+        self.assertEqual(self.failures(tables=check.HART / "output/tables.xml"), [])
 
     def level_plant(self, user: str):
         """(tree, the SECTION of the first plant commanding `user`) on a copy of the CTC desk."""
@@ -317,7 +330,7 @@ class LayoutFactsTest(unittest.TestCase):
         out = self.failures(desks=(self.write(tree),))
         self.assertTrue(any("commands Switch 111 (IT:HART:C3:999); tables.xml has IT:HART:C3:111" in m
                             for m in out), out)
-        self.assertNotIn("HART_CTC.xml: no plant commands internal turnout Switch 111", out)
+        self.assertNotIn("HART_CTC.xml: no plant commands main or upper turnout Switch 111", out)
 
     def test_a_staging_block_with_no_detector_is_still_held_to_the_tables(self) -> None:
         # only the device map's main and upper blocks may be missing from the Layout Editor (review, 2026-11-17)
@@ -342,6 +355,24 @@ class LayoutFactsTest(unittest.TestCase):
                 "IS:HART:C3:B:101-111 throw (user name BS 101-111); tables.xml binds it to BS 101-111 "
                 "(IS:HART:C3:B:X)")
         self.assertEqual([m for m in out if "101-111" in m], [f"{d}: {want}" for d in ("HART_CTC.xml", "HART_ABS.xml")])
+
+    def test_a_detector_swapped_in_by_its_row_reports_its_field_sensor(self) -> None:
+        """Naming-layers step 14: a main or upper block's sensor may be the field sensor of a detector the owner
+        swapped in by its row (assignment field), by that column, not the level; any other must be virtual."""
+        import unittest.mock
+        import xml.etree.ElementTree as ET
+        tables = self.copy(check.TABLES, lambda t: t.replace("<systemName>IS:HART:C3:B:101-111</systemName>",
+                                                             "<systemName>M2S3399</systemName>"))
+        tree = ET.parse(check.DESKS[0])
+        for b in tree.getroot().iter("BLOCK"):
+            if b.get("NAME") == "Track 101-111":
+                for io in b.findall("OCCUPIEDSPEC/IOSPEC") + b.findall("UNOCCUPIEDSPEC/IOSPEC"):
+                    io.set("JMRIPREFIX", "M2S")
+                    io.set("DECADDR", "3399")
+        desk = self.write(tree)
+        self.assertTrue([m for m in self.failures(tables=tables, desks=(desk,)) if "101-111" in m])
+        with unittest.mock.patch.object(check, "field_sensors", lambda: frozenset({"M2S3399"})):
+            self.assertEqual([m for m in self.failures(tables=tables, desks=(desk,)) if "101-111" in m], [])
 
     def desk_block(self, name: str, change) -> list[str]:
         """The failures with every BLOCK named `name` on a copy of the CTC desk changed by `change(block)`."""
@@ -392,10 +423,28 @@ class LayoutFactsTest(unittest.TestCase):
         out = self.failures(tables=tables)
         self.assertIn("HART_CTC.xml: block Track 101-111 is not a Layout Editor block in tables.xml", out)
 
-    def test_main_upper_tables_with_no_internal_turnouts_fail(self) -> None:
+    def test_main_upper_tables_with_other_turnout_names_fail(self) -> None:
+        """The main and upper turnouts are the device master's rows (not a name prefix): tables.xml giving them other
+        system names than the desk commands fails."""
         tables = self.copy(check.TABLES, lambda t: t.replace("IT:HART:C3:", "IT:HART:CX:"))
         out = self.failures(tables=tables)
-        self.assertTrue(any("holds main/upper blocks but no IT:HART:C3: turnout" in m for m in out), out)
+        self.assertTrue(any("commands Switch 111 (IT:HART:C3:111); tables.xml has IT:HART:CX:111" in m for m in out),
+                        out)
+
+    def test_main_upper_plants_are_picked_by_the_rows(self) -> None:
+        """A main or upper turnout swapped to a physical name (ADR-028) is still a level plant's: the plants follow
+        the rows' user names, not a prefix."""
+        import copy
+        cells = check.trace.track_cells(copy.deepcopy(check.parse(check.DESKS[0]).getroot()).find("TRACKPLAN"))
+        level = check.level_turnouts()
+        self.assertIn("Switch 111", level)
+        for io in cells[next(xy for _os, xy, _e in check.trace.level_plants(cells, level))].iter("IOSPEC"):
+            io.set("JMRIPREFIX", "M2T")
+            io.set("DECADDR", "3308")
+        self.assertEqual(len(check.trace.level_plants(cells, level)),
+                         len(check.trace.level_plants(check.trace.track_cells(
+                             check.parse(check.DESKS[0]).getroot().find("TRACKPLAN")), level)))
+        self.assertNotIn("OS Switch 111", check.trace.desk_plants(cells, bound=True, level_turnouts=level))
 
     def test_a_main_upper_turnout_with_no_plant_fails(self) -> None:
         for user in ("Switch 117", "Switch 225"):           # 225: a double crossover, four points on one turnout
@@ -405,12 +454,12 @@ class LayoutFactsTest(unittest.TestCase):
                 for parent in tree.getroot().iter():
                     for io in [i for i in parent.findall("IOSPEC") if i.get("USER_NAME") == user]:
                         parent.remove(io)
-                self.assertIn(f"HART_CTC.xml: no plant commands internal turnout {user}",
+                self.assertIn(f"HART_CTC.xml: no plant commands main or upper turnout {user}",
                               self.failures(desks=(self.write(tree),)))
 
     def test_the_double_crossover_commands_its_turnout_from_all_four_points(self) -> None:
         cells = check.trace.track_cells(check.parse(check.DESKS[0]).getroot().find("TRACKPLAN"))
-        points = [(os_name, xy, edge) for os_name, xy, edge in check.trace.level_plants(cells)
+        points = [(os_name, xy, edge) for os_name, xy, edge in check.trace.level_plants(cells, check.level_turnouts())
                   if os_name.startswith("OS Switch 225")]
         self.assertEqual(sorted(p[0] for p in points), [f"OS Switch 225{c}" for c in "abcd"])   # a point per corner
         for _os, xy, edge in points:
@@ -433,7 +482,7 @@ class LayoutFactsTest(unittest.TestCase):
 
         out = self.failures(desks=(self.copy(check.DESKS[0], move),))
         self.assertIn("Mast 226RA: HART_CTC.xml has its lamp on the edge of Track 225-229, but it protects "
-                      "OS Switch 225a (main_upper_masts.csv)", out)
+                      "OS Switch 225a (masts.csv)", out)
 
     def test_desk_legs_name_the_layout_editor_tracks_inside_os_blocks(self) -> None:
         self.assertTrue(check.same_place("OS Switch 107", "Track 107-109"))

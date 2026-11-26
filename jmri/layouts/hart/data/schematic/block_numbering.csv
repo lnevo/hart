@@ -1,11 +1,11 @@
-block,numbered_as,append_order,retired,notes
-Track 107 Loop 1,Track 107 Loop,,,the balloon loop's split: Loop 1 keeps the loop's numbers (owner 2026-11-16)
-OS Switch 225a,OS Switch 225,,,double crossover 225's corners: a keeps OS Switch 225's numbers
-Track 227-241 1,Track 227-241,,,the peninsula loop's split: 1 keeps the loop's numbers
-Track 107 Loop 2,,1,,appended after the cut-over so no main or upper system name shifts
-OS Switch 225b,,2,,
-OS Switch 225c,,3,,
-OS Switch 225d,,4,,
-Track 227-241 2,,5,,
-Track 131-H1,,,yes,main-level helix piece; joined into Track Helix Outer (2026-11-20)
-Track 131-H2,,,yes,upper-level helix piece; joined into Track Helix Inner (2026-11-20)
+id,numbered_as,append_order,retired,notes
+block:107B-107C#1,Track 107 Loop,,,the balloon loop's split: Loop 1 keeps the loop's numbers (owner 2026-11-16)
+os:225:C,OS Switch 225,,,double crossover 225's corners: a keeps OS Switch 225's numbers
+block:227C-241B#1,Track 227-241,,,the peninsula loop's split: 1 keeps the loop's numbers
+block:107B-107C#2,,1,,appended after the cut-over so no main or upper system name shifts
+os:225:D,,2,,
+os:225:A,,3,,
+os:225:B,,4,,
+block:227C-241B#2,,5,,
+,,,Track 131-H1,main-level helix piece; joined into Track Helix Outer (2026-11-20)
+,,,Track 131-H2,upper-level helix piece; joined into Track Helix Inner (2026-11-20)

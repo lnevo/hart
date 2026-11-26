@@ -1,0 +1,2 @@
+order: 270
+**Helix blocks (owner, 2026-11-20):** each helix track is one JMRI block from its staging switch to Switch 131: Track Helix Outer (39 to 131A, 947.2 in) and Track Helix Inner (37 to 131B, 916.5 in), shown as McKees Rocks and McKeesport through `track_labels`. Detectors are planned on node 41; JMRI binds each to a virtual sensor until wired.

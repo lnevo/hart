@@ -1,4 +1,5 @@
-"""check_hart_phase02.py takes a crossover's secondary OS blocks from the staging rows of switches.csv."""
+"""check_hart_phase02.py takes a crossover's secondary OS blocks from the staging rows of switches.csv, read through
+hartlib.railroad (naming-layers step 6)."""
 from __future__ import annotations
 
 import importlib.util
@@ -15,17 +16,23 @@ sys.modules["check_hart_phase02"] = phase02
 spec.loader.exec_module(phase02)
 
 
+def switches_file(tmp: str, keep, edit=lambda line: line) -> Path:
+    """A copy of the repo's switches.csv with the rows of the switches `keep` ((level, switch) pairs) only, each line
+    passed through `edit`: the rows read through hartlib.railroad.read_switch_rows, which holds every column."""
+    lines = phase02.SWITCHES.read_text(encoding="utf-8").splitlines()
+    rows = [edit(line) for line in lines[1:] if tuple(line.split(",")[:2]) in keep]
+    p = Path(tmp) / "switches.csv"
+    p.write_text("\n".join([lines[0], *rows]) + "\n", encoding="utf-8")
+    return p
+
+
 class SecondaryOsBlocksTest(unittest.TestCase):
     def test_rows_after_a_switchs_first_are_secondary(self):
         with tempfile.TemporaryDirectory() as tmp:
-            p = Path(tmp) / "switches.csv"
-            p.write_text("level,switch,half,os_block,le_ident\n"
-                         "1,1,,OS Switch 1,TO1\n"
-                         "1,7,,OS Switch 7,TO7\n"
-                         "1,7,,OS Switch 7b,\n"
-                         "2,101,101A,,\n"
-                         "2,101,101B,,\n", encoding="utf-8")
+            p = switches_file(tmp, {("1", "1"), ("1", "7"), ("2", "101")})
             self.assertEqual({"OS Switch 7b"}, phase02.secondary_os_blocks(p))
+            self.assertEqual(["OS Switch 1", "OS Switch 7", "OS Switch 7b"],
+                             [r.os_block for r in phase02.staging_rows(p)])
 
     def test_repo_crossovers_are_exactly_these(self):
         # Pinned on purpose: a reordered or dropped staging row of switches.csv changes this set.
@@ -35,22 +42,32 @@ class SecondaryOsBlocksTest(unittest.TestCase):
     def test_a_crossover_with_one_row_fails(self):
         root = ET.fromstring('<layout-config><layoutturnout ident="TO1" type="RH_XOVER"/>'
                              '<layoutturnout ident="TO2" type="RH_TURNOUT"/></layout-config>')
+        idents = {"TO117": "TO1", "TO10": "TO2"}           # Switch 7's and 9's Layout Editor turnouts, renamed
+        renamed = lambda line: ",".join(idents.get(c, c) for c in line.split(","))  # noqa: E731
         with tempfile.TemporaryDirectory() as tmp:
-            sw = Path(tmp) / "switches.csv"
-            sw.write_text("level,switch,os_block,le_ident\n1,7,OS Switch 7,TO1\n1,9,OS Switch 9,TO2\n",
-                          encoding="utf-8")
+            one = switches_file(tmp, {("1", "7"), ("1", "9")},
+                                lambda line: "" if line.startswith("1,7,,os:7:A-5B,") else renamed(line))
+            one.write_text("\n".join(x for x in one.read_text(encoding="utf-8").splitlines() if x) + "\n",
+                           encoding="utf-8")
             self.assertEqual(["Switch 7 is a crossover (TO1) but switches.csv has 1 row(s) for it, not 2"],
-                             phase02.crossover_row_errors(root, sw))
-            sw.write_text(sw.read_text(encoding="utf-8").replace("TO1\n", "TO1\n1,7,OS Switch 7b,\n"),
-                          encoding="utf-8")
-            self.assertEqual([], phase02.crossover_row_errors(root, sw))
+                             phase02.crossover_row_errors(root, one))
+            both = switches_file(tmp, {("1", "7"), ("1", "9")}, renamed)
+            self.assertEqual([], phase02.crossover_row_errors(root, both))
 
     def test_a_file_without_the_columns_stops(self):
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "switches.csv"
-            p.write_text("switch,os_block\n7,OS Switch 7\n", encoding="utf-8")
-            with self.assertRaisesRegex(SystemExit, "no column level, le_ident"):
+            p.write_text("switch,os_id\n7,os:7\n", encoding="utf-8")
+            with self.assertRaisesRegex(SystemExit, "switches.csv: no column level, half"):
                 phase02.secondary_os_blocks(p)
+
+    def test_a_row_hartlib_refuses_stops_with_its_line(self):
+        """The rows are read by hartlib.railroad.read_switch_rows, so a staging row with no OS block ID stops."""
+        with tempfile.TemporaryDirectory() as tmp:
+            p = switches_file(tmp, {("1", "9")}, lambda line: line.replace(",os:9,", ",,"))
+            with self.assertRaisesRegex(SystemExit, r"switches.csv line 2 \(Switch 9\): a staging row is keyed by "
+                                                    r"its OS block"):
+                phase02.staging_rows(p)
 
     def test_repo_crossovers_have_two_rows(self):
         self.assertEqual([], phase02.crossover_row_errors(ET.parse(phase02.PANEL).getroot()))

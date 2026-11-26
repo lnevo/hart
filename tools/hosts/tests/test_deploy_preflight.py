@@ -22,6 +22,7 @@ from test_deploy_stage import git, keep_repo_tables, stage_env  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[3]
 SYNC = ROOT / "tools/hosts/sync_hart_package.sh"
+DEPLOY_STEPS = ROOT / "tools/hosts/deploy"
 REDEPLOY = ROOT / "tools/hosts/redeploy_commit.sh"
 TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 PI = "pi.example.invalid"
@@ -45,6 +46,13 @@ if [[ -f "@TMP@/mksock" && ( "$cmd" == true || "$cmd" == "exit 0" ) ]]; then
     [[ "$a" == ControlPath=* ]] && python3 -c 'import socket, sys; socket.socket(socket.AF_UNIX).bind(sys.argv[1])' "${a#ControlPath=}"
   done
 fi
+# The gate's Windows probe (a temp folder made and removed, tar found) answers unless win_probe_fails or win_no_tar.
+case "$cmd" in
+  *hart-probe-*)
+    [[ ! -f "@TMP@/win_probe_fails" ]] || { echo "ssh: no temp folder" >&2; exit 1; }
+    [[ ! -f "@TMP@/win_no_tar" ]] || { echo "tar: not found" >&2; exit 1; }
+    exit 0 ;;
+esac
 # pi_ok: the Pi's file steps answer, so a run gets as far as the Windows step.
 if [[ -f "@TMP@/pi_ok" ]]; then
   case "$cmd" in
@@ -268,10 +276,19 @@ class PreflightTest(DeployHarness):
         # and the hash of each Store a merged split took in (store_splits.csv), so the Pi's file of one is not unpulled
         splits = ROOT / "jmri/layouts/hart/data/store_splits.csv"
         shas = [ln.split(",", 1)[0] for ln in splits.read_text().splitlines()[1:]] if splits.is_file() else []
-        want = f"{PI} bash -s -- '/srv/fake-pi/JMRI_UserFiles' '{generated}'" + "".join(f" {h}" for h in shas)
+        # and the hash of the Operations files this checkout ships (ops:), which a merged auto-pulled session equals
+        ops = hashlib.sha256(b"".join((ROOT / "jmri/layouts/hart/operations" / n).read_bytes() for n in (
+            "Operations.xml", "OperationsCarRoster.xml", "OperationsEngineRoster.xml", "OperationsLocationRoster.xml",
+            "OperationsRouteRoster.xml", "OperationsTrainRoster.xml"))).hexdigest()
+        # and the hash of the DecoderPro roster this checkout ships (roster:, tools/hosts/pi/roster_sha.sh)
+        roster = subprocess.run(["bash", str(ROOT / "tools/hosts/pi/roster_sha.sh"), str(ROOT / "jmri/layouts/hart/roster")],
+                                capture_output=True, text=True, check=True).stdout.strip()
+        want = (f"{PI} bash -s -- '/srv/fake-pi/JMRI_UserFiles' '{generated}' ops:{ops} roster:{roster}"
+                + "".join(f" {h}" for h in shas))
         self.assertTrue(calls[2].endswith(want), calls)
-        # The first real host step, which the stand-in fails.
-        self.assertIn("mktemp -d /tmp/hart-deploy.XXXXXX", calls[3])
+        # Windows' probe is the last gate call; then the first real host step, which the stand-in fails.
+        self.assertIn("hart-probe-", calls[3])
+        self.assertIn("mktemp -d /tmp/hart-deploy.XXXXXX", calls[4])
         self.assertEqual(99, done.returncode, done.stderr[-2000:])
         # No gate rewrites tables.xml any more (R9c: the generator applies the Digicon rule), so the hosts get the
         # committed bytes.
@@ -349,7 +366,7 @@ class PreflightTest(DeployHarness):
         self.assertIn("dry-run: would scp", done.stdout)
         # The real runs got as far as asking Windows for a drop folder, after the tarball was made.
         self.assertEqual(2, sum("hart-deploy-" in c for c in self.calls()), self.calls())
-        src = SYNC.read_text(encoding="utf-8")
+        src = (DEPLOY_STEPS / "ship_win.sh").read_text(encoding="utf-8")
         self.assertIn('mktemp "${TMPDIR:-/tmp}/hart-pkg.XXXXXX")', src)
 
     def test_dry_run_and_stage_only_skip_the_check(self) -> None:
@@ -415,8 +432,8 @@ class SshReuseTest(DeployHarness):
         win = [c for c in self.calls() if WIN in c]
         # the no-op, the unpulled check, the drop folder, the rsync, the apply and the restart check
         self.assertEqual(6, len(pi), pi)
-        # the no-op and the drop folder (which the stand-in fails)
-        self.assertEqual(2, len(win), win)
+        # the no-op, the gate's probe and the drop folder (which the stand-in fails)
+        self.assertEqual(3, len(win), win)
         sockets = self.sockets()
         self.assertEqual({"pi", "win"}, set(sockets), self.calls())
         self.assertTrue(all(f"ControlPath={sockets['pi']}" in c for c in pi), pi)

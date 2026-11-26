@@ -32,22 +32,6 @@
   },
   "103A-105": {
    "discipline": "CTC",
-   "name": "Track 103-105 2",
-   "occupied": {
-    "DECADDR": ":HART:C3:B:103-105_2",
-    "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 103-105 2",
-    "command": "close"
-   },
-   "station": "103-105",
-   "unoccupied": {
-    "DECADDR": ":HART:C3:B:103-105_2",
-    "JMRIPREFIX": "IS",
-    "command": "throw"
-   }
-  },
-  "103B-105": {
-   "discipline": "CTC",
    "name": "Track 103-105 1",
    "occupied": {
     "DECADDR": ":HART:C3:B:103-105_1",
@@ -58,6 +42,22 @@
    "station": "103-105",
    "unoccupied": {
     "DECADDR": ":HART:C3:B:103-105_1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
+  },
+  "103B-105": {
+   "discipline": "CTC",
+   "name": "Track 103-105 2",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:103-105_2",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 103-105 2",
+    "command": "close"
+   },
+   "station": "103-105",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:103-105_2",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
@@ -461,22 +461,6 @@
   },
   "209-end": {
    "discipline": "CTC",
-   "name": "Track 209 Spur 2",
-   "occupied": {
-    "DECADDR": ":HART:C3:B:209_Spur_2",
-    "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 209 Spur 2",
-    "command": "close"
-   },
-   "station": "209",
-   "unoccupied": {
-    "DECADDR": ":HART:C3:B:209_Spur_2",
-    "JMRIPREFIX": "IS",
-    "command": "throw"
-   }
-  },
-  "209-end 2": {
-   "discipline": "CTC",
    "name": "Track 209 Spur 1",
    "occupied": {
     "DECADDR": ":HART:C3:B:209_Spur_1",
@@ -487,6 +471,22 @@
    "station": "209",
    "unoccupied": {
     "DECADDR": ":HART:C3:B:209_Spur_1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
+  },
+  "209-end 2": {
+   "discipline": "CTC",
+   "name": "Track 209 Spur 2",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:209_Spur_2",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 209 Spur 2",
+    "command": "close"
+   },
+   "station": "209",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:209_Spur_2",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
@@ -568,22 +568,6 @@
   },
   "215-end": {
    "discipline": "CTC",
-   "name": "Track 215 Spur 2",
-   "occupied": {
-    "DECADDR": ":HART:C3:B:215_Spur_2",
-    "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 215 Spur 2",
-    "command": "close"
-   },
-   "station": "215",
-   "unoccupied": {
-    "DECADDR": ":HART:C3:B:215_Spur_2",
-    "JMRIPREFIX": "IS",
-    "command": "throw"
-   }
-  },
-  "215-end 2": {
-   "discipline": "CTC",
    "name": "Track 215 Spur 1",
    "occupied": {
     "DECADDR": ":HART:C3:B:215_Spur_1",
@@ -594,6 +578,22 @@
    "station": "215",
    "unoccupied": {
     "DECADDR": ":HART:C3:B:215_Spur_1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
+  },
+  "215-end 2": {
+   "discipline": "CTC",
+   "name": "Track 215 Spur 2",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:215_Spur_2",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 215 Spur 2",
+    "command": "close"
+   },
+   "station": "215",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:215_Spur_2",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
@@ -992,22 +992,6 @@
   },
   "243A-end": {
    "discipline": "CTC",
-   "name": "Track 243 Spur 2",
-   "occupied": {
-    "DECADDR": ":HART:C3:B:243_Spur_2",
-    "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 243 Spur 2",
-    "command": "close"
-   },
-   "station": "243",
-   "unoccupied": {
-    "DECADDR": ":HART:C3:B:243_Spur_2",
-    "JMRIPREFIX": "IS",
-    "command": "throw"
-   }
-  },
-  "243B-end": {
-   "discipline": "CTC",
    "name": "Track 243 Spur 1",
    "occupied": {
     "DECADDR": ":HART:C3:B:243_Spur_1",
@@ -1022,23 +1006,23 @@
     "command": "throw"
    }
   },
-  "245A-end": {
+  "243B-end": {
    "discipline": "CTC",
-   "name": "Track 245 Spur 2",
+   "name": "Track 243 Spur 2",
    "occupied": {
-    "DECADDR": ":HART:C3:B:245_Spur_2",
+    "DECADDR": ":HART:C3:B:243_Spur_2",
     "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 245 Spur 2",
+    "USER_NAME": "BS 243 Spur 2",
     "command": "close"
    },
-   "station": "245",
+   "station": "243",
    "unoccupied": {
-    "DECADDR": ":HART:C3:B:245_Spur_2",
+    "DECADDR": ":HART:C3:B:243_Spur_2",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
   },
-  "245B-end": {
+  "245A-end": {
    "discipline": "CTC",
    "name": "Track 245 Spur 1",
    "occupied": {
@@ -1050,6 +1034,22 @@
    "station": "245",
    "unoccupied": {
     "DECADDR": ":HART:C3:B:245_Spur_1",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
+  },
+  "245B-end": {
+   "discipline": "CTC",
+   "name": "Track 245 Spur 2",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:245_Spur_2",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 245 Spur 2",
+    "command": "close"
+   },
+   "station": "245",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:245_Spur_2",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
@@ -1182,6 +1182,60 @@
     "command": "throw"
    }
   },
+  "Helix Inner": {
+   "_planned_occupied": {
+    "DECADDR": "4100",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Helix Inner",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "4100",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "CTC",
+   "name": "Track Helix Inner",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:Helix_Inner",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Helix Inner",
+    "command": "close"
+   },
+   "station": "Helix",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:Helix_Inner",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
+  },
+  "Helix Outer": {
+   "_planned_occupied": {
+    "DECADDR": "4101",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Helix Outer",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "4101",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "CTC",
+   "name": "Track Helix Outer",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:Helix_Outer",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Helix Outer",
+    "command": "close"
+   },
+   "station": "Helix",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:Helix_Outer",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
+  },
   "K-1": {
    "discipline": "CTC",
    "name": "Track K-1",
@@ -1243,60 +1297,6 @@
    "unoccupied": {
     "DECADDR": "200",
     "JMRIPREFIX": "M2S",
-    "command": "throw"
-   }
-  },
-  "McKees Rocks": {
-   "_planned_occupied": {
-    "DECADDR": "4101",
-    "JMRIPREFIX": "M2S",
-    "USER_NAME": "BS Helix Outer",
-    "command": "close"
-   },
-   "_planned_unoccupied": {
-    "DECADDR": "4101",
-    "JMRIPREFIX": "M2S",
-    "command": "throw"
-   },
-   "discipline": "CTC",
-   "name": "Track Helix Outer",
-   "occupied": {
-    "DECADDR": ":HART:C3:B:Helix_Outer",
-    "JMRIPREFIX": "IS",
-    "USER_NAME": "BS Helix Outer",
-    "command": "close"
-   },
-   "station": "Helix",
-   "unoccupied": {
-    "DECADDR": ":HART:C3:B:Helix_Outer",
-    "JMRIPREFIX": "IS",
-    "command": "throw"
-   }
-  },
-  "McKeesport": {
-   "_planned_occupied": {
-    "DECADDR": "4100",
-    "JMRIPREFIX": "M2S",
-    "USER_NAME": "BS Helix Inner",
-    "command": "close"
-   },
-   "_planned_unoccupied": {
-    "DECADDR": "4100",
-    "JMRIPREFIX": "M2S",
-    "command": "throw"
-   },
-   "discipline": "CTC",
-   "name": "Track Helix Inner",
-   "occupied": {
-    "DECADDR": ":HART:C3:B:Helix_Inner",
-    "JMRIPREFIX": "IS",
-    "USER_NAME": "BS Helix Inner",
-    "command": "close"
-   },
-   "station": "Helix",
-   "unoccupied": {
-    "DECADDR": ":HART:C3:B:Helix_Inner",
-    "JMRIPREFIX": "IS",
     "command": "throw"
    }
   },
@@ -3154,11 +3154,11 @@
   },
   "212LA": {
    "name": "Mast 212LA",
-   "template": "double"
+   "template": "single"
   },
   "212LB": {
    "name": "Mast 212LB",
-   "template": "single"
+   "template": "double"
   },
   "212RA": {
    "name": "Mast 212RA",
@@ -3178,11 +3178,11 @@
   },
   "218RA": {
    "name": "Mast 218RA",
-   "template": "double"
+   "template": "single"
   },
   "218RB": {
    "name": "Mast 218RB",
-   "template": "single"
+   "template": "double"
   },
   "220R": {
    "name": "Mast 220R",
@@ -3190,11 +3190,11 @@
   },
   "222LA": {
    "name": "Mast 222LA",
-   "template": "double"
+   "template": "single"
   },
   "222LB": {
    "name": "Mast 222LB",
-   "template": "single"
+   "template": "double"
   },
   "222R": {
    "name": "Mast 222R",

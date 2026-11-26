@@ -5,6 +5,9 @@ Every run uses a copy of the wrappers in a temporary checkout, a temporary HOME 
 profile, and a PATH of plain tools only (no MQTT client), so nothing reaches the live profile,
 ~/JMRI_UserFiles, the repo's tables or a broker. HART_GUARD_JMRI_RUNNING=0 (hartlib's override)
 hides any real JMRI or CATS on this machine from the "already running" check.
+
+The cleanup tests (stops, signals, SIGKILL and restore) are in test_panelpro_wrappers_cleanup.py (split for size,
+2026-11-26), which imports the sandbox from here.
 """
 from __future__ import annotations
 
@@ -56,7 +59,8 @@ TABLES = """\
 
 # Stands in for PanelPro.app/Contents/MacOS/StartJMRI. It saves the profile as JMRI would read it
 # and its environment, then either quits without a marker (FAKE_MODE=exit) or starts a "java"
-# that sleeps (FAKE_MODE=hang; FAKE_IGNORE_TERM=1 makes it ignore SIGTERM) and waits on it.
+# that sleeps (FAKE_MODE=hang; FAKE_IGNORE_TERM=1 makes it ignore SIGTERM) and waits on it
+# (FAKE_MODE=detach: quits a second after java started, leaving java running).
 # FAKE_MARKER_FROM names the variable holding the marker path: it writes an ok marker first, and
 # FAKE_MODE=marker then quits cleanly as JMRI does after the script's System.exit.
 FAKE_STARTJMRI = """\
@@ -69,7 +73,7 @@ if [[ -n "${FAKE_MARKER_FROM:-}" ]]; then
   printf 'ok\nfake detail\n' > "${!FAKE_MARKER_FROM}"
 fi
 [[ "$FAKE_MODE" == marker ]] && exit 0
-if [[ "$FAKE_MODE" == hang ]]; then
+if [[ "$FAKE_MODE" == hang || "$FAKE_MODE" == detach ]]; then
   python3 -c '
 import os, signal, sys, time
 if sys.argv[2] == "1":
@@ -78,18 +82,15 @@ open(sys.argv[1] + ".tmp", "w").write(str(os.getpid()))
 os.rename(sys.argv[1] + ".tmp", sys.argv[1])
 time.sleep(600)
 ' "$FAKE_STATE/java.pid" "${FAKE_IGNORE_TERM:-0}" "-Dorg.jmri.profile=$2" &
+  if [[ "$FAKE_MODE" == detach ]]; then
+    while [[ ! -f "$FAKE_STATE/java.pid" ]]; do sleep 0.1; done
+    sleep 1          # the wrapper's wait finds java as this launcher's child, then the launcher is gone
+    exit 0
+  fi
   wait
 fi
 exit 3
 """
-
-def _alive(pid: int) -> bool:
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    state = subprocess.run(["ps", "-o", "stat=", "-p", str(pid)], capture_output=True, text=True).stdout.strip()
-    return bool(state) and not state.startswith("Z")
 
 
 class Sandbox:
@@ -117,6 +118,14 @@ class Sandbox:
         stub.write_text("import os, sys\nopen(sys.argv[0] + '.log', 'a').write(' '.join(sys.argv[1:]) + '\\n')\n"
                         "sys.exit(2 if os.environ.get('FAKE_TABLES_FAIL') and sys.argv[1] == '--discovered-from' "
                         "else 0)\n", encoding="utf-8")
+        stub.write_text(stub.read_text(encoding="utf-8").replace(
+            "sys.exit(2 if", "print('ab' * 32) if sys.argv[1] == '--base-hash' else None\nsys.exit(2 if"), encoding="utf-8")
+        # check_approved.py stands in for the approval check (run_sml_discover.sh): it logs its arguments and passes
+        # unless FAKE_UNAPPROVED is set
+        approved = self.root / "tools/schematic/check_approved.py"
+        approved.write_text("import os, sys\nopen(sys.argv[0] + '.log', 'a').write(' '.join(sys.argv[1:]) + '\\n')\n"
+                            "sys.exit(1 if os.environ.get('FAKE_UNAPPROVED') else 0)\n", encoding="utf-8")
+        (self.root / "jmri/layouts/hart/data/schematic").mkdir(parents=True)
         self.home = tmp / "home"
         self.profile = self.make_profile(self.home / "Library/Preferences/JMRI", "My_JMRI_Railroad", LIVE_ID,
                                          r"home\:JMRI_UserFiles/")
@@ -186,17 +195,24 @@ def _default_signals() -> None:
 
 class WrapperCase(unittest.TestCase):
     def setUp(self) -> None:
-        self._td = tempfile.TemporaryDirectory()
-        self.box = Sandbox(Path(self._td.name).resolve())
+        self.box = self.new_box()
 
-    def tearDown(self) -> None:
-        pid_file = self.box.state / "java.pid"
+    def new_box(self) -> Sandbox:
+        """A fresh sandbox, removed after the test with any fake java still running in it."""
+        td = tempfile.TemporaryDirectory()
+        box = Sandbox(Path(td.name).resolve())
+        self.addCleanup(td.cleanup)
+        self.addCleanup(self._kill_java, box)
+        return box
+
+    @staticmethod
+    def _kill_java(box: Sandbox) -> None:
+        pid_file = box.state / "java.pid"
         if pid_file.exists():
             try:
                 os.kill(int(pid_file.read_text()), signal.SIGKILL)
             except ProcessLookupError:
                 pass
-        self._td.cleanup()
 
     def assert_restored(self, profile: Path | None = None, original: bytes | None = None) -> None:
         profile = profile or self.box.profile
@@ -263,8 +279,11 @@ class StartupScriptsOff(WrapperCase):
         self.assertEqual(0, done.returncode, done.stderr)
         calls = (self.box.root / "tools/schematic/build_tables.py.log").read_text().splitlines()
         self.assertEqual("--discovery-base", calls[0])
-        self.assertTrue(calls[1].startswith("--discovered-from "), calls)
-        stored = calls[1].split(" ", 1)[1]
+        self.assertEqual("--base-hash", calls[1])
+        self.assertTrue(calls[2].startswith("--discovered-from "), calls)
+        stored = calls[2].split(" ", 1)[1]
+        stamp = self.box.root / "jmri/layouts/hart/data/schematic/discovered_sml.stamp"
+        self.assertEqual("ab" * 32 + "\n", stamp.read_text(), "the stamp is the base's hash, written after the take")
         launched = (self.box.state / "env").read_text()
         self.assertIn(f"HART_SML_DISCOVER_FILE={stored}\n", launched)
         self.assertNotIn("output/tables.xml", stored)
@@ -272,15 +291,33 @@ class StartupScriptsOff(WrapperCase):
         self.assertNotIn("discovery base", done.stderr)          # a run that finished leaves no note
         self.assert_restored()
 
+    def test_discovery_needs_the_approved_panel_unless_under_review(self) -> None:
+        """The staging guard is retired (2026-11-22), so the wrapper checks the base's panel against the owner's
+        approval (check_approved.py le-panel) before PanelPro starts; HART_TABLES_REVIEW=1 skips it for a review."""
+        env = self.box.env(FAKE_MODE="marker", FAKE_MARKER_FROM="HART_SML_DISCOVER_MARKER", FAKE_UNAPPROVED="1")
+        done = self.box.run("run_sml_discover.sh", env)
+        self.assertEqual(1, done.returncode, done.stderr)
+        self.assertIn("not the one the owner approved; discovery not run", done.stderr)
+        self.assertIn("HART_TABLES_REVIEW=1", done.stderr)
+        self.assertFalse((self.box.state / "launch_arg").exists(), "PanelPro must not start")
+        log = (self.box.root / "tools/schematic/check_approved.py.log").read_text().splitlines()
+        self.assertEqual(["le-panel"], log)
+        self.assert_restored()
+        env = self.box.env(FAKE_MODE="marker", FAKE_MARKER_FROM="HART_SML_DISCOVER_MARKER", FAKE_UNAPPROVED="1",
+                           HART_TABLES_REVIEW="1")
+        done = self.box.run("run_sml_discover.sh", env)
+        self.assertEqual(0, done.returncode, done.stderr)
+
     def test_a_failed_take_keeps_the_discovery_store(self) -> None:
         env = self.box.env(FAKE_MODE="marker", FAKE_MARKER_FROM="HART_SML_DISCOVER_MARKER", FAKE_TABLES_FAIL="1")
         done = self.box.run("run_sml_discover.sh", env)
         self.assertEqual(1, done.returncode, done.stderr)
-        kept = sorted((self.box.home / "JMRI_UserFiles-pulled").glob("discovery-*.xml"))
+        kept = sorted((self.box.root / "media/pulled-stores").glob("discovery-*.xml"))
         self.assertEqual(1, len(kept), done.stderr)
         self.assertIn(f"kept as {kept[0]}", done.stderr)
         self.assertIn(f"--discovered-from {kept[0]}", done.stderr)
         self.assertIn("tables.xml is now the discovery base", done.stderr)
+        self.assertFalse((self.box.root / "jmri/layouts/hart/data/schematic/discovered_sml.stamp").exists())
         self.assertNotIn("DONE", done.stdout)
         self.assert_restored()
 
@@ -300,104 +337,6 @@ class StartupScriptsOff(WrapperCase):
         self.assertNotIn("commands MQTT turnouts", done.stderr)
         done = self.box.run("run_nx_discover.sh", self.box.env(HART_NX_THROW="1"))
         self.assertIn("HART_NX_THROW=1: the smoke sets a real NX route, which commands MQTT turnouts", done.stderr)
-
-
-class Cleanup(WrapperCase):
-    def test_success_waits_for_jmri_to_quit_then_restores(self) -> None:
-        env = self.box.env(FAKE_MODE="marker", FAKE_MARKER_FROM="HART_PANELPRO_SMOKE_MARKER")
-        done = self.box.run("run_panelpro_smoke_test.sh", env)
-        self.assertEqual(0, done.returncode, done.stderr)
-        self.assertIn("PanelPro smoke: ok", done.stdout)
-        self.assertNotIn("Stopping", done.stderr)
-        self.assert_restored()
-
-    def test_jmri_that_stays_after_the_marker_is_stopped(self) -> None:
-        env = self.box.env(FAKE_MODE="hang", FAKE_MARKER_FROM="HART_CTC_LOGIC_SMOKE_MARKER",
-                           HART_PANELPRO_EXIT_WAIT="1")
-        done = self.box.run("run_ctc_logic_smoke.sh", env)
-        self.assertEqual(0, done.returncode, done.stderr)
-        self.assertIn("PanelPro did not quit after the CTC Logic smoke; stopping it", done.stderr)
-        self.assertFalse(_alive(self.box.java_pid()))
-        self.assert_restored()
-
-    def test_timeout_stops_java_even_when_it_ignores_term(self) -> None:
-        env = self.box.env(FAKE_MODE="hang", FAKE_IGNORE_TERM="1", HART_PANELPRO_TIMEOUT="2",
-                           HART_PANELPRO_KILL_WAIT="1")
-        started = time.monotonic()
-        done = self.box.run("run_panelpro_smoke_test.sh", env)
-        self.assertEqual(1, done.returncode, done.stderr)
-        self.assertIn("did not produce a marker", done.stderr)
-        self.assertIn("PanelPro ignored TERM; killing", done.stderr)
-        self.assertFalse(_alive(self.box.java_pid()))
-        self.assertLess(time.monotonic() - started, 30)
-        self.assert_restored()
-
-    def test_sigterm_sigint_and_sighup_stop_java_and_restore(self) -> None:
-        for sig, code in ((signal.SIGTERM, 143), (signal.SIGINT, 130), (signal.SIGHUP, 129)):
-            with self.subTest(signal=sig.name):
-                (self.box.state / "java.pid").unlink(missing_ok=True)
-                env = self.box.env(FAKE_MODE="hang", HART_PANELPRO_TIMEOUT="60")
-                proc = subprocess.Popen(self.box.cmd("run_sml_discover.sh"), env=env, cwd=self.box.tmp,
-                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-                                        preexec_fn=_default_signals)
-                try:
-                    java = self.box.java_pid()
-                    self.assertIn(b'enabled="no"', self.box.profile.read_bytes())   # patched while running
-                    proc.send_signal(sig)
-                    _out, err = proc.communicate(timeout=30)
-                finally:
-                    if proc.poll() is None:
-                        proc.kill()
-                self.assertEqual(code, proc.returncode, err)
-                self.assertFalse(_alive(java))
-                self.assert_restored()
-
-    def test_after_sigkill_the_next_run_refuses_and_restore_recovers(self) -> None:
-        env = self.box.env(FAKE_MODE="hang", HART_PANELPRO_TIMEOUT="60")
-        proc = subprocess.Popen(self.box.cmd("run_panelpro_stage1.sh"), env=env, cwd=self.box.tmp,
-                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, preexec_fn=_default_signals)
-        java = self.box.java_pid()
-        proc.kill()
-        proc.wait(timeout=10)
-        os.kill(java, signal.SIGKILL)   # the owner quits the PanelPro it left
-        bak = self.box.profile.with_name("profile.xml.hart-run.bak")
-        self.assertEqual(self.box.original, bak.read_bytes())
-        self.assertNotEqual(self.box.original, self.box.profile.read_bytes())
-
-        (self.box.state / "launch_arg").unlink()
-        again = self.box.run("run_panelpro_smoke_test.sh", self.box.env())
-        self.assertEqual(1, again.returncode)
-        self.assertIn(f"restore --profile {self.box.profile}", again.stderr)
-        self.assertFalse((self.box.state / "launch_arg").exists())
-
-        restore = [sys.executable, str(self.box.root / "tools/hosts/panelpro_profile.py"), "restore",
-                   "--profile", str(self.box.profile)]
-        busy = subprocess.run(restore, capture_output=True, text=True, env={**env, "HART_GUARD_JMRI_RUNNING": "1"})
-        self.assertNotEqual(0, busy.returncode)
-        self.assertIn("running", busy.stderr)
-        fixed = subprocess.run(restore, capture_output=True, text=True, env=env)
-        self.assertEqual(0, fixed.returncode, fixed.stderr)
-        self.assert_restored()
-        self.assertFalse(self.box.profile.with_name("profile.xml.hart-run.sha256").exists())
-
-    def test_cleanup_keeps_the_backup_when_the_started_jmri_cannot_be_stopped(self) -> None:
-        script = self.box.tmp / "stuck.sh"
-        script.write_text(f"""set -euo pipefail
-ROOT={self.box.root}
-source "$ROOT/tools/hosts/panelpro_session.sh"
-pp_profile
-pp_begin "$ROOT/{SCRIPTS}/panelpro_smoke_test.py"
-pp_stop_jmri() {{ echo "Could not stop pids 99999" >&2; return 1; }}
-exit 1
-""", encoding="utf-8")
-        done = subprocess.run(["/bin/bash", str(script)], env=self.box.env(), capture_output=True, text=True,
-                              preexec_fn=_default_signals,
-                              timeout=60)
-        self.assertEqual(1, done.returncode)
-        self.assertIn("PROFILE NOT RESTORED: quit that PanelPro, then run: python3", done.stderr)
-        self.assertIn(f"restore --profile {self.box.profile}", done.stderr)
-        self.assertTrue(self.box.profile.with_name("profile.xml.hart-run.bak").exists())
-        self.assertNotEqual(self.box.original, self.box.profile.read_bytes())
 
 
 class Rehearsal(WrapperCase):
@@ -455,6 +394,10 @@ class Deploy(WrapperCase):
             dest = self.box.root / rel
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / rel, dest)
+        shutil.copytree(ROOT / "tools/hosts/deploy", self.box.root / "tools/hosts/deploy")   # the entry point's steps
+        (self.box.root / "tools/env").mkdir(parents=True, exist_ok=True)
+        for name in ("load_env.sh", "defaults.env"):   # the steps' shared file reads the host settings first
+            shutil.copy2(ROOT / "tools/env" / name, self.box.root / "tools/env" / name)
         self.box.profile.with_name("profile.xml.hart-run.bak").write_bytes(self.box.original)
         env = self.box.env(HART_PI_SSH="nobody@example.invalid", HART_WIN_SSH="nobody@example.invalid")
         for rel, args in (("tools/hosts/sync_hart_package.sh", ["--stage-only", str(self.box.tmp / "stage")]),
@@ -487,7 +430,6 @@ class OneSharedLifecycle(unittest.TestCase):
         session = (ROOT / "tools/hosts/panelpro_session.sh").read_text(encoding="utf-8")
         self.assertNotIn("Crandic", session)
         self.assertIn('python3 "$PP_PROFILE_PY" jmri-running', session)
-
 
 
 class SmokeTestNames(unittest.TestCase):

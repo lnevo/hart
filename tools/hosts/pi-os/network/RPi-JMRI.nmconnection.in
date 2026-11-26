@@ -1,0 +1,24 @@
+# Hotspot for a show or club setup. Kept, never connects on its own (owner, 2026-11-23).
+[connection]
+id=RPi-JMRI
+type=wifi
+autoconnect=false
+interface-name=wlan0
+
+[wifi]
+mode=ap
+powersave=2
+ssid=RPi-JMRI
+
+[wifi-security]
+key-mgmt=wpa-psk
+psk=@HOTSPOT_PSK@
+
+[ipv4]
+method=shared
+
+[ipv6]
+addr-gen-mode=stable-privacy
+method=shared
+
+[proxy]

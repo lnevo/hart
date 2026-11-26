@@ -1,5 +1,7 @@
 # Speed profile and match of CSX 2121 and CSX 2738 (2026-11-13)
 
+Result of the 2026-11-13 re-run: speed profiles of CSX 2121 and CSX 2738 in both directions, the match applied to 2738 and the momentum comparison.
+
 The re-run planned in [`RERUN_PLAN.md`](../RERUN_PLAN.md), done with the tools in
 [`RUNBOOK.md`](../RUNBOOK.md) on the Pi's JMRI, CS-105 over LCC. Both locos were profiled in
 both directions, 2738 was adjusted on the main to match 2121, the momentum of the two was

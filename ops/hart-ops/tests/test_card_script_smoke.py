@@ -21,6 +21,7 @@ sys.path.insert(0, str(HERE / "publications"))
 from docx import Document  # noqa: E402
 
 import apply_visual_review  # noqa: E402
+import car_paths  # noqa: E402
 import generate_card_template as gct  # noqa: E402
 import generate_waybill_cards as gwc  # noqa: E402
 import rebuild_local_station_maps as rlsm  # noqa: E402
@@ -63,8 +64,8 @@ class WaybillSmoke(unittest.TestCase):
             out = tmp / "out" / "waybills.docx"
             csv_out = tmp / "out" / "waybills.csv"
             out.parent.mkdir()
-            with mock.patch.object(gct, "STICKER_SHEET", sheet), \
-                    mock.patch.object(gct, "require_sticker_sheet", lambda: sheet), \
+            with mock.patch.object(car_paths, "STICKER_SHEET", sheet), \
+                    mock.patch.object(car_paths, "require_sticker_sheet", lambda: sheet), \
                     mock.patch.object(gwc, "BASE", tmp), \
                     mock.patch.object(gwc, "OUTPUT_DIR", out.parent), \
                     mock.patch.object(gwc, "OUTPUT", out), \

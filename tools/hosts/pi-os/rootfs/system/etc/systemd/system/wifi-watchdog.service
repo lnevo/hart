@@ -1,0 +1,13 @@
+[Unit]
+Description=Wi-Fi stall watchdog (diagnostics + staged recovery)
+After=NetworkManager.service
+Wants=NetworkManager.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/wifi-watchdog
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

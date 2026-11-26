@@ -3,40 +3,40 @@
 
 from __future__ import annotations
 
-import csv
 import os
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 JMRI_ROOT = Path(__file__).resolve().parents[1]
 HART = JMRI_ROOT / "layouts" / "hart"
-# HART_TABLES names another tables file for the checks (tools/check.sh, hartlib.paths); this
-# script stays free of hartlib.
+sys.path.insert(0, str(JMRI_ROOT.parent / "tools/hartlib/src"))
+from hartlib import devices, railroad  # noqa: E402
+
+# HART_TABLES names another tables file for the checks (tools/check.sh, hartlib.paths).
 PANEL = Path(os.environ["HART_TABLES"]) if os.environ.get("HART_TABLES") else HART / "output" / "tables.xml"
-DEVICES = HART / "data" / "devices.csv"
-SWITCHES = HART / "data" / "switches.csv"
-STAGING_COLUMNS = ("level", "switch", "os_block", "le_ident")
+DEVICES = devices.MASTER
+SWITCHES = railroad.Sources.under().switches
 
 
-def staging_rows(path: Path = SWITCHES) -> list[dict[str, str]]:
-    """The staging (level 1) rows of switches.csv, one per OS block, in file order. Stops on a
-    file without the columns this reads (hartlib.railroad_facts.read_switch_rows checks the rest)."""
-    with path.open(newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        missing = [c for c in STAGING_COLUMNS if c not in (reader.fieldnames or [])]
-        if missing:
-            raise SystemExit(f"{path}: no column {', '.join(missing)}")
-        return [row for row in reader if row["level"] == "1"]
+def staging_rows(path: Path = SWITCHES) -> list[railroad.SwitchRow]:
+    """The staging (level 1) rows of switches.csv, one per OS block, in file order (hartlib.railroad.read_switch_rows,
+    which checks every row's shape). A file it refuses stops with its message."""
+    try:
+        rows = railroad.read_switch_rows(path)
+    except railroad.FactsError as exc:
+        raise SystemExit(f"{path}: {exc}") from None
+    return [row for row in rows if row.level == 1]
 
 
 def secondary_os_blocks(path: Path = SWITCHES) -> set[str]:
     """A crossover's OS blocks after its first (main) row in switches.csv (7b, 23b, 35a)."""
-    seen: set[str] = set()
+    seen: set[int] = set()
     out: set[str] = set()
     for row in staging_rows(path):
-        if row["switch"] in seen:
-            out.add(row["os_block"])
-        seen.add(row["switch"])
+        if row.switch in seen:
+            out.add(row.os_block)
+        seen.add(row.switch)
     return out
 
 
@@ -45,11 +45,11 @@ def crossover_row_errors(root: ET.Element, switches: Path = SWITCHES) -> list[st
     (its main and its second OS block); with one, its second OS block would go unchecked.
     The turnout is the le_ident of the switch's first row."""
     xover = {t.get("ident") for t in root.iter("layoutturnout") if (t.get("type") or "").endswith("_XOVER")}
-    rows: dict[str, int] = {}
-    ident: dict[str, str] = {}
+    rows: dict[int, int] = {}
+    ident: dict[int, str] = {}
     for row in staging_rows(switches):
-        rows[row["switch"]] = rows.get(row["switch"], 0) + 1
-        ident.setdefault(row["switch"], row["le_ident"])
+        rows[row.switch] = rows.get(row.switch, 0) + 1
+        ident.setdefault(row.switch, row.le_ident)
     return [f"Switch {n} is a crossover ({ident[n]}) but {switches.name} has {count} row(s) for it, not 2"
             for n, count in rows.items() if ident[n] in xover and count < 2]
 
@@ -77,10 +77,7 @@ def main() -> int:
     if not clock:
         errors.append("ISCLOCKRUNNING missing")
 
-    # Panel title
-    le_names = [le.get("name") for le in root.iter("LayoutEditor")]
-    if not any(name in {"HART Railroad", "HART"} for name in le_names):
-        errors.append(f"LayoutEditor name not HART Railroad: {le_names}")
+    # The panel's name: audit_panel_contracts.py (select_panel) holds it: exactly one panel named HART or HART Railroad (PANEL_NAMES).
 
     # No duplicate block userNames
     from collections import Counter
@@ -102,14 +99,12 @@ def main() -> int:
         errors.append("duplicate block userNames: " + ", ".join(dups[:8]))
 
     # Expected OS public names present on layout turnouts
-    # the staging OS blocks of the device master (its name-map rows, those with a pnm_order); a main or upper
-    # "BS Switch" corner has the role of an OS corner too, so the name prefix stays here
-    with DEVICES.open(newline="", encoding="utf-8-sig") as f:
-        expected_os = {
-            row["user_name"]
-            for row in csv.DictReader(f)
-            if row.get("layer") == "block" and row.get("pnm_order") and row["user_name"].startswith("OS ")
-        }
+    # the staging (level 1) OS blocks of the device master: role os, or xover_corner for a crossover's
+    expected_os = {
+        row["user_name"]
+        for row in devices.load(DEVICES)
+        if row["level"] == "1" and row["layer"] == "block" and row["role"] in ("os", "xover_corner")
+    }
     found = {t.get("blockname") for t in root.iter("layoutturnout")}
     missing = sorted(expected_os - found)
     # Crossover / paired legs: occupancy exists in block table; layoutturnout

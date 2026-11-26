@@ -1,6 +1,8 @@
 # Speed profile of CSX 2121 and CSX 2738 (2026-11-08)
 
 First measured speed profiles on the layout. Done on the Pi's JMRI with the block
+
+Status: historical (2026-11-13). Superseded by the re-run in [`../profile-2026-11-13/`](../profile-2026-11-13/README.md).
 detection sensors, one loco at a time on the full loop. The measuring changed no CV or
 roster entry; afterwards 2738 was programmed to match 2121, see
 [`CV_CHANGES_DRAFT.md`](CV_CHANGES_DRAFT.md) (programmed 2026-11-08, not yet re-measured).
@@ -27,14 +29,14 @@ The two extension tracks are named East Ext and West Ext here and in the CSVs. T
 - 2738 ran **east** (its forward) and 2121 ran **west** (its forward). The K loop and
   the grades are driven in opposite directions, so a direction effect is mixed into
   the comparison. Not yet separated.
-- Tools: [`runner/step_runner.py`](runner/step_runner.py) runs inside the Pi's JMRI
-  (dropped through `jmri_cmd_watcher`), [`runner/move_to.py`](runner/move_to.py)
-  moved a loco to a stopping condition, [`analyze_profile.py`](analyze_profile.py)
+- Tools (in `archive/` since 2026-11-25, kept for the record and not run again): [`runner/step_runner.py`](../../../../archive/code/speedmatching/profile-2026-11-08/runner/step_runner.py) runs inside the Pi's JMRI
+  (dropped through `jmri_cmd_watcher`), [`runner/move_to.py`](../../../../archive/code/speedmatching/profile-2026-11-08/runner/move_to.py)
+  moved a loco to a stopping condition, [`analyze_profile.py`](../../../../archive/code/speedmatching/profile-2026-11-08/analyze_profile.py)
   turns the runner logs into [`results.csv`](results.csv). The raw `steprun_*.log` files
   are not in the repo (the tracked-file policy forbids `*.log`); `results.csv` and
   `manual_laps.csv` hold every lap used, and the runner writes the same log format again
   on a re-run.
-  [`propose_table.py`](propose_table.py) calculates the draft table.
+  [`propose_table.py`](../../../../archive/code/speedmatching/profile-2026-11-08/propose_table.py) calculates the draft table.
 
 ## Results (mean of the timed laps, loop = 31,292.8 mm)
 
@@ -166,13 +168,13 @@ the loop total with a tape (or time a loco over a measured distance), correct
 |---|---|
 | `results.csv` | every timed lap used (lap time, mm/s) |
 | `manual_laps.csv` | the two valid 2121 step-8 laps |
-| `speed_by_step.csv` | per loco and step: laps, mean lap, mean mm/s, spread, HO mph |
+| [`speed_by_step_2026-11-08.csv`](../../../../jmri/layouts/hart/data/speed_by_step_2026-11-08.csv) | per loco and step: laps, mean lap, mean mm/s, spread, HO mph. One copy, under `jmri/layouts/hart/data/`, which `block_speeds.py` writes and the speed-match dashboard and the Pi bundle read (moved from this folder 2026-11-25) |
 | `block_events.csv` | every block transit (637): entry time, transit time, mm/s |
 | `block_summary.csv` | per loco, step, block: mean speed, ratio to loop mean, implied length |
 | `post_programming_sample.csv` | 2738 re-measure after programming, against 2121 |
 | `reverse_2121_laps.csv` | 2121 run in reverse (east): whole-lap times at steps 24, 48, 64 |
 | `momentum_test.csv` | sensor times of the four stop tests (2 locos, steps 32 and 96) |
-| `block_speeds.py`, `analyze_profile.py`, `propose_table.py` | produce the above |
+| `block_speeds.py`; `analyze_profile.py` and `propose_table.py` in [`archive/`](../../../../archive/code/speedmatching/profile-2026-11-08/) | produce the above |
 
 ## Data quality notes
 

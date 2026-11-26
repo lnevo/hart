@@ -12,14 +12,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import publish_draft as pd  # noqa: E402
 from hartlib import layer_files  # noqa: E402
 
-STAGING = layer_files.read("plan_overrides", "staging", pd.DATA)
-MAIN_UPPER = layer_files.read("plan_overrides", "main_upper", pd.DATA)
+STAGING = layer_files.merged_section("staging", pd.DATA)
+MAIN_UPPER = layer_files.merged_section("main_upper", pd.DATA)
 PREFS = layer_files.dumps(layer_files.read("preferences", "main_upper", pd.DATA))
 PART = re.compile(r"T\d+")
 PART_REF = re.compile(r"T\d+|TO_\w+-\d")      # a plan part number or a three-way's part id
-# The name edit's first track at each half of the shared numbers 23, 35 and 7 reaches its half as number@neighbour (no
-# track leaving it has a name yet); these are the halves the plan part numbers named before.
-NEIGHBOUR_REFS = {"23@1": "T57", "35@23": "T54", "23@15": "T126", "35@33": "T95", "7@33": "T33", "7@13": "T139"}
 
 
 def strings(node):
@@ -70,24 +67,17 @@ class Refs(unittest.TestCase):
             prefs = layer_files.read("preferences", name, pd.DATA)
             self.assertEqual([s for s in strings(prefs) if PART_REF.fullmatch(s)], [], name)
 
-    def test_the_neighbour_refs_stand_in_the_name_edit(self):
+    def test_the_name_edit_names_plan_junctions(self):
+        """The `name` edit is the name store's (hartlib.track_names), made when the view is: each track by the ids of
+        the plan junctions at its ends, so a crossover's halves (23, 35, 7) need no number@neighbour ref, and a
+        hand file never holds one."""
+        nodes = json.loads((pd.GRAPHS / "staging.json").read_text())["nodes"]
         name = next(e for e in STAGING["edits"] if e["op"] == "name")
         refs = {r for t in name["tracks"] for r in t[:2]}
-        self.assertLessEqual(set(NEIGHBOUR_REFS), refs)
-
-    def test_each_neighbour_ref_finds_the_half_its_part_number_did(self):
-        import build_layout_le as bl
-        try:
-            sheet, _le, _core = bl.plugin()
-        except bl.BuildError as exc:
-            self.skipTest(str(exc))
-        from schematic import edits
-        # The final graph: the plugin stops on a ref whose track-name and neighbour readings disagree, so a ref
-        # that resolves here to its old half resolved to it when the name edit ran too.
-        sg = sheet.prepare(json.loads((pd.GRAPHS / "staging.json").read_text()),
-                           dict(sheet.options("staging", pd.DATA)), set())
-        for ref, part in NEIGHBOUR_REFS.items():
-            self.assertEqual(sg["nodes"][edits.by_label(sg, ref)]["alias"], part, ref)
+        self.assertTrue(refs)
+        self.assertLessEqual(refs, set(nodes))
+        self.assertFalse([e for e in layer_files.read("plan_overrides", "staging", pd.DATA)["edits"]
+                          if e["op"] == "name"])
 
     def test_the_main_upper_refs_resolve_by_label(self):
         import build_layout_le as bl

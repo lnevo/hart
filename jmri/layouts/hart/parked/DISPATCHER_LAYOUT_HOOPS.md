@@ -4,9 +4,9 @@
 
 SoR for workarounds used so Dispatcher System can start and stop at HART stations. As of **2026-11-12** the live graph is **107 sections / 187 transits / 374 HEAD_AND_TAIL traininfo** (stock Stage 1; 49 masts) for **12 stations**: East Lead, K-1, K-2, McKees Rocks, McKeesport, Scale, Barn, EH-1–3, W-1, W-2. The mains, Brick-Plane and South Yard stopped being stations that day. Revisit the marked hacks; do not silently delete them.
 
-Railroad English first, then the JMRI name. Operator desk: [`jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md`](../dispatcher/DISPATCHER_GUIDE.md). Live notes: [`STATUS.md`](../../../../wiki/STATUS.md) (Dispatcher System).
+Railroad English first, then the JMRI name. Operator desk: [`jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md`](../dispatcher/DISPATCHER_GUIDE.md). Live notes: [`wiki/status/current/`](../../../../wiki/status/current/) (Dispatcher System).
 
-Tables: `jmri/layouts/hart/output/tables.xml`. The hand-drawn panel's `apply_le_cleanup.py` is archived in `archive/jmri-scripts/` (2026-11-18); the generated panel carries these bindings, so after a Stage 1 run put lamps and labels back with `parked/polish_hart_layout_editor.py --reference …`.
+Tables: `jmri/layouts/hart/output/tables.xml`. The hand-drawn panel's `apply_le_cleanup.py` is archived in `archive/code/jmri-scripts/` (2026-11-18); the generated panel carries these bindings, so after a Stage 1 run put lamps and labels back with `parked/polish_hart_layout_editor.py --reference …`.
 
 ---
 
@@ -33,7 +33,7 @@ Icons are `hidden="yes"` on **HART Railroad**. System names are `IF$vsm:basic:on
 | Brick-Plane / Switch 1 | `Mast 2R` (`$1023`) | Hidden virtual on TOL3 C. Brick-Plane had no mast at either end, so it sat inside the 2L→8RA/8RB and 6LA/6LB→24RA sections: runs into it went past it and runs to East Ext / Main West reused its transits (added 2026-11-10). |
 | Brick-Plane / Switch 5 | `Mast 6R` (`$1024`) | Hidden virtual on TOL42 A. Same fix, east end. |
 
-History: these masts were set by `STUB_MASTS` and `YARD_BOUNDARY_MASTS` in `apply_le_cleanup.py`, and the throat geometry by `apply_yard_throat_blocks.py`. Both are archived in `archive/jmri-scripts/` (2026-11-18); the generated panel and `tables.xml` now hold them.
+History: these masts were set by `STUB_MASTS` and `YARD_BOUNDARY_MASTS` in `apply_le_cleanup.py`, and the throat geometry by `apply_yard_throat_blocks.py`. Both are archived in `archive/code/jmri-scripts/` (2026-11-18); the generated panel and `tables.xml` now hold them.
 
 ---
 

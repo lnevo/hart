@@ -85,7 +85,83 @@ class Numbers(unittest.TestCase):
         self.assertEqual(mp.LINE_CODE, {1: "", 2: "A", 3: "B"})
 
 
+class AssignNumbers(unittest.TestCase):
+    """Two pairs a tenth apart share a westward number (6.6 and 6.7 both give 67): the lower milepost keeps it, the
+    other takes the next number of its parity no intermediate holds or would hold, and the shift is printed (owner,
+    2026-11-22)."""
+
+    @staticmethod
+    def masts(*mps, code="", west=True):
+        return [dict(code=code, number=mp.signal_number(m, west, code), mp=m, dir="west" if west else "east",
+                     milepost=round(m, 3)) for m in mps]
+
+    def names(self, masts):
+        with unittest.mock.patch("sys.stderr") as err:
+            mp.assign_numbers(masts)
+        return [m["name"] for m in masts], "".join(c.args[0] for c in err.write.call_args_list)
+
+    def test_no_clash_keeps_every_natural_number_and_prints_nothing(self):
+        got, printed = self.names(self.masts(6.6) + self.masts(6.6, west=False) + self.masts(6.9))
+        self.assertEqual(got, ["67", "66", "69"])
+        self.assertEqual(printed, "")
+
+    def test_the_lower_milepost_keeps_the_number_whatever_the_order(self):
+        for order in ((6.6, 6.7), (6.7, 6.6)):
+            got, printed = self.names(self.masts(*order))
+            self.assertEqual(dict(zip(order, got)), {6.6: "67", 6.7: "69"})
+            self.assertIn("MP 6.700 would be intermediate 67, which MP 6.600 holds; named 69", printed)
+
+    def test_a_shift_never_takes_another_masts_natural_number(self):
+        got, _ = self.names(self.masts(6.6, 6.7, 6.9))
+        self.assertEqual(got, ["67", "71", "69"])
+
+    def test_name_comes_first_and_the_working_keys_are_dropped(self):
+        masts = self.masts(6.7)
+        self.names(masts)
+        self.assertEqual(masts, [dict(name="67", dir="west", milepost=6.7)])
+
+    def test_the_line_code_keeps_the_levels_apart(self):
+        got, _ = self.names(self.masts(6.7) + self.masts(6.7, code="A") + self.masts(6.6, code="A"))
+        self.assertEqual(got, ["67", "A69", "A67"])
+
+    def test_a_shift_past_98_with_no_line_code_stops_the_build(self):
+        with self.assertRaisesRegex(mr.MapError, "intermediate 97 is held by MP 9.600 and the next free number 99 "
+                                                 "is over 98"):
+            self.names(self.masts(9.6, 9.7))
+        got, _ = self.names(self.masts(9.6, 9.7, code="B"))
+        self.assertEqual(got, ["B97", "B99"])
+
 # ---------------------------------------------------------------- running track and exit dwarfs
+
+
+class LetterOrder(unittest.TestCase):
+    """Two masts of one number and direction are lettered A and B in the plan order of the tracks they face
+    (mast_rule.letter_order; naming-layers step 12), as parallel track numbers are (plan_order), not by drawn row."""
+
+    @staticmethod
+    def t(*ends, trial="Track e1"):
+        return dict(plan_ends=ends, trial=[trial])
+
+    def test_a_track_end_sorts_by_number_half_letter_and_leg_then_any_other_end(self):
+        keys = ["end", "105B", "103BA", "helix", "103AB", "9C", "9B"]
+        self.assertEqual(sorted(keys, key=mr.leg_order), ["9B", "9C", "103AB", "103BA", "105B", "end", "helix"])
+
+    def test_spurs_follow_their_numbers(self):
+        """Mast 210LA faces Track 209 Spur 1 (from 209B), 210LB Spur 2 (from 209C)."""
+        one, two = self.t("209B", "end"), self.t("209C", "end", trial="Track e2")
+        self.assertLess(mr.letter_order(one, 0, "B"), mr.letter_order(two, 0, "C"))
+
+    def test_the_lower_plan_end_first_whatever_the_leg(self):
+        """At Switch 203 the A mast faces Track 203-211 (from leg B), the B mast Track 203-207 (from leg C); at a
+        crossover's halves the half letter of the lower end decides (217AB before 217BA)."""
+        self.assertLess(mr.letter_order(self.t("203B", "211BB"), 0, "B"),
+                        mr.letter_order(self.t("203C", "207A"), 0, "C"))
+        self.assertLess(mr.letter_order(self.t("217AB", "221BB"), 0, "B"),
+                        mr.letter_order(self.t("217BA", "219C"), 0, "A"))
+
+    def test_a_balloon_loops_halves_by_half(self):
+        loop = self.t("107B", "107C")
+        self.assertLess(mr.letter_order(loop, 1, "B"), mr.letter_order(loop, 2, "C"))
 
 
 class Running(unittest.TestCase):
@@ -151,36 +227,128 @@ class Spurs(unittest.TestCase):
         self.assertEqual(mr.signalled_spurs(self.found(main=False), {}), set())
 
 
+HEAD = ",".join(mr.OVERRIDE_COLUMNS) + "\n"
+
+
+def split(level, a, b, parallel="", notes=""):
+    """A block_overrides.csv split row."""
+    return f"{level},split,{a},{b},{parallel},,,,,{notes}\n"
+
+
 class BlockSplits(unittest.TestCase):
-    """mast_rule.read_block_splits: the owner's block splits, by level and end switches."""
+    """mast_rule.read_block_splits: the owner's block splits (block_overrides.csv kind split), by level and end
+    switches."""
 
     FOUND = [track("Track 227-241", [("A", "B"), ("B", "C")], (("sw", "227"), ("sw", "241")), level=3),
              track("Track 5-7", [("C", "B"), ("D", "C")], (("sw", "5"), ("sw", "7")), level=1)]
 
     def read(self, text, levels=None):
         with tempfile.TemporaryDirectory() as d:
-            path = Path(d) / "block_splits.csv"
+            path = Path(d) / "block_overrides.csv"
             path.write_text(text, encoding="utf-8")
             return mr.read_block_splits(path, self.FOUND, levels or {"Upper": 3})
 
     def test_a_row_names_its_track(self):
-        self.assertEqual(self.read("level,switch_a,switch_b,parallel,notes\n3,227,241,,x\n"), {"Track 227-241"})
+        self.assertEqual(self.read(HEAD + split(3, 227, 241, notes="x")), {"Track 227-241"})
 
     def test_a_row_of_another_level_is_left_out(self):
-        self.assertEqual(self.read("level,switch_a,switch_b,parallel,notes\n3,227,241,,x\n", {"Staging level": 1}), set())
+        self.assertEqual(self.read(HEAD + split(3, 227, 241, notes="x"), {"Staging level": 1}), set())
+
+    def test_the_other_kinds_are_not_splits(self):
+        text = HEAD + "3,track,227,241,,,os:227,,,x\n" + split(1, 5, 7)
+        self.assertEqual(self.read(text), set())
 
     def test_errors(self):
-        for text, msg in (("switch_a,switch_b,parallel,notes\n227,241,,\n", "columns"),
-                          ("level,switch_a,switch_b,parallel,notes\n4,227,241,,\n", "level '4' is 1, 2 or 3"),
-                          ("level,switch_a,switch_b,parallel,notes\n3,241,227,,\n", "lower first"),
-                          ("level,switch_a,switch_b,parallel,notes\n3,5,7,,\n", "no track runs Switch 5 to Switch 7"),
-                          ("level,switch_a,switch_b,parallel,notes\n3,227,241,,\n3,227,241,,\n", "already named")):
+        for text, msg in (("level,switch_a,switch_b,parallel,notes\n3,227,241,,\n", "columns"),
+                          (HEAD + split(4, 227, 241), r"line 2 \(level 4, kind split\): level is 1, 2 or 3"),
+                          (HEAD + split(3, 241, 227), "lower first"),
+                          (HEAD + split(3, 5, 7), "no track runs Switch 5 to Switch 7"),
+                          (HEAD + split(3, 227, 241) * 2, "already split on line 2")):
             with self.assertRaisesRegex(mr.MapError, msg):
                 self.read(text)
 
     def test_a_missing_file_is_a_map_error(self):
         with self.assertRaisesRegex(mr.MapError, "cannot read"):
-            mr.read_block_splits(Path("/nonexistent/block_splits.csv"), self.FOUND, {"Upper": 3})
+            mr.read_block_splits(Path("/nonexistent/block_overrides.csv"), self.FOUND, {"Upper": 3})
+
+
+class BlockOverrides(unittest.TestCase):
+    """mast_rule.read_block_overrides: the one reader of block_overrides.csv, which checks every row's shape for its
+    kind whichever kinds the caller asks for, and names the file and line of a bad one."""
+
+    def read(self, text, kinds=mr.OVERRIDE_KINDS):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "block_overrides.csv"
+            path.write_text(text, encoding="utf-8")
+            return mr.read_block_overrides(path, kinds)
+
+    def test_rows_of_the_kinds_asked_for_with_their_lines(self):
+        text = (HEAD + split(3, 227, 241, notes="the owner's choice") + "1,track,1,3,,1,os:1,12.5,,a\n"
+                + "1,crossover_half,7,13,1,,os:7:A-13C,,,b\n")
+        rows = self.read(text)
+        self.assertEqual([(r["line"], r["kind"]) for r in rows], [(2, "split"), (3, "track"), (4, "crossover_half")])
+        self.assertEqual(rows[1]["cm"], 12.5)
+        # a track row's OS block comes back by its generated name, its id beside it
+        self.assertEqual((rows[1]["block"], rows[1]["id"]), ("OS Switch 1", "os:1"))
+        # a crossover half's too, named by its letter (parallel 1 is a), which it carries as `half`
+        self.assertEqual((rows[2]["block"], rows[2]["id"], rows[2]["half"]), ("OS Switch 7a", "os:7:A-13C", "a"))
+        self.assertIsNone(rows[0]["cm"])
+        self.assertEqual(rows[0]["notes"], "the owner's choice")
+        self.assertEqual([r["line"] for r in self.read(text, ("split",))], [2])
+        self.assertEqual([r["line"] for r in self.read(text, ("track", "crossover_half"))], [3, 4])
+
+    def test_a_bad_row_of_another_kind_still_stops(self):
+        text = HEAD + split(3, 227, 241) + "1,track,1,3,,1,Track 1-3,,,\n"
+        with self.assertRaisesRegex(mr.MapError, r"block_overrides.csv: line 3 \(level 1, kind track\): block "
+                                                 "'Track 1-3' is no OS block ID"):
+            self.read(text, ("split",))
+
+    def test_shapes(self):
+        for row, msg in (("1,spur,9,11,,,OS Switch 9,,,\n", "kind one of split, track, crossover_half"),
+                         ("3,split,227,241,,,OS Switch 227,,,\n", "no end, block, cm or inside"),
+                         ("3,split,227,241,,241,,,,\n", "no end, block, cm or inside"),
+                         ("3,split,227,241,,,,,yes,\n", "no end, block, cm or inside"),
+                         ("1,track,9,11,,,os:9,,no,\n", "inside is yes or empty"),
+                         ("1,track,9,11,,9,os:9,0,,\n", "cm '0' is a length in cm, more than 0"),
+                         ("1,track,9,11,,9,os:9,abc,,\n", "cm 'abc' is a length"),
+                         ("1,track,9,,,,os:9,,,\n", "a track between two switches"),
+                         ("1,crossover_half,7,13,1,,os:7:A-13C,,yes,\n", "with no end, cm or inside"),
+                         ("1,crossover_half,7,13,3,,os:7:A-13C,,,\n", r"parallel 1 or 2 \(its letter a or b\)"),
+                         ("1,crossover_half,7,13,1,,os:7:A-5B,,,\n", "as its block ID has them"),
+                         ("1,crossover_half,7,13,1,,OS Switch 7,,,\n", "is no crossover half's OS block ID"),
+                         ("1,crossover_half,7,13,1,,os:7,,,\n", "is no crossover half's OS block ID"),
+                         ("1,track,9,11\n", "block '' is no OS block"),        # short: its trailing fields empty
+                         ("1,track,9,11,,,OS Switch 9,,,\n", "block 'OS Switch 9' is no OS block ID"),   # by name
+                         ("1,track,9,11,,,os:9:A-13C,,,\n", "no crossover_half row of Switch 9 whose leg A runs to "
+                                                              "Switch 13"),
+                         ("1,track,9,11,,,os:9,,,a,extra\n", "more fields than the header's 10")):
+            with self.subTest(row=row), self.assertRaisesRegex(mr.MapError, f"block_overrides.csv: line 2.*{msg}"):
+                self.read(HEAD + row)
+
+    def test_a_short_row_reads_its_trailing_fields_as_empty(self):
+        rows = self.read(HEAD + "1,crossover_half,7,13,2,,os:7:A-13C\n" + split(3, 227, 241).replace(",,,,,\n", "\n"))
+        self.assertEqual([(r["kind"], r["block"], r["notes"], r["cm"]) for r in rows],
+                         [("crossover_half", "OS Switch 7b", "", None), ("split", "", "", None)])
+
+    def test_a_crossover_half_letter_is_given_once(self):
+        with self.assertRaisesRegex(mr.MapError, "line 3: Switch 7's half a is given on line 2 too"):
+            self.read(HEAD + "1,crossover_half,7,13,1,,os:7:A-13C\n1,crossover_half,7,5,1,,os:7:A-5B\n")
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / mr.OVERRIDES_NAME
+            path.write_text(HEAD + "1,crossover_half,7,13,1,,os:7:A-13C\n1,crossover_half,7,5,2,,os:7:A-5B\n")
+            self.assertEqual(mr.hand_lists.half_letters(path),
+                             {("1", "os:7:A-13C"): "a", ("1", "os:7:A-5B"): "b"})
+
+    def test_an_unknown_kind_asked_for_stops(self):
+        with self.assertRaisesRegex(mr.MapError, "no kind helix"):
+            self.read(HEAD, ("helix",))
+
+    def test_the_committed_file_reads(self):
+        import build_device_map as bdm
+        rows = mr.read_block_overrides(bdm.block_overrides())
+        self.assertEqual({r["kind"] for r in rows}, set(mr.OVERRIDE_KINDS))
+        splits = [r for r in rows if r["kind"] == "split"]
+        self.assertTrue(splits and all(r["notes"].startswith("OWNER'S CHOICE, not a rule") for r in splits))
 
 
 class HomeMasts(unittest.TestCase):
@@ -452,14 +620,16 @@ class CommittedPlan(RepoReadOnly, unittest.TestCase):
         cls.staging = mr.tracks(bands, runs, joined, {1: "H"}, levels={"Staging level": 1})
         mr.track_names(cls.staging)
         cls.staging_cp = {s: i.name for i in rr.interlockings if i.level == 1 for s in i.switches}
-        cls.splits = bdm.SPLIT
+        cls.splits = bdm.block_overrides()
 
     def test_running_track_on_main_and_upper_is_the_old_hand_list(self):
         self.assertEqual(mr.running_tracks(self.bands, self.found, self.cp_of),
                          {"Track 119-121", "Track 121-123", "Track 211-217 1", "Track 217-219"})
 
     def test_running_track_on_staging_is_scale(self):
-        self.assertEqual(mr.running_tracks(self.bands, self.staging, self.staging_cp), {"Track 5-7 1"})
+        # staging's own rule names its two 5-7 tracks in plan order (mast_rule.plan_order): East Ext (5B-7A) is 1,
+        # Scale (5C-7B) is 2
+        self.assertEqual(mr.running_tracks(self.bands, self.staging, self.staging_cp), {"Track 5-7 2"})
 
     def test_exit_dwarfs_are_the_old_hand_list(self):
         self.assertEqual(mr.signalled_spurs(self.found, self.cp_of), {"Track 241 Spur"})

@@ -10,7 +10,9 @@ Page-1 spacing (hand-tuned Jul 2026 — keep on rebuild):
   soft pad before §1; §1→§2 gap ~6pt before heading (not a large bias pad);
   sequence rows 17/28pt; legend rows 16/18pt (Rev E: nine legend rows plus yard rules).
 
-Usage (from repo root):
+The text is read from the crew master, ops/hart-ops/data/crew.json (job "yardmaster").
+
+Usage (from ops/hart-ops):
   .venv/bin/python publications/rebuild_yardmaster_sequence.py
 
 Writes:
@@ -48,55 +50,22 @@ from hart_pub_helpers import (  # noqa: E402
 
 CANONICAL = DOCS / "Neville_Island_Yardmaster_Sequence.docx"
 
-PUBLICATION = {
-    "title": "Yardmaster Sequence",
-    "pub_id": "YM-01",
-    "revision": "E",
-    "effective": "14 November 2026",
-}
+import crew_master  # noqa: E402
 
-# Color, fill, text, destination, block. Rev E names the blocks the yardmaster
-# builds (Session #4 punch list): NVL local, CSX, P&OV, CK1, and uncolored storage.
-BLOCK_LEGEND: list[tuple[str, str, str, str, str]] = [
-    ("YELLOW", "FFFF00", "000000", "Aristech Plastics", "NVL local"),
-    ("GREEN", "008000", "FFFFFF", "A. Stucki Co.", "NVL local"),
-    ("PURPLE", "800080", "FFFFFF", "Calgon Carbon", "NVL local"),
-    ("RED", "FF0000", "FFFFFF", "Ferrellgas", "NVL local"),
-    ("PINK", "FFC0CB", "000000", "Kosmos Cement", "NVL local"),
-    ("BLUE", "0000CD", "FFFFFF", "Demmler Yard; McKeesport", "CSX (D749)"),
-    ("ORANGE", "FFA500", "000000", "Scully Yard; McKees Rocks", "P&OV (NVL return)"),
-    ("BLACK", "000000", "FFFFFF", "Shenango Coke Works", "CK1"),
-    ("NONE", "FFFFFF", "000000", "No card color", "Yard storage"),
-]
+# The publication line, the blocking list, the yard rules and the sequence come from the crew master
+# (ops/hart-ops/data/crew.json, job "yardmaster", ADR-039).
+_MASTER = crew_master.load()
+_JOB = crew_master.job(_MASTER, "yardmaster")
+PUBLICATION = crew_master.publication(_JOB)
+
+# Color, fill, text, destination, block, in the job's color order (the site shows the same), then the
+# uncolored storage row (legend_extra, which the site shows too).
+BLOCK_LEGEND: list[tuple[str, str, str, str, str]] = crew_master.block_legend(_MASTER)
 
 # Yard rules printed under the blocking list (Session #4 punch list).
-YARD_RULES: list[str] = [
-    "The dispatcher throws the Switch 7 crossover at Barn only with your permission.",
-    "Park the work train on EH-1, the engine terminal back track, not in the yard.",
-]
+YARD_RULES: list[str] = _JOB["rules"]
 
-SEQUENCE: list[tuple[str, str, str]] = [
-    (
-        "1",
-        "D749",
-        "Receive inbound Demmler / McKeesport block, build and hand-off outbounds to D749. (Blue)",
-    ),
-    (
-        "2",
-        "NVL",
-        "Receive the Scully setout and give NVL the local cut for delivery. (Yellow, Green, Purple, Red, Pink)",
-    ),
-    (
-        "3",
-        "CK1",
-        "Hand Shenango cars to CK1 for delivery; (Black) Calibrate the scale, weigh coke pull and sort.",
-    ),
-    (
-        "4",
-        "NVL return",
-        "Receive NVL setouts and give the Scully / McKees Rocks block for the return. (Orange)",
-    ),
-]
+SEQUENCE: list[tuple[str, str, str]] = crew_master.yard_sequence(_MASTER)
 
 WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 

@@ -1,6 +1,6 @@
 # ADR-007 — Repository layout
 
-- **Status:** Accepted. Amended 2026-10-31: the dissolve in decision 3 is complete. The leftover `archive/consolidation/` folder was removed the same day and remains in git history. Amended 2026-11-12: the deploy exception in decision 2 is retired (see the amendment below).
+- **Status:** Accepted. Amended 2026-10-31: the dissolve in decision 3 is complete. The leftover `archive/consolidation/` folder was removed the same day and remains in git history. Amended 2026-11-12: the deploy exception in decision 2 is retired (see the amendment below). Amended 2026-11-26: `archive/` is grouped into `code/`, `data/` and `history/` (decision 4).
 - **Date:** 2026-10-31
 - **Deciders:** lnevo
 
@@ -18,6 +18,7 @@
    - `external/` holds only the submodules and the STS data. hart-ops left it for `ops/hart-ops/` on 2026-11-09 (ADR-019).
    - `media/` is gitignored photo, video and archive material.
    - `archive/` holds retired material; nothing in it runs.
+     Amended 2026-11-26: it is grouped by kind into `archive/code/` (retired scripts and tools), `archive/data/` (retired data files) and `archive/history/` (finished hand-offs, old wiki pages and notes), each with a README.
 5. All created documents live in `docs/`. One file per purpose. Tools stay live; superseded outputs go to `archive/`.
 6. Live data is read from the repo. `~/sts` gets no sync. ~~Four `~/Desktop/HART` folders stay in step through `sync_desktop_data.py`, which never deletes.~~ Superseded 2026-11-09: `~/Desktop/HART` is retired and the sync tool removed (see the amendment below).
 
@@ -33,7 +34,7 @@ Consolidation decisions:
 | D5 | Kept; retired logic goes to `archive/` |
 | D7, P3b | Kept; submodules move to `external/` |
 | D2f | Closed; the 22 live virtual masts are correct |
-| D2, D2e | Kept; `public_name_map.csv` is the single names source |
+| D2, D2e | Kept; `public_name_map.csv` (retired 2026-11-20, ADR-029; now `devices.csv`) is the single names source |
 | D4, D6 | Kept |
 | D11, P3a | Closed by ADR-013: hart-ops holds the one car repository |
 | Validation tiers | Replaced by the deploy gates, one `check` command and a pre-session checklist |

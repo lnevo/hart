@@ -4,10 +4,10 @@
 from __future__ import annotations
 
 import csv
-import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from process_car_images import CSV_COLUMNS, METADATA_CSV, ROSTER_XML
+from hartlib import operations  # process_car_images put tools/hartlib/src on sys.path
 from engine_lookup import is_locomotive_row
 from roster_id import assign_freight_roster_id
 
@@ -969,12 +969,12 @@ VISUAL: dict[str, dict] = {
         "notes": "CSX heritage B&O locomotive; engine_roster_id=CSX1827",
     },
     "IMG_9186.png": {
-        "reporting_marks": "TTC",
+        "reporting_marks": "PRC",
         "road_number": "4678",
         "car_type": "Streetcar",
         "full_name": "PCC · Streetcar",
         "match_confidence": "visual_review",
-        "notes": "Toronto Transit Commission PCC streetcar; not in car roster",
+        "notes": "PRC PCC streetcar for Route 23 (owner, 2026-11-25); not in car roster",
     },
     "IMG_9187.png": {
         "reporting_marks": "Conrail",
@@ -988,9 +988,8 @@ VISUAL: dict[str, dict] = {
 
 
 def load_roster() -> dict[str, dict]:
-    root = ET.parse(ROSTER_XML).getroot()
     out: dict[str, dict] = {}
-    for el in root.findall("./cars/car"):
+    for el in operations.cars(ROSTER_XML):
         rid = el.get("id", "")
         out[rid] = {
             "roster_id": rid,

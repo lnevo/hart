@@ -7,7 +7,7 @@
 
 Run it when a control point is wired as the device map has it (owner, 2026-11-20: once main and upper are wired,
 their values are static; the rule is for the design while it is open). The control point's devices in
-jmri/layouts/hart/data/devices.csv (levels 2 and 3, its `cp`) become rows of jmri/layouts/hart/data/wiring.csv,
+the device master (levels 2 and 3, its `cp`) become rows of jmri/layouts/hart/data/wiring.csv,
 status wired:
   - each turnout ("Switch <n>"; its LCC alias follows it) and feedback sensor ("FB Switch <n> N|R"): node, LCOS
     number, board and ports;
@@ -32,9 +32,12 @@ import tempfile
 from datetime import date
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-sys.path[:0] = [str(ROOT / "tools/hartlib/src"), str(ROOT / "tools/schematic")]
-from hartlib import devices, wiring  # noqa: E402
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import devices, paths, wiring  # noqa: E402
+
+ROOT = paths.REPO_ROOT
+sys.path.insert(1, str(ROOT / "tools/schematic"))
 from hartlib.railroad_facts import FactsError  # noqa: E402
 import build_device_map as bdm  # noqa: E402
 import build_layout_le as bl  # noqa: E402
@@ -50,14 +53,16 @@ class FreezeError(Exception):
 
 
 def device_rows(path: Path | None = None) -> list[dict]:
-    """Every main and upper row of the master in the device-map form, values stripped."""
-    return [{c: v.strip() for c, v in r.items()} for _l, r in devices.device_map_lines(("2", "3"), path)]
+    """Every main and upper row of the master in the device-map form plus its role and id, values stripped."""
+    return [{c: v.strip() for c, v in {**devices.device_map_row(r), "role": r["role"], "id": r["id"]}.items()}
+            for r in devices.load(path) if r["level"] in ("2", "3") and r["role"] not in devices.OUT_OF_MAPS]
 
 
 def track_keys(found: list[dict] | None = None) -> dict[str, dict]:
     """{block name: {switch_a, switch_b, parallel, half}} of every main and upper track block, as
     build_device_map.read_pins resolves them: the track's end switches (mast_rule.track_key, lower first), `parallel`
-    when two tracks share them (1, 2 from the top row), `half` for a balloon loop's or a split track's halves."""
+    when two tracks share them (1, 2 in mast_rule.plan_order, as resolve_track reads them back), `half` for a
+    balloon loop's or a split track's halves."""
     import mast_rule
     found = bdm.named_tracks() if found is None else found
     split = bdm.split_tracks(found=found)
@@ -68,7 +73,7 @@ def track_keys(found: list[dict] | None = None) -> dict[str, dict]:
             by_key.setdefault((t["level"], key), []).append(t)
     out = {}
     for (_lv, (a, b)), same in by_key.items():
-        same.sort(key=lambda t: (t["row"], t["trial"]))
+        same.sort(key=mast_rule.plan_order)
         for i, t in enumerate(same, 1):
             halves = (1, 2) if (t["loop"] or t["name"] in split) else (None,)
             for half in halves:
@@ -80,16 +85,20 @@ def track_keys(found: list[dict] | None = None) -> dict[str, dict]:
 def freeze_rows(cp: str, rows: list[dict], keys: dict[str, dict], helix: set[str], today: str) -> list[dict]:
     """The wiring.csv rows (wiring.COLUMNS, status wired) of control point `cp`'s devices on a node. FreezeError on
     no such control point or a head with no node."""
-    mine = [r for r in rows if r["cp"] == cp]
+    # a line block's cp lists the places it joins (devices.LIST), its own level's first (build_device_map.line_cp):
+    # its detector is frozen with that first one
+    first = lambda r: devices.place(r).split(devices.LIST)[0]  # noqa: E731  a turnout's from the switch lists
+    mine = [r for r in rows if first(r) == cp]
     if not mine:
-        cps = sorted({r["cp"] for r in rows if r["cp"]}, key=lambda c: [int(t) if t.isdigit() else t
+        cps = sorted({first(r) for r in rows if first(r)}, key=lambda c: [int(t) if t.isdigit() else t
                                                                          for t in re.split(r"(\d+)", c)])
         raise FreezeError(f"no main or upper control point {cp!r}; they are {', '.join(cps)}")
-    note = f"frozen from the device map's rule ({cp}, {today})"
+    note = wiring.freeze_note(cp, today)
+    where = devices.index().where              # a row's line in the device master, for a message
     out, bad = [], []
     for r in mine:
         base = {c: "" for c in wiring.COLUMNS} | dict(level=r["level"], status="wired", notes=note)
-        if r["layer"] == "turnout" and r["system_name"].startswith("MTT"):
+        if r["layer"] == "turnout" and devices.row_role(r, where(r)) == "lcc_alias":
             continue                                           # an LCC alias: its turnout's row carries it
         if r["layer"] in ("turnout", "fb", "head"):
             if r["layer"] == "head" and not r["node"]:
@@ -107,7 +116,7 @@ def freeze_rows(cp: str, rows: list[dict], keys: dict[str, dict], helix: set[str
             first = f"{groups[0][0]}{groups[0][1]}"
             ports = [p if f"{kind}{board}" == first else f"{kind}{board}-{p}"
                      for kind, board, pins in groups for p in pins.split(",")]
-            out.append(base | dict(kind=KIND[m.group(2)], device=r["user_name"], node=m.group(1),
+            out.append(base | dict(kind=KIND[m.group(2)], id=r["id"], node=m.group(1),
                                    index=m.group(3), board=first, ports=",".join(ports)))
         elif r["layer"] == "occupancy" and r["node"]:
             m = BLOCK.match(r["comment"])
@@ -116,8 +125,8 @@ def freeze_rows(cp: str, rows: list[dict], keys: dict[str, dict], helix: set[str
                 bad.append(f"occupancy {r['user_name']}: its wiring {r['comment']!r} gives no input")
                 continue
             row = base | dict(kind="detector", node=m.group(1), index=m.group(2))
-            if block.startswith("OS Switch ") or block in helix:
-                row["device"] = block
+            if devices.is_os(r, where(r)) or block in helix:        # its role is its block's
+                row["id"] = r["id"]                                 # det:<block id>: the name store names it
             elif block in keys:
                 row |= keys[block]
             else:
@@ -130,10 +139,11 @@ def freeze_rows(cp: str, rows: list[dict], keys: dict[str, dict], helix: set[str
 
 
 def key_of(r) -> tuple:
-    """A wiring.csv row's identity: its level, kind and device (or a track's switches and half)."""
+    """A wiring.csv row's identity: its level, kind and id (or a local device's label, or a track's switches and
+    half)."""
     get = r.get if isinstance(r, dict) else lambda c: getattr(r, c)
-    return (str(get("level")), get("kind"), get("device"), get("switch_a"), get("switch_b"), get("parallel"),
-            get("half"))
+    return (str(get("level")), get("kind"), get("id"), get("device"), get("switch_a"), get("switch_b"),
+            get("parallel"), get("half"))
 
 
 def merge(text: str, new: list[dict]) -> tuple[str, list[dict], list[dict]]:
@@ -150,7 +160,7 @@ def merge(text: str, new: list[dict]) -> tuple[str, list[dict], list[dict]]:
             added.append(r)
         elif rows[i]["status"] == "planned":
             if (rows[i]["node"], rows[i]["index"]) != (r["node"], r["index"]):
-                moved.append(f"{r['device'] or r['switch_a'] + '-' + r['switch_b']}: wiring.csv plans node "
+                moved.append(f"{r['id'] or r['switch_a'] + '-' + r['switch_b']}: wiring.csv plans node "
                              f"{rows[i]['node']} input {rows[i]['index']}, the device map has node {r['node']} "
                              f"input {r['index']}")
                 continue
@@ -159,18 +169,12 @@ def merge(text: str, new: list[dict]) -> tuple[str, list[dict], list[dict]]:
     if moved:
         raise FreezeError("planned rows the device map does not follow (rebuild it: "
                           "python3 tools/schematic/build_device_map.py): " + "; ".join(moved))
-    level = {"1": 0, "2": 1, "3": 2}
-    rows.sort(key=lambda r: level[r["level"]])                 # stable: staging, then main, then upper
-    buf = io.StringIO()
-    w = csv.DictWriter(buf, wiring.COLUMNS, lineterminator="\n")
-    w.writeheader()
-    w.writerows(rows)
-    return buf.getvalue(), added, turned
+    return wiring.canonical(rows), added, turned               # staging, then main, then upper: the one format
 
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--cp", required=True, help='the control point, as devices.csv names it ("CP 107")')
+    ap.add_argument("--cp", required=True, help='the control point, as the device master names it ("CP 107")')
     ap.add_argument("--dry-run", action="store_true", help="print the rows; write nothing")
     args = ap.parse_args(argv)
     try:

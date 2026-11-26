@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Schematic-Maps Plugin — HART</title>
+  <meta name="description" content="A free plugin that draws a schematic sheet, a JMRI Layout Editor panel and a CATS dispatcher desk from a track plan, and how it did on the 38 example layouts AnyRail publishes.">
+  <link rel="stylesheet" href="../css/ops.css">
+  <link rel="stylesheet" href="../css/article.css">
+  <style>
+    .feature-body .cta { border-top-color: var(--accent); }
+    .feature-body .cta h3 { margin: 0 0 0.35rem; }
+    .feature-body .cta .btn { margin-top: 0.3rem; }
+    .feature-body .credits { border-top-color: var(--accent); }
+    .feature-body .credits h3 { margin: 0 0 0.35rem; }
+    .sm-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 30rem), 1fr)); gap: 1.25rem; margin-top: 1rem; }
+    .sm-gallery .sm-pair { margin: 0; }
+    .sm-imgs { display: grid; grid-template-columns: 2fr 3fr; gap: 0.5rem; align-items: start; }
+    .sm-imgs img { display: block; width: 100%; height: auto; border: 1px solid var(--border, #ccc); background: #fff; }
+    .sm-none { padding: 1rem 0.5rem; border: 1px dashed var(--border, #ccc); font-size: 0.85rem; text-align: center; }
+    .sm-pair figcaption { font-size: 0.88rem; margin-top: 0.4rem; }
+    @media (max-width: 30rem) { .sm-imgs { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <article class="feature">
+      <header class="feature-head">
+        <h1>The Schematic-Maps Plugin</h1>
+        <p class="standfirst">A free plugin that reads a track plan and draws a schematic sheet, a JMRI Layout Editor panel and a CATS dispatcher desk. It drew 37 of the 38 example layouts that AnyRail publishes.</p>
+        <p class="byline">Behind the Scenes · November 2026</p>
+      </header>
+
+      <nav class="feature-toc" aria-label="On this page">
+        <h2>On this page</h2>
+        <ol>
+          <li><a href="#what">What it does</a></li>
+          <li><a href="#test">The test on AnyRail's examples</a></li>
+          <li><a href="#credits">Credits</a></li>
+          <li><a href="#gallery">All 38 layouts</a></li>
+          <li><a href="#references">References</a></li>
+        </ol>
+      </nav>
+
+      <div class="feature-body">
+        <section id="intro" aria-label="Introduction">
+          <p class="lede">The plugin takes a track plan and draws it three ways from one solve: a schematic sheet with a band for each level, a JMRI Layout Editor panel, and a CATS dispatcher desk. The plan can be an AnyRail plan exported as JMRI XML, or an AnyRail <code>.any</code> file read directly.</p>
+          <div class="aside-box cta">
+            <h3>Get it</h3>
+            <p>The plugin is public and free, in the same repository as the other model-railroad plugins.</p>
+            <p><a class="btn" href="https://github.com/lnevo/model-railroad-skills">Plugin repository on GitHub</a> <a class="btn btn-ghost" href="https://github.com/lnevo/model-railroad-skills/blob/main/plugins/schematic-maps/docs/anyrail-examples/README.md">Full results page</a></p>
+          </div>
+        </section>
+
+        <section id="what" aria-labelledby="h-what">
+          <h2 id="h-what"><span class="num">01</span>What it does</h2>
+          <p>The sheet has one band for each level, the main line level through every switch, yard ladders stepped diagonally, loops, helix tracks, lettered connectors where a track climbs between levels, and signal masts. Switch numbers and track names are placed so that nothing overlaps, and the command checks the finished sheet for crossing lines and overlapping labels.</p>
+          <p>The Layout Editor panel and the CATS desk come from the same solved drawing, so the three agree on the order of tracks and on every switch. It runs as a Python command, <code>schematic</code>, that uses only the standard library, and draws the same sheet from the same input on every machine.</p>
+          <p>The only input it needs is the plan. Preferences (titles, band order, lengths chosen for looks) and hints are optional, and the sheet is correct without them. A skill tells the agent the order of the work. Install it in Claude Code with <code>claude plugin install schematic-maps@model-railroad-skills</code>.</p>
+        </section>
+
+        <section id="test" aria-labelledby="h-test">
+          <h2 id="h-test"><span class="num">02</span>The test on AnyRail's examples</h2>
+          <p>DRail Software, the maker of AnyRail, publishes 38 example layouts at <a href="https://www.anyrail.com/examples">anyrail.com/examples</a>. Each was exported from AnyRail as JMRI XML and drawn by plugin version 0.1.53 with no hints and no preferences, so each sheet is the plan's own track, read as it is.</p>
+          <ul>
+            <li><b>37 of 38 draw.</b> D6 (1105 switches) ran out of its 900 s limit and has no sheet.</li>
+            <li><b>Times</b> run from under a second to about 14 minutes. The longest drawn is D18, 144 switches, at 833 s.</li>
+            <li><b>Lighter search.</b> A band with 100 or more switches, or 20 or more independent loops, gets a lighter search, which the run logs. The gallery marks the four layouts where it was used (D10, D11, D17 and D24).</li>
+            <li><b>Faults</b> are places where two tracks cross or lie on top of each other on the sheet. <b>Label faults</b> are labels that found no clear spot. Both counts are under each pair of pictures below.</li>
+          </ul>
+          <p>The runs were made on a Mac, three plans at a time, with a 600 s limit and 900 s for the last three. The <a href="https://github.com/lnevo/model-railroad-skills/blob/main/plugins/schematic-maps/docs/anyrail-examples/README.md">results page on GitHub</a> has the table and every sheet.</p>
+        </section>
+
+        <section id="credits" aria-labelledby="h-credits">
+          <h2 id="h-credits"><span class="num">03</span>Credits</h2>
+          <div class="aside-box credits">
+            <h3>These layouts are other people's work</h3>
+            <ul>
+              <li>The layouts are the work of their designers, published by DRail Software, the maker of AnyRail, on its <a href="https://www.anyrail.com/examples">examples page</a>.</li>
+              <li>Each title and designer below is as AnyRail gives it. "Not credited" means the page names no one.</li>
+              <li>The left picture of each pair is AnyRail's drawing of the plan, exported from AnyRail with the plan.</li>
+              <li>Each layout's title links to its entry on AnyRail's examples page.</li>
+              <li>The right picture is the plugin's sheet.</li>
+              <li>The plan files are not published.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="gallery" aria-labelledby="h-gallery">
+          <h2 id="h-gallery"><span class="num">04</span>All 38 layouts</h2>
+          <p>AnyRail's drawing is on the left and the plugin's sheet on the right. Each picture opens full size; AnyRail's drawings are kept at 360 px wide. Sheets are vector files and zoom in.</p>
+          <div class="sm-gallery">
+          <figure class="sm-pair" id="d1">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D1.jpg"><img src="../assets/behind/schematic-maps/plans/D1.jpg" width="360" height="288" loading="lazy" alt="AnyRail's drawing of N: Russ Haigh, an oval mini On18 layout"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D1.svg"><img src="../assets/behind/schematic-maps/sheets/D1.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for N: Russ Haigh, an oval mini On18 layout"></a>
+            </div>
+            <figcaption>D1 · <strong><a href="https://www.anyrail.com/examples#:~:text=N%3A%20Russ%20Haigh%2C%20an%20oval%20mini%20On18%20layout">N: Russ Haigh, an oval mini On18 layout</a></strong><br>Designer: Russ Haigh<br>3 switches · 0.2 s · 0 faults · label faults 0 of 7</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d2">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D2.jpg"><img src="../assets/behind/schematic-maps/plans/D2.jpg" width="360" height="193" loading="lazy" alt="AnyRail's drawing of N: Russ Haigh, a 24&quot; x 48&quot; mini On18 layout"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D2.svg"><img src="../assets/behind/schematic-maps/sheets/D2.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for N: Russ Haigh, a 24&quot; x 48&quot; mini On18 layout"></a>
+            </div>
+            <figcaption>D2 · <strong><a href="https://www.anyrail.com/examples#:~:text=N%3A%20Russ%20Haigh%2C%20a%2024%22%20x%2048%22%20mini%20On18%20layout">N: Russ Haigh, a 24&quot; x 48&quot; mini On18 layout</a></strong><br>Designer: Russ Haigh<br>8 switches · 0.3 s · 0 faults · label faults 0 of 13</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d3">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D3.jpg"><img src="../assets/behind/schematic-maps/plans/D3.jpg" width="360" height="180" loading="lazy" alt="AnyRail's drawing of N gauge 1200mm x 2400mm (4&#x27; x 8&#x27;)"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D3.svg"><img src="../assets/behind/schematic-maps/sheets/D3.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for N gauge 1200mm x 2400mm (4&#x27; x 8&#x27;)"></a>
+            </div>
+            <figcaption>D3 · <strong><a href="https://www.anyrail.com/examples#:~:text=N%20gauge%201200mm%20x%202400mm%20%284%27%20x%208%27%29">N gauge 1200mm x 2400mm (4&#x27; x 8&#x27;)</a></strong><br>Designer: not credited<br>22 switches · 3.6 s · 3 faults · label faults 0 of 26</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d4">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D4.jpg"><img src="../assets/behind/schematic-maps/plans/D4.jpg" width="360" height="135" loading="lazy" alt="AnyRail's drawing of H0: A station with underground run around loop"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D4.svg"><img src="../assets/behind/schematic-maps/sheets/D4.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for H0: A station with underground run around loop"></a>
+            </div>
+            <figcaption>D4 · <strong><a href="https://www.anyrail.com/examples#:~:text=H0%3A%20A%20station%20with%20underground%20run%20around%20loop">H0: A station with underground run around loop</a></strong><br>Designer: not credited<br>31 switches · 2.5 s · 0 faults · label faults 0 of 35</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d5">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D5.jpg"><img src="../assets/behind/schematic-maps/plans/D5.jpg" width="360" height="104" loading="lazy" alt="AnyRail's drawing of N: Peter, Layout 5"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D5.svg"><img src="../assets/behind/schematic-maps/sheets/D5.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for N: Peter, Layout 5"></a>
+            </div>
+            <figcaption>D5 · <strong><a href="https://www.anyrail.com/examples#:~:text=N%3A%20Peter%2C%20Layout%205">N: Peter, Layout 5</a></strong><br>Designer: Peter<br>15 switches · 0.2 s · 0 faults · label faults 0 of 25</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d6">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D6.jpg"><img src="../assets/behind/schematic-maps/plans/D6.jpg" width="360" height="213" loading="lazy" alt="AnyRail's drawing of N: Jeff Partridge, Heavy Rail"></a>
+              <div class="sm-none">No sheet</div>
+            </div>
+            <figcaption>D6 · <strong><a href="https://www.anyrail.com/examples#:~:text=N%3A%20Jeff%20Partridge%2C%20Heavy%20Rail">N: Jeff Partridge, Heavy Rail</a></strong><br>Designer: Jeff Partridge<br>1105 switches. No sheet: ran out of the 900 s limit.</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d7">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D7.jpg"><img src="../assets/behind/schematic-maps/plans/D7.jpg" width="360" height="360" loading="lazy" alt="AnyRail's drawing of H0: Bill Coxe, Attic floor plan"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D7.svg"><img src="../assets/behind/schematic-maps/sheets/D7.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for H0: Bill Coxe, Attic floor plan"></a>
+            </div>
+            <figcaption>D7 · <strong><a href="https://www.anyrail.com/examples#:~:text=H0%3A%20Bill%20Coxe%2C%20Attic%20floor%20plan">H0: Bill Coxe, Attic floor plan</a></strong><br>Designer: Bill Coxe<br>52 switches · 230 s · 1 fault · label faults 0 of 57</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d8">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D8.jpg"><img src="../assets/behind/schematic-maps/plans/D8.jpg" width="360" height="79" loading="lazy" alt="AnyRail's drawing of N: Bert de Vries, Two stations"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D8.svg"><img src="../assets/behind/schematic-maps/sheets/D8.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for N: Bert de Vries, Two stations"></a>
+            </div>
+            <figcaption>D8 · <strong><a href="https://www.anyrail.com/examples#:~:text=N%3A%20Bert%20de%20Vries%2C%20Two%20stations">N: Bert de Vries, Two stations</a></strong><br>Designer: Bert de Vries<br>23 switches · 1.9 s · 0 faults · label faults 0 of 27</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d9">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D9.jpg"><img src="../assets/behind/schematic-maps/plans/D9.jpg" width="360" height="108" loading="lazy" alt="AnyRail's drawing of H0: Dave Gann, Hudson Central Railroad"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D9.svg"><img src="../assets/behind/schematic-maps/sheets/D9.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for H0: Dave Gann, Hudson Central Railroad"></a>
+            </div>
+            <figcaption>D9 · <strong><a href="https://www.anyrail.com/examples#:~:text=H0%3A%20Dave%20Gann%2C%20Hudson%20Central%20Railroad">H0: Dave Gann, Hudson Central Railroad</a></strong><br>Designer: Dave Gann<br>21 switches · 3.1 s · 0 faults · label faults 0 of 25</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d10">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D10.jpg"><img src="../assets/behind/schematic-maps/plans/D10.jpg" width="360" height="180" loading="lazy" alt="AnyRail's drawing of Chicago to St. Louis"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D10.svg"><img src="../assets/behind/schematic-maps/sheets/D10.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for Chicago to St. Louis"></a>
+            </div>
+            <figcaption>D10 · <strong><a href="https://www.anyrail.com/examples#:~:text=Chicago%20to%20St.%20Louis">Chicago to St. Louis</a></strong><br>Designer: Marc Shaw<br>139 switches · 265 s · 12 faults · label faults 8 of 145 · lighter search</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d11">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D11.jpg"><img src="../assets/behind/schematic-maps/plans/D11.jpg" width="360" height="360" loading="lazy" alt="AnyRail's drawing of H0: Eric Consemulder, club layout"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D11.svg"><img src="../assets/behind/schematic-maps/sheets/D11.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for H0: Eric Consemulder, club layout"></a>
+            </div>
+            <figcaption>D11 · <strong><a href="https://www.anyrail.com/examples#:~:text=H0%3A%20Eric%20Consemulder%2C%20club%20layout">H0: Eric Consemulder, club layout</a></strong><br>Designer: Eric Consemulder<br>105 switches · 22 s · 19 faults · label faults 7 of 121 · lighter search</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d12">
+            <div class="sm-imgs">
+              <div class="sm-none">No AnyRail drawing exported for this plan</div>
+              <a href="../assets/behind/schematic-maps/sheets/D12.svg"><img src="../assets/behind/schematic-maps/sheets/D12.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for H0: Zoltán Rigó, Big Station"></a>
+            </div>
+            <figcaption>D12 · <strong><a href="https://www.anyrail.com/examples#:~:text=H0%3A%20Zolt%C3%A1n%20Rig%C3%B3%2C%20Big%20Station">H0: Zoltán Rigó, Big Station</a></strong><br>Designer: Zoltán Rigó<br>48 switches · 3.8 s · 1 fault · label faults 6 of 59</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d13">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D13.jpg"><img src="../assets/behind/schematic-maps/plans/D13.jpg" width="360" height="110" loading="lazy" alt="AnyRail's drawing of 00: Andy Hutcheon Loft layout"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D13.svg"><img src="../assets/behind/schematic-maps/sheets/D13.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for 00: Andy Hutcheon Loft layout"></a>
+            </div>
+            <figcaption>D13 · <strong><a href="https://www.anyrail.com/examples#:~:text=00%3A%20Andy%20Hutcheon%20Loft%20layout">00: Andy Hutcheon Loft layout</a></strong><br>Designer: Andy Hutcheon<br>40 switches · 313 s · 5 faults · label faults 0 of 45</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d14">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D14.jpg"><img src="../assets/behind/schematic-maps/plans/D14.jpg" width="360" height="246" loading="lazy" alt="AnyRail's drawing of H0: Michael Carver"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D14.svg"><img src="../assets/behind/schematic-maps/sheets/D14.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for H0: Michael Carver"></a>
+            </div>
+            <figcaption>D14 · <strong><a href="https://www.anyrail.com/examples#:~:text=H0%3A%20Michael%20Carver">H0: Michael Carver</a></strong><br>Designer: Michael Carver<br>22 switches · 2.4 s · 0 faults · label faults 0 of 31</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d15">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D15.jpg"><img src="../assets/behind/schematic-maps/plans/D15.jpg" width="360" height="330" loading="lazy" alt="AnyRail's drawing of H0: Rob Boone, Coal mine theme"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D15.svg"><img src="../assets/behind/schematic-maps/sheets/D15.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for H0: Rob Boone, Coal mine theme"></a>
+            </div>
+            <figcaption>D15 · <strong><a href="https://www.anyrail.com/examples#:~:text=H0%3A%20Rob%20Boone%2C%20Coal%20mine%20theme">H0: Rob Boone, Coal mine theme</a></strong><br>Designer: Rob Boone<br>26 switches · 0.5 s · 0 faults · label faults 0 of 37</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d16">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D16.jpg"><img src="../assets/behind/schematic-maps/plans/D16.jpg" width="360" height="360" loading="lazy" alt="AnyRail's drawing of H0: Peter Hanenberg, Waldeck"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D16.svg"><img src="../assets/behind/schematic-maps/sheets/D16.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for H0: Peter Hanenberg, Waldeck"></a>
+            </div>
+            <figcaption>D16 · <strong><a href="https://www.anyrail.com/examples#:~:text=H0%3A%20Peter%20Hanenberg%2C%20Waldeck">H0: Peter Hanenberg, Waldeck</a></strong><br>Designer: Peter Hanenberg<br>28 switches · 1.8 s · 0 faults · label faults 0 of 32</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d17">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D17.jpg"><img src="../assets/behind/schematic-maps/plans/D17.jpg" width="320" height="360" loading="lazy" alt="AnyRail's drawing of H0: Alain Lissoir, Belgian Railways"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D17.svg"><img src="../assets/behind/schematic-maps/sheets/D17.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for H0: Alain Lissoir, Belgian Railways"></a>
+            </div>
+            <figcaption>D17 · <strong><a href="https://www.anyrail.com/examples#:~:text=H0%3A%20Alain%20Lissoir%2C%20Belgian%20Railways">H0: Alain Lissoir, Belgian Railways</a></strong><br>Designer: Alain Lissoir<br>164 switches · 578 s · 24 faults · label faults 25 of 172 · lighter search</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d18">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D18.jpg"><img src="../assets/behind/schematic-maps/plans/D18.jpg" width="360" height="333" loading="lazy" alt="AnyRail's drawing of H0: Merv Hourigan, Newcastle Station"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D18.svg"><img src="../assets/behind/schematic-maps/sheets/D18.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for H0: Merv Hourigan, Newcastle Station"></a>
+            </div>
+            <figcaption>D18 · <strong><a href="https://www.anyrail.com/examples#:~:text=H0%3A%20Merv%20Hourigan%2C%20Newcastle%20Station">H0: Merv Hourigan, Newcastle Station</a></strong><br>Designer: Merv Hourigan<br>144 switches · 833 s · 2 faults · label faults 11 of 167</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d19">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D19.jpg"><img src="../assets/behind/schematic-maps/plans/D19.jpg" width="360" height="268" loading="lazy" alt="AnyRail's drawing of H0: John MacDonald, Real water"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D19.svg"><img src="../assets/behind/schematic-maps/sheets/D19.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for H0: John MacDonald, Real water"></a>
+            </div>
+            <figcaption>D19 · <strong><a href="https://www.anyrail.com/examples#:~:text=H0%3A%20John%20MacDonald%2C%20Real%20water">H0: John MacDonald, Real water</a></strong><br>Designer: John MacDonald<br>24 switches · 8.7 s · 0 faults · label faults 0 of 29</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d20">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D20.jpg"><img src="../assets/behind/schematic-maps/plans/D20.jpg" width="360" height="94" loading="lazy" alt="AnyRail's drawing of H0: Rien de Koning, Königsbach"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D20.svg"><img src="../assets/behind/schematic-maps/sheets/D20.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for H0: Rien de Koning, Königsbach"></a>
+            </div>
+            <figcaption>D20 · <strong><a href="https://www.anyrail.com/examples#:~:text=H0%3A%20Rien%20de%20Koning%2C%20K%C3%B6nigsbach">H0: Rien de Koning, Königsbach</a></strong><br>Designer: Rien de Koning<br>13 switches · 2.1 s · 1 fault · label faults 0 of 18</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d21">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D21.jpg"><img src="../assets/behind/schematic-maps/plans/D21.jpg" width="360" height="315" loading="lazy" alt="AnyRail's drawing of H0: Jack Biermans, A large city layout"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D21.svg"><img src="../assets/behind/schematic-maps/sheets/D21.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for H0: Jack Biermans, A large city layout"></a>
+            </div>
+            <figcaption>D21 · <strong><a href="https://www.anyrail.com/examples#:~:text=H0%3A%20Jack%20Biermans%2C%20A%20large%20city%20layout">H0: Jack Biermans, A large city layout</a></strong><br>Designer: Jack Biermans<br>20 switches · 5.6 s · 4 faults · label faults 0 of 24</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d22">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D22.jpg"><img src="../assets/behind/schematic-maps/plans/D22.jpg" width="360" height="248" loading="lazy" alt="AnyRail's drawing of H0: Cambria Pine Railroad"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D22.svg"><img src="../assets/behind/schematic-maps/sheets/D22.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for H0: Cambria Pine Railroad"></a>
+            </div>
+            <figcaption>D22 · <strong><a href="https://www.anyrail.com/examples#:~:text=H0%3A%20Cambria%20Pine%20Railroad">H0: Cambria Pine Railroad</a></strong><br>Designer: Ray DeWeese<br>32 switches · 1.3 s · 0 faults · label faults 2 of 45</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d23">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D23.jpg"><img src="../assets/behind/schematic-maps/plans/D23.jpg" width="360" height="280" loading="lazy" alt="AnyRail's drawing of H0: Flats Industrial RR"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D23.svg"><img src="../assets/behind/schematic-maps/sheets/D23.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for H0: Flats Industrial RR"></a>
+            </div>
+            <figcaption>D23 · <strong><a href="https://www.anyrail.com/examples#:~:text=H0%3A%20Flats%20Industrial%20RR">H0: Flats Industrial RR</a></strong><br>Designer: Isaac Fabris<br>15 switches · 0.4 s · 0 faults · label faults 0 of 19</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d24">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D24.jpg"><img src="../assets/behind/schematic-maps/plans/D24.jpg" width="294" height="360" loading="lazy" alt="AnyRail's drawing of H0: Gateway Western Sub 6"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D24.svg"><img src="../assets/behind/schematic-maps/sheets/D24.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for H0: Gateway Western Sub 6"></a>
+            </div>
+            <figcaption>D24 · <strong><a href="https://www.anyrail.com/examples#:~:text=H0%3A%20Gateway%20Western%20Sub%206">H0: Gateway Western Sub 6</a></strong><br>Designer: Isaac Fabris<br>65 switches · 63 s · 11 faults · label faults 0 of 69 · lighter search</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d25">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D25.jpg"><img src="../assets/behind/schematic-maps/plans/D25.jpg" width="360" height="327" loading="lazy" alt="AnyRail's drawing of H0: Mike Malley, Loft Layout"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D25.svg"><img src="../assets/behind/schematic-maps/sheets/D25.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for H0: Mike Malley, Loft Layout"></a>
+            </div>
+            <figcaption>D25 · <strong><a href="https://www.anyrail.com/examples#:~:text=H0%3A%20Mike%20Malley%2C%20Loft%20Layout">H0: Mike Malley, Loft Layout</a></strong><br>Designer: Mike Malley<br>54 switches · 0.6 s · 0 faults · label faults 3 of 73</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d26">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D26.jpg"><img src="../assets/behind/schematic-maps/plans/D26.jpg" width="317" height="360" loading="lazy" alt="AnyRail's drawing of On30/On18: Russ Haigh, FC&amp;P layout"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D26.svg"><img src="../assets/behind/schematic-maps/sheets/D26.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for On30/On18: Russ Haigh, FC&amp;P layout"></a>
+            </div>
+            <figcaption>D26 · <strong><a href="https://www.anyrail.com/examples#:~:text=On30%2FOn18%3A%20Russ%20Haigh%2C%20FC%26P%20layout">On30/On18: Russ Haigh, FC&amp;P layout</a></strong><br>Designer: Russ Haigh<br>29 switches · 3.7 s · 0 faults · label faults 0 of 35</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d27">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D27.jpg"><img src="../assets/behind/schematic-maps/plans/D27.jpg" width="360" height="171" loading="lazy" alt="AnyRail's drawing of N gauge 4200mm x 2000mm (13.75&#x27; x 6.5&#x27;)"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D27.svg"><img src="../assets/behind/schematic-maps/sheets/D27.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for N gauge 4200mm x 2000mm (13.75&#x27; x 6.5&#x27;)"></a>
+            </div>
+            <figcaption>D27 · <strong><a href="https://www.anyrail.com/examples#:~:text=N%20gauge%204200mm%20x%202000mm%20%2813.75%27%20x%206.5%27%29">N gauge 4200mm x 2000mm (13.75&#x27; x 6.5&#x27;)</a></strong><br>Designer: not credited<br>50 switches · 9.7 s · 1 fault · label faults 0 of 56</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d28">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D28.jpg"><img src="../assets/behind/schematic-maps/plans/D28.jpg" width="360" height="221" loading="lazy" alt="AnyRail's drawing of N: Martin de Widt, Middeldam"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D28.svg"><img src="../assets/behind/schematic-maps/sheets/D28.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for N: Martin de Widt, Middeldam"></a>
+            </div>
+            <figcaption>D28 · <strong><a href="https://www.anyrail.com/examples#:~:text=N%3A%20Martin%20de%20Widt%2C%20Middeldam">N: Martin de Widt, Middeldam</a></strong><br>Designer: Martin de Widt<br>42 switches · 2.0 s · 0 faults · label faults 0 of 50</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d29">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D29.jpg"><img src="../assets/behind/schematic-maps/plans/D29.jpg" width="360" height="157" loading="lazy" alt="AnyRail's drawing of N: Peter, Layout 2"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D29.svg"><img src="../assets/behind/schematic-maps/sheets/D29.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for N: Peter, Layout 2"></a>
+            </div>
+            <figcaption>D29 · <strong><a href="https://www.anyrail.com/examples#:~:text=N%3A%20Peter%2C%20Layout%202">N: Peter, Layout 2</a></strong><br>Designer: Peter<br>7 switches · 0.3 s · 0 faults · label faults 0 of 12</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d30">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D30.jpg"><img src="../assets/behind/schematic-maps/plans/D30.jpg" width="360" height="180" loading="lazy" alt="AnyRail's drawing of N: Allok, Radiata Springs"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D30.svg"><img src="../assets/behind/schematic-maps/sheets/D30.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for N: Allok, Radiata Springs"></a>
+            </div>
+            <figcaption>D30 · <strong><a href="https://www.anyrail.com/examples#:~:text=N%3A%20Allok%2C%20Radiata%20Springs">N: Allok, Radiata Springs</a></strong><br>Designer: not credited<br>12 switches · 0.4 s · 0 faults · label faults 0 of 16</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d31">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D31.jpg"><img src="../assets/behind/schematic-maps/plans/D31.jpg" width="360" height="248" loading="lazy" alt="AnyRail's drawing of On3: Cambria Pine Railroad"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D31.svg"><img src="../assets/behind/schematic-maps/sheets/D31.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for On3: Cambria Pine Railroad"></a>
+            </div>
+            <figcaption>D31 · <strong><a href="https://www.anyrail.com/examples#:~:text=On3%3A%20Cambria%20Pine%20Railroad">On3: Cambria Pine Railroad</a></strong><br>Designer: Ray DeWeese<br>24 switches · 12 s · 1 fault · label faults 0 of 31</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d32">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D32.jpg"><img src="../assets/behind/schematic-maps/plans/D32.jpg" width="300" height="360" loading="lazy" alt="AnyRail's drawing of H0: Russ Haigh, On30 SSW layout"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D32.svg"><img src="../assets/behind/schematic-maps/sheets/D32.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for H0: Russ Haigh, On30 SSW layout"></a>
+            </div>
+            <figcaption>D32 · <strong><a href="https://www.anyrail.com/examples#:~:text=H0%3A%20Russ%20Haigh%2C%20On30%20SSW%20layout">H0: Russ Haigh, On30 SSW layout</a></strong><br>Designer: Russ Haigh<br>19 switches · 0.3 s · 0 faults · label faults 0 of 26</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d33">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D33.jpg"><img src="../assets/behind/schematic-maps/plans/D33.jpg" width="360" height="288" loading="lazy" alt="AnyRail's drawing of Passau"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D33.svg"><img src="../assets/behind/schematic-maps/sheets/D33.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for Passau"></a>
+            </div>
+            <figcaption>D33 · <strong><a href="https://www.anyrail.com/examples#:~:text=Passau">Passau</a></strong><br>Designer: Chaz<br>3 switches · 0.3 s · 0 faults · label faults 0 of 7</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d34">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D34.jpg"><img src="../assets/behind/schematic-maps/plans/D34.jpg" width="360" height="161" loading="lazy" alt="AnyRail's drawing of Schwarzenberg"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D34.svg"><img src="../assets/behind/schematic-maps/sheets/D34.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for Schwarzenberg"></a>
+            </div>
+            <figcaption>D34 · <strong><a href="https://www.anyrail.com/examples#:~:text=Schwarzenberg">Schwarzenberg</a></strong><br>Designer: Christian<br>92 switches · 573 s · 3 faults · label faults 15 of 103</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d35">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D35.jpg"><img src="../assets/behind/schematic-maps/plans/D35.jpg" width="360" height="82" loading="lazy" alt="AnyRail's drawing of Christmas layout"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D35.svg"><img src="../assets/behind/schematic-maps/sheets/D35.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for Christmas layout"></a>
+            </div>
+            <figcaption>D35 · <strong><a href="https://www.anyrail.com/examples#:~:text=Christmas%20layout">Christmas layout</a></strong><br>Designer: Rich Erickson<br>10 switches · 0.8 s · 2 faults · label faults 0 of 15</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d36">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D36.jpg"><img src="../assets/behind/schematic-maps/plans/D36.jpg" width="360" height="313" loading="lazy" alt="AnyRail's drawing of Trix Express"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D36.svg"><img src="../assets/behind/schematic-maps/sheets/D36.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for Trix Express"></a>
+            </div>
+            <figcaption>D36 · <strong><a href="https://www.anyrail.com/examples#:~:text=Trix%20Express">Trix Express</a></strong><br>Designer: Herman<br>22 switches · 0.4 s · 0 faults · label faults 0 of 30</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d37">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D37.jpg"><img src="../assets/behind/schematic-maps/plans/D37.jpg" width="360" height="122" loading="lazy" alt="AnyRail's drawing of Z: Chris Manvell, Exhibition layout"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D37.svg"><img src="../assets/behind/schematic-maps/sheets/D37.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for Z: Chris Manvell, Exhibition layout"></a>
+            </div>
+            <figcaption>D37 · <strong><a href="https://www.anyrail.com/examples#:~:text=Z%3A%20Chris%20Manvell%2C%20Exhibition%20layout">Z: Chris Manvell, Exhibition layout</a></strong><br>Designer: Chris Manvell<br>40 switches · 46 s · 6 faults · label faults 0 of 45</figcaption>
+          </figure>
+          <figure class="sm-pair" id="d38">
+            <div class="sm-imgs">
+              <a href="../assets/behind/schematic-maps/plans/D38.jpg"><img src="../assets/behind/schematic-maps/plans/D38.jpg" width="360" height="188" loading="lazy" alt="AnyRail's drawing of Z: Chaz, 69th Street Philadelphia"></a>
+              <a href="../assets/behind/schematic-maps/sheets/D38.svg"><img src="../assets/behind/schematic-maps/sheets/D38.svg" width="1056" height="816" loading="lazy" alt="The plugin's schematic sheet for Z: Chaz, 69th Street Philadelphia"></a>
+            </div>
+            <figcaption>D38 · <strong><a href="https://www.anyrail.com/examples#:~:text=Z%3A%20Chaz%2C%2069th%20Street%20Philadelphia">Z: Chaz, 69th Street Philadelphia</a></strong><br>Designer: Chaz<br>69 switches · 49 s · 8 faults · label faults 1 of 75</figcaption>
+          </figure>
+          </div>
+        </section>
+
+        <section id="references" aria-labelledby="h-refs">
+          <h2 id="h-refs"><span class="num">Notes</span>References</h2>
+          <ol class="refs">
+            <li id="ref-1">The schematic-maps plugin (GitHub). <a href="https://github.com/lnevo/model-railroad-skills">github.com/lnevo/model-railroad-skills</a></li>
+            <li id="ref-2">Results on AnyRail's example layouts, with credits and every sheet (GitHub). <a href="https://github.com/lnevo/model-railroad-skills/blob/main/plugins/schematic-maps/docs/anyrail-examples/README.md">plugins/schematic-maps/docs/anyrail-examples</a></li>
+            <li id="ref-3">AnyRail example layouts, DRail Software. <a href="https://www.anyrail.com/examples">anyrail.com/examples</a></li>
+          </ol>
+          <p class="feature-more">More: <a href="car-cards-article.html">The Car Cards Plugin</a> · <a href="operations-pro-article.html">The Operations Pro Plugin</a> · <a href="../behind/index.html#tools">Behind the Scenes</a></p>
+        </section>
+      </div>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTOps.mountChrome("behind-schematic-maps").catch(function (err) {
+        console.error(err);
+      });
+
+      // Mark the contents entry for the section being read.
+      var links = Array.prototype.slice.call(document.querySelectorAll(".feature-toc a"));
+      if (!("IntersectionObserver" in window) || !links.length) return;
+      var byId = {};
+      links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (!e.isIntersecting || !byId[e.target.id]) return;
+          links.forEach(function (a) { a.removeAttribute("aria-current"); });
+          byId[e.target.id].setAttribute("aria-current", "true");
+        });
+      }, { rootMargin: "-20% 0px -70% 0px" });
+      Object.keys(byId).forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) observer.observe(el);
+      });
+    });
+  </script>
+</body>
+</html>

@@ -71,6 +71,9 @@ GROUP_HEADS = {"start": "At the start", "objects": "Objects", "panels": "Panels"
 PANELS = {
     "USS CTC": "The lever machine, a Panel Editor screen.",
     "HART Railroad": "The track diagram, a Layout Editor panel.",
+    "Staging Level": "The staging level alone, a copy of the track diagram; hidden when the file loads.",
+    "Main Level": "The main level alone, a copy of the track diagram; hidden when the file loads.",
+    "Upper Level": "The upper level alone, a copy of the track diagram; hidden when the file loads.",
     "Dispatcher System": "A Layout Editor panel drawn by the Dispatcher System package.",
 }
 # The parked features (hartlib.parked.PARKED): their sections and panels are not in the file; the page lists them in
@@ -172,7 +175,6 @@ def facts(raw: bytes, root) -> dict:
 
     # Blocks, layout blocks and the detectors they share.
     blocks = [b for b in _direct(root, "blocks", "block") if len(b) > 2]
-    names = {b.findtext("systemName"): b.findtext("userName") or b.findtext("systemName") for b in blocks}
     lbs = _direct(root, "layoutblocks", "layoutblock")
     # A layout block may name its sensor by system or user name; count each sensor once.
     sensor_user = {e.findtext("systemName"): e.findtext("userName") or e.findtext("systemName")
@@ -243,7 +245,7 @@ def facts(raw: bytes, root) -> dict:
     f["logix"] = len(_direct(root, "logixs", "logix"))
 
     # Two LogixNGs: the one in the Initialization Table, its ConditionalNGs and their single actions; and the one
-    # that sets the main and upper virtual block sensors clear (build_layout_le.add_level_clear).
+    # that sets the main and upper virtual block sensors clear (hartlib.tables_build.start_logixng).
     init = [x.text for m in root.findall("LogixNGs") for it in m.findall("InitializationTable") for x in it.findall("LogixNG")]
     ngs = _direct(root, "LogixNGs", "LogixNG")
     ng = _one([n for n in ngs if n.findtext("systemName") in init], "LogixNG in the Initialization Table")
@@ -290,8 +292,9 @@ def facts(raw: bytes, root) -> dict:
         else:
             raise PageError(f"tables.xml: ConditionalNG {sysname} has a {a.tag} action the page does not describe")
         rows.append((c.findtext("userName") or sysname, *what))
-    if not rows or not rows[-1][3]:
-        raise PageError("tables.xml: the last ConditionalNG no longer runs a script, as the page says")
+    if sum(1 for r in rows if r[3]) != 2:
+        raise PageError("tables.xml: the page says two ConditionalNGs run a script; "
+                        f"{sum(1 for r in rows if r[3])} do")
     f["logixng"] = {"name": ng.findtext("userName") or ng_sys, "rows": rows}
     return f
 

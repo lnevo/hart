@@ -1,5 +1,7 @@
 # Speed-match runbook
 
+Step-by-step runbook for measuring loco speeds per throttle step, comparing two locos and working out a corrected speed table with the speedmatch tools.
+
 The tools live in [`jmri/layouts/hart/scripts/speedmatch/`](../../../jmri/layouts/hart/scripts/speedmatch/). Paths below are from the repo root.
 
 Measure how fast a loco runs at each throttle step, compare two locos in the directions they
@@ -11,12 +13,13 @@ The 2026-11-08 run and its scripts stay as the record in
 These tools **never write to a decoder**. The runner moves one loco with its own throttle and
 stops it with that throttle at speed 0 (no emergency stop, no track power, no turnouts). The
 preflight only reads CVs. The correction only proposes a table. Writing is a separate guard
-module (`pom_guard.py`, built elsewhere).
+module (`pom_guard.py`, [`POM_GUARD.md`](POM_GUARD.md)).
 
 ## What is here
 
 | File | What it does | Where it runs |
 |---|---|---|
+| `speedmatch.py` | one command over the tools below (`job`, `drop`, `pom`, `compare`, `to-roster`, `lengths`, `rename-ext`), also `make speedmatch ARGS="..."`; `pom` builds a POM write drop and sends it through `drop_job.sh` ([`POM_GUARD.md`](POM_GUARD.md)) | Mac |
 | `make_job.py` | builds a job file (settings, then the runner) | Mac |
 | `drop_job.sh` | copies a job to the Pi's `jmri_cmd_watcher`, fetches logs, sets the kill flag; sending a job sets the operating flag (`tools/hosts/operating.sh`), so no agent deploys to the Pi or Windows or quits PanelPro on the Pi while trains move (it refuses while the owner's flag is set). Clear it with `tools/hosts/operating.sh off` once the session's last log shows END | Mac |
 | `jython/preflight.py` | reads CVs on the programming track | Pi, inside JMRI |
@@ -78,7 +81,7 @@ from the 2026-11-08 speeds (corrected for the longer loop); the first real run r
 
 | Part | What | Minutes |
 |---|---|---|
-| 1 | Break the 2121/2738 consist (`cs105_consist.py` detach), line up loop 1 (`make_job.py lineup --route loop1`), build the four jobs | 5 |
+| 1 | Break the 2121/2738 consist (`tools/ops/cs105.sh consist detach`), line up loop 1 (`make_job.py lineup --route loop1`), build the four jobs | 5 |
 | 2 | **2121 forward**: warm 60 s, then the distance pass. Its first two steps (8 and 16) are the shakedown: watch the log live (`ssh pi tail -f`), check `STEP`, `SETTLE`, `MEASURE`, `BLOCK` and the sensor order, and `drop_job.sh --kill` if anything looks wrong | 6 |
 | 3 | **2121 reverse**: `--warm-s 0` (already warm), same job | 5 |
 | 4 | Swap to 2738 (no `--mute-sound`), then **2738 forward** with its 60 s warm-up | 9 |
@@ -350,9 +353,11 @@ speeds in mm/s, as in JMRI 5.16 `RosterSpeedProfile`), saves the roster entry an
 index, and logs the profile read back (`STOP written`). It touches no throttle, power, turnout
 or CV, and holds `/tmp/speedrun.active` like the other jobs.
 
-**The Pi is the roster master.** The write happens in the Pi's JMRI. Afterwards sync the roster
-to the Mac and Windows with `tools/hosts/sync_roster_from_pi.sh`; do not edit the roster on
-another host in between.
+**The write happens in the Pi's JMRI.** The repo holds the roster master
+(`jmri/layouts/hart/roster`, ADR-039), and the deploy installs it on every host. Afterwards bring
+the Pi's roster into the repo with `make roster-pull`, then commit and merge before the next
+deploy, which would otherwise stop on the unpulled roster. Do not edit the roster on another host
+in between.
 
 ## Distance mode
 
@@ -528,7 +533,7 @@ settings in the job, and each is logged:
   roster came from a full DecoderPro read on the programming track (2026-11-13), so step 1 can
   be skipped.
 - `CONSISTS_BROKEN = True` - your confirmation that every consist involving the loco is
-  detached. For 2121 and 2738 detach the LCC consist first with `cs105_consist.py`, then set it.
+  detached. For 2121 and 2738 detach the LCC consist first with `tools/ops/cs105.sh consist detach`, then set it.
 - `ABSENT_OK = [...]` - roster ids whose train node is not on the CS-105 that day (the guard
   asks every roster loco's node to answer). Build the list from a consist query: any roster loco
   the query shows as absent goes in. The target loco itself can never be in it.

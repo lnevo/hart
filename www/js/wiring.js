@@ -1,16 +1,13 @@
 // Wiring viewer (behind/wiring.html): LCOS nodes as port grids, signal heads and their
-// R/Y/G pins, the control-point signal splits, turnouts and block sensors, with one search
-// across all of it. Data: data/wiring-inventory.json and data/signal-splits.json, built by
-// scripts/build_wiring_json.py from the LCOS inventory and signal-split workbooks.
+// R/Y/G pins, turnouts and block sensors, with one search across all of it.
+// Data: data/wiring-inventory.json, built by scripts/build_wiring_json.py from the wiring model
+// (the sheets it writes as the v86 inventory, built in memory; the workbook file is never read).
 //
 // Shareable URLs: ?tab=signals&q=6LB · ?node=C4 (opens its port map) · ?node=C4&pin=C4-OU2-7
-// · ?tab=splits&cp=4
 (function () {
   var TABS = [
     { id: "nodes", label: "Nodes" },
     { id: "signals", label: "Signals" },
-    // Signal splits tab parked until the splits sheet is reviewed against the inventory.
-    // { id: "splits", label: "Signal splits" },
     { id: "turnouts", label: "Turnouts" },
     { id: "blocks", label: "Block sensors" },
   ];
@@ -65,15 +62,6 @@
     });
   }
 
-  // Lamp a single head shows for an aspect name (the sheets name aspects, not lamps).
-  function aspectLamp(a) {
-    var s = norm(a);
-    if (/stop/.test(s)) return "R";
-    if (/approach|restricting/.test(s)) return "Y";
-    if (/clear/.test(s)) return "G";
-    return "";
-  }
-
   function chip(color, text) {
     return (
       '<span class="wr-lamp wr-' + esc(color) + '" title="' + esc(COLOR_NAME[color] || "") + '">' +
@@ -93,16 +81,9 @@
       .replace(/ FB$/, " fb");
   }
 
-  function pinPart(port) {
-    // C4-OU2-7 → OU2-7
-    return String(port || "").replace(/^[A-Z]+\d+-/, "");
-  }
-
   window.HARTWiring = {
     mount: async function () {
       var inv = await HARTOps.loadJson("data/wiring-inventory.json");
-      // The splits data is optional (left out of the public build while it is under review).
-      var spl = { source: {}, controlPoints: [] };
 
       var qInput = document.getElementById("wr-q");
       var tabBar = document.getElementById("wr-tabs");
@@ -112,8 +93,7 @@
       var dlgBody = document.getElementById("wr-dialog-body");
 
       document.getElementById("wr-source").innerHTML =
-        "From the LCOS layout inventory " + esc(inv.source.version) +
-        (inv.source.modified ? " (" + esc(inv.source.modified) + ")" : "") + ".";
+        "From the LCOS layout inventory " + esc(inv.source.version) + ".";
 
       var nodeById = {};
       inv.nodes.forEach(function (n) {
@@ -151,7 +131,6 @@
       var state = {
         tab: TABS.some(function (t) { return t.id === params.get("tab"); }) ? params.get("tab") : "nodes",
         q: params.get("q") || "",
-        cp: params.get("cp") || (spl.controlPoints[0] && spl.controlPoints[0].id),
         node: params.get("node") || "",
         pin: params.get("pin") || "",
       };
@@ -165,7 +144,6 @@
         var p = new URLSearchParams();
         if (state.tab !== "nodes") p.set("tab", state.tab);
         if (state.q) p.set("q", state.q);
-        if (state.tab === "splits" && state.cp) p.set("cp", state.cp);
         if (state.node) p.set("node", state.node);
         if (state.node && state.pin) p.set("pin", state.pin);
         var s = p.toString();
@@ -201,18 +179,6 @@
         });
         return parts.join(" | ");
       }
-      function sigHay(s, cp) {
-        var parts = ["CP" + cp.id, cp.area, s.signal, s.mast, s.head, s.node];
-        for (var c in s.lamps || {}) parts.push(s.lamps[c]);
-        s.routes.forEach(function (r) {
-          parts.push(r.from, r.to);
-          parts = parts.concat(r.blocks || []);
-          (r.switches || []).forEach(function (w) {
-            parts.push(w.switch);
-          });
-        });
-        return parts.join(" | ");
-      }
       function objHay(o) {
         var parts = [];
         (function walk(x) {
@@ -230,14 +196,7 @@
           signals: masts.filter(function (m) { return hit(mastHay(m), ts); }),
           turnouts: inv.turnouts.filter(function (t) { return hit(objHay(t), ts); }),
           blocks: inv.blocks.filter(function (b) { return hit(objHay(b), ts); }),
-          splits: {},
-          splitCount: 0,
         };
-        spl.controlPoints.forEach(function (cp) {
-          var sigs = cp.signals.filter(function (s) { return hit(sigHay(s, cp), ts); });
-          res.splits[cp.id] = sigs;
-          res.splitCount += sigs.length;
-        });
         return res;
       }
 
@@ -334,20 +293,13 @@
         );
       }
 
-      function lampRow(h, plain) {
+      function lampRow(h) {
         return ["R", "Y", "G"]
           .map(function (c) {
-            var pin = plain ? esc(h.lamps[c] || "—") : portLink(h.lamps[c]);
-            return '<span class="wr-lamp-pin">' + chip(c) + " " + pin + "</span>";
+            return '<span class="wr-lamp-pin">' + chip(c) + " " + portLink(h.lamps[c]) + "</span>";
           })
           .join("");
       }
-      // Split pins were recorded against an older inventory when the versions differ (signals_split_v8 is on v85):
-      // show them as text, since the same pin may hold another device in the published inventory.
-      function splitPinsPlain() {
-        return !!(spl.source.inventory && inv.source && spl.source.inventory !== inv.source.version);
-      }
-
       function renderSignals(list) {
         if (!list.length) return empty();
         return (
@@ -384,85 +336,27 @@
         );
       }
 
-      function whenText(a, r) {
-        var b = r.blocks || [];
-        if (a.when === "clear") return "line clear";
-        if (a.when === "B1") return (b[0] || "block 1") + " occupied";
-        if (a.when === "B2") return (b[1] || "block 2") + " occupied";
-        return a.when;
+      // A crossover is one turnout with a row per half (same name, a half label each): group them under one heading.
+      function groupTurnouts(list) {
+        var groups = [];
+        var byName = {};
+        list.forEach(function (t) {
+          if (!byName[t.name]) {
+            byName[t.name] = { name: t.name, first: t, halves: [] };
+            groups.push(byName[t.name]);
+          }
+          byName[t.name].halves.push(t);
+        });
+        return groups;
       }
 
-      function renderSplits(found) {
-        var cps = spl.controlPoints;
-        var cpBar =
-          '<div class="album-bar wr-cpbar" role="tablist" aria-label="Control point">' +
-          cps
-            .map(function (cp) {
-              var n = (found[cp.id] || []).length;
-              return (
-                '<button type="button" data-cp="' + esc(cp.id) + '" aria-pressed="' + (cp.id === state.cp) + '"' +
-                (state.q && !n ? ' class="is-empty"' : "") + ">CP" + esc(cp.id) +
-                (state.q ? " (" + n + ")" : "") + "</button>"
-              );
-            })
-            .join("") +
-          "</div>";
-        var cp = cps.find(function (c) { return c.id === state.cp; }) || cps[0];
-        var sigs = found[cp.id] || [];
-        var planned = cp.signals.some(function (s) { return s.planned; });
-        var head =
-          '<div class="wr-cp-head"><h2>Control point ' + esc(cp.id) + "</h2>" +
-          '<span class="muted">' + esc(cp.area) + " · " + cp.signals.length + " signals</span></div>" +
-          '<p class="muted wr-note">' +
-          (planned
-            ? "The November 2025 plan, under its working signal IDs. The lower deck has since been fitted with Digicon searchlights; their pins are under Signals."
-            : "Each route lists the switch positions it needs and the aspect for each occupancy case, with the pin that lights it.") +
-          " Lamp colour is read from the aspect: clear aspects green, approach and restricting yellow, stop red.</p>";
-        if (!sigs.length) return cpBar + head + empty();
-        return (
-          cpBar + head +
-          '<div class="wr-split-list">' +
-          sigs
-            .map(function (s) {
-              var lamps = s.lamps || null;
-              var top =
-                '<header><h3>' + esc(s.signal) + "</h3>" +
-                (s.mast ? '<span class="muted">' + esc(s.mast) + "</span>" : "") +
-                (lamps
-                  ? '<span class="wr-head-pins">' + lampRow({ lamps: lamps }, splitPinsPlain()) + "</span>"
-                  : '<span class="muted wr-planned">' + (s.planned ? "planned ID" : "no pins in inventory") + "</span>") +
-                "</header>";
-              var routes = s.routes
-                .map(function (r) {
-                  var sw = (r.switches || [])
-                    .map(function (w) {
-                      return '<span class="wr-sw pos-' + esc(w.pos) + '">' + esc(w.switch.replace(/^Switch /, "")) + " " + esc(w.pos) + "</span>";
-                    })
-                    .join("");
-                  var asp = r.aspects
-                    .map(function (a) {
-                      var c = aspectLamp(a.aspect);
-                      var pin = lamps && c && lamps[c] ? '<span class="wr-asp-pin">' + esc(pinPart(lamps[c])) + "</span>" : "";
-                      return (
-                        '<li class="wr-asp">' + (c ? chip(c) : "") +
-                        '<span class="wr-asp-text"><strong>' + esc(a.aspect || "—") + "</strong>" +
-                        "<small>" + esc(whenText(a, r)) + "</small></span>" + pin + "</li>"
-                      );
-                    })
-                    .join("");
-                  return (
-                    '<div class="wr-route"><div class="wr-route-name">' +
-                    esc(r.from || "") + " <span aria-hidden=\"true\">→</span> " + esc(r.to || "") +
-                    (sw ? '<span class="wr-sws">' + sw + "</span>" : "") + "</div>" +
-                    '<ul class="wr-asps">' + asp + "</ul></div>"
-                  );
-                })
-                .join("");
-              return '<article class="wr-split card">' + top + routes + "</article>";
-            })
-            .join("") +
-          "</div>"
-        );
+      function turnoutSignals(t) {
+        var sigs = [];
+        [["entry", "entry"], ["normal", "normal"], ["reverse", "reverse"]].forEach(function (k) {
+          var s = (t.signals || {})[k[0]];
+          if (s) sigs.push('<span class="wr-nowrap">' + searchLink(s, "signals") + ' <small class="muted">' + k[1] + "</small></span>");
+        });
+        return sigs.join(" ");
       }
 
       function renderTurnouts(list) {
@@ -470,22 +364,28 @@
         return (
           '<div class="wr-table-wrap"><table class="wr-table wr-stack">' +
           "<thead><tr><th>Switch</th><th>Node</th><th>Motor N</th><th>Motor R</th><th>Button</th><th>Position N</th><th>Position R</th><th>Signals</th></tr></thead><tbody>" +
-          list
-            .map(function (t) {
-              var sigs = [];
-              [["entry", "entry"], ["normal", "normal"], ["reverse", "reverse"]].forEach(function (k) {
-                var s = (t.signals || {})[k[0]];
-                if (s) sigs.push('<span class="wr-nowrap">' + searchLink(s, "signals") + ' <small class="muted">' + k[1] + "</small></span>");
-              });
+          groupTurnouts(list)
+            .map(function (g) {
+              var t = g.first;
+              var sigHtml;
+              if (g.halves.length > 1 || t.half) {
+                sigHtml = g.halves
+                  .map(function (h) {
+                    return '<div><small class="muted">' + esc(h.half) + "</small> " + (turnoutSignals(h) || '<span class="muted">—</span>') + "</div>";
+                  })
+                  .join("");
+              } else {
+                sigHtml = turnoutSignals(t) || '<span class="muted">—</span>';
+              }
               return (
-                "<tr><th scope=\"row\">" + esc(t.turnout) +
-                (t.elements && t.elements !== t.turnout ? '<small class="muted wr-sub">' + esc(t.elements) + "</small>" : "") +
+                "<tr><th scope=\"row\">" + esc(g.name) +
+                (t.elements && t.elements !== g.name ? '<small class="muted wr-sub">' + esc(t.elements) + "</small>" : "") +
                 (t.area ? '<small class="muted wr-sub">' + esc(t.area) + "</small>" : "") + "</th>" +
                 '<td data-label="Node">' + nodeLink(t.node) + "</td>" +
                 '<td data-label="Motor N">' + portLink(t.motorN) + '</td><td data-label="Motor R">' + portLink(t.motorR) + "</td>" +
                 '<td data-label="Button">' + portLink(t.button) + '</td><td data-label="Position N">' + portLink(t.fbN) +
                 '</td><td data-label="Position R">' + portLink(t.fbR) + "</td>" +
-                '<td data-label="Signals" class="wr-span">' + (sigs.join(" ") || '<span class="muted">—</span>') + "</td></tr>"
+                '<td data-label="Signals" class="wr-span">' + sigHtml + "</td></tr>"
               );
             })
             .join("") +
@@ -633,8 +533,7 @@
         var counts = {
           nodes: res.nodes.length,
           signals: res.signals.length,
-          splits: res.splitCount,
-          turnouts: res.turnouts.length,
+          turnouts: groupTurnouts(res.turnouts).length,
           blocks: res.blocks.length,
         };
         tabBar.innerHTML = TABS.map(function (t) {
@@ -648,15 +547,9 @@
 
       function render() {
         var res = matches();
-        // A search for one control point's signal lands on that CP.
-        if (state.tab === "splits" && state.q && !(res.splits[state.cp] || []).length) {
-          var first = spl.controlPoints.find(function (c) { return (res.splits[c.id] || []).length; });
-          if (first) state.cp = first.id;
-        }
         renderTabs(res);
         var html;
         if (state.tab === "signals") html = renderSignals(res.signals);
-        else if (state.tab === "splits") html = renderSplits(res.splits);
         else if (state.tab === "turnouts") html = renderTurnouts(res.turnouts);
         else if (state.tab === "blocks") html = renderBlocks(res.blocks);
         else html = renderNodes(res.nodes);
@@ -678,12 +571,6 @@
         if (b) go(b.getAttribute("data-tab"));
       });
       out.addEventListener("click", function (e) {
-        var cpb = e.target.closest("button[data-cp]");
-        if (cpb) {
-          state.cp = cpb.getAttribute("data-cp");
-          render();
-          return;
-        }
         var a = e.target.closest("a[data-q]");
         if (a) {
           e.preventDefault();

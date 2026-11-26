@@ -7,16 +7,16 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  the pinned plugin and the sheet cache
-import mast_rule as mr  # noqa: E402  the helix tracks (helix_tracks.csv)
-import staging_device_map as sdm  # noqa: E402  the staging tracks and their blocks (the staging rows of devices.csv)
-from hartlib import paths, railroad  # noqa: E402
+import mast_rule as mr  # noqa: E402  the helix tracks (plan_overrides.json)
+import staging_device_map as sdm  # noqa: E402  the staging tracks and their blocks (the staging rows of the device master)
+from hartlib import hand_lists, paths, railroad  # noqa: E402
 from hartlib.cats import appearance_templates, mast_templates  # noqa: E402
 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
 import cats_turnout_io as tio  # noqa: E402
 import digicon_lib as le  # noqa: E402
 
-DEVICE_MAP = railroad.Sources.under().devices      # devices.csv
+DEVICE_MAP = railroad.Sources.under().devices      # the device master
 
 
 class StagingTracks:
@@ -39,12 +39,14 @@ class StagingTracks:
         if len(set(blocks)) != 1:
             raise SystemExit(f"{what}: the staging track from {a} to {b} holds blocks "
                              f"{', '.join(sorted(set(blocks)))}; give it to the one its gap leaves it in "
-                             "(a part row naming that block in devices.csv: block_exceptions.csv, or the rule in block_layer.py)")
+                             "(a part row naming that block in the device master: block_overrides.csv, or the rule in "
+                             "block_layer.py)")
         return blocks[0]
 
 
-# The main and upper rows of devices.csv: block rows (each with its level and the schematic tracks it holds, `trial`) and
-# occupancy sensors by name (virtual, and the planned detector when there is one); hartlib.railroad reads and checks it.
+# The main and upper rows of the device master: block rows (each with its level and the schematic tracks it holds, `trial`) and
+# each block's occupancy row (its virtual sensor, and the planned detector when there is one); hartlib.railroad reads and
+# checks it.
 DeviceMap = railroad.DeviceMap
 
 
@@ -69,8 +71,9 @@ class Facts:
     sensors: dict = field(default_factory=dict)             # JMRI sensor user name -> system name
     turnouts: dict = field(default_factory=dict)            # JMRI turnout user name -> system name
     mast_system: dict = field(default_factory=dict)         # JMRI mast user name -> system name
-    level_masts: list = field(default_factory=list)         # main_upper_masts.csv rows (hartlib.level_masts)
-    helix: dict = field(default_factory=dict)               # plan helix track name -> its block (helix_tracks.csv)
+    level_masts: list = field(default_factory=list)         # masts.csv rows of the device map's levels (hartlib.level_masts)
+    helix: dict = field(default_factory=dict)       # plan helix track name -> its block (read_helix_tracks)
+    half_letters: dict = field(default_factory=dict)   # (level, crossover half's OS block ID) -> a or b (half_label)
 
 
 def staging_tracks() -> list[dict]:
@@ -83,19 +86,23 @@ def staging_tracks() -> list[dict]:
         raise SystemExit(f"build_cats_panel.py: staging device map: {exc}") from None
 
 
-def load_facts():
+def load_facts(rr: railroad.Railroad | None = None):
     """The facts from the repo (hartlib.railroad, every layer: the desks are built after the device map and the
     main and upper masts): tables.xml (read once) for its turnouts, sensors, layout blocks and masts, never a Layout
-    Editor panel; the staging tracks from the staging device map."""
-    rr = railroad.Railroad()
+    Editor panel; the staging tracks from the staging device map. `rr`: a Railroad over other sources (a test's copy
+    of the device master and its tables); default the repo's."""
+    rr = railroad.Railroad() if rr is None else rr
     try:
         t = rr.tables
-        return Facts(rr.switches, tio.load_turnouts(t.root, rr.switches), le.load_occupancy(t.root), le.load_disciplines(),
+        dm_levels = {r.level for r in rr.device_map.rows}       # main and upper: the device map's levels
+        return Facts(rr.switches, tio.load_turnouts(t.root, rr.switches), le.load_occupancy(t.root, rr.sources.devices),
+                     le.load_disciplines(rr.sources.devices),
                      StagingTracks(staging_tracks()), mast_templates(systems=t.masts), set(t.masts),
                      rr.device_map,
-                     t.sensors, t.turnouts, t.masts, rr.level_masts,
-                     {plan: h["block"] for plan, h in mr.read_helix_tracks().items()})
-    except (railroad.FactsError, mr.MapError) as exc:
+                     t.sensors, t.turnouts, t.masts, [r for r in rr.masts if r["level"] in dm_levels],
+                     {plan: h["block"] for plan, h in mr.read_helix_tracks().items()},
+                     hand_lists.half_letters(Path(pd.DATA) / hand_lists.OVERRIDES_NAME))
+    except (railroad.FactsError, mr.MapError, hand_lists.HandListError) as exc:
         raise SystemExit(f"build_cats_panel.py: {exc}") from None
 
 

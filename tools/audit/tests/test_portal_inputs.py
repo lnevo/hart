@@ -13,7 +13,8 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/audit"))
 import portal_inputs  # noqa: E402
 
-PREPARE = ROOT / "www/scripts/prepare_github_pages.py"
+# The site build (www/scripts/prepare_github_pages.py) keeps its mirror list with its other shared settings.
+COMMON = ROOT / "www/scripts/portal_common.py"
 
 
 def _constant(path: Path, name: str):
@@ -25,8 +26,8 @@ def _constant(path: Path, name: str):
 
 class SiteInputs(unittest.TestCase):
     def test_every_mirror_the_build_copies_from_is_a_site_input(self) -> None:
-        # A new mirror folder in prepare_github_pages.py must be added to SITE_PREFIXES, or check.sh would skip.
-        for prefix in _constant(PREPARE, "MIRROR_PREFIXES"):
+        # A new mirror folder in the site build must be added to SITE_PREFIXES, or check.sh would skip.
+        for prefix in _constant(COMMON, "MIRROR_PREFIXES"):
             folder = prefix.removeprefix("../")
             self.assertTrue(folder.startswith(portal_inputs.SITE_PREFIXES), folder)
 
@@ -49,8 +50,15 @@ class SiteInputs(unittest.TestCase):
         self.assertTrue(outside, "expected manifest sources outside the prefixes (jmri/)")
         self.assertEqual([outside[0]], portal_inputs.site_inputs([outside[0]], sources))
 
+    def test_the_map_page_tools_are_site_inputs(self) -> None:
+        # the build writes library/pipeline-map.html itself (ADR-036): a change to its builder runs the portal check
+        for path in portal_inputs.SITE_TOOLS:
+            self.assertTrue((ROOT / path).is_file(), path)
+            self.assertEqual([path], portal_inputs.site_inputs([path], set()))
+        self.assertEqual([], portal_inputs.site_inputs(["tools/ops/pipeline_query.py"], set()))
+
     def test_a_tables_or_cats_change_is_not_a_site_input(self) -> None:
-        paths = ["jmri/layouts/hart/output/tables.xml", "cats/scripts/validate_cats_panel.py", "tools/check.sh"]
+        paths = ["jmri/layouts/hart/output/tables.xml", "cats/scripts/digicon_trace.py", "tools/check.sh"]
         self.assertEqual([], portal_inputs.site_inputs(paths, set()))
 
 
@@ -103,7 +111,13 @@ class ChangedFiles(unittest.TestCase):
     def test_no_merge_base_means_unknown(self) -> None:
         with tempfile.TemporaryDirectory() as d:
             self.git(Path(d), "init", "-q")
-            self.assertIsNone(portal_inputs.changed_files(Path(d), "origin/main"))
+            with self.assertRaisesRegex(portal_inputs.ChangedFilesError, "no merge base with origin/main"):
+                portal_inputs.changed_files(Path(d), "origin/main")
+
+    def test_git_that_cannot_run_is_a_changed_files_error(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            with self.assertRaisesRegex(portal_inputs.ChangedFilesError, "no merge base"):
+                portal_inputs.changed_files(Path(d) / "nowhere", "origin/main")
 
 
 if __name__ == "__main__":

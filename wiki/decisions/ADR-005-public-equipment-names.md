@@ -34,17 +34,15 @@ Princess balloon intermediates: field **2035** (was 120L) and **2036** (was 120R
 
 ## Live inventory (2026-08-27)
 
-CTC-number convert applied to `output/tables.xml` / `hart_prod.xml`. Live userNames match the device-map grammar (`Switch 1`, `Mast 2L`, `OS Switch 1`, `Track S-R`, `BS McKees Rocks`, `Mast 2035`/`Mast 2036`). Occupancy lookups (`occupancysensor`, LE/USS jewels) use `BS …`; occupancy comments are `Node: 4 Block: 1`. MQTT turnout comments are `Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2` (LCC aliases omit DCC; it is in `systemName`). Heads are `Node: 4 Signal: 6 | OU: 3 Ports: 1,2,3` (pipe between OU groups on spills). Feedback is `Node: 4 Sensor: 3 | IN: 1 Ports: 1`. Mast comments are `Brick | Switch 1` (CP plus the switch that lamp protects; Princess intermediates stay CP-only). Track-block comments keep occupancy/`stop` text with live names (`Track Barn`, `Switch 7`). Dispatcher station blocks keep the `stop` contract. USS CTC internals (`IS*:`) keep frozen systemNames; userNames are live (`CTC 1 lever`). CTC editor fields store those user names, because the editor’s combo boxes list display names and a system-name value falls through to the first sensor. Dispatcher MoveTo sensors are `MoveToTrack_<station>_stored`. MQTT `systemName`s and `ISNX:*` unchanged. Native SML re-Discovered 2026-08-27 (**33 sources / 93 dests**). NX re-Discovered same day (**39 pairs**, SML mode). CTC Logic smoke: 20 columns / 23 SIDI masts.
+CTC-number convert applied to `output/tables.xml` / `hart_prod.xml`. Live userNames match the device-map grammar (`Switch 1`, `Mast 2L`, `OS Switch 1`, `Track S-R`, `BS McKees Rocks`, `Mast 2035`/`Mast 2036`). Occupancy lookups (`occupancysensor`, LE/USS jewels) use `BS …`; occupancy comments are `Node: 4 Block: 1`. MQTT turnout comments are `Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2` (LCC aliases omit DCC; it is in `systemName`). Heads are `Node: 4 Signal: 6 | OU: 3 Ports: 1,2,3` (pipe between OU groups on spills). Feedback is `Node: 4 Sensor: 3 | IN: 1 Ports: 1`. Mast comments are `Brick | Switch 1 | West` (CP plus the switch that lamp protects, then the way it faces; Princess intermediates stay CP-only). A wired head reads its mast's place first (`Plane | Switch 5 | Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3`). Track-block comments put the detector first, without the word occupancy (`Block 1-1 / M2S100; Princess balloon, Track K-1`), with live names (`Track Barn`, `Switch 7`); the data-first order is the owner's, 2026-11-22, written by `hartlib.tables_build` (the device master keeps `occupancy Block …` after the text). Dispatcher station blocks keep the `stop` contract. (Parked 2026-11-22 with the stations topic: no block comment carries `stop` today; [`docs/parked/UNPARK.md`](../../docs/parked/UNPARK.md).) USS CTC internals (`IS*:`) keep frozen systemNames; userNames are live (`CTC 1 lever`). CTC editor fields store those user names, because the editor’s combo boxes list display names and a system-name value falls through to the first sensor. Dispatcher MoveTo sensors are `MoveToTrack_<station>_stored`. MQTT `systemName`s and `ISNX:*` unchanged. Native SML re-Discovered 2026-08-27 (**33 sources / 93 dests**). NX re-Discovered same day (**39 pairs**, SML mode). CTC Logic smoke: 20 columns / 23 SIDI masts.
 
 ## Pre-convert baselines (2026-08-20 snapshot is git history)
 
-Live recapture is **2026-08-26**. The 2026-08-20 files locked pre-ADR-005 names; do not treat them as live.
+Live recapture was **2026-08-26**. The baseline snapshots (`data/baselines/`) and `capture_public_name_baseline.py` were removed on 2026-11-25 (owner): tables.xml is built from the device master, which holds the names. Both stay in git history.
 
 | Artifact | What it locks |
 |----------|----------------|
-| [`data/baselines/`](../../jmri/layouts/hart/data/baselines/) | Hardware ids, SML pairs, CTC SIDI/TRL, LE mast bindings, block→sensor, CATS bindings (live names) |
-| `capture_public_name_baseline.py` | Re-snapshot from `output/tables.xml` + live CATS CTC hold |
-| Stock Discover / Stage 1 in a sandbox, stored pairs vs `data/baselines/sml_pairs.csv` | native SML dests vs previous tables |
+| Stock Discover / Stage 1 in a sandbox, stored pairs vs the previous tables | native SML dests vs previous tables |
 | `audit_panel_contracts.py` | working / deployment / standalone drift = 0 |
 | `check_hart_phase02.py` | Phase 0–2 (public names are live `OS Switch 7b`) |
 | `validate_cats_panel.py` | Live masters PASS |
@@ -53,9 +51,9 @@ After a rename: `systemName` columns identical; public strings follow the CSV `p
 
 ## Mapping SoR
 
-[`jmri/layouts/hart/data/public_name_map.csv`](../../jmri/layouts/hart/data/public_name_map.csv)
+`jmri/layouts/hart/data/public_name_map.csv`, retired 2026-11-20 (ADR-029). The source of record is now the device master, `hartlib.devices`: [`devices_generated.csv`](../../jmri/layouts/hart/data/devices_generated.csv) and the owner's cells in [`devices_field.csv`](../../jmri/layouts/hart/data/devices_field.csv) (ADR-039); see the amendment at the top. This section records the file as it was.
 
-Identity rows are `current` == `proposed` == live userName, with Device-map text in **`comment`** and a turnout's DCC address in **`dcc`** (since 2026-11-14; `hartlib.names` puts it back as the comment's second group for JMRI). Historical alias rows keep pre-convert names. Rebuild with `sync_public_name_map.py` (from the HART Device map canvas + live `tables.xml`). For the next rename pass: edit **`proposed`** on the live identity rows; leave historical alias rows pointing at the same `proposed`. ADR-002’s `block_display_names.csv` is a live-name index, not the apply map.
+Until its retirement, identity rows were `current` == `proposed` == live userName, with Device-map text in **`comment`** and a turnout's DCC address in **`dcc`** (from 2026-11-14; `hartlib.names` put it back as the comment's second group for JMRI). Historical alias rows kept pre-convert names. The file was rebuilt with `sync_public_name_map.py` (from the HART Device map canvas + live `tables.xml`), and a rename pass edited **`proposed`** on the live identity rows. A rename now edits a row's `user_name` in the device master. ADR-002’s `block_display_names.csv` is a live-name index, not the apply map.
 
 ## Attack (executed 2026-08-21)
 
@@ -83,14 +81,14 @@ Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longe
 |--------|-----------------|
 | `gen_ctc_track_plan.py` | `SIGNALS` mast keys; lamp labels Track Scale / T6 / Track S-R / Track East Lead |
 | `parked/polish_hart_layout_editor.py` | Reads positions from `--reference`; no hard-coded mast xy since 2026-11-18 |
-| `add_digicon_le_signal_icons.py` | Archived 2026-11-18 (`archive/jmri-scripts/`) |
+| `add_digicon_le_signal_icons.py` | Archived 2026-11-18 (`archive/code/jmri-scripts/`) |
 | `reconcile_dispatcher_stations.py` | Station `Track East Lead` (icon xy table removed 2026-11-18) |
 | `audit_panel_contracts.py` | `Track East Lead` stop contract |
 | `annotate_mqtt_sensors_and_dispatcher.py` | Section graph / transit comments (`Track East Lead`, `OS Switch 7b`). Removed 2026-11-14 (one-shot) |
 | `panelpro_smoke_test.py` | Station list `Track East Lead` |
 | `jmri/scripts/check_hart_phase02.py` | Requires `OS Switch 7b` |
 | `build_ctc_full_15col.py` | SIDI mast lists (unsafe to re-run until updated) |
-| `wire_digicon.py` | Archived 2026-11-18 (`archive/cats-scripts/`); the desks are built by `tools/schematic/build_cats_panel.py` |
+| `wire_digicon.py` | Archived 2026-11-18 (`archive/code/cats-scripts/`); the desks are built by `tools/schematic/build_cats_panel.py` |
 | `apply_sml_cats_pairs.py` | Removed 2026-11-14; wrote nothing at the end |
 | `validate_cats_panel.py` | Required `OS Switch 13` / `OS Switch 9` (was Track 13 / Track 9) |
 | `build_hart_signal_heads.py` | Mast userNames |
@@ -101,9 +99,9 @@ Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longe
 
 | File |
 |------|
-| `cats/data/occupancy_bindings.csv` |
-| `archive/docs/wiring/signals/signal_mast_plan.csv` (archived 2026-11-21) |
-| `docs/wiring/signals/signal_head_plan.csv` |
+| `cats/data/occupancy_bindings.csv` (removed 2026-11-25; the device master holds the CATS blocks) |
+| `archive/data/wiring/signals/signal_mast_plan.csv` (archived 2026-11-21) |
+| `jmri/layouts/hart/output/signal_head_plan.csv` (moved 2026-11-21) |
 | `jmri/layouts/hart/data/wiring.csv` (was `docs/wiring/signals/signal_wiring.csv`, folded in 2026-11-21) |
 | `cats/data/jmri_devices.csv` (removed 2026-11-14) |
 | `cats/data/plants_from_hart.csv` (removed 2026-11-14) |

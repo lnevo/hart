@@ -11,12 +11,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from hartlib import layer_files, paths, railroad as R  # noqa: E402
+from hartlib import block_lengths, devices as _devices, layer_files, paths, railroad as R, track_names  # noqa: E402
 from master_edit import add, change, drop  # noqa: E402  the master is changed through hartlib.devices
 
 REPO = R.Sources.under()
 DATA_FILES = ("switches", "devices", "interlockings", "lcos_nodes",
-              "plan_overrides", "block_lengths", "staging_masts", "level_masts", "helix_tracks")
+              "plan_overrides", "block_lengths", "masts")
 
 
 class Copy(unittest.TestCase):
@@ -26,10 +26,19 @@ class Copy(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp)
         self.src = R.Sources.under(self.tmp / "data", tables_xml=REPO.tables)
+        self.src = self.src.but(devices=self.src.devices.with_name(_devices.ONE_FILE))     # a one-file copy
         for name in DATA_FILES:
             dst = getattr(self.src, name)
             dst.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(getattr(REPO, name), dst)
+            if name == "devices":       # the master as one file (no field file beside it), edited row by row
+                _devices.one_file_copy(dst)
+            else:
+                shutil.copyfile(getattr(REPO, name), dst)
+        shutil.copyfile(block_lengths.MEASURED, block_lengths.measured_path(self.src.block_lengths))
+        prefs = layer_files.path("preferences", REPO.plan_overrides.parent)     # the helix tracks' labels
+        shutil.copyfile(prefs, self.src.plan_overrides.parent / prefs.name)
+        # the name store's plan graphs and owner rows (the one-file copy has no field file): the repo's, by opt-in
+        track_names.repo_inputs(self.src.plan_overrides.parent)
 
     def edit(self, name: str, old: str, new: str, count: int = 1) -> None:
         path = getattr(self.src, name)
@@ -49,11 +58,13 @@ class Copy(unittest.TestCase):
         self.assertEqual(len(hit), 1, f"{layer} {user}: {len(hit)} rows")
         return hit[0]
 
-    def add_name_row(self, **columns: str) -> None:
-        """A master row that has a place in the name map (its pnm_order, one past the last), level 1 unless given."""
-        from hartlib import devices
-        order = max(int(r["pnm_order"]) for r in devices.load(self.src.devices) if r["pnm_order"]) + 1
-        add(self.src.devices, **{"level": "1", "pnm_order": str(order), **columns})
+    def add_staging_row(self, **columns: str) -> None:
+        """A staging (level 1) row of the master copy."""
+        add(self.src.devices, **{"level": "1", **columns})
+
+    def staging_row(self, **columns: str) -> dict[str, str]:
+        """A row in read_staging_rows' form (railroad_facts.STAGING_COLUMNS), blank but for `columns`."""
+        return {**{c: "" for c in R.STAGING_COLUMNS}, **columns}
 
     def problems(self, invariant: str, upto: str = "masts") -> list[str]:
         """The problems one invariant finds in the copy (the tables layer reads the checkout's tables.xml)."""
@@ -73,11 +84,12 @@ class RepoData(unittest.TestCase):
         self.assertEqual(rr.switches[1].hardware, "M2T408")
         self.assertEqual(rr.main_upper_switches["225"].cp, "CP 225")
         self.assertEqual(rr.main_upper_switches["101"].cp, "")
-        self.assertEqual(rr.device_map.sensors["BS Switch 101"], "IS:HART:C3:B:OS101")
+        self.assertEqual(rr.device_map.occupancy["OS Switch 101"].jmri_name, "IS:HART:C3:B:OS101")
         self.assertEqual(rr.device_map.turnouts["107"].jmri_name, "IT:HART:C3:107")
         self.assertEqual(rr.hands["223"].hand, "R")
         # the 2026-11-19 plan, APB intermediates and Mast 242L (240L before), and 24 virtual destination masts (2026-11-20)
-        self.assertEqual(len(rr.level_masts), 68)
+        self.assertEqual(len([r for r in rr.masts if r["level"] in (2, 3)]), 68)
+        self.assertEqual(len(rr.masts), 98)                 # with staging's 30, one file
         fails, known = R.run_check(rr)
         self.assertEqual(fails, [])
         self.assertEqual(known, [])
@@ -88,8 +100,8 @@ class RepoData(unittest.TestCase):
 
     def test_the_sources_are_the_files_the_builders_name(self) -> None:
         from hartlib import level_masts
-        self.assertEqual(REPO.level_masts, level_masts.PATH)
-        self.assertEqual(REPO.devices, paths.DEVICES)
+        self.assertEqual(REPO.masts, level_masts.PATH)
+        self.assertEqual(REPO.devices, _devices.MASTER)
         self.assertEqual(REPO.tables, paths.TABLES_XML)
         for name in DATA_FILES:
             self.assertTrue(getattr(REPO, name).is_file(), name)
@@ -102,13 +114,13 @@ class Layers(unittest.TestCase):
         rr = R.Railroad(upto="inputs")
         rr.plan_overrides                       # an input: allowed
         for attr, writer in (("hands", "build_hands.py"), ("device_map", "build_device_map.py"),
-                             ("level_masts", "build_main_upper_masts.py"), ("tables", "build_layout_le.py")):
+                             ("masts", "build_masts.py"), ("tables", "build_tables.py")):
             with self.subTest(attr=attr), self.assertRaisesRegex(R.LayerError, writer):
                 getattr(rr, attr)
         dm = R.Railroad(upto="device_map")
         self.assertTrue(dm.device_map.rows)
         with self.assertRaises(R.LayerError):
-            dm.level_masts
+            dm.masts
 
     def test_check_runs_only_the_invariants_of_the_layers_read(self) -> None:
         ran = {p.invariant for p in R.Railroad(upto="inputs").check()}
@@ -124,7 +136,7 @@ class Layers(unittest.TestCase):
     def test_each_file_is_read_once(self) -> None:
         rr = R.Railroad(upto="device_map")
         self.assertIs(rr.device_map, rr.device_map)
-        self.assertIs(rr.name_map, rr.name_map)
+        self.assertIs(rr.staging_devices, rr.staging_devices)
 
 
 class Readers(Copy):
@@ -168,22 +180,26 @@ class Readers(Copy):
         self.src.switches.write_text("\n".join(l.rsplit(",", 1)[0] for l in lines) + "\n", encoding="utf-8")
         self.fails(lambda: R.read_switch_rows(self.src.switches), "switches.csv: no column notes")
         self.src.switches.write_text(text + "1,99,,OS Switch 99,Track A,Track B\n", encoding="utf-8")   # short
-        self.fails(lambda: R.read_switch_rows(self.src.switches), rf"switches.csv line {len(lines) + 1}: 14 fields")
-        self.src.block_lengths.write_text("user_name,occupancy_sensor,plan_in,measured_in,source,note,extra\n"
-                                          "Track W-1,Block 4-4,105.2,,plan,,x\n", encoding="utf-8")
-        self.assertEqual(R.read_block_lengths(self.src.block_lengths)["Track W-1"].plan_in, 105.2)
+        self.fails(lambda: R.read_switch_rows(self.src.switches), rf"switches.csv line {len(lines) + 1}: 14 fields .*, not 6")
+        self.src.block_lengths.write_text(",".join(block_lengths.PLAN_COLUMNS) + ",extra\n"
+                                          "1,block:3B-end,105.2,,x\n", encoding="utf-8")
+        self.assertEqual(block_lengths.read_plan(self.src.block_lengths)["block:3B-end"].plan_in, 105.2)
 
-    def test_switches_read_only_their_own_name_map_rows(self) -> None:
-        """A bad row elsewhere in the name map is the facts check's to report; it does not stop switch loading
+    def test_switches_read_only_their_own_rows(self) -> None:
+        """A bad staging row elsewhere is the facts check's to report; it does not stop switch loading
         (cats_turnout_io.py loads switches)."""
-        self.add_name_row(layer="sensor", role="panel_status", written_by="panel_items.json", assignment="none",
-                          user_name="Lamp 1")
         rr = R.Railroad(self.src)
+        rows = rr.staging_rows + [(999, self.staging_row(layer="turnout", user_name="Lamp 1", dcc="1x"))]
+        self.assertEqual(R.switch_turnouts(self.src.devices, rows, [1])[1]["system_name"], "M2T408")
         self.assertEqual(rr.switches[1].hardware, "M2T408")
-        self.fails(lambda: rr.name_map, "layer is one of")
-        self.add_name_row(layer="turnout", role="turnout", level="2", user_name="Switch 1",
-                          jmri_name="IT:HART:C3:1", pnm_hardware="M2T999", pnm_dcc="999")
-        self.fails(lambda: R.Railroad(self.src).switches, "both are the live turnout Switch 1")
+        self.fails(lambda: R.read_staging_devices(self.src.devices, rows), "Lamp 1 \\(level 1, turnout\\): dcc is a number or blank")
+        twice = rows + [(1000, self.staging_row(layer="turnout", user_name="Switch 1"))]
+        self.fails(lambda: R.switch_turnouts(self.src.devices, twice, [1]), "two rows are both the turnout Switch 1")
+
+    def test_a_switchs_hardware_and_dcc_are_its_turnout_rows_own_columns_its_cp_the_switch_lists(self) -> None:
+        change(self.src.devices, ("1", "turnout", "Switch 1"), dcc="140")
+        sw = R.Railroad(self.src).switches[1]
+        self.assertEqual((sw.hardware, sw.dcc, sw.cp), ("M2T408", "140", "Brick"))      # stations.csv's desk area
 
     def test_a_tables_file_that_cannot_be_read(self) -> None:
         bad = self.tmp / "tables.xml"
@@ -264,28 +280,36 @@ class Readers(Copy):
         noted.write_text("mast,facing,protects\nMast 2L,Track Main West,OS Switch 1\n", encoding="utf-8")
         self.fails(lambda: R.read_rows(noted, ("mast",), note=True), "noted.csv line 1: the note line")
 
-    def test_a_staging_mast_needs_its_facing_block(self) -> None:
-        self.edit("staging_masts", "Mast 2L,Brick,1,Track Main West,", "Mast 2L,Brick,1,,")
-        self.fails(lambda: R.read_staging_masts(self.src.staging_masts), "has no facing block")
+    def test_a_mast_needs_its_facing_block(self) -> None:
+        self.edit("masts", "1,Mast 2L,st:brick,1,Track Main West,", "1,Mast 2L,st:brick,1,,")
+        self.fails(lambda: R.read_masts(self.src.masts), "masts.csv line 2: mast Mast 2L: a visible mast faces a block")
 
-    def test_name_map(self) -> None:
-        self.add_name_row(layer="turnout", role="turnout", level="2", user_name="Switch 1",
-                          jmri_name="IT:HART:C3:1", pnm_hardware="M2T408", pnm_dcc="100")
-        self.fails(lambda: R.read_name_map(self.src.devices), r"lines \d+ and \d+: both are turnout 'Switch 1'")
+    def test_read_masts_gives_the_rows_of_the_levels_asked_for(self) -> None:
+        staging = R.read_masts(self.src.masts, levels=(1,))
+        self.assertEqual((len(staging), staging[0].level, staging[0].mast, staging[0].line), (30, 1, "Mast 2L", 2))
+        self.assertEqual({m.level for m in R.read_masts(self.src.masts)}, {1, 2, 3})
 
-    def test_name_map_layer_and_dcc(self) -> None:
-        self.add_name_row(layer="sensor", role="panel_status", written_by="panel_items.json", assignment="none",
-                          user_name="X")
-        self.fails(lambda: R.read_name_map(self.src.devices), "layer is one of")
-        drop(self.src.devices, ("1", "sensor", "X"))
-        self.add_name_row(layer="turnout", role="turnout", level="2", user_name="X", jmri_name="IT:HART:C3:X",
-                          pnm_dcc="1x")
-        self.fails(lambda: R.read_name_map(self.src.devices), "dcc is a number or blank")
+    def test_staging_devices_are_level_1_rows_of_the_device_layers(self) -> None:
+        sd = R.read_staging_devices(self.src.devices)
+        self.assertEqual(len(sd.rows), 250)
+        self.assertEqual(sd.by_name[("turnout", "Switch 1")].system_name, "M2T408")
+        self.assertNotIn(("sensor", "SML Mode"), sd.by_name)        # a panel status lamp is no device layer's
+        self.assertIn("Track Barn", sd.names("block"))
+
+    def test_staging_devices_name_and_dcc(self) -> None:
+        rows = R.read_staging_rows(self.src.devices)
+        self.fails(lambda: R.read_staging_devices(self.src.devices, rows + [(999, self.staging_row(layer="turnout"))]),
+                   r"\(level 1, turnout\): user_name is empty")
+        change(self.src.devices, ("1", "turnout", "Switch 1"), dcc="1x")
+        self.fails(lambda: R.read_staging_devices(self.src.devices), "dcc is a number or blank, not '1x'")
 
     def test_switches_are_the_adr021_loader(self) -> None:
         self.append("switches", "2,9,9,,,,,,,,,,,")
         self.fails(lambda: R.Railroad(self.src).switches, r"lines 7 \(level 1\) and \d+ \(level 2\) both use Switch 9")
-        self.edit("switches", "2,9,9,,,,,,,,,,,", "1,99,,OS Switch 99,Track A,Track B,,,,TO999,maybe,99,no,")
+        self.add_staging_row(layer="block", role="os", id="os:99", user_name="OS Switch 99", assignment="none",
+                             description="Block OS Switch 99.")
+        self.edit("switches", "2,9,9,,,,,,,,,,,",
+                  "1,99,,os:99,block:9B-end,block:9C-end,,,,TO999,maybe,99,no,")
         self.fails(lambda: R.Railroad(self.src).switches, r"\(Switch 99\): expected yes or no, got 'maybe'")
         self.edit("switches", "TO999,maybe,99,no,", ",,,,")
         self.fails(lambda: R.Railroad(self.src).switches,
@@ -295,21 +319,28 @@ class Readers(Copy):
         """Each row is held to its level's shape and names its file and line (read_switch_rows)."""
         text = self.src.switches.read_text(encoding="utf-8")
         cases = (
-            ("1,9,,OS Switch 9,", "1,9,,OS Switch 11,", r"line 7 \(Switch 9\): os_block is OS Switch 9 or a half"),
-            ("1,9,,OS Switch 9,Track EH-2,Track EH-3,", "1,9,,OS Switch 9,,,", "a staging row gives them"),
-            ("1,9,,OS Switch 9,Track EH-2,", "1,9,,OS Switch 9,,", "gives both legs"),
-            ("1,9,,OS Switch 9,", "1,9,9,OS Switch 9,", "a staging row has no half"),
-            ("2,105,105,,,,", "2,105,105,,Track A,Track B,", "legs .* with its os_block, or neither"),
-            ("2,105,105,,", "2,105,105,OS Switch 106,", r"os_block is OS Switch 105 or a half"),
-            ("Track EH-3,L,owner,", "Track EH-3,L,plan,", "hand_source plan is for main and upper"),
-            ("Track EH-3,L,owner,", "Track EH-3,L,,", "a hand needs a hand_source"),
-            ("Track EH-3,L,owner,", "Track EH-3,,owner,", "a hand needs a hand_source"),
-            ("Track EH-3,L,owner,", "Track EH-3,L,someone,", "a hand needs a hand_source"),
-            ("1,7,,OS Switch 7b,Track Main East,OS Switch 7,,,,,", "1,7,,OS Switch 7b,Track Main East,OS Switch 7,,,,TO117,",
+            # a staging row's OS block is its os_id; its name is the name store's (naming-layers step 5)
+            ("1,9,,os:9,", "1,9,,os:11,", r"line 7 \(Switch 9\): a row keyed by its OS block gives the "
+                                          r"device IDs of it \(os_id os:9, or os:9:<half>\)"),
+            ("os:9,block:9B-end,block:9C-end,", "os:9,,block:9C-end,", "and of its legs \\(closed_id, thrown_id\\)"),
+            ("os:9,block:9B-end,", "os:9,block:9X-end,", r"line 7 \(Switch 9\): closed_id block:9X-end is no level 1 "
+                                                         r"device of the device master"),
+            ("2,105,105,,,,", "2,105,105,,block:105B,,", "closed_id and thrown_id go with an os_id"),
+            ("2,105,105,,,,", "2,105,105,os:105,,,", "a main or upper row is keyed by its half until its "
+                                                      "switches are bound"),
+            # a staging row with its IDs blanked is told it needs them, not a half-keyed row's rules (code review)
+            ("os:9,block:9B-end,block:9C-end,", ",,,", r"line 7 \(Switch 9\): a staging row is keyed by its OS "
+                                                      r"block and gives the device IDs of it \(os_id os:9"),
+            ("1,9,,os:9,", "1,9,9,os:9,", "a row keyed by its OS block has no half"),
+            ("block:9C-end,L,owner,", "block:9C-end,L,plan,", "hand_source plan is for rows keyed by their half"),
+            ("block:9C-end,L,owner,", "block:9C-end,L,,", "a hand needs a hand_source"),
+            ("block:9C-end,L,owner,", "block:9C-end,,owner,", "a hand needs a hand_source"),
+            ("block:9C-end,L,owner,", "block:9C-end,L,someone,", "a hand needs a hand_source"),
+            ("os:7:A-13C,,,,,", "os:7:A-13C,,,,TO117,",
              r"line 6 \(Switch 7\): le_ident hold a fact of the whole switch: give them on its first row \(line 5\)"),
             ("2,105,105,", "2,105,106,", r"\(Switch 105\): half is 105, 105A or 105B, not '106'"),
             ("2,105,105,,,,L,plan,West,,", "2,105,105,,,,L,plan,West,TO1,",
-             "le_ident are staging columns; main and upper leave them blank"),
+             "le_ident bind a row keyed by its OS block .* a row keyed by its half leaves them blank"),
             ("2,105,105,", "4,105,105,", "level is 1, 2 or 3"),
             ("2,101,101B,", "2,101,101A,", r"lines \d+ and \d+: both are 101A"),
         )
@@ -320,13 +351,13 @@ class Readers(Copy):
                 self.fails(lambda: R.read_switch_rows(self.src.switches), msg)
         more = (
             # a crossover's later staging row gives no hand: staging's hand is the switch's (Switch.hand)
-            ("1,7,,OS Switch 7b,Track Main East,OS Switch 7,,,", "1,7,,OS Switch 7b,Track Main East,OS Switch 7,R,owner,",
+            ("1,7,,os:7:A-5B,block:7B-33C,os:7:A-13C,,,", "1,7,,os:7:A-5B,block:7B-33C,os:7:A-13C,R,owner,",
              r"line 6 \(Switch 7\): hand, hand_source hold a fact of the whole switch"),
             # an owner row gives its hand; only a plan row waits for build_hands.py
             ("2,105,105,,,,L,plan,", "2,105,105,,,,,owner,", "an owner hand_source a hand"),
             # one row, half N, or both halves NA and NB
-            ("2,105,105,", "2,105,105A,", r"\(Switch 105\): a main or upper switch has one row, half 105, or two, "
-                                          r"halves 105A and 105B; not 105A"),
+            ("2,105,105,", "2,105,105A,", r"\(Switch 105\): a switch keyed by its halves has one row, half 105, or "
+                                          r"two, halves 105A and 105B; not 105A"),
             ("2,101,101B,", "2,101,101,", r"\(Switch 101\): .* not 101, 101A"),
         )
         for old, new, msg in more:
@@ -337,11 +368,19 @@ class Readers(Copy):
         # a new plan row may leave its hand blank for build_hands.py; it is no hand until then
         self.src.switches.write_text(text.replace("2,105,105,,,,L,plan,", "2,105,105,,,,,plan,", 1), encoding="utf-8")
         self.assertNotIn("105", R.read_hands(self.src.switches))
-        # a main or upper row may give its OS block and legs (none does yet)
-        self.src.switches.write_text(text.replace("2,105,105,,,,", "2,105,105,OS Switch 105,Track A,Track B,", 1),
+        # a row's shape is its key's (naming-layers step 14), but only staging's switches are bound to the live
+        # panels so far: a main row keyed by its OS block stops (code review: staging_switches and build_hands read
+        # OS-keyed rows as staging's)
+        self.src.switches.write_text(text.replace(
+            "2,105,105,,,,L,plan,", "2,105,,os:105,block:105B,block:105C,L,owner,", 1),
+            encoding="utf-8")
+        self.fails(lambda: R.read_switch_rows(self.src.switches), "keyed by its half until its switches are bound")
+        # a main or upper row has no OS block or legs
+        self.src.switches.write_text(text, encoding="utf-8")
+        self.assertEqual({(r.os_block, r.closed_leg, r.thrown_leg) for r in R.read_switch_rows(self.src.switches)
+                          if not r.by_os}, {("", "", "")})
+        self.src.switches.write_text(text + "1,9,,os:9:B,block:9B-end,block:9C-end,,,,,,,,\n",
                                      encoding="utf-8")
-        self.assertEqual(next(r for r in R.read_switch_rows(self.src.switches) if r.half == "105").closed_leg, "Track A")
-        self.src.switches.write_text(text + "1,9,,OS Switch 9b,Track A,Track B,,,,,,,,\n", encoding="utf-8")
         self.fails(lambda: R.read_switch_rows(self.src.switches), r"Switch 9 is also on line 7; a switch's rows go together")
 
     def test_switches_csv_and_its_dictionary_have_the_readers_columns(self) -> None:
@@ -350,9 +389,9 @@ class Readers(Copy):
             self.assertEqual(tuple(next(csv.reader(fh))), R.SWITCH_COLUMNS)
         with (REPO.switches.parent / "switches.columns.csv").open(newline="", encoding="utf-8") as fh:
             rows = list(csv.reader(fh))
-        self.assertEqual(rows[0], ["column", "description"])
+        self.assertEqual(rows[0], ["column", "description", "type", "required", "key", "refs", "values"])  # check_data.py
         self.assertEqual(tuple(r[0] for r in rows[1:]), R.SWITCH_COLUMNS)
-        self.assertTrue(all(len(r) == 2 and r[1].strip() for r in rows[1:]), rows)
+        self.assertTrue(all(len(r) == len(rows[0]) and r[1].strip() for r in rows[1:]), rows)
 
     def test_the_views_of_switches_csv(self) -> None:
         """Staging switches (level 1, legs in row order, the first row's whole-switch columns), local switches (main and
@@ -431,29 +470,7 @@ class Readers(Copy):
         self.assertEqual(R.read_plan_overrides(self.src.plan_overrides).name, "plan_overrides.json[main_upper]")
         self.assertEqual(R.read_plan_overrides(self.src.plan_overrides, "staging").name, "plan_overrides.json[staging]")
 
-    def test_block_lengths_and_hands(self) -> None:
-        got = R.read_block_lengths(self.src.block_lengths)
-        self.assertEqual(got["Track W-1"].source, "plan")
-        self.assertIsNone(got["Track W-1"].measured_in)
-        timed = got["Track Main West"]
-        self.assertEqual(timed.source, "timed")
-        # JMRI's block takes the plan length on every level; the measured one is for speed profiling only
-        self.assertFalse(hasattr(timed, "jmri_in"))
-        self.assertNotEqual(timed.plan_in, timed.measured_in)
-        self.assertEqual(R.plan_cm({"Track Main West": timed})["Track Main West"], timed.plan_in * 2.54)
-        text = self.src.block_lengths.read_text(encoding="utf-8")
-        w1 = next(line for line in text.splitlines() if line.startswith("Track W-1,"))
-        for bad, why in ((w1.replace(",plan,", ",assigned,"), "source 'assigned' is not one of"),
-                         (w1.replace(",,plan,", ",99,plan,"), "a timed row gives its measured length, any other none"),
-                         (w1.replace("Block 4-4,105.2,", "Block 4-4,long,"), "plan_in 'long' is not a number"),
-                         (w1.replace("Block 4-4,105.2,", "Block 4-4,,"), "no plan_in"),
-                         (w1.replace("Block 4-4,105.2,", "Block 4-4,-1,"), "plan_in -1 is below zero")):
-            self.src.block_lengths.write_text(text.replace(w1, bad), encoding="utf-8")
-            self.fails(lambda: R.read_block_lengths(self.src.block_lengths), f"line 2: .*{why}")
-        mw = next(line for line in text.splitlines() if line.startswith("Track Main West,"))
-        self.src.block_lengths.write_text(text.replace(mw, mw.replace(",timed,", ",plan,")), encoding="utf-8")
-        self.fails(lambda: R.read_block_lengths(self.src.block_lengths), "source plan with measured_in")
-        self.src.block_lengths.write_text(text, encoding="utf-8")
+    def test_hands_read_strictly(self) -> None:
         self.edit("switches", "2,101,101A,,,,L,", "2,101,101A,,,,X,")
         self.fails(lambda: R.read_hands(self.src.switches), r"switches.csv line 25 \(Switch 101\): hand is L, R or blank")
 
@@ -466,13 +483,24 @@ class Readers(Copy):
         change(self.src.devices, occ, jmri_name="IS:OS101")
         self.fails(lambda: R.read_device_map(self.src.devices), "BS Switch 101 has no virtual IS:HART:C3:B:")
         change(self.src.devices, occ, jmri_name="IS:HART:C3:B:OS101")
+        # a detector swapped in by its row (assignment field, ADR-028) is held to its wired M2S sensor, by the
+        # column, not the level (naming-layers step 14)
+        swap = self.key("occupancy", "BS Switch 107")
+        system = R.read_device_map(self.src.devices).by_user("occupancy")["BS Switch 107"].system_name
+        text = self.src.devices.read_text(encoding="utf-8")
+        change(self.src.devices, swap, assignment="field", jmri_name=system, detector="wired", start="")
+        row = R.read_device_map(self.src.devices).by_user("occupancy")["BS Switch 107"]
+        self.assertEqual((row.swapped, row.jmri_name), (True, system))
+        change(self.src.devices, swap, detector="planned")
+        self.fails(lambda: R.read_device_map(self.src.devices), "BS Switch 107 is a field detector")
+        self.src.devices.write_text(text, encoding="utf-8")
         # the master holds a (level, layer, name) once, as its own loader checks before the map is read
         change(self.src.devices, self.key("turnout", "DCC Switch 103"), user_name="DCC Switch 101")
-        self.fails(lambda: R.read_device_map(self.src.devices), r"the same level, layer and user_name as line")
+        self.fails(lambda: R.read_device_map(self.src.devices), r"DCC Switch 101 \(level 2, turnout\): the same level, layer and user_name twice")
 
     def test_a_master_that_cannot_be_read(self) -> None:
         self.fails(lambda: R.read_device_map(self.tmp / "missing.csv"), "cannot read it")
-        self.fails(lambda: R.read_name_rows(self.tmp / "missing.csv"), "cannot read it")
+        self.fails(lambda: R.read_staging_rows(self.tmp / "missing.csv"), "cannot read it")
         bad = self.tmp / "devices.csv"
         bad.write_text("level,layer\n2,mast\n", encoding="utf-8")
         self.fails(lambda: R.read_device_map(bad), "the header is not the master's columns")
@@ -528,29 +556,37 @@ class Invariants(Copy):
         nodes = R.Railroad(self.src, upto="inputs").lcos_nodes
         self.assertEqual({n.node for n in nodes if n.level == 1}, {0, 1, 2, 3, 4, 5, 11, 12, 13})
 
-    def test_name_map(self) -> None:
-        self.add_name_row(layer="turnout", role="turnout", level="2", user_name="Switch 997",
-                          jmri_name="IT:HART:C3:997", pnm_hardware="M2T408", pnm_dcc="100")
-        got = self.problems("name-map")
-        self.assertTrue(any("DCC 100 is Switch 1 and Switch 997" in p for p in got), got)
-        self.assertTrue(any("turnouts Switch 1 and Switch 997 are both M2T408" in p for p in got), got)
-        change(self.src.devices, ("1", "turnout", "Switch 1"), pnm_hardware="", pnm_dcc="")
-        self.assertIn("Switch 1 (switches.csv): devices.csv has no live turnout row with hardware and dcc",
-                      self.problems("name-map"))
+    def test_a_staging_rows_node_is_its_addresss(self) -> None:
+        """The node of a packed address in a staging system name (a head inside a mast's too) is the row's node."""
+        self.assertEqual(self.problems("lcos-nodes"), [])
+        change(self.src.devices, ("1", "turnout", "Switch 1"), node="3")
+        change(self.src.devices, ("1", "mast", "Mast 6LB"), node="12")
+        got = self.problems("lcos-nodes")
+        self.assertTrue(any("turnout Switch 1 is on node 3, but its address M2T408 is node 4's" in p for p in got), got)
+        self.assertTrue(any("mast Mast 6LB is on node 12, but its address IH432 is node 4's" in p for p in got), got)
 
-    def test_name_map_aliases(self) -> None:
-        """The master has no alias rows, but the invariant still holds a name map that has one (a NameMap from rows)."""
-        rr = R.Railroad(self.src, upto="inputs")
-        rows = rr.name_rows + [(999, dict(layer="turnout", current="Switch 999", proposed="Switch 998", cp="", hardware="",
-                                          dcc="", comment="", notes=""))]
-        rr.__dict__["name_map"] = R.read_name_map(self.src.devices, rows)
-        inv = next(i for i in R.INVARIANTS if i.name == "name-map")
-        self.assertIn("devices.csv: turnout 'Switch 999' is an alias of 'Switch 998', which has no live row "
-                      "(current == proposed)", inv.run(rr))
+    def test_staging_devices(self) -> None:
+        self.add_staging_row(layer="turnout", role="turnout", user_name="Switch 997", jmri_name="IT:HART:C3:997",
+                             system_name="M2T408", dcc="100")
+        got = self.problems("staging-devices")
+        # the added row is hand-kept, so it comes first in the master
+        self.assertTrue(any("DCC 100 is Switch 997 and Switch 1" in p for p in got), got)
+        self.assertTrue(any("turnouts Switch 997 and Switch 1 are both M2T408" in p for p in got), got)
+        self.assertEqual(len(got), 2, got)          # an LCC alias carries its turnout's DCC address: no clash
+        drop(self.src.devices, ("1", "turnout", "Switch 997"))
+        change(self.src.devices, ("1", "turnout", "Switch 1"), dcc="")
+        self.assertIn("Switch 1 (switches.csv): devices.csv has no staging turnout row with a system_name and dcc",
+                      self.problems("staging-devices"))
+
+    def test_a_staging_mast_on_a_block_staging_has_not(self) -> None:
+        self.edit("masts", "1,Mast 2L,st:brick,1,Track Main West,", "1,Mast 2L,st:brick,1,Track Nowhere,")
+        self.assertIn("masts.csv: Mast 2L: block Track Nowhere is no level 1 block row of the device master",
+                      self.problems("masts"))
 
     def test_staging_blocks(self) -> None:
-        self.edit("switches", "1,1,,OS Switch 1,OS Switch 3,Track Brick-Plane", "1,1,,OS Switch 1,OS Switch 3,Track Nowhere")
-        self.assertIn("Switch 1 (switches.csv): thrown leg Track Nowhere is no live block of the name map",
+        # a leg's ID is a device of the master (read_switch_rows), but here an occupancy, not a block
+        self.edit("switches", "1,1,,os:1,os:3,block:1C-5A#1+1C-5A#2,", "1,1,,os:1,os:3,det:os:3,")
+        self.assertIn("Switch 1 (switches.csv): thrown leg BS Switch 3 is no staging block row of the device master",
                       self.problems("staging-blocks"))
 
     def test_plan_overrides(self) -> None:
@@ -565,6 +601,15 @@ class Invariants(Copy):
         self.assertIn("Switch 107 (CP 107): no plan switch is relabelled to it in plan_overrides.json[main_upper]", got)
         self.assertIn("plan_overrides.json[main_upper]: move edit names 'T0', which the relabel does not rename", got)
 
+    def test_block_lengths_rows_are_device_ids(self) -> None:
+        """naming-layers step 5: a block_lengths.csv row's (level, id) is a block of the device master, and a
+        measured row names a row of it (ADR-039 lane L8)."""
+        self.assertEqual([p for p in self.problems("staging-blocks") if "block_lengths" in p], [])
+        self.assertEqual(R.Railroad(self.src).block_lengths["Track W-1"].id, "block:3B-end")
+        self.edit("block_lengths", "1,block:3C-end,", "1,block:3Z-end,")
+        got = self.problems("staging-blocks")
+        self.assertIn("block_lengths.csv line 3: block:3Z-end is no level 1 block row of the device master", got)
+
     def test_hands(self) -> None:
         self.append("switches", "3,299,299,,,,L,owner,,,,,,test")
         got = self.problems("hands")
@@ -576,7 +621,7 @@ class Invariants(Copy):
         change(self.src.devices, self.key("turnout", "Switch 107"), level="3")
         got = self.problems("device-map")
         self.assertIn("Switch 103 (local, level 2): no turnout row in devices.csv", got)
-        self.assertTrue(any("Switch 107 is level 3 CP 107, the control points say level 2 CP 107" in p for p in got),
+        self.assertTrue(any("Switch 107 is level 3 local, the control points say level 2 CP 107" in p for p in got),
                         got)
 
     def test_device_map_nodes_dcc_and_names(self) -> None:
@@ -600,39 +645,33 @@ class Invariants(Copy):
         change(self.src.devices, self.key("turnout", "Switch 101"), system_name="M2T408", dcc="100")
         drop(self.src.devices, self.key("turnout", "DCC Switch 103"))
         got = self.problems("device-map", upto="device_map")
-        self.assertTrue(any(re.search(r"level 2 turnout Switch 101\): dcc '100' is line \d+'s as well", p)
+        self.assertTrue(any(re.search(r"Switch 101 \(level 2, turnout\): dcc '100' is Switch 1 \(level 1, turnout\)'s as well", p)
                             for p in got), got)
-        self.assertTrue(any(re.search(r"level 2 turnout Switch 101\): system_name 'M2T408' is line \d+'s", p)
+        self.assertTrue(any(re.search(r"Switch 101 \(level 2, turnout\): system_name 'M2T408' is Switch 1 \(level 1, turnout\)'s", p)
                             for p in got), got)
-        self.assertTrue(any(re.search(r"level 2 turnout Switch 103\): 0 LCC aliases carry its DCC address", p)
+        self.assertTrue(any(re.search(r"Switch 103 \(level 2, turnout\): 0 LCC aliases carry its DCC address", p)
                             for p in got), got)
 
     def test_name_clash(self) -> None:
         """The staging switches' DCC addresses are aliases "DCC <n>" (owner, 2026-11-17), not "Switch <n>": an alias
         named like a main level turnout would rename it in a rename pass."""
         self.assertEqual(self.problems("name-clash", upto="device_map"), [])
-        # the name map holds no alias rows now: a staging row named like a main turnout is the clash that is left
-        self.add_name_row(layer="turnout", role="turnout", user_name="Switch 107", jmri_name="IT:HART:C1:107",
-                          pnm_hardware="M2T1208", pnm_dcc="107")
-        self.assertEqual(self.problems("name-clash", upto="device_map"),
-                         ["devices.csv: turnout Switch 107 is live there and level 2 turnout Switch 107 in devices.csv"])
-        # an alias row (a NameMap built from rows) is the second kind
-        rr = R.Railroad(self.src, upto="device_map")
-        rows = rr.name_rows + [(999, dict(layer="turnout", current="Switch 101", proposed="Switch 25", cp="",
-                                          hardware="", dcc="", comment="", notes=""))]
-        rr.__dict__["name_map"] = R.read_name_map(self.src.devices, rows)
-        inv = next(i for i in R.INVARIANTS if i.name == "name-clash")
-        self.assertTrue(any("turnout Switch 101 is an alias of Switch 25 there" in p for p in inv.run(rr)))
+        # a staging row named like a main turnout is the clash
+        self.add_staging_row(layer="turnout", role="turnout", user_name="Switch 107", jmri_name="IT:HART:C1:107",
+                             system_name="M2T1208", dcc="107")
+        got = self.problems("name-clash", upto="device_map")
+        self.assertEqual(len(got), 1, got)
+        self.assertEqual(got[0], "devices.csv: Switch 107 (level 1, turnout): staging turnout Switch 107 is "
+                                 "level 2 turnout Switch 107 as well")
 
     def test_level_masts(self) -> None:
-        self.edit("level_masts", "Mast 110L,CP 107,109,Track 105-109,", "Mast 110L,CP 107,125,Track Nowhere,")
-        got = self.problems("level-masts")
-        self.assertIn("main_upper_masts.csv: Mast 110L faces Track Nowhere, which is no device map block", got)
-        self.assertIn("main_upper_masts.csv: Mast 110L protects Switch 125, which is not in CP 107", got)
-        lines = self.src.level_masts.read_text(encoding="utf-8").splitlines(keepends=True)
-        self.src.level_masts.write_text("".join(l for l in lines if not l.startswith("Mast 108LA,")),
-                                        encoding="utf-8")
-        self.assertIn("main_upper_masts.csv: device map mast Mast 108LA has no row", self.problems("level-masts"))
+        self.edit("masts", "Mast 110L,cp:107,109,Track 105-109,", "Mast 110L,cp:107,125,Track Nowhere,")
+        got = self.problems("masts")
+        self.assertIn("masts.csv: Mast 110L faces Track Nowhere, which is no device map block", got)
+        self.assertIn("masts.csv: Mast 110L protects Switch 125, which is not in CP 107", got)
+        lines = self.src.masts.read_text(encoding="utf-8").splitlines(keepends=True)
+        self.src.masts.write_text("".join(l for l in lines if not l.startswith("2,Mast 108LA,")), encoding="utf-8")
+        self.assertIn("masts.csv: device map mast Mast 108LA has no row", self.problems("masts"))
 
     def test_tables(self) -> None:
         rr = R.Railroad(self.src)
@@ -643,15 +682,15 @@ class Invariants(Copy):
         got = R.INVARIANTS[-1].run(rr)
         self.assertEqual(got, ["Switch 1 (switches.csv): no turnout Switch 1 in tables.xml"])
 
-    def test_tables_masts_of_both_mast_files(self) -> None:
+    def test_tables_masts_of_every_level(self) -> None:
         rr = R.Railroad(self.src)
         t = rr.tables
         t.masts.pop("Mast 2L")
         t.masts["Mast 110L"] = "IF$x"
         got = R.INVARIANTS[-1].run(rr)
-        self.assertTrue(any(p.startswith("staging_masts.csv: Mast 2L: tables.xml has no such mast, the file says IF$")
+        self.assertTrue(any(p.startswith("masts.csv: Mast 2L: tables.xml has no such mast, the file says IF$")
                             for p in got), got)
-        self.assertTrue(any(p.startswith("main_upper_masts.csv: Mast 110L: tables.xml has IF$x, the file says IF$")
+        self.assertTrue(any(p.startswith("masts.csv: Mast 110L: tables.xml has IF$x, the file says IF$")
                             for p in got), got)
 
     def test_tables_staging_switches(self) -> None:
@@ -664,17 +703,18 @@ class Invariants(Copy):
 
 
 class Known(unittest.TestCase):
-    def broken_map(self) -> R.NameMap:
-        """The repo's name map with an alias row (the master has none) pointed at a name with no live row."""
+    def broken_rows(self) -> R.StagingDevices:
+        """The repo's staging rows with one more turnout on Switch 1's DCC address."""
         path = R.Sources.under().devices
-        rows = R.read_name_rows(path) + [(999, dict(layer="occupancy", current="Block 2-2", proposed="BS unused", cp="",
-                                                    hardware="M2S201", dcc="", comment="", notes="historical alias"))]
-        return R.read_name_map(path, rows)
+        rows = R.read_staging_rows(path) + [(999, {**{c: "" for c in R.STAGING_COLUMNS}, "layer": "turnout",
+                                                   "role": "turnout", "user_name": "Switch 999", "dcc": "100"})]
+        return R.read_staging_devices(path, rows)
 
     def test_unknown_problems_fail_and_stale_known_entries_fail(self) -> None:
         rr = R.Railroad(upto="device_map")
-        rr.__dict__["name_map"] = self.broken_map()
-        problem = "name-map: devices.csv: occupancy 'Block 2-2' is an alias of 'BS unused', which has no live row (current == proposed)"
+        rr.__dict__["staging_devices"] = self.broken_rows()
+        problem = ("staging-devices: devices_generated.csv: Switch 1 and Switch 999 (level 1, turnout): DCC 100 is "
+                   "Switch 1 and Switch 999")
         fails, _ = R.run_check(rr, {})
         self.assertIn(problem, fails)
         fails, _ = R.run_check(rr, {problem: "test"})
@@ -694,25 +734,34 @@ class Known(unittest.TestCase):
 
 
 class VirtualNames(unittest.TestCase):
-    def row(self, layer, user, jmri):
-        """A row as build_device_map makes it: from_dict gives it its role (devices.role_of)."""
-        return R.DeviceRow.from_dict(dict(level="2", layer=layer, user_name=user, jmri_name=jmri))
+    ROLES = {"block": "track", "occupancy": "track", "head": "head"}
 
-    def test_a_row_built_by_hand_is_never_roleless(self) -> None:
-        self.assertEqual(R.DeviceRow(level=2, layer="turnout", user_name="DCC Switch 1").role, "lcc_alias")
-        self.assertEqual(R.DeviceRow(level=2, layer="head", user_name="Head 2L").role, "head")
-        self.assertEqual(R.DeviceRow(level=2, layer="mast", user_name="Mast 1L", jmri_name="IF$vsm:basic:x").role,
-                         "hidden")
-        self.assertEqual(R.DeviceRow(level=2, layer="turnout", user_name="Switch 1", role="turnout").role, "turnout")
+    def row(self, layer, user, jmri, role=None):
+        """A row as build_device_map makes it, with the role its writer gives it."""
+        role = role or self.ROLES.get(layer) or ("lcc_alias" if user.startswith("DCC ") else "turnout")
+        return R.DeviceRow.from_dict(dict(level="2", layer=layer, user_name=user, jmri_name=jmri, role=role))
 
-    def test_from_dict_gives_the_role_a_reader_tests(self) -> None:
-        self.assertEqual(self.row("turnout", "DCC Switch 1", "IT:HART:C3:1").role, "lcc_alias")
-        self.assertEqual(self.row("turnout", "Switch 1", "IT:HART:C3:1").role, "turnout")
-        self.assertEqual(self.row("block", "OS Switch 7", "").role, "os")
-        given = R.DeviceRow.from_dict(dict(level=2, layer="turnout", user_name="Switch 1", role="turnout"))
-        self.assertEqual(given.role, "turnout")
-        with self.assertRaisesRegex(R.FactsError, "a device map has no sensor rows"):
-            self.row("sensor", "Lamp", "")
+    def test_a_row_has_the_role_it_is_given_and_never_one_from_its_name(self) -> None:
+        self.assertEqual(R.DeviceRow(level=2, layer="block", user_name="OS Switch 7", role="track").role, "track")
+        given = R.DeviceRow.from_dict(dict(level=2, layer="turnout", user_name="DCC Switch 1", role="lcc_alias"))
+        self.assertEqual(given.role, "lcc_alias")
+        with self.assertRaisesRegex(R.FactsError, "level 2 turnout 'DCC Switch 1' has role ''"):
+            R.DeviceRow.from_dict(dict(level=2, layer="turnout", user_name="DCC Switch 1"), line=7)
+        with self.assertRaisesRegex(R.FactsError, "has role 'siding', not one of"):
+            R.DeviceRow(level=2, layer="block", user_name="Track 1-3", role="siding")
+        with self.assertRaises(TypeError):          # role is a field with no default
+            R.DeviceRow(level=2, layer="head", user_name="Head 2L")
+
+    def test_a_blocks_occupancy_row_is_found_by_its_blocks_column(self) -> None:
+        occ = self.row("occupancy", "BS Odd Name", "IS:HART:C3:B:1-3")
+        dm = R.DeviceMap(rows=[self.row("block", "Track 1-3", ""), replace(occ, blocks="Track 1-3")])
+        self.assertEqual(dm.occupancy["Track 1-3"].user_name, "BS Odd Name")
+        self.assertEqual(R.DeviceMap(rows=[occ]).occupancy, {})            # an occupancy row serving no block
+        twice = R.DeviceMap(rows=[replace(occ, blocks="Track 1-3", line=4),
+                                  replace(occ, user_name="BS 1-3", blocks="Track 1-3", line=9)], path=Path("d.csv"))
+        with self.assertRaisesRegex(R.FactsError, "d.csv: occupancy BS Odd Name and BS 1-3 both serve "
+                                                  "block Track 1-3"):
+            twice.occupancy  # noqa: B018
 
     def test_the_level_devices_naming_rule(self) -> None:
         ok = [self.row("block", "Track 1-3", ""), self.row("occupancy", "BS 1-3", "IS:HART:C3:B:1-3"),
@@ -724,6 +773,38 @@ class VirtualNames(unittest.TestCase):
         self.assertTrue(any("blocks and occupancy rows differ" in p for p in bad), bad)
         self.assertIn("turnout Switch 3: jmri_name 'IT:HART:C3:1', not IT:HART:C3:<switch number>", bad)
         self.assertIn("turnout rows: a virtual name is empty or given twice", bad)
+
+    def test_the_rule_reads_ids_not_names(self) -> None:
+        """Naming-layers step 13: a turnout's switch number comes from its id, a block's detector is det:<its id>,
+        and a block, detector or mast the owner names keeps its generated virtual names (held to their form only)."""
+        ok = [replace(self.row("block", "Track Coal Spur", ""), id="block:1B-end"),
+              replace(self.row("occupancy", "BS 1 Spur", "IS:HART:C3:B:1_Spur"), id="det:block:1B-end"),
+              replace(self.row("turnout", "Switch Coal", "IT:HART:C3:1"), id="switch:1"),
+              replace(self.row("turnout", "DCC Switch Coal", "IT:HART:C3:1", role="lcc_alias"), id="dcc:1"),
+              replace(self.row("head", "Head Coal", "IH:HART:C3:2L"), id="mast:1:B:west:single")]
+        owner = {(2, "block:1B-end"), (2, "switch:1"), (2, "mast:1:B:west")}
+        self.assertEqual(R.check_virtual_names(ok, owner), [])
+        bad = R.check_virtual_names(ok)             # the same names taken as generated
+        self.assertTrue(any(p.startswith("occupancy BS 1 Spur: jmri_name") for p in bad), bad)
+        self.assertTrue(any("Head Coal" in p for p in bad), bad)
+        self.assertFalse(any(p.startswith("turnout") for p in bad), bad)       # the number is the id's
+        moved = R.check_virtual_names([ok[0], replace(ok[1], id="det:block:3A-end")] + ok[2:], owner)
+        self.assertTrue(any("blocks and occupancy rows differ" in p for p in moved), moved)
+        self.assertIn("turnout Switch Coal: jmri_name 'IT:HART:C3:1', not IT:HART:C3:<switch number>",
+                      R.check_virtual_names([replace(ok[2], id="switch:3")], owner))
+        self.assertEqual(R.DeviceMap(rows=ok).turnouts, {"1": ok[2]})
+        # paired row by row: a row with no id among rows with ids is named, not a reason to drop the ids
+        mixed = R.check_virtual_names(ok + [self.row("block", "Track 3-5", ""),
+                                            self.row("occupancy", "BS 3-5", "IS:HART:C3:B:3-5")], owner)
+        self.assertEqual(mixed, ["rows with no id among rows with ids: block Track 3-5, occupancy BS 3-5"])
+        # a swap (ADR-028): the owner's jmri_name on a turnout is a field device, held to no virtual rule
+        swap = [replace(ok[2], jmri_name="M2T408")] + ok[3:]
+        self.assertTrue(R.check_virtual_names(swap, owner))
+        self.assertEqual(R.check_virtual_names(swap, owner, swapped={(2, "switch:1")}), [])
+        # by the row's own column (naming-layers step 14): assignment field is a field device, its alias too
+        field = [replace(ok[2], jmri_name="M2T408", assignment="field"),
+                 replace(ok[3], jmri_name="MTT120", assignment="field")] + ok[4:]
+        self.assertEqual(R.check_virtual_names(field, owner), [])
 
     def test_a_block_or_occupancy_row_given_twice(self) -> None:
         """Two rows of one block (or of one occupancy sensor) are caught, not folded into one by a set."""
@@ -772,21 +853,13 @@ class SmallHelpers(Copy):
         self.assertTrue(rr.switches)
         self.assertTrue(rr.helix_tracks)
         self.assertTrue(all(h.block.startswith("Track ") for h in rr.helix_tracks.values()))
-        self.assertEqual(R.read_helix_tracks(self.src.helix_tracks), rr.helix_tracks)
+        self.assertEqual(R.read_helix_tracks(self.src.plan_overrides), rr.helix_tracks)
+        self.assertEqual([h.block for h in rr.helix_tracks.values()], ["Track Helix Outer", "Track Helix Inner"])
 
-    def test_a_helix_block_given_twice_stops(self) -> None:
-        tracks = list(R.read_helix_tracks(self.src.helix_tracks).values())
-        path = self.src.helix_tracks
-        with path.open(newline="", encoding="utf-8") as fh:
-            rows = list(csv.DictReader(fh))
-            fields = rows[0].keys()
-        rows[1]["block"] = tracks[0].block
-        with path.open("w", newline="", encoding="utf-8") as fh:
-            w = csv.DictWriter(fh, fieldnames=list(fields))
-            w.writeheader()
-            w.writerows(rows)
-        with self.assertRaises(R.FactsError):
-            R.read_helix_tracks(path)
+    def test_a_helix_track_named_twice_stops(self) -> None:
+        self.edit("plan_overrides", '"131B": "block:37B-helix"', '"131B": "block:39B-helix"')
+        with self.assertRaisesRegex(R.FactsError, "named 'Helix Outer'"):
+            R.read_helix_tracks(self.src.plan_overrides)
 
     def test_sources_but_swaps_one_file(self) -> None:
         other = self.src.but(switches=Path("x.csv"))
@@ -801,17 +874,17 @@ class SmallHelpers(Copy):
         with self.assertRaises(ValueError):
             R.Railroad(self.src, upto="nope")
 
-    def test_the_name_rows_are_read_once(self) -> None:
-        """name_map and switches both start from one read of the name map of devices.csv."""
+    def test_the_staging_rows_are_read_once(self) -> None:
+        """staging_devices and switches both start from one read of staging's rows of devices.csv."""
         reads = []
-        real = R.read_name_rows
-        self.addCleanup(setattr, R, "read_name_rows", real)
-        R.read_name_rows = lambda path: reads.append(path) or real(path)
+        real = R.read_staging_rows
+        self.addCleanup(setattr, R, "read_staging_rows", real)
+        R.read_staging_rows = lambda path: reads.append(path) or real(path)
         rr = R.Railroad(self.src, upto="inputs")
-        self.assertTrue(rr.name_map)
+        self.assertTrue(rr.staging_devices)
         self.assertTrue(rr.switches)
         self.assertEqual(reads, [self.src.devices])
-        self.assertTrue(R.switch_turnouts(self.src.devices, rr.name_rows, [next(iter(rr.switches))]))
+        self.assertTrue(R.switch_turnouts(self.src.devices, rr.staging_rows, [next(iter(rr.switches))]))
         self.assertEqual(len(reads), 1)
 
 

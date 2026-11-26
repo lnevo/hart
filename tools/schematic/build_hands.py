@@ -8,10 +8,11 @@ the schematic's drawn hands: 101A/B, 103A/B, 105, 107, 109 and 111 are flipped o
 Layout Editor import.
 
 switches.csv is hand-kept, one row per OS block or switch half (switches.columns.csv). This script changes only the
-`hand` cell of a main or upper row whose hand_source is `plan`; a row whose hand_source is `owner` is the owner's
-and is never touched, and no row is added or removed. It stops, naming the row, on a plan label with no row (add
-the row with hand_source plan and the hand blank: this fills it), a plan row the plan has no hand for, and a row of
-a plan label with no hand_source.
+`hand` cell of a main or upper row whose hand_source is `plan`. A staging row gives its OS block and legs by device
+ID only; their names are the name store's, which hartlib.railroad_facts.read_switch_rows looks up, so nothing here
+writes a name. A row whose hand_source is `owner` keeps its hand, and no row is added or removed. It stops, naming the
+row, on a plan label with no row (add the row with hand_source plan and the hand blank: this fills it), a plan row
+the plan has no hand for, and a row of a plan label with no hand_source.
 
 --check regenerates in memory and exits 1 if the file differs.
 """
@@ -63,16 +64,18 @@ def plan_hands():
     return out
 
 
-def apply(path, hands):
+def apply(path, hands, names=None):
     """The text of switches.csv at `path` with the hand of each plan row set from `hands` ({label: hand}); every other
-    line as it was, byte for byte (a plan row whose hand is already right too). Stops (SystemExit naming the file and
-    line) on what the module text says."""
+    line as it was, byte for byte (a row already right too). `names`: the name store the read checks the staging rows'
+    IDs against (railroad.read_switch_rows; the device master beside `path`, else the repo's, by default). Stops
+    (SystemExit naming the file and line) on what the module text says, or a row read_switch_rows refuses."""
     name = path.name
     try:
-        rows = railroad.read_switch_rows(path)
+        rows = railroad.read_switch_rows(path, names)
     except railroad.FactsError as exc:
         raise SystemExit(f"build_hands.py: {exc}") from None
-    by_half = {r.half: r for r in rows if r.level in railroad.LEVEL_NUMBERS}
+    # by each row's key, not its level (naming-layers step 14): plan hands for the rows keyed by their half
+    by_half = {r.half: r for r in rows if not r.by_os}
     bad = [f"{name}: plan switch {label} has no row; add one (level, switch, half {label}, hand_source plan, "
            "hand blank) and run build_hands.py"
            for label in sorted(set(hands) - set(by_half), key=railroad.natural)]
@@ -113,7 +116,8 @@ def main(argv):
     text = build()
     if "--check" in argv:
         if OUT.read_text(encoding="utf-8") != text:
-            print(f"{OUT.relative_to(pd.REPO)}: its plan hands are out of date: run tools/schematic/build_hands.py")
+            print(f"{OUT.relative_to(pd.REPO)}: its plan hands are out of date: run "
+                  "tools/schematic/build_hands.py")
             return 1
         print("switches.csv plan hands up to date")
         return 0

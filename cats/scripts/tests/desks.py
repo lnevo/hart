@@ -12,6 +12,9 @@ sys.path.insert(0, str(ROOT / "cats/scripts"))
 
 import digicon_trace as trace  # noqa: E402
 
+sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+from hartlib import devices, tables_build  # noqa: E402
+
 CTC = ROOT / "cats/panels/HART_CTC.xml"
 ABS = ROOT / "cats/panels/HART_ABS.xml"
 LIVE = (CTC, ABS)
@@ -25,7 +28,7 @@ def cells(path: Path) -> dict[tuple[int, int], ET.Element]:
 def plants(path: Path) -> tuple[dict[tuple[int, int], ET.Element], dict[str, tuple[int, int]]]:
     """(cells, OS block -> plant cell) for every bound plant of a desk (the dark main and upper plants bind nothing)."""
     c = cells(path)
-    return c, trace.desk_plants(c, bound=True)
+    return c, trace.desk_plants(c, bound=True, level_turnouts=tables_build.level_turnouts(devices.load()))
 
 
 def routes(path: Path, os_block: str) -> dict[str, tuple[str | None, bool]]:

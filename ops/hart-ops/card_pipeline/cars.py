@@ -17,7 +17,9 @@
     cars.py locos ...       Locomotive repository and stage 4 publish (add, set, status, publish)
     cars.py cards           Build a print .docx for every queued car without a card
     cars.py publish         Rebuild rosters, feed STS, merge into Operations Pro
+    cars.py seed-copy       Rebuild the roster and refresh the STS seed copies only
     cars.py compare         Report differences between the repository and each tool
+    cars.py sync            Send the repository's identity fields to the tools that differ (dry run; --apply writes)
 
 ``data/image_metadata.csv`` is the repository: one row per car, with a blank
 ``source_image`` until the car is photographed. ``data/car_queue.csv`` tracks
@@ -26,11 +28,14 @@ which new cars still need a card, STS or Operations Pro.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import csv
 import os
 import shutil
 import subprocess
 import sys
+import urllib.request
+from urllib.parse import urlsplit
 import xml.etree.ElementTree as ET
 from datetime import date
 from pathlib import Path
@@ -39,7 +44,8 @@ PIPELINE = Path(__file__).resolve().parent
 HART_ROOT = PIPELINE.parents[2]
 os.environ.setdefault("HART_CAR_CARDS_ROOT", str(HART_ROOT / "ops/car-cards"))
 
-from car_paths import DATA, FINAL_DIR, IMAGES_DIR, OUTPUT_DIR, ROOT  # noqa: E402
+from car_paths import DATA, FINAL_DIR, IMAGES_DIR, ROOT  # noqa: E402
+from hartlib import operations  # noqa: E402  (car_paths put tools/hartlib/src on sys.path)
 
 METADATA = DATA / "image_metadata.csv"
 QUEUE = DATA / "car_queue.csv"
@@ -48,6 +54,14 @@ OPS = DATA / "OperationsCarRoster.xml"
 # ADR-015: the repo copy is the master; the deploy installs it on the hosts.
 OPS_MERGED = HART_ROOT / "jmri/layouts/hart/operations/OperationsCarRoster.xml"
 STS_HELPERS = HART_ROOT / "external/sts-helpers"
+# Publish copies these into the STS seed; compare reports when the copies drift.
+SEED_COPIES = (METADATA, MERGED)
+
+SEED_INPUTS = STS_HELPERS / "seed/inputs"
+NO_SEED_DIR = (
+    "{path} does not exist (is the external/sts-helpers submodule checked out? "
+    "git submodule update --init external/sts-helpers)"
+)
 PRINT_DIR = ROOT / "print"
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".heic", ".tif", ".tiff"}
 DEPLOY_NOTE = "Commit it in the hart repo, then deploy with tools/hosts/sync_hart_package.sh."
@@ -166,7 +180,7 @@ def ask(row: dict, values: dict[str, str], assume_yes: bool) -> None:
 
 def finish_row(row: dict, columns: list[str]) -> str:
     """Fill the derived fields and return the roster id."""
-    from build_merged_car_roster import ROSTER_TYPO_IDS, default_weights
+    from build_merged_car_roster import default_weights
     from roster_id import assign_freight_roster_id
 
     row["road_name"] = row.get("road_name") or row.get("reporting_marks", "")
@@ -176,8 +190,6 @@ def finish_row(row: dict, columns: list[str]) -> str:
     roster_id = row.get("roster_id", "")
     if not roster_id:
         raise SystemExit("A car needs reporting marks and a road number.")
-    if roster_id in ROSTER_TYPO_IDS:
-        raise SystemExit(f"{roster_id} is a recorded misread road number; check the car.")
     length = row.get("roster_length_ft", "")
     if length and not (row.get("roster_weight_oz") and row.get("roster_weight_tons")):
         row["roster_weight_oz"], row["roster_weight_tons"] = default_weights(length)
@@ -191,7 +203,7 @@ def cmd_import_legacy(_args: argparse.Namespace) -> int:
     rows, columns = read_rows()
     known = {row_id(r) for r in rows}
     added = 0
-    for car in ET.parse(OPS).getroot().findall("./cars/car"):
+    for car in operations.cars(OPS):
         cid = car.get("id", "")
         if cid in known:
             continue
@@ -589,41 +601,24 @@ def ops_out_of_service(path: Path) -> set[str]:
     if not path.is_file():
         return set()
     return {
-        c.get("id", "") for c in ET.parse(path).getroot().findall("./cars/car")
-        if c.get("outOfService") == "true"
+        c.get("id", "") for c in operations.cars(path) if c.get("outOfService") == "true"
     }
 
 
 def merge_ops(
     live_path: Path,
     wanted: list[str],
-    renames: dict[str, str] | None = None,
     out_of_service: set[str] | None = None,
 ) -> list[str]:
     """Add cars to the Operations Pro roster, leaving every other car alone.
 
-    Renames correct a car's identity in place, so its location and moves survive.
     When out_of_service is given, every car's flag is set to match it.
     """
     tree = ET.parse(live_path)
     root = tree.getroot()
     cars_el = root.find("cars")
     have = {c.get("id") for c in cars_el.findall("car")}
-    source = {c.get("id"): c for c in ET.parse(MERGED).getroot().findall("./cars/car")}
-    for car in cars_el.findall("car"):
-        new_id = (renames or {}).get(car.get("id"))
-        if not new_id:
-            continue
-        if new_id in have:
-            raise SystemExit(f"{car.get('id')} and {new_id} are both in the roster; check by hand.")
-        if new_id not in source:
-            raise SystemExit(f"{new_id} is missing from {MERGED.name}")
-        for attr in ("id", "roadName", "roadNumber", "color"):
-            if source[new_id].get(attr):
-                car.set(attr, source[new_id].get(attr))
-        add_to_sections(root, car)
-        have.discard(car.get("id"))
-        have.add(new_id)
+    source = {c.get("id"): c for c in operations.cars(MERGED)}
     added = []
     for roster_id in wanted:
         if roster_id in have:
@@ -673,6 +668,27 @@ def publish_gate(args: argparse.Namespace) -> None:
         raise SystemExit(1)
 
 
+def sync_seed_copies(inputs: Path, masters: tuple[Path, ...]) -> None:
+    """Copy the master car files into the STS seed inputs and nothing else."""
+    if not inputs.is_dir():
+        raise SystemExit(NO_SEED_DIR.format(path=inputs))
+    for source in masters:
+        if not source.is_file():
+            raise SystemExit(f"Master file is missing: {source}")
+    for source in masters:
+        shutil.copy2(source, inputs / source.name)
+    print(f"Copied the repository and roster to {inputs}")
+
+
+def cmd_seed_copy(args: argparse.Namespace) -> int:
+    """Rebuild the merged roster as publish does, then refresh the STS seed copies only."""
+    from build_car_roster_sor import main as build_roster
+
+    build_roster()
+    sync_seed_copies(SEED_INPUTS, SEED_COPIES)
+    return 0
+
+
 def cmd_publish(args: argparse.Namespace) -> int:
     from build_car_roster_sor import main as build_roster
 
@@ -688,10 +704,7 @@ def cmd_publish(args: argparse.Namespace) -> int:
         """With --only, the rest of the queue is left exactly as it is."""
         return not args.only or item["roster_id"] in args.only
 
-    inputs = STS_HELPERS / "seed/inputs"
-    shutil.copy2(METADATA, inputs / METADATA.name)
-    shutil.copy2(MERGED, inputs / MERGED.name)
-    print(f"Copied the repository and roster to {inputs}")
+    sync_seed_copies(SEED_INPUTS, SEED_COPIES)
 
     for_sts = [q for q in queue if not q["sts"] and chosen(q)]
     if for_sts:
@@ -748,20 +761,20 @@ def cmd_service(args: argparse.Namespace) -> int:
 def cmd_fix_ops(args: argparse.Namespace) -> int:
     """Bring the Operations Pro roster up to the repository. Leaves STS and the queue alone."""
     from build_car_roster_sor import main as build_roster
-    from build_merged_car_roster import ROSTER_TYPO_IDS
 
     build_roster()
     rows, _ = read_rows()
     live = Path(args.ops_live)
-    current = ops_ids(live)
-    renames = {old: new for old, new in ROSTER_TYPO_IDS.items() if old in current}
     wanted = sorted(
         row_id(r) for r in rows
         if row_id(r) and (r.get("car_type") or "") not in ("Locomotive", "Streetcar")
     )
-    added = merge_ops(live, wanted, renames, out_of_service_ids(rows))
-    print(f"Renamed {len(renames)}: {' '.join(f'{o}>{n}' for o, n in renames.items())}")
+    unknown = sorted(ops_ids(live) - {row_id(r) for r in rows})
+    added = merge_ops(live, wanted, out_of_service_ids(rows))
     print(f"Added {len(added)}: {' '.join(added)}")
+    if unknown:
+        # fix-ops renames nothing: a car kept under a wrong id would now sit beside its added right id.
+        print(f"Not in the repository, left as they are (check each by hand): {' '.join(unknown)}")
     print(DEPLOY_NOTE)
     return 0
 
@@ -780,12 +793,343 @@ def seed_marks() -> set[str]:
 def ops_ids(path: Path) -> set[str]:
     if not path.is_file():
         return set()
-    return {c.get("id", "") for c in ET.parse(path).getroot().findall("./cars/car")}
+    return set(operations.ids(operations.cars(path)))
+
+
+def seed_copy_report(inputs: Path, masters: tuple[Path, ...]) -> list[str]:
+    """Lines saying whether each master matches its copy in the STS seed inputs.
+
+    The roster is compared as last built; publish and seed-copy rebuild it first.
+    """
+    if not inputs.is_dir():
+        return ["  Cannot check: " + NO_SEED_DIR.format(path=inputs)]
+    lines = []
+    drift = False
+    for master in masters:
+        suffix = " (as last built)" if master == MERGED else ""
+        if not master.is_file():
+            lines.append(f"  {master.name}: master is missing")
+            continue
+        copy = inputs / master.name
+        if not copy.is_file():
+            state = "differs (copy is missing)"
+            drift = True
+        elif copy.read_bytes() == master.read_bytes():
+            state = "same"
+        else:
+            state = "differs"
+            drift = True
+        lines.append(f"  {master.name}: {state}{suffix}")
+    if drift:
+        lines.append("  Bring them in step with: bin/cars seed-copy")
+    return lines
+
+
+# Field differences (compare): repository column -> the attribute the tool's writer sets.
+# The expected value is what build_merged_car_roster.manifest_to_car makes from the row, so
+# road code, number, type, length and colour are normalised exactly as the roster build does.
+# A field is compared only when its repository column is filled in: manifest_to_car's defaults
+# (40 or 90 ft, default weights) are not repository facts. Not compared: weight and weightTons,
+# location, load, destination and position (STS owns them, ADR-016), the out-of-service flag
+# (ADR-015, reported above) and the STS AAR code (derived from several rules, not one field).
+# Operations Pro's car type is left out: it follows the STS car code, not car_type
+# (docs/ops/OPSPRO_MAPPING.md, D14), and no writer code in the repository derives it.
+ROSTER_FIELDS = {
+    "roster_road": "roadName",
+    "road_number": "roadNumber",
+    "car_type": "type",
+    "roster_length_ft": "length",
+    "color": "color",
+}
+OPS_FIELDS = {c: a for c, a in ROSTER_FIELDS.items() if a != "type"}
+# STS seed copy of image_metadata.csv: the columns generate_hart_seed.load_roster_metadata reads.
+SEED_META_FIELDS = ("car_type", "car_class", "notes")
+# sts_added_cars.csv: reporting_marks is road code + number; remarks is "{type} {length}ft"
+# (generate_hart_seed.add_cars).
+ADDED_FIELDS = {"reporting_marks": "marks", "remarks": "remarks"}
+DIFF_LIMIT = 20
+# The roster build skips only locomotives, so Operations Pro is compared for every other type.
+# generate_hart_seed skips its PASSENGER_TYPES (passenger cars, cabooses, MOW) in add_cars.
+OPS_SKIP_TYPES: frozenset[str] = frozenset()
+
+
+def seed_helpers():
+    """(generate_hart_seed, None), or (None, reason) when the sts-helpers submodule cannot load."""
+    seed_dir = STS_HELPERS / "seed"
+    if not (seed_dir / "generate_hart_seed.py").is_file():
+        return None, NO_SEED_DIR.format(path=seed_dir)
+    for path in (str(seed_dir), str(STS_HELPERS / "lib")):
+        if path not in sys.path:
+            sys.path.insert(0, path)
+    try:
+        import generate_hart_seed
+    except (ImportError, AttributeError) as err:
+        return None, f"{type(err).__name__}: {err}"
+    return generate_hart_seed, None
+
+
+def expected_cars(rows: list[dict], skip_types: frozenset[str]) -> dict[str, dict]:
+    """Roster attributes the build makes from each repository row, keyed by roster id.
+
+    An attribute whose repository column is blank is dropped, not defaulted.
+    """
+    from build_merged_car_roster import manifest_to_car, normalize_roster_type
+    from engine_lookup import is_locomotive_row
+
+    out = {}
+    for row in rows:
+        ctype = (row.get("car_type") or "").strip()
+        if is_locomotive_row(row) or ctype in ("Locomotive", "Streetcar"):
+            continue
+        if normalize_roster_type(ctype) in skip_types or ctype in skip_types:
+            continue
+        attrs = manifest_to_car(row)
+        if not attrs:
+            continue
+        for column, attr in ROSTER_FIELDS.items():
+            if attr != "roadName" and not (row.get(column) or "").strip():
+                attrs.pop(attr, None)
+        out[attrs["id"]] = attrs
+    return out
+
+
+def field_diffs(expected: dict[str, dict], tool: dict[str, dict], fields: dict[str, str]):
+    """(id, field, repo value, tool value) for cars in both, over the mapped fields only.
+
+    A field the repository leaves blank is skipped: the roster build keeps the tool's own value.
+    """
+    diffs = []
+    for cid in sorted(expected.keys() & tool.keys()):
+        for attr in fields.values():
+            want = (expected[cid].get(attr) or "").strip()
+            have = (tool[cid].get(attr) or "").strip()
+            if want and want != have:
+                diffs.append((cid, attr, want, have))
+    return diffs
+
+
+def ops_car_attrs(path: Path) -> dict[str, dict]:
+    return {c.get("id", ""): dict(c.attrib) for c in operations.cars(path)}
+
+
+def print_diffs(diffs: list[tuple], show_all: bool) -> None:
+    print(f"  Field differences: {len(diffs)}")
+    shown = diffs if show_all else diffs[:DIFF_LIMIT]
+    for cid, field, want, have in shown:
+        print(f"    {cid} {field}: repo={want!r} tool={have!r}")
+    if len(diffs) > len(shown):
+        print(f"    +{len(diffs) - len(shown)} more (--all)")
+
+
+def print_if_present(path: Path, show_all: bool, make_diffs) -> None:
+    """Print make_diffs() for a tool file, or say the file is missing instead of reporting 0."""
+    if not path.is_file():
+        print(f"  Cannot check: {path} is missing")
+        return
+    print_diffs(make_diffs(), show_all)
+
+
+def seed_meta_diffs(rows: list[dict], copy_path: Path, gen) -> list[tuple]:
+    """Differences between the repository and the STS seed copy of image_metadata.csv."""
+    with copy_path.open(newline="", encoding="utf-8") as fh:
+        copy_rows = {row_id(r): r for r in csv.DictReader(fh) if row_id(r)}
+    reads = {
+        "car_type": lambda r: gen.normalize_car_type(r.get("car_type") or ""),
+        "car_class": gen.infer_car_class,
+        "notes": lambda r: (r.get("notes") or "").strip(),
+    }
+    diffs = []
+    for row in rows:
+        cid = row_id(row)
+        if cid not in copy_rows or "CarImagesFinal" not in (row.get("notes") or ""):
+            continue
+        if gen.normalize_car_type(row.get("car_type") or "") in gen.PASSENGER_TYPES:
+            continue
+        for field in SEED_META_FIELDS:
+            want, have = reads[field](row), reads[field](copy_rows[cid])
+            if want and want != have:
+                diffs.append((cid, field, want, have))
+    return sorted(diffs)
+
+
+def added_cars_diffs(rows: list[dict], added: dict[str, dict], gen) -> list[tuple]:
+    """Differences between the repository and sts_added_cars.csv (marks and remarks)."""
+    tool = {
+        cid: {"marks": a.get("reporting_marks", ""), "remarks": a.get("remarks", "")}
+        for cid, a in added.items()
+    }
+    want = {
+        cid: {"marks": f"{a['roadName']}{a['roadNumber']}", "remarks": f"{a['type']} {a['length']}ft"}
+        for cid, a in expected_cars(rows, frozenset(gen.PASSENGER_TYPES)).items()
+        if a.get("type") and a.get("length")
+    }
+    return field_diffs(want, tool, ADDED_FIELDS)
+
+
+def field_targets(rows: list[dict], ops_path: Path, gen) -> list[tuple]:
+    """(key, heading, path, make_diffs) for each tool file compared field by field, in print order.
+
+    compare prints these and sync applies them, so both read the same differences. The STS
+    entries are present only when the seed helpers loaded (gen) and the seed folder exists.
+    """
+    targets = [(
+        "ops", "Operations Pro fields (OperationsCarRoster.xml, type left out)", ops_path,
+        lambda: field_diffs(expected_cars(rows, OPS_SKIP_TYPES), ops_car_attrs(ops_path), OPS_FIELDS),
+    )]
+    if gen is None or not SEED_INPUTS.is_dir():
+        return targets
+    photos = {row_id(r) for r in rows if "CarImagesFinal" in (r.get("notes") or "")}
+    sts_expected = expected_cars(
+        [r for r in rows if row_id(r) in photos], frozenset(gen.PASSENGER_TYPES)
+    )
+    roster, meta = SEED_INPUTS / MERGED.name, SEED_INPUTS / METADATA.name
+    added = SEED_INPUTS / "sts_added_cars.csv"
+    return targets + [
+        ("seed_roster", "STS seed roster copy fields (HART_MergedCarRoster.xml; cars with a photo only)",
+         roster, lambda: field_diffs(sts_expected, ops_car_attrs(roster), ROSTER_FIELDS)),
+        ("seed_meta", "STS seed metadata copy fields (image_metadata.csv)",
+         meta, lambda: seed_meta_diffs(rows, meta, gen)),
+        ("added", "STS added cars fields (sts_added_cars.csv)",
+         added, lambda: added_cars_diffs(rows, gen.load_added_cars(SEED_INPUTS), gen)),
+    ]
+
+
+def print_field_sections(rows: list[dict], ops_path: Path, show_all: bool) -> None:
+    """Field differences for cars present in the repository and a tool (read only)."""
+    gen, reason = seed_helpers()
+    for _key, heading, path, make_diffs in field_targets(rows, ops_path, gen):
+        print(f"\n{heading}:")
+        print_if_present(path, show_all, make_diffs)
+    if gen is None:
+        print(f"\nCannot check STS sections: {reason}")
+    elif not SEED_INPUTS.is_dir():
+        print("\nCannot check STS sections: " + NO_SEED_DIR.format(path=SEED_INPUTS))
+
+
+LIVE_STS_TIMEOUT = 20
+OPERATING_SH = HART_ROOT / "tools/hosts/operating.sh"
+
+
+class LiveStsError(RuntimeError):
+    """The live section cannot run; the message says why. Never falls back to the seed."""
+
+
+def operating_reason() -> str | None:
+    """The operating flag's reason when it is set, else None (operating.sh status exits 0 when set)."""
+    try:
+        out = subprocess.run(
+            [str(OPERATING_SH), "status"], capture_output=True, text=True, timeout=15, check=False
+        )
+    except (OSError, subprocess.SubprocessError) as err:
+        raise LiveStsError(f"cannot read the operating flag ({err}); not touching the live STS") from err
+    if out.returncode == 1:
+        return None
+    if out.returncode != 0:
+        raise LiveStsError(f"cannot read the operating flag (exit {out.returncode}); not touching the STS")
+    line = out.stdout.strip()
+    return line.split("reason=", 1)[1] if "reason=" in line else (line or "set")
+
+
+def target_is_local(url: str) -> bool:
+    """The Mac's own STS (UAT or sandbox) is Mac-only work and stays open while operating."""
+    return (urlsplit(url).hostname or "") in ("localhost", "127.0.0.1", "::1")
+
+
+def target_url() -> str:
+    return os.environ.get("STS_API_URL", "").strip() or "http://localhost:8980/sts/api/v1"
+
+
+@contextlib.contextmanager
+def capped_timeout(seconds: int):
+    """sts_api waits up to an hour per request (for long tasks); a read here must not."""
+    real = urllib.request.urlopen
+    urllib.request.urlopen = lambda url, data=None, timeout=None, *a, **kw: real(
+        url, data, seconds, *a, **kw
+    )
+    try:
+        yield
+    finally:
+        urllib.request.urlopen = real
+
+
+def load_sts_api():
+    """The sts-helpers client, the one place cars.py imports it (and sts_paths beside it)."""
+    helpers_lib = str(STS_HELPERS / "lib")
+    if not (STS_HELPERS / "lib/sts_api.py").is_file():
+        raise LiveStsError(NO_SEED_DIR.format(path=STS_HELPERS / "lib"))
+    if helpers_lib not in sys.path:
+        sys.path.insert(0, helpers_lib)
+    import sts_api
+
+    return sts_api
+
+
+def fetch_live_cars() -> tuple[str, str, list[dict]]:
+    """(url, stack, cars) from GET /health and GET /cars through the sts-helpers client.
+
+    The URL is STS_API_URL (the caller sets it for this job only); GET requests only.
+    """
+    sts_api = load_sts_api()
+    url = sts_api.base_url()
+    try:
+        with capped_timeout(LIVE_STS_TIMEOUT):
+            health = sts_api.get("/health")
+            cars = sts_api.get_all("/cars")
+    except sts_api.ApiError as err:
+        if err.code == "unreachable":
+            raise LiveStsError(f"cannot reach STS at {url}: {err.message.split(': ', 1)[-1]}") from err
+        raise LiveStsError(f"STS at {url} refused the read: {err}") from err
+    except (OSError, ValueError, TypeError) as err:  # timeouts and bad bodies
+        raise LiveStsError(f"cannot read STS at {url}: {type(err).__name__}: {err}") from err
+    if not isinstance(health, dict):
+        raise LiveStsError(f"STS at {url} gave an unexpected /health answer: {health!r}")
+    return url, str(health.get("stack", "unknown")), cars
+
+
+def live_sts_diffs(rows: list[dict], live: list[dict], passenger_types) -> list[tuple]:
+    """Differences between the repository and the live STS car list, keyed by reporting marks.
+
+    Compared: remarks ("{type} {length}ft"), as the seed builds it. Reporting marks are the key.
+    Not compared: position, load, status, job or destination (ADR-016).
+    """
+    tool = {c["reporting_marks"]: {"remarks": c.get("remarks") or ""} for c in live if c.get("reporting_marks")}
+    want = {
+        f"{a['roadName']}{a['roadNumber']}": {"remarks": f"{a['type']} {a['length']}ft"}
+        for a in expected_cars(rows, frozenset(passenger_types)).values()
+        if a.get("type") and a.get("length")
+    }
+    return field_diffs(want, tool, {"remarks": "remarks"})
+
+
+def print_live_sts(rows: list[dict], show_all: bool, fetch=fetch_live_cars, operating=operating_reason) -> int:
+    """The opt-in live STS section. Returns 0, or 2 when it could not run (nothing else is read instead)."""
+    print("\nSTS API fields (GET /cars, read only):")
+    try:
+        if not target_is_local(target_url()):
+            reason = operating()
+            if reason:
+                raise LiveStsError(f"the operating flag is set ({reason}); {target_url()} is not read")
+        gen, why = seed_helpers()
+        if gen is None:
+            raise LiveStsError(f"cannot check: {why}")
+        url, stack, live = fetch()
+    except LiveStsError as err:
+        print(f"  Cannot check the STS API: {err}")
+        return 2
+    print(f"  Target: {stack} ({url}), {len(live)} cars")
+    marks = [c.get("reporting_marks") for c in live]
+    seen = {m for m in marks if m}
+    dups = sorted({m for m in seen if marks.count(m) > 1})
+    if dups:
+        print(f"  Duplicate reporting marks in the STS: {' '.join(dups)}")
+    print_diffs(live_sts_diffs(rows, live, gen.PASSENGER_TYPES), show_all)
+    repo_marks = {f"{a['roadName']}{a['roadNumber']}" for a in expected_cars(rows, frozenset()).values()}
+    extra = sorted(seen - repo_marks)
+    print(f"  In the live STS, not in the repository: {' '.join(extra) or 'none'}")
+    return 0
 
 
 def cmd_compare(args: argparse.Namespace) -> int:
-    from build_merged_car_roster import ROSTER_TYPO_IDS
-
     rows, _ = read_rows()
     master = {row_id(r) for r in rows if row_id(r)}
     locos = {
@@ -799,12 +1143,11 @@ def cmd_compare(args: argparse.Namespace) -> int:
     for name, ids in targets.items():
         missing = sorted(master - locos - ids)
         extra = sorted(ids - master)
-        typos = [i for i in extra if i in ROSTER_TYPO_IDS]
         print(f"\n{name}: {len(ids)} cars")
         print(f"  Missing there: {len(missing)} {' '.join(missing)}")
         print(f"  Not in repository: {len(extra)} {' '.join(extra)}")
-        if typos:
-            print(f"  Recorded misreads: {' '.join(typos)}")
+    print("\nSTS seed copies:")
+    print("\n".join(seed_copy_report(SEED_INPUTS, SEED_COPIES)))
     marks = seed_marks()
     print(f"\nSTS seed: {len(marks)} cars")
     print(f"  Not in repository: {' '.join(sorted(marks - master)) or 'none'}")
@@ -818,6 +1161,245 @@ def cmd_compare(args: argparse.Namespace) -> int:
     )
     photo_ids = {row_id(r) for r in rows if r.get("source_image")} - locos
     print(f"  Photographed cars not in STS: {' '.join(sorted(photo_ids - marks)) or 'none'}")
+    show_all = getattr(args, "all", False)
+    if getattr(args, "sts_url", None) and not getattr(args, "live_sts", False):
+        print("--sts-url only applies together with --live-sts", file=sys.stderr)
+        return 2
+    print_field_sections(rows, Path(args.ops_live), show_all)
+    if getattr(args, "live_sts", False):
+        if getattr(args, "sts_url", None):
+            os.environ["STS_API_URL"] = args.sts_url  # this run only
+        return print_live_sts(rows, show_all)
+    return 0
+
+
+# sync (T10c): the repository's identity fields go to the tools that differ, for cars both hold.
+# Position, load and destination are STS's (ADR-016) and are never sent. The live STS takes only
+# `remarks` ("{type} {length}ft"): PATCH /cars/{id} is the API's one per-car update, and remarks is
+# the only identity column compare reads there. A changed road or number would be a new reporting
+# mark, which sync leaves to a person.
+SYNC_BACKUP_PREFIX = "cars_sync_"
+
+
+def update_ops_fields(path: Path, diffs: list[tuple]) -> int:
+    """Set only the differing attributes on existing cars, through the writer merge_ops uses."""
+    tree = ET.parse(path)
+    by_id = {c.get("id"): c for c in tree.getroot().findall("./cars/car")}
+    for cid, attr, want, _have in diffs:
+        by_id[cid].set(attr, want)
+    write_ops(tree, path)
+    return len(diffs)
+
+
+SYNC_TARGETS = {
+    "ops": "Operations Pro",
+    "seed_roster": "STS seed roster copy",
+    "seed_meta": "STS seed metadata copy",
+}
+SEED_WHOLESALE = (
+    "  --apply replaces both STS seed copies wholesale, as seed-copy does "
+    "(the roster is rebuilt first), not just the fields listed."
+)
+BACKUP_TIMEOUT = 120  # a database backup takes longer than a read
+
+
+def sync_plan(rows: list[dict], ops_path: Path, live: list[dict] | None, gen) -> dict[str, list[tuple]]:
+    """Field differences per target, from the same field_targets compare prints."""
+    plan: dict[str, list[tuple]] = {}
+    for key, _heading, path, make_diffs in field_targets(rows, ops_path, gen):
+        if key in SYNC_TARGETS and path.is_file():
+            plan[SYNC_TARGETS[key]] = make_diffs()
+    if live is not None and gen is not None:
+        plan["Live STS"] = live_sts_diffs(rows, live, gen.PASSENGER_TYPES)
+    return plan
+
+
+def seed_extra_changes() -> list[str]:
+    """What replacing the seed copies would change beyond the listed fields: cars added or
+    removed, and out-of-service flags (the roster as last built; seed-copy rebuilds it first)."""
+    lines = []
+    for master in SEED_COPIES:
+        copy = SEED_INPUTS / master.name
+        if not master.is_file():
+            continue
+        if not copy.is_file():
+            lines.append(f"{master.name}: the copy is missing and would be created")
+            continue
+
+        def flags(path: Path) -> dict[str, str]:
+            if path.suffix == ".csv":
+                with path.open(newline="", encoding="utf-8") as fh:
+                    return {row_id(r): r.get("out_of_service") or "" for r in csv.DictReader(fh) if row_id(r)}
+            return {c.get("id", ""): c.get("outOfService") or ""
+                    for c in operations.cars(path)}
+
+        want, have = flags(master), flags(copy)
+        for label, ids in (("added", sorted(want.keys() - have.keys())),
+                           ("removed", sorted(have.keys() - want.keys())),
+                           ("out_of_service changed", sorted(i for i in want.keys() & have.keys() if want[i] != have[i]))):
+            if ids:
+                lines.append(f"{master.name}: cars {label}: {' '.join(ids)}")
+    return lines
+
+
+def take_sts_backup(api, local: bool, now: float | None = None) -> str:
+    """ADR-018: a backup under 12 hours old, else make one with POST /admin/backups.
+
+    A folder on this Mac says nothing about the Pi, so a non-local STS always gets a new backup.
+    """
+    import publish_gate as gate
+    import time
+
+    backups = api.backups_dir()
+    if local and not gate.backup_missing(backups, now):
+        return f"a backup under {gate.BACKUP_MAX_AGE_HOURS} hours old is in {backups}"
+    name = f"{SYNC_BACKUP_PREFIX}{int(time.time() if now is None else now)}"
+    try:
+        with capped_timeout(BACKUP_TIMEOUT):
+            api.post("/admin/backups", {"name": name})
+    except api.ApiError as err:
+        raise LiveStsError(f"could not take an STS backup first ({err})") from err
+    except (OSError, ValueError, TypeError) as err:
+        raise LiveStsError(f"could not take an STS backup first ({type(err).__name__}: {err})") from err
+    return f"took STS backup {name}"
+
+
+def write_live_cars(api, live: list[dict], diffs: list[tuple]) -> list[str]:
+    """PATCH one car at a time and read it back; stops at the first problem."""
+    by_marks: dict[str, list[dict]] = {}
+    for car in live:
+        by_marks.setdefault(car.get("reporting_marks") or "", []).append(car)
+    done: list[str] = []
+
+    def stop(marks: str, why: str) -> LiveStsError:
+        return LiveStsError(f"sync stopped at car {marks}: {why}; written so far: {' '.join(done) or 'none'}")
+
+    for marks, field, want, _have in diffs:
+        found = by_marks.get(marks, [])
+        if len(found) != 1:
+            raise stop(marks, f"{len(found)} STS cars have these reporting marks")
+        car_id = found[0]["id"]
+        try:
+            with capped_timeout(LIVE_STS_TIMEOUT):
+                api.patch(f"/cars/{car_id}", {field: want})
+                back = api.get(f"/cars/{car_id}")
+        except api.ApiError as err:
+            raise stop(marks, str(err)) from err
+        except (OSError, ValueError, TypeError) as err:
+            raise stop(marks, f"{type(err).__name__}: {err}") from err
+        if isinstance(back, dict) and isinstance(back.get("data"), dict):
+            back = back["data"]  # an envelope, if the client ever hands one back
+        got = back.get(field) if isinstance(back, dict) else back
+        if (got or "") != want:
+            raise stop(marks, f"read back {field}={got!r}, wanted {want!r}")
+        done.append(marks)
+    return done
+
+
+def seed_preflight() -> None:
+    """Everything the seed refresh needs, checked before the first write of a sync."""
+    if not SEED_INPUTS.is_dir():
+        raise LiveStsError(NO_SEED_DIR.format(path=SEED_INPUTS))
+    if not METADATA.is_file():
+        raise LiveStsError(f"Master file is missing: {METADATA}")
+    try:
+        import build_car_roster_sor  # noqa: F401
+    except ImportError as err:
+        raise LiveStsError(f"the roster build cannot run ({err})") from err
+
+
+def cmd_sync(args: argparse.Namespace) -> int:
+    """Dry run by default. --apply writes Operations Pro, replaces the STS seed copies and,
+    with --live-sts --sts-url, patches the STS."""
+    apply = getattr(args, "apply", False)
+    use_live = getattr(args, "live_sts", False)
+    url = getattr(args, "sts_url", None)
+    if url and not use_live:
+        print("--sts-url only applies together with --live-sts", file=sys.stderr)
+        return 2
+    if apply and use_live and not url:
+        print("--apply with --live-sts needs --sts-url URL (the live STS is never a default)", file=sys.stderr)
+        return 2
+    if url:
+        os.environ["STS_API_URL"] = url  # this run only
+    rows, _ = read_rows()
+    gen, why = seed_helpers()
+    if gen is None:
+        print(f"Cannot check the STS targets: {why}")
+    live = None
+    local = True
+    if use_live:
+        local = target_is_local(target_url())
+        try:
+            if not local:
+                reason = operating_reason()
+                if reason:
+                    raise LiveStsError(f"the operating flag is set ({reason}); {target_url()} is not touched")
+            _url, _stack, live = fetch_live_cars()
+        except LiveStsError as err:
+            print(f"Cannot use the live STS: {err}", file=sys.stderr)
+            return 2
+    ops_path = Path(args.ops_live)
+    plan = sync_plan(rows, ops_path, live, gen)
+    total = 0
+    for target, diffs in plan.items():
+        print(f"{target}: {len(diffs)} change(s)")
+        for cid, field, want, have in diffs:
+            print(f"    {cid} {field}: {have!r} -> {want!r}")
+        total += len(diffs)
+    ops_diffs = plan.get("Operations Pro", [])
+    seed_diffs = plan.get("STS seed roster copy", []) + plan.get("STS seed metadata copy", [])
+    live_diffs = plan.get("Live STS", [])
+    if seed_diffs:
+        print(SEED_WHOLESALE)
+        for line in seed_extra_changes():
+            print(f"    also changes: {line}")
+    if not use_live:
+        print("Live STS: not checked (add --live-sts --sts-url URL)")
+    if not total:
+        print("Nothing to do: the repository and the tools agree.")
+        return 0
+    if not apply:
+        print("Dry run: nothing was written. Add --apply to write.")
+        return 0
+
+    sts_api = None
+    try:  # every refusal comes before the first write
+        if ops_diffs:
+            import publish_gate as gate
+
+            if ops_path.resolve() != OPS_MERGED.resolve():
+                raise LiveStsError(f"--apply only edits the repo roster {OPS_MERGED}, not {ops_path}")
+            problems = gate.pi_out_of_step(OPS_MERGED.parent, PI_HOST, PI_OPS_DIR)
+            if problems:
+                raise LiveStsError("; ".join(problems))
+        if seed_diffs:
+            seed_preflight()
+        if live_diffs:
+            sts_api = load_sts_api()
+            if not local:
+                reason = operating_reason()
+                if reason:
+                    raise LiveStsError(f"the operating flag is set ({reason}); {target_url()} is not touched")
+            print("  " + take_sts_backup(sts_api, local))
+    except LiveStsError as err:
+        print(f"Sync stopped, nothing written: {err}", file=sys.stderr)
+        return 2
+    if seed_diffs:
+        from build_car_roster_sor import main as build_roster
+
+        build_roster()
+        sync_seed_copies(SEED_INPUTS, SEED_COPIES)
+    if ops_diffs:
+        update_ops_fields(ops_path, ops_diffs)
+        print(f"Updated {len(ops_diffs)} attribute(s) in {ops_path}. {DEPLOY_NOTE}")
+    if live_diffs:
+        try:
+            done = write_live_cars(sts_api, live, live_diffs)
+        except LiveStsError as err:
+            print(err, file=sys.stderr)
+            return 2
+        print(f"Updated {len(done)} live STS car(s), each read back: {' '.join(done)}")
     return 0
 
 
@@ -895,9 +1477,22 @@ def main() -> int:
     p = sub.add_parser("fix-ops")
     p.add_argument("--ops-live", default=str(OPS_MERGED))
     p.set_defaults(run=cmd_fix_ops)
+    sub.add_parser("seed-copy").set_defaults(run=cmd_seed_copy)
     p = sub.add_parser("compare")
     p.add_argument("--ops-live", default=str(OPS_MERGED))
+    p.add_argument("--all", action="store_true", help="List every field difference, not the first 20")
+    p.add_argument("--live-sts", action="store_true",
+                   help="Also read the live STS cars over its API (GET only; refused while the operating flag is set)")
+    p.add_argument("--sts-url", metavar="URL",
+                   help="STS API base URL for this run, e.g. http://RPi-JMRI.local:8980/sts/api/v1 "
+                        "(else STS_API_URL, else the Mac UAT)")
     p.set_defaults(run=cmd_compare)
+    p = sub.add_parser("sync", help="Send the repository's identity fields to the tools that differ")
+    p.add_argument("--ops-live", default=str(OPS_MERGED))
+    p.add_argument("--apply", action="store_true", help="Write the changes (default: show them); the STS seed copies are replaced wholesale, as seed-copy does")
+    p.add_argument("--live-sts", action="store_true", help="Include the live STS (with --apply, also needs --sts-url)")
+    p.add_argument("--sts-url", metavar="URL", help="STS API base URL for this run")
+    p.set_defaults(run=cmd_sync)
     args = parser.parse_args()
     return args.run(args)
 

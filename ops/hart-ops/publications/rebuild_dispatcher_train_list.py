@@ -11,7 +11,9 @@ Page-1 spacing (hand-tuned Jul 2026 — keep on rebuild):
   priority before=8; destination colors before=8 (Rev E: ten lineup rows at 23pt).
   Do not reintroduce a large page1 bottom-bias spacer.
 
-Usage (from repo root):
+The text is read from the crew master, ops/hart-ops/data/crew.json (job "dispatcher").
+
+Usage (from ops/hart-ops):
   .venv/bin/python publications/rebuild_dispatcher_train_list.py
 
 Writes:
@@ -49,70 +51,23 @@ from hart_pub_helpers import (  # noqa: E402
 
 CANONICAL = DOCS / "Neville_Island_Dispatcher_Train_List.docx"
 
-PUBLICATION = {
-    "title": "Dispatcher Train List",
-    "pub_id": "DS-01",
-    "revision": "E",
-    "effective": "14 November 2026",
-}
+import crew_master  # noqa: E402
+
+# The publication line, the lineup, the rules and the priority strip come from the crew master
+# (ops/hart-ops/data/crew.json, job "dispatcher", ADR-039).
+_MASTER = crew_master.load()
+_JOB = crew_master.job(_MASTER, "dispatcher")
+PUBLICATION = crew_master.publication(_JOB)
 
 WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 
 # Order, Train, route (origin → points → destination, printed bold), dispatcher action.
-# Rev E (Session #4 punch list, 2026-11-08): starting tracks, routes, three extras,
-# and the crossover rule.
-LINEUP: list[tuple[str, str, str, str]] = [
-    (
-        "1",
-        "Route 23 AM",
-        "Barn → McKees Rocks.",
-        "Per timetable; lays over at McKees Rocks until PM. Hold conflicting work.",
-    ),
-    (
-        "2",
-        "D749",
-        "W1 → South Yard → McKeesport.",
-        "Opens South Yard; interchange; release outbounds to McKeesport.",
-    ),
-    (
-        "3",
-        "OCS-1",
-        "W2 → Princess → W2.",
-        "When scheduled, highest priority: highball to Princess, run around, back to W2 at Brick.",
-    ),
-    (
-        "4",
-        "NVL",
-        "Helix outer → South Yard → McKees Rocks.",
-        "May start before Route 23 AM, clear to East End; interchange and locals.",
-    ),
-    (
-        "5",
-        "CK1",
-        "Engine House → Shenango → S-4.",
-        "Shenango pickup and delivery; calibrate scale, weigh coke pull, sort.",
-    ),
-    ("6", "D749 Return", "South Yard → West Yard.", "Authorize return; terminate in West Yard."),
-    (
-        "7",
-        "Route 23 PM",
-        "McKees Rocks → Barn.",
-        "Per timetable; hold conflicting work until it clears.",
-    ),
-    ("8", "Extra CK", "McKeesport → South Yard.", "Extra coal train; terminate at South Yard."),
-    ("9", "X9602", "Scale track.", "Scale tank move."),
-    (
-        "10",
-        "X1993",
-        "Loop → South Yard.",
-        "Coal extra: drop a cut at the loop, pick up at the loop, terminate at South Yard.",
-    ),
-]
+LINEUP: list[tuple[str, str, str, str]] = crew_master.lineup(_MASTER)
 
 # Dispatcher rules printed under the lineup (Session #4 punch list).
-RULES = "Throw the Switch 7 crossover at Barn only with the yardmaster's permission."
+RULES = " ".join(_JOB["rules"])
 
-PRIORITY = "OCS-1 → Route 23 → D749 → NVL → CK1 → Yard"
+PRIORITY = " → ".join(_JOB["priority"])
 
 
 def _heading(doc: Document, text: str, *, space_before: float) -> None:

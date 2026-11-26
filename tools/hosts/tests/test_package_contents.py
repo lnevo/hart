@@ -9,7 +9,12 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import paths  # noqa: E402
 
 ROOT = paths.REPO_ROOT
-SYNC = (ROOT / "tools/hosts/sync_hart_package.sh").read_text(encoding="utf-8")
+STEPS = ROOT / "tools/hosts/deploy"
+# The deploy is the entry point and its steps (gate, stage, ship_mac, ship_pi, ship_win, common): the text any of them holds.
+SYNC = "\n".join(p.read_text(encoding="utf-8")
+                  for p in [ROOT / "tools/hosts/sync_hart_package.sh", *sorted(STEPS.glob("*.sh"))])
+STAGE = (STEPS / "stage.sh").read_text(encoding="utf-8")
+MAC = (STEPS / "ship_mac.sh").read_text(encoding="utf-8")
 PI = (ROOT / "tools/hosts/pi/apply_hart_package_local.sh").read_text(encoding="utf-8")
 WIN = (ROOT / "tools/hosts/windows/apply_hart_package_local.ps1").read_text(encoding="utf-8")
 OLD = (
@@ -65,9 +70,9 @@ class RetiredScripts(unittest.TestCase):
                 self.assertIn(name, text)
 
     def test_copies_are_kept(self):
-        self.assertTrue((ROOT / "archive/jmri-scripts/sync_turnout_buttons.py").is_file())
-        self.assertTrue((ROOT / "archive/jmri-scripts/sync_yard_ladder_buttons.py").is_file())
-        self.assertTrue((ROOT / "archive/layouts/linear6/SetBlockPreviewValues.py").is_file())
+        self.assertTrue((ROOT / "archive/code/jmri-scripts/sync_turnout_buttons.py").is_file())
+        self.assertTrue((ROOT / "archive/code/jmri-scripts/sync_yard_ladder_buttons.py").is_file())
+        self.assertTrue((ROOT / "archive/data/layouts/linear6/SetBlockPreviewValues.py").is_file())
         self.assertTrue((ROOT / "jmri/layouts/hart/scripts/apply_dispatcher_roster_profiles.py").is_file())
 
 
@@ -85,7 +90,7 @@ class ParkedFeatures(unittest.TestCase):
         self.assertEqual(parked.shipped_dirs(frozenset()), [])
 
     def test_parked_folders_are_only_staged_when_unparked(self):
-        stage = SYNC[SYNC.index("stage_package() {"):SYNC.index("push_rsync() {")]
+        stage = STAGE[STAGE.index("stage_package() {"):STAGE.index("# stage_host_finish")]
         self.assertIn("if ! parked_dir jmri/layouts/hart/dispatcher; then", stage)
         self.assertIn("if ! parked_dir jmri/layouts/hart/ctc &&", stage)
         self.assertNotIn('"$stage/ctc/icons" \\', stage)          # no empty folder made up front
@@ -96,7 +101,7 @@ class ParkedFeatures(unittest.TestCase):
         self.assertLess(pi.index('if [[ ! -d "$HART/jmri/layouts/hart/dispatcher" ]]'), pi.index("rsync -a --delete"))
         win = WIN[WIN.index("$trainInfoSrc = "):]
         self.assertLess(win.index("if (Test-Path $trainInfoSrc)"), win.index("/PURGE"))
-        mac = SYNC[SYNC.index("install_jython_scripts() {"):]
+        mac = MAC[MAC.index("install_jython_scripts() {"):]
         self.assertLess(mac.index("if parked_dir jmri/layouts/hart/dispatcher; then"), mac.index("rsync -a --delete"))
 
 

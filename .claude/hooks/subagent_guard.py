@@ -2,8 +2,9 @@
 """Block subagent shell commands that publish, touch hosts, or act on the railroad.
 
 Runs as a PreToolUse hook from .claude/agents/*.md, so the main session is not
-affected. Matches programs by name where a command starts (also behind wrappers
-such as timeout, sudo, env or if), so searching for these names still works.
+affected. Matches programs by name in each command the line runs, as shell_parse.py
+finds them (behind `$(...)`, backticks, a shell's -c text, find -exec and wrappers
+such as timeout, sudo, env, xargs or if), so searching for these names still works.
 This is a guardrail against mistakes, not a security boundary.
 
 `ssh` is allowed when it only reads. The remote command may hold only plain
@@ -15,16 +16,26 @@ subcommand first. scp and rsync stay blocked.
 Any error inside the guard blocks the command (exit 2).
 """
 import json
+import os
 import re
 import shlex
 import sys
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+if HERE not in sys.path:        # loaded by path from the tests
+    sys.path.insert(0, HERE)
+import shell_parse  # noqa: E402
+from shell_parse import SimpleCommand, base  # noqa: E402
+
 BLOCKED_PROGRAMS = {
     "deploy_hartrailroad.sh", "sync_hart_package.sh", "redeploy_commit.sh", "flash_nano.py",
+    "ship_pi.sh", "ship_win.sh", "ship_mac.sh", "gate.sh",
     "serial_to_mqtt.py", "mosquitto_pub", "scp", "rsync", "pull_ops.sh",
+    "pull_roster.sh",
 }
 BLOCKED_PREFIXES = ("run_serial_mqtt", "pi_")  # pi_*.sh in tools/hosts act on the Pi
-BLOCKED_MAKE = ("deploy-layout", "deploy-all", "deploy-site", "redeploy", "ops-pull", "sts-pull")
+BLOCKED_MAKE = ("deploy-layout", "deploy-all", "deploy-site", "redeploy", "ops-pull", "roster-pull", "sts-pull",
+                "mqtt-clean")
 BLOCKED_GIT = {"commit", "push", "pull", "merge", "rebase", "reset", "stash", "switch", "checkout", "restore",
                "clean", "cherry-pick", "revert", "am", "apply", "rm", "mv", "add", "fetch"}
 GIT_WRITING = {"branch": {"-d", "-D", "-m", "-M", "-c", "-C", "--delete", "--move", "--copy", "-f", "--force"},
@@ -33,24 +44,11 @@ GIT_WRITING = {"branch": {"-d", "-D", "-m", "-M", "-c", "-C", "--delete", "--mov
 GH_WRITING = {"merge", "create", "close", "edit", "comment", "delete", "review", "reopen", "ready", "lock",
               "unlock", "rerun", "cancel", "run", "upload", "transfer", "archive", "fork", "sync"}
 GIT_VALUE_OPTIONS = {"-C", "-c", "--git-dir", "--work-tree", "--namespace", "--exec-path", "--config-env"}
-SHELLS = {"sh", "bash", "zsh", "dash", "ksh", "fish"}
+SHELLS = shell_parse.SHELLS
 INTERPRETER = re.compile(r"(ba|z|da|k)?sh|fish|python[\d.]*|node|perl|ruby")
-# Programs and shell keywords that run the rest of their words as a command. Their option
-# values are not parsed: the first later word that looks like a program (KNOWN, a path,
-# a blocked name or a quoted command line) is taken as the command.
-WRAPPERS = {"sudo", "timeout", "env", "nice", "nohup", "command", "exec", "time", "xargs", "stdbuf",
-            "caffeinate", "watch", "then", "do", "else", "if", "elif", "while", "until", "!", "{", "(",
-            "builtin", "eval", "parallel", "uv", "uvx", "pipx", "run", "npx", "poetry", "pdm"}
-KNOWN = {"git", "gh", "make", "ssh", "scp", "rsync", "grep", "rg", "find", "ls", "cat", "head", "tail",
-         "sed", "awk", "wc", "sort", "echo", "test", "true", "false", "python", "python3", "bash", "sh",
-         "zsh", "dash", "node", "perl", "ruby", "mosquitto_pub", "mosquitto_sub", "curl", "rm", "mv",
-         "cp", "touch", "mkdir", "diff", "jq", "xmllint", "shellcheck", "pytest"}
 # Local redirects that only send output to a descriptor or nowhere; removed outside quotes.
 HARMLESS_REDIRECT = re.compile(r"(?<=\s)\d?>&\d(?=\s|$|[;|&])|(?<=\s)\d?>\s*/dev/null(?=\s|$|[;|&])")
-SUBSTITUTION = re.compile(r"\$\(([^()]*)\)|`([^`]*)`")
 FOLLOW = re.compile(r"-[A-Za-z0-9]*[fF][A-Za-z0-9]*|--follow.*|--retry")
-SEPARATORS = ";&|\n"
-ASSIGNMENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*=.*", re.S)
 
 REMOTE_TEXT = re.compile(r"[A-Za-z0-9_./~:,@+* \t;|-]+")
 # Programs a subagent may run on a layout host. None of them can write a file or run another program.
@@ -77,46 +75,6 @@ SSH_FLAGS = set("46qTnCv")
 SSH_VALUE_OPTIONS = {"-p", "-l"}
 SSH_O_KEYS = {"connecttimeout", "batchmode", "connectionattempts", "serveraliveinterval",
               "serveralivecountmax", "port", "user", "loglevel", "stricthostkeychecking"}
-
-
-def commands(text: str) -> list[list[str]] | None:
-    """Split a shell line into commands (lists of words), honouring quotes; None if it cannot be parsed."""
-    lexer = shlex.shlex(text, posix=True, punctuation_chars=SEPARATORS)
-    lexer.whitespace = " \t\r"
-    lexer.whitespace_split = True
-    lexer.commenters = ""  # bash starts a comment only at a word's start; never hide text after '#'
-    try:
-        tokens = list(lexer)
-    except ValueError:
-        return None
-    result, current = [], []
-    for token in tokens:
-        if token and set(token) <= set(SEPARATORS):
-            if current:
-                result.append(current)
-            current = []
-        else:
-            current.append(token)
-    if current:
-        result.append(current)
-    return result
-
-
-def base(word: str) -> str:
-    return re.split(r"[/\\]", word)[-1]
-
-
-def strip_to_program(words: list[str]) -> list[str]:
-    """Drop VAR=value words and grouping marks in front of the program."""
-    words = list(words)
-    while words:
-        first = words[0].lstrip("({!")
-        if not first or ASSIGNMENT.fullmatch(first):
-            words.pop(0)
-            continue
-        words[0] = first
-        return [w.rstrip(")}") if w not in (")", "}") else w for w in words]
-    return []
 
 
 def git_subcommand(args: list[str]) -> str:
@@ -194,44 +152,18 @@ def read_only_problem(remote: str) -> str:
     return ""
 
 
-def check_words(words: list[str], depth: int) -> str:
-    """'' when one command (a list of words) is allowed, else why not."""
-    words = strip_to_program(words)
-    if not words:
+def check_command(cmd: SimpleCommand) -> str:
+    """'' when one command (shell_parse.py has removed its wrappers) is allowed, else why not."""
+    if not cmd.words:
         return ""
+    words = list(cmd.words)
     program, args = base(words[0]), words[1:]
-    if program in WRAPPERS:
-        for i, arg in enumerate(args):
-            if " " in arg.strip():  # a quoted command line (watch 'git push', eval "...")
-                return problem(arg, depth + 1)
-            if "/" in arg or base(arg) in KNOWN or base(arg) in WRAPPERS or blocked_name(arg):
-                return check_words(args[i:], depth + 1) if depth < 8 else "nested wrappers"
-        return ""
-    if program == "find":
-        for i, arg in enumerate(args):
-            if arg in ("-exec", "-execdir", "-ok", "-okdir"):
-                inner = []
-                for word in args[i + 1:]:
-                    if word in (";", "+", "\\;"):
-                        break
-                    inner.append(word)
-                found = check_words(inner, depth + 1)
-                if found:
-                    return found
-    if INTERPRETER.fullmatch(program):
-        for i, arg in enumerate(args):
-            if program in SHELLS and arg.startswith("-") and not arg.startswith("--") and "c" in arg[1:]:
-                inner = next((a for a in args[i + 1:] if not a.startswith("-")), "")
-                found = problem(inner, depth + 1)
-                if found:
-                    return found
-                break
-        if program not in SHELLS:  # inline code: refuse it if it names anything that acts
-            code = " ".join(args)
-            if re.search(r"\bssh\b|subprocess|os\.(system|popen|exec|spawn)|\bsystem\s*\(|\bexec\s*\(|"
-                         r"git\s+(" + "|".join(sorted(BLOCKED_GIT)) + r")\b|make\s+(deploy|redeploy)|"
-                         + "|".join(map(re.escape, BLOCKED_PROGRAMS)), code):
-                return f"{program} code that runs a blocked command"
+    if INTERPRETER.fullmatch(program) and program not in SHELLS:  # inline code: refuse it if it names what acts
+        code = " ".join(args)
+        if re.search(r"\bssh\b|subprocess|os\.(system|popen|exec|spawn)|\bsystem\s*\(|\bexec\s*\(|"
+                     r"git\s+(" + "|".join(sorted(BLOCKED_GIT)) + r")\b|make\s+(deploy|redeploy)|"
+                     + "|".join(map(re.escape, BLOCKED_PROGRAMS)), code):
+            return f"{program} code that runs a blocked command"
     if program == "ssh":
         remote, wrong = remote_command(args)
         wrong = wrong or read_only_problem(remote)
@@ -258,20 +190,21 @@ def strip_harmless_redirects(command: str) -> str:
     return " ".join(kept)
 
 
-def problem(command: str, depth: int = 0) -> str:
-    """'' when a subagent may run `command`, else the message saying why not."""
-    if depth > 8:
-        return "nested shells"
-    for match in SUBSTITUTION.finditer(command):
-        found = problem(match.group(1) if match.group(1) is not None else match.group(2), depth + 1)
-        if found:
-            return found
+def problem(command: str) -> str:
+    """'' when a subagent may run `command`, else the message saying why not. A line shell_parse.py cannot
+    split is read with its rough split, which ignores quotes."""
     command = strip_harmless_redirects(command)
-    parsed = commands(command)
-    if parsed is None:  # unbalanced quotes: fall back to a plain split
-        parsed = [part.split() for part in re.split(r"[;&|\n]", command)]
-    for words in parsed:
-        found = check_words(words, depth)
+    try:
+        try:
+            parsed = shell_parse.simple_commands(command)
+        except shell_parse.TooDeep:
+            raise
+        except shell_parse.ParseError:
+            parsed = shell_parse.rough_commands(command)
+    except shell_parse.TooDeep:
+        return "nested shells"
+    for cmd in parsed:
+        found = check_command(cmd)
         if found:
             return found
     return ""

@@ -1,20 +1,18 @@
-"""build_layout_le.py --levels staging --as-live: the cut-over candidate, the "HART Railroad" panel replaced by the
-generated staging panel, built from the staging device map and panel_items.json (the device-map switch-over, owner
-2026-11-17).
+"""build_layout_le.build: staging drawn alone (levels "staging", the grid the three-level panel is drawn at) and the
+three-level "HART Railroad" panel build_tables.py writes into tables.xml, built from the device maps and
+panel_items.json (the device-map switch-over, owner 2026-11-17).
 
-The candidate must be a drop-in: the tables it is built on (the generator's base, hartlib.tables_build.base) and
+Staging drawn alone must be a drop-in: the tables it is built on (the generator's base, hartlib.tables_build.base) and
 the one panel, every staging turnout as the live panel in tables.xml has it (ident,
-name, type, continuing route and leg blocks), every mast resolving to the blocks and kind of slot staging_masts.csv gives it, the panel's own items
+name, type, continuing route and leg blocks), every mast resolving to the blocks and kind of slot masts.csv gives it, the panel's own items
 (panel_items.json) each once, no Entry/Exit sensor (parked), and the audits passing on it.
 """
 from __future__ import annotations
 
 import contextlib
 import copy
-import functools
 import importlib
 import io
-import json
 import re
 import sys
 import tempfile
@@ -37,8 +35,10 @@ def page_prefs() -> dict:
 
 
 def optional_staging() -> set:
-    """Staging's optional block contents icons (preferences.json's staging section, le_labels): its parts."""
-    prefs = json.loads((B.pd.DATA / "preferences.json").read_text(encoding="utf-8"))
+    """Staging's optional block contents icons (preferences.json's staging section, le_labels): its parts, named
+    as the plugin reads them (the hand file gives their block IDs; hartlib.layer_files.merged names them)."""
+    from hartlib import layer_files
+    prefs = layer_files.merged(B.pd.DATA, "preferences")
     return set(prefs["staging"]["le_labels"].get("optional_block_contents", []))
 
 
@@ -54,11 +54,9 @@ STATUS = {"sensoricon": {"Bridge HBLOOP", "SML Mode", "Track Power"}, "signalhea
 PARKED_LAMPS = paths.LAYOUT_DATA.parent / "parked" / "staging_panel_lamps.json"
 
 
-@functools.lru_cache(maxsize=None)
 def cutover():
-    """(candidate bytes, Panel, names, bands), built once for every test that needs it."""
-    with contextlib.redirect_stdout(io.StringIO()):
-        return B.build(levels="staging", as_live=True, approved=None)     # the fingerprint: its own test
+    """(tables bytes, Panel, names, bands) of staging drawn alone, built once for every test module."""
+    return T.staging_alone()
 
 
 def without_panel(root: ET.Element) -> bytes:
@@ -113,9 +111,9 @@ class Cutover(unittest.TestCase):
         self.assertTrue(0.7 < self.P.staging_fit[0] < 0.9, self.P.staging_fit)     # staging's own fit to le_window
 
     def test_no_placeholders_in_staging_mode(self) -> None:
-        self.assertFalse([t for t in tables.turnouts(self.root) if tables.system_name(t).startswith(B.TURNOUT_SYS)])
-        self.assertFalse([b for b in tables.blocks(self.root) if tables.system_name(b).startswith(B.BLOCK_SYS)])
-        live_lb = {tables.user_name(b) for b in tables.layout_blocks(self.live)}
+        """Staging drawn alone binds only staging's beans, though the base holds every level's (naming-layers step
+        11)."""
+        live_lb = {tables.user_name(b) for b in tables.layout_blocks(self.live) if not T.is_new(b)}
         self.assertLessEqual(T.used_blocks(self.le), live_lb)
         staging = set(self.names[staging_key(self.bands)]["os"].values()) | {
             b for v in self.names[staging_key(self.bands)]["blocks"].values() for b in v}
@@ -157,7 +155,7 @@ class Cutover(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "tables_cutover.xml"
             path.write_bytes(self.data)
-            audit = AUDIT.audit_source("deployment", path, staging, generated=True)
+            audit = AUDIT.audit_source("deployment", path, staging, generated=True, band_panels=False)
             drift = AUDIT.report_drift([audit])
             with contextlib.redirect_stdout(io.StringIO()):
                 cli = AUDIT.main(["--strict", "--tables", str(path), "--generated"])
@@ -202,8 +200,9 @@ class Cutover(unittest.TestCase):
         self.assertNotIn("Neville Island", texts)
         bcis = Counter(i.get("blockcontents") for i in self.le.findall("BlockContentsIcon"))
         self.assertEqual(set(bcis.values()), {1})              # one block contents icon per block
-        # but the optional ones with no clean spot (logged): staging's Track 11-13 and 13-15
-        self.assertEqual(T.used_blocks(self.le) - set(bcis), {"Track 11-13", "Track 13-15"})
+        # but the optional ones with no clean spot (logged): staging's Track 29-31 at candidate C1's grid (owner,
+        # 2026-11-21; Track 27-29 and 31-33 at the 1920 x 1032 window's grid before it, 11-13 and 13-15 at 1900 x 1140)
+        self.assertEqual(T.used_blocks(self.le) - set(bcis), {"Track 29-31"})
         self.assertLessEqual(T.used_blocks(self.le) - set(bcis), optional_staging())
         # the lamps and station clusters are parked: only the status cluster's sensor icons are on the panel
         self.assertEqual({i.get("sensor") for i in self.le.findall("sensoricon")}, STATUS["sensoricon"])
@@ -221,84 +220,39 @@ class Cutover(unittest.TestCase):
                 self.assertGreaterEqual(lower[caption.lower()], 1)         # the plugin's station caption
 
     def test_the_run_reports_the_panel_items(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(
-                B, "build", return_value=(self.data, self.P, self.names, self.bands)):
+        with mock.patch.object(B, "build", return_value=(self.data, self.P, self.names, self.bands)) as built:
             with contextlib.redirect_stdout(io.StringIO()) as out:
-                B.main(["--levels", "staging", "--as-live", "--out", str(Path(tmp) / "c.xml")])
+                self.assertEqual(B.main(["--levels", "staging"]), 0)
+        built.assert_called_with(levels="staging", as_live=True)       # on the generator's base, never a tables file
+        self.assertIn("nothing written", out.getvalue())
         self.assertIn("  panel items: 15 elements from", out.getvalue())
         self.assertIn("panel 'HART Railroad'", out.getvalue())
 
-    def test_each_level_set_has_its_own_candidate_file(self) -> None:
-        self.assertEqual(B.default_out("staging"), B.CUTOVER_STAGING)
-        self.assertEqual(B.default_out("all"), B.CUTOVER)
-        self.assertNotEqual(B.CUTOVER, B.CUTOVER_STAGING)
-        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(B, "CUTOVER_STAGING", Path(tmp) / "s.xml"), \
-                mock.patch.object(B, "CUTOVER", Path(tmp) / "a.xml"), \
-                mock.patch.object(B, "build", return_value=(self.data, self.P, self.names, self.bands)):
-            with contextlib.redirect_stdout(io.StringIO()):
-                self.assertEqual(B.main(["--levels", "staging", "--as-live"]), 0)
-                self.assertEqual(B.main(["--levels", "staging", "--as-live", "--check"]), 0)
-                self.assertEqual(B.main(["--as-live", "--check"]), 1)          # the three-level candidate: another file
-            self.assertTrue((Path(tmp) / "s.xml").exists())
-            self.assertFalse((Path(tmp) / "a.xml").exists())
-
     def test_the_viewing_trials_are_retired(self) -> None:
-        """A run without --as-live (the retired viewing trials, owner 2026-11-17) stops naming --as-live, in the
-        command and in build(), whatever the levels; nothing is built or written."""
+        """build() without as_live (the retired viewing trials, owner 2026-11-17) stops, whatever the levels; the
+        trial cut-over copies, their options and the staging guard are retired too (owner, 2026-11-22)."""
         for levels in B.LEVELS:
-            with self.subTest(levels=levels), self.assertRaisesRegex(B.BuildError, "retired.*--as-live"):
+            with self.subTest(levels=levels), self.assertRaisesRegex(B.BuildError, "retired.*as_live"):
                 B.build(levels=levels)
-        for name in ("TRIAL", "TRIAL_STAGING", "TRIAL_LE_LABELS", "PANEL_NAME"):
+        for name in ("TRIAL", "TRIAL_STAGING", "TRIAL_LE_LABELS", "PANEL_NAME", "CUTOVER", "CUTOVER_STAGING",
+                     "default_out", "staging_out", "live_target", "APPROVED", "check_approved",
+                     "check_staging_unchanged"):
             self.assertFalse(hasattr(B, name), name)
-        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(B, "build") as built:
-            for argv in ([], ["--check"], ["--levels", "all"], ["--levels", "staging"],
-                         ["--levels", "staging", "--check"], ["--out", str(Path(tmp) / "a.xml")]):
-                with self.subTest(argv=argv), contextlib.redirect_stdout(io.StringIO()) as out:
-                    self.assertEqual(B.main(argv), 1)
-                    self.assertRegex(out.getvalue(), r"^ERROR: the viewing trials .* are retired .*--as-live")
-            built.assert_not_called()
-            self.assertEqual(list(Path(tmp).iterdir()), [])
-
-    def test_approve_staging_options_and_the_staging_file_beside_the_candidate(self) -> None:
-        with contextlib.redirect_stdout(io.StringIO()):
-            for argv in (["--approve-staging", "--levels", "staging"], ["--approve-staging", "--as-live"],
-                         ["--approve-staging", "--check"]):
-                self.assertEqual(B.main(argv), 1, argv)
-        P = mock.Mock(staging_data=b"staging", log=[], mast_notes=[], moved=[], items=None, staging_same=["x"],
-                      gaps=[10, 20], scale=(1.0, 1.0), stripped=dict.fromkeys(B.STRIPPED, 0))
-        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(B, "build", return_value=(self.data, P, {}, [])), \
-                mock.patch.object(B.tables, "loads") as loads, mock.patch.object(B, "plugin") as plug:
-            le_mod = mock.Mock()
-            le_mod.summary.return_value = "s"
-            plug.return_value = (None, le_mod, None)
-            out = Path(tmp) / "c.xml"
-            with contextlib.redirect_stdout(io.StringIO()):
-                self.assertEqual(B.main(["--as-live", "--out", str(out)]), 0)
-            self.assertEqual([c.kwargs.get("path") for c in loads.call_args_list], [out, Path(tmp) / "c_staging.xml"])
-            self.assertEqual(loads.call_args_list[1].args[0], b"staging")
-
-    def test_check_mode_and_out(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(
-                B, "build", return_value=(self.data, self.P, self.names, self.bands)) as built:
-            out = Path(tmp) / "c.xml"
-            with contextlib.redirect_stdout(io.StringIO()):
-                self.assertEqual(B.main(["--levels", "staging", "--as-live", "--out", str(out)]), 0)
-                self.assertEqual(B.main(["--levels", "staging", "--as-live", "--check", "--out", str(out)]), 0)
-            # the command builds on the generator's base (base_tables), never on a tables file
-            built.assert_called_with(levels="staging", as_live=True)
-        self.assertEqual(B.CUTOVER.parent, B.CUTOVER_STAGING.parent)       # gitignored trial folder
-        self.assertEqual(B.CUTOVER.parent.name, "trial")
+        for argv in (["--as-live"], ["--check"], ["--out", "x.xml"], ["--approve-staging"], ["--review"]):
+            with self.subTest(argv=argv), self.assertRaises(SystemExit), \
+                    contextlib.redirect_stderr(io.StringIO()):
+                B.main(argv)
 
 
 def three_levels():
-    """(candidate bytes, Panel, names, bands) of the three-level candidate (--levels all --as-live), built once for
-    every test module (test_build_layout_le.built)."""
+    """(tables bytes, Panel, names, bands) of the three-level build (levels all), built once for every test module
+    (test_build_layout_le.built)."""
     return T.built()
 
 
 class ThreeLevels(unittest.TestCase):
-    """--levels all --as-live: the staging candidate held unchanged (the build's guard), with main and upper drawn
-    below it at staging's grid, on internal turnouts and blocks under the device map's names (owner, 2026-11-16)."""
+    """levels all: staging drawn at the grid of staging drawn alone, with main and upper drawn below it, on internal
+    turnouts and blocks under the device map's names (owner, 2026-11-16)."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -308,97 +262,19 @@ class ThreeLevels(unittest.TestCase):
         cls.le = tables.layout_editor(cls.root, LIVE)
         cls.device = B.device_names()
 
-    def test_staging_is_the_staging_candidate_joined_at_the_helix(self) -> None:
-        # The helix-join release (owner, 2026-11-17): staging as in its candidate but for the two
-        # helix joins, the only difference the guard accepts (the helix bumpers become anchors, their tracks run on)
-        self.assertEqual(self.P.staging_same, [
-            "end bumper EBG1 -> anchor AGE1 (hidden join TG217 to Track Helix Outer)",
-            "end bumper EBG2 -> anchor AGE2 (hidden join TG218 to Track Helix Inner)",
-            "track segment TG51 connect2name EBG1 -> AGE1",
-            "track segment TG52 connect2name EBG2 -> AGE2"])
+    def test_staging_is_joined_at_the_helix(self) -> None:
+        # The helix-join release (owner, 2026-11-17): the helix bumpers become anchors, their tracks run on
         self.assertTrue([j for (b, j) in self.P.join_ends if b == 0])           # the helix joins reach staging
         self.assertEqual(self.names[staging_key(self.bands)]["joins"], "other")               # the build joins the helix
         self.assertEqual(sum(1 for s in self.le.findall("tracksegment") if s.get("hidden") == "yes"), 4)
         self.assertEqual(self.P.scale, self.base[1].scale)
-        self.assertEqual(self.P.staging_data, self.base[0])
-
-    def test_the_guard_stops_when_the_helix_is_not_joined(self) -> None:
-        # staging's own layout as the base has no end bumper that became an anchor: nothing is joined
-        with self.assertRaisesRegex(B.BuildError, "staging guard: the helix is not joined"):
-            B.check_staging_unchanged((self.base[0], self.P), self.data, self.P, LIVE)
-
-    def test_the_guard_stops_on_any_other_change(self) -> None:
-        def el(root, tag, **attrs):
-            le = tables.layout_editor(root, LIVE)
-            return next(e for e in le.iter(tag) if all(e.get(k) == v for k, v in attrs.items()))
-        edits = {
-            "a staging label moved": lambda r: el(r, "positionablelabel", text="STAGING LEVEL").set("x", "61"),
-            "a staging bean changed": lambda r: next(t for t in tables.turnouts(r)
-                                                     if tables.user_name(t) == "Switch 1").set("inverted", "true"),
-            "a helix track's segment": lambda r: el(r, "tracksegment", ident="TG53").set("blockname", "Track X"),
-            "a helix join moved": lambda r: el(r, "positionablepoint", ident="AGE2").set("x", "1600.0"),
-            "a helix join's mast": lambda r: el(r, "positionablepoint", ident="AGE1").set(
-                "westboundsignalmast", "Mast 38LA"),
-            "a Princess mast icon moved": lambda r: el(r, "signalmasticon", signalmast="Mast 38LA").set("x", "1"),
-            "a staging BCI moved": lambda r: el(r, "BlockContentsIcon", blockcontents="Track K-1").set("y", "1"),
-        }
-        for what, edit in edits.items():
-            with self.subTest(changed=what):
-                doc = tables.loads(self.data)
-                edit(doc.root)
-                with self.assertRaisesRegex(B.BuildError, "staging guard"):
-                    B.check_staging_unchanged(self.base, doc.tobytes(), self.P, LIVE)
-
-    def test_the_staging_candidate_is_the_approved_panel(self) -> None:
-        # Fails after a staging change on purpose until the owner approves the new panel in PanelPro and
-        # build_layout_le.py --approve-staging records it (intended: the merge waits for that).
-        B.check_approved(tables.layout_editor(tables.loads(self.base[0]).root, LIVE), B.APPROVED)
-
-    def test_staging_is_checked_against_the_approved_panel(self) -> None:
-        # The committed fingerprint is the owner's (refreshed by --approve-staging after an approval in PanelPro);
-        # a staging change on purpose (STRETCH) is built with --review until then, so the tests check the mechanism
-        # against a fingerprint of the candidate as built, and that the committed one is a fingerprint.
-        self.assertEqual(B.read_approved(B.APPROVED)[-1][1], "panel")
-        le = tables.layout_editor(tables.loads(self.base[0]).root, LIVE)
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "a.sha256"
-            B.write_approved(le, path, date="2026-11-16")
-            B.check_approved(le, path)
-            moved = copy.deepcopy(le)
-            next(e for e in moved.iter("positionablelabel") if e.get("text") == "STAGING LEVEL").set("x", "61")
-            with self.assertRaisesRegex(B.ApprovalError, r"child \d+ is positionablelabel STAGING LEVEL, approved "
-                                                         r"positionablelabel STAGING LEVEL \(changed\)"):
-                B.check_approved(moved, path)
-            fewer = copy.deepcopy(le)
-            fewer.remove(fewer[-1])
-            with self.assertRaisesRegex(B.ApprovalError, "not the one the owner approved"):
-                B.check_approved(fewer, path)
-            # the build itself refuses a staging panel that is not the approved one, unless asked to (--review)
-            with mock.patch.object(B, "check_approved", side_effect=B.ApprovalError("not approved")) as check, \
-                    contextlib.redirect_stdout(io.StringIO()):
-                with self.assertRaisesRegex(B.BuildError, "not approved"):
-                    B.build(levels="staging", as_live=True, approved=path)
-                self.assertEqual(B.main(["--review", "--levels", "staging"]), 1)     # --review needs --as-live
-            self.assertEqual(check.call_args.args[1], path)
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "a.sha256"
-            B.write_approved(moved, path, date="2026-11-16")
-            self.assertIn("approved by the owner in PanelPro on 2026-11-16", path.read_text())
-            B.check_approved(moved, path)
-            with self.assertRaisesRegex(B.ApprovalError, "not the one the owner approved"):
-                B.check_approved(le, path)
-            path.write_text("# note\nnot a hash\n")
-            with self.assertRaisesRegex(B.ApprovalError, "line 2: not"):
-                B.check_approved(le, path)
-            with self.assertRaisesRegex(B.ApprovalError, "--approve-staging"):
-                B.check_approved(le, Path(tmp) / "none")
 
     def test_the_panel_has_the_windows_shape(self) -> None:
         w, h = int(self.le.get("panelwidth")), int(self.le.get("panelheight"))
         want = (T.le_window()[0] - 18) / (T.le_window()[1] - 60)
         self.assertLessEqual(abs(w / h / want - 1), stretch()[1])
         self.assertEqual((self.le.get("windowwidth"), self.le.get("windowheight")), tuple(map(str, T.le_window())))
-        with self.assertRaisesRegex(B.plugin()[2].SchematicError, r"set le_stretch's factor to about 1\.\d+"):
+        with self.assertRaisesRegex(B.plugin()[2].SchematicError, r"set le_stretch's factor to about \d\.\d+"):
             B.plugin()[1].check_stretch((1984, 1505), T.le_window(), page_prefs())
 
     def test_the_compass_rose_beside_the_status_cluster_and_the_plain_backdrop(self) -> None:
@@ -429,13 +305,12 @@ class ThreeLevels(unittest.TestCase):
                 rows.setdefault(el.tag == "positionablelabel", []).append(el)
         captions, lamps = rows[True], rows[False]
         self.assertEqual((len(captions), len(lamps)), (4, 4))
-        B.plugin()
-        jt = importlib.import_module("schematic.jmri_text")
-        rights = {box(c)[0] + jt.width(c.get("text"), 12) for c in captions}
+        # right edges in one line as JMRI draws Dialog on the Pi (pi_dialog), 4 px left of the lamps (owner, 2026-11-21)
+        rights = {box(c)[0] + B.panel_items.pi_dialog.width(c.get("text"), 12) for c in captions}
         self.assertEqual(len(rights), 1)                    # right-justified ...
         self.assertTrue(all(c.get("justification") == "right" for c in captions))
         self.assertEqual(len({box(l)[0] for l in lamps}), 1)                     # ... lamps in a column beside them
-        self.assertGreater(min(box(l)[0] for l in lamps), rights.pop())
+        self.assertEqual(min(box(l)[0] for l in lamps) - rights.pop(), 4)
         right = max(box(l)[0] + 21 for l in lamps)          # the lamps' right edge: by the panel's right edge
         width = int(tables.layout_editor(tables.loads(self.base[0]).root, LIVE).get("panelwidth"))
         self.assertLessEqual(right, width - B.panel_items.EDGE)
@@ -520,7 +395,6 @@ class ThreeLevels(unittest.TestCase):
     def test_owner_layout_rules_of_2026_11_16_second_round(self) -> None:
         import math
         xo = {t.get("turnoutname"): t for t in self.le.findall("layoutturnout") if "XOVER" in t.get("type")}
-        pt = lambda t, L: (float(t.get("x" + L)), float(t.get("y" + L)))      # noqa: E731
         # 101 and 103 (one three-way switch): each two plain turnouts on its one name, their throats on the shared
         # track two legs and Track 101-103's least length apart, each diagonal at 45 degrees
         plain = defaultdict(list)
@@ -540,12 +414,11 @@ class ThreeLevels(unittest.TestCase):
         self.assertNotIn("101-103", {el.get("text") for el in self.le.iter("positionablelabel")})
         limited = {re.search(r"switch (\d+)", line).group(1) for line in self.P.log if "no room for" in line
                    and "crossover" in line}
-        self.assertFalse(limited & {"225"})
-        # 243 (241 before the upper renumber, 2026-11-19) has been short of room since the straight-level rules
-        # (2026-11-18): drawn at 45.8 degrees then, owner accepted; since schematic-maps 0.1.42 the plugin slides it to
-        # the band's angle and logs only its whole-pixel rounding, so it stands at no more than 46 degrees
-        self.assertTrue([line for line in self.P.log if "switch 243: rounded to whole pixels" in line],
-                        "no rounding log line for switch 243")
+        self.assertFalse(limited & {"225", "243"})
+        # 243 (241 before the upper renumber, 2026-11-19) was short of room from the straight-level rules
+        # (2026-11-18) until the 1920 x 1032 window's wider grid (2026-11-21): drawn at 45.8 degrees, owner accepted,
+        # then slid to the band's angle and rounded to whole pixels (schematic-maps 0.1.42). It has room now and stands
+        # at 45 degrees; whichever way it is drawn it stays at no more than 46
         x243 = next(t for t in self.le.findall("layoutturnout")
                     if t.get("turnoutname") == "Switch 243" and "XOVER" in t.get("type"))
         p243 = {L: (float(x243.get("x" + L.lower())), float(x243.get("y" + L.lower()))) for L in "ABCD"}
@@ -597,9 +470,9 @@ class ThreeLevels(unittest.TestCase):
         self.assertEqual(stations.station_display("Track East Lead"), "East End")
 
     def test_main_and_upper_objects_are_internal_with_device_map_names(self) -> None:
-        added_t = [t for t in tables.turnouts(self.root) if B.is_level_bean(t)]
-        added_lb = [b for b in tables.layout_blocks(self.root) if B.is_level_bean(b)]
-        added_b = {tables.user_name(b) for b in tables.blocks(self.root) if B.is_level_bean(b)}
+        added_t = [t for t in tables.turnouts(self.root) if T.is_new(t)]
+        added_lb = [b for b in tables.layout_blocks(self.root) if T.is_new(b)]
+        added_b = {tables.user_name(b) for b in tables.blocks(self.root) if T.is_new(b)}
         self.assertEqual(len(added_t), 39)
         self.assertTrue(all(tables.system_name(t).startswith("IT:HART:C3:") for t in added_t))
         self.assertEqual({tables.user_name(t) for t in added_t}, {v for k, v in self.device.items()
@@ -609,10 +482,10 @@ class ThreeLevels(unittest.TestCase):
         self.assertEqual(added_b, {tables.user_name(b) for b in added_lb})
         self.assertEqual(len(added_lb), T.LEVEL_BLOCKS)   # the 107 Loop's and 227-241's halves, 225's four corners
         self.assertTrue(all(tables.system_name(b).startswith("IB:C3:") for b in tables.blocks(self.root)
-                            if B.is_level_bean(b)))
+                            if T.is_new(b)))
 
     def test_main_and_upper_masts_and_no_sensors(self) -> None:
-        """Main and upper: their masts (main_upper_masts.csv: control-point masts and APB intermediates), each in the slot JMRI resolves to its
+        """Main and upper: their masts (masts.csv: control-point masts and APB intermediates), each in the slot JMRI resolves to its
         facing track and protected OS block (108LA and 108LB on Switch 107's normal and diverging legs, facing the 107
         Loop's two halves; 226RA and 226RB each protecting its own corner of double crossover 225), on virtual heads
         and masts signal_coordinator.py never enrols; no sensors."""
@@ -640,8 +513,8 @@ class ThreeLevels(unittest.TestCase):
                                       + [h for r in rows.values() for h, _u in r["heads"]]), [])
         self.assertEqual(B.lcos_named(["IH3332", "IF$shsm:basic:one-low(IH3332)", "IH:HART:C3:108LA"]),
                          ["IF$shsm:basic:one-low(IH3332)", "IH3332"])
-        heads = [h for h in self.root.find("signalheads") if B.is_level_bean(h)]
-        masts = [m for m in self.root.find("signalmasts") if B.is_level_bean(m)]
+        heads = [h for h in self.root.find("signalheads") if T.is_new(h)]
+        masts = [m for m in self.root.find("signalmasts") if T.is_new(m)]
         self.assertEqual((len(heads), len(masts)), (T.LEVEL_HEADS, T.LEVEL_MASTS))
         self.assertEqual({m.findtext("userName") for m in masts}, set(rows))
         written = {self.P.name(i) for i in level}
@@ -679,9 +552,9 @@ class ThreeLevels(unittest.TestCase):
         self.assertEqual(set(icons) | left_out, T.used_blocks(self.le))
         self.assertEqual(set(icons.values()), {1})
         staging = {b["block"] for b in self.base[1].bcis}
-        self.assertEqual(len(staging), 57)        # 45 blocks and 14 parts (owner, 2026-11-20), less 11-13 and 13-15
+        self.assertEqual(len(staging), 58)        # 45 blocks and 14 parts (owner, 2026-11-20), less 29-31 (C1)
         size = {el.get("blockcontents"): el.get("size") for el in self.le.iter("BlockContentsIcon")}
-        self.assertEqual({size[b] for b in staging}, {"13"})
+        self.assertEqual({size[b] for b in staging}, {"11"})         # candidate C1 (owner, 2026-11-21)
         # each level's icons at that level's own size (a level with the wrong size must not hide behind another's)
         per_level = defaultdict(set)
         for b in self.P.bcis:
@@ -704,7 +577,7 @@ class ThreeLevels(unittest.TestCase):
         for n in ("121", "125"):
             self.assertEqual([t for t in numbers if re.fullmatch(rf"SW-{n}[AB]?", t)], [f"SW-{n}"], n)
         self.assertNotIn("SW-101A", numbers)
-        self.assertEqual(set(numbers.values()), {"13"})
+        self.assertEqual(set(numbers.values()), {"12"})             # candidate C1: SW- kept, 12 px (2026-11-21)
         names = {lb["text"] for lb in self.P.labels if lb.get("kind") == "name" and lb["band"]}
         tracks = {v.removeprefix("Track ") for v in self.device.values() if v.startswith("Track ")}
         self.assertTrue(names)
@@ -722,32 +595,36 @@ class ThreeLevels(unittest.TestCase):
     def test_audit_reconcile_and_facts_on_the_candidate(self) -> None:
         stations = T._load("reconcile_dispatcher_stations", paths.LAYOUT_SCRIPTS / "reconcile_dispatcher_stations.py")
         facts = T._load("check_layout_facts", T.ROOT / "tools/audit/check_layout_facts.py")
+        # the tables as build_tables.py writes them: the build with its band panels (band_panels.add)
+        bands_mod = importlib.import_module("band_panels")
+        doc = tables.loads(self.data)
+        bands_mod.add(doc.root, self.P, self.bands, B.plugin()[1].CHROME)
+        data = doc.tobytes()
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "tables.xml"
-            path.write_bytes(self.data)
+            path.write_bytes(data)
             with contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(stations.main(["--panel", str(path), "--check", "--no-sync"]), 0)   # parked: skips
                 self.assertEqual(AUDIT.main(["--tables", str(path)]), 0)   # --strict waits for Stage 1
                 self.assertEqual(facts.main(["--tables", str(path)]), 0)
-            self.assertEqual(path.read_bytes(), self.data)
+            self.assertEqual(path.read_bytes(), data)
 
 
 class Rebuilt(unittest.TestCase):
-    """The candidates are built on the generator's base (hartlib.tables_build.base: the template and the staging
-    beans of devices.csv, ADR-029), never on tables.xml, which is an output: the same base gives the same candidate
-    byte for byte, whose panel is the owner-approved one."""
+    """The build is on the generator's base (hartlib.tables_build.base: the template and the staging beans of
+    devices.csv, ADR-029), never on tables.xml, which is an output: the same base gives the same tables byte for
+    byte, whose panel is the owner-approved one (le-panel)."""
 
     def test_built_on_the_generated_base(self) -> None:
-        data, P = three_levels()[:2]
+        data = three_levels()[0]
         with contextlib.redirect_stdout(io.StringIO()):
-            again = B.build(levels="all", as_live=True, approved=None, base_data=B.base_tables())[0]
+            again = B.build(levels="all", as_live=True, base_data=B.base_tables())[0]
         self.assertEqual(again, data)
-        approval = sys.modules["approval"]          # the fingerprints (tools/schematic/approval.py), as B reads them
-        out = next(o for o in approval.OUTPUTS if o.key == "le-candidate")
+        approval = importlib.import_module("approval")      # the fingerprints (tools/schematic is on the path)
+        out = next(o for o in approval.OUTPUTS if o.key == "le-panel")
         want = approval.parse_fingerprint(out.approved.read_text(encoding="utf-8"), out.key, out.kind)
         got = approval.fingerprint(tables.layout_editor(tables.loads(data).root, LIVE), out.kind, out.drop_attrs)
         self.assertIsNone(approval.compare(want, got))
-        B.check_approved(tables.layout_editor(tables.loads(P.staging_data).root, LIVE))      # raises when not
 
     def test_the_build_reads_no_tables_file(self) -> None:
         """With tables.xml out of reach the candidates are the same: the build reads no tables file."""
@@ -755,118 +632,23 @@ class Rebuilt(unittest.TestCase):
         gone = Path("/no/such/tables.xml")
         with mock.patch.object(B.paths, "TABLES_XML", gone), mock.patch.object(B.paths, "REPO_TABLES_XML", gone):
             with contextlib.redirect_stdout(io.StringIO()):
-                self.assertEqual(B.build(levels="staging", as_live=True, approved=None)[0], staging)
+                self.assertEqual(B.build(levels="staging", as_live=True)[0], staging)
 
     def test_a_base_with_a_panel_is_refused(self) -> None:
         doc = tables.loads(B.base_tables())
         ET.SubElement(doc.root, "LayoutEditor", {"name": LIVE})
         with contextlib.redirect_stdout(io.StringIO()), self.assertRaisesRegex(B.BuildError, "holds a Layout Editor"):
-            B.build(levels="staging", as_live=True, approved=None, base_data=doc.tobytes())
+            B.build(levels="staging", as_live=True, base_data=doc.tobytes())
 
     def test_a_bad_base_stops_naming_the_file(self) -> None:
-        err = B.tables_build.TablesBuildError("devices.csv: x")
+        err = B.tables_build.TablesBuildError("the device master: x")
         with mock.patch.object(B.tables_build, "base", side_effect=err):
-            with self.assertRaisesRegex(B.BuildError, "tables base: devices.csv: x"):
+            with self.assertRaisesRegex(B.BuildError, "tables base: the device master: x"):
                 B.base_tables()
-
-
-class StripBuildOwned(unittest.TestCase):
-    """strip_build_owned on small tables: the build's own objects, and the logic and paths stock JMRI derived from
-    them, go; the rest stays, indentation and all."""
-    TABLES = """<layout-config>
-  <turnouts class="internal">
-    <turnout><systemName>IT:KEEP</systemName><userName>Kept</userName></turnout>
-    <turnout><systemName>IT:HART:C3:107</systemName><userName>Switch 107</userName></turnout>
-  </turnouts>
-  <signalheads class="h">
-    <signalhead><systemName>IH:HART:C3:136RA</systemName><userName>Head 136RA</userName></signalhead>
-  </signalheads>
-  <signalmasts class="m">
-    <signalmast><systemName>IF$shsm:basic:one-low(IH:HART:C3:136RA)</systemName><userName>Mast 136RA</userName>
-    </signalmast>
-    <virtualsignalmast><systemName>IF$vsm:basic:one-low($1)</systemName><userName>Mast 40RA</userName>
-    </virtualsignalmast>
-  </signalmasts>
-  <blocks class="b">
-    <block systemName="IB1"><systemName>IB1</systemName><userName>Track A</userName></block>
-    <block systemName="IB:C3:0001"><systemName>IB:C3:0001</systemName><userName>Track 135-H1</userName></block>
-    <block systemName="IB1"><systemName>IB1</systemName><userName>Track A</userName>
-      <path todir="16" fromdir="32" block="IB2" />
-      <path todir="96" fromdir="144" block="IB:C3:0001" />
-      <path todir="16" fromdir="32" block="IB:C3:0099" />
-    </block>
-  </blocks>
-  <layoutblocks class="lb">
-    <layoutblock systemName="ILB1001"><systemName>ILB1001</systemName><userName>Track 135-H1</userName></layoutblock>
-    <layoutblock systemName="ILB1126"><systemName>ILB1126</systemName><userName>Track Hand Added</userName>
-    </layoutblock>
-  </layoutblocks>
-  <signalmastlogics class="l">
-    <signalmastlogic source="Mast 136RA"><sourceSignalMast>Mast 136RA</sourceSignalMast>
-      <destinationMast destination="Mast 40RB"><destinationSignalMast>Mast 40RB</destinationSignalMast>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="Mast 40RA"><sourceSignalMast>Mast 40RA</sourceSignalMast>
-      <destinationMast destination="Mast 136RA"><destinationSignalMast>Mast 136RA</destinationSignalMast>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="Mast 38RA"><sourceSignalMast>Mast 38RA</sourceSignalMast>
-      <destinationMast destination="Mast 36L"><destinationSignalMast>Mast 36L</destinationSignalMast>
-        <comment>held for Switch 107 and Mast 136RA</comment>
-      </destinationMast>
-      <destinationMast destination="Mast 30L"><destinationSignalMast>Mast 30L</destinationSignalMast>
-        <turnouts><turnout><turnoutName>Switch 107</turnoutName><turnoutState>closed</turnoutState></turnout>
-        </turnouts>
-      </destinationMast>
-      <destinationMast destination="Mast 140RA"><destinationSignalMast>Mast 140RA</destinationSignalMast>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="Mast 150LA"><sourceSignalMast>Mast 150LA</sourceSignalMast>
-      <destinationMast destination="Mast 36L"><destinationSignalMast>Mast 36L</destinationSignalMast>
-      </destinationMast>
-    </signalmastlogic>
-  </signalmastlogics>
-  <memories class="m"><memory><systemName>IM1</systemName><comment>Switch 107</comment></memory></memories>
-</layout-config>"""
-
-    def test_the_builds_own_and_their_derived_references_go(self) -> None:
-        """Also a reference to a main or upper object no longer in the tables (Mast 140RA, Mast 150LA, IB:C3:0099:
-        by the naming rule), and a layout block by its user name, not its number: ILB1126, a block added in PanelPro,
-        stays. A staging destination whose comment names Switch 107 and Mast 136RA keeps: a comment is no
-        reference."""
-        root = ET.fromstring(self.TABLES)
-        counts = B.strip_build_owned(root)
-        self.assertEqual(counts, dict(zip(B.STRIPPED, (5, 2, 3, 1, 2, 0))))
-        self.assertEqual([tables.system_name(b) for b in tables.layout_blocks(root)], ["ILB1126"])
-        self.assertEqual([tables.system_name(t) for t in root.iter("turnout") if t.find("systemName") is not None],
-                         ["IT:KEEP"])
-        self.assertEqual([tables.user_name(m) for m in tables.masts(root)], ["Mast 40RA"])
-        self.assertEqual([p.get("block") for p in root.iter("path")], ["IB2"])
-        self.assertEqual({src: [d for _s, d, _e in tables.mast_logic_pairs(root) if _s == src]
-                          for src in tables.mast_logic_sources(root)}, {"Mast 38RA": ["Mast 36L"]})
-        self.assertEqual(root.find("memories/memory/comment").text, "Switch 107")    # not derived: carried
-        self.assertEqual(root.find(".//destinationMast[@destination='Mast 36L']/comment").text,
-                         "held for Switch 107 and Mast 136RA")
-        self.assertEqual(B.strip_build_owned(root), dict.fromkeys(B.STRIPPED, 0))
-        # what is left is indented as before: the section closes where it did
-        self.assertEqual(root.find("turnouts")[-1].tail, "\n  ")
-        self.assertEqual(root.find("signalheads").text, None)
-
-    def test_a_reference_left_behind_stops(self) -> None:
-        root = ET.fromstring(self.TABLES)
-        with mock.patch.object(B.tables, "remove_child"), \
-                self.assertRaisesRegex(B.BuildError, "left some of it in"):
-            B.strip_build_owned(root)
 
 
 class BuilderErrors(unittest.TestCase):
     """The cut-over helpers stop with BuildError, naming what is at fault."""
-
-    def test_the_checkout_tables_are_refused_whatever_hart_tables_says(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(B.paths, "TABLES_XML", Path(tmp) / "c.xml"):
-            self.assertTrue(B.live_target(paths.REPO_TABLES_XML))
-            self.assertTrue(B.live_target(Path(tmp) / "c.xml"))
-            self.assertFalse(B.live_target(Path(tmp) / "other.xml"))
 
     def test_generated_audit_needs_a_candidate(self) -> None:
         with contextlib.redirect_stdout(io.StringIO()) as out:

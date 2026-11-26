@@ -4,12 +4,14 @@ Write staging's station and control-point membership, in every place the build r
 edits (jmri/layouts/hart/data/schematic/):
 
   stations.csv   level,station,switches,tracks,desk_code,desk_plate,notes   the stations of every level (one file, a level
-                 column); `tracks` blank counts the tracks that run from the switches, `none` counts none, else track
-                 names, ";" between; `desk_code` names the station's desk area (owner, 2026-11-20)
+                 column); `tracks` blank counts the tracks that run from the switches, `none` counts none, else the
+                 block IDs of its tracks, ";" between (block:3B-end), written to station_tracks by the name store's
+                 names (hartlib.railroad_facts.station_tracks, naming-layers step 5b); `desk_code` names the
+                 station's desk area (owner, 2026-11-20)
   sheets.csv     level,sheet,stations,notes                       the station detail sheets of every level, each the
                  stations named in `stations` (";" between), its switches the sorted union of theirs
 
-The control points (the limits the drawings bracket and the CATS desk names, plan_overrides.json's control_points)
+The control points (the limits the drawings bracket and the CATS desk names, plan_generated.json's control_points)
 are the desk areas: the stations that share a desk code, named by the first of them, each holding its stations' own
 switches. A station whose switches all lie in another's is nested in it and takes them for its own desk area (Engine
 House in Barn: BN is Switch 7, EH Switches 9, 11, 13). hartlib.railroad_facts.read_desk_areas is the one reader;
@@ -21,9 +23,12 @@ Only staging (level 1) has stations so far; a row of another level stops the bui
 
 What it writes, and nothing else of those files:
 
-  plan_overrides.json   staging's section: the keys control_points, stations and station_tracks
-  preferences.json      staging's section: the key detail_sheets
-(through hartlib.layer_files, which keeps the other sections and the notes as they are).
+  plan_generated.json          staging's section: the keys control_points, stations and station_tracks
+  preferences_generated.json   staging's section: the key detail_sheets
+(through hartlib.layer_files, which keeps the other sections and the notes as they are, and merges each file under
+the owner's hand file, plan_overrides.json and preferences.json, for every reader). It writes neither hand file, and
+stops when preferences.json's staging section holds detail_sheets: a hand value wins the merge and would hide the
+generated one.
 
 The older data/control_points.csv and schematic/control_points_staging.csv are gone (level-unification step 8; owner
 2026-11-20): their readers build the same rows from stations.csv and switches.csv
@@ -36,7 +41,6 @@ build with the file and line. --check regenerates in memory and exits 1 if a fil
 from __future__ import annotations
 
 import argparse
-import json
 import re
 import sys
 from dataclasses import dataclass
@@ -44,16 +48,15 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA
-from hartlib import layer_files, paths  # noqa: E402
+from hartlib import hand_lists, layer_files, paths  # noqa: E402
 from hartlib import railroad_facts as rf  # noqa: E402
-from hartlib.railroad_facts import DeskArea, FactsError, read_rows, station_group_rows  # noqa: E402
+from hartlib.railroad_facts import DeskArea, FactsError, station_group_rows  # noqa: E402
 
 LEVEL = "1"
 STATIONS = pd.DATA / "stations.csv"
-SHEETS = pd.DATA / "sheets.csv"
-SHEET = "staging"     # the sections of plan_overrides.json and preferences.json this writes
+SHEETS = hand_lists.SHEETS_FILE      # the station detail sheets (hartlib.hand_lists.read_sheet_rows)
+SHEET = "staging"     # the sections of plan_generated.json and preferences_generated.json this writes
 SWITCHES = paths.LAYOUT_DATA / "switches.csv"
-NONE = "none"        # the `tracks` cell of a station that counts no track
 
 
 class SetsError(ValueError):
@@ -73,13 +76,6 @@ class Sheet:
     line: int
     name: str
     stations: tuple[str, ...]
-
-
-def _rows(path, required, optional=()):
-    try:
-        return read_rows(path, required, optional=optional)
-    except FactsError as exc:
-        raise SetsError(str(exc)) from None
 
 
 def _where(path: Path, line: int) -> str:
@@ -118,10 +114,12 @@ def read_masters(path: Path = STATIONS, switches: set[str] | None = None) -> tup
         for st in rows:
             _staging_row(_where(path, st.line), st.name, str(st.level))
         areas = rf.desk_areas(rows, path, known)
+        named = rf.station_tracks(rows, path)        # the tracks' names, by their block IDs, from the name store
     except FactsError as exc:
         raise SetsError(str(exc)) from None
     stations = [Station(st.line, st.name, st.switches,
-                        None if not st.tracks else () if st.tracks == NONE else _split(st.tracks)) for st in rows]
+                        None if st.track_ids is None else tuple(n.removeprefix("Track ") for n in named.get(st.name, ())))
+                for st in rows]
     return areas, stations
 
 
@@ -129,7 +127,11 @@ def read_sheets(stations: list[Station], path: Path = SHEETS, stations_path: Pat
     """The detail sheets in file order. Stops on a name given twice or a sheet naming no station or an unknown one."""
     known = {s.name for s in stations}
     out, names = [], {}
-    for line, r in _rows(path, ("level", "sheet", "stations"), optional=("notes",)):
+    try:
+        rows = hand_lists.read_sheet_rows(path)
+    except FactsError as exc:
+        raise SetsError(str(exc)) from None
+    for line, r in rows:
         where = _where(path, line)
         _staging_row(where, r["sheet"], r["level"])
         if not r["sheet"] or r["sheet"] in names:
@@ -150,8 +152,9 @@ def sheet_switches(sheet: Sheet, stations: list[Station]) -> list[str]:
     return sorted({sw for n in sheet.stations for sw in by_name[n].switches}, key=int)
 
 
-def overrides_section(over: dict, cps, stations) -> dict:
-    over = dict(over)
+def generated_keys(cps, stations) -> dict:
+    """The keys of plan_generated.json's staging section this writes, from the desk areas (stations.csv) alone."""
+    over = {}
     over["stations"] = {s.name: list(s.switches) for s in stations}
     over["control_points"] = {c.name: {"switches": list(c.switches), "code": c.code} for c in cps}
     over["station_tracks"] = {s.name: list(s.tracks) for s in stations if s.tracks is not None}
@@ -161,10 +164,26 @@ def overrides_section(over: dict, cps, stations) -> dict:
     return over
 
 
-def preferences_section(prefs: dict, sheets, stations) -> dict:
-    prefs = dict(prefs)
-    prefs["detail_sheets"] = {s.name: sheet_switches(s, stations) for s in sheets}
-    return prefs
+DETAIL_NOTE = ("Layer 3: the station sheets `schematic detail` draws, name to switches. May overlap the stations (stations.csv). "
+               "South Yard covers the yard and the Barn (owner, 2026-11-14); West Yard pairs the hand map with Brick "
+               "and Plane; Princess is the hand map's Shenango. Written by tools/schematic/build_staging_sets.py from "
+               "sheets.csv (each sheet the sorted union of its stations' switches); edit that file, not this key.")
+
+
+def generated_preferences(sheets, stations) -> dict:
+    """The keys of preferences_generated.json's staging section this writes, from sheets.csv and stations.csv."""
+    return {"detail_sheets": {s.name: sheet_switches(s, stations) for s in sheets}, "_detail_sheets": DETAIL_NOTE}
+
+
+def check_hand_preferences(data: Path) -> None:
+    """Stop when preferences.json's staging section holds a key this writes: the merge keeps a hand value over a
+    generated one (hartlib.layer_files.merge), so a hand copy would hide what sheets.csv says."""
+    hand = layer_files.read("preferences", SHEET, data)
+    clash = [k for k in generated_preferences([], []) if k in hand and not k.startswith("_")]  # a note hides nothing
+    if clash:
+        raise SetsError(f"preferences.json[{SHEET}] holds {', '.join(clash)}: build_staging_sets.py writes "
+                        f"{'it' if len(clash) == 1 else 'them'} to preferences_generated.json from sheets.csv; "
+                        "delete the hand copy")
 
 
 def wanted(data: Path | None = None) -> dict[Path, str]:
@@ -178,10 +197,10 @@ def wanted(data: Path | None = None) -> dict[Path, str]:
     except FactsError as exc:
         raise SetsError(str(exc)) from None
     try:
-        return layer_files.texts({
-            ("plan_overrides", SHEET): overrides_section(layer_files.read("plan_overrides", SHEET, data), cps, stations),
-            ("preferences", SHEET): preferences_section(layer_files.read("preferences", SHEET, data), sheets, stations),
-        }, data)
+        check_hand_preferences(data)
+        return {**layer_files.generated_texts({SHEET: generated_keys(cps, stations)}, data),
+                **layer_files.generated_texts({SHEET: generated_preferences(sheets, stations)}, data,
+                                              layer_files.PREFS_GENERATED)}
     except layer_files.LayerFileError as exc:
         raise SetsError(str(exc)) from None
 

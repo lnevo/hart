@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from pathlib import Path
 
 from docx import Document
 from docx.enum.table import WD_ALIGN_VERTICAL
@@ -16,6 +15,8 @@ from docx.shared import Inches, Pt, RGBColor
 import csv
 
 import generate_waybill_cards as gw
+import crew_master
+from hart_ooxml import shade_cell
 
 OUTPUT = gw.BASE.parents[1] / "docs/ops/HART_Operator_Sheet.docx"
 LOGO_DIR = gw.BASE / "operator_logos"
@@ -57,23 +58,27 @@ USAGE_LABELS: dict[str, str] = {
     "storage": "Storage",
 }
 
-# Spur accent colors from layout `spurs` → STS location color names.
-# Hex values match sts/build_cc_mtybill.php ($color_palette).
-SPUR_PALETTE: dict[str, dict[str, str]] = {
-    # Richer than pure #FFFF00 so the Aristech band reads yellow on screen/print
-    # (pure neon yellow washes out as a thin rule).
-    "yellow": {"accent": "FFD400", "text": "000000"},
-    "green": {"accent": "008000", "text": "008000"},
-    "blue": {"accent": "0000CD", "text": "0000CD"},
-    "red": {"accent": "FF0000", "text": "FF0000"},
-    "orange": {"accent": "FFA500", "text": "000000"},
-    "purple": {"accent": "800080", "text": "800080"},
-    "pink": {"accent": "FFC0CB", "text": "000000"},
-    "lightblue": {"accent": "ADD8E6", "text": "000000"},
-    "mediumblue": {"accent": "0000CD", "text": "0000CD"},
-    "lightgrey": {"accent": "D3D3D3", "text": "000000"},
-    "black": {"accent": "000000", "text": "000000"},
+# Spur colour names from layout `spurs` (STS location colour names) → the accent band and the text colour. The
+# accent is the crew master's fill for the colours it has (mediumblue is its blue); lightblue and lightgrey are
+# STS-only. Yellow prints FFD400, richer than the master's FFFF00, because pure yellow washes out as a thin rule.
+_SPUR_MASTER_ID: dict[str, str] = {
+    "green": "green", "blue": "blue", "red": "red", "orange": "orange", "purple": "purple", "pink": "pink",
+    "mediumblue": "blue", "black": "black",
 }
+_SPUR_FIXED_ACCENT: dict[str, str] = {"yellow": "FFD400", "lightblue": "ADD8E6", "lightgrey": "D3D3D3"}
+_SPUR_TEXT: dict[str, str] = {
+    "yellow": "000000", "green": "008000", "blue": "0000CD", "red": "FF0000", "orange": "000000",
+    "purple": "800080", "pink": "000000", "lightblue": "000000", "mediumblue": "0000CD", "lightgrey": "000000",
+    "black": "000000",
+}
+
+
+def spur_palette() -> dict[str, dict[str, str]]:
+    """Spur colour name → {"accent", "text"} RRGGBB."""
+    swatch = crew_master.swatches(crew_master.load())
+    accent = {**{name: swatch[cid].fill for name, cid in _SPUR_MASTER_ID.items()}, **_SPUR_FIXED_ACCENT}
+    return {name: {"accent": accent[name], "text": text} for name, text in _SPUR_TEXT.items()}
+
 
 INDUSTRY_LOGOS: dict[str, tuple[str, float]] = {
     "Aristech Plastics": ("aristech.png", 1.95),
@@ -365,13 +370,14 @@ YARD_PAGES: list[dict] = [
 def _load_industry_styles() -> dict[str, dict]:
     """Merge spur colors from `spurs` with optional logo paths."""
     styles: dict[str, dict] = {}
+    palettes = spur_palette()
     with SPUR_FILE.open(encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if not line or "-" not in line:
                 continue
             industry, _, color_name = [part.strip() for part in line.split("-", 2)]
-            palette = SPUR_PALETTE.get(color_name.lower())
+            palette = palettes.get(color_name.lower())
             if not palette:
                 continue
             entry = dict(palette)
@@ -406,15 +412,6 @@ def _configure_document(doc: Document) -> None:
     normal.font.size = FONT_BODY
     normal.font.name = "Georgia"
     normal.font.color.rgb = RGBColor(0x33, 0x33, 0x33)
-
-
-def _set_cell_shading(cell, fill: str) -> None:
-    tc_pr = cell._tc.get_or_add_tcPr()
-    shd = OxmlElement("w:shd")
-    shd.set(qn("w:val"), "clear")
-    shd.set(qn("w:color"), "auto")
-    shd.set(qn("w:fill"), fill)
-    tc_pr.append(shd)
 
 
 def _set_cell_margins(cell, top=40, bottom=40, left=60, right=60) -> None:
@@ -475,7 +472,7 @@ def _accent_rule(doc: Document, accent: str) -> None:
     rule.autofit = False
     cell = rule.rows[0].cells[0]
     cell.width = PAGE_W - 2 * MARGIN
-    _set_cell_shading(cell, accent)
+    shade_cell(cell, accent, auto_color=True)
     _set_cell_margins(cell, top=0, bottom=0, left=0, right=0)
     cell.paragraphs[0].paragraph_format.space_after = Pt(0)
     rule.rows[0].height = Pt(4)
@@ -508,7 +505,7 @@ def _add_banner(doc: Document, title: str, style: dict) -> None:
     banner.autofit = False
     cell = banner.rows[0].cells[0]
     cell.width = PAGE_W - 2 * MARGIN
-    _set_cell_shading(cell, COLOR_PANEL)
+    shade_cell(cell, COLOR_PANEL, auto_color=True)
     _set_cell_margins(cell, top=90, bottom=90, left=100, right=100)
     cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
     _set_cell_border(cell, bottom_size=8, bottom_color=style["accent"])

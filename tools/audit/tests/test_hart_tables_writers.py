@@ -24,11 +24,10 @@ WRITERS = (
     (S + "cleanup_uss_ctc_leftovers.py", ["--apply"]),
     (S + "uss_switch_only_columns.py", ["--apply"]), (P + "retarget_dispatcher_traininfo_transits.py", []),
     (S + "export_track_lengths.py", []),
-    (S + "capture_public_name_baseline.py", []), (S + "speedmatch/build_routes.py", []),
+    (S + "speedmatch/build_routes.py", []),
     ("www/scripts/build_layout_index.py", []), ("www/scripts/build_tables_browser.py", []),
     ("tools/ops/status_counts.py", []), ("tools/schematic/build_cats_panel.py", []),
     ("tools/schematic/build_signals.py", []),
-    ("tools/schematic/build_layout_le.py", ["--levels", "staging", "--as-live"]),
     ("tools/schematic/build_tables.py", []),
 )
 

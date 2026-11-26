@@ -1,0 +1,201 @@
+/* Extra East: HART Railroad. Extra East's layout (exam/run.css): steel-grey paper inside the coke works at dusk, with rust and sodium-light accents. Own classes (xw-*) to stay clear of ops.css. */
+.xw{
+  --sheet:#e8eaee; --sheet-2:#d7dbe2; --line:#a9b0bc; --ink:#1c1b22; --muted:#545b67;
+  --red:#a4472b; --rust:#a4472b; --blue:#2f4a6b; --green:#2f6b3f; --flimsy:#f0f2f6; --stamp:#a4472b; --glow:#e8913a;
+  --river:#3b4459; --land:#c9ced7;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  display:flex;flex-direction:column;gap:14px;color:var(--ink);font-family:var(--font-body);
+  background:linear-gradient(180deg,#2c2142 0,#4a2a48 140px,#26232b 420px,#1f1d24 100%);padding:14px;border-radius:4px}
+.xw button{font:inherit;color:inherit}
+.xw [hidden]{display:none!important}
+.xw-btn{border:1.5px solid var(--ink);background:var(--sheet);border-radius:4px;padding:9px 14px;cursor:pointer;font-weight:600;text-align:left;line-height:1.35}
+.xw-btn:hover:not(:disabled){background:var(--sheet-2)}
+.xw-btn.primary{background:var(--ink);color:var(--sheet)}
+.xw-btn.primary:hover{background:#3a3644}
+.xw-btn:disabled{opacity:.45;cursor:default}
+.xw-btn small{display:block;font-family:var(--mono);font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.02em}
+.xw-btn.primary small{color:#c9ced7}
+.xw-paper{background:var(--sheet);border:1.5px solid #141319;border-radius:2px;box-shadow:3px 4px 0 rgba(0,0,0,.28)}
+
+/* status strip */
+.xw-status{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;padding:8px 14px;font-family:var(--mono);font-size:13px}
+.xw-status b{font-size:18px;font-weight:700}
+.xw-status .lbl{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:5px}
+.xw-status .marks b{color:var(--red)}
+
+/* line map */
+.xw-map{padding:4px 6px 2px}
+.xw-map svg{display:block;width:100%;height:auto;max-width:820px;margin:0 auto}
+.xw-map text{font-family:var(--mono);fill:var(--ink)}
+
+.xw-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:860px){.xw-grid{grid-template-columns:minmax(0,1fr)}}
+
+/* the scene card */
+.xw-scene{padding:16px 18px 18px;display:flex;flex-direction:column;gap:12px;min-height:280px}
+.xw-scene .where{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--red);border-bottom:1.5px solid var(--ink);padding-bottom:6px;display:flex;justify-content:space-between;gap:8px}
+.xw-scene h2{font-family:var(--font-display);font-size:clamp(24px,4vw,30px);line-height:1.15;margin:0;font-weight:700}
+.xw-scene p{margin:0;font-size:16px;line-height:1.55;max-width:66ch}
+.xw-scene .choices{display:flex;flex-direction:column;gap:8px}
+.xw-scene .result{border-top:1.5px dashed var(--line);padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.xw-scene .result .verdict{font-family:var(--font-display);font-size:21px;font-weight:700}
+.xw-scene .result .ok{color:var(--green)}.xw-scene .result .no{color:var(--red)}
+.xw-scene .src{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.xw-scene .opt.right{border-color:var(--green);background:#e1efe3}
+.xw-scene .opt.wrong{border-color:var(--red);background:#f5e1dc}
+.xw-scene .choices.done .opt:not(.right):not(.wrong){opacity:.5}
+.xw-dict{font-family:var(--mono);font-size:14px;line-height:1.6;background:var(--sheet-2);border-left:3px solid var(--blue);padding:8px 12px;white-space:pre-line;color:var(--blue)}
+.xw-tele{font-family:var(--mono);font-size:14px;line-height:1.6;background:var(--flimsy);border:1px solid var(--line);padding:10px 14px;white-space:pre-line}
+.xw-tele .no{color:var(--red);font-weight:700}
+.xw-clear{font-family:var(--mono);font-size:13px;line-height:1.6;background:#fff;border:1px solid var(--line);padding:10px 14px;white-space:pre-line}
+
+/* the train sheet */
+.xw-sheet{padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.xw-sheet h3{font-family:var(--font-display);font-size:15px;letter-spacing:.08em;text-transform:uppercase;margin:0;font-weight:700;text-align:center;border-bottom:1.5px solid var(--ink);padding-bottom:4px}
+.xw-sheet .sub{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;margin-top:-6px}
+.xw-tt{overflow-x:auto}
+.xw-tt.fade{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 34px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 34px),transparent)}
+.xw-more{margin:0;text-align:right;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--rust)}
+/* the station column stays while the trains scroll under it */
+.xw-tt th:first-child,.xw-tt td.stn{position:sticky;left:0;z-index:1;background:var(--sheet-2);box-shadow:1px 0 0 var(--line)}
+.xw-tt td.stn{background:var(--sheet);white-space:normal;min-width:82px;max-width:94px;line-height:1.25}
+.xw-tt th:first-child{max-width:88px}
+.xw-tt tr.here td.stn{background:#fbe9d4}
+.xw-tt table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:12px}
+.xw-tt th,.xw-tt td{border:1px solid var(--line);padding:3px 4px;text-align:center;white-space:nowrap}
+.xw-tt th{font-size:12px;font-weight:600;background:var(--sheet-2);line-height:1.25}
+.xw-tt th small{display:block;font-weight:400;color:var(--muted)}
+.xw-tt td.stn{text-align:left;font-weight:600}
+.xw-tt td.stn small{display:block;font-weight:400;color:var(--muted);font-size:12px;line-height:1.2}
+.xw-tt tr.here td{background:#fbe9d4}
+.xw-tt tr.here td.stn::before{content:"\25B6 ";color:var(--red)}
+.xw-tt .pencil{color:var(--blue);font-style:italic}
+.xw-tt th.mine,.xw-tt td.mine{background:#e8eef7;font-weight:700}
+.xw-tt tr.here td.mine{background:#fbe9d4}
+.xw-tt .late s{color:var(--muted)}
+.xw-tt .late b{color:var(--red);font-weight:700;display:block}
+.xw-tt .gone{color:var(--muted);text-decoration:line-through}
+.xw-si{font-size:13px;line-height:1.5;border-top:1px dashed var(--line);padding-top:8px}
+.xw-si ul{margin:4px 0;padding-left:18px}
+.xw-orders{display:flex;flex-direction:column;gap:6px}
+.xw-orders .ord{font-family:var(--mono);font-size:12.5px;background:var(--flimsy);border:1px solid var(--line);padding:6px 9px;line-height:1.45}
+.xw-orders .ord .ok{color:var(--stamp);font-weight:700;border:1.5px solid var(--stamp);padding:0 4px;margin-left:6px;font-size:12px}
+
+/* track warrant form */
+.xw-tw{font-family:var(--mono);font-size:13px;background:#fff;border:1.5px solid var(--ink);padding:10px 12px;display:flex;flex-direction:column;gap:3px}
+.xw-tw .hd{text-align:center;font-weight:700;letter-spacing:.06em;border-bottom:1px solid var(--ink);padding-bottom:4px;margin-bottom:4px}
+.xw-tw label.box{display:flex;gap:8px;align-items:flex-start;padding:3px 2px;border-bottom:1px dotted var(--line);line-height:1.9}
+.xw-tw label.box .n{min-width:22px;font-weight:700;padding-top:1px}
+.xw-tw label.box input[type=checkbox]{margin-top:7px;width:16px;height:16px;flex:none}
+.xw-tw label.box.bad{background:#f5e1dc}
+.xw-tw select{font:inherit;font-size:12.5px;border:0;border-bottom:1.5px solid var(--blue);color:var(--blue);background:transparent;padding:0 2px;max-width:10.5em}
+.xw-tw .okline{border-top:1px solid var(--ink);margin-top:4px;padding-top:6px;color:var(--muted)}
+.xw-tw .okline b{color:var(--stamp)}
+
+/* title: a pixel-art screen drawn on a canvas at 256x128 and scaled up without smoothing */
+.xw-title{margin-bottom:14px;border:1.5px solid #141319;border-radius:2px;background:#1b1830;box-shadow:0 0 0 1px rgba(232,145,58,.35),0 6px 18px rgba(0,0,0,.35);line-height:0}
+.xw-title canvas{width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges;display:block}
+/* start screen */
+.xw-fig{display:flex;justify-content:center;margin:6px 0;color:var(--ink)}
+.xw-switch{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;cursor:pointer;flex-wrap:wrap}
+.xw-switch input{position:absolute;opacity:0;width:1px;height:1px}
+.xw-switch i{position:relative;width:44px;height:24px;border:1.5px solid var(--ink);border-radius:12px;background:var(--sheet-2);flex:none}
+.xw-switch i::after{content:"";position:absolute;top:3px;left:3px;width:15px;height:15px;border-radius:50%;background:var(--ink);transition:left .15s}
+.xw-switch input:checked+i::after{left:23px}
+.xw-switch input:focus-visible+i{outline:2px solid var(--red);outline-offset:2px}
+.xw-switch span{color:var(--muted)}
+.xw-switch:not(.on) span:first-of-type,.xw-switch.on span:last-of-type{color:var(--ink)}
+.xw-how{padding:12px 16px;font-size:15px;line-height:1.55}
+.xw-how ul{margin:6px 0;padding-left:20px}
+.xw-go{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto}.xw-go .xw-btn{flex:1 1 180px}
+.xw-daily{border-top:1.5px dashed var(--line);margin-top:10px;padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.xw-daily p{font-size:14px;margin:0}
+.xw-share{font-family:var(--mono);font-size:13px;background:#fff;border:1px solid var(--line);padding:8px 10px;user-select:all;line-height:1.5}
+
+/* end */
+.xw-end .score{display:flex;flex-wrap:wrap;gap:8px 26px;font-family:var(--mono)}
+.xw-end .score div{display:flex;flex-direction:column}
+.xw-end .score b{font-size:30px;font-family:var(--font-display)}
+.xw-end .score span{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.xw-end details{border:1px solid var(--line);background:#fff;border-radius:3px;padding:7px 10px}
+.xw-end summary{cursor:pointer;font-weight:600}
+.xw-end details p{font-size:14px;margin:6px 0 0}
+.xw-stamp{display:inline-block;font-family:var(--font-display);font-weight:700;font-size:22px;letter-spacing:.08em;text-transform:uppercase;color:var(--stamp);border:3px solid var(--stamp);padding:2px 12px;transform:rotate(-3deg);align-self:flex-start}
+.xw-stamp.good{color:var(--green);border-color:var(--green)}
+.xw-log{font-family:var(--mono);font-size:12.5px;line-height:1.55;padding:8px 14px}
+.xw-log summary{cursor:pointer;font-weight:600;font-family:var(--font-body);font-size:14px}
+.xw-log ol{margin:6px 0 0;padding-left:22px;max-height:260px;overflow:auto}
+@media (prefers-reduced-motion:no-preference){.xw-scene.in{animation:xw-in .2s ease}}
+@keyframes xw-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.xw-headrow{display:flex;align-items:center;gap:12px;margin-bottom:.4rem}
+.xw-headrow img{width:40px;height:40px;flex:none}
+.xw-headrow h1{margin:0}
+
+/* Neville Island additions */
+.xw-map{background:var(--river)}
+.xw-map text.water{fill:#c9cfdc;letter-spacing:.12em}
+.xw-map text.lbl{fill:var(--muted);letter-spacing:.04em}
+.xw-status .over{color:var(--red);font-style:normal;font-weight:700}
+.xw-orders .ord.done{color:var(--muted);background:var(--sheet-2)}
+.xw-coda{font-size:14px;line-height:1.55;background:var(--flimsy);border-left:3px solid var(--glow);padding:8px 12px;margin-top:10px}
+.xw-end .rec{font-family:var(--font-display);margin:12px 0 4px;font-size:20px}
+.xw-end .miss{display:flex;flex-direction:column;gap:6px}
+.xw-end .study{margin-top:8px}
+.xw-scene .choices.row{flex-direction:row;flex-wrap:wrap}
+.xw-scene .result .verdict small{font-size:14px;font-family:var(--mono)}
+.xw-how{margin-top:14px}
+.xw-map svg{max-width:none}
+
+/* start screen (owner, 2026-11-22): the full pixel-art banner, then the site's own sections and topic cards on the light
+   page; the dark frame is for the game itself. Section chips filter the cards. */
+.xw.on-start{background:none;padding:0;border-radius:0}
+.xw.on-start .xw-title{margin-bottom:6px}
+.xw-group-h small{display:block;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--rust);margin-top:2px}
+.xw-group{margin:18px 0 0}
+.xw-start.card-grid{grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr))} /* the site's narrow topic cards; one column on a narrow phone */
+.xw-card{border-top:4px solid var(--glow);scroll-margin-top:6rem}
+.xw-card:hover{transform:none;border-color:var(--rule);border-top-color:var(--glow)} /* only Start acts, so the card does not lift like a link card */
+.xw-ascii{aspect-ratio:5/2;container-type:inline-size;display:flex;align-items:center;justify-content:center;margin:0 -1.15rem .85rem;border-bottom:1px solid var(--rule);overflow:hidden}
+.xw-ascii pre{margin:0;font:600 clamp(9px,4cqi,15px)/1.2 var(--mono);white-space:pre;letter-spacing:0} /* about 34 columns fill the card's width */
+.xw-ascii.day{background:#fff;color:#111}
+.xw-ascii.night{background:#111;color:#f2f2f2} /* the night runs: #205, #305 and the PC&Y transfer called at 5:00 */
+/* a visually hidden run name inside each Start button, so screen readers and voice control tell the eleven apart */
+.xw-vh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+.xw-card{display:flex;flex-direction:column;gap:8px}
+.xw-card h3{margin:0;font-family:var(--font-display);font-size:1.25rem}
+.xw-card p{margin:0;line-height:1.5}
+.xw-card .xw-go{margin-top:auto;padding-top:4px}
+.xw-card .xw-go .xw-btn{flex:none;min-width:120px;text-align:center}
+.xw-tags{display:flex;flex-wrap:wrap;gap:4px}
+.xw-tags span{font-family:var(--mono);font-size:12px;letter-spacing:.04em;padding:1px 6px;border:1px solid var(--line);border-radius:3px;color:var(--muted);background:var(--flimsy)}
+.xw-tags .xw-len{border-color:transparent;background:none;padding-left:2px}
+details.xw-how summary{cursor:pointer;font-weight:600}
+.xw-best{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:10px}
+.xw-showing{margin:8px 0 0;font-size:14px}
+.xw-link{background:none;border:0;padding:0;font:inherit;font-weight:600;text-decoration:underline;color:var(--blue);cursor:pointer}
+.xw-exit{margin-left:auto;display:inline-flex;gap:12px;align-items:baseline;font-family:var(--font-body);font-size:14px}
+
+/* visible focus: ink or rust on light ground */
+.xw-btn:focus-visible,.xw-chips button:focus-visible,.xw-link:focus-visible,.xw-group-note a:focus-visible,
+.xw-tw select:focus-visible,.xw-tw input:focus-visible,.xw-tt:focus-visible,.xw-scene a:focus-visible,.xw-end summary:focus-visible,.xw-how summary:focus-visible,.xw-log summary:focus-visible{outline:3px solid var(--rust);outline-offset:2px}
+
+/* phones: targets of at least 44 px */
+@media (max-width:860px){
+  .xw-chips button,.xw-link,.xw-btn{min-height:44px}
+  .xw-exit{width:100%;margin-left:0}
+  .xw-chips button{padding:0 14px}
+}
+
+/* the section filter in the site's "On this page" style (ops.css .jump), the intro and the random-shift button under the banner */
+.xw-filter{margin:.25rem 0 .5rem}
+.xw-filter .xw-chips{margin:0}
+.xw-filter .xw-chips button{display:inline-flex;align-items:center;padding:.4rem .65rem;min-height:2.5rem;background:var(--card);border:1px solid var(--rule);
+  font:600 .9rem var(--font-body);color:var(--ink);cursor:pointer}
+.xw-filter .xw-chips button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
+.xw-filter .xw-chips button:focus-visible,.xw-filter a:focus-visible{outline:3px solid var(--rust);outline-offset:2px}
+.xw-filter .xw-showing{margin:.5rem 0 0}
+.xw-intro{margin:.25rem 0 .75rem}
+.xw-cta{margin:0 0 .5rem;display:flex;flex-wrap:wrap;gap:.6rem}
+.xw-cta button.btn{cursor:pointer;font-family:var(--font-body)}
+.xw-group .back-top{margin-top:.75rem}
+@media (max-width:860px){.xw-filter .xw-chips button{min-height:44px}} /* after the filter rule, so phones keep 44 px targets */

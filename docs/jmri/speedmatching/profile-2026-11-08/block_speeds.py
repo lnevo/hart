@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Per-block and per-step speed tables from the runner logs.
 
-Writes block_events.csv (every block transit), block_summary.csv (mean speed per
-loco, step and block, and its ratio to the loop mean at that step) and
-speed_by_step.csv (loop-level speed per loco and step).
+Writes block_events.csv (every block transit) and block_summary.csv (mean speed per
+loco, step and block, and its ratio to the loop mean at that step) to OUTDIR, and
+the loop-level speed per loco and step to SPEED_BY_STEP
+(jmri/layouts/hart/data/speed_by_step_2026-11-08.csv, the one copy, which the
+speed-match dashboard and the Pi bundle read).
 
 implied_len_mm is the loop length shared out by each block's share of the lap time,
 i.e. the length the block would have if the loco ran at one speed all round.
@@ -17,6 +19,9 @@ import re
 import statistics
 import sys
 from collections import defaultdict
+from pathlib import Path
+
+SPEED_BY_STEP = Path(__file__).resolve().parents[4] / "jmri/layouts/hart/data/speed_by_step_2026-11-08.csv"
 
 # loop order in the east direction (2738's forward): sensor name -> length mm
 EAST = [
@@ -128,7 +133,7 @@ def main(logdir, outdir="."):
         laps[(LOGS[line["log"]], int(line["step"]))].append(float(line["lap_s"]))
     for line in csv.DictReader(open(f"{outdir}/manual_laps.csv")):
         laps[(line["loco"], int(line["step"]))].append(float(line["lap_s"]))
-    with open(f"{outdir}/speed_by_step.csv", "w", newline="") as f:
+    with open(SPEED_BY_STEP, "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["loco", "step", "laps", "mean_lap_s", "mean_mm_per_s", "stdev_mm_per_s",
                     "mean_scale_mph_ho"])

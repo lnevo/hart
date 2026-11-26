@@ -92,8 +92,7 @@ def main():
         published[f] = 'stl/' + f
     for f in [PLAN, 'lap_screw_template.pdf', STATUS, HANDOFF]:
         published[f] = 'files/' + f
-    for s in scripts:
-        published[s] = 'scripts/' + s
+    # The generators are archived (archive/code/benchwork-tools/helix/); their names stay as plain text.
 
     # STL index (HTML rows + Markdown rows)
     rows_html = []
@@ -115,15 +114,12 @@ def main():
                 cells.append(f'<tr><td><a href="stl/{f}" download><code>{f}</code></a></td>'
                              f'<td>{size(os.path.getsize(p))}</td><td>{ext}</td>')
                 mdcells.append((f, size(os.path.getsize(p)), mdext))
-            sc = f'<a href="scripts/{script}"><code>{script}</code></a>' if script else '<span class="muted">none kept</span>'
+            sc = f'<code>{script}</code>' if script else '<span class="muted">none kept</span>'
             span = len(cells)
             cells[0] += f'<td rowspan="{span}">{sc}</td><td rowspan="{span}">{html.escape(note)}</td></tr>'
             for i in range(1, span):
                 cells[i] += '</tr>'
             rows_html += cells
-            for i, (f, sz, ext) in enumerate(mdcells):
-                s = (f'[`{script}`](../helix/scripts/{script})' if script else 'none kept') if i == 0 else '″'
-                nt = note if i == 0 else '″'
 
     # Build status page, with backticked filenames linked to the published copies.
     text = open(os.path.join(DOCS, STATUS)).read()
@@ -177,7 +173,7 @@ def main():
         </table>
       </div>
       <p class="muted">Obsolete, not published: {obs}.</p>
-      <p class="muted">Scripts need Python with <code>numpy trimesh manifold3d shapely mapbox_earcut scipy rtree networkx matplotlib pymupdf pypdf</code>. Each writes into <code>helix/stl/</code>; pass <code>--out DIR</code> to write elsewhere.</p>
+      <p class="muted">The scripts that made these files are kept in the repository's archive, not published.</p>
     </div>''')
     open(os.path.join(OUT, 'index.html'), 'w').write(index)
 

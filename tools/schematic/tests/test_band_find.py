@@ -142,6 +142,10 @@ class FindBand(unittest.TestCase):
             with self.assertRaisesRegex(BuildError, r"no band is at level 1"):
                 le_common.base_band(BANDS[:2])
 
+    def test_a_module_the_plugin_lacks_is_a_build_error(self):
+        with self.assertRaisesRegex(BuildError, r"has no schematic\.no_such_module: update it"):
+            le_common.plugin_module("no_such_module")
+
     def test_band_key_is_the_plugins(self):
         draw = le_common.plugin_module("draw")
         for title in ("Cellar deck", "Top deck, 4 in", "", "One"):
@@ -215,7 +219,8 @@ class LabelRuleNamingNoBand(unittest.TestCase):
 
     def test_the_staging_rules_are_read_from_its_section(self):
         from hartlib import layer_files
-        own = layer_files.read("preferences", "staging", le_common.pd.DATA)["le_labels"]
+        # as named in the merged view: the hand file gives the tracks' block IDs (naming-layers step 5b)
+        own = layer_files.merged(le_common.pd.DATA, "preferences")["staging"]["le_labels"]
         bands, page = le_common.schematic()
         labels = le_common.plugin_module("le_labels")
         opts = labels.options(bands, page)[le_common.base_band(bands)]
@@ -225,6 +230,22 @@ class LabelRuleNamingNoBand(unittest.TestCase):
 
 class NamesSkipTheBaseByLevel(unittest.TestCase):
     """le_names skips the bands of a level the base holds (le_common.base_keys), found by level, not by title."""
+
+    def test_named_bands_names_a_track_by_the_role_it_is_given_never_its_name(self):
+        """A line block (devices.LINE_ROLES) is named on its longest track; any other is not; a block `roles` does
+        not hold stops. The roles are the caller's (le_names.block_roles of the map the names came from)."""
+        band = {"nodes": {"a": {"kind": "end"}, "b": {"kind": "end"}},
+                "strands": {"s1": {"src": ("a", "A"), "dst": ("b", "B"), "cm": 5.0, "name": "plan"}}}
+        empty = {"nodes": {}, "strands": {}}
+        bands = [("Cellar deck", empty, {}), ("Lower deck", band, {}), ("Top deck, 4 in", empty, {})]
+        names = {"Lower": dict(turnouts={}, blocks={"s1": ["Track 1-2"]}), "Top": dict(turnouts={}, blocks={})}
+        with Folder(overrides()):
+            named = lambda roles: le_names.named_bands(bands, names, roles)[1][1]["strands"]["s1"]["name"]  # noqa: E731
+            self.assertEqual(named({"Track 1-2": "track"}), "1-2")
+            self.assertEqual(named({"Track 1-2": "part"}), "1-2")
+            self.assertEqual(named({"Track 1-2": "os"}), "")             # named like a track, but an OS block
+            with self.assertRaisesRegex(BuildError, "no main or upper block row 'Track 1-2'"):
+                named({"OS Switch 1": "os"})
 
     def test_named_bands_leaves_the_base_band_as_it_is(self):
         plan = overrides(staging={"level_title": "Cellar deck", "level": 2},

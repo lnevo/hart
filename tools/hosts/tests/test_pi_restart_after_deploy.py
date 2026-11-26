@@ -70,23 +70,44 @@ class RestartDueTest(unittest.TestCase):
 
 
 class ScriptsAgreeTest(unittest.TestCase):
-    def test_deploy_never_quits_panelpro_itself(self) -> None:
-        src = (HOSTS / "sync_hart_package.sh").read_text(encoding="utf-8")
-        self.assertNotIn('bash "$ROOT/tools/hosts/pi_quit_panelpro.sh"', src)
+    def test_deploy_quits_panelpro_only_to_pull(self) -> None:
+        """The one quit is the gate's pull (autopull_pi_changes, in autopull.sh since 2026-11-26, which common.sh
+        sources; with the --for-deploy marker that pi_restart_if_due reads); no step quits it to ship."""
+        quit_call = 'pi_quit_panelpro.sh}" --for-deploy'
+        for path in [HOSTS / "sync_hart_package.sh", *sorted((HOSTS / "deploy").glob("*.sh"))]:
+            src = path.read_text(encoding="utf-8")
+            if path.name != "autopull.sh":
+                self.assertNotIn(quit_call, src, path.name)
+                self.assertNotIn('bash "$ROOT/tools/hosts/pi_quit_panelpro.sh"', src, path.name)
+                continue
+            # inside autopull_pi_changes, the file's last function, and only once
+            self.assertLess(src.index("autopull_pi_changes() {"), src.index(quit_call))
+            self.assertEqual(1, src.count(quit_call))
+        common = (HOSTS / "deploy/common.sh").read_text(encoding="utf-8")
+        self.assertIn('source "$DEPLOY_STEPS_DIR/autopull.sh"', common)
 
     def test_restart_check_runs_on_exit_through_the_pi_apply_and_after_it(self) -> None:
-        src = (HOSTS / "sync_hart_package.sh").read_text(encoding="utf-8")
-        # one EXIT trap; it restarts while PI_STEP is set, which covers the staging and the apply
+        # the entry point restarts while PI_STEP is set, from the checks passing through the staging and the Mac
+        # install; ship_pi.sh takes over (its own EXIT trap) for the rsync and the apply
+        entry = (HOSTS / "sync_hart_package.sh").read_text(encoding="utf-8")
+        entry_exit = entry[entry.index("on_exit() {"):entry.index("trap on_exit EXIT")]
+        self.assertIn('if [[ "$PI_STEP" -eq 1 ]]; then', entry_exit)
+        self.assertIn("pi_restart_if_due", entry_exit)
+        armed = entry.index('PI_STEP="$DO_PI"')
+        self.assertGreater(armed, entry.index('bash "$DEPLOY_STEPS/gate.sh"'))
+        self.assertLess(armed, entry.index('stage.sh" "${stage_flags'))
+        self.assertLess(entry.index('stage.sh" "${stage_flags'), entry.index('bash "$DEPLOY_STEPS/ship_mac.sh"'))
+        self.assertLess(entry.index('bash "$DEPLOY_STEPS/ship_mac.sh"'), entry.index("PI_STEP=0   # ship_pi.sh"))
+        self.assertLess(entry.index("PI_STEP=0   # ship_pi.sh"), entry.index('ship_pi.sh" ${ship_flags'))
+        src = (HOSTS / "deploy/ship_pi.sh").read_text(encoding="utf-8")
         on_exit = src[src.index("on_exit() {"):src.index("trap on_exit EXIT")]
         self.assertIn('if [[ "$PI_STEP" -eq 1 ]]; then', on_exit)
         self.assertIn("pi_restart_if_due", on_exit)
-        step_at = src.index('PI_STEP="$DO_PI"')
-        stage_at = src.index('stage_hosts "$STAGE_DIR"')
+        step_at = src.index("PI_STEP=1")
         apply_at = src.index("bash ${PI_DROP}/cats/scripts/pi/apply_hart_package_local.sh")
         done_at = src.index('echo "Pi deploy done."')
-        self.assertLess(step_at, stage_at)
-        self.assertLess(stage_at, apply_at)
-        self.assertIn("PI_STEP=0\n  pi_restart_if_due", src[done_at: done_at + 80])
+        self.assertLess(step_at, apply_at)
+        self.assertIn("PI_STEP=0\npi_restart_if_due", src[done_at: done_at + 80])
 
     def test_only_a_for_deploy_quit_leaves_the_marker(self) -> None:
         src = (HOSTS / "pi_quit_panelpro.sh").read_text(encoding="utf-8")

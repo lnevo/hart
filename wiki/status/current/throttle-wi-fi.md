@@ -1,0 +1,2 @@
+order: 630
+**Throttle Wi-Fi (`RPi-JMRI` SSID):** a GL.iNet MT300 announces `RPi-JMRI.local` to throttles and forwards JMRI web 12080, WiThrottle 12090 and STS 8980 to the Pi; the LCOS mimic is at `/web/mimic/`. Do not share the Mac's internet over Ethernet into it. Setup: 2026-11-18 "Full text" entry of the log.

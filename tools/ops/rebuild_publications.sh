@@ -21,6 +21,7 @@ SCRIPTS=(
   publications/rebuild_crew_instructions.py
   publications/rebuild_station_map.py
   publications/rebuild_local_station_maps.py
+  publications/rebuild_station_map_full.py   # assets/station_map_full.png: the primer and the site read it
   publications/rebuild_operator_primer.py
   publications/update_tt23_station_map.py
 )
@@ -30,6 +31,9 @@ for s in "${SCRIPTS[@]}"; do
   echo "--- $s ---"
   "$PY" "$s"
 done
+
+# the site's copy of the crew master (www/data/crew.json); stdlib only
+"$PY" publications/build_crew_json.py
 
 echo "Outputs: $DOCS/"
 ls -1 "$DOCS"/*.docx 2>/dev/null | wc -l | xargs echo "docx in docs/ops:"

@@ -4,26 +4,22 @@
     python3 tools/audit/check_name_copies.py          # the checkout's tracked files
     python3 tools/audit/check_name_copies.py --list   # also print every file that holds a name
 
-A name is current when its name-map row in jmri/layouts/hart/data/devices.csv (the rows with a
-pnm_order) is an identity row, or, for a block, when tables.xml holds a block
-with that user name (a block JMRI holds that the map has no identity row for yet;
-the hidden South Yard throat blocks were such blocks until 2026-11-17). A rename adds a row with the old name as
-`current` and the new one as `proposed` (ADR-005), so after a rename the old name
-is no longer current, and every hand-kept copy of it fails here with its file and line.
-A `proposed` name that neither an identity row nor tables.xml holds is not current.
-Since 2026-11-20 the name map is the pnm_ columns of devices.csv and holds no alias rows (ADR-029), so a track
-name that is no longer anything's is not matched at all: only a Mast, an OS Switch or a name the map or tables.xml
-still holds is checked. The rename checklist therefore greps for the old name itself.
+A name is current when it is the user name of a staging block or mast row of the device master,
+or, for a block, when tables.xml holds a block with that user name (a block JMRI holds that the master has no row for
+yet; the hidden South Yard throat blocks were such blocks until 2026-11-17). A rename changes the row's user name
+(ADR-005), so after a rename the old name is no longer current, and every hand-kept copy of it fails here with its
+file and line. The master keeps no alias rows (ADR-029), so a track name that is no longer anything's is not matched
+at all: only a Mast, an OS Switch or a name the master or tables.xml still holds is checked. The rename checklist therefore greps for the old name itself.
 
 What counts as a name:
   - `Mast <digits><letters>` (Mast 16R, Mast 2035) and `OS Switch <digits><a|b>`:
     any such text that is not current fails, renamed or never existed;
-  - `Track ...`: a track name has free words, so only the names the map knows are
+  - `Track ...`: a track name has free words, so only the names the master knows are
     matched, longest first (`Track Scale East` is not `Track Scale`); one that is
     not current fails.
 
 Data files that key on a name (mast_cells.csv, switches.csv, block_lengths.csv ...)
-are read: a rename has to change them too. Left out: devices.csv and tables.xml (the
+are read: a rename has to change them too. Left out: the device master and tables.xml (the
 sources), files a generator writes and a `--check` holds (SKIP_PREFIXES), tests, and the
 dated records in ALLOW, each with its reason (a key ending in "/" covers every file under that folder).
 Markdown is prose (the wiki and docs may keep a name; a record is not a copy) and is
@@ -33,16 +29,16 @@ from __future__ import annotations
 
 import argparse
 import re
-import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import devices, paths, tables  # noqa: E402
+from hartlib import devices, files, paths, railroad, tables  # noqa: E402
 
-DEVICES_REL = "jmri/layouts/hart/data/devices.csv"
+DEVICES_REL = devices.MASTER.relative_to(paths.REPO_ROOT).as_posix()
+FIELD_REL = devices.FIELD.relative_to(paths.REPO_ROOT).as_posix()
 TABLES_REL = "jmri/layouts/hart/output/tables.xml"
 LAYERS = ("block", "mast")
 
@@ -51,16 +47,15 @@ LAYERS = ("block", "mast")
 SKIP_PREFIXES = (
     "archive/",                                   # retired material
     "reference/", "external/",                    # vendor and submodule source
-    DEVICES_REL,                                  # the source of the names
-    TABLES_REL,                                   # JMRI's file; held to the map by the baselines
+    DEVICES_REL, FIELD_REL,                       # the source of the names (the master's two files)
+    TABLES_REL,                                   # JMRI's file; build_tables.py --check holds it to the master
     # stock discovery's output, written only by run_sml_discover.sh; build_tables.py stops on a mast it names that
     # the tables do not hold (hartlib.tables_build.merge_discovered)
     "jmri/layouts/hart/data/schematic/discovered_sml.xml",
-    "jmri/layouts/hart/data/baselines/",          # capture_public_name_baseline.py --check
     # the generated files of the schematic data; its hand-kept files (the overrides) are read
-    "jmri/layouts/hart/data/schematic/signals.json",                  # both sections generated from the mast files:
+    "jmri/layouts/hart/data/schematic/signals.json",                  # both sections generated from masts.csv:
                                                                       # build_signals.py --check
-    "jmri/layouts/hart/data/schematic/main_upper_masts.csv",          # build_main_upper_masts.py --check
+    "jmri/layouts/hart/data/schematic/masts.csv",                     # build_masts.py --check (every level)
     "jmri/layouts/hart/data/schematic/inputs/",                       # plan graphs read from the AnyRail export
     "www/data/",                                  # build_tables_browser / build_layout_index --check
     "jmri/layouts/hart/scripts/speedmatch/routes.json",  # build_routes.py --check
@@ -73,6 +68,9 @@ SKIP_PREFIXES = (
 # and old-name handling (rename_extension_tracks).
 SKIP_PARTS = ("/tests/",)
 TEXT_SUFFIXES = (".py", ".sh", ".js", ".mjs", ".csv", ".json", ".xml", ".html", ".svg", ".txt", ".cmd", ".yml", ".yaml")
+# The tracked files it lists, as git globs: one per suffix (readable() then leaves out SKIP_PREFIXES and tests). The
+# step's quiet_inputs in tools/pipeline/checks.toml are these (tools/audit/tests/test_manifest_scans.py).
+SCAN_GLOBS = tuple(f"**/*{s}" for s in TEXT_SUFFIXES)
 
 # Dated records that keep a name that is no longer current: file -> (names, reason);
 # names None allows any. Keep this short: a copy still in use belongs on the data.
@@ -126,18 +124,11 @@ class Hit:
 
 
 def load_names(devices_csv: Path) -> tuple[set[str], set[str]]:
-    """(identity-row names, every name the map holds: the same set now that it has no alias rows) for blocks and masts,
-    from the name-map rows of devices.csv (hartlib.devices.name_map_lines). DevicesError when it cannot be read."""
-    current: set[str] = set()
-    known: set[str] = set()
-    for _line, row in devices.name_map_lines(devices_csv):
-        if row["layer"] not in LAYERS:
-            continue
-        cur, new = row["current"].strip(), row["proposed"].strip()
-        known.update(n for n in (cur, new) if n)
-        if cur and cur == new:
-            current.add(cur)
-    return current, known
+    """(current names, every name the master holds: the same set, as it keeps no alias rows) of staging's blocks and
+    masts, the user names of their rows in the device master. DevicesError when it cannot be read."""
+    names = {row["user_name"].strip() for row in devices.load(devices_csv)
+             if row["level"] == railroad.STAGING_LEVEL and row["layer"] in LAYERS}
+    return names, set(names)
 
 
 def table_blocks(tables_xml: Path) -> set[str]:
@@ -180,11 +171,9 @@ def tracked_files(root: Path) -> list[str]:
     """The checkout's tracked files. Needs git: walking the folder would also read untracked
     and gitignored files (media mirrors, local runs), so there is no fallback."""
     try:
-        out = subprocess.run(["git", "-C", str(root), "ls-files", "-z"], capture_output=True, check=True)
-    except (OSError, subprocess.CalledProcessError) as e:
-        detail = e.stderr.decode("utf-8", "replace").strip() if isinstance(e, subprocess.CalledProcessError) else e
-        raise SystemExit(f"check_name_copies.py needs git to list the tracked files of {root}: {detail}")
-    return [p for p in out.stdout.decode("utf-8").split("\0") if p]
+        return files.tracked_files(root, *(f":(glob){g}" for g in SCAN_GLOBS))
+    except files.GitError as e:
+        raise SystemExit(f"check_name_copies.py needs git to list the tracked files of {root}: {e}")
 
 
 def readable(rel: str) -> bool:

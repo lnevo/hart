@@ -1,5 +1,7 @@
 # Promo videos
 
+Describes the short promo videos for the website on TikTok and YouTube, where the files are kept and how they were made.
+
 Short videos that advertise www.hartrailroad.com on TikTok and YouTube, made
 2026-11-14.
 
@@ -99,7 +101,10 @@ Material it reads:
 
 - Layout photos from `media/photos-layout/`.
 - The schematic and USS CTC evolution videos in
-  `www/assets/behind/panel-evolution/`.
+  `www/assets/behind/panel-evolution/`. The schematic one is made by
+  `python3 tools/schematic/evolution.py --site` (0.4 s per
+  committed version, the last held 2 s; the pan over the USS film uses the whole
+  film, about 8 s).
 - Phone-width captures of live site pages in `media/promo/shots/`. A missing
   capture is taken again from the live site.
 

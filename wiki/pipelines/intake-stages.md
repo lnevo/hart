@@ -58,14 +58,14 @@ Run from `ops/hart-ops`.
 1. `bin/cars locos publish` (refuses a loco with missing fields). It adds the engine to `jmri/layouts/hart/operations/OperationsEngineRoster.xml`, keeping session state, writes the photo to `jmri/resources/roster/<number>.jpg`, and adds the loco to `jmri/layouts/hart/data/new_locos.json`.
 2. Commit and deploy: `./tools/hosts/sync_hart_package.sh --all` (installs the photo and engine roster).
 3. With JMRI up on the Pi: `tools/ops/loco_roster_import.sh` shows the plan, `--apply` creates the DecoderPro entries (ID is road plus number, so the rename script is not needed). An entry that already exists is kept as built, and only gets the photo and icon if it has none. Stop PanelPro on the Pi first for `make ops-pull` and the deploy, and start it again before the import.
-4. `ensure_dispatcher_roster_profiles.py` for the speed profile, then `tools/ops/cs105_roster_sync.sh --apply`. `cs105_reboot.sh` only when nothing is moving.
+4. `ensure_dispatcher_roster_profiles.py` for the speed profile, then `tools/ops/cs105.sh roster-sync --apply`. `cs105.sh reboot` only when nothing is moving.
 5. Dispatcher traininfo needs nothing per loco. The 374 files in `jmri/layouts/hart/dispatcher/traininfo` (and on the Pi) are transit templates: every one has `trainname="NWR 06"` and a blank `rosterid`, and you pick the loco from the roster in the Dispatcher dialog. What Dispatcher needs is a speed profile in the roster file, which step 4 adds (`ensure_dispatcher_roster_profiles.py` edits roster files, so it needs JMRI closed; copy the script into a path at least five folders deep on the Pi, because it finds its root with `parents[4]`).
 
 The Pi-side import is untested against live JMRI. Run the plan first and watch the first `--apply`.
 
 ## 5. Cards and public pages
 
-- `bin/cars cards` builds one print file for cars and locomotives; print, then `bin/cars cards --mark-printed`. `--trains` appends six train cards (D749, NVL, CK1, Route 23, OCS-1, EXTRA; `card_pipeline/train_cards.py`) to fill the last sheet; they are not in the queue. Loco cards come from `data/locos.csv` (road, number, model, length, maker), so they can be built before stage 4 publishes the engine.
+- `bin/cars cards` builds one print file for cars and locomotives; print, then `bin/cars cards --mark-printed`. `--trains` appends six train cards (D749, NVL, CK1, Route 23, OCS-1 (office car special, the top-priority passenger train), EXTRA; `card_pipeline/train_cards.py`) to fill the last sheet; they are not in the queue. Loco cards come from `data/locos.csv` (road, number, model, length, maker), so they can be built before stage 4 publishes the engine.
 - `bin/cars site` shows the new photographed cars and locos missing from the public gallery (`www/data/fleet-gallery.json`); `--apply` adds them, with captions from the card text. It never adds an entry containing the private name. A clean run means the gallery is up to date. A description that only repeats the car type is left out of the caption (`CSX · Hopper · 40'`).
 - Merge the gallery to `main`, update the main checkout, then run `./www/scripts/deploy_hartrailroad.sh` **from the main checkout**: the build needs the photo mirrors (`www/README.md`), which a worktree lacks, and without them the Rolling stock albums drop out. The build prints the fleet item count (83 to 93 for ten cars); check one new image on the live site.
 - Update `wiki/STATUS.md`.
@@ -90,7 +90,7 @@ State on 2026-11-08: all stages ran once on a real batch (ten CSX hoppers, cars 
 4. `bin/cars approve <batch>`, then `bin/cars records <batch> --dry-run`, then without `--dry-run`. Commit the repository files and the manifest in a branch.
 5. Locos: `bin/cars locos set "<ROAD NUMBER>" dcc_address=... model=... loco_type=Diesel length_ft=...` until `locos status` shows nothing missing, then `bin/cars locos publish`.
 6. Stage 3 only when every photo is recorded or rejected: take an STS backup, close JMRI on the Pi, `make ops-pull`, commit, then `bin/cars publish`. Test one car first with `--only`. The live STS insert ran clean on the first batch once the pool and photo fixes were in. Then `bin/cars compare`, commit `jmri/layouts/hart/operations/`, deploy with `sync_hart_package.sh --all`.
-7. Stage 4: `tools/ops/loco_roster_import.sh` (plan), then `--apply`; `ensure_dispatcher_roster_profiles.py` (JMRI closed); `tools/ops/cs105_roster_sync.sh --apply` only when its plan shows the CS-105's existing trains on the bus (a plan that says "0 train nodes" would try to create every entry again). No traininfo files are needed per loco.
+7. Stage 4: `tools/ops/loco_roster_import.sh` (plan), then `--apply`; `ensure_dispatcher_roster_profiles.py` (JMRI closed); `tools/ops/cs105.sh roster-sync --apply` only when its plan shows the CS-105's existing trains on the bus (a plan that says "0 train nodes" would try to create every entry again). No traininfo files are needed per loco.
 8. Stage 5: `bin/cars cards`, print, `--mark-printed`; `bin/cars site`, `--apply`, merge, then deploy the site from the main checkout.
 
 **Known soft spots**

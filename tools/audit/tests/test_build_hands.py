@@ -1,4 +1,5 @@
-"""build_hands.py: switches.csv holds the current plan hands (not the drawn ones), and only plan rows are rewritten."""
+"""build_hands.py: switches.csv holds the current plan hands (not the drawn ones), and only plan rows are rewritten;
+staging rows, which give IDs only, are left as they are."""
 from __future__ import annotations
 
 import csv
@@ -11,7 +12,7 @@ SPEC = importlib.util.spec_from_file_location("build_hands", ROOT / "tools/schem
 BH = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(BH)
 
-# Drawn hands on REV 5 (archive/wiki/projects/schematic-maps-handoff.md), in the numbers of 2026-11-19 (121 and 125 crossovers)
+# Drawn hands on REV 5 (archive/history/wiki/projects/schematic-maps-handoff.md), in the numbers of 2026-11-19 (121 and 125 crossovers)
 DRAWN_R = "101A 101B 105 107 115 119A 119B 121B 125A 129 131A 131B 211A 211B 221A 221B 223 227 233 231 235 241".split()
 DRAWN_L = ("103A 103B 109 111 113 117 121A 123 127A 125B 127B 201 203 205 209 207 213 215 217A 217B 219 229 237 "
            "243A 243B 239 245A 245B").split()
@@ -46,9 +47,10 @@ class BuildHands(unittest.TestCase):
         self.assertEqual(BH.main(["--check"]), 0)
 
 
-HEADER = "level,switch,half,os_block,closed_leg,thrown_leg,hand,hand_source,area,le_ident,cats_inverted,ctc_is," \
-         "ctc_signals,notes\n"
-STAGING = "1,1,,OS Switch 1,Track A,Track B,L,owner,,TO1,no,3,yes,\n"
+HEADER = ",".join(BH.railroad.SWITCH_COLUMNS) + "\n"
+# a staging row gives its OS block and legs by device ID only (os_id, closed_id, thrown_id); their names are the name
+# store's, which the reader looks up (railroad.read_switch_rows)
+STAGING = "1,1,,os:1,os:3,block:1C-5A#1+1C-5A#2,L,owner,,TO1,no,3,yes,\n"
 
 
 class PlanAndOwnerRows(unittest.TestCase):
@@ -96,6 +98,26 @@ class PlanAndOwnerRows(unittest.TestCase):
     def test_a_plan_label_on_a_row_with_no_hand_source_stops(self):
         with self.assertRaisesRegex(SystemExit, r"line 3 \(105\): the plan has a hand for it \(R\); set hand_source"):
             self.apply("2,105,105,,,,,,West,,,,,\n", {"105": "R"})
+
+    def test_a_staging_row_is_left_as_it_is(self):
+        """naming-layers step 5: a staging row holds IDs only, so a renamed device changes no cell of it; the read
+        checks the IDs against the name store given (or the repo's)."""
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "switches.csv"
+            p.write_text(HEADER + STAGING, encoding="utf-8")
+            self.assertEqual(BH.apply(p, {}), HEADER + STAGING)              # the repo's name store
+            names = {("1", "os:1"): "OS Switch 1", ("1", "os:3"): "OS Brick West",
+                     ("1", "block:1C-5A#1+1C-5A#2"): "Track Brick"}
+            self.assertEqual(BH.apply(p, {}, names), HEADER + STAGING)
+
+    def test_a_staging_id_the_device_master_does_not_have_stops(self):
+        with self.assertRaisesRegex(SystemExit, r"line 2 \(Switch 1\): thrown_id block:9Z-end is no level 1 device"):
+            import tempfile
+            with tempfile.TemporaryDirectory() as tmp:
+                p = Path(tmp) / "switches.csv"
+                p.write_text(HEADER + STAGING.replace("block:1C-5A#1+1C-5A#2", "block:9Z-end"), encoding="utf-8")
+                BH.apply(p, {})
 
     def test_a_row_the_reader_refuses_stops_with_its_line(self):
         with self.assertRaisesRegex(SystemExit, r"switches.csv line 3 \(Switch 105\): a hand needs a hand_source"):

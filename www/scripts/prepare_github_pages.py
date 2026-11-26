@@ -11,38 +11,60 @@ deploy from a worktree without media/ cannot strip the photos). The build fails
 if the output still names local hosts or paths. (The file name predates the move
 off GitHub Pages.)
 
-Usage: prepare_github_pages.py [DEST] [--site-url URL] [--require-mirrors]
+Usage: prepare_github_pages.py [DEST] [--site-url URL] [--require-mirrors] [--full]
+
+The photo stages are reused from the last full run when their inputs are unchanged (see PHOTO_CODE_VERSION);
+--full runs them anyway.
+
+This file is the entry point: the CLI, the copy, scrub and check stages, and the order main() runs them in. The
+other stages are in portal_photos.py (logos, photos, card thumbs, WebP and the photo cache), portal_head.py (head
+tags and provenance) and portal_search_index.py (the search index); portal_common.py holds what they share.
 """
 
 from __future__ import annotations
 
 import argparse
-import functools
-import hashlib
-import html
-import inspect
-import os
 import json
 import re
 import shutil
 import subprocess
 import sys
-from datetime import datetime, timezone
-from html.parser import HTMLParser
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_tables_browser  # noqa: E402
 import repo_guide_page  # noqa: E402
 import jmri_additions_page  # noqa: E402
-import provenance  # noqa: E402
-import share_cards  # noqa: E402
-from photo_tabs import tab_subs  # noqa: E402
+import portal_common  # noqa: E402
+import provenance  # noqa: E402,F401  (re-exported, as below)
+import share_cards  # noqa: E402,F401
+import site_views  # noqa: E402
 
-PORTAL = Path(__file__).resolve().parents[1]
-# The private-name check works by fingerprint, so the name itself is never written in this script.
-sys.path.insert(0, str(PORTAL.parent / "ops/hart-ops/card_pipeline"))
-from private_name import contains_private_name  # noqa: E402
+# The build's parts live in portal_*.py beside this file. The names below are re-exported, so importers and tests
+# keep reading them here; a test that patches one patches it in the module that holds it.
+from portal_common import (  # noqa: E402,F401
+    LEAK_PATTERNS, MIRROR_PREFIXES, PORTAL, SHARE_DESCRIPTION, _manifest, _source,
+)
+from portal_head import _add_head_tags, _add_provenance, _head_tags, _own_description  # noqa: E402,F401
+from portal_photos import (  # noqa: E402,F401
+    ARCHIVE_MAX_PX, JPEG_CACHE_ENV, JPEG_CACHE_KEEP_DAYS, PHOTO_CODE_VERSION, PHOTO_STORE, _archive_px,
+    _card_thumbs, _filter_gallery, _gallery_thumbs, _jpeg_cache, _jpeg_cache_at, _missing_mirrors, _photo_code_key,
+    _photo_early, _photo_late, _prune_jpeg_cache, _render_jpeg, _render_key, _vendor_archive_images,
+    _vendor_fleet_images, _vendor_json_logos, _vendor_logo, _vendor_logos, _vendor_photos, _web_jpeg,
+    _webp_companions,
+)
+from portal_search_index import (  # noqa: E402,F401
+    INDEX_NAME, INDEX_SKIP_PAGES, INDEX_TITLE_ONLY, SEARCH_THUMB_PX, _archive_records, _check_index, _crew_records,
+    _fleet_records, _glossary_records, _index_record, _industry_records, _photo_records, _search_thumbs,
+    build_search_index, contains_private_name, tab_subs,
+)
+
+
+pipeline_map = site_views.pipeline_map  # loaded once, by site_views ("tools/ops/build_pipeline_map.py")
+# Files the site publishes that are built here from their sources instead of committed (ADR-036): the pipeline map
+# page and the generated JSON (site_views.VIEWS), each site path with the builder that returns its checked text or
+# raises one of site_views.ERRORS.
+BUILT_PAGES = site_views.VIEWS
 # Build scripts, the owner's review desk, and pages that only work at the layout (localhost tools,
 # workspace pointers) stay off the public site.
 SKIP_DIRS = {Path("scripts"), Path("review"), Path("review-data"), Path("tools"), Path("reference")}
@@ -51,32 +73,17 @@ SKIP_DIRS = {Path("scripts"), Path("review"), Path("review-data"), Path("tools")
 SKIP_FILES = {
     Path("README.md"),
     Path("guides/digicon-system.html"),
-    Path("data/signal-splits.json"),  # signal splits are under review; the wiring viewer hides that tab
     Path("data/invites.json"),  # invitation drafts; author reference only
-    Path("data/panels.json"),
-    Path("library/updated-history.txt"),
     Path("assets/media/hart-logo.png"),  # favicon source; the built icons are in assets/icons/
-    Path("assets/media/coal-types.png"),
-    Path("assets/icons/icon-192.png"),
     Path("helix/build-status.html"),  # the helix build status is a working file, not published
     Path("helix/files/HART_Neville_Helix_BUILD_STATUS.md"),
 }
 # Markdown sources for the library articles (the HTML pages are what's published) and invitation drafts.
 SKIP_GLOBS = ("docs/*.md",)
-# Strings that mean a local host, port, or workspace path leaked into the public tree.
-LEAK_PATTERNS = re.compile(r"localhost|127\.0\.0\.1|/Users/|external/sts-docker-data|\.\./media/|media/archive/|media/hart-research|media/photos-layout|media/dj-trains|ops/car-cards")
-# Data must not point into the mirrors either; scripts (and inline page scripts) test for that
+# Data must not point into the mirrors (MIRROR_PREFIXES) either; scripts (and inline page scripts) test for that
 # prefix when resolving logos and photos, so only data files are checked for it.
-MIRROR_PREFIXES = ("../external/", "../media/", "../ops/", "../docs/")
 DATA_LEAK = re.compile(r"\.\./(?:external|media|ops|docs)/")
 LEAK_SUFFIXES = {".html", ".json", ".css", ".md", ".txt", ".svg"}
-# Share previews (Facebook, iMessage, …) read static tags only, so every page gets them at build time.
-# The site is served at the domain root; override with --site-url or HART_SITE_URL.
-SITE_URL = os.environ.get("HART_SITE_URL", "https://www.hartrailroad.com/")
-SHARE_DESCRIPTION = (
-    "Neville Island on the HART Railroad: the prototype's history and industries, "
-    "operating sessions, and the layout build."
-)
 
 
 def _published_files() -> list[Path]:
@@ -97,16 +104,6 @@ def _published_files() -> list[Path]:
             continue
         files.append(rel)
     return files
-
-
-def _manifest() -> dict[str, str]:
-    return json.loads((PORTAL / "scripts/published-files.json").read_text(encoding="utf-8"))
-
-
-def _source(rel: str) -> Path:
-    """Where a site-relative file really lives: its manifest source, or the site tree."""
-    source = _manifest().get(rel)
-    return PORTAL.parent / source if source else (PORTAL / rel).resolve()
 
 
 def _copy_published(dest: Path) -> None:
@@ -181,907 +178,12 @@ def _check_leaks(dest_root: Path) -> list[str]:
     return hits
 
 
-# ---- Search index (search-index.json) -------------------------------------------------------
-# Written last, from the built HTML, so it never holds text the leak checks or the data-local-only
-# strip removed. Stage 1 has one "page" record per page; the search box (js/search.js) reads it.
-INDEX_NAME = "search-index.json"
-INDEX_VERSION = 1
-SNIPPET_MAX, TEXT_MAX = 160, 8000  # about 95 KB gzipped for the whole index, fetched on first open
-# Pages that are never found: the 404 page and the document viewer shell.
-INDEX_SKIP_PAGES = {"404.html", "docs/view.html"}
-# Pages whose content is rows drawn by script: only the title and the intro paragraph are indexed.
-INDEX_TITLE_ONLY = {"behind/tables-file.html", "behind/wiring.html"}
-_INDEX_SKIP_TAGS = {"script", "style", "template", "noscript", "svg", "header", "nav", "footer", "button", "select", "option"}
-_REDIRECT = re.compile(r'http-equiv=["\']?refresh|location\.replace\(|(?<![\w-])location(?:\.href)?\s*=[^=]', re.I)
-# Publication headers ("SM-02 · Revision A · Effective 23 July 2026") say nothing about the page.
-_BOILERPLATE = re.compile(r"\bRevision [A-Z]\b|\bEffective \d", re.I)
-# List, table and definition text is searchable too (glossary terms, spot-sheet rows).
-_INDEX_TEXT_TAGS = ("h1", "h2", "h3", "p", "li", "dt", "dd", "td", "th")
-
-
-class _PageText(HTMLParser):
-    """Title, headings and paragraphs of a built page, outside chrome, scripts and templates."""
-
-    def __init__(self) -> None:
-        super().__init__(convert_charrefs=True)
-        self.title, self.description = "", ""
-        self.h1: list[str] = []
-        self.h2: list[str] = []
-        self.paras: list[str] = []
-        self.other: list[str] = []  # h3, list items, table cells, definitions
-        self.noindex = False
-        self._skip = 0
-        self._cur: str | None = None  # tag being collected
-        self._buf: list[str] = []
-        self._in_title = False
-        self._title_done = False  # inline SVGs carry their own <title>; only the page's counts
-
-    def handle_starttag(self, tag, attrs):
-        a = dict(attrs)
-        if tag == "title" and not self._title_done:
-            self._in_title = True
-        elif tag == "meta":
-            name = (a.get("name") or "").lower()
-            content = a.get("content") or ""
-            if name == "robots" and "noindex" in content.lower():
-                self.noindex = True
-            elif name == "description" and content and content != SHARE_DESCRIPTION:
-                self.description = content  # the page's own, not the share-tag default
-        if tag in _INDEX_SKIP_TAGS:
-            self._skip += 1
-        elif not self._skip and self._cur is None and tag in _INDEX_TEXT_TAGS:
-            self._cur, self._buf = tag, []
-
-    def handle_endtag(self, tag):
-        if tag == "title" and self._in_title:
-            self._in_title, self._title_done = False, True
-        if tag in _INDEX_SKIP_TAGS:
-            self._skip = max(0, self._skip - 1)
-        elif tag == self._cur:
-            text = re.sub(r"\s+", " ", "".join(self._buf)).strip()
-            if text and not text.startswith("Loading"):  # placeholders the page script replaces
-                {"h1": self.h1, "h2": self.h2, "p": self.paras}.get(tag, self.other).append(text)
-            self._cur = None
-
-    def handle_data(self, data):
-        if self._in_title:
-            self.title += data
-        elif self._cur is not None and not self._skip:
-            self._buf.append(data)
-
-
-def _clip(text: str, limit: int) -> str:
-    text = re.sub(r"<[^<>]{0,60}>", " ", text)  # tags quoted as page text (code samples) are noise
-    text = re.sub(r"\s+", " ", text).strip()
-    if len(text) <= limit:
-        return text
-    return text[: limit - 1].rsplit(" ", 1)[0].rstrip(" ,;:-—") + "…"
-
-
-def _index_record(rel: Path, text: str) -> dict | None:
-    """One search record for a built page, or None when the page should not be found."""
-    name = rel.as_posix()
-    if name in INDEX_SKIP_PAGES:
-        return None
-    page = _PageText()
-    page.feed(text)
-    if page.noindex:
-        return None
-    title = re.sub(r"\s+", " ", page.title).strip()
-    title = re.sub(r"\s+[—-]\s+HART$", "", title) or (page.h1[0] if page.h1 else "")
-    paras = [p for p in page.paras if len(p) >= 40 and not _BOILERPLATE.search(p)]
-    # Redirect stubs: a refresh or script jump with little to read, or a "Moved" notice.
-    if page.h1[:1] == ["Moved"] or (_REDIRECT.search(text) and len(" ".join(paras)) < 200):
-        return None
-    if not title or not (page.h1 or paras or page.description):
-        return None
-    intro = page.description or (paras[0] if paras else "")
-    if name in INDEX_TITLE_ONLY:
-        body = [intro]
-    else:
-        heads = [h for h in page.h1[:1] + page.h2 if h.lower() != title.lower()]
-        rest = [p for p in page.paras + page.other if p != intro and not _BOILERPLATE.search(p)]
-        body = heads + rest
-    return {
-        "title": title,
-        "url": name,
-        "kind": "page",
-        "snippet": _clip(intro or title, SNIPPET_MAX),
-        "text": _clip(" ".join(b for b in body if b), TEXT_MAX),
-    }
-
-
-def _check_index(index: dict) -> list[str]:
-    """Leak patterns (hosts, workspace paths) and the private name, per record field."""
-    bad = []
-    for rec in index["records"]:
-        for field, value in rec.items():
-            if LEAK_PATTERNS.search(value) or contains_private_name(value):
-                bad.append(f"{rec['url']} ({field})")  # never echo the matched text
-    return bad
-
-
-# ---- Term, industry and crew-sheet records --------------------------------------------------
-# Read from the built copies (after the local-only and external-path strips), public fields only.
-GLOSSARY_PAGE = "operators/glossary/index.html"
-SPOT_SHEETS = "crew/industries/index.html"  # spot sheets are drawn by js/crew.js with id=<industry id>
-
-
-class _Terms(HTMLParser):
-    """The glossary's <dt id> / <dd> pairs."""
-
-    def __init__(self) -> None:
-        super().__init__(convert_charrefs=True)
-        self.terms: list[dict] = []
-        self._tag: str | None = None
-        self._buf: list[str] = []
-        self._id = ""
-
-    def handle_starttag(self, tag, attrs):
-        if tag in ("dt", "dd"):
-            self._tag, self._buf = tag, []
-            if tag == "dt":
-                self._id = dict(attrs).get("id") or ""
-
-    def handle_endtag(self, tag):
-        if tag != self._tag:
-            return
-        text = re.sub(r"\s+", " ", "".join(self._buf)).strip()
-        if tag == "dt":
-            self.terms.append({"id": self._id, "term": text, "defn": ""})
-        elif self.terms and not self.terms[-1]["defn"]:
-            self.terms[-1]["defn"] = text
-        self._tag = None
-
-    def handle_data(self, data):
-        if self._tag:
-            self._buf.append(data)
-
-
-def _read_json(path: Path):
-    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
-
-
-def _record(title: str, url: str, kind: str, snippet: str, text: str, thumb: str = "") -> dict:
-    rec = {"title": title, "url": url, "kind": kind, "snippet": _clip(snippet or title, SNIPPET_MAX), "text": _clip(text, TEXT_MAX)}
-    if thumb:
-        rec["thumb"] = thumb  # the one optional field: a small built image, for photo-like kinds only
-    return rec
-
-
-def _thumb(dest_root: Path, item: dict) -> str:
-    """The item's built grid thumbnail as a site-root-relative path, or "" when it is not in the build."""
-    rel = str(item.get("thumb") or "")
-    if not rel or rel.startswith(("/", "http:", "https:")) or ".." in rel.split("/"):
-        return ""
-    return rel if (dest_root / rel).is_file() else ""
-
-
-def _glossary_records(dest_root: Path) -> list[dict]:
-    """One "term" record per glossary entry, linked to its #id on the glossary page."""
-    page = dest_root / GLOSSARY_PAGE
-    if not page.is_file():
-        return []
-    parsed = _Terms()
-    parsed.feed(page.read_text(encoding="utf-8", errors="replace"))
-    return [
-        _record(t["term"], f"{GLOSSARY_PAGE}#{t['id']}", "term", t["defn"], t["defn"])
-        for t in parsed.terms
-        if t["id"] and t["term"] and t["defn"]
-    ]
-
-
-def _industry_records(dest_root: Path) -> list[dict]:
-    """One "industry" record per company: blurb and commodities (industries.json) merged with the
-    spot sheet's history, traffic and spots (crew.json). Links to the spot sheet, where the history,
-    traffic and every spot are; the Primer placard shows only the blurb and links there anyway."""
-    cards = _read_json(dest_root / "data" / "industries.json").get("industries") or []
-    sheet = _read_json(dest_root / "data" / "crew.json").get("spotsheet") or {}
-    sheets = {i["id"]: i for i in (sheet.get("industries") or []) if i.get("id")}
-    for o in sheet.get("offline") or []:
-        if o.get("id"):
-            sheets.setdefault(o["id"], o)
-    records, seen = [], set()
-    for card in cards:
-        sid = card.get("spot") or ""
-        if sid in sheets:
-            seen.add(sid)
-            records.append(_industry(card, sheets[sid], sid))
-    for sid, s in sheets.items():
-        if sid not in seen and (s.get("history") or s.get("about")):  # a sheet with no card still deserves a record
-            records.append(_industry({}, s, sid))
-    return records
-
-
-def _industry(card: dict, s: dict, sid: str) -> dict:
-    name = s.get("name") or card.get("name") or sid
-    blurb = card.get("blurb") or (s.get("about") or [""])[0]
-    parts = [blurb, ", ".join(card.get("commodities") or []), s.get("traffic", ""), *(s.get("history") or []), *(s.get("about") or [])]
-    parts += [s.get("inLabel", ""), *(s.get("inbound") or []), s.get("outLabel", ""), *(s.get("outbound") or [])]
-    parts += [" ".join(r[1:3]) for r in s.get("spots") or []]  # spot name and car type
-    return _record(name, f"{SPOT_SHEETS}#{sid}", "industry", blurb, " ".join(p for p in parts if p))
-
-
-def _flat(*items) -> list[str]:
-    """Strings from nested lists and dicts of display values, in order."""
-    out: list[str] = []
-    for it in items:
-        if isinstance(it, str):
-            out.append(it)
-        elif isinstance(it, list):
-            out += _flat(*it)
-        elif isinstance(it, dict):
-            out += _flat(*it.values())
-    return out
-
-
-def _crew_records(dest_root: Path) -> list[dict]:
-    """One "crew" record per job or publication in crew.json: jobs, TT-23, EQ-01, colors, station maps.
-    Each links to its own crew page (a single sheet, so no anchor). Fields are listed, not walked,
-    so source paths, image paths and engine photos never reach the index."""
-    crew = _read_json(dest_root / "data" / "crew.json")
-    out: list[dict] = []
-
-    def add(title, url, snippet, *parts):
-        if (dest_root / url).is_file():
-            out.append(_record(title, url, "crew", snippet, " ".join(_flat(*parts))))
-
-    for j in crew.get("jobs") or []:
-        add(f"{j['code']} {j['name']}", f"crew/{j['id']}/index.html", j.get("summary", ""), j.get("title"), j.get("pub"),
-            (j.get("engine") or {}).get("label"), j.get("summary"), j.get("steps"), j.get("sequence"), j.get("priority"),
-            j.get("lineup"), j.get("talk"), [link.get("label") for link in j.get("links") or [] if isinstance(link, dict)])
-    tt = crew.get("timetable")
-    if tt:
-        add(f"{tt['pub']} {tt['title']}", "crew/tt23/index.html", tt.get("summary", ""), tt.get("name"), tt.get("subtitle"),
-            tt.get("summary"), tt.get("columns"), tt.get("rows"), tt.get("note"), tt.get("instructions"), tt.get("bulletin"))
-    sc = crew.get("scale")
-    if sc:
-        add(f"{sc['pub']} {sc['title']}", "crew/scale/index.html", sc.get("summary", ""), sc.get("summary"), sc.get("sections"))
-    colors = crew.get("colors") or []
-    if colors:
-        rows = [f"{c['label']} {c.get('dest', '')} {c.get('train', '')}" for c in colors]
-        add("Color board", "crew/colors/index.html", "Which color goes to which destination and train.", "Colors", rows)
-    ov = crew.get("overview")
-    if ov:
-        add(f"{ov['pub']} {ov['title']}", "crew/maps/index.html", ov.get("what", ""), ov.get("what"), ov.get("alt"))
-    for m in crew.get("maps") or []:
-        add(f"{m['pub']} {m['title']} station map", f"crew/maps/{m['id']}/index.html", m.get("what", ""), m.get("what"),
-            m.get("alt"), m.get("tracks"), m.get("switches"), m.get("connects"))
-    return out
-
-
-FLEET_PAGE = "photos/index.html"
-FLEET_KINDS = {"locos": "locomotive", "mow": "mow"}  # every other album is freight cars
-
-
-def _fleet_records(dest_root: Path) -> list[dict]:
-    """One record per rolling-stock photo that survived the build, from the built data/fleet-gallery.json.
-
-    Only the public display fields are read (id, title, caption, road, number, type). The url opens the
-    item on the Photos page (js/fleet.js: #rolling-stock/<id>); an item without an id has no link, so it is skipped.
-    """
-    path = dest_root / "data" / "fleet-gallery.json"
-    if not path.is_file():
-        return []
-    records = []
-    for item in json.loads(path.read_text(encoding="utf-8")).get("items") or []:
-        fid, title = str(item.get("id") or ""), str(item.get("title") or "").strip()
-        if not fid or not title:
-            continue
-        caption = str(item.get("caption") or "")
-        kind = FLEET_KINDS.get(item.get("album"), "locomotive" if item.get("type") == "Locomotive" else "car")
-        words = [str(item.get(k) or "") for k in ("road", "number", "type")] + [caption]
-        records.append(_record(title, f"{FLEET_PAGE}#rolling-stock/{fid}", kind, caption, " ".join(w for w in words if w), _thumb(dest_root, item)))
-    return records
-
-
-# A published credit is a source line; one carrying an address or phone number is left out.
-_CONTACT = re.compile(r"@|https?://|www\.|\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}", re.I)
-
-
-def _archive_records(dest_root: Path) -> list[dict]:
-    """One "archive" record per item the public Curated tab shows, from the built data/archive.json.
-
-    js/archive.js shows a public visitor only bucket "curated" (the build also drops "public": false and
-    items whose original is missing). Read: title, caption, date, kind label, tags and a credit with no contact
-    details. Never read: reason, origin, rights, credit_confidence, src, pdf or source_url. Opens at
-    photos/#historical/<id> (HARTArchive.openItem).
-    """
-    data = _read_json(dest_root / "data" / "archive.json")
-    labels = {k.get("id"): str(k.get("label") or "") for k in data.get("kinds") or []}
-    records = []
-    for item in data.get("items") or []:
-        aid, title = str(item.get("id") or ""), str(item.get("title") or "").strip()
-        if not aid or not title or item.get("bucket") != "curated" or item.get("public") is False:
-            continue
-        credit = str(item.get("credit") or "").strip()
-        credit = "" if _CONTACT.search(credit) else credit
-        tags = [str(t).replace("-", " ") for t in item.get("tags") or []]
-        words = [str(item.get("date") or ""), labels.get(item.get("kind"), ""), *tags, credit]
-        caption = str(item.get("caption") or "")
-        records.append(_record(title, f"{FLEET_PAGE}#historical/{aid}", "archive", caption, " ".join(w for w in [caption, *words] if w), _thumb(dest_root, item)))
-    return records
-
-
-def _photo_records(dest_root: Path) -> list[dict]:
-    """One "photo" record per layout-room photo that survived the build, from the built data/gallery.json.
-
-    Read: title, caption, date, credit and the album's label. Opens at photos/#layout/<id> (HARTGallery.openItem);
-    an item without an id has no link, so it is skipped.
-    """
-    data = _read_json(dest_root / "data" / "gallery.json")
-    labels = {a.get("id"): str(a.get("label") or "") for a in data.get("albums") or []}
-    shown = set(tab_subs(dest_root, "layout").values())  # the albums the Layout tab has chips for and mounts
-    records = []
-    for item in data.get("items") or []:
-        pid, title = str(item.get("id") or ""), str(item.get("title") or "").strip()
-        if not pid or not title or item.get("album") not in shown:
-            continue
-        caption = str(item.get("caption") or "")
-        words = [caption, labels.get(item.get("album"), ""), str(item.get("date") or ""), str(item.get("credit") or "")]
-        records.append(_record(title, f"{FLEET_PAGE}#layout/{pid}", "photo", caption, " ".join(w for w in words if w), _thumb(dest_root, item)))
-    return records
-
-
-def _mark_articles(records: list[dict], dest_root: Path) -> None:
-    """Page records for the articles listed in data/articles.json (the ones under library/) become kind "article"."""
-    hrefs = {str(a.get("href") or "") for a in _read_json(dest_root / "data" / "articles.json").get("items") or []}
-    for rec in records:
-        if rec["kind"] == "page" and rec["url"] in hrefs and rec["url"].startswith("library/"):
-            rec["kind"] = "article"
-
-
-SEARCH_THUMB_PX = 80  # shown at 40 px; 2x for sharp screens
-
-
-def _search_thumb_stamp(dest: Path) -> bytes | None:
-    """The source stamp saved in a search copy's JPEG comment, or None when there is no readable copy."""
-    from PIL import Image
-    try:
-        with Image.open(dest) as im:
-            return im.info.get("comment")
-    except OSError:
-        return None
-
-
-def _search_thumbs(records: list[dict], dest_root: Path) -> None:
-    """Point each record's thumb at a small square copy (assets/search/), so a results list does not pull
-    640 px grid thumbnails. Without Pillow, or if a copy cannot be made, the record keeps the grid thumb."""
-    try:
-        from PIL import Image, ImageOps
-    except ImportError:
-        return
-    out_dir = dest_root / "assets" / "search"
-    for rec in records:
-        src = rec.get("thumb")
-        if not src:
-            continue
-        name = re.sub(r"[^a-z0-9]+", "-", Path(src).with_suffix("").as_posix().lower()).strip("-") + ".jpg"
-        dest = out_dir / name
-        try:
-            source = dest_root / src
-            try:
-                st = source.stat()
-                stamp = f"{st.st_size}:{st.st_mtime_ns}".encode()  # kept in the copy, so a replaced photo is noticed
-            except OSError:
-                stamp = None
-            if stamp is None:
-                if not dest.is_file():
-                    continue                                      # no source and no copy: keep the grid thumb
-            elif _search_thumb_stamp(dest) != stamp:
-                out_dir.mkdir(parents=True, exist_ok=True)
-                with Image.open(source) as im:
-                    small = ImageOps.fit(im.convert("RGB"), (SEARCH_THUMB_PX, SEARCH_THUMB_PX))
-                    small.save(dest, "JPEG", quality=78, optimize=True, comment=stamp)
-            rec["thumb"] = dest.relative_to(dest_root).as_posix()
-        except OSError:
-            continue
-
-
-def build_search_index(dest_root: Path) -> dict:
-    """Write dest_root/search-index.json from the built pages; fail if it holds a leak or the private name."""
-    records = []
-    for page in sorted(dest_root.rglob("*.html")):
-        rec = _index_record(page.relative_to(dest_root), page.read_text(encoding="utf-8", errors="replace"))
-        if rec:
-            records.append(rec)
-    # Record kinds built from data or a few pages' markup, one call each (add new kinds here).
-    extra = _glossary_records(dest_root) + _industry_records(dest_root) + _crew_records(dest_root)
-    # A crew page is drawn by script, so its own page record is a bare title; the sheet record replaces it.
-    extra_urls = {e["url"] for e in extra}
-    records = [r for r in records if r["url"] not in extra_urls] + extra
-    records += _fleet_records(dest_root) + _archive_records(dest_root) + _photo_records(dest_root)
-    _mark_articles(records, dest_root)
-    _search_thumbs(records, dest_root)
-    index = {
-        "version": INDEX_VERSION,
-        "generated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "records": records,
-    }
-    if bad := _check_index(index):
-        raise SystemExit("search index holds text that must not publish:\n" + "\n".join("  " + b for b in bad))
-    (dest_root / INDEX_NAME).write_text(json.dumps(index, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
-    return index
-
-
-def _keep_src(src: str, dest_root: Path) -> bool:
-    if not src or src.startswith("../"):
-        return False
-    if src.startswith("http://") or src.startswith("https://"):
-        return True
-    return (dest_root / src).is_file()
-
-
-PHOTO_DATA = ("data/gallery.json", "data/fleet-gallery.json", "data/archive.json")
-
-
-def _missing_mirrors(portal: Path = PORTAL) -> list[str]:
-    """Public photo items whose ../ mirror original is not on this machine, plus Pillow if absent.
-
-    The mirrors (media/, ops/car-cards/) are gitignored and live only in the main
-    checkout, so a git worktree builds without them and every such photo drops out.
-    """
-    missing = []
-    try:
-        import PIL  # noqa: F401
-    except ImportError:
-        missing.append("Pillow (python3 -m pip install Pillow)")
-    for rel in PHOTO_DATA:
-        path = portal / rel
-        if not path.is_file():
-            continue
-        for item in json.loads(path.read_text(encoding="utf-8")).get("items") or []:
-            src = str(item.get("src") or "")
-            if item.get("public") is False or item.get("bucket", "curated") != "curated":
-                continue
-            if src.startswith("../") and not (portal / src).resolve().is_file():
-                missing.append(f"{rel}: {src}")
-    return missing
-
-
-def _filter_gallery(path: Path, dest_root: Path) -> None:
-    if not path.is_file():
-        return
-    data = json.loads(path.read_text(encoding="utf-8"))
-    kept = [
-        item
-        for item in (data.get("items") or [])
-        if _keep_src(str(item.get("src") or ""), dest_root)
-    ]
-    data["items"] = kept
-    albums = []
-    for album in data.get("albums") or []:
-        count = sum(1 for item in kept if item.get("album") == album.get("id"))
-        if count:
-            album = dict(album)
-            album["count"] = count
-            albums.append(album)
-    data["albums"] = albums
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-
-
-def _vendor_fleet_images(path: Path, dest_root: Path, max_px: int = 1600, subdir: str = "fleet") -> None:
-    """Copy ../external/ gallery photos (rolling stock, layout) into the tree as web-sized JPEGs.
-
-    The originals (~150 MB of 2200 px PNG/JPEG) live in gitignored mirrors, so this
-    only fills in when the mirrors and Pillow are present; otherwise _filter_gallery
-    drops those items.
-    """
-    if not path.is_file():
-        return
-    data = json.loads(path.read_text(encoding="utf-8"))
-    for item in data.get("items") or []:
-        src_rel = str(item.get("src") or "")
-        if not src_rel.startswith(MIRROR_PREFIXES):
-            continue
-        src = _source(src_rel)
-        if not src.is_file():
-            continue
-        album = re.sub(r"[^a-z0-9]+", "-", str(item.get("album") or "misc").lower())
-        rel = Path("assets") / subdir / album / f"{src.stem}.jpg"
-        if _web_jpeg(src, dest_root / rel, max_px):
-            item["src"] = rel.as_posix()
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-
-
-# Resized photos are kept in a cache folder between builds: re-encoding the ~530 photos took ~27 s of every build.
-# HART_WEB_JPEG_CACHE=<folder> moves it, HART_WEB_JPEG_CACHE= (empty) turns it off. The key holds the source of
-# _render_jpeg, so a change to how photos are drawn never reuses copies drawn the old way.
-JPEG_CACHE_ENV = "HART_WEB_JPEG_CACHE"
-JPEG_CACHE_KEEP_DAYS = 60
-_CACHED_NAME = re.compile(r"^[0-9a-f]{64}(\.jpg|\.\d+\.tmp)$")   # only these are the cache's own files
-
-
-def _jpeg_cache() -> Path | None:
-    """The resized-photo cache folder, or None when it is turned off or cannot be made (said once on stderr)."""
-    return _jpeg_cache_at(os.environ.get(JPEG_CACHE_ENV))
-
-
-@functools.lru_cache(maxsize=None)
-def _jpeg_cache_at(value: str | None) -> Path | None:
-    if value is not None and not value.strip():
-        return None
-    path = Path(value).expanduser() if value else Path.home() / ".cache/hart/web-jpeg"
-    try:
-        path.mkdir(mode=0o700, parents=True, exist_ok=True)
-        path.chmod(0o700)            # resized copies of mirror-only originals: private to this user
-    except OSError as exc:
-        print(f"{JPEG_CACHE_ENV}: cannot use {path} ({exc}); resizing every photo", file=sys.stderr)
-        return None
-    return path
-
-
-@functools.lru_cache(maxsize=None)
-def _render_key() -> bytes:
-    """What decides how a photo is drawn: _render_jpeg's own source and Pillow's version."""
-    import PIL
-
-    return f"{_RENDER_SOURCE}|{PIL.__version__}".encode()
-
-
-def _web_jpeg(src: Path, out: Path, max_px: int) -> bool:
-    """Write a resized JPEG; False when Pillow is missing. A photo resized before from the same bytes, size and
-    drawing code is copied from the cache."""
-    try:
-        import PIL  # noqa: F401
-    except ImportError:
-        return False
-
-    out.parent.mkdir(parents=True, exist_ok=True)
-    cache = _jpeg_cache()
-    if cache is None:
-        _render_jpeg(src, out, max_px)
-        return True
-    h = hashlib.sha256(_render_key() + f"|{max_px}|".encode())
-    with open(src, "rb") as f:
-        for chunk in iter(lambda: f.read(1 << 20), b""):
-            h.update(chunk)
-    kept = cache / f"{h.hexdigest()}.jpg"
-    try:
-        shutil.copyfile(kept, out)   # a fresh time stamp on the output, so rsync never passes over a changed photo
-        os.utime(kept)               # last use, for pruning
-        return True
-    except FileNotFoundError:        # not cached yet, or pruned by a build running at the same time
-        pass
-    tmp = kept.with_name(f"{kept.stem}.{os.getpid()}.tmp")
-    try:
-        _render_jpeg(src, tmp, max_px)
-        os.replace(tmp, kept)        # atomic: a parallel build never reads half a file
-    finally:
-        tmp.unlink(missing_ok=True)
-    shutil.copyfile(kept, out)
-    return True
-
-
-def _prune_jpeg_cache(keep_days: int = JPEG_CACHE_KEEP_DAYS) -> None:
-    """Remove the cache's own files no build has used in keep_days (photos replaced or dropped from the site).
-    Other files in the folder are left alone."""
-    cache = _jpeg_cache()
-    if cache is None:
-        return
-    cutoff = datetime.now().timestamp() - keep_days * 86400
-    for f in cache.iterdir():
-        if not _CACHED_NAME.match(f.name):
-            continue
-        try:
-            if f.stat().st_mtime < cutoff:
-                f.unlink()
-        except FileNotFoundError:
-            pass
-
-
-def _render_jpeg(src: Path, out: Path, max_px: int) -> None:
-    from PIL import Image
-
-    with Image.open(src) as im:
-        im.seek(0)  # first frame of an animated GIF/WebP
-        if im.mode in ("RGBA", "LA", "P"):
-            rgba = im.convert("RGBA")
-            im = Image.new("RGB", rgba.size, (255, 255, 255))
-            im.paste(rgba, mask=rgba.getchannel("A"))
-        else:
-            im = im.convert("RGB")
-        im.thumbnail((max_px, max_px))
-        im.save(out, "JPEG", quality=82, optimize=True, progressive=True)
-
-
-_RENDER_SOURCE = inspect.getsource(_render_jpeg)   # read once, as written: part of every cache key
-
-
-def _gallery_thumbs(path: Path, dest_root: Path, subdir: str, thumb_px: int = 640) -> None:
-    """Give every local gallery image a grid thumbnail (assets/<subdir>/thumbs/) and its full size.
-
-    Pages show item["thumb"] in the grid and open item["src"]; width/height let them
-    reserve space before the image loads. Skipped quietly without Pillow.
-    """
-    if not path.is_file():
-        return
-    try:
-        from PIL import Image
-    except ImportError:
-        return
-
-    data = json.loads(path.read_text(encoding="utf-8"))
-    for item in data.get("items") or []:
-        src_rel = str(item.get("src") or "")
-        src = dest_root / src_rel
-        if not src_rel or src_rel.startswith(("http://", "https://", "../")) or not src.is_file():
-            continue
-        album = re.sub(r"[^a-z0-9]+", "-", str(item.get("album") or "misc").lower())
-        thumb = Path("assets") / subdir / "thumbs" / album / f"{src.stem}.jpg"
-        try:
-            with Image.open(src) as im:
-                item["width"], item["height"] = im.size
-        except OSError:  # not an image Pillow reads (e.g. SVG)
-            continue
-        if _web_jpeg(src, dest_root / thumb, thumb_px):
-            item["thumb"] = thumb.as_posix()
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-
-
-def _vendor_archive_images(path: Path, dest_root: Path, max_px: int = 1600, thumb_px: int = 640) -> None:
-    """Resize historical-archive images from ../external/ mirrors into assets/archive/.
-
-    Every item gets a small grid thumbnail; mirror-only originals also get a web-sized
-    copy. Items marked "public": false or whose original is missing (no mirrors)
-    are dropped, and local-only
-    fields (PDF paths, where the owner found the file) are stripped.
-    """
-    if not path.is_file():
-        return
-    data = json.loads(path.read_text(encoding="utf-8"))
-    kept = []
-    for item in data.get("items") or []:
-        if item.get("public") is False:  # rights not cleared; local review only
-            continue
-        if item.get("bucket", "curated") != "curated":  # review/discard stay on the engineering desk
-            continue
-        src_rel = str(item.get("src") or "")
-        src = _source(src_rel)
-        if not src_rel or not src.is_file():
-            continue
-        slug = re.sub(r"[^a-z0-9]+", "-", str(item.get("id") or src.stem).lower()).strip("-")
-        if src_rel.startswith("../"):
-            rel = Path("assets") / "archive" / f"{slug}.jpg"
-            if not _web_jpeg(src, dest_root / rel, max_px):
-                continue
-            item["src"] = rel.as_posix()
-        thumb = Path("assets") / "archive" / "thumbs" / f"{slug}.jpg"
-        if _web_jpeg(src, dest_root / thumb, thumb_px):
-            item["thumb"] = thumb.as_posix()
-        if str(item.get("pdf") or "").startswith("../"):
-            item.pop("pdf")
-        item.pop("origin", None)
-        kept.append(item)
-    data["items"] = kept
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-
-
-def _vendor_logo(logo: str, dest_root: Path) -> str:
-    """Copy one ../external/ logo into assets/logos/ and return its public path ("" if missing)."""
-    src = _source(logo)
-    if not src.is_file():
-        return ""
-    rel = Path("assets") / "logos" / src.name
-    out = dest_root / rel
-    if out.exists() and out.read_bytes() != src.read_bytes():
-        # Same file name from another folder (e.g. operator_logos/ and downloads/).
-        rel = Path("assets") / "logos" / f"{src.parent.name}-{src.name}"
-        out = dest_root / rel
-    out.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(src, out)
-    return rel.as_posix()
-
-
-def _vendor_logos_in(node: object, dest_root: Path) -> None:
-    """Rewrite every "logo" field under node that points into ../external/."""
-    if isinstance(node, dict):
-        logo = node.get("logo")
-        if isinstance(logo, str) and logo.startswith("../"):
-            node["logo"] = _vendor_logo(logo, dest_root)
-        for value in node.values():
-            _vendor_logos_in(value, dest_root)
-    elif isinstance(node, list):
-        for value in node:
-            _vendor_logos_in(value, dest_root)
-
-
-def _vendor_json_logos(path: Path, dest_root: Path) -> None:
-    """Copy ../external/ logos named in a data file into the tree; the public site has no external/ mirror."""
-    if not path.is_file():
-        return
-    data = json.loads(path.read_text(encoding="utf-8"))
-    _vendor_logos_in(data, dest_root)
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-
-
-def _head_tags(rel: Path, title: str, desc: str | None = None) -> str:
-    """Icon and share tags; desc is the page's own meta description, which the page already carries."""
-    # The 404 page is served for any missing path, so its links start at the site root.
-    up = "/" if rel == Path("404.html") else "../" * (len(rel.parts) - 1)
-    url = SITE_URL + provenance.url_path(rel)
-    title = html.escape(title, quote=True)
-    # A page with its own description keeps its tag; the share tags repeat it.
-    meta_desc = "" if desc is not None else f'\n  <meta name="description" content="{html.escape(SHARE_DESCRIPTION, quote=True)}">'
-    desc = html.escape(desc or SHARE_DESCRIPTION, quote=True)
-    card = share_cards.card_for(rel)  # the page's own thumbnail, or the site card
-    image, alt = card["image"], html.escape(card["alt"], quote=True)
-    return f"""
-  <link rel="icon" href="{up}favicon.ico" sizes="any">
-  <link rel="icon" type="image/png" href="{up}assets/icons/favicon-32.png" sizes="32x32">
-  <link rel="apple-touch-icon" href="{up}assets/icons/apple-touch-icon.png">{meta_desc}
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="HART Railroad">
-  <meta property="og:title" content="{title}">
-  <meta property="og:description" content="{desc}">
-  <meta property="og:url" content="{url}">
-  <meta property="og:image" content="{SITE_URL}{image}">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="{alt}">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="hart-search" content="{INDEX_NAME}">"""
-
-
-class _HeadDescription(HTMLParser):
-    """The <head>'s own <meta name="description">, in any attribute order or quoting; None if it has none."""
-
-    def __init__(self):
-        super().__init__(convert_charrefs=True)
-        self.description: str | None = None
-        self._done = False
-
-    def handle_starttag(self, tag, attrs):
-        a = dict(attrs)
-        if self._done or tag == "body":
-            self._done = True
-        elif tag == "meta" and (a.get("name") or "").lower() == "description" and self.description is None:
-            self.description = (a.get("content") or "").strip()
-
-    def handle_endtag(self, tag):
-        if tag == "head":
-            self._done = True
-
-
-def _own_description(text: str) -> str | None:
-    p = _HeadDescription()
-    p.feed(text)
-    return p.description
-
-
-def _add_head_tags(dest_root: Path) -> None:
-    for page in dest_root.rglob("*.html"):
-        text = page.read_text(encoding="utf-8")
-        if 'rel="icon"' in text or "</title>" not in text:
-            continue
-        m = re.search(r"<title>(.*?)</title>", text, re.S)
-        title = html.unescape(m.group(1).strip()) if m else "HART Railroad"
-        desc = _own_description(text)
-        page.write_text(
-            text.replace("</title>", "</title>" + _head_tags(page.relative_to(dest_root), title, desc), 1),
-            encoding="utf-8",
-        )
-
-
-def _add_provenance(dest_root: Path) -> list[str]:
-    """schema.org JSON-LD on every page saying whether it is real history, fiction or layout
-    documentation, plus llms.txt, robots.txt and sitemap.xml at the root. Returns the pages
-    provenance.json does not classify; the build stops on any."""
-    data = provenance.load()
-    # Pages the search index leaves out (the 404 page, the script redirect docs/view.html) stay out here too.
-    pages = {
-        rel: (dest_root / rel).read_text(encoding="utf-8")
-        for rel in (page.relative_to(dest_root) for page in dest_root.rglob("*.html"))
-        if rel.as_posix() not in INDEX_SKIP_PAGES
-    }
-    missing = provenance.unclassified(pages, data)
-    if missing:
-        return missing
-    listed: dict[Path, tuple[str, str]] = {}
-    for rel, text in pages.items():
-        if provenance.skipped(text):
-            continue
-        # An implied <head> (no tag) still ends at the first body content, so after </title> is in it.
-        anchor = "</head>" if "</head>" in text else "</title>" if "</title>" in text else None
-        if anchor is None:
-            raise SystemExit(f"{rel}: no </head> or </title> for the provenance JSON-LD")
-        title = provenance.page_title(text) or "HART Railroad"
-        desc = _own_description(text) or SHARE_DESCRIPTION
-        tag = provenance.json_ld(rel, title, SITE_URL, desc, data, provenance.sources(text))
-        new = text.replace("</head>", tag + "\n</head>", 1) if anchor == "</head>" else text.replace("</title>", "</title>" + tag, 1)
-        (dest_root / rel).write_text(new, encoding="utf-8")
-        own = _own_description(text)
-        listed[rel] = (title, "" if own in (None, SHARE_DESCRIPTION) else own)
-    (dest_root / "llms.txt").write_text(provenance.llms_txt(listed, data, SITE_URL), encoding="utf-8")
-    (dest_root / "robots.txt").write_text(provenance.robots_txt(SITE_URL), encoding="utf-8")
-    (dest_root / "sitemap.xml").write_text(provenance.sitemap_xml(list(listed), SITE_URL), encoding="utf-8")
-    return []
-
-
-def _card_thumbs(dest_root: Path) -> None:
-    """Hub cards in a grid marked data-card-thumbs show the linked page's share picture.
-
-    The pictures are small copies of the share cards (assets/share/thumbs/). A page is left as it
-    is when a copy cannot be made (no Pillow), so no card points at a missing picture.
-    """
-    cards, links = share_cards.load(), share_cards.load_links()
-    for page in dest_root.rglob("*.html"):
-        text = page.read_text(encoding="utf-8")
-        if "data-card-thumbs" not in text:
-            continue
-        new, thumbs = share_cards.add_card_thumbs(text, page.relative_to(dest_root), cards, links)
-        made = all(
-            (dest_root / thumb).is_file() or _web_jpeg(dest_root / image, dest_root / thumb, share_cards.THUMB_PX)
-            for thumb, image in thumbs.items()
-        )
-        if thumbs and made:
-            page.write_text(new, encoding="utf-8")
-
-
-_WEBP_MIN_BYTES = 200_000   # JPEGs over this get a WebP companion
-_IMG_TAG = re.compile(r"<img\b[^>]*>")
-_IMG_SRC = re.compile(r"""(?<![\w-])src=(["'])([^"']+?\.jpe?g)\1""", re.I)
-_IMG_SKIP = re.compile(r"""(?<![\w-])(?:srcset|sizes|data-src)=""", re.I)
-
-
-def _webp_companions(dest_root: Path) -> int:
-    """Serve large JPEGs as WebP where the page names them in a static <img>: write <name>.webp beside the JPEG
-    and wrap the tag in <picture> with the JPEG as the fallback. Images a script builds, tags already inside a
-    <picture> and photos where WebP is not at least 15% smaller are left alone. Returns the bytes saved."""
-    try:
-        from PIL import Image, ImageOps
-    except ImportError:
-        print("WARNING: Pillow is not installed, so no WebP companions were made", file=sys.stderr)
-        return 0
-    made: dict[Path, int] = {}      # JPEG -> bytes saved (0 when WebP did not pay)
-    saved = 0
-    for page in sorted(dest_root.rglob("*.html")):
-        text = page.read_text(encoding="utf-8")
-        if "<img" not in text:
-            continue
-
-        def wrap(m: re.Match, page: Path = page, text: str = text) -> str:
-            tag = m.group(0)
-            src = _IMG_SRC.search(tag)
-            if not src or _IMG_SKIP.search(tag) or "<picture" in text[max(0, m.start() - 200):m.start()].rsplit("</picture>", 1)[-1]:
-                return tag
-            ref = src.group(2)
-            if re.match(r"[a-z][a-z0-9+.-]*:|//|[?#]", ref, re.I) or "'" in ref or "+" in ref:
-                return tag
-            base = dest_root if ref.startswith("/") else page.parent
-            jpg = (base / ref.lstrip("/")).resolve()
-            if dest_root.resolve() not in jpg.parents or not jpg.is_file() or jpg.stat().st_size < _WEBP_MIN_BYTES:
-                return tag
-            webp = jpg.with_suffix(".webp")
-            if jpg not in made:
-                if webp.exists():   # a WebP already in the tree is the author's: never overwrite or delete it
-                    made[jpg] = 0
-                    return tag
-                with Image.open(jpg) as im:
-                    icc = im.info.get("icc_profile")
-                    out = ImageOps.exif_transpose(im).convert("RGB")
-                    out.save(webp, "WEBP", quality=78, method=6, **({"icc_profile": icc} if icc else {}))
-                gain = jpg.stat().st_size - webp.stat().st_size
-                if gain < jpg.stat().st_size * 0.15:
-                    webp.unlink()
-                    gain = 0
-                made[jpg] = gain
-            if not made[jpg]:
-                return tag
-            return f'<picture><source srcset="{html.escape(Path(ref).with_suffix(".webp").as_posix())}" type="image/webp">{tag}</picture>'
-
-        new = _IMG_TAG.sub(wrap, text)
-        if new != text:
-            page.write_text(new, encoding="utf-8")
-    return sum(made.values())
-
-
 def _refresh_tables_page(dest_root: Path) -> None:
-    """Rebuild the tables browser data and fill the tables file page from tables.xml, and fill the
+    """Fill the tables file page from tables.xml (its browser data is a built page, _build_pages), and fill the
     repository guide's lists and counts from the checkout, so the published copies always describe
     the current files even when the committed ones are stale."""
     if (dest_root / build_tables_browser.PAGE_REL).is_file():
-        build_tables_browser.write(dest_root)
+        build_tables_browser.write_page(dest_root)
     if (dest_root / repo_guide_page.PAGE_REL).is_file():
         # A repo change the guide does not describe yet must not stop a website deploy: keep the committed page and
         # say why. tools/check.sh (repo-guide) fails on the same thing, so it is fixed before the next merge.
@@ -1094,6 +196,27 @@ def _refresh_tables_page(dest_root: Path) -> None:
             jmri_additions_page.write(dest_root)
         except (jmri_additions_page.PageError, OSError, ValueError) as e:
             print("WARNING: JMRI additions page not refilled, the committed copy is published: %s" % e)
+
+
+def _build_pages(dest: Path) -> bool:
+    """Stage 1b: write each of BUILT_PAGES into the tree from its builder. False (said on stderr) when a builder
+    fails or returns nothing, when the page is already in the tree (it would be committed again, or named in the
+    manifest), or when the written file does not read back as built: a build never publishes a stale or missing page
+    in its place."""
+    for rel, make in BUILT_PAGES.items():
+        out = dest / rel
+        if out.exists():
+            print(f"{rel} is built by the site build (ADR-036), but the copy stage already put one in the tree: "
+                  f"untrack it (git rm --cached www/{rel}) or drop it from scripts/published-files.json",
+                  file=sys.stderr)
+            return False
+        try:
+            site_views.write(out, site_views.build(rel, make))  # writes, then reads back
+        except site_views.ViewError as e:
+            print(e, file=sys.stderr)
+            return False
+        print(f"Built {rel}")
+    return True
 
 
 def _unsafe_dest(dest: Path) -> bool:
@@ -1109,16 +232,52 @@ def _unsafe_dest(dest: Path) -> bool:
     return any(dest == p or dest in p.parents for p in (repo, PORTAL))
 
 
+def _scrub_site_json(dest: Path) -> None:
+    """Stage 3: mark data/site.json public, empty the engineering desk link and drop the localhost tool URLs."""
+    site_path = dest / "data" / "site.json"
+    site = json.loads(site_path.read_text(encoding="utf-8"))
+    site["engDesk"] = ""
+    site["public"] = True
+    site.pop("tools", None)  # localhost service URLs
+    site_path.write_text(json.dumps(site, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def _provenance_stage(dest: Path) -> bool:
+    """Stage 9: provenance tags, llms.txt, robots.txt, sitemap. False (said on stderr) when a page has no rule."""
+    unclassified = _add_provenance(dest)
+    if unclassified:
+        print("Pages missing from scripts/provenance.json (prototype, fiction, hobby or mixed):", file=sys.stderr)
+        print("\n".join("  " + p for p in unclassified), file=sys.stderr)
+        return False
+    return True
+
+
+def _leak_stage(dest: Path) -> bool:
+    """Stage 12: False (said on stderr) when the finished tree names a local host or path."""
+    leaks = _check_leaks(dest)
+    if leaks:
+        print("Local hosts or paths in the public tree; fix the source or skip the file:", file=sys.stderr)
+        print("\n".join("  " + h for h in leaks), file=sys.stderr)
+        return False
+    return True
+
+
+def _search_stage(dest: Path) -> None:
+    """Stage 13: the search index over the finished tree."""
+    index = build_search_index(dest)
+    print(f"Search index: {len(index['records'])} records")
+
+
 def main() -> int:
-    global SITE_URL
     parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     parser.add_argument("dest", nargs="?", default=str(PORTAL.parent / ".pages-dist"), help="output folder (replaced)")
-    parser.add_argument("--site-url", default=SITE_URL, help="public root URL for share tags (default %(default)s)")
+    parser.add_argument("--site-url", default=portal_common.SITE_URL, help="public root URL for share tags (default %(default)s)")
     parser.add_argument(
         "--require-mirrors",
         action="store_true",
         help="stop when a public photo's gitignored original (media/, ops/car-cards/) or Pillow is missing",
     )
+    parser.add_argument("--full", action="store_true", help="run every photo stage even when the saved run of them still fits")
     args = parser.parse_args()
     if args.require_mirrors and (missing := _missing_mirrors()):
         print(
@@ -1129,7 +288,7 @@ def main() -> int:
         )
         print("\n".join("  " + m for m in missing[:10]) + (f"\n  … and {len(missing) - 10} more" if len(missing) > 10 else ""), file=sys.stderr)
         return 4
-    SITE_URL = args.site_url.rstrip("/") + "/"
+    portal_common.SITE_URL = args.site_url.rstrip("/") + "/"
     dest = Path(args.dest).resolve()
     if _unsafe_dest(dest):
         print(f"Refusing to replace {dest}: it is the repo, the portal, or a parent of one.", file=sys.stderr)
@@ -1137,46 +296,25 @@ def main() -> int:
     if dest.exists():
         shutil.rmtree(dest)
     _copy_published(dest)
+    if not _build_pages(dest):
+        return 1
     _refresh_tables_page(dest)
-
-    site_path = dest / "data" / "site.json"
-    site = json.loads(site_path.read_text(encoding="utf-8"))
-    site["engDesk"] = ""
-    site["public"] = True
-    site.pop("tools", None)  # localhost service URLs
-    site_path.write_text(json.dumps(site, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-
-    _vendor_json_logos(dest / "data" / "industries.json", dest)
-    for lineage in sorted((dest / "data").glob("*-lineage.json")):  # Who became who charts
-        _vendor_json_logos(lineage, dest)
-    _vendor_fleet_images(dest / "data" / "gallery.json", dest, subdir="gallery")
-    _filter_gallery(dest / "data" / "gallery.json", dest)
-    _gallery_thumbs(dest / "data" / "gallery.json", dest, "gallery")
-    _vendor_fleet_images(dest / "data" / "fleet-gallery.json", dest)
-    _filter_gallery(dest / "data" / "fleet-gallery.json", dest)
-    _gallery_thumbs(dest / "data" / "fleet-gallery.json", dest, "fleet")
-    _vendor_archive_images(dest / "data" / "archive.json", dest)
+    _scrub_site_json(dest)
+    early_stamp, early_files, reused = _photo_early(dest, args.full)
     _strip_external_data(dest)
 
     # 404.html is a tracked page (site-root links); the web server must point error_page 404 at it
     # (nginx; .htaccess is ignored).
     _strip_local_only_pages(dest)
     _add_head_tags(dest)
-    unclassified = _add_provenance(dest)
-    if unclassified:
-        print("Pages missing from scripts/provenance.json (prototype, fiction, hobby or mixed):", file=sys.stderr)
-        print("\n".join("  " + p for p in unclassified), file=sys.stderr)
+    if not _provenance_stage(dest):
         return 1
-    _card_thumbs(dest)
-    print(f"WebP companions: {_webp_companions(dest) // 1024} KB smaller than the JPEGs they stand beside")
-    leaks = _check_leaks(dest)
-    if leaks:
-        print("Local hosts or paths in the public tree; fix the source or skip the file:", file=sys.stderr)
-        print("\n".join("  " + h for h in leaks), file=sys.stderr)
+    _photo_late(dest, early_stamp, early_files, args.full)
+    if not _leak_stage(dest):
         return 1
-    index = build_search_index(dest)
-    print(f"Search index: {len(index['records'])} records")
-    _prune_jpeg_cache()
+    _search_stage(dest)
+    if not reused:      # a reused run touches no cache entry, so pruning by last use would empty the cache
+        _prune_jpeg_cache()
     print(f"Prepared public portal tree → {dest}", flush=True)
     return 0
 

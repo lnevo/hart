@@ -1,0 +1,13 @@
+column,description,type,required,key,refs,values
+id,"The item's id, assigned once. An archive row's id is its archive.json id and the Photos page link (photos/#historical/<id>); a logo row's is logo- and the file's name, and a lineage card cites it in logo_id.",str,yes,yes,,
+collection,"archive: an item of www/data/archive.json, the Photos page's Historical tab. logo: a logo file under ops/hart-ops/operator_logos/ or www/assets/logos/, including those the lineage charts (www/data/*-lineage.json) show; this file is the one place for logo credits (owner, 2026-11-25).",enum,yes,,,archive;logo
+path,"The file, as the site cites it from www/: ../media/... for an archive original in the gitignored mirrors, ../ops/hart-ops/operator_logos/... or assets/... for a tracked file. archive.json's src and a lineage card's logo copy it.",str,yes,,,
+pdf,"The full document an archive item's image is the cover or a page of, cited from www/ like path. archive.json's pdf copies it.",str,,,,
+title,"An archive item's title, as the Photos page prints it. archive.json's title copies it; the local Photos page's edits write both. Empty on a logo row.",str,collection=archive,,,
+caption,"An archive item's caption, as the Photos page prints it. archive.json's caption copies it; the local Photos page's edits write both. Empty on a logo row.",str,collection=archive,,,
+credit,"Who made or published the item, as the page prints it. archive.json's credit copies it; for a logo, where the file came from (a Commons or Wikipedia page, a company site, or the file in this repo it was made from).",str,,,,
+source_url,"Where the item can be seen online, when there is such a page.",str,,,,
+credit_confidence,"How sure the credit is: verified (checked against the source), likely (the same item found, the exact copy not checked) or none (not recorded).",enum,yes,,,verified;likely;none
+rights,"The terms the item is shown under, or its licence.",str,,,,
+origin,"Where the copy in the repo or the mirrors came from (a folder, an email, a download), for people tracing it.",str,,,,
+derived_from,"The catalogue row this file was made from, such as a logo cropped from an archive ad or a 320 px square made from a downloaded logo.",str,,,www/scripts/archive_catalogue.csv:id,

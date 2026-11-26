@@ -40,18 +40,19 @@ from __future__ import annotations
 import os
 import re
 import subprocess
-import tempfile
 import threading
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, Iterator
 
-from . import paths
+from . import files, paths
 
 # Names the main Layout Editor panel has had; the first is the live one.
 MAIN_PANEL_NAMES = ("HART Railroad", "HART", "My Layout")
 DISPATCHER_PANEL_NAME = "Dispatcher System"
+# The hidden reference panels, one per band, by the level of the band (tools/schematic/band_panels.py, owner 2026-11-22)
+BAND_PANEL_NAMES = {1: "Staging Level", 2: "Main Level", 3: "Upper Level"}
 
 # jmri.Turnout constants, as Layout Editor stores continuingSense in ``continuing``.
 UNKNOWN, CLOSED, THROWN = 1, 2, 4
@@ -175,34 +176,7 @@ def _override_protected(target: Path) -> bool:
             or real == profile or profile in real.parents)
 
 
-def _atomic_write(target: Path, data: bytes) -> None:
-    """Replace the file the path names. A symlink stays a symlink (its target is written);
-    a hard-linked file is rewritten in place so every link sees the new bytes."""
-    target = Path(os.path.realpath(target))
-    try:
-        hard_linked = target.stat().st_nlink > 1
-    except OSError:
-        hard_linked = False
-    if hard_linked:
-        with open(target, "r+b") as handle:
-            handle.write(data)
-            handle.truncate()
-        return
-    fd, tmp = tempfile.mkstemp(prefix=f".{target.name}.", dir=str(target.parent))
-    try:
-        with os.fdopen(fd, "wb") as handle:
-            handle.write(data)
-        try:
-            os.chmod(tmp, target.stat().st_mode & 0o7777)
-        except OSError:
-            os.chmod(tmp, 0o644)
-        os.replace(tmp, target)
-    except BaseException:
-        try:
-            os.unlink(tmp)
-        except OSError:
-            pass
-        raise
+_atomic_write = files.write_atomic  # the one atomic writer (hartlib.files)
 
 
 # Character escapes, as JDOM (JMRI) and ElementTree write them.
@@ -459,7 +433,7 @@ def layout_editor(root: ET.Element, name: str | Iterable[str] | None = None) -> 
     return None
 
 
-# The generated Layout Editor panel (tools/schematic/build_layout_le.py --as-live) carries this hidden text label.
+# The generated Layout Editor panel (build_layout_le.build, written by tools/schematic/build_tables.py) carries this hidden text label.
 # The build starts only from tables that hold it (it replaces that panel), and the
 # Stage 1 repairs (parked/polish_hart_layout_editor.py, reconcile_dispatcher_stations.py) run only on a panel that holds it.
 # A label is used because a PanelPro Store keeps it (and a panel rename), where it drops XML comments and unknown
@@ -511,7 +485,7 @@ def require_generated(panel: ET.Element | None, what: str) -> ET.Element:
         raise ValueError(f"{what}: {exc}") from None
     if not generated:
         raise ValueError(f"{what}: the {panel.get('name')!r} panel is not a generated one "
-                         "(tools/schematic/build_layout_le.py --as-live)")
+                         "(tools/schematic/build_tables.py writes it)")
     return panel
 
 

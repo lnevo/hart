@@ -1,5 +1,5 @@
 """tools/anyrail/levels_page.py on the committed drawings (tools/anyrail/levels/) and data (block_lengths.csv,
-helix_tracks.csv): the article www/build/track-plan.html is what the generator builds, its numbers come from those
+the helix tracks of the plan overrides): the article www/build/track-plan.html is what the generator builds, its numbers come from those
 files, and a figure that disagrees with its source stops the build. None of this needs the owner's plan."""
 import json
 import re
@@ -93,9 +93,9 @@ class TheTablesComeFromTheData(unittest.TestCase):
             LP.run_passes([("x",)], {"x": "(CSX 2121, Switch 5 to Switch 15, steps 24 and 24)"})
 
     def test_a_timed_block_on_neither_route_stops(self) -> None:
-        blocks, notes = LP.block_rows()
-        stray = mock.Mock(source="timed")
-        with mock.patch.object(LP, "block_rows", return_value=({**blocks, "Track Helix Inner X": stray}, notes)), \
+        blocks, measured = LP.block_rows()
+        stray = mock.Mock(note="")
+        with mock.patch.object(LP, "block_rows", return_value=(blocks, {**measured, "Track Helix Inner X": stray})), \
                 self.assertRaisesRegex(SystemExit, "neither the test loop nor the Switch 5 to 15 run: Track Helix Inner X"):
             LP.render(LEVELS)
 
@@ -108,8 +108,9 @@ class TheTablesComeFromTheData(unittest.TestCase):
         self.assertIn("%.1f m of helix below its top layer" % meta["levels"]["staging"]["ramp_m"], text_of(PAGE.read_text()))
 
     def test_the_loop_fit_plan_comes_from_the_notes(self) -> None:
-        blocks, notes = LP.block_rows()
-        rows = LP.timed_rows(blocks, notes, LP.loop_names())
+        blocks, measured = LP.block_rows()
+        rows = LP.timed_rows(blocks, measured, LP.loop_names())
+        notes = {name: m.note for name, m in measured.items()}
         self.assertEqual(LP.loop_fit_plan(rows, notes), "5.3b")
         mixed = dict(notes, **{"Track K-1": notes["Track K-1"].replace("5.3b", "5.3c")})
         with self.assertRaisesRegex(SystemExit, "expected one"):

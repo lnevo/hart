@@ -1,14 +1,16 @@
-"""build_wiring_json.py --check: the wiring viewer's JSON must match the workbooks, apart from the build date."""
+"""build_wiring_json.py: the wiring viewer's JSON is built from the wiring model, never committed (ADR-036); its checks
+fail a build that is empty or leaks a network detail, and a broken model is a named error, not a traceback."""
 from __future__ import annotations
 
+import copy
 import importlib.util
 import io
 import json
-import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 from unittest import mock
 
@@ -17,66 +19,126 @@ SPEC = importlib.util.spec_from_file_location("build_wiring_json", ROOT / "www/s
 BW = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(BW)
 
-NAMES = ("wiring-inventory.json", "signal-splits.json")
+INV = BW.build()  # built once for the tests that read the real model
 
 
-def run_check(out_dir: Path) -> tuple[int, str]:
-    BW.WARNINGS.clear()
-    BW.SCRUBBED.clear()
-    out = io.StringIO()
-    with mock.patch.object(sys, "argv", ["build_wiring_json.py", "--check", "--out-dir", str(out_dir)]), redirect_stdout(out):
+def run_main(*args: str) -> tuple[int, str, str]:
+    out, err = io.StringIO(), io.StringIO()
+    with mock.patch.object(sys, "argv", ["build_wiring_json.py", *args]), redirect_stdout(out), redirect_stderr(err):
         code = BW.main()
-    return code, out.getvalue()
+    return code, out.getvalue(), err.getvalue()
 
 
-class Stale(unittest.TestCase):
-    def setUp(self):
-        self.dir = Path(tempfile.mkdtemp())
-        self.addCleanup(shutil.rmtree, self.dir)
-        self.data = {"source": {"file": "x.xlsx", "built": "2026-11-17"}, "nodes": [{"id": "C1"}]}
+class FromTheModel(unittest.TestCase):
+    """The JSON is built from the wiring model (write_inventory.workbook(), in memory); v86 is an output only."""
 
-    def write(self, data):
-        p = self.dir / "a.json"
-        p.write_text(BW.render(data), encoding="utf-8")
-        return p
+    def test_it_builds_without_opening_any_workbook(self):
+        never = mock.Mock(side_effect=AssertionError("a workbook file was opened"))
+        with mock.patch("openpyxl.load_workbook", never), mock.patch("openpyxl.reader.excel.load_workbook", never), \
+                mock.patch.object(BW.write_inventory, "load_workbook", never), \
+                mock.patch.object(BW.write_inventory, "OUT", Path(tempfile.gettempdir()) / "no-such-v86.xlsx"):
+            inv = BW.build_inventory()
+        never.assert_not_called()
+        self.assertEqual(inv["source"], {"file": "LCOS_Layout_Inventory_v86.xlsx", "version": "v86"})
 
-    def test_only_the_dates_differ(self):
-        p = self.write({**self.data, "source": {"file": "x.xlsx", "built": "2026-01-01", "modified": "2026-01-01"}})
-        self.assertFalse(BW.stale(p, {**self.data, "source": {**self.data["source"], "modified": "2026-11-17"}}))
+    def test_the_real_model_builds_and_passes_its_checks(self):
+        self.assertEqual(BW.problems(INV), [])
+        data = json.loads(BW.data_text(INV))
+        for key in BW.REQUIRED:
+            self.assertTrue(data[key], key)
+        self.assertRegex(data["source"]["built"], r"^\d{4}-\d{2}-\d{2}$")
 
-    def test_changed_data_is_stale(self):
-        p = self.write({**self.data, "nodes": [{"id": "C2"}]})
-        self.assertTrue(BW.stale(p, self.data))
+    def test_a_given_workbook_is_read_as_the_model_gives_it(self):
+        wb = BW.write_inventory.workbook()
+        wb["Nodes"].cell(2, 4, "Somewhere else")
+        inv = BW.build_inventory(wb)
+        self.assertEqual(inv["nodes"][0]["location"], "Somewhere else")
 
-    def test_missing_or_broken_file_is_stale(self):
-        self.assertTrue(BW.stale(self.dir / "none.json", self.data))
-        p = self.dir / "bad.json"
-        p.write_text("{", encoding="utf-8")
-        self.assertTrue(BW.stale(p, self.data))
-        for text in ("[]", '{"source": null}'):
-            p.write_text(text, encoding="utf-8")
-            self.assertTrue(BW.stale(p, self.data))
+    def test_each_build_reports_only_its_own_warnings(self):
+        BW.build_inventory()
+        first = list(BW.WARNINGS)
+        BW.build_inventory()
+        self.assertEqual(BW.WARNINGS, first)
 
 
-class CheckTheRepo(unittest.TestCase):
-    def setUp(self):
-        self.dir = Path(tempfile.mkdtemp())
-        self.addCleanup(shutil.rmtree, self.dir)
-        for name in NAMES:
-            shutil.copy(ROOT / "www/data" / name, self.dir / name)
+class TheChecks(unittest.TestCase):
+    def broken(self, edit) -> list[str]:
+        inv = copy.deepcopy(INV)
+        edit(inv)
+        return BW.problems(inv)
 
-    def test_an_edited_file_fails_and_is_left_alone(self):
-        p = self.dir / "wiring-inventory.json"
-        data = json.loads(p.read_text(encoding="utf-8"))
-        data["nodes"][0]["location"] = "Nowhere"
-        p.write_text(json.dumps(data), encoding="utf-8")
-        before = p.read_bytes()
-        code, out = run_check(self.dir)
+    def test_an_empty_list_fails(self):
+        for key in BW.REQUIRED:
+            with self.subTest(key=key):
+                self.assertIn(f"{key!r} has no entries", self.broken(lambda inv: inv.update({key: []})))
+
+    def test_a_leaked_network_detail_fails(self):
+        bad = self.broken(lambda inv: inv["nodes"][0].update(location="10.0.0.150"))
+        self.assertTrue(any("network details or secrets" in b for b in bad), bad)
+
+    def test_a_node_listed_twice_or_unnamed_fails(self):
+        self.assertTrue(self.broken(lambda inv: inv["nodes"].append(dict(inv["nodes"][0]))))
+        self.assertTrue(self.broken(lambda inv: inv["nodes"][0].update(id="")))
+
+    def test_no_source_fails(self):
+        self.assertIn("source.file is empty", self.broken(lambda inv: inv["source"].update(file="")))
+
+    def test_data_text_raises_a_named_error(self):
+        inv = copy.deepcopy(INV)
+        inv["turnouts"] = []
+        with self.assertRaisesRegex(BW.WiringDataError, r"www/data/wiring-inventory.json fails its checks:\n.*turnouts"):
+            BW.data_text(inv)
+
+
+class Errors(unittest.TestCase):
+    def test_a_broken_wiring_model_is_a_wiring_data_error(self):
+        boom = BW.write_inventory.FactsError("wiring.csv: no such file")
+        with mock.patch.object(BW.write_inventory, "workbook", side_effect=boom):
+            with self.assertRaisesRegex(BW.WiringDataError, "wiring model cannot be read: wiring.csv"):
+                BW.view()
+
+    def test_check_exits_2_when_the_model_cannot_be_read(self):
+        boom = BW.write_inventory.FactsError("wiring.csv: no such file")
+        with mock.patch.object(BW.write_inventory, "workbook", side_effect=boom):
+            code, _, err = run_main("--check")
+        self.assertEqual(code, 2)
+        self.assertIn("wiring.csv: no such file", err)
+
+    def test_a_missing_sheet_is_named(self):
+        wb = BW.write_inventory.workbook()
+        del wb["BlockSensors"]
+        with self.assertRaisesRegex(BW.WiringDataError, "missing sheet.*BlockSensors"):
+            BW.build_inventory(wb)
+
+    def test_check_exits_1_with_the_reason_and_writes_nothing(self):
+        with tempfile.TemporaryDirectory() as d, \
+                mock.patch.object(BW, "problems", return_value=["'blocks' has no entries"]):
+            code, out, err = run_main("--check", "--out-dir", d)
+            self.assertEqual(list(Path(d).iterdir()), [])
         self.assertEqual(code, 1)
-        self.assertIn("STALE", out)
-        self.assertIn("wiring-inventory.json", out)
-        self.assertNotIn("signal-splits.json differs", out)
-        self.assertEqual(p.read_bytes(), before)
+        self.assertIn("'blocks' has no entries", err)
+
+
+class Main(unittest.TestCase):
+    def test_check_builds_in_memory_and_writes_nothing(self):
+        with tempfile.TemporaryDirectory() as d:
+            code, out, _ = run_main("--check", "-q", "--out-dir", d)
+            self.assertEqual(list(Path(d).iterdir()), [])
+        self.assertEqual(code, 0)
+        self.assertIn("passes its checks", out)
+
+    def test_a_write_is_the_checked_view(self):
+        with tempfile.TemporaryDirectory() as d:
+            code, _, _ = run_main("-q", "--out-dir", d)
+            self.assertEqual(code, 0)
+            written = json.loads((Path(d) / "wiring-inventory.json").read_text(encoding="utf-8"))
+        self.assertEqual(written, json.loads(BW.data_text(INV)))
+
+    def test_the_file_is_not_committed(self):
+        rel = "www/" + BW.OUT_REL
+        tracked = subprocess.run(["git", "ls-files", "--", rel], cwd=ROOT, capture_output=True, text=True,
+                                 check=True).stdout.split()
+        self.assertEqual(tracked, [], "git rm --cached it (ADR-036)")
 
 
 if __name__ == "__main__":

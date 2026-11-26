@@ -38,7 +38,7 @@ The code and the documents written for this repository are under the [MIT Licens
 
 Some material here belongs to others and keeps its own terms:
 
-- **Railroad and industry logos** (`ops/hart-ops/operator_logos/`, and their copies on the website) are trademarks of their owners, used for reference. Sources: [`SOURCES.md`](ops/hart-ops/operator_logos/SOURCES.md).
+- **Railroad and industry logos** (`ops/hart-ops/operator_logos/`, and their copies on the website) are trademarks of their owners, used for reference. Sources: the `logo` rows of the archive catalogue [`www/scripts/archive_catalogue.csv`](www/scripts/archive_catalogue.csv) ([`SOURCES.md`](ops/hart-ops/operator_logos/SOURCES.md) says more).
 - **Historical photos and archive items** belong to the sources credited beside them.
 - **Submodules** under `external/` carry their own licenses.
 - **Files from JMRI and CATS** keep their projects' licenses.

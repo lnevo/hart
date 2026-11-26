@@ -70,5 +70,54 @@ class NamesTest(unittest.TestCase):
         self.assertTrue(got)
 
 
+class FieldDetected(unittest.TestCase):
+    """field_detected: the main and upper blocks on a field sensor, for the PanelPro smoke test."""
+
+    TABLES = """<layout-config>
+  <sensors class="x">
+    <sensor inverted="false"><systemName>IS:HART:C3:B:107-109</systemName><userName>BS 107-109</userName></sensor>
+    <sensor inverted="false"><systemName>M2S3305</systemName><userName>BS 107 Loop 1</userName></sensor>
+    <sensor inverted="false"><systemName>M2S100</systemName><userName>BS Switch 13</userName></sensor>
+  </sensors>
+  <blocks class="x">
+    <block systemName="IB:C3:0041"><systemName>IB:C3:0041</systemName><userName>Track 107 Loop 1</userName>
+      <occupancysensor>BS 107 Loop 1</occupancysensor></block>
+    <block systemName="IB:C3:0042"><systemName>IB:C3:0042</systemName><userName>Track 107-109</userName>
+      <occupancysensor>BS 107-109</occupancysensor></block>
+    <block systemName="IB:C3:0043"><systemName>IB:C3:0043</systemName><userName>Track 109 Spur</userName>
+      <permissive>no</permissive></block>
+    <block systemName="IB12"><systemName>IB12</systemName><userName>Track Scale</userName>
+      <occupancysensor>BS Switch 13</occupancysensor></block>
+  </blocks>
+</layout-config>"""
+
+    def root(self, text=None):
+        import xml.etree.ElementTree as ET
+        return ET.fromstring(text or self.TABLES)
+
+    def test_a_swapped_detector_and_no_other(self):
+        # a virtual sensor, a block with none and a staging block are not here
+        self.assertEqual(D.field_detected(self.root()), {"IB:C3:0041": "M2S3305"})
+
+    def test_the_committed_tables_have_none(self):
+        self.assertEqual(D.field_detected(tables.read()), {})
+
+    def test_a_sensor_that_is_no_bean_stops(self):
+        with self.assertRaisesRegex(ValueError, "IB:C3:0041 .*'BS 107 Loop 1' is no sensor of the tables"):
+            D.field_detected(self.root(self.TABLES.replace("<userName>BS 107 Loop 1</userName>", "")))
+
+    def test_the_command_prints_one_line_per_block(self):
+        import contextlib
+        import io
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "tables.xml"
+            p.write_text(self.TABLES, encoding="utf-8")
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                self.assertEqual(D.main(["field-detected", str(p)]), 0)
+        self.assertEqual(out.getvalue(), "IB:C3:0041 M2S3305\n")
+
+
 if __name__ == "__main__":
     unittest.main()

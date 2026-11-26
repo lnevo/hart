@@ -7,6 +7,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import infer_block_lengths as m  # noqa: E402
 
+
+def read_rows(path, **kw):
+    """The CSV's rows, with the file closed after reading."""
+    with open(path, **kw) as f:
+        return list(csv.DictReader(f))
+
 BLOCKS = ["R", "A", "B"]
 
 
@@ -48,24 +54,29 @@ class Shares(unittest.TestCase):
 
 class Apply(unittest.TestCase):
     def test_each_detector_is_its_blocks_measured_length(self):
-        import tempfile, os
-        d = tempfile.mkdtemp()
-        p = os.path.join(d, "bl.csv")
-        rows = list(csv.DictReader(open(m.CSV, newline="")))
-        with open(p, "w", newline="") as f:
-            w = csv.DictWriter(f, fieldnames=list(rows[0]), lineterminator="\n")
-            w.writeheader(); w.writerows(rows)
+        import shutil, tempfile
+        from pathlib import Path
+        d = Path(tempfile.mkdtemp())
+        plan = d / "block_lengths.csv"
+        shutil.copyfile(m.block_lengths.PLAN, plan)
+        shutil.copyfile(m.block_lengths.MEASURED, d / "block_lengths_measured.csv")
+        before = (d / "block_lengths_measured.csv").read_text()
         result = {s: (1000.0, 10.0, 5) for s in m.SENSOR_ROWS}
-        fields, new, mm = m.plan_rows(result, p)
+        rows, mm = m.measured_rows(result, plan=plan)
         self.assertAlmostEqual(mm["Track East Lead"], 1000.0, delta=3)
         self.assertAlmostEqual(mm["Track K-2"], 1000.0, delta=3)
-        # nothing written yet
-        self.assertEqual(list(csv.DictReader(open(p, newline=""))), rows)
+        by_id = {r.id: r for r in rows}
+        self.assertEqual((by_id["block:33A-35A"].run, by_id["block:33A-35A"].date), ("loop1 laps", "2026-11-08"))
+        self.assertIn("block:5C-7B", by_id)     # a loop2 row is kept
+        # nothing written yet; write_measured writes them
+        self.assertEqual((d / "block_lengths_measured.csv").read_text(), before)
+        m.block_lengths.write_measured(rows, plan)
+        self.assertEqual(m.block_lengths.read_measured(plan=plan)["block:33A-35A"].measured_in, 39.4)
 
 
 class RecordedRuns(unittest.TestCase):
     def test_2026_11_08_lengths_sum_to_plan_loop(self):
-        rows = list(csv.DictReader(open(m.EVENTS, newline="")))
+        rows = read_rows(m.EVENTS, newline="")
         out = m.infer(rows)
         self.assertEqual(set(out), set(m.SENSOR_ROWS))
         total = sum(v[0] for v in out.values())
@@ -75,7 +86,7 @@ class RecordedRuns(unittest.TestCase):
 
 
     def test_pinned_puts_turnouts_on_the_plan_and_keeps_the_loop(self):
-        rows = list(csv.DictReader(open(m.EVENTS, newline="")))
+        rows = read_rows(m.EVENTS, newline="")
         out = m.pinned(m.infer(rows))
         self.assertAlmostEqual(sum(v[0] for v in out.values()), m.PLAN_LOOP_MM, delta=1)
         # the route starts where Switch 5's section starts, which is before Switch 5's points

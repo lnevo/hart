@@ -1,0 +1,42 @@
+# Pyflakes rules only (ruff's F codes): undefined and unused names, unused imports, f-strings without
+# placeholders. No style or formatting rules (owner, 2026-11-25). tools/audit/check_ruff.py runs it in
+# tools/check.sh and .claude/hooks/check_after_edit.py runs it on each edited .py file; ruff is pinned in
+# requirements.txt.
+
+# Not checked at all:
+# - external/, reference/, tools/cats/src-repo/: vendored or submodule code.
+# - archive/ and jmri/layouts/hart/parked/: kept for the record, never run (docs/parked/UNPARK.md). The STRR
+#   speed-match scripts (third-party Jython 2 copies) and the 2026-11-08 speed-match runners are in archive/.
+# - Jython 2 scripts ruff cannot parse: `print "..."` statements, and `latch.await(...)` (await is a keyword in
+#   Python 3, a plain Java method name in Jython). A syntax error cannot be ignored per rule, only per file.
+extend-exclude = [
+    "external",
+    "reference",
+    "tools/cats/src-repo",
+    "archive",
+    "jmri/layouts/hart/parked",
+    "jmri/layouts/hart/scripts/run_dispatcher_stage1.py",
+    "jmri/layouts/hart/scripts/apply_dispatcher_roster_profiles.py",
+    "jmri/scripts/signal_coordinator.py",
+]
+# An excluded file named on the command line (the edit hook names one file) stays excluded.
+force-exclude = true
+
+[lint]
+select = ["F"]
+
+[lint.per-file-ignores]
+# Jython scripts that run inside JMRI: F821 (undefined name) misfires on them. JMRI's interpreter supplies
+# sensors, turnouts, ACTIVE and the like; Python 2 builtins (unicode, execfile) are real there; cs105_consist.py
+# gets ACTION, LOGF and the rest prepended by jmri_cmd_watcher.py, and its `except Exception, e:` (Python 2) parses
+# as a tuple of exceptions, so `e` looks undefined. Every other F rule still applies to them. The speed-match
+# runners in speedmatch/jython/ list the names make_job.py pastes in front of them in an `if False:` block, and
+# pom_write.py marks its one execfile, so F821 checks them.
+"jmri/layouts/hart/scripts/cs105_consist.py" = ["F821"]
+"jmri/layouts/hart/scripts/ctc_default_reverse_levers.py" = ["F821"]
+"jmri/layouts/hart/scripts/panel_status.py" = ["F821"]
+# panel_status.py's parts (its PARTS) run in its namespace: their names come from it as well as from JMRI.
+"jmri/layouts/hart/scripts/panel_status_clicks.py" = ["F821"]
+"jmri/layouts/hart/scripts/panel_status_turnouts.py" = ["F821"]
+"jmri/layouts/hart/scripts/panelpro_smoke_test.py" = ["F821"]
+# A deliberate star import of main_level_geometry (its own noqa covers F403): the names it uses come from there.

@@ -22,7 +22,8 @@ PATTERNS = ("steprun", "stoptest", "pass", "preflight")
 MAX_FILES = 12
 DEMO_STEPS = list(lr.DIST_STEPS)  # the distance-mode default
 LOOP_FACTOR = 1.122  # the loop is 12% longer than the first lengths said
-REF_CSV = REPO / "docs/jmri/speedmatching/profile-2026-11-08/speed_by_step.csv"
+# The 2026-11-08 speeds by step, the one copy (written by docs/jmri/speedmatching/profile-2026-11-08/block_speeds.py)
+REF_CSV = REPO / "jmri/layouts/hart/data/speed_by_step_2026-11-08.csv"
 
 
 def reference_curves():

@@ -1,0 +1,2 @@
+order: 640
+**Repo gates:** `main` is protected on GitHub, and CI runs `tools/check.sh` on PRs, skipping jobs whose inputs match main's last full pass (`full-ci` label runs all, [checks](../../../docs/pipeline-map/checks-and-remote.md)); `.claude/hooks/main_guard.py` guards every session. A deploy to the Pi or Windows ships only `origin/main` itself ([`deploy` skill](../../../.claude/skills/deploy/SKILL.md)).

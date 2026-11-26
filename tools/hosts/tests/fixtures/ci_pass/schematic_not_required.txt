@@ -1,0 +1,268 @@
+﻿2026-11-26T02:41:47.3295201Z Current runner version: '2.338.2'
+2026-11-26T02:41:47.3321675Z ##[group]Runner Image Provisioner
+2026-11-26T02:41:47.3322588Z Hosted Compute Agent
+2026-11-26T02:42:17.7910590Z ##[group]Run ./tools/check.sh
+2026-11-26T02:42:17.7910956Z [36;1m./tools/check.sh[0m
+2026-11-26T02:42:17.7943604Z shell: /usr/bin/bash -e {0}
+2026-11-26T02:42:17.7943926Z env:
+2026-11-26T02:42:17.7944279Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-26T02:42:17.7944883Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.18/x64/lib/pkgconfig
+2026-11-26T02:42:17.7945486Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-26T02:42:17.7946018Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-26T02:42:17.7946784Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-26T02:42:17.7947320Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.18/x64/lib
+2026-11-26T02:42:17.7947783Z   SCHEMATIC_REQUIRED: 0
+2026-11-26T02:42:17.7948087Z   CHECK_SKIP_FROM: 
+2026-11-26T02:42:17.7948367Z   CHECK_SKIP_NOTE: 
+2026-11-26T02:42:17.7948777Z   CHECK_RECORD_TO: /home/runner/work/hart/hart/.cache/ci/main-stamps
+2026-11-26T02:42:17.7949298Z   CHECK_AUDIT_FAILS: 
+2026-11-26T02:42:17.7949686Z   CHECK_RESULTS_TO: /home/runner/work/_temp/check-results.tsv
+2026-11-26T02:42:17.7950136Z ##[endgroup]
+2026-11-26T02:47:24.3538228Z --- panels-schematic (1s)
+2026-11-26T02:47:24.3558112Z plugin: submodule at 09bcf066
+2026-11-26T02:47:24.3577438Z drawing inputs unchanged since a passing --check: not drawn again
+2026-11-26T02:47:24.3601266Z published draft is current
+2026-11-26T02:47:24.3627321Z station sheets are current
+2026-11-26T02:47:24.3647277Z station map pages carry the title block's revision and date
+2026-11-26T02:47:24.3667215Z --- stamps (panels-schematic):
+2026-11-26T02:47:24.3691494Z stamp audit: panels-schematic: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-26T02:47:24.3717374Z --- panels-cats (8s)
+2026-11-26T02:47:24.3735323Z plugin: submodule at 09bcf066
+2026-11-26T02:47:24.3736141Z plugin: submodule at 09bcf066
+2026-11-26T02:47:24.3737606Z switches 101, 103 share one OS block on the desk (OS Switch 101): the track between them is too short to part them
+2026-11-26T02:47:24.3739020Z blocks named OS Switch 101 on the desk are one block
+2026-11-26T02:47:24.3739924Z blocks named OS Switch 119 on the desk are one block
+2026-11-26T02:47:24.3740968Z blocks named OS Switch 121 on the desk are one block
+2026-11-26T02:47:24.3742220Z blocks named OS Switch 125 on the desk are one block
+2026-11-26T02:47:24.3743285Z blocks named OS Switch 125 on the desk are one block
+2026-11-26T02:47:24.3744203Z blocks named OS Switch 127 on the desk are one block
+2026-11-26T02:47:24.3745235Z blocks named OS Switch 127 on the desk are one block
+2026-11-26T02:47:24.3746167Z blocks named OS Switch 131 on the desk are one block
+2026-11-26T02:47:24.3767370Z blocks named OS Switch 211 on the desk are one block
+2026-11-26T02:47:24.3778878Z blocks named OS Switch 217 on the desk are one block
+2026-11-26T02:47:24.3786973Z blocks named OS Switch 221 on the desk are one block
+2026-11-26T02:47:24.3788236Z blocks named OS Switch 243 on the desk are one block
+2026-11-26T02:47:24.3789094Z blocks named OS Switch 245 on the desk are one block
+2026-11-26T02:47:24.3789933Z blocks named OS Switch 131 on the desk are one block
+2026-11-26T02:47:24.3791647Z Track 107-109: not a block of its own on the desk (inside its switches' OS blocks on the desk (99.8 cm, too short at one cell per grid unit for a block)); its detector BS 107-109 has no block to bind
+2026-11-26T02:47:24.3794211Z Track 125-127: not a block of its own on the desk (inside its switches' OS blocks on the desk (86.8 cm, too short at one cell per grid unit for a block)); its detector BS 125-127 has no block to bind
+2026-11-26T02:47:24.3795803Z CATS desk faults: 0
+2026-11-26T02:47:24.3809470Z Staging level, Main level, Upper level, 4.25 in: 656 track cells, 77 switch points, 1 crossings, 149 blocks, 4 logical joins, 113 labels; bound: 148 block sensors, 77 switch points, 69 masts; shows 63 x 28 cells (1890 x 840 pixels at the 30 pixel grid), fit 63 x 31 in a 1920 x 1032 window
+2026-11-26T02:47:24.3812093Z Main level: switch 125B is laid straight on the crossover's diagonal: wire its machine reversed so Closed lines the through route
+2026-11-26T02:47:24.3813670Z Main level: switch 121B is laid straight on the crossover's diagonal: wire its machine reversed so Closed lines the through route
+2026-11-26T02:47:24.3815421Z Main level: grid column -9 is not widened (a one-row slope from switch to switch crosses it), so the switches at the ends of its short track share one OS block
+2026-11-26T02:47:24.3817080Z Upper level, 4.25 in: 1 row(s) opened below grid row 4 for a double crossover's corner blocks
+2026-11-26T02:47:24.3818258Z switches 101A, 103A share one OS block: the tracks between them are too short to hold a block of their own
+2026-11-26T02:47:24.3819252Z blocks OS 101A-103A, OS 101B are one block, OS Switch 101
+2026-11-26T02:47:24.3819914Z blocks OS 119A, OS 119B are one block, OS Switch 119
+2026-11-26T02:47:24.3820548Z blocks OS 121A, OS 121B are one block, OS Switch 121
+2026-11-26T02:47:24.3821229Z blocks 125A-125B, OS 125A, OS 125B are one block, OS Switch 125
+2026-11-26T02:47:24.3821990Z blocks 127A-link B, OS 127A, OS 127B are one block, OS Switch 127
+2026-11-26T02:47:24.3822743Z blocks OS 131A, OS 131B, link A-131A are one block, OS Switch 131
+2026-11-26T02:47:24.3823441Z blocks OS 211A, OS 211B are one block, OS Switch 211
+2026-11-26T02:47:24.3824052Z blocks OS 217A, OS 217B are one block, OS Switch 217
+2026-11-26T02:47:24.3824656Z blocks OS 221A, OS 221B are one block, OS Switch 221
+2026-11-26T02:47:24.3825264Z blocks OS 243A, OS 243B are one block, OS Switch 243
+2026-11-26T02:47:24.3825866Z blocks OS 245A, OS 245B are one block, OS Switch 245
+2026-11-26T02:47:24.3826861Z mast 8RA: its gap moved 1 cell(s) along track Scale
+2026-11-26T02:47:24.3827505Z mast 8LB: its gap moved 1 cell(s) along track Main East
+2026-11-26T02:47:24.3828132Z mast 4RA: its gap moved 1 cell(s) along track W-1
+2026-11-26T02:47:24.3828743Z mast 4RB: its gap moved 1 cell(s) along track W-2
+2026-11-26T02:47:24.3829343Z mast 24RB: its gap moved 1 cell(s) along track S-R
+2026-11-26T02:47:24.3829980Z mast 24L: its gap moved 1 cell(s) along track West Ext
+2026-11-26T02:47:24.3830610Z mast 6LA: its gap moved 1 cell(s) along track Scale
+2026-11-26T02:47:24.3831236Z mast 6LB: its gap moved 1 cell(s) along track East Ext
+2026-11-26T02:47:24.3832097Z mast 36RA: its gap moved 1 cell(s) along track West Ext
+2026-11-26T02:47:24.3832768Z mast 38LA: its gap moved 1 cell(s) along track Helix Inner
+2026-11-26T02:47:24.3833418Z mast 38LB: its gap moved 1 cell(s) along track K-2
+2026-11-26T02:47:24.3834028Z mast 40LA: its gap moved 1 cell(s) along track K-1
+2026-11-26T02:47:24.3834671Z mast 40LB: its gap moved 1 cell(s) along track Helix Outer
+2026-11-26T02:47:24.3835320Z mast 120RA: its gap moved 1 cell(s) along track e17
+2026-11-26T02:47:24.3835968Z mast 108LA: its gap moved 1 cell(s) along track 107 Loop 1
+2026-11-26T02:47:24.3853268Z mast 108LB: its gap moved 1 cell(s) along track 107 Loop 2
+2026-11-26T02:47:24.3853991Z mast 220R: its gap moved 1 cell(s) along track e75
+2026-11-26T02:47:24.3854616Z mast 212RA: its gap moved 1 cell(s) along track e71
+2026-11-26T02:47:24.3855237Z mast 212LA: its gap moved 1 cell(s) along track e67
+2026-11-26T02:47:24.3855923Z mast 218RA: its gap moved 1 cell(s) along track e74
+2026-11-26T02:47:24.3856755Z mast 218LA: its gap moved 1 cell(s) along track e71
+2026-11-26T02:47:24.3857353Z mast 224LA: its gap moved 1 cell(s) along track e79
+2026-11-26T02:47:24.3857938Z mast 224LB: its gap moved 1 cell(s) along track e78
+2026-11-26T02:47:24.3858532Z mast 128LB: its gap moved 1 cell(s) along track e73
+2026-11-26T02:47:24.3859171Z mast 132RB: its gap moved 1 cell(s) along track Helix Inner
+2026-11-26T02:47:24.3859791Z cats/panels/HART_CTC.xml is current
+2026-11-26T02:47:24.3860273Z cats/panels/HART_ABS.xml is current
+2026-11-26T02:47:24.3860784Z cats/panels/HART_CTC.bindings.json is current
+2026-11-26T02:47:24.3861572Z --- stamps (panels-cats):
+2026-11-26T02:47:24.3862842Z stamp audit: panels-cats: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-26T02:47:24.3864164Z --- panels-hands (1s)
+2026-11-26T02:47:24.3864598Z switches.csv plan hands up to date
+2026-11-26T02:47:24.3865093Z --- stamps (panels-hands):
+2026-11-26T02:47:24.3866362Z stamp audit: panels-hands: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-26T02:47:24.3867993Z --- panels-staging-sets (1s)
+2026-11-26T02:47:24.3868567Z staging stations, control points and sheets are current
+2026-11-26T02:47:24.3869399Z --- stamps (panels-staging-sets):
+2026-11-26T02:47:24.3871140Z stamp audit: panels-staging-sets: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-26T02:47:24.3917061Z --- panels-main-route (1s)
+2026-11-26T02:47:24.3946997Z plugin: submodule at 09bcf066
+2026-11-26T02:47:24.3947542Z main route and staging main lines are current
+2026-11-26T02:47:24.3948099Z --- stamps (panels-main-route):
+2026-11-26T02:47:24.3949457Z stamp audit: panels-main-route: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-26T02:47:24.3987124Z --- panels-device-map (2s)
+2026-11-26T02:47:24.4037398Z plugin: submodule at 09bcf066
+2026-11-26T02:47:24.4067045Z --- stamps (panels-device-map):
+2026-11-26T02:47:24.4097917Z stamp audit: panels-device-map: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-26T02:47:24.4157225Z --- panels-length-labels (1s)
+2026-11-26T02:47:24.4177065Z --- stamps (panels-length-labels):
+2026-11-26T02:47:24.4179035Z stamp audit: panels-length-labels: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-26T02:47:24.4180676Z --- panels-plan-lengths (1s)
+2026-11-26T02:47:24.4237131Z plugin: submodule at 09bcf066
+2026-11-26T02:47:24.4260102Z plan lengths: no plan file Lee Nevo Design Version 5.3c.any; the OS rows only are checked
+2026-11-26T02:47:24.4261515Z --- stamps (panels-plan-lengths):
+2026-11-26T02:47:24.4272522Z stamp audit: panels-plan-lengths: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-26T02:47:24.4274139Z --- panels-masts (1s)
+2026-11-26T02:47:24.4327177Z plugin: submodule at 09bcf066
+2026-11-26T02:47:24.4357005Z --- stamps (panels-masts):
+2026-11-26T02:47:24.4387862Z stamp audit: panels-masts: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-26T02:47:24.4427100Z --- panels-panel-items (1s)
+2026-11-26T02:47:24.4461406Z --- stamps (panels-panel-items):
+2026-11-26T02:47:24.4498069Z stamp audit: panels-panel-items: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-26T02:47:24.4527020Z --- panels-signals (1s)
+2026-11-26T02:47:24.4557002Z plugin: submodule at 09bcf066
+2026-11-26T02:47:24.4587038Z plugin: submodule at 09bcf066
+2026-11-26T02:47:24.4626991Z signals.json[staging] is current
+2026-11-26T02:47:24.4657334Z signals.json[main_upper] is current
+2026-11-26T02:47:24.4680796Z --- stamps (panels-signals):
+2026-11-26T02:47:24.4707886Z stamp audit: panels-signals: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-26T02:47:24.4747331Z --- panels-head-plan (1s)
+2026-11-26T02:47:24.4776967Z signal_head_plan.csv: current
+2026-11-26T02:47:24.4806995Z --- stamps (panels-head-plan):
+2026-11-26T02:47:24.4828883Z stamp audit: panels-head-plan: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-26T02:47:24.4849478Z --- panels-sml-current (3s)
+2026-11-26T02:47:24.4876992Z plugin: submodule at 09bcf066
+2026-11-26T02:47:24.4927358Z ok: jmri/layouts/hart/data/schematic/discovered_sml.stamp matches the discovery base
+2026-11-26T02:47:24.4957165Z --- stamps (panels-sml-current):
+2026-11-26T02:47:24.4988047Z stamp audit: panels-sml-current: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-26T02:47:24.5016990Z --- panels-tables (3s)
+2026-11-26T02:47:24.5047036Z plugin: submodule at 09bcf066
+2026-11-26T02:47:24.5077624Z ok: jmri/layouts/hart/output/tables.xml current (69 signal mast logics, 5 mast properties, 1 digicon masts, 1 digicon destinations disabled)
+2026-11-26T02:47:24.5107033Z --- stamps (panels-tables):
+2026-11-26T02:47:24.5137818Z stamp audit: panels-tables: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-26T02:47:24.5167021Z --- panels-signals-sync (0s)
+2026-11-26T02:47:24.5197297Z ok: every level's signals in jmri/layouts/hart/output/tables.xml follow masts.csv (98 masts)
+2026-11-26T02:47:24.5227036Z --- stamps (panels-signals-sync):
+2026-11-26T02:47:24.5231003Z stamp audit: panels-signals-sync: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-26T02:47:24.5232718Z --- panels-device-master (2s)
+2026-11-26T02:47:24.5233566Z plugin: submodule at 09bcf066
+2026-11-26T02:47:24.5234515Z ok: devices_generated.csv, stations.csv, masts.csv hold their rules
+2026-11-26T02:47:24.5235503Z --- stamps (panels-device-master):
+2026-11-26T02:47:24.5237450Z stamp audit: panels-device-master: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-26T02:47:24.5239659Z --- panels-approved-desks (1s)
+2026-11-26T02:47:24.5240439Z cats-ctc: matches the approved fingerprint
+2026-11-26T02:47:24.5241225Z cats-abs: matches the approved fingerprint
+2026-11-26T02:47:24.5242072Z --- stamps (panels-approved-desks):
+2026-11-26T02:47:24.5243787Z stamp audit: panels-approved-desks: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-26T02:47:24.5245546Z --- panels-approved-live (0s)
+2026-11-26T02:47:24.5246330Z le-panel: matches the approved fingerprint
+2026-11-26T02:47:24.5247406Z --- stamps (panels-approved-live):
+2026-11-26T02:47:24.5249126Z stamp audit: panels-approved-live: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-26T02:47:24.5317735Z --- unit-guards layout-editor (test_build_layout_le test_le_cutover test_le_mast_parity) (13s)
+2026-11-26T02:47:24.5364114Z ----------------------------------------------------------------------
+2026-11-26T02:47:24.5370031Z Ran 99 tests in 11.745s
+2026-11-26T02:47:24.5370561Z 
+2026-11-26T02:47:24.5370898Z OK
+2026-11-26T02:47:24.5434853Z --- phase02 (1s)
+2026-11-26T02:47:24.5481056Z PASS hart phase 0–2 checks
+2026-11-26T02:47:24.5491463Z --- stamps (phase02):
+2026-11-26T02:47:24.5492775Z stamp audit: phase02: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.5544631Z --- tables-browser (1s)
+2026-11-26T02:47:24.5602210Z tables-file.html is current and tables-browser.json builds and passes its checks
+2026-11-26T02:47:24.5603381Z --- stamps (tables-browser):
+2026-11-26T02:47:24.5604748Z stamp audit: tables-browser: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.5655544Z --- repo-guide (1s)
+2026-11-26T02:47:24.5710330Z repository-guide.html is current
+2026-11-26T02:47:24.5711200Z --- stamps (repo-guide):
+2026-11-26T02:47:24.5712524Z stamp audit: repo-guide: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.5767693Z --- pipeline-map (2s)
+2026-11-26T02:47:24.5821679Z pipeline map: the graph is current and both pages build (620 nodes, 1396 edges)
+2026-11-26T02:47:24.5822802Z --- stamps (pipeline-map):
+2026-11-26T02:47:24.5824131Z stamp audit: pipeline-map: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.5872916Z --- pipeline-map-coverage (0s)
+2026-11-26T02:47:24.5933346Z --- stamps (pipeline-map-coverage):
+2026-11-26T02:47:24.5939895Z stamp audit: pipeline-map-coverage: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.5995045Z --- jmri-additions (0s)
+2026-11-26T02:47:24.6038654Z jmri-additions.html is current
+2026-11-26T02:47:24.6049000Z --- stamps (jmri-additions):
+2026-11-26T02:47:24.6050406Z stamp audit: jmri-additions: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.6103849Z --- layout-index (1s)
+2026-11-26T02:47:24.6152154Z www/data/layout-index.json builds and passes its checks (448 items, the PNG's render stamp is current)
+2026-11-26T02:47:24.6167665Z --- stamps (layout-index):
+2026-11-26T02:47:24.6169024Z stamp audit: layout-index: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.6214116Z --- layout-docs (1s)
+2026-11-26T02:47:24.6252115Z build_layout_docs: up to date
+2026-11-26T02:47:24.6262148Z --- stamps (layout-docs):
+2026-11-26T02:47:24.6263497Z stamp audit: layout-docs: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.6314227Z --- layout-index-cats (1s)
+2026-11-26T02:47:24.6364794Z www/data/layout-index-cats.json builds and passes its checks (146 items, the PNG's render stamp is current)
+2026-11-26T02:47:24.6371391Z --- stamps (layout-index-cats):
+2026-11-26T02:47:24.6372803Z stamp audit: layout-index-cats: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.6422452Z --- wiring-json (2s)
+2026-11-26T02:47:24.6461447Z www/data/wiring-inventory.json builds from the wiring model and passes its checks (not committed, ADR-036)
+2026-11-26T02:47:24.6472171Z LCOS_Layout_Inventory_v86.xlsx: 23 nodes, 640 pins, 63 heads, 62 turnouts, 81 block sensors
+2026-11-26T02:47:24.6473295Z 4 data warning(s):
+2026-11-26T02:47:24.6474671Z   - TurnoutSummary: Switch 7 (OS Switch 7) button → C13-IN2-1 (planned), but DNIN8 has nothing there
+2026-11-26T02:47:24.6476383Z   - TurnoutSummary: Switch 7 (OS Switch 7b) button → C13-IN2-1 (planned), but DNIN8 has nothing there
+2026-11-26T02:47:24.6478195Z   - TurnoutSummary: Switch 9 button → C13-IN2-3 (planned), but DNIN8 has nothing there
+2026-11-26T02:47:24.6479721Z   - TurnoutSummary: Switch 11 button → C13-IN2-2 (planned), but DNIN8 has nothing there
+2026-11-26T02:47:24.6480809Z --- stamps (wiring-json):
+2026-11-26T02:47:24.6482112Z stamp audit: wiring-json: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.6524791Z --- track-lengths (1s)
+2026-11-26T02:47:24.6597270Z track lengths OK
+2026-11-26T02:47:24.6597930Z --- stamps (track-lengths):
+2026-11-26T02:47:24.6623855Z stamp audit: track-lengths: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.6636780Z --- speedmatch-routes (0s)
+2026-11-26T02:47:24.6670701Z jmri/layouts/hart/scripts/speedmatch/routes.json is current
+2026-11-26T02:47:24.6687075Z --- stamps (speedmatch-routes):
+2026-11-26T02:47:24.6710287Z stamp audit: speedmatch-routes: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.6737026Z --- panel-contracts (1s)
+2026-11-26T02:47:24.6751647Z deployment: jmri/layouts/hart/output/tables.xml (panel=HART Railroad, errors=0, warnings=0)
+2026-11-26T02:47:24.6756731Z source drift: 0 difference(s)
+2026-11-26T02:47:24.6757453Z RESULT: PASS (strict; hard errors=0, warnings=0, drift=0)
+2026-11-26T02:47:24.6758161Z --- stamps (panel-contracts):
+2026-11-26T02:47:24.6759311Z stamp audit: panel-contracts: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.6817048Z --- baselines (1s)
+2026-11-26T02:47:24.6834525Z Baselines match tables.xml
+2026-11-26T02:47:24.6835106Z --- stamps (baselines):
+2026-11-26T02:47:24.6836186Z stamp audit: baselines: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.6876201Z --- digicon-disabled (0s)
+2026-11-26T02:47:24.6916876Z ok: jmri/layouts/hart/output/tables.xml Digicon SML destinations Enabled=no (masts=1)
+2026-11-26T02:47:24.6947082Z --- stamps (digicon-disabled):
+2026-11-26T02:47:24.6977702Z stamp audit: digicon-disabled: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.6979225Z --- status-counts (0s)
+2026-11-26T02:47:24.7007068Z STATUS entries ok
+2026-11-26T02:47:24.7037059Z --- stamps (status-counts):
+2026-11-26T02:47:24.7067611Z stamp audit: status-counts: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:24.7069170Z --- levels-svg (1s)
+2026-11-26T02:47:24.7097586Z levels_svg: SKIPPED, /home/runner/Documents/Layout/Lee Nevo Design Version 5.3c.any is not on this machine
+2026-11-26T02:47:24.7140279Z --- levels-page (1s)
+2026-11-26T02:47:24.7174519Z levels_page: the site article is current
+2026-11-26T02:47:24.7187265Z --- stamps (levels-page):
+2026-11-26T02:47:24.7197507Z stamp audit: levels-page: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:55.2664957Z --- ruff (2s)
+2026-11-26T02:47:55.2689772Z check_ruff: no pyflakes findings
+2026-11-26T02:47:55.2690605Z --- stamps (ruff):
+2026-11-26T02:47:55.2691730Z stamp audit: ruff: every data read is declared in tools/pipeline/checks.toml (the code the job imported or ran is not audited)
+2026-11-26T02:47:55.2724034Z --- portal skipped in CI (0s)
+2026-11-26T02:47:55.3742538Z 1 job(s) printed SKIPPED and checked only part of their inputs: levels-svg
+2026-11-26T02:47:55.3743409Z ALL PASSED
+2026-11-26T02:47:55.4729415Z ##[group]Run python3 tools/ci/stamp_gate.py manifest .cache/ci/main-stamps --sha "$GITHUB_SHA"
+2026-11-26T02:47:55.4730265Z [36;1mpython3 tools/ci/stamp_gate.py manifest .cache/ci/main-stamps --sha "$GITHUB_SHA"[0m
+2026-11-26T02:47:55.4763664Z shell: /usr/bin/bash -e {0}
+2026-11-26T02:47:55.4763994Z env:
+2026-11-26T02:47:55.4764346Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-26T02:47:55.4764943Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.18/x64/lib/pkgconfig
+2026-11-26T02:47:55.4765525Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-26T02:47:55.4766229Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-26T02:47:55.4766959Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.18/x64
+2026-11-26T02:47:55.4767509Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.18/x64/lib
+2026-11-26T02:47:55.4767970Z ##[endgroup]
+2026-11-26T02:47:55.5246371Z wrote .cache/ci/main-stamps/manifest.json: 222 stamps for 05e73a40d7b5
