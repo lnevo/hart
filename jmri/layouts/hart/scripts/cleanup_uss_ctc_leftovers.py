@@ -19,7 +19,7 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import paths, tables_build  # noqa: E402
 
 sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
-from refresh_bean_comments import refresh_comments  # noqa: E402
+from check_bean_comments import refresh_comments  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 TABLES = [paths.TABLES_XML]
