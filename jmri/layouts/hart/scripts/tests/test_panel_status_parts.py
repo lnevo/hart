@@ -115,7 +115,7 @@ class Parts(unittest.TestCase):
         before = self.run_id()
         with self.assertRaises(ImportError) as caught:
             self.load()
-        self.assertIn("no jython folder", str(caught.exception))
+        self.assertIn("no jython_siblings.py in the jython folder", str(caught.exception))
         self.assertIn("absent", str(caught.exception))
         self.assert_nothing_started(before)
 
@@ -176,6 +176,14 @@ class TurnoutsIconRebind(unittest.TestCase):
         self.assertIn("cannot read the tooltip", out.getvalue())
         self.assertIn("no tooltip here", out.getvalue())
         self.assertEqual(lamp.set_to, ["IH9990"])
+
+    def test_a_failure_that_repeats_on_every_scan_is_logged_once(self) -> None:
+        broken = self.icon(None, fail="no tooltip here")
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            for _ in range(3):
+                self.rebind(broken)
+        self.assertEqual(out.getvalue().count("cannot read the tooltip"), 1)
+        self.assertFalse(self.turnouts._icon_rebound)
 
     def test_no_matching_icon_rebinds_nothing(self) -> None:
         other = self.icon("another lamp")

@@ -39,7 +39,8 @@ def _sibling_loader():
 
     folder = jmri.util.FileUtil.getExternalFilename("preference:jython")
     if not folder or not os.path.isfile(os.path.join(folder, "jython_siblings.py")):
-        raise ImportError("panel_status: no jython folder holding jython_siblings.py (preference:jython is %r)"
+        raise ImportError("panel_status: no jython_siblings.py in the jython folder %r "
+                          "(the folder is missing or the deploy left the loader out)"
                           % (folder,))
     if folder not in sys.path:
         sys.path.insert(0, folder)

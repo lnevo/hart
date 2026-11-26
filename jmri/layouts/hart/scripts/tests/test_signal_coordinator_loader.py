@@ -104,7 +104,7 @@ class Loader(unittest.TestCase):
         self.layout.jython_dir = self.folder.parent / "absent"
         with self.assertRaises(ImportError) as caught:
             jf.load_script(self.script, self.layout)
-        self.assertIn("no jython folder", str(caught.exception))
+        self.assertIn("no jython_siblings.py in the jython folder", str(caught.exception))
         self.assertIn("absent", str(caught.exception))
 
 
@@ -112,7 +112,7 @@ class Loader(unittest.TestCase):
         (self.folder / jf.SIBLING_LOADER.name).unlink()
         with self.assertRaises(ImportError) as caught:
             self.load()
-        self.assertIn("no jython folder holding jython_siblings.py", str(caught.exception))
+        self.assertIn("no jython_siblings.py in the jython folder", str(caught.exception))
 
     def test_a_rerun_reloads_the_shared_loader(self) -> None:
         self.load()

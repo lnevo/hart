@@ -149,6 +149,16 @@ def _tooltip_text(icon):
     return tip.getText()
 
 
+_rebind_logged = set()   # rebind messages already printed: the scan repeats on every turnout event until found
+
+
+def _log_once(msg):
+    """Print a rebind message the first time only."""
+    if msg not in _rebind_logged:
+        _rebind_logged.add(msg)
+        print(msg)
+
+
 def _rebind_turnout_fb_icons(head):
     """Once: if the LE icon loaded before the bean existed, re-point it.
 
@@ -162,7 +172,7 @@ def _rebind_turnout_fb_icons(head):
     try:
         from jmri.jmrit.display import EditorManager, SignalHeadIcon
     except Exception as e:
-        print("panel_status: Turnouts icon rebind: display imports failed: %s" % e)
+        _log_once("panel_status: Turnouts icon rebind: display imports failed: %s" % e)
         return
     em = jmri.InstanceManager.getDefault(EditorManager)
     if em is None:
@@ -172,7 +182,7 @@ def _rebind_turnout_fb_icons(head):
         try:
             contents = list(ed.getContents())
         except Exception as e:
-            print("panel_status: Turnouts icon rebind: cannot read the contents of %s: %s" % (ed, e))
+            _log_once("panel_status: Turnouts icon rebind: cannot read the contents of %s: %s" % (ed, e))
             continue
         for icon in contents:
             if not isinstance(icon, SignalHeadIcon):
@@ -183,7 +193,7 @@ def _rebind_turnout_fb_icons(head):
             try:
                 tip = _tooltip_text(icon)
             except Exception as e:
-                print("panel_status: Turnouts icon rebind: cannot read the tooltip of %s: %s" % (icon, e))
+                _log_once("panel_status: Turnouts icon rebind: cannot read the tooltip of %s: %s" % (icon, e))
                 continue
             if tip != TURNOUT_FB_TOOLTIP:
                 continue
