@@ -168,9 +168,16 @@ def walk(parts: Sequence[Part], runs: Sequence[tuple[int, int, int | None, int |
 
 
 def read_plan(plan: Path) -> dict[str, RoutePlan]:
-    """{route: RoutePlan} of ROUTE_STEPS on the plan file `plan`."""
-    reader = _plan_lengths().anyplan()
-    parts = reader.read(plan)
+    """{route: RoutePlan} of ROUTE_STEPS on the plan file `plan`. PlanRouteError when the schematic plugin's reader
+    cannot be loaded (a missing or old submodule) or cannot read the file."""
+    pl = _plan_lengths()
+    import le_common  # noqa: PLC0415  beside plan_lengths: its BuildError is the plugin loader's
+
+    try:
+        reader = pl.anyplan()
+        parts = reader.read(plan)
+    except (le_common.BuildError, OSError, ValueError) as exc:
+        raise PlanRouteError(f"{plan}: the plan reader failed: {exc}") from exc
     links, _free = reader.joins(parts)
     runs = reader.runs(parts, links)
     labels = switch_labels(track_names.relabel_map(layer_files.read("plan_overrides", "staging")))

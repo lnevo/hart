@@ -109,6 +109,18 @@ class Routes(unittest.TestCase):
 
 
 @unittest.skipUnless(PLAN_C.exists(), "the owner's plan 5.3c is not on this machine")
+class ReaderFails(unittest.TestCase):
+    def test_a_plugin_that_will_not_load_is_a_plan_route_error(self) -> None:
+        pr._plan_lengths()                      # puts tools/schematic on the path, so le_common imports
+        import le_common
+
+        broken = mock.Mock()
+        broken.anyplan.side_effect = le_common.BuildError("the schematic plugin is not checked out")
+        with mock.patch.object(pr, "_plan_lengths", return_value=broken):
+            with self.assertRaisesRegex(pr.PlanRouteError, "the plan reader failed: the schematic plugin"):
+                pr.read_plan(Path("plan.any"))
+
+
 class Plan53c(unittest.TestCase):
     """The values read from the plan file are the fixture's, which the tests without the plan use."""
 

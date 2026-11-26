@@ -3,7 +3,8 @@
 
 Part A of docs/jmri/speedmatching/RERUN_PLAN.md. The AnyRail plan 5.3c (ADR-026, staging
 level) gives the length of the whole test loop along the route the locos ran (plan_routes.py
-reads it from the plan file). It does not say where the block gaps are. The
+reads it from the plan file, so this runs only on a machine that has the plan and the schematic
+plugin: the owner's Mac). It does not say where the block gaps are. The
 2026-11-08 runs do: at one throttle step a loco runs at one speed, so the share of a
 lap's time spent in a block is that block's share of the loop length.
 
