@@ -15,8 +15,9 @@ import serve_portal  # noqa: E402
 
 
 def row(item_id: str, collection: str = "archive", path: str = "../media/a.jpg", **cells) -> dict:
+    text = {"title": "T", "caption": "C"} if collection == "archive" else {}
     return {**{c: "" for c in A.COLUMNS}, "id": item_id, "collection": collection, "path": path,
-            "credit_confidence": "none", **cells}
+            "credit_confidence": "none", **text, **cells}
 
 
 def item(item_id: str, src: str = "../media/a.jpg", **fields) -> dict:
@@ -32,6 +33,11 @@ class ArchiveTests(unittest.TestCase):
         problems = A.check_archive([row("a", credit="Ann")], {"items": [item("a", "../media/b.jpg", credit="Bob")]})
         self.assertEqual(len(problems), 2, problems)
         self.assertIn("src is '../media/b.jpg'", problems[0] + problems[1])
+
+    def test_a_changed_title_or_caption_fails(self) -> None:
+        problems = A.check_archive([row("a")], {"items": [item("a", title="T2", caption="C2")]})
+        self.assertEqual(problems, ["archive.json item 'a' title is 'T2'; the catalogue's title is 'T'",
+                                    "archive.json item 'a' caption is 'C2'; the catalogue's caption is 'C'"])
 
     def test_an_item_and_a_row_each_without_the_other_fail(self) -> None:
         problems = A.check_archive([row("a")], {"items": [item("b")]})
@@ -85,7 +91,8 @@ class EditTests(unittest.TestCase):
     def test_a_credit_fix_reaches_the_catalogue(self) -> None:
         code, _ = serve_portal._update_archive_item({"id": "a", "credit": "Bob", "caption": "New"})
         self.assertEqual(code, 200)
-        self.assertEqual(next(r for r in A.read(self.catalogue) if r["id"] == "a")["credit"], "Bob")
+        got = next(r for r in A.read(self.catalogue) if r["id"] == "a")
+        self.assertEqual((got["credit"], got["caption"]), ("Bob", "New"))
         self.assertEqual(self.state(), [])
 
     def test_a_move_to_the_layout_photos_and_back_keeps_the_two_in_step(self) -> None:

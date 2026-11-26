@@ -1240,10 +1240,7 @@
           "action": "Hand Shenango cars to CK1 for delivery; calibrate the scale, weigh coke pull and sort.",
           "colors": [
             "black"
-          ],
-          "docx": {
-            "action": "Hand Shenango cars to CK1 for delivery; (Black) Calibrate the scale, weigh coke pull and sort."
-          }
+          ]
         },
         {
           "n": "4",
@@ -1255,14 +1252,14 @@
         }
       ],
       "colors": [
-        "blue",
         "yellow",
         "green",
         "purple",
         "red",
         "pink",
-        "black",
-        "orange"
+        "blue",
+        "orange",
+        "black"
       ],
       "maps": [
         "south-yard",
@@ -1280,16 +1277,6 @@
       ],
       "source": "../docs/ops/Neville_Island_Yardmaster_Sequence.docx",
       "docx": {
-        "legend": [
-          "yellow",
-          "green",
-          "purple",
-          "red",
-          "pink",
-          "blue",
-          "orange",
-          "black"
-        ],
         "legend_extra": [
           {
             "label": "NONE",

@@ -5,8 +5,9 @@
     python3 cats/scripts/build_hart_trains.py --check   write nothing; exit 1 when the file differs from a fresh build
 
 The CATS file keeps its own columns and order (train_name, train_symbol, engine, font, runs_job, notes), one row per
-train in the master's order, UTF-8 with LF line ends. The master's other columns (opspro_name) stay out of it. Edit
-the master, never the CATS file.
+train on the desks (on_desks yes) in the master's order, UTF-8 with LF line ends. The master's other columns
+(on_desks, opspro_name) and its Operations Pro only trains (on_desks no, the staging trains) stay out of it. Edit the
+master, never the CATS file.
 """
 from __future__ import annotations
 
@@ -26,10 +27,10 @@ def build(master: Path = MASTER) -> str:
     """The text of the CATS train list built from the master."""
     with master.open(newline="", encoding="utf-8") as fh:
         reader = csv.DictReader(fh)
-        missing = [c for c in COLUMNS if c not in (reader.fieldnames or ())]
+        missing = [c for c in (*COLUMNS, "on_desks") if c not in (reader.fieldnames or ())]
         if missing:
             raise SystemExit(f"build_hart_trains: {master} has no column {', '.join(missing)}")
-        rows = list(reader)
+        rows = [row for row in reader if row["on_desks"] == "yes"]
     buf = io.StringIO()
     writer = csv.writer(buf, lineterminator="\n")
     writer.writerow(COLUMNS)

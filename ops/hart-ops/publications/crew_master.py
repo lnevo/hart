@@ -8,7 +8,7 @@ TT-23 timetable, the spot sheet, EQ-01 and the station map text. Two kinds of re
   site prints) and the yardmaster and dispatcher rules appended to their summaries, each lineup row's route put before its action, and the schematic's revision and date
   from the title block (hartlib.map_revision.fields).
 - the rebuild_*.py docx scripts read the jobs, colors and timetable through the functions below. A `docx` object in
-  the master holds what only the printed sheet uses (a photo, a legend order) or wording the sheet prints
+  the master holds what only the printed sheet uses (a photo, the blocking list's extra rows) or wording the sheet prints
   differently from the site; each such wording is an open owner question (lane L5, 2026-11-25).
 
 Standard library only, so the site build and the checks import it without python-docx.
@@ -155,12 +155,14 @@ def crews(master: dict) -> list[dict]:
 
 
 def block_legend(master: dict) -> list[tuple[str, str, str, str, str]]:
-    """YM-01's blocking list: (label, fill, text, destination, block), in the order the sheet prints."""
-    ym = job(master, "yardmaster")["docx"]
+    """YM-01's blocking list: (label, fill, text, destination, block), in the job's color order, which the site shows
+    too (owner, 2026-11-25), then the sheet-only rows of docx.legend_extra."""
+    ym = job(master, "yardmaster")
     colors = {c["id"]: c for c in master["colors"]}
     rows = [(colors[i]["label"], hex6(colors[i]["hex"]), hex6(colors[i]["ink"]), colors[i]["dest"], colors[i]["train"])
-            for i in ym["legend"]]
-    rows += [(e["label"], e["fill"], e["text"], e["dest"], e["block"]) for e in ym.get("legend_extra", [])]
+            for i in ym["colors"]]
+    rows += [(e["label"], e["fill"], e["text"], e["dest"], e["block"])
+             for e in ym.get("docx", {}).get("legend_extra", [])]
     return rows
 
 

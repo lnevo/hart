@@ -5,7 +5,7 @@
     {
       "industry_id": "aristech",
       "name": "Aristech Plastics",
-      "blurb": "On HART, plastic resins and monomers arrive by covered hopper and tank car; the prototype island plant made plasticizers for flexible PVC. Yellow block on the color board — worked by the Neville Island Turn.",
+      "blurb": "Plastic pellets arrive by covered hopper and process chemicals by tank car; plastic resins leave by boxcar. The prototype island plant made plasticizers for flexible PVC. On HART, the yellow block, served by NVL.",
       "commodities": [
         "Ethyl Acrylate",
         "Methyl Methacrylate",
@@ -60,7 +60,7 @@
     {
       "industry_id": "ferrellgas",
       "name": "Ferrellgas",
-      "blurb": "LPG in and out on tank cars. On HART, the red destination on the crew sheets.",
+      "blurb": "LPG arrives by tank car at the unload racks, and the empty tanks go back out. On HART, the red destination on the crew sheets.",
       "commodities": [
         "LPG"
       ],
@@ -130,7 +130,7 @@
       ],
       "waybill_count": 30,
       "logo": "../ops/hart-ops/operator_logos/hart.png",
-      "spot": "scully",
+      "spot": "interchange",
       "stripes": [
         "orange",
         "blue"
