@@ -6,7 +6,7 @@ Outputs are written to `docs/ops/` in the hart repo. The crew jobs (CI-D749, CI-
 the destination colors and the TT-23 back page take their text from the crew master
 `ops/hart-ops/data/crew.json` (ADR-039), through `crew_master.py`; the site's `www/data/crew.json` is built from the
 same master. Edit the master, then regenerate the docx and the site copy. A `docx` object in the master holds what
-only the printed sheet uses, or wording the sheet prints differently from the site. A job's `site_note` is a sentence only the
+only the printed sheet uses, or wording the sheet prints differently from the site (none on colors or the timetable). A job's `site_note` is a sentence only the
 site prints, after the summary. The other scripts still hold
 their content in their own dicts.
 

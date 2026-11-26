@@ -3,7 +3,7 @@
 The master is nested JSON (jobs with steps, sequences and lineups; maps with tracks), which the column sidecar format
 (docs/data/sidecars.md) cannot describe, so this checks it instead: the keys are unique, the required fields are
 there, every reference names a record that exists (a job's colors and maps, a map's connections and sheets, the spot
-sheet's industries in industries.csv), and each `docx` object holds only the fields the docx scripts read.
+sheet's industries in industries.csv), and each `docx` object holds only the fields the docx scripts read (colors and the timetable hold none).
 build_crew_json.py runs it before it builds; ops/hart-ops/tests/test_crew_master.py tests it.
 """
 from __future__ import annotations
@@ -16,15 +16,13 @@ COLOR_FIELDS = ("id", "label", "hex", "ink", "dest", "train", "group", "spot")
 GROUPS = ("interchange", "island")
 JOB_FIELDS = ("id", "code", "kind", "name", "title", "pub", "revision", "effective", "summary", "colors", "maps",
               "talk", "source")
+LEGEND_FIELDS = ("label", "hex", "ink", "dest", "train")  # a yardmaster job's legend_extra row: a color without an id
 KINDS = ("crew", "yardmaster", "dispatcher")
 HEX = re.compile(r"#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})")
 # where a docx object may sit, and the fields it may hold
 DOCX = {
-    "color": {"key_label"},
-    "timetable": {"subtitle", "note"},
     "scale part": {"lead_items"},
     "crew job": {"photo", "intro", "engine", "steps"},
-    "yardmaster job": {"legend_extra"},
     "sequence row": {"action"},
 }
 
@@ -67,7 +65,8 @@ def problems(master: dict, industries: dict[str, dict]) -> list[str]:
         for f in ("hex", "ink"):
             if c.get(f) and not HEX.fullmatch(c[f]):
                 out.append(f"{where}: {f} {c[f]!r} is not #rgb or #rrggbb")
-        _docx(where, c, "color", out)
+        if "docx" in c:
+            out.append(f"{where}: a color holds no docx object (the sheet prints the site wording)")
     out += [f"colors: id {v!r} is given twice" for v in _dupes(c.get("id") for c in colors)]
     color_ids = {c.get("id") for c in colors}
 
@@ -84,7 +83,8 @@ def problems(master: dict, industries: dict[str, dict]) -> list[str]:
     tt = master["timetable"]
     out += [f"timetable row {i + 1}: {len(r)} cells for {len(tt['columns'])} columns"
             for i, r in enumerate(tt["rows"]) if len(r) != len(tt["columns"])]
-    _docx("timetable", tt, "timetable", out)
+    if "docx" in tt:
+        out.append("timetable: holds no docx object (the sheet prints the site wording)")
 
     for sec in master["scale"]["sections"]:
         for part in sec["parts"]:
@@ -128,7 +128,7 @@ def problems(master: dict, industries: dict[str, dict]) -> list[str]:
             if not (j.get("engine") or {}).get("label"):
                 out.append(f"{where}: a crew job needs engine.label")
             _docx(where, j, "crew job", out)
-        elif j.get("docx") is not None and kind != "yardmaster":
+        elif j.get("docx") is not None:
             out.append(f"{where}: a {kind} job holds no docx object")
         if kind in ("yardmaster", "dispatcher") and not j.get("rules"):
             out.append(f"{where}: no rules (the sheet prints them and the site appends them to the summary)")
@@ -139,8 +139,25 @@ def problems(master: dict, industries: dict[str, dict]) -> list[str]:
         for row in j.get("lineup", []):
             if not row.get("route") or not row.get("action"):
                 out.append(f"{where} row {row.get('n')!r}: a lineup row needs route and action")
+        if kind != "yardmaster" and "legend_extra" in j:
+            out.append(f"{where}: only a yardmaster job holds legend_extra")
         if kind == "yardmaster":
-            _docx(where, j, "yardmaster job", out)
+            extra = j.get("legend_extra", [])
+            for k, row in enumerate(extra, 1):
+                if not isinstance(row, dict):
+                    out.append(f"{where}: legend_extra row {k} must be an object")
+                    continue
+                out += [f"{where}: legend_extra row {k} has no {f}" for f in LEGEND_FIELDS if not row.get(f)]
+                out += [f"{where}: legend_extra row {k}: unknown field {f!r}" for f in row if f not in LEGEND_FIELDS]
+                out += [f"{where}: legend_extra row {k}: {f} {row[f]!r} is not #rgb or #rrggbb"
+                        for f in ("hex", "ink") if row.get(f) and not HEX.fullmatch(row[f])]
+            labels = [c.get("label") for c in colors if c.get("id") in j.get("colors", [])]
+            labels += [r.get("label") for r in extra if isinstance(r, dict)]
+            out += [f"{where}: blocking list label {v!r} is given twice" for v in _dupes(labels)]
+            missing = [c.get("id") for c in colors if c.get("id") not in j.get("colors", [])]
+            if missing:
+                out.append(f"{where}: colors must list every color (the site shows legend_extra only then); "
+                           f"missing {', '.join(map(str, missing))}")
             out += [f"{where}: colors gives {v!r} twice (YM-01's blocking list prints them in order)"
                     for v in _dupes(j.get("colors", []))]
 
