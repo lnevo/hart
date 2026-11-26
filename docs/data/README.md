@@ -24,6 +24,7 @@ A spreadsheet, a slide deck or a JSON file for the site is never a master. It is
 - **Locos:** `ops/hart-ops/data/locos.csv`, extended to every loco that runs. The engine rosters and the `engine` column of the train list are copies.
 - **Industries:** a new `ops/hart-ops/data/industries.csv` (`industry_id`, name, public name, slug, and the public `blurb`, added by the owner later the same day). `spot_assignments.csv` stays the master for spots and refers to `industry_id`.
 - **Trains:** a new `ops/hart-ops/data/trains.csv`, keyed on `train_symbol`. `cats/data/hart_trains.csv` is built from it for CATS, and the site reads it.
+- **Crew jobs and their text:** a new `ops/hart-ops/data/crew.json` (crew jobs keyed on `code`, destination colors keyed on `id`, TT-23, the spot sheet, EQ-01 and the station map text). `www/data/crew.json` and the crew, YM-01, DS-01 and EQ-01 docx are built from it; the spot sheet's industry names come from `industries.csv`.
 - **Stations and control points:** two files with new ids. `schematic/stations.csv` owns stations (`station_id`) and `schematic/interlockings.csv` owns control points (`cp_id`). Every `cp` cell then holds ids.
 
 Which script writes or reads a given file is in `docs/pipeline-map/pipeline_map.json`. The rule is in [ADR-039](../../wiki/decisions/ADR-039-data-masters-in-git.md).

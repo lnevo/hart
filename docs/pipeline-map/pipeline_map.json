@@ -2027,6 +2027,15 @@
    "path": "ops/hart-ops/data/trains.csv"
   },
   {
+   "id": "ops/hart-ops/data/crew.json",
+   "label": "crew master crew.json",
+   "kind": "structured",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Crew master (ADR-039): crew jobs keyed on code, destination colors, TT-23, the spot sheet, EQ-01 and the station map text; docx-only fields in docx objects; checked by crew_schema.py.",
+   "path": "ops/hart-ops/data/crew.json"
+  },
+  {
    "id": "ops/hart-ops/data/industries.csv",
    "label": "industries.csv",
    "kind": "structured",
@@ -2068,7 +2077,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "ops",
-   "desc": "Python content dicts and rebuild scripts for EQ-01, DS-01, YM-01, CI, SM, HB-01 plus update_tt23_station_map.py and hart_pub_helpers.",
+   "desc": "Rebuild scripts for EQ-01, DS-01, YM-01, CI, SM, HB-01 plus update_tt23_station_map.py and hart_pub_helpers; the crew, YM, DS and EQ-01 text comes from the crew master through crew_master.py.",
    "path": "ops/hart-ops/publications"
   },
   {
@@ -2404,8 +2413,17 @@
    "kind": "structured",
    "status": "live",
    "domain": "website",
-   "desc": "Historical archive items and buckets; edited via serve_portal API and by hand; images resized from media mirrors.",
+   "desc": "Historical archive items and buckets; edited via serve_portal API and by hand; ids, files and credits are copies of archive_catalogue.csv (archive_catalogue.py checks them); images resized from media mirrors.",
    "path": "www/data/archive.json"
+  },
+  {
+   "id": "www/scripts/archive_catalogue.csv",
+   "label": "archive_catalogue.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "website",
+   "desc": "Archive catalogue (ADR-039): one row per archive item and per lineage logo, with id, file, credit, source link, credit confidence, rights and origin. archive.json and the lineage charts copy it; column rules in archive_catalogue.columns.csv.",
+   "path": "www/scripts/archive_catalogue.csv"
   },
   {
    "id": "www/data/articles.json",
@@ -2431,7 +2449,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "website",
-   "desc": "Who-became-who lineage chart data (Chartiers).",
+   "desc": "Who-became-who lineage chart data (Chartiers); each logo cites an archive catalogue row in logo_id.",
    "path": "www/data/chartiers-lineage.json"
   },
   {
@@ -2440,7 +2458,7 @@
    "kind": "output",
    "status": "live",
    "domain": "website",
-   "desc": "Crew pages and spot sheet data; schematic revision and effective date are written by map_revision.py.",
+   "desc": "Crew pages and spot sheet data, built from the crew master by build_crew_json.py; the schematic revision and effective date come from the title block, which map_revision.py also writes.",
    "path": "www/data/crew.json"
   },
   {
@@ -2449,7 +2467,7 @@
    "kind": "output",
    "status": "live",
    "domain": "website",
-   "desc": "Rolling-stock gallery; entries added by cars.py site; photos resized into assets/fleet at build.",
+   "desc": "Rolling-stock gallery; entries added by cars.py site; a checked copy of the car and loco masters (check_fleet_gallery.py); photos resized into assets/fleet at build.",
    "path": "www/data/fleet-gallery.json"
   },
   {
@@ -2514,7 +2532,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "website",
-   "desc": "Who-became-who lineage chart data (plants).",
+   "desc": "Who-became-who lineage chart data (plants); each logo cites an archive catalogue row in logo_id.",
    "path": "www/data/plants-lineage.json"
   },
   {
@@ -3817,7 +3835,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "ops",
-   "desc": "Checks that crew.json's crew job codes, the Operations Pro train names and the CATS desks' train list name trains of trains.csv (ADR-039).",
+   "desc": "Checks that the crew master's crew job codes, the Operations Pro train names and the CATS desks' train list name trains of trains.csv (ADR-039).",
    "path": "tools/audit/check_train_symbols.py",
    "gen": "manifest"
   },
@@ -3829,6 +3847,36 @@
    "domain": "ops",
    "desc": "Checks that every engine in both Operations Pro engine rosters and every engine in the train list is a row of the loco master locos.csv, keyed on roster_id (ADR-039).",
    "path": "tools/ops/check_locos.py",
+   "gen": "manifest"
+  },
+  {
+   "id": "tools/ops/check_fleet_gallery.py",
+   "label": "check_fleet_gallery.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Checks the public rolling-stock gallery fleet-gallery.json against the car master image_metadata.csv and the loco master locos.csv: each item is a master row with its number and type, album counts match, and every photographed row is shown (ADR-039).",
+   "path": "tools/ops/check_fleet_gallery.py",
+   "gen": "manifest"
+  },
+  {
+   "id": "www/scripts/archive_catalogue.py",
+   "label": "archive_catalogue.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Checks archive.json and the lineage charts against the archive catalogue archive_catalogue.csv: each archive item's file and credit are its row's, and each lineage logo cites a catalogue id (ADR-039); --write sets the logos from their ids.",
+   "path": "www/scripts/archive_catalogue.py",
+   "gen": "manifest"
+  },
+  {
+   "id": "ops/hart-ops/publications/build_crew_json.py",
+   "label": "build_crew_json.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Writes www/data/crew.json from the crew master ops/hart-ops/data/crew.json after its schema check, with the spot sheet's industry names from industries.csv and the schematic's revision from the title block (ADR-039); --check.",
+   "path": "ops/hart-ops/publications/build_crew_json.py",
    "gen": "manifest"
   },
   {
@@ -4786,10 +4834,6 @@
   {
    "from": "human:www-authoring",
    "to": "www/data/chartiers-lineage.json"
-  },
-  {
-   "from": "human:www-authoring",
-   "to": "www/data/crew.json"
   },
   {
    "from": "human:www-authoring",
@@ -7271,6 +7315,11 @@
   },
   {
    "from": "www/scripts/serve_portal.py",
+   "to": "www/scripts/archive_catalogue.csv",
+   "label": "edit API writes"
+  },
+  {
+   "from": "www/scripts/serve_portal.py",
    "to": "www/review-data/archive_review_log.jsonl",
    "label": "logs edits"
   },
@@ -8821,13 +8870,6 @@
    "gen": "manifest"
   },
   {
-   "from": "www/data/crew.json",
-   "to": "tools/audit/check_train_symbols.py",
-   "label": "job codes",
-   "side": "check",
-   "gen": "manifest"
-  },
-  {
    "from": "jmri/layouts/hart/operations",
    "to": "tools/audit/check_train_symbols.py",
    "label": "train names",
@@ -8845,6 +8887,13 @@
    "from": "tools/audit/check_train_symbols.py",
    "to": "tools/check.sh",
    "label": "check train-symbols",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/crew.json",
+   "to": "tools/audit/check_train_symbols.py",
+   "label": "job codes",
    "side": "check",
    "gen": "manifest"
   },
@@ -8871,6 +8920,13 @@
   },
   {
    "from": "ops/hart-ops/data/locos.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "www/scripts/archive_catalogue.csv",
    "to": "tools/ops/check_data.py",
    "label": "rules",
    "side": "check",
@@ -8908,6 +8964,109 @@
    "from": "cats/data/hart_trains.csv",
    "to": "tools/ops/check_locos.py",
    "label": "train list",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "www/data/fleet-gallery.json",
+   "to": "tools/ops/check_fleet_gallery.py",
+   "label": "copy",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/image_metadata.csv",
+   "to": "tools/ops/check_fleet_gallery.py",
+   "label": "car master",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/locos.csv",
+   "to": "tools/ops/check_fleet_gallery.py",
+   "label": "loco master",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/ops/check_fleet_gallery.py",
+   "to": "tools/check.sh",
+   "label": "check fleet-gallery",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "www/scripts/archive_catalogue.csv",
+   "to": "www/scripts/archive_catalogue.py",
+   "label": "master",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "www/data/archive.json",
+   "to": "www/scripts/archive_catalogue.py",
+   "label": "copy",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "www/data/plants-lineage.json",
+   "to": "www/scripts/archive_catalogue.py",
+   "label": "logo ids",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "www/data/chartiers-lineage.json",
+   "to": "www/scripts/archive_catalogue.py",
+   "label": "logo ids",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "www/scripts/archive_catalogue.py",
+   "to": "tools/check.sh",
+   "label": "check archive-catalogue",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "human:owner-csv-edits",
+   "to": "ops/hart-ops/data/crew.json",
+   "label": "edits"
+  },
+  {
+   "from": "ops/hart-ops/data/crew.json",
+   "to": "ops/hart-ops/publications",
+   "label": "crew_master.py"
+  },
+  {
+   "from": "ops/hart-ops/data/crew.json",
+   "to": "ops/hart-ops/publications/build_crew_json.py",
+   "label": "crew master",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/industries.csv",
+   "to": "ops/hart-ops/publications/build_crew_json.py",
+   "label": "spot sheet names",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/preferences.json",
+   "to": "ops/hart-ops/publications/build_crew_json.py",
+   "label": "title block, via hartlib.map_revision",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/publications/build_crew_json.py",
+   "to": "www/data/crew.json",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/publications/build_crew_json.py",
+   "to": "tools/check.sh",
+   "label": "check crew-json",
    "side": "check",
    "gen": "manifest"
   },

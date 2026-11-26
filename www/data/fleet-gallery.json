@@ -875,7 +875,8 @@
       "credit": "HART car roster",
       "road": "PRR",
       "number": "371604",
-      "type": "Gondola"
+      "type": "Gondola",
+      "roster_id": "PRR371604"
     },
     {
       "id": "mow-0017",

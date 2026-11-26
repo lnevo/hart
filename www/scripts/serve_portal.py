@@ -19,11 +19,13 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import archive_catalogue  # noqa: E402  (the master that archive.json copies credits and paths from, ADR-039)
 import site_views  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 ARCHIVE_PATH = ROOT / "www/data/archive.json"
 ARCHIVE_LOG = ROOT / "www/review-data/archive_review_log.jsonl"
+CATALOGUE_PATH = archive_catalogue.CATALOGUE
 API_ARCHIVE = "/api/archive/item"
 API_ARCHIVE_PING = "/api/archive/ping"
 API_ARCHIVE_TO_LAYOUT = "/api/archive/to-layout"
@@ -197,6 +199,7 @@ def _update_archive_item(body: dict) -> tuple[int, dict]:
     tmp = ARCHIVE_PATH.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     os.replace(tmp, ARCHIVE_PATH)
+    archive_catalogue.sync_item(item, CATALOGUE_PATH)  # a credit, link or rights fix belongs to the catalogue
     ARCHIVE_LOG.parent.mkdir(parents=True, exist_ok=True)
     with ARCHIVE_LOG.open("a", encoding="utf-8") as fh:
         entry = {"ts": datetime.now(timezone.utc).isoformat(), "id": item_id, "before": before, "after": changes}
@@ -248,6 +251,7 @@ def _move_archive_item_to_layout(body: dict) -> tuple[int, dict]:
     data["items"] = [it for it in items if it.get("id") != item_id]
     _write_json_atomic(GALLERY_PATH, gallery)
     _write_json_atomic(ARCHIVE_PATH, data)
+    archive_catalogue.drop_item(item_id, CATALOGUE_PATH)
     ARCHIVE_LOG.parent.mkdir(parents=True, exist_ok=True)
     with ARCHIVE_LOG.open("a", encoding="utf-8") as fh:
         entry = {"ts": datetime.now(timezone.utc).isoformat(), "id": item_id, "before": {"bucket": item.get("bucket")}, "after": {"moved_to": "layout-photos"}}
@@ -297,6 +301,7 @@ def _update_gallery_item(body: dict) -> tuple[int, dict]:
         del items[idx]
         after = {"moved_to": "photos-review", "id": new_id}
         _write_json_atomic(ARCHIVE_PATH, data)
+        archive_catalogue.sync_item(data["items"][-1], CATALOGUE_PATH)
     else:
         albums = {a.get("id") for a in gallery.get("albums", [])}
         if "album" in body:
