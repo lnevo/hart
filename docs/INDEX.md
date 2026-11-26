@@ -109,7 +109,6 @@ Source of record (ADR-010) for the published crew and dispatcher Word and PowerP
 Holds source material for the website that is kept for reference and not published, currently the original Rule 1 sticker photo
 
 - [README.md](website/README.md): Holds source material for the website that is kept for reference and not published, currently the original Rule 1 sticker photo
-- [old-server-survey.md](website/old-server-survey.md): A read-only survey of www.easte.net before the move to a new Lightsail server, with what to move, what to drop and the questions for the owner
 - [promo-videos.md](website/promo-videos.md): Describes the short promo videos for the website on TikTok and YouTube, where the files are kept and how they were made
 - Plus 1 image, css or script files
 
