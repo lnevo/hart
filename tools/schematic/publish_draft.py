@@ -26,7 +26,7 @@ Main is where this branch left origin/main (`git merge-base HEAD origin/main`). 
 (no origin/main, a shallow clone), publishing stops before it writes anything and names the git command that
 brings it in; it also stops if git fails to read a file there. --check and --preview never need it.
 The station map pages are drawn from this sheet, so publishing then copies the title block's revision and date to
-them with hartlib.map_revision (also the command www/scripts/map_revision.py), and --check fails while any of them differs.
+them with hartlib.map_revision (which rebuilds www/data/crew.json from the crew master), and --check fails while any of them differs.
 After a commit that changes the drawing, run tools/schematic/evolution.py.
 
 The plugin's solved-sheet cache (SCHEMATIC_CACHE, default <main checkout>/.cache/hart/schematic, shared by every worktree; HART_CACHE_DIR moves the base; a folder only this user can open)

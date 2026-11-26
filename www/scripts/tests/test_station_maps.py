@@ -10,12 +10,14 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(ROOT / "www/scripts"))
-import map_revision  # noqa: E402
+sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+sys.path.insert(0, str(ROOT / "ops/hart-ops/publications"))
+import build_crew_json  # noqa: E402
 
-from hartlib import layer_files  # noqa: E402  (map_revision put tools/hartlib/src on the path)
+from hartlib import layer_files, map_revision  # noqa: E402
 
 PREFS = map_revision.page_prefs()           # the main_upper section of preferences.json
 PUBLISHED = json.loads((ROOT / "www/scripts/published-files.json").read_text())
@@ -129,6 +131,15 @@ class MapRevisionCopy(unittest.TestCase):
         self.assertEqual((crew["schematic"]["revision"], crew["schematic"]["effective"]), ("99", "1 December 2026"))
         self.assertEqual(crew["maps"][0]["revision"], CREW["maps"][0]["revision"])   # archive field untouched
         self.assertEqual((self.www / "crew/maps/archive/west-yard/index.html").read_text(), archive)
+
+    def test_apply_writes_crew_json_as_build_crew_json_does(self):
+        """crew.json has one writer: after a revision bump, apply() leaves it as build_crew_json would write it."""
+        (self.www / "data/crew.json").write_text("{}\n")              # whatever was there is replaced, not patched
+        map_revision.apply(self.www, self.prefs)
+        with mock.patch.object(build_crew_json, "fields", lambda: map_revision.fields(self.prefs)):
+            built = build_crew_json.build()
+        self.assertEqual((self.www / "data/crew.json").read_text(encoding="utf-8"), built)
+        self.assertIn('"revision": "99"', built)
 
     def test_missing_publication_entry_stops(self):
         path = self.www / "data/publications.json"
