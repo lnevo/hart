@@ -1,11 +1,12 @@
 """panel_status.py behaviour, run against an in-memory JMRI (jmri_fake).
 
 What matters most on the Pi: the lamps never command a plant turnout and boot publishes nothing.
-The yard-ladder lamps are gone (owner, 2026-11-17): nothing makes or paints IT:HART:YL:* turnouts. The MQTT adapter here only records; nothing reaches a broker.
+Nothing makes or paints IT:HART:YL:* turnouts. The MQTT adapter here only records; nothing reaches a broker.
 """
 from __future__ import annotations
 
 import contextlib
+import io
 import sys
 import types
 import unittest
@@ -166,6 +167,66 @@ class PanelStatus(unittest.TestCase):
         self.ps["toggle_sml_mode"]()
         jf.fire_timers()
         self.assertEqual(calls, ["toggle", "sync"])
+
+    def _busy_coordinator(self, busy_polls: int | None) -> list[str]:
+        """A coordinator busy for `busy_polls` lamp-watch polls (None: always busy); returns its call log."""
+        import __main__
+
+        calls: list[str] = []
+
+        class Coordinator:
+            @property
+            def _busy(self):
+                calls.append("poll")
+                return busy_polls is None or calls.count("poll") <= busy_polls
+
+            def toggle_from_panel(self):
+                calls.append("toggle")
+
+            def _sync_sml_mode_sensor(self):
+                calls.append("sync")
+
+        __main__.digicon_sml_controller = Coordinator()
+        self.addCleanup(delattr, __main__, "digicon_sml_controller")
+        return calls
+
+    def test_signals_lamp_waits_while_the_coordinator_is_busy(self) -> None:
+        calls = self._busy_coordinator(3)
+        jf.Timer.pending.clear()
+        self.ps["toggle_sml_mode"]()
+        jf.fire_timers()
+        self.assertEqual(calls, ["toggle", "poll", "poll", "poll", "poll", "sync"])
+
+    def test_signals_lamp_wait_gives_up_after_forty_polls(self) -> None:
+        calls = self._busy_coordinator(None)
+        jf.Timer.pending.clear()
+        self.ps["toggle_sml_mode"]()
+        jf.fire_timers(limit=200)
+        self.assertEqual(calls.count("poll"), 41)
+        self.assertEqual(calls[-1], "sync")
+        self.assertEqual(self.ps["_SML_WATCH_MS"] * self.ps["_SML_WATCH_MAX_ATTEMPTS"], 20000)
+
+    def test_signals_lamp_goes_inactive_when_the_coordinator_sync_fails(self) -> None:
+        import __main__
+
+        class Coordinator:
+            _busy = False
+
+            def toggle_from_panel(self):
+                pass
+
+            def _sync_sml_mode_sensor(self):
+                raise RuntimeError("no sensor")
+
+        __main__.digicon_sml_controller = Coordinator()
+        self.addCleanup(delattr, __main__, "digicon_sml_controller")
+        jf.Timer.pending.clear()
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            self.ps["toggle_sml_mode"]()
+            jf.fire_timers()
+        self.assertEqual(self.layout.sensors.getSensor("IS:SML_MODE").state, S.INACTIVE)
+        self.assertIn("Digicon lamp sync failed", out.getvalue())
 
     def test_track_power_click_toggles_and_mirrors(self) -> None:
         jf.Timer.pending.clear()
