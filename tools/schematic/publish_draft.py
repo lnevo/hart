@@ -88,9 +88,8 @@ class DrawFailed(PublishError):
         self.returncode = returncode
 
 
-if map_revision.PAGE_SHEET != INPUTS[-1][1]:
-    raise PublishError(f"hartlib.map_revision.PAGE_SHEET is {map_revision.PAGE_SHEET!r} but the last input, which sets "
-                       f"the page, is {INPUTS[-1][1]!r}: make them agree")
+# hartlib.map_revision.PAGE_SHEET must name the last input, which sets the page: a test pins it
+# (test_publish_draft.PageSheet), so no importer stops at import.
 
 
 def page_prefs():

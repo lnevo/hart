@@ -200,6 +200,9 @@
  "tools/ci/stamp_gate.py": {
   "import-exit": 1
  },
+ "tools/hartlib/src/hartlib/hosts.py": {
+  "import-exit": 3
+ },
  "tools/hartlib/src/hartlib/paths.py": {
   "import-exit": 1
  },

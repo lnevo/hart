@@ -47,6 +47,12 @@ def page_prefs(data, section):
     return PD.layer_files.Section("preferences", PD.INPUTS[-1][1], data)
 
 
+class PageSheet(unittest.TestCase):
+    def test_the_last_input_sets_the_page_that_map_revision_names(self) -> None:
+        from hartlib import map_revision
+        self.assertEqual(map_revision.PAGE_SHEET, PD.INPUTS[-1][1])
+
+
 class DrawingChange(unittest.TestCase):
     def test_title_block_is_not_a_drawing_change(self) -> None:
         self.assertEqual(PD.drawing_only(sheet(rev=1)), PD.drawing_only(sheet(rev=2, col_w=140)))
