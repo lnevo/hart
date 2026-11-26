@@ -26,7 +26,7 @@ import infer_block_lengths as ibl  # noqa: E402
 DATA = SM.parents[1] / "data"
 TABLES = SM.parents[1] / "output" / "tables.xml"
 BS_NAMES = set(re.findall(r"<userName>(BS [^<]*)</userName>", TABLES.read_text()))
-CSV_ROWS = {r["user_name"]: r for r in csv.DictReader(open(DATA / "block_lengths.csv", newline=""))}
+PLAN_ROWS = {r["id"]: r for r in csv.DictReader(open(DATA / "block_lengths.csv", newline=""))}   # by block id
 # staging: one row per OS block; its names are the name store's of its IDs (hartlib.railroad_facts.read_switch_rows)
 LEGS = {(str(r.switch), r.os_block): dict(switch=str(r.switch), closed_leg=r.closed_leg, thrown_leg=r.thrown_leg)
         for r in railroad_facts.read_switch_rows(DATA / "switches.csv") if r.level == 1}
@@ -43,7 +43,7 @@ class Routes(unittest.TestCase):
             self.assertEqual(len(set(order)), len(order), route)
             for sensor, row in analyze.route_loop(route):
                 self.assertIn(sensor, BS_NAMES, sensor)
-                self.assertIn(row, CSV_ROWS, row)
+                self.assertIn(analyze.BLOCK_IDS[row], PLAN_ROWS, row)
 
     def test_loop2_order(self):
         o = analyze.route_order("loop2")
@@ -57,10 +57,9 @@ class Routes(unittest.TestCase):
             analyze.route_loop("loop9")
 
     def test_sr_is_one_block_on_its_detector(self):
-        self.assertEqual([r["user_name"] for r in CSV_ROWS.values() if r["occupancy_sensor"] in ("BS S-R", "Block 2-8")],
-                         ["Track S-R"])
+        self.assertEqual([n for s, n in analyze.route_loop("loop2") if s == "BS S-R"], ["Track S-R"])
         got = analyze.load_lengths(DATA / "block_lengths.csv", ("plan",), analyze.route_loop("loop2"))
-        want = float(CSV_ROWS["Track S-R"]["plan_in"]) * 25.4
+        want = float(PLAN_ROWS[analyze.BLOCK_IDS["Track S-R"]]["plan_in"]) * 25.4
         self.assertAlmostEqual(got["BS S-R"], want, places=3)
 
     def test_trusted_default_leaves_untrusted_rows_none(self):
@@ -348,11 +347,11 @@ class RunsAndLocate(unittest.TestCase):
         lengths, _ = planted()
         result = {s: (v, 5.0, 4) for s, v in lengths.items()}
         owned = set(ibl.SENSOR_ROWS)
-        _, rows, mm = ibl.plan_rows(result, ibl.CSV, "loop2", set(result) - owned)
+        _, mm = ibl.measured_rows(result, "loop2", set(result) - owned, "2026-11-13")
         self.assertEqual(set(mm), {ibl.route_rows("loop2")[s] for s in set(result) - owned})
         self.assertIn("Track S-R", mm)
         self.assertNotIn("Track East Lead", mm)
-        _, _, mm2 = ibl.plan_rows(result, ibl.CSV, "loop2")
+        _, mm2 = ibl.measured_rows(result, "loop2", date="2026-11-13")
         self.assertIn("Track East Lead", mm2)
 
 

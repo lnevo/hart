@@ -1031,75 +1031,9 @@ def read_plan_overrides(path: Path, sheet: str = PlanOverrides.SHEET) -> PlanOve
 
 # ---------------------------------------------------------------- inputs: block lengths and staging masts
 
-# block_lengths.csv: each block's 5.3c plan length on every level (plan_in, written by tools/schematic/plan_lengths.py)
-# and, for a timed staging block, its measured length (measured_in; `source` timed, else plan). JMRI's block length,
-# the drawings and the signal rules use plan_in alone; the measured lengths serve speed profiling only (owner,
-# 2026-11-20, level unification step 5 part 2). A row is keyed by its block's level and device ID (naming-layers step
-# 5), so a rename keeps its measured length; user_name is a label the build writes from the name store
-# (plan_lengths.py --labels, the length-labels step of make panels) for the readers that go by name (the speed-match
-# tools on the Pi, the documentation pages).
-BLOCK_LENGTH_COLUMNS = ("level", "id", "user_name", "occupancy_sensor", "plan_in", "measured_in", "source", "note")
+# block_lengths.csv: each block's plan length, with block_lengths_measured.csv beside it (hartlib.block_lengths
+# reads both: the plan length and the operating length).
 BLOCK_LENGTHS_NAME = "block_lengths.csv"
-BLOCK_LENGTHS = paths.LAYOUT_DATA / BLOCK_LENGTHS_NAME      # this checkout's file, read_block_lengths' default
-LENGTH_SOURCES = ("timed", "plan")
-
-
-@dataclass(frozen=True)
-class BlockLength:
-    line: int
-    user_name: str
-    occupancy_sensor: str
-    plan_in: float              # the AnyRail plan 5.3c length
-    measured_in: float | None   # the timed length; None unless source is "timed"
-    source: str                 # LENGTH_SOURCES: timed when the block has a measured length (speed profiling)
-    level: str = ""             # the block's level and device ID: the row's key
-    id: str = ""
-    note: str = ""              # the row's note (a timed loop block's spread and laps, a piece's OS block)
-
-
-def read_block_lengths(path: Path = BLOCK_LENGTHS) -> dict[str, BlockLength]:
-    """{user name: BlockLength} from block_lengths.csv (BLOCK_LENGTH_COLUMNS). Stops on a level and id empty or given
-    twice, a name empty or given twice, a plan length that is not a number above zero, a source not in
-    LENGTH_SOURCES, or a measured length given on a row whose source is not "timed" (or missing on one that is). The
-    name is the row's label (user_name), which the build keeps the name store's (railroad_invariants checks it)."""
-    out: dict[str, BlockLength] = {}
-    keys: set[tuple[str, str]] = set()
-    for line, r in read_rows(path, BLOCK_LENGTH_COLUMNS):
-        where = _where(path, line)
-        if r["level"] not in ("1", "2", "3") or not r["id"] or (r["level"], r["id"]) in keys:
-            raise FactsError(f"{where}: level {r['level']!r} and id {r['id']!r}: a level 1 to 3 and a device ID, "
-                             "once each")
-        keys.add((r["level"], r["id"]))
-        if not r["user_name"] or r["user_name"] in out:
-            raise FactsError(f"{where}: user_name {r['user_name']!r} is empty or given twice")
-        if r["source"] not in LENGTH_SOURCES:
-            raise FactsError(f"{where}: source {r['source']!r} is not one of {', '.join(LENGTH_SOURCES)}")
-        lengths = {}
-        for col in ("plan_in", "measured_in"):
-            if not r[col]:
-                lengths[col] = None
-                continue
-            try:
-                lengths[col] = float(r[col])
-            except ValueError:
-                raise FactsError(f"{where}: {col} {r[col]!r} is not a number") from None
-            # a plan length may be 0 (a block between two turnouts that touch in the plan); a measured one may not
-            if not (lengths[col] >= 0 if col == "plan_in" else lengths[col] > 0):
-                raise FactsError(f"{where}: {col} {r[col]} is " + ("below zero" if col == "plan_in" else
-                                                                   "not above zero"))
-        if lengths["plan_in"] is None:
-            raise FactsError(f"{where}: no plan_in (run tools/schematic/plan_lengths.py)")
-        if (r["source"] == "timed") != (lengths["measured_in"] is not None):
-            raise FactsError(f"{where}: source {r['source']} with measured_in {r['measured_in']!r}: a timed row "
-                             "gives its measured length, any other none")
-        out[r["user_name"]] = BlockLength(line, r["user_name"], r["occupancy_sensor"], lengths["plan_in"],
-                                          lengths["measured_in"], r["source"], r["level"], r["id"], r["note"])
-    return out
-
-
-def plan_cm(lengths: dict[str, BlockLength]) -> dict[str, float]:
-    """{block: plan length in cm}: the lengths the drawings and the signal rules measure by."""
-    return {name: b.plan_in * 2.54 for name, b in lengths.items()}
 
 
 @dataclass(frozen=True)

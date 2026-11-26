@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from hartlib import devices as D, level_devices, paths, railroad, tables  # noqa: E402
+from hartlib import devices as D, level_devices, paths, tables  # noqa: E402
 from hartlib import tables_build as tb  # noqa: E402
 
 
@@ -49,7 +49,7 @@ def rows() -> list[dict]:
     ]
 
 
-LENGTHS = {"OS Switch 1": railroad.BlockLength(2, "OS Switch 1", "Block 4-2", 9.2, 22.6, "timed")}
+LENGTHS = {"OS Switch 1": 9.2}       # block name -> operating length in inches (block_lengths.operating_lengths)
 
 
 class Template(unittest.TestCase):
@@ -260,8 +260,7 @@ class MasterBeansByAssignment(unittest.TestCase):
         part = blank(layer="block", role="part", user_name="Track 1-3 at 1", assignment="virtual",
                      jmri_name="IB:AUTO:0052", layout_block="ILB52", part_of="OS Switch 1",
                      jmri_comment="Part of OS Switch 1")
-        lengths = dict(LENGTHS, **{"Track 1-3 at 1": railroad.BlockLength(2, "Track 1-3 at 1", "Block 4-2", 3.0,
-                                                                         3.0, "timed")})
+        lengths = dict(LENGTHS, **{"Track 1-3 at 1": 3.0})
         root = tb.base(rows() + [part], lengths=lengths).root
         full = next(b for b in tables.blocks(root) if tables.system_name(b) == "IB:AUTO:0052")
         self.assertEqual(("76.2", "BS Switch 1"), (full.get("length"), full.findtext("occupancysensor")))
@@ -331,8 +330,7 @@ def main_rows() -> list[dict]:
 STAGING_HELIX = blank(layer="block", role="helix", id="block:39B-helix", user_name="Track Helix Outer",
                       assignment="field", system_name="IB23", jmri_name="IB23", layout_block="ILB76",
                       jmri_comment="Helix track, outer")
-ALL_LENGTHS = dict(LENGTHS, **{n: railroad.BlockLength(2, n, "", 10.0, 10.0, "plan")
-                               for n in ("OS Switch 101", "Track 101-103", "Track Helix Outer")})
+ALL_LENGTHS = dict(LENGTHS, **{n: 10.0 for n in ("OS Switch 101", "Track 101-103", "Track Helix Outer")})
 
 
 class ShapeByColumn(unittest.TestCase):

@@ -12,4 +12,6 @@ Read Java there (`tools/cats/src-repo/cats/src/cats/layout/items/TrackGroup.java
 
 **Do not** `jar xf` / decompile `cats.jar` or `designer.jar` into `cats/` or the repo root. That dumps `.class` next to our panels and is not source. If you need a method, clone Bitbucket; `javap` on `/Applications/JMRI/cats.jar` is a last resort and stays in `/tmp`.
 
+Never store JMRI tables from a CATS session: PanelPro owns `tables.xml`.
+
 Runtime install is the stock 3.2 zip, with no overlay. Compensate outside CATS rather than patching it.

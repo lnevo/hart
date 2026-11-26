@@ -1,0 +1,22 @@
+id,measured_in,run,date,note
+block:1C-5A#1+1C-5A#2,58.1,loop1 laps,2026-11-08,"timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 33 laps"
+block:33A-35A,103.6,loop1 laps,2026-11-08,"timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.4 in over 33 laps; the whole detector"
+block:1A-23A,217.3,loop1 laps,2026-11-08,"timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps"
+block:23B-35B,156.1,loop1 laps,2026-11-08,"timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.6 in over 33 laps"
+block:7B-33C,315.1,loop1 laps,2026-11-08,"timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.8 in over 33 laps"
+block:5B-7A,140.8,loop1 laps,2026-11-08,"timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 16 laps"
+block:37C-39C#2,123.7,loop1 laps,2026-11-08,"timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps; the whole detector"
+block:37C-39C#1,113.6,loop1 laps,2026-11-08,"timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.8 in over 33 laps"
+block:5C-7B,144.9,loop2 passes,2026-11-13,"timed passes of 2026-11-13 (CSX 2121, Switch 5 to Switch 15, steps 24 and 48): Switch 7 centre at 4249 mm from Switch 5, less half of OS Switch 5 and OS Switch 7"
+block:7A-13C,34.1,loop2 passes,2026-11-13,"timed passes of 2026-11-13: Switch 7 at 4249 mm and Switch 13 at 5457 mm, less half of OS Switch 7 and OS Switch 13"
+os:1,22.6,loop1 laps,2026-11-08,"timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.6 in over 33 laps"
+os:5,24.6,loop1 laps,2026-11-08,"timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 33 laps"
+os:15,17.8,loop2 passes,2026-11-13,timed passes of 2026-11-13: half of it and half of OS Switch 13 span the 452 mm from Switch 13 to Switch 15; split evenly
+os:23:A-1A,23.5,loop1 laps,2026-11-08,"timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.9 in over 33 laps"
+os:33,12.4,loop1 laps,2026-11-08,"timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps"
+os:35:A-33A,15.0,loop1 laps,2026-11-08,"timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.8 in over 33 laps"
+os:35:A-39A,20.5,loop1 laps,2026-11-08,"timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps"
+os:37,16.5,loop1 laps,2026-11-08,"timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.4 in over 33 laps"
+os:39,9.6,loop1 laps,2026-11-08,"timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.6 in over 33 laps"
+os:13,17.8,loop2 passes,2026-11-13,timed passes of 2026-11-13: half of it and half of OS Switch 15 span the 452 mm from Switch 13 (5457 mm) to Switch 15 (5909 mm); split evenly
+os:7:A-5B,9.2,loop1 laps,2026-11-08,"timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 33 laps"
