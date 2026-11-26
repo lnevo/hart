@@ -21,6 +21,22 @@ Point = tuple[float, float]
 RGB = tuple[int, int, int]
 Corner = Literal["ne", "nw", "w", "e"]
 
+# The sheet: 8 in x 5 in at 200 dpi, and its colours.
+DPI = 200
+W = 8 * DPI
+H = 5 * DPI
+WHITE: RGB = (255, 255, 255)
+TRACK: RGB = (20, 20, 20)
+INK: RGB = (16, 20, 24)
+BADGE: RGB = (15, 71, 97)  # the switch-pill teal of SM-02 to SM-05
+BADGE_INK: RGB = (255, 255, 255)
+COMPASS_GOLD: RGB = (201, 154, 40)
+
+# Repo-relative: the hart-ops folder (present when the docx are written) and the SM-series
+# landscape docx whose embedded map the renderers swap.
+HOPS_REL = "ops/hart-ops"
+SM_DOCX_TEMPLATE_REL = "docs/ops/Neville_Island_Station_Map_West_Yard.docx"
+
 SANS_DIRS = (
     Path("/System/Library/Fonts/Supplemental"),
     Path("/Library/Fonts"),
@@ -76,6 +92,17 @@ def capped_line(d: ImageDraw.ImageDraw, a: Point, b: Point, width: int, fill: RG
 def dot(d: ImageDraw.ImageDraw, pt: Point, r: float, fill: RGB) -> None:
     x, y = pt
     d.ellipse([x - r, y - r, x + r, y + r], fill=fill)
+
+
+def arrow(d: ImageDraw.ImageDraw, tip: Point, direction: Literal["left", "right"], size: float = 14,
+          fill: RGB = TRACK) -> None:
+    """A filled arrowhead with its point at ``tip``."""
+    x, y = tip
+    if direction == "left":
+        pts = [(x, y), (x + size, y - size * 0.55), (x + size, y + size * 0.55)]
+    else:
+        pts = [(x, y), (x - size, y - size * 0.55), (x - size, y + size * 0.55)]
+    d.polygon(pts, fill=fill)
 
 
 def badge_near(

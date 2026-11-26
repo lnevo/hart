@@ -315,9 +315,6 @@
  "tools/schematic/build_staging_sets.py": {
   "dated-note": 2
  },
- "tools/schematic/cats_panel.py": {
-  "dated-note": 1
- },
  "tools/schematic/device_map_inputs.py": {
   "dated-note": 1
  },
@@ -367,9 +364,6 @@
  "tools/schematic/tests/test_device_map_masts.py": {
   "dated-note": 1
  },
- "tools/schematic/tests/test_mast_plan.py": {
-  "dated-note": 1
- },
  "tools/schematic/tests/test_masts_file.py": {
   "dated-note": 1
  },
@@ -414,13 +408,6 @@
  },
  "www/scripts/share_card_recipes/composites.py": {
   "import-exit": 3
- },
- "www/scripts/share_card_recipes/page_figures.py": {
-  "import-exit": 3,
-  "lost-cause": 1
- },
- "www/scripts/share_card_recipes/panel_image.py": {
-  "import-exit": 2
  },
  "www/scripts/site_views.py": {
   "lost-cause": 2

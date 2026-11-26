@@ -32,12 +32,17 @@ import argparse
 import functools
 import shutil
 import subprocess
+import sys
 import tempfile
-from dataclasses import dataclass, field
+from collections.abc import Callable, Iterator, Mapping, Sequence
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Iterator
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
+
+if str(Path(__file__).resolve().parent) not in sys.path:     # promo_shots and soundtrack sit beside this file
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+from promo_shots import BUILD_QUICK, CUT_PAGES, PAGES, SITE_SECTIONS  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 PHOTOS = ROOT / "media" / "photos-layout"
@@ -48,48 +53,35 @@ OUT = ROOT / "media" / "promo"
 SITE_URL = "https://www.hartrailroad.com/"
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
-W, H, FPS = 1080, 1920, 30
-LAND = False  # 16:9 for YouTube: captions in a left column, content on the right
-STAGE = (0, 0, W, H)  # where content sits (x0, y0, x1, y1)
+FPS = 30
 
 
-def set_format(fmt: str) -> None:
-    """"vertical" (TikTok, Reels, Shorts) or "landscape" (YouTube, 1920x1080)."""
-    global W, H, LAND, STAGE
-    LAND = fmt == "landscape"
-    W, H = (1920, 1080) if LAND else (1080, 1920)
-    STAGE = (720, 60, 1860, 1020) if LAND else (0, 0, W, H)
+@dataclass(frozen=True)
+class Format:
+    """A video's frame: its size, and the stage box (x0, y0, x1, y1) that content sits in."""
+    name: str
+    w: int
+    h: int
+    stage: tuple[int, int, int, int]
+
+    @property
+    def land(self) -> bool:
+        """16:9 for YouTube: captions in a left column, content on the right."""
+        return self.name == "landscape"
+
+    def centre(self) -> tuple[int, int]:
+        return (self.stage[0] + self.stage[2]) // 2, (self.stage[1] + self.stage[3]) // 2
 
 
-def stage_centre() -> tuple[int, int]:
-    return (STAGE[0] + STAGE[2]) // 2, (STAGE[1] + STAGE[3]) // 2
+FORMATS: dict[str, Format] = {
+    "vertical": Format("vertical", 1080, 1920, (0, 0, 1080, 1920)),       # TikTok, Reels, Shorts
+    "landscape": Format("landscape", 1920, 1080, (720, 60, 1860, 1020)),  # YouTube
+}
+Frames = Callable[[int], Iterator[Image.Image]]     # n -> n RGB frames
+
 BRAND = (11, 52, 62)  # dark teal of the site footer band
 GOLD = (240, 192, 85)  # --accent-on-dark
 WHITE = (255, 255, 255)
-
-# Site pages for the "site" cut, captured live at phone width (path -> file stem).
-PAGES = {
-    "": "home",
-    "history/": "history",
-    "plants/": "plants",
-    "railroads/": "railroads",
-    "photos/": "photos",
-    "operators/cards/": "cards",
-    "operators/room/": "room",
-    "crew/": "crew",
-    "build/": "build",
-    "behind/": "behind",
-    "behind/signals.html": "signals",
-    "behind/wiring.html": "wiring",
-    "behind/panel-evolution.html": "panels",
-    "ai/": "ai",
-    "ai/control.html": "ai-control",
-    "ai/speed-runs.html": "speed-runs",
-    "ai/research.html": "ai-research",
-    "ai/construction.html": "ai-construction",
-    "ai/electronics.html": "ai-electronics",
-}
-
 
 # ---------------------------------------------------------------- fonts / text
 
@@ -109,7 +101,7 @@ class Fonts:
         return ImageFont.truetype(path, size, index=self.index[0 if heavy else 1])
 
 
-def wrap(draw: ImageDraw.ImageDraw, text: str, font, width: int) -> list[str]:
+def wrap(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont, width: int) -> list[str]:
     lines: list[str] = []
     for para in text.split("\n"):
         line = ""
@@ -124,19 +116,19 @@ def wrap(draw: ImageDraw.ImageDraw, text: str, font, width: int) -> list[str]:
     return lines
 
 
-def caption_layer(fonts: Fonts, text: str, kicker: str = "", y: int = 330) -> Image.Image:
+def caption_layer(fonts: Fonts, fmt: Format, text: str, kicker: str = "", y: int = 330) -> Image.Image:
     """Caption on a dark band, kept out of TikTok's top bar and bottom/right UI.
 
     Landscape puts it in a column left of the stage, centred top to bottom.
     """
-    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    layer = Image.new("RGBA", (fmt.w, fmt.h), (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
-    if LAND:
+    if fmt.land:
         font, kfont = fonts.get(84), fonts.get(40, heavy=False)
         lines = wrap(d, text.upper(), font, 560)
         line_h, pad, x0, x1 = 88, 40, 60, 680
         block_h = len(lines) * line_h + (60 if kicker else 0)
-        top = (H - block_h) // 2
+        top = (fmt.h - block_h) // 2
         d.rounded_rectangle((x0, top - pad, x1, top + block_h + pad - 6), radius=26,
                             fill=(*BRAND, 228))
         cy = top
@@ -154,14 +146,14 @@ def caption_layer(fonts: Fonts, text: str, kicker: str = "", y: int = 330) -> Im
     pad = 34
     block_h = len(lines) * line_h + (64 if kicker else 0)
     top = y
-    box = (W // 2 - 470, top - pad, W // 2 + 470, top + block_h + pad - 6)
+    box = (fmt.w // 2 - 470, top - pad, fmt.w // 2 + 470, top + block_h + pad - 6)
     d.rounded_rectangle(box, radius=26, fill=(*BRAND, 218))
     cy = top
     if kicker:
-        d.text((W // 2, cy), kicker.upper(), font=kfont, fill=GOLD, anchor="mt")
+        d.text((fmt.w // 2, cy), kicker.upper(), font=kfont, fill=GOLD, anchor="mt")
         cy += 64
     for line in lines:
-        d.text((W // 2, cy), line, font=font, fill=WHITE, anchor="mt")
+        d.text((fmt.w // 2, cy), line, font=font, fill=WHITE, anchor="mt")
         cy += line_h
     return layer
 
@@ -170,49 +162,49 @@ def caption_layer(fonts: Fonts, text: str, kicker: str = "", y: int = 330) -> Im
 
 @dataclass
 class Segment:
-    frames: Callable[[int], Iterator[Image.Image]]  # n -> RGB frames
+    frames: Frames
     seconds: float
     caption: str = ""
     kicker: str = ""
     caption_y: int = 330
-    extra: dict = field(default_factory=dict)
 
     @property
     def n(self) -> int:
         return round(self.seconds * FPS)
 
 
-def cover(im: Image.Image, w: int, h: int, focus=(0.5, 0.5)) -> Image.Image:
+def cover(im: Image.Image, w: int, h: int, focus: tuple[float, float] = (0.5, 0.5)) -> Image.Image:
     return ImageOps.fit(im, (w, h), Image.LANCZOS, centering=focus)
 
 
-def photo(name: str, zoom=(1.0, 1.1), focus=(0.5, 0.5), drift=(0.0, 0.0)):
+def photo(fmt: Format, name: str, zoom: tuple[float, float] = (1.0, 1.1), focus: tuple[float, float] = (0.5, 0.5),
+          drift: tuple[float, float] = (0.0, 0.0)) -> Frames:
     """Slow push-in on one photo (Ken Burns), drawn from a 1.3x base."""
     def gen(n: int) -> Iterator[Image.Image]:
         src = ImageOps.exif_transpose(Image.open(PHOTOS / name)).convert("RGB")
-        if LAND and src.height > src.width:
+        if fmt.land and src.height > src.width:
             yield from framed(src, n)
             return
         k = 1.3
-        base = cover(src, int(W * k), int(H * k), focus)
+        base = cover(src, int(fmt.w * k), int(fmt.h * k), focus)
         bw, bh = base.size
         for i in range(n):
             t = i / max(n - 1, 1)
             t = t * t * (3 - 2 * t)  # ease
             z = zoom[0] + (zoom[1] - zoom[0]) * t
-            cw, ch = W * k / z, H * k / z
-            cx = bw / 2 + drift[0] * W * t
-            cy = bh / 2 + drift[1] * H * t
+            cw, ch = fmt.w * k / z, fmt.h * k / z
+            cx = bw / 2 + drift[0] * fmt.w * t
+            cy = bh / 2 + drift[1] * fmt.h * t
             box = (cx - cw / 2, cy - ch / 2, cx + cw / 2, cy + ch / 2)
-            yield base.resize((W, H), Image.BICUBIC, box=box)
+            yield base.resize((fmt.w, fmt.h), Image.BICUBIC, box=box)
     def framed(src: Image.Image, n: int) -> Iterator[Image.Image]:
         # Portrait photo in a 16:9 frame: sharp on the stage, blurred fill behind.
-        blur = cover(src, W // 8, H // 8).filter(ImageFilter.GaussianBlur(4)).resize((W, H))
-        blur = Image.blend(blur, Image.new("RGB", (W, H), BRAND), 0.45)
-        ph = STAGE[3] - STAGE[1]
+        blur = cover(src, fmt.w // 8, fmt.h // 8).filter(ImageFilter.GaussianBlur(4)).resize((fmt.w, fmt.h))
+        blur = Image.blend(blur, Image.new("RGB", (fmt.w, fmt.h), BRAND), 0.45)
+        ph = fmt.stage[3] - fmt.stage[1]
         pw = round(ph * src.width / src.height)
         sharp = src.resize((round(pw * 1.2), round(ph * 1.2)), Image.LANCZOS)
-        cx, cy = stage_centre()
+        cx, cy = fmt.centre()
         for i in range(n):
             t = i / max(n - 1, 1)
             t = t * t * (3 - 2 * t)
@@ -245,15 +237,19 @@ def video_frames(path: Path, vf: str, size: tuple[int, int], start: float = 0.0,
         raise SystemExit(f"ffmpeg could not decode {path}")
 
 
-def schematic(n: int) -> Iterator[Image.Image]:
+def schematic(fmt: Format) -> Frames:
     """The system schematic drawing itself, sped up to fit n frames."""
+    return functools.partial(_schematic, fmt)
+
+
+def _schematic(fmt: Format, n: int) -> Iterator[Image.Image]:
     src = EVOLUTION / "schematic-evolution.mp4"
     dur = float(subprocess.check_output(
         ["ffprobe", "-v", "error", "-show_entries", "format=duration",
          "-of", "csv=p=0", str(src)]).strip())
     speed = dur / (n / FPS)
     # Crop the frame border and fit the whole sheet to the phone width.
-    fw, fh = (1140, 880) if LAND else (1040, 800)
+    fw, fh = (1140, 880) if fmt.land else (1040, 800)
     vf = (f"setpts=PTS/{speed:.4f},fps={FPS},crop=1372:1058:14:11,"
           f"scale={fw}:{fh}:flags=lanczos")
     frames = list(video_frames(src, vf, (fw, fh)))
@@ -262,21 +258,25 @@ def schematic(n: int) -> Iterator[Image.Image]:
     last = frames[-1]
     for i in range(n):
         im = frames[i] if i < len(frames) else last
-        canvas = Image.new("RGB", (W, H), WHITE)
-        if LAND:
-            cx, cy = stage_centre()
+        canvas = Image.new("RGB", (fmt.w, fmt.h), WHITE)
+        if fmt.land:
+            cx, cy = fmt.centre()
             canvas.paste(im, (cx - fw // 2, cy - fh // 2))
         else:
-            canvas.paste(im, ((W - fw) // 2, 700))
+            canvas.paste(im, ((fmt.w - fw) // 2, 700))
         yield canvas
 
 
-def ctc_pan(n: int) -> Iterator[Image.Image]:
+def ctc_pan(fmt: Format) -> Frames:
     """Pan across the USS CTC machine while its changes come in (the whole film, about 8 s)."""
+    return functools.partial(_ctc_pan, fmt)
+
+
+def _ctc_pan(fmt: Format, n: int) -> Iterator[Image.Image]:
     src = EVOLUTION / "uss-panel-evolution.mp4"
-    ph = 800 if LAND else 1120
+    ph = 800 if fmt.land else 1120
     pw = round(1200 * ph / 652)
-    view = STAGE[2] - STAGE[0]
+    view = fmt.stage[2] - fmt.stage[0]
     vf = f"fps={FPS},crop=1200:652:0:62,scale={pw}:{ph}:flags=lanczos"
     frames = list(video_frames(src, vf, (pw, ph)))
     if not frames:
@@ -287,39 +287,39 @@ def ctc_pan(n: int) -> Iterator[Image.Image]:
         t = t * t * (3 - 2 * t)
         im = frames[min(len(frames) - 1, int(i * len(frames) / n))]
         x = int((pw - view) * t)
-        canvas = Image.new("RGB", (W, H), bg)
-        top = (H - ph) // 2 if LAND else 620
-        canvas.paste(im.crop((x, 0, x + view, ph)), (STAGE[0], top))
+        canvas = Image.new("RGB", (fmt.w, fmt.h), bg)
+        top = (fmt.h - ph) // 2 if fmt.land else 620
+        canvas.paste(im.crop((x, 0, x + view, ph)), (fmt.stage[0], top))
         yield canvas
 
 
-def backdrop(name: str | None) -> Image.Image:
+def backdrop(fmt: Format, name: str | None) -> Image.Image:
     """Brand colour, or a layout photo blurred and tinted towards it (a copy)."""
-    return _backdrop(name, W, H).copy()
+    return _backdrop(name, fmt).copy()
 
 
 @functools.lru_cache(maxsize=16)
-def _backdrop(name: str | None, w: int, h: int) -> Image.Image:
+def _backdrop(name: str | None, fmt: Format) -> Image.Image:
     if not name:
-        return Image.new("RGB", (W, H), BRAND)
+        return Image.new("RGB", (fmt.w, fmt.h), BRAND)
     src = ImageOps.exif_transpose(Image.open(PHOTOS / name)).convert("RGB")
-    im = cover(src, W // 4, H // 4).filter(ImageFilter.GaussianBlur(6)).resize((W, H))
-    return Image.blend(im, Image.new("RGB", (W, H), BRAND), 0.62)
+    im = cover(src, fmt.w // 4, fmt.h // 4).filter(ImageFilter.GaussianBlur(6)).resize((fmt.w, fmt.h))
+    return Image.blend(im, Image.new("RGB", (fmt.w, fmt.h), BRAND), 0.62)
 
 
-def phone_scroll(shot: Path, travel: int = 3300, start: int = 0, top: int = 410,
-                 sh: int = 1500, bg: str | None = None, hold: float = 0.12):
+def phone_scroll(fmt: Format, shot: Path, travel: int = 3300, start: int = 0, top: int = 410,
+                 sh: int = 1500, bg: str | None = None, hold: float = 0.12) -> Frames:
     """A page capture scrolling inside a rounded phone-sized card."""
     def gen(n: int) -> Iterator[Image.Image]:
         page = Image.open(shot).convert("RGB")
-        sw, sh_, top_ = (560, 940, 70) if LAND else (900, sh, top)
-        cx = stage_centre()[0]
+        sw, sh_, top_ = (560, 940, 70) if fmt.land else (900, sh, top)
+        cx = fmt.centre()[0]
         page = page.resize((sw, round(page.height * sw / page.width)), Image.LANCZOS)
         dist = max(0, min(page.height - sh_ - start, travel))
         mask = Image.new("L", (sw, sh_), 0)
         ImageDraw.Draw(mask).rounded_rectangle((0, 0, sw, sh_), radius=48, fill=255)
-        base = backdrop(bg)
-        shadow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        base = backdrop(fmt, bg)
+        shadow = Image.new("RGBA", (fmt.w, fmt.h), (0, 0, 0, 0))
         ImageDraw.Draw(shadow).rounded_rectangle(
             (cx - sw // 2 - 6, top_ + 10, cx + sw // 2 + 6, top_ + sh_ + 18), radius=54,
             fill=(0, 0, 0, 150))
@@ -336,55 +336,46 @@ def phone_scroll(shot: Path, travel: int = 3300, start: int = 0, top: int = 410,
     return gen
 
 
-def end_card(fonts: Fonts, lines=("Neville Island, Pittsburgh · HO scale",
-                                   "Follow along as it gets built")):
+def end_card(fonts: Fonts, fmt: Format, lines: Sequence[str] = ("Neville Island, Pittsburgh · HO scale",
+                                                               "Follow along as it gets built")) -> Frames:
     def gen(n: int) -> Iterator[Image.Image]:
-        card = Image.new("RGB", (W, H), BRAND)
+        card = Image.new("RGB", (fmt.w, fmt.h), BRAND)
         logo = Image.open(LOGO).convert("RGBA")
-        size, top, url_y, line_y = (420, 90, 560, 700) if LAND else (560, 420, 1060, 1200)
+        size, top, url_y, line_y = (420, 90, 560, 700) if fmt.land else (560, 420, 1060, 1200)
         logo = logo.resize((size, size), Image.LANCZOS)
-        card.paste(logo, ((W - size) // 2, top), logo)
+        card.paste(logo, ((fmt.w - size) // 2, top), logo)
         d = ImageDraw.Draw(card)
-        d.text((W // 2, url_y), "HARTRAILROAD.COM", font=fonts.get(118), fill=GOLD, anchor="mt")
+        d.text((fmt.w // 2, url_y), "HARTRAILROAD.COM", font=fonts.get(118), fill=GOLD, anchor="mt")
         for k, line in enumerate(lines):
-            d.text((W // 2, line_y + 75 * k), line,
+            d.text((fmt.w // 2, line_y + 75 * k), line,
                    font=fonts.get(54, heavy=False), fill=WHITE, anchor="mt")
         for _ in range(n):
             yield card
     return gen
 
 
-def build_cut(fonts: Fonts, shots: dict[str, Path]) -> list[Segment]:
+def build_cut(fonts: Fonts, shots: Mapping[str, Path], fmt: Format) -> list[Segment]:
     """Empty room to railroad, then the panels and the site."""
     hook = "This room was empty."
     built = "…so I built a railroad in it"
-    cuts = [  # photo, focus
-        ("IMG_5280.jpg", (0.5, 0.5)),
-        ("IMG_6653.jpg", (0.45, 0.5)),
-        ("IMG_6844.jpg", (0.5, 0.5)),
-        ("IMG_0691.jpg", (0.5, 0.5)),
-        ("IMG_7813.jpg", (0.5, 0.5)),
-        ("IMG_7915.jpg", (0.5, 0.5)),
-        ("IMG_8070.jpg", (0.5, 0.5)),
-    ]
-    segs = [Segment(photo("IMG_4038.jpg", zoom=(1.0, 1.06)), 1.8, hook)]
-    segs += [Segment(photo(p, zoom=(1.04, 1.12), focus=f), 0.6, built) for p, f in cuts]
+    segs = [Segment(photo(fmt, "IMG_4038.jpg", zoom=(1.0, 1.06)), 1.8, hook)]
+    segs += [Segment(photo(fmt, q.name, zoom=(1.04, 1.12), focus=q.focus), 0.6, built) for q in BUILD_QUICK]
     segs += [
-        Segment(photo("IMG_8904.jpg", zoom=(1.0, 1.12)), 2.6,
+        Segment(photo(fmt, "IMG_8904.jpg", zoom=(1.0, 1.12)), 2.6,
                 "Neville Island in HO", kicker="Pittsburgh · Ohio River"),
-        Segment(photo("IMG_9288.jpg", zoom=(1.12, 1.0)), 2.2,
+        Segment(photo(fmt, "IMG_9288.jpg", zoom=(1.12, 1.0)), 2.2,
                 "Real industries. Real car forwarding."),
-        Segment(schematic, 4.0, "Every track drawn and numbered", caption_y=300),
-        Segment(ctc_pan, 5.0, "Signals run from a CTC panel", caption_y=300),
-        Segment(phone_scroll(shots["home"]), 5.0, "The whole story is online",
+        Segment(schematic(fmt), 4.0, "Every track drawn and numbered", caption_y=300),
+        Segment(ctc_pan(fmt), 5.0, "Signals run from a CTC panel", caption_y=300),
+        Segment(phone_scroll(fmt, shots["home"]), 5.0, "The whole story is online",
                 caption_y=150),
-        Segment(end_card(fonts), 3.0),
+        Segment(end_card(fonts, fmt), 3.0),
     ]
     return segs
 
 
-def page_shot(shot: Path, y0: int, y1: int, x0: int = 0, x1: int = 1080,
-              tilt: float = 0.0, bg: str | None = None, area=(540, 1820)):
+def page_shot(fmt: Format, shot: Path, y0: int, y1: int, x0: int = 0, x1: int = 1080,
+              tilt: float = 0.0, bg: str | None = None, area: tuple[int, int] = (540, 1820)) -> Frames:
     """One region of a page capture as a card: pops in, then creeps closer.
 
     y0..x1 are pixels in the 1080 px wide capture. Full-width regions show at
@@ -395,10 +386,10 @@ def page_shot(shot: Path, y0: int, y1: int, x0: int = 0, x1: int = 1080,
         dw = 960 if x1 - x0 >= 1080 else 1000
         dh = round(region.height * dw / region.width)
         room = area[1] - area[0]
-        if LAND:
-            dw = min(dw, STAGE[2] - STAGE[0] - 80)
+        if fmt.land:
+            dw = min(dw, fmt.stage[2] - fmt.stage[0] - 80)
             dh = round(region.height * dw / region.width)
-            room = STAGE[3] - STAGE[1] - 40
+            room = fmt.stage[3] - fmt.stage[1] - 40
         if dh > room:
             dw, dh = round(dw * room / dh), room
         region = region.resize((dw, dh), Image.LANCZOS)
@@ -411,8 +402,8 @@ def page_shot(shot: Path, y0: int, y1: int, x0: int = 0, x1: int = 1080,
         mask = Image.new("L", (dw, dh), 0)
         ImageDraw.Draw(mask).rounded_rectangle((0, 0, dw, dh), radius=30, fill=255)
         card.paste(region, (pad, pad), mask)
-        base = backdrop(bg)
-        cx, cy = stage_centre() if LAND else (W // 2, (area[0] + area[1]) // 2)
+        base = backdrop(fmt, bg)
+        cx, cy = fmt.centre() if fmt.land else (fmt.w // 2, (area[0] + area[1]) // 2)
         for i in range(n):
             pop = 4
             if i < pop:
@@ -430,10 +421,10 @@ def page_shot(shot: Path, y0: int, y1: int, x0: int = 0, x1: int = 1080,
     return gen
 
 
-def slam(fonts: Fonts, word: str, count: str, bg: str | None):
+def slam(fonts: Fonts, fmt: Format, word: str, count: str, bg: str | None) -> Frames:
     """Section title card: the name punches in over a gold rule."""
     def gen(n: int) -> Iterator[Image.Image]:
-        base = backdrop(bg)
+        base = backdrop(fmt, bg)
         for i in range(n):
             k = min(1.0, (i + 1) / 4)
             size = round(190 * (1.35 - 0.35 * (k * (2 - k))))
@@ -441,61 +432,26 @@ def slam(fonts: Fonts, word: str, count: str, bg: str | None):
             d = ImageDraw.Draw(frame)
             font = fonts.get(size)
             lines = wrap(d, word.upper(), font, 980)
-            y = H // 2 - len(lines) * size * 0.95 / 2
-            d.text((W // 2, y - 90), count, font=fonts.get(64, heavy=False), fill=GOLD, anchor="mt")
+            y = fmt.h // 2 - len(lines) * size * 0.95 / 2
+            d.text((fmt.w // 2, y - 90), count, font=fonts.get(64, heavy=False), fill=GOLD, anchor="mt")
             for line in lines:
-                d.text((W // 2, y), line, font=font, fill=WHITE, anchor="mt")
+                d.text((fmt.w // 2, y), line, font=font, fill=WHITE, anchor="mt")
                 y += size * 0.95
-            d.rectangle((W // 2 - 150, y + 30, W // 2 + 150, y + 42), fill=GOLD)
+            d.rectangle((fmt.w // 2 - 150, y + 30, fmt.w // 2 + 150, y + 42), fill=GOLD)
             yield frame
     return gen
 
 
-def site_cut(fonts: Fonts, shots: dict[str, Path]) -> list[Segment]:
-    """Rapid-fire tour of the site: four sections, a title slam then quick shots."""
-    sections = [  # name, caption, backdrop, shots (page, y0, y1, x0, x1, tilt)
-        ("Prototype", "Real Neville Island history", "IMG_9231.jpg", [
-            ("history", 120, 1400, 0, 1080, 0),
-            ("photos", 1900, 3000, 0, 1080, -3),
-            ("plants", 4300, 5700, 0, 1080, 0),
-            ("photos", 2900, 4000, 0, 1080, 3),
-            ("railroads", 2700, 3700, 0, 1080, 0),
-            ("photos", 5800, 6950, 0, 1080, -2.5),
-        ]),
-        ("Operations", "Car cards, waybills and crew sheets", "IMG_8904.jpg", [
-            ("cards", 330, 1650, 60, 1020, 0),
-            ("cards", 3360, 4440, 150, 930, -3),
-            ("cards", 4500, 5560, 150, 930, 3),
-            ("crew", 560, 2300, 0, 1080, 0),
-            ("room", 1150, 2500, 0, 1080, -2),
-            ("cards", 6560, 7160, 20, 780, 0),
-        ]),
-        ("Behind the Scenes", "How it's built, wired and signalled", "IMG_7813.jpg", [
-            ("behind", 280, 660, 20, 560, 0),
-            ("behind", 2230, 2960, 0, 1080, 3),
-            ("signals", 1600, 2550, 0, 1080, 0),
-            ("wiring", 1350, 2750, 0, 1080, -3),
-            ("build", 5550, 6800, 0, 1080, 0),
-            ("panels", 5400, 6000, 380, 700, 2.5),
-            ("build", 4250, 5500, 0, 1080, 0),
-        ]),
-        ("The Diverging Route", "How AI helps build and run it", "IMG_9288.jpg", [
-            ("ai", 600, 2150, 0, 1080, 0),
-            ("speed-runs", 2600, 3450, 0, 1080, -3),
-            ("speed-runs", 6100, 6950, 0, 1080, 0),
-            ("ai-control", 0, 1650, 0, 1080, 3),
-            ("ai", 4300, 5450, 0, 1080, 0),
-            ("ai", 7150, 7700, 0, 1080, -2),
-        ]),
-    ]
-    segs = [Segment(page_shot(shots["home"], 0, 1950, bg="IMG_8904.jpg"), 2.1,
+def site_cut(fonts: Fonts, shots: Mapping[str, Path], fmt: Format) -> list[Segment]:
+    """Rapid-fire tour of the site: the sections of SITE_SECTIONS, each a title slam then quick shots."""
+    segs = [Segment(page_shot(fmt, shots["home"], 0, 1950, bg="IMG_8904.jpg"), 2.1,
                     "My model railroad has its own website", caption_y=150)]
-    for k, (name, caption, bg, picks) in enumerate(sections, 1):
-        segs.append(Segment(slam(fonts, name, f"{k} / {len(sections)}", bg), 0.7))
-        for page, y0, y1, x0, x1, tilt in picks:
-            segs.append(Segment(page_shot(shots[page], y0, y1, x0, x1, tilt, bg), 0.7,
-                                caption, kicker=name, caption_y=150))
-    segs.append(Segment(end_card(fonts, ("Prototype · Operations · Behind the Scenes",
+    for k, sec in enumerate(SITE_SECTIONS, 1):
+        segs.append(Segment(slam(fonts, fmt, sec.name, f"{k} / {len(SITE_SECTIONS)}", sec.backdrop), 0.7))
+        for r in sec.regions:
+            segs.append(Segment(page_shot(fmt, shots[r.page], r.y0, r.y1, r.x0, r.x1, r.tilt, sec.backdrop), 0.7,
+                                sec.caption, kicker=sec.name, caption_y=150))
+    segs.append(Segment(end_card(fonts, fmt, ("Prototype · Operations · Behind the Scenes",
                                          "The Diverging Route: AI in model railroading")),
                         3.5))
     return segs
@@ -554,7 +510,7 @@ def load_vo(voice: str) -> list[VoLine]:
     return lines
 
 
-def timed(shots: list[tuple[float, Callable, str, str]], end: float) -> list[Segment]:
+def timed(shots: Sequence[tuple[float, Frames, str, str]], end: float) -> list[Segment]:
     """(start second, frames, caption, kicker) shots, each running to the next start.
 
     Frame counts come from the cumulative timeline so the cuts never drift.
@@ -567,69 +523,69 @@ def timed(shots: list[tuple[float, Callable, str, str]], end: float) -> list[Seg
     return segs
 
 
-def route_card(fonts: Fonts):
+def route_card(fonts: Fonts, fmt: Format) -> Frames:
     """End card: the series name, where to find it, and the stay-tuned line."""
     def gen(n: int) -> Iterator[Image.Image]:
-        card = Image.new("RGB", (W, H), BRAND)
+        card = Image.new("RGB", (fmt.w, fmt.h), BRAND)
         logo = Image.open(LOGO).convert("RGBA").resize((360, 360), Image.LANCZOS)
-        card.paste(logo, ((W - 360) // 2, 300), logo)
+        card.paste(logo, ((fmt.w - 360) // 2, 300), logo)
         d = ImageDraw.Draw(card)
-        d.text((W // 2, 760), "THE DIVERGING", font=fonts.get(150), fill=WHITE, anchor="mt")
-        d.text((W // 2, 905), "ROUTE", font=fonts.get(150), fill=WHITE, anchor="mt")
-        d.rectangle((W // 2 - 150, 1080, W // 2 + 150, 1092), fill=GOLD)
-        d.text((W // 2, 1130), "AI in model railroading", font=fonts.get(60, heavy=False),
+        d.text((fmt.w // 2, 760), "THE DIVERGING", font=fonts.get(150), fill=WHITE, anchor="mt")
+        d.text((fmt.w // 2, 905), "ROUTE", font=fonts.get(150), fill=WHITE, anchor="mt")
+        d.rectangle((fmt.w // 2 - 150, 1080, fmt.w // 2 + 150, 1092), fill=GOLD)
+        d.text((fmt.w // 2, 1130), "AI in model railroading", font=fonts.get(60, heavy=False),
                fill=WHITE, anchor="mt")
-        d.text((W // 2, 1250), "HARTRAILROAD.COM/AI", font=fonts.get(104), fill=GOLD, anchor="mt")
-        d.text((W // 2, 1400), "Video series coming soon · stay tuned",
+        d.text((fmt.w // 2, 1250), "HARTRAILROAD.COM/AI", font=fonts.get(104), fill=GOLD, anchor="mt")
+        d.text((fmt.w // 2, 1400), "Video series coming soon · stay tuned",
                font=fonts.get(54, heavy=False), fill=WHITE, anchor="mt")
         for i in range(n):
             k = min(1.0, (i + 1) / 5)
             if k < 1:  # quick settle from a slight zoom
                 z = 1.06 - 0.06 * (k * (2 - k))
-                im = card.resize((round(W * z), round(H * z)), Image.BICUBIC)
-                x, y = (im.width - W) // 2, (im.height - H) // 2
-                yield im.crop((x, y, x + W, y + H))
+                im = card.resize((round(fmt.w * z), round(fmt.h * z)), Image.BICUBIC)
+                x, y = (im.width - fmt.w) // 2, (im.height - fmt.h) // 2
+                yield im.crop((x, y, x + fmt.w, y + fmt.h))
             else:
                 yield card
     return gen
 
 
-def diverging_cut(fonts: Fonts, shots: dict[str, Path], voice: str) -> list[Segment]:
+def diverging_cut(fonts: Fonts, shots: Mapping[str, Path], voice: str, fmt: Format) -> list[Segment]:
     """The Diverging Route series promo, cut to the voiceover's words."""
     L = {ln.key: ln for ln in load_vo(voice)}
-    ai, ps = shots["ai"], page_shot
+    ai, ps = shots["ai"], functools.partial(page_shot, fmt)
     kick = "The Diverging Route"
     intro, title, switch = L["intro"], L["title"], L["switch"]
     hob, jobs, verdict, same, cta = L["hobbies"], L["jobs"], L["verdict"], L["same"], L["cta"]
     end = cta.start + cta.seconds + VO_TAIL
     sw, hb, sm = "Diverging route:", "Many hobbies in one", same.caption
     plan = [
-        (0.0, photo("IMG_8904.jpg", zoom=(1.0, 1.14)), intro.caption, ""),
-        (intro.start + intro.seconds * 0.55, photo("IMG_8947.jpg", zoom=(1.04, 1.16)), intro.caption, ""),
-        (title.start, slam(fonts, "The Diverging Route", "A new series", "IMG_8904.jpg"), "", ""),
+        (0.0, photo(fmt, "IMG_8904.jpg", zoom=(1.0, 1.14)), intro.caption, ""),
+        (intro.start + intro.seconds * 0.55, photo(fmt, "IMG_8947.jpg", zoom=(1.04, 1.16)), intro.caption, ""),
+        (title.start, slam(fonts, fmt, "The Diverging Route", "A new series", "IMG_8904.jpg"), "", ""),
         (title.at("new"), ps(ai, 560, 1900, bg="IMG_9231.jpg"), title.caption, ""),
-        (title.at("model"), photo("IMG_8307.jpg", zoom=(1.05, 1.18)), title.caption, ""),
-        (switch.start, photo("IMG_9231.jpg", zoom=(1.0, 1.16), drift=(0.0, -0.04)),
+        (title.at("model"), photo(fmt, "IMG_8307.jpg", zoom=(1.05, 1.18)), title.caption, ""),
+        (switch.start, photo(fmt, "IMG_9231.jpg", zoom=(1.0, 1.16), drift=(0.0, -0.04)),
          switch.caption, sw),
-        (switch.at("other"), photo("IMG_8070.jpg", zoom=(1.04, 1.16), focus=(0.4, 0.6)),
+        (switch.at("other"), photo(fmt, "IMG_8070.jpg", zoom=(1.04, 1.16), focus=(0.4, 0.6)),
          switch.caption, sw),
         (switch.at("switch"), ps(ai, 700, 1800, 0, 700, tilt=-2, bg="IMG_9231.jpg"),
          switch.caption, sw),
-        (switch.at("leaves"), photo("IMG_7956.jpg", zoom=(1.04, 1.16)), switch.caption, sw),
-        (switch.at("somewhere"), photo("IMG_9231.jpg", zoom=(1.25, 1.4), focus=(0.4, 0.7)),
+        (switch.at("leaves"), photo(fmt, "IMG_7956.jpg", zoom=(1.04, 1.16)), switch.caption, sw),
+        (switch.at("somewhere"), photo(fmt, "IMG_9231.jpg", zoom=(1.25, 1.4), focus=(0.4, 0.7)),
          switch.caption, sw),
-        (hob.start, photo("IMG_7915.jpg", zoom=(1.0, 1.1)), hb, ""),
+        (hob.start, photo(fmt, "IMG_7915.jpg", zoom=(1.0, 1.1)), hb, ""),
         (hob.at("historian"), ps(shots["photos"], 1900, 3000, tilt=-2, bg="IMG_9231.jpg"),
          "Historian", hb),
-        (hob.at("carpenter"), photo("IMG_6653.jpg", zoom=(1.05, 1.15)), "Carpenter", hb),
-        (hob.at("electrician"), photo("IMG_7813.jpg", zoom=(1.05, 1.15)), "Electrician", hb),
-        (hob.at("signal"), ctc_pan, "Signal engineer", hb),
-        (hob.at("programmer"), photo("IMG_7471.jpg", zoom=(1.05, 1.18)), "Programmer", hb),
+        (hob.at("carpenter"), photo(fmt, "IMG_6653.jpg", zoom=(1.05, 1.15)), "Carpenter", hb),
+        (hob.at("electrician"), photo(fmt, "IMG_7813.jpg", zoom=(1.05, 1.15)), "Electrician", hb),
+        (hob.at("signal"), ctc_pan(fmt), "Signal engineer", hb),
+        (hob.at("programmer"), photo(fmt, "IMG_7471.jpg", zoom=(1.05, 1.18)), "Programmer", hb),
         (jobs.start, ps(ai, 3880, 4460, bg="IMG_8904.jpg"), jobs.caption, kick),
-        (jobs.at("every"), photo("IMG_8120.jpg", zoom=(1.04, 1.14)), jobs.caption, kick),
+        (jobs.at("every"), photo(fmt, "IMG_8120.jpg", zoom=(1.04, 1.14)), jobs.caption, kick),
         (jobs.at("research"), ps(shots["ai-research"], 250, 1350, bg="IMG_9231.jpg"),
          "The research", kick),
-        (jobs.at("helix"), photo("IMG_0883.jpg", zoom=(1.04, 1.16)), "The helix", kick),
+        (jobs.at("helix"), photo(fmt, "IMG_0883.jpg", zoom=(1.04, 1.16)), "The helix", kick),
         (jobs.at("wiring"), ps(shots["ai-electronics"], 250, 1350, tilt=-2, bg="IMG_7813.jpg"),
          "The wiring", kick),
         (jobs.at("signals"), ps(shots["signals"], 1600, 2550, bg="IMG_7813.jpg"),
@@ -644,14 +600,14 @@ def diverging_cut(fonts: Fonts, shots: dict[str, Path], voice: str) -> list[Segm
          "What came out", kick),
         (verdict.at("honest"), ps(shots["ai-research"], 2950, 3360, tilt=2, bg="IMG_9288.jpg"),
          "An honest verdict", kick),
-        (same.start, photo("IMG_9288.jpg", zoom=(1.0, 1.16)), sm, ""),
-        (same.at("destination"), photo("IMG_8904.jpg", zoom=(1.2, 1.35), focus=(0.5, 0.6)),
+        (same.start, photo(fmt, "IMG_9288.jpg", zoom=(1.0, 1.16)), sm, ""),
+        (same.at("destination"), photo(fmt, "IMG_8904.jpg", zoom=(1.2, 1.35), focus=(0.5, 0.6)),
          sm, ""),
-        (same.at("running"), photo("IMG_8947.jpg", zoom=(1.1, 1.25)), "More time running trains",
+        (same.at("running"), photo(fmt, "IMG_8947.jpg", zoom=(1.1, 1.25)), "More time running trains",
          ""),
-        (cta.start, phone_scroll(ai, travel=2600, start=0, bg="IMG_8904.jpg", hold=0.05),
+        (cta.start, phone_scroll(fmt, ai, travel=2600, start=0, bg="IMG_8904.jpg", hold=0.05),
          "Find it at hartrailroad.com", kick),
-        (cta.at("stay"), route_card(fonts), "", ""),
+        (cta.at("stay"), route_card(fonts, fmt), "", ""),
     ]
     times = [p[0] for p in plan]
     if times != sorted(times):
@@ -710,13 +666,9 @@ def add_voice(voice: str, video: Path, seconds: float, tmp: Path, music: bool) -
     mixed.replace(video)
 
 
-CUTS = {"build": build_cut, "site": site_cut, "diverging": diverging_cut}
-CUT_PAGES = {  # captures each cut reads
-    "build": {"home"},
-    "site": set(PAGES.values()) - {"ai-research", "ai-construction", "ai-electronics"},
-    "diverging": {"ai", "photos", "signals", "cards", "speed-runs", "ai-research", "ai-electronics"},
-}
-
+# The cuts main() renders; diverging_cut also takes a voice, so main() calls it on its own.
+CUTS: dict[str, Callable[[Fonts, Mapping[str, Path], Format], list[Segment]]] = {"build": build_cut, "site": site_cut}
+CUT_NAMES = ("build", "site", "diverging")
 
 # ---------------------------------------------------------------- render
 
@@ -752,10 +704,10 @@ def capture_pages(out: Path, stems: set[str]) -> dict[str, Path]:
     return shots
 
 
-def render(segs: list[Segment], fonts: Fonts, out: Path) -> None:
+def render(segs: Sequence[Segment], fonts: Fonts, out: Path, fmt: Format) -> None:
     enc = subprocess.Popen(
         ["ffmpeg", "-v", "error", "-y",
-         "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
+         "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{fmt.w}x{fmt.h}", "-r", str(FPS), "-i", "-",
          "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo", "-shortest",
          "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p",
          "-profile:v", "high", "-movflags", "+faststart", "-c:a", "aac", "-b:a", "128k",
@@ -767,7 +719,7 @@ def render(segs: list[Segment], fonts: Fonts, out: Path) -> None:
         key = (seg.caption, seg.kicker, seg.caption_y)
         layer = None
         if seg.caption:
-            layer = cache.get(key) or caption_layer(fonts, seg.caption, seg.kicker, seg.caption_y)
+            layer = cache.get(key) or caption_layer(fonts, fmt, seg.caption, seg.kicker, seg.caption_y)
             cache[key] = layer
         fade = 5 if key != prev else 0  # fade only when the caption changes
         for i, frame in enumerate(seg.frames(seg.n)):
@@ -810,7 +762,7 @@ def main() -> None:
                     help="folder with Barlow Condensed .ttf files (tools/promo/fonts)")
     ap.add_argument("--format", choices=("vertical", "landscape"), default="vertical",
                     help="vertical 1080x1920 (TikTok/Shorts) or landscape 1920x1080 (YouTube)")
-    ap.add_argument("--cuts", default="build,site", help="comma list of: " + ", ".join(CUTS))
+    ap.add_argument("--cuts", default="build,site", help="comma list of: " + ", ".join(CUT_NAMES))
     ap.add_argument("--music", action="store_true",
                     help="mix in the cut's original soundtrack (soundtrack.py), -14 LUFS")
     ap.add_argument("--voice", default="owner,generic",
@@ -819,9 +771,9 @@ def main() -> None:
                     help="folder for page captures; existing files are reused")
     args = ap.parse_args()
     cuts = args.cuts.split(",")
-    unknown = [c for c in cuts if c not in CUTS]
+    unknown = [c for c in cuts if c not in CUT_NAMES]
     if unknown:
-        ap.error(f"unknown cut(s): {', '.join(unknown)}; choose from {', '.join(CUTS)}")
+        ap.error(f"unknown cut(s): {', '.join(unknown)}; choose from {', '.join(CUT_NAMES)}")
     voices = [v.strip() for v in args.voice.split(",") if v.strip()]
     if "diverging" in cuts:
         bad = [v for v in voices if v not in vo_voices()]
@@ -834,23 +786,23 @@ def main() -> None:
         raise SystemExit("ffmpeg not found")
     args.out.mkdir(parents=True, exist_ok=True)
     fonts = Fonts(args.font_dir)
-    set_format(args.format)
-    suffix = "-youtube" if LAND else ""
+    fmt = FORMATS[args.format]
+    suffix = "-youtube" if fmt.land else ""
     with tempfile.TemporaryDirectory() as tmp:
         shots = capture_pages(args.shots, set().union(*(CUT_PAGES[c] for c in cuts)))
         for cut in cuts:
             if cut == "diverging":
                 for voice in voices:
                     out = args.out / f"hart-promo-diverging-{voice}{suffix}.mp4"
-                    segs = diverging_cut(fonts, shots, voice)
-                    render(segs, fonts, out)
+                    segs = diverging_cut(fonts, shots, voice, fmt)
+                    render(segs, fonts, out, fmt)
                     add_voice(voice, out, sum(seg.n for seg in segs) / FPS, Path(tmp),
                               args.music)
                     print(out)
                 continue
             out = args.out / f"hart-promo-{cut}{suffix}.mp4"
-            segs = CUTS[cut](fonts, shots)
-            render(segs, fonts, out)
+            segs = CUTS[cut](fonts, shots, fmt)
+            render(segs, fonts, out, fmt)
             if args.music:
                 add_music(cut, out, sum(seg.n for seg in segs) / FPS, Path(tmp))
             print(out)

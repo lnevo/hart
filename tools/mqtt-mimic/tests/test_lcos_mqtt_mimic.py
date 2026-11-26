@@ -238,5 +238,58 @@ class SortAndReconnect(unittest.TestCase):
         self.assertFalse(bus.connected)
         self.assertEqual(events[-1], {"type": "mqtt", "connected": False, "error": "the subscriber stopped"})
 
+
+class StagingStepsTest(unittest.TestCase):
+    """load_layout's staging steps on a small tables root and a fake device index (no files, no broker)."""
+
+    class FakeIndex:
+        def __init__(self, rows: dict[str, set[str]]) -> None:
+            self.rows = rows
+
+        def has(self, layer: str, name: str) -> bool:
+            return name in self.rows.get(layer, set())
+
+        def names(self, layer: str, roles: object = None) -> list[str]:
+            return sorted(self.rows.get(layer, set()))
+
+    ROOT_XML = """<layout-config><sensors>
+      <sensor><systemName>M2S100</systemName><userName>FB 7 N</userName></sensor>
+      <sensor><systemName>M2S101</systemName><userName>FB 7 R</userName></sensor>
+      <sensor><systemName>IS9</systemName><userName>Internal</userName></sensor>
+    </sensors><turnouts>
+      <turnout feedback="twosensor" sensor1="FB 7 R" sensor2="FB 7 N"><systemName>M2T7</systemName>
+        <userName>Switch 7</userName></turnout>
+      <turnout feedback="direct"><systemName>M2T3</systemName><userName>Switch 3</userName></turnout>
+      <turnout><systemName>M2T99</systemName><userName>Switch 99</userName></turnout>
+    </turnouts></layout-config>"""
+
+    def setUp(self) -> None:
+        import xml.etree.ElementTree as ET
+
+        self.m = load_module()
+        self.root = ET.fromstring(self.ROOT_XML)
+
+    def test_sensors_are_the_m2s_ones_by_address(self) -> None:
+        sensors = self.m._staging_sensors(self.root)
+        self.assertEqual(sorted(sensors), ["100", "101"])
+        self.assertEqual((sensors["100"].user_name, sensors["100"].system_name), ("FB 7 N", "M2S100"))
+
+    def test_a_twosensor_turnout_carries_its_feedback_addresses(self) -> None:
+        import contextlib
+        import io
+
+        index = self.FakeIndex({"turnout": {"Switch 7", "Switch 3"}})
+        by_user = {"FB 7 N": "100", "FB 7 R": "101"}
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            got = self.m._staging_turnouts(self.root, index, by_user, {"turnout": {"Switch 7": "Plane"}})
+        self.assertEqual([t["num"] for t in got], [7, 3])     # Plane sorts before Other
+        seven, three = got
+        self.assertEqual((seven["feedback"], seven["n_addr"], seven["r_addr"], seven["plant"]),
+                         ("TWOSENSOR", "100", "101", "Plane"))
+        self.assertEqual((three["n_addr"], three["r_addr"]), (None, None))
+        self.assertIn("M2T99 (Switch 99)", err.getvalue())     # no device-master row: named and left out
+
+
 if __name__ == "__main__":
     unittest.main()

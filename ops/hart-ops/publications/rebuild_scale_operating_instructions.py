@@ -5,11 +5,13 @@ The body text comes from the crew master, ops/hart-ops/data/crew.json ("scale");
 from the canonical docx, then rewrites publication lines and everything
 from SECTION 1 onward.
 
-Usage (from repo root):
+The canonical docx is also the template: each run reads the last one written.
+
+Usage (from ops/hart-ops):
   .venv/bin/python publications/rebuild_scale_operating_instructions.py
 
 Writes:
-  docs/HART Railroad Scale Operating Instructions.docx
+  docs/ops/HART Railroad Scale Operating Instructions.docx
 """
 
 from __future__ import annotations
@@ -18,19 +20,22 @@ import shutil
 import sys
 from copy import deepcopy
 from pathlib import Path
+from typing import Literal, TypedDict, cast
 
 from docx import Document
+from docx.document import Document as DocxDocument
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
+from docx.oxml.xmlchemy import BaseOxmlElement
+from docx.text.paragraph import Paragraph
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT.parents[1] / "docs/ops"
 CANONICAL = DOCS / "HART Railroad Scale Operating Instructions.docx"
-# Masthead/art baseline (Revision D layout). Prefer canonical if present.
+# Masthead and artwork baseline (Revision D layout): the canonical docx, else the Revision D copy.
 TEMPLATE_CANDIDATES = [
     CANONICAL,
     DOCS / "HART Railroad Scale Operating Instructions_RevD.docx",
-    DOCS / "HART Railroad Scale Operating Instructions.docx",
 ]
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -49,34 +54,55 @@ PUBLICATION = {
     "official": "Official Publication",
 }
 
-# Layout of each section's heading, by section number (the Revision D layout). A spacer is an empty Heading 1 that
-# keeps the column rhythm (user edit) before Section 3.
-SECTION_LAYOUT: dict[int, dict] = {
+BlockKind = Literal["h1", "h2", "intro", "steps", "spacer"]
+
+
+class Block(TypedDict, total=False):
+    """One body block after Official Publication; h1 blocks carry their section's layout."""
+
+    kind: BlockKind
+    text: str
+    items: list[str]
+    space_before: str
+    column_break_before: bool
+    heading_color: str
+
+
+class SectionLayout(TypedDict, total=False):
+    space_before: str
+    column_break_before: bool
+    heading_color: str
+    spacer_before: bool  # an empty Heading 1 before the section keeps the column rhythm
+
+
+# Layout of each section's heading, by section number (the Revision D layout).
+SECTION_LAYOUT: dict[int, SectionLayout] = {
     1: {"space_before": "0"},
     2: {"column_break_before": True, "space_before": "0", "heading_color": "0F4761"},
     3: {"spacer_before": True},
 }
 
 
-def _content() -> list[dict]:
-    """Body content after Official Publication. kind: h1 | h2 | intro | steps | spacer."""
-    out: list[dict] = []
+def _content() -> list[Block]:
+    """The crew master's EQ-01 blocks with each section's heading layout applied."""
+    out: list[Block] = []
     n = 0
-    for block in crew_master.scale_blocks({"scale": _SCALE}):
+    for raw in crew_master.scale_blocks({"scale": _SCALE}):
+        block = cast(Block, raw)
         if block["kind"] == "h1":
             n += 1
             layout = dict(SECTION_LAYOUT.get(n, {}))
             if layout.pop("spacer_before", False):
                 out.append({"kind": "spacer"})
-            block = {**block, **layout}
+            block = cast(Block, {**block, **layout})
         out.append(block)
     return out
 
 
-CONTENT: list[dict] = _content()
+CONTENT: list[Block] = _content()
 
 
-def _ensure_pPr(p_el):
+def _ensure_pPr(p_el: BaseOxmlElement) -> BaseOxmlElement:
     pPr = p_el.find(qn("w:pPr"))
     if pPr is None:
         pPr = OxmlElement("w:pPr")
@@ -84,7 +110,7 @@ def _ensure_pPr(p_el):
     return pPr
 
 
-def _set_p_style(p_el, style_id: str) -> None:
+def _set_p_style(p_el: BaseOxmlElement, style_id: str) -> None:
     pPr = _ensure_pPr(p_el)
     pStyle = pPr.find(qn("w:pStyle"))
     if pStyle is None:
@@ -93,7 +119,7 @@ def _set_p_style(p_el, style_id: str) -> None:
     pStyle.set(qn("w:val"), style_id)
 
 
-def _set_spacing_before(p_el, before: str) -> None:
+def _set_spacing_before(p_el: BaseOxmlElement, before: str) -> None:
     pPr = _ensure_pPr(p_el)
     sp = pPr.find(qn("w:spacing"))
     if sp is None:
@@ -102,7 +128,7 @@ def _set_spacing_before(p_el, before: str) -> None:
     sp.set(qn("w:before"), before)
 
 
-def _set_ind_left(p_el, left: str = "540") -> None:
+def _set_ind_left(p_el: BaseOxmlElement, left: str = "540") -> None:
     pPr = _ensure_pPr(p_el)
     ind = pPr.find(qn("w:ind"))
     if ind is None:
@@ -115,14 +141,8 @@ def _set_ind_left(p_el, left: str = "540") -> None:
     ind.set(qn("w:left"), left)
 
 
-def _clear_runs(p_el) -> None:
-    for child in list(p_el):
-        if child.tag != qn("w:pPr"):
-            p_el.remove(child)
-
-
 def _add_text_run(
-    p_el,
+    p_el: BaseOxmlElement,
     text: str,
     *,
     sz: str | None = None,
@@ -150,7 +170,7 @@ def _add_text_run(
     p_el.append(r)
 
 
-def _add_break_run(p_el, break_type: str, at_start: bool = False) -> None:
+def _add_break_run(p_el: BaseOxmlElement, break_type: str, at_start: bool = False) -> None:
     r = OxmlElement("w:r")
     br = OxmlElement("w:br")
     br.set(qn("w:type"), break_type)
@@ -162,7 +182,7 @@ def _add_break_run(p_el, break_type: str, at_start: bool = False) -> None:
         p_el.append(r)
 
 
-def _set_numPr(p_el, num_id: str) -> None:
+def _set_numPr(p_el: BaseOxmlElement, num_id: str) -> None:
     pPr = _ensure_pPr(p_el)
     old = pPr.find(qn("w:numPr"))
     if old is not None:
@@ -192,7 +212,7 @@ def _set_numPr(p_el, num_id: str) -> None:
         rPr.append(el)
 
 
-def _new_list_num(numbering, abstract_src: str = "2") -> str:
+def _new_list_num(numbering: BaseOxmlElement, abstract_src: str = "2") -> str:
     """Clone abstract + num with startOverride so each subsection restarts at 1."""
     src = None
     for an in numbering.findall(qn("w:abstractNum")):
@@ -241,7 +261,7 @@ def _new_list_num(numbering, abstract_src: str = "2") -> str:
     return str(new_num_id)
 
 
-def _set_text_preserve_runs(p, text: str) -> None:
+def _set_text_preserve_runs(p: Paragraph, text: str) -> None:
     texts = p._p.findall(".//" + qn("w:t"))
     if texts:
         texts[0].text = text
@@ -261,9 +281,9 @@ def _find_template() -> Path:
     )
 
 
-def _update_masthead(doc: Document) -> None:
-    """Refresh publication block lines; leave decorative drawings alone."""
-    replacements = {
+def _masthead_replacements() -> dict[str, str]:
+    """Masthead line prefix -> the line it becomes, tried in this order."""
+    return {
         "Scale Operating Instructions": PUBLICATION["title_line"],
         "Neville Island Operations": PUBLICATION["ops"],
         "Issuing Authority:": PUBLICATION["authority"],
@@ -272,29 +292,28 @@ def _update_masthead(doc: Document) -> None:
         "Revision ": PUBLICATION["revision"],
         "Official Publication": PUBLICATION["official"],
     }
+
+
+def _update_masthead(doc: DocxDocument) -> None:
+    """Refresh the publication lines of the masthead; the drawings stay as they are.
+
+    A line is replaced by the first prefix it starts with (or the line it would become). A line
+    that names the title and a revision anywhere becomes the title line.
+    """
+    replacements = _masthead_replacements()
     for p in doc.paragraphs:
         t = (p.text or "").strip()
         if not t:
             continue
         for prefix, new in replacements.items():
             if t.startswith(prefix) or t == new:
-                # Exact / prefix match for known masthead lines
-                if prefix == "Revision " and not (
-                    t.startswith("Revision ") or t.startswith("Scale Operating")
-                ):
-                    continue
-                if prefix == "Scale Operating Instructions" and "Scale Operating" not in t:
-                    continue
-                if prefix == "Revision " and t.startswith("Scale Operating"):
-                    continue
                 _set_text_preserve_runs(p, new)
                 break
-        # Title line may already be full string
         if "Scale Operating Instructions" in t and "Revision" in t:
             _set_text_preserve_runs(p, PUBLICATION["title_line"])
 
 
-def _strip_body_after_official(doc: Document):
+def _strip_body_after_official(doc: DocxDocument) -> Paragraph:
     """Remove all paragraphs after Official Publication; return that paragraph."""
     official = None
     for p in doc.paragraphs:
@@ -337,7 +356,7 @@ def _strip_body_after_official(doc: Document):
     return official
 
 
-def _ensure_two_columns(doc: Document) -> None:
+def _ensure_two_columns(doc: DocxDocument) -> None:
     body = doc.element.body
     sect = None
     for child in body:
@@ -358,91 +377,69 @@ def _ensure_two_columns(doc: Document) -> None:
     cols.set(qn("w:equalWidth"), "1")
 
 
-def _new_paragraph(style_id: str) -> OxmlElement:
+def _new_paragraph(style_id: str) -> BaseOxmlElement:
     p = OxmlElement("w:p")
     _set_p_style(p, style_id)
     return p
 
 
+def _block_paragraphs(block: Block, numbering: BaseOxmlElement) -> list[BaseOxmlElement]:
+    """The paragraphs of one body block, in order."""
+    kind = block["kind"]
+    if kind == "spacer":
+        return [_new_paragraph("Heading1")]
+    if kind == "h1":
+        p = _new_paragraph("Heading1")
+        if block.get("space_before") is not None:
+            _set_spacing_before(p, block["space_before"])
+        if block.get("column_break_before"):
+            _add_break_run(p, "column", at_start=True)
+        _add_text_run(p, block["text"], sz="26", color=block.get("heading_color"))
+        return [p]
+    if kind == "h2":
+        p = _new_paragraph("Heading2")
+        ind = OxmlElement("w:ind")  # the Heading 2 outdent of this publication
+        ind.set(qn("w:left"), "-180")
+        _ensure_pPr(p).append(ind)
+        _add_text_run(p, block["text"], sz="23")
+        return [p]
+    if kind == "intro":
+        p = _new_paragraph("FirstParagraph")
+        _add_text_run(p, block["text"], sz="22")
+        return [p]
+    if kind == "steps":
+        num_id = _new_list_num(numbering, "2")
+        out = []
+        for item in block["items"]:
+            p = _new_paragraph("Compact")
+            _set_numPr(p, num_id)
+            _set_ind_left(p, "540")
+            _add_text_run(p, item, sz="22")
+            out.append(p)
+        return out
+    raise ValueError(f"Unknown block kind: {kind}")
+
+
 def rebuild(out: Path = CANONICAL) -> Path:
+    """Rewrite the masthead lines and the body of the template into ``out``."""
     template = _find_template()
-    if template.resolve() != out.resolve():
-        shutil.copy2(template, out)
-    else:
-        # Working copy so we can rebuild in place safely
-        tmp = out.with_suffix(".rebuild.docx")
-        shutil.copy2(template, tmp)
-        out = tmp
+    # Work on a copy so the template can be the canonical docx itself.
+    work = out if template.resolve() != out.resolve() else out.with_suffix(".rebuild.docx")
+    shutil.copy2(template, work)
 
-    doc = Document(out)
+    doc = Document(str(work))
     numbering = doc.part.numbering_part._element
-
     _update_masthead(doc)
-    official = _strip_body_after_official(doc)
-    insert_after = official._p
-
-    def append_p(p_el):
-        nonlocal insert_after
-        insert_after.addnext(p_el)
-        insert_after = p_el
-
+    insert_after = _strip_body_after_official(doc)._p
     for block in CONTENT:
-        kind = block["kind"]
-        if kind == "spacer":
-            p = _new_paragraph("Heading1")
-            append_p(p)
-            continue
-
-        if kind == "h1":
-            p = _new_paragraph("Heading1")
-            if block.get("space_before") is not None:
-                _set_spacing_before(p, block["space_before"])
-            if block.get("column_break_before"):
-                _add_break_run(p, "column", at_start=True)
-            _add_text_run(
-                p,
-                block["text"],
-                sz="26",
-                color=block.get("heading_color"),
-            )
-            append_p(p)
-            continue
-
-        if kind == "h2":
-            p = _new_paragraph("Heading2")
-            # Match existing Heading 2 outdent used in this publication
-            pPr = _ensure_pPr(p)
-            ind = OxmlElement("w:ind")
-            ind.set(qn("w:left"), "-180")
-            pPr.append(ind)
-            _add_text_run(p, block["text"], sz="23")
-            append_p(p)
-            continue
-
-        if kind == "intro":
-            p = _new_paragraph("FirstParagraph")
-            _add_text_run(p, block["text"], sz="22")
-            append_p(p)
-            continue
-
-        if kind == "steps":
-            num_id = _new_list_num(numbering, "2")
-            for item in block["items"]:
-                p = _new_paragraph("Compact")
-                _set_numPr(p, num_id)
-                _set_ind_left(p, "540")
-                _add_text_run(p, item, sz="22")
-                append_p(p)
-            continue
-
-        raise ValueError(f"Unknown block kind: {kind}")
-
+        for p in _block_paragraphs(block, numbering):
+            insert_after.addnext(p)
+            insert_after = p
     _ensure_two_columns(doc)
-    final = CANONICAL
-    doc.save(final)
-    if out != final and out.exists() and out.suffix == ".docx" and "rebuild" in out.name:
-        out.unlink(missing_ok=True)
-    return final
+    doc.save(str(out))
+    if work != out:
+        work.unlink(missing_ok=True)
+    return out
 
 
 def main() -> None:

@@ -22,7 +22,7 @@ tools/hartlib/tests/test_devices.py,874
 tools/hartlib/tests/test_railroad.py,892
 tools/hartlib/tests/test_tables_build.py,812
 tools/hosts/tests/test_deploy_gates.py,1069
-tools/promo/tiktok_promo.py,860
+tools/promo/tiktok_promo.py,812
 tools/schematic/build_device_map.py,1063
 tools/schematic/tests/test_block_layer.py,869
 www/js/crew.js,898
