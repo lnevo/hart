@@ -2,19 +2,42 @@
 without the three-level build."""
 from __future__ import annotations
 
+import contextlib
+import functools
+import importlib.util
+import io
 import sys
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import test_build_layout_le as T  # noqa: E402  loads the builder once
+ROOT = Path(__file__).resolve().parents[3]
 
-B = T.B
+
+def _builder():
+    """build_layout_le, loaded once per process (shared with test_build_layout_le when both run in one process).
+    This file does not import test_build_layout_le, so it stays out of check.sh's LE_TESTS job."""
+    if "build_layout_le" in sys.modules:
+        return sys.modules["build_layout_le"]
+    spec = importlib.util.spec_from_file_location("build_layout_le", ROOT / "tools/schematic/build_layout_le.py")
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules["build_layout_le"] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+B = _builder()
+
+
+@functools.lru_cache(maxsize=None)
+def staging_alone():
+    """Staging drawn alone, built once for this file."""
+    with contextlib.redirect_stdout(io.StringIO()):
+        return B.build(levels="staging", as_live=True)
 
 
 class BuildSteps(unittest.TestCase):
     def test_the_build_returns_its_parts_by_name(self) -> None:
-        out = T.staging_alone()
+        out = staging_alone()
         self.assertIsInstance(out, B.LeBuild)
         data, P, names, bands = out
         self.assertIsInstance(out.data, bytes)
@@ -32,7 +55,7 @@ class BuildSteps(unittest.TestCase):
             B._staging_band([])
 
     def test_a_page_wide_band_align_stops_the_three_level_drawing(self) -> None:
-        alone = T.staging_alone().panel
+        alone = staging_alone().panel
         with self.assertRaisesRegex(B.BuildError, "le_band_align"):
             B._draw_three_levels([], {}, "staging", alone, {"band_align": {"1": "left"}}, 1, B.plugin()[1])
 
