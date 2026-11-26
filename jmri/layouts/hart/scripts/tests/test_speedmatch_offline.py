@@ -198,6 +198,14 @@ class ProfileJob(unittest.TestCase):
         with self.assertRaises(SystemExit):
             make_job.main(["profile", "--payload", str(d / "p.json"), "--out", str(d / "j.py")])
 
+    def test_payload_points_of_the_wrong_shape_are_refused_without_a_traceback(self):
+        for points, fragment in (([[8, 10.0, 11.0]], "is not an object"), ({"step": 8}, "is not a list")):
+            d = self.payload(points=points)
+            with self.assertRaises(SystemExit) as cm:
+                make_job.main(["profile", "--payload", str(d / "p.json"), "--out", str(d / "j.py")])
+            self.assertIn(fragment, str(cm.exception))
+            self.assertFalse((d / "j.py").exists())
+
     def test_script_only_touches_the_roster_entry(self):
         src = (SM / "jython" / "write_profile.py").read_text()
         for bad in FORBIDDEN_EVERYWHERE + ["Throttle", "setSpeedSetting", "readCV", "writeCV", "Programmer",

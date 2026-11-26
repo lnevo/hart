@@ -1,9 +1,8 @@
 """pom_guard_roster.py - the target checks of pom_guard.py: the address, the roster and the consist state.
 
-Split out of pom_guard.py on 2026-11-26 with no change in behaviour, so the guard stays under the size limit
-(tools/audit/check_py_sizes.py). pom_guard.py imports every name here and is the one module callers use; the rules
-are in its docstring. Same constraints: runs in CPython and in the Pi JMRI's Jython 2.7, so no f-strings, no type
-hints, no print function. It ships next to pom_guard.py (speedmatch.py POM_FILES).
+pom_guard.py imports every name here and is the one module callers use; the rules are in its docstring. Same
+constraints: runs in CPython and in the Pi JMRI's Jython 2.7, so no f-strings, no type hints, no print function.
+It ships next to pom_guard.py (speedmatch.py POM_FILES).
 """
 
 import os
@@ -111,6 +110,28 @@ def _entry_cvs(loco_config_root):
     return cvs
 
 
+def _read_entry(roster_dir, loco):
+    """One roster.xml <locomotive> checked against its entry file; returns the entry dict."""
+    rid = loco.get("id")
+    where = "roster.xml entry %r" % rid
+    number, is_long = _loco_address(loco, where)
+    fname = loco.get("fileName") or ""
+    path = os.path.join(roster_dir, "roster", fname)
+    if not fname or not os.path.isfile(path):
+        raise GuardRefusal("roster file for %r not found (%s)" % (rid, path))
+    froot = _parse_xml(path)
+    floco = froot.find("locomotive")
+    if floco is None:
+        raise GuardRefusal("%s has no <locomotive>" % path)
+    if floco.get("id") != rid:
+        raise GuardRefusal("%s holds id %r, roster.xml says %r" % (path, floco.get("id"), rid))
+    fnum, flong = _loco_address(floco, "roster file %s" % fname)
+    if (fnum, flong) != (number, is_long):
+        raise GuardRefusal("%r: roster.xml says %d%s, %s says %d%s" % (
+            rid, number, "L" if is_long else "S", fname, fnum, "L" if flong else "S"))
+    return {"id": rid, "file": path, "address": number, "long": is_long, "cvs": _entry_cvs(froot)}
+
+
 def load_roster(roster_dir):
     """Read roster.xml and every entry file it lists.
 
@@ -128,41 +149,12 @@ def load_roster(roster_dir):
             raise GuardRefusal("roster.xml has a locomotive with no id (fileName %r)" % loco.get("fileName"))
         if rid in entries:
             raise GuardRefusal("roster id %r appears twice in roster.xml" % rid)
-        where = "roster.xml entry %r" % rid
-        number, is_long = _loco_address(loco, where)
-        fname = loco.get("fileName") or ""
-        path = os.path.join(roster_dir, "roster", fname)
-        if not fname or not os.path.isfile(path):
-            raise GuardRefusal("roster file for %r not found (%s)" % (rid, path))
-        froot = _parse_xml(path)
-        floco = froot.find("locomotive")
-        if floco is None:
-            raise GuardRefusal("%s has no <locomotive>" % path)
-        if floco.get("id") != rid:
-            raise GuardRefusal("%s holds id %r, roster.xml says %r" % (path, floco.get("id"), rid))
-        fnum, flong = _loco_address(floco, "roster file %s" % fname)
-        if (fnum, flong) != (number, is_long):
-            raise GuardRefusal("%r: roster.xml says %d%s, %s says %d%s" % (
-                rid, number, "L" if is_long else "S", fname, fnum, "L" if flong else "S"))
-        entries[rid] = {"id": rid, "file": path, "address": number, "long": is_long,
-                        "cvs": _entry_cvs(froot)}
+        entries[rid] = _read_entry(roster_dir, loco)
     return entries
 
 
-def check_roster_target(roster, roster_id):
-    """Every address check for one roster entry. Returns (entry, warnings).
-
-    Roster CVvalues can be decoder-definition defaults rather than what the decoder holds
-    (BO 3545 and BO 6944 record CV19 = 127), so a roster-only CV19 is a warning here; a CV19
-    from a read or the ledger is refused in plan_rows().
-    """
-    warnings = []
-    if roster_id not in roster:
-        raise GuardRefusal("roster id %r is not in the roster" % (roster_id,))
-    e = roster[roster_id]
-    number, is_long = e["address"], e["long"]
-    check_address(number, is_long)
-    cvs = e["cvs"]
+def _check_own_cvs(roster_id, number, is_long, cvs):
+    """Refuse when the entry's own address CVs disagree with its address; returns CV19 warnings."""
     if is_long and 17 in cvs and 18 in cvs:
         rec = ((cvs[17] - 0xC0) << 8) + cvs[18]
         if cvs[17] < 0xC0 or rec != number:
@@ -175,9 +167,15 @@ def check_roster_target(roster, roster_id):
             roster_id, cvs[29], "long" if cvs[29] & CV29_LONG_BIT else "short",
             "long" if is_long else "short"))
     if cvs.get(19, 0) & 0x7F:
-        warnings.append("WARNING %r: roster CV19 = %d (may be a default); read CV19 on the "
-                        "programming track (seed-ledger) to be sure it is not in an advanced consist"
-                        % (roster_id, cvs[19]))
+        return ["WARNING %r: roster CV19 = %d (may be a default); read CV19 on the "
+                "programming track (seed-ledger) to be sure it is not in an advanced consist"
+                % (roster_id, cvs[19])]
+    return []
+
+
+def _check_other_entries(roster, roster_id, number, is_long):
+    """Refuse an address another entry shares; returns warnings for CV19 consist addresses."""
+    warnings = []
     for oid, o in sorted(roster.items()):
         if oid == roster_id:
             continue
@@ -188,9 +186,24 @@ def check_roster_target(roster, roster_id):
         if not is_long and (o["cvs"].get(19, 0) & 0x7F) == number:
             warnings.append("WARNING short address %d is the roster CV19 of %r (may be a default)"
                             % (number, oid))
+    return warnings
+
+
+def check_roster_target(roster, roster_id):
+    """Every address check for one roster entry. Returns (entry, warnings).
+
+    Roster CVvalues can be decoder-definition defaults rather than what the decoder holds
+    (BO 3545 and BO 6944 record CV19 = 127), so a roster-only CV19 is a warning here; a CV19
+    from a read or the ledger is refused in plan_rows().
+    """
+    if roster_id not in roster:
+        raise GuardRefusal("roster id %r is not in the roster" % (roster_id,))
+    e = roster[roster_id]
+    number, is_long = e["address"], e["long"]
+    check_address(number, is_long)
+    warnings = _check_own_cvs(roster_id, number, is_long, e["cvs"])
+    warnings.extend(_check_other_entries(roster, roster_id, number, is_long))
     return e, warnings
-
-
 
 
 # ---------------------------------------------------------------- consist state
@@ -253,23 +266,8 @@ def parse_consist_log(text):
     return state
 
 
-def check_no_consist(state, nodes, absent_ok=()):
-    """Fail closed unless the target (nodes[0]) is in no consist.
-
-    nodes: query_nodes() output. absent_ok: roster ids whose node may stay silent. Returns
-    the list of notes for silent nodes that were allowed, for the log.
-    """
-    if state is None:
-        raise GuardRefusal("no consist query result (run cs105_consist.py ACTION=query first)")
-    if state.get("errors"):
-        raise GuardRefusal("consist query failed: %s" % "; ".join(state["errors"]))
-    if not state.get("complete"):
-        raise GuardRefusal("consist query log is incomplete (no END)")
-    seen = state.get("nodes", {})
-    target_id, target = nodes[0][0], nodes[0][1].upper()
-    absent_ok = list(absent_ok or ())
-    if target_id in absent_ok:
-        raise GuardRefusal("the target %r cannot be in ABSENT_OK" % target_id)
+def _check_answers(seen, nodes, target, absent_ok):
+    """Refuse a node the query missed or answered inconsistently; returns ABSENT_OK notes."""
     notes = []
     for rid, node in nodes:
         n = node.upper()
@@ -287,6 +285,27 @@ def check_no_consist(state, nodes, absent_ok=()):
         if sorted(info.get("indices", [])) != list(range(info["count"])):
             raise GuardRefusal("%r (train node %s) reports %d listener(s) but listed indices %s: "
                                "state unknown" % (rid, n, info["count"], sorted(info.get("indices", []))))
+    return notes
+
+
+def check_no_consist(state, nodes, absent_ok=()):
+    """Fail closed unless the target (nodes[0]) is in no consist.
+
+    nodes: query_nodes() output. absent_ok: roster ids whose node may stay silent. Returns
+    the list of notes for silent nodes that were allowed, for the log.
+    """
+    if state is None:
+        raise GuardRefusal("no consist query result (run cs105_consist.py ACTION=query first)")
+    if state.get("errors"):
+        raise GuardRefusal("consist query failed: %s" % "; ".join(state["errors"]))
+    if not state.get("complete"):
+        raise GuardRefusal("consist query log is incomplete (no END)")
+    seen = state.get("nodes", {})
+    target_id, target = nodes[0][0], nodes[0][1].upper()
+    absent_ok = list(absent_ok or ())
+    if target_id in absent_ok:
+        raise GuardRefusal("the target %r cannot be in ABSENT_OK" % target_id)
+    notes = _check_answers(seen, nodes, target, absent_ok)
     t = seen[target]
     if t["count"] or t["listeners"]:
         raise GuardRefusal("the target %r has listener(s) %s: break the consist first" % (
