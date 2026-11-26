@@ -107,18 +107,18 @@ class RouteLookupTest(unittest.TestCase):
             for order, mid_block in (({"r": ["block:A", "block:B"]}, "block:A"),     # a block more
                                      ({"r": ["block:B"]}, "block:B"),                 # another block
                                      ({"r": ["block:A"]}, "block:B")):                # a mid block off the route
-                with self.subTest(order=order, mid=mid_block), self.assertRaises(SystemExit) as cm:
+                with self.subTest(order=order, mid=mid_block), self.assertRaises(analyze.RoutesError) as cm:
                     analyze.load_routes(p, order, {"r": mid_block})
                 self.assertIn("build_routes.py", str(cm.exception))
             p.write_text(json.dumps({"routes": {"r": [["BS A", "Track A"]]}, "mid": {"r": "BS A"}}))
-            with self.assertRaises(SystemExit):                 # a routes.json from before the ids
+            with self.assertRaises(analyze.RoutesError):        # a routes.json from before the ids
                 analyze.load_routes(p, {"r": ["block:A"]}, {"r": "block:A"})
 
     def test_a_log_with_a_sensor_off_the_route_stops_and_names_it(self):
         good = analyze.LOOP[0][0]
         lines = ["1.0 RUN loco=CSX 1 direction=forward", "1.1 CFG route=loop1", "2.0 STEP 24",
                  f"3.0 SENS {good} ACTIVE", "4.0 SENS BS Renamed Block ACTIVE"]
-        with self.assertRaises(SystemExit) as cm:
+        with self.assertRaises(analyze.LogError) as cm:
             analyze.parse_log(lines, source="old.log")
         self.assertIn("old.log logs sensor(s) not on route loop1: BS Renamed Block", str(cm.exception))
         self.assertEqual(1, len(analyze.parse_log(lines[:-1], source="ok.log")))

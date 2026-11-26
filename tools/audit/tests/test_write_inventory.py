@@ -37,9 +37,9 @@ class Inventory(unittest.TestCase):
         occ = dict(role="os", user_name="BS Switch 9", blocks="Track 9-11")
         self.assertEqual(WI.block_name(occ, by_name), "Track 9-11")
         self.assertIsNone(WI.block_name(dict(occ, role="spare", blocks=""), by_name))
-        with self.assertRaisesRegex(SystemExit, "occupancy BS Switch 9 names no block in its blocks column"):
+        with self.assertRaisesRegex(WI.InventoryError, "occupancy BS Switch 9 names no block in its blocks column"):
             WI.block_name(dict(occ, blocks=""), by_name)
-        with self.assertRaisesRegex(SystemExit, "detects Track 1-3, which has no block row"):
+        with self.assertRaisesRegex(WI.InventoryError, "detects Track 1-3, which has no block row"):
             WI.block_name(dict(occ, blocks="Track 1-3"), by_name)
         with self.assertRaisesRegex(WI.devices.DevicesError, "has no role"):
             WI.block_name(dict(occ, role=""), by_name)
@@ -246,8 +246,16 @@ class Inventory(unittest.TestCase):
     def test_a_device_on_an_unlisted_node_stops(self):
         row = dict(next(x for x in MAP if x["layer"] == "turnout" and x["node"] and x["system_name"].startswith("M2T")),
                    node="77")
-        with self.assertRaisesRegex(SystemExit, "node 77 is in devices_generated.csv but not in lcos_nodes.csv"):
+        with self.assertRaisesRegex(WI.InventoryError, "node 77 is in devices_generated.csv but not in lcos_nodes.csv"):
             WI.gather([row], WI.read_node_rows())
+
+    def test_main_exits_1_with_the_row_message(self):
+        from unittest import mock
+
+        with mock.patch.object(WI, "build", side_effect=WI.InventoryError("node 77 is not listed")), \
+                self.assertRaises(SystemExit) as stop:
+            WI.main([])
+        self.assertEqual(stop.exception.code, "node 77 is not listed")
 
 
 if __name__ == "__main__":

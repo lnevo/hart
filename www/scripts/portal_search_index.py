@@ -15,7 +15,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 from photo_tabs import tab_subs
-from portal_common import LEAK_PATTERNS, PORTAL, SHARE_DESCRIPTION
+from portal_common import LEAK_PATTERNS, PORTAL, SHARE_DESCRIPTION, PortalBuildError
 
 # The private-name check works by fingerprint, so the name itself is never written in this script.
 sys.path.insert(0, str(PORTAL.parent / "ops/hart-ops/card_pipeline"))
@@ -441,6 +441,6 @@ def build_search_index(dest_root: Path) -> dict:
         "records": records,
     }
     if bad := _check_index(index):
-        raise SystemExit("search index holds text that must not publish:\n" + "\n".join("  " + b for b in bad))
+        raise PortalBuildError("search index holds text that must not publish:\n" + "\n".join("  " + b for b in bad))
     (dest_root / INDEX_NAME).write_text(json.dumps(index, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     return index

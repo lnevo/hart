@@ -64,7 +64,7 @@ class TheTablesComeFromTheData(unittest.TestCase):
 
     def test_a_block_that_was_not_timed_stops_the_table(self) -> None:
         blocks, notes = LP.block_rows()
-        with self.assertRaisesRegex(SystemExit, "Track W-1 is not a timed block"):
+        with self.assertRaisesRegex(LP.LevelsPageError, "Track W-1 is not a timed block"):
             LP.timed_rows(blocks, notes, ["Track W-1"])
 
     def test_the_run_table_holds_the_timed_blocks_outside_the_loop_in_running_order(self) -> None:
@@ -79,25 +79,31 @@ class TheTablesComeFromTheData(unittest.TestCase):
         self.assertEqual(LP.run_passes(rows, notes), ("CSX 2121", "24", "48"))
         self.assertIn("CSX 2121 timed the Switch 5 to Switch 15 run on two passes at different speeds (steps 24 and 48)",
                       text_of(PAGE.read_text()))
-        with self.assertRaisesRegex(SystemExit, "name no timed passes"):
+        with self.assertRaisesRegex(LP.LevelsPageError, "name no timed passes"):
             LP.run_passes(rows[1:], notes)
         notes["Track Barn"] = "timed passes (CSX 2738, Switch 5 to Switch 15, steps 32 and 64)"
-        with self.assertRaisesRegex(SystemExit, "expected one"):
+        with self.assertRaisesRegex(LP.LevelsPageError, "expected one"):
             LP.run_passes(rows, notes)
         notes["Track Barn"] = "timed passes (P&CV 2121, Switch 5 to 15, steps 32 and 64)"
-        with self.assertRaisesRegex(SystemExit, "Track Barn's note names passes as"):
+        with self.assertRaisesRegex(LP.LevelsPageError, "Track Barn's note names passes as"):
             LP.run_passes(rows, notes)
         self.assertEqual(LP.run_passes([("x",)], {"x": "(P&CV 2121, Switch 5 to Switch 15, steps 48 and 24)"}),
                          ("P&CV 2121", "48", "24"))
-        with self.assertRaisesRegex(SystemExit, "both at step 24"):
+        with self.assertRaisesRegex(LP.LevelsPageError, "both at step 24"):
             LP.run_passes([("x",)], {"x": "(CSX 2121, Switch 5 to Switch 15, steps 24 and 24)"})
 
     def test_a_timed_block_on_neither_route_stops(self) -> None:
         blocks, measured = LP.block_rows()
         stray = mock.Mock(note="")
         with mock.patch.object(LP, "block_rows", return_value=(blocks, {**measured, "Track Helix Inner X": stray})), \
-                self.assertRaisesRegex(SystemExit, "neither the test loop nor the Switch 5 to 15 run: Track Helix Inner X"):
+                self.assertRaisesRegex(LP.LevelsPageError, "neither the test loop nor the Switch 5 to 15 run: Track Helix Inner X"):
             LP.render(LEVELS)
+
+    def test_main_exits_with_the_render_error(self) -> None:
+        with mock.patch.object(LP, "render", side_effect=LP.LevelsPageError("levels_meta.json has no 'x'")), \
+                self.assertRaises(SystemExit) as cm:
+            LP.main(["--check"])
+        self.assertEqual(cm.exception.code, "levels_meta.json has no 'x'")
 
     def test_a_panel_without_the_artifact_is_refused(self) -> None:
         with self.assertRaises(SystemExit), mock.patch("sys.stderr"):
@@ -113,7 +119,7 @@ class TheTablesComeFromTheData(unittest.TestCase):
         notes = {name: m.note for name, m in measured.items()}
         self.assertEqual(LP.loop_fit_plan(rows, notes), "5.3b")
         mixed = dict(notes, **{"Track K-1": notes["Track K-1"].replace("5.3b", "5.3c")})
-        with self.assertRaisesRegex(SystemExit, "expected one"):
+        with self.assertRaisesRegex(LP.LevelsPageError, "expected one"):
             LP.loop_fit_plan(rows, mixed)
 
     def test_laps_are_the_common_count_and_the_exceptions(self) -> None:
@@ -126,14 +132,14 @@ class TheTablesComeFromTheData(unittest.TestCase):
         rows = LP.helix_rows(meta, blocks)
         self.assertEqual(sorted(r[0] for r in rows), ["McKees Rocks", "McKeesport"])
         meta["helix"][0]["cm"] += 100
-        with self.assertRaisesRegex(SystemExit, "block_lengths.csv has"):
+        with self.assertRaisesRegex(LP.LevelsPageError, "block_lengths.csv has"):
             LP.helix_rows(meta, blocks)
 
     def test_a_helix_track_nobody_named_stops(self) -> None:
         meta = LP.read_meta(LEVELS)
         meta["helix"][0]["foot"] = "99"
         blocks, _ = LP.block_rows()
-        with self.assertRaisesRegex(SystemExit, "no helix track from Switch 99"):
+        with self.assertRaisesRegex(LP.LevelsPageError, "no helix track from Switch 99"):
             LP.helix_rows(meta, blocks)
 
 
@@ -144,7 +150,7 @@ class TheInputsAreChecked(unittest.TestCase):
             meta = json.loads((Path(tmp) / "levels_meta.json").read_text())
             del meta["helix"]
             (Path(tmp) / "levels_meta.json").write_text(json.dumps(meta))
-            with self.assertRaisesRegex(SystemExit, "no 'helix'"):
+            with self.assertRaisesRegex(LP.LevelsPageError, "no 'helix'"):
                 LP.read_meta(Path(tmp))
 
     def test_a_plan_version_that_is_not_one_stops(self) -> None:
@@ -153,7 +159,7 @@ class TheInputsAreChecked(unittest.TestCase):
             meta = json.loads((Path(tmp) / "levels_meta.json").read_text())
             meta["plan"] = "x"
             (Path(tmp) / "levels_meta.json").write_text(json.dumps(meta))
-            with self.assertRaisesRegex(SystemExit, "not 'x'"):
+            with self.assertRaisesRegex(LP.LevelsPageError, "not 'x'"):
                 LP.render(Path(tmp))
 
     def test_a_staging_drawing_without_the_terminal_switches_stops(self) -> None:
@@ -164,7 +170,7 @@ class TheInputsAreChecked(unittest.TestCase):
             m["levels"]["staging"]["labels"] = [s for s in m["levels"]["staging"]["labels"] if s != "13"]
             return m
         with mock.patch.object(LP, "read_meta", without):
-            with self.assertRaisesRegex(SystemExit, "no Switch 7, 9, 11 and 13"):
+            with self.assertRaisesRegex(LP.LevelsPageError, "no Switch 7, 9, 11 and 13"):
                 LP.render(LEVELS)
         self.assertIn("13", meta["levels"]["staging"]["labels"])
 
@@ -175,7 +181,7 @@ class TheInputsAreChecked(unittest.TestCase):
             m["ramps"] = m["ramps"][1:]
             return m
         with mock.patch.object(LP, "read_meta", one_ramp):
-            with self.assertRaisesRegex(SystemExit, "two helix tracks and one climb"):
+            with self.assertRaisesRegex(LP.LevelsPageError, "two helix tracks and one climb"):
                 LP.render(LEVELS)
 
 

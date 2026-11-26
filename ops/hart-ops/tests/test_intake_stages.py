@@ -102,7 +102,7 @@ class KindTests(unittest.TestCase):
             a, b = st.read_csv(out / "review.csv")
             self.assertEqual((a["kind"], a["roster_id"], a["flags"]), ("loco", "NW 32800", "blurry"))
             self.assertEqual(b["kind"], "car")
-            with self.assertRaises(SystemExit):
+            with self.assertRaises(st.CardPipelineError):
                 st.cmd_kind(SimpleNamespace(batch="k", kind="loco", photos=["zz.png"]), Ctx())
 
 
@@ -147,7 +147,7 @@ class ApproveRecordTests(unittest.TestCase):
 
     def test_records_refuses_while_pending(self):
         st.cmd_approve(SimpleNamespace(batch="b1", no_ai=True), None)
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(st.CardPipelineError):
             st.cmd_records(SimpleNamespace(batch="b1", dry_run=False, allow_pending=False), FakeCtx())
 
     def test_records_writes_manifest_and_marks_recorded(self):
@@ -198,7 +198,7 @@ class AiNotesTests(unittest.TestCase):
             out = st.batch_dir("b2")
             out.mkdir()
             st.write_csv(out / "review.csv", st.REVIEW_COLUMNS, [review_row(photo="a.png")])
-            with self.assertRaises(SystemExit):
+            with self.assertRaises(st.CardPipelineError):
                 st.cmd_approve(SimpleNamespace(batch="b2", no_ai=False), None)
             st.apply_ai_notes(rows := st.read_csv(out / "review.csv"),
                               {"a.png": {"marks": "N&W", "number": "32800"}})
@@ -329,7 +329,7 @@ class LocoTests(unittest.TestCase):
         locos.upsert(rows, queue, {"road_name": "NW", "road_number": "1776"})
         locos.write_table(locos.LOCOS, locos.COLUMNS, rows)
         locos.write_table(locos.LOCO_QUEUE, locos.QUEUE_COLUMNS, queue)
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(locos.CardPipelineError):
             locos.cmd_publish(None, None)
         rows[0].update(self.full())
         locos.write_table(locos.LOCOS, locos.COLUMNS, rows)

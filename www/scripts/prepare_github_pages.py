@@ -43,7 +43,7 @@ import site_views  # noqa: E402
 # The build's parts live in portal_*.py beside this file. The names below are re-exported, so importers and tests
 # keep reading them here; a test that patches one patches it in the module that holds it.
 from portal_common import (  # noqa: E402,F401
-    LEAK_PATTERNS, MIRROR_PREFIXES, PORTAL, SHARE_DESCRIPTION, _manifest, _source,
+    LEAK_PATTERNS, MIRROR_PREFIXES, PORTAL, SHARE_DESCRIPTION, PortalBuildError, _manifest, _source,
 )
 from portal_head import _add_head_tags, _add_provenance, _head_tags, _own_description  # noqa: E402,F401
 from portal_photos import (  # noqa: E402,F401
@@ -117,7 +117,7 @@ def _copy_published(dest: Path) -> None:
         if rel in SKIP_FILES:
             continue
         if not src.is_file():
-            raise SystemExit(f"published-files.json: missing source {source}")
+            raise PortalBuildError(f"published-files.json: missing source {source}")
         out = dest / rel
         out.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, out)
@@ -279,6 +279,14 @@ def main() -> int:
     )
     parser.add_argument("--full", action="store_true", help="run every photo stage even when the saved run of them still fits")
     args = parser.parse_args()
+    try:
+        return _prepare(args)
+    except PortalBuildError as exc:
+        raise SystemExit(str(exc)) from exc
+
+
+def _prepare(args: argparse.Namespace) -> int:
+    """Build the public tree into args.dest; the exit code main() returns. PortalBuildError stops a stage."""
     if args.require_mirrors and (missing := _missing_mirrors()):
         print(
             f"Refusing to build: {len(missing)} public photo original(s) are missing, so they would vanish from the site.\n"
