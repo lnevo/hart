@@ -403,11 +403,13 @@ class DocsChecksShTest(unittest.TestCase):
 
 
 # The scripts tools/check.sh may name itself: its own machinery (what changed, submodules, the manifest's lines, the
-# stamps, test classes, whether the portal runs, the docs-only list, the profile guard) and the unit test folders.
+# stamps, test classes, whether the portal runs, the docs-only list, the profile guard, the timings log) and the unit
+# test folders.
 # A read-only check goes in tools/pipeline/checks.toml, where the map lane and the stamps see it, not here.
 CHECK_SH_MACHINERY = {"tools/ci/changed_kind.py", "tools/hosts/profile_tables_guard.sh", "tools/agent/worktrees.py",
                       "tools/ci/docs_checks.sh", "tools/pipeline/manifest.py", "tools/audit/check_stamps.py",
-                      "tools/audit/test_classes.py", "tools/audit/portal_inputs.py"}
+                      "tools/audit/test_classes.py", "tools/audit/portal_inputs.py",
+                      "tools/pipeline/step_timings.sh"}
 SCRIPT_RE = re.compile(r"[\w$\"{}./*-]*/[\w*.-]*\.(?:py|sh)\b")
 TEST_GLOB_RE = re.compile(r'(?:"\$JMRI_TESTS"|[\w/]+/tests)/test\*\.py')
 # the only `later` calls with a command of their own: unit()'s, the manifest's static lines (run_line, the panels
