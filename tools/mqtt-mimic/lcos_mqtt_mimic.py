@@ -29,9 +29,11 @@ import subprocess
 import sys
 import threading
 import time
+import xml.etree.ElementTree as ET
+from collections.abc import Mapping
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import Any
+from typing import NamedTuple, NotRequired, TypedDict
 from urllib.parse import urlparse
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
@@ -131,7 +133,7 @@ def pick_mqtt_host(explicit: str | None) -> str:
     )
 
 
-def _txt(el, tag: str) -> str:
+def _txt(el: ET.Element, tag: str) -> str:
     child = el.find(tag)
     return (child.text or "").strip() if child is not None else ""
 
@@ -150,66 +152,137 @@ def _head_leaf(name: str) -> str:
     return name
 
 
-def load_layout(levels: bool = True) -> dict:
+class Block(TypedDict):
+    """An occupancy detector on the page (JSON). A virtual one (main, upper) is set in JMRI directly."""
+    addr: str
+    label: str
+    userName: str
+    comment: str
+    plant: str
+    level: str
+    name: str
+    virtual: NotRequired[bool]
+
+
+class Turnout(TypedDict):
+    """A switch on the page (JSON): its feedback sensors' addresses when it has two (TWOSENSOR)."""
+    addr: str
+    label: str
+    num: NotRequired[int]       # staging only: the number in its user name
+    plant: str
+    feedback: str
+    n_addr: str | None
+    r_addr: str | None
+    tip: str
+    level: str
+    name: str
+    virtual: NotRequired[bool]
+
+
+class Head(TypedDict):
+    """A signal head on the page (JSON), by its MQTT topic leaf."""
+    id: str
+    systemName: str
+    mast: str
+    plant: str
+    level: str
+
+
+class Layout(TypedDict):
+    blocks: list[Block]
+    turnouts: list[Turnout]
+    heads: list[Head]
+
+
+class StagingSensor(NamedTuple):
+    """An M2S sensor in tables.xml."""
+    addr: str
+    user_name: str
+    comment: str
+    system_name: str
+
+
+def load_layout(levels: bool = True) -> Layout:
     """Staging from tables.xml and the repo CSVs; with `levels`, also the main and upper levels (load_levels)."""
     if not TABLES.is_file():
         raise SystemExit(f"missing {TABLES}")
     root = tables.read(TABLES)
     cps = load_cps()
+    sensors = _staging_sensors(root)
+    by_user = {s.user_name: s.addr for s in sensors.values() if s.user_name}
+    # a device's kind is its device-master row's (layer, role), never its name
+    index = devices.index(DEVICES)
+    blocks = _staging_blocks(sensors, index, cps)
+    turnouts = _staging_turnouts(root, index, by_user, cps)
+    heads = _staging_heads(cps)
+    if not levels:
+        return {"blocks": blocks, "turnouts": turnouts, "heads": heads}
+    level = load_levels(root)
+    return {
+        "blocks": blocks + level["blocks"],
+        "turnouts": turnouts + level["turnouts"],
+        "heads": heads + level["heads"],
+    }
 
-    sensors: dict[str, dict] = {}
-    by_user: dict[str, str] = {}
+
+def _staging_sensors(root: ET.Element) -> dict[str, StagingSensor]:
+    """{address: sensor} for the LCOS MQTT sensors (M2S) in tables.xml."""
+    sensors: dict[str, StagingSensor] = {}
     for el in root.findall(".//sensor"):
         sn = _txt(el, "systemName")
         addr = _addr(sn, "M2S")
-        if not addr:
-            continue
-        un = _txt(el, "userName")
-        comment = _txt(el, "comment")
-        rec = {"addr": addr, "userName": un, "comment": comment, "systemName": sn}
-        sensors[addr] = rec
-        if un:
-            by_user[un] = addr
+        if addr:
+            sensors[addr] = StagingSensor(addr, _txt(el, "userName"), _txt(el, "comment"), sn)
+    return sensors
 
+
+def _occupancy_names() -> dict[str, list[str]]:
+    """{occupancy sensor user name: the blocks the CATS desks bind to it}, from the device master."""
     occ_names: dict[str, list[str]] = {}
-    for row in occupancy_bindings.rows():      # the blocks the CATS desks bind, from the device master
+    for row in occupancy_bindings.rows():
         un, name = row["occupancy_sensor_user_name"], row["block_user_name"]
         occ_names.setdefault(un, [])
         if name not in occ_names[un]:
             occ_names[un].append(name)
+    return occ_names
 
-    # a device's kind is its device-master row's (layer, role), never its name (hand-off row 8)
-    index = devices.index(DEVICES)
+
+def _staging_blocks(sensors: Mapping[str, StagingSensor], index: devices.Index,
+                    cps: Mapping[str, Mapping[str, str]]) -> list[Block]:
+    """The staging occupancy detectors, by plant then user name; a sensor with no device-master row is left out."""
     detectors = set(index.names("occupancy", roles=set(devices.ROLES) - {"spare"}))
-    switches = set(index.names("turnout", roles=("turnout",)))
-    blocks = []
+    occ_names = _occupancy_names()
+    blocks: list[Block] = []
     for addr, rec in sensors.items():
-        un = rec["userName"]
+        un = rec.user_name
         if not any(index.has(layer, un) for layer in ("occupancy", "fb", "sensor")):
             # a Store not split yet can hold it: say so, and leave it out (hartlib.devices is the one source of kinds)
-            print(f"lcos_mqtt_mimic: sensor {rec['systemName']} ({un or 'no user name'}) in {paths.rel(TABLES)} has "
+            print(f"lcos_mqtt_mimic: sensor {rec.system_name} ({un or 'no user name'}) in {paths.rel(TABLES)} has "
                   f"no row in {paths.rel(DEVICES)}; left out", file=sys.stderr)
             continue
         if un not in detectors:
             continue
         names = occ_names.get(un, [])
         label = " / ".join(names) if names else un
-        plant = _plant_for_block(label, rec["comment"], un, cps)
-        blocks.append(
-            {
-                "addr": addr,
-                "label": label,
-                "userName": un,
-                "comment": rec["comment"],
-                "plant": plant,
-                "level": STAGING,
-                "name": rec["systemName"],
-            }
-        )
+        blocks.append({
+            "addr": addr,
+            "label": label,
+            "userName": un,
+            "comment": rec.comment,
+            "plant": _plant_for_block(label, rec.comment, un, cps),
+            "level": STAGING,
+            "name": rec.system_name,
+        })
     blocks.sort(key=lambda b: (plant_rank(b["plant"]), b["userName"]))
+    return blocks
 
-    turnouts: list[dict[str, Any]] = []        # JSON records for the page: text, numbers and None
+
+def _staging_turnouts(root: ET.Element, index: devices.Index, by_user: Mapping[str, str],
+                      cps: Mapping[str, Mapping[str, str]]) -> list[Turnout]:
+    """The staging switches (M2T), by plant then number; one with no device-master row is left out."""
+    switches = set(index.names("turnout", roles=("turnout",)))
     turnout_cp = cps.get("turnout") or {}
+    turnouts: list[Turnout] = []
     for el in root.findall(".//turnout"):
         sn = _txt(el, "systemName")
         addr = _addr(sn, "M2T")
@@ -226,29 +299,25 @@ def load_layout(levels: bool = True) -> dict:
             num = int(un.split()[-1])
         except ValueError:
             continue
-        fb = (el.get("feedback") or "").upper()
-        n_name = el.get("sensor2") or ""
-        r_name = el.get("sensor1") or ""
-        n_addr = by_user.get(n_name)
-        r_addr = by_user.get(r_name)
-        plant = turnout_cp.get(un) or infer_plant(un)
-        turnouts.append(
-            {
-                "addr": addr,
-                "label": un,
-                "num": num,
-                "plant": plant,
-                "feedback": fb,
-                "n_addr": n_addr,
-                "r_addr": r_addr,
-                "tip": SWITCH_TIPS.get(num, ""),
-                "level": STAGING,
-                "name": sn,
-            }
-        )
+        turnouts.append({
+            "addr": addr,
+            "label": un,
+            "num": num,
+            "plant": turnout_cp.get(un) or infer_plant(un),
+            "feedback": (el.get("feedback") or "").upper(),
+            "n_addr": by_user.get(el.get("sensor2") or ""),
+            "r_addr": by_user.get(el.get("sensor1") or ""),
+            "tip": SWITCH_TIPS.get(num, ""),
+            "level": STAGING,
+            "name": sn,
+        })
     turnouts.sort(key=lambda t: (plant_rank(t["plant"]), t["num"]))
+    return turnouts
 
-    heads = []
+
+def _staging_heads(cps: Mapping[str, Mapping[str, str]]) -> list[Head]:
+    """The staging signal heads from the signal head plan, by plant, mast and topic leaf."""
+    heads: list[Head] = []
     mast_cp = cps.get("mast") or {}
     if HEAD_CSV.is_file():
         with HEAD_CSV.open(newline="", encoding="utf-8") as f:
@@ -256,35 +325,13 @@ def load_layout(levels: bool = True) -> dict:
                 mast = (row.get("mast_user_name") or "").strip()
                 plant = mast_cp.get(mast) or infer_plant(mast)
                 for h in (row.get("head_system_names") or "").split():
-                    packed = _head_leaf(h)
-                    heads.append(
-                        {
-                            "id": packed,
-                            "systemName": h,
-                            "mast": mast,
-                            "plant": plant,
-                            "level": STAGING,
-                        }
-                    )
-    heads.sort(
-        key=lambda h: (
-            plant_rank(h["plant"]),
-            h["mast"],
-            h["id"],
-        )
-    )
-
-    if not levels:
-        return {"blocks": blocks, "turnouts": turnouts, "heads": heads}
-    level = load_levels(root)
-    return {
-        "blocks": blocks + level["blocks"],
-        "turnouts": turnouts + level["turnouts"],
-        "heads": heads + level["heads"],
-    }
+                    heads.append({"id": _head_leaf(h), "systemName": h, "mast": mast, "plant": plant,
+                                  "level": STAGING})
+    heads.sort(key=lambda h: (plant_rank(h["plant"]), h["mast"], h["id"]))
+    return heads
 
 
-def load_levels(root, rr: railroad.Railroad | None = None) -> dict:
+def load_levels(root: ET.Element, rr: railroad.Railroad | None = None) -> Layout:
     """Main and upper turnouts, block sensors and heads: the device map's virtual devices that tables.xml holds.
 
     Each record's `addr` is its JMRI system name and `virtual` is true, so the JMRI page sets it directly
@@ -324,10 +371,12 @@ def load_levels(root, rr: railroad.Railroad | None = None) -> dict:
             return region[sw.group(1)]
         raise SystemExit(f"{dm.path} line {r.line}: {r.user_name} has no cp and names no switch with a region")
 
-    def order(r: railroad.DeviceRow) -> tuple:
+    def order(r: railroad.DeviceRow) -> tuple[object, ...]:
         return (r.level, railroad.natural(group(r)), railroad.natural(r.user_name))
 
-    turnouts, blocks, heads = [], [], []
+    turnouts: list[Turnout] = []
+    blocks: list[Block] = []
+    heads: list[Head] = []
     for r in sorted(dm.turnouts.values(), key=order):
         if r.jmri_name not in in_tables:
             continue
@@ -418,7 +467,7 @@ def load_cps() -> dict[str, dict[str, str]]:
     return {"turnout": turnout, "occupancy": occupancy, "block": block, "mast": mast}
 
 
-def _plant_for_block(label: str, comment: str, uname: str, cps: dict[str, dict[str, str]]) -> str:
+def _plant_for_block(label: str, comment: str, uname: str, cps: Mapping[str, Mapping[str, str]]) -> str:
     occ = cps.get("occupancy") or {}
     blocks = cps.get("block") or {}
     if uname in occ:
@@ -494,7 +543,7 @@ class Bus:
             raise ValueError("occupancy must be ACTIVE or INACTIVE")
         self.publish(f"track/sensor/{addr}", state)
 
-    def set_turnout(self, layout: dict, addr: str, state: str) -> None:
+    def set_turnout(self, layout: Layout, addr: str, state: str) -> None:
         state = state.upper()
         if state not in ("CLOSED", "THROWN"):
             raise ValueError("turnout must be CLOSED or THROWN")
@@ -507,7 +556,7 @@ class Bus:
             self.publish(f"track/sensor/{rec['r_addr']}", "ACTIVE" if thrown else "INACTIVE")
         self.publish(f"track/turnout/{addr}", state)
 
-    def clear_occupancy(self, layout: dict) -> None:
+    def clear_occupancy(self, layout: Layout) -> None:
         for b in layout["blocks"]:
             self.set_occupancy(b["addr"], "INACTIVE")
 
@@ -596,7 +645,7 @@ class Bus:
         self._stop.set()
 
 
-def make_handler(layout: dict, bus: Bus, html: bytes):
+def make_handler(layout: Layout, bus: Bus, html: bytes) -> type[BaseHTTPRequestHandler]:
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, fmt: str, *args) -> None:
             if "GET /api/events" in (fmt % args):
