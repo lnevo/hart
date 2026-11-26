@@ -16,6 +16,17 @@ The transport is Claude Code's own: `ListAgents` names the live sessions, `SendM
 3. Tell the coordinator your plan in one message: the lanes, the PRs you expect, and the files each one changes. Ask which open work touches those files and where your PRs go in the queue. Start no lane agent until it answers.
 4. Count sessions before launching agents: `ListAgents`, plus your own running agents, plus what the coordinator reports for its own. The cap changes only when the owner says so in your session or in AGENTS.md. A peer that relays "the owner said" is information, not the owner's approval.
 
+## Dashboard (owner, 2026-11-26)
+
+Whoever coordinates more than one lane, a session or a background coordinator agent, publishes a live dashboard for the owner, without being asked, so that the owner never has to ask for status.
+
+1. **Create it** at the start of the wave, from the Data artifact type: Artifact `quickstart` with intent `other`, then publish with its `type_url`. Put its link on the project page under the `Coordinator:` line, and give it to the owner once.
+2. **Write it with `ArtifactData`, in one batch.** The batch holds `dash/meta`, two datasets whose `source` is `{kind: "store", path: …}`, and `files/index.html`, its `{text}` taken from [`dashboard/index.html`](dashboard/index.html). The two datasets are `lanes`, at `data/<wave>/lanes`, and `events`, at `data/<wave>/events`.
+   - A lanes doc holds {lane, scope, status, stage, pr, eta, updated, order}, one doc per lane, and per item another session runs. Its status is one of queued, running, remote, review, ci, merged, done, blocked or failed.
+   - An events doc holds {at: "HH:MM", text}, one doc per update.
+3. **Keep it current.** Update it at every milestone: a lane starting, gates passing, a remote check starting or failing, a PR opening, a merge, a deploy, a blocker, an ETA change. Use `update` with `if_version` on a lane doc, and `set` for a new event. Lane agents report their stage and ETA in their progress lines, and the coordinator moves those onto the dashboard. A coordinator agent without `ArtifactData` writes the same updates as JSON lines to its progress folder, and the main session syncs them.
+4. Then the owner's "eta" or "status" gets the dashboard link and one line. The dashboard says the rest.
+
 ## Files other sessions own
 
 - The coordinator lists the files each open lane owns. A lane edits only its own; a file two lanes need goes to the earlier one, and the later lane waits or merges main in after it.
