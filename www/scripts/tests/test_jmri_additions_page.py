@@ -49,7 +49,8 @@ class JmriAdditions(unittest.TestCase):
     def test_a_list_must_close_on_its_own_line(self):
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)
-        coordinator = [p.relative_to(ja.ROOT).as_posix() for p in ja.coordinator.files(ja.ROOT / ja.COORDINATOR)]
+        coordinator = [p.relative_to(ja.ROOT).as_posix() for script in (ja.COORDINATOR, ja.PANEL_STATUS)
+                       for p in ja.coordinator.files(ja.ROOT / script)]
         for rel in [r for r, _ in ja.HOST_LISTS.values()] + coordinator:
             (tmp / rel).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(ja.ROOT / rel, tmp / rel)
@@ -61,6 +62,7 @@ class JmriAdditions(unittest.TestCase):
     def test_coordinator_modules_are_parts_not_scripts(self):
         parts = ja._siblings(ja.ROOT)
         self.assertIn("sml_beans.py", parts)
+        self.assertIn("panel_status_turnouts.py", parts)       # panel_status.py's PARTS are parts too
         for host, names in self.facts["hosts"].items():
             self.assertFalse(names & parts, host)
         tmp = Path(tempfile.mkdtemp())

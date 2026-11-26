@@ -164,6 +164,7 @@ class PartText(unittest.TestCase):
                 self.assertNotIn("setCommandedState(", text)
                 self.assertNotIn("IT:HART:YL:", text)
                 self.assertNotIn("apply_maintain_mqtt", text)
+                self.assertNotIn("_reload_mqtt_retain", text)
 
     def test_parts_are_utf8_text_with_no_coding_line_or_future_import(self) -> None:
         # The script compiles each part from its decoded text, as JMRI compiles the script; Jython refuses a
