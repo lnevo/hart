@@ -22,7 +22,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import archive_catalogue  # noqa: E402  (the master that archive.json copies credits and paths from, ADR-039)
 import site_views  # noqa: E402
 
-ROOT = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+ROOT = paths.REPO_ROOT
 ARCHIVE_PATH = ROOT / "www/data/archive.json"
 ARCHIVE_LOG = ROOT / "www/review-data/archive_review_log.jsonl"
 CATALOGUE_PATH = archive_catalogue.CATALOGUE
