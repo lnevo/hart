@@ -12,8 +12,17 @@ import json
 import os
 import subprocess
 import sys
+from collections.abc import Callable, Iterable
+from functools import partial
 from pathlib import Path
+from types import ModuleType
+from typing import TYPE_CHECKING, TypeVar, cast
 
+if TYPE_CHECKING:
+    # pm below is the same file loaded by path; this import gives mypy its types only
+    from tools.pipeline.manifest_jobs import JobKey
+
+T = TypeVar("T")
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "schematic"))
 import panel_stamps as ps  # noqa: E402
@@ -23,10 +32,12 @@ sys.path[:0] = [str(ROOT / "tools/hartlib/src")]
 from hartlib.paths import cache_dir, main_checkout  # noqa: E402,F401 - check_stamps' STORE and record use them
 
 
-def _import(name: str, path: Path):
+def _import(name: str, path: Path) -> ModuleType:
     """The module at `path` under `name`, loaded once per process (its dataclasses look it up in sys.modules)."""
     if name not in sys.modules:
         spec = importlib.util.spec_from_file_location(name, path)
+        if spec is None or spec.loader is None:
+            raise ImportError(f"cannot load {path}")
         module = importlib.util.module_from_spec(spec)
         sys.modules[name] = module
         spec.loader.exec_module(module)
@@ -45,7 +56,7 @@ def _pruned(rel: str) -> bool:
     return any(rel == p or rel.startswith(p + "/") for p in PRUNE_PATHS)
 
 
-def walk(patterns, root: Path = ROOT) -> list[Path]:
+def walk(patterns: Iterable[str], root: Path = ROOT) -> list[Path]:
     """Every file under `root` the patterns name, sorted; caches, VCS data, other worktrees and the plugin left out.
     Linked folders (media/, ops/car-cards in a worktree) are walked through their links, whatever the pattern."""
     heads = set()
@@ -61,6 +72,7 @@ def walk(patterns, root: Path = ROOT) -> list[Path]:
     seen: set[str] = set()                          # real paths of the folders walked: a link back up ends there
     for start in sorted(starts):
         base = root / start
+        walked: Iterable[tuple[str, list[str], list[str]]]
         if base.is_file():
             walked = [(str(base.parent), [], [base.name])]
         else:
@@ -98,11 +110,12 @@ class HashCache:
         st = p.stat()
         hit = self.data.get(str(p))
         if hit and hit[0] == st.st_mtime_ns and hit[1] == st.st_size:
-            return hit[2]
-        sha = hashlib.sha256(p.read_bytes()).hexdigest()
-        self.data[str(p)] = [st.st_mtime_ns, st.st_size, sha]
+            sha: str = hit[2]
+            return sha
+        new = hashlib.sha256(p.read_bytes()).hexdigest()
+        self.data[str(p)] = [st.st_mtime_ns, st.st_size, new]
         self.dirty = True
-        return sha
+        return new
 
     def save(self) -> None:
         """Write the cache, less the files whose folder is gone (a removed worktree: make remote makes one per run,
@@ -153,37 +166,39 @@ class Checker:
         self.cache = HashCache(store / "filehash.json")
         self._memo: dict[tuple, object] = {}
 
-    def _once(self, key: tuple, make):
+    def _once(self, key: tuple[object, ...], make: Callable[[], T]) -> T:
         if key not in self._memo:
             self._memo[key] = make()
-        return self._memo[key]
+        return cast(T, self._memo[key])     # the memo holds make()'s value under its own key
 
     def git(self, *args: str) -> str:
         return self._once(("git", args), lambda: _run("git", *args, cwd=self.root))
 
     def plugin(self) -> str:
-        return self._once(("plugin",), lambda: ps.plugin_state(self.root))
+        return self._once(("plugin",), lambda: cast(str, ps.plugin_state(self.root)))
 
     def unstampable(self) -> str | None:
-        return self._once(("unstampable",), lambda: ps.unstampable(self.root))
+        return self._once(("unstampable",), lambda: cast("str | None", ps.unstampable(self.root)))
 
     def walk(self, patterns: tuple[str, ...]) -> list[Path]:
         return self._once(("walk", patterns), lambda: walk(patterns, self.root))
 
-    def manifest(self) -> dict[str, "pm.JobKey"]:
+    def manifest(self) -> dict[str, JobKey]:
         """manifest.job_keys of the checkout's tools/pipeline/checks.toml (raises manifest.ManifestError)."""
         return self._once(("manifest",), lambda: pm.job_keys(self.root / MANIFEST))
 
     def venv(self, python: Path) -> str:
         return self._once(("venv", str(python)), lambda: venv_state(python))
 
-    def replay(self, gits: list) -> list[str]:
+    def replay(self, gits: Iterable[list[str]]) -> list[str]:
         """traced.git_replay, each command run once."""
-        return [self._once(("replay", tuple(cmd)), lambda cmd=cmd: traced.git_replay([cmd], str(self.root))[0])
-                for cmd in gits]
+        return [self._once(("replay", tuple(cmd)), partial(self._replay_one, cmd)) for cmd in gits]
+
+    def _replay_one(self, cmd: list[str]) -> str:
+        return cast(str, traced.git_replay([cmd], str(self.root))[0])
 
     def snapshot(self, outside: str) -> str:
-        return self._once(("snapshot", outside), lambda: traced.snapshot(self.root, self.plugin(), outside))
+        return self._once(("snapshot", outside), lambda: cast(str, traced.snapshot(self.root, self.plugin(), outside)))
 
 
 def _file(name: str, store: Path) -> Path:

@@ -38,6 +38,14 @@ from __future__ import annotations
 import os
 import sys
 
+TYPE_CHECKING = False   # typing is not imported: this file runs at the start of every traced process
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from types import FrameType
+    from typing import Any
+    # an audit event's arguments: their types are the event's own (the CPython audit events table)
+    Args = tuple[Any, ...]
+
 LOG_ENV, ROOT_ENV, TOKEN_ENV, PATH_ENV = "HART_TRACE_LOG", "HART_TRACE_ROOT", "HART_TRACE_SPAWN", "HART_TRACE_PATH"
 
 # ---------------------------------------------------------------- capture (runs inside every traced process)
@@ -79,7 +87,7 @@ def _after_fork() -> None:
     _write("s", f"{os.getppid()}\tfork\t0\tfork")
 
 
-def _words(argv) -> str:
+def _words(argv: Any) -> str:     # an audit event's argv, of any type: fsdecode refuses the odd ones
     """argv as tab-separated words (tabs and newlines inside a word made spaces)."""
     try:
         words = [os.fsdecode(a) for a in (argv if isinstance(argv, (list, tuple)) else [argv])]
@@ -95,7 +103,7 @@ def _write(kind: str, data: str) -> None:
         pass
 
 
-def _path(path, dir_fd=None) -> str | None:
+def _path(path: object, dir_fd: int | None = None) -> str | None:
     """The absolute normalised path of an event's path argument, or None (a file descriptor, a path relative to a
     directory fd, bytes that will not decode)."""
     if dir_fd is not None or isinstance(path, int):
@@ -124,7 +132,7 @@ def _source_of_pyc(p: str) -> str:
     return p
 
 
-def _hook(event: str, args: tuple) -> None:
+def _hook(event: str, args: Args) -> None:
     if event not in _EVENTS:
         return
     busy = _state["busy"]
@@ -139,7 +147,7 @@ def _hook(event: str, args: tuple) -> None:
         busy.on = False
 
 
-def _on_open(args) -> None:
+def _on_open(args: Args) -> None:
     path, mode, flags = args
     p = _path(path)
     if p is None:
@@ -171,13 +179,13 @@ def _on_open(args) -> None:
 _IMPORTLIB = ("<frozen importlib._bootstrap_external>", os.path.join("importlib", "_bootstrap_external.py"))
 
 
-def _opened_as_code(frame=None) -> bool:
+def _opened_as_code(frame: FrameType | None = None) -> bool:
     """Whether the open being traced loads code, by the first frame above the hook (`frame`, for tests): none at all
     (the interpreter opening the main script), zipimport (asking whether the script is a zip of code), importlib's
     get_data called by its get_code (an import: the source or its .pyc), runpy reading a script it runs, or
     tokenize.open called by linecache (the source of a frame in a traceback or a warning). Every other open reads the
     file as data: pkgutil.get_data and importlib.resources included."""
-    f = frame if frame is not None else sys._getframe(1)
+    f: FrameType | None = frame if frame is not None else sys._getframe(1)
     while frame is None and f is not None and f.f_code.co_filename == __file__:
         f = f.f_back
     if f is None:
@@ -193,7 +201,7 @@ def _opened_as_code(frame=None) -> bool:
             and os.path.basename(up.f_code.co_filename) == "linecache.py")
 
 
-def _on_list(args) -> None:
+def _on_list(args: Args) -> None:
     p = _path(args[0] if args and args[0] is not None else ".")
     if p is not None:
         _write_listing(p)
@@ -205,7 +213,7 @@ def _write_listing(p: str) -> None:
     _write("d", f"{p}\t{listing(p) or kind_of(p)}")
 
 
-def _on_glob(args) -> None:
+def _on_glob(args: Args) -> None:
     # "glob.glob/2" (pathname, recursive, root_dir, dir_fd); the plain "glob.glob" event of the same call is ignored
     pattern, root_dir = args[0], (args[2] if len(args) > 2 else None)
     if isinstance(pattern, (str, bytes)):
@@ -217,20 +225,20 @@ def _on_glob(args) -> None:
             _write_listing(p)
 
 
-def _on_write(args) -> None:
+def _on_write(args: Args) -> None:
     for a in args[:2]:
         p = _path(a)
         if p is not None:
             _write("w", p)
 
 
-def _on_remove(args) -> None:
+def _on_remove(args: Args) -> None:
     p = _path(args[0])
     if p is not None:
         _write("w", p)
 
 
-def _spawn(argv, cwd, env) -> None:
+def _spawn(argv: object, cwd: object, env: object) -> None:
     """Note a spawn and hand the child its token: in the env mapping it is given, or in os.environ (inherited)."""
     with _state["lock"]:
         _state["n"] += 1
@@ -246,14 +254,14 @@ def _spawn(argv, cwd, env) -> None:
     _write("x", f"{token}\t{here or ''}\t{_words(argv)}")
 
 
-def _on_popen(args) -> None:
+def _on_popen(args: Args) -> None:
     executable, argv, cwd, env = args
     words = list(argv) if isinstance(argv, (list, tuple)) else [argv]
     _state["last_popen"] = words
     _spawn(words, cwd, env)
 
 
-def _on_posix_spawn(args) -> None:
+def _on_posix_spawn(args: Args) -> None:
     path, argv, env = args[:3]
     if _state.get("last_popen") is not None and list(argv) == _state["last_popen"]:
         _state["last_popen"] = None     # subprocess's own posix_spawn of the Popen just noted
@@ -261,16 +269,16 @@ def _on_posix_spawn(args) -> None:
     _spawn(list(argv), None, env)
 
 
-def _on_system(args) -> None:
+def _on_system(args: Args) -> None:
     _spawn(["sh", "-c", os.fsdecode(args[0])], None, None)
 
 
-def _on_exec(args) -> None:
+def _on_exec(args: Args) -> None:
     path, argv, env = args[:3]
     _spawn(list(argv), None, env)
 
 
-def _on_spawn(args) -> None:
+def _on_spawn(args: Args) -> None:
     mode, path, argv, env = args[:4]
     _spawn(list(argv), None, env)
 
@@ -289,8 +297,9 @@ def _patch_stat() -> None:
     listings it takes are)."""
     real_stat, real_lstat = os.stat, os.lstat
 
-    def wrap(real):
-        def probe(path, *args, dir_fd=None, follow_symlinks=True):
+    def wrap(real: Callable[..., os.stat_result]) -> Callable[..., os.stat_result]:
+        def probe(path: object, *args: object, dir_fd: int | None = None,
+                  follow_symlinks: bool = True) -> os.stat_result:
             try:
                 st = real(path, *args, dir_fd=dir_fd, follow_symlinks=follow_symlinks) if real is real_stat \
                     else real(path, *args, dir_fd=dir_fd)
@@ -302,7 +311,7 @@ def _patch_stat() -> None:
                 raise
             _note_probe(path, dir_fd, st)
             return st
-        probe.__wrapped__ = real
+        setattr(probe, "__wrapped__", real)     # inspect.unwrap finds the real function
         probe.__name__ = real.__name__
         probe.__doc__ = real.__doc__
         return probe
@@ -317,7 +326,7 @@ def _patch_which() -> None:
     import shutil
     real, start_path = shutil.which, os.environ.setdefault(PATH_ENV, os.environ.get("PATH", ""))
 
-    def which(cmd, mode=os.F_OK | os.X_OK, path=None):
+    def which(cmd: str, mode: int = os.F_OK | os.X_OK, path: str | None = None) -> str | None:
         found = real(cmd, mode, path)
         try:
             if path is None and mode == os.F_OK | os.X_OK and isinstance(cmd, str) \
@@ -326,9 +335,9 @@ def _patch_which() -> None:
         except Exception:  # noqa: BLE001 - tracing must never break the traced program
             pass
         return found
-    which.__wrapped__ = real
+    setattr(which, "__wrapped__", real)
     which.__doc__ = real.__doc__
-    shutil.which = which
+    setattr(shutil, "which", which)   # shutil.which is overloaded; this wrapper takes the str form the jobs use
 
 
 def _patch_skips() -> None:
@@ -338,16 +347,16 @@ def _patch_skips() -> None:
     import unittest.result
     real = unittest.result.TestResult.addSkip
 
-    def add_skip(self, test, reason):
+    def add_skip(self: unittest.result.TestResult, test: unittest.TestCase, reason: str) -> None:
         try:
             _write("k", _words([test.id(), str(reason)]))
         except Exception:  # noqa: BLE001
             pass
         return real(self, test, reason)
-    unittest.result.TestResult.addSkip = add_skip
+    setattr(unittest.result.TestResult, "addSkip", add_skip)
 
 
-def _note_probe(path, dir_fd, st) -> None:
+def _note_probe(path: object, dir_fd: int | None, st: os.stat_result | None) -> None:
     busy = _state["busy"]
     if getattr(busy, "on", False):
         return

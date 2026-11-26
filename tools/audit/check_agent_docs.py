@@ -164,7 +164,8 @@ def _code_span_end(line: str, i: int) -> int:
 
 def _without_comments(line: str, in_comment: bool) -> tuple[str, bool]:
     """`line` with HTML comments cut out (code spans are not read for them), and whether one is still open."""
-    out, i = [], 0
+    out: list[str] = []
+    i = 0
     while i < len(line):
         if in_comment:
             end = line.find("-->", i)
