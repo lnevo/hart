@@ -4490,6 +4490,15 @@
    "path": "jmri/layouts/hart/scripts/speedmatch/pom_guard_cli.py"
   },
   {
+   "id": "jmri/layouts/hart/scripts/speedmatch/pom_guard_roster.py",
+   "label": "pom_guard_roster.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Part of pom_guard.py: the address, roster and consist checks; runs in CPython and the Pi's Jython.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/pom_guard_roster.py"
+  },
+  {
    "id": "jmri/layouts/hart/scripts/speedmatch/pom_write.py",
    "label": "pom_write.py",
    "kind": "generator",
@@ -11603,6 +11612,16 @@
    "from": "jmri/layouts/hart/scripts/speedmatch/pom_guard_cli.py",
    "to": "jmri/layouts/hart/scripts/speedmatch/speedmatch.py",
    "label": "packed for pom"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/pom_guard_roster.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/speedmatch.py",
+   "label": "packed for pom"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/pom_guard_roster.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/pom_guard.py",
+   "label": "imports"
   },
   {
    "from": "jmri/layouts/hart/scripts/cs105_consist.py",
