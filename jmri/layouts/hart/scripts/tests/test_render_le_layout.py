@@ -161,5 +161,46 @@ class MastKinds(unittest.TestCase):
                                                    '{"mast": "4LA", "kind": "planned"}]}'))
 
 
+class ViewSteps(unittest.TestCase):
+    def test_segments_are_named_and_still_unpack(self):
+        with tempfile.TemporaryDirectory() as d:
+            src = Path(d) / "panel.xml"
+            src.write_text(PANEL, encoding="utf-8")
+            seg = render_le_layout.load_geometry(src)[3][0]
+        self.assertEqual((seg.a, seg.b, seg.main, seg.block), ((0.0, 0.0), (10.0, 0.0), False, "Track K-1"))
+        a, b, main, block = seg
+        self.assertEqual((a, block), ((0.0, 0.0), "Track K-1"))
+
+    def test_crossover_diagonals_are_the_pair_that_crosses(self):
+        a, b, c, dd = (0.0, 0.0), (10.0, 0.0), (10.0, 5.0), (0.0, 5.0)
+        self.assertEqual(render_le_layout._xover_diagonals(a, b, c, dd, "LH_XOVER"), (a, c, b, dd))
+        # legs stored mirrored: A-D and B-C cross, whatever the type says
+        self.assertEqual(render_le_layout._xover_diagonals(a, b, dd, c, "LH_XOVER"), (a, c, b, dd))
+        flat = (0.0, 0.0), (1.0, 0.0), (2.0, 0.0), (3.0, 0.0)   # all on one line: only a touch counts
+        self.assertTrue(render_le_layout._crosses(*flat[:2], (1.0, 0.0), (4.0, 0.0)))
+        far = (0.0, 0.0), (10.0, 0.0), (5.0, 10.0), (5.0, 1.0)   # D inside A-B-C: neither pair crosses
+        self.assertEqual(render_le_layout._xover_diagonals(*far, "RH_XOVER"), (far[0], far[3], far[1], far[2]))
+        self.assertEqual(render_le_layout._xover_diagonals(*far, "LH_XOVER"), (far[0], far[2], far[1], far[3]))
+
+    def test_frame_maps_panel_points_inside_the_margins(self):
+        f = render_le_layout._frame([(100.0, 50.0), (300.0, 150.0)], 2000, None)
+        pad, top = render_le_layout.PAD, render_le_layout.TOP
+        self.assertEqual(f.pt((100.0 - pad, 50.0 - pad)), (pad, top))
+        self.assertEqual(f.width, round((200 + 2 * pad) * f.scale + 2 * pad))
+        self.assertEqual(render_le_layout._frame([(0.0, 0.0), (5000.0, 0.0)], 2000, None).scale, 1.0)  # never below 1
+        self.assertEqual(render_le_layout._frame([(0.0, 0.0), (10.0, 0.0)], 2000, 0.5).scale, 0.5)
+
+    def test_an_empty_window_writes_nothing_and_half_a_window_is_refused(self):
+        with tempfile.TemporaryDirectory() as d:
+            src = Path(d) / "panel.xml"
+            src.write_text(PANEL, encoding="utf-8")
+            geometry = render_le_layout.load_geometry(src)
+            out = Path(d) / "out.png"
+            render_le_layout.render_view(*geometry, out, "t", "", 5000.0, 6000.0)
+            self.assertFalse(out.exists())
+            with self.assertRaisesRegex(ValueError, "xmin given without xmax"):
+                render_le_layout.render_view(*geometry, out, "t", "", 0.0, None)
+
+
 if __name__ == "__main__":
     unittest.main()

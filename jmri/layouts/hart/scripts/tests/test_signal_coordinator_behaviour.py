@@ -2,8 +2,8 @@
 
 Covers the decisions that reach the field: when the Digicon hand-off sends a head SET or
 Unheld, when a field report repaints a head and mast, and how sml_mode messages are
-answered. The MQTT adapter here only records what the script would send; nothing
-reaches a broker. The source-text checks stay in cats/scripts/tests/test_signal_coordinator.py.
+answered. The MQTT adapter only records; nothing reaches a broker. Topic routing, the Signals
+lamp sensor and the stored-Enabled warning: test_signal_coordinator_routing.py.
 """
 from __future__ import annotations
 
