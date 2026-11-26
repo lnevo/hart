@@ -1,6 +1,6 @@
 """The read-only checks make orient's "waiting to ingest" lines ask: tools/hosts/deploy/pi_unpulled.sh (the deploy
-gate's own Pi check, pi_unpulled_words in common.sh), tools/ops/pull_tables.sh --status and
-tools/hosts/sync_roster_from_pi.sh --status.
+gate's own Pi check, pi_unpulled_words in common.sh) and tools/ops/pull_tables.sh --status. The roster's part of
+the Pi check is covered by test_roster_master.py.
 
 ssh is a stand-in that runs the piped script here against a local folder (or fails as an unreachable host does,
 exit 255) and logs every call; scp and rsync stand-ins fail the test if a status check ever calls them. Nothing
@@ -131,64 +131,6 @@ class MacTablesStatusTest(PullCase):
         self.assertEqual(self.status(), "waiting")
         self.split_in(STORE)
         self.assertEqual(self.status(), "nothing")
-
-
-class RosterStatusTest(unittest.TestCase):
-    """sync_roster_from_pi.sh --status: the Pi's roster files against the Mac's JMRI_UserFiles."""
-
-    def setUp(self) -> None:
-        self.tmp = Path(tempfile.mkdtemp())
-        self.addCleanup(shutil.rmtree, self.tmp, True)
-        self.root = self.tmp / "checkout"
-        for rel in ("tools/hosts/sync_roster_from_pi.sh", "tools/hosts/roster_digest.sh", "tools/env/load_env.sh",
-                    "tools/env/defaults.env"):
-            (self.root / rel).parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(ROOT / rel, self.root / rel)
-        self.log = self.tmp / "network.log"
-        stand_ins(self.tmp / "bin", self.log)
-        self.pi = self.tmp / "pi/JMRI_UserFiles"
-        self.mac = self.tmp / "home/JMRI_UserFiles"
-        for uf in (self.pi, self.mac):
-            (uf / "roster").mkdir(parents=True)
-            (uf / "roster.xml").write_text("<roster/>")
-            (uf / "roster/D749.xml").write_text("<locomotive id='D749'/>")
-
-    def status(self) -> subprocess.CompletedProcess:
-        return subprocess.run(["bash", str(self.root / "tools/hosts/sync_roster_from_pi.sh"), "--status"],
-                              cwd=self.tmp, capture_output=True, text=True, timeout=60,
-                              env=clean_env(self.tmp, HART_PI_USERFILES=str(self.pi)))
-
-    def answer(self) -> str:
-        done = self.status()
-        self.assertEqual(done.returncode, 0, done.stderr)
-        # one ssh call with a ConnectTimeout, no copy, no stage folder
-        calls = self.log.read_text().splitlines()
-        self.assertEqual(len(calls), 1, calls)
-        self.assertIn("-o BatchMode=yes -o ConnectTimeout=10", calls[0])
-        self.assertFalse((self.root / "jmri").exists())
-        self.log.unlink()
-        return done.stdout.strip()
-
-    def test_nothing_waiting_when_the_mac_copy_matches(self) -> None:
-        (self.mac / "roster/extra-on-the-mac.xml").write_text("only here")  # the pull leaves it, so it is no change
-        (self.pi / "roster/._D749.xml").write_text("AppleDouble")              # never counted
-        self.assertEqual(self.answer(), "nothing")
-
-    def test_changed_and_new_files_on_the_pi_are_waiting(self) -> None:
-        (self.pi / "roster.xml").write_text("<roster><locomotive/></roster>")
-        (self.pi / "roster/NVL 1 copy.xml").write_text("<locomotive id='NVL 1'/>")
-        self.assertEqual(self.answer(), "waiting 2")
-
-    def test_no_mac_copy_yet_counts_every_pi_file(self) -> None:
-        shutil.rmtree(self.mac)
-        self.assertEqual(self.answer(), "waiting 2")
-
-    def test_an_unreachable_pi_is_ssh_s_status(self) -> None:
-        stand_ins(self.tmp / "bin", self.log, down=True)
-        done = self.status()
-        self.assertEqual(done.returncode, 255)
-        self.assertEqual(done.stdout, "")
-        self.assertFalse((self.root / "jmri").exists())
 
 
 if __name__ == "__main__":

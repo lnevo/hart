@@ -6,7 +6,7 @@ import tempfile
 import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SCRIPT = os.path.join(HERE, "..", "pack_roster_stage.sh")
+SCRIPT = os.path.join(HERE, "pack_roster_stage.sh")
 
 
 def pack(path):
