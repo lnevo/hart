@@ -1,6 +1,7 @@
 /* Layout for the pipeline map pages (docs/pipeline-map/index.html and the website copy): pure functions, no page state.
-   build_pipeline_map.py inlines this file, pipeline_map_helpers.js and then pipeline_map_view.js into one script in
-   the page, after the graph data (DATA). The layout is a layered (Sugiyama) drawing, left to right, with one
+   build_pipeline_map.py inlines this file, pipeline_map_helpers.js and then the viewer (pipeline_map_view.js,
+   pipeline_map_view_frame.js, pipeline_map_view_input.js; its SCRIPTS) into one script in the page, after the graph
+   data (DATA). The layout is a layered (Sugiyama) drawing, left to right, with one
    horizontal lane per domain; it runs in the page so any subset (some lanes, or the chain around one file) gets its
    own compact drawing. Under node the file exports these functions and the helpers', for the unit tests
    (tools/audit/tests/test_pipeline_map.py). */
