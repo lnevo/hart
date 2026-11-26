@@ -246,5 +246,35 @@ class Properties(unittest.TestCase):
             self.assertIn("malformed \\u escape", str(caught.exception))
 
 
+class JmriRunningProbe(unittest.TestCase):
+    """jmri-running exits 0 while JMRI runs, 1 while none does, 2 with "unknown" when the check cannot say."""
+
+    def probe(self, state: object) -> tuple[int, str]:
+        import contextlib
+        import io
+        err = io.StringIO()
+        with mock.patch.object(MOD.tables, "jmri_state", return_value=state), \
+                mock.patch("sys.argv", ["panelpro_profile.py", "jmri-running"]), contextlib.redirect_stderr(err), \
+                self.assertRaises(SystemExit) as got:
+            MOD.main()
+        return int(got.exception.code or 0), err.getvalue()
+
+    def test_each_state(self) -> None:
+        self.assertEqual(self.probe(MOD.tables.JmriState.RUNNING), (0, ""))
+        self.assertEqual(self.probe(MOD.tables.JmriState.STOPPED), (1, ""))
+        self.assertEqual(self.probe(MOD.tables.JmriState.UNKNOWN), (2, "unknown\n"))
+
+    def test_restore_refuses_when_the_check_cannot_say(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            profile = Path(tmp) / "profile.xml"
+            profile.write_text("<p/>", encoding="utf-8")
+            MOD.backup_path(profile).write_text("<p/>", encoding="utf-8")
+            with mock.patch.object(MOD.tables, "jmri_state", return_value=MOD.tables.JmriState.UNKNOWN), \
+                    self.assertRaises(SystemExit) as got:
+                MOD.restore_profile(profile)
+            self.assertIn("cannot tell", str(got.exception.code))
+            self.assertTrue(MOD.backup_path(profile).is_file())
+
+
 if __name__ == "__main__":
     unittest.main()

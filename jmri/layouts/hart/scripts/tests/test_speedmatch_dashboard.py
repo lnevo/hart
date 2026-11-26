@@ -546,5 +546,80 @@ class SshPollerTests(unittest.TestCase):
         self.assertEqual(poller.poll(st.Store()), (True, None))
 
 
+class LineHandlerTests(unittest.TestCase):
+    def head(self):
+        return [L(0, "RUN loco=2121 direction=forward"), L(1, "CFG route=loop1 mode=distance steps=8")]
+
+    def test_every_contract_kind_has_a_handler(self):
+        for kind in ("RUN", "CFG", "LENGTHS", "WARMUP", "WARMUP_LAP", "WARMUP_DONE", "STEP", "SETTLE",
+                     "MEASURE", "FREEZE", "PATH", "EXTRA", "SENS", "BLOCK", "READ", "STEPDONE", "PASS",
+                     "PASSDONE", "STOP", "END", "ERROR", "ABORTED", "NO_GUARD"):
+            self.assertIn(kind, st.LINE_HANDLERS, kind)
+
+    def test_unknown_kind_is_a_debug_event(self):
+        r = feed(st.Run("a"), [L(0, "WHATEVER foo bar")])
+        self.assertEqual(r.events[-1]["text"], "WHATEVER foo bar")
+        self.assertEqual(r.events[-1]["level"], "debug")
+        self.assertEqual(r.lines, 1)
+
+    def test_bad_lengths_line_is_a_warning_and_keeps_the_csv_lengths(self):
+        for bad in ("LENGTHS {not json", "LENGTHS [1, 2]"):
+            r = feed(st.Run("steprun_a.log"), self.head() + [L(2, bad)])
+            self.assertIsNone(r.lengths, bad)
+            self.assertEqual(r.events[-1]["level"], "warn", bad)
+            self.assertIn("using the CSV lengths", r.events[-1]["text"])
+            shown = r.to_dict(T + 3)["events"]
+            self.assertIn("LENGTHS line is not", shown[-1]["text"])
+
+    def test_lengths_entries_without_a_number_are_dropped_with_a_warning(self):
+        r = feed(st.Run("a"), [L(0, 'LENGTHS {"BS A": 100, "BS B": "x", "BS C": null, "BS D": true}')])
+        self.assertEqual(r.lengths, {"BS A": 100, "BS C": None})
+        self.assertEqual(r.events[-1]["level"], "warn")
+        self.assertIn("no number for BS B, BS D", r.events[-1]["text"])
+
+    def test_stepdone_without_a_step_still_ends_the_step(self):
+        r = feed(st.Run("steprun_a.log"), self.head() + [L(2, "STEP 8"), L(3, "FREEZE 8"),
+                                                         L(4, "STEPDONE median=4")])
+        self.assertTrue(r.frozen)
+        self.assertEqual(r.status, "measuring")
+        self.assertEqual(r.done, {})
+        self.assertIn("names no step", r.events[-1]["text"])
+
+    def test_run_repr_is_short(self):
+        r = feed(st.Run("a"), [L(0, "STEP 8")])
+        self.assertEqual(repr(r), "Run('a', status='settling', step=8)")
+
+    def test_demo_without_reference_curves_names_the_csv(self):
+        saved = src.REF_CSV
+        src.REF_CSV = Path("/nonexistent/speed_by_step.csv")
+        try:
+            with self.assertRaises(src.DemoError) as cm:
+                src.demo_logs()
+        finally:
+            src.REF_CSV = saved
+        self.assertIn("/nonexistent/speed_by_step.csv", str(cm.exception))
+
+    def test_good_lengths_line_is_kept(self):
+        r = feed(st.Run("a"), [L(0, 'LENGTHS {"BS A": 100}')])
+        self.assertEqual(r.lengths, {"BS A": 100})
+
+    def test_stepdone_without_a_step_number_is_ignored_and_the_snapshot_still_works(self):
+        store = st.Store()
+        for ln in self.head() + [L(2, "STEP 8"), L(3, "STEPDONE median=4"), L(4, "STEPDONE")]:
+            store.feed("steprun_a.log", ln)
+        run = store.runs["steprun_a.log"]
+        self.assertNotIn(None, run.done)
+        self.assertIn(8, run.done)  # a bare STEPDONE closes the current step
+        self.assertIn("names no step", run.events[-2]["text"])
+        store.snapshot(now=T + 5)
+
+    def test_runs_do_not_share_their_lists(self):
+        a, b = st.Run("a"), st.Run("b")
+        a.blocks.append({"step": 8})
+        self.assertEqual(b.blocks, [])
+        self.assertNotEqual(a, st.Run("a"))  # identity equality: one Run per log
+        self.assertEqual(st.Run("pass_x.log").kind, "pass")
+
+
 if __name__ == "__main__":
     unittest.main()

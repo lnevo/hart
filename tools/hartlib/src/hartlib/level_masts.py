@@ -1,6 +1,6 @@
-"""Every level's signal masts: schematic/masts.csv, one row per mast with its `level` (owner, 2026-11-21: the level is
+"""Every level's signal masts: schematic/masts.csv, one row per mast with its `level` (the level is
 a column, never a file per level), written by tools/schematic/build_masts.py from the mast and head rows (every
-level's build_device_map.py writes, naming-layers step 12) of
+level's build_device_map.py writes) of
 The device master: its reader (read) and the naming rules the file keeps.
 
 Columns (FIELDS):
@@ -26,7 +26,7 @@ same when a draft plant changes; only a wired head (an LCOS head, IH and digits:
 signal_coordinator.py enrols and publishes a head only when its name is IH and digits (_is_lcos_ih_sys), so no
 internal head reaches MQTT or the field.
 
-A virtual mast (a hidden VirtualSignalMast, IF$vsm:basic:one-low($<n>), owner 2026-11-20) stands where a visible
+A virtual mast (a hidden VirtualSignalMast, IF$vsm:basic:one-low($<n>)) stands where a visible
 mast's route reaches a buffer stop, as the destination of that route; it has no heads. Its ordinal is fixed once given
 and comes from its level's own thousand: staging $1001 up, main $2001 up and upper $3001 up, so no level's new mast
 can take another's number and a main or upper one is known by its name alone (is_level_virtual).
@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from typing import Any
 
 from . import paths, places
 from .level_devices import HEAD, HEAD_PREFIX  # noqa: F401  the main and upper head names, re-exported here
@@ -46,20 +47,20 @@ MAST_FIELDS = ["mast", "cp", "switch", "facing", "protects", "dir", "leg", "syst
 PLAN_FIELDS = ["toward", "run", "names", "edge_cm", "cm_from_toward", "schematic_edge", "schematic_toward_node"]
 FIELDS = ["level", *MAST_FIELDS, *PLAN_FIELDS]
 LIST = ";"                           # between the items of a run, names or head_system_names cell
-# `leg` of two masts sharing one facing and protected block pair, by their names' last letter (owner, 2026-11-16)
+# `leg` of two masts sharing one facing and protected block pair, by their names' last letter
 LEGS = {"A": "normal", "B": "diverging"}
 # a level's internal head prefix, data by level: staging's C1, main and upper's C3 (hartlib.level_devices); every
-# level's builder names its heads by head_name (naming-layers step 12)
+# level's builder names its heads by head_name
 HEAD_PREFIXES = {1: "IH:HART:C1:", 2: HEAD_PREFIX, 3: HEAD_PREFIX}
 # a mast's user name on any level: a home signal's (Mast 2L), a staging intermediate's by milepost
-# (Mast 67) or a main or upper one's with its line code (Mast A83; owner, 2026-11-19); a head's is its mast's key
+# (Mast 67) or a main or upper one's with its line code (Mast A83); a head's is its mast's key
 MAST_USER = re.compile(r"Mast (\d+[LR]?[A-Z]?|[AB]\d+)")
 HEAD_USER = re.compile(r"Head (\d+[LR]?[A-Z]?|[AB]\d+)(?: (Top|Bottom))?")
 WIRED_HEAD = re.compile(r"IH\d+")    # an LCOS head: signal_coordinator.py publishes IH and digits to MQTT
 # A masts.csv row may name a wired (LCOS) head only where it is the row's planned physical head at its place (its
 # device_system_name's): a head swapped in by its device row, its assignment field (build_masts.file_rows checks the
 # row). Staging's rows are bound to their physical masts (device_system_name the same), and main and upper's heads stay
-# internal until such a swap (owner, 2026-11-17), so nothing else of theirs reaches MQTT: any other wired head stops
+# internal until such a swap, so nothing else of theirs reaches MQTT: any other wired head stops
 # the read.
 SHSM = re.compile(r"IF\$shsm:(\w+):([\w-]+)((?:\(IH[^()]+\))+)")    # a SignalHeadSignalMast over its heads
 
@@ -150,7 +151,7 @@ def placed(row: dict) -> bool:
     return bool(row["toward"] or row["run"])
 
 
-def read(path: Path = PATH, *, levels: tuple[int, ...] | None = None) -> list[dict]:
+def read(path: Path = PATH, *, levels: tuple[int, ...] | None = None) -> list[dict[str, Any]]:
     """The rows of `levels` (every level when None), in file order, each with `level` an int, its `line` and `heads`:
     [(system name, user name)] from head_system_names. The whole file is checked whatever `levels` is. Stops with
     railroad.FactsError (a ValueError), naming the file and the line, on a header that is not FIELDS, a short or long
@@ -171,10 +172,11 @@ def read(path: Path = PATH, *, levels: tuple[int, ...] | None = None) -> list[di
         with path.open(encoding="utf-8") as fh:
             header = fh.readline().rstrip("\r\n").split(",")
     except OSError as exc:
-        raise railroad.FactsError(f"{path}: cannot read it ({exc.strerror})") from None
+        raise railroad.FactsError(f"{path}: cannot read it ({exc.strerror})") from exc
     if header != FIELDS:
         raise railroad.FactsError(f"{path.name} line 1: columns {','.join(header)}, not {','.join(FIELDS)}")
-    rows, first = [], {}
+    rows: list[dict[str, Any]] = []
+    first: dict[str, int] = {}              # mast -> its line
     table = places.table(places.lists_beside(path))    # a copy's cp cells by the lists beside it
     for line, r in railroad.read_rows(path, FIELDS):
         where = f"{path.name} line {line}"
@@ -185,10 +187,10 @@ def read(path: Path = PATH, *, levels: tuple[int, ...] | None = None) -> list[di
             raise railroad.FactsError(f"{where}: mast {r['mast']} is on line {first[r['mast']]} already")
         first[r["mast"]] = line
         table.with_names(r, where)             # the cp cell holds place ids (hartlib.places)
-        r["level"], r["line"] = int(r["level"]), line
-        r["heads"] = [tuple(h.split("=", 1)) for h in r["head_system_names"].split(LIST) if h]
-        if levels is None or r["level"] in levels:
-            rows.append(r)
+        row: dict[str, Any] = {**r, "level": int(r["level"]), "line": line,
+                               "heads": [tuple(h.split("=", 1)) for h in r["head_system_names"].split(LIST) if h]}
+        if levels is None or row["level"] in levels:
+            rows.append(row)
     return rows
 
 

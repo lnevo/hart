@@ -59,7 +59,7 @@ Hosts and failures:
 - If Windows fails after the Pi step finished (it answered the gate, then dropped during the copy or the apply), the run names the commit the Pi got (and says Windows may be partly installed if its apply failed): once Windows answers, give it the same commit with `make redeploy COMMIT=<sha> HOSTS=--win`. A Windows temp folder that cannot be removed after a good apply is only a warning.
 - Quit PanelPro on the Pi with `tools/hosts/pi_quit_panelpro.sh --for-deploy` first; the Pi deploy starts it again afterwards, also if it fails. A plain quit, or PanelPro the owner closed, stays closed. `HART_PI_RESTART=0` skips the restart.
 - Check afterwards with `make deploy-status HOSTS="--pi --win"` (or `tools/hosts/deploy_status.sh`), which reads the stamp back and compares its commit with this checkout, and with a sha256 of `tables.xml` on each host.
-- Do not leave the LCOS bridge (`serial_to_mqtt`) running, and do not publish `track/cmd` from a deploy.
+- Do not stop or restart the LCOS bridge (the `lcos-bridge` service on the Pi), and do not publish `track/cmd` from a deploy.
 
 ## Website
 

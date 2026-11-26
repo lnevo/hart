@@ -53,6 +53,11 @@ jobs:
           set -euo pipefail
           pin="$(python3 tools/audit/check_ruff.py --pin)"
           pip install "$pin"
+      # mypy for check.sh's mypy job, at the version requirements.txt pins
+      - if: steps.kind.outputs.kind != 'docs'
+        run: |
+          set -euo pipefail
+          pip install "mypy==$(python3 -c 'import sys; sys.path.insert(0, "tools/audit"); from pathlib import Path; import check_mypy; print(check_mypy.pinned_version(Path(".")))')"
       # The plugin commit this run pins, and whether it differs from the base's (a pull request's merge commit has
       # the base as its first parent; a push to main compares with the commit before it).
       - name: Plugin pin

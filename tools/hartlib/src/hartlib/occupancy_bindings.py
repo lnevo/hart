@@ -3,7 +3,7 @@
     occupancy_bindings.rows()      [{level, block_id, block_user_name, occupancy_sensor_user_name, cats_discipline}]
 
 The discipline is the owner's cell `cats_discipline` of the block's row in devices_field.csv (CTC or YARD,
-devices.CATS_DISCIPLINES; ADR-039 lane L12, owner 2026-11-25). cats/data/occupancy_bindings.csv held it, with copies
+devices.CATS_DISCIPLINES; ADR-039 lane L12). cats/data/occupancy_bindings.csv held it, with copies
 of the block and sensor names, until then. rows() gives each block its user name from the merged master and its
 occupancy sensor's user name: the occupancy row on its level whose `blocks` cell names it (or the block it is
 part_of), else level_devices.occupancy_user (a helix block, whose sensor is the main and upper levels' virtual one).
@@ -17,7 +17,8 @@ Every failure is a railroad_facts.FactsError (devices.DevicesError for the maste
 """
 from __future__ import annotations
 
-from typing import Mapping
+from collections.abc import Mapping
+from pathlib import Path
 
 from . import devices, level_devices
 from .railroad_facts import FactsError, device_list
@@ -36,7 +37,7 @@ def sensors(master: tuple[Mapping[str, str], ...]) -> dict[tuple[str, str], str]
     return out
 
 
-def rows(files=None) -> list[dict[str, str]]:
+def rows(files: devices.Files | Path | str | None = None) -> list[dict[str, str]]:
     """The block rows of the device master (`files`: a devices.Files or the generated file's path, as devices.load
     takes it; default the repo's) that have a cats_discipline, in master order, each as COLUMNS."""
     master = devices.load(files)

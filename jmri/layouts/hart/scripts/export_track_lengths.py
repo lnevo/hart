@@ -87,7 +87,11 @@ def set_tables(operating) -> int:
     """Set each block's length in tables.xml to its operating length (mm); returns how many changed. Stops on a block
     tables.xml does not hold, or while JMRI runs (a Store would undo it)."""
     tables_build.refuse_generated(TABLES, Path(__file__).name)
-    if tables.jmri_running():
+    try:
+        running = tables.jmri_running()
+    except tables.JmriCheckError as exc:
+        sys.exit(f"{exc}; tables.xml not written")
+    if running:
         sys.exit("JMRI is running: quit PanelPro and CATS first (a Store would undo this)")
     t = tables.load(TABLES)
     full = {tables.user_name(b): b for b in tables.blocks(t.root) if tables.user_name(b)}

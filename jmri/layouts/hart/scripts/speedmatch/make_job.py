@@ -14,6 +14,8 @@ The job file is plain Jython 2.7. liverule.py (the stop rule and span arithmetic
 check) is pasted in front of step_runner.py, so the runner on the Pi runs exactly that code.
 Nothing is sent: use drop_job.sh to copy a job to the Pi.
 """
+from __future__ import annotations
+
 import argparse
 import json
 import sys
@@ -207,7 +209,11 @@ def build_profile(a):
     if not payload.get("roster_id") or not pts:
         raise SystemExit("payload has no roster_id or no points")
     points = []
+    if not isinstance(pts, list):
+        raise SystemExit("payload points is not a list")
     for p in pts:
+        if not isinstance(p, dict):
+            raise SystemExit("payload point %r is not an object with step, forward_mm_s and reverse_mm_s" % (p,))
         fw, rv = p.get("forward_mm_s"), p.get("reverse_mm_s")
         if not isinstance(fw, (int, float)) or not isinstance(rv, (int, float)) or fw <= 0 or rv <= 0:
             raise SystemExit("point for step %r needs a forward and a reverse speed above 0" % p.get("step"))
@@ -226,10 +232,8 @@ def build_preflight(a):
     return settings_text(s) + (HERE / "jython" / "preflight.py").read_text()
 
 
-def main(argv=None):
-    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    sub = ap.add_subparsers(dest="job", required=True)
-    stamp = time.strftime("%Y%m%d_%H%M%S")
+def _add_steps(sub: argparse._SubParsersAction) -> argparse.ArgumentParser:
+    """The steps job: warm-up and step profile, laps or distance mode."""
     st = sub.add_parser("steps", help="warm-up and step profile of one loco in one direction")
     st.add_argument("--loco", required=True, help='roster id, e.g. "CSX 2738"')
     st.add_argument("--direction", required=True, choices=["forward", "reverse"])
@@ -269,6 +273,11 @@ def main(argv=None):
     st.add_argument("--lengths", default=str(analyze.DEFAULT_LENGTHS))
     st.add_argument("--trusted", default=",".join(analyze.DEFAULT_TRUSTED))
     st.add_argument("--log", help="log path on the Pi")
+    return st
+
+
+def _add_move(sub: argparse._SubParsersAction) -> argparse.ArgumentParser:
+    """The move job: run until a sensor lights."""
     mv = sub.add_parser("move", help="run a loco until a sensor lights, then stop it")
     mv.add_argument("--loco", required=True)
     mv.add_argument("--direction", required=True, choices=["forward", "reverse"])
@@ -280,6 +289,11 @@ def main(argv=None):
     mv.add_argument("--max-s", type=float, default=90.0)
     mv.add_argument("--mute-sound", action="store_true")
     mv.add_argument("--log")
+    return mv
+
+
+def _add_pass(sub: argparse._SubParsersAction) -> argparse.ArgumentParser:
+    """The pass job: one timed pass through a stretch."""
     ps = sub.add_parser("pass", help="one timed pass through a stretch, to place a switch (infer_block_lengths.py --pass-log)")
     ps.add_argument("--loco", required=True)
     ps.add_argument("--direction", required=True, choices=["forward", "reverse"])
@@ -291,11 +305,21 @@ def main(argv=None):
     ps.add_argument("--stall", type=float, default=120.0, help="seconds without a route sensor event")
     ps.add_argument("--mute-sound", action="store_true")
     ps.add_argument("--log")
+    return ps
+
+
+def _add_preflight(sub: argparse._SubParsersAction) -> argparse.ArgumentParser:
+    """The preflight job: read the decoder's CVs on the programming track."""
     pf = sub.add_parser("preflight", help="read the decoder's CVs on the programming track")
     pf.add_argument("--loco", required=True)
     pf.add_argument("--backemf", choices=sorted(BACKEMF), default="none")
     pf.add_argument("--cv-wait", type=float, default=20.0)
     pf.add_argument("--log", help="log path on the Pi")
+    return pf
+
+
+def _add_stoptest(sub: argparse._SubParsersAction) -> argparse.ArgumentParser:
+    """The stoptest job: speed 0 when a sensor lights, then log the stop."""
     sp = sub.add_parser("stoptest", help="start from rest, send speed 0 when a sensor lights, log the stop")
     sp.add_argument("--loco", required=True, help="roster id; for a consist the lead loco only")
     sp.add_argument("--direction", required=True, choices=["forward", "reverse"])
@@ -307,10 +331,23 @@ def main(argv=None):
     sp.add_argument("--quiet-s", type=float, default=10.0, help="end earlier after this long without an event")
     sp.add_argument("--mute-sound", action="store_true")
     sp.add_argument("--log")
+    return sp
+
+
+def _add_profile(sub: argparse._SubParsersAction) -> argparse.ArgumentParser:
+    """The profile job: write measured speeds into a roster entry."""
     pr = sub.add_parser("profile", help="write measured speeds into a roster entry's speed profile")
     pr.add_argument("--payload", required=True, help="JSON from profile_to_roster.py")
     pr.add_argument("--apply", action="store_true", help="write (the job is a dry run without it)")
     pr.add_argument("--log")
+    return pr
+
+
+def build_parser() -> argparse.ArgumentParser:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    sub = ap.add_subparsers(dest="job", required=True)
+    st, mv, ps, pf, sp, pr = (_add_steps(sub), _add_move(sub), _add_pass(sub), _add_preflight(sub),
+                              _add_stoptest(sub), _add_profile(sub))
     for p in (st, mv, sp, ps):
         p.add_argument("--route", choices=sorted(analyze.ROUTES), default=analyze.DEFAULT_ROUTE,
                        help="test route (default loop1); --guard default is every block sensor off it")
@@ -318,28 +355,38 @@ def main(argv=None):
     li.add_argument("--route", choices=sorted(analyze.ROUTES), default=analyze.DEFAULT_ROUTE)
     for p in (st, pf, mv, sp, pr, ps):
         p.add_argument("--out", required=True, help="job file to write")
-    a = ap.parse_args(argv)
+    return ap
+
+
+def _steps_job(a: argparse.Namespace, tag: str, stamp: str) -> str:
+    """The steps job text, after the mode's defaults and limits are applied to a."""
+    dist = a.mode == "distance"
+    if a.steps is None:
+        a.steps = list(lr.DIST_STEPS if dist else DEFAULT_STEPS)
+    if a.warm_step is None:
+        a.warm_step = lr.DIST_WARM_STEP if dist else DEFAULT_WARM_STEP
+    if a.rel is None:
+        a.rel = lr.DIST_REL if dist else lr.STOP_REL
+    if (a.warm_s > 0 if dist else a.warm_laps > 0) and not 1 <= a.warm_step <= 126:
+        sys.exit("--warm-step %d is outside 1..126" % a.warm_step)
+    if dist and (a.target_mm <= 0 or a.min_blocks < 1 or a.max_s <= 0 or a.warm_s < 0):
+        sys.exit("distance mode needs --target-mm and --max-s above 0, --min-blocks 1 or more, --warm-s 0 or more")
+    a.log = a.log or "/tmp/steprun_%s_%s_%s.log" % (tag, a.direction, stamp)
+    lengths = analyze.load_lengths(a.lengths, tuple(a.trusted.split(",")), analyze.route_loop(a.route))
+    if sum(v is not None for v in lengths.values()) == 0:
+        sys.exit("no trusted block lengths: nothing to measure over (see --trusted)")
+    return build_distance(a, lengths) if dist else build_steps(a, lengths)
+
+
+def main(argv: list[str] | None = None) -> None:
+    stamp = time.strftime("%Y%m%d_%H%M%S")
+    a = build_parser().parse_args(argv)
     if a.job == "lineup":
         print(lineup_text(a.route))
         return
     tag = a.loco.replace(" ", "_") if getattr(a, "loco", None) else "profile"
     if a.job == "steps":
-        dist = a.mode == "distance"
-        if a.steps is None:
-            a.steps = list(lr.DIST_STEPS if dist else DEFAULT_STEPS)
-        if a.warm_step is None:
-            a.warm_step = lr.DIST_WARM_STEP if dist else DEFAULT_WARM_STEP
-        if a.rel is None:
-            a.rel = lr.DIST_REL if dist else lr.STOP_REL
-        if (a.warm_s > 0 if dist else a.warm_laps > 0) and not 1 <= a.warm_step <= 126:
-            sys.exit("--warm-step %d is outside 1..126" % a.warm_step)
-        if dist and (a.target_mm <= 0 or a.min_blocks < 1 or a.max_s <= 0 or a.warm_s < 0):
-            sys.exit("distance mode needs --target-mm and --max-s above 0, --min-blocks 1 or more, --warm-s 0 or more")
-        a.log = a.log or "/tmp/steprun_%s_%s_%s.log" % (tag, a.direction, stamp)
-        lengths = analyze.load_lengths(a.lengths, tuple(a.trusted.split(",")), analyze.route_loop(a.route))
-        if sum(v is not None for v in lengths.values()) == 0:
-            sys.exit("no trusted block lengths: nothing to measure over (see --trusted)")
-        text = build_distance(a, lengths) if dist else build_steps(a, lengths)
+        text = _steps_job(a, tag, stamp)
     elif a.job == "pass":
         a.log = a.log or "/tmp/pass_%s_%s_step%d_%s.log" % (tag, a.direction, a.step, stamp)
         text = build_pass(a)

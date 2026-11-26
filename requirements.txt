@@ -34,3 +34,6 @@ Markdown==3.11.2
 # Pyflakes checks (ruff's F rules, ruff.toml): tools/audit/check_ruff.py in tools/check.sh and the edit hook.
 # CI and tools/hosts/win_run.sh install this exact pin.
 ruff==0.17.6
+
+# Type checks: tools/audit/check_mypy.py (settings in mypy.ini, per-file baseline in tools/audit/mypy_baseline.json).
+mypy==2.4.1
