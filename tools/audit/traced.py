@@ -376,13 +376,15 @@ HOOK_FILES = ("tools/audit/traced.py", *(f"tools/audit/{p}.py" for p in PARTS),
 
 def _load_part(stem: str):
     """A part of this file, by path from this file's folder (the hook loads traced.py by path, with nothing of the
-    repo on sys.path), as a module of its own that is not put in sys.modules."""
+    repo on sys.path), as a module of its own, registered under this module's name and the part's (a dataclass in it
+    looks its module up in sys.modules)."""
     import importlib.util
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), f"{stem}.py")
     if not os.path.isfile(path):
         raise ImportError(f"traced: its part {path} is missing")
     spec = importlib.util.spec_from_file_location(f"{__name__}_{stem.removeprefix('traced_')}", path)
     mod = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = mod
     spec.loader.exec_module(mod)
     return mod
 

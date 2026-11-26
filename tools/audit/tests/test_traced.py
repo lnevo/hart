@@ -4,6 +4,7 @@ Each test runs a small Python script in a scratch repo under the real hook, reco
 changes the repo the way an edit would."""
 from __future__ import annotations
 
+import importlib.util
 import os
 import shutil
 import subprocess
@@ -455,7 +456,7 @@ class LoadTest(unittest.TestCase):
                  "t = importlib.util.module_from_spec(spec)\n"
                  "spec.loader.exec_module(t)\n"
                  "print(json.dumps([t.HOOK_FILES, callable(t.parse), callable(t.listing), t.VERSION,\n"
-                 "                  t.Trace.__name__, 'traced_read' in sys.modules]))\n")
+                 "                  t.Trace.__name__, sorted(k for k in sys.modules if 'traced' in k)]))\n")
         with tempfile.TemporaryDirectory() as cwd:
             done = subprocess.run([sys.executable, "-I", "-c", probe, traced.__file__], cwd=cwd,
                                   capture_output=True, text=True, timeout=60)
@@ -463,7 +464,27 @@ class LoadTest(unittest.TestCase):
         files, parse, listing, version, trace, registered = __import__("json").loads(done.stdout)
         self.assertEqual(files, list(traced.HOOK_FILES))
         self.assertIn("tools/audit/traced_read.py", files)
-        self.assertEqual((parse, listing, version, trace, registered), (True, True, traced.VERSION, "Trace", False))
+        self.assertEqual((parse, listing, version, trace, registered), (True, True, traced.VERSION, "Trace", ["_hart_traced_read"]))
+
+    def test_a_part_may_hold_a_dataclass(self) -> None:
+        """A part is registered in sys.modules before it runs, as a dataclass with string annotations needs."""
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            shutil.copy(traced.__file__, folder / "traced.py")
+            (folder / "traced_x.py").write_text("from __future__ import annotations\nfrom dataclasses import dataclass\n\n"
+                                                "@dataclass\nclass Box:\n    n: int = 1\n")
+            spec = importlib.util.spec_from_file_location("traced_dc_test", folder / "traced.py")
+            mod = importlib.util.module_from_spec(spec)
+            with self.assertRaisesRegex(ImportError, r"traced: its part .*traced_read\.py is missing"):
+                spec.loader.exec_module(mod)
+            shutil.copy(Path(traced.__file__).with_name("traced_read.py"), folder / "traced_read.py")
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            part = mod._load_part("traced_x")
+            self.addCleanup(sys.modules.pop, "traced_dc_test_x", None)
+            self.addCleanup(sys.modules.pop, "traced_dc_test_read", None)
+            self.assertEqual(part.Box().n, 1)
+            self.assertIs(sys.modules["traced_dc_test_x"], part)
 
     def test_a_part_that_repeats_a_name_is_refused(self) -> None:
         part = types.ModuleType("traced_x")

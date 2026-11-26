@@ -19,6 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from guards_case import ROOT, load  # noqa: E402
 
+
 class AfterEditMatchingTests(unittest.TestCase):
     """check_after_edit.py: an edited script runs the test files that name it; data files keep every check.
 
