@@ -449,21 +449,24 @@ def _vendor_photos(dest: Path) -> None:
 PHOTO_CODE_VERSION = "1"
 PHOTO_STORE = "photo-group"
 _PHOTO_JSON = ("data/industries.json", "data/gallery.json", "data/fleet-gallery.json", "data/archive.json")
+# The code the photo group runs, whole files: this one (every stage and helper of the group), portal_common.py (the
+# manifest lookups and mirror prefixes it resolves sources with) and share_cards.py (the card thumbs). An edit to any
+# of them misses the stamp, helpers included, so a saved run is never reused under changed code.
+PHOTO_CODE_FILES = (Path(__file__), Path(portal_common.__file__), Path(share_cards.__file__))
 
 
 @functools.lru_cache(maxsize=None)
 def _photo_code_key() -> str:
-    """The version constant plus the source of every function the photo group runs, so editing one misses the stamp."""
-    funcs = (_vendor_logos, _vendor_json_logos, _vendor_logos_in, _vendor_logo, _vendor_photos, _vendor_fleet_images,
-             _filter_gallery, _keep_src, _gallery_thumbs, _vendor_archive_images, _web_jpeg, _card_thumbs, _webp_companions)
+    """The version constant, the bytes of PHOTO_CODE_FILES and the drawing key, so editing any of that code misses the
+    stamp."""
     h = hashlib.sha256(PHOTO_CODE_VERSION.encode())
-    for f in funcs:
-        h.update(inspect.getsource(f).encode())
+    for path in PHOTO_CODE_FILES:
+        h.update(f"|{path.name}|".encode())
+        h.update(path.read_bytes())
     try:
         h.update(_render_key())
     except ImportError:      # no Pillow: _photo_load says so and every stage runs as it always did
         h.update(b"no-pillow")
-    h.update(Path(share_cards.__file__).read_bytes())
     return h.hexdigest()
 
 

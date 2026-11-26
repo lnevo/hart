@@ -156,6 +156,23 @@ class PhotoSkip(base.FullBuild):
         self.assertIn("photo stages: reused", out)
         self.assertIn("photo stages, card thumbs and WebP: full run (inputs changed)", out)
 
+    def test_an_edit_to_any_photo_code_file_misses(self):
+        # The key hashes whole files, so a helper the group calls (portal_common._source, _archive_px) counts too.
+        self.assertEqual({p.name for p in photos.PHOTO_CODE_FILES}, {"portal_photos.py", "portal_common.py", "share_cards.py"})
+        copies = []
+        for path in photos.PHOTO_CODE_FILES:
+            copy = Path(self._tmp.name) / f"code-{path.name}"
+            copy.write_bytes(path.read_bytes())
+            copies.append(copy)
+        self.addCleanup(photos._photo_code_key.cache_clear)
+        with mock.patch.object(photos, "PHOTO_CODE_FILES", tuple(copies)):
+            photos._photo_code_key.cache_clear()
+            self.build()
+            self.assertIn("photo stages: reused", self.build())
+            copies[1].write_text(copies[1].read_text(encoding="utf-8") + "\n# an edited helper\n", encoding="utf-8")
+            photos._photo_code_key.cache_clear()
+            self.assertIn("photo stages: full run (inputs changed)", self.build())
+
     def test_reuse_leaves_the_resize_cache_unpruned_and_a_full_run_prunes(self):
         with mock.patch.object(build, "_prune_jpeg_cache") as prune:
             self.build()
