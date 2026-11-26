@@ -8,6 +8,11 @@ from __future__ import annotations
 import os
 import sys
 
+TYPE_CHECKING = False   # typing is not imported: traced.py loads this file in every traced process
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterable
+    _Hasher = Callable[[str], str]     # a file path to its sha256
+
 VERSION = 1
 LITTER_NAMES = {"__pycache__", ".DS_Store"}
 
@@ -96,9 +101,10 @@ def traced_spawns(t: Trace) -> set[str]:
     by_token = {s[1]: (s[0], s[3]) for s in t.spawns}
     done = set()
     for (pid, ppid, token, _t), child in zip(t.starts, t.start_argv):
-        spawner, argv = by_token.get(token, (None, None))
-        if spawner is None or spawner not in (pid, ppid):
+        found = by_token.get(token)
+        if found is None or found[0] not in (pid, ppid):
             continue
+        argv = found[1]
         args = argv[1:]
         if args and child[-len(args):] == args or not args and PYTHON_NAME.search(program(argv)):
             done.add(token)
@@ -306,7 +312,7 @@ def read_set(t: Trace, root: str) -> dict[str, list[str]]:
     """{files, missing, dirs, present}: the stamp names of what the trace read, probed absent, listed and stat'ed."""
     skip = _skip_prefixes(root)
 
-    def names(paths):
+    def names(paths: Iterable[str]) -> set[str]:
         return {n for n in (keep(p, root, skip) for p in paths) if n is not None}
     files = names(t.reads)
     missing = names(t.misses) - files
@@ -319,7 +325,7 @@ def _abs(name: str, root: str) -> str:
     return name if os.path.isabs(name) else os.path.join(root, name)
 
 
-def hash_entries(rs: dict[str, list[str]], root: str, hasher=None) -> dict[str, dict[str, str]]:
+def hash_entries(rs: dict[str, list[str]], root: str, hasher: _Hasher | None = None) -> dict[str, dict[str, str]]:
     """The read set's state now: a file's sha256 (or "-" when it is gone: a temp file the job made and removed),
     a folder's listing, a missing or stat'ed path's kind."""
     hasher = hasher or sha_file
@@ -336,7 +342,7 @@ def hash_entries(rs: dict[str, list[str]], root: str, hasher=None) -> dict[str, 
     return out
 
 
-def changed_since(t: Trace, rs: dict[str, list[str]], root: str, extra_files=()) -> list[str]:
+def changed_since(t: Trace, rs: dict[str, list[str]], root: str, extra_files: Iterable[str] = ()) -> list[str]:
     """The read files (and `extra_files`) the job did not write that were modified after it started: their content
     now may not be what the job read, so nothing may be recorded."""
     since = t.started_ns
@@ -371,13 +377,13 @@ def changed_since(t: Trace, rs: dict[str, list[str]], root: str, extra_files=())
     return late
 
 
-def make_stamp(key: str, t: Trace, root: str, hasher=None, **meta) -> dict:
+def make_stamp(key: str, t: Trace, root: str, hasher: _Hasher | None = None, **meta: object) -> dict:
     rs = read_set(t, root)
     return {"version": VERSION, "key": key, **meta, "state": hash_entries(rs, root, hasher),
             "which": [list(w) for w in sorted(t.which)]}
 
 
-def mismatch(stamp: dict | None, key: str, root: str, hasher=None) -> str | None:
+def mismatch(stamp: dict | None, key: str, root: str, hasher: _Hasher | None = None) -> str | None:
     """None when `stamp` holds `key` and its read set is as recorded, else the first difference (for a message)."""
     if not stamp or stamp.get("version") != VERSION:
         return "no traced stamp"
@@ -398,16 +404,17 @@ def mismatch(stamp: dict | None, key: str, root: str, hasher=None) -> str | None
     return None
 
 
-def load(path) -> dict | None:
+def load(path: str | os.PathLike[str]) -> dict | None:
     import json
     try:
         with open(path, encoding="utf-8") as f:
-            return json.loads(f.read())
+            stamp: dict = json.loads(f.read())
+            return stamp
     except (OSError, ValueError):
         return None
 
 
-def save(path, stamp: dict) -> None:
+def save(path: str | os.PathLike[str], stamp: dict) -> None:
     import json
     os.makedirs(os.path.dirname(os.fspath(path)), exist_ok=True)
     tmp = f"{os.fspath(path)}.{os.getpid()}.tmp"
@@ -416,7 +423,7 @@ def save(path, stamp: dict) -> None:
     os.replace(tmp, path)
 
 
-def snapshot(root, *parts: str) -> str:
+def snapshot(root: str | os.PathLike[str], *parts: str) -> str:
     """What the stamp key takes from outside the traced files and may change while a job runs (HEAD, origin/main,
     their merge base, and the callers' `parts`: the plugin state, the outside state), as one sha256. A runner takes
     it before the job and the recorder again after: a difference records nothing, since the key is worked out after
@@ -424,7 +431,7 @@ def snapshot(root, *parts: str) -> str:
     import hashlib
     import subprocess
 
-    def run(*a) -> str:
+    def run(*a: str) -> str:
         try:
             r = subprocess.run(["git", *a], cwd=root, capture_output=True, text=True, timeout=60)
         except (OSError, subprocess.SubprocessError):

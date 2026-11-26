@@ -16,8 +16,8 @@ import unittest
 from pathlib import Path
 
 
-def ids(suite) -> list[str]:
-    out = []
+def ids(suite: unittest.TestSuite) -> list[str]:
+    out: list[str] = []
     for item in suite:
         out += ids(item) if isinstance(item, unittest.TestSuite) else [item.id()]
     return out

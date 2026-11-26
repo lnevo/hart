@@ -61,6 +61,14 @@ def limit_of(path: str) -> int | None:
     return LIMITS.get(Path(path).suffix)
 
 
+def line_limit(path: str) -> int:
+    """The line limit of a path whose kind the check covers; SizeError for any other kind."""
+    limit = limit_of(path)
+    if limit is None:
+        raise SizeError(f"{path}: not a {kinds()} file this check covers")
+    return limit
+
+
 def warn_at(limit: int) -> int:
     """The line count from which a file under `limit` with no row is warned about (720 of 800, 450 of 500)."""
     return int(limit * WARN_SHARE)
@@ -117,7 +125,7 @@ def read_sizes(path: Path | None = None) -> dict[str, int]:
             raise SizeError(f"{path.name} row {n}: {name} is listed twice")
         if not in_scope(name):
             raise SizeError(f"{path.name} row {n}: {name} is not a {kinds()} file this check covers")
-        limit = limit_of(name)
+        limit = line_limit(name)
         if lines <= limit:
             raise SizeError(f"{path.name} row {n}: {name} at {lines} lines is not over {limit}; take the row out")
         sizes[name] = lines
@@ -127,7 +135,7 @@ def read_sizes(path: Path | None = None) -> dict[str, int]:
 def problems(now: dict[str, int], sizes: dict[str, int]) -> list[Problem]:
     out = []
     for path, lines in sorted(now.items()):
-        limit = limit_of(path)
+        limit = line_limit(path)
         if lines <= limit:
             continue
         allowed = sizes.get(path)
@@ -143,14 +151,14 @@ def problems(now: dict[str, int], sizes: dict[str, int]) -> list[Problem]:
 def slack(now: dict[str, int], sizes: dict[str, int]) -> list[str]:
     """The listed files whose row --update would lower or drop: shrank, at or under the limit, or gone. Not a failure."""
     return sorted(path for path, allowed in sizes.items()
-                  if path not in now or now[path] <= limit_of(path) or now[path] < allowed)
+                  if path not in now or now[path] <= line_limit(path) or now[path] < allowed)
 
 
 def warnings(now: dict[str, int], sizes: dict[str, int]) -> list[Problem]:
     """The files at WARN_SHARE of their limit or more, not over it, with no row: they fail on the line that crosses."""
     out = []
     for path, lines in sorted(now.items()):
-        limit = limit_of(path)
+        limit = line_limit(path)
         if warn_at(limit) <= lines <= limit and path not in sizes:
             out.append(Problem(path, f"{lines} lines, at {lines * 100 // limit} percent of its {limit}-line limit; "
                                      f"over {limit} it fails without a row: split it first"))
@@ -163,13 +171,13 @@ def updated(now: dict[str, int], sizes: dict[str, int], accept: set[str]) -> dic
     for path in sorted(accept):
         if path not in now:
             raise SizeError(f"--accept {path}: no {kinds()} file this check covers has that path")
-        if now[path] <= limit_of(path):
-            raise SizeError(f"--accept {path}: it is {now[path]} lines, not over {limit_of(path)}")
+        if now[path] <= line_limit(path):
+            raise SizeError(f"--accept {path}: it is {now[path]} lines, not over {line_limit(path)}")
         if path in sizes and now[path] <= sizes[path]:
             raise SizeError(f"--accept {path}: it did not grow ({now[path]} lines, row {sizes[path]})")
     new = {}
     for path, lines in now.items():
-        if lines <= limit_of(path):
+        if lines <= line_limit(path):
             continue
         if path in accept:
             new[path] = lines

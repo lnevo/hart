@@ -206,13 +206,13 @@ def problems(wiring_rows: list[dict[str, str]], tables_root: ET.Element) -> list
             continue
         if name not in on_mast:
             out.append(f"{name} ({h['mast']} {h['role']}): wired head is on no mast")
-        want = expected_comment(h)
+        comment = expected_comment(h)
         place = places.get(name)        # a wired head reads its mast's place first: "Plane | Switch 5 | Node: 4 ..."
         if place:
-            want = f"{place} | {want}"
+            comment = f"{place} | {comment}"
         got = head_comments[name]
-        if got != want:
-            out.append(f"{name}: comment {head_comments[name]!r}, wiring {want!r}")
+        if got != comment:
+            out.append(f"{name}: comment {head_comments[name]!r}, wiring {comment!r}")
     return out
 
 

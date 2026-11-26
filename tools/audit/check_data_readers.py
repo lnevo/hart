@@ -167,8 +167,8 @@ def named_in(src: str, names: set[str]) -> tuple[dict[str, int], bool]:
                 and not any(c.isspace() for c in node.value):
             name = node.value.rsplit("/", 1)[-1]
             if name in names:
-                line = found.get(name)
-                found[name] = node.lineno if line is None else min(line, node.lineno)
+                first = found.get(name)
+                found[name] = node.lineno if first is None else min(first, node.lineno)
     return found, is_jython(src, tree)
 
 

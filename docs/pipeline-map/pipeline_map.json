@@ -261,6 +261,15 @@
    "gen": "manifest"
   },
   {
+   "id": "tools/audit/layout_facts_xml.py",
+   "label": "layout_facts_xml.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "check_layout_facts.py's XML readers: desks, GUIObjects.xml and tables.xml parsed once per file version, and the elements and attributes the checks need.",
+   "path": "tools/audit/layout_facts_xml.py"
+  },
+  {
    "id": "tools/audit/check_mqtt_no_static_lists.py",
    "label": "check_mqtt_no_static_lists",
    "kind": "generator",
@@ -13133,6 +13142,11 @@
    "from": "tools/audit/traced_read.py",
    "to": "tools/audit/traced.py",
    "label": "re-exported"
+  },
+  {
+   "from": "tools/audit/layout_facts_xml.py",
+   "to": "tools/audit/check_layout_facts.py",
+   "label": "imported"
   },
   {
    "from": "tools/audit/stamp_audit/sitecustomize.py",

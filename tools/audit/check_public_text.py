@@ -17,6 +17,7 @@ PDF check is skipped with a note, except in CI, where that fails.
 from __future__ import annotations
 
 import argparse
+import functools
 import logging
 import os
 import re
@@ -89,11 +90,14 @@ def authors(core: str) -> dict[str, str]:
     return found
 
 
+def _blank_author(tag: str, m: re.Match[str]) -> str:
+    """One <tag>...</tag> match left as it is for a tool's name, emptied for anyone else's."""
+    return m.group(0) if m.group(1).strip() in TOOL_AUTHORS else f"<{tag}></{tag}>"
+
+
 def blank_authors(core: str) -> str:
     for tag in AUTHOR_TAGS:
-        core = re.sub(rf"<{tag}>([^<]*)</{tag}>",
-                      lambda m, t=tag: m.group(0) if m.group(1).strip() in TOOL_AUTHORS else f"<{t}></{t}>",
-                      core)
+        core = re.sub(rf"<{tag}>([^<]*)</{tag}>", functools.partial(_blank_author, tag), core)
     return core
 
 
@@ -138,16 +142,16 @@ def problems(files: list[str], fix: bool = False) -> list[str]:
             continue
         if path.suffix.lower() == ".pdf":
             try:
-                text = pdf_text(path)
+                pdf = pdf_text(path)
             except Exception as exc:  # a damaged PDF should not hide the others
                 out.append(f"cannot read {rel}: {exc}")
                 continue
-            if text is None:
+            if pdf is None:
                 pdf_skipped += 1
                 continue
-            if contains_private_name(text):
+            if contains_private_name(pdf):
                 out.append(f"private name in {rel}")
-            if personal_email(text):
+            if personal_email(pdf):
                 out.append(f"personal email address in {rel}")
             continue
         size = path.stat().st_size

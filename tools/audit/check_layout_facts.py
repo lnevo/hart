@@ -57,7 +57,10 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 from collections import Counter
+from collections.abc import Callable, Sequence
 from pathlib import Path
+from types import ModuleType
+from typing import overload
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
@@ -67,10 +70,11 @@ from hartlib.names import split_dcc  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 HART = paths.LAYOUT_DIR
-sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
+sys.path[:0] = [str(paths.LAYOUT_SCRIPTS), str(Path(__file__).resolve().parent)]     # layout_facts_xml beside this
 sys.path.append(str(paths.CATS_DIR / "scripts"))
 
 import layout_facts as facts  # noqa: E402
+from layout_facts_xml import LayoutFactsError, desk_root, need, parse, parse_tables, trackplan  # noqa: E402,F401
 import digicon_trace as trace  # noqa: E402
 
 TABLES = paths.TABLES_XML
@@ -86,7 +90,6 @@ CLOSED, THROWN = "2", "4"
 PLAIN_TURNOUTS = {"RH_TURNOUT", "LH_TURNOUT", "WYE_TURNOUT"}
 
 # Differences already reported to the owner and accepted, each by its exact message.
-# Empty since the 2026-11-12 USS rebuild (EH-1/EH-3 swap, Switch 37/39 dots).
 KNOWN: dict[str, str] = {}
 
 
@@ -111,27 +114,6 @@ class Report:
         """One line per KNOWN reason that happened, with its count."""
         hits = Counter(known[m] for m in self.messages() if m in known)
         return [f"{reason} ({count} difference(s))" for reason, count in hits.items()]
-
-
-def _cached(load, path: Path):
-    """``load(path)`` once per file version: a desk or tables.xml is read by several checks."""
-    st = Path(path).stat()
-    return _load_cached(load, str(Path(path).resolve()), (st.st_mtime_ns, st.st_size))
-
-
-@functools.lru_cache(maxsize=None)
-def _load_cached(load, path: str, _stamp: tuple[int, int]):
-    return load(path)
-
-
-def parse(path: Path) -> ET.ElementTree:
-    """ET.parse, once per file version (a desk or GUIObjects.xml)."""
-    return _cached(ET.parse, path)
-
-
-def parse_tables(path: Path) -> ET.Element:
-    """Root of tables.xml via hartlib, once per file version."""
-    return _cached(hart_tables.read, path)
 
 
 # ---------------------------------------------------------------- tables.xml
@@ -168,9 +150,9 @@ class Tables:
             if sensor and user:
                 self.block_sensor[user] = sensor
             for p in b.findall("path"):
-                settings = [(bs.find("turnout").get("systemName"), bs.get("setting"))
-                            for bs in p.findall("beansetting") if bs.find("turnout") is not None]
-                self.paths.setdefault(user, []).append((p.get("block"), settings))
+                settings = [(need(to, "systemName"), need(bs, "setting"))
+                            for bs in p.findall("beansetting") if (to := bs.find("turnout")) is not None]
+                self.paths.setdefault(user, []).append((need(p, "block"), settings))
         self.turnouts: dict[str, tuple[str, str]] = {}
         for t in hart_tables.turnouts(self.root):
             user = (t.findtext("userName") or "").strip()
@@ -210,10 +192,12 @@ class Tables:
                     pp = self.points[name]
                     for other in (pp.get("connect1name"), pp.get("connect2name")):
                         o = self.segments.get(other or "")
-                        if o is not None and o.get("blockname"):
-                            out.add(o.get("blockname"))
+                        if o is not None and (joined := o.get("blockname")):
+                            out.add(joined)
                 elif kind.startswith("TURNOUT_") and name in self.layout_turnouts:
-                    out.add(self._turnout_block(self.layout_turnouts[name], kind[-1]))
+                    # a turnout with no block joins none: the stored-paths branch above drops None the same way
+                    if (joined_lt := self._turnout_block(self.layout_turnouts[name], kind[-1])) is not None:
+                        out.add(joined_lt)
                 elif kind.startswith(("SLIP_", "LEVEL_XING_")):
                     raise ValueError(f"{user}: track segment {seg.get('ident')} ends at {kind} {name}, a slip or level "
                                      "crossing the panel check does not read; give the block a cp")
@@ -221,6 +205,13 @@ class Tables:
                     raise ValueError(f"{user}: track segment {seg.get('ident')} ends at {kind} {name!r}, which is "
                                      "not on the panel")
         return out - {user, None}
+
+    @overload
+    def track_name(self, user: str) -> str: ...
+    @overload
+    def track_name(self, user: None) -> None: ...
+    @overload
+    def track_name(self, user: str | None) -> str | None: ...
 
     def track_name(self, user: str | None) -> str | None:
         """Track S-R West -> Track S-R when both report on the same occupancy sensor."""
@@ -246,7 +237,7 @@ class Tables:
     def leg_block(self, ident: str, conn: str, own: str) -> str | None:
         """Block reached from connection B or C of a layout turnout, past its own OS block (and the parts inside
         it), a part read as the block it is part of (os_of)."""
-        came = (ident, f"TURNOUT_{conn}")
+        came: tuple[str | None, str | None] = (ident, f"TURNOUT_{conn}")
         seg = next((s for s in self.segments.values()
                     for i in ("1", "2")
                     if (s.get(f"connect{i}name"), s.get(f"type{i}")) == came), None)
@@ -292,7 +283,7 @@ def check_crossover_legs(sw: facts.Switch, lt: ET.Element, t: Tables, r: Report)
         r.add(f"le:{n}", f"{n}: Layout Editor {sw.le_ident}'s halves are blocks {blocks}: a crossover needs two "
                          "halves, each its own block (blockname for A-B, blockcname for C-D)")
         return
-    halves = dict(pairs)
+    halves = {h: c for h, c in pairs if h}     # every half is a block (checked above)
     for leg in sw.legs:
         conns = halves.get(leg.os_block)
         if conns is None:
@@ -303,8 +294,9 @@ def check_crossover_legs(sw: facts.Switch, lt: ET.Element, t: Tables, r: Report)
         if [t.track_name(leg.thrown)] != [t.track_name(h) for h in other]:
             r.add(f"le:{n}", f"{n}: switches.csv throws {leg.os_block} to {leg.thrown}, Layout Editor "
                              f"{sw.le_ident}'s other half is {', '.join(other) or 'none'}")
-        ends = [c for c in conns if c not in XOVER_DIVERGING[lt.get("type")]] or list(conns)
-        reach = {t.track_name(t.leg_block(sw.le_ident, c, leg.os_block)) for c in ends} - {None}
+        ends = [c for c in conns if c not in XOVER_DIVERGING[need(lt, "type")]] or list(conns)
+        reach = {reached for c in ends
+                 if (reached := t.track_name(t.leg_block(sw.le_ident, c, leg.os_block))) is not None}
         if t.track_name(leg.closed) not in reach:
             r.add(f"le:{n}", f"{n}: switches.csv closes {leg.os_block} to {leg.closed}, the panel's track from "
                              f"that half's closed end reaches {sorted(reach) or 'nothing'}")
@@ -374,7 +366,7 @@ def check_tables(sw: facts.Switch, t: Tables, r: Report) -> None:
 # ---------------------------------------------------------------- CATS desks
 
 def desk_plants(path: Path, r: Report) -> tuple[dict, dict[str, tuple[int, int]]]:
-    cells = trace.track_cells(parse(path).getroot().find("TRACKPLAN"))
+    cells = trace.track_cells(trackplan(path))
     try:
         plants = trace.desk_plants(cells, bound=True, level_turnouts=level_turnouts())     # staging's plants
     except trace.PlantError as err:
@@ -457,16 +449,16 @@ def check_desk(path: Path, switches: dict[int, facts.Switch], t: Tables, r: Repo
     desk = path.name
     cells, plants = desk_plants(path, r)
     by_os = facts.legs_by_os(switches)
-    for os_name, xy in plants.items():
+    for os_name, at in plants.items():
         if os_name not in by_os:
-            r.add(f"cats:{os_name}", f"{desk}: plant at {xy} is in {os_name}, which switches.csv does not list")
+            r.add(f"cats:{os_name}", f"{desk}: plant at {at} is in {os_name}, which switches.csv does not list")
     jmri_blocks = t.block_names()
-    names = {b.get("NAME") for b in parse(path).getroot().iter("BLOCK") if b.get("NAME")}
+    names = {desk_block for b in desk_root(path).iter("BLOCK") if (desk_block := b.get("NAME"))}
     # the main and upper blocks are drawn from the device map, before the tables may hold them: a staging-only
     # candidate has none, so all of them may be missing; tables with main and upper must hold every one but the
     # middle of a double crossover's X (named without the corner letter, a desk-only block with no sensor), and each
     # must report its virtual sensor (check_level_sensors)
-    root = parse(path).getroot()
+    root = desk_root(path)
     level_here = bool(jmri_blocks & device_map_blocks())
     dark = (device_map_blocks() - device_map_rows() if level_here else device_map_blocks()) & names
     for name in sorted(names - dark - jmri_blocks):
@@ -534,7 +526,7 @@ def check_level_desk(path: Path, t: Tables, r: Report) -> None:
     """The main and upper part of a generated desk: its plants against the internal turnouts and the Layout Editor in
     tables.xml, its masts against masts.csv's main and upper rows and tables.xml."""
     desk = path.name
-    cells = trace.track_cells(parse(path).getroot().find("TRACKPLAN"))
+    cells = trace.track_cells(trackplan(path))
     try:
         plants = trace.level_plants(cells, level_turnouts())
     except trace.PlantError as err:
@@ -577,8 +569,8 @@ def check_level_desk(path: Path, t: Tables, r: Report) -> None:
         lts = [lt for lt in t.layout_turnouts.values() if lt.get("turnoutname") in (user, level.get(user))]
         if len(lts) == 1 and lts[0].get("type") in PLAIN_TURNOUTS:
             lt = lts[0]
-            b = t.leg_block(lt.get("ident"), "B", lt.get("blockname"))
-            c = t.leg_block(lt.get("ident"), "C", lt.get("blockname"))
+            b = t.leg_block(need(lt, "ident"), "B", need(lt, "blockname"))
+            c = t.leg_block(need(lt, "ident"), "C", need(lt, "blockname"))
             closed, thrown = (b, c) if lt.get("continuing", CLOSED) == CLOSED else (c, b)
             if closed != thrown and (same_place(cmds["close"], thrown) or same_place(cmds["throw"], closed)):
                 r.add(f"cats:{user}", f"{desk}: {user} closes to {cmds['close']} and throws to {cmds['throw']}; the "
@@ -586,7 +578,7 @@ def check_level_desk(path: Path, t: Tables, r: Report) -> None:
     for user in sorted(set(level) - commanded):
         r.add(f"cats:{user}", f"{desk}: no plant commands main or upper turnout {user}")
     have = desk_mast_blocks(path)
-    blocks = {b.get("NAME") for b in parse(path).getroot().iter("BLOCK") if b.get("NAME")}
+    blocks = {desk_block for b in desk_root(path).iter("BLOCK") if (desk_block := b.get("NAME"))}
     masts = {hart_tables.user_name(m): hart_tables.system_name(m) for m in hart_tables.masts(t.root)}
     for row in level_masts.read(MASTS, levels=ADDED_LEVELS):
         mast, lamps = row["mast"], have.get(row["mast"], [])
@@ -611,11 +603,16 @@ def occupancy_sensors(device_map: Path) -> dict[str, str]:
             for row in occupancy_bindings.rows(device_map)}
 
 
+def _button_text(cb: ET.Element, tag: str) -> str:
+    """The stripped text of a code button's child `tag` ("" when it has none)."""
+    return (cb.findtext(tag) or "").strip()
+
+
 def check_ctc_buttons(switches: dict[int, facts.Switch], t: Tables, occ: dict[str, str], r: Report) -> None:
-    buttons = {}
+    buttons: dict[str, Callable[[str], str]] = {}
     for cb in t.root.iter("ctcCodeButtonData"):
-        get = lambda tag, cb=cb: (cb.findtext(tag) or "").strip()  # noqa: E731
-        buttons[get("SWDI_ExternalTurnout")] = get
+        text_of = functools.partial(_button_text, cb)
+        buttons[text_of("SWDI_ExternalTurnout")] = text_of
     for sw in switches.values():
         n = f"Switch {sw.number}"
         get = buttons.pop(sw.turnout, None)
@@ -644,7 +641,8 @@ def uss_panel(text: str) -> str:
     return m.group(0) if m else ""
 
 
-def check_uss_panel(label: str, pe: str, switches: dict[int, facts.Switch], gen, cells: dict, r: Report) -> None:
+def check_uss_panel(label: str, pe: str, switches: dict[int, facts.Switch], gen: ModuleType,
+                    cells: dict, r: Report) -> None:
     levers = {int(k): int(x) for k, x in re.findall(r'<sensoricon sensor="IS(\d+):LEVER" x="(\d+)"', pe)}
     dots = Counter(re.findall(r'<turnouticon turnout="([^"]+)"', pe))
     closed_url = dict(re.findall(r'<turnouticon turnout="([^"]+)"[^>]*>\s*<icons>\s*<closed url="([^"]+)"', pe))
@@ -706,30 +704,32 @@ def check_data(switches: dict[int, facts.Switch], data: Path, r: Report) -> None
         if sw.number in listed and sw.cp != listed[sw.number]:
             r.add(f"data:{n}", f"{n}: stations.csv puts it at {listed[sw.number]}, "
                                f"the device master at {sw.cp or '-'}")
-    for num in sorted(set(listed) - set(switches)):
-        r.add(f"data:Switch {num}", f"Switch {num}: in stations.csv, not in switches.csv")
+    for only in sorted(set(listed) - set(switches)):
+        r.add(f"data:Switch {only}", f"Switch {only}: in stations.csv, not in switches.csv")
 
 
 def desk_signals(path: Path) -> dict[tuple[int, int, str], str]:
     """(x, y, edge) -> mast for every named SECSIGNAL on a CATS desk."""
-    out = {}
-    for sec in parse(path).getroot().find("TRACKPLAN").findall("SECTION"):
+    out: dict[tuple[int, int, str], str] = {}
+    for sec in trackplan(path).findall("SECTION"):
         for edge in sec.findall("SEC_EDGE"):
             sig = edge.find("SECSIGNAL")
-            if sig is not None and (sig.text or "").strip():
-                out[(int(sec.get("X")), int(sec.get("Y")), edge.get("EDGE"))] = sig.text.strip()
+            mast = (sig.text or "").strip() if sig is not None else ""
+            if mast:
+                out[(int(need(sec, "X")), int(need(sec, "Y")), need(edge, "EDGE"))] = mast
     return out
 
 
 def desk_mast_blocks(path: Path) -> dict[str, list[str | None]]:
     """Mast -> the block on the edge of each lamp of that name on a CATS desk (the block the mast protects)."""
     out: dict[str, list[str | None]] = {}
-    for se in parse(path).getroot().iter("SEC_EDGE"):
+    for se in desk_root(path).iter("SEC_EDGE"):
         sig = se.find("SECSIGNAL")
-        if sig is None or not (sig.text or "").strip():
+        mast = (sig.text or "").strip() if sig is not None else ""
+        if not mast:
             continue
         blk = se.find("BLOCK")
-        out.setdefault(sig.text.strip(), []).append(blk.get("NAME") if blk is not None else None)
+        out.setdefault(mast, []).append(blk.get("NAME") if blk is not None else None)
     return out
 
 
@@ -744,7 +744,7 @@ def staging_mast_rows(path: Path = MASTS) -> list[dict]:
     return level_masts.read(path, levels=STAGING_LEVELS)
 
 
-def check_mast_cells(data: Path, rows: list[dict[str, str]], desks, t: Tables, r: Report) -> None:
+def check_mast_cells(data: Path, rows: list[dict[str, str]], desks: Sequence[Path], t: Tables, r: Report) -> None:
     """mast_cells.csv against the USS board's grid, the CATS desks (each of its masts once, its lamp on the edge of
     the block it protects, and no other mast), staging's mast rows of the device master and the masts' heads in tables.xml."""
     # the desks draw staging's visible masts, as the rule places them (masts.csv, ADR-024); mast_cells.csv
@@ -831,7 +831,7 @@ def check_levels(switches: dict[int, facts.Switch], data: Path, rows: list[dict[
                                    f"{sorted(near) or 'none'}; give it a cp")
 
 
-def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path = GUI,
+def run(data: Path = facts.DATA, tables: Path = TABLES, desks: Sequence[Path] = DESKS, gui: Path = GUI,
         device_map: Path = DEVICE_MAP) -> Report:
     """`device_map`: the master that goes with `tables` (its parts, part_map)."""
     import gen_ctc_track_plan as gen

@@ -30,6 +30,7 @@ from __future__ import annotations
 import argparse
 import re
 import sys
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -74,6 +75,8 @@ SCAN_GLOBS = tuple(f"**/*{s}" for s in TEXT_SUFFIXES)
 
 # Dated records that keep a name that is no longer current: file -> (names, reason);
 # names None allows any. Keep this short: a copy still in use belongs on the data.
+# {file or folder/: (the stale names allowed there, None for any, the reason)}
+Allow = Mapping[str, tuple[frozenset[str] | None, str]]
 ALLOW: dict[str, tuple[frozenset[str] | None, str]] = {
     "jmri/layouts/hart/parked/tables_parked.xml": (
         None,
@@ -185,8 +188,8 @@ def readable(rel: str) -> bool:
             and not any(part in f"/{rel}" for part in SKIP_PARTS))
 
 
-def run(root: Path, files: list[str] | None = None, allow=None, devices_csv: Path | None = None,
-        tables_xml: Path | None = None):
+def run(root: Path, files: list[str] | None = None, allow: Allow | None = None, devices_csv: Path | None = None,
+        tables_xml: Path | None = None) -> tuple[list[Hit], dict[str, int], set[tuple[str, str]]]:
     """(stale hits not in ALLOW, name copies per file read, the (file, name) ALLOW pairs used).
 
     devices_csv and tables_xml default to the ones under root; a test passes edited copies.
@@ -223,7 +226,7 @@ def run(root: Path, files: list[str] | None = None, allow=None, devices_csv: Pat
     return hits, counts, used
 
 
-def unused_allow(allow, used: set[tuple[str, str]]) -> list[str]:
+def unused_allow(allow: Allow, used: set[tuple[str, str]]) -> list[str]:
     """An ALLOW entry (or one of its names) that no longer matches anything must go."""
     out = []
     for rel, (names, _reason) in allow.items():

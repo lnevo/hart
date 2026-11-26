@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
@@ -12,17 +13,20 @@ from hartlib import parked, paths, tables  # noqa: E402
 TABLES = paths.TABLES_XML
 
 
-def expected_dests(root) -> int:
+def expected_dests(root: ET.Element) -> int:
     """The SML destination count of the generated three-level panel: audit_panel_contracts.EXPECTED_SML (one place).
     ValueError when the main panel is not a generated one."""
     import importlib.util
     tables.require_generated_panel(root, paths.rel(TABLES))
     spec = importlib.util.spec_from_file_location("audit_panel_contracts",
                                                   paths.LAYOUT_SCRIPTS / "audit_panel_contracts.py")
+    if spec is None or spec.loader is None:
+        raise ImportError(f"cannot load {paths.LAYOUT_SCRIPTS / 'audit_panel_contracts.py'}")
     audit = importlib.util.module_from_spec(spec)
     sys.modules.setdefault("audit_panel_contracts", audit)
     spec.loader.exec_module(audit)
-    return audit.EXPECTED_SML[True]
+    expected: int = audit.EXPECTED_SML[True]
+    return expected
 
 
 def main() -> int:
