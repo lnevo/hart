@@ -58,6 +58,17 @@ def band(nodes, strands):
     return [("Main level", {"nodes": nodes, "strands": strands, "R": {"srow": {}}}, {})]
 
 
+class MastOrder(unittest.TestCase):
+    def test_two_masts_on_one_leg_stop_with_the_key(self):
+        order: dict = {}
+        mr.put_order(order, (0, "n3", "B"), (1, "x"))
+        self.assertEqual(order, {(0, "n3", "B"): (1, "x")})
+        with self.assertRaisesRegex(mr.MastOrderError, r"\(0, 'n3', 'B'\)"):
+            mr.put_order(order, (0, "n3", "B"), (2, "y"))
+        self.assertTrue(issubclass(mr.MastOrderError, mr.MapError))
+        self.assertEqual(order, {(0, "n3", "B"): (1, "x")})
+
+
 class CrossoverAndLoopByStructure(unittest.TestCase):
     LV = {"Main level": 2}
 

@@ -12,7 +12,7 @@ tables.xml is an output; nothing reads it as a source. It is, in this order:
 1. the template, data/tables_template.xml: what PanelPro owns (settings, memories, the clock sensor, the "Hide windows
    on start" LogixNG), and the fixed envelope (hartlib.tables_build: no file history, "Written by" comment, clock
    time or memory values);
-2. every level's beans of the device master (naming-layers step 11): turnouts, sensors, heads, masts, blocks (lengths
+2. every level's beans of the device master: turnouts, sensors, heads, masts, blocks (lengths
    from block_lengths.csv) and layout blocks, each from its row's columns (its jmri_name, its bean_comment or the
    comment its wiring columns give), and the startup LogixNG that sets each virtual detector and turnout to its
    row's start, each section in JMRI's system-name order (hartlib.tables_build.base);

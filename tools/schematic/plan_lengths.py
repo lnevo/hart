@@ -5,10 +5,10 @@
     python3 tools/schematic/plan_lengths.py --check    # exit 1 if plan_in is stale
     python3 tools/schematic/plan_lengths.py --show     # print the lengths, write nothing
 
-Each row is keyed by its block's level and device ID (naming-layers step 5): a length worked out for a block by its
+Each row is keyed by its block's level and device ID: a length worked out for a block by its
 name finds its row through the device master, and the file holds no name, so a rename in devices_field.csv changes no
 row. This is the plan file's one writer; the lengths speed matching measured sit in block_lengths_measured.csv beside
-it (infer_block_lengths.py, hartlib.block_lengths; ADR-039 lane L8, owner 2026-11-25).
+it (infer_block_lengths.py, hartlib.block_lengths; ADR-039 lane L8).
 
 The plan length serves the schematic, the Layout Editor panel and the signal rules on every level; JMRI's block length
 is the operating length, a measured one where speed matching found it, else this (hartlib.block_lengths).
@@ -439,7 +439,7 @@ def main_upper_lengths(plan: Path) -> dict:
         pieces = piece_edges({bi: bands[bi][1]["strands"] for bi in mine},
                              {bi: sdm.band_refs(bands, joined, bi) for bi in mine})
     except sdm.StagingMapError as exc:
-        raise LengthError(str(exc)) from None
+        raise LengthError(str(exc)) from exc
     os_in = main_upper_os(bands, graph, parts, [p["index"] for p in plan_parts if p["kind"] == "threeway"])
     out, bad = {}, []
     ix = devices.index()                        # built once: a row's location text only for a message
@@ -464,7 +464,7 @@ def main_upper_lengths(plan: Path) -> dict:
 
 def block_ids(files=None) -> dict[tuple[str, str], str]:
     """{(level, block name): device ID} of every block row of the device master (the name store's names): how a
-    length worked out by name finds its block_lengths.csv row, which is keyed by (level, id) (naming-layers step 5)."""
+    length worked out by name finds its block_lengths.csv row, which is keyed by (level, id)."""
     from hartlib import devices
     return {(r["level"], r["user_name"]): r["id"] for r in devices.load(files) if r["level"] and r["layer"] == "block"}
 

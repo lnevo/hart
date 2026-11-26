@@ -1,6 +1,6 @@
 """cats_panel.py's shapes of the bindings, the same on every level (turnout_routes, occupancy_spec,
-block_entry, mast_template), and the prefixes and disciplines they are made with. Moved out of
-cats_panel.py unchanged; cats_panel.py re-exports every name."""
+block_entry, mast_template), and the prefixes and disciplines they are made with; cats_panel.py re-exports every
+name."""
 import re
 import sys
 from pathlib import Path
@@ -9,9 +9,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_device_map as bdm  # noqa: E402  the device map's naming helpers (base, band_level, natural)
 from hartlib.cats import station_plate  # noqa: E402
 
-from cats_panel_facts import mast_type  # noqa: E402
+from cats_panel_facts import CatsPanelError, mast_type  # noqa: E402
 
-# Main and upper: CTC on the CTC desk, CATS holds their signals and releases them (owner, 2026-11-17); ABS on the twin
+# Main and upper: CTC on the CTC desk, CATS holds their signals and releases them; ABS on the twin
 MAIN_UPPER_DISCIPLINE = "CTC"
 # The discipline of a staging block with no cats_discipline in the device master (hartlib.occupancy_bindings)
 STAGING_DISCIPLINE = "CTC"
@@ -32,10 +32,10 @@ _SYSTEM_NAME = re.compile(r"([A-Z]\d*[A-Z])(.+)")
 
 def split_system_name(system: str) -> tuple[str, str]:
     """(JMRIPREFIX, DECADDR) of a JMRI system name: "IT:HART:C3:107" -> ("IT", ":HART:C3:107"), "M2T408" -> ("M2T",
-    "408"). SystemExit on a name of no such shape."""
+    "408"). CatsPanelError on a name of no such shape."""
     m = _SYSTEM_NAME.fullmatch(system or "")
     if not m:
-        raise SystemExit(f"{system!r} is not a JMRI system name (connection letter and digits, type letter, name)")
+        raise CatsPanelError(f"{system!r} is not a JMRI system name (connection letter and digits, type letter, name)")
     return m.group(1), m.group(2)
 
 
@@ -60,7 +60,7 @@ def turnout_routes(prefix, addr, user, closed, thrown) -> dict:
     """The routes of a switch whose leg `closed` the turnout's closed state sets and leg `thrown` its thrown state:
     each leg's SELECTEDREPORT and ROUTECOMMAND, the turnout `prefix` + `addr` (user name `user`)."""
     if {closed, thrown} != {"B", "C"}:
-        raise SystemExit(f"{user}: closed leg {closed!r} and thrown leg {thrown!r} must be legs B and C, one each")
+        raise CatsPanelError(f"{user}: closed leg {closed!r} and thrown leg {thrown!r} must be legs B and C, one each")
     io = lambda cmd: {"DECADDR": addr, "JMRIPREFIX": prefix, "USER_NAME": user, "command": cmd}
     return {closed: {"SELECTEDREPORT": io("close"), "ROUTECOMMAND": io("close")},
             thrown: {"SELECTEDREPORT": io("throw"), "ROUTECOMMAND": io("throw")}}

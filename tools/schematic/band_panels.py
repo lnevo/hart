@@ -1,4 +1,4 @@
-"""The three band panels of tables.xml: "Staging Level", "Main Level" and "Upper Level" (owner, 2026-11-22).
+"""The three band panels of tables.xml: "Staging Level", "Main Level" and "Upper Level".
 
 build_tables.py calls add() after build_layout_le.build(): each band panel is a copy of the built "HART Railroad"
 panel trimmed to one band, the way JMRI's own advice makes a panel from another (copy the panel's XML, keep what the
@@ -21,12 +21,12 @@ linkedpanel the other band panel's name and linkpointid the anchor at the far en
 PositionablePointViewXml; the link is made when the second panel loads). A join is inside one block, so the
 connector is no block boundary and carries no mast.
 
-Each band panel opens on its own band (owner, 2026-11-22): the band is moved up by one translation, so that its
+Each band panel opens on its own band: the band is moved up by one translation, so that its
 topmost element stands MARGIN px below the top of the panel, and the panel is as tall as its lowest element plus
 MARGIN. The margin gives the level room above and below that the full panel, packed level under level, does not.
 The move is in whole px; a band that would still not fit the window stops the build (BandPanelError). The band
 panel's window is as tall as the panel and the frame Layout Editor draws round it (`chrome`), and keeps the full panel's
-width (owner, 2026-11-22: open at the size the level needs, at the common window width). A host that has opened a
+width (open at the size the level needs, at the common window width). A host that has opened a
 panel keeps its own window size in its profile's user-interface.xml, over this one: after a size change or a new panel,
 tools/hosts/panel_window_sizes.py (pi_panel_window_sizes.sh on the Pi) sets it by hand.
 """

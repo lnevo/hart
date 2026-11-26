@@ -17,7 +17,7 @@ from hartlib import level_devices  # noqa: E402  the main and upper levels and t
 
 # The main and upper blocks' numbers (IB:C3:<nnnn>, ILB<1000 + n>) are hartlib.block_numbering's: block_numbering.csv
 # read and checked there, the rule there, and build_device_map.py copies them into the block rows' jmri_name and
-# layout_block (naming-layers step 8). The build reads them off the rows (level_block_beans) and keeps the numbering
+# layout_block. The build reads them off the rows (level_block_beans) and keeps the numbering
 # checks here (a retired block drawn again, a stale row), so a stale row stops the build.
 NUMBERING = block_numbering.PATH
 NUMBERING_COLUMNS = block_numbering.COLUMNS
@@ -29,7 +29,7 @@ def load_numbering(path: Path = NUMBERING, names=None) -> tuple[dict, tuple, tup
     try:
         n = block_numbering.read(path, names)
     except block_numbering.NumberingError as exc:
-        raise BuildError(str(exc)) from None
+        raise BuildError(str(exc)) from exc
     return dict(n.numbered_as), n.appended, n.retired
 
 
@@ -79,7 +79,7 @@ def place(parent: ET.Element, new: list[ET.Element], depth: int, after: ET.Eleme
 block_sort = block_numbering.block_sort
 
 
-# Retired (owner, 2026-11-17): the hand-wired Digicon desk's yard-ladder buttons, internal turnouts IT:HART:YL:*
+# Retired: the hand-wired Digicon desk's yard-ladder buttons, internal turnouts IT:HART:YL:*
 # and the routes IO:AUTO:0201-0210 they fire. No desk or panel uses them; the build leaves them out.
 RETIRED_TURNOUT_PREFIX = "IT:HART:YL:"
 
@@ -129,7 +129,7 @@ def level_bean_names(path: Path = DEVICE_MAP, rows: list | None = None) -> set[s
         try:
             rows = devices.load(path)
         except devices.DevicesError as exc:
-            raise BuildError(f"{paths.rel(path)}: {exc}") from None
+            raise BuildError(f"{paths.rel(path)}: {exc}") from exc
     out: set[str] = set()
     bad = []
     for r in rows:
@@ -162,17 +162,17 @@ def numbered_blocks(blocks, require_listed: bool = False) -> list:
     try:
         return block_numbering.order(blocks, block_numbering.Numbering(*numbering()), require_listed)
     except block_numbering.NumberingError as exc:
-        raise BuildError(str(exc)) from None
+        raise BuildError(str(exc)) from exc
 
 
 def level_block_beans(path: Path = DEVICE_MAP) -> dict[str, tuple[str, str]]:
     """{block: (jmri_name, layout_block)} of every main and upper block row of the device master that has its bean
-    names: build_device_map.py copies them from block_numbering.csv (hartlib.block_numbering, naming-layers step 8).
+    names: build_device_map.py copies them from block_numbering.csv (hartlib.block_numbering).
     A helix block row has none (its beans are staging's). BuildError on a row with one of the two only."""
     try:
         rows = devices.load(path)
     except devices.DevicesError as exc:
-        raise BuildError(f"{paths.rel(path)}: {exc}") from None
+        raise BuildError(f"{paths.rel(path)}: {exc}") from exc
     out, bad = {}, []
     for r in rows:
         if r["level"] not in block_numbering.LEVELS or r["layer"] != "block":
@@ -205,7 +205,7 @@ def stale_block_beans(path: Path = DEVICE_MAP, numbering_path: Path = NUMBERING)
         names = {(r["level"], r["id"]): r["user_name"] for r in rows}
         want = block_numbering.bean_names(names.values(), block_numbering.read(numbering_path, names))
     except (devices.DevicesError, block_numbering.NumberingError) as exc:
-        raise BuildError(str(exc)) from None
+        raise BuildError(str(exc)) from exc
     return [f"{r['user_name']} ({r['jmri_name'] or 'none'}, not {want[r['user_name']][0]})" for r in rows
             if (r["jmri_name"], r["layout_block"]) != want[r["user_name"]]]
 

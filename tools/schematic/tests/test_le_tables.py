@@ -32,7 +32,7 @@ NAMES = {
 }
 LEVEL_BLOCKS = ["OS Switch 105", "OS Switch 201", "Track 105-109"]
 # each level block's bean names as its device-master row gives them (build_device_map.py copies them from
-# block_numbering.csv; naming-layers step 8)
+# block_numbering.csv)
 BEANS = {b: (f"IB:C3:{i:04d}", f"ILB{1000 + i}") for i, b in enumerate(LEVEL_BLOCKS, 1)}
 
 
@@ -142,7 +142,7 @@ class CheckBound(unittest.TestCase):
         self.check(self.root(), self.P(), self.names())
 
     def test_every_levels_names_are_held_to_the_same_tables(self):
-        """A main band's names are beans of the base too: the build adds none (naming-layers step 11)."""
+        """A main band's names are beans of the base too: the build adds none."""
         names = dict(self.names(), Main=dict(turnouts={}, os={"n1": "OS Switch 105"}, blocks={}))
         self.check(self.root(), self.P(blocks={"Track Helix Outer", "OS Switch 105"}), names)
         names["Main"]["turnouts"] = {"n1": "Switch 105"}

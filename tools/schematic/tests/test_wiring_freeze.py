@@ -1,4 +1,4 @@
-"""A frozen main or upper control point (owner, 2026-11-20): freeze_wiring.py copies the rule's wiring into
+"""A frozen main or upper control point: freeze_wiring.py copies the rule's wiring into
 wiring.csv, and build_device_map.py then gives those devices the same values and hands their node numbers and pins
 to nothing else (Nodes.freeze, read_pins)."""
 from __future__ import annotations
@@ -21,7 +21,7 @@ from hartlib import railroad, wiring  # noqa: E402
 HEAD = ",".join(wiring.COLUMNS) + "\n"
 
 
-# wiring.csv keys a device by its ID (naming-layers step 5); the test's own devices, which the device master does not
+# wiring.csv keys a device by its ID; the test's own devices, which the device master does not
 # have, are named here beside the repo's name store
 TEST_NAMES = {("2", "switch:9"): "Switch 9", ("2", "switch:999"): "Switch 999",
               ("2", "mast:1:A:west:single"): "Head 1L", ("2", "mast:9:A:west:single"): "Head 10L"}
@@ -222,7 +222,7 @@ class TheCommand(unittest.TestCase):
 
     def test_rows(self):
         got = fw.freeze_rows("CP 9", self.ROWS, self.KEYS, set(), "2026-11-21")
-        # each by its id (naming-layers step 5), a track's detector by its switches; device stays empty
+        # each by its id, a track's detector by its switches; device stays empty
         self.assertEqual([(r["kind"], r["id"], r["device"], r["switch_a"], r["node"], r["index"], r["board"],
                            r["ports"]) for r in got],
                          [("turnout", "switch:9", "", "", "42", "0", "OU1", "1,2"),      # the LCC alias follows it

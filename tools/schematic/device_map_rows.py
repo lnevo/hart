@@ -1,4 +1,4 @@
-"""The device map's row makers, one for every level (naming-layers step 7): the generator makes each device's row
+"""The device map's row makers, one for every level: the generator makes each device's row
 from the plan, then the owner's values in devices_field.csv go over it (owner_over), the same way on every level.
 
 - device_row: one device-map row (the old form, its comment split later by hartlib.devices.master_row) with the
@@ -49,7 +49,7 @@ class Wired(NamedTuple):
 
 def switch_shape(jmri: str, dcc) -> tuple[str, bool]:
     """(the LCC alias's jmri_name, whether the feedback rows are JMRI sensors) of a switch whose turnout has JMRI name
-    `jmri`, by that name's assignment (hartlib.devices.assignment_of), not by its level (naming-layers step 14): a
+    `jmri`, by that name's assignment (hartlib.devices.assignment_of), not by its level: a
     field turnout's alias is a JMRI turnout of its own (MTT<dcc>, none without a DCC address) and its feedback rows
     are sensors of their own system names (TWOSENSOR feedback), as staging's are; a virtual turnout's alias names the
     turnout's bean (it gives none) and its feedback rows have no JMRI name (DIRECT feedback), as main and upper's are
@@ -101,7 +101,7 @@ def owner_over(row: Mapping[str, str], field: Mapping[str, str] | None) -> dict:
             continue
         out[c] = v
     if field["jmri_name"] and not field["assignment"]:
-        # a swap is one cell (ADR-028): the owner's JMRI name says how the device is in JMRI (naming-layers step 14)
+        # a swap is one cell (ADR-028): the owner's JMRI name says how the device is in JMRI
         out["assignment"] = devices.assignment_of(field["jmri_name"])
     out["description"] = devices.describe(out)
     return out
@@ -115,7 +115,7 @@ def follow_swaps(rows: list[Mapping[str, str]], field: Mapping[tuple, Mapping[st
     swapped in the same way (an occupancy row whose assignment is field) is wired, not planned. A row whose own
     field row (`field`, {(level, id): row}) gives a jmri_name or an assignment (a detector: its detector) keeps the
     owner's. A mast over a head swapped in the same way (a head row whose assignment is field) stands on its heads'
-    JMRI names (mast_on_heads). So a swap is one row edit (naming-layers step 14); every other row as it is."""
+    JMRI names (mast_on_heads). So a swap is one row edit; every other row as it is."""
     turnouts = {(r["level"], r["id"].removeprefix("switch:")): r for r in rows
                 if r["layer"] == "turnout" and r["role"] == "turnout" and r["assignment"] == "field"}
     heads = {(r["level"], r["id"]): r for r in rows if r["layer"] == "head"}

@@ -7,7 +7,7 @@ The rule (owner, 2026-11-18/19/20/21): home masts, running track and exit dwarfs
 masts only as destinations, over staging's interlockings (interlockings.csv, level 1: Brick 1, 3, 5; Barn 7; East
 End 23, 31, 33; Princess 35, 37, 39) and its block layer, read from the block rows build_device_map.py makes in the
 same run (not from its last output) with block_lengths.csv. A mast's cp names the control point of its switch (the
-stations the drawings group by). One anchor rule on every level (owner, 2026-11-23):
+stations the drawings group by). One anchor rule on every level:
 - a home mast stands at its switch's leg when the block boundary is there (a turnout mast), else on the anchor where
   the switch's own OS block ends (an anchor mast, no switch: Mast 8RA on Scale, 25 cm from Switch 7, before
   2026-11-20). Main and upper's OS blocks end at their switches, so every home mast there is a turnout mast;
@@ -47,7 +47,7 @@ from hartlib import device_ids, devices, level_masts, railroad, wiring
 WRITER = "build_device_map.py"              # the one writer of every level's mast and head rows
 LEVEL = sdm.LEVEL                           # staging
 STATIONS = sdm.STATIONS
-INTERLOCKINGS = pd.DATA / "interlockings.csv"   # the signal rule's control points, every level (owner, 2026-11-20)
+INTERLOCKINGS = pd.DATA / "interlockings.csv"   # the signal rule's control points, every level
 FACTS = railroad.DEVICE_FACTS               # the device map's fact columns; a mast row fills switch, facing, protects, dir
 WIRED_HEAD = level_masts.WIRED_HEAD         # an LCOS head: signal_coordinator.py publishes IH and digits to MQTT
 # the note of a head on its internal name (no field head drives it), with the owner's decision (2026-11-19)
@@ -84,7 +84,7 @@ def internal_head(user: str, level: int = LEVEL) -> str:
     try:
         return level_masts.head_name(user, level)
     except ValueError as exc:
-        raise RuleError(str(exc)) from None
+        raise RuleError(str(exc)) from exc
 
 
 def head_users(mast: str, heads: int) -> list[str]:
@@ -111,7 +111,7 @@ def wired_heads(field: dict, path: Path | None = None, files: devices.Files | No
         import device_map_inputs as dmi
         nodes = dmi.staging_nodes()
     except (railroad.FactsError, mast_rule.MapError) as exc:
-        raise RuleError(str(exc)) from None
+        raise RuleError(str(exc)) from exc
     bad = [f"{wiring.PATH.name} line {w.line}: {w.device} is on node {w.node}, no staging node "
            f"({', '.join(map(str, sorted(nodes)))})" for w in heads if w.node not in nodes]
     out = {}
@@ -178,7 +178,7 @@ def generate(band, names: dict, planned: dict, cm: dict, parts: dict, stored: di
     dir, toward, run, names, edge_cm, cm_from_toward, edge, node, role}], in name order; role (hartlib.devices.ROLES)
     is home or intermediate, as the plan places the mast. A home mast stands at its switch's leg when the block
     boundary is there (a turnout mast), else on the anchor where the switch's own OS block ends (an anchor mast, no
-    switch); a part of the OS block (a JMRI block of its own, owner 2026-11-20) is inside it, as mast_plan reads the
+    switch); a part of the OS block (a JMRI block of its own) is inside it, as mast_plan reads the
     layer (staging_device_map.os_layer). It faces the JMRI block next to that boundary (Mast 32R: Track 29-31), and
     its lengths are the JMRI blocks' (block_lengths.csv), as build_signals.check_lengths reads them. A mast's `names`
     are the name store's for its run's plan edge (`stored`: staging_device_map.staging_names of `band`, plan_edge)."""
@@ -250,7 +250,7 @@ def interlockings(switches: set, path: Path = INTERLOCKINGS) -> dict:
     try:
         rows = railroad.read_interlockings(path, (1,))
     except railroad.FactsError as exc:
-        raise RuleError(str(exc)) from None
+        raise RuleError(str(exc)) from exc
     out, bad = {}, []
     for r in rows:
         for s in r.switches:
@@ -295,7 +295,7 @@ def mast_ids(band, placed: list[dict], block_ids: dict) -> list[str]:
 
 def owner_names(placed: list[dict], ids: list[str], field: dict) -> None:
     """Give each mast of `placed` the owner's name, its field row's user_name by its ID (`field`, field_by_id), in
-    place: the owner's name wins, and its heads are named from it (naming-layers step 12). RuleError on a name out of
+    place: the owner's name wins, and its heads are named from it. RuleError on a name out of
     the grammar (level_masts.MAST_USER) or one two masts would take."""
     bad = []
     for m, ident in zip(placed, ids):
@@ -335,7 +335,7 @@ def virtual_names(vgen: list[dict], ids: dict, old_rows: list[dict]) -> dict[str
         return {f"Mast {k}": v for k, v in mast_plan.virtual_system_names(
             [m["mast"].removeprefix("Mast ") for m in vgen], LEVEL, old).items()}
     except mast_rule.MapError as exc:
-        raise RuleError(str(exc)) from None
+        raise RuleError(str(exc)) from exc
 
 
 def mast_node(mast: str, field_row: dict | None, heads: list[dict]) -> str:

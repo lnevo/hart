@@ -1,5 +1,6 @@
 """build_cats_panel.py's facts: what the bindings are written from (load_facts reads them from the repo), the
-staging tracks, the main and upper device map and the mast templates. Moved out of build_cats_panel.py unchanged."""
+staging tracks, the main and upper device map and the mast templates; and CatsPanelError, the error every desk module
+raises."""
 import re
 import sys
 from dataclasses import dataclass, field
@@ -10,6 +11,7 @@ import publish_draft as pd  # noqa: E402  the pinned plugin and the sheet cache
 import mast_rule as mr  # noqa: E402  the helix tracks (plan_overrides.json)
 import staging_device_map as sdm  # noqa: E402  the staging tracks and their blocks (the staging rows of the device master)
 from hartlib import hand_lists, paths, railroad  # noqa: E402
+from hartlib.errors import HartlibError  # noqa: E402
 from hartlib.cats import appearance_templates, mast_templates  # noqa: E402
 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
@@ -17,6 +19,11 @@ import cats_turnout_io as tio  # noqa: E402
 import digicon_lib as le  # noqa: E402
 
 DEVICE_MAP = railroad.Sources.under().devices      # the device master
+
+
+class CatsPanelError(HartlibError):
+    """A fact the desks are built from that is missing, doubled or contradicts another: the message names the file,
+    switch, block or mast. build_cats_panel.main turns it into an exit."""
 
 
 class StagingTracks:
@@ -33,11 +40,11 @@ class StagingTracks:
         found = [c for c in self.chains if {e[0] for e in c["ends"]} == {a, b} and "END" not in
                  {e[0] for e in c["ends"]} and a != b]
         if len(found) != 1:
-            raise SystemExit(f"{what}: {'no' if not found else len(found)} staging tracks join {a} and {b} "
+            raise CatsPanelError(f"{what}: {'no' if not found else len(found)} staging tracks join {a} and {b} "
                              "in the staging device map; cannot tell which block it is part of")
         blocks = found[0]["blocks"]
         if len(set(blocks)) != 1:
-            raise SystemExit(f"{what}: the staging track from {a} to {b} holds blocks "
+            raise CatsPanelError(f"{what}: the staging track from {a} to {b} holds blocks "
                              f"{', '.join(sorted(set(blocks)))}; give it to the one its gap leaves it in "
                              "(a part row naming that block in the device master: block_overrides.csv, or the rule in "
                              "block_layer.py)")
@@ -54,7 +61,7 @@ def load_device_map(path=DEVICE_MAP):
     try:
         return railroad.read_device_map(path)
     except railroad.FactsError as exc:
-        raise SystemExit(f"build_cats_panel.py: {exc}") from None
+        raise CatsPanelError(f"build_cats_panel.py: {exc}") from exc
 
 
 @dataclass
@@ -83,7 +90,7 @@ def staging_tracks() -> list[dict]:
             band, _opts, _core = sdm.staging_band()
         return sdm.staging_chains(band, sdm.load(band))
     except (sdm.StagingMapError, sdm.lc.BuildError) as exc:      # the map, or the plugin and the drawing
-        raise SystemExit(f"build_cats_panel.py: staging device map: {exc}") from None
+        raise CatsPanelError(f"build_cats_panel.py: staging device map: {exc}") from exc
 
 
 def load_facts(rr: railroad.Railroad | None = None):
@@ -103,7 +110,7 @@ def load_facts(rr: railroad.Railroad | None = None):
                      {plan: h["block"] for plan, h in mr.read_helix_tracks().items()},
                      hand_lists.half_letters(Path(pd.DATA) / hand_lists.OVERRIDES_NAME))
     except (railroad.FactsError, mr.MapError, hand_lists.HandListError) as exc:
-        raise SystemExit(f"build_cats_panel.py: {exc}") from None
+        raise CatsPanelError(f"build_cats_panel.py: {exc}") from exc
 
 
 def mast_type(system):
@@ -118,7 +125,7 @@ def template_by_type(F):
     try:
         out = appearance_templates()
     except ValueError as exc:
-        raise SystemExit(str(exc)) from None
+        raise CatsPanelError(str(exc)) from exc
     # the stock basic appearances by head count, where the plan gives none: one head shows Clear, Approach and Stop
     # (CATS "single"), two add the Diverging aspects ("double"); a dwarf shows the aspects of its high twin. The
     # wiring plan lists wired masts only (6LB since 2026-11-19), so most types come from here.

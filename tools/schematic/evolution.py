@@ -7,9 +7,15 @@ closed spike branch (origin/agent/claude/schematic-spike), then every committed 
 draft, docs/ops/schematic-system-draft.svg, after the spike copies (commit 60ce2ef3). The current branch's
 history is read, so run it from the branch that has the drawing commit:
 frames that already exist are kept, new ones are added, and the GIF is rebuilt. macOS only (renders
-the SVG with Chrome, or sips without it); needs Pillow, which the repo's root .venv has:
+the SVG with Chrome, or sips when Chrome is not installed); needs Pillow, which the repo's root .venv has:
 
     .venv/bin/python tools/schematic/evolution.py
+
+When Chrome is installed but makes no image, the run stops with EvolutionError on purpose: it no longer falls back
+to sips without a word, since that silently put a blurrier frame among the sharp ones. Install or fix Chrome, or
+remove it from the path, to use sips.
+
+The repo root (REPO) is hartlib.paths.REPO_ROOT, which honours HART_REPO_ROOT.
 
 Default folder: media/schematic-evolution under the repo root (media/ is gitignored, and a worktree has it linked;
 frames are large). With no media/ (a fresh clone without the mirror) it stops with a message and makes nothing.
@@ -27,6 +33,7 @@ with it: a stale branch makes a short film and a false pass.
 when the page's count or dates differ, that is when the site film is behind the drawing. It needs the spike ref
 (origin/agent/claude/schematic-spike), so it is a manual check, not part of tools/check.sh (CI clones lack the ref).
 """
+import argparse
 import re
 import shutil
 import subprocess
@@ -37,9 +44,10 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import film_pace  # noqa: E402
-REPO = Path(subprocess.run(["git", "rev-parse", "--show-toplevel"], cwd=HERE, capture_output=True,
-                           text=True, check=True).stdout.strip())
+from hartlib import film_pace, paths  # noqa: E402
+from hartlib.errors import HartlibError  # noqa: E402
+
+REPO = paths.REPO_ROOT          # this checkout (a worktree's own folder in a worktree)
 SPIKE = "tools/schematic/spike"
 SPIKE_REF = "origin/agent/claude/schematic-spike"
 DRAFT = "docs/ops/schematic-system-draft.svg"
@@ -54,19 +62,33 @@ PAGE = REPO / "www/behind/panel-evolution.html"
 MP4, POSTER = "schematic-evolution.mp4", "schematic-poster.jpg"
 
 
-def git(*args):
-    return subprocess.run(["git", *args], cwd=REPO, capture_output=True, text=True, check=True).stdout
+class EvolutionError(HartlibError):
+    """git, Chrome or sips could not give what the frames are made from; the message names the command and why."""
 
 
-def versions():
-    """(hash, time, subject, file) for each commit that changed a sample drawing, oldest first."""
+def git(*args: str) -> str:
+    """git's output for `args`, run in REPO. EvolutionError, with git's own message, when git fails."""
+    try:
+        run = subprocess.run(["git", *args], cwd=REPO, capture_output=True, text=True, check=False)
+    except OSError as exc:
+        raise EvolutionError(f"git could not be run: {exc}") from exc
+    if run.returncode:
+        raise EvolutionError(f"git {' '.join(args[:2])} failed (exit {run.returncode}): {run.stderr.strip()}")
+    return run.stdout
+
+
+def versions() -> list[tuple[str, ...]]:
+    """(hash, time, subject, file) for each commit that changed a sample drawing, oldest first. EvolutionError when
+    the spike ref is missing or git fails."""
     try:
         log = git("log", "--reverse", "--format=@%h|%ad|%s", "--date=format:%Y-%m-%d %H:%M", "--name-only",
                   SPIKE_REF, "--", f"{SPIKE}/*_sample.svg")
-    except subprocess.CalledProcessError:
-        sys.exit(f"{SPIKE_REF} not found: run git fetch origin agent/claude/schematic-spike "
-                 "(the spike's frames number the folder, so they must come first)")
-    out, head, files = [], None, []
+    except EvolutionError as exc:
+        raise EvolutionError(f"{SPIKE_REF} not found: run git fetch origin agent/claude/schematic-spike "
+                             f"(the spike's frames number the folder, so they must come first). {exc}") from exc
+    out: list[tuple[str, ...]] = []
+    head: list[str] | None = None
+    files: list[str] = []
     for line in log.splitlines() + ["@"]:
         if line.startswith("@"):
             if head:
@@ -85,19 +107,28 @@ def versions():
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
 
-def render(svg, png):
-    """The whole sheet as an image: Chrome when it is installed (sharp, twice the size), else sips."""
+def render(svg: Path, png: Path) -> None:
+    """The whole sheet as an image: Chrome when it is installed (sharp, twice the size), else sips. EvolutionError
+    when the installed Chrome makes no image (no silent fall back to the blurrier sips frame), or sips fails."""
     from PIL import Image
     if Path(CHROME).exists():
         with tempfile.TemporaryDirectory() as tmp:
             shot = Path(tmp) / "shot.png"
-            subprocess.run([CHROME, "--headless", "--disable-gpu", f"--user-data-dir={tmp}/profile",
-                            f"--screenshot={shot}", "--window-size=1056,816", "--force-device-scale-factor=2",
-                            "--hide-scrollbars", svg.resolve().as_uri()], capture_output=True, timeout=120)
-            if shot.exists():
-                Image.open(shot).convert("RGB").save(png)
-                return
-    subprocess.run(["sips", "-s", "format", "png", str(svg), "--out", str(png)], capture_output=True, check=True)
+            try:
+                run = subprocess.run([CHROME, "--headless", "--disable-gpu", f"--user-data-dir={tmp}/profile",
+                                      f"--screenshot={shot}", "--window-size=1056,816",
+                                      "--force-device-scale-factor=2", "--hide-scrollbars", svg.resolve().as_uri()],
+                                     capture_output=True, text=True, timeout=120)
+            except subprocess.TimeoutExpired as exc:
+                raise EvolutionError(f"Chrome took over 120 s to render {svg.name}") from exc
+            if not shot.exists():
+                raise EvolutionError(f"Chrome made no image of {svg.name} (exit {run.returncode}): "
+                                     f"{run.stderr.strip()[-300:]}")
+            Image.open(shot).convert("RGB").save(png)
+            return
+    run = subprocess.run(["sips", "-s", "format", "png", str(svg), "--out", str(png)], capture_output=True, text=True)
+    if run.returncode:
+        raise EvolutionError(f"sips could not render {svg.name} (exit {run.returncode}): {run.stderr.strip()}")
     flat = Image.new("RGB", Image.open(png).size, "white")
     flat.paste(Image.open(png).convert("RGBA"), mask=Image.open(png).convert("RGBA").split()[3])
     flat.save(png)
@@ -278,12 +309,31 @@ def default_folder():
     return media / "schematic-evolution"
 
 
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    """--site or --check (not both) and an output folder; --check takes no folder. Exits 2 on anything else."""
+    ap = argparse.ArgumentParser(prog="evolution.py", description=(__doc__ or "").split("\n\n")[1],
+                                 epilog="--site and --check count the checked-out branch's history: run them on main")
+    mode = ap.add_mutually_exclusive_group()
+    mode.add_argument("--site", action="store_true", help="also make the website's film, poster and page text")
+    mode.add_argument("--check", action="store_true", help="render nothing; exit 1 when the page is behind git")
+    ap.add_argument("folder", nargs="?", type=Path, help="output folder (default: media/schematic-evolution)")
+    args = ap.parse_args(argv)
+    if args.check and args.folder is not None:
+        ap.error("--check renders nothing, so it takes no folder")
+    return args
+
+
+def run_cli(argv: list[str]) -> int:
+    args = parse_args(argv)
+    try:
+        if args.check:
+            return check()
+        main(args.folder.expanduser() if args.folder else default_folder(), args.site)
+    except EvolutionError as exc:
+        print(f"evolution.py: {exc}", file=sys.stderr)
+        return 1
+    return 0
+
+
 if __name__ == "__main__":
-    args = sys.argv[1:]
-    flags = [a for a in args if a.startswith("--")]
-    rest = [a for a in args if not a.startswith("--")]
-    if set(flags) - {"--site", "--check"} or len(rest) > 1 or (flags == ["--check"] and rest) or len(flags) > 1:
-        sys.exit(__doc__.split("\n\n")[0] + "\n--site and --check count the checked-out branch's history: run them on main")
-    if flags == ["--check"]:
-        sys.exit(check())
-    main(Path(rest[0]).expanduser() if rest else default_folder(), flags == ["--site"])
+    sys.exit(run_cli(sys.argv[1:]))

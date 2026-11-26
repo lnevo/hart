@@ -7,12 +7,12 @@
   function build() calls) for main and upper.
 
 A change here is a change to where masts stand or what they show, which needs the owner's approval of the panel. The
-one mast process (owner, 2026-11-20) changed exactly these entries from the per-level processes before it, and no
+one mast process changed exactly these entries from the per-level processes before it, and no
 others:
   staging 6LA and 8RA: one-low -> one-searchlight (Scale is running track by rule);
   staging virtual masts: 8LC, 10RA, 10RB, 12R and 14R went (virtual masts only as destinations);
   main and upper: 24 virtual bumper masts came (10 main, 14 upper).
-Step 5 part 2 (owner, 2026-11-20) changed only staging 8RA, from an anchor mast on Scale to a turnout mast at Switch 7
+Step 5 part 2 changed only staging 8RA, from an anchor mast on Scale to a turnout mast at Switch 7
 (OS Switch 7 ends at the switch). Main and upper's links are parts of OS blocks but still JMRI blocks of their own, so
 the masts facing them keep their facing blocks.
 Naming-layers step 12 (2026-11-25, my call under the owner's rule of 2026-11-25) letters two masts of one number and
@@ -152,7 +152,7 @@ MAIN_UPPER_VIRTUAL = (
 )
 INTERMEDIATES = {"67", "68", "A83", "A84", "B92", "B93"}
 # masts the rule must not place: 126L faces Track 121-125 into Switch 125, and every route it would clear ends at
-# Switch 129's spur bumpers (mast_rule.reaches_signal; owner, 2026-11-19)
+# Switch 129's spur bumpers (mast_rule.reaches_signal)
 DROPPED = {"126L"}
 
 SYSTEM = re.compile(r"IF\$(shsm|vsm):basic:([\w-]+)\(")

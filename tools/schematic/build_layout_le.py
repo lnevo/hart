@@ -7,7 +7,7 @@
 The build is a library: tools/schematic/build_tables.py calls build(levels="all", as_live=True) and writes
 jmri/layouts/hart/output/tables.xml from it. This command writes no file. The trial copies beside the tables
 (output/trial/tables_cutover.xml and tables_cutover_staging.xml), their fingerprints and the staging guard are
-retired (owner, 2026-11-22): the live panel is approved, and approval.py's `le-panel` fingerprint of the
+retired: the live panel is approved, and approval.py's `le-panel` fingerprint of the
 "HART Railroad" panel in tables.xml is the one approval check. The viewing trials (tables_layout.xml,
 tables_layout_staging.xml) were retired on 2026-11-17; build() without as_live stops and says so.
 
@@ -21,14 +21,14 @@ destination labels and the backdrop, each tied to the staging track. The occupan
 parked with the Dispatcher System (jmri/layouts/hart/parked/staging_panel_lamps.json); Entry/Exit sensors are not
 bound (parked). The build reads no panel in the tables: only the schematic, those files and the tables' beans.
 
-Three levels (owner, 2026-11-16). levels "all" first draws staging alone (levels "staging", below), at staging's own
+Three levels. levels "all" first draws staging alone (levels "staging", below), at staging's own
 fit widened by the page's le_stretch factor, so the three-level panel has the window's shape (the plugin's
 check_stretch), then all three bands at that grid (no fitting: the panel is larger than the window, the page's
 le_window, which stays as it is; zoom to fit), each band's labels placed in rounds of their own (the plugin's
 labels_by_band), staging against the left edge (the plugin's band_align) and the main level below everything the
 staging drawing holds (the plugin's le_title_clear, with the panel items' bottom under staging as band_bottoms). The
 staging helix tracks run on to the main level, so their end bumpers become anchors, inside one block: each helix
-track is one block from staging up the helix, Track Helix Outer and Track Helix Inner (owner 2026-11-20), bound to
+track is one block from staging up the helix, Track Helix Outer and Track Helix Inner, bound to
 the device map's sensor of that helix track (the base: hartlib.tables_build.master_beans). Main
 and upper take the device map's names (device_names; a crossover's two halves are one turnout, drawn as one single
 crossover on one level, or as two Layout Editor turnouts on one turnout for 127 and 131, whose halves stand on two
@@ -38,13 +38,13 @@ to its virtual occupancy sensor, which the startup LogixNG sets clear when the t
 map's block names without "Track ", left out where there is no room (names_last); one block contents icon per block at
 12 px (staging keeps 13; preferences.json[main_upper]'s le_band_labels).
 
-Parked features (owner, 2026-11-17; hartlib.parked, PARKED). The three-level build's Entry/Exit, Dispatcher System
+Parked features (hartlib.parked, PARKED). The three-level build's Entry/Exit, Dispatcher System
 and USS CTC elements are left out (parked.split); their live data is the snapshot in
 jmri/layouts/hart/parked/tables_parked.xml. The released tables are this build with its Signal Mast Logic from
 stock discovery in a sandbox (jmri/layouts/hart/parked/README.md).
 
 The tables it builds on (ADR-029, R9c): the generator's base (hartlib.tables_build.base), the template
-(data/tables_template.xml) with every level's beans of the device master (naming-layers step 11), never the live
+(data/tables_template.xml) with every level's beans of the device master, never the live
 tables.xml, which is an output (tools/schematic/build_tables.py writes it from this build, the discovered Signal Mast
 Logic and the template). The base holds no panel and no Signal Mast Logic; the build adds no bean, only the panel after
 the template's sections, once it has checked that every name the panel binds is a bean of the base (check_bound) and
@@ -54,7 +54,7 @@ Staging alone. levels "staging" draws the staging band alone: its helix tracks e
 apart (the page preference); the panel is the "HART Railroad"
 panel under panel_items.json's attributes, sized by the le_window and opening at 0, 0. The three-level build takes
 its grid from it. Staging's turnouts
-keep their switches.csv idents; anchors, end bumpers and segments take generated idents (owner, 2026-11-17), which
+keep their switches.csv idents; anchors, end bumpers and segments take generated idents, which
 masts.csv names them by block, not by ident. Every staging mast goes in the one slot whose facing and protected blocks and kind of
 slot are its own (masts.csv; the plugin's slots.py holds JMRI's rules), its icon on the right-hand side of the
 train it governs, hidden for a virtual mast; check_masts (one check for every level's masts) stops on a mast two slots
@@ -103,13 +103,13 @@ from le_tables import (  # noqa: E402,F401  re-exported: callers and tests read 
 LEVELS = ("all", "staging")
 PANEL_ITEMS = panel_items.ITEMS     # the panel's own items (hartlib.hand_lists.PANEL_ITEMS)
 TEMPLATE_PANEL = "HART Railroad"     # the panel's name
-RETIRED_TRIAL = ("the viewing trials (tables_layout.xml, tables_layout_staging.xml) are retired (owner, 2026-11-17): "
+RETIRED_TRIAL = ("the viewing trials (tables_layout.xml, tables_layout_staging.xml) are retired: "
                  "build with as_live=True")
 
 # The window the panel opens in at 100% zoom (the page's le_window, derived from preferences.json[main_upper]'s
 # host_screen by host_screen.py, as the CATS desks' window is) and the rows staging is drawn at (le_row, set there)
 # are read through the plugin (le.window, le.row); their notes there say why.
-# The three-level panel's grid (owner, 2026-11-16): staging's own fit to the window (the grid's scale across and down
+# The three-level panel's grid: staging's own fit to the window (the grid's scale across and down
 # when the staging band alone is fitted into the le_window at le_row, found by the plugin's fit in each staging
 # cut-over build and kept as P.staging_fit) widened by preferences.json[main_upper]'s le_stretch (the plugin's
 # stretched and check_stretch). The geometry knobs of the Layout Editor drawing (le_shift, le_longer_straights,
@@ -134,7 +134,7 @@ def base_tables() -> bytes:
     try:
         return tables_build.base().tobytes()
     except (tables_build.TablesBuildError, tables_build.devices.DevicesError) as exc:
-        raise BuildError(f"tables base: {exc}") from None
+        raise BuildError(f"tables base: {exc}") from exc
 
 
 def build(bands=None, levels: str = "all", as_live: bool = False,
@@ -143,7 +143,7 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
     under the device map's names (level_names) and their objects added to the tables; "staging" draws staging alone,
     its helix ends as end bumpers, and adds no table object. `as_live`: the base (base_tables; module text) with the
     panel added, under panel_items.json's name and attributes; with "all", drawn at the grid of staging drawn alone
-    (module text). `as_live` must be given: without it (the viewing trials, retired, owner 2026-11-17) the build
+    (module text). `as_live` must be given: without it (the viewing trials, retired) the build
     stops. Staging's facts come from the staging device map (staging_device_map.load); nothing is read from a panel
     in the tables. `base_data`: base_tables() already built (the three-level build passes it to the staging drawing
     it makes first, so the base is built once)."""
@@ -154,7 +154,7 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
     try:
         items = panel_items.load(PANEL_ITEMS)
     except panel_items.ItemsError as exc:
-        raise BuildError(f"panel items: {exc}") from None
+        raise BuildError(f"panel items: {exc}") from exc
     _sheet, le_mod, core = plugin()
     # the page options come from the solved sheet (schematic()), for the bands given too unless `page` is (the
     # three-level build passes its own on to the staging drawing it makes first)
@@ -170,15 +170,15 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
     try:
         fit, staging_row = le_mod.window(page), le_mod.row(page)
     except core.SchematicError as exc:
-        raise BuildError(f"schematic le: {exc}") from None
+        raise BuildError(f"schematic le: {exc}") from exc
     # as the Layout Editor draws them (the preferences' le_shift, le_longer_straights; once): so the names below are
     # read off the bands drawn, before named_bands relabels a crossover's halves
     try:
         bands = le_mod.drawn_bands(bands, page)
     except core.SchematicError as exc:
-        raise BuildError(f"schematic le: {exc}") from None
+        raise BuildError(f"schematic le: {exc}") from exc
     # the station names the labeller prints: each sheet's le_nested_station_labels (preferences.json[staging]: false,
-    # so Engine House, a desk area nested in Barn, is named on the drawings but not on the panel; owner, 2026-11-20)
+    # so Engine House, a desk area nested in Barn, is named on the drawings but not on the panel)
     bands = le_station_labels(bands)
     # The build reads no panel and no live tables: it draws on the generator's base (module text)
     if base_data is None:
@@ -216,7 +216,7 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
         try:
             names[staging] = sdm.load(bands[0][1])
         except sdm.StagingMapError as exc:
-            raise BuildError(f"staging device map: {exc}") from None
+            raise BuildError(f"staging device map: {exc}") from exc
     if adds:                            # after staging's names: a helix intermediate protects a staging track
         level_masts(names, level_rows, skip)
         names[staging]["joins"] = "other"   # staging's helix ends join the next level (helix-join release, 2026-11-17)
@@ -231,7 +231,7 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
             # each band against the edge its sheet's le_band_align gives (preferences.json[staging]: staging against
             # the left edge, where it stands drawn alone, however wide the other levels are); its
             # labels placed as when it is drawn alone (labels_by_band); and the gaps between the levels as small as
-            # is clean (owner, 2026-11-16; the page's le_title_clear): for staging, below everything its drawing
+            # is clean (the page's le_title_clear): for staging, below everything its drawing
             # holds (its status cluster stands in the gap: band_bottoms). Every crossover at its level's
             # le_crossover_angle, however each level is stretched
             S = base[1]
@@ -247,12 +247,12 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
                              page=page)
             P.scale, P.fit, P.staging_fit, P.stretch = scale, None, fitted, stretch
     except core.SchematicError as exc:
-        raise BuildError(f"schematic le: {exc}") from None
+        raise BuildError(f"schematic le: {exc}") from exc
     P.mast_notes = check_unplaced(P)
     # every level's masts, each in the one slot its blocks fit, on its switch's turnout (one check for all levels)
     check_masts(P, {k: v.get("masts", []) for k, v in names.items()}, le_mod, mast_turnouts(level_rows))
 
-    # every level's beans are the base's (hartlib.tables_build.base, from the device master; naming-layers step 11):
+    # every level's beans are the base's (hartlib.tables_build.base, from the device master):
     # the main and upper blocks drawn are checked against block_numbering.csv, then one check for every level: each
     # name the panel binds is a bean of the tables
     base_ix = {i for i, lv in enumerate(levels_of) if lv in STAGING_LEVELS}    # a hidden join has band None: in none
@@ -263,7 +263,7 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
     try:
         attrs, options = panel_items.panel_attributes(items)
     except panel_items.ItemsError as exc:
-        raise BuildError(f"panel items: {exc}") from None
+        raise BuildError(f"panel items: {exc}") from exc
     # the panel's own items by rule (panel_items.json), tied to the staging track, so they stand where the staging
     # drawing has them on three levels too (by the staging band's own track: a helix block runs on up a level)
     panel_el = le_mod.to_xml(P, panel_name, attrs, options)
@@ -272,7 +272,7 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
         P.items = panel_items.place(panel_el, items, le_mod, slots_module(), fit, le_mod.CHROME,
                                     frame_idents=frame)
     except panel_items.ItemsError as exc:
-        raise BuildError(f"panel items: {exc}") from None
+        raise BuildError(f"panel items: {exc}") from exc
     if P.items["bottom"] is None:
         raise BuildError(f"{paths.rel(PANEL_ITEMS)} places no sized item, so the level below has no bottom to "
                          "keep clear of")
@@ -289,12 +289,12 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
         try:
             le_mod.check_stretch(P.items["size"], fit, page)
         except core.SchematicError as exc:
-            raise BuildError(f"schematic le: {exc}") from None
-        # the parked features (PARKED, owner 2026-11-17) leave the three-level panel for the parked file
+            raise BuildError(f"schematic le: {exc}") from exc
+        # the parked features (PARKED) leave the three-level panel for the parked file
         try:
             P.parked_doc = parked.split(root, PARKED)
         except parked.ParkError as exc:
-            raise BuildError(f"parking: {exc}") from None
+            raise BuildError(f"parking: {exc}") from exc
         P.retired = retire_yard_ladder(root)
     return doc.tobytes(), P, names, bands
 

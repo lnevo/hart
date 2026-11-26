@@ -18,7 +18,7 @@ from hartlib import level_devices  # noqa: E402  the main and upper naming rule
 DEVICE_MAP = railroad.Sources.under().devices    # the device master: main and upper names (trial_name: the drawing's placeholder)
 # The staging level: its band's names are the staging device map's (staging_device_map.load) and every other band is
 # drawn under it; its candidate is the one the owner approves alone (the staging candidate). Every level's beans are
-# the generator's base's (hartlib.tables_build.base, naming-layers step 11), so the level says only where a band's
+# the generator's base's (hartlib.tables_build.base), so the level says only where a band's
 # names come from.
 STAGING_LEVELS = frozenset({int(railroad.STAGING_LEVEL)})
 
@@ -36,7 +36,7 @@ def plugin():
     try:
         folder = pd.plugin()
     except SystemExit as exc:
-        raise BuildError(str(exc.code)) from None
+        raise BuildError(str(exc.code)) from exc
     if str(folder) not in sys.path:
         sys.path.insert(0, str(folder))
     return (importlib.import_module("schematic.sheet"), importlib.import_module("schematic.le"),
@@ -50,7 +50,7 @@ def schematic():
     try:
         built = pd.solved_sheet(sheet)
     except pd.host_screen.HostScreenError as exc:       # the panel's window: the page's host_screen
-        raise BuildError(str(exc)) from None
+        raise BuildError(str(exc)) from exc
     return built.bands, built.opts
 
 
@@ -69,7 +69,7 @@ def plugin_module(name: str):
         if exc.name != f"schematic.{name}":
             raise                       # the module is there but imports something missing: its own fault, shown
         raise BuildError(f"the schematic-maps plugin at {Path(folder).parents[1]} has no schematic.{name}: "
-                         "update it (git submodule update, or a newer SCHEMATIC_PLUGIN)") from None
+                         "update it (git submodule update, or a newer SCHEMATIC_PLUGIN)") from exc
 
 
 def band_key(title: str) -> str:
@@ -100,7 +100,7 @@ def plan_places(data: Path | None = None) -> dict[str, tuple[str, int, float | N
     try:
         st = layer_files.path("plan_overrides", folder).stat()
     except OSError as exc:
-        raise BuildError(f"plan_overrides.json in {folder}: cannot be read ({exc.strerror or exc})") from None
+        raise BuildError(f"plan_overrides.json in {folder}: cannot be read ({exc.strerror or exc})") from exc
     return dict(_plan_places(folder.resolve(), st.st_mtime_ns, st.st_size))
 
 
@@ -110,13 +110,13 @@ def _plan_places(folder: Path, _mtime_ns: int, _size: int) -> dict[str, tuple[st
     try:
         whole = layer_files.read_file("plan_overrides", folder)
     except layer_files.LayerFileError as exc:
-        raise BuildError(str(exc)) from None
+        raise BuildError(str(exc)) from exc
     out, at = {}, {}
     for sheet in (k for k in whole if not k.startswith("_")):
         try:
             places = mast_rule.band_places(whole[sheet])
         except mast_rule.MapError as exc:
-            raise BuildError(f"plan_overrides.json section {sheet}: {exc}") from None
+            raise BuildError(f"plan_overrides.json section {sheet}: {exc}") from exc
         clash = sorted(set(places) & set(out))
         if clash:
             raise BuildError(f"plan_overrides.json: band {', '.join(clash)} is titled in two sections")
@@ -166,7 +166,7 @@ def _at(places, level: int, height=ANY) -> list[int]:
 def find_band(bands, level: int, height=ANY, data: Path | None = None) -> int:
     """The index of the one band of `bands` at `level` and `height` (its plan-overrides `below`; None for a band with
     none; not given: any height), by plan_places of `data` (default publish_draft.DATA): the one way the Layout
-    Editor build finds a band (owner, 2026-11-20: by its level and height, never by its title). BuildError when no
+    Editor build finds a band (by its level and height, never by its title). BuildError when no
     band is there (naming every band's place), or several are and no height tells them apart."""
     places = band_places(bands, data)
     found = _at(places, level, height)
@@ -217,7 +217,7 @@ def le_station_labels(bands, data: Path | None = None) -> list:
     try:
         prefs = layer_files.read_file("preferences", folder)
     except layer_files.LayerFileError as exc:
-        raise BuildError(str(exc)) from None
+        raise BuildError(str(exc)) from exc
     leave_out: dict[str, int] = {}          # band title -> its level, for the bands whose nested areas go unnamed
     for sheet in (k for k in prefs if not k.startswith("_")):
         if "le_nested_station_labels" not in prefs[sheet]:
@@ -233,7 +233,7 @@ def le_station_labels(bands, data: Path | None = None) -> list:
     try:
         rows = railroad.read_stations(folder / "stations.csv")
     except railroad.FactsError as exc:
-        raise BuildError(str(exc)) from None
+        raise BuildError(str(exc)) from exc
     out = []
     for title, band, opts in bands:
         stations = opts.get("stations") or {}
@@ -259,7 +259,7 @@ def le_band_align(bands, data: Path | None = None) -> dict[str, str]:
     try:
         prefs = layer_files.read_file("preferences", folder)
     except layer_files.LayerFileError as exc:
-        raise BuildError(str(exc)) from None
+        raise BuildError(str(exc)) from exc
     places = plan_places(folder)
     drawn = {t for t, _b, _o in bands}
     out = {}
@@ -292,7 +292,7 @@ def le_band_align(bands, data: Path | None = None) -> dict[str, str]:
             try:
                 bi = find_band(bands, level, height, folder)    # its own band: level and height
             except BuildError as exc:
-                raise BuildError(f"{where} level {level}: {exc}") from None
+                raise BuildError(f"{where} level {level}: {exc}") from exc
             out[band_key(bands[bi][0])] = side
     return out
 
@@ -308,7 +308,7 @@ def staging_switches() -> dict[int, railroad.Switch]:
     try:
         return railroad.Railroad(upto="inputs").switches
     except railroad.FactsError as exc:
-        raise BuildError(f"staging switches: {exc}") from None
+        raise BuildError(f"staging switches: {exc}") from exc
 
 
 def switch_idents() -> dict[str, str]:
@@ -322,7 +322,7 @@ def main_upper_device_map(path: Path = DEVICE_MAP) -> railroad.DeviceMap:
     try:
         return railroad.read_device_map(path)
     except railroad.FactsError as exc:
-        raise BuildError(f"the device map: {exc}") from None
+        raise BuildError(f"the device map: {exc}") from exc
 
 
 def read_csv(path: Path) -> list[dict]:

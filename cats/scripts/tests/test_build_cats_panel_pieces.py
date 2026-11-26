@@ -32,7 +32,7 @@ class Facts(unittest.TestCase):
         self.assertIsNone(B.mast_type(None))
 
     def test_device_map_errors_name_the_script(self):
-        with self.assertRaisesRegex(SystemExit, "^build_cats_panel.py: "):
+        with self.assertRaisesRegex(B.CatsPanelError, "^build_cats_panel.py: "):
             B.load_device_map(ROOT / "no/such/device_map.csv")
 
 
@@ -45,9 +45,9 @@ class Staging(unittest.TestCase):
         d = node("1", "T1", {"A": "w"}, {"B": "s12", "C": "y"})
         self.assertEqual(B.legs_of(d), {"A": "w", "B": "s12", "C": "y"})
         self.assertEqual(B.switch_of(facts(), d).number, 1)
-        with self.assertRaisesRegex(SystemExit, "not in switches.csv"):
+        with self.assertRaisesRegex(B.CatsPanelError, "not in switches.csv"):
             B.switch_of(facts(), node("77", "", {}, {}))
-        with self.assertRaisesRegex(SystemExit, "not in switches.csv"):
+        with self.assertRaisesRegex(B.CatsPanelError, "not in switches.csv"):
             B.switch_of(facts(), node("x", "", {}, {}))
 
 
@@ -63,7 +63,7 @@ class Levels(unittest.TestCase):
         for every level); placeholder reads that key and stops on a strand that has none."""
         self.assertEqual(B.placeholder({"edge": "e33", "loop_half": 1, "trial": "Track 107B-107C #1"}),
                          "Track 107B-107C #1")
-        with self.assertRaisesRegex(SystemExit, "strand e34y has no trial key"):
+        with self.assertRaisesRegex(B.CatsPanelError, "strand e34y has no trial key"):
             B.placeholder({"edge": "e34y"})
 
     def test_name_loop_halves_keys_every_main_and_upper_strand(self):
@@ -88,7 +88,7 @@ class Levels(unittest.TestCase):
         got = B.spec("IS:HART:C3:B:OS101", "BS Switch 101")
         self.assertEqual((got["occupied"]["JMRIPREFIX"], got["occupied"]["DECADDR"]), ("IS", ":HART:C3:B:OS101"))
         self.assertEqual(got["unoccupied"], {"DECADDR": ":HART:C3:B:OS101", "JMRIPREFIX": "IS", "command": "throw"})
-        with self.assertRaisesRegex(SystemExit, "neither M2S nor internal"):
+        with self.assertRaisesRegex(B.CatsPanelError, "neither M2S nor internal"):
             B.spec("LS5", "x")
 
     def test_level_bands_skips_the_bound_band(self):
@@ -153,9 +153,9 @@ class ControlPointPlates(unittest.TestCase):
             self.assertEqual({n.get("LOC_NAME") for n in plates.values()}, {"LOWCENT"})
 
     def test_a_plate_with_no_plant_or_no_free_cell_stops(self):
-        with self.assertRaisesRegex(SystemExit, "Nowhere's plate: none of its switches .* has a plant"):
+        with self.assertRaisesRegex(B.CatsPanelError, "Nowhere's plate: none of its switches .* has a plant"):
             B.station_plates(self.cats, self.root(), [("Nowhere", ("999",))], {}, [], self.fit)
-        with self.assertRaisesRegex(SystemExit, "no free cell on the desk for Brick's plate 'BRICK'"):
+        with self.assertRaisesRegex(B.CatsPanelError, "no free cell on the desk for Brick's plate 'BRICK'"):
             B.station_plates(self.cats, self.root(), [("Brick", ("1", "3"))], {}, [], (0, 0))
 
     def test_a_plate_may_reach_as_far_right_as_the_frozen_plate_may(self):

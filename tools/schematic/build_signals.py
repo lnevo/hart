@@ -44,7 +44,7 @@ TURNBACK_CM = 1.0           # a mast measured from a turnback stands just off it
 
 def block_cm(path=BLOCK_LENGTHS) -> dict:
     """{block: cm} of the plan lengths in block_lengths.csv (hartlib.block_lengths.plan_cm): the masts stand on the drawn
-    geometry, so a timed length never moves one (owner, 2026-11-20)."""
+    geometry, so a timed length never moves one."""
     try:
         return block_lengths.plan_cm(path)
     except railroad.FactsError as exc:

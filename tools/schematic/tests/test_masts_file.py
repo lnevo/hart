@@ -1,4 +1,4 @@
-"""masts.csv, every level's masts in one file (owner, 2026-11-21): build_masts.file_rows, the one transform from the
+"""masts.csv, every level's masts in one file: build_masts.file_rows, the one transform from the
 mast and head rows of devices.csv for every level, and hartlib.level_masts.read, its reader. First written to pin
 build_main_upper_masts.py before the builders merged (AGENTS.md, "Working on existing scripts"); its rows, order,
 legs and stops hold for every level now. Small hand-written device rows (the master's columns), and the committed
@@ -116,7 +116,7 @@ class Rows(unittest.TestCase):
         self.assertEqual(r["protects"], "OS Switch 225a")
 
     def test_a_home_mast_protects_its_switchs_os_block_by_its_id(self):
-        """The OS block of the mast's switch is found by its device ID (os:<switch>; naming-layers step 5), so the
+        """The OS block of the mast's switch is found by its device ID (os:<switch>), so the
         owner's name for it is the one written; with no such block row, the generated name."""
         (r,) = run(home("Mast 110L", "109", "Track 105-109") + [block("OS Ladder", "os", level=2, ident="os:109")])
         self.assertEqual(r["protects"], "OS Ladder")
@@ -177,7 +177,7 @@ class Stops(unittest.TestCase):
                    + [block("OS Switch 7", "os", level=2)], "which is no level 1 block row")
 
     def test_one_anchor_rule_on_every_level(self):
-        """One anchor rule on every level (owner, 2026-11-23; naming-layers step 12): a main or upper home mast at no
+        """One anchor rule on every level (owner, 2026-11-23): a main or upper home mast at no
         switch is an anchor mast as a staging one is, and must protect an OS block of its level; an intermediate (its
         role) protects a track block."""
         for level in (2, 3):

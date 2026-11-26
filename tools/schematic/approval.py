@@ -8,7 +8,7 @@ and upper in one panel) and the two CATS desks. The check reads the built files;
 window and view attributes (VIEW_ATTRS: position, window and panel size, zoom, edit-mode switches) are left out of
 the hash, since every PanelPro Store rewrites them; everything that draws or joins track is kept. The live panel is
 read from this checkout's tables.xml (paths.REPO_TABLES_XML), never from HART_TABLES. The trial cut-over copy's
-fingerprint (le-candidate) and the staging panel's (approved_staging.sha256) are retired (owner, 2026-11-22): le-panel
+fingerprint (le-candidate) and the staging panel's (approved_staging.sha256) are retired: le-panel
 is the one check of the Layout Editor panel.
 """
 from __future__ import annotations
@@ -158,13 +158,13 @@ def load_root(out: Output) -> ET.Element:
     try:
         data = out.source.read_bytes()
     except OSError as exc:
-        raise ApprovalError(f"cannot read {out.what} ({paths.rel(out.source)}): {exc}") from None
+        raise ApprovalError(f"cannot read {out.what} ({paths.rel(out.source)}): {exc}") from exc
     try:
         if out.panel is None:
             return ET.fromstring(data)
         panel = tables.layout_editor(tables.loads(data).root, out.panel)
     except ET.ParseError as exc:
-        raise ApprovalError(f"{paths.rel(out.source)} is not valid XML: {exc}") from None
+        raise ApprovalError(f"{paths.rel(out.source)} is not valid XML: {exc}") from exc
     if panel is None:
         raise ApprovalError(f"{paths.rel(out.source)} has no Layout Editor panel named {out.panel!r}")
     return panel
@@ -184,7 +184,7 @@ def approve(out: Output, date: str | None = None) -> None:
     try:
         out.approved.write_text(text, encoding="utf-8")
     except OSError as exc:
-        raise ApprovalError(f"cannot write {paths.rel(out.approved)}: {exc}") from None
+        raise ApprovalError(f"cannot write {paths.rel(out.approved)}: {exc}") from exc
 
 
 def check(out: Output) -> None:
@@ -193,7 +193,7 @@ def check(out: Output) -> None:
         text = out.approved.read_text(encoding="utf-8")
     except OSError as exc:
         raise ApprovalError(f"{out.key}: cannot read the approved fingerprint {paths.rel(out.approved)}: {exc}; "
-                            f"after the owner approves {out.what}, run {REAPPROVE} {out.key}") from None
+                            f"after the owner approves {out.what}, run {REAPPROVE} {out.key}") from exc
     want = parse_fingerprint(text, paths.rel(out.approved), out.kind)
     diff = compare(want, fingerprint(load_root(out), out.kind, out.drop_attrs))
     if diff:

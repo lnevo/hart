@@ -1,9 +1,10 @@
 """build_cats_panel.py's dress step: the frozen header and plate put on the generated document, the ABS twin's
-words, and the desk's label clashes. Moved out of build_cats_panel.py unchanged."""
+words, and the desk's label clashes."""
 import copy
 import re
 import xml.etree.ElementTree as ET
 
+from cats_panel_facts import CatsPanelError
 from hartlib import paths
 
 HEADER = paths.CATS_DIR / "data/generated_desk_header.xml"   # frozen from the live desk (2026-11-15)
@@ -19,14 +20,14 @@ def frozen_header(path=HEADER):
     """The template's elements (comments left out) and the plate SECTIONs of its TRACKPLAN."""
     root = ET.parse(path).getroot()
     if root.tag != "DOCUMENT":
-        raise SystemExit(f"{path}: not a CATS panel template (its root is {root.tag})")
+        raise CatsPanelError(f"{path}: not a CATS panel template (its root is {root.tag})")
     els = [el for el in root if isinstance(el.tag, str)]
     bad = sorted({el.tag for el in els} - set(ORDER))
     if bad:
-        raise SystemExit(f"{path}: elements {', '.join(bad)} are not header elements ({', '.join(ORDER)})")
+        raise CatsPanelError(f"{path}: elements {', '.join(bad)} are not header elements ({', '.join(ORDER)})")
     lacking = [t for t in ("SIGNALTEMPLATE", "JMRINAME") if not any(el.tag == t for el in els)]
     if lacking:
-        raise SystemExit(f"{path}: no {' or '.join(lacking)} elements; the staging bindings' masts and IOSPECs "
+        raise CatsPanelError(f"{path}: no {' or '.join(lacking)} elements; the staging bindings' masts and IOSPECs "
                          "need them")
     plan = root.find("TRACKPLAN")
     return [el for el in els if el.tag != "TRACKPLAN"], list(plan) if plan is not None else []
@@ -51,7 +52,7 @@ def station_plates(cats, root, stations, used: dict, boxes: list, fit) -> list[t
     rows, read_stations), each the station's name in capitals in the free cell nearest the plant cells of its
     switches (digicon_trace.desk_plants: the bound staging plants), ties to the cell above, then to the left. A cell
     is free when no section uses it, nor any cell the plate's label spans, and the label is clear of every other label
-    (`boxes`) by 6 px and inside the window (`fit` rows, right_edge): the desk never grows. SystemExit naming the station when one has
+    (`boxes`) by 6 px and inside the window (`fit` rows, right_edge): the desk never grows. CatsPanelError naming the station when one has
     no plant on the desk or no free cell. `used`: {cell: section} of the desk, `boxes`: [(cell, box)] of its labels,
     both added to."""
     import digicon_trace as trace          # cats/scripts, on build_cats_panel's path
@@ -65,7 +66,7 @@ def station_plates(cats, root, stations, used: dict, boxes: list, fit) -> list[t
                 if re.fullmatch(r"OS Switch (\d+)[a-d]?", os_name)
                 and re.fullmatch(r"OS Switch (\d+)[a-d]?", os_name).group(1) in switches]
         if not mine:
-            raise SystemExit(f"stations.csv: {name}'s plate: none of its switches ({', '.join(switches)}) has a "
+            raise CatsPanelError(f"stations.csv: {name}'s plate: none of its switches ({', '.join(switches)}) has a "
                              "plant on the desk")
         cx, cy = sum(x for x, _ in mine) / len(mine), sum(y for _, y in mine) / len(mine)
         text = name.upper()
@@ -81,7 +82,7 @@ def station_plates(cats, root, stations, used: dict, boxes: list, fit) -> list[t
             found = (cell, box)
             break
         if found is None:
-            raise SystemExit(f"stations.csv: no free cell on the desk for {name}'s plate {text!r} (the desk keeps "
+            raise CatsPanelError(f"stations.csv: no free cell on the desk for {name}'s plate {text!r} (the desk keeps "
                              f"its {cols} x {rows} cells)")
         used[found[0]] = None
         boxes.append(found)
@@ -110,7 +111,7 @@ def dress(cats, root, header, plate, desk, fit, stations=None):
     picked += list(fonts.values()) + [el for el in kids if el.tag not in taken]
     unknown = sorted({el.tag for el in picked} - set(ORDER))
     if unknown:
-        raise SystemExit(f"the generated desk has elements {', '.join(unknown)}, which ORDER does not place; add them")
+        raise CatsPanelError(f"the generated desk has elements {', '.join(unknown)}, which ORDER does not place; add them")
     for el in sorted(picked, key=lambda el: ORDER.index(el.tag)):
         root.append(el)
     tp = root.find("TRACKPLAN")
@@ -126,20 +127,20 @@ def dress(cats, root, header, plate, desk, fit, stations=None):
         cell = (int(sec.get("X")), int(sec.get("Y")))
         n = sec.find("SEC_NAME")
         if n is None or len(sec) != 1:
-            raise SystemExit(f"{HEADER.name}: plate cell {cell} holds one SEC_NAME and nothing else")
+            raise CatsPanelError(f"{HEADER.name}: plate cell {cell} holds one SEC_NAME and nothing else")
         if desk == "ABS":
             text = n.get("NAME")
             for ctc, abs_ in ABS_PLATE.items():
                 text = text.replace(ctc, abs_)
             n.set("NAME", text)
         if cell in where:
-            raise SystemExit(f"{HEADER.name}: plate cell {cell} ({n.get('NAME')}) is a cell the desk uses")
+            raise CatsPanelError(f"{HEADER.name}: plate cell {cell} ({n.get('NAME')}) is a cell the desk uses")
         box = plate_box(cats, cell, n.get("LOC_NAME"), n.get("NAME"), n.get("FONT_NAME"))
         hit = [c for c, b in boxes if b[1] < box[3] and box[1] < b[3] and b[0] < box[2] + 6 and box[0] < b[2] + 6]
         if hit:
-            raise SystemExit(f"{HEADER.name}: plate label {n.get('NAME')!r} at {cell} runs into the label at {hit[0]}")
+            raise CatsPanelError(f"{HEADER.name}: plate label {n.get('NAME')!r} at {cell} runs into the label at {hit[0]}")
         if box[2] > right_edge(cats, fit):
-            raise SystemExit(f"{HEADER.name}: plate label {n.get('NAME')!r} at {cell} runs past column {fit[0]}")
+            raise CatsPanelError(f"{HEADER.name}: plate label {n.get('NAME')!r} at {cell} runs past column {fit[0]}")
         boxes.append((cell, box))
         where[cell] = sec
     for text, cell in station_plates(cats, root, stations or [], where, boxes, fit):

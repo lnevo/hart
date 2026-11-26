@@ -64,7 +64,7 @@ class RouteError(ValueError):
     """The main lines cannot be worked out from the plan; the message says why."""
 
 
-# main_lines.csv's reader is hartlib.hand_lists' (naming-layers step 6); the names stay here
+# main_lines.csv's reader is hartlib.hand_lists'; the names stay here
 split = hand_lists.split
 STOP_CELLS = hand_lists.STOP_CELLS
 TRACK_PREFIX = hand_lists.TRACK_PREFIX
@@ -75,7 +75,7 @@ def resolve_stop(token: str, names, where: str) -> str:
     try:
         return hand_lists.resolve_stop(token, names, where)
     except hand_lists.HandListError as exc:
-        raise RouteError(str(exc)) from None
+        raise RouteError(str(exc)) from exc
 
 
 def read_lines(sheet: str, path: Path = LINES, names=None) -> list[dict]:
@@ -84,7 +84,7 @@ def read_lines(sheet: str, path: Path = LINES, names=None) -> list[dict]:
     try:
         return hand_lists.read_main_lines(sheet, path, names)
     except hand_lists.HandListError as exc:
-        raise RouteError(str(exc)) from None
+        raise RouteError(str(exc)) from exc
 
 
 HALF = re.compile(r"(\d+)([AB])")
@@ -111,7 +111,7 @@ class Plan:
         try:
             return self.by_label(self.g, ref)
         except Exception as exc:     # SchematicError: none or several junctions answer to it
-            raise RouteError(f"main line stop {ref!r}: {exc}") from None
+            raise RouteError(f"main line stop {ref!r}: {exc}") from exc
 
     def name(self, n: str) -> str:
         """What the hop calls this node: its switch number or helix name, or for the half of a crossover (two junctions

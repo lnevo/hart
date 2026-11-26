@@ -6,8 +6,8 @@ edits (jmri/layouts/hart/data/schematic/):
   stations.csv   level,station,switches,tracks,desk_code,desk_plate,notes   the stations of every level (one file, a level
                  column); `tracks` blank counts the tracks that run from the switches, `none` counts none, else the
                  block IDs of its tracks, ";" between (block:3B-end), written to station_tracks by the name store's
-                 names (hartlib.railroad_facts.station_tracks, naming-layers step 5b); `desk_code` names the
-                 station's desk area (owner, 2026-11-20)
+                 names (hartlib.railroad_facts.station_tracks); `desk_code` names the
+                 station's desk area
   sheets.csv     level,sheet,stations,notes                       the station detail sheets of every level, each the
                  stations named in `stations` (";" between), its switches the sorted union of theirs
 
@@ -90,8 +90,8 @@ def _staging_row(where: str, name: str, level: str) -> None:
     """Stop on a row of a level this builder does not build yet: the files hold every level, this writes staging's."""
     try:
         number = int(level)
-    except ValueError:
-        raise SetsError(f"{where} ({name}): level {level!r} is not a level number (1 staging, 2 main, 3 upper)") from None
+    except ValueError as exc:
+        raise SetsError(f"{where} ({name}): level {level!r} is not a level number (1 staging, 2 main, 3 upper)") from exc
     if number != int(LEVEL):
         raise SetsError(f"{where} ({name}): level {level!r}; only staging (level {LEVEL}) stations and sheets are "
                         "built so far")
@@ -102,7 +102,7 @@ def staging_switches(path: Path = SWITCHES) -> set[str]:
     try:
         return {str(r.switch) for r in rf.read_switch_rows(path) if r.level == int(LEVEL)}
     except FactsError as exc:
-        raise SetsError(str(exc)) from None
+        raise SetsError(str(exc)) from exc
 
 
 def read_masters(path: Path = STATIONS, switches: set[str] | None = None) -> tuple[list[DeskArea], list[Station]]:
@@ -116,7 +116,7 @@ def read_masters(path: Path = STATIONS, switches: set[str] | None = None) -> tup
         areas = rf.desk_areas(rows, path, known)
         named = rf.station_tracks(rows, path)        # the tracks' names, by their block IDs, from the name store
     except FactsError as exc:
-        raise SetsError(str(exc)) from None
+        raise SetsError(str(exc)) from exc
     stations = [Station(st.line, st.name, st.switches,
                         None if st.track_ids is None else tuple(n.removeprefix("Track ") for n in named.get(st.name, ())))
                 for st in rows]
@@ -130,7 +130,7 @@ def read_sheets(stations: list[Station], path: Path = SHEETS, stations_path: Pat
     try:
         rows = hand_lists.read_sheet_rows(path)
     except FactsError as exc:
-        raise SetsError(str(exc)) from None
+        raise SetsError(str(exc)) from exc
     for line, r in rows:
         where = _where(path, line)
         _staging_row(where, r["sheet"], r["level"])
@@ -195,14 +195,14 @@ def wanted(data: Path | None = None) -> dict[Path, str]:
               # these rows through station_group_rows and would stop later (step 8)
         station_group_rows(STATIONS, SWITCHES)
     except FactsError as exc:
-        raise SetsError(str(exc)) from None
+        raise SetsError(str(exc)) from exc
     try:
         check_hand_preferences(data)
         return {**layer_files.generated_texts({SHEET: generated_keys(cps, stations)}, data),
                 **layer_files.generated_texts({SHEET: generated_preferences(sheets, stations)}, data,
                                               layer_files.PREFS_GENERATED)}
     except layer_files.LayerFileError as exc:
-        raise SetsError(str(exc)) from None
+        raise SetsError(str(exc)) from exc
 
 
 def main(argv=None) -> int:

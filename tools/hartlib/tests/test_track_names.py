@@ -346,6 +346,14 @@ class EndKeys(unittest.TestCase):
         self.assertEqual(T.edge_run(nodes, {"u": "b", "up": "", "v": "a", "vp": "B"}), "23B-helix")
         self.assertEqual(T.edge_run(nodes, {"u": "c", "up": "", "v": "a", "vp": "C"}, helix_ends={"c"}), "23C-helix")
 
+    def test_end_order_pins_stagings_run_flip_order(self) -> None:
+        """staging_device_map flips a run so its ends read in end_order: by switch number, then half letter, then
+        leg, and a switch leg before any other end."""
+        self.assertLess(T.end_order("101BA"), T.end_order("111C"))
+        self.assertLess(T.end_order("121AC"), T.end_order("121BA"))
+        self.assertLess(T.end_order("103AB"), T.end_order("103BA"))
+        self.assertLess(T.end_order("229A"), T.end_order("helix"))
+
 
 class Inputs(unittest.TestCase):
     """The store reads only the folder it is given; a test opts in to the repo's plan graphs and owner rows."""

@@ -1,4 +1,4 @@
-"""plan_lengths.py: each staging block's AnyRail plan 5.3c length (owner, 2026-11-20)."""
+"""plan_lengths.py: each staging block's AnyRail plan 5.3c length."""
 from __future__ import annotations
 
 import contextlib
@@ -129,7 +129,7 @@ class EdgeRuns(unittest.TestCase):
         self.assertIn("edge e1: ends at a bumper in the graph, at (2, 'C') in the plan file", str(stop.exception))
 
 
-# the device IDs of the fixture blocks: block_lengths.csv is keyed by (level, id) (naming-layers step 5)
+# the device IDs of the fixture blocks: block_lengths.csv is keyed by (level, id)
 IDS = {("1", "Track A"): "block:A", ("1", "Track B"): "block:B", ("1", "OS Switch 1"): "os:1",
        ("1", "Track 1-3 at 1"): "block:1B-3A:1/2", ("1", "Track Gone"): "block:gone",
        ("2", "OS Switch 101"): "os:101", ("2", "Track 117-119"): "block:117B-119A", ("3", "Track 201-203"): "block:201B-203A"}
@@ -209,7 +209,7 @@ class CsvWith(unittest.TestCase):
 
 
 class MainUpper(unittest.TestCase):
-    """Main and upper's plan lengths (step 5 part 2, owner 2026-11-20): runs from the plan file, OS blocks from their
+    """Main and upper's plan lengths (step 5 part 2): runs from the plan file, OS blocks from their
     parts."""
     GRAPH = {"nodes": {"a": {"kind": "switch", "label": "T1"}, "w1": {"kind": "switch", "label": "51"},
                        "w2": {"kind": "switch", "label": "50"}, "end": {"kind": "end", "sub": "bumper"}},

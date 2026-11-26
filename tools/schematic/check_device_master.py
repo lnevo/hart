@@ -18,7 +18,7 @@ Every row (row_problems), each naming the file, line, level, layer and device:
 
 The rows together (check_rows):
 - every block has exactly one occupancy row naming it, on any level; a block named on more than one level is a
-  helix block (plan_overrides.json: one JMRI block from its staging switch up the helix, owner 2026-11-20), and every
+  helix block (plan_overrides.json: one JMRI block from its staging switch up the helix), and every
   helix block is so named;
 - no two rows of one layer share a user name (but the helix blocks), a system name or a jmri_name (but a virtual LCC
   alias), and no two turnouts a DCC address, on any level;
@@ -34,7 +34,7 @@ build_device_map.py copies from block_numbering.csv), its stop as its comment ma
 occupancy row's; a turnout's jmri_name that turnout, its feedback sensors fb rows', both of them for a field
 turnout; a head's user name; a mast's heads its head rows, and its planned heads the head rows' planned devices.
 A main or upper row's bean_comment is its bean's comment and its start what the startup LogixNG sets it to
-(check_bean_cells, naming-layers step 9).
+(check_bean_cells).
 
 Against the drawing: the end switches of the main and upper tracks (build_device_map.named_tracks), for the cp rule
 above; staging's rows (the owner's, devices_field.csv) are read on their band (staging_device_map.load: staging's
@@ -76,7 +76,7 @@ def master_lines(path: Path = DEVICE_MAP) -> list[tuple[int, dict[str, str]]]:
         out = [(n, dict(r)) for n, r in enumerate(devices.load(path), 2)
                if r["role"] not in devices.OUT_OF_MAPS and not devices.is_unplaced(r)]   # on no level's map yet
     except railroad.FactsError as exc:
-        raise DeviceMasterError(str(exc)) from None
+        raise DeviceMasterError(str(exc)) from exc
     if not out:
         raise DeviceMasterError(f"{paths.rel(path)}: no device rows")
     return out
@@ -86,7 +86,7 @@ def _desk_areas(stations_path: Path) -> list[railroad.DeskArea]:
     try:
         return sdm.desk_areas(stations_path)
     except sdm.StagingMapError as exc:
-        raise DeviceMasterError(str(exc)) from None
+        raise DeviceMasterError(str(exc)) from exc
 
 
 def control_points(interlockings: list[railroad.Interlocking], stations_path: Path = STATIONS) -> dict[str, set[str]]:
@@ -106,7 +106,7 @@ def known_places(interlockings: list[railroad.Interlocking], stations_path: Path
     try:
         stations = railroad.read_stations(stations_path)
     except railroad.FactsError as exc:
-        raise DeviceMasterError(str(exc)) from None
+        raise DeviceMasterError(str(exc)) from exc
     return {i.name for i in interlockings} | {s.name for s in stations}
 
 
@@ -145,7 +145,7 @@ def block_end_switches(lines: list[tuple[int, dict]], drawing=None) -> dict[str,
             for sid in t["strands"]:
                 ends[refs[t["band"]][sid][0]] = {v for k, v in t["ends"] if k == "sw"}
     except sdm.StagingMapError as exc:
-        raise DeviceMasterError(str(exc)) from None
+        raise DeviceMasterError(str(exc)) from exc
     out = defaultdict(set)
     for _n, r in lines:
         if r["layer"] != "block":
@@ -156,14 +156,14 @@ def block_end_switches(lines: list[tuple[int, dict]], drawing=None) -> dict[str,
             try:            # by its piece (staging_device_map.piece_of: a k/n key is the k-th block of its strand)
                 got = ends.get(sdm.piece_of(ph)[0])
             except sdm.StagingMapError as exc:
-                raise DeviceMasterError(f"block {r['user_name']}: {exc}") from None
+                raise DeviceMasterError(f"block {r['user_name']}: {exc}") from exc
             out[r["user_name"]] |= set(got or ())
     # staging's blocks are named by the one block process over its band (build_device_map.staging_layer): their
     # tracks and parts by block name
     try:
         lay, _bi, _found = bdm.staging_layer(bands, joined, runs)
     except bdm.MapError as exc:
-        raise DeviceMasterError(f"staging's blocks: {exc}") from None
+        raise DeviceMasterError(f"staging's blocks: {exc}") from exc
     staging = {r["user_name"] for _n, r in lines if r["level"] == str(sdm.LEVEL) and r["layer"] == "block"}
     tracks = {name: t for name, (t, _h) in lay.tracks.items()} | {name: p["track"] for name, p in lay.parts.items()}
     for name in staging & set(tracks):
@@ -189,7 +189,7 @@ def line_block_places(ends: dict[str, set[str]]) -> dict[str, set[str]]:
         places = bdm.read_places()
         helix = bdm.helix_ends(bdm.read_helix_tracks())
     except (bdm.MapError, railroad.FactsError) as exc:
-        raise DeviceMasterError(str(exc)) from None
+        raise DeviceMasterError(str(exc)) from exc
     out = defaultdict(set)
     for b in set(ends) | set(helix) | set(places.tracks):
         for s in ends.get(b, set()) | helix.get(b, set()):
@@ -261,7 +261,7 @@ def bound_name(r: dict) -> str:
 def check_tables(rows: list[dict], rr: railroad.Railroad) -> list[str]:
     """Every row the bean tables.xml holds (the module text), as problems naming the device. The rows of one block
     (a helix block's, one per level) agree on its stop, and a block's comment marks a station exactly when its stop
-    is yes. While the Dispatcher stations are parked (owner, 2026-11-22) the master's stop is empty, so a comment that
+    is yes. While the Dispatcher stations are parked the master's stop is empty, so a comment that
     marks one is reported."""
     t = rr.tables
     heads = {tables.system_name(h): tables.user_name(h) for h in tables.signal_heads(t.root)}
@@ -283,7 +283,7 @@ def check_tables(rows: list[dict], rr: railroad.Railroad) -> list[str]:
         user, layer, bound = r["user_name"], r["layer"], bound_name(r)
         if layer == "block":
             # the block bean its row names: a field block's system name, a virtual one's jmri_name (a main or upper
-            # block's, which build_device_map.py copies from block_numbering.csv, naming-layers step 8)
+            # block's, which build_device_map.py copies from block_numbering.csv)
             b, want = blocks.get(user), bound or r["system_name"]
             if b is None or (want and tables.system_name(b) != want):
                 bad.append(f"block {user}: tables.xml has {tables.system_name(b) if b is not None else 'none'}, "
@@ -341,7 +341,7 @@ BEAN_TAGS = {"turnout": ("turnout",), "occupancy": ("sensor",), "block": ("block
 def check_bean_cells(rows: list[dict], root) -> list[str]:
     """Each row's bean_comment is its bean's comment in tables `root` (a block's full pass), and the startup LogixNG
     sets each row's start and nothing else (hartlib.level_devices.turnout_states, clear_sensors): the cells
-    build_device_map.py writes on the main and upper rows (naming-layers step 9), which the Layout Editor build reads.
+    build_device_map.py writes on the main and upper rows, which the Layout Editor build reads.
     Problems naming the row and what differs."""
     comments: dict[tuple[str, str], str | None] = {}
     for sec in tables.elements(root):

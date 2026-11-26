@@ -43,7 +43,7 @@ def plan_hands():
     try:
         edits, relabel = rr.plan_overrides.edits, rr.plan_overrides.relabel
     except railroad.FactsError as exc:
-        raise SystemExit(f"build_hands.py: {exc}") from None
+        raise SystemExit(f"build_hands.py: {exc}") from exc
     unknown = sorted({e["op"] for e in edits} - KNOWN_EDITS)
     if unknown:
         raise SystemExit(f"build_hands.py does not read {unknown} edits yet: teach it before writing hands")
@@ -73,8 +73,8 @@ def apply(path, hands, names=None):
     try:
         rows = railroad.read_switch_rows(path, names)
     except railroad.FactsError as exc:
-        raise SystemExit(f"build_hands.py: {exc}") from None
-    # by each row's key, not its level (naming-layers step 14): plan hands for the rows keyed by their half
+        raise SystemExit(f"build_hands.py: {exc}") from exc
+    # by each row's key, not its level: plan hands for the rows keyed by their half
     by_half = {r.half: r for r in rows if not r.by_os}
     bad = [f"{name}: plan switch {label} has no row; add one (level, switch, half {label}, hand_source plan, "
            "hand blank) and run build_hands.py"
