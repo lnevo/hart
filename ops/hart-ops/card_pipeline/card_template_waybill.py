@@ -1,17 +1,21 @@
 """Spot waybill cards and CC/WB shipment labels on the HART card layout.
 
-Split out of generate_card_template.py. Call these through generate_card_template
-(build_waybill_card, build_cc_waybill_label): it passes the logo and icon paths it
-holds, so patches of LOGO and ICON_* on that module still apply.
+Call these through generate_card_template (build_waybill_card, build_cc_waybill_label):
+it passes the logo and icon paths it holds, so patches of LOGO and ICON_* on that module
+apply.
 """
 
+import functools
 from pathlib import Path
-from typing import NamedTuple
+from typing import Literal, NamedTuple
 
 from docx.enum.table import WD_ALIGN_VERTICAL, WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.shared import Inches, Pt
+from docx.shared import Inches, Pt, RGBColor
 
+import car_paths  # noqa: F401  (puts publications/ on sys.path for crew_master)
+import crew_master
+from waybill_data import EMPTY
 from card_template_docx import (
     _tighten_paragraph,
     add_round_frame,
@@ -67,7 +71,7 @@ class CardImages(NamedTuple):
     desc: Path
 
 
-def _via_interchange_label(rail: str) -> str:
+def _via_interchange_label(rail: str | None) -> str:
     """Format a RouteChain token as ``Via CSX Interchange`` / ``Via POHC Interchange``."""
     rail = (rail or "").strip()
     if not rail:
@@ -77,6 +81,78 @@ def _via_interchange_label(rail: str) -> str:
     if rail.endswith("Interchange"):
         return f"Via {rail}"
     return f"Via {rail} Interchange"
+
+
+# Work-order font sizes (points): a long line takes the smaller size so it fits the card on one line.
+LOAD_SIZE_EMPTY = 10
+LOAD_SIZE, LOAD_SIZE_LONG, LOAD_LONG_CHARS = 9.5, 8, 28
+RETURN_SIZE, RETURN_SIZE_LONG, RETURN_LONG_CHARS = 7, 6, 28
+ROUTE_SIZE, ROUTE_SIZE_LONG, ROUTE_LONG_CHARS = 6.5, 5.5, 36
+VIA_SIZE, VIA_SIZE_LONG, VIA_LONG_CHARS = 6.5, 5.5, 24
+
+
+class WorkLine(NamedTuple):
+    """One row of a waybill's work-order block: a load line, a blank gap or a text line."""
+    kind: Literal["load", "gap", "line"]
+    text: str
+    size: float
+    bold: bool
+    color: RGBColor
+
+
+GAP = WorkLine("gap", "", 0, False, VALUE_CLR)
+
+
+def _sized(text: str, normal: float, long: float, long_chars: int) -> float:
+    return long if len(text) > long_chars else normal
+
+
+def _route_line(prefix: str, place: str) -> WorkLine:
+    return WorkLine("line", f"{prefix}: {place}", _sized(place, ROUTE_SIZE, ROUTE_SIZE_LONG, ROUTE_LONG_CHARS),
+                    False, VALUE_CLR)
+
+
+def _via_line(route_chain: str) -> WorkLine:
+    label = _via_interchange_label(route_chain)
+    return WorkLine("line", label, _sized(label, VIA_SIZE, VIA_SIZE_LONG, VIA_LONG_CHARS), True, LABEL_CLR)
+
+
+def _work_lines(*, commodity: str, route_from: str, route_to: str, route_chain: str, flow: str,
+                is_interchange: bool, is_outbound_empty: bool, is_inbound_empty: bool) -> list[WorkLine]:
+    """The work-order block of a spot waybill, top to bottom."""
+    lines: list[WorkLine] = []
+    if is_outbound_empty:
+        return_line = f"Return to {route_to or 'Interchange'}"
+        lines.append(WorkLine("line", return_line,
+                              _sized(return_line, RETURN_SIZE, RETURN_SIZE_LONG, RETURN_LONG_CHARS), False, VALUE_CLR))
+        if route_chain:
+            lines += [GAP, _via_line(route_chain)]
+        return lines
+    if is_inbound_empty:
+        lines.append(WorkLine("load", EMPTY, LOAD_SIZE_EMPTY, True, VALUE_CLR))
+        if route_chain:
+            lines += [GAP, _via_line(route_chain)]
+        return lines
+    lines += [WorkLine("load", commodity, _sized(commodity, LOAD_SIZE, LOAD_SIZE_LONG, LOAD_LONG_CHARS), True,
+                       VALUE_CLR), GAP]
+    if is_interchange:
+        if route_from:
+            lines.append(_route_line("From", route_from))
+        if route_to:
+            lines.append(_route_line("To", route_to))
+        if route_from or route_to:
+            lines.append(GAP)
+        if route_chain:
+            lines.append(_via_line(route_chain))
+    elif flow == "IN" and route_from:
+        lines.append(_route_line("From", route_from))
+        if route_chain:
+            lines += [GAP, _via_line(route_chain)]
+    elif flow == "OUT" and route_to:
+        lines.append(_route_line("To", route_to))
+        if route_chain:
+            lines += [GAP, _via_line(route_chain)]
+    return lines
 
 
 def build_waybill_card(cell, *, idx: int, record: dict, images: CardImages) -> None:
@@ -119,7 +195,7 @@ def build_waybill_card(cell, *, idx: int, record: dict, images: CardImages) -> N
     route_chain = record.get("RouteChain", record.get("RouteVia", "")).strip()
     flow = record.get("Flow", "")
     is_interchange = record.get("CardKind") == "interchange"
-    is_empty = commodity == "EMPTY"
+    is_empty = commodity == EMPTY
     is_outbound_empty = record.get("CardKind") == "outbound_empty" or (
         is_empty and not record.get("Spots") and flow == "OUT"
     )
@@ -146,7 +222,7 @@ def build_waybill_card(cell, *, idx: int, record: dict, images: CardImages) -> N
     p = tc.paragraphs[0]
     para(p, align=WD_ALIGN_PARAGRAPH.CENTER)
     industry = record.get("Industry", "")
-    title = "EMPTY" if is_outbound_empty else industry.upper()
+    title = EMPTY if is_outbound_empty else industry.upper()
     title_size = 9 if len(title) > 22 else 11
     text(p.add_run(), title, bold=True, size=title_size)
     tighten_cell(c_head)
@@ -164,58 +240,10 @@ def build_waybill_card(cell, *, idx: int, record: dict, images: CardImages) -> N
     grid(work, [work_w])
     borders(work, outer=IMAGE_BORDER, color=DIVIDER_CLR)
 
-    # Each entry: (kind, text, size, bold, color) — kind is load, gap, or line
-    work_lines: list[tuple] = []
-    if is_outbound_empty:
-        yard = route_to or "Interchange"
-        return_line = f"Return to {yard}"
-        ret_size = 6 if len(return_line) > 28 else 7
-        work_lines.append(("line", return_line, ret_size, False, VALUE_CLR))
-        if route_chain:
-            work_lines.append(("gap", "", 0, False, VALUE_CLR))
-            via_label = _via_interchange_label(route_chain)
-            via_size = 5.5 if len(via_label) > 24 else 6.5
-            work_lines.append(("line", via_label, via_size, True, LABEL_CLR))
-    elif is_inbound_empty:
-        work_lines.append(("load", "EMPTY", 10, True, VALUE_CLR))
-        if route_chain:
-            work_lines.append(("gap", "", 0, False, VALUE_CLR))
-            via_label = _via_interchange_label(route_chain)
-            via_size = 5.5 if len(via_label) > 24 else 6.5
-            work_lines.append(("line", via_label, via_size, True, LABEL_CLR))
-    else:
-        comm_size = 8 if len(commodity) > 28 else 9.5
-        work_lines.append(("load", commodity, comm_size, True, VALUE_CLR))
-        work_lines.append(("gap", "", 0, False, VALUE_CLR))
-        if is_interchange:
-            if route_from:
-                from_size = 5.5 if len(route_from) > 36 else 6.5
-                work_lines.append(("line", f"From: {route_from}", from_size, False, VALUE_CLR))
-            if route_to:
-                to_size = 5.5 if len(route_to) > 36 else 6.5
-                work_lines.append(("line", f"To: {route_to}", to_size, False, VALUE_CLR))
-            if route_from or route_to:
-                work_lines.append(("gap", "", 0, False, VALUE_CLR))
-            if route_chain:
-                via_label = _via_interchange_label(route_chain)
-                via_size = 5.5 if len(via_label) > 24 else 6.5
-                work_lines.append(("line", via_label, via_size, True, LABEL_CLR))
-        elif flow == "IN" and route_from:
-            from_size = 5.5 if len(route_from) > 36 else 6.5
-            work_lines.append(("line", f"From: {route_from}", from_size, False, VALUE_CLR))
-            if route_chain:
-                work_lines.append(("gap", "", 0, False, VALUE_CLR))
-                via_label = _via_interchange_label(route_chain)
-                via_size = 5.5 if len(via_label) > 24 else 6.5
-                work_lines.append(("line", via_label, via_size, True, LABEL_CLR))
-        elif flow == "OUT" and route_to:
-            to_size = 5.5 if len(route_to) > 36 else 6.5
-            work_lines.append(("line", f"To: {route_to}", to_size, False, VALUE_CLR))
-            if route_chain:
-                work_lines.append(("gap", "", 0, False, VALUE_CLR))
-                via_label = _via_interchange_label(route_chain)
-                via_size = 5.5 if len(via_label) > 24 else 6.5
-                work_lines.append(("line", via_label, via_size, True, LABEL_CLR))
+    work_lines = _work_lines(
+        commodity=commodity, route_from=route_from, route_to=route_to, route_chain=route_chain, flow=flow,
+        is_interchange=is_interchange, is_outbound_empty=is_outbound_empty, is_inbound_empty=is_inbound_empty,
+    )
 
     inner = work.rows[0].cells[0]
     width(inner, work_w)
@@ -329,20 +357,20 @@ def build_waybill_card(cell, *, idx: int, record: dict, images: CardImages) -> N
     minimize_cell_tail(cell)
 
 
-# STS location color names → hex (matches build_cc_waybill.php palette).
-STS_COLOR_HEX = {
-    "pink": "FFC0CB",
-    "red": "FF0000",
-    "orange": "FFA500",
-    "yellow": "FFFF00",
-    "green": "008000",
-    "lightblue": "ADD8E6",
-    "mediumblue": "0000CD",
-    "purple": "800080",
-    "lightgrey": "D3D3D3",
-    "black": "000000",
-    "white": "FFFFFF",
+# STS location colour names → RRGGBB, as the STS shipment-label palette has them. The names the crew master
+# (ops/hart-ops/data/crew.json) also has take its fill; STS's mediumblue is the master's blue. The rest are STS-only.
+_STS_NAME_TO_MASTER_ID: dict[str, str] = {
+    "pink": "pink", "red": "red", "orange": "orange", "yellow": "yellow", "green": "green",
+    "mediumblue": "blue", "purple": "purple", "black": "black",
 }
+_STS_ONLY_HEX: dict[str, str] = {"lightblue": "ADD8E6", "lightgrey": "D3D3D3", "white": "FFFFFF"}
+
+
+@functools.cache
+def sts_color_hex() -> dict[str, str]:
+    """STS location colour name → RRGGBB fill, the master's fills first."""
+    swatch = crew_master.swatches(crew_master.load())
+    return {**{name: swatch[cid].fill for name, cid in _STS_NAME_TO_MASTER_ID.items()}, **_STS_ONLY_HEX}
 
 
 def build_cc_waybill_label(cell, *, idx: int, record: dict, images: CardImages) -> None:
@@ -377,7 +405,7 @@ def build_cc_waybill_label(cell, *, idx: int, record: dict, images: CardImages) 
 
     kind = (record.get("BillKind") or "freight").lower()
     is_empty = kind == "empty"
-    accent = STS_COLOR_HEX.get(
+    accent = sts_color_hex().get(
         (record.get("Color") or "").strip().lower(), DIVIDER_CLR
     )
 

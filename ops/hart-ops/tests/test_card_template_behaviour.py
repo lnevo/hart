@@ -2,8 +2,8 @@
 
 Other scripts (generate_single_card, generate_all_cards, generate_cc_waybill_labels,
 generate_waybill_cards) call build_card, build_waybill_card, build_cc_waybill_label,
-keep_sticker_grid, strip_grid_guides, _add_document_tail, _insert_before_sect,
-_ensure_sect_pr_last, CARD_SLOTS, STICKER_SHEET and require_sticker_sheet; those are covered here.
+keep_sticker_grid, strip_grid_guides, add_document_tail, insert_before_sect,
+ensure_sect_pr_last, CARD_SLOTS, STICKER_SHEET and require_sticker_sheet; those are covered here.
 
 The sticker sheet and the logo/icons are Apostrophe's or private files, so tests use a
 stand-in 3x3 table and point every image path at a file that does not exist: cards then carry
@@ -25,6 +25,10 @@ from docx.enum.text import WD_BREAK  # noqa: E402
 from docx.oxml import OxmlElement  # noqa: E402
 from docx.oxml.ns import qn  # noqa: E402
 
+import card_template_docx as ctd  # noqa: E402
+import card_template_layout as ctl  # noqa: E402
+import card_template_sheet as cts  # noqa: E402
+import card_template_waybill as ctw  # noqa: E402
 import generate_card_template as gct  # noqa: E402
 from golden_support import check_golden, docx_summary  # noqa: E402
 
@@ -131,56 +135,56 @@ class GoldenCards(unittest.TestCase):
 class TextHelpers(unittest.TestCase):
     def test_keep_address_together_uses_nbsp_inside_parentheses_only(self):
         self.assertEqual(
-            gct.keep_address_together("Dow (Midland, MI) plant"),
+            ctd.keep_address_together("Dow (Midland, MI) plant"),
             "Dow (Midland, MI) plant",
         )
-        self.assertEqual(gct.keep_address_together(""), "")
-        self.assertEqual(gct.keep_address_together("plain text"), "plain text")
+        self.assertEqual(ctd.keep_address_together(""), "")
+        self.assertEqual(ctd.keep_address_together("plain text"), "plain text")
 
     def test_split_on_commas_ignores_commas_in_parentheses(self):
         self.assertEqual(
-            gct.split_on_commas("Aristech, Chemical Unload"), ["Aristech", "Chemical Unload"]
+            ctd.split_on_commas("Aristech, Chemical Unload"), ["Aristech", "Chemical Unload"]
         )
         self.assertEqual(
-            gct.split_on_commas("Dow Chemical (Midland, MI)"), ["Dow Chemical (Midland, MI)"]
+            ctd.split_on_commas("Dow Chemical (Midland, MI)"), ["Dow Chemical (Midland, MI)"]
         )
 
     def test_split_on_commas_drops_empty_parts_and_handles_blank(self):
-        self.assertEqual(gct.split_on_commas(""), [])
-        self.assertEqual(gct.split_on_commas("a,, b ,"), ["a", "b"])
-        self.assertEqual(gct.split_on_commas(","), [","])
+        self.assertEqual(ctd.split_on_commas(""), [])
+        self.assertEqual(ctd.split_on_commas("a,, b ,"), ["a", "b"])
+        self.assertEqual(ctd.split_on_commas(","), [","])
 
     def test_split_on_commas_survives_an_unbalanced_close_paren(self):
-        self.assertEqual(gct.split_on_commas("a), b"), ["a)", "b"])
+        self.assertEqual(ctd.split_on_commas("a), b"), ["a)", "b"])
 
     def test_via_interchange_label(self):
-        self.assertEqual(gct._via_interchange_label("CSX"), "Via CSX Interchange")
-        self.assertEqual(gct._via_interchange_label("POHC Interchange"), "Via POHC Interchange")
-        self.assertEqual(gct._via_interchange_label("via NS"), "via NS")
-        self.assertEqual(gct._via_interchange_label("  "), "")
-        self.assertEqual(gct._via_interchange_label(None), "")
+        self.assertEqual(ctw._via_interchange_label("CSX"), "Via CSX Interchange")
+        self.assertEqual(ctw._via_interchange_label("POHC Interchange"), "Via POHC Interchange")
+        self.assertEqual(ctw._via_interchange_label("via NS"), "via NS")
+        self.assertEqual(ctw._via_interchange_label("  "), "")
+        self.assertEqual(ctw._via_interchange_label(None), "")
 
     def test_write_label_lines_blank_gives_dash_and_many_lines_give_breaks(self):
         doc = Document()
         p = doc.add_paragraph()
-        gct.write_label_lines(p, [])
+        ctd.write_label_lines(p, [])
         self.assertEqual(p.text, "—")
         p2 = doc.add_paragraph()
-        gct.write_label_lines(p2, ["one", "two"], bold=True)
+        ctd.write_label_lines(p2, ["one", "two"], bold=True)
         self.assertEqual(p2.text, "one\ntwo")
         self.assertTrue(all(r.bold for r in p2.runs if r.text not in ("", "\n")))
 
     def test_text_sets_font_size_bold_and_colour(self):
         doc = Document()
         run = doc.add_paragraph().add_run()
-        gct.text(run, "hi", bold=True, size=9, color=(1, 2, 3))
+        ctd.text(run, "hi", bold=True, size=9, color=(1, 2, 3))
         self.assertEqual(run.text, "hi")
         self.assertTrue(run.bold)
         self.assertEqual(run.font.size.pt, 9)
         self.assertEqual(str(run.font.color.rgb), "010203")
 
     def test_sts_colour_names_are_hex(self):
-        for name, hex_ in gct.STS_COLOR_HEX.items():
+        for name, hex_ in ctw.sts_color_hex().items():
             self.assertRegex(hex_, r"^[0-9A-F]{6}$", name)
 
 
@@ -188,7 +192,7 @@ class FieldHelpers(unittest.TestCase):
     def test_merge_field_writes_a_complex_field(self):
         doc = Document()
         p = doc.add_paragraph()
-        gct.merge_field(p, "RoadName", bold=True, size=9)
+        ctd.merge_field(p, "RoadName", bold=True, size=9)
         xml = p._p.xml
         self.assertIn("MERGEFIELD RoadName", xml)
         self.assertIn("«RoadName»", xml)
@@ -198,23 +202,23 @@ class FieldHelpers(unittest.TestCase):
     def test_next_record_writes_a_next_field(self):
         doc = Document()
         p = doc.add_paragraph()
-        gct.next_record(p)
+        ctd.next_record(p)
         self.assertIn(" NEXT ", p._p.xml)
 
     def test_linebreak_adds_a_break_run(self):
         doc = Document()
         p = doc.add_paragraph()
-        gct.linebreak(p)
+        ctd.linebreak(p)
         self.assertEqual(p.text, "\n")
 
 
 class OoxmlHelpers(unittest.TestCase):
     def test_cell_helpers_set_attributes(self):
         _, cell = fresh_cell()
-        gct.shade(cell, "AABBCC")
-        gct.width(cell, 1234)
-        gct.pad(cell, top=1, left=2, bottom=3, right=4)
-        gct.pad(cell, top=9)  # a second pad replaces the first
+        ctd.shade(cell, "AABBCC")
+        ctd.width(cell, 1234)
+        ctd.pad(cell, top=1, left=2, bottom=3, right=4)
+        ctd.pad(cell, top=9)  # a second pad replaces the first
         tc_pr = cell._tc.tcPr
         self.assertEqual(tc_pr.find(qn("w:shd")).get(qn("w:fill")), "AABBCC")
         self.assertEqual(tc_pr.find(qn("w:tcW")).get(qn("w:w")), "1234")
@@ -226,8 +230,8 @@ class OoxmlHelpers(unittest.TestCase):
     def test_row_h_is_exact(self):
         doc = Document()
         t = doc.add_table(rows=1, cols=1)
-        gct.row_h(t.rows[0], 321)
-        gct.row_h(t.rows[0], 400)
+        ctd.row_h(t.rows[0], 321)
+        ctd.row_h(t.rows[0], 400)
         h = t.rows[0]._tr.trPr.findall(qn("w:trHeight"))
         self.assertEqual(len(h), 1)
         self.assertEqual((h[0].get(qn("w:val")), h[0].get(qn("w:hRule"))), ("400", "exact"))
@@ -235,45 +239,45 @@ class OoxmlHelpers(unittest.TestCase):
     def test_grid_replaces_the_table_grid(self):
         doc = Document()
         t = doc.add_table(rows=1, cols=2)
-        gct.grid(t, [100, 200, 300])
+        ctd.grid(t, [100, 200, 300])
         cols = t._tbl.find(qn("w:tblGrid")).findall(qn("w:gridCol"))
         self.assertEqual([c.get(qn("w:w")) for c in cols], ["100", "200", "300"])
 
     def test_table_widths(self):
         doc = Document()
         t = doc.add_table(rows=1, cols=1)
-        gct.tbl_width_pct(t, 80)
+        ctd.tbl_width_pct(t, 80)
         self.assertEqual(t._tbl.tblPr.find(qn("w:tblW")).get(qn("w:w")), "4000")
-        gct.tbl_width_dxa(t, 3000, center=True)
+        ctd.tbl_width_dxa(t, 3000, center=True)
         pr = t._tbl.tblPr
         self.assertEqual((pr.find(qn("w:tblW")).get(qn("w:w")), pr.find(qn("w:tblW")).get(qn("w:type"))),
                          ("3000", "dxa"))
         self.assertEqual(pr.find(qn("w:jc")).get(qn("w:val")), "center")
         t2 = doc.add_table(rows=1, cols=1)
-        gct.tbl_width_dxa(t2, 10, center=False)
+        ctd.tbl_width_dxa(t2, 10, center=False)
         self.assertIsNone(t2._tbl.tblPr.find(qn("w:jc")))
 
     def test_borders_nil_for_zero_and_single_otherwise(self):
         doc = Document()
         t = doc.add_table(rows=1, cols=1)
-        gct.borders(t, outer=18, inner_h=0, color="112233")
+        ctd.borders(t, outer=18, inner_h=0, color="112233")
         b = t._tbl.tblPr.find(qn("w:tblBorders"))
         self.assertEqual(b.find(qn("w:top")).get(qn("w:val")), "single")
         self.assertEqual(b.find(qn("w:top")).get(qn("w:color")), "112233")
         self.assertEqual(b.find(qn("w:insideH")).get(qn("w:val")), "nil")
-        gct.borders(t, outer=0)
+        ctd.borders(t, outer=0)
         self.assertEqual(len(t._tbl.tblPr.findall(qn("w:tblBorders"))), 1)
 
     def test_cell_rules(self):
         _, cell = fresh_cell()
-        gct.bottom_rule(cell, size=4)
+        ctd.bottom_rule(cell, size=4)
         b = cell._tc.tcPr.find(qn("w:tcBorders"))
         self.assertEqual(b.find(qn("w:bottom")).get(qn("w:val")), "single")
         self.assertEqual(b.find(qn("w:top")).get(qn("w:val")), "nil")
-        gct.box(cell)
+        ctd.box(cell)
         b = cell._tc.tcPr.find(qn("w:tcBorders"))
         self.assertEqual([e.get(qn("w:val")) for e in b], ["single"] * 4)
-        gct.hrule(cell)
+        ctd.hrule(cell)
         b = cell._tc.tcPr.find(qn("w:tcBorders"))
         vals = {e.tag.split("}")[1]: e.get(qn("w:val")) for e in b}
         self.assertEqual(vals, {"left": "nil", "right": "nil", "top": "single", "bottom": "single"})
@@ -282,7 +286,7 @@ class OoxmlHelpers(unittest.TestCase):
     def test_add_round_frame_embeds_unique_z_index(self):
         doc = Document()
         p = doc.add_paragraph()
-        gct.add_round_frame(p, 7, width_pt=100, height_pt=200, left_pt=1.5, top_pt=2)
+        ctd.add_round_frame(p, 7, width_pt=100, height_pt=200, left_pt=1.5, top_pt=2)
         xml = p._p.xml
         self.assertIn('id="cardframe7"', xml)
         self.assertIn("z-index:-251650007", xml)
@@ -291,7 +295,7 @@ class OoxmlHelpers(unittest.TestCase):
     def test_tighten_cell_drops_empty_paragraphs_around_a_nested_table(self):
         _, cell = fresh_cell()
         cell.add_table(rows=1, cols=1)
-        gct.tighten_cell(cell)
+        ctd.tighten_cell(cell)
         children = [c.tag for c in cell._tc if c.tag in (qn("w:p"), qn("w:tbl"))]
         self.assertEqual(children[-1], qn("w:p"))
         self.assertEqual(children.count(qn("w:tbl")), 1)
@@ -301,26 +305,26 @@ class OoxmlHelpers(unittest.TestCase):
     def test_tighten_cell_leaves_a_cell_without_a_table_alone(self):
         _, cell = fresh_cell()
         before = cell._tc.xml
-        gct.tighten_cell(cell)
+        ctd.tighten_cell(cell)
         self.assertEqual(cell._tc.xml, before)
 
     def test_minimize_cell_tail_only_shrinks_an_empty_last_paragraph(self):
         _, cell = fresh_cell()
         cell.add_table(rows=1, cols=1)
-        gct.minimize_cell_tail(cell)
+        ctd.minimize_cell_tail(cell)
         last = cell._tc.findall(qn("w:p"))[-1]
         self.assertEqual(last.find(qn("w:pPr")).find(qn("w:spacing")).get(qn("w:line")), "20")
         _, cell2 = fresh_cell()
         cell2.paragraphs[0].add_run("keep")
         before = cell2._tc.xml
-        gct.minimize_cell_tail(cell2)
+        ctd.minimize_cell_tail(cell2)
         self.assertEqual(cell2._tc.xml, before)
 
     def test_tighten_revision_cell_sets_exact_line_and_zero_padding(self):
         _, cell = fresh_cell()
         cell.paragraphs[0].add_run("Rev A")
         cell.add_paragraph("")
-        gct.tighten_revision_cell(cell, 99)
+        ctd.tighten_revision_cell(cell, 99)
         self.assertEqual(len(cell._tc.findall(qn("w:p"))), 1)
         sp = cell.paragraphs[0]._p.pPr.find(qn("w:spacing"))
         self.assertEqual((sp.get(qn("w:line")), sp.get(qn("w:lineRule"))), ("99", "exact"))
@@ -331,38 +335,38 @@ class SheetAssembly(unittest.TestCase):
         doc = Document()
         doc.add_table(rows=1, cols=2)
         three = doc.add_table(rows=1, cols=3)
-        self.assertIs(gct._page4_grid(doc.element.body), three._tbl)
+        self.assertIs(cts._page4_grid(doc.element.body), three._tbl)
 
     def test_page4_grid_error_names_the_missing_table(self):
         doc = Document()
         doc.add_table(rows=1, cols=2)
         with self.assertRaisesRegex(ValueError, "page 4 sticker grid"):
-            gct._page4_grid(doc.element.body)
+            cts._page4_grid(doc.element.body)
 
     def test_keep_sticker_grid_keeps_only_the_grid_and_sets_margins(self):
         with tempfile.TemporaryDirectory() as tmp:
             doc = Document(fake_sheet(Path(tmp) / "s.docx"))
-        gct.keep_sticker_grid(doc)
+        cts.keep_sticker_grid(doc)
         body = doc.element.body
         self.assertEqual(len(body.findall(qn("w:tbl"))), 1)
         self.assertEqual(len(body.findall(qn("w:p"))), 0)
         self.assertEqual(body[-1].tag, qn("w:sectPr"))
         sec = doc.sections[0]
-        self.assertEqual(sec.top_margin.twips, gct.PAGE_MAR_TOP)
-        self.assertEqual(sec.left_margin.twips, gct.PAGE_MAR_LEFT)
-        self.assertEqual(sec.right_margin.twips, gct.PAGE_MAR_RIGHT)
-        self.assertEqual(sec.bottom_margin.twips, gct.PAGE_MAR_BOTTOM)
+        self.assertEqual(sec.top_margin.twips, ctl.PAGE_MAR_TOP)
+        self.assertEqual(sec.left_margin.twips, ctl.PAGE_MAR_LEFT)
+        self.assertEqual(sec.right_margin.twips, ctl.PAGE_MAR_RIGHT)
+        self.assertEqual(sec.bottom_margin.twips, ctl.PAGE_MAR_BOTTOM)
 
     def test_keep_sticker_grid_without_a_three_column_table_raises(self):
         with tempfile.TemporaryDirectory() as tmp:
             doc = Document(fake_sheet(Path(tmp) / "s.docx", cols=2))
         with self.assertRaisesRegex(ValueError, "not found in template"):
-            gct.keep_sticker_grid(doc)
+            cts.keep_sticker_grid(doc)
 
     def test_strip_grid_guides_clears_cell_borders_and_style(self):
         doc = Document()
         t = doc.add_table(rows=2, cols=2, style="Table Grid")
-        gct.strip_grid_guides(t)
+        cts.strip_grid_guides(t)
         self.assertIsNone(t._tbl.tblPr.find(qn("w:tblStyle")))
         self.assertEqual(t._tbl.tblPr.find(qn("w:tblLook")).get(qn("w:val")), "0000")
         for row in t.rows:
@@ -375,10 +379,10 @@ class SheetAssembly(unittest.TestCase):
         body = doc.element.body
         sect = body.find(qn("w:sectPr"))
         body.insert(0, sect)  # misplace it at the front
-        gct._ensure_sect_pr_last(body)
+        cts.ensure_sect_pr_last(body)
         self.assertEqual(body[-1].tag, qn("w:sectPr"))
         marker = OxmlElement("w:p")
-        gct._insert_before_sect(body, marker)
+        cts.insert_before_sect(body, marker)
         self.assertIs(body[-1].getprevious(), marker)
 
     def test_add_document_tail_adds_one_minimal_paragraph_once(self):
@@ -386,9 +390,9 @@ class SheetAssembly(unittest.TestCase):
         body = doc.element.body
         for p in list(body.findall(qn("w:p"))):
             body.remove(p)
-        gct._add_document_tail(body)
+        cts.add_document_tail(body)
         self.assertEqual(len(body.findall(qn("w:p"))), 1)
-        gct._add_document_tail(body)
+        cts.add_document_tail(body)
         self.assertEqual(len(body.findall(qn("w:p"))), 1)
         self.assertEqual(body[-1].tag, qn("w:sectPr"))
 
@@ -398,7 +402,7 @@ class SheetAssembly(unittest.TestCase):
         para = doc.add_paragraph()
         para.add_run().add_break(WD_BREAK.PAGE)
         self.assertTrue(body.findall(".//" + qn("w:br")))
-        gct._add_document_tail(body)
+        cts.add_document_tail(body)
         self.assertFalse(body.findall(".//" + qn("w:br")))
 
 
@@ -421,7 +425,7 @@ class MainEntryPoint(unittest.TestCase):
         xml = doc.element.body.xml
         self.assertEqual(xml.count("MERGEFIELD Type"), 9)
         self.assertEqual(xml.count(" NEXT "), 8)
-        self.assertEqual(len(gct.CARD_SLOTS), 9)
+        self.assertEqual(len(ctl.CARD_SLOTS), 9)
 
     def test_main_golden_summary(self):
         with tempfile.TemporaryDirectory() as tmp:

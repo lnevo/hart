@@ -6,6 +6,8 @@ import math
 
 from PIL import Image
 
+import crew_master
+
 from .kit import (
     ARIAL_BOLD,
     GEORGIA,
@@ -57,31 +59,32 @@ def draw_industries(meta: dict, hooks: Hooks) -> Image.Image:
     chip_size = 28
 
     # track name, industry, colors, spot line under the rail
+    swatch = crew_master.swatches(crew_master.load())   # the industry colours, from the master
     rows = [
         ("Main West", None, [], None),
         ("Track S-R", None, [], None),
         (
             "Track S-1",
             "Aristech Plastics",
-            [("YELLOW", "FFFF00")],
+            [("YELLOW", swatch["yellow"].fill)],
             "Pellets  ·  Chemicals  ·  Shipping",
         ),
         (
             "Track S-2",
             "Ferrellgas  ·  A. Stucki Co.",
-            [("RED", "FF0000"), ("GREEN", "008000")],
+            [("RED", swatch["red"].fill), ("GREEN", swatch["green"].fill)],
             "LPG  ·  Crane  ·  Team",
         ),
         (
             "Track S-3",
             "Kosmos Cement",
-            [("PINK", "FFC0CB")],
+            [("PINK", swatch["pink"].fill)],
             "Cement  ·  Aggregate",
         ),
         (
             "Track S-4",
             "Calgon Carbon",
-            [("PURPLE", "800080")],
+            [("PURPLE", swatch["purple"].fill)],
             "Coal  ·  Carbon  ·  Chemical",
         ),
         ("Main East", None, [], None),

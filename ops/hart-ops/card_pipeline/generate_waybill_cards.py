@@ -54,14 +54,17 @@ def _load_sibling(name: str):
 
 
 # Order matters: each sibling imports the ones before it by name.
+car_paths = _load_sibling("car_paths")
+card_template_layout = _load_sibling("card_template_layout")
+card_template_sheet = _load_sibling("card_template_sheet")
 g = _load_sibling("generate_card_template")
 _load_sibling("waybill_data")
 _load_sibling("waybill_deck")
 _load_sibling("waybill_sheet")
 
-BASE = g.BASE
-DATA = g.DATA
-OUTPUT_DIR = g.OUTPUT_DIR
+BASE = car_paths.ROOT
+DATA = car_paths.DATA
+OUTPUT_DIR = car_paths.OUTPUT_DIR
 SPOT_CSV = DATA / "spot_assignments.csv"
 OUTPUT = OUTPUT_DIR / "HART_Spot_Waybills.docx"
 WAYBILL_CSV = DATA / "HART_Spot_Waybills.csv"
@@ -71,12 +74,12 @@ WAYBILL_CSV = DATA / "HART_Spot_Waybills.csv"
 # waybill_sheet), so patching one of these names on this module does not reach them; only
 # BASE, OUTPUT_DIR, OUTPUT, WAYBILL_CSV and SPOT_CSV above are read from this module.
 from waybill_data import (  # noqa: E402, F401
-    _INTERCHANGE_CSX_TO_NS,
-    _INTERCHANGE_IN_VIA_CSX,
-    _INTERCHANGE_IN_VIA_POHC,
-    _INTERCHANGE_NS_TO_CSX,
-    _INTERCHANGE_OUT_VIA_CSX,
-    _INTERCHANGE_OUT_VIA_POHC,
+    INTERCHANGE_CSX_TO_NS,
+    INTERCHANGE_IN_VIA_CSX,
+    INTERCHANGE_IN_VIA_POHC,
+    INTERCHANGE_NS_TO_CSX,
+    INTERCHANGE_OUT_VIA_CSX,
+    INTERCHANGE_OUT_VIA_POHC,
     _LAYOUT_PARTY_NAMES,
     _PROCESS_CHEMICAL_DETAILS,
     _ix_card,
@@ -175,9 +178,9 @@ def load_spot_groups() -> list[dict]:
 
 def _blank_sticker_grid():
     scratch_path = BASE / ".scratch_waybill.docx"
-    shutil.copy2(g.STICKER_SHEET, scratch_path)
+    shutil.copy2(car_paths.STICKER_SHEET, scratch_path)
     scratch = Document(scratch_path)
-    g.keep_sticker_grid(scratch)
+    card_template_sheet.keep_sticker_grid(scratch)
     grid = deepcopy(scratch.tables[0]._tbl)
     scratch_path.unlink(missing_ok=True)
     return grid
@@ -185,13 +188,13 @@ def _blank_sticker_grid():
 
 
 def generate(deck: list[dict]) -> None:
-    g.require_sticker_sheet()
+    car_paths.require_sticker_sheet()
 
     blank_grid = _blank_sticker_grid()
     temp_path = OUTPUT.with_suffix(".tmp.docx")
-    shutil.copy2(g.STICKER_SHEET, temp_path)
+    shutil.copy2(car_paths.STICKER_SHEET, temp_path)
     doc = Document(temp_path)
-    g.keep_sticker_grid(doc)
+    card_template_sheet.keep_sticker_grid(doc)
 
     pages = [deck[i : i + CARDS_PER_PAGE] for i in range(0, len(deck), CARDS_PER_PAGE)]
 
@@ -202,7 +205,7 @@ def generate(deck: list[dict]) -> None:
         sheet = _append_grid(doc, blank_grid)
         _fill_page(sheet, batch, page_idx)
 
-    g._add_document_tail(doc.element.body)
+    card_template_sheet.add_document_tail(doc.element.body)
     doc.save(temp_path)
     os.replace(temp_path, OUTPUT)
 
@@ -322,11 +325,11 @@ def main() -> None:
         1 for c in loaded
         if c.get("Flow") == "OUT" and c["RouteChain"] == "POHC"
     )
-    tot_in_csx = in_csx + len(_INTERCHANGE_IN_VIA_CSX) + len(_INTERCHANGE_NS_TO_CSX)
-    tot_in_pohc = in_pohc + len(_INTERCHANGE_IN_VIA_POHC)
-    tot_out_csx = out_csx + len(_INTERCHANGE_OUT_VIA_CSX)
+    tot_in_csx = in_csx + len(INTERCHANGE_IN_VIA_CSX) + len(INTERCHANGE_NS_TO_CSX)
+    tot_in_pohc = in_pohc + len(INTERCHANGE_IN_VIA_POHC)
+    tot_out_csx = out_csx + len(INTERCHANGE_OUT_VIA_CSX)
     tot_out_pohc = (
-        out_pohc + len(_INTERCHANGE_OUT_VIA_POHC) + len(_INTERCHANGE_CSX_TO_NS)
+        out_pohc + len(INTERCHANGE_OUT_VIA_POHC) + len(INTERCHANGE_CSX_TO_NS)
     )
     print(
         f"  loaded routing balance — IN: CSX {tot_in_csx} · POHC {tot_in_pohc} | "
