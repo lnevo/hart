@@ -52,7 +52,6 @@ longer happens fails so the list stays honest.
 from __future__ import annotations
 
 import argparse
-import csv
 import functools
 import re
 import sys
@@ -62,7 +61,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import devices, level_devices, level_masts, parked, paths, railroad, tables_build  # noqa: E402
+from hartlib import devices, level_devices, level_masts, occupancy_bindings, parked, paths, railroad, tables_build  # noqa: E402,E501
 from hartlib import tables as hart_tables  # noqa: E402
 from hartlib.names import split_dcc  # noqa: E402
 
@@ -608,9 +607,8 @@ def check_level_desk(path: Path, t: Tables, r: Report) -> None:
 # ---------------------------------------------------------------- USS CTC
 
 def occupancy_sensors(path: Path) -> dict[str, str]:
-    with path.open(newline="", encoding="utf-8") as fh:
-        return {row["block_user_name"].strip(): row["occupancy_sensor_user_name"].strip()
-                for row in csv.DictReader(fh)}
+    """{block name: occupancy sensor} of occupancy_bindings.csv (hartlib.occupancy_bindings names each block_id)."""
+    return {row["block_user_name"]: row["occupancy_sensor_user_name"] for row in occupancy_bindings.rows(path)}
 
 
 def check_ctc_buttons(switches: dict[int, facts.Switch], t: Tables, occ: dict[str, str], r: Report) -> None:

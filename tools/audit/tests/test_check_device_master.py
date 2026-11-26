@@ -410,7 +410,7 @@ class StagingLoad(unittest.TestCase):
         self.addCleanup(shutil.rmtree, tmp)
         src = cdm.railroad.Sources.under().interlockings
         il = tmp / src.name
-        il.write_text(src.read_text(encoding="utf-8") + "1,Nowhere,15,,\n", encoding="utf-8")
+        il.write_text(src.read_text(encoding="utf-8") + "cp:nowhere,1,Nowhere,15,,\n", encoding="utf-8")
 
         def edit(rows):
             next(r for r in rows if r["level"] == "1" and r["user_name"] == "OS Switch 9")["cp"] = "Nowhere"

@@ -38,6 +38,7 @@ jmri/layouts/hart/output/signal_head_plan.csv
 jmri/layouts/hart/data/devices_generated.csv
 jmri/layouts/hart/data/devices_field.csv
 jmri/layouts/hart/data/schematic/interlockings.csv
+jmri/layouts/hart/data/schematic/stations.csv
 jmri/layouts/hart/data/switches.csv
 jmri/scripts/signal_coordinator.py
 jmri/scripts/sml_beans.py

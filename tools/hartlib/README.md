@@ -353,6 +353,15 @@ device-master row: reviewed, `Edit`s to write) and DROPPED (the build's: the rep
 rebuild gives exactly what the plan promised. `read_template()` accepts an extra section a split kept (a Route
 table, say), never a second copy of a known one. Errors are `SplitError`.
 
+### `hartlib.places` and `hartlib.occupancy_bindings`
+
+`places`: the stations of `schematic/stations.csv` by `station_id` (`st:barn`) and the control points of
+`schematic/interlockings.csv` by `cp_id` (`cp:107`). The `cp` cells of the device pair and of `masts.csv` hold these
+ids; `hartlib.devices` and `level_masts.read` give readers the names (`places.names`), and the writers put the ids
+back (`places.ids`, a station's id before an interlocking's of the same name). `occupancy_bindings.rows()`: the rows
+of `cats/data/occupancy_bindings.csv`, each block given by its `block_id` and named from the name store
+(`block_user_name`). Both stop with `FactsError`.
+
 ### `hartlib.level_masts`
 
 Every level's masts, one file with a `level` column (owner, 2026-11-21: the level is a column): `PATH`

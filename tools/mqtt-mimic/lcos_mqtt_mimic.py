@@ -35,7 +35,7 @@ from urllib.parse import urlparse
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import devices, level_devices, paths, railroad, tables  # noqa: E402
+from hartlib import devices, level_devices, occupancy_bindings, paths, railroad, tables  # noqa: E402
 from hartlib.hosts import default as host_default, mqtt_broker, mqtt_port  # noqa: E402
 
 ROOT = paths.REPO_ROOT
@@ -168,14 +168,12 @@ def load_layout(levels: bool = True) -> dict:
 
     occ_names: dict[str, list[str]] = {}
     if OCC_CSV.is_file():
-        with OCC_CSV.open(newline="", encoding="utf-8") as f:
-            for row in csv.DictReader(f):
-                un = (row.get("occupancy_sensor_user_name") or "").strip()
-                name = (row.get("block_user_name") or "").strip()
-                if un and name:
-                    occ_names.setdefault(un, [])
-                    if name not in occ_names[un]:
-                        occ_names[un].append(name)
+        for row in occupancy_bindings.rows(OCC_CSV):      # each block_id named (hartlib.occupancy_bindings)
+            un, name = row["occupancy_sensor_user_name"], row["block_user_name"]
+            if un and name:
+                occ_names.setdefault(un, [])
+                if name not in occ_names[un]:
+                    occ_names[un].append(name)
 
     # a device's kind is its device-master row's (layer, role), never its name (hand-off row 8)
     index = devices.index(DEVICES)
