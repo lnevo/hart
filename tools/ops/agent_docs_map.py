@@ -86,17 +86,19 @@ class AgentDocsMapError(Exception):
     pass
 
 
-def _ls(*pathspecs: str) -> list[str]:
+def _ls(*pathspecs: str, others: bool = False) -> list[str]:
+    """Tracked files matching `pathspecs`, or with others=True the new ones git does not ignore."""
     try:
-        return DOCS_CHECK._git("ls-files", "-z", *pathspecs)
+        if others:
+            return DOCS_CHECK._git("ls-files", "-z", "--others", "--exclude-standard", "--", *pathspecs)
+        return DOCS_CHECK._tracked(*pathspecs)
     except DOCS_CHECK.AgentDocsError as err:
-        raise AgentDocsMapError(str(err)) from None
+        raise AgentDocsMapError(str(err)) from err
 
 
 def glob_files(others: bool = False) -> list[str]:
     """The files matching GLOBS: tracked ones, or with others=True the new ones git does not ignore."""
-    extra = ("--others", "--exclude-standard") if others else ()
-    return sorted(set(_ls(*extra, *(f":(glob){g}" for g in GLOBS))))
+    return sorted(set(_ls(*(f":(glob){g}" for g in GLOBS), others=others)))
 
 
 def matches(path: str, pattern: str) -> bool:
@@ -233,7 +235,7 @@ def _read_file(rel: str) -> str:
     try:
         return (ROOT / rel).read_text(encoding="utf-8")
     except OSError as err:
-        raise AgentDocsMapError(f"{rel} is in git but cannot be read ({err.strerror}); restore it or git rm it") from None
+        raise AgentDocsMapError(f"{rel} is in git but cannot be read ({err.strerror}); restore it or git rm it") from err
     except UnicodeDecodeError:
         raise AgentDocsMapError(f"{rel} is not UTF-8 text") from None
 

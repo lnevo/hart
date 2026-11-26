@@ -132,7 +132,7 @@ class Committed(unittest.TestCase):
         names = {ET.fromstring(m["xml"]).get("sensor") or ET.fromstring(m["xml"]).get("signalhead")
                  for m in status["members"]}
         self.assertTrue({"Bridge HBLOOP", "SML Mode", "Track Power", "IH9990"} <= names)
-        # the four captions stand by their right edges, on one line 4 px left of their lamps (owner, 2026-11-21)
+        # the four captions stand by their right edges, on one line 4 px left of their lamps
         captions = [m for m in status["members"] if ET.fromstring(m["xml"]).tag == "positionablelabel"]
         lamps = {m["dx"] for m in status["members"] if ET.fromstring(m["xml"]).tag != "positionablelabel"}
         self.assertEqual(len(captions), 4)

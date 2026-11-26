@@ -83,7 +83,7 @@ def step_reads(name: str, trace_log, root: Path, steps) -> dict:
     try:
         text = Path(trace_log).read_text(encoding="utf-8", errors="surrogateescape")
     except OSError as exc:
-        raise AuditError(f"cannot read the trace of {name}: {exc}") from None
+        raise AuditError(f"cannot read the trace of {name}: {exc}") from exc
     skip = traced._skip_prefixes(str(root))
     reads: set[str] = set()
     started = 0

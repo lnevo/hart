@@ -78,25 +78,35 @@ class Scratch(ScratchRepo):
         self.sizes.write_text("path,lines\n")
         self.assertEqual(self.run_main()[0], 0)
 
-    def test_shrinking_fails_until_the_list_is_tightened(self) -> None:
+    def test_shrinking_passes_with_a_note_until_the_list_is_tightened(self) -> None:
         self.put("a/big.py", 850)
         self.sizes.write_text("path,lines\na/big.py,900\n")
         rc, out, _ = self.run_main()
-        self.assertEqual(rc, 1)
-        self.assertIn("shrank from 900 to 850", out)
+        self.assertEqual(rc, 0)
+        self.assertIn("1 file(s) below the baseline; `--update` locks them in", out)
+        self.assertEqual(self.sizes.read_text(), "path,lines\na/big.py,900\n")
         self.assertEqual(self.run_main("--update")[0], 0)
         self.assertEqual(self.sizes.read_text(), "path,lines\na/big.py,850\n")
-        self.assertEqual(self.run_main()[0], 0)
+        rc, out, _ = self.run_main()
+        self.assertEqual(rc, 0)
+        self.assertNotIn("below the baseline", out)
 
-    def test_a_file_under_the_limit_or_gone_must_lose_its_row(self) -> None:
+    def test_a_file_under_the_limit_or_gone_passes_with_a_note(self) -> None:
         self.put("a/was_big.py", 700)
         self.sizes.write_text("path,lines\na/gone.py,900\na/was_big.py,900\n")
         rc, out, _ = self.run_main()
-        self.assertEqual(rc, 1)
-        self.assertIn("a/gone.py: listed at 900 lines but gone", out)
-        self.assertIn("a/was_big.py: now 700 lines, at or under 800", out)
+        self.assertEqual(rc, 0)
+        self.assertIn("2 file(s) below the baseline; `--update` locks them in", out)
         self.assertEqual(self.run_main("--update")[0], 0)
         self.assertEqual(self.sizes.read_text(), "path,lines\n")
+
+    def test_a_shrink_beside_a_growth_still_fails(self) -> None:
+        self.put("a/big.py", 850)
+        self.put("a/other.py", 950)
+        self.sizes.write_text("path,lines\na/big.py,900\na/other.py,900\n")
+        rc, out, _ = self.run_main()
+        self.assertEqual(rc, 1)
+        self.assertIn("a/other.py: grew from 900 to 950", out)
 
     def test_a_new_untracked_file_is_measured_but_an_ignored_one_is_not(self) -> None:
         self.put("a/new.py", 900, track=False)
@@ -209,26 +219,25 @@ class OtherKinds(ScratchRepo):
         self.assertIn("tools/a.sh: 501 lines, over 500 with no row", out)
         self.assertNotIn("edge", out.split("problem(s)", 1)[1])
 
-    def test_growth_fails_and_shrinking_must_tighten(self) -> None:
+    def test_growth_fails_and_shrinking_is_a_note(self) -> None:
         self.put("tools/a.sh", 520)
         self.put("www/a.js", 900)
         self.sizes.write_text("path,lines\ntools/a.sh,510\nwww/a.js,950\n")
         rc, out, _ = self.run_main()
         self.assertEqual(rc, 1)
         self.assertIn("tools/a.sh: grew from 510 to 520 lines", out)
-        self.assertIn("www/a.js: shrank from 950 to 900", out)
+        self.assertIn("1 file(s) below the baseline", out)
         self.assertEqual(self.run_main("--update")[0], 1)       # the growth stays a problem without --accept
         self.assertEqual(self.sizes.read_text(), "path,lines\ntools/a.sh,510\nwww/a.js,900\n")
         self.assertEqual(self.run_main("--update", "--accept", "tools/a.sh")[0], 0)
         self.assertEqual(self.sizes.read_text(), "path,lines\ntools/a.sh,520\nwww/a.js,900\n")
 
-    def test_a_file_at_or_under_its_limit_or_gone_must_lose_its_row(self) -> None:
+    def test_a_file_at_or_under_its_limit_or_gone_is_a_note(self) -> None:
         self.put("tools/a.sh", 500)
         self.sizes.write_text("path,lines\ntools/a.sh,600\nwww/gone.js,900\n")
         rc, out, _ = self.run_main()
-        self.assertEqual(rc, 1)
-        self.assertIn("tools/a.sh: now 500 lines, at or under 500", out)
-        self.assertIn("www/gone.js: listed at 900 lines but gone", out)
+        self.assertEqual(rc, 0)
+        self.assertIn("2 file(s) below the baseline; `--update` locks them in", out)
         self.assertEqual(self.run_main("--update")[0], 0)
         self.assertEqual(self.sizes.read_text(), "path,lines\n")
 

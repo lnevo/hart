@@ -4,8 +4,9 @@
 Owner, 2026-11-25 (.py); .js and .sh joined in the size sweep of the same day. LIMITS gives each kind its limit:
 .py and .js 800 lines, .sh 500. Every tracked file of those kinds outside EXCLUDED (and outside any node_modules
 folder) that is over its limit has a row in SIZES (path, lines): the size it may not pass. The check fails when such a
-file grows past its row, when a file crosses its limit with no row, and when a file shrank, fell to its limit or
-below, or is gone, so the list is tightened in the same change (a ratchet). A file at 90 percent of its limit or more
+file grows past its row and when a file crosses its limit with no row. A file that shrank, fell to its limit or
+below, or is gone passes with one note: `--update` tightens its row (a ratchet that never fails on a shrink, since with
+strict up-to-date merges a shrink on main would otherwise fail every open branch). A file at 90 percent of its limit or more
 (WARN_SHARE, warn_at: 720 lines for .py and .js, 450 for .sh) with no row gets a WARNING line, which does not fail
 the check, so the guard speaks before the crossing. The warning is advisory: it shows when the py-sizes job runs, not
 when its stamp lets check.sh skip it.
@@ -136,15 +137,13 @@ def problems(now: dict[str, int], sizes: dict[str, int]) -> list[Problem]:
         elif lines > allowed:
             out.append(Problem(path, f"grew from {allowed} to {lines} lines: split it, or accept it by name "
                                      f"(--update --accept {path})"))
-        elif lines < allowed:
-            out.append(Problem(path, f"shrank from {allowed} to {lines} lines: run --update to tighten its row"))
-    for path, allowed in sorted(sizes.items()):
-        if path not in now:
-            out.append(Problem(path, f"listed at {allowed} lines but gone: run --update to drop its row"))
-        elif now[path] <= limit_of(path):
-            out.append(Problem(path, f"now {now[path]} lines, at or under {limit_of(path)}: run --update to drop "
-                                     f"its row"))
     return out
+
+
+def slack(now: dict[str, int], sizes: dict[str, int]) -> list[str]:
+    """The listed files whose row --update would lower or drop: shrank, at or under the limit, or gone. Not a failure."""
+    return sorted(path for path, allowed in sizes.items()
+                  if path not in now or now[path] <= limit_of(path) or now[path] < allowed)
 
 
 def warnings(now: dict[str, int], sizes: dict[str, int]) -> list[Problem]:
@@ -221,6 +220,9 @@ def main(argv: list[str]) -> int:
         return 2
     for w in warnings(now, sizes):
         print(f"check_py_sizes: WARNING: {w.path}: {w.text}")
+    below = slack(now, sizes)
+    if below:
+        print(f"check_py_sizes: {len(below)} file(s) below the baseline; `--update` locks them in")
     if left:
         print(f"check_py_sizes: {len(left)} problem(s) with files over their line limit ({limits_text()}):")
         for p in left:

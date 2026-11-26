@@ -64,6 +64,76 @@ class Repo(unittest.TestCase):
 LONG_AGO = datetime(2026, 1, 1, tzinfo=timezone.utc)
 
 
+class GitErrors(unittest.TestCase):
+    """git() raises GitCommandError with the command and stderr; callers that expect a failure say what it means."""
+
+    def test_failure_names_command_folder_and_stderr(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(WT.GitCommandError, r"git status --porcelain failed in .*not a git repository"):
+                WT.git("status", "--porcelain", cwd=tmp)
+
+    def test_timeout_and_missing_git_keep_their_cause(self) -> None:
+        for err in (subprocess.TimeoutExpired("git", 60), FileNotFoundError("git")):
+            with mock.patch.object(WT.subprocess, "run", side_effect=err):
+                with self.assertRaises(WT.GitCommandError) as caught:
+                    WT.git("status")
+            self.assertIs(caught.exception.__cause__, err)
+
+    def test_unreadable_checkout_counts_as_dirty(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertTrue(WT.is_dirty(tmp))
+
+    def test_unset_default_branch_and_missing_branch_are_none(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertIsNone(WT.default_branch(tmp))
+            self.assertIsNone(WT.branch_head("agent/x", tmp))
+
+    def test_main_prints_one_error_line(self) -> None:
+        err = io.StringIO()
+        with mock.patch.object(WT, "worktrees", side_effect=WT.GitCommandError("git worktree list failed in /x: boom")), \
+                redirect_stderr(err):
+            self.assertEqual(WT.main(["sweep", "--dry-run"]), 1)
+        self.assertEqual(err.getvalue(), "error: git worktree list failed in /x: boom\n")
+
+
+class SweepGoesOn(unittest.TestCase):
+    """A broken submodule or a failed cleanup after a removal is one line; the sweep carries on."""
+
+    def test_a_broken_submodule_is_left_and_the_next_is_swept(self) -> None:
+        main = WT.Worktree("/repo", "abc", "main")
+
+        def trees(cwd=None):
+            if cwd == "/repo/sub/a":
+                raise WT.GitCommandError("git worktree list --porcelain failed in /repo/sub/a: fatal: broken")
+            return [main]
+        with mock.patch.object(WT, "worktrees", side_effect=trees), \
+                mock.patch.object(WT.shutil, "which", return_value="/bin/gh"), \
+                mock.patch.object(WT, "submodule_repos", return_value=["/repo/sub/a", "/repo/sub/b"]), \
+                mock.patch.object(WT, "default_branch", return_value="main"), \
+                mock.patch.object(WT, "sweep_repo", side_effect=lambda m, *a: [f"swept {m}"]):
+            lines = WT.sweep()
+        self.assertEqual(lines, [
+            "swept /repo",
+            "left this submodule for the next sweep: git worktree list --porcelain failed in /repo/sub/a: "
+            "fatal: broken [submodule sub/a]",
+            "swept /repo/sub/b [submodule sub/b]",
+        ])
+
+    def test_a_failed_branch_delete_is_a_note_on_the_removed_line(self) -> None:
+        tree = WT.Worktree("/repo/.claude/worktrees/x", "abc", "agent/claude/x")
+
+        def fake_git(*args, cwd=None):
+            if args[:2] == ("branch", "-D"):
+                raise WT.GitCommandError("git branch -D agent/claude/x failed in /repo: error: locked")
+            return ""
+        with mock.patch.object(WT, "git", side_effect=fake_git), mock.patch.object(WT, "branch_head", return_value="abc"):
+            self.assertEqual(WT.after_removal(tree, "/repo"),
+                             ["branch delete failed: git branch -D agent/claude/x failed in /repo: error: locked"])
+        with mock.patch.object(WT, "git", side_effect=WT.GitCommandError("git worktree prune failed in /repo: x")), \
+                mock.patch.object(WT, "branch_head", return_value=None):
+            self.assertEqual(WT.after_removal(tree, "/repo"), ["worktree prune failed: git worktree prune failed in /repo: x"])
+
+
 class Plan(Repo):
     def trees(self):
         return WT.worktrees(self.main)

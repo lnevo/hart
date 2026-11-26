@@ -365,8 +365,9 @@ class ReportTest(Repo):
             with self.assertRaisesRegex(OR.OrientError, "took over"):
                 OR.git("status")
         with mock.patch.object(OR.subprocess, "run", side_effect=FileNotFoundError("git")):
-            with self.assertRaisesRegex(OR.OrientError, "cannot run git"):
+            with self.assertRaisesRegex(OR.OrientError, "git status could not run in") as caught:
                 OR.git("status")
+        self.assertIsInstance(caught.exception.__cause__, FileNotFoundError)
 
     def test_full_report_says_when_the_network_parts_fail(self):
         self.worktree("w", commits=1)

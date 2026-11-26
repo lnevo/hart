@@ -61,7 +61,7 @@ def find_sidecars(root: Path = ROOT) -> list[Path]:
         done = subprocess.run(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--",
                                *(f":(glob){g}" for g in SCAN_GLOBS)], cwd=root, capture_output=True, text=True)
     except OSError as exc:
-        raise DataError(f"git ls-files could not run: {exc}") from None
+        raise DataError(f"git ls-files could not run: {exc}") from exc
     if done.returncode:
         raise DataError(f"git ls-files failed: {done.stderr.strip() or f'exit {done.returncode}'}")
     rels = sorted({p for p in done.stdout.split("\0") if p and (root / p).is_file()})   # not one deleted, unstaged
@@ -74,7 +74,7 @@ def _read_csv(path: Path) -> list[list[str]]:
         with path.open(newline="", encoding="utf-8") as fh:
             return list(csv.reader(fh))
     except (OSError, UnicodeDecodeError) as exc:
-        raise DataError(f"{_rel(path)}: cannot read it ({exc})") from None
+        raise DataError(f"{_rel(path)}: cannot read it ({exc})") from exc
 
 
 def _rel(path: Path) -> str:
@@ -252,7 +252,7 @@ class Checker:
         try:
             _, head, rows, _ = self.master(ROOT / path)
         except DataError as exc:
-            raise DataError(f"{where}: refs {ref}: {exc}") from None
+            raise DataError(f"{where}: refs {ref}: {exc}") from exc
         if col not in head:
             raise DataError(f"{where}: refs {ref}: no column {col}")
         return {r[col] for r in rows}

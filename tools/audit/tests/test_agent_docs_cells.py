@@ -202,7 +202,7 @@ class RepoTest(unittest.TestCase):
         self.assertTrue(all(f.endswith(".md") for f in files))
 
     def test_tracked_file_missing_from_the_tree_is_skipped(self) -> None:
-        with mock.patch.object(DOCS, "_git", return_value=["wiki/gone-for-good.md", "wiki/home.md"]):
+        with mock.patch.object(DOCS, "_tracked", return_value=["wiki/gone-for-good.md", "wiki/home.md"]):
             self.assertEqual(DOCS.cell_files(), ["wiki/home.md"])
 
     def test_tracked_files_have_no_long_cell(self) -> None:

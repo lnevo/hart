@@ -33,6 +33,36 @@ class RepoFiles(unittest.TestCase):
         self.assertEqual(J.main([]), 0)
 
 
+class ShapeSteps(unittest.TestCase):
+    """Each schema node type's step of problems(), on plain values."""
+
+    def test_numbers_and_constants(self) -> None:
+        self.assertEqual(J.problems(5, J.whole(1, 3)), ["top level: 5 is not from 1 to 3"])
+        self.assertEqual(J.problems(0, J.whole(lo=1)), ["top level: 0 is below 1"])
+        self.assertEqual(J.problems(True, J.whole()), ["top level: must be a whole number, not true or false"])
+        self.assertEqual(J.problems(0, J.number(above=0)), ["top level: 0 is not above 0"])
+        self.assertEqual(J.problems(1, J.const(True)), ["top level: must be true, not 1"])
+        self.assertEqual(J.problems(True, J.const(True)), [])
+
+    def test_text_array_and_object(self) -> None:
+        self.assertEqual(J.problems(" ", J.text(nonempty=True, values=["a"])),
+                         ["top level: is empty", "top level: ' ' is not one of a"])
+        self.assertEqual(J.problems([{"id": 1}, {"id": 1}], J.arr(J.obj({"id": J.whole()}), unique="id")),
+                         ["[1].id: 1 is given twice"])
+        self.assertEqual(J.problems([], J.arr(min=1, max=1)), ["top level: has 0 items, needs 1"])
+        self.assertEqual(J.problems({"b": 1}, J.obj({"a": J.whole()}, required=["a"], closed=True)),
+                         ["a: is required", "b: is not a key here (keys: a)"])
+
+    def test_cross_field_rule_runs_only_after_the_shape_passes(self) -> None:
+        rule = J.obj({"a": J.whole()}, check=lambda v: "a must be 2" if v.get("a") != 2 else None)
+        self.assertEqual(J.problems({"a": 1}, rule), ["top level: a must be 2"])
+        self.assertEqual(J.problems({"a": "x"}, rule), ["a: must be a whole number, not text"])
+
+    def test_unknown_node_type_is_an_error(self) -> None:
+        with self.assertRaisesRegex(ValueError, "schema node type 'blob'"):
+            J.problems(1, {"type": "blob"})
+
+
 class Broken(unittest.TestCase):
     """A copy of a repo file with one edit, written under a temporary root, checked with the file's schema."""
 

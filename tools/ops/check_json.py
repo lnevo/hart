@@ -34,6 +34,7 @@ import argparse
 import json
 import re
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -77,7 +78,7 @@ def const(value):
 
 # ---------------------------------------------------------------- the checker
 
-def _step(path: str, key) -> str:
+def _step(path: str, key: str | int) -> str:
     if isinstance(key, int):
         return f"{path}[{key}]"
     k = str(key)
@@ -85,89 +86,113 @@ def _step(path: str, key) -> str:
     return f"{path}.{part}" if path and IDENT.fullmatch(k) else (f"{path}[{part}]" if path else part)
 
 
-def _kind(v) -> str:
+def _kind(v: object) -> str:
     return {dict: "an object", list: "an array", str: "text", bool: "true or false", type(None): "null"}.get(
         type(v), "a number" if isinstance(v, (int, float)) else type(v).__name__)
 
 
-def problems(value, node: dict, path: str = "", root: Path = ROOT) -> list[str]:
-    """Every problem of `value` against `node`, each "path: what is wrong" ("top level" for the root)."""
-    out: list[str] = []
-    at = path or "top level"
-    t = node["type"]
-    if t == "any":
-        pass
-    elif t == "const":
-        if value != node["value"] or type(value) is not type(node["value"]):
-            out.append(f"{at}: must be {json.dumps(node['value'])}, not {json.dumps(value)}")
-            return out
-    elif t == "bool":
-        if not isinstance(value, bool):
-            return [f"{at}: must be true or false, not {_kind(value)}"]
-    elif t == "int":
-        if isinstance(value, bool) or not isinstance(value, int):
-            return [f"{at}: must be a whole number, not {_kind(value)}"]
-        if node["min"] is not None and value < node["min"] or node["max"] is not None and value > node["max"]:
-            lo, hi = node["min"], node["max"]
-            out.append(f"{at}: {value} is not from {lo} to {hi}" if lo is not None and hi is not None
-                       else f"{at}: {value} is above {hi}" if hi is not None else f"{at}: {value} is below {lo}")
-    elif t == "number":
-        if isinstance(value, bool) or not isinstance(value, (int, float)):
-            return [f"{at}: must be a number, not {_kind(value)}"]
-        if node["above"] is not None and not value > node["above"]:
-            out.append(f"{at}: {value} is not above {node['above']}")
-        if node["min"] is not None and value < node["min"]:
-            out.append(f"{at}: {value} is below {node['min']}")
-    elif t == "str":
-        if not isinstance(value, str):
-            return [f"{at}: must be text, not {_kind(value)}"]
-        if node["nonempty"] and not value.strip():
-            out.append(f"{at}: is empty")
-        if node["values"] and value not in node["values"]:
-            out.append(f"{at}: {value!r} is not one of {', '.join(node['values'])}")
-        if node["pattern"] and not re.fullmatch(node["pattern"], value):
-            out.append(f"{at}: {value!r} does not match {node['pattern']}")
-        if node["file"] and not (root / value).is_file():
-            out.append(f"{at}: {value} is not a file in the repo")
-    elif t == "array":
-        if not isinstance(value, list):
-            return [f"{at}: must be an array, not {_kind(value)}"]
-        if len(value) < node["min"] or node["max"] is not None and len(value) > node["max"]:
-            want = (f"{node['min']}" if node["max"] == node["min"] else
-                    f"{node['min']} to {node['max']}" if node["max"] is not None else f"at least {node['min']}")
-            out.append(f"{at}: has {len(value)} items, needs {want}")
+def _const(value: object, node: dict, path: str, at: str, root: Path) -> list[str]:
+    if value != node["value"] or type(value) is not type(node["value"]):
+        return [f"{at}: must be {json.dumps(node['value'])}, not {json.dumps(value)}"]
+    return []
+
+
+def _bool(value: object, node: dict, path: str, at: str, root: Path) -> list[str]:
+    return [] if isinstance(value, bool) else [f"{at}: must be true or false, not {_kind(value)}"]
+
+
+def _int(value: object, node: dict, path: str, at: str, root: Path) -> list[str]:
+    if isinstance(value, bool) or not isinstance(value, int):
+        return [f"{at}: must be a whole number, not {_kind(value)}"]
+    lo, hi = node["min"], node["max"]
+    if lo is not None and value < lo or hi is not None and value > hi:
+        return [f"{at}: {value} is not from {lo} to {hi}" if lo is not None and hi is not None
+                else f"{at}: {value} is above {hi}" if hi is not None else f"{at}: {value} is below {lo}"]
+    return []
+
+
+def _number(value: object, node: dict, path: str, at: str, root: Path) -> list[str]:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return [f"{at}: must be a number, not {_kind(value)}"]
+    out = []
+    if node["above"] is not None and not value > node["above"]:
+        out.append(f"{at}: {value} is not above {node['above']}")
+    if node["min"] is not None and value < node["min"]:
+        out.append(f"{at}: {value} is below {node['min']}")
+    return out
+
+
+def _str(value: object, node: dict, path: str, at: str, root: Path) -> list[str]:
+    if not isinstance(value, str):
+        return [f"{at}: must be text, not {_kind(value)}"]
+    out = []
+    if node["nonempty"] and not value.strip():
+        out.append(f"{at}: is empty")
+    if node["values"] and value not in node["values"]:
+        out.append(f"{at}: {value!r} is not one of {', '.join(node['values'])}")
+    if node["pattern"] and not re.fullmatch(node["pattern"], value):
+        out.append(f"{at}: {value!r} does not match {node['pattern']}")
+    if node["file"] and not (root / value).is_file():
+        out.append(f"{at}: {value} is not a file in the repo")
+    return out
+
+
+def _array(value: object, node: dict, path: str, at: str, root: Path) -> list[str]:
+    if not isinstance(value, list):
+        return [f"{at}: must be an array, not {_kind(value)}"]
+    out = []
+    if len(value) < node["min"] or node["max"] is not None and len(value) > node["max"]:
+        want = (f"{node['min']}" if node["max"] == node["min"] else
+                f"{node['min']} to {node['max']}" if node["max"] is not None else f"at least {node['min']}")
+        out.append(f"{at}: has {len(value)} items, needs {want}")
+    for i, item in enumerate(value):
+        sub = node["prefix"][i] if i < len(node["prefix"]) else node["items"]
+        out += problems(item, sub, _step(path, i), root)
+    if node["unique"]:
+        seen: set[str] = set()
         for i, item in enumerate(value):
-            sub = node["prefix"][i] if i < len(node["prefix"]) else node["items"]
-            out += problems(item, sub, _step(path, i), root)
-        if node["unique"]:
-            seen: set = set()
-            for i, item in enumerate(value):
-                if isinstance(item, dict) and node["unique"] in item:
-                    v = item[node["unique"]]
-                    if json.dumps(v) in seen:
-                        out.append(f"{_step(path, i)}.{node['unique']}: {json.dumps(v)} is given twice")
-                    seen.add(json.dumps(v))
-    elif t == "object":
-        if not isinstance(value, dict):
-            return [f"{at}: must be an object, not {_kind(value)}"]
-        for name in node["required"]:
-            if name not in value:
-                out.append(f"{_step(path, name)}: is required")
-        for k, v in value.items():
-            if node["key"] is not None:
-                out += [f"{_step(path, k)} (the key): {p.split(': ', 1)[1]}"
-                        for p in problems(k, node["key"], "x", root)]
-            if k in node["keys"]:
-                out += problems(v, node["keys"][k], _step(path, k), root)
-            elif k.startswith("_") and not node["closed"]:
-                continue
-            elif node["other"] is not None and not node["closed"]:
-                out += problems(v, node["other"], _step(path, k), root)
-            else:
-                allowed = ", ".join(node["keys"]) or "none"
-                out.append(f"{_step(path, k)}: is not a key here (keys: {allowed})")
-    else:
-        raise ValueError(f"schema node type {t!r}")
+            if isinstance(item, dict) and node["unique"] in item:
+                v = json.dumps(item[node["unique"]])
+                if v in seen:
+                    out.append(f"{_step(path, i)}.{node['unique']}: {v} is given twice")
+                seen.add(v)
+    return out
+
+
+def _object(value: object, node: dict, path: str, at: str, root: Path) -> list[str]:
+    if not isinstance(value, dict):
+        return [f"{at}: must be an object, not {_kind(value)}"]
+    out = [f"{_step(path, name)}: is required" for name in node["required"] if name not in value]
+    for k, v in value.items():
+        if node["key"] is not None:
+            out += [f"{_step(path, k)} (the key): {p.split(': ', 1)[1]}"
+                    for p in problems(k, node["key"], "x", root)]
+        if k in node["keys"]:
+            out += problems(v, node["keys"][k], _step(path, k), root)
+        elif k.startswith("_") and not node["closed"]:
+            continue
+        elif node["other"] is not None and not node["closed"]:
+            out += problems(v, node["other"], _step(path, k), root)
+        else:
+            allowed = ", ".join(node["keys"]) or "none"
+            out.append(f"{_step(path, k)}: is not a key here (keys: {allowed})")
+    return out
+
+
+# each schema node type -> its shape check: (value, node, path, "at" text, repo root) -> problems
+SHAPE_CHECKS: dict[str, Callable[[object, dict, str, str, Path], list[str]]] = {
+    "any": lambda value, node, path, at, root: [],
+    "const": _const, "bool": _bool, "int": _int, "number": _number, "str": _str, "array": _array, "object": _object,
+}
+
+
+def problems(value: object, node: dict, path: str = "", root: Path = ROOT) -> list[str]:
+    """Every problem of `value` against `node`, each "path: what is wrong" ("top level" for the root)."""
+    at = path or "top level"
+    check = SHAPE_CHECKS.get(node["type"])
+    if check is None:
+        raise ValueError(f"schema node type {node['type']!r}")
+    out = check(value, node, path, at, root)
     # a cross-field rule runs only on a value whose own shape passed (it indexes its keys): fix shape errors first
     if not out and node.get("check"):
         msg = node["check"](value)

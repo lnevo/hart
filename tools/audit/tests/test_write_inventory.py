@@ -1,4 +1,4 @@
-"""write_inventory.py: v86 is written from scratch from devices.csv, wiring.csv and lcos_nodes.csv (owner, 2026-11-20):
+"""write_inventory.py: v86 is written from scratch from devices.csv, wiring.csv and lcos_nodes.csv:
 staging as JMRI has it wired, main and upper as the rule gives them, every port where its wiring text puts it."""
 from __future__ import annotations
 
@@ -73,7 +73,7 @@ class Inventory(unittest.TestCase):
 
     def test_staging_holds_only_what_is_wired(self):
         """Staging's ports are what is wired: its turnouts, feedback, buttons, calibration relays, the 6LB head and
-        its detectors, nothing from the old plan (owner, 2026-11-20): no reserved pins and no old signal LEDs."""
+        its detectors, nothing from the old plan: no reserved pins and no old signal LEDs."""
         kinds = {r[5] for r in V86["DNOU8"][1:] if r[1] in STAGING and r[4]}
         self.assertEqual(kinds, {"Turnout Motor", "Searchlight Signal Head", "Calibration Relay"})
         self.assertEqual({r[5] for r in V86["DNIN8"][1:] if r[1] in STAGING and r[4]}, {"Turnout Feedback", "Button"})
@@ -97,7 +97,7 @@ class Inventory(unittest.TestCase):
                     self.assertEqual(shaded, row[c].value in DESIGN, f"{sheet} {row[0].value} {cell.coordinate}")
 
     def test_every_node_with_detectors_has_its_calibration_relay(self):
-        """The relay that resets the DCC power so the detectors calibrate (owner, 2026-11-21): staging's from
+        """The relay that resets the DCC power so the detectors calibrate: staging's from
         wiring.csv (C2's is C2 RELAY 1, C13's reserved), main and upper's by the rule, one each."""
         cal = [r for r in V86["DNOU8"][1:] if r[5] == "Calibration Relay"]
         self.assertEqual(sorted(r[1] for r in cal), sorted({r[1] for r in V86["BlockSensors"][1:]}))
@@ -111,7 +111,7 @@ class Inventory(unittest.TestCase):
             WI.calibration(nodes)
 
     def test_the_buttons_are_wiring_csvs(self):
-        """Fascia buttons are live with no JMRI device (owner, 2026-11-20): wiring.csv puts them on the sheets, a
+        """Fascia buttons are live with no JMRI device: wiring.csv puts them on the sheets, a
         turnout's button on its TurnoutSummary row."""
         buttons = [r for r in V86["DNIN8"][1:] if r[5] == "Button"]
         self.assertEqual(len(buttons), 20)
@@ -138,7 +138,7 @@ class Inventory(unittest.TestCase):
 
     def test_a_mast_role_is_matched_against_every_row_of_its_switch(self):
         """A crossover has a row per OS block: a facing on the first half's closed leg is a normal exit, not an entry
-        because only the last row was read (owner, 2026-11-21). One row behaves as it always did."""
+        because only the last row was read. One row behaves as it always did."""
         from types import SimpleNamespace as Row
         one = [Row(closed_leg="A", thrown_leg="B")]
         self.assertEqual([WI.mast_role(one, f) for f in ("A", "B", "C")], ["Normal Exit", "Reverse Exit", "Entry"])
@@ -223,7 +223,7 @@ class Inventory(unittest.TestCase):
         self.assertEqual([names[f"C4-OU2-{p}"] for p in (1, 2, 3)], ["Head 6LB R", "Head 6LB Y", "Head 6LB G"])
 
     def test_the_power_districts_are_left_blank(self):
-        """Not mapped yet (owner, 2026-11-21): the old inventory's districts were old names, not real."""
+        """Not mapped yet: the old inventory's districts were old names, not real."""
         self.assertEqual({r[7] for r in V86["BlockSensors"][1:]}, {None})
 
     def test_the_main_radio_and_dcc_nodes_keep_their_ids(self):
