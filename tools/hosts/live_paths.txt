@@ -59,6 +59,7 @@ jmri/layouts/hart/scripts/jmri_cmd_watcher.py
 jmri/layouts/hart/scripts/sts_car_sync.py
 jmri/layouts/hart/scripts/mimic_relay.py
 jmri/layouts/hart/scripts/speedmatch/analyze.py
+jmri/layouts/hart/scripts/speedmatch/analyze_records.py
 jmri/layouts/hart/scripts/speedmatch/liverule.py
 jmri/layouts/hart/scripts/speedmatch/routes.json
 # The publisher's modules; static/ is the source of the Pi page (publish_live.py --build-page). server.py and

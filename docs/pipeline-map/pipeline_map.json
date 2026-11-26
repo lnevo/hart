@@ -4502,6 +4502,24 @@
    "path": "jmri/layouts/hart/scripts/speedmatch/analyze.py"
   },
   {
+   "id": "jmri/layouts/hart/scripts/speedmatch/analyze_records.py",
+   "label": "analyze_records.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "The records (TypedDict, NamedTuple) and named errors of analyze.py: runs, steps, profile rows, passes, block events. Shipped in the Pi publisher with analyze.py.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/analyze_records.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/speed_table.py",
+   "label": "speed_table.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "analyze.py speed-by-step: speed per loco and step from whole laps (lap CSVs or runner logs) over a route length; writes the speed_by_step table.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/speed_table.py"
+  },
+  {
    "id": "jmri/layouts/hart/scripts/speedmatch/liverule.py",
    "label": "liverule.py",
    "kind": "generator",
@@ -5643,15 +5661,6 @@
    "domain": "ops",
    "desc": "Prints the sts-helpers checkout apply_hart_seed.sh uses (HART_STS_HELPERS or the submodule).",
    "path": "ops/hart-ops/bin/sts_helpers_root.sh"
-  },
-  {
-   "id": "docs/jmri/speedmatching/profile-2026-11-08/block_speeds.py",
-   "label": "block_speeds.py",
-   "kind": "generator",
-   "status": "live",
-   "domain": "layout",
-   "desc": "2026-11-08 session: per-block and per-step speed tables (block_events, block_summary, speed_by_step.csv) from that session's runner logs; kept with its data.",
-   "path": "docs/jmri/speedmatching/profile-2026-11-08/block_speeds.py"
   },
   {
    "id": "tools/ci/docs_unit_tests.py",
@@ -11683,11 +11692,6 @@
    "side": "check"
   },
   {
-   "from": "docs/jmri/speedmatching/profile-2026-11-08/block_speeds.py",
-   "to": "jmri/layouts/hart/data/speed_by_step_2026-11-08.csv",
-   "label": "speed_by_step.csv, copied"
-  },
-  {
    "from": "jmri/layouts/hart/data/speed_by_step_2026-11-08.csv",
    "to": "jmri/layouts/hart/scripts/speedmatch/dashboard/dashsources.py",
    "label": "REF_CSV"
@@ -13127,16 +13131,6 @@
    "label": "sts-helpers folder"
   },
   {
-   "from": "docs/jmri/speedmatching",
-   "to": "docs/jmri/speedmatching/profile-2026-11-08/block_speeds.py",
-   "label": "the session's logs"
-  },
-  {
-   "from": "docs/jmri/speedmatching/profile-2026-11-08/block_speeds.py",
-   "to": "docs/jmri/speedmatching",
-   "label": "CSV tables"
-  },
-  {
    "from": "www/data/fleet-gallery.json",
    "to": "tools/ops/check_fleet_gallery.py",
    "label": "copy",
@@ -13529,6 +13523,31 @@
    "from": ".claude/hooks/shell_parse.py",
    "to": ".claude/hooks/subagent_guard.py",
    "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/analyze_records.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/analyze.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/analyze_records.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "publisher files"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/analyze.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/speed_table.py",
+   "label": "speed-by-step"
+  },
+  {
+   "from": "docs/jmri/speedmatching",
+   "to": "jmri/layouts/hart/scripts/speedmatch/speed_table.py",
+   "label": "results.csv, manual_laps.csv"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/speed_table.py",
+   "to": "jmri/layouts/hart/data/speed_by_step_2026-11-08.csv",
+   "label": "--out"
   },
   {
    "from": ".claude/agents/archive-researcher.md",
