@@ -3,7 +3,7 @@
 # sml_mode and sml_claim in and out) and its answer to an SML dest Enabled checkbox change.
 #
 # signal_coordinator.py loads this from preference:jython last, after sml_handoff, and reloads it on every
-# run (see _load_siblings there). notifyMqttMessage and propertyChange stay in the script (the Java listener
+# run (jython_siblings.py). notifyMqttMessage and propertyChange stay in the script (the Java listener
 # methods JMRI calls), and _should_ack_sml_alive beside them.
 
 from sml_beans import (

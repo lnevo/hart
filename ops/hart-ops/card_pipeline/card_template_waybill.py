@@ -6,12 +6,14 @@ apply.
 """
 
 import functools
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Literal, NamedTuple
 
 from docx.enum.table import WD_ALIGN_VERTICAL, WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Inches, Pt, RGBColor
+from docx.table import _Cell, _Row
 
 import car_paths  # noqa: F401  (puts publications/ on sys.path for crew_master)
 import crew_master
@@ -373,13 +375,68 @@ def sts_color_hex() -> dict[str, str]:
     return {**{name: swatch[cid].fill for name, cid in _STS_NAME_TO_MASTER_ID.items()}, **_STS_ONLY_HEX}
 
 
-def build_cc_waybill_label(cell, *, idx: int, record: dict, images: CardImages) -> None:
-    """One slim CC/WB shipment label (empty or freight) in a poker sticker slot.
+class CcField(NamedTuple):
+    """One row of a CC/WB label's data table: its label and the value lines under it."""
+    label: str
+    lines: list[str]
 
-    Mirrors STS ``printable_ccwaybill.php`` / ``build_cc_*.php`` fields, but
-    sized for the same Apostrophe card template as equipment cards — one bill
-    per label (empty and freight are separate cards).
-    """
+
+# CC/WB label rows, top to bottom, in twips. The flex spacer (row 4) takes what the frame has left, so the
+# shipment id and the form id sit at fixed distances from the bottom of the card.
+CC_H_HEADER = H_HEADER - 40
+CC_H_ACCENT = 90
+CC_H_DEST = 1180
+CC_H_DEST_WRAPPED = 1320  # a station that wraps after a comma (e.g. "…, Chemical Unload")
+CC_H_BODY = H_DATA_SECTION + 80
+CC_H_SHIP = 160
+CC_H_SHIP_TO_FORM = 280
+CC_H_FORM = 120
+CC_H_SPACER_MIN = 40
+# The frame's inner height, with a small clearance above the rounded frame stroke.
+CC_FRAME_H_PT = 3.16 * 72.0 + FRAME_GROW_PT
+CC_FRAME_CONTENT_TWIPS = int(round(CC_FRAME_H_PT * 20)) - 160
+CC_LOGO_W = 820
+CC_FIELD_LABEL_W = 1100
+CC_FORM_ID = "Form HART-CCWB-001"
+
+
+def _cc_track_spot(record: Mapping[str, str]) -> str:
+    """The TRACK / SPOT line: STAGING · IN/OUT for staging flows, else track · spot, else whichever is set, else —."""
+    track = record.get("Track", "")
+    spot = record.get("Spot", "")
+    flow = (record.get("Flow") or "").strip().upper()
+    if track.lower() == "staging" and flow in {"IN", "OUT"}:
+        return f"STAGING  ·  {flow}"
+    if track and spot:
+        return f"{track}  ·  {spot}"
+    return track or spot or "—"
+
+
+def _cc_fields(record: Mapping[str, str], *, is_empty: bool) -> list[CcField]:
+    """The data-table rows: an empty bill names what to load, a freight bill what it carries and from where."""
+    if is_empty:
+        return [
+            CcField("ASSIGNMENT", ["Empty car to load"]),
+            CcField("CAR TYPE", [record.get("CarCode", "") or "—"]),
+            CcField("LOADS", [record.get("Consignment", "") or "—"]),
+            CcField("SHIPMENT", split_on_commas(record.get("Description", "")) or ["—"]),
+        ]
+    return [
+        CcField("CONTENTS", [record.get("Consignment", "") or "—"]),
+        CcField("CAR TYPE", [record.get("CarCode", "") or "—"]),
+        CcField("FROM", [record.get("FromLocation", "") or "—"]),
+        CcField("FROM STA.", split_on_commas(record.get("FromStation", "")) or ["—"]),
+    ]
+
+
+def _cc_value_size(value_lines: Sequence[str]) -> float:
+    """Value font size: smaller for longer text, so a value fits its cell."""
+    measure = " ".join(value_lines)
+    return 5.5 if len(measure) > 28 else (6.5 if len(measure) > 18 else 7.5)
+
+
+def _cc_frame(cell: _Cell, idx: int) -> None:
+    """Clear the slot, pad it like the equipment cards and anchor the rounded frame on a 1 pt lead paragraph."""
     cell.text = ""
     side_gap = SLOT_W - PAGE2_SLOT_W - CENTER_OFFSET
     pad(cell, top=CARD_TOP_PAD, left=CENTER_OFFSET, right=side_gap)
@@ -390,58 +447,32 @@ def build_cc_waybill_label(cell, *, idx: int, record: dict, images: CardImages) 
     lead.paragraph_format.line_spacing = Pt(1)
     for r in lead.runs:
         r.font.size = Pt(1)
-
-    frame_w_pt = (TARGET_FRAME_W + 2 * FRAME_GROW_TWIPS) / 20.0
-    frame_h_pt = 3.16 * 72.0 + FRAME_GROW_PT
-    frame_left_pt = (FRAME_MARGIN - FRAME_GROW_TWIPS) / 20.0
     add_round_frame(
         lead,
         idx,
-        width_pt=frame_w_pt,
-        height_pt=frame_h_pt,
-        left_pt=frame_left_pt,
+        width_pt=(TARGET_FRAME_W + 2 * FRAME_GROW_TWIPS) / 20.0,
+        height_pt=CC_FRAME_H_PT,
+        left_pt=(FRAME_MARGIN - FRAME_GROW_TWIPS) / 20.0,
         top_pt=1.0,
     )
 
-    kind = (record.get("BillKind") or "freight").lower()
-    is_empty = kind == "empty"
-    accent = sts_color_hex().get(
-        (record.get("Color") or "").strip().lower(), DIVIDER_CLR
-    )
 
-    t = cell.add_table(rows=8, cols=1)
-    t.alignment = WD_TABLE_ALIGNMENT.CENTER
-    tbl_width_dxa(t, CARD_W, center=True)
-    grid(t, [CARD_W])
-    borders(t, outer=0)
-
-    h_header = H_HEADER - 40
-    h_accent = 90
-    h_dest = 1180
-    h_body = H_DATA_SECTION + 80
-    h_ship = 160
-    # Fixed band between shipment ID and form (anchor shipment from the bottom).
-    h_ship_to_form = 280
-    h_form = 120
-    # Fill remaining frame height so the form sits as a true bottom footer.
-    # Small clearance above the rounded frame stroke (avoid border overlap).
-    frame_content_twips = int(round((3.16 * 72.0 + FRAME_GROW_PT) * 20)) - 160
-
-    # ── header: logo + EMPTY / FREIGHT ───────────────────────────────────
-    row_h(t.rows[0], h_header)
-    c_head = t.rows[0].cells[0]
+def _cc_header(row: _Row, record: Mapping[str, str], images: CardImages, *, is_empty: bool) -> None:
+    """The logo (the party's own, else HART's, else the word HART) beside the EMPTY or FREIGHT title."""
+    row_h(row, CC_H_HEADER)
+    c_head = row.cells[0]
     width(c_head, CARD_W)
     pad(c_head, top=16, left=SIDE_PAD, bottom=8, right=SIDE_PAD)
     c_head.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
 
     content_w = CARD_W - 2 * SIDE_PAD
-    logo_w, title_w = 820, content_w - 820
+    title_w = content_w - CC_LOGO_W
     head = c_head.add_table(rows=1, cols=2)
     tbl_width_dxa(head, content_w, center=False)
-    grid(head, [logo_w, title_w])
+    grid(head, [CC_LOGO_W, title_w])
     borders(head, outer=0)
     h_logo, h_title = head.rows[0].cells
-    width(h_logo, logo_w)
+    width(h_logo, CC_LOGO_W)
     width(h_title, title_w)
     pad(h_logo, left=30, right=0, top=0, bottom=0)
     h_logo.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
@@ -468,21 +499,26 @@ def build_cc_waybill_label(cell, *, idx: int, record: dict, images: CardImages) 
     hrule(tc, size=INNER_BORDER, color=DIVIDER_CLR)
     p = tc.paragraphs[0]
     para(p, align=WD_ALIGN_PARAGRAPH.CENTER)
-    bill_title = "EMPTY" if is_empty else "FREIGHT"
-    text(p.add_run(), bill_title, bold=True, size=11)
+    text(p.add_run(), "EMPTY" if is_empty else "FREIGHT", bold=True, size=11)
     tighten_cell(c_head)
 
-    # ── STS color accent bar ─────────────────────────────────────────────
-    row_h(t.rows[1], h_accent)
-    c_bar = t.rows[1].cells[0]
+
+def _cc_accent_bar(row: _Row, accent: str) -> None:
+    """A bar in the STS location colour."""
+    row_h(row, CC_H_ACCENT)
+    c_bar = row.cells[0]
     width(c_bar, CARD_W)
     pad(c_bar, top=0, bottom=0, left=SIDE_PAD, right=SIDE_PAD)
     shade(c_bar, accent)
     c_bar.paragraphs[0].paragraph_format.space_after = Pt(0)
 
-    # ── destination block ────────────────────────────────────────────────
-    row_h(t.rows[2], h_dest)
-    c_dest = t.rows[2].cells[0]
+
+def _cc_destination(row: _Row, record: Mapping[str, str]) -> int:
+    """The boxed TO / STATION / TRACK-SPOT block; returns the row height it took."""
+    station_lines = split_on_commas(record.get("Station", ""))
+    h_dest = CC_H_DEST_WRAPPED if len(station_lines) > 1 else CC_H_DEST
+    row_h(row, h_dest)
+    c_dest = row.cells[0]
     width(c_dest, CARD_W)
     pad(c_dest, top=40, left=SIDE_PAD, bottom=20, right=SIDE_PAD)
     dest_w = CARD_W - 2 * SIDE_PAD
@@ -495,27 +531,10 @@ def build_cc_waybill_label(cell, *, idx: int, record: dict, images: CardImages) 
     pad(inner, top=50, bottom=50, left=60, right=60)
     inner.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
 
-    to_loc = record.get("ToLocation", "")
-    station_lines = split_on_commas(record.get("Station", ""))
-    track = record.get("Track", "")
-    spot = record.get("Spot", "")
-    flow = (record.get("Flow") or "").strip().upper()
-    if track.lower() == "staging" and flow in {"IN", "OUT"}:
-        track_spot = f"STAGING  ·  {flow}"
-    elif track and spot:
-        track_spot = f"{track}  ·  {spot}"
-    else:
-        track_spot = track or spot or "—"
-
-    # Extra room when station wraps after a comma (e.g. Chemical Unload)
-    if len(station_lines) > 1:
-        h_dest = 1320
-        row_h(t.rows[2], h_dest)
-
     p = inner.paragraphs[0]
     para(p, align=WD_ALIGN_PARAGRAPH.CENTER, before=1, after=1)
     text(p.add_run(), "TO: ", bold=True, size=6, color=LABEL_CLR)
-    text(p.add_run(), to_loc or "—", bold=True, size=9, color=VALUE_CLR)
+    text(p.add_run(), record.get("ToLocation", "") or "—", bold=True, size=9, color=VALUE_CLR)
 
     p = inner.add_paragraph()
     para(p, align=WD_ALIGN_PARAGRAPH.CENTER, before=1, after=1)
@@ -531,43 +550,28 @@ def build_cc_waybill_label(cell, *, idx: int, record: dict, images: CardImages) 
     p = inner.add_paragraph()
     para(p, align=WD_ALIGN_PARAGRAPH.CENTER, before=1, after=1)
     text(p.add_run(), "TRACK / SPOT: ", bold=True, size=6, color=LABEL_CLR)
-    text(p.add_run(), track_spot, bold=False, size=7, color=VALUE_CLR)
+    text(p.add_run(), _cc_track_spot(record), bold=False, size=7, color=VALUE_CLR)
     tighten_cell(c_dest)
+    return h_dest
 
-    # ── contents / routing ───────────────────────────────────────────────
-    row_h(t.rows[3], h_body)
-    c_body = t.rows[3].cells[0]
+
+def _cc_body(row: _Row, fields: Sequence[CcField]) -> None:
+    """The label / value table of the bill's contents and routing."""
+    row_h(row, CC_H_BODY)
+    c_body = row.cells[0]
     width(c_body, CARD_W)
     pad(c_body, top=30, left=SIDE_PAD, bottom=10, right=SIDE_PAD)
 
-    if is_empty:
-        fields = [
-            ("ASSIGNMENT", ["Empty car to load"]),
-            ("CAR TYPE", [record.get("CarCode", "") or "—"]),
-            ("LOADS", [record.get("Consignment", "") or "—"]),
-            ("SHIPMENT", split_on_commas(record.get("Description", "")) or ["—"]),
-        ]
-    else:
-        fields = [
-            ("CONTENTS", [record.get("Consignment", "") or "—"]),
-            ("CAR TYPE", [record.get("CarCode", "") or "—"]),
-            ("FROM", [record.get("FromLocation", "") or "—"]),
-            (
-                "FROM STA.",
-                split_on_commas(record.get("FromStation", "")) or ["—"],
-            ),
-        ]
-
     body_w = CARD_W - 2 * SIDE_PAD
-    label_w, value_w = 1100, body_w - 1100
+    value_w = body_w - CC_FIELD_LABEL_W
     data = c_body.add_table(rows=len(fields), cols=2)
     tbl_width_dxa(data, body_w, center=True)
-    grid(data, [label_w, value_w])
+    grid(data, [CC_FIELD_LABEL_W, value_w])
     borders(data, outer=INNER_BORDER, inner_h=INNER_BORDER, inner_v=0, color=DIVIDER_CLR)
 
-    for ri, (label, value_lines) in enumerate(fields):
+    for ri, field in enumerate(fields):
         c_lbl, c_val = data.rows[ri].cells
-        width(c_lbl, label_w)
+        width(c_lbl, CC_FIELD_LABEL_W)
         width(c_val, value_w)
         pad(c_lbl, top=24, bottom=24, left=40, right=20)
         pad(c_val, top=24, bottom=24, left=30, right=30)
@@ -575,26 +579,26 @@ def build_cc_waybill_label(cell, *, idx: int, record: dict, images: CardImages) 
         c_val.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
         p = c_lbl.paragraphs[0]
         para(p, align=WD_ALIGN_PARAGRAPH.LEFT)
-        text(p.add_run(), label, bold=False, size=6, color=LABEL_CLR)
+        text(p.add_run(), field.label, bold=False, size=6, color=LABEL_CLR)
         p = c_val.paragraphs[0]
         para(p, align=WD_ALIGN_PARAGRAPH.LEFT)
-        measure = " ".join(value_lines)
-        val_size = 5.5 if len(measure) > 28 else (6.5 if len(measure) > 18 else 7.5)
-        write_label_lines(p, value_lines, bold=True, size=val_size, color=VALUE_CLR)
+        write_label_lines(p, field.lines, bold=True, size=_cc_value_size(field.lines), color=VALUE_CLR)
     tighten_cell(c_body)
 
-    # ── flex spacer: absorbs variable dest height so shipment stays bottom-anchored
-    used = h_header + h_accent + h_dest + h_body + h_ship + h_ship_to_form + h_form
-    h_spacer = max(40, frame_content_twips - used)
-    row_h(t.rows[4], h_spacer)
-    c_gap = t.rows[4].cells[0]
+
+def _cc_blank_row(row: _Row, height: int) -> None:
+    """An empty row of exactly height twips."""
+    row_h(row, height)
+    c_gap = row.cells[0]
     width(c_gap, CARD_W)
     pad(c_gap, top=0, bottom=0, left=0, right=0)
     _tighten_paragraph(c_gap.paragraphs[0], 20)
 
-    # ── shipment ID (fixed distance above form footer) ────────────────────
-    row_h(t.rows[5], h_ship)
-    c_ship = t.rows[5].cells[0]
+
+def _cc_shipment(row: _Row, record: Mapping[str, str]) -> None:
+    """The shipment code, or a grey dash when the record has none."""
+    row_h(row, CC_H_SHIP)
+    c_ship = row.cells[0]
     width(c_ship, CARD_W)
     pad(c_ship, top=0, bottom=0, left=SIDE_PAD, right=SIDE_PAD)
     c_ship.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
@@ -606,21 +610,43 @@ def build_cc_waybill_label(cell, *, idx: int, record: dict, images: CardImages) 
     else:
         text(p.add_run(), "—", bold=True, size=7.5, color=(120, 120, 120))
 
-    # ── fixed gap between shipment ID and form ────────────────────────────
-    row_h(t.rows[6], h_ship_to_form)
-    c_mid = t.rows[6].cells[0]
-    width(c_mid, CARD_W)
-    pad(c_mid, top=0, bottom=0, left=0, right=0)
-    _tighten_paragraph(c_mid.paragraphs[0], 20)
 
-    # ── form ID footer at bottom of card ──────────────────────────────────
-    row_h(t.rows[7], h_form)
-    c_form = t.rows[7].cells[0]
+def _cc_form_footer(row: _Row) -> None:
+    row_h(row, CC_H_FORM)
+    c_form = row.cells[0]
     width(c_form, CARD_W)
     pad(c_form, top=0, bottom=6, left=SIDE_PAD, right=SIDE_PAD)
     c_form.vertical_alignment = WD_ALIGN_VERTICAL.BOTTOM
     p = c_form.paragraphs[0]
     para(p, align=WD_ALIGN_PARAGRAPH.CENTER, before=0, after=0)
-    text(p.add_run(), "Form HART-CCWB-001", size=5, color=(100, 100, 100))
+    text(p.add_run(), CC_FORM_ID, size=5, color=(100, 100, 100))
 
+
+def build_cc_waybill_label(cell: _Cell, *, idx: int, record: Mapping[str, str], images: CardImages) -> None:
+    """One slim CC/WB shipment label (empty or freight) in a poker sticker slot.
+
+    Mirrors STS ``printable_ccwaybill.php`` / ``build_cc_*.php`` fields, but
+    sized for the same Apostrophe card template as equipment cards — one bill
+    per label (empty and freight are separate cards). Rows: header, accent bar,
+    destination, data table, flex spacer, shipment id, fixed gap, form id.
+    """
+    _cc_frame(cell, idx)
+    is_empty = (record.get("BillKind") or "freight").lower() == "empty"
+    accent = sts_color_hex().get((record.get("Color") or "").strip().lower(), DIVIDER_CLR)
+
+    t = cell.add_table(rows=8, cols=1)
+    t.alignment = WD_TABLE_ALIGNMENT.CENTER
+    tbl_width_dxa(t, CARD_W, center=True)
+    grid(t, [CARD_W])
+    borders(t, outer=0)
+
+    _cc_header(t.rows[0], record, images, is_empty=is_empty)
+    _cc_accent_bar(t.rows[1], accent)
+    h_dest = _cc_destination(t.rows[2], record)
+    _cc_body(t.rows[3], _cc_fields(record, is_empty=is_empty))
+    used = CC_H_HEADER + CC_H_ACCENT + h_dest + CC_H_BODY + CC_H_SHIP + CC_H_SHIP_TO_FORM + CC_H_FORM
+    _cc_blank_row(t.rows[4], max(CC_H_SPACER_MIN, CC_FRAME_CONTENT_TWIPS - used))
+    _cc_shipment(t.rows[5], record)
+    _cc_blank_row(t.rows[6], CC_H_SHIP_TO_FORM)
+    _cc_form_footer(t.rows[7])
     minimize_cell_tail(cell)

@@ -1209,7 +1209,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "Part of panel_status.py, run in its namespace: the Turnouts lamp (which plants it counts, its colour, the click that flips TWOSENSOR and DIRECT).",
+   "desc": "Jython module of panel_status.py: the Turnouts lamp (which plants it counts, its colour, the click that flips TWOSENSOR and DIRECT).",
    "path": "jmri/layouts/hart/scripts/panel_status_turnouts.py"
   },
   {
@@ -1218,7 +1218,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "Part of panel_status.py, run in its namespace: the status lamp clicks at any zoom and the lift of buried block labels.",
+   "desc": "Jython module of panel_status.py: the status lamp clicks at any zoom and the lift of buried block labels.",
    "path": "jmri/layouts/hart/scripts/panel_status_clicks.py"
   },
   {
@@ -3234,6 +3234,15 @@
    "path": "jmri/scripts/signal_coordinator.py"
   },
   {
+   "id": "jmri/scripts/jython_siblings.py",
+   "label": "jython_siblings.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "wiring",
+   "desc": "Jython loader shipped to JMRI: signal_coordinator.py and panel_status.py import and reload their sibling modules from preference:jython with it.",
+   "path": "jmri/scripts/jython_siblings.py"
+  },
+  {
    "id": "jmri/scripts/sml_beans.py",
    "label": "sml_beans.py",
    "kind": "generator",
@@ -5076,6 +5085,15 @@
    "domain": "layout",
    "desc": "Module of build_device_map.py: every level's mast and head rows by the signal rule; build_masts.py reads the same plan.",
    "path": "tools/schematic/device_map_masts.py"
+  },
+  {
+   "id": "tools/schematic/device_map_nodes.py",
+   "label": "device_map_nodes.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of build_device_map.py: the LCOS node allocator that hands out main and upper inputs and OU board pins; reads no file.",
+   "path": "tools/schematic/device_map_nodes.py"
   },
   {
    "id": "tools/schematic/device_map_rows.py",
@@ -7487,6 +7505,31 @@
    "from": "jmri/scripts/signal_coordinator.py",
    "to": "tools/hosts/sync_hart_package.sh",
    "label": "jython"
+  },
+  {
+   "from": "jmri/scripts/jython_siblings.py",
+   "to": "jmri/scripts/signal_coordinator.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/scripts/jython_siblings.py",
+   "to": "jmri/layouts/hart/scripts/panel_status.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/scripts/jython_siblings.py",
+   "to": "tools/hosts/sync_hart_package.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/scripts/jython_siblings.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/panel_status_clicks.py",
+   "to": "jmri/layouts/hart/scripts/panel_status_turnouts.py",
+   "label": "imports"
   },
   {
    "from": "jmri/scripts/sml_beans.py",
@@ -11147,7 +11190,7 @@
   {
    "from": "jmri/layouts/hart/scripts/panel_status_turnouts.py",
    "to": "jmri/layouts/hart/scripts/panel_status.py",
-   "label": "runs in"
+   "label": "imports"
   },
   {
    "from": "jmri/layouts/hart/scripts/panel_status_clicks.py",
@@ -11162,7 +11205,7 @@
   {
    "from": "jmri/layouts/hart/scripts/panel_status_clicks.py",
    "to": "jmri/layouts/hart/scripts/panel_status.py",
-   "label": "runs in"
+   "label": "imports"
   },
   {
    "from": "jmri/layouts/hart/scripts/jmri_cmd_watcher.py",
@@ -12498,6 +12541,11 @@
   },
   {
    "from": "tools/schematic/device_map_staging.py",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/device_map_nodes.py",
    "to": "tools/schematic/build_device_map.py",
    "label": "imports"
   },

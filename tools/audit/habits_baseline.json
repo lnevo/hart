@@ -48,9 +48,6 @@
  "jmri/layouts/hart/scripts/lcc_turnout_contract.py": {
   "dated-note": 1
  },
- "jmri/layouts/hart/scripts/panel_status.py": {
-  "exec-parts": 1
- },
  "jmri/layouts/hart/scripts/panelpro_smoke_test.py": {
   "dated-note": 2
  },
@@ -219,9 +216,6 @@
  "tools/audit/tests/test_write_inventory.py": {
   "dated-note": 1
  },
- "tools/audit/traced.py": {
-  "exec-parts": 1
- },
  "tools/ci/docs_unit_tests.py": {
   "dated-note": 1
  },
@@ -298,13 +292,10 @@
   "import-exit": 7
  },
  "tools/schematic/build_device_map.py": {
-  "dated-note": 10
+  "dated-note": 8
  },
  "tools/schematic/build_hands.py": {
   "import-exit": 7
- },
- "tools/schematic/build_layout_le.py": {
-  "dated-note": 1
  },
  "tools/schematic/build_masts.py": {
   "dated-note": 2
@@ -389,7 +380,7 @@
   "lost-cause": 1
  },
  "www/scripts/jmri_additions_page.py": {
-  "lost-cause": 3
+  "lost-cause": 2
  },
  "www/scripts/make_share_cards.py": {
   "import-exit": 2

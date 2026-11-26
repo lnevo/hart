@@ -202,7 +202,7 @@ def _on_list(args) -> None:
 def _write_listing(p: str) -> None:
     """A listing with the hash of the names the folder held when it was listed (the same as listing() at compare
     time), so a name added or removed while the job still runs is told from the job's own view."""
-    _write("d", f"{p}\t{_read.listing(p) or _read.kind_of(p)}")
+    _write("d", f"{p}\t{listing(p) or kind_of(p)}")
 
 
 def _on_glob(args) -> None:
@@ -374,31 +374,35 @@ HOOK_FILES = ("tools/audit/traced.py", *(f"tools/audit/{p}.py" for p in PARTS),
               "tools/audit/trace_hook/sitecustomize.py")
 
 
-def _load_part(stem: str):
-    """A part of this file, by path from this file's folder (the hook loads traced.py by path, with nothing of the
-    repo on sys.path), as a module of its own, registered under this module's name and the part's (a dataclass in it
-    looks its module up in sys.modules)."""
-    import importlib.util
-    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), f"{stem}.py")
+def _import_part(stem: str) -> None:
+    """Import a part of this file as the module `stem`, from this file's folder.
+
+    The hook and panel_stamps load traced.py by path, with nothing of the repo on sys.path, so the folder is put on
+    sys.path for this one import and taken off again: a traced process sees no change to its sys.path. A part
+    already imported from another folder is refused, so a copy of traced.py never runs with another copy's part.
+    """
+    import importlib
+    here = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.join(here, f"{stem}.py")
     if not os.path.isfile(path):
         raise ImportError(f"traced: its part {path} is missing")
-    spec = importlib.util.spec_from_file_location(f"{__name__}_{stem.removeprefix('traced_')}", path)
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = mod
-    spec.loader.exec_module(mod)
-    return mod
+    mod = sys.modules.get(stem)
+    if mod is None:
+        sys.path.insert(0, here)
+        try:
+            mod = importlib.import_module(stem)
+        finally:
+            sys.path.remove(here)
+    got = os.path.dirname(os.path.abspath(getattr(mod, "__file__", None) or ""))
+    if os.path.normcase(os.path.realpath(got)) != os.path.normcase(os.path.realpath(here)):
+        raise ImportError(f"traced: its part {stem} was imported from {got}, not from {here}")
 
 
-def _take_names(mod) -> None:
-    """Give the part's top-level names (functions, classes, constants, private helpers the tests use) as this
-    module's own; a name both halves define would leave one of them unused, so it is refused."""
-    given = {k: v for k, v in vars(mod).items()
-             if not k.startswith("__") and k != "annotations" and not isinstance(v, type(os))}
-    clash = sorted(k for k in given if k in globals())
-    if clash:
-        raise ImportError(f"traced: {mod.__file__} defines names traced.py defines too: {', '.join(clash)}")
-    globals().update(given)
-
-
-_read = _load_part("traced_read")     # the one part in PARTS; the capture half calls its listing() and kind_of()
-_take_names(_read)
+_import_part("traced_read")     # the one part in PARTS; the capture half calls its listing() and kind_of()
+# The read half's names are traced's own: callers use traced.parse, traced.read_set and the rest.
+from traced_read import (  # noqa: E402,F401
+    GIT_READ, GIT_READ_IF, LITTER_NAMES, PYTHON_NAME, ROOT_MARK, RUNNER_PID, VERSION, _ROOT_FORMS, Trace, _abs,
+    _root_forms, _skip_prefixes, changed_since, git_replay, git_reads_only, git_subcommand, hash_entries, keep,
+    kind_of, listing, load, make_stamp, mismatch, parse, problem, program, read_set, save, sha_file, snapshot,
+    traced_spawns, untraced,
+)
