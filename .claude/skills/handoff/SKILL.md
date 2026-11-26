@@ -71,7 +71,7 @@ Agents defined in `.claude/agents/` cannot commit, push or open PRs (`subagent_g
 
 ## While they run
 
-Set each brief's interval by the job's expected length: under about 10 minutes, start and end lines only; 10 to 30 minutes, a line at least every 3 minutes; longer, every 5. The main session follows the same intervals in its own reports, and logs before and after each long command (full `check.sh`, `make remote`, a build) with its expected duration. Watch the progress folder with a Monitor that polls every `*.log` in it and tracks each file's line count (`tail -F *.log` misses files created after it starts), prefixes each new line with the file's topic, and pass new lines to the owner as they arrive, as one short table of every agent (item, agent, model, stage, ETA). Never report a pending agent's result before it arrives.
+Set each brief's interval by the job's expected length: under about 10 minutes, start and end lines only; 10 to 30 minutes, a line at least every 3 minutes; longer, every 5. The main session follows the same intervals in its own reports, and logs before and after each long command (full `check.sh`, `make remote`, a build) with its expected duration. Watch the progress folder with a Monitor that polls every `*.log` in it and tracks each file's line count (`tail -F *.log` misses files created after it starts), prefixes each new line with the file's topic, and put new lines on the wave's live dashboard as they arrive (`coordinate` skill, "Dashboard"), which every hand-off of more than one agent has. Tell the owner only blockers, decisions and merges. Never report a pending agent's result before it arrives.
 
 ## Merge
 

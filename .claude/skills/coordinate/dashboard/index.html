@@ -1,0 +1,100 @@
+<meta name="dash-one-writer">
+<meta name="dash-form" content="dashboard">
+<style>
+.w2 { display:flex; flex-direction:column; gap:var(--cds-gap-lg); }
+.w2 h1 { font-family:var(--font-anthropic-serif); font-weight:400; font-size:var(--cds-font-size-title); margin:0; }
+.w2 .lead { color:var(--color-fg-muted); margin:0; max-width:70ch; }
+.w2 .tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:var(--cds-gap-md); }
+.w2 .tile { background:var(--color-panel); border:1px solid var(--color-border-line); border-radius:var(--cds-radius); padding:var(--cds-pad-lg); min-width:0; }
+.w2 .tile .n { font-family:var(--font-anthropic-serif); font-weight:400; font-size:var(--cds-font-size-title); font-variant-numeric:tabular-nums; display:block; }
+.w2 .tile .l { color:var(--color-fg-muted); font-size:var(--cds-font-size-caption); }
+.w2 h2 { font-size:var(--cds-font-size-heading); font-weight:var(--cds-font-weight-medium); margin:0 0 var(--cds-gap-sm); }
+.w2 .tw { overflow-x:auto; border:1px solid var(--color-border-line); border-radius:var(--cds-radius); }
+.w2 table { border-collapse:collapse; width:100%; font-size:var(--cds-font-size-body); }
+.w2 th, .w2 td { text-align:left; padding:var(--cds-pad-sm) var(--cds-pad-md); border-bottom:1px solid var(--color-border-line); vertical-align:top; }
+.w2 th { color:var(--color-fg-muted); font-size:var(--cds-font-size-caption); font-weight:var(--cds-font-weight-medium); white-space:nowrap; }
+.w2 tr:last-child td { border-bottom:0; }
+.w2 td.eta, .w2 td.pr { white-space:nowrap; font-variant-numeric:tabular-nums; }
+.w2 .pill { display:inline-block; padding:1px 8px; border-radius:999px; font-size:var(--cds-font-size-caption); border:1px solid var(--color-border-line); white-space:nowrap; }
+.w2 .pill.merged, .w2 .pill.done { color:var(--color-ok); border-color:var(--color-ok); }
+.w2 .pill.blocked, .w2 .pill.failed { color:var(--color-bad); border-color:var(--color-bad); }
+.w2 .pill.remote, .w2 .pill.review, .w2 .pill.ci { color:var(--color-warn); border-color:var(--color-warn); }
+.w2 .pill.queued { color:var(--color-fg-muted); }
+.w2 .events { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:var(--cds-gap-xs); }
+.w2 .events li { display:grid; grid-template-columns:5ch 1fr; gap:var(--cds-gap-sm); font-size:var(--cds-font-size-body); }
+.w2 .events time { color:var(--color-fg-muted); font-variant-numeric:tabular-nums; }
+.w2 .muted { color:var(--color-fg-muted); font-size:var(--cds-font-size-caption); }
+</style>
+<div class="w2">
+  <header id="top">
+    <h1>Wave dashboard</h1>
+    <p class="lead"><span data-draw="lead" class="dash-skeleton">—</span></p>
+  </header>
+
+  <section class="tiles" id="tiles" data-source="lanes">
+    <div class="tile"><span class="n" data-draw="t-merged">—</span><span class="l">Lanes merged or done</span></div>
+    <div class="tile"><span class="n" data-draw="t-running">—</span><span class="l">Lanes running now</span></div>
+    <div class="tile"><span class="n" data-draw="t-queued">—</span><span class="l">Lanes waiting to start</span></div>
+    <div class="tile"><span class="n" data-draw="t-blocked">—</span><span class="l">Lanes blocked</span></div>
+    <div class="tile"><span class="n" data-draw="t-eta">—</span><span class="l">Latest ETA across lanes</span></div>
+  </section>
+
+  <section id="lanes-section">
+    <h2>Lanes</h2>
+    <div class="tw">
+      <table id="lanes" data-source="lanes" data-row-key="id">
+        <thead><tr><th data-field="lane">Lane</th><th data-field="scope">Scope</th><th data-field="status">Status</th><th data-field="stage">Now</th><th data-field="pr">PR</th><th data-field="eta">ETA</th><th data-field="updated">Updated</th></tr></thead>
+        <tbody data-draw="lanes"></tbody>
+      </table>
+    </div>
+    <p class="muted">Every PR passes merge-main, the ratchets, make static and the full remote check before it opens; merges go one at a time.</p>
+  </section>
+
+  <section id="events-section">
+    <h2>Latest updates</h2>
+    <ul class="events" data-draw="events" data-source="events"></ul>
+  </section>
+</div>
+<script>
+const ORDER = {blocked:0, failed:0, running:1, remote:2, review:3, ci:4, queued:5, merged:6, done:7};
+function rows(id){ const d = dash.data(id); return d.status === 'ok' && Array.isArray(d.data) ? d.data : null; }
+function laneRows(){ const r = rows('lanes'); return r ? r.slice().sort((a,b)=> (Number(a.order)||0)-(Number(b.order)||0)) : null; }
+const isDone = (s) => s === 'merged' || s === 'done';
+const isRun = (s) => ['running','remote','review','ci'].includes(s);
+function setNum(el, v){ el.textContent = v; el.classList.remove('dash-skeleton'); }
+dash.draw('t-merged', (el)=>{ const r=laneRows(); if(!r){ el.textContent='—'; return; } setNum(el, r.filter(x=>isDone(x.status)).length + ' of ' + r.length); });
+dash.draw('t-running', (el)=>{ const r=laneRows(); if(!r){ el.textContent='—'; return; } setNum(el, r.filter(x=>isRun(x.status)).length); });
+dash.draw('t-queued', (el)=>{ const r=laneRows(); if(!r){ el.textContent='—'; return; } setNum(el, r.filter(x=>x.status==='queued').length); });
+dash.draw('t-blocked', (el)=>{ const r=laneRows(); if(!r){ el.textContent='—'; return; } setNum(el, r.filter(x=>x.status==='blocked'||x.status==='failed').length); });
+dash.draw('t-eta', (el)=>{ const r=laneRows(); if(!r){ el.textContent='—'; return; } const e=r.filter(x=>!isDone(x.status)&&x.eta).map(x=>String(x.eta)).sort(); setNum(el, e.length? e[e.length-1] : 'done'); });
+dash.draw('lead', (el)=>{
+  const r=laneRows();
+  if(!r){ el.textContent = dash.data('lanes').status==='loading' ? '—' : 'No lane data yet.'; return; }
+  el.classList.remove('dash-skeleton');
+  const done=r.filter(x=>isDone(x.status)).length, run=r.filter(x=>isRun(x.status)), blk=r.filter(x=>x.status==='blocked'||x.status==='failed');
+  const open=r.filter(x=>!isDone(x.status)&&x.eta).map(x=>String(x.eta)).sort();
+  let s = done + ' of ' + r.length + ' lanes are finished and ' + run.length + ' are running';
+  s += blk.length ? '; ' + blk.length + ' blocked (' + blk.map(x=>x.lane).join(', ') + ')' : '; none is blocked';
+  s += open.length ? '. Everything should land by about ' + open[open.length-1] + '.' : '. The wave is complete.';
+  el.textContent = s;
+});
+dash.draw('lanes', (tb)=>{
+  const r=laneRows(); tb.replaceChildren();
+  if(!r){ const tr=document.createElement('tr'); const td=document.createElement('td'); td.colSpan=7; td.textContent = dash.data('lanes').status==='error' ? 'The lane list did not load.' : '—'; tr.append(td); tb.append(tr); return; }
+  r.slice().sort((a,b)=>{ const oa=ORDER[a.status]??9, ob=ORDER[b.status]??9; return oa-ob || (Number(a.order)||0)-(Number(b.order)||0); }).forEach(x=>{
+    const tr=document.createElement('tr'); tr.dataset.key = x.id;
+    const cell=(t,c)=>{ const td=document.createElement('td'); if(c) td.className=c; td.textContent = t==null?'':String(t); tr.append(td); return td; };
+    cell(x.lane); cell(x.scope);
+    const st=document.createElement('td'); const p=document.createElement('span'); p.className='pill '+(x.status||''); p.textContent=x.status||''; st.append(p); tr.append(st);
+    cell(x.stage); cell(x.pr,'pr'); cell(x.eta,'eta'); cell(x.updated,'eta');
+    tb.append(tr);
+  });
+});
+dash.draw('events', (ul)=>{
+  const r=rows('events'); ul.replaceChildren();
+  if(!r){ const li=document.createElement('li'); li.textContent = dash.data('events').status==='error' ? 'Updates did not load.' : '—'; ul.append(li); return; }
+  r.slice().sort((a,b)=> String(b.at).localeCompare(String(a.at))).slice(0,25).forEach(x=>{
+    const li=document.createElement('li'); const t=document.createElement('time'); t.textContent=String(x.at||'').slice(-5); const s=document.createElement('span'); s.textContent=x.text||''; li.append(t,s); ul.append(li);
+  });
+});
+</script>
