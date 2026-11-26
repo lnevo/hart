@@ -30,9 +30,11 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-sys.path[:0] = [str(ROOT / "tools/hartlib/src")]
-from hartlib import coordinator, devices, tables as T  # noqa: E402
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import coordinator, devices, paths, tables as T  # noqa: E402
+
+ROOT = paths.REPO_ROOT
 
 PAGE_REL = "behind/jmri-additions.html"
 REGION = re.compile(r"<!--ja:([a-z0-9-]+)-->(.*?)<!--/ja-->", re.S)

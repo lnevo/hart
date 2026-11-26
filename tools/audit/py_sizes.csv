@@ -8,7 +8,7 @@ jmri/layouts/hart/scripts/tests/test_pom_guard.py,976
 jmri/layouts/hart/scripts/tests/test_signal_coordinator_behaviour.py,2059
 jmri/layouts/hart/scripts/tests/test_speedmatch_distance.py,973
 jmri/scripts/signal_coordinator.py,1187
-ops/hart-ops/card_pipeline/apply_visual_review.py,1089
+ops/hart-ops/card_pipeline/apply_visual_review.py,1088
 ops/hart-ops/card_pipeline/cars.py,1501
 ops/hart-ops/card_pipeline/crop_car_image.py,1049
 ops/hart-ops/card_pipeline/generate_operator_sheet.py,837

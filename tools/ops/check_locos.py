@@ -25,15 +25,16 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import operations, paths  # noqa: E402
+
+ROOT = paths.REPO_ROOT
 sys.path.insert(0, str(ROOT / "ops/hart-ops/card_pipeline"))
 import locos  # noqa: E402  (loco_roster_id, ops_id: the one definition of the two id forms)
 
 MASTER = ROOT / "ops/hart-ops/data/locos.csv"
-ROSTERS = (
-    ROOT / "jmri/layouts/hart/operations/OperationsEngineRoster.xml",
-    ROOT / "ops/hart-ops/data/OperationsEngineRoster.xml",
-)
+ROSTERS = (operations.ROSTERS["engines"], operations.HART_OPS_DATA / "OperationsEngineRoster.xml")
 TRAINS = ROOT / "cats/data/hart_trains.csv"
 
 # (file, value) -> why it is a known gap. Owner questions of lane L4d; remove an entry when it is settled.
@@ -53,7 +54,7 @@ def read_master(path: Path = MASTER) -> list[dict]:
 
 
 def roster_ids(path: Path) -> list[str]:
-    return [e.get("id", "") for e in ET.parse(path).getroot().iter("engine")]
+    return operations.ids(operations.engines(path))
 
 
 def train_engines(path: Path = TRAINS) -> list[str]:
