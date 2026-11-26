@@ -40,4 +40,3 @@ select = ["F"]
 # them as g.<NAME> (its own comment says so).
 "ops/hart-ops/card_pipeline/generate_card_template.py" = ["F401"]
 # A deliberate star import of main_level_geometry (its own noqa covers F403): the names it uses come from there.
-"tools/benchwork/main_level/plywood_cut_plan.py" = ["F405"]
