@@ -2,7 +2,12 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
+
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
 
 PIPELINE = Path(__file__).resolve().parent
 HART_OPS_ROOT = PIPELINE.parent
@@ -24,12 +29,9 @@ DATA = HART_OPS_ROOT / "data"
 # Image trees (symlinks under HART_CAR_CARDS_ROOT)
 IMAGES_DIR = ROOT / "Images"
 CAR_IMAGES_DIR = ROOT / "CarImages"
-FINAL_DIR = Path(
-    os.environ.get(
-        "HART_CAR_IMAGES_FINAL",
-        str(ROOT / "CarImagesFinal"),
-    )
-).expanduser().resolve()
+# HART_CAR_IMAGES_FINAL, else the repo's ops/car-cards/car-images/CarImagesFinal. The old default,
+# ROOT / "CarImagesFinal", named ops/hart-ops/CarImagesFinal when HART_CAR_CARDS_ROOT was unset, which does not exist.
+FINAL_DIR = paths.car_images_final()
 OCR_DIR = ROOT / "OcrZoom"
 CARD_FILL_DIR = ROOT / "CarImagesCardFill"
 CARD_FILL_PRINT_DIR = ROOT / "CarImagesCardFillPrint"
