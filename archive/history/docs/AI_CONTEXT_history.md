@@ -1,8 +1,8 @@
 # Panel workspace — context for AI assistants
 
-**Live pipeline inventory (16 flows, NextTrain not listed):** [`wiki/pipelines/README.md`](../history/wiki/pipelines/README.md).
+**Live pipeline inventory (16 flows, NextTrain not listed):** [`wiki/pipelines/README.md`](../../../wiki/pipelines/README.md).
 
-This document is still the landmine list for **linear4** AnyRail geometry and the **abandoned** NextTrain Google Sheets flow. hart does not re-run either. Read [`wiki/home.md`](../history/wiki/home.md) first.
+This document is still the landmine list for **linear4** AnyRail geometry and the **abandoned** NextTrain Google Sheets flow. hart does not re-run either. Read [`wiki/home.md`](../../../wiki/home.md) first.
 
 ---
 

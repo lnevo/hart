@@ -2,6 +2,8 @@
 
 Convert a **JMRI panel / tables XML** into a **per-layout** `NextTrainDispatcherApp.xlsx` for the NextTrain dispatcher app.
 
+Retired: nothing runs this. The paths below are as they were when it ran. `dispatcher/` is now `archive/code/nexttrain-dispatcher/`, and each `jmri/layouts/<layout>/` folder is now `archive/data/layouts/<layout>/`. `dispatcher/inputs/tables.xml` was removed on 2026-11-26 as a byte-identical copy of [`linear4_blocked.xml`](../../data/layouts/linear4/output/linear4_blocked.xml); the per-layout copies of the template workbook, `export_options.json` and `google_sheets.json` that were identical were removed too (see each layout's README).
+
 ## Per-layout outputs
 
 Each layout has its own dispatcher folder (separate workbook + tables):
@@ -70,8 +72,8 @@ cd NextTrainDispatcherApp && npm install && npm run push-layout -- --layout line
 
 Segment and control-point coordinates use the same scale (see `export_options.json`; linear4 uses **2.5**).
 
-**AI handoff:** [`docs/AI_CONTEXT.md`](../docs/AI_CONTEXT.md).
+**AI handoff:** [`AI_CONTEXT_history.md`](../../history/docs/AI_CONTEXT_history.md).
 
 ## App
 
-The Next.js project lives at [`../NextTrainDispatcherApp/`](../NextTrainDispatcherApp/). Register each layout’s Google Sheet separately in the app (one spreadsheet ID per division/layout).
+The Next.js project lived at `NextTrainDispatcherApp/` at the repo root; it is no longer in this repository. Register each layout’s Google Sheet separately in the app (one spreadsheet ID per division/layout).
