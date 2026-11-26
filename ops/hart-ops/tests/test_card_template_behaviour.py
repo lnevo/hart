@@ -441,7 +441,7 @@ class MainEntryPoint(unittest.TestCase):
             missing = Path(tmp) / "nope.docx"
             with mock.patch.object(gct, "STICKER_SHEET", missing), \
                     mock.patch("car_paths.STICKER_SHEET", missing):
-                with self.assertRaises(SystemExit) as cm:
+                with self.assertRaises(gct.car_paths.CardPipelineError) as cm:
                     gct.require_sticker_sheet()
         self.assertIn("Missing the sticker sheet template", str(cm.exception))
         self.assertIn("apostrophegames.com", str(cm.exception))

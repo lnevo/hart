@@ -32,8 +32,8 @@
 # (ruff's undefined-name rule) so a misspelt name fails the check. job_settings stands for the settings.
 if False:
     import time, threading, os, java
-    from jobkit import (HOOK, L, SL, ab, check_guards, claim, end_job, last, lock, pause, request_throttle, scan,
-        set_direction, why)
+    from jobkit import (HOOK, L, SL, ab, check_guards, claim, end_job, last, lock, pause, request_throttle, route_sensor,
+        scan, set_direction, why)
     from liverule import DistanceStep, STALL_CAP, SpanReader, aggregate, next_stall, settle_time, stall_action
     from job_settings import (CV3, CV4, FUNCS, GUARD, LENGTHS, MAX_S, MID, MIN_BLOCKS, ORDER, P_FWD, P_ID,
         REL, ROUTE, STALL0, STALL_SKIP_BELOW, STEPS_LIST, TARGET_MM, WARM_S, WARM_STEP)
@@ -56,7 +56,7 @@ def run():
     t = None; tl = None
     try:
         if not claim(): return
-        found = scan(GUARD, [], lambda un: un.startswith("BS ") and un not in ("BS W-1", "BS W-2"),
+        found = scan(GUARD, [], route_sensor,
                      lambda n, isg, s: SL(n, isg))
         if not check_guards(GUARD, found): return
         t, tl = request_throttle(P_ID)

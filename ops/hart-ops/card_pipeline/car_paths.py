@@ -9,6 +9,10 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths  # noqa: E402
 
+
+from card_errors import CardPipelineError  # noqa: E402,F401  re-exported: callers that already import car_paths
+
+
 PIPELINE = Path(__file__).resolve().parent
 HART_OPS_ROOT = PIPELINE.parent
 PUBLICATIONS = HART_OPS_ROOT / "publications"
@@ -55,7 +59,7 @@ def require_sticker_sheet() -> Path:
     It is their file, so it is not kept in the repo: download the Word version once.
     """
     if not STICKER_SHEET.is_file():
-        raise SystemExit(
+        raise CardPipelineError(
             f"Missing the sticker sheet template {STICKER_SHEET}.\n"
             f"Download the poker-size Word template (US Letter) from {STICKER_SHEET_URL}\n"
             f"and save it there under that name."

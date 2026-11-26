@@ -101,11 +101,15 @@ def serving():
             server.shutdown()
 
 
+class ShareCardError(Exception):
+    """A card cannot be drawn (no Chrome, or a page view that does not build); the message says which."""
+
+
 def _chrome() -> str:
     for name in (MAC_CHROME, "google-chrome", "chromium"):
         if found := shutil.which(name):
             return found
-    raise SystemExit("Google Chrome not found")
+    raise ShareCardError("Google Chrome not found")
 
 
 def shot(url: str, size: tuple[int, int] = (W, H), scale: int = 2, flags: tuple[str, ...] = ()):
@@ -120,7 +124,7 @@ def shot(url: str, size: tuple[int, int] = (W, H), scale: int = 2, flags: tuple[
         check=True, capture_output=True,
     )
     if _view_errors:  # the page read a view that did not build: its picture shows the load error
-        raise SystemExit(f"{url}: a file the page reads does not build:\n" + "\n".join(_view_errors))
+        raise ShareCardError(f"{url}: a file the page reads does not build:\n" + "\n".join(_view_errors))
     return Image.open(out).convert("RGB")
 
 
@@ -245,7 +249,7 @@ def main() -> int:
     args.out.mkdir(parents=True, exist_ok=True)
     try:
         _make(args.names or list(CARDS), args.out)
-    except CardError as err:
+    except (CardError, ShareCardError) as err:
         print(f"make_share_cards: {err}", file=sys.stderr)
         return 1
     return 0

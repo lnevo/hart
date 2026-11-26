@@ -65,14 +65,14 @@ class LayoutDocs(unittest.TestCase):
         self.assertEqual([(s["id"], s["name"], s["inches"], s["estimate"]) for s in got],
                          [("os:1", "OS Switch 1", 22.6, False), ("os:9", "OS Switch 9", 19.5, True)])
         master[("1", "block:9A-11C")] = {**master[("1", "block:9A-11C")], "part_of": "OS Switch 1"}   # wrong block
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(ld.LayoutDocsError):
             ld.detected_sections({r.id: r for r in lengths}, master, {"OS Switch 1": timed["os:1"]})
 
     def test_plans_label_the_live_switches(self):
         master = ld.master_rows()
         ld.check_switch_labels(master)
         key = (ld.LEVEL, "switch:5")
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(ld.LayoutDocsError):
             ld.check_switch_labels({**master, key: {**master[key], "user_name": "Switch 6"}})
 
     def test_only_switch_labels_count(self):
@@ -90,9 +90,9 @@ class LayoutDocs(unittest.TestCase):
                   st(4, 2, "Upper", ("3",), "", "UP")]
         self.assertEqual(ld.station_at(places, "switch:3"), "West Yard")
         self.assertEqual(ld.station_at(places, "switch:1"), "Brick")
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(ld.LayoutDocsError):
             ld.station_at(places, "switch:5")
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(ld.LayoutDocsError):
             ld.station_at(places + [st(5, 1, "Other", ("3",), "", "OT")], "switch:3")
 
     def test_the_siding_counts_50_ft_cars_at_the_plans_scale(self):
@@ -105,7 +105,7 @@ class LayoutDocs(unittest.TestCase):
 
     def test_a_missing_scale_stops_by_name(self):
         with mock.patch.object(ld.layer_files, "merged_section", return_value={}):
-            with self.assertRaisesRegex(SystemExit, "staging scale_ratio"):
+            with self.assertRaisesRegex(ld.LayoutDocsError, "staging scale_ratio"):
                 ld.car_inches()
 
     def test_station_names_in_drawings_are_labels(self):
@@ -115,22 +115,22 @@ class LayoutDocs(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             svg = Path(tmp) / "P9.svg"
             svg.write_text('<svg><text x="1">Plane</text></svg>')
-            with self.assertRaises(SystemExit):                              # a typed name, untagged
+            with self.assertRaises(ld.LayoutDocsError):                              # a typed name, untagged
                 ld.check_station_labels(places, master, [svg])
             svg.write_text('<svg><text x="1" data-station="switch:5">Plane</text><text>siding</text></svg>')
             ld.check_station_labels(places, master, [svg])
             svg.write_text('<svg><text data-station="switch:5">Barn</text></svg>')
-            with self.assertRaises(SystemExit):                              # the wrong station for the switch
+            with self.assertRaises(ld.LayoutDocsError):                              # the wrong station for the switch
                 ld.check_station_labels(places, master, [svg])
             svg.write_text('<svg><text data-station="switch:5"><tspan x="1">Plane</tspan></text></svg>')
             ld.check_station_labels(places, master, [svg])                   # Inkscape puts the text in a tspan
             svg.write_text('<svg><text data-station="switch:5"><tspan x="1">Barn</tspan></text></svg>')
-            with self.assertRaises(SystemExit):
+            with self.assertRaises(ld.LayoutDocsError):
                 ld.check_station_labels(places, master, [svg])
             for typed in ('<text>PLANE</text>', '<text><tspan>Plane</tspan><tspan>West</tspan></text>',
                           '<text data-station="switch:5">Plane</text><text>plane</text>'):
                 svg.write_text(f'<svg>{typed}</svg>')
-                with self.assertRaises(SystemExit, msg=typed):               # untagged, in any case
+                with self.assertRaises(ld.LayoutDocsError, msg=typed):               # untagged, in any case
                     ld.check_station_labels(places, master, [svg])
             yard = ld.railroad.Station(9, 1, "Yard", ("15",), "", "YD")
             svg.write_text('<svg><text>Yard lead</text><desc>The yard of five tracks</desc></svg>')
@@ -138,13 +138,13 @@ class LayoutDocs(unittest.TestCase):
 
     def test_d2_must_state_the_live_count(self):
         ld.check_d2(len(ld.detected_sections()))
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(ld.LayoutDocsError):
             ld.check_d2(len(ld.detected_sections()) + 1)
 
     def test_plans_must_state_the_live_lengths(self):
         fact = ld.facts(ld.detected_sections())
         ld.check_plans(fact)
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(ld.LayoutDocsError):
             ld.check_plans({**fact, "SIDING_IN": str(int(fact["SIDING_IN"]) + 1)})
 
     def facts_of(self, os_ids, estimate=False):
@@ -192,7 +192,7 @@ class RenameReachesThePage(unittest.TestCase):
         try:                                                      # the plans unedited: the renamed switch stops
             ld.outputs(cls.files)
             cls.stopped = ""
-        except SystemExit as exc:
+        except ld.LayoutDocsError as exc:
             cls.stopped = str(exc)
         cls.plans = []                                            # the plans with Switch 5 relabelled, as the owner would
         for svg in ld.PLANS:
@@ -277,10 +277,10 @@ class StationRenameReachesThePage(unittest.TestCase):
                 copy.write_text(svg.read_text().replace("</svg>", label.format("Plane") + "</svg>"))
                 plans.append(copy)
             ld.outputs(drawings=plans)                                       # the live names: it builds
-            with self.assertRaisesRegex(SystemExit, "Renamed Plane"):
+            with self.assertRaisesRegex(ld.LayoutDocsError, "Renamed Plane"):
                 ld.outputs(stations=self.copy, drawings=plans)
             plans[0].write_text(plans[0].read_text().replace(label.format("Plane"), label.format("Renamed Plane")))
-            with self.assertRaisesRegex(SystemExit, "Renamed Plane"):         # one drawing still has the old name
+            with self.assertRaisesRegex(ld.LayoutDocsError, "Renamed Plane"):         # one drawing still has the old name
                 ld.outputs(stations=self.copy, drawings=plans)
             for p in plans:
                 p.write_text(p.read_text().replace(label.format("Plane"), label.format("Renamed Plane")))
@@ -291,6 +291,14 @@ class StationRenameReachesThePage(unittest.TestCase):
         for old, new in self.RENAMES.items():
             page = page.replace(new, old)
         self.assertEqual(page, self.live)
+
+
+class MainExitTest(unittest.TestCase):
+    def test_main_exits_with_the_error_and_writes_nothing(self) -> None:
+        with mock.patch.object(ld, "outputs", side_effect=ld.LayoutDocsError("build_layout_docs: stop")), \
+                mock.patch.object(sys, "argv", ["build_layout_docs.py"]), self.assertRaises(SystemExit) as cm:
+            ld.main()
+        self.assertEqual(cm.exception.code, "build_layout_docs: stop")
 
 
 if __name__ == "__main__":
