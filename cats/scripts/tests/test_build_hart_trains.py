@@ -40,12 +40,25 @@ class BuildHartTrains(unittest.TestCase):
         master = self.dir / "trains.csv"
         master.write_text("train_symbol,train_name,engine,font,runs_job,on_desks,opspro_name,notes\n"
                           "X1,Extra 1,42,East,true,Yes,,\n", encoding="utf-8")
-        self.assertRaisesRegex(SystemExit, "on_desks must be yes or no: X1", self.mod.build, master)
+        self.assertRaisesRegex(self.mod.TrainsError, "on_desks must be yes or no: X1", self.mod.build, master)
 
     def test_a_missing_column_is_an_error(self) -> None:
         master = self.dir / "trains.csv"
         master.write_text("train_symbol,train_name\nX1,Extra 1\n", encoding="utf-8")
-        self.assertRaisesRegex(SystemExit, "no column engine", self.mod.build, master)
+        self.assertRaisesRegex(self.mod.TrainsError, "no column engine", self.mod.build, master)
+
+    def test_main_reports_a_bad_master_and_writes_nothing(self) -> None:
+        import contextlib
+        import io
+        master = self.dir / "trains.csv"
+        master.write_text("train_symbol,train_name\nX1,Extra 1\n", encoding="utf-8")
+        out = self.dir / "hart_trains.csv"
+        err = io.StringIO()
+        with mock.patch.object(self.mod, "OUT", out), mock.patch.object(self.mod, "MASTER", master), \
+                contextlib.redirect_stderr(err):
+            self.assertEqual(self.mod.main([]), 1)
+        self.assertIn("no column engine", err.getvalue())
+        self.assertFalse(out.exists())
 
     def test_check_fails_on_a_stale_file_and_a_build_fixes_it(self) -> None:
         out = self.dir / "hart_trains.csv"

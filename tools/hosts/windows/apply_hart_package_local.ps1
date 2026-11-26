@@ -170,7 +170,6 @@ if (Test-Path $miscSrc) {
     $dest = Join-Path $r 'resources\misc'
     New-Item -ItemType Directory -Force -Path $dest | Out-Null
     Copy-Item (Join-Path $miscSrc '*') $dest -Force
-    Remove-Item (Join-Path $dest 'linear5_panel_bg.jpg') -Force -ErrorAction SilentlyContinue
     Write-Host ("panel background -> {0}" -f $dest)
   }
 }
@@ -259,12 +258,6 @@ foreach ($r in ($roots | Select-Object -Unique)) {
     $compiled = Join-Path $dest ([System.IO.Path]::GetFileNameWithoutExtension($src) + '$py.class')
     if (Test-Path -LiteralPath $compiled) { Remove-Item -LiteralPath $compiled -Force }
   }
-  $staleNx = Join-Path $dest 'prepare_nx_sml_paths.py'
-  if (Test-Path $staleNx) { Remove-Item $staleNx -Force }
-  foreach ($stale in @('hart_dispatcher_startup.py', 'patch_dispatcher_facing.py')) {
-    $stalePath = Join-Path $dest $stale
-    if (Test-Path $stalePath) { Remove-Item $stalePath -Force }
-  }
   Write-Host ("preference:jython scripts -> {0}\jython" -f $r)
   if (Test-Path $trainInfoSrc) {
     $trainInfoDest = Join-Path $r 'dispatcher\traininfo'
@@ -281,23 +274,6 @@ foreach ($r in ($roots | Select-Object -Unique)) {
   }
 }
 
-$retired = @('apply_maintain_mqtt.py', 'apply_mqtt_retain_at_startup.py', 'prepare_nx_sml_paths.py')
-# Old scripts no Start Up uses; copies are kept in archive/code/jmri-scripts or the repo.
-$retiredJython = @('sync_turnout_buttons.py', 'sync_yard_ladder_buttons.py', 'apply_dispatcher_roster_profiles.py', 'SetBlockPreviewValues.py', 'sync_layout_button.py', 'mqtt_signalhead_publisher.py')
-$jythonDirs = New-Object System.Collections.Generic.List[string]
-[void]$jythonDirs.Add((Join-Path $UserFiles 'jython'))
-Get-ChildItem (Join-Path $env:USERPROFILE 'JMRI') -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
-  [void]$jythonDirs.Add((Join-Path $_.FullName 'jython'))
-}
-foreach ($d in $jythonDirs) {
-  foreach ($name in $retiredJython) {
-    $old = Join-Path $d $name
-    if (Test-Path $old) {
-      Remove-Item $old -Force
-      Write-Host ("retired jython removed: {0}" -f $old)
-    }
-  }
-}
 $retargetNames = @(
   'panel_status.py',
   'signal_coordinator.py',
@@ -316,18 +292,27 @@ foreach ($p in @(
     }
   }
 }
+# Start Up entries for retired scripts stay in an old profile.xml until stripped: the shared one and each
+# per-computer profile\<node id>\profile.xml, which JMRI reads first.
+$retiredStartup = @('apply_maintain_mqtt.py', 'apply_mqtt_retain_at_startup.py', 'prepare_nx_sml_paths.py')
+foreach ($r in ($profileRoots | Select-Object -Unique)) {
+  $profiles = @(Join-Path $r 'profile\profile.xml') + @(Get-ChildItem (Join-Path $r 'profile') -Directory -ErrorAction SilentlyContinue | ForEach-Object { Join-Path $_.FullName 'profile.xml' })
+  foreach ($px in $profiles) {
+    if (-not (Test-Path -LiteralPath $px)) { continue }
+    $txt = Get-Content -Raw -Encoding UTF8 -LiteralPath $px
+    $orig = $txt
+    foreach ($name in $retiredStartup) {
+      $txt = [regex]::Replace($txt, ('\r?\n[ \t]*<perform\b[^>]*' + [regex]::Escape($name) + '[^>]*/>'), '')
+    }
+    if ($txt -ne $orig) {
+      Set-Content -LiteralPath $px -Value $txt -Encoding UTF8 -NoNewline
+      Write-Host ("startup: removed retired Start Up scripts -> {0}" -f $px)
+    }
+  }
+}
 foreach ($r in ($profileRoots | Select-Object -Unique)) {
   $prof = Join-Path $r 'profile\profile.xml'
   if (-not (Test-Path $prof)) { continue }
-  $txt = Get-Content -Raw -Encoding UTF8 $prof
-  $orig = $txt
-  foreach ($name in $retired) {
-    $txt = [regex]::Replace($txt, ('\r?\n[ \t]*<perform\b[^>]*' + [regex]::Escape($name) + '[^>]*/>'), '')
-  }
-  if ($txt -ne $orig) {
-    Set-Content -Path $prof -Value $txt -Encoding UTF8 -NoNewline
-    Write-Host ("startup: removed MQTT retain scripts -> {0}" -f $prof)
-  }
   if (Test-Path $patchPy) {
     if (-not $python) {
       Write-Warning ("Start Up retarget skipped: no Python 3 found (py -3, python, python3); check the Start Up list by hand ({0})" -f $prof)
@@ -339,39 +324,6 @@ foreach ($r in ($profileRoots | Select-Object -Unique)) {
       & $python.Exe @pyArgs
       if ($LASTEXITCODE -ne 0) { throw ("Start Up retarget failed: {0} exited {1} ({2})" -f $python.Exe, $LASTEXITCODE, $prof) }
       Write-Host ("Start Up retargeted -> preference:jython ({0})" -f $prof)
-    }
-  }
-}
-
-# Masts are stock Basic (ADR-011). The package tarball never deletes, so
-# retired custom signal sets are removed here. The JMRI install's own
-# xml\signals\C&O-1980 is stock and stays.
-$retired = New-Object System.Collections.Generic.List[string]
-$signalRoots = New-Object System.Collections.Generic.List[string]
-[void]$signalRoots.Add((Join-Path $hart 'cats\resources\signals'))
-[void]$signalRoots.Add((Join-Path $UserFiles 'resources\signals'))
-$jmri = Join-Path $env:USERPROFILE 'JMRI'
-if (Test-Path $jmri) {
-  Get-ChildItem $jmri -Directory -Filter '*.jmri' -ErrorAction SilentlyContinue | ForEach-Object {
-    [void]$signalRoots.Add((Join-Path $_.FullName 'resources\signals'))
-  }
-}
-foreach ($root in $signalRoots) {
-  foreach ($sys in @('cats-masts', 'hart-aar', 'C&O-1980')) {
-    [void]$retired.Add((Join-Path $root $sys))
-  }
-}
-[void]$retired.Add('C:\Program Files\JMRI\xml\signals\cats-masts')
-[void]$retired.Add('C:\Program Files (x86)\JMRI\xml\signals\cats-masts')
-[void]$retired.Add((Join-Path $hart 'cats\scripts\windows\install_cats_masts.ps1'))
-[void]$retired.Add((Join-Path $hart 'tools\jmri\patches'))
-foreach ($path in $retired) {
-  if (Test-Path -LiteralPath $path) {
-    try {
-      Remove-Item -LiteralPath $path -Recurse -Force
-      Write-Host ("retired, removed: {0}" -f $path)
-    } catch {
-      Write-Host ("Skip (need Admin?): {0}" -f $path)
     }
   }
 }

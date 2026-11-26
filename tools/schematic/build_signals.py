@@ -42,13 +42,17 @@ TOLERANCE_CM = 0.2          # the reader rounds each length to 0.1 cm
 TURNBACK_CM = 1.0           # a mast measured from a turnback stands just off it (not "at the points")
 
 
+class SignalsError(Exception):
+    """A mast, a length or the staging map does not fit the plan; the message names it. main() prints it and exits 1."""
+
+
 def block_cm(path=BLOCK_LENGTHS) -> dict:
     """{block: cm} of the plan lengths in block_lengths.csv (hartlib.block_lengths.plan_cm): the masts stand on the drawn
     geometry, so a timed length never moves one."""
     try:
         return block_lengths.plan_cm(path)
     except railroad.FactsError as exc:
-        sys.exit(str(exc))
+        raise SignalsError(str(exc)) from exc
 
 
 def check_lengths(masts: list[dict], chains: list[dict], cm: dict) -> list[str]:
@@ -149,23 +153,23 @@ def staging_facts() -> tuple[list[dict], list[dict]]:
     (staging_device_map.load_signal_masts and staging_chains). The masts come from the files alone; the tracks need
     the staging band, so the schematic is solved, and the solve reads signals.json (a layer file), the file this
     script writes. Its masts do not change the band's tracks, so a stale file is harmless; one that does not
-    load stops here, naming the file to restore (git checkout) before running this again."""
+    load raises SignalsError, naming the file to restore (git checkout) before running this again."""
     try:
         masts = sdm.load_signal_masts()
     except sdm.StagingMapError as exc:
-        sys.exit(f"ERROR: staging device map: {exc}")
+        raise SignalsError(f"ERROR: staging device map: {exc}") from exc
     signals = layer_files.path("signals", pd.DATA)
     try:
         with pd.cache_on():
             band, _opts, _core = sdm.staging_band()
     except (sdm.StagingMapError, sdm.lc.BuildError, ValueError, KeyError, OSError) as exc:
-        sys.exit(f"ERROR: cannot solve the staging band for its tracks ({type(exc).__name__}: {exc}). The solve "
-                 f"reads {signals.name}, which this script writes: if that file is damaged, restore it "
-                 f"(git checkout -- {pd.paths.rel(signals)}) and run this again")
+        raise SignalsError(f"ERROR: cannot solve the staging band for its tracks ({type(exc).__name__}: {exc}). The "
+                           f"solve reads {signals.name}, which this script writes: if that file is damaged, restore it "
+                           f"(git checkout -- {pd.paths.rel(signals)}) and run this again") from exc
     try:
         return masts, sdm.staging_chains(band, sdm.load(band))
     except (sdm.StagingMapError, sdm.lc.BuildError) as exc:      # the map against the drawing
-        sys.exit(f"ERROR: staging device map: {exc}")
+        raise SignalsError(f"ERROR: staging device map: {exc}") from exc
 
 
 def main_upper_rows() -> list[dict]:
@@ -195,13 +199,13 @@ def main_upper_rows() -> list[dict]:
             # switch (the whole track: an end bumper), as staging's virtual masts are
             m = destinations.get(name)
             if m is None:
-                sys.exit(f"{r['mast']}: {lm.PATH.name} names a virtual mast the rule no longer places; "
-                         "rebuild it with build_device_map.py (every level's mast rows) and build_masts.py")
+                raise SignalsError(f"{r['mast']}: {lm.PATH.name} names a virtual mast the rule no longer places; "
+                                   "rebuild it with build_device_map.py (every level's mast rows) and build_masts.py")
             band = bands[m["band"]][1]
             d = band["nodes"][m["node"]]
             t = by_name.get(r["facing"])
             if t is None:
-                sys.exit(f"{r['mast']}: faces {r['facing']!r}, which is no whole track of the plan")
+                raise SignalsError(f"{r['mast']}: faces {r['facing']!r}, which is no whole track of the plan")
             sid = d["ins"].get(m["leg"]) or d["outs"].get(m["leg"])
             rows.append(dict(mast=name, toward=m["switch"], run=[m["switch"], ""], edge=plan(sid, band),
                              node=m["node"], edge_cm=t["cm"], cm_from_toward=t["cm"], dir=r["dir"], heads=1,
@@ -217,8 +221,8 @@ def main_upper_rows() -> list[dict]:
                              dir=r["dir"], heads=heads,
                              leg=m["leg"] if t["loop"] else None))
             if t["loop"] and loop_leg(r["facing"]) != m["leg"]:
-                sys.exit(f"{r['mast']}: stands on leg {m['leg']} of Switch {r['switch']}, but faces {r['facing']}, "
-                         f"the half that leaves from leg {loop_leg(r['facing'])}")
+                raise SignalsError(f"{r['mast']}: stands on leg {m['leg']} of Switch {r['switch']}, but faces "
+                                   f"{r['facing']}, the half that leaves from leg {loop_leg(r['facing'])}")
         else:
             # an APB pair at a turnback: each drawn from the switch its move heads for (the protected half's end),
             # as staging's 67 and 68 are, so the two stand apart. A balloon loop's halves both end at its switch, and
@@ -255,14 +259,14 @@ def loop_leg(facing: str) -> str:
     import mast_rule as mr
     m = re.fullmatch(r".* Loop ([12])", facing)
     if not m:
-        sys.exit(f"{level_masts.PATH.name}: a mast on a balloon loop faces {facing!r}, not one of its halves (Loop 1, "
-                 "Loop 2)")
+        raise SignalsError(f"{level_masts.PATH.name}: a mast on a balloon loop faces {facing!r}, not one of its "
+                           "halves (Loop 1, Loop 2)")
     return {half: leg for leg, half in mr.LOOP_HALF.items()}[int(m.group(1))]
 
 
-def generate(plugin, graph, name) -> dict:
+def generate(plugin: Path, graph: str, name: str) -> dict:
     """The signals section of one sheet: staging from its masts.csv rows' plan facts, main and upper from theirs
-    placed by the plan graph (main_upper_rows); stops on a mast whose run is not in the plan."""
+    placed by the plan graph (main_upper_rows); SignalsError on a mast whose run is not in the plan."""
     if name == "main_upper":
         rows = main_upper_rows()
         g = plan_graph(plugin, graph, name)
@@ -278,17 +282,17 @@ def generate(plugin, graph, name) -> dict:
             r["names"], r["toward"], r["run"] = e["names"], lab(r["_toward_node"]), [lab(r["_toward_node"]), lab(far)]
         bad = check_runs(plugin, graph, name, rows)
         if bad:
-            sys.exit(f"{name}: {len(bad)} masts do not fit the plan graph: " + "; ".join(bad))
+            raise SignalsError(f"{name}: {len(bad)} masts do not fit the plan graph: " + "; ".join(bad))
         return dict(schema=SCHEMA, source=level_masts.PATH.name, signals=rows, unplaced=[])
     masts, chains = staging_facts()
     rows = sdm.signal_rows(masts)
     bad = check_runs(plugin, graph, name, rows) + check_lengths(masts, chains, block_cm())
     if bad:
-        sys.exit(f"{name}: {len(bad)} masts do not fit the plan graph: " + "; ".join(bad))
+        raise SignalsError(f"{name}: {len(bad)} masts do not fit the plan graph: " + "; ".join(bad))
     return dict(schema=SCHEMA, source=sdm.SIGNALS_SOURCE, signals=rows, unplaced=[])
 
 
-def main(argv):
+def main(argv: list[str]) -> int:
     if {"-h", "--help"} & set(argv):     # help wins over --check and over a typo beside it: it only prints
         print(__doc__ or "build_signals.py [--check]")       # python -OO strips the docstring
         return 0
@@ -302,10 +306,10 @@ def main(argv):
         pd.paths.exit_if_overridden(Path(__file__).name)
     try:
         plugin = pd.plugin()
-    except SystemExit as e:             # submodule missing or off its pin, and no SCHEMATIC_PLUGIN
+    except pd.PluginMissing as e:       # submodule missing or off its pin, and no SCHEMATIC_PLUGIN
         if not check:
-            raise
-        print(f"SKIPPED schematic signals check: {e.code}")
+            sys.exit(str(e))
+        print(f"SKIPPED schematic signals check: {e}")
         return 1 if os.environ.get("SCHEMATIC_REQUIRED") == "1" else 0
     try:
         updates = {("signals", name): generate(plugin, graph, name) for graph, name in LEVELS}
@@ -313,6 +317,8 @@ def main(argv):
         old = {name: layer_files.read("signals", name, pd.DATA) for _graph, name in LEVELS}
     except layer_files.LayerFileError as exc:
         sys.exit(f"build_signals.py: {exc}")
+    except SignalsError as exc:
+        sys.exit(str(exc))
     target = layer_files.path("signals", pd.DATA)
     stale = 0
     for (_kind, name), new in updates.items():

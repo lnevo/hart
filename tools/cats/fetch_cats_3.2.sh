@@ -3,7 +3,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 DEST="$ROOT/tools/cats/release3.2"
-URL="http://cats4ctc.wdfiles.com/local--files/main%3Adownloads/release3.2.zip"
+URL="https://cats4ctc.wdfiles.com/local--files/main%3Adownloads/release3.2.zip"
 mkdir -p "$ROOT/tools/cats"
 TMP="$(mktemp -t cats32.XXXXXX.zip)"
 echo "Fetching $URL"

@@ -1,11 +1,13 @@
-"""Sticker-sheet assembly for the HART card templates: the page-4 grid and the body tail.
+"""Sticker-sheet assembly for the HART card templates: the page-4 grid, extra grid pages and the body tail."""
 
-"""
+from copy import deepcopy
+from pathlib import Path
 
 from docx import Document
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Inches
+from docx.table import Table
 
 from card_template_docx import _tc_pr, borders
 from card_template_layout import (
@@ -165,3 +167,38 @@ def keep_sticker_grid(doc: Document) -> None:
     if body.find(qn("w:sectPr")) is None:
         body.append(OxmlElement("w:sectPr"))
     ensure_sect_pr_last(body)
+
+
+def set_page_break_before_table(tbl: OxmlElement) -> None:
+    """Start a sticker grid on a new page without a blank paragraph between pages."""
+    first_row = tbl.findall(qn("w:tr"))[0]
+    first_cell = first_row.findall(qn("w:tc"))[0]
+    p = first_cell.find(qn("w:p"))
+    if p is None:
+        p = OxmlElement("w:p")
+        first_cell.insert(0, p)
+    pPr = p.find(qn("w:pPr"))
+    if pPr is None:
+        pPr = OxmlElement("w:pPr")
+        p.insert(0, pPr)
+    if pPr.find(qn("w:pageBreakBefore")) is None:
+        pPr.insert(0, OxmlElement("w:pageBreakBefore"))
+
+
+def blank_sticker_grid(sticker_sheet: Path) -> OxmlElement:
+    """OOXML for an empty 3x3 sticker grid, taken from the sticker sheet template. The template file is only read."""
+    scratch = Document(str(sticker_sheet))
+    keep_sticker_grid(scratch)
+    return deepcopy(scratch.tables[0]._tbl)
+
+
+def append_grid(doc: Document, grid_xml: OxmlElement) -> Table:
+    """Append a copy of grid_xml as a new page of doc and return it as a Table, with its guides stripped."""
+    body = doc.element.body
+    tbl = deepcopy(grid_xml)
+    set_page_break_before_table(tbl)
+    insert_before_sect(body, tbl)
+    ensure_sect_pr_last(body)
+    table = Table(body.findall(qn("w:tbl"))[-1], doc)
+    strip_grid_guides(table)
+    return table

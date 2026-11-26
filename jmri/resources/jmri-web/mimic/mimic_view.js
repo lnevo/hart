@@ -10,6 +10,10 @@ const LEVEL_TITLES = { staging: "Staging", main: "Main", upper: "Upper" };
 
 const $ = (id) => document.getElementById(id);
 
+// Layout names and live JMRI values go into innerHTML and attributes; escape them.
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
 // Adds the shared markup ahead of the page's own <footer>. The page sets the
 // signal-head heading with <body data-heads-title="...">.
 function mountMimic() {
@@ -35,7 +39,7 @@ function mountMimic() {
     </section>
   </div>
   <div class="heads">
-    <h2>${headsTitle}</h2>
+    <h2>${esc(headsTitle)}</h2>
     <div id="heads"></div>
   </div>`);
   $("q").addEventListener("input", render);
@@ -96,14 +100,14 @@ function render() {
   const tabs = $("tabs");
   tabs.hidden = shown.length < 2;
   tabs.innerHTML = shown.map((lv) =>
-    `<button class="tab${lv === state.level ? " on" : ""}" data-level="${lv}">${LEVEL_TITLES[lv]}</button>`).join("");
+    `<button class="tab${lv === state.level ? " on" : ""}" data-level="${esc(lv)}">${esc(LEVEL_TITLES[lv])}</button>`).join("");
 
   const tRoot = $("turnouts");
   tRoot.innerHTML = "";
   for (const [plant, rows] of plantGroups(onLevel("turnouts"))) {
     const wrap = document.createElement("div");
     wrap.className = "plant";
-    wrap.innerHTML = `<h3>${plant}</h3>`;
+    wrap.innerHTML = `<h3>${esc(plant)}</h3>`;
     for (const t of rows) {
       const st = (state.turnouts[t.addr] || "").toUpperCase();
       const nOn = (state.sensors[t.n_addr] || "").toUpperCase() === "ACTIVE";
@@ -113,18 +117,18 @@ function render() {
       const fb = t.virtual
         ? `<div class="fb">Virtual turnout, set in JMRI (no MQTT)</div>`
         : t.n_addr
-        ? `<div class="fb">FB N <span class="n${nOn ? " on" : ""}">${t.n_addr}${nOn ? " ACTIVE" : ""}</span>
-           · R <span class="r${rOn ? " on" : ""}">${t.r_addr}${rOn ? " ACTIVE" : ""}</span></div>`
+        ? `<div class="fb">FB N <span class="n${nOn ? " on" : ""}">${esc(t.n_addr)}${nOn ? " ACTIVE" : ""}</span>
+           · R <span class="r${rOn ? " on" : ""}">${esc(t.r_addr)}${rOn ? " ACTIVE" : ""}</span></div>`
         : `<div class="fb">DIRECT — turnout topic only</div>`;
       row.innerHTML = `
         <div>
-          <div class="name">${t.label} <span class="sub">${t.name}</span></div>
-          ${t.virtual ? "" : `<div class="sub">${t.tip || t.feedback}</div>`}
+          <div class="name">${esc(t.label)} <span class="sub">${esc(t.name)}</span></div>
+          ${t.virtual ? "" : `<div class="sub">${esc(t.tip || t.feedback)}</div>`}
           ${fb}
         </div>
         <div class="btns">
-          <button class="sw ${st === "CLOSED" ? "on-closed" : ""}" data-to="${t.addr}" data-st="CLOSED">Closed</button>
-          <button class="sw ${st === "THROWN" ? "on-thrown" : ""}" data-to="${t.addr}" data-st="THROWN">Thrown</button>
+          <button class="sw ${st === "CLOSED" ? "on-closed" : ""}" data-to="${esc(t.addr)}" data-st="CLOSED">Closed</button>
+          <button class="sw ${st === "THROWN" ? "on-thrown" : ""}" data-to="${esc(t.addr)}" data-st="THROWN">Thrown</button>
         </div>`;
       wrap.appendChild(row);
     }
@@ -136,18 +140,18 @@ function render() {
   for (const [plant, rows] of plantGroups(onLevel("blocks"))) {
     const wrap = document.createElement("div");
     wrap.className = "plant";
-    wrap.innerHTML = `<h3>${plant}</h3>`;
+    wrap.innerHTML = `<h3>${esc(plant)}</h3>`;
     for (const b of rows) {
       const occ = (state.sensors[b.addr] || "").toUpperCase() === "ACTIVE";
       const row = document.createElement("div");
       row.className = "row" + (matches(q, b.label, b.userName, b.plant, b.addr) ? "" : " hidden");
       row.innerHTML = `
         <div>
-          <div class="name">${b.label}</div>
-          <div class="sub">${b.userName} · ${b.name}</div>
+          <div class="name">${esc(b.label)}</div>
+          <div class="sub">${esc(b.userName)} · ${esc(b.name)}</div>
         </div>
         <div class="btns">
-          <button class="occ ${occ ? "active" : "inactive"}" data-occ="${b.addr}" data-st="${occ ? "INACTIVE" : "ACTIVE"}">
+          <button class="occ ${occ ? "active" : "inactive"}" data-occ="${esc(b.addr)}" data-st="${occ ? "INACTIVE" : "ACTIVE"}">
             ${occ ? "Occupied" : "Clear"}
           </button>
         </div>`;
@@ -161,7 +165,7 @@ function render() {
   for (const [plant, rows] of plantGroups(onLevel("heads"))) {
     const wrap = document.createElement("div");
     wrap.className = "plant";
-    wrap.innerHTML = `<h3>${plant}</h3>`;
+    wrap.innerHTML = `<h3>${esc(plant)}</h3>`;
     const lamps = document.createElement("div");
     lamps.className = "lamps";
     const byMast = new Map();
@@ -176,9 +180,9 @@ function render() {
         const packed = (h.id || "").replace(/^IH/i, "");
         const aspect = (state.heads[packed] || state.heads[h.id] || "Dark").split(";")[0].trim();
         const sys = h.systemName || h.id;
-        return `<i class="lamp ${aspect}" title="${sys} ${aspect}"></i>`;
+        return `<i class="lamp ${esc(aspect)}" title="${esc(sys)} ${esc(aspect)}"></i>`;
       }).join("");
-      el.innerHTML = `${lampHtml}<span class="lbl" title="${mast}">${mast}</span>`;
+      el.innerHTML = `${lampHtml}<span class="lbl" title="${esc(mast)}">${esc(mast)}</span>`;
       lamps.appendChild(el);
     }
     wrap.appendChild(lamps);

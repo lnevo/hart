@@ -39,7 +39,9 @@ JMRI_PROFILE="${JMRI_PROFILE:-My_JMRI_Railroad.3ef75bfd}"
 CATS_LAUNCH_VIA="${CATS_LAUNCH_VIA:-direct}"
 # Capture Java/JMRI stdout+stderr (ClassCast, MQTT, "not in a Block", …).
 # Override: CATS_LAUNCH_LOG=/path/to.log   or CATS_LAUNCH_LOG=  to disable.
-CATS_LAUNCH_LOG="${CATS_LAUNCH_LOG:-$ROOT/cats/logs/cats_launch.log}"
+CATS_LAUNCH_LOG="${CATS_LAUNCH_LOG-$ROOT/cats/logs/cats_launch.log}"   # set and empty: no log
+# The folder CATS opens panels from; both launch paths pass it.
+CATS_FOLDER="$HOME/JMRI_UserFiles/cats/panels"
 
 if [[ ! -f "$JMRI_HOME/cats.jar" || ! -f "$JMRI_HOME/cats.csh" ]]; then
   echo "CATS not installed in $JMRI_HOME" >&2
@@ -86,11 +88,10 @@ echo "Auto-open Digicon: $PANEL"
 echo "Quit PanelPro first if it is using this profile (tables load via Start Up)."
 
 resolve_via() {
-  # Default / auto → direct cats.csh only.
-  case "${1:-direct}" in
-    terminal|direct) echo "$1" ;;
+  # auto (or empty) means direct cats.csh; any other value is passed on for the case below to refuse.
+  case "$1" in
     auto|"") echo "direct" ;;
-    *) echo "direct" ;;
+    *) echo "$1" ;;
   esac
 }
 
@@ -111,9 +112,9 @@ run_cats() {
   local profile="$1" panel="$2"
   if [[ -n "$CATS_LAUNCH_LOG" ]]; then
     # Keep Terminal/console live; also append everything to the log.
-    ./cats.csh -Dcats.folder="$HOME/JMRI_UserFiles/cats/panels" --profile="$profile" "$panel" 2>&1 | tee -a "$CATS_LAUNCH_LOG"
+    ./cats.csh -Dcats.folder="$CATS_FOLDER" --profile="$profile" "$panel" 2>&1 | tee -a "$CATS_LAUNCH_LOG"
   else
-    exec ./cats.csh -Dcats.folder="$HOME/JMRI_UserFiles/cats/panels" --profile="$profile" "$panel"
+    exec ./cats.csh -Dcats.folder="$CATS_FOLDER" --profile="$profile" "$panel"
   fi
 }
 
@@ -130,12 +131,12 @@ launch_terminal() {
   # stdout+stderr tee'd into CATS_LAUNCH_LOG when set.
   local cmd
   if [[ -n "$CATS_LAUNCH_LOG" ]]; then
-    cmd=$(printf 'export JAVA_HOME=%q; export ARCH=aarch64; mkdir -p %q; : > %q; cd %q && ./cats.csh --profile=%q %q 2>&1 | tee -a %q; echo EXIT:$? | tee -a %q' \
+    cmd=$(printf 'export JAVA_HOME=%q; export ARCH=aarch64; mkdir -p %q; : > %q; cd %q && ./cats.csh -Dcats.folder=%q --profile=%q %q 2>&1 | tee -a %q; echo EXIT:$? | tee -a %q' \
       "$JAVA_HOME" "$(dirname "$CATS_LAUNCH_LOG")" "$CATS_LAUNCH_LOG" \
-      "$JMRI_HOME" "$JMRI_PROFILE" "$PANEL" "$CATS_LAUNCH_LOG" "$CATS_LAUNCH_LOG")
+      "$JMRI_HOME" "$CATS_FOLDER" "$JMRI_PROFILE" "$PANEL" "$CATS_LAUNCH_LOG" "$CATS_LAUNCH_LOG")
   else
-    cmd=$(printf 'export JAVA_HOME=%q; export ARCH=aarch64; cd %q && exec ./cats.csh --profile=%q %q' \
-      "$JAVA_HOME" "$JMRI_HOME" "$JMRI_PROFILE" "$PANEL")
+    cmd=$(printf 'export JAVA_HOME=%q; export ARCH=aarch64; cd %q && exec ./cats.csh -Dcats.folder=%q --profile=%q %q' \
+      "$JAVA_HOME" "$JMRI_HOME" "$CATS_FOLDER" "$JMRI_PROFILE" "$PANEL")
   fi
   echo "Handing off to Terminal.app…"
   osascript -e "tell application \"Terminal\" to do script \"$cmd\"" >/dev/null

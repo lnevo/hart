@@ -10,7 +10,6 @@ from __future__ import annotations
 import csv
 import shutil
 import sys
-from copy import deepcopy
 from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
@@ -18,8 +17,6 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import operations  # noqa: E402
 
 from docx import Document
-from docx.oxml import OxmlElement
-from docx.oxml.ns import qn
 from docx.table import Table
 
 import car_paths
@@ -27,6 +24,7 @@ import card_template_layout
 import card_template_sheet
 import generate_card_template as g
 from engine_lookup import (
+    ROAD_DISPLAY,
     build_locomotive_description,
     is_locomotive_row,
     load_engine_roster,
@@ -45,33 +43,6 @@ CARDS_PER_PAGE = len(card_template_layout.CARD_SLOTS)
 
 # Omit from print sheet — unidentified / decorative cars kept in manifest for review only.
 EXCLUDE_FROM_DOC: frozenset[str] = frozenset({"IMG_9152.png"})
-
-# JMRI roster road codes -> display reporting marks.
-ROAD_DISPLAY = {
-    "NW": "N&W",
-    "BO": "B&O",
-    "PRR": "PRR",
-    "NYC": "NYC",
-    "ATSF": "ATSF",
-    "CBQ": "CB&Q",
-    "GN": "GN",
-    "MILW": "MILW",
-    "WP": "WP",
-    "WM": "WM",
-    "RDG": "RDG",
-    "EL": "EL",
-    "CO": "C&O",
-    "KSMX": "KSMX",
-    "GATX": "GATX",
-    "UTLX": "UTLX",
-    "URTX": "URTX",
-    "SHPX": "SHPX",
-    "REX": "REX",
-    "URR": "URR",
-    "WLE": "WLE",
-    "MSTL": "MSTL",
-    "MOW": "MOW",
-}
 
 # Known-good override for the manually verified flatcar photo.
 IMG_9088_OVERRIDE = {
@@ -198,44 +169,6 @@ def load_cards() -> list[tuple[dict, Path | None, dict]]:
     return cards
 
 
-def _set_page_break_before_table(tbl) -> None:
-    """Start a sticker grid on a new page without a blank paragraph between pages."""
-    first_row = tbl.findall(qn("w:tr"))[0]
-    first_cell = first_row.findall(qn("w:tc"))[0]
-    p = first_cell.find(qn("w:p"))
-    if p is None:
-        p = OxmlElement("w:p")
-        first_cell.insert(0, p)
-    pPr = p.find(qn("w:pPr"))
-    if pPr is None:
-        pPr = OxmlElement("w:pPr")
-        p.insert(0, pPr)
-    if pPr.find(qn("w:pageBreakBefore")) is None:
-        pPr.insert(0, OxmlElement("w:pageBreakBefore"))
-
-
-def _append_grid(doc: Document, grid_xml) -> Table:
-    body = doc.element.body
-    tbl = deepcopy(grid_xml)
-    _set_page_break_before_table(tbl)
-    card_template_sheet.insert_before_sect(body, tbl)
-    card_template_sheet.ensure_sect_pr_last(body)
-    table = Table(body.findall(qn("w:tbl"))[-1], doc)
-    card_template_sheet.strip_grid_guides(table)
-    return table
-
-
-def _blank_sticker_grid():
-    """Return OOXML for an empty 3×3 sticker grid cloned from the template."""
-    scratch_path = BASE / ".scratch_sticker.docx"
-    shutil.copy2(car_paths.STICKER_SHEET, scratch_path)
-    scratch = Document(scratch_path)
-    card_template_sheet.keep_sticker_grid(scratch)
-    grid = deepcopy(scratch.tables[0]._tbl)
-    scratch_path.unlink(missing_ok=True)
-    return grid
-
-
 def _fill_page(sheet: Table, batch: list[tuple[dict, Path | None, dict]], page_idx: int) -> None:
     for i, (record, image, _row) in enumerate(batch):
         r, c = card_template_layout.CARD_SLOTS[i]
@@ -253,7 +186,7 @@ def generate(cards: list[tuple[dict, Path | None, dict]]) -> None:
     if not METADATA_CSV.exists():
         raise FileNotFoundError(METADATA_CSV)
 
-    blank_grid = _blank_sticker_grid()
+    blank_grid = card_template_sheet.blank_sticker_grid(car_paths.STICKER_SHEET)
     shutil.copy2(car_paths.STICKER_SHEET, OUTPUT)
     doc = Document(OUTPUT)
     card_template_sheet.keep_sticker_grid(doc)
@@ -267,7 +200,7 @@ def generate(cards: list[tuple[dict, Path | None, dict]]) -> None:
     _fill_page(sheet, pages[0], 0)
 
     for page_idx, batch in enumerate(pages[1:], start=1):
-        sheet = _append_grid(doc, blank_grid)
+        sheet = card_template_sheet.append_grid(doc, blank_grid)
         _fill_page(sheet, batch, page_idx)
 
     card_template_sheet.add_document_tail(doc.element.body)

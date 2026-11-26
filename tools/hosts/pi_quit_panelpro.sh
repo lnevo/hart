@@ -22,7 +22,7 @@
 set -euo pipefail
 source "$(cd "$(dirname "$0")/../env" && pwd)/load_env.sh"  # hosts: environment, hart.env, default
 PI_HOST="$HART_PI_SSH"
-PROFILE="TCS_MQTT.3f32a166"
+PROFILE="$HART_PI_PROFILE"
 WAIT_S=120
 
 read -r -d '' JYTHON <<'PY' || true

@@ -13,6 +13,7 @@ from hartlib import operations  # noqa: E402
 BASE = Path(__file__).resolve().parent.parent  # Car Cards project root (scripts live in card_pipeline/)
 ENGINE_ROSTER_XML = BASE / "data" / "OperationsEngineRoster.xml"
 
+# JMRI roster road codes -> display reporting marks, for every card and roster.
 ROAD_DISPLAY = {
     "NW": "N&W",
     "BO": "B&O",
