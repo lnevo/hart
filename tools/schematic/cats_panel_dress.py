@@ -3,20 +3,48 @@ words, and the desk's label clashes."""
 import copy
 import re
 import xml.etree.ElementTree as ET
+from collections.abc import Iterable, MutableMapping, Sequence
+from pathlib import Path
+from types import ModuleType
+from typing import NamedTuple
 
 from cats_panel_facts import CatsPanelError
 from hartlib import paths
 
-HEADER = paths.CATS_DIR / "data/generated_desk_header.xml"   # frozen from the live desk (2026-11-15)
+HEADER = paths.CATS_DIR / "data/generated_desk_header.xml"   # frozen from the live desk
 # The ABS twin: every CTC block ABS, and the plate's words (the hand-wired ABS desk's)
 ABS_PLATE = {"CTC DIGICON": "ABS DIGICON", "DS-CTC": "DS-ABS"}
 # The live desk's top-level order (HART_CTC.xml); the plugin's ROWWRAPTAG follows COMPRESSIONTAG
 ORDER = ("FONTDEFINITION", "LINE", "COUNTER", "SIGNALTEMPLATE", "TRAINSTORE", "JOBSTORE", "CREWSTORE",
          "COLORDEFINITION", "TRAINSTATLABEL", "COMPRESSIONTAG", "ROWWRAPTAG", "OPERATIONS", "JMRINAME", "TRACKPLAN")
 PLATE_PX = {"FONT_SUBTITLE": (9, 15)}   # pixels per character, line height, for plate fonts the plugin does not size
+LABEL_GAP_PX = 6                         # the clear space a plate keeps from every other label
+OS_SWITCH = re.compile(r"OS Switch (\d+)[a-d]?")   # a staging plant's OS block, its switch number in group 1
+
+Cell = tuple[int, int]          # a desk cell: (column, row)
+Fit = tuple[int, int]           # the desk window in cells: (columns, rows)
 
 
-def frozen_header(path=HEADER):
+class Box(NamedTuple):
+    """A label's extent in pixels, as the plugin's cats_px.frill_box gives it."""
+    left: int
+    top: int
+    right: int
+    bottom: int
+
+    def near(self, other: "Box", gap: int = LABEL_GAP_PX) -> bool:
+        """True when the two boxes overlap or come within `gap` pixels side to side."""
+        return (other.top < self.bottom and self.top < other.bottom
+                and other.left < self.right + gap and self.left < other.right + gap)
+
+
+class Label(NamedTuple):
+    """A desk label: the cell it is written in and its box."""
+    cell: Cell
+    box: Box
+
+
+def frozen_header(path: Path = HEADER) -> tuple[list[ET.Element], list[ET.Element]]:
     """The template's elements (comments left out) and the plate SECTIONs of its TRACKPLAN."""
     root = ET.parse(path).getroot()
     if root.tag != "DOCUMENT":
@@ -33,12 +61,26 @@ def frozen_header(path=HEADER):
     return [el for el in els if el.tag != "TRACKPLAN"], list(plan) if plan is not None else []
 
 
-def plate_box(cats, cell, loc, text, font):
+def plate_box(cats: ModuleType, cell: Cell, loc: str, text: str, font: str) -> Box:
+    """The box of label `text` in `font` at `loc` in `cell` (`cats`: the plugin's CATS module, its pixel sizes)."""
     per, h = PLATE_PX.get(font) or cats.TEXT_PX.get(font, cats.TEXT_PX["FONT_LABEL"])
-    return cats.frill_box(cell, loc, per * len(text) + 4, h)
+    return Box(*cats.frill_box(cell, loc, per * len(text) + 4, h))
 
 
-def right_edge(cats, fit) -> int:
+def _name_box(cats: ModuleType, cell: Cell, name: ET.Element) -> Box:
+    """plate_box of a SEC_NAME element's text."""
+    return plate_box(cats, cell, name.get("LOC_NAME", ""), name.get("NAME", ""), name.get("FONT_NAME", ""))
+
+
+def _cell(sec: ET.Element) -> Cell:
+    """A SECTION's cell; CatsPanelError when it has no whole-number X and Y."""
+    try:
+        return int(sec.get("X", "")), int(sec.get("Y", ""))
+    except ValueError as exc:
+        raise CatsPanelError(f"a desk SECTION has X {sec.get('X')!r}, Y {sec.get('Y')!r}: not a cell") from exc
+
+
+def right_edge(cats: ModuleType, fit: Fit) -> int:
     """The x, in pixels, no desk label may run past: the `fit` columns and one more, as dress keeps the frozen
     plate and station_plates the control point plates."""
     return (fit[0] + 1) * cats.GRID_PX
@@ -47,7 +89,9 @@ def right_edge(cats, fit) -> int:
 PLATE_FONT, PLATE_LOC = "FONT_CP", "LOWCENT"     # a control point plate, as the hand-built desk wrote them
 
 
-def station_plates(cats, root, stations, used: dict, boxes: list, fit) -> list[tuple[str, tuple[int, int]]]:
+def station_plates(cats: ModuleType, root: ET.Element, stations: Iterable[tuple[str, Sequence[str]]],
+                   used: MutableMapping[Cell, ET.Element | None], boxes: list[Label],
+                   fit: Fit) -> list[tuple[str, Cell]]:
     """[(text, cell)] of the control point plates (`stations`: [(name, switch numbers)] of stations.csv's desk_plate
     rows, read_stations), each the station's name in capitals in the free cell nearest the plant cells of its
     switches (digicon_trace.desk_plants: the bound staging plants), ties to the cell above, then to the left. A cell
@@ -63,34 +107,34 @@ def station_plates(cats, root, stations, used: dict, boxes: list, fit) -> list[t
     out = []
     for name, switches in stations:
         mine = [xy for os_name, xy in plants.items()
-                if re.fullmatch(r"OS Switch (\d+)[a-d]?", os_name)
-                and re.fullmatch(r"OS Switch (\d+)[a-d]?", os_name).group(1) in switches]
+                if (m := OS_SWITCH.fullmatch(os_name)) and m.group(1) in switches]
         if not mine:
             raise CatsPanelError(f"stations.csv: {name}'s plate: none of its switches ({', '.join(switches)}) has a "
                              "plant on the desk")
         cx, cy = sum(x for x, _ in mine) / len(mine), sum(y for _, y in mine) / len(mine)
         text = name.upper()
-        found = None
+        found: Label | None = None
         for cell in sorted(((x, y) for x in range(cols) for y in range(rows)),
                            key=lambda c: ((c[0] - cx) ** 2 + (c[1] - cy) ** 2, c[1], c[0])):
             box = plate_box(cats, cell, PLATE_LOC, text, PLATE_FONT)
-            spans = {(x, cell[1]) for x in range(box[0] // cats.GRID_PX, (box[2] - 1) // cats.GRID_PX + 1)}
-            if box[0] < 0 or box[2] > right_edge(cats, fit) or spans & set(used):
+            spans = {(x, cell[1]) for x in range(box.left // cats.GRID_PX, (box.right - 1) // cats.GRID_PX + 1)}
+            if box.left < 0 or box.right > right_edge(cats, fit) or spans & set(used):
                 continue
-            if any(b[1] < box[3] and box[1] < b[3] and b[0] < box[2] + 6 and box[0] < b[2] + 6 for _c, b in boxes):
+            if any(box.near(other.box) for other in boxes):
                 continue
-            found = (cell, box)
+            found = Label(cell, box)
             break
         if found is None:
             raise CatsPanelError(f"stations.csv: no free cell on the desk for {name}'s plate {text!r} (the desk keeps "
                              f"its {cols} x {rows} cells)")
-        used[found[0]] = None
+        used[found.cell] = None
         boxes.append(found)
-        out.append((text, found[0]))
+        out.append((text, found.cell))
     return out
 
 
-def dress(cats, root, header, plate, desk, fit, stations=None):
+def dress(cats: ModuleType, root: ET.Element, header: Sequence[ET.Element], plate: Iterable[ET.Element],
+          desk: str, fit: Fit, stations: Iterable[tuple[str, Sequence[str]]] | None = None) -> str:
     """The generated document `root` with the frozen header and the plate: the template's fonts the plugin does
     not write (its own keep their values), the template's other elements in place of the plugin's copies, every
     element in the live desk's order, and the plate's labels on free cells of their row, clear of each other and of
@@ -115,33 +159,35 @@ def dress(cats, root, header, plate, desk, fit, stations=None):
     for el in sorted(picked, key=lambda el: ORDER.index(el.tag)):
         root.append(el)
     tp = root.find("TRACKPLAN")
-    where = {(int(sec.get("X")), int(sec.get("Y"))): sec for sec in tp.findall("SECTION")}
+    if tp is None:
+        raise CatsPanelError("the generated desk has no TRACKPLAN")
+    where: dict[Cell, ET.Element | None] = {_cell(sec): sec for sec in tp.findall("SECTION")}
     boxes = []
     for sec in tp.findall("SECTION"):
         n = sec.find("SEC_NAME")
         if n is not None:
-            cell = (int(sec.get("X")), int(sec.get("Y")))
-            boxes.append((cell, plate_box(cats, cell, n.get("LOC_NAME"), n.get("NAME"), n.get("FONT_NAME"))))
+            cell = _cell(sec)
+            boxes.append(Label(cell, _name_box(cats, cell, n)))
     for sec in plate:
         sec = copy.deepcopy(sec)
-        cell = (int(sec.get("X")), int(sec.get("Y")))
+        cell = _cell(sec)
         n = sec.find("SEC_NAME")
         if n is None or len(sec) != 1:
             raise CatsPanelError(f"{HEADER.name}: plate cell {cell} holds one SEC_NAME and nothing else")
         if desk == "ABS":
-            text = n.get("NAME")
+            text = n.get("NAME", "")
             for ctc, abs_ in ABS_PLATE.items():
                 text = text.replace(ctc, abs_)
             n.set("NAME", text)
         if cell in where:
             raise CatsPanelError(f"{HEADER.name}: plate cell {cell} ({n.get('NAME')}) is a cell the desk uses")
-        box = plate_box(cats, cell, n.get("LOC_NAME"), n.get("NAME"), n.get("FONT_NAME"))
-        hit = [c for c, b in boxes if b[1] < box[3] and box[1] < b[3] and b[0] < box[2] + 6 and box[0] < b[2] + 6]
+        box = _name_box(cats, cell, n)
+        hit = [other.cell for other in boxes if box.near(other.box)]
         if hit:
             raise CatsPanelError(f"{HEADER.name}: plate label {n.get('NAME')!r} at {cell} runs into the label at {hit[0]}")
-        if box[2] > right_edge(cats, fit):
+        if box.right > right_edge(cats, fit):
             raise CatsPanelError(f"{HEADER.name}: plate label {n.get('NAME')!r} at {cell} runs past column {fit[0]}")
-        boxes.append((cell, box))
+        boxes.append(Label(cell, box))
         where[cell] = sec
     for text, cell in station_plates(cats, root, stations or [], where, boxes, fit):
         sec = ET.Element("SECTION", X=str(cell[0]), Y=str(cell[1]))
@@ -150,7 +196,10 @@ def dress(cats, root, header, plate, desk, fit, stations=None):
     for sec in tp.findall("SECTION"):
         tp.remove(sec)
     for cell in sorted(where, key=lambda c: (c[1], c[0])):
-        tp.append(where[cell])
+        placed = where[cell]
+        if placed is None:
+            raise CatsPanelError(f"desk cell {cell} holds a station plate with no SECTION")
+        tp.append(placed)
     if desk == "ABS":
         for b in root.iter("BLOCK"):
             if b.get("DISCIPLINE") == "CTC":
@@ -159,7 +208,7 @@ def dress(cats, root, header, plate, desk, fit, stations=None):
     return "<?xml version='1.0' encoding='UTF-8'?>\n" + ET.tostring(root, encoding="unicode") + "\n"
 
 
-def label_clashes(log):
+def label_clashes(log: Iterable[str]) -> list[str]:
     """The plugin's log lines (cats_labels.place_labels' words) for a label with no room or crossing something."""
     return [line for line in log if line.startswith("no room for label")
             or (line.startswith("label ") and " crosses " in line)]

@@ -356,5 +356,25 @@ class TestDeskErrors(unittest.TestCase):
             self.assertEqual(list(cp._DRAWN_KEYS), [field.resolve()])   # one entry per master: the latest read
 
 
+class DressBoxes(unittest.TestCase):
+    """cats_panel_dress's label boxes: two labels clash when they overlap or come within LABEL_GAP_PX side to side,
+    and a SECTION with no whole-number cell stops the build."""
+
+    def test_near_counts_the_gap_side_to_side_only(self):
+        import cats_panel_dress as dress
+        a = dress.Box(0, 0, 10, 10)
+        self.assertTrue(a.near(dress.Box(15, 0, 20, 10)))           # 5 px apart: inside the 6 px gap
+        self.assertFalse(a.near(dress.Box(16, 0, 20, 10)))          # 6 px apart: clear
+        self.assertFalse(a.near(dress.Box(0, 10, 10, 20)))          # touching above and below: clear
+        self.assertTrue(dress.Box(15, 0, 20, 10).near(a))
+
+    def test_a_section_without_a_cell_stops(self):
+        import xml.etree.ElementTree as ET
+        import cats_panel_dress as dress
+        self.assertEqual(dress._cell(ET.Element("SECTION", X="3", Y="4")), (3, 4))
+        with self.assertRaisesRegex(B.CatsPanelError, "X '3', Y None: not a cell"):
+            dress._cell(ET.Element("SECTION", X="3"))
+
+
 if __name__ == "__main__":
     unittest.main()
