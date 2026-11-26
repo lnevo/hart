@@ -30,4 +30,4 @@ Chat is a scratchpad. Decisions that count live here.
 - **What writes or reads a file:** query [`../docs/pipeline-map/pipeline_map.json`](../docs/pipeline-map/pipeline_map.json), the graph of every source, generator and output. Each node has `id`, `path`, `kind`, `status` and `desc`; each edge runs `from` a node `to` the node it feeds. A file's writers are the nodes with an edge into it; its readers are the nodes its edges lead to.
 - **Routes and aspects:** CATS owns routes (`HART_CTC.xml`, `HOLD_ONLY`); JMRI Signal Mast Logic owns aspects (stock Basic appearances, ADR-011). `cats/` is the CTC overlay only.
 - **Gitignored data:** `media/`, `ops/car-cards/`, `docs/wiring/bench/`, and the STS database and backups. Git does not protect these.
-- **Older context:** linear4 and NextTrain history is in [`../archive/docs/AI_CONTEXT_history.md`](../archive/history/docs/AI_CONTEXT_history.md).
+- **Older context:** linear4 and NextTrain history is in [`../archive/history/docs/AI_CONTEXT_history.md`](../archive/history/docs/AI_CONTEXT_history.md).
