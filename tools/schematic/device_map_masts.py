@@ -131,11 +131,12 @@ def wired_heads(field: dict, path: Path | None = None, files: devices.Files | No
 
 
 def block_cm(rows: list, path: Path | None = None) -> dict:
-    """{block: cm} of the plan lengths in block_lengths.csv (`path`, default the repo's; hartlib.railroad.plan_cm), each
+    """{block: cm} of the plan lengths in block_lengths.csv (`path`, default the repo's; hartlib.block_lengths), each
     found by its (level, id) and named by its row in `rows` (the master's rows as the builder writes them), not by
-    the file's user_name label, which the length-labels step writes after the device map."""
-    lengths = railroad.read_block_lengths(path or railroad.Sources.under().block_lengths)
-    by_id = {(b.level, b.id): cm for b, cm in zip(lengths.values(), railroad.plan_cm(lengths).values())}
+    the device master the last run wrote."""
+    from hartlib import block_lengths
+    plan = block_lengths.read_plan(path or block_lengths.PLAN)
+    by_id = {(b.level, b.id): b.plan_in * 2.54 for b in plan.values()}
     return {r["user_name"]: by_id[(r["level"], r["id"])] for r in rows
             if r["level"] == str(LEVEL) and r["layer"] == "block" and (r["level"], r["id"]) in by_id}
 

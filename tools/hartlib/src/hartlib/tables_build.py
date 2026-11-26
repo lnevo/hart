@@ -14,7 +14,7 @@ tables.xml is an output. tools/schematic/build_tables.py writes it from:
                                                       heads, masts, blocks and layout blocks, and the startup LogixNG
                                                       that sets each virtual detector and turnout when the tables load
                                                       (base); the Layout Editor build adds only the panels on top
-    jmri/layouts/hart/data/block_lengths.csv          each block's length (railroad.read_block_lengths)
+    jmri/layouts/hart/data/block_lengths.csv          each block's operating length (block_lengths.operating_lengths)
     jmri/layouts/hart/data/schematic/discovered_sml.xml   DISCOVERED: the Signal Mast Logic and the mast properties
                                                       (intermediateSignal) stock discovery wrote, taken from a
                                                       discovery Store by build_tables.py --discovered-from, the only
@@ -47,7 +47,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Iterable, Mapping
 
-from . import devices, level_devices, paths, railroad, tables
+from . import block_lengths, devices, level_devices, paths, railroad, tables
 
 TEMPLATE = paths.LAYOUT_DATA / "tables_template.xml"
 DISCOVERED = paths.LAYOUT_DATA / "schematic" / "discovered_sml.xml"
@@ -685,15 +685,15 @@ def start_actions(rows: Iterable[Mapping[str, str]]) -> list[ET.Element]:
             for layer, group in groups.items() for bean, action, state in sorted(group)]
 
 
-def block_beans(r: Mapping[str, str], name: str, length: railroad.BlockLength, sensor: str | None,
+def block_beans(r: Mapping[str, str], name: str, length: float, sensor: str | None,
                 comment: str) -> tuple[ET.Element, ET.Element, ET.Element]:
-    """A block row's names-only block, full block (its plan length) and layout block, the last two on `sensor` (a
+    """A block row's names-only block, full block (`length`: its operating length in inches) and layout block, the last two on `sensor` (a
     detector's user name) when it has one."""
     user = r["user_name"]
     names_only = ET.Element("block", {"systemName": name})
     _sub(names_only, "systemName", name)
     _sub(names_only, "userName", user)
-    full = _named("block", {"systemName": name, "length": f"{length.plan_in * MM_PER_INCH:.1f}", "curve": "0"},
+    full = _named("block", {"systemName": name, "length": f"{length * MM_PER_INCH:.1f}", "curve": "0"},
                   name, user, comment)
     _sub(full, "permissive", "no")
     lb_attrs = {"systemName": r["layout_block"]}
@@ -720,7 +720,7 @@ def mast_bean(name: str, user: str, comment: str) -> ET.Element | None:
     return el
 
 
-def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, railroad.BlockLength],
+def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, float],
                  levels: Iterable[str] | None = None) -> dict[tuple, list[ET.Element]]:
     """{section: [bean, ...]} of the master rows of `levels` (default every level a row has: what build_tables.py
     writes; a level-less row's beans are its jmri_bean's, kept_beans), a block's names-only pass first under
@@ -807,7 +807,7 @@ def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, railro
 
 
 def base(rows: Iterable[Mapping[str, str]] | None = None, template: Path = TEMPLATE,
-         lengths: Mapping[str, railroad.BlockLength] | None = None) -> tables.Tables:
+         lengths: Mapping[str, float] | None = None) -> tables.Tables:
     """The template with every level's master beans in it (master_beans, naming-layers step 11) and the startup
     LogixNG around their startup actions (start_logixng), each section's beans in JMRI order: what the Layout Editor
     build draws its panels on, adding no bean. TablesBuildError when a master bean's system or user name is the
@@ -815,7 +815,7 @@ def base(rows: Iterable[Mapping[str, str]] | None = None, template: Path = TEMPL
     doc = read_template(template)
     rows = devices.load() if rows is None else list(rows)
     try:
-        lengths = railroad.read_block_lengths(BLOCK_LENGTHS) if lengths is None else lengths
+        lengths = block_lengths.operating_lengths(BLOCK_LENGTHS) if lengths is None else lengths     # ADR-039 L8
     except railroad.FactsError as exc:
         raise TablesBuildError(str(exc)) from None
     beans = master_beans(rows, lengths)

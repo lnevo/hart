@@ -3296,14 +3296,14 @@
       <systemName>IB:C3:0122</systemName>
       <userName>Track 227-241 2</userName>
     </block>
-    <block systemName="IB1" length="281.9" curve="0">
+    <block systemName="IB1" length="452.1" curve="0">
       <systemName>IB1</systemName>
       <userName>OS Switch 13</userName>
       <comment>Block 3-1 / M2S300; Hand-throw west of South Yard Switch 15</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 13</occupancysensor>
     </block>
-    <block systemName="IB3" length="4013.2" curve="0">
+    <block systemName="IB3" length="3680.5" curve="0">
       <systemName>IB3</systemName>
       <userName>Track Scale</userName>
       <comment>Block 4-8 / M2S407; Plane diverging lead to Track Barn</comment>
@@ -3324,7 +3324,7 @@
       <permissive>no</permissive>
       <occupancysensor>BS Switch 7</occupancysensor>
     </block>
-    <block systemName="IB15" length="795.0" curve="0">
+    <block systemName="IB15" length="866.1" curve="0">
       <systemName>IB15</systemName>
       <userName>Track Barn</userName>
       <comment>Block 13-1 / M2S1300; Lead Switch 7 to Switch 13</comment>
@@ -3380,21 +3380,21 @@
       <permissive>no</permissive>
       <occupancysensor>BS Helix Inner</occupancysensor>
     </block>
-    <block systemName="IB:AUTO:0001" length="7866.4" curve="0">
+    <block systemName="IB:AUTO:0001" length="8003.5" curve="0">
       <systemName>IB:AUTO:0001</systemName>
       <userName>Track Main East</userName>
       <comment>Block 2-3 / M2S202; Main east of East End</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Main East</occupancysensor>
     </block>
-    <block systemName="IB:AUTO:0003" length="5867.4" curve="0">
+    <block systemName="IB:AUTO:0003" length="5519.4" curve="0">
       <systemName>IB:AUTO:0003</systemName>
       <userName>Track Main West</userName>
       <comment>Block 2-1 / M2S200; Main west of Brick toward East End</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Main West</occupancysensor>
     </block>
-    <block systemName="IB:AUTO:0005" length="1818.6" curve="0">
+    <block systemName="IB:AUTO:0005" length="1475.7" curve="0">
       <systemName>IB:AUTO:0005</systemName>
       <userName>Track Brick-Plane</userName>
       <comment>Block 4-6 / M2S405; Track Main West between Brick and Plane</comment>
@@ -3415,7 +3415,7 @@
       <permissive>no</permissive>
       <occupancysensor>BS S-3</occupancysensor>
     </block>
-    <block systemName="IB:AUTO:0010" length="3121.7" curve="0">
+    <block systemName="IB:AUTO:0010" length="3142.0" curve="0">
       <systemName>IB:AUTO:0010</systemName>
       <userName>Track K-1</userName>
       <comment>Block 1-1 / M2S100; Princess balloon, Track K-1</comment>
@@ -3436,7 +3436,7 @@
       <permissive>no</permissive>
       <occupancysensor>BS S-1</occupancysensor>
     </block>
-    <block systemName="IB:AUTO:0017" length="2740.7" curve="0">
+    <block systemName="IB:AUTO:0017" length="2631.4" curve="0">
       <systemName>IB:AUTO:0017</systemName>
       <userName>Track East Lead</userName>
       <comment>Block 1-7 / M2S106; South Yard lead east of Switch 31/33 toward Princess</comment>
@@ -3464,35 +3464,35 @@
       <permissive>no</permissive>
       <occupancysensor>BS S-2</occupancysensor>
     </block>
-    <block systemName="IB:AUTO:0030" length="233.7" curve="0">
+    <block systemName="IB:AUTO:0030" length="315.0" curve="0">
       <systemName>IB:AUTO:0030</systemName>
       <userName>OS Switch 33</userName>
       <comment>Block 12-8 / M2S1207; East End, Switch 33</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 33</occupancysensor>
     </block>
-    <block systemName="IB:AUTO:0031" length="281.9" curve="0">
+    <block systemName="IB:AUTO:0031" length="624.8" curve="0">
       <systemName>IB:AUTO:0031</systemName>
       <userName>OS Switch 5</userName>
       <comment>Block 4-5 / M2S404; Plane CP, Switch 5</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 5</occupancysensor>
     </block>
-    <block systemName="IB:AUTO:0032" length="233.7" curve="0">
+    <block systemName="IB:AUTO:0032" length="419.1" curve="0">
       <systemName>IB:AUTO:0032</systemName>
       <userName>OS Switch 37</userName>
       <comment>Block 1-3 / M2S102; Princess, Switch 37</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 37</occupancysensor>
     </block>
-    <block systemName="IB:AUTO:0033" length="233.7" curve="0">
+    <block systemName="IB:AUTO:0033" length="447.0" curve="0">
       <systemName>IB:AUTO:0033</systemName>
       <userName>OS Switch 1</userName>
       <comment>Block 4-2 / M2S401; Brick CP, Switch 1</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 1</occupancysensor>
     </block>
-    <block systemName="IB:AUTO:0034" length="233.7" curve="0">
+    <block systemName="IB:AUTO:0034" length="596.9" curve="0">
       <systemName>IB:AUTO:0034</systemName>
       <userName>OS Switch 23a</userName>
       <comment>Block 12-4 / M2S1203; East End crossover Switch 23 north/west leg</comment>
@@ -3534,14 +3534,14 @@
       <permissive>no</permissive>
       <occupancysensor>BS Switch 23b</occupancysensor>
     </block>
-    <block systemName="IB:AUTO:0040" length="233.7" curve="0">
+    <block systemName="IB:AUTO:0040" length="243.8" curve="0">
       <systemName>IB:AUTO:0040</systemName>
       <userName>OS Switch 39</userName>
       <comment>Block 1-4 / M2S103; Princess, Switch 39</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 39</occupancysensor>
     </block>
-    <block systemName="IB:AUTO:0041" length="233.7" curve="0">
+    <block systemName="IB:AUTO:0041" length="111.8" curve="0">
       <systemName>IB:AUTO:0041</systemName>
       <userName>OS Switch 15</userName>
       <comment>Block 3-2 / M2S301; South Yard, Switch 15</comment>
@@ -3576,35 +3576,35 @@
       <permissive>no</permissive>
       <occupancysensor>BS Switch 19</occupancysensor>
     </block>
-    <block systemName="IB:AUTO:0046" length="233.7" curve="0">
+    <block systemName="IB:AUTO:0046" length="190.5" curve="0">
       <systemName>IB:AUTO:0046</systemName>
       <userName>OS Switch 35a</userName>
       <comment>Block 1-6 / M2S105; Princess crossover Switch 35 south/yard leg, with the track to Switch 37 (gap at Switch 37's points)</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 35a</occupancysensor>
     </block>
-    <block systemName="IB:AUTO:0047" length="233.7" curve="0">
+    <block systemName="IB:AUTO:0047" length="520.7" curve="0">
       <systemName>IB:AUTO:0047</systemName>
       <userName>OS Switch 35b</userName>
       <comment>Block 1-5 / M2S104; Princess crossover Switch 35 north/main leg</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 35b</occupancysensor>
     </block>
-    <block systemName="IB:AUTO:0048" length="3121.7" curve="0">
+    <block systemName="IB:AUTO:0048" length="2885.4" curve="0">
       <systemName>IB:AUTO:0048</systemName>
       <userName>Track K-2</userName>
       <comment>Block 1-2 / M2S101; Princess balloon, Track K-2</comment>
       <permissive>no</permissive>
       <occupancysensor>BS K-2</occupancysensor>
     </block>
-    <block systemName="IB:AUTO:0050" length="4297.7" curve="0">
+    <block systemName="IB:AUTO:0050" length="3964.9" curve="0">
       <systemName>IB:AUTO:0050</systemName>
       <userName>Track West Ext</userName>
       <comment>Block 1-8 / M2S107; Track Main West stub west of Switch 23</comment>
       <permissive>no</permissive>
       <occupancysensor>BS West Ext</occupancysensor>
     </block>
-    <block systemName="IB:AUTO:0051" length="3926.8" curve="0">
+    <block systemName="IB:AUTO:0051" length="3576.3" curve="0">
       <systemName>IB:AUTO:0051</systemName>
       <userName>Track East Ext</userName>
       <comment>Block 4-7 / M2S406; Main east of Plane toward Track Barn</comment>

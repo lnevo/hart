@@ -53,7 +53,7 @@ class RenameById(unittest.TestCase):
         cls.tmp = tempfile.TemporaryDirectory()
         cls.data = Path(cls.tmp.name)
         for name in (devices.GENERATED_FILE, devices.FIELD_FILE, "devices.columns.csv", "wiring.csv",
-                     "block_lengths.csv", "switches.csv"):
+                     "block_lengths.csv", "block_lengths_measured.csv", "switches.csv"):
             shutil.copy(paths.LAYOUT_DATA / name, cls.data / name)
         (cls.data / "schematic").mkdir()
         shutil.copy(paths.LAYOUT_DATA / "schematic/main_lines.csv", cls.data / "schematic/main_lines.csv")
@@ -99,16 +99,15 @@ class RenameById(unittest.TestCase):
         got = {w.id: w.device for w in wiring.read(tmp / "wiring.csv", levels=(1,), files=files)}
         self.assertEqual((got["switch:19"], got["det:os:19"]), ("Switch 19", "OS South 19"))
 
-    def test_block_lengths_relabel_and_keep_their_lengths(self) -> None:
-        import plan_lengths
-        text = plan_lengths.labelled(self.data / "block_lengths.csv", self.files)
-        rows = {(r["level"], r["id"]): r for r in csv.DictReader(io.StringIO(text))}
-        old = {(r["level"], r["id"]): r for r in csv.DictReader(io.StringIO(self.before["block_lengths.csv"].decode()))}
+    def test_block_lengths_take_the_new_names_and_keep_their_lengths(self) -> None:
+        from hartlib import block_lengths
+        got = {(b.level, b.id): b for b in block_lengths.plan_blocks(self.data / "block_lengths.csv", self.files).values()}
+        before = {(b.level, b.id): b for b in block_lengths.plan_blocks(block_lengths.PLAN).values()}
         for key, name in RENAMES.items():
-            self.assertEqual(rows[key]["user_name"], name)
-            self.assertEqual({k: v for k, v in rows[key].items() if k != "user_name"},
-                             {k: v for k, v in old[key].items() if k != "user_name"})
-        self.assertEqual(len(rows), len(old))
+            if key in got:
+                self.assertEqual(got[key].user_name, name)
+                self.assertEqual(got[key].plan_in, before[key].plan_in)
+        self.assertEqual(len(got), len(before))
 
     def test_switches_csv_labels_follow_the_store(self) -> None:
         import build_hands
@@ -204,7 +203,7 @@ class RenameCrossoverHalf(unittest.TestCase):
         cls.tmp = tempfile.TemporaryDirectory()
         cls.data = Path(cls.tmp.name)
         for name in (devices.GENERATED_FILE, devices.FIELD_FILE, "devices.columns.csv", "wiring.csv",
-                     "block_lengths.csv", "switches.csv"):
+                     "block_lengths.csv", "block_lengths_measured.csv", "switches.csv"):
             shutil.copy(paths.LAYOUT_DATA / name, cls.data / name)
         cls.schematic = cls.data / "schematic"
         shutil.copytree(paths.LAYOUT_DATA / "schematic", cls.schematic, symlinks=True)
@@ -279,13 +278,9 @@ class RenameCrossoverHalf(unittest.TestCase):
         self.assertEqual(cats_panel.os_plates(F), {self.NEW: "23a", "OS Switch 23b": "23b"})
 
     def test_the_staging_beans_take_the_new_name(self) -> None:
-        import plan_lengths
-        from hartlib import railroad_facts, tables_build
-        lengths_path = self.data / "relabelled" / "block_lengths.csv"
-        lengths_path.parent.mkdir(exist_ok=True)
-        lengths_path.write_text(plan_lengths.labelled(self.data / "block_lengths.csv", self.files), encoding="utf-8")
-        beans = tables_build.master_beans(devices.load(self.files), railroad_facts.read_block_lengths(lengths_path),
-                                          ("1",))
+        from hartlib import block_lengths, tables_build
+        lengths = block_lengths.operating_lengths(self.data / "block_lengths.csv", self.files)
+        beans = tables_build.master_beans(devices.load(self.files), lengths, ("1",))
         names = {(e.tag, e.findtext("userName")) for section in beans.values() for e in section}
         self.assertIn(("block", self.NEW), names)
         self.assertFalse([n for n in names if n[1] == self.OLD])

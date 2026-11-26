@@ -133,15 +133,21 @@ class EdgeRuns(unittest.TestCase):
 IDS = {("1", "Track A"): "block:A", ("1", "Track B"): "block:B", ("1", "OS Switch 1"): "os:1",
        ("1", "Track 1-3 at 1"): "block:1B-3A:1/2", ("1", "Track Gone"): "block:gone",
        ("2", "OS Switch 101"): "os:101", ("2", "Track 117-119"): "block:117B-119A", ("3", "Track 201-203"): "block:201B-203A"}
+NAMES = {v: name for (_level, name), v in IDS.items()}
 
 
-def row(level, name, *rest):
-    """A block_lengths.csv row (BLOCK_LENGTH_COLUMNS) of block `name` on `level`, its id from IDS."""
-    return [level, IDS[(level, name)], name, *rest]
+def row(level, name, plan_in, note=""):
+    """A block_lengths.csv row (block_lengths.PLAN_COLUMNS) of block `name` on `level`, its id from IDS."""
+    return [level, IDS[(level, name)], plan_in, note]
 
 
 def csv_with(*args, **kw):
     return PL.csv_with(*args, ids=IDS, **kw)
+
+
+def named(text):
+    """The rows of a written plan file, each with its block's name from IDS."""
+    return [dict(r, name=NAMES.get(r["id"], r["id"])) for r in csv.DictReader(io.StringIO(text))]
 
 
 class CsvWith(unittest.TestCase):
@@ -149,88 +155,57 @@ class CsvWith(unittest.TestCase):
         p = Path(tempfile.mkdtemp()) / "block_lengths.csv"
         buf = io.StringIO()
         w = csv.writer(buf, lineterminator="\n")
-        w.writerow(PL.railroad.BLOCK_LENGTH_COLUMNS)
+        w.writerow(PL.block_lengths.PLAN_COLUMNS)
         w.writerows(rows)
         p.write_text(buf.getvalue(), encoding="utf-8")
         return p
 
-    def test_plan_in_is_written_and_the_rest_kept(self):
-        p = self.write([row("1", "Track A", "x", "1.0", "", "plan", ""), row("1", "OS Switch 1", "x", "1.0", "22.6", "timed", "laps")])
-        got = list(csv.DictReader(io.StringIO(csv_with({"Track A": 104.04, "OS Switch 1": 9.2}, {}, p))))
-        self.assertEqual([(r["user_name"], r["plan_in"], r["measured_in"], r["note"]) for r in got],
-                         [("Track A", "104.0", "", ""), ("OS Switch 1", "9.2", "22.6", "laps")])
+    def test_plan_in_is_written_and_the_note_kept(self):
+        p = self.write([row("1", "Track A", "1.0"), row("1", "OS Switch 1", "1.0", "a note")])
+        got = named(csv_with({"Track A": 104.04, "OS Switch 1": 9.2}, {}, p))
+        self.assertEqual([(r["name"], r["plan_in"], r["note"]) for r in got],
+                         [("Track A", "104.0", ""), ("OS Switch 1", "9.2", "a note")])
+        self.assertEqual(list(got[0])[:4], list(PL.block_lengths.PLAN_COLUMNS))     # no names, no measured length
 
     def test_main_and_upper_rows_are_written_after_staging_in_level_and_name_order(self):
-        p = self.write([row("1", "Track A", "x", "1.0", "", "plan", ""), row("3", "Track 201-203", "BS 201-203", "3.0", "", "plan", "")])
-        got = list(csv.DictReader(io.StringIO(csv_with(
+        p = self.write([row("1", "Track A", "1.0"), row("3", "Track 201-203", "3.0")])
+        got = named(csv_with(
             {"Track A": 1.0}, {"Track 201-203": ("3", 7.04, "OS Switch 201"), "OS Switch 101": ("2", 16.0, "OS Switch 101"),
-                               "Track 117-119": ("2", 0.0, "OS Switch 117")}, p))))
-        # a part (201-203, 117-119) carries its OS block's sensor; a link whose turnouts touch is 0 in long
-        self.assertEqual([(r["user_name"], r["occupancy_sensor"], r["plan_in"], r["source"]) for r in got],
-                         [("Track A", "x", "1.0", "plan"), ("OS Switch 101", "BS Switch 101", "16.0", "plan"),
-                          ("Track 117-119", "BS Switch 117", "0.0", "plan"),
-                          ("Track 201-203", "BS Switch 201", "7.0", "plan")])  # a part: its block's sensor again
+                               "Track 117-119": ("2", 0.0, "OS Switch 117")}, p))
+        # a link whose turnouts touch is 0 in long; a new row says it is the plan's length
+        self.assertEqual([(r["name"], r["plan_in"], r["note"]) for r in got],
+                         [("Track A", "1.0", ""), ("OS Switch 101", "16.0", "main level, the plan's length"),
+                          ("Track 117-119", "0.0", "main level, the plan's length"), ("Track 201-203", "7.0", "")])
 
-    def test_a_main_or_upper_row_keeps_its_own_columns(self):
-        p = self.write([row("1", "Track A", "x", "1.0", "", "plan", ""),
-                        row("3", "Track 201-203", "BS Switch 201", "3.0", "4.4", "timed", "laps")])
-        got = list(csv.DictReader(io.StringIO(csv_with({"Track A": 1.0}, {"Track 201-203": ("3", 7.04, "OS Switch 201")},
-                                                          p))))
-        self.assertEqual([(r["user_name"], r["plan_in"], r["measured_in"], r["source"], r["note"]) for r in got],
-                         [("Track A", "1.0", "", "plan", ""), ("Track 201-203", "7.0", "4.4", "timed", "laps")])
-
-    def test_a_parts_sensor_follows_its_block_every_build(self):
-        """A part reports on its block's detector (owner, 2026-11-20): its occupancy_sensor is set from that block's
-        row on every build, staging and main or upper alike, so a rewired block takes its parts with it."""
-        p = self.write([row("1", "OS Switch 1", "Block 4-9", "9.0", "", "plan", ""),
-                        row("1", "Track 1-3 at 1", "Block 4-2", "5.0", "", "plan", "kept"),
-                        row("3", "Track 201-203", "BS Switch 299", "3.0", "", "plan", "")])
-        got = list(csv.DictReader(io.StringIO(csv_with(
-            {"OS Switch 1": 9.0, "Track 1-3 at 1": 5.0}, {"Track 201-203": ("3", 7.04, "OS Switch 201")}, p,
-            parts={"Track 1-3 at 1": "OS Switch 1"}))))
-        self.assertEqual([(r["user_name"], r["occupancy_sensor"], r["note"]) for r in got],
-                         [("OS Switch 1", "Block 4-9", ""), ("Track 1-3 at 1", "Block 4-9", "kept"),
-                          ("Track 201-203", "BS Switch 201", "")])
+    def test_a_new_staging_part_gets_a_row(self):
+        p = self.write([row("1", "OS Switch 1", "9.0")])
+        got = named(csv_with({"OS Switch 1": 9.0, "Track 1-3 at 1": 5.0}, {}, p, parts={"Track 1-3 at 1": "OS Switch 1"}))
+        self.assertEqual([(r["name"], r["plan_in"], r["note"]) for r in got],
+                         [("OS Switch 1", "9.0", ""),
+                          ("Track 1-3 at 1", "5.0", "staging, the plan's length; a part of OS Switch 1, on its detector")])
 
     def test_the_file_and_the_drawing_must_hold_the_same_blocks(self):
-        p = self.write([row("1", "Track A", "x", "1.0", "", "plan", "")])
+        p = self.write([row("1", "Track A", "1.0")])
         with self.assertRaisesRegex(PL.LengthError, r"only drawn \['Track B'\]"):
             csv_with({"Track A": 1.0, "Track B": 2.0}, {}, p)
-        p = self.write([row("1", "Track A", "x", "1.0", "", "plan", ""), row("1", "Track Gone", "x", "1.0", "", "plan", "")])
-        with self.assertRaisesRegex(PL.LengthError,
-                                    r"rows of no drawn block on any level: \['Track Gone \(block:gone\)'\]"):
+        p = self.write([row("1", "Track A", "1.0"), row("1", "Track Gone", "1.0")])
+        with self.assertRaisesRegex(PL.LengthError, r"rows of no drawn block on any level: \['block:gone'\]"):
             csv_with({"Track A": 1.0}, {}, p)
 
-
     def test_a_row_is_found_by_its_blocks_id_so_a_rename_keeps_it(self):
-        """naming-layers step 5: a length worked out by name finds its row by (level, id); a renamed block's row keeps
-        its measured length and takes the new name as its label. A block with no id stops."""
-        p = self.write([row("1", "OS Switch 1", "Block 4-9", "9.0", "22.6", "timed", "laps")])
+        """naming-layers step 5: a length worked out by name finds its row by (level, id), so a renamed block keeps
+        its row. A block with no id stops."""
+        p = self.write([row("1", "OS Switch 1", "9.0", "kept")])
         got = list(csv.DictReader(io.StringIO(PL.csv_with({"OS Brick": 9.2}, {}, p, ids={("1", "OS Brick"): "os:1"}))))
-        self.assertEqual([(r["level"], r["id"], r["user_name"], r["plan_in"], r["measured_in"]) for r in got],
-                         [("1", "os:1", "OS Brick", "9.2", "22.6")])
+        self.assertEqual([(r["level"], r["id"], r["plan_in"], r["note"]) for r in got], [("1", "os:1", "9.2", "kept")])
         with self.assertRaisesRegex(PL.LengthError, r"blocks with no device ID in the device master: \['Track Z'\]"):
             PL.csv_with({"OS Switch 1": 9.0, "Track Z": 1.0}, {}, p, ids=IDS)
 
-
-class Labels(unittest.TestCase):
-    """plan_lengths.labelled (--labels, the length-labels step): each row's user_name is the name store's for its
-    (level, id), nothing else changed; no plan file needed."""
-
-    def test_a_stale_label_is_the_name_stores_again(self):
-        text = PL.LENGTHS.read_text(encoding="utf-8")
-        self.assertEqual(PL.labelled(), text)                    # the committed labels are current
+    def test_a_file_with_other_columns_stops(self):
         p = Path(tempfile.mkdtemp()) / "block_lengths.csv"
-        p.write_text(text.replace("1,block:3B-end,Track W-1,", "1,block:3B-end,Track Old,"), encoding="utf-8")
-        self.assertEqual(PL.labelled(p), text)
-        self.assertEqual(PL.main(["--labels", "--check"]), 0)
-
-    def test_an_id_the_device_master_does_not_have_stops(self):
-        p = Path(tempfile.mkdtemp()) / "block_lengths.csv"
-        p.write_text(PL.LENGTHS.read_text(encoding="utf-8").replace("1,block:3B-end,", "1,block:3Z-end,"),
-                     encoding="utf-8")
-        with self.assertRaisesRegex(PL.LengthError, "line 2: block:3Z-end is no level 1 device of the device master"):
-            PL.labelled(p)
+        p.write_text("level,id,user_name,plan_in,note\n1,block:A,Track A,1.0,\n", encoding="utf-8")
+        with self.assertRaisesRegex(PL.LengthError, "columns are not level, id, plan_in, note"):
+            csv_with({"Track A": 1.0}, {}, p)
 
 
 class MainUpper(unittest.TestCase):
@@ -301,18 +276,18 @@ class MainUpper(unittest.TestCase):
 
 class Repo(unittest.TestCase):
     def test_the_os_rows_hold_their_turnout_lengths(self):
-        rows = PL.railroad.read_block_lengths(PL.LENGTHS)
+        rows = PL.block_lengths.plan_blocks(PL.LENGTHS)
         for name, b in rows.items():
             if name.startswith("OS ") and b.occupancy_sensor.startswith("Block "):      # staging's
                 self.assertIn(b.plan_in, (9.2, 11.1), name)
 
     def test_every_main_and_upper_block_has_a_plan_length(self):
         from hartlib import devices
-        rows = PL.railroad.read_block_lengths(PL.LENGTHS)
+        rows = PL.block_lengths.plan_blocks(PL.LENGTHS)
         want = {r["user_name"] for r in devices.load(devices.master_path(PL.pd.DATA.parents[0]))
                 if r["level"] in ("2", "3") and r["layer"] == "block" and r["role"] != "part"}
         self.assertEqual(sorted(want - set(rows)), [])
-        self.assertFalse(hasattr(next(iter(rows.values())), "jmri_in"))    # JMRI's length is plan_in
+        self.assertFalse(hasattr(next(iter(rows.values())), "measured_in"))    # the plan file holds the plan length only
 
 
 class NoPlugin(unittest.TestCase):

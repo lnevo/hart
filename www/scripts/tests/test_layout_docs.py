@@ -52,8 +52,8 @@ class LayoutDocs(unittest.TestCase):
 
     def test_parts_fold_into_their_detector(self):
         def length(bid, sensor, plan, measured=None):
-            return ld.railroad.BlockLength(2, bid, sensor, plan, measured, "timed" if measured else "plan", "1",
-                                           bid, "")
+            return ld.block_lengths.Block(2, "1", bid, bid, sensor, plan, "")
+        timed = {"os:1": ld.block_lengths.Measured(2, "os:1", 22.6, "loop1 laps", "2026-11-08", "")}
         lengths = [length("os:1", "Block 4-2", 9.2, 22.6), length("block:1B-3A:1/2", "Block 4-2", 5.0),
                    length("os:9", "Block 13-8", 9.2), length("block:9A-11C", "Block 13-8", 10.3),
                    length("block:109-111", "BS Switch 109", 5.4)]
@@ -61,12 +61,12 @@ class LayoutDocs(unittest.TestCase):
                   ("1", "block:1B-3A:1/2"): {"user_name": "Track 1-3 at 1", "role": "part", "part_of": "OS Switch 1"},
                   ("1", "os:9"): {"user_name": "OS Switch 9", "role": "", "part_of": ""},
                   ("1", "block:9A-11C"): {"user_name": "Track 9-11", "role": "part", "part_of": "OS Switch 9"}}
-        got = ld.detected_sections({r.id: r for r in lengths}, master)
+        got = ld.detected_sections({r.id: r for r in lengths}, master, {"OS Switch 1": timed["os:1"]})
         self.assertEqual([(s["id"], s["name"], s["inches"], s["estimate"]) for s in got],
                          [("os:1", "OS Switch 1", 22.6, False), ("os:9", "OS Switch 9", 19.5, True)])
         master[("1", "block:9A-11C")] = {**master[("1", "block:9A-11C")], "part_of": "OS Switch 1"}   # wrong block
         with self.assertRaises(SystemExit):
-            ld.detected_sections({r.id: r for r in lengths}, master)
+            ld.detected_sections({r.id: r for r in lengths}, master, {"OS Switch 1": timed["os:1"]})
 
     def test_plans_label_the_live_switches(self):
         master = ld.master_rows()
