@@ -53,8 +53,9 @@ class CleanIsGuarded(unittest.TestCase):
 
     def test_it_is_a_host_action_while_operating(self) -> None:
         guard = load("main_guard", ".claude/hooks/main_guard.py")
-        self.assertIn("broker", guard.host_control("make mqtt-clean", {"by": "owner"}) or "")
-        self.assertIsNone(guard.host_control("make mqtt-watch", {"by": "owner"}))
+        flag, env = guard.OperatingFlag(by="owner"), guard.LayoutEnv(frozenset(), {})
+        self.assertIn("broker", guard.host_problem("make mqtt-clean", flag, env) or "")
+        self.assertIsNone(guard.host_problem("make mqtt-watch", flag, env))
 
 
 if __name__ == "__main__":
