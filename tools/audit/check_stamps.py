@@ -154,6 +154,10 @@ EXTRA: dict[str, tuple[str, ...]] = {
     # the step manifest's loader checks domains, edge sides and local nodes against the map (manifest.repo())
     "unit-guards test_pipeline_manifest": ("docs/pipeline-map/pipeline_map.json",),
     "unit-guards test_check_docs_only": ("docs/pipeline-map/pipeline_map.json",),
+    # check_sh_problems takes the steps' scripts from manifest.repo(), which reads the map
+    "unit-guards test_stamp_gate": ("docs/pipeline-map/pipeline_map.json",),
+    # SkipConditionTest reads every tracked tests/test*.py (git ls-files), ops/ and www/ included: .py files only
+    "unit-guards test_stamps_keys": ("**/*.py",),
     # the scanners' scan lists against the manifest: the map (manifest.repo()), the site build's sources and imports
     "unit-guards test_manifest_scans": ("docs/pipeline-map/pipeline_map.json", "www/scripts/**/*",
                                         "ops/hart-ops/card_pipeline/**/*"),
@@ -294,7 +298,7 @@ REFS_OF: dict[str, tuple[str, ...]] = {
 }
 
 
-# The environment that picks other inputs, and what tests skip on (tests/test_check_stamps.py: every variable a
+# The environment that picks other inputs, and what tests skip on (tests/test_stamps_keys.py: every variable a
 # test's skip reads is here): CHECK_AUDIT (test_check_stamps in an audit run), UPDATE_GOLDEN (golden files rewritten),
 # HART_CACHE_DIR (moves every shared cache folder, hartlib.paths.cache_dir: .cache paths are in no read set, so it is
 # the only trace of which cache a job read), HART_GUARD_JMRI_RUNNING (forces hartlib.tables.jmri_running's answer,

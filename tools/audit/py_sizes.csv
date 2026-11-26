@@ -15,7 +15,6 @@ ops/hart-ops/card_pipeline/crop_car_image.py,1049
 ops/hart-ops/card_pipeline/generate_operator_sheet.py,837
 tools/audit/check_layout_facts.py,897
 tools/audit/tests/test_build_layout_le.py,1113
-tools/audit/tests/test_check_stamps.py,1171
 tools/audit/tests/test_pipeline_map.py,879
 tools/hartlib/src/hartlib/devices.py,1237
 tools/hartlib/src/hartlib/railroad_facts.py,1474
