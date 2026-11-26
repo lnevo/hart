@@ -184,6 +184,68 @@ class Shell(unittest.TestCase):
                          [("ruff", 0.0, "skipped", "cold"), ("mypy", 12.0, "ok", "cold"),
                           ("panels-cats", 3.0, "failed", "cold")])
 
+    def test_a_log_it_cannot_write_leaves_one_err_line_and_the_run_unchanged(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cache, jobs = Path(tmp) / "cache", Path(tmp) / "jobs"
+            jobs.mkdir()
+            for i in (0, 1):
+                (jobs / f"{i}.rc").write_text("0\n", encoding="utf-8")
+                (jobs / f"{i}.time").write_text("5\n", encoding="utf-8")
+            locked = Path(tmp) / "locked"
+            locked.mkdir()
+            locked.chmod(0o500)
+            folder_log = Path(tmp) / "a-folder"
+            folder_log.mkdir()
+            try:
+                for log, said in ((locked / "sub" / "log.tsv", "cannot make the log's folder"),
+                                  (folder_log, "cannot append to")):
+                    with self.subTest(said):
+                        err = cache / "step-timings.err"
+                        err.unlink(missing_ok=True)
+                        r = self.bash(f'step_timings_jobs "$PWD" "{jobs}" " ruff mypy " ruff mypy; echo rc=$?',
+                                      HART_STEP_TIMINGS_LOG=str(log), HART_CACHE_DIR=str(cache))
+                        self.assertEqual((r.stdout, r.stderr), ("rc=0\n", ""))
+                        lines = err.read_text(encoding="utf-8").splitlines()
+                        self.assertEqual(len(lines), 1, lines)       # once per run, not once per job
+                        when, runner, what = lines[0].split("\t")
+                        self.assertRegex(when, T.TIME_RE)
+                        self.assertEqual(runner, "check")
+                        self.assertIn(said, what)
+            finally:
+                locked.chmod(0o700)
+
+    def test_a_helper_that_does_not_source_leaves_an_err_line_and_make_panels_unchanged(self):
+        guard = (ROOT / "tools/hosts/profile_tables_guard.sh").read_text(encoding="utf-8")
+        fake = ('#!/bin/sh\ncase "$1" in */manifest.py) echo "step hands 1 --check python3 tools/x.py"; exit 0 ;; '
+                '*/panel_stamps.py) [ "$2" = current ] && exit 1 ;; esac\nexit 0\n')
+        runs = {}
+        for helper in ("good", "broken"):
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp) / "repo"
+                for rel, text in (("tools/schematic/build_panels.sh", (ROOT / "tools/schematic/build_panels.sh")
+                                   .read_text(encoding="utf-8")), ("tools/hosts/profile_tables_guard.sh", guard),
+                                  ("tools/pipeline/step_timings.sh", HELPER.read_text(encoding="utf-8")
+                                   if helper == "good" else "step_timings_open() { :; }\nif then fi\n")):
+                    (root / rel).parent.mkdir(parents=True, exist_ok=True)
+                    (root / rel).write_text(text, encoding="utf-8")
+                subprocess.run(["git", "init", "-q", str(root)], check=True)
+                (Path(tmp) / "python3").write_text(fake, encoding="utf-8")
+                (Path(tmp) / "python3").chmod(0o755)
+                env = {**{k: v for k, v in os.environ.items() if k != "HART_STEP_TIMINGS_LOG"},
+                       "PATH": f"{tmp}{os.pathsep}{os.environ['PATH']}", "HART_CACHE_DIR": f"{tmp}/cache",
+                       "SCHEMATIC_CACHE": ""}
+                r = subprocess.run(["bash", "tools/schematic/build_panels.sh"], cwd=root, env=env,
+                                   capture_output=True, text=True)
+                cache = Path(tmp) / "cache"
+                runs[helper] = (r.returncode, r.stdout, r.stderr,
+                                {p.name: p.read_text(encoding="utf-8") for p in cache.glob("step-timings.*")})
+        self.assertEqual(runs["good"][:3], runs["broken"][:3])
+        self.assertEqual(runs["good"][0], 0, runs["good"])
+        self.assertEqual(sorted(runs["good"][3]), ["step-timings.tsv"])
+        self.assertEqual(sorted(runs["broken"][3]), ["step-timings.err"])
+        self.assertRegex(runs["broken"][3]["step-timings.err"],
+                         r"^\S+\tpanels\tsource tools/pipeline/step_timings.sh failed\n$")
+
     def test_mode(self):
         with tempfile.TemporaryDirectory() as tmp:
             empty, full = Path(tmp) / "empty", Path(tmp) / "full"

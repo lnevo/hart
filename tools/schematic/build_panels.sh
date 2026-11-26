@@ -48,8 +48,13 @@ done
 # (tools/pipeline/step_timings.sh; make timings summarizes it). mode is cold with --full or an empty schematic cache.
 step_timing() { :; }
 timing_mode=""
-if [ ${#check[@]} -eq 0 ] && source tools/pipeline/step_timings.sh 2>/dev/null; then
-  step_timings_open "$PWD"
+if [ ${#check[@]} -eq 0 ] && source tools/hosts/profile_tables_guard.sh 2>/dev/null &&
+    ! source tools/pipeline/step_timings.sh 2>/dev/null; then
+  step_timing() { :; }      # a helper that broke while it was read: its .err line, then nothing
+  { mkdir -p "$(hart_cache_dir "$PWD" "")" && printf '%s\tpanels\tsource tools/pipeline/step_timings.sh failed\n' \
+      "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >>"$(hart_cache_dir "$PWD" step-timings.err)"; } 2>/dev/null
+elif [ ${#check[@]} -eq 0 ] && type step_timings_open >/dev/null 2>&1; then
+  step_timings_open "$PWD" panels
   timing_mode=$(step_timings_mode "$full" "${SCHEMATIC_CACHE-$(hart_cache_dir "$PWD" schematic 2>/dev/null)}")
 fi
 # The step lines (manifest.py panel_lines): mode, name, how many check_args, the check_args, then the command; plain

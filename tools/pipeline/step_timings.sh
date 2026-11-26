@@ -7,21 +7,39 @@
 # runner is panels or check, step the manifest step's name (check.sh's job name: panels-<step> for the panels jobs),
 # result ok, failed or skipped (its stamp said current), mode cold, warm or empty.
 # HART_STEP_TIMINGS_LOG names another log; set and empty, nothing is written (tests that run a runner on stubs).
-# Nothing here can fail a run: a log that cannot be made or written is left alone.
+# Nothing here can fail a run or change its output: a log that cannot be made or written is left alone, and the
+# failure goes as one line (iso_time  runner  what failed) into step-timings.err beside the default log in the shared
+# cache, once per run; when even that cannot be written, nowhere. Each runner writes that line itself when this file
+# does not source.
 
 _STEP_TIMINGS_GUARD="$(cd "$(dirname "${BASH_SOURCE[0]}")/../hosts" 2>/dev/null && pwd)/profile_tables_guard.sh"
 # shellcheck source=../hosts/profile_tables_guard.sh
 type hart_cache_dir >/dev/null 2>&1 || source "$_STEP_TIMINGS_GUARD" 2>/dev/null || true
 
-# step_timings_open ROOT: set STEP_TIMINGS_LOG to the log for checkout ROOT, or to "" when it is off or its folder
-# cannot be made.
+# step_timings_err WHAT: one line into step-timings.err in the shared cache of STEP_TIMINGS_ROOT, the first time in a
+# run; silent when it cannot be written.
+step_timings_err() {
+  [[ -z "${STEP_TIMINGS_ERRED:-}" ]] || return 0
+  STEP_TIMINGS_ERRED=1
+  local err
+  err="$(hart_cache_dir "${STEP_TIMINGS_ROOT:-.}" step-timings.err 2>/dev/null)" || return 0
+  { mkdir -p "$(dirname "$err")" && printf '%s\t%s\t%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+      "${STEP_TIMINGS_RUNNER:-}" "$1" >>"$err"; } 2>/dev/null
+  return 0
+}
+
+# step_timings_open ROOT RUNNER: set STEP_TIMINGS_LOG to the log for checkout ROOT, or to "" when it is off or its
+# folder cannot be made (an .err line says which).
 step_timings_open() {
+  STEP_TIMINGS_ROOT=$1 STEP_TIMINGS_RUNNER=$2
   if [[ -n "${HART_STEP_TIMINGS_LOG+set}" ]]; then
     STEP_TIMINGS_LOG="$HART_STEP_TIMINGS_LOG"
-  else
-    STEP_TIMINGS_LOG="$(hart_cache_dir "$1" step-timings.tsv 2>/dev/null)" || STEP_TIMINGS_LOG=""
+  elif ! STEP_TIMINGS_LOG="$(hart_cache_dir "$1" step-timings.tsv 2>/dev/null)"; then
+    STEP_TIMINGS_LOG=""
+    step_timings_err "hart_cache_dir failed (tools/hosts/profile_tables_guard.sh not loaded?)"
   fi
   if [[ -n "$STEP_TIMINGS_LOG" ]] && ! mkdir -p "$(dirname "$STEP_TIMINGS_LOG")" 2>/dev/null; then
+    step_timings_err "cannot make the log's folder $(dirname "$STEP_TIMINGS_LOG")"
     STEP_TIMINGS_LOG=""
   fi
   return 0
@@ -43,7 +61,8 @@ step_timing() {
   [[ -n "${STEP_TIMINGS_LOG:-}" ]] || return 0
   local now="${STEP_TIMINGS_NOW:-}"
   [[ -n "$now" ]] || now="$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null)" || return 0
-  { printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$now" "$1" "$2" "$3" "$4" "$5" >>"$STEP_TIMINGS_LOG"; } 2>/dev/null
+  { printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$now" "$1" "$2" "$3" "$4" "$5" >>"$STEP_TIMINGS_LOG"; } 2>/dev/null ||
+    step_timings_err "cannot append to $STEP_TIMINGS_LOG"
   return 0
 }
 
@@ -54,7 +73,7 @@ step_timing() {
 step_timings_jobs() {
   local root=$1 jobs=$2 manifest=$3 mode i=0 name res secs
   shift 3
-  step_timings_open "$root"
+  step_timings_open "$root" check
   [[ -n "$STEP_TIMINGS_LOG" ]] || return 0
   mode="$(step_timings_mode "${FULL:-}" "${SCHEMATIC_CACHE:-}")"
   STEP_TIMINGS_NOW="$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null)" || return 0
