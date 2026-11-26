@@ -151,6 +151,85 @@ class GapsTest(unittest.TestCase):
         self.assertIn("has no reason", p)
 
 
+class ScriptRuleTest(unittest.TestCase):
+    """The every-script rule (owner, 2026-11-25): a node of its own, or under a folder node FAMILIES names."""
+    FAMILIES = {"lib/src/pkg": "a library"}
+
+    def gaps(self, scripts, node_paths, ids=None, families=None):
+        ids = ids if ids is not None else node_paths.values()
+        return COV.script_gaps(scripts, node_paths, ids, families if families is not None else self.FAMILIES,
+                               "g.json")
+
+    def test_covered_by_its_own_node(self) -> None:
+        self.assertEqual(self.gaps(["tools/a.py", "lib/src/pkg/mod.py"],
+                                   {"tools/a.py": "a", "lib/src/pkg": "pkg"}), [])
+
+    def test_covered_by_a_box_named_after_it(self) -> None:
+        """panels.toml's `box`: approval.py's box has the script's path as its id and check_approved.py as its path."""
+        self.assertEqual(self.gaps(["tools/approval.py", "lib/src/pkg/mod.py"],
+                                   {"tools/check_approved.py": "tools/approval.py", "lib/src/pkg": "pkg"}), [])
+
+    def test_covered_by_a_family_folder(self) -> None:
+        self.assertEqual(self.gaps(["lib/src/pkg/mod.py", "lib/src/pkg/sub/deep.py"], {"lib/src/pkg": "pkg"}), [])
+
+    def test_a_folder_node_not_in_families_fails_naming_both_fixes(self) -> None:
+        [p] = self.gaps(["tools/hosts/x.sh", "lib/src/pkg/mod.py"], {"tools/hosts": "hosts", "lib/src/pkg": "pkg"})
+        self.assertIn("script tools/hosts/x.sh is only under folder node 'hosts' (tools/hosts)", p)
+        self.assertIn("add a node for the script", p)
+        self.assertIn("add tools/hosts to FAMILIES", p)
+
+    def test_an_uncovered_script_fails(self) -> None:
+        [p] = self.gaps(["tools/a.py", "lib/src/pkg/mod.py"], {"lib/src/pkg": "pkg"})
+        self.assertIn("script tools/a.py is not in the map: add a node for it", p)
+
+    def test_excluded_folders_and_tests_are_not_checked(self) -> None:
+        files = ["archive/old.py", "external/sub/x.py", "reference/v.sh", "tools/cats/src-repo/a.py",
+                 "tools/tests/helper.py", "tools/test/run.sh", "tools/test_a.py",
+                 "tools/conftest.py", "tools/a.py", "tools/b.sh", "tools/c.js", "tools/archive/kept.py"]
+        self.assertEqual(COV.rule_scripts(files), ["tools/a.py", "tools/archive/kept.py", "tools/b.sh"])
+
+    def test_scripts_named_like_tests_are_checked(self) -> None:
+        """Review finding: panelpro_smoke_test.py (make panelpro-test) and stop_test.py are pipeline scripts."""
+        files = ["jmri/layouts/hart/scripts/panelpro_smoke_test.py", "jmri/layouts/hart/scripts/run_panelpro_smoke_test.sh",
+                 "jmri/layouts/hart/scripts/speedmatch/jython/stop_test.py", "tools/test_run.sh"]
+        self.assertEqual(COV.rule_scripts(files), sorted(files))
+
+    def test_a_new_untracked_script_is_checked_before_the_commit(self) -> None:
+        """Review finding: the rule reads new files too, so a check before `git add` fails as it would after."""
+        real = COV._git_files
+
+        def files(*args):
+            return real(*args) + (["tools/hosts/pi/brand_new_unmapped.sh"] if args else [])
+        with mock.patch.object(COV, "_git_files", side_effect=files):
+            problems = COV.check(COV.BUILD.GRAPH)
+        self.assertTrue(any(p.startswith("script tools/hosts/pi/brand_new_unmapped.sh is only under folder node")
+                            for p in problems), problems)
+
+    def test_families_entries_cannot_go_stale(self) -> None:
+        [p] = self.gaps([], {}, families={"lib/gone": "a library"})
+        self.assertIn("FAMILIES entry lib/gone in", p)
+        self.assertIn("is no node's path", p)
+        [p] = self.gaps(["tools/a.py"], {"tools/a.py": "a", "lib/src/pkg": "pkg"})
+        self.assertIn("FAMILIES entry lib/src/pkg in", p)
+        self.assertIn("covers no script", p)
+        problems = self.gaps(["lib/src/pkg/mod.py"], {"lib/src/pkg": "pkg"}, families={"lib/src/pkg": " "})
+        self.assertEqual(len(problems), 1)
+        self.assertIn("has no reason", problems[0])
+
+    def test_listing_says_what_covers_each_script(self) -> None:
+        listing: list[str] = []
+        COV.script_gaps(["tools/a.py", "lib/src/pkg/mod.py", "tools/b.sh"], {"tools/a.py": "a", "lib/src/pkg": "pkg"},
+                        ["a", "pkg"], self.FAMILIES, "g.json", listing)
+        self.assertEqual([line.split()[-1] for line in listing], ["a", "lib/src/pkg", "MISSING"])
+
+    def test_the_repo_families_are_the_owners_list(self) -> None:
+        """Owner, 2026-11-25: only libraries and families of generators; deploy, Jython, speed matching and pipeline
+        steps are a node per file."""
+        self.assertEqual(set(COV.FAMILIES), {
+            "tools/hartlib/src/hartlib", "ops/hart-ops/card_pipeline", "ops/hart-ops/publications",
+            "tools/benchwork/helix", "tools/benchwork/main_level", "ops/station_maps/scripts", "tools/hosts/pi-os"})
+
+
 class RepoTest(unittest.TestCase):
     def test_new_files_not_yet_added_count_as_in_the_checkout(self) -> None:
         """Review finding: check.sh runs before the commit, so an unstaged new script is not 'gone'."""

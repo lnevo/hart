@@ -2492,7 +2492,7 @@
    "id": "www/data/invites.json",
    "label": "invites.json",
    "kind": "structured",
-   "status": "parked",
+   "status": "live",
    "domain": "website",
    "desc": "Invitation drafts, author reference only; skipped from build.",
    "path": "www/data/invites.json"
@@ -2521,7 +2521,7 @@
    "id": "www/data/panels.json",
    "label": "panels.json",
    "kind": "structured",
-   "status": "parked",
+   "status": "live",
    "domain": "website",
    "desc": "Panel data skipped from the public build.",
    "path": "www/data/panels.json"
@@ -2918,9 +2918,9 @@
    "id": "www/scripts/serve_portal.sh",
    "label": "serve_portal.sh / LaunchAgent",
    "kind": "generator",
-   "status": "parked",
+   "status": "live",
    "domain": "website",
-   "desc": "Shell launcher and LaunchAgent installer for serve_portal.py; agent disabled 2026-11-11, started on demand.",
+   "desc": "Starts serve_portal.py for the local operator portal on demand (its LaunchAgent was disabled 2026-11-11); left out of the public build.",
    "path": "www/scripts/serve_portal.sh"
   },
   {
@@ -3924,6 +3924,1452 @@
    "domain": "website",
    "desc": "The files the site publishes that are built, not committed (ADR-036): the pipeline map page and the generated JSON, each with the builder that returns its checked text. The site build writes them into the build; make site-data and serve_portal.py write them into www/ for the local preview, removing one that cannot be built.",
    "path": "www/scripts/site_views.py"
+  },
+  {
+   "id": "tools/hosts/deploy/common.sh",
+   "label": "common.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Sourced by every deploy step: host settings, ssh helpers, the shipped lists (LIVE_PANELS, the Jython scripts), the stamp facts and the Pi unpulled-changes and auto-pull checks.",
+   "path": "tools/hosts/deploy/common.sh"
+  },
+  {
+   "id": "tools/hosts/deploy/gate.sh",
+   "label": "gate.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Deploy step 1: every check before anything is sent (host answers, live_paths, panel contracts, build_tables --check unless CI's full pass covers the commit, check_approved, the Digicon SML check).",
+   "path": "tools/hosts/deploy/gate.sh"
+  },
+  {
+   "id": "tools/hosts/deploy/stage.sh",
+   "label": "stage.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Deploy step 2: builds the Pi and Windows packages: tables.xml, CATS panels (paths rewritten), Jython, resources, web home and mimic, Operations files, speed-match publisher, host scripts, stamp.",
+   "path": "tools/hosts/deploy/stage.sh"
+  },
+  {
+   "id": "tools/hosts/deploy/ship_mac.sh",
+   "label": "ship_mac.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Deploy step 3: installs on this Mac (~/JMRI_UserFiles): tables.xml, Operations files, CATS panels, CTC icons, Jython and Start Up, web override, MQTT overlay, deploy stamp.",
+   "path": "tools/hosts/deploy/ship_mac.sh"
+  },
+  {
+   "id": "tools/hosts/deploy/ship_pi.sh",
+   "label": "ship_pi.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Deploy step 4: rsyncs the staged Pi package to the Pi's drop folder and runs apply_hart_package_local.sh there, then starts PanelPro again if it was quit for the deploy.",
+   "path": "tools/hosts/deploy/ship_pi.sh"
+  },
+  {
+   "id": "tools/hosts/deploy/ship_win.sh",
+   "label": "ship_win.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Deploy step 5: sends the staged Windows package as one tarball (scp) and runs apply_hart_package_local.ps1 there.",
+   "path": "tools/hosts/deploy/ship_win.sh"
+  },
+  {
+   "id": "tools/hosts/deploy/ci_pass.py",
+   "label": "ci_pass.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Says whether CI's full check.sh pass covers the commit a deploy ships, so the gate may skip build_tables --check; reads the GitHub run log.",
+   "path": "tools/hosts/deploy/ci_pass.py"
+  },
+  {
+   "id": "tools/hosts/pi/apply_hart_package_local.sh",
+   "label": "apply_hart_package_local.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Runs on the Pi: installs the deploy drop into JMRI_UserFiles and the ~/.jmri profiles (tables.xml, panels, Jython, resources, Operations, overlay, Start Up, speed-match publisher and its unit, desktop icons).",
+   "path": "tools/hosts/pi/apply_hart_package_local.sh"
+  },
+  {
+   "id": "tools/hosts/pack_roster_stage.sh",
+   "label": "pack_roster_stage.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Writes a tar stream of a roster stage folder with relative names; sync_roster_from_pi.sh pipes it to the Windows box.",
+   "path": "tools/hosts/pack_roster_stage.sh"
+  },
+  {
+   "id": "tools/hosts/panelpro_profile.py",
+   "label": "panelpro_profile.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "The JMRI profile steps of a Mac PanelPro run: checks the profile, turns off Start Up items that run code, backs up, seals and restores profile.xml.",
+   "path": "tools/hosts/panelpro_profile.py"
+  },
+  {
+   "id": "tools/schematic/le_tables.py",
+   "label": "le_tables.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of build_layout_le.py: puts the Layout Editor panel into the tables, retires the yard ladder, checks every bound name is a base bean and the block numbers match block_numbering.csv.",
+   "path": "tools/schematic/le_tables.py"
+  },
+  {
+   "id": "tools/env/load_env.sh",
+   "label": "load_env.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Sourced by the shell tools: repo paths and host settings from the environment, tools/env/hart.env and defaults.",
+   "path": "tools/env/load_env.sh"
+  },
+  {
+   "id": "tools/hosts/profile_tables_guard.sh",
+   "label": "profile_tables_guard.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Guards sourced by the deploy, launch_cats.sh and the PanelPro wrappers: the unpulled-Store test, the HART_TABLES refusal and the unrestored-profile refusal.",
+   "path": "tools/hosts/profile_tables_guard.sh"
+  },
+  {
+   "id": "tools/hosts/deploy_status.sh",
+   "label": "deploy_status.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "make deploy-status: prints the commit each host last got (cats/deploy_stamp.txt) and how it compares with this checkout; reads only.",
+   "path": "tools/hosts/deploy_status.sh"
+  },
+  {
+   "id": "tools/hosts/pi_quit_panelpro.sh",
+   "label": "pi_quit_panelpro.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Quits PanelPro on the Pi with its own Quit (a Jython drop for jmri_cmd_watcher), answering No to the Store prompt; --for-deploy leaves the restart marker.",
+   "path": "tools/hosts/pi_quit_panelpro.sh"
+  },
+  {
+   "id": "tools/hosts/pi_start_panelpro.sh",
+   "label": "pi_start_panelpro.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Starts PanelPro on the Pi's desktop and waits until JMRI is up; clears the quit-for-deploy marker.",
+   "path": "tools/hosts/pi_start_panelpro.sh"
+  },
+  {
+   "id": "tools/hosts/panelpro_session.sh",
+   "label": "panelpro_session.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "One PanelPro run on this Mac, sourced by the run_*.sh wrappers: profile backup and restore, Start Up items that run code off, the tables to load, stopping PanelPro on timeout.",
+   "path": "tools/hosts/panelpro_session.sh"
+  },
+  {
+   "id": "tools/hosts/run_panelpro_roundtrip.sh",
+   "label": "run_panelpro_roundtrip.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "PanelPro round trip of the generated tables.xml (ADR-029 gate 2): load, store to a temp file, quit, compare normalised bytes, then check_layout_facts on the Store.",
+   "path": "tools/hosts/run_panelpro_roundtrip.sh"
+  },
+  {
+   "id": "tools/hosts/win_run.sh",
+   "label": "win_run.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "make remote: runs a repo command (checks, tests, builds) on the Windows box's WSL from a pushed ref; no pipeline file.",
+   "path": "tools/hosts/win_run.sh"
+  },
+  {
+   "id": "tools/hosts/sandbox/panel_snapshot.sh",
+   "label": "panel_snapshot.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Paints a checkout's HART Railroad panel to a PNG in the sandbox PanelPro profile, then quits without storing.",
+   "path": "tools/hosts/sandbox/panel_snapshot.sh"
+  },
+  {
+   "id": "tools/hosts/sandbox/panel_snapshot.py",
+   "label": "panel_snapshot.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Jython for panel_snapshot.sh: paints the HART Railroad Layout Editor panel into a PNG at 100%, then quits.",
+   "path": "tools/hosts/sandbox/panel_snapshot.py"
+  },
+  {
+   "id": "tools/hosts/sandbox/sandbox_env.sh",
+   "label": "sandbox_env.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Environment for a sandbox PanelPro run: a copy of the live profile with its own user files and a local MQTT broker.",
+   "path": "tools/hosts/sandbox/sandbox_env.sh"
+  },
+  {
+   "id": "tools/hosts/pi/hart-speedmatch-live.service",
+   "label": "hart-speedmatch-live.service",
+   "kind": "structured",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Pi systemd user unit running dashboard/publish_live.py from ~/speedmatch/publisher; installed by apply_hart_package_local.sh.",
+   "path": "tools/hosts/pi/hart-speedmatch-live.service"
+  },
+  {
+   "id": "tools/hosts/pi/install_desktop_icons.sh",
+   "label": "install_desktop_icons.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Runs on the Pi: installs the CATS CTC and CATS ABS desktop icons from the drop, removes old ones.",
+   "path": "tools/hosts/pi/install_desktop_icons.sh"
+  },
+  {
+   "id": "tools/hosts/pi/launch_cats.sh",
+   "label": "launch_cats.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Pi CATS launcher installed to JMRI_UserFiles/cats/launch: starts CATS with a HART desk panel on the PanelPro profile.",
+   "path": "tools/hosts/pi/launch_cats.sh"
+  },
+  {
+   "id": "tools/hosts/pi/launch_cats_ctc_desktop.sh",
+   "label": "launch_cats_ctc_desktop.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Pi desktop icon target: launch_cats.sh with HART_CTC.xml.",
+   "path": "tools/hosts/pi/launch_cats_ctc_desktop.sh"
+  },
+  {
+   "id": "tools/hosts/pi/launch_cats_abs_desktop.sh",
+   "label": "launch_cats_abs_desktop.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Pi desktop icon target: launch_cats.sh with HART_ABS.xml.",
+   "path": "tools/hosts/pi/launch_cats_abs_desktop.sh"
+  },
+  {
+   "id": "tools/hosts/pi/launch_trainstat.sh",
+   "label": "launch_trainstat.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Launches TrainStat (yard client) against CATS on the Pi with hart_trainstat.xml.",
+   "path": "tools/hosts/pi/launch_trainstat.sh"
+  },
+  {
+   "id": "tools/hosts/pi/launch_trainstat_desktop.sh",
+   "label": "launch_trainstat_desktop.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Pi desktop icon target: runs launch_trainstat.sh in the background and logs.",
+   "path": "tools/hosts/pi/launch_trainstat_desktop.sh"
+  },
+  {
+   "id": "tools/hosts/pi/panelpro_restart_due.sh",
+   "label": "panelpro_restart_due.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Runs on the Pi after a deploy: says whether PanelPro was quit for the deploy and should start again.",
+   "path": "tools/hosts/pi/panelpro_restart_due.sh"
+  },
+  {
+   "id": "tools/hosts/pi/tables_base.sh",
+   "label": "tables_base.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Runs on the host a Store is pulled from: names the tables.xml before the owner's session (deploy stamp or last pull), the base split_store.py compares with.",
+   "path": "tools/hosts/pi/tables_base.sh"
+  },
+  {
+   "id": "tools/hosts/pi/unpulled_changes.sh",
+   "label": "unpulled_changes.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Runs on the Pi before a deploy: names the Operations files and tables.xml the owner changed since the last deploy or pull.",
+   "path": "tools/hosts/pi/unpulled_changes.sh"
+  },
+  {
+   "id": "jmri/layouts/hart/data/speed_by_step_2026-11-08.csv",
+   "label": "speed_by_step_2026-11-08.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Speed per loco and step from the 2026-11-08 session; the reference line of the speed-match dashboard and the Pi publisher.",
+   "path": "jmri/layouts/hart/data/speed_by_step_2026-11-08.csv"
+  },
+  {
+   "id": "ext:github-ci",
+   "label": "GitHub Actions CI",
+   "kind": "external",
+   "status": "live",
+   "domain": "extras",
+   "desc": "The check workflow (.github/workflows/check.yml) running tools/check.sh on pushes and PRs; its run log and stamp cache are read by the deploy gate and stamp_gate.py."
+  },
+  {
+   "id": "host:pi-speedmatch-logs",
+   "label": "Pi /tmp run logs",
+   "kind": "host",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "The runners' logs on the Pi (/tmp steprun_*, pass_*, stoptest_*, preflight logs) and the /tmp/speedrun.active and speedrun.kill flags; a reboot clears them."
+  },
+  {
+   "id": "host:pi-speedmatch-live",
+   "label": "Pi speedmatch web",
+   "kind": "host",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "~/JMRI_UserFiles/web/speedmatch/ on the Pi: the live page and live/index.json and runs/*.json that publish_live.py writes, served by JMRI's web server."
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/speedmatch.py",
+   "label": "speedmatch.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "make speedmatch: one command for the speed-matching tools (job, drop, pom, compare, to-roster, lengths, rename-ext); pom goes through drop_job.sh's gates.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/speedmatch.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/make_job.py",
+   "label": "make_job.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Builds a job file for the Pi's jmri_cmd_watcher: settings, liverule.py, jobkit.py, then the runner (steps, preflight, move, pass, stoptest, profile); sends nothing.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/make_job.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/drop_job.sh",
+   "label": "drop_job.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Copies a job file to the Pi's jmri_cmd_watcher behind the operating flag and runner checks; --fetch gets a log, --kill sets the kill flag.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/drop_job.sh"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/analyze.py",
+   "label": "analyze.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Speed profile analysis of the runner logs: speed per step over known block lengths (block_lengths.csv, routes.json); writes profile.csv. Also shipped in the Pi publisher.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/analyze.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/liverule.py",
+   "label": "liverule.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Decision logic shared by analyze.py and the Jython runners (Python 2.7 and 3 subset); pasted into each job.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/liverule.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/correct.py",
+   "label": "correct.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Proposes a measured correction of a 28-entry speed table (CV67-CV94) from profile.csv; writes proposal.json and .csv, never a decoder.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/correct.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/pom_guard.py",
+   "label": "pom_guard.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "The check every programming-on-the-main write goes through (address from the roster, consist log, CV19, ledger); runs in CPython and the Pi's Jython.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/pom_guard.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/pom_guard_cli.py",
+   "label": "pom_guard_cli.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Command line of pom_guard.py: the Mac dry run of a proposal and the ledger upkeep.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/pom_guard_cli.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/pom_write.py",
+   "label": "pom_write.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Jython on the Pi: writes a proposal's CVs on the main through pom_guard, holding /tmp/speedrun.active; dropped by speedmatch.py pom.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/pom_write.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/preflight_compare.py",
+   "label": "preflight_compare.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Compares the CVs a preflight read found with the roster entry's CVvalues.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/preflight_compare.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/stoptest_compare.py",
+   "label": "stoptest_compare.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Compares two stop-test logs: when each block sensor lit after the speed-0 command.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/stoptest_compare.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/profile_to_roster.py",
+   "label": "profile_to_roster.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Turns analyze.py's profile.csv into the payload write_profile.py puts in a roster entry's speed profile.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/profile_to_roster.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/rename_extension_tracks.py",
+   "label": "rename_extension_tracks.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Rewrites the old extension-track names (East/West Main Ext) in speed-match logs and data to the new ones.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/rename_extension_tracks.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/dashboard/server.py",
+   "label": "server.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Mac live dashboard for speed-matching runs: tails the Pi's logs over ssh (read only), replays or demos, serves the page with roster photos.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/dashboard/server.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/dashboard/dashstate.py",
+   "label": "dashstate.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Log parser and run state machine shared by the dashboard, the Pi publisher and export_site_runs (stdlib, no I/O).",
+   "path": "jmri/layouts/hart/scripts/speedmatch/dashboard/dashstate.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/dashboard/dashsources.py",
+   "label": "dashsources.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Where the dashboard's log lines come from: the Pi over ssh (ls, stat, tail only), local replay or demo.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/dashboard/dashsources.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/dashboard/publish_live.py",
+   "label": "publish_live.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Runs on the Pi as hart-speedmatch-live: reads the run logs in /tmp and writes the live index.json and runs/*.json JMRI's web server serves; --build-page for the deploy.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/dashboard/publish_live.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/jython/jobkit.py",
+   "label": "jobkit.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "What the Jython movers share (throttle, kill flag, /tmp/speedrun.active, log); pasted in front of each runner by make_job.py.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/jython/jobkit.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/jython/step_runner.py",
+   "label": "step_runner.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Jython speed profile runner on the Pi: steps a loco through the throttle steps and logs block sensor times.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/jython/step_runner.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/jython/distance_runner.py",
+   "label": "distance_runner.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Jython distance-mode runner: one pass through all the steps, each measured over a distance.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/jython/distance_runner.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/jython/pass_runner.py",
+   "label": "pass_runner.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Jython: one timed pass through a stretch of a route, to place a switch on the plan.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/jython/pass_runner.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/jython/move_to.py",
+   "label": "move_to.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Jython: runs a loco until a block sensor lights, then stops it; positions a loco before a run.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/jython/move_to.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/jython/stop_test.py",
+   "label": "stop_test.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Jython stop test: from rest at one step, stop, and log when each sensor lights.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/jython/stop_test.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/jython/preflight.py",
+   "label": "preflight.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Jython: reads a decoder's CVs on the programming track; writes nothing to the decoder.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/jython/preflight.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/jython/write_profile.py",
+   "label": "write_profile.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Jython: writes measured speeds into a roster entry's speed profile, which Dispatcher reads.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/jython/write_profile.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/layout_facts.py",
+   "label": "layout_facts.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Railroad facts about each switch read through hartlib (switches.csv, the device master, stations, interlockings, mast cells, the USS board); opens no data file itself.",
+   "path": "jmri/layouts/hart/scripts/layout_facts.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/lcc_turnout_contract.py",
+   "label": "lcc_turnout_contract.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "The MQTT turnout to OpenLCB MTT alias contract (DCC Switch N), checked by audit_panel_contracts.py.",
+   "path": "jmri/layouts/hart/scripts/lcc_turnout_contract.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/panelpro_smoke_test.py",
+   "label": "panelpro_smoke_test.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Jython Start Up script of make panelpro-test: validates the loaded HART bundle in PanelPro, then exits.",
+   "path": "jmri/layouts/hart/scripts/panelpro_smoke_test.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/panelpro_roundtrip.py",
+   "label": "panelpro_roundtrip.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Jython of run_panelpro_roundtrip.sh: waits for the panel and steady block paths, stores the configuration to a temp file, quits.",
+   "path": "jmri/layouts/hart/scripts/panelpro_roundtrip.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/refresh_bean_comments.py",
+   "label": "refresh_bean_comments.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Checks that the staging heads' wiring comments in the device master are wiring.csv's (check mode, live); its rename rules stay for reference.",
+   "path": "jmri/layouts/hart/scripts/refresh_bean_comments.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/infer_block_lengths.py",
+   "label": "infer_block_lengths.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "speedmatch lengths: infers the test-loop block lengths from timed laps (block_events.csv) and the AnyRail plan; writes timed rows of block_lengths.csv.",
+   "path": "jmri/layouts/hart/scripts/infer_block_lengths.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/diagnose_turnout_states.py",
+   "label": "diagnose_turnout_states.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Read-only diagnosis of Digicon turnout MQTT state against feedback, from switches.csv.",
+   "path": "jmri/layouts/hart/scripts/diagnose_turnout_states.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/dump_sml_criteria.py",
+   "label": "dump_sml_criteria.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "One-shot Jython diagnostic: dumps JMRI's runtime SML criteria (auto blocks and turnouts per destination) to a file.",
+   "path": "jmri/layouts/hart/scripts/dump_sml_criteria.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/cs105_consist.py",
+   "label": "cs105_consist.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Jython on the Pi: query, attach or detach an LCC consist on the CS-105; dropped by tools/ops/cs105.sh consist, refused while operating.",
+   "path": "jmri/layouts/hart/scripts/cs105_consist.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/cs105_reboot.py",
+   "label": "cs105_reboot.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Jython on the Pi: restarts the CS-105 over LCC and lists the nodes that come back; dropped by tools/ops/cs105.sh reboot.",
+   "path": "jmri/layouts/hart/scripts/cs105_reboot.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/roster_rename_road_ids.py",
+   "label": "roster_rename_road_ids.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Jython on the Pi: renames each roster ID to road name and number; dropped through jmri_cmd_watcher.",
+   "path": "jmri/layouts/hart/scripts/roster_rename_road_ids.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/nx_contract.py",
+   "label": "nx_contract.py",
+   "kind": "generator",
+   "status": "parked",
+   "domain": "layout",
+   "desc": "Frozen Entry/Exit (NX) identity: ISNX:* system names on the CTC numbers; parked with NX, still read by audit_panel_contracts.py.",
+   "path": "jmri/layouts/hart/scripts/nx_contract.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/run_nx_discover.sh",
+   "label": "run_nx_discover.sh",
+   "kind": "generator",
+   "status": "parked",
+   "domain": "layout",
+   "desc": "One-shot PanelPro NX Discover and Store of tables.xml; parked with NX.",
+   "path": "jmri/layouts/hart/scripts/run_nx_discover.sh"
+  },
+  {
+   "id": "jmri/scripts/generate_nx_pairs.py",
+   "label": "generate_nx_pairs.py",
+   "kind": "generator",
+   "status": "parked",
+   "domain": "layout",
+   "desc": "Lists valid Entry/Exit pairs from a blocked panel's block connectivity; parked with NX.",
+   "path": "jmri/scripts/generate_nx_pairs.py"
+  },
+  {
+   "id": "jmri/layouts/hart/parked/apply_nx_layer.py",
+   "label": "apply_nx_layer.py",
+   "kind": "generator",
+   "status": "parked",
+   "domain": "layout",
+   "desc": "Adds the Entry/Exit (NX) sensors on CTC masts to tables.xml; parked, for unparking NX.",
+   "path": "jmri/layouts/hart/parked/apply_nx_layer.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/apply_dispatcher_roster_profiles.py",
+   "label": "apply_dispatcher_roster_profiles.py",
+   "kind": "generator",
+   "status": "parked",
+   "domain": "ops",
+   "desc": "Jython: gives every roster entry without one the synthetic speed profile the Dispatcher System uses; parked with it.",
+   "path": "jmri/layouts/hart/scripts/apply_dispatcher_roster_profiles.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/fix_traininfo_detection.py",
+   "label": "fix_traininfo_detection.py",
+   "kind": "generator",
+   "status": "parked",
+   "domain": "layout",
+   "desc": "Forces HEAD_AND_TAIL detection in the Dispatcher traininfo files; parked with the Dispatcher System.",
+   "path": "jmri/layouts/hart/scripts/fix_traininfo_detection.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py",
+   "label": "reconcile_dispatcher_stations.py",
+   "kind": "generator",
+   "status": "parked",
+   "domain": "layout",
+   "desc": "Reconciles the Dispatcher stations and their panel icons in tables.xml; parked with the Dispatcher System.",
+   "path": "jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py",
+   "label": "repair_dispatcher_traininfo.py",
+   "kind": "generator",
+   "status": "parked",
+   "domain": "layout",
+   "desc": "Jython: validates and repairs generated TrainInfo transit bindings; parked with the Dispatcher System.",
+   "path": "jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/run_panelpro_stage1.sh",
+   "label": "run_panelpro_stage1.sh",
+   "kind": "generator",
+   "status": "parked",
+   "domain": "layout",
+   "desc": "Runs stock Dispatcher System Stage 1 in PanelPro and stores to the pulled folder, never over tables.xml; parked.",
+   "path": "jmri/layouts/hart/scripts/run_panelpro_stage1.sh"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/run_panelpro_traininfo_repair.sh",
+   "label": "run_panelpro_traininfo_repair.sh",
+   "kind": "generator",
+   "status": "parked",
+   "domain": "layout",
+   "desc": "Runs repair_dispatcher_traininfo.py in PanelPro, then exits; parked with the Dispatcher System.",
+   "path": "jmri/layouts/hart/scripts/run_panelpro_traininfo_repair.sh"
+  },
+  {
+   "id": "jmri/layouts/hart/parked/polish_hart_layout_editor.py",
+   "label": "polish_hart_layout_editor.py",
+   "kind": "generator",
+   "status": "parked",
+   "domain": "layout",
+   "desc": "Puts the panel's lamps and block contents labels back after Stage 1; parked with the Dispatcher System.",
+   "path": "jmri/layouts/hart/parked/polish_hart_layout_editor.py"
+  },
+  {
+   "id": "jmri/layouts/hart/parked/retarget_dispatcher_traininfo_transits.py",
+   "label": "retarget_dispatcher_traininfo_transits.py",
+   "kind": "generator",
+   "status": "parked",
+   "domain": "layout",
+   "desc": "Rewrites old transit via-hints in traininfo files to the public names; parked with the Dispatcher System.",
+   "path": "jmri/layouts/hart/parked/retarget_dispatcher_traininfo_transits.py"
+  },
+  {
+   "id": "jmri/layouts/hart/parked/occupancy_lamps_display_only.py",
+   "label": "occupancy_lamps_display_only.py",
+   "kind": "generator",
+   "status": "parked",
+   "domain": "layout",
+   "desc": "Makes every occupancy lamp in tables.xml display only; parked with the occupancy lamps (Dispatcher System).",
+   "path": "jmri/layouts/hart/parked/occupancy_lamps_display_only.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/build_ctc_full_15col.py",
+   "label": "build_ctc_full_15col.py",
+   "kind": "generator",
+   "status": "parked",
+   "domain": "layout",
+   "desc": "Jython: rebuilds the 15-column JMRI USS CTC machine; parked with it.",
+   "path": "jmri/layouts/hart/scripts/build_ctc_full_15col.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/cleanup_uss_ctc_leftovers.py",
+   "label": "cleanup_uss_ctc_leftovers.py",
+   "kind": "generator",
+   "status": "parked",
+   "domain": "layout",
+   "desc": "Renames USS CTC internals and drops leftovers; --apply refuses tables.xml; parked with the USS CTC machine.",
+   "path": "jmri/layouts/hart/scripts/cleanup_uss_ctc_leftovers.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/ctc_default_reverse_levers.py",
+   "label": "ctc_default_reverse_levers.py",
+   "kind": "generator",
+   "status": "parked",
+   "domain": "layout",
+   "desc": "Jython: sets CTC levers Reverse for turnouts that rest Thrown; parked with the USS CTC machine.",
+   "path": "jmri/layouts/hart/scripts/ctc_default_reverse_levers.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/ctc_logic_smoke.py",
+   "label": "ctc_logic_smoke.py",
+   "kind": "generator",
+   "status": "parked",
+   "domain": "layout",
+   "desc": "Jython Start Up: starts CTC Logic and checks the machine loaded; parked with the USS CTC machine.",
+   "path": "jmri/layouts/hart/scripts/ctc_logic_smoke.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/run_ctc_logic_smoke.sh",
+   "label": "run_ctc_logic_smoke.sh",
+   "kind": "generator",
+   "status": "parked",
+   "domain": "layout",
+   "desc": "Loads the bundle in PanelPro and runs ctc_logic_smoke.py; parked with the USS CTC machine.",
+   "path": "jmri/layouts/hart/scripts/run_ctc_logic_smoke.sh"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/uss_switch_only_columns.py",
+   "label": "uss_switch_only_columns.py",
+   "kind": "generator",
+   "status": "parked",
+   "domain": "layout",
+   "desc": "Adds switch-only CTC columns for USS plants with only a Local lock; parked with the USS CTC machine.",
+   "path": "jmri/layouts/hart/scripts/uss_switch_only_columns.py"
+  },
+  {
+   "id": "tools/schematic/le_common.py",
+   "label": "le_common.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Shared facts and files of the Layout Editor build (bands, stations, the device map), split out of build_layout_le.py.",
+   "path": "tools/schematic/le_common.py"
+  },
+  {
+   "id": "tools/schematic/le_checks.py",
+   "label": "le_checks.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of build_layout_le.py: checks the drawn panel's blocks and masts on their switches and legs.",
+   "path": "tools/schematic/le_checks.py"
+  },
+  {
+   "id": "tools/schematic/le_names.py",
+   "label": "le_names.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of build_layout_le.py: names the drawn tracks and bands from the staging device map and the plan lengths.",
+   "path": "tools/schematic/le_names.py"
+  },
+  {
+   "id": "tools/schematic/block_layer.py",
+   "label": "block_layer.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module: each band's block layer (tracks named, split and given blocks) for the device map and the CATS desks.",
+   "path": "tools/schematic/block_layer.py"
+  },
+  {
+   "id": "tools/schematic/mast_rule.py",
+   "label": "mast_rule.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "The home-signal rule: tracks of a band between their ends, their names, and where a mast goes; shared by the builders.",
+   "path": "tools/schematic/mast_rule.py"
+  },
+  {
+   "id": "tools/schematic/mast_plan.py",
+   "label": "mast_plan.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Places every mast of the levels asked for from the plan, interlockings.csv, block_overrides.csv and the block layer.",
+   "path": "tools/schematic/mast_plan.py"
+  },
+  {
+   "id": "tools/schematic/host_screen.py",
+   "label": "host_screen.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "The window a maximised panel opens in on the Pi and Windows, from preferences.json host_screen.",
+   "path": "tools/schematic/host_screen.py"
+  },
+  {
+   "id": "tools/schematic/pi_dialog.py",
+   "label": "pi_dialog.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Text widths and heights as the Pi's JMRI dialog font draws them, for the panel's own items.",
+   "path": "tools/schematic/pi_dialog.py"
+  },
+  {
+   "id": "tools/schematic/staging_device_map.py",
+   "label": "staging_device_map.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Staging's facts in the device map's form: what the Layout Editor build, the signals and the CATS desks read for level 1.",
+   "path": "tools/schematic/staging_device_map.py"
+  },
+  {
+   "id": "tools/schematic/device_map_inputs.py",
+   "label": "device_map_inputs.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of build_device_map.py: reads its inputs (wiring pins, LCOS nodes, stations.csv, the plan) in one place.",
+   "path": "tools/schematic/device_map_inputs.py"
+  },
+  {
+   "id": "tools/schematic/device_map_masts.py",
+   "label": "device_map_masts.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of build_device_map.py: every level's mast and head rows by the signal rule; build_masts.py reads the same plan.",
+   "path": "tools/schematic/device_map_masts.py"
+  },
+  {
+   "id": "tools/schematic/device_map_rows.py",
+   "label": "device_map_rows.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of build_device_map.py: device-map rows (turnout, LCC alias, feedback) with the owner's devices_field.csv values over them.",
+   "path": "tools/schematic/device_map_rows.py"
+  },
+  {
+   "id": "tools/schematic/device_map_schematic.py",
+   "label": "device_map_schematic.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of build_device_map.py: main and upper's named tracks, block splits, block layer, helix blocks and control point keys.",
+   "path": "tools/schematic/device_map_schematic.py"
+  },
+  {
+   "id": "tools/schematic/device_map_staging.py",
+   "label": "device_map_staging.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of build_device_map.py: staging's device rows and wired turnout, alias and feedback rows.",
+   "path": "tools/schematic/device_map_staging.py"
+  },
+  {
+   "id": "tools/schematic/cats_panel.py",
+   "label": "cats_panel.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "One CATS desk builder for all three levels: each band's blocks, switches, signals and bindings.",
+   "path": "tools/schematic/cats_panel.py"
+  },
+  {
+   "id": "tools/schematic/cats_panel_facts.py",
+   "label": "cats_panel_facts.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of build_cats_panel.py: staging tracks, the main and upper device map and the mast templates.",
+   "path": "tools/schematic/cats_panel_facts.py"
+  },
+  {
+   "id": "tools/schematic/cats_panel_dress.py",
+   "label": "cats_panel_dress.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of build_cats_panel.py: the desk header, words and label clashes.",
+   "path": "tools/schematic/cats_panel_dress.py"
+  },
+  {
+   "id": "tools/schematic/panel_stamps.py",
+   "label": "panel_stamps.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Traced stamps of the make panels steps: a step whose recorded reads and outputs are unchanged is skipped.",
+   "path": "tools/schematic/panel_stamps.py"
+  },
+  {
+   "id": "tools/schematic/audit_reads.py",
+   "label": "audit_reads.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Runs a script under a Python audit hook and prints the repo files it reads, writes or lists; for finding a step's inputs.",
+   "path": "tools/schematic/audit_reads.py"
+  },
+  {
+   "id": "cats/scripts/digicon_lib.py",
+   "label": "digicon_lib.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Desk helpers shared by build_cats_panel.py, cats_turnout_io.py and digicon_trace.py.",
+   "path": "cats/scripts/digicon_lib.py"
+  },
+  {
+   "id": "cats/scripts/cats_turnout_io.py",
+   "label": "cats_turnout_io.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Digicon turnout IO for the desks: switch facts and plant cells (uss_board_plants.csv via layout_facts) to SWITCHPOINTS and ROUTECOMMAND.",
+   "path": "cats/scripts/cats_turnout_io.py"
+  },
+  {
+   "id": "cats/scripts/digicon_trace.py",
+   "label": "digicon_trace.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Follows a CATS points leg along the drawn track to the block it leads to; used by the desk build and cats_inspect.",
+   "path": "cats/scripts/digicon_trace.py"
+  },
+  {
+   "id": "jmri/layouts/hart/data/uss_board_plants.csv",
+   "label": "uss_board_plants.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Plant cells of the frozen Digicon board, read by cats_turnout_io.py through layout_facts.",
+   "path": "jmri/layouts/hart/data/uss_board_plants.csv"
+  },
+  {
+   "id": "cats/scripts/launch_cats.sh",
+   "label": "launch_cats.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Mac CATS launcher: refuses an unpulled Store, then starts CATS (cats.jar beside JMRI) on the profile with a HART desk panel.",
+   "path": "cats/scripts/launch_cats.sh"
+  },
+  {
+   "id": "cats/scripts/launch_designer.sh",
+   "label": "launch_designer.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Starts the CATS Designer jar (no JMRI needed), from the JMRI install or tools/cats/release3.2.",
+   "path": "cats/scripts/launch_designer.sh"
+  },
+  {
+   "id": "cats/scripts/mac/install_desktop_icons.sh",
+   "label": "install_desktop_icons.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Installs the CATS CTC and CATS ABS apps in /Applications on the Mac; builds the desks first if they are missing.",
+   "path": "cats/scripts/mac/install_desktop_icons.sh"
+  },
+  {
+   "id": "cats/scripts/sync_hart_package.sh",
+   "label": "sync_hart_package.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Old command kept by ADR-007: runs tools/hosts/sync_hart_package.sh.",
+   "path": "cats/scripts/sync_hart_package.sh"
+  },
+  {
+   "id": "tools/cats/fetch_cats_3.2.sh",
+   "label": "fetch_cats_3.2.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Downloads CATS 3.2 into tools/cats/release3.2 (gitignored).",
+   "path": "tools/cats/fetch_cats_3.2.sh"
+  },
+  {
+   "id": "tools/cats/fetch_cats_src.sh",
+   "label": "fetch_cats_src.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Clones the CATS source into tools/cats/src-repo for reading its Java (never into cats/).",
+   "path": "tools/cats/fetch_cats_src.sh"
+  },
+  {
+   "id": "tools/cats/install_into_jmri.sh",
+   "label": "install_into_jmri.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Copies CATS 3.2 into a JMRI install, next to jmri.jar.",
+   "path": "tools/cats/install_into_jmri.sh"
+  },
+  {
+   "id": "tools/jmri/mqtt_overlay/build.sh",
+   "label": "build.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Builds hart-mqtt-race-fix.jar from MqttAdapter.java against the Mac's JMRI 5.16 jars (ADR-034).",
+   "path": "tools/jmri/mqtt_overlay/build.sh"
+  },
+  {
+   "id": "tools/jmri/mqtt_race_repro/run.sh",
+   "label": "run.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Reproduces the JMRI MQTT startup race on a bare profile and a private broker; touches no layout file.",
+   "path": "tools/jmri/mqtt_race_repro/run.sh"
+  },
+  {
+   "id": "tools/jmri/mqtt_race_repro/gen_tables.py",
+   "label": "gen_tables.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Writes a tables.xml of N MQTT sensors and turnouts for the race repro.",
+   "path": "tools/jmri/mqtt_race_repro/gen_tables.py"
+  },
+  {
+   "id": "tools/jmri/mqtt_race_repro/retain.py",
+   "label": "retain.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Sets the retained sensor and turnout messages on the repro's private broker.",
+   "path": "tools/jmri/mqtt_race_repro/retain.py"
+  },
+  {
+   "id": ".claude/settings.json",
+   "label": "settings.json",
+   "kind": "structured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Claude Code project settings: the hooks each tool call and session runs, and permissions.",
+   "path": ".claude/settings.json"
+  },
+  {
+   "id": ".claude/hooks/main_guard.py",
+   "label": "main_guard.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "PreToolUse hook: blocks a commit or push on main, a force-push and an admin merge, asks before a track/cmd publish, and holds the operating-flag host gates.",
+   "path": ".claude/hooks/main_guard.py"
+  },
+  {
+   "id": ".claude/hooks/edit_guard.py",
+   "label": "edit_guard.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "PreToolUse hook: blocks Edit and Write in the main checkout (agents edit in their own worktree); uses main_guard's test.",
+   "path": ".claude/hooks/edit_guard.py"
+  },
+  {
+   "id": ".claude/hooks/subagent_guard.py",
+   "label": "subagent_guard.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "PreToolUse hook of the subagents (.claude/agents/*.md): blocks commands that publish, touch hosts or act on the railroad.",
+   "path": ".claude/hooks/subagent_guard.py"
+  },
+  {
+   "id": ".claude/hooks/check_after_edit.py",
+   "label": "check_after_edit.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "PostToolUse hook: after an edit to the tables or signal files, runs check.sh's quick checks and ruff on the file.",
+   "path": ".claude/hooks/check_after_edit.py"
+  },
+  {
+   "id": ".claude/hooks/worktree_sweep.py",
+   "label": "worktree_sweep.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Hook at session start and after gh pr merge: removes agent worktrees whose PR is merged (tools/agent/worktrees.py sweep).",
+   "path": ".claude/hooks/worktree_sweep.py"
+  },
+  {
+   "id": ".cursor/hooks/main_guard.py",
+   "label": "main_guard.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Cursor beforeShellExecution hook: runs .claude/hooks/main_guard.py's rules on the command and answers Cursor.",
+   "path": ".cursor/hooks/main_guard.py"
+  },
+  {
+   "id": "tools/agent/worktrees.py",
+   "label": "worktrees.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "make wt: makes an agent worktree per task, sets the map merge driver, and sweeps merged ones; no pipeline file.",
+   "path": "tools/agent/worktrees.py"
+  },
+  {
+   "id": "tools/ops/orient.py",
+   "label": "orient.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "make orient: claims, worktrees in progress, the operating flag, last deploys, open PRs and what waits to be pulled in from the hosts, on one screen.",
+   "path": "tools/ops/orient.py"
+  },
+  {
+   "id": "tools/ops/screenshot.py",
+   "label": "screenshot.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "make shot: screenshots a page at desktop and phone width for a check by eye; writes only scratch images.",
+   "path": "tools/ops/screenshot.py"
+  },
+  {
+   "id": "tools/ops/split_status.py",
+   "label": "split_status.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Splits a one-file wiki/STATUS.md into entry files under wiki/status/ (ADR-038) and checks the result.",
+   "path": "tools/ops/split_status.py"
+  },
+  {
+   "id": "tools/ops/agent_launch_count.py",
+   "label": "agent_launch_count.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Counts the subagents sessions launched for this repo, by type, from the Claude Code transcripts.",
+   "path": "tools/ops/agent_launch_count.py"
+  },
+  {
+   "id": "tools/audit/check_stamps.py",
+   "label": "check_stamps.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Traced stamps of check.sh's jobs: a job whose recorded reads are unchanged since its last pass is skipped.",
+   "path": "tools/audit/check_stamps.py"
+  },
+  {
+   "id": "tools/audit/traced.py",
+   "label": "traced.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Traced stamps' shared half: records what a step's Python processes read; used by panel_stamps.py and check_stamps.py.",
+   "path": "tools/audit/traced.py"
+  },
+  {
+   "id": "tools/audit/trace_hook/sitecustomize.py",
+   "label": "sitecustomize.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Starts traced.py's hook in a Python process when HART_TRACE_LOG is set, then the next sitecustomize.",
+   "path": "tools/audit/trace_hook/sitecustomize.py"
+  },
+  {
+   "id": "tools/audit/stamp_audit/sitecustomize.py",
+   "label": "sitecustomize.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Logs the repo files a Python process opens or lists, for check_stamps.py's trace audit (CHECK_AUDIT).",
+   "path": "tools/audit/stamp_audit/sitecustomize.py"
+  },
+  {
+   "id": "tools/audit/portal_inputs.py",
+   "label": "portal_inputs.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Says whether this checkout changes anything the public site build reads; check.sh skips the portal build check when not.",
+   "path": "tools/audit/portal_inputs.py"
+  },
+  {
+   "id": "tools/ci/changed_kind.py",
+   "label": "changed_kind.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Says whether a change needs the full checks or only the quick docs checks (CI and check.sh).",
+   "path": "tools/ci/changed_kind.py"
+  },
+  {
+   "id": "tools/ci/docs_checks.sh",
+   "label": "docs_checks.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "The quick docs checks: the docs_only steps of checks.toml, run in CI and by check.sh's docs-only path.",
+   "path": "tools/ci/docs_checks.sh"
+  },
+  {
+   "id": "tools/ci/stamp_gate.py",
+   "label": "stamp_gate.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Decides whether a PR's CI run may skip the check.sh jobs main's last full pass covered; writes and reads the stamps manifest.",
+   "path": "tools/ci/stamp_gate.py"
+  },
+  {
+   "id": "tools/ci/watch_jmri_pr.sh",
+   "label": "watch_jmri_pr.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "GitHub Actions job: watches JMRI/JMRI#16004 and #16003 and comments on a tracking issue when something is new.",
+   "path": "tools/ci/watch_jmri_pr.sh"
+  },
+  {
+   "id": "tools/pipeline/manifest_base.py",
+   "label": "manifest_base.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "What both step manifests are read and checked with: ManifestError, Edge, Repo, the glob and path rules.",
+   "path": "tools/pipeline/manifest_base.py"
+  },
+  {
+   "id": "tools/pipeline/manifest_checks.py",
+   "label": "manifest_checks.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "checks.toml's fields, Step and loader, and check.sh's jobs lines.",
+   "path": "tools/pipeline/manifest_checks.py"
+  },
+  {
+   "id": "tools/pipeline/manifest_jobs.py",
+   "label": "manifest_jobs.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "What check_stamps.py reads of checks.toml per job: stamp keys and the trace audit's declarations.",
+   "path": "tools/pipeline/manifest_jobs.py"
+  },
+  {
+   "id": "tools/pipeline/manifest_panels.py",
+   "label": "manifest_panels.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "panels.toml's fields, PanelStep, loaders, the order rule and build_panels.sh's lines.",
+   "path": "tools/pipeline/manifest_panels.py"
+  },
+  {
+   "id": "tools/ctc_history/film_cats.py",
+   "label": "film_cats.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Builds the CATS Dispatcher Panel evolution video from dated screenshots (films.py cats).",
+   "path": "tools/ctc_history/film_cats.py"
+  },
+  {
+   "id": "tools/ctc_history/film_ctc.py",
+   "label": "film_ctc.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Builds the USS CTC panel evolution video and GIF from history screenshots (films.py ctc).",
+   "path": "tools/ctc_history/film_ctc.py"
+  },
+  {
+   "id": "tools/ctc_history/film_le.py",
+   "label": "film_le.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Builds the Layout Editor panel evolution video from le_panel_*.png (films.py le).",
+   "path": "tools/ctc_history/film_le.py"
+  },
+  {
+   "id": "www/scripts/png_stamp.py",
+   "label": "png_stamp.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "The render stamp a layout index builder writes into its committed PNG; --check compares it with the inputs' hash.",
+   "path": "www/scripts/png_stamp.py"
+  },
+  {
+   "id": "www/scripts/install_portal_launchagent.sh",
+   "label": "install_portal_launchagent.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Installs a Mac LaunchAgent that keeps the local operator portal server up (disabled 2026-11-11; started on demand).",
+   "path": "www/scripts/install_portal_launchagent.sh"
+  },
+  {
+   "id": "tools/mqtt-mimic/install_mimic_launchagent.sh",
+   "label": "install_mimic_launchagent.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "wiring",
+   "desc": "Installs a Mac LaunchAgent that keeps the LCOS MQTT mimic up (restart on crash, at login).",
+   "path": "tools/mqtt-mimic/install_mimic_launchagent.sh"
+  },
+  {
+   "id": "ops/hart-ops/bin/sts_helpers_root.sh",
+   "label": "sts_helpers_root.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Prints the sts-helpers checkout apply_hart_seed.sh uses (HART_STS_HELPERS or the submodule).",
+   "path": "ops/hart-ops/bin/sts_helpers_root.sh"
+  },
+  {
+   "id": "docs/jmri/speedmatching/profile-2026-11-08/block_speeds.py",
+   "label": "block_speeds.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "2026-11-08 session: per-block and per-step speed tables (block_events, block_summary, speed_by_step.csv) from that session's runner logs; kept with its data.",
+   "path": "docs/jmri/speedmatching/profile-2026-11-08/block_speeds.py"
+  },
+  {
+   "id": "tools/ci/docs_unit_tests.py",
+   "label": "docs_unit_tests.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Lists the unit tests a docs-only change runs, from check_stamps.py's declarations of what reads docs/ or wiki/; docs_checks.sh runs them.",
+   "path": "tools/ci/docs_unit_tests.py"
+  },
+  {
+   "id": "tools/hosts/deploy/pi_unpulled.sh",
+   "label": "pi_unpulled.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Read-only: what the Pi holds that a deploy would replace (ops, tables), as the deploy gate sees it; make orient's waiting-to-ingest lines run it.",
+   "path": "tools/hosts/deploy/pi_unpulled.sh"
+  },
+  {
+   "id": "tools/hosts/roster_digest.sh",
+   "label": "roster_digest.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Prints a sha256 line per DecoderPro roster file in a user files folder; sync_roster_from_pi.sh --status runs it on the Pi and the Mac.",
+   "path": "tools/hosts/roster_digest.sh"
   },
   {
    "id": ".claude/agents/archive-researcher.md",
@@ -8968,6 +10414,2072 @@
    "gen": "manifest"
   },
   {
+   "from": "tools/hosts/sync_hart_package.sh",
+   "to": "tools/hosts/deploy/gate.sh",
+   "label": "step 1"
+  },
+  {
+   "from": "tools/hosts/sync_hart_package.sh",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "step 2"
+  },
+  {
+   "from": "tools/hosts/sync_hart_package.sh",
+   "to": "tools/hosts/deploy/ship_mac.sh",
+   "label": "step 3"
+  },
+  {
+   "from": "tools/hosts/sync_hart_package.sh",
+   "to": "tools/hosts/deploy/ship_pi.sh",
+   "label": "step 4"
+  },
+  {
+   "from": "tools/hosts/sync_hart_package.sh",
+   "to": "tools/hosts/deploy/ship_win.sh",
+   "label": "step 5"
+  },
+  {
+   "from": "tools/hosts/deploy/common.sh",
+   "to": "tools/hosts/deploy/gate.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/hosts/deploy/common.sh",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/hosts/deploy/common.sh",
+   "to": "tools/hosts/deploy/ship_mac.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/hosts/deploy/common.sh",
+   "to": "tools/hosts/deploy/ship_pi.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/hosts/deploy/common.sh",
+   "to": "tools/hosts/deploy/ship_win.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/hosts/deploy/common.sh",
+   "to": "tools/hosts/sync_hart_package.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/env/load_env.sh",
+   "to": "tools/hosts/deploy/common.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/hosts/profile_tables_guard.sh",
+   "to": "tools/hosts/deploy/common.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/parked.py",
+   "to": "tools/hosts/deploy/common.sh",
+   "label": "hartlib.parked dirs, jython"
+  },
+  {
+   "from": "tools/hosts/deploy/ci_pass.py",
+   "to": "tools/hosts/deploy/gate.sh",
+   "label": "G4 skip verdict"
+  },
+  {
+   "from": "ext:github-ci",
+   "to": "tools/hosts/deploy/ci_pass.py",
+   "label": "run log of the commit's full pass"
+  },
+  {
+   "from": "jmri/layouts/hart/output/tables.xml",
+   "to": "tools/hosts/deploy/gate.sh",
+   "label": "build_tables --check, Digicon SML check",
+   "side": "check"
+  },
+  {
+   "from": "tools/hosts/live_paths.py",
+   "to": "tools/hosts/deploy/gate.sh",
+   "label": "live_paths check"
+  },
+  {
+   "from": "tools/hosts/deploy/gate.sh",
+   "to": "jmri/layouts/hart/scripts/audit_panel_contracts.py",
+   "label": "runs --strict"
+  },
+  {
+   "from": "tools/hosts/deploy/gate.sh",
+   "to": "tools/schematic/approval.py",
+   "label": "runs check_approved --check"
+  },
+  {
+   "from": "tools/hosts/deploy/gate.sh",
+   "to": "jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py",
+   "label": "runs --check"
+  },
+  {
+   "from": "tools/hosts/deploy/gate.sh",
+   "to": "tools/schematic/build_tables.py",
+   "label": "runs --check"
+  },
+  {
+   "from": "tools/hosts/pi/unpulled_changes.sh",
+   "to": "tools/hosts/deploy/common.sh",
+   "label": "piped to the Pi before a deploy"
+  },
+  {
+   "from": "tools/hosts/pi/panelpro_restart_due.sh",
+   "to": "tools/hosts/deploy/common.sh",
+   "label": "piped to the Pi after a deploy"
+  },
+  {
+   "from": "jmri/layouts/hart/output/tables.xml",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "tables.xml"
+  },
+  {
+   "from": "cats/panels/HART_CTC.xml",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "LIVE_PANELS, paths rewritten"
+  },
+  {
+   "from": "cats/panels/HART_ABS.xml",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "LIVE_PANELS, paths rewritten"
+  },
+  {
+   "from": "cats/scripts/rewrite_button_icon_paths.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "rewrites each panel"
+  },
+  {
+   "from": "jmri/layouts/hart/operations",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "operations/*.xml"
+  },
+  {
+   "from": "jmri/resources/roster",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "roster photos"
+  },
+  {
+   "from": "jmri/resources/jmri-web/servlet/home/Home.html",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "jmri-web"
+  },
+  {
+   "from": "tools/mqtt-mimic/build_mimic_web.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "mimic web"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/dashboard/publish_live.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "--build-page; publisher files"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/analyze.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "publisher files"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/liverule.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "publisher files"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/routes.json",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "publisher files"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/dashboard/dashstate.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "publisher files"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/dashboard/dashsources.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "publisher files"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/dashboard/export_site_runs.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "publisher files"
+  },
+  {
+   "from": "jmri/layouts/hart/data/block_lengths.csv",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "speedmatch-live data"
+  },
+  {
+   "from": "jmri/layouts/hart/data/speed_by_step_2026-11-08.csv",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "speedmatch-live data"
+  },
+  {
+   "from": "tools/hosts/pi",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "cats/scripts/pi"
+  },
+  {
+   "from": "tools/hosts/windows",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "cats/scripts/windows"
+  },
+  {
+   "from": "cats/scripts/install_jmri_web_override.sh",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "cats/scripts"
+  },
+  {
+   "from": "cats/scripts/patch_jmri_startup.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "cats/scripts"
+  },
+  {
+   "from": "cats/scripts/install_ops_files.sh",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "cats/scripts"
+  },
+  {
+   "from": "tools/jmri/mqtt_overlay/hart-mqtt-race-fix.jar",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "jmri/mqtt_overlay"
+  },
+  {
+   "from": "tools/jmri/mqtt_overlay/install_overlay.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "jmri/mqtt_overlay"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/hide_cats_desk_windows.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/hide_band_panels.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/panel_status.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/jmri_cmd_watcher.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/sts_car_sync.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/mimic_relay.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/discover_sml.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/scripts/signal_coordinator.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/scripts/sml_beans.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/scripts/sml_claims.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/scripts/sml_handoff.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "jython"
+  },
+  {
+   "from": "tools/hosts/deploy/stage.sh",
+   "to": "tools/hosts/deploy/ship_pi.sh",
+   "label": "staged pi/ package"
+  },
+  {
+   "from": "tools/hosts/deploy/stage.sh",
+   "to": "tools/hosts/deploy/ship_win.sh",
+   "label": "staged win/ package"
+  },
+  {
+   "from": "jmri/layouts/hart/output/tables.xml",
+   "to": "tools/hosts/deploy/ship_mac.sh",
+   "label": "~/JMRI_UserFiles/tables.xml"
+  },
+  {
+   "from": "cats/panels/HART_CTC.xml",
+   "to": "tools/hosts/deploy/ship_mac.sh",
+   "label": "LIVE_PANELS, paths rewritten"
+  },
+  {
+   "from": "cats/panels/HART_ABS.xml",
+   "to": "tools/hosts/deploy/ship_mac.sh",
+   "label": "LIVE_PANELS, paths rewritten"
+  },
+  {
+   "from": "jmri/layouts/hart/operations",
+   "to": "tools/hosts/deploy/ship_mac.sh",
+   "label": "install_ops_files.sh"
+  },
+  {
+   "from": "jmri/resources/roster",
+   "to": "tools/hosts/deploy/ship_mac.sh",
+   "label": "roster photos"
+  },
+  {
+   "from": "tools/hosts/deploy/ship_mac.sh",
+   "to": "cats/scripts/install_ops_files.sh",
+   "label": "runs"
+  },
+  {
+   "from": "tools/hosts/deploy/ship_mac.sh",
+   "to": "cats/scripts/patch_jmri_startup.py",
+   "label": "runs (Start Up)"
+  },
+  {
+   "from": "tools/hosts/deploy/ship_mac.sh",
+   "to": "cats/scripts/install_jmri_web_override.sh",
+   "label": "runs"
+  },
+  {
+   "from": "tools/hosts/deploy/ship_mac.sh",
+   "to": "tools/jmri/mqtt_overlay/install_overlay.py",
+   "label": "runs"
+  },
+  {
+   "from": "tools/hosts/deploy/ship_mac.sh",
+   "to": "host:mac",
+   "label": "installs ~/JMRI_UserFiles"
+  },
+  {
+   "from": "tools/hosts/deploy/ship_pi.sh",
+   "to": "tools/hosts/pi/apply_hart_package_local.sh",
+   "label": "runs on the Pi"
+  },
+  {
+   "from": "tools/hosts/deploy/ship_pi.sh",
+   "to": "host:pi",
+   "label": "rsync to the drop folder"
+  },
+  {
+   "from": "tools/hosts/deploy/ship_win.sh",
+   "to": "tools/hosts/windows",
+   "label": "runs apply_hart_package_local.ps1"
+  },
+  {
+   "from": "tools/hosts/deploy/ship_win.sh",
+   "to": "host:windows",
+   "label": "tarball over scp"
+  },
+  {
+   "from": "tools/hosts/pi/apply_hart_package_local.sh",
+   "to": "host:pi",
+   "label": "installs JMRI_UserFiles and ~/.jmri"
+  },
+  {
+   "from": "tools/hosts/pi/apply_hart_package_local.sh",
+   "to": "cats/scripts/install_ops_files.sh",
+   "label": "runs --guard"
+  },
+  {
+   "from": "tools/hosts/pi/apply_hart_package_local.sh",
+   "to": "cats/scripts/patch_jmri_startup.py",
+   "label": "runs (Start Up)"
+  },
+  {
+   "from": "tools/hosts/pi/apply_hart_package_local.sh",
+   "to": "cats/scripts/install_jmri_web_override.sh",
+   "label": "runs"
+  },
+  {
+   "from": "tools/hosts/pi/apply_hart_package_local.sh",
+   "to": "tools/jmri/mqtt_overlay/install_overlay.py",
+   "label": "runs"
+  },
+  {
+   "from": "tools/hosts/pi/apply_hart_package_local.sh",
+   "to": "tools/hosts/pi/install_desktop_icons.sh",
+   "label": "runs"
+  },
+  {
+   "from": "tools/hosts/pi/apply_hart_package_local.sh",
+   "to": "tools/hosts/pi/hart-speedmatch-live.service",
+   "label": "installs, enables, restarts"
+  },
+  {
+   "from": "tools/hosts/sync_roster_from_pi.sh",
+   "to": "tools/hosts/pack_roster_stage.sh",
+   "label": "runs"
+  },
+  {
+   "from": "tools/hosts/pack_roster_stage.sh",
+   "to": "host:windows",
+   "label": "tar stream of the roster stage"
+  },
+  {
+   "from": "cats/scripts/patch_jmri_startup.py",
+   "to": "tools/hosts/panelpro_profile.py",
+   "label": "imports"
+  },
+  {
+   "from": "ext:hartlib",
+   "to": "tools/hosts/panelpro_profile.py",
+   "label": "imports hartlib.tables (jmri-running)"
+  },
+  {
+   "from": "tools/hosts/panelpro_profile.py",
+   "to": "tools/hosts/panelpro_session.sh",
+   "label": "profile steps"
+  },
+  {
+   "from": "tools/hosts/panelpro_profile.py",
+   "to": "host:mac",
+   "label": "patches and restores the Mac profile.xml"
+  },
+  {
+   "from": "tools/schematic/le_tables.py",
+   "to": "tools/schematic/build_layout_le.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/le_tables.py",
+   "to": "tools/schematic/sync_signals.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/block_numbering.csv",
+   "to": "tools/schematic/le_tables.py",
+   "label": "reads, via hartlib.block_numbering"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/tables_build.py",
+   "to": "tools/schematic/le_tables.py",
+   "label": "imports (base beans)"
+  },
+  {
+   "from": "tools/env/load_env.sh",
+   "to": "tools/hosts/deploy_status.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/hosts/deploy_status.sh",
+   "to": "tools/hosts/live_paths.py",
+   "label": "runs changed"
+  },
+  {
+   "from": "host:pi",
+   "to": "tools/hosts/deploy_status.sh",
+   "label": "cats/deploy_stamp.txt",
+   "side": "check"
+  },
+  {
+   "from": "host:windows",
+   "to": "tools/hosts/deploy_status.sh",
+   "label": "cats/deploy_stamp.txt",
+   "side": "check"
+  },
+  {
+   "from": "tools/env/load_env.sh",
+   "to": "tools/hosts/pi_quit_panelpro.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/env/load_env.sh",
+   "to": "tools/hosts/pi_start_panelpro.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/hosts/pi_quit_panelpro.sh",
+   "to": "jmri/layouts/hart/scripts/jmri_cmd_watcher.py",
+   "label": "drops the quit Jython"
+  },
+  {
+   "from": "tools/hosts/pi_quit_panelpro.sh",
+   "to": "host:pi",
+   "label": "quits PanelPro"
+  },
+  {
+   "from": "tools/hosts/pi_start_panelpro.sh",
+   "to": "host:pi",
+   "label": "starts PanelPro"
+  },
+  {
+   "from": "tools/hosts/deploy/common.sh",
+   "to": "tools/hosts/pi_quit_panelpro.sh",
+   "label": "runs before the ops auto-pull"
+  },
+  {
+   "from": "tools/hosts/deploy/common.sh",
+   "to": "tools/hosts/pi_start_panelpro.sh",
+   "label": "runs when a restart is due"
+  },
+  {
+   "from": "tools/hosts/profile_tables_guard.sh",
+   "to": "tools/hosts/panelpro_session.sh",
+   "label": "sourced alongside"
+  },
+  {
+   "from": "jmri/layouts/hart/output/tables.xml",
+   "to": "tools/hosts/panelpro_session.sh",
+   "label": "the tables a run loads"
+  },
+  {
+   "from": "cats/scripts/patch_jmri_startup.py",
+   "to": "tools/hosts/panelpro_session.sh",
+   "label": "load-tables"
+  },
+  {
+   "from": "tools/hosts/panelpro_session.sh",
+   "to": "host:panelpro",
+   "label": "starts the Mac PanelPro"
+  },
+  {
+   "from": "jmri/layouts/hart/data/store_splits.csv",
+   "to": "tools/hosts/profile_tables_guard.sh",
+   "label": "split SHAs"
+  },
+  {
+   "from": "tools/hosts/pi/tables_base.sh",
+   "to": "tools/hosts/profile_tables_guard.sh",
+   "label": "base of a pulled Store"
+  },
+  {
+   "from": "tools/hosts/profile_tables_guard.sh",
+   "to": "cats/scripts/launch_cats.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/hosts/profile_tables_guard.sh",
+   "to": "tools/hosts/run_panelpro_roundtrip.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/hosts/panelpro_session.sh",
+   "to": "tools/hosts/run_panelpro_roundtrip.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "jmri/layouts/hart/output/tables.xml",
+   "to": "tools/hosts/run_panelpro_roundtrip.sh",
+   "label": "loads",
+   "side": "check"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/panelpro_roundtrip.py",
+   "to": "tools/hosts/run_panelpro_roundtrip.sh",
+   "label": "the Jython it runs"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/tables_build.py",
+   "to": "tools/hosts/run_panelpro_roundtrip.sh",
+   "label": "tables_build roundtrip"
+  },
+  {
+   "from": "tools/hosts/run_panelpro_roundtrip.sh",
+   "to": "tools/audit/check_layout_facts.py",
+   "label": "runs on the Store"
+  },
+  {
+   "from": "tools/hosts/run_panelpro_roundtrip.sh",
+   "to": "media/pulled-stores",
+   "label": "roundtrip-<time>.xml"
+  },
+  {
+   "from": "host:mac",
+   "to": "tools/hosts/win_run.sh",
+   "label": "make remote"
+  },
+  {
+   "from": "tools/hosts/win_run.sh",
+   "to": "host:windows",
+   "label": "runs the command in WSL"
+  },
+  {
+   "from": "tools/hosts/sandbox/sandbox_env.sh",
+   "to": "tools/hosts/sandbox/panel_snapshot.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/hosts/profile_tables_guard.sh",
+   "to": "tools/hosts/sandbox/panel_snapshot.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/hosts/panelpro_session.sh",
+   "to": "tools/hosts/sandbox/panel_snapshot.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/hosts/sandbox/panel_snapshot.py",
+   "to": "tools/hosts/sandbox/panel_snapshot.sh",
+   "label": "the Jython it runs"
+  },
+  {
+   "from": "jmri/layouts/hart/output/tables.xml",
+   "to": "tools/hosts/sandbox/panel_snapshot.sh",
+   "label": "a checkout's tables.xml"
+  },
+  {
+   "from": "tools/hosts/pi/hart-speedmatch-live.service",
+   "to": "jmri/layouts/hart/scripts/speedmatch/dashboard/publish_live.py",
+   "label": "ExecStart"
+  },
+  {
+   "from": "tools/hosts/pi/hart-speedmatch-live.service",
+   "to": "host:pi",
+   "label": "user unit"
+  },
+  {
+   "from": "tools/hosts/pi/install_desktop_icons.sh",
+   "to": "host:pi",
+   "label": "desktop icons"
+  },
+  {
+   "from": "tools/hosts/pi/launch_cats_ctc_desktop.sh",
+   "to": "tools/hosts/pi/launch_cats.sh",
+   "label": "runs with HART_CTC.xml"
+  },
+  {
+   "from": "tools/hosts/pi/launch_cats_abs_desktop.sh",
+   "to": "tools/hosts/pi/launch_cats.sh",
+   "label": "runs with HART_ABS.xml"
+  },
+  {
+   "from": "tools/hosts/pi/install_desktop_icons.sh",
+   "to": "tools/hosts/pi/launch_cats_ctc_desktop.sh",
+   "label": "icon target"
+  },
+  {
+   "from": "tools/hosts/pi/install_desktop_icons.sh",
+   "to": "tools/hosts/pi/launch_cats_abs_desktop.sh",
+   "label": "icon target"
+  },
+  {
+   "from": "tools/hosts/pi/launch_cats.sh",
+   "to": "host:cats",
+   "label": "starts CATS"
+  },
+  {
+   "from": "tools/hosts/pi/launch_trainstat_desktop.sh",
+   "to": "tools/hosts/pi/launch_trainstat.sh",
+   "label": "runs"
+  },
+  {
+   "from": "tools/hosts/pi/launch_trainstat.sh",
+   "to": "host:cats",
+   "label": "TrainStat client of CATS"
+  },
+  {
+   "from": "tools/hosts/pi/panelpro_restart_due.sh",
+   "to": "tools/hosts/pi_start_panelpro.sh",
+   "label": "restart due"
+  },
+  {
+   "from": "tools/hosts/pi/unpulled_changes.sh",
+   "to": "tools/ops/pull_tables.sh",
+   "label": "is there a Store"
+  },
+  {
+   "from": "tools/hosts/pi/unpulled_changes.sh",
+   "to": "tools/ops/pull_tables_pi.sh",
+   "label": "is there a Store (ssh)"
+  },
+  {
+   "from": "tools/hosts/pi/tables_base.sh",
+   "to": "tools/ops/pull_tables.sh",
+   "label": "base of the Mac Store"
+  },
+  {
+   "from": "tools/hosts/pi/tables_base.sh",
+   "to": "tools/ops/pull_tables_pi.sh",
+   "label": "base of the Pi Store"
+  },
+  {
+   "from": "host:pi",
+   "to": "tools/hosts/pi/unpulled_changes.sh",
+   "label": "Operations files, tables.xml",
+   "side": "check"
+  },
+  {
+   "from": "docs/jmri/speedmatching/profile-2026-11-08/block_speeds.py",
+   "to": "jmri/layouts/hart/data/speed_by_step_2026-11-08.csv",
+   "label": "speed_by_step.csv, copied"
+  },
+  {
+   "from": "jmri/layouts/hart/data/speed_by_step_2026-11-08.csv",
+   "to": "jmri/layouts/hart/scripts/speedmatch/dashboard/dashsources.py",
+   "label": "REF_CSV"
+  },
+  {
+   "from": "jmri/layouts/hart/data/speed_by_step_2026-11-08.csv",
+   "to": "jmri/layouts/hart/scripts/speedmatch/dashboard/publish_live.py",
+   "label": "REF_IN_BUNDLE"
+  },
+  {
+   "from": "ext:github-ci",
+   "to": "tools/check.sh",
+   "label": "runs in CI"
+  },
+  {
+   "from": "host:pi-speedmatch-logs",
+   "to": "host:pi",
+   "label": "runs on"
+  },
+  {
+   "from": "host:pi-speedmatch-live",
+   "to": "host:pi",
+   "label": "served by JMRI"
+  },
+  {
+   "from": "host:mac",
+   "to": "jmri/layouts/hart/scripts/speedmatch/speedmatch.py",
+   "label": "make speedmatch"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/speedmatch.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/make_job.py",
+   "label": "runs"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/speedmatch.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/drop_job.sh",
+   "label": "runs"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/speedmatch.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/pom_write.py",
+   "label": "runs"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/speedmatch.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/preflight_compare.py",
+   "label": "runs"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/speedmatch.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/stoptest_compare.py",
+   "label": "runs"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/speedmatch.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/profile_to_roster.py",
+   "label": "runs"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/speedmatch.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/rename_extension_tracks.py",
+   "label": "runs"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/speedmatch.py",
+   "to": "jmri/layouts/hart/scripts/infer_block_lengths.py",
+   "label": "runs (lengths)"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/pom_guard.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/speedmatch.py",
+   "label": "packed for pom"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/pom_guard_cli.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/speedmatch.py",
+   "label": "packed for pom"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/cs105_consist.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/speedmatch.py",
+   "label": "packed for pom"
+  },
+  {
+   "from": "tools/env/load_env.sh",
+   "to": "jmri/layouts/hart/scripts/speedmatch/speedmatch.py",
+   "label": "host settings"
+  },
+  {
+   "from": "tools/env/load_env.sh",
+   "to": "jmri/layouts/hart/scripts/speedmatch/drop_job.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/liverule.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/make_job.py",
+   "label": "pasted into the job"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/jython/jobkit.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/make_job.py",
+   "label": "pasted into the job"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/jython/step_runner.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/make_job.py",
+   "label": "pasted into the job"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/jython/distance_runner.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/make_job.py",
+   "label": "pasted into the job"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/jython/pass_runner.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/make_job.py",
+   "label": "pasted into the job"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/jython/move_to.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/make_job.py",
+   "label": "pasted into the job"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/jython/stop_test.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/make_job.py",
+   "label": "pasted into the job"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/jython/preflight.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/make_job.py",
+   "label": "pasted into the job"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/jython/write_profile.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/make_job.py",
+   "label": "pasted into the job"
+  },
+  {
+   "from": "jmri/layouts/hart/output/tables.xml",
+   "to": "jmri/layouts/hart/scripts/speedmatch/make_job.py",
+   "label": "block sensors for --guard default"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/routes.json",
+   "to": "jmri/layouts/hart/scripts/speedmatch/make_job.py",
+   "label": "route sensors"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/make_job.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/drop_job.sh",
+   "label": "job file"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/drop_job.sh",
+   "to": "jmri/layouts/hart/scripts/jmri_cmd_watcher.py",
+   "label": "/tmp/jmri_cmd.py on the Pi"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/drop_job.sh",
+   "to": "tools/hosts/operating.sh",
+   "label": "guard"
+  },
+  {
+   "from": "host:pi-speedmatch-logs",
+   "to": "jmri/layouts/hart/scripts/speedmatch/drop_job.sh",
+   "label": "--fetch a log"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/jython/step_runner.py",
+   "to": "host:pi-speedmatch-logs",
+   "label": "log and runner flag"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/jython/distance_runner.py",
+   "to": "host:pi-speedmatch-logs",
+   "label": "log and runner flag"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/jython/pass_runner.py",
+   "to": "host:pi-speedmatch-logs",
+   "label": "log and runner flag"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/jython/move_to.py",
+   "to": "host:pi-speedmatch-logs",
+   "label": "log and runner flag"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/jython/stop_test.py",
+   "to": "host:pi-speedmatch-logs",
+   "label": "log and runner flag"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/jython/preflight.py",
+   "to": "host:pi-speedmatch-logs",
+   "label": "log and runner flag"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/jython/write_profile.py",
+   "to": "host:pi-speedmatch-logs",
+   "label": "log and runner flag"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/jython/write_profile.py",
+   "to": "ext:decoderpro-roster",
+   "label": "speed profile"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/pom_write.py",
+   "to": "ext:cs105",
+   "label": "POM writes over LCC"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/pom_guard.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/pom_write.py",
+   "label": "loaded in the Pi's JMRI"
+  },
+  {
+   "from": "ext:decoderpro-roster",
+   "to": "jmri/layouts/hart/scripts/speedmatch/pom_write.py",
+   "label": "roster.xml and entry files"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/pom_guard.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/pom_guard_cli.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/pom_guard.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/correct.py",
+   "label": "imports"
+  },
+  {
+   "from": "ext:decoderpro-roster",
+   "to": "jmri/layouts/hart/scripts/speedmatch/pom_guard_cli.py",
+   "label": "--roster-dir",
+   "side": "check"
+  },
+  {
+   "from": "host:pi-speedmatch-logs",
+   "to": "jmri/layouts/hart/scripts/speedmatch/analyze.py",
+   "label": "runner logs"
+  },
+  {
+   "from": "jmri/layouts/hart/data/block_lengths.csv",
+   "to": "jmri/layouts/hart/scripts/speedmatch/analyze.py",
+   "label": "DEFAULT_LENGTHS"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/routes.json",
+   "to": "jmri/layouts/hart/scripts/speedmatch/analyze.py",
+   "label": "ROUTES_JSON"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/liverule.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/analyze.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/analyze.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/profile_to_roster.py",
+   "label": "profile.csv"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/analyze.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/correct.py",
+   "label": "profile.csv"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/liverule.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/correct.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/profile_to_roster.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/make_job.py",
+   "label": "payload for make_job profile"
+  },
+  {
+   "from": "ext:decoderpro-roster",
+   "to": "jmri/layouts/hart/scripts/speedmatch/preflight_compare.py",
+   "label": "roster XML CVs",
+   "side": "check"
+  },
+  {
+   "from": "host:pi-speedmatch-logs",
+   "to": "jmri/layouts/hart/scripts/speedmatch/preflight_compare.py",
+   "label": "preflight log"
+  },
+  {
+   "from": "host:pi-speedmatch-logs",
+   "to": "jmri/layouts/hart/scripts/speedmatch/stoptest_compare.py",
+   "label": "stop-test logs"
+  },
+  {
+   "from": "host:pi-speedmatch-logs",
+   "to": "jmri/layouts/hart/scripts/speedmatch/rename_extension_tracks.py",
+   "label": "old logs"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/liverule.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/dashboard/dashstate.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/dashboard/dashstate.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/dashboard/dashsources.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/dashboard/dashstate.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/dashboard/server.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/dashboard/dashsources.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/dashboard/server.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/dashboard/dashstate.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/dashboard/publish_live.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/dashboard/dashsources.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/dashboard/publish_live.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/dashboard/dashstate.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/dashboard/export_site_runs.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/dashboard/dashsources.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/dashboard/export_site_runs.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/data/block_lengths.csv",
+   "to": "jmri/layouts/hart/scripts/speedmatch/dashboard/dashstate.py",
+   "label": "loop lengths"
+  },
+  {
+   "from": "host:pi-speedmatch-logs",
+   "to": "jmri/layouts/hart/scripts/speedmatch/dashboard/dashsources.py",
+   "label": "ssh ls, stat, tail"
+  },
+  {
+   "from": "host:pi-speedmatch-logs",
+   "to": "jmri/layouts/hart/scripts/speedmatch/dashboard/publish_live.py",
+   "label": "reads /tmp logs on the Pi"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/dashboard/publish_live.py",
+   "to": "host:pi-speedmatch-live",
+   "label": "index.json, runs/*.json, the page"
+  },
+  {
+   "from": "jmri/resources/roster",
+   "to": "jmri/layouts/hart/scripts/speedmatch/dashboard/publish_live.py",
+   "label": "loco photos for the page"
+  },
+  {
+   "from": "jmri/resources/roster",
+   "to": "jmri/layouts/hart/scripts/speedmatch/dashboard/server.py",
+   "label": "ROSTER_PHOTOS"
+  },
+  {
+   "from": "ext:decoderpro-roster",
+   "to": "jmri/layouts/hart/scripts/speedmatch/dashboard/server.py",
+   "label": "loco model",
+   "side": "check"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/infer_block_lengths.py",
+   "to": "jmri/layouts/hart/data/block_lengths.csv",
+   "label": "timed lengths"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/railroad.py",
+   "to": "jmri/layouts/hart/scripts/layout_facts.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/layout_facts.py",
+   "to": "tools/audit/check_layout_facts.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/layout_facts.py",
+   "to": "tools/schematic/build_cats_panel.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/layout_facts.py",
+   "to": "tools/schematic/staging_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/layout_facts.py",
+   "to": "cats/scripts/cats_turnout_io.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/lcc_turnout_contract.py",
+   "to": "jmri/layouts/hart/scripts/audit_panel_contracts.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/lcc_turnout_contract.py",
+   "to": "jmri/layouts/hart/scripts/refresh_bean_comments.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/panelpro_smoke_test.py",
+   "to": "jmri/layouts/hart/scripts/run_panelpro_smoke_test.sh",
+   "label": "the Jython it runs"
+  },
+  {
+   "from": "jmri/layouts/hart/data/wiring.csv",
+   "to": "jmri/layouts/hart/scripts/refresh_bean_comments.py",
+   "label": "wiring comments",
+   "side": "check"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_generated.csv",
+   "to": "jmri/layouts/hart/scripts/refresh_bean_comments.py",
+   "label": "device master comments",
+   "side": "check"
+  },
+  {
+   "from": "jmri/layouts/hart/data/block_lengths.csv",
+   "to": "jmri/layouts/hart/scripts/infer_block_lengths.py",
+   "label": "plan rows"
+  },
+  {
+   "from": "host:pi-speedmatch-logs",
+   "to": "jmri/layouts/hart/scripts/infer_block_lengths.py",
+   "label": "timed laps"
+  },
+  {
+   "from": "jmri/layouts/hart/data/switches.csv",
+   "to": "jmri/layouts/hart/scripts/diagnose_turnout_states.py",
+   "label": "reads"
+  },
+  {
+   "from": "host:mosquitto",
+   "to": "jmri/layouts/hart/scripts/diagnose_turnout_states.py",
+   "label": "turnout and feedback state",
+   "side": "check"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/dump_sml_criteria.py",
+   "to": "host:panelpro",
+   "label": "runs in PanelPro"
+  },
+  {
+   "from": "tools/ops/cs105.sh",
+   "to": "jmri/layouts/hart/scripts/cs105_consist.py",
+   "label": "drops (consist)"
+  },
+  {
+   "from": "tools/ops/cs105.sh",
+   "to": "jmri/layouts/hart/scripts/cs105_reboot.py",
+   "label": "drops (reboot)"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/cs105_consist.py",
+   "to": "ext:cs105",
+   "label": "LCC consist"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/cs105_reboot.py",
+   "to": "ext:cs105",
+   "label": "LCC reboot"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/roster_rename_road_ids.py",
+   "to": "ext:decoderpro-roster",
+   "label": "renames roster IDs"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/roster_rename_road_ids.py",
+   "to": "jmri/layouts/hart/scripts/jmri_cmd_watcher.py",
+   "label": "dropped through"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/nx_contract.py",
+   "to": "jmri/layouts/hart/scripts/audit_panel_contracts.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/nx_contract.py",
+   "to": "jmri/layouts/hart/parked/apply_nx_layer.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/output/tables.xml",
+   "to": "jmri/layouts/hart/parked/apply_nx_layer.py",
+   "label": "NX layer"
+  },
+  {
+   "from": "tools/hosts/profile_tables_guard.sh",
+   "to": "jmri/layouts/hart/scripts/run_nx_discover.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/hosts/panelpro_session.sh",
+   "to": "jmri/layouts/hart/scripts/run_nx_discover.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/discover_nx.py",
+   "to": "jmri/layouts/hart/scripts/run_nx_discover.sh",
+   "label": "the Jython it runs"
+  },
+  {
+   "from": "host:panelpro",
+   "to": "jmri/scripts/generate_nx_pairs.py",
+   "label": "mac_jmri_blocked.xml (a blocked Store)"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/apply_dispatcher_roster_profiles.py",
+   "to": "ext:decoderpro-roster",
+   "label": "speed profiles"
+  },
+  {
+   "from": "jmri/layouts/hart/dispatcher/traininfo",
+   "to": "jmri/layouts/hart/scripts/fix_traininfo_detection.py",
+   "label": "traininfo files"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/fix_traininfo_detection.py",
+   "to": "jmri/layouts/hart/dispatcher/traininfo",
+   "label": "HEAD_AND_TAIL"
+  },
+  {
+   "from": "jmri/layouts/hart/output/tables.xml",
+   "to": "jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py",
+   "label": "stations and icons"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py",
+   "to": "jmri/layouts/hart/scripts/run_panelpro_stage1.sh",
+   "label": "runs after Stage 1"
+  },
+  {
+   "from": "jmri/layouts/hart/parked/polish_hart_layout_editor.py",
+   "to": "jmri/layouts/hart/scripts/run_panelpro_stage1.sh",
+   "label": "runs after Stage 1"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/fix_traininfo_detection.py",
+   "to": "jmri/layouts/hart/scripts/run_panelpro_stage1.sh",
+   "label": "runs after Stage 1"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/refresh_bean_comments.py",
+   "to": "jmri/layouts/hart/scripts/run_panelpro_stage1.sh",
+   "label": "runs after Stage 1"
+  },
+  {
+   "from": "tools/hosts/profile_tables_guard.sh",
+   "to": "jmri/layouts/hart/scripts/run_panelpro_stage1.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/hosts/panelpro_session.sh",
+   "to": "jmri/layouts/hart/scripts/run_panelpro_stage1.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/run_panelpro_stage1.sh",
+   "to": "media/pulled-stores",
+   "label": "stage1-<date>.xml"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py",
+   "to": "jmri/layouts/hart/scripts/run_panelpro_traininfo_repair.sh",
+   "label": "the Jython it runs"
+  },
+  {
+   "from": "tools/hosts/profile_tables_guard.sh",
+   "to": "jmri/layouts/hart/scripts/run_panelpro_traininfo_repair.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/hosts/panelpro_session.sh",
+   "to": "jmri/layouts/hart/scripts/run_panelpro_traininfo_repair.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "jmri/layouts/hart/dispatcher/traininfo",
+   "to": "jmri/layouts/hart/parked/retarget_dispatcher_traininfo_transits.py",
+   "label": "traininfo files"
+  },
+  {
+   "from": "jmri/layouts/hart/parked/retarget_dispatcher_traininfo_transits.py",
+   "to": "jmri/layouts/hart/dispatcher/traininfo",
+   "label": "via-hints"
+  },
+  {
+   "from": "jmri/layouts/hart/output/tables.xml",
+   "to": "jmri/layouts/hart/parked/occupancy_lamps_display_only.py",
+   "label": "--check lamps",
+   "side": "check"
+  },
+  {
+   "from": "jmri/layouts/hart/parked/occupancy_lamps_display_only.py",
+   "to": "jmri/layouts/hart/parked",
+   "label": "staging_panel_lamps.json"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/ctc_default_reverse_levers.py",
+   "to": "host:panelpro",
+   "label": "runs in PanelPro after CTC Logic"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/build_ctc_full_15col.py",
+   "to": "jmri/layouts/hart/ctc",
+   "label": "CTC machine"
+  },
+  {
+   "from": "jmri/layouts/hart/output/tables.xml",
+   "to": "jmri/layouts/hart/scripts/cleanup_uss_ctc_leftovers.py",
+   "label": "USS CTC internals",
+   "side": "check"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/uss_switch_only_columns.py",
+   "to": "jmri/layouts/hart/ctc",
+   "label": "switch-only columns"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/uss_switch_only_columns.py",
+   "to": "jmri/layouts/hart/scripts/gen_ctc_track_plan.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/ctc_logic_smoke.py",
+   "to": "jmri/layouts/hart/scripts/run_ctc_logic_smoke.sh",
+   "label": "the Jython it runs"
+  },
+  {
+   "from": "tools/hosts/profile_tables_guard.sh",
+   "to": "jmri/layouts/hart/scripts/run_ctc_logic_smoke.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/hosts/panelpro_session.sh",
+   "to": "jmri/layouts/hart/scripts/run_ctc_logic_smoke.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/schematic/le_common.py",
+   "to": "tools/schematic/build_layout_le.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/le_common.py",
+   "to": "tools/schematic/band_panels.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/le_common.py",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/le_common.py",
+   "to": "tools/schematic/cats_panel.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/le_common.py",
+   "to": "tools/schematic/check_device_master.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/le_checks.py",
+   "to": "tools/schematic/build_layout_le.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/le_names.py",
+   "to": "tools/schematic/build_layout_le.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/le_names.py",
+   "to": "tools/schematic/mast_plan.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/block_layer.py",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/block_layer.py",
+   "to": "tools/schematic/cats_panel_facts.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/block_layer.py",
+   "to": "tools/schematic/device_map_schematic.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/mast_rule.py",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/mast_rule.py",
+   "to": "tools/schematic/build_masts.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/mast_rule.py",
+   "to": "tools/schematic/build_signals.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/mast_rule.py",
+   "to": "tools/schematic/cats_panel.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/mast_rule.py",
+   "to": "tools/schematic/check_device_master.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/mast_rule.py",
+   "to": "tools/schematic/mast_plan.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/mast_plan.py",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/mast_plan.py",
+   "to": "tools/schematic/device_map_masts.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/host_screen.py",
+   "to": "tools/schematic/publish_draft.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/pi_dialog.py",
+   "to": "tools/schematic/panel_items.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/staging_device_map.py",
+   "to": "tools/schematic/build_layout_le.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/staging_device_map.py",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/staging_device_map.py",
+   "to": "tools/schematic/build_masts.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/staging_device_map.py",
+   "to": "tools/schematic/build_signals.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/staging_device_map.py",
+   "to": "tools/schematic/build_cats_panel.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/staging_device_map.py",
+   "to": "tools/schematic/check_device_master.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/staging_device_map.py",
+   "to": "tools/schematic/plan_lengths.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/device_map_inputs.py",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/device_map_masts.py",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/device_map_masts.py",
+   "to": "tools/schematic/build_masts.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/device_map_rows.py",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/device_map_schematic.py",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/device_map_staging.py",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/cats_panel.py",
+   "to": "tools/schematic/build_cats_panel.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/cats_panel.py",
+   "to": "tools/schematic/publish_draft.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/cats_panel_facts.py",
+   "to": "tools/schematic/build_cats_panel.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/cats_panel_dress.py",
+   "to": "tools/schematic/build_cats_panel.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/stations.csv",
+   "to": "tools/schematic/device_map_inputs.py",
+   "label": "STATIONS"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/stations.csv",
+   "to": "tools/schematic/staging_device_map.py",
+   "label": "STATIONS"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/interlockings.csv",
+   "to": "tools/schematic/device_map_masts.py",
+   "label": "INTERLOCKINGS"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/interlockings.csv",
+   "to": "tools/schematic/mast_plan.py",
+   "label": "control points"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/block_overrides.csv",
+   "to": "tools/schematic/mast_plan.py",
+   "label": "block splits"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/preferences.json",
+   "to": "tools/schematic/host_screen.py",
+   "label": "host_screen"
+  },
+  {
+   "from": "cats/data/generated_desk_header.xml",
+   "to": "tools/schematic/cats_panel_dress.py",
+   "label": "HEADER"
+  },
+  {
+   "from": "jmri/layouts/hart/data/wiring.csv",
+   "to": "tools/schematic/device_map_inputs.py",
+   "label": "pins, via hartlib.wiring"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/lcos_nodes.csv",
+   "to": "tools/schematic/device_map_inputs.py",
+   "label": "staging nodes"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_field.csv",
+   "to": "tools/schematic/device_map_rows.py",
+   "label": "owner's cells (owner_over)"
+  },
+  {
+   "from": "tools/schematic/panel_stamps.py",
+   "to": "tools/schematic/build_panels.sh",
+   "label": "current, record"
+  },
+  {
+   "from": "tools/schematic/panel_stamps.py",
+   "to": "ext:panel-stamps",
+   "label": "writes"
+  },
+  {
+   "from": "tools/audit/traced.py",
+   "to": "tools/schematic/panel_stamps.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/pipeline/panels.toml",
+   "to": "tools/schematic/panel_stamps.py",
+   "label": "step keys"
+  },
+  {
+   "from": "tools/schematic/panel_stamps.py",
+   "to": "tools/schematic/audit_reads.py",
+   "label": "imports"
+  },
+  {
+   "from": "cats/scripts/digicon_lib.py",
+   "to": "tools/schematic/build_cats_panel.py",
+   "label": "imports"
+  },
+  {
+   "from": "cats/scripts/digicon_lib.py",
+   "to": "tools/schematic/cats_panel_facts.py",
+   "label": "imports"
+  },
+  {
+   "from": "cats/scripts/digicon_lib.py",
+   "to": "cats/scripts/cats_turnout_io.py",
+   "label": "imports"
+  },
+  {
+   "from": "cats/scripts/digicon_lib.py",
+   "to": "cats/scripts/digicon_trace.py",
+   "label": "imports"
+  },
+  {
+   "from": "cats/scripts/digicon_lib.py",
+   "to": "cats/scripts/cats_inspect.py",
+   "label": "imports"
+  },
+  {
+   "from": "cats/scripts/cats_turnout_io.py",
+   "to": "tools/schematic/build_cats_panel.py",
+   "label": "imports"
+  },
+  {
+   "from": "cats/scripts/cats_turnout_io.py",
+   "to": "tools/schematic/cats_panel_facts.py",
+   "label": "imports"
+  },
+  {
+   "from": "cats/scripts/digicon_trace.py",
+   "to": "tools/schematic/cats_panel_dress.py",
+   "label": "imports"
+  },
+  {
+   "from": "cats/scripts/digicon_trace.py",
+   "to": "cats/scripts/cats_inspect.py",
+   "label": "imports"
+  },
+  {
+   "from": "cats/scripts/digicon_trace.py",
+   "to": "tools/audit/check_layout_facts.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/data/uss_board_plants.csv",
+   "to": "cats/scripts/cats_turnout_io.py",
+   "label": "plant cells, via layout_facts"
+  },
+  {
+   "from": "cats/panels/HART_CTC.xml",
+   "to": "cats/scripts/launch_cats.sh",
+   "label": "panel"
+  },
+  {
+   "from": "cats/scripts/launch_cats.sh",
+   "to": "host:cats",
+   "label": "starts CATS on the Mac"
+  },
+  {
+   "from": "cats/scripts/mac/install_desktop_icons.sh",
+   "to": "cats/scripts/launch_cats.sh",
+   "label": "app target"
+  },
+  {
+   "from": "cats/scripts/mac/install_desktop_icons.sh",
+   "to": "tools/schematic/build_cats_panel.py",
+   "label": "runs when a desk is missing"
+  },
+  {
+   "from": "cats/scripts/mac/install_desktop_icons.sh",
+   "to": "host:mac",
+   "label": "/Applications apps"
+  },
+  {
+   "from": "cats/scripts/sync_hart_package.sh",
+   "to": "tools/hosts/sync_hart_package.sh",
+   "label": "runs"
+  },
+  {
+   "from": "tools/cats/fetch_cats_3.2.sh",
+   "to": "tools/cats/install_into_jmri.sh",
+   "label": "release3.2"
+  },
+  {
+   "from": "tools/cats/install_into_jmri.sh",
+   "to": "host:cats",
+   "label": "cats.jar beside jmri.jar"
+  },
+  {
+   "from": "tools/cats/install_into_jmri.sh",
+   "to": "cats/scripts/launch_designer.sh",
+   "label": "Designer jar"
+  },
+  {
+   "from": "tools/cats/fetch_cats_src.sh",
+   "to": "host:cats",
+   "label": "source to read",
+   "side": "pointer"
+  },
+  {
+   "from": "tools/jmri/mqtt_overlay/build.sh",
+   "to": "tools/jmri/mqtt_overlay/hart-mqtt-race-fix.jar",
+   "label": "writes the jar"
+  },
+  {
+   "from": "tools/jmri/mqtt_race_repro/gen_tables.py",
+   "to": "tools/jmri/mqtt_race_repro/run.sh",
+   "label": "repro tables.xml"
+  },
+  {
+   "from": "tools/jmri/mqtt_race_repro/retain.py",
+   "to": "tools/jmri/mqtt_race_repro/run.sh",
+   "label": "retained messages"
+  },
+  {
+   "from": "tools/jmri/mqtt_race_repro/run.sh",
+   "to": "tools/jmri/mqtt_overlay/build.sh",
+   "label": "race the overlay fixes",
+   "side": "pointer"
+  },
+  {
+   "from": ".claude/settings.json",
+   "to": ".claude/hooks/main_guard.py",
+   "label": "hook"
+  },
+  {
+   "from": ".claude/settings.json",
+   "to": ".claude/hooks/edit_guard.py",
+   "label": "hook"
+  },
+  {
+   "from": ".claude/settings.json",
+   "to": ".claude/hooks/check_after_edit.py",
+   "label": "hook"
+  },
+  {
+   "from": ".claude/settings.json",
+   "to": ".claude/hooks/worktree_sweep.py",
+   "label": "hook"
+  },
+  {
+   "from": ".claude/hooks/main_guard.py",
+   "to": ".claude/hooks/edit_guard.py",
+   "label": "imports"
+  },
+  {
+   "from": ".claude/hooks/main_guard.py",
+   "to": ".cursor/hooks/main_guard.py",
+   "label": "loads"
+  },
+  {
+   "from": ".cursor",
+   "to": ".cursor/hooks/main_guard.py",
+   "label": "hooks.json"
+  },
+  {
+   "from": "tools/hosts/operating.sh",
+   "to": ".claude/hooks/main_guard.py",
+   "label": "operating flag"
+  },
+  {
+   "from": ".claude/agents/panel-tracer.md",
+   "to": ".claude/hooks/subagent_guard.py",
+   "label": "hook in each subagent"
+  },
+  {
+   "from": "jmri/layouts/hart/output/tables.xml",
+   "to": ".claude/hooks/check_after_edit.py",
+   "label": "after an edit",
+   "side": "check"
+  },
+  {
+   "from": ".claude/hooks/check_after_edit.py",
+   "to": "tools/audit/check_ruff.py",
+   "label": "runs on the edited file"
+  },
+  {
+   "from": ".claude/hooks/worktree_sweep.py",
+   "to": "tools/agent/worktrees.py",
+   "label": "runs sweep"
+  },
+  {
+   "from": "host:mac",
+   "to": "tools/agent/worktrees.py",
+   "label": "make wt"
+  },
+  {
+   "from": "tools/agent/worktrees.py",
+   "to": "tools/ops/merge_pipeline_map.py",
+   "label": "sets the merge driver"
+  },
+  {
+   "from": "wiki/projects",
+   "to": "tools/ops/orient.py",
+   "label": "Claimed: lines"
+  },
+  {
+   "from": "tools/hosts/deploy_status.sh",
+   "to": "tools/ops/orient.py",
+   "label": "last deploys"
+  },
+  {
+   "from": "tools/agent/worktrees.py",
+   "to": "tools/ops/orient.py",
+   "label": "worktrees in progress"
+  },
+  {
+   "from": "host:mac",
+   "to": "tools/ops/screenshot.py",
+   "label": "make shot"
+  },
+  {
+   "from": "wiki/STATUS.md",
+   "to": "tools/ops/split_status.py",
+   "label": "one-file page"
+  },
+  {
+   "from": "tools/ops/split_status.py",
+   "to": "wiki/status",
+   "label": "entry files"
+  },
+  {
+   "from": "host:mac",
+   "to": "tools/ops/agent_launch_count.py",
+   "label": "~/.claude/projects transcripts"
+  },
+  {
+   "from": "tools/pipeline/manifest_base.py",
+   "to": "tools/pipeline/manifest.py",
+   "label": "re-exported"
+  },
+  {
+   "from": "tools/pipeline/manifest_checks.py",
+   "to": "tools/pipeline/manifest.py",
+   "label": "re-exported"
+  },
+  {
+   "from": "tools/pipeline/manifest_jobs.py",
+   "to": "tools/pipeline/manifest.py",
+   "label": "re-exported"
+  },
+  {
+   "from": "tools/pipeline/manifest_panels.py",
+   "to": "tools/pipeline/manifest.py",
+   "label": "re-exported"
+  },
+  {
+   "from": "tools/pipeline/manifest_base.py",
+   "to": "tools/pipeline/manifest_checks.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/pipeline/manifest_base.py",
+   "to": "tools/pipeline/manifest_panels.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/pipeline/manifest_base.py",
+   "to": "tools/pipeline/manifest_jobs.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/pipeline/checks.toml",
+   "to": "tools/pipeline/manifest_checks.py",
+   "label": "reads"
+  },
+  {
+   "from": "tools/pipeline/checks.toml",
+   "to": "tools/pipeline/manifest_jobs.py",
+   "label": "reads"
+  },
+  {
+   "from": "tools/pipeline/panels.toml",
+   "to": "tools/pipeline/manifest_panels.py",
+   "label": "reads"
+  },
+  {
+   "from": "tools/pipeline/manifest.py",
+   "to": "tools/audit/check_stamps.py",
+   "label": "job keys (pipeline_manifest)"
+  },
+  {
+   "from": "tools/audit/check_stamps.py",
+   "to": "tools/check.sh",
+   "label": "current, record"
+  },
+  {
+   "from": "tools/audit/check_stamps.py",
+   "to": "ext:check-stamps",
+   "label": "writes"
+  },
+  {
+   "from": "tools/audit/traced.py",
+   "to": "tools/audit/check_stamps.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/audit/trace_hook/sitecustomize.py",
+   "to": "tools/audit/traced.py",
+   "label": "starts the hook"
+  },
+  {
+   "from": "tools/audit/stamp_audit/sitecustomize.py",
+   "to": "tools/audit/check_stamps.py",
+   "label": "trace audit log"
+  },
+  {
+   "from": "tools/audit/portal_inputs.py",
+   "to": "tools/check.sh",
+   "label": "portal build skip"
+  },
+  {
+   "from": "tools/ci/changed_kind.py",
+   "to": "tools/check.sh",
+   "label": "docs or full"
+  },
+  {
+   "from": "tools/ci/docs_checks.sh",
+   "to": "tools/check.sh",
+   "label": "docs-only path"
+  },
+  {
+   "from": "tools/pipeline/checks.toml",
+   "to": "tools/ci/docs_checks.sh",
+   "label": "docs_only steps"
+  },
+  {
+   "from": "tools/ci/stamp_gate.py",
+   "to": "tools/check.sh",
+   "label": "jobs CI may skip"
+  },
+  {
+   "from": "ext:github-ci",
+   "to": "tools/ci/stamp_gate.py",
+   "label": "decide, record-skips"
+  },
+  {
+   "from": "ext:github-ci",
+   "to": "tools/ci/docs_checks.sh",
+   "label": "Quick docs checks job"
+  },
+  {
+   "from": "ext:github-ci",
+   "to": "tools/ci/watch_jmri_pr.sh",
+   "label": "watch-jmri-pr workflow"
+  },
+  {
+   "from": "tools/ctc_history/films.py",
+   "to": "tools/ctc_history/film_cats.py",
+   "label": "runs"
+  },
+  {
+   "from": "tools/ctc_history/film_cats.py",
+   "to": "docs/ctc/history",
+   "label": "video"
+  },
+  {
+   "from": "tools/ctc_history/films.py",
+   "to": "tools/ctc_history/film_ctc.py",
+   "label": "runs"
+  },
+  {
+   "from": "tools/ctc_history/film_ctc.py",
+   "to": "docs/ctc/history",
+   "label": "video"
+  },
+  {
+   "from": "tools/ctc_history/films.py",
+   "to": "tools/ctc_history/film_le.py",
+   "label": "runs"
+  },
+  {
+   "from": "tools/ctc_history/film_le.py",
+   "to": "docs/ctc/history",
+   "label": "video"
+  },
+  {
+   "from": "media/screenshots",
+   "to": "tools/ctc_history/film_cats.py",
+   "label": "dated screenshots"
+  },
+  {
+   "from": "media/screenshots",
+   "to": "tools/ctc_history/film_ctc.py",
+   "label": "history screenshots"
+  },
+  {
+   "from": "www/scripts/png_stamp.py",
+   "to": "www/scripts/build_layout_index.py",
+   "label": "imports"
+  },
+  {
+   "from": "www/scripts/png_stamp.py",
+   "to": "www/scripts/build_cats_layout_index.py",
+   "label": "imports"
+  },
+  {
+   "from": "www/scripts/install_portal_launchagent.sh",
+   "to": "www/scripts/serve_portal.sh",
+   "label": "LaunchAgent runs it"
+  },
+  {
+   "from": "tools/mqtt-mimic/install_mimic_launchagent.sh",
+   "to": "tools/mqtt-mimic/lcos_mqtt_mimic.py",
+   "label": "LaunchAgent runs it"
+  },
+  {
+   "from": "tools/mqtt-mimic/install_mimic_launchagent.sh",
+   "to": "host:mac",
+   "label": "LaunchAgent"
+  },
+  {
+   "from": "ops/hart-ops/bin/sts_helpers_root.sh",
+   "to": "ops/hart-ops/bin/apply_hart_seed.sh",
+   "label": "sts-helpers folder"
+  },
+  {
+   "from": "docs/jmri/speedmatching",
+   "to": "docs/jmri/speedmatching/profile-2026-11-08/block_speeds.py",
+   "label": "the session's logs"
+  },
+  {
+   "from": "docs/jmri/speedmatching/profile-2026-11-08/block_speeds.py",
+   "to": "docs/jmri/speedmatching",
+   "label": "CSV tables"
+  },
+  {
    "from": "www/data/fleet-gallery.json",
    "to": "tools/ops/check_fleet_gallery.py",
    "label": "copy",
@@ -9069,6 +12581,42 @@
    "label": "check crew-json",
    "side": "check",
    "gen": "manifest"
+  },
+  {
+   "from": "tools/audit/check_stamps.py",
+   "to": "tools/ci/docs_unit_tests.py",
+   "label": "imports (stamp declarations)"
+  },
+  {
+   "from": "tools/ci/docs_unit_tests.py",
+   "to": "tools/ci/docs_checks.sh",
+   "label": "unit test lines"
+  },
+  {
+   "from": "tools/hosts/deploy/common.sh",
+   "to": "tools/hosts/deploy/pi_unpulled.sh",
+   "label": "sourced (pi_unpulled_words)"
+  },
+  {
+   "from": "tools/hosts/pi/unpulled_changes.sh",
+   "to": "tools/hosts/deploy/pi_unpulled.sh",
+   "label": "piped to the Pi"
+  },
+  {
+   "from": "tools/hosts/deploy/pi_unpulled.sh",
+   "to": "tools/ops/orient.py",
+   "label": "waiting to ingest"
+  },
+  {
+   "from": "tools/hosts/roster_digest.sh",
+   "to": "tools/hosts/sync_roster_from_pi.sh",
+   "label": "--status digests"
+  },
+  {
+   "from": "ext:decoderpro-roster",
+   "to": "tools/hosts/roster_digest.sh",
+   "label": "roster files",
+   "side": "check"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

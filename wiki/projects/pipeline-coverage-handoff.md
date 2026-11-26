@@ -29,6 +29,8 @@ Two read-only studies on 2026-11-25 found 237 tracked scripts that are not nodes
 
 ## A. The map covers every script (M to L)
 
+**Done** (2026-11-25, lane A). `pipeline_map_coverage.py` fails on any tracked `.py` or `.sh` outside `archive/`, `external/`, `reference/`, `tools/cats/src-repo/` and tests that is not a node of its own or under one of the 7 folders in its `FAMILIES` list (hartlib, card_pipeline, publications, the two benchwork generator folders, station map scripts, pi-os). The map gained 161 nodes (154 scripts, the speed-match unit and 2026-11-08 CSV, `uss_board_plants.csv`, `.claude/settings.json`, CI and two Pi speed-match stores) and 417 edges. All 414 scripts the rule checks are covered: 327 by their own node, 87 by a family. The old script exceptions in `ALLOWED` are gone. The three `www` files are `live`.
+
 - Extend `tools/ops/pipeline_map_coverage.py`: every tracked `.py` and `.sh` outside `archive/`, `external/`, `reference/` and tests is a node, or sits under a folder node marked as a library or generator family. Anything else fails.
 - Add the 105 missing nodes with their read and write edges. These include the deploy stack (`tools/hosts/deploy/*`, `apply_hart_package_local.sh`, `pack_roster_stage.sh`), the PanelPro control scripts, the Layout Editor and CATS desk build modules, the Jython scripts, the `cats/scripts` helpers, `.claude/hooks/*` and `.cursor/hooks/main_guard.py`, and each speed-matching script, plus the Pi unit `hart-speedmatch-live.service` and its data and runtime stores.
 - The writers of files a host loads come first: `ship_*.sh`, `stage.sh`, `apply_hart_package_local.sh`, `pack_roster_stage.sh`, `panelpro_profile.py` and `le_tables.py`.
