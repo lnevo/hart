@@ -64,7 +64,7 @@ class TheRepo(Files):
         self.assertEqual(rows["East End"]["switches"].split(",")[:2], ["25", "27"])
         self.assertIn("23a", rows["East End"]["switches"].split(","))
         self.assertEqual(rows["Barn"]["switches"], "7,7b")
-        self.assertEqual(rows["Engine House"]["cp_id"], "engine_house")
+        self.assertEqual(rows["Engine House"]["cp_key"], "engine_house")
         self.assertEqual({r["level"] for r in rows.values()}, {"1"})
 
 
@@ -203,7 +203,7 @@ class StationGroupRows(Files):
                                                         "1,5,OS Switch 5\n")
         self.halves(st, "13,1,os:7:A-13C", "5,2,os:7:A-5B")
         self.assertEqual(rf.station_group_rows(st, sw),
-                         [dict(cp_id="x_y", cp_name="X Y", level="1", switches="7,7b,5", notes="n", code="XX")])
+                         [dict(cp_key="x_y", cp_name="X Y", level="1", switches="7,7b,5", notes="n", code="XX")])
 
     def test_half_text(self):
         self.assertEqual([rf.half_text(7, "OS Switch 7", "a"), rf.half_text(7, "OS Switch 7", "b"),

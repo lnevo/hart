@@ -175,6 +175,7 @@ def read(path: Path = PATH, *, levels: tuple[int, ...] | None = None) -> list[di
     if header != FIELDS:
         raise railroad.FactsError(f"{path.name} line 1: columns {','.join(header)}, not {','.join(FIELDS)}")
     rows, first = [], {}
+    table = places.table(places.lists_beside(path))    # a copy's cp cells by the lists beside it
     for line, r in railroad.read_rows(path, FIELDS):
         where = f"{path.name} line {line}"
         bad = row_problems(r)
@@ -183,7 +184,7 @@ def read(path: Path = PATH, *, levels: tuple[int, ...] | None = None) -> list[di
         if r["mast"] in first:
             raise railroad.FactsError(f"{where}: mast {r['mast']} is on line {first[r['mast']]} already")
         first[r["mast"]] = line
-        places.with_names(r, where)            # the cp cell holds place ids (hartlib.places)
+        table.with_names(r, where)             # the cp cell holds place ids (hartlib.places)
         r["level"], r["line"] = int(r["level"]), line
         r["heads"] = [tuple(h.split("=", 1)) for h in r["head_system_names"].split(LIST) if h]
         if levels is None or r["level"] in levels:

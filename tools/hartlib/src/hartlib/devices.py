@@ -38,7 +38,7 @@ numbers are set by their writers, not here.
 
     python3 -m hartlib.devices check         # the master and its dictionary are valid
 
-Every failure is a DevicesError (a FactsError) naming the file and row.
+Every failure is a FactsError naming the file and row (DevicesError is the same class, the name its callers catch).
 """
 from __future__ import annotations
 
@@ -122,12 +122,18 @@ place = places.of               # a row's place by name: its cp, a turnout's fro
 # the columns an old-form device-map row shares with the master; its comment is built, the rest of the master is left out
 _SHARED = tuple(c for c in DEVICE_COLUMNS if c not in ("comment",))
 
+# A turnout row's id by its role (hartlib.device_ids.switch_id, dcc_id): the switch number it names, with no leading
+# zero, so places.of finds its switch in the lists (places.SWITCH_ID matches both forms)
+TURNOUT_IDS = {"turnout": re.compile(r"switch:[1-9]\d*"), "lcc_alias": re.compile(r"dcc:[1-9]\d*")}
+
 _NODE_TEXT = re.compile(r"Node: \d+")
 _WIRED_HEAD = re.compile(r"\(IH\d+\)")
 
 
-class DevicesError(FactsError):
-    """The master or its dictionary cannot stand as it is, or a write would break it."""
+# The master or its dictionary cannot stand as it is, or a write would break it: a facts problem like any other, so
+# the one error type of the facts readers (railroad_facts.FactsError). The name stays for the callers that catch it;
+# `except DevicesError` and `except FactsError` catch the same faults, those of hartlib.places among them.
+DevicesError = FactsError
 
 
 def master_path(data: Path | None = None) -> Path:
@@ -183,10 +189,17 @@ class Files:
 
 # ---------------------------------------------------------------- reading
 
+def places_of(source: "Files | Path | str | None" = None) -> places.Table:
+    """The places a master's cp cells are read and written by: those of the stations.csv and interlockings.csv beside
+    `source` (places.lists_beside: a copy's own lists), else the repo's."""
+    return places.table(places.lists_beside(source))
+
+
 @lru_cache(maxsize=16)
-def _read(name: str, data: bytes) -> tuple[Mapping[str, str], ...]:
-    """The rows of one file's bytes (the generated or the field file: one header). Cached on the bytes themselves, so
-    a write of the same size in the same clock tick can never return stale rows."""
+def _read(name: str, data: bytes, table: places.Table) -> tuple[Mapping[str, str], ...]:
+    """The rows of one file's bytes (the generated or the field file: one header), cp cells named by `table`
+    (places_of). Cached on the bytes themselves and the Table (one per content of the two lists), so a write of the
+    same size in the same clock tick, or a changed list, can never return stale rows."""
     try:
         text = data.decode("utf-8")
     except UnicodeDecodeError as exc:
@@ -199,7 +212,7 @@ def _read(name: str, data: bytes) -> tuple[Mapping[str, str], ...]:
     for line, fields in enumerate(reader, 2):
         if len(fields) != len(COLUMNS):
             raise DevicesError(f"{name} line {line}: {len(fields)} fields, expected {len(COLUMNS)}")
-        rows.append(MappingProxyType(places.with_names(dict(zip(COLUMNS, fields)), f"{name} line {line}")))
+        rows.append(MappingProxyType(table.with_names(dict(zip(COLUMNS, fields)), f"{name} line {line}")))
     return tuple(rows)
 
 
@@ -451,7 +464,7 @@ def _read_file(path: Path) -> tuple[Mapping[str, str], ...]:
         data = path.read_bytes()
     except OSError as exc:
         raise DevicesError(f"{path}: cannot read it ({exc.strerror})") from None
-    return _read(path.name, data)
+    return _read(path.name, data, places_of(path))
 
 
 def generated_rows(files: "Files | Path | str | None" = None) -> tuple[Mapping[str, str], ...]:
@@ -493,13 +506,14 @@ def field_index(files: "Files | Path | str | None" = None) -> Mapping[tuple[str,
 
 
 @lru_cache(maxsize=8)
-def _merged(gname: str, gdata: bytes, fname: str | None, fdata: bytes | None) -> tuple[Mapping[str, str], ...]:
-    generated = _read(gname, gdata)
+def _merged(gname: str, gdata: bytes, fname: str | None, fdata: bytes | None, table: places.Table
+            ) -> tuple[Mapping[str, str], ...]:
+    generated = _read(gname, gdata, table)
     if fname is None:                       # a one-file copy: it holds every cell
         check_rows(generated, gname)
         return generated
     check_generated(generated, gname)
-    return merge(generated, _read(fname, fdata), (gname, fname))
+    return merge(generated, _read(fname, fdata, table), (gname, fname))
 
 
 def _field_bytes(f: "Files") -> bytes:
@@ -513,9 +527,10 @@ def parse(text: str, name: str = MASTER_FILE, files: "Files | None" = None) -> t
     """The merged rows of a generated file's text (one outputs_after gives, before it is written) with `files`'
     field file (none, or a Files with no field file: the text holds every cell), checked as load checks the files.
     DevicesError naming the file on any problem."""
+    table = places_of(files)
     if files is None or files.field is None:
-        return _merged(name, text.encode("utf-8"), None, None)
-    return _merged(name, text.encode("utf-8"), files.field.name, _field_bytes(files))
+        return _merged(name, text.encode("utf-8"), None, None, table)
+    return _merged(name, text.encode("utf-8"), files.field.name, _field_bytes(files), table)
 
 
 def load(files: "Files | Path | str | None" = None) -> tuple[Mapping[str, str], ...]:
@@ -529,9 +544,10 @@ def load(files: "Files | Path | str | None" = None) -> tuple[Mapping[str, str], 
         gdata = f.master.read_bytes()
     except OSError as exc:
         raise DevicesError(f"{f.master}: cannot read it ({exc.strerror})") from None
+    table = places_of(f)
     if f.field is None:
-        return _merged(f.master.name, gdata, None, None)
-    return _merged(f.master.name, gdata, f.field.name, _field_bytes(f))
+        return _merged(f.master.name, gdata, None, None, table)
+    return _merged(f.master.name, gdata, f.field.name, _field_bytes(f), table)
 
 
 def device_map_lines(levels: tuple[str, ...], source: "Files | Path | str | None" = None
@@ -806,6 +822,13 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "the device maste
                            "its level)")
             else:
                 ids[(r["level"], r["id"])] = at
+            if r["layer"] == "turnout":
+                grammar = TURNOUT_IDS.get(r["role"])
+                if grammar is None:
+                    bad.append(f"{at}: a turnout row's role is {' or '.join(TURNOUT_IDS)}, not {r['role']!r}")
+                elif not grammar.fullmatch(r["id"]):
+                    bad.append(f"{at}: id {r['id']!r} is not {grammar.pattern.split(':')[0]}:<switch number> (a "
+                               f"{r['role']} row's id names its switch, hartlib.device_ids)")
         key = (r["level"], r["layer"], r["user_name"])
         if key in keys:
             bad.append(f"{at}: the same level, layer and user_name twice")
@@ -1041,16 +1064,18 @@ def _writes_only_its_own(writer: str, new: list[Mapping[str, str]], others: Iter
                                        f"{by or FIELD_FILE})" for r, by in clash[:5]))
 
 
-def _text(columns: Iterable[str], rows: Iterable[Mapping[str, str]]) -> str:
+def _text(columns: Iterable[str], rows: Iterable[Mapping[str, str]], table: places.Table) -> str:
     buf = io.StringIO()
     w = csv.DictWriter(buf, fieldnames=list(columns), lineterminator="\n")
     w.writeheader()
-    w.writerows(places.with_ids(rows))          # cp cells as place ids (hartlib.places)
+    w.writerows(table.with_ids(rows))           # cp cells as place ids (hartlib.places)
     return buf.getvalue()
 
 
-def master_text(rows: Iterable[Mapping[str, str]]) -> str:
-    return _text(COLUMNS, rows)
+def master_text(rows: Iterable[Mapping[str, str]], files: "Files | Path | str | None" = None) -> str:
+    """A master file's text of `rows`, cp cells as the ids of the lists beside `files` (places_of; the repo's when
+    None), the lists it is read back by."""
+    return _text(COLUMNS, rows, places_of(files))
 
 
 def write_one_file(rows: Iterable[Mapping[str, str]], files: "Files | Path | str | None" = None) -> Path:
@@ -1060,7 +1085,7 @@ def write_one_file(rows: Iterable[Mapping[str, str]], files: "Files | Path | str
     if f.field is not None:
         raise DevicesError(f"{f.master.name} has a field file beside it; write the pair (write_generated, write_field)")
     path = f.master
-    path.write_text(master_text(rows), encoding="utf-8")
+    path.write_text(master_text(rows, f), encoding="utf-8")
     return path
 
 
@@ -1071,7 +1096,7 @@ def write_generated(rows: Iterable[Mapping[str, str]], files: "Files | Path | st
     rows = [dict(r) for r in rows]
     check_generated(rows, f.master.name)
     merge(rows, field_rows(f), (f.master.name, f.field.name if f.field else FIELD_FILE))
-    f.master.write_text(master_text(rows), encoding="utf-8")
+    f.master.write_text(master_text(rows, f), encoding="utf-8")
     return f.master
 
 
@@ -1084,7 +1109,7 @@ def write_field(rows: Iterable[Mapping[str, str]], files: "Files | Path | str | 
     rows = [dict(r) for r in rows]
     check_field(rows, f.field.name)
     merge(generated_rows(f), rows, (f.master.name, f.field.name))
-    f.field.write_text(master_text(rows), encoding="utf-8")
+    f.field.write_text(master_text(rows, f), encoding="utf-8")
     return f.field
 
 
@@ -1096,7 +1121,7 @@ def device_map_rows(rows: Iterable[Mapping[str, str]], levels: tuple[str, ...]) 
 def texts(rows: list[Mapping[str, str]], files: Files | None = None) -> dict[Path, str]:
     """{path: text} of the generated file from merged rows `rows` (unmerge: the field file's cells left out)."""
     f = files or Files.here()
-    return {f.master: master_text(unmerge(rows, field_rows(f)) if f.field is not None else rows)}
+    return {f.master: master_text(unmerge(rows, field_rows(f)) if f.field is not None else rows, f)}
 
 
 def outputs_after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Files | None = None,
@@ -1137,7 +1162,7 @@ def _after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Files | No
     mine = {key_of(r): dict(r) for r in back if r["written_by"] == writer}
     if mine != {key_of(r): r for r in new}:
         raise DevicesError(f"{writer}: the rows written do not merge back to what it gave")
-    return {f.master: master_text(out)}, changes
+    return {f.master: master_text(out, f)}, changes
 
 
 def outputs_after(writer: str, old_rows: Iterable[Mapping[str, str]], files: Files | None = None,
@@ -1173,7 +1198,7 @@ def one_file_copy(path: Path, files: "Files | Path | str | None" = None) -> Path
     if path.name == GENERATED_FILE:
         raise DevicesError(f"{path}: a one-file copy takes another name ({ONE_FILE}); {GENERATED_FILE} is half a "
                            "pair")
-    path.write_text(master_text(load(files)), encoding="utf-8")
+    path.write_text(master_text(load(files), path), encoding="utf-8")
     return path
 
 
@@ -1218,7 +1243,7 @@ def stale(files: Files | None = None) -> list[str]:
         if r["role"] in OUT_OF_MAPS or is_unplaced(r):
             continue
         try:
-            master_row(dict(device_map_row(r), role=r["role"]), r["written_by"], r)
+            master_row(dict(device_map_row(r), role=r["role"], id=r["id"]), r["written_by"], r)
         except DevicesError as exc:
             out.append(str(exc))
         except (KeyError, ValueError) as exc:

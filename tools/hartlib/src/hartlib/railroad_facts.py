@@ -780,7 +780,7 @@ def read_desk_areas(path: Path, switches: Iterable[str] | None = None) -> list[D
     return desk_areas(read_stations(path), path, switches)
 
 
-STATION_GROUP_COLUMNS = ("cp_id", "cp_name", "level", "switches", "notes", "code")
+STATION_GROUP_COLUMNS = ("cp_key", "cp_name", "level", "switches", "notes", "code")
 
 
 def half_text(number, name: str, letter: str) -> str:
@@ -815,9 +815,9 @@ def os_label(r: SwitchRow, where: Path, letters=None) -> str:
 def station_group_rows(stations: Path, switches: Path) -> list[dict[str, str]]:
     """The desk areas of every level (staging's only so far: the drawings' brackets and the CATS desk names; each
     row carries its level, so a caller that wants one level filters on it) in the shape the older
-    data/control_points.csv had, which this replaces (level-unification step 8): cp_id the name in lower case with
-    underscores, level, code and notes the area's, and switches the OS block of each switch (a crossover by its
-    halves, 7 as 7,7b and 23 as 23a,23b, from the os_block of its switches.csv rows, os_label: a renamed half by
+    data/control_points.csv had, which this replaces (level-unification step 8): cp_key the name in lower case with
+    underscores (a key, not a place id: cp_id is interlockings.csv's cp:<name>, hartlib.places), level, code and
+    notes the area's, and switches the OS block of each switch (a crossover by its halves, 7 as 7,7b and 23 as 23a,23b, from the os_block of its switches.csv rows, os_label: a renamed half by
     its number and its letter in block_overrides.csv beside `stations`), "," between. Stops with
     FactsError, naming the file, line and station, on what read_desk_areas or read_switch_rows stops on or a switch
     with no OS block."""
@@ -850,7 +850,7 @@ def station_group_rows(stations: Path, switches: Path) -> list[dict[str, str]]:
                 raise FactsError(f"{_where(stations, st.line)} ({st.name}): switch {s} has no OS block in "
                                  f"{switches.name}")
             sw += sorted(halves[s])
-        out.append(dict(cp_id=re.sub(r"\W+", "_", a.name.lower()), cp_name=a.name, level=str(a.level),
+        out.append(dict(cp_key=re.sub(r"\W+", "_", a.name.lower()), cp_name=a.name, level=str(a.level),
                         switches=",".join(sw), notes=a.notes, code=a.code))
     return out
 

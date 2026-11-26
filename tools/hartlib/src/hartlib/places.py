@@ -1,7 +1,8 @@
 """The railroad's places by id (ADR-039 lane L4c): the stations of schematic/stations.csv, keyed by `station_id`
 (st:<name>), and the control points of schematic/interlockings.csv, keyed by `cp_id` (cp:<name>).
 
-    places.table()               the Table of the repo's two files (read again when either file changes)
+    places.table(schematic)      the Table of a folder's two files, default the repo's (read again when either
+                                 file changes); its names, ids, with_names and with_ids are the ones below
     places.names(cell)           "st:barn;st:engine-house" -> "Barn;Engine House"
     places.ids(cell)             "Barn;Engine House" -> "st:barn;st:engine-house"
     places.with_names(row)       the row with its `cp` cell named (a dict, changed in place and returned)
@@ -30,8 +31,14 @@ st:plane, 9 is st:engine-house (nested in Barn, a desk area of its own). Staging
 and 5 as Brick, are the signal rule's and give no turnout's place. On main and upper it is the interlocking that holds
 the switch (cp:107); a local switch of a yard or spur is in none and has no place.
 
+Each function takes the folder of the lists to read (`schematic`, default the repo's); lists_beside gives a copied
+file's own lists, so hartlib.devices and hartlib.level_masts read a copy's cp cells by the copy's stations.csv and
+interlockings.csv.
+
 An item that is no id (a test's own place name) is left as it is either way. FactsError names the file and line on an
-id that is malformed, given twice or under the wrong prefix, and on an id of a cell that no row has.
+id that is malformed, given twice or under the wrong prefix, on an id of a cell that no row has, and on a station or
+control point name given twice (on any level, as ids() has no level to choose by; a staging interlocking named as
+a station of its own level is the one exception), naming both rows.
 """
 from __future__ import annotations
 
@@ -60,42 +67,89 @@ def _error(message: str) -> Exception:
     return FactsError(message)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class Table:
+    """The places of one stations.csv and interlockings.csv (table, _table). Compared and hashed by identity: _table
+    gives one object per pair of file contents, so a cache keyed on a Table (hartlib.devices._read) reads again when
+    either file changes."""
     by_id: Mapping[str, str]        # id -> name
-    by_name: Mapping[str, str]      # name -> id (a station's before an interlocking's of the same name)
+    by_name: Mapping[str, str]      # name -> id (a station's before a staging interlocking's of the same name)
+
+    def names(self, cell: str, where: str = "") -> str:
+        """The names of a cp cell's ids, ';' between them; an item that is no id is kept. FactsError on an id that
+        no row of the two files has."""
+        def one(item: str) -> str:
+            if not ID.fullmatch(item):
+                return item
+            if item not in self.by_id:
+                raise _error(f"{where + ': ' if where else ''}{item} is no station_id of {STATIONS.name} or cp_id "
+                             f"of {INTERLOCKINGS.name}")
+            return self.by_id[item]
+        return _map(cell, one)
+
+    def ids(self, cell: str) -> str:
+        """The ids of a cp cell's names (a station's first), ';' between them; an id, or a name no row has, is
+        kept."""
+        return _map(cell, lambda item: self.by_name.get(item, item))
+
+    def with_names(self, row: dict, where: str = "") -> dict:
+        """`row` with its cp cell named (in place); a row with no cp column is returned as it is."""
+        if row.get(COLUMN):
+            row[COLUMN] = self.names(row[COLUMN], where)
+        return row
+
+    def with_ids(self, rows: Iterable[Mapping[str, str]]) -> list[dict]:
+        """Copies of `rows` with their cp cells as ids (a row with no cp column copied as it is)."""
+        return [dict(r, **{COLUMN: self.ids(r[COLUMN])}) if r.get(COLUMN) else dict(r) for r in rows]
 
 
-def _rows(name: str, data: bytes, id_col: str, name_col: str) -> list[tuple[int, str, str]]:
-    reader = csv.DictReader(io.StringIO(data.decode("utf-8"), newline=""))
-    missing = [c for c in (id_col, name_col) if c not in (reader.fieldnames or [])]
+def _rows(name: str, data: bytes, id_col: str, name_col: str) -> list[tuple[int, str, str, str]]:
+    """(line, id, level, name) of each row of one file's bytes, cells stripped."""
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise _error(f"{name}: not UTF-8 text ({exc.reason} at byte {exc.start})") from None
+    reader = csv.DictReader(io.StringIO(text, newline=""))
+    missing = [c for c in (id_col, "level", name_col) if c not in (reader.fieldnames or [])]
     if missing:
         raise _error(f"{name}: no column {', '.join(missing)}")
-    return [(line, (r[id_col] or "").strip(), (r[name_col] or "").strip()) for line, r in enumerate(reader, 2)]
+    return [(line, (r[id_col] or "").strip(), (r["level"] or "").strip(), (r[name_col] or "").strip())
+            for line, r in enumerate(reader, 2)]
 
 
 @lru_cache(maxsize=4)
 def _table(stations: bytes, interlockings: bytes) -> Table:
+    """The Table of the two files' bytes. A name is one place on the railroad, on every level: ids() turns a name
+    into an id with no level to choose by. The one exception is a staging interlocking named as a station of its own
+    level (Brick, Barn, East End, Princess: the module text), whose name stays the station's. FactsError naming the
+    file and line on a malformed id, an id or name given twice (both rows), or an empty name."""
     by_id: dict[str, str] = {}
     by_name: dict[str, str] = {}
-    shadowed: dict[str, list[str]] = {}
+    first: dict[str, tuple[str, str, str]] = {}     # name -> (id, level, where) of the row that holds it
+    shadow: dict[str, str] = {}                     # name -> where of the interlocking that carries a station's name
     for fname, data, id_col, name_col, prefix in (
             (STATIONS.name, stations, "station_id", "station", STATION_PREFIX),
             (INTERLOCKINGS.name, interlockings, "cp_id", "interlocking", CP_PREFIX)):
-        for line, ident, name in _rows(fname, data, id_col, name_col):
-            where = f"{fname} line {line} ({name or 'no name'})"
+        for line, ident, level, name in _rows(fname, data, id_col, name_col):
+            where = f"{fname} line {line} ({name or 'no name'}, level {level or 'empty'})"
+            if not name:
+                raise _error(f"{where}: {name_col} is empty")
             if not ID.fullmatch(ident) or not ident.startswith(prefix):
                 raise _error(f"{where}: {id_col} {ident!r} is not {prefix}<lower-case words joined by ->")
             if ident in by_id:
                 raise _error(f"{where}: {id_col} {ident} is given twice")
             by_id[ident] = name
-            if name in by_name and prefix == CP_PREFIX:
-                shadowed.setdefault(name, []).append(ident)   # a staging interlocking named as its station
+            if name not in first:
+                first[name] = (ident, level, where)
+                by_name[name] = ident
                 continue
-            by_name[name] = ident
-    clash = [n for n, ids in shadowed.items() if not by_name[n].startswith(STATION_PREFIX) or len(ids) > 1]
-    if clash:
-        raise _error(f"{INTERLOCKINGS.name}: control point name(s) {', '.join(clash)} are given twice")
+            held, held_level, held_where = first[name]
+            if prefix == CP_PREFIX and held.startswith(STATION_PREFIX) and held_level == level and name not in shadow:
+                shadow[name] = where                # a staging interlocking named as its station
+                continue
+            raise _error(f"{where}: {name_col} {name!r} is the name of {shadow.get(name, held_where)} as well (a "
+                         "station or control point name is given once; only an interlocking may carry the name of a "
+                         "station on its own level)")
     return Table(by_id, by_name)
 
 
@@ -106,34 +160,25 @@ def _bytes(path: Path) -> bytes:
         raise _error(f"{path}: cannot read it ({exc.strerror})") from None
 
 
-def table() -> Table:
-    """The places of the repo's stations.csv and interlockings.csv, cached on the bytes of both files."""
-    return _table(_bytes(STATIONS), _bytes(INTERLOCKINGS))
+def table(schematic: Path | None = None) -> Table:
+    """The places of stations.csv and interlockings.csv in `schematic` (a folder holding both; default the repo's,
+    lists_beside finds a copy's), cached on the bytes of both files."""
+    st, il = _files(schematic)
+    return _table(_bytes(st), _bytes(il))
 
 
 def _map(cell: str, fn) -> str:
     return LIST.join(fn(p) if p else p for p in cell.split(LIST)) if cell else cell
 
 
-def names(cell: str, where: str = "") -> str:
-    """The names of a cp cell's ids, ';' between them; an item that is no id is kept. FactsError on an id that no row
-    of the two files has."""
-    by_id = table().by_id
-
-    def one(item: str) -> str:
-        if not ID.fullmatch(item):
-            return item
-        if item not in by_id:
-            raise _error(f"{where + ': ' if where else ''}{item} is no station_id of {STATIONS.name} or cp_id "
-                             f"of {INTERLOCKINGS.name}")
-        return by_id[item]
-    return _map(cell, one)
+def names(cell: str, where: str = "", schematic: Path | None = None) -> str:
+    """The names of a cp cell's ids (Table.names) by the lists in `schematic` (default the repo's)."""
+    return table(schematic).names(cell, where)
 
 
-def ids(cell: str) -> str:
-    """The ids of a cp cell's names (a station's first), ';' between them; an id, or a name no row has, is kept."""
-    by_name = table().by_name
-    return _map(cell, lambda item: by_name.get(item, item))
+def ids(cell: str, schematic: Path | None = None) -> str:
+    """The ids of a cp cell's names (Table.ids) by the lists in `schematic` (default the repo's)."""
+    return table(schematic).ids(cell)
 
 
 def _files(schematic: Path | None) -> tuple[Path, Path]:
@@ -197,44 +242,53 @@ def switch_place(level: str | int, switch: str | int, schematic: Path | None = N
 
 
 def lists_beside(source) -> Path | None:
-    """The schematic folder beside a device master `source` (a devices.Files, the master's path, or a data folder)
-    when it holds its own stations.csv, so a copy's turnouts take the copy's lists; None (the repo's) otherwise."""
+    """The schematic folder a file `source` goes with, when it holds its own stations.csv and is not the repo's: the
+    file's own folder when that is a schematic folder (masts.csv), else the schematic folder of its data folder (a
+    device master: a devices.Files, the master's path, or a data folder). None (the repo's lists) otherwise, so a
+    copy with no lists of its own reads the repo's."""
     if source is None:
         return None
     path = Path(getattr(source, "master", source))
     data = path if path.is_dir() else path.parent
-    folder = data / SCHEMATIC.name
+    folder = data if data.name == SCHEMATIC.name else data / SCHEMATIC.name
     if (folder / STATIONS.name).is_file() and folder.resolve() != SCHEMATIC.resolve():
         return folder
     return None
 
 
-SWITCH_ID = re.compile(r"(?:switch|dcc):(\d+)")     # a turnout row's id: Switch <n> or DCC Switch <n>
+SWITCH_ID = re.compile(r"(?:switch|dcc):([1-9]\d*)")   # a turnout row's id: Switch <n> or DCC Switch <n>
 
 
 def of(row: Mapping[str, str], schematic: Path | None = None) -> str:
     """The place a device row sits in, by name. A turnout row has no cp cell (owner, 2026-11-25): its place is its
     switch's (switch_place, from the lists in `schematic`, default the repo's; lists_beside finds a copy's), "" for a
-    local switch or a level-less row. Any other row's place is its cp cell."""
+    local switch or a level-less row. Any other row's place is its cp cell. FactsError on a turnout row with a level
+    whose id is not switch:<n> or dcc:<n> (devices.check_rows refuses one too)."""
     if row["layer"] != "turnout":
         return row["cp"]
-    m = SWITCH_ID.fullmatch(row["id"])
-    if not (m and row["level"]):
+    if not row["level"]:
         return ""
+    m = SWITCH_ID.fullmatch(row["id"])
+    if not m:
+        raise _error(f"turnout {row.get('user_name', '?')!r} (level {row['level']}): id {row['id']!r} is not "
+                     "switch:<n> or dcc:<n>, so it names no switch")
     ident = switch_place(row["level"], m.group(1), schematic)
     if not ident:
         return ""
     st, il = _files(schematic)
-    return _switch_places(_stamp(st), _stamp(il))[1].by_id.get(ident, ident)
+    by_id = _switch_places(_stamp(st), _stamp(il))[1].by_id
+    if ident not in by_id:          # switch_places gives only ids of the lists; this guards a stand-in for it
+        raise _error(f"turnout {row.get('user_name', '?')!r} (level {row['level']}): its switch's place {ident!r} "
+                     "is no id of the lists")
+    return by_id[ident]
 
 
-def with_names(row: dict, where: str = "") -> dict:
-    """`row` with its cp cell named (in place); a row with no cp column is returned as it is."""
-    if row.get(COLUMN):
-        row[COLUMN] = names(row[COLUMN], where)
-    return row
+def with_names(row: dict, where: str = "", schematic: Path | None = None) -> dict:
+    """`row` with its cp cell named (Table.with_names) by the lists in `schematic` (default the repo's)."""
+    return table(schematic).with_names(row, where)
 
 
-def with_ids(rows: Iterable[Mapping[str, str]]) -> list[dict]:
-    """Copies of `rows` with their cp cells as ids (a row with no cp column copied as it is)."""
-    return [dict(r, **{COLUMN: ids(r[COLUMN])}) if r.get(COLUMN) else dict(r) for r in rows]
+def with_ids(rows: Iterable[Mapping[str, str]], schematic: Path | None = None) -> list[dict]:
+    """Copies of `rows` with their cp cells as ids (Table.with_ids) by the lists in `schematic` (default the
+    repo's)."""
+    return table(schematic).with_ids(rows)
