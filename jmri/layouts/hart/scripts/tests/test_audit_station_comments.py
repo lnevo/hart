@@ -1,5 +1,5 @@
 """audit_panel_contracts.station_comments takes the Dispatcher stations and their comments from the device master's
-staging block rows marked `stop` (2026-11-22: it replaced the hand-kept copy in refresh_bean_comments.BLOCK_COMMENTS).
+staging block rows marked `stop` (2026-11-22: it replaced the hand-kept copy in check_bean_comments.BLOCK_COMMENTS).
 The stations are parked since 2026-11-22, so the live master marks none."""
 import sys
 import unittest
