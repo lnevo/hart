@@ -5,6 +5,7 @@ changes the repo the way an edit would."""
 from __future__ import annotations
 
 import importlib.util
+import json
 import os
 import shutil
 import subprocess
@@ -448,50 +449,58 @@ class KeepTest(unittest.TestCase):
 
 
 class LoadTest(unittest.TestCase):
-    def test_traced_and_its_parts_load_by_path_from_any_cwd(self) -> None:
-        """As the hook and panel_stamps load it: by path, isolated (-I: nothing of the repo on sys.path), from
-        another folder; the parts' names are traced's own and every part is in HOOK_FILES."""
-        probe = ("import importlib.util, json, sys\n"
-                 "spec = importlib.util.spec_from_file_location('_hart_traced', sys.argv[1])\n"
-                 "t = importlib.util.module_from_spec(spec)\n"
-                 "spec.loader.exec_module(t)\n"
-                 "print(json.dumps([t.HOOK_FILES, callable(t.parse), callable(t.listing), t.VERSION,\n"
-                 "                  t.Trace.__name__, sorted(k for k in sys.modules if 'traced' in k)]))\n")
+    PROBE = ("import importlib.util, json, sys\n"
+             "before = list(sys.path)\n"
+             "spec = importlib.util.spec_from_file_location('_hart_traced', sys.argv[1])\n"
+             "t = importlib.util.module_from_spec(spec)\n"
+             "spec.loader.exec_module(t)\n"
+             "print(json.dumps([t.HOOK_FILES, callable(t.parse), callable(t.listing), t.VERSION,\n"
+             "                  t.Trace.__name__, sorted(k for k in sys.modules if 'traced' in k),\n"
+             "                  sys.path == before, t.parse is sys.modules['traced_read'].parse]))\n")
+
+    def probe(self, path: Path) -> subprocess.CompletedProcess:
+        """Load `path` as the hook and panel_stamps do: by path, isolated (-I: nothing of the repo on sys.path),
+        from another folder."""
         with tempfile.TemporaryDirectory() as cwd:
-            done = subprocess.run([sys.executable, "-I", "-c", probe, traced.__file__], cwd=cwd,
+            return subprocess.run([sys.executable, "-I", "-c", self.PROBE, str(path)], cwd=cwd,
                                   capture_output=True, text=True, timeout=60)
+
+    def test_traced_and_its_parts_load_by_path_from_any_cwd(self) -> None:
+        """The part is imported as a module of its own, its names are traced's, sys.path is left as it was, and
+        every part is in HOOK_FILES."""
+        done = self.probe(Path(traced.__file__))
         self.assertEqual(done.returncode, 0, done.stderr)
-        files, parse, listing, version, trace, registered = __import__("json").loads(done.stdout)
+        files, parse, listing, version, trace, registered, path_kept, same = json.loads(done.stdout)
         self.assertEqual(files, list(traced.HOOK_FILES))
         self.assertIn("tools/audit/traced_read.py", files)
-        self.assertEqual((parse, listing, version, trace, registered), (True, True, traced.VERSION, "Trace", ["_hart_traced_read"]))
+        self.assertEqual((parse, listing, version, trace, registered), (True, True, traced.VERSION, "Trace",
+                                                                        ["traced_read"]))
+        self.assertTrue(path_kept)
+        self.assertTrue(same)
 
-    def test_a_part_may_hold_a_dataclass(self) -> None:
-        """A part is registered in sys.modules before it runs, as a dataclass with string annotations needs."""
+    def test_every_name_of_the_part_is_traceds(self) -> None:
+        import traced_read
+        names = {k for k, v in vars(traced_read).items()
+                 if not k.startswith("__") and k != "annotations" and not isinstance(v, types.ModuleType)}
+        self.assertEqual(sorted(k for k in names if getattr(traced, k, None) is not getattr(traced_read, k)), [])
+
+    def test_a_missing_part_is_named(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            copy = Path(tmp) / "traced.py"
+            shutil.copy(traced.__file__, copy)
+            done = self.probe(copy)
+        self.assertNotEqual(done.returncode, 0)
+        self.assertRegex(done.stderr, r"ImportError: traced: its part .*traced_read\.py is missing")
+
+    def test_a_part_imported_from_another_folder_is_refused(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
             shutil.copy(traced.__file__, folder / "traced.py")
-            (folder / "traced_x.py").write_text("from __future__ import annotations\nfrom dataclasses import dataclass\n\n"
-                                                "@dataclass\nclass Box:\n    n: int = 1\n")
-            spec = importlib.util.spec_from_file_location("traced_dc_test", folder / "traced.py")
-            mod = importlib.util.module_from_spec(spec)
-            with self.assertRaisesRegex(ImportError, r"traced: its part .*traced_read\.py is missing"):
-                spec.loader.exec_module(mod)
             shutil.copy(Path(traced.__file__).with_name("traced_read.py"), folder / "traced_read.py")
+            spec = importlib.util.spec_from_file_location("traced_copy_test", folder / "traced.py")
             mod = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(mod)
-            part = mod._load_part("traced_x")
-            self.addCleanup(sys.modules.pop, "traced_dc_test_x", None)
-            self.addCleanup(sys.modules.pop, "traced_dc_test_read", None)
-            self.assertEqual(part.Box().n, 1)
-            self.assertIs(sys.modules["traced_dc_test_x"], part)
-
-    def test_a_part_that_repeats_a_name_is_refused(self) -> None:
-        part = types.ModuleType("traced_x")
-        part.__file__, part.install, part.fresh = "traced_x.py", object(), object()
-        with self.assertRaisesRegex(ImportError, "traced_x.py defines names traced.py defines too: install$"):
-            traced._take_names(part)
-        self.assertFalse(hasattr(traced, "fresh"))      # nothing is taken from a refused part
+            with self.assertRaisesRegex(ImportError, r"traced: its part traced_read was imported from .*, not from"):
+                spec.loader.exec_module(mod)
 
 
 if __name__ == "__main__":
