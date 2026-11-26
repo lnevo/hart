@@ -1,20 +1,42 @@
 """Publish the Neville Island helix package into the ops portal (helix/).
 
-Reads STLs and documents from docs/benchwork/helix. Needs markdown and trimesh. Run: python scripts/build_helix_page.py
-"""
-import html, os, re, sys
-import markdown, trimesh
+Reads STLs and documents from docs/benchwork/helix and writes helix/index.html (the STL index) and
+helix/build-status.html (the build status, rendered from Markdown). Needs markdown and trimesh:
 
-PORTAL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(PORTAL, 'helix')
-HELIX = os.path.join(os.path.dirname(PORTAL), 'docs', 'benchwork', 'helix')
-SRC = os.path.join(HELIX, 'stl')
+    .venv/bin/python www/scripts/build_helix_page.py
+"""
+from __future__ import annotations
+
+import html
+import re
+import sys
+from pathlib import Path
+from typing import NamedTuple
+
+import markdown
+import trimesh
+
+PORTAL = Path(__file__).resolve().parents[1]
+OUT = PORTAL / "helix"
+HELIX = PORTAL.parent / "docs" / "benchwork" / "helix"
+SRC = HELIX / "stl"
 DOCS = HELIX
 PLAN = 'helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf'
 STATUS = 'HART_Neville_Helix_BUILD_STATUS.md'
 HANDOFF = 'HART_Neville_Helix_Agent_Handoff_FINAL_31p75_18p75_2026-09-23.md'
+HEAD = Path(__file__).resolve().parent / "helix_page_head.html"
 
-# (group, [(files, script, note)])
+
+class Fixture(NamedTuple):
+    """One part in the STL index: its files, the script that made them (archived; None when none was kept), a note."""
+    files: list[str]
+    script: str | None
+    note: str
+
+
+# (group, [(files, script, note)]): a plain literal, which tools/audit/tests/test_helix_stl_index.py reads (so the type
+# is declared on its own line, and the literal stays an ast.Assign)
+GROUPS: list[tuple[str, list[tuple[list[str], str | None, str]]]]
 GROUPS = [
     ('Router templates', [
         (['roadbed_halflap_template_A.3mf', 'roadbed_halflap_template_A.stl', 'roadbed_halflap_template_A_CORE100.stl',
@@ -64,11 +86,16 @@ OBSOLETE = ['bracket_pocket_template.stl', 'entry_transition_shim.stl', 'entry_t
 EXTRA_SCRIPTS = ['router_template_lattice.py', 'stl_text.py', 'make_lap_screw_template.py']
 
 
-def size(n):
+# GROUPS with each part as a Fixture
+PARTS: list[tuple[str, list[Fixture]]] = [(g, [Fixture(*row) for row in rows]) for g, rows in GROUPS]
+
+
+def size(n: int) -> str:
     return f'{n/1024:.0f} KB' if n < 1024 * 1024 else f'{n/1048576:.1f} MB'
 
 
-def dims(path):
+def dims(path: Path) -> tuple[str, str, int]:
+    """(extents in mm, extents in inches, face count) of an STL."""
     m = trimesh.load(path, force='mesh')
     e = m.extents
     mm = ' × '.join(f'{v:.1f}' for v in e)
@@ -76,63 +103,52 @@ def dims(path):
     return mm, inch, len(m.faces)
 
 
-def main():
-    # Check that every current STL is classified.
-    listed = {f for _, rows in GROUPS for files, _, _ in rows for f in files}
-    on_disk = {f for f in os.listdir(SRC) if f.endswith(('.stl', '.3mf'))}
+def listed_files() -> set[str]:
+    """Every STL and 3MF the index lists; exits when one on disk is not classified or a listed one is gone."""
+    listed = {f for _, rows in PARTS for row in rows for f in row.files}
+    on_disk = {p.name for p in SRC.iterdir() if p.name.endswith(('.stl', '.3mf'))}
     missing = on_disk - listed - set(OBSOLETE)
     gone = listed - on_disk
     if missing or gone:
         sys.exit(f'unclassified: {sorted(missing)}  missing: {sorted(gone)}')
+    return listed
 
-    scripts = sorted({s for _, rows in GROUPS for _, s, _ in rows if s} | set(EXTRA_SCRIPTS))
 
-    published = {}
-    for f in sorted(listed):
-        published[f] = 'stl/' + f
-    for f in [PLAN, 'lap_screw_template.pdf', STATUS, HANDOFF]:
-        published[f] = 'files/' + f
-    # The generators are archived (archive/code/benchwork-tools/helix/); their names stay as plain text.
-
-    # STL index (HTML rows + Markdown rows)
+def stl_rows() -> list[str]:
+    """The STL index's table rows: a heading row per group, then a row per file with its part's script and note."""
     rows_html = []
-    n_files = 0
-    for group, rows in GROUPS:
+    for group, rows in PARTS:
         rows_html.append(f'<tr class="grp"><th colspan="5">{group}</th></tr>')
-        for files, script, note in rows:
+        for row in rows:
             cells = []
-            mdcells = []
-            for f in files:
-                n_files += 1
-                p = os.path.join(SRC, f)
+            for f in row.files:
+                p = SRC / f
                 if f.endswith('.stl'):
-                    mm, inch, faces = dims(p)
+                    mm, inch, _faces = dims(p)
                     ext = f'{mm} mm<br><span class="muted">{inch} in</span>'
-                    mdext = f'{mm} ({inch})'
                 else:
-                    ext, mdext = '<span class="muted">3MF project (body + modifier)</span>', '3MF project'
+                    ext = '<span class="muted">3MF project (body + modifier)</span>'
                 cells.append(f'<tr><td><a href="stl/{f}" download><code>{f}</code></a></td>'
-                             f'<td>{size(os.path.getsize(p))}</td><td>{ext}</td>')
-                mdcells.append((f, size(os.path.getsize(p)), mdext))
-            sc = f'<code>{script}</code>' if script else '<span class="muted">none kept</span>'
+                             f'<td>{size(p.stat().st_size)}</td><td>{ext}</td>')
+            sc = f'<code>{row.script}</code>' if row.script else '<span class="muted">none kept</span>'
             span = len(cells)
-            cells[0] += f'<td rowspan="{span}">{sc}</td><td rowspan="{span}">{html.escape(note)}</td></tr>'
+            cells[0] += f'<td rowspan="{span}">{sc}</td><td rowspan="{span}">{html.escape(row.note)}</td></tr>'
             for i in range(1, span):
                 cells[i] += '</tr>'
             rows_html += cells
+    return rows_html
 
-    # Build status page, with backticked filenames linked to the published copies.
-    text = open(os.path.join(DOCS, STATUS)).read()
-    body = markdown.markdown(text, extensions=['tables', 'sane_lists'])
+
+def status_page(head: str, published: dict[str, str]) -> str:
+    """The build status page, with backticked file names linked to their published copies."""
+    body = markdown.markdown((DOCS / STATUS).read_text(encoding="utf-8"), extensions=['tables', 'sane_lists'])
     body = re.sub(r'<(/?)h1>', r'<\1h2>', body)  # the page head carries the one h1
 
-    def link(m):
+    def link(m: re.Match) -> str:
         name = m.group(1)
         return f'<a href="{published[name]}"><code>{name}</code></a>' if name in published else m.group(0)
     body = re.sub(r'<code>([^<]+)</code>', link, body)
-
-    head = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'helix_page_head.html')).read()
-    page = head.replace('{{TITLE}}', 'Helix build status').replace('{{PAGE}}', 'helix-status').replace('{{BODY}}', f'''
+    return head.replace('{{TITLE}}', 'Helix build status').replace('{{PAGE}}', 'helix-status').replace('{{BODY}}', f'''
     <div class="page-head">
       <h1>Helix build status</h1>
       <p class="muted">Rendered from <a href="files/{STATUS}"><code>{STATUS}</code></a></p>
@@ -140,12 +156,14 @@ def main():
     <div class="guide-body helix-wrap prose">
 {body}
     </div>''')
-    open(os.path.join(OUT, 'build-status.html'), 'w').write(page)
 
-    plan_kb = size(os.path.getsize(os.path.join(DOCS, PLAN)))
-    tmpl_kb = size(os.path.getsize(os.path.join(DOCS, 'lap_screw_template.pdf')))
+
+def index_page(head: str, rows_html: list[str], n_files: int) -> str:
+    """The helix index: the instruction documents and the STL index."""
+    plan_kb = size((DOCS / PLAN).stat().st_size)
+    tmpl_kb = size((DOCS / 'lap_screw_template.pdf').stat().st_size)
     obs = ', '.join(f'<code>{f}</code>' for f in OBSOLETE)
-    index = head.replace('{{TITLE}}', 'Neville Island helix').replace('{{PAGE}}', 'helix').replace('{{BODY}}', f'''
+    return head.replace('{{TITLE}}', 'Neville Island helix').replace('{{PAGE}}', 'helix').replace('{{BODY}}', f'''
     <div class="page-head">
       <h1>Neville Island helix</h1>
       <p class="muted">Construction plan and the printed fixtures for the 26 / 31.75 in helix · updated 15 October 2026</p>
@@ -175,8 +193,18 @@ def main():
       <p class="muted">Obsolete, not published: {obs}.</p>
       <p class="muted">The scripts that made these files are kept in the repository's archive, not published.</p>
     </div>''')
-    open(os.path.join(OUT, 'index.html'), 'w').write(index)
 
+def main() -> None:
+    listed = listed_files()
+    published = {f: 'stl/' + f for f in sorted(listed)}
+    for f in [PLAN, 'lap_screw_template.pdf', STATUS, HANDOFF]:
+        published[f] = 'files/' + f
+    # The generators are archived (archive/code/benchwork-tools/helix/); their names stay as plain text.
+    head = HEAD.read_text(encoding="utf-8")
+    (OUT / 'build-status.html').write_text(status_page(head, published), encoding="utf-8")
+    n_files = sum(len(row.files) for _, rows in PARTS for row in rows)
+    (OUT / 'index.html').write_text(index_page(head, stl_rows(), n_files), encoding="utf-8")
+    scripts = {row.script for _, rows in PARTS for row in rows if row.script} | set(EXTRA_SCRIPTS)
     print('files', n_files, 'scripts', len(scripts))
 
 

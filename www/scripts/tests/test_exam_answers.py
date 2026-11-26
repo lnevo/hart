@@ -9,7 +9,13 @@ from pathlib import Path
 
 WWW = Path(__file__).resolve().parents[2]
 SCRIPT = WWW / "scripts" / "build_exam_answers.js"
-RUN = WWW / "exam" / "run.js"          # the game's script, moved out of run.html
+RUN = WWW / "exam" / "run.js"          # the game's core; the runs and pools are in RUN_FILES
+RUN_FILES = [RUN] + [WWW / "exam" / f for f in ("run-1949.js", "run-modern.js", "run-signals.js", "run-yard.js")]
+
+
+def run_source() -> str:
+    """The game's scripts as one text, in run.html's order (readRun in build_exam_answers.js)."""
+    return "\n".join(f.read_text() for f in RUN_FILES)
 RUN_PAGE = WWW / "exam" / "run.html"
 INDEX = WWW / "exam" / "index.html"
 
@@ -30,12 +36,12 @@ class ExamAnswers(unittest.TestCase):
     def test_every_question_read_with_answers(self):
         out = node(
             f"const m=require({json.dumps(str(SCRIPT))});"
-            f"const src=require('fs').readFileSync({json.dumps(str(RUN))},'utf8');"
+            "const src=m.readRun();"
             "const qs=m.extract(src);console.log(JSON.stringify({qs,generated:qs.generated}))"
         )
         data = json.loads(out)
         qs = data["qs"]
-        calls = len(re.findall(r"\bask\(\{", RUN.read_text()))
+        calls = len(re.findall(r"\bask\(\{", run_source()))
         self.assertEqual(len(qs) + data["generated"], calls)
         self.assertGreater(data["generated"], 0, "the signals run's questions drawn at each signal")
         for q in qs:
@@ -85,7 +91,7 @@ class ExamAnswers(unittest.TestCase):
     def test_questions_needing_the_sheet_have_a_reference(self):
         out = node(
             f"const m=require({json.dumps(str(SCRIPT))});"
-            f"const src=require('fs').readFileSync({json.dumps(str(RUN))},'utf8');"
+            "const src=m.readRun();"
             "const R=m.references(src);"
             "console.log(JSON.stringify({qs:m.extract(src).filter(q=>q.ref).map(q=>[q.title,q.ref]),"
             "refs:Object.fromEntries(Object.entries(R).map(([k,v])=>[k,v.html]))}))"
@@ -172,8 +178,8 @@ class ExamAnswers(unittest.TestCase):
         self.assertNotIn("ahead1", json.loads(out))
 
     def test_speed_run_can_show_every_aspect(self):
-        run = RUN.read_text()
-        body = run[run.index("function startSIG("):run.index("/* ---------- the Ironton yard job")]
+        run = (WWW / "exam" / "run-signals.js").read_text()
+        body = run[run.index("function startSIG("):]
         used = set(re.findall(r'"(2[89][0-9][A-C]?)"', body))  # every quoted rule number in startSIG
         signals = (WWW / "exam" / "signals.js").read_text()
         rules = set(re.findall(r'\{r:"([0-9]{3}[A-C]?)"', signals))
@@ -197,8 +203,9 @@ class SectionNames(unittest.TestCase):
         index = INDEX.read_text()
         cards = re.search(r"const SECTIONS=(\{[^}]*\})", (WWW / "exam" / "deck-data.js").read_text()).group(1)
         game = re.search(r"const SEC=(\{[^}]*\})", RUN.read_text()).group(1)
-        self.assertEqual(cards, game, "run.js SEC must match the deck's SECTIONS")
-        names = dict(re.findall(r'(\w+):"([^"]+)"', cards))
+        pairs = lambda text: re.findall(r'(\w+):"([^"]+)"', text)  # the source may wrap the literal
+        self.assertEqual(pairs(cards), pairs(game), "run.js SEC must match the deck's SECTIONS")
+        names = dict(pairs(cards))
         guide = re.findall(r'<article id="learn-(\w+)" data-sec="\1" data-short="([^"]+)">\s*<h3>\d+\. ([^<]+)</h3>', index)
         self.assertEqual([k for k, _, _ in guide], list(names), "study guide sections follow the card order")
         for k, short, h3 in guide:

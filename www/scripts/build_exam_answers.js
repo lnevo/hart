@@ -8,7 +8,9 @@ const path = require("path");
 const vm = require("vm");
 
 const EXAM = path.join(__dirname, "..", "exam");
-const RUN = path.join(EXAM, "run.js");
+/* The game's scripts in the order run.html loads them; the key reads them as one text. */
+const RUN_FILES = ["run.js", "run-1949.js", "run-modern.js", "run-signals.js", "run-yard.js"].map(f => path.join(EXAM, f));
+const readRun = () => RUN_FILES.map(f => fs.readFileSync(f, "utf8")).join("\n");
 const OUT = path.join(EXAM, "answers.html");
 
 /* Scans from the bracket at `open` to the one that closes it. Skips strings, comments and template text, and follows
@@ -53,7 +55,7 @@ const closing = (src, open) => scan(src, open).end;
 /* The one way this script evaluates code from run.js: the text from `from` through the bracket that closes `open`. */
 const evalSlice = (src, from, open) => Function(`return (${src.slice(from, closing(src, open) + 1)})`)();
 
-/* The value of a declaration such as "const ST=" (an object or array literal), searched for from `after`. */
+/* The value of a declaration such as "const STATIONS=" (an object or array literal), searched for from `after`. */
 function literal(src, decl, after = 0) {
   const at = src.indexOf(decl, after);
   if (at < 0) throw new Error(`run.js: ${decl.trim()} not found`);
@@ -86,7 +88,7 @@ const scopeWith = real => new Proxy({}, {
 });
 
 const FRIENDLY = [
-  [/\[ST\.\[?\w+\]?\.n\]/g, "[station]"],
+  [/\[STATIONS\.\[?\w+\]?\.n\]/g, "[station]"],
   [/\[(?:p|time|o|f)\.tr\.name\]/g, "[train]"],
   [/\[(?:shown|nums)\.join\(…\)\]/g, "[order numbers]"],
   [/\[time\.no\]/g, "[order no]"],
@@ -140,12 +142,12 @@ function readSources(src) {
   return s => s.replace(re, k => SRC[k]); // the same label the game shows (srcLabel)
 }
 
-/* The modern run's code starts at its warrant tables. Runs in FUNC_RUNS (checked first) also sit before the end-of-run
-   scene, so a question there gets its run's label; any other question before TW_SEL is 1949, after it modern. */
+/* The modern run's code starts at its warrant tables in run-modern.js. Everything after it in readRun()'s text is
+   modern, but for the runs in FUNC_RUNS, which are checked first; any other question before TW_SEL is 1949. */
 function modernRange(src) {
-  const from = src.indexOf("const TW_SEL="), to = src.indexOf("function finish(");
-  if (from < 0 || to < from) throw new Error("run.js: modern run code (const TW_SEL … function finish) not found");
-  return { from, to };
+  const from = src.indexOf("const TW_SEL=");
+  if (from < 0) throw new Error("run-modern.js: const TW_SEL not found");
+  return { from, to: src.length };
 }
 
 /* Runs whose questions all sit inside one start function: the yard job. */
@@ -250,12 +252,13 @@ ${plates.join("\n")}
 /* A question names one with ref:"<id>" in run.js; the game ignores the field. Each is drawn from run.js's own data. */
 
 
-/* The special instructions on the 1949 train sheet: renderSheet's S.era==="tto" branch, up to its }else{. */
+/* The special instructions on the 1949 train sheet: renderSheet's state.era==="tto" branch, up to its }else{. */
 function specialInstructions(src) {
-  const from = src.indexOf('if(S.era==="tto"){', src.indexOf("function renderSheet("));
+  const from = src.indexOf('if(state.era==="tto"){', src.indexOf("function renderSheet("));
   const to = src.indexOf("}else{", from);
-  if (from < 0 || to < 0) throw new Error('run.js: renderSheet\'s S.era==="tto" branch not found');
-  const m = /<div class="xw-si"><b>Special instructions<\/b><ul>(.*?)<\/ul><\/div>/.exec(src.slice(from, to));
+  if (from < 0 || to < 0) throw new Error('run.js: renderSheet\'s state.era==="tto" branch not found');
+  const branch = src.slice(from, to).replace(/`\+\n\s*`/g, ""); // run.js wraps a long template as `…`+`…`
+  const m = /<div class="xw-si"><b>Special instructions<\/b><ul>(.*?)<\/ul><\/div>/.exec(branch);
   if (!m) throw new Error("run.js: special instructions not found in the 1949 branch of renderSheet");
   return m[1];
 }
@@ -301,8 +304,8 @@ const SLOT = { s: "station", t: "track", time: "time", train: "train", w: "warra
 
 /* The time order the game writes at an open office, filled with the first of each choice it makes. */
 function timeOrder(src) {
-  const nums = /const n1=rnd\((\d+),(\d+),RW\)/.exec(src);
-  const mins = /L=pick\(\[([\d,\s]+)\],RW\)/.exec(src);
+  const nums = /const n1=rnd\((\d+),(\d+),randOrders\)/.exec(src);
+  const mins = /L=pick\(\[([\d,\s]+)\],randOrders\)/.exec(src);
   const words = /text:`\$\{tr\.name\} run \$\{L\} mins late ([^`]+)`/.exec(src);
   const tt = src.slice(src.indexOf("function makeTT("));
   const train = /name:"([^"]+)",dir:"W",cls:"(?:First|Second) class"/.exec(tt);
@@ -312,13 +315,13 @@ function timeOrder(src) {
 
 /* How far ahead Box 5 is set when the crew calls the dispatcher (setBox5: rounded up to 5 minutes). */
 function box5Lead(src) {
-  const m = /Math\.ceil\(\(S\.clock\+(\d+)\)\/5\)\*5/.exec(src);
+  const m = /Math\.ceil\(\(state\.clock\+(\d+)\)\/5\)\*5/.exec(src);
   if (!m) throw new Error("run.js: setBox5's lead time not found");
   return +m[1];
 }
 
 function references(src) {
-  const ST = literal(src, "const ST=");
+  const ST = literal(src, "const STATIONS=");
   const BOXES = literal(src, "const BOXES=");
   const stations = `<table class="xa-tt"><thead><tr><th>Station</th><th>MP</th><th>Siding</th><th>Notes</th></tr></thead><tbody>${ST.map(st =>
     `<tr><td>${esc(st.n)}</td><td>${st.mp.toFixed(1)}</td><td>${st.sd ? "yes" : "no"}</td><td>${[st.off ? "open office (D)" : "", st.yl ? "yard limits" : ""].filter(Boolean).join(", ")}</td></tr>`).join("")}</tbody></table>`;
@@ -467,7 +470,7 @@ ${Object.entries(REFS).map(([id, r]) => `<dialog class="xa-dlg" id="ref-${id}" a
 }
 
 function main() {
-  const src = fs.readFileSync(RUN, "utf8");
+  const src = readRun();
   const qs = extract(src);
   const calls = (src.match(/\bask\(\{/g) || []).length;
   if (qs.length + qs.generated !== calls) throw new Error(`read ${qs.length} questions and ${qs.generated} signal templates but run.js has ${calls} ask({ calls`);
@@ -489,4 +492,4 @@ function main() {
 if (require.main === module) {
   try { main(); } catch (e) { console.error(`build_exam_answers: ${e.message}`); process.exit(1); }
 }
-module.exports = { extract, render, readSections, references, warrantHtml, loadSignals, generatedHtml };
+module.exports = { readRun, extract, render, readSections, references, warrantHtml, loadSignals, generatedHtml };

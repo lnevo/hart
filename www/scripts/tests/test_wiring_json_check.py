@@ -19,7 +19,7 @@ SPEC = importlib.util.spec_from_file_location("build_wiring_json", ROOT / "www/s
 BW = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(BW)
 
-INV = BW.build()  # built once for the tests that read the real model
+INV = BW.build().data  # built once for the tests that read the real model
 
 
 def run_main(*args: str) -> tuple[int, str, str]:
@@ -37,7 +37,7 @@ class FromTheModel(unittest.TestCase):
         with mock.patch("openpyxl.load_workbook", never), mock.patch("openpyxl.reader.excel.load_workbook", never), \
                 mock.patch.object(BW.write_inventory, "load_workbook", never), \
                 mock.patch.object(BW.write_inventory, "OUT", Path(tempfile.gettempdir()) / "no-such-v86.xlsx"):
-            inv = BW.build_inventory()
+            inv = BW.build_inventory().data
         never.assert_not_called()
         self.assertEqual(inv["source"], {"file": "LCOS_Layout_Inventory_v86.xlsx", "version": "v86"})
 
@@ -51,14 +51,29 @@ class FromTheModel(unittest.TestCase):
     def test_a_given_workbook_is_read_as_the_model_gives_it(self):
         wb = BW.write_inventory.workbook()
         wb["Nodes"].cell(2, 4, "Somewhere else")
-        inv = BW.build_inventory(wb)
+        inv = BW.build_inventory(wb).data
         self.assertEqual(inv["nodes"][0]["location"], "Somewhere else")
 
     def test_each_build_reports_only_its_own_warnings(self):
-        BW.build_inventory()
-        first = list(BW.WARNINGS)
-        BW.build_inventory()
-        self.assertEqual(BW.WARNINGS, first)
+        first = BW.build_inventory().log
+        self.assertEqual(BW.build_inventory().log, first)
+
+    def test_a_bad_row_is_a_warning_of_that_build(self):
+        wb = BW.write_inventory.workbook()
+        ws = wb["DNIN8"]
+        ws.append(["not a port"])
+        ws.append([ws.cell(2, 1).value])  # the first port again
+        warnings = BW.build_inventory(wb).log.warnings
+        self.assertIn("DNIN8: unreadable port id 'not a port'", warnings)
+        self.assertIn(f"DNIN8: port {ws.cell(2, 1).value} listed twice", warnings)
+        self.assertNotIn("DNIN8: unreadable port id 'not a port'", BW.build_inventory().log.warnings)
+
+    def test_a_network_detail_is_scrubbed_and_noted(self):
+        wb = BW.write_inventory.workbook()
+        wb["Nodes"].cell(2, 4, "10.0.0.150")
+        built = BW.build_inventory(wb)
+        self.assertEqual(built.data["nodes"][0]["location"], "")
+        self.assertIn("10.0.0.150", built.log.scrubbed)
 
 
 class TheChecks(unittest.TestCase):

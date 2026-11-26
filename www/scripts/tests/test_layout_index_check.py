@@ -157,5 +157,49 @@ class MatchTurnoutTest(unittest.TestCase):
         self.assertIs(cats_index.match_turnout(by, set(), {"OS Switch 225"}), turnout)
 
 
+
+class Steps(unittest.TestCase):
+    """The layout index's named steps: control points, kinds of unplaced devices, the overview window."""
+
+    def test_cp_for_takes_the_place_then_the_desk_area(self) -> None:
+        pairs = [("23a", "East End"), ("5", "West")]
+        self.assertEqual(le_index.cp_for("Switch 5", pairs, "Yard"), "Yard")
+        self.assertEqual(le_index.cp_for("Switch 23a", pairs, ""), "East End")
+        self.assertEqual(le_index.cp_for("Switch 9", pairs, ""), "")
+
+    def test_item_kind(self) -> None:
+        for raw, want in (("lcc turnout", "turnout"), ("signal mast", "signal"), ("os block", "occupancy"),
+                          ("feedback", "sensor")):
+            self.assertEqual(le_index.item_kind(raw), want, raw)
+
+    def test_overview_maps_panel_points_inside_the_padding(self) -> None:
+        ov = le_index.overview_xy([{"cen": (10.0, 20.0)}], [((0.0, 0.0), (100.0, 50.0), None, None)], [], [])
+        self.assertEqual(ov.x(-le_index.PAD), le_index.PAD)
+        self.assertEqual(ov.y(-le_index.PAD), le_index.TOP)
+        self.assertGreater(ov.width, ov.x(100.0))
+        with self.assertRaises(le_index.LayoutIndexError):
+            le_index.overview_xy([], [], [], [])
+
+    def test_a_source_that_cannot_be_read_keeps_its_cause(self) -> None:
+        boom = OSError("disk")
+        with mock.patch.object(le_index, "_build", side_effect=boom):
+            with self.assertRaisesRegex(le_index.LayoutIndexError, "OSError: disk") as cm:
+                le_index.build()
+        self.assertIs(cm.exception.__cause__, boom)
+
+
+class CatsSteps(unittest.TestCase):
+    """A points cell's hotspot: the OS around it when it has none, and a plain name when nothing matches."""
+
+    def test_a_bare_points_cell_takes_the_os_around_it(self) -> None:
+        near = {(4, 3): [("OS Switch 9", "")], (6, 3): [("OS Switch 9", "")], (5, 2): [("OS Switch 8", "")]}
+        it = cats_index.plant_item((5, 3), (0.0, 0.0), set(), set(), near, {})
+        self.assertEqual((it["publicName"], it["block"]), ("OS Switch 9", "OS Switch 9"))
+        self.assertEqual(it["comment"], "Digicon plant @ 5,3; OS OS Switch 9")
+
+    def test_a_cell_with_nothing_is_named_by_its_place(self) -> None:
+        it = cats_index.plant_item((1, 2), (60.0, 90.0), set(), set(), {}, {})
+        self.assertEqual((it["publicName"], it["x"], it["y"]), ("Plant (1,2)", 90.0, 120.0))
+
 if __name__ == "__main__":
     unittest.main()
