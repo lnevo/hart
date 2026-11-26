@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Fail when a .py, .js or .sh file over its line limit grows (wiki/projects/cleanup-streamline-handoff.md, D).
 
-Owner, 2026-11-25 (.py); .js and .sh joined in the size sweep of the same day. LIMITS gives each kind its limit: .py and .js 800 lines, .sh 500. Every tracked file of those kinds outside EXCLUDED
-that is over its limit has a row in SIZES (path, lines): the size it may not pass. The check fails when such a file
-grows past its row, when a file crosses its limit with no row, and when a file shrank, fell to its limit or below, or
-is gone, so the list is tightened in the same change (a ratchet). A file at 90 percent of its limit or more (WARN_AT:
-720 lines for .py and .js, 450 for .sh) with no row gets a WARNING line, which does not fail the check, so the guard
-speaks before the crossing.
+Owner, 2026-11-25 (.py); .js and .sh joined in the size sweep of the same day. LIMITS gives each kind its limit:
+.py and .js 800 lines, .sh 500. Every tracked file of those kinds outside EXCLUDED (and outside any node_modules
+folder) that is over its limit has a row in SIZES (path, lines): the size it may not pass. The check fails when such a
+file grows past its row, when a file crosses its limit with no row, and when a file shrank, fell to its limit or
+below, or is gone, so the list is tightened in the same change (a ratchet). A file at 90 percent of its limit or more
+(WARN_SHARE, warn_at: 720 lines for .py and .js, 450 for .sh) with no row gets a WARNING line, which does not fail
+the check, so the guard speaks before the crossing. The warning is advisory: it shows when the py-sizes job runs, not
+when its stamp lets check.sh skip it.
 
     python3 tools/audit/check_py_sizes.py            check (exit 1 on a problem, 2 when it cannot run)
     python3 tools/audit/check_py_sizes.py --update   rewrite SIZES for files that shrank, fell under their limit or
@@ -64,7 +66,10 @@ def warn_at(limit: int) -> int:
 
 
 def in_scope(path: str) -> bool:
-    return limit_of(path) is not None and not path.startswith(EXCLUDED)
+    """A kind LIMITS covers, outside EXCLUDED and outside node_modules (an npm install's untracked vendor code, which
+    .gitignore does not leave out)."""
+    return (limit_of(path) is not None and not path.startswith(EXCLUDED)
+            and "node_modules" not in path.split("/")[:-1])
 
 
 def tracked(root: Path | None = None) -> list[str]:

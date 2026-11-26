@@ -255,7 +255,8 @@ class OtherKinds(ScratchRepo):
 
     def test_excluded_folders_and_other_suffixes_are_not_measured(self) -> None:
         for rel in ("archive/old.js", "external/x/y.sh", "reference/r.js", "tools/cats/src-repo/c.sh",
-                    "jmri/layouts/hart/parked/p.js", "www/a.mjs", "www/a.json", "tools/a.bash"):
+                    "jmri/layouts/hart/parked/p.js", "www/a.mjs", "www/a.json", "tools/a.bash",
+                    "www/node_modules/pkg/index.js", "node_modules/x/y.sh"):
             self.put(rel, 2000)
         self.sizes.write_text("path,lines\n")
         rc, out, _ = self.run_main()
