@@ -135,7 +135,7 @@ def lock_held(tree: Worktree, now: datetime | None = None) -> bool:
     """Whether the worktree's lock still binds.
 
     Claude Code locks each agent worktree to its session's pid so the agent can be resumed. Once that session
-    has exited the lock protects nothing (owner, 2026-11-21), so it no longer binds when the session is gone
+    has exited the lock protects nothing, so it no longer binds when the session is gone
     and nothing in the worktree changed for LOCK_IDLE (a guard for a sweep that cannot see the session's
     process, such as one in another pid namespace). A live session's lock, or one with no pid, still binds."""
     if not tree.locked:
@@ -147,11 +147,24 @@ def lock_held(tree: Worktree, now: datetime | None = None) -> bool:
     return last is None or now - last < LOCK_IDLE
 
 
-def git(*args: str, cwd: str | Path | None = None, check: bool = False) -> str:
-    done = subprocess.run(["git", "-C", str(cwd or ROOT), *args], capture_output=True, text=True, timeout=60)
-    if check and done.returncode != 0:
-        raise SystemExit(done.stderr.strip() or f"git {' '.join(args)} failed")
-    return done.stdout.strip() if done.returncode == 0 else ""
+class GitCommandError(RuntimeError):
+    """A git command failed, could not run or timed out; the message names the command, the folder and git's stderr."""
+
+
+def git(*args: str, cwd: str | Path | None = None) -> str:
+    """git's stripped output, run in `cwd` (default the repo). GitCommandError when it fails, cannot run or hangs;
+    a caller that expects a failure (an unset ref, an offline fetch) catches it."""
+    where = cwd or ROOT
+    command = f"git {' '.join(args)}"
+    try:
+        done = subprocess.run(["git", "-C", str(where), *args], capture_output=True, text=True, timeout=60)
+    except subprocess.TimeoutExpired as err:
+        raise GitCommandError(f"{command} took over 60 s in {where}") from err
+    except OSError as err:
+        raise GitCommandError(f"{command} could not run in {where}: {err}") from err
+    if done.returncode != 0:
+        raise GitCommandError(f"{command} failed in {where}: {done.stderr.strip() or f'exit {done.returncode}'}")
+    return done.stdout.strip()
 
 
 def worktrees(cwd: str | Path | None = None) -> list[Worktree]:
@@ -205,7 +218,10 @@ def merged_by_branch(main: str, limit: int = 1000) -> dict[str, list[dict]] | No
 
 def last_touched(path: str) -> datetime:
     """When the worktree was last used: its index file's time (checkout, add, status refresh), else the folder's."""
-    index = git("rev-parse", "--path-format=absolute", "--git-path", "index", cwd=path)
+    try:
+        index = git("rev-parse", "--path-format=absolute", "--git-path", "index", cwd=path)
+    except GitCommandError:
+        index = ""
     target = index if index and os.path.exists(index) else path
     return datetime.fromtimestamp(os.path.getmtime(target), timezone.utc)
 
@@ -225,7 +241,10 @@ def on_base(tree: Worktree, main: str, base: str | None) -> bool:
 
 def in_progress(path: str) -> bool:
     """True when a rebase, bisect, merge, cherry-pick, revert or am is stopped part way in this worktree."""
-    gitdir = git("rev-parse", "--path-format=absolute", "--git-dir", cwd=path)
+    try:
+        gitdir = git("rev-parse", "--path-format=absolute", "--git-dir", cwd=path)
+    except GitCommandError:
+        return False
     return bool(gitdir) and any(os.path.exists(os.path.join(gitdir, name)) for name in IN_PROGRESS)
 
 
@@ -297,7 +316,10 @@ def plan(trees: list[Worktree], merged, keep: list[str], dirty, now: datetime | 
 def is_dirty(path: str) -> bool:
     if not os.path.isdir(path):
         return False
-    return bool(git("status", "--porcelain", cwd=path))
+    try:
+        return bool(git("status", "--porcelain", cwd=path))
+    except GitCommandError:
+        return True  # a checkout git cannot read may hold work: keep it
 
 
 # Submodules the sweep never enters: vendor source (AGENTS.md: external/lcos-bridge is not ours to change).
@@ -320,7 +342,10 @@ def submodule_repos(main: str) -> list[str]:
 
 def default_branch(repo: str) -> str | None:
     """The repository's default branch as origin names it (origin/HEAD: main, master), or None when it is not set."""
-    ref = git("symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD", cwd=repo)
+    try:
+        ref = git("symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD", cwd=repo)
+    except GitCommandError:  # --quiet: exit 1 and no message when origin/HEAD is not set
+        return None
     return ref.split("/", 1)[1] if ref.startswith("origin/") else None
 
 
@@ -380,6 +405,8 @@ def sweep(dry_run: bool = False, keep: list[str] | None = None, budget: float | 
                                  os.path.join(sub, ".claude", "worktrees"), SUBMODULE_BRANCH_PREFIX)]
         except subprocess.TimeoutExpired:
             lines.append(f"left this submodule for the next sweep: a git call timed out{tag}")
+        except GitCommandError as err:      # a hung or broken submodule: report it, sweep the others
+            lines.append(f"left this submodule for the next sweep: {err}{tag}")
     return lines
 
 
@@ -397,10 +424,10 @@ def sweep_repo(main: str, trees: list[Worktree], dry_run: bool, keep: list[str],
                   and (prefix is None or (t.branch or "").startswith(prefix))]
     if not candidates:
         return []
-    if branch:
-        git("fetch", "-q", "origin", branch, cwd=main)
-    else:
-        git("fetch", "-q", "origin", cwd=main)
+    try:
+        git("fetch", "-q", "origin", *([branch] if branch else []), cwd=main)
+    except GitCommandError:
+        pass  # offline: the sweep works from the remote refs as last fetched
     by_branch = merged_by_branch(main)
     base = f"origin/{branch}" if branch else None
     if by_branch is None:  # GitHub refused the batch: ask per branch, as before
@@ -451,15 +478,29 @@ def sweep_repo(main: str, trees: list[Worktree], dry_run: bool, keep: list[str],
                         git_run("worktree", "lock", "--reason", tree.lock_reason, tree.path, cwd=main)
                     lines.append(f"kept {tree.path}: {why}")
                     continue
-            git("worktree", "prune", cwd=main)
-            if tree.branch and git("rev-parse", f"refs/heads/{tree.branch}", cwd=main) == tree.head:
-                git("branch", "-D", tree.branch, cwd=main)
+            cleanup = after_removal(tree, main)
         finally:
             clock.removing += time.monotonic() - began
         why = "PR merged" if tree.branch else f"detached, commit on {base}, untouched {DETACHED_IDLE.days} days"
-        lines.append(f"removed {tree.path} ({label}, {why})")
+        lines.append(f"removed {tree.path} ({label}, {why})" + "".join(f"; {c}" for c in cleanup))
     lines += [f"kept {tree.path} ({tree.branch or tree.head[:8]}): {why}" for tree, why in kept]
     return lines
+
+
+def after_removal(tree: Worktree, main: str) -> list[str]:
+    """Prune the removed worktree's record and delete its branch when it still points at the worktree's commit.
+    The folder is already gone, so a failure here is reported, one note each, and the sweep goes on."""
+    notes = []
+    try:
+        git("worktree", "prune", cwd=main)
+    except GitCommandError as err:
+        notes.append(f"worktree prune failed: {err}")
+    try:
+        if tree.branch and branch_head(tree.branch, main) == tree.head:
+            git("branch", "-D", tree.branch, cwd=main)
+    except GitCommandError as err:
+        notes.append(f"branch delete failed: {err}")
+    return notes
 
 
 def remove_worktree(path: str, main: str) -> str | None:
@@ -496,16 +537,27 @@ def submodule_risk(path: str) -> str | None:
         return "submodule listing failed"
     for rel in listed.stdout.splitlines():
         sub = os.path.join(path, rel)
-        if os.path.realpath(git("rev-parse", "--show-toplevel", cwd=sub)) != os.path.realpath(sub):
-            return f"submodule {rel} is not a readable checkout"
-        # The parent's status already shows submodule changes, unless submodule.<name>.ignore hides them.
-        if git("status", "--porcelain", cwd=sub):
-            return f"changes in submodule {rel}"
-        if git("rev-list", "-n1", "HEAD", "--branches", "--not", "--remotes", cwd=sub):
-            return f"submodule {rel} has commits on no remote branch"
+        try:
+            if os.path.realpath(git("rev-parse", "--show-toplevel", cwd=sub)) != os.path.realpath(sub):
+                return f"submodule {rel} is not a readable checkout"
+            # The parent's status already shows submodule changes, unless submodule.<name>.ignore hides them.
+            if git("status", "--porcelain", cwd=sub):
+                return f"changes in submodule {rel}"
+            if git("rev-list", "-n1", "HEAD", "--branches", "--not", "--remotes", cwd=sub):
+                return f"submodule {rel} has commits on no remote branch"
+        except GitCommandError as err:
+            return f"submodule {rel} is not a readable checkout: {err}"
         if git_ok("rev-parse", "-q", "--verify", "refs/stash", cwd=sub):
             return f"submodule {rel} has a stash"
     return None
+
+
+def branch_head(branch: str, cwd: str | Path) -> str | None:
+    """The commit a local branch points at, or None when there is no such branch."""
+    try:
+        return git("rev-parse", "--verify", "-q", f"refs/heads/{branch}", cwd=cwd)
+    except GitCommandError:
+        return None
 
 
 def git_run(*args: str, cwd: str | Path | None = None) -> subprocess.CompletedProcess:
@@ -537,8 +589,11 @@ def new(topic: str, agent: str) -> Path:
     branch = f"agent/{agent}/{topic}"
     if path.exists():
         raise SystemExit(f"{path} already exists")
-    git("fetch", "-q", "origin", "main", cwd=main)
-    git("worktree", "add", "-q", "-b", branch, str(path), "origin/main", cwd=main, check=True)
+    try:
+        git("fetch", "-q", "origin", "main", cwd=main)
+    except GitCommandError as err:
+        print(f"warning: {err}; the worktree starts from origin/main as last fetched", file=sys.stderr)
+    git("worktree", "add", "-q", "-b", branch, str(path), "origin/main", cwd=main)
     exclude_mirrors(main)
     for rel in MIRRORS:
         src, dst = main / rel, path / rel
@@ -645,6 +700,8 @@ def init_submodule(path: Path, rel: str, main: Path | None = None) -> str:
             alternates.unlink()
     except subprocess.TimeoutExpired:
         return f"timed out after {SUBMODULE_TIMEOUT} s"
+    except GitCommandError as err:
+        return str(err)
     except OSError as e:
         return f"could not run git: {e}"
     return ""
@@ -663,10 +720,21 @@ def main(argv: list[str] | None = None) -> int:
     p_sweep.add_argument("--budget", type=float, help="seconds after which no further removal starts")
     p_sweep.add_argument("--keep", action="append", default=[], help="never remove the worktree holding this directory")
     args = parser.parse_args(argv)
+    try:
+        return run(args)
+    except GitCommandError as err:
+        print(f"error: {err}", file=sys.stderr)
+        return 1
+
+
+def run(args: argparse.Namespace) -> int:
     if args.cmd == "new":
         print(new(args.topic, args.agent))
     elif args.cmd == "submodules":
-        top = git("rev-parse", "--show-toplevel", cwd=args.path)
+        try:
+            top = git("rev-parse", "--show-toplevel", cwd=args.path)
+        except GitCommandError:
+            top = ""
         found = worktrees(top) if top else []
         if not found:
             print(f"warning: {args.path} is not a git checkout; no submodules checked out", file=sys.stderr)

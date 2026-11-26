@@ -1,4 +1,4 @@
-"""check.sh and build_panels.sh fail a schematic step that cannot load the plugin, as CI does (owner, 2026-11-23):
+"""check.sh and build_panels.sh fail a schematic step that cannot load the plugin, as CI does:
 SCHEMATIC_REQUIRED defaults to 1 there, and SCHEMATIC_REQUIRED=0 is the opt-out that lets those steps print SKIPPED."""
 from __future__ import annotations
 

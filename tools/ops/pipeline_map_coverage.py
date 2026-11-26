@@ -9,7 +9,7 @@ so the map agents query (tools/ops/pipeline_query.py) cannot fall behind without
 
 What must be in the map:
 
-- Every script (owner, 2026-11-25): each .py and .sh file, tracked or new and not ignored, outside EXCLUDED
+- Every script: each .py and .sh file, tracked or new and not ignored, outside EXCLUDED
   (archive/, external/, reference/, tools/cats/src-repo/) and outside tests (a tests/ or test/ folder, test_*.py,
   conftest.py) is a node of its own: a node whose path is the file, or a box named after it (its id is the file, as panels.toml's
   `box` names approval.py's box, which runs check_approved.py). The only other way is a folder node FAMILIES names, a
@@ -80,7 +80,7 @@ ALLOWED = {
 # The every-script rule: what it checks, and the folder nodes that stand for every script under them.
 SCRIPT_EXTS = (".py", ".sh")
 EXCLUDED = ("archive", "external", "reference", "tools/cats/src-repo")   # vendor code, submodules, frozen history
-# A library or a family of generators, where one folder box is enough (owner, 2026-11-25): path -> why. Any other
+# A library or a family of generators, where one folder box is enough: path -> why. Any other
 # folder node covers no script: each script under it needs a node of its own.
 FAMILIES = {
     "tools/hartlib/src/hartlib": "the shared CPython library; the map links each module a step depends on",
@@ -432,7 +432,7 @@ def check(graph: Path, listing: list[str] | None = None) -> list[str]:
     try:
         docs = BUILD.AGENT_DOCS.glob_files() + BUILD.AGENT_DOCS.glob_files(others=True)
     except BUILD.AGENT_DOCS.AgentDocsMapError as err:
-        raise CoverageError(str(err)) from None
+        raise CoverageError(str(err)) from err
     ruled = rule_scripts(files)     # a new script fails before the commit, as it would after
     ruled_set = set(ruled)
     entry_only = {path: where for path, where in scripts.items() if path not in ruled_set}

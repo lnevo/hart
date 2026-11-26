@@ -194,7 +194,7 @@ class GapsTest(unittest.TestCase):
 
 
 class ScriptRuleTest(unittest.TestCase):
-    """The every-script rule (owner, 2026-11-25): a node of its own, or under a folder node FAMILIES names."""
+    """The every-script rule: a node of its own, or under a folder node FAMILIES names."""
     FAMILIES = {"lib/src/pkg": "a library"}
 
     def gaps(self, scripts, node_paths, ids=None, families=None):

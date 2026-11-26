@@ -21,7 +21,6 @@ import logging
 import os
 import re
 import shutil
-import subprocess
 import sys
 import tempfile
 import zipfile
@@ -30,6 +29,7 @@ from pathlib import Path
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths  # noqa: E402
+from hartlib.files import GitError, tracked_files  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 sys.path.insert(0, str(ROOT / "ops/hart-ops/card_pipeline"))
@@ -70,9 +70,8 @@ SCAN_GLOBS = ("**/*",)
 
 
 def git_files() -> list[str]:
-    out = subprocess.check_output(["git", "ls-files", "-z", "--", *(f":(glob){g}" for g in SCAN_GLOBS)],
-                                  cwd=ROOT, text=True)
-    return [p for p in out.split("\0") if p]
+    """Every tracked file SCAN_GLOBS matches; GitError when git cannot list them."""
+    return tracked_files(ROOT, *(f":(glob){g}" for g in SCAN_GLOBS))
 
 
 def office_text(path: Path) -> str:
@@ -173,7 +172,11 @@ def main() -> int:
     ap.add_argument("--fix", action="store_true", help="blank personal author names in Office files")
     ap.add_argument("paths", nargs="*", help="files to check (default: every tracked file)")
     args = ap.parse_args()
-    found = problems(args.paths or git_files(), fix=args.fix)
+    try:
+        found = problems(args.paths or git_files(), fix=args.fix)
+    except GitError as err:
+        print(f"FAIL {err}")
+        return 1
     for line in found:
         print(f"FAIL {line}")
     if not found:

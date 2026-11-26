@@ -22,6 +22,10 @@ import sys
 from typing import NamedTuple
 from pathlib import Path, PurePosixPath
 
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib.files import GitError, tracked_files  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[2]
 # The tracked files it reads, as git globs (** crosses folders, * does not): the agent docs (PATTERNS, less EXCLUDED)
 # and the Markdown files the cell rule covers (CELL_GLOBS, less the exempt history). The step's quiet_inputs in
@@ -59,16 +63,25 @@ class Ref(NamedTuple):
 
 
 def _git(*args: str) -> list[str]:
+    """A NUL-separated git listing (ls-files --others, which tracked_files does not cover); AgentDocsError on failure."""
     try:
         out = subprocess.run(["git", *args], cwd=ROOT, text=True, capture_output=True, check=True).stdout
     except (OSError, subprocess.CalledProcessError) as err:
         detail = getattr(err, "stderr", "") or str(err)
-        raise AgentDocsError(f"git {' '.join(args)} failed in {ROOT}: {detail.strip()}") from None
+        raise AgentDocsError(f"git {' '.join(args)} failed in {ROOT}: {detail.strip()}") from err
     return [p for p in out.split("\0") if p]
 
 
+def _tracked(*pathspecs: str) -> list[str]:
+    """The tracked files matching `pathspecs` (hartlib.files.tracked_files); AgentDocsError when git cannot list them."""
+    try:
+        return tracked_files(ROOT, *pathspecs)
+    except GitError as err:
+        raise AgentDocsError(str(err)) from err
+
+
 def agent_files() -> list[str]:
-    return [p for p in _git("ls-files", "-z", "--", *globs(PATTERNS)) if not p.startswith(EXCLUDED)]
+    return [p for p in _tracked(*globs(PATTERNS)) if not p.startswith(EXCLUDED)]
 
 
 def globs(patterns: tuple[str, ...]) -> list[str]:
@@ -247,7 +260,7 @@ def cell_word_counts(rel: str, text: str) -> list[tuple[int, int, int]]:
 def cell_files() -> list[str]:
     """The tracked Markdown files the cell-length rule covers: all of wiki/ and AGENTS.md, minus the history."""
     # a file git still lists but the working tree no longer has (deleted, not yet staged) has nothing to read
-    return [p for p in _git("ls-files", "-z", "--", *globs(CELL_GLOBS))
+    return [p for p in _tracked(*globs(CELL_GLOBS))
             if not is_cell_exempt(p) and (ROOT / p).exists()]
 
 
@@ -265,7 +278,7 @@ def long_cells(rel: str, text: str | None = None) -> list[str]:
         try:
             text = (ROOT / rel).read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError) as err:
-            raise AgentDocsError(f"{rel}: cannot read: {err}") from None
+            raise AgentDocsError(f"{rel}: cannot read: {err}") from err
     try:
         counted = cell_word_counts(rel, text)
     except AgentDocsError as err:     # one malformed page is a problem to list, the other files are still read

@@ -100,7 +100,7 @@ class LayoutFactsTest(unittest.TestCase):
             check.Tables(tables).joined_blocks("Track Main West")
 
     def test_a_part_is_read_as_the_block_it_is_inside(self) -> None:
-        """A part is a JMRI block of its own inside an OS block (owner, 2026-11-20); switches.csv names the OS
+        """A part is a JMRI block of its own inside an OS block; switches.csv names the OS
         blocks, so a leg is read past the parts of its own OS block and a part as the block it is part of."""
         t = check.Tables(check.TABLES, parts=check.part_map(check.DEVICE_MAP))
         self.assertEqual(t.os_of("Track 1-3 at 1"), "OS Switch 1")
@@ -263,7 +263,7 @@ class LayoutFactsTest(unittest.TestCase):
                       "OS Switch 23a (masts.csv)", out)
 
     def test_mast_cells_are_not_checked_while_the_uss_board_is_parked(self) -> None:
-        # mast_cells.csv and the board's grid are the parked USS machine's (owner, 2026-11-19): a wrong head or a
+        # mast_cells.csv and the board's grid are the parked USS machine's: a wrong head or a
         # missing grid cell is not reported until the board is back in the tables
         data = self.data_copy()
         cells = data / "mast_cells.csv"

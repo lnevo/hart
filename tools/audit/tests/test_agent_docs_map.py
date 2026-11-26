@@ -6,8 +6,11 @@ import contextlib
 import importlib.util
 import io
 import json
+import re
+import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -21,6 +24,7 @@ def _load(name: str, rel: str):
 
 
 DOCS = _load("check_agent_docs", "tools/audit/check_agent_docs.py")
+GitError = sys.modules["hartlib.files"].GitError
 GEN = _load("agent_docs_map", "tools/ops/agent_docs_map.py")
 MAP = _load("build_pipeline_map", "tools/ops/build_pipeline_map.py")
 COV = _load("pipeline_map_coverage", "tools/ops/pipeline_map_coverage.py")
@@ -63,8 +67,10 @@ class ReferencesTest(unittest.TestCase):
         self.assertEqual(DOCS.problems_in("wiki/home.md", "[root](../) [x](../wiki/)"), [])
 
     def test_git_failure_is_a_clear_error(self) -> None:
-        with self.assertRaisesRegex(DOCS.AgentDocsError, "git ls-files --no-such-flag failed"):
-            DOCS._git("ls-files", "--no-such-flag")
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(DOCS, "ROOT", Path(tmp)):
+            with self.assertRaisesRegex(DOCS.AgentDocsError, f"git ls-files failed in {re.escape(tmp)}: .*not a git repository") as caught:
+                DOCS._tracked("*.md")
+        self.assertIsInstance(caught.exception.__cause__, GitError)
 
 
 class ReadingOrderTest(unittest.TestCase):

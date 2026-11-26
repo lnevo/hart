@@ -54,7 +54,7 @@ def _git(root: Path, *args: str) -> list[str]:
     try:
         done = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True, timeout=60)
     except (OSError, subprocess.SubprocessError, UnicodeDecodeError) as e:
-        raise GitCouldNotRun(f"git {args[0]} could not run: {e}") from None
+        raise GitCouldNotRun(f"git {args[0]} could not run: {e}") from e
     if done.returncode != 0:
         detail = done.stderr.strip().splitlines()[-1] if done.stderr.strip() else f"exit {done.returncode}"
         raise ChangedFilesError(f"git {' '.join(args)} failed: {detail}")
@@ -70,7 +70,7 @@ def changed_files(root: Path, base: str = "origin/main") -> list[str]:
     except GitCouldNotRun:
         raise
     except ChangedFilesError as e:
-        raise ChangedFilesError(f"no merge base with {base} (a shallow clone, or no {base}): {e}") from None
+        raise ChangedFilesError(f"no merge base with {base} (a shallow clone, or no {base}): {e}") from e
     if len(merge_base) != 1:
         raise ChangedFilesError(f"no merge base with {base}: git merge-base printed {merge_base!r}")
     committed = _git(root, "diff", "--name-only", "--no-renames", merge_base[0], "HEAD")

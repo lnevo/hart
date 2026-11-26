@@ -97,7 +97,7 @@ class Pure(unittest.TestCase):
         self.assertNotEqual(one["e2"][1], two["k6"][1])     # drawn the other way: its blocks are read reversed
 
     def test_main_and_upper_keys_are_the_same_grammar(self):
-        """Main and upper use the same keys (owner, 2026-11-20): a lettered crossover half's label and leg ("121AB"),
+        """Main and upper use the same keys: a lettered crossover half's label and leg ("121AB"),
         a double crossover's leg ("225D"), ordered by switch number, half letter and leg; a run that ends at a
         connector takes the switch and leg beyond it on the other band (band_refs)."""
         dx = dict(kind="dx", label="225", ins={}, outs={})
@@ -274,7 +274,7 @@ class Files(unittest.TestCase):
 
     def test_a_part_is_a_block_of_its_own_inside_the_block_it_names(self):
         """A part row (part_of) carries its pieces' trial names; load() draws them as the part's own JMRI block, and
-        os_layer gives them to the block it names, as the masts read them (owner, 2026-11-20)."""
+        os_layer gives them to the block it names, as the masts read them."""
         sid = next(s for s, (piece, _rev) in sdm.piece_refs(self.band).items() if piece == "35B-37A")
         self.assertEqual(self.names["blocks"][sid], ["Track 35-37"])
         both = next(s for s, (p, _r) in sdm.piece_refs(self.band).items() if p == "1B-3A")
