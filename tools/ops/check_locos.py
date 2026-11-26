@@ -27,9 +27,9 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import operations  # noqa: E402
+from hartlib import operations, paths  # noqa: E402
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = paths.REPO_ROOT
 sys.path.insert(0, str(ROOT / "ops/hart-ops/card_pipeline"))
 import locos  # noqa: E402  (loco_roster_id, ops_id: the one definition of the two id forms)
 

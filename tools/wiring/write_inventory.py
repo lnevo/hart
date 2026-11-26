@@ -45,7 +45,7 @@ from hartlib import devices, paths, wiring  # noqa: E402
 from hartlib import railroad  # noqa: E402
 from hartlib.railroad import FactsError  # noqa: E402
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = paths.REPO_ROOT
 WIRING_DOCS = ROOT / "docs/wiring"
 OUT = WIRING_DOCS / "LCOS_Layout_Inventory_v86.xlsx"
 SOURCES = railroad.Sources.under()               # the data files, read through hartlib.railroad

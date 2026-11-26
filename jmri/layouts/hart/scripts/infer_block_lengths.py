@@ -40,14 +40,16 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[4]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import block_lengths  # noqa: E402  the measured file's one writer; speed matching's operating lengths
+from hartlib import paths  # noqa: E402
+
+REPO = paths.REPO_ROOT
 EVENTS = REPO / "docs/jmri/speedmatching/profile-2026-11-08/block_events.csv"
 EVENTS_DATE = "2026-11-08"      # the run EVENTS holds
 MM_PER_IN = 25.4
 
-sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
-                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import block_lengths  # noqa: E402  the measured file's one writer; speed matching's operating lengths
 
 # Length of the test loop on the AnyRail plan 5.3b, staging level, along the route of
 # the 2026-11-08 runs (Switch 5 -> Switch 33 -> East Lead -> Switch 35 -> 37 -> K loop

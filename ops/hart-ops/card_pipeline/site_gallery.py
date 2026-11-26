@@ -14,10 +14,14 @@ from __future__ import annotations
 from private_name import contains_private_name
 
 import json
+import sys
 import re
 from pathlib import Path
 
-HART_ROOT = Path(__file__).resolve().parents[3]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+HART_ROOT = paths.REPO_ROOT
 GALLERY = HART_ROOT / "www/data/fleet-gallery.json"
 IMAGE_DIR = "../ops/car-cards/car-images/CarImagesFinal"
 DEFAULT_ALBUM = "freight"

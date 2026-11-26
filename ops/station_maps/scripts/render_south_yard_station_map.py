@@ -12,13 +12,17 @@ at that throat; the Barn block is the rail between 7 and 13.
 
 from __future__ import annotations
 
+import sys
 import zipfile
 from io import BytesIO
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-ROOT = Path(__file__).resolve().parents[3]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+ROOT = paths.REPO_ROOT
 SRC = ROOT / "ops/station_maps/maps/src/south_yard_sheet.png"
 OUT_CATS = ROOT / "ops/station_maps/maps/Neville_Island_Station_Map_South_Yard_0.png"
 HOPS = ROOT / "ops/hart-ops"
