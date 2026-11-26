@@ -9,9 +9,9 @@ jmri/layouts/hart/output/tables.xml from it. This command writes no file. The tr
 (output/trial/tables_cutover.xml and tables_cutover_staging.xml), their fingerprints and the staging guard are
 retired: the live panel is approved, and approval.py's `le-panel` fingerprint of the
 "HART Railroad" panel in tables.xml is the one approval check. The viewing trials (tables_layout.xml,
-tables_layout_staging.xml) were retired on 2026-11-17; build() without as_live stops and says so.
+tables_layout_staging.xml) are retired; build() without as_live stops and says so.
 
-One input path (owner, 2026-11-17, the device-map switch-over). Every level is drawn from its device map: staging
+One input path. Every level is drawn from its device map: staging
 from the level 1 rows of the device master, stations.csv (its desk areas) and masts.csv (staging_device_map.load: each switch's
 turnout and OS block, each track's blocks in order by the drawing's keys, each switch's normal leg from
 switches.csv, its turnout ident from the same file), main and upper from the rest of the device master and
@@ -72,7 +72,9 @@ import contextlib
 import copy
 import sys
 import xml.etree.ElementTree as ET
+from collections.abc import Mapping, Sequence
 from pathlib import Path
+from typing import Any, NamedTuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import panel_items  # noqa: E402  the panel's fixed items and attributes (panel_items.json)
@@ -119,8 +121,8 @@ RETIRED_TRIAL = ("the viewing trials (tables_layout.xml, tables_layout_staging.x
 # preferences the plugin reads (schematic/le_prefs.py, schematic/le_labels.py). Crossovers 101 and 103, one
 # three-way part in the plan, are drawn tight and split by the plugin's rule (schematic-maps 0.1.48), not a
 # preference.
-# The features parked out of the three-level panel into jmri/layouts/hart/parked/tables_parked.xml (owner,
-# 2026-11-17; hartlib.parked): Entry/Exit, the stock Dispatcher System and the USS CTC machine. Unpark one by taking
+# The features parked out of the three-level panel into jmri/layouts/hart/parked/tables_parked.xml
+# (hartlib.parked): Entry/Exit, the stock Dispatcher System and the USS CTC machine. Unpark one by taking
 # it out of hartlib.parked.PARKED and rebuilding.
 PARKED = parked.PARKED
 
@@ -137,64 +139,39 @@ def base_tables() -> bytes:
         raise BuildError(f"tables base: {exc}") from exc
 
 
-def build(bands=None, levels: str = "all", as_live: bool = False,
-          page: dict | None = None, base_data: bytes | None = None):
-    """(tables bytes, the plugin's Panel, {band key: names}, bands). `levels` "all" draws every band, main and upper
-    under the device map's names (level_names) and their objects added to the tables; "staging" draws staging alone,
-    its helix ends as end bumpers, and adds no table object. `as_live`: the base (base_tables; module text) with the
-    panel added, under panel_items.json's name and attributes; with "all", drawn at the grid of staging drawn alone
-    (module text). `as_live` must be given: without it (the viewing trials, retired) the build
-    stops. Staging's facts come from the staging device map (staging_device_map.load); nothing is read from a panel
-    in the tables. `base_data`: base_tables() already built (the three-level build passes it to the staging drawing
-    it makes first, so the base is built once)."""
+class LeBuild(NamedTuple):
+    """What build() returns. Callers unpack it as (data, P, names, bands) or read it by field."""
+    data: bytes                     # the base tables with the panel added
+    panel: Any                      # the plugin's Panel (schematic/le.py, loaded from the plugin's path: untyped here)
+    names: dict[str, dict[str, Any]]    # {band key: the names the plugin draws that band under}
+    bands: list[Any]                # the plugin's bands as drawn, each (title, band, options)
+
+
+def build(bands: list[Any] | None = None, levels: str = "all", as_live: bool = False,
+          page: dict[str, Any] | None = None, base_data: bytes | None = None) -> LeBuild:
+    """The panel added to the base tables. `levels` "all" draws every band, main and upper under the device map's
+    names (level_names) and their objects added to the tables; "staging" draws staging alone, its helix ends as end
+    bumpers, and adds no table object. `as_live`: the base (base_tables; module text) with the panel added, under
+    panel_items.json's name and attributes; with "all", drawn at the grid of staging drawn alone (module text).
+    `as_live` must be given: without it (the viewing trials, retired) the build stops. Staging's facts come from the
+    staging device map (staging_device_map.load); nothing is read from a panel in the tables. `base_data`:
+    base_tables() already built (the three-level build passes it to the staging drawing it makes first, so the base
+    is built once)."""
     if levels not in LEVELS:
         raise BuildError(f"levels must be one of {', '.join(LEVELS)}, not {levels!r}")
     if not as_live:
         raise BuildError(RETIRED_TRIAL)
-    try:
-        items = panel_items.load(PANEL_ITEMS)
-    except panel_items.ItemsError as exc:
-        raise BuildError(f"panel items: {exc}") from exc
+    items = _load_items()
     _sheet, le_mod, core = plugin()
-    # the page options come from the solved sheet (schematic()), for the bands given too unless `page` is (the
-    # three-level build passes its own on to the staging drawing it makes first)
-    if bands is None:
-        bands, solved_page = schematic()
-    else:
-        solved_page = schematic()[1]
-    page = solved_page if page is None else page
-    if "le_row" not in page:        # le.row falls back to the plugin's rows: HART's staging rows are a preference
-        raise BuildError("the page's preferences (preferences.json[main_upper]) hold no le_row")
-    if "le_labels" not in page:     # the plugin's defaults would draw every switch number unprefixed, staging's too
-        raise BuildError("the page's preferences (preferences.json[main_upper]) hold no le_labels")
-    try:
-        fit, staging_row = le_mod.window(page), le_mod.row(page)
-    except core.SchematicError as exc:
-        raise BuildError(f"schematic le: {exc}") from exc
-    # as the Layout Editor draws them (the preferences' le_shift, le_longer_straights; once): so the names below are
-    # read off the bands drawn, before named_bands relabels a crossover's halves
-    try:
-        bands = le_mod.drawn_bands(bands, page)
-    except core.SchematicError as exc:
-        raise BuildError(f"schematic le: {exc}") from exc
-    # the station names the labeller prints: each sheet's le_nested_station_labels (preferences.json[staging]: false,
-    # so Engine House, a desk area nested in Barn, is named on the drawings but not on the panel)
-    bands = le_station_labels(bands)
+    bands, page = _sheet_inputs(bands, page)
+    fit, staging_row = _window(page, le_mod, core)
+    bands = _drawn(bands, page, le_mod, core)
     # The build reads no panel and no live tables: it draws on the generator's base (module text)
     if base_data is None:
         base_data = base_tables()
-    base = None             # for the three-level panel: staging drawn alone, whose grid it is drawn at
-    if levels == "all":
-        base = build(bands, "staging", True, page=page, base_data=base_data)
-    # One band of the staging level (STAGING_LEVELS), drawn first: the staging band, which the staging device map
-    # names (staging_device_map.load reads that band, found by its level) and every other level is drawn under.
-    # `staging` is its key, as the plugin keys the names and options given for it
-    levels_of = band_levels(bands)
-    if base_bands(bands) != [0]:
-        raise BuildError(f"the schematic must draw one band of level {', '.join(map(str, sorted(STAGING_LEVELS)))} "
-                         f"(staging), first; its bands are "
-                         + ", ".join(f"{t!r} (level {lv})" for (t, _b, _o), lv in zip(bands, levels_of)))
-    staging = band_key(bands[base_band(bands)][0])
+    # the three-level panel is drawn at the grid of staging drawn alone, from the same drawn bands
+    alone = build(bands, "staging", True, page=page, base_data=base_data) if levels == "all" else None
+    staging, levels_of = _staging_band(bands)
     if levels == "staging":
         bands, levels_of = bands[:1], levels_of[:1]
     # whether the drawing holds a level other than staging, whose names and masts come from the device master
@@ -203,15 +180,82 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
     root = doc.root
     if root.find("LayoutEditor") is not None:
         raise BuildError(f"{BASE_NAME} holds a Layout Editor panel; the build adds the one panel")
-    panel_name = TEMPLATE_PANEL
+    names, level_rows, skip = _names(bands, staging, adds, alone, page, le_mod)
+    P = _draw(bands, names, staging, alone, page, fit, staging_row, le_mod, core)
+    base_ix = {i for i, lv in enumerate(levels_of) if lv in STAGING_LEVELS}    # a hidden join has band None: in none
+    _check_drawn(root, P, names, level_rows, skip, base_ix, adds, le_mod)
+    _add_panel(root, P, items, base_ix, fit, le_mod)
+    if alone is not None:
+        _finish_three_levels(root, P, fit, page, le_mod, core)
+    return LeBuild(doc.tobytes(), P, names, bands)
 
-    # the names and masts of main and upper: from the device master and masts.csv
+
+def _load_items() -> Any:
+    """panel_items.json read (panel_items.load; its own record type); BuildError naming it on a bad file."""
+    try:
+        return panel_items.load(PANEL_ITEMS)
+    except panel_items.ItemsError as exc:
+        raise BuildError(f"panel items: {exc}") from exc
+
+
+def _sheet_inputs(bands: list[Any] | None, page: dict[str, Any] | None) -> tuple[list[Any], dict[str, Any]]:
+    """(bands, page options): the solved sheet's (schematic()) for whichever is not given. The three-level build
+    passes its own page on to the staging drawing it makes first."""
+    if bands is None:
+        bands, solved_page = schematic()
+    else:
+        solved_page = schematic()[1]
+    return bands, solved_page if page is None else page
+
+
+def _window(page: Mapping[str, Any], le_mod: Any, core: Any) -> tuple[Any, Any]:
+    """(the le_window, staging's le_row) from the page's preferences, read through the plugin (le.window, le.row).
+    BuildError when the page holds no le_row or le_labels, or the plugin rejects them."""
+    if "le_row" not in page:        # le.row falls back to the plugin's rows: HART's staging rows are a preference
+        raise BuildError("the page's preferences (preferences.json[main_upper]) hold no le_row")
+    if "le_labels" not in page:     # the plugin's defaults would draw every switch number unprefixed, staging's too
+        raise BuildError("the page's preferences (preferences.json[main_upper]) hold no le_labels")
+    try:
+        return le_mod.window(page), le_mod.row(page)
+    except core.SchematicError as exc:
+        raise BuildError(f"schematic le: {exc}") from exc
+
+
+def _drawn(bands: list[Any], page: Mapping[str, Any], le_mod: Any, core: Any) -> list[Any]:
+    """The bands as the Layout Editor draws them (the preferences' le_shift, le_longer_straights), so the names are
+    read off the bands drawn, before named_bands relabels a crossover's halves; then the station names the labeller
+    prints: each sheet's le_nested_station_labels (preferences.json[staging]: false, so Engine House, a desk area
+    nested in Barn, is named on the drawings but not on the panel)."""
+    try:
+        drawn = le_mod.drawn_bands(bands, page)
+    except core.SchematicError as exc:
+        raise BuildError(f"schematic le: {exc}") from exc
+    return le_station_labels(drawn)
+
+
+def _staging_band(bands: list[Any]) -> tuple[str, list[Any]]:
+    """(the staging band's key, each band's level). One band of the staging level (STAGING_LEVELS), drawn first: the
+    staging band, which the staging device map names (staging_device_map.load reads that band, found by its level)
+    and every other level is drawn under; its key is the plugin's key for the names and options given for it."""
+    levels_of = band_levels(bands)
+    if base_bands(bands) != [0]:
+        raise BuildError(f"the schematic must draw one band of level {', '.join(map(str, sorted(STAGING_LEVELS)))} "
+                         f"(staging), first; its bands are "
+                         + ", ".join(f"{t!r} (level {lv})" for (t, _b, _o), lv in zip(bands, levels_of)))
+    return band_key(bands[base_band(bands)][0]), levels_of
+
+
+def _names(bands: list[Any], staging: str, adds: bool, alone: LeBuild | None, page: dict[str, Any],
+           le_mod: Any) -> tuple[dict[str, dict[str, Any]], list[Any], Any]:
+    """(names by band key, masts.csv's main and upper rows, the staging band's keys). Main and upper from the device
+    master and masts.csv; staging from the staging device map, reused from `alone` when staging was drawn alone from
+    the same band."""
     names, _lengths = level_names(bands, le_mod, page=page) if adds else ({}, {})
     level_rows = read_level_masts() if adds else []
     skip = base_keys(bands)             # the staging band's: its names are the staging device map's
     shared_turnouts(names, skip)
-    if base is not None:        # the staging drawing above read the staging device map from the same band: reuse it
-        names[staging] = copy.deepcopy(base[2][staging])
+    if alone is not None:
+        names[staging] = copy.deepcopy(alone.names[staging])
     else:
         try:
             names[staging] = sdm.load(bands[0][1])
@@ -219,54 +263,70 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
             raise BuildError(f"staging device map: {exc}") from exc
     if adds:                            # after staging's names: a helix intermediate protects a staging track
         level_masts(names, level_rows, skip)
-        names[staging]["joins"] = "other"   # staging's helix ends join the next level (helix-join release, 2026-11-17)
+        names[staging]["joins"] = "other"   # staging's helix ends join the next level: no block boundary there
     names[staging]["lengths"] = staging_lengths(names[staging])
+    return names, level_rows, skip
+
+
+def _draw(bands: list[Any], names: dict[str, dict[str, Any]], staging: str, alone: LeBuild | None,
+          page: dict[str, Any], fit: Any, staging_row: Any, le_mod: Any, core: Any) -> Any:
+    """The plugin's Panel: on three levels at the grid of staging drawn alone (`alone`), with no fitting; staging
+    alone at its own fit to the le_window, widened by le_stretch."""
     try:
-        if base is not None:        # staging's own grid, so staging is drawn as when drawn alone; no fitting
-            scale = base[1].scale
-            if page.get("band_align"):
-                raise BuildError("the schematic's page options hold band_align, which the published sheet would "
-                                 "read too; set the Layout Editor panel's in a sheet's preferences section as "
-                                 "le_band_align ({level: side})")
-            # each band against the edge its sheet's le_band_align gives (preferences.json[staging]: staging against
-            # the left edge, where it stands drawn alone, however wide the other levels are); its
-            # labels placed as when it is drawn alone (labels_by_band); and the gaps between the levels as small as
-            # is clean (the page's le_title_clear): for staging, below everything its drawing
-            # holds (its status cluster stands in the gap: band_bottoms). Every crossover at its level's
-            # le_crossover_angle, however each level is stretched
-            S = base[1]
-            P = le_mod.panel(named_bands(bands, names), names, cell=le_mod.CELL * scale[0],
-                             row=staging_row * scale[1], page=dict(page, band_align=le_band_align(bands)),
-                             labels_by_band=True, band_bottoms={staging: S.items["bottom"] - S.band_boxes[0][3]})
-            P.scale, P.fit, P.stretch = scale, None, S.stretch
-        else:                       # staging alone: the three-level grid, no fitting (it scrolls in the le_window)
-            # staging's own fit to the le_window, which the cut-over grid is stretched from
-            fitted = le_mod.panel(bands, names, page=page, fit=fit, row=staging_row).scale
-            scale, stretch = le_mod.stretched(fitted, page)
-            P = le_mod.panel(bands, names, cell=le_mod.CELL * scale[0], row=staging_row * scale[1],
-                             page=page)
-            P.scale, P.fit, P.staging_fit, P.stretch = scale, None, fitted, stretch
+        if alone is not None:
+            return _draw_three_levels(bands, names, staging, alone.panel, page, staging_row, le_mod)
+        # staging alone: the three-level grid, no fitting (it scrolls in the le_window); staging's own fit to the
+        # le_window, which the cut-over grid is stretched from
+        fitted = le_mod.panel(bands, names, page=page, fit=fit, row=staging_row).scale
+        scale, stretch = le_mod.stretched(fitted, page)
+        P = le_mod.panel(bands, names, cell=le_mod.CELL * scale[0], row=staging_row * scale[1], page=page)
+        P.scale, P.fit, P.staging_fit, P.stretch = scale, None, fitted, stretch
+        return P
     except core.SchematicError as exc:
         raise BuildError(f"schematic le: {exc}") from exc
-    P.mast_notes = check_unplaced(P)
-    # every level's masts, each in the one slot its blocks fit, on its switch's turnout (one check for all levels)
-    check_masts(P, {k: v.get("masts", []) for k, v in names.items()}, le_mod, mast_turnouts(level_rows))
 
-    # every level's beans are the base's (hartlib.tables_build.base, from the device master):
-    # the main and upper blocks drawn are checked against block_numbering.csv, then one check for every level: each
-    # name the panel binds is a bean of the tables
-    base_ix = {i for i, lv in enumerate(levels_of) if lv in STAGING_LEVELS}    # a hidden join has band None: in none
+
+def _draw_three_levels(bands: list[Any], names: dict[str, dict[str, Any]], staging: str, S: Any,
+                       page: dict[str, Any], staging_row: Any, le_mod: Any) -> Any:
+    """Every band at staging's own grid (S, staging drawn alone), so staging is drawn as when drawn alone. Each band
+    against the edge its sheet's le_band_align gives (preferences.json[staging]: staging against the left edge, where
+    it stands drawn alone, however wide the other levels are); its labels placed as when it is drawn alone
+    (labels_by_band); and the gaps between the levels as small as is clean (the page's le_title_clear): for staging,
+    below everything its drawing holds (its status cluster stands in the gap: band_bottoms). Every crossover at its
+    level's le_crossover_angle, however each level is stretched."""
+    scale = S.scale
+    if page.get("band_align"):
+        raise BuildError("the schematic's page options hold band_align, which the published sheet would "
+                         "read too; set the Layout Editor panel's in a sheet's preferences section as "
+                         "le_band_align ({level: side})")
+    P = le_mod.panel(named_bands(bands, names), names, cell=le_mod.CELL * scale[0],
+                     row=staging_row * scale[1], page=dict(page, band_align=le_band_align(bands)),
+                     labels_by_band=True, band_bottoms={staging: S.items["bottom"] - S.band_boxes[0][3]})
+    P.scale, P.fit, P.stretch = scale, None, S.stretch
+    return P
+
+
+def _check_drawn(root: ET.Element, P: Any, names: dict[str, dict[str, Any]], level_rows: list[Any], skip: Any,
+                 base_ix: set[int], adds: bool, le_mod: Any) -> None:
+    """Every level's masts, each in the one slot its blocks fit, on its switch's turnout (one check for all levels);
+    the main and upper blocks drawn checked against block_numbering.csv; then each name the panel binds is a bean of
+    the base (hartlib.tables_build.base, from the device master). Sets P.mast_notes."""
+    P.mast_notes = check_unplaced(P)
+    check_masts(P, {k: v.get("masts", []) for k, v in names.items()}, le_mod, mast_turnouts(level_rows))
     if adds:
         check_level_blocks(root, P, skip, names)
     check_bound(root, P, names, skip, base_ix, BASE_NAME)
 
+
+def _add_panel(root: ET.Element, P: Any, items: Any, base_ix: set[int], fit: Any, le_mod: Any) -> None:
+    """The panel element, with the panel's own items by rule (panel_items.json) tied to the staging track (by the
+    staging band's own track: a helix block runs on up a level), so they stand where the staging drawing has them on
+    three levels too, and the generated-panel marker, placed after the template's last section. Sets P.items."""
     try:
         attrs, options = panel_items.panel_attributes(items)
     except panel_items.ItemsError as exc:
         raise BuildError(f"panel items: {exc}") from exc
-    # the panel's own items by rule (panel_items.json), tied to the staging track, so they stand where the staging
-    # drawing has them on three levels too (by the staging band's own track: a helix block runs on up a level)
-    panel_el = le_mod.to_xml(P, panel_name, attrs, options)
+    panel_el = le_mod.to_xml(P, TEMPLATE_PANEL, attrs, options)
     frame = {P.name(o["ident"]) for o in P.segments + P.turnouts if o["band"] in base_ix}
     try:
         P.items = panel_items.place(panel_el, items, le_mod, slots_module(), fit, le_mod.CHROME,
@@ -285,35 +345,37 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
     opts = panel_el.find("layoutTrackDrawingOptions")
     panel_el.insert(list(panel_el).index(opts) + 1 if opts is not None else 0, tables.generated_marker_label())
     place(root, [panel_el], 1)          # after the template's last section
-    if base is not None:
-        try:
-            le_mod.check_stretch(P.items["size"], fit, page)
-        except core.SchematicError as exc:
-            raise BuildError(f"schematic le: {exc}") from exc
-        # the parked features (PARKED) leave the three-level panel for the parked file
-        try:
-            P.parked_doc = parked.split(root, PARKED)
-        except parked.ParkError as exc:
-            raise BuildError(f"parking: {exc}") from exc
-        P.retired = retire_yard_ladder(root)
-    return doc.tobytes(), P, names, bands
 
 
-def __getattr__(name: str):
+def _finish_three_levels(root: ET.Element, P: Any, fit: Any, page: dict[str, Any], le_mod: Any, core: Any) -> None:
+    """The three-level panel's last steps: its size against the window (the plugin's check_stretch), the parked
+    features (PARKED) moved out to the parked file (P.parked_doc) and the yard ladder retired (P.retired)."""
+    try:
+        le_mod.check_stretch(P.items["size"], fit, page)
+    except core.SchematicError as exc:
+        raise BuildError(f"schematic le: {exc}") from exc
+    try:
+        P.parked_doc = parked.split(root, PARKED)
+    except parked.ParkError as exc:
+        raise BuildError(f"parking: {exc}") from exc
+    P.retired = retire_yard_ladder(root)
+
+
+def __getattr__(name: str) -> Any:
     """le_tables' numbering (BLOCK_NUMBERED_AS, APPENDED_BLOCKS, RETIRED_BLOCKS), re-exported as read on first use."""
     if name in NUMBERING_NAMES:
         return getattr(le_tables, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-def main(argv=None) -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     """The command. Once its arguments pass, the plugin's cache is on (publish_draft.cache_on) for the solve and the
     Layout Editor panels, so a run whose inputs and plugin code are unchanged draws nothing again."""
     with contextlib.ExitStack() as cached:
         return run(argv, cached)
 
 
-def run(argv, cached) -> int:
+def run(argv: Sequence[str] | None, cached: contextlib.ExitStack) -> int:
     """Build in memory and print what the panel holds; write nothing (build_tables.py writes tables.xml)."""
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--levels", choices=LEVELS, default="all",

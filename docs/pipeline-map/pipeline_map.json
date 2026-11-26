@@ -5051,6 +5051,15 @@
    "path": "tools/schematic/device_map_masts.py"
   },
   {
+   "id": "tools/schematic/device_map_nodes.py",
+   "label": "device_map_nodes.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of build_device_map.py: the LCOS node allocator that hands out main and upper inputs and OU board pins; reads no file.",
+   "path": "tools/schematic/device_map_nodes.py"
+  },
+  {
    "id": "tools/schematic/device_map_rows.py",
    "label": "device_map_rows.py",
    "kind": "generator",
@@ -12471,6 +12480,11 @@
   },
   {
    "from": "tools/schematic/device_map_staging.py",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/device_map_nodes.py",
    "to": "tools/schematic/build_device_map.py",
    "label": "imports"
   },
