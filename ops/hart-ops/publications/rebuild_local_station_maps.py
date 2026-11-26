@@ -41,7 +41,7 @@ from hart_pub_helpers import (  # noqa: E402
     set_letter_portrait,
     set_page_size,
 )
-from station_compass import paste_compass as _paste_compass  # noqa: E402
+import station_compass  # noqa: E402
 
 import local_station_maps  # noqa: E402
 
@@ -212,12 +212,14 @@ def _chrome(
     return margin + 20, 120, width - margin - 20, foot_y - 36
 
 
+def _paste_compass(base: Image.Image, **place: Any) -> None:
+    """The station compass, its letters in this module's fallback font loader (_font, read at call time)."""
+    station_compass.paste_compass(base, load_font=_font, **place)
+
+
 def _hooks() -> Hooks:
     """Fonts, canvas and compass as this module holds them now (read at call time)."""
-    def paste_compass(base: Image.Image, **place: Any) -> None:
-        _paste_compass(base, load_font=_font, **place)
-
-    return Hooks(font=_font, canvas=_canvas, paste_compass=paste_compass)
+    return Hooks(font=_font, canvas=_canvas, paste_compass=_paste_compass)
 
 
 def draw_west_yard(meta: dict) -> Image.Image:
