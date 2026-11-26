@@ -36,8 +36,9 @@ carries no content on to the next step: "check" (a check or comparison reads it)
 both are still drawn, and a click still traces the full reach. This script checks the graph and
 writes one self-contained page from tools/ops/pipeline_map_page.html; the layout (tools/ops/pipeline_map_layout.js and
 tools/ops/pipeline_map_helpers.js) and
-the viewer (tools/ops/pipeline_map_view.js) are inlined into it as one script, so the page can redraw any subset (some
-lanes, or the chain around one file) without build tools.
+the viewer (tools/ops/pipeline_map_view.js, pipeline_map_view_frame.js and pipeline_map_view_input.js: one function,
+app(), cut into three files that only work joined in that order) are inlined into it as one script, so the page can
+redraw any subset (some lanes, or the chain around one file) without build tools.
 """
 from __future__ import annotations
 
@@ -63,7 +64,10 @@ TEMPLATE = Path(__file__).resolve().with_name("pipeline_map_page.html")
 LAYOUT_JS = Path(__file__).resolve().with_name("pipeline_map_layout.js")
 HELPERS_JS = Path(__file__).resolve().with_name("pipeline_map_helpers.js")
 VIEW_JS = Path(__file__).resolve().with_name("pipeline_map_view.js")
-SCRIPTS = (LAYOUT_JS, HELPERS_JS, VIEW_JS)
+# app()'s body goes on in these two, in this order; none of the three view files is a script on its own
+VIEW_FRAME_JS = Path(__file__).resolve().with_name("pipeline_map_view_frame.js")
+VIEW_INPUT_JS = Path(__file__).resolve().with_name("pipeline_map_view_input.js")
+SCRIPTS = (LAYOUT_JS, HELPERS_JS, VIEW_JS, VIEW_FRAME_JS, VIEW_INPUT_JS)
 # the website copy: its path in the site (under www/ locally, under the build's output folder on a deploy) and the
 # page its back link returns to
 SITE_REL = "library/pipeline-map.html"
