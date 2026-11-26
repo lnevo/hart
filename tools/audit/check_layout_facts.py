@@ -234,7 +234,7 @@ class Tables:
         """The block `block` is part of (part_of), or `block` itself."""
         return self.part_of.get(block, block) if block else block
 
-    def leg_block(self, ident: str, conn: str, own: str) -> str | None:
+    def leg_block(self, ident: str | None, conn: str, own: str | None) -> str | None:
         """Block reached from connection B or C of a layout turnout, past its own OS block (and the parts inside
         it), a part read as the block it is part of (os_of)."""
         came: tuple[str | None, str | None] = (ident, f"TURNOUT_{conn}")
@@ -569,8 +569,8 @@ def check_level_desk(path: Path, t: Tables, r: Report) -> None:
         lts = [lt for lt in t.layout_turnouts.values() if lt.get("turnoutname") in (user, level.get(user))]
         if len(lts) == 1 and lts[0].get("type") in PLAIN_TURNOUTS:
             lt = lts[0]
-            b = t.leg_block(need(lt, "ident"), "B", need(lt, "blockname"))
-            c = t.leg_block(need(lt, "ident"), "C", need(lt, "blockname"))
+            b = t.leg_block(lt.get("ident"), "B", lt.get("blockname"))     # a turnout with no block still reports
+            c = t.leg_block(lt.get("ident"), "C", lt.get("blockname"))
             closed, thrown = (b, c) if lt.get("continuing", CLOSED) == CLOSED else (c, b)
             if closed != thrown and (same_place(cmds["close"], thrown) or same_place(cmds["throw"], closed)):
                 r.add(f"cats:{user}", f"{desk}: {user} closes to {cmds['close']} and throws to {cmds['throw']}; the "

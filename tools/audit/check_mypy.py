@@ -9,7 +9,7 @@ from 0, so it fails.
     python3 tools/audit/check_mypy.py --list     print the files the check runs mypy on
 
 mypy.ini holds the settings: strict options for the packages its `[mypy-<package>.*]` sections give
-disallow_untyped_defs = True (hartlib, tools/audit, tools/ops), basic mode for the rest. A section that sets it to
+disallow_untyped_defs = True (hartlib and tools/audit), basic mode for the rest. A section that sets it to
 False keeps a folder inside a strict one in basic mode (their tests). Those sections are the one list of strict
 folders: strict_scope reads them. The files checked are every
 tracked .py file except those ruff.toml's extend-exclude lists, the Jython scripts ruff.toml gives an F821 ignore,
