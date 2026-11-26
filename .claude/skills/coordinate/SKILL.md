@@ -47,6 +47,10 @@ Whoever coordinates more than one lane, a session or a background coordinator ag
 
 The coordinator may squash-merge a PR whose history later commits rewrote.
 
+A docs-only PR (Markdown under `wiki/`, `docs/`, `.claude/skills/` or `.claude/agents/`, or `AGENTS.md`, and nothing else) skips the full remote run before it opens; it still passes `make static` and the required CI (`handoff` skill, Merge).
+
+Batch small related lanes into one PR: each merge costs a merge of main and a CI cycle, because `strict` is on.
+
 **A merge out of turn:** tell the coordinator at once, giving the merge commit, what the PR changed and whether it ships. Then go back to the queue.
 
 ## Hand-over
