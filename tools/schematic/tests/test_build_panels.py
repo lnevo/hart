@@ -71,7 +71,7 @@ class Manifest(unittest.TestCase):
     def test_the_repo_manifest_loads_against_git_and_the_map_and_alone(self):
         full = M.load_panels()
         self.assertEqual(full, M.panel_steps())
-        self.assertEqual(len(full), 18)
+        self.assertEqual(len(full), 17)
         self.assertEqual(full[0].name, "hands")
         self.assertEqual(full[-1].name, "approved-live")
 
@@ -210,7 +210,7 @@ class DryRun(unittest.TestCase):
         self.assertNotIn("stopped", out)
 
     def test_a_write_stops_at_a_failed_check_and_does_not_say_it_writes(self):
-        # (plan-lengths runs plan_lengths.py as length-labels does, one step before it: device-master stands in)
+        # (plan-lengths runs plan_lengths.py, a guard: device-master stands in)
         for name, script in (("device-master", "check_device_master.py"), ("signals-sync", "sync_signals.py"),
                              ("sml-current", "check_sml_current.py")):
             with self.subTest(name):

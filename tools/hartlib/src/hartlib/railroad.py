@@ -44,10 +44,10 @@ from . import level_devices, level_masts, paths, tables  # noqa: F401  re-export
 # from hartlib.railroad (`from hartlib.railroad import X`, `railroad.X`).
 from .railroad_facts import *  # noqa: F401,F403
 from .railroad_facts import _int, _level, _where, _yes  # noqa: F401
-from .railroad_facts import (LAYERS, LEVEL_NUMBERS, WRITERS, BlockLength, DeviceMap, FactsError, Hand, HelixTrack, LayerError,  # noqa: F401  re-exported (railroad.read_switches, railroad.read_masts)
+from .railroad_facts import (LAYERS, LEVEL_NUMBERS, WRITERS, DeviceMap, FactsError, Hand, HelixTrack, LayerError,  # noqa: F401  re-exported (railroad.read_switches, railroad.read_masts)
                              Interlocking, LcosNode, LocalSwitch, MainUpperSwitch, PlanOverrides, StagingDevices,
                              Sources, Mast, Switch, SwitchRow, TablesNames, hands, join_main_upper,
-                             local_switches, read_block_lengths, read_switch_rows, staging_switches,
+                             local_switches, read_switch_rows, staging_switches,
                              read_device_map, read_hands, read_helix_tracks, read_lcos_nodes,
                              read_interlockings, read_local_switches, read_staging_devices, read_staging_rows,
                              read_plan_overrides, read_masts, read_switches, read_tables)
@@ -121,8 +121,10 @@ class Railroad:
         return read_plan_overrides(self.sources.plan_overrides)
 
     @cached_property
-    def block_lengths(self) -> dict[str, BlockLength]:
-        return read_block_lengths(self.sources.block_lengths)
+    def block_lengths(self):
+        """{user name: hartlib.block_lengths.Block} of the plan file: each block's plan length and names."""
+        from . import block_lengths
+        return block_lengths.plan_blocks(self.sources.block_lengths, self.sources.devices)
 
     @cached_property
     def main_upper_switches(self) -> dict[str, MainUpperSwitch]:

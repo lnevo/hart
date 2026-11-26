@@ -54,19 +54,24 @@ class Shares(unittest.TestCase):
 
 class Apply(unittest.TestCase):
     def test_each_detector_is_its_blocks_measured_length(self):
-        import tempfile, os
-        d = tempfile.mkdtemp()
-        p = os.path.join(d, "bl.csv")
-        rows = read_rows(m.CSV, newline="")
-        with open(p, "w", newline="") as f:
-            w = csv.DictWriter(f, fieldnames=list(rows[0]), lineterminator="\n")
-            w.writeheader(); w.writerows(rows)
+        import shutil, tempfile
+        from pathlib import Path
+        d = Path(tempfile.mkdtemp())
+        plan = d / "block_lengths.csv"
+        shutil.copyfile(m.block_lengths.PLAN, plan)
+        shutil.copyfile(m.block_lengths.MEASURED, d / "block_lengths_measured.csv")
+        before = (d / "block_lengths_measured.csv").read_text()
         result = {s: (1000.0, 10.0, 5) for s in m.SENSOR_ROWS}
-        fields, new, mm = m.plan_rows(result, p)
+        rows, mm = m.measured_rows(result, plan=plan)
         self.assertAlmostEqual(mm["Track East Lead"], 1000.0, delta=3)
         self.assertAlmostEqual(mm["Track K-2"], 1000.0, delta=3)
-        # nothing written yet
-        self.assertEqual(read_rows(p, newline=""), rows)
+        by_id = {r.id: r for r in rows}
+        self.assertEqual((by_id["block:33A-35A"].run, by_id["block:33A-35A"].date), ("loop1 laps", "2026-11-08"))
+        self.assertIn("block:5C-7B", by_id)     # a loop2 row is kept
+        # nothing written yet; write_measured writes them
+        self.assertEqual((d / "block_lengths_measured.csv").read_text(), before)
+        m.block_lengths.write_measured(rows, plan)
+        self.assertEqual(m.block_lengths.read_measured(plan=plan)["block:33A-35A"].measured_in, 39.4)
 
 
 class RecordedRuns(unittest.TestCase):

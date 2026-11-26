@@ -15,6 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from test_speedmatch import SM, analyze, lr, make_job, mover  # noqa: E402
+from lengths_fixture import write_lengths  # noqa: E402
 
 sys.path.insert(0, str(SM.parent))
 import infer_block_lengths as ibl  # noqa: E402
@@ -768,10 +769,7 @@ class FakeLayout(object):
 
 
 def loop_csv(path, loop):
-    rows = ["user_name,occupancy_sensor,plan_in,measured_in,source,note"]
-    for sensor, name in loop:
-        rows.append("%s,%s,60,59.055,timed," % (name, sensor))  # 59.055 in is 1500 mm
-    path.write_text("\n".join(rows) + "\n")
+    write_lengths(path, {name: (60, 59.055) for _sensor, name in loop})  # 59.055 in is 1500 mm
 
 
 class SimulatedRuns(unittest.TestCase):

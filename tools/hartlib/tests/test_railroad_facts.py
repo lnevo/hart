@@ -471,44 +471,6 @@ class PlanOverrides(Tmp):
                 self.fails(lambda: rf.read_plan_overrides(self.path(section)), pattern)
 
 
-class BlockLengths(Tmp):
-    ROWS = [dict(level=1, id="os:1", user_name="OS Switch 1", occupancy_sensor="BS Switch 1", plan_in="9.2",
-                 measured_in="22.6", source="timed", note="3 laps"),
-            dict(level=2, id="block:101-103", user_name="Track 101-103", plan_in="0", source="plan")]
-
-    def path(self, *extra: dict) -> Path:
-        return self.write_rows("block_lengths.csv", rf.BLOCK_LENGTH_COLUMNS, self.ROWS + list(extra))
-
-    def test_the_lengths_by_name(self) -> None:
-        got = rf.read_block_lengths(self.path())
-        self.assertEqual(got["OS Switch 1"], rf.BlockLength(2, "OS Switch 1", "BS Switch 1", 9.2, 22.6, "timed", "1",
-                                                            "os:1", "3 laps"))
-        self.assertEqual((got["Track 101-103"].plan_in, got["Track 101-103"].measured_in), (0.0, None))
-        cm = rf.plan_cm(got)
-        self.assertAlmostEqual(cm["OS Switch 1"], 9.2 * 2.54)
-        self.assertEqual(cm["Track 101-103"], 0.0)
-
-    def test_a_bad_row_stops(self) -> None:
-        ok = dict(level=2, id="block:x", user_name="Track X", plan_in="5", source="plan")
-        cases = (
-            (ok | dict(level=4), r"line 4: level '4' and id 'block:x'"),
-            (ok | dict(id=""), r"line 4: level '2' and id ''"),
-            (ok | dict(id="block:101-103"), r"line 4: level '2' and id 'block:101-103': a level 1 to 3 and a device ID, once"),
-            (ok | dict(user_name=""), r"line 4: user_name '' is empty or given twice"),
-            (ok | dict(user_name="OS Switch 1"), r"line 4: user_name 'OS Switch 1' is empty or given twice"),
-            (ok | dict(source="guess"), r"line 4: source 'guess' is not one of timed, plan"),
-            (ok | dict(plan_in="five"), r"line 4: plan_in 'five' is not a number"),
-            (ok | dict(plan_in="-1"), r"line 4: plan_in -1 is below zero"),
-            (ok | dict(plan_in=""), r"line 4: no plan_in"),
-            (ok | dict(source="timed", measured_in="0"), r"line 4: measured_in 0 is not above zero"),
-            (ok | dict(source="timed"), r"line 4: source timed with measured_in '': a timed row gives its measured"),
-            (ok | dict(measured_in="4"), r"line 4: source plan with measured_in '4'"),
-        )
-        for row, pattern in cases:
-            with self.subTest(row):
-                self.fails(lambda: rf.read_block_lengths(self.path(row)), pattern)
-
-
 # ---------------------------------------------------------------- the device map's rows
 
 def device(**cells) -> dict:

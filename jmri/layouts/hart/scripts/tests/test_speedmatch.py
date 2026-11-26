@@ -21,6 +21,7 @@ SM = ROOT / "jmri/layouts/hart/scripts/speedmatch"
 EVENTS = ROOT / "docs/jmri/speedmatching/profile-2026-11-08/block_events.csv"
 sys.path.insert(0, str(SM))
 import analyze  # noqa: E402
+from lengths_fixture import write_lengths  # noqa: E402
 import correct  # noqa: E402
 import liverule as lr  # noqa: E402
 import make_job  # noqa: E402
@@ -142,10 +143,8 @@ class Lengths(unittest.TestCase):
         return p
 
     def test_source_decides_and_timed_rows_give_the_measured_length(self):
-        p = self.write(["user_name", "occupancy_sensor", "plan_in", "measured_in", "source", "note"],
-                       [["Track Main West", "x", "231", "220", "timed", ""],
-                        ["Track East Lead", "x", "172", "", "plan", ""],
-                        ["Track K-2", "x", "122.9", "113.6", "timed", "laps"]])
+        p = write_lengths(Path(tempfile.mkdtemp()) / "bl.csv",
+                          {"Track Main West": (231, 220), "Track East Lead": (172, None), "Track K-2": (122.9, 113.6)})
         got = analyze.load_lengths(p)
         self.assertAlmostEqual(got["BS Main West"], 220 * 25.4)
         self.assertIsNone(got["BS East Lead"])          # a plan length counts only when passed
@@ -156,8 +155,12 @@ class Lengths(unittest.TestCase):
 
     def test_a_file_without_the_columns_stops(self):
         p = self.write(["user_name", "occupancy_sensor", "inches", "flag"], [["Track K-2", "x", "114.5", "inferred"]])
-        with self.assertRaisesRegex(ValueError, "no column measured_in, plan_in, source"):
+        with self.assertRaisesRegex(ValueError, "no column id, plan_in"):
             analyze.load_lengths(p)
+        good = write_lengths(Path(tempfile.mkdtemp()) / "bl.csv", {"Track K-2": (122.9, 113.6)})
+        analyze.measured_path(good).write_text("id,inches\nblock:37C-39C#1,114.5\n")
+        with self.assertRaisesRegex(ValueError, "no column measured_in"):
+            analyze.load_lengths(good)
 
     def test_the_repo_csv_loads(self):
         got = analyze.load_lengths()
@@ -499,8 +502,7 @@ class JythonFiles(unittest.TestCase):
         d = Path(tempfile.mkdtemp())
         out = d / "job.py"
         lengths = d / "bl.csv"
-        lengths.write_text("user_name,occupancy_sensor,plan_in,measured_in,source,note\n"
-                           "Track Main West,x,231,220,timed,\n")
+        write_lengths(lengths, {"Track Main West": (231, 220)})
         make_job.main(["steps", "--loco", "CSX 2738", "--direction", "reverse", "--out", str(out),
                        "--lengths", str(lengths), "--guard", "BS W-1"])
         text = out.read_text()
@@ -518,7 +520,7 @@ class JythonFiles(unittest.TestCase):
     def test_forward_job_sets_the_throttle_direction(self):
         d = Path(tempfile.mkdtemp())
         lengths = d / "bl.csv"
-        lengths.write_text("user_name,occupancy_sensor,plan_in,measured_in,source,note\nTrack Main West,x,231,220,timed,\n")
+        write_lengths(lengths, {"Track Main West": (231, 220)})
         make_job.main(["steps", "--loco", "CSX 2121", "--direction", "forward", "--out", str(d / "j.py"),
                        "--lengths", str(lengths), "--guard", "none"])
         self.assertIn("P_FWD = True", (d / "j.py").read_text())
@@ -526,7 +528,7 @@ class JythonFiles(unittest.TestCase):
     def test_a_job_with_no_trusted_lengths_is_refused(self):
         d = Path(tempfile.mkdtemp())
         lengths = d / "bl.csv"
-        lengths.write_text("user_name,occupancy_sensor,plan_in,measured_in,source,note\nTrack Main West,x,220,,plan,\n")
+        write_lengths(lengths, {"Track Main West": (220, None)})
         with self.assertRaises(SystemExit):
             make_job.main(["steps", "--loco", "CSX 2121", "--direction", "forward", "--out", str(d / "j.py"),
                            "--lengths", str(lengths), "--guard", "none"])

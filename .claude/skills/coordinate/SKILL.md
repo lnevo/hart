@@ -27,7 +27,7 @@ The transport is Claude Code's own: `ListAgents` names the live sessions, `SendM
 
 `main` requires the branch to be up to date (`strict` is on) and the `check` job to pass. One merge at a time across sessions, and no auto-merge while the queue runs:
 
-1. Finish the PR's reviews and fix what they confirm (AGENTS.md step 3).
+1. Finish the PR's reviews. Send each `/code-review` finding through `finding-verifier` (CONFIRMED, PLAUSIBLE or WRONG) before fixing it, and fix what it confirms (`/done` step 3).
 2. Merge `origin/main` into the branch (never rebase; force-push is blocked), regenerate what it owns, run `python3 tools/ops/build_pipeline_map.py --check` if the map merged, push.
 3. Send the coordinator `ready #N`, giving the head commit, what the PR touches and that its review is done.
 4. Wait for `go #N`. If `main` moves first, merge it in again and say so. If you push again for another reason (a fix, an owner's choice), tell the coordinator the new head: it stays in line.

@@ -61,7 +61,7 @@ Reference notes for JMRI work on the layout: block lengths, the MQTT startup rac
 - [CS105_ROSTER_SYNC.md](jmri/CS105_ROSTER_SYNC.md): Copy the JMRI roster (names, DCC addresses, function labels) into the TCS CS-105 command station so UWT-100 throttles see every locomotive with its labels
 - [MQTT_STARTUP_RACE.md](jmri/MQTT_STARTUP_RACE.md): The connection drop at PanelPro start is a stock JMRI bug, reproduced on bare profiles on macOS and Linux with four brokers (2026-11-23)
 - [README.md](jmri/README.md): Reference notes for JMRI work on the layout: block lengths, the MQTT startup race, the CS-105 roster sync and the speed-matching record
-- [TRACK_LENGTHS.md](jmri/TRACK_LENGTHS.md): Track and spur lengths per block, generated from block_lengths.csv and checked against the JMRI block lengths in tables.xml
+- [TRACK_LENGTHS.md](jmri/TRACK_LENGTHS.md): Track and spur lengths per block, generated from block_lengths.csv and block_lengths_measured.csv and checked against the JMRI block lengths in tables.xml
 - [speedmatching/ANYRAIL_LENGTHS.md](jmri/speedmatching/ANYRAIL_LENGTHS.md): First-pass block lengths for the 17 blocks of the speed-matching test loop, read from the AnyRail plan to feed Part A of the re-run plan
 - [speedmatching/DASHBOARD.md](jmri/speedmatching/DASHBOARD.md): Describes the read-only browser dashboard on the Mac that shows a speed-match run live, and how to start it
 - [speedmatching/POM_GUARD.md](jmri/speedmatching/POM_GUARD.md): Describes the guard that every speed-matching CV write on the main must pass through, and how a write reaches the decoder
