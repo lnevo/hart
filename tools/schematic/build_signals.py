@@ -33,20 +33,20 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, hartlib paths and the pinned plugin
 import staging_device_map as sdm  # noqa: E402  the staging masts' plan facts, tracks and signal rows
-from hartlib import layer_files, level_masts, railroad  # noqa: E402  the signals file; masts.csv; block_lengths.csv
+from hartlib import block_lengths, layer_files, level_masts, railroad  # noqa: E402  the signals file; masts.csv; plan lengths
 
 LEVELS = [("staging.json", "staging"), ("main.json", "main_upper")]   # plan graph in inputs/, section of signals.json
 SCHEMA = "schematic.signals/1"
-BLOCK_LENGTHS = railroad.Sources.under().block_lengths
+BLOCK_LENGTHS = block_lengths.PLAN
 TOLERANCE_CM = 0.2          # the reader rounds each length to 0.1 cm
 TURNBACK_CM = 1.0           # a mast measured from a turnback stands just off it (not "at the points")
 
 
 def block_cm(path=BLOCK_LENGTHS) -> dict:
-    """{block: cm} of the plan lengths in block_lengths.csv (hartlib.railroad.plan_cm): the masts stand on the drawn
+    """{block: cm} of the plan lengths in block_lengths.csv (hartlib.block_lengths.plan_cm): the masts stand on the drawn
     geometry, so a timed length never moves one (owner, 2026-11-20)."""
     try:
-        return railroad.plan_cm(railroad.read_block_lengths(path))
+        return block_lengths.plan_cm(path)
     except railroad.FactsError as exc:
         sys.exit(str(exc))
 

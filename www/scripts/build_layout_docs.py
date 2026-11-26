@@ -28,7 +28,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import devices, layer_files, railroad  # noqa: E402
+from hartlib import block_lengths, devices, layer_files, railroad  # noqa: E402
 
 PORTAL = Path(__file__).resolve().parents[1]
 ROOT = PORTAL.parent
@@ -154,13 +154,15 @@ def master_rows(files=None) -> dict[tuple[str, str], dict]:
     return {(r["level"], r["id"]): r for r in devices.load(files) if r["level"] and r["id"]}
 
 
-def detected_sections(lengths=None, master=None) -> list[dict]:
+def detected_sections(lengths=None, master=None, measured=None) -> list[dict]:
     """One row per detector ("Block n-c"), by node and channel. Lengths and detectors come from block_lengths.csv
     (by level and ID), names from the device master, so a rename in the field file reaches the page with no build
     step between. A part (role part: a short piece on its OS block's detector) is folded into its block's row. The
     length is the measured one when the detector was timed (it covers the whole detector), else the plan lengths
     added up, marked as an estimate."""
-    lengths = railroad.read_block_lengths() if lengths is None else lengths      # this checkout's file, in file order
+    # the plan lengths in file order, and the measured rows the page prints for a timed detector (hartlib.block_lengths)
+    lengths = block_lengths.plan_blocks() if lengths is None else lengths
+    measured = block_lengths.measured_lengths() if measured is None else measured
     master = master_rows() if master is None else master
     by_sensor: dict[str, dict] = {}
     for b in lengths.values():
@@ -181,8 +183,8 @@ def detected_sections(lengths=None, master=None) -> list[dict]:
             raise SystemExit(f"build_layout_docs: {b.occupancy_sensor} has two sections, {s['name']} and "
                              f"{row['user_name']}")
         s["id"], s["name"] = b.id, row["user_name"]
-        if b.source == "timed":
-            s["measured"] = b.measured_in
+        if row["user_name"] in measured:
+            s["measured"] = measured[row["user_name"]].measured_in
     out = []
     for sensor, s in by_sensor.items():
         if not s["id"]:
