@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import test_prepare_pages_stages as base  # noqa: E402
 
 build = base.build
+photos = base.photos
 Image = base.Image
 real_open = Image.open if Image else None
 
@@ -63,10 +64,10 @@ class PhotoSkip(base.FullBuild):
 
     def test_a_matching_stamp_reuses_the_photos_and_reads_no_original(self):
         self.assertIn("photo stages: full run (no saved run)", self.build())
-        with mock.patch.object(build, "_web_jpeg", side_effect=AssertionError("resized")), \
-                mock.patch.object(build, "_render_jpeg", side_effect=AssertionError("rendered")), \
+        with mock.patch.object(photos, "_web_jpeg", side_effect=AssertionError("resized")), \
+                mock.patch.object(photos, "_render_jpeg", side_effect=AssertionError("rendered")), \
                 mock.patch.object(Image, "open", side_effect=self.no_original_read), \
-                mock.patch.object(build, "_webp_companions", side_effect=AssertionError("webp")):
+                mock.patch.object(photos, "_webp_companions", side_effect=AssertionError("webp")):
             out = self.build()
         self.assertIn("photo stages: reused the saved run", out)
         self.assertIn("WebP companions:", out)
@@ -104,7 +105,7 @@ class PhotoSkip(base.FullBuild):
     def test_a_changed_page_misses_only_the_late_stage(self):
         self.build()
         self.track("docs/photo.html", base._page("Photo — HART", '<h1>Photo again</h1><p>A large photo on a page, shown in the page body for the build.</p><img src="../assets/gallery/night/p1.jpg" alt="p1">'))
-        with mock.patch.object(build, "_render_jpeg", side_effect=AssertionError("rendered")):
+        with mock.patch.object(photos, "_render_jpeg", side_effect=AssertionError("rendered")):
             out = self.build()
         self.assertIn("photo stages: reused", out)
         self.assertIn("<picture>", (self.out / "docs/photo.html").read_text(encoding="utf-8"))
@@ -176,7 +177,7 @@ class PhotoSkip(base.FullBuild):
 
     def test_full_ignores_the_stamp_and_saves_a_new_one(self):
         self.build()
-        with mock.patch.object(build, "_web_jpeg", wraps=build._web_jpeg) as spy:
+        with mock.patch.object(photos, "_web_jpeg", wraps=build._web_jpeg) as spy:
             out = self.build("--full")
         self.assertGreater(spy.call_count, 0)
         self.assertIn("photo stages: full run (--full)", out)
