@@ -201,7 +201,7 @@ stale copy of its own output: `build_device_map.py` loads `upto="inputs"`, `buil
 | Name | What |
 |------|------|
 | `Railroad.staging_devices` | `StagingDevices`: staging's (level 1) rows of the device master in the device layers, `rows` (`StagingDevice`: the master's own columns), `by_name` ((layer, user name) -> row), `names(layer)` |
-| `Railroad.switch_rows`, `switches` | `[SwitchRow]`: switches.csv as read (`read_switch_rows`, every row held to the shape of its key, not its level, naming-layers step 14: `by_os`, a row keyed by its OS block's ID, `os_id`, with its legs' `closed_id` and `thrown_id` and their names labels `build_hands.py` writes from the name store, as staging's are; else a row keyed by its half, as main and upper's are); `{number: Switch}` of its rows keyed by their OS block (staging's) (`Switch`, `Leg`; `layout_facts.py` re-exports them) |
+| `Railroad.switch_rows`, `switches` | `[SwitchRow]`: switches.csv as read (`read_switch_rows`, every row held to the shape of its key, not its level, naming-layers step 14: `by_os`, a row keyed by its OS block's ID, `os_id`, with its legs' `closed_id` and `thrown_id`, and `os_block`, `closed_leg` and `thrown_leg` the name store's names of those ids, looked up on the read (the file holds no names), as staging's are; else a row keyed by its half, as main and upper's are); `{number: Switch}` of its rows keyed by their OS block (staging's) (`Switch`, `Leg`; `layout_facts.py` re-exports them) |
 | `Railroad.interlockings` (every level), `level_control_points` (its main and upper rows), `local_switches`, `lcos_nodes`, `main_upper_switches` | `Interlocking`, `LocalSwitch`, `LcosNode`, `{number: MainUpperSwitch}` |
 | `Railroad.plan_overrides` | `PlanOverrides`: `data` (the whole file), `edits`, `relabel`, `helix` |
 | `Railroad.block_lengths`, `hands` | `{name: Block}` of `block_lengths.csv` (`hartlib.block_lengths.plan_blocks`: `level`, `id`, `plan_in`, `note`, and the name and `occupancy_sensor` from the device master), `{label: Hand}` |
@@ -395,6 +395,14 @@ level's internal name or a wired LCOS head that is the row's planned physical he
 `device_system_name`'s: staging's masts are bound as built, and a main or upper head is wired only once its device row
 swaps it in, so nothing else of theirs reaches MQTT); a virtual mast is in its level's thousand and stands at a buffer
 stop.
+
+### `hartlib.operations`
+
+Reads Operations Pro roster files: `cars(path)`, `engines(path)` and `trains(path)` give the `<car>`, `<engine>` and
+`<train>` elements of their section (`./cars/car` and so on), in file order; `section(path, name)` is the general
+form, `ids(elements)` their ids. `ROSTERS` names the repo's files in `jmri/layouts/hart/operations/` (ADR-015);
+the car pipeline passes its own copies in `ops/hart-ops/data/`. A broken file raises `ET.ParseError` naming it.
+It only reads: the tools that change a roster keep JMRI's header and layout themselves.
 
 ### `hartlib.parked`
 

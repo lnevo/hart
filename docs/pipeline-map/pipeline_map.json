@@ -1396,7 +1396,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels step 1 (hands): writes the hand of switches.csv's plan rows from the plan graph and relabel edits, and each staging row's os_block, closed_leg and thrown_leg from the name store by their ids; owner hands are left alone.",
+   "desc": "make panels step 1 (hands): writes the hand of switches.csv's plan rows from the plan graph and relabel edits; owner hands are left alone. Staging rows give device ids only, which the read checks against the name store.",
    "path": "tools/schematic/build_hands.py",
    "gen": "manifest"
   },
@@ -3640,6 +3640,15 @@
    "path": "tools/ops/pipeline_map_layout.js"
   },
   {
+   "id": "tools/ops/pipeline_map_helpers.js",
+   "label": "pipeline_map_helpers.js",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "The layout's helpers (pure functions: lane tags, picking, chains, fitting, folding), inlined after it; node loads them through the layout.",
+   "path": "tools/ops/pipeline_map_helpers.js"
+  },
+  {
    "id": "tools/ops/pipeline_map_view.js",
    "label": "pipeline_map_view.js",
    "kind": "unstructured",
@@ -3970,6 +3979,16 @@
    "domain": "layout",
    "desc": "Checks every master CSV against its <name>.columns.csv sidecar: types, enum values, required cells, unique keys and references into other masters (ADR-039).",
    "path": "tools/ops/check_data.py",
+   "gen": "manifest"
+  },
+  {
+   "id": "tools/ops/check_json.py",
+   "label": "check_json.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Checks plan_overrides.json, preferences.json, panel_items.json and published-files.json against a schema each: the keys, types and values their readers depend on (ADR-039).",
+   "path": "tools/ops/check_json.py",
    "gen": "manifest"
   },
   {
@@ -5039,6 +5058,24 @@
    "path": "tools/schematic/cats_panel.py"
   },
   {
+   "id": "tools/schematic/cats_panel_bound.py",
+   "label": "cats_panel_bound.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "cats_panel.py's bound level (staging): switches.csv and occupancy_bindings.csv bound into the desk.",
+   "path": "tools/schematic/cats_panel_bound.py"
+  },
+  {
+   "id": "tools/schematic/cats_panel_shapes.py",
+   "label": "cats_panel_shapes.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "cats_panel.py's binding shapes for every level: turnout routes, occupancy specs, block entries and mast templates.",
+   "path": "tools/schematic/cats_panel_shapes.py"
+  },
+  {
    "id": "tools/schematic/cats_panel_facts.py",
    "label": "cats_panel_facts.py",
    "kind": "generator",
@@ -5291,6 +5328,15 @@
    "path": "tools/ops/orient.py"
   },
   {
+   "id": "tools/ops/orient_pages.py",
+   "label": "orient_pages.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "orient.py's Markdown half: the Claimed line's form and reading a project page's Status and Claimed lines.",
+   "path": "tools/ops/orient_pages.py"
+  },
+  {
    "id": "tools/ops/screenshot.py",
    "label": "screenshot.py",
    "kind": "generator",
@@ -5352,6 +5398,15 @@
    "domain": "extras",
    "desc": "Traced stamps' shared half: records what a step's Python processes read; used by panel_stamps.py and check_stamps.py.",
    "path": "tools/audit/traced.py"
+  },
+  {
+   "id": "tools/audit/traced_read.py",
+   "label": "traced_read.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "traced.py's reading half: parses a trace log, makes the read set and the stamp, and compares a stamp with the checkout.",
+   "path": "tools/audit/traced_read.py"
   },
   {
    "id": "tools/audit/trace_hook/sitecustomize.py",
@@ -8336,7 +8391,7 @@
   {
    "from": "tools/schematic/build_hands.py",
    "to": "jmri/layouts/hart/data/switches.csv",
-   "label": "step 1 hands; staging's leg labels by id",
+   "label": "step 1 hands",
    "gen": "manifest"
   },
   {
@@ -10025,7 +10080,7 @@
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
    "to": "tools/schematic/build_hands.py",
-   "label": "the name store's names of the staging legs' ids",
+   "label": "the name store the staging legs' ids are checked against",
    "gen": "manifest"
   },
   {
@@ -10341,6 +10396,12 @@
    "gen": "manifest"
   },
   {
+   "from": "tools/ops/pipeline_map_helpers.js",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "inlined",
+   "gen": "manifest"
+  },
+  {
    "from": "jmri/layouts/hart/data/wiring.csv",
    "to": "tools/wiring/check_wiring_frozen.py",
    "label": "audits, via hartlib.wiring",
@@ -10620,6 +10681,62 @@
    "from": "jmri/layouts/hart/data/block_lengths.csv",
    "to": "tools/ops/check_data.py",
    "label": "refs",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/block_overrides.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/block_numbering.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/main_lines.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/retired_virtual_masts.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/masts.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "refs",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "docs/wiring/lcos/lcos_signal_logic.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "docs/wiring/lcos/lcos_signal_plan_notes.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/lcos_nodes.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "refs (switches.csv area)",
    "side": "check",
    "gen": "manifest"
   },
@@ -12315,6 +12432,16 @@
    "label": "imports"
   },
   {
+   "from": "tools/schematic/cats_panel_shapes.py",
+   "to": "tools/schematic/cats_panel.py",
+   "label": "re-exported"
+  },
+  {
+   "from": "tools/schematic/cats_panel_bound.py",
+   "to": "tools/schematic/cats_panel.py",
+   "label": "re-exported"
+  },
+  {
    "from": "ops/hart-ops/data/crew.json",
    "to": "tools/schematic/publish_draft.py",
    "label": "crew master (map_revision rebuilds www/data/crew.json)",
@@ -12735,6 +12862,11 @@
    "label": "starts the hook"
   },
   {
+   "from": "tools/audit/traced_read.py",
+   "to": "tools/audit/traced.py",
+   "label": "re-exported"
+  },
+  {
    "from": "tools/audit/stamp_audit/sitecustomize.py",
    "to": "tools/audit/check_stamps.py",
    "label": "trace audit log"
@@ -12988,6 +13120,11 @@
    "label": "waiting to ingest"
   },
   {
+   "from": "tools/ops/orient_pages.py",
+   "to": "tools/ops/orient.py",
+   "label": "re-exported"
+  },
+  {
    "from": "tools/hosts/roster_digest.sh",
    "to": "tools/hosts/sync_roster_from_pi.sh",
    "label": "--status digests"
@@ -13077,6 +13214,41 @@
    "from": "ops/hart-ops/publications/build_crew_json.py",
    "to": "ops/hart-ops/publications/crew_master.py",
    "label": "crew_master.build (import)"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
+   "to": "tools/ops/check_json.py",
+   "label": "schema",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/preferences.json",
+   "to": "tools/ops/check_json.py",
+   "label": "schema",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/panel_items.json",
+   "to": "tools/ops/check_json.py",
+   "label": "schema",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "www/scripts/published-files.json",
+   "to": "tools/ops/check_json.py",
+   "label": "schema",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/ops/check_json.py",
+   "to": "tools/check.sh",
+   "label": "check json-schemas",
+   "side": "check",
+   "gen": "manifest"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

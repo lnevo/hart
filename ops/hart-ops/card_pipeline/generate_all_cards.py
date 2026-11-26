@@ -9,9 +9,13 @@ from __future__ import annotations
 
 import csv
 import shutil
-import xml.etree.ElementTree as ET
+import sys
 from copy import deepcopy
 from pathlib import Path
+
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import operations  # noqa: E402
 
 from docx import Document
 from docx.oxml import OxmlElement
@@ -81,9 +85,8 @@ IMG_9088_OVERRIDE = {
 
 
 def load_roster() -> dict[str, dict]:
-    root = ET.parse(ROSTER_XML).getroot()
     cars: dict[str, dict] = {}
-    for el in root.findall("./cars/car"):
+    for el in operations.cars(ROSTER_XML):
         cars[el.get("id", "")] = {
             "roster_id": el.get("id", ""),
             "roster_road": el.get("roadName", ""),

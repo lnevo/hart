@@ -1,0 +1,5 @@
+column,description,type,required,key,refs,values
+mast,"The virtual mast's user name when it was dropped from its level. Listed once. It names no mast of masts.csv any more.",str,yes,yes,,
+system_name,"Its VirtualSignalMast system name (IF$vsm:basic:one-low($1016)). The ordinal in the brackets stays taken, so no new virtual mast reuses it (hartlib.hand_lists.read_retired_masts, level_masts.virtual_ordinal); no two rows share an ordinal.",str,yes,,,
+dropped,"The date it was dropped, YYYY-MM-DD.",str,yes,,,
+notes,"Why it was dropped, and whether it comes back when a parked feature returns.",str,,,,

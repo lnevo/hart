@@ -37,7 +37,7 @@ class PagePartsTest(unittest.TestCase):
         return path
 
     def test_a_missing_or_empty_viewer_script_stops_the_build_naming_it(self) -> None:
-        for index, name in enumerate(("pipeline_map_layout.js", "pipeline_map_view.js")):
+        for index, name in enumerate(("pipeline_map_layout.js", "pipeline_map_helpers.js", "pipeline_map_view.js")):
             for content, why in ((None, f"cannot read the viewer script {name}: "), ("  \n", f"the viewer script {name} is empty")):
                 scripts = list(MAP.SCRIPTS)
                 scripts[index] = self.broken(name, content)
@@ -61,11 +61,13 @@ class PagePartsTest(unittest.TestCase):
         self.assertEqual({p: text.count(p) for p in MAP.PLACEHOLDERS}, dict.fromkeys(MAP.PLACEHOLDERS, 1))
 
     def test_the_script_is_the_layout_then_the_viewer(self) -> None:
-        """One script, layout first: the viewer uses the layout's functions and its "use strict" directive."""
-        layout, view = (path.read_text(encoding="utf-8") for path in (MAP.LAYOUT_JS, MAP.VIEW_JS))
-        self.assertEqual(MAP.SCRIPTS, (MAP.LAYOUT_JS, MAP.VIEW_JS))
-        self.assertEqual(MAP.script_text(), layout + view)
-        self.assertEqual([name for name, _ in MAP.script_parts()], ["pipeline_map_layout.js", "pipeline_map_view.js"])
+        """One script, layout first, then its helpers: the viewer uses their functions and the "use strict" directive."""
+        layout, helpers, view = (path.read_text(encoding="utf-8") for path in (MAP.LAYOUT_JS, MAP.HELPERS_JS, MAP.VIEW_JS))
+        self.assertEqual(MAP.SCRIPTS, (MAP.LAYOUT_JS, MAP.HELPERS_JS, MAP.VIEW_JS))
+        self.assertEqual(MAP.script_text(), layout + helpers + view)
+        self.assertEqual([name for name, _ in MAP.script_parts()],
+                         ["pipeline_map_layout.js", "pipeline_map_helpers.js", "pipeline_map_view.js"])
+        self.assertNotIn("app()", helpers)
         self.assertTrue(re.sub(r"^/\*.*?\*/\s*", "", layout, flags=re.S).startswith('"use strict";'))
         self.assertNotIn('\n"use strict";', view)
         self.assertNotIn("app()", layout)
