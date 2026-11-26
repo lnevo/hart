@@ -394,7 +394,7 @@
       (all ? "Destination colors" : "Your colors") + "</h2>" +
       (all ? "" : '<p class="muted small">Your blocks are bright; the rest are dimmed.</p>') +
       '<ul class="cc-list">' +
-      data.colors
+      (all ? mine.map(colorById) : data.colors) // a job with every color lists them in its own order (YM-01)
         .map(function (c) {
           var on = mine.indexOf(c.id) !== -1;
           return (

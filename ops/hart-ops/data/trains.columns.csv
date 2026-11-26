@@ -1,8 +1,9 @@
 column,description,type,required,key,refs,values
 train_symbol,"The train's symbol (R23A, D749), its key: assigned once and never reused. crew.json's crew jobs give it as code, and the CATS train list as TRAIN_SYMBOL.",str,yes,yes,,
-train_name,"The name CATS shows on the desk train list (Route 23 AM, OCS-1).",str,yes,,,
-engine,"The road number of the lead engine CATS shows (4501). Lane L4d checks it against the loco master.",str,yes,,,
-font,"The CATS font of the train's label: East or West for the direction, FONT_TRAIN for neither.",enum,yes,,,East;West;FONT_TRAIN
-runs_job,"Whether a crew job runs the train in CATS (true or false, as CATS writes it).",enum,yes,,,true;false
+train_name,"The name CATS shows on the desk train list (Route 23 AM, OCS-1). Required on the trains on the desks.",str,on_desks=yes,,,
+engine,"The road number of the lead engine CATS shows (4501). tools/ops/check_locos.py checks it against the loco master. Required on the trains on the desks.",str,on_desks=yes,,,
+font,"The CATS font of the train's label: East or West for the direction, FONT_TRAIN for neither. Required on the trains on the desks.",enum,on_desks=yes,,,East;West;FONT_TRAIN
+runs_job,"Whether a crew job runs the train in CATS (true or false, as CATS writes it). Required on the trains on the desks.",enum,on_desks=yes,,,true;false
+on_desks,"yes: the train is on the CATS desks' train list, so cats/data/hart_trains.csv and the desk header hold it. no: an Operations Pro train only, such as the staging trains STG-DEMMLER and STG-SCULLY that the Session automation runs with no crew.",bool,yes,,,
 opspro_name,"The Operations Pro train name when it is not the symbol (D749 Return). Blank when Operations Pro names the train by its symbol. tools/audit/check_train_symbols.py checks every Operations Pro train name against the symbols and these names.",str,,,,
 notes,"Free text for people: the train's place in the DS-01 lineup and its work.",str,,,,

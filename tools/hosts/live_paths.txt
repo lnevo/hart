@@ -63,6 +63,7 @@ jmri/layouts/hart/scripts/speedmatch/dashboard/export_site_runs.py
 jmri/layouts/hart/scripts/speedmatch/dashboard/publish_live.py
 jmri/layouts/hart/scripts/speedmatch/dashboard/static
 jmri/layouts/hart/data/block_lengths.csv
+jmri/layouts/hart/data/block_lengths_measured.csv
 jmri/layouts/hart/data/speed_by_step_2026-11-08.csv
 jmri/layouts/hart/dispatcher
 jmri/layouts/hart/ctc

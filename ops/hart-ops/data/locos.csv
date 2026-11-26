@@ -4,9 +4,9 @@ CSX 2738,CSX,2738,2738,yes,EMD,GP38-2,Diesel,59,,,,,loco_CSX_2738_right.jpg,
 BO 2235,BO,2235,,,ALCO,AS-16,Diesel,56,,1600,,,IMG_9194.png,
 BO 3545,BO,3545,,,EMD,GP35,Diesel,56,130,2500,,,IMG_9193.png,
 BO 3840,BO,3840,,,EMD,GP38,Diesel,59,125,2000,,,IMG_9184.png,
-BO 4536,BO,4536,,,EMD,F7A,Diesel,,,,,,,Only in the ops/hart-ops snapshot engine roster (owner question 4)
-BO 5300,BO,5300,,,,P-7,Steam,,,,,,,Only in the ops/hart-ops snapshot engine roster; Steam is a working value (owner question 4)
-BO 5496,BO,5496,,,EMD,F7B,Diesel,,,,,,,Only in the ops/hart-ops snapshot engine roster (owner question 4)
+BO 4536,BO,4536,,,EMD,F7A,Diesel,,,,,,,Only in the ops/hart-ops snapshot engine roster; kept by the owner (2026-11-25)
+BO 5300,BO,5300,,,,P-7,Steam,,,,,,,Only in the ops/hart-ops snapshot engine roster; kept as it is by the owner (2026-11-25)
+BO 5496,BO,5496,,,EMD,F7B,Diesel,,,,,,,Only in the ops/hart-ops snapshot engine roster; kept by the owner (2026-11-25)
 BO 572,BO,572,,,EMD,NW2,Diesel,45,,1000,,,IMG_9182.png,
 BO 6944,BO,6944,,,EMD,GP30,Diesel,56,130,2250,,,IMG_9195.png,
 BO 9602,BO,9602,,,EMD,SW1200,Diesel,45,124,1200,,,IMG_9181.png,
@@ -15,4 +15,4 @@ CR 1993,CR,1993,,,GE,B23-7,Diesel,62,,2250,,,IMG_9187.png,
 CSX 1827,CSX,1827,,,GE,ES44AH,Diesel,74,,4400,,,IMG_9185.png,
 NWR 06,NWR,06,,,,,Steam,,,,,,,Percy; in the DecoderPro roster only; Steam is a working value (owner question 7)
 POHC 2091,POHC,2091,,,EMD,GP20,Diesel,56,120,2000,,,IMG_9192.png,
-PRC 4678,PRC,4678,,,,PCC,Electric,,,,,,IMG_9186.png,Streetcar for Route 23; PRC and Electric are working values (owner question 6)
+PRC 4678,PRC,4678,,,,PCC,Electric,,,,,,IMG_9186.png,Streetcar for Route 23; road PRC (owner 2026-11-25)

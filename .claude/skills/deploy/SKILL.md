@@ -5,7 +5,7 @@ description: Use when live artifacts changed and need to reach the layout hosts 
 
 # Deploy
 
-Two separate deploys. Pick by what changed (AGENTS.md, close-out step 5).
+Two separate deploys. Pick by what changed (`/done` step 5).
 
 | Changed | Run |
 |---|---|
@@ -67,7 +67,7 @@ Before you run it:
 
 - The build needs the gitignored originals in `media/` and `ops/car-cards/`. Only the main checkout has them. `make wt` links both into a new worktree; for an older worktree, symlink them from the main checkout first. Without them photos are stripped, and the run stops at the `--require-mirrors` check. `--force` does not skip that check.
 - `ops/hart-ops/operator_logos/` must exist, or the deploy refuses to run.
-- A real rsync is needed on the Mac (`brew install rsync`), or set `HART_WEB_HOST=www.easte.net` for a normal login.
+- A real rsync is needed on the Mac (`brew install rsync`), or set `HART_WEB_HOST` and `HART_WEB_DOCROOT` (values in the owner's private notes, `private/web-server/` in the main checkout only; worktrees do not have it) for a normal login.
 
 What it does: builds with `prepare_github_pages.py`, checks links with `check_portal_build.py`, then rsyncs with `--delete`.
 
@@ -85,5 +85,5 @@ Name the hosts and sites deployed, or say which were skipped and why.
 
 - `tools/hosts/sync_hart_package.sh`, `tools/hosts/deploy/` (the steps), `tools/hosts/redeploy_commit.sh`, `tools/hosts/deploy_status.sh`, `tools/env/load_env.sh`, `www/scripts/deploy_hartrailroad.sh`
 - `www/README.md` (Deploy safety, server notes)
-- `AGENTS.md` (close-out step 5), `wiki/STATUS.md`
+- `.claude/commands/done.md` (step 5), `wiki/STATUS.md`
 - `wiki/decisions/ADR-014-jmri-user-files.md`, `wiki/decisions/ADR-015-operations-files-in-repo.md`

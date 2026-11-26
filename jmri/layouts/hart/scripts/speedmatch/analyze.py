@@ -10,9 +10,10 @@ reverse, and the other way round), and reports the drift of the repeated top ste
     analyze.py LOG [LOG ...] [--route loop1|loop2] [--events-out CSV] [--lengths CSV] [--trusted timed] [--out DIR]
                [--pair "CSX 2121,CSX 2738"]
 
-Lengths come from jmri/layouts/hart/data/block_lengths.csv (inches). Only trusted rows are
-used: the row's `source` must be in --trusted, which defaults to timed (the measured
-lengths). A `plan` row (the AnyRail plan 5.3c length) counts only if you pass it.
+Lengths come from jmri/layouts/hart/data/block_lengths.csv (the AnyRail plan 5.3c length, inches) and
+block_lengths_measured.csv beside it (the lengths speed matching measured): a block's operating length is its
+measured one where it has a row there (source `timed`), else its plan length (source `plan`). Only trusted
+sources are used: --trusted defaults to timed; a plan length counts only if you pass plan.
 """
 import argparse
 import csv
@@ -81,7 +82,15 @@ def load_routes(path=ROUTES_JSON, order=ROUTE_BLOCKS, mid=ROUTE_MID_BLOCK):
     return routes, dict(data["mid"])
 
 
+def block_ids(path=ROUTES_JSON):
+    """{block name: block ID} of every block on the routes (routes.json's pairs and their `ids`)."""
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    return {name: ident for r, pairs in data["routes"].items()
+            for (_sensor, name), ident in zip(pairs, data.get("ids", {}).get(r, []))}
+
+
 ROUTES, ROUTE_MID = load_routes()
+BLOCK_IDS = block_ids()
 LOOP, LOOP2 = ROUTES["loop1"], ROUTES["loop2"]
 DEFAULT_ROUTE = "loop1"
 ORDER = [s for s, _ in LOOP]  # loop1 aliases: LOOP and ORDER
@@ -114,28 +123,42 @@ def route_order(route):
     return [s for s, _ in route_loop(route)]
 
 
-def load_lengths(path=DEFAULT_LENGTHS, trusted=DEFAULT_TRUSTED, loop=LOOP):
-    """dict sensor -> length in mm, None where the CSV row is missing or its source is not trusted.
+def measured_path(path):
+    """The measured file beside a plan file: block_lengths.csv -> block_lengths_measured.csv
+    (hartlib.block_lengths.measured_path)."""
+    path = Path(path)
+    return path.with_name(path.stem + "_measured.csv")
 
-    block_lengths.csv (hartlib.railroad.BLOCK_LENGTH_COLUMNS): a `timed` row's length is its measured_in, a `plan`
-    row's its plan_in. Stops on a file without those columns. A row is found by its user_name, the label the
-    length-labels step writes from the name store (plan_lengths.py --labels), which routes.json's names come from
-    too. Read here with the standard library, not through hartlib.railroad.read_block_lengths: the Pi's live
-    publisher runs this with a copy of the file and no hartlib (tools/hosts/deploy/stage.sh), so
-    tools/audit/check_data_readers.py lists this script by name."""
+
+def _id_rows(path, need):
     with open(path, newline="") as fh:
         reader = csv.DictReader(fh)
-        missing = {"user_name", "occupancy_sensor", "plan_in", "measured_in", "source"} - set(reader.fieldnames or [])
+        missing = set(need) - set(reader.fieldnames or [])
         if missing:
             raise ValueError(f"{path}: no column {', '.join(sorted(missing))}")
-        rows = {r["user_name"]: r for r in reader}
+        return {r["id"]: r for r in reader}
+
+
+def load_lengths(path=DEFAULT_LENGTHS, trusted=DEFAULT_TRUSTED, loop=LOOP, measured=None):
+    """dict sensor -> length in mm, None where the block has no row or its source is not trusted.
+
+    The operating length (hartlib.block_lengths.operating_lengths): a block with a row in the measured file
+    (`measured`, default the one beside `path`) has source `timed` and its measured_in, any other its plan_in from
+    `path` and source `plan`. Stops on a file without the id and length columns. A block is found by its ID, which
+    routes.json gives each block of the loop (BLOCK_IDS). Read here with the standard library, not through hartlib:
+    the Pi's live publisher runs this with copies of both files and no hartlib (tools/hosts/deploy/stage.sh), so
+    tools/audit/check_data_readers.py lists this script by name; tools/hartlib/tests/test_block_lengths.py holds its
+    answer to hartlib's."""
+    plan = _id_rows(path, ("id", "plan_in"))
+    timed = _id_rows(measured or measured_path(path), ("id", "measured_in"))
     out = {}
     for sensor, name in loop:
-        row = rows.get(name)
-        source = (row or {}).get("source", "").strip()
-        if row is None or source not in trusted:
+        ident = BLOCK_IDS.get(name)
+        source = "timed" if ident in timed else "plan" if ident in plan else None
+        if source is None or source not in trusted:
             out[sensor] = None
             continue
+        row = timed[ident] if source == "timed" else plan[ident]
         out[sensor] = float(row["measured_in" if source == "timed" else "plan_in"]) * MM_PER_INCH
     return out
 
@@ -590,9 +613,11 @@ def write_outputs(result, pair, out_dir, summaries=None):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("logs", nargs="+")
-    ap.add_argument("--lengths", default=str(DEFAULT_LENGTHS))
+    ap.add_argument("--lengths", default=str(DEFAULT_LENGTHS),
+                    help="the plan lengths file; its measured file is read beside it (measured_path)")
     ap.add_argument("--trusted", default=",".join(DEFAULT_TRUSTED),
-                    help="block_lengths.csv sources that count as trusted; default timed, add plan only on purpose")
+                    help="length sources that count as trusted (timed: block_lengths_measured.csv, plan: "
+                         "block_lengths.csv); default timed, add plan only on purpose")
     ap.add_argument("--out", default=".")
     ap.add_argument("--pair", default="CSX 2121,CSX 2738",
                     help="the consist pair: leader,follower (follower runs reversed)")

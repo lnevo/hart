@@ -150,6 +150,7 @@ class StagingHelpers(unittest.TestCase):
                           row["system_name"], row["jmri_name"], row["wiring"]),
                          ("1", "occupancy", "spare", "unused Block 13-1", "spare", "13", "M2S1300", "M2S1300",
                           "Node: 13 Block: 1"))
+        self.assertEqual(row["detector"], "none")  # owner, 2026-11-25: a spare detector is none
 
     def test_wire_block_fills_the_occupancy_mark(self):
         row = {"user_name": "Track Barn", "jmri_comment": f"Barn track; {devices.OCCUPANCY_MARK}"}
