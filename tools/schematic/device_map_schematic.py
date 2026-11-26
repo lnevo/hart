@@ -168,7 +168,7 @@ def home_and_posts(bands, joined, found, levels: dict, cp_of: dict, corner_block
                    ) -> tuple[list[dict], dict]:
     """(mast_plan.home_masts of `levels`, mast_plan.home_posts of them): the home masts stand where the track rule puts
     them, before any block is known, and the block layer reads where they stand (a link a mast faces from its own
-    switch joins the OS block at its other end; owner, 2026-11-20). One step for every level."""
+    switch joins the OS block at its other end). One step for every level."""
     import mast_rule as mr
     home = mast_plan.home_masts(bands, joined, found, cp_of, mr.running_tracks(bands, found, cp_of), levels=levels,
                                 corner_blocks=corner_blocks, split=split)

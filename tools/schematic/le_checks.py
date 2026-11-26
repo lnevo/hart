@@ -24,7 +24,7 @@ def mast_turnouts(rows: list[dict], facts: dict | None = None) -> dict[str, tupl
         try:
             facts = sdm.mast_facts()
         except sdm.StagingMapError as exc:
-            raise BuildError(f"staging device map: {exc}") from None
+            raise BuildError(f"staging device map: {exc}") from exc
     name = level_masts_lib.PATH.name
     out = {mast: (name, f["turnout"] if f["kind"] == "turnout" else None, f["kind"]) for mast, f in facts.items()}
     both = sorted(set(facts) & {r["mast"] for r in rows})

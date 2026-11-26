@@ -33,7 +33,7 @@ def lines_file(tmp, *rows):
 
 def file_rows(sheet):
     """The committed main_lines.csv's rows of `sheet` as written: their stops give tracks by block id
-    (naming-layers step 5), as a copy must, where read_lines gives them back by name."""
+   , as a copy must, where read_lines gives them back by name."""
     with open(M.LINES, newline="", encoding="utf-8") as fh:
         return [r for r in csv.DictReader(fh) if r["sheet"] == sheet]
 

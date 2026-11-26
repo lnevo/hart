@@ -52,7 +52,7 @@ def wiring_rows(path: Path | None = None, levels=None, files=None) -> list:
     try:
         return wiring.read(path or WIRING, levels=levels, files=files)
     except railroad.FactsError as exc:
-        raise MapError(str(exc)) from None
+        raise MapError(str(exc)) from exc
 
 
 def read_pins(path: Path | None, found: list, split: set, ids: dict | None = None) -> dict:
@@ -140,7 +140,7 @@ def staging_nodes() -> set:
     try:
         return {n.node for n in railroad.read_lcos_nodes(NODES) if n.level == STAGING}
     except railroad.FactsError as exc:
-        raise MapError(str(exc)) from None
+        raise MapError(str(exc)) from exc
 
 
 def read_staging_pins(path: Path | None = None, nodes: set | None = None, files=None) -> list[StagingPin]:
@@ -208,7 +208,7 @@ def frozen_wires(path: Path | None = None) -> list:
 
 
 class Places(NamedTuple):
-    """Where a line block sits (owner, 2026-11-21): `of` {switch: its places}, a switch's places the stations of
+    """Where a line block sits: `of` {switch: its places}, a switch's places the stations of
     stations.csv that list it, or, for a switch in no station, the control points of interlockings.csv that list it;
     `order` {place: rank}, stations.csv's order then interlockings.csv's; `level` {place: its level}; `tracks`
     {block name: the stations whose `tracks` cell gives its block ID} (the owner's additions; the name the store's,
@@ -226,7 +226,7 @@ def read_places(stations: Path | None = None, interlockings: Path | None = None)
         st = railroad.read_stations(stations or STATIONS)
         ils = railroad.read_interlockings(interlockings or CPS)
     except railroad.FactsError as exc:
-        raise MapError(str(exc)) from None
+        raise MapError(str(exc)) from exc
     order: dict[str, int] = {}
     level: dict[str, int] = {}
     for name, lv in [(s.name, s.level) for s in st] + [(i.name, i.level) for i in ils]:
@@ -238,7 +238,7 @@ def read_places(stations: Path | None = None, interlockings: Path | None = None)
     try:
         named = railroad.station_tracks(st, stations or STATIONS)   # the `tracks` IDs' names, from the name store
     except railroad.FactsError as exc:
-        raise MapError(str(exc)) from None
+        raise MapError(str(exc)) from exc
     for s in st:
         for sw in s.switches:
             in_station[sw].append(s.name)

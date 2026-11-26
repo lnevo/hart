@@ -1,4 +1,4 @@
-"""One mast process for every level (owner, 2026-11-20; archive/history/wiki/projects/level-unification-handoff.md, Masts).
+"""One mast process for every level (archive/history/wiki/projects/level-unification-handoff.md, Masts).
 
 plan() places every mast of the levels it is asked for, the same way on each, from the plan's tracks, the
 interlockings (interlockings.csv, the signal rule's control points), the owner's block splits (block_overrides.csv) and
@@ -20,8 +20,8 @@ the level's block layer:
    first visible mast; a route that reaches a buffer stop first gets a hidden bumper mast there, facing it. Nothing
    else gets one. A bumper mast is named as a home mast is, from the switch the track to the buffer stop leaves (its
    number + 1) and the letter a train heading for the buffer stop reads; masts of one number and letter take A, B ...
-   in the plan order of their tracks (the switch leg each leaves: mast_rule.leg_order, as home masts follow
-   mast_rule.letter_order; naming-layers step 12), after the letters the visible masts use (120RA and 120RB stand,
+   in the plan order of their tracks (the switch leg each leaves: hartlib.track_names.end_order, as home masts follow
+   mast_rule.letter_order), after the letters the visible masts use (120RA and 120RB stand,
    so the bumper mast is 120RC); a visible mast with the bare name stops the build.
 
 The block layer is each level's own (not yet one process): staging's from its device map's block rows and
@@ -41,11 +41,12 @@ import le_names as ln
 import mast_rule as mr
 import publish_draft  # noqa: F401  imported for its side effect: it puts hartlib on the path before the hartlib import below
 from hartlib import hand_lists, level_masts
+from hartlib.track_names import end_order
 
 RETIRED = hand_lists.RETIRED_MASTS             # the virtual masts dropped from a level (hartlib.hand_lists)
 RETIRED_COLUMNS = hand_lists.RETIRED_MAST_COLUMNS
 
-LINE_CODE = {1: "", 2: "A", 3: "B"}   # milepost line codes, after Furnace A and B (owner, 2026-11-19); staging has none
+LINE_CODE = {1: "", 2: "A", 3: "B"}   # milepost line codes, after Furnace A and B; staging has none
 CM_PER_SCALE_MILE = 63360 * 2.54 / 87.1
 LOOP_FIRST = next(leg for leg, half in mr.LOOP_HALF.items() if half == 1)   # a loop's half 1 leaves from leg B
 SWITCHES = ("switch", "dx")
@@ -93,7 +94,7 @@ def assign_numbers(masts: list[dict]) -> None:
     `name` comes first and those three keys are dropped. Two pairs under a tenth of a mile apart share a westward number (6.6 and 6.7 both give 67: the odd and even
     numbers give one number per two tenths). Every natural number is reserved first; of the masts that share one, the
     lowest milepost keeps it and each other takes the next number of its parity that no intermediate holds or would
-    hold, so no mast without a clash is renamed (owner, 2026-11-22). Each shift is printed with both mileposts. With no
+    hold, so no mast without a clash is renamed. Each shift is printed with both mileposts. With no
     line code a shifted number stops at 98 like any other."""
     natural = {f"{m['code']}{m['number']}" for m in masts}
     holder = {}
@@ -235,9 +236,9 @@ def virtual_masts(bands, joined, home: list[dict], runs_by_band: dict, cm: dict,
         letter = "R" if letter_at(band, n, p) == "L" else "L"      # the letter a train heading for the stop reads
         sw = _label(band, n)
         _needs_lengths([((n, p), seq, None)], cm)
-        # lettered in the plan order of the track to the buffer stop, by the switch leg it leaves (mast_rule
-        # .leg_order of its end_leg: Track 209 Spur 1 from 209B before Spur 2 from 209C), as the home masts are
-        groups[(int(sw) + 1, letter)].append((mr.leg_order(mr.end_leg(bands, joined, bi, (n, p))), dict(
+        # lettered in the plan order of the track to the buffer stop, by the switch leg it leaves (end_order of its
+        # end_leg: Track 209 Spur 1 from 209B before Spur 2 from 209C), as the home masts are
+        groups[(int(sw) + 1, letter)].append((end_order(mr.end_leg(bands, joined, bi, (n, p))), dict(
             level=mr.band_level(bands[bi][0], levels), band=bi, node=n, leg=p, switch=sw,
             bumper=e[1], dir="west" if letter == "L" else "east", facing=seq[-1], seq=seq,
             total=round(sum(cm[b] for b in seq), 1), needed_by=sorted(who, key=mr.natural))))
@@ -264,7 +265,7 @@ def read_retired(path: Path = RETIRED) -> dict:
     try:
         return hand_lists.read_retired_masts(path)
     except hand_lists.HandListError as exc:
-        raise mr.MapError(str(exc)) from None
+        raise mr.MapError(str(exc)) from exc
 
 
 def virtual_system_names(masts: list[str], level: int, old: dict, retired: dict | None = None) -> dict:

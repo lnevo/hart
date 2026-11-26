@@ -89,7 +89,7 @@ def _element(text, what) -> ET.Element:
     try:
         el = ET.fromstring(text)
     except ET.ParseError as exc:
-        raise ItemsError(f"{what}: xml does not parse ({exc})") from None
+        raise ItemsError(f"{what}: xml does not parse ({exc})") from exc
     if el.tag not in TAGS:
         raise ItemsError(f"{what}: <{el.tag}> is not one of {', '.join(TAGS)}")
     if "x" in el.attrib or "y" in el.attrib:
@@ -118,7 +118,7 @@ def member_box(m: dict, what: str) -> tuple[float, tuple[float, float]]:
     try:
         w, h = pi_dialog.width(text, int(size), bold), pi_dialog.height(int(size), bold)
     except pi_dialog.PiTextError as exc:
-        raise ItemsError(f"{what}: {exc}") from None
+        raise ItemsError(f"{what}: {exc}") from exc
     return right - w, (float(w), float(h))
 
 
@@ -129,7 +129,7 @@ def load(path: Path | None = None) -> dict:
     try:
         data = hand_lists.read_panel_items(path)
     except hand_lists.HandListError as exc:
-        raise ItemsError(str(exc)) from None
+        raise ItemsError(str(exc)) from exc
     if not isinstance(data, dict) or not isinstance(data.get("items"), list) or not data["items"]:
         raise ItemsError(f"{path.name}: needs a non-empty items list")
     if set(data) - FILE_FIELDS:
@@ -144,7 +144,7 @@ def load(path: Path | None = None) -> dict:
         try:
             el = ET.fromstring(data["drawing_options"])
         except (TypeError, ET.ParseError) as exc:
-            raise ItemsError(f"{path.name}: drawing_options does not parse ({exc})") from None
+            raise ItemsError(f"{path.name}: drawing_options does not parse ({exc})") from exc
         if el.tag != "layoutTrackDrawingOptions":
             raise ItemsError(f"{path.name}: drawing_options is <{el.tag}>, not <layoutTrackDrawingOptions>")
     seen = set()

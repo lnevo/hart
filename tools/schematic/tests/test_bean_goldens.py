@@ -142,7 +142,7 @@ class MainUpperBeans(unittest.TestCase):
             self.assertIn(kind, kinds)
 
     def test_every_main_and_upper_row_has_its_beans_and_every_bean_its_row(self) -> None:
-        """The row-to-bean map (naming-layers step 1): a switch one internal turnout, its LCC alias and feedback rows
+        """The row-to-bean map: a switch one internal turnout, its LCC alias and feedback rows
         none (DIRECT feedback); a block (part or not) a names-only and a full block and a layout block, except a
         helix block, which is staging's bean; a detector one internal sensor; a head and a mast one bean each."""
         rows = [r for r in devices.load() if r["level"] in LEVELS]
@@ -217,7 +217,7 @@ class RowCellsAreTheGoldenBeans(unittest.TestCase):
         self.assertEqual(sorted(set(cells) - seen), [], "rows with a bean_comment and no bean")
 
     def test_the_comments_are_in_stagings_form(self) -> None:
-        """Staging's words (owner, 2026-11-23): no main and upper comment names a build script or the old
+        """Staging's words: no main and upper comment names a build script or the old
         "virtual (device map)" note; a bean no field device drives says level_devices.VIRTUAL_NOTE, as a staging
         head on an internal name does; a block names its detector first."""
         for r in self.rows:

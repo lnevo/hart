@@ -3,7 +3,7 @@
 line blocks carry (piece_trials, level_trials), the cp of a line block (line_cp) and a part's row (part_row) are here
 too: the main and upper build uses them.
 
-Staging is generated like main and upper (naming-layers step 7): its devices are the plan's (its blocks from the
+Staging is generated like main and upper: its devices are the plan's (its blocks from the
 block layer, its switches from the plan graph, staging_switches), each row made by the same makers
 (device_map_rows: device_row, switch_device_rows), then the owner's values put over it by the device's ID
 (device_map_rows.owner_over; devices_field.csv is keyed by it, naming-layers step 4: a user name there is the
@@ -12,7 +12,7 @@ owner's). A staging device with no field row keeps the generated values: a block
 (trial_name in staging's switch-and-leg keys, part_of, blocks, description). A staging block change made in PanelPro
 is carried by hand into this script's data (block_overrides.csv, plan_overrides.json). A staging detector's wiring
 (node and input, so its sensor and wiring) is its level 1 row of wiring.csv (hartlib.wiring, the physical wiring
-source; owner 2026-11-20), as are its turnouts' and feedback's (staging_wired_rows) and main and upper's pinned
+source), as are its turnouts' and feedback's (staging_wired_rows) and main and upper's pinned
 detectors: staging's nodes are as built, so the builder proposes none and a staging device with no wiring row stops.
 Any other field fact of a staging device (a block system name, its comment, a DCC address) is the owner's, in its row
 of devices_field.csv (ADR-029 amendment, 2026-11-21), which this script reads and never writes: it writes
@@ -56,7 +56,7 @@ FIELD_LAYERS = ("block", "occupancy")
 def part_row(level: str, name: str, part: dict, trial: str, device_id: str = "") -> dict:
     """The master row of a part (block_layer.Layer.parts): a piece of track inside another block, part_of naming it,
     with no occupancy row or detector of its own (hartlib.devices: role part). It is a JMRI block of its own on every
-    level, its sensor its OS block's (owner, 2026-11-20): main and upper's the Layout Editor build makes (assignment
+    level, its sensor its OS block's: main and upper's the Layout Editor build makes (assignment
     none here); staging_rows gives staging's their bean names (part_bean_names, assignment virtual). `device_id`: its
     block ID from the plan ends its trial name has (staging_keys, level_keys)."""
     t = part["track"]
@@ -75,7 +75,7 @@ PART_BLOCK_FIRST = 52        # a new staging part's number: the first above stag
 
 
 def part_bean_names(parts: list[str], prior: dict, taken: set) -> dict[str, tuple[str, str]]:
-    """{part: (jmri_name, layout_block)} of staging's parts, each a JMRI block of its own on its block's occupancy sensor (owner, 2026-11-20):
+    """{part: (jmri_name, layout_block)} of staging's parts, each a JMRI block of its own on its block's occupancy sensor:
     the names its row has (`prior`: {part: (jmri_name, layout_block)}), else, in name order, the next number n from
     PART_BLOCK_FIRST up with neither IB:AUTO:<nnnn> nor ILB<n> in `taken` (every other bean's names), so a name never
     shifts. MapError on a row with one of the two names only, or a name another bean has."""
@@ -135,7 +135,7 @@ def staging_layer(bands, joined, runs, exceptions: Path | None = None) -> tuple[
     try:
         cp_of = {s: r.name for r in railroad.read_interlockings(CPS, (1,)) for s in r.switches}
     except railroad.FactsError as exc:
-        raise MapError(str(exc)) from None
+        raise MapError(str(exc)) from exc
     _home, posts = home_and_posts(bands, joined, found, levels, cp_of, None,
                                   mast_rule.read_block_splits(exceptions, found, levels))
     split = block_layer.split_edges(found, levels, exceptions, bdm.OVERRIDES.parent)
@@ -181,7 +181,7 @@ def piece_trials(rows: dict, refs: dict, inside: dict) -> dict[str, list[str]]:
     staging_device_map.piece_refs or band_refs}): "Track <piece>", or "Track <piece> k/n" for the k-th of its n rows
     from the piece's first end (staging_device_map.strand_placeholders, the rule every reader keys by). A strand whose
     rows are all in `inside` ({band index: OS blocks}) is inside a crossover and keyed by its OS block's own
-    placeholder, not here. One grammar for every level (owner, 2026-11-20); a key drawn on two bands (a track cut by a
+    placeholder, not here. One grammar for every level; a key drawn on two bands (a track cut by a
     connector) is listed once. MapError on a strand with rows but no key."""
     return {row: [ph for ph, _k in keys] for row, keys in piece_keys(rows, refs, inside).items()}
 
@@ -208,7 +208,7 @@ def piece_keys(rows: dict, refs: dict, inside: dict) -> dict[str, list[tuple[str
 def level_trials(bands, joined, lay: block_layer.Layer) -> dict[str, str]:
     """{row name: trial_name} of the main and upper track, half and part rows of `lay` (main_upper_layer), in the
     switch-and-leg keys staging's rows have (piece_trials over staging_device_map.band_refs), which survive a new
-    export (owner, 2026-11-20). A strand inside a crossover is its OS block's ("OS Switch <n>", written by os_rows)."""
+    export. A strand inside a crossover is its OS block's ("OS Switch <n>", written by os_rows)."""
     return level_keys(bands, joined, lay)[0]
 
 
@@ -219,7 +219,7 @@ def level_keys(bands, joined, lay: block_layer.Layer) -> tuple[dict[str, str], d
     try:
         refs = {bi: sdm.band_refs(bands, joined, bi) for bi in lay.rows}
     except sdm.StagingMapError as exc:
-        raise MapError(str(exc)) from None
+        raise MapError(str(exc)) from exc
     inside = {bi: set(b["os"].values()) for bi, b in lay.bands.items()}
     keys = piece_keys(lay.rows, refs, inside)
     return ({row: ", ".join(ph for ph, _k in ks) for row, ks in keys.items()},
@@ -274,13 +274,13 @@ def alias_note(turnout: str, address: str) -> str:
 def staging_switches(data: Path | None = None) -> dict[str, list[str]]:
     """{switch number: its plan labels} of staging's switches, from the plan (hartlib.track_names.plan_switches over
     the staging plan graph in `data`, default the builder's schematic folder), not from the owner's rows: the
-    switches staging_wired_rows makes rows for (naming-layers step 7)."""
+    switches staging_wired_rows makes rows for."""
     folder = data or builder().OVERRIDES.parent
     try:
         return track_names.plan_switches(STAGING_SHEET, layer_files.read("plan_overrides", STAGING_SHEET, folder),
                                          folder)
     except track_names.TrackNameError as exc:
-        raise MapError(str(exc)) from None
+        raise MapError(str(exc)) from exc
 
 
 def staging_cps() -> dict[str, str]:
@@ -289,7 +289,7 @@ def staging_cps() -> dict[str, str]:
     try:
         return {str(s): r.name for r in railroad.read_interlockings(CPS, (STAGING,)) for s in r.switches}
     except railroad.FactsError as exc:
-        raise MapError(str(exc)) from None
+        raise MapError(str(exc)) from exc
 
 
 def staging_wired_rows(files: devices.Files | None = None, path: Path | None = None,
@@ -382,7 +382,7 @@ def wire_occupancy(row: dict, pin: StagingPin) -> dict:
 
 def new_spare(pin: StagingPin) -> dict:
     """The row of a spare input (a wiring.csv detector with no block, or one whose block is now a part): named by its
-    input, detector none (owner, 2026-11-25). wiring.csv makes it; it has no field row."""
+    input, detector none. wiring.csv makes it; it has no field row."""
     row = {c: "" for c in devices.COLUMNS}
     row.update(level=STAGING_LEVEL, layer="occupancy", role="spare", user_name=f"unused {pin.input}",
                assignment="spare", detector="none", written_by="build_device_map.py")
@@ -473,10 +473,10 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
         # the memory is by device ID (staging_part_names), so a block the owner renames keeps its numbers
         beans = part_bean_names(numbered, {n: mine[ids[n]] for n in numbered if ids.get(n) in mine}, taken)
     except MapError as exc:
-        raise MapError(f"staging parts: {exc}") from None
+        raise MapError(f"staging parts: {exc}") from exc
     cp_of = staging_cps()
     staging_pins = read_staging_pins(pins, files=f)
-    # a pin finds its block by the block's device ID (wiring.csv keys it so, naming-layers step 5): the drawn name of
+    # a pin finds its block by the block's device ID (wiring.csv keys it so): the drawn name of
     # an OS block is the rule's, its row's name may be the owner's
     pin_of = {p.id: p for p in staging_pins if p.id}
     on_helix = helix_pins(pins, layer_files.read("plan_overrides", "main_upper", bdm.OVERRIDES.parent).get("helix", {}))

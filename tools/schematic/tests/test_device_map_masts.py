@@ -46,7 +46,7 @@ class Names(unittest.TestCase):
 
 
 class PlanEdge(unittest.TestCase):
-    # the drawing's own names are not read (naming-layers step 3b): the name store's, by strand, are STORED
+    # the drawing's own names are not read: the name store's, by strand, are STORED
     BAND = {"strands": {"a": strand("e16.0", "Drawn"), "b": strand("e16.1", ""), "c": strand("e16.2", "Drawn"),
                         "d": strand("e9+e10", ""), "e": strand("e160", "")}}
     STORED = {"a": "K-1", "b": "K-2", "d": "Main West", "e": "Other"}
@@ -146,7 +146,7 @@ class Generate(unittest.TestCase):
         self.assertEqual((got["run"], got["dir"], got["edge_cm"], got["cm_from_toward"]), ("1;3", "east", 150.0, 20.0))
 
     def test_a_part_is_inside_its_block_and_a_mast_faces_the_jmri_block_beyond(self):
-        """A part is a JMRI block of its own (owner, 2026-11-20): a mast at the switch whose OS block holds it stands
+        """A part is a JMRI block of its own: a mast at the switch whose OS block holds it stands
         past it, at the anchor; a mast at the other switch stands at its leg and faces the part (Mast 32R faces
         Track 29-31); the lengths are the JMRI blocks'."""
         runs = [(("N1", "B"), ["Track 1-3 at 1", "Track 3 Lead"], ("N3", "A"))]
@@ -437,7 +437,7 @@ class CommittedData(unittest.TestCase):
 
     def test_the_owners_names_keep_staging_letters(self):
         """The plan's letter order (mast_rule.letter_order) would give staging's 6L and 8R pairs the other letters;
-        the owner's names in the field file keep them (naming-layers step 12), and the generated ones are kept on
+        the owner's names in the field file keep them, and the generated ones are kept on
         the masts the rule places."""
         renamed = {m["mast"]: m["generated"] for m in self.got["placed"] if "generated" in m}
         self.assertEqual(renamed, {"Mast 6LA": "Mast 6LB", "Mast 6LB": "Mast 6LA", "Mast 8RA": "Mast 8RB",

@@ -20,7 +20,7 @@ hand:
   The device master (level 1)   the block of a short unnamed track between two switches that has no JMRI block of its own:
                          the one block the staging device map's track between them holds
                          (staging_device_map.staging_chains)
-Main and upper blocks are CTC on the CTC desk, as staging's are (owner, 2026-11-17: CATS holds their signals and
+Main and upper blocks are CTC on the CTC desk, as staging's are (CATS holds their signals and
 releases them, so a route set from staging up the helix stops at the first main or upper signal); the ABS twin
 turns them ABS with the rest. They take their names from the block rows of
 the main and upper rows of the device master (by the schematic tracks each holds). Their switches
@@ -36,7 +36,7 @@ take. Every main and upper desk block is bound to its virtual occupancy sensor (
 IS:HART:C3:B:<block key>, hartlib.level_devices), as OCCUPIEDSPEC / UNOCCUPIEDSPEC (owner,
 2026-11-17: the physical plant is a draft, swapped in later by the device map alone); the planned detector, when the
 map has one, is kept in the bindings as _planned_occupied / _planned_unoccupied for the record and is not on the
-panel. The middle of 225's X, a desk-only block, has no sensor (owner, 2026-11-17). Each helix track is one desk
+panel. The middle of 225's X, a desk-only block, has no sensor. Each helix track is one desk
 block over both bands it is drawn on (cats_helix_blocks "one"; owner, 2026-11-20: one JMRI block from its staging
 switch to its main or upper switch), named and bound as the main and upper device map gives it (Track Helix Outer,
 Track Helix Inner: its virtual sensor), the staging device map naming the same block for the staging piece.
@@ -69,7 +69,7 @@ from hartlib import level_devices, level_masts, paths, railroad  # noqa: E402,F4
 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
 
-from cats_panel_facts import (DEVICE_MAP, DeviceMap, Facts, StagingTracks, load_device_map, load_facts,  # noqa: E402,F401
+from cats_panel_facts import (DEVICE_MAP, CatsPanelError, DeviceMap, Facts, StagingTracks, load_device_map, load_facts,  # noqa: E402,F401
                               mast_type, staging_tracks, template_by_type)
 from cats_panel import (split_system_name, MAIN_UPPER_DISCIPLINE, block_bindings,  # noqa: E402,F401
                         dark_bindings, dest, device_name, half_label, helix_block, inside_os, intermediate_signal,
@@ -112,11 +112,11 @@ def check_apart(staging, dark):
     would make them one CATS block)."""
     clash = sorted(set(staging) & set(dark))
     if clash:
-        raise SystemExit(f"staging and main/upper blocks share panel names {', '.join(clash)}")
+        raise CatsPanelError(f"staging and main/upper blocks share panel names {', '.join(clash)}")
     bound = lambda bs: {e.get("name", k) for k, e in bs.items()}     # the block name each desk block takes
     clash = sorted(bound(staging) & bound(dark))
     if clash:
-        raise SystemExit(f"staging and main/upper desk blocks would both be {', '.join(clash)}")
+        raise CatsPanelError(f"staging and main/upper desk blocks would both be {', '.join(clash)}")
 
 
 def bound_index(bands):
@@ -125,7 +125,7 @@ def bound_index(bands):
     try:
         return sdm.lc.find_band(bands, BOUND_LEVEL)
     except sdm.lc.BuildError as exc:
-        raise SystemExit(f"the band bound to the field: {exc}") from None
+        raise CatsPanelError(f"the band bound to the field: {exc}") from exc
 
 
 def bindings(bands, cats, F, o, page):
@@ -152,7 +152,7 @@ def bindings(bands, cats, F, o, page):
     masts, level = mast_bindings(opts, F), level_mast_bindings(bands, F, bi)
     for what, a, b in (("switch", out_sw, level_sw), ("mast", masts, level)):
         if set(a) & set(b):
-            raise SystemExit(f"staging and main/upper share {what} keys {', '.join(sorted(set(a) & set(b)))}")
+            raise CatsPanelError(f"staging and main/upper share {what} keys {', '.join(sorted(set(a) & set(b)))}")
     return {"_note": "Written by tools/schematic/build_cats_panel.py from the railroad's facts; do not edit. Main and "
                      "upper switches command their internal turnouts, their masts are bound and their blocks report "
                      "their virtual occupancy sensors (IS:HART:C3:B:); a block's planned detector, a draft, is kept "
@@ -172,7 +172,7 @@ def desk_options(cats, page, bands):
         sys.exit("error: the page's preferences hold no cats_window; the desks must fit the dispatcher's window")
     if o["helix_blocks"] != "one":
         sys.exit(f"error: cats_helix_blocks is {o['helix_blocks']!r}; the desks need \"one\" (a helix track one block "
-                 "over both bands, as JMRI holds it; owner, 2026-11-20)")
+                 "over both bands, as JMRI holds it)")
     return o
 
 
@@ -188,12 +188,12 @@ def check_desk_faults(cats, P, fit):
 
 def desk_plates() -> list[tuple[str, tuple[str, ...]]]:
     """[(station, its switches)] of stations.csv's desk_plate rows (hartlib.railroad_facts.read_stations): the control
-    point plates both desks carry (owner, 2026-11-21: Brick, Plane, Barn, East End, Princess, as the hand-built desk)."""
+    point plates both desks carry (Brick, Plane, Barn, East End, Princess, as the hand-built desk)."""
     from hartlib import railroad_facts
     try:
         rows = railroad_facts.read_stations(pd.DATA / "stations.csv")
     except railroad_facts.FactsError as exc:
-        raise SystemExit(f"error: {exc}") from None
+        raise CatsPanelError(f"error: {exc}") from exc
     return [(st.name, st.switches) for st in rows if st.desk_plate]
 
 
@@ -256,7 +256,10 @@ def main(argv):
         return 1 if os.environ.get("SCHEMATIC_REQUIRED") == "1" else 0
     with tempfile.TemporaryDirectory() as tmp:
         fresh = {OUT: Path(tmp) / OUT.name, OUT_ABS: Path(tmp) / OUT_ABS.name, BINDINGS: Path(tmp) / BINDINGS.name}
-        generate(plugin, fresh[OUT], fresh[BINDINGS], fresh[OUT_ABS])
+        try:
+            generate(plugin, fresh[OUT], fresh[BINDINGS], fresh[OUT_ABS])
+        except CatsPanelError as exc:       # a fact the desks need is wrong: the message names it
+            sys.exit(str(exc))
         stale = 0
         for target, new_file in fresh.items():
             new = new_file.read_text(encoding="utf-8")

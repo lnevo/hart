@@ -151,7 +151,7 @@ class SourceTest(unittest.TestCase):
         self.assertEqual(live.source, approval.paths.REPO_TABLES_XML)
 
     def test_the_outputs_are_the_live_panel_and_the_two_desks(self):
-        # the trial cut-over copy (le-candidate) is retired (owner, 2026-11-22)
+        # the trial cut-over copy (le-candidate) is retired
         self.assertEqual([o.key for o in approval.OUTPUTS], ["le-panel", "cats-ctc", "cats-abs"])
         for o in approval.OUTPUTS:
             self.assertTrue(o.approved.is_file(), o.approved)

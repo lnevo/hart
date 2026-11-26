@@ -267,7 +267,7 @@ exit 0
 
 class SmlDiscovery(unittest.TestCase):
     """A write on the Mac discovers when sml-current says stale, then checks again and goes on to tables
-    (owner, 2026-11-24). Off the Mac, in CI, while operating, in --check or on a build error it stops as before."""
+   . Off the Mac, in CI, while operating, in --check or on a build error it stops as before."""
 
     def run_script(self, *args, os_name="Darwin", operating=False, lock_pid=None, **extra):
         with tempfile.TemporaryDirectory() as tmp:

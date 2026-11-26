@@ -127,7 +127,7 @@ class StagingSwitches(unittest.TestCase):
                 closed = next(p for p, r in e["routes"].items() if r["ROUTECOMMAND"]["command"] == "close")
                 self.assertEqual(to[closed], leg.closed)
             dests |= set(to.values())
-        # the helix tracks lead up the helix as one block each (owner, 2026-11-20)
+        # the helix tracks lead up the helix as one block each
         self.assertLessEqual(set(self.F.helix.values()), dests)
         self.assertEqual(set(self.F.helix.values()), {"Track " + plan for plan in self.F.helix})    # the ordinary rule
 
@@ -219,7 +219,7 @@ class Blocks(unittest.TestCase):
         self.assertEqual(("IT", ":HART:C3:107"), B.split_system_name("IT:HART:C3:107"))
         self.assertEqual(("M2T", "3308"), B.split_system_name("M2T3308"))
         self.assertEqual(("MT", "T100"), B.split_system_name("MTT100"))
-        with self.assertRaises(SystemExit):
+        with self.assertRaisesRegex(B.CatsPanelError, "not a JMRI system name"):
             B.split_system_name("Switch 107")
 
 
@@ -284,11 +284,12 @@ class LoopHalvesByID(unittest.TestCase):
             cp = sys.modules["cats_panel"]
             self.assertEqual(cp.part_blocks(device), cp.part_blocks())
             self.assertEqual(cp.part_blocks(B.DeviceMap()), {})         # a map made in memory holds no part
-            with self.assertRaisesRegex(SystemExit, "made in memory"):
+            with self.assertRaisesRegex(B.CatsPanelError, "made in memory"):
                 cp.drawn_keys(B.DeviceMap())
-            # read once per device map: the desk build asks for every block (code review of step 14)
+            # read once per state of the master's files: the desk build asks for every block
             from unittest import mock
             fresh = SimpleNamespace(path=devices.master_path(data))
+            cp._DRAWN_KEYS.clear()
             with mock.patch.object(cp.drawing_keys, "read", wraps=cp.drawing_keys.read) as read:
                 self.assertIs(cp.drawn_keys(fresh), cp.drawn_keys(fresh))
                 cp.block_names(fresh)
@@ -296,8 +297,38 @@ class LoopHalvesByID(unittest.TestCase):
         from unittest import mock
         bad = cp.drawing_keys.DrawingKeyError("Track 107 Loop 2 (level 2, block) has no trial_name")
         with mock.patch.object(cp.drawing_keys, "read", side_effect=bad), \
-                self.assertRaisesRegex(SystemExit, r"devices_generated\.csv: Track 107 Loop 2 .* has no trial_name"):
+                self.assertRaisesRegex(B.CatsPanelError, r"devices_generated\.csv: Track 107 Loop 2 .* has no trial_name"):
             B.name_loop_halves(k["bands"])
+
+
+class TestDeskErrors(unittest.TestCase):
+    """The desk modules raise CatsPanelError; only build_cats_panel.main turns it into an exit."""
+
+    def test_main_exits_with_the_error_message(self):
+        from unittest import mock
+        bad = B.CatsPanelError("switch 107 is drawn twice on main and upper")
+        with mock.patch.object(B.pd, "plugin", return_value=Path("plugin")), \
+                mock.patch.object(B, "generate", side_effect=bad), self.assertRaises(SystemExit) as caught:
+            B.main(["--check"])
+        self.assertEqual(caught.exception.code, "switch 107 is drawn twice on main and upper")
+
+    def test_the_cause_is_kept(self):
+        with self.assertRaises(B.CatsPanelError) as caught:
+            sys.modules["cats_panel"].turnout_routes("M2T", "1", "Switch 1", "A", "B")
+        self.assertIsNone(caught.exception.__cause__)       # a check of its own, no cause to keep
+        from hartlib.errors import HartlibError
+        self.assertIsInstance(caught.exception, HartlibError)
+
+    def test_a_rewritten_master_is_read_again(self):
+        import tempfile
+        cp = sys.modules["cats_panel"]
+        with tempfile.TemporaryDirectory() as tmp:
+            field = Path(tmp) / "devices_field.csv"
+            field.write_text("a\n", encoding="utf-8")
+            before = cp._master_state(field)
+            self.assertEqual(before, cp._master_state(field))
+            field.write_text("a,b\n", encoding="utf-8")
+            self.assertNotEqual(before, cp._master_state(field))
 
 
 if __name__ == "__main__":

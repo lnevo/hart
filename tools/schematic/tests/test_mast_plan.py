@@ -1,4 +1,4 @@
-"""mast_plan.py and the rules in mast_rule.py that replaced the hand lists (owner, 2026-11-20): each rule on a small
+"""mast_plan.py and the rules in mast_rule.py that replaced the hand lists: each rule on a small
 hand-made band, its error paths, and, as data checks over the committed plan under RepoReadOnly, that the rules give
 exactly what the deleted hand lists held."""
 from __future__ import annotations
@@ -16,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 import mast_plan as mp  # noqa: E402
 import mast_rule as mr  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402
+from hartlib import track_names  # noqa: E402
 
 CM_PER_SCALE_MILE = 63360 * 2.54 / 87.1
 
@@ -136,7 +137,7 @@ class AssignNumbers(unittest.TestCase):
 
 class LetterOrder(unittest.TestCase):
     """Two masts of one number and direction are lettered A and B in the plan order of the tracks they face
-    (mast_rule.letter_order; naming-layers step 12), as parallel track numbers are (plan_order), not by drawn row."""
+    (mast_rule.letter_order), as parallel track numbers are (plan_order), not by drawn row."""
 
     @staticmethod
     def t(*ends, trial="Track e1"):
@@ -144,7 +145,7 @@ class LetterOrder(unittest.TestCase):
 
     def test_a_track_end_sorts_by_number_half_letter_and_leg_then_any_other_end(self):
         keys = ["end", "105B", "103BA", "helix", "103AB", "9C", "9B"]
-        self.assertEqual(sorted(keys, key=mr.leg_order), ["9B", "9C", "103AB", "103BA", "105B", "end", "helix"])
+        self.assertEqual(sorted(keys, key=track_names.end_order), ["9B", "9C", "103AB", "103BA", "105B", "end", "helix"])
 
     def test_spurs_follow_their_numbers(self):
         """Mast 210LA faces Track 209 Spur 1 (from 209B), 210LB Spur 2 (from 209C)."""
@@ -637,7 +638,7 @@ class CommittedPlan(RepoReadOnly, unittest.TestCase):
 
     def test_the_owners_block_splits(self):
         self.assertEqual(mr.read_block_splits(self.splits, self.found, self.levels), {"Track 227-241"})
-        # staging's: the Princess balloon, K-2 and K-1 (a level 1 row since step 5 part 1, owner 2026-11-20)
+        # staging's: the Princess balloon, K-2 and K-1 (a level 1 row since step 5 part 1)
         self.assertEqual(mr.read_block_splits(self.splits, self.staging, {"Staging level": 1}), {"Track 37-39"})
 
 

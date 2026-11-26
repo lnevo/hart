@@ -1,5 +1,5 @@
 """How the Layout Editor build finds a band: by its level and height, from the plan overrides (the band entries'
-`level`, and `below`, the height in cm its track lies under), never by its title (owner, 2026-11-20). Also the Layout
+`level`, and `below`, the height in cm its track lies under), never by its title. Also the Layout
 Editor look rules each sheet's section of preferences.json holds and HART reads (le_band_align,
 le_nested_station_labels), and the three stops:
 a band with no level, two bands at one level and height, and a rule naming no band.
@@ -219,7 +219,7 @@ class LabelRuleNamingNoBand(unittest.TestCase):
 
     def test_the_staging_rules_are_read_from_its_section(self):
         from hartlib import layer_files
-        # as named in the merged view: the hand file gives the tracks' block IDs (naming-layers step 5b)
+        # as named in the merged view: the hand file gives the tracks' block IDs
         own = layer_files.merged(le_common.pd.DATA, "preferences")["staging"]["le_labels"]
         bands, page = le_common.schematic()
         labels = le_common.plugin_module("le_labels")
@@ -299,7 +299,7 @@ class ReviewFixes(unittest.TestCase):
         plan = overrides(staging={"level_title": "Cellar deck", "level": 1},
                          levels=[{"name": "Lower deck", "level": 1, "below": 5},
                                  {"name": "Top deck, 4 in", "level": 3, "below": 99}])
-        with Folder(plan), self.assertRaisesRegex(SystemExit, r"the band bound to the field: 2 bands are at level 1"):
+        with Folder(plan), self.assertRaisesRegex(bcp.CatsPanelError, r"the band bound to the field: 2 bands are at level 1"):
             bcp.bound_index(BANDS)
 
     def test_le_band_align_finds_its_own_sections_band_by_height(self):
@@ -342,7 +342,7 @@ class LeNestedStationLabels(unittest.TestCase):
     """le_common.le_station_labels: a sheet section's le_nested_station_labels false leaves the stations nested in
     a station of another desk area (Engine House in Barn) out of the stations its bands hand the plugin's Layout
     Editor labeller, and keeps one nested in its own area (Yard West in Yard, as West Yard in Brick); true, or not set,
-    hands every station (owner, 2026-11-20)."""
+    hands every station."""
 
     def bands(self):
         return [("Cellar deck", {}, {"stations": dict(STATIONS), "station_tracks": {"Yard": ["Y-1"]}}),

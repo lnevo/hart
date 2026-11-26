@@ -17,17 +17,17 @@ What it makes, for each level drawn on a band:
   parted at its turnback, half 1 at the lower-numbered switch (loop_halves); a half is named by its strand's name
   when the two halves have different ones (Track K-2, Track K-1), else "<track> <half>" (half_block). A name given
   to two blocks of one level stops.
-- parts: a piece of track inside another block (the device master's part_of; owner, 2026-11-20). A link, a track between two
+- parts: a piece of track inside another block (the device master's part_of). A link, a track between two
   switches shorter than LINK_CM, is part of the lower-numbered switch's OS block (the one at that end: a crossover
   half's, when the half has its own; a double crossover's corner block of the leg it leaves, `corners`), on every
-  level (step 5 part 2, owner 2026-11-20). A link drawn to a connector, whose lower-numbered switch is on another
+  level (step 5 part 2). A link drawn to a connector, whose lower-numbered switch is on another
   band, takes the OS block of its end switch on its own band (link_block). block_overrides.csv (kind track) gives a
   track, or the piece of it at one end switch, to another OS block where the field wiring (or, on main and upper, the
   owner) says otherwise. A whole track's part is named as the track; a piece at one end "<track> at <switch>" ("Track
   1-3 at 1"). A track with pieces at both ends is all pieces, sharing its length evenly; with one, that piece's length
   is its row's cm and the rest of the track is its own block.
 
-LINK_CM is 50 cm on every level (owner, 2026-11-20): staging's wiring folds every track between two switches up to
+LINK_CM is 50 cm on every level: staging's wiring folds every track between two switches up to
 42 cm (11-13) by the rule, and its next is Barn at 92 cm; on main and upper it folds 25 links, the longest 229-233
 (48.2 cm).
 
@@ -56,9 +56,11 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TypedDict
 
 import publish_draft as pd  # first: it puts hartlib on the path
 import mast_rule as mr
+from mast_rule import Track
 from hartlib import layer_files, railroad
 
 LINK_CM = 50.0
@@ -100,13 +102,13 @@ def drawings(data: Path | None = None) -> dict[int, str]:
     try:
         whole = layer_files.read_file("plan_overrides", folder)
     except layer_files.LayerFileError as exc:
-        raise BlockError(str(exc)) from None
+        raise BlockError(str(exc)) from exc
     out = {}
     for sheet in (k for k in whole if not k.startswith("_")):
         try:
             places = mr.band_places(whole[sheet])
         except mr.MapError as exc:
-            raise BlockError(f"plan_overrides.json section {sheet}: {exc}") from None
+            raise BlockError(f"plan_overrides.json section {sheet}: {exc}") from exc
         for title, (level, _height) in places.items():
             if out.setdefault(level, sheet) != sheet:
                 raise BlockError(f"plan_overrides.json: level {level} is in sections {out[level]} and {sheet} "
@@ -155,14 +157,14 @@ def store_names(found: list[dict], bands, joined, levels: dict, data: Path | Non
     try:
         whole = layer_files.read_file("plan_overrides", folder)
     except layer_files.LayerFileError as exc:
-        raise BlockError(str(exc)) from None
+        raise BlockError(str(exc)) from exc
     sheet = sheet_of(bands, levels, folder)
     named = {}
     for bi, name in sheet.items():
         try:
             named[bi] = sdm.strand_names(bands, joined, bi, whole[name], owner, folder)
         except sdm.StagingMapError as exc:
-            raise BlockError(f"the track names of {bands[bi][0]!r}: {exc}") from None
+            raise BlockError(f"the track names of {bands[bi][0]!r}: {exc}") from exc
     for t in found:
         edges = {edge_key(bands[t["band"]][1]["strands"][sid]["edge"]) for sid in t["strands"]}
         t["names"] = {(bi, sid): nm for bi, got in named.items() if sheet[bi] == sheet[t["band"]]
@@ -195,15 +197,18 @@ def name_tracks(found: list[dict], helix: dict) -> None:
 
 # ---------------------------------------------------------------- the owner's exceptions
 
+OsGift = tuple[str, int, "float | None"]     # a track row given to an OS block: (block, line, cm or None)
+
+
 @dataclass
 class Exceptions:
     """block_overrides.csv's track and crossover_half rows resolved against the drawing: track rows by track entry
-    id, {end: (block, line, cm or None)} ("" the whole track), crossover halves by (band, node): (block, line), and
-    the lines of the track rows marked `inside` (the piece stays inside its OS block, with no JMRI block of its
-    own)."""
-    tracks: dict = field(default_factory=dict)
-    halves: dict = field(default_factory=dict)
-    inside: set = field(default_factory=set)
+    (mast_rule.track_key), {end: (block, line, cm or None)} ("" the whole track), crossover halves by (band, node):
+    (block, line), and the lines of the track rows marked `inside` (the piece stays inside its OS block, with no JMRI
+    block of its own)."""
+    tracks: dict[mr.TrackKey, dict[str, OsGift]] = field(default_factory=dict)
+    halves: dict[tuple[int, str], tuple[str, int]] = field(default_factory=dict)
+    inside: set[int] = field(default_factory=set)
 
 
 def crossover_pairs(band) -> dict:
@@ -234,7 +239,7 @@ def read_exceptions(found: list[dict], bands, levels: dict, path: Path | None = 
     try:
         rows = mr.read_block_overrides(path, EXCEPTION_KINDS)
     except mr.MapError as exc:
-        raise BlockError(str(exc)) from None
+        raise BlockError(str(exc)) from exc
     wanted = set(levels.values())
     out, bad = Exceptions(), []
     for r in rows:
@@ -268,7 +273,7 @@ def read_exceptions(found: list[dict], bands, levels: dict, path: Path | None = 
         if t is None:
             bad.append(f"{at}: {r['problem']}")
             continue
-        got = out.tracks.setdefault(id(t), {})
+        got = out.tracks.setdefault(mr.entry_key(t), {})
         if r["end"] in got or ("" in got and r["end"]) or (got and not r["end"]):
             bad.append(f"{at}: {t['name']} is given a block on line {next(iter(got.values()))[1]} already")
             continue
@@ -285,7 +290,7 @@ def read_exceptions(found: list[dict], bands, levels: dict, path: Path | None = 
 def loop_halves(band, runs, split: dict, split_file: str = OVERRIDES_NAME) -> dict:
     """{strand id: 1 or 2} for each balloon loop of `band` (a run that leaves a switch and comes back to it), by the
     leg its strand leaves the switch from (mast_rule.LOOP_HALF), and for each track `split` names ({plan edge: track
-    name}, build_device_map.split_edges: a run between two switches folded at one turnback, owner 2026-11-19): half
+    name}, build_device_map.split_edges: a run between two switches folded at one turnback): half
     1 the strand at its lower-numbered switch. Stops on a loop not drawn as two tracks joined by one turnback, or one
     not on legs B and C, since the halves would then be ambiguous."""
     out, parted = {}, set()
@@ -339,20 +344,35 @@ def half_name(track: str, half: int | None) -> str:
     return track if half is None else f"{track} {half}"
 
 
+class BandBlocks(TypedDict):
+    """One band's blocks, as mast_plan.plan reads them: `os` {switch node: OS block}, `blocks` {strand: [block, ...]
+    from the strand's first end} (a part counts as the block it is part of)."""
+    os: dict[str, str]
+    blocks: dict[str, list[str]]
+
+
+class Part(TypedDict):
+    """A piece of track inside another block: the block it is part of, its level, its track entry, length and why."""
+    part_of: str
+    level: int
+    track: Track
+    cm: float
+    why: str
+
+
 @dataclass
 class Layer:
-    """The block layer of the bands of some levels. `bands`: {band index: {"os": {switch node: OS block}, "blocks":
-    {strand: [block, ...] from the strand's first end]}}, as mast_plan.plan reads it (a part counts as the block it is
-    part of); `rows`: {band index: {strand: [row name, ...]}}, the same with a part's own name; `cm`: {block: cm} (an
-    OS block 0: its boundary is at the switch's leg); `parts`: {part name: {part_of, level, track, why}}; `tracks`:
-    {block: (track entry, half)} of the tracks' own blocks; `inside`: {piece name: its OS block} of the pieces
-    block_overrides.csv keeps inside their OS block (`inside` yes: no part, no JMRI block of their own)."""
-    bands: dict = field(default_factory=dict)
-    rows: dict = field(default_factory=dict)
-    cm: dict = field(default_factory=dict)
-    parts: dict = field(default_factory=dict)
-    tracks: dict = field(default_factory=dict)
-    inside: dict = field(default_factory=dict)
+    """The block layer of the bands of some levels. `bands`: {band index: BandBlocks}; `rows`: {band index: {strand:
+    [row name, ...]}}, the blocks with a part's own name; `cm`: {block: cm} (an OS block 0: its boundary is at the
+    switch's leg); `parts`: {part name: Part}; `tracks`: {block: (track entry, half)} of the tracks' own blocks;
+    `inside`: {piece name: its OS block} of the pieces block_overrides.csv keeps inside their OS block (`inside` yes:
+    no part, no JMRI block of their own)."""
+    bands: dict[int, BandBlocks] = field(default_factory=dict)
+    rows: dict[int, dict[str, list[str]]] = field(default_factory=dict)
+    cm: dict[str, float] = field(default_factory=dict)
+    parts: dict[str, Part] = field(default_factory=dict)
+    tracks: dict[str, tuple[Track, int | None]] = field(default_factory=dict)
+    inside: dict[str, str] = field(default_factory=dict)
 
 
 def is_link(t: dict) -> bool:
@@ -413,7 +433,19 @@ def end_blocks(t: dict, nodes: dict, os_: dict, corners: dict, level: int, bad: 
     return out
 
 
-def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions: Exceptions,
+@dataclass
+class _Build:
+    """What layer() fills and checks as it walks the bands: the layer, the problems found and the hand rows used."""
+    exceptions: Exceptions
+    overrides_file: str
+    corners: dict[str, dict[str, str]]
+    posts: dict[tuple[int, str, str], str]
+    out: Layer = field(default_factory=Layer)
+    bad: list[str] = field(default_factory=list)
+    used: set[object] = field(default_factory=set)       # crossover halves' (band, node) and tracks' entry_key
+
+
+def layer(bands, runs, found: list[Track], levels: dict, split: dict, exceptions: Exceptions,
           overrides_file: str = OVERRIDES_NAME, corners: dict | None = None, posts: dict | None = None,
           data: Path | None = None) -> Layer:
     """The block layer of every band whose level `levels` ({band title: level}) holds, from `found` (name_tracks),
@@ -422,121 +454,156 @@ def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions:
     build_device_map.xover_corners) and `posts` ({(band index, switch node, leg): mast name} of the home masts,
     mast_plan.home_posts: a link a mast faces from its own switch joins the OS block at its other end, masted_block).
     BlockError on a track the layer cannot place or a layer that breaks its invariants (check)."""
-    corners, posts = corners or {}, posts or {}
+    b = _Build(exceptions, overrides_file, corners or {}, posts or {})
     sheet = sheet_of(bands, levels, data)
     by_edge = {}
     for t in found:
         for sid in t["strands"]:
             by_edge[(sheet[t["band"]], edge_key(bands[t["band"]][1]["strands"][sid]["edge"]))] = t
-    out, bad, used = Layer(), [], set()
     for bi, (title, band, _o) in enumerate(bands):
         level = mr.band_level(title, levels)
         if not level:
             continue
-        nodes = band["nodes"]
-        pairs = crossover_pairs(band)
-        os_ = {}
-        for n, d in nodes.items():
-            if d["kind"] in ("switch", "dx"):
-                own = exceptions.halves.get((bi, n))
-                os_[n] = own[0] if own else f"OS Switch {base(d['label'])}"
-                if own:
-                    used.add((bi, n))
-                out.cm[os_[n]] = 0.0
-                if d["kind"] == "dx":           # its corner blocks, which a link may be part of: 0 cm as well
-                    out.cm.update({b: 0.0 for b in corners.get(base(d["label"]), {}).values()})
-        for n, m in sorted(pairs.items()):
-            if ((bi, n) in exceptions.halves) != ((bi, m) in exceptions.halves) or \
-                    ((bi, n) in exceptions.halves and os_[n] == os_[m]):
-                bad.append(f"level {level}: crossover {base(nodes[n]['label'])}: give both halves an OS block of "
-                           f"their own in {overrides_file}, or neither")
+        os_ = _os_blocks(b, bi, band, level)
         halves = loop_halves(band, runs, split.get(sheet[bi], {}))
-        blocks, rows = {}, {}
+        blocks: dict[str, list[str]] = {}
+        rows: dict[str, list[str]] = {}
         for sid, st in band["strands"].items():
             t = by_edge.get((sheet[bi], edge_key(st["edge"])))
-            ends = [x for x in (st["src"][0], st["dst"][0]) if nodes[x]["kind"] in ("switch", "dx")]
-            if t is None:           # inside a crossover (its halves lettered A and B, or staging's 7, 23 and 35)
-                links = [x for x in (st["src"][0], st["dst"][0]) if nodes[x].get("sub") == "link"]
-                if not ends or len(ends) + len(links) != 2 or len({base(nodes[x]["label"]) for x in ends}) != 1:
-                    bad.append(f"level {level}: strand {sid} ({st['edge']}) on {title!r} is on no track and inside "
-                               "no crossover")
-                    continue
-                if len(ends) == 2 and os_[ends[0]] != os_[ends[1]]:
-                    continue        # between two halves with blocks of their own: drawn inside the crossover
-                blocks[sid] = rows[sid] = [os_[ends[0]]]
+            if t is None:
+                _crossover_inside(b, sid, st, band["nodes"], os_, level, title, blocks, rows)
                 continue
-            h = halves.get(sid)
-            name = half_block(bi, t, sid, h, halves)
-            held = out.tracks.get(name)
-            if held is not None and held != (t, h) and held[0]["level"] == t["level"]:
-                bad.append(f"level {level}: {name} names two blocks ({', '.join(held[0]['trial'])} and "
-                           f"{', '.join(t['trial'])})")
-                continue
-            out.tracks[name] = (t, h)
-            out.cm[name] = round(t["cm"] / 2, 1) if h else t["cm"]
-            ex = exceptions.tracks.get(id(t))
-            at_end = {v: node for (node, _p), (k, v) in zip(t["legs"], t["ends"]) if k == "sw"}
-            ends = end_blocks(t, nodes, os_, corners, level, bad)
-            if ex:
-                if h:
-                    lines = ", ".join(str(x[1]) for x in ex.values())
-                    bad.append(f"level {level}: {t['name']} is split in halves and given to OS blocks in "
-                               f"{overrides_file} (lines {lines}): one or the other")
-                    continue
-                pieces = exception_pieces(t, ex, name, ends, overrides_file, bad)   # from switch_a's end
-                if pieces is None:
-                    continue
-                if st["src"][0] != at_end[min(at_end, key=natural)]:                # from the strand's first end
-                    pieces = pieces[::-1]
-                for row, block, line, cm in pieces:
-                    if line in exceptions.inside:               # inside its OS block: no part, no JMRI block
-                        out.inside[row] = block
-                    elif line:
-                        out.parts[row] = dict(part_of=block, level=level, track=t, cm=cm,
-                                              why=f"{overrides_file} line {line}")
-                    else:                                       # the rest of the track, its own block
-                        out.cm[name] = cm
-                if all(line for _r, _b, line, _c in pieces):    # no piece left to the track's own block
-                    out.tracks.pop(name, None)
-                    out.cm.pop(name, None)
-                blocks[sid] = [b for _r, b, _l, _c in pieces]
-                rows[sid] = [b if line in exceptions.inside else r for r, b, line, _c in pieces]
-                used.add(id(t))
-                continue
-            if is_link(t):
-                masts = {v: posts[(bi, node, port)] for (node, port), (k, v) in zip(t["legs"], t["ends"])
-                         if k == "sw" and (bi, node, port) in posts}
-                block, why = masted_block(t, ends, masts, level, overrides_file, bad)
-                if why is None:
-                    continue
-                if block is None:
-                    bad.append(f"level {level}: the link {t['name']} has neither end switch "
-                               f"({', '.join(sorted(ends, key=natural))}) with an OS block on {title!r}")
-                    continue
-                held = out.parts.get(t["name"])
-                if held is not None and held["part_of"] != block:     # drawn on two bands, across a connector
-                    bad.append(f"level {level}: the link {t['name']} is given {held['part_of']} on one band and "
-                               f"{block} on {title!r}; give it one in {overrides_file}")
-                    continue
-                out.parts[t["name"]] = dict(part_of=block, level=level, track=t, cm=t["cm"],
-                                            why=f"the rule: under {LINK_CM:g} cm between two switches, so in the "
-                                                + why)
-                out.tracks.pop(name, None)
-                out.cm.pop(name, None)
-                blocks[sid], rows[sid] = [block], [t["name"]]
-                continue
-            blocks[sid] = rows[sid] = [name]
-        out.bands[bi] = {"os": os_, "blocks": blocks}
-        out.rows[bi] = rows
-    unused = sorted(line for key, (block, line) in exceptions.halves.items() if key not in used)
-    unused += sorted(line for key, got in exceptions.tracks.items() if key not in used
-                     for _b, line, _cm in got.values())
+            got = _track_strand(b, bi, sid, st, t, halves.get(sid), halves, band["nodes"], os_, level, title)
+            if got is not None:
+                blocks[sid], rows[sid] = got
+        b.out.bands[bi] = {"os": os_, "blocks": blocks}
+        b.out.rows[bi] = rows
+    unused = sorted(line for key, (block, line) in exceptions.halves.items() if key not in b.used)
+    unused += sorted(line for key, given in exceptions.tracks.items() if key not in b.used
+                     for _b, line, _cm in given.values())
     if unused:
-        bad.append(f"{overrides_file} line(s) {', '.join(map(str, sorted(unused)))} match nothing drawn")
-    bad += check(bands, out, levels, found, corners)
-    if bad:
-        raise BlockError("; ".join(bad))
-    return out
+        b.bad.append(f"{overrides_file} line(s) {', '.join(map(str, sorted(unused)))} match nothing drawn")
+    b.bad += check(bands, b.out, levels, found, corners)
+    if b.bad:
+        raise BlockError("; ".join(b.bad))
+    return b.out
+
+
+def _os_blocks(b: _Build, bi: int, band: dict, level: int) -> dict[str, str]:
+    """{switch node: OS block} of band `bi`: "OS Switch <n>", or a crossover half's own block (crossover_half rows),
+    each at 0 cm, a double crossover's corner blocks too; a single crossover with only one half given is a problem."""
+    nodes = band["nodes"]
+    os_: dict[str, str] = {}
+    for n, d in nodes.items():
+        if d["kind"] in ("switch", "dx"):
+            own = b.exceptions.halves.get((bi, n))
+            os_[n] = own[0] if own else f"OS Switch {base(d['label'])}"
+            if own:
+                b.used.add((bi, n))
+            b.out.cm[os_[n]] = 0.0
+            if d["kind"] == "dx":           # its corner blocks, which a link may be part of: 0 cm as well
+                b.out.cm.update({c: 0.0 for c in b.corners.get(base(d["label"]), {}).values()})
+    halves = b.exceptions.halves
+    for n, m in sorted(crossover_pairs(band).items()):
+        if ((bi, n) in halves) != ((bi, m) in halves) or ((bi, n) in halves and os_[n] == os_[m]):
+            b.bad.append(f"level {level}: crossover {base(nodes[n]['label'])}: give both halves an OS block of "
+                         f"their own in {b.overrides_file}, or neither")
+    return os_
+
+
+def _crossover_inside(b: _Build, sid: str, st: dict, nodes: dict, os_: dict[str, str], level: int, title: str,
+                      blocks: dict[str, list[str]], rows: dict[str, list[str]]) -> None:
+    """A strand on no track: inside a crossover (its halves lettered A and B, or staging's 7, 23 and 35), in its
+    OS block, or drawn between two halves with blocks of their own (then in none); anything else is a problem."""
+    ends = [x for x in (st["src"][0], st["dst"][0]) if nodes[x]["kind"] in ("switch", "dx")]
+    links = [x for x in (st["src"][0], st["dst"][0]) if nodes[x].get("sub") == "link"]
+    if not ends or len(ends) + len(links) != 2 or len({base(nodes[x]["label"]) for x in ends}) != 1:
+        b.bad.append(f"level {level}: strand {sid} ({st['edge']}) on {title!r} is on no track and inside "
+                     "no crossover")
+        return
+    if len(ends) == 2 and os_[ends[0]] != os_[ends[1]]:
+        return              # between two halves with blocks of their own: drawn inside the crossover
+    blocks[sid] = rows[sid] = [os_[ends[0]]]
+
+
+def _track_strand(b: _Build, bi: int, sid: str, st: dict, t: Track, h: int | None, halves: dict, nodes: dict,
+                  os_: dict[str, str], level: int, title: str) -> tuple[list[str], list[str]] | None:
+    """(blocks, row names) of strand `sid` of track `t` (half `h` of a loop or split track, or None): the track's
+    own block, the OS blocks block_overrides.csv gives its pieces, or the OS block a link is part of. None, with the
+    problem in b.bad, when the strand cannot be placed."""
+    out = b.out
+    name = half_block(bi, t, sid, h, halves)
+    held = out.tracks.get(name)
+    if held is not None and held != (t, h) and held[0]["level"] == t["level"]:
+        b.bad.append(f"level {level}: {name} names two blocks ({', '.join(held[0]['trial'])} and "
+                     f"{', '.join(t['trial'])})")
+        return None
+    out.tracks[name] = (t, h)
+    out.cm[name] = round(t["cm"] / 2, 1) if h else t["cm"]
+    ex = b.exceptions.tracks.get(mr.entry_key(t))
+    ends = end_blocks(t, nodes, os_, b.corners, level, b.bad)
+    if ex:
+        return _given_pieces(b, st, t, h, ex, name, ends, level)
+    if is_link(t):
+        return _link_part(b, bi, t, name, ends, level, title)
+    return [name], [name]
+
+
+def _given_pieces(b: _Build, st: dict, t: Track, h: int | None, ex: dict[str, OsGift], name: str,
+                  ends: dict, level: int) -> tuple[list[str], list[str]] | None:
+    """The blocks and row names of a track block_overrides.csv gives to OS blocks (exception_pieces), its parts and
+    `inside` pieces recorded in the layer; None, with the problem in b.bad, for a split track given to OS blocks."""
+    out = b.out
+    if h:
+        lines = ", ".join(str(x[1]) for x in ex.values())
+        b.bad.append(f"level {level}: {t['name']} is split in halves and given to OS blocks in "
+                     f"{b.overrides_file} (lines {lines}): one or the other")
+        return None
+    pieces = exception_pieces(t, ex, name, ends, b.overrides_file, b.bad)   # from switch_a's end
+    if pieces is None:
+        return None
+    at_end = {v: node for (node, _p), (k, v) in zip(t["legs"], t["ends"]) if k == "sw"}
+    if st["src"][0] != at_end[min(at_end, key=natural)]:                # from the strand's first end
+        pieces = pieces[::-1]
+    for row, block, line, cm in pieces:
+        if line in b.exceptions.inside:             # inside its OS block: no part, no JMRI block
+            out.inside[row] = block
+        elif line:
+            out.parts[row] = Part(part_of=block, level=level, track=t, cm=cm, why=f"{b.overrides_file} line {line}")
+        else:                                       # the rest of the track, its own block
+            out.cm[name] = cm
+    if all(line for _r, _b, line, _c in pieces):    # no piece left to the track's own block
+        out.tracks.pop(name, None)
+        out.cm.pop(name, None)
+    b.used.add(mr.entry_key(t))
+    return ([blk for _r, blk, _l, _c in pieces],
+            [blk if line in b.exceptions.inside else r for r, blk, line, _c in pieces])
+
+
+def _link_part(b: _Build, bi: int, t: Track, name: str, ends: dict, level: int, title: str
+               ) -> tuple[list[str], list[str]] | None:
+    """The OS block link `t` is part of (masted_block), recorded as a part; None, with the problem in b.bad, when
+    neither end has an OS block on the band or the link is given two blocks across a connector."""
+    out = b.out
+    masts = {v: b.posts[(bi, node, port)] for (node, port), (k, v) in zip(t["legs"], t["ends"])
+             if k == "sw" and (bi, node, port) in b.posts}
+    block, why = masted_block(t, ends, masts, level, b.overrides_file, b.bad)
+    if why is None:
+        return None
+    if block is None:
+        b.bad.append(f"level {level}: the link {t['name']} has neither end switch "
+                     f"({', '.join(sorted(ends, key=natural))}) with an OS block on {title!r}")
+        return None
+    held = out.parts.get(t["name"])
+    if held is not None and held["part_of"] != block:     # drawn on two bands, across a connector
+        b.bad.append(f"level {level}: the link {t['name']} is given {held['part_of']} on one band and "
+                     f"{block} on {title!r}; give it one in {b.overrides_file}")
+        return None
+    out.parts[t["name"]] = Part(part_of=block, level=level, track=t, cm=t["cm"],
+                                why=f"the rule: under {LINK_CM:g} cm between two switches, so in the " + why)
+    out.tracks.pop(name, None)
+    out.cm.pop(name, None)
+    return [block], [t["name"]]
 
 
 def exception_pieces(t, ex: dict, own: str, ends: dict, where: str, bad: list) -> list | None:
@@ -622,7 +689,7 @@ def check(bands, lay: Layer, levels: dict, found: list[dict], corners: dict | No
                 bad.append(f"level {level}: strand {sid} of a track is in no block")
     for name, (t, h) in lay.tracks.items():
         key = (t["level"], name)
-        if owners.setdefault(key, id(t)) != id(t):
+        if owners.setdefault(key, mr.entry_key(t)) != mr.entry_key(t):
             bad.append(f"level {t['level']}: {name} names two tracks")
         names = {plan_name(t, t["band"], sid) for sid in t["strands"]} - {""}
         if len(names) > 1 and h is None:

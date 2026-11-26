@@ -186,7 +186,7 @@ def apply_host_screen(opts, data=DATA):
         map_revision.page_prefs(data)                   # stops on a sheet.preferences.json beside it
         sections = layer_files.read_file("preferences", data)
     except ValueError as exc:                           # LayerFileError is one
-        raise host_screen.HostScreenError(f"the page's preferences: {exc}") from None
+        raise host_screen.HostScreenError(f"the page's preferences: {exc}") from exc
     return host_screen.apply(opts, sections, map_revision.PAGE_SHEET)
 
 

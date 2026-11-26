@@ -207,8 +207,8 @@ def clock_set(root, pairs: dict[str, str]) -> str:
         if key in CLOCK_RATES:     # JMRI writes a Java double: "2" is "2.0"
             try:
                 number = float(value)
-            except ValueError:
-                raise EditError(f"{key} is a number, not {value!r}") from None
+            except ValueError as exc:
+                raise EditError(f"{key} is a number, not {value!r}") from exc
             if not math.isfinite(number) or number <= 0:
                 raise EditError(f"{key} must be a number above zero, not {value!r}")
             value = repr(number)

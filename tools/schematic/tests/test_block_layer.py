@@ -1,6 +1,6 @@
 """block_layer.py, the one block process of every level, and build_device_map.staging_rows, which writes staging's
 block and occupancy rows from it: the rule, block_overrides.csv's rows and stops, and the invariants (level
-unification step 5 part 1, owner 2026-11-20). Runs over the committed drawing (needs the plugin; skipped without it,
+unification step 5 part 1). Runs over the committed drawing (needs the plugin; skipped without it,
 failing with SCHEMATIC_REQUIRED=1); every write goes to a temporary folder."""
 from __future__ import annotations
 
@@ -22,10 +22,10 @@ from repo_read_only import RepoReadOnly  # noqa: E402
 
 HEAD = ",".join(BL.mr.OVERRIDE_COLUMNS) + "\n"
 # a piece of track at one end inside an OS block, its length given (the row OS Switch 7 had until step 5 part 2);
-# the OS block by its device ID (naming-layers step 5)
+# the OS block by its device ID
 SCALE_AT_7 = "1,track,5,7,2,7,os:7:A-13C,23,,a test row\n"
 # the 25 main and upper links (tracks between two switches under LINK_CM), each in the lower-numbered switch's OS
-# block (owner, 2026-11-20: LINK_CM 50 on every level; at a double crossover the corner block of its leg), but where a
+# block (LINK_CM 50 on every level; at a double crossover the corner block of its leg), but where a
 # home mast stands at a switch's points facing the link: then in the OS block at its other end (125-129, 201-205,
 # 227-231, 229-233 for Masts 126RB, 202R, 228RA and 230LB; owner, 2026-11-20: the block boundary is at the mast)
 MAIN_UPPER_LINKS = {
@@ -132,7 +132,7 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         self.assertNotIn("Track 1-3", lay.tracks)
 
     def test_a_piece_marked_inside_stays_in_its_os_block_with_no_block_of_its_own(self):
-        """block_overrides.csv's `inside` (owner, 2026-11-20): the two halves of 35-39 stay inside OS Switch 35b and
+        """block_overrides.csv's `inside`: the two halves of 35-39 stay inside OS Switch 35b and
         OS Switch 39, with no JMRI or layout block, so Mast 36RB's route to Mast 68 is 3 blocks, not 5; every other
         part follows the rule (a JMRI block of its own)."""
         lay = self.layer()
@@ -320,7 +320,7 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
 
     def test_a_track_is_named_by_its_id_not_by_the_drawing(self):
         """The drawn strand names are not read: a strand renamed on the drawing keeps the store's name, and a rename
-        in the store is the block's name (naming-layers step 3b)."""
+        in the store is the block's name."""
         import copy
         bands = copy.deepcopy(self.bands)
         bi = next(i for i, (t, _b, _o) in enumerate(bands) if self.levels.get(t) == 1)
@@ -355,7 +355,7 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
 
     def test_a_track_cut_by_the_level_split_is_one_block_by_the_ordinary_rule(self):
         """A helix track arrives as two pieces, staging's and main or upper's, cut at the level split; both carry its
-        one plan name, so the ordinary rule names them one block, "Track <plan name>" (owner, 2026-11-21)."""
+        one plan name, so the ordinary rule names them one block, "Track <plan name>"."""
         found = bdm.named_tracks(self.bands, self.joined, self.runs)
         by_name = {}
         for t in self.found + found:
@@ -513,7 +513,7 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
 
     def test_a_line_blocks_cp_is_the_rule_not_the_owners(self):
         """A line block's cp (and its sensor's, its block's) lists the stations of the switches at its ends, plus a
-        station whose tracks name it (owner, 2026-11-21): written by the rule on every build, so a cp in its field
+        station whose tracks name it: written by the rule on every build, so a cp in its field
         row does not stand (and the write would refuse to override it: devices.unmerge)."""
         def edit(rows):
             for r in rows:
@@ -592,7 +592,7 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         part = by[("block", "Track East Lead")]
         self.assertEqual((part["role"], part["part_of"], part["assignment"]), ("part", "OS Switch 33", "virtual"))
         self.assertEqual(part["cp"], "East End;Princess")                  # its ends, Switches 33 and 35
-        # a JMRI block of its own (owner, 2026-11-20) under new names, the next free number: not the old block's
+        # a JMRI block of its own under new names, the next free number: not the old block's
         self.assertRegex(part["jmri_name"] + " " + part["layout_block"], r"^IB:AUTO:00(\d\d) ILB\1$")
         self.assertNotIn(("occupancy", "BS East Lead"), by)
         spare = by[("occupancy", "unused Block 1-7")]
@@ -600,7 +600,7 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
                          ("spare", "spare", "M2S106", ""))
         # the master takes it and reads it back as written, and the next build over it gives the same rows
         wired = bdm.staging_wired_rows(files)
-        # staging's masts and heads are the builder's too (naming-layers step 12): kept as they are here
+        # staging's masts and heads are the builder's too: kept as they are here
         field = devices.field_index(files)          # the owner's cells over them (the merged view is broken here)
         masts = [{**r, **{c: v for c, v in field.get(devices.key_of(r), {}).items() if c in devices.FIELD_COLUMNS and v}}
                  for r in devices.generated_rows(files) if r["level"] == "1" and r["layer"] in ("mast", "head")
@@ -637,7 +637,7 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
 
     def test_a_field_row_whose_id_is_gone_stops_naming_the_row(self):
         """Decision 3: a field row whose id the plan no longer gives names no row; the build stops and lists it
-        (the drawn block with no field row of its id is generated, naming-layers step 7)."""
+        (the drawn block with no field row of its id is generated)."""
         def edit(rows):
             next(r for r in rows if r["id"] == "os:9")["id"] = "os:99"
             return rows

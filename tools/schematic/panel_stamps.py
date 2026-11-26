@@ -118,7 +118,7 @@ def steps() -> dict[str, Step]:
         try:
             listed = manifest.panel_steps()
         except manifest.ManifestError as err:
-            raise StepsError(str(err)) from None
+            raise StepsError(str(err)) from err
         found = {s.name: Step(tuple(o.path for o in s.outputs), s.publishes, {p: tuple(g) for p, g in s.programs})
                  for s in listed if s.mode == "step"}
         if not found:

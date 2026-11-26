@@ -155,5 +155,45 @@ class SiteTest(unittest.TestCase):
         self.assertIn("ffmpeg not found", str(e.exception))
 
 
+class Failures(unittest.TestCase):
+    """git, Chrome and the command line stop with a message, not a traceback or a silent fallback."""
+
+    def test_a_git_failure_names_git_and_its_message(self):
+        done = evolution.subprocess.CompletedProcess([], 128, "", "fatal: bad revision")
+        with mock.patch.object(evolution.subprocess, "run", return_value=done), \
+                self.assertRaisesRegex(evolution.EvolutionError, "git show x failed .exit 128.: fatal: bad revision"):
+            evolution.git("show", "x")
+
+    def test_a_missing_spike_ref_says_how_to_fetch_it(self):
+        done = evolution.subprocess.CompletedProcess([], 128, "", "unknown revision")
+        with mock.patch.object(evolution.subprocess, "run", return_value=done), \
+                self.assertRaisesRegex(evolution.EvolutionError, "run git fetch origin") as caught:
+            evolution.versions()
+        self.assertIsInstance(caught.exception.__cause__, evolution.EvolutionError)
+
+    def test_chrome_that_makes_no_image_stops(self):
+        done = evolution.subprocess.CompletedProcess([], 1, "", "crashed")
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(evolution, "CHROME", __file__), \
+                mock.patch.object(evolution.subprocess, "run", return_value=done) as run, \
+                self.assertRaisesRegex(evolution.EvolutionError, "Chrome made no image of a.svg .exit 1.: crashed"):
+            evolution.render(Path(tmp) / "a.svg", Path(tmp) / "a.png")
+        self.assertEqual(run.call_count, 1)         # no second try with sips
+
+    def test_the_command_line(self):
+        self.assertTrue(evolution.parse_args(["--check"]).check)
+        self.assertEqual(evolution.parse_args(["out"]).folder, Path("out"))
+        for bad in (["--check", "out"], ["--site", "--check"], ["--nope"], ["a", "b"]):
+            with self.subTest(bad), contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as e:
+                evolution.parse_args(bad)
+            self.assertEqual(e.exception.code, 2)
+
+    def test_an_error_is_an_exit_1_with_its_message(self):
+        err = io.StringIO()
+        with mock.patch.object(evolution, "check", side_effect=evolution.EvolutionError("git failed")), \
+                contextlib.redirect_stderr(err):
+            self.assertEqual(evolution.run_cli(["--check"]), 1)
+        self.assertEqual(err.getvalue(), "evolution.py: git failed\n")
+
+
 if __name__ == "__main__":
     unittest.main()

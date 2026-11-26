@@ -113,7 +113,7 @@ def _read(path: Path) -> bytes:
     try:
         return path.read_bytes()
     except OSError as exc:
-        raise Stop(f"{path}: cannot read it ({exc.strerror})") from None
+        raise Stop(f"{path}: cannot read it ({exc.strerror})") from exc
 
 
 # ---------------------------------------------------------------- the plan
@@ -139,7 +139,7 @@ def make_plan(store_path: Path, args) -> tuple[ss.Plan, dict]:
         )
         p = ss.plan(roots["base"], roots["repo"], roots["store"], roots["template"], rows)
     except (ss.SplitError, tb.TablesBuildError, devices.DevicesError) as exc:
-        raise Stop(str(exc)) from None
+        raise Stop(str(exc)) from exc
     return p, dict(roots=roots, rows=rows, template_doc=template_doc, base_what=base_what,
                    store_sha=sha256(store_bytes))
 
@@ -285,7 +285,7 @@ def main(argv: list[str] | None = None) -> int:
         try:
             ss.check_choices(p, choices)
         except ss.SplitError as exc:
-            raise Stop(str(exc)) from None
+            raise Stop(str(exc)) from exc
         return apply(args.store, p, ctx, choices)
     except Stop as exc:
         print(f"split_store: {exc}", file=sys.stderr)

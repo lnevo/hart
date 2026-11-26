@@ -1,6 +1,6 @@
 """cats_panel.py's bound level (staging): switches.csv and the cats_discipline blocks bound into the desk's
-switches, OS blocks, blocks and masts, with the shapes of cats_panel_shapes.py. Moved out of cats_panel.py
-unchanged; cats_panel.py re-exports every name."""
+switches, OS blocks, blocks and masts, with the shapes of cats_panel_shapes.py; cats_panel.py re-exports every
+name."""
 import re
 import sys
 from collections import Counter
@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from hartlib.railroad_facts import half_text  # noqa: E402
 from hartlib.cats import station_plate  # noqa: E402
 
-from cats_panel_facts import template_by_type  # noqa: E402
+from cats_panel_facts import CatsPanelError, template_by_type  # noqa: E402
 from cats_panel_shapes import (STAGING_DISCIPLINE, STAGING_SENSOR_PREFIX, STAGING_TURNOUT_PREFIX,  # noqa: E402
                                block_entry, legs_of, mast_template, occupancy_spec, turnout_routes)
 
@@ -20,8 +20,8 @@ from cats_panel_shapes import (STAGING_DISCIPLINE, STAGING_SENSOR_PREFIX, STAGIN
 def switch_of(F, d):
     try:
         return F.switches[int(d["label"])]
-    except (KeyError, ValueError):
-        raise SystemExit(f"switch {d.get('label')!r} on the staging band is not in switches.csv") from None
+    except (KeyError, ValueError) as exc:
+        raise CatsPanelError(f"switch {d.get('label')!r} on the staging band is not in switches.csv") from exc
 
 
 def staging_names(band, data) -> dict:
@@ -32,7 +32,7 @@ def staging_names(band, data) -> dict:
     try:
         return sdm.staging_names(band, data)
     except sdm.StagingMapError as exc:
-        raise SystemExit(f"the staging track names: {exc}") from None
+        raise CatsPanelError(f"the staging track names: {exc}") from exc
 
 
 def os_blocks(band, F, stored):
@@ -56,20 +56,20 @@ def os_blocks(band, F, stored):
             mates = [m for m in sw_nodes if sw_nodes[m]["label"] == d["label"]]
             left = [leg.os_block for leg in sw.legs if leg.os_block not in {os_of.get(m) for m in mates}]
             if len(left) != 1:
-                raise SystemExit(f"switch {d['label']}: cannot tell which of {[l.os_block for l in sw.legs]} "
+                raise CatsPanelError(f"switch {d['label']}: cannot tell which of {[l.os_block for l in sw.legs]} "
                                  f"node {n} is from switches.csv")
             os_of[n] = left[0]
     seen = {}
     for n, os_name in sorted(os_of.items()):
         if os_name in seen:
-            raise SystemExit(f"switch nodes {seen[os_name]} and {n} would both be {os_name}")
+            raise CatsPanelError(f"switch nodes {seen[os_name]} and {n} would both be {os_name}")
         seen[os_name] = n
     return os_of
 
 
 def track_block(name, helix) -> str:
     """The block of a staging track the plan names `name`: a helix track's helix block (`helix`, {plan name: block},
-    Facts.helix: one block up the helix, owner 2026-11-20), any other "Track <name>"."""
+    Facts.helix: one block up the helix), any other "Track <name>"."""
     return helix.get(name) or "Track " + name
 
 
@@ -93,17 +93,17 @@ def dest(band, os_of, n, port, helix, stored):
         if len(onward) != 1:
             break
         sid, here = onward[0], nxt
-    raise SystemExit(f"switch {nodes[n]['label']} leg {port}: the track from it reaches no named track or switch")
+    raise CatsPanelError(f"switch {nodes[n]['label']} leg {port}: the track from it reaches no named track or switch")
 
 
 def half_label(sw, leg, letters):
     """The panel label of one half of a switch with several OS blocks (a crossover): its number and the half's letter,
     upper case (23A, 23B), by its OS block's device ID (leg.os_id) from `letters` ({(level, id): letter},
     hartlib.hand_lists.half_letters: block_overrides.csv's crossover_half rows), never from its name, so the owner may
-    rename the half (devices_field.csv). SystemExit on a half with no letter there."""
+    rename the half (devices_field.csv). CatsPanelError on a half with no letter there."""
     own = letters.get((sw.level, leg.os_id))
     if own is None:
-        raise SystemExit(f"Switch {sw.number}: {leg.os_block} ({leg.os_id or 'no OS block ID'}) has no crossover_half "
+        raise CatsPanelError(f"Switch {sw.number}: {leg.os_block} ({leg.os_id or 'no OS block ID'}) has no crossover_half "
                          "row in block_overrides.csv to give its half letter")
     return f"{sw.number}{own.upper()}"
 
@@ -140,12 +140,12 @@ def switch_bindings(band, F, os_of, stored):
         leg = next(l for l in sw.legs if l.os_block == os_of[n])
         to = {p: dest(band, os_of, n, p, F.helix, stored) for p in "BC"}
         if sorted(to.values()) != sorted((leg.closed, leg.thrown)):
-            raise SystemExit(f"{leg.os_block}: the schematic's legs lead to {to}, but switches.csv says "
+            raise CatsPanelError(f"{leg.os_block}: the schematic's legs lead to {to}, but switches.csv says "
                              f"closed {leg.closed}, thrown {leg.thrown}")
         closed = next(p for p in "BC" if to[p] == leg.closed)
         thrown = "C" if closed == "B" else "B"
         if sw.le_ident not in F.turnout_io:
-            raise SystemExit(f"Switch {sw.number}: no {STAGING_TURNOUT_PREFIX} turnout for {sw.le_ident}")
+            raise CatsPanelError(f"Switch {sw.number}: no {STAGING_TURNOUT_PREFIX} turnout for {sw.le_ident}")
         addr, uname = F.turnout_io[sw.le_ident]
         key = d["label"] if labels[d["label"]] == 1 else f"{d['label']}/{d['alias']}"
         out[key] = {
@@ -171,7 +171,7 @@ def block_bindings(band, F, names, stored):
             s = strands.get(sid) if sid else None
             ends = [nodes[e[0]] for e in (s["src"], s["dst"])] if s else []
             if not s or stored.get(sid) or not all(d["kind"] == "switch" for d in ends):
-                raise SystemExit(f"block {name}: no JMRI block {name} or Track {name} in the CATS bindings / "
+                raise CatsPanelError(f"block {name}: no JMRI block {name} or Track {name} in the CATS bindings / "
                                  "tables.xml, and it is not a short unnamed track between two switches")
             a, b = (switch_of(F, d).le_ident for d in ends)
             out[name] = {"name": F.layout.block_between(a, b, f"block {name}")}
@@ -192,10 +192,10 @@ def mast_bindings(opts, F):
         if sg["kind"] == "virtual":
             continue
         if sg["mast"] in out:
-            raise SystemExit(f"mast {sg['mast']} is listed twice in the staging signals")
+            raise CatsPanelError(f"mast {sg['mast']} is listed twice in the staging signals")
         name = opts.get("mast_prefix", "") + sg["mast"]
         template = mast_template(name, F, by_type)
         if name not in F.masts or template is None:
-            raise SystemExit(f"{name}: not a JMRI mast, or no template for its type in signal_head_plan.csv")
+            raise CatsPanelError(f"{name}: not a JMRI mast, or no template for its type in signal_head_plan.csv")
         out[sg["mast"]] = {"name": name, "template": template}
     return out

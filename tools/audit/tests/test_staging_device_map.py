@@ -110,8 +110,6 @@ class Pure(unittest.TestCase):
         got = {k: v[0] for k, v in sdm.band_refs(bands, joined, 0).items()}
         self.assertEqual(got, {"e1": "121AB-125BC", "e2": "225D-229A", "e3": "121AC-127BA"})
         self.assertEqual({k: v[0] for k, v in sdm.band_refs(bands, joined, 1).items()}, {"e9": "121AC-127BA"})
-        self.assertLess(sdm._end_order("101BA"), sdm._end_order("111C"))
-        self.assertLess(sdm._end_order("121AC"), sdm._end_order("121BA"))
         with self.assertRaisesRegex(sdm.StagingMapError, "connector L: a run ends at it"):
             sdm.piece_refs(b)
         with self.assertRaisesRegex(sdm.StagingMapError, "connector L is joined to no other band"):

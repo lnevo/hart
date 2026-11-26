@@ -185,7 +185,7 @@ class CommittedData(RepoReadOnly, unittest.TestCase):
             self.assertEqual(path.read_bytes(), data, path.name)
 
     def test_build_writes_masts_csv_alone(self):
-        """The device master's mast and head rows are build_device_map.py's (naming-layers step 12)."""
+        """The device master's mast and head rows are build_device_map.py's."""
         self.assertEqual(set(self.want), {bsm.MASTS})
         self.assertNotIn(bsm.WRITER, devices.WRITERS)
 
@@ -218,7 +218,7 @@ class CommittedData(RepoReadOnly, unittest.TestCase):
             bsm.current(master, [dict(r, user_name="Mast 99L") for r in some])
 
     def test_an_anchor_mast_on_any_level_protects_an_os_block(self):
-        """One anchor rule on every level (owner, 2026-11-23): a home mast at no switch is an anchor mast, on main and
+        """One anchor rule on every level: a home mast at no switch is an anchor mast, on main and
         upper too, and it must protect an OS block of its level."""
         master = list(devices.load(bsm.device_files()))
         home = next(r for r in master if r["level"] == "2" and r["layer"] == "mast" and r["role"] == "home")

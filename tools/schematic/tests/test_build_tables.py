@@ -192,7 +192,7 @@ class Skipped(unittest.TestCase):
 
 
 class ReviewFlagRetired(unittest.TestCase):
-    """--review skipped the staging fingerprint, retired with the staging guard (owner, 2026-11-22)."""
+    """--review skipped the staging fingerprint, retired with the staging guard."""
 
     def test_review_is_no_option(self):
         with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as stop:

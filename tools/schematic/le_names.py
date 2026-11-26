@@ -73,7 +73,7 @@ def runs(band, skip=()):
 
 def staging_lengths(names: dict, plan_inches: dict | None = None) -> dict:
     """{block: inches} of every staging block the schematic draws, from block_lengths.csv's plan_in (the AnyRail plan
-    5.3c, tools/schematic/plan_lengths.py; owner, 2026-11-20): the plugin cuts a track of several blocks at their
+    5.3c, tools/schematic/plan_lengths.py): the plugin cuts a track of several blocks at their
     plan shares (the Scale track ends in OS Switch 7, which is drawn its turnout's length). BuildError on a drawn
     block with no plan length."""
     plan_inches = plan_lengths() if plan_inches is None else plan_inches
@@ -92,7 +92,7 @@ def plan_lengths() -> dict:
     try:
         return block_lengths.plan_lengths()
     except railroad.FactsError as exc:
-        raise BuildError(f"block_lengths.csv: {exc}") from None
+        raise BuildError(f"block_lengths.csv: {exc}") from exc
 
 
 MM_PER_INCH = 25.4
@@ -109,7 +109,7 @@ def read_level_masts(path: Path = MASTS) -> list[dict]:
     try:
         rows = level_masts_lib.read(path, levels=ADDED_LEVELS)
     except ValueError as exc:
-        raise BuildError(str(exc)) from None      # hartlib names the file and the line itself
+        raise BuildError(str(exc)) from exc      # hartlib names the file and the line itself
     swapped = {h for r in rows for h, planned in zip(level_masts_lib.mast_heads(r["system_name"]),
                                                       level_masts_lib.mast_heads(r["device_system_name"]))
                if h == planned and level_masts_lib.WIRED_HEAD.fullmatch(h)}
@@ -129,7 +129,7 @@ def lcos_rule():
     try:
         src = coordinator.source()
     except coordinator.CoordinatorError as exc:
-        raise BuildError(str(exc)) from None
+        raise BuildError(str(exc)) from exc
     parts = []
     for name in ("_LCOS_SIGNAL_UID_MIN", "_LCOS_SIGNAL_UID_MAX", "_HEAD_IN_MAST"):
         m = re.search(rf"^{name} = .*$", src, re.M)
@@ -170,7 +170,7 @@ def level_masts(names: dict, rows: list[dict], skip: set) -> None:
         if level_masts_lib.is_level_virtual(r["system_name"]):    # a hidden destination mast at a buffer stop
             where = [k for k, v in names.items() if k not in skip
                      and r["facing"] in {b for bl in v["blocks"].values() for b in bl}]
-        elif not r["switch"]:     # an APB intermediate (owner, 2026-11-19): between two track blocks of one band
+        elif not r["switch"]:     # an APB intermediate: between two track blocks of one band
             where = [k for k, v in names.items() if k not in skip
                      and r["facing"] in {b for bl in v["blocks"].values() for b in bl}
                      and r["protects"] in {b for bl in v["blocks"].values() for b in bl}]
@@ -225,7 +225,7 @@ def placeholder_names(bands, le_mod, page=None) -> tuple[dict, dict]:
         try:
             loop_half = bdm.loop_halves(band, runs)      # a balloon loop is two blocks, parted at its turnback
         except bdm.MapError as exc:
-            raise BuildError(f"{title}: {exc}") from None
+            raise BuildError(f"{title}: {exc}") from exc
         names = dict(turnouts={}, os={}, blocks={}, xover_blocks={})
         for n, d in sorted(nodes.items()):
             if d["kind"] == "dx":
@@ -234,7 +234,7 @@ def placeholder_names(bands, le_mod, page=None) -> tuple[dict, dict]:
                     corners = le_mod.double_corners(band, n, key in (page or {}).get("rotate_bands", ()))
                     names["xover_blocks"][n] = bdm.xover_corners(bdm.base(d["label"]), corners)
                 except (bdm.MapError, le_mod.SchematicError) as exc:
-                    raise BuildError(f"{title}: {exc}") from None
+                    raise BuildError(f"{title}: {exc}") from exc
             elif d["kind"] == "switch":
                 names["turnouts"][n] = f"Switch {bare(d['label'])}"
                 names["os"][n] = "OS Switch " + re.sub(r"[AB]$", "", bare(d["label"]))
@@ -245,7 +245,7 @@ def placeholder_names(bands, le_mod, page=None) -> tuple[dict, dict]:
         try:
             refs = sdm.band_refs(bands, joined, bi)
         except sdm.StagingMapError as exc:
-            raise BuildError(f"{title}: {exc}") from None
+            raise BuildError(f"{title}: {exc}") from exc
         for start, chain, end in runs(band):
             labels = []
             for n, _ in (start, end):
@@ -278,10 +278,10 @@ def placeholder_names(bands, le_mod, page=None) -> tuple[dict, dict]:
 
 def device_names(path: Path = DEVICE_MAP) -> dict:
     """{placeholder: device-map user name} for the main and upper turnouts and blocks, parts among them: the one
-    reader of the drawing keys (hartlib.drawing_keys, keyed by device ID; naming-layers step 13) over levels 2 and 3,
+    reader of the drawing keys (hartlib.drawing_keys, keyed by device ID) over levels 2 and 3,
     each key named by its ID's row in the merged view (the owner's name, else the generated). A crossover's two halves
     are one turnout ("Switch 101A", "Switch 101B" -> "Switch 101"). A part (the device master's part_of: a link
-    inside an OS block) is a JMRI block of its own under its own name (owner, 2026-11-20), whose occupancy sensor is
+    inside an OS block) is a JMRI block of its own under its own name, whose occupancy sensor is
     its OS block's (hartlib.tables_build.master_beans). Stops on a row with no trial name, a trial name given twice,
     a part of no main or upper block row, or a generated name out of form: a turnout not named "Switch <n>" or a
     block not named "Track ..." or "OS Switch <n>". A name the owner gives in devices_field.csv is the owner's to
@@ -290,11 +290,11 @@ def device_names(path: Path = DEVICE_MAP) -> dict:
     try:
         keys = drawing_keys.read(level_devices.LEVELS, path)
     except (drawing_keys.DrawingKeyError, railroad.FactsError) as exc:
-        raise BuildError(f"{paths.rel(path)}: {exc}") from None
+        raise BuildError(f"{paths.rel(path)}: {exc}") from exc
     try:            # the rows the owner names (devices_field.csv): their names are free, as railroad's check holds
         owned = {k for k, f in devices.field_index(path).items() if f.get("user_name")}
     except railroad.FactsError as exc:
-        raise BuildError(f"{paths.rel(path)}: {exc}") from None
+        raise BuildError(f"{paths.rel(path)}: {exc}") from exc
     bad = []
     for key, r in keys.rows.items():
         form = r"Switch \d+" if r["layer"] == "turnout" else r"(Track \S.*|OS Switch \d+[a-d]?)"
@@ -367,7 +367,7 @@ def block_roles(path: Path = DEVICE_MAP) -> dict[str, str]:
     try:
         out.update((r["user_name"], r["role"]) for _line, r in devices.part_lines(("2", "3"), path))
     except railroad.FactsError as exc:
-        raise BuildError(f"the device map: {exc}") from None
+        raise BuildError(f"the device map: {exc}") from exc
     return out
 
 

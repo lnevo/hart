@@ -2,13 +2,13 @@
 
 - the committed block and occupancy rows of devices.csv, read as plain CSV: staging's row by row (name, role, control
   point, trial name; its parts: name, part_of, trial name; occupancy: blocks and detector), and every level's other
-  columns by a digest, so a change to any cell of those rows is seen. Step 5 part 1 (owner, 2026-11-20) changed only
+  columns by a digest, so a change to any cell of those rows is seen. Step 5 part 1 changed only
   this: staging's block and occupancy rows went from hand-kept to the one block builder's (written_by, left out of
   the digests), devices.csv gained part_of (left out too), staging's 14 links (and the piece of Scale in OS Switch 7)
   became part rows, and the OS blocks' trial names lost the link pieces those rows now carry. Step 5 part 2 (owner,
   2026-11-20): the piece of Scale in OS Switch 7 went (Track Scale one block), and main and upper's 25 links became
   part rows, their block and occupancy rows gone. Main and upper's trial names became switch-and-leg keys, as
-  staging's (owner, 2026-11-20), so a new export's edge ids leave every row as it is (Readers' renumber test);
+  staging's, so a new export's edge ids leave every row as it is (Readers' renumber test);
 - the block layer the readers build from those rows: staging_device_map.load's {strand: blocks} over the staging
   drawing, by the drawing's own keys (OS placeholders and track pieces, from the first end of each piece), and the
   main and upper rows build_device_map.build() writes.
@@ -82,7 +82,7 @@ STAGING_BLOCKS = (
     ('Track W-2', 'track', 'Brick;West Yard', 'Track 3C-end'),
     ('Track West Ext', 'track', 'East End;Princess', 'Track 23B-35B'),
 )
-# (name, part_of, trial_name) of staging's parts: pieces of track inside another block (owner, 2026-11-20)
+# (name, part_of, trial_name) of staging's parts: pieces of track inside another block
 STAGING_PARTS = (
     ('Track 1-3 at 1', 'OS Switch 1', 'Track 1B-3A 1/2'),
     ('Track 1-3 at 3', 'OS Switch 3', 'Track 1B-3A 2/2'),
@@ -148,7 +148,7 @@ STAGING_OCCUPANCY = (
 )
 
 # (name, jmri_name, layout_block, assignment) of staging's parts: each a JMRI block of its own on its block's
-# occupancy sensor (owner, 2026-11-20), named IB:AUTO:<n> and ILB<n> by the next free number (part_bean_names)
+# occupancy sensor, named IB:AUTO:<n> and ILB<n> by the next free number (part_bean_names)
 STAGING_PART_BEANS = (
     ('Track 1-3 at 1', 'IB:AUTO:0052', 'ILB52', 'virtual'),
     ('Track 1-3 at 3', 'IB:AUTO:0054', 'ILB54', 'virtual'),
@@ -168,7 +168,7 @@ STAGING_PART_BEANS = (
 
 # (level, name, part_of, trial_name) of the main and upper parts: the 25 links, each in the lower-numbered switch's OS
 # block or, where a home mast stands at a switch's points facing it, the OS block at its other end (125-129, 201-205,
-# 227-231, 229-233); 225's in the corner block of its leg (step 5 part 2, owner 2026-11-20)
+# 227-231, 229-233); 225's in the corner block of its leg (step 5 part 2)
 MAIN_UPPER_PARTS = (
     ('2', 'Track 101-103', 'OS Switch 101', 'Track 101AB-103AA'),
     ('2', 'Track 105-109', 'OS Switch 105', 'Track 105A-109C'),
@@ -419,7 +419,7 @@ class Committed(unittest.TestCase):
         self.assertEqual(got, MAIN_UPPER_PARTS)
 
     def test_every_parts_label_is_optional_on_every_level(self):
-        """A part's block contents icon may be left out on every level (owner, 2026-11-20): preferences.json's
+        """A part's block contents icon may be left out on every level: preferences.json's
         optional_block_contents (staging's le_labels, main's and upper's le_band_labels) lists exactly the level's
         parts, by block ID (the plugin reads their names from the merged view, hartlib.layer_files.merged). The
         plugin reads the list from the preferences only, so it is kept there and held to the device master here."""
@@ -494,7 +494,7 @@ class Readers(RepoReadOnly, unittest.TestCase):
                       if r["layer"] == "block")
 
     def test_a_renumbered_edge_id_leaves_the_rows_unchanged(self):
-        """Every level's trial names are switch-and-leg keys (owner, 2026-11-20), so a new AnyRail export, whose
+        """Every level's trial names are switch-and-leg keys, so a new AnyRail export, whose
         edge ids (and the strand ids made of them) change every time, leaves every block row as it is."""
         import build_layout_le as bl
         try:
