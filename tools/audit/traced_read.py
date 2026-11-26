@@ -1,7 +1,8 @@
 """The reading half of tools/audit/traced.py: parse a trace log, judge it (problem, untraced), turn it into a read
-set and a stamp, and compare a stamp with the checkout now (mismatch). traced.py loads this file by path and
-gives its names as its own (the hook and the callers know only traced); the capture half calls listing() and
-kind_of() from here. It imports nothing of the repo, so it loads from any cwd with nothing on sys.path."""
+set and a stamp, and compare a stamp with the checkout now (mismatch). traced.py imports this module from its own
+folder and imports its names as its own (the hook and the callers know only traced); the capture half calls
+listing() and kind_of() from here. It imports nothing of the repo, so it loads from any cwd with nothing on
+sys.path."""
 from __future__ import annotations
 
 import os

@@ -5,21 +5,28 @@ Readable pre-session handbook for new crew: island background, how the
 railroad works, jobs at a glance, destination colors, scale overview, and
 pointers to the desk sheets used during the session.
 
-Drawn from past session invite emails and the current DS / YM / CI / EQ pubs.
+The text is in publications/data/operator_primer.json: the publication id, the jobs, the
+primer's train for each crew-master colour, and the pages as a list of blocks (heading,
+body, bullets, jobs, color_table, links, signature). The colours and destinations come from
+the crew master, ops/hart-ops/data/crew.json.
 
-Usage (from repo root):
+Usage (from ops/hart-ops):
   .venv/bin/python publications/rebuild_operator_primer.py
 
 Writes:
-  docs/Neville_Island_New_Operator_Primer.docx
+  docs/ops/Neville_Island_New_Operator_Primer.docx
 """
 
 from __future__ import annotations
 
+import json
 import sys
+from collections.abc import Mapping
 from pathlib import Path
+from typing import NamedTuple, NotRequired, TypedDict, TypeVar, cast
 
 from docx import Document
+from docx.document import Document as DocxDocument
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.shared import Inches, Pt
 
@@ -44,19 +51,158 @@ from hart_pub_helpers import (  # noqa: E402
 )
 
 CANONICAL = DOCS / "Neville_Island_New_Operator_Primer.docx"
+TEXT = PUB / "data" / "operator_primer.json"
 
-PUBLICATION = {
-    "title": "New Operator Primer",
-    "pub_id": "HB-01",
-    "revision": "B",
-    "effective": "15 October 2026",
+
+class PrimerDataError(ValueError):
+    """operator_primer.json is missing a field or holds a block the builder does not know."""
+
+
+class Publication(TypedDict):
+    title: str
+    pub_id: str
+    revision: str
+    effective: str
+
+
+class Job(NamedTuple):
+    code: str
+    name: str
+    blurb: str
+
+
+class Link(TypedDict):
+    label: str
+    url: str
+
+
+class Block(TypedDict):
+    """One block of a page. kind picks the fields: heading and body take text, bullets take
+    items, links take link items; jobs, color_table and signature take nothing."""
+
+    kind: str
+    text: NotRequired[str]
+    space_before: NotRequired[float]
+    space_after: NotRequired[float]
+    items: NotRequired[list[str] | list[Link]]
+
+
+class SignatureLine(TypedDict):
+    text: str
+    bold: bool
+
+
+class Signature(TypedDict):
+    closing: str
+    lines: list[SignatureLine]
+
+
+class PrimerText(NamedTuple):
+    publication: Publication
+    subtitle: str
+    block_train: dict[str, str]
+    jobs: list[Job]
+    pages: list[list[Block]]
+    signature: Signature
+
+
+BLOCK_FIELDS: dict[str, frozenset[str]] = {
+    "heading": frozenset({"text", "space_before"}),
+    "body": frozenset({"text", "space_before", "space_after"}),
+    "bullets": frozenset({"items"}),
+    "links": frozenset({"items"}),
+    "jobs": frozenset(),
+    "color_table": frozenset(),
+    "signature": frozenset(),
 }
 
+
+T = TypeVar("T")
+
+
+def _require(raw: Mapping[str, object], key: str, kind: type[T], where: str) -> T:
+    """raw[key] when it is a kind; PrimerDataError naming where, the key and what was there otherwise."""
+    value = raw.get(key)
+    if not isinstance(value, kind):
+        raise PrimerDataError(f"{where}: {key!r} must be a {kind.__name__}, got {value!r}")
+    return value
+
+
+def _check_block(block: object, where: str) -> Block:
+    """block when its kind is known and it carries the fields that kind reads, and no others."""
+    if not isinstance(block, dict):
+        raise PrimerDataError(f"{where}: a block must be an object, got {block!r}")
+    kind = block.get("kind")
+    if kind not in BLOCK_FIELDS:
+        raise PrimerDataError(f"{where}: unknown block kind {kind!r} (known: {', '.join(BLOCK_FIELDS)})")
+    extra = set(block) - {"kind"} - BLOCK_FIELDS[kind]
+    if extra:
+        raise PrimerDataError(f"{where}: {kind} block has fields it does not use: {sorted(extra)}")
+    if kind in ("heading", "body"):
+        _require(block, "text", str, where)
+    elif kind == "bullets":
+        if not all(isinstance(i, str) for i in _require(block, "items", list, where)):
+            raise PrimerDataError(f"{where}: bullets items must be strings")
+    elif kind == "links":
+        for link in _require(block, "items", list, where):
+            if not (isinstance(link, dict) and isinstance(link.get("label"), str) and isinstance(link.get("url"), str)):
+                raise PrimerDataError(f"{where}: a link needs a label and a url, got {link!r}")
+    return cast(Block, block)
+
+
+def _check_signature(raw: Mapping[str, object], where: str) -> Signature:
+    signature = _require(raw, "signature", dict, where)
+    _require(signature, "closing", str, f"{where} signature")
+    for line in _require(signature, "lines", list, f"{where} signature"):
+        if not (isinstance(line, dict) and isinstance(line.get("text"), str) and isinstance(line.get("bold"), bool)):
+            raise PrimerDataError(f"{where} signature: a line needs text and bold, got {line!r}")
+    return cast(Signature, signature)
+
+
+def load_text(path: Path = TEXT) -> PrimerText:
+    """The primer text, checked up front: every block kind known, every field the builder reads present."""
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise PrimerDataError(f"{path}: cannot read the primer text: {exc}") from exc
+    where = path.name
+    if not isinstance(raw, dict):
+        raise PrimerDataError(f"{where}: the top level must be an object")
+    publication = _require(raw, "publication", dict, where)
+    for key in Publication.__annotations__:
+        _require(publication, key, str, f"{where} publication")
+    jobs = []
+    for i, job in enumerate(_require(raw, "jobs", list, where)):
+        if not isinstance(job, dict):
+            raise PrimerDataError(f"{where} job {i + 1}: must be an object, got {job!r}")
+        jobs.append(Job(*(_require(job, key, str, f"{where} job {i + 1}") for key in Job._fields)))
+    pages: list[list[Block]] = []
+    for p, page in enumerate(_require(raw, "pages", list, where)):
+        if not isinstance(page, list):
+            raise PrimerDataError(f"{where} page {p + 1}: must be a list of blocks")
+        pages.append([_check_block(b, f"{where} page {p + 1} block {i + 1}") for i, b in enumerate(page)])
+    kinds = [b["kind"] for page in pages for b in page]
+    for once in ("jobs", "color_table", "signature"):
+        if kinds.count(once) != 1:
+            raise PrimerDataError(f"{where}: the pages need one {once} block, found {kinds.count(once)}")
+    block_train = _require(raw, "block_train", dict, where)
+    if not all(isinstance(k, str) and isinstance(v, str) for k, v in block_train.items()):
+        raise PrimerDataError(f"{where}: block_train maps colour ids to train names (strings)")
+    return PrimerText(
+        publication=cast(Publication, publication),
+        subtitle=_require(raw, "subtitle", str, where),
+        block_train=block_train,
+        jobs=jobs,
+        pages=pages,
+        signature=_check_signature(raw, where),
+    )
+
+
+PRIMER = load_text()
+PUBLICATION = PRIMER.publication
 # The primer's short train name for each master colour; the colours and destinations come from the master.
-PRIMER_BLOCK_TRAIN: dict[str, str] = {
-    "blue": "D749", "yellow": "NVL", "green": "NVL", "purple": "NVL", "red": "NVL", "pink": "NVL",
-    "black": "CK1", "orange": "NVL return",
-}
+PRIMER_BLOCK_TRAIN = PRIMER.block_train
+JOBS = PRIMER.jobs
 
 
 def _block_legend() -> list[tuple[str, str, str, str, str]]:
@@ -64,71 +210,15 @@ def _block_legend() -> list[tuple[str, str, str, str, str]]:
     rows = []
     for color_id, sw in crew_master.swatches(crew_master.load()).items():
         if color_id not in PRIMER_BLOCK_TRAIN:
-            raise ValueError(f"{crew_master.MASTER.name}: colour {color_id!r} has no train in PRIMER_BLOCK_TRAIN")
+            raise ValueError(f"{crew_master.MASTER.name}: colour {color_id!r} has no train in {TEXT.name} block_train")
         rows.append((sw.label, sw.fill, sw.ink, sw.dest, PRIMER_BLOCK_TRAIN[color_id]))
     return rows
 
 
 BLOCK_LEGEND = _block_legend()
 
-JOBS: list[tuple[str, str, str]] = [
-    (
-        "D749",
-        "CSX Neville Island Switcher",
-        (
-            "The CSX local that comes over from Demmler / McKeesport. It drops "
-            "its inbound cars at South Yard, visits the engine terminal, then "
-            "picks up the outbound block and heads back."
-        ),
-    ),
-    (
-        "NVL",
-        "Neville Island Turn",
-        (
-            "The Pittsburgh & Ohio Central local from Scully Yard. It swaps "
-            "cars at South Yard, switches the island industries, then takes "
-            "the return cut back toward McKees Rocks."
-        ),
-    ),
-    (
-        "CK1",
-        "Coke Transfer",
-        (
-            "Works Shenango Coke Works—the pickup, the weigh, and the sort. "
-            "Also calibrates the track scale at the start of the session. "
-            "The Yardmaster assigns the engine."
-        ),
-    ),
-    (
-        "Yardmaster",
-        "South Yard",
-        (
-            "Keeps South Yard organized. Builds cuts by color, hands work to "
-            "each train, and keeps D749, NVL, and CK1 from stepping on each "
-            "other. YM-01 is the working sequence."
-        ),
-    ),
-    (
-        "Dispatcher",
-        "Neville Island Ops",
-        (
-            "Gives clearance and keeps freight out of the streetcar's way. "
-            "When things get busy, Route 23 and the main trains come first. "
-            "DS-01 has the full lineup."
-        ),
-    ),
-    (
-        "Route 23",
-        "Streetcar",
-        (
-            "A refurbished PCC car running local passenger service across the "
-            "island. Freight holds until the streetcar clears."
-        ),
-    ),
-]
 
-
-def _set_comfortable_page(doc: Document) -> None:
+def _set_comfortable_page(doc: DocxDocument) -> None:
     section = doc.sections[0]
     section.page_width = Inches(8.5)
     section.page_height = Inches(11)
@@ -140,14 +230,14 @@ def _set_comfortable_page(doc: Document) -> None:
     section.footer_distance = Inches(0.5)
 
 
-def _page_break(doc: Document) -> None:
+def _page_break(doc: DocxDocument) -> None:
     p = doc.add_paragraph()
     p.paragraph_format.space_before = Pt(0)
     p.paragraph_format.space_after = Pt(0)
     p.add_run().add_break(WD_BREAK.PAGE)
 
 
-def _light_masthead(doc: Document) -> None:
+def _light_masthead(doc: DocxDocument, text: PrimerText) -> None:
     brand = doc.add_paragraph()
     brand.alignment = WD_ALIGN_PARAGRAPH.CENTER
     brand.paragraph_format.space_before = Pt(0)
@@ -171,18 +261,18 @@ def _light_masthead(doc: Document) -> None:
     title.alignment = WD_ALIGN_PARAGRAPH.CENTER
     title.paragraph_format.space_before = Pt(0)
     title.paragraph_format.space_after = Pt(4)
-    r = title.add_run(PUBLICATION["title"])
+    r = title.add_run(text.publication["title"])
     _set_run_font(r, size_pt=16, bold=True, color=BODY)
 
     sub = doc.add_paragraph()
     sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
     sub.paragraph_format.space_before = Pt(0)
     sub.paragraph_format.space_after = Pt(18)
-    r = sub.add_run("A short briefing for new crew on Neville Island")
+    r = sub.add_run(text.subtitle)
     _set_run_font(r, size_pt=11, color=MUTED)
 
 
-def _heading(doc: Document, text: str, *, space_before: float = 18) -> None:
+def _heading(doc: DocxDocument, text: str, *, space_before: float = 18) -> None:
     p = doc.add_paragraph()
     p.paragraph_format.space_before = Pt(space_before)
     p.paragraph_format.space_after = Pt(8)
@@ -192,7 +282,7 @@ def _heading(doc: Document, text: str, *, space_before: float = 18) -> None:
 
 
 def _body(
-    doc: Document,
+    doc: DocxDocument,
     text: str,
     *,
     space_before: float = 0,
@@ -206,7 +296,7 @@ def _body(
     _set_run_font(r, size_pt=11, color=BODY, name="Calibri")
 
 
-def _bullets(doc: Document, items: list[str]) -> None:
+def _bullets(doc: DocxDocument, items: list[str]) -> None:
     for item in items:
         p = doc.add_paragraph()
         p.paragraph_format.space_before = Pt(0)
@@ -217,7 +307,7 @@ def _bullets(doc: Document, items: list[str]) -> None:
         _set_run_font(r, size_pt=11, color=BODY, name="Calibri")
 
 
-def _job_block(doc: Document, code: str, name: str, blurb: str) -> None:
+def _job_block(doc: DocxDocument, code: str, name: str, blurb: str) -> None:
     p = doc.add_paragraph()
     p.paragraph_format.space_before = Pt(14)
     p.paragraph_format.space_after = Pt(4)
@@ -228,7 +318,7 @@ def _job_block(doc: Document, code: str, name: str, blurb: str) -> None:
     _body(doc, blurb, space_before=0, space_after=6)
 
 
-def _add_color_table(doc: Document) -> None:
+def _add_color_table(doc: DocxDocument) -> None:
     table = doc.add_table(rows=1 + len(BLOCK_LEGEND), cols=3)
     style_table(table)
     fill_header_row(table.rows[0], ["Color", "Destination", "Train"])
@@ -244,7 +334,7 @@ def _add_color_table(doc: Document) -> None:
             _set_run_font(r, size_pt=10, color=BODY, name="Calibri")
 
 
-def _link_line(doc: Document, label: str, url: str) -> None:
+def _link_line(doc: DocxDocument, label: str, url: str) -> None:
     p = doc.add_paragraph()
     p.paragraph_format.space_before = Pt(0)
     p.paragraph_format.space_after = Pt(6)
@@ -256,7 +346,7 @@ def _link_line(doc: Document, label: str, url: str) -> None:
     _set_run_font(r, size_pt=9.5, color=ACCENT, name="Calibri")
 
 
-def _station_map_banner(doc: Document) -> None:
+def _station_map_banner(doc: DocxDocument) -> None:
     """The whole railroad on one strip, full text width, under the masthead."""
     pic = doc.add_paragraph()
     pic.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -265,205 +355,8 @@ def _station_map_banner(doc: Document) -> None:
     pic.add_run().add_picture(str(PUB / "assets" / "station_map_full.png"), width=Inches(6.5))
 
 
-def build() -> Path:
-    doc = Document()
-    _set_comfortable_page(doc)
-    _light_masthead(doc)
-    _station_map_banner(doc)
-
-    # —— Page 1: welcome + place + railroad ——
-    _heading(doc, "Welcome", space_before=0)
-    _body(
-        doc,
-        (
-            "If this is your first Neville Island session, this primer is "
-            "meant to give you the story behind the railroad and a feel for "
-            "how a session runs. You do not need to memorize it. At the "
-            "session you will get a simple job sheet for whatever you are "
-            "assigned—and the Yardmaster and Dispatcher are there to help."
-        ),
-    )
-
-    _heading(doc, "Neville Island")
-    _body(
-        doc,
-        (
-            "Nestled between Pittsburgh and the Chartiers Valley in the Ohio "
-            "River lies a five-mile strip of land. Originally called Montour's "
-            "Island and later Long Island, it was renamed Neville Island in "
-            "honor of Revolutionary War General John Neville. It was once "
-            "farmland renowned as the \"Market Basket of Pittsburgh,\" which "
-            "all changed at the turn of the century."
-        ),
-    )
-    _body(
-        doc,
-        (
-            "Bridges and an electric street railway opened easy access to the "
-            "mainland. American Steel & Wire began the island's first mill in "
-            "1900. During World War I the government took land for a munitions "
-            "plant. After Pearl Harbor, the Dravo Corporation built ships for "
-            "the Navy—and that sealed the island's industrial future."
-        ),
-    )
-    _body(
-        doc,
-        (
-            "Today the 1,200-acre township is a mix of heavy industry, "
-            "logistics, and a small residential community. Manufacturing and "
-            "chemical plants still work here, alongside cleanup and "
-            "redevelopment."
-        ),
-    )
-
-    # —— Page 2: railroad ——
-    _page_break(doc)
-    _heading(doc, "The Railroad Today", space_before=0)
-    _body(
-        doc,
-        (
-            "From 1899 until January 31, 1994, the Pittsburgh & Ohio Valley "
-            "Railway switched the island's furnaces, coke ovens, and "
-            "interchange. HART Railroad's Pittsburgh & Chartiers Valley "
-            "Division is its successor: we handle the interchange between CSX "
-            "and the Pittsburgh & Ohio Central, and we switch the industries "
-            "on the island."
-        ),
-    )
-    _body(
-        doc,
-        (
-            "Cars arrive from Demmler / McKeesport on one side and from "
-            "Scully / McKees Rocks on the other. South Yard is where those "
-            "moves meet—and where most of the sorting gets done."
-        ),
-    )
-    _body(doc, "The industries we work:", space_after=4)
-    _bullets(
-        doc,
-        [
-            "Aristech Plastics",
-            "A. Stucki Company",
-            "Calgon Carbon",
-            "Ferrellgas",
-            "Kosmos Cement",
-            "Shenango Coke Works",
-        ],
-    )
-    _body(
-        doc,
-        (
-            "On the real railroad, CSX's D749 works the island toward Demmler, "
-            "and the POHC comes over from McKees Rocks—often waiting for D749 "
-            "to clear the trestle over the Ohio. There is scrap, steel, "
-            "chemicals, and fuel for the airport. Our session compresses that "
-            "into a few overlapping jobs that all share South Yard."
-        ),
-        space_before=8,
-    )
-
-    # —— Page 3: jobs ——
-    _page_break(doc)
-    _heading(doc, "Jobs on the Board", space_before=0)
-    _body(
-        doc,
-        (
-            "Here is the usual crew board for a full session. Exact "
-            "assignments are confirmed in the invitation and again at the "
-            "briefing."
-        ),
-        space_after=4,
-    )
-    for code, name, blurb in JOBS:
-        _job_block(doc, code, name, blurb)
-
-    # —— Page 4: colors, scale, session, reading ——
-    _page_break(doc)
-    _heading(doc, "Destination Colors", space_before=0)
-    _body(
-        doc,
-        (
-            "We sort cars by color. Each color is a place—an industry or an "
-            "interchange. The same colors show up on switch lists, car cards, "
-            "and the yard sheets, so everyone is speaking the same language."
-        ),
-        space_after=10,
-    )
-    _add_color_table(doc)
-
-    _heading(doc, "The Track Scale")
-    _body(
-        doc,
-        (
-            "Shenango loads a lot of coke, and not every hopper comes out "
-            "perfectly. Before those cars leave the island, we weigh them on "
-            "the scale at South Yard. Cars that check out continue on their "
-            "way. Cars that are too heavy or out of balance go back for a "
-            "reload."
-        ),
-    )
-    _body(
-        doc,
-        (
-            "Someone—usually CK1—calibrates the scale before the first weigh "
-            "of the session. Without that, the readings start to drift. The "
-            "full how-to is on the Scale Operating Instructions sheet (EQ-01) "
-            "if you draw that job."
-        ),
-    )
-
-    _heading(doc, "What to Expect")
-    _body(
-        doc,
-        (
-            "Times and food plans are in the invitation. Evening sessions "
-            "usually open around 6:30 p.m., with trains from about 7:00 to "
-            "10:00. Daytime sessions often start mid-morning with a short "
-            "briefing before anyone moves a locomotive."
-        ),
-    )
-    _bullets(
-        doc,
-        [
-            "The house address is in your invitation email",
-            "We will cover job assignments and anything unusual at the briefing",
-            "You will get a crew sheet for your job; ask if something is unclear",
-            "Please let us know early if you cannot make it so we can cover the board",
-        ],
-    )
-
-    _heading(doc, "If You Want to Dig Deeper")
-    _body(
-        doc,
-        (
-            "At the session you may also see yardmaster and dispatcher sheets, "
-            "the station map, and the Route 23 timetable. Those are handy "
-            "references once trains are rolling—not homework beforehand."
-        ),
-        space_after=8,
-    )
-    _body(doc, "A few prototype links, if you are curious:", space_after=4)
-    _link_line(
-        doc,
-        "Pittsburgh & Ohio Valley Railway history",
-        "https://www.hartrailroad.com/library/pittsburgh-ohio-valley-railway.html",
-    )
-    _link_line(
-        doc,
-        "Pittsburgh & Ohio Central overview",
-        "https://www.lundsten.dk/railfan_pa/poc/index.html",
-    )
-    _link_line(
-        doc,
-        "Neville Island operations notes",
-        "https://railroad.net/post1592461.html#p1592461",
-    )
-    _link_line(
-        doc,
-        "Proper balancing of hopper cars",
-        "https://www.csx.com/index.cfm/library/files/customers/leads/proper-balancing-of-hopper-cars/",
-    )
-
+def _signature(doc: DocxDocument, signature: Signature) -> None:
+    """A rule, the closing line, then the name (bold) and the titles under it."""
     rule = doc.add_paragraph()
     rule.paragraph_format.space_before = Pt(20)
     rule.paragraph_format.space_after = Pt(12)
@@ -472,18 +365,15 @@ def build() -> Path:
     sig = doc.add_paragraph()
     sig.paragraph_format.space_before = Pt(0)
     sig.paragraph_format.space_after = Pt(2)
-    r = sig.add_run("Looking forward to having you over.")
+    r = sig.add_run(signature["closing"])
     _set_run_font(r, size_pt=11, color=BODY, name="Calibri")
 
-    for line, bold in (
-        ("Lee Nevo", True),
-        ("Superintendent, Neville Island Operations", False),
-        ("HART Railroad  ·  P&CV Division", False),
-    ):
+    for line in signature["lines"]:
+        bold = line["bold"]
         p = doc.add_paragraph()
         p.paragraph_format.space_before = Pt(0)
         p.paragraph_format.space_after = Pt(0)
-        r = p.add_run(line)
+        r = p.add_run(line["text"])
         _set_run_font(
             r,
             size_pt=10.5 if bold else 10,
@@ -492,19 +382,55 @@ def build() -> Path:
             name="Calibri",
         )
 
-    # —— Final page: station map ——
-    add_station_map_page(doc, page_break=True)
 
+def _add_block(doc: DocxDocument, block: Block, text: PrimerText) -> None:
+    """Write one page block; load_text has checked its kind and fields."""
+    kind = block["kind"]
+    if kind == "heading":
+        _heading(doc, block["text"], space_before=block.get("space_before", 18))
+    elif kind == "body":
+        _body(doc, block["text"], space_before=block.get("space_before", 0), space_after=block.get("space_after", 10))
+    elif kind == "bullets":
+        _bullets(doc, cast("list[str]", block["items"]))
+    elif kind == "jobs":
+        for job in text.jobs:
+            _job_block(doc, job.code, job.name, job.blurb)
+    elif kind == "color_table":
+        _add_color_table(doc)
+    elif kind == "links":
+        for link in cast("list[Link]", block["items"]):
+            _link_line(doc, link["label"], link["url"])
+    elif kind == "signature":
+        _signature(doc, text.signature)
+    else:
+        raise PrimerDataError(f"{TEXT.name}: unknown block kind {kind!r}")
+
+
+def build(text: PrimerText = PRIMER, out: Path = CANONICAL) -> Path:
+    """Masthead and the full-railroad banner, the pages of text (a page break between pages),
+    the station map page, the footer; saved to out."""
+    doc = Document()
+    _set_comfortable_page(doc)
+    _light_masthead(doc, text)
+    _station_map_banner(doc)
+
+    for number, page in enumerate(text.pages):
+        if number:
+            _page_break(doc)
+        for block in page:
+            _add_block(doc, block, text)
+
+    add_station_map_page(doc, page_break=True)
     add_publication_footer(
         doc,
-        pub_id=PUBLICATION["pub_id"],
-        revision=PUBLICATION["revision"],
-        effective=PUBLICATION["effective"],
+        pub_id=text.publication["pub_id"],
+        revision=text.publication["revision"],
+        effective=text.publication["effective"],
     )
 
-    CANONICAL.parent.mkdir(parents=True, exist_ok=True)
-    doc.save(CANONICAL)
-    return CANONICAL
+    out.parent.mkdir(parents=True, exist_ok=True)
+    doc.save(out)
+    return out
 
 
 if __name__ == "__main__":
