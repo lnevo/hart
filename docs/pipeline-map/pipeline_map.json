@@ -330,31 +330,31 @@
    "gen": "manifest"
   },
   {
-   "id": "archive/tools/benchwork/helix",
+   "id": "archive/code/benchwork-tools/helix",
    "label": "helix fixture scripts",
    "kind": "generator",
    "status": "live",
    "domain": "extras",
    "desc": "make_* scripts for helix brackets, shims, templates, spacers and entry pages; output via stl_out.py.",
-   "path": "archive/tools/benchwork/helix"
+   "path": "archive/code/benchwork-tools/helix"
   },
   {
-   "id": "archive/tools/benchwork/main_level",
+   "id": "archive/code/benchwork-tools/main_level",
    "label": "main level benchwork scripts",
    "kind": "generator",
    "status": "live",
    "domain": "extras",
    "desc": "Geometry, plywood cut plan, lumber cut list, joist construction PDF and plywood page generators.",
-   "path": "archive/tools/benchwork/main_level"
+   "path": "archive/code/benchwork-tools/main_level"
   },
   {
-   "id": "archive/tools/benchwork/station_maps_3d/check_stl.py",
+   "id": "archive/code/benchwork-tools/station_maps_3d/check_stl.py",
    "label": "check_stl.py",
    "kind": "generator",
    "status": "live",
    "domain": "extras",
    "desc": "Validates the exported station map STLs.",
-   "path": "archive/tools/benchwork/station_maps_3d/check_stl.py"
+   "path": "archive/code/benchwork-tools/station_maps_3d/check_stl.py"
   },
   {
    "id": "tools/check.sh",
@@ -1260,13 +1260,13 @@
    "gen": "manifest"
   },
   {
-   "id": "archive/tools-anyrail-prototype",
+   "id": "archive/code/anyrail-prototype",
    "label": "anyrail prototype (archived)",
    "kind": "generator",
    "status": "retired",
    "domain": "layout",
    "desc": "Early graph and route parsing prototypes (parse1/2, hartgraph, loop_route); superseded by the schematic-maps plugin's anyplan reader. Archived 2026-11-23; nothing calls it.",
-   "path": "archive/tools-anyrail-prototype"
+   "path": "archive/code/anyrail-prototype"
   },
   {
    "id": "tools/hartlib/src/hartlib/devices.py",
@@ -2068,7 +2068,7 @@
    "kind": "structured",
    "status": "retired",
    "domain": "ops",
-   "desc": "The OPSIG industries list (industries.txt) moved to archive/ops/hart-ops/industries/ on 2026-11-25; nothing reads it. The routing matrix and its scripts were retired the same day (archive/docs/ops/industries/).",
+   "desc": "The OPSIG industries list (industries.txt) moved to archive/data/ops-industries/ on 2026-11-25; nothing reads it. The routing matrix and its scripts were retired the same day (archive/data/industry-routing/).",
    "path": "ops/hart-ops/industries"
   },
   {
@@ -6012,7 +6012,7 @@
   },
   {
    "from": "docs/benchwork/station_maps_3d/build.sh",
-   "to": "archive/tools/benchwork/station_maps_3d/check_stl.py"
+   "to": "archive/code/benchwork-tools/station_maps_3d/check_stl.py"
   },
   {
    "from": "docs/benchwork/station_maps_3d/station_map_barn.scad",
@@ -7846,7 +7846,7 @@
    "gen": "manifest"
   },
   {
-   "from": "archive/tools-anyrail-prototype",
+   "from": "archive/code/anyrail-prototype",
    "to": "ext:anyrail-plan",
    "label": "reads"
   },
@@ -7935,20 +7935,20 @@
    "gen": "manifest"
   },
   {
-   "from": "archive/tools/benchwork/helix",
+   "from": "archive/code/benchwork-tools/helix",
    "to": "docs/benchwork/helix"
   },
   {
-   "from": "archive/tools/benchwork/helix",
+   "from": "archive/code/benchwork-tools/helix",
    "to": "www/scripts/published-files.json",
    "label": "mapped sources"
   },
   {
-   "from": "archive/tools/benchwork/main_level",
+   "from": "archive/code/benchwork-tools/main_level",
    "to": "docs/benchwork/main_level"
   },
   {
-   "from": "archive/tools/benchwork/station_maps_3d/check_stl.py",
+   "from": "archive/code/benchwork-tools/station_maps_3d/check_stl.py",
    "to": "docs/benchwork/station_maps_3d/stl",
    "label": "check",
    "side": "check"

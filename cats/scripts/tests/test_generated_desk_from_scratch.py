@@ -1,6 +1,6 @@
 """The generated CATS desks and the USS CTC board build from committed data alone (CATS cut-over, 2026-11-15).
 
-Each build runs in a child process that may not open the hand-wired Designer panel (archive/panels/HART_Digicon.xml), the checkout's
+Each build runs in a child process that may not open the hand-wired Designer panel (archive/data/panels/HART_Digicon.xml), the checkout's
 tables.xml or the desks themselves (cats/panels/HART_CTC.xml, HART_ABS.xml and the bindings, generated since the
 CATS cut-over): an audit hook stops any open of them. The desk build is let read its own outputs only once
 generate() has returned, for --check's comparison, so it never reads them as a source. The tables it reads are a
@@ -25,7 +25,7 @@ from hartlib import parked  # noqa: E402
 TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 GUI = ROOT / "jmri/layouts/hart/ctc/GUIObjects.xml"
 DESKS = [ROOT / "cats/panels" / n for n in ("HART_CTC.xml", "HART_ABS.xml", "HART_CTC.bindings.json")] + [
-    ROOT / "archive/panels/HART_Digicon.xml"]
+    ROOT / "archive/data/panels/HART_Digicon.xml"]
 
 # The child: refuse to open the forbidden files, then run the script as __main__ with the given arguments.
 GUARD = """

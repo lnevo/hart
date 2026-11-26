@@ -4,7 +4,7 @@ Lists the decisions taken without asking during the unattended Operations Pro bu
 
 Status: done (2026-11-02). Record of the build-time decisions; open items overlap with [`OPSPRO_FOLLOWUP.md`](OPSPRO_FOLLOWUP.md), which is the live list and wins where they differ.
 
-Written 2026-11-02 during the unattended build ([`OPSPRO_BUILD_PROMPT.md`](../../archive/docs/ops/OPSPRO_BUILD_PROMPT.md)). The owner asked for no approval stops, so every missing fact got the most defensible default. Each decision below says what was chosen and why, so it can be reversed. D numbers match [`OPSPRO_MAPPING.md`](OPSPRO_MAPPING.md).
+Written 2026-11-02 during the unattended build ([`OPSPRO_BUILD_PROMPT.md`](../../archive/history/docs/ops/OPSPRO_BUILD_PROMPT.md)). The owner asked for no approval stops, so every missing fact got the most defensible default. Each decision below says what was chosen and why, so it can be reversed. D numbers match [`OPSPRO_MAPPING.md`](OPSPRO_MAPPING.md).
 
 ## Decisions made without asking
 

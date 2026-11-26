@@ -78,7 +78,7 @@ Functions: `lcos_bridge()` (the submodule, else a sibling clone), `car_images_fi
 (`HART_CAR_IMAGES_FINAL`, else the repo copy), `rel(path)` (a repo-relative string for
 messages). `layout_paths()` replaced `jmri/layout_paths.py`; its one live
 caller is `jmri/scripts/generate_nx_pairs.py` (parked with NX), and the AnyRail-era scripts that used the rest
-are in `archive/jmri-scripts/`.
+are in `archive/code/jmri-scripts/`.
 
 `HART_TABLES=<file>` (checks only) points `TABLES_XML` at another tables file, such as the Layout Editor cut-over candidate: `HART_TABLES=<file> tools/check.sh` runs every table check against it, and the unit tests still read the checkout's file. The file must exist and lie outside `~/JMRI_UserFiles`. Nothing is written while it is set: `Tables.save` refuses the checkout's tables.xml, the override and anything in the profile, every other script that writes tables, the profile or an output derived from the tables calls `paths.exit_if_overridden(name)` first, and the deploy and PanelPro wrappers stop through `refuse_hart_tables` in `tools/hosts/profile_tables_guard.sh`.
 

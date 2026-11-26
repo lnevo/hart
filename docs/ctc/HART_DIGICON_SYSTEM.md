@@ -31,7 +31,7 @@ Two Digicon desks for Neville Island ops, CATS CTC and CATS ABS, built from one 
 | **CATS CTC** | `cats/panels/HART_CTC.xml` | **Live CTC** — Digicon codes routes / throws; signals `HOLD_ONLY`; **JMRI SML** owns aspects |
 | **CATS ABS** | `cats/panels/HART_ABS.xml` | **Live ABS** — `HOLD_ONLY`; SECSIGNALs bound to JMRI masts so Digicon **paints SML**. |
 
-Both desks are generated from the schematic (`tools/schematic/build_cats_panel.py`, all three levels; owner approved in real CATS on 2026-11-15, live since the CATS cut-over). Never edit a desk by hand: change the schematic, the switch facts or the build, then rebuild. `HART_Digicon.xml` and `wire_digicon.py` (now `archive/cats-scripts/wire_digicon.py`) built the earlier hand-wired desks; the last of those are in git history at commit `42192d9c`, before the CATS cut-over (`git show 42192d9c:cats/panels/HART_CTC.xml`). The retired West Yard sheet scripts are in `archive/cats-scripts/west_yard/`.
+Both desks are generated from the schematic (`tools/schematic/build_cats_panel.py`, all three levels; owner approved in real CATS on 2026-11-15, live since the CATS cut-over). Never edit a desk by hand: change the schematic, the switch facts or the build, then rebuild. `HART_Digicon.xml` and `wire_digicon.py` (now `archive/code/cats-scripts/wire_digicon.py`) built the earlier hand-wired desks; the last of those are in git history at commit `42192d9c`, before the CATS cut-over (`git show 42192d9c:cats/panels/HART_CTC.xml`). The retired West Yard sheet scripts are in `archive/code/cats-scripts/west_yard/`.
 
 Each desk carries a publication title row (Y=1):
 
@@ -190,7 +190,7 @@ Mast icons use the Basic `default` image set (JMRI draws it with its stock AAR-1
 
 Full table: [`jmri/layouts/hart/output/signal_head_plan.csv`](../../jmri/layouts/hart/output/signal_head_plan.csv), every wired mast and its JMRI binding  
 Port / topic / LCOS inventory: the head rows of [`jmri/layouts/hart/data/wiring.csv`](../../jmri/layouts/hart/data/wiring.csv) (`hartlib.wiring.digicon_rows` gives the pins, IH number and topic)  
-The old plan's mast table (history, archived 2026-11-21): [`archive/docs/wiring/signals/signal_mast_plan.csv`](../../archive/docs/wiring/signals/signal_mast_plan.csv)
+The old plan's mast table (history, archived 2026-11-21): [`archive/data/wiring/signals/signal_mast_plan.csv`](../../archive/data/wiring/signals/signal_mast_plan.csv)
 
 Pin map: [`docs/wiring/README.md`](../../docs/wiring/README.md#digicon-heads-and-ou-boards) · CSVs above.
 
@@ -264,13 +264,13 @@ Windows runs Win32-OpenSSH 10.4 (winget `Microsoft.OpenSSH.Preview`) on port 222
 | Script | Purpose |
 |--------|---------|
 | `tools/schematic/build_cats_panel.py` | Builds `HART_CTC.xml`, `HART_ABS.xml` and `HART_CTC.bindings.json` from the schematic and the railroad's facts (`--check`) |
-| `archive/cats-scripts/wire_digicon.py` | Archived: built the hand-wired desks from `HART_Digicon.xml` before the CATS cut-over |
+| `archive/code/cats-scripts/wire_digicon.py` | Archived: built the hand-wired desks from `HART_Digicon.xml` before the CATS cut-over |
 | `cats/scripts/cats_turnout_io.py` | Turnout CSV → SWITCHPOINTS IO (used by `build_cats_panel.py`) |
-| `archive/cats-scripts/aar_aspect_bridge.py` | Archived with `wire_digicon.py`: Digicon R-codes ↔ Basic aspect names |
+| `archive/code/cats-scripts/aar_aspect_bridge.py` | Archived with `wire_digicon.py`: Digicon R-codes ↔ Basic aspect names |
 | `jmri/layouts/hart/scripts/discover_sml.py` | PanelPro one-shot SML Discover (background; do not leave on Start Up) |
 | `jmri/layouts/hart/scripts/run_sml_discover.sh` | Launch PanelPro, Discover, store `tables.xml`, quit; then disable Digicon SML dests |
 | `jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py` | `--check`: Digicon SML dests are Enabled=no in `tables.xml` (`tools/check.sh`). The generator applies the rule and the deploy ships the committed bytes (R9c); `--panel` patches another tables file only |
-| `archive/cats-scripts/digicon_header.py` | Archived with `wire_digicon.py`: the publication title row (now `cats/data/generated_desk_header.xml`) |
+| `archive/code/cats-scripts/digicon_header.py` | Archived with `wire_digicon.py`: the publication title row (now `cats/data/generated_desk_header.xml`) |
 | `jmri/layouts/hart/scripts/build_hart_signal_heads.py` | The head and mast plan CSVs from `wiring.csv`'s wired heads (one mode; `--wiring-only` still accepted). `tables.xml` is generated (ADR-029) |
 | `tools/hosts/sync_hart_package.sh` | Stage the package to a temporary folder on the host; **rsync** to Pi, **tar+scp** to Windows (no git pull). Host apply copies into `JMRI_UserFiles`. `--dry-run`. Before copy, sets Digicon (MQTT) SML dests to Enabled=no in the shipped `tables.xml` |
 | `cats/scripts/install_jmri_web_override.sh` | STS link into JMRI `web/` (Mac/Pi) |

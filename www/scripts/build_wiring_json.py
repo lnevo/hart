@@ -11,7 +11,7 @@ writes:
 
 The signal-split view and its workbook were retired on 2026-11-25 (owner): the signals and their rules are
 generated for the whole layout. The split workbook, its v85 inventory and the last signal-splits.json are in
-archive/docs/wiring/.
+archive/data/wiring/.
 
 The JSON is not committed (ADR-036): the site build and the local preview build it with view() (site_views.py,
 make site-data), and --check builds it in memory and runs its checks (problems()). To write it by hand:

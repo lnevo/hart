@@ -83,14 +83,14 @@ Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longe
 |--------|-----------------|
 | `gen_ctc_track_plan.py` | `SIGNALS` mast keys; lamp labels Track Scale / T6 / Track S-R / Track East Lead |
 | `parked/polish_hart_layout_editor.py` | Reads positions from `--reference`; no hard-coded mast xy since 2026-11-18 |
-| `add_digicon_le_signal_icons.py` | Archived 2026-11-18 (`archive/jmri-scripts/`) |
+| `add_digicon_le_signal_icons.py` | Archived 2026-11-18 (`archive/code/jmri-scripts/`) |
 | `reconcile_dispatcher_stations.py` | Station `Track East Lead` (icon xy table removed 2026-11-18) |
 | `audit_panel_contracts.py` | `Track East Lead` stop contract |
 | `annotate_mqtt_sensors_and_dispatcher.py` | Section graph / transit comments (`Track East Lead`, `OS Switch 7b`). Removed 2026-11-14 (one-shot) |
 | `panelpro_smoke_test.py` | Station list `Track East Lead` |
 | `jmri/scripts/check_hart_phase02.py` | Requires `OS Switch 7b` |
 | `build_ctc_full_15col.py` | SIDI mast lists (unsafe to re-run until updated) |
-| `wire_digicon.py` | Archived 2026-11-18 (`archive/cats-scripts/`); the desks are built by `tools/schematic/build_cats_panel.py` |
+| `wire_digicon.py` | Archived 2026-11-18 (`archive/code/cats-scripts/`); the desks are built by `tools/schematic/build_cats_panel.py` |
 | `apply_sml_cats_pairs.py` | Removed 2026-11-14; wrote nothing at the end |
 | `validate_cats_panel.py` | Required `OS Switch 13` / `OS Switch 9` (was Track 13 / Track 9) |
 | `build_hart_signal_heads.py` | Mast userNames |
@@ -102,7 +102,7 @@ Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longe
 | File |
 |------|
 | `cats/data/occupancy_bindings.csv` |
-| `archive/docs/wiring/signals/signal_mast_plan.csv` (archived 2026-11-21) |
+| `archive/data/wiring/signals/signal_mast_plan.csv` (archived 2026-11-21) |
 | `jmri/layouts/hart/output/signal_head_plan.csv` (moved 2026-11-21) |
 | `jmri/layouts/hart/data/wiring.csv` (was `docs/wiring/signals/signal_wiring.csv`, folded in 2026-11-21) |
 | `cats/data/jmri_devices.csv` (removed 2026-11-14) |
