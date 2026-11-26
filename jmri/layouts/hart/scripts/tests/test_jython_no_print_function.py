@@ -45,6 +45,8 @@ class NoPrintFunction(unittest.TestCase):
         self.assertIn("jmri/scripts/signal_coordinator.py", scripts)
         for path in coordinator.files()[1:]:   # the modules it loads ship beside it, so they are checked too
             self.assertIn(path.relative_to(ROOT).as_posix(), scripts)
+        for path in coordinator.files(coordinator.PANEL_STATUS):   # and panel_status.py with the parts it runs
+            self.assertIn(path.relative_to(ROOT).as_posix(), scripts)
 
     def test_no_jmri_script_imports_print_function(self) -> None:
         offenders = [path for path in deployed_scripts() + LAUNCHED

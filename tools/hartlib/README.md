@@ -423,6 +423,10 @@ name that is not a module name or a module with no `.py` beside the script. `fil
 and `source()` their text joined in that order, for the checks that read the code as text
 (`check_mqtt_no_static_lists.py`, `le_names.lcos_rule`, `cats/scripts/tests/test_signal_coordinator.py`) and the test
 that every deploy list ships each module (`tools/hosts/tests/test_coordinator_shipping.py`).
+`jmri/layouts/hart/scripts/panel_status.py` lists its parts the same way in `PARTS` (each runs in the script's own
+namespace, not as a module): `sibling_modules(PANEL_STATUS)`, or `panel_status_parts()`, reads that tuple, and
+`files(PANEL_STATUS)` and `source(PANEL_STATUS)` work as for the coordinator. `TUPLE_NAMES` maps each script to its
+tuple; any other script is a `CoordinatorError`.
 
 ### `hartlib.map_revision`
 

@@ -1,5 +1,6 @@
 # JMRI jython -- part of signal_coordinator.py: the boot check, the Enable / Disable steps
-# and the hand-off of each Digicon head between SML (SET) and the field (Unheld, mast reports).
+# and the hand-off of each Digicon head between SML (SET) and the field (Unheld; the mast reports
+# are painted in sml_events).
 #
 # signal_coordinator.py loads this from preference:jython after sml_beans and sml_claims and
 # reloads it on every run (see _load_siblings there).
@@ -14,8 +15,6 @@ from sml_beans import (
     SML_ABORT_RESUME_MS,
     SML_MODE_TOPIC,
     TOPIC_PREFIX,
-    _ASPECT_TO_APPEARANCE,
-    _appearance_constant,
     _ascii,
     _bean_label,
     _head_manager,
@@ -670,68 +669,3 @@ class SmlHandoff(object):
         # Retain so LCOS bridge can resume Flashing Red / ... after restart
         # (color/Dark toggles stay bridge-local and never appear on MQTT).
         self._publish(topic, data, retain=True)
-
-    def _apply_mast_payload_to_head(self, packed, payload):
-        """track/signalmast/<packed> -> IH heads + source SignalMast when field owns."""
-        sys_name = "IH" + str(packed)
-        if sys_name not in self.mqtt_wanted:
-            return
-        mast = self._head_to_mast.get(sys_name)
-        if self._global_enabled and not self._field_owns_mast(mast):
-            return
-        parts = [p.strip() for p in str(payload).split(";") if p.strip()]
-        if not parts:
-            return
-        aspect = parts[0]
-        head = _head_manager().getSignalHead(sys_name)
-        if head is not None:
-            mapped = _ASPECT_TO_APPEARANCE.get(aspect.lower())
-            if mapped is None:
-                mapped = aspect
-            const = _appearance_constant(mapped)
-            if const is not None:
-                try:
-                    if head.getAppearance() != const:
-                        head.setAppearance(const)
-                except Exception as exc:
-                    print(
-                        "mqtt_signalhead: setAppearance %s %s: %s"
-                        % (_ascii(sys_name), _ascii(mapped), _ascii(exc))
-                    )
-        if mast is None:
-            return
-        mast_aspect = aspect
-        if aspect.lower() in _ASPECT_TO_APPEARANCE:
-            appearance = _ASPECT_TO_APPEARANCE[aspect.lower()]
-            mast_aspect = {
-                "Red": "Stop",
-                "Yellow": "Approach",
-                "Green": "Clear",
-                "Dark": "Dark",
-            }.get(appearance, aspect)
-        try:
-            current = None
-            try:
-                current = mast.getAspect()
-            except Exception:
-                pass
-            if current != mast_aspect:
-                mast.setAspect(mast_aspect)
-        except Exception as exc:
-            print(
-                "mqtt_signalhead: setAspect %s %s: %s"
-                % (_ascii(mast.getDisplayName()), _ascii(mast_aspect), _ascii(exc))
-            )
-        for token in parts[1:]:
-            low = token.lower()
-            try:
-                if low == "lit":
-                    mast.setLit(True)
-                elif low == "unlit":
-                    mast.setLit(False)
-                elif low == "held":
-                    mast.setHeld(True)
-                elif low == "unheld":
-                    mast.setHeld(False)
-            except Exception:
-                pass

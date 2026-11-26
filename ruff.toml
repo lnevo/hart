@@ -35,6 +35,9 @@ select = ["F"]
 "jmri/layouts/hart/scripts/cs105_consist.py" = ["F821"]
 "jmri/layouts/hart/scripts/ctc_default_reverse_levers.py" = ["F821"]
 "jmri/layouts/hart/scripts/panel_status.py" = ["F821"]
+# panel_status.py's parts (its PARTS) run in its namespace: their names come from it as well as from JMRI.
+"jmri/layouts/hart/scripts/panel_status_clicks.py" = ["F821"]
+"jmri/layouts/hart/scripts/panel_status_turnouts.py" = ["F821"]
 "jmri/layouts/hart/scripts/panelpro_smoke_test.py" = ["F821"]
 # Re-exports every name of car_paths, card_template_layout and card_template_docx for the card scripts that read
 # them as g.<NAME> (its own comment says so).
