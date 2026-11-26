@@ -180,8 +180,7 @@
   "import-exit": 1
  },
  "tools/audit/check_name_copies.py": {
-  "dated-note": 1,
-  "import-exit": 1
+  "dated-note": 1
  },
  "tools/audit/check_py_sizes.py": {
   "dated-note": 1
@@ -251,9 +250,6 @@
  },
  "tools/hartlib/tests/test_wiring.py": {
   "dated-note": 1
- },
- "tools/hosts/deploy/ci_pass.py": {
-  "lost-cause": 4
  },
  "tools/hosts/panel_window_sizes.py": {
   "dated-note": 1,

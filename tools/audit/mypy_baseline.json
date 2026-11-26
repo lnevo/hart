@@ -148,7 +148,7 @@
  "tools/hosts/tests/test_panelpro_profile.py": 1,
  "tools/hosts/tests/test_panelpro_wrappers.py": 1,
  "tools/hosts/tests/test_patch_windows_mqtt.py": 1,
- "tools/hosts/tests/test_pi_quit_panelpro.py": 4,
+ "tools/hosts/tests/test_pi_quit_panelpro.py": 3,
  "tools/hosts/tests/test_pi_ssh_scripts.py": 5,
  "tools/hosts/tests/test_redeploy_commit.py": 28,
  "tools/hosts/tests/test_win_run.py": 1,
