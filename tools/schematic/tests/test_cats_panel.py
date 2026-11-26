@@ -18,7 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import build_cats_panel as B  # noqa: E402
-from hartlib import level_devices  # noqa: E402
+from hartlib import devices, level_devices  # noqa: E402
 
 BUILT = {}
 PLUGIN = B.pd.REPO / "external/model-railroad-skills/plugins/schematic-maps"     # where publish_draft.plugin looks
@@ -323,7 +323,7 @@ class TestDeskErrors(unittest.TestCase):
         import tempfile
         cp = sys.modules["cats_panel"]
         with tempfile.TemporaryDirectory() as tmp:
-            field = Path(tmp) / "devices_field.csv"
+            field = Path(tmp) / devices.FIELD_FILE
             field.write_text("a\n", encoding="utf-8")
             before = cp._master_state(field)
             self.assertEqual(before, cp._master_state(field))
@@ -337,7 +337,7 @@ class TestDeskErrors(unittest.TestCase):
         from unittest import mock
         cp = sys.modules["cats_panel"]
         with tempfile.TemporaryDirectory() as tmp:
-            field = Path(tmp) / "devices_field.csv"
+            field = Path(tmp) / devices.FIELD_FILE
             field.write_text("aa\n", encoding="utf-8")
             st = field.stat()
             before = cp._master_state(field)
