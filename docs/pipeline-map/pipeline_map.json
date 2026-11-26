@@ -4985,6 +4985,24 @@
    "path": "tools/schematic/cats_panel.py"
   },
   {
+   "id": "tools/schematic/cats_panel_bound.py",
+   "label": "cats_panel_bound.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "cats_panel.py's bound level (staging): switches.csv and occupancy_bindings.csv bound into the desk.",
+   "path": "tools/schematic/cats_panel_bound.py"
+  },
+  {
+   "id": "tools/schematic/cats_panel_shapes.py",
+   "label": "cats_panel_shapes.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "cats_panel.py's binding shapes for every level: turnout routes, occupancy specs, block entries and mast templates.",
+   "path": "tools/schematic/cats_panel_shapes.py"
+  },
+  {
    "id": "tools/schematic/cats_panel_facts.py",
    "label": "cats_panel_facts.py",
    "kind": "generator",
@@ -12121,6 +12139,16 @@
    "from": "tools/schematic/cats_panel.py",
    "to": "tools/schematic/publish_draft.py",
    "label": "imports"
+  },
+  {
+   "from": "tools/schematic/cats_panel_shapes.py",
+   "to": "tools/schematic/cats_panel.py",
+   "label": "re-exported"
+  },
+  {
+   "from": "tools/schematic/cats_panel_bound.py",
+   "to": "tools/schematic/cats_panel.py",
+   "label": "re-exported"
   },
   {
    "from": "tools/schematic/cats_panel_facts.py",
