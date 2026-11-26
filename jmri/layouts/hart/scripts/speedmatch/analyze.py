@@ -206,7 +206,7 @@ class _LogParser:
         self.last_active: Event | None = None
 
     def new_run(self, loco: str, direction: str, t: float) -> dict:
-        run = {"loco": loco, "direction": direction, "steps": [], "cfg": {},
+        run: dict = {"loco": loco, "direction": direction, "steps": [], "cfg": {},
                "lengths": None, "log": self.source, "complete": False, "t0": t}
         self.runs.append(run)
         return run
@@ -482,11 +482,11 @@ def summarize_runs(runs: Iterable[dict], lengths: Mapping[str, float | None], k:
     out = []
     runs = sorted(runs, key=lambda r: r.get("t0") or 0.0)  # stable
     for n, run in enumerate(runs, start=1):
-        p = {"k": k, "rel": rel, "max_n": max_n}
+        p: dict[str, object] = {"k": k, "rel": rel, "max_n": max_n}
         p.update(kw)
         if use_logged:
             p.update(run.get("cfg") or {})
-        route = p.pop("route", DEFAULT_ROUTE)
+        route = str(p.pop("route", DEFAULT_ROUTE))
         try:
             order = route_order(route)
         except ValueError as e:
