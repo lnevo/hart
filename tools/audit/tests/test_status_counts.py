@@ -177,7 +177,7 @@ class AtomicWrite(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             out = Path(d) / "STATUS.md"
             out.write_text("old", encoding="utf-8")
-            sc.write_atomic(out, "new page\n")
+            sc.files.write_atomic(out, "new page\n")
             self.assertEqual("new page\n", out.read_text(encoding="utf-8"))
             self.assertEqual(["STATUS.md"], sorted(p.name for p in Path(d).iterdir()))
 
@@ -186,7 +186,7 @@ class AtomicWrite(unittest.TestCase):
             out = Path(d) / "STATUS.md"
             out.write_text("old", encoding="utf-8")
             with self.assertRaises(TypeError):
-                sc.write_atomic(out, None)
+                sc.files.write_atomic(out, None)
             self.assertEqual("old", out.read_text(encoding="utf-8"))
             self.assertEqual(["STATUS.md"], sorted(p.name for p in Path(d).iterdir()))
 

@@ -23,10 +23,7 @@ from __future__ import annotations
 
 import argparse
 import copy
-import os
-import stat
 import sys
-import tempfile
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -34,7 +31,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import parked, paths, tables  # noqa: E402
+from hartlib import files, parked, paths, tables  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 DEFAULT_PANEL = paths.TABLES_XML
@@ -670,25 +667,11 @@ def validate(root: ET.Element) -> None:
 
 
 def write_atomic(tree: ET.ElementTree, destination: Path) -> None:
+    """Indent the tree and write it through hartlib.files.write_atomic (the old file's mode kept)."""
     ET.indent(tree, space="  ")
     destination.parent.mkdir(parents=True, exist_ok=True)
-    fd, temporary_name = tempfile.mkstemp(
-        prefix=f".{destination.name}.", suffix=".tmp", dir=destination.parent
-    )
-    os.close(fd)
-    temporary = Path(temporary_name)
-    try:
-        tree.write(
-            temporary,
-            encoding="UTF-8",
-            xml_declaration=True,
-            short_empty_elements=True,
-        )
-        if destination.exists():
-            os.chmod(temporary, stat.S_IMODE(destination.stat().st_mode))
-        temporary.replace(destination)
-    finally:
-        temporary.unlink(missing_ok=True)
+    data = ET.tostring(tree.getroot(), encoding="UTF-8", xml_declaration=True, short_empty_elements=True)
+    files.write_atomic(destination, data, follow_links=False)
 
 
 def safe_panel_path(path: Path) -> Path:
