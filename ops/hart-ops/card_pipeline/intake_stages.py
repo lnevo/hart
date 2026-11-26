@@ -15,13 +15,17 @@ flagged from the OCR text and the AI review, and ``cars.py kind`` switches a pho
 from __future__ import annotations
 
 import csv
+import sys
 import html
 import os
 import re
 from datetime import date
 from pathlib import Path
 
-HART_ROOT = Path(__file__).resolve().parents[3]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+HART_ROOT = paths.REPO_ROOT
 BATCH_ROOT = Path(os.environ.get("HART_INTAKE_ROOT", HART_ROOT / "ops/intake"))
 
 # Edge-response variance of the cropped image. Finished card images in the repository score

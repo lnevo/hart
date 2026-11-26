@@ -11,7 +11,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+ROOT = paths.REPO_ROOT
 FORBIDDEN = ("CATS_Signals.doc", ".env", ".env.*", "*.pem", "credentials*.json", "*.log", "~$*")
 FORBIDDEN_DIRS = ("media/", "ops/car-cards/", "docs/wiring/bench/", "tools/cats/src-repo/")
 ALLOWED = (".env.example",)

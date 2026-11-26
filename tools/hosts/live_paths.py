@@ -17,10 +17,10 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import parked  # noqa: E402
+from hartlib import parked, paths# noqa: E402
 
 LIST = Path(__file__).resolve().with_name("live_paths.txt")
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = paths.REPO_ROOT
 JYTHON_DIR = "jmri/layouts/hart/scripts/"
 
 

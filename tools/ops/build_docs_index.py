@@ -23,7 +23,10 @@ from collections import defaultdict
 from pathlib import Path
 from urllib.parse import quote
 
-ROOT = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+ROOT = paths.REPO_ROOT
 TOOLING = (".py", ".sh", ".scad", ".stl", ".3mf", ".gitignore")
 ASSETS = (".jpg", ".jpeg", ".png", ".gif", ".webp", ".ico", ".css", ".js", ".woff", ".woff2", ".ttf", ".otf")
 DOCS_DIR = "docs"      # the folder it lists and reads: the docs-index step's input in tools/pipeline/checks.toml

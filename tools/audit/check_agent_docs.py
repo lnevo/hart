@@ -22,7 +22,11 @@ import sys
 from typing import NamedTuple
 from pathlib import Path, PurePosixPath
 
-ROOT = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+
+ROOT = paths.REPO_ROOT
 # The tracked files it reads, as git globs (** crosses folders, * does not): the agent docs (PATTERNS, less EXCLUDED)
 # and the Markdown files the cell rule covers (CELL_GLOBS, less the exempt history). The step's quiet_inputs in
 # tools/pipeline/checks.toml are these (tools/audit/tests/test_manifest_scans.py).

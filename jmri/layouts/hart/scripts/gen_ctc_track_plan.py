@@ -23,8 +23,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import layout_facts as facts  # noqa: E402
 from uss_switch_only_columns import ensure_columns  # noqa: E402
 
-ROOT = Path(__file__).resolve().parents[4]
-from hartlib import tables as hl_tables  # noqa: E402  (layout_facts put hartlib on sys.path)
+from hartlib import paths, tables as hl_tables  # noqa: E402  (layout_facts put hartlib on sys.path)
+ROOT = paths.REPO_ROOT
 
 # The board's grid: the cells of the hand-wired CATS desk, frozen on 2026-11-15 into
 # jmri/layouts/hart/data/uss_board_cells.csv and uss_board_plants.csv (CATS cut-over),

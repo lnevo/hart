@@ -31,7 +31,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+ROOT = paths.REPO_ROOT
 MANIFEST = Path("www/scripts/published-files.json")
 SITE_PREFIXES = ("www/", "ops/", "docs/", "external/", "media/", "tools/hartlib/src/")
 # Tools outside SITE_PREFIXES that the build loads to write a page it publishes (prepare_github_pages.BUILT_PAGES)

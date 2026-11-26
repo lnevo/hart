@@ -30,7 +30,10 @@ import sys
 from pathlib import Path
 from typing import NamedTuple
 
-ROOT = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+ROOT = paths.REPO_ROOT
 SIZES = ROOT / "tools/audit/py_sizes.csv"
 # The line limit of each kind of file the check covers, by suffix. Shell is lower: check.sh grew from 47 to 526 lines
 # in 14 days, and at 800 no shell file in the repo would have a row (tools/audit size sweep, 2026-11-25).

@@ -17,7 +17,10 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 
-ROOT = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+ROOT = paths.REPO_ROOT
 GRID = ROOT / "media/hart-research/wiring-drafts/lcos-node-grid-2025-10-06c.xlsx"
 OUT = ROOT / "www/assets/behind/lcos-node-grid.svg"
 ADDRESS = re.compile(r"^0[0-7]{1,2}\*?$")

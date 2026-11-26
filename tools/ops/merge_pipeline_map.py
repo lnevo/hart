@@ -42,7 +42,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+ROOT = paths.REPO_ROOT
 _spec = importlib.util.spec_from_file_location("build_pipeline_map", Path(__file__).resolve().with_name("build_pipeline_map.py"))
 MAP = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(MAP)
