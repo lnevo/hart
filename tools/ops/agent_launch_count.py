@@ -46,7 +46,7 @@ def main_checkout(root: Path = ROOT) -> Path:
         common = subprocess.run(["git", "-C", str(root), "rev-parse", "--path-format=absolute", "--git-common-dir"],
                                 capture_output=True, text=True, check=True).stdout.strip()
     except (OSError, subprocess.CalledProcessError) as e:
-        raise CountError(f"cannot find the main checkout of {root}: git rev-parse failed ({e})") from None
+        raise CountError(f"cannot find the main checkout of {root}: git rev-parse failed ({e})") from e
     return Path(common).parent
 
 
@@ -78,7 +78,7 @@ def repo_project_dirs(projects: Path, checkout: Path) -> list[Path]:
     try:
         entries = tuple(project_key(e.name) for e in checkout.iterdir())
     except OSError as e:
-        raise CountError(f"cannot list the checkout {checkout}: {e}") from None
+        raise CountError(f"cannot list the checkout {checkout}: {e}") from e
     dirs = sorted(d for d in projects.iterdir() if d.is_dir() and belongs(d.name, key, entries))
     if not dirs:
         raise CountError(f"no project folder in {projects} belongs to {checkout} (looked for {key})")

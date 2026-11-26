@@ -908,6 +908,23 @@ inputs = [
 # it counts the lines of every .py, .js and .sh (check_py_sizes.SCAN_GLOBS)
 quiet_inputs = ["**/*.py", "**/*.js", "**/*.sh"]
 
+# A ratchet on five code habits (lost tracebacks, dated owner notes, source-text tests, exits on import, exec-loaded
+# parts): a file's count may go down, never up. It lists files with git ls-files, so it keeps HEAD.
+[[step]]
+name = "habits"
+runner = "check"
+group = "static"
+cmd = ["python3", "tools/audit/check_habits.py"]
+git = ["head", "base"]
+domain = "extras"
+label = "check_habits"
+desc = "Fails when a tracked .py file's count of a code habit (lost traceback, dated owner note, source-text test, exit on import, exec-loaded part) differs from tools/audit/habits_baseline.json; --update lowers it and refuses any rise."
+inputs = [
+  "tools/audit/habits_baseline.json",
+]
+# it reads every tracked .py file (check_habits.SCAN_GLOBS)
+quiet_inputs = ["**/*.py"]
+
 [[step]]
 name = "agent-docs"
 runner = "check"

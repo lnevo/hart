@@ -34,12 +34,13 @@ A new box goes after the box of the step before it in the manifest, and a new li
 box; with none, after the last hand-kept or manifest entry (another lane may move its own entries on the next run). Links between scripts and code (imports, calls), from hosts or external boxes,
 and from tools/check.sh into a script stay hand-kept.
 """
-from __future__ import annotations
 
 import importlib.util
 import json
 import sys
+from collections.abc import Callable, Sequence
 from pathlib import Path
+from typing import Literal, NamedTuple, Required, TypedDict, TypeVar, get_args
 
 ROOT = Path(__file__).resolve().parents[2]
 if "pipeline_manifest" not in sys.modules:      # once per process: check_stamps.py and the tests load it by this name
@@ -47,6 +48,46 @@ if "pipeline_manifest" not in sys.modules:      # once per process: check_stamps
     sys.modules["pipeline_manifest"] = importlib.util.module_from_spec(_spec)    # its dataclasses look it up there
     _spec.loader.exec_module(sys.modules["pipeline_manifest"])
 MANIFEST = sys.modules["pipeline_manifest"]
+
+# The graph's record types (docs/pipeline-map/pipeline_map.json): build_pipeline_map.py and merge_pipeline_map.py
+# use them too, and validate() checks a kind, status or side against these fixed sets.
+NodeKind = Literal["structured", "unstructured", "generator", "output", "external", "host", "human"]
+Status = Literal["live", "parked", "retired"]
+Side = Literal["check", "pointer", "pull", "mirror", "capture", "history"]   # why a link carries no content
+NODE_KINDS: tuple[str, ...] = get_args(NodeKind)
+STATUSES: tuple[str, ...] = get_args(Status)
+SIDES: tuple[str, ...] = get_args(Side)
+
+
+class Node(TypedDict, total=False):
+    """One box. "gen" names the lane that generated it; "local" marks a box the public copy leaves out; "runner"
+    marks the box that runs the others (make panels)."""
+    id: Required[str]
+    label: Required[str]
+    kind: Required[NodeKind]
+    status: Status
+    domain: str
+    desc: str
+    path: str
+    gen: str
+    local: bool
+    runner: bool
+
+
+# One link, keyed by its two ends. "from" is a Python keyword, so the class syntax cannot name it.
+Edge = TypedDict("Edge", {"from": Required[str], "to": Required[str], "label": str, "side": Side, "gen": str},
+                 total=False)
+
+
+class Graph(TypedDict, total=False):
+    updated: str
+    domains: list[dict[str, str]]
+    presets: list[dict[str, object]]   # a preset's fields belong to the viewer; the build reads only "label"
+    nodes: Required[list[Node]]
+    edges: Required[list[Edge]]
+
+
+EdgeKey = tuple[str, str]
 
 GEN = "manifest"
 RUNNER = "tools/check.sh"           # the box every step links to: check.sh runs each step as a job
@@ -58,12 +99,21 @@ class MapLaneError(Exception):
     """The manifest lane cannot be drawn into this graph; the message says what to change."""
 
 
-def _key(e: dict) -> tuple[str, str]:
+class Lane(NamedTuple):
+    """What lane() or panels_lane() generates: the boxes, the links, each box's id in manifest order, and each link's
+    own box (the step that lists it)."""
+    nodes: list[Node]
+    edges: list[Edge]
+    order: list[str]
+    owner: dict[EdgeKey, str]
+
+
+def _key(e: Edge) -> EdgeKey:
     return (e["from"], e["to"])
 
 
-def _edge(a: str, b: str, label: str, side: str) -> dict:
-    e = {"from": a, "to": b}
+def _edge(a: str, b: str, label: str, side: str) -> Edge:
+    e: Edge = {"from": a, "to": b}
     if label:
         e["label"] = label
     if side:
@@ -72,12 +122,15 @@ def _edge(a: str, b: str, label: str, side: str) -> dict:
     return e
 
 
-def lane(steps, path_ids: dict[str, str], runner_id: str) -> tuple[list[dict], list[dict], list[str], dict]:
+def lane(steps: Sequence["MANIFEST.Step"], path_ids: dict[str, str], runner_id: str) -> Lane:
     """The generated boxes, links, each box's id in manifest order, and each link's own script (the step that lists
     it: a link between two steps' scripts belongs to the one whose input or output it is). path_ids maps each box path
     of the graph (without a trailing /) to its id, the lane's own boxes included."""
-    nodes, edges, order, problems = [], [], [], []
-    owner: dict[tuple[str, str], str] = {}
+    nodes: list[Node] = []
+    edges: list[Edge] = []
+    order: list[str] = []
+    problems: list[str] = []
+    owner: dict[EdgeKey, str] = {}
     seen: dict[str, str] = {}
     for step in steps:
         if step.name in HAND_KEPT_STEPS:
@@ -108,7 +161,7 @@ def lane(steps, path_ids: dict[str, str], runner_id: str) -> tuple[list[dict], l
     problems += sorted({f"{a} -> {b} comes from two entries of the manifest" for a, b in keys if keys.count((a, b)) > 1})
     if problems:
         raise MapLaneError("\n".join(problems))
-    return nodes, edges, order, owner
+    return Lane(nodes, edges, order, owner)
 
 
 def _glob_boxes(path: str, path_ids: dict[str, str], named: set[str]) -> list[str] | None:
@@ -126,12 +179,14 @@ def _glob_boxes(path: str, path_ids: dict[str, str], named: set[str]) -> list[st
     return None
 
 
-def panels_lane(steps, path_ids: dict[str, str], runner_id: str) -> tuple[list[dict], list[dict], list[str], dict]:
+def panels_lane(steps: Sequence["MANIFEST.PanelStep"], path_ids: dict[str, str], runner_id: str) -> Lane:
     """lane() for the panels manifest's steps: a box per box name, its links, and the links to and from the runner
     box. path_ids maps each box path to its id, the lane's own boxes included (a script to its step's box)."""
-    nodes, order, problems = [], [], []
-    edges: dict[tuple[str, str], dict] = {}
-    owner: dict[tuple[str, str], str] = {}
+    nodes: list[Node] = []
+    order: list[str] = []
+    problems: list[str] = []
+    edges: dict[EdgeKey, Edge] = {}
+    owner: dict[EdgeKey, str] = {}
     guards: dict[str, list[str]] = {}
     for step in steps:
         if step.box not in order:
@@ -140,7 +195,7 @@ def panels_lane(steps, path_ids: dict[str, str], runner_id: str) -> tuple[list[d
                           "domain": step.domain, "desc": step.desc, "path": step.script, "gen": GEN})
     for step in steps:
         named = {i.path for i in (*step.inputs, *step.outputs)}
-        links = []
+        links: list[Edge] = []
         for kind, items in (("input", step.inputs), ("output", step.outputs)):
             for item in items:
                 if kind == "output" and item.path in step.undrawn:
@@ -182,10 +237,14 @@ def panels_lane(steps, path_ids: dict[str, str], runner_id: str) -> tuple[list[d
         owner[_key(e)] = box
     if problems:
         raise MapLaneError("\n".join(problems))
-    return nodes, list(edges.values()), order, owner
+    return Lane(nodes, list(edges.values()), order, owner)
 
 
-def _place(old: list, fresh: dict, owned, key, after) -> list:
+Entry = TypeVar("Entry", Node, Edge)
+
+
+def _place(old: list[Entry], fresh: dict, owned: Callable[[Entry], bool], key: Callable[[Entry], object],
+           after: Callable[[list[Entry], Entry], int]) -> list[Entry]:
     """`old` with each owned entry replaced by its fresh version in place (dropped when it has none), then each fresh
     entry not yet placed inserted after the index `after` gives (-1: first)."""
     out = []
@@ -203,7 +262,8 @@ def _place(old: list, fresh: dict, owned, key, after) -> list:
     return out
 
 
-def regenerate(data: dict, steps=None, panels=None) -> dict:
+def regenerate(data: Graph, steps: Sequence["MANIFEST.Step"] | None = None,
+               panels: Sequence["MANIFEST.PanelStep"] | None = None) -> Graph:
     """The graph with its manifest lane replaced by a fresh one from the manifests (or from `steps` and `panels`, the
     panels steps; none when only `steps` is given)."""
     if steps is None:
@@ -214,7 +274,7 @@ def regenerate(data: dict, steps=None, panels=None) -> dict:
             else:
                 steps = MANIFEST.load(where=where)
         except MANIFEST.ManifestError as err:
-            raise MapLaneError(str(err)) from None
+            raise MapLaneError(str(err)) from err
     panels = panels or ()
     names = {s.name for s in steps}
     stale = sorted(set(HAND_KEPT_STEPS) - names)
@@ -263,7 +323,8 @@ def regenerate(data: dict, steps=None, panels=None) -> dict:
             n.pop("gen")
             n.update(runner=True, gen=GEN)
     held = {_key(e): e for e in data["edges"] if e.get("gen") != GEN}
-    fresh_edges, problems = {}, []
+    fresh_edges: dict[EdgeKey, Edge] = {}
+    problems: list[str] = []
     for e in edges:
         have = held.get(_key(e))
         if have is None:
@@ -284,15 +345,15 @@ def regenerate(data: dict, steps=None, panels=None) -> dict:
 
     # Another lane rewrites its own entries where it likes (the agent-doc lane puts them last), so a new entry is
     # placed only after a hand-kept or manifest one: a place the next run finds again.
-    def stays(entry: dict) -> bool:
+    def stays(entry: Node | Edge) -> bool:
         return entry.get("gen") in (None, GEN)
 
-    def after_node(out: list, node: dict):
+    def after_node(out: list[Node], node: Node) -> int:
         before = set(order[:rank[node["id"]]])
         at = [i for i, n in enumerate(out) if n["id"] in before] or [i for i, n in enumerate(out) if stays(n)]
         return at[-1] if at else -1
 
-    def after_edge(out: list, edge: dict):
+    def after_edge(out: list[Edge], edge: Edge) -> int:
         script = owner[_key(edge)]
         at = ([i for i, e in enumerate(out) if stays(e) and script in _key(e)]
               or [i for i, e in enumerate(out) if stays(e)])

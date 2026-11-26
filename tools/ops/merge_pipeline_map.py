@@ -40,6 +40,7 @@ import json
 import re
 import subprocess
 import sys
+from collections.abc import Mapping
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -47,6 +48,7 @@ _spec = importlib.util.spec_from_file_location("build_pipeline_map", Path(__file
 MAP = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(MAP)
 
+Graph = MAP.Graph
 SCRIPT = "tools/ops/merge_pipeline_map.py"
 
 
@@ -96,7 +98,7 @@ class Conflict:
         self.where, self.ours, self.theirs, self.inline = where, ours, theirs, inline
 
 
-def key_of(name: str, entry: dict) -> str | tuple[str, str]:
+def key_of(name: str, entry: Mapping[str, object]) -> str | tuple[str, str]:
     if name == "nodes":
         return MAP.node_key(entry)
     if name == "edges":
@@ -104,17 +106,17 @@ def key_of(name: str, entry: dict) -> str | tuple[str, str]:
     return entry[KEY_FIELDS[name][0]]
 
 
-def show(name: str, key) -> str:
+def show(name: str, key: str | tuple[str, str]) -> str:
     kind = {"domains": "domain", "presets": "preset", "nodes": "node", "edges": "edge"}[name]
     return f"{kind} {key[0]} -> {key[1]}" if name == "edges" else f"{kind} {key!r}"
 
 
-def load_side(path: Path, side: str) -> dict:
+def load_side(path: Path, side: str) -> Graph:
     """One side of the merge as data, every list entry checked to have its key and no key twice."""
     try:
         data = MAP.read(path)
     except MAP.GraphError as err:
-        raise MergeError(f"{side} ({path}): {err}") from None
+        raise MergeError(f"{side} ({path}): {err}") from err
     if SENTINEL_STEM in path.read_text(encoding="utf-8"):
         raise MergeError(f"{side} ({path}) already holds a conflict entry from this driver; resolve it first")
     for name, fields in KEY_FIELDS.items():
@@ -172,7 +174,7 @@ def merge_order(base: list, ours: list, theirs: list, keep: set) -> tuple[list, 
     return order, both_reordered
 
 
-def merge_list(name: str, base: dict, ours: dict, theirs: dict, conflicts: list[Conflict]) -> list:
+def merge_list(name: str, base: Graph, ours: Graph, theirs: Graph, conflicts: list[Conflict]) -> list:
     seqs = [[key_of(name, e) for e in side.get(name, [])] for side in (base, ours, theirs)]
     maps = [dict(zip(seq, side.get(name, []))) for seq, side in zip(seqs, (base, ours, theirs))]
     merged: dict = {}
@@ -203,7 +205,7 @@ def later_date(ours, theirs):
         return None
 
 
-def merge_graphs(base: dict, ours: dict, theirs: dict) -> tuple[dict, list[Conflict]]:
+def merge_graphs(base: Graph, ours: Graph, theirs: Graph) -> tuple[Graph, list[Conflict]]:
     conflicts: list[Conflict] = []
     out: dict = {}
     for key in dict.fromkeys([*ours, *theirs, *base]):
@@ -236,7 +238,7 @@ def entry_text(value, indent: str, prefix: str, comma: str) -> str:
     return "\n".join([indent + prefix + lines[0], *(indent + line for line in lines[1:])]) + comma
 
 
-def render(data: dict, conflicts: list[Conflict]) -> str:
+def render(data: Graph, conflicts: list[Conflict]) -> str:
     """The merged file in the graph's own format; each conflicting entry between git conflict markers."""
     inline = [c for c in conflicts if c.inline]
     numbered = {id(c): i for i, c in enumerate(inline)}
@@ -274,7 +276,7 @@ def _lanes(*values) -> list[str]:
     return sorted({v["gen"] for v in values if isinstance(v, dict) and isinstance(v.get("gen"), str)})
 
 
-def from_theirs(data: dict, ours: dict) -> list[str]:
+def from_theirs(data: Graph, ours: Graph) -> list[str]:
     """The generated nodes and edges of the merged graph that differ from ours: taken from the other branch."""
     out = []
     for name in ("nodes", "edges"):
@@ -343,7 +345,7 @@ def git_config(repo: Path, *args: str) -> subprocess.CompletedProcess:
     try:
         return subprocess.run(["git", "-C", str(repo), "config", *args], capture_output=True, text=True, timeout=30)
     except (OSError, subprocess.SubprocessError) as err:
-        raise MergeError(f"cannot run git config in {repo}: {err}") from None
+        raise MergeError(f"cannot run git config in {repo}: {err}") from err
 
 
 def install(repo: Path) -> list[str]:
@@ -353,7 +355,7 @@ def install(repo: Path) -> list[str]:
         top = subprocess.run(["git", "-C", str(repo), "rev-parse", "--git-dir"], capture_output=True, text=True,
                              timeout=30)
     except (OSError, subprocess.SubprocessError) as err:
-        raise MergeError(f"cannot run git in {repo}: {err}") from None
+        raise MergeError(f"cannot run git in {repo}: {err}") from err
     if top.returncode != 0:
         raise MergeError(f"{repo} is not a git checkout: {top.stderr.strip()}")
     changed = []

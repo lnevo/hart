@@ -186,7 +186,7 @@ class Tables:
         self.segments = {s.get("ident"): s for s in panel.iter("tracksegment")}
         self.points = {p.get("ident"): p for p in panel.iter("positionablepoint")}
         self.paths_stored = bool(self.paths)
-        # a part (the device master's part_of) is a JMRI block of its own inside another block (owner, 2026-11-20); the
+        # a part (the device master's part_of) is a JMRI block of its own inside another block; the
         # legs in switches.csv name the blocks a part is inside, as the masts read them (staging_device_map.os_layer)
         self.part_of: dict[str, str] = dict(parts or {})
         self.sensor_system = {
@@ -418,7 +418,7 @@ def device_map_blocks() -> frozenset[str]:
 @functools.cache
 def field_sensors() -> frozenset[str]:
     """The JMRI names of the main and upper detectors swapped to a field sensor by their row (assignment field,
-    ADR-028): a column of the row, not its level, says a block's sensor is virtual (naming-layers step 14)."""
+    ADR-028): a column of the row, not its level, says a block's sensor is virtual."""
     return frozenset(r["jmri_name"] for r in devices.load(DEVICE_MAP) if r["level"] in level_devices.LEVELS
                      and r["layer"] == "occupancy" and r["assignment"] == "field")
 
@@ -748,7 +748,7 @@ def check_mast_cells(data: Path, rows: list[dict[str, str]], desks, t: Tables, r
     """mast_cells.csv against the USS board's grid, the CATS desks (each of its masts once, its lamp on the edge of
     the block it protects, and no other mast), staging's mast rows of the device master and the masts' heads in tables.xml."""
     # the desks draw staging's visible masts, as the rule places them (masts.csv, ADR-024); mast_cells.csv
-    # is the USS board's, checked only while the board is in the tables (it is parked with it, owner 2026-11-19)
+    # is the USS board's, checked only while the board is in the tables (it is parked with it)
     want = {m["mast"] for m in staging_mast_rows() if not m["system_name"].startswith("IF$vsm:")}
     uss_parked = "uss" in parked.parked_in(t.root)
     cells = [] if uss_parked else facts.load_mast_cells(data)

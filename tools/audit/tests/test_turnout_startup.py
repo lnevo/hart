@@ -1,7 +1,7 @@
 """The main and upper virtual turnouts' startup positions: build_device_map.startup_thrown picks the switches whose main
 route runs through the diverging leg (written as the turnout rows' start, naming-layers step 9),
 hartlib.tables_build.start_actions and start_logixng write an ActionTurnout per turnout into the startup LogixNG
-(naming-layers step 11), and hartlib.level_devices reads them back and refuses anything else (owner, 2026-11-19)."""
+(naming-layers step 11), and hartlib.level_devices reads them back and refuses anything else."""
 from __future__ import annotations
 
 import sys

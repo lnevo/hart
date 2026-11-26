@@ -33,7 +33,9 @@ import math
 import os
 import re
 import sys
+from collections.abc import Mapping, Sequence
 from pathlib import Path
+from typing import NamedTuple
 
 SCHEMATIC_TOOLS = Path(__file__).resolve().parents[1] / "schematic"
 
@@ -245,7 +247,20 @@ def top_layers(parts, links, chains):
     return {n: top_layer(w, [o for m in walks if m != n for o in segs[m]]) for n, w in walks.items()}
 
 
-def assign(parts, heights):
+# A part of the plan as the schematic-maps plugin's reader gives it (index, kind, ends with x/y/z, cm, ...).
+Part = dict
+
+
+class Assignment(NamedTuple):
+    """assign()'s result: each part's level, the helix pieces drawn dotted, the plan's joins, and the pieces a helix
+    layer splits between two levels ({piece: {level: (end, cm)}})."""
+    where: dict[int, str]
+    ramp: set[int]
+    links: dict
+    partial: dict[int, dict[str, tuple]]
+
+
+def assign(parts: Sequence[Part], heights: Mapping[str, float]) -> Assignment:
     """{part index: level} for every flat part and every helix piece (the dotted ones are `ramp` below)."""
     links, _ = anyplan().joins(parts)
     where, ramp, partial = {}, set(), {}
@@ -285,7 +300,7 @@ def assign(parts, heights):
             ramp.add(i)
     if len(where) != len(parts):
         raise LevelsError("parts left without a level: %s" % sorted(set(range(len(parts))) - set(where)))
-    return where, ramp, links, partial
+    return Assignment(where, ramp, links, partial)
 
 
 def labels(level) -> dict[str, str]:
@@ -421,7 +436,7 @@ def ramps(parts, links, heights):
     return sorted(out, key=lambda r: (LEVELS.index(r["foot"]), LEVELS.index(r["top"]), r["flex_m"]))
 
 
-def build(plan_path) -> dict[str, str]:
+def build(plan_path: str | Path) -> dict[str, str]:
     """{file name: text} of every output."""
     parts = anyplan().read(plan_path)
     heights = level_heights(parts)
@@ -445,7 +460,7 @@ def build(plan_path) -> dict[str, str]:
     return files
 
 
-def main(argv=None):
+def main(argv: Sequence[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("plan", nargs="?", default=str(DEFAULT_PLAN), help="the AnyRail .any file (default: %(default)s)")
     ap.add_argument("out", nargs="?", default=str(Path(__file__).resolve().parent / "levels"))
@@ -455,7 +470,7 @@ def main(argv=None):
         if Path(a.plan) != DEFAULT_PLAN:
             print(f"levels_svg: {a.plan} does not exist", file=sys.stderr)
             return 2
-        print(f"levels_svg: SKIPPED, {a.plan} is not on this machine")
+        print(f"levels_svg: SKIPPED, not checked: {a.plan} is not on this machine")
         return 0
     try:
         reader = anyplan()

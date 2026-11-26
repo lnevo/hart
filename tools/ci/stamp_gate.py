@@ -170,7 +170,7 @@ def read_results(path: Path) -> dict[str, str]:
     try:
         text = path.read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError) as e:
-        raise GateError(f"{path}: cannot read check.sh's results: {e}") from None
+        raise GateError(f"{path}: cannot read check.sh's results: {e}") from e
     out: dict[str, str] = {}
     for n, line in enumerate(text.splitlines(), 1):
         name, tab, result = line.partition("\t")
@@ -206,7 +206,7 @@ def read_record(path: Path) -> dict:
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError) as e:
-        raise GateError(f"{path}: not a skip record: {e}") from None
+        raise GateError(f"{path}: not a skip record: {e}") from e
     if not isinstance(data, dict) or data.get("version") != SKIPS_VERSION:
         raise GateError(f"{path}: not a skip record of version {SKIPS_VERSION}")
     skipped = data.get("skipped")

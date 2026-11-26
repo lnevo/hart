@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import importlib.util
-import re
 import sys
 import unittest
 import xml.etree.ElementTree as ET
@@ -18,7 +17,7 @@ TABLES = paths.TABLES_XML
 
 def load_module():
     spec = importlib.util.spec_from_file_location("run_native_sml_qa", SCRIPT)
-    mod = importlib.util.module_from_spec(spec)
+    mod = sys.modules["run_native_sml_qa"] = importlib.util.module_from_spec(spec)   # its dataclasses look it up
     spec.loader.exec_module(mod)
     return mod
 
@@ -64,14 +63,57 @@ class NativeSmlQaTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             path = Path(d) / "tables.xml"
             path.write_text(xml, encoding="utf-8")
-            with self.assertRaises(SystemExit) as ctx:
+            with self.assertRaises(self.qa.QAError) as ctx:
                 self.qa.load_mast_heads(path)
         self.assertIn("Mast B", str(ctx.exception))
 
     def test_expected_mast_names_exist(self) -> None:
-        source = SCRIPT.read_text(encoding="utf-8")
-        named = set(re.findall(r'"(Mast \w+)"', source))
+        named = {mast for st in self.qa.SCENARIO for mast in st.expect}
+        self.assertIn("Mast 40LA", named)
         self.assertLessEqual(named, set(table_masts()))
+
+    def test_scenario_drives_known_switches_and_blocks(self) -> None:
+        for st in self.qa.SCENARIO:
+            for change in (*st.before, *st.after):
+                self.assertIn(change.name, self.qa.TO if change.what == "turnout" else self.qa.OCC, st.tag)
+
+    def test_run_drives_and_checks_each_step_with_no_broker(self) -> None:
+        from unittest import mock
+        applied, seen = [], []
+        snap = {"Mast A": {"aspect": "Stop", "held": None}}
+        steps = (self.qa.Step("t1", "d", {"Mast A": "stop"}, before=(self.qa.turnout("113", "THROWN"),),
+                              after=(self.qa.occupancy("K-1", "INACTIVE"),)),
+                 self.qa.Step("t2", "d", {"Mast A": "nonstop"}))
+        run = self.qa.Run()
+        with mock.patch.object(self.qa, "set_to", lambda sw, st: applied.append(("to", sw, st))), \
+                mock.patch.object(self.qa, "set_occ", lambda b, st: applied.append(("occ", b, st))), \
+                mock.patch.object(self.qa, "pub", side_effect=AssertionError("published")), \
+                mock.patch.object(self.qa, "jmri_snapshot", lambda: seen.append(1) or snap), \
+                mock.patch.object(self.qa, "mqtt_heads", lambda: {}), mock.patch.object(self.qa, "SETTLE", 0), \
+                mock.patch("sys.stdout"):
+            self.qa.run_scenario(run, steps)
+        self.assertEqual(applied, [("to", "113", "THROWN"), ("occ", "K-1", "INACTIVE")])
+        self.assertEqual(len(seen), 2)
+        self.assertEqual(run.failures, ["[FAIL] t2: Mast A = 'Stop' (expected nonstop)"])
+        self.assertEqual(len(run.notes), 2)
+
+    def test_missing_client_is_a_qa_error(self) -> None:
+        from unittest import mock
+        with mock.patch.object(self.qa, "CLIENT_DIRS", ("/nonexistent",)):
+            with self.assertRaisesRegex(self.qa.QAError, "mosquitto_pub is not in PATH"):
+                self.qa.client("mosquitto_pub")
+
+    def test_snapshot_names_each_server_that_did_not_answer(self) -> None:
+        import io
+        import urllib.error
+        from unittest import mock
+        err = io.StringIO()
+        with mock.patch.object(self.qa.urllib.request, "urlopen", side_effect=urllib.error.URLError("refused")), \
+                mock.patch.object(self.qa, "mqtt_heads", lambda: {}), mock.patch("sys.stderr", err):
+            snap = self.qa.jmri_snapshot()
+        self.assertIn("refused", err.getvalue())
+        self.assertIn("no JMRI JSON", err.getvalue())
+        self.assertEqual(set(snap), set(self.qa.MAST_HEADS))
 
     def test_output_stays_beside_the_script(self) -> None:
         self.assertEqual(self.qa.OUT, SCRIPT.parent)

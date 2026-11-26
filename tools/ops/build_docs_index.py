@@ -38,7 +38,7 @@ def doc_files() -> list[str]:
     """Files under docs/ that are documents or assets (not tooling, not the index itself).
 
     Tracked files plus new ones git does not ignore, less tracked files already deleted, so the index
-    built before a commit matches the one CI builds after it (a new doc, not yet staged, was once left out).
+    built before a commit matches the one CI builds after it, a new doc not yet staged included.
     """
     out = subprocess.check_output(
         ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", DOCS_DIR], cwd=ROOT, text=True

@@ -46,8 +46,10 @@ class ReadsTheModel(unittest.TestCase):
             out = Path(tmp) / "deck.pptx"
             with mock.patch("openpyxl.load_workbook", never), mock.patch("openpyxl.reader.excel.load_workbook", never), \
                     mock.patch.object(write_inventory, "load_workbook", never), \
-                    mock.patch.object(sys, "argv", [str(SCRIPT), "--out", str(out)]), redirect_stdout(io.StringIO()):
+                    mock.patch.object(sys, "argv", [str(SCRIPT), "--out", str(out)]), redirect_stdout(io.StringIO()), \
+                    self.assertRaises(SystemExit) as done:
                 runpy.run_path(str(SCRIPT), run_name="__main__")
+            self.assertEqual(done.exception.code, 0)
             slides = Presentation(out).slides
             text = [" ".join(sh.text_frame.text for sh in s.shapes if sh.has_text_frame) for s in slides]
         never.assert_not_called()
@@ -62,6 +64,64 @@ class ReadsTheModel(unittest.TestCase):
         self.assertEqual(len(text), 2 + len(ids))         # the node and turnout summaries, then one per client node
         for nid in ids:
             self.assertTrue(any(t.startswith(f"Node {nid} ") for t in text[2:]), f"no slide for node {nid}")
+
+
+class FakeSheet:
+    def __init__(self, rows: list[tuple]) -> None:
+        self.rows = rows
+
+    def iter_rows(self, values_only: bool = False) -> list[tuple]:
+        return self.rows
+
+
+class FakeBook(dict):
+    @property
+    def sheetnames(self) -> list[str]:
+        return list(self)
+
+
+@unittest.skipUnless(HAS_PPTX, "python-pptx is not installed (requirements.txt)")
+class Steps(unittest.TestCase):
+    """The deck's reading steps, on small sheets."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        sys.path.insert(0, str(WIRING))
+        spec = importlib.util.spec_from_file_location("wiring_deck", SCRIPT)
+        cls.D = sys.modules["wiring_deck"] = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cls.D)
+
+    def test_split_port(self) -> None:
+        self.assertEqual(self.D.split_port("C3-OU1-7"), ("C3-OU1", 7))
+        self.assertIsNone(self.D.split_port("C3-OU1"))
+        self.assertIsNone(self.D.split_port("C3-OU1-x"))
+
+    def test_a_missing_column_is_named(self) -> None:
+        with self.assertRaisesRegex(self.D.WiringDeckError, "sheet 'Nodes' has no column 'Location'"):
+            self.D.records(FakeSheet([("Node ID",), ("C1",)]), "Nodes", ("Node ID", "Location"))
+
+    def test_location_in_the_first_column_is_read(self) -> None:
+        heads = ("Location", "Node ID", "Address", "12V Boards", "5V Boards", "Num Blocks")
+        book = FakeBook(Nodes=FakeSheet([heads, ("Yard", "C2", 2, 1, None, 3), ("East", "M1", 1, 0, 0, 0)]),
+                        DNOU8=FakeSheet([("Parent Node ID", "Output Port ID", "Connected Device"),
+                                         ("C2", "C2-OU1-1", " T1 "), ("C2", "C2-OU1-0", "x")]),
+                        DNIN8=FakeSheet([("Parent Node ID", "Input Port ID", "Connected Device")]),
+                        BlockSensors=FakeSheet([("Node ID", "Port ID", "Block Section Name"), ("C2", "C2-B1", " B ")]))
+        nodes, boards = self.D.collect_nodes(book)
+        self.assertEqual(nodes, [self.D.NodeSummary("C2", "Yard", "2", 1, 0, 3)])
+        self.assertEqual(boards["C2"].outputs, {"C2-OU1": {1: "T1"}})
+        self.assertEqual(boards["C2"].blocks, [("C2-B1", "B")])
+
+    def test_crossover_halves_are_one_turnout_row(self) -> None:
+        heads = ("JMRI Turnout", "Parent Node", "Button", "Feedback N", "Feedback R", "Entry Signal",
+                 "Normal Exit Signal", "Reverse Exit Signal")
+        book = FakeBook(TurnoutSummary=FakeSheet([heads, ("T9", "C10", "B1", "C10-IN1-1", None, "S1", None, None),
+                                                   ("T9", "C10", "B1", None, None, "S2", "S1", None),
+                                                   ("T2", "C2", None, None, "C2-IN1-2", None, None, None)]))
+        rows = self.D.collect_turnouts(book)
+        self.assertEqual([(r.turnout, r.feedback, r.signals) for r in rows],
+                         [("T2", "R:C2-IN1-2", []), ("T9", "N:C10-IN1-1", ["S1", "S2"])])
+        self.assertIsNone(self.D.collect_turnouts(FakeBook()))
 
 
 if __name__ == "__main__":

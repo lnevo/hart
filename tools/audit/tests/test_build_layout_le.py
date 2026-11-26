@@ -1,6 +1,6 @@
 """build_layout_le.py: the three-level build (levels all), drawn like the schematic, on the generator's
 base (hartlib.tables_build.base: the template and every level's beans of devices.csv; ADR-029, naming-layers step 11). The all-levels viewing trial these tests once read
-(tables_layout.xml) is retired (owner, 2026-11-17); its behaviour checks read the candidate, which test_le_cutover.py
+(tables_layout.xml) is retired; its behaviour checks read the candidate, which test_le_cutover.py
 and test_le_mast_parity.py share."""
 from __future__ import annotations
 
@@ -250,7 +250,7 @@ class Built(unittest.TestCase):
     def test_every_main_and_upper_block_reports_its_virtual_sensor(self) -> None:
         """Each main and upper block, and its layout block, is bound by user name to its virtual occupancy sensor
         IS:HART:C3:B:<block key> (the device map's jmri_name), stored in the internal sensor section as staging's
-        internal sensors are (owner, 2026-11-17)."""
+        internal sensors are."""
         internal = next(s for s in self.root.findall("sensors") if "InternalSensorManager" in s.get("class"))
         sensors = {tables.user_name(s): tables.system_name(s) for s in internal.findall("sensor") if is_new(s)}
         self.assertEqual(len(sensors), LEVEL_SENSORS)                # the helix blocks' sensors too
@@ -276,7 +276,7 @@ class Built(unittest.TestCase):
 
     def test_the_virtual_sensors_start_clear_and_only_they(self) -> None:
         """A LogixNG in the tables sets every main and upper virtual block sensor INACTIVE when they load, and no
-        other sensor (owner, 2026-11-17): in the candidate and in the released tables."""
+        other sensor: in the candidate and in the released tables."""
         for label, root in (("candidate", self.root), ("released", tables.read(paths.TABLES_XML))):
             with self.subTest(tables=label):
                 level = sorted(tables.system_name(s) for s in tables.sensors(root) if is_new(s))
@@ -812,7 +812,7 @@ class SecondReview(unittest.TestCase):
 
 class Throats(unittest.TestCase):
     """A staging track of several blocks is drawn in block order at their plan shares, a short block (OS Switch 7 on
-    Scale) at its own end, not cut into equal parts. The hidden yard throats are gone (owner, 2026-11-20)."""
+    Scale) at its own end, not cut into equal parts. The hidden yard throats are gone."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -849,7 +849,7 @@ class Throats(unittest.TestCase):
 
     def test_the_tracks_of_several_blocks_are_measured(self) -> None:
         tracks = {self.bands[0][1]["strands"][sid]["name"] for sid in self.measured()}
-        # every drawn block has its plan length (owner, 2026-11-20); a track of several blocks is cut at their plan
+        # every drawn block has its plan length; a track of several blocks is cut at their plan
         # shares: the Switch 1-3 and 35-39 links of OS blocks only (Scale is one block since step 5 part 2,
         # 2026-11-20). Each yard track is one block since its throats went.
         self.assertEqual(tracks, {""})
@@ -917,20 +917,20 @@ class FinalReview(unittest.TestCase):
         opts = dict(zip((B.band_key(t) for t, _b, _o in bands), le_mod.le_labels.options(bands, dict(page))))
         for key in ("Staging", "Main", "Upper"):
             self.assertEqual((opts[key]["switch_prefix"], opts[key]["switch_size"]), ("SW-", 12), key)
-            # station and CP names at 14, 10 px apart (owner, 2026-11-21)
+            # station and CP names at 14, 10 px apart
             self.assertEqual((opts[key]["station_size"], opts[key]["station_gap"]), (14, 10), key)
         self.assertEqual((opts["Staging"]["names_last"], opts["Staging"]["block_contents_size"]), (False, 11))
         for key in ("Main", "Upper"):
             self.assertEqual((opts[key]["names_last"], opts[key]["block_contents_size"]), (True, 11), key)
         self.assertEqual((opts["Main"]["numbers_below"], opts["Upper"]["numbers_below"]), (["101"], []))
         self.assertEqual((opts["Main"]["hidden_names"], opts["Upper"]["hidden_names"]), (["101-103"], []))
-        # every part's icon is optional on every level (owner, 2026-11-20): the level's parts in devices.csv
+        # every part's icon is optional on every level: the level's parts in devices.csv
         self.assertIn("Track 227-231", opts["Upper"]["optional_block_contents"])
         self.assertIn("Track 115-117", opts["Main"]["optional_block_contents"])
         self.assertIn("Track 11-13", opts["Staging"]["optional_block_contents"])
 
 class LoopAndCrossover(unittest.TestCase):
-    """The 107 Loop as two blocks and double crossover 225 as four, on appended numbers (owner, 2026-11-16)."""
+    """The 107 Loop as two blocks and double crossover 225 as four, on appended numbers."""
 
     def test_appended_blocks_number_after_the_rest_and_shift_nothing(self) -> None:
         before = ["OS Switch 107", "OS Switch 225", "Track 105-109", "Track 107 Loop", "Track 107-109",
@@ -1021,7 +1021,7 @@ class LevelMasts(unittest.TestCase):
         self.assertEqual(r["device_system_name"], "IF$shsm:basic:two-searchlight(IH3334)(IH3335)")
         self.assertEqual(r["heads"], [("IH:HART:C3:108LB_Top", "Head 108LB Top"),
                                       ("IH:HART:C3:108LB_Bottom", "Head 108LB Bottom")])
-        # the APB intermediates (owner, 2026-11-19): no switch, one head each, not on a board yet
+        # the APB intermediates: no switch, one head each, not on a board yet
         inter = {x["mast"]: (x["facing"], x["protects"], x["device_system_name"]) for x in rows if not x["switch"]
                  and x["protects"]}                       # the virtual destination masts protect nothing
         self.assertEqual(inter, {"Mast A83": ("Track 107 Loop 2", "Track 107 Loop 1", ""),

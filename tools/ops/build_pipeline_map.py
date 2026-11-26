@@ -55,7 +55,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 GRAPH = ROOT / "docs" / "pipeline-map" / "pipeline_map.json"
-SIDES = ("check", "pointer", "pull", "mirror", "capture", "history")  # an edge's "side": why it carries no content on
 PAGE = ROOT / "docs" / "pipeline-map" / "index.html"
 # the page around the map (placeholders __NAME__, PLACEHOLDERS) and the scripts it inlines, in this order, as one script:
 # the layout (pure functions; node loads it for the unit tests), its helpers (pure; the layout's node exports include
@@ -84,7 +83,6 @@ KINDS = {
     "host": ("Host / runtime", "#fee2e2", "#991b1b"),
     "human": ("Hand work", "#fce7f3", "#9d174d"),
 }
-STATUSES = ("live", "parked", "retired")
 # Gitignored mirrors whose paths the website's leak check rejects; the public page names them like this instead.
 PUBLIC_NAMES = {
     "external/sts-docker-data": "sts-docker-data (mirror)",
@@ -103,6 +101,12 @@ _agent_spec.loader.exec_module(AGENT_DOCS)
 _lane_spec = importlib.util.spec_from_file_location("map_lane", ROOT / "tools" / "pipeline" / "map_lane.py")
 MANIFEST_LANE = importlib.util.module_from_spec(_lane_spec)
 _lane_spec.loader.exec_module(MANIFEST_LANE)
+# the graph's record types and fixed sets live in map_lane.py
+Node, Edge, Graph = MANIFEST_LANE.Node, MANIFEST_LANE.Edge, MANIFEST_LANE.Graph
+SIDES = MANIFEST_LANE.SIDES                     # an edge's "side": why it carries no content on the main flow
+STATUSES = MANIFEST_LANE.STATUSES
+if tuple(KINDS) != MANIFEST_LANE.NODE_KINDS:
+    raise GraphError(f"KINDS {tuple(KINDS)} and map_lane.NodeKind {MANIFEST_LANE.NODE_KINDS} must list the same kinds")
 # each generated lane's "gen" mark -> the file that generates it
 GENERATED = {AGENT_DOCS.GEN: "tools/ops/agent_docs_map.py",
              MANIFEST_LANE.GEN: "tools/pipeline/map_lane.py, from tools/pipeline/checks.toml"}
@@ -120,14 +124,14 @@ def tracked_paths() -> frozenset[str]:
     return frozenset(paths)
 
 
-def read(path: Path) -> dict:
+def read(path: Path) -> Graph:
     """The graph file as data, with its three lists; not yet checked further (validate does that)."""
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except OSError as err:
-        raise GraphError(f"cannot read the graph: {err.strerror}") from None
+        raise GraphError(f"cannot read the graph {path}: {err.strerror}") from err
     except json.JSONDecodeError as err:
-        raise GraphError(f"the graph is not valid JSON: {err}") from None
+        raise GraphError(f"the graph {path} is not valid JSON: {err}") from err
     if not isinstance(data, dict):
         raise GraphError("the graph must be a JSON object")
     for key in ("domains", "nodes", "edges"):
@@ -142,40 +146,40 @@ def read(path: Path) -> dict:
     return data
 
 
-def node_key(n: dict) -> str:
+def node_key(n: Node) -> str:
     """What names a node: its id."""
     return n["id"]
 
 
-def edge_key(e: dict) -> tuple[str, str]:
+def edge_key(e: Edge) -> tuple[str, str]:
     """What names an edge: its two ends (the graph holds one edge per pair)."""
     return (e["from"], e["to"])
 
 
-def graph_text(data: dict) -> str:
+def graph_text(data: Graph) -> str:
     """The graph as the committed file holds it."""
     return json.dumps(data, indent=1, ensure_ascii=False) + "\n"
 
 
-def regenerate(data: dict) -> dict:
+def regenerate(data: Graph) -> Graph:
     """The graph with its generated lanes (GENERATED) rebuilt from the files: the agent-doc lane first, since the
     manifest lane leaves to it the links it already draws."""
     try:
         data = AGENT_DOCS.regenerate(data)
     except AGENT_DOCS.AgentDocsMapError as err:
-        raise GraphError(f"agent-doc lane: {err}") from None
+        raise GraphError(f"agent-doc lane: {err}") from err
     try:
         return MANIFEST_LANE.regenerate(data)
     except MANIFEST_LANE.MapLaneError as err:
-        raise GraphError(f"manifest lane: {err}") from None
+        raise GraphError(f"manifest lane: {err}") from err
 
 
-def _lane_of(*entries) -> str:
+def _lane_of(*entries: Node | Edge | None) -> str:
     gens = sorted({e["gen"] for e in entries if isinstance(e, dict) and e.get("gen")})
     return f" ({', '.join(gens)} lane)" if gens else " (hand-kept)"
 
 
-def differences(old: dict, new: dict) -> list[str]:
+def differences(old: Graph, new: Graph) -> list[str]:
     """Each node and edge that `new` adds, drops or changes against `old`, named with its lane, then any other change
     (order, the top-level keys). Both are graphs as read() gives them."""
     out = []
@@ -202,11 +206,11 @@ def differences(old: dict, new: dict) -> list[str]:
     return out
 
 
-def load(path: Path) -> dict:
+def load(path: Path) -> Graph:
     return validate(read(path))
 
 
-def validate(data: dict, tracked: bool = True) -> dict:
+def validate(data: Graph, tracked: bool = True) -> Graph:
     """The graph, or GraphError naming every problem. tracked=False leaves out only the check that each node's path
     is tracked in git: the merge driver (tools/ops/merge_pipeline_map.py) runs before git has written the merged
     tree, so the paths the other branch adds are not tracked yet; tools/check.sh checks them after the merge."""
@@ -327,7 +331,7 @@ html.dark #stage{--paper:#0f172a;--paper-2:#0b1220;--card:#1e293b;--ink:#e2e8f0;
 """
 
 
-def public_copy(data: dict) -> dict:
+def public_copy(data: Graph) -> Graph:
     """The graph with every mirror path in PUBLIC_NAMES renamed, in ids, paths, labels, descriptions and links."""
     def fix(value):
         if isinstance(value, str):
@@ -356,7 +360,7 @@ def _site_build():
     try:
         spec.loader.exec_module(site)
     except (OSError, ImportError) as err:
-        raise GraphError(f"cannot load the website's checks from {path.relative_to(ROOT)}: {err}") from None
+        raise GraphError(f"cannot load the website's checks from {path.relative_to(ROOT)}: {err}") from err
     return site
 
 
@@ -387,7 +391,7 @@ def code_links() -> dict:
     return links
 
 
-def render(data: dict, back: str = "", site: bool = False) -> str:
+def render(data: Graph, back: str = "", site: bool = False) -> str:
     legend = "".join(
         f'<div><span class="sw" style="background:{fill};border-color:{ink}"></span>{esc(label)}</div>'
         for label, fill, ink in KINDS.values()
@@ -426,7 +430,7 @@ def _part(path: Path, what: str) -> str:
     try:
         text = path.read_text(encoding="utf-8")
     except OSError as err:
-        raise GraphError(f"cannot read the {what} {path.name}: {err.strerror}") from None
+        raise GraphError(f"cannot read the {what} {path.name}: {err.strerror}") from err
     if not text.strip():
         raise GraphError(f"the {what} {path.name} is empty")
     return text
@@ -460,7 +464,7 @@ PLACEHOLDERS = ("__SITEHEAD__", "__SITECSS__", "__SITEHEADER__", "__SITESCRIPT__
 _PAGE_DATA = re.compile(r"<script>const DATA = (\{.*?\});</script>", re.S)  # "<" in the data is written <
 
 
-def check_page(page: str, data: dict, site: bool) -> None:
+def check_page(page: str, data: Graph, site: bool) -> None:
     """GraphError unless the drawn page is whole: every template placeholder filled, its data holding exactly the
     graph's boxes (by id) and links (by their two ends), the viewer script inlined, and the site header in the website
     copy. `data` is the graph the page was drawn from (the public copy for the website page)."""
@@ -473,7 +477,7 @@ def check_page(page: str, data: dict, site: bool) -> None:
     try:
         shown = json.loads(found.group(1))
     except json.JSONDecodeError as err:
-        raise GraphError(f"the page's graph data is not valid JSON: {err}") from None
+        raise GraphError(f"the page's graph data is not valid JSON: {err}") from err
     try:
         keys = {"nodes": lambda e: e["id"], "edges": lambda e: (e["from"], e["to"])}
         for key, ident in keys.items():
@@ -484,7 +488,7 @@ def check_page(page: str, data: dict, site: bool) -> None:
                                  + (f"; missing {', '.join(missing[:5])}" if missing else "")
                                  + (f"; not in the graph {', '.join(extra[:5])}" if extra else ""))
     except (KeyError, TypeError) as err:
-        raise GraphError(f"the page's graph data has a malformed entry ({err!r})") from None
+        raise GraphError(f"the page's graph data has a malformed entry ({err!r})") from err
     missing = [name for name, text in script_parts() if text not in page]
     if missing:
         raise GraphError(f"the page does not inline {', '.join(missing)}")
@@ -494,7 +498,7 @@ def check_page(page: str, data: dict, site: bool) -> None:
         raise GraphError("the website copy has no site header")
 
 
-def build(data: dict, public: bool, back: str = "") -> str:
+def build(data: Graph, public: bool, back: str = "") -> str:
     """One page from a checked graph, itself checked: the repo page, or the website copy (public=True: mirror paths
     renamed, site look, and the website's leak and private-name checks)."""
     drawn = public_copy(data) if public else data
@@ -512,7 +516,7 @@ def write_page(out: Path, page: str) -> None:
         out.write_text(page, encoding="utf-8")
         back = out.read_text(encoding="utf-8")
     except OSError as err:
-        raise GraphError(f"cannot write {out}: {err.strerror or err}") from None
+        raise GraphError(f"cannot write {out}: {err.strerror or err}") from err
     if back != page:
         raise GraphError(f"{out} reads back different from the page written")
 
@@ -532,7 +536,7 @@ def rebuild_command(graph: Path) -> str:
     return f"{BUILD} --graph {shlex.quote(str(graph))} --out <page>"
 
 
-def current(graph: Path) -> tuple[dict, str | None]:
+def current(graph: Path) -> tuple[Graph, str | None]:
     """The checked graph with its generated lanes rebuilt, and why the file is stale (None when it is current)."""
     committed = read(graph)
     data = validate(regenerate(committed))

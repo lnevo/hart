@@ -88,6 +88,11 @@ STAGING = "staging"
 LEVELS = {2: "main", 3: "upper"}
 
 
+def plant_rank(plant: str) -> int:
+    """A plant's place in PLANT_ORDER; a plant not listed sorts after every listed one."""
+    return PLANT_ORDER.index(plant) if plant in PLANT_ORDER else len(PLANT_ORDER)
+
+
 def _which(name: str) -> str:
     found = shutil.which(name)
     if found:
@@ -200,7 +205,7 @@ def load_layout(levels: bool = True) -> dict:
                 "name": rec["systemName"],
             }
         )
-    blocks.sort(key=lambda b: (PLANT_ORDER.index(b["plant"]) if b["plant"] in PLANT_ORDER else 99, b["userName"]))
+    blocks.sort(key=lambda b: (plant_rank(b["plant"]), b["userName"]))
 
     turnouts = []
     turnout_cp = cps.get("turnout") or {}
@@ -240,7 +245,7 @@ def load_layout(levels: bool = True) -> dict:
                 "name": sn,
             }
         )
-    turnouts.sort(key=lambda t: (PLANT_ORDER.index(t["plant"]) if t["plant"] in PLANT_ORDER else 99, t["num"]))
+    turnouts.sort(key=lambda t: (plant_rank(t["plant"]), t["num"]))
 
     heads = []
     mast_cp = cps.get("mast") or {}
@@ -262,7 +267,7 @@ def load_layout(levels: bool = True) -> dict:
                     )
     heads.sort(
         key=lambda h: (
-            PLANT_ORDER.index(h["plant"]) if h["plant"] in PLANT_ORDER else 99,
+            plant_rank(h["plant"]),
             h["mast"],
             h["id"],
         )
@@ -560,7 +565,7 @@ class Bus:
                         break
                     self._on_line(line)
                 proc.wait(timeout=2)
-            except Exception as e:
+            except (OSError, subprocess.SubprocessError) as e:   # no mosquitto_sub, or it did not stop in time
                 self.connected = False
                 self.emit({"type": "mqtt", "connected": False, "error": str(e)})
             if self._stop.is_set():

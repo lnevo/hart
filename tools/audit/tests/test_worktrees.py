@@ -64,6 +64,38 @@ class Repo(unittest.TestCase):
 LONG_AGO = datetime(2026, 1, 1, tzinfo=timezone.utc)
 
 
+class GitErrors(unittest.TestCase):
+    """git() raises GitCommandError with the command and stderr; callers that expect a failure say what it means."""
+
+    def test_failure_names_command_folder_and_stderr(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(WT.GitCommandError, r"git status --porcelain failed in .*not a git repository"):
+                WT.git("status", "--porcelain", cwd=tmp)
+
+    def test_timeout_and_missing_git_keep_their_cause(self) -> None:
+        for err in (subprocess.TimeoutExpired("git", 60), FileNotFoundError("git")):
+            with mock.patch.object(WT.subprocess, "run", side_effect=err):
+                with self.assertRaises(WT.GitCommandError) as caught:
+                    WT.git("status")
+            self.assertIs(caught.exception.__cause__, err)
+
+    def test_unreadable_checkout_counts_as_dirty(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertTrue(WT.is_dirty(tmp))
+
+    def test_unset_default_branch_and_missing_branch_are_none(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertIsNone(WT.default_branch(tmp))
+            self.assertIsNone(WT.branch_head("agent/x", tmp))
+
+    def test_main_prints_one_error_line(self) -> None:
+        err = io.StringIO()
+        with mock.patch.object(WT, "worktrees", side_effect=WT.GitCommandError("git worktree list failed in /x: boom")), \
+                redirect_stderr(err):
+            self.assertEqual(WT.main(["sweep", "--dry-run"]), 1)
+        self.assertEqual(err.getvalue(), "error: git worktree list failed in /x: boom\n")
+
+
 class Plan(Repo):
     def trees(self):
         return WT.worktrees(self.main)

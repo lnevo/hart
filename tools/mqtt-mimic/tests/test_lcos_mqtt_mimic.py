@@ -162,5 +162,45 @@ class LcosMimicNameMapTest(unittest.TestCase):
         self.assertEqual(stop.exception.code, f"lcos_mqtt_mimic.py: the device master cannot be used: {err}")
 
 
+
+class SortAndReconnect(unittest.TestCase):
+    """plant_rank orders unknown plants last; the subscriber loop reports a missing client and does not hide bugs.
+    Popen is faked: nothing runs and nothing is published."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.m = load_module()
+
+    def test_unknown_plant_sorts_after_every_listed_one(self) -> None:
+        ranks = [self.m.plant_rank(p) for p in (*self.m.PLANT_ORDER, "Nowhere")]
+        self.assertEqual(ranks, sorted(ranks))
+        self.assertEqual(ranks[-1], len(self.m.PLANT_ORDER))
+
+    def bus(self):
+        from unittest import mock
+        with mock.patch.object(self.m, "_which", lambda name: f"/bin/{name}"):
+            bus = self.m.Bus("broker.invalid")
+        events = []
+        bus.emit = lambda e: (events.append(e), bus._stop.set())
+        return bus, events
+
+    def test_a_client_that_cannot_start_is_a_disconnected_event(self) -> None:
+        from unittest import mock
+        bus, events = self.bus()
+        with mock.patch.object(self.m.subprocess, "Popen", side_effect=FileNotFoundError("mosquitto_sub")):
+            bus.loop_sub()
+        self.assertEqual(events, [{"type": "mqtt", "connected": False, "error": "mosquitto_sub"}])
+        self.assertFalse(bus.connected)
+
+    def test_a_bug_reading_a_line_is_not_hidden(self) -> None:
+        from unittest import mock
+        bus, events = self.bus()
+        bus.emit = events.append
+        proc = mock.Mock(stdout=iter(["track/sensor/1 ACTIVE\n"]))
+        with mock.patch.object(self.m.subprocess, "Popen", return_value=proc), \
+                mock.patch.object(bus, "_on_line", side_effect=KeyError("addr")):
+            with self.assertRaises(KeyError):
+                bus.loop_sub()
+
 if __name__ == "__main__":
     unittest.main()

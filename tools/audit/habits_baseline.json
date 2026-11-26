@@ -1,0 +1,568 @@
+{
+ "cats/scripts/build_hart_trains.py": {
+  "import-exit": 2
+ },
+ "cats/scripts/cats_inspect.py": {
+  "import-exit": 1
+ },
+ "cats/scripts/patch_jmri_startup.py": {
+  "import-exit": 4
+ },
+ "cats/scripts/tests/test_build_cats_panel_bindings.py": {
+  "dated-note": 10,
+  "lost-cause": 1
+ },
+ "cats/scripts/tests/test_build_cats_panel_pieces.py": {
+  "dated-note": 1
+ },
+ "cats/scripts/tests/test_live_desk_levels.py": {
+  "dated-note": 1
+ },
+ "cats/scripts/tests/test_signal_coordinator.py": {
+  "source-asserts": 62
+ },
+ "jmri/layouts/hart/scripts/audit_panel_contracts.py": {
+  "dated-note": 1
+ },
+ "jmri/layouts/hart/scripts/build_hart_signal_heads.py": {
+  "import-exit": 2
+ },
+ "jmri/layouts/hart/scripts/diagnose_turnout_states.py": {
+  "dated-note": 2
+ },
+ "jmri/layouts/hart/scripts/export_track_lengths.py": {
+  "import-exit": 2
+ },
+ "jmri/layouts/hart/scripts/gen_ctc_track_plan.py": {
+  "dated-note": 1,
+  "import-exit": 3
+ },
+ "jmri/layouts/hart/scripts/infer_block_lengths.py": {
+  "import-exit": 1
+ },
+ "jmri/layouts/hart/scripts/jmri_cmd_watcher.py": {
+  "exec-parts": 1
+ },
+ "jmri/layouts/hart/scripts/lcc_turnout_contract.py": {
+  "dated-note": 1
+ },
+ "jmri/layouts/hart/scripts/panel_status.py": {
+  "dated-note": 1,
+  "exec-parts": 1
+ },
+ "jmri/layouts/hart/scripts/panelpro_smoke_test.py": {
+  "dated-note": 2
+ },
+ "jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py": {
+  "dated-note": 2
+ },
+ "jmri/layouts/hart/scripts/render_le_layout.py": {
+  "import-exit": 5
+ },
+ "jmri/layouts/hart/scripts/run_dispatcher_stage1.py": {
+  "exec-parts": 1
+ },
+ "jmri/layouts/hart/scripts/speedmatch/analyze.py": {
+  "import-exit": 4
+ },
+ "jmri/layouts/hart/scripts/speedmatch/build_routes.py": {
+  "import-exit": 4
+ },
+ "jmri/layouts/hart/scripts/speedmatch/dashboard/export_site_runs.py": {
+  "import-exit": 3
+ },
+ "jmri/layouts/hart/scripts/speedmatch/dashboard/publish_live.py": {
+  "import-exit": 1
+ },
+ "jmri/layouts/hart/scripts/speedmatch/make_job.py": {
+  "import-exit": 10
+ },
+ "jmri/layouts/hart/scripts/speedmatch/speedmatch.py": {
+  "import-exit": 1
+ },
+ "jmri/layouts/hart/scripts/tests/jmri_fake.py": {
+  "exec-parts": 1
+ },
+ "jmri/layouts/hart/scripts/tests/test_apply_nx_layer.py": {
+  "dated-note": 1
+ },
+ "jmri/layouts/hart/scripts/tests/test_audit_station_comments.py": {
+  "dated-note": 1
+ },
+ "jmri/layouts/hart/scripts/tests/test_cs105_consist.py": {
+  "exec-parts": 1
+ },
+ "jmri/layouts/hart/scripts/tests/test_discover_nx_publish_free.py": {
+  "exec-parts": 1
+ },
+ "jmri/layouts/hart/scripts/tests/test_hide_band_panels.py": {
+  "exec-parts": 1
+ },
+ "jmri/layouts/hart/scripts/tests/test_hide_cats_desk_windows.py": {
+  "exec-parts": 1
+ },
+ "jmri/layouts/hart/scripts/tests/test_lcc_mqtt_turnout_aliases.py": {
+  "dated-note": 1
+ },
+ "jmri/layouts/hart/scripts/tests/test_name_lookups.py": {
+  "dated-note": 1
+ },
+ "jmri/layouts/hart/scripts/tests/test_panel_status.py": {
+  "dated-note": 1
+ },
+ "jmri/layouts/hart/scripts/tests/test_panel_status_contract.py": {
+  "source-asserts": 8
+ },
+ "jmri/layouts/hart/scripts/tests/test_panelpro_smoke_blocks.py": {
+  "exec-parts": 1
+ },
+ "jmri/layouts/hart/scripts/tests/test_pom_guard.py": {
+  "exec-parts": 2
+ },
+ "jmri/layouts/hart/scripts/tests/test_reconcile_generated_panel.py": {
+  "dated-note": 1
+ },
+ "jmri/layouts/hart/scripts/tests/test_speedmatch_cli.py": {
+  "exec-parts": 3
+ },
+ "jmri/layouts/hart/scripts/tests/test_speedmatch_distance.py": {
+  "exec-parts": 1
+ },
+ "jmri/layouts/hart/scripts/tests/test_speedmatch_loop2.py": {
+  "exec-parts": 2
+ },
+ "jmri/layouts/hart/scripts/tests/test_speedmatch_offline.py": {
+  "exec-parts": 3
+ },
+ "jmri/layouts/hart/scripts/tests/test_speedmatch_review.py": {
+  "exec-parts": 2
+ },
+ "jmri/scripts/check_hart_phase02.py": {
+  "import-exit": 1,
+  "lost-cause": 1
+ },
+ "ops/hart-ops/card_pipeline/apply_visual_review.py": {
+  "dated-note": 1
+ },
+ "ops/hart-ops/card_pipeline/car_paths.py": {
+  "import-exit": 1
+ },
+ "ops/hart-ops/card_pipeline/cars.py": {
+  "import-exit": 12
+ },
+ "ops/hart-ops/card_pipeline/crop_picker.py": {
+  "import-exit": 6
+ },
+ "ops/hart-ops/card_pipeline/intake_stages.py": {
+  "import-exit": 8
+ },
+ "ops/hart-ops/card_pipeline/locos.py": {
+  "import-exit": 3
+ },
+ "ops/hart-ops/card_pipeline/publish_gate.py": {
+  "import-exit": 1
+ },
+ "ops/hart-ops/publications/build_crew_json.py": {
+  "import-exit": 1
+ },
+ "ops/station_maps/scripts/render_barn_station_map.py": {
+  "import-exit": 1
+ },
+ "tools/agent/worktrees.py": {
+  "import-exit": 2
+ },
+ "tools/anyrail/levels_page.py": {
+  "import-exit": 16,
+  "lost-cause": 2
+ },
+ "tools/audit/check_layout_facts.py": {
+  "import-exit": 1
+ },
+ "tools/audit/check_name_copies.py": {
+  "dated-note": 1,
+  "import-exit": 1
+ },
+ "tools/audit/tests/test_build_device_map.py": {
+  "dated-note": 2
+ },
+ "tools/audit/tests/test_guards.py": {
+  "dated-note": 1
+ },
+ "tools/audit/tests/test_split_status.py": {
+  "dated-note": 1
+ },
+ "tools/audit/tests/test_staging_wired_heads.py": {
+  "dated-note": 2
+ },
+ "tools/audit/tests/test_write_inventory.py": {
+  "dated-note": 1
+ },
+ "tools/audit/traced.py": {
+  "exec-parts": 1
+ },
+ "tools/ci/docs_unit_tests.py": {
+  "dated-note": 1
+ },
+ "tools/ci/stamp_gate.py": {
+  "import-exit": 1
+ },
+ "tools/hartlib/src/hartlib/block_numbering.py": {
+  "lost-cause": 1
+ },
+ "tools/hartlib/src/hartlib/coordinator.py": {
+  "lost-cause": 2
+ },
+ "tools/hartlib/src/hartlib/device_ids.py": {
+  "dated-note": 3
+ },
+ "tools/hartlib/src/hartlib/devices.py": {
+  "dated-note": 2,
+  "lost-cause": 5
+ },
+ "tools/hartlib/src/hartlib/drawing_keys.py": {
+  "dated-note": 1
+ },
+ "tools/hartlib/src/hartlib/files.py": {
+  "lost-cause": 1
+ },
+ "tools/hartlib/src/hartlib/hand_lists.py": {
+  "lost-cause": 4
+ },
+ "tools/hartlib/src/hartlib/hosts.py": {
+  "import-exit": 3
+ },
+ "tools/hartlib/src/hartlib/layer_files.py": {
+  "lost-cause": 4
+ },
+ "tools/hartlib/src/hartlib/level_devices.py": {
+  "dated-note": 3
+ },
+ "tools/hartlib/src/hartlib/level_masts.py": {
+  "dated-note": 2,
+  "lost-cause": 1
+ },
+ "tools/hartlib/src/hartlib/parked.py": {
+  "dated-note": 1
+ },
+ "tools/hartlib/src/hartlib/paths.py": {
+  "import-exit": 1
+ },
+ "tools/hartlib/src/hartlib/places.py": {
+  "dated-note": 2,
+  "lost-cause": 3
+ },
+ "tools/hartlib/src/hartlib/railroad.py": {
+  "lost-cause": 1
+ },
+ "tools/hartlib/src/hartlib/railroad_facts.py": {
+  "dated-note": 3,
+  "lost-cause": 7
+ },
+ "tools/hartlib/src/hartlib/railroad_invariants.py": {
+  "dated-note": 1
+ },
+ "tools/hartlib/src/hartlib/store_split.py": {
+  "dated-note": 1,
+  "lost-cause": 1
+ },
+ "tools/hartlib/src/hartlib/tables.py": {
+  "lost-cause": 1
+ },
+ "tools/hartlib/src/hartlib/tables_build.py": {
+  "dated-note": 4,
+  "import-exit": 1,
+  "lost-cause": 7
+ },
+ "tools/hartlib/src/hartlib/track_names.py": {
+  "lost-cause": 1
+ },
+ "tools/hartlib/src/hartlib/wiring.py": {
+  "dated-note": 1,
+  "lost-cause": 4
+ },
+ "tools/hartlib/tests/test_devices.py": {
+  "dated-note": 5
+ },
+ "tools/hartlib/tests/test_railroad.py": {
+  "dated-note": 1
+ },
+ "tools/hartlib/tests/test_store_split.py": {
+  "dated-note": 1
+ },
+ "tools/hartlib/tests/test_tables_build.py": {
+  "dated-note": 1
+ },
+ "tools/hartlib/tests/test_wiring.py": {
+  "dated-note": 1
+ },
+ "tools/hosts/deploy/ci_pass.py": {
+  "lost-cause": 4
+ },
+ "tools/hosts/panel_window_sizes.py": {
+  "lost-cause": 2
+ },
+ "tools/hosts/panelpro_profile.py": {
+  "import-exit": 21
+ },
+ "tools/hosts/tests/test_deploy_gates.py": {
+  "dated-note": 1
+ },
+ "tools/jmri/mqtt_overlay/install_overlay.py": {
+  "import-exit": 1
+ },
+ "tools/mqtt-mimic/lcos_mqtt_mimic.py": {
+  "import-exit": 5,
+  "lost-cause": 1
+ },
+ "tools/ops/screenshot.py": {
+  "import-exit": 1
+ },
+ "tools/ops/status_counts.py": {
+  "dated-note": 1
+ },
+ "tools/promo/tiktok_promo.py": {
+  "import-exit": 8
+ },
+ "tools/schematic/approval.py": {
+  "dated-note": 1,
+  "lost-cause": 4
+ },
+ "tools/schematic/band_panels.py": {
+  "dated-note": 2
+ },
+ "tools/schematic/block_layer.py": {
+  "dated-note": 1,
+  "lost-cause": 5
+ },
+ "tools/schematic/build_cats_panel.py": {
+  "dated-note": 1,
+  "import-exit": 12,
+  "lost-cause": 2
+ },
+ "tools/schematic/build_device_map.py": {
+  "dated-note": 10,
+  "lost-cause": 5
+ },
+ "tools/schematic/build_hands.py": {
+  "import-exit": 7,
+  "lost-cause": 2
+ },
+ "tools/schematic/build_layout_le.py": {
+  "dated-note": 5,
+  "lost-cause": 10
+ },
+ "tools/schematic/build_main_route.py": {
+  "lost-cause": 3
+ },
+ "tools/schematic/build_signals.py": {
+  "dated-note": 1,
+  "import-exit": 10
+ },
+ "tools/schematic/build_staging_sets.py": {
+  "dated-note": 2,
+  "lost-cause": 5
+ },
+ "tools/schematic/cats_panel.py": {
+  "dated-note": 2,
+  "import-exit": 31,
+  "lost-cause": 4
+ },
+ "tools/schematic/cats_panel_bound.py": {
+  "import-exit": 11,
+  "lost-cause": 1
+ },
+ "tools/schematic/cats_panel_dress.py": {
+  "import-exit": 10
+ },
+ "tools/schematic/cats_panel_facts.py": {
+  "import-exit": 6,
+  "lost-cause": 4
+ },
+ "tools/schematic/cats_panel_shapes.py": {
+  "dated-note": 1,
+  "import-exit": 2
+ },
+ "tools/schematic/check_device_master.py": {
+  "dated-note": 1,
+  "lost-cause": 7
+ },
+ "tools/schematic/device_map_inputs.py": {
+  "dated-note": 1,
+  "lost-cause": 4
+ },
+ "tools/schematic/device_map_masts.py": {
+  "dated-note": 3,
+  "lost-cause": 4
+ },
+ "tools/schematic/device_map_staging.py": {
+  "dated-note": 5,
+  "lost-cause": 5
+ },
+ "tools/schematic/evolution.py": {
+  "import-exit": 6
+ },
+ "tools/schematic/le_checks.py": {
+  "lost-cause": 1
+ },
+ "tools/schematic/le_common.py": {
+  "lost-cause": 11
+ },
+ "tools/schematic/le_names.py": {
+  "dated-note": 2,
+  "exec-parts": 1,
+  "lost-cause": 9
+ },
+ "tools/schematic/le_tables.py": {
+  "dated-note": 1,
+  "exec-parts": 1,
+  "lost-cause": 5
+ },
+ "tools/schematic/mast_plan.py": {
+  "dated-note": 2,
+  "lost-cause": 1
+ },
+ "tools/schematic/mast_rule.py": {
+  "dated-note": 7,
+  "lost-cause": 3
+ },
+ "tools/schematic/panel_items.py": {
+  "lost-cause": 4
+ },
+ "tools/schematic/panel_stamps.py": {
+  "lost-cause": 1
+ },
+ "tools/schematic/plan_lengths.py": {
+  "lost-cause": 1
+ },
+ "tools/schematic/publish_draft.py": {
+  "import-exit": 11,
+  "lost-cause": 1
+ },
+ "tools/schematic/split_store.py": {
+  "lost-cause": 3
+ },
+ "tools/schematic/staging_device_map.py": {
+  "dated-note": 7,
+  "lost-cause": 12
+ },
+ "tools/schematic/sync_signals.py": {
+  "import-exit": 2
+ },
+ "tools/schematic/tests/test_approval.py": {
+  "dated-note": 1
+ },
+ "tools/schematic/tests/test_band_find.py": {
+  "dated-note": 2
+ },
+ "tools/schematic/tests/test_bean_goldens.py": {
+  "dated-note": 1
+ },
+ "tools/schematic/tests/test_block_layer.py": {
+  "dated-note": 4
+ },
+ "tools/schematic/tests/test_blocks_every_level.py": {
+  "dated-note": 7
+ },
+ "tools/schematic/tests/test_build_masts.py": {
+  "dated-note": 1
+ },
+ "tools/schematic/tests/test_build_panels.py": {
+  "dated-note": 1
+ },
+ "tools/schematic/tests/test_build_tables.py": {
+  "dated-note": 1
+ },
+ "tools/schematic/tests/test_cats_panel.py": {
+  "dated-note": 1,
+  "lost-cause": 1
+ },
+ "tools/schematic/tests/test_device_map_masts.py": {
+  "dated-note": 2
+ },
+ "tools/schematic/tests/test_mast_plan.py": {
+  "dated-note": 2
+ },
+ "tools/schematic/tests/test_masts_every_level.py": {
+  "dated-note": 2
+ },
+ "tools/schematic/tests/test_masts_file.py": {
+  "dated-note": 1
+ },
+ "tools/schematic/tests/test_plan_lengths.py": {
+  "dated-note": 1
+ },
+ "tools/schematic/tests/test_wiring_freeze.py": {
+  "dated-note": 1
+ },
+ "tools/wiring/build_lcos_signal_manager_plan.py": {
+  "import-exit": 2
+ },
+ "tools/wiring/write_inventory.py": {
+  "dated-note": 6,
+  "import-exit": 3
+ },
+ "www/scripts/archive_catalogue.py": {
+  "dated-note": 1
+ },
+ "www/scripts/build_cats_layout_index.py": {
+  "lost-cause": 3
+ },
+ "www/scripts/build_layout_docs.py": {
+  "dated-note": 3,
+  "import-exit": 22,
+  "lost-cause": 1
+ },
+ "www/scripts/build_layout_index.py": {
+  "lost-cause": 2
+ },
+ "www/scripts/build_tables_browser.py": {
+  "lost-cause": 2
+ },
+ "www/scripts/build_wiring_json.py": {
+  "lost-cause": 1
+ },
+ "www/scripts/jmri_additions_page.py": {
+  "lost-cause": 3
+ },
+ "www/scripts/make_share_cards.py": {
+  "import-exit": 2
+ },
+ "www/scripts/png_stamp.py": {
+  "lost-cause": 2
+ },
+ "www/scripts/portal_head.py": {
+  "import-exit": 1
+ },
+ "www/scripts/portal_search_index.py": {
+  "import-exit": 1
+ },
+ "www/scripts/prepare_github_pages.py": {
+  "import-exit": 1
+ },
+ "www/scripts/share_card_recipes/composites.py": {
+  "import-exit": 3
+ },
+ "www/scripts/share_card_recipes/page_figures.py": {
+  "import-exit": 3,
+  "lost-cause": 1
+ },
+ "www/scripts/share_card_recipes/panel_image.py": {
+  "import-exit": 1,
+  "lost-cause": 1
+ },
+ "www/scripts/site_views.py": {
+  "lost-cause": 2
+ },
+ "www/scripts/tables_page.py": {
+  "lost-cause": 3
+ },
+ "www/scripts/tests/test_industry_ids.py": {
+  "dated-note": 1
+ },
+ "www/scripts/tests/test_layout_docs.py": {
+  "dated-note": 1
+ },
+ "www/scripts/tests/test_tables_page.py": {
+  "dated-note": 1
+ }
+}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""No script outside hartlib reads a layout data file itself (naming-layers step 6, ADR-033): every read of
+"""No script outside hartlib reads a layout data file itself (ADR-033): every read of
 jmri/layouts/hart/data/ (its schematic/ folder included) goes through tools/hartlib, so a rename or a new key changes
 one reader.
 
@@ -154,7 +154,7 @@ def named_in(src: str, names: set[str]) -> tuple[dict[str, int], bool]:
         tree = ast.parse(src)
     except SyntaxError as exc:
         if not PY2.search(src):
-            raise Unparseable(f"line {exc.lineno}: {exc.msg}; not Python 3, and no mark of Python 2 (Jython)") from None
+            raise Unparseable(f"line {exc.lineno}: {exc.msg}; not Python 3, and no mark of Python 2 (Jython)") from exc
         tree = None
     found: dict[str, int] = {}
     if tree is None:                       # Python 2 (Jython): a text scan for a quoted name

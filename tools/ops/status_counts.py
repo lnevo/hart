@@ -11,7 +11,7 @@
 Each entry is one file, wiki/status/<section>/<slug>.md, holding the bullet's text without its "- ". Its Markdown
 links are relative to the entry file, so they work on GitHub; the build rebases them to wiki/. The sections are
 SECTIONS, in page order. Every entry opens with an `order: N` line, and each section lists its entries by N, so
-entries on one topic stay together (owner, 2026-11-25; steps of 10 leave room for a new entry between two others).
+entries on one topic stay together (steps of 10 leave room for a new entry between two others).
 The Counts line is computed when the page is built: it stands where the Current state file whose text is
 COUNTS_TOKEN (current/counts.md) puts it, between the counts markers. The page head and the section intros are
 PAGE_HEAD and SECTIONS below. The session-start hook and `make wt` build the page, so readers by path find it in every checkout.
@@ -35,7 +35,7 @@ TRAININFO = paths.LAYOUT_DIR / "dispatcher/traininfo"
 STATUS = ROOT / "wiki/STATUS.md"
 FOLDER = ROOT / "wiki/status"
 START, END = "<!-- counts:start -->", "<!-- counts:end -->"
-MAX_WORDS = 60          # owner, 2026-11-25 (ADR-038): the detail goes to the linked page or ADR
+MAX_WORDS = 60          # ADR-038: the detail goes to the linked page or ADR
 ORDER = re.compile(r"order:\s*(-?\d+)\s*$")
 PAGE_HEAD = ("# Live status\n\n"
              "One or two lines per fact, with the owner and date and a link to the detail. PR numbers, how each fact "
