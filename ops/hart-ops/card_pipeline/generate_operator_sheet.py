@@ -15,13 +15,15 @@ from docx.shared import Inches, Pt, RGBColor
 import csv
 
 import generate_waybill_cards as gw
+import waybill_data as wdata  # noqa: E402  (loaded by generate_waybill_cards)
+import waybill_deck as wdeck  # noqa: E402
 import crew_master
 from hart_ooxml import shade_cell
 
 OUTPUT = gw.BASE.parents[1] / "docs/ops/HART_Operator_Sheet.docx"
 LOGO_DIR = gw.BASE / "operator_logos"
 SPUR_FILE = gw.BASE / "sts-docker-helpers" / "seed" / "inputs" / "spurs"
-EMPTY = gw.EMPTY
+EMPTY = wdata.EMPTY
 
 PAGE_W = Inches(5)
 PAGE_H = Inches(8)
@@ -621,7 +623,7 @@ def _usage_label(usage: str) -> str:
 
 
 def _format_inbound(spec: dict) -> str:
-    return gw.inbound_commodity_label(spec)
+    return wdeck.inbound_commodity_label(spec)
 
 
 def _format_outbound(spec: dict) -> str:
@@ -750,11 +752,11 @@ def _load_off_spot_rows() -> dict[str, list[dict]]:
 
     with gw.SPOT_CSV.open(newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
-            industry = gw._norm(row.get("Industry"))
-            usage = gw._norm(row.get("Usage"))
-            if not industry or usage.lower() not in gw.SKIP_USAGES:
+            industry = wdata._norm(row.get("Industry"))
+            usage = wdata._norm(row.get("Usage"))
+            if not industry or usage.lower() not in wdata.SKIP_USAGES:
                 continue
-            spot = gw._parse_spot_num(row.get("Spot #", ""))
+            spot = wdeck._parse_spot_num(row.get("Spot #", ""))
             if spot:
                 key = (industry, usage)
                 spots[key].append(spot)
@@ -764,7 +766,7 @@ def _load_off_spot_rows() -> dict[str, list[dict]]:
     for (industry, usage), nums in spots.items():
         by_industry[industry].append(
             {
-                "spot": gw._format_spots(nums),
+                "spot": wdeck._format_spots(nums),
                 "usage": _usage_label(usage),
                 "cars": cars[(industry, usage)],
                 "inbound": "—",
@@ -778,11 +780,11 @@ def _load_off_spot_rows() -> dict[str, list[dict]]:
 
 
 def _load_all_spot_rows() -> dict[str, list[dict]]:
-    combined: dict[str, list[dict]] = {name: [] for name in gw.INDUSTRY_ORDER}
+    combined: dict[str, list[dict]] = {name: [] for name in wdata.INDUSTRY_ORDER}
 
     for group in gw.load_spot_groups():
         industry = group["Industry"]
-        spec = gw._waybill_spec(industry, group["Usage"])
+        spec = wdeck._waybill_spec(industry, group["Usage"])
         combined[industry].append(
             {
                 "spot": group["Spots"],
@@ -795,7 +797,7 @@ def _load_all_spot_rows() -> dict[str, list[dict]]:
         )
 
     off_spot = _load_off_spot_rows()
-    for industry in gw.INDUSTRY_ORDER:
+    for industry in wdata.INDUSTRY_ORDER:
         combined[industry].extend(off_spot.get(industry, []))
         combined[industry].sort(key=lambda r: r["sort"])
 

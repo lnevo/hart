@@ -3,9 +3,9 @@
 **Source:** [`../../external/lcos-bridge/`](../../../external/lcos-bridge) (git submodule)
 
 Includes:
-- **`lcos-bridge.ino`** — Nano firmware (Arduino IDE: open the submodule folder)
+- **`lcos-bridge.ino`** — Nano firmware (`./bridge flash` on the Pi; no IDE needed)
 - **`serial_to_mqtt.py`** — host COM ↔ MQTT bridge (**part of this package**)
-- **`run_serial_mqtt.cmd`** / **`.sh`** — operator launchers
+- **`bridge`** (`scripts/linux/bridge.sh`) — service control on the Pi; **`run_serial_mqtt.sh`** for lab runs
 
 ## Prerequisites
 
@@ -13,24 +13,20 @@ Includes:
 2. USB serial to Nano (250000 baud)
 3. Python 3 + `requirements.txt` in submodule
 
-## Windows deploy (layout mini PC)
+## Layout host: the Pi (since 2026-11-21)
 
-From the repo:
+The bridge Nano is on the Pi's USB, and the bridge runs there as the `lcos-bridge` systemd service from `~/lcos-bridge` (a clone of the bridge repo), next to Mosquitto (`127.0.0.1`). Setup, flashing and the service are in the bridge repo's [`docs/serial_mqtt_linux.md`](../../../external/lcos-bridge/docs/serial_mqtt_linux.md) (sections 6 and 7).
 
-```powershell
-cd path\to\hart\external\lcos-bridge
-python -m venv .venv
-.venv\Scripts\pip install -r requirements.txt
-.venv\Scripts\python -u serial_to_mqtt.py --com COM3 --broker 10.0.0.150 --verbose
+```bash
+ssh pi@rpi-jmri.local
+cd ~/lcos-bridge
+./bridge status          # state, /dev/lcos-nano, last log lines
+./bridge log             # follow; Ctrl+C stops the tail only
+./bridge restart
+./bridge flash           # after a firmware change: compile, stop, upload, start
 ```
 
-Or use the bridge's own launcher from that folder: `run_serial_mqtt.cmd verbose` (Windows) or `run_serial_mqtt.sh` (Mac/Linux).
-
-**Foreground only** — operator owns the process; Ctrl+C to stop. Do not run hidden/detached.
-
-### Start at logon (two tabs)
-
-[`windows/start_bridge_tabs.cmd`](windows/start_bridge_tabs.cmd) opens one Windows Terminal window after you log in. It has a **Bridge** tab (`run_serial_mqtt.cmd verbose`) and an **MQTT sub** tab (`sub.bat`), both from `%USERPROFILE%\Documents\LCOS_ESP32_MQTT_Client`. It waits 20 s first so the network and COM port are ready. Install it by copying it into `shell:startup` (Win+R, `shell:startup`). Remove it by deleting it from that folder. It never runs before logon.
+The Windows mini PC no longer runs the bridge; it keeps the LCOS MASTER Nano (COM7).
 
 ## Mac lab
 

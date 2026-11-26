@@ -1,14 +1,20 @@
 """Low-level OOXML and text helpers shared by the HART card builders.
 
-The cell shading, width and margin writers come from publications/ooxml.py, which the publications share; the
+The cell shading, width and margin writers come from publications/hart_ooxml.py, which the publications share; the
 card builders call them by their short names here (shade, width, pad).
 """
+
+from __future__ import annotations
 
 import re
 
 from docx.oxml import OxmlElement, parse_xml
 from docx.oxml.ns import qn
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Pt, RGBColor
+from docx.table import Table, _Cell, _Row
+from docx.text.paragraph import Paragraph
+from docx.text.run import Run
 
 import car_paths  # noqa: F401  (puts publications/ on sys.path for hart_ooxml)
 from hart_ooxml import set_cell_margins as pad, set_cell_width as width, shade_cell as shade, tc_pr as _tc_pr  # noqa: F401  (card builders import shade, width from here)
@@ -20,10 +26,13 @@ from card_template_layout import (
     H_FOOTER_LINE_TWIPS,
 )
 
+# A run colour: an RGBColor, or its (red, green, blue) parts.
+Color = RGBColor | tuple[int, int, int]
+
 
 # ── low-level OOXML helpers ─────────────────────────────────────────────────
 
-def row_h(row, twips: int) -> None:
+def row_h(row: _Row, twips: int) -> None:
     tr_pr = row._tr.get_or_add_trPr()
     el = tr_pr.find(qn("w:trHeight"))
     if el is None:
@@ -33,7 +42,7 @@ def row_h(row, twips: int) -> None:
     el.set(qn("w:hRule"), "exact")
 
 
-def grid(table, widths: list[int]) -> None:
+def grid(table: Table, widths: list[int]) -> None:
     tbl = table._tbl
     old = tbl.find(qn("w:tblGrid"))
     if old is not None:
@@ -46,7 +55,7 @@ def grid(table, widths: list[int]) -> None:
     tbl.insert(0, g)
 
 
-def tbl_width_pct(table, pct: int = 100) -> None:
+def tbl_width_pct(table: Table, pct: int = 100) -> None:
     pr = table._tbl.tblPr
     el = pr.find(qn("w:tblW"))
     if el is None:
@@ -61,7 +70,7 @@ def tbl_width_pct(table, pct: int = 100) -> None:
     lay.set(qn("w:type"), "fixed")
 
 
-def tbl_width_dxa(table, twips: int, *, center=True) -> None:
+def tbl_width_dxa(table: Table, twips: int, *, center: bool = True) -> None:
     pr = table._tbl.tblPr
     el = pr.find(qn("w:tblW"))
     if el is None:
@@ -82,7 +91,9 @@ def tbl_width_dxa(table, twips: int, *, center=True) -> None:
         jc.set(qn("w:val"), "center")
 
 
-def add_round_frame(paragraph, idx, *, width_pt, height_pt, left_pt, top_pt) -> None:
+def add_round_frame(
+    paragraph: Paragraph, idx: int, *, width_pt: float, height_pt: float, left_pt: float, top_pt: float
+) -> None:
     """Anchor a rounded-rectangle outline behind the card content (VML)."""
     z = -251650000 - idx          # behind text, unique-ish per card
     style = (
@@ -113,7 +124,7 @@ def add_round_frame(paragraph, idx, *, width_pt, height_pt, left_pt, top_pt) -> 
     paragraph._p.append(parse_xml(xml))
 
 
-def borders(table, *, outer=18, inner_h=0, inner_v=0, color="000000") -> None:
+def borders(table: Table, *, outer: int = 18, inner_h: int = 0, inner_v: int = 0, color: str = "000000") -> None:
     """Set table borders. Sizes in 1/8-point units."""
     pr = table._tbl.tblPr
     old = pr.find(qn("w:tblBorders"))
@@ -137,7 +148,7 @@ def borders(table, *, outer=18, inner_h=0, inner_v=0, color="000000") -> None:
     pr.append(b)
 
 
-def bottom_rule(cell, size=4, color=DIVIDER_CLR) -> None:
+def bottom_rule(cell: _Cell, size: int = 4, color: str = DIVIDER_CLR) -> None:
     """Soft divider line under a cell."""
     tc_pr = _tc_pr(cell)
     old = tc_pr.find(qn("w:tcBorders"))
@@ -157,7 +168,7 @@ def bottom_rule(cell, size=4, color=DIVIDER_CLR) -> None:
     tc_pr.append(b)
 
 
-def box(cell, size=8, color="808080") -> None:
+def box(cell: _Cell, size: int = 8, color: str = "808080") -> None:
     """Thin border box around a cell (all four sides)."""
     tc_pr = _tc_pr(cell)
     old = tc_pr.find(qn("w:tcBorders"))
@@ -174,7 +185,7 @@ def box(cell, size=8, color="808080") -> None:
     tc_pr.append(b)
 
 
-def hrule(cell, size=6, color="808080") -> None:
+def hrule(cell: _Cell, size: int = 6, color: str = "808080") -> None:
     """Top + bottom borders only; left/right defer to the card's outer border.
 
     Used for full-width cells so their side edges don't sit on top of the
@@ -198,7 +209,9 @@ def hrule(cell, size=6, color="808080") -> None:
     tc_pr.append(b)
 
 
-def para(p, *, align=None, before=0, after=0):
+def para(
+    p: Paragraph, *, align: WD_ALIGN_PARAGRAPH | None = None, before: float = 0, after: float = 0
+) -> None:
     p.paragraph_format.space_before = Pt(before)
     p.paragraph_format.space_after = Pt(after)
     p.paragraph_format.line_spacing = 1.0
@@ -206,7 +219,7 @@ def para(p, *, align=None, before=0, after=0):
         p.alignment = align
 
 
-def text(run, s, *, bold=False, size=8, color=None):
+def text(run: Run, s: str, *, bold: bool = False, size: float = 8, color: Color | None = None) -> None:
     run.text = s
     run.bold = bold
     run.font.name = FONT
@@ -261,12 +274,12 @@ def split_on_commas(s: str) -> list[str]:
 
 
 def write_label_lines(
-    p,
+    p: Paragraph,
     lines: list[str],
     *,
     bold: bool = False,
     size: float = 7,
-    color=None,
+    color: Color | None = None,
 ) -> None:
     """Write one or more lines into a paragraph (soft line breaks between)."""
     if not lines:
@@ -278,7 +291,7 @@ def write_label_lines(
         text(p.add_run(), line, bold=bold, size=size, color=color)
 
 
-def merge_field(p, name, *, bold=False, size=8, color=None):
+def merge_field(p: Paragraph, name: str, *, bold: bool = False, size: float = 8, color: RGBColor | None = None) -> None:
     r = p.add_run()
     r.font.name = FONT
     r.font.size = Pt(size)
@@ -308,12 +321,12 @@ def merge_field(p, name, *, bold=False, size=8, color=None):
             r._r.append(el)
 
 
-def linebreak(p):
+def linebreak(p: Paragraph) -> None:
     """Insert a real line break (Word ignores literal newlines in a run)."""
     p.add_run().add_break()
 
 
-def tighten_cell(cell) -> None:
+def tighten_cell(cell: _Cell) -> None:
     """Remove the empty paragraph python-docx leaves around a nested table.
 
     That stray paragraph adds a blank line above the table (a gap, and it
@@ -344,7 +357,7 @@ def tighten_cell(cell) -> None:
         tc.append(p)
 
 
-def minimize_cell_tail(cell) -> None:
+def minimize_cell_tail(cell: _Cell) -> None:
     """Shrink the default paragraph python-docx leaves after a cell's table.
 
     cell.add_table() appends an empty Normal-style paragraph (~11pt) after the
@@ -381,7 +394,7 @@ def minimize_cell_tail(cell) -> None:
     sz.set(qn("w:val"), "2")
 
 
-def _tighten_paragraph(p, line_twips: int = 110) -> None:
+def _tighten_paragraph(p: Paragraph, line_twips: int = 110) -> None:
     """Zero paragraph spacing; exact line height for a single tight line."""
     pPr = p._p.get_or_add_pPr()
     old = pPr.find(qn("w:spacing"))
@@ -395,7 +408,7 @@ def _tighten_paragraph(p, line_twips: int = 110) -> None:
     pPr.append(spacing)
 
 
-def tighten_revision_cell(cell, line_twips: int = H_FOOTER_LINE_TWIPS) -> None:
+def tighten_revision_cell(cell: _Cell, line_twips: int = H_FOOTER_LINE_TWIPS) -> None:
     """Strip all slack from the footer cell so the revision line cannot overlap."""
     pad(cell, top=0, left=0, bottom=0, right=0)
     tc = cell._tc
@@ -407,7 +420,8 @@ def tighten_revision_cell(cell, line_twips: int = H_FOOTER_LINE_TWIPS) -> None:
         _tighten_paragraph(cell.paragraphs[0], line_twips)
 
 
-def next_record(p):
+def next_record(p: Paragraph) -> None:
+    """Append a Word NEXT field: the next mail-merge record starts here."""
     r = p.add_run()
     for kind in ("begin",):
         el = OxmlElement("w:fldChar")

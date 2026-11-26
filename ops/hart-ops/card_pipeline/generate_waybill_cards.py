@@ -58,9 +58,9 @@ car_paths = _load_sibling("car_paths")
 card_template_layout = _load_sibling("card_template_layout")
 card_template_sheet = _load_sibling("card_template_sheet")
 g = _load_sibling("generate_card_template")
-_load_sibling("waybill_data")
-_load_sibling("waybill_deck")
-_load_sibling("waybill_sheet")
+wdata = _load_sibling("waybill_data")
+wdeck = _load_sibling("waybill_deck")
+wsheet = _load_sibling("waybill_sheet")
 
 BASE = car_paths.ROOT
 DATA = car_paths.DATA
@@ -68,75 +68,6 @@ OUTPUT_DIR = car_paths.OUTPUT_DIR
 SPOT_CSV = DATA / "spot_assignments.csv"
 OUTPUT = OUTPUT_DIR / "HART_Spot_Waybills.docx"
 WAYBILL_CSV = DATA / "HART_Spot_Waybills.csv"
-
-# Re-exported so generate_operator_sheet.py, the tests and older callers keep reading them
-# here. The moved functions read these from their own module (waybill_data, waybill_deck,
-# waybill_sheet), so patching one of these names on this module does not reach them; only
-# BASE, OUTPUT_DIR, OUTPUT, WAYBILL_CSV and SPOT_CSV above are read from this module.
-from waybill_data import (  # noqa: E402, F401
-    INTERCHANGE_CSX_TO_NS,
-    INTERCHANGE_IN_VIA_CSX,
-    INTERCHANGE_IN_VIA_POHC,
-    INTERCHANGE_NS_TO_CSX,
-    INTERCHANGE_OUT_VIA_CSX,
-    INTERCHANGE_OUT_VIA_POHC,
-    _LAYOUT_PARTY_NAMES,
-    _PROCESS_CHEMICAL_DETAILS,
-    _ix_card,
-    CARDS_PER_DIRECTION,
-    EMPTY,
-    GE_BRIDGEVILLE,
-    GENERAL_FREIGHT,
-    INDUSTRY_ORDER,
-    INTERCHANGE_HEADER,
-    INTERCHANGE_PAGES,
-    OUTBOUND_EMPTY_RETURN,
-    PROCESS_CHEMICALS,
-    SKIP_USAGES,
-    SPOT_WAYBILL,
-    STANDARD_FORGED,
-    UNIVERSAL_STAINLESS,
-)
-from waybill_deck import (  # noqa: E402, F401
-    _apply_load_summary,
-    _apply_route,
-    _card_kind,
-    _card_to_csv_row,
-    _commodity_from_usage,
-    _deck_sort_key,
-    _format_spots,
-    _industry_inbound_empty_spots,
-    _industry_outbound_empty_counts,
-    _industry_spot_counts,
-    _is_layout_party,
-    _norm,
-    _normalize_party,
-    _pad_designs,
-    _parse_car_types,
-    _parse_spot_num,
-    _party_pool,
-    _spot_count,
-    _spots_from_label,
-    _spread_parties,
-    _summarize_deck,
-    _waybill_spec,
-    build_industry_empty_cards,
-    build_interchange_deck,
-    build_waybill_records,
-    expand_copies,
-    export_waybill_csv,
-    inbound_commodity_label,
-    normalize_car_type,
-    sort_deck_by_industry,
-)
-from waybill_sheet import (  # noqa: E402, F401
-    CARDS_PER_PAGE,
-    _append_grid,
-    _fill_deck_to_page,
-    _fill_page,
-    _set_page_break_before_table,
-)
-
 
 def load_spot_groups() -> list[dict]:
     """Load CSV rows and merge spots with identical industry/usage/car lists."""
@@ -146,15 +77,15 @@ def load_spot_groups() -> list[dict]:
     groups: dict[tuple, dict] = {}
     with SPOT_CSV.open(newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
-            industry = _norm(row.get("Industry"))
-            usage = _norm(row.get("Usage"))
+            industry = wdata._norm(row.get("Industry"))
+            usage = wdata._norm(row.get("Usage"))
             if not industry or not usage:
                 continue
-            if usage.lower() in SKIP_USAGES:
+            if usage.lower() in wdata.SKIP_USAGES:
                 continue
 
-            spot = _parse_spot_num(row.get("Spot #", ""))
-            car_types = _parse_car_types(row.get("Cars Applicable", ""))
+            spot = wdeck._parse_spot_num(row.get("Spot #", ""))
+            car_types = wdeck._parse_car_types(row.get("Cars Applicable", ""))
             if not spot or not car_types:
                 continue
 
@@ -170,7 +101,7 @@ def load_spot_groups() -> list[dict]:
 
     merged: list[dict] = []
     for entry in groups.values():
-        entry["Spots"] = _format_spots(entry["Spots"])
+        entry["Spots"] = wdeck._format_spots(entry["Spots"])
         merged.append(entry)
     return merged
 
@@ -196,14 +127,14 @@ def generate(deck: list[dict]) -> None:
     doc = Document(temp_path)
     card_template_sheet.keep_sticker_grid(doc)
 
-    pages = [deck[i : i + CARDS_PER_PAGE] for i in range(0, len(deck), CARDS_PER_PAGE)]
+    pages = [deck[i : i + wsheet.CARDS_PER_PAGE] for i in range(0, len(deck), wsheet.CARDS_PER_PAGE)]
 
     sheet = doc.tables[0]
-    _fill_page(sheet, pages[0], 0)
+    wsheet._fill_page(sheet, pages[0], 0)
 
     for page_idx, batch in enumerate(pages[1:], start=1):
-        sheet = _append_grid(doc, blank_grid)
-        _fill_page(sheet, batch, page_idx)
+        sheet = wsheet._append_grid(doc, blank_grid)
+        wsheet._fill_page(sheet, batch, page_idx)
 
     card_template_sheet.add_document_tail(doc.element.body)
     doc.save(temp_path)
@@ -212,28 +143,28 @@ def generate(deck: list[dict]) -> None:
 
 def main() -> None:
     groups = load_spot_groups()
-    waybills, group_order = build_waybill_records(groups)
-    deck = expand_copies(waybills, group_order)
+    waybills, group_order = wdeck.build_waybill_records(groups)
+    deck = wdeck.expand_copies(waybills, group_order)
     inbound_empty_count = sum(
-        1 for c in deck if _card_kind(c) == "inbound_empty"
+        1 for c in deck if wdeck._card_kind(c) == "inbound_empty"
     )
-    outbound_empties = build_industry_empty_cards(groups)
-    deck = sort_deck_by_industry(deck)
-    interchange = build_interchange_deck()
-    deck_with_ix = sort_deck_by_industry(deck + interchange + outbound_empties)
+    outbound_empties = wdeck.build_industry_empty_cards(groups)
+    deck = wdeck.sort_deck_by_industry(deck)
+    interchange = wdeck.build_interchange_deck()
+    deck_with_ix = wdeck.sort_deck_by_industry(deck + interchange + outbound_empties)
 
-    export_waybill_csv(deck_with_ix, WAYBILL_CSV)
-    summary = _summarize_deck(deck_with_ix)
+    wdeck.export_waybill_csv(deck_with_ix, WAYBILL_CSV)
+    summary = wdeck._summarize_deck(deck_with_ix)
 
-    deck = _fill_deck_to_page(deck_with_ix.copy())
+    deck = wsheet._fill_deck_to_page(deck_with_ix.copy())
     filler_count = len(deck) - len(deck_with_ix)
 
     by_direction: dict[tuple, list[dict]] = defaultdict(list)
     for record in waybills:
         by_direction[record["DirectionKey"]].append(record)
 
-    pages = (len(deck) + CARDS_PER_PAGE - 1) // CARDS_PER_PAGE
-    loaded_card_count = sum(1 for c in deck_with_ix if _card_kind(c) == "loaded")
+    pages = (len(deck) + wsheet.CARDS_PER_PAGE - 1) // wsheet.CARDS_PER_PAGE
+    loaded_card_count = sum(1 for c in deck_with_ix if wdeck._card_kind(c) == "loaded")
     print(f"Wrote {OUTPUT}")
     print(f"Wrote {WAYBILL_CSV}")
     print(
@@ -243,11 +174,11 @@ def main() -> None:
         f"{len(deck)} total · {pages} pages"
     )
     print(f"  source: {SPOT_CSV.name}")
-    outbound_empty_counts = _industry_outbound_empty_counts(groups)
+    outbound_empty_counts = wdeck._industry_outbound_empty_counts(groups)
     if outbound_empty_counts:
         empty_summary = ", ".join(
             f"{ind} ({outbound_empty_counts[ind]})"
-            for ind in sorted(outbound_empty_counts, key=lambda n: INDUSTRY_ORDER.get(n, 99))
+            for ind in sorted(outbound_empty_counts, key=lambda n: wdata.INDUSTRY_ORDER.get(n, 99))
         )
         print(f"  outbound empties (industry): {empty_summary}")
     for group_key in group_order:
@@ -262,7 +193,7 @@ def main() -> None:
             pool = designs[0].get("PartyPool", [])
             route_txt = ""
             if pool:
-                if load == EMPTY and flow == "IN":
+                if load == wdata.EMPTY and flow == "IN":
                     label = "via routing"
                     names = [
                         f"{p['name']} ({p['via']})" if p.get("via") else p["name"]
@@ -282,14 +213,14 @@ def main() -> None:
                     ]
                 route_txt = f"{label}: {', '.join(names)}"
             n = len(designs)
-            if load == EMPTY:
-                card_note = f"{CARDS_PER_DIRECTION}×"
+            if load == wdata.EMPTY:
+                card_note = f"{wdata.CARDS_PER_DIRECTION}×"
             elif n == 1:
-                card_note = f"{CARDS_PER_DIRECTION}×"
-            elif n >= CARDS_PER_DIRECTION:
+                card_note = f"{wdata.CARDS_PER_DIRECTION}×"
+            elif n >= wdata.CARDS_PER_DIRECTION:
                 card_note = "1 each"
             else:
-                card_note = f"1 each + {CARDS_PER_DIRECTION - n} extra"
+                card_note = f"1 each + {wdata.CARDS_PER_DIRECTION - n} extra"
             line = f"{flow} {load} ({types}) {card_note}"
             if route_txt:
                 line += f" · {route_txt}"
@@ -299,7 +230,7 @@ def main() -> None:
 
     via_csx = sum(1 for c in interchange if c.get("RouteChain") == "CSX")
     via_pohc = sum(1 for c in interchange if c.get("RouteChain") == "POHC")
-    ix_pages = (len(interchange) + CARDS_PER_PAGE - 1) // CARDS_PER_PAGE
+    ix_pages = (len(interchange) + wsheet.CARDS_PER_PAGE - 1) // wsheet.CARDS_PER_PAGE
     print(
         f"  interchange: {via_csx} Via CSX · {via_pohc} Via POHC "
         f"({ix_pages} pages)"
@@ -307,7 +238,7 @@ def main() -> None:
 
     loaded = [
         c for c in deck_with_ix
-        if c.get("Commodity") != EMPTY and c.get("RouteChain") in ("CSX", "POHC")
+        if c.get("Commodity") != wdata.EMPTY and c.get("RouteChain") in ("CSX", "POHC")
     ]
     in_csx = sum(
         1 for c in loaded
@@ -325,11 +256,11 @@ def main() -> None:
         1 for c in loaded
         if c.get("Flow") == "OUT" and c["RouteChain"] == "POHC"
     )
-    tot_in_csx = in_csx + len(INTERCHANGE_IN_VIA_CSX) + len(INTERCHANGE_NS_TO_CSX)
-    tot_in_pohc = in_pohc + len(INTERCHANGE_IN_VIA_POHC)
-    tot_out_csx = out_csx + len(INTERCHANGE_OUT_VIA_CSX)
+    tot_in_csx = in_csx + len(wdata.INTERCHANGE_IN_VIA_CSX) + len(wdata.INTERCHANGE_NS_TO_CSX)
+    tot_in_pohc = in_pohc + len(wdata.INTERCHANGE_IN_VIA_POHC)
+    tot_out_csx = out_csx + len(wdata.INTERCHANGE_OUT_VIA_CSX)
     tot_out_pohc = (
-        out_pohc + len(INTERCHANGE_OUT_VIA_POHC) + len(INTERCHANGE_CSX_TO_NS)
+        out_pohc + len(wdata.INTERCHANGE_OUT_VIA_POHC) + len(wdata.INTERCHANGE_CSX_TO_NS)
     )
     print(
         f"  loaded routing balance — IN: CSX {tot_in_csx} · POHC {tot_in_pohc} | "
