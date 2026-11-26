@@ -10,7 +10,7 @@ Each row is the command; the linked skill or doc has the detail. `make` lists th
 
 | Do | Command |
 |----|---------|
-| See who works on what | `make orient`: claims, worktrees in progress, the operating flag, last deploys, open PRs; the session-start hook prints the first two ([git](wiki/AGENTS_GIT.md)) |
+| See who works on what | `make orient`: claims, worktrees in progress, the operating flag, last deploys, open PRs, what waits to be pulled in; the session-start hook prints the first two ([git](wiki/AGENTS_GIT.md)) |
 | Start a task | `make wt TOPIC=<topic>`, then work in `.claude/worktrees/<topic>/`. On an active `wiki/projects/` page, `python3 tools/ops/orient.py claim <page>` writes your `Claimed:` line under its Status line; `unclaim <page>` removes it in the commit that ends the work, so main never carries one |
 | Checks | `./tools/check.sh` before any commit that changes tables or signals. It skips jobs whose inputs are unchanged (`FULL=1` runs all, `CHECK_ONLY=<regex>` some) ([checks](docs/pipeline-map/checks-and-remote.md)) |
 | Heavy checks off the Mac | `make remote CMD="./tools/check.sh"` runs a pushed branch on the Windows box. Use it for full checks, suites and panel rebuilds, and from subagents when the Mac is busy; never for `panelpro-test`, screenshots or deploys ([checks](docs/pipeline-map/checks-and-remote.md)) |

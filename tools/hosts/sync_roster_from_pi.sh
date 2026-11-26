@@ -5,6 +5,11 @@
 #
 # Does not commit roster (decoder CVs) to git.
 # Usage: ./tools/hosts/sync_roster_from_pi.sh [--mac] [--win] [--all]
+#        ./tools/hosts/sync_roster_from_pi.sh --status
+# --status only reads (make orient's "waiting to ingest" line): it prints "waiting N" when N roster files on the Pi
+# are missing from the Mac's JMRI_UserFiles or differ there (tools/hosts/roster_digest.sh on both; files only the
+# Mac has do not count, since the pull does not remove them), "nothing" otherwise. It copies nothing. Exit 255
+# when the Pi does not answer within 10 s (ConnectTimeout, as deploy_status.sh).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 source "$ROOT/tools/env/load_env.sh"  # hosts: environment, hart.env, default
@@ -26,6 +31,7 @@ STAGE="${HART_ROSTER_STAGE:-$ROOT/jmri/host-copies/pi-roster-ops}"
 
 DO_MAC=0
 DO_WIN=0
+DO_STATUS=0
 if [[ $# -eq 0 ]]; then
   DO_MAC=1
   DO_WIN=1
@@ -35,14 +41,25 @@ else
       --mac) DO_MAC=1 ;;
       --win) DO_WIN=1 ;;
       --all) DO_MAC=1; DO_WIN=1 ;;
+      --status) DO_STATUS=1 ;;
       -h|--help)
-        echo "Usage: $0 [--mac] [--win] [--all]"
+        echo "Usage: $0 [--mac] [--win] [--all] | --status"
         echo "  Source: $PI_HOST:$PI_USERFILES/{roster.xml,roster/}"
         exit 0
         ;;
       *) echo "Unknown option: $a" >&2; exit 1 ;;
     esac
   done
+fi
+
+if [[ "$DO_STATUS" -eq 1 ]]; then
+  pi_digest="$(ssh -o BatchMode=yes -o ConnectTimeout=10 "$PI_HOST" "bash -s -- '$PI_USERFILES'" \
+    <"$ROOT/tools/hosts/roster_digest.sh")"
+  mac_digest="$(bash "$ROOT/tools/hosts/roster_digest.sh" "$MAC_USERFILES")"
+  waiting="$(LC_ALL=C comm -23 <(printf '%s\n' "$pi_digest" | grep . | LC_ALL=C sort) \
+                      <(printf '%s\n' "$mac_digest" | grep . | LC_ALL=C sort) | wc -l | tr -d ' ')"
+  if [[ "$waiting" -eq 0 ]]; then echo nothing; else echo "waiting $waiting"; fi
+  exit 0
 fi
 
 mkdir -p "$STAGE/roster"
