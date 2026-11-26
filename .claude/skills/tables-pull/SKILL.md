@@ -26,8 +26,8 @@ A Store counts as taken only once its split is merged (`data/store_splits.csv` h
 4. Review with the owner in chat, multiple choice, up to 4 questions a batch: for each C and D item, merge or drop (give the before and after values). Show the KEPT and DROPPED lists too, so the owner sees what was taken and what the repo overrode; the owner may drop a K item.
 5. Apply: `python3 tools/schematic/split_store.py <store> --apply --plan <fingerprint> --merge <C and D ids> [--drop <K ids>]`. It writes the template and the merged `devices_field.csv` cells, rebuilds `tables.xml`, checks the rebuild gives exactly what the plan promised, and records the Store in `store_splits.csv`. On any failure it puts every file back and says why. A merged rename often needs other names changed too (a turnout's FB rows, a block's length row, the discovered logic); the build refuses it, so drop that merge or rename by hand across the sources.
 6. If `devices_field.csv` changed, run `make panels CHECK=1` (and `make panels` if it reports stale outputs). A kept section of a new kind (audio, routes) stops the website's tables page until `www/scripts/tables_page.py` `GROUPS` describes it: add that one plain line in the same PR. Any change to `tables.xml` also needs `python3 www/scripts/build_layout_index.py` and `python3 www/scripts/build_tables_browser.py` rerun and their outputs committed.
-7. Run `./tools/check.sh`, then `make panelpro-test` (AGENTS.md close-out, step 4).
-8. Commit the files it names, by name, then follow the close-out in AGENTS.md. After the merge, deploy `--pi --win`: the host's Store now counts as taken, and the deploy replaces it with the generated file that holds its edits.
+7. Run `./tools/check.sh`, then `make panelpro-test` (`/done` step 4).
+8. Commit the files it names, by name, then follow the close-out (`/done`). After the merge, deploy `--pi --win`: the host's Store now counts as taken, and the deploy replaces it with the generated file that holds its edits.
 
 ## Not for a one-line setting
 

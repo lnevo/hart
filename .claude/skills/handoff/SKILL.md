@@ -5,7 +5,7 @@ description: Use when the owner says go on a hand-off or a plan with several ind
 
 # Run a hand-off as parallel agents
 
-`AGENTS.md`, "Subagents", says which agent fits a job and when to ask first; "Status reporting" sets the progress rules. On "go" for a hand-off, run its independent items as parallel agents without being asked.
+`AGENTS.md`, "Subagents", says how to pick an agent and when to ask first; the agents' own descriptions say which fits a job. The progress intervals are under "While they run". On "go" for a hand-off, run its independent items as parallel agents without being asked.
 
 ## Split
 
@@ -44,7 +44,7 @@ Checks: single tests while iterating; the full ./tools/check.sh once, through
   make remote CMD="./tools/check.sh" after pushing. Take timings from logs, not re-runs.
   Stop your own background jobs by PID or a pattern holding your worktree path, never
   pkill -f a shared script name: other sessions run the same scripts.
-Review (code only): after pushing, run /code-review medium (high for the code AGENTS.md
+Review (code only): after pushing, run /code-review medium (high for the code `/done`
   step 3 names) on your branch while
   make remote runs, fix what it confirms with a test each, push again, and list
   its findings and what you did with each in the report.
@@ -64,7 +64,7 @@ Agents defined in `.claude/agents/` cannot commit, push or open PRs (`subagent_g
 
 ## While they run
 
-Set each brief's interval by the job's expected length (`AGENTS.md`, "Status reporting"). Watch the progress folder with a Monitor that polls every `*.log` in it and tracks each file's line count (`tail -F *.log` misses files created after it starts), prefixes each new line with the file's topic, and pass new lines to the owner as they arrive, as one short table of every agent (item, agent, model, stage, ETA). Never report a pending agent's result before it arrives.
+Set each brief's interval by the job's expected length: under about 10 minutes, start and end lines only; 10 to 30 minutes, a line at least every 3 minutes; longer, every 5. The main session follows the same intervals in its own reports, and logs before and after each long command (full `check.sh`, `make remote`, a build) with its expected duration. Watch the progress folder with a Monitor that polls every `*.log` in it and tracks each file's line count (`tail -F *.log` misses files created after it starts), prefixes each new line with the file's topic, and pass new lines to the owner as they arrive, as one short table of every agent (item, agent, model, stage, ETA). Never report a pending agent's result before it arrives.
 
 ## Merge
 
@@ -72,7 +72,7 @@ The main session merges, never with `--admin`. `main` requires the branch to be 
 
 `docs/pipeline-map/pipeline_map.json` merges itself locally (`tools/ops/merge_pipeline_map.py`, a git merge driver that `make wt` and the session-start hook set up); it stops only on two different edits to one box or link, or a link left pointing at a deleted box. GitHub never runs it, so a PR that shows a conflict there needs `origin/main` merged into the branch locally, then `python3 tools/ops/build_pipeline_map.py --check`. A branch from before ADR-036 that still changes `docs/pipeline-map/index.html` or `www/library/pipeline-map.html` gets a modify/delete conflict on them when it merges main: `git rm` them.
 
-1. Code PRs are reviewed once, by their own agent (brief, Review). The main session does not review them again: it checks that each confirmed finding was fixed, and runs `/code-review low` only when those fixes changed code beyond the finding's own lines. When the agent could not run a review, the main session runs the AGENTS.md step 3 review. Fix confirmed correctness bugs, check each unverified finding against the code, and leave performance and style for later unless trivial. Add a finding that recurs to the list in the brief's Quality line. After a review, check `git branch --show-current` before committing; it can leave a detached HEAD.
+1. Code PRs are reviewed once, by their own agent (brief, Review). The main session does not review them again: it checks that each confirmed finding was fixed, and runs `/code-review low` only when those fixes changed code beyond the finding's own lines. When the agent could not run a review, the main session runs the `/done` step 3 review. Send each finding through `finding-verifier` first; fix what it confirms, check each PLAUSIBLE one against the code, and leave performance and style for later unless trivial. Add a finding that recurs to the list in the brief's Quality line. After a review, check `git branch --show-current` before committing; it can leave a detached HEAD.
 2. Queue PRs that others build on first. When one merges, merge `origin/main` into each remaining one (no rebase: force-push is blocked) and regenerate its committed generated files.
 3. Deploy once after the last merge if live artifacts changed (`deploy` skill).
 

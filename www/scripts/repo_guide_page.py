@@ -107,6 +107,7 @@ HARTLIB_OTHER = {
     "hand_lists":"the owner's hand lists: block overrides, main lines and the parked USS board",
     "drawing_keys": "which device each piece of the drawing is, keyed by device ID",
     "film_pace": "the pace of the panel and schematic films",
+    "files": "an atomic file write and the list of tracked files",
     "coordinator": "the signal coordinator script and the modules it loads",
     "places": "the stations and control points by id, as the devices and masts name them",
     "occupancy_bindings": "the CATS desks' occupancy bindings, each block by its ID",
