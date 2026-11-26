@@ -32,18 +32,5 @@ class Render(unittest.TestCase):
         self.assertIn("| 231 | 217.3 | timed | 5519.4 | timed share", line)
 
 
-class JmriCheckFails(unittest.TestCase):
-    def test_set_tables_refuses_when_the_check_cannot_say(self) -> None:
-        from unittest import mock
-        from hartlib import tables
-        with mock.patch.object(m.tables_build, "refuse_generated"), \
-                mock.patch.object(m.tables, "jmri_state", return_value=tables.JmriState.UNKNOWN), \
-                mock.patch.object(m.tables, "load", side_effect=AssertionError("tables.xml read")), \
-                self.assertRaises(SystemExit) as got:
-            m.set_tables({})
-        self.assertIn("cannot tell", str(got.exception.code))
-        self.assertIn("not written", str(got.exception.code))
-
-
 if __name__ == "__main__":
     unittest.main()

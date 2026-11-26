@@ -9,6 +9,7 @@ Digicon SELECTEDREPORT follows track/turnout/{addr}. This updates broker
 retain from sensors only — it does not command turnout motors.
 
 Skips Switch 13/7/11/9 (DCC 116–119 — yard / engine-house, not FB-driven Digicon SoR).
+Exits 1 when JMRI cannot be reached or any publish fails.
 
     python3 tools/mqtt/sync_mqtt_turnouts_from_fb.py
     python3 tools/mqtt/sync_mqtt_turnouts_from_fb.py --dry-run
@@ -17,75 +18,33 @@ Skips Switch 13/7/11/9 (DCC 116–119 — yard / engine-house, not FB-driven Dig
 from __future__ import annotations
 
 import argparse
-import json
 import subprocess
 import sys
 import urllib.error
-import urllib.request
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
+from typing import NamedTuple
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib.hosts import jmri_json_url, mqtt_broker  # noqa: E402
 
+import turnout_feedback as tf  # noqa: E402  (sibling module; the script's folder is on sys.path)
+
 JMRI_JSON = jmri_json_url()
 MQTT_HOST = mqtt_broker()
 
-# Yard / engine-house — Digicon not FB-SoR (DCC 116–119 → Switch 13/7/11/9).
-SKIP_SWITCH = {13, 7, 11, 9}
 
-def _get(url: str):
-    with urllib.request.urlopen(url, timeout=15) as r:
-        return json.load(r)
-
-
-def _fb_state(d: dict) -> str | None:
-    n_on = r_on = False
-    for s in d.get("sensor") or []:
-        if s is None or not isinstance(s, dict):
-            continue
-        data = s.get("data")
-        sd = data if isinstance(data, dict) else s
-        if sd is None or not isinstance(sd, dict):
-            continue
-        if sd.get("state") != 4:  # ACTIVE
-            continue
-        un = sd.get("userName") or ""
-        if "FB N" in un:
-            n_on = True
-        elif "FB R" in un:
-            r_on = True
-    if n_on and not r_on:
-        return "CLOSED"
-    if r_on and not n_on:
-        return "THROWN"
-    return None
+class SyncCounts(NamedTuple):
+    synced: int
+    unchanged: int
+    no_clear_fb: int
+    failed: int
 
 
-def _mqtt_retain(addr: int) -> str | None:
-    try:
-        out = subprocess.check_output(
-            [
-                "mosquitto_sub",
-                "-h",
-                MQTT_HOST,
-                "-t",
-                f"track/turnout/{addr}",
-                "-C",
-                "1",
-                "-W",
-                "1",
-            ],
-            text=True,
-            stderr=subprocess.DEVNULL,
-        ).strip()
-        return out or None
-    except subprocess.CalledProcessError:
-        return None
-
-
-def _mqtt_pub(addr: int, msg: str) -> None:
-    subprocess.run(
+def _mqtt_pub(addr: int, msg: str) -> bool:
+    """Retain msg on turnout addr; True when mosquitto_pub exits 0."""
+    proc = subprocess.run(
         [
             "mosquitto_pub",
             "-h",
@@ -98,6 +57,52 @@ def _mqtt_pub(addr: int, msg: str) -> None:
         ],
         check=False,
     )
+    return proc.returncode == 0
+
+
+def sync(
+    table: Sequence[Mapping[str, object]],
+    retain: Callable[[int], str | None],
+    publish: Callable[[int, str], bool],
+    dry_run: bool,
+) -> SyncCounts:
+    """Set each FB-driven turnout's retain to its feedback state; print one line per turnout with a clear state."""
+    n_ok = n_skip = n_chg = n_fail = 0
+
+    def _name(item: Mapping[str, object]) -> str:
+        data = item.get("data")
+        return str(data.get("name", "")) if isinstance(data, dict) else ""
+
+    for item in sorted(table, key=_name):
+        d = item.get("data", item)
+        if not isinstance(d, Mapping):
+            raise ValueError(f"JMRI turnout row is not an object: {item!r}")
+        name = str(d.get("name") or "")
+        addr = tf.m2t_address(name)
+        if addr is None:
+            continue
+        uname = str(d.get("userName") or name)
+        if tf.switch_number(uname) in tf.SKIP_FB:
+            continue
+        fb = tf.fb_state(d)
+        if fb is None:
+            n_skip += 1
+            continue
+        prev = retain(addr)
+        if prev == fb:
+            print(f"ok  {name:10} {uname:16} FB→{fb} MQTT={prev}")
+            n_ok += 1
+            continue
+        if dry_run:
+            print(f"dry {name:10} {uname:16} FB→{fb} MQTT={prev!r} → would set {fb}")
+        elif publish(addr, fb):
+            print(f"set {name:10} {uname:16} FB→{fb} MQTT={prev!r} → {fb}")
+        else:
+            print(f"FAIL {name:10} {uname:16} FB→{fb} MQTT={prev!r}: publish failed", file=sys.stderr)
+            n_fail += 1
+            continue
+        n_chg += 1
+    return SyncCounts(n_chg, n_ok, n_skip, n_fail)
 
 
 def main() -> int:
@@ -106,44 +111,14 @@ def main() -> int:
     args = ap.parse_args()
 
     try:
-        table = _get(f"{JMRI_JSON}/turnout")
+        table = tf.get_json(f"{JMRI_JSON}/turnout", timeout=15)
     except (urllib.error.URLError, TimeoutError) as e:
         print(f"JMRI unreachable: {e}", file=sys.stderr)
         return 1
 
-    n_ok = n_skip = n_chg = 0
-    for item in sorted(table, key=lambda x: x.get("data", {}).get("name", "")):
-        d = item.get("data", item)
-        name = d.get("name") or ""
-        if not name.startswith("M2T"):
-            continue
-        try:
-            addr = int(name[3:])
-        except ValueError:
-            continue
-        uname = d.get("userName") or name
-        parts = uname.split()
-        if len(parts) >= 2 and parts[0] == "Switch" and parts[1].isdigit():
-            if int(parts[1]) in SKIP_SWITCH:
-                continue
-        fb = _fb_state(d)
-        if fb is None:
-            n_skip += 1
-            continue
-        prev = _mqtt_retain(addr)
-        if prev == fb:
-            print(f"ok  {name:10} {uname:16} FB→{fb} MQTT={prev}")
-            n_ok += 1
-            continue
-        if args.dry_run:
-            print(f"dry {name:10} {uname:16} FB→{fb} MQTT={prev!r} → would set {fb}")
-        else:
-            _mqtt_pub(addr, fb)
-            print(f"set {name:10} {uname:16} FB→{fb} MQTT={prev!r} → {fb}")
-        n_chg += 1
-
-    print(f"synced={n_chg} unchanged={n_ok} no_clear_fb={n_skip}")
-    return 0
+    counts = sync(table, lambda addr: tf.mqtt_retain(MQTT_HOST, addr), _mqtt_pub, args.dry_run)
+    print(f"synced={counts.synced} unchanged={counts.unchanged} no_clear_fb={counts.no_clear_fb} failed={counts.failed}")
+    return 1 if counts.failed else 0
 
 
 if __name__ == "__main__":

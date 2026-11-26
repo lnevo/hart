@@ -106,7 +106,7 @@ class CoordinatorShipping(unittest.TestCase):
         pi = self.copy_loop(read(PI_APPLY), 'for f in "${JYTHON[@]}"; do', "Pi apply")
         self.assertIn(self.PI_RM, pi)
         win = read(WIN_APPLY)
-        loop = win[win.index("foreach ($src in $jythonSrc) {"):win.index("$staleNx")]
+        loop = win[win.index("foreach ($src in $jythonSrc) {"):win.index("Write-Host (\"preference:jython scripts")]
         self.assertIn(self.WIN_RM, loop)
         self.assertIn("Remove-Item -LiteralPath $compiled -Force", loop)
 
