@@ -27,7 +27,10 @@ step; each field has its type and no other field is set; names are unique; the c
 or a -m module that is a tracked file under its PYTHONPATH; every input, output and program glob is a plain repo path
 (no ./, ../, leading / or backslash) that names a tracked file or folder, or a map node marked "local"; the domain
 and every edge side are the map's (docs/pipeline-map/pipeline_map.json); `git` names each ref at most once, from
-GIT_REFS. Every problem is reported, each naming the file, the step and the field.
+GIT_REFS. Every problem is reported, each naming the file, the step and the field. load_both loads checks.toml and
+panels.toml and then checks them against each other: no file is an output of a step in each, unless SHARED_OUTPUTS
+(manifest_panels.py) lists it with the two steps and why (writer_problems; #1187 found crew.json with two writers).
+`check` and the map lane load them this way.
 
 The trace audit (ADR-037 stage 4a) reads the manifest through declarations(): each job's step with every path it
 declares (inputs, quiet_inputs, outputs, programs). undeclared() names the data reads its processes made that none
@@ -69,9 +72,9 @@ from manifest_checks import (EDGE_KEYS, FIELDS, GIT_REFS, GROUPS, MODULE_RE, PLA
                              shell_line)
 from manifest_jobs import Declared, JobKey, covers, declarations, job_keys, panel_jobs, undeclared  # noqa: E402,F401
 from manifest_panels import (PANEL_BOX_TEXT, PANEL_EDGE_KEYS, PANEL_FIELDS, PANEL_JOB_PREFIX,  # noqa: E402,F401
-                             PANEL_MODES, PANEL_WORD_RE, PANELS, PANELS_RUNNER, PANELS_UNAUDITED, PanelStep,
-                             load_panels, panel_check_lines, panel_lines, panel_order_problems, panel_steps,
-                             parse_panels, runs_panels)
+                             PANEL_MODES, PANEL_WORD_RE, PANELS, PANELS_RUNNER, PANELS_UNAUDITED, SHARED_OUTPUTS,
+                             PanelStep, load_panels, panel_check_lines, panel_lines, panel_order_problems,
+                             panel_steps, parse_panels, runs_panels, writer_problems)
 
 PARTS = (manifest_base, manifest_checks, manifest_jobs, manifest_panels)
 _stray = [f"{m.__name__} from {m.__file__}" for m in PARTS if Path(m.__file__).resolve().parent != HERE]
@@ -79,6 +82,19 @@ if _stray:      # a part already imported from another folder (a second checkout
     raise ImportError(f"manifest.py: its parts must be the files beside it in {HERE}, not {', '.join(_stray)}")
 # This file and its parts, from the repo root: an edit to any of them reruns every check.sh job (check_stamps.ALWAYS)
 FILES = tuple(Path(f).resolve().relative_to(ROOT).as_posix() for f in (__file__, *(m.__file__ for m in PARTS)))
+
+
+def load_both(manifest: Path = MANIFEST, panels: Path = PANELS,
+              where: Repo | None = None) -> tuple[tuple[Step, ...], tuple[PanelStep, ...]]:
+    """checks.toml's and panels.toml's steps, each checked against git and the map (load, load_panels), and then
+    against each other: no file is an output of a step in each (writer_problems). ManifestError listing every
+    problem."""
+    where = repo() if where is None else where
+    steps, panel_steps_ = load(manifest, where), load_panels(panels, where)
+    problems = writer_problems(steps, panel_steps_, _shown(manifest), _shown(panels))
+    if problems:
+        raise ManifestError("\n".join(problems))
+    return steps, panel_steps_
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -101,6 +117,12 @@ def main(argv: list[str] | None = None) -> int:
                 raise ManifestError("jobs panels takes no --group, --ungrouped or --docs-only")
             print("\n".join(panel_lines(panel_steps(args.panels))))
             return 0
+        if args.command == "check":
+            steps, panels = load_both(args.manifest, args.panels)
+            print("\n".join((f"{_shown(args.manifest)}: {len(steps)} steps, all checked",
+                             f"{_shown(args.panels)}: {len(panels)} steps, all checked",
+                             "no file is an output of a step in both")))
+            return 0
         steps = load(args.manifest)
         if args.command == "jobs":       # the panels step is one job per panels step (stage 6), named as job_keys
             lines = []
@@ -110,12 +132,9 @@ def main(argv: list[str] | None = None) -> int:
                     continue
                 jobs = panel_jobs({}, args.panels, {t.name for t in steps})
                 lines += panel_check_lines([step for _raw, step in jobs.values()])
-        elif args.command == "list":
+        else:
             lines = ["\t".join((s.name, s.runner, s.group or "-", "docs" if s.docs_only else "-", s.domain, s.script,
                                 f"{len(s.inputs)} in", f"{len(s.outputs)} out")) for s in steps]
-        else:
-            lines = [f"{_shown(args.manifest)}: {len(steps)} steps, all checked",
-                     f"{_shown(args.panels)}: {len(load_panels(args.panels))} steps, all checked"]
     except ManifestError as err:
         print(f"manifest.py: {err}", file=sys.stderr)
         return 1

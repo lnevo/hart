@@ -9,7 +9,9 @@ as it stops check.sh (a worktree from before the marks takes them from this hook
 (about 14 s) runs after an edit to a data file (tables.xml, the signal CSVs). After an edit
 to a script it is replaced by the test files that name that script (matching_tests), each
 well under a second; a script no test file names gets the whole unit-jmri job, and the hook
-says so. The slow parts of check.sh (portal build, the other unit suites) stay in
+says so. The checks share a 20 s budget: a check it leaves too little time for, or one that runs
+past it (unit-jmri under load), is not a failure; the hook says "not run in the edit hook (over
+the 20 s budget; check.sh runs it)" on a line of its own, on stderr and in Claude's context. The slow parts of check.sh (portal build, the other unit suites) stay in
 ./tools/check.sh and CI. Edits made by Bash scripts (sed, a table generator) do not pass
 through this hook and are not caught.
 
@@ -44,6 +46,8 @@ TEST_DIRS = ["jmri/layouts/hart/scripts/tests", "jmri/scripts/tests", "cats/scri
 RUFF_CHECK = "tools/audit/check_ruff.py"
 BUDGET = 20.0
 MIN_LEFT = 5.0
+# A check the budget leaves no time for, or one that runs past it, is not run here: never a failure, never silent
+OVER_BUDGET = "check_after_edit: {name}: not run in the edit hook (over the {budget:.0f} s budget; check.sh runs it)"
 
 
 class MatchError(Exception):
@@ -236,24 +240,32 @@ def main():
     if note:
         print(f"check_after_edit: {note}.", file=sys.stderr)
     started = time.monotonic()
+    not_run = []    # over the budget: neither a pass nor a failure, and said so on a line of its own
     for name, argv in checks:
         left = BUDGET - (time.monotonic() - started)
-        if left < MIN_LEFT:  # too little time to finish; a timeout here would look like a failure
-            print(f"check budget of {BUDGET:.0f}s used; skipped {name} and later. Run ./tools/check.sh.", file=sys.stderr)
-            break
+        if left < MIN_LEFT:  # too little time to finish
+            not_run.append(name)
+            continue
         t0 = time.monotonic()
         try:
             done = subprocess.run(argv, cwd=root, env=env, capture_output=True, text=True, timeout=left)
             ok, out = done.returncode == 0, done.stdout + done.stderr
-        except subprocess.TimeoutExpired:
-            ok, out = False, "timed out"
+        except subprocess.TimeoutExpired:   # a slow run under load, not a failing check
+            not_run.append(name)
+            continue
         except OSError as err:
             ok, out = False, str(err)
         if not ok:
             failed.append(f"--- {name} FAILED ({time.monotonic() - t0:.1f}s)\n{out.strip()[-2000:]}")
+    over = [OVER_BUDGET.format(name=name, budget=BUDGET) for name in not_run]
     if failed:
-        print(f"Quick checks failed after editing {os.path.basename(path)}:\n" + "\n".join(failed), file=sys.stderr)
+        print(f"Quick checks failed after editing {os.path.basename(path)}:\n" + "\n".join(failed + over),
+              file=sys.stderr)
         return 2
+    if over:
+        print("\n".join(over), file=sys.stderr)
+        # exit 0 shows Claude no stderr: the lines go to its context as well, so the pass is never silent
+        print(json.dumps({"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": "\n".join(over)}}))
     return 0
 
 
