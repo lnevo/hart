@@ -10,7 +10,9 @@ print the lists its runners will read.
                                                                    one shell line per step: its name, then its command
 
 tools/check.sh runs every step as a job of its own, named after the step (ADR-037 stage 4b): the static group's
-ahead of the unit tests, the steps in no group after them; tools/ci/docs_checks.sh runs the docs-only steps. Both
+ahead of the unit tests, the steps in no group after them; tools/ci/docs_checks.sh runs the docs-only steps. The
+panels step (the one that runs build_panels.sh) is one job per step of panels.toml instead, panels-<step>, which runs
+that step's check (stage 6): its `jobs` lines and its job_keys and declarations are those jobs'. Both
 stop, naming the error, when `jobs` fails. check.sh's stamps (tools/audit/check_stamps.py) key each job on its own
 entry and on the git refs its `git` field names (job_keys), so an edited entry reruns that job only.
 
@@ -65,10 +67,11 @@ from manifest_base import (MANIFEST, NAME_RE, PROGRAM_RE, ROOT, Edge, ManifestEr
 from manifest_checks import (EDGE_KEYS, FIELDS, GIT_REFS, GROUPS, MODULE_RE, PLAIN_DIR_RE,  # noqa: E402,F401
                              PYTHON, RUNNERS, SHELL_PYTHON, WHOLE_REPO, Step, git_problem, load, parse, select,
                              shell_line)
-from manifest_jobs import Declared, JobKey, covers, declarations, job_keys, undeclared  # noqa: E402,F401
-from manifest_panels import (PANEL_BOX_TEXT, PANEL_EDGE_KEYS, PANEL_FIELDS, PANEL_MODES,  # noqa: E402,F401
-                             PANEL_WORD_RE, PANELS, PANELS_RUNNER, PanelStep, load_panels, panel_lines,
-                             panel_order_problems, panel_steps, parse_panels)
+from manifest_jobs import Declared, JobKey, covers, declarations, job_keys, panel_jobs, undeclared  # noqa: E402,F401
+from manifest_panels import (PANEL_BOX_TEXT, PANEL_EDGE_KEYS, PANEL_FIELDS, PANEL_JOB_PREFIX,  # noqa: E402,F401
+                             PANEL_MODES, PANEL_WORD_RE, PANELS, PANELS_RUNNER, PANELS_UNAUDITED, PanelStep,
+                             load_panels, panel_check_lines, panel_lines, panel_order_problems, panel_steps,
+                             parse_panels, runs_panels)
 
 PARTS = (manifest_base, manifest_checks, manifest_jobs, manifest_panels)
 _stray = [f"{m.__name__} from {m.__file__}" for m in PARTS if Path(m.__file__).resolve().parent != HERE]
@@ -99,8 +102,14 @@ def main(argv: list[str] | None = None) -> int:
             print("\n".join(panel_lines(panel_steps(args.panels))))
             return 0
         steps = load(args.manifest)
-        if args.command == "jobs":
-            lines = [shell_line(s) for s in select(steps, args.runner, args.group, args.ungrouped, args.docs_only)]
+        if args.command == "jobs":       # the panels step is one job per panels step (stage 6), named as job_keys
+            lines = []
+            for s in select(steps, args.runner, args.group, args.ungrouped, args.docs_only):
+                if not runs_panels(s.cmd):
+                    lines.append(shell_line(s))
+                    continue
+                jobs = panel_jobs({}, args.panels, {t.name for t in steps})
+                lines += panel_check_lines([step for _raw, step in jobs.values()])
         elif args.command == "list":
             lines = ["\t".join((s.name, s.runner, s.group or "-", "docs" if s.docs_only else "-", s.domain, s.script,
                                 f"{len(s.inputs)} in", f"{len(s.outputs)} out")) for s in steps]

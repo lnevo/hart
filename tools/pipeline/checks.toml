@@ -113,7 +113,9 @@ desc = "Checks pipeline_map.json is current and that both map pages build; --che
 docs_only = true
 inputs = [
   "docs/pipeline-map/pipeline_map.json",
-  { path = "tools/ops/pipeline_map.js", label = "inlined" },
+  { path = "tools/ops/pipeline_map_page.html", label = "template" },
+  { path = "tools/ops/pipeline_map_layout.js", label = "inlined" },
+  { path = "tools/ops/pipeline_map_view.js", label = "inlined" },
   { path = "tools/pipeline/checks.toml", label = "manifest lane" },
   { path = "tools/pipeline/panels.toml", label = "manifest lane" },
 ]
@@ -393,21 +395,23 @@ outputs = [
   { path = "wiki/STATUS.md", label = "built page" },
 ]
 
-# Every output drawn from the schematic, checked by its own pipeline (make panels CHECK=1): each step of
-# tools/schematic/build_panels.sh (tools/pipeline/panels.toml) with --check, in build order, from the hands to the
-# approved fingerprints, with
-# tables.xml among them (an output, ADR-029: a Store is never copied over it; make tables-pull and split_store.py).
-# One list of panel checks for check.sh, CI and make panels. Its own stamps (shared with make panels) skip the steps
-# current here; CI, FULL=1 and an audit run pass --full and run them all, and so does a run with HART_TABLES (stamps
-# off; the table steps read that file). Fails when the schematic-maps plugin submodule is not checked out, even with
-# SCHEMATIC_REQUIRED=0: its schematic step (publish_draft.py --check) has no SKIPPED path.
+# Every output drawn from the schematic, checked by the steps of make panels (tools/pipeline/panels.toml), from the
+# hands to the approved fingerprints, with tables.xml among them (an output, ADR-029: a Store is never copied over
+# it; make tables-pull and split_store.py). check.sh does not run this command: this step stands for one job per step
+# of panels.toml, panels-<step>, which runs that step's check (its cmd and check_args) under check.sh's own trace and
+# stamps (ADR-037 stage 6; tools/pipeline/manifest_jobs.py panel_jobs). A check writes nothing, so the jobs run side
+# by side in any order; make panels CHECK=1 (this command) still runs them in build order with make panels' stamps.
+# Each job's key holds its panels.toml entry and this one, the step's outputs and make panels' code
+# (panel_stamps.CODE) whole, and the merge base for a step that publishes; with HART_TABLES set nothing is skipped.
+# A step fails when the schematic-maps plugin submodule is not checked out (SCHEMATIC_REQUIRED=1, as in CI).
 [[step]]
 name = "panels"
 runner = "check"
 group = "static"
-# check.sh adds --full when its stamps are off (CI, FULL=1, an audit run): the panel steps skip nothing then
 cmd = ["bash", "tools/schematic/build_panels.sh", "--check"]
-git = ["head", "base"]
+# git = []: the jobs' traces replay the git commands the steps run, as make panels' stamps do; a step that publishes
+# reads main's files through git and its job holds "base" (manifest_jobs.job_keys)
+git = []
 domain = "layout"
 label = "build_panels.sh (make panels)"
 desc = "make panels: runs the schematic builders and guards in order (hands to CATS: head-plan and panel-items steps and the sml-current guard included), skipping a step whose stamped inputs are unchanged (FULL=1 runs all)."
@@ -962,16 +966,17 @@ inputs = [
 ]
 # The site build (prepare_github_pages.py) reads: the site tree; the sources www/scripts/published-files.json names,
 # as their folder and suffix; the files the site's data names outside www/ that it copies in (the operator logos,
-# the rolling stock photos: its _vendor_logo and MIRROR_PREFIXES); and what the seven steps whose pages and data it builds read (tables-browser,
+# the rolling stock photos: portal_photos._vendor_logo and portal_common.MIRROR_PREFIXES); and what the seven steps whose pages and data it builds read (tables-browser,
 # repo-guide, jmri-additions, pipeline-map, layout-index, layout-index-cats, wiring-json: their inputs and quiet_inputs, in that order).
 # tools/audit/tests/test_manifest_scans.py
 # keeps this list equal to those.
-quiet_inputs = ["www/**", "docs/benchwork/helix/*.md", "docs/benchwork/helix/*.pdf", "docs/benchwork/helix/stl/*.3mf",
+quiet_inputs = [
+  "www/**", "docs/benchwork/helix/*.md", "docs/benchwork/helix/*.pdf", "docs/benchwork/helix/stl/*.3mf",
   "docs/benchwork/helix/stl/*.stl", "docs/benchwork/main_level/*.html", "docs/benchwork/main_level/*.pdf",
   "docs/benchwork/roadbed/*.pdf", "docs/benchwork/staging_level/*.pdf", "docs/ops/*.pdf", "docs/ops/*.svg",
   "docs/ops/stations/*.svg", "jmri/layouts/hart/scripts/speedmatch/dashboard/static/*.css",
   "jmri/layouts/hart/scripts/speedmatch/dashboard/static/*.js", "ops/hart-ops/publications/assets/*.png",
-  "ops/station_maps/maps/*.png", "tools/benchwork/helix/*.py", "ops/hart-ops/operator_logos/**",
+  "ops/station_maps/maps/*.png", "ops/hart-ops/operator_logos/**",
   "external/sts-docker-data/Rolling Stock photos/*.jpg", "jmri/layouts/hart/output/tables.xml",
   "jmri/layouts/hart/data/switches.csv", "jmri/layouts/hart/parked/tables_parked.xml",
   "jmri/layouts/hart/data/devices_field.csv", "jmri/layouts/hart/data/devices_generated.csv",
@@ -979,11 +984,13 @@ quiet_inputs = ["www/**", "docs/benchwork/helix/*.md", "docs/benchwork/helix/*.p
   "jmri/layouts/hart/data/schematic/stations.csv", "jmri/scripts/sml_beans.py", "jmri/scripts/sml_claims.py",
   "jmri/scripts/sml_handoff.py", "tools/hosts/deploy/common.sh", "tools/hosts/pi/apply_hart_package_local.sh",
   "tools/hosts/windows/apply_hart_package_local.ps1", "docs/pipeline-map/pipeline_map.json",
-  "tools/ops/pipeline_map.js", "tools/pipeline/checks.toml", "tools/pipeline/panels.toml", "AGENTS.md",
-  "wiki/home.md", "wiki/AGENTS_GIT.md", "wiki/STATUS_LOG.md", "wiki/not-pending.md", "wiki/STATUS.md",
-  "docs/INDEX.md", "wiki/decisions/**", "wiki/pipelines/**", "wiki/projects/**", "wiki/status/**", ".cursor/**",
-  ".claude/skills/*/SKILL.md", ".claude/agents/*.md", ".claude/commands/*.md", "*/AGENTS.md", "*/*/AGENTS.md",
-  ".gitmodules", "jmri/layouts/hart/data/schematic/block_overrides.csv",
-  "jmri/layouts/hart/scripts/render_le_layout.py", "cats/panels/HART_CTC.xml", "cats/scripts/render_cats_panel.py",
-  "tools/wiring/write_inventory.py", "jmri/layouts/hart/data/schematic/lcos_nodes.csv",
-  "jmri/layouts/hart/data/wiring.csv", "jmri/layouts/hart/output/signal_head_plan.csv"]
+  "tools/ops/pipeline_map_page.html", "tools/ops/pipeline_map_layout.js", "tools/ops/pipeline_map_view.js",
+  "tools/pipeline/checks.toml", "tools/pipeline/panels.toml", "AGENTS.md", "wiki/home.md", "wiki/AGENTS_GIT.md",
+  "wiki/STATUS_LOG.md", "wiki/not-pending.md", "wiki/STATUS.md", "docs/INDEX.md", "wiki/decisions/**",
+  "wiki/pipelines/**", "wiki/projects/**", "wiki/status/**", ".cursor/**", ".claude/skills/*/SKILL.md",
+  ".claude/agents/*.md", ".claude/commands/*.md", "*/AGENTS.md", "*/*/AGENTS.md", ".gitmodules",
+  "jmri/layouts/hart/data/schematic/block_overrides.csv", "jmri/layouts/hart/scripts/render_le_layout.py",
+  "cats/panels/HART_CTC.xml", "cats/scripts/render_cats_panel.py", "tools/wiring/write_inventory.py",
+  "jmri/layouts/hart/data/schematic/lcos_nodes.csv", "jmri/layouts/hart/data/wiring.csv",
+  "jmri/layouts/hart/output/signal_head_plan.csv"
+]

@@ -26,7 +26,8 @@ HOPS_PY=python3
 # When git cannot say what changed (no merge base: a shallow clone), the normal path runs and says why.
 DOCS_ONLY=0
 if [[ -z "${CI:-}" && "${FULL:-}" != 1 && -z "${CHECK_ONLY:-}" && -z "${CHECK_AUDIT:-}" && -z "${HART_TABLES:-}" \
-      && "${PORTAL_CHECK:-}" != 1 && -z "${CHECK_RECORD_TO:-}" && -z "${CHECK_SKIP_FROM:-}" ]]; then
+      && "${PORTAL_CHECK:-}" != 1 && -z "${CHECK_RECORD_TO:-}" && -z "${CHECK_SKIP_FROM:-}" \
+      && -z "${CHECK_AUDIT_FAILS:-}" ]]; then
   if verdict="$(python3 tools/ci/changed_kind.py --git 2>&1)"; then
     case "$verdict" in
       docs:*) DOCS_ONLY=1
@@ -39,7 +40,7 @@ if [[ -z "${CI:-}" && "${FULL:-}" != 1 && -z "${CHECK_ONLY:-}" && -z "${CHECK_AU
     echo "Full checks: tools/ci/changed_kind.py --git failed: $verdict"
   fi
 fi
-# The caller's PYTHONPATH, before any job puts a hook on it: build_panels.sh runs with it (panel_stamps keys on it).
+# The caller's PYTHONPATH, before any job puts a hook on it: a bash check runs with it (run_check).
 CALLER_PYTHONPATH=()
 if [[ -n "${PYTHONPATH+set}" ]]; then CALLER_PYTHONPATH=(PYTHONPATH="$PYTHONPATH"); else CALLER_PYTHONPATH=(-u PYTHONPATH); fi
 # The schematic plugin's cache, the folder the builds use (publish_draft.CACHE: <main checkout>/.cache/hart/schematic, private to this user), for every job
@@ -94,8 +95,8 @@ STAMPS=1
 RECORD=1
 if [[ -n "${CI:-}" || "${FULL:-}" == 1 || -n "${CHECK_AUDIT:-}" ]]; then STAMPS=0; fi
 if [[ -n "${CI:-}" ]]; then RECORD=0; fi
-# The checkout's .cache (gitignored) before any job starts: the panel check (build_panels.sh) makes .cache/panel-stamps
-# there, and a job that lists the root and passed before that recorded a listing without it, so the next run reran it.
+# The checkout's .cache (gitignored) before any job starts: a job may make it (make panels made .cache/panel-stamps
+# there), and a job that lists the root and passed before that recorded a listing without it, so the next run reran it.
 # Without the folder the run goes on; a job that saw it appear then records nothing and reruns next time.
 if ! mkdir -p "$ROOT/.cache" 2>/dev/null; then
   echo "cannot make $ROOT/.cache: a job that lists the root and finishes before a step makes it reruns next time"
@@ -144,13 +145,37 @@ fi
 if [[ -n "${CHECK_AUDIT:-}" ]]; then
   mkdir -p "$CHECK_AUDIT"
   CHECK_AUDIT="$(cd "$CHECK_AUDIT" && pwd)"
+  # its logs, inside the checkout, would be new files while each job runs: every job would record nothing
+  if [[ "$CHECK_AUDIT/" == "$ROOT/"* ]]; then
+    echo "CHECK_AUDIT=$CHECK_AUDIT is inside the checkout; give a folder outside it" >&2
+    exit 2
+  fi
   rm -f "$CHECK_AUDIT"/*.log "$CHECK_AUDIT"/*.name
 fi
+# The declaration audit (check_stamps.py record, ADR-037 stage 4c): a step-manifest job that read a file its step
+# does not declare in tools/pipeline/checks.toml FAILS in an audit run (CHECK_AUDIT) and with CHECK_AUDIT_FAILS=1 (the
+# weekly full run, .github/workflows/check.yml); any other run (local, pull request, main's push) warns, so a new
+# undeclared read is seen before it blocks anyone. Only a job that records is audited, so such a run must record.
+AUDIT_FAILS=()
+case "${CHECK_AUDIT_FAILS:-}" in
+  "") ;;
+  1) AUDIT_FAILS=(--audit-fails) ;;
+  *) echo "CHECK_AUDIT_FAILS=$CHECK_AUDIT_FAILS: it is 1 or unset" >&2; exit 2 ;;
+esac
+[[ -z "${CHECK_AUDIT:-}" ]] || AUDIT_FAILS=(--audit-fails)
+unset CHECK_AUDIT_FAILS
+if (( ${#AUDIT_FAILS[@]} && ! RECORD )); then
+  echo "the declaration audit fails jobs in this run, but it records no stamp (CI without CHECK_RECORD_TO), so no job would be audited" >&2
+  exit 2
+fi
+MANIFEST_JOBS=" "      # the step-manifest jobs' names, each between spaces: an audit run says which it did not audit
 # The read-only checks come from the step manifest, tools/pipeline/checks.toml (ADR-037): each step is a job of its
 # own, named after it (stage 4b), the "static" group's queued ahead of the unit tests and the steps in no group after
 # them. A manifest that does not load, or a list with no check in it, stops the run here, before any job: check.sh
-# never passes having run nothing. Two conditions stay here, keyed on a step's name, so each must be in its list: the
-# panels check gets --full when no job is skipped, and the portal job runs only where its inputs are (below).
+# never passes having run nothing. The panels step is one job per step of tools/pipeline/panels.toml, panels-<step>,
+# each running that step's check (stage 6; manifest.py prints their lines). Two conditions stay here, keyed on a
+# step's name, so each must be in its list: the panels jobs are queued first, and the portal job runs only where its
+# inputs are (below).
 manifest_lines() {   # the lines of `manifest.py jobs check <args>` into MANIFEST_LINES; stops the run when there are none
   local out line
   MANIFEST_LINES=()
@@ -187,7 +212,8 @@ manifest_lines --group static
 STATIC_LINES=("${MANIFEST_LINES[@]}")
 manifest_lines --ungrouped
 OWN_LINES=("${MANIFEST_LINES[@]}")
-has_step panels "${STATIC_LINES[@]}" || { echo "STOP: no panels step in the static group of tools/pipeline/checks.toml; check.sh adds its --full" >&2; exit 2; }
+for line in "${STATIC_LINES[@]}" "${OWN_LINES[@]}"; do MANIFEST_JOBS+="${line%% *} "; done
+has_step panels-tables "${STATIC_LINES[@]}" || { echo "STOP: no panels-tables job in tools/pipeline/manifest.py jobs check --group static: the panels step of tools/pipeline/checks.toml lists the steps of tools/pipeline/panels.toml, and the deploy gate reads panels-tables" >&2; exit 2; }
 has_step portal "${OWN_LINES[@]}" || { echo "STOP: no portal step in tools/pipeline/checks.toml; check.sh decides when it runs" >&2; exit 2; }
 # The jobs (each read-only check, the unit tests, public text, the portal build) run at the same time,
 # at most one job per core. Every one works in its own temp folders. `later` queues a job; `start_jobs` checks every
@@ -310,7 +336,19 @@ start_jobs() {
       if (( stampable )); then
         # with the environment the stamp check had (PYTHONPATH is in the key), untraced
         if [[ -n "$pp_set" ]]; then ppenv=(PYTHONPATH="$pp"); else ppenv=(-u PYTHONPATH); fi
-        env -u HART_TRACE_LOG -u HART_TRACE_SPAWN -u HART_TRACE_PATH -u CHECK_AUDIT_LOG "${ppenv[@]}" ${STAMP_ENV[@]+"${STAMP_ENV[@]}"} python3 tools/audit/check_stamps.py record "$name" "$JOBS/$n.stamp" --trace "$HART_TRACE_LOG" ${skip_count[@]+"${skip_count[@]}"} >>"$JOBS/$n.stamplog" 2>&1
+        # its exit counts only when the audit fails jobs (AUDIT_FAILS): 0 audited, 3 nothing to audit (bash, a unit
+        # job, not stampable now), anything else fails the job (an undeclared read, an audit that could not run);
+        # elsewhere the audit only warns and the job's own result stands
+        env -u HART_TRACE_LOG -u HART_TRACE_SPAWN -u HART_TRACE_PATH -u CHECK_AUDIT_LOG "${ppenv[@]}" ${STAMP_ENV[@]+"${STAMP_ENV[@]}"} python3 tools/audit/check_stamps.py record "$name" "$JOBS/$n.stamp" --trace "$HART_TRACE_LOG" ${skip_count[@]+"${skip_count[@]}"} ${AUDIT_FAILS[@]+"${AUDIT_FAILS[@]}"} >>"$JOBS/$n.stamplog" 2>&1
+        audit_rc=$?
+        if (( ${#AUDIT_FAILS[@]} )); then
+          if (( audit_rc == 0 )); then
+            : >"$JOBS/$n.audited"
+          elif (( audit_rc != 3 )); then
+            echo "$name: FAILED by the declaration audit above (ADR-037 stage 4c; check_stamps.py record exited $audit_rc)" >>"$JOBS/$n.stamplog"
+            rc=1
+          fi
+        fi
       fi
       if [[ -s "$JOBS/$n.stamplog" ]]; then { echo "--- stamps ($name):"; cat "$JOBS/$n.stamplog"; } >>"$JOBS/$n.log"; fi
       echo "$((SECONDS - start))" >"$JOBS/$n.time"
@@ -350,6 +388,23 @@ collect() {
   if (( ${#said[@]} > 0 )); then
     echo "${#said[@]} job(s) printed SKIPPED and checked only part of their inputs: ${said[*]}"
   fi
+  # A run whose audit fails jobs names the step-manifest jobs that passed unaudited (bash, or not traced: SKIPPED in
+  # their output, not stampable now, a failed stamp batch), and fails when it audited none of them.
+  if (( ${#AUDIT_FAILS[@]} )); then
+    local i3 audited=0 passed=0 unaudited=()
+    for i3 in "${!names[@]}"; do
+      [[ "$MANIFEST_JOBS" == *" ${names[$i3]} "* && "${results[$i3]}" == *$'\tpassed' ]] || continue
+      passed=$((passed + 1))
+      if [[ -e "$JOBS/$i3.audited" ]]; then audited=$((audited + 1)); else unaudited+=("${names[$i3]}"); fi
+    done
+    if (( ${#unaudited[@]} > 0 )); then
+      echo "declaration audit: ${#unaudited[@]} of $passed passing step-manifest job(s) not audited (bash, or not traced): ${unaudited[*]}"
+    fi
+    if (( passed > 0 && audited == 0 )); then
+      echo "declaration audit: no step-manifest job was audited, so this run does not show the declarations hold"
+      fail=1
+    fi
+  fi
   if (( skipped > 0 )); then
     if [[ "$SKIP_NOTE" == current ]]; then
       echo "$skipped of ${#names[@]} jobs current, skipped (FULL=1 runs them all)"
@@ -366,12 +421,12 @@ unit() {
 }
 # One read-only check of the manifest's static group as a job of its own: run_line LINE [WORD...] evals the step's
 # line (its name, then its command) inside the job, so an env PYTHONPATH=dir word keeps the trace hook start_jobs put
-# on PYTHONPATH, and adds the words after it (the panels check's --full). What the job's trace must show for the
-# check: a Python check (python3, or env VAR=... python3) is one Python process it expects ("b"); bash
-# (build_panels.sh) is a program the hook cannot see into, so it goes in as a spawn nothing loaded the hook for ("x"),
-# and the job's stamp falls back to its declaration (tools/audit/check_stamps.py). bash runs outside the job's hooks,
-# with the caller's PYTHONPATH: build_panels.sh traces its steps into logs of its own, and its stamps key on
-# PYTHONPATH, so make panels' stamps hold here too. Any other program is refused: its reads would be missing.
+# on PYTHONPATH, and adds the words after it. What the job's trace must show for the check: a Python check (python3,
+# or env VAR=... python3) is one Python process it expects ("b"); bash is a program the hook cannot see into, so it
+# goes in as a spawn nothing loaded the hook for ("x"), and the job's stamp falls back to its declaration
+# (tools/audit/check_stamps.py); bash runs outside the job's hooks, with the caller's PYTHONPATH (no step runs bash
+# since the panels step became one job per panels step, stage 6). Any other program is refused: its reads would be
+# missing.
 run_line() {
   local line=$1
   shift
@@ -398,15 +453,19 @@ run_check() {
     *) echo "$name: check.sh's run_check takes python3, env VAR=... python3 or bash, not $prog; not run"; return 1 ;;
   esac
 }
-# The read-only checks are queued here, the panels check first and the rest after the Layout Editor job below: panels
-# is the longest of them (78 s of the 107 s the one static job took on the Windows box, 2026-11-25), and the others
-# take a few seconds each. A run that skips no job (CI, FULL=1, an audit run) skips no panel step either: the panels
-# check (build_panels.sh --check, with stamps of its own shared with make panels) then gets --full.
-panels_full=()
-(( STAMPS )) || panels_full=(--full)
-for line in "${STATIC_LINES[@]}"; do
-  [[ "${line%% *}" == panels ]] || continue
-  later panels run_line "$line" ${panels_full[@]+"${panels_full[@]}"}
+# The read-only checks are queued here, the panels jobs first and the rest after the Layout Editor job below: the
+# panels checks were the longest of them (78 s of the 107 s the one static job took on the Windows box, 2026-11-25),
+# the solve-heavy ones (device-map, schematic, tables, cats) a few seconds each once the schematic cache is warm.
+# panels-schematic (45 s in CI) and panels-cats, the slowest, go first.
+for pass in slow rest; do
+  for line in "${STATIC_LINES[@]}"; do
+    case "${line%% *}" in
+      panels-schematic|panels-cats) [[ $pass == slow ]] || continue ;;
+      panels-*) [[ $pass == rest ]] || continue ;;
+      *) continue ;;
+    esac
+    later "${line%% *}" run_line "$line"
+  done
 done
 # The longest jobs start first, so none of them waits behind the quick ones: the Layout Editor job, unit-jmri, then
 # the per-file guard and host jobs, with the files in SLOW of each folder (each 10-20 s) ahead of the rest.
@@ -428,7 +487,7 @@ slow_first() {
 # shellcheck disable=SC2016  # expanded by the inner bash
 unit "unit-guards layout-editor ($LE_TESTS)" bash -c 'PYTHONPATH="tools/audit/tests${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m unittest -b -q '"$LE_TESTS"
 for line in "${STATIC_LINES[@]}"; do
-  [[ "${line%% *}" == panels ]] && continue
+  [[ "${line%% *}" == panels-* ]] && continue
   later "${line%% *}" run_line "$line"
 done
 # unit-jmri runs one job per file on a local run, the slow files first: about 25 s in one job, 16 s spread over six

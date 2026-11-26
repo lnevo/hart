@@ -164,14 +164,14 @@ jobs:
       - name: Quick docs checks
         if: steps.kind.outputs.kind == 'docs'
         run: bash tools/ci/docs_checks.sh     # the one list, shared with tools/check.sh's docs-only path
-      # A run whose plugin pin differs from its base's (a pull request that bumps the plugin, or main's push of its
-      # merge) and whose exact cache key missed restores a cache solved with another plugin: it misses every entry,
-      # and check.sh's parallel jobs would each solve the sheet cold at once (12-34 min runs). Every other run skips
-      # this step (no added time), and so does the docs-only path.
+      # A run whose exact cache key missed (the plugin pin, the builders or their data changed) restores a cache
+      # solved from other inputs: it misses the entries for the new ones, and check.sh's parallel jobs (one per panels
+      # step since ADR-037 stage 6, beside the Layout Editor job) would each solve the sheet cold at once (12-34 min
+      # runs with a new pin). A run whose key hit skips this step (no added time), and so does the docs-only path.
       # The panels pipeline in --check mode solves it once, one step after another (the first step solves, the rest
       # read the cache), so the jobs after it start warm. Its verdict is not this step's: check.sh runs the same checks.
-      - name: Warm the schematic cache for a new plugin pin
-        if: steps.kind.outputs.kind != 'docs' && steps.schematic-cache.outputs.cache-hit != 'true' && steps.pin.outputs.changed == 'true'
+      - name: Warm the schematic cache when its exact key missed
+        if: steps.kind.outputs.kind != 'docs' && steps.schematic-cache.outputs.cache-hit != 'true'
         env:
           SCHEMATIC_REQUIRED: "1"
         run: |
@@ -179,7 +179,11 @@ jobs:
           bash tools/schematic/build_panels.sh --check --full > /tmp/warm.log 2>&1 || echo "panels --check reported stale or failed steps; check.sh reports them"
           grep -E '^== |: (ok|FAILED)' /tmp/warm.log || true
           echo "cache warmed in $((SECONDS - start)) s: $(find .cache/hart/schematic -name '*.pickle' | wc -l) entries"
-      # CHECK_RESULTS_TO: each job's result (passed, failed or skipped), for the skip record and the weekly guard below
+      # CHECK_RESULTS_TO: each job's result (passed, failed or skipped), for the skip record and the weekly guard below.
+      # The weekly run fails a job that read a file its step does not declare in tools/pipeline/checks.toml
+      # (CHECK_AUDIT_FAILS, ADR-037 stage 4c; pull request and push runs only warn). The audit runs when a job records
+      # its stamp, so that run records into a folder of its own, which nothing saves: a job with no stamp anywhere is
+      # audited from its own trace in that run.
       - if: steps.kind.outputs.kind != 'docs'
         id: checks
         run: ./tools/check.sh
@@ -187,7 +191,8 @@ jobs:
           SCHEMATIC_REQUIRED: "1"
           CHECK_SKIP_FROM: ${{ steps.gate.outputs.skip_from }}
           CHECK_SKIP_NOTE: ${{ steps.gate.outputs.note }}
-          CHECK_RECORD_TO: ${{ github.event_name == 'push' && format('{0}/.cache/ci/main-stamps', github.workspace) || '' }}
+          CHECK_RECORD_TO: ${{ github.event_name == 'push' && format('{0}/.cache/ci/main-stamps', github.workspace) || github.event_name == 'schedule' && format('{0}/weekly-stamps', runner.temp) || '' }}
+          CHECK_AUDIT_FAILS: ${{ github.event_name == 'schedule' && '1' || '' }}
           CHECK_RESULTS_TO: ${{ runner.temp }}/check-results.tsv
       # A pull request run that passed keeps the names of the jobs it skipped on main's stamps (tools/ci/stamp_gate.py
       # record-skips), every run of the full path, an empty list when it skipped none: the weekly run below reads them.

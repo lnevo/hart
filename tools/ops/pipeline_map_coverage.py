@@ -85,8 +85,6 @@ FAMILIES = {
     "ops/hart-ops/card_pipeline": "the car-card pipeline's modules and stage scripts",
     "ops/hart-ops/publications": "the publication rebuild scripts and their content modules (primer, crew and "
                                  "operating instructions, train list, station maps)",
-    "tools/benchwork/helix": "the helix make_* generators (brackets, shims, templates, spacers)",
-    "tools/benchwork/main_level": "the main-level benchwork geometry and cut-plan generators",
     "ops/station_maps/scripts": "the station map drawing generators",
     "tools/hosts/pi-os": "the Pi SD-card image build (sdm plugins and their helpers), one job on the Mac",
 }

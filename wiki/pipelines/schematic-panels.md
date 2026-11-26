@@ -127,8 +127,9 @@ make desks            # only the CATS desks, then validate them
 | approved-live | `check_approved.py le-panel` | nothing: stops when the live panel in `tables.xml` drifts from the approved fingerprint |
 
 Each step reads the plugin's cache (`.cache/hart/schematic` in the main checkout, shared by every worktree), so a run after a small change redoes only what that
-change reaches. `tools/check.sh` (and so CI) runs `build_panels.sh --check` as one line, `panels`, a job of its own: every step above, the same list as `make panels
-CHECK=1`. Steps whose stamps are current are skipped there too; CI has no stamps and runs them all.
+change reaches. `tools/check.sh` (and so CI) runs each step above as a job of its own, `panels-<step>`, with its `--check` arguments (ADR-037 stage 6): the same
+list as `make panels CHECK=1`, read from `tools/pipeline/panels.toml`. Each job is skipped while its traced reads, its outputs and the panel code are unchanged, locally and
+on a pull request run against main's stamps.
 
 ### Row staging-sets: what it checks
 

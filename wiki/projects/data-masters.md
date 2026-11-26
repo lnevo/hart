@@ -18,8 +18,18 @@ Plan for [ADR-039](../decisions/ADR-039-data-masters-in-git.md): one master per 
 | L5 Crew and industry text | one record source for crew colors, jobs and their text: a new JSON master under `ops/hart-ops/data/`, with industry blurbs in `industries.csv` (`blurb`, added by L4a). `www/data/crew.json` and the `rebuild_*.py` docx are generated from them; crew.json's hand-copy note goes. L4b's train-symbol check is repointed at the new master **Done** 2026-11-25 (#1166). | `ops/hart-ops/publications/`, the new crew master, `www/data/crew.json` | L4a and L4b | `general-purpose`, opus; `/code-review medium` |
 | L6 Fleet and archive | `www/data/fleet-gallery.json` becomes a checked copy of the car and loco masters; the archive stays one catalogue of items (id, credit, file path), `www/data/archive.json` is checked against it, and the lineage pages cite those ids. No database **Done** 2026-11-25 (#1165). | `www/data/fleet-gallery.json`, `www/data/archive.json`, the catalogue, `www/js/lineage.js` and the lineage pages | L4d | `general-purpose`, opus; `/code-review medium` |
 | L7 Roster typo ids | apply the ten `ROSTER_TYPO_IDS` renames once, in the car master (`image_metadata.csv`) and in the live STS (the Mac copy first, the owner approves, then the Pi: `sts-live` skill), then delete the map from `build_merged_car_roster.py` and `cars.py`. The seed session rules stay as session rules | `ops/hart-ops/card_pipeline/`, `ops/hart-ops/data/image_metadata.csv` | the owner's yes on the Mac STS | `general-purpose`, opus; `/code-review medium` |
+| L8 Block lengths | plan lengths from AnyRail only, speed-matching lengths as an override file; hartlib gives a plan and an operating length, each reader on one side ([rule](#block-lengths-l8)) | `jmri/layouts/hart/data/block_lengths*.csv`, `tools/schematic/plan_lengths.py`, `jmri/layouts/hart/scripts/infer_block_lengths.py`, the hartlib length readers | L4c | `schematic-builder`; `/code-review high`; PanelPro test and a layout deploy |
 
 L4c is the riskiest: it renames references that the panels and the CATS desks read. It runs last of the L4 lanes, with `make panels CHECK=1` and `make panelpro-test` before it merges.
+
+## Block lengths (L8)
+
+The owner's rule (2026-11-25): a block length has two sources. `plan_in` comes only from the AnyRail plan, written by `plan_lengths.py` into a generated file. Speed-matching measurements are an override file (block `id`, `measured_in`, run, date), written only by speed matching, the way the device and wiring overrides sit over their generated files.
+
+- hartlib gives two answers: the plan length, and the operating length (measured where there is one, else plan).
+- Speed matching and the Dispatcher's block lengths in `tables.xml` take the operating length. Today `tables.xml` uses `plan_in` for every block, so the 21 timed blocks change.
+- Industry spots, the schematic, signal and mast placement, the levels and layout docs and the track-length exports take the plan length only. A check fails a reader on the wrong side.
+- `user_name` and `occupancy_sensor` leave the lengths files; the devices hold block identity.
 
 ## Rules for the lanes
 

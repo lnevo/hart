@@ -58,7 +58,7 @@ Agent: `general-purpose`. `/code-review medium`.
 
 - The 2026-11-08 speed-matching scripts that made that session's files: `runner/step_runner.py`, `runner/move_to.py`, `analyze_profile.py` and `propose_table.py`. Their README and `RERUN_PLAN.md` links point into `archive/`, and the `ruff.toml` exception for the runner goes. `block_speeds.py` and every data file stay.
 - `docs/jmri/speedmatching/STRR_*.py` (two third-party scripts), with their `ruff.toml` and size-guard exclusions.
-- `tools/benchwork/helix/` and `tools/benchwork/main_level/` generators, once the owner says the benchwork build is finished.
+- `archive/tools/benchwork/helix/` and `archive/tools/benchwork/main_level/` generators, once the owner says the benchwork build is finished.
 - Archived on 2026-11-25 (owner): `cats/panels/HART_chubb_magnet.xml` (#1163) and `docs/ap/electrical/build_soq.py` and `make_drawings.py`, kept as the frozen SOQ's record.
 - Kept: `cats/scripts/sync_hart_package.sh` (ADR-007 keeps the old command).
 - Use `tools/ops/move_path.py` for every move. Docs only, no review.
@@ -79,6 +79,8 @@ Agent: `general-purpose`. `/code-review medium`.
 
 ## E. Remove duplicate checks (S to M each)
 
+**Done:** E3 and E5 in #1161, E1 and E4 in #1162; E2 and E6 checked and kept.
+
 CI sample (2,456 runs, 2026-10-31 to 11-25): 138 failed; 93 real faults, 29 stale generated files, 12 flaky or no log, 4 unclassified. 26 of the 39 manifest checks never failed, which alone is no reason to remove one.
 
 | # | Duplicate | Change |
@@ -92,6 +94,13 @@ CI sample (2,456 runs, 2026-10-31 to 11-25): 138 failed; 93 real faults, 29 stal
 | 7 | Follow-up, not a duplicate: under load `unit-jmri` goes over the edit hook's 20 s budget, so a `tables.xml` edit reports a failure (seen 2026-11-25, #1162) | The hook prints "not run in the edit hook (over the 20 s budget; check.sh runs it)" as its own visible line: never a silent pass, never a failure. Tracked only, not built |
 
 Checked and needed: the two `tables.xml` checks that look like repeats (they cover Store candidates and the deploy gate), CI's second panels run on a plugin bump, the stamps machinery, and the map checks.
+
+## Follow-ups
+
+- The entry-file scan in `pipeline_map_coverage.py` (older than lane A), from the #1168 review: a comment line ending in `\` swallows the next line (important); an apostrophe in an unquoted word; only the first `PYTHONPATH` entry is read; reused shell variable names; a cut-off `--help` description; a brittle `hasattr` test.
+- `tools/schematic/build_cats_panel.py` line 7 still names the deleted `validate_cats_panel.py`; in data-masters lane L4c's brief.
+- The `--pi --win` deploy for #1149 (stage.sh, the Pi speed-match publisher and its data file) is owed; the coordinator plans it with the owner.
+- `unit-jmri` and the edit hook's budget: row 7 in section E.
 
 ## Open for the owner
 

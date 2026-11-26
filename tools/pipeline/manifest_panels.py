@@ -263,3 +263,25 @@ def panel_lines(steps) -> list[str]:
     if not steps:
         raise ManifestError("no panels step; make panels would run nothing")
     return [" ".join((s.mode, s.name, str(len(s.check_args)), *s.check_args, *s.cmd)) for s in steps]
+
+
+# check.sh's jobs for the panels steps (ADR-037 stage 6): the panels step of checks.toml, the one that runs
+# build_panels.sh, stands for one job per step here, panels-<step>, which runs that step's check (cmd and check_args)
+# under check.sh's own trace and stamps, so an unchanged panels check is skipped locally and on pull requests.
+PANEL_JOB_PREFIX = "panels-"
+PANELS_UNAUDITED = ("tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the "
+                    "reads of its jobs are not audited (ADR-037 stage 6)")
+
+
+def runs_panels(cmd) -> bool:
+    """Whether a checks.toml command is the one that runs make panels' steps (bash build_panels.sh ...)."""
+    return list(cmd[:2]) == ["bash", PANELS_RUNNER]
+
+
+def panel_check_lines(steps) -> list[str]:
+    """check.sh's lines for the panels steps' checks, one job each: panels-<name>, then cmd and check_args. A check
+    writes nothing, so the jobs run in any order and side by side; make panels keeps the file order for its builds.
+    The words are plain (PANEL_WORD_RE), so they need no quoting. ManifestError on no step."""
+    if not steps:
+        raise ManifestError("no panels step; check.sh would check no panel output")
+    return [" ".join((PANEL_JOB_PREFIX + s.name, *s.cmd, *s.check_args)) for s in steps]

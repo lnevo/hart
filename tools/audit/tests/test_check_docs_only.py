@@ -23,8 +23,8 @@ import portal_inputs  # noqa: E402
 manifest = check_stamps.pm      # tools/pipeline/manifest.py, as the stamps load it
 
 # check.sh's variables that pick a path; the tests start each run without them.
-PATH_VARS = ("CI", "FULL", "CHECK_ONLY", "CHECK_AUDIT", "HART_TABLES", "PORTAL_CHECK", "CHECK_RECORD_TO",
-             "CHECK_SKIP_FROM", "CHECK_SKIP_NOTE", "CHECK_STAMPS_DIR", "PYTHONPATH")
+PATH_VARS = ("CI", "FULL", "CHECK_ONLY", "CHECK_AUDIT", "CHECK_AUDIT_FAILS", "HART_TABLES", "PORTAL_CHECK",
+             "CHECK_RECORD_TO", "CHECK_SKIP_FROM", "CHECK_SKIP_NOTE", "CHECK_STAMPS_DIR", "PYTHONPATH")
 # Stand-ins for what check.sh calls before and on the docs path: the plugin pin guard (STUB_PIN stops the run there,
 # before any job, so a full-path run ends at once) and the docs checks (they print what they were given).
 GUARD_STUB = 'hart_plugin_pin_problem() { echo "${STUB_PIN:-}"; }\n'
@@ -208,7 +208,8 @@ class CheckSh(unittest.TestCase):
         self.assertEqual("", done.stdout)
         self.s.write("tools/x.py", "x = 1\n")
         self.s.write("wiki/a.md", "# A, edited\n")
-        for env in ({"FULL": "1"}, {"CI": "true"}, {"CHECK_ONLY": "phase02"}, {"PORTAL_CHECK": "1"}):
+        for env in ({"FULL": "1"}, {"CI": "true"}, {"CHECK_ONLY": "phase02"}, {"PORTAL_CHECK": "1"},
+                    {"CHECK_AUDIT_FAILS": "1"}):
             with self.subTest(env):
                 done = self.s.check_sh(**env)
                 self.assertNotIn("Docs-only", done.stdout)

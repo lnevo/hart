@@ -13,7 +13,8 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/audit"))
 import portal_inputs  # noqa: E402
 
-PREPARE = ROOT / "www/scripts/prepare_github_pages.py"
+# The site build (www/scripts/prepare_github_pages.py) keeps its mirror list with its other shared settings.
+COMMON = ROOT / "www/scripts/portal_common.py"
 
 
 def _constant(path: Path, name: str):
@@ -25,8 +26,8 @@ def _constant(path: Path, name: str):
 
 class SiteInputs(unittest.TestCase):
     def test_every_mirror_the_build_copies_from_is_a_site_input(self) -> None:
-        # A new mirror folder in prepare_github_pages.py must be added to SITE_PREFIXES, or check.sh would skip.
-        for prefix in _constant(PREPARE, "MIRROR_PREFIXES"):
+        # A new mirror folder in the site build must be added to SITE_PREFIXES, or check.sh would skip.
+        for prefix in _constant(COMMON, "MIRROR_PREFIXES"):
             folder = prefix.removeprefix("../")
             self.assertTrue(folder.startswith(portal_inputs.SITE_PREFIXES), folder)
 

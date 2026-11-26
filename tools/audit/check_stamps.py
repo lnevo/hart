@@ -9,9 +9,10 @@
                                                          DIR/i.stamp (--save) and DIR/i.stamplog (--why), and
                                                          DIR/verdicts "i<TAB>0|1|2" per job once all are checked;
                                                          exit 3 and no verdicts when it cannot check them all
-    check_stamps.py record  NAME FILE --trace LOG [--skipped N]
+    check_stamps.py record  NAME FILE --trace LOG [--skipped N] [--audit-fails]
                                                          record NAME's stamp from the trace of the run that passed
-                                                         (N: the skipped tests its output shows)
+                                                         (N: the skipped tests its output shows); --audit-fails: exit
+                                                         1, recording nothing, when the declaration audit warns
     check_stamps.py why     NAME                         say why NAME is not current
     check_stamps.py declared NAME                        the patterns NAME falls back to (an untraceable program)
     check_stamps.py audit [NAME...]                      the reads of a manifest job's last recorded pass that its
@@ -23,37 +24,33 @@
                                                          of each file it read)
 
 check.sh runs each job under the trace hook of tools/audit/traced.py (shared with make panels): every repo file the
-job's Python processes open, every file they probe and find absent, every folder they list and every subprocess they
-start goes to a log. After a pass the stamp records that read set with its hashes and a key: panel_stamps.digest over
-the job name, tools/check.sh and the hook, the Python and the plugin's state, what the job reads from outside the
-repo (outside_state; for a job of the step manifest, tools/pipeline/checks.toml, where each step is a job of its
-own, also a digest of its entry and the git refs its `git` field names, so an edited entry reruns that job and no
-other), and the output of each read-only git command it ran (run again at compare time). The next run skips the job
-only when the key and every read-set entry match, so an edit re-runs only the jobs that read the file.
-A unit job whose tests skipped records them too (each test's id and reason, from the hook) in its key; what they
-skipped on is an input like any other: a file or folder the trace saw, a shutil.which lookup (looked up again at
-compare time), the interpreters' packages (outside_state), a git command it ran or a git ref REFS_OF names.
-The job names check.sh no longer runs (RETIRED: "static", the read-only checks as one job until ADR-037 stage 4b)
-have their stamps dropped by every current-batch.
-check.sh checks every job in one `current-batch` process before it starts any, and starts only the ones that run.
-A job that ran a program the hook cannot see (bash, a writing git, a Python child with the hook dropped) inside the
-checkout falls back to its declaration (`declared`, wide on purpose: whole folders) as well, as before the traces.
-Nothing is skipped or recorded while HART_TABLES is set or the schematic plugin is not at its pinned commit
-(panel_stamps.unstampable), for a trace that is missing or short of a Python process, or when a file the job read
-changed while it ran; check.sh never skips when CI is set, FULL=1 or CHECK_AUDIT (FULL=1 still records). Stamps hold
-content hashes and repo-relative paths, so they sit in one per-user folder (<main checkout>/.cache/hart/check-stamps,
-gitignored, or CHECK_STAMPS_DIR) that every worktree shares; on the Windows box `make remote` keeps one per ref,
-copied from the shared one first (tools/hosts/win_run.sh); a file hash is reused while its size and mtime stay.
+job's Python processes open, probe and find absent, every folder they list and every subprocess they start goes to
+a log. After a pass the stamp records that read set with its hashes and a key: panel_stamps.digest over the job
+name, tools/check.sh and the hook, the Python, the plugin's state, what the job reads from outside the repo
+(outside_state; for a step manifest job also a digest of its entry and the git refs its `git` field names, so an
+edited entry reruns that job only), and the output of each read-only git command it ran (run again at compare time).
+The next run skips the job only when the key and every read-set entry match. A unit job whose tests skipped records
+them (id and reason, from the hook) in its key; what they skipped on is an input like any other: a file or folder
+the trace saw, a shutil.which lookup (looked up again), the interpreters' packages, a git command or a REFS_OF ref.
+RETIRED job names have their stamps dropped by every current-batch, the one process that checks every job of a
+check.sh run before any starts. A job that ran a program the hook cannot see (bash, a writing git, a Python child
+with the hook dropped) inside the checkout falls back to its declaration (`declared`, wide on purpose: whole folders).
+Nothing is skipped or recorded while HART_TABLES is set or the plugin is off its pin (panel_stamps.unstampable), for
+a trace that is missing or short of a Python process, or when a file the job read changed while it ran; check.sh
+never skips when CI is set, FULL=1 or CHECK_AUDIT (FULL=1 still records). Stamps hold content hashes and repo paths,
+so one per-user folder (<main checkout>/.cache/hart/check-stamps, or CHECK_STAMPS_DIR) serves every worktree; the
+Windows box keeps one per ref (tools/hosts/win_run.sh); a file hash is reused while its size and mtime stay.
 
 tests/test_check_stamps.py checks that a recorded read set holds everything an independent audit hook
 (tools/audit/stamp_audit/sitecustomize.py, CHECK_AUDIT) saw the same jobs open or list. What neither hook can see:
 the plugin's files (covered by its commit).
 
-The declaration audit (ADR-037 stage 4a): after a step-manifest job's traced pass, `record` takes the files its
-Python processes read (step_reads; each job is one step), keeps them in the stamp, and prints a WARNING naming each
-one its step does not declare in tools/pipeline/checks.toml; `audit` prints it again from the
-stamp against the manifest as it is now. It changes no key and no verdict; one that cannot run prints STAMP AUDIT
-FAILED. The CHECK_AUDIT hook and audit-report above check the unit jobs' BY_KIND declarations instead.
+The declaration audit (ADR-037 stages 4a, 4c): after a step-manifest job's traced pass, `record` takes the files
+its Python processes read (step_reads; each job is one step), keeps them in the stamp, and names each one its step
+does not declare in tools/pipeline/checks.toml; `audit` prints it again from the stamp against the manifest now. It
+changes no key and no verdict. It warns, or with --audit-fails (check.sh in a CHECK_AUDIT run and the weekly full run)
+fails the job, as does an audit that cannot run (STAMP AUDIT FAILED). The CHECK_AUDIT hook and audit-report above
+check the unit jobs' BY_KIND declarations instead.
 """
 from __future__ import annotations
 
@@ -102,10 +99,8 @@ CODE = (*TOOLS, *LAYOUT, *REPO_FILES)       # what a unit job reads unless it sa
 SITE = ("www/**/*", "ops/**/*", "docs/**/*", "wiki/**/*", "media/**/*", "archive/**/*", "external/**/*")
 EVERYTHING = ("**/*",)
 
-# job-name prefix -> patterns (tools/check.sh is always added). Each unit job names everything the audit saw it read
-# (tools/audit/tests/test_check_stamps.py; `CHECK_AUDIT=DIR FULL=1 tools/check.sh`, then `check_stamps.py audit-report DIR`
-# for every job), widened to whole folders so a new file there is covered. A job of the step manifest that is not
-# named here (each step of checks.toml is a job of its own, ADR-037 stage 4b) falls back to MANIFEST_CHECK.
+# job-name prefix -> patterns (tools/check.sh is always added): what a CHECK_AUDIT run saw each unit job read
+# (`check_stamps.py audit-report DIR`), widened to whole folders. Other manifest jobs fall back to MANIFEST_CHECK.
 BY_KIND: dict[str, tuple[str, ...]] = {
     "public-text": EVERYTHING,
     # ruff (a program the trace cannot see) reads every .py and ruff.toml, and skips what .gitignore files ignore; the
@@ -126,17 +121,14 @@ BY_KIND: dict[str, tuple[str, ...]] = {
     "unit-hosts": CODE,
     "unit-guards": CODE,
 }
-# What a step of tools/pipeline/checks.toml with no BY_KIND line falls back to after a program the trace cannot see
-# (the panels step's bash): every file, as the one "static" job that ran them all did until stage 4b. A Python step
-# that starts no such program is keyed on its trace alone.
+# What a manifest job with no BY_KIND line falls back to after a program the trace cannot see: every file. A
+# Python step that starts no such program is keyed on its trace alone.
 MANIFEST_CHECK = EVERYTHING
-# Job names check.sh no longer runs: their stamps are dropped by every current-batch (an unlink of a file that is not
-# there costs nothing), so the shared stamp folders on the Mac and the Windows box lose them on their first run.
-# "static": the 35 read-only checks as one job, until ADR-037 stage 4b split it into one job per step.
-RETIRED = ("static",)
+# Job names check.sh no longer runs, whose stamps every current-batch drops: "static" (the read-only checks as
+# one job until ADR-037 stage 4b) and "panels" (build_panels.sh --check as one job until stage 6).
+RETIRED = ("static", "panels")
 
-# "kind test" (the test file, before any ".Class") -> patterns added to its kind's: the test files that read the
-# site, the docs or the wiki. Every other file reads only code and data.
+# "kind test" (the test file, before any ".Class") -> patterns added to its kind's: the files that read the site.
 EXTRA: dict[str, tuple[str, ...]] = {
     "unit-guards test_name_copies": EVERYTHING,
     # cs105_roster_sync.sh (bash) refuses when the submodule is not checked out, and the test skips on that answer
@@ -210,12 +202,10 @@ LISTED_ONLY: dict[str, tuple[str, ...]] = {
 # The quick jobs tests/test_check_stamps.py runs under CHECK_AUDIT: one of each kind of folder a job tests.
 AUDIT_SAMPLE = ("unit-hartlib", "unit-mimic", "unit-anyrail", "unit-cats", "unit-jmri-scripts",
                 "unit-guards test_turnout_startup", "unit-hosts test_load_env", "unit-jmri test_speedmatch_distance")
-# "kind test" -> the jobs it runs through a check.sh of its own (bash, untraced, so its stamp falls back to its
-# declaration): it reads what their declarations name (its AuditTest checks that they cover what each read), and
-# RUNS_JOBS_ALSO: .gitmodules (check.sh's start-up: worktrees.py submodules and the plugin pin check) and .gitignore
-# (git check-ignore and ls-files in the sample jobs and the stamp helper). The rest of that start-up and the stamp
-# helper read tools/, except portal_inputs.py (www/scripts/published-files.json and git), whose answer only names
-# the portal job, which CHECK_ONLY leaves out of that run.
+# "kind test" -> the jobs it runs through a check.sh of its own (bash, untraced: its stamp falls back to its
+# declaration): what their declarations name (its AuditTest checks they cover what each read), and RUNS_JOBS_ALSO:
+# .gitmodules (check.sh's start-up) and .gitignore (git check-ignore and ls-files). The rest of the start-up reads
+# tools/, except portal_inputs.py, whose answer only names the portal job, which CHECK_ONLY leaves out of that run.
 RUNS_JOBS: dict[str, tuple[str, ...]] = {
     "unit-guards test_check_stamps": AUDIT_SAMPLE,
 }
@@ -434,13 +424,9 @@ class Checker:
         return self._once(("snapshot", outside), lambda: traced.snapshot(self.root, self.plugin(), outside))
 
 
-# The git refs a job's key holds besides the git commands its trace replays. A step manifest job names its own in its
-# `git` field (tools/pipeline/checks.toml: the read-only checks and the portal build start with head and base); for the
-# unit jobs REFS_OF says: test_redeploy_commit's deploy script (bash, untraced) stages HEAD's tree and refuses
-# a commit that is not on origin/main, and its tests skip by that answer, and test_deploy_stage stages from a git clone
-# of the committed HEAD (its StampNamesWhatWasShipped setUpClass, tools/hosts/tests/test_deploy_stage.py) while its
-# read set hashes the working tree, so committing an edit already in the tree must rerun it (and any other commit
-# reruns it too: the price of keying on HEAD).
+# The git refs a job's key holds besides the git commands its trace replays: a manifest job's `git`, else REFS_OF.
+# test_redeploy_commit's deploy script (bash) stages HEAD's tree and refuses a commit not on origin/main (its tests
+# skip by that); test_deploy_stage stages from a clone of HEAD while its read set hashes the tree.
 GIT_REFS = {"head": ("rev-parse", "HEAD"), "base": ("merge-base", "HEAD", "origin/main"),
             "origin": ("rev-parse", "origin/main")}
 REFS_OF: dict[str, tuple[str, ...]] = {
@@ -450,13 +436,10 @@ REFS_OF: dict[str, tuple[str, ...]] = {
 
 
 # The environment that picks other inputs, and what tests skip on (tests/test_check_stamps.py: every variable a
-# test's skip reads is here): CHECK_AUDIT (test_check_stamps inside an audit run), UPDATE_GOLDEN (golden files
-# rewritten). HART_CACHE_DIR moves every shared cache folder (hartlib.paths.cache_dir, hart_cache_dir in
-# tools/hosts/profile_tables_guard.sh): the web-jpeg cache the site build reads, and the default SCHEMATIC_CACHE and
-# stamp folder; .cache paths are left out of every read set (traced.keep), so the variable is the only trace of which
-# cache a job read. HART_GUARD_JMRI_RUNNING=0 or 1 forces hartlib.tables.jmri_running's answer, which the table
-# writers and their tests refuse or skip on, so a job run with it set may pass where it would fail without it. Both
-# are set by hand on the Mac or WSL (CI and make remote set neither), so a local run is where a skip would be wrong.
+# test's skip reads is here): CHECK_AUDIT (test_check_stamps in an audit run), UPDATE_GOLDEN (golden files rewritten),
+# HART_CACHE_DIR (moves every shared cache folder, hartlib.paths.cache_dir: .cache paths are in no read set, so it is
+# the only trace of which cache a job read), HART_GUARD_JMRI_RUNNING (forces hartlib.tables.jmri_running's answer,
+# which the table writers and their tests refuse or skip on; set by hand only, so a local skip is where it matters).
 KEY_ENV = ("ANYRAIL_PLAN", "JMRI_LAYOUT", "SCHEMATIC_CACHE", "SCHEMATIC_REQUIRED", "CHECK_AUDIT", "UPDATE_GOLDEN",
            "HART_CACHE_DIR", "HART_GUARD_JMRI_RUNNING")
 
@@ -513,9 +496,11 @@ def not_stampable(name: str, ck: Checker | None = None) -> str | None:
 ALWAYS = ("tools/check.sh", *pm.FILES, *traced.HOOK_FILES)
 
 
-def _patterns(name: str, programs: list[str]) -> tuple[str, ...]:
-    """What the key hashes by pattern: check.sh and the hook, and the whole declaration after an untraceable program."""
-    return (*ALWAYS, *(declared(name) or ())) if programs else ALWAYS
+def _patterns(name: str, programs: list[str], ck: Checker) -> tuple[str, ...]:
+    """What the key hashes: check.sh, the hook, a panels job's outputs and panel_stamps.CODE, and declared(name)."""
+    entry = manifest_key(name, ck) if from_manifest(name) else None
+    base = (*ALWAYS, *entry.panel, *ps.CODE) if entry and entry.panel is not None else ALWAYS
+    return (*base, *(declared(name) or ())) if programs else base
 
 
 def skip_list(skips) -> list[list[str]]:
@@ -527,7 +512,7 @@ def key(name: str, ck: Checker, programs: list[str], gits: list, skips=()) -> st
     """The stamp key: job, check.sh and the hook, interpreter, plugin, outside state and git output now, for a job
     that ran an untraceable program every file its declaration names, and the tests its passing run skipped (their
     ids and reasons): what they skipped on is in the rest of the key and the read set."""
-    pats = _patterns(name, programs)
+    pats = _patterns(name, programs, ck)
     extra = (outside_state(name, ck, bool(programs)) + f"\nprograms={','.join(programs)}"
              + f"\ngit={','.join(ck.replay(gits))}")
     if skips:
@@ -664,7 +649,7 @@ def record(name: str, trace_log, root: Path = ROOT, store: Path = STORE, before:
             main = main_checkout(root)
             programs, gits = traced.untraced(t, str(root), (str(main),) if main else ())
             rs = traced.read_set(t, str(root))
-            hashed = [p.relative_to(root).as_posix() for p in ck.walk(_patterns(name, programs))]
+            hashed = [p.relative_to(root).as_posix() for p in ck.walk(_patterns(name, programs, ck))]
             late = traced.changed_since(t, rs, str(root), hashed)
             if late:
                 reason = f"{late[0]} changed while the job ran"
@@ -733,25 +718,22 @@ def _reaches(d: str, pat: str) -> bool:
     return d == literal or d.startswith(literal + "/") or literal.startswith(d + "/")
 
 
-# ---- the declaration audit (ADR-037 stage 4a; docs/pipeline-map/build-graph-design.md 4.5) ----
-# After a manifest job's traced pass, `record` sorts the repo files each of its Python processes read by the step that
-# started the process, keeps the data reads in the stamp and prints those its step does not declare in
-# tools/pipeline/checks.toml. Warn only: it changes no verdict and no key, and the trace stays what decides a skip.
+# ---- the declaration audit (ADR-037 stages 4a, 4c; docs/pipeline-map/build-graph-design.md 4.5) ----
 
 class AuditError(Exception):
     """The declaration audit cannot run for a job (no such manifest job, no trace, no audit in its stamp)."""
 
 
-AUDIT_HOW = "warn only (ADR-037 stage 4a): nothing fails and no skip changes because of it"
+AUDIT_HOW = "warn only in this run; a CHECK_AUDIT run and the weekly full run fail on it (ADR-037 stage 4c)"
+AUDIT_FAILS = "this run fails on it (ADR-037 stage 4c: a CHECK_AUDIT run or CHECK_AUDIT_FAILS=1)"
 
 
 def step_reads(name: str, trace_log, root: Path, steps) -> dict:
-    """Job `name`'s data reads, from its trace: {"steps": {step: [files]}, "unowned": {}, "absent": [the step, when
-    Python runs it and the trace holds no process], "bash": [the step, when bash runs it, whose reads the trace cannot
-    see]}. Every job of the manifest is one step (ADR-037 stage 4b), so every process in its trace is that step's.
-    Files are the repo paths its processes read as data, the trace's "r" lines: an open as code (a "c" line: imported,
-    run, shown in a traceback) is not one, but the same file read as text is. The shape is stage 4a's, so `audit`
-    still reads those. Raises AuditError when the job is not one step, or the trace cannot be read or holds none."""
+    """Job `name`'s data reads, from its trace: {"steps": {step: [files]}, "unowned": {}, "absent": [], "bash": [the
+    step, when bash runs it, whose reads the trace cannot see]}. Every job of the manifest is one step (stage 4b), so
+    every process in its trace is that step's. Files are the repo paths its processes read as data ("r" lines; an open
+    as code, a "c" line, is not one, but the same file read as text is). The shape is stage 4a's, which `audit` reads.
+    Raises AuditError when the job is not one step, or the trace cannot be read or holds no process."""
     if len(steps) != 1:
         raise AuditError(f"{name} has {len(steps)} steps in {MANIFEST.as_posix()}; each job is one step")
     (step,) = steps
@@ -780,7 +762,7 @@ def step_reads(name: str, trace_log, root: Path, steps) -> dict:
     return {"steps": {step.name: sorted(reads)}, "unowned": {}, "absent": [], "bash": []}
 
 
-def audit_lines(name: str, audit: dict, steps, full: bool = False) -> tuple[list[str], int]:
+def audit_lines(name: str, audit: dict, steps, full: bool = False, how: str = AUDIT_HOW) -> tuple[list[str], int]:
     """The audit's report for job `name` from its step_reads and the manifest's steps now, and the number of
     warnings. A job with none gets one line. `full` lists every file (the `audit` command); else at most 8 a step."""
     by_name = {s.name: s for s in steps}
@@ -813,7 +795,7 @@ def audit_lines(name: str, audit: dict, steps, full: bool = False) -> tuple[list
         return [f"stamp audit: {name}: every data read is declared in tools/pipeline/checks.toml (the code "
                 f"the job imported or ran is not audited){tail}"], 0
     return ([f"WARNING: stamp audit: {name}: {count} read(s) not declared in tools/pipeline/checks.toml "
-             f"(inputs, or quiet_inputs for a read not drawn on the map); {AUDIT_HOW}", *rows,
+             f"(inputs, or quiet_inputs for a read not drawn on the map); {how}", *rows,
              *([f"    not audited: {', '.join(bash)} (bash, which the trace cannot see)"] if bash else []),
              f"    again: python3 tools/audit/check_stamps.py audit {name}"], count)
 
@@ -844,6 +826,9 @@ def audit_stamp(names: list[str], root: Path = ROOT, store: Path = STORE) -> int
             rc = 2
             continue
         stamp = traced.load(_file(name, store))
+        if decls[name][0].unaudited:
+            print(f"stamp audit: {name}: not audited: {decls[name][0].unaudited}")
+            continue
         if not stamp or not isinstance(stamp.get("audit"), dict):
             print(f"stamp audit: {name}: {'no stamp' if not stamp else 'its stamp holds no audit'}; a pass of the "
                   f"job records one (FULL=1 CHECK_ONLY='^{name}$' tools/check.sh)", file=sys.stderr)
@@ -855,17 +840,42 @@ def audit_stamp(names: list[str], root: Path = ROOT, store: Path = STORE) -> int
     return rc
 
 
-def audit_trace(name: str, trace_log, root: Path = ROOT) -> tuple[list[str], dict | None]:
-    """`record`'s audit of a job's trace: (the report's lines, the step_reads to keep in its stamp). A job that is not
-    a manifest job gets ([], None). An audit that cannot run says so in one STAMP AUDIT FAILED line, never nothing."""
+def audit_trace(name: str, trace_log, root: Path = ROOT, fails: bool = False) -> tuple[list[str], dict | None, int]:
+    """`record`'s audit: (lines, the step_reads for the stamp or None, warnings: 1 for an audit that cannot run, which
+    says so in one STAMP AUDIT FAILED line). `fails`: the lines say this run fails on a warning."""
     if not from_manifest(name):
-        return [], None
+        return [], None, 0
+    how = AUDIT_FAILS if fails else AUDIT_HOW
     try:
         steps = manifest_steps(name, root)
+        if steps[0].unaudited:
+            return [f"stamp audit: {name}: not audited: {steps[0].unaudited}"], None, 0
         audit = step_reads(name, trace_log, root, steps)
     except (AuditError, pm.ManifestError) as exc:
-        return [f"STAMP AUDIT FAILED: {name}: {exc} (the job's result stands; {AUDIT_HOW})"], None
-    return audit_lines(name, audit, steps)[0], audit
+        return [f"STAMP AUDIT FAILED: {name}: {exc} ({'' if fails else 'the job passes; '}{how})"], None, 1
+    lines, count = audit_lines(name, audit, steps, how=how)
+    return lines, audit, count
+
+
+def record_cmd(args: list[str], root: Path = ROOT, store: Path = STORE) -> int:
+    """`record NAME FILE --trace LOG [--skipped N] [--audit-fails]` (flags in that order): 0; with --audit-fails, 1
+    when the audit warned (nothing recorded) and 3 when it audited nothing (not stampable now, bash, a unit job)."""
+    fails, args = (True, args[:-1]) if args[-1:] == ["--audit-fails"] else (False, args)
+    if len(args) not in (4, 6) or args[2] != "--trace" or args[4:5] not in ([], ["--skipped"]):
+        print(__doc__.split("\n\n")[0], file=sys.stderr)
+        return 2
+    name, snap, trace, skipped = args[0], args[1], args[3], args[5] if len(args) == 6 else "0"
+    if not skipped.isdigit():
+        print(f"check_stamps.py record: --skipped takes a count, not {skipped!r}; not stamped")
+        return 2
+    if not_stampable(name) is not None:
+        return 3 if fails else 0
+    report, audit, bad = audit_trace(name, trace, root, fails=fails)
+    reason = ("the declaration audit below failed" if fails and bad     # the job fails; any older stamp stays
+              else record(name, trace, root, store, Path(snap).read_text().strip(), int(skipped), audit))
+    if reason or report:
+        print("\n".join([*([f"not stamped: {reason}"] if reason else []), *report]))
+    return 0 if not fails else 1 if bad else 0 if audit is not None and not audit.get("bash") else 3
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -906,20 +916,8 @@ def _main(argv: list[str]) -> int:
     if len(argv) == 2 and argv[0] == "why":
         print(not_stampable(argv[1]) or why_not_current(argv[1]) or "current")
         return 0
-    if argv[:1] == ["record"] and len(argv) in (5, 7) and argv[3] == "--trace" and argv[5:6] in ([], ["--skipped"]):
-        skipped = argv[6] if len(argv) == 7 else "0"
-        if not skipped.isdigit():
-            print(f"check_stamps.py record: --skipped takes a count, not {skipped!r}; not stamped")
-            return 2
-        if not_stampable(argv[1]) is None:
-            report, audit = audit_trace(argv[1], argv[4])
-            reason = record(argv[1], argv[4], before=Path(argv[2]).read_text().strip(), skipped=int(skipped),
-                            audit=audit)
-            if reason:
-                print(f"not stamped: {reason}")
-            if report:
-                print("\n".join(report))
-        return 0
+    if argv[:1] == ["record"]:
+        return record_cmd(argv[1:])
     if argv[:1] == ["audit"]:
         return audit_stamp(argv[1:])
     if len(argv) == 2 and argv[0] == "declared":

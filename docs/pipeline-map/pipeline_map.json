@@ -330,31 +330,31 @@
    "gen": "manifest"
   },
   {
-   "id": "tools/benchwork/helix",
+   "id": "archive/tools/benchwork/helix",
    "label": "helix fixture scripts",
    "kind": "generator",
    "status": "live",
    "domain": "extras",
    "desc": "make_* scripts for helix brackets, shims, templates, spacers and entry pages; output via stl_out.py.",
-   "path": "tools/benchwork/helix"
+   "path": "archive/tools/benchwork/helix"
   },
   {
-   "id": "tools/benchwork/main_level",
+   "id": "archive/tools/benchwork/main_level",
    "label": "main level benchwork scripts",
    "kind": "generator",
    "status": "live",
    "domain": "extras",
    "desc": "Geometry, plywood cut plan, lumber cut list, joist construction PDF and plywood page generators.",
-   "path": "tools/benchwork/main_level"
+   "path": "archive/tools/benchwork/main_level"
   },
   {
-   "id": "tools/benchwork/station_maps_3d/check_stl.py",
+   "id": "archive/tools/benchwork/station_maps_3d/check_stl.py",
    "label": "check_stl.py",
    "kind": "generator",
    "status": "live",
    "domain": "extras",
    "desc": "Validates the exported station map STLs.",
-   "path": "tools/benchwork/station_maps_3d/check_stl.py"
+   "path": "archive/tools/benchwork/station_maps_3d/check_stl.py"
   },
   {
    "id": "tools/check.sh",
@@ -2842,6 +2842,69 @@
    "path": "www/scripts/make_share_cards.py"
   },
   {
+   "id": "www/scripts/share_card_recipes/__init__.py",
+   "label": "share_card_recipes/__init__.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Package of the share-card recipes; make_share_cards.CARDS names them in the order they run.",
+   "path": "www/scripts/share_card_recipes/__init__.py"
+  },
+  {
+   "id": "www/scripts/share_card_recipes/opspro.py",
+   "label": "share_card_recipes/opspro.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Share-card recipes for the Operations Pro articles: the Juniper Falls & Northern route map and a switch list.",
+   "path": "www/scripts/share_card_recipes/opspro.py"
+  },
+  {
+   "id": "www/scripts/share_card_recipes/page_figures.py",
+   "label": "share_card_recipes/page_figures.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Share-card recipes drawn from the site's own page figures and views (speed chart, repository guide, pipeline map, lineages).",
+   "path": "www/scripts/share_card_recipes/page_figures.py"
+  },
+  {
+   "id": "www/scripts/share_card_recipes/editor_view.py",
+   "label": "share_card_recipes/editor_view.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Share-card recipe ai-electronics: lines of the LCOS bridge source drawn as an editor view.",
+   "path": "www/scripts/share_card_recipes/editor_view.py"
+  },
+  {
+   "id": "www/scripts/share_card_recipes/panel_image.py",
+   "label": "share_card_recipes/panel_image.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Share-card recipes from the captured panel image: JMRI additions and the roster card.",
+   "path": "www/scripts/share_card_recipes/panel_image.py"
+  },
+  {
+   "id": "www/scripts/share_card_recipes/composites.py",
+   "label": "share_card_recipes/composites.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Share-card recipes composed from or cropped out of repo pictures and documents (panel slices, plans, title canvases, station maps, dashboards).",
+   "path": "www/scripts/share_card_recipes/composites.py"
+  },
+  {
+   "id": "www/scripts/share_card_recipes/forms.py",
+   "label": "share_card_recipes/forms.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Share-card recipes drawn as railroad paperwork: the train order, clearance and switching order cards.",
+   "path": "www/scripts/share_card_recipes/forms.py"
+  },
+  {
    "id": "www/scripts/map_revision.py",
    "label": "map_revision.py",
    "kind": "generator",
@@ -2867,6 +2930,42 @@
    "domain": "website",
    "desc": "Site build: tracked files only, skip lists, WebP and thumbs, mirror photo resize with cache, photo stages reused while their inputs are unchanged (--full runs them), logo vendoring, data scrubbing, search index, leak check, and the files built instead of committed (site_views.py, ADR-036).",
    "path": "www/scripts/prepare_github_pages.py"
+  },
+  {
+   "id": "www/scripts/portal_common.py",
+   "label": "portal_common.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Site build part: the portal folder, site URL, share text, leak patterns, mirror prefixes and the published-files.json lookup the other parts share.",
+   "path": "www/scripts/portal_common.py"
+  },
+  {
+   "id": "www/scripts/portal_search_index.py",
+   "label": "portal_search_index.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Site build part, stage 13: search-index.json from the built pages, glossary, industries, crew sheets and photos, with 80 px search thumbs; fails on a leak or the private name.",
+   "path": "www/scripts/portal_search_index.py"
+  },
+  {
+   "id": "www/scripts/portal_head.py",
+   "label": "portal_head.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Site build part, stages 8 and 9: icon and share tags in every page head, provenance JSON-LD, llms.txt, robots.txt and sitemap.xml.",
+   "path": "www/scripts/portal_head.py"
+  },
+  {
+   "id": "www/scripts/portal_photos.py",
+   "label": "portal_photos.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Site build part, stages 4, 5, 10 and 11: logo and mirror photo vendoring, resizes through the JPEG cache, hub card thumbs, WebP companions, and the photo group's saved run.",
+   "path": "www/scripts/portal_photos.py"
   },
   {
    "id": "www/scripts/provenance.json",
@@ -3487,13 +3586,31 @@
    "path": "tools/ops/merge_pipeline_map.py"
   },
   {
-   "id": "tools/ops/pipeline_map.js",
-   "label": "pipeline_map.js",
+   "id": "tools/ops/pipeline_map_page.html",
+   "label": "pipeline_map_page.html",
    "kind": "unstructured",
    "status": "live",
    "domain": "extras",
-   "desc": "Layout and viewer script inlined into both pipeline map pages.",
-   "path": "tools/ops/pipeline_map.js"
+   "desc": "Page template for both pipeline map pages: the toolbar, panels and styles around the map.",
+   "path": "tools/ops/pipeline_map_page.html"
+  },
+  {
+   "id": "tools/ops/pipeline_map_layout.js",
+   "label": "pipeline_map_layout.js",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Layout script (pure functions) inlined into both pipeline map pages; the unit tests run it under node.",
+   "path": "tools/ops/pipeline_map_layout.js"
+  },
+  {
+   "id": "tools/ops/pipeline_map_view.js",
+   "label": "pipeline_map_view.js",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Viewer script (the page's state, drawing and input) inlined into both pipeline map pages after the layout.",
+   "path": "tools/ops/pipeline_map_view.js"
   },
   {
    "id": "docs/pipeline-map/pipeline_map.json",
@@ -5792,7 +5909,7 @@
   },
   {
    "from": "docs/benchwork/station_maps_3d/build.sh",
-   "to": "tools/benchwork/station_maps_3d/check_stl.py"
+   "to": "archive/tools/benchwork/station_maps_3d/check_stl.py"
   },
   {
    "from": "docs/benchwork/station_maps_3d/station_map_barn.scad",
@@ -7716,20 +7833,20 @@
    "gen": "manifest"
   },
   {
-   "from": "tools/benchwork/helix",
+   "from": "archive/tools/benchwork/helix",
    "to": "docs/benchwork/helix"
   },
   {
-   "from": "tools/benchwork/helix",
+   "from": "archive/tools/benchwork/helix",
    "to": "www/scripts/published-files.json",
    "label": "mapped sources"
   },
   {
-   "from": "tools/benchwork/main_level",
+   "from": "archive/tools/benchwork/main_level",
    "to": "docs/benchwork/main_level"
   },
   {
-   "from": "tools/benchwork/station_maps_3d/check_stl.py",
+   "from": "archive/tools/benchwork/station_maps_3d/check_stl.py",
    "to": "docs/benchwork/station_maps_3d/stl",
    "label": "check",
    "side": "check"
@@ -9128,12 +9245,6 @@
    "gen": "manifest"
   },
   {
-   "from": "tools/ops/pipeline_map.js",
-   "to": "tools/ops/build_pipeline_map.py",
-   "label": "inlined",
-   "gen": "manifest"
-  },
-  {
    "from": "tools/ops/build_pipeline_map.py",
    "to": "docs/pipeline-map/index.html",
    "label": "make map",
@@ -10107,6 +10218,24 @@
    "from": "tools/pipeline/panels.toml",
    "to": "tools/ops/build_pipeline_map.py",
    "label": "manifest lane",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/ops/pipeline_map_page.html",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "template",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/ops/pipeline_map_layout.js",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "inlined",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/ops/pipeline_map_view.js",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "inlined",
    "gen": "manifest"
   },
   {
@@ -12631,6 +12760,61 @@
    "to": "tools/hosts/roster_digest.sh",
    "label": "roster files",
    "side": "check"
+  },
+  {
+   "from": "www/scripts/portal_common.py",
+   "to": "www/scripts/prepare_github_pages.py",
+   "label": "shared settings (import)"
+  },
+  {
+   "from": "www/scripts/portal_search_index.py",
+   "to": "www/scripts/prepare_github_pages.py",
+   "label": "search index (import)"
+  },
+  {
+   "from": "www/scripts/portal_head.py",
+   "to": "www/scripts/prepare_github_pages.py",
+   "label": "head tags, provenance (import)"
+  },
+  {
+   "from": "www/scripts/portal_photos.py",
+   "to": "www/scripts/prepare_github_pages.py",
+   "label": "photo stages (import)"
+  },
+  {
+   "from": "www/scripts/share_card_recipes/__init__.py",
+   "to": "www/scripts/make_share_cards.py",
+   "label": "recipes (import)"
+  },
+  {
+   "from": "www/scripts/share_card_recipes/opspro.py",
+   "to": "www/scripts/make_share_cards.py",
+   "label": "recipes (import)"
+  },
+  {
+   "from": "www/scripts/share_card_recipes/page_figures.py",
+   "to": "www/scripts/make_share_cards.py",
+   "label": "recipes (import)"
+  },
+  {
+   "from": "www/scripts/share_card_recipes/editor_view.py",
+   "to": "www/scripts/make_share_cards.py",
+   "label": "recipes (import)"
+  },
+  {
+   "from": "www/scripts/share_card_recipes/panel_image.py",
+   "to": "www/scripts/make_share_cards.py",
+   "label": "recipes (import)"
+  },
+  {
+   "from": "www/scripts/share_card_recipes/composites.py",
+   "to": "www/scripts/make_share_cards.py",
+   "label": "recipes (import)"
+  },
+  {
+   "from": "www/scripts/share_card_recipes/forms.py",
+   "to": "www/scripts/make_share_cards.py",
+   "label": "recipes (import)"
   },
   {
    "from": ".claude/agents/archive-researcher.md",
