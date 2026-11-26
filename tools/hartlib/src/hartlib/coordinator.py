@@ -1,8 +1,8 @@
 """The files that make up signal_coordinator.py and panel_status.py: each script and the parts it loads.
 
-signal_coordinator.py names its sibling modules in its SIBLING_MODULES tuple and imports them in that order
-from the jython folder it is installed in. panel_status.py names its parts in its PARTS tuple and runs each, in
-that order, in its own namespace from the same folder. Each tuple is the one list for its script: the checks
+signal_coordinator.py names its sibling modules in its SIBLING_MODULES tuple and panel_status.py names its
+parts in its PARTS tuple; each imports them, in that order, as modules from the jython folder it is installed in,
+through the shared loader jmri/scripts/jython_siblings.py. Each tuple is the one list for its script: the checks
 that read the scripts' source (tools/audit/check_mqtt_no_static_lists.py, cats/scripts/tests) and the test that
 every deploy list ships each part (tools/hosts/tests/test_coordinator_shipping.py) read it here. The scripts are
 Jython and import jmri, so each tuple is read from the script's source text.

@@ -2,7 +2,7 @@
 # between hosts, and the abort that a lost race or a rival's enabling starts.
 #
 # signal_coordinator.py loads this from preference:jython after sml_beans and reloads it on
-# every run (see _load_siblings there).
+# every run (jython_siblings.py).
 
 import re
 from java.lang import Runnable, Thread

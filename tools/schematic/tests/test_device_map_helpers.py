@@ -10,6 +10,7 @@ import tempfile
 import unittest
 import unittest.mock
 from pathlib import Path
+from types import SimpleNamespace
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
@@ -181,6 +182,62 @@ class StagingHelpers(unittest.TestCase):
         self.assertLessEqual({"IB:AUTO:0061", "ILB61", "IB:AUTO:0010", "ILB10"}, got)
 
 
+class StagingRowSteps(unittest.TestCase):
+    """staging_rows' steps over a fake block layer: what each takes out of the field rows and the problems it
+    finds."""
+
+    def blocks(self, *, blocks=(), ids=None, parts=None, tracks=None, helix=(), prior=None) -> staging.StagingBlocks:
+        lay = SimpleNamespace(parts=parts or {}, tracks=tracks or {})
+        return staging.StagingBlocks(lay, 0, {}, dict(ids or {}), set(blocks), {}, set(helix), dict(prior or {}), [])
+
+    @staticmethod
+    def field(**cells: str) -> dict:
+        return dict({c: "" for c in devices.COLUMNS}, **cells)
+
+    def test_unnamed_blocks_are_those_the_owner_gives_no_bean_names(self):
+        s = self.blocks(blocks=("A", "B", "C", "D"), ids={"A": "block:a", "B": "block:b", "C": "block:c"},
+                        prior={("block", "block:b"): self.field(jmri_name="IB:AUTO:0001", layout_block="ILB1"),
+                               ("block", "block:c"): self.field(user_name="Track C", jmri_name="IB:AUTO:0002")})
+        self.assertEqual(staging._unnamed_blocks(s), ["A"])
+        self.assertEqual(len(s.bad), 1)
+        self.assertIn("staging block Track C (id block:c): it gives jmri_name but not layout_block", s.bad[0])
+
+    def test_a_pin_on_a_helix_block_or_an_undrawn_block_is_a_problem(self):
+        s = self.blocks(blocks=("H", "T"), ids={"H": "block:h", "T": "block:t"}, helix=("H",))
+        staging._check_pins(s, [inputs.StagingPin(2, "H", 13, 0, "block:h"), inputs.StagingPin(3, "X", 13, 1, "block:x"),
+                                inputs.StagingPin(4, "T", 13, 2, "block:t"), inputs.StagingPin(5, "", 13, 3)])
+        self.assertEqual(len(s.bad), 2)
+        self.assertIn("line 2: H is a helix block", s.bad[0])
+        self.assertIn("line 3: staging has no block X (block:x)", s.bad[1])
+
+    def test_block_role_by_id_then_by_track_ends(self):
+        lay = SimpleNamespace(tracks={"Track T": ({"ends": []}, None)})
+        self.assertEqual(staging._block_role(lay, "OS Switch 5", "os:5"), "os")
+        self.assertEqual(staging._block_role(lay, "OS Switch 5", "os:5:A-B"), "xover_corner")
+        with unittest.mock.patch.object(staging, "line_role", side_effect=bdm.MapError("no role")):
+            self.assertEqual(staging._block_role(lay, "Track T", "block:t"), "track")
+        with unittest.mock.patch.object(staging, "line_role", return_value="siding"):
+            self.assertEqual(staging._block_role(lay, "Track T", "block:t"), "siding")
+
+    def test_drop_takes_field_rows_by_id_or_by_name(self):
+        prior = {("block", "block:a"): self.field(user_name="Owner A"), ("block", "block:b"): self.field(user_name="B"),
+                 ("occupancy", "det:block:a"): self.field(user_name="B")}
+        self.assertEqual(staging._drop(prior, "block", "A", "block:a"), ["A"])
+        self.assertEqual(staging._drop(prior, "block", "B"), ["B"])
+        self.assertEqual(list(prior), [("occupancy", "det:block:a")])
+        self.assertEqual(staging._drop(prior, "block", "Z"), [])
+
+    def test_spares_are_unblocked_pins_and_pins_on_a_part(self):
+        spare_pin, part_pin = inputs.StagingPin(2, "", 13, 0), inputs.StagingPin(3, "P", 13, 1, "block:p")
+        s = self.blocks(ids={"P": "block:p"}, parts={"P": {}},
+                        prior={("occupancy", "x"): self.field(user_name="unused Block 13-1")})
+        got = staging._spare_rows(s, [spare_pin, part_pin, inputs.StagingPin(4, "T", 13, 2, "block:t")])
+        self.assertEqual([r["user_name"] for r in got], ["unused Block 13-1", "unused Block 13-2"])
+        self.assertEqual(s.prior, {})
+        self.assertEqual(len(s.bad), 1)
+        self.assertIn("occupancy unused Block 13-1 is a spare input", s.bad[0])
+
+
 class TheSplit(TempFiles):
     """The readers live in device_map_inputs.py, which never loads the builder; build_device_map re-exports them."""
     READERS = ("CPS", "NODES", "OS_BLOCK", "PINS", "STATIONS", "UID", "WIRING", "Places", "StagingPin",
@@ -208,6 +265,19 @@ class TheSplit(TempFiles):
                  "helix_tracks", "home_and_posts", "labels_by_level", "line_role", "loop_halves", "main_upper_layer",
                  "named_tracks", "overrides_keys", "read_pins", "split_edges", "split_tracks", "xover_corners")
 
+    def test_the_builder_re_exports_the_node_allocator(self):
+        import device_map_nodes as nodes
+        for name in ("CAP", "MAX_OU", "STAGING_LEVEL", "NoBoardRoom", "Nodes"):
+            with self.subTest(name=name):
+                self.assertIs(getattr(bdm, name), getattr(nodes, name))
+
+    def test_a_switch_with_no_node_and_no_frozen_turnout_stops(self):
+        """build() picks a node for each control point that has a switch not frozen; a switch reaching its rows with
+        neither stops naming it, not on a TypeError."""
+        st = bdm.MapBuild(*[None] * len(bdm.MapBuild._fields))._replace(nodes=bdm.Nodes([]))
+        with self.assertRaisesRegex(bdm.MapError, "Switch 201: not frozen in wiring.csv, and no node was picked"):
+            bdm._switch_rows(st, 2, "North", "CP 201", "201", None)
+
     def test_the_builder_re_exports_the_schematic_helpers(self):
         for name in self.SCHEMATIC:
             with self.subTest(name=name):
@@ -215,7 +285,7 @@ class TheSplit(TempFiles):
         self.assertIs(staging.builder, schematic.builder)
 
     def test_no_module_loads_the_builder_at_import(self):
-        for mod in ("device_map_inputs", "device_map_staging", "device_map_schematic"):
+        for mod in ("device_map_inputs", "device_map_staging", "device_map_schematic", "device_map_nodes"):
             with self.subTest(mod=mod):
                 code = f"import sys; import {mod}; sys.exit('build_device_map' in sys.modules)"
                 got = subprocess.run([sys.executable, "-c", code], cwd=HERE.parent, capture_output=True, text=True)

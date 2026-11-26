@@ -1,9 +1,16 @@
-# JMRI jython -- part of panel_status.py: the panel clicks on the status lamps (LCOS, Turnouts, Signals, Track
-# Power) at any zoom, and the lift of buried BlockContentsIcon labels.
+# JMRI jython -- panel_status.py's panel clicks on the status lamps (LCOS, Turnouts, Signals, Track Power) at any
+# zoom, and the lift of buried BlockContentsIcon labels.
 #
-# Not a module: panel_status.py runs this text in its own namespace at the place it was cut from (PARTS and
-# _run_part there), so the names it defines and the globals it sets are the script's. Its imports, constants and
-# state are the script's too.
+# A sibling module of panel_status.py: it imports this from preference:jython and reloads it on every run
+# (jython_siblings.py), so a re-run starts from fresh state here. The script hands in the lamps' actions and its
+# listener cleanup (arm_status_lamp_clicks), so this module imports nothing of the script.
+
+import jmri
+from java.awt.event import MouseAdapter, MouseEvent
+
+_clicks_armed = False
+_panel_clicks = {}   # id(editor) -> its _PanelLampClick
+_click_busy = False
 
 
 def _sensor_sys(icon):
@@ -80,7 +87,7 @@ def _lamp_at(lamps, scale, x, y):
 class _PanelLampClick(MouseAdapter):
     """One listener on an editor's target panel that finds the clicked status lamp at any zoom."""
 
-    hart_panel_status = True  # _MARK: a re-run finds and replaces it
+    hart_panel_status = True  # panel_status.py's _MARK: a re-run finds and replaces it
 
     def __init__(self, editor):
         self._editor = editor
@@ -107,8 +114,13 @@ class _PanelLampClick(MouseAdapter):
             _run_lamp_action(action)
 
 
-def _arm_status_lamp_clicks():
-    """Attach left-click handlers on LCOS / Turnouts / Signals / Track Power icons."""
+def arm_status_lamp_clicks(sensor_lamps, head_lamps, drop_ours):
+    """Attach left-click handlers on the status lamp icons; True once every lamp was found.
+
+    sensor_lamps maps a SensorIcon's sensor system name, and head_lamps a SignalHeadIcon's head system name, to
+    (lamp, action): `lamp` names it in the count and `action` runs on a click. drop_ours(listeners, remove) takes
+    an earlier run's click listener off a panel before this run's goes on.
+    """
     global _clicks_armed
     if _clicks_armed:
         return True
@@ -122,7 +134,9 @@ def _arm_status_lamp_clicks():
     if em is None:
         return False
 
-    found = {"lcos": 0, "turnouts": 0, "signals": 0, "power": 0}
+    found = {}
+    for lamp, _action in list(sensor_lamps.values()) + list(head_lamps.values()):
+        found[lamp] = 0
     for ed in list(em.getAll()):
         try:
             contents = list(ed.getContents())
@@ -132,24 +146,16 @@ def _arm_status_lamp_clicks():
         for icon in contents:
             try:
                 if isinstance(icon, SensorIcon):
-                    sn = _sensor_sys(icon)
-                    if sn == LCOS_SENSOR:
-                        _disable_icon_control(icon)
-                        lamps.append((icon, publish_lcos_resubscribe))
-                        found["lcos"] += 1
-                    elif sn == SML_MODE_SENSOR:
-                        _disable_icon_control(icon)
-                        lamps.append((icon, toggle_sml_mode))
-                        found["signals"] += 1
-                    elif sn == TRACK_POWER_SENSOR:
-                        _disable_icon_control(icon)
-                        lamps.append((icon, toggle_track_power))
-                        found["power"] += 1
+                    wired = sensor_lamps.get(_sensor_sys(icon))
                 elif isinstance(icon, SignalHeadIcon):
-                    if _head_sys(icon) == TURNOUT_FB_HEAD:
-                        _disable_icon_control(icon)
-                        lamps.append((icon, toggle_turnout_fb_mode))
-                        found["turnouts"] += 1
+                    wired = head_lamps.get(_head_sys(icon))
+                else:
+                    wired = None
+                if wired is not None:
+                    lamp, action = wired
+                    _disable_icon_control(icon)
+                    lamps.append((icon, action))
+                    found[lamp] += 1
             except Exception as e:
                 print("panel_status: icon wire failed: %s" % e)
         if lamps:
@@ -159,14 +165,14 @@ def _arm_status_lamp_clicks():
                 if handler is None:
                     handler = _PanelLampClick(ed)
                     target = ed.getTargetPanel()
-                    _drop_ours(target.getMouseListeners(), target.removeMouseListener)
+                    drop_ours(target.getMouseListeners(), target.removeMouseListener)
                     target.addMouseListener(handler)
                     _panel_clicks[id(ed)] = handler
                 handler.lamps = lamps
             except Exception as e:
                 print("panel_status: panel click wire failed on %s: %s" % (ed, e))
 
-    if found["lcos"] and found["turnouts"] and found["signals"] and found["power"]:
+    if all(found.values()):
         _clicks_armed = True
         print(
             "panel_status: status lamp clicks ready "

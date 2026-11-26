@@ -4,7 +4,8 @@ makes one a Start Up item.
 The script loads the modules named in its SIBLING_MODULES from the jython folder it runs in, and stops with an
 error naming the one that is missing. So each list that installs the script into preference:jython must name
 exactly those modules beside it: the Mac (common.sh and ship_mac.sh), the package (stage.sh), the Pi and Windows
-apply scripts, and live_paths.txt. A module is imported, not run: no Start Up item or retarget may name one.
+apply scripts, and live_paths.txt. Both scripts import their siblings through jython_siblings.py (LOADER), which
+ships in the same lists. A module is imported, not run: no Start Up item or retarget may name one.
 """
 from __future__ import annotations
 
@@ -24,6 +25,9 @@ PI_APPLY = ROOT / "tools/hosts/pi/apply_hart_package_local.sh"
 WIN_APPLY = ROOT / "tools/hosts/windows/apply_hart_package_local.ps1"
 LIVE_PATHS = ROOT / "tools/hosts/live_paths.txt"
 SIBLINGS = coordinator.sibling_modules()
+# The loader both scripts import their siblings with: shipped with signal_coordinator.py's modules, first.
+LOADER = "jython_siblings"
+SHIPPED = (LOADER, *SIBLINGS)
 # The Mac's copy loop: the Start Up scripts, the coordinator's modules and panel_status.py's parts.
 MAC_LOOP = ('for f in "${JYTHON_STARTUP_SCRIPTS[@]}" "${JYTHON_SIBLING_MODULES[@]}" '
             '"${JYTHON_PANEL_STATUS_PARTS[@]}"; do')
@@ -50,14 +54,15 @@ class CoordinatorShipping(unittest.TestCase):
     def assert_lists_siblings(self, names: list[str], where: str) -> None:
         got = [n for n in names if n != "signal_coordinator"]
         self.assertIn("signal_coordinator", names, f"{where} no longer installs signal_coordinator.py")
-        self.assertEqual(sorted(got), sorted(SIBLINGS), f"{where} must list exactly the script's SIBLING_MODULES")
+        self.assertEqual(sorted(got), sorted(SHIPPED),
+                         f"{where} must list exactly the script's SIBLING_MODULES and {LOADER}.py")
 
     def test_mac_and_package_lists(self) -> None:
         common = read(DEPLOY / "common.sh")
         startup = named_modules(block(common, "JYTHON_STARTUP_SCRIPTS=(", "common.sh"), "/")
         siblings = named_modules(block(common, "JYTHON_SIBLING_MODULES=(", "common.sh"), "/")
-        self.assertEqual(siblings, list(SIBLINGS), "common.sh JYTHON_SIBLING_MODULES, in load order")
-        self.assertFalse(set(startup) & set(SIBLINGS), "a sibling module is in JYTHON_STARTUP_SCRIPTS")
+        self.assertEqual(siblings, list(SHIPPED), "common.sh JYTHON_SIBLING_MODULES: the loader, then load order")
+        self.assertFalse(set(startup) & set(SHIPPED), "a sibling module is in JYTHON_STARTUP_SCRIPTS")
         self.assertIn(MAC_LOOP, read(DEPLOY / "ship_mac.sh"))
         self.assertIn('cp -f "$ROOT/jmri/scripts/signal_coordinator.py" "${JYTHON_SIBLING_MODULES[@]}" '
                       '"$stage/jmri/scripts/"', read(DEPLOY / "stage.sh"))
@@ -71,16 +76,16 @@ class CoordinatorShipping(unittest.TestCase):
 
     def test_live_paths(self) -> None:
         lines = {ln.strip() for ln in read(LIVE_PATHS).splitlines()}
-        missing = [m for m in SIBLINGS if f"jmri/scripts/{m}.py" not in lines]
+        missing = [m for m in SHIPPED if f"jmri/scripts/{m}.py" not in lines]
         self.assertEqual(missing, [], "live_paths.txt")
 
     def test_no_sibling_is_a_start_up_item(self) -> None:
         texts = {p.name: read(p) for p in [*sorted(DEPLOY.glob("*.sh")), PI_APPLY]}
         for name, text in texts.items():
-            for m in SIBLINGS:
+            for m in SHIPPED:
                 self.assertNotRegex(text, rf"--script\s+(?:\S*/)?{m}\.py", f"{name} makes {m}.py a Start Up item")
         retarget = block(read(WIN_APPLY), "$retargetNames = @(", "Windows apply")
-        for m in SIBLINGS:
+        for m in SHIPPED:
             self.assertNotIn(f"'{m}.py'", retarget)
 
     # Jython writes <module>$py.class beside a module it imports and reuses it while it is not older than the .py:
@@ -106,7 +111,7 @@ class CoordinatorShipping(unittest.TestCase):
         self.assertIn("Remove-Item -LiteralPath $compiled -Force", loop)
 
     def test_the_bash_deletes_remove_each_modules_class_only(self) -> None:
-        names = ["signal_coordinator", *SIBLINGS]
+        names = ["signal_coordinator", *SHIPPED]
         for line, var in ((self.MAC_RM, "dest"), (self.PI_RM, "UF")):
             with tempfile.TemporaryDirectory() as tmp:
                 jython = Path(tmp) / "jython" if var == "UF" else Path(tmp)

@@ -106,8 +106,8 @@ JYTHON=(
   "$HART/jmri/layouts/hart/scripts/hide_band_panels.py"
   "$HART/jmri/layouts/hart/scripts/panel_status.py"
   # panel_status.py's PARTS: installed beside it, not Start Up items.
-  "$HART/jmri/layouts/hart/scripts/panel_status_turnouts.py"
   "$HART/jmri/layouts/hart/scripts/panel_status_clicks.py"
+  "$HART/jmri/layouts/hart/scripts/panel_status_turnouts.py"
   "$HART/jmri/layouts/hart/scripts/jmri_cmd_watcher.py"
   "$HART/jmri/layouts/hart/scripts/sts_car_sync.py"
   "$HART/jmri/layouts/hart/scripts/mimic_relay.py"
@@ -119,6 +119,8 @@ JYTHON=(
   "$HART/jmri/scripts/sml_events.py"
   "$HART/jmri/scripts/sml_quit.py"
   "$HART/jmri/scripts/sml_ui.py"
+  # The loader signal_coordinator.py and panel_status.py import their siblings with: not a Start Up item.
+  "$HART/jmri/scripts/jython_siblings.py"
 )
 mkdir -p "$UF/jython"
 for f in "${JYTHON[@]}"; do
