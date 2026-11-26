@@ -1,4 +1,5 @@
 """The drawn share thumbnails: every recipe has a card entry, and the pure drawing helpers hold."""
+import io
 import sys
 import unittest
 from unittest import mock
@@ -147,5 +148,16 @@ class BuiltViews(unittest.TestCase):
             path = Path(self.handler.translate_path("/www/data/wiring-inventory.json"))
         self.assertFalse(path.exists(), "nothing is served in its place")
         with mock.patch.object(gen, "_chrome", return_value="chrome"), mock.patch.object(gen.subprocess, "run"), \
-                mock.patch("PIL.Image.open"), self.assertRaisesRegex(SystemExit, "'blocks' has no entries"):
+                mock.patch("PIL.Image.open"), self.assertRaisesRegex(gen.ShareCardError, "'blocks' has no entries"):
             gen.shot("http://x/behind/wiring.html")
+
+
+class MainExitTest(unittest.TestCase):
+    def test_a_card_error_exits_with_its_message(self):
+        name = next(iter(gen.CARDS))
+        boom = mock.Mock(side_effect=gen.ShareCardError("Google Chrome not found"))
+        with mock.patch.dict(gen.CARDS, {name: boom}), mock.patch.object(gen, "serving"), \
+                mock.patch.object(sys, "argv", ["make_share_cards.py", name, "--out", "/nonexistent-dir-f2"]), \
+                mock.patch.object(gen.Path, "mkdir"), mock.patch("sys.stderr", new_callable=io.StringIO) as err:
+            self.assertEqual(gen.main(), 1)
+        self.assertIn("make_share_cards: Google Chrome not found", err.getvalue())
