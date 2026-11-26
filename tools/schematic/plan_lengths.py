@@ -444,10 +444,10 @@ def main_upper_lengths(plan: Path) -> dict:
     out, bad = {}, []
     ix = devices.index()                        # built once: a row's location text only for a message
     for _n, r in ix.lines:
-        if r["level"] not in MAIN_UPPER or r["layer"] != "block" or r["user_name"] in helix:
+        if r["level"] not in MAIN_UPPER or r.layer != "block" or r.user_name in helix:
             continue
-        name = r["user_name"]
-        sensor = r["part_of"] or name           # a part's occupancy sensor is its OS block's
+        name = r.user_name
+        sensor = r.part_of or name           # a part's occupancy sensor is its OS block's
         if devices.is_os(r, ix.where(r)):
             if name not in os_in:
                 bad.append(f"{name} (level {r['level']}): no turnout part found for it")
@@ -466,7 +466,7 @@ def block_ids(files=None) -> dict[tuple[str, str], str]:
     """{(level, block name): device ID} of every block row of the device master (the name store's names): how a
     length worked out by name finds its block_lengths.csv row, which is keyed by (level, id)."""
     from hartlib import devices
-    return {(r["level"], r["user_name"]): r["id"] for r in devices.load(files) if r["level"] and r["layer"] == "block"}
+    return {(r["level"], r.user_name): r.id for r in devices.load(files) if r.level and r.layer == "block"}
 
 
 def _read_rows(path: Path) -> list[dict]:

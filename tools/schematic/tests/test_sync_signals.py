@@ -336,7 +336,7 @@ class SyncEdges(unittest.TestCase):
 
     def test_a_head_under_another_user_name_stops(self):
         text = TABLES.replace("<userName>Head 2R</userName>", "<userName>Head 2R Top</userName>")
-        with self.assertRaises(SystemExit) as stop:
+        with self.assertRaises(sss.SyncError) as stop:
             synced(text)
         self.assertIn("head IH:HART:C1:2R is 'Head 2R Top' in tables.xml, 'Head 2R' in masts.csv",
                       str(stop.exception))
@@ -344,7 +344,7 @@ class SyncEdges(unittest.TestCase):
     def test_tables_without_a_heads_or_masts_section_stop(self):
         for text in ("<layout-config><signalheads /></layout-config>",
                      "<layout-config><signalmasts /></layout-config>"):
-            with self.assertRaises(SystemExit) as stop:
+            with self.assertRaises(sss.SyncError) as stop:
                 synced(text)
             self.assertIn("no signalheads or signalmasts section", str(stop.exception))
 
@@ -451,6 +451,16 @@ class CommittedData(RepoReadOnly, unittest.TestCase):
         rows = sss.want_masts()
         counts = sss.sync(tables.read(paths.TABLES_XML), rows, sss.head_comments())
         self.assertEqual(counts, dict(NO_CHANGE, **{"masts kept": len(rows)}))
+
+
+class MainStops(unittest.TestCase):
+    def test_tables_without_sections_exit_1_naming_it(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tables.xml"
+            path.write_text("<layout-config><signalheads /></layout-config>", encoding="utf-8")
+            with contextlib.redirect_stderr(io.StringIO()) as err, contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(sss.main(["--check", "--tables", str(path)]), 1)
+        self.assertIn("no signalheads or signalmasts section", err.getvalue())
 
 
 if __name__ == "__main__":

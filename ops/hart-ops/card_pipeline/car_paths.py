@@ -39,8 +39,7 @@ DATA = HART_OPS_ROOT / "data"
 IMAGES_DIR = ROOT / "Images"
 CAR_IMAGES_DIR = ROOT / "CarImages"
 # HART_CAR_IMAGES_FINAL; else ROOT / "CarImagesFinal" when HART_CAR_CARDS_ROOT moves the image trees, so they stay
-# together; else the repo copy (hartlib.paths). The old default, ROOT / "CarImagesFinal" with HART_CAR_CARDS_ROOT
-# unset, named ops/hart-ops/CarImagesFinal, which does not exist.
+# together; else the repo copy (hartlib.paths).
 if os.environ.get("HART_CAR_IMAGES_FINAL", "").strip() or not os.environ.get("HART_CAR_CARDS_ROOT", "").strip():
     FINAL_DIR = paths.car_images_final()
 else:

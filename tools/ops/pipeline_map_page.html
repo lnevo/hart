@@ -36,18 +36,12 @@ svg{width:100%;height:100%;display:block;user-select:none}
 #viewlist label{display:block}
 #viewlist>b{display:block;margin-top:6px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#666}
 #viewlist>b:first-child{margin-top:0}
-#lanelist .foot{margin-top:6px}
 #btns .gap{width:8px}
-#lanelist a{color:#1d4ed8;cursor:pointer;font-size:12px}
 #tree{line-height:1.7;min-width:260px}
 #tree details details,#tree details>a{margin-left:14px}
 #bar #tree summary{cursor:pointer;border:0;background:none;padding:0;list-style:revert}
 #tree a{display:block;cursor:pointer;color:#1d4ed8}
 #tree .c{color:#888;font-size:11px}
-#lanelist>b{display:block;margin-top:6px}
-#lanelist>b:first-child{margin-top:0}
-#lanelist .note{color:#666;font-size:11px;white-space:normal}
-#lanelist>label.inl{display:inline-block;margin-right:10px}
 #presets{display:flex;flex-direction:column;gap:4px;align-items:stretch}
 #more{display:none;position:static}
 svg{--bsc:var(--bscale,1)} svg.far{--bsc:1}
@@ -55,7 +49,32 @@ svg.previewing #edges,svg.previewing #elabels{opacity:.3}
 svg.settling .node{transition:transform .28s ease-out}
 svg.settling #edges,svg.settling #elabels{animation:settlein .28s ease-out}
 @keyframes settlein{from{opacity:.3}to{opacity:1}}
-.node.folder .box{stroke-dasharray:7 4;stroke-width:calc(2 * var(--bsc))}
+.node.folder .box,.node.lane .box{stroke-dasharray:7 4;stroke-width:calc(2 * var(--bsc))}
+#effbtn[aria-pressed=true],#listbtn[aria-pressed=true],#railbtn[aria-expanded=true]{background:#dcfce7;border-color:#15803d;color:#14532d}
+#wrap.ov{overflow-y:auto;overflow-x:hidden;cursor:default}
+#wrap.ov svg{height:auto}
+.lanecard,.bundle{cursor:pointer;outline:none}
+.lanecard .cb{fill:#fff;stroke:#cbd5e1;stroke-width:1.5px}
+.lanecard:hover .cb,.lanecard:focus-visible .cb{stroke:#1d4ed8;stroke-width:3px}
+.lanecard .ct{font-size:17px;font-weight:700}
+.lanecard .cl{font-size:13.5px;fill:#1f2937}
+.ovhint{font-size:13px;fill:#475569}
+.bundle .bl{fill:none;stroke-opacity:.5;stroke-linecap:round}
+.bundle .bh{fill:none;stroke:transparent;stroke-width:14px}
+.bundle .bn{font-size:11px;font-weight:700;fill:#334155;paint-order:stroke;stroke:#fafafa;stroke-width:3px}
+.bundle .ah{fill-opacity:.75}
+.bundle:hover .bl,.bundle:focus-visible .bl,.bundle:hover .ah{stroke-opacity:1;fill-opacity:1}
+.effb{display:none}
+body.eff .effb{display:inline}
+.effb .ring{fill:none;stroke:#64748b;stroke-width:1.5px;stroke-dasharray:4 3}
+.effb .wc{stroke-width:1.5px;fill:#fff;stroke:#475569}
+.effb .wc.bad{fill:#dc2626;stroke:#991b1b} .effb .wc.none{fill:#d1d5db;stroke:#6b7280} .effb .wc.ok{stroke:#15803d}
+.effb .wn{font-size:10.5px;font-weight:700;fill:#1f2937} .effb .wn.bad{fill:#fff}
+.effb .tb.quick{fill:#16a34a} .effb .tb.slow{fill:#d97706} .effb .tb.vslow{fill:#dc2626}
+.effb .tt{font-size:10.5px;font-weight:700;paint-order:stroke;stroke:#fff;stroke-width:3px;fill:#334155}
+.effb .tt.slow{fill:#b45309} .effb .tt.vslow{fill:#b91c1c}
+.ki{vertical-align:-4px;margin:0 2px}
+#legend .ki .effb,#legend .ki *{display:inline}
 span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent;border-radius:3px;vertical-align:-1px;margin-right:4px}
 #legend{position:absolute;bottom:10px;left:10px;max-width:440px;z-index:5;padding:8px 10px;font-size:12px}
 #legend div{margin:2px 0}
@@ -135,6 +154,53 @@ svg.hovering .node.hn.hn3 .box{stroke-opacity:.35;stroke-width:calc(1.75px * var
 .node.mag{pointer-events:none}
 svg.focus.hovering .node.hn{opacity:1}
 .hidden{display:none}
+svg.faceted .node.dim.dim,svg.searching .node:not(.hit){opacity:.16}
+svg.faceted .edge.dim.dim,svg.searching .edge{opacity:.08}
+svg.faceted .elabel.dim.dim,svg.searching .elabel{opacity:0}
+#qwrap{position:relative;display:inline-block}
+#qlist{position:absolute;top:calc(100% + 4px);left:0;z-index:12;width:min(360px,calc(100vw - 30px));margin:0;padding:4px 0;list-style:none;max-height:60vh;overflow:auto}
+#qlist[hidden]{display:none}
+#qlist li{padding:4px 10px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#qlist li[aria-selected=true]{background:#dbeafe}
+#qlist li.none{color:#666;cursor:default;font-size:12px}
+#qlist .k{color:#555;font-size:11px}
+#crumbs{display:inline-flex;gap:2px;align-items:center;flex-wrap:wrap}
+#crumbs .crumb{border:0;background:none;color:#1d4ed8;padding:1px 2px;text-decoration:underline;cursor:pointer;font:inherit}
+#crumbs .sep{color:#94a3b8}
+#chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:4px 10px;border-top:1px solid #ddd;font-size:12px}
+#chips[hidden]{display:none}
+#chips .chip{border:1px solid #93c5fd;background:#eff6ff;border-radius:12px;padding:1px 9px;font-size:12px;cursor:pointer;color:#111}
+#chips #clearall{font-size:12px}
+#rail{position:absolute;left:10px;top:120px;bottom:10px;width:250px;z-index:7;padding:8px 10px;overflow:auto;box-sizing:border-box;font-size:12px}
+#rail[hidden]{display:none}
+body.railon #wrap,body.railon #rulers{left:270px}
+body.railon #legend{left:280px}
+#rail .rh{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+#rail .rh button{border:0;background:none;font-size:18px;cursor:pointer;color:inherit}
+#rail fieldset{border:0;border-top:1px solid #e5e7eb;margin:6px 0 0;padding:4px 0 0;min-width:0}
+#rail legend{font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#555;padding:0}
+#rail .note{color:#666;font-size:11px}
+#rail .fv{display:flex;align-items:center;gap:4px;line-height:1.8}
+#rail .fv label{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#rail .fv .n{color:#555;font-variant-numeric:tabular-nums;white-space:nowrap}
+#rail .fv.none label,#rail .fv.none .n{color:#9ca3af}
+#rail .only{font-size:11px;padding:0 5px;border:1px solid #cbd5e1;background:none;border-radius:3px;cursor:pointer;color:#1d4ed8}
+#rail .hr{display:block;margin:2px 0}
+#drawer{position:absolute;left:10px;right:10px;bottom:10px;max-height:42vh;z-index:9;display:flex;flex-direction:column;padding:6px 10px;box-sizing:border-box}
+#drawer[hidden]{display:none}
+#drawer .dh{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+#drawer .dh #drawn{color:#555;font-size:12px;margin-right:auto}
+#drawer .dh button{border:0;background:none;font-size:18px;cursor:pointer;color:inherit}
+#drawer .dt{overflow:auto}
+#drawer table{border-collapse:collapse;width:100%;font-size:12px}
+#drawer th{position:sticky;top:0;text-align:left;padding:0}
+#drawer th button{border:0;background:#f1f5f9;width:100%;text-align:left;padding:3px 6px;font:inherit;font-weight:700;cursor:pointer;color:inherit}
+#drawer th[aria-sort=ascending] button::after{content:" ▲"} #drawer th[aria-sort=descending] button::after{content:" ▼"}
+#drawer td{padding:2px 6px;border-top:1px solid #eef2f7;white-space:nowrap}
+#drawer tbody tr{cursor:pointer}
+#drawer tbody tr:hover,#drawer tbody tr:focus{background:#eff6ff;outline:none}
+#info li.kh{list-style:none;margin-left:-14px;font-weight:700;font-size:12px;margin-top:4px}
+#info .showall{font-size:12px;margin:-4px 0 10px}
 .band{fill-opacity:.07}
 .band.alt{fill-opacity:.17}
 .lanerule{stroke-opacity:.85;stroke-width:1.5px;vector-effect:non-scaling-stroke}
@@ -146,8 +212,8 @@ html.dark #bar input,html.dark #bar button,html.dark #bar summary,html.dark .pan
 html.dark #tour .skip,html.dark #info .close{background:none;border:0}
 html.dark #hits,html.dark #view,html.dark #strip2,html.dark #legend div[style]{color:#cbd5e1!important}
 html.dark #strip2{border-top-color:#334155}
-html.dark #back,html.dark #lanelist a,html.dark #info a,html.dark #tree a{color:#93c5fd}
-html.dark #info .off,html.dark #tree .c,html.dark #lanelist .note,html.dark #viewlist>b,html.dark #tour .tn,html.dark #etip .off{color:#94a3b8}
+html.dark #back,html.dark #info a,html.dark #tree a{color:#93c5fd}
+html.dark #info .off,html.dark #tree .c,html.dark #viewlist>b,html.dark #tour .tn,html.dark #etip .off{color:#94a3b8}
 html.dark #steps{background:rgba(15,23,42,.9);border-bottom-color:#334155}
 html.dark #steps span{color:#cbd5e1}
 html.dark #spreadctl{background:rgba(15,23,42,.95);border-color:#334155;color:#cbd5e1}
@@ -163,6 +229,19 @@ html.dark svg.hovering .edge.he.he{stroke:#c4b5fd}
 html.dark svg.hovering .node.hn .box{stroke:#c4b5fd}
 html.dark #lens{background:#0f172a;border-color:#94a3b8}
 html.dark #nav .vr{fill:rgba(248,113,113,.12);stroke:#f87171}
+html.dark #qlist li[aria-selected=true],html.dark #drawer tbody tr:hover,html.dark #drawer tbody tr:focus{background:#1e3a5f}
+html.dark #chips{border-top-color:#334155}
+html.dark #chips .chip{background:#1e3a5f;border-color:#3b82f6;color:#e2e8f0}
+html.dark #crumbs .crumb,html.dark #rail .only{color:#93c5fd;background:none}
+html.dark #rail fieldset,html.dark #drawer td{border-color:#334155}
+html.dark #drawer th button{background:#0f172a}
+html.dark #rail legend,html.dark #rail .note,html.dark #rail .fv .n,html.dark #qlist .k,html.dark #drawer .dh #drawn{color:#94a3b8}
+html.dark .lanecard .cb{fill:#1e293b;stroke:#475569}
+html.dark .lanecard .cl{fill:#e2e8f0}
+html.dark .ovhint{fill:#cbd5e1}
+html.dark .bundle .bn{fill:#e2e8f0;stroke:#0f172a}
+html.dark #effbtn[aria-pressed=true],html.dark #listbtn[aria-pressed=true],html.dark #railbtn[aria-expanded=true]{background:#14532d;border-color:#4ade80;color:#dcfce7}
+html.dark .effb .tt{stroke:#0f172a;fill:#e2e8f0}
 @media (max-width:900px){#bar{right:10px;max-width:none}
  #bar h1{font-size:12px}
  #row1 .lbl{display:none}
@@ -174,6 +253,8 @@ html.dark #nav .vr{fill:rgba(248,113,113,.12);stroke:#f87171}
  #morebody .pop{position:static;max-height:none;box-shadow:none;border:0;padding:4px 6px;white-space:normal;max-width:none}
  #morebody #btns{flex-wrap:wrap;white-space:normal}
  #info{left:10px;width:auto;top:auto;height:45vh;z-index:7}
+ #rail{left:0;right:0;bottom:0;top:auto!important;width:auto;max-height:60vh;z-index:11;border-radius:8px 8px 0 0}
+ body.railon #wrap,body.railon #rulers{left:0} body.railon #legend{left:10px}
  #nav svg{max-width:150px;height:auto} #legend{max-width:calc(100% - 200px)}}
 __SITECSS__</style>
 <script>/* dark before the first paint: the saved choice, else the system setting (app() keeps it in step after) */
@@ -187,7 +268,8 @@ try { const d = localStorage.getItem("pipelineMapDark"); if (d === "1" || (d ===
 <label title="Type a file's name to draw its whole chain"><span class="lbl">File </span><input list="files" id="file" placeholder="Pick a file to see its chain…" autocomplete="off"></label>
 <datalist id="files"></datalist>
 <details id="browse" class="menu"><summary title="Pick a file from a folder tree">Browse ▾</summary><div id="tree" class="pop panel"></div></details>
-<label><span class="lbl">Find </span><input type="search" id="q" placeholder="Find text in boxes…" title="Highlight the boxes whose name, path or description holds this text"></label>
+<span id="qwrap"><label><span class="lbl">Find </span><input type="search" id="q" placeholder="Find a box… (/)" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="qlist" aria-autocomplete="list" title="List the boxes whose name, path or description holds this text, best match first; arrows and Enter draw one's chain (/ jumps here)"></label>
+<ul id="qlist" class="panel" role="listbox" aria-label="Boxes that match" hidden></ul></span>
 <span id="hits"></span>
 <details id="startmenu" class="menu"><summary title="Open a common chain">Start ▾</summary><div id="presets" class="pop panel"></div></details>
 <details id="viewmenu" class="menu"><summary title="How boxes, links and hover are drawn">View ▾</summary><div id="viewlist" class="pop panel">
@@ -203,50 +285,71 @@ try { const d = localStorage.getItem("pipelineMapDark"); if (d === "1" || (d ===
 <label title="Dark background; starts from the system setting and is remembered on this browser"><input type="checkbox" id="dark"> Dark background</label>
 <label title="Hide the lane names, step headers, legend and overview, for a clear view of the map (H)"><input type="checkbox" id="clean"> Clean view (H)</label>
 </div></details>
-<details id="lanes" class="menu"><summary title="Choose lanes, kinds, parked and retired">Filters ▾</summary><div id="lanelist" class="pop panel">
-<b>Lanes</b><div id="lanerows"></div>
-<b>Kinds</b> <span class="note">Unticking a kind joins its links straight through (hosts, hand work and caches are left out with their links).</span><div id="kindlist"></div>
-<b>Include</b>
-<label class="inl" title="Parked features (NX, Dispatcher System, USS CTC)"><input type="checkbox" id="parked"> Parked features</label>
-<label class="inl" title="Retired tools kept for reference"><input type="checkbox" id="retired"> Retired tools</label>
-<div class="foot" hidden><a id="clearf2" title="Every lane and kind, parked and retired hidden; also puts View's boxes and links options back (compact on, no folders, edge labels on); keeps the file and the selected box">Clear filters</a></div>
-</div></details>
-<span id="btns"><button id="showall" hidden title="Back to the full map: all lanes and kinds, no folders. Parked and retired follow their ticks.">Whole map</button>
+<span id="btns"><button id="railbtn" aria-expanded="false" aria-controls="rail" title="Filter the boxes by lane, kind, status, step type and writers, and the links by what they carry">Filters</button>
+<button id="listbtn" aria-pressed="false" aria-controls="drawer" title="A table of the boxes shown, to sort and pick from (L)">List</button>
+<button id="showall" hidden title="Every lane drawn in full; the filters stay as they are">Whole map</button>
+<button id="effbtn" aria-pressed="false" title="Efficiency overlay (E): how each step runs, how many scripts write each output, logged step times">Efficiency</button>
 <button id="fit" title="Show the whole map (F)">Fit</button><button id="zout" title="Zoom out (scroll or pinch)" aria-label="Zoom out">−</button><button id="zin" title="Zoom in (scroll or pinch)" aria-label="Zoom in">+</button>
 <span class="gap"></span>
+<button id="startover" hidden title="Back to the lane overview with no filters, search or overlay">Start over</button>
 <button id="share" title="Copy a link to this view: the file, filters, selected box, zoom and position">Share</button>
 <button id="tourbtn" title="Run the tour of the controls again" aria-label="Tour">?</button></span>
 <details id="more" class="menu"><summary title="The rest of the controls">More ▾</summary><div id="morebody" class="panel"></div></details>
 </div>
-<div id="strip2" hidden><span id="view"></span>
+<div id="strip2"><div id="crumbs" role="navigation" aria-label="Where the view is"></div><span class="sep">│</span><span id="view" role="status"></span>
 <span id="depth" hidden title="How many links to show either side of the file"><span class="sep">│</span>
  <span class="side">← Upstream: what feeds it <button data-side="up" data-step="-1" title="One step fewer upstream">−</button> <b id="upn">all</b>
  <button data-side="up" data-step="1" title="One step more upstream">+</button> <button data-side="up" data-step="all" title="Every step upstream">all</button></span>
  <span class="side">Downstream: what it feeds → <button data-side="down" data-step="-1" title="One step fewer downstream">−</button> <b id="downn">all</b>
  <button data-side="down" data-step="1" title="One step more downstream">+</button> <button data-side="down" data-step="all" title="Every step downstream">all</button></span></span>
-<button id="clearf" hidden title="Every lane and kind, parked and retired hidden, compact on, no folders; keeps the file and the selected box">Clear filters</button></div>
 </div>
+<div id="chips" hidden aria-label="Filters in use"></div>
+</div>
+<aside id="rail" class="panel" hidden aria-label="Filters"><div class="rh"><b>Filters</b><button type="button" id="railclose" aria-label="Close the filters">×</button></div>
+<div class="note">Tick the values to keep: any of them within a group, all groups together. The rest fade. Counts are for the whole map.</div>
+<label class="hr" title="Leave out what the filters do not match instead of fading it: an unticked lane is not drawn, and boxes of an unticked kind, step type or writer count are bridged over so their links run straight through (hosts, hand work and caches are left out with their links)"><input type="checkbox" id="hiderest"> Hide the rest</label>
+<div id="facets"></div></aside>
+<div id="drawer" class="panel" hidden role="region" aria-label="Boxes shown"><div class="dh"><b>Boxes shown</b><span id="drawn"></span><button type="button" id="drawerclose" aria-label="Close the list">×</button></div>
+<div class="dt"><table><thead><tr><th data-sort="label"><button type="button">Box</button></th><th data-sort="lane"><button type="button">Lane</button></th><th data-sort="kind"><button type="button">Kind</button></th><th data-sort="step"><button type="button">Step type</button></th><th data-sort="writers"><button type="button">Writers</button></th><th data-sort="time"><button type="button">Time</button></th></tr></thead><tbody></tbody></table></div></div>
 <div id="tour" class="panel" hidden role="dialog" aria-label="Tour of the controls"><div class="tt"></div><div class="tx"></div>
 <div class="tb"><span class="tn"></span><button class="skip">Skip tour</button><button class="back">Back</button><button class="next">Next</button></div></div>
 <div id="nav" class="panel" hidden title="Overview of the whole drawing: click or drag to move the view"></div>
-<details id="legend" class="panel"><summary><b>Legend and help</b></summary><b>Kind</b> (box colour)__LEGEND__
+<details id="legend" class="panel"><summary><b>Legend and help</b></summary><div><b>Lanes:</b> the map opens on one
+card per lane, with its boxes counted by kind and its make panels and check.sh steps, and arrows for the links between
+lanes (thicker for more; the number is the link count). Click a lane to open it: the other lanes close to one box each
+that keeps their links, counted. Click an arrow to open the two lanes it joins, or a closed lane's box to open it too.
+<b>Whole map</b> draws every lane in full. The trail under the toolbar (All lanes ▸ a lane ▸ a file) goes back to any
+step; so do the browser's Back button and Esc, one level at a time.</div>
+<div id="effkey"><b>Efficiency overlay</b> (<b>Efficiency</b>, or E): <span id="key-stamp"></span> a stamped step, skipped while
+its inputs are unchanged (make panels and check.sh stamps); <span id="key-guard"></span> a make panels guard, which always
+runs; <span id="key-writers"></span> on an output, the scripts that write it: red for two or more that the step manifests
+do not allow (a shared output shows green), grey for none; <span id="key-time"></span> a step's logged time, amber from 10 s,
+red from 60 s; <span id="key-ring"></span> a step with no logged time.<span id="key-timed"></span></div>
+<b>Kind</b> (box colour)__LEGEND__
 <div style="margin-top:6px"><b>Lane stripe</b> = domain. Dashed box = parked, dotted = retired, dashed line = feeds back
 to an earlier step.</div>
-<div><b>One file:</b> type or pick it in the File box, or find it under <b>Browse ▾</b> by folder (or double-click its box), to draw its
-whole chain: everything that feeds it, back to the sources, and everything it feeds, out to the end products. A second row
-under the toolbar names the file and holds the step counters for upstream and downstream (0 hides that side, all runs to the
-end). <b>Start ▾</b> opens common chains. <b>Find</b> highlights the boxes that hold a piece of text.</div>
-<div><b>View ▾</b>, boxes and links: <b>Compact boxes</b> (on to start with: names only; untick for each box's path and description),
+<div><b>One file:</b> type or pick it in the File box, find it under <b>Browse ▾</b> by folder, or double-click its box,
+to draw its chain: everything that feeds it, back to the sources, and everything it feeds, out to the end products. The
+second row holds the step counters for each side (0 hides that side, all runs to the end); [ and ] take one step off or
+add one on both sides. <b>Start ▾</b> lists common questions, each drawing one chain.</div>
+<div><b>Find</b> (or /) lists the boxes whose name, path or description holds the text: the name itself first, then names
+that start with it, names that hold it, paths and descriptions. Arrows move in the list and Enter draws that box's chain;
+the other boxes fade while the list is open.</div>
+<div><b>Filters</b> opens the filter panel: lane, kind, status, step type and writers for the boxes, and what the links
+carry. Tick the values to keep: any of them within a group, all groups together. Each value shows how many boxes have it,
+and with other filters on, how many of those are left (370 → 41). The boxes the filters do not match fade; <b>Hide the
+rest</b> leaves them out instead, joining the links straight through hidden kinds. With no status ticked, only live boxes
+are drawn. Each filter in use is a chip under the toolbar; click one to remove it, or Clear all. <b>List</b> (or L) opens a table
+of the boxes shown, sorted by any column; a row draws that box's chain. <b>Start over</b> goes back to the lanes with no
+filters, search or overlay.</div>
+<div><b>View ▾</b>, boxes and links: <b>Compact boxes</b> (names only; untick for each box's path and description),
 <b>Group by folder</b> (one dashed box per folder; double-click a folder, or use Open in its panel, to see its files),
 <b>Edge labels</b> and <b>Highlighted chain only</b> (leave out everything a clicked box does not light). Pointer:
 <b>Hover highlights</b> and <b>Near pipeline on click</b>. Page: <b>Dark background</b> and <b>Clean view</b> (or H: hides the lane
-names, step headers, this legend and the overview).</div>
-<div><b>Filters ▾</b> picks the lanes and kinds of box to draw, and whether parked features and retired tools show. Untick a kind,
-such as scripts, and its boxes are left out with their links joined up; <b>only</b> beside a lane or kind shows just that one (a second click shows them all again). <b>Clear filters</b>, at the foot of Filters or in the
-second row, puts them back and keeps the file and the selected box. <b>Whole map</b> appears when the view is cut down.
-<b>Share</b> copies a link to the view as it is, with the selected box, zoom and position. A first visit gets a short tour;
-<b>?</b> runs it again. On a phone, Browse, Start, View, Filters and the buttons are under <b>More ▾</b>; Fit stays out.</div>
-<div><b>Move:</b> scroll or pinch to zoom, drag to pan, F fits, Esc clears. <b>Steps</b>, at the right of the step headers, sets how many steps show across the screen: the lanes keep their full height and you pan sideways for the rest, the boxes growing with the steps, text and all, as far as the lanes have room (up to 2.5 times), and the gap taking the rest; the drawing follows the slider as you drag it (or turn the wheel over it) and is laid out properly when you let go; Fit then shows the first of them from the left, and all of them is the whole map. Click a lane's name on the left to zoom to that lane,
+names, step headers, this legend and the overview). <b>Share</b> copies a link to the view as it is, with the selected box,
+zoom and position. A first visit gets a short tour; <b>?</b> runs it again. On a phone the menus and buttons are under
+<b>More ▾</b>, Fit stays out, and the filters open from the bottom.</div>
+<div><b>Move:</b> scroll or pinch to zoom, drag to pan, F fits, Esc clears the selection, then goes up a level. <b>Steps</b>, at the right of the step headers, sets how many steps show across the screen: the lanes keep their full height and you pan sideways for the rest, the boxes growing with the steps, text and all, as far as the lanes have room (up to 2.5 times), and the gap taking the rest; the drawing follows the slider as you drag it (or turn the wheel over it) and is laid out properly when you let go; Fit then shows the first of them from the left, and all of them is the whole map. Click a lane's name on the left to zoom to that lane,
 and again to go back (a box under the name takes the click first). Hold Shift for a magnifier. Zoomed in, the overview in the
 corner shows the whole drawing with a red box round what is in view; click or drag in it to move.</div>
 <div><b>Hover:</b> zoomed out, hover a line to light its chain, what feeds it and what it feeds, and grow its boxes to a readable

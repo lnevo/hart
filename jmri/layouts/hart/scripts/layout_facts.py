@@ -54,7 +54,7 @@ from typing import Callable
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import devices, hand_lists, paths, railroad, railroad_facts  # noqa: E402
+from hartlib import devices, hand_lists, levels, paths, railroad, railroad_facts  # noqa: E402
 from hartlib.railroad import Leg, Switch  # noqa: E402,F401  one definition, in hartlib.railroad
 
 DATA = paths.LAYOUT_DATA
@@ -142,7 +142,7 @@ def switch_block_levels(switches: dict[int, Switch]) -> dict[str, set[str]]:
     for sw in switches.values():
         for leg in sw.legs:
             for name in (leg.os_block, leg.closed, leg.thrown):
-                out.setdefault(name, set()).add(sw.level)
+                out.setdefault(name, set()).add(levels.level_text(sw.level))
     return out
 
 
@@ -176,7 +176,7 @@ def staging_levels(data: Path = DATA, switches: dict[int, Switch] | None = None,
         m = _SWITCH_NAME.fullmatch(name) if layer in ("turnout", "fb") else None
         from_switch = by_block.get(track_name(name) if track_name else name, set()) if layer == "block" else set()
         if m and int(m.group(1)) in switches:
-            level = switches[int(m.group(1))].level
+            level = levels.level_text(switches[int(m.group(1))].level)
         elif len(from_switch) == 1:
             level = next(iter(from_switch))
         elif row["role"] in devices.LINE_ROLES:     # its places: every one with a level, all the same

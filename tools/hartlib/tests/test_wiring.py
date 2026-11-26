@@ -163,12 +163,12 @@ class Digicon(unittest.TestCase):
         def head(assignment, jmri, wiring="Node: 33 Signal: 0 | OU: 3 Ports: 1 | OU: 4 Ports: 2 | OU: 3 Ports: 3", place="top"):
             return dict.fromkeys(devices.COLUMNS, "") | dict(
                 level="2", layer="head", id=f"mast:107:B:west:{place}", user_name=f"Head 108LA {place.title()}",
-                assignment=assignment, jmri_name=jmri, wiring=wiring)
+                assignment=assignment, jmri_name=jmri, wiring=wiring, role="head")
         mast = dict.fromkeys(devices.COLUMNS, "") | dict(level="2", layer="mast", id="mast:107:B:west",
-                                                         user_name="Mast 108LA")
+                                                         user_name="Mast 108LA", role="home")
         p = self.read('2,head,mast:107:B:west:bottom,,,,,,33,1,OU3,"4,5,6",wired,\n')
         bottom = head("virtual", "IH:HART:C3:108LA_Bottom", "Node: 33 Signal: 1 | OU: 3 Ports: 4,5,6", "bottom")
-        with unittest.mock.patch.object(devices, "load", lambda files=None: [mast, head("field", "IH3332"), bottom]):
+        with unittest.mock.patch.object(devices, "load", lambda files=None: devices.as_device_rows([mast, head("field", "IH3332"), bottom])):
             rows = W.digicon_rows(p)
         self.assertEqual([(r["port_id"], r["system_name"], r["user_name"], r["mast_user_name"]) for r in rows],
                          [("C33-OU3-1", "IH3332", "Head 108LA T R", "Mast 108LA"),
@@ -176,7 +176,7 @@ class Digicon(unittest.TestCase):
                           ("C33-OU3-3", "IH3332", "Head 108LA T G", "Mast 108LA")])
         for bad, msg in ((head("field", "IH3333"), "jmri_name 'IH3333' is not the LCOS head IH3332"),
                          (head("field", "IH3332", "Node: 33 Block: 1"), "is not Node: <n> Signal: <i>")):
-            with self.subTest(msg=msg), unittest.mock.patch.object(devices, "load", lambda files=None, b=bad: [mast, b]), \
+            with self.subTest(msg=msg), unittest.mock.patch.object(devices, "load", lambda files=None, b=bad: devices.as_device_rows([mast, b])), \
                     self.assertRaisesRegex(FactsError, msg):
                 W.field_heads()
 

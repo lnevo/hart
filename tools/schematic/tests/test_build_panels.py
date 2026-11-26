@@ -481,7 +481,8 @@ class MissingPlugin(unittest.TestCase):
         import publish_draft as pd
 
         def gone():
-            sys.exit("schematic-maps plugin not found: run git submodule update --init external/model-railroad-skills")
+            raise pd.PluginMissing("schematic-maps plugin not found: run git submodule update --init "
+                                   "external/model-railroad-skills")
         bsm.sdm.lc.plugin.cache_clear()
         self.addCleanup(bsm.sdm.lc.plugin.cache_clear)
         out, err = io.StringIO(), io.StringIO()

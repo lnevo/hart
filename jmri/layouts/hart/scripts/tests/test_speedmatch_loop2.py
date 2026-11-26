@@ -22,6 +22,7 @@ from hartlib import railroad_facts  # noqa: E402  switches.csv's rows with their
 
 sys.path.insert(0, str(SM.parent))
 import infer_block_lengths as ibl  # noqa: E402
+from lengths_fixture import LOOP2  # noqa: E402  loop 2 on the plan 5.3c (test_plan_routes holds it to the plan)
 
 DATA = SM.parents[1] / "data"
 TABLES = SM.parents[1] / "output" / "tables.xml"
@@ -209,9 +210,9 @@ def planted():
     """Planted loop2 block lengths summing to the plan loop, and the plan-frame centres."""
     names = list(ibl.route_rows("loop2"))
     raw = {n: 150.0 + 37.0 * (i % 7) + (900.0 if i % 4 == 1 else 0.0) for i, n in enumerate(names)}
-    scale = ibl.PLAN_LOOP2_MM / sum(raw.values())
+    scale = LOOP2.loop_mm / sum(raw.values())
     lengths = {n: v * scale for n, v in raw.items()}
-    pos, centre = ibl.PLAN_LOOP2_TURNOUT_MM["Switch 5"] - lengths["Switch 5"] / 2, {}
+    pos, centre = LOOP2.turnouts["Switch 5"] - lengths["Switch 5"] / 2, {}
     for n in names:
         centre[n] = pos + lengths[n] / 2
         pos += lengths[n]
@@ -259,9 +260,9 @@ class RunsAndLocate(unittest.TestCase):
         rows = list(csv.DictReader(open(out, newline="")))
         names = list(ibl.route_rows("loop2"))
         # pins taken at the planted centres, so the fit is exact
-        pins = {s: centre[s] for s in ibl.PLAN_LOOP2_TURNOUT_MM}
-        res = ibl.pinned(ibl.infer(rows, loop_mm=ibl.PLAN_LOOP2_MM, ref=ibl.route_ref("loop2"), blocks=names),
-                         ibl.PLAN_LOOP2_MM, pins, ibl.route_from_sw5("loop2"))
+        pins = {s: centre[s] for s in LOOP2.turnouts}
+        res = ibl.pinned(ibl.infer(rows, loop_mm=LOOP2.loop_mm, ref=ibl.route_ref("loop2"), blocks=names),
+                         LOOP2.loop_mm, pins, ibl.route_from_sw5("loop2"))
         for n in names:
             self.assertAlmostEqual(res[n][0], lengths[n], delta=3, msg=n)
         loc = ibl.locate(res, pins, ibl.route_from_sw5("loop2"))
@@ -334,12 +335,7 @@ class RunsAndLocate(unittest.TestCase):
         self.assertNotIn("Scale", {r["block"] for r in rows})
         self.assertNotIn("Switch 5", {r["block"] for r in rows})  # its next sensor is Switch 7, not Scale
 
-    def test_plan_constants(self):
-        self.assertEqual(set(ibl.PLAN), {"loop1", "loop2"})
-        self.assertEqual(ibl.PLAN["loop1"], (ibl.PLAN_LOOP_MM, ibl.PLAN_TURNOUT_MM))
-        self.assertEqual(ibl.PLAN["loop2"][0], 35428.7)
-        for s in ("Switch 23b", "Switch 31"):
-            self.assertNotIn(s, ibl.PLAN["loop2"][1])
+    def test_routes_from_switch_5(self):
         self.assertEqual(ibl.route_from_sw5("loop2")[0], "Switch 5")
         self.assertEqual(ibl.route_from_sw5("loop1")[0], "Switch 5")
 

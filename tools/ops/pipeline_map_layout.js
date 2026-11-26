@@ -93,7 +93,8 @@ function inversions(arr) {
    turned round); the lanes (bands) with y and h; and the drawing's width and height. aspect (height over width of
    the screen area the map is fitted to, 0 for none) stretches the drawing downward to that shape when it would
    otherwise leave an empty band under its last lane at Fit: the lanes share the spare height evenly and their boxes
-   spread out over it. geo is the column geometry (WIDE or NARROW). */
+   spread out over it; a domain marked thin (a lane closed to one box) takes no share while another lane can. geo is
+   the column geometry (WIDE or NARROW). */
 function layout(nodes, edges, domains, aspect = 0, geo = WIDE) {
   const NODE_W = geo.nodeW, COL_GAP = geo.colGap;
   if (!nodes.length) return { nodes: [], edges: [], bands: [], width: NODE_W, height: 200, geo };
@@ -303,7 +304,8 @@ function layout(nodes, edges, domains, aspect = 0, geo = WIDE) {
   if (spare > 0) {
     const was = new Map(shown.map(d => [d.id, [bandTop.get(d.id), bandH.get(d.id)]]));
     let top = 0;
-    for (const d of domains) { bandTop.set(d.id, top); if (bandH.get(d.id)) bandH.set(d.id, bandH.get(d.id) + spare / shown.length); top += bandH.get(d.id); }
+    const grow = shown.some(d => !d.thin) ? shown.filter(d => !d.thin) : shown, share = new Set(grow.map(d => d.id));
+    for (const d of domains) { bandTop.set(d.id, top); if (share.has(d.id)) bandH.set(d.id, bandH.get(d.id) + spare / grow.length); top += bandH.get(d.id); }
     totalH = top;
     for (const [v, vy] of ys) {
       const d = domain(v), [t0, h0] = was.get(d), c = vy + height(v) / 2;

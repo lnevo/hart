@@ -59,7 +59,7 @@ from .levels import LevelText
 
 if TYPE_CHECKING:
     from . import device_changes as device_changes_mod
-from .railroad_facts import DEVICE_COLUMNS, DEVICE_LIST, NAME_LAYERS, FactsError
+from .railroad_facts import DEVICE_COLUMNS, DEVICE_LIST, MASTER_COLUMNS, NAME_LAYERS, MasterRow, FactsError
 
 # The one place the master's file names and paths are written (T6a): every other module asks for them here, and
 # tools/hartlib/tests/test_devices_one_path.py fails on any tracked .py outside hartlib that names a file itself.
@@ -96,10 +96,7 @@ OUT_OF_MAPS = ("spare", "panel_status", "part")
 # internal names: a virtual device. level_devices.BLOCK_PREFIX: a main or upper block (hartlib.block_numbering)
 SOURCE_PREFIXES = ("IT:HART:", "IS:HART:", "IH:HART:", "IB:HART:", level_devices.BLOCK_PREFIX)
 
-COLUMNS = ("level", "cp", "layer", "role", "id", "user_name", "assignment", "system_name", "jmri_name", "node", "dcc",
-           "wiring", "jmri_comment", "trial_name", "notes", "blocks", "detector", "stop", "layout_block",
-           "cats_discipline", "part_of", "switch", "facing", "protects", "dir", "start", "bean_comment", "written_by",
-           "description", "jmri_bean")
+COLUMNS = MASTER_COLUMNS        # the file's header, in order (railroad_facts.MasterRow holds a row of them)
 # The CATS disciplines a block row's cats_discipline may hold (owner's cell; hartlib.occupancy_bindings gives the
 # CATS desk builders the blocks that have one)
 CATS_DISCIPLINES = ("CTC", "YARD")
@@ -516,13 +513,16 @@ def field_index(files: "Files | Path | str | None" = None) -> Mapping[tuple[str,
 
 @lru_cache(maxsize=8)
 def _merged(gname: str, gdata: bytes, fname: str | None, fdata: bytes | None, table: places.Table
-            ) -> tuple[Mapping[str, str], ...]:
+            ) -> tuple[MasterRow, ...]:
     generated = _read(gname, gdata, table)
-    if fname is None:                       # a one-file copy: it holds every cell
-        check_rows(generated, gname)
-        return generated
-    check_generated(generated, gname)
-    return merge(generated, _read(fname, fdata, table), (gname, fname))
+    (check_rows if fname is None else check_generated)(generated, gname)    # a one-file copy holds every cell
+    return as_device_rows(generated if fname is None else merge(generated, _read(fname, fdata, table), (gname, fname)),
+                          gname)
+
+
+def as_device_rows(rows: Iterable[Mapping[str, str]], name: str = MASTER_FILE) -> tuple[MasterRow, ...]:
+    """Checked rows of the merged view as DeviceRow (MasterRow for a Store's level-less row), at their place in it."""
+    return tuple(MasterRow.from_master(r, n, f"{name} row {n} ({row_text(r)})") for n, r in enumerate(rows, 2))
 
 
 def _field_bytes(f: "Files") -> bytes:
@@ -534,7 +534,7 @@ def _field_bytes(f: "Files") -> bytes:
         raise DevicesError(f"{f.field}: cannot read it ({exc.strerror})") from exc
 
 
-def parse(text: str, name: str = MASTER_FILE, files: "Files | None" = None) -> tuple[Mapping[str, str], ...]:
+def parse(text: str, name: str = MASTER_FILE, files: "Files | None" = None) -> tuple[MasterRow, ...]:
     """The merged rows of a generated file's text (one outputs_after gives, before it is written) with `files`'
     field file (none, or a Files with no field file: the text holds every cell), checked as load checks the files.
     DevicesError naming the file on any problem."""
@@ -544,9 +544,9 @@ def parse(text: str, name: str = MASTER_FILE, files: "Files | None" = None) -> t
     return _merged(name, text.encode("utf-8"), files.field.name, _field_bytes(files), table)
 
 
-def load(files: "Files | Path | str | None" = None) -> tuple[Mapping[str, str], ...]:
-    """The master's rows (read-only mappings): the generated file merged with the field file (merge), checked
-    (check_rows). Read once per state of the two files: the merge is cached on both files' bytes, so every reader of
+def load(files: "Files | Path | str | None" = None) -> tuple[MasterRow, ...]:
+    """The master's rows (DeviceRow; MasterRow for a Store's level-less one): the generated file merged with the field
+    file (merge), checked (check_rows). Read once per state of the two files: the merge is cached on both files' bytes, so every reader of
     one run shares it and a changed file is always read again. `files` is the Files of a copy, or a master's path
     (Files.of). A bad row ANYWHERE stops the load (check_rows names its key and file); there is no way round it.
     DevicesError on any problem."""
@@ -566,8 +566,8 @@ def device_map_lines(levels: tuple[str, ...], source: "Files | Path | str | None
     """(place in the merged view, device-map row; a message names it by at(), never the number) of each row of `levels` outside OUT_OF_MAPS, in master order: the rows the
     old device map of those levels held, in its form plus `role`, a turnout's cp its place. The one way a reader gets them."""
     lists = places.lists_beside(source)        # a copy's turnouts take the copy's switch lists
-    return [(n, {**device_map_row(r), "cp": place(r, lists), "role": r["role"]}) for n, r in enumerate(load(source), 2)
-            if r["level"] in levels and r["role"] not in OUT_OF_MAPS]
+    return [(r.line, {**device_map_row(r), "cp": place(r, lists), "role": r.role}) for r in load(source)
+            if r["level"] in levels and r.role not in OUT_OF_MAPS]
 
 
 def user_names(source: "Files | Path | str | None" = None) -> Mapping[tuple[str, str], str]:
@@ -575,7 +575,7 @@ def user_names(source: "Files | Path | str | None" = None) -> Mapping[tuple[str,
     store's answer for a device ID. The data files keyed by ID (wiring.csv, block_lengths.csv, block_numbering.csv,
     block_overrides.csv, mast_cells.csv) read their names here, so a rename in the field file
     reaches them with no row of theirs changed."""
-    return MappingProxyType({(r["level"], r["id"]): r["user_name"] for r in load(source) if r["level"] and r["id"]})
+    return MappingProxyType({(r["level"], r.id): r.user_name for r in load(source) if r.level and r.id})
 
 
 def name_of(names: Mapping[tuple[str, str], str], level: str, ident: str, where: str) -> str:
@@ -593,7 +593,7 @@ def part_lines(levels: tuple[str, ...], source: "Files | Path | str | None" = No
                ) -> list[tuple[int, dict[str, str]]]:
     """(line of the master, row) of each part of `levels` (role part: a piece of track inside another block, part_of
     naming it), which the device maps leave out (OUT_OF_MAPS), in master order."""
-    return [(n, dict(r)) for n, r in enumerate(load(source), 2) if r["level"] in levels and r["role"] == "part"]
+    return [(r.line, dict(r)) for r in load(source) if r["level"] in levels and r.role == "part"]
 
 
 # ---------------------------------------------------------------- a device's kind, from its row
@@ -621,11 +621,11 @@ class Index:
     level, layer). Messages name a row by where(): its key and the file that holds the owner's cells or the
     builder's. Built by index()."""
     path: Path
-    by_key: Mapping[tuple[str, str], tuple[tuple[int, Mapping[str, str]], ...]]
-    lines: tuple[tuple[int, Mapping[str, str]], ...]
+    by_key: Mapping[tuple[str, str], tuple[tuple[int, MasterRow], ...]]
+    lines: tuple[tuple[int, MasterRow], ...]
     field_keys: frozenset = frozenset()          # the keys devices_field.csv has a row of
 
-    def rows(self, layer: str, name: str) -> tuple[tuple[int, Mapping[str, str]], ...]:
+    def rows(self, layer: str, name: str) -> tuple[tuple[int, MasterRow], ...]:
         """(line, row) of every row of `layer` named `name`: one per level the device is on (a helix block is a row
         on staging and one on its main or upper level). DevicesError when there is none."""
         got = self.by_key.get((layer, name))
@@ -662,7 +662,7 @@ class Index:
         generated file; the generated file's name alone when the master has no such row (a caller's own row, as in a
         test)."""
         k = (row.get("level", ""), row.get("layer", ""), row.get("user_name", ""))
-        got = [r for _n, r in self.by_key.get((k[1], k[2]), ()) if r["level"] == k[0]]
+        got = [r for _n, r in self.by_key.get((k[1], k[2]), ()) if r["level"] == k[0]]   # k is text
         if not got:
             return self.path.name
         return f"{FIELD_FILE if key_of(got[0]) in self.field_keys else self.path.name}: {key_text(k)}"
@@ -675,15 +675,15 @@ class Index:
         levels = None if levels is None else frozenset(levels)
         out: dict[str, None] = {}
         for n, r in self.lines:
-            if r["layer"] != layer or (levels is not None and r["level"] not in levels):
+            if r.layer != layer or (levels is not None and r["level"] not in levels):
                 continue
             if roles is not None and (is_unplaced(r) or row_role(r, self.where(r)) not in roles):
                 continue
-            out.setdefault(r["user_name"], None)
+            out.setdefault(r.user_name, None)
         return list(out)
 
 
-_INDEXES: dict[int, tuple[tuple[Mapping[str, str], ...], Index]] = {}
+_INDEXES: dict[int, tuple[tuple[MasterRow, ...], Index]] = {}
 
 
 def index(files: "Files | Path | str | None" = None) -> Index:
@@ -694,10 +694,10 @@ def index(files: "Files | Path | str | None" = None) -> Index:
     kept = _INDEXES.get(id(rows))
     if kept is not None and kept[0] is rows and kept[1].path == path:
         return kept[1]
-    lines = tuple(enumerate(rows, 2))
-    by_key: dict[tuple[str, str], list[tuple[int, Mapping[str, str]]]] = {}
+    lines = tuple((r.line, r) for r in rows)
+    by_key: dict[tuple[str, str], list[tuple[int, MasterRow]]] = {}
     for n, r in lines:
-        by_key.setdefault((r["layer"], r["user_name"]), []).append((n, r))
+        by_key.setdefault((r.layer, r.user_name), []).append((n, r))
     out = Index(path, MappingProxyType({k: tuple(v) for k, v in by_key.items()}), lines,
                 frozenset(key_of(r) for r in field_rows(files)))
     _INDEXES[id(rows)] = (rows, out)

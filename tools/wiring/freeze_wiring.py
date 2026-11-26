@@ -39,6 +39,7 @@ from hartlib import devices, paths, wiring  # noqa: E402
 ROOT = paths.REPO_ROOT
 sys.path.insert(1, str(ROOT / "tools/schematic"))
 from hartlib.railroad_facts import FactsError  # noqa: E402
+from hartlib.levels import MAIN_UPPER  # noqa: E402
 import build_device_map as bdm  # noqa: E402
 import build_layout_le as bl  # noqa: E402
 
@@ -54,8 +55,8 @@ class FreezeError(Exception):
 
 def device_rows(path: Path | None = None) -> list[dict]:
     """Every main and upper row of the master in the device-map form plus its role and id, values stripped."""
-    return [{c: v.strip() for c, v in {**devices.device_map_row(r), "role": r["role"], "id": r["id"]}.items()}
-            for r in devices.load(path) if r["level"] in ("2", "3") and r["role"] not in devices.OUT_OF_MAPS]
+    return [{c: v.strip() for c, v in {**devices.device_map_row(r), "role": r.role, "id": r.id}.items()}
+            for r in devices.load(path) if r.level in MAIN_UPPER and r.role not in devices.OUT_OF_MAPS]
 
 
 def track_keys(found: list[dict] | None = None) -> dict[str, dict]:

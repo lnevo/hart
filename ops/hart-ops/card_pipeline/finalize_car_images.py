@@ -79,7 +79,7 @@ FLATCAR_MAX_HEIGHT = 620
 FLATCAR_MIN_HEIGHT = 400
 FLATCAR_MIN_RATIO = 3.0
 
-# Card image box (matches expand_card_fill_images / generate_card_template).
+# Card image box (matches generate_card_template).
 CARD_EMBED_WIDTH_IN = 1.84
 CARD_DISPLAY_HEIGHT_IN = 1.12
 

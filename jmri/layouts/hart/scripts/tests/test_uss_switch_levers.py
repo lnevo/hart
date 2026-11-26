@@ -109,8 +109,8 @@ class GapsAndLevelsTest(unittest.TestCase):
 
     def test_a_second_level_stops_the_generator(self) -> None:
         switches = dict(gen.SWITCHES)
-        switches[41] = dataclasses.replace(switches[39], number=41, level="2", ctc_is=41)
-        with self.assertRaisesRegex(SystemExit, r"level\(s\) \['2'\]"):
+        switches[41] = dataclasses.replace(switches[39], number=41, level=2, ctc_is=41)
+        with self.assertRaisesRegex(SystemExit, r"level\(s\) 2: the USS CTC board is only designed for level\(s\) 1;"):
             gen.uss_columns(switches)
 
     def test_a_plant_cell_without_a_row_is_named(self) -> None:
