@@ -596,5 +596,9 @@ if (( ${#names[@]} == 0 )); then
 fi
 start_jobs
 collect
+# Each step-manifest job's run goes to the local timings log (tools/pipeline/step_timings.sh; make timings), not from CI or an audit run;
+# a helper that fails leaves one line in step-timings.err beside the log, and the run is unchanged.
+[[ -n "${CI:-}${CHECK_AUDIT:-}" ]] || { if source tools/pipeline/step_timings.sh; then step_timings_jobs "$ROOT" "$JOBS" "$MANIFEST_JOBS" ${names[@]+"${names[@]}"}
+  else printf '%s\tcheck\tsource tools/pipeline/step_timings.sh failed\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >>"$(hart_cache_dir "$ROOT" step-timings.err)"; fi; } 2>/dev/null
 if [[ "$fail" -eq 0 ]]; then echo "ALL PASSED"; else echo "FAILED"; fi
 exit "$fail"
