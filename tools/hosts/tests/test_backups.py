@@ -168,22 +168,54 @@ class WinPush(Base):
     def test_secrets_are_owner_only_and_so_are_their_replaced_copies(self) -> None:
         keys = self.tmp / "mac/pi-os"
         write(keys / "wifi.txt", "psk")
+        write(keys / "tool.sh", "#!/bin/sh\n")
         (keys / "wifi.txt").chmod(0o644)
+        (keys / "tool.sh").chmod(0o755)
         keys.chmod(0o755)
+        (self.a / "photo.jpg").chmod(0o644)
         lines = f"secrets-pi-os|{keys}\nmedia|{self.a}"
-        self.assertEqual(self.run_script(PUSH, BACKUP_WIN_HOST="", BACKUP_WIN_DIR=str(self.target),
-                                         BACKUP_WIN_FOLDERS=lines).returncode, 0)
-        self.assertEqual((self.target / "secrets-pi-os").stat().st_mode & 0o777, 0o700)
-        self.assertEqual((self.target / "secrets-pi-os/wifi.txt").stat().st_mode & 0o777, 0o600)
-        self.assertEqual((self.target / "media/photo.jpg").stat().st_mode & 0o077 != 0, True)  # others unchanged
+
+        def push() -> None:
+            r = self.run_script(PUSH, BACKUP_WIN_HOST="", BACKUP_WIN_DIR=str(self.target), BACKUP_WIN_FOLDERS=lines)
+            self.assertEqual(r.returncode, 0, r.stderr)
+
+        push()
+        mode = lambda p: p.stat().st_mode & 0o777
+        self.assertEqual(mode(self.target / "secrets-pi-os") & 0o077, 0)
+        self.assertEqual(mode(self.target / "secrets-pi-os/wifi.txt"), 0o600)
+        self.assertEqual(mode(self.target / "secrets-pi-os/tool.sh"), 0o700)  # the owner's bits are kept
+        self.assertEqual(mode(self.target / "media/photo.jpg"), 0o644)        # other folders are not touched
         write(keys / "wifi.txt", "psk2")
         (keys / "wifi.txt").chmod(0o644)
-        self.assertEqual(self.run_script(PUSH, BACKUP_WIN_HOST="", BACKUP_WIN_DIR=str(self.target),
-                                         BACKUP_WIN_FOLDERS=lines).returncode, 0)
-        old = [p for p in (self.target / "replaced").rglob("wifi.txt")]
-        self.assertEqual(len(old), 1)
-        self.assertEqual(old[0].read_text(), "psk")
-        self.assertEqual(old[0].stat().st_mode & 0o077, 0)
+        push()
+        [old] = list((self.target / "replaced").rglob("wifi.txt"))
+        self.assertEqual(old.read_text(), "psk")
+        for p in [old, *old.parents]:
+            if p == self.target / "replaced":
+                break
+            if "secrets-" in str(p.relative_to(self.target)):
+                self.assertEqual(mode(p) & 0o077, 0, p)
+
+    def test_a_missing_secret_warns_but_the_rest_still_counts_as_done(self) -> None:
+        lines = f"secrets-net|{self.tmp / 'mac/net-gone'}\nmedia|{self.a}"
+        r = self.run_script(PUSH, BACKUP_WIN_HOST="", BACKUP_WIN_DIR=str(self.target), BACKUP_WIN_FOLDERS=lines)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("WARNING secret source", r.stderr)
+        self.assertTrue((self.backups / "win-last-ok").exists())
+
+    def test_a_linked_secret_file_is_copied_as_the_file(self) -> None:
+        real = self.tmp / "elsewhere/.env.local"
+        write(real, "KEY=2")
+        link = self.tmp / "mac/.env.local"
+        link.parent.mkdir(parents=True, exist_ok=True)
+        link.symlink_to(real)
+        r = self.run_script(PUSH, BACKUP_WIN_HOST="", BACKUP_WIN_DIR=str(self.target),
+                            BACKUP_WIN_FOLDERS=f"secrets-env|{link}")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        copy = self.target / "secrets-env/.env.local"
+        self.assertFalse(copy.is_symlink())
+        self.assertEqual(copy.read_text(), "KEY=2")
+        self.assertEqual((self.target / "secrets-env").stat().st_mode & 0o077, 0)
 
     def test_a_relative_target_is_refused(self) -> None:
         r = self.run_script(PUSH, BACKUP_WIN_HOST="", BACKUP_WIN_DIR="backups/mac", BACKUP_WIN_FOLDERS=f"m|{self.a}")

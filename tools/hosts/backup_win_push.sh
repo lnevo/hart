@@ -82,10 +82,16 @@ for entry in "${FOLDERS[@]}"; do
     echo "backup_win_push: the Windows name '$name' has a space; use one without" >&2
     exit 2
   fi
+  extra=()
   if [[ -d "$from" ]]; then
     src="$from/"  # the trailing slash copies the folder's contents, and follows the folder itself if it is a link
   elif [[ -f "$from" ]]; then
     src="$from"   # one file, into its own folder on the Windows side
+    extra+=(--copy-links)  # a linked file is copied as the file it points to, not as a dangling link
+  elif [[ "$name" == secrets-* ]]; then
+    # a secret that is gone (a rebuilt Mac) is reported, but does not fail the week's copy of everything else
+    echo "backup_win_push: WARNING secret source $from is missing; $name skipped" >&2
+    continue
   else
     echo "backup_win_push: MISSING $from; $name skipped" >&2
     failed=1
@@ -93,8 +99,16 @@ for entry in "${FOLDERS[@]}"; do
   fi
   to="$TARGET/$name/"
   dest="${HOST:+$HOST:}$to"
-  extra=()
-  [[ "$name" == secrets-* ]] && extra=("--chmod=D700,F600")  # one argument: rsync takes a comma list
+  if [[ "$name" == secrets-* ]]; then
+    # owner-only from the start: the folder is made 700 before rsync writes into it, and rsync strips group and
+    # other bits from what it copies (keeping the owner's, so a script stays runnable after a restore)
+    if ! remote <<< "mkdir -p '$TARGET/$name' && chmod 700 '$TARGET/$name'"; then
+      echo "backup_win_push: $name FAILED (could not make its owner-only folder)" >&2
+      failed=1
+      continue
+    fi
+    extra+=("--chmod=Dgo-rwx,Fgo-rwx")  # one argument: rsync takes a comma list
+  fi
   # --backup-dir is read on the receiving side, relative to the target folder.
   rc=0
   rsync "${opts[@]}" ${extra[@]+"${extra[@]}"} --backup-dir="../replaced/$STAMP/$name" "$src" "$dest" < /dev/null || rc=$?
@@ -108,13 +122,25 @@ for entry in "${FOLDERS[@]}"; do
   fi
 done
 
-# Old replaced files go after KEEP_DAYS. The target is made by rsync above. Secrets, and their
-# replaced copies (rsync's backup keeps the old mode), are owner-only.
+# Old replaced files go after KEEP_DAYS. The target is made by rsync above.
 remote <<EOF
 set -e
 [ -d "$TARGET/replaced" ] && find "$TARGET/replaced" -mindepth 1 -maxdepth 1 -type d -mtime +$KEEP_DAYS -exec rm -rf {} + || true
-find "$TARGET" -maxdepth 3 -name 'secrets-*' -exec chmod -R go-rwx {} + 2>/dev/null || true
 EOF
+# Secrets, and their replaced copies (rsync's backup keeps the old mode, and makes the replaced/<time>/ folders with
+# the default one), are owner-only; then nothing under them may be open to group or other. A failure of either fails
+# the run, so win-last-ok is never written over secrets left readable.
+open_secrets="$(remote <<EOF
+set -e
+find "$TARGET" -maxdepth 3 -name 'secrets-*' -exec chmod -R go-rwx {} +
+find "$TARGET" -maxdepth 3 -name 'secrets-*' -exec find {} -perm /077 \; | head -5
+echo checked
+EOF
+)" || open_secrets="the permission step itself failed"
+if [[ "$open_secrets" != "checked" ]]; then
+  echo "backup_win_push: FAILED: secrets on the Windows side are not owner-only: ${open_secrets%checked}" >&2
+  failed=1
+fi
 
 if [[ "$failed" == 0 ]]; then
   mkdir -p "$ROOT"
