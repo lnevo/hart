@@ -168,7 +168,7 @@ the loop total with a tape (or time a loco over a measured distance), correct
 |---|---|
 | `results.csv` | every timed lap used (lap time, mm/s) |
 | `manual_laps.csv` | the two valid 2121 step-8 laps |
-| `speed_by_step.csv` | per loco and step: laps, mean lap, mean mm/s, spread, HO mph |
+| [`speed_by_step_2026-11-08.csv`](../../../../jmri/layouts/hart/data/speed_by_step_2026-11-08.csv) | per loco and step: laps, mean lap, mean mm/s, spread, HO mph. One copy, under `jmri/layouts/hart/data/`, which `block_speeds.py` writes and the speed-match dashboard and the Pi bundle read (moved from this folder 2026-11-25) |
 | `block_events.csv` | every block transit (637): entry time, transit time, mm/s |
 | `block_summary.csv` | per loco, step, block: mean speed, ratio to loop mean, implied length |
 | `post_programming_sample.csv` | 2738 re-measure after programming, against 2121 |

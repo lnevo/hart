@@ -25,7 +25,6 @@ MASTS = level_masts.PATH      # masts.csv, every level's masts (build_masts.py)
 # the staging level (its field masts), and the main and upper levels (on virtual heads)
 STAGING_LEVELS = (int(railroad_facts.STAGING_LEVEL),)
 ADDED_LEVELS = tuple(lv for lv in level_masts.LEVELS if lv not in STAGING_LEVELS)
-OCCUPANCY_BINDINGS = occupancy_bindings.PATH
 TRAININFO = paths.LAYOUT_DIR / "dispatcher" / "traininfo"
 DISPATCHER_START_SCRIPT = "program:jython/DispatcherSystem/Startup.py"
 PANEL_NAMES = {"HART", "HART Railroad"}
@@ -73,9 +72,9 @@ def sensor_key(block_name: str) -> str:
 
 
 def occupancy_binding_map() -> dict[str, str]:
-    """{block name: occupancy sensor} of occupancy_bindings.csv (hartlib.occupancy_bindings names each block_id)."""
-    return {r["block_user_name"]: r["occupancy_sensor_user_name"]
-            for r in occupancy_bindings.rows(OCCUPANCY_BINDINGS) if r["occupancy_sensor_user_name"]}
+    """{block name: occupancy sensor} of the blocks the CATS desks bind (hartlib.occupancy_bindings: the block rows of
+    the device master with a cats_discipline)."""
+    return {r["block_user_name"]: r["occupancy_sensor_user_name"] for r in occupancy_bindings.rows()}
 
 
 @dataclass
@@ -487,7 +486,8 @@ def block_definitions(root: ET.Element) -> dict[str, list[str]]:
 
 
 def audit_occupancy_bindings(root: ET.Element, audit: Audit, *, required: bool) -> None:
-    """Plate names in occupancy_bindings.csv must match block occupancysensor."""
+    """The occupancy sensor hartlib.occupancy_bindings gives each block the CATS desks bind must be its JMRI block's
+    occupancysensor."""
     problem = audit.error if required else audit.warn
     expected = occupancy_binding_map()
     found: dict[str, set[str]] = {}
@@ -502,10 +502,10 @@ def audit_occupancy_bindings(root: ET.Element, audit: Audit, *, required: bool) 
         if not actual:
             continue
         if actual != {sensor}:
-            mismatches.append(f"{name}: csv {sensor!r}, xml {sorted(actual)}")
+            mismatches.append(f"{name}: master {sensor!r}, xml {sorted(actual)}")
     if mismatches:
         problem(
-            "occupancy_bindings.csv disagrees with block occupancysensor: "
+            "the device master's CATS bindings disagree with block occupancysensor: "
             + "; ".join(mismatches[:8])
             + (" ..." if len(mismatches) > 8 else "")
         )

@@ -1,4 +1,4 @@
-"""cats_panel.py's bound level (staging): switches.csv and occupancy_bindings.csv bound into the desk's
+"""cats_panel.py's bound level (staging): switches.csv and the cats_discipline blocks bound into the desk's
 switches, OS blocks, blocks and masts, with the shapes of cats_panel_shapes.py. Moved out of cats_panel.py
 unchanged; cats_panel.py re-exports every name."""
 import re
@@ -15,7 +15,7 @@ from cats_panel_shapes import (STAGING_DISCIPLINE, STAGING_SENSOR_PREFIX, STAGIN
                                block_entry, legs_of, mast_template, occupancy_spec, turnout_routes)
 
 
-# --- the bound level (staging): switches.csv, occupancy_bindings.csv -------------------------------------------
+# --- the bound level (staging): switches.csv, the cats_discipline blocks --------------------------------------
 
 def switch_of(F, d):
     try:
@@ -171,7 +171,7 @@ def block_bindings(band, F, names, stored):
             s = strands.get(sid) if sid else None
             ends = [nodes[e[0]] for e in (s["src"], s["dst"])] if s else []
             if not s or stored.get(sid) or not all(d["kind"] == "switch" for d in ends):
-                raise SystemExit(f"block {name}: no JMRI block {name} or Track {name} in occupancy_bindings.csv / "
+                raise SystemExit(f"block {name}: no JMRI block {name} or Track {name} in the CATS bindings / "
                                  "tables.xml, and it is not a short unnamed track between two switches")
             a, b = (switch_of(F, d).le_ident for d in ends)
             out[name] = {"name": F.layout.block_between(a, b, f"block {name}")}

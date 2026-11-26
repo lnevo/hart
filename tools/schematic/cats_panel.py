@@ -5,7 +5,7 @@ bands.
 One builder for all three levels. A band's level says where its facts come from, never how a binding is made:
 
   level      band                         switches and OS blocks              blocks                    masts
-  bound (1)  bound_bi (staging)           switches.csv,                       occupancy_bindings.csv,   signals.json
+  bound (1)  bound_bi (staging)           switches.csv,                       cats_discipline blocks,     signals.json
                                           M2T turnouts (Facts.turnout_io)     M2S detectors             [staging]
   2 and 3    level_band (bdm.band_level)  the rows' turnouts (tables.xml),    the device master block rows,   main_upper_
                                           the drawing's crossover halves      virtual sensors           masts.csv

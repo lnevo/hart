@@ -52,7 +52,7 @@ OS always reaches back through its approach cell. `CTC-Tests/Chubb_CTC.xml`
 ## Other load-time traps
 
 - `DISCIPLINE` only accepts `UNDEFINED|ABS|APB|CTC|DTC` (`Discipline.java`).
-  The `YARD` values in `cats/data/occupancy_bindings.csv` are **not** valid CATS
+  The `YARD` values in the `cats_discipline` column of `devices_field.csv` are **not** valid CATS
   disciplines and are written as `CTC`.
 - `Compression` ("Compress Screen", `tools/cats/src-repo/cats/src/cats/gui/Compression.java`) defaults to
   **true** and shrinks every horizontal-only column to a sliver. `BooleanGui.

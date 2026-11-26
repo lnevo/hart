@@ -38,13 +38,11 @@ CTC-number convert applied to `output/tables.xml` / `hart_prod.xml`. Live userNa
 
 ## Pre-convert baselines (2026-08-20 snapshot is git history)
 
-Live recapture is **2026-08-26**. The 2026-08-20 files locked pre-ADR-005 names; do not treat them as live.
+Live recapture was **2026-08-26**. The baseline snapshots (`data/baselines/`) and `capture_public_name_baseline.py` were removed on 2026-11-25 (owner): tables.xml is built from the device master, which holds the names. Both stay in git history.
 
 | Artifact | What it locks |
 |----------|----------------|
-| [`data/baselines/`](../../jmri/layouts/hart/data/baselines/) | Hardware ids, SML pairs, CTC SIDI/TRL, LE mast bindings, block→sensor, CATS bindings (live names) |
-| `capture_public_name_baseline.py` | Re-snapshot from `output/tables.xml` + live CATS CTC hold |
-| Stock Discover / Stage 1 in a sandbox, stored pairs vs `data/baselines/sml_pairs.csv` | native SML dests vs previous tables |
+| Stock Discover / Stage 1 in a sandbox, stored pairs vs the previous tables | native SML dests vs previous tables |
 | `audit_panel_contracts.py` | working / deployment / standalone drift = 0 |
 | `check_hart_phase02.py` | Phase 0–2 (public names are live `OS Switch 7b`) |
 | `validate_cats_panel.py` | Live masters PASS |
@@ -101,7 +99,7 @@ Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longe
 
 | File |
 |------|
-| `cats/data/occupancy_bindings.csv` |
+| `cats/data/occupancy_bindings.csv` (removed 2026-11-25; the device master holds the CATS blocks) |
 | `archive/data/wiring/signals/signal_mast_plan.csv` (archived 2026-11-21) |
 | `jmri/layouts/hart/output/signal_head_plan.csv` (moved 2026-11-21) |
 | `jmri/layouts/hart/data/wiring.csv` (was `docs/wiring/signals/signal_wiring.csv`, folded in 2026-11-21) |

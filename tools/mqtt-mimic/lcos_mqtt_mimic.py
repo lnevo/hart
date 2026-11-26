@@ -41,7 +41,6 @@ from hartlib.hosts import default as host_default, mqtt_broker, mqtt_port  # noq
 ROOT = paths.REPO_ROOT
 TABLES = paths.TABLES_XML
 DEVICES = devices.MASTER
-OCC_CSV = ROOT / "cats" / "data" / "occupancy_bindings.csv"
 HEAD_CSV = paths.SIGNAL_HEAD_PLAN
 HTML = Path(__file__).with_suffix(".html")
 # Style and render code shared with the JMRI-hosted page; served here at /<name>.
@@ -167,13 +166,11 @@ def load_layout(levels: bool = True) -> dict:
             by_user[un] = addr
 
     occ_names: dict[str, list[str]] = {}
-    if OCC_CSV.is_file():
-        for row in occupancy_bindings.rows(OCC_CSV):      # each block_id named (hartlib.occupancy_bindings)
-            un, name = row["occupancy_sensor_user_name"], row["block_user_name"]
-            if un and name:
-                occ_names.setdefault(un, [])
-                if name not in occ_names[un]:
-                    occ_names[un].append(name)
+    for row in occupancy_bindings.rows():      # the blocks the CATS desks bind, from the device master
+        un, name = row["occupancy_sensor_user_name"], row["block_user_name"]
+        occ_names.setdefault(un, [])
+        if name not in occ_names[un]:
+            occ_names[un].append(name)
 
     # a device's kind is its device-master row's (layer, role), never its name (hand-off row 8)
     index = devices.index(DEVICES)
