@@ -40,5 +40,16 @@ class SwitchNumbers(unittest.TestCase):
         self.assertIs(full.SWNUM, kit.SWNUM)
 
 
+class Fonts(unittest.TestCase):
+    def test_fonts_load_on_draw_in_field_order(self):
+        from unittest import mock
+        calls = []
+        with mock.patch.object(full, "_font", lambda path, size: calls.append((path, size)) or size):
+            fonts = full.load_fonts()
+        self.assertEqual(fonts, (24, 38, 20, 18, 28, 17, 19))
+        self.assertEqual(calls[0], (full.ARIAL_BOLD, 24))
+        self.assertEqual(calls[4], (full.GEORGIA_BOLD, 28))
+
+
 if __name__ == "__main__":
     unittest.main()
