@@ -17,15 +17,17 @@ Only steps from MIN_STEP up are used (steady speed, no momentum effects). East
 Ext is the lap reference block and is missing from some laps; for those laps the
 other blocks' shares are scaled by (1 - the median East Ext share).
 
-The result is the block's measured length (block_lengths.csv measured_in, source
-`timed`): each detector is one block (the hidden yard throats are gone, 2026-11-20).
+The result is the block's measured length: a row of block_lengths_measured.csv (its measured_in, the
+run and the date), which sits over the plan length in block_lengths.csv (hartlib.block_lengths). Each
+detector is one block (the hidden yard throats are gone, 2026-11-20).
 
 Usage:
     python3 jmri/layouts/hart/scripts/infer_block_lengths.py            # report
-    python3 jmri/layouts/hart/scripts/infer_block_lengths.py --apply    # update CSV
+    python3 jmri/layouts/hart/scripts/infer_block_lengths.py --apply [--date YYYY-MM-DD]   # write the measured rows
     python3 jmri/layouts/hart/scripts/infer_block_lengths.py --route loop2 --events EV.csv --locate
     python3 jmri/layouts/hart/scripts/infer_block_lengths.py --route loop2 --locate --pass-log P1.log P2.log
-Then regenerate with export_track_lengths.py, as for any CSV change. Loop 2 (S-R, Scale, Barn)
+Then rebuild tables.xml (python3 tools/schematic/build_tables.py, which takes each block's operating
+length) and run export_track_lengths.py. Loop 2 (S-R, Scale, Barn)
 places OS Switch 7 and 13; see docs/jmri/speedmatching/RUNBOOK.md.
 """
 
@@ -40,8 +42,12 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[4]
 EVENTS = REPO / "docs/jmri/speedmatching/profile-2026-11-08/block_events.csv"
-CSV = REPO / "jmri/layouts/hart/data/block_lengths.csv"
+EVENTS_DATE = "2026-11-08"      # the run EVENTS holds
 MM_PER_IN = 25.4
+
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import block_lengths  # noqa: E402  the measured file's one writer; speed matching's operating lengths
 
 # Length of the test loop on the AnyRail plan 5.3b, staging level, along the route of
 # the 2026-11-08 runs (Switch 5 -> Switch 33 -> East Lead -> Switch 35 -> 37 -> K loop
@@ -52,7 +58,7 @@ PLAN_LOOP_MM = 35108.2
 MIN_STEP = 24
 DEFAULT_ROUTE = "loop1"
 
-# The loop's sensors and their block_lengths.csv rows come from the speed-match analysis
+# The loop's sensors and their blocks come from the speed-match analysis
 # (speedmatch/analyze.py LOOP), so there is one list to keep. block_events.csv names the
 # sensors without the "BS " prefix.
 sys.path.insert(0, str(Path(__file__).resolve().parent / "speedmatch"))
@@ -138,6 +144,8 @@ PLAN_LOOP2_TURNOUT_MM = {
     "Switch 5": 140, "Switch 15": 5909, "Switch 33": 12748, "Switch 35a": 15723,
     "Switch 35b": 22861, "Switch 23a": 27392, "Switch 1": 33492,
 }
+# route -> the run a measured row names (block_lengths_measured.csv `run`)
+RUN = {"loop1": "loop1 laps", "loop2": "loop2 passes"}
 # route -> (plan loop length mm, plan turnout centres by OS sensor)
 PLAN = {"loop1": (PLAN_LOOP_MM, PLAN_TURNOUT_MM), "loop2": (PLAN_LOOP2_MM, PLAN_LOOP2_TURNOUT_MM)}
 
@@ -241,48 +249,21 @@ def pass_centres(events, route, pins, targets=("Switch 7", "Switch 13"), frm="Sw
     return out
 
 
-def plan_rows(result, csv_path=CSV, route=DEFAULT_ROUTE, only=None):
-    """The CSV rows with the new lengths, not yet written. Returns (fields, rows, mm by row).
-    only: the sensors to write (default all of the route's)."""
-    with open(csv_path, newline="") as f:
-        rows = list(csv.DictReader(f))
-    fields = list(rows[0].keys())
-    by_name = {r["user_name"]: r for r in rows}
+def measured_rows(result, route=DEFAULT_ROUTE, only=None, date=EVENTS_DATE, plan=block_lengths.PLAN):
+    """The measured file's rows with the new lengths, not yet written: each of the route's blocks (only: the sensors
+    to write, default all of the route's) gets its measured length, the run (RUN) and `date`; every other row
+    is kept. Returns (rows, mm by block name)."""
+    have = block_lengths.read_measured(plan=plan)
     sensor_rows = {s: n for s, n in route_rows(route).items() if only is None or s in only}
+    mm = {}
     for sensor, name in sensor_rows.items():
-        mm, spread, n = result[sensor]
-        r = by_name[name]
-        r["measured_in"] = f"{mm / MM_PER_IN:.1f}"
-        r["source"] = "timed"
+        length, spread, n = result[sensor]
+        ident = analyze.BLOCK_IDS[name]
         note = (f"timed share of the AnyRail 5.3b {route} loop, pinned to the plan turnouts either side; "
                 f"+-{spread / MM_PER_IN:.1f} in over {n} laps")
-        r["note"] = note
-    return fields, rows, {n: float(by_name[n]["measured_in"]) * MM_PER_IN for n in sensor_rows.values()}
-
-
-def write_csv(fields, rows, csv_path=CSV):
-    with open(csv_path, "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=fields, lineterminator="\n")
-        w.writeheader()
-        w.writerows(rows)
-
-
-def apply_tables(lengths_mm):
-    """Set <block length> in tables.xml for the given userName -> mm (hartlib refuses while JMRI runs)."""
-    sys.path.insert(0, str(REPO / "tools/hartlib/src"))
-    from hartlib import tables
-
-    t = tables.load()
-    seen = set()
-    for b in tables.blocks(t.root):
-        name = tables.user_name(b)
-        if name in lengths_mm:
-            b.set("length", f"{lengths_mm[name]:.1f}")
-            seen.add(name)
-    missing = set(lengths_mm) - seen
-    if missing:
-        raise SystemExit(f"blocks not in tables.xml: {sorted(missing)}")
-    t.save()
+        have[ident] = block_lengths.Measured(0, ident, round(length / MM_PER_IN, 1), RUN[route], date, note)
+        mm[name] = have[ident].measured_in * MM_PER_IN
+    return list(have.values()), mm
 
 
 def report_passes(logs, route, pins):
@@ -317,7 +298,9 @@ def main():
     ap.add_argument("--route", choices=sorted(analyze.ROUTES), default=analyze.DEFAULT_ROUTE)
     ap.add_argument("--events", type=Path, help="block_events-style CSV (analyze.py --events-out for "
                     "a new run); required for loop2, default for loop1 is the 2026-11-08 file")
-    ap.add_argument("--apply", action="store_true", help="write the lengths into block_lengths.csv")
+    ap.add_argument("--apply", action="store_true", help="write the lengths into block_lengths_measured.csv")
+    ap.add_argument("--date", help="with --apply: the date of the run (YYYY-MM-DD); given for --events, "
+                                   "default %s for the 2026-11-08 file" % EVENTS_DATE)
     ap.add_argument("--overwrite", action="store_true",
                     help="loop2: also rewrite the rows loop 1 already set (loop 1 owns them otherwise)")
     ap.add_argument("--pass-log", nargs="+", type=Path, metavar="LOG",
@@ -336,6 +319,9 @@ def main():
         if route != DEFAULT_ROUTE:
             ap.error("--events is required for %s" % route)
         a.events = EVENTS
+        a.date = a.date or EVENTS_DATE
+    if a.apply and not a.date:
+        ap.error("--apply with --events needs --date, the date of the run")
     names = route_rows(route)
     result = pinned(infer(list(csv.DictReader(open(a.events, newline=""))), loop_mm=loop_mm,
                           ref=route_ref(route), blocks=list(names)),
@@ -348,12 +334,11 @@ def main():
     only = None
     if route != DEFAULT_ROUTE:
         owned = set(SENSOR_ROWS)  # loop 1 owns its 17 rows
-        csv_rows = {r["user_name"]: r for r in csv.DictReader(open(CSV, newline=""))}
-        print("rows on both routes (loop 1 value from block_lengths.csv, this run beside it):")
+        operating = block_lengths.operating_lengths()      # measured where there is one, else the plan length
+        print("rows on both routes (loop 1 value from the block lengths, this run beside it):")
         for s in names:
             if s in owned:
-                row = csv_rows[names[s]]
-                old = float(row["measured_in"] or row["plan_in"]) * MM_PER_IN     # a plan row has no measured length
+                old = operating[names[s]] * MM_PER_IN
                 print(f"  {s:34} loop1 {old:7.0f} mm   {route} {result[s][0]:7.0f} mm   {result[s][0] - old:+6.0f}")
         only = set(names) if a.overwrite else set(names) - owned
     if a.locate:
@@ -361,10 +346,10 @@ def main():
             print(f"locate: OS {t} centre {pos:.0f} mm from Switch 5's points, "
                   f"{before:.0f} mm before OS Switch 15's centre")
     if a.apply:
-        fields, rows, mm = plan_rows(result, CSV, route, only)
-        apply_tables(mm)          # tables first: it can refuse (a HART_TABLES check run)
-        write_csv(fields, rows)   # so the CSV only changes once tables.xml has
-        print(f"updated {len(mm)} rows in {CSV.relative_to(REPO)} and tables.xml; now run export_track_lengths.py")
+        rows, mm = measured_rows(result, route, only, a.date)
+        out = block_lengths.write_measured(rows)
+        print(f"updated {len(mm)} rows in {out.relative_to(REPO)}; now run python3 tools/schematic/build_tables.py "
+              "and export_track_lengths.py")
 
 
 if __name__ == "__main__":

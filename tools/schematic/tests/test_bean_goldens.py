@@ -28,7 +28,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import le_tables as lt  # noqa: E402
-from hartlib import devices, level_devices, paths, railroad, tables  # noqa: E402
+from hartlib import block_lengths, devices, level_devices, paths, railroad, tables  # noqa: E402
 from hartlib import tables_build as tb  # noqa: E402
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "main_upper_beans.txt"
@@ -112,7 +112,7 @@ class EveryLevelBeans(unittest.TestCase):
         """No level is left to another process (GENERATED_LEVELS went in step 11): every main and upper row's names
         are among master_beans' beans."""
         rows = devices.load()
-        made = {n for els in tb.master_beans(rows, railroad.read_block_lengths(tb.BLOCK_LENGTHS)).values()
+        made = {n for els in tb.master_beans(rows, block_lengths.operating_lengths(tb.BLOCK_LENGTHS)).values()
                 for el in els for n in (tables.system_name(el), tables.user_name(el))}
         level = {n for r in rows if r["level"] in LEVELS and r["assignment"] != "none" and r["role"] != "lcc_alias"
                  for n in (r["user_name"], tb.bean_name(r)) if n}
@@ -259,7 +259,7 @@ class StagingAlone(unittest.TestCase):
 
     def test_staging_beans_are_the_same_but_the_helix_blocks_sensor(self) -> None:
         rows = devices.load()
-        lengths = railroad.read_block_lengths(tb.BLOCK_LENGTHS)
+        lengths = block_lengths.operating_lengths(tb.BLOCK_LENGTHS)
         every = tb.master_beans(rows, lengths)
         alone = tb.master_beans(rows, lengths, (railroad.STAGING_LEVEL,))
         names = lt.level_bean_names(rows=rows)
@@ -280,7 +280,7 @@ class StagingAlone(unittest.TestCase):
                    if line.startswith("LogixNGDigitalActions")]
         many = next(e for e in fixture if e.tag == "DigitalMany")
         sockets = [s.findtext("systemName") for s in many.find("Actions")]
-        actions = tb.master_beans(devices.load(), railroad.read_block_lengths(tb.BLOCK_LENGTHS))[tb.START_ACTIONS]
+        actions = tb.master_beans(devices.load(), block_lengths.operating_lengths(tb.BLOCK_LENGTHS))[tb.START_ACTIONS]
         self.assertEqual(sockets, [a.findtext("systemName") for a in actions])
 
 

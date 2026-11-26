@@ -6,6 +6,8 @@ stale. Checks relative Markdown links and backticked paths under a known root.
 A second rule keeps wiki/ and AGENTS.md tables readable: a table cell over MAX_CELL_WORDS words fails, naming file,
 line and count (wiki/STATUS_LOG.md and wiki/archive/ hold history and are exempt). Long detail goes in a section
 below the table, linked from the cell.
+A third rule caps the root AGENTS.md, which every session loads whole: over MAX_ROOT_LINES lines or MAX_ROOT_WORDS
+words fails. Detail goes in a skill, /done, or the AGENTS.md of the folder it applies to.
 
 `references()` is the one parser for what an agent doc points at; the pipeline
 map (tools/ops/agent_docs_map.py) draws its "points to" links from it too.
@@ -32,6 +34,9 @@ LINK = re.compile(r"\]\(\s*(?:<(?P<angled>[^>#]*)[^>]*>|(?P<bare>[^)#\s]+))")
 CODE = re.compile(r"`([^`\s]+)`")
 HTML_COMMENT = re.compile(r"<!--.*?-->", re.S)
 MAX_CELL_WORDS = 80
+ROOT_DOC = "AGENTS.md"
+MAX_ROOT_LINES = 70
+MAX_ROOT_WORDS = 1000
 CELL_GLOBS = ("wiki/**/*.md", "AGENTS.md")
 SCAN_GLOBS = (*PATTERNS, CELL_GLOBS[0])         # CELL_GLOBS' AGENTS.md is one of PATTERNS' **/AGENTS.md
 CELL_EXEMPT_FILES = ("wiki/STATUS_LOG.md",)
@@ -269,10 +274,24 @@ def long_cells(rel: str, text: str | None = None) -> list[str]:
             f"section below the table and link it" for line, col, words in counted if words > MAX_CELL_WORDS]
 
 
+def root_size(text: str | None = None) -> list[str]:
+    """The root AGENTS.md over its line or word cap, as FAIL lines; [] when it fits."""
+    if text is None:
+        text = (ROOT / ROOT_DOC).read_text(encoding="utf-8")
+    lines, words = len(text.splitlines()), len(text.split())
+    out = []
+    if lines > MAX_ROOT_LINES:
+        out.append(f"{ROOT_DOC}: {lines} lines, over {MAX_ROOT_LINES}; move detail to a skill, /done or a folder AGENTS.md")
+    if words > MAX_ROOT_WORDS:
+        out.append(f"{ROOT_DOC}: {words} words, over {MAX_ROOT_WORDS}; move detail to a skill, /done or a folder AGENTS.md")
+    return out
+
+
 def main() -> int:
     try:
         problems = [p for rel in agent_files() for p in problems_in(rel)]
         problems += [p for rel in cell_files() for p in long_cells(rel)]
+        problems += root_size()
     except AgentDocsError as err:
         print(f"FAIL {err}")
         return 1
@@ -280,7 +299,7 @@ def main() -> int:
         print(f"FAIL {line}")
     if not problems:
         print("OK: agent instructions point at real paths; no wiki table cell over "
-              f"{MAX_CELL_WORDS} words")
+              f"{MAX_CELL_WORDS} words; {ROOT_DOC} within {MAX_ROOT_LINES} lines and {MAX_ROOT_WORDS} words")
     return 1 if problems else 0
 
 

@@ -41,6 +41,16 @@ Why not `pip install -e`:
 
 ## API
 
+### `hartlib.files`
+
+`write_atomic(path, text_or_bytes)` replaces a file through a temporary file in its folder and `os.replace`, so a
+reader or a stopped run sees the old file or the new one. It keeps the old file's mode. By default (`Tables.save`) it
+writes through a symlink and rewrites a hard-linked file in place, which is not atomic; `follow_links=False` replaces
+the path itself and leaves other links on the old file. `tracked_files(root, *pathspecs, submodules=True)` is
+`git ls-files` (with `submodules=False`, submodule entries left out; `manifest_base.py` keeps its own copy, as the
+manifest loads no module from outside its folder) and raises `GitError` when git cannot list them.
+It never walks the folder instead, which would find untracked and ignored files.
+
 ### `hartlib.film_pace`
 
 `STEP_S` (0.4) and `FINAL_HOLD_S` (2.0), the pace of the four films on `www/behind/panel-evolution.html`; `durations(n)` and `film_length(n)`. Used by `tools/schematic/evolution.py` and `tools/ctc_history/films.py`.
@@ -194,7 +204,8 @@ stale copy of its own output: `build_device_map.py` loads `upto="inputs"`, `buil
 | `Railroad.switch_rows`, `switches` | `[SwitchRow]`: switches.csv as read (`read_switch_rows`, every row held to the shape of its key, not its level, naming-layers step 14: `by_os`, a row keyed by its OS block's ID, `os_id`, with its legs' `closed_id` and `thrown_id` and their names labels `build_hands.py` writes from the name store, as staging's are; else a row keyed by its half, as main and upper's are); `{number: Switch}` of its rows keyed by their OS block (staging's) (`Switch`, `Leg`; `layout_facts.py` re-exports them) |
 | `Railroad.interlockings` (every level), `level_control_points` (its main and upper rows), `local_switches`, `lcos_nodes`, `main_upper_switches` | `Interlocking`, `LocalSwitch`, `LcosNode`, `{number: MainUpperSwitch}` |
 | `Railroad.plan_overrides` | `PlanOverrides`: `data` (the whole file), `edits`, `relabel`, `helix` |
-| `Railroad.block_lengths`, `hands` | `{name: BlockLength}` (`plan_in`, `measured_in`, `source`, `note`, `jmri_in`; `read_block_lengths()` reads this checkout's file, `BLOCK_LENGTHS`; `plan_cm()` for the drawings and signal rules; each row keyed by `level` and `id`, its name a label the build keeps the name store's: `plan_lengths.py --labels`), `{label: Hand}` |
+| `Railroad.block_lengths`, `hands` | `{name: Block}` of `block_lengths.csv` (`hartlib.block_lengths.plan_blocks`: `level`, `id`, `plan_in`, `note`, and the name and `occupancy_sensor` from the device master), `{label: Hand}` |
+| `hartlib.block_lengths` | the two block length files (ADR-039 lane L8): `block_lengths.csv`, the plan length that `plan_lengths.py` writes, and `block_lengths_measured.csv`, the lengths speed matching measured (`infer_block_lengths.py`). Plan side: `plan_blocks`, `plan_lengths`, `plan_cm`, `plan_length`, `read_plan` (the drawings, mast and signal placement, the pages). Operating side: `operating_lengths`, `operating_length`, measured where there is a row, else plan (tables.xml, speed matching). `measured_lengths` gives the measured rows to the pages that print them. `tests/test_block_lengths.py` lists the readers on each side |
 | `Railroad.device_map` | `DeviceMap`: `rows` (`DeviceRow`, each with its `id` and `assignment`; `swapped` when it is field: a device swapped in by its row, whose occupancy row is held to its wired M2S sensor, naming-layers step 14), `blocks`, `occupancy` (block -> its occupancy row, its detector by ID: `det:<block id>`), `turnouts` (by the switch number of the row's ID, `turnout_switch`), `heads_by_system`, `of(layer)` |
 | `Railroad.masts` | `hartlib.level_masts.read()` rows, every level (`read_masts(path, levels=...)` gives `[Mast]`: line, level, name, blocks) |
 | `Railroad.tables` | `TablesNames`: `root`, `turnouts`, `sensors`, `masts` (user -> system), `blocks` |
@@ -410,8 +421,12 @@ that every deploy list ships each module (`tools/hosts/tests/test_coordinator_sh
 The station maps carry the system schematic's revision and date (the title block in `page_prefs()`). `fields(prefs)`
 reads them, `planned(www, prefs)` gives the text each file it owns should have (`www/data/crew.json`,
 `www/data/publications.json`, each current `www/crew/maps/<id>/index.html`), `drift()` names the files that differ
-and `apply()` writes them. `tools/schematic/publish_draft.py` applies it after a publish and checks it in `--check`;
-`www/scripts/map_revision.py` is the command for it.
+and `apply()` writes them. It writes `crew.json` whole through `crew_master.build()` in `ops/hart-ops/publications/`,
+the file's one writer, which `build_crew_json.py` calls too; `crew_master` imports nothing from hartlib, so there is no
+cycle. When the crew master does not build (a schema problem, a missing master or `industries.csv`), it only sets the
+revision and date in the existing `crew.json` and prints a one-line warning naming the file; the crew-json job of
+`check.sh` fails until the master is fixed. `tools/schematic/publish_draft.py` applies it after a publish and checks
+it in `--check`.
 
 ## The tables.xml traps the lookups exist for
 

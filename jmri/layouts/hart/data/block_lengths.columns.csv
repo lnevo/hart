@@ -1,0 +1,5 @@
+column,description,type,required,key,refs,values
+level,"The block's level: 1 staging, 2 main, 3 upper.",enum,yes,,,1;2;3
+id,"The block's device ID (block:3B-end, os:23:A-1A), once in the file on any level. The block's name and occupancy sensor come from the device master (hartlib.block_lengths.plan_blocks). The CATS occupancy bindings and block_lengths_measured.csv name blocks by it.",str,yes,yes,jmri/layouts/hart/data/devices.csv:id,
+plan_in,"The block's length in the AnyRail plan 5.3c, in inches, written by tools/schematic/plan_lengths.py: a track block's run between the turnout ends, an OS block its turnout's length. 0 for a block between two turnouts that touch in the plan. The schematic, the Layout Editor panel, mast and signal placement and the documentation pages measure by it (hartlib.block_lengths, the plan side).",float,yes,,,
+note,"Text for people: where the length comes from, a part's OS block.",str,,,,

@@ -6,6 +6,7 @@ from __future__ import annotations
 import importlib.util
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -60,6 +61,10 @@ WIDENED_READS: dict[str, tuple[set[str], set[str], str]] = {   # job -> (files r
                                      "ops/hart-ops/README.md"),
     "unit-guards test_status_merge": ({".gitattributes", "wiki/status/current/backups.md"}, set(), "wiki/STATUS_LOG.md"),
 }
+
+
+# the end of both check_stamps.record refusals for a change while a job ran (the git state, or a file it read)
+MOVED_MID_RUN = "changed while the job ran"
 
 
 class DeclarationTest(unittest.TestCase):
@@ -204,14 +209,28 @@ class AuditTest(unittest.TestCase):
     record their traced stamps into a scratch store, and fails for any repo file or folder the audit saw a job touch
     that its read set lacks (or, for a job that ran an untraceable program, that its declaration does not cover)."""
 
+    def test_the_retry_text_is_the_refusal_check_stamps_prints(self) -> None:
+        text = (REPO / "tools/audit/check_stamps.py").read_text(encoding="utf-8")
+        self.assertEqual(text.count(MOVED_MID_RUN), 2, "both mid-run refusals end with the text the retry looks for")
+
     @unittest.skipIf(os.environ.get("CHECK_AUDIT"), "already inside an audit run")
     def test_the_traced_read_sets_hold_what_the_jobs_read(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             env = {k: v for k, v in os.environ.items() if k not in ("HART_TABLES", "FULL", "CI")
                    and not k.startswith("HART_TRACE")}
             env.update(CHECK_ONLY=AUDITED, CHECK_AUDIT=f"{tmp}/audit", CHECK_STAMPS_DIR=f"{tmp}/stamps")
-            done = subprocess.run(["bash", str(REPO / "tools/check.sh")], cwd=REPO, env=env, capture_output=True,
-                                  text=True, timeout=900)
+            # check_stamps refuses to stamp a job when HEAD or origin/main moved while it ran (another session's
+            # fetch or merge does that on a shared Mac); that refusal is right, so the run is tried once more then
+            for attempt in (1, 2):
+                for d in ("audit", "stamps"):
+                    shutil.rmtree(f"{tmp}/{d}", ignore_errors=True)
+                done = subprocess.run(["bash", str(REPO / "tools/check.sh")], cwd=REPO, env=env,
+                                      capture_output=True, text=True, timeout=900)
+                unstamped = [n for n in cs.AUDIT_SAMPLE
+                             if cs.traced.load(cs._file(n, Path(f"{tmp}/stamps"))) is None]
+                if attempt == 1 and unstamped and MOVED_MID_RUN in done.stdout:
+                    continue
+                break
             self.assertEqual(done.returncode, 0, done.stdout[-3000:] + done.stderr[-2000:])
             jobs = cs.read_audit(Path(f"{tmp}/audit"))
             wanted = list(cs.AUDIT_SAMPLE)

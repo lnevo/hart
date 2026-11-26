@@ -1,0 +1,6 @@
+column,description,type,required,key,refs,values
+id,"The block's device ID, a row of block_lengths.csv. Only the blocks speed matching timed have a row.",str,yes,yes,jmri/layouts/hart/data/block_lengths.csv:id,
+measured_in,"The block's length found by speed matching, in inches, written by jmri/layouts/hart/scripts/infer_block_lengths.py --apply. The operating length (hartlib.block_lengths.operating_lengths): the Dispatcher's block length in tables.xml and the speed-match tools take it over the plan length.",float,yes,,,
+run,"The run it came from: loop1 laps (timed laps of the test loop) or loop2 passes (timed passes from Switch 5 to Switch 15).",str,yes,,,
+date,The date of the run (YYYY-MM-DD).,str,yes,,,
+note,"Text for people: the method, the spread and the number of laps. The track plan page reads the spread, laps and passes from it.",str,,,,

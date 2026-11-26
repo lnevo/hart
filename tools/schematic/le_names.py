@@ -86,14 +86,13 @@ def staging_lengths(names: dict, plan_inches: dict | None = None) -> dict:
 
 @functools.lru_cache(maxsize=1)
 def plan_lengths() -> dict:
-    """{block: plan inches} of block_lengths.csv (hartlib.railroad); read once. BuildError on a file hartlib cannot
-    read."""
-    from hartlib import railroad
+    """{block: plan inches} of block_lengths.csv (hartlib.block_lengths, the plan side); read once. BuildError on a
+    file hartlib cannot read."""
+    from hartlib import block_lengths, railroad
     try:
-        rows = railroad.read_block_lengths(railroad.Sources.under().block_lengths)
+        return block_lengths.plan_lengths()
     except railroad.FactsError as exc:
         raise BuildError(f"block_lengths.csv: {exc}") from None
-    return {name: r.plan_in for name, r in rows.items()}
 
 
 MM_PER_INCH = 25.4

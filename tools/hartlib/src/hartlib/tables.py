@@ -40,14 +40,13 @@ from __future__ import annotations
 import os
 import re
 import subprocess
-import tempfile
 import threading
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, Iterator
 
-from . import paths
+from . import files, paths
 
 # Names the main Layout Editor panel has had; the first is the live one.
 MAIN_PANEL_NAMES = ("HART Railroad", "HART", "My Layout")
@@ -177,34 +176,7 @@ def _override_protected(target: Path) -> bool:
             or real == profile or profile in real.parents)
 
 
-def _atomic_write(target: Path, data: bytes) -> None:
-    """Replace the file the path names. A symlink stays a symlink (its target is written);
-    a hard-linked file is rewritten in place so every link sees the new bytes."""
-    target = Path(os.path.realpath(target))
-    try:
-        hard_linked = target.stat().st_nlink > 1
-    except OSError:
-        hard_linked = False
-    if hard_linked:
-        with open(target, "r+b") as handle:
-            handle.write(data)
-            handle.truncate()
-        return
-    fd, tmp = tempfile.mkstemp(prefix=f".{target.name}.", dir=str(target.parent))
-    try:
-        with os.fdopen(fd, "wb") as handle:
-            handle.write(data)
-        try:
-            os.chmod(tmp, target.stat().st_mode & 0o7777)
-        except OSError:
-            os.chmod(tmp, 0o644)
-        os.replace(tmp, target)
-    except BaseException:
-        try:
-            os.unlink(tmp)
-        except OSError:
-            pass
-        raise
+_atomic_write = files.write_atomic  # the one atomic writer (hartlib.files)
 
 
 # Character escapes, as JDOM (JMRI) and ElementTree write them.
