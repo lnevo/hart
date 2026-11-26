@@ -71,6 +71,25 @@ class HeadTags(unittest.TestCase):
         self.assertEqual(b.count('name="description"'), 1)
         self.assertIn("Neville Island", b)
 
+    def test_pages_with_content_get_a_www_canonical_and_stubs_do_not(self):
+        pages = {
+            "guides/index.html": "<html><head><title>G</title></head><body>Guides</body></html>",
+            "fleet/index.html": '<html><head><title>F</title><meta http-equiv="refresh" content="0; url=../photos/"></head></html>',
+            "a.html": '<html><head><title>A</title><meta content="noindex" name="robots"></head></html>',
+            "404.html": "<html><head><title>Not found</title></head><body>Annulled</body></html>",
+            "docs/view.html": "<html><head><title>V</title></head><body></body></html>",
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for rel, text in pages.items():
+                (root / rel).parent.mkdir(parents=True, exist_ok=True)
+                (root / rel).write_text(text, encoding="utf-8")
+            build._add_head_tags(root)
+            out = {rel: (root / rel).read_text(encoding="utf-8") for rel in pages}
+        self.assertIn(f'<link rel="canonical" href="{build.portal_common.SITE_URL}guides/">', out["guides/index.html"])
+        for rel in ("fleet/index.html", "a.html", "404.html", "docs/view.html"):
+            self.assertNotIn('rel="canonical"', out[rel], rel)
+
     def test_the_404_page_gets_site_root_icon_links(self):
         tags = build._head_tags(Path("404.html"), "Page not found")
         self.assertIn('href="/favicon.ico"', tags)
