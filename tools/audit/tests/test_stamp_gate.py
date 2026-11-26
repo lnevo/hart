@@ -106,6 +106,28 @@ class DecideTest(unittest.TestCase):
                 self.assertIn(p, gate.MACHINERY)
                 self.assertIn("machinery", self.decide(changed=[*DATA, p]))
 
+    def test_each_part_of_the_stamp_code_forces_full(self) -> None:
+        """check_stamps.py's FILES (it and the parts it imports, loaded by path from another folder as check.sh does)
+        are each MACHINERY: a split part is no way around it."""
+        probe = ("import importlib.util, json, sys\n"
+                 "spec = importlib.util.spec_from_file_location('cs_by_path', sys.argv[1])\n"
+                 "cs = importlib.util.module_from_spec(spec)\n"
+                 "sys.modules[spec.name] = cs\n"
+                 "spec.loader.exec_module(cs)\n"
+                 "print(json.dumps(cs.FILES))\n")
+        with tempfile.TemporaryDirectory() as cwd:
+            done = subprocess.run([sys.executable, "-c", probe, str(ROOT / "tools/audit/check_stamps.py")], cwd=cwd,
+                                  capture_output=True, text=True, timeout=60)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        files = json.loads(done.stdout)
+        on_disk = {p.relative_to(ROOT).as_posix() for p in (ROOT / "tools/audit").glob("stamps_*.py")}
+        self.assertEqual(set(files), {"tools/audit/check_stamps.py", *on_disk})  # a new stamps_*.py part is in PARTS
+        self.assertGreater(len(files), 1)
+        for p in files:
+            with self.subTest(p):
+                self.assertIn(p, gate.MACHINERY)
+                self.assertIn("machinery", self.decide(changed=[*DATA, p]))
+
     def test_no_changed_paths_or_no_base_means_full(self) -> None:
         self.assertIn("no changed paths", self.decide(changed=["", " "]))
         self.assertIn("no merge base", self.decide(base=""))

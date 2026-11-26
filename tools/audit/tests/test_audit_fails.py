@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import check_stamps as cs  # noqa: E402
-from test_check_stamps import RepoCase  # noqa: E402
+from stamps_case import RepoCase  # noqa: E402
 from test_pipeline_manifest import OWN, STATIC, scratch_check_sh  # noqa: E402
 
 WORKFLOW = (cs.ROOT / ".github/workflows/check.yml").read_text(encoding="utf-8")

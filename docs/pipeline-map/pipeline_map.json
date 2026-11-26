@@ -316,7 +316,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "extras",
-   "desc": "The line count each Python file over 800 lines may not pass (owner, 2026-11-25); check_py_sizes.py --update tightens it, --accept raises a row by name.",
+   "desc": "The line count each .py or .js file over 800 lines, or .sh file over 500, may not pass (owner, 2026-11-25); check_py_sizes.py --update tightens it, --accept raises a row by name.",
    "path": "tools/audit/py_sizes.csv"
   },
   {
@@ -1275,7 +1275,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "Computes and checks the map revision and date across the schematic, station sheets and www data.",
+   "desc": "Computes and checks the map revision and date across the schematic, station sheets and www data; rebuilds www/data/crew.json through crew_master.build.",
    "path": "tools/hartlib/src/hartlib/map_revision.py"
   },
   {
@@ -2057,9 +2057,9 @@
    "id": "ops/hart-ops/industries",
    "label": "industries/ OPSIG list",
    "kind": "structured",
-   "status": "live",
+   "status": "retired",
    "domain": "ops",
-   "desc": "industries.txt, the OPSIG industries list. The routing matrix and its scripts were retired on 2026-11-25 (archive/docs/ops/industries/).",
+   "desc": "The OPSIG industries list (industries.txt) moved to archive/ops/hart-ops/industries/ on 2026-11-25; nothing reads it. The routing matrix and its scripts were retired the same day (archive/docs/ops/industries/).",
    "path": "ops/hart-ops/industries"
   },
   {
@@ -2458,7 +2458,7 @@
    "kind": "output",
    "status": "live",
    "domain": "website",
-   "desc": "Crew pages and spot sheet data, built from the crew master by build_crew_json.py; the schematic revision and effective date come from the title block, which map_revision.py also writes.",
+   "desc": "Crew pages and spot sheet data, built from the crew master by crew_master.build, its one writer: build_crew_json.py calls it, and hartlib.map_revision calls it when the title block's revision or date changes.",
    "path": "www/data/crew.json"
   },
   {
@@ -2518,15 +2518,6 @@
    "local": true
   },
   {
-   "id": "www/data/panels.json",
-   "label": "panels.json",
-   "kind": "structured",
-   "status": "live",
-   "domain": "website",
-   "desc": "Panel data skipped from the public build.",
-   "path": "www/data/panels.json"
-  },
-  {
    "id": "www/data/plants-lineage.json",
    "label": "plants-lineage.json",
    "kind": "structured",
@@ -2541,7 +2532,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "website",
-   "desc": "Publication list with docs/ops sources and station-map revisions (map_revision.py).",
+   "desc": "Publication list with docs/ops sources and station-map revisions (hartlib.map_revision).",
    "path": "www/data/publications.json"
   },
   {
@@ -2903,15 +2894,6 @@
    "domain": "website",
    "desc": "Share-card recipes drawn as railroad paperwork: the train order, clearance and switching order cards.",
    "path": "www/scripts/share_card_recipes/forms.py"
-  },
-  {
-   "id": "www/scripts/map_revision.py",
-   "label": "map_revision.py",
-   "kind": "generator",
-   "status": "live",
-   "domain": "website",
-   "desc": "Wrapper for hartlib.map_revision; writes schematic revision/date into crew.json, publications.json and station map pages; --check.",
-   "path": "www/scripts/map_revision.py"
   },
   {
    "id": "www/scripts/photo_tabs.py",
@@ -3987,6 +3969,15 @@
    "gen": "manifest"
   },
   {
+   "id": "ops/hart-ops/publications/crew_master.py",
+   "label": "crew_master.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "The crew master's views; build() is the one writer of www/data/crew.json, called by build_crew_json.py and hartlib.map_revision.",
+   "path": "ops/hart-ops/publications/crew_master.py"
+  },
+  {
    "id": "ops/hart-ops/publications/build_crew_json.py",
    "label": "build_crew_json.py",
    "kind": "generator",
@@ -4002,7 +3993,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "extras",
-   "desc": "Fails when a Python file over 800 lines grows past its row in tools/audit/py_sizes.csv; --update tightens the list, --accept raises a row by name.",
+   "desc": "Fails when a .py or .js file over 800 lines, or a .sh file over 500, grows past its row in tools/audit/py_sizes.csv; warns at 90 percent of the limit; --update tightens the list, --accept raises a row by name.",
    "path": "tools/audit/check_py_sizes.py",
    "gen": "manifest"
   },
@@ -5282,6 +5273,24 @@
    "path": "tools/audit/check_stamps.py"
   },
   {
+   "id": "tools/audit/stamps_cache.py",
+   "label": "stamps_cache.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "check_stamps.py's shared ground: the walk of a pattern set, the file-hash cache and the Checker.",
+   "path": "tools/audit/stamps_cache.py"
+  },
+  {
+   "id": "tools/audit/stamps_audit.py",
+   "label": "stamps_audit.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "check_stamps.py's audits: the CHECK_AUDIT folder's reads and the declaration audit of the step-manifest jobs.",
+   "path": "tools/audit/stamps_audit.py"
+  },
+  {
    "id": "tools/audit/traced.py",
    "label": "traced.py",
    "kind": "generator",
@@ -6035,10 +6044,6 @@
   },
   {
    "from": "ext:hartlib",
-   "to": "www/scripts/map_revision.py"
-  },
-  {
-   "from": "ext:hartlib",
    "to": "www/scripts/tables_page.py"
   },
   {
@@ -6408,10 +6413,6 @@
   },
   {
    "from": "human:www-authoring",
-   "to": "www/data/panels.json"
-  },
-  {
-   "from": "human:www-authoring",
    "to": "www/data/plants-lineage.json"
   },
   {
@@ -6735,11 +6736,6 @@
    "to": "tools/schematic/publish_draft.py",
    "label": "reads",
    "gen": "manifest"
-  },
-  {
-   "from": "jmri/layouts/hart/data/schematic/preferences.json",
-   "to": "www/scripts/map_revision.py",
-   "label": "revision/date"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/retired_virtual_masts.csv",
@@ -7972,7 +7968,7 @@
   {
    "from": "tools/hartlib/src/hartlib/map_revision.py",
    "to": "www/data/crew.json",
-   "label": "keeps in step"
+   "label": "rebuilds via crew_master.build"
   },
   {
    "from": "tools/hartlib/src/hartlib/parked.py",
@@ -8556,11 +8552,6 @@
    "to": "www/scripts/make_share_cards.py"
   },
   {
-   "from": "www/data/panels.json",
-   "to": "www/scripts/prepare_github_pages.py",
-   "label": "skipped"
-  },
-  {
    "from": "www/data/plants-lineage.json",
    "to": "www/about-briefing-tools-plants-railroads",
    "label": "lineage.js plants"
@@ -8940,11 +8931,6 @@
    "from": "tools/hartlib/src/hartlib/map_revision.py",
    "to": "www/crew",
    "label": "publication line"
-  },
-  {
-   "from": "www/scripts/map_revision.py",
-   "to": "tools/hartlib/src/hartlib/map_revision.py",
-   "label": "wraps, --check"
   },
   {
    "from": "www/scripts/share_cards.py",
@@ -12112,6 +12098,18 @@
    "label": "imports"
   },
   {
+   "from": "ops/hart-ops/data/crew.json",
+   "to": "tools/schematic/publish_draft.py",
+   "label": "crew master (map_revision rebuilds www/data/crew.json)",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/industries.csv",
+   "to": "tools/schematic/publish_draft.py",
+   "label": "spot sheet names (crew_master.build)",
+   "gen": "manifest"
+  },
+  {
    "from": "tools/schematic/cats_panel_facts.py",
    "to": "tools/schematic/build_cats_panel.py",
    "label": "imports"
@@ -12490,6 +12488,21 @@
    "label": "current, record"
   },
   {
+   "from": "tools/audit/stamps_cache.py",
+   "to": "tools/audit/check_stamps.py",
+   "label": "re-exported"
+  },
+  {
+   "from": "tools/audit/stamps_audit.py",
+   "to": "tools/audit/check_stamps.py",
+   "label": "re-exported"
+  },
+  {
+   "from": "tools/audit/stamps_cache.py",
+   "to": "tools/audit/stamps_audit.py",
+   "label": "imports"
+  },
+  {
    "from": "tools/audit/check_stamps.py",
    "to": "ext:check-stamps",
    "label": "writes"
@@ -12822,6 +12835,31 @@
    "from": "www/scripts/share_card_recipes/forms.py",
    "to": "www/scripts/make_share_cards.py",
    "label": "recipes (import)"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/preferences.json",
+   "to": "tools/hartlib/src/hartlib/map_revision.py",
+   "label": "revision/date"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/map_revision.py",
+   "to": "ops/hart-ops/publications/crew_master.py",
+   "label": "crew_master.build (import)"
+  },
+  {
+   "from": "ops/hart-ops/data/crew.json",
+   "to": "tools/hartlib/src/hartlib/map_revision.py",
+   "label": "crew master, via crew_master.build"
+  },
+  {
+   "from": "ops/hart-ops/data/industries.csv",
+   "to": "tools/hartlib/src/hartlib/map_revision.py",
+   "label": "spot sheet names, via crew_master.build"
+  },
+  {
+   "from": "ops/hart-ops/publications/build_crew_json.py",
+   "to": "ops/hart-ops/publications/crew_master.py",
+   "label": "crew_master.build (import)"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

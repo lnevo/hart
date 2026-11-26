@@ -285,6 +285,8 @@ inputs = [
   { path = "jmri/layouts/hart/data/schematic/plan_generated.json", label = "merged view (layer_files.view)" },
   { path = "jmri/layouts/hart/data/schematic/preferences_generated.json", label = "merged view (layer_files.view)" },
   { path = "jmri/layouts/hart/data/devices_generated.csv", label = "generated names of preferences.json's block ids (merged view)" },
+  { path = "ops/hart-ops/data/crew.json", label = "crew master (map_revision rebuilds www/data/crew.json)" },
+  { path = "ops/hart-ops/data/industries.csv", label = "spot sheet names (crew_master.build)" },
 ]
 outputs = [
   "docs/ops/schematic-system-draft.*",
@@ -292,6 +294,10 @@ outputs = [
   { path = "docs/ops/schematic-system-draft.svg", label = "step 9 schematic" },
   { path = "docs/ops/stations/*", label = "station sheets" },
   { path = "www/crew/maps/*/index.html", drawn = false },
+  # also written by the crew-json job in checks.toml; both build it with crew_master.build(), so they agree while the
+  # crew master builds (a broken master: map_revision only sets the revision and date, and crew-json fails on it)
+  { path = "www/data/crew.json", label = "rebuilt by map_revision through crew_master.build", drawn = false },
+  { path = "www/data/publications.json", label = "map revisions (map_revision)", drawn = false },
   { path = "jmri/layouts/hart/data/schematic/preferences.json", drawn = false },
 ]
 updates = ["jmri/layouts/hart/data/schematic/preferences.json"]
