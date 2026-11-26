@@ -74,6 +74,19 @@ class JmriAdditions(unittest.TestCase):
         with self.assertRaisesRegex(ja.PageError, "no .py beside it"):
             ja._lcos_range(tmp)
 
+    def test_every_part_of_a_split_script_is_on_the_page(self):
+        for script, parts in self.facts["parts"].items():
+            self.assertTrue(parts, script)
+            for m in parts:
+                self.assertIn("<code>%s.py</code>" % m, self.page, script)
+
+    def test_parts_sentence_counts_its_modules(self):
+        self.assertEqual(ja._parts_sentence(("a",)),
+                         "One module beside it holds the rest of its code and is deployed with it: <code>a.py</code>.")
+        self.assertEqual(ja._parts_sentence(("a", "b", "c")),
+                         "Three modules beside it hold the rest of its code and are deployed with it: "
+                         "<code>a.py</code>, <code>b.py</code> and <code>c.py</code>.")
+
     def test_unknown_and_missing_regions_stop(self):
         with self.assertRaisesRegex(ja.PageError, "unknown region ja:nope"):
             ja.fill(self.page + "<!--ja:nope-->x<!--/ja-->", self.facts)
