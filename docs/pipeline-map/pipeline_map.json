@@ -39,49 +39,49 @@
  ],
  "presets": [
   {
-   "label": "tables.xml",
+   "label": "Where does tables.xml come from?",
    "focus": "jmri/layouts/hart/output/tables.xml",
    "up": 2,
    "down": 1
   },
   {
-   "label": "CTC desk",
+   "label": "How is the CTC desk panel made?",
    "focus": "cats/panels/HART_CTC.xml",
    "up": 2,
    "down": 1
   },
   {
-   "label": "Device master",
+   "label": "What builds the device master, and what reads it?",
    "focus": "jmri/layouts/hart/data/devices_generated.csv",
    "up": 1,
    "down": 1
   },
   {
-   "label": "Wiring",
+   "label": "What writes and reads the wiring list?",
    "focus": "jmri/layouts/hart/data/wiring.csv",
    "up": 1,
    "down": 1
   },
   {
-   "label": "Operations Pro",
+   "label": "What writes and reads the Operations Pro files?",
    "focus": "jmri/layouts/hart/operations",
    "up": 1,
    "down": 1
   },
   {
-   "label": "Car cards",
+   "label": "Where do the printed car cards come from?",
    "focus": "ops/car-cards/print",
    "up": 2,
    "down": 0
   },
   {
-   "label": "Website build",
+   "label": "What goes into the website build?",
    "focus": "ext:site-dist",
    "up": 1,
    "down": 1
   },
   {
-   "label": "Agent docs",
+   "label": "Where do the agent instructions lead?",
    "focus": "AGENTS.md",
    "up": 0,
    "down": 2
@@ -1774,7 +1774,7 @@
    "kind": "output",
    "status": "live",
    "domain": "ops",
-   "desc": "Expanded and sharpened print copies of car photos; preferred over CarImagesFinal by the card builder.",
+   "desc": "Sharpened print copies of car photos; preferred over CarImagesFinal by the card builder.",
    "path": "ops/car-cards/CarImagesCardFillPrint",
    "local": true
   },
@@ -1879,7 +1879,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "ops",
-   "desc": "crop_car_image, crop_picker, loco_backdrop, expand/sharpen card fill images, finalize_car_images: photo to card-ready image.",
+   "desc": "crop_car_image, crop_picker, loco_backdrop, sharpen_card_fill_images, finalize_car_images: photo to card-ready image.",
    "path": "ops/hart-ops/card_pipeline/crop_car_image.py"
   },
   {
@@ -3397,6 +3397,15 @@
    "path": "tools/mqtt/sync_mqtt_turnouts_from_fb.py"
   },
   {
+   "id": "tools/mqtt/turnout_feedback.py",
+   "label": "turnout_feedback.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "wiring",
+   "desc": "Shared read-only turnout feedback helpers (FB N/R state, M2T address, retained turnout read) for the turnout diagnose and sync scripts.",
+   "path": "tools/mqtt/turnout_feedback.py"
+  },
+  {
    "id": "tools/wiring/build_lcos_signal_manager_plan.py",
    "label": "build_lcos_signal_manager_plan.py",
    "kind": "generator",
@@ -3602,6 +3611,15 @@
    "path": "tools/pipeline/map_lane.py"
   },
   {
+   "id": "tools/ops/pipeline_map_eff.py",
+   "label": "pipeline_map_eff.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Works out what the map page shows beside the graph: how each step runs (stamped or guard), writers per output, one summary per lane with the links between lanes counted, and step times from docs/pipeline-map/timings.json when it exists.",
+   "path": "tools/ops/pipeline_map_eff.py"
+  },
+  {
    "id": "tools/ops/build_pipeline_map.py",
    "label": "build_pipeline_map.py",
    "kind": "generator",
@@ -3653,7 +3671,7 @@
    "kind": "unstructured",
    "status": "live",
    "domain": "extras",
-   "desc": "Viewer script (the page's state, drawing and input) inlined into both pipeline map pages after the layout: the start of app(), which goes on in pipeline_map_view_frame.js and pipeline_map_view_input.js, joined in that order.",
+   "desc": "Viewer script (the page's state, drawing and input) inlined into both pipeline map pages after the layout: the start of app(), which goes on in pipeline_map_view_frame.js, pipeline_map_view_lanes.js, pipeline_map_view_rail.js, pipeline_map_view_nav.js and pipeline_map_view_input.js, joined in that order.",
    "path": "tools/ops/pipeline_map_view.js"
   },
   {
@@ -3666,12 +3684,48 @@
    "path": "tools/ops/pipeline_map_view_frame.js"
   },
   {
+   "id": "tools/ops/pipeline_map_view_lanes.js",
+   "label": "pipeline_map_view_lanes.js",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Part of the viewer's app() (the lane overview the page opens on, open lanes, the efficiency overlay), inlined after pipeline_map_view_frame.js and before pipeline_map_view_rail.js; not a script on its own.",
+   "path": "tools/ops/pipeline_map_view_lanes.js"
+  },
+  {
+   "id": "tools/ops/pipeline_map_view_rail.js",
+   "label": "pipeline_map_view_rail.js",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Part of the viewer's app() (the filter rail, its chips, fading what the filters do not match, the list of boxes shown, the info panel's long lists), inlined after pipeline_map_view_lanes.js; not a script on its own.",
+   "path": "tools/ops/pipeline_map_view_rail.js"
+  },
+  {
+   "id": "tools/ops/pipeline_map_view_nav.js",
+   "label": "pipeline_map_view_nav.js",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Part of the viewer's app() (browser history, the trail, search with its result list, the keys, Start over, the address), inlined after pipeline_map_view_rail.js and before pipeline_map_view_input.js; not a script on its own.",
+   "path": "tools/ops/pipeline_map_view_nav.js"
+  },
+  {
+   "id": "tools/ops/pipeline_map_facets.js",
+   "label": "pipeline_map_facets.js",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "The map page's filters, search ranking, trail and status line as pure functions, inlined after pipeline_map_helpers.js; node loads it for the unit tests.",
+   "path": "tools/ops/pipeline_map_facets.js"
+  },
+  {
    "id": "tools/ops/pipeline_map_view_input.js",
    "label": "pipeline_map_view_input.js",
    "kind": "unstructured",
    "status": "live",
    "domain": "extras",
-   "desc": "The end of the viewer's app() (magnifier, selection, search, filters, menus, tour, share, address), inlined straight after pipeline_map_view_frame.js; it closes app() and calls it.",
+   "desc": "The end of the viewer's app() (magnifier, selection, the file box, Browse, Start, menus, tour, share, View's options), inlined straight after pipeline_map_view_nav.js; it closes app() and calls it.",
    "path": "tools/ops/pipeline_map_view_input.js"
   },
   {
@@ -6551,6 +6605,16 @@
    "label": "FB sensors via JSON"
   },
   {
+   "from": "tools/mqtt/turnout_feedback.py",
+   "to": "tools/mqtt/sync_mqtt_turnouts_from_fb.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/mqtt/turnout_feedback.py",
+   "to": "jmri/layouts/hart/scripts/diagnose_turnout_states.py",
+   "label": "imports"
+  },
+  {
    "from": "host:pi",
    "to": "ext:operations-pro",
    "label": "runs"
@@ -7717,7 +7781,7 @@
   {
    "from": "ops/car-cards/car-images/CarImagesFinal",
    "to": "ops/car-cards/CarImagesCardFillPrint",
-   "label": "expand/sharpen"
+   "label": "sharpen"
   },
   {
    "from": "ops/car-cards/car-images/CarImagesFinal",
@@ -9557,6 +9621,16 @@
   },
   {
    "from": "tools/pipeline/manifest.py",
+   "to": "tools/ops/pipeline_map_eff.py",
+   "label": "load_both: the steps"
+  },
+  {
+   "from": "tools/ops/pipeline_map_eff.py",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "lane summaries, step marks"
+  },
+  {
+   "from": "tools/pipeline/manifest.py",
    "to": "tools/pipeline/map_lane.py",
    "label": "load: the steps"
   },
@@ -10577,6 +10651,30 @@
   },
   {
    "from": "tools/ops/pipeline_map_view_input.js",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "inlined",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/ops/pipeline_map_view_lanes.js",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "inlined",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/ops/pipeline_map_facets.js",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "inlined",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/ops/pipeline_map_view_rail.js",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "inlined",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/ops/pipeline_map_view_nav.js",
    "to": "tools/ops/build_pipeline_map.py",
    "label": "inlined",
    "gen": "manifest"

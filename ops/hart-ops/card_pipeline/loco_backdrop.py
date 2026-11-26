@@ -23,6 +23,8 @@ from __future__ import annotations
 
 import argparse
 
+from typing import NamedTuple
+
 import numpy as np
 from PIL import Image, ImageFilter
 from scipy import ndimage as ndi
@@ -31,8 +33,15 @@ REF_WIDTH = 1400
 SMALL = 3  # the mask and the backdrop fit run at 1/3 size
 
 
-def loco_mask(small: np.ndarray, bg: np.ndarray) -> np.ndarray:
-    """True for the loco and track: the largest region not coloured like the backdrop."""
+class LocoMask(NamedTuple):
+    """Boolean masks at the small size: the loco and track, and the backdrop that touches the top or bottom edge."""
+
+    keep: np.ndarray
+    backdrop: np.ndarray
+
+
+def loco_mask(small: np.ndarray, bg: np.ndarray) -> LocoMask:
+    """keep: the largest region not coloured like the backdrop (the loco and track); backdrop: the backdrop regions."""
     lum = small.mean(2)
     r = small[..., 0] / (small[..., 1] + 1)
     b = small[..., 2] / (small[..., 1] + 1)
@@ -47,14 +56,14 @@ def loco_mask(small: np.ndarray, bg: np.ndarray) -> np.ndarray:
     backdrop = np.isin(labels, list(edge))
     parts, count = ndi.label(~backdrop)
     sizes = ndi.sum(~backdrop, parts, range(1, count + 1))
-    return parts == 1 + int(np.argmax(sizes)), backdrop
+    return LocoMask(parts == 1 + int(np.argmax(sizes)), backdrop)
 
 
 def _basis(x: np.ndarray, y: np.ndarray, degree: int = 3) -> np.ndarray:
     return np.stack([x**i * y**j for i in range(degree + 1) for j in range(degree + 1 - i)], -1)
 
 
-def smooth_backdrop(small: np.ndarray, backdrop: np.ndarray, keep: np.ndarray, gain: np.ndarray):
+def smooth_backdrop(small: np.ndarray, backdrop: np.ndarray, keep: np.ndarray, gain: np.ndarray) -> np.ndarray:
     """Neutral grey polynomial surface fitted to the backdrop pixels (creases ignored)."""
     h, w, _ = small.shape
     yy, xx = np.mgrid[0:h, 0:w]

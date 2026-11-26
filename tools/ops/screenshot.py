@@ -26,17 +26,22 @@ SIZES = {"desktop": "1440,1000", "phone": "390,844"}
 MAC_CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
 
+class ChromeMissing(RuntimeError):
+    """No Chrome or Chromium on this machine (the Mac app, google-chrome or chromium on PATH)."""
+
+
 class Quiet(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *args) -> None:
         pass
 
 
 def find_chrome() -> str:
+    """The Chrome to run headless; ChromeMissing when there is none."""
     for name in (MAC_CHROME, "google-chrome", "chromium"):
         found = shutil.which(name)
         if found:
             return found
-    raise SystemExit("Google Chrome not found")
+    raise ChromeMissing("Google Chrome not found")
 
 
 def main() -> int:
@@ -47,7 +52,10 @@ def main() -> int:
 
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
-    chrome = find_chrome()
+    try:
+        chrome = find_chrome()
+    except ChromeMissing as exc:
+        raise SystemExit(str(exc)) from exc
     server = None
     url = args.page
     if "://" not in url:

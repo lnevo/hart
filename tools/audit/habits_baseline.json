@@ -1,12 +1,6 @@
 {
- "cats/scripts/build_hart_trains.py": {
-  "import-exit": 2
- },
  "cats/scripts/cats_inspect.py": {
   "import-exit": 1
- },
- "cats/scripts/patch_jmri_startup.py": {
-  "import-exit": 4
  },
  "cats/scripts/tests/test_build_cats_panel_bindings.py": {
   "dated-note": 11,
@@ -20,17 +14,6 @@
  },
  "jmri/layouts/hart/scripts/audit_panel_contracts.py": {
   "dated-note": 3
- },
- "jmri/layouts/hart/scripts/build_hart_signal_heads.py": {
-  "dated-note": 3,
-  "import-exit": 2
- },
- "jmri/layouts/hart/scripts/diagnose_turnout_states.py": {
-  "dated-note": 2
- },
- "jmri/layouts/hart/scripts/export_track_lengths.py": {
-  "dated-note": 2,
-  "import-exit": 3
  },
  "jmri/layouts/hart/scripts/gen_ctc_track_plan.py": {
   "dated-note": 1,
@@ -134,13 +117,6 @@
  },
  "jmri/layouts/hart/scripts/tests/test_speedmatch_review.py": {
   "exec-parts": 2
- },
- "jmri/scripts/check_hart_phase02.py": {
-  "import-exit": 1,
-  "lost-cause": 1
- },
- "ops/hart-ops/card_pipeline/apply_visual_review.py": {
-  "dated-note": 1
  },
  "ops/hart-ops/publications/build_crew_json.py": {
   "import-exit": 1
@@ -249,9 +225,6 @@
   "import-exit": 5,
   "lost-cause": 1
  },
- "tools/ops/screenshot.py": {
-  "import-exit": 1
- },
  "tools/ops/status_counts.py": {
   "dated-note": 1
  },
@@ -262,20 +235,13 @@
   "dated-note": 3
  },
  "tools/schematic/build_cats_panel.py": {
-  "dated-note": 3,
-  "import-exit": 7
+  "dated-note": 3
  },
  "tools/schematic/build_device_map.py": {
   "dated-note": 8
  },
- "tools/schematic/build_hands.py": {
-  "import-exit": 7
- },
  "tools/schematic/build_masts.py": {
   "dated-note": 2
- },
- "tools/schematic/build_signals.py": {
-  "import-exit": 10
  },
  "tools/schematic/build_staging_sets.py": {
   "dated-note": 2
@@ -302,12 +268,6 @@
  "tools/schematic/mast_rule.py": {
   "dated-note": 2
  },
- "tools/schematic/publish_draft.py": {
-  "import-exit": 11
- },
- "tools/schematic/sync_signals.py": {
-  "import-exit": 2
- },
  "tools/schematic/tests/test_band_panels.py": {
   "dated-note": 1
  },
@@ -319,9 +279,6 @@
  },
  "tools/schematic/tests/test_builders_read_field.py": {
   "dated-note": 1
- },
- "tools/schematic/tests/test_cats_panel.py": {
-  "lost-cause": 1
  },
  "tools/schematic/tests/test_device_map_helpers.py": {
   "dated-note": 1
