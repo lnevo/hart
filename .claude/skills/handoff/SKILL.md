@@ -40,8 +40,13 @@ Quality (code only): 1 clear domain errors, not raw exceptions; 2 no silent fall
   fences, HTML comments, multi-line list items, lines that start with bold), links
   copied into another file without rewriting, and checks that compare more than they
   claim. Test the ones that apply.
-Checks: single tests while iterating; the full ./tools/check.sh once, through
-  make remote CMD="./tools/check.sh" after pushing. Take timings from logs, not re-runs.
+Checks: single tests while iterating; make static (about 20 s) before each push;
+  the full ./tools/check.sh once, through make remote CMD="./tools/check.sh" after
+  pushing. Take timings from logs, not re-runs. Rules the static checks enforce, to
+  keep in mind while writing: no script outside hartlib reads a layout data file
+  (data-readers); every new script or file in an output folder gets a map box, through
+  make map (pipeline-map-coverage); Python files stay under their size limit (py-sizes);
+  plain writing (ai-speak, public-text).
   Stop your own background jobs by PID or a pattern holding your worktree path, never
   pkill -f a shared script name: other sessions run the same scripts.
 Review (code only): after pushing, run /code-review medium (high for the code `/done`
