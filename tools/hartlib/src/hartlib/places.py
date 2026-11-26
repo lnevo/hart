@@ -136,43 +136,96 @@ def ids(cell: str) -> str:
     return _map(cell, lambda item: by_name.get(item, item))
 
 
-@lru_cache(maxsize=4)
-def _switch_places(stations: bytes, interlockings: bytes) -> Mapping[tuple[str, str], str]:
+def _files(schematic: Path | None) -> tuple[Path, Path]:
+    folder = SCHEMATIC if schematic is None else Path(schematic)
+    return folder / STATIONS.name, folder / INTERLOCKINGS.name
+
+
+def _stamp(path: Path) -> tuple[str, int, int]:
+    try:
+        st = path.stat()
+    except OSError as exc:
+        raise _error(f"{path}: cannot read it ({exc.strerror})") from None
+    return str(path), st.st_mtime_ns, st.st_size
+
+
+@lru_cache(maxsize=8)
+def _switch_places(stations: tuple[str, int, int], interlockings: tuple[str, int, int]
+                   ) -> tuple[Mapping[tuple[str, str], str], Table]:
     from . import railroad_facts                # it imports level_masts, which imports this module
-    by_name = _table(stations, interlockings).by_name
+    st_path, il_path = Path(stations[0]), Path(interlockings[0])
+    places = _table(_bytes(st_path), _bytes(il_path))
+    by_name = places.by_name
+
+    def ident_of(name: str, fname: str) -> str:
+        if name not in by_name:
+            raise _error(f"{fname}: {name!r} is no station or interlocking of {st_path.name} or {il_path.name}")
+        return by_name[name]
     out: dict[tuple[str, str], str] = {}
-    for a in railroad_facts.read_desk_areas(STATIONS):
+
+    def put(key: tuple[str, str], ident: str, fname: str) -> None:
+        if key in out and out[key] != ident:
+            raise _error(f"{fname}: switch {key[1]} (level {key[0]}) is in {out[key]} and in {ident}: a switch has "
+                         "one place")
+        out[key] = ident
+    for a in railroad_facts.read_desk_areas(st_path):
         if a.level == 1:
-            out.update(((str(a.level), s), by_name[a.name]) for s in a.switches)
-    for x in railroad_facts.read_interlockings(INTERLOCKINGS, levels=(2, 3)):
-        ident = by_name[x.name]
+            ident = ident_of(a.name, st_path.name)
+            for s in a.switches:
+                put((str(a.level), s), ident, st_path.name)
+    for x in railroad_facts.read_interlockings(il_path, levels=(2, 3)):
+        ident = ident_of(x.name, il_path.name)
         if not ident.startswith(CP_PREFIX):
-            raise _error(f"{INTERLOCKINGS.name}: interlocking {x.name} (level {x.level}) has a station's name")
-        out.update(((str(x.level), s), ident) for s in x.switches)
-    return out
+            raise _error(f"{il_path.name}: interlocking {x.name} (level {x.level}) has a station's name")
+        for s in x.switches:
+            put((str(x.level), s), ident, il_path.name)
+    return out, places
 
 
-def switch_places() -> Mapping[tuple[str, str], str]:
+def switch_places(schematic: Path | None = None) -> Mapping[tuple[str, str], str]:
     """{(level, switch number): place id}: staging's switches by desk area (as the naming station's id), main and
-    upper's by interlocking (the module text). Cached on the bytes of both files."""
-    return _switch_places(_bytes(STATIONS), _bytes(INTERLOCKINGS))
+    upper's by interlocking (the module text), from the lists in `schematic` (a folder holding stations.csv and
+    interlockings.csv; default the repo's). Cached on both files' path, mtime and size; a switch given two places
+    stops."""
+    st, il = _files(schematic)
+    return _switch_places(_stamp(st), _stamp(il))[0]
 
 
-def switch_place(level: str | int, switch: str | int) -> str:
+def switch_place(level: str | int, switch: str | int, schematic: Path | None = None) -> str:
     """The place id of switch `switch` on `level` (switch_places), "" when the lists hold it in no place."""
-    return switch_places().get((str(level), str(switch)), "")
+    return switch_places(schematic).get((str(level), str(switch)), "")
+
+
+def lists_beside(source) -> Path | None:
+    """The schematic folder beside a device master `source` (a devices.Files, the master's path, or a data folder)
+    when it holds its own stations.csv, so a copy's turnouts take the copy's lists; None (the repo's) otherwise."""
+    if source is None:
+        return None
+    path = Path(getattr(source, "master", source))
+    data = path if path.is_dir() else path.parent
+    folder = data / SCHEMATIC.name
+    if (folder / STATIONS.name).is_file() and folder.resolve() != SCHEMATIC.resolve():
+        return folder
+    return None
 
 
 SWITCH_ID = re.compile(r"(?:switch|dcc):(\d+)")     # a turnout row's id: Switch <n> or DCC Switch <n>
 
 
-def of(row: Mapping[str, str]) -> str:
+def of(row: Mapping[str, str], schematic: Path | None = None) -> str:
     """The place a device row sits in, by name. A turnout row has no cp cell (owner, 2026-11-25): its place is its
-    switch's (switch_place), "" for a local switch or a level-less row. Any other row's place is its cp cell."""
+    switch's (switch_place, from the lists in `schematic`, default the repo's; lists_beside finds a copy's), "" for a
+    local switch or a level-less row. Any other row's place is its cp cell."""
     if row["layer"] != "turnout":
         return row["cp"]
     m = SWITCH_ID.fullmatch(row["id"])
-    return names(switch_place(row["level"], m.group(1))) if m and row["level"] else ""
+    if not (m and row["level"]):
+        return ""
+    ident = switch_place(row["level"], m.group(1), schematic)
+    if not ident:
+        return ""
+    st, il = _files(schematic)
+    return _switch_places(_stamp(st), _stamp(il))[1].by_id.get(ident, ident)
 
 
 def with_names(row: dict, where: str = "") -> dict:

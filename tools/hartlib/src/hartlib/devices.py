@@ -538,7 +538,8 @@ def device_map_lines(levels: tuple[str, ...], source: "Files | Path | str | None
                      ) -> list[tuple[int, dict[str, str]]]:
     """(place in the merged view, device-map row; a message names it by at(), never the number) of each row of `levels` outside OUT_OF_MAPS, in master order: the rows the
     old device map of those levels held, in its form plus `role`, a turnout's cp its place. The one way a reader gets them."""
-    return [(n, {**device_map_row(r), "cp": place(r), "role": r["role"]}) for n, r in enumerate(load(source), 2)
+    lists = places.lists_beside(source)        # a copy's turnouts take the copy's switch lists
+    return [(n, {**device_map_row(r), "cp": place(r, lists), "role": r["role"]}) for n, r in enumerate(load(source), 2)
             if r["level"] in levels and r["role"] not in OUT_OF_MAPS]
 
 

@@ -213,8 +213,8 @@ class TheCommand(unittest.TestCase):
 
     def setUp(self):
         # a turnout row has no cp: its place is its switch's in the switch lists (devices.place), here CP 9's
-        patch = mock.patch.object(places, "switch_place", lambda level, s: "CP 9" if (str(level), str(s)) == ("2", "9")
-                                  else "")
+        patch = mock.patch.object(places, "switch_place",
+                                  lambda level, s, schematic=None: "CP 9" if (str(level), str(s)) == ("2", "9") else "")
         patch.start()
         self.addCleanup(patch.stop)
 
