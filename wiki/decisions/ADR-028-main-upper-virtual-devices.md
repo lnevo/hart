@@ -27,6 +27,7 @@ Every main and upper turnout, block sensor, signal head and mast in JMRI is an i
 **While virtual**
 - The heads are internal, so nothing unwired reaches MQTT (ADR-024).
 - The block sensors are set clear by a LogixNG when the tables load.
+- The same LogixNG sets every virtual turnout to its startup position: Closed, except where the main route runs through the diverging leg (owner, 2026-11-19).
 
 ## Consequences
 

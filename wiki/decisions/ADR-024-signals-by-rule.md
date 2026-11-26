@@ -26,6 +26,7 @@ One mast process places every mast on every level (owner, 2026-11-20). The rules
 - Two heads when any route the mast governs meets facing points inside its interlocking before the next signal (`facing_on_route`); otherwise one.
 - High (searchlight) facing from running track: the main route, a long track inside an interlocking, or a non-main track joining two different interlockings, through a local crossover's through route (`running_tracks`, a rule since 2026-11-20; it was the hand list `running_tracks_main_upper.csv`): 119-121, 121-123, 211-217 1 and 217-219, and on staging Scale, so 6LA and 8RA turned from dwarf to searchlight. A dwarf (low) from a yard, lead or industry track.
 - In stock JMRI `basic`, `one-low` and `one-searchlight` show the same aspects. Only the two-head appearances (`two-searchlight`, `two-low`) add Diverging Clear and Diverging Approach.
+- Two masts that share one facing and protected block pair take their `leg` from the last letter of their names: A is the normal leg, B the diverging leg (owner, 2026-11-16).
 
 **Interlockings**
 - One file for every level since 2026-11-20: `interlockings.csv` (level, interlocking, switches, area, notes; `area` is the LCOS node area of a main or upper interlocking, blank on staging).
