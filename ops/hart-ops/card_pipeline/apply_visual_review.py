@@ -969,12 +969,12 @@ VISUAL: dict[str, dict] = {
         "notes": "CSX heritage B&O locomotive; engine_roster_id=CSX1827",
     },
     "IMG_9186.png": {
-        "reporting_marks": "TTC",
+        "reporting_marks": "PRC",
         "road_number": "4678",
         "car_type": "Streetcar",
         "full_name": "PCC · Streetcar",
         "match_confidence": "visual_review",
-        "notes": "Toronto Transit Commission PCC streetcar; not in car roster",
+        "notes": "PRC PCC streetcar for Route 23 (owner, 2026-11-25); not in car roster",
     },
     "IMG_9187.png": {
         "reporting_marks": "Conrail",

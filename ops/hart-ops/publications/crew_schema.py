@@ -24,7 +24,7 @@ DOCX = {
     "timetable": {"subtitle", "note"},
     "scale part": {"lead_items"},
     "crew job": {"photo", "intro", "engine", "steps"},
-    "yardmaster job": {"legend", "legend_extra"},
+    "yardmaster job": {"legend_extra"},
     "sequence row": {"action"},
 }
 
@@ -124,8 +124,6 @@ def problems(master: dict, industries: dict[str, dict]) -> list[str]:
         out += [f"{where}: map {v!r} is no map" for v in j.get("maps", []) if v not in map_ids]
         needs = {"crew": ("steps",), "yardmaster": ("sequence",), "dispatcher": ("lineup", "priority")}[kind]
         out += [f"{where}: a {kind} job needs {f} (its docx prints it)" for f in needs if not j.get(f)]
-        if kind == "yardmaster" and not (j.get("docx") or {}).get("legend"):
-            out.append(f"{where}: a yardmaster job needs docx.legend (YM-01's blocking list order)")
         if kind == "crew":
             if not (j.get("engine") or {}).get("label"):
                 out.append(f"{where}: a crew job needs engine.label")
@@ -143,9 +141,8 @@ def problems(master: dict, industries: dict[str, dict]) -> list[str]:
                 out.append(f"{where} row {row.get('n')!r}: a lineup row needs route and action")
         if kind == "yardmaster":
             _docx(where, j, "yardmaster job", out)
-            legend = (j.get("docx") or {}).get("legend", [])
-            out += [f"{where}: legend color {v!r} is no color" for v in legend if v not in color_ids]
-            out += [f"{where}: legend gives {v!r} twice" for v in _dupes(legend)]
+            out += [f"{where}: colors gives {v!r} twice (YM-01's blocking list prints them in order)"
+                    for v in _dupes(j.get("colors", []))]
 
     if {"revision", "effective"} & set(master["schematic"]):
         out.append("schematic: revision and effective come from the title block (hartlib.map_revision); "

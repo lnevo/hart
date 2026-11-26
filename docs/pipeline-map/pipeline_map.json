@@ -627,7 +627,7 @@
    "kind": "output",
    "status": "live",
    "domain": "layout",
-   "desc": "The CATS train list as a flat CSV (name, symbol, engine, font, runs_job, notes), written from trains.csv by build_hart_trains.py; never edited by hand.",
+   "desc": "The CATS train list as a flat CSV (name, symbol, engine, font, runs_job, notes), written from the on_desks rows of trains.csv by build_hart_trains.py; never edited by hand.",
    "path": "cats/data/hart_trains.csv"
   },
   {
@@ -2032,7 +2032,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "ops",
-   "desc": "Train master keyed on train_symbol (ADR-039): CATS name, engine, font, runs_job, the Operations Pro name when it differs; column rules in trains.columns.csv.",
+   "desc": "Train master keyed on train_symbol (ADR-039): CATS name, engine, font, runs_job, on_desks (no for the Operations Pro staging trains), the Operations Pro name when it differs; column rules in trains.columns.csv.",
    "path": "ops/hart-ops/data/trains.csv"
   },
   {
@@ -2431,7 +2431,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "website",
-   "desc": "Archive catalogue (ADR-039): one row per archive item and per lineage logo, with id, file, credit, source link, credit confidence, rights and origin. archive.json and the lineage charts copy it; column rules in archive_catalogue.columns.csv.",
+   "desc": "Archive catalogue (ADR-039): one row per archive item and per logo file, with id, file, title and caption, credit, source link, credit confidence, rights and origin; the one place for logo credits. archive.json and the lineage charts copy it; column rules in archive_catalogue.columns.csv.",
    "path": "www/scripts/archive_catalogue.csv"
   },
   {

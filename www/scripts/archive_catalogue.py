@@ -1,22 +1,23 @@
 #!/usr/bin/env python3
-"""The archive catalogue: one row per archive item and per logo the lineage charts show (ADR-039, lane L6).
+"""The archive catalogue: one row per archive item and per logo file (ADR-039, lane L6).
 
 ``www/scripts/archive_catalogue.csv`` is the master for what a historical item is and where it came from:
-its id, the file, the credit, the source link, how sure the credit is, the rights and where the copy was
-found. Its columns are described in ``archive_catalogue.columns.csv``. It sits in ``www/scripts/`` because
+its id, the file, its title and caption, the credit, the source link, how sure the credit is, the rights and
+where the copy was found. It is also the one place for logo credits: every file under
+``ops/hart-ops/operator_logos/`` and the site's own logos has a row of collection ``logo`` (owner, 2026-11-25). Its columns are described in ``archive_catalogue.columns.csv``. It sits in ``www/scripts/`` because
 the build never publishes that folder: its paths name the gitignored ``media/`` mirrors.
 
 Two files copy it, and this check holds them to it:
 
 - ``www/data/archive.json``: each item is a catalogue row of collection ``archive``, under the same id,
-  with the same ``src`` (the row's ``path``), ``pdf``, ``credit``, ``source_url``, ``credit_confidence``,
-  ``rights`` and ``origin``, and each such row is an item. Title, caption, date, tags, kind and bucket are
-  the page's own text and stay in archive.json.
+  with the same ``src`` (the row's ``path``), ``pdf``, ``title``, ``caption``, ``credit``, ``source_url``,
+  ``credit_confidence``, ``rights`` and ``origin``, and each such row is an item. Date, tags, kind, bucket and
+  reason are the page's own and stay in archive.json only.
 - the lineage charts (``www/data/*-lineage.json``, read by ``www/js/lineage.js``): each card with a logo
   cites a catalogue row of collection ``logo`` in ``logo_id``, and its ``logo`` is that row's ``path``.
 
-``serve_portal.py`` edits through ``sync_item`` and ``drop_item``, so a credit fixed on the local Photos
-page changes the catalogue too.
+``serve_portal.py`` edits through ``sync_item`` and ``drop_item``, so a title, caption or credit fixed on the
+local Photos page changes the catalogue too.
 
     python3 www/scripts/archive_catalogue.py           # check; exit 1 on a difference
     python3 www/scripts/archive_catalogue.py --write   # set each lineage card's logo from its logo_id
@@ -36,11 +37,12 @@ CATALOGUE = Path(__file__).resolve().parent / "archive_catalogue.csv"
 ARCHIVE = WWW / "data" / "archive.json"
 LINEAGE_GLOB = "*-lineage.json"
 
-COLUMNS = ("id", "collection", "path", "pdf", "credit", "source_url", "credit_confidence", "rights", "origin",
-           "derived_from")
+COLUMNS = ("id", "collection", "path", "pdf", "title", "caption", "credit", "source_url", "credit_confidence",
+           "rights", "origin", "derived_from")
 # catalogue column -> archive.json item key, for the columns archive.json copies
-ARCHIVE_FIELDS = {"id": "id", "path": "src", "pdf": "pdf", "credit": "credit", "source_url": "source_url",
-                  "credit_confidence": "credit_confidence", "rights": "rights", "origin": "origin"}
+ARCHIVE_FIELDS = {"id": "id", "path": "src", "pdf": "pdf", "title": "title", "caption": "caption", "credit": "credit",
+                  "source_url": "source_url", "credit_confidence": "credit_confidence", "rights": "rights",
+                  "origin": "origin"}
 
 
 def read(path: Path = CATALOGUE) -> list[dict]:
@@ -135,7 +137,7 @@ def check_lineage(rows: list[dict], name: str, data: dict) -> list[str]:
 
 
 def check_rows(rows: list[dict]) -> list[str]:
-    """What the sidecar cannot say: a logo is a tracked file of the site or the repo, cited from www/."""
+    """What the sidecar cannot say: a logo is a file of the site or the repo, cited from www/."""
     problems = []
     for row in rows:
         if row["collection"] == "logo" and not (WWW / row["path"]).resolve().is_file():

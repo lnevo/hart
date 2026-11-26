@@ -382,10 +382,10 @@ def wire_occupancy(row: dict, pin: StagingPin) -> dict:
 
 def new_spare(pin: StagingPin) -> dict:
     """The row of a spare input (a wiring.csv detector with no block, or one whose block is now a part): named by its
-    input. wiring.csv makes it; it has no field row."""
+    input, detector none (owner, 2026-11-25). wiring.csv makes it; it has no field row."""
     row = {c: "" for c in devices.COLUMNS}
     row.update(level=STAGING_LEVEL, layer="occupancy", role="spare", user_name=f"unused {pin.input}",
-               assignment="spare", written_by="build_device_map.py")
+               assignment="spare", detector="none", written_by="build_device_map.py")
     row = wire_occupancy(row, pin)
     row["id"] = device_ids.spare_id(row["system_name"])
     row["description"] = devices.describe(row)

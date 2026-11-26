@@ -13,7 +13,7 @@
 - Nothing stopped a deploy from a worktree that lacked commits already on `origin/main`. Such a deploy takes another session's merged pages off the site, and nobody would see it.
 - Nothing stopped two deploys at once.
 - The 10% drop check counted archive items, logos, gallery and fleet items and all files. A lost page or share card was seen only if the total file count fell 10%.
-- The script's header still named VestaCP. The server is HestiaCP on Lightsail since 2026-11-23.
+- The script's header still named the old server.
 
 ## Decision
 
@@ -21,7 +21,7 @@
 2. **A deploy is never behind `origin/main`.** The deploy fetches `origin/main` and stops when `HEAD` does not contain it, naming how many missing commits touch `www/`. It also stops when the fetch fails. `--allow-behind` overrides both, for an owner's rollback or when GitHub is down. A deploy from a branch other than `main`, or with uncommitted changes, warns and goes ahead, since work-in-progress deploys stay allowed. The usual deploy, from the main checkout after pulling `main`, passes.
 3. **One deploy at a time.** A lock directory, `hart-site-deploy.lock` in the shared git directory, covers every worktree. It is built under a private name with the owner's PID and checkout, then renamed into place, so it never exists without its PID. A second deploy stops while that PID is alive. When the PID is gone, the lock is renamed aside, checked to be the same stale lock, and taken. The lock is released on exit.
 4. **The drop check counts pages and share cards.** The manifest adds `html_pages` and `share_cards` (`assets/share/*.jpg`). The deploy record is not a count, so the drop check skips it. A manifest written before this ADR lacks the new counts, so its first comparison checks only the old ones.
-5. The script header names HestiaCP on Lightsail.
+5. The script header names no server; server details live in the owner's private notes (gitignored).
 
 Tests: `www/scripts/tests/test_deploy_script.py` runs the script in a throwaway repo with a stub build (behind, override, lock held, stale lock, `--status`). `test_deploy_guards.py` covers the counts, and `tools/audit/tests/test_orient.py` the `website:` line.
 
