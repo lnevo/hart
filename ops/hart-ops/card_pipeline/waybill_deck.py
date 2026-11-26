@@ -9,6 +9,7 @@ from __future__ import annotations
 import csv
 import random
 import re
+import sys
 from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
@@ -30,6 +31,10 @@ from waybill_data import (
     OUTBOUND_EMPTY_RETURN,
     PROCESS_CHEMICALS,
     SPOT_WAYBILL,
+    Party,
+    WaybillSpec,
+    _norm,
+    normalize_spec,
 )
 
 def _is_layout_party(name: str) -> bool:
@@ -64,10 +69,6 @@ def build_interchange_deck() -> list[dict]:
         deck.append(card)
     return deck
 
-
-
-def _norm(s: str | None) -> str:
-    return (s or "").strip()
 
 
 def _parse_spot_num(raw: str) -> int:
@@ -118,7 +119,12 @@ def _format_spots(nums: list[int]) -> str:
     return ", ".join(parts)
 
 
-def _commodity_from_usage(usage: str) -> str:
+def _commodity_from_usage(usage: str, industry: str = "") -> str:
+    """The load a spot usage names, from a keyword in it.
+
+    With no keyword the usage text itself is the load, and a warning names the spot: give such
+    a spot its own SPOT_WAYBILL entry to set a real load.
+    """
     u = usage.lower()
     if "coal" in u:
         return "Coal"
@@ -138,54 +144,48 @@ def _commodity_from_usage(usage: str) -> str:
         return "Steel"
     if "shipping" in u:
         return "Plastic Resins"
+    print(
+        f"waybill: spot usage {usage!r} at {industry or 'an industry'} names no known load; "
+        "the cards show the usage as the load (add it to waybill_data.SPOT_WAYBILL)",
+        file=sys.stderr,
+    )
     return usage
 
 
-def _waybill_spec(industry: str, usage: str) -> dict:
+def _waybill_spec(industry: str, usage: str) -> WaybillSpec:
+    """The table entry for a spot, else a generic one built from the usage text."""
     spec = SPOT_WAYBILL.get((industry, usage))
     if spec:
         return spec
-
+    where = f"default spec for ({industry!r}, {usage!r})"
     u = usage.lower()
-    commodity = _commodity_from_usage(usage)
     if "unload" in u:
-        return {
-            "inbound_load": commodity,
+        return normalize_spec({
+            "inbound_load": _commodity_from_usage(usage, industry),
             "outbound_load": EMPTY,
             "suppliers": ["Various suppliers"],
             "customers": [],
-        }
+        }, where)
     if "load" in u or "shipping" in u:
-        return {
+        return normalize_spec({
             "inbound_load": EMPTY,
-            "outbound_load": commodity,
+            "outbound_load": _commodity_from_usage(usage, industry),
             "suppliers": [],
             "customers": [{"name": "Various customers", "via": "CSX"}],
-        }
-    return {
+        }, where)
+    return normalize_spec({
         "inbound_load": "General Freight",
         "outbound_load": "General Freight",
         "suppliers": ["Various local shippers"],
         "customers": [
             {"name": "Various local receivers", "via": "CSX"},
         ],
-    }
+    }, where)
 
 
-def _normalize_party(entry) -> dict[str, str]:
-    if isinstance(entry, dict):
-        return {
-            "name": _norm(entry.get("name", "")),
-            "via": _norm(entry.get("via", "")),
-            "entry": _norm(entry.get("entry", "")),
-            "commodity": _norm(entry.get("commodity", "")),
-        }
-    return {"name": _norm(str(entry)), "via": "", "entry": "", "commodity": ""}
-
-
-def inbound_commodity_label(spec: dict) -> str:
+def inbound_commodity_label(spec: WaybillSpec) -> str:
     """Summary label for operator reference (uses inbound_load, not per-card names)."""
-    load = spec.get("inbound_load", "")
+    load = spec["inbound_load"]
     if load == EMPTY:
         return "Empty cars"
     return load
@@ -205,19 +205,20 @@ def _apply_load_summary(card: dict, summary_load: str = "") -> None:
         card["LoadSummary"] = summary
 
 
-def _party_pool(flow: str, load: str, spec: dict) -> list[dict[str, str]]:
+def _party_pool(flow: str, load: str, spec: WaybillSpec) -> list[Party]:
+    """The parties a direction's cards are spread over: customers route an inbound empty."""
     if load == EMPTY and flow == "IN":
-        return [_normalize_party(c) for c in spec.get("customers") or []]
+        return list(spec["customers"])
     if load == EMPTY:
         return []
     if flow == "IN":
-        return [_normalize_party(name) for name in spec.get("suppliers") or []]
-    return [_normalize_party(c) for c in spec.get("customers") or []]
+        return list(spec["suppliers"])
+    return list(spec["customers"])
 
 
-def _spread_parties(pool: list[dict[str, str]], count: int) -> list[dict[str, str]]:
+def _spread_parties(pool: list[Party], count: int) -> list[Party]:
     """Assign one party per card, shuffled and spread when pool is smaller."""
-    blank = {"name": "", "via": "", "entry": "", "commodity": ""}
+    blank: Party = {"name": "", "via": "", "entry": "", "commodity": ""}
     if not pool or count <= 0:
         return [blank] * max(count, 0)
     if len(pool) >= count:
@@ -226,7 +227,7 @@ def _spread_parties(pool: list[dict[str, str]], count: int) -> list[dict[str, st
         return picked[:count]
     shuffled = pool.copy()
     random.shuffle(shuffled)
-    out: list[dict[str, str]] = []
+    out: list[Party] = []
     while len(out) < count:
         if out and len(out) % len(shuffled) == 0:
             random.shuffle(shuffled)
@@ -235,20 +236,19 @@ def _spread_parties(pool: list[dict[str, str]], count: int) -> list[dict[str, st
 
 
 def _apply_route(
-    card: dict, flow: str, load: str, party: dict[str, str], industry: str = ""
+    card: dict, flow: str, load: str, party: Party, industry: str = ""
 ) -> None:
     if card.get("CardKind") == "interchange":
         return
 
-    name = party.get("name", "")
-    via = party.get("via", "")
+    name = party["name"]
+    via = party["via"]
 
     if load == EMPTY:
         if flow == "IN" and card.get("Spots"):
             card["RouteFrom"] = ""
             card["RouteTo"] = ""
-            via = party.get("via", "")
-            entry = party.get("entry", "")
+            entry = party["entry"]
             if via in ("NS", "POHC") or entry == "POHC":
                 card["RouteChain"] = "POHC"
             elif via == "CSX" or entry == "CSX":
@@ -262,8 +262,7 @@ def _apply_route(
     elif flow == "IN":
         card["RouteFrom"] = name
         card["RouteTo"] = ""
-        entry = party.get("entry", "")
-        card["RouteChain"] = "POHC" if entry == "POHC" else "CSX"
+        card["RouteChain"] = "POHC" if party["entry"] == "POHC" else "CSX"
     else:
         card["RouteFrom"] = ""
         card["RouteTo"] = name
@@ -305,7 +304,7 @@ def _industry_inbound_empty_spots(groups: list[dict]) -> dict[str, set[int]]:
     by_industry: dict[str, set[int]] = defaultdict(set)
     for group in groups:
         spec = _waybill_spec(group["Industry"], group["Usage"])
-        if spec.get("inbound_load") == EMPTY:
+        if spec["inbound_load"] == EMPTY:
             by_industry[group["Industry"]].update(_spots_from_label(group["Spots"]))
     return dict(by_industry)
 
@@ -460,7 +459,7 @@ def expand_copies(waybills: list[dict], group_order: list[tuple]) -> list[dict]:
                 card["Usage"] = group_key[2]
                 if load == EMPTY:
                     card["CardKind"] = "inbound_empty"
-                elif party.get("commodity"):
+                elif party["commodity"]:
                     card["Commodity"] = party["commodity"]
                 _apply_load_summary(card, summary_load)
                 _apply_route(card, flow, load, party, group_key[0])
