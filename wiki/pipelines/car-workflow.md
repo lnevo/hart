@@ -50,7 +50,7 @@ Change it in the repository, not in STS or JMRI. The next publish overwrites a c
 
 `bin/cars sync` sends the repository's identity fields (road, number, length, colour, type, class, notes, as `compare` maps them) for cars both sides hold. It is a dry run by default; `--apply` writes the Operations Pro roster in the repo (refused when the Pi's Operations files differ) and the STS seed copies, which it replaces wholesale as `seed-copy` does (the dry run lists any cars added or removed and out-of-service changes beyond the fields). With `--live-sts --sts-url URL` it also patches the live STS `remarks` (`PATCH /cars/{id}`, one car at a time, each read back) after a backup, and refuses while the operating flag is set. Position, load and destination are never sent (ADR-016).
 
-`bin/cars fix-ops` brings the Operations Pro roster up to the repository: wrong ids listed in `ROSTER_TYPO_IDS` are corrected in place, keeping location and moves, and missing cars are added. It leaves STS and the queue alone. Commit and deploy the result as in the steps above.
+`bin/cars fix-ops` brings the Operations Pro roster up to the repository: missing cars are added and out-of-service flags set to match. It renames no car: the ten misread ids it once corrected were fixed in the master and every copy (ADR-039 lane L7, 2026-11-25), and it lists, without changing them, the cars whose id the repository lacks (`compare` shows them under "Not in repository"). It leaves STS and the queue alone. Commit and deploy the result as in the steps above.
 
 ## Do not
 

@@ -6,7 +6,10 @@
 # Each folder in FOLDERS is mirrored into WSL at $BACKUP_WIN_DIR/<name>/. A file that
 # was changed or deleted on the Mac is moved, not lost, into
 # $BACKUP_WIN_DIR/replaced/<time>/<name>/ (kept BACKUP_WIN_KEEP_DAYS, default 90).
-# A folder missing on the Mac is reported and skipped, never mirrored as empty.
+# A folder missing on the Mac is reported and skipped, never mirrored as empty. An entry may
+# also be one file, copied into $BACKUP_WIN_DIR/<name>/. Entries named secrets-* (owner,
+# 2026-11-25) are copied with owner-only permissions (folders 700, files 600) and their
+# replaced copies are tightened the same way; their contents are never printed.
 # $HART_BACKUP_DIR/win-last-ok holds the time of the last run in which every folder copied.
 #
 #   BACKUP_WIN_HOST  ssh target (default $HART_WIN_SSH); empty copies to a local folder (tests)
@@ -35,6 +38,11 @@ FOLDERS=(
   "pi-snapshots|$ROOT/pi"
   "Layout|$HOME/Documents/Layout"
   "NMRA-AP|$HOME/Documents/NMRA AP"
+  # secrets (owner, 2026-11-25): the Pi image's keys and passwords, the router notes, the
+  # Sheets credentials. ~/.ssh is not here: agents cannot read it; the owner adds it by hand.
+  "secrets-pi-os|$HOME/.config/hart/pi-os"
+  "secrets-net|$HOME/dev/net"
+  "secrets-env|$MAIN/.env.local"
 )
 if [[ -n "${BACKUP_WIN_FOLDERS:-}" ]]; then  # tests: newline-separated name|folder lines
   FOLDERS=()
@@ -74,17 +82,36 @@ for entry in "${FOLDERS[@]}"; do
     echo "backup_win_push: the Windows name '$name' has a space; use one without" >&2
     exit 2
   fi
-  if [[ ! -d "$from" ]]; then
+  extra=()
+  if [[ -d "$from" ]]; then
+    src="$from/"  # the trailing slash copies the folder's contents, and follows the folder itself if it is a link
+  elif [[ -f "$from" ]]; then
+    src="$from"   # one file, into its own folder on the Windows side
+    extra+=(--copy-links)  # a linked file is copied as the file it points to, not as a dangling link
+  elif [[ "$name" == secrets-* ]]; then
+    # a secret that is gone (a rebuilt Mac) is reported, but does not fail the week's copy of everything else
+    echo "backup_win_push: WARNING secret source $from is missing; $name skipped" >&2
+    continue
+  else
     echo "backup_win_push: MISSING $from; $name skipped" >&2
     failed=1
     continue
   fi
-  # The trailing slash copies the folder's contents, and follows the folder itself if it is a link.
   to="$TARGET/$name/"
   dest="${HOST:+$HOST:}$to"
+  if [[ "$name" == secrets-* ]]; then
+    # owner-only from the start: the folder is made 700 before rsync writes into it, and rsync strips group and
+    # other bits from what it copies (keeping the owner's, so a script stays runnable after a restore)
+    if ! remote <<< "mkdir -p '$TARGET/$name' && chmod 700 '$TARGET/$name'"; then
+      echo "backup_win_push: $name FAILED (could not make its owner-only folder)" >&2
+      failed=1
+      continue
+    fi
+    extra+=("--chmod=Dgo-rwx,Fgo-rwx")  # one argument: rsync takes a comma list
+  fi
   # --backup-dir is read on the receiving side, relative to the target folder.
   rc=0
-  rsync "${opts[@]}" --backup-dir="../replaced/$STAMP/$name" "$from/" "$dest" < /dev/null || rc=$?
+  rsync "${opts[@]}" ${extra[@]+"${extra[@]}"} --backup-dir="../replaced/$STAMP/$name" "$src" "$dest" < /dev/null || rc=$?
   if [[ "$rc" == 0 ]]; then
     echo "backup_win_push: $name ok"
   elif [[ "$rc" == 24 ]]; then  # a file vanished while it was read; the rest copied
@@ -100,6 +127,20 @@ remote <<EOF
 set -e
 [ -d "$TARGET/replaced" ] && find "$TARGET/replaced" -mindepth 1 -maxdepth 1 -type d -mtime +$KEEP_DAYS -exec rm -rf {} + || true
 EOF
+# Secrets, and their replaced copies (rsync's backup keeps the old mode, and makes the replaced/<time>/ folders with
+# the default one), are owner-only; then nothing under them may be open to group or other. A failure of either fails
+# the run, so win-last-ok is never written over secrets left readable.
+open_secrets="$(remote <<EOF
+set -e
+find "$TARGET" -maxdepth 3 -name 'secrets-*' -exec chmod -R go-rwx {} +
+find "$TARGET" -maxdepth 3 -name 'secrets-*' -exec find {} -perm /077 \; | head -5
+echo checked
+EOF
+)" || open_secrets="the permission step itself failed"
+if [[ "$open_secrets" != "checked" ]]; then
+  echo "backup_win_push: FAILED: secrets on the Windows side are not owner-only: ${open_secrets%checked}" >&2
+  failed=1
+fi
 
 if [[ "$failed" == 0 ]]; then
   mkdir -p "$ROOT"

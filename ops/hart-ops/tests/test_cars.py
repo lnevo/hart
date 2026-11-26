@@ -59,36 +59,17 @@ class OpsMergeTests(unittest.TestCase):
             self.assertEqual(found["PRR1"].get("moves"), "7")
             self.assertIn("NW", [r.get("name") for r in root.find("roads")])
 
-    def test_rename_keeps_session_state_and_header(self):
+    def test_keeps_header(self):
         live_text = '<?xml version="1.0"?>\n<!DOCTYPE operations-config SYSTEM "x.dtd">\n' + LIVE
-        fixed = """<operations-config><cars>
-<car id="NW2" roadName="NW" roadNumber="2" color="Black" />
-</cars></operations-config>"""
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
             live = tmp / "live.xml"
             live.write_text(live_text)
             merged = tmp / "merged.xml"
-            merged.write_text(fixed)
-            cars.MERGED, cars.OPS_MERGED = merged, tmp / "out.xml"
-            self.assertEqual(cars.merge_ops(live, ["NW2"], {"PRR1": "NW2"}), [])
-            found = ET.parse(live).getroot().findall("./cars/car")
-            self.assertEqual([c.get("id") for c in found], ["NW2"])
-            self.assertEqual(found[0].get("roadName"), "NW")
-            self.assertEqual(found[0].get("locationId"), "9")
-            self.assertEqual(found[0].get("moves"), "7")
-            self.assertIn("DOCTYPE", live.read_text())
-
-    def test_rename_refuses_when_both_ids_exist(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            live = tmp / "live.xml"
-            live.write_text(LIVE)
-            merged = tmp / "merged.xml"
             merged.write_text(MERGED)
             cars.MERGED, cars.OPS_MERGED = merged, tmp / "out.xml"
-            with self.assertRaises(SystemExit):
-                cars.merge_ops(live, [], {"PRR1": "PRR1"})
+            self.assertEqual(cars.merge_ops(live, ["NW2"]), ["NW2"])
+            self.assertIn("DOCTYPE", live.read_text())
 
 
 class OutOfServiceTests(unittest.TestCase):
