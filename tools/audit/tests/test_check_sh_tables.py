@@ -330,7 +330,8 @@ class ScratchCheckSh(unittest.TestCase):
                               ({"CHECK_AUDIT": str(Path(d) / "audit")}, full), ({}, plain)):
                 with self.subTest(env=env):
                     done = self.run_check(CHECK_ONLY="^panels$", **env)
-                    self.assertEqual(0, done.returncode, done.stdout + done.stderr)
+                    # the scratch repo has no stamp helper: an audit run audits nothing, so it fails (test_audit_fails)
+                    self.assertEqual(1 if "CHECK_AUDIT" in env else 0, done.returncode, done.stdout + done.stderr)
                     self.assertIn(want, done.stdout)
                     self.assertEqual(1, done.stdout.count("ran panels"), "the panels job queued once")
 

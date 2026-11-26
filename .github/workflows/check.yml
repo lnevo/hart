@@ -179,7 +179,11 @@ jobs:
           bash tools/schematic/build_panels.sh --check --full > /tmp/warm.log 2>&1 || echo "panels --check reported stale or failed steps; check.sh reports them"
           grep -E '^== |: (ok|FAILED)' /tmp/warm.log || true
           echo "cache warmed in $((SECONDS - start)) s: $(find .cache/hart/schematic -name '*.pickle' | wc -l) entries"
-      # CHECK_RESULTS_TO: each job's result (passed, failed or skipped), for the skip record and the weekly guard below
+      # CHECK_RESULTS_TO: each job's result (passed, failed or skipped), for the skip record and the weekly guard below.
+      # The weekly run fails a job that read a file its step does not declare in tools/pipeline/checks.toml
+      # (CHECK_AUDIT_FAILS, ADR-037 stage 4c; pull request and push runs only warn). The audit runs when a job records
+      # its stamp, so that run records into a folder of its own, which nothing saves: a job with no stamp anywhere is
+      # audited from its own trace in that run.
       - if: steps.kind.outputs.kind != 'docs'
         id: checks
         run: ./tools/check.sh
@@ -187,7 +191,8 @@ jobs:
           SCHEMATIC_REQUIRED: "1"
           CHECK_SKIP_FROM: ${{ steps.gate.outputs.skip_from }}
           CHECK_SKIP_NOTE: ${{ steps.gate.outputs.note }}
-          CHECK_RECORD_TO: ${{ github.event_name == 'push' && format('{0}/.cache/ci/main-stamps', github.workspace) || '' }}
+          CHECK_RECORD_TO: ${{ github.event_name == 'push' && format('{0}/.cache/ci/main-stamps', github.workspace) || github.event_name == 'schedule' && format('{0}/weekly-stamps', runner.temp) || '' }}
+          CHECK_AUDIT_FAILS: ${{ github.event_name == 'schedule' && '1' || '' }}
           CHECK_RESULTS_TO: ${{ runner.temp }}/check-results.tsv
       # A pull request run that passed keeps the names of the jobs it skipped on main's stamps (tools/ci/stamp_gate.py
       # record-skips), every run of the full path, an empty list when it skipped none: the weekly run below reads them.
