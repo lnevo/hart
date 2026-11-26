@@ -30,15 +30,18 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-sys.path[:0] = [str(ROOT / "tools/hartlib/src")]
-from hartlib import coordinator, devices, tables as T  # noqa: E402
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import coordinator, devices, paths, tables as T  # noqa: E402
+
+ROOT = paths.REPO_ROOT
 
 PAGE_REL = "behind/jmri-additions.html"
 REGION = re.compile(r"<!--ja:([a-z0-9-]+)-->(.*?)<!--/ja-->", re.S)
 DATA = "jmri/layouts/hart/data"          # the master is under it (devices.master_path)
 DEVICE_LEVELS = {"main and upper": ("2", "3"), "staging": ("1",)}      # the master's levels of each group of masts
 COORDINATOR = "jmri/scripts/signal_coordinator.py"
+PANEL_STATUS = "jmri/layouts/hart/scripts/panel_status.py"
 TABLES = "jmri/layouts/hart/output/tables.xml"
 HEAD_IN_MAST = re.compile(r"\(IH(\d+)\)")   # signal_coordinator._HEAD_IN_MAST, without the brackets
 WORDS = "zero one two three four five six seven eight nine ten eleven twelve".split()
@@ -73,9 +76,11 @@ def _and(items: list[str]) -> str:
 
 
 def _siblings(root: Path) -> set[str]:
-    """The .py files of the modules signal_coordinator.py loads (hartlib.coordinator): shipped as parts of it."""
+    """The .py files of the modules signal_coordinator.py loads and of the parts panel_status.py runs
+    (hartlib.coordinator): shipped as parts of those scripts."""
     try:
-        return {f"{m}.py" for m in coordinator.sibling_modules(root / COORDINATOR)}
+        return {f"{m}.py" for script in (COORDINATOR, PANEL_STATUS)
+                for m in coordinator.sibling_modules(root / script)}
     except coordinator.CoordinatorError as e:
         raise PageError(str(e)) from None
 
@@ -100,7 +105,8 @@ def is_lcos_head(packed: str, lo: int, hi: int) -> bool:
 
 def host_lists(root: Path = ROOT) -> dict[str, set[str]]:
     """The Jython scripts each host's deploy copies into its profile's jython folder. The modules
-    signal_coordinator.py loads are parts of it, not scripts of their own, so they are left out."""
+    signal_coordinator.py loads and the parts panel_status.py runs are parts of them, not scripts of their own,
+    so they are left out."""
     parts = _siblings(root)
     out = {}
     for host, (rel, opener) in HOST_LISTS.items():

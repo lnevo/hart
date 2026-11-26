@@ -181,12 +181,18 @@ $jythonSrc = @(
   (Join-Path $hart 'jmri\layouts\hart\scripts\hide_cats_desk_windows.py'),
   (Join-Path $hart 'jmri\layouts\hart\scripts\hide_band_panels.py'),
   (Join-Path $hart 'jmri\layouts\hart\scripts\panel_status.py'),
+  # panel_status.py's PARTS: installed beside it, not Start Up items.
+  (Join-Path $hart 'jmri\layouts\hart\scripts\panel_status_turnouts.py'),
+  (Join-Path $hart 'jmri\layouts\hart\scripts\panel_status_clicks.py'),
   (Join-Path $hart 'jmri\layouts\hart\scripts\jmri_cmd_watcher.py'),
   (Join-Path $hart 'jmri\scripts\signal_coordinator.py'),
   # signal_coordinator.py's SIBLING_MODULES: installed beside it, not Start Up items.
   (Join-Path $hart 'jmri\scripts\sml_beans.py'),
   (Join-Path $hart 'jmri\scripts\sml_claims.py'),
-  (Join-Path $hart 'jmri\scripts\sml_handoff.py')
+  (Join-Path $hart 'jmri\scripts\sml_handoff.py'),
+  (Join-Path $hart 'jmri\scripts\sml_events.py'),
+  (Join-Path $hart 'jmri\scripts\sml_quit.py'),
+  (Join-Path $hart 'jmri\scripts\sml_ui.py')
 )
 $trainInfoSrc = Join-Path $hart 'jmri\layouts\hart\dispatcher\traininfo'
 $roots = New-Object System.Collections.Generic.List[string]

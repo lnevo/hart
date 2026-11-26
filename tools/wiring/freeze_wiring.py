@@ -32,9 +32,12 @@ import tempfile
 from datetime import date
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-sys.path[:0] = [str(ROOT / "tools/hartlib/src"), str(ROOT / "tools/schematic")]
-from hartlib import devices, wiring  # noqa: E402
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import devices, paths, wiring  # noqa: E402
+
+ROOT = paths.REPO_ROOT
+sys.path.insert(1, str(ROOT / "tools/schematic"))
 from hartlib.railroad_facts import FactsError  # noqa: E402
 import build_device_map as bdm  # noqa: E402
 import build_layout_le as bl  # noqa: E402

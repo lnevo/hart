@@ -33,7 +33,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import paths  # noqa: E402
+ROOT = paths.REPO_ROOT
 SUFFIX = ".columns.csv"
 SCAN_GLOBS = (f"**/*{SUFFIX}",)     # what find_sidecars lists, as git :(glob) pathspecs (checks.toml quiet_inputs)
 SKIP =("archive", "external", "reference", "node_modules", "tools/cats/src-repo")   # from the repo root

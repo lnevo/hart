@@ -396,6 +396,14 @@ level's internal name or a wired LCOS head that is the row's planned physical he
 swaps it in, so nothing else of theirs reaches MQTT); a virtual mast is in its level's thousand and stands at a buffer
 stop.
 
+### `hartlib.operations`
+
+Reads Operations Pro roster files: `cars(path)`, `engines(path)` and `trains(path)` give the `<car>`, `<engine>` and
+`<train>` elements of their section (`./cars/car` and so on), in file order; `section(path, name)` is the general
+form, `ids(elements)` their ids. `ROSTERS` names the repo's files in `jmri/layouts/hart/operations/` (ADR-015);
+the car pipeline passes its own copies in `ops/hart-ops/data/`. A broken file raises `ET.ParseError` naming it.
+It only reads: the tools that change a roster keep JMRI's header and layout themselves.
+
 ### `hartlib.parked`
 
 The features parked out of the active tables (`PARKED`: Entry/Exit, the Dispatcher System, the USS CTC machine;
@@ -415,6 +423,10 @@ name that is not a module name or a module with no `.py` beside the script. `fil
 and `source()` their text joined in that order, for the checks that read the code as text
 (`check_mqtt_no_static_lists.py`, `le_names.lcos_rule`, `cats/scripts/tests/test_signal_coordinator.py`) and the test
 that every deploy list ships each module (`tools/hosts/tests/test_coordinator_shipping.py`).
+`jmri/layouts/hart/scripts/panel_status.py` lists its parts the same way in `PARTS` (each runs in the script's own
+namespace, not as a module): `sibling_modules(PANEL_STATUS)`, or `panel_status_parts()`, reads that tuple, and
+`files(PANEL_STATUS)` and `source(PANEL_STATUS)` work as for the coordinator. `TUPLE_NAMES` maps each script to its
+tuple; any other script is a `CoordinatorError`.
 
 ### `hartlib.map_revision`
 
