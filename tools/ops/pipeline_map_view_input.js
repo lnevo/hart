@@ -148,7 +148,7 @@
     render(false); writeHash();
   }
   wrapEl.addEventListener("click", e => {
-    if (moved || !lay) return;  // the lane overview takes its own clicks (pipeline_map_view_lanes.js)
+    if (moved || !lay || justOpened()) return;  // the lane overview takes its own clicks (pipeline_map_view_lanes.js)
     clearTimeout(pending);
     // what the pointer is over, as the hover found it (pointerPick): a click opens what the hover lit
     const at = pointerAt(e.target, e.clientX, e.clientY), got = pointerPick(at);
@@ -180,7 +180,7 @@
   wrapEl.addEventListener("pointerdown", e => (lastPointer = e.pointerType), true);
   wrapEl.addEventListener("dblclick", e => {
     clearTimeout(pending);
-    if (!lay || (e.target.classList && e.target.classList.contains("eh"))) return;  // a double-click on a line is a click on it
+    if (!lay || justOpened() || (e.target.classList && e.target.classList.contains("eh"))) return;  // a double-click on a line is a click on it
     const got = pickHover(e.target, e.clientX, e.clientY), g = got.box ? nodeEl[got.box] : null;
     const gn = g && gNodes[g.dataset.id];
     if (gn && gn.lane) openLane(gn.lane);

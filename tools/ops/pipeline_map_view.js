@@ -458,7 +458,7 @@ function app() {
   }
   // the filters as they start; Start over goes back to these
   const filtersChanged = () => facetsOn(view.f) || view.hide ||
-    !view.compact || view.group || view.trim || !document.getElementById("labels").checked;  // Steps is not counted: its row would push the map down on release
+    !view.compact || view.group || view.trim;  // Edge labels is not kept in the address, so not counted; Steps is not counted: its row would push the map down on release
 
   function showStatus(sub) {
     showDepth();

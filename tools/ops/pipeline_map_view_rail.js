@@ -173,9 +173,9 @@
   listBtn.onclick = () => toggleDrawer();
   document.getElementById("drawerclose").onclick = () => { toggleDrawer(false); listBtn.focus(); };
   const stepWord = n => (boxVals[n.id].step.map(v => VALUE_NAME.step[v]).join(", "));
-  const timeOf = n => { const t = (n.eff || []).map(e => (e.t ? runTime(e.t) : null)).filter(v => v !== null); return t.length ? Math.max(...t) : null; };
-  function timeText(n) {
-    const t = (n.eff || []).find(e => e.t);
+  const timeOf = n => { const e = slowestStep(n.eff, runTime); return e ? runTime(e.t) : null; };
+  function timeText(n) {  // the times of the step it sorts by
+    const t = slowestStep(n.eff, runTime);
     if (!t) return "";
     return [t.t.warm_s != null && `warm ${secs(t.t.warm_s)}`, t.t.cold_s != null && `cold ${secs(t.t.cold_s)}`].filter(Boolean).join(", ");
   }

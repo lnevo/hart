@@ -67,7 +67,7 @@
   }
   function jump(id) {
     q.blur(); showList(false);
-    focusOn(id);
+    goTo(id);  // opens what hides it (a closed lane or folder, a lane or status the filters leave out)
   }
   q.addEventListener("input", () => { qAt = 0; runSearch(); showList(true); });
   q.addEventListener("focus", () => showList(true));
@@ -139,7 +139,7 @@
     if (view.group) { h.set("folders", "1"); if (view.open.size) h.set("open", [...view.open].join(",")); }
     if (selected) h.set("node", selected);
     if (view.eff) h.set("eff", "1");
-    if (!view.overview && [...h.keys()].every(k => ovKeys.includes(k))) h.set("map", "all");  // the whole map: an empty address is the overview
+    if (!view.overview && isOverviewHash(h)) h.set("map", "all");  // the whole map: an empty address is the overview
     if (withView && lay) h.set("at", [vb.x, vb.y, vb.width].map(v => Math.round(v)).concat(lay.aspect ? [+lay.aspect.toFixed(4)] : []).join(","));  // with the sharer's lane stretch
     const s = h.toString(), url = s ? "#" + s : location.pathname + location.search;
     if (navPush && (s ? "#" + s : "") !== location.hash) history.pushState(null, "", url);
@@ -148,7 +148,7 @@
   }
   function readHash() {
     const h = new URLSearchParams(location.hash.slice(1));
-    view.overview = [...h.keys()].every(k => ovKeys.includes(k));  // an address with no view in it opens on the lanes
+    view.overview = isOverviewHash(h);  // an address with no view in it opens on the lanes
     view.laneOpen = new Set((h.get("lane") || "").split(",").filter(l => allLanes.includes(l)));
     setEff(h.get("eff") === "1", true);
     const focus = h.get("focus");
@@ -171,7 +171,7 @@
     view.group = h.get("folders") === "1";
     view.open = new Set(view.group && h.get("open") ? h.get("open").split(",") : []);
     const node = h.get("node");
-    selected = node && (Object.hasOwn(byId, node) || node.startsWith("folder:")) ? node : null;
+    selected = selectableId(node, id => Object.hasOwn(byId, id)) ? node : null;
     if (selected && Object.hasOwn(byId, selected) && !view.focus) view.f.status = withStatus(view.f, view.hide, byId[selected].status || "live");  // keep a shared box in view
     fileIn.value = view.focus ? byId[view.focus].path || byId[view.focus].label : "";
     syncControls();

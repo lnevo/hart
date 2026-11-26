@@ -12,7 +12,6 @@
      pipeline_map_view_input.js): each starts a history step (navStep, pipeline_map_view_nav.js) before it draws, so
      Back returns to the view before. After each drawing the page sends a "pipelinemap:view" event on document with
      the view as its detail (viewDetail). */
-  const ovKeys = ["eff", "hover", "near"];  // address keys that leave the overview as it is
   const laneOf = {};
   DATA.lanes.forEach(l => (laneOf[l.id] = l));
   const KIND_WORD = { structured: ["data file"], unstructured: ["source"], generator: ["script"], output: ["output"],
@@ -100,10 +99,14 @@
     if (arc) return [arc.dataset.from, arc.dataset.to];
     return null;
   }
+  /* A lane opened from the overview: its click stops here, and the map below ignores clicks and double-clicks for a
+     moment, so the second click of a double-click does not pick whatever box is drawn under the pointer. */
+  let ovOpened = 0;
+  const justOpened = () => performance.now() - ovOpened < 400;
   wrapEl.addEventListener("click", e => {
     if (!view.overview || !ovSvg) return;
     const lanes = overviewTarget(e.target);
-    if (lanes) openLanes(lanes);
+    if (lanes) { e.stopImmediatePropagation(); ovOpened = performance.now(); openLanes(lanes); }
   });
   wrapEl.addEventListener("keydown", e => {
     if (!view.overview || (e.key !== "Enter" && e.key !== " ")) return;

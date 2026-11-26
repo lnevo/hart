@@ -71,6 +71,15 @@ class AddressTest(unittest.TestCase):
         self.assertEqual(read("lanes=none"), {"hide": False})  # no lane named: every lane
         self.assertEqual(read("status=parked&show=retired"), {"status": ["parked"], "hide": False})  # the new key wins
 
+    def test_an_address_of_overlay_pointer_and_steps_keys_is_the_overview(self) -> None:
+        overview = lambda h: js("m.isOverviewHash(new URLSearchParams(d))", h)
+        self.assertEqual([overview(h) for h in ("", "eff=1&hover=0", "steps=5&cap=1.5", "steps=5&lane=a", "map=all")],
+                         [True, True, True, False, False])
+
+    def test_a_shared_selection_may_be_a_box_folder_or_closed_lane(self) -> None:
+        got = js("d.map(id => m.selectableId(id, x => x === 'box'))", ["box", "folder:tools/", "lane:wiring", "nope", ""])
+        self.assertEqual(got, [True, True, True, False, False])
+
 
 @unittest.skipUnless(NODE, "node is not installed")
 class FacetTest(unittest.TestCase):
@@ -95,6 +104,11 @@ class FacetTest(unittest.TestCase):
         self.assertEqual([js("m.boxValues(d)", box("o", "output", w={"n": k}))["writers"] for k in (0, 1, 3)],
                          [["none"], ["one"], ["many"]])
         self.assertFalse(self.match(box("g"), {"writers": ["none"]}))
+
+    def test_the_list_s_time_is_the_slowest_timed_step(self) -> None:
+        eff = [{"s": "a", "t": {"warm_s": 2}}, {"s": "none"}, {"s": "b", "t": {"cold_s": 9}}, {"s": "c", "t": {"warm_s": 4}}]
+        self.assertEqual(js("m.slowestStep(d, t => t.warm_s ?? t.cold_s ?? null).s", eff), "b")
+        self.assertIsNone(js("m.slowestStep(d, t => null)", [{"s": "x"}]))
 
     def test_only_keeps_one_value_and_a_second_click_clears_the_facet(self) -> None:
         self.assertEqual(js("m.onlyValue(new Set(['a', 'b']), 'b')"), ["b"])

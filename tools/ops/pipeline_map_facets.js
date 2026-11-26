@@ -101,6 +101,22 @@ function readFacets(h, known) {
   return { f, hide };
 }
 
+/* Address keys that leave the lane overview as it is: the overlay, pointer settings and the Steps slider (with the
+   sharer's box size), which apply once a map is drawn. An address with only these opens on the overview. */
+const OV_KEYS = ["eff", "hover", "near", "steps", "cap"];
+const isOverviewHash = h => [...h.keys()].every(k => OV_KEYS.includes(k));
+
+/* Whether an address's node= can be selected: a box (isBox), a folder box or a closed lane's box. */
+const selectableId = (id, isBox) => !!id && (isBox(id) || id.startsWith("folder:") || id.startsWith("lane:"));
+
+/* A box's slowest timed step (eff entries, t: its timings; time(t) the usual run's seconds), or null when none is
+   timed: the List sorts by it and shows its times. */
+function slowestStep(eff, time) {
+  let best = null, most = -Infinity;
+  for (const e of eff || []) { const s = e.t ? time(e.t) : null; if (s !== null && s > most) { most = s; best = e; } }
+  return best;
+}
+
 /* The values a facet keeps after "only" beside v (set: its ticked values): v alone, or none when v alone was ticked. */
 function onlyValue(set, v) { return set.size === 1 && set.has(v) ? new Set() : new Set([v]); }
 
@@ -171,6 +187,6 @@ function groupByKind(items, kindOf, order, max = 8) {
 
 if (typeof module !== "undefined" && module.exports) {
   module.exports = { BOX_FACETS, FACET_KEYS, STATUS_VALUES, STEP_VALUES, WRITER_VALUES, emptyFacets, boxValues, edgeSide,
-                     boxMatches, facetsOn, drawnStatus, facetCounts, sideCounts, writeFacets, readFacets, withStatus, onlyValue,
+                     boxMatches, facetsOn, drawnStatus, facetCounts, sideCounts, writeFacets, readFacets, withStatus, onlyValue, OV_KEYS, isOverviewHash, selectableId, slowestStep,
                      searchRank, searchHits, trail, upFrom, statusLine, groupByKind };
 }
