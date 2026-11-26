@@ -8,7 +8,8 @@ xargs, watch, eval and others in WRAPPERS) or a keyword (if, then, do, while, un
 comes back with its program first and the VAR=value words in front of it apart.
 
 It never runs anything and never expands variables. `#` never starts a comment, so text after it is read as
-commands. A line it cannot split (an unbalanced quote, `$(` or backtick) raises ParseError; `rough_commands` is
+commands. A `case` pattern's `)` splits the line as a subshell's does, so the pattern word reads as a
+command of its own. A line it cannot split (an unbalanced quote, `$(` or backtick) raises ParseError; `rough_commands` is
 the fallback split, which ignores quotes. This is a guardrail against mistakes, not a security boundary.
 """
 import re
@@ -39,6 +40,11 @@ WRAPPERS: dict[str, frozenset[str]] = {
     "xargs": frozenset({"-I", "-L", "-n", "-P", "-s", "-d", "-E", "-a", "--arg-file", "--delimiter", "--max-args",
                         "--max-procs", "--max-chars", "--max-lines", "--process-slot-var"}),
     "stdbuf": frozenset({"-i", "-o", "-e"}),
+    "setsid": frozenset(),
+    "ionice": frozenset({"-c", "--class", "-n", "--classdata", "-p", "--pid", "-P", "--pgid", "-u", "--uid"}),
+    "doas": frozenset({"-u", "-C"}),
+    "chronic": frozenset(),
+    "unbuffer": frozenset(),
     "caffeinate": frozenset({"-t", "-w"}),
     "uvx": frozenset({"--with", "--from", "--python", "-p", "--index", "--index-url"}),
     "npx": frozenset({"-p", "--package"}),
@@ -56,6 +62,9 @@ RUNNERS: dict[str, frozenset[str]] = {
     "poetry": frozenset(), "pdm": frozenset(), "pipx": frozenset({"--spec", "--python"}),
 }
 FIND_EXEC = {"-exec", "-execdir", "-ok", "-okdir"}
+FLOCK_VALUE = frozenset({"-w", "--timeout", "-E", "--conflict-exit-code"})
+# A redirection word: its operator, then its target joined (2>/dev/null, 2>&1, <f) or in the next word (> f).
+REDIRECT = re.compile(r"\d*(&>>?|>&|<&|>>|>\||<>|<<<|>|<)(.*)", re.S)
 
 
 class ParseError(ValueError):
@@ -342,9 +351,15 @@ def _unwrap(words: list[str], assigned: dict[str, str], from_input: bool, stdin:
     if depth > MAX_DEPTH:
         raise TooDeep("nested shells or wrappers")
     words = list(words)
-    while words and ASSIGNMENT.fullmatch(words[0]):
-        name, value = words.pop(0).split("=", 1)
-        assigned[name] = value
+    while words:                                     # assignments and redirections may stand before the program
+        redirect = REDIRECT.fullmatch(words[0])
+        if redirect:
+            words = words[1:] if redirect.group(2) else words[2:]
+        elif ASSIGNMENT.fullmatch(words[0]):
+            name, value = words.pop(0).split("=", 1)
+            assigned[name] = value
+        else:
+            break
     if not words:
         return [SimpleCommand((), assigned, stdin, from_input)]
     head = base(words[0])
@@ -354,13 +369,13 @@ def _unwrap(words: list[str], assigned: dict[str, str], from_input: bool, stdin:
         return _unwrap(words[1:], assigned, from_input, stdin, depth, rough) if len(words) > 1 else []
     if head in LOOP_HEADS:
         return []
-    if any(c.isspace() for c in words[0]):           # a quoted command line in the program's place
-        return _expand(" ".join(words), depth + 1, rough, from_input, assigned)
     if head in WRAPPERS:
         rest = _options(words[1:], WRAPPERS[head])
         if head == "timeout" and rest:
             rest = rest[1:]                          # the duration
         return _unwrap(rest, assigned, from_input or head == "xargs", stdin, depth + 1, rough)
+    if head == "flock":
+        return _flock(words[1:], assigned, from_input, stdin, depth, rough)
     if head in LINE_WRAPPERS:
         rest = _options(words[1:], LINE_WRAPPERS[head])
         rest = rest[:next((i for i, w in enumerate(rest) if w in (":::", "::::")), len(rest))]
@@ -392,6 +407,19 @@ def _unwrap(words: list[str], assigned: dict[str, str], from_input: bool, stdin:
                 inner = inner[:next((k for k, w in enumerate(inner) if w in (";", "+", "\\;")), len(inner))]
                 found += _unwrap(inner, {}, True, "", depth + 1, rough)
     return found
+
+
+def _flock(args: list[str], assigned: dict[str, str], from_input: bool, stdin: str,
+           depth: int, rough: bool) -> list[SimpleCommand]:
+    """flock's command: `flock [opts] FILE CMD...`, or the text of -c/--command, which a shell runs."""
+    while args and args[0].startswith("-") and args[0] != "--":
+        opt = args.pop(0)
+        if opt in ("-c", "--command") and args:
+            return _expand(args[0], depth + 1, rough, from_input, assigned)
+        if opt in FLOCK_VALUE and args:
+            args.pop(0)
+    args = args[1:] if args[:1] == ["--"] else args
+    return _unwrap(args[1:], assigned, from_input, stdin, depth + 1, rough) if len(args) > 1 else []
 
 
 def _expand(text: str, depth: int, rough: bool, from_input: bool = False,

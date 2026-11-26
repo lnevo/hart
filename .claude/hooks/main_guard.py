@@ -247,6 +247,10 @@ def host_control(cmd: SimpleCommand, flag: OperatingFlag, exported: Mapping[str,
         return "a speed-matching job during the owner's session"
     if head == "ssh":
         return ssh_problem(cmd, args, {**env.values, **assigned}, env, line)
+    if re.search(r"[$`]", cmd.words[0]):         # a program the text does not show may be ssh
+        rest = " ".join(args)
+        if names_host(rest, env.hosts) and REMOTE_TOUCH.search(rest):
+            return f"{cmd.words[0]}, a program the guard cannot see, aimed at a layout host"
     return None
 
 

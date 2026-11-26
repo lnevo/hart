@@ -407,7 +407,9 @@ class OperatingFlag(unittest.TestCase):
                    "find . -exec ssh {} reboot \\;", "ssh user@fakewin.test taskkill /IM java.exe",
                    "ssh $HART_PI_SSH reboot", "H=fakepi.test; ssh $H reboot",
                    "cat <<EOF | ssh fakepi.test\nreboot\nEOF", "ssh fakepi.test bash -s <<EOF\nreboot\nEOF",
-                   "bash <<EOF\nssh fakepi.test reboot\nEOF",
+                   "bash <<EOF\nssh fakepi.test reboot\nEOF", "2>/dev/null ssh fakepi.test reboot",
+                   "2>&1 ssh fakepi.test reboot", "setsid ssh fakepi.test reboot",
+                   "flock /tmp/l ssh fakepi.test reboot", "$(echo ssh) fakepi.test reboot",
                    # lines the parser cannot split block when they name a layout host
                    "echo $(ssh fakepi.test reboot", "ssh fakepi.test 'reboot", "echo `ssh fakepi.test reboot")
         for cmd in blocked:
@@ -418,6 +420,7 @@ class OperatingFlag(unittest.TestCase):
                     "grep -rn 'ssh fakepi.test reboot' .", "ssh other.test reboot", "echo $(ssh other.test reboot)",
                     "bash -c 'ssh other.test reboot'", "ssh fakepi.test uptime", "echo $(ssh fakepi.test uptime)",
                     "ssh fakepi.test cat ~/x.sh", "echo 'unbalanced",
+                    "$(git rev-parse --show-toplevel)/tools/check.sh", "2>/dev/null ssh other.test reboot",
                     "git commit -m \"$(cat <<'EOF'\nit's done on fakepi.test\nEOF\n)\""):
             with self.subTest(cmd=cmd):
                 self.assertEqual(self.op_code(cmd, owner, self.FAKE_HOSTS), 0)

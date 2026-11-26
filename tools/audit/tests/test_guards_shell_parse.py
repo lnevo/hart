@@ -50,6 +50,26 @@ class SimpleCommands(unittest.TestCase):
                 want = ("s.sh",) if line == "bash s.sh" else ("x", "1")
                 self.assertIn(want, found)
 
+    def test_a_program_word_with_a_substitution_or_spaces_stays_a_program(self) -> None:
+        cmds = shell_parse.simple_commands("$(git rev-parse --show-toplevel)/tools/check.sh -q")
+        self.assertEqual([c.words for c in cmds],
+                         [("git", "rev-parse", "--show-toplevel"), ("$(git rev-parse --show-toplevel)/tools/check.sh", "-q")])
+        self.assertEqual(programs('"/Applications/My App/x" 1'), [("/Applications/My App/x", "1")])
+        self.assertEqual(programs("'x 1' 2"), [("x 1", "2")])
+
+    def test_leading_redirections_are_dropped(self) -> None:
+        for line in ("2>/dev/null x 1", "2>&1 x 1", ">f x 1", "> f x 1", "<f x 1", "< f x 1", "&>f x 1",
+                     "2>>log A=1 x 1", "env 2>/dev/null x 1"):
+            with self.subTest(line=line):
+                self.assertEqual(programs(line), [("x", "1")])
+
+    def test_more_launchers_are_removed(self) -> None:
+        for line in ("setsid -f x 1", "ionice -c 3 -n 7 x 1", "flock -w 5 /tmp/lock x 1", "flock -c 'x 1' /tmp/l",
+                     "doas -u root x 1", "chronic x 1", "unbuffer -p x 1", "stdbuf -oL x 1", "caffeinate -i x 1"):
+            with self.subTest(line=line):
+                self.assertIn(("x", "1"), programs(line))
+        self.assertEqual(programs("flock 9"), [])               # a lock on a descriptor runs nothing
+
     def test_assignments_and_input_words_are_marked(self) -> None:
         last = shell_parse.simple_commands("A=1 B='2 3' bash -c 'x'")[-1]
         self.assertEqual((last.words, dict(last.assigned)), (("x",), {"A": "1", "B": "2 3"}))
@@ -88,13 +108,15 @@ class SubagentGuardThroughTheParser(unittest.TestCase):
     def test_more_forms_are_blocked(self) -> None:
         for command in ("echo $(echo $(git push))", 'echo "$(git push)"', "bash <<EOF\ngit push\nEOF",
                         "time -p git push", "nice -n 5 git push", "echo x | xargs -n1 git push",
-                        "echo $(make deploy-layout", "ssh fakepi.test 'cat x"):
+                        "echo $(make deploy-layout", "ssh fakepi.test 'cat x", "2>&1 git push",
+                        "2>/dev/null git push", "setsid git push", "flock /tmp/l git push", "doas git push"):
             with self.subTest(command=command):
                 self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 2)
 
     def test_heredoc_text_and_searches_pass(self) -> None:
         for command in ("cat > /tmp/notes.txt <<'EOF'\ngit push is the main session's\nEOF",
-                        "grep -rn 'git push' docs", "echo ssh", "ssh fakepi.test uptime"):
+                        "grep -rn 'git push' docs", "echo ssh", "ssh fakepi.test uptime",
+                        "$(git rev-parse --show-toplevel)/tools/check.sh", '"/Applications/My App/x" --version'):
             with self.subTest(command=command):
                 done = run(SUBAGENT_GUARD, command, str(ROOT))
                 self.assertEqual(done.returncode, 0, done.stderr)
