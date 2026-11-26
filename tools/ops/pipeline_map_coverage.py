@@ -9,7 +9,14 @@ so the map agents query (tools/ops/pipeline_query.py) cannot fall behind without
 
 What must be in the map:
 
-- Scripts: every tracked .py, .sh or .js file the pipeline's entry files (ENTRY_FILES: the Makefile, the layout
+- Every script (owner, 2026-11-25): each .py and .sh file, tracked or new and not ignored, outside EXCLUDED
+  (archive/, external/, reference/, tools/cats/src-repo/) and outside tests (a tests/ or test/ folder, test_*.py,
+  conftest.py) is a node of its own: a node whose path is the file, or a box named after it (its id is the file, as panels.toml's
+  `box` names approval.py's box, which runs check_approved.py). The only other way is a folder node FAMILIES names, a
+  library or a family of generators, each with its reason. A folder node not in FAMILIES covers no script under it,
+  and ALLOWED does not apply to scripts. A FAMILIES entry that is no folder node, or covers no script, fails, so the
+  list cannot go stale.
+- Entry-file scripts: every tracked .py, .sh or .js file the pipeline's entry files (ENTRY_FILES: the Makefile, the layout
   deploy with its steps, the website deploy) name by path, or as
   `PYTHONPATH=<dir> python3 -m <module>`. A plain path is read from the repo root, then from the entry file's
   folder. A path behind $ROOT is read from the entry's own ROOT (deploy_hartrailroad.sh's is www/), and one behind a
@@ -29,9 +36,10 @@ What must be in the map:
   AGENTS.md files one or two folders down). The map build draws each tracked one, so ALLOWED does
   not apply to them.
 
-A file is known when a node's path is the file or a folder above it, except a top-level folder (a `www` box stands
-for the site, not for each script in it). ALLOWED lists the deliberate exceptions, each with its reason; an entry the
-scan no longer finds, or one that is also a node, fails so the list cannot go stale.
+An entry-file script or an output is known when a node's path is the file or a folder above it, except a top-level
+folder (a `www` box stands for the site, not for each script in it). A .py or .sh script the every-script rule checks
+is reported by that rule alone. ALLOWED lists the deliberate exceptions to the entry-file and output rules, each with
+its reason; an entry the scan no longer finds, or one that is also a node, fails so the list cannot go stale.
 """
 from __future__ import annotations
 
@@ -64,25 +72,23 @@ OUTPUT_ROOTS = (
 )
 # Deliberate exceptions: path (a file, or a folder for every file under it) -> why the map leaves it out.
 ALLOWED = {
-    # make plumbing: they schedule or route jobs and read or write no pipeline file (check.sh is no entry file:
-    # its own plumbing is not scanned)
-    "tools/agent/worktrees.py": "makes and sweeps agent worktrees (make wt); no pipeline file",
-    "tools/ops/orient.py": "prints claims, worktrees in progress, deploys and PRs (make orient); no pipeline file",
-    "tools/hosts/win_run.sh":"runs a command on the Windows box (make remote); no pipeline file",
-    "tools/env/load_env.sh": "loads .env.local host settings for the deploy steps",
-    "tools/ops/screenshot.py": "screenshots any page for a check by eye (make shot); writes only scratch images",
-    "tools/hosts/deploy_status.sh": "prints the commit each host last got; reads the hosts, writes nothing",
-    "tools/hosts/pi_quit_panelpro.sh": "stops PanelPro on the Pi around a deploy; no file in or out",
-    "tools/hosts/pi_start_panelpro.sh": "starts PanelPro on the Pi after a deploy; no file in or out",
-    # the layout deploy's own parts, drawn as one box: tools/hosts/sync_hart_package.sh
-    "tools/hosts/deploy": "the steps of sync_hart_package.sh, which the map draws as one box",
-    "tools/hosts/profile_tables_guard.sh": "guard functions sourced by the deploy and the PanelPro wrappers; part of "
-                                           "the sync_hart_package.sh box",
-    # drawn inside another node's box
-    "jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py": "parked Dispatcher traininfo repair; the "
-                                                                "run_dispatcher_stage1.py box names it",
     # hand-kept files in an output folder
     "cats/panels/reference_ArmstrongMagnet.xml": "CATS sample panel kept for reference (cats/README.md)",
+}
+# The every-script rule: what it checks, and the folder nodes that stand for every script under them.
+SCRIPT_EXTS = (".py", ".sh")
+EXCLUDED = ("archive", "external", "reference", "tools/cats/src-repo")   # vendor code, submodules, frozen history
+# A library or a family of generators, where one folder box is enough (owner, 2026-11-25): path -> why. Any other
+# folder node covers no script: each script under it needs a node of its own.
+FAMILIES = {
+    "tools/hartlib/src/hartlib": "the shared CPython library; the map links each module a step depends on",
+    "ops/hart-ops/card_pipeline": "the car-card pipeline's modules and stage scripts",
+    "ops/hart-ops/publications": "the publication rebuild scripts and their content modules (primer, crew and "
+                                 "operating instructions, train list, station maps)",
+    "tools/benchwork/helix": "the helix make_* generators (brackets, shims, templates, spacers)",
+    "tools/benchwork/main_level": "the main-level benchwork geometry and cut-plan generators",
+    "ops/station_maps/scripts": "the station map drawing generators",
+    "tools/hosts/pi-os": "the Pi SD-card image build (sdm plugins and their helpers), one job on the Mac",
 }
 
 # A path with a script extension and at least one folder, or behind a shell variable ($ROOT/, ${sm}/, captured so a
@@ -298,6 +304,52 @@ def agent_doc_gaps(docs: list[str], node_paths: dict[str, str], graph_name: str,
     return problems
 
 
+def is_test(path: str) -> bool:
+    """A test file: in a tests/ or test/ folder, or named test_*.py or conftest.py. A name ending in _test is no test:
+    panelpro_smoke_test.py and speedmatch's stop_test.py are pipeline scripts."""
+    p = PurePosixPath(path)
+    return (any(part in ("tests", "test") for part in p.parts[:-1])
+            or (p.name.startswith("test_") and p.suffix == ".py") or p.name == "conftest.py")
+
+
+def rule_scripts(files: Iterable[str], excluded: Iterable[str] = EXCLUDED) -> list[str]:
+    """The files the every-script rule checks: .py and .sh, not in an EXCLUDED folder, not tests."""
+    skip = tuple(e.rstrip("/") + "/" for e in excluded)
+    return sorted(f for f in files if f.endswith(SCRIPT_EXTS) and not f.startswith(skip) and not is_test(f))
+
+
+def script_gaps(scripts: Iterable[str], node_paths: dict[str, str], node_ids: Iterable[str],
+                families: dict[str, str], graph_name: str, listing: list[str] | None = None) -> list[str]:
+    """Each script that is neither its own node (a node's path, or a box whose id is the script) nor under a folder
+    node FAMILIES names, and each FAMILIES entry that is empty, no folder node or covers no script."""
+    problems = [f"FAMILIES entry {key} in {ME} has no reason" for key, why in families.items() if not why.strip()]
+    problems += [f"FAMILIES entry {key} in {ME} is no node's path in {graph_name}; add the folder node or remove "
+                 f"the entry" for key in sorted(families) if key not in node_paths]
+    ids = set(node_ids)
+    used: set[str] = set()
+    for path in scripts:
+        own = node_paths.get(path) or (path if path in ids else None)
+        family = None if own else _first_above(str(PurePosixPath(path).parent), families, 1)
+        if family:
+            used.add(family)
+        if not own and not family:
+            folder = _first_above(str(PurePosixPath(path).parent), node_paths, 1)
+            if folder:
+                problems.append(f"script {path} is only under folder node {node_paths[folder]!r} ({folder}), which "
+                                f"FAMILIES in {ME} does not name: add a node for the script, with its edges, to "
+                                f"{graph_name}, or add {folder} to FAMILIES with the reason if it is a library or a "
+                                f"family of generators")
+            else:
+                problems.append(f"script {path} is not in the map: add a node for it, with the edges from what it "
+                                f"reads and to what it writes, to {graph_name}")
+        if listing is not None:
+            listing.append(f"{'rule':6} {path:64} " + (f"node {own}" if own else
+                                                         f"family: {family}" if family else "MISSING"))
+    problems += [f"FAMILIES entry {key} in {ME} covers no script; remove it"
+                 for key in sorted(set(families) - used) if key in node_paths]
+    return problems
+
+
 def check(graph: Path, listing: list[str] | None = None) -> list[str]:
     """The problems for this checkout. Raises GraphError or CoverageError when the graph or the scan cannot be read."""
     data = BUILD.load(graph)
@@ -310,7 +362,11 @@ def check(graph: Path, listing: list[str] | None = None) -> list[str]:
         docs = BUILD.AGENT_DOCS.glob_files() + BUILD.AGENT_DOCS.glob_files(others=True)
     except BUILD.AGENT_DOCS.AgentDocsMapError as err:
         raise CoverageError(str(err)) from None
-    return (gaps(scripts, outputs, node_paths, ALLOWED, str(shown), listing)
+    ruled = rule_scripts(files)     # a new script fails before the commit, as it would after
+    ruled_set = set(ruled)
+    entry_only = {path: where for path, where in scripts.items() if path not in ruled_set}
+    return (script_gaps(ruled, node_paths, (n["id"] for n in data["nodes"]), FAMILIES, str(shown), listing)
+            + gaps(entry_only, outputs, node_paths, ALLOWED, str(shown), listing)
             + agent_doc_gaps(docs, node_paths, str(shown), listing))
 
 

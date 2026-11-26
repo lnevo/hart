@@ -9,7 +9,12 @@
 # profile_tables_guard.sh hart_pulled_dir), once per hash, with STORE.base beside it
 # (tools/hosts/pi/tables_base.sh). It is not recorded as taken: the deploy stays stopped until
 # tools/schematic/split_store.py has split it into the sources in a task worktree and that is merged.
+#
+# --status only reads (make orient's "waiting to ingest" line): it prints "waiting" when a pull would keep a Store,
+# "nothing" when not, "absent" when there is no tables.xml, and copies or keeps nothing.
 set -euo pipefail
+STATUS=0
+[[ "${1:-}" != "--status" ]] || STATUS=1
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 UF="${HOME}/JMRI_UserFiles"
@@ -18,6 +23,7 @@ GENERATED="$ROOT/jmri/layouts/hart/output/tables.xml"
 source "$ROOT/tools/hosts/profile_tables_guard.sh"
 
 if [[ ! -f "$SRC" ]]; then
+  [[ "$STATUS" -eq 0 ]] || { echo absent; exit 0; }
   echo "Missing $SRC" >&2
   exit 1
 fi
@@ -25,6 +31,10 @@ generated_sha="$(shasum -a 256 "$GENERATED" | cut -d' ' -f1)"
 # shellcheck disable=SC2046
 unpulled="$(bash "$ROOT/tools/hosts/pi/unpulled_changes.sh" "$UF" "$generated_sha" $(hart_split_shas "$ROOT"))" \
   || { echo "Could not check $SRC against what was last deployed; nothing pulled." >&2; exit 1; }
+if [[ "$STATUS" -eq 1 ]]; then
+  grep -qx tables <<<"$unpulled" && echo waiting || echo nothing
+  exit 0
+fi
 if ! grep -qx tables <<<"$unpulled"; then
   echo "Nothing to pull: $SRC is what was last deployed, or a Store already split in (store_splits.csv)."
   exit 0

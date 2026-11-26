@@ -29,6 +29,8 @@ Two read-only studies on 2026-11-25 found 237 tracked scripts that are not nodes
 
 ## A. The map covers every script (M to L)
 
+**Done** (2026-11-25, lane A). `pipeline_map_coverage.py` fails on any tracked `.py` or `.sh` outside `archive/`, `external/`, `reference/`, `tools/cats/src-repo/` and tests that is not a node of its own or under one of the 7 folders in its `FAMILIES` list (hartlib, card_pipeline, publications, the two benchwork generator folders, station map scripts, pi-os). The map gained 161 nodes (154 scripts, the speed-match unit and 2026-11-08 CSV, `uss_board_plants.csv`, `.claude/settings.json`, CI and two Pi speed-match stores) and 417 edges. All 414 scripts the rule checks are covered: 327 by their own node, 87 by a family. The old script exceptions in `ALLOWED` are gone. The three `www` files are `live`.
+
 - Extend `tools/ops/pipeline_map_coverage.py`: every tracked `.py` and `.sh` outside `archive/`, `external/`, `reference/` and tests is a node, or sits under a folder node marked as a library or generator family. Anything else fails.
 - Add the 105 missing nodes with their read and write edges. These include the deploy stack (`tools/hosts/deploy/*`, `apply_hart_package_local.sh`, `pack_roster_stage.sh`), the PanelPro control scripts, the Layout Editor and CATS desk build modules, the Jython scripts, the `cats/scripts` helpers, `.claude/hooks/*` and `.cursor/hooks/main_guard.py`, and each speed-matching script, plus the Pi unit `hart-speedmatch-live.service` and its data and runtime stores.
 - The writers of files a host loads come first: `ship_*.sh`, `stage.sh`, `apply_hart_package_local.sh`, `pack_roster_stage.sh`, `panelpro_profile.py` and `le_tables.py`.
@@ -77,6 +79,8 @@ Agent: `general-purpose`. `/code-review medium`.
 
 ## E. Remove duplicate checks (S to M each)
 
+**Done:** E3 and E5 in #1161, E1 and E4 in #1162; E2 and E6 checked and kept.
+
 CI sample (2,456 runs, 2026-10-31 to 11-25): 138 failed; 93 real faults, 29 stale generated files, 12 flaky or no log, 4 unclassified. 26 of the 39 manifest checks never failed, which alone is no reason to remove one.
 
 | # | Duplicate | Change |
@@ -91,10 +95,17 @@ CI sample (2,456 runs, 2026-10-31 to 11-25): 138 failed; 93 real faults, 29 stal
 
 Checked and needed: the two `tables.xml` checks that look like repeats (they cover Store candidates and the deploy gate), CI's second panels run on a plugin bump, the stamps machinery, and the map checks.
 
+## Follow-ups
+
+- The entry-file scan in `pipeline_map_coverage.py` (older than lane A), from the #1168 review: a comment line ending in `\` swallows the next line (important); an apostrophe in an unquoted word; only the first `PYTHONPATH` entry is read; reused shell variable names; a cut-off `--help` description; a brittle `hasattr` test.
+- `tools/schematic/build_cats_panel.py` line 7 still names the deleted `validate_cats_panel.py`; in data-masters lane L4c's brief.
+- The `--pi --win` deploy for #1149 (stage.sh, the Pi speed-match publisher and its data file) is owed; the coordinator plans it with the owner.
+- `unit-jmri` and the edit hook's budget: row 7 in section E.
+
 ## Open for the owner
 
 - When the benchwork build is finished, so lane C can archive the generators.
-- The optional "waiting to ingest" line in `make orient`.
+- ~~The optional "waiting to ingest" line in `make orient`.~~ Done 2026-11-25 (owner's decision that day): a "Waiting to ingest" section, one read-only line per source, each naming its pull command; the live STS line says "not checked" with why.
 
 ## Done when
 
