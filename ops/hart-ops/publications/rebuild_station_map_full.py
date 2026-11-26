@@ -15,8 +15,9 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import NamedTuple
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 PUB = Path(__file__).resolve().parent
 sys.path.insert(0, str(PUB))
@@ -50,13 +51,29 @@ G = 120  # row pitch in the yard
 S = [Y0 + P_GAP + i * G for i in range(5)]  # S-R, S-1 .. S-4 (yard, east of the jog)
 ME_LOW = S[4] + 85  # Main East under the yard
 
-track_font = _font(ARIAL_BOLD, 24)
-cp_font = _font(ARIAL_BOLD, 38)
-sw_font = _font(ARIAL_BOLD, 20)
-et_font = _font(ARIAL_BOLD, 18)
-ind_font = _font(GEORGIA_BOLD, 28)
-spot_font = _font(GEORGIA, 17)
-note_font = _font(GEORGIA, 19)
+
+
+class Fonts(NamedTuple):
+    track: ImageFont.FreeTypeFont  # track names
+    cp: ImageFont.FreeTypeFont  # control points
+    sw: ImageFont.FreeTypeFont  # switch pills
+    et: ImageFont.FreeTypeFont  # engine house tracks
+    ind: ImageFont.FreeTypeFont  # industries
+    spot: ImageFont.FreeTypeFont  # spot numbers
+    note: ImageFont.FreeTypeFont  # off-map destinations
+
+
+def load_fonts() -> Fonts:
+    """The map's fonts, loaded when the map is drawn rather than on import."""
+    return Fonts(
+        track=_font(ARIAL_BOLD, 24),
+        cp=_font(ARIAL_BOLD, 38),
+        sw=_font(ARIAL_BOLD, 20),
+        et=_font(ARIAL_BOLD, 18),
+        ind=_font(GEORGIA_BOLD, 28),
+        spot=_font(GEORGIA, 17),
+        note=_font(GEORGIA, 19),
+    )
 
 
 def barn_crossover(sw9_x: float, row_top: float, row_bot: float):
@@ -81,6 +98,7 @@ def engine_lead(sw9_x: float, lead_y: float, eh: dict[int, float]):
 
 
 def main() -> None:
+    track_font, cp_font, sw_font, et_font, ind_font, spot_font, note_font = load_fonts()
     # ── x anchors ────────────────────────────────────────────────────────
     x_stub = 40
     x101 = 440

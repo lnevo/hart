@@ -40,7 +40,7 @@ from hart_pub_helpers import (  # noqa: E402
     set_letter_portrait,
     set_page_size,
 )
-from rebuild_station_map import _paste_compass  # noqa: E402
+from station_compass import paste_compass as _paste_compass  # noqa: E402
 
 import local_station_maps  # noqa: E402
 

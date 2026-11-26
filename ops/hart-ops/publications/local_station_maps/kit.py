@@ -25,10 +25,7 @@ MUTED_INK = (0x4A, 0x4A, 0x4A)
 SW_FILL = (0x0F, 0x47, 0x61)
 ACCENT_RED = (0x5C, 0x16, 0x16)
 
-GEORGIA = "/System/Library/Fonts/Supplemental/Georgia.ttf"
-GEORGIA_BOLD = "/System/Library/Fonts/Supplemental/Georgia Bold.ttf"
-ARIAL_BOLD = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
-ARIAL = "/System/Library/Fonts/Supplemental/Arial.ttf"
+from pub_fonts import ARIAL, ARIAL_BOLD, GEORGIA, GEORGIA_BOLD  # noqa: E402, F401  (re-exported)
 
 
 class Hooks(NamedTuple):

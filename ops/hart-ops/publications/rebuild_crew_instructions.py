@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import TypedDict
 
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -52,15 +53,46 @@ from hart_pub_helpers import (  # noqa: E402
 import crew_master  # noqa: E402
 
 # The jobs, their text and the publication line come from the crew master (ops/hart-ops/data/crew.json, ADR-039).
+class CrewSheetError(ValueError):
+    """The crew master cannot be printed as crew sheets: a missing photo or disagreeing publication lines."""
+
+
+class Publication(TypedDict):
+    title: str
+    revision: str
+    effective: str
+
+
+def load_crews(master: dict) -> list[dict]:
+    """The crew jobs with their output path and photo path; a photo the master names must exist."""
+    crews = []
+    for c in crew_master.crews(master):
+        photo = ROSTER_PHOTOS / c["photo"] if c["photo"] else None
+        if photo is not None and not photo.is_file():
+            raise CrewSheetError(f"crew {c.get('pub_id', '?')}: photo {photo} is not a file")
+        crews.append({**c, "out": DOCS / c["file"], "photo": photo})
+    if not crews:
+        raise CrewSheetError("the crew master has no crew jobs")
+    return crews
+
+
+def shared_publication(crews: list[dict]) -> Publication:
+    """The one publication line (title, revision, effective) the crew sheets share."""
+    first = crews[0]["publication"]
+    pub: Publication = {"title": first["title"], "revision": first["revision"], "effective": first["effective"]}
+    for c in crews:
+        line = {k: c["publication"][k] for k in pub}
+        if line != pub:
+            raise CrewSheetError(
+                f"crew {c.get('pub_id', '?')} prints {line}, the first crew prints {dict(pub)}; "
+                "the crew master's jobs must share title, revision and effective"
+            )
+    return pub
+
+
 _MASTER = crew_master.load()
-CREWS: list[dict] = [
-    {**c, "out": DOCS / c["file"], "photo": ROSTER_PHOTOS / c["photo"] if c["photo"] else None}
-    for c in crew_master.crews(_MASTER)
-]
-# one publication line for the three sheets (title, revision, effective)
-PUBLICATION = {k: CREWS[0]["publication"][k] for k in ("title", "revision", "effective")}
-if any({k: c["publication"][k] for k in PUBLICATION} != PUBLICATION for c in CREWS):
-    raise SystemExit("rebuild_crew_instructions: the crew jobs in the crew master disagree on title, revision or effective")
+CREWS: list[dict] = load_crews(_MASTER)
+PUBLICATION: Publication = shared_publication(CREWS)
 
 
 def _clear_table_borders(table) -> None:
@@ -182,16 +214,22 @@ def _estimate_intro_height_in(text: str, *, size_pt: float = 9.5, line_spacing: 
     return (space_before + lines * size_pt * line_spacing + space_after) / 72.0
 
 
+ENGINE_BLOCK_NO_PHOTO_IN = 0.70  # height of the engine block with the placeholder text instead of a photo
+
+
 def _engine_block_height_in(crew: dict) -> float:
+    """Height of the engine block: the photo at 1.85 in wide plus its padding, or the placeholder."""
     photo = crew.get("photo")
-    if photo is not None and Path(photo).is_file():
-        try:
-            from PIL import Image
-            w, h = Image.open(photo).size
-            return 1.85 * h / w + 0.14
-        except Exception:
-            return 0.70
-    return 0.70
+    if photo is None:
+        return ENGINE_BLOCK_NO_PHOTO_IN
+    from PIL import Image, UnidentifiedImageError
+
+    try:
+        with Image.open(photo) as img:
+            w, h = img.size
+    except (OSError, UnidentifiedImageError) as exc:
+        raise CrewSheetError(f"crew {crew.get('pub_id', '?')}: cannot read photo {photo}: {exc}") from exc
+    return 1.85 * h / w + 0.14
 
 
 def _float_table(table, *, y_in: float, width_in: float = 4.44) -> None:
