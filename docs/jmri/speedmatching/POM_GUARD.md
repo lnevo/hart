@@ -20,17 +20,18 @@ or the roster.
 
 ## Ledger commands on the Pi
 
-The ledger lives on the Pi, in the folder `speedmatch.py ledger-dir` prints: `speedmatch/ledger`
-in the Pi's home, the parent of `HART_PI_USERFILES` (`/home/pi/speedmatch/ledger` by default).
-The writer uses that folder, and every ledger command gets it as `--ledger-dir`. The commands
-need `pom_guard.py` and `pom_guard_cli.py` in `/tmp/speedmatch` on the Pi. A `speedmatch.py pom`
-drop leaves them there, but a ledger step can come before any drop, so copy them first:
+The ledger lives on the Pi, in the folder `speedmatch.py ledger-dir` prints: `speedmatch/ledger` in
+the Pi's home, the parent of `HART_PI_USERFILES` (`/home/pi/speedmatch/ledger` by default). The
+writer uses that folder, and every ledger command gets it as `--ledger-dir`. The commands need
+`pom_guard.py`, `pom_guard_roster.py` (which it imports) and `pom_guard_cli.py` in
+`/tmp/speedmatch` on the Pi. A `speedmatch.py pom` drop leaves them there, but a ledger step can
+come before any drop, so copy them first:
 
 ```
 S=jmri/layouts/hart/scripts/speedmatch
 LD=$(python3 $S/speedmatch.py ledger-dir)
 ssh pi 'mkdir -p /tmp/speedmatch'
-scp $S/pom_guard.py $S/pom_guard_cli.py pi:/tmp/speedmatch/
+scp $S/pom_guard.py $S/pom_guard_roster.py $S/pom_guard_cli.py pi:/tmp/speedmatch/
 ssh pi "python3 /tmp/speedmatch/pom_guard.py seed-ledger 'CSX 2738' /tmp/preflight_CSX_2738_<time>.log --ledger-dir $LD"
 ssh pi "python3 /tmp/speedmatch/pom_guard.py clear-ledger 'CSX 2738' CV68 --ledger-dir $LD"
 ssh pi "python3 /tmp/speedmatch/pom_guard.py archive-ledger 'CSX 2738' --ledger-dir $LD"
@@ -183,12 +184,12 @@ python3 $S pom proposal.json --apply --consists-broken --send   # the write; add
 
 It checks the proposal with the guard on the Mac first, then writes `/tmp/pom_drop.py` (`--out`
 changes it): the settings `pom_write.py` reads, the files it needs (`pom_guard.py`,
-`pom_guard_cli.py`, `cs105_consist.py` and the proposal, unpacked into `/tmp/speedmatch` on the Pi
-before the writer starts), then `pom_write.py` itself. Without `--send` nothing leaves the Mac. The
-rollback file and the ledger go in `~/speedmatch` beside the Pi's user files (`HART_PI_USERFILES`,
-read as `tools/env/load_env.sh` reads it); `--rollback NAME` names the rollback file, and by
-default it is `rollback_<loco>_<time>.json`. It prints the ledger folder and the ledger commands'
-`--ledger-dir`, the same folder `speedmatch.py ledger-dir` prints.
+`pom_guard_roster.py`, `pom_guard_cli.py`, `cs105_consist.py` and the proposal, unpacked into
+`/tmp/speedmatch` on the Pi before the writer starts), then `pom_write.py` itself. Without `--send`
+nothing leaves the Mac. The rollback file and the ledger go in `~/speedmatch` beside the Pi's user
+files (`HART_PI_USERFILES`, read as `tools/env/load_env.sh` reads it); `--rollback NAME` names the
+rollback file, and by default it is `rollback_<loco>_<time>.json`. It prints the ledger folder and
+the ledger commands' `--ledger-dir`, the same folder `speedmatch.py ledger-dir` prints.
 
 `--send` goes through `drop_job.sh` and its gates, the same as a speed run: no drop while the owner
 is operating, while another command waits for the watcher, while a runner is active
