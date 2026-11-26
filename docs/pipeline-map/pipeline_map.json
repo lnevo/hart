@@ -618,7 +618,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "layout",
-   "desc": "Per block: M2S occupancy sensor and discipline; read by the CATS desk builder via digicon_lib.",
+   "desc": "Per block, by block id (block_lengths.csv): its occupancy sensor and CATS discipline; read through hartlib.occupancy_bindings, which names each block, by the CATS desk builder (digicon_lib) and the audits.",
    "path": "cats/data/occupancy_bindings.csv"
   },
   {
@@ -926,7 +926,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "layout",
-   "desc": "Interlocking control points for every level; the signal rule's control points.",
+   "desc": "Interlocking control points for every level, keyed by cp_id (cp:107); the signal rule's control points. The cp cells of the device pair and masts.csv name them by id (hartlib.places).",
    "path": "jmri/layouts/hart/data/schematic/interlockings.csv"
   },
   {
@@ -1007,7 +1007,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "layout",
-   "desc": "Schematic desk areas per control point; used to place OS blocks into control points in layout index. Its tracks cell gives block IDs, named by the name store (hartlib.railroad_facts.station_tracks).",
+   "desc": "Stations of every level, keyed by station_id (st:barn), and their desk areas; the cp cells of the device pair and masts.csv name them by id (hartlib.places). Used to place OS blocks into control points in layout index. Its tracks cell gives block IDs, named by the name store (hartlib.railroad_facts.station_tracks).",
    "path": "jmri/layouts/hart/data/schematic/stations.csv"
   },
   {
@@ -10390,14 +10390,14 @@
   {
    "from": "jmri/layouts/hart/data/schematic/stations.csv",
    "to": "tools/ops/check_data.py",
-   "label": "refs",
+   "label": "rules",
    "side": "check",
    "gen": "manifest"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/interlockings.csv",
    "to": "tools/ops/check_data.py",
-   "label": "refs",
+   "label": "rules",
    "side": "check",
    "gen": "manifest"
   },
@@ -10504,6 +10504,20 @@
    "from": "www/scripts/archive_catalogue.csv",
    "to": "tools/ops/check_data.py",
    "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "cats/data/occupancy_bindings.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/block_lengths.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "refs",
    "side": "check",
    "gen": "manifest"
   },

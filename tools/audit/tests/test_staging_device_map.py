@@ -324,7 +324,7 @@ class Files(unittest.TestCase):
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)
         bad = tmp / "masts.csv"
-        bad.write_text(sdm.MASTS.read_text(encoding="utf-8").replace("Mast 2L,Brick,1,", "Mast 2L,Brick,99,"),
+        bad.write_text(sdm.MASTS.read_text(encoding="utf-8").replace("Mast 2L,st:brick,1,", "Mast 2L,st:brick,99,"),
                        encoding="utf-8")
         with self.assertRaisesRegex(sdm.StagingMapError, "Mast 2L is on switch '99', which no turnout row"):
             sdm.load(self.band, masts_path=bad)

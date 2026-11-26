@@ -2,18 +2,17 @@
 """Desk helpers shared by build_cats_panel.py, cats_turnout_io.py and digicon_trace.py."""
 from __future__ import annotations
 
-import csv
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, tables  # noqa: E402
+from hartlib import occupancy_bindings, paths, tables  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 HART = paths.TABLES_XML
-OCC_CSV = paths.CATS_DIR / "data/occupancy_bindings.csv"
+OCC_CSV = occupancy_bindings.PATH       # each block by its block_id, named by hartlib.occupancy_bindings
 
 TRACK_ENDS = {
     "HORIZONTAL": frozenset({"LEFT", "RIGHT"}),
@@ -40,13 +39,13 @@ def cell_edges(tracks: list[str]) -> list[str]:
 
 
 def load_disciplines() -> dict[str, str]:
+    """{block name: CATS discipline} of occupancy_bindings.csv (hartlib.occupancy_bindings names each block_id)."""
     out: dict[str, str] = {}
-    with OCC_CSV.open(newline="", encoding="utf-8") as fh:
-        for row in csv.DictReader(fh):
-            disc = (row.get("cats_discipline") or "CTC").strip().upper()
-            if disc not in {"UNDEFINED", "ABS", "APB", "CTC", "DTC"}:
-                disc = "CTC"
-            out[row["block_user_name"].strip()] = disc
+    for row in occupancy_bindings.rows(OCC_CSV):
+        disc = (row["cats_discipline"] or "CTC").upper()
+        if disc not in {"UNDEFINED", "ABS", "APB", "CTC", "DTC"}:
+            disc = "CTC"
+        out[row["block_user_name"]] = disc
     return out
 
 
@@ -64,12 +63,10 @@ def load_occupancy(root: ET.Element | None = None) -> dict[str, tuple[str, str]]
         occ = (lb.get("occupancysensor") or "").strip()
         if un and occ and occ in sensor_addr:
             out[un] = (sensor_addr[occ], occ)
-    with OCC_CSV.open(newline="", encoding="utf-8") as fh:
-        for row in csv.DictReader(fh):
-            name = row["block_user_name"].strip()
-            sens = row["occupancy_sensor_user_name"].strip()
-            if name not in out and sens in sensor_addr:
-                out[name] = (sensor_addr[sens], sens)
+    for row in occupancy_bindings.rows(OCC_CSV):
+        name, sens = row["block_user_name"], row["occupancy_sensor_user_name"]
+        if name not in out and sens in sensor_addr:
+            out[name] = (sensor_addr[sens], sens)
     return out
 
 

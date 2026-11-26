@@ -37,7 +37,7 @@ import device_map_masts as dmm  # noqa: E402  staging's masts by the rule
 import mast_rule  # noqa: E402
 import publish_draft as pd  # noqa: E402
 import staging_device_map as sdm  # noqa: E402
-from hartlib import devices, level_masts, railroad  # noqa: E402
+from hartlib import devices, level_masts, places, railroad  # noqa: E402
 
 DATA = pd.DATA
 MASTS, DEVICE_MAP = level_masts.PATH, sdm.DEVICE_MAP     # masts.csv, every level; the device master
@@ -51,10 +51,11 @@ def device_files() -> devices.Files:
 
 
 def csv_text(rows: list[dict], columns) -> str:
+    """masts.csv's text of `rows`, the cp cells as place ids (hartlib.places; level_masts.read names them)."""
     buf = io.StringIO()
     w = csv.DictWriter(buf, fieldnames=list(columns), lineterminator="\n")
     w.writeheader()
-    w.writerows(rows)
+    w.writerows(places.with_ids(rows))
     return buf.getvalue()
 
 
