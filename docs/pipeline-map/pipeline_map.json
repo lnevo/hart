@@ -2057,7 +2057,7 @@
    "id": "ops/hart-ops/industries",
    "label": "industries/ OPSIG list",
    "kind": "structured",
-   "status": "live",
+   "status": "retired",
    "domain": "ops",
    "desc": "The OPSIG industries list (industries.txt) moved to archive/ops/hart-ops/industries/ on 2026-11-25; nothing reads it. The routing matrix and its scripts were retired the same day (archive/docs/ops/industries/).",
    "path": "ops/hart-ops/industries"
