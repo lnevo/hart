@@ -901,7 +901,7 @@ cmd = ["python3", "tools/audit/check_py_sizes.py"]
 git = ["head", "base"]
 domain = "extras"
 label = "check_py_sizes"
-desc = "Fails when a .py or .js file over 800 lines, or a .sh file over 500, grows past its row in tools/audit/py_sizes.csv; warns at 90 percent of the limit; --update tightens the list, --accept raises a row by name."
+desc = "Fails when a .py or .js file over 800 lines, or a .sh file over 500, grows past its row in tools/audit/py_sizes.csv; warns at 90 percent of the limit; a shrink passes with a note; --update tightens the list, --accept raises a row by name."
 inputs = [
   "tools/audit/py_sizes.csv",
 ]
@@ -909,7 +909,7 @@ inputs = [
 quiet_inputs = ["**/*.py", "**/*.js", "**/*.sh"]
 
 # A ratchet on five code habits (lost tracebacks, dated owner notes, source-text tests, exits on import, exec-loaded
-# parts): a file's count may go down, never up. It lists files with git ls-files, so it keeps HEAD.
+# parts): a file's count may go down, never up; a fall passes with a note until --update. It lists files with git ls-files, so it keeps HEAD.
 [[step]]
 name = "habits"
 runner = "check"
@@ -918,7 +918,7 @@ cmd = ["python3", "tools/audit/check_habits.py"]
 git = ["head", "base"]
 domain = "extras"
 label = "check_habits"
-desc = "Fails when a tracked .py file's count of a code habit (lost traceback, dated owner note, source-text test, exit on import, exec-loaded part) differs from tools/audit/habits_baseline.json; --update lowers it and refuses any rise."
+desc = "Fails when a tracked .py file's count of a code habit (lost traceback, dated owner note, source-text test, exit on import, exec-loaded part) rises above tools/audit/habits_baseline.json; a fall passes with a note; --update lowers it and refuses any rise."
 inputs = [
   "tools/audit/habits_baseline.json",
 ]
@@ -1021,7 +1021,7 @@ cmd = ["python3", "tools/audit/check_mypy.py"]
 git = ["head", "base"]
 domain = "extras"
 label = "check_mypy"
-desc = "mypy (mypy.ini) over the CPython files: hartlib with no errors, every other file at or below its error count in tools/audit/mypy_baseline.json; --update lowers the baseline and refuses a rise."
+desc = "mypy (mypy.ini) over the CPython files: hartlib with no errors, every other file at or below its error count in tools/audit/mypy_baseline.json (below passes with a note); --update lowers the baseline and refuses a rise."
 inputs = [
   "tools/audit/mypy_baseline.json",
 ]

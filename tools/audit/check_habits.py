@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Ratchet on five code habits in the tracked Python files: a file's count of each may go down, never up.
 
-    python3 tools/audit/check_habits.py            fail when a count differs from tools/audit/habits_baseline.json
+    python3 tools/audit/check_habits.py            fail when a count rises above tools/audit/habits_baseline.json
     python3 tools/audit/check_habits.py --update   write the lower counts; refuses while any count is higher
 
 The habits, counted per file over tracked CPython and Jython .py files (not archive/, external/, reference/, the
@@ -14,7 +14,8 @@ parked features or tools/cats/src-repo/):
   file other files import.
 - exec-parts: `exec(...)` or `globals().update(...)`, the ways a script loads its parts into its own namespace.
 
-A count below the baseline also fails until --update writes it, so the slack cannot be used again later.
+A count below the baseline passes with one note; --update locks the lower count in. A new file with a habit is a rise
+from 0, so it fails.
 """
 from __future__ import annotations
 
@@ -311,12 +312,15 @@ def main(argv: list[str] | None = None, root: Path = ROOT, baseline: Path = BASE
         baseline.write_text(baseline_text(now), encoding="utf-8")
         print(f"wrote {baseline}: {len(falls)} count(s) lowered")
         return 0
-    for line in falls:
-        print(f"FAIL lower than the baseline: {line} (run {Path(__file__).name} --update to lock it in)")
-    if not rises and not falls:
-        total = {h: sum(c.get(h, 0) for c in now.values()) for h in HABITS}
-        print("OK: no habit count rose (" + ", ".join(f"{h} {n}" for h, n in total.items()) + ")")
-    return 1 if rises or falls else 0
+    if rises:
+        return 1
+    if falls:
+        # a note, not a failure: with strict up-to-date merges a fall on main would otherwise fail every open branch
+        files_below = len({line.split(": ", 1)[0] for line in falls})
+        print(f"{files_below} file(s) below the baseline; `--update` locks them in")
+    total = {h: sum(c.get(h, 0) for c in now.values()) for h in HABITS}
+    print("OK: no habit count rose (" + ", ".join(f"{h} {n}" for h, n in total.items()) + ")")
+    return 0
 
 
 if __name__ == "__main__":

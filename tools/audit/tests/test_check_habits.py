@@ -1,4 +1,4 @@
-"""check_habits counts each habit per file, and the ratchet refuses a rise and asks for --update after a fall."""
+"""check_habits counts each habit per file, and the ratchet refuses a rise and notes a fall for --update."""
 from __future__ import annotations
 
 import ast
@@ -72,10 +72,10 @@ class HabitCounts(unittest.TestCase):
 
 
 class SourceAsserts(unittest.TestCase):
-    def test_calibration_files(self) -> None:
-        flagged = ROOT / "cats/scripts/tests/test_signal_coordinator.py"
+    def test_calibration_file(self) -> None:
+        # the flagged calibration file (cats/scripts/tests/test_signal_coordinator.py) became behaviour tests on main;
+        # the synthetic cases below cover the flagged side
         clean = ROOT / "tools/audit/tests/test_stamp_gate.py"
-        self.assertGreater(H.source_asserts(ast.parse(flagged.read_text(encoding="utf-8"))), 0)
         self.assertEqual(H.source_asserts(ast.parse(clean.read_text(encoding="utf-8"))), 0)
 
     def test_mostly_text_checks_flags_each_one(self) -> None:
@@ -114,12 +114,21 @@ class Ratchet(unittest.TestCase):
             self.assertIn("b.py: exec-parts 0 -> 1", out)
             self.assertEqual(json.loads(baseline.read_text()), {"a.py": {"lost-cause": 1}})
 
-    def test_fall_fails_until_update_writes_it(self) -> None:
-        code, out, _ = self.run_main({}, {"a.py": {"lost-cause": 1}})
-        self.assertEqual(code, 1)
-        self.assertIn("lower than the baseline: a.py: lost-cause 1 -> 0", out)
+    def test_fall_passes_with_a_note_until_update_writes_it(self) -> None:
+        code, out, baseline = self.run_main({"b.py": {"exec-parts": 1}},
+                                            {"a.py": {"lost-cause": 1, "dated-note": 2}, "b.py": {"exec-parts": 2}})
+        self.assertEqual(code, 0)
+        self.assertIn("2 file(s) below the baseline; `--update` locks them in", out)
+        self.assertNotIn("FAIL", out)
+        self.assertEqual(json.loads(baseline.read_text()),
+                         {"a.py": {"lost-cause": 1, "dated-note": 2}, "b.py": {"exec-parts": 2}})
         code, _, baseline = self.run_main({}, {"a.py": {"lost-cause": 1}}, "--update")
         self.assertEqual((code, json.loads(baseline.read_text())), (0, {}))
+
+    def test_fall_beside_a_rise_still_fails(self) -> None:
+        code, out, _ = self.run_main({"a.py": {"lost-cause": 2}}, {"a.py": {"lost-cause": 1}, "b.py": {"exec-parts": 1}})
+        self.assertEqual(code, 1)
+        self.assertIn("FAIL higher than the baseline: a.py: lost-cause 1 -> 2", out)
 
     def test_missing_baseline_fails_and_update_writes_the_first(self) -> None:
         self.assertEqual(self.run_main({"a.py": {"exec-parts": 1}}, None)[0], 1)
@@ -136,8 +145,8 @@ class Ratchet(unittest.TestCase):
             H.scan(Path(tmp))
         self.assertIsInstance(caught.exception.__cause__, H.GitError)
 
-    def test_committed_baseline_is_current(self) -> None:
-        self.assertEqual(H.compare(H.scan(), H.read_baseline()), ([], []))
+    def test_committed_baseline_has_no_rise(self) -> None:
+        self.assertEqual(H.compare(H.scan(), H.read_baseline())[0], [])
 
 
 if __name__ == "__main__":

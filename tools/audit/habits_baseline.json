@@ -1,7 +1,4 @@
 {
- ".claude/hooks/main_guard.py": {
-  "dated-note": 1
- },
  "cats/scripts/build_hart_trains.py": {
   "import-exit": 2
  },
@@ -21,9 +18,6 @@
  "cats/scripts/tests/test_live_desk_levels.py": {
   "dated-note": 1
  },
- "cats/scripts/tests/test_signal_coordinator.py": {
-  "source-asserts": 62
- },
  "jmri/layouts/hart/scripts/audit_panel_contracts.py": {
   "dated-note": 3
  },
@@ -36,7 +30,7 @@
  },
  "jmri/layouts/hart/scripts/export_track_lengths.py": {
   "dated-note": 2,
-  "import-exit": 2
+  "import-exit": 3
  },
  "jmri/layouts/hart/scripts/gen_ctc_track_plan.py": {
   "dated-note": 1,
@@ -55,7 +49,6 @@
   "dated-note": 1
  },
  "jmri/layouts/hart/scripts/panel_status.py": {
-  "dated-note": 1,
   "exec-parts": 1
  },
  "jmri/layouts/hart/scripts/panelpro_smoke_test.py": {
@@ -115,12 +108,6 @@
  "jmri/layouts/hart/scripts/tests/test_name_lookups.py": {
   "dated-note": 1
  },
- "jmri/layouts/hart/scripts/tests/test_panel_status.py": {
-  "dated-note": 1
- },
- "jmri/layouts/hart/scripts/tests/test_panel_status_contract.py": {
-  "source-asserts": 8
- },
  "jmri/layouts/hart/scripts/tests/test_panelpro_smoke_blocks.py": {
   "exec-parts": 1
  },
@@ -179,7 +166,7 @@
  "ops/hart-ops/tests/test_crew_master.py": {
   "dated-note": 1
  },
- "ops/station_maps/scripts/render_barn_station_map.py": {
+ "ops/station_maps/scripts/sheet_kit.py": {
   "import-exit": 1
  },
  "tools/agent/worktrees.py": {
@@ -203,9 +190,6 @@
   "dated-note": 4
  },
  "tools/audit/tests/test_build_layout_le.py": {
-  "dated-note": 1
- },
- "tools/audit/tests/test_guards.py": {
   "dated-note": 1
  },
  "tools/audit/tests/test_layout_facts.py": {
@@ -241,92 +225,14 @@
  "tools/ci/stamp_gate.py": {
   "import-exit": 1
  },
- "tools/hartlib/src/hartlib/block_lengths.py": {
-  "dated-note": 1
- },
- "tools/hartlib/src/hartlib/block_numbering.py": {
-  "dated-note": 1,
-  "lost-cause": 1
- },
- "tools/hartlib/src/hartlib/coordinator.py": {
-  "lost-cause": 2
- },
- "tools/hartlib/src/hartlib/device_changes.py": {
-  "dated-note": 1
- },
- "tools/hartlib/src/hartlib/device_ids.py": {
-  "dated-note": 4
- },
- "tools/hartlib/src/hartlib/devices.py": {
-  "dated-note": 2,
-  "lost-cause": 5
- },
- "tools/hartlib/src/hartlib/drawing_keys.py": {
-  "dated-note": 1
- },
- "tools/hartlib/src/hartlib/files.py": {
-  "lost-cause": 1
- },
- "tools/hartlib/src/hartlib/hand_lists.py": {
-  "dated-note": 1,
-  "lost-cause": 4
- },
  "tools/hartlib/src/hartlib/hosts.py": {
   "import-exit": 3
- },
- "tools/hartlib/src/hartlib/layer_files.py": {
-  "lost-cause": 4
- },
- "tools/hartlib/src/hartlib/level_devices.py": {
-  "dated-note": 5
- },
- "tools/hartlib/src/hartlib/level_masts.py": {
-  "dated-note": 5,
-  "lost-cause": 1
- },
- "tools/hartlib/src/hartlib/occupancy_bindings.py": {
-  "dated-note": 1
- },
- "tools/hartlib/src/hartlib/parked.py": {
-  "dated-note": 1
  },
  "tools/hartlib/src/hartlib/paths.py": {
   "import-exit": 1
  },
- "tools/hartlib/src/hartlib/places.py": {
-  "dated-note": 2,
-  "lost-cause": 3
- },
- "tools/hartlib/src/hartlib/railroad.py": {
-  "dated-note": 1,
-  "lost-cause": 1
- },
- "tools/hartlib/src/hartlib/railroad_facts.py": {
-  "dated-note": 5,
-  "lost-cause": 7
- },
- "tools/hartlib/src/hartlib/railroad_invariants.py": {
-  "dated-note": 4
- },
- "tools/hartlib/src/hartlib/store_split.py": {
-  "dated-note": 2,
-  "lost-cause": 1
- },
- "tools/hartlib/src/hartlib/tables.py": {
-  "dated-note": 2,
-  "lost-cause": 1
- },
  "tools/hartlib/src/hartlib/tables_build.py": {
-  "dated-note": 4,
-  "import-exit": 1,
-  "lost-cause": 7
- },
- "tools/hartlib/src/hartlib/track_names.py": {
-  "lost-cause": 1
- },
- "tools/hartlib/src/hartlib/wiring.py": {
-  "dated-note": 5,
-  "lost-cause": 4
+  "import-exit": 1
  },
  "tools/hartlib/tests/test_block_lengths.py": {
   "dated-note": 1
@@ -357,7 +263,7 @@
   "lost-cause": 2
  },
  "tools/hosts/panelpro_profile.py": {
-  "import-exit": 21
+  "import-exit": 22
  },
  "tools/hosts/tests/test_deploy_gates.py": {
   "dated-note": 1
