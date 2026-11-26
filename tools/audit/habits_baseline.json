@@ -389,7 +389,7 @@
   "lost-cause": 1
  },
  "www/scripts/jmri_additions_page.py": {
-  "lost-cause": 3
+  "lost-cause": 2
  },
  "www/scripts/make_share_cards.py": {
   "import-exit": 2
