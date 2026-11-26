@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 import unittest
+from unittest import mock
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -13,10 +14,14 @@ sys.path.insert(0, str(ROOT / "tools/audit"))
 import check_train_symbols as C  # noqa: E402
 
 TRAINS = [
-    {"train_symbol": "D749", "train_name": "D749", "engine": "1993", "font": "East", "opspro_name": ""},
-    {"train_symbol": "D749R", "train_name": "D749 Return", "engine": "1993", "font": "West",
+    {"train_symbol": "D749", "train_name": "D749", "engine": "1993", "font": "East", "on_desks": "yes",
+     "opspro_name": ""},
+    {"train_symbol": "D749R", "train_name": "D749 Return", "engine": "1993", "font": "West", "on_desks": "yes",
      "opspro_name": "D749 Return"},
 ]
+STAGING = {"train_symbol": "STG-X", "train_name": "", "engine": "", "font": "", "on_desks": "no", "opspro_name": ""}
+# A made-up open question, so the NOT_TRAINS rules are tested while the real list is empty.
+OPEN = {"STG-OPEN": "a fixture open question"}
 
 
 def header(*records: str) -> ET.Element:
@@ -27,6 +32,7 @@ def rec(symbol: str, name: str, engine: str, font: str) -> str:
     return f'<DATARECORD TRAIN_NAME="{name}" TRAIN_SYMBOL="{symbol}" ENGINE="{engine}" FONT="{font}" CARS="0" />'
 
 
+@mock.patch.dict(C.NOT_TRAINS, OPEN)
 class CheckTrainSymbols(unittest.TestCase):
     def test_a_crew_job_code_must_be_a_symbol_and_other_jobs_are_left_out(self) -> None:
         crew = {"jobs": [{"id": "d749", "code": "D749", "kind": "crew"},
@@ -55,6 +61,9 @@ class CheckTrainSymbols(unittest.TestCase):
         self.assertEqual(problems, [f"check_train_symbols.NOT_TRAINS: {name!r} is in "
                                     f"{C.MASTER.relative_to(ROOT)} now; drop it from NOT_TRAINS"])
 
+    def test_a_train_off_the_desks_is_still_an_operations_pro_train(self) -> None:
+        self.assertEqual(C.roster_problems([*TRAINS, STAGING], ["D749", "D749 Return", "STG-X", *C.NOT_TRAINS]), [])
+
     def test_two_trains_may_not_share_an_opspro_name(self) -> None:
         trains = [*TRAINS, {**TRAINS[1], "train_symbol": "D749X"}]
         problems = C.roster_problems(trains, ["D749", "D749 Return", *C.NOT_TRAINS])
@@ -68,6 +77,10 @@ class CheckTrainSymbols(unittest.TestCase):
         self.assertTrue(C.header_problems(TRAINS, swapped))
         engine = header(rec("D749", "D749", "2121", "East"), rec("D749R", "D749 Return", "1993", "West"))
         self.assertIn("2121", C.header_problems(TRAINS, engine)[-1])
+        self.assertEqual(C.header_problems([*TRAINS, STAGING], same), [])
+        self.assertTrue(C.header_problems([*TRAINS, STAGING], header(rec("D749", "D749", "1993", "East"),
+                                                                    rec("D749R", "D749 Return", "1993", "West"),
+                                                                    rec("STG-X", "", "", ""))))
         self.assertEqual(C.header_problems(TRAINS, ET.fromstring("<DOC/>")),
                          [f"{C.HEADER.relative_to(ROOT)}: no TRAINSTORE/TRAINDATA"])
 

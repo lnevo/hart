@@ -11,9 +11,10 @@ It reads ops/hart-ops/data/trains.csv and checks three copies against it:
 - jmri/layouts/hart/operations/OperationsTrainRoster.xml: each Operations Pro train name is a train_symbol, or the
   opspro_name of one train. Each opspro_name must still be in the roster, so a stale mapping fails too. The Pi writes
   that roster (ADR-015); a mismatch is fixed in the master or by a decision about the Operations Pro train, never by
-  editing the XML here. NOT_TRAINS lists the Operations Pro trains that are open owner questions.
+  editing the XML here. NOT_TRAINS lists the Operations Pro trains that are open owner questions. The staging trains
+  (STG-DEMMLER, STG-SCULLY) are master rows with on_desks no (owner, 2026-11-25).
 - cats/data/generated_desk_header.xml: the CATS desks' train list (TRAINDATA, frozen into both desks) holds the
-  master's trains in its order, with the same name, engine and font.
+  master's trains on the desks (on_desks yes) in its order, with the same name, engine and font.
 
 It prints each problem and exits 1 when there is one.
 """
@@ -31,12 +32,9 @@ CREW = ROOT / "ops/hart-ops/data/crew.json"  # the crew master (ADR-039, lane L5
 ROSTER = ROOT / "jmri/layouts/hart/operations/OperationsTrainRoster.xml"
 HEADER = ROOT / "cats/data/generated_desk_header.xml"
 
-# Operations Pro trains that are not in the master yet, with the reason. Each is an open owner question
-# (data-masters lane L4b, 2026-11-25): a name here that the roster no longer has, or that the master now holds, fails.
-NOT_TRAINS = {
-    "STG-DEMMLER": "staging train; owner question: a row in trains.csv or not",
-    "STG-SCULLY": "staging train; owner question: a row in trains.csv or not",
-}
+# Operations Pro trains that are not in the master yet, with the reason. Each is an open owner question: a name here
+# that the roster no longer has, or that the master now holds, fails. None is open since 2026-11-25.
+NOT_TRAINS: dict[str, str] = {}
 # desk header attribute -> master column
 HEADER_FIELDS = {"TRAIN_SYMBOL": "train_symbol", "TRAIN_NAME": "train_name", "ENGINE": "engine", "FONT": "font"}
 
@@ -96,7 +94,7 @@ def header_problems(trains: list[dict[str, str]], root: ET.Element) -> list[str]
     if data is None:
         return [f"{rel}: no TRAINSTORE/TRAINDATA"]
     records = [{col: rec.get(attr, "") for attr, col in HEADER_FIELDS.items()} for rec in data.findall("DATARECORD")]
-    want = [{col: t[col] for col in HEADER_FIELDS.values()} for t in trains]
+    want = [{col: t[col] for col in HEADER_FIELDS.values()} for t in trains if t.get("on_desks") == "yes"]
     if records == want:
         return []
     problems = [f"{rel}: the CATS train list differs from {MASTER.relative_to(ROOT)}"]
