@@ -63,8 +63,9 @@ WIDENED_READS: dict[str, tuple[set[str], set[str], str]] = {   # job -> (files r
 }
 
 
-# the start of check_stamps.record's refusal when the git state moved while a job ran
-MOVED_MID_RUN = "HEAD, origin/main, the plugin"
+# the end of both check_stamps.record refusals for a change while a job ran (the git state, or a file it read)
+MOVED_MID_RUN = "changed while the job ran"
+
 
 class DeclarationTest(unittest.TestCase):
     def test_every_job_kind_in_check_sh_is_declared(self) -> None:
@@ -209,7 +210,8 @@ class AuditTest(unittest.TestCase):
     that its read set lacks (or, for a job that ran an untraceable program, that its declaration does not cover)."""
 
     def test_the_retry_text_is_the_refusal_check_stamps_prints(self) -> None:
-        self.assertIn(MOVED_MID_RUN, (REPO / "tools/audit/check_stamps.py").read_text(encoding="utf-8"))
+        text = (REPO / "tools/audit/check_stamps.py").read_text(encoding="utf-8")
+        self.assertEqual(text.count(MOVED_MID_RUN), 2, "both mid-run refusals end with the text the retry looks for")
 
     @unittest.skipIf(os.environ.get("CHECK_AUDIT"), "already inside an audit run")
     def test_the_traced_read_sets_hold_what_the_jobs_read(self) -> None:
@@ -224,7 +226,9 @@ class AuditTest(unittest.TestCase):
                     shutil.rmtree(f"{tmp}/{d}", ignore_errors=True)
                 done = subprocess.run(["bash", str(REPO / "tools/check.sh")], cwd=REPO, env=env,
                                       capture_output=True, text=True, timeout=900)
-                if attempt == 1 and MOVED_MID_RUN in done.stdout:
+                unstamped = [n for n in cs.AUDIT_SAMPLE
+                             if cs.traced.load(cs._file(n, Path(f"{tmp}/stamps"))) is None]
+                if attempt == 1 and unstamped and MOVED_MID_RUN in done.stdout:
                     continue
                 break
             self.assertEqual(done.returncode, 0, done.stdout[-3000:] + done.stderr[-2000:])
