@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-"""Rename public labels and write meaningful JMRI comments.
+"""Check the staging signal heads' wiring comments in the device master against wiring.csv; writes nothing.
 
-Since R9c (ADR-029) tables.xml is generated (tools/schematic/build_tables.py) and its comments come from the device master;
-the command only checks that the staging heads' wiring comments in the device master (written by
-tools/schematic/build_device_map.py from wiring.csv) are wiring.csv's. The comment rules below stay for
-the parked USS CTC scripts (cleanup_uss_ctc_leftovers.py, uss_switch_only_columns.py) and audit_panel_contracts.py.
+main exits 1 naming each head whose device-master wiring (build_device_map.py writes it) is not wiring.csv's.
+tables.xml is generated (build_tables.py, ADR-029), so nothing here edits it. The rest of the module is the naming
+and comment rules the parked USS CTC scripts and audit_panel_contracts.py import:
 
-- Track Main West Brick–Plane → Track Brick-Plane
-- Track n (CP) → Track n, CP goes in the comment
+- Track Main West Brick-Plane -> Track Brick-Plane
+- Track n (CP) -> Track n, CP goes in the comment
 - Blocks, occupancy/FB sensors, CTC internals, and plant turnouts get comments
 """
 
@@ -230,7 +229,8 @@ def load_wiring_head_comments(
     from hartlib import wiring
     csv_path = path or WIRING
     singles = load_fitted_single_heads(head_plan)
-    grouped: OrderedDict[str, dict[str, object]] = OrderedDict()
+    ports: OrderedDict[str, list[str]] = OrderedDict()   # head -> its LCOS pins, in file order
+    signal: dict[str, str] = {}                          # head -> its LCOS signal object index
     if not csv_path.is_file():
         return {}
     for row in wiring.digicon_rows(csv_path):
@@ -241,21 +241,12 @@ def load_wiring_head_comments(
         uname = jmri_head_user_name(mast, role)
         if not uname:
             continue
-        entry = grouped.setdefault(uname, {"ports": [], "signal": ""})
-        ports = entry["ports"]
-        assert isinstance(ports, list)
-        ports.append((row.get("port_id") or "").strip())
-        if not entry["signal"]:
-            entry["signal"] = (row.get("signal_index") or "").strip()
+        ports.setdefault(uname, []).append((row.get("port_id") or "").strip())
+        if not signal.get(uname):
+            signal[uname] = (row.get("signal_index") or "").strip()
     out: dict[str, str] = {}
-    for name, info in grouped.items():
-        ports = info["ports"]
-        assert isinstance(ports, list)
-        comment = comment_from_port_ids(
-            [str(p) for p in ports],
-            label="Signal",
-            index=str(info["signal"]),
-        )
+    for name, pins in ports.items():
+        comment = comment_from_port_ids(pins, label="Signal", index=signal[name])
         if comment:
             out[name] = comment
     return out
@@ -265,8 +256,13 @@ def stale_head_comments(files: devices.Files | None = None, path: Path | None = 
     """The staging head rows of the device master whose wiring is not the comment wiring.csv gives them
     (load_wiring_head_comments of `path`), one line each; [] when they agree. build_device_map.py writes the head
     rows' wiring from wiring.csv, so a line here means it has not been run since wiring.csv changed. DevicesError
-    when the master cannot be read."""
-    comments = load_wiring_head_comments(path)
+    when the master cannot be read; FactsError when wiring.csv or signal_head_plan.csv is missing (with no
+    wiring.csv every head would pass unchecked)."""
+    wiring_path = path or WIRING
+    for need in (wiring_path, SIGNAL_HEAD_PLAN):
+        if not need.is_file():
+            raise FactsError(f"{paths.rel(need)} is missing: the staging head check reads it")
+    comments = load_wiring_head_comments(wiring_path)
     heads = {r["user_name"]: r for r in devices.load(files) if r["level"] == STAGING_LEVEL and r["layer"] == "head"}
     out = [f"{name}: wiring.csv gives {want!r}, the device master has {heads[name]['wiring']!r}"
            for name, want in sorted(comments.items()) if name in heads and heads[name]["wiring"] != want]
@@ -912,9 +908,8 @@ def refresh_comments(text: str) -> tuple[str, int]:
 
 def main() -> int:
     """Check the wiring comments of the staging signal heads in the device master against wiring.csv
-    (stale_head_comments); 1 when they differ (run tools/schematic/build_device_map.py). tables.xml is an output
-    since R9c (ADR-029): its comments come from the device master through tools/schematic/build_tables.py, so this script
-    no longer edits it; refresh_comments stays for the parked USS CTC scripts that import it."""
+    (stale_head_comments): 0 when they agree, 1 naming each head that differs (run
+    tools/schematic/build_device_map.py), 2 when the master, wiring.csv or signal_head_plan.csv cannot be read."""
     paths.exit_if_overridden(Path(__file__).name)
     try:
         stale = stale_head_comments()

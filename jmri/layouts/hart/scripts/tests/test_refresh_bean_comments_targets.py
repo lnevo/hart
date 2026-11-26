@@ -1,4 +1,4 @@
-"""refresh_bean_comments.py no longer edits tables.xml (R9c, ADR-029) nor devices.csv: the command checks that the
+"""refresh_bean_comments.py edits neither tables.xml (ADR-029) nor devices.csv: the command checks that the
 staging heads' wiring in devices.csv is wiring.csv's (build_device_map.py writes it); the tables' comments are
 generated (tools/schematic/build_tables.py)."""
 from __future__ import annotations
@@ -58,6 +58,20 @@ class StaleHeadCommentsTest(unittest.TestCase):
         devices.write_one_file(rows, self.files)
         self.assertEqual(refresh_bean_comments.stale_head_comments(self.files),
                          [f"Head 6LB: wiring.csv gives {want!r}, the device master has 'Node: 4 Signal: 9'"])
+
+    def test_a_missing_wiring_file_stops_instead_of_passing(self) -> None:
+        missing = self.tmp / "wiring.csv"
+        with self.assertRaisesRegex(refresh_bean_comments.FactsError, "wiring.csv is missing"):
+            refresh_bean_comments.stale_head_comments(self.files, missing)
+        with mock.patch.object(refresh_bean_comments, "WIRING", missing), \
+                mock.patch("sys.stderr") as err:
+            self.assertEqual(2, refresh_bean_comments.main())
+        self.assertIn("wiring.csv is missing", "".join(c.args[0] for c in err.write.call_args_list))
+
+    def test_a_missing_head_plan_stops_too(self) -> None:
+        with mock.patch.object(refresh_bean_comments, "SIGNAL_HEAD_PLAN", self.tmp / "signal_head_plan.csv"):
+            with self.assertRaisesRegex(refresh_bean_comments.FactsError, "signal_head_plan.csv is missing"):
+                refresh_bean_comments.stale_head_comments(self.files)
 
 
 if __name__ == "__main__":

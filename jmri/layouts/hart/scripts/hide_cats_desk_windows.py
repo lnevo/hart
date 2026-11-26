@@ -2,42 +2,44 @@
 #
 # LogixNG IQ:AUTO:0001 runs this at init as IQC:AUTO:0004. IQC:AUTO:0001 already
 # hides WiThrottle on every host. The USS CTC and Dispatcher System panels are
-# parked out of tables.xml (hartlib.parked, 2026-11-17) with the ConditionalNGs
-# that hid them (IQC:AUTO:0002/0003), so neither window opens and nothing here
-# looks for them ("Dispatcher Panel" below is CATS's own window). PanelPro leaves
-# HART Railroad up; CATS is a separate JVM (cats.apps.Crandic) and should not
-# keep that geographic panel.
+# parked out of tables.xml (hartlib.parked) with the ConditionalNGs that hid them
+# (IQC:AUTO:0002/0003), so neither window opens and nothing here looks for them.
+# PanelPro leaves HART Railroad up; CATS is a separate JVM (cats.apps.Crandic) and
+# should not keep that geographic panel.
 #
 # MUST stay ASCII. Jython 2.7 LogixNG ActionScript crashes the whole file on a
-# UnicodeDecodeError (em-dash in a print previously aborted before chrome).
+# UnicodeDecodeError, so one non-ASCII byte stops it before the buttons go on.
 # Do not add "from __future__ import print_function": JMRI's shared Jython
 # engine keeps that flag and then stock Dispatcher System Startup.py fails
 # on `print "closed Option"`.
 #
 # CTC Panel: Help/Quit go on Apps.buttonSpace() (bottom, with Restart RPi).
-# Do not wrap a second toolbar at the top. Dispatcher Panel is schematic-only:
-# unwrap any leftover Help/Quit chrome; do not add buttons there. File already
-# has Exit; do not add a second Quit.
+# Nothing goes at the top of the window, in its File menu (it has Exit) or on
+# CATS's Dispatcher Panel.
+#
+# The menu, button and window calls below are Swing calls on windows that may be
+# closing; each one that fails is printed and the pass goes on.
 
-from java.awt import BorderLayout, FlowLayout, Frame, Window
+from java.awt import Frame, Window
 from java.awt.event import ActionListener
 from java.lang import System
 
-from javax.swing import JButton, JPanel
+from javax.swing import JButton
 
 from jmri.util import JmriJFrame, ThreadingUtil
 
 HART_RAILROAD = "HART Railroad"
 CTC_PANEL = "CTC Panel"
-DISPATCHER_PANEL = "Dispatcher Panel"
-WRAP_NAME = "HART:CATS:Wrapped"
-TOOLBAR_NAME = "HART:CATS:Toolbar"
 HELP_NAME = "HART:CATS:Help"
 QUIT_NAME = "HART:CATS:Quit"
-QUIT_ITEM_NAME = "HART:CATS:QuitItem"
 
 _state = {"tries": 0, "hid": False, "chrome": False}
 _MAX_TRIES = 40
+_RETRY_MS = 500
+
+
+def _failed(what, e):
+    print("HART: CATS desk %s failed: %s" % (what, e))
 
 
 def under_cats():
@@ -49,24 +51,31 @@ def under_cats():
         try:
             if window.getClass().getName().startswith("cats."):
                 return True
-        except Exception:
-            pass
+        except Exception as e:
+            _failed("window class", e)
     return False
 
 
-def hide_title(title):
+def frame_named(title):
+    """JMRI's frame with this title, else the first plain Frame with it, else None."""
     frame = JmriJFrame.getFrame(title)
     if frame is not None:
-        frame.setVisible(False)
-        return True
+        return frame
     for window in Window.getWindows():
         try:
             if isinstance(window, Frame) and window.getTitle() == title:
-                window.setVisible(False)
-                return True
-        except Exception:
-            pass
-    return False
+                return window
+        except Exception as e:
+            _failed("window title", e)
+    return None
+
+
+def hide_title(title):
+    frame = frame_named(title)
+    if frame is None:
+        return False
+    frame.setVisible(False)
+    return True
 
 
 class _Call(ActionListener):
@@ -101,67 +110,9 @@ def _has_named(container, name):
         try:
             if container.getComponent(i).getName() == name:
                 return True
-        except Exception:
-            pass
+        except Exception as e:
+            _failed("component name", e)
     return False
-
-
-def _find_menu(bar, title):
-    if bar is None:
-        return None
-    for i in range(bar.getMenuCount()):
-        menu = bar.getMenu(i)
-        if menu is not None and menu.getText() == title:
-            return menu
-    return None
-
-
-def _remove_named_menu_item(menu, name):
-    if menu is None:
-        return
-    doomed = []
-    for i in range(menu.getItemCount()):
-        item = menu.getItem(i)
-        if item is not None and item.getName() == name:
-            doomed.append(item)
-    for item in doomed:
-        try:
-            menu.remove(item)
-        except Exception:
-            pass
-
-
-def _item_label(item):
-    if item is None:
-        return ""
-    try:
-        return (item.getText() or "").strip().lower()
-    except Exception:
-        return ""
-
-
-def _clean_file_quit(menu):
-    """Drop the extra File -> Quit we used to add. Keep File -> Exit."""
-    if menu is None:
-        return
-    _remove_named_menu_item(menu, QUIT_ITEM_NAME)
-    has_exit = False
-    quits = []
-    for i in range(menu.getItemCount()):
-        item = menu.getItem(i)
-        if item is None:
-            continue
-        label = _item_label(item)
-        if label in ("exit", "exit..."):
-            has_exit = True
-        elif label == "quit":
-            quits.append(item)
-    doomed = quits if has_exit else quits[1:]
-    for item in doomed:
-        try:
-            menu.remove(item)
-        except Exception:
-            pass
 
 
 def _has_button_text(container, title):
@@ -190,76 +141,6 @@ def _new_button(title, name, fn):
     return btn
 
 
-def frame_named(title):
-    frame = JmriJFrame.getFrame(title)
-    if frame is not None:
-        return frame
-    for window in Window.getWindows():
-        try:
-            if isinstance(window, Frame) and window.getTitle() == title:
-                return window
-        except Exception:
-            pass
-    return None
-
-
-def _refresh(frame):
-    try:
-        frame.revalidate()
-    except Exception:
-        frame.validate()
-    try:
-        frame.repaint()
-    except Exception:
-        pass
-
-
-def remove_window_toolbar(frame):
-    """Undo a prior wrap so CTC Panel is not stuck with a top Help/Quit row."""
-    if frame is None:
-        return False
-    cp = frame.getContentPane()
-    if cp is None or cp.getName() != WRAP_NAME:
-        return False
-    inner = None
-    layout = cp.getLayout()
-    if isinstance(layout, BorderLayout):
-        inner = layout.getLayoutComponent(BorderLayout.CENTER)
-    if inner is None:
-        for i in range(cp.getComponentCount()):
-            child = cp.getComponent(i)
-            if child.getName() != TOOLBAR_NAME:
-                inner = child
-                break
-    if inner is None:
-        return False
-    frame.setContentPane(inner)
-    _refresh(frame)
-    return True
-
-
-def install_window_toolbar(frame):
-    """Help/Quit strip inside the frame (visible on Mac; JMenuBar buttons are not)."""
-    if frame is None:
-        return False
-    cp = frame.getContentPane()
-    if cp is None:
-        return False
-    if cp.getName() == WRAP_NAME or _has_named(cp, TOOLBAR_NAME):
-        return True
-    tools = JPanel(FlowLayout(FlowLayout.RIGHT, 8, 2))
-    tools.setName(TOOLBAR_NAME)
-    tools.add(_new_button("Help", HELP_NAME, _show_jmri_help))
-    tools.add(_new_button("Quit", QUIT_NAME, _quit_cats))
-    wrap = JPanel(BorderLayout())
-    wrap.setName(WRAP_NAME)
-    wrap.add(tools, BorderLayout.NORTH)
-    wrap.add(cp, BorderLayout.CENTER)
-    frame.setContentPane(wrap)
-    _refresh(frame)
-    return True
-
-
 def add_script_style_buttons():
     """Help/Quit on the Apps button strip (bottom of CTC Panel)."""
     try:
@@ -280,48 +161,16 @@ def add_script_style_buttons():
         try:
             space.revalidate()
             space.repaint()
-        except Exception:
-            pass
+        except Exception as e:
+            _failed("button strip repaint", e)
         print("HART: CATS Help/Quit on CTC Panel button strip")
     return True
 
 
-def decorate_menus(frame):
-    """Tidy the File menu. File already has Exit; do not add Quit."""
-    if frame is None:
-        return False
-    bar = frame.getJMenuBar()
-    if bar is None:
-        return True
-    file_menu = _find_menu(bar, "File")
-    _clean_file_quit(file_menu)
-    try:
-        bar.revalidate()
-        bar.repaint()
-    except Exception:
-        pass
-    return True
-
-
 def decorate_ctc_panel():
-    frame = frame_named(CTC_PANEL)
-    if frame is None:
+    if frame_named(CTC_PANEL) is None:
         return False
-    decorate_menus(frame)
-    remove_window_toolbar(frame)
-    if not add_script_style_buttons():
-        return False
-    return True
-
-
-def decorate_dispatcher_panel():
-    frame = frame_named(DISPATCHER_PANEL)
-    if frame is None:
-        return False
-    decorate_menus(frame)
-    # Dispatcher Panel is the schematic: no Help/Quit chrome.
-    remove_window_toolbar(frame)
-    return True
+    return add_script_style_buttons()
 
 
 def hide_cats_desk_windows():
@@ -347,25 +196,20 @@ def _pass():
             _state["hid"] = True
             print("HART: CATS control hid " + HART_RAILROAD)
     ctc_ok = False
-    desk_ok = False
     try:
         ctc_ok = decorate_ctc_panel()
     except Exception as e:
         print("HART: CATS Help/Quit CTC Panel failed: %s" % e)
-    try:
-        desk_ok = decorate_dispatcher_panel()
-    except Exception as e:
-        print("HART: CATS Help/Quit Dispatcher Panel failed: %s" % e)
     if ctc_ok:
         _state["chrome"] = True
-        if desk_ok:
+        if _state["hid"]:
             return
     _state["tries"] += 1
     if _state["tries"] >= _MAX_TRIES:
         if not _state["chrome"]:
-            print("HART: CATS Help/Quit incomplete (ctc=%s desk=%s)" % (ctc_ok, desk_ok))
+            print("HART: CATS Help/Quit incomplete (CTC Panel button strip not found)")
         return
-    ThreadingUtil.runOnGUIDelayed(_pass, 500)
+    ThreadingUtil.runOnGUIDelayed(_pass, _RETRY_MS)
 
 
 try:
