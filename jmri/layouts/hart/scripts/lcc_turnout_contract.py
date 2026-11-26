@@ -13,7 +13,6 @@ one.
 
 from __future__ import annotations
 
-import re
 import sys
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
@@ -21,7 +20,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import devices  # noqa: E402
+from hartlib import devices, places  # noqa: E402
 
 
 def child_text(element: ET.Element, tag: str) -> str:
@@ -47,15 +46,18 @@ class Plant:
         return self.index.where(dict(zip(("level", "layer", "user_name"), self.key)))
 
 
-_PAIR_ID = re.compile(r"(?:switch|dcc):(\d+)")      # a turnout's and its LCC alias's device IDs (hartlib.device_ids)
-
-
 def pair_key(row) -> tuple[str, str]:
-    """What pairs a turnout row with its LCC alias row: the switch number of its device ID (switch:<n>, dcc:<n>), so
-    an owner's rename of either (naming-layers step 4) keeps the pair; a row whose id is not of that grammar (a test's)
-    pairs by name, the turnout's user name and the alias's without "DCC "."""
-    m = _PAIR_ID.fullmatch(row["id"])
-    return ("id", m.group(1)) if m else ("name", row["user_name"].removeprefix("DCC "))
+    """What pairs a turnout row with its LCC alias row: the level and the switch number of its device ID (switch:<n>,
+    dcc:<n>: places.SWITCH_ID), so an owner's rename of either (naming-layers step 4) keeps the pair. The master's
+    check_rows holds every turnout row with a level to that grammar; a Store's level-less row has no id and pairs by
+    name, the turnout's user name and the alias's without "DCC ". DevicesError on a row with a level whose id is
+    not of the grammar (a row that did not come through the master's load)."""
+    if not row["level"]:
+        return ("", row["user_name"].removeprefix("DCC "))
+    m = places.SWITCH_ID.fullmatch(row["id"])
+    if m is None:
+        raise devices.DevicesError(f"{devices.row_text(row)}: id {row['id']!r} is not switch:<n> or dcc:<n>")
+    return (row["level"], m.group(1))
 
 
 def field_plants(csv_path: Path) -> tuple[dict[str, Plant], set[str], list[str]]:
