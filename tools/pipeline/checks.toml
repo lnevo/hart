@@ -208,9 +208,10 @@ cmd = ["python3", "www/scripts/build_layout_docs.py", "--check"]
 git = ["head", "base"]
 domain = "website"
 label = "build_layout_docs.py"
-desc = "Writes behind/layout-docs.html from layout_docs_template.html, with the section list from block_lengths.csv (by level and id) and the track and switch names and DCC addresses from the device master, so a rename in devices_field.csv reaches the page, and the station names from stations.csv; fills the lengths, the siding's 50 ft cars at the plan's scale (plan_overrides.json) and the crossovers its text states; checks drawing D2's section count, plans P3 and P4's lengths, the plans' switch numbers and the drawings' station labels (data-station) against stations.csv; --check. Drawings and photos are its own files (the frozen SOQ is not read)."
+desc = "Writes behind/layout-docs.html from layout_docs_template.html, with the section list from block_lengths.csv (by level and id; the measured lengths from block_lengths_measured.csv) and the track and switch names and DCC addresses from the device master, so a rename in devices_field.csv reaches the page, and the station names from stations.csv; fills the lengths, the siding's 50 ft cars at the plan's scale (plan_overrides.json) and the crossovers its text states; checks drawing D2's section count, plans P3 and P4's lengths, the plans' switch numbers and the drawings' station labels (data-station) against stations.csv; --check. Drawings and photos are its own files (the frozen SOQ is not read)."
 inputs = [
-  { path = "jmri/layouts/hart/data/block_lengths.csv", label = "reads, via hartlib.railroad" },
+  { path = "jmri/layouts/hart/data/block_lengths.csv", label = "plan lengths, via hartlib.block_lengths" },
+  { path = "jmri/layouts/hart/data/block_lengths_measured.csv", label = "measured lengths, via hartlib.block_lengths" },
   { path = "jmri/layouts/hart/data/devices_field.csv", label = "owner's names, via hartlib.devices" },
   { path = "jmri/layouts/hart/data/devices_generated.csv", label = "names, via hartlib.devices" },
   { path = "jmri/layouts/hart/data/schematic/stations.csv", label = "station names, via hartlib.railroad" },
@@ -285,7 +286,8 @@ domain = "layout"
 label = "export_track_lengths.py"
 desc = "Track length export (check: track-lengths) reading levels data."
 inputs = [
-  { path = "jmri/layouts/hart/data/block_lengths.csv", label = "reads, via hartlib.railroad" },
+  { path = "jmri/layouts/hart/data/block_lengths.csv", label = "plan lengths, via hartlib.block_lengths" },
+  { path = "jmri/layouts/hart/data/block_lengths_measured.csv", label = "measured lengths, via hartlib.block_lengths" },
   { path = "jmri/layouts/hart/output/tables.xml", label = "block names" },
 ]
 outputs = [
@@ -452,16 +454,20 @@ desc = "Renders the Build track-plan article from level SVGs, block_lengths, the
 inputs = [
   "jmri/layouts/hart/data/schematic/plan_overrides.json",
   "tools/anyrail/levels",
-  { path = "jmri/layouts/hart/data/block_lengths.csv", label = "reads, via hartlib.railroad" },
+  { path = "jmri/layouts/hart/data/block_lengths.csv", label = "plan lengths, via hartlib.block_lengths" },
+  { path = "jmri/layouts/hart/data/block_lengths_measured.csv", label = "measured lengths, via hartlib.block_lengths" },
   { path = "jmri/layouts/hart/scripts/speedmatch/routes.json", label = "speedmatch routes" },
   { path = "jmri/layouts/hart/data/schematic/preferences.json", label = "track_labels" },
 ]
 outputs = [
   "www/build/track-plan.html",
 ]
-# read through hartlib (the plan graphs: hartlib.layer_files), seen in the 2026-11-25 traced full runs (ADR-037
+# read through hartlib (the plan graphs: hartlib.layer_files; the device master and its places, which give the block
+# lengths their names: hartlib.block_lengths, ADR-039 lane L8), seen in the 2026-11-25 traced full runs (ADR-037
 # stages 4a, 4c)
-quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv", "jmri/layouts/hart/data/schematic/inputs/main.json",
+quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv", "jmri/layouts/hart/data/devices_generated.csv",
+                "jmri/layouts/hart/data/schematic/interlockings.csv", "jmri/layouts/hart/data/schematic/stations.csv",
+                "jmri/layouts/hart/data/schematic/inputs/main.json",
                 "jmri/layouts/hart/data/schematic/inputs/staging.json",
                 "jmri/layouts/hart/data/schematic/plan_generated.json"]
 
@@ -645,7 +651,8 @@ inputs = [
 # the other layer files hartlib.railroad.Sources loads with them (block lengths, interlockings, LCOS nodes, the plan
 # graphs and the plan's overrides and preferences), seen in the 2026-11-25 traced run (ADR-037 stage 4c)
 quiet_inputs = ["jmri/layouts/hart/data/schematic/stations.csv",
-                "jmri/layouts/hart/data/block_lengths.csv", "jmri/layouts/hart/data/schematic/inputs/main.json",
+                "jmri/layouts/hart/data/block_lengths.csv", "jmri/layouts/hart/data/block_lengths_measured.csv",
+                "jmri/layouts/hart/data/schematic/inputs/main.json",
                 "jmri/layouts/hart/data/schematic/inputs/staging.json",
                 "jmri/layouts/hart/data/schematic/interlockings.csv", "jmri/layouts/hart/data/schematic/lcos_nodes.csv",
                 "jmri/layouts/hart/data/schematic/plan_generated.json",
@@ -692,6 +699,7 @@ inputs = [
   { path = "jmri/layouts/hart/data/schematic/interlockings.csv", label = "rules", side = "check" },
   { path = "cats/data/occupancy_bindings.csv", label = "rules", side = "check" },
   { path = "jmri/layouts/hart/data/block_lengths.csv", label = "refs", side = "check" },
+  { path = "jmri/layouts/hart/data/block_lengths_measured.csv", label = "rules", side = "check" },
   { path = "ops/hart-ops/data/industries.csv", label = "rules", side = "check" },
   { path = "ops/hart-ops/data/spot_assignments.csv", label = "rules", side = "check" },
   { path = "ops/hart-ops/data/HART_Spot_Waybills.csv", label = "rules", side = "check" },

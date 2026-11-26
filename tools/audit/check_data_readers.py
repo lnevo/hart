@@ -47,8 +47,8 @@ THROUGH = "names the path only to hand it to a hartlib reader"
 PLAN = "a schematic plan input (inputs/*.json) the panel build and the plugin read"
 STAMP = "hashes the file's bytes for a build stamp; reads no row"
 TEXT = "a text search for names (check_name_copies), not a read of the rows"
-PI = ("runs on the Pi with a copy of the file and no hartlib (tools/hosts/deploy/stage.sh); reads it by the label "
-      "the name store writes")
+PI = ("runs on the Pi with copies of the block length files and no hartlib (tools/hosts/deploy/stage.sh); reads "
+      "them by block id, and its measured file beside the plan file")
 REF = ("the speed-match publisher's 2026-11-08 reference speeds: it runs on the Pi with a copy of the file and no "
        "hartlib (tools/hosts/deploy/stage.sh), and the Mac dashboard reads the same file")
 
@@ -59,8 +59,6 @@ ALLOWED: dict[str, dict[str, str]] = {
     "jmri/layouts/hart/scripts/capture_public_name_baseline.py": {
         n: WRITES for n in ("block_sensors.csv", "cats_bindings.csv", "counts.txt", "ctc_sidi.csv", "ctc_trl.csv",
                             "hardware_identity.csv", "le_mast_bindings.csv", "sml_pairs.csv")},
-    "jmri/layouts/hart/scripts/infer_block_lengths.py": {
-        "block_lengths.csv": WRITES + ": --apply rewrites the timed rows' measured lengths, every column kept"},
     "jmri/layouts/hart/scripts/speedmatch/analyze.py": {"block_lengths.csv": PI},
     "jmri/layouts/hart/scripts/speedmatch/dashboard/dashsources.py": {"speed_by_step_2026-11-08.csv": REF},
     "jmri/layouts/hart/scripts/speedmatch/dashboard/publish_live.py": {"speed_by_step_2026-11-08.csv": REF},

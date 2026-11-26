@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from hartlib import devices as _devices, layer_files, paths, railroad as R, track_names  # noqa: E402
+from hartlib import block_lengths, devices as _devices, layer_files, paths, railroad as R, track_names  # noqa: E402
 from master_edit import add, change, drop  # noqa: E402  the master is changed through hartlib.devices
 
 REPO = R.Sources.under()
@@ -34,6 +34,7 @@ class Copy(unittest.TestCase):
                 _devices.one_file_copy(dst)
             else:
                 shutil.copyfile(getattr(REPO, name), dst)
+        shutil.copyfile(block_lengths.MEASURED, block_lengths.measured_path(self.src.block_lengths))
         prefs = layer_files.path("preferences", REPO.plan_overrides.parent)     # the helix tracks' labels
         shutil.copyfile(prefs, self.src.plan_overrides.parent / prefs.name)
         # the name store's plan graphs and owner rows (the one-file copy has no field file): the repo's, by opt-in
@@ -180,9 +181,9 @@ class Readers(Copy):
         self.fails(lambda: R.read_switch_rows(self.src.switches), "switches.csv: no column notes")
         self.src.switches.write_text(text + "1,99,,OS Switch 99,Track A,Track B\n", encoding="utf-8")   # short
         self.fails(lambda: R.read_switch_rows(self.src.switches), rf"switches.csv line {len(lines) + 1}: 17 fields .*, not 6")
-        self.src.block_lengths.write_text(",".join(R.BLOCK_LENGTH_COLUMNS) + ",extra\n"
-                                          "1,block:3B-end,Track W-1,Block 4-4,105.2,,plan,,x\n", encoding="utf-8")
-        self.assertEqual(R.read_block_lengths(self.src.block_lengths)["Track W-1"].plan_in, 105.2)
+        self.src.block_lengths.write_text(",".join(block_lengths.PLAN_COLUMNS) + ",extra\n"
+                                          "1,block:3B-end,105.2,,x\n", encoding="utf-8")
+        self.assertEqual(block_lengths.read_plan(self.src.block_lengths)["block:3B-end"].plan_in, 105.2)
 
     def test_switches_read_only_their_own_rows(self) -> None:
         """A bad staging row elsewhere is the facts check's to report; it does not stop switch loading
@@ -470,46 +471,7 @@ class Readers(Copy):
         self.assertEqual(R.read_plan_overrides(self.src.plan_overrides).name, "plan_overrides.json[main_upper]")
         self.assertEqual(R.read_plan_overrides(self.src.plan_overrides, "staging").name, "plan_overrides.json[staging]")
 
-    def test_block_lengths_and_hands(self) -> None:
-        got = R.read_block_lengths(self.src.block_lengths)
-        self.assertEqual(got["Track W-1"].source, "plan")
-        self.assertIsNone(got["Track W-1"].measured_in)
-        timed = got["Track Main West"]
-        self.assertEqual(timed.source, "timed")
-        # JMRI's block takes the plan length on every level; the measured one is for speed profiling only
-        self.assertFalse(hasattr(timed, "jmri_in"))
-        self.assertNotEqual(timed.plan_in, timed.measured_in)
-        self.assertEqual(R.plan_cm({"Track Main West": timed})["Track Main West"], timed.plan_in * 2.54)
-        # each row's note, stripped, as the readers by name (the documentation pages) print it
-        with self.src.block_lengths.open(newline="", encoding="utf-8") as fh:
-            notes = {r["user_name"]: r["note"].strip() for r in csv.DictReader(fh)}
-        self.assertEqual({n: b.note for n, b in got.items()}, notes)
-        self.assertTrue(any(notes.values()))
-        # the default is this checkout's file, the one Sources.under names
-        self.assertEqual(R.BLOCK_LENGTHS, R.Sources.under().block_lengths)
-        self.assertEqual(R.read_block_lengths(), R.read_block_lengths(R.BLOCK_LENGTHS))
-        text = self.src.block_lengths.read_text(encoding="utf-8")
-        w1 = next(line for line in text.splitlines() if line.startswith("1,block:3B-end,Track W-1,"))
-        for bad, why in ((w1.replace(",plan,", ",assigned,"), "source 'assigned' is not one of"),
-                         (w1.replace(",,plan,", ",99,plan,"), "a timed row gives its measured length, any other none"),
-                         (w1.replace("Block 4-4,105.2,", "Block 4-4,long,"), "plan_in 'long' is not a number"),
-                         (w1.replace("Block 4-4,105.2,", "Block 4-4,,"), "no plan_in"),
-                         (w1.replace("Block 4-4,105.2,", "Block 4-4,-1,"), "plan_in -1 is below zero")):
-            self.src.block_lengths.write_text(text.replace(w1, bad), encoding="utf-8")
-            self.fails(lambda: R.read_block_lengths(self.src.block_lengths), f"line 2: .*{why}")
-        # a row is keyed by its block's level and device ID (naming-layers step 5), each given once
-        self.assertEqual((got["Track W-1"].level, got["Track W-1"].id), ("1", "block:3B-end"))
-        for bad in (w1.replace("1,block:3B-end,", ",block:3B-end,"), w1.replace("1,block:3B-end,", "4,block:3B-end,"),
-                    w1.replace("1,block:3B-end,", "1,,")):
-            self.src.block_lengths.write_text(text.replace(w1, bad), encoding="utf-8")
-            self.fails(lambda: R.read_block_lengths(self.src.block_lengths), "line 2: level .* a level 1 to 3 and a "
-                                                                              "device ID, once each")
-        self.src.block_lengths.write_text(text + w1.replace("Track W-1", "Track W-9") + "\n", encoding="utf-8")
-        self.fails(lambda: R.read_block_lengths(self.src.block_lengths), "id 'block:3B-end': a level 1 to 3")
-        mw = next(line for line in text.splitlines() if ",Track Main West," in line)
-        self.src.block_lengths.write_text(text.replace(mw, mw.replace(",timed,", ",plan,")), encoding="utf-8")
-        self.fails(lambda: R.read_block_lengths(self.src.block_lengths), "source plan with measured_in")
-        self.src.block_lengths.write_text(text, encoding="utf-8")
+    def test_hands_read_strictly(self) -> None:
         self.edit("switches", "2,101,101A,,,,,,,L,", "2,101,101A,,,,,,,X,")
         self.fails(lambda: R.read_hands(self.src.switches), r"switches.csv line 25 \(Switch 101\): hand is L, R or blank")
 
@@ -639,15 +601,13 @@ class Invariants(Copy):
         self.assertIn("Switch 107 (CP 107): no plan switch is relabelled to it in plan_overrides.json[main_upper]", got)
         self.assertIn("plan_overrides.json[main_upper]: move edit names 'T0', which the relabel does not rename", got)
 
-    def test_block_lengths_rows_are_device_ids_with_the_name_stores_labels(self) -> None:
-        """naming-layers step 5: a block_lengths.csv row's (level, id) is a block of the device master, and its
-        user_name label is the name store's (plan_lengths.py --labels writes it)."""
+    def test_block_lengths_rows_are_device_ids(self) -> None:
+        """naming-layers step 5: a block_lengths.csv row's (level, id) is a block of the device master, and a
+        measured row names a row of it (ADR-039 lane L8)."""
         self.assertEqual([p for p in self.problems("staging-blocks") if "block_lengths" in p], [])
-        self.edit("block_lengths", "1,block:3B-end,Track W-1,", "1,block:3B-end,Track W-9,")
-        self.edit("block_lengths", "1,block:3C-end,Track W-2,", "1,block:3Z-end,Track W-2,")
+        self.assertEqual(R.Railroad(self.src).block_lengths["Track W-1"].id, "block:3B-end")
+        self.edit("block_lengths", "1,block:3C-end,", "1,block:3Z-end,")
         got = self.problems("staging-blocks")
-        self.assertIn("block_lengths.csv line 2: block:3B-end is Track W-1 in the name store, its label says Track W-9 "
-                      "(python3 tools/schematic/plan_lengths.py --labels)", got)
         self.assertIn("block_lengths.csv line 3: block:3Z-end is no level 1 block row of the device master", got)
 
     def test_hands(self) -> None:

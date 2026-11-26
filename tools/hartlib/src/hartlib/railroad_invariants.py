@@ -256,8 +256,8 @@ def _staging_devices(rr: Railroad) -> list[str]:
 
 @invariant("staging-blocks", "inputs")
 def _staging_blocks(rr: Railroad) -> list[str]:
-    """Every block a staging switch leg (switches.csv) or a measured length (block_lengths.csv) names is a block
-    row of the device master (the masts' blocks are the masts invariant's: masts.csv is a later layer)."""
+    """Every block a staging switch leg (switches.csv) or a block length (block_lengths.csv, and the measured rows
+    beside it) names is a block row of the device master (the masts' blocks are the masts invariant's: masts.csv is a later layer)."""
     blocks = rr.staging_devices.names("block")
     bad = []
     for sw in rr.switches.values():
@@ -267,19 +267,15 @@ def _staging_blocks(rr: Railroad) -> list[str]:
                     bad.append(f"Switch {sw.number} (switches.csv): {what} {b} is no staging block row of the device master")
     # block_lengths.csv holds every level's JMRI blocks (step 5 part 2): staging's blocks and main and upper's
     # block rows of the device master, their parts among them (a main or upper part is a JMRI block of its own on its OS
-    # block's sensor, owner 2026-11-20). Each row is keyed by its block's level and id, and its user_name label is the
-    # name store's (naming-layers step 5; plan_lengths.py --labels writes it)
-    from hartlib import devices
-    names = {(r["level"], r["id"]): r["user_name"] for r in devices.load(rr.sources.devices)
-             if r["level"] and r["layer"] == "block"}
-    for name, b in rr.block_lengths.items():
-        have = names.get((b.level, b.id))
-        if have is None:
-            bad.append(f"{rr.sources.block_lengths.name} line {b.line}: {b.id} is no level {b.level} block row of "
-                       "the device master")
-        elif have != name:
-            bad.append(f"{rr.sources.block_lengths.name} line {b.line}: {b.id} is {have} in the name store, its label "
-                       f"says {name} (python3 tools/schematic/plan_lengths.py --labels)")
+    # block's sensor, owner 2026-11-20). Each row is keyed by its block's level and id (naming-layers step 5), and
+    # each measured row names a row of it (ADR-039 lane L8)
+    from hartlib import block_lengths
+    from hartlib.railroad_facts import FactsError
+    try:
+        block_lengths.plan_blocks(rr.sources.block_lengths, rr.sources.devices)
+        block_lengths.read_measured(plan=rr.sources.block_lengths)
+    except FactsError as exc:
+        bad += str(exc).split("; ")
     return bad
 
 
