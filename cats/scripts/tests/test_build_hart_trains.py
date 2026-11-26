@@ -36,6 +36,12 @@ class BuildHartTrains(unittest.TestCase):
                          "train_name,train_symbol,engine,font,runs_job,notes\n"
                          'Extra 1,X1,42,East,true,"a note, with a comma"\n')
 
+    def test_on_desks_other_than_yes_or_no_is_an_error(self) -> None:
+        master = self.dir / "trains.csv"
+        master.write_text("train_symbol,train_name,engine,font,runs_job,on_desks,opspro_name,notes\n"
+                          "X1,Extra 1,42,East,true,Yes,,\n", encoding="utf-8")
+        self.assertRaisesRegex(SystemExit, "on_desks must be yes or no: X1", self.mod.build, master)
+
     def test_a_missing_column_is_an_error(self) -> None:
         master = self.dir / "trains.csv"
         master.write_text("train_symbol,train_name\nX1,Extra 1\n", encoding="utf-8")

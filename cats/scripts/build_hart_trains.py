@@ -30,7 +30,11 @@ def build(master: Path = MASTER) -> str:
         missing = [c for c in (*COLUMNS, "on_desks") if c not in (reader.fieldnames or ())]
         if missing:
             raise SystemExit(f"build_hart_trains: {master} has no column {', '.join(missing)}")
-        rows = [row for row in reader if row["on_desks"] == "yes"]
+        rows = list(reader)
+    bad = [row["train_symbol"] for row in rows if row["on_desks"] not in ("yes", "no")]
+    if bad:
+        raise SystemExit(f"build_hart_trains: on_desks must be yes or no: {', '.join(bad)}")
+    rows = [row for row in rows if row["on_desks"] == "yes"]
     buf = io.StringIO()
     writer = csv.writer(buf, lineterminator="\n")
     writer.writerow(COLUMNS)
