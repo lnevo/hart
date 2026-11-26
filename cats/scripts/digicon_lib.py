@@ -50,7 +50,7 @@ def load_disciplines(devices_path: Path | None = None) -> dict[str, str]:
     return out
 
 
-def load_occupancy(root: ET.Element | None = None) -> dict[str, tuple[str, str]]:
+def load_occupancy(root: ET.Element | None = None, devices_path: Path | None = None) -> dict[str, tuple[str, str]]:
     root = root if root is not None else tables.read(HART)
     sensor_addr: dict[str, str] = {}
     for s in tables.sensors(root):
@@ -64,7 +64,7 @@ def load_occupancy(root: ET.Element | None = None) -> dict[str, tuple[str, str]]
         occ = (lb.get("occupancysensor") or "").strip()
         if un and occ and occ in sensor_addr:
             out[un] = (sensor_addr[occ], occ)
-    for row in occupancy_bindings.rows():
+    for row in occupancy_bindings.rows(devices_path):    # the same master load_disciplines reads
         name, sens = row["block_user_name"], row["occupancy_sensor_user_name"]
         if name not in out and sens in sensor_addr:
             out[name] = (sensor_addr[sens], sens)

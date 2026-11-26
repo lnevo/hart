@@ -4990,7 +4990,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "cats_panel.py's bound level (staging): switches.csv and occupancy_bindings.csv bound into the desk.",
+   "desc": "cats_panel.py's bound level (staging): switches.csv and the cats_discipline blocks bound into the desk.",
    "path": "tools/schematic/cats_panel_bound.py"
   },
   {

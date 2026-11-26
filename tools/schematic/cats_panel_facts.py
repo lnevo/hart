@@ -95,7 +95,7 @@ def load_facts(rr: railroad.Railroad | None = None):
     try:
         t = rr.tables
         dm_levels = {r.level for r in rr.device_map.rows}       # main and upper: the device map's levels
-        return Facts(rr.switches, tio.load_turnouts(t.root, rr.switches), le.load_occupancy(t.root),
+        return Facts(rr.switches, tio.load_turnouts(t.root, rr.switches), le.load_occupancy(t.root, rr.sources.devices),
                      le.load_disciplines(rr.sources.devices),
                      StagingTracks(staging_tracks()), mast_templates(systems=t.masts), set(t.masts),
                      rr.device_map,

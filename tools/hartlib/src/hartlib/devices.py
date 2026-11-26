@@ -90,8 +90,8 @@ SOURCE_PREFIXES = ("IT:HART:", "IS:HART:", "IH:HART:", "IB:HART:", level_devices
 
 COLUMNS = ("level", "cp", "layer", "role", "id", "user_name", "assignment", "system_name", "jmri_name", "node", "dcc",
            "wiring", "jmri_comment", "trial_name", "notes", "blocks", "detector", "stop", "layout_block",
-           "cats_discipline", "part_of", "switch", "facing", "protects", "dir", "start", "bean_comment", "written_by", "description",
-           "jmri_bean")
+           "cats_discipline", "part_of", "switch", "facing", "protects", "dir", "start", "bean_comment", "written_by",
+           "description", "jmri_bean")
 # The CATS disciplines a block row's cats_discipline may hold (owner's cell; hartlib.occupancy_bindings gives the
 # CATS desk builders the blocks that have one)
 CATS_DISCIPLINES = ("CTC", "YARD")

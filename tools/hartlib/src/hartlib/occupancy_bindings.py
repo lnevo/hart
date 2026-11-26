@@ -20,7 +20,7 @@ from __future__ import annotations
 from typing import Mapping
 
 from . import devices, level_devices
-from .railroad_facts import device_list
+from .railroad_facts import FactsError, device_list
 
 COLUMNS = ("level", "block_id", "block_user_name", "occupancy_sensor_user_name", "cats_discipline")
 
@@ -45,10 +45,16 @@ def rows(files=None) -> list[dict[str, str]]:
     for r in master:
         if not (r["level"] and r["layer"] == "block" and r["cats_discipline"]):
             continue
+        if r["level"] != "1":                 # the desks bind staging's blocks; a name is unique within a level only
+            raise FactsError(f"{r['id']}: cats_discipline is for staging (level 1) blocks, not level {r['level']}")
         name = r["user_name"]
         sensor = (by_sensor.get((r["level"], name))
-                  or (by_sensor.get((r["level"], r["part_of"])) if r["part_of"] else None)
-                  or level_devices.occupancy_user(name))
+                  or (by_sensor.get((r["level"], r["part_of"])) if r["part_of"] else None))
+        if sensor is None:
+            if not r["id"].endswith("-helix"):
+                raise FactsError(f"{r['id']} ({name}): a block with a cats_discipline needs an occupancy row whose "
+                                 "blocks cell names it (only a helix block takes the main levels' virtual sensor)")
+            sensor = level_devices.occupancy_user(name)
         out.append({"level": r["level"], "block_id": r["id"], "block_user_name": name,
                     "occupancy_sensor_user_name": sensor, "cats_discipline": r["cats_discipline"]})
     return out
