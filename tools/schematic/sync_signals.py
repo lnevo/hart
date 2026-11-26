@@ -33,6 +33,11 @@ from hartlib import devices, level_masts, paths, railroad, tables, tables_build 
 VSM_CLASS = tables_build.VIRTUAL_MAST_CLASS
 
 
+class SyncError(Exception):
+    """tables.xml cannot follow masts.csv as it stands (a missing section, a head under another user name); the
+    message names it. main() prints it and exits 1."""
+
+
 def is_mast(user: str) -> bool:
     """A mast of the file's kind: its user name is a mast name of any level (level_masts.MAST_USER)."""
     return bool(level_masts.MAST_USER.fullmatch(user or ""))
@@ -55,10 +60,10 @@ def head_comments(files: devices.Files | None = None) -> dict:
 
 
 def sync(root: ET.Element, rows: list[dict], comments: dict) -> dict:
-    """Edit tables `root` in place; returns counts by what changed."""
+    """Edit tables `root` in place; returns counts by what changed. SyncError when the file cannot follow `rows`."""
     heads_el, masts_el = root.find("signalheads"), root.find("signalmasts")
     if heads_el is None or masts_el is None:
-        raise SystemExit("tables.xml has no signalheads or signalmasts section")
+        raise SyncError("tables.xml has no signalheads or signalmasts section")
     counts = dict.fromkeys(("masts kept", "masts added", "masts removed", "heads added", "heads removed",
                             "logics removed", "destinations removed"), 0)
     have = {tables.user_name(m): m for m in tables.masts(root) if is_mast(tables.user_name(m))}
@@ -91,8 +96,8 @@ def sync(root: ET.Element, rows: list[dict], comments: dict) -> dict:
         for h, user in pairs:
             if h in head_by_sys:
                 if tables.user_name(head_by_sys[h]) != user:
-                    raise SystemExit(f"head {h} is {tables.user_name(head_by_sys[h])!r} in tables.xml, "
-                                     f"{user!r} in {level_masts.PATH.name}")
+                    raise SyncError(f"head {h} is {tables.user_name(head_by_sys[h])!r} in tables.xml, "
+                                    f"{user!r} in {level_masts.PATH.name}")
                 continue
             el = ET.Element("signalhead", {"class": tables_build.HEAD_CLASS})
             ET.SubElement(el, "systemName").text = h
@@ -147,7 +152,11 @@ def main(argv=None) -> int:
     except railroad.FactsError as exc:          # level_masts and hartlib.devices (DevicesError) name the file and line
         print(f"{Path(__file__).name}: {exc}", file=sys.stderr)
         return 2
-    counts = sync(t.root, rows, comments)
+    try:
+        counts = sync(t.root, rows, comments)
+    except SyncError as exc:
+        print(exc, file=sys.stderr)
+        return 1
     changed = {k: v for k, v in counts.items() if v and k != "masts kept"}
     if args.check:
         if changed:

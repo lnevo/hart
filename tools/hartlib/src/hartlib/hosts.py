@@ -18,8 +18,8 @@ from __future__ import annotations
 import functools
 import os
 import re
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Mapping
 
 DEFAULTS_FILE = Path(__file__).resolve().parent.parent.parent.parent / "env" / "defaults.env"
 
@@ -28,6 +28,11 @@ PORT_VARS = ("HART_MQTT_PORT",)
 JMRI_JSON_VARS = ("HART_JMRI_JSON", "JMRI_JSON")
 
 _VAR = re.compile(r"\$(?:\{(\w+)\}|(\w+))")
+
+
+class HostsError(RuntimeError):
+    """A host setting cannot be read or has no usable value; the message names the setting and the file. Not a
+    HartlibError: hosts.py imports nothing from hartlib, so it loads alone, by path or copied without its package."""
 
 
 def env_file_path() -> Path:
@@ -56,11 +61,15 @@ def _value(raw: str, known: Mapping[str, str]) -> str:
 
 
 def read_env_file(path: Path | None = None) -> dict[str, str]:
-    """KEY=VALUE lines from hart.env, read like `source` would. Missing file: {}."""
+    """KEY=VALUE lines from hart.env, read like `source` would. Missing file: {}. HostsError when the file is there
+    but cannot be read (no permission, a folder)."""
+    where = path or env_file_path()
     try:
-        text = (path or env_file_path()).read_text(encoding="utf-8")
-    except OSError:
+        text = where.read_text(encoding="utf-8")
+    except FileNotFoundError:
         return {}
+    except OSError as exc:
+        raise HostsError(f"hartlib.hosts: cannot read {where}: {exc}") from exc
     values: dict[str, str] = {}
     for line in text.splitlines():
         line = line.strip()
@@ -83,15 +92,15 @@ def _defaults() -> dict[str, str]:
     """tools/env/defaults.env, the one copy of the defaults load_env.sh also reads."""
     values = read_env_file(DEFAULTS_FILE)
     if not values:
-        raise SystemExit(f"hartlib.hosts: cannot read the host defaults in {DEFAULTS_FILE}")
+        raise HostsError(f"hartlib.hosts: cannot read the host defaults in {DEFAULTS_FILE}")
     return dict(values)
 
 
 def default(name: str) -> str:
-    """The defaults.env value for NAME; stops with a clear message when it has none."""
+    """The defaults.env value for NAME; HostsError naming the file when it has none."""
     value = _defaults().get(name, "")
     if not value:
-        raise SystemExit(f"hartlib.hosts: {name} has no default in {DEFAULTS_FILE}")
+        raise HostsError(f"hartlib.hosts: {name} has no default in {DEFAULTS_FILE}")
     return value
 
 
@@ -117,11 +126,12 @@ def mqtt_broker(env: Mapping[str, str] | None = None,
 
 def mqtt_port(env: Mapping[str, str] | None = None,
               file_values: Mapping[str, str] | None = None) -> int:
+    """The broker's port as a number; HostsError when the setting is not one."""
     raw = _lookup(PORT_VARS, "HART_MQTT_PORT", env, file_values)
     try:
         return int(raw)
     except ValueError as exc:
-        raise SystemExit(f"HART_MQTT_PORT must be a number, not {raw!r}") from exc
+        raise HostsError(f"HART_MQTT_PORT must be a number, not {raw!r}") from exc
 
 
 def jmri_json_url(env: Mapping[str, str] | None = None,

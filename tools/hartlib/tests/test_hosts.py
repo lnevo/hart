@@ -24,7 +24,7 @@ class LookupTest(unittest.TestCase):
     def test_defaults_file_is_the_one_read(self):
         self.assertEqual(hosts.DEFAULTS_FILE.resolve(), (ROOT / "tools/env/defaults.env").resolve())
         self.assertEqual(hosts.default("HART_PI_WEB_HOST"), DEFAULTS["HART_PI_WEB_HOST"])
-        with self.assertRaises(SystemExit) as ctx:
+        with self.assertRaises(hosts.HostsError) as ctx:
             hosts.default("HART_NO_SUCH_SETTING")
         self.assertIn("defaults.env", str(ctx.exception))
 
@@ -52,8 +52,9 @@ class LookupTest(unittest.TestCase):
                          "env.example.invalid")
 
     def test_bad_port_stops(self):
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(hosts.HostsError) as ctx:
             hosts.mqtt_port({"HART_MQTT_PORT": "x"}, NO_FILE)
+        self.assertIsInstance(ctx.exception.__cause__, ValueError)
 
 
 class EnvFileTest(unittest.TestCase):
@@ -105,6 +106,14 @@ class EnvFileTest(unittest.TestCase):
 
     def test_missing_file_is_empty(self):
         self.assertEqual(hosts.read_env_file(Path("/nonexistent/hart.env")), {})
+
+    def test_a_file_that_cannot_be_read_stops(self):
+        # only a missing file counts as none: a folder in its place is an error naming the path
+        with tempfile.TemporaryDirectory() as d:
+            with self.assertRaises(hosts.HostsError) as ctx:
+                hosts.read_env_file(Path(d))
+        self.assertIn(d, str(ctx.exception))
+        self.assertIsInstance(ctx.exception.__cause__, OSError)
 
 
 class StandaloneTest(unittest.TestCase):

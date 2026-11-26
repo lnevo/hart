@@ -48,6 +48,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from collections.abc import Sequence
 from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
@@ -62,7 +63,7 @@ OUT = REPO / "docs/ops"
 STATIONS = OUT / "stations"                                              # one SVG per station detail sheet
 INPUTS = [("staging.json", "staging"), ("main.json", "main_upper")]     # graph, layer file stem; the last sets the page
 sys.path.insert(0, str(REPO / "tools/ops"))  # screenshot.py is a script, not a package: import it by folder
-from screenshot import find_chrome  # noqa: E402
+from screenshot import ChromeMissing, find_chrome  # noqa: E402
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import host_screen  # noqa: E402
 
@@ -70,9 +71,26 @@ import host_screen  # noqa: E402
 TITLE_BOX = re.compile(r'<rect x="24" y="728" width="([\d.]+)" height="64"')
 
 
+class PublishError(Exception):
+    """Publishing or checking cannot go on; the message says why and what to run. main() prints it and exits 1."""
+
+
+class PluginMissing(PublishError):
+    """The schematic-maps plugin is not in this checkout or is off its pinned commit, and SCHEMATIC_PLUGIN is not
+    set. The --check builders skip on it (build_signals, build_cats_panel); le_common turns it into a BuildError."""
+
+
+class DrawFailed(PublishError):
+    """bin/schematic exited non-zero; its output is printed already. main() exits with its status."""
+
+    def __init__(self, returncode: int) -> None:
+        super().__init__(f"bin/schematic exited {returncode}")
+        self.returncode = returncode
+
+
 if map_revision.PAGE_SHEET != INPUTS[-1][1]:
-    sys.exit(f"hartlib.map_revision.PAGE_SHEET is {map_revision.PAGE_SHEET!r} but the last input, which sets the page, is "
-             f"{INPUTS[-1][1]!r}: make them agree")
+    raise PublishError(f"hartlib.map_revision.PAGE_SHEET is {map_revision.PAGE_SHEET!r} but the last input, which sets "
+                       f"the page, is {INPUTS[-1][1]!r}: make them agree")
 
 
 def page_prefs():
@@ -85,7 +103,7 @@ def _git(*args):
 
 
 @functools.lru_cache(maxsize=None)
-def main_base():
+def main_base() -> str:
     """The commit where this branch left main, asked of git once per run. Publishing stops if git cannot tell (no
     origin/main, a shallow clone): compared with HEAD instead, a committed drawing change would equal itself and
     keep its old revision. --check and --preview never ask, so they run in a clone without origin/main (CI's is one)."""
@@ -100,14 +118,14 @@ def main_base():
         else:
             fix = ("HEAD and origin/main share no commit: check out a branch made from main "
                    "(`make wt TOPIC=<topic>`) and bring the drawing change there")
-        sys.exit(f"`git merge-base HEAD origin/main` failed ({why}), so the revision cannot be counted from main; "
-                 f"nothing written. {fix}, then run `python3 tools/schematic/publish_draft.py` again")
+        raise PublishError(f"`git merge-base HEAD origin/main` failed ({why}), so the revision cannot be counted from "
+                           f"main; nothing written. {fix}, then run `python3 tools/schematic/publish_draft.py` again")
     return base
 
 
-def on_main(path):
-    """The file's text where this branch left main (None if it was not there). A git failure stops the run: read
-    as "not there", it would count the revision from nothing."""
+def on_main(path: Path) -> str | None:
+    """The file's text where this branch left main (None if it was not there). A git failure raises PublishError:
+    read as "not there", it would count the revision from nothing."""
     base, rel = main_base(), path.relative_to(REPO).as_posix()
     r = _git("ls-tree", "--name-only", base, "--", rel)
     if r.returncode == 0 and not r.stdout.strip():
@@ -115,14 +133,16 @@ def on_main(path):
     if r.returncode == 0:
         r = _git("show", f"{base}:{rel}")
     if r.returncode != 0:
-        sys.exit(f"git could not read {rel} at {base} ({r.stderr.strip() or f'exit {r.returncode}'}), so the "
-                 "drawing cannot be compared with main; the files this run changed are put back. Run `git fsck` if git "
-                 "names a missing or corrupt object, then `python3 tools/schematic/publish_draft.py` again")
+        raise PublishError(f"git could not read {rel} at {base} ({r.stderr.strip() or f'exit {r.returncode}'}), so "
+                           "the drawing cannot be compared with main; the files this run changed are put back. Run "
+                           "`git fsck` if git names a missing or corrupt object, then "
+                           "`python3 tools/schematic/publish_draft.py` again")
     return r.stdout
 
 
-def plugin():
-    """The plugin folder: SCHEMATIC_PLUGIN, else this checkout's submodule at its pinned commit."""
+def plugin() -> Path:
+    """The plugin folder: SCHEMATIC_PLUGIN, else this checkout's submodule at its pinned commit. PluginMissing when
+    the submodule is not checked out or is off its pin."""
     env = os.environ.get("SCHEMATIC_PLUGIN")
     if env:
         print(f"plugin: {env} (SCHEMATIC_PLUGIN)")
@@ -130,13 +150,14 @@ def plugin():
     sub = REPO / "external/model-railroad-skills"
     p = sub / "plugins/schematic-maps"
     if not (p / "bin/schematic").exists():
-        sys.exit("schematic-maps plugin not found: run git submodule update --init external/model-railroad-skills")
+        raise PluginMissing("schematic-maps plugin not found: run git submodule update --init "
+                            "external/model-railroad-skills")
     git = lambda *a: subprocess.run(["git", *a], capture_output=True, text=True).stdout.strip()
     have = git("-C", str(sub), "rev-parse", "HEAD")
     pinned = git("-C", str(REPO), "ls-files", "-s", "external/model-railroad-skills").split()[1]
     if have != pinned:
-        sys.exit(f"submodule is at {have[:8]}, pinned {pinned[:8]}: run git submodule update, "
-                 "or set SCHEMATIC_PLUGIN to draw with other plugin code on purpose")
+        raise PluginMissing(f"submodule is at {have[:8]}, pinned {pinned[:8]}: run git submodule update, "
+                            "or set SCHEMATIC_PLUGIN to draw with other plugin code on purpose")
     print(f"plugin: submodule at {have[:8]}")
     return p
 
@@ -306,7 +327,8 @@ def compare_drawing():
     return same, differ
 
 
-def draw():
+def draw() -> str:
+    """The schematic SVG as the plugin draws it now. DrawFailed when bin/schematic fails."""
     with tempfile.TemporaryDirectory() as tmp:
         svg = Path(tmp) / "sheet.svg"
         run = subprocess.run([str(plugin() / "bin/schematic"), "draw", str(svg), "--data", str(layer_files.view(DATA)),
@@ -314,20 +336,21 @@ def draw():
                              capture_output=True, text=True, env=cache_env())
         print(run.stdout + run.stderr, end="")
         if run.returncode:
-            sys.exit(run.returncode)
+            raise DrawFailed(run.returncode)
         return svg.read_text()
 
 
-def draw_stations():
+def draw_stations() -> dict[str, str]:
     """{file name: SVG} of every station detail sheet (the detail_sheets preference), drawn from both
-    inputs so the sheet-wide look (helix coils, mileposts) reaches them as it does the overall sheet."""
+    inputs so the sheet-wide look (helix coils, mileposts) reaches them as it does the overall sheet. DrawFailed
+    when bin/schematic fails."""
     with tempfile.TemporaryDirectory() as tmp:
         run = subprocess.run([str(plugin() / "bin/schematic"), "detail", f"{tmp}/", "--data", str(layer_files.view(DATA)),
                               *(f"{GRAPHS}/{g}:{n}" for g, n in INPUTS)],
                              capture_output=True, text=True, env=cache_env())
         print(run.stdout + run.stderr, end="")
         if run.returncode:
-            sys.exit(run.returncode)
+            raise DrawFailed(run.returncode)
         return {f.name: f.read_text() for f in sorted(Path(tmp).glob("*.svg"))}
 
 
@@ -363,17 +386,17 @@ def next_fields(main_prefs, today):
     return today.isoformat(), int(rev) + 1
 
 
-def prefs_on_main(prefs):
-    """The page's preferences section where this branch left main. Stops with one line if main has no such file or
-    section: counted from nothing, the revision would restart at 1."""
+def prefs_on_main(prefs: layer_files.Section) -> dict:
+    """The page's preferences section where this branch left main. PublishError (one line) if main has no such
+    file or section: counted from nothing, the revision would restart at 1."""
     text = on_main(prefs.path)
     if text is None:
-        sys.exit(f"{prefs.path.relative_to(REPO)} is not on main, so the revision cannot be counted from main; "
-                 "nothing written. Publish from a branch made from a main that has it")
+        raise PublishError(f"{prefs.path.relative_to(REPO)} is not on main, so the revision cannot be counted from "
+                           "main; nothing written. Publish from a branch made from a main that has it")
     try:
         return prefs.of(text, f"{prefs.path.name} on main")
     except layer_files.LayerFileError as exc:
-        sys.exit(f"{exc}; nothing written")
+        raise PublishError(f"{exc}; nothing written") from exc
 
 
 def set_fields(prefs, date, rev):
@@ -383,18 +406,36 @@ def set_fields(prefs, date, rev):
     prefs.write(section)
 
 
-def pdf(svg_path, pdf_path):
+def pdf(svg_path: Path, pdf_path: Path) -> None:
+    """Print the SVG to a Letter landscape PDF with headless Chrome. PublishError when there is no Chrome; a failed
+    print is the subprocess error."""
+    try:
+        chrome = find_chrome()
+    except ChromeMissing as exc:
+        raise PublishError(str(exc)) from exc
     with tempfile.TemporaryDirectory() as tmp:
         page = Path(tmp) / "page.html"
         page.write_text("<!doctype html><style>@page{size:11in 8.5in;margin:0}html,body{margin:0}"
                         "img{width:11in;height:8.5in;display:block}</style>"
                         f'<img src="{svg_path.resolve().as_uri()}">')
-        subprocess.run([find_chrome(), "--headless", "--disable-gpu", f"--user-data-dir={tmp}/profile",
+        subprocess.run([chrome, "--headless", "--disable-gpu", f"--user-data-dir={tmp}/profile",
                         "--no-pdf-header-footer", f"--print-to-pdf={pdf_path}", page.as_uri()],
                        capture_output=True, timeout=120, check=True)
 
 
-def main(argv):
+def main(argv: list[str]) -> int:
+    """Run publish_draft with `argv`; a PublishError ends the run with its message, a failed drawing with the
+    plugin's exit status."""
+    try:
+        return run(argv)
+    except DrawFailed as exc:
+        return exc.returncode
+    except PublishError as exc:
+        sys.exit(str(exc))
+
+
+def run(argv: list[str]) -> int:
+    """--check, --preview DIR or a publish (the module docstring); PublishError when one cannot go on."""
     target = OUT / "schematic-system-draft.svg"
     i = argv.index("--preview") + 1 if "--preview" in argv else None
     unknown = [a for n, a in enumerate(argv) if a not in ("--check", "--preview") and n != i]
@@ -404,10 +445,10 @@ def main(argv):
     if "--preview" in argv:
         i = argv.index("--preview")
         if i + 1 >= len(argv) or argv[i + 1].startswith("--"):
-            sys.exit("--preview needs a folder")
+            raise PublishError("--preview needs a folder")
         folder = Path(argv[i + 1]).expanduser().resolve()
         if folder.is_relative_to(REPO):
-            sys.exit(f"--preview writes outside the repo; {folder} is inside it")
+            raise PublishError(f"--preview writes outside the repo; {folder} is inside it")
         write_stations(draw_stations(), folder / "stations")
         return preview(draw(), folder)
     check = "--check" in argv
@@ -428,7 +469,7 @@ def main(argv):
         prefs = page_prefs()
         map_revision.planned(REPO / "www", prefs)             # the station map data holds together before any write
     except ValueError as e:
-        sys.exit(f"station map pages: {e}; nothing written")
+        raise PublishError(f"station map pages: {e}; nothing written") from e
     main_base()                                               # stops here, before any write, if git cannot find it
     kept = {p: p.read_text() for p in (prefs.path,)}        # put back if anything below fails
     try:
@@ -467,9 +508,9 @@ def stations_changed(sheets):
                   if drawing_only(on_main(STATIONS / n) or "") != drawing_only(svg))
 
 
-def publish(sheet, target, prefs, original, stations=()):
+def publish(sheet: str, target: Path, prefs: layer_files.Section, original: str, stations: Sequence[str] = ()) -> None:
     """`stations`: the station sheets whose drawing changed (stations_changed); they move the revision as the overall
-    sheet does."""
+    sheet does. PublishError when the PDF is not printed."""
     base = on_main(target) or (target.read_text() if target.exists() else None)
     if base and (drawing_only(base) != drawing_only(sheet) or stations):
         fields = next_fields(prefs_on_main(prefs), datetime.date.today())
@@ -490,9 +531,9 @@ def publish(sheet, target, prefs, original, stations=()):
         try:
             pdf(svg, printed)
         except (subprocess.SubprocessError, OSError) as e:
-            sys.exit(f"PDF not printed, nothing written: {e}")
+            raise PublishError(f"PDF not printed, nothing written: {e}") from e
         if not printed.exists():
-            sys.exit("Chrome wrote no PDF, nothing written")
+            raise PublishError("Chrome wrote no PDF, nothing written")
         shutil.copyfile(printed, pdf_file)          # the PDF first: a run stopped between the two leaves the SVG
         shutil.copyfile(svg, target)                # old, so the next publish sees it differ and prints again
     print(f"wrote {target} and the PDF (--check compares the SVG only; the PDF follows it)")

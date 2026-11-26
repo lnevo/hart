@@ -7,6 +7,7 @@ import importlib.util
 import io
 import json
 import os
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -89,13 +90,13 @@ class Fields(unittest.TestCase):
     def test_publishing_stops_when_main_has_no_preferences_file(self) -> None:
         with tempfile.TemporaryDirectory() as tmp, mock.patch.object(PD, "REPO", Path(tmp)), \
                 mock.patch.object(PD, "on_main", return_value=None), \
-                self.assertRaisesRegex(SystemExit, "is not on main, so the revision cannot be counted"):
+                self.assertRaisesRegex(PD.PublishError, "is not on main, so the revision cannot be counted"):
             PD.prefs_on_main(page_prefs(Path(tmp), {"revision": 1}))
 
     def test_publishing_stops_with_one_line_when_main_has_no_page_section(self) -> None:
         with tempfile.TemporaryDirectory() as tmp, mock.patch.object(PD, "REPO", Path(tmp)), \
                 mock.patch.object(PD, "on_main", return_value='{"_sections": true, "staging": {}}'), \
-                self.assertRaisesRegex(SystemExit, "no section 'main_upper'.*nothing written"):
+                self.assertRaisesRegex(PD.PublishError, "no section 'main_upper'.*nothing written"):
             PD.prefs_on_main(page_prefs(Path(tmp), {"revision": 1}))
 
 
@@ -175,7 +176,7 @@ class SignalsCheck(unittest.TestCase):
         """The 107 Loop's halves: Loop 1 leaves from leg B, Loop 2 from leg C (mast_rule.LOOP_HALF); a loop edge's
         rows must name one of its legs, other rows none."""
         self.assertEqual((self.bs.loop_leg("Track 107 Loop 1"), self.bs.loop_leg("Track 107 Loop 2")), ("B", "C"))
-        with self.assertRaisesRegex(SystemExit, "not one of its halves"):
+        with self.assertRaisesRegex(self.bs.SignalsError, "not one of its halves"):
             self.bs.loop_leg("Track 107 Loop")
         loop = dict(u="S", up="B", v="S", vp="C")
         row = dict(mast="108LB", _edge="e33")
@@ -229,7 +230,7 @@ class SignalsCheck(unittest.TestCase):
 
     def test_skips_off_the_pin(self) -> None:
         def off_pin():
-            raise SystemExit("submodule is at aaaaaaaa, pinned bbbbbbbb")
+            raise self.bs.pd.PluginMissing("submodule is at aaaaaaaa, pinned bbbbbbbb")
         real, self.bs.pd.plugin = self.bs.pd.plugin, off_pin
         try:
             with contextlib.redirect_stdout(io.StringIO()) as out:
@@ -274,10 +275,11 @@ class SignalsCheck(unittest.TestCase):
     def test_a_solve_that_cannot_read_its_own_output_stops_clearly(self) -> None:
         # the staging band is solved, and the solve reads signals.json, which build_signals writes
         with mock.patch.object(self.bs.sdm, "staging_band", side_effect=ValueError("Expecting value: line 1")):
-            with self.assertRaises(SystemExit) as e:
+            with self.assertRaises(self.bs.SignalsError) as e:
                 self.bs.staging_facts()
-        self.assertIn("signals.json, which this script writes", str(e.exception.code))
-        self.assertIn("git checkout --", str(e.exception.code))
+        self.assertIn("signals.json, which this script writes", str(e.exception))
+        self.assertIn("git checkout --", str(e.exception))
+        self.assertIsInstance(e.exception.__cause__, ValueError)
 
     def test_written_from_the_staging_masts(self) -> None:
         masts = self.bs.sdm.load_signal_masts()
@@ -303,6 +305,48 @@ class SignalsCheck(unittest.TestCase):
                 with self.assertRaises(SystemExit) as e:
                     self.run_with({"signals": []}, bad)
                 self.assertIn(why, str(e.exception.code))
+
+
+class NamedErrors(unittest.TestCase):
+    """The library functions raise PublishError and its kinds; only main() turns them into an exit."""
+
+    def test_no_submodule_is_plugin_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(PD, "REPO", Path(tmp)), \
+                mock.patch.dict(os.environ, {}, clear=False) as env:
+            env.pop("SCHEMATIC_PLUGIN", None)
+            with self.assertRaisesRegex(PD.PluginMissing, "git submodule update --init"):
+                PD.plugin()
+        self.assertTrue(issubclass(PD.PluginMissing, PD.PublishError))
+        self.assertFalse(issubclass(PD.PublishError, SystemExit))
+
+    def test_main_exits_with_the_message(self) -> None:
+        with mock.patch.object(PD, "run", side_effect=PD.PublishError("nothing written")), \
+                self.assertRaises(SystemExit) as stop:
+            PD.main([])
+        self.assertEqual(stop.exception.code, "nothing written")
+
+    def test_a_failed_drawing_exits_with_the_plugins_status(self) -> None:
+        with mock.patch.object(PD, "run", side_effect=PD.DrawFailed(3)):
+            self.assertEqual(PD.main(["--check"]), 3)
+
+    def test_a_failed_draw_is_draw_failed(self) -> None:
+        failed = mock.Mock(returncode=4, stdout="", stderr="bad sheet\n")
+        with mock.patch.object(PD, "plugin", return_value=Path("plugin")), \
+                mock.patch.object(PD.subprocess, "run", return_value=failed), \
+                contextlib.redirect_stdout(io.StringIO()) as out, self.assertRaises(PD.DrawFailed) as stop:
+            PD.draw()
+        self.assertEqual(stop.exception.returncode, 4)
+        self.assertIn("bad sheet", out.getvalue())
+
+    def test_no_chrome_is_a_publish_error(self) -> None:
+        screenshot = sys.modules["screenshot"]
+        with mock.patch.object(screenshot.shutil, "which", return_value=None):
+            with self.assertRaises(screenshot.ChromeMissing):
+                screenshot.find_chrome()
+            with tempfile.TemporaryDirectory() as tmp, self.assertRaises(PD.PublishError) as stop:
+                PD.pdf(Path(tmp) / "a.svg", Path(tmp) / "a.pdf")
+        self.assertEqual(str(stop.exception), "Google Chrome not found")
+        self.assertIsInstance(stop.exception.__cause__, screenshot.ChromeMissing)
 
 
 class PreviewFolder(unittest.TestCase):
@@ -606,9 +650,9 @@ class MainBase(unittest.TestCase):
             PD.main_base.cache_clear()
             with self.subTest(name), mock.patch.object(PD.subprocess, "run",
                                                        self.git((0, "abc123\n", ""), [], **answers)), \
-                    self.assertRaises(SystemExit) as stop:
+                    self.assertRaises(PD.PublishError) as stop:
                 PD.on_main(PD.REPO / "docs/ops/x.svg")
-            message = str(stop.exception.code)
+            message = str(stop.exception)
             self.assertIn("git could not read docs/ops/x.svg at abc123", message)
             self.assertIn(next(iter(answers.values()))[2] or "exit 1", message)
             self.assertIn("`python3 tools/schematic/publish_draft.py` again", message)
@@ -624,9 +668,9 @@ class MainBase(unittest.TestCase):
             calls = []
             PD.main_base.cache_clear()
             with self.subTest(name), mock.patch.object(PD.subprocess, "run", self.git(result, calls, **state)), \
-                    self.assertRaises(SystemExit) as stop:
+                    self.assertRaises(PD.PublishError) as stop:
                 PD.on_main(PD.REPO / "docs/ops/x.svg")
-            message = str(stop.exception.code)
+            message = str(stop.exception)
             self.assertIn("`git merge-base HEAD origin/main` failed", message)
             self.assertIn(fix, message)                                            # the step that fits this failure
             self.assertEqual(message.count("run `git fetch"), 1 if "fetch" in fix else 0)

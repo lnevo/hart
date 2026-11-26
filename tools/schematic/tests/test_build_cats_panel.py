@@ -28,8 +28,8 @@ class DeskFaults(unittest.TestCase):
         with contextlib.redirect_stdout(out):
             try:
                 b.check_desk_faults(cats, "panel", (62, 30))
-            except SystemExit as exc:
-                return out.getvalue(), exc.code, cats.asked
+            except b.CatsPanelError as exc:
+                return out.getvalue(), str(exc), cats.asked
         return out.getvalue(), None, cats.asked
 
     def test_no_fault_prints_the_count_and_goes_on(self):

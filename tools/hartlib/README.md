@@ -481,7 +481,8 @@ CATS desk conventions both desk builders use: `station_plate(block)` (`OS Switch
 
 The broker and JMRI JSON settings:
 `mqtt_broker()`, `mqtt_port()`, `jmri_json_url()`, `read_env_file()`, `env_file_path()`,
-`PI_HOST`. The lookup order is in the module docstring.
+`PI_HOST`. The lookup order is in the module docstring. A setting with no usable value, or
+an env file that is there but cannot be read, raises `HostsError`.
 
 ## Old paths
 
