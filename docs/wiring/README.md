@@ -23,6 +23,8 @@ Source of truth for Digicon ports: the head rows of [`jmri/layouts/hart/data/wir
 
 **Calibration relay:** every node that has occupancy detectors has a relay that resets the DCC power so the detectors calibrate, on **pin 8 of its first 5V DNOU8** by the rule (owner, 2026-11-21). Staging's are `calibration` rows of `jmri/layouts/hart/data/wiring.csv`; main and upper's follow the rule. First 5V board is the lowest-numbered OU on the 5V rail (OU1 when that board is 5V; otherwise OU2).
 
+**Power districts** are not mapped: the inventory's names were old, not real (owner, 2026-11-21).
+
 ## Digicon heads and OU boards
 
 Pin-level source: the head rows of [`jmri/layouts/hart/data/wiring.csv`](../../jmri/layouts/hart/data/wiring.csv), one row per disc (node, LCOS signal, board, its three ports). Each disc is one 3-pin `STOP/APPROACH/CLEAR` object wired **R then Y then G** on consecutive increasing LCOS ports (Port A Stop, B Approach, C Clear). **T** = top, **B** = bottom, blank = dwarf. Each 2-head mast uses 6 consecutive pins on one DNOU8 so that board can sit next to the mast. A neighboring dwarf uses the leftover 2; the 3rd pin spills to the adjacent cluster when the plant needs 9.
