@@ -175,7 +175,6 @@
  "tools/schematic/build_masts.py": 3,
  "tools/schematic/build_staging_sets.py": 3,
  "tools/schematic/build_tables.py": 2,
- "tools/schematic/cats_panel_dress.py": 1,
  "tools/schematic/check_device_master.py": 3,
  "tools/schematic/device_map_inputs.py": 1,
  "tools/schematic/device_map_masts.py": 1,
@@ -186,7 +185,6 @@
  "tools/schematic/le_common.py": 3,
  "tools/schematic/le_names.py": 2,
  "tools/schematic/le_tables.py": 3,
- "tools/schematic/mast_plan.py": 9,
  "tools/schematic/mast_rule.py": 6,
  "tools/schematic/panel_items.py": 7,
  "tools/schematic/plan_lengths.py": 8,
@@ -218,7 +216,6 @@
  "www/scripts/provenance.py": 5,
  "www/scripts/share_cards.py": 2,
  "www/scripts/site_views.py": 4,
- "www/scripts/tables_page.py": 6,
  "www/scripts/tests/test_industry_ids.py": 1,
  "www/scripts/tests/test_serve_portal.py": 9,
  "www/scripts/tests/test_wiring_json_check.py": 3

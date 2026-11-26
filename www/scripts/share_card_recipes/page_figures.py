@@ -10,6 +10,7 @@ import re
 
 import make_share_cards as kit
 from make_share_cards import H, PAPER, PORTAL, REPO, W
+from share_card_recipes import CardError
 
 
 # ---- Page figures, rendered at card size ----------------------------------------------------
@@ -31,9 +32,9 @@ def speed_runs():
     rid = "steprun_CSX_2738_forward_20261113_165713"  # the alt text in share-cards.json quotes this run
     runs = json.loads((PORTAL / "data/speedmatch/index.json").read_text(encoding="utf-8"))["runs"]
     if not any(r["id"] == rid for r in runs):  # the viewer would quietly show the newest run instead
-        raise SystemExit(f"ai-speed-runs: {rid} is no longer in data/speedmatch/index.json; pick a run and fix the alt text")
+        raise CardError(f"ai-speed-runs: {rid} is no longer in data/speedmatch/index.json; pick a run and fix the alt text")
     if not (REPO / "ops/car-cards/car-images/CarImagesFinal/loco_CSX_2738_right.png").is_file():
-        raise SystemExit("ai-speed-runs: the ops/car-cards mirror is missing, so the loco photo would be blank")
+        raise CardError("ai-speed-runs: the ops/car-cards mirror is missing, so the loco photo would be blank")
     im = kit.shot(f"{kit._site}ai/speed-runs.html#run={rid}", (1400, 1200))
     return kit.card(im.crop((150 * 2, 550 * 2, 1251 * 2, 1128 * 2)))  # the hero and Track cards (CSS px, x2), 1200:630
 
@@ -55,7 +56,7 @@ def pipeline_map():
     try:
         page = pipeline.site_page()
     except pipeline.GraphError as err:
-        raise SystemExit(f"library-pipeline-map: the map page does not build:\n{err}") from None
+        raise CardError(f"library-pipeline-map: the map page does not build:\n{err}") from err
     # the site header goes too, and the page ground is forced back to #fafafa so _fill_band finds the band
     hide = "<style>.site-header,#bar,#tour,#legend,#nav,#info{display:none!important}#stage{background:#fafafa!important}</style>"
     out = kit._tmp / "pipeline-map-view.html"

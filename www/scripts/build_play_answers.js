@@ -19,15 +19,16 @@ const EXAM = path.join(PLAY, "..", "exam");
 const ROAD = [path.join(EXAM, "signals.js"), path.join(PLAY, "road-engine.js"), path.join(PLAY, "warrant.js"), path.join(PLAY, "road.js"), path.join(PLAY, "passenger.js"), path.join(PLAY, "pcy.js"), path.join(PLAY, "pir.js")];
 const OUT = path.join(PLAY, "answers.html");
 const TUMBLR = "https://www.tumblr.com/pittsburghohiovalleyrailroad/";
-const SEC = { gcor: "GCOR crew & speed", sig: "Signals & whistles", def: "Definitions", yl: "Yard limits", sup: "Superiority & movement", to: "Train orders", sem: "Semaphores", twc: "Track warrants" };
-const SRC = { GC: "GCOR", YL: "Yard Limits guide", PV: "Mark Connolly's P&OV blog,", SC: "1949 Standard Code", TT: "TT&TO primer", SG: "Signals guide", SM: "Semaphores guide" };
+/* The section and source names, and the labels, the game shows (js/game-engine.js). */
+const ENGINE = require(path.join(PLAY, "..", "js", "game-engine.js"));
+const SEC = ENGINE.SECTIONS;
+const srcLabel = (s) => ENGINE.srcLabel(s, ENGINE.PLAY_DOTLESS);
+const { esc } = ENGINE;
 /* The start screen's groups: the heading and its line, in the order the key lists them. */
 const GROUPS = { island: ["On the island", "Pittsburgh & Ohio Valley · 1979 to 1990"], chartiers: ["Up the Chartiers", "Chartiers Valley · 1949 to 1997"] };
 const DRAWS = 400; // runs per shift; enough to see every branch of today's draws
 
-const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const text = (h) => String(h).replace(/<[^>]*>/g, "").replace(/&amp;/g, "&").replace(/&nbsp;/g, " ");
-const srcLabel = (s) => s.replace(/^(?:(GC|YL|PV)\b( ·)?|(SC|TT|SG|SM)\b)/, (m, k, _, j) => SRC[k || j]);
 
 function seeded(n) {
   let a = n >>> 0;
