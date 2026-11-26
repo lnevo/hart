@@ -1,7 +1,6 @@
 # Night plunge: loose ends in one hand-off (2026-11-26)
 
-Status: active
-Coordinator: hart-6d, since 2026-11-26 01:54 (from hart-95; the owner chose a split: hart-95 keeps lanes N1 to N4 until their PRs are open)
+Status: done (2026-11-26)
 
 The owner's call on 2026-11-26 at 01:45: every loose end from the what's-left list goes on this page and runs tonight, except the items that stay in `wiki/STATUS.md`. Those are the main and upper station maps, finalize wiring, the owner's parts of the session #4 punch list, the benchwork-finished question (pipeline-coverage lane C), the future goals, and the dated items (the agent re-count on 2026-12-05, the old Pi card until 2026-12-23).
 
@@ -17,7 +16,7 @@ The owner's call on 2026-11-26 at 01:45: every loose end from the what's-left li
 | N6 Punch list designs | drafts of item 4 (control point signs sized for a stick in the benchwork), item 5 (the big crew board in sign-up order) and item 6 (mock signals for the interlocking gaps) for the owner to choose from | new files under `docs/ops/session4/` | [punch list](../../docs/ops/SESSION4_PUNCH_LIST.md) items 4 to 6 | `general-purpose`, sonnet; owner approves each look before anything is published |
 | N7 Data-masters answers | the owner's answers 1 to 3 on 2026-11-26: full colour key names, the TT-23 site wording, the YM-01 NONE row on the site legend; the docx overrides go | `ops/hart-ops/data/crew.json`, `ops/hart-ops/publications/`, `www/data/crew.json` | [data-masters](data-masters.md), Open for the owner | run by hart-95 |
 
-Merged on 2026-11-26: N5 #1209, N4 #1211, N3 #1213, N2 #1214, N1 #1216, and hart-c4's #1215. The site was deployed at 02:31, and the Pi and Windows got 9424352cc at 02:38 (both stamps clean). N6 is draft #1212, waiting on the owner's picks.
+Merged on 2026-11-26: N5 #1209, N4 #1211, N3 #1213, N2 #1214, N1 #1216, and hart-c4's #1215. The site was deployed at 02:31, and the Pi and Windows got 9424352cc at 02:38 (both stamps clean). N6 is draft #1212, waiting on the owner's picks. Later the same night: N7 #1219 (site deployed), N6 #1212 (picks applied), N8 #1220 (the DecoderPro roster as a repo master; deployed --pi --win at 099faf422 with the owner's yes, roster already current on every host), #1221 and #1222 (canonical links and the bare-domain redirect; site deployed), and N8b #1223 (the old roster sync archived). Nothing is in progress. The owner's open items moved to `wiki/status/now/waits-on-the-owner.md` and the session #4 punch list entry.
 
 N1 to N5 run at once; N6 starts when one of them ends. The cap is 8 sessions with subagents. Heavy checks run through `make remote`, one or two at a time.
 
