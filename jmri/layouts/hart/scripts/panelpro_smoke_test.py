@@ -191,6 +191,7 @@ def band_panel_errors(wait):
     errors.extend("band panel %s window shown again after it was hidden" % t for t in sorted(shown))
     return errors
 
+
 def station_sensor_errors(sensor_manager):
     """Each station's two Dispatcher sensors: loaded unless the Dispatcher System is parked, absent if it is."""
     errors = []
