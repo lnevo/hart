@@ -30,9 +30,17 @@ def parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Build one film; a FilmError (a missing screenshot, ffmpeg's failure and its stderr) is printed and exits 1."""
     args = parser().parse_args(argv)
     sys.path.insert(0, str(Path(__file__).resolve().parent))
-    importlib.import_module(FILMS[args.film]).main()  # imported here, so --help needs neither Pillow nor ffmpeg
+    # imported here, so --help needs neither Pillow nor ffmpeg
+    from film_common import FilmError
+
+    try:
+        importlib.import_module(FILMS[args.film]).main()
+    except FilmError as exc:
+        print(f"films.py {args.film}: {exc}", file=sys.stderr)
+        return 1
     return 0
 
 

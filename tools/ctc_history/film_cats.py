@@ -11,19 +11,15 @@ Run it with `python3 tools/ctc_history/films.py cats`.
 from __future__ import annotations
 
 import os
-import subprocess
-import sys
 import tempfile
 from pathlib import Path
+from typing import NamedTuple
 
-from PIL import Image, ImageDraw, ImageFont
+from film_common import CAPTION_INK, HISTORY, REPO, Box, Font, load_font, mp4_command, open_frame, run_ffmpeg, write_concat_list
+from PIL import Image, ImageDraw
 
-sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
-                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import film_pace  # noqa: E402
-
-HERE = Path(__file__).resolve().parents[2] / "docs/ctc/history"
-SRC = Path(os.environ.get("HART_SCREENSHOTS", str(Path(__file__).resolve().parents[2] / "media" / "screenshots")))
+HERE = HISTORY
+SRC = Path(os.environ.get("HART_SCREENSHOTS", str(REPO / "media" / "screenshots")))
 OUT_MP4 = HERE / "CATS_Panel_Evolution.mp4"
 OUT_POSTER = HERE / "cats-poster.jpg"
 CANVAS = (1280, 720)    # 16:9 so the three-level desk of November is readable
@@ -31,37 +27,33 @@ BG = (0, 0, 0)
 CAPTION_H = 44
 SCALE = 0.88
 
-# (file, crop box in source pixels, caption). Crops drop other windows.
-FRAMES: list[tuple[str, tuple[int, int, int, int], str]] = [
-    ("cats_HART_ctc_20260808_230606.png", (0, 0, 1100, 240), "First draft: station names and bare track"),
-    ("cats_HART_ctc_20260808_232006.png", (0, 0, 1300, 390), "Yard ladder grows; Barn and Main East appear"),
-    ("cats_HART_ctc_20260808_234941.png", (0, 0, 1200, 300), "Some labels renamed as control points (CP Brick, CP Plane, CP 112)"),
-    ("cats_HART_ctc_20260808_235941_crop.png", (0, 32, 1450, 300), "Main runs through to Shenango; yard ladder redrawn"),
-    ("cats_HART_ctc_20260809_001200.png", (0, 0, 1450, 300), "Route labels added along the diagram"),
-    # Later frames come from the desktop; box None means fit the whole image to the canvas.
-    ("cats_dispatcher_20260810_104619.png", None, "Live: West Yard, Brick and the yard tracks S-1 to S-5"),
-    ("cats_dispatcher_20260810_122329.png", None, "Yard tracks T9 to T11 and the West Lead added"),
-    ("cats_dispatcher_20260823_204325.png", None, "Redrawn on straight mains; engine house tracks EH-1 to EH-3"),
-    ("cats_dispatcher_20260825_015115.png", None, "Title block: Neville Island Operations, CTC Digicon"),
-    ("cats_dispatcher_20260825_075630.png", None, "Retitled ABS Digicon; Brick-Plane, Scale and Barn labelled"),
-    ("cats_dispatcher_20260826_123325.png", None, "Routes lined in green on the CTC Digicon"),
-    ("cats_dispatcher_20260826_184626.png", None, "Rev A, effective 26 August"),
-    ("cats_dispatcher_20261116_225112.png", None, "16 November: generated from the schematic, staging, main and upper level (ABS)"),
+
+class Frame(NamedTuple):
+    name: str          # screenshot file in SRC
+    box: Box | None    # crop box in source pixels, dropping other windows; None fits the whole image
+    caption: str
+
+
+FRAMES: list[Frame] = [
+    Frame("cats_HART_ctc_20260808_230606.png", (0, 0, 1100, 240), "First draft: station names and bare track"),
+    Frame("cats_HART_ctc_20260808_232006.png", (0, 0, 1300, 390), "Yard ladder grows; Barn and Main East appear"),
+    Frame("cats_HART_ctc_20260808_234941.png", (0, 0, 1200, 300), "Some labels renamed as control points (CP Brick, CP Plane, CP 112)"),
+    Frame("cats_HART_ctc_20260808_235941_crop.png", (0, 32, 1450, 300), "Main runs through to Shenango; yard ladder redrawn"),
+    Frame("cats_HART_ctc_20260809_001200.png", (0, 0, 1450, 300), "Route labels added along the diagram"),
+    # Later frames come from the desktop and are fitted whole.
+    Frame("cats_dispatcher_20260810_104619.png", None, "Live: West Yard, Brick and the yard tracks S-1 to S-5"),
+    Frame("cats_dispatcher_20260810_122329.png", None, "Yard tracks T9 to T11 and the West Lead added"),
+    Frame("cats_dispatcher_20260823_204325.png", None, "Redrawn on straight mains; engine house tracks EH-1 to EH-3"),
+    Frame("cats_dispatcher_20260825_015115.png", None, "Title block: Neville Island Operations, CTC Digicon"),
+    Frame("cats_dispatcher_20260825_075630.png", None, "Retitled ABS Digicon; Brick-Plane, Scale and Barn labelled"),
+    Frame("cats_dispatcher_20260826_123325.png", None, "Routes lined in green on the CTC Digicon"),
+    Frame("cats_dispatcher_20260826_184626.png", None, "Rev A, effective 26 August"),
+    Frame("cats_dispatcher_20261116_225112.png", None, "16 November: generated from the schematic, staging, main and upper level (ABS)"),
 ]
 
 
-def load_font(size: int):
-    for name in ("/System/Library/Fonts/Supplemental/Arial Bold.ttf", "/System/Library/Fonts/Helvetica.ttc"):
-        if Path(name).exists():
-            try:
-                return ImageFont.truetype(name, size=size)
-            except OSError:
-                pass
-    return ImageFont.load_default()
-
-
-def compose(src: Path, box, caption: str, font) -> Image.Image:
-    img = Image.open(src).convert("RGB")
+def compose(src: Path, box: Box | None, caption: str, font: Font) -> Image.Image:
+    img = open_frame(src)
     if box is None:
         scale = min(CANVAS[0] / img.width, (CANVAS[1] - CAPTION_H) / img.height, 1.0)
     else:
@@ -72,7 +64,7 @@ def compose(src: Path, box, caption: str, font) -> Image.Image:
     canvas.paste(img.crop((0, 0, CANVAS[0], CANVAS[1] - CAPTION_H)), (0, 0))
     d = ImageDraw.Draw(canvas)
     tw = d.textlength(caption, font=font)
-    d.text(((CANVAS[0] - tw) / 2, CANVAS[1] - CAPTION_H + 6), caption, fill=(220, 200, 140), font=font)
+    d.text(((CANVAS[0] - tw) / 2, CANVAS[1] - CAPTION_H + 6), caption, fill=CAPTION_INK, font=font)
     return canvas
 
 
@@ -80,22 +72,15 @@ def main() -> None:
     font = load_font(22)
     with tempfile.TemporaryDirectory(prefix="cats_evo_") as tmp:
         work = Path(tmp)
-        lines = []
-        for i, (name, box, cap) in enumerate(FRAMES):
+        frame_paths: list[Path] = []
+        for i, frame_spec in enumerate(FRAMES):
             p = work / f"f{i:02d}.png"
-            frame = compose(SRC / name, box, cap, font)
+            frame = compose(SRC / frame_spec.name, frame_spec.box, frame_spec.caption, font)
             frame.save(p)
             if i == len(FRAMES) - 1:
                 frame.save(OUT_POSTER, quality=88)
-            dur = film_pace.durations(len(FRAMES))[i]
-            lines += [f"file '{p}'", f"duration {dur:.3f}"]
-        lines.append(f"file '{work / f'f{len(FRAMES) - 1:02d}.png'}'")
+            frame_paths.append(p)
         lst = work / "concat.txt"
-        lst.write_text("\n".join(lines) + "\n")
-        subprocess.run(
-            ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(lst), "-vf", "fps=30,format=yuv420p", "-t", str(film_pace.film_length(len(FRAMES))),
-             "-c:v", "libx264", "-crf", "26", "-movflags", "+faststart", str(OUT_MP4)],
-            check=True, capture_output=True, text=True,
-        )
+        write_concat_list(frame_paths, lst)
+        run_ffmpeg(mp4_command(lst, len(frame_paths), ["-c:v", "libx264", "-crf", "26", "-movflags", "+faststart"], OUT_MP4))
     print(f"Wrote {OUT_MP4} and {OUT_POSTER}")
-
