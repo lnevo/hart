@@ -356,7 +356,7 @@ class StampTest(RepoCase):
             plan.write_text("p2\n")
             self.assertFalse(self.current("a"))
             self.record("a")
-            with unittest.mock.patch.object(cs, "venv_state", return_value="other interpreter"):
+            with unittest.mock.patch.object(cs.stamps_cache, "venv_state", return_value="other interpreter"):
                 self.assertFalse(self.current("a"))
 
     def test_a_stamp_helper_answer_other_than_0_or_1_is_not_a_skip(self) -> None:

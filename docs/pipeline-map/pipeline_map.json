@@ -5282,6 +5282,24 @@
    "path": "tools/audit/check_stamps.py"
   },
   {
+   "id": "tools/audit/stamps_cache.py",
+   "label": "stamps_cache.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "check_stamps.py's shared ground: the walk of a pattern set, the file-hash cache and the Checker.",
+   "path": "tools/audit/stamps_cache.py"
+  },
+  {
+   "id": "tools/audit/stamps_audit.py",
+   "label": "stamps_audit.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "check_stamps.py's audits: the CHECK_AUDIT folder's reads and the declaration audit of the step-manifest jobs.",
+   "path": "tools/audit/stamps_audit.py"
+  },
+  {
    "id": "tools/audit/traced.py",
    "label": "traced.py",
    "kind": "generator",
@@ -12467,6 +12485,21 @@
    "from": "tools/audit/check_stamps.py",
    "to": "tools/check.sh",
    "label": "current, record"
+  },
+  {
+   "from": "tools/audit/stamps_cache.py",
+   "to": "tools/audit/check_stamps.py",
+   "label": "re-exported"
+  },
+  {
+   "from": "tools/audit/stamps_audit.py",
+   "to": "tools/audit/check_stamps.py",
+   "label": "re-exported"
+  },
+  {
+   "from": "tools/audit/stamps_cache.py",
+   "to": "tools/audit/stamps_audit.py",
+   "label": "imports"
   },
   {
    "from": "tools/audit/check_stamps.py",

@@ -51,44 +51,47 @@ does not declare in tools/pipeline/checks.toml; `audit` prints it again from the
 changes no key and no verdict. It warns, or with --audit-fails (check.sh in a CHECK_AUDIT run and the weekly full run)
 fails the job, as does an audit that cannot run (STAMP AUDIT FAILED). The CHECK_AUDIT hook and audit-report above
 check the unit jobs' BY_KIND declarations instead.
+
+This file is the entry point, the CLI and the declarations (FILES lists it with its parts): stamps_cache.py holds the
+walk, the file-hash cache and the Checker, stamps_audit.py the audits; both are re-exported here.
 """
 from __future__ import annotations
 
 import hashlib
-import importlib.util
 import json
 import os
 import re
-import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "tools" / "schematic"))
-import panel_stamps as ps  # noqa: E402
+HERE = Path(__file__).resolve().parent
+# The parts (FILES) import each other by name, from any cwd and under any load name (check.sh runs this file by path;
+# the tests import it as check_stamps): this folder goes first on sys.path while they are imported and comes off again
+# after, as tools/pipeline/manifest.py does for its parts.
+_added = str(HERE) not in sys.path
+if _added:
+    sys.path.insert(0, str(HERE))
+try:
+    import stamps_cache
+    import stamps_audit
+finally:
+    if _added:
+        sys.path.remove(str(HERE))
+PARTS = (stamps_cache, stamps_audit)
+_stray = [f"{m.__name__} from {getattr(m, '__file__', None)}" for m in PARTS
+          if not getattr(m, "__file__", None) or Path(m.__file__).resolve().parent != HERE]
+if _stray:      # a part already imported from another folder (a second checkout in one process): never mix the two
+    raise ImportError(f"check_stamps.py: its parts must be the files beside it in {HERE}, not {', '.join(_stray)}")
+from stamps_audit import (AUDIT_FAILS, AUDIT_HOW, AuditError, _reaches, audit_lines, audit_stamp,  # noqa: E402,F401
+                          manifest_steps, read_audit, step_reads)
+from stamps_cache import (LITTER, MANIFEST, PRUNE, PRUNE_PATHS, ROOT, Checker, HashCache,  # noqa: E402,F401
+                          _file, _import, _pruned, _run, cache_dir, main_checkout, pm, ps, traced, venv_state, walk)
 
-traced = ps.traced
-sys.path[:0] = [str(ROOT / "tools/hartlib/src")]
-from hartlib.paths import cache_dir, main_checkout  # noqa: E402
-
-
-def _import(name: str, path: Path):
-    """The module at `path` under `name`, loaded once per process (its dataclasses look it up in sys.modules)."""
-    if name not in sys.modules:
-        spec = importlib.util.spec_from_file_location(name, path)
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[name] = module
-        spec.loader.exec_module(module)
-    return sys.modules[name]
-
-
-pm = _import("pipeline_manifest", ROOT / "tools/pipeline/manifest.py")
-MANIFEST = pm.MANIFEST.relative_to(pm.ROOT)     # tools/pipeline/checks.toml, under each Checker's root
+# This file and its parts, from the repo root. A part is covered wherever this file is: tools/ci/stamp_gate.MACHINERY
+# lists each, TOOLS covers them for the unit jobs, and none is in ALWAYS, as this file is not.
+FILES = tuple(Path(f).resolve().relative_to(ROOT).as_posix() for f in (__file__, *(m.__file__ for m in PARTS)))
 
 STORE = Path(os.environ.get("CHECK_STAMPS_DIR") or cache_dir("check-stamps", ROOT))
-PRUNE = {".git", ".cache", "__pycache__", "node_modules", ".venv", "venv", ".pages-dist", ".mypy_cache", ".pytest_cache"}
-PRUNE_PATHS = {".claude/worktrees", "external/model-railroad-skills"}     # the plugin is stamped by its commit
-LITTER = (".DS_Store", ".pyc")
 
 # Folder groups. TOOLS is the code and its tests; LAYOUT the shared source and generated data every build reads.
 TOOLS = ("tools/**/*",)
@@ -275,153 +278,9 @@ def check_tables() -> None:
             raise ValueError(f"check_stamps.REFS_OF: {job!r} names {', '.join(unknown)}, not in GIT_REFS")
 
 
-def _pruned(rel: str) -> bool:
-    return any(rel == p or rel.startswith(p + "/") for p in PRUNE_PATHS)
-
-
-def walk(patterns, root: Path = ROOT) -> list[Path]:
-    """Every file under `root` the patterns name, sorted; caches, VCS data, other worktrees and the plugin left out.
-    Linked folders (media/, ops/car-cards in a worktree) are walked through their links, whatever the pattern."""
-    heads = set()
-    for pat in patterns:
-        # a literal pattern ("tools/check.sh") starts at itself, not at its folder: no walk of all of tools/ for it
-        if not any(c in pat for c in "*?"):
-            heads.add(pat)
-            continue
-        head = pat.split("*", 1)[0].split("?", 1)[0]
-        heads.add(head.rsplit("/", 1)[0] if "/" in head else "")
-    found: set[Path] = set()
-    starts = {h for h in heads if not any(h != o and (h + "/").startswith(o + "/") for o in heads if o)}
-    seen: set[str] = set()                          # real paths of the folders walked: a link back up ends there
-    for start in sorted(starts):
-        base = root / start
-        if base.is_file():
-            walked = [(str(base.parent), [], [base.name])]
-        else:
-            walked = os.walk(base, followlinks=True)
-        for dirpath, dirnames, filenames in walked:
-            seen.add(os.path.realpath(dirpath))
-            rel_dir = Path(dirpath).relative_to(root).as_posix()
-            rel_dir = "" if rel_dir == "." else rel_dir
-            dirnames[:] = [d for d in dirnames
-                           if d not in PRUNE and not _pruned(f"{rel_dir}/{d}".lstrip("/"))
-                           and os.path.realpath(os.path.join(dirpath, d)) not in seen]
-            for f in filenames:
-                if f.endswith(LITTER) or f == ".DS_Store":
-                    continue
-                rel = f"{rel_dir}/{f}".lstrip("/")
-                if any(ps._glob_match(rel, pat) for pat in patterns):
-                    p = root / rel
-                    if p.is_file():
-                        found.add(p)
-    return sorted(found)
-
-
-class HashCache:
-    """sha256 of files, reused while a file's size and mtime stay; shared by the jobs through one JSON file."""
-
-    def __init__(self, path: Path) -> None:
-        self.path = path
-        self.dirty = False
-        try:
-            self.data = json.loads(path.read_text())
-        except (OSError, ValueError):
-            self.data = {}
-
-    def __call__(self, p: Path) -> str:
-        st = p.stat()
-        hit = self.data.get(str(p))
-        if hit and hit[0] == st.st_mtime_ns and hit[1] == st.st_size:
-            return hit[2]
-        sha = hashlib.sha256(p.read_bytes()).hexdigest()
-        self.data[str(p)] = [st.st_mtime_ns, st.st_size, sha]
-        self.dirty = True
-        return sha
-
-    def save(self) -> None:
-        """Write the cache, less the files whose folder is gone (a removed worktree: make remote makes one per run,
-        so on the Windows box the file grew to 747k entries for 152 worktrees, 5.6k of them live, 2026-11-25)."""
-        if not self.dirty:
-            return
-        alive = {d: not d or os.path.isdir(d) for d in {os.path.dirname(k) for k in self.data}}   # "": no folder part
-        self.data = {k: v for k, v in self.data.items() if alive[os.path.dirname(k)]}
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = self.path.with_suffix(f".{os.getpid()}.tmp")
-        tmp.write_text(json.dumps(self.data))
-        os.replace(tmp, self.path)
-
-
 def plan_file() -> Path:
     """The AnyRail plan levels_svg.py and plan_lengths.py read (private, never in the repo)."""
     return Path(os.environ.get("ANYRAIL_PLAN") or Path.home() / "Documents/Layout/Lee Nevo Design Version 5.3c.any")
-
-
-def _run(*cmd: str, cwd: Path) -> str:
-    try:
-        done = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=60)
-    except (OSError, subprocess.SubprocessError):
-        return "unavailable"
-    return done.stdout if done.returncode == 0 else f"failed:{done.returncode}"
-
-
-def venv_state(python: Path) -> str:
-    """An interpreter's real path and the names and versions of the packages it can import: for the Python running
-    this (the jobs' python3), its site-packages and the user's (pip install --user); for another one (a venv), the
-    site-packages under its prefix."""
-    out = [os.path.realpath(python)]
-    if out[0] == os.path.realpath(sys.executable):
-        import site
-        sites = [Path(s) for s in site.getsitepackages()]
-        if site.ENABLE_USER_SITE:
-            sites.append(Path(site.getusersitepackages()))
-    else:
-        sites = sorted(Path(python).parent.parent.glob("lib/python*/site-packages"))
-    for s in sites:
-        out += sorted(d.name for d in s.glob("*.dist-info"))
-    return "|".join(out)
-
-
-class Checker:
-    """The stamp checks of one moment: one file-hash cache, and what is the same for every job then (git's answers,
-    the plugin's state, the walk of a pattern set, the interpreters, the snapshot) worked out once. check.sh's
-    `current-batch` checks every job with one; a single `current`, `why` or `record` makes one of its own."""
-
-    def __init__(self, root: Path = ROOT, store: Path = STORE) -> None:
-        self.root, self.store = root, store
-        self.cache = HashCache(store / "filehash.json")
-        self._memo: dict[tuple, object] = {}
-
-    def _once(self, key: tuple, make):
-        if key not in self._memo:
-            self._memo[key] = make()
-        return self._memo[key]
-
-    def git(self, *args: str) -> str:
-        return self._once(("git", args), lambda: _run("git", *args, cwd=self.root))
-
-    def plugin(self) -> str:
-        return self._once(("plugin",), lambda: ps.plugin_state(self.root))
-
-    def unstampable(self) -> str | None:
-        return self._once(("unstampable",), lambda: ps.unstampable(self.root))
-
-    def walk(self, patterns: tuple[str, ...]) -> list[Path]:
-        return self._once(("walk", patterns), lambda: walk(patterns, self.root))
-
-    def manifest(self) -> dict[str, "pm.JobKey"]:
-        """manifest.job_keys of the checkout's tools/pipeline/checks.toml (raises manifest.ManifestError)."""
-        return self._once(("manifest",), lambda: pm.job_keys(self.root / MANIFEST))
-
-    def venv(self, python: Path) -> str:
-        return self._once(("venv", str(python)), lambda: venv_state(python))
-
-    def replay(self, gits: list) -> list[str]:
-        """traced.git_replay, each command run once."""
-        return [self._once(("replay", tuple(cmd)), lambda cmd=cmd: traced.git_replay([cmd], str(self.root))[0])
-                for cmd in gits]
-
-    def snapshot(self, outside: str) -> str:
-        return self._once(("snapshot", outside), lambda: traced.snapshot(self.root, self.plugin(), outside))
 
 
 # The git refs a job's key holds besides the git commands its trace replays: a manifest job's `git`, else REFS_OF.
@@ -519,11 +378,6 @@ def key(name: str, ck: Checker, programs: list[str], gits: list, skips=()) -> st
         extra += "\nskips=" + json.dumps(skip_list(skips))
     return ps.digest(f"check:{name}", (), pats, ck.root, hasher=ck.cache, files=ck.walk(pats), extra=extra,
                      plugin=ck.plugin())
-
-
-def _file(name: str, store: Path = STORE) -> Path:
-    slug = "".join(c if c.isalnum() else "_" for c in name)[:60]
-    return store / f"{slug}-{hashlib.sha256(name.encode()).hexdigest()[:10]}.json"
 
 
 def why_not_current(name: str, root: Path = ROOT, store: Path = STORE, checker: Checker | None = None) -> str | None:
@@ -667,26 +521,7 @@ def record(name: str, trace_log, root: Path = ROOT, store: Path = STORE, before:
     return reason
 
 
-# ---- the audit ----
-
-def read_audit(folder: Path) -> dict[str, tuple[set[str], set[str]]]:
-    """job name -> (files read, folders listed), from a CHECK_AUDIT folder: N.name and N.log per job."""
-    jobs = {}
-    for namef in sorted(folder.glob("*.name")):
-        files, dirs = set(), set()
-        logf = namef.with_suffix(".log")
-        if logf.is_file():
-            for line in logf.read_text(errors="replace").splitlines():
-                kind, _, rel = line.partition("\t")
-                if not rel or rel.startswith(("<", ".git/", ".venv/")) or rel in (".git", ".venv") \
-                        or "__pycache__" in rel.split("/") or rel.endswith(LITTER):
-                    continue
-                if _pruned(rel):
-                    continue
-                (files if kind == "r" else dirs).add(rel)
-        jobs[namef.read_text().strip()] = (files, dirs)
-    return jobs
-
+# ---- the audits: what stays here reads the declarations above; the rest is stamps_audit.py ----
 
 def uncovered(name: str, files: set[str], dirs: set[str]) -> list[str]:
     pats = declared(name)
@@ -703,141 +538,6 @@ def uncovered(name: str, files: set[str], dirs: set[str]) -> list[str]:
         if not any(_reaches(d, pat) for pat in pats):
             bad.append(d + "/")
     return bad
-
-
-def _reaches(d: str, pat: str) -> bool:
-    """Whether listing folder `d` is covered by pattern `pat`: `d` is on the way to a file it names, or inside the
-    folder its wildcard spans. A file pattern ("Makefile", "AGENTS.md") reaches only its parent folders, and a
-    root wildcard only "**" (every folder), not "*.md" (root files)."""
-    if "*" not in pat:
-        return pat.startswith(d + "/")
-    head = pat.split("*", 1)[0]
-    if "/" not in head:
-        return pat.startswith("**")
-    literal = head.rsplit("/", 1)[0]
-    return d == literal or d.startswith(literal + "/") or literal.startswith(d + "/")
-
-
-# ---- the declaration audit (ADR-037 stages 4a, 4c; docs/pipeline-map/build-graph-design.md 4.5) ----
-
-class AuditError(Exception):
-    """The declaration audit cannot run for a job (no such manifest job, no trace, no audit in its stamp)."""
-
-
-AUDIT_HOW = "warn only in this run; a CHECK_AUDIT run and the weekly full run fail on it (ADR-037 stage 4c)"
-AUDIT_FAILS = "this run fails on it (ADR-037 stage 4c: a CHECK_AUDIT run or CHECK_AUDIT_FAILS=1)"
-
-
-def step_reads(name: str, trace_log, root: Path, steps) -> dict:
-    """Job `name`'s data reads, from its trace: {"steps": {step: [files]}, "unowned": {}, "absent": [], "bash": [the
-    step, when bash runs it, whose reads the trace cannot see]}. Every job of the manifest is one step (stage 4b), so
-    every process in its trace is that step's. Files are the repo paths its processes read as data ("r" lines; an open
-    as code, a "c" line, is not one, but the same file read as text is). The shape is stage 4a's, which `audit` reads.
-    Raises AuditError when the job is not one step, or the trace cannot be read or holds no process."""
-    if len(steps) != 1:
-        raise AuditError(f"{name} has {len(steps)} steps in {MANIFEST.as_posix()}; each job is one step")
-    (step,) = steps
-    try:
-        text = Path(trace_log).read_text(encoding="utf-8", errors="surrogateescape")
-    except OSError as exc:
-        raise AuditError(f"cannot read the trace of {name}: {exc}") from None
-    skip = traced._skip_prefixes(str(root))
-    reads: set[str] = set()
-    started = 0
-    for line in text.splitlines():
-        parts = line.split("\t")
-        if len(parts) < 3 or not parts[0].isdigit():
-            continue
-        kind, rest = parts[1], parts[2:]
-        if kind == "s" and len(rest) >= 3:
-            started += 1
-        elif kind == "r":
-            rel = traced.keep(rest[0], str(root), skip)
-            if rel is not None and not os.path.isabs(rel):
-                reads.add(rel)
-    if not started and step.python:
-        raise AuditError(f"the trace of {name} ({trace_log}) holds no process start")
-    if not step.python:
-        return {"steps": {}, "unowned": {}, "absent": [], "bash": [step.name]}
-    return {"steps": {step.name: sorted(reads)}, "unowned": {}, "absent": [], "bash": []}
-
-
-def audit_lines(name: str, audit: dict, steps, full: bool = False, how: str = AUDIT_HOW) -> tuple[list[str], int]:
-    """The audit's report for job `name` from its step_reads and the manifest's steps now, and the number of
-    warnings. A job with none gets one line. `full` lists every file (the `audit` command); else at most 8 a step."""
-    by_name = {s.name: s for s in steps}
-    rows: list[str] = []
-    count = 0
-    for step, files in sorted(audit.get("steps", {}).items()):
-        if step not in by_name:
-            rows.append(f"    {step}: in the stamp, not in tools/pipeline/checks.toml now; run the job again")
-            count += 1
-            continue
-        bad = pm.undeclared(by_name[step], files)
-        count += len(bad)
-        if bad:
-            shown = bad if full or len(bad) <= 8 else [*bad[:8], f"and {len(bad) - 8} more"]
-            rows.append(f"    {step}: {', '.join(shown)}")
-    for who, files in audit.get("unowned", {}).items():
-        count += len(files)
-        rows.append(f"    no step started this process ({who}): {', '.join(files)}")
-    for step in audit.get("absent", []):
-        count += 1
-        rows.append(f"    {step}: no process of it in the trace, so its reads are not audited")
-    recorded = set(audit.get("steps", {})) | set(audit.get("absent", []))
-    for s in steps:                 # a step added to the manifest after the stamp was recorded
-        if s.python and s.name not in recorded:
-            count += 1
-            rows.append(f"    {s.name}: in tools/pipeline/checks.toml, not in the stamp; run the job again")
-    bash = [s.name for s in steps if not s.python]          # from the manifest now, not the stamp
-    tail = f" ({', '.join(bash)}: bash, which the trace cannot see, so not audited)" if bash else ""
-    if not count:
-        return [f"stamp audit: {name}: every data read is declared in tools/pipeline/checks.toml (the code "
-                f"the job imported or ran is not audited){tail}"], 0
-    return ([f"WARNING: stamp audit: {name}: {count} read(s) not declared in tools/pipeline/checks.toml "
-             f"(inputs, or quiet_inputs for a read not drawn on the map); {how}", *rows,
-             *([f"    not audited: {', '.join(bash)} (bash, which the trace cannot see)"] if bash else []),
-             f"    again: python3 tools/audit/check_stamps.py audit {name}"], count)
-
-
-def manifest_steps(name: str, root: Path = ROOT) -> tuple:
-    """Job `name`'s steps as the audit sees them (manifest.declarations). Raises AuditError for a job that is not a
-    manifest job, manifest.ManifestError for a manifest that will not read."""
-    decls = pm.declarations(root / MANIFEST)
-    if name not in decls:
-        raise AuditError(f"{name!r} is no job of {MANIFEST.as_posix()} (its jobs: {', '.join(decls)})")
-    return decls[name]
-
-
-def audit_stamp(names: list[str], root: Path = ROOT, store: Path = STORE) -> int:
-    """`check_stamps.py audit [NAME...]`: each manifest job's report from the audit its last recorded pass kept (every
-    manifest job when no name is given), against the manifest now. 0 when every read is declared, 1 with warnings,
-    2 when a job cannot be audited (its line says why)."""
-    try:
-        decls = pm.declarations(root / MANIFEST)
-    except pm.ManifestError as exc:
-        print(f"stamp audit: cannot run: {exc}", file=sys.stderr)
-        return 2
-    rc = 0
-    for name in names or list(decls):
-        if name not in decls:
-            print(f"stamp audit: {name}: no job of {MANIFEST.as_posix()} (its jobs: {', '.join(decls)})",
-                  file=sys.stderr)
-            rc = 2
-            continue
-        stamp = traced.load(_file(name, store))
-        if decls[name][0].unaudited:
-            print(f"stamp audit: {name}: not audited: {decls[name][0].unaudited}")
-            continue
-        if not stamp or not isinstance(stamp.get("audit"), dict):
-            print(f"stamp audit: {name}: {'no stamp' if not stamp else 'its stamp holds no audit'}; a pass of the "
-                  f"job records one (FULL=1 CHECK_ONLY='^{name}$' tools/check.sh)", file=sys.stderr)
-            rc = 2
-            continue
-        lines, count = audit_lines(name, stamp["audit"], decls[name], full=True)
-        print("\n".join(lines))
-        rc = max(rc, 1 if count else 0)
-    return rc
 
 
 def audit_trace(name: str, trace_log, root: Path = ROOT, fails: bool = False) -> tuple[list[str], dict | None, int]:
@@ -898,7 +598,7 @@ def _main(argv: list[str]) -> int:
         if "--save" in argv:
             save = Path(argv[argv.index("--save") + 1])
         why = "--why" in argv              # say why it runs (a CI pull request run: check.sh CHECK_SKIP_FROM)
-        ck = Checker()
+        ck = Checker(ROOT, STORE)
         try:
             code, reason = verdict(name, ck, save)
         finally:
@@ -919,7 +619,7 @@ def _main(argv: list[str]) -> int:
     if argv[:1] == ["record"]:
         return record_cmd(argv[1:])
     if argv[:1] == ["audit"]:
-        return audit_stamp(argv[1:])
+        return audit_stamp(argv[1:], ROOT, STORE)
     if len(argv) == 2 and argv[0] == "declared":
         print("\n".join(declared(argv[1]) or ()))
         return 0
