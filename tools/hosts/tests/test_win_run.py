@@ -365,11 +365,6 @@ class WinRunStamps(unittest.TestCase):
         self.assertIn("could not make", done.stderr)
         self.assertNotIn("DIR=", done.stdout)
 
-
-if __name__ == "__main__":
-    unittest.main()
-
-
 class WinRunLog(unittest.TestCase):
     """The log block, the Mac's half: every run's whole output saved, its failed jobs and the log's path printed last,
     the newest WIN_RUN_KEEP_LOGS kept. Run alone with a stand-in remote_script and a stand-in ssh."""
@@ -412,6 +407,21 @@ class WinRunLog(unittest.TestCase):
     def test_unreachable_keeps_255(self) -> None:
         self.fake_ssh("cat >/dev/null; exit 255")
         self.assertEqual(self.run_logged(self.tmp / "gone.log").returncode, 255)
+
+    def test_a_stopped_run_still_ends_with_its_log_line(self) -> None:
+        """TERM mid-run (a superseded run stopped) still prints the failed jobs and the path, as win_run.sh's trap does."""
+        self.fake_ssh('cat >/dev/null; echo "--- unit-a FAILED (1s)"; sleep 4')
+        log = self.tmp / "stopped.log"
+        script = self.tmp / "stop.sh"
+        script.write_text(f'set -euo pipefail\nremote_script() {{ echo s; }}\n{block_of(WIN_RUN.read_text(), "log")}\n'
+                          f'trap \'finish_log "{log}" "{self.tmp}" 20\' EXIT\ntrap "exit 143" TERM\n'
+                          f'run_logged "{log}" header "{self.ssh}"\n')
+        p = subprocess.Popen(["/bin/bash", str(script)], stdout=subprocess.PIPE, text=True)
+        time.sleep(1.5)
+        p.terminate()
+        out, _ = p.communicate(timeout=30)
+        self.assertEqual(p.returncode, 143)
+        self.assertEqual(out.splitlines()[-2:], ["--- unit-a FAILED (1s)", f"log: {log}"])
 
     def test_end_log_names_the_failed_jobs_then_the_path_last(self) -> None:
         log = self.tmp / "x.log"
@@ -459,3 +469,7 @@ class WinRunLog(unittest.TestCase):
                               capture_output=True, text=True, timeout=60)
         self.assertEqual(done.returncode, 2, done.stderr)
         self.assertIn("WIN_RUN_KEEP_LOGS", done.stderr)
+
+
+if __name__ == "__main__":
+    unittest.main()

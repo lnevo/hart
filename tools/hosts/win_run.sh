@@ -9,8 +9,9 @@
 # the Windows clone (~/hart in WSL) fetches from GitHub. Each run gets its own worktree under
 # ~/wt there, with the gitignored mirrors (media, ops/car-cards, ops/hart-ops/.venv) linked and
 # every submodule checked out, so runs from several agents do not collide.
-# Every run's whole output is saved on the Mac in <cache>/remote-logs (the newest WIN_RUN_KEEP_LOGS, default 20); the
-# run ends with its failed jobs and "log: <path>". --keep leaves that worktree for a look afterwards. Python is ~/hart/.venv (3.13, requirements.txt).
+# Every run's whole output is saved on the Mac in <cache>/remote-logs (the newest WIN_RUN_KEEP_LOGS, default 20),
+# with the remote's stderr merged into stdout; the run ends with its failed jobs, then "log: <path>".
+# --keep leaves that worktree for a look afterwards. Python is ~/hart/.venv (3.13, requirements.txt).
 #
 # Not for: make panelpro-test, screenshots, deploys, or anything that reads the Mac's
 # JMRI_UserFiles. Refuses while the operating flag is set: CATS runs on that box during a session.
@@ -264,6 +265,10 @@ end_log() {   # <log>: the failed jobs it holds, then where it is
   grep -E '^--- .* FAILED' "$1" || true
   echo "log: $1"
 }
+finish_log() {   # <log> <folder> <keep>: on every exit of a logged run, a stopped one too
+  end_log "$1"
+  prune_logs "$2" "$3"
+}
 run_logged() {   # <log> <header> COMMAND...: remote_script into COMMAND, its stdout and stderr shown and appended to <log>;
   # returns COMMAND's exit code
   local rcs
@@ -280,7 +285,14 @@ run_logged() {   # <log> <header> COMMAND...: remote_script into COMMAND, its st
 # --- end log
 logs="$(hart_cache_dir "$ROOT" remote-logs)"
 log="$(start_log "$logs" "$stamps-$run_id")" || log=""
-[[ -n "$log" ]] || echo "win_run.sh: warning: could not write a log in $logs; this run's output is not saved" >&2
+if [[ -n "$log" ]]; then
+  # on every exit, a stopped or cut-off run too (Ctrl-C, a superseded run's TERM): the failed jobs, the path, the prune
+  trap 'finish_log "$log" "$logs" "$keep_logs"' EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+else
+  echo "win_run.sh: warning: could not write a log in $logs; this run's output is not saved" >&2
+fi
 set +e
 if [[ -n "$log" ]]; then
   run_logged "$log" "win_run.sh: $ref ($sha) on $WIN: $cmd" \
@@ -293,11 +305,6 @@ fi
 set -e
 if [[ $rc -eq 255 ]]; then
   echo "win_run.sh: could not reach $WIN; run the command on the Mac." >&2
-  [[ -z "$log" ]] || echo "log: $log"
   exit 3
-fi
-if [[ -n "$log" ]]; then
-  end_log "$log"
-  prune_logs "$logs" "$keep_logs"
 fi
 exit $rc
