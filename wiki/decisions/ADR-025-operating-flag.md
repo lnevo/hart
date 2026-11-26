@@ -32,7 +32,7 @@ One flag file on the Mac, `~/.hart_operating`, says the layout is in use. `tools
 ## Consequences
 
 - The flag is a file on the Mac, where the agents run. The hook guards agent commands; since 2026-11-23 the layout deploys also check it themselves (amendment below). A person or a process on the Pi or Windows is not stopped by it.
-- Windows is guarded as well as the Pi because it runs the LCOS bridge.
+- Windows is guarded as well as the Pi because it receives the layout deploys and runs LCOS MASTER (COM7). The LCOS bridge moved to the Pi on 2026-11-26, so it is no longer a reason.
 - A deploy needed during a session waits until the flag is cleared.
 - Tests: `tools/hosts/tests/test_operating.py` and `tools/audit/tests/test_guards.py`. `HART_OPERATING_FLAG` and `HART_GUARD_OPERATING` exist for them.
 - The day-to-day commands are in the [`operating-flag` skill](../../.claude/skills/operating-flag/SKILL.md).

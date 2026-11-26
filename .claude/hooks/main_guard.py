@@ -17,7 +17,7 @@ speed-matching run is on the layout) it blocks what reaches the layout hosts (ho
 to the Pi or Windows, quitting or starting PanelPro on the Pi, an STS update there, an ssh command to
 either host that touches JMRI, PanelPro, CATS, java, STS's docker, a shell, a kill or a reboot, an ssh
 shell on either host with no remote command, and, under the owner's flag, a new speed-matching job.
-Windows stays guarded because it runs the LCOS bridge; the Mac stays open. Every command the line runs
+Windows stays guarded because it takes the layout deploys and runs LCOS MASTER; the Mac stays open. Every command the line runs
 counts, as shell_parse.py finds them: behind `$(...)`, backticks, xargs, find -exec, a shell's -c text
 and wrappers such as env, timeout or sudo. An ssh target the text does not show (xargs' `{}`, a
 variable) counts as a layout host. A line shell_parse.py cannot split that names a layout host is
@@ -69,7 +69,7 @@ HOST_TARGETS = {"deploy-layout", "deploy-all"}    # make targets that deploy to 
 REMOTE_TOUCH = re.compile(r"PanelPro|JMRI|\bcats\b|\bjava\b|\bdocker\b|\breboot\b|\bshutdown\b|\bsystemctl\b|"
                           r"\bkill(all)?\b|\bpkill\b|jmri_cmd|speedrun|\btaskkill\b|Stop-Process|Restart-Computer|"
                           r"Stop-Computer|serial_to_mqtt|\bpython|(?<![.\w-])(ba|z|da|k)?sh\b|\bpowershell|"
-                          r"\bpwsh\b|\bcmd(\.exe)?\s+/[ck]\b", re.I)     # Windows runs the LCOS bridge
+                          r"\bpwsh\b|\bcmd(\.exe)?\s+/[ck]\b", re.I)     # Windows runs LCOS MASTER and takes the deploys
 UNSHOWN = re.compile(r"[$`{}*?\[]")                # an ssh target the text does not spell out
 HOST_KEYS = ("HART_PI_SSH", "HART_WIN_SSH", "HART_PI_WEB_HOST", "HART_MQTT_BROKER")
 ENV_FILES = [os.path.join(HERE, "..", "..", "tools", "env", n) for n in ("defaults.env", "hart.env")]

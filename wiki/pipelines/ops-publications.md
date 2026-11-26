@@ -30,4 +30,6 @@ make publications
 
 This runs `tools/ops/rebuild_publications.sh`, which creates the `ops/hart-ops/.venv` if needed and runs each `rebuild_*.py` plus `update_tt23_station_map.py`.
 
+YM-01's blocking list follows the job's colour order, then the job's `legend_extra` rows (colours with no id, such as NONE); the site shows both (owner, 2026-11-25 and 2026-11-26).
+
 Standards: `docs/ops/HART_Railroad_Publication_Standards_v1.0.docx`. Index: `docs/ops/README.md`.

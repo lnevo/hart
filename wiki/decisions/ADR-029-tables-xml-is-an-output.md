@@ -28,6 +28,7 @@ Device facts are kept three times: `public_name_map.csv`, `device_map_staging.cs
 - What PanelPro owns and the build does not generate (memories, the "Hide windows on start" LogixNG, clock and turnout-manager settings, `blockrouting`) is kept in one JMRI-format template file.
 - Discovered Signal Mast Logic is its own file, written only by the discovery wrapper.
 - What JMRI writes on every Store (the header comment, `jmriversion`, `filehistory`, the clock time, memory values) is a fixed envelope in the build and is dropped on a pull. The old file history is lost once.
+- `jmriversion` is the one exception: a Store from a newer JMRI is kept whatever the base and the repo say, so the next tables carry the newer version (owner, 2026-11-20). A Store from the same or an older JMRI gives no item.
 - The saved block paths on the staging blocks are dropped once a sandbox PanelPro load shows JMRI rebuilds them from the panel.
 - The deploy-time rewrite of `tables.xml` (`disable_digicon_sml_in_tables.py`) moves into the generator, so the hosts get exactly the committed bytes.
 
