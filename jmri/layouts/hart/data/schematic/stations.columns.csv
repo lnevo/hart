@@ -1,0 +1,9 @@
+column,description,type,required,key,refs,values
+station_id,"The station's key (ADR-039 lane L4c): st: and its name in lower-case words joined by - (st:west-yard). Given once and kept when the name changes. A cp cell of the device pair and of masts.csv names a station by it (hartlib.places).",str,yes,yes,,
+level,"1 staging, 2 main, 3 upper.",enum,yes,,,1;2;3
+station,"The station's name as the drawings and the CATS desks show it (ADR-005). A desk area takes the name of its first station. Unique in the file (hartlib.railroad_facts.read_stations).",str,yes,,,
+switches,"The station's switch numbers, separated by a comma.",str,yes,,,
+tracks,"Blank: its tracks are counted from its switches; none: it counts no track; else the block ids of its tracks, separated by a semicolon (block:3B-end;block:3C-end), named by the name store.",str,,,,
+desk_code,"The code of its desk area (capital letters): the stations that share a code form one desk area.",str,yes,,,
+desk_plate,"yes puts a plate with its name on the CATS desks.",enum,,,,yes
+notes,Text for people.,str,,,,

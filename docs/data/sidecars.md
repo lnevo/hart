@@ -40,7 +40,10 @@ It finds sidecars with `git ls-files` (tracked, or untracked and not ignored) an
 
 ## The sidecars today
 
-- `jmri/layouts/hart/data/devices.columns.csv`: the device pair `devices_generated.csv` and `devices_field.csv`. Keys: `level` and `id` on rows with a level, `layer` and `user_name` on a Store's level-less rows. Its `cp`, `blocks`, `protects`, `part_of`, `facing` and `switch` must name stations, control points, devices and switches that exist.
+- `jmri/layouts/hart/data/devices.columns.csv`: the device pair `devices_generated.csv` and `devices_field.csv`. Keys: `level` and `id` on rows with a level, `layer` and `user_name` on a Store's level-less rows. Its `cp`, `blocks`, `protects`, `part_of`, `facing` and `switch` must name stations, control points, devices and switches that exist. Each `cp` item is a `station_id` or a `cp_id`; `hartlib.places` gives readers the names and writes the ids back, and does the same for the `cp` column of `schematic/masts.csv`.
+- `jmri/layouts/hart/data/schematic/stations.columns.csv`: `stations.csv`, the station master. Key: `station_id` (`st:barn`, `st:west-yard`).
+- `jmri/layouts/hart/data/schematic/interlockings.columns.csv`: `interlockings.csv`, the control point master. Key: `cp_id` (`cp:107`, `cp:east-end`). Brick, Barn, East End and Princess have a row in both files: the station names the staging desk area and its CATS plate, the control point is the signal rule's group of switches. A staging `cp` cell names the station.
+- `cats/data/occupancy_bindings.columns.csv`: `occupancy_bindings.csv`. Key: `block_id`, which must be an `id` of `block_lengths.csv`; `hartlib.occupancy_bindings` gives the CATS builders and the audits each block's name. Each sensor must be a device of the master.
 - `jmri/layouts/hart/data/switches.columns.csv`: `switches.csv`. Keys: `half` on main and upper, `os_block` on staging. Staging's legs and ids must name devices that exist, and an `owner` hand must be given.
 - `ops/hart-ops/data/industries.columns.csv`: `industries.csv`, the industry master. Key: `industry_id`.
 - `ops/hart-ops/data/spot_assignments.columns.csv`: `spot_assignments.csv`, the spot master. Key: `industry_id` and `Spot #`. `industry_id` must be in `industries.csv`.

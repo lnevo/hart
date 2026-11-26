@@ -7,11 +7,11 @@ id; ADR-033 step 4) and holding its layer and FIELD_COLUMNS only (the user name 
 the level-less devices a Store split takes in (full rows, keyed by layer and user name). load() and index() merge them
 (merge: a non-empty field cell wins; a field row whose ID no generated row has is an error), so readers see one
 master. A builder reads the owner's cells from field_index(), never back from its own last output; the one
-read-back it makes is its name memory (allocated_names). Before the split the master was one file, devices.csv. Staging, main and upper are one
-structure; a level differs only in column values. devices.columns.csv describes every column (column, description),
-and a test holds the two files to each other both ways. Every reader gets its rows from the master (load,
-device_map_lines below). The two device maps and the public name map that once sat beside it are gone (R9e,
-ADR-029), and so are the six pnm_ columns that kept the name map's copy: their facts are in the master's own columns.
+read-back it makes is its name memory (allocated_names). Before the split the master was one file, devices.csv.
+Staging, main and upper are one structure; a level differs only in column values. devices.columns.csv describes every
+column, and a test holds the two files to each other both ways. Every reader gets its rows from the master (load,
+device_map_lines below); a cp cell holds place ids, which readers see as names (hartlib.places). The two device maps,
+the public name map and its six pnm_ columns are gone (R9e, ADR-029): their facts are in the master's own columns.
 
 The master's values.
 - level 1 staging, 2 main, 3 upper. layer: turnout, fb, block, occupancy, mast, head, sensor.
@@ -51,7 +51,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Callable, Iterable, Mapping
 
-from . import level_devices, names, paths
+from . import level_devices, names, paths, places
 from .railroad_facts import DEVICE_COLUMNS, DEVICE_LIST, NAME_LAYERS, FactsError
 
 # The one place the master's file names and paths are written (T6a): every other module asks for them here, and
@@ -193,7 +193,7 @@ def _read(name: str, data: bytes) -> tuple[Mapping[str, str], ...]:
     for line, fields in enumerate(reader, 2):
         if len(fields) != len(COLUMNS):
             raise DevicesError(f"{name} line {line}: {len(fields)} fields, expected {len(COLUMNS)}")
-        rows.append(MappingProxyType(dict(zip(COLUMNS, fields))))
+        rows.append(MappingProxyType(places.with_names(dict(zip(COLUMNS, fields)), f"{name} line {line}")))
     return tuple(rows)
 
 
@@ -1033,7 +1033,7 @@ def _text(columns: Iterable[str], rows: Iterable[Mapping[str, str]]) -> str:
     buf = io.StringIO()
     w = csv.DictWriter(buf, fieldnames=list(columns), lineterminator="\n")
     w.writeheader()
-    w.writerows(rows)
+    w.writerows(places.with_ids(rows))          # cp cells as place ids (hartlib.places)
     return buf.getvalue()
 
 

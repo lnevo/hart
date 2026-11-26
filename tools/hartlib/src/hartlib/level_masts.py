@@ -5,7 +5,8 @@ The device master: its reader (read) and the naming rules the file keeps.
 
 Columns (FIELDS):
 - level: 1 staging, 2 main, 3 upper.
-- mast, cp, switch, facing, protects, dir, leg: the mast, the control point of its switch, the switch it stands at (a
+- mast, cp, switch, facing, protects, dir, leg: the mast, the control point of its switch (its place id in the file,
+  st:barn or cp:107, which read gives as the name: hartlib.places), the switch it stands at (a
   turnout mast; none for an anchor mast, an intermediate or a virtual mast), the block it faces and the block it
   protects (the OS block of its switch unless the row names one), east or west, and the leg (LEGS) that tells apart
   two masts on one facing and protected block pair (none needs one today).
@@ -35,7 +36,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from . import paths
+from . import paths, places
 from .level_devices import HEAD, HEAD_PREFIX  # noqa: F401  the main and upper head names, re-exported here
 
 PATH = paths.LAYOUT_DATA / "schematic" / "masts.csv"
@@ -182,6 +183,7 @@ def read(path: Path = PATH, *, levels: tuple[int, ...] | None = None) -> list[di
         if r["mast"] in first:
             raise railroad.FactsError(f"{where}: mast {r['mast']} is on line {first[r['mast']]} already")
         first[r["mast"]] = line
+        places.with_names(r, where)            # the cp cell holds place ids (hartlib.places)
         r["level"], r["line"] = int(r["level"]), line
         r["heads"] = [tuple(h.split("=", 1)) for h in r["head_system_names"].split(LIST) if h]
         if levels is None or r["level"] in levels:

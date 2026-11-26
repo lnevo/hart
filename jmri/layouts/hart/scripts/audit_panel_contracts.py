@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import csv
 import importlib
 import os
 import re
@@ -17,7 +16,8 @@ from typing import Iterable
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import devices, level_devices, level_masts, parked, paths, railroad_facts, tables, tables_build  # noqa: E402
+from hartlib import (devices, level_devices, level_masts, occupancy_bindings, parked, paths,  # noqa: E402
+                     railroad_facts, tables, tables_build)
 
 REPO_ROOT = paths.REPO_ROOT
 DEFAULT_SOURCES = (("deployment", paths.TABLES_XML),)
@@ -25,7 +25,7 @@ MASTS = level_masts.PATH      # masts.csv, every level's masts (build_masts.py)
 # the staging level (its field masts), and the main and upper levels (on virtual heads)
 STAGING_LEVELS = (int(railroad_facts.STAGING_LEVEL),)
 ADDED_LEVELS = tuple(lv for lv in level_masts.LEVELS if lv not in STAGING_LEVELS)
-OCCUPANCY_BINDINGS = paths.CATS_DIR / "data" / "occupancy_bindings.csv"
+OCCUPANCY_BINDINGS = occupancy_bindings.PATH
 TRAININFO = paths.LAYOUT_DIR / "dispatcher" / "traininfo"
 DISPATCHER_START_SCRIPT = "program:jython/DispatcherSystem/Startup.py"
 PANEL_NAMES = {"HART", "HART Railroad"}
@@ -73,14 +73,9 @@ def sensor_key(block_name: str) -> str:
 
 
 def occupancy_binding_map() -> dict[str, str]:
-    out: dict[str, str] = {}
-    with OCCUPANCY_BINDINGS.open(newline="", encoding="utf-8") as fh:
-        for row in csv.DictReader(fh):
-            name = (row.get("block_user_name") or "").strip()
-            sensor = (row.get("occupancy_sensor_user_name") or "").strip()
-            if name and sensor:
-                out[name] = sensor
-    return out
+    """{block name: occupancy sensor} of occupancy_bindings.csv (hartlib.occupancy_bindings names each block_id)."""
+    return {r["block_user_name"]: r["occupancy_sensor_user_name"]
+            for r in occupancy_bindings.rows(OCCUPANCY_BINDINGS) if r["occupancy_sensor_user_name"]}
 
 
 @dataclass
