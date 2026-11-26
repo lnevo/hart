@@ -68,7 +68,7 @@ class Scratch(unittest.TestCase):
         path.write_text(text, encoding="utf-8")
         return path
 
-    def env(self, **kw: str) -> mock._patch[dict[str, str]]:
+    def env(self, **kw: str) -> contextlib.AbstractContextManager[object]:
         return mock.patch.dict(os.environ, {f"FAKE_{k.upper()}": v for k, v in kw.items()})
 
 
@@ -208,10 +208,20 @@ class Main(Scratch):
             rc = cm.main(list(argv))
         return rc, out.getvalue()
 
-    def test_pass_and_fall(self) -> None:
-        rc, out = self.main({"a.py": 1}, base={"a.py": 2})
+    def test_pass_at_the_baseline(self) -> None:
+        rc, out = self.main({"a.py": 2}, base={"a.py": 2})
         self.assertEqual(rc, 0)
-        self.assertIn("1 file(s) fell", out)
+        self.assertIn("every file at its baseline count", out)
+
+    def test_a_fall_fails_until_update_locks_it_in(self) -> None:
+        rc, out = self.main({"a.py": 1}, base={"a.py": 2, "gone.py": 1})
+        self.assertEqual(rc, 1)
+        self.assertIn("fell: a.py: 2 -> 1", out)
+        self.assertIn("fell: gone.py: 1 -> 0", out)
+        rc, _ = self.main({"a.py": 1}, "--update")
+        self.assertEqual(rc, 0)
+        rc, _ = self.main({"a.py": 1})
+        self.assertEqual(rc, 0)
 
     def test_rise_fails(self) -> None:
         rc, out = self.main({"a.py": 3}, base={"a.py": 2})

@@ -93,7 +93,8 @@ class Keys:
         return {r["user_name"]: r["part_of"] for r in self.rows.values() if r["role"] == "part"}
 
 
-def read(levels: Iterable[str], source: devices.Files | Path | str | None = None, rows: Iterable[Mapping[str, str]] | None = None) -> Keys:
+def read(levels: Iterable[str], source: devices.Files | Path | str | None = None,
+         rows: Iterable[Mapping[str, str]] | None = None) -> Keys:
     """The Keys of the turnout and block rows of `levels` ("1", "2", "3") of the merged master (`source`: a master's
     path or Files, as devices.load takes it), or of `rows` (master rows a builder is writing). DrawingKeyError on the
     problems the module names; DevicesError when the master cannot be read."""

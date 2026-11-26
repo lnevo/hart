@@ -213,9 +213,8 @@ def strip_envelope(root: ET.Element) -> None:
             m.attrib.pop("value", None)
 
 
-# What a PanelPro Store rewrites in a Layout Editor panel without changing it (the owner's
-# decision: compare past these rewrites, never make the generated panel Store-shaped). normalise_panel applies them to
-# both sides of a comparison:
+# What a PanelPro Store rewrites in a Layout Editor panel without changing it (the owner's decision: compare past
+# these rewrites, never make the generated panel Store-shaped). normalise_panel applies them to both sides:
 # - PANEL_WINDOW_ATTRS: the window's place and state on the host that stored it (where it stood on that screen, its
 #   size there, the scroll bars), which differ on every host and every Store;
 # - attribute order: JMRI writes a panel's attributes in its own order (name first);
@@ -238,10 +237,7 @@ def _float32(text: str) -> str:
     return repr(struct.unpack("f", struct.pack("f", float(text)))[0])
 
 
-def _f32(text: str | None) -> float:
-    """text as a Java float (a 32-bit float, worked as a double); TypeError when there is no text."""
-    if text is None:
-        raise TypeError("no coordinate")
+def _f32(text: str) -> float:
     return float(struct.unpack("f", struct.pack("f", float(text)))[0])
 
 
@@ -256,9 +252,9 @@ def _derived_points(turnout: ET.Element) -> None:
     if turnout.get("ver", "1") != "1":
         return
     try:
-        cx, cy = _f32(turnout.get("xcen")), _f32(turnout.get("ycen"))
-        bx, by = _f32(turnout.get("xb")), _f32(turnout.get("yb"))
-        dx, dy = _f32(turnout.get("xc")), _f32(turnout.get("yc"))
+        cx, cy = _f32(turnout.get("xcen", "")), _f32(turnout.get("ycen", ""))     # "": ValueError, left as it is
+        bx, by = _f32(turnout.get("xb", "")), _f32(turnout.get("yb", ""))
+        dx, dy = _f32(turnout.get("xc", "")), _f32(turnout.get("yc", ""))
     except (TypeError, ValueError):
         return
     disp_b, disp_a = (bx - cx, by - cy), (dx - cx, dy - cy)
@@ -367,7 +363,8 @@ _HEADS_OF_MAST = re.compile(r"\(([^()]+)\)")
 
 
 def with_direction(comment: str, direction: str) -> str:
-    """A mast's comment (its place) with the way it faces ("East" or "West", from the dir column) after it: "Brick | Switch 1 | West". A main or upper mast's planned device follows (device_map_rows.bean_cells)."""
+    """A mast's comment (its place) with the way it faces ("East" or "West", from the dir column) after it: "Brick |
+    Switch 1 | West". A main or upper mast's planned device follows (device_map_rows.bean_cells)."""
     word = DIRECTION_WORD.get(direction)
     if not word:
         return comment
@@ -553,11 +550,10 @@ def kept_beans(rows: Iterable[Mapping[str, str]]) -> dict[tuple, list[ET.Element
 
 # ---------------------------------------------------------------- a bean's shape, by its row's columns
 #
-# master_beans makes every level's beans from their rows' columns alone: the bean's name (bean_name), its comment (row_comment), a
-# turnout's feedback (turnout_feedback), whether an LCC alias is a bean of its own (alias_is_turnout), and the state a
-# virtual bean is set to when the tables load (start_actions). Which beans a row gives is its layer's (LAYER_BEANS);
-# on the main and upper rows they give the row-to-bean map. The startup LogixNG around the
-# actions is start_logixng's.
+# master_beans makes every level's beans from their rows' columns alone: the bean's name (bean_name), its comment
+# (row_comment), a turnout's feedback (turnout_feedback), whether an LCC alias is a bean of its own
+# (alias_is_turnout), and the state a virtual bean is set to when the tables load (start_actions). Which beans a row
+# gives is its layer's (LAYER_BEANS). The startup LogixNG around the actions is start_logixng's.
 
 LAYER_BEANS = {"turnout": "one turnout (an LCC alias none when it names its turnout's bean)",
                "fb": "one sensor", "occupancy": "one sensor", "sensor": "one sensor", "head": "one signal head",
@@ -586,8 +582,7 @@ def level_turnouts(rows: Iterable[Mapping[str, str]]) -> dict[str, str]:
 
 
 def row_comment(r: Mapping[str, str], places: Mapping[str, str] | None = None) -> str:
-    """A bean's comment: its row's bean_comment where set (the main and upper rows), else the
-    one its wiring columns give (bean_comment)."""
+    """A bean's comment: its row's bean_comment (the main and upper rows' cell), else its wiring's (bean_comment)."""
     return r["bean_comment"] or bean_comment(r, places)
 
 
@@ -616,9 +611,8 @@ def turnout_feedback(r: Mapping[str, str], by_id: Mapping[str, Mapping[str, str]
     if lost:
         raise TablesBuildError(f"the device master: {at}: no feedback bean {', '.join(lost)}; a field turnout has "
                                "two, a virtual one two or none")
-    first, second = fb
-    assert first is not None and second is not None     # neither is lost
-    return {"feedback": "TWOSENSOR", "sensor1": first["user_name"], "sensor2": second["user_name"],
+    sensor1, sensor2 = (f["user_name"] for f in fb if f is not None)        # neither is lost
+    return {"feedback": "TWOSENSOR", "sensor1": sensor1, "sensor2": sensor2,
             "inverted": "false", "automate": "Off"}
 
 

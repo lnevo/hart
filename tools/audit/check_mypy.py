@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """mypy over the repo's CPython code: hartlib with no errors, every other file held to a per-file baseline.
 
-    python3 tools/audit/check_mypy.py            check; exit 1 when hartlib has errors or a file's count rose
+    python3 tools/audit/check_mypy.py            check; exit 1 when hartlib has errors or a file's count moved
     python3 tools/audit/check_mypy.py --update   rewrite the baseline with the current counts (refused on a rise)
     python3 tools/audit/check_mypy.py --list     print the files the check runs mypy on
 
@@ -286,8 +286,12 @@ def main(argv: list[str] | None = None) -> int:
         write_baseline(baseline, now)
         print(f"check_mypy: wrote {BASELINE} ({sum(1 for p in now if not p.startswith(STRICT_PREFIX))} files)")
         return 0
-    tail = f"; {len(verdict.fell)} file(s) fell below the baseline: run --update" if verdict.fell else ""
-    print(f"check_mypy: hartlib clean, no file above the baseline{tail}")
+    if verdict.fell:
+        # a lower count is locked in by --update, so the file cannot climb back up to its old count unseen
+        print("\n".join(f"  fell: {p}: {b} -> {n}" for p, (b, n) in sorted(verdict.fell.items())))
+        print(f"check_mypy: {len(verdict.fell)} file(s) below {BASELINE}: run --update to lock the lower counts in")
+        return 1
+    print("check_mypy: hartlib clean, every file at its baseline count")
     return 0
 
 

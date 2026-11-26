@@ -1,6 +1,7 @@
 """The schematic's layer files: one file per kind, a section per sheet.
 
-jmri/layouts/hart/data/schematic/ holds plan_overrides.json, preferences.json and signals.json. Each is a JSON object with "_sections": true, a "_note", and one section per sheet, keyed by the sheet's
+jmri/layouts/hart/data/schematic/ holds plan_overrides.json, preferences.json and signals.json. Each is a JSON object
+with "_sections": true, a "_note", and one section per sheet, keyed by the sheet's
 input name (`staging`, `main_upper`: publish_draft.INPUTS).
 The schematic-maps plugin (0.1.49 and later) reads the same files by itself; every hart script that reads or writes a
 section goes through this module, so the JSON formatting and the checks are in one place.

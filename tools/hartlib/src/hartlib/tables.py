@@ -311,7 +311,8 @@ REFERENCE_TEXTS = frozenset({"sourceSignalMast", "destinationSignalMast", "block
 REFERENCE_ATTRS = frozenset({"source", "destination", "block", "systemName"})
 
 
-def names_any(el: ET.Element, names: Iterable[str] = (), match: Callable[[str], object] | None = None, *, references_only: bool = True,
+def names_any(el: ET.Element, names: Iterable[str] = (), match: Callable[[str], object] | None = None, *,
+              references_only: bool = True,
               deep: bool = True) -> bool:
     """Whether ``el`` (and, with ``deep``, anything in it) names one of ``names`` or a value ``match`` accepts.
     ``references_only``: only where JMRI stores a bean reference (REFERENCE_TEXTS, REFERENCE_ATTRS), so a comment or

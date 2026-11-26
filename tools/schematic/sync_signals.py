@@ -158,7 +158,12 @@ def main(argv=None) -> int:
               f"({counts['masts kept']} masts)")
         return 0
     tables_build.refuse_generated(args.tables, Path(__file__).name)
-    if tables.jmri_running():
+    try:
+        running = tables.jmri_running()
+    except tables.JmriCheckError as exc:
+        print(f"{exc}; {paths.rel(args.tables)} not written", file=sys.stderr)
+        return 2
+    if running:
         print("JMRI is running: quit PanelPro and CATS first (a Store would undo this)", file=sys.stderr)
         return 2
     t.save()

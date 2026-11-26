@@ -193,7 +193,8 @@ def _split_one(root: ET.Element, feature: str) -> ET.Element:
                 if (sec.text or "").strip() in section_names:
                     ET.SubElement(bindings, "binding", {"element": "signalmastlogic", "ident": sml.get("source", ""),
                                                         "destination": dest.get("destination", ""),
-                                                        "child": "associatedSection", "value": (sec.text or "").strip()})
+                                                        "child": "associatedSection",
+                                                        "value": (sec.text or "").strip()})
                     remove_child(dest, sec)
     for ng in root.iter("LogixNG"):            # a LogixNG's list of its ConditionalNGs
         lst = ng.find("ConditionalNGs")
@@ -216,7 +217,8 @@ def _split_one(root: ET.Element, feature: str) -> ET.Element:
             for tag in SLOT_TAGS:
                 for slot in el.findall(tag):
                     if (slot.text or "").strip() in names:
-                        ET.SubElement(bindings, "binding", _where(panel, el, child=tag, value=(slot.text or "").strip()))
+                        ET.SubElement(bindings, "binding",
+                                      _where(panel, el, child=tag, value=(slot.text or "").strip()))
                         remove_child(el, slot)
             for attr in SLOT_ATTRS:
                 if el.get(attr) in names:

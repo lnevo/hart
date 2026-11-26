@@ -176,7 +176,8 @@ class Railroad:
 # ---------------------------------------------------------------- the check command
 
 # Problems already reported to the owner, each by its exact message (str(Problem)) -> why it is left. Empty: the
-# owner decided the throat blocks and the BS unused aliases. Add an entry only for a problem the owner has been told about and chose to leave.
+# owner decided the throat blocks and the BS unused aliases. Add an entry only for a problem the owner has been told
+# about and chose to leave.
 KNOWN: dict[str, str] = {}
 
 

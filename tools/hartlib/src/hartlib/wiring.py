@@ -1,4 +1,5 @@
-"""The physical wiring source: jmri/layouts/hart/data/wiring.csv, one row per device on an LCOS node: the repo keeps the wiring the inventory workbook holds, edited here.
+"""The physical wiring source: jmri/layouts/hart/data/wiring.csv, one row per device on an LCOS node: the repo keeps
+the wiring the inventory workbook holds, edited here.
 
 Staging's rows are what JMRI holds, as wired (status `wired`), and the ports assigned to devices not connected yet
 (status `planned`: a button or relay on its port with nothing connected, a reserved calibration relay port). Main
@@ -25,7 +26,8 @@ Columns (COLUMNS):
   head lands; a detector has neither (its input is the index). A head is on one node, but its three pins may span
   two OU boards: a port that is on another board than `board` names it, "OU<n>-<pin>"
   (board OU2, ports "7,OU3-8,OU3-7"). Every other device is on one board.
-- status: wired or planned. notes: text for people. (Power districts are not mapped yet: the inventory's were old names, not real.)
+- status: wired or planned. notes: text for people. (Power districts are not mapped yet: the inventory's were
+  old names, not real.)
 
 The JMRI address follows from node and index (address), and the wiring text from all four (wiring_text): the device master
 holds both only as written from here.
@@ -309,7 +311,8 @@ def _numbers(r: Mapping[str, str], kind: Kind, at: str) -> _Numbers:
 
 
 def _check_naming(r: Mapping[str, str], kind: Kind, keyed: bool, at: str) -> None:
-    """A local device has a label and nothing else; any other is named by its id, which starts with its kind's prefix."""
+    """A local device has a label and nothing else; any other is named by its id, which starts with its kind's
+    prefix."""
     ident = r["id"]
     if kind in LOCAL:
         if ident or keyed or not r["device"]:
@@ -485,7 +488,8 @@ def field_heads(files: devices_mod.Files | None = None) -> list[Wire]:
                        "Node: <n> Signal: <i> | OU: <b> Ports: <p,p,p>")
             continue
         pins = [(f"OU{b}", int(p)) for b, ps in _HEAD_PORTS.findall(m.group(3)) for p in ps.split(",")]
-        w = Wire(0, parse_level(r["level"], f"head {r['user_name']}"), "head", r["user_name"], "", "", "", "", int(m.group(1)), int(m.group(2)),
+        level = parse_level(r["level"], f"head {r['user_name']}")
+        w = Wire(0, level, "head", r["user_name"], "", "", "", "", int(m.group(1)), int(m.group(2)),
                  pins[0][0], tuple(p for _b, p in pins), "wired", r["notes"], tuple(b for b, _p in pins), r["id"],
                  masts.get((r["level"], r["id"].rsplit(":", 1)[0]), ""))
         if w.address != r["jmri_name"]:

@@ -212,9 +212,9 @@ def read_staging_devices(path: Path, rows: list[tuple[int, dict[str, str]]] | No
 
 SWITCH_COLUMNS = ("level", "switch", "half", "os_id", "closed_id", "thrown_id",
                   "hand", "hand_source", "area", "le_ident", "cats_inverted", "ctc_is", "ctc_signals", "notes")
-# A staging row's OS block and legs are given by their device IDs only (os_id, closed_id, thrown_id). SwitchRow's os_block, closed_leg and thrown_leg are the name store's names of those IDs, which
-# read_switch_rows looks up (hartlib.devices.user_names), so a rename in devices_field.csv reaches every reader with no
-# switches.csv edit. The file holds no copy of a name: a LABEL_COLUMNS column in its header stops the read.
+# A staging row's OS block and legs are given by their device IDs only (os_id, closed_id, thrown_id). SwitchRow's
+# os_block, closed_leg and thrown_leg are the name store's names of those IDs (devices.user_names), so a rename in
+# devices_field.csv reaches every reader; a LABEL_COLUMNS column (a copy of a name) in the header stops the read.
 LEG_IDS = {"os_block": "os_id", "closed_leg": "closed_id", "thrown_leg": "thrown_id"}
 LABEL_COLUMNS = tuple(LEG_IDS)
 HAND_SOURCES = ("plan", "owner")        # plan: build_hands.py writes it from the plan graph; owner: hand-kept

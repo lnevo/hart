@@ -9,8 +9,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from . import level_devices
-from .railroad_facts import (LEVEL_NUMBERS, STAGING_LEVEL, DeviceRow, StagingDevice, UNIQUE_HARDWARE, check_virtual_names, device_list, master_at, natural,
-                             switch_groups, switch_number)
+from .railroad_facts import (LEVEL_NUMBERS, STAGING_LEVEL, DeviceRow, StagingDevice, UNIQUE_HARDWARE,
+                             check_virtual_names, device_list, master_at, natural, switch_groups, switch_number)
 
 if TYPE_CHECKING:
     from .railroad import Railroad
@@ -32,7 +32,8 @@ def _obj_at(path: Path, r: StagingDevice | DeviceRow) -> str:
     return master_at(path, r.user_name, getattr(r, "level", STAGING_LEVEL), r.layer)
 
 
-def device_row_problems(lines: Iterable[tuple[int, Mapping[str, str]]], helix_blocks: set[str], where: str = "the device master",
+def device_row_problems(lines: Iterable[tuple[int, Mapping[str, str]]], helix_blocks: set[str],
+                        where: str = "the device master",
                         helix_file: str = "plan_overrides.json") -> list[str]:
     """The rules between the rows of the device master, one for every level, as problems naming the rows. `lines` are
     (line, master row) of every level (outside devices.OUT_OF_MAPS); `helix_blocks` the helix tracks' blocks.

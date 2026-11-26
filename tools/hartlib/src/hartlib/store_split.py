@@ -49,12 +49,11 @@ import re
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from collections.abc import Iterable, Mapping
-from typing import overload
 
 from . import devices, level_devices, parked, tables
 from . import tables_build as tb
 from .store_keys import (BY_CONTENT, BY_ID, AttrsKey, BeanKey, ByContent, ById, ItemKey, LogicKey,  # noqa: F401
-                         PanelKey, SecKey, SectionKey, SettingKey)
+                         PanelKey, SecKey, SectionKey, SettingKey, canon)
 from .errors import HartlibError
 
 KEPT, CLASH, DEVICE, DROPPED = "kept", "clash", "device", "dropped"
@@ -89,22 +88,6 @@ class SplitError(HartlibError, ValueError):
 
 
 # ---------------------------------------------------------------- items
-
-
-@overload
-def canon(el: ET.Element) -> str: ...
-@overload
-def canon(el: None) -> None: ...
-def canon(el: ET.Element | None) -> str | None:
-    """An element as text with its layout whitespace taken out, for comparing; None stays None."""
-    if el is None:
-        return None
-    c = copy.deepcopy(el)
-    for x in c.iter():
-        x.tail = None
-        if x.text is not None and not x.text.strip():
-            x.text = None
-    return ET.tostring(c, encoding="unicode")
 
 
 def normalised(data: bytes, what: str) -> ET.Element:

@@ -22,12 +22,13 @@ class Levels(unittest.TestCase):
         self.assertEqual(levels.parse_level(" 1 ", "x"), 1)
 
     def test_one_message_for_each_range(self) -> None:
-        with self.assertRaisesRegex(errors.FactsError, r"^f line 4: level is 1, 2 or 3 \(staging, main, upper\), not 4$"):
+        with self.assertRaisesRegex(errors.FactsError,
+                                    r"^f line 4: level is 1, 2 or 3 \(staging, main, upper\), not 4$"):
             levels.parse_level("4", "f line 4")
         with self.assertRaisesRegex(errors.FactsError, r"^w: level is 2 or 3 \(main, upper\), not 1$"):
             levels.parse_level("1", "w", levels.MAIN_UPPER)
         with self.assertRaisesRegex(errors.FactsError, r"^w: level is 1 \(staging\), not 2$"):
-            levels.parse_level("2", "w", (1,))
+            levels.parse_level("2", "w", (levels.STAGING,))
         with self.assertRaisesRegex(errors.FactsError, r"^w: level is a whole number, not 'two'$"):
             levels.parse_level("two", "w")
 
@@ -62,7 +63,7 @@ class Errors(unittest.TestCase):
 
 class JmriProcess(unittest.TestCase):
     def state(self, rc: int | None = None, exc: Exception | None = None) -> tables.JmriState:
-        done = subprocess.CompletedProcess([], rc if rc is not None else 0)
+        done: subprocess.CompletedProcess[bytes] = subprocess.CompletedProcess([], rc if rc is not None else 0)
         env = {k: v for k, v in os.environ.items() if k != "HART_GUARD_JMRI_RUNNING"}
         with mock.patch.dict(os.environ, env, clear=True), \
                 mock.patch.object(tables.subprocess, "run", side_effect=exc, return_value=done):

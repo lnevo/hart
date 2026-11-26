@@ -48,7 +48,8 @@ CLEAR_PREFIX = re.compile(r"IQ(?:C|DA)?\$HART:C3:")
 START_ENUM = {"inactive": "Inactive", "closed": "Closed", "thrown": "Thrown"}
 
 # The words of the main and upper beans' comments, which build_device_map.py writes into each row's bean_comment
-# (device_map_rows.bean_cells) and hartlib.tables_build.master_beans puts on the bean. Staging's form: the parts joined by " | ", the place first; a bean no field device drives says
+# (device_map_rows.bean_cells) and hartlib.tables_build.master_beans puts on the bean. Staging's form: the parts joined
+# by " | ", the place first; a bean no field device drives says
 # VIRTUAL_NOTE, as a staging head on an internal name does, then the planned physical device, a draft.
 VIRTUAL_NOTE = "internal, not wired"
 UNPLACED_NOTE = "not on a node yet"     # a head or mast with no board room on the draft plant (ADR-024, ADR-028)

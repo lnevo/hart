@@ -298,7 +298,8 @@ def _pieces_of_runs(owner: Mapping[tuple[str, str], str], levels: set[str]) -> d
 HELIX_END = "-helix"
 
 
-def piece_names(section: Mapping[str, Any], pieces: Iterable[str], owner: Mapping[tuple[str, str], str] | None = None, data: Path = SCHEMATIC) -> dict[str, str]:
+def piece_names(section: Mapping[str, Any], pieces: Iterable[str], owner: Mapping[tuple[str, str], str] | None = None,
+                data: Path = SCHEMATIC) -> dict[str, str]:
     """{piece: name without "Track "} of each drawn piece of `pieces` (staging_device_map.band_refs' piece
     references: "17C-29C", "37C-39C #2", the ID parts of a block ID) that the store names, for a hand plan_overrides
     section (its `helix` map holding block IDs): a run the owner names whole gives each of its pieces that name, a

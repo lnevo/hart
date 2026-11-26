@@ -194,7 +194,7 @@ def _check_parts_and_order(seen: _Seen, bad: list[str]) -> None:
     for (a, na), (b, nb) in zip(seen.ranks, seen.ranks[1:]):
         if b < a:
             bad.append(f"{nb}: out of order (level, layer, then a Store's level-less rows after every level, each "
-                       f"writer's rows in devices.WRITERS order); it follows {na}")
+                       f"writer's rows in WRITERS order); it follows {na}")
             break
 
 

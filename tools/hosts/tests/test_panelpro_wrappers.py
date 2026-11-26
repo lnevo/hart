@@ -469,5 +469,25 @@ class PollInterval(unittest.TestCase):
                 self.assertIn("is not a number above 0", done.stderr)
 
 
+class UnknownJmriState(unittest.TestCase):
+    """pp_jmri_running is true when the probe cannot say (exit 2), so pp_refuse_running refuses."""
+
+    def run_probe(self, code: int) -> subprocess.CompletedProcess[str]:
+        with tempfile.TemporaryDirectory() as tmp:
+            fake = Path(tmp) / "probe.py"
+            fake.write_text(f"import sys\nsys.exit({code})\n", encoding="utf-8")
+            script = (f'source "{ROOT}/tools/hosts/panelpro_session.sh"; PP_PROFILE_PY="{fake}"; '
+                      'pp_jmri_running; echo "running=$?"; (pp_refuse_running refused); echo "refuse=$?"')
+            return subprocess.run(["bash", "-c", script], capture_output=True, text=True, timeout=60)
+
+    def test_each_answer(self) -> None:
+        for code, running, refuse in ((0, 0, 1), (1, 1, 0), (2, 0, 1)):
+            with self.subTest(code=code):
+                done = self.run_probe(code)
+                self.assertIn(f"running={running}", done.stdout)
+                self.assertIn(f"refuse={refuse}", done.stdout)
+        self.assertIn("cannot tell whether", self.run_probe(2).stderr)
+
+
 if __name__ == "__main__":
     unittest.main()

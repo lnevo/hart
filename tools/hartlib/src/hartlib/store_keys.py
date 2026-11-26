@@ -2,7 +2,9 @@
 parts by name. Each is a plain tuple too: a key built as a tuple of the same shape is the same key."""
 from __future__ import annotations
 
-from typing import NamedTuple
+import copy
+import xml.etree.ElementTree as ET
+from typing import NamedTuple, overload
 
 BY_ID, BY_CONTENT = "id", "="
 SecKey = tuple[str, str | None]     # a section's (tag, class): tables_build.section_key
@@ -60,3 +62,19 @@ class SettingKey(NamedTuple):
 
 
 ItemKey = PanelKey | SectionKey | AttrsKey | LogicKey | BeanKey | SettingKey
+
+
+@overload
+def canon(el: ET.Element) -> str: ...
+@overload
+def canon(el: None) -> None: ...
+def canon(el: ET.Element | None) -> str | None:
+    """An element as text with its layout whitespace taken out, for comparing; None stays None."""
+    if el is None:
+        return None
+    c = copy.deepcopy(el)
+    for x in c.iter():
+        x.tail = None
+        if x.text is not None and not x.text.strip():
+            x.text = None
+    return ET.tostring(c, encoding="unicode")

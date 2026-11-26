@@ -155,7 +155,8 @@ def half_letters(path: Path = SCHEMATIC / OVERRIDES_NAME) -> dict[tuple[str, str
     return {(r["level"], r["id"]): r["half"] for r in read_block_overrides(path, ("crossover_half",))}
 
 
-def os_block_name(level: str, ident: str, halves: Mapping[tuple[str, str, str], str], names: Mapping[tuple[str, str], str] | None = None) -> str:
+def os_block_name(level: str, ident: str, halves: Mapping[tuple[str, str, str], str],
+                  names: Mapping[tuple[str, str], str] | None = None) -> str:
     """The generated name of the OS block with device ID `ident`: os:<n> is OS Switch <n>; a crossover half,
     os:<n>:A-<end>, is the half whose leg A runs to the end's switch, named by its crossover_half row (`halves`:
     {(level, crossover, switch): name}); a double crossover's corner, os:<n>:<leg> (os:225:D), is named by the device
