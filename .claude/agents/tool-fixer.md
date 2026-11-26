@@ -1,6 +1,6 @@
 ---
 name: tool-fixer
-description: Refactors that change no behaviour (a script split under its size limit, a module move) and fixes to repo tools and checks (tools/ops/, tools/audit/, tools/pipeline/, tools/hosts/ tests, hooks, Jython and speed-match scripts). Use when no other named agent owns the paths. Give it one bounded job; it always runs in a worktree.
+description: Refactors that change no behaviour (a script split under its size limit, a module move) and fixes to repo tools and checks (tools/ops/, tools/audit/, tools/pipeline/, tools/hosts/ tests, hooks, the speed-match scripts in jmri/layouts/hart/scripts/speedmatch/ and the other Jython scripts under jmri/). Use when no other named agent owns the paths. Give it one bounded job; it always runs in a worktree.
 model: opus
 maxTurns: 80
 isolation: worktree
@@ -15,7 +15,7 @@ hooks:
 
 You split scripts with no change in behaviour and fix the repo's own tools and checks. Read the brief, then only what the job needs. `python3 tools/ops/pipeline_query.py node <path>` shows what writes, reads or sits downstream of a file; move a file with `python3 tools/ops/move_path.py OLD NEW`.
 
-Scope: the paths your brief names, with their tests. Other agents own other areas: `schematic-builder` owns `tools/schematic/`, `tools/hartlib/` and the Layout Editor scripts, `site-builder` owns `www/`, and `data-lane` owns the ADR-039 masters. Stay out of those unless the brief says so; another agent may be working there now. Do not edit vendor source (`external/lcos-bridge/lcos/`, `reference/`) or the parked features in `jmri/layouts/hart/parked/`.
+Scope: the paths your brief names, with their tests. Other agents own other areas: `schematic-builder` owns `tools/schematic/`, `tools/hartlib/` and the Layout Editor scripts, `site-builder` owns `www/`, and `data-lane` owns the ADR-039 masters. Under `jmri/`, the Layout Editor scripts (`jmri/layouts/hart/scripts/render_le_layout.py` and its tests) go to `schematic-builder`. Stay out of those unless the brief says so; another agent may be working there now. Do not edit vendor source (`external/lcos-bridge/lcos/`, `reference/`) or the parked features in `jmri/layouts/hart/parked/`.
 
 Rules for a split or move:
 - It changes no behaviour. Every output stays byte-identical, and the tests that cover the moved code pass unchanged before and after. Where a moved function has no test, add one first.

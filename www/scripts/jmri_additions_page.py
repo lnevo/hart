@@ -43,6 +43,7 @@ DEVICE_LEVELS = {"main and upper": ("2", "3"), "staging": ("1",)}      # the mas
 COORDINATOR = "jmri/scripts/signal_coordinator.py"
 PANEL_STATUS = "jmri/layouts/hart/scripts/panel_status.py"
 TABLES = "jmri/layouts/hart/output/tables.xml"
+SPLIT_SCRIPTS = (COORDINATOR, PANEL_STATUS)   # the Jython scripts whose code is split into parts beside them
 HEAD_IN_MAST = re.compile(r"\(IH(\d+)\)")   # signal_coordinator._HEAD_IN_MAST, without the brackets
 WORDS = "zero one two three four five six seven eight nine ten eleven twelve".split()
 
@@ -79,7 +80,7 @@ def _siblings(root: Path) -> set[str]:
     """The .py files of the modules signal_coordinator.py loads and of the parts panel_status.py runs
     (hartlib.coordinator): shipped as parts of those scripts."""
     try:
-        return {f"{m}.py" for script in (COORDINATOR, PANEL_STATUS)
+        return {f"{m}.py" for script in SPLIT_SCRIPTS
                 for m in coordinator.sibling_modules(root / script)}
     except coordinator.CoordinatorError as e:
         raise PageError(str(e)) from None
@@ -177,7 +178,7 @@ def _facts(root: Path) -> dict:
 def _parts(root: Path) -> dict[str, tuple[str, ...]]:
     """Each split script's parts, in load order, keyed by the script's file name."""
     try:
-        return {Path(script).name: coordinator.sibling_modules(root / script) for script in (COORDINATOR, PANEL_STATUS)}
+        return {Path(script).name: coordinator.sibling_modules(root / script) for script in SPLIT_SCRIPTS}
     except coordinator.CoordinatorError as e:
         raise PageError(str(e)) from None
 
