@@ -118,6 +118,11 @@ class Render(unittest.TestCase):
             TP.render(self.segs(400.0), None, Path("x.mp4"), self.FMT, cmd)
         self.assertIn("Invalid argument", str(e.exception))
 
+    def test_an_encoder_that_stops_reading_but_exits_0_is_an_error(self) -> None:
+        cmd = self.encoder("import sys; sys.stdin.close(); sys.exit(0)")
+        with self.assertRaisesRegex(TP.PromoError, "stopped reading frames early"):
+            TP.render(self.segs(400.0), None, Path("x.mp4"), self.FMT, cmd)
+
     def test_main_exits_with_the_message(self) -> None:
         with mock.patch.object(TP, "_main", side_effect=TP.PromoError("ffmpeg not found")), \
                 self.assertRaises(SystemExit) as e:

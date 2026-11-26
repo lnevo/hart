@@ -659,8 +659,8 @@ def _photo_late(dest: Path, early_stamp: str, early_files: set[str], full: bool)
     if have_pillow():
         _card_thumbs(dest)
         saved = _webp_companions(dest)
+        print(f"WebP companions: {saved // 1024} KB smaller than the JPEGs they stand beside")
     else:
         print(NO_PILLOW_LATE, file=sys.stderr)
         saved = 0
-    print(f"WebP companions: {saved // 1024} KB smaller than the JPEGs they stand beside")
     _photo_save("late", stamp, dest, before, {"saved": saved})

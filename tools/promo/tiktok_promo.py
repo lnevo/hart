@@ -688,16 +688,22 @@ def render(segs: Sequence[Segment], fonts: Fonts, out: Path, fmt: Format, cmd: S
     with tempfile.TemporaryFile() as errors:
         enc = subprocess.Popen(list(cmd or encoder_cmd(out, fmt)), stdin=subprocess.PIPE, stderr=errors)
         assert enc.stdin
+        stopped_early = False
         try:
             _write_frames(segs, fonts, fmt, enc.stdin)
-            enc.stdin.close()
-        except BrokenPipeError:       # the encoder stopped early; its exit code and stderr say why
-            pass
+        except BrokenPipeError:       # the encoder stopped reading before the last frame
+            stopped_early = True
+        finally:
+            try:
+                enc.stdin.close()
+            except BrokenPipeError:
+                stopped_early = True
         code = enc.wait()
         errors.seek(0)
         said = errors.read().decode("utf-8", "replace").strip()
-    if code:
-        raise PromoError(f"ffmpeg failed (exit {code}) writing {out}" + (f":\n{said}" if said else ""))
+    if code or stopped_early:
+        why = f"exit {code}" if code else "it stopped reading frames early"
+        raise PromoError(f"ffmpeg failed ({why}) writing {out}" + (f":\n{said}" if said else ""))
     if said:
         print(said, file=sys.stderr)
 
