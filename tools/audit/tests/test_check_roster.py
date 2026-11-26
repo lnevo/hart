@@ -24,13 +24,13 @@ class Fixture(unittest.TestCase):
         self.addCleanup(shutil.rmtree, self.tmp, True)
         self.roster = self.tmp / "roster"
         shutil.copytree(C.ROSTER, self.roster)
-        self.master = self.tmp / "locos.csv"
-        shutil.copy2(C.MASTER, self.master)
+        self.locos_csv = self.tmp / "locos.csv"
+        shutil.copy2(C.MASTER, self.locos_csv)
 
     def run_check(self, write: bool = False) -> tuple[int, str]:
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
-            rc = C.run(write, self.roster, self.master)
+            rc = C.run(write, self.roster, self.locos_csv)
         return rc, out.getvalue()
 
     def edit_index(self, old: str, new: str) -> None:
@@ -40,15 +40,15 @@ class Fixture(unittest.TestCase):
         idx.write_text(text.replace(old, new, 1), encoding="utf-8")
 
     def rows(self) -> dict[str, dict]:
-        with self.master.open(newline="", encoding="utf-8") as fh:
+        with self.locos_csv.open(newline="", encoding="utf-8") as fh:
             return {r["roster_id"]: r for r in csv.DictReader(fh)}
 
     def set_row(self, rid: str, **fields: str) -> None:
-        header, rows = C.read_master(self.master)
+        header, rows = C.read_master(self.locos_csv)
         for r in rows:
             if r["roster_id"] == rid:
                 r.update(fields)
-        C.locos.write_table(self.master, header, rows)
+        C.locos.write_table(self.locos_csv, header, rows)
 
 
 class RepoPasses(unittest.TestCase):
@@ -120,18 +120,18 @@ class Write(Fixture):
         self.assertIn("2 locos.csv row(s) took the roster's address", out)
         self.assertEqual(("572", "yes"), (self.rows()["BO 572"]["dcc_address"], self.rows()["BO 572"]["long_address"]))
         self.assertEqual("6", self.rows()["NWR 06"]["dcc_address"], "the roster's address, not the road number 06")
-        before = self.master.read_bytes()
+        before = self.locos_csv.read_bytes()
         rc, out = self.run_check(write=True)
         self.assertEqual(0, rc, out)
         self.assertIn("0 locos.csv row(s)", out)
-        self.assertEqual(before, self.master.read_bytes())
+        self.assertEqual(before, self.locos_csv.read_bytes())
 
     def test_write_leaves_a_loco_the_roster_lacks(self) -> None:
         """An intake loco keeps the address bin/cars locos publish will send to DecoderPro."""
-        header, rows = C.read_master(self.master)
+        header, rows = C.read_master(self.locos_csv)
         rows.append({**{h: "" for h in header}, "roster_id": "ZZ 1", "road_name": "ZZ", "road_number": "1",
                      "dcc_address": "1", "loco_type": "Diesel"})
-        C.locos.write_table(self.master, header, rows)
+        C.locos.write_table(self.locos_csv, header, rows)
         rc, out = self.run_check(write=True)
         self.assertEqual(0, rc, out)
         self.assertEqual("1", self.rows()["ZZ 1"]["dcc_address"])
@@ -139,11 +139,11 @@ class Write(Fixture):
     def test_write_on_a_broken_roster_writes_nothing(self) -> None:
         self.edit_index('dccAddress="2121"', 'dccAddress=""')
         self.set_row("BO 572", dcc_address="")
-        before = self.master.read_bytes()
+        before = self.locos_csv.read_bytes()
         rc, out = self.run_check(write=True)
         self.assertEqual(1, rc)
         self.assertIn("locos.csv was not written", out)
-        self.assertEqual(before, self.master.read_bytes())
+        self.assertEqual(before, self.locos_csv.read_bytes())
 
 
 if __name__ == "__main__":
