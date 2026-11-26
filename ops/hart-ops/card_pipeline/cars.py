@@ -769,8 +769,12 @@ def cmd_fix_ops(args: argparse.Namespace) -> int:
         row_id(r) for r in rows
         if row_id(r) and (r.get("car_type") or "") not in ("Locomotive", "Streetcar")
     )
+    unknown = sorted(ops_ids(live) - {row_id(r) for r in rows})
     added = merge_ops(live, wanted, out_of_service_ids(rows))
     print(f"Added {len(added)}: {' '.join(added)}")
+    if unknown:
+        # fix-ops renames nothing: a car kept under a wrong id would now sit beside its added right id.
+        print(f"Not in the repository, left as they are (check each by hand): {' '.join(unknown)}")
     print(DEPLOY_NOTE)
     return 0
 
