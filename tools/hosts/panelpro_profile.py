@@ -105,10 +105,7 @@ def quiet_startup(profile: Path, run_script: str) -> list[str]:
     if len(loads) != 1:
         raise SystemExit(f"{profile}: expected one tables load in Start Up, found {len(loads)}")
     profile.write_text(text, encoding="utf-8")
-    try:
-        patch_jmri_startup.insert_after(profile, run_script, _attr(loads[0], "name"))
-    except patch_jmri_startup.StartupPatchError as exc:
-        raise SystemExit(f"{profile}: {exc}") from exc
+    patch_jmri_startup.insert_after(profile, run_script, _attr(loads[0], "name"))
     text = profile.read_text(encoding="utf-8")
     still = [t for t in _TAG.findall(text)
              if 'enabled="no"' not in t and not _allowed(t) and _basename(_attr(t, "name") or "") != run_base]
@@ -374,7 +371,10 @@ def main() -> None:
     elif args.action == "quiet-startup":
         if not args.run:
             ap.error("quiet-startup requires --run")
-        print("\n".join(quiet_startup(args.profile, args.run)))
+        try:
+            print("\n".join(quiet_startup(args.profile, args.run)))
+        except patch_jmri_startup.StartupPatchError as exc:     # one line, as the profile checks above
+            sys.exit(f"{args.profile}: {exc}")
     elif args.action == "backup":
         print(backup_profile(args.profile))
     elif args.action == "seal":
