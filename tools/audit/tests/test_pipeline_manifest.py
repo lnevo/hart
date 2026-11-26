@@ -224,7 +224,7 @@ class OutputTest(unittest.TestCase):
     def test_the_command_line_on_this_repo(self) -> None:
         rc, out, err = self.run_main("jobs", "check", "--ungrouped")
         self.assertEqual((rc, err), (0, ""))
-        self.assertEqual([line.split()[0] for line in out.splitlines()], ["public-text", "ruff", "portal"])
+        self.assertEqual([line.split()[0] for line in out.splitlines()], ["public-text", "ruff", "mypy", "portal"])
         rc, out, _ = self.run_main("list")
         self.assertEqual(rc, 0)
         self.assertEqual(len(out.splitlines()), len(M.load()))
