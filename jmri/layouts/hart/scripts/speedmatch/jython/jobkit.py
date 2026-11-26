@@ -21,6 +21,13 @@ if False:
 import time, threading, os, java, jmri
 f = open(LOGF, "a")
 def L(m): f.write("%.3f %s\n" % (time.time(), m)); f.flush()
+def _guarded(what, fn):
+    """Call fn(); a Java or Python error is logged as "<what> failed <error>" and not raised, so
+    the stop sequence in end_job reaches every step. True when fn returned."""
+    try: fn(); return True
+    except java.lang.Throwable as e: L("%s failed %s" % (what, e))
+    except Exception as e: L("%s failed %s" % (what, e))
+    return False
 # JMRI sensor states: UNKNOWN 1, ACTIVE 2, INACTIVE 4, INCONSISTENT 8
 NAMES = {1: "UNKNOWN", 2: "ACTIVE", 4: "INACTIVE", 8: "INCONSISTENT"}
 reg = []; why = [""]; ab = threading.Event(); own = [False]; hit = [""]
@@ -34,10 +41,7 @@ class TL(jmri.ThrottleListener):
             if not late: self.t = t; self.ev.set()
         finally:
             self.lk.release()
-        if late:
-            try: t.release(self); L("late throttle released")
-            except java.lang.Throwable as e: L("late release failed %s" % e)
-            except Exception as e: L("late release failed %s" % e)
+        if late and _guarded("late release", lambda: t.release(self)): L("late throttle released")
     def notifyFailedThrottleRequest(self, a, r): self.err = "fail %s" % r; self.ev.set()
     def notifyDecisionRequired(self, a, d): self.err = "decision %s" % d; self.ev.set()
     def notifyStealThrottleRequired(self, a): self.err = "steal"; self.ev.set()
@@ -133,7 +137,7 @@ def set_direction(t, fwd):
     """Set the direction and check that it holds. On the CS-105 (JMRI OlcbThrottle) the train
     node reports its current speed and direction a moment after the throttle is handed over,
     and that report overwrites the throttle's direction; a direction set straight away is lost
-    and the loco runs the way it last ran (seen 2026-11-13 on CSX 2121 and CSX 2738). So wait
+    and the loco runs the way it last ran (seen on CSX 2121 and CSX 2738). So wait
     for that report, then set it and require two reads 1 s apart to agree, up to 3 tries.
     False (why says so) if it never holds, or on a guard abort or the kill flag."""
     if not _hold(DIR_SETTLE_S): return False
@@ -158,22 +162,15 @@ def end_job(t, tl, funcs):
     its lights off, and the block it stands in goes dark."""
     L("STOP " + why[0])
     if t is not None:
-        try: t.setSpeedSetting(0.0); L("speed 0")
-        except java.lang.Throwable as e: L("speed 0 failed %s" % e)
-        except Exception as e: L("speed 0 failed %s" % e)
+        if _guarded("speed 0", lambda: t.setSpeedSetting(0.0)): L("speed 0")
         for fn in funcs:
             if fn == 0: L("F0 not switched off"); continue
-            try: getattr(t, "setF%d" % fn)(False); L("F%d off" % fn)
-            except java.lang.Throwable as e: L("F%d off failed %s" % (fn, e))
-            except Exception as e: L("F%d off failed %s" % (fn, e))
-        try: t.release(tl); L("throttle released")
-        except java.lang.Throwable as e: L("release failed %s" % e)
-        except Exception as e: L("release failed %s" % e)
+            if _guarded("F%d off" % fn, lambda: getattr(t, "setF%d" % fn)(False)): L("F%d off" % fn)
+        if _guarded("release", lambda: t.release(tl)): L("throttle released")
     for s, l in reg:
-        try: s.removePropertyChangeListener(l)
-        except java.lang.Throwable as e: L("listener removal failed %s" % e)
-        except Exception as e: L("listener removal failed %s" % e)
+        _guarded("listener removal", lambda: s.removePropertyChangeListener(l))
     if own[0]:
+        # a marker left behind makes the next runner refuse ("another runner is active")
         try: os.remove("/tmp/speedrun.active")
-        except Exception: pass
+        except OSError as e: L("marker removal failed %s" % e)
     L("END")
