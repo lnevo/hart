@@ -462,24 +462,6 @@ process.stdout.write(JSON.stringify(out));"""
         note = self.run_js("m.stopsNote(a)", [["a<b>", "hub"], ["c", "runner"], ["d", "cache"], ["e", "hub"], ["f", "hub"]])
         self.assertEqual(note, '<div class="off">stops at a&lt;b&gt; (hub), c (runner), d (cache), e (hub) and 1 more</div>')
 
-    def test_page_has_only_links_for_kinds(self) -> None:
-        """The Filters menu offers "only" beside each kind, as beside each lane, from the same script."""
-        page = MAP.render(json.loads(MAP.GRAPH.read_text()))
-        self.assertIn('data-kindonly="${esc(k)}">only</a>', page)
-        self.assertIn('data-only="${esc(d.id)}">only</a>', page)
-
-    def test_only_one(self) -> None:
-        """onlyOne: hides every other kind (or lane); a second click on the one shown alone shows them all again."""
-        kinds = ["structured", "generator", "output", "human"]
-        self.assertEqual(self.run_js("m.onlyOne(a, [], 'generator')", kinds), ["structured", "output", "human"])
-        self.assertEqual(self.run_js("m.onlyOne(a, ['structured', 'output', 'human'], 'generator')", kinds), [])
-        self.assertEqual(self.run_js("m.onlyOne(a, ['structured', 'output', 'human'], 'output')", kinds),
-                         ["structured", "generator", "human"])  # another kind's only moves to that kind
-        lanes = ["layout", "wiring", "website"]  # lanes: shown alone, then all again; from no lanes, just that one
-        self.assertEqual(self.run_js("m.onlyOne(a, [], 'website')", lanes), ["layout", "wiring"])
-        self.assertEqual(self.run_js("m.onlyOne(a, ['layout', 'wiring'], 'website')", lanes), [])
-        self.assertEqual(self.run_js("m.onlyOne(a, a, 'wiring')", lanes), ["layout", "website"])
-
     def test_settle_start_and_transform_forms(self) -> None:
         """settleFrom: a box's old screen rect in drawing units through the screen matrix, with the scale its own width
         fills it at; boxTransform gives the SVG attribute and, with px, the CSS form the glide animates."""

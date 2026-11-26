@@ -39,5 +39,20 @@ class CleanTests(unittest.TestCase):
         self.assertLess(self.out[730, 700].mean(), 110)
 
 
+class MaskTests(unittest.TestCase):
+    def test_mask_returns_named_boolean_masks_of_the_small_size(self):
+        small = np.asarray(synthetic().resize((1400 // 3, 1050 // 3)), float)
+        bg = np.median(small[:20, 160:300].reshape(-1, 3), 0)
+        mask = loco_backdrop.loco_mask(small, bg)
+        self.assertIsInstance(mask, loco_backdrop.LocoMask)
+        keep, backdrop = mask
+        self.assertEqual(keep.shape, small.shape[:2])
+        self.assertEqual(backdrop.dtype, bool)
+        self.assertTrue(keep[600 // 3, 700 // 3])        # the loco
+        self.assertFalse(keep[20 // 3, 700 // 3])        # the backdrop
+        self.assertTrue(backdrop[20 // 3, 700 // 3])
+        self.assertFalse(keep[150 // 3, 30 // 3])        # the corner wedge is not kept
+
+
 if __name__ == "__main__":
     unittest.main()

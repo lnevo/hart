@@ -71,7 +71,7 @@
     spreadCtl.hidden = !lay || !lay.nodes.length;
     if (spreadCtl.hidden) return;
     const a = freeArea(), top = showRulers() ? a.top - STRIP_H - 3 : a.top + 4;
-    spreadCtl.style.top = `${top}px`; spreadCtl.style.left = `${Math.max(0, a.right - spreadCtl.offsetWidth - 8)}px`;
+    spreadCtl.style.top = `${top}px`; spreadCtl.style.left = `${wrapEl.offsetLeft + Math.max(0, a.right - spreadCtl.offsetWidth - 8)}px`;  // the filter rail moves the map right
   }
   function drawRulers() {
     steps.style.visibility = "";  // shown again after a Steps preview
@@ -183,7 +183,8 @@
     const w = a.right - 2 * p, h = a.bottom - a.top - 2 * p;  // the shape Fit fills, inside its margin
     return w > 0 && h > 0 ? h / w : 0;
   }
-  function setVB(x, y, w, h) {  // every move goes through here, kept on the drawing (clampView)
+  function setVB(x, y, w, h) {  // every move goes through here, kept on the drawing (clampView); none on the lane overview
+    if (!vb) return;
     const free = freeShare(), sw = wrapEl.clientWidth, sh = wrapEl.clientHeight, p = fitPad(FIT_PAD, free, sw, sh);
     const c = clampView({ x, y, width: w, height: h }, W, lay && lay.nodes.length ? lay.height : H, LEFT, free, maxWidth(free),  // the drawn height, not the 200 minimum
       sw > 0 ? p / sw : 0, sh > 0 ? p / sh : 0);
@@ -344,10 +345,12 @@
     return fitView(fitW(), tooTall ? 1 : H, LEFT, freeShare(), wrapEl.clientWidth, wrapEl.clientHeight, FIT_PAD);
   }
   function fit() {
+    if (!lay) return;
     const f = fitNow();
     setVB(f.x, f.y, f.width, f.height);
   }
   function zoomAt(f, cx, cy) {
+    if (!vb) return;
     const r = wrapEl.getBoundingClientRect();
     const px = vb.x + (cx - r.left) / r.width * vb.width, py = vb.y + (cy - r.top) / r.height * vb.height;
     const nw = Math.min(Math.max(vb.width * f, 200), Math.max(maxWidth(), vb.width)), nh = nw * vb.height / vb.width;  // capped before the corner is worked out, so a zoom-out at Fit stops instead of sliding the map
@@ -361,6 +364,7 @@
     setVB(n.x + n.w / 2 - cx * s, n.y + n.h / 2 - cy * s, w, h);
   }
   const onWheel = e => {
+    if (!vb) return;  // the lane overview scrolls as a page
     e.preventDefault();
     const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? wrapEl.clientHeight : 1;
     const dx = e.deltaX * unit, dy = e.deltaY * unit;
@@ -369,7 +373,7 @@
   };
   wrapEl.addEventListener("wheel", onWheel, { passive: false });
   let drag = null, moved = false;
-  const startDrag = e => { drag = { x: e.clientX, y: e.clientY, vx: vb.x, vy: vb.y }; moved = false; wrapEl.classList.add("drag"); };
+  const startDrag = e => { if (!vb) return; drag = { x: e.clientX, y: e.clientY, vx: vb.x, vy: vb.y }; moved = false; wrapEl.classList.add("drag"); };
   wrapEl.addEventListener("pointerdown", startDrag);
   steps.addEventListener("pointerdown", startDrag);
   window.addEventListener("pointermove", e => {
@@ -382,6 +386,7 @@
   let relayTimer = 0;
   window.addEventListener("resize", () => {  // a fitted view fits again (the panel may have moved); others keep their middle
     clearTimeout(relayTimer);
+    if (!lay) { if (view.overview) relayTimer = setTimeout(drawOverview, 100); return; }  // the cards fit the new shape
     if (fitted) {  // fits now, and is laid out again once the resizing stops, so the lanes fill the new shape
       fit();
       relayTimer = setTimeout(() => { if (fitted) { render(true); fit(); } }, 150);
