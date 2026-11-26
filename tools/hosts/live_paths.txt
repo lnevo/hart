@@ -44,6 +44,9 @@ jmri/scripts/signal_coordinator.py
 jmri/scripts/sml_beans.py
 jmri/scripts/sml_claims.py
 jmri/scripts/sml_handoff.py
+jmri/scripts/sml_events.py
+jmri/scripts/sml_quit.py
+jmri/scripts/sml_ui.py
 jmri/layouts/hart/scripts/panel_status.py
 jmri/layouts/hart/scripts/discover_sml.py
 jmri/layouts/hart/scripts/hide_cats_desk_windows.py

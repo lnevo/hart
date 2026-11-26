@@ -173,6 +173,7 @@ outputs = [
 quiet_inputs = ["jmri/layouts/hart/data/schematic/interlockings.csv",
                 "jmri/layouts/hart/data/schematic/stations.csv",
                 "jmri/scripts/sml_beans.py", "jmri/scripts/sml_claims.py", "jmri/scripts/sml_handoff.py",
+                "jmri/scripts/sml_events.py", "jmri/scripts/sml_quit.py", "jmri/scripts/sml_ui.py",
                 "tools/hosts/deploy/common.sh", "tools/hosts/pi/apply_hart_package_local.sh",
                 "tools/hosts/windows/apply_hart_package_local.ps1"]
 
@@ -545,6 +546,9 @@ inputs = [
   { path = "jmri/scripts/sml_beans.py", label = "check", side = "check" },
   { path = "jmri/scripts/sml_claims.py", label = "check", side = "check" },
   { path = "jmri/scripts/sml_handoff.py", label = "check", side = "check" },
+  { path = "jmri/scripts/sml_events.py", label = "check", side = "check" },
+  { path = "jmri/scripts/sml_quit.py", label = "check", side = "check" },
+  { path = "jmri/scripts/sml_ui.py", label = "check", side = "check" },
   { path = "external/lcos-bridge/lcos_mqtt_bridge.cpp", label = "check", side = "check" },
   { path = "external/lcos-bridge/serial_to_mqtt.py", label = "check", side = "check" },
 ]
@@ -994,7 +998,8 @@ quiet_inputs = [
   "jmri/layouts/hart/data/devices_field.csv", "jmri/layouts/hart/data/devices_generated.csv",
   "jmri/scripts/signal_coordinator.py", "jmri/layouts/hart/data/schematic/interlockings.csv",
   "jmri/layouts/hart/data/schematic/stations.csv", "jmri/scripts/sml_beans.py", "jmri/scripts/sml_claims.py",
-  "jmri/scripts/sml_handoff.py", "tools/hosts/deploy/common.sh", "tools/hosts/pi/apply_hart_package_local.sh",
+  "jmri/scripts/sml_handoff.py", "jmri/scripts/sml_events.py", "jmri/scripts/sml_quit.py", "jmri/scripts/sml_ui.py",
+  "tools/hosts/deploy/common.sh", "tools/hosts/pi/apply_hart_package_local.sh",
   "tools/hosts/windows/apply_hart_package_local.ps1", "docs/pipeline-map/pipeline_map.json",
   "tools/ops/pipeline_map_page.html", "tools/ops/pipeline_map_layout.js", "tools/ops/pipeline_map_view.js",
   "tools/pipeline/checks.toml", "tools/pipeline/panels.toml", "AGENTS.md", "wiki/home.md", "wiki/AGENTS_GIT.md",

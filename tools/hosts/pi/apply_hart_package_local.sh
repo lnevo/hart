@@ -128,6 +128,9 @@ JYTHON=(
   "$HART/jmri/scripts/sml_beans.py"
   "$HART/jmri/scripts/sml_claims.py"
   "$HART/jmri/scripts/sml_handoff.py"
+  "$HART/jmri/scripts/sml_events.py"
+  "$HART/jmri/scripts/sml_quit.py"
+  "$HART/jmri/scripts/sml_ui.py"
 )
 mkdir -p "$UF/jython"
 for f in "${JYTHON[@]}"; do
