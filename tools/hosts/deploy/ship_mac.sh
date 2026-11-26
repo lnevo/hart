@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Deploy step 3: install on this Mac, from the repo (the web override, tables.xml, Operations Pro files, CATS
-# panels, CTC icons, jython and the stamp). The gate has already run the Mac's Store check; it runs again here
-# because this step changes the Mac and can be run alone.
+# Deploy step 3: install on this Mac, from the repo (the web override, tables.xml, Operations Pro files, the
+# DecoderPro roster, CATS panels, CTC icons, jython and the stamp). The gate has already run the Mac's Store check;
+# it runs again here because this step changes the Mac and can be run alone.
 #
 # Usage: ship_mac.sh      (takes no staged folder: the Mac's panels name its own user files)
 set -euo pipefail
@@ -70,6 +70,13 @@ install_tables_local() {
 install_ops_local() {
   bash "$ROOT/cats/scripts/install_ops_files.sh" \
     "$ROOT/jmri/layouts/hart/operations" "${HOME}/JMRI_UserFiles/operations"
+}
+
+# The DecoderPro roster (ADR-039 amendment 2026-11-26), from the repo master, with what it replaces backed up. No
+# unpulled check here: the Mac's roster is a copy (the Pi's is the one DecoderPro programs), so a Mac edit survives only
+# in JMRI_UserFiles/backups/roster/.
+install_roster_local() {
+  bash "$ROOT/tools/hosts/pi/install_roster.sh" "$ROSTER_MASTER" "${HOME}/JMRI_UserFiles"
 }
 
 install_cats_panels_local() {
@@ -151,6 +158,7 @@ check_mac_store || exit 1
 HART_PI_HOST="$HART_PI_WEB_HOST" HART_MIMIC_PORT="${MIMIC_PORT:-8765}" bash "$ROOT/cats/scripts/install_jmri_web_override.sh"
 install_tables_local
 install_ops_local
+install_roster_local
 install_cats_panels_local
 install_ctc_icons_local
 install_jython_scripts

@@ -11,7 +11,12 @@
 # SPLIT_SHA...: the Stores already split into the sources being deployed (store_splits.csv, R9d); a tables.xml with
 # one of those hashes counts as taken, so the deploy replaces it with the generated file that now holds its edits.
 # ops:SHA (also among them): the hash of the Operations files the deploy would ship; a Pi session equal to it is taken.
-# Prints one word per changed set, nothing when both are clean.
+# roster:SHA (also among them, and only then is the roster checked): the hash (roster_sha.sh) of the DecoderPro roster
+# the deploy would ship. The Pi's roster.xml and roster/*.xml count as changed, the word "roster" (make roster-pull),
+# when they hash neither as that nor as .roster_deployed.sha256 (what the last deploy installed). With no stamp,
+# only the repo's hash counts. A Pi with no roster.xml has nothing to keep. The deploy pipes roster_sha.sh in front
+# of this script; run as a file, it reads roster_sha.sh beside it.
+# Prints one word per changed set, nothing when all are clean.
 # Usage: unpulled_changes.sh USERFILES [GENERATED_SHA [SPLIT_SHA...]]
 set -euo pipefail
 uf="${1:?usage: unpulled_changes.sh USERFILES [GENERATED_SHA [SPLIT_SHA...]]}"
@@ -41,4 +46,16 @@ fi
 if [[ -n "$want" && "$want" != none && -f "$uf/tables.xml" ]]; then
   have="$(sha <"$uf/tables.xml")"
   [[ "$have" == "$want" || "$splits" == *" $have "* ]] || echo tables
+fi
+roster_want="$(sed -n 's/.* roster:\([^ ]*\) .*/\1/p' <<<"$splits")"
+if [[ -n "$roster_want" && -f "$uf/roster.xml" ]]; then
+  if ! declare -F roster_sha >/dev/null; then
+    here="$(dirname "${BASH_SOURCE[0]:-}")"
+    [[ -f "$here/roster_sha.sh" ]] || { echo "unpulled_changes.sh: roster:SHA given but roster_sha.sh is neither piped in front nor beside it" >&2; exit 3; }
+    source "$here/roster_sha.sh"
+  fi
+  # a roster.xml that names a bad file cannot be hashed: it is not what any deploy installed, so it is changed
+  have="$(roster_sha "$uf")" || have=unreadable
+  last="$(cat "$uf/.roster_deployed.sha256" 2>/dev/null || true)"
+  [[ "$have" == "$roster_want" || "$have" == "$last" ]] || echo roster
 fi

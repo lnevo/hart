@@ -316,12 +316,14 @@ class StagedOnce(unittest.TestCase):
 
 
 def private_clone(tmp: Path) -> tuple[Path, dict[str, str]]:
-    """A clone of HEAD at `tmp`/repo with this checkout's own tools/hosts copied in (uncommitted edits to the deploy
-    scripts are what runs), and stage_env for it, with the deploy audit's plugin taken from this checkout (the clone
+    """A clone of HEAD at `tmp`/repo with this checkout's own tools/hosts and roster master copied in (uncommitted
+    edits to the deploy scripts are what runs), and stage_env for it, with the deploy audit's plugin taken from this checkout (the clone
     has no submodule checkout). A test that writes into the tree it stages from uses one, never the live checkout."""
     repo = tmp / "repo"
     subprocess.run(["git", "clone", "-q", "--shared", str(ROOT), str(repo)], check=True, capture_output=True)
     shutil.copytree(ROOT / "tools/hosts", repo / "tools/hosts", dirs_exist_ok=True)
+    # the DecoderPro roster master the stage packs (stage.sh), as this checkout has it
+    shutil.copytree(ROOT / "jmri/layouts/hart/roster", repo / "jmri/layouts/hart/roster", dirs_exist_ok=True)
     env = stage_env(tmp)
     env["SCHEMATIC_PLUGIN"] = str(ROOT / "external/model-railroad-skills/plugins/schematic-maps")
     return repo, env

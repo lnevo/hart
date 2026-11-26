@@ -22,4 +22,4 @@ The Pi's six Operations Pro files had no reviewed history. Other copies sat in `
 - A session on the Pi needs `make ops-pull` and a commit before the next deploy. Since 2026-11-18 a Pi deploy or redeploy stops until it is pulled (`HART_DISCARD_PI_CHANGES=1` replaces it, the owner's call).
 - A JMRI left running keeps its loaded roster and can write it back over the installed files, so restart JMRI after a roster change.
 - The Pi is the only host whose Operations changes are kept. Changes on the Mac or Windows are replaced at the next deploy.
-- The DecoderPro roster is not part of this. `tools/hosts/sync_roster_from_pi.sh` still copies it from the Pi.
+- The DecoderPro roster is not one of the six files. Since 2026-11-26 it is a master of its own in `jmri/layouts/hart/roster/`, deployed, gated and pulled the same way (ADR-039 amendment 2026-11-26, `make roster-pull`).

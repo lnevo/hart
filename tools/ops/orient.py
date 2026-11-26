@@ -26,8 +26,8 @@ one line saying so; only a failure to read the worktrees themselves stops the ru
 
 "Waiting to ingest" (full view only) is one line per source, each naming the command that brings it in. It asks the
 checks the pulls and the deploy gate already make, read-only: tools/hosts/deploy/pi_unpulled.sh (the gate's Pi check:
-a Store, Operations Pro files), tools/ops/pull_tables.sh --status (the Mac's Store) and
-tools/hosts/sync_roster_from_pi.sh --status (the DecoderPro roster against the Mac copy). The live STS is not checked:
+a Store, Operations Pro files, the DecoderPro roster) and tools/ops/pull_tables.sh --status (the Mac's Store). The
+live STS is not checked:
 its database keeps no change marker, so only a dump (make sts-pull) shows a change; the line gives the last dump's
 time. A Pi that does not answer is one line per source ("Pi unreachable, not checked").
 """
@@ -372,7 +372,6 @@ def site_deploy_lines() -> list[str]:
 
 PI_UNPULLED = "tools/hosts/deploy/pi_unpulled.sh"
 MAC_TABLES = "tools/ops/pull_tables.sh"
-ROSTER_SYNC = "tools/hosts/sync_roster_from_pi.sh"
 SSH_DOWN = 255  # ssh's own status when the host did not answer (or refused the key)
 
 
@@ -382,10 +381,6 @@ def pi_unpulled() -> tuple[int | None, str, str]:
 
 def mac_tables() -> tuple[int | None, str, str]:
     return run([str(ROOT / MAC_TABLES), "--status"], NET_TIMEOUT)
-
-
-def roster_status() -> tuple[int | None, str, str]:
-    return run([str(ROOT / ROSTER_SYNC), "--status"], NET_TIMEOUT)
 
 
 def not_checked(result: tuple[int | None, str, str], host: str) -> str | None:
@@ -400,9 +395,10 @@ def not_checked(result: tuple[int | None, str, str], host: str) -> str | None:
     return f"cannot check (exit {code}: {first_line(err or out)})"
 
 
-# What the Pi and Mac checks compare a host with: the Store splits, the generated tables.xml and the Operations files.
+# What the Pi and Mac checks compare a host with: the Store splits, the generated tables.xml, the Operations files and
+# the DecoderPro roster master.
 INGEST_REFS = ("jmri/layouts/hart/data/store_splits.csv", "jmri/layouts/hart/output/tables.xml",
-               "jmri/layouts/hart/operations")
+               "jmri/layouts/hart/operations", "jmri/layouts/hart/roster")
 
 
 def ingest_base_note() -> str | None:
@@ -417,14 +413,12 @@ def ingest_base_note() -> str | None:
     return f"NOTE: compared with this checkout; cannot tell whether it matches {BASE} ({first_line(err)})"
 
 
-def ingest_lines(pi: tuple[int | None, str, str], mac: tuple[int | None, str, str],
-                 roster: tuple[int | None, str, str]) -> list[str]:
-    """One line per source: what a host holds that the repo (or, for the roster, the Mac copy) lacks, and the
-    command that brings it in."""
+def ingest_lines(pi: tuple[int | None, str, str], mac: tuple[int | None, str, str]) -> list[str]:
+    """One line per source: what a host holds that the repo lacks, and the command that brings it in."""
     lines = []
     why = not_checked(pi, "Pi")
     words = set(pi[1].split()) if why is None else set()
-    if why is None and words - {"ops", "tables"}:
+    if why is None and words - {"ops", "tables", "roster"}:
         why = f"cannot read the check's answer {pi[1].strip()!r}"
     lines.append("JMRI tables, Pi: " + (why or ("a PanelPro Store not yet split in (pulled or not)" if "tables" in words
                                                  else "nothing waiting")) + " (make tables-pull-pi)")
@@ -441,16 +435,9 @@ def ingest_lines(pi: tuple[int | None, str, str], mac: tuple[int | None, str, st
                  + " (make ops-pull)")
     lines.append(f"STS, Pi: not checked: the live database keeps no change marker, only a dump shows a change; "
                  f"{last_sts_pull()} (make sts-pull)")
-    code, out, err = roster
-    answer = out.strip()
-    m = re.fullmatch(r"waiting (\d+)", answer)
-    if code == 0 and (m or answer == "nothing"):
-        count = int(m.group(1)) if m else 0
-        state = (f"{count} file{'s' if count > 1 else ''} on the Pi {'differ' if count > 1 else 'differs'} from "
-                 "the Mac copy or not on it (the sync overwrites the Mac's)" if count else "nothing waiting")
-    else:
-        state = not_checked(roster, "Pi") or f"cannot read the check's answer {answer!r}"
-    lines.append(f"DecoderPro roster, Pi: {state} (./{ROSTER_SYNC})")
+    lines.append("DecoderPro roster, Pi: " + (why or ("DecoderPro changed the roster since the last deploy (a "
+                                                       "programming session or a new loco)" if "roster" in words
+                                                       else "nothing waiting")) + " (make roster-pull)")
     return lines
 
 
@@ -516,10 +503,9 @@ def report(short: bool, here: str) -> list[str]:
     ingest: list[str] = []
     if not short:
         with ThreadPoolExecutor(max_workers=6) as pool:
-            jobs = [pool.submit(f) for f in (open_prs, deploy_summary, operating, pi_unpulled, mac_tables,
-                                             roster_status)]
-            prs, deploys, flag, pi, mac, roster = (j.result() for j in jobs)
-        ingest = ingest_lines(pi, mac, roster)
+            jobs = [pool.submit(f) for f in (open_prs, deploy_summary, operating, pi_unpulled, mac_tables)]
+            prs, deploys, flag, pi, mac = (j.result() for j in jobs)
+        ingest = ingest_lines(pi, mac)
         note = ingest_base_note()
         ingest += [note] if note else []
     limit = SHORT_LIMIT if short else None

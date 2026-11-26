@@ -69,6 +69,53 @@ if (Test-Path $opsSrc) {
   }
 }
 
+# The DecoderPro roster (ADR-039 amendment 2026-11-26): roster.xml and the entry files it names. The repo wins, as
+# for the Operations files: what it replaces is kept in backups\roster\pre_deploy_<time>. Windows has no unpulled
+# check (its roster is a copy; the Pi's is the one DecoderPro programs), so its own edits live only in that backup.
+# Files roster.xml does not name (JMRI's *.bak, old entry files) are left as they are.
+$rosterPkg = Join-Path $hart 'roster'
+$rosterIndex = Join-Path $rosterPkg 'roster.xml'
+if (-not (Test-Path $rosterIndex)) { throw "No roster\roster.xml in the drop $hart; the roster was not installed" }
+$rosterNames = @([regex]::Matches([System.IO.File]::ReadAllText($rosterIndex), '<locomotive [^>]*fileName="([^"]*)"') |
+  ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+if ($rosterNames.Count -eq 0) { throw "roster.xml in the drop names no locomotive file; the roster was not installed" }
+foreach ($n in $rosterNames) {
+  if ($n -match '[\\/]' -or $n.StartsWith('.') -or -not $n.EndsWith('.xml')) {
+    throw "roster.xml in the drop names '$n', which is not a plain roster\*.xml file name; the roster was not installed"
+  }
+  if (-not (Test-Path (Join-Path $rosterPkg ('roster\' + $n)))) {
+    throw "roster.xml in the drop names roster\$n, which the drop lacks; the roster was not installed"
+  }
+}
+$rosterDest = Join-Path $UserFiles 'roster'
+$rosterRel = @('roster.xml') + @($rosterNames | ForEach-Object { 'roster\' + $_ })
+function Test-RosterCurrent {
+  foreach ($n in $rosterRel) {
+    $live = Join-Path $UserFiles $n
+    if (-not (Test-Path $live)) { return $false }
+    if ((Get-FileHash (Join-Path $rosterPkg $n) -Algorithm SHA256).Hash -ne (Get-FileHash $live -Algorithm SHA256).Hash) { return $false }
+  }
+  return $true
+}
+if (Test-RosterCurrent) {
+  Write-Host ("DecoderPro roster already current -> {0}" -f $UserFiles)
+} else {
+  New-Item -ItemType Directory -Force -Path $rosterDest | Out-Null
+  $rosterBackup = Join-Path $UserFiles ('backups\roster\pre_deploy_' + (Get-Date -Format 'yyyyMMdd_HHmmss'))
+  New-Item -ItemType Directory -Force -Path (Join-Path $rosterBackup 'roster') | Out-Null
+  $liveIndex = Join-Path $UserFiles 'roster.xml'
+  if (Test-Path $liveIndex) { Copy-Item $liveIndex $rosterBackup -Force }
+  foreach ($n in $rosterNames) {
+    $live = Join-Path $rosterDest $n
+    if (Test-Path $live) { Copy-Item $live (Join-Path $rosterBackup 'roster') -Force }
+    Copy-Item (Join-Path $rosterPkg ('roster\' + $n)) $live -Force
+  }
+  # roster.xml last: JMRI reads the index first, so it only names files already in place.
+  Copy-Item $rosterIndex $liveIndex -Force
+  if (-not (Test-RosterCurrent)) { throw "after the install the roster in $UserFiles is not the repo's; what it replaced is in $rosterBackup" }
+  Write-Host ("DecoderPro roster -> {0} ({1} locos; backup {2})" -f $UserFiles, $rosterNames.Count, $rosterBackup)
+}
+
 $homeHtml = Join-Path $hart 'cats\resources\jmri-web\servlet\home\Home.html'
 # STS and the LCOS mimic run on the Pi: the home page links there by the Pi's own mDNS
 # name (its avahi, so it works while JMRI is down).

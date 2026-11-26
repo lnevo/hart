@@ -15,6 +15,7 @@
 
 jmri/layouts/hart/output/tables.xml
 jmri/layouts/hart/operations
+jmri/layouts/hart/roster
 cats/panels/HART_CTC.xml
 cats/panels/HART_ABS.xml
 cats/scripts/install_jmri_web_override.sh

@@ -121,6 +121,20 @@ stage_package() {
   fi
   mkdir -p "$stage/operations"
   cp -f "$ROOT/jmri/layouts/hart/operations/"*.xml "$stage/operations/"
+  # The DecoderPro roster (ADR-039 amendment 2026-11-26): roster.xml and the entry files it names, as the hosts keep
+  # them under JMRI_UserFiles (tools/hosts/pi/install_roster.sh and the Windows apply install it). A master that
+  # names a file it lacks stops the staging, so the gate's trial staging (G7) stops the deploy.
+  local roster_names name
+  roster_names="$(source "$ROOT/tools/hosts/pi/roster_sha.sh" && roster_files "$ROSTER_MASTER")" \
+    || { echo "stage.sh: cannot read the DecoderPro roster master $ROSTER_MASTER/roster.xml" >&2; exit 1; }
+  [[ -n "$roster_names" ]] || { echo "stage.sh: $ROSTER_MASTER/roster.xml names no locomotive file" >&2; exit 1; }
+  mkdir -p "$stage/roster/roster"
+  cp -f "$ROSTER_MASTER/roster.xml" "$stage/roster/"
+  while IFS= read -r name; do
+    [[ -f "$ROSTER_MASTER/roster/$name" ]] \
+      || { echo "stage.sh: $ROSTER_MASTER/roster.xml names roster/$name, which is not there" >&2; exit 1; }
+    cp -f "$ROSTER_MASTER/roster/$name" "$stage/roster/roster/"
+  done <<<"$roster_names"
   chmod +x "$stage/cats/scripts/pi/"*.sh "$stage/cats/scripts/"*.sh 2>/dev/null || true
   # Finder litter (.DS_Store, AppleDouble) from a gitignored corner of the checkout must not reach the package,
   # whichever copy step brought it.
