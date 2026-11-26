@@ -70,9 +70,9 @@ class RetiredScripts(unittest.TestCase):
                 self.assertIn(name, text)
 
     def test_copies_are_kept(self):
-        self.assertTrue((ROOT / "archive/jmri-scripts/sync_turnout_buttons.py").is_file())
-        self.assertTrue((ROOT / "archive/jmri-scripts/sync_yard_ladder_buttons.py").is_file())
-        self.assertTrue((ROOT / "archive/layouts/linear6/SetBlockPreviewValues.py").is_file())
+        self.assertTrue((ROOT / "archive/code/jmri-scripts/sync_turnout_buttons.py").is_file())
+        self.assertTrue((ROOT / "archive/code/jmri-scripts/sync_yard_ladder_buttons.py").is_file())
+        self.assertTrue((ROOT / "archive/data/layouts/linear6/SetBlockPreviewValues.py").is_file())
         self.assertTrue((ROOT / "jmri/layouts/hart/scripts/apply_dispatcher_roster_profiles.py").is_file())
 
 

@@ -233,7 +233,7 @@ foreach ($r in ($roots | Select-Object -Unique)) {
 }
 
 $retired = @('apply_maintain_mqtt.py', 'apply_mqtt_retain_at_startup.py', 'prepare_nx_sml_paths.py')
-# Old scripts no Start Up uses; copies are kept in archive/jmri-scripts or the repo.
+# Old scripts no Start Up uses; copies are kept in archive/code/jmri-scripts or the repo.
 $retiredJython = @('sync_turnout_buttons.py', 'sync_yard_ladder_buttons.py', 'apply_dispatcher_roster_profiles.py', 'SetBlockPreviewValues.py', 'sync_layout_button.py', 'mqtt_signalhead_publisher.py')
 $jythonDirs = New-Object System.Collections.Generic.List[string]
 [void]$jythonDirs.Add((Join-Path $UserFiles 'jython'))

@@ -112,7 +112,7 @@ cats/logs/
 jmri/layouts/**/*.xml.bak_*
 
 # Old validator logs and checkpoints kept locally
-archive/panels/sheets/checkpoints/HART_WestYard_BEFORE_rotate180.xml
+archive/data/panels/sheets/checkpoints/HART_WestYard_BEFORE_rotate180.xml
 
 # Operations Pro plugin backups made when changing the repo copy
 jmri/layouts/hart/operations/backups/
@@ -130,7 +130,7 @@ tools/mqtt-mimic/qa/native_sml_qa_baseline.json
 # Owner's operations log (names people; site copy is www/ap/log.html)
 docs/ap/operations.log
 
-# MRE Electrical SOQ build scratch (archive/docs/ap/electrical/build_soq.py)
+# MRE Electrical SOQ build scratch (archive/code/ap-electrical/build_soq.py)
 /docs/ap/electrical/build/
 
 # make panels stamps (tools/schematic/panel_stamps.py), per checkout

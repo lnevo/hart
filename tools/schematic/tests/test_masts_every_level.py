@@ -1,4 +1,4 @@
-"""The masts of every level, pinned mast by mast (archive/wiki/projects/level-unification-handoff.md, Masts). Two views:
+"""The masts of every level, pinned mast by mast (archive/history/wiki/projects/level-unification-handoff.md, Masts). Two views:
 
 - the committed mast file (masts.csv, every level with its `level` column: hartlib.level_masts.FIELDS), read as plain CSV,
   so the pins do not depend on how the device maps are laid out;

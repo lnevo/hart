@@ -30,7 +30,7 @@ Originally drafted for the owner's review. The goal is that
 
 ### Speed table (CV67 to CV94)
 
-Calculated by [`propose_table.py`](../../../../archive/docs/jmri/speedmatching/profile-2026-11-08/propose_table.py) from the measured curves:
+Calculated by [`propose_table.py`](../../../../archive/code/speedmatching/profile-2026-11-08/propose_table.py) from the measured curves:
 
 ```
 12, 27, 50, 73, 94, 115, 135, 146, 155, 165, 174, 179, 184, 190,

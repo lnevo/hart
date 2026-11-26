@@ -7,7 +7,7 @@
 
 ## Context
 
-Device facts are kept three times: `public_name_map.csv`, `device_map_staging.csv` and `device_map_main_upper.csv` each hold parts of them, and `tables.xml` holds them again. The DCC group is parsed from JMRI comments, and the build finds its own items by comment and name. Staging has no generator: `build_layout_le.py` builds on the live `tables.xml`, so for staging `tables.xml` is still a source. The inventory and design are in the project-health hand-off, row 9 ([`projects/project-health-handoff.md`](../../archive/wiki/projects/project-health-handoff.md)).
+Device facts are kept three times: `public_name_map.csv`, `device_map_staging.csv` and `device_map_main_upper.csv` each hold parts of them, and `tables.xml` holds them again. The DCC group is parsed from JMRI comments, and the build finds its own items by comment and name. Staging has no generator: `build_layout_le.py` builds on the live `tables.xml`, so for staging `tables.xml` is still a source. The inventory and design are in the project-health hand-off, row 9 ([`projects/project-health-handoff.md`](../../archive/history/wiki/projects/project-health-handoff.md)).
 
 ## Decision
 
@@ -50,7 +50,7 @@ The `AGENTS.md` rule "fix the data in `tables.xml`" becomes "fix the source data
 
 ## Open
 
-- R9b to R9e were built in that order and are done (2026-11-21; [`project-health-handoff.md`](../../archive/wiki/projects/project-health-handoff.md)). `devices.csv` in the Decision above is now two files, merged by `hartlib.devices` (amendment below).
+- R9b to R9e were built in that order and are done (2026-11-21; [`project-health-handoff.md`](../../archive/history/wiki/projects/project-health-handoff.md)). `devices.csv` in the Decision above is now two files, merged by `hartlib.devices` (amendment below).
 
 ## Amendment 2026-11-21: the device master is two files
 

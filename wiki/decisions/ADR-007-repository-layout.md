@@ -1,6 +1,6 @@
 # ADR-007 — Repository layout
 
-- **Status:** Accepted. Amended 2026-10-31: the dissolve in decision 3 is complete. The leftover `archive/consolidation/` folder was removed the same day and remains in git history. Amended 2026-11-12: the deploy exception in decision 2 is retired (see the amendment below).
+- **Status:** Accepted. Amended 2026-10-31: the dissolve in decision 3 is complete. The leftover `archive/consolidation/` folder was removed the same day and remains in git history. Amended 2026-11-12: the deploy exception in decision 2 is retired (see the amendment below). Amended 2026-11-26: `archive/` is grouped into `code/`, `data/` and `history/` (decision 4).
 - **Date:** 2026-10-31
 - **Deciders:** lnevo
 
@@ -18,6 +18,7 @@
    - `external/` holds only the submodules and the STS data. hart-ops left it for `ops/hart-ops/` on 2026-11-09 (ADR-019).
    - `media/` is gitignored photo, video and archive material.
    - `archive/` holds retired material; nothing in it runs.
+     Amended 2026-11-26: it is grouped by kind into `archive/code/` (retired scripts and tools), `archive/data/` (retired data files) and `archive/history/` (finished hand-offs, old wiki pages and notes), each with a README.
 5. All created documents live in `docs/`. One file per purpose. Tools stay live; superseded outputs go to `archive/`.
 6. Live data is read from the repo. `~/sts` gets no sync. ~~Four `~/Desktop/HART` folders stay in step through `sync_desktop_data.py`, which never deletes.~~ Superseded 2026-11-09: `~/Desktop/HART` is retired and the sync tool removed (see the amendment below).
 

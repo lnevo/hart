@@ -71,7 +71,7 @@ Still used by active tools, so they must keep working while parked:
 
 The three scripts that edit the panel work on the generated panel only (`hartlib.tables.require_generated_panel`: it
 holds the generated-panel marker, `hartlib.tables.GENERATED_PANEL_MARKER`) and refuse any other: the hand-drawn
-panel's pixel tables and the one-off edit scripts are gone (the one-off scripts are in `archive/jmri-scripts/`). Every
+panel's pixel tables and the one-off edit scripts are gone (the one-off scripts are in `archive/code/jmri-scripts/`). Every
 position comes from the panel itself or from `--reference`, the tables before Stage 1, which `run_panelpro_stage1.sh`
 passes:
 

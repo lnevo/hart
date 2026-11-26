@@ -92,7 +92,7 @@ def main():
         published[f] = 'stl/' + f
     for f in [PLAN, 'lap_screw_template.pdf', STATUS, HANDOFF]:
         published[f] = 'files/' + f
-    # The generators are archived (archive/tools/benchwork/helix/); their names stay as plain text.
+    # The generators are archived (archive/code/benchwork-tools/helix/); their names stay as plain text.
 
     # STL index (HTML rows + Markdown rows)
     rows_html = []

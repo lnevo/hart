@@ -2,7 +2,7 @@
 
 The panels are drawn from the schematic (`make panels`, `tools/schematic/`). The AnyRail pipeline that built the first
 blocked panel (`prepare_tables_from_anyrail.py`, `sync_linear_panel.py`, `build_blocks_excel.py`,
-`apply_blocks_to_panel.py`) is retired and kept in `archive/jmri-scripts/`; see
+`apply_blocks_to_panel.py`) is retired and kept in `archive/code/jmri-scripts/`; see
 [`wiki/pipelines/jmri-anyrail.md`](../wiki/pipelines/jmri-anyrail.md).
 
 ## Per-layout folders

@@ -58,7 +58,7 @@ Agent: `general-purpose`. `/code-review medium`.
 
 - The 2026-11-08 speed-matching scripts that made that session's files: `runner/step_runner.py`, `runner/move_to.py`, `analyze_profile.py` and `propose_table.py`. Their README and `RERUN_PLAN.md` links point into `archive/`, and the `ruff.toml` exception for the runner goes. `block_speeds.py` and every data file stay.
 - `docs/jmri/speedmatching/STRR_*.py` (two third-party scripts), with their `ruff.toml` and size-guard exclusions.
-- `archive/tools/benchwork/helix/` and `archive/tools/benchwork/main_level/` generators, once the owner says the benchwork build is finished.
+- `archive/code/benchwork-tools/helix/` and `archive/code/benchwork-tools/main_level/` generators, once the owner says the benchwork build is finished.
 - Archived on 2026-11-25 (owner): `cats/panels/HART_chubb_magnet.xml` (#1163) and `docs/ap/electrical/build_soq.py` and `make_drawings.py`, kept as the frozen SOQ's record.
 - Kept: `cats/scripts/sync_hart_package.sh` (ADR-007 keeps the old command).
 - Use `tools/ops/move_path.py` for every move. Docs only, no review.

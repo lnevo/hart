@@ -1,5 +1,5 @@
 """Split a PanelPro Store back into the sources of tables.xml (ADR-029, R9d; the owner's design of 2026-11-20 in
-archive/wiki/projects/project-health-handoff.md, "R9d redesign").
+archive/history/wiki/projects/project-health-handoff.md, "R9d redesign").
 
 A Store mostly holds settings the owner made in PanelPro that must survive the next deploy, so the default is to keep
 it. Three files are compared item by item, all normalised (tables_build.normalise_store):
