@@ -6,20 +6,24 @@ from __future__ import annotations
 
 import html
 import json
+from typing import TYPE_CHECKING
 
 import make_share_cards as kit
 from make_share_cards import H, PAPER, SOURCES, W, site_views
 
+if TYPE_CHECKING:
+    from PIL.Image import Image as PILImage
+
 
 # ---- Cards that use the captured panel image ------------------------------------------------
 
-def _panel():
+def _panel() -> PILImage:
     from PIL import Image
 
     return Image.open(SOURCES / "panel-frame.png").convert("RGB")
 
 
-def jmri_additions():
+def jmri_additions() -> PILImage:
     """behind-jmri-additions: the panel from Brick to East End with its four status lamps enlarged in front."""
     from PIL import Image, ImageDraw, ImageFilter
 
@@ -44,7 +48,7 @@ def jmri_additions():
     return out.convert("RGB")
 
 
-def roster():
+def roster() -> PILImage:
     """roster-index: the Brick corner of the panel beside six Brick rows of the device viewer."""
     from PIL import Image
 
@@ -53,10 +57,13 @@ def roster():
     try:  # the published index is built, not committed (ADR-036): build it as the site does
         items = json.loads(site_views.build("data/layout-index.json"))["items"]
     except site_views.ViewError as err:
-        raise SystemExit(f"roster-index: {err}") from None
+        raise SystemExit(f"roster-index: {err}") from err
     wanted = [("turnout", "Switch 1"), ("turnout", "Switch 3"), ("signal", "Mast 2L"), ("signal", "Mast 4RA"),
               ("occupancy", "OS Switch 1"), ("occupancy", "OS Switch 3")]
     by_name = {(i["kind"], i.get("publicName")): i for i in items}
+    gone = [f"{kind} {name}" for kind, name in wanted if (kind, name) not in by_name]
+    if gone:
+        raise SystemExit(f"roster-index: the layout index has no {', '.join(gone)}; pick other rows for the card")
     tr = "".join(
         f"<tr><td>{kind}</td><td><b>{html.escape(name)}</b></td><td>{html.escape(by_name[kind, name].get('cp') or '')}</td>"
         f"<td>{html.escape(by_name[kind, name].get('hardware') or '')}</td></tr>"

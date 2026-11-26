@@ -23,7 +23,11 @@ import re
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
+from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path
+from types import ModuleType
+from typing import NamedTuple, TypedDict
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
@@ -52,7 +56,39 @@ class LayoutIndexError(Exception):
     """The layout index cannot be built, or what was built fails a check; the message says why."""
 
 
-def load_render_mod():
+class NameRecord(TypedDict):
+    """A staging row of the device master, as the index joins it."""
+    current: str
+    proposed: str
+    cp: str
+    hardware: str
+    comment: str
+
+
+class Device(TypedDict):
+    """A layout device read from tables.xml."""
+    kind: str
+    userName: str
+    mqtt: str            # its MQTT address, "" for internal hardware
+    comment: str
+
+
+class Item(TypedDict):
+    """One entry of layout-index.json; x and y are None for a device the panel does not draw."""
+    id: str
+    kind: str
+    x: float | None
+    y: float | None
+    systemName: str
+    publicName: str
+    cp: str
+    hardware: str
+    mqtt: str
+    comment: str
+    block: str
+
+
+def load_render_mod() -> ModuleType:
     spec = importlib.util.spec_from_file_location("render_le_layout", RENDER)
     if spec is None or spec.loader is None:
         raise LayoutIndexError(f"cannot load {RENDER}")
@@ -61,7 +97,7 @@ def load_render_mod():
     return mod
 
 
-def load_names(path: Path):
+def load_names(path: Path) -> tuple[dict[str, NameRecord], dict[str, NameRecord]]:
     """({system name: record}, {user name: record}) of staging's rows of the device master: its user name (current and
     proposed, as the page keys them), cp, system name (hardware) and JMRI comment (hartlib.devices.comment_of)."""
     by_hw, by_name = {}, {}
@@ -81,7 +117,7 @@ def load_names(path: Path):
     return by_hw, by_name
 
 
-def load_devices(path: Path = PANEL, master_files: "device_master.Files | None" = None):
+def load_devices(path: Path = PANEL, master_files: device_master.Files | None = None) -> dict[str, Device]:
     """Device rows read from tables.xml: system name -> {kind, userName, mqtt, comment}. A block's kind is its row's
     role in the device master (`master_files`, the repo's when None), never its name.
 
@@ -95,11 +131,11 @@ def load_devices(path: Path = PANEL, master_files: "device_master.Files | None" 
     pair = {}  # DCC mirror turnout -> its "Node: n Turnout: k" text, to sit beside its MQTT turnout
     address = re.compile(r"^(?:M2[ST]|IH)(\d+)$")  # hardware systems whose number is an MQTT address
 
-    def node_comment(el):
+    def node_comment(el: ET.Element) -> bool:
         # "Node: ..." first, or after a wired head's place ("Plane | Switch 5 | Node: 4 ...")
         return re.search(r"(?:^| \| )Node: ", tables.text(el, "comment")) is not None
 
-    def add(el, kind):
+    def add(el: ET.Element, kind: str) -> None:
         sn = tables.system_name(el)
         m = address.match(sn)
         out[sn] = {
@@ -141,8 +177,8 @@ def load_devices(path: Path = PANEL, master_files: "device_master.Files | None" 
     # Address order (node, port), a block or DCC mirror after its sensor or turnout, masts last.
     turnout_at = {names.first_group(d["comment"]): d["mqtt"] for sn, d in out.items() if sn.startswith("M2T")}
 
-    def key(item):
-        sn, d = item
+    def key(entry: tuple[str, Device]) -> tuple[int, bool, bool]:
+        sn, d = entry
         addr = d["mqtt"] or turnout_at.get(pair.get(sn, ""), "")
         late = sn in pair or d["kind"] in ("block", "os block")
         return (int(addr) if addr.isdigit() else 10 ** 9, late, not sn.startswith("IB:AUTO"))
@@ -150,7 +186,7 @@ def load_devices(path: Path = PANEL, master_files: "device_master.Files | None" 
     return dict(sorted(out.items(), key=key))
 
 
-def load_cps(path: Path, switches: Path = paths.LAYOUT_DATA / "switches.csv"):
+def load_cps(path: Path, switches: Path = paths.LAYOUT_DATA / "switches.csv") -> list[tuple[str, str]]:
     """(OS block number, control point) pairs, e.g. ("23a", "East End"), from the desk areas of stations.csv, every
     level's (staging's only so far; a switch number is unique railroad-wide, so the levels cannot mix)."""
     pairs = []
@@ -161,7 +197,8 @@ def load_cps(path: Path, switches: Path = paths.LAYOUT_DATA / "switches.csv"):
     return pairs
 
 
-def cp_for(public: str, pairs, fallback: str) -> str:
+def cp_for(public: str, pairs: Sequence[tuple[str, str]], fallback: str) -> str:
+    """The control point of a switch: its device master place, else the desk area whose switch list names it."""
     if fallback:
         return fallback
     bare = public.replace("Switch ", "").strip()
@@ -171,8 +208,26 @@ def cp_for(public: str, pairs, fallback: str) -> str:
     return ""
 
 
-def overview_xy(turnouts, segs, signals, stations):
-    """Match render_le_layout.render_view overview window (xmin=None)."""
+@dataclass(frozen=True)
+class Overview:
+    """Panel coordinates to pixels on the schematic, as render_le_layout.render_view draws its overview
+    (xmin=None)."""
+    bx0: float
+    by0: float
+    scale: float
+    width: int
+    height: int
+
+    def x(self, v: float) -> float:
+        return PAD + (v - self.bx0) * self.scale
+
+    def y(self, v: float) -> float:
+        return TOP + (v - self.by0) * self.scale
+
+
+def overview_xy(turnouts: Sequence[dict], segs: Sequence[tuple], signals: Sequence[dict],
+                stations: Sequence[dict]) -> Overview:
+    """The overview window around every turnout, track segment, signal and station label."""
     pts = []
     for a, b, _m, _bl in segs:
         pts += [a, b]
@@ -189,19 +244,10 @@ def overview_xy(turnouts, segs, signals, stations):
     by0 = min(p[1] for p in pts) - PAD
     by1 = max(p[1] for p in pts) + PAD
     scale = max((TARGET_W - 2 * PAD) / (bx1 - bx0), 1.0)
-    width = int((bx1 - bx0) * scale + 2 * PAD)
-    height = int((by1 - by0) * scale + TOP + PAD)
-
-    def X(v):
-        return PAD + (v - bx0) * scale
-
-    def Y(v):
-        return TOP + (v - by0) * scale
-
-    return X, Y, width, height, scale
+    return Overview(bx0, by0, scale, int((bx1 - bx0) * scale + 2 * PAD), int((by1 - by0) * scale + TOP + PAD))
 
 
-def refresh_schematic():
+def refresh_schematic() -> None:
     SCHEMATIC.parent.mkdir(parents=True, exist_ok=True)
     cmd = [sys.executable, str(RENDER), str(PANEL), str(SCHEMATIC)]
     print("render:", " ".join(cmd))
@@ -210,7 +256,7 @@ def refresh_schematic():
         raise LayoutIndexError(f"render failed: {RENDER.name} {PANEL}")
 
 
-def render_inputs_sha256(geometry) -> str:
+def render_inputs_sha256(geometry: object) -> str:
     """What the schematic PNG is drawn from: the panel geometry the renderer reads, and the renderer.
 
     Recorded in the PNG (png_stamp) and the JSON so --check finds a PNG that needs re-rendering without drawing it
@@ -221,119 +267,118 @@ def render_inputs_sha256(geometry) -> str:
     return h.hexdigest()
 
 
-def build():
+def build() -> dict:
     """The layout index from its sources. LayoutIndexError when a source is missing or cannot be read (a tables.xml
     that is not XML, a device master or stations.csv hartlib refuses)."""
     try:
         return _build()
     except (ET.ParseError, railroad_facts.FactsError, ValueError, OSError) as err:
-        raise LayoutIndexError(f"cannot build the layout index from its sources: {type(err).__name__}: {err}") from None
+        raise LayoutIndexError(f"cannot build the layout index from its sources: {type(err).__name__}: {err}") from err
 
 
-def _build():
+def item(id_: str, kind: str, xy: tuple[float, float] | None, system_name: str, public: str, cp: str, hardware: str,
+         mqtt: str, comment: str, block: str) -> Item:
+    """One index entry; xy None for a device the panel does not draw."""
+    return {"id": id_, "kind": kind, "x": round(xy[0], 1) if xy else None, "y": round(xy[1], 1) if xy else None,
+            "systemName": system_name, "publicName": public, "cp": cp, "hardware": hardware, "mqtt": mqtt,
+            "comment": comment, "block": block}
+
+
+class Sources(NamedTuple):
+    """What the items are joined from: the device master's names, the panel's devices, the desk areas."""
+    by_hw: dict[str, NameRecord]
+    by_name: dict[str, NameRecord]
+    devices: dict[str, Device]
+    by_user: dict[str, str]          # device user name -> system name
+    cps: list[tuple[str, str]]
+
+
+def turnout_items(turnouts: Sequence[dict], ov: Overview, src: Sources, on_panel: set[str]) -> list[Item]:
+    out = []
+    for i, t in enumerate(turnouts):
+        tn = t.get("tn") or ""
+        rec = src.by_hw.get(tn) or {}
+        dsn = tn if tn in src.devices else src.by_user.get(tn, "")
+        on_panel.add(dsn)
+        if not rec:
+            un = (src.devices.get(dsn) or {}).get("userName") or ""
+            rec = src.by_name.get(un) or {}
+        public = rec.get("proposed") or rec.get("current") or tn or t.get("ident")
+        block = t.get("block") or ""
+        cp = cp_for(public, src.cps, rec.get("cp") or "")
+        if not cp and block.startswith("OS "):
+            cp = block
+        dev = src.devices.get(dsn) or {}
+        out.append(item(f"to-{t.get('ident') or i}", "turnout", (ov.x(t["cen"][0]), ov.y(t["cen"][1])), tn, public, cp,
+                        rec.get("hardware") or tn, str(dev.get("mqtt") or ""),
+                        rec.get("comment") or (dev.get("comment") or ""), block))
+    return out
+
+
+def signal_items(signals: Sequence[dict], ov: Overview, src: Sources, on_panel: set[str]) -> list[Item]:
+    out = []
+    for i, s in enumerate(signals):
+        mast = s.get("name") or ""
+        on_panel.add(mast if mast in src.devices else src.by_user.get(mast, ""))
+        rec = src.by_name.get(mast) or src.by_hw.get(mast) or {}
+        out.append(item(f"sig-{i}", "signal", (ov.x(s["x"]), ov.y(s["y"])), mast,
+                        rec.get("proposed") or rec.get("current") or mast, rec.get("cp") or "",
+                        rec.get("hardware") or "", "", rec.get("comment") or "", ""))
+    return out
+
+
+def item_kind(device_kind: str) -> str:
+    """The index's kind for a device the panel does not draw."""
+    k = device_kind.lower()
+    if "turnout" in k:
+        return "turnout"
+    if "signal" in k or "mast" in k or "head" in k:
+        return "signal"
+    if "occup" in k or "block" in k:
+        return "occupancy"
+    return "sensor"
+
+
+def device_items(src: Sources, on_panel: set[str]) -> list[Item]:
+    """The devices in tables.xml that no turnout or signal on the panel stands for, unplaced."""
+    out = []
+    for sn, dev in src.devices.items():
+        if sn in on_panel:
+            continue
+        un = (dev.get("userName") or sn).strip()
+        rec = src.by_hw.get(sn) or src.by_name.get(un) or {}
+        out.append(item(f"dev-{sn}", item_kind(dev.get("kind") or ""), None, sn,
+                        rec.get("proposed") or rec.get("current") or un, rec.get("cp") or "",
+                        rec.get("hardware") or sn, str(dev.get("mqtt") or ""),
+                        rec.get("comment") or (dev.get("comment") or ""), ""))
+    return out
+
+
+def counts(items: Sequence[Item]) -> dict[str, int]:
+    by = {k: sum(1 for it in items if it["kind"] == k) for k in ("turnout", "signal", "occupancy", "sensor")}
+    return {**by, "mapped": sum(1 for it in items if it.get("x") is not None), "total": len(items)}
+
+
+def _build() -> dict:
     for path, what in ((PANEL, "panel"), (NAMES, "names"), (STATIONS, "stations")):
         if not path.is_file():
             raise LayoutIndexError(f"missing {what}: {path}")
     if not SCHEMATIC.is_file():
         raise LayoutIndexError(f"missing {paths.rel(SCHEMATIC)}: run {BUILD} to render it, and commit it")
-    mod = load_render_mod()
-    geometry = mod.load_geometry(PANEL)
+    geometry = load_render_mod().load_geometry(PANEL)
     _pp, _legs, turnouts, segs, signals, stations = geometry
-    X, Y, _width, _height, scale = overview_xy(turnouts, segs, signals, stations)
-
+    ov = overview_xy(turnouts, segs, signals, stations)
     by_hw, by_name = load_names(NAMES)
     devices = load_devices(PANEL)
-    by_user = {d["userName"]: sn for sn, d in devices.items() if d["userName"]}
-    on_panel = set()  # device system names already drawn from the panel, so no dev- item repeats them
-    cps = load_cps(STATIONS)
-    items = []
-
-    for i, t in enumerate(turnouts):
-        tn = t.get("tn") or ""
-        rec = by_hw.get(tn) or {}
-        dsn = tn if tn in devices else by_user.get(tn, "")
-        on_panel.add(dsn)
-        if not rec:
-            un = (devices.get(dsn) or {}).get("userName") or ""
-            rec = by_name.get(un) or {}
-        public = rec.get("proposed") or rec.get("current") or tn or t.get("ident")
-        block = t.get("block") or ""
-        cp = cp_for(public, cps, rec.get("cp") or "")
-        if not cp and block.startswith("OS "):
-            cp = block
-        dev = devices.get(dsn) or {}
-        items.append(
-            {
-                "id": f"to-{t.get('ident') or i}",
-                "kind": "turnout",
-                "x": round(X(t["cen"][0]), 1),
-                "y": round(Y(t["cen"][1]), 1),
-                "systemName": tn,
-                "publicName": public,
-                "cp": cp,
-                "hardware": rec.get("hardware") or tn,
-                "mqtt": str(dev.get("mqtt") or ""),
-                "comment": rec.get("comment") or (dev.get("comment") or ""),
-                "block": block,
-            }
-        )
-
-    for i, s in enumerate(signals):
-        mast = s.get("name") or ""
-        on_panel.add(mast if mast in devices else by_user.get(mast, ""))
-        rec = by_name.get(mast) or by_hw.get(mast) or {}
-        public = rec.get("proposed") or rec.get("current") or mast
-        items.append(
-            {
-                "id": f"sig-{i}",
-                "kind": "signal",
-                "x": round(X(s["x"]), 1),
-                "y": round(Y(s["y"]), 1),
-                "systemName": mast,
-                "publicName": public,
-                "cp": rec.get("cp") or "",
-                "hardware": rec.get("hardware") or "",
-                "mqtt": "",
-                "comment": rec.get("comment") or "",
-                "block": "",
-            }
-        )
-
-    for sn, dev in devices.items():
-        if sn in on_panel:
-            continue
-        kind_raw = (dev.get("kind") or "").lower()
-        if "turnout" in kind_raw:
-            kind = "turnout"
-        elif "signal" in kind_raw or "mast" in kind_raw or "head" in kind_raw:
-            kind = "signal"
-        elif "occup" in kind_raw or "block" in kind_raw:
-            kind = "occupancy"
-        else:
-            kind = "sensor"
-        un = (dev.get("userName") or sn).strip()
-        rec = by_hw.get(sn) or by_name.get(un) or {}
-        items.append(
-            {
-                "id": f"dev-{sn}",
-                "kind": kind,
-                "x": None,
-                "y": None,
-                "systemName": sn,
-                "publicName": rec.get("proposed") or rec.get("current") or un,
-                "cp": rec.get("cp") or "",
-                "hardware": rec.get("hardware") or sn,
-                "mqtt": str(dev.get("mqtt") or ""),
-                "comment": rec.get("comment") or (dev.get("comment") or ""),
-                "block": "",
-            }
-        )
-
+    src = Sources(by_hw, by_name, devices, {d["userName"]: sn for sn, d in devices.items() if d["userName"]},
+                  load_cps(STATIONS))
+    on_panel: set[str] = set()  # device system names already drawn from the panel, so no dev- item repeats them
+    items = turnout_items(turnouts, ov, src, on_panel) + signal_items(signals, ov, src, on_panel)
+    items += device_items(src, on_panel)
     try:
         width, height = png_stamp.size(SCHEMATIC)  # the PNG the hotspots sit on
     except png_stamp.PngError as err:
-        raise LayoutIndexError(str(err)) from None
-
+        raise LayoutIndexError(str(err)) from err
     return {
         "source": {
             "workspace": "hart",
@@ -346,18 +391,11 @@ def _build():
             "path": "assets/layout/HART_le_schematic.png",
             "width": width,
             "height": height,
-            "scale": scale,
+            "scale": ov.scale,
             "inputs_sha256": render_inputs_sha256(geometry),
         },
         "items": items,
-        "counts": {
-            "turnout": sum(1 for it in items if it["kind"] == "turnout"),
-            "signal": sum(1 for it in items if it["kind"] == "signal"),
-            "occupancy": sum(1 for it in items if it["kind"] == "occupancy"),
-            "sensor": sum(1 for it in items if it["kind"] == "sensor"),
-            "mapped": sum(1 for it in items if it.get("x") is not None),
-            "total": len(items),
-        },
+        "counts": counts(items),
     }
 
 
