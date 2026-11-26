@@ -9,7 +9,7 @@ SCRIPTS = Path(__file__).resolve().parents[1]
 
 def load_module():
     spec = importlib.util.spec_from_file_location(
-        "refresh_bean_comments", SCRIPTS / "refresh_bean_comments.py"
+        "check_bean_comments", SCRIPTS / "check_bean_comments.py"
     )
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
