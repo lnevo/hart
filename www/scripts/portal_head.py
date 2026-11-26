@@ -18,8 +18,10 @@ from portal_common import SHARE_DESCRIPTION
 from portal_search_index import INDEX_NAME, INDEX_SKIP_PAGES
 
 
-def _head_tags(rel: Path, title: str, desc: str | None = None) -> str:
-    """Icon and share tags; desc is the page's own meta description, which the page already carries."""
+def _head_tags(rel: Path, title: str, desc: str | None = None, canonical: bool = True) -> str:
+    """Icon and share tags; desc is the page's own meta description, which the page already carries.
+    canonical adds <link rel="canonical"> to the www URL, so the bare domain and /index.html count as
+    copies of it; redirect stubs, noindex pages and the 404 page go without."""
     # The 404 page is served for any missing path, so its links start at the site root.
     up = "/" if rel == Path("404.html") else "../" * (len(rel.parts) - 1)
     url = portal_common.SITE_URL + provenance.url_path(rel)
@@ -29,10 +31,11 @@ def _head_tags(rel: Path, title: str, desc: str | None = None) -> str:
     desc = html.escape(desc or SHARE_DESCRIPTION, quote=True)
     card = share_cards.card_for(rel)  # the page's own thumbnail, or the site card
     image, alt = card["image"], html.escape(card["alt"], quote=True)
+    link = f'\n  <link rel="canonical" href="{url}">' if canonical else ""
     return f"""
   <link rel="icon" href="{up}favicon.ico" sizes="any">
   <link rel="icon" type="image/png" href="{up}assets/icons/favicon-32.png" sizes="32x32">
-  <link rel="apple-touch-icon" href="{up}assets/icons/apple-touch-icon.png">{meta_desc}
+  <link rel="apple-touch-icon" href="{up}assets/icons/apple-touch-icon.png">{link}{meta_desc}
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="HART Railroad">
   <meta property="og:title" content="{title}">
@@ -80,8 +83,10 @@ def _add_head_tags(dest_root: Path) -> None:
         m = re.search(r"<title>(.*?)</title>", text, re.S)
         title = html.unescape(m.group(1).strip()) if m else "HART Railroad"
         desc = _own_description(text)
+        rel = page.relative_to(dest_root)
+        canonical = rel.as_posix() not in INDEX_SKIP_PAGES and not provenance.skipped(text)
         page.write_text(
-            text.replace("</title>", "</title>" + _head_tags(page.relative_to(dest_root), title, desc), 1),
+            text.replace("</title>", "</title>" + _head_tags(rel, title, desc, canonical), 1),
             encoding="utf-8",
         )
 
