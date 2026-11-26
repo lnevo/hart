@@ -75,3 +75,13 @@ def drop(path: Path, key: tuple[str, str, str]) -> None:
     rows = _rows(path)
     rows.remove(find(rows, key))
     _write(path, rows)
+
+
+def name_store(path: Path, names: dict[str, str]) -> Path:
+    """Write a one-file master at `path` (devices.ONE_FILE beside a fixture's switches.csv) holding a level 1 block
+    for each {id: user name} of `names`: the name store a fixture's staging rows are read against."""
+    blank = {c: "" for c in devices.COLUMNS}
+    rows = [blank | dict(level="1", layer="block", role="os" if i.startswith("os:") else "track", id=i, user_name=n,
+                         assignment="none", description=f"Block {n}.") for i, n in names.items()]
+    _write(Path(path), rows)
+    return Path(path)
