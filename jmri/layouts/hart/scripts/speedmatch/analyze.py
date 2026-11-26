@@ -78,18 +78,23 @@ def load_routes(path: Path = ROUTES_JSON, order: Mapping[str, Sequence[str]] = R
         data = json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, ValueError) as e:
         raise RoutesError("cannot read %s (%s); run speedmatch/build_routes.py" % (path, e)) from e
-    routes = {r: [(str(pair[0]), str(pair[1])) for pair in pairs] for r, pairs in data["routes"].items()}
+    try:
+        routes = {r: [(str(pair[0]), str(pair[1])) for pair in pairs] for r, pairs in data["routes"].items()}
+        mids = dict(data["mid"])
+    except (KeyError, TypeError, AttributeError, IndexError) as e:
+        raise RoutesError("%s has no routes or mid in the expected shape (%r); run speedmatch/build_routes.py"
+                          % (path, e)) from e
     ids = data.get("ids", {})
     stale = sorted(r for r in set(order) | set(routes)
                    if list(ids.get(r, [])) != list(order.get(r, []))
                    or len(routes.get(r, [])) != len(order.get(r, [])))
     by_block = {r: dict(zip(ids[r], (s for s, _ in pairs))) for r, pairs in routes.items() if r not in stale}
     stale += sorted(r for r, b in mid.items()
-                    if r not in stale and data["mid"].get(r) != by_block.get(r, {}).get(b))
+                    if r not in stale and mids.get(r) != by_block.get(r, {}).get(b))
     if stale:
         raise RoutesError("%s does not match ROUTE_BLOCKS / ROUTE_MID_BLOCK for %s; run "
                          "speedmatch/build_routes.py" % (path, ", ".join(stale)))
-    return routes, dict(data["mid"])
+    return routes, mids
 
 
 def block_ids(path: Path = ROUTES_JSON) -> dict[str, str]:
@@ -729,7 +734,10 @@ def main(argv: Sequence[str] | None = None) -> None:
         if args[:1] == ["speed-by-step"]:
             # imported here, not at the top: the Pi's publisher imports this module and the bundle does not ship
             # speed_table.py (tools/hosts/deploy/stage.sh)
-            import speed_table
+            try:
+                import speed_table
+            except ImportError as e:
+                raise AnalyzeError("speed-by-step runs on the Mac: speed_table.py is not in this bundle") from e
             speed_table.main(args[1:])
         else:
             _main(args)

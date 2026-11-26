@@ -61,8 +61,9 @@ class SpeedByStep(unittest.TestCase):
             st.speed_by_step([], 1000.0)
         with self.assertRaisesRegex(st.SpeedTableError, "above 0 mm"):
             st.speed_by_step([st.Lap("A", 8, 10.0)], 0.0)
-        with self.assertRaisesRegex(st.SpeedTableError, "a lap takes time"):
-            st.speed_by_step([st.Lap("A", 8, 0.0)], 1000.0)
+        for bad in (0.0, float("nan"), float("inf")):
+            with self.assertRaisesRegex(st.SpeedTableError, "a lap takes a finite time above 0"):
+                st.speed_by_step([st.Lap("A", 8, bad)], 1000.0)
 
     def test_a_lap_csv_needs_its_columns_numbers_and_locos(self) -> None:
         d = tmpdir()
@@ -76,6 +77,9 @@ class SpeedByStep(unittest.TestCase):
         (d / "num.csv").write_text("loco,step,lap_s\nA,8,ten\n")
         with self.assertRaisesRegex(st.SpeedTableError, "num.csv line 2"):
             st.read_laps(d / "num.csv", {})
+        (d / "short.csv").write_text("loco,step,lap_s\nA,8\n")
+        with self.assertRaisesRegex(st.SpeedTableError, "short.csv line 2: step and lap_s must be numbers"):
+            st.read_laps(d / "short.csv", {})
 
     def test_log_loco_needs_an_equals_sign(self) -> None:
         self.assertEqual(st.log_loco_map(["a.log=CSX 1"]), {"a.log": "CSX 1"})
@@ -125,7 +129,31 @@ class RunLaps(unittest.TestCase):
         self.assertEqual(st.run_laps(analyze.parse_log(log)), [])
 
 
+class OneRoute(unittest.TestCase):
+    def test_a_run_on_another_route_is_refused(self) -> None:
+        log = [ln.replace("route=loop1", "route=loop2") for ln in lap_log([])]
+        with self.assertRaisesRegex(st.SpeedTableError, "is on route loop2, not loop1; give --route loop2"):
+            st.run_laps(analyze.parse_log(log), "loop1")
+
+
+class PiBundle(unittest.TestCase):
+    def test_speed_by_step_without_speed_table_says_it_runs_on_the_mac(self) -> None:
+        from unittest import mock
+        with mock.patch.dict(sys.modules, {"speed_table": None}):
+            with self.assertRaisesRegex(SystemExit, "speed-by-step runs on the Mac"):
+                analyze.main(["speed-by-step", "--out", "x.csv"])
+
+
 class NamedErrors(unittest.TestCase):
+    def test_routes_json_without_routes_or_mid(self) -> None:
+        d = tmpdir()
+        for drop in ("routes", "mid"):
+            data = json.loads(analyze.ROUTES_JSON.read_text())
+            del data[drop]
+            (d / "routes.json").write_text(json.dumps(data))
+            with self.assertRaisesRegex(analyze.RoutesError, "no routes or mid in the expected shape"):
+                analyze.load_routes(d / "routes.json")
+
     def test_routes_json_unreadable_or_stale(self) -> None:
         d = tmpdir()
         with self.assertRaisesRegex(analyze.RoutesError, "cannot read"):

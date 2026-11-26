@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import math
 import statistics
 from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
@@ -58,8 +59,9 @@ def speed_by_step(laps: Iterable[Lap], loop_mm: float) -> list[StepSpeed]:
         raise SpeedTableError("route length must be above 0 mm, got %g" % loop_mm)
     by: dict[tuple[str, int], list[float]] = {}
     for lap in laps:
-        if lap.lap_s <= 0:
-            raise SpeedTableError("lap of %s at step %d is %g s; a lap takes time" % (lap.loco, lap.step, lap.lap_s))
+        if not math.isfinite(lap.lap_s) or lap.lap_s <= 0:
+            raise SpeedTableError("lap of %s at step %d is %g s; a lap takes a finite time above 0"
+                                  % (lap.loco, lap.step, lap.lap_s))
         by.setdefault((lap.loco, lap.step), []).append(lap.lap_s)
     if not by:
         raise SpeedTableError("no laps")
@@ -90,16 +92,20 @@ def read_laps(path: str | Path, log_locos: Mapping[str, str]) -> list[Lap]:
                                       % (path, n, row.get("log")))
             try:
                 laps.append(Lap(loco, int(row["step"]), float(row["lap_s"])))
-            except ValueError as e:
-                raise SpeedTableError("%s line %d: %s" % (path, n, e)) from e
+            except (ValueError, TypeError) as e:
+                raise SpeedTableError("%s line %d: step and lap_s must be numbers (%s)" % (path, n, e)) from e
     return laps
 
 
 def run_laps(runs: Iterable[RunRecord], route: str = analyze.DEFAULT_ROUTE) -> list[Lap]:
-    """The whole laps of each run's steps, in log order; a run's own CFG route wins over route."""
+    """The whole laps of each run's steps, in log order. SpeedTableError when a run's CFG line names another route
+    than `route`: the table divides every lap by one route length."""
     laps = []
     for run in runs:
         name = str((run.get("cfg") or {}).get("route", route))
+        if name != route:
+            raise SpeedTableError("run of %s is on route %s, not %s; give --route %s, and one route per table"
+                                  % (run["loco"], name, route, name))
         ref, mid = analyze.route_order(name)[0], analyze.route_mid(name)
         for s in run["steps"]:
             start: float | None = None

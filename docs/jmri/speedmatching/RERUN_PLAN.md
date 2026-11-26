@@ -77,7 +77,9 @@ New `basis` values record where each length came from:
    with `--events-out events.csv`: each row is one block transit (`transit_s`). With the new
    lengths, each block's speed (length / transit time) against the lap mean at that step should
    come out close to 1.00. The spread is the error bar for the record. `analyze.py
-   speed-by-step --log LOG ... --route loop1` gives the speed per step over the new loop length.
+   speed-by-step --log LOG ... --route loop1` gives the speed per step over the new loop length
+   (one route per table; while some blocks have no trusted length yet, add `--loop-mm` or
+   `--trusted timed,plan`).
    The logs use the names of that date: convert the extension tracks with
    `rename_extension_tracks.py`, and read "BS Switch 37 / BS McKeesport" and "BS Switch 39 /
    BS McKees Rocks" as BS Switch 37 and BS Switch 39.
