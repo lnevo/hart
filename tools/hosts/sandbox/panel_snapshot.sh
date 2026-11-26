@@ -11,11 +11,12 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 source "$HERE/sandbox_env.sh"
 source "$ROOT/tools/hosts/profile_tables_guard.sh"
 source "$ROOT/tools/hosts/panelpro_session.sh"
-rm -f "$HART_SNAPSHOT_OUT" "$HART_SNAPSHOT_OUT.done"
+rm -f "$HART_SNAPSHOT_OUT" "$HART_SNAPSHOT_OUT.done" "$HART_SNAPSHOT_OUT.error"
 pp_profile
 pp_refuse_running "Quit CATS/PanelPro first."
 pp_begin "$HERE/panel_snapshot.py"
 pp_launch "$RUN/snapshot_panelpro.log"
 pp_wait_exit 600 || true
+[[ ! -f "$HART_SNAPSHOT_OUT.error" ]] || { echo "$(cat "$HART_SNAPSHOT_OUT.error"); log: $RUN/snapshot_panelpro.log" >&2; exit 1; }
 [[ -f "$HART_SNAPSHOT_OUT.done" ]] || { echo "no snapshot written; log: $RUN/snapshot_panelpro.log" >&2; exit 1; }
 echo "wrote $HART_SNAPSHOT_OUT ($(cat "$HART_SNAPSHOT_OUT.done"))"

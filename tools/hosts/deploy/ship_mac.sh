@@ -25,8 +25,6 @@ install_jython_scripts() {
       # Jython's compiled copy of a module it imported: one not older than the new .py would be reused.
       rm -f "$dest/$(basename "$f" .py)\$py.class"
     done
-    rm -f "$dest/hart_dispatcher_startup.py" "$dest/patch_dispatcher_facing.py"
-    (cd "$dest" && rm -f sync_turnout_buttons.py sync_yard_ladder_buttons.py apply_dispatcher_roster_profiles.py SetBlockPreviewValues.py sync_layout_button.py mqtt_signalhead_publisher.py)
     echo "preference:jython scripts -> $dest"
     if parked_dir jmri/layouts/hart/dispatcher; then
       echo "Dispatcher traininfo parked: not installed; $profile/dispatcher left as it is"
@@ -47,10 +45,10 @@ install_jython_scripts() {
         --profile "$profxml" \
         --script preference:jython/sts_car_sync.py \
         --after panel_status.py
+      # A Start Up entry for a retired script stays in an old profile.xml until it is stripped.
       python3 "$patch_startup" remove \
         --profile "$profxml" \
         --script prepare_nx_sml_paths.py || true
-      rm -f "$dest/prepare_nx_sml_paths.py"
       echo "Start Up retargeted -> preference:jython ($profxml)"
     fi
   }
@@ -115,7 +113,6 @@ install_ctc_icons_local() {
     local dest="$1/resources/misc"
     mkdir -p "$dest"
     cp -f "$ROOT/jmri/resources/misc/"* "$dest/"
-    rm -f "$dest/linear5_panel_bg.jpg"
     echo "panel background -> $dest"
   }
   _install_uss_sensor_icons_into() {

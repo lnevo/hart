@@ -1,4 +1,4 @@
-"""The deploy carries the panel background and retires old host scripts."""
+"""The deploy carries the panel background; the retired host scripts are kept in the repo."""
 
 import sys
 import unittest
@@ -17,14 +17,6 @@ STAGE = (STEPS / "stage.sh").read_text(encoding="utf-8")
 MAC = (STEPS / "ship_mac.sh").read_text(encoding="utf-8")
 PI = (ROOT / "tools/hosts/pi/apply_hart_package_local.sh").read_text(encoding="utf-8")
 WIN = (ROOT / "tools/hosts/windows/apply_hart_package_local.ps1").read_text(encoding="utf-8")
-OLD = (
-    "sync_turnout_buttons.py",
-    "sync_yard_ladder_buttons.py",
-    "apply_dispatcher_roster_profiles.py",
-    "SetBlockPreviewValues.py",
-    "sync_layout_button.py",
-    "mqtt_signalhead_publisher.py",
-)
 
 
 class PanelBackground(unittest.TestCase):
@@ -64,10 +56,7 @@ class UssSensorIcons(unittest.TestCase):
 
 
 class RetiredScripts(unittest.TestCase):
-    def test_every_host_removes_them(self):
-        for name in OLD:
-            for text in (SYNC, PI, WIN):
-                self.assertIn(name, text)
+    """No apply path deletes them any more (test_apply_no_retired_names.py); their copies are kept."""
 
     def test_copies_are_kept(self):
         self.assertTrue((ROOT / "archive/code/jmri-scripts/sync_turnout_buttons.py").is_file())

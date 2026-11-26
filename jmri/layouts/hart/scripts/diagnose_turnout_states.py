@@ -6,8 +6,8 @@ Rules (SoR):
     (DCC 116–119; yard / engine-house, not FB-driven Digicon SoR).
   - Digicon SEL+CMD share one polarity. No switch is inverted: closed is the straight
     (normal) leg everywhere. Switches 1 and 33 start up thrown in the field (the main
-    runs through their diverging legs, STARTS_THROWN); the rest start up closed (owner,
-    2026-11-18). Nothing here sets a state: --diagnose flags 1 or 33 when not thrown.
+    runs through their diverging legs, STARTS_THROWN); the rest start up closed.
+    Nothing here sets a state: --diagnose flags 1 or 33 when not thrown.
   - Wrong Digicon direction → fix **that one switch only** in
     `jmri/layouts/hart/data/switches.csv`, then rebuild
     the desks. Do not command MQTT/JMRI.
@@ -16,35 +16,32 @@ Rules (SoR):
     python3 jmri/layouts/hart/scripts/diagnose_turnout_states.py
     python3 jmri/layouts/hart/scripts/diagnose_turnout_states.py --diagnose
 
-Read-only: the retained-write mode was removed with the boot retain fill. Use
-sync_mqtt_turnouts_from_fb.py only when Digicon must track FB.
+Read-only. Use tools/mqtt/sync_mqtt_turnouts_from_fb.py only when Digicon must track FB.
+Exits 1 when JMRI cannot be reached.
 """
 
 from __future__ import annotations
 
 import argparse
-import json
-import subprocess
 import sys
 import urllib.error
-import urllib.request
+from collections.abc import Callable, Mapping
 from pathlib import Path
 
-sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
-                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+sys.path[:0] = [str(p / sub) for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir() for sub in ("tools/hartlib/src", "tools/mqtt")][:2] \
+    or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib.hosts import jmri_json_url, mqtt_broker  # noqa: E402
+
+import turnout_feedback as tf  # noqa: E402
 
 JMRI_JSON = jmri_json_url()
 MQTT_HOST = mqtt_broker()
 
-# Start up thrown: the main runs through their diverging legs (owner, 2026-11-18). Plate numbers.
+# Start up thrown: the main runs through their diverging legs. Plate numbers.
 STARTS_THROWN = {1, 33}
 
-# Yard / engine-house — Digicon not driven by FB SoR (DCC 116–119).
-SKIP_FB = {13, 7, 11, 9}
-
 STATE = {0: "UNKNOWN", 1: "UNKNOWN", 2: "CLOSED", 4: "THROWN", 8: "INCONSISTENT"}
-SENS = {2: "inactive", 4: "active"}
 FB_MODE = {
     1: "DIRECT",
     2: "EXACT",
@@ -56,78 +53,25 @@ FB_MODE = {
 }
 
 
-def _get(url: str):
-    with urllib.request.urlopen(url, timeout=10) as r:
-        return json.load(r)
+class JmriUnreachable(RuntimeError):
+    """The JMRI JSON server did not answer."""
 
 
-def _mqtt_retain(addr: int) -> str | None:
-    try:
-        out = subprocess.check_output(
-            [
-                "mosquitto_sub",
-                "-h",
-                MQTT_HOST,
-                "-t",
-                f"track/turnout/{addr}",
-                "-C",
-                "1",
-                "-W",
-                "1",
-            ],
-            text=True,
-            stderr=subprocess.DEVNULL,
-        ).strip()
-        return out or None
-    except subprocess.CalledProcessError:
-        return None
-
-
-def _fb_implied(d: dict) -> str | None:
-    """TWOSENSOR: FB R→THROWN, FB N→CLOSED."""
-    n_on = r_on = False
-    for s in d.get("sensor") or []:
-        sd = s.get("data") or s
-        if sd.get("state") != 4:
-            continue
-        un = sd.get("userName") or ""
-        if "FB N" in un:
-            n_on = True
-        elif "FB R" in un:
-            r_on = True
-    if n_on and not r_on:
-        return "CLOSED"
-    if r_on and not n_on:
-        return "THROWN"
-    return None
-
-
-def _switch_num_from_uname(un: str) -> int | None:
-    # "Switch 37" / "Switch 1"
-    parts = (un or "").split()
-    if len(parts) >= 2 and parts[0] == "Switch" and parts[1].isdigit():
-        return int(parts[1])
-    return None
-
-
-def diagnose(by_name: dict) -> int:
+def diagnose(by_name: Mapping[str, Mapping[str, object]], retain: Callable[[int], str | None]) -> int:
     rows = []
     for name, d in by_name.items():
-        if not name or not name.startswith("M2T"):
+        addr = tf.m2t_address(name or "")
+        if addr is None:
             continue
-        try:
-            addr = int(name[3:])
-        except ValueError:
+        sw = tf.switch_number(str(d.get("userName") or ""))
+        if sw is not None and sw in tf.SKIP_FB:
             continue
-        un = d.get("userName") or ""
-        sw = _switch_num_from_uname(un)
-        if sw is not None and sw in SKIP_FB:
-            continue
-        mqtt = _mqtt_retain(addr) or "(none)"
-        jmri = STATE.get(d.get("state"), str(d.get("state")))
-        fb = _fb_implied(d) or "?"
+        mqtt = retain(addr) or "(none)"
+        state = d.get("state")
+        jmri = STATE.get(state, str(state)) if isinstance(state, int) else str(state)
+        fb = tf.fb_state(d) or "?"
         mode = d.get("feedbackMode")
-        mode_s = FB_MODE.get(mode, str(mode))
+        mode_s = FB_MODE.get(mode, str(mode)) if isinstance(mode, int) else str(mode)
         mismatch = fb in ("CLOSED", "THROWN") and mqtt in ("CLOSED", "THROWN") and fb != mqtt
         rows.append((sw if sw is not None else 9999, sw, name, mqtt, jmri, fb, mode_s, mismatch))
 
@@ -151,6 +95,20 @@ def diagnose(by_name: dict) -> int:
     return 0
 
 
+def read_turnouts() -> dict[str, Mapping[str, object]]:
+    """The JMRI turnout table by system name. Raises JmriUnreachable when JMRI does not answer."""
+    try:
+        table = tf.get_json(f"{JMRI_JSON}/turnout", timeout=10)
+    except (urllib.error.URLError, TimeoutError) as e:
+        raise JmriUnreachable(f"JMRI unreachable at {JMRI_JSON}: {e}") from e
+    by_name: dict[str, Mapping[str, object]] = {}
+    for item in table:
+        d = item.get("data", item)
+        if isinstance(d, Mapping):
+            by_name[str(d.get("name") or "")] = d
+    return by_name
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(
@@ -161,17 +119,11 @@ def main() -> int:
     ap.parse_args()
 
     try:
-        table = _get(f"{JMRI_JSON}/turnout")
-    except (urllib.error.URLError, TimeoutError) as e:
-        print(f"JMRI unreachable ({e})", file=sys.stderr)
-        table = []
-
-    by_name = {}
-    for item in table:
-        d = item.get("data", item)
-        by_name[d.get("name")] = d
-
-    return diagnose(by_name)
+        by_name = read_turnouts()
+    except JmriUnreachable as e:
+        print(f"{e}; no table to show", file=sys.stderr)
+        return 1
+    return diagnose(by_name, lambda addr: tf.mqtt_retain(MQTT_HOST, addr))
 
 
 if __name__ == "__main__":

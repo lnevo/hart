@@ -122,7 +122,8 @@ def problems(files: list[str], fix: bool = False) -> list[str]:
                 with zipfile.ZipFile(path) as z:
                     core = z.read("docProps/core.xml").decode("utf-8", "ignore") if "docProps/core.xml" in z.namelist() else ""
                 text = office_text(path)
-            except zipfile.BadZipFile:
+            except zipfile.BadZipFile as exc:  # a damaged file should not hide the others
+                out.append(f"cannot read {rel}: {exc}")
                 continue
             people = {t: v for t, v in authors(core).items() if v not in TOOL_AUTHORS}
             if people and fix:
@@ -149,11 +150,15 @@ def problems(files: list[str], fix: bool = False) -> list[str]:
             if personal_email(text):
                 out.append(f"personal email address in {rel}")
             continue
-        if path.stat().st_size > MAX_TEXT:
+        size = path.stat().st_size
+        with path.open("rb") as fh:
+            head = fh.read(8000)
+        if b"\0" in head:
+            continue  # binary
+        if size > MAX_TEXT:
+            out.append(f"cannot check {rel}: {size} bytes of text, over the {MAX_TEXT}-byte limit")
             continue
         data = path.read_bytes()
-        if b"\0" in data[:8000]:
-            continue  # binary
         text = data.decode("utf-8", "ignore")
         if contains_private_name(text):
             out.append(f"private name in {rel}")

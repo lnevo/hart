@@ -167,13 +167,17 @@ def scan_text(path: str, text: str, current: set[str], track_re: re.Pattern[str]
     return hits
 
 
+class NameCopiesError(Exception):
+    """The check cannot read what it checks (the checkout's file list)."""
+
+
 def tracked_files(root: Path) -> list[str]:
     """The checkout's tracked files. Needs git: walking the folder would also read untracked
-    and gitignored files (media mirrors, local runs), so there is no fallback."""
+    and gitignored files (media mirrors, local runs), so there is no fallback. NameCopiesError when git cannot."""
     try:
         return files.tracked_files(root, *(f":(glob){g}" for g in SCAN_GLOBS))
     except files.GitError as e:
-        raise SystemExit(f"check_name_copies.py needs git to list the tracked files of {root}: {e}")
+        raise NameCopiesError(f"needs git to list the tracked files of {root}: {e}") from e
 
 
 def readable(rel: str) -> bool:
@@ -239,7 +243,7 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     try:
         hits, counts, used = run(args.root)
-    except devices.DevicesError as exc:
+    except (devices.DevicesError, NameCopiesError) as exc:
         print(f"check_name_copies.py: {exc}", file=sys.stderr)
         return 2
     if args.list:
