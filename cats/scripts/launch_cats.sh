@@ -39,7 +39,7 @@ JMRI_PROFILE="${JMRI_PROFILE:-My_JMRI_Railroad.3ef75bfd}"
 CATS_LAUNCH_VIA="${CATS_LAUNCH_VIA:-direct}"
 # Capture Java/JMRI stdout+stderr (ClassCast, MQTT, "not in a Block", …).
 # Override: CATS_LAUNCH_LOG=/path/to.log   or CATS_LAUNCH_LOG=  to disable.
-CATS_LAUNCH_LOG="${CATS_LAUNCH_LOG:-$ROOT/cats/logs/cats_launch.log}"
+CATS_LAUNCH_LOG="${CATS_LAUNCH_LOG-$ROOT/cats/logs/cats_launch.log}"   # set and empty: no log
 # The folder CATS opens panels from; both launch paths pass it.
 CATS_FOLDER="$HOME/JMRI_UserFiles/cats/panels"
 

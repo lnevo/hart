@@ -63,6 +63,11 @@ class LaunchCats(unittest.TestCase):
         script = self.record.read_text(encoding="utf-8")
         self.assertIn(f"./cats.csh -Dcats.folder={self.env['HOME']}/JMRI_UserFiles/cats/panels --profile=", script)
 
+    def test_an_empty_log_setting_writes_no_log(self) -> None:
+        proc = self._run("direct")
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertNotIn("Logging stdout+stderr", proc.stdout)
+
     def test_auto_is_direct(self) -> None:
         self.assertEqual(self._run("auto").returncode, 0)
         self.assertTrue(self.record.read_text(encoding="utf-8").startswith("-Dcats.folder="))
