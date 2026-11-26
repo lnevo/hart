@@ -188,9 +188,11 @@ STAGING_COLUMNS = ("layer", "user_name", "role", "assignment", "system_name", "j
 
 def read_staging_rows(path: Path) -> list[tuple[int, dict[str, str]]]:
     """(line, row) of staging's rows of the device master in NAME_LAYERS (STAGING_COLUMNS, values stripped), in master order,
-    unchecked beyond the master's own checks (read_staging_devices checks them)."""
-    from . import devices
-    return [(n, {c: r[c].strip() for c in STAGING_COLUMNS}) for n, r in enumerate(devices.load(path), 2)
+    unchecked beyond the master's own checks (read_staging_devices checks them); a turnout's cp is places.of's."""
+    from . import devices, places
+    lists = places.lists_beside(path)          # a copy's turnouts take the copy's switch lists
+    return [(n, {c: (devices.place(r, lists) if c == "cp" else r[c]).strip() for c in STAGING_COLUMNS}) for n, r in
+            enumerate(devices.load(path), 2)
             if r["level"] == STAGING_LEVEL and r["layer"] in NAME_LAYERS]
 
 

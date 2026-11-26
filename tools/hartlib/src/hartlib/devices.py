@@ -118,6 +118,7 @@ FIELD_HELD = ("layer",)
 OCCUPANCY_MARK = "{occupancy}"
 OCCUPANCY_TEXT = r"occupancy Block \d+-\d+ / M2S\d+"
 LIST = DEVICE_LIST              # the separator of a list column (blocks, protects, a line block's cp)
+place = places.of               # a row's place by name: its cp, a turnout's from the switch lists (it has no cp)
 # the columns an old-form device-map row shares with the master; its comment is built, the rest of the master is left out
 _SHARED = tuple(c for c in DEVICE_COLUMNS if c not in ("comment",))
 
@@ -536,8 +537,9 @@ def load(files: "Files | Path | str | None" = None) -> tuple[Mapping[str, str], 
 def device_map_lines(levels: tuple[str, ...], source: "Files | Path | str | None" = None
                      ) -> list[tuple[int, dict[str, str]]]:
     """(place in the merged view, device-map row; a message names it by at(), never the number) of each row of `levels` outside OUT_OF_MAPS, in master order: the rows the
-    old device map of those levels held, in its form plus `role`. The one way a reader gets them."""
-    return [(n, {**device_map_row(r), "role": r["role"]}) for n, r in enumerate(load(source), 2)
+    old device map of those levels held, in its form plus `role`, a turnout's cp its place. The one way a reader gets them."""
+    lists = places.lists_beside(source)        # a copy's turnouts take the copy's switch lists
+    return [(n, {**device_map_row(r), "cp": place(r, lists), "role": r["role"]}) for n, r in enumerate(load(source), 2)
             if r["level"] in levels and r["role"] not in OUT_OF_MAPS]
 
 
@@ -842,6 +844,8 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "the device maste
         if r["cats_discipline"] and (r["layer"] != "block" or r["cats_discipline"] not in CATS_DISCIPLINES):
             bad.append(f"{at}: cats_discipline {r['cats_discipline']!r} is for a block row, one of "
                        f"{', '.join(CATS_DISCIPLINES)}")
+        if r["cp"] and r["layer"] == "turnout":
+            bad.append(f"{at}: a turnout row has no cp; its switch's place is in the switch lists (places.of)")
         if LIST in r["cp"] and r["role"] not in LINE_ROLES:
             bad.append(f"{at}: cp {r['cp']!r} is a list, but a {r['role'] or r['layer']} sits in one control point "
                        f"(only a line block, roles {', '.join(LINE_ROLES)}, lists the places it joins)")
@@ -916,7 +920,7 @@ def describe(r: Mapping[str, str]) -> str:
     for the rows they write; a hand-kept row's sentence is kept as given."""
     u, role, node = r["user_name"], r["role"], r["node"]
     on = f" on LCOS node {node}" if node else ""
-    at = f" at {r['cp']}" if r["cp"] else ""
+    at = f" at {place(r)}" if place(r) else ""
     live = "wired in JMRI" if r["assignment"] == "field" else "a virtual stand-in until the plant is wired"
     if role == "turnout":
         return f"Turnout {u}{at}, {live}{on}."

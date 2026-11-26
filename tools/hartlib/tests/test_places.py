@@ -77,5 +77,69 @@ class PlacesTest(unittest.TestCase):
                 places._table(bad.read_bytes(), places.INTERLOCKINGS.read_bytes())
 
 
+# The cp each turnout row held before the owner dropped it (2026-11-25): staging's desk area, main and upper's
+# interlocking. Every other turnout (a local switch of a yard or spur) had none.
+BEFORE = {"1": {"st:brick": "1 3", "st:plane": "5", "st:barn": "7", "st:engine-house": "9 11 13",
+                "st:south-yard": "15 17 19 21", "st:east-end": "23 25 27 29 31 33", "st:princess": "35 37 39"},
+          "2": {"cp:107": "107 109 111 117 119", "cp:123": "123 125", "cp:127": "127 131"},
+          "3": {"cp:201": "201 203 219 221", "cp:211": "211", "cp:217": "217", "cp:223": "223",
+                "cp:225": "225 227 229"}}
+
+
+class SwitchPlaceTest(unittest.TestCase):
+    """A turnout row has no cp: places.switch_place gives its switch's place from the switch lists, the id its cp
+    held, and hartlib.devices stops on a cp put back."""
+
+    def test_every_switch_has_the_place_its_turnout_cp_held(self):
+        want = {(lv, s): ident for lv, by in BEFORE.items() for ident, sw in by.items() for s in sw.split()}
+        self.assertEqual(dict(places.switch_places()), want)
+        turnouts = [r for r in devices.load() if r["layer"] == "turnout"]
+        self.assertTrue(turnouts)
+        for r in turnouts:
+            number = r["id"].split(":")[1]
+            self.assertEqual(r["cp"], "", r["user_name"])
+            self.assertEqual(places.switch_place(r["level"], number), want.get((r["level"], number), ""), r["id"])
+            self.assertEqual(devices.place(r), places.names(want.get((r["level"], number), "")), r["id"])
+
+    def test_a_switch_in_two_stations_takes_its_desk_area(self):
+        self.assertEqual(places.switch_place(1, 3), "st:brick")            # also in West Yard, of the Brick area
+        self.assertEqual(places.switch_place("1", "9"), "st:engine-house")  # also in Barn; a desk area of its own
+        self.assertEqual(places.switch_place("1", "5"), "st:plane")         # staging's interlocking Brick has it
+        self.assertEqual(places.switch_place("2", "101"), "")               # a local switch
+
+    def test_a_copy_of_the_lists_names_its_own_turnouts(self):
+        """A device master read from a copy takes the copy's switch lists (places.lists_beside), not the repo's."""
+        with tempfile.TemporaryDirectory() as tmp:
+            data = Path(tmp)
+            (data / "schematic").mkdir()
+            for f in (places.STATIONS, places.INTERLOCKINGS):
+                (data / "schematic" / f.name).write_bytes(f.read_bytes())
+            text = (data / "schematic" / places.INTERLOCKINGS.name).read_text(encoding="utf-8")
+            row = next(line for line in text.splitlines() if line.startswith("cp:217,"))
+            self.assertIn(",CP 217,217,", row)
+            moved = text.replace(row, row.replace(",CP 217,217,", ',CP 217,"217,219",'))   # 219 is CP 201's too
+            (data / "schematic" / places.INTERLOCKINGS.name).write_text(moved, encoding="utf-8")
+            folder = places.lists_beside(data)
+            self.assertEqual(folder, data / "schematic")
+            self.assertEqual(places.lists_beside(None), None)
+            with self.assertRaisesRegex(FactsError, "switch 219 .*is in"):     # the copy's lists are read
+                places.switch_places(folder)
+            (data / "schematic" / places.INTERLOCKINGS.name).write_text(text, encoding="utf-8")
+            self.assertEqual(places.switch_place(3, 217, folder), "cp:217")
+
+    def test_a_switch_in_no_list_place_and_a_bad_name_stop_cleanly(self):
+        self.assertEqual(places.of({"layer": "turnout", "id": "switch:999", "level": "2", "cp": ""}), "")
+        self.assertEqual(places.of({"layer": "turnout", "id": "switch:107", "level": "", "cp": ""}), "")
+
+    def test_a_cp_put_back_on_a_turnout_row_stops(self):
+        rows = [dict(r) for r in devices.load()]
+        for ident, cp in (("switch:107", "CP 107"), ("dcc:1", "Brick")):
+            with self.subTest(ident):
+                changed = [dict(r, cp=cp) if r["id"] == ident else r for r in rows]
+                with self.assertRaisesRegex(devices.DevicesError, "a turnout row has no cp"):
+                    devices.check_rows(changed)
+        devices.check_rows(rows)
+
+
 if __name__ == "__main__":
     unittest.main()

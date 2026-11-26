@@ -471,7 +471,7 @@ def check_frozen_cps(rows: list[dict], cps: frozenset, held_devices: set, held_b
     hold. A switch added to a frozen control point is wired and frozen again (make wiring-freeze)."""
     bad = []
     for r in rows:
-        if r["cp"].split(devices.LIST)[0] not in cps or not r["node"] or r["role"] == "lcc_alias":
+        if devices.place(r).split(devices.LIST)[0] not in cps or not r["node"] or r["role"] == "lcc_alias":
             continue
         if r["layer"] in ("turnout", "fb", "head") and (r["layer"], r["user_name"]) not in held_devices:
             bad.append(f"{r['layer']} {r['user_name']}")

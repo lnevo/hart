@@ -103,12 +103,12 @@ class OneRowPath(RepoReadOnly, unittest.TestCase):
                           got["node"], got["wiring"], got["trial_name"]),
                          ("Switch 9", "turnout", "field", before["system_name"], before["system_name"], before["node"],
                           before["wiring"], "Switch 9"))
-        # the owner's cells it had and the generator does not make: its control point (Switch 9 is in no
-        # interlocking) and the JMRI name the panels bound it by ("Switch 9"; generated, its address); its DCC
-        # address stays, as its alias's field row gives it
-        self.assertEqual({c for c in got if got[c] != before[c]}, {"cp", "jmri_name", "description"})
-        self.assertEqual((before["cp"], before["jmri_name"], got["cp"], got["dcc"]),
-                         ("Engine House", "Switch 9", "", "119"))
+        # the owner's cell it had and the generator does not make: the JMRI name the panels bound it by ("Switch 9";
+        # generated, its address); its DCC address stays, as its alias's field row gives it, and its place is its
+        # switch's in the switch lists either way (a turnout row has no cp)
+        self.assertEqual({c for c in got if got[c] != before[c]}, {"jmri_name"})
+        self.assertEqual((before["jmri_name"], got["cp"], bdm.devices.place(got), got["dcc"]),
+                         ("Switch 9", "", "Engine House", "119"))
         # the generated file now holds the generated values the owner's row used to blank
         mine = self.generated(files, "1", "switch:9")
         self.assertEqual((mine["role"], mine["assignment"], mine["trial_name"]), ("turnout", "field", "Switch 9"))

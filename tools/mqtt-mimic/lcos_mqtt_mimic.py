@@ -398,7 +398,7 @@ def load_cps() -> dict[str, dict[str, str]]:
         if row["level"] != railroad.STAGING_LEVEL:
             continue
         layer, name = row["layer"], row["user_name"]
-        plant = infer_plant(name, "" if row["role"] == "lcc_alias" else row["cp"])
+        plant = infer_plant(name, "" if row["role"] == "lcc_alias" else devices.place(row))
         if layer == "turnout":
             turnout[name] = plant
         elif layer == "occupancy":

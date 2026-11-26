@@ -284,6 +284,11 @@ the name map's copy (2026-11-21): their facts are in `cp`, `system_name`, `dcc`,
   (`device_map_masts.py`): every level's mast and head rows have one writer, their field rows and wired heads are
   found by ID, and a mast's field `user_name` (the owner's name) names its heads.
   A line block (`LINE_ROLES`) and its sensor list in `cp` the places it joins, `;` between (`build_device_map.line_cp`); any other row has one control point at most, and `check_rows` holds it.
+  A turnout row (its LCC alias's too) has no `cp` (owner, 2026-11-25): the switch lists of `stations.csv` and
+  `interlockings.csv` are the one place for the switch-to-place link. `places.switch_place(level, n)` gives a switch's
+  place id (staging's desk area as its naming station's id, main and upper's interlocking, "" for a local switch), and
+  `devices.place(row)` (`places.of`) a row's place by name: its `cp`, a turnout's from the lists. `device_map_lines`,
+  `railroad_facts.read_staging_rows` and `describe` give a turnout that place; `check_rows` stops on a turnout `cp`.
 - A device's kind comes from its row, never from its name (hand-off row 8): `row_role(row, where)` is a row's `role`
   and stops with a `DevicesError` naming `where` (file and key) when the row has none; `is_os(row)` says whether a block
   or occupancy row runs through a switch's points (`OS_ROLES`: `os`, `xover_corner`). A reader that holds only a name

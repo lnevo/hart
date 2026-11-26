@@ -6,6 +6,9 @@
     places.ids(cell)             "Barn;Engine House" -> "st:barn;st:engine-house"
     places.with_names(row)       the row with its `cp` cell named (a dict, changed in place and returned)
     places.with_ids(rows)        copies of the rows with their `cp` cells as ids
+    places.switch_place(level, n)  the place id of switch n on a level ("" when it is in none)
+    places.switch_places()       {(level, switch number): place id} of every switch the two files list
+    places.of(row)               a device row's place by name: its cp cell, a turnout's switch_place (devices.place)
 
 A `cp` cell of the device pair (devices_field.csv, devices_generated.csv) and of schematic/masts.csv holds ids, ';'
 between them. hartlib.devices and hartlib.level_masts name them when they read a file and write ids when they write
@@ -18,6 +21,14 @@ when the name changes. A main or upper control point "CP 107" is cp:107.
 Four staging interlockings (Brick, Barn, East End and Princess) have the name of a station. A staging `cp` cell names
 the desk area, which is a station, so such a name is written as the station's id (st:brick). No cp cell names one of
 those four interlockings today; tests/test_places.py fails when a file's cells stop reading back as they are.
+
+A turnout row of the device pair has no `cp` cell (owner, 2026-11-25): the switch lists of the two files are the one
+place for the switch-to-place link, and `switch_place` gives a switch's place from them. On staging (level 1) it is
+the desk area that holds the switch (railroad_facts.read_desk_areas), written as the id of the station that names the
+area: Switches 1 and 3 are st:brick (Switch 3 also lies in West Yard, a station of the Brick desk area), 5 is
+st:plane, 9 is st:engine-house (nested in Barn, a desk area of its own). Staging's interlockings, which group 1, 3
+and 5 as Brick, are the signal rule's and give no turnout's place. On main and upper it is the interlocking that holds
+the switch (cp:107); a local switch of a yard or spur is in none and has no place.
 
 An item that is no id (a test's own place name) is left as it is either way. FactsError names the file and line on an
 id that is malformed, given twice or under the wrong prefix, and on an id of a cell that no row has.
@@ -123,6 +134,98 @@ def ids(cell: str) -> str:
     """The ids of a cp cell's names (a station's first), ';' between them; an id, or a name no row has, is kept."""
     by_name = table().by_name
     return _map(cell, lambda item: by_name.get(item, item))
+
+
+def _files(schematic: Path | None) -> tuple[Path, Path]:
+    folder = SCHEMATIC if schematic is None else Path(schematic)
+    return folder / STATIONS.name, folder / INTERLOCKINGS.name
+
+
+def _stamp(path: Path) -> tuple[str, int, int]:
+    try:
+        st = path.stat()
+    except OSError as exc:
+        raise _error(f"{path}: cannot read it ({exc.strerror})") from None
+    return str(path), st.st_mtime_ns, st.st_size
+
+
+@lru_cache(maxsize=8)
+def _switch_places(stations: tuple[str, int, int], interlockings: tuple[str, int, int]
+                   ) -> tuple[Mapping[tuple[str, str], str], Table]:
+    from . import railroad_facts                # it imports level_masts, which imports this module
+    st_path, il_path = Path(stations[0]), Path(interlockings[0])
+    places = _table(_bytes(st_path), _bytes(il_path))
+    by_name = places.by_name
+
+    def ident_of(name: str, fname: str) -> str:
+        if name not in by_name:
+            raise _error(f"{fname}: {name!r} is no station or interlocking of {st_path.name} or {il_path.name}")
+        return by_name[name]
+    out: dict[tuple[str, str], str] = {}
+
+    def put(key: tuple[str, str], ident: str, fname: str) -> None:
+        if key in out and out[key] != ident:
+            raise _error(f"{fname}: switch {key[1]} (level {key[0]}) is in {out[key]} and in {ident}: a switch has "
+                         "one place")
+        out[key] = ident
+    for a in railroad_facts.read_desk_areas(st_path):
+        if a.level == 1:
+            ident = ident_of(a.name, st_path.name)
+            for s in a.switches:
+                put((str(a.level), s), ident, st_path.name)
+    for x in railroad_facts.read_interlockings(il_path, levels=(2, 3)):
+        ident = ident_of(x.name, il_path.name)
+        if not ident.startswith(CP_PREFIX):
+            raise _error(f"{il_path.name}: interlocking {x.name} (level {x.level}) has a station's name")
+        for s in x.switches:
+            put((str(x.level), s), ident, il_path.name)
+    return out, places
+
+
+def switch_places(schematic: Path | None = None) -> Mapping[tuple[str, str], str]:
+    """{(level, switch number): place id}: staging's switches by desk area (as the naming station's id), main and
+    upper's by interlocking (the module text), from the lists in `schematic` (a folder holding stations.csv and
+    interlockings.csv; default the repo's). Cached on both files' path, mtime and size; a switch given two places
+    stops."""
+    st, il = _files(schematic)
+    return _switch_places(_stamp(st), _stamp(il))[0]
+
+
+def switch_place(level: str | int, switch: str | int, schematic: Path | None = None) -> str:
+    """The place id of switch `switch` on `level` (switch_places), "" when the lists hold it in no place."""
+    return switch_places(schematic).get((str(level), str(switch)), "")
+
+
+def lists_beside(source) -> Path | None:
+    """The schematic folder beside a device master `source` (a devices.Files, the master's path, or a data folder)
+    when it holds its own stations.csv, so a copy's turnouts take the copy's lists; None (the repo's) otherwise."""
+    if source is None:
+        return None
+    path = Path(getattr(source, "master", source))
+    data = path if path.is_dir() else path.parent
+    folder = data / SCHEMATIC.name
+    if (folder / STATIONS.name).is_file() and folder.resolve() != SCHEMATIC.resolve():
+        return folder
+    return None
+
+
+SWITCH_ID = re.compile(r"(?:switch|dcc):(\d+)")     # a turnout row's id: Switch <n> or DCC Switch <n>
+
+
+def of(row: Mapping[str, str], schematic: Path | None = None) -> str:
+    """The place a device row sits in, by name. A turnout row has no cp cell (owner, 2026-11-25): its place is its
+    switch's (switch_place, from the lists in `schematic`, default the repo's; lists_beside finds a copy's), "" for a
+    local switch or a level-less row. Any other row's place is its cp cell."""
+    if row["layer"] != "turnout":
+        return row["cp"]
+    m = SWITCH_ID.fullmatch(row["id"])
+    if not (m and row["level"]):
+        return ""
+    ident = switch_place(row["level"], m.group(1), schematic)
+    if not ident:
+        return ""
+    st, il = _files(schematic)
+    return _switch_places(_stamp(st), _stamp(il))[1].by_id.get(ident, ident)
 
 
 def with_names(row: dict, where: str = "") -> dict:

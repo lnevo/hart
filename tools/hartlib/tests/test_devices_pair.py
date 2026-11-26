@@ -27,7 +27,7 @@ def owner(**cells) -> dict:
 def field(user="Switch 1", **cells) -> dict:
     """The field row of the staging turnout `user`: its key (its test id, generated()'s) and the owner's cells."""
     return blank(**{"level": "1", "layer": "turnout", "user_name": user, "role": "turnout", "assignment": "field",
-                    "dcc": "100", "cp": "Brick", **cells})
+                    "dcc": "100", **cells})
 
 
 def block(**cells) -> dict:
@@ -45,8 +45,8 @@ class TheMerge(unittest.TestCase):
     def test_a_field_cell_overrides_the_generated_one(self):
         got = merged([generated(notes="the rule's")], [field(notes="the owner's")])
         self.assertEqual(len(got), 1)
-        self.assertEqual((got[0]["notes"], got[0]["dcc"], got[0]["role"], got[0]["cp"]),
-                         ("the owner's", "100", "turnout", "Brick"))
+        self.assertEqual((got[0]["notes"], got[0]["dcc"], got[0]["role"], got[0]["assignment"]),
+                         ("the owner's", "100", "turnout", "field"))
         self.assertEqual(got[0]["written_by"], "build_device_map.py")     # every other cell is the generated row's
 
     def test_an_empty_field_cell_means_no_override(self):
@@ -123,7 +123,7 @@ class TheOccupancyMark(unittest.TestCase):
 
 class TheUnmerge(unittest.TestCase):
     def test_the_field_cells_are_left_empty(self):
-        out = D.unmerge([turnout(cp="Brick", written_by="build_device_map.py")], [field()])
+        out = D.unmerge([turnout(dcc="100", written_by="build_device_map.py")], [field()])
         self.assertEqual((out[0]["cp"], out[0]["dcc"], out[0]["role"], out[0]["assignment"]), ("", "", "", ""))
         self.assertEqual(out[0]["system_name"], "M2T408")
 
@@ -168,9 +168,9 @@ class TheId(unittest.TestCase):
             D.merge([generated(id="switch:1")], [field(id="switch:1", layer="fb")])
 
     def test_unmerge_keeps_the_id_and_the_name_and_refuses_another_name(self):
-        row = turnout(cp="Brick", id="switch:1", written_by="build_device_map.py")
+        row = turnout(dcc="100", id="switch:1", written_by="build_device_map.py")
         got = D.unmerge([row], [field(id="switch:1")])[0]
-        self.assertEqual((got["id"], got["user_name"], got["cp"]), ("switch:1", "Switch 1", ""))
+        self.assertEqual((got["id"], got["user_name"], got["dcc"]), ("switch:1", "Switch 1", ""))
         with self.assertRaisesRegex(D.DevicesError, r"names id 'switch:1' \(level 1, turnout\) 'Switch 1', but "
                                                     r"devices_field.csv names it 'Switch One'"):
             D.unmerge([row], [field(id="switch:1", user_name="Switch One")])
