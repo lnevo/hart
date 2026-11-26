@@ -5591,6 +5591,42 @@
    "path": "tools/pipeline/manifest_panels.py"
   },
   {
+   "id": "tools/pipeline/step_timings.sh",
+   "label": "step_timings.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Sourced by check.sh and build_panels.sh: appends one line per step run (seconds, ok/failed/skipped, cold/warm) to the local step-timings log; a log it cannot write fails nothing.",
+   "path": "tools/pipeline/step_timings.sh"
+  },
+  {
+   "id": "ext:step-timings",
+   "label": ".cache/hart/step-timings.tsv (local)",
+   "kind": "output",
+   "status": "live",
+   "domain": "extras",
+   "desc": "The local step-timings log in the shared cache (gitignored): one line per make panels or check.sh step run.",
+   "path": ""
+  },
+  {
+   "id": "tools/pipeline/timings.py",
+   "label": "timings.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "make timings: summarizes the step-timings log into timings.json (median warm and cold seconds, skip rate, last run per step); --check fails on a step the manifests no longer name.",
+   "path": "tools/pipeline/timings.py"
+  },
+  {
+   "id": "docs/pipeline-map/timings.json",
+   "label": "timings.json",
+   "kind": "output",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Step timings for the pipeline map: per step, runs, median warm and cold seconds, skip rate and last run day; step names and numbers only. Written by make timings.",
+   "path": "docs/pipeline-map/timings.json"
+  },
+  {
    "id": "tools/ctc_history/film_cats.py",
    "label": "film_cats.py",
    "kind": "generator",
@@ -13523,6 +13559,41 @@
    "from": ".claude/hooks/shell_parse.py",
    "to": ".claude/hooks/subagent_guard.py",
    "label": "imports"
+  },
+  {
+   "from": "tools/pipeline/step_timings.sh",
+   "to": "tools/check.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/pipeline/step_timings.sh",
+   "to": "tools/schematic/build_panels.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/pipeline/step_timings.sh",
+   "to": "ext:step-timings",
+   "label": "appends"
+  },
+  {
+   "from": "ext:step-timings",
+   "to": "tools/pipeline/timings.py",
+   "label": "reads"
+  },
+  {
+   "from": "tools/pipeline/checks.toml",
+   "to": "tools/pipeline/timings.py",
+   "label": "step names"
+  },
+  {
+   "from": "tools/pipeline/panels.toml",
+   "to": "tools/pipeline/timings.py",
+   "label": "step names"
+  },
+  {
+   "from": "tools/pipeline/timings.py",
+   "to": "docs/pipeline-map/timings.json",
+   "label": "make timings"
   },
   {
    "from": "jmri/layouts/hart/scripts/speedmatch/analyze_records.py",
