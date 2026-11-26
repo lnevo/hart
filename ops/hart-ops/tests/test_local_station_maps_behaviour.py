@@ -220,6 +220,43 @@ class DrawingPrimitives(unittest.TestCase):
         self.assertIsNotNone(draw)
 
 
+class SheetGeometry(unittest.TestCase):
+    """The pitch and ladder helpers the drawers share (local_station_maps.kit)."""
+
+    def test_ladder_pitch_is_three_quarter_inch_along_the_diagonal(self):
+        from local_station_maps import kit
+
+        self.assertEqual((kit.DOT_R, kit.STEP_2LED, kit.STEP_1LED), (18.75, 75.0, 150.0))
+        self.assertAlmostEqual(kit.LADDER_DX_STEP**2 + kit.LADDER_TRACK_GAP**2, kit.STEP_1LED**2)
+
+    def test_yard_rows_are_one_pitch_apart_and_main_east_closer(self):
+        from local_station_maps import kit
+
+        ys = kit._yard_rows(100.0)
+        gaps = [b - a for a, b in zip(ys, ys[1:])]
+        self.assertEqual(len(ys), 7)
+        for gap in gaps[:5]:
+            self.assertAlmostEqual(gap, kit.LADDER_TRACK_GAP)
+        self.assertAlmostEqual(gaps[5], kit.LADDER_TRACK_GAP * 0.72)
+        self.assertAlmostEqual(ys[6] - ys[0], kit.YARD_BLOCK_H)
+
+    def test_ladder_x_follows_the_line_and_survives_a_flat_ladder(self):
+        from local_station_maps import kit
+
+        self.assertEqual(kit._ladder_x_at((0.0, 0.0), (10.0, 100.0), 50.0), 5.0)
+        # A ladder less than 1 px tall divides by 1, not by zero.
+        self.assertEqual(kit._ladder_x_at((0.0, 0.0), (10.0, 0.0), 0.5), 5.0)
+
+    def test_east_end_rows_take_the_names_from_the_crew_master(self):
+        from local_station_maps import east_end
+
+        rows = east_end.industry_rows()
+        self.assertEqual([r.track for r in rows], [t for t, _, _ in east_end.TRACK_INDUSTRIES])
+        two = rows[1]
+        self.assertEqual(len(two.colors), 2)
+        self.assertIn(" · ", two.industry)
+
+
 class Tables(unittest.TestCase):
     def test_every_map_has_a_drawer_and_unique_output_paths(self):
         pngs = [m["png"] for m in rlsm.MAPS]
