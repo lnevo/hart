@@ -1021,7 +1021,7 @@ def operating_reason() -> str | None:
             [str(OPERATING_SH), "status"], capture_output=True, text=True, timeout=15, check=False
         )
     except (OSError, subprocess.SubprocessError) as err:
-        raise LiveStsError(f"cannot read the operating flag ({err}); not touching the live STS") from None
+        raise LiveStsError(f"cannot read the operating flag ({err}); not touching the live STS") from err
     if out.returncode == 1:
         return None
     if out.returncode != 0:
@@ -1077,10 +1077,10 @@ def fetch_live_cars() -> tuple[str, str, list[dict]]:
             cars = sts_api.get_all("/cars")
     except sts_api.ApiError as err:
         if err.code == "unreachable":
-            raise LiveStsError(f"cannot reach STS at {url}: {err.message.split(': ', 1)[-1]}") from None
-        raise LiveStsError(f"STS at {url} refused the read: {err}") from None
+            raise LiveStsError(f"cannot reach STS at {url}: {err.message.split(': ', 1)[-1]}") from err
+        raise LiveStsError(f"STS at {url} refused the read: {err}") from err
     except (OSError, ValueError, TypeError) as err:  # timeouts and bad bodies
-        raise LiveStsError(f"cannot read STS at {url}: {type(err).__name__}: {err}") from None
+        raise LiveStsError(f"cannot read STS at {url}: {type(err).__name__}: {err}") from err
     if not isinstance(health, dict):
         raise LiveStsError(f"STS at {url} gave an unexpected /health answer: {health!r}")
     return url, str(health.get("stack", "unknown")), cars
@@ -1258,9 +1258,9 @@ def take_sts_backup(api, local: bool, now: float | None = None) -> str:
         with capped_timeout(BACKUP_TIMEOUT):
             api.post("/admin/backups", {"name": name})
     except api.ApiError as err:
-        raise LiveStsError(f"could not take an STS backup first ({err})") from None
+        raise LiveStsError(f"could not take an STS backup first ({err})") from err
     except (OSError, ValueError, TypeError) as err:
-        raise LiveStsError(f"could not take an STS backup first ({type(err).__name__}: {err})") from None
+        raise LiveStsError(f"could not take an STS backup first ({type(err).__name__}: {err})") from err
     return f"took STS backup {name}"
 
 
@@ -1284,9 +1284,9 @@ def write_live_cars(api, live: list[dict], diffs: list[tuple]) -> list[str]:
                 api.patch(f"/cars/{car_id}", {field: want})
                 back = api.get(f"/cars/{car_id}")
         except api.ApiError as err:
-            raise stop(marks, str(err)) from None
+            raise stop(marks, str(err)) from err
         except (OSError, ValueError, TypeError) as err:
-            raise stop(marks, f"{type(err).__name__}: {err}") from None
+            raise stop(marks, f"{type(err).__name__}: {err}") from err
         if isinstance(back, dict) and isinstance(back.get("data"), dict):
             back = back["data"]  # an envelope, if the client ever hands one back
         got = back.get(field) if isinstance(back, dict) else back
@@ -1305,7 +1305,7 @@ def seed_preflight() -> None:
     try:
         import build_car_roster_sor  # noqa: F401
     except ImportError as err:
-        raise LiveStsError(f"the roster build cannot run ({err})") from None
+        raise LiveStsError(f"the roster build cannot run ({err})") from err
 
 
 def cmd_sync(args: argparse.Namespace) -> int:

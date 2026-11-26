@@ -16,12 +16,12 @@ from pathlib import Path
 # generate_waybill_cards loads waybill_data by path before this module, so this name
 # resolves to the sibling file in this checkout.
 from waybill_data import (
-    _INTERCHANGE_CSX_TO_NS,
-    _INTERCHANGE_IN_VIA_CSX,
-    _INTERCHANGE_IN_VIA_POHC,
-    _INTERCHANGE_NS_TO_CSX,
-    _INTERCHANGE_OUT_VIA_CSX,
-    _INTERCHANGE_OUT_VIA_POHC,
+    INTERCHANGE_CSX_TO_NS,
+    INTERCHANGE_IN_VIA_CSX,
+    INTERCHANGE_IN_VIA_POHC,
+    INTERCHANGE_NS_TO_CSX,
+    INTERCHANGE_OUT_VIA_CSX,
+    INTERCHANGE_OUT_VIA_POHC,
     _LAYOUT_PARTY_NAMES,
     _PROCESS_CHEMICAL_DETAILS,
     CARDS_PER_DIRECTION,
@@ -47,12 +47,12 @@ def _is_layout_party(name: str) -> bool:
 def build_interchange_deck() -> list[dict]:
     """CSX ↔ POHC interchange and through-traffic cards."""
     raw = (
-        _INTERCHANGE_IN_VIA_CSX
-        + _INTERCHANGE_IN_VIA_POHC
-        + _INTERCHANGE_OUT_VIA_POHC
-        + _INTERCHANGE_OUT_VIA_CSX
-        + _INTERCHANGE_CSX_TO_NS
-        + _INTERCHANGE_NS_TO_CSX
+        INTERCHANGE_IN_VIA_CSX
+        + INTERCHANGE_IN_VIA_POHC
+        + INTERCHANGE_OUT_VIA_POHC
+        + INTERCHANGE_OUT_VIA_CSX
+        + INTERCHANGE_CSX_TO_NS
+        + INTERCHANGE_NS_TO_CSX
     )
     deck: list[dict] = []
     for card in raw:
@@ -66,7 +66,7 @@ def build_interchange_deck() -> list[dict]:
 
 
 
-def _norm(s: str) -> str:
+def _norm(s: str | None) -> str:
     return (s or "").strip()
 
 

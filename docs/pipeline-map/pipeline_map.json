@@ -5274,6 +5274,15 @@
    "path": ".claude/hooks/subagent_guard.py"
   },
   {
+   "id": ".claude/hooks/shell_parse.py",
+   "label": "shell_parse.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Shared shell-command parser of main_guard and subagent_guard: splits a command line into the programs it runs, through $(…), pipes, xargs and wrappers; refuses a line it cannot split.",
+   "path": ".claude/hooks/shell_parse.py"
+  },
+  {
    "id": ".claude/hooks/check_after_edit.py",
    "label": "check_after_edit.py",
    "kind": "generator",
@@ -13362,6 +13371,16 @@
    "from": "docs/ops/session4/make_signs.py",
    "to": "docs/ops/session4/out",
    "label": "signs and boards"
+  },
+  {
+   "from": ".claude/hooks/shell_parse.py",
+   "to": ".claude/hooks/main_guard.py",
+   "label": "imports"
+  },
+  {
+   "from": ".claude/hooks/shell_parse.py",
+   "to": ".claude/hooks/subagent_guard.py",
+   "label": "imports"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

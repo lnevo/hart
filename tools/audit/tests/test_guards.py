@@ -313,8 +313,14 @@ class SubagentGuard(unittest.TestCase):
 class OperatingFlag(unittest.TestCase):
     """While the operating flag is set, what reaches the Pi and Windows waits; the Mac's own work does not."""
 
-    def op_code(self, command: str, flag: str | None) -> int:
-        """The guard's exit code with the operating flag file holding `flag` (None: no file)."""
+    HOSTS = {"HART_PI_SSH": "pi", "HART_PI_WEB_HOST": "RPi-JMRI.local", "HART_MQTT_BROKER": "10.0.0.150",
+             "HART_WIN_SSH": "lnevo@minipc-e5h6x.local"}
+    FAKE_HOSTS = {"HART_PI_SSH": "fakepi.test", "HART_PI_WEB_HOST": "fakeweb.test", "HART_MQTT_BROKER": "192.0.2.1",
+                  "HART_WIN_SSH": "user@fakewin.test"}
+
+    def op_code(self, command: str, flag: str | None, hosts: dict[str, str] | None = None) -> int:
+        """The guard's exit code with the operating flag file holding `flag` (None: no file) and the layout
+        hosts named by `hosts` (HOSTS when None)."""
         with tempfile.TemporaryDirectory() as tmp:
             path = os.path.join(tmp, "operating")
             if flag is not None:
@@ -326,9 +332,7 @@ class OperatingFlag(unittest.TestCase):
             saved = sys.stdin
             sys.stdin = io.StringIO(json.dumps({"tool_input": {"command": command}, "cwd": str(ROOT)}))
             try:
-                with mock_env(CLAUDE_PROJECT_DIR=str(ROOT), HART_GUARD_OPERATING="", HART_PI_SSH="pi",
-                              HART_PI_WEB_HOST="RPi-JMRI.local", HART_MQTT_BROKER="10.0.0.150",
-                              HART_WIN_SSH="lnevo@minipc-e5h6x.local"), \
+                with mock_env(CLAUDE_PROJECT_DIR=str(ROOT), HART_GUARD_OPERATING="", **(hosts or self.HOSTS)), \
                         contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
                     return guard.main()
             finally:
@@ -362,7 +366,7 @@ class OperatingFlag(unittest.TestCase):
         for cmd in blocked:
             self.assertEqual(self.op_code(cmd, owner), 2, cmd)
             self.assertEqual(self.op_code(cmd, None), 0, cmd)          # no flag: allowed
-        # the Mac's own work stays open; Windows stays guarded, as it runs the LCOS bridge (owner, 2026-11-18)
+        # the Mac's own work stays open; Windows stays guarded, as it runs the LCOS bridge
         for cmd in ("make tables-pull", "./tools/hosts/sync_hart_package.sh", "make panelpro-test",
                     "osascript -e 'tell application \"PanelPro\" to quit'", "open -a /Applications/JMRI/PanelPro.app",
                     "jmri/layouts/hart/scripts/run_sml_discover.sh", "make deploy-site", "./tools/check.sh",
@@ -382,6 +386,62 @@ class OperatingFlag(unittest.TestCase):
         speed = "by=speedmatch\nsince=2026-11-18T15:00:00-0500\nreason=job\n"
         self.assertEqual(self.op_code("jmri/layouts/hart/scripts/speedmatch/drop_job.sh /tmp/job.py", speed), 0)
         self.assertEqual(self.op_code("make deploy-layout", speed), 2)
+
+    def test_ssh_behind_substitutions_pipes_and_wrappers_waits(self) -> None:
+        owner = "by=owner\nsince=2026-11-18T15:00:00-0500\nreason=ops session\n"
+        blocked = ("ssh fakepi.test reboot", "echo $(ssh fakepi.test reboot)", "echo `ssh fakepi.test reboot`",
+                   "echo $(echo $(ssh fakepi.test reboot))", "echo `echo \\`ssh fakepi.test reboot\\``",
+                   'echo "$(ssh fakepi.test reboot)"', "a=$(ssh fakepi.test reboot)",
+                   "echo fakepi.test | xargs -I{} ssh {} reboot",
+                   "echo fakepi.test | xargs -n1 -P2 -I {} ssh {} reboot", "echo reboot | xargs ssh fakepi.test",
+                   "bash -c 'ssh fakepi.test reboot'", 'sh -c "ssh fakepi.test reboot"',
+                   "zsh -lc 'ssh fakepi.test reboot'", "env A=1 ssh fakepi.test reboot",
+                   "nohup ssh fakepi.test reboot", "time ssh fakepi.test reboot",
+                   "timeout -s KILL 10 ssh fakepi.test reboot", "sudo -u x ssh fakepi.test reboot",
+                   "nice -n 5 ssh fakepi.test reboot", "exec ssh fakepi.test reboot",
+                   "command ssh fakepi.test reboot", "watch -n 2 'ssh fakepi.test reboot'",
+                   "if ssh fakepi.test reboot; then :; fi", "while true; do ssh fakepi.test reboot; done",
+                   "until ssh fakepi.test reboot; do :; done", "for h in fakepi.test; do ssh $h reboot; done",
+                   "ls; ssh fakepi.test reboot", "true && ssh fakepi.test reboot", "false || ssh fakepi.test reboot",
+                   "ls | ssh fakepi.test reboot", "(ssh fakepi.test reboot)", "{ ssh fakepi.test reboot; }",
+                   "find . -exec ssh {} reboot \\;", "ssh user@fakewin.test taskkill /IM java.exe",
+                   "ssh $HART_PI_SSH reboot", "H=fakepi.test; ssh $H reboot",
+                   "cat <<EOF | ssh fakepi.test\nreboot\nEOF", "ssh fakepi.test bash -s <<EOF\nreboot\nEOF",
+                   "bash <<EOF\nssh fakepi.test reboot\nEOF", "2>/dev/null ssh fakepi.test reboot",
+                   "2>&1 ssh fakepi.test reboot", "setsid ssh fakepi.test reboot",
+                   "flock /tmp/l ssh fakepi.test reboot", "$(echo ssh) fakepi.test reboot",
+                   # lines the parser cannot split block when they name a layout host
+                   "echo $(ssh fakepi.test reboot", "ssh fakepi.test 'reboot", "echo `ssh fakepi.test reboot")
+        for cmd in blocked:
+            with self.subTest(cmd=cmd):
+                self.assertEqual(self.op_code(cmd, owner, self.FAKE_HOSTS), 2)
+                self.assertEqual(self.op_code(cmd, None, self.FAKE_HOSTS), 0)
+        for cmd in ("echo ssh", "echo ssh fakepi.test reboot", "grep fakepi.test file",
+                    "grep -rn 'ssh fakepi.test reboot' .", "ssh other.test reboot", "echo $(ssh other.test reboot)",
+                    "bash -c 'ssh other.test reboot'", "ssh fakepi.test uptime", "echo $(ssh fakepi.test uptime)",
+                    "ssh fakepi.test cat ~/x.sh", "echo 'unbalanced",
+                    "$(git rev-parse --show-toplevel)/tools/check.sh", "2>/dev/null ssh other.test reboot",
+                    "git commit -m \"$(cat <<'EOF'\nit's done on fakepi.test\nEOF\n)\""):
+            with self.subTest(cmd=cmd):
+                self.assertEqual(self.op_code(cmd, owner, self.FAKE_HOSTS), 0)
+
+    def test_the_env_files_are_read_once_per_call(self) -> None:
+        guard = load(MAIN_GUARD, "hart_main_guard_env_once")
+        reads = []
+        real = guard.layout_env
+        guard.layout_env = lambda: reads.append(1) or real()
+        guard.main_checkout = lambda target: False
+        guard.on_main = lambda target, branched: False
+        command = "ls; echo $(date); bash -c 'ls; pwd' && ssh other.test uptime"
+        saved = sys.stdin
+        sys.stdin = io.StringIO(json.dumps({"tool_input": {"command": command}, "cwd": str(ROOT)}))
+        try:
+            with mock_env(CLAUDE_PROJECT_DIR=str(ROOT), HART_GUARD_OPERATING="1", **self.FAKE_HOSTS), \
+                    contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(guard.main(), 0)
+        finally:
+            sys.stdin = saved
+        self.assertEqual(len(reads), 1)
 
     def test_the_flag_can_be_forced(self) -> None:
         guard = load(MAIN_GUARD, "hart_main_guard_operating_force")

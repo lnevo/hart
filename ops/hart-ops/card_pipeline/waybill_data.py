@@ -245,7 +245,7 @@ GE_BRIDGEVILLE = "GE (Bridgeville, PA)"
 
 # Through + POHC-industry interchange (RouteChain = CSX or POHC for Via … Interchange).
 # Car types: coils → Coil Car; slabs/billets/plate/bar/forgings → Flat Car; scrap → Gondola.
-_INTERCHANGE_IN_VIA_CSX: list[dict] = [
+INTERCHANGE_IN_VIA_CSX: list[dict] = [
     _ix_card(Commodity="Steel Billets", CarType="Flat Car",
              RouteFrom="Republic Steel (Cleveland, OH)",
              RouteTo=STANDARD_FORGED,
@@ -272,7 +272,7 @@ _INTERCHANGE_IN_VIA_CSX: list[dict] = [
              RouteChain="CSX"),
 ]
 
-_INTERCHANGE_IN_VIA_POHC: list[dict] = [
+INTERCHANGE_IN_VIA_POHC: list[dict] = [
     _ix_card(Commodity="Stainless Slab", CarType="Flat Car",
              RouteFrom="Weirton Steel (Weirton, WV)",
              RouteTo="Armco Steel (Middletown, OH)",
@@ -303,7 +303,7 @@ _INTERCHANGE_IN_VIA_POHC: list[dict] = [
              RouteChain="POHC"),
 ]
 
-_INTERCHANGE_OUT_VIA_POHC: list[dict] = [
+INTERCHANGE_OUT_VIA_POHC: list[dict] = [
     _ix_card(Commodity="Forged Components", CarType="Flat Car",
              RouteFrom=STANDARD_FORGED,
              RouteTo="Caterpillar (Peoria, IL)",
@@ -326,7 +326,7 @@ _INTERCHANGE_OUT_VIA_POHC: list[dict] = [
              RouteChain="POHC"),
 ]
 
-_INTERCHANGE_OUT_VIA_CSX: list[dict] = [
+INTERCHANGE_OUT_VIA_CSX: list[dict] = [
     _ix_card(Commodity="Coal", CarType="Hopper",
              RouteFrom="Consol Energy (Pittsburgh, PA)",
              RouteTo="American Electric Power (Columbus, OH)",
@@ -357,7 +357,7 @@ _INTERCHANGE_OUT_VIA_CSX: list[dict] = [
              RouteChain="CSX"),
 ]
 
-_INTERCHANGE_CSX_TO_NS: list[dict] = [
+INTERCHANGE_CSX_TO_NS: list[dict] = [
     _ix_card(Commodity="Tin Plate", LoadSummary=GENERAL_FREIGHT, CarType="Coil Car",
              RouteFrom="Wheeling-Pittsburgh Steel (Wheeling, WV)",
              RouteTo="Heinz (Pittsburgh, PA)",
@@ -372,7 +372,7 @@ _INTERCHANGE_CSX_TO_NS: list[dict] = [
              RouteChain="POHC"),
 ]
 
-_INTERCHANGE_NS_TO_CSX: list[dict] = [
+INTERCHANGE_NS_TO_CSX: list[dict] = [
     _ix_card(Commodity="Steel Coils", LoadSummary=GENERAL_FREIGHT, CarType="Coil Car",
              RouteFrom="Weirton Steel (Weirton, WV)",
              RouteTo="Ryerson Steel Service (Pittsburgh, PA)",

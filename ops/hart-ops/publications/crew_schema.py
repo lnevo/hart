@@ -1,4 +1,4 @@
-"""Schema check of the crew master ops/hart-ops/data/crew.json (ADR-039, lane L5).
+"""Schema check of the crew master ops/hart-ops/data/crew.json (ADR-039).
 
 The master is nested JSON (jobs with steps, sequences and lineups; maps with tracks), which the column sidecar format
 (docs/data/sidecars.md) cannot describe, so this checks it instead: the keys are unique, the required fields are

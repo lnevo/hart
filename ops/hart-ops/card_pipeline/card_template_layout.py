@@ -1,8 +1,7 @@
 """Card layout and style constants for the HART card templates (twips unless noted).
 
-Split out of generate_card_template.py, which re-exports every name here. The
-helpers and builders in the card_template_* modules read these from this module,
-so a test that wants to change one must patch it here, not on generate_card_template.
+The helpers and builders in the card_template_* modules read these from this module,
+so a test that wants to change one patches it here.
 """
 
 from docx.shared import RGBColor

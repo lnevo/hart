@@ -11,6 +11,11 @@ from hartlib import paths  # noqa: E402
 
 PIPELINE = Path(__file__).resolve().parent
 HART_OPS_ROOT = PIPELINE.parent
+PUBLICATIONS = HART_OPS_ROOT / "publications"
+# The card scripts import the OOXML helpers (hart_ooxml.py) and the crew master's colours (crew_master.py) from
+# publications/. Appended, so a card_pipeline module of the same name would still win.
+if str(PUBLICATIONS) not in sys.path:
+    sys.path.append(str(PUBLICATIONS))
 
 
 def cards_root() -> Path:

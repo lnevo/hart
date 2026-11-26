@@ -1,25 +1,32 @@
-"""Shared helpers for HART Railroad letter publications (DS / YM / etc.)."""
+"""Shared page, footer, back-page and colour-key helpers for the HART letter publications (DS, YM, crew sheets).
+
+The timetable and the destination colours come from the crew master (ops/hart-ops/data/crew.json, ADR-039), read once
+on first use. The text and table styling lives in hart_pub_styles.py and the raw OOXML writers in hart_ooxml.py; both
+are imported here so the rebuild scripts import from one module.
+"""
 
 from __future__ import annotations
 
+import functools
+import sys
 from pathlib import Path
 
-from docx import Document
-from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.document import Document
+from docx.enum.section import WD_ORIENT
+from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Inches, Pt, RGBColor
+from docx.table import Table, _Cell, _Row
 
-import sys as _sys
+PUB = Path(__file__).resolve().parent
+ASSETS = PUB / "assets"
+if str(PUB) not in sys.path:
+    sys.path.insert(0, str(PUB))
 
-_sys.path.insert(0, str(Path(__file__).resolve().parent))
 import crew_master  # noqa: E402
-
-# The timetable and the destination colors come from the crew master (ops/hart-ops/data/crew.json, ADR-039).
-_MASTER = crew_master.load()
-
-# Colors and the text and table styling are in hart_pub_styles.py (split for size, 2026-11-26); imported here so
-# the rebuild scripts keep one module to import from.
+from hart_ooxml import clear_table_borders, set_cell_margins, set_cell_width  # noqa: E402
 from hart_pub_styles import (  # noqa: E402,F401
     ACCENT,
     BODY,
@@ -39,6 +46,55 @@ from hart_pub_styles import (  # noqa: E402,F401
     style_table,
 )
 
+HEADER_FILL = "0F4761"
+WHITE = RGBColor(0xFF, 0xFF, 0xFF)
+
+
+@functools.cache
+def _master() -> dict:
+    """The crew master, read on first use (importing this module reads no file)."""
+    return crew_master.load()
+
+
+def _set_col_width(cell: _Cell, width_in: float) -> None:
+    """Width for python-docx layout (cell.width) and the one exact w:tcW Word reads."""
+    cell.width = Inches(width_in)
+    set_cell_width(cell, int(width_in * 1440))
+
+
+def _row_height(row: _Row, height_pt: float) -> None:
+    """Replace the row's w:trHeight with an exact height in points."""
+    tr_pr = row._tr.get_or_add_trPr()
+    old = tr_pr.find(qn("w:trHeight"))
+    if old is not None:
+        tr_pr.remove(old)
+    el = OxmlElement("w:trHeight")
+    el.set(qn("w:val"), str(int(height_pt * 20)))
+    el.set(qn("w:hRule"), "exact")
+    tr_pr.append(el)
+
+
+def _float_to_page_y(table: Table, y_twips: int) -> None:
+    """Position the table absolutely, y_twips from the page top, centred in the margins, never overlapped."""
+    tbl = table._tbl
+    tbl_pr = tbl.tblPr
+    if tbl_pr is None:
+        tbl_pr = OxmlElement("w:tblPr")
+        tbl.insert(0, tbl_pr)
+    for tag in ("w:tblpPr", "w:tblOverlap"):
+        old = tbl_pr.find(qn(tag))
+        if old is not None:
+            tbl_pr.remove(old)
+    tblp = OxmlElement("w:tblpPr")
+    tblp.set(qn("w:horzAnchor"), "margin")
+    tblp.set(qn("w:vertAnchor"), "page")
+    tblp.set(qn("w:tblpX"), "0")
+    tblp.set(qn("w:tblpY"), str(max(y_twips, 0)))
+    tblp.set(qn("w:tblpXSpec"), "center")
+    tbl_pr.append(tblp)
+    ov = OxmlElement("w:tblOverlap")
+    ov.set(qn("w:val"), "never")
+    tbl_pr.append(ov)
 
 
 def set_letter_portrait(doc: Document, *, compact: bool = False) -> None:
@@ -74,8 +130,6 @@ def set_page_size(
     top_margin_in defaults higher than side margins when unset so clipboard
     clips don't eat the title (pass explicitly to override).
     """
-    from docx.enum.section import WD_ORIENT
-
     section = doc.sections[0]
     # Assign orientation before size — python-docx may swap dims on orient change
     if width_in > height_in:
@@ -175,20 +229,12 @@ def add_station_map_page(
     plain_bg: bool = False,
 ) -> None:
     """Append the subdivision diagram only (no extra title) as a full page."""
-    from pathlib import Path as _Path
-    from docx.enum.text import WD_BREAK
-
-    assets = _Path(__file__).resolve().parent / "assets"
     if map_path is None:
         # Prefer chrome-free diagram; fall back to plain/cream SM-01 export
-        preferred = assets / "station_map_diagram_only.png"
-        fallback = (
-            assets / "station_map_subdivision_plain.png"
-            if plain_bg
-            else assets / "station_map_subdivision.png"
-        )
+        preferred = ASSETS / "station_map_diagram_only.png"
+        fallback = ASSETS / ("station_map_subdivision_plain.png" if plain_bg else "station_map_subdivision.png")
         map_path = preferred if preferred.is_file() else fallback
-    map_path = _Path(map_path)
+    map_path = Path(map_path)
     if not map_path.is_file():
         raise FileNotFoundError(f"Station map not found: {map_path}")
 
@@ -205,58 +251,29 @@ def add_station_map_page(
     pic.add_run().add_picture(str(map_path), height=Inches(7.0))
 
 
-# TT-23 page 2 schedule (AM | STATION | PM) for YM/DS companion column, from the master's timetable rows.
-# Each trip is a round trip: Barn to McKees Rocks, 10-minute wait, back to Barn.
-# AM reads down, PM reads up (descending), like the old East/West columns.
-TT23_SCHEDULE_ROWS: list[tuple[str, str, str]] = crew_master.tt23_rows(_MASTER)
-TT23_BACK_PAGE: dict[str, str] = crew_master.tt23_back_page(_MASTER)
-
-
 def add_diagram_and_timetable_page(
     doc: Document,
     *,
     map_path: str | Path | None = None,
     page_break: bool = True,
 ) -> None:
-    """Back page: STATION MAP (left) + ROUTE 23 timetable (right), ~50/50."""
-    from pathlib import Path as _Path
-    from docx.enum.table import WD_TABLE_ALIGNMENT
-    from docx.oxml import OxmlElement
-    from docx.oxml.ns import qn
+    """Back page: STATION MAP (left) + ROUTE 23 timetable (right), ~50/50.
 
-    assets = _Path(__file__).resolve().parent / "assets"
+    The timetable is the master's TT-23 rows (AM | STATION | PM): each trip runs Barn to McKees Rocks, waits 10
+    minutes and returns, so AM reads down and PM reads up.
+    """
+    schedule = crew_master.tt23_rows(_master())
+    back_page = crew_master.tt23_back_page(_master())
     if map_path is None:
-        map_path = assets / "station_map_diagram_only.png"
-    map_path = _Path(map_path)
+        map_path = ASSETS / "station_map_diagram_only.png"
+    map_path = Path(map_path)
     if not map_path.is_file():
         raise FileNotFoundError(f"Station map not found: {map_path}")
-
-    def _set_col_width(cell, width_in: float) -> None:
-        cell.width = Inches(width_in)
-        tc = cell._tc
-        tcPr = tc.get_or_add_tcPr()
-        tcW = OxmlElement("w:tcW")
-        tcW.set(qn("w:w"), str(int(width_in * 1440)))
-        tcW.set(qn("w:type"), "dxa")
-        tcPr.append(tcW)
-
-    def _clear_borders(table) -> None:
-        tbl = table._tbl
-        tblPr = tbl.tblPr if tbl.tblPr is not None else OxmlElement("w:tblPr")
-        borders = OxmlElement("w:tblBorders")
-        for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
-            el = OxmlElement(f"w:{edge}")
-            el.set(qn("w:val"), "nil")
-            el.set(qn("w:sz"), "0")
-            el.set(qn("w:space"), "0")
-            el.set(qn("w:color"), "auto")
-            borders.append(el)
-        tblPr.append(borders)
 
     # Lead-in paragraph carries the page break (avoids an empty blank page)
     lead = doc.add_paragraph()
     lead.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    lead.paragraph_format.space_before = Pt(0)
+    lead.paragraph_format.space_before = Pt(12)   # a small pad under the clipboard zone
     lead.paragraph_format.space_after = Pt(4)
     if page_break:
         pPr = lead._p.get_or_add_pPr()
@@ -265,13 +282,11 @@ def add_diagram_and_timetable_page(
             if child.tag == qn("w:pageBreakBefore"):
                 pPr.remove(child)
         pPr.append(OxmlElement("w:pageBreakBefore"))
-    # Small top pad under clipboard zone (not a huge spacer that orphans the table)
-    lead.paragraph_format.space_before = Pt(12)
 
     outer = doc.add_table(rows=1, cols=2)
     outer.alignment = WD_TABLE_ALIGNMENT.CENTER
     outer.autofit = False
-    _clear_borders(outer)
+    clear_table_borders(outer)
 
     left, right = outer.rows[0].cells
     _set_col_width(left, 2.15)
@@ -304,10 +319,10 @@ def add_diagram_and_timetable_page(
     sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
     sub.paragraph_format.space_before = Pt(0)
     sub.paragraph_format.space_after = Pt(4)
-    r = sub.add_run(TT23_BACK_PAGE["subtitle"])
+    r = sub.add_run(back_page["subtitle"])
     _set_run_font(r, size_pt=6.5, color=MUTED, name="Georgia")
 
-    sched = doc.add_table(rows=1 + len(TT23_SCHEDULE_ROWS), cols=3)
+    sched = doc.add_table(rows=1 + len(schedule), cols=3)
     sched.autofit = False
     style_table(sched)
     col_w = (0.52, 0.92, 0.58)
@@ -320,9 +335,9 @@ def add_diagram_and_timetable_page(
         p.paragraph_format.space_after = Pt(0)
         run = p.add_run(text)
         _set_run_font(run, size_pt=6, bold=True, color=RGBColor(0xFF, 0xFF, 0xFF), name="Arial")
-        set_cell_shading(cell, "0F4761")
+        set_cell_shading(cell, HEADER_FILL)
 
-    for i, (am, station, pm) in enumerate(TT23_SCHEDULE_ROWS, start=1):
+    for i, (am, station, pm) in enumerate(schedule, start=1):
         row = sched.rows[i]
         for cell, text, align, w in zip(
             row.cells,
@@ -347,17 +362,13 @@ def add_diagram_and_timetable_page(
     note.alignment = WD_ALIGN_PARAGRAPH.LEFT
     note.paragraph_format.space_before = Pt(6)
     note.paragraph_format.space_after = Pt(0)
-    r = note.add_run(TT23_BACK_PAGE["note"])
+    r = note.add_run(back_page["note"])
     _set_run_font(r, size_pt=5.5, color=MUTED, name="Calibri")
-
-
-# Abridged destination color key (swatches only — no color names): (fill, label) by the master's color groups.
-OFFLINE_DESTS, ISLAND_DESTS = crew_master.color_key(_MASTER)
 
 
 def abridged_color_key_height_in(*, compact: bool = False, pin_title: bool = True) -> float:
     """Approximate height of the abridged color-key table (inches)."""
-    n = len(ISLAND_DESTS)
+    n = len(crew_master.color_key(_master())[1])
     title_h = 16 if pin_title else 0
     hdr_h, body_h = (12, 13) if compact else (14, 16)
     return (title_h + hdr_h + n * body_h) / 72.0 + 0.05
@@ -375,10 +386,10 @@ def add_abridged_color_key(
 ) -> None:
     """Two-column swatch chart: interchange left, local industries right.
 
-    When pin_to_bottom=True, the chart is absolutely positioned near the
-    bottom of the page (for 5×8 crew sheets).
+    The swatches are the master's colour groups, (fill, label), in its order. When pin_to_bottom=True, the chart is
+    absolutely positioned near the bottom of the page (for 5×8 crew sheets).
     """
-    WHITE = RGBColor(0xFF, 0xFF, 0xFF)
+    offline_dests, island_dests = crew_master.color_key(_master())
 
     if not pin_to_bottom:
         h = doc.add_paragraph()
@@ -396,7 +407,7 @@ def add_abridged_color_key(
                 line_spacing=1.05,
             )
 
-    n = len(ISLAND_DESTS)
+    n = len(island_dests)
     # Title row (optional) + header + data rows
     title_rows = 1 if pin_to_bottom else 0
     table = doc.add_table(rows=title_rows + 1 + n, cols=4)
@@ -409,14 +420,14 @@ def add_abridged_color_key(
         title_row = table.rows[0]
         title_row.cells[0].merge(title_row.cells[3])
         title_row.cells[0].text = ""
-        set_cell_shading(title_row.cells[0], "0F4761")
+        set_cell_shading(title_row.cells[0], HEADER_FILL)
         tp = title_row.cells[0].paragraphs[0]
         tp.alignment = WD_ALIGN_PARAGRAPH.CENTER
         trun = tp.add_run(heading.upper())
         _set_run_font(trun, size_pt=8.5, bold=True, color=WHITE, name="Calibri")
 
     for cell in table.rows[data_start].cells:
-        set_cell_shading(cell, "0F4761")
+        set_cell_shading(cell, HEADER_FILL)
         for p in cell.paragraphs:
             p.paragraph_format.space_before = Pt(0)
             p.paragraph_format.space_after = Pt(0)
@@ -437,34 +448,9 @@ def add_abridged_color_key(
         r = p.add_run(text)
         _set_run_font(r, size_pt=7 if compact else 7.5, color=BODY, name="Calibri")
 
-    def _margins(cell, *, top: int, bottom: int, left: int = 30, right: int = 30) -> None:
-        tc = cell._tc
-        tcPr = tc.get_or_add_tcPr()
-        old = tcPr.find(qn("w:tcMar"))
-        if old is not None:
-            tcPr.remove(old)
-        tcMar = OxmlElement("w:tcMar")
-        for edge, val in (("top", top), ("left", left), ("bottom", bottom), ("right", right)):
-            el = OxmlElement(f"w:{edge}")
-            el.set(qn("w:w"), str(val))
-            el.set(qn("w:type"), "dxa")
-            tcMar.append(el)
-        tcPr.append(tcMar)
-
-    def _row_h(row, height_pt: float) -> None:
-        tr = row._tr
-        trPr = tr.get_or_add_trPr()
-        old = trPr.find(qn("w:trHeight"))
-        if old is not None:
-            trPr.remove(old)
-        trHeight = OxmlElement("w:trHeight")
-        trHeight.set(qn("w:val"), str(int(height_pt * 20)))
-        trHeight.set(qn("w:hRule"), "exact")
-        trPr.append(trHeight)
-
     for i in range(n):
         row = table.rows[data_start + 1 + i]
-        offline = OFFLINE_DESTS[i] if i < len(OFFLINE_DESTS) else None
+        offline = offline_dests[i] if i < len(offline_dests) else None
         if offline is None:
             row.cells[0].text = ""
             row.cells[1].text = ""
@@ -472,35 +458,35 @@ def add_abridged_color_key(
         else:
             _swatch(row.cells[0], offline[0])
             _dest(row.cells[1], offline[1])
-        _swatch(row.cells[2], ISLAND_DESTS[i][0])
-        _dest(row.cells[3], ISLAND_DESTS[i][1])
+        _swatch(row.cells[2], island_dests[i][0])
+        _dest(row.cells[3], island_dests[i][1])
 
     hdr_h, body_h = (12, 13) if compact else (14, 16)
     pad_s, pad_d = (14, 20) if compact else (20, 28)
     for ri, row in enumerate(table.rows):
         if pin_to_bottom and ri == 0:
-            _row_h(row, 16)
+            _row_height(row, 16)
         elif ri == data_start:
-            _row_h(row, hdr_h)
+            _row_height(row, hdr_h)
         else:
-            _row_h(row, body_h)
+            _row_height(row, body_h)
         for ci, cell in enumerate(row.cells):
             pad = pad_s if ci in (0, 2) else pad_d
             if pin_to_bottom and ri == 0:
                 pad = 25
-            _margins(cell, top=pad, bottom=pad)
+            set_cell_margins(cell, top=pad, left=30, bottom=pad, right=30)
             for p in cell.paragraphs:
                 p.paragraph_format.space_before = Pt(0)
                 p.paragraph_format.space_after = Pt(0)
 
     for i in range(n):
         row = table.rows[data_start + 1 + i]
-        offline = OFFLINE_DESTS[i] if i < len(OFFLINE_DESTS) else None
+        offline = offline_dests[i] if i < len(offline_dests) else None
         if offline is not None:
             _swatch(row.cells[0], offline[0])
-            _margins(row.cells[0], top=pad_s, bottom=pad_s)
-        _swatch(row.cells[2], ISLAND_DESTS[i][0])
-        _margins(row.cells[2], top=pad_s, bottom=pad_s)
+            set_cell_margins(row.cells[0], top=pad_s, left=30, bottom=pad_s, right=30)
+        _swatch(row.cells[2], island_dests[i][0])
+        set_cell_margins(row.cells[2], top=pad_s, left=30, bottom=pad_s, right=30)
 
     for row in table.rows:
         for cell, w in zip(
@@ -512,26 +498,4 @@ def add_abridged_color_key(
     if pin_to_bottom:
         # Float the chart to the bottom of the page.
         block_in = abridged_color_key_height_in(compact=compact, pin_title=True)
-        y_twips = int((page_height_in - bottom_clearance_in - block_in) * 1440)
-        tbl = table._tbl
-        tblPr = tbl.tblPr
-        if tblPr is None:
-            tblPr = OxmlElement("w:tblPr")
-            tbl.insert(0, tblPr)
-        old = tblPr.find(qn("w:tblpPr"))
-        if old is not None:
-            tblPr.remove(old)
-        tblpPr = OxmlElement("w:tblpPr")
-        tblpPr.set(qn("w:horzAnchor"), "margin")
-        tblpPr.set(qn("w:vertAnchor"), "page")
-        tblpPr.set(qn("w:tblpX"), "0")
-        tblpPr.set(qn("w:tblpY"), str(max(y_twips, 0)))
-        tblpPr.set(qn("w:tblpXSpec"), "center")
-        tblPr.append(tblpPr)
-        # Keep following content from overlapping awkwardly
-        old_ov = tblPr.find(qn("w:tblOverlap"))
-        if old_ov is not None:
-            tblPr.remove(old_ov)
-        ov = OxmlElement("w:tblOverlap")
-        ov.set(qn("w:val"), "never")
-        tblPr.append(ov)
+        _float_to_page_y(table, int((page_height_in - bottom_clearance_in - block_in) * 1440))
