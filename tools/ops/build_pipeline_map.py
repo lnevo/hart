@@ -52,10 +52,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
-                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths  # noqa: E402
-ROOT = paths.REPO_ROOT
+ROOT = Path(__file__).resolve().parents[2]
 GRAPH = ROOT / "docs" / "pipeline-map" / "pipeline_map.json"
 SIDES = ("check", "pointer", "pull", "mirror", "capture", "history")  # an edge's "side": why it carries no content on
 PAGE = ROOT / "docs" / "pipeline-map" / "index.html"

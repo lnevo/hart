@@ -32,11 +32,7 @@ import re
 import sys
 from pathlib import Path, PurePosixPath
 
-sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
-                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths  # noqa: E402
-
-ROOT = paths.REPO_ROOT
+ROOT = Path(__file__).resolve().parents[2]
 _spec = importlib.util.spec_from_file_location("check_agent_docs", ROOT / "tools/audit/check_agent_docs.py")
 DOCS_CHECK = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(DOCS_CHECK)

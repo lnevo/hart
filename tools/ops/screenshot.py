@@ -21,10 +21,7 @@ import tempfile
 import threading
 from pathlib import Path
 
-sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
-                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths  # noqa: E402
-ROOT = paths.REPO_ROOT
+ROOT = Path(__file__).resolve().parents[2]
 SIZES = {"desktop": "1440,1000", "phone": "390,844"}
 MAC_CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 

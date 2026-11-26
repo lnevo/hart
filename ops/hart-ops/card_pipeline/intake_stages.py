@@ -15,10 +15,10 @@ flagged from the OCR text and the AI review, and ``cars.py kind`` switches a pho
 from __future__ import annotations
 
 import csv
-import sys
 import html
 import os
 import re
+import sys
 from datetime import date
 from pathlib import Path
 
