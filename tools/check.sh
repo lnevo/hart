@@ -352,10 +352,21 @@ start_jobs() {
       fi
       if [[ -s "$JOBS/$n.stamplog" ]]; then { echo "--- stamps ($name):"; cat "$JOBS/$n.stamplog"; } >>"$JOBS/$n.log"; fi
       echo "$((SECONDS - start))" >"$JOBS/$n.time"
+      echo "$rc" >"$JOBS/$n.rc"   # collect reads this, not wait's status (job_status, below)
       exit "$rc"
     ) &
     pids[$n]=$!
   done
+}
+# job_status I: whether job I passed, from the exit code it wrote itself. wait only waits for it: bash 3.2 (macOS)
+# can drop a finished background job from its table while more jobs start, and `wait PID` then fails with "pid N
+# is not a child of this shell" (status 127) for a job that passed, which marked it FAILED. A job that wrote no code
+# (killed before it finished) fails.
+job_status() {
+  local rc
+  wait "${pids[$1]}" 2>/dev/null
+  rc="$(cat "$JOBS/$1.rc" 2>/dev/null)" || return 1
+  [[ "$rc" == 0 ]]
 }
 collect() {
   local i took skipped=0 results=()
@@ -363,7 +374,7 @@ collect() {
     if [[ -e "$JOBS/$i.skip" ]]; then
       skipped=$((skipped + 1))
       results+=("${names[$i]}"$'\tskipped')
-    elif wait "${pids[$i]}"; then
+    elif job_status "$i"; then
       echo "--- ${names[$i]} ($(cat "$JOBS/$i.time")s)"
       results+=("${names[$i]}"$'\tpassed')
     else
