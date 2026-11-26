@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Publish the public portal build to www.hartrailroad.com (HestiaCP/nginx on the Lightsail host www.easte.net).
+# Publish the public portal build to www.hartrailroad.com. Server details are in the owner's private notes
+# (private/web-server/ in the main checkout, gitignored), not in the repo.
 # Builds with prepare_github_pages.py, smoke-tests links (check_portal_build.py), and stops
 # if a count (files, pages, share cards, archive, logos, gallery, fleet) fell more than 10%
 # since the last deploy (--force overrides). ADR-040: one deploy at a time (a lock in the
@@ -10,10 +11,15 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 REPO="$(git -C "$ROOT" rev-parse --show-toplevel)"
-# Default: the rsync-only deploy key (~/.ssh/config "Host hart-deploy"), whose forced rrsync command
-# roots paths at the docroot. HART_WEB_HOST=www.easte.net uses a normal login and the absolute path.
+# Default: the rsync-only deploy alias (~/.ssh/config "Host hart-deploy"), whose forced rrsync command
+# roots paths at the docroot. HART_WEB_HOST=<admin host> with HART_WEB_DOCROOT=<docroot path> uses a
+# normal login and the absolute path; both values are in the private notes.
 if [[ -n "${HART_WEB_HOST:-}" ]]; then
-  DEST="$HART_WEB_HOST:/home/lnevo/web/hartrailroad.com/public_html/"
+  if [[ -z "${HART_WEB_DOCROOT:-}" ]]; then
+    echo "HART_WEB_HOST needs HART_WEB_DOCROOT (the site's docroot, in the private notes)" >&2
+    exit 2
+  fi
+  DEST="$HART_WEB_HOST:${HART_WEB_DOCROOT%/}/"
 else
   DEST="hart-deploy:"
 fi
@@ -21,7 +27,7 @@ fi
 RSYNC="$(command -v /opt/homebrew/bin/rsync || command -v rsync)"
 if [[ "$DEST" == hart-deploy:* ]] && "$RSYNC" --version 2>&1 | grep -i openrsync >/dev/null; then
   echo "Refusing to deploy: $RSYNC is openrsync, which the deploy key's rrsync rejects. Run: brew install rsync" >&2
-  echo "(or HART_WEB_HOST=www.easte.net $0 to deploy with a normal login)" >&2
+  echo "(or set HART_WEB_HOST and HART_WEB_DOCROOT to deploy with a normal login)" >&2
   exit 1
 fi
 # Last deploy's counts; gitignored, outside the docroot. Kept at the main checkout's root
