@@ -5682,7 +5682,7 @@
    "kind": "unstructured",
    "status": "live",
    "domain": "agents",
-   "desc": "Refactors that change no behaviour (a script split under its size limit, a module move) and fixes to repo tools and checks (tools/ops/, tools/audit/, tools/pipeline/, tools/hosts/ tests, hooks, Jython and speed-match scripts). Use when no other named agent owns the paths. Give it one bounded job; it always runs in a worktree.",
+   "desc": "Refactors that change no behaviour (a script split under its size limit, a module move) and fixes to repo tools and checks (tools/ops/, tools/audit/, tools/pipeline/, tools/hosts/ tests, hooks, the speed-match scripts in jmri/layouts/hart/scripts/speedmatch/ and the other Jython scripts under jmri/). Use when no other named agent owns the paths. Give it one bounded job; it always runs in a worktree.",
    "path": ".claude/agents/tool-fixer.md",
    "gen": "agent-docs"
   },
