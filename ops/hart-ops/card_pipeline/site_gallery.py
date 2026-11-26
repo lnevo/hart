@@ -6,6 +6,7 @@
 The gallery file in the hart repo is the only place the public Photos page reads
 (www/js/fleet.js). Entries come from the repository, the same data the cards use, so the
 caption matches the card. An entry whose text contains the private name is never added.
+tools/ops/check_fleet_gallery.py (a check.sh step) holds the file to the car and loco masters.
 Deploy afterwards with www/scripts/deploy_hartrailroad.sh.
 """
 from __future__ import annotations

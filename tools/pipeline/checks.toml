@@ -665,6 +665,7 @@ inputs = [
   { path = "ops/hart-ops/data/HART_Spot_Waybills.csv", label = "rules", side = "check" },
   { path = "ops/hart-ops/data/locos.csv", label = "rules", side = "check" },
   { path = "ops/hart-ops/data/trains.csv", label = "rules", side = "check" },
+  { path = "www/scripts/archive_catalogue.csv", label = "rules", side = "check" },
 ]
 # the sidecars it lists (check_data.SCAN_GLOBS)
 quiet_inputs = ["**/*.columns.csv"]
@@ -686,6 +687,41 @@ inputs = [
   { path = "ops/hart-ops/data/OperationsEngineRoster.xml", label = "snapshot roster", side = "check" },
   { path = "cats/data/hart_trains.csv", label = "train list", side = "check" },
 ]
+
+# The public rolling-stock gallery against the car and loco masters (ADR-039 lane L6): every item is a master
+# row, the albums' counts are right, and every photographed row is shown.
+[[step]]
+name = "fleet-gallery"
+runner = "check"
+group = "static"
+cmd = ["python3", "tools/ops/check_fleet_gallery.py"]
+git = ["head", "base"]
+domain = "website"
+label = "check_fleet_gallery.py"
+desc = "Checks the public rolling-stock gallery fleet-gallery.json against the car master image_metadata.csv and the loco master locos.csv: each item is a master row with its number and type, album counts match, and every photographed row is shown (ADR-039)."
+inputs = [
+  { path = "www/data/fleet-gallery.json", label = "copy", side = "check" },
+  { path = "ops/hart-ops/data/image_metadata.csv", label = "car master", side = "check" },
+  { path = "ops/hart-ops/data/locos.csv", label = "loco master", side = "check" },
+]
+
+# archive.json and the lineage charts against the archive catalogue (ADR-039 lane L6).
+[[step]]
+name = "archive-catalogue"
+runner = "check"
+group = "static"
+cmd = ["python3", "www/scripts/archive_catalogue.py"]
+git = ["head", "base"]
+domain = "website"
+label = "archive_catalogue.py"
+desc = "Checks archive.json and the lineage charts against the archive catalogue archive_catalogue.csv: each archive item's file and credit are its row's, and each lineage logo cites a catalogue id (ADR-039); --write sets the logos from their ids."
+inputs = [
+  { path = "www/scripts/archive_catalogue.csv", label = "master", side = "check" },
+  { path = "www/data/archive.json", label = "copy", side = "check" },
+  { path = "www/data/plants-lineage.json", label = "logo ids", side = "check" },
+  { path = "www/data/chartiers-lineage.json", label = "logo ids", side = "check" },
+]
+quiet_inputs = ["ops/hart-ops/operator_logos/downloads/*.png", "www/assets/logos/*.png"]
 
 [[step]]
 name = "hart-trains"

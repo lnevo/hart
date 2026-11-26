@@ -11,6 +11,10 @@ was saved). "Public domain" for a Wikimedia Commons logo is the Commons copyrigh
 trademark still applies. Unless a date is given, a file arrived with the first commit of the
 car-card tooling on 2026-08-31.
 
+The logos the lineage charts show (`www/data/*-lineage.json`) also have rows in the archive catalogue
+`www/scripts/archive_catalogue.csv`, which the charts cite by id; a change to one of those rows here goes
+there too.
+
 Checked 2026-11-09 by comparing every image by eye, by checksum and against Wikipedia and
 Commons file pages.
 
