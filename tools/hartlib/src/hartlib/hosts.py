@@ -120,8 +120,8 @@ def mqtt_port(env: Mapping[str, str] | None = None,
     raw = _lookup(PORT_VARS, "HART_MQTT_PORT", env, file_values)
     try:
         return int(raw)
-    except ValueError:
-        raise SystemExit(f"HART_MQTT_PORT must be a number, not {raw!r}") from None
+    except ValueError as exc:
+        raise SystemExit(f"HART_MQTT_PORT must be a number, not {raw!r}") from exc
 
 
 def jmri_json_url(env: Mapping[str, str] | None = None,

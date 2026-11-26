@@ -9,11 +9,12 @@ import os
 import subprocess
 import tempfile
 from pathlib import Path
+from .errors import HartlibError
 
 SUBMODULE_MODE = "160000"
 
 
-class GitError(RuntimeError):
+class GitError(HartlibError, RuntimeError):
     """git could not list the tracked files; the message says where and why."""
 
 
@@ -63,7 +64,7 @@ def tracked_files(root: Path | str, *pathspecs: str, submodules: bool = True, ti
     try:
         done = subprocess.run(args, capture_output=True, timeout=timeout)
     except (OSError, subprocess.SubprocessError) as err:
-        raise GitError(f"git ls-files could not run in {root}: {err}") from None
+        raise GitError(f"git ls-files could not run in {root}: {err}") from err
     if done.returncode != 0:
         detail = done.stderr.decode("utf-8", "replace").strip() or f"exit {done.returncode}"
         raise GitError(f"git ls-files failed in {root}: {detail}")

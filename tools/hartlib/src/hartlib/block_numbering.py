@@ -1,5 +1,4 @@
-"""The main and upper blocks' JMRI numbers: block_numbering.csv's one reader and the rule that numbers them
-(naming-layers step 8, builder merge step 2).
+"""The main and upper blocks' JMRI numbers: block_numbering.csv's one reader and the rule that numbers them.
 
     from hartlib import block_numbering
     numbering = block_numbering.read(names=names)      # block_numbering.csv, its ids named by `names`
@@ -8,15 +7,15 @@
 Each main and upper block is a JMRI block IB:C3:<nnnn> (level_devices.BLOCK_PREFIX) and a layout block
 ILB<LAYOUT_BLOCK_FIRST - 1 + nnnn>, numbered once over both levels in block_sort order: OS blocks first, then the
 rest, each by the number at the end of its name. Blocks added after the cut-over take the next numbers at the end
-(owner, 2026-11-16: append), so no main or upper system name shifts. block_numbering.csv holds them: a renamed block
+(append), so no main or upper system name shifts. block_numbering.csv holds them: a renamed block
 gets the sort place of the name it replaces (numbered_as), an appended one comes last in append_order, and a retired
 one (a block gone from the levels, such as the main and upper helix pieces joined into one staging block per helix
-track on 2026-11-20) keeps its number taken, unused, so no block after it is renumbered. A live block is given by its
-device ID (naming-layers step 5), its name the name store's, so a rename changes no row; a retired block has no ID
+track) keeps its number taken, unused, so no block after it is renumbered. A live block is given by its
+device ID, its name the name store's, so a rename changes no row; a retired block has no ID
 any more, so its row gives the name it had (retired), and numbered_as is the name whose sort place a block takes (a
 name no block has now).
 
-The owner keeps today's numbers until those levels are wired for good (2026-11-23): build_device_map.py copies
+The owner keeps today's numbers until those levels are wired for good: build_device_map.py copies
 them into the block rows' jmri_name and layout_block, hartlib.tables_build.master_beans names the beans from them, and
 the Layout Editor build (le_tables.check_level_blocks) holds the drawn blocks to the numbering.
 """
@@ -28,13 +27,14 @@ from pathlib import Path
 from typing import Iterable, Mapping
 
 from . import level_devices, paths
+from .errors import HartlibError
 
 PATH = paths.LAYOUT_DATA / "schematic" / "block_numbering.csv"
 COLUMNS = ["id", "numbered_as", "append_order", "retired", "notes"]
 LEVELS = level_devices.LEVELS      # main and upper
 
 
-class NumberingError(ValueError):
+class NumberingError(HartlibError, ValueError):
     """block_numbering.csv cannot be read, is not in its shape or does not fit the blocks; the message says where."""
 
 
@@ -59,7 +59,7 @@ def read(path: Path = PATH, names: Mapping[tuple[str, str], str] | None = None) 
         with open(path, newline="", encoding="utf-8") as fh:
             rows = list(csv.DictReader(fh))
     except OSError as exc:
-        raise NumberingError(f"{path.name}: cannot read it ({exc.strerror})") from None
+        raise NumberingError(f"{path.name}: cannot read it ({exc.strerror})") from exc
     if not rows or list(rows[0]) != COLUMNS:
         raise NumberingError(f"{path.name}: expected the columns {', '.join(COLUMNS)}")
     if names is None and any((r["id"] or "").strip() for r in rows):
@@ -70,7 +70,8 @@ def read(path: Path = PATH, names: Mapping[tuple[str, str], str] | None = None) 
         ident, as_, order, gone = ((r[c] or "").strip() for c in ("id", "numbered_as", "append_order", "retired"))
         if bool(ident) == bool(gone):
             raise NumberingError(f"{path.name} line {n}: give a block's id, or a retired block's old name in retired")
-        name = gone or next((names[(lv, ident)] for lv in LEVELS if (lv, ident) in names), "")
+        lookup = names or {}
+        name = gone or next((lookup[(lv, ident)] for lv in LEVELS if (lv, ident) in lookup), "")
         if not name:
             raise NumberingError(f"{path.name} line {n}: {ident} is no main or upper device of the device master (a "
                                  "new export dropped it: give the block's new id)")
@@ -99,7 +100,7 @@ def read(path: Path = PATH, names: Mapping[tuple[str, str], str] | None = None) 
     return Numbering(numbered, tuple(appended[k] for k in sorted(appended)), tuple(retired), path)
 
 
-def block_sort(name: str):
+def block_sort(name: str) -> tuple[int, int, str]:
     """A main or upper block's sort key: OS blocks first, then by the number at the end of the name."""
     kind = 0 if name.startswith("OS ") else 1
     tail = name.split(" ")[-1].split("+")[0]

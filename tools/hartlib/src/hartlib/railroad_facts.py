@@ -8,9 +8,12 @@ from collections import Counter
 from dataclasses import dataclass, field, replace
 from functools import cached_property
 from pathlib import Path
-from typing import Callable, Collection, Iterable, Mapping
+from collections.abc import Callable, Collection, Iterable, Mapping
+from typing import Any, cast
 
 from . import layer_files, level_devices, level_masts, paths, tables, track_names
+from .errors import FactsError, HartlibError
+from .levels import ALL_LEVELS, MAIN_UPPER, Level, LevelText, level_text, parse_level
 
 LAYERS = ("inputs", "hands", "device_map", "masts", "tables")
 WRITERS = {
@@ -19,14 +22,14 @@ WRITERS = {
     "masts": "tools/schematic/build_masts.py",
     "tables": "tools/schematic/build_tables.py (or a PanelPro Store)",
 }
-LEVEL_NUMBERS = (2, 3)                  # main and upper: the levels of the schematic's main_upper files
+LEVEL_NUMBERS = MAIN_UPPER              # main and upper: the levels of the schematic's main_upper files
 STAGING_LEVEL = "1"                     # staging: the level of the staging rows (read_staging_rows) and their device views
 YES = {"yes": True, "no": False}
 HANDS = {"", "L", "R"}
 NAME_LAYERS = ("turnout", "fb", "block", "occupancy", "mast", "head")
 DEVICE_COLUMNS = ("level", "cp", "layer", "user_name", "system_name", "jmri_name", "node", "dcc", "comment",
                   "trial_name", "notes", "blocks", "detector", "stop", "switch", "facing", "protects", "dir")
-# The device maps' facts in columns of their own (owner, 2026-11-20), so no code reads them out of the comment or
+# The device maps' facts in columns of their own, so no code reads them out of the comment or
 # notes, which stay as text for people (device_facts checks them):
 #   blocks     occupancy rows: the blocks its detector serves, LIST separated (a throat and its yard track share one)
 #   detector   occupancy rows: DETECTORS, whether the detector is in the field, planned on a node input, planned with
@@ -43,11 +46,7 @@ DETECTORS = ("wired", "planned", "not_wired", "none")
 UNIQUE_HARDWARE = ("turnout", "fb", "occupancy", "head")   # layers whose hardware is one device's alone
 
 
-class FactsError(ValueError):
-    """A fact file that cannot be read as it stands: the message names the file and the row."""
-
-
-class LayerError(RuntimeError):
+class LayerError(HartlibError, RuntimeError):
     """A builder asked for a layer the pipeline writes after it (see the module text)."""
 
 
@@ -91,7 +90,7 @@ def _where(path: Path, line: int) -> str:
     return f"{path.name} line {line}"
 
 
-def master_at(path: Path, user_name: str, level, layer: str) -> str:
+def master_at(path: Path, user_name: str, level: int | str, layer: str) -> str:
     """A device master row as a message names it: the file that holds it and its key, "devices_field.csv: Switch 1
     (level 1, turnout)" for a row with the owner's cells, else the generated file (hartlib.devices.Index.where; the
     master is two merged files, so a row has no line). A row the master at `path` does not hold (a caller's own) is
@@ -112,7 +111,7 @@ def read_rows(path: Path, required: Iterable[str], *, optional: Iterable[str] = 
     try:
         fh = path.open(newline="", encoding="utf-8")
     except OSError as exc:
-        raise FactsError(f"{path}: cannot read it ({exc.strerror})") from None
+        raise FactsError(f"{path}: cannot read it ({exc.strerror})") from exc
     with fh:
         if note and not fh.readline().startswith("# "):
             raise FactsError(f"{_where(path, 1)}: the note line (# ...) saying where the file came from")
@@ -135,15 +134,13 @@ def read_rows(path: Path, required: Iterable[str], *, optional: Iterable[str] = 
 def _int(value: str, where: str, what: str) -> int:
     try:
         return int(value)
-    except ValueError:
-        raise FactsError(f"{where}: {what} is a whole number, not {value!r}") from None
+    except ValueError as exc:
+        raise FactsError(f"{where}: {what} is a whole number, not {value!r}") from exc
 
 
-def _level(value: str, where: str) -> int:
-    level = _int(value, where, "level")
-    if level not in LEVEL_NUMBERS:
-        raise FactsError(f"{where}: level is {' or '.join(map(str, LEVEL_NUMBERS))} (main, upper), not {level}")
-    return level
+def _level(value: str, where: str) -> Level:
+    """A main or upper level (parse_level with MAIN_UPPER)."""
+    return parse_level(value, where, MAIN_UPPER)
 
 
 def natural(name: str) -> list:
@@ -215,10 +212,9 @@ def read_staging_devices(path: Path, rows: list[tuple[int, dict[str, str]]] | No
 
 SWITCH_COLUMNS = ("level", "switch", "half", "os_id", "closed_id", "thrown_id",
                   "hand", "hand_source", "area", "le_ident", "cats_inverted", "ctc_is", "ctc_signals", "notes")
-# A staging row's OS block and legs are given by their device IDs only (os_id, closed_id, thrown_id; naming-layers
-# step 5). SwitchRow's os_block, closed_leg and thrown_leg are the name store's names of those IDs, which
-# read_switch_rows looks up (hartlib.devices.user_names), so a rename in devices_field.csv reaches every reader with no
-# switches.csv edit. The file holds no copy of a name: a LABEL_COLUMNS column in its header stops the read.
+# A staging row's OS block and legs are given by their device IDs only (os_id, closed_id, thrown_id). SwitchRow's
+# os_block, closed_leg and thrown_leg are the name store's names of those IDs (devices.user_names), so a rename in
+# devices_field.csv reaches every reader; a LABEL_COLUMNS column (a copy of a name) in the header stops the read.
 LEG_IDS = {"os_block": "os_id", "closed_leg": "closed_id", "thrown_leg": "thrown_id"}
 LABEL_COLUMNS = tuple(LEG_IDS)
 HAND_SOURCES = ("plan", "owner")        # plan: build_hands.py writes it from the plan graph; owner: hand-kept
@@ -238,7 +234,7 @@ class SwitchRow:
     are the name store's names of os_id, closed_id and thrown_id (read_switch_rows); a row keyed by its half has
     none."""
     line: int
-    level: int
+    level: Level
     switch: int
     half: str
     os_block: str
@@ -259,7 +255,7 @@ class SwitchRow:
     @property
     def by_os(self) -> bool:
         """Whether the row is keyed by its OS block's device ID (os_id: staging's rows today), not by its half: its
-        shape follows this column, not its level (naming-layers step 14)."""
+        shape follows this column, not its level."""
         return bool(self.os_id)
 
     @property
@@ -292,9 +288,11 @@ def _no_label_columns(path: Path) -> None:
                          "closed_id, thrown_id) and the name store gives their names")
 
 
-def read_switch_rows(path: Path, names: Mapping[tuple[str, str], str] | Callable[[], Mapping[tuple[str, str], str]]
-                     | None = None) -> list[SwitchRow]:
-    """switches.csv's rows in file order, each held to the shape of its key, not its level (naming-layers step 14):
+SwitchNames = Mapping[tuple[str, str], str]
+
+
+def read_switch_rows(path: Path, names: SwitchNames | Callable[[], SwitchNames] | None = None) -> list[SwitchRow]:
+    """switches.csv's rows in file order, each held to the shape of its key, not its level:
     a row keyed by its OS block (an os_id: staging's rows today, SwitchRow.by_os) or by its half (main and upper's).
     An OS-keyed row's os_block, closed_leg and thrown_leg are the names of its os_id, closed_id and thrown_id in
     `names` ({(level, id): user name}; switch_names of `path` by default, read when the first such row is met).
@@ -308,95 +306,8 @@ def read_switch_rows(path: Path, names: Mapping[tuple[str, str], str] | Callable
     hand_source with no hand (a plan row's blank hand is build_hands.py's to fill), and a whole-switch column
     (SWITCH_WIDE; on an OS-keyed switch the hand too) on a switch's later row. A half-keyed row has no OS block or
     legs."""
-    _no_label_columns(path)
-    out: list[SwitchRow] = []
-    keys: dict[str, int] = {}
-    first_of: dict[int, tuple[int, int]] = {}          # switch -> (level, line of its first row)
-    for line, r in read_rows(path, SWITCH_COLUMNS):
-        n = _int(r["switch"], _where(path, line), "switch")
-        where = f"{_where(path, line)} (Switch {n})"
-        level = _int(r["level"], where, "level")
-        if level not in ALL_LEVELS:
-            raise FactsError(f"{where}: level is 1, 2 or 3 (staging, main, upper), not {level}")
-        later = bool(out) and out[-1].switch == n
-        if n in first_of:
-            lv, ln = first_of[n]
-            if lv != level:
-                raise FactsError(f"{path.name} lines {ln} (level {lv}) and {line} (level {level}) both use Switch {n}; "
-                                 "switch numbers are unique railroad-wide")
-            if not later:
-                raise FactsError(f"{where}: Switch {n} is also on line {ln}; a switch's rows go together")
-        first_of.setdefault(n, (level, line))
-        by_os = bool(r["os_id"])                        # the row's key, not its level, gives its shape
-        if by_os != (level == 1):
-            # only staging's switches are bound to the live panels (staging_switches, switch_turnouts) so far: a main
-            # or upper row is keyed by its half until its switches are bound (naming-layers step 14, a level fact)
-            raise FactsError(f"{where}: a staging row is keyed by its OS block and gives the device IDs of it (os_id "
-                             f"os:{n}, or os:{n}:<half>) and of its legs (closed_id, thrown_id); a main or upper row "
-                             f"is keyed by its half until its switches are bound; not os_id {r['os_id']!r}")
-        labels = dict.fromkeys(LEG_IDS, "")             # a half-keyed row has no OS block or legs
-        if by_os:
-            if not re.fullmatch(rf"os:{n}(:[A-Z0-9-]+)?", r["os_id"]) or not r["closed_id"] or not r["thrown_id"]:
-                raise FactsError(f"{where}: a row keyed by its OS block gives the device IDs of it (os_id os:{n}, "
-                                 f"or os:{n}:<half>) and of its legs (closed_id, thrown_id), not {r['os_id']!r}, "
-                                 f"{r['closed_id']!r}, {r['thrown_id']!r}")
-            if names is None:
-                names = switch_names(path)
-            elif callable(names):               # loaded at the first staging row: main and upper need no master
-                names = names()
-            for label, ident in LEG_IDS.items():
-                name = names.get((str(level), r[ident]))
-                if not name:
-                    raise FactsError(f"{where}: {ident} {r[ident]} is no level {level} device of the device master "
-                                     "(a new export dropped it, or the ID is mistyped: give the device's id)")
-                labels[label] = name
-            # the name is the owner's (a rename in devices_field.csv is allowed): only the ID carries the number
-        elif any(r[c] for c in LEG_IDS.values()):
-            raise FactsError(f"{where}: closed_id and thrown_id go with an os_id (a row keyed by its OS block); a "
-                             "row keyed by its half leaves them blank")
-        if by_os:
-            if r["half"]:
-                raise FactsError(f"{where}: a row keyed by its OS block has no half (its os_block is its key), not "
-                                 f"{r['half']!r}")
-            if r["hand_source"] == "plan":
-                raise FactsError(f"{where}: hand_source plan is for rows keyed by their half (build_hands.py); the "
-                                 "hands of rows keyed by their OS block are the owner's")
-        else:
-            if r["half"] not in (str(n), f"{n}A", f"{n}B"):
-                raise FactsError(f"{where}: half is {n}, {n}A or {n}B, not {r['half']!r}")
-            given = [c for c in STAGING_ONLY if r[c]]
-            if given:
-                raise FactsError(f"{where}: {', '.join(given)} bind a row keyed by its OS block (staging's) to the "
-                                 "live panels; a row keyed by its half leaves them blank")
-        if r["hand"] not in HANDS:
-            raise FactsError(f"{where}: hand is L, R or blank, got {r['hand']!r}")
-        # a plan row may wait for build_hands.py to fill its hand; an owner row gives one
-        if ((r["hand"] and not r["hand_source"]) or (r["hand_source"] and r["hand_source"] not in HAND_SOURCES)
-                or (r["hand_source"] == "owner" and not r["hand"])):
-            raise FactsError(f"{where}: a hand needs a hand_source ({' or '.join(HAND_SOURCES)}), and an owner "
-                             f"hand_source a hand; got hand {r['hand']!r}, hand_source {r['hand_source']!r}")
-        # an OS-keyed switch's hand is a fact of the whole switch (Switch.hand); a half-keyed one gives one per half
-        wide = SWITCH_WIDE + (("hand", "hand_source") if by_os else ())
-        repeated = [c for c in wide if later and r[c]]
-        if repeated:
-            raise FactsError(f"{where}: {', '.join(repeated)} hold a fact of the whole switch: give them on its first "
-                             f"row (line {first_of[n][1]}) only")
-        row = SwitchRow(line, level, n, **labels, **{c: r[c] for c in SWITCH_COLUMNS[2:]})
-        if row.key in keys:
-            raise FactsError(f"{path.name} lines {keys[row.key]} and {line}: both are {row.key}")
-        keys[row.key] = line
-        out.append(row)
-    for n, rs in switch_groups(out, ALL_LEVELS).items():
-        if any(r.by_os for r in rs):
-            if not all(r.by_os for r in rs):
-                raise FactsError(f"{_where(path, rs[0].line)} (Switch {n}): a switch's rows are all keyed by their OS "
-                                 "block (os_id) or all by their half")
-            continue
-        halves = sorted(r.half for r in rs)
-        if halves not in ([str(n)], [f"{n}A", f"{n}B"]):
-            raise FactsError(f"{_where(path, rs[0].line)} (Switch {n}): a switch keyed by its halves has one row, "
-                             f"half {n}, or two, halves {n}A and {n}B; not {', '.join(halves)}")
-    return out
+    from . import switch_rows                  # it reads this module
+    return switch_rows.read(path, names)
 
 
 def switch_groups(rows: Iterable[SwitchRow], levels: Iterable[int]) -> dict[int, list[SwitchRow]]:
@@ -423,7 +334,7 @@ class Switch:
     row's legs) with, from its turnout row in the device master (staging's "Switch <n>"), its hardware (system_name), DCC
     address and control point."""
     number: int
-    level: str
+    level: LevelText    # text: callers compare it with "1"
     le_ident: str
     cats_inverted: bool
     ctc_is: int
@@ -498,7 +409,7 @@ def staging_switches(rows: list[SwitchRow], path: Path, devices_csv: Path,
                              f"both use USS lever IS{ctc_is}")
         lever[ctc_is] = (first.line, n)
         nm = names.get(n, {})
-        out[n] = Switch(number=n, level=str(first.level), le_ident=first.le_ident,
+        out[n] = Switch(number=n, level=level_text(first.level), le_ident=first.le_ident,
                         cats_inverted=_yes(first.cats_inverted, where), ctc_is=ctc_is,
                         ctc_signals=_yes(first.ctc_signals, where),
                         legs=tuple(Leg(r.os_block, r.closed_leg, r.thrown_leg, r.os_id) for r in rs), hand=first.hand,
@@ -515,18 +426,15 @@ def read_switches(path: Path, devices_csv: Path,
 
 # ---------------------------------------------------------------- inputs: main and upper control points and nodes
 
-ALL_LEVELS = (1, 2, 3)                  # staging, main, upper: interlockings.csv holds every level
-
-
 @dataclass(frozen=True)
 class Interlocking:
-    """An interlocking, the signal rule's control point (interlockings.csv, owner 2026-11-20): a group of switches
+    """An interlocking, the signal rule's control point (interlockings.csv): a group of switches
     whose home signals govern the routes between them. Staging's are named by place (Brick, Barn); main and upper's are
-    "CP <lowest switch>" (owner, 2026-11-15), which are also their control points on the drawings and desks. `area`
+    "CP <lowest switch>", which are also their control points on the drawings and desks. `area`
     is the LCOS node area of a main or upper interlocking; staging leaves it blank, since staging's areas and desk
     groups are the desk areas of stations.csv (read_desk_areas)."""
     line: int
-    level: int
+    level: Level
     name: str
     switches: tuple[str, ...]
     area: str
@@ -537,12 +445,12 @@ def read_interlockings(path: Path, levels: Iterable[int] = ALL_LEVELS) -> list[I
     """The interlockings of `levels` in file order (the whole file is checked whatever `levels` asks for). Stops on a
     level that is not 1, 2 or 3, an interlocking with no switches, a name given twice on one level, a switch in two
     interlockings of one level, a main or upper interlocking with no area or a staging one with an area."""
-    out, seen, names = [], {}, set()
+    out: list[Interlocking] = []
+    seen: dict[tuple[int, str], str] = {}          # (level, switch) -> its interlocking
+    names: set[tuple[int, str]] = set()
     for line, r in read_rows(path, ("level", "interlocking", "switches", "area"), optional=("notes",)):
         where = _where(path, line)
-        level = _int(r["level"], where, "level")
-        if level not in ALL_LEVELS:
-            raise FactsError(f"{where}: level is 1, 2 or 3 (staging, main, upper), not {level}")
+        level = parse_level(r["level"], where)
         name = r["interlocking"]
         sw = tuple(s.strip() for s in r["switches"].split(",") if s.strip())
         if not sw or not all(s.isdigit() for s in sw):
@@ -575,11 +483,11 @@ DESK_CODE = re.compile(r"[A-Z]+")
 class Station:
     """A station of stations.csv (every level; one row each). `tracks` is the cell as written: blank counts the
     tracks from the switches, `none` none, else the block IDs of its tracks, `;` between them (block:3B-end;
-    block:3C-end; naming-layers step 5b), whose names station_tracks gives from the name store; `desk_code` names its
+    block:3C-end), whose names station_tracks gives from the name store; `desk_code` names its
     desk area; `desk_plate` (yes) puts a control point plate with its name on the CATS desks
     (cats_panel_dress.station_plates)."""
     line: int
-    level: int
+    level: Level
     name: str
     switches: tuple[str, ...]
     tracks: str
@@ -616,14 +524,14 @@ def station_tracks(stations: list[Station], path: Path) -> dict[str, tuple[str, 
             names = track_names.names_by_id(ids, Path(path).parent, f"{_where(path, st.line)} ({st.name}) tracks",
                                             levels={str(st.level)})
         except track_names.TrackNameError as exc:
-            raise FactsError(str(exc)) from None
+            raise FactsError(str(exc)) from exc
         out[st.name] = tuple(names[i] for i in ids)
     return out
 
 
 @dataclass(frozen=True)
 class DeskArea:
-    """A desk area (owner, 2026-11-20): the stations of one level that share a desk code, named by the first of them in
+    """A desk area: the stations of one level that share a desk code, named by the first of them in
     the file. Its switches are its stations' own: a station's switches less those of the stations nested in it (a
     station whose switches all lie in another's, as Engine House in Barn), in file order. These are the control
     points the drawings bracket and the CATS desks name (plan_generated.json's control_points, build_staging_sets)."""
@@ -640,7 +548,8 @@ def read_stations(path: Path) -> list[Station]:
     """The stations in file order. Stops, naming the file, line and station, on a level that is not 1, 2 or 3, a name
     that is empty or given twice, no switches, a switch that is not a number or is listed twice, and a desk code that
     is missing, not capital letters, or more than one, and a desk_plate that is not yes or empty."""
-    out, names = [], {}
+    out: list[Station] = []
+    names: dict[str, int] = {}                     # station -> its line
     for line, r in read_rows(path, STATION_COLUMNS, optional=STATION_OPTIONAL):
         where = _where(path, line)
         name = r["station"]
@@ -650,9 +559,7 @@ def read_stations(path: Path) -> list[Station]:
         if name in names:
             raise FactsError(f"{where}: station {name!r} is also on line {names[name]}")
         names[name] = line
-        level = _int(r["level"], at, "level")
-        if level not in ALL_LEVELS:
-            raise FactsError(f"{at}: level is 1, 2 or 3 (staging, main, upper), not {level}")
+        level = parse_level(r["level"], at)
         sw = tuple(s.strip() for s in re.split(r"[;,]", r["switches"]) if s.strip())
         if not sw:
             raise FactsError(f"{at}: no switches")
@@ -768,8 +675,8 @@ def desk_areas(stations: list[Station], path: Path, switches: Iterable[str] | No
                 if st.level == 1 and s not in known:
                     raise FactsError(f"{_where(path, st.line)} ({st.name}): switch {s} is no staging switch "
                                      "(level 1 of switches.csv)")
-        held = {s for a in out if a.level == 1 for s in a.switches}
-        lost = sorted(known - held, key=lambda s: (len(s), s))
+        held_all = {s for a in out if a.level == 1 for s in a.switches}
+        lost = sorted(known - held_all, key=lambda s: (len(s), s))
         if lost:
             raise FactsError(f"{path.name}: staging switch(es) {', '.join(lost)} are in no desk area")
     return out
@@ -783,7 +690,7 @@ def read_desk_areas(path: Path, switches: Iterable[str] | None = None) -> list[D
 STATION_GROUP_COLUMNS = ("cp_key", "cp_name", "level", "switches", "notes", "code")
 
 
-def half_text(number, name: str, letter: str) -> str:
+def half_text(number: int | str, name: str, letter: str) -> str:
     """The lower-case label of a crossover half with `letter` (a or b, by its ID): its number and letter ("23a"), or
     the bare number while the owner's name is "OS Switch <n>" and the half is a (staging's OS Switch 7, which has
     always been labelled 7). The letter is never read off the name: a half named like the other one still gets its
@@ -791,7 +698,11 @@ def half_text(number, name: str, letter: str) -> str:
     return str(number) if letter == "a" and name == f"OS Switch {number}" else f"{number}{letter}"
 
 
-def os_label(r: SwitchRow, where: Path, letters=None) -> str:
+HalfLetters = Mapping[tuple[str, str], str]     # {(level, OS block id): letter}: hand_lists.half_letters
+
+
+def os_label(r: SwitchRow, where: Path,
+             letters: HalfLetters | Callable[[], HalfLetters] | None = None) -> str:
     """The label a desk area gives a switch row's OS block: "19", or a crossover half's "7", "7b", "23a". A switch's
     one OS block (os_id os:<n>) is its name less "OS Switch " while the name keeps that form for its number, else the
     number; a crossover half (os_id os:<n>:A-<end>) is half_text of its letter by its ID from `letters` ({(level, id):
@@ -815,23 +726,23 @@ def os_label(r: SwitchRow, where: Path, letters=None) -> str:
 def station_group_rows(stations: Path, switches: Path) -> list[dict[str, str]]:
     """The desk areas of every level (staging's only so far: the drawings' brackets and the CATS desk names; each
     row carries its level, so a caller that wants one level filters on it) in the shape the older
-    data/control_points.csv had, which this replaces (level-unification step 8): cp_key the name in lower case with
+    data/control_points.csv had: cp_key the name in lower case with
     underscores (a key, not a place id: cp_id is interlockings.csv's cp:<name>, hartlib.places), level, code and
     notes the area's, and switches the OS block of each switch (a crossover by its halves, 7 as 7,7b and 23 as 23a,23b, from the os_block of its switches.csv rows, os_label: a renamed half by
     its number and its letter in block_overrides.csv beside `stations`), "," between. Stops with
     FactsError, naming the file, line and station, on what read_desk_areas or read_switch_rows stops on or a switch
     with no OS block."""
     from . import hand_lists          # it imports this module
-    letters: dict = {}
+    letters: dict[tuple[str, str], str] = {}
     loaded = False
 
-    def half_letters():
+    def half_letters() -> dict[tuple[str, str], str]:
         nonlocal loaded
         if not loaded:           # the crossover halves' letters, by ID (os_label), from beside stations.csv
             try:
                 letters.update(hand_lists.half_letters(Path(stations).parent / hand_lists.OVERRIDES_NAME))
             except hand_lists.HandListError as exc:
-                raise FactsError(str(exc)) from None
+                raise FactsError(str(exc)) from exc
             loaded = True
         return letters
 
@@ -880,7 +791,7 @@ def read_local_switches(path: Path) -> list[LocalSwitch]:
 class HelixTrack:
     """A helix track: one JMRI block, `block` ("Track <plan name>", the ordinary rule), from its staging switch up the
     helix to its main or upper switch (`level_switch`, the label the drawing prints: 131A), under the plan's name
-    `helix` (owner, 2026-11-20/21), and `shown`, the name drawn for it (track_labels)."""
+    `helix`, and `shown`, the name drawn for it (track_labels)."""
     helix: str
     block: str
     staging_switch: str
@@ -915,9 +826,9 @@ def read_helix_tracks(path: Path) -> dict[str, HelixTrack]:
             raise FactsError("helix tracks: preferences.json[main_upper]: " + "; ".join(bad))
         prefs = track_names.pref_section("main_upper", own, data=folder)
     except track_names.TrackNameError as exc:
-        raise FactsError(f"helix tracks: {exc}") from None
+        raise FactsError(f"helix tracks: {exc}") from exc
     except layer_files.LayerFileError as exc:
-        raise FactsError(f"helix tracks: {exc}") from None
+        raise FactsError(f"helix tracks: {exc}") from exc
     feet: dict[str, str] = {}
     for e in staging.get("edits", []):
         if e.get("op") != "end":
@@ -948,7 +859,7 @@ def read_helix_tracks(path: Path) -> dict[str, HelixTrack]:
     return {name: HelixTrack(name, f"Track {name}", feet[name], tops[name], labels.get(name, name)) for name in tops}
 
 
-def track_labels(prefs: dict) -> dict[str, str]:
+def track_labels(prefs: Mapping[str, Any]) -> dict[str, str]:
     """{plan name: label drawn} of a preferences section's track_labels ({} when unset). FactsError on a value that is
     not an object of non-empty strings; the plugin checks each key against the sheet's tracks."""
     labels = prefs.get(TRACK_LABELS, {})
@@ -964,14 +875,15 @@ class LcosNode:
     """An LCOS radio address of a level and area (lcos_nodes.csv, every level): staging's are the nodes in service, as
     built (inventory v86); main and upper's the ones build_device_map.py may hand out, in the order it uses them."""
     line: int
-    level: int
+    level: Level
     area: str
     node: int
     source: str = ""
 
 
 def read_lcos_nodes(path: Path) -> list[LcosNode]:
-    out, seen = [], {}
+    out: list[LcosNode] = []
+    seen: dict[int, int] = {}                      # node -> its line
     for line, r in read_rows(path, ("level", "area", "node"), optional=("source",)):
         where = _where(path, line)
         node = _int(r["node"], where, "node")
@@ -980,9 +892,7 @@ def read_lcos_nodes(path: Path) -> list[LcosNode]:
         seen[node] = line
         if not r["area"]:
             raise FactsError(f"{where}: no area")
-        level = _int(r["level"], where, "level")
-        if level not in (1, *LEVEL_NUMBERS):
-            raise FactsError(f"{where}: level is 1, 2 or 3 (staging, main, upper), not {level}")
+        level = parse_level(r["level"], where)
         out.append(LcosNode(line, level, r["area"], node, r["source"]))
     return out
 
@@ -1021,7 +931,7 @@ def read_plan_overrides(path: Path, sheet: str = PlanOverrides.SHEET) -> PlanOve
     try:
         data = layer_files.read("plan_overrides", sheet, path.parent)
     except layer_files.LayerFileError as exc:
-        raise FactsError(f"{where}: not a readable layer section ({exc})") from None
+        raise FactsError(f"{where}: not a readable layer section ({exc})") from exc
     edits = data.get("edits")
     if not isinstance(edits, list) or not all(isinstance(e, dict) and isinstance(e.get("op"), str) for e in edits):
         raise FactsError(f"{where}: `edits` is a list of objects with an `op`")
@@ -1042,7 +952,7 @@ BLOCK_LENGTHS_NAME = "block_lengths.csv"
 class Mast:
     """A mast's level, name and blocks, from schematic/masts.csv (hartlib.level_masts; protects ";" separated)."""
     line: int
-    level: int
+    level: Level
     mast: str
     facing: str
     protects: tuple[str, ...]
@@ -1088,7 +998,7 @@ class DeviceRow:
     """A main or upper row of the device master: a JMRI device (jmri_name, virtual) and its planned physical part
     (system_name, a draft). `role` is what the device is (devices.ROLES), given by the row or its writer; readers test
     it, not the name."""
-    level: int
+    level: Level
     layer: str
     user_name: str
     role: str
@@ -1115,7 +1025,7 @@ class DeviceRow:
     @property
     def swapped(self) -> bool:
         """Whether the row is a field device (assignment field: swapped in by its row, ADR-028): its jmri_name is
-        the device's, held to no virtual-name rule (naming-layers step 14: a column test, not a level test)."""
+        the device's, held to no virtual-name rule (a column test, not a level test)."""
         return self.assignment == "field"
 
     def __post_init__(self) -> None:
@@ -1143,7 +1053,8 @@ class DeviceRow:
     def from_dict(cls, row: dict, line: int = 0) -> "DeviceRow":
         """A row as build_device_map.py makes it (str or int level); its role is the row's own (a row with none stops)."""
         row = {"role": "", **row}           # a row with no role stops in __post_init__, naming it
-        return cls(line=line, **{k: (int(v) if k == "level" else str(v)) for k, v in row.items() if k != "line"})
+        cells = {k: str(v) for k, v in row.items() if k not in ("line", "level")}
+        return cls(line=line, level=cast(Level, int(row["level"])), **cells)
 
 
 DEVICE_LAYERS = NAME_LAYERS             # the device map's layers are staging's
@@ -1230,7 +1141,7 @@ def read_device_map(path: Path) -> DeviceMap:
     """The main and upper rows of the device master at `path` (devices.device_map_lines). Stops on an unknown layer, a bad level, a (layer, user name) given twice (a turnout's LCC alias is its own
     row), a row whose fact columns do not hold (device_facts), an occupancy row whose jmri_name is not a virtual block
     sensor, whose planned detector is not M2S, or whose blocks are not the one block it is the detector of (by
-    ID: det:<the block's id>, so a block the owner renamed keeps its detector; naming-layers step 13); a field
+    ID: det:<the block's id>, so a block the owner renamed keeps its detector); a field
     occupancy row (swapped in, ADR-028) is held instead to its wired M2S sensor. Each row carries its `id` and
     `assignment`."""
     out = DeviceMap(path=path)
@@ -1250,13 +1161,14 @@ def read_device_map(path: Path) -> DeviceMap:
         if key in seen:
             raise FactsError(f"{where}: two rows are both {r['layer']} {r['user_name']}")
         seen[key] = line
-        row = DeviceRow(line=line, **{**r, "level": _level(r["level"], where)})
+        cells = {k: v for k, v in r.items() if k != "level"}
+        row = DeviceRow(line=line, level=_level(r["level"], where), **cells)  # str columns
         out.rows.append(row)
         if row.layer == "block":
             out.blocks[row.user_name] = row
             block_ids[(r["level"], row.user_name)] = row.id
         elif row.layer == "occupancy":
-            # by the row's assignment, not its level (naming-layers step 14): a field detector (swapped in by its
+            # by the row's assignment, not its level: a field detector (swapped in by its
             # row, ADR-028) is its wired M2S sensor; any other is a virtual stand-in with a planned M2S one or none
             if row.swapped:
                 if not (row.jmri_name.startswith("M2S") and row.jmri_name == row.system_name) or \
@@ -1285,7 +1197,7 @@ def _detects(occupancy: DeviceRow, block_id: str | None) -> bool:
 
 def turnout_switch(row: DeviceRow) -> str | None:
     """The switch number of a turnout row: from its ID (switch:<n>, or dcc:<n> for its LCC alias), so an owner's
-    name does not move it (naming-layers step 13); a row made without an ID by its user name ("Switch <n>",
+    name does not move it; a row made without an ID by its user name ("Switch <n>",
     "DCC Switch <n>"). None when neither gives one."""
     m = re.fullmatch(r"(?:switch|dcc):(\d+)", row.id or "")
     if row.id:
@@ -1301,10 +1213,10 @@ def check_virtual_names(rows: Iterable[DeviceRow], owner_named: Collection[tuple
     IDs mixed are named), numbered by the block (hartlib.level_devices), every head's jmri_name comes from its user
     name, every turnout's from its switch number (turnout_switch: its ID's), and no two rows of a layer share a
     virtual name (but a turnout and its LCC alias, one JMRI turnout). By the (level, id) of the owner's rows in
-    devices_field.csv (naming-layers step 13): `owner_named`, the rows the owner names, whose virtual names stay the
-    generated ones (step 7), so such a block, its detector, a mast's heads and a head are held to their virtual name's
-    form only. A row whose assignment is field (DeviceRow.swapped: a field device swapped in by its row, ADR-028;
-    naming-layers step 14), or one of `swapped`'s (level, id), is held to no virtual-name rule."""
+    devices_field.csv: `owner_named`, the rows the owner names, whose virtual names stay the
+    generated ones, so such a block, its detector, a mast's heads and a head are held to their virtual name's
+    form only. A row whose assignment is field (DeviceRow.swapped: a field device swapped in by its row, ADR-028),
+    or one of `swapped`'s (level, id), is held to no virtual-name rule."""
     rows = list(rows)
     owner_named, swapped = set(owner_named), set(swapped)
 
@@ -1390,9 +1302,9 @@ def read_tables(path: Path) -> TablesNames:
     try:
         root = tables.read(path)
     except (OSError, ET.ParseError) as exc:
-        raise FactsError(f"{path}: cannot read it as a tables file ({exc})") from None
+        raise FactsError(f"{path}: cannot read it as a tables file ({exc})") from exc
 
-    def by_user(kind, beans):
+    def by_user(kind: str, beans: Iterable[ET.Element]) -> dict[str, str]:
         # A bean with no system name cannot be told apart from another, so it neither counts as a twin nor hides one.
         out: dict[str, str] = {}
         for b in beans:

@@ -98,8 +98,15 @@ pp_profile() {
   esac
 }
 
+# true while JMRI runs, and when the check cannot say (exit 2): a caller then refuses as if JMRI ran
 pp_jmri_running() {
-  python3 "$PP_PROFILE_PY" jmri-running
+  local rc=0
+  python3 "$PP_PROFILE_PY" jmri-running || rc=$?
+  if [[ $rc -eq 2 ]]; then
+    echo "cannot tell whether PanelPro, DecoderPro or CATS is running (pgrep did not answer)" >&2
+    return 0
+  fi
+  return "$rc"
 }
 
 pp_refuse_running() {

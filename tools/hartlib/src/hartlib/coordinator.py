@@ -14,6 +14,7 @@ import re
 from pathlib import Path
 
 from . import paths
+from .errors import HartlibError
 
 SCRIPT = paths.REPO_ROOT / "jmri/scripts/signal_coordinator.py"
 PANEL_STATUS = paths.REPO_ROOT / "jmri/layouts/hart/scripts/panel_status.py"
@@ -22,7 +23,7 @@ TUPLE_NAMES = {SCRIPT.name: "SIBLING_MODULES", PANEL_STATUS.name: "PARTS"}
 _MODULE = re.compile(r"[a-z_][a-z0-9_]*")
 
 
-class CoordinatorError(ValueError):
+class CoordinatorError(HartlibError, ValueError):
     """A script's parts tuple is missing or malformed or names a part with no .py beside it, or the script is not
     one of TUPLE_NAMES."""
 
@@ -38,8 +39,8 @@ def tuple_name(script: Path) -> str:
     """The name of the tuple `script` lists its parts in: SIBLING_MODULES or PARTS."""
     try:
         return TUPLE_NAMES[script.name]
-    except KeyError:
-        raise CoordinatorError(f"{_rel(script)}: not a script with parts (known: {sorted(TUPLE_NAMES)})") from None
+    except KeyError as exc:
+        raise CoordinatorError(f"{_rel(script)}: not a script with parts (known: {sorted(TUPLE_NAMES)})") from exc
 
 
 def sibling_modules(script: Path = SCRIPT) -> tuple[str, ...]:
@@ -49,14 +50,14 @@ def sibling_modules(script: Path = SCRIPT) -> tuple[str, ...]:
     try:
         text = script.read_text(encoding="utf-8")
     except OSError as exc:
-        raise CoordinatorError(f"cannot read {_rel(script)}: {exc.strerror or exc}") from None
+        raise CoordinatorError(f"cannot read {_rel(script)}: {exc.strerror or exc}") from exc
     found = re.findall(r"^" + name + r" = (\(.*?^\))$", text, re.M | re.S)
     if len(found) != 1:
         raise CoordinatorError(f"{_rel(script)}: expected one {name} = ( ... ) tuple, found {len(found)}")
     try:
         names = ast.literal_eval(found[0])
     except (ValueError, SyntaxError) as exc:
-        raise CoordinatorError(f"{_rel(script)}: {name} is not a literal tuple ({exc})") from None
+        raise CoordinatorError(f"{_rel(script)}: {name} is not a literal tuple ({exc})") from exc
     if not isinstance(names, tuple) or not names:
         raise CoordinatorError(f"{_rel(script)}: {name} must be a non-empty tuple of module names")
     bad = [n for n in names if not isinstance(n, str) or not _MODULE.fullmatch(n)]

@@ -14,62 +14,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageOps
 
-TIE_MARGIN_COUNT = 4.25  # railroad ties visible past each coupler tip
-TIE_PITCH_MIN = 12
-TIE_PITCH_MAX = 55
-LONG_CAR_MIN_FRAC = 0.60   # locomotives / long flats — tighter side margin
-LONG_CAR_PAD_X = 0.027     # matches IMG_9185_cropped.jpg (~60 px each side)
-PAD_TOP = 0.03        # headroom for roofwalk / gondola covers / cab roofs
-PAD_BOTTOM = 0.02     # slight margin below trucks
-
-# Vertical search window — ignore extreme frame edges.
-Y0, Y1 = 0.36, 0.90
-
-# Background in this lightbox is a gray wall (~180–210). Light-gray cars read
-# brighter (~220+). Track and dark bodies read much lower.
-CONTENT_THRESH = 238   # not blown-out white
-TRACK_THRESH = 95      # rails / trucks / dark car bodies
-TRACK_ROW_FRAC = 0.04
-FOREGROUND_ROW_FRAC = 0.85  # row this dark across is table, not track
-CONTENT_ROW_FRAC = 0.06
-BODY_THRESH = 120     # car body / handbrake — ignores gray studio-flag wedges
-ROW_EXPAND_UP = 0.03  # small extra headroom after body-top detection
-
-# Horizontal crop — use lower-band trucks/couplers and upper-band body tone.
-UPPER_BODY_FRAC = 0.38
-LOWER_TRACK_FRAC = 0.52
-STRONG_LFRAC = 0.12
-DARK_BODY_MEAN = 130
-H_SUSTAIN_COLS = 12
-EDGE_SHADOW_MEAN = 145
-DECK_SUSTAIN_FRAC = 0.006
-DECK_CORE_THRESH = 0.40      # sustained deck-lettering density
-DECK_EDGE_MIN = 0.20           # per-column floor at span edges
-COUPLER_LFRAC = 0.15           # truck / coupler signal in lower band
-COUPLER_REACH_FRAC = 0.05       # max outward reach past deck for couplers (right)
-COUPLER_REACH_LEFT_FRAC = 0.055 # left end — body edge to coupler tip
-RUN_MERGE_GAP_FRAC = 0.04      # merge body runs separated by lettering gaps
-
-# Mean light-box wall RGB from a representative fleet sample (neutral gray).
-FLEET_LIGHTBOX_WALL = (212.8, 208.8, 203.8)
-HOPPER_BRIDGE_GAP_FRAC = 0.25  # hopper slopes / loco hood gaps in the mid-band
-WIDEN_SPAN_MAX_RATIO = 1.35    # cap full-height dark fallback vs body silhouette
-TRUCK_EDGE_LFRAC = 0.35        # truck axle darkness for right-edge clamp
-TRACK_PEEL_MAX_FRAC = 0.08     # max peel of bare track past couplers
-TRACK_PEEL_LFRAC_MAX = 0.35    # trucks/couplers read darker than bare rail stubs
-CRANE_REACH_FRAC = 0.045       # extend for crane booms past the deck
-SHADOW_WEDGE_FRAC = 0.20       # upper-band darkness for corner vignette
-BODY_SPAN_MIN_FRAC = 0.35      # deck fallback when silhouette span is too narrow
-SILHOUETTE_TRUST_FRAC = 0.08   # trust body silhouette without dark_frac widen
-SMALL_CAR_SPAN_FRAC = 0.22     # small cars — peel left track stubs past couplers
-BODY_SPAN_MAX_FRAC = 0.75      # umean fallback when silhouette span is too wide
-LIGHT_BODY_MIN_FRAC = 0.50     # min mid-band body density for light-gray cars
-DARK_BODY_MIN_FRAC = 0.35      # min mid-band body density for dark cars
-FULL_DARK_FRAC = 0.25          # full-height dark fallback for bicolor cars
-EDGE_UMEAN_DELTA = 3           # edge-relative umean fallback
-LIGHT_UMEAN_PCTILE = 45        # high-percentile umean for near-backdrop cars
-LIGHT_UMEAN_PAD = 5
-MIN_ROTATION_DEG = 0.05
+from crop_settings import CROP  # noqa: E402  (a sibling module, on sys.path with this one)
 
 
 def _trim_foreground(region: np.ndarray) -> np.ndarray:
@@ -79,14 +24,14 @@ def _trim_foreground(region: np.ndarray) -> np.ndarray:
     the analysis band; it reads as a full-width "track" and drags the bbox down.
     Rails and trucks never fill more than about 60% of a row.
     """
-    dark = (region < TRACK_THRESH).mean(axis=1)
-    rows = np.where(dark > FOREGROUND_ROW_FRAC)[0]
+    dark = (region < CROP.tone.track_thresh).mean(axis=1)
+    rows = np.where(dark > CROP.rows.foreground_row_frac)[0]
     if rows.size and rows[0] > region.shape[0] * 0.3:
         # Walk up the smooth ramp where the backdrop edge fades into the table,
         # so it is not mistaken for rails. A ramp rises steadily; rails do not.
         smooth = np.convolve(dark, np.ones(9) / 9.0, mode="same")
         cut = int(rows[0])
-        while cut > 0 and TRACK_ROW_FRAC / 2 < smooth[cut - 1] <= smooth[cut] + 0.005:
+        while cut > 0 and CROP.rows.track_row_frac / 2 < smooth[cut - 1] <= smooth[cut] + 0.005:
             cut -= 1
         return region[:cut]
     return region
@@ -110,8 +55,8 @@ def _trim_shadow_columns(band: np.ndarray) -> tuple[int, int]:
     col_std = top.std(axis=0)
     col_range = top.max(axis=0) - top.min(axis=0)
     flat = (col_std < 15) & (col_range < 45)
-    wedge = (upper < BODY_THRESH).mean(axis=0) > SHADOW_WEDGE_FRAC
-    col_body = (band < BODY_THRESH).mean(axis=0) < 0.10
+    wedge = (upper < CROP.tone.body_thresh).mean(axis=0) > CROP.span.shadow_wedge_frac
+    col_body = (band < CROP.tone.body_thresh).mean(axis=0) < 0.10
 
     lo = 0
     for c in range(W):
@@ -134,7 +79,7 @@ def _body_top_row(band: np.ndarray) -> int:
     """First row with car body in the center band (stable vs handbrake headroom)."""
     Rh, W = band.shape
     center = band[:, int(0.22 * W) : int(0.78 * W)]
-    rows = np.where((center < BODY_THRESH).mean(axis=1) > 0.02)[0]
+    rows = np.where((center < CROP.tone.body_thresh).mean(axis=1) > 0.02)[0]
     return int(rows[0]) if rows.size else max(0, int(Rh * 0.12))
 
 
@@ -178,7 +123,7 @@ def _span_from_flags(flags: np.ndarray) -> tuple[int, int]:
     runs = _runs_from_flags(flags)
     if not runs:
         return 0, width - 1
-    max_gap = max(12, int(width * RUN_MERGE_GAP_FRAC))
+    max_gap = max(12, int(width * CROP.span.run_merge_gap_frac))
     merged = _merge_close_runs(runs, max_gap)
     center = width // 2
     min_car = max(30, int(width * 0.06))
@@ -186,7 +131,7 @@ def _span_from_flags(flags: np.ndarray) -> tuple[int, int]:
     if significant:
         lo = min(span[0] for span in significant)
         hi = max(span[1] for span in significant)
-        if hi - lo <= width * BODY_SPAN_MAX_FRAC:
+        if hi - lo <= width * CROP.span.body_span_max_frac:
             return lo, hi
     for lo, hi in merged:
         if lo <= center <= hi:
@@ -217,7 +162,7 @@ def _sample_tone_levels(band: np.ndarray) -> tuple[float, float]:
     upper = band[: max(1, int(Rh * 0.42)), :]
     edge_med = float(np.median(upper[:, : max(5, int(W * 0.06))]))
     center = band[:, int(0.30 * W) : int(0.70 * W)]
-    body_rows = np.where((center < BODY_THRESH).mean(axis=1) > 0.15)[0]
+    body_rows = np.where((center < CROP.tone.body_thresh).mean(axis=1) > 0.15)[0]
     if body_rows.size:
         car_med = float(
             np.median(
@@ -241,19 +186,19 @@ def _deck_fractions(band: np.ndarray) -> np.ndarray:
     y1 = top + int(car_h * 0.34)
     y1 = max(y0 + 8, min(y1, Rh))
     deck = band[y0:y1, :]
-    return (deck < BODY_THRESH).mean(axis=0)
+    return (deck < CROP.tone.body_thresh).mean(axis=0)
 
 
 def _deck_core_span(band: np.ndarray, deck_frac: np.ndarray) -> tuple[int, int]:
     """Horizontal extent of the car deck lettering band."""
     W = band.shape[1]
-    sustain = max(12, int(W * DECK_SUSTAIN_FRAC))
+    sustain = max(12, int(W * CROP.span.deck_sustain_frac))
     lo = next(
         (
             c
             for c in range(W - sustain)
-            if deck_frac[c : c + sustain].mean() > DECK_CORE_THRESH
-            and deck_frac[c] > DECK_EDGE_MIN
+            if deck_frac[c : c + sustain].mean() > CROP.span.deck_core_thresh
+            and deck_frac[c] > CROP.span.deck_edge_min
         ),
         0,
     )
@@ -261,8 +206,8 @@ def _deck_core_span(band: np.ndarray, deck_frac: np.ndarray) -> tuple[int, int]:
         (
             c
             for c in range(W - 1, sustain, -1)
-            if deck_frac[c - sustain : c].mean() > DECK_CORE_THRESH
-            and deck_frac[c] > DECK_EDGE_MIN
+            if deck_frac[c - sustain : c].mean() > CROP.span.deck_core_thresh
+            and deck_frac[c] > CROP.span.deck_edge_min
         ),
         W - 1,
     )
@@ -272,13 +217,13 @@ def _deck_core_span(band: np.ndarray, deck_frac: np.ndarray) -> tuple[int, int]:
 def _strong_horizontal_span(band: np.ndarray) -> tuple[int, int]:
     """Find left/right edges at the couplers, ignoring side vignette shadows."""
     Rh, W = band.shape
-    upper = band[: max(1, int(Rh * UPPER_BODY_FRAC)), :]
-    lower = band[int(Rh * LOWER_TRACK_FRAC) :, :]
+    upper = band[: max(1, int(Rh * CROP.rows.upper_body_frac)), :]
+    lower = band[int(Rh * CROP.rows.lower_track_frac) :, :]
     umean = upper.mean(axis=0)
-    lfrac = (lower < TRACK_THRESH).mean(axis=0)
+    lfrac = (lower < CROP.tone.track_thresh).mean(axis=0)
 
-    strong = (lfrac > STRONG_LFRAC) | (umean < DARK_BODY_MEAN)
-    sustain = H_SUSTAIN_COLS
+    strong = (lfrac > CROP.span.strong_lfrac) | (umean < CROP.tone.dark_body_mean)
+    sustain = CROP.span.h_sustain_cols
     need = sustain - 2
 
     lo = next(
@@ -306,8 +251,8 @@ def _maybe_widen_span(
 ) -> tuple[int, int, int]:
     """Adopt a wider candidate span only if it beats the current span and is not too wide."""
     new_span = nhi - nlo
-    if new_span > span and new_span < width * BODY_SPAN_MAX_FRAC:
-        if span >= width * 0.25 and new_span > span * WIDEN_SPAN_MAX_RATIO:
+    if new_span > span and new_span < width * CROP.span.body_span_max_frac:
+        if span >= width * 0.25 and new_span > span * CROP.span.widen_span_max_ratio:
             return lo, hi, span
         return nlo, nhi, new_span
     return lo, hi, span
@@ -321,7 +266,7 @@ def _bridge_outboard_runs(
     """Bridge separated body runs (hopper end caps, locomotive hoods)."""
     runs = _merge_close_runs(
         _runs_from_flags(body_frac > min_frac),
-        max(12, int(width * RUN_MERGE_GAP_FRAC)),
+        max(12, int(width * CROP.span.run_merge_gap_frac)),
     )
     significant = [
         span
@@ -337,12 +282,12 @@ def _bridge_outboard_runs(
     )
     if idx is None:
         return None
-    max_gap = max(12, int(width * HOPPER_BRIDGE_GAP_FRAC))
+    max_gap = max(12, int(width * CROP.span.hopper_bridge_gap_frac))
     base_lo, base_hi = significant[idx]
 
     def _valid(lo: int, hi: int) -> tuple[int, int] | None:
         span = hi - lo
-        if width * BODY_SPAN_MIN_FRAC <= span < width * BODY_SPAN_MAX_FRAC:
+        if width * CROP.span.body_span_min_frac <= span < width * CROP.span.body_span_max_frac:
             return lo, hi
         return None
 
@@ -376,10 +321,10 @@ def _clamp_truck_edges(
     width: int,
 ) -> tuple[int, int]:
     """Drop dead track past the outer truck axles (coal hoppers)."""
-    strong = np.where(lfrac > TRUCK_EDGE_LFRAC)[0]
+    strong = np.where(lfrac > CROP.span.truck_edge_lfrac)[0]
     if not strong.size:
         return lo, hi
-    reach_r = max(40, int(width * COUPLER_REACH_FRAC))
+    reach_r = max(40, int(width * CROP.span.coupler_reach_frac))
     allow_hi = int(strong[-1]) + reach_r
     if hi > allow_hi:
         hi = allow_hi
@@ -394,8 +339,8 @@ def _coupler_tips_from_body(
 ) -> tuple[int, int]:
     """Outer truck / coupler columns just outside the body silhouette."""
     W = band.shape[1]
-    reach_l = max(50, int(W * COUPLER_REACH_LEFT_FRAC))
-    reach_r = max(40, int(W * COUPLER_REACH_FRAC))
+    reach_l = max(50, int(W * CROP.span.coupler_reach_left_frac))
+    reach_r = max(40, int(W * CROP.span.coupler_reach_frac))
     l_start = max(0, body_lo - reach_l)
     peak_thr = 0.22
 
@@ -431,7 +376,7 @@ def _estimate_tie_pitch(
     strip = gray[y0:y1, x0:x1]
     if strip.size == 0:
         return 28.0
-    col = (strip < TRACK_THRESH).mean(axis=0)
+    col = (strip < CROP.tone.track_thresh).mean(axis=0)
     sm = np.convolve(col, np.ones(5) / 5, mode="same")
     peaks: list[int] = []
     for i in range(2, len(sm) - 2):
@@ -443,7 +388,7 @@ def _estimate_tie_pitch(
         cw_pitch = float(np.clip(cw / 52.0, 18.0, 40.0))
         blended = (peak_pitch + cw_pitch) / 2.0
         pitch = max(blended, cw_pitch * 0.82)
-        return float(np.clip(pitch, TIE_PITCH_MIN, TIE_PITCH_MAX))
+        return float(np.clip(pitch, CROP.frame.tie_pitch_min, CROP.frame.tie_pitch_max))
     cw = x1 - x0
     cw_pitch = float(np.clip(cw / 52.0, 18.0, 40.0))
     return cw_pitch
@@ -459,52 +404,52 @@ def _core_body_span(band: np.ndarray) -> tuple[int, int]:
 
     if car_med > 100:
         thresh = min(car_med + 12, edge_med - 12)
-        min_frac = LIGHT_BODY_MIN_FRAC
+        min_frac = CROP.span.light_body_min_frac
     else:
-        thresh = BODY_THRESH
-        min_frac = DARK_BODY_MIN_FRAC
+        thresh = CROP.tone.body_thresh
+        min_frac = CROP.span.dark_body_min_frac
 
     body_frac = (mid < thresh).mean(axis=0)
     lo, hi = _span_from_flags(body_frac > min_frac)
     span = hi - lo
     used_umean = False
 
-    if span > W * BODY_SPAN_MAX_FRAC:
+    if span > W * CROP.span.body_span_max_frac:
         for tighter_frac in (0.5, 0.55, 0.6):
             nlo, nhi = _span_from_flags(body_frac > tighter_frac)
             nspan = nhi - nlo
-            if nspan < span and nspan >= W * BODY_SPAN_MIN_FRAC:
+            if nspan < span and nspan >= W * CROP.span.body_span_min_frac:
                 lo, hi = nlo, nhi
                 span = nspan
                 break
-        if span > W * BODY_SPAN_MAX_FRAC:
+        if span > W * CROP.span.body_span_max_frac:
             deck_frac = _deck_fractions(band)
             for deck_thr in (0.45, 0.4, 0.35):
                 dlo, dhi = _span_from_flags(deck_frac > deck_thr)
                 dspan = dhi - dlo
-                if W * BODY_SPAN_MIN_FRAC <= dspan < W * BODY_SPAN_MAX_FRAC:
+                if W * CROP.span.body_span_min_frac <= dspan < W * CROP.span.body_span_max_frac:
                     lo, hi = dlo, dhi
                     span = dspan
                     break
-        if span > W * BODY_SPAN_MAX_FRAC:
+        if span > W * CROP.span.body_span_max_frac:
             center_u = umean[int(0.25 * W) : int(0.75 * W)]
             t = float(np.percentile(center_u, 30)) + 8
             ulo, uhi = _span_from_flags(umean < t)
             uspan = uhi - ulo
-            if W * BODY_SPAN_MIN_FRAC <= uspan < W * BODY_SPAN_MAX_FRAC:
+            if W * CROP.span.body_span_min_frac <= uspan < W * CROP.span.body_span_max_frac:
                 lo, hi = ulo, uhi
                 span = uspan
                 used_umean = True
 
-    trust_silhouette = span >= W * SILHOUETTE_TRUST_FRAC
+    trust_silhouette = span >= W * CROP.span.silhouette_trust_frac
 
-    if span < W * BODY_SPAN_MIN_FRAC and not used_umean:
+    if span < W * CROP.span.body_span_min_frac and not used_umean:
         deck_frac = _deck_fractions(band)
         lo2, hi2 = _deck_core_span(band, deck_frac)
         lo, hi, span = _maybe_widen_span(lo, hi, span, lo2, hi2, W)
 
     if (
-        span < W * (BODY_SPAN_MIN_FRAC - 0.03)
+        span < W * (CROP.span.body_span_min_frac - 0.03)
         and not used_umean
         and not trust_silhouette
     ):
@@ -513,18 +458,18 @@ def _core_body_span(band: np.ndarray) -> tuple[int, int]:
             lo, hi = bridged
             span = hi - lo
 
-    if span < W * BODY_SPAN_MIN_FRAC and not trust_silhouette:
-        lo_e, hi_e = _span_from_flags(umean < edge_med - EDGE_UMEAN_DELTA)
+    if span < W * CROP.span.body_span_min_frac and not trust_silhouette:
+        lo_e, hi_e = _span_from_flags(umean < edge_med - CROP.tone.edge_umean_delta)
         lo, hi, span = _maybe_widen_span(lo, hi, span, lo_e, hi_e, W)
 
-    if span < W * BODY_SPAN_MIN_FRAC and not trust_silhouette:
-        dark_frac = (band < BODY_THRESH).mean(axis=0)
-        lo_d, hi_d = _span_from_flags(dark_frac > FULL_DARK_FRAC)
+    if span < W * CROP.span.body_span_min_frac and not trust_silhouette:
+        dark_frac = (band < CROP.tone.body_thresh).mean(axis=0)
+        lo_d, hi_d = _span_from_flags(dark_frac > CROP.span.full_dark_frac)
         lo, hi, span = _maybe_widen_span(lo, hi, span, lo_d, hi_d, W)
 
-    if span < W * BODY_SPAN_MIN_FRAC and car_med > 100 and not trust_silhouette:
+    if span < W * CROP.span.body_span_min_frac and car_med > 100 and not trust_silhouette:
         center_u = umean[int(0.25 * W) : int(0.75 * W)]
-        t = float(np.percentile(center_u, LIGHT_UMEAN_PCTILE)) + LIGHT_UMEAN_PAD
+        t = float(np.percentile(center_u, CROP.tone.light_umean_pctile)) + CROP.tone.light_umean_pad
         lo_p, hi_p = _span_from_flags(umean < t)
         lo, hi, span = _maybe_widen_span(lo, hi, span, lo_p, hi_p, W)
 
@@ -539,15 +484,15 @@ def _extend_to_couplers(
 ) -> tuple[int, int]:
     """Include couplers / truck ends just outside the body silhouette."""
     W = band.shape[1]
-    reach_l = max(50, int(W * COUPLER_REACH_LEFT_FRAC))
-    reach_r = max(40, int(W * COUPLER_REACH_FRAC))
+    reach_l = max(50, int(W * CROP.span.coupler_reach_left_frac))
+    reach_r = max(40, int(W * CROP.span.coupler_reach_frac))
     for c in range(lo - 1, max(0, lo - reach_l), -1):
-        if lfrac[c] > COUPLER_LFRAC:
+        if lfrac[c] > CROP.span.coupler_lfrac:
             lo = c
         else:
             break
     for c in range(hi + 1, min(W, hi + reach_r + 1)):
-        if lfrac[c] > COUPLER_LFRAC:
+        if lfrac[c] > CROP.span.coupler_lfrac:
             hi = c
         else:
             break
@@ -564,13 +509,13 @@ def _peel_bare_track(
 ) -> tuple[int, int]:
     """Drop track-only columns outside the rolling stock (dead space past couplers)."""
     W = band.shape[1]
-    max_peel = max(50, int(W * TRACK_PEEL_MAX_FRAC))
+    max_peel = max(50, int(W * CROP.span.track_peel_max_frac))
     peeled = 0
     while lo < hi and peeled < max_peel:
         if (
             deck_frac[lo] < 0.12
             and ufrac[lo] < 0.04
-            and 0.08 < lfrac[lo] < TRACK_PEEL_LFRAC_MAX
+            and 0.08 < lfrac[lo] < CROP.span.track_peel_lfrac_max
         ):
             lo += 1
             peeled += 1
@@ -601,14 +546,14 @@ def _extend_crane_arms(
     """Include crane booms / high outboard gear that sit above the deck line."""
     Rh, W = band.shape
     mid = band[int(Rh * 0.10) : int(Rh * 0.50), :]
-    reach = max(50, int(W * CRANE_REACH_FRAC))
+    reach = max(50, int(W * CROP.span.crane_reach_frac))
     min_lo = max(0, (anchor_lo if anchor_lo is not None else lo) - reach)
     max_hi = min(W - 1, (anchor_hi if anchor_hi is not None else hi) + reach)
     for c in range(lo - 1, min_lo - 1, -1):
-        if body_frac[c] < 0.10 and (mid[:, c] < BODY_THRESH).mean() > 0.05:
+        if body_frac[c] < 0.10 and (mid[:, c] < CROP.tone.body_thresh).mean() > 0.05:
             lo = c
     for c in range(hi + 1, max_hi + 1):
-        if body_frac[c] < 0.10 and (mid[:, c] < BODY_THRESH).mean() > 0.05:
+        if body_frac[c] < 0.10 and (mid[:, c] < CROP.tone.body_thresh).mean() > 0.05:
             hi = c
     return lo, hi
 
@@ -619,20 +564,20 @@ def _horizontal_span(band: np.ndarray) -> tuple[int, int]:
     mid = band[int(Rh * 0.10) : int(Rh * 0.55), :]
     lower = band[int(Rh * 0.62) :, :]
     upper = band[: max(1, int(Rh * 0.38)), :]
-    lfrac = (lower < TRACK_THRESH).mean(axis=0)
-    ufrac = (upper < BODY_THRESH).mean(axis=0)
-    body_frac = (mid < BODY_THRESH).mean(axis=0)
+    lfrac = (lower < CROP.tone.track_thresh).mean(axis=0)
+    ufrac = (upper < CROP.tone.body_thresh).mean(axis=0)
+    body_frac = (mid < CROP.tone.body_thresh).mean(axis=0)
 
     body_lo, body_hi = _core_body_span(band)
     body_span = body_hi - body_lo
-    if body_span < W * SILHOUETTE_TRUST_FRAC:
+    if body_span < W * CROP.span.silhouette_trust_frac:
         lo, hi = _strong_horizontal_span(band)
         return _shrink_shadow_edges(band, lo, hi)
 
     lo, hi = _coupler_tips_from_body(band, body_lo, body_hi, lfrac)
     tip_lo, tip_hi = lo, hi
 
-    if body_span < W * SMALL_CAR_SPAN_FRAC:
+    if body_span < W * CROP.span.small_car_span_frac:
         lo_ext, _ = _extend_to_couplers(band, body_lo, body_hi, lfrac)
         lo = min(lo, lo_ext)
         lo, hi = _peel_bare_track(band, lo, hi, body_frac, lfrac, ufrac)
@@ -648,14 +593,14 @@ def _horizontal_span(band: np.ndarray) -> tuple[int, int]:
 def _shrink_shadow_edges(band: np.ndarray, lo: int, hi: int) -> tuple[int, int]:
     """Drop side vignette columns that have no car above the track."""
     Rh, _W = band.shape
-    upper = band[: max(1, int(Rh * UPPER_BODY_FRAC)), :].mean(axis=0)
-    lower = band[int(Rh * LOWER_TRACK_FRAC) :, :]
-    lfrac = (lower < TRACK_THRESH).mean(axis=0)
+    upper = band[: max(1, int(Rh * CROP.rows.upper_body_frac)), :].mean(axis=0)
+    lower = band[int(Rh * CROP.rows.lower_track_frac) :, :]
+    lfrac = (lower < CROP.tone.track_thresh).mean(axis=0)
     weak_frac = 0.08
 
-    while lo < hi and upper[lo] > EDGE_SHADOW_MEAN and lfrac[lo] < weak_frac:
+    while lo < hi and upper[lo] > CROP.tone.edge_shadow_mean and lfrac[lo] < weak_frac:
         lo += 1
-    while hi > lo and upper[hi] > EDGE_SHADOW_MEAN and lfrac[hi] < weak_frac:
+    while hi > lo and upper[hi] > CROP.tone.edge_shadow_mean and lfrac[hi] < weak_frac:
         hi -= 1
     return lo, hi
 
@@ -664,23 +609,23 @@ def detect_car_bbox(img: Image.Image) -> tuple[int, int, int, int]:
     """Locate the car by anchoring on the track, then growing through the body."""
     g = np.asarray(ImageOps.grayscale(img), dtype=np.uint8)
     H, W = g.shape
-    y0, y1 = int(Y0 * H), int(Y1 * H)
+    y0, y1 = int(CROP.frame.y0 * H), int(CROP.frame.y1 * H)
     region = _trim_foreground(g[y0:y1, :])
     y1 = y0 + region.shape[0]
     Rh, Rw = region.shape
 
-    content = region < CONTENT_THRESH
-    dark = region < TRACK_THRESH
+    content = region < CROP.tone.content_thresh
+    dark = region < CROP.tone.track_thresh
     row_dark = dark.mean(axis=1)
 
-    if (row_dark > TRACK_ROW_FRAC).any():
-        _, ry1 = _span(row_dark > TRACK_ROW_FRAC)
+    if (row_dark > CROP.rows.track_row_frac).any():
+        _, ry1 = _span(row_dark > CROP.rows.track_row_frac)
         # Top edge: center car body, extended upward only for a left-end handbrake
         # (skip the extreme-left 8% where studio-flag wedges live).
         center = region[:, int(0.25 * Rw) : int(0.75 * Rw)]
         left_skip = region[:, int(0.08 * Rw) : int(0.32 * Rw)]
-        c_rows = np.where((center < BODY_THRESH).mean(axis=1) > 0.02)[0]
-        l_rows = np.where((left_skip < BODY_THRESH).mean(axis=1) > 0.015)[0]
+        c_rows = np.where((center < CROP.tone.body_thresh).mean(axis=1) > 0.02)[0]
+        l_rows = np.where((left_skip < CROP.tone.body_thresh).mean(axis=1) > 0.015)[0]
         if c_rows.any():
             ry0_c = int(c_rows[0])
             ry0 = ry0_c
@@ -688,7 +633,7 @@ def detect_car_bbox(img: Image.Image) -> tuple[int, int, int, int]:
                 ry0_l = int(l_rows[0])
                 if ry0_l < ry0_c:
                     extreme_at_l = (
-                        region[ry0_l, : int(0.08 * Rw)] < BODY_THRESH
+                        region[ry0_l, : int(0.08 * Rw)] < CROP.tone.body_thresh
                     ).mean()
                     if extreme_at_l < 0.08:
                         ry0 = ry0_l
@@ -696,10 +641,10 @@ def detect_car_bbox(img: Image.Image) -> tuple[int, int, int, int]:
             hband = region[:, int(0.10 * Rw) : int(0.20 * Rw)]
             for r in range(ry0_c - 1, -1, -1):
                 extreme_frac = (
-                    region[r, : int(0.08 * Rw)] < BODY_THRESH
+                    region[r, : int(0.08 * Rw)] < CROP.tone.body_thresh
                 ).mean()
-                hb_frac = (hband[r] < BODY_THRESH).mean()
-                c_frac = (center[r] < BODY_THRESH).mean()
+                hb_frac = (hband[r] < CROP.tone.body_thresh).mean()
+                c_frac = (center[r] < CROP.tone.body_thresh).mean()
                 if extreme_frac > 0.10:
                     break
                 if (
@@ -710,20 +655,20 @@ def detect_car_bbox(img: Image.Image) -> tuple[int, int, int, int]:
                     ry0 = min(ry0, r)
                 elif c_frac > 0.02 and hb_frac < 0.05:
                     break
-            expand = int((ry1 - ry0) * ROW_EXPAND_UP)
+            expand = int((ry1 - ry0) * CROP.frame.row_expand_up)
             ry0 = max(0, ry0 - expand)
             # Gondola covers, cab roofs, roofwalks above the deck line.
             roof_limit = max(0, ry0_c - int((ry1 - ry0_c) * 0.22))
             for r in range(ry0_c - 1, roof_limit - 1, -1):
                 row = center[r]
-                if (row < BODY_THRESH).mean() > 0.06 or float(row.std()) > 18:
+                if (row < CROP.tone.body_thresh).mean() > 0.06 or float(row.std()) > 18:
                     ry0 = min(ry0, r)
                 elif r < ry0_c - int((ry1 - ry0_c) * 0.06):
                     break
         else:
-            ry0, _ = _span(row_dark > TRACK_ROW_FRAC)
+            ry0, _ = _span(row_dark > CROP.rows.track_row_frac)
     else:
-        ry0, ry1 = _span(content.mean(axis=1) > CONTENT_ROW_FRAC)
+        ry0, ry1 = _span(content.mean(axis=1) > CROP.rows.content_row_frac)
 
     if ry1 <= ry0:
         return 0, y0, W, y1
@@ -763,7 +708,7 @@ def match_lightbox_white_balance(
     target: tuple[float, float, float] | None = None,
 ) -> Image.Image:
     """Scale RGB so the light-box wall matches the fleet reference."""
-    target_rgb = target or FLEET_LIGHTBOX_WALL
+    target_rgb = target or CROP.tone.fleet_lightbox_wall
     rgb = img.convert("RGB")
     arr = np.asarray(rgb, dtype=np.float32)
     h, w = arr.shape[:2]
@@ -786,7 +731,7 @@ def _track_roll_angle(region: np.ndarray) -> float | None:
     xs, ys = [], []
     for c in range(int(0.15 * Rw), int(0.85 * Rw), 8):
         col = lower[:, c]
-        rows = np.where(col < TRACK_THRESH)[0]
+        rows = np.where(col < CROP.tone.track_thresh)[0]
         if rows.size >= 3:
             xs.append(float(c))
             ys.append(float(rows.max()))
@@ -805,7 +750,7 @@ def _body_roll_angle(region: np.ndarray) -> float | None:
     xs, ys = [], []
     for c in range(0, upper.shape[1], 16):
         col = upper[:, c]
-        rows = np.where(col < BODY_THRESH)[0]
+        rows = np.where(col < CROP.tone.body_thresh)[0]
         if rows.size:
             xs.append(float(c))
             ys.append(float(rows.min()))
@@ -820,7 +765,7 @@ def estimate_rotation(img: Image.Image) -> float:
     """Estimate roll angle (degrees) to level the car; 0 = perfectly level."""
     g = np.asarray(ImageOps.grayscale(img), dtype=np.uint8)
     H, W = g.shape
-    y0, y1 = int(Y0 * H), int(Y1 * H)
+    y0, y1 = int(CROP.frame.y0 * H), int(CROP.frame.y1 * H)
     region = _trim_foreground(g[y0:y1, :])
 
     track = _track_roll_angle(region)
@@ -838,7 +783,7 @@ def estimate_rotation(img: Image.Image) -> float:
 
 def _level_image(img: Image.Image) -> tuple[Image.Image, float]:
     angle = estimate_rotation(img)
-    if abs(angle) < MIN_ROTATION_DEG:
+    if abs(angle) < CROP.frame.min_rotation_deg:
         return img, angle
     leveled = img.rotate(
         angle,
@@ -862,11 +807,11 @@ def _centered_crop_box(
     track_y0 = by0 + int(ch * 0.62)
     track_y1 = min(H, by1 + int(ch * 0.08))
     pitch = _estimate_tie_pitch(gray, bx0, bx1, track_y0, track_y1)
-    pad_x = max(8, int(TIE_MARGIN_COUNT * pitch))
-    if cw >= W * LONG_CAR_MIN_FRAC:
-        pad_x = min(pad_x, max(8, int(cw * LONG_CAR_PAD_X)))
-    pad_top = int(ch * PAD_TOP)
-    pad_bottom = int(ch * PAD_BOTTOM)
+    pad_x = max(8, int(CROP.frame.tie_margin_count * pitch))
+    if cw >= W * CROP.frame.long_car_min_frac:
+        pad_x = min(pad_x, max(8, int(cw * CROP.frame.long_car_pad_x)))
+    pad_top = int(ch * CROP.frame.pad_top)
+    pad_bottom = int(ch * CROP.frame.pad_bottom)
 
     cx = (bx0 + bx1) / 2.0
     half_w = cw / 2.0 + pad_x
@@ -898,7 +843,7 @@ def _visual_car_center_x(gray: np.ndarray) -> float:
     """Horizontal center of the car body silhouette (not the detection bbox)."""
     H, W = gray.shape
     mid = gray[int(H * 0.30) : int(H * 0.70), :]
-    body = (mid < BODY_THRESH).mean(axis=0)
+    body = (mid < CROP.tone.body_thresh).mean(axis=0)
     cols = np.where(body > 0.12)[0]
     if not cols.size:
         return W / 2.0

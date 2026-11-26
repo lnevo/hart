@@ -329,6 +329,15 @@
    "path": "tools/audit/habits_baseline.json"
   },
   {
+   "id": "tools/audit/mypy_baseline.json",
+   "label": "mypy_baseline.json",
+   "kind": "structured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "mypy's error count per CPython file outside hartlib, which may only go down; check_mypy.py --update lowers it and refuses a rise.",
+   "path": "tools/audit/mypy_baseline.json"
+  },
+  {
    "id": "tools/audit/check_wiring_crosswalk.py",
    "label": "check_wiring_crosswalk",
    "kind": "generator",
@@ -4081,6 +4090,16 @@
    "gen": "manifest"
   },
   {
+   "id": "tools/audit/check_mypy.py",
+   "label": "check_mypy",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "mypy (mypy.ini) over the CPython files: hartlib with no errors, every other file at or below its error count in tools/audit/mypy_baseline.json; --update lowers the baseline and refuses a rise.",
+   "path": "tools/audit/check_mypy.py",
+   "gen": "manifest"
+  },
+  {
    "id": "tools/hosts/backup_launchagents.sh",
    "label": "backup_launchagents.sh (make backup-status)",
    "kind": "generator",
@@ -5291,6 +5310,15 @@
    "domain": "agents",
    "desc": "PreToolUse hook of the subagents (.claude/agents/*.md): blocks commands that publish, touch hosts or act on the railroad.",
    "path": ".claude/hooks/subagent_guard.py"
+  },
+  {
+   "id": ".claude/hooks/shell_parse.py",
+   "label": "shell_parse.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Shared shell-command parser of main_guard and subagent_guard: splits a command line into the programs it runs, through $(…), pipes, xargs and wrappers; refuses a line it cannot split.",
+   "path": ".claude/hooks/shell_parse.py"
   },
   {
    "id": ".claude/hooks/check_after_edit.py",
@@ -13393,6 +13421,28 @@
    "label": "check habits",
    "side": "check",
    "gen": "manifest"
+  },
+  {
+   "from": "tools/audit/mypy_baseline.json",
+   "to": "tools/audit/check_mypy.py",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/audit/check_mypy.py",
+   "to": "tools/check.sh",
+   "label": "check mypy",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": ".claude/hooks/shell_parse.py",
+   "to": ".claude/hooks/main_guard.py",
+   "label": "imports"
+  },
+  {
+   "from": ".claude/hooks/shell_parse.py",
+   "to": ".claude/hooks/subagent_guard.py",
+   "label": "imports"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

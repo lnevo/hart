@@ -30,6 +30,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import csv
+import importlib
 import os
 import shutil
 import subprocess
@@ -37,6 +38,7 @@ import sys
 import urllib.request
 from urllib.parse import urlsplit
 import xml.etree.ElementTree as ET
+from collections.abc import Callable, Mapping
 from datetime import date
 from pathlib import Path
 
@@ -45,6 +47,9 @@ HART_ROOT = PIPELINE.parents[2]
 os.environ.setdefault("HART_CAR_CARDS_ROOT", str(HART_ROOT / "ops/car-cards"))
 
 from car_paths import DATA, FINAL_DIR, IMAGES_DIR, ROOT  # noqa: E402
+from car_records import (  # noqa: E402
+    CarMerge, CarRow, FieldDiff, FieldTarget, IntakeContext, MergeOutcome, QueueItem,
+)
 from hartlib import operations  # noqa: E402  (car_paths put tools/hartlib/src on sys.path)
 
 METADATA = DATA / "image_metadata.csv"
@@ -93,13 +98,13 @@ def today() -> str:
     return date.today().isoformat()
 
 
-def read_rows() -> tuple[list[dict], list[str]]:
+def read_rows() -> tuple[list[CarRow], list[str]]:
     with METADATA.open(newline="", encoding="utf-8") as fh:
         reader = csv.DictReader(fh)
         return list(reader), list(reader.fieldnames or [])
 
 
-def write_rows(rows: list[dict], columns: list[str]) -> None:
+def write_rows(rows: list[CarRow], columns: list[str]) -> None:
     tmp = METADATA.with_suffix(".tmp")
     with tmp.open("w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=columns, extrasaction="ignore")
@@ -108,21 +113,21 @@ def write_rows(rows: list[dict], columns: list[str]) -> None:
     tmp.replace(METADATA)
 
 
-def read_queue() -> list[dict]:
+def read_queue() -> list[QueueItem]:
     if not QUEUE.is_file():
         return []
     with QUEUE.open(newline="", encoding="utf-8") as fh:
         return list(csv.DictReader(fh))
 
 
-def write_queue(queue: list[dict]) -> None:
+def write_queue(queue: list[QueueItem]) -> None:
     with QUEUE.open("w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=QUEUE_COLUMNS)
         writer.writeheader()
         writer.writerows(queue)
 
 
-def enqueue(queue: list[dict], roster_id: str, reason: str) -> None:
+def enqueue(queue: list[QueueItem], roster_id: str, reason: str) -> None:
     """Queue a card. A new car also needs STS and Operations Pro; a photo does not."""
     for item in queue:
         if item["roster_id"] == roster_id and not item["card_printed"]:
@@ -143,13 +148,13 @@ def enqueue(queue: list[dict], roster_id: str, reason: str) -> None:
     )
 
 
-def row_id(row: dict) -> str:
+def row_id(row: CarRow) -> str:
     from roster_id import manifest_car_id
 
     return manifest_car_id(row)
 
 
-def find_car(rows: list[dict], roster_id: str) -> dict | None:
+def find_car(rows: list[CarRow], roster_id: str) -> CarRow | None:
     return next((r for r in rows if row_id(r) == roster_id), None)
 
 
@@ -163,7 +168,7 @@ def parse_sets(pairs: list[str]) -> dict[str, str]:
     return values
 
 
-def ask(row: dict, values: dict[str, str], assume_yes: bool) -> None:
+def ask(row: CarRow, values: dict[str, str], assume_yes: bool) -> None:
     """Fill the row from --set values, then ask about anything left."""
     row.update(values)
     if assume_yes:
@@ -178,7 +183,7 @@ def ask(row: dict, values: dict[str, str], assume_yes: bool) -> None:
             row[field] = answer
 
 
-def finish_row(row: dict, columns: list[str]) -> str:
+def finish_row(row: CarRow, columns: list[str]) -> str:
     """Fill the derived fields and return the roster id."""
     from build_merged_car_roster import default_weights
     from roster_id import assign_freight_roster_id
@@ -245,7 +250,7 @@ def to_png(src: Path) -> Path:
     return dst
 
 
-def process_photo(png: Path) -> dict:
+def process_photo(png: Path) -> dict[str, str]:
     """Crop, OCR and finalize one photo. Returns the fields it could read."""
     import pytesseract  # noqa: F401
     from PIL import Image
@@ -295,13 +300,38 @@ def process_photo(png: Path) -> dict:
     }
 
 
-def new_photos(rows: list[dict]) -> list[Path]:
+def new_photos(rows: list[CarRow]) -> list[Path]:
     seen = {Path(r["source_image"]).stem for r in rows if r.get("source_image")}
     return sorted(
         p
         for p in IMAGES_DIR.iterdir()
         if p.is_file() and p.suffix.lower() in IMAGE_SUFFIXES and p.stem not in seen
     )
+
+
+def merge_car(row: CarRow, rows: list[CarRow], columns: list[str], queue: list[QueueItem],
+              dry_run: bool) -> CarMerge:
+    """Fill the derived fields of a new car row and merge it into the repository rows.
+
+    A new roster id is appended and queued as a new car. A car already in the repository
+    takes the row's non-blank values and is queued for its photo, unless it already has a
+    photo, which is left alone. ``dry_run`` reports the outcome and changes nothing.
+    """
+    roster_id = finish_row(row, columns)
+    existing = find_car(rows, roster_id)
+    if existing is None:
+        if not dry_run:
+            rows.append(row)
+            enqueue(queue, roster_id, MergeOutcome.NEW_CAR.value)
+        return CarMerge(roster_id, MergeOutcome.NEW_CAR, "")
+    if existing.get("source_image"):
+        return CarMerge(roster_id, MergeOutcome.SKIPPED, existing["source_image"])
+    if not dry_run:
+        for key, value in row.items():
+            if value:
+                existing[key] = value
+        enqueue(queue, roster_id, MergeOutcome.PHOTO_ADDED.value)
+    return CarMerge(roster_id, MergeOutcome.PHOTO_ADDED, "")
 
 
 def cmd_intake(args: argparse.Namespace) -> int:
@@ -316,29 +346,22 @@ def cmd_intake(args: argparse.Namespace) -> int:
         print(f"\n{photo.name}")
         fields = process_photo(to_png(photo))
         print(f"  Crop: {fields['crop_status']}. Check {FINAL_DIR / (photo.stem + '.png')}")
-        row = {c: "" for c in columns}
+        row: CarRow = {c: "" for c in columns}  # type: ignore[misc]  # columns are the CSV header
         row.update(fields)
         ask(row, values, args.yes)
-        roster_id = finish_row(row, columns)
-        existing = find_car(rows, roster_id)
-        if existing is None:
-            rows.append(row)
-            enqueue(queue, roster_id, "new car")
-            print(f"  Added {roster_id}")
-        elif existing.get("source_image"):
-            print(f"  {roster_id} already has {existing['source_image']}; skipped.")
+        merged = merge_car(row, rows, columns, queue, dry_run=False)
+        if merged.outcome is MergeOutcome.NEW_CAR:
+            print(f"  Added {merged.roster_id}")
+        elif merged.outcome is MergeOutcome.SKIPPED:
+            print(f"  {merged.roster_id} already has {merged.existing_image}; skipped.")
         else:
-            for key, value in row.items():
-                if value:
-                    existing[key] = value
-            enqueue(queue, roster_id, "photo added")
-            print(f"  Added the photo to {roster_id}")
+            print(f"  Added the photo to {merged.roster_id}")
         write_rows(rows, columns)
         write_queue(queue)
     return 0
 
 
-def guess_roster_id(review_row: dict, kind: str) -> str:
+def guess_roster_id(review_row: Mapping[str, str], kind: str) -> str:
     """The roster id a review row would get, or "" when marks or number are missing."""
     if kind == "loco":
         import locos
@@ -355,9 +378,10 @@ def guess_roster_id(review_row: dict, kind: str) -> str:
     return row.get("roster_id", "")
 
 
-def record_car(r: dict, rows: list[dict], columns: list[str], queue: list[dict], dry_run: bool) -> str:
+def record_car(r: Mapping[str, str], rows: list[CarRow], columns: list[str], queue: list[QueueItem],
+               dry_run: bool) -> str:
     """Stage 2 for one approved car row, the same writes as ``intake`` makes."""
-    row = {c: "" for c in columns}
+    row: CarRow = {c: "" for c in columns}  # type: ignore[misc]  # columns are the CSV header
     photo = Path(r["photo"])
     row.update(
         {
@@ -374,24 +398,15 @@ def record_car(r: dict, rows: list[dict], columns: list[str], queue: list[dict],
     for key in ("road_number", "car_type", "car_class", "color", "roster_length_ft",
                 "capy_lbs", "ld_lmt_lbs", "lt_wt_lbs", "built", "full_name", "ocr_text"):
         row[key] = r.get(key, "")
-    roster_id = finish_row(row, columns)
-    existing = find_car(rows, roster_id)
-    if existing is None:
-        if not dry_run:
-            rows.append(row)
-            enqueue(queue, roster_id, "new car")
-        return f"new car {roster_id}"
-    if existing.get("source_image"):
-        return f"skipped: {roster_id} already has {existing['source_image']}"
-    if not dry_run:
-        for key, value in row.items():
-            if value:
-                existing[key] = value
-        enqueue(queue, roster_id, "photo added")
-    return f"photo added to {roster_id}"
+    merged = merge_car(row, rows, columns, queue, dry_run)
+    if merged.outcome is MergeOutcome.NEW_CAR:
+        return f"new car {merged.roster_id}"
+    if merged.outcome is MergeOutcome.SKIPPED:
+        return f"skipped: {merged.roster_id} already has {merged.existing_image}"
+    return f"photo added to {merged.roster_id}"
 
 
-def record_loco(r: dict, dry_run: bool) -> str:
+def record_loco(r: Mapping[str, str], dry_run: bool) -> str:
     """Stage 2 for one approved loco row. The details come later with ``locos set``."""
     import locos
 
@@ -409,58 +424,22 @@ def record_loco(r: dict, dry_run: bool) -> str:
     return f"loco {outcome} {rid}; needs {' '.join(miss) or 'nothing'}"
 
 
-def cmd_review(args: argparse.Namespace) -> int:
-    import intake_stages
-
-    return intake_stages.cmd_review(args, sys.modules[__name__])
-
-
-def cmd_approve(args: argparse.Namespace) -> int:
-    import intake_stages
-
-    return intake_stages.cmd_approve(args, sys.modules[__name__])
+def intake_context() -> IntakeContext:
+    return IntakeContext(
+        IMAGES_DIR=IMAGES_DIR, FINAL_DIR=FINAL_DIR, IMAGE_SUFFIXES=frozenset(IMAGE_SUFFIXES),
+        read_rows=read_rows, write_rows=write_rows, read_queue=read_queue, write_queue=write_queue,
+        find_car=find_car, guess_roster_id=guess_roster_id, to_png=to_png,
+        process_photo=process_photo, record_car=record_car, record_loco=record_loco,
+    )
 
 
-def cmd_ai_notes(args: argparse.Namespace) -> int:
-    import intake_stages
+def stage(module: str, name: str) -> Callable[[argparse.Namespace], int]:
+    """A command that runs ``module.name(args, intake_context())``, importing the module on use."""
 
-    return intake_stages.cmd_ai_notes(args, sys.modules[__name__])
+    def run(args: argparse.Namespace) -> int:
+        return getattr(importlib.import_module(module), name)(args, intake_context())
 
-
-def cmd_kind(args: argparse.Namespace) -> int:
-    import intake_stages
-
-    return intake_stages.cmd_kind(args, sys.modules[__name__])
-
-
-def cmd_fill(args: argparse.Namespace) -> int:
-    import intake_stages
-
-    return intake_stages.cmd_fill(args, sys.modules[__name__])
-
-
-def cmd_sheet_import(args: argparse.Namespace) -> int:
-    import intake_stages
-
-    return intake_stages.cmd_sheet_import(args, sys.modules[__name__])
-
-
-def cmd_crop(args: argparse.Namespace) -> int:
-    import crop_picker
-
-    return crop_picker.cmd_crop(args, sys.modules[__name__])
-
-
-def cmd_records(args: argparse.Namespace) -> int:
-    import intake_stages
-
-    return intake_stages.cmd_records(args, sys.modules[__name__])
-
-
-def cmd_site(args: argparse.Namespace) -> int:
-    import site_gallery
-
-    return site_gallery.cmd_site(args, sys.modules[__name__])
+    return run
 
 
 def cmd_locos(args: argparse.Namespace) -> int:
@@ -592,7 +571,7 @@ def write_ops(tree: ET.ElementTree, live_path: Path) -> None:
     live_path.write_text(header + body + "\n", encoding="utf-8")
 
 
-def out_of_service_ids(rows: list[dict]) -> set[str]:
+def out_of_service_ids(rows: list[CarRow]) -> set[str]:
     """The cars the repository holds out of service. STS and Operations Pro follow this."""
     return {row_id(r) for r in rows if r.get("out_of_service") == "yes"}
 
@@ -868,7 +847,7 @@ def seed_helpers():
     return generate_hart_seed, None
 
 
-def expected_cars(rows: list[dict], skip_types: frozenset[str]) -> dict[str, dict]:
+def expected_cars(rows: list[CarRow], skip_types: frozenset[str]) -> dict[str, dict[str, str]]:
     """Roster attributes the build makes from each repository row, keyed by roster id.
 
     An attribute whose repository column is blank is dropped, not defaulted.
@@ -893,26 +872,26 @@ def expected_cars(rows: list[dict], skip_types: frozenset[str]) -> dict[str, dic
     return out
 
 
-def field_diffs(expected: dict[str, dict], tool: dict[str, dict], fields: dict[str, str]):
-    """(id, field, repo value, tool value) for cars in both, over the mapped fields only.
+def field_diffs(expected: dict[str, dict[str, str]], tool: dict[str, dict[str, str]], fields: dict[str, str]) -> list[FieldDiff]:
+    """The differing fields of cars in both, over the mapped fields only.
 
     A field the repository leaves blank is skipped: the roster build keeps the tool's own value.
     """
-    diffs = []
+    diffs: list[FieldDiff] = []
     for cid in sorted(expected.keys() & tool.keys()):
         for attr in fields.values():
             want = (expected[cid].get(attr) or "").strip()
             have = (tool[cid].get(attr) or "").strip()
             if want and want != have:
-                diffs.append((cid, attr, want, have))
+                diffs.append(FieldDiff(cid, attr, want, have))
     return diffs
 
 
-def ops_car_attrs(path: Path) -> dict[str, dict]:
+def ops_car_attrs(path: Path) -> dict[str, dict[str, str]]:
     return {c.get("id", ""): dict(c.attrib) for c in operations.cars(path)}
 
 
-def print_diffs(diffs: list[tuple], show_all: bool) -> None:
+def print_diffs(diffs: list[FieldDiff], show_all: bool) -> None:
     print(f"  Field differences: {len(diffs)}")
     shown = diffs if show_all else diffs[:DIFF_LIMIT]
     for cid, field, want, have in shown:
@@ -929,7 +908,7 @@ def print_if_present(path: Path, show_all: bool, make_diffs) -> None:
     print_diffs(make_diffs(), show_all)
 
 
-def seed_meta_diffs(rows: list[dict], copy_path: Path, gen) -> list[tuple]:
+def seed_meta_diffs(rows: list[CarRow], copy_path: Path, gen) -> list[FieldDiff]:
     """Differences between the repository and the STS seed copy of image_metadata.csv."""
     with copy_path.open(newline="", encoding="utf-8") as fh:
         copy_rows = {row_id(r): r for r in csv.DictReader(fh) if row_id(r)}
@@ -938,7 +917,7 @@ def seed_meta_diffs(rows: list[dict], copy_path: Path, gen) -> list[tuple]:
         "car_class": gen.infer_car_class,
         "notes": lambda r: (r.get("notes") or "").strip(),
     }
-    diffs = []
+    diffs: list[FieldDiff] = []
     for row in rows:
         cid = row_id(row)
         if cid not in copy_rows or "CarImagesFinal" not in (row.get("notes") or ""):
@@ -948,11 +927,11 @@ def seed_meta_diffs(rows: list[dict], copy_path: Path, gen) -> list[tuple]:
         for field in SEED_META_FIELDS:
             want, have = reads[field](row), reads[field](copy_rows[cid])
             if want and want != have:
-                diffs.append((cid, field, want, have))
+                diffs.append(FieldDiff(cid, field, want, have))
     return sorted(diffs)
 
 
-def added_cars_diffs(rows: list[dict], added: dict[str, dict], gen) -> list[tuple]:
+def added_cars_diffs(rows: list[CarRow], added: dict[str, dict[str, str]], gen) -> list[FieldDiff]:
     """Differences between the repository and sts_added_cars.csv (marks and remarks)."""
     tool = {
         cid: {"marks": a.get("reporting_marks", ""), "remarks": a.get("remarks", "")}
@@ -966,13 +945,13 @@ def added_cars_diffs(rows: list[dict], added: dict[str, dict], gen) -> list[tupl
     return field_diffs(want, tool, ADDED_FIELDS)
 
 
-def field_targets(rows: list[dict], ops_path: Path, gen) -> list[tuple]:
-    """(key, heading, path, make_diffs) for each tool file compared field by field, in print order.
+def field_targets(rows: list[CarRow], ops_path: Path, gen) -> list[FieldTarget]:
+    """Each tool file compared field by field, in print order.
 
     compare prints these and sync applies them, so both read the same differences. The STS
     entries are present only when the seed helpers loaded (gen) and the seed folder exists.
     """
-    targets = [(
+    targets = [FieldTarget(
         "ops", "Operations Pro fields (OperationsCarRoster.xml, type left out)", ops_path,
         lambda: field_diffs(expected_cars(rows, OPS_SKIP_TYPES), ops_car_attrs(ops_path), OPS_FIELDS),
     )]
@@ -985,16 +964,16 @@ def field_targets(rows: list[dict], ops_path: Path, gen) -> list[tuple]:
     roster, meta = SEED_INPUTS / MERGED.name, SEED_INPUTS / METADATA.name
     added = SEED_INPUTS / "sts_added_cars.csv"
     return targets + [
-        ("seed_roster", "STS seed roster copy fields (HART_MergedCarRoster.xml; cars with a photo only)",
+        FieldTarget("seed_roster", "STS seed roster copy fields (HART_MergedCarRoster.xml; cars with a photo only)",
          roster, lambda: field_diffs(sts_expected, ops_car_attrs(roster), ROSTER_FIELDS)),
-        ("seed_meta", "STS seed metadata copy fields (image_metadata.csv)",
+        FieldTarget("seed_meta", "STS seed metadata copy fields (image_metadata.csv)",
          meta, lambda: seed_meta_diffs(rows, meta, gen)),
-        ("added", "STS added cars fields (sts_added_cars.csv)",
+        FieldTarget("added", "STS added cars fields (sts_added_cars.csv)",
          added, lambda: added_cars_diffs(rows, gen.load_added_cars(SEED_INPUTS), gen)),
     ]
 
 
-def print_field_sections(rows: list[dict], ops_path: Path, show_all: bool) -> None:
+def print_field_sections(rows: list[CarRow], ops_path: Path, show_all: bool) -> None:
     """Field differences for cars present in the repository and a tool (read only)."""
     gen, reason = seed_helpers()
     for _key, heading, path, make_diffs in field_targets(rows, ops_path, gen):
@@ -1086,7 +1065,7 @@ def fetch_live_cars() -> tuple[str, str, list[dict]]:
     return url, str(health.get("stack", "unknown")), cars
 
 
-def live_sts_diffs(rows: list[dict], live: list[dict], passenger_types) -> list[tuple]:
+def live_sts_diffs(rows: list[CarRow], live: list[dict], passenger_types) -> list[FieldDiff]:
     """Differences between the repository and the live STS car list, keyed by reporting marks.
 
     Compared: remarks ("{type} {length}ft"), as the seed builds it. Reporting marks are the key.
@@ -1101,7 +1080,7 @@ def live_sts_diffs(rows: list[dict], live: list[dict], passenger_types) -> list[
     return field_diffs(want, tool, {"remarks": "remarks"})
 
 
-def print_live_sts(rows: list[dict], show_all: bool, fetch=fetch_live_cars, operating=operating_reason) -> int:
+def print_live_sts(rows: list[CarRow], show_all: bool, fetch=fetch_live_cars, operating=operating_reason) -> int:
     """The opt-in live STS section. Returns 0, or 2 when it could not run (nothing else is read instead)."""
     print("\nSTS API fields (GET /cars, read only):")
     try:
@@ -1181,7 +1160,7 @@ def cmd_compare(args: argparse.Namespace) -> int:
 SYNC_BACKUP_PREFIX = "cars_sync_"
 
 
-def update_ops_fields(path: Path, diffs: list[tuple]) -> int:
+def update_ops_fields(path: Path, diffs: list[FieldDiff]) -> int:
     """Set only the differing attributes on existing cars, through the writer merge_ops uses."""
     tree = ET.parse(path)
     by_id = {c.get("id"): c for c in tree.getroot().findall("./cars/car")}
@@ -1203,9 +1182,9 @@ SEED_WHOLESALE = (
 BACKUP_TIMEOUT = 120  # a database backup takes longer than a read
 
 
-def sync_plan(rows: list[dict], ops_path: Path, live: list[dict] | None, gen) -> dict[str, list[tuple]]:
+def sync_plan(rows: list[CarRow], ops_path: Path, live: list[dict] | None, gen) -> dict[str, list[FieldDiff]]:
     """Field differences per target, from the same field_targets compare prints."""
-    plan: dict[str, list[tuple]] = {}
+    plan: dict[str, list[FieldDiff]] = {}
     for key, _heading, path, make_diffs in field_targets(rows, ops_path, gen):
         if key in SYNC_TARGETS and path.is_file():
             plan[SYNC_TARGETS[key]] = make_diffs()
@@ -1264,7 +1243,7 @@ def take_sts_backup(api, local: bool, now: float | None = None) -> str:
     return f"took STS backup {name}"
 
 
-def write_live_cars(api, live: list[dict], diffs: list[tuple]) -> list[str]:
+def write_live_cars(api, live: list[dict], diffs: list[FieldDiff]) -> list[str]:
     """PATCH one car at a time and read it back; stops at the first problem."""
     by_marks: dict[str, list[dict]] = {}
     for car in live:
@@ -1414,42 +1393,42 @@ def main() -> int:
         p.set_defaults(run=run)
     p = sub.add_parser("review")
     p.add_argument("--batch", help="Batch name (default: today's date)")
-    p.set_defaults(run=cmd_review)
+    p.set_defaults(run=stage("intake_stages", "cmd_review"))
     p = sub.add_parser("ai-notes")
     p.add_argument("batch")
     p.add_argument("file", help="JSON: {photo: {marks, number, type, note}}")
-    p.set_defaults(run=cmd_ai_notes)
+    p.set_defaults(run=stage("intake_stages", "cmd_ai_notes"))
     p = sub.add_parser("kind")
     p.add_argument("batch")
     p.add_argument("kind", choices=["car", "loco"])
     p.add_argument("photos", nargs="+")
-    p.set_defaults(run=cmd_kind)
+    p.set_defaults(run=stage("intake_stages", "cmd_kind"))
     p = sub.add_parser("approve")
     p.add_argument("batch")
     p.add_argument("--no-ai", action="store_true", help="Approve without the AI review step")
-    p.set_defaults(run=cmd_approve)
+    p.set_defaults(run=stage("intake_stages", "cmd_approve"))
     p = sub.add_parser("fill")
     p.add_argument("batch")
     p.add_argument("--set", action="append", metavar="COLUMN=VALUE", help="Set a column on every row")
-    p.set_defaults(run=cmd_fill)
+    p.set_defaults(run=stage("intake_stages", "cmd_fill"))
     p = sub.add_parser("sheet-import")
     p.add_argument("batch")
     p.add_argument("file", help="review.csv downloaded from the review page")
-    p.set_defaults(run=cmd_sheet_import)
+    p.set_defaults(run=stage("intake_stages", "cmd_sheet_import"))
     p = sub.add_parser("crop", help="Crop picker on the review page, or re-cut one photo")
     p.add_argument("batch")
     p.add_argument("photo", nargs="?")
     p.add_argument("box", nargs="?", metavar="X,Y,W,H[,ANGLE]")
     p.add_argument("--refresh", action="store_true", help="Rebuild the picker views")
-    p.set_defaults(run=cmd_crop)
+    p.set_defaults(run=stage("crop_picker", "cmd_crop"))
     p = sub.add_parser("records")
     p.add_argument("batch")
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("--allow-pending", action="store_true", help="Record approved rows while others wait")
-    p.set_defaults(run=cmd_records)
+    p.set_defaults(run=stage("intake_stages", "cmd_records"))
     p = sub.add_parser("site")
     p.add_argument("--apply", action="store_true", help="Write the entries (default: show them)")
-    p.set_defaults(run=cmd_site)
+    p.set_defaults(run=stage("site_gallery", "cmd_site"))
     p = sub.add_parser("locos")
     p.add_argument("action", choices=["add", "set", "status", "publish"])
     p.add_argument("roster_id", nargs="?")

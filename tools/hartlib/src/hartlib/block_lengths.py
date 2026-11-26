@@ -1,6 +1,6 @@
 """Block lengths: the plan length from the AnyRail plan, and the measured length speed matching found.
 
-Two files, one row per block, keyed by the block's device ID (ADR-039 lane L8, owner 2026-11-25):
+Two files, one row per block, keyed by the block's device ID (ADR-039 lane L8):
 
 - jmri/layouts/hart/data/block_lengths.csv (PLAN_COLUMNS): each JMRI block's length in the AnyRail plan 5.3c, on
   every level. tools/schematic/plan_lengths.py writes it from the plan; nothing else does.
@@ -31,10 +31,14 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping
+from collections.abc import Container, Iterable, Mapping
+from typing import TYPE_CHECKING
 
 from . import level_devices, paths
 from .railroad_facts import FactsError, read_rows
+
+if TYPE_CHECKING:
+    from . import devices as devices_mod
 
 PLAN_NAME = "block_lengths.csv"
 MEASURED_NAME = "block_lengths_measured.csv"
@@ -95,8 +99,8 @@ def _where(path: Path, line: int) -> str:
 def _inches(value: str, where: str, col: str, zero_ok: bool) -> float:
     try:
         v = float(value)
-    except ValueError:
-        raise FactsError(f"{where}: {col} {value!r} is not a number") from None
+    except ValueError as exc:
+        raise FactsError(f"{where}: {col} {value!r} is not a number") from exc
     if v < 0 or (v == 0 and not zero_ok):
         raise FactsError(f"{where}: {col} {value} is " + ("below zero" if zero_ok else "not above zero"))
     return v
@@ -131,7 +135,8 @@ def read_measured(path: Path | None = None, plan: Path = PLAN) -> dict[str, Meas
     return out
 
 
-def _measured_row(r: Mapping[str, str], where: str, line: int, ids, seen, plan_name: str) -> Measured:
+def _measured_row(r: Mapping[str, str], where: str, line: int, ids: Container[str], seen: Container[str],
+                  plan_name: str) -> Measured:
     """A measured row (text cells) checked: its id a row of the plan file and not in `seen`, its length above
     zero, a run and a YYYY-MM-DD date. read_measured and write_measured hold rows to the same rules."""
     if r["id"] not in ids or r["id"] in seen:
@@ -143,7 +148,7 @@ def _measured_row(r: Mapping[str, str], where: str, line: int, ids, seen, plan_n
                     r["note"])
 
 
-def _files_beside(path: Path):
+def _files_beside(path: Path) -> devices_mod.Files | None:
     """The device master beside a plan file (a test's copy), else the repo's."""
     from . import devices
     data = Path(path).parent
@@ -163,7 +168,7 @@ def occupancy_sensor(level: str, name: str, part_of: str, detectors: Mapping[tup
     return f"Block {m.group(1)}-{m.group(2)}" if m else row["user_name"]
 
 
-def plan_blocks(path: Path = PLAN, files=None) -> dict[str, Block]:
+def plan_blocks(path: Path = PLAN, files: devices_mod.Files | Path | str | None = None) -> dict[str, Block]:
     """{user name: Block} of the plan file, in file order, each with its block's user name and occupancy sensor from
     the device master (`files`, default the one beside `path`, else the repo's). FactsError on a row whose (level,
     id) is no block of the device master (the owner moves its length to the new id, or plan_lengths.py drops it), or
@@ -178,30 +183,30 @@ def plan_blocks(path: Path = PLAN, files=None) -> dict[str, Block]:
             for b in filter(None, (x.strip() for x in r["blocks"].split(";"))):
                 detectors.setdefault((r["level"], b), r)
     out: dict[str, Block] = {}
-    bad = []
+    bad: list[str] = []
     for p in rows.values():
-        b = blocks.get((p.level, p.id))
-        if b is None:
+        row = blocks.get((p.level, p.id))
+        if row is None:
             bad.append(f"{_where(path, p.line)}: {p.id} is no level {p.level} block row of the device master")
             continue
-        if b["user_name"] in out:
-            bad.append(f"{_where(path, p.line)}: {p.id} is named {b['user_name']!r}, as "
-                       f"{out[b['user_name']].id} is (line {out[b['user_name']].line})")
+        if row["user_name"] in out:
+            bad.append(f"{_where(path, p.line)}: {p.id} is named {row['user_name']!r}, as "
+                       f"{out[row['user_name']].id} is (line {out[row['user_name']].line})")
             continue
-        out[b["user_name"]] = Block(p.line, p.level, p.id, b["user_name"],
-                                    occupancy_sensor(p.level, b["user_name"], b["part_of"], detectors), p.plan_in,
-                                    p.note)
+        out[row["user_name"]] = Block(p.line, p.level, p.id, row["user_name"],
+                                      occupancy_sensor(p.level, row["user_name"], row["part_of"], detectors),
+                                      p.plan_in, p.note)
     if bad:
         raise FactsError("; ".join(bad))
     return out
 
 
-def plan_lengths(path: Path = PLAN, files=None) -> dict[str, float]:
+def plan_lengths(path: Path = PLAN, files: devices_mod.Files | Path | str | None = None) -> dict[str, float]:
     """{user name: plan inches} of every block: the length the drawings and the signal rules measure by."""
     return {name: b.plan_in for name, b in plan_blocks(path, files).items()}
 
 
-def plan_cm(path: Path = PLAN, files=None) -> dict[str, float]:
+def plan_cm(path: Path = PLAN, files: devices_mod.Files | Path | str | None = None) -> dict[str, float]:
     """{user name: plan length in cm} of every block."""
     return {name: inches * 2.54 for name, inches in plan_lengths(path, files).items()}
 
@@ -210,11 +215,11 @@ def plan_length(ident: str, path: Path = PLAN) -> float:
     """The plan length in inches of the block with device ID `ident`. FactsError when the plan file has no row."""
     try:
         return read_plan(path)[ident].plan_in
-    except KeyError:
-        raise FactsError(f"{Path(path).name}: no row for {ident}") from None
+    except KeyError as exc:
+        raise FactsError(f"{Path(path).name}: no row for {ident}") from exc
 
 
-def measured_lengths(path: Path = PLAN, files=None) -> dict[str, Measured]:
+def measured_lengths(path: Path = PLAN, files: devices_mod.Files | Path | str | None = None) -> dict[str, Measured]:
     """{user name: Measured} of the measured blocks, in the measured file's order: for the pages that print a measured
     length beside the plan length. A plan-side reader never takes it as the block's length."""
     names = {b.id: name for name, b in plan_blocks(path, files).items()}
@@ -230,7 +235,7 @@ def detector_blocks(blocks: Mapping[str, Block]) -> dict[tuple[str, str], list[s
     return out
 
 
-def operating_lengths(path: Path = PLAN, files=None) -> dict[str, float]:
+def operating_lengths(path: Path = PLAN, files: devices_mod.Files | Path | str | None = None) -> dict[str, float]:
     """{user name: inches} of every block: the plan length, except on a detector speed matching timed. A measured
     length is the timing of the whole detector, so the detector's blocks add up to it: each other block on it (a part
     of an OS block) keeps its plan length, and the measured block takes the measured length less theirs. The
@@ -268,7 +273,7 @@ def operating_length(ident: str, path: Path = PLAN) -> float:
     raise FactsError(f"{Path(path).name}: no row for {ident}")
 
 
-def measured_text(rows) -> str:
+def measured_text(rows: Iterable[Measured]) -> str:
     """The measured file's text of `rows` (Measured, in the order given), measured_in to 0.1 in."""
     import csv
     import io
@@ -280,7 +285,7 @@ def measured_text(rows) -> str:
     return buf.getvalue()
 
 
-def write_measured(rows, plan: Path = PLAN) -> Path:
+def write_measured(rows: Iterable[Measured], plan: Path = PLAN) -> Path:
     """Write the measured file beside `plan` (speed matching's one writer: infer_block_lengths.py --apply). Each row
     is held to read_measured's rules first; FactsError on the first that breaks one, and nothing is written."""
     rows = list(rows)

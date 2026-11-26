@@ -1,9 +1,9 @@
 """The device master for all three levels: devices_generated.csv and devices_field.csv, merged into one view.
 
-The master holds one row per railroad device (ADR-029). Since the amendment of 2026-11-21 it is two files under
+The master holds one row per railroad device (ADR-029 and its amendment). It is two files under
 jmri/layouts/hart/data: devices_generated.csv, every row the builders make (written by them alone, through
 outputs_after), and devices_field.csv, the owner's cells, each row keyed by its device ID on its level (KEY: level,
-id; ADR-033 step 4) and holding its layer and FIELD_COLUMNS only (the user name is an owner's cell like the rest), plus
+id; ADR-033) and holding its layer and FIELD_COLUMNS only (the user name is an owner's cell like the rest), plus
 the level-less devices a Store split takes in (full rows, keyed by layer and user name). load() and index() merge them
 (merge: a non-empty field cell wins; a field row whose ID no generated row has is an error), so readers see one
 master. A builder reads the owner's cells from field_index(), never back from its own last output; the one
@@ -51,9 +51,14 @@ from dataclasses import dataclass, replace
 from functools import lru_cache
 from pathlib import Path
 from types import MappingProxyType
-from typing import Callable, Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping, Sequence
+from typing import TYPE_CHECKING, Any, Literal, get_args
 
 from . import level_devices, names, paths, places
+from .levels import LevelText
+
+if TYPE_CHECKING:
+    from . import device_changes as device_changes_mod
 from .railroad_facts import DEVICE_COLUMNS, DEVICE_LIST, NAME_LAYERS, FactsError
 
 # The one place the master's file names and paths are written (T6a): every other module asks for them here, and
@@ -62,23 +67,26 @@ from .railroad_facts import DEVICE_COLUMNS, DEVICE_LIST, NAME_LAYERS, FactsError
 GENERATED_FILE = "devices_generated.csv"     # every row the builders make (WRITERS), written by them alone
 FIELD_FILE = "devices_field.csv"             # the owner's cells, keyed by KEY, and the Store's level-less devices
 MASTER_FILE = GENERATED_FILE
-ONE_FILE = "devices.csv"                     # the one-file master before the split (2026-11-21), for its history
+ONE_FILE = "devices.csv"                     # the one-file master's name: a test's or a check's copy (one_file_copy)
 MASTER = paths.LAYOUT_DATA / MASTER_FILE
 FIELD = paths.LAYOUT_DATA / FIELD_FILE
 
-LEVELS = ("1", "2", "3")
-LAYERS = ("turnout", "fb", "block", "occupancy", "mast", "head", "sensor")   # also the order within a level
-ASSIGNMENTS = ("field", "virtual", "none", "spare")
+LEVELS: tuple[LevelText, ...] = ("1", "2", "3")   # the master's level column: text (hartlib.levels)
+Layer = Literal["turnout", "fb", "block", "occupancy", "mast", "head", "sensor"]
+LAYERS: tuple[Layer, ...] = get_args(Layer)       # also the order within a level
+Assignment = Literal["field", "virtual", "none", "spare"]
+ASSIGNMENTS: tuple[Assignment, ...] = get_args(Assignment)
 # the roles of a line block (and its occupancy sensor): a block between switches, whose cp is a list of the places it
 # joins (build_device_map.line_cp); every other device sits in one control point at most
 LINE_ROLES = ("track", "helix", "part", "loop_half", "spur")
 # the roles of a block through a switch's points (and its occupancy sensor): an OS block, or a corner of a double
 # crossover; readers test these (is_os, Index.is_os), never an "OS Switch " prefix
 OS_ROLES = ("os", "xover_corner")
-ROLES = ("turnout", "lcc_alias", "fb", "os", "xover_corner", "track", "spur", "loop_half", "helix",
-         "home", "intermediate", "hidden", "head", "spare", "panel_status", "part")
-# The scripts that write rows (the one list: a merge of builders changes only this; build_masts.py left it in
-# naming-layers step 12, when build_device_map.py took every level's mast and head rows). Order is the order of rows
+Role = Literal["turnout", "lcc_alias", "fb", "os", "xover_corner", "track", "spur", "loop_half", "helix",
+               "home", "intermediate", "hidden", "head", "spare", "panel_status", "part"]
+ROLES: tuple[Role, ...] = get_args(Role)
+# The scripts that write rows (the one list: a merge of builders changes only this; build_device_map.py writes
+# every level's mast and head rows). Order is the order of rows
 # within a (level, layer) after the hand-kept ones.
 WRITERS = ("build_device_map.py", "panel_items.json")
 # roles the two device maps leave out: a spare detector, a panel status bean, and a part (a block row with part_of: a
@@ -96,16 +104,17 @@ COLUMNS = ("level", "cp", "layer", "role", "id", "user_name", "assignment", "sys
 # CATS desk builders the blocks that have one)
 CATS_DISCIPLINES = ("CTC", "YARD")
 # A row's start: its bean's state when the tables load, by layer (hartlib.level_devices.START_ENUM gives the JMRI
-# word); empty where JMRI's default stands (naming-layers step 9)
+# word); empty where JMRI's default stands
 START = {"occupancy": ("inactive",), "turnout": ("closed", "thrown")}
-# A field row's key (ADR-033 step 4): its device ID on its level, so a rename changes no key. A Store's level-less row
+# A field row's key (ADR-033): its device ID on its level, so a rename changes no key. A Store's level-less row
 # has no ID and is keyed by ("", layer, user_name) instead (key_of). NAME_KEY is unique in the merged view too, and is
 # how a message names a row (row_text).
 KEY = ("level", "id")
+RowKey = tuple[str, str] | tuple[str, str, str]    # key_of: (level, id), or ("", layer, user name) when level-less
 NAME_KEY = ("level", "layer", "user_name")
-# The columns of a keyed field row (the owner's cells, ADR-029 amendment 2026-11-21): the cells a builder took from
+# The columns of a keyed field row (the owner's cells, ADR-029's amendment): the cells a builder took from
 # the master's previous rows before the split, so the owner's value lives in one place. On every level the builder
-# makes each device's row from the plan and puts its field row's cells over it (naming-layers step 7): a device with no
+# makes each device's row from the plan and puts its field row's cells over it: a device with no
 # field row keeps the generated values.
 FIELD_COLUMNS = ("user_name", "role", "assignment", "cp", "system_name", "jmri_name", "node", "dcc", "jmri_comment",
                  "trial_name", "notes", "detector", "stop", "layout_block", "cats_discipline")
@@ -183,7 +192,7 @@ class Files:
             return Files(path, path.parent / "devices.columns.csv", beside)
         return Files(path, path.parent / "devices.columns.csv", None)
 
-    def but(self, **changes) -> "Files":
+    def but(self, **changes: Any) -> "Files":     # dataclasses.replace's keyword arguments: field names
         return replace(self, **changes)
 
 
@@ -203,7 +212,7 @@ def _read(name: str, data: bytes, table: places.Table) -> tuple[Mapping[str, str
     try:
         text = data.decode("utf-8")
     except UnicodeDecodeError as exc:
-        raise DevicesError(f"{name}: not UTF-8 text ({exc.reason} at byte {exc.start})") from None
+        raise DevicesError(f"{name}: not UTF-8 text ({exc.reason} at byte {exc.start})") from exc
     reader = csv.reader(io.StringIO(text, newline=""))
     header = next(reader, None)
     if header is None or tuple(header) != COLUMNS:
@@ -216,7 +225,7 @@ def _read(name: str, data: bytes, table: places.Table) -> tuple[Mapping[str, str
     return tuple(rows)
 
 
-def key_of(row: Mapping[str, str]) -> tuple[str, ...]:
+def key_of(row: Mapping[str, str]) -> RowKey:
     """A row's key in both files: (level, id) (KEY) for a row with a level, ("", layer, user name) for a Store's
     level-less row, which has no id."""
     if row["level"]:
@@ -353,7 +362,7 @@ def merge(generated: Iterable[Mapping[str, str]], field: Iterable[Mapping[str, s
 
 
 # The generated columns that name another row's block by its user name: a rename in the field file reaches them in
-# the merged view at once, before a builder writes them again (naming-layers step 5).
+# the merged view at once, before a builder writes them again.
 BLOCK_REFS = ("part_of", "blocks", "facing", "protects")
 
 
@@ -366,10 +375,10 @@ def follow_renames(rows: list[Mapping[str, str]], generated: Iterable[Mapping[st
     block of that name. So a rename leaves the view consistent (no part of a block that is no row) and a reader takes
     the new name everywhere. Rows with no rename to follow are returned as they are."""
     renamed: dict[str, dict[str, str]] = {}
-    new = {key_of(r): r["user_name"] for r in rows if r["level"] and r["layer"] == "block"}
+    new = {(r["level"], r["id"]): r["user_name"] for r in rows if r["level"] and r["layer"] == "block"}
     for g in generated:
         if g["level"] and g["layer"] == "block":
-            now = new.get(key_of(g))
+            now = new.get((g["level"], g["id"]))
             if now is not None and now != g["user_name"]:
                 renamed.setdefault(g["level"], {})[g["user_name"]] = now
     if not renamed:
@@ -463,7 +472,7 @@ def _read_file(path: Path) -> tuple[Mapping[str, str], ...]:
     try:
         data = path.read_bytes()
     except OSError as exc:
-        raise DevicesError(f"{path}: cannot read it ({exc.strerror})") from None
+        raise DevicesError(f"{path}: cannot read it ({exc.strerror})") from exc
     return _read(path.name, data, places_of(path))
 
 
@@ -517,10 +526,12 @@ def _merged(gname: str, gdata: bytes, fname: str | None, fdata: bytes | None, ta
 
 
 def _field_bytes(f: "Files") -> bytes:
+    if f.field is None:
+        raise DevicesError(f"{f.master}: a one-file copy has no field file")
     try:
         return f.field.read_bytes()
     except OSError as exc:
-        raise DevicesError(f"{f.field}: cannot read it ({exc.strerror})") from None
+        raise DevicesError(f"{f.field}: cannot read it ({exc.strerror})") from exc
 
 
 def parse(text: str, name: str = MASTER_FILE, files: "Files | None" = None) -> tuple[Mapping[str, str], ...]:
@@ -543,7 +554,7 @@ def load(files: "Files | Path | str | None" = None) -> tuple[Mapping[str, str], 
     try:
         gdata = f.master.read_bytes()
     except OSError as exc:
-        raise DevicesError(f"{f.master}: cannot read it ({exc.strerror})") from None
+        raise DevicesError(f"{f.master}: cannot read it ({exc.strerror})") from exc
     table = places_of(f)
     if f.field is None:
         return _merged(f.master.name, gdata, None, None, table)
@@ -562,7 +573,7 @@ def device_map_lines(levels: tuple[str, ...], source: "Files | Path | str | None
 def user_names(source: "Files | Path | str | None" = None) -> Mapping[tuple[str, str], str]:
     """{(level, id): user name} of every row with a level, from the merged view (the owner's name wins): the name
     store's answer for a device ID. The data files keyed by ID (wiring.csv, block_lengths.csv, block_numbering.csv,
-    block_overrides.csv, mast_cells.csv: naming-layers step 5) read their names here, so a rename in the field file
+    block_overrides.csv, mast_cells.csv) read their names here, so a rename in the field file
     reaches them with no row of theirs changed."""
     return MappingProxyType({(r["level"], r["id"]): r["user_name"] for r in load(source) if r["level"] and r["id"]})
 
@@ -573,9 +584,9 @@ def name_of(names: Mapping[tuple[str, str], str], level: str, ident: str, where:
     row to the new ID or drops it)."""
     try:
         return names[(str(level), ident)]
-    except KeyError:
+    except KeyError as exc:
         raise DevicesError(f"{where}: {ident} is no level {level} device of the device master (a new export dropped "
-                           "it, or the ID is mistyped: give the device's id column)") from None
+                           "it, or the ID is mistyped: give the device's id column)") from exc
 
 
 def part_lines(levels: tuple[str, ...], source: "Files | Path | str | None" = None
@@ -714,7 +725,7 @@ def read_dictionary(path: Path) -> dict[str, str]:
         with path.open(newline="", encoding="utf-8") as fh:
             rows = list(csv.reader(fh))
     except OSError as exc:
-        raise DevicesError(f"{path}: cannot read it ({exc.strerror})") from None
+        raise DevicesError(f"{path}: cannot read it ({exc.strerror})") from exc
     if ",".join(next(iter(rows), [])) not in ((head := "column,file,description"), head + ",type,required,key,refs,values"):
         raise DevicesError(f"{path.name}: the header is {head}, alone or with type,required,key,refs,values")
     out, bad = {}, []
@@ -753,7 +764,7 @@ def cp_list(row: Mapping[str, str]) -> list[str]:
 
 def is_unplaced(row: Mapping[str, str]) -> bool:
     """A device not on the layout yet: added in PanelPro, kept as its Store beans in jmri_bean, with no level until the
-    owner gives its details (owner, 2026-11-20)."""
+    owner gives its details."""
     return not row["level"]
 
 
@@ -785,143 +796,10 @@ def _unplaced_problems(r: Mapping[str, str]) -> list[str]:
 
 def check_rows(rows: Iterable[Mapping[str, str]], where: str = "the device master") -> None:
     """The master's invariants; DevicesError listing every problem (a row is named by its key: name, level and
-    layer, never a line, as the merged view is two files). Run on every load and after every write."""
-    bad, keys, jmri, field_systems, ids = [], {}, {}, {}, {}
-    ranks = []
-    parts, part_names, whole = [], set(), set()      # parts (row, level, part_of); (level, name)s
-    for n, r in enumerate(rows, 2):
-        at = row_text(r)
-        if r["level"] and r["level"] not in LEVELS:
-            bad.append(f"{at}: level is one of {', '.join(LEVELS)}, or empty for a device kept by its jmri_bean")
-            continue
-        if not r["level"]:
-            bad += [f"{at}: {b}" for b in _unplaced_problems(r)]
-        elif r["jmri_bean"]:
-            bad.append(f"{at}: jmri_bean is for a level-less device; a row with a level is made by the build")
-        if r["layer"] not in LAYERS:
-            bad.append(f"{at}: layer is one of {', '.join(LAYERS)}")
-            continue
-        broken = [c for c in COLUMNS if "\n" in r[c] or "\r" in r[c]]
-        if broken:
-            bad.append(f"{at}: {', '.join(broken)} hold a line break (a record would no longer be one file line)")
-        unknown = False
-        for col, allowed in (("role", ROLES), ("assignment", ASSIGNMENTS), ("written_by", ("",) + WRITERS)):
-            if col == "role" and not r["level"] and not r[col]:
-                continue                            # a level-less device has no role yet
-            if r[col] not in allowed:
-                bad.append(f"{at}: {col} {r[col]!r} is not one of {', '.join(a or 'empty' for a in allowed)}")
-                unknown = unknown or col == "written_by"
-        for col in ("user_name", "description"):
-            if not r[col].strip():
-                bad.append(f"{at}: {col} is empty")
-        if r["level"]:                          # a Store's level-less row has none (_unplaced_problems)
-            if not r["id"].strip():
-                bad.append(f"{at}: id is empty (the builders give every row with a level one, hartlib.device_ids)")
-            elif (r["level"], r["id"]) in ids:
-                bad.append(f"{at}: id {r['id']!r} is {ids[(r['level'], r['id'])]}'s as well (an id is unique on "
-                           "its level)")
-            else:
-                ids[(r["level"], r["id"])] = at
-            if r["layer"] == "turnout":
-                grammar = TURNOUT_IDS.get(r["role"])
-                if grammar is None:
-                    bad.append(f"{at}: a turnout row's role is {' or '.join(TURNOUT_IDS)}, not {r['role']!r}")
-                elif not grammar.fullmatch(r["id"]):
-                    bad.append(f"{at}: id {r['id']!r} is not {grammar.pattern.split(':')[0]}:<switch number> (a "
-                               f"{r['role']} row's id names its switch, hartlib.device_ids)")
-        key = (r["level"], r["layer"], r["user_name"])
-        if key in keys:
-            bad.append(f"{at}: the same level, layer and user_name twice")
-        keys[key] = at
-        jn = r["jmri_name"]
-        if jn:
-            # a virtual turnout and its LCC alias both stand on one internal turnout, so the role is part of the key
-            jk = (r["layer"], r["role"] == "lcc_alias", jn)
-            if jk in jmri:
-                bad.append(f"{at}: jmri_name {jn!r} is {jmri[jk]}'s as well")
-            jmri[jk] = at
-        a = r["assignment"]
-        if a == "field":
-            if not r["system_name"] or not jn:
-                bad.append(f"{at}: a field device needs a system_name and a jmri_name")
-            elif r["system_name"] != jn and not (r["role"] == "turnout" and jn == r["user_name"]):
-                # a staging turnout the tables and panels bind by its user name (staging_device_map.py): the one exception
-                bad.append(f"{at}: field, but system_name {r['system_name']!r} is not jmri_name {jn!r}")
-            if r["system_name"]:
-                if r["system_name"] in field_systems.get(r["layer"], {}):
-                    bad.append(f"{at}: field system_name {r['system_name']!r} is "
-                               f"{field_systems[r['layer']][r['system_name']]}'s as well")
-                field_systems.setdefault(r["layer"], {})[r["system_name"]] = at
-        elif a == "virtual" and not jn:
-            bad.append(f"{at}: a virtual device needs a jmri_name")
-        elif a == "none" and jn:
-            bad.append(f"{at}: assignment none, but jmri_name is {jn!r}")
-        if (a == "spare") != (r["role"] == "spare"):
-            bad.append(f"{at}: assignment spare and role spare go together")
-        if a == "spare" and not (r["system_name"] and r["system_name"] == jn):
-            bad.append(f"{at}: a spare detector has its M2S name as system_name and jmri_name")
-        if (r["role"] == "panel_status") != (r["written_by"] == "panel_items.json"):
-            bad.append(f"{at}: role panel_status and written_by panel_items.json go together")
-        if r["layout_block"] and (r["layer"] != "block" or not r["layout_block"].startswith("ILB")):
-            bad.append(f"{at}: layout_block {r['layout_block']!r} is for a block row, an ILB name")
-        if r["cats_discipline"] and (r["layer"] != "block" or r["cats_discipline"] not in CATS_DISCIPLINES):
-            bad.append(f"{at}: cats_discipline {r['cats_discipline']!r} is for a block row, one of "
-                       f"{', '.join(CATS_DISCIPLINES)}")
-        if r["cp"] and r["layer"] == "turnout":
-            bad.append(f"{at}: a turnout row has no cp; its switch's place is in the switch lists (places.of)")
-        if LIST in r["cp"] and r["role"] not in LINE_ROLES:
-            bad.append(f"{at}: cp {r['cp']!r} is a list, but a {r['role'] or r['layer']} sits in one control point "
-                       f"(only a line block, roles {', '.join(LINE_ROLES)}, lists the places it joins)")
-        if r["start"] and r["start"] not in START.get(r["layer"], ()):
-            bad.append(f"{at}: start {r['start']!r} is not one a {r['layer']} row takes "
-                       f"({', '.join(START.get(r['layer'], ())) or 'none'})")
-        elif r["start"] and (not jn or r["role"] == "lcc_alias"):
-            bad.append(f"{at}: start is set, but the row makes no bean of its own (no jmri_name, or an LCC alias)")
-        if r["wiring"] and r["jmri_comment"]:
-            bad.append(f"{at}: wiring and jmri_comment are both set; a row has one comment")
-        if (r["role"] == "part") != bool(r["part_of"]):
-            bad.append(f"{at}: role part and part_of go together")
-        if r["part_of"]:
-            if r["layer"] != "block":
-                bad.append(f"{at}: part_of is for a block row (a piece of track inside another block)")
-            # a part is a JMRI block and layout block of its own on every level (owner, 2026-11-20) whose occupancy
-            # sensor is its block's: no detector, wiring, node or DCC address of its own
-            made = [c for c in ("node", "detector", "wiring", "dcc") if r[c]]
-            if made or a not in ("none", "virtual"):
-                bad.append(f"{at}: a part has no detector of its own (its sensor is its block's), so assignment "
-                           "none or virtual and no " + ", ".join(made or ["field facts"]))
-            parts.append((at, r["level"], r["part_of"]))
-            part_names.add((r["level"], r["user_name"]))
-        elif r["layer"] == "block":
-            whole.add((r["level"], r["user_name"]))
-        if not unknown:
-            ranks.append((_rank(r), at))
-    # an intermediate or hidden mast's id names the block it faces (hartlib.device_ids.block_mast_id): that
-    # block's row on the mast's level, else its one row on another level (a helix block)
-    block_id = {(r["level"], r["user_name"]): r["id"] for r in rows if r["layer"] == "block" and r["level"]}
-    for r in rows:
-        if r["layer"] != "mast" or r["role"] not in ("intermediate", "hidden") or not r["level"]:
-            continue
-        got = block_id.get((r["level"], r["facing"]))
-        if got is None:
-            other = [v for (_lv, b), v in block_id.items() if b == r["facing"]]
-            got = other[0] if len(other) == 1 else None
-        if got is not None and r["id"] != f"mast:{got}:{r['dir']}":
-            bad.append(f"{row_text(r)}: id {r['id']!r} does not name the block it faces, {r['facing']} "
-                       f"(id {got!r}), and its dir {r['dir']!r}")
-    for at, level, target in parts:            # the block a part names is on the part's own level
-        if (level, target) in part_names:
-            bad.append(f"{at}: part_of {target!r} is itself a part (a part names a whole block: no chain or cycle)")
-        elif (level, target) not in whole:
-            bad.append(f"{at}: part_of {target!r} is no block row")
-    for (a, na), (b, nb) in zip(ranks, ranks[1:]):
-        if b < a:
-            bad.append(f"{nb}: out of order (level, layer, then a Store's level-less rows after every level, each "
-                       f"writer's rows in WRITERS order); it follows {na}")
-            break
-    if bad:
-        more = f"; and {len(bad) - 20} more" if len(bad) > 20 else ""
-        raise DevicesError(f"{where}: " + "; ".join(bad[:20]) + more)
+    layer, never a line, as the merged view is two files). Run on every load and after every write. The steps are in
+    hartlib.device_row_checks."""
+    from . import device_row_checks             # it reads this module
+    device_row_checks.check_rows(rows, where)
 
 
 # ---------------------------------------------------------------- roles, assignments, descriptions
@@ -1038,15 +916,15 @@ def replace_rows(rows: Iterable[Mapping[str, str]], writer: str,
     would take an id or a name (key_of, name_key) a row held by someone else has (another writer's, or a Store's
     level-less device), or the result breaks check_rows. A row the field file names may not go: merge refuses the
     pair (move the field row to the new id or remove it), so the owner's cells are never dropped silently."""
-    rows, new = [dict(r) for r in rows], [dict(r) for r in new]
-    _writes_only_its_own(writer, new, [r for r in rows if r["written_by"] != writer])
-    out = [r for r in rows if r["written_by"] != writer] + new
+    old_rows, new_rows = [dict(r) for r in rows], [dict(r) for r in new]
+    _writes_only_its_own(writer, new_rows, [r for r in old_rows if r["written_by"] != writer])
+    out = [r for r in old_rows if r["written_by"] != writer] + new_rows
     out.sort(key=_rank)
     check_rows(out, f"the master after {writer}'s write")
     return out
 
 
-def _writes_only_its_own(writer: str, new: list[Mapping[str, str]], others: Iterable[Mapping[str, str]]) -> None:
+def _writes_only_its_own(writer: str, new: Sequence[Mapping[str, str]], others: Iterable[Mapping[str, str]]) -> None:
     """DevicesError when `writer` is not in WRITERS, a row of `new` names another writer, or takes the key of a row of
     `others` (another writer's, or a Store's level-less device)."""
     if writer not in WRITERS:
@@ -1118,7 +996,7 @@ def device_map_rows(rows: Iterable[Mapping[str, str]], levels: tuple[str, ...]) 
     return [device_map_row(r) for r in rows if r["level"] in levels and r["role"] not in OUT_OF_MAPS]
 
 
-def texts(rows: list[Mapping[str, str]], files: Files | None = None) -> dict[Path, str]:
+def texts(rows: Sequence[Mapping[str, str]], files: Files | None = None) -> dict[Path, str]:
     """{path: text} of the generated file from merged rows `rows` (unmerge: the field file's cells left out)."""
     f = files or Files.here()
     return {f.master: master_text(unmerge(rows, field_rows(f)) if f.field is not None else rows, f)}
@@ -1142,7 +1020,8 @@ def outputs_after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Fil
     return out
 
 
-def _after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Files | None):
+def _after_rows(writer: str, new: Iterable[Mapping[str, str]],
+                files: Files | None) -> tuple[dict[Path, str], device_changes_mod.Changes | None]:
     """(outputs_after_rows' texts, the write's device_changes.Changes, None for a one-file copy), nothing said."""
     from . import device_changes                # it reads this module
     f = files or Files.here()
@@ -1209,7 +1088,7 @@ def pair_copy(data: Path, files: "Files | Path | str | None" = None) -> Files:
     data.mkdir(parents=True, exist_ok=True)
     out = Files.under(data)
     for a, b in ((src.master, out.master), (src.field, out.field), (src.dictionary, out.dictionary)):
-        if a is not None:
+        if a is not None and b is not None:
             b.write_bytes(a.read_bytes())
     return out
 
@@ -1263,7 +1142,8 @@ def main(argv: list[str] | None = None) -> int:
         if not problems:
             for w in redundant(generated_rows(f), field_rows(f)):
                 print(f"warning: {w}", file=sys.stderr)
-            print(f"{f.master.name} with {f.field.name}: {len(load(f))} rows; its dictionary agrees")
+            field = f.field.name if f.field is not None else "no field file"
+            print(f"{f.master.name} with {field}: {len(load(f))} rows; its dictionary agrees")
         return 1 if problems else 0
     except DevicesError as exc:
         print(f"devices.py: {exc}", file=sys.stderr)

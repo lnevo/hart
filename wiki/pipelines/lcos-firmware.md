@@ -17,13 +17,16 @@ Flash the Arduino Nano that bridges LCOS radio (nRF24) to USB serial MQTT lines.
 
 ## Run
 
-Configure nodes, then flash (`scripts/windows/flash_nano.py` or Arduino IDE). Host bridge:
+Configure nodes, commit them in the bridge repo, then on the Pi (the Nano is on its USB):
 
 ```bash
-python -u serial_to_mqtt.py --com COM3 --broker <mqtt-host> --verbose
+ssh pi@rpi-jmri.local
+cd ~/lcos-bridge && git pull
+./bridge flash     # compile with arduino-cli, stop the bridge, upload to /dev/lcos-nano, start it again
+./bridge log       # look for `Subscription accepted` per node
 ```
 
-Run the Windows serial bridge in the **foreground**. Do not start it from an agent (`Start-Process` Hidden stole COM3).
+`./bridge compile` builds without uploading. The Pi's userland is 32-bit (armhf), so it uses the ARMv7 arduino-cli; the Arduino IDE is not needed. The bridge runs as the `lcos-bridge` systemd service; the operating flag applies to flashing, since it is the Pi.
 
-Detail: that repo’s `README.md`, `docs/serial_mqtt_windows.md`.
+Detail: that repo’s `README.md`, `docs/serial_mqtt_linux.md`.
 

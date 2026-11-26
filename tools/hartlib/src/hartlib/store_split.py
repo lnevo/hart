@@ -1,4 +1,4 @@
-"""Split a PanelPro Store back into the sources of tables.xml (ADR-029, R9d; the owner's design of 2026-11-20 in
+"""Split a PanelPro Store back into the sources of tables.xml (ADR-029, R9d; the owner's design in
 archive/history/wiki/projects/project-health-handoff.md, "R9d redesign").
 
 A Store mostly holds settings the owner made in PanelPro that must survive the next deploy, so the default is to keep
@@ -29,12 +29,12 @@ What happens to an item the owner changed (store differs from base):
              takes the Store's version, drop keeps the repo's
     DEVICE   a rename or comment of a bean whose row is a level-less device in devices_field.csv: reviewed, merge writes the
              row (user_name, and jmri_name where the tables bind it by its user name; jmri_comment), drop leaves it.
-             Also a device the Store added (merge adds a level-less row, its beans in jmri_bean, owner 2026-11-20)
+             Also a device the Store added (merge adds a level-less row, its beans in jmri_bean)
              and a change to or deletion of a level-less device (merge rewrites or deletes its row)
     DROPPED  anything else of the build's: the repo wins, and the item is listed with what to change instead
 
 <jmriversion> is the one exception: a Store from a newer JMRI is KEPT whatever the base and the repo say, so the next
-tables carry the newer version (owner, 2026-11-20); a Store from the same or an older JMRI gives no item.
+tables carry the newer version; a Store from the same or an older JMRI gives no item.
 
 Nothing reads or writes a file here; tools/schematic/split_store.py runs it, rebuilds tables.xml and verifies the
 rebuild (verify). Every failure is a SplitError.
@@ -48,10 +48,13 @@ import hashlib
 import re
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
-from typing import Iterable, Mapping
+from collections.abc import Iterable, Mapping
 
 from . import devices, level_devices, parked, tables
 from . import tables_build as tb
+from .store_keys import (BY_CONTENT, BY_ID, AttrsKey, BeanKey, ByContent, ById, ItemKey, LogicKey,  # noqa: F401
+                         PanelKey, SecKey, SectionKey, SettingKey, canon)
+from .errors import HartlibError
 
 KEPT, CLASH, DEVICE, DROPPED = "kept", "clash", "device", "dropped"
 ROW = "row"                         # a DEVICE item that adds, rewrites or deletes a level-less row (unplaced)
@@ -80,23 +83,11 @@ BEAN_LAYERS = {"turnouts": ("turnout",), "sensors": ("fb", "occupancy", "sensor"
 BUILD_PREFIXES = ("IQ$HART:", "IQC$HART:", "IQDA$HART:", "IS:HART:", "IT:HART:", "IH:HART:", "IB:HART:")
 
 
-class SplitError(ValueError):
+class SplitError(HartlibError, ValueError):
     """The split cannot run: a file is not tables, or an item is given twice."""
 
 
 # ---------------------------------------------------------------- items
-
-
-def canon(el: ET.Element | None) -> str | None:
-    """An element as text with its layout whitespace taken out, for comparing; None stays None."""
-    if el is None:
-        return None
-    c = copy.deepcopy(el)
-    for x in c.iter():
-        x.tail = None
-        if x.text is not None and not x.text.strip():
-            x.text = None
-    return ET.tostring(c, encoding="unicode")
 
 
 def normalised(data: bytes, what: str) -> ET.Element:
@@ -105,18 +96,13 @@ def normalised(data: bytes, what: str) -> ET.Element:
     try:
         doc = tables.loads(data)
     except (ET.ParseError, ValueError) as exc:
-        raise SplitError(f"{what}: not a tables file ({exc})") from None
+        raise SplitError(f"{what}: not a tables file ({exc})") from exc
     if doc.root.tag != "layout-config":
         raise SplitError(f"{what}: the root is <{doc.root.tag}>, not <layout-config>")
     tb.normalise_store(doc.root)
     return doc.root
 
 
-def section_key(sec: ET.Element) -> tuple[str, str | None]:
-    return tb.section_key(sec)
-
-
-BY_ID, BY_CONTENT = "id", "="
 
 
 def _ident(el: ET.Element) -> str | None:
@@ -139,13 +125,13 @@ def repeated_settings(*roots: ET.Element | None) -> frozenset[tuple]:
         if root is None:
             continue
         for sec in tables.elements(root):
-            if sec.tag == PANEL or section_key(sec) not in KNOWN_SECTIONS:
+            if sec.tag == PANEL or tb.section_key(sec) not in KNOWN_SECTIONS:
                 continue
             here: dict[str, list[ET.Element]] = {}
             for el in _settings(sec):
                 here.setdefault(el.tag, []).append(el)
             for tag, els in here.items():
-                copies.setdefault((section_key(sec), tag), []).append(els)
+                copies.setdefault((tb.section_key(sec), tag), []).append(els)
     out = set()
     for (sk, tag), groups in copies.items():
         if max(len(g) for g in groups) < 2:
@@ -156,22 +142,22 @@ def repeated_settings(*roots: ET.Element | None) -> frozenset[tuple]:
     return frozenset(out)
 
 
-def _setting_keys(sec: ET.Element, sk: tuple, repeated: frozenset[tuple]) -> list[tuple[tuple, ET.Element]]:
+def _setting_keys(sec: ET.Element, sk: SecKey, repeated: frozenset[tuple]) -> list[tuple[SettingKey, ET.Element]]:
     """The settings of a known section with their keys: ("setting", section, tag, 0) for a tag given once (any
     change to it is a change of that one item); for a tag in `repeated` (repeated_settings), ("setting", section,
     tag, (BY_ID, id)) or ("setting", section, tag, (BY_CONTENT, content, n)), the nth copy of the same content."""
     how = {(k, t): h for k, t, h in repeated}
-    out = []
-    seen: dict[tuple, int] = {}
+    out: list[tuple[SettingKey, ET.Element]] = []
+    seen: dict[tuple[str, str], int] = {}
     for el in _settings(sec):
         mode = how.get((sk, el.tag))
         if mode == BY_ID:
-            out.append((("setting", sk, el.tag, (BY_ID, _ident(el))), el))
+            out.append((SettingKey("setting", sk, el.tag, ById(BY_ID, _ident(el))), el))
             continue
-        mark = (el.tag, canon(el)) if mode == BY_CONTENT else (el.tag,)
-        n = seen.get(mark, 0)
-        seen[mark] = n + 1
-        out.append((("setting", sk, el.tag, (BY_CONTENT, mark[1], n) if mode else n), el))
+        content = canon(el) if mode == BY_CONTENT else ""     # a tag given once counts its copies by tag alone
+        n = seen.get((el.tag, content), 0)
+        seen[(el.tag, content)] = n + 1
+        out.append((SettingKey("setting", sk, el.tag, ByContent(BY_CONTENT, content, n) if mode else n), el))
     return out
 
 
@@ -191,19 +177,19 @@ def index(root: ET.Element, what: str, by_content: frozenset[tuple] = frozenset(
 
     for sec in tables.elements(root):
         if sec.tag == PANEL:
-            put(("panel", sec.get("name") or ""), sec)
+            put(PanelKey("panel", sec.get("name") or ""), sec)
             continue
-        sk = section_key(sec)
+        sk = tb.section_key(sec)
         if sk not in KNOWN_SECTIONS:
-            put(("section",) + sk, sec)
+            put(SectionKey("section", *sk), sec)
             continue
-        put(("attrs", sk), ET.Element(sec.tag, sec.attrib))
+        put(AttrsKey("attrs", sk), ET.Element(sec.tag, sec.attrib))
         for el in tables.elements(sec):
             name = tables.system_name(el)
             if el.tag == LOGIC:
-                put(("logic", el.get("source") or tables.text(el, "sourceSignalMast")), el)
+                put(LogicKey("logic", el.get("source") or tables.text(el, "sourceSignalMast")), el)
             elif name:
-                put(("bean", sk, el.tag, tb._sort_group(el), name), el)
+                put(BeanKey("bean", sk, el.tag, tb.sort_group(el), name), el)
         for key, el in _setting_keys(sec, sk, by_content):
             put(key, el)
     return out
@@ -213,23 +199,28 @@ def label(key: tuple) -> str:
     """An item key as words: "turnout M2T408", "<timebase> settings", "panel 'HART Railroad'"."""
     kind = key[0]
     if kind == "panel":
-        return f"panel {key[1]!r}"
+        return f"panel {PanelKey(*key).name!r}"
     if kind == "section":
-        return f"section <{key[1]}>" + (f" ({key[2].rsplit('.', 1)[-1]})" if key[2] else "")
+        sec = SectionKey(*key)
+        return f"section <{sec.tag}>" + (f" ({sec.cls.rsplit('.', 1)[-1]})" if sec.cls else "")
     if kind == "attrs":
-        return f"<{key[1][0]}> settings"
+        return f"<{AttrsKey(*key).section[0]}> settings"
     if kind == "logic":
-        return f"Signal Mast Logic from {key[1]!r}"
+        return f"Signal Mast Logic from {LogicKey(*key).source!r}"
     if kind == "bean":
-        return f"{key[2]} {key[4]}" + (" (names-only pass)" if key[3] == "block-names" else "")
-    if isinstance(key[3], tuple):
-        if key[3][0] == BY_ID:
-            return f"<{key[1][0]}> <{key[2]}> {key[3][1]!r}"
-        _, content, n = key[3]
-        hint = " ".join(" ".join(ET.fromstring(content).itertext()).split())[:40] or "no text"
-        tag = hashlib.sha256(content.encode()).hexdigest()[:6]
-        return f"<{key[1][0]}> <{key[2]}> ({hint}; {tag})" + (f" copy {n + 1}" if n else "")
-    return f"<{key[1][0]}> <{key[2]}>" + (f" #{key[3] + 1}" if key[3] else "")
+        bean = BeanKey(*key)
+        return f"{bean.tag} {bean.name}" + (" (names-only pass)" if bean.group == "block-names" else "")
+    setting = SettingKey(*key)
+    where = f"<{setting.section[0]}> <{setting.tag}>"
+    which = setting.which
+    if isinstance(which, tuple):
+        if which[0] == BY_ID:
+            return f"{where} {ById(*which).ident!r}"
+        got = ByContent(*which)
+        hint = " ".join(" ".join(ET.fromstring(got.content).itertext()).split())[:40] or "no text"
+        tag = hashlib.sha256(got.content.encode()).hexdigest()[:6]
+        return f"{where} ({hint}; {tag})" + (f" copy {got.copy + 1}" if got.copy else "")
+    return where + (f" #{which + 1}" if which else "")
 
 
 def parts(a: ET.Element | None, b: ET.Element | None) -> list[str]:
@@ -288,8 +279,8 @@ def change_text(a: ET.Element | None, b: ET.Element | None) -> str:
 def row_index(rows: Iterable[Mapping[str, str]]) -> dict[tuple[str, str], list[int]]:
     """{(section tag, bean name): [device-master row numbers]}: the rows a bean of the tables comes from. A turnout by
     its system or JMRI name; a sensor, head, mast or block by its JMRI name; a layout block by its layout_block or
-    "user:" and its block's user name (every block row with a JMRI name has its layout_block since naming-layers step
-    8, the main and upper ones copied from block_numbering.csv; the user name is kept for a Store's layout block JMRI
+    "user:" and its block's user name (every block row with a JMRI name has its layout_block,
+    the main and upper ones copied from block_numbering.csv; the user name is kept for a Store's layout block JMRI
     renumbered)."""
     out: dict[tuple[str, str], list[int]] = {}
 
@@ -371,7 +362,7 @@ def claimed_name(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) 
 @dataclass(frozen=True)
 class Edit:
     """One devices_field.csv cell a DEVICE merge writes, its row named by its key (devices.key_of: level, id)."""
-    key: tuple[str, str, str]
+    key: devices.RowKey
     column: str
     old: str
     new: str
@@ -390,7 +381,7 @@ class RowAdd:
 @dataclass(frozen=True)
 class RowDelete:
     """A level-less devices_field.csv row a DEVICE merge deletes: its device was deleted in the Store."""
-    key: tuple[str, str, str]
+    key: devices.RowKey
 
 
 @dataclass(frozen=True)
@@ -430,7 +421,8 @@ class Plan:
 
 
 def _device_items(key: tuple, b: ET.Element | None, g: ET.Element, s: ET.Element, owner_parts: list[str],
-                  rows: list[Mapping[str, str]], rindex) -> tuple[list[tuple], list[str]]:
+                  rows: list[Mapping[str, str]], rindex: Mapping[tuple[str, str], list[int]]
+                  ) -> tuple[list[tuple], list[str]]:
     """(DEVICE candidates as (part, edits, note) or (part, None, reason), the parts left for DROPPED) of a build
     bean the owner changed."""
     out: list[tuple] = []
@@ -449,7 +441,7 @@ def _device_items(key: tuple, b: ET.Element | None, g: ET.Element, s: ET.Element
         r = rows[i]
         who = _row_at(r)
         if r["written_by"] == "build_device_map.py" and r["layer"] in ("turnout", "fb") and p == "userName":
-            # by the row's layer and writer, not its level (naming-layers step 14): every level's switch rows are
+            # by the row's layer and writer, not its level: every level's switch rows are
             # the builder's, the owner's name a devices_field.csv cell
             out.append((p, None, f"{who} is a switch's row the builder makes: rename it by hand in its "
                                  "devices_field.csv row (keyed by its id): change user_name, and jmri_name with it "
@@ -457,7 +449,7 @@ def _device_items(key: tuple, b: ET.Element | None, g: ET.Element, s: ET.Element
                                  "other); wiring.csv keeps the generated name the id gives"))
             continue
         if r["written_by"] == "build_device_map.py" and r["layer"] == "block" and p == "userName":
-            # a block of any level (main and upper's are virtual beans since naming-layers step 8): the owner's
+            # a block of any level (main and upper's are virtual beans): the owner's
             # name is a devices_field.csv cell, its bean names stay (numbered over the generated name)
             out.append((p, None, f"{who} is a block the builder names: rename it by hand in its devices_field.csv "
                                  "row (keyed by its id): change user_name; its jmri_name and layout_block stay"))
@@ -548,7 +540,7 @@ def unplaced_row(beans: list[tuple[tuple, ET.Element]], old: Mapping[str, str] |
     from the main bean (a block's full pass, else the one bean), the rest of the beans in jmri_bean. `old`, the row
     as it was, keeps its description."""
     layer = LAYER_OF[beans[0][0][0]]
-    main = next((el for sk, el in beans if sk == tb.BLOCKS and tb._sort_group(el) == "block"),
+    main = next((el for sk, el in beans if sk == tb.BLOCKS and tb.sort_group(el) == "block"),
                 next(el for sk, el in beans if sk != tb.LAYOUT_BLOCKS))
     system = tables.system_name(main)
     row = dict.fromkeys(devices.COLUMNS, "")
@@ -604,7 +596,7 @@ def _unplaced_items(found: list, added: dict, changed: dict, rows: list[Mapping[
             """The row's beans with the Store's (n=2) or the base's (n=0) version of each one the Store touched."""
             out = []
             for sk, el in tb.row_beans(old):
-                k = ("bean", sk, el.tag, tb._sort_group(el), tables.system_name(el))
+                k = BeanKey("bean", sk, el.tag, tb.sort_group(el), tables.system_name(el) or "")
                 v = by_key[k][n] if k in by_key else el
                 if v is not None:
                     out.append((sk, v))
@@ -635,7 +627,7 @@ def plan(base: ET.Element | None, repo: ET.Element, store: ET.Element, template:
     rindex = row_index(rows)
     has_base = base is not None
     by_content = repeated_settings(base, repo, store, template)
-    B = index(base, "the base", by_content) if has_base else index(repo, "the repo", by_content)
+    B = index(base, "the base", by_content) if base is not None else index(repo, "the repo", by_content)
     G = index(repo, "the repo", by_content)
     S = index(store, "the Store", by_content)
     T = index(template, "the template", by_content)
@@ -662,6 +654,7 @@ def plan(base: ET.Element | None, repo: ET.Element, store: ET.Element, template:
         if cs == cb or cs == cg:
             continue                    # the owner changed nothing, or the repo has it already
         el = s if s is not None else g if g is not None else b
+        assert el is not None, key      # key comes from B, G or S, so one of them holds it
         if key in T:
             owner = "template"
         elif key in G or key in B:
@@ -679,12 +672,12 @@ def plan(base: ET.Element | None, repo: ET.Element, store: ET.Element, template:
             continue
         # the build's
         if key[0] == "bean" and key[1] in tb.MASTER_SECTIONS:
-            el_row = rows_of(rindex, key, g if g is not None else b if b is not None else s)
+            el_row = rows_of(rindex, key, g if g is not None else b if b is not None else el)
             mine = [i for i in el_row if devices.is_unplaced(rows[i])]
             if mine:
                 changed.setdefault(mine[0], []).append((key, b, g, s))
                 continue
-            if g is None and b is None and not claimed_name(key, s, rows):
+            if g is None and b is None and s is not None and not claimed_name(key, s, rows):
                 name = tables.user_name(s) if key[1] in (tb.BLOCKS, tb.LAYOUT_BLOCKS) else ""
                 added.setdefault((LAYER_OF[key[1][0]], name or key[4]), []).append((key, b, s))
                 continue
@@ -728,9 +721,9 @@ def plan(base: ET.Element | None, repo: ET.Element, store: ET.Element, template:
         grouped.append((kind, key, info))
     counts = dict.fromkeys(KINDS, 0)
     items = []
-    for kind, key, info in grouped:
+    for kind, key, fields in grouped:
         counts[kind] += 1
-        items.append(Item(f"{ID_PREFIX[kind]}{counts[kind]}", kind, key, **info))
+        items.append(Item(f"{ID_PREFIX[kind]}{counts[kind]}", kind, key, **fields))
     return Plan(items, has_base, _fingerprint(items, base, repo, store), by_content)
 
 
@@ -805,7 +798,7 @@ def check_choices(p: Plan, c: Choices) -> None:
         raise SplitError(f"not in this plan, or not of a kind that can take that choice: {', '.join(sorted(bad))} "
                          "(merge takes C and D ids, drop takes K ids)")
     both = [d for d in p.of(DEVICE) if d.id in c.merge]
-    cells: dict[tuple[int, str], str] = {}
+    cells: dict[tuple[devices.RowKey, str], str] = {}
     for d in both:
         for e in d.edits:
             if not isinstance(e, Edit):
@@ -831,7 +824,7 @@ def edited_rows(rows: Iterable[Mapping[str, str]], edits: Iterable[Edit]) -> lis
     edits = list(edits)
     at = {devices.key_of(r): n for n, r in enumerate(out)}
 
-    def find(key: tuple[str, str, str]) -> int:
+    def find(key: devices.RowKey) -> int:
         if key not in at:
             raise SplitError(f"{devices.FIELD_FILE} has no row {devices.key_text(key)} (a Store's device or an "
                              "owner's row); change it by hand")
@@ -852,8 +845,8 @@ def edited_rows(rows: Iterable[Mapping[str, str]], edits: Iterable[Edit]) -> lis
         if isinstance(e, RowAdd):
             new = e.row
             rank = devices._rank(new)
-            at = next((n for n, r in enumerate(out) if devices._rank(r) > rank), len(out))
-            out.insert(at, new)
+            pos = next((n for n, r in enumerate(out) if devices._rank(r) > rank), len(out))
+            out.insert(pos, new)
     return out
 
 
@@ -869,7 +862,7 @@ def new_template(template: tables.Tables, store: ET.Element, changes: Iterable[I
     store_top = [c for c in tables.elements(store)]
 
     def sections() -> dict[tuple, ET.Element]:
-        return {section_key(s): s for s in tables.elements(root) if s.tag != PANEL}
+        return {tb.section_key(s): s for s in tables.elements(root) if s.tag != PANEL}
 
     for item in changes:
         key, s = item.key, item.store
@@ -908,13 +901,13 @@ def new_template(template: tables.Tables, store: ET.Element, changes: Iterable[I
     return doc
 
 
-def index_section(sec: ET.Element, sk: tuple, by_content: frozenset[tuple] = frozenset()) -> dict[tuple, ET.Element]:
+def index_section(sec: ET.Element, sk: SecKey, by_content: frozenset[tuple] = frozenset()) -> dict[tuple, ET.Element]:
     """index() of one known section's children."""
     out: dict[tuple, ET.Element] = {}
     for el in tables.elements(sec):
         name = tables.system_name(el)
         if name:
-            out[("bean", sk, el.tag, tb._sort_group(el), name)] = el
+            out[BeanKey("bean", sk, el.tag, tb.sort_group(el), name)] = el
     out.update(_setting_keys(sec, sk, by_content))
     return out
 

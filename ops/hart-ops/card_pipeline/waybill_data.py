@@ -6,11 +6,76 @@ wiki/pipelines/waybills.md); the deck logic is in waybill_deck.py.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+from typing import TypedDict
+
 CARDS_PER_DIRECTION = 3
 INTERCHANGE_PAGES = 2
 EMPTY = "EMPTY"
 PROCESS_CHEMICALS = "Process Chemicals"
 GENERAL_FREIGHT = "General Freight"
+
+
+class WaybillDataError(ValueError):
+    """A waybill table entry or spot usage the deck cannot be built from."""
+
+
+class Party(TypedDict):
+    """A supplier or customer on a waybill. Blank fields are unset."""
+
+    name: str
+    via: str  # the road a customer is reached by (CSX, NS, POHC)
+    entry: str  # the road a supplier's load enters by (CSX, POHC)
+    commodity: str  # the per-card load, when it differs from the spot's load
+
+
+class WaybillSpec(TypedDict):
+    """Loads and parties for one (industry, usage) spot."""
+
+    inbound_load: str
+    outbound_load: str
+    suppliers: list[Party]
+    customers: list[Party]
+
+
+# A table entry names a party by its name alone, or by a mapping of Party fields.
+RawParty = str | Mapping[str, str]
+_PARTY_FIELDS = frozenset(Party.__annotations__)
+_SPEC_FIELDS = frozenset(WaybillSpec.__annotations__)
+
+
+def _norm(s: str | None) -> str:
+    return (s or "").strip()
+
+
+def normalize_party(entry: RawParty) -> Party:
+    """One Party from a table entry; a mapping may hold only Party fields."""
+    if isinstance(entry, str):
+        return {"name": _norm(entry), "via": "", "entry": "", "commodity": ""}
+    unknown = set(entry) - _PARTY_FIELDS
+    if unknown:
+        raise WaybillDataError(f"party {entry!r} has unknown fields {sorted(unknown)}")
+    return {
+        "name": _norm(entry.get("name", "")),
+        "via": _norm(entry.get("via", "")),
+        "entry": _norm(entry.get("entry", "")),
+        "commodity": _norm(entry.get("commodity", "")),
+    }
+
+
+def normalize_spec(raw: Mapping[str, object], where: str) -> WaybillSpec:
+    """A WaybillSpec from a table entry, with every party normalized; ``where`` names it in errors."""
+    if set(raw) != _SPEC_FIELDS:
+        raise WaybillDataError(f"{where}: fields {sorted(raw)}, expected {sorted(_SPEC_FIELDS)}")
+    loads = raw["inbound_load"], raw["outbound_load"]
+    if not all(isinstance(load, str) and load for load in loads):
+        raise WaybillDataError(f"{where}: inbound_load and outbound_load must be non-blank text")
+    return {
+        "inbound_load": raw["inbound_load"],
+        "outbound_load": raw["outbound_load"],
+        "suppliers": [normalize_party(p) for p in raw["suppliers"]],  # type: ignore[union-attr]
+        "customers": [normalize_party(p) for p in raw["customers"]],  # type: ignore[union-attr]
+    }
 
 
 
@@ -50,7 +115,7 @@ INDUSTRY_ORDER = {
 
 # Per spot usage: loads plus named suppliers/customers from the HART routing matrix.
 # Unload spots: loaded in, empty out. Load/shipping spots: empty in, loaded out.
-SPOT_WAYBILL: dict[tuple[str, str], dict] = {
+_SPOT_WAYBILL_RAW: dict[tuple[str, str], dict[str, str | list[RawParty]]] = {
     ("Calgon Carbon", "Coal Unload"): {
         "inbound_load": "Coal",
         "outbound_load": EMPTY,
@@ -213,6 +278,10 @@ SPOT_WAYBILL: dict[tuple[str, str], dict] = {
 # CSX ↔ POHC interchange: through traffic only. Layout spot industries (see
 # INDUSTRY_ORDER) must not appear as RouteFrom or RouteTo — those moves use
 # spot waybills instead.
+SPOT_WAYBILL: dict[tuple[str, str], WaybillSpec] = {
+    key: normalize_spec(raw, f"SPOT_WAYBILL{key}") for key, raw in _SPOT_WAYBILL_RAW.items()
+}
+
 INTERCHANGE_HEADER = "INTERCHANGE"
 
 # Names tied to on-layout industries (exact or operational alias).

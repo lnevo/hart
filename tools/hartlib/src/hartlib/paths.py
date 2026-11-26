@@ -151,7 +151,7 @@ def lcos_bridge() -> Path:
 
 
 def car_images_final() -> Path:
-    """HART_CAR_IMAGES_FINAL, else the repo copy (~/Desktop/HART was retired 2026-11-09, ADR-007)."""
+    """HART_CAR_IMAGES_FINAL, else the repo copy (ADR-007)."""
     value = os.environ.get("HART_CAR_IMAGES_FINAL", "").strip()
     if value:
         return Path(value).expanduser().resolve()

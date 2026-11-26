@@ -1,4 +1,4 @@
-"""Parked features: Entry/Exit (NX), the stock Dispatcher System and the USS CTC machine (owner, 2026-11-17).
+"""Parked features: Entry/Exit (NX), the stock Dispatcher System and the USS CTC machine.
 
 A parked feature is out of the active tables.xml with all its data kept in the repo, in
 jmri/layouts/hart/parked/tables_parked.xml (README.md beside it): a frozen snapshot of the live elements, split once
@@ -30,10 +30,12 @@ import hashlib
 import re
 import xml.etree.ElementTree as ET
 from collections import Counter
+from collections.abc import Callable, Collection, Iterable
 from pathlib import Path
 
 from . import paths
 from .tables import _serialize, remove_child
+from .errors import HartlibError
 
 PARKED: frozenset[str] = frozenset({"nx", "dispatcher", "uss"})
 FEATURES = {
@@ -80,7 +82,7 @@ SLOT_ATTRS = ("eastboundsensor", "westboundsensor")
 ORDER = ("nx", "dispatcher", "uss")
 
 
-class ParkError(ValueError):
+class ParkError(HartlibError, ValueError):
     """A tables file or parked file that does not hold to the parking rules."""
 
 
@@ -110,7 +112,7 @@ def _conditional_of(name: str, logix: str) -> bool:
     return re.fullmatch(re.escape(logix) + r":?C\d+", name) is not None
 
 
-def parked_in(root: ET.Element, parked=None) -> frozenset[str]:
+def parked_in(root: ET.Element, parked: Collection[str] | None = None) -> frozenset[str]:
     """The features of `parked` (default PARKED) that these tables leave out: none of the feature's whole sections
     is in them. Tables from before the parking (a tables.xml from git before the release) still hold
     their features and are read as they are; check() holds the checkout's tables to PARKED."""
@@ -121,7 +123,7 @@ def parked_in(root: ET.Element, parked=None) -> frozenset[str]:
 def feature_sensors(root: ET.Element, feature: str) -> dict[str, str]:
     """{system name: user name} of the sensors of `feature` in `root` (any <sensors> section)."""
     pat = SENSOR_PATTERNS[feature]
-    out = {}
+    out: dict[str, str] = {}
     for sec in root.findall("sensors"):
         for s in sec.findall("sensor"):
             sn = _name(s)
@@ -130,7 +132,7 @@ def feature_sensors(root: ET.Element, feature: str) -> dict[str, str]:
     return out
 
 
-def split(root: ET.Element, parked=PARKED) -> ET.Element:
+def split(root: ET.Element, parked: Collection[str] = PARKED) -> ET.Element:
     """Move every element of the features in `parked` out of the tables `root` (edited in place) and return the
     parked document's root (<hartParked>, one <feature> per parked feature, in ORDER)."""
     unknown = sorted(set(parked) - set(FEATURES))
@@ -153,7 +155,7 @@ def _split_one(root: ET.Element, feature: str) -> ET.Element:
     section_names = {n for whole in WHOLE.get(feature, ()) if whole == "sections"
                      for sec in root.findall("sections") for s in sec for n in (_name(s), _user(s)) if n}
 
-    def park_children(sec: ET.Element, pick) -> None:
+    def park_children(sec: ET.Element, pick: Callable[[ET.Element], bool]) -> None:
         kids = [c for c in sec if pick(c)]
         if not kids:
             return
@@ -191,7 +193,8 @@ def _split_one(root: ET.Element, feature: str) -> ET.Element:
                 if (sec.text or "").strip() in section_names:
                     ET.SubElement(bindings, "binding", {"element": "signalmastlogic", "ident": sml.get("source", ""),
                                                         "destination": dest.get("destination", ""),
-                                                        "child": "associatedSection", "value": sec.text.strip()})
+                                                        "child": "associatedSection",
+                                                        "value": (sec.text or "").strip()})
                     remove_child(dest, sec)
     for ng in root.iter("LogixNG"):            # a LogixNG's list of its ConditionalNGs
         lst = ng.find("ConditionalNGs")
@@ -214,11 +217,12 @@ def _split_one(root: ET.Element, feature: str) -> ET.Element:
             for tag in SLOT_TAGS:
                 for slot in el.findall(tag):
                     if (slot.text or "").strip() in names:
-                        ET.SubElement(bindings, "binding", _where(panel, el, child=tag, value=slot.text.strip()))
+                        ET.SubElement(bindings, "binding",
+                                      _where(panel, el, child=tag, value=(slot.text or "").strip()))
                         remove_child(el, slot)
             for attr in SLOT_ATTRS:
                 if el.get(attr) in names:
-                    ET.SubElement(bindings, "binding", _where(panel, el, attribute=attr, value=el.get(attr)))
+                    ET.SubElement(bindings, "binding", _where(panel, el, attribute=attr, value=el.get(attr, "")))
                     del el.attrib[attr]
     if not len(bindings):
         out.remove(bindings)
@@ -233,7 +237,7 @@ def _socket_action(root: ET.Element, cng: str) -> str | None:
     return None
 
 
-def _where(panel: ET.Element, el: ET.Element, **what) -> dict:
+def _where(panel: ET.Element, el: ET.Element, **what: str) -> dict[str, str]:
     return {"panel": panel.get("name", ""), "element": el.tag, "ident": el.get("ident", ""), **what}
 
 
@@ -283,14 +287,14 @@ def read(path: Path = PARKED_XML) -> ET.Element:
 _PARSED: dict[str, ET.Element] = {}                    # read(): sha256 of the file -> its parsed root
 
 
-def restore(root: ET.Element, doc: ET.Element, features=None) -> ET.Element:
+def restore(root: ET.Element, doc: ET.Element, features: Collection[str] | None = None) -> ET.Element:
     """A copy of the tables `root` with the parked `features` (default: every one `doc` holds) put back: their
     sections and panels appended, their beans and panel items appended to the section or panel they came from, and
     their bindings set again. For the checks that keep a parked feature's data consistent with the active tables
     (the USS CTC levers and switches, the Dispatcher stations): an unparked view, never a file to load."""
     out = ET.fromstring(ET.tostring(root))
     for f in doc.findall("feature"):
-        if features is not None and f.get("name") not in features:
+        if features is not None and f.get("name", "") not in features:
             continue
         tables_el = f.find("tables")
         for box in tables_el if tables_el is not None else ():
@@ -310,7 +314,7 @@ def restore(root: ET.Element, doc: ET.Element, features=None) -> ET.Element:
 
 
 def _rebind(root: ET.Element, b: ET.Element) -> None:
-    value, child, attr = b.get("value"), b.get("child"), b.get("attribute")
+    value, child, attr = b.get("value") or "", b.get("child") or "", b.get("attribute")
     if b.get("element") == "LogixNG":
         for ng in root.iter("LogixNG"):
             lst = ng.find("ConditionalNGs")
@@ -327,7 +331,7 @@ def _rebind(root: ET.Element, b: ET.Element) -> None:
     for panel in root:
         if panel.get("name") != b.get("panel"):
             continue
-        for el in panel.findall(b.get("element")):
+        for el in panel.findall(b.get("element") or ""):
             if el.get("ident") == b.get("ident"):
                 if attr:
                     el.set(attr, value)
@@ -335,13 +339,13 @@ def _rebind(root: ET.Element, b: ET.Element) -> None:
                     ET.SubElement(el, child).text = value
 
 
-def _unparked_wanted(features, root: ET.Element) -> list[str]:
+def _unparked_wanted(features: Iterable[str], root: ET.Element) -> list[str]:
     """The `features` that are parked and that the tables `root` leave out. A tables file that still holds a
     feature (one from before the parking, read from history) is read as it is."""
     return [f for f in features if f in PARKED and not any(root.find(w) is not None for w in WHOLE.get(f, ()))]
 
 
-def with_parked(features, tables_path: Path | None = None, parked_path: Path = PARKED_XML,
+def with_parked(features: Iterable[str], tables_path: Path | None = None, parked_path: Path = PARKED_XML,
                 root: ET.Element | None = None) -> ET.Element:
     """The tables (this checkout's by default, or `root` when the caller has parsed them already) as a root
     element, with `features` put back where they are parked (restore, a copy); the tables unchanged (the same
@@ -355,7 +359,7 @@ def with_parked(features, tables_path: Path | None = None, parked_path: Path = P
     return restore(root, read(parked_path), wanted)
 
 
-def with_parked_file(features, tables_path: Path | None = None) -> Path:
+def with_parked_file(features: Iterable[str], tables_path: Path | None = None) -> Path:
     """with_parked as a file, for readers that take a path or read the text: a temporary copy (removed when the
     process ends) while one of `features` is parked, else the tables file itself."""
     import atexit
@@ -373,12 +377,13 @@ def with_parked_file(features, tables_path: Path | None = None) -> Path:
     return out
 
 
-def counts(doc: ET.Element) -> dict[str, Counter]:
+def counts(doc: ET.Element) -> dict[str, Counter[str]]:
     """{feature: Counter of what it parks} for the README and the report."""
-    out = {}
+    out: dict[str, Counter[str]] = {}
     for f in doc.findall("feature"):
-        c = Counter()
-        for box in f.find("tables") if f.find("tables") is not None else ():
+        c: Counter[str] = Counter()
+        held = f.find("tables")
+        for box in held if held is not None else ():
             if box.tag in ("LayoutEditor", "paneleditor") and box.get("class"):
                 c[f"{box.tag} panel {box.get('name')!r}"] += 1
             elif box.tag in ("LayoutEditor", "paneleditor"):
@@ -393,7 +398,7 @@ def counts(doc: ET.Element) -> dict[str, Counter]:
                     c[el.tag] += 1
         for b in f.iter("binding"):
             c[f"binding {b.get('child') or b.get('attribute')}"] += 1
-        out[f.get("name")] = c
+        out[f.get("name") or ""] = c
     return out
 
 
@@ -412,12 +417,12 @@ def names_in(doc: ET.Element) -> set[str]:
     return out
 
 
-def check(tables_root: ET.Element, doc: ET.Element, parked=PARKED) -> list[str]:
+def check(tables_root: ET.Element, doc: ET.Element, parked: Collection[str] = PARKED) -> list[str]:
     """Problems with a tables file and its parked file under `parked` (none: both hold to the rules)."""
     bad = []
     if not re.fullmatch(r"[0-9a-f]{7,40}", doc.get("source") or ""):
         bad.append("the parked file does not record the commit its elements were split from (source)")
-    have = {f.get("name") for f in doc.findall("feature")}
+    have = {f.get("name") or "" for f in doc.findall("feature")}
     if have != set(parked):
         bad.append(f"the parked file holds features {sorted(have)}, PARKED is {sorted(parked)}")
     # the tables hold nothing a split would still move
@@ -435,7 +440,7 @@ def check(tables_root: ET.Element, doc: ET.Element, parked=PARKED) -> list[str]:
     # block take the block's user name)
     own = {n for el in tables_root.iter() for n in (el.findtext("systemName"), el.findtext("userName")) if n}
     gone = names_in(doc) - {n.strip() for n in own}
-    refs = Counter()
+    refs: Counter[str] = Counter()
     for el in tables_root.iter():
         for v in list(el.attrib.values()) + [(el.text or "").strip()]:
             if v in gone:
@@ -444,7 +449,7 @@ def check(tables_root: ET.Element, doc: ET.Element, parked=PARKED) -> list[str]:
         bad.append(f"tables.xml refers to {len(refs)} parked names: {sorted(refs)[:8]}")
     # the parked file holds each feature's parts
     for f in doc.findall("feature"):
-        name = f.get("name")
+        name = f.get("name") or ""
         tables_el = f.find("tables")
         tags = [b.tag for b in tables_el] if tables_el is not None else []
         for whole in WHOLE.get(name, ()):
@@ -462,17 +467,17 @@ def check(tables_root: ET.Element, doc: ET.Element, parked=PARKED) -> list[str]:
     return bad
 
 
-def shipped_dirs(parked=PARKED) -> list[str]:
+def shipped_dirs(parked: Collection[str] = PARKED) -> list[str]:
     """Repo folders the deploy leaves out while their feature is parked."""
     return [d for f in ORDER if f in parked for d in SHIPPED_DIRS.get(f, ())]
 
 
-def shipped_jython(parked=PARKED) -> list[str]:
+def shipped_jython(parked: Collection[str] = PARKED) -> list[str]:
     """Jython scripts the deploy leaves out while their feature is parked."""
     return [j for f in ORDER if f in parked for j in SHIPPED_JYTHON.get(f, ())]
 
 
-def main(argv=None) -> int:
+def main(argv: list[str] | None = None) -> int:
     """python3 -m hartlib.parked [features|dirs|jython|check|freeze --from COMMIT]: the parked features, the folders
     and jython the deploy skips (one per line), the check of tables.xml against the parked file, or (once, when a
     feature is parked) the snapshot of its live elements from tables.xml at COMMIT."""

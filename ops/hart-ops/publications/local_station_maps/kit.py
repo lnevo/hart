@@ -9,6 +9,7 @@ entry module fills at call time so a test can replace them there.
 from __future__ import annotations
 
 import math
+import sys
 from typing import Callable, NamedTuple
 
 from PIL import Image, ImageDraw, ImageFont
@@ -38,10 +39,13 @@ class Hooks(NamedTuple):
     paste_compass: Callable[..., None]
 
 
-def _font(path: str, size: int) -> ImageFont.FreeTypeFont:
+def _font(path: str, size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    """The font at ``path``; a missing font falls back to the PIL default with a warning naming it."""
     try:
         return ImageFont.truetype(path, size)
-    except OSError:
+    except OSError as exc:
+        print(f"local station maps: cannot load font {path} ({exc}); using the PIL default font",
+              file=sys.stderr)
         return ImageFont.load_default()
 
 

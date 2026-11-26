@@ -23,6 +23,15 @@ from .kit import (
     _sw_badge,
 )
 
+# The industry tracks of the East End ladder: crew-master colour ids and the loads printed
+# under each rail.
+TRACK_INDUSTRIES: tuple[tuple[str, tuple[str, ...], str], ...] = (
+    ("Track S-1", ("yellow",), "Pellets  ·  Chemicals  ·  Shipping"),
+    ("Track S-2", ("red", "green"), "LPG  ·  Crane  ·  Team"),
+    ("Track S-3", ("pink",), "Cement  ·  Aggregate"),
+    ("Track S-4", ("purple",), "Coal  ·  Carbon  ·  Chemical"),
+)
+
 
 def draw_industries(meta: dict, hooks: Hooks) -> Image.Image:
     """c2 East End — 8×5 landscape printable schematic.
@@ -58,37 +67,18 @@ def draw_industries(meta: dict, hooks: Hooks) -> Image.Image:
     lw = 3
     chip_size = 28
 
-    # track name, industry, colors, spot line under the rail
-    swatch = crew_master.swatches(crew_master.load())   # the industry colours, from the master
-    rows = [
-        ("Main West", None, [], None),
-        ("Track S-R", None, [], None),
-        (
-            "Track S-1",
-            "Aristech Plastics",
-            [("YELLOW", swatch["yellow"].fill)],
-            "Pellets  ·  Chemicals  ·  Shipping",
-        ),
-        (
-            "Track S-2",
-            "Ferrellgas  ·  A. Stucki Co.",
-            [("RED", swatch["red"].fill), ("GREEN", swatch["green"].fill)],
-            "LPG  ·  Crane  ·  Team",
-        ),
-        (
-            "Track S-3",
-            "Kosmos Cement",
-            [("PINK", swatch["pink"].fill)],
-            "Cement  ·  Aggregate",
-        ),
-        (
-            "Track S-4",
-            "Calgon Carbon",
-            [("PURPLE", swatch["purple"].fill)],
-            "Coal  ·  Carbon  ·  Chemical",
-        ),
-        ("Main East", None, [], None),
-    ]
+    # track name, industry, colours, spot line under the rail. The industry names and colour
+    # labels come from the crew master's colours; the track and the loads are this sheet's.
+    swatch = crew_master.swatches(crew_master.load())
+    rows = [("Main West", None, [], None), ("Track S-R", None, [], None)]
+    for track, color_ids, loads in TRACK_INDUSTRIES:
+        rows.append((
+            track,
+            "  ·  ".join(swatch[c].dest for c in color_ids),
+            [(swatch[c].label, swatch[c].fill) for c in color_ids],
+            loads,
+        ))
+    rows.append(("Main East", None, [], None))
     # MW…T5 use full LED pitch; Main East sits a bit closer (not on ladder).
     me_gap = track_gap * 0.72
     block_h = 5 * track_gap + me_gap

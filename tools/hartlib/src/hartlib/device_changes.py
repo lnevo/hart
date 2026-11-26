@@ -1,11 +1,11 @@
-"""What a write of the device master changes, by device ID (ADR-033, naming-layers step 4).
+"""What a write of the device master changes, by device ID (ADR-033).
 
 A builder's write (hartlib.devices.outputs_after_rows) is held to the last generated file, row by row on its key
 (level, id; hartlib.devices.KEY):
 
 - new and gone IDs are listed, one line per level and layer;
 - a gone ID that devices_field.csv holds owner's cells for stops the write (decision 3 of the naming-layers
-  hand-off, owner 2026-11-24): the owner moves the cells to the device's new ID or drops them. The stop lists the new
+  hand-off): the owner moves the cells to the device's new ID or drops them. The stop lists the new
   IDs of the same level and layer, as the likely new home;
 - a rename (one ID, another user name) lists the copies of the old name in the repo's Operations Pro files
   (decision 5: Operations Pro keeps its own names and nothing rewrites them; STS is not checked);
