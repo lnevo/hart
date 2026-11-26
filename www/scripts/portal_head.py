@@ -14,7 +14,7 @@ from pathlib import Path
 import portal_common
 import provenance
 import share_cards
-from portal_common import SHARE_DESCRIPTION
+from portal_common import SHARE_DESCRIPTION, PortalBuildError
 from portal_search_index import INDEX_NAME, INDEX_SKIP_PAGES
 
 
@@ -112,7 +112,7 @@ def _add_provenance(dest_root: Path) -> list[str]:
         # An implied <head> (no tag) still ends at the first body content, so after </title> is in it.
         anchor = "</head>" if "</head>" in text else "</title>" if "</title>" in text else None
         if anchor is None:
-            raise SystemExit(f"{rel}: no </head> or </title> for the provenance JSON-LD")
+            raise PortalBuildError(f"{rel}: no </head> or </title> for the provenance JSON-LD")
         title = provenance.page_title(text) or "HART Railroad"
         desc = _own_description(text) or SHARE_DESCRIPTION
         tag = provenance.json_ld(rel, title, portal_common.SITE_URL, desc, data, provenance.sources(text))

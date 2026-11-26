@@ -50,4 +50,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except car_paths.CardPipelineError as exc:
+        raise SystemExit(str(exc)) from exc

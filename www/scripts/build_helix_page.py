@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import html
 import re
-import sys
 from pathlib import Path
 from typing import NamedTuple
 
@@ -103,6 +102,10 @@ def dims(path: Path) -> tuple[str, str, int]:
     return mm, inch, len(m.faces)
 
 
+class HelixPageError(Exception):
+    """The STL folder and the parts list disagree; the message lists the files."""
+
+
 def listed_files() -> set[str]:
     """Every STL and 3MF the index lists; exits when one on disk is not classified or a listed one is gone."""
     listed = {f for _, rows in PARTS for row in rows for f in row.files}
@@ -110,7 +113,7 @@ def listed_files() -> set[str]:
     missing = on_disk - listed - set(OBSOLETE)
     gone = listed - on_disk
     if missing or gone:
-        sys.exit(f'unclassified: {sorted(missing)}  missing: {sorted(gone)}')
+        raise HelixPageError(f'unclassified: {sorted(missing)}  missing: {sorted(gone)}')
     return listed
 
 
@@ -195,7 +198,10 @@ def index_page(head: str, rows_html: list[str], n_files: int) -> str:
     </div>''')
 
 def main() -> None:
-    listed = listed_files()
+    try:
+        listed = listed_files()
+    except HelixPageError as exc:
+        raise SystemExit(str(exc)) from exc
     published = {f: 'stl/' + f for f in sorted(listed)}
     for f in [PLAN, 'lap_screw_template.pdf', STATUS, HANDOFF]:
         published[f] = 'files/' + f

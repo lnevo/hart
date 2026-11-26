@@ -167,7 +167,7 @@ class CopyAndSkipLists(_Repo):
         build._copy_published(dest)
         self.assertEqual((dest / "data/shared.json").read_text(), '{"a": 1}')
         (self.portal / "scripts/published-files.json").write_text(json.dumps({"data/shared.json": "docs/none.json"}))
-        with self.assertRaises(SystemExit) as raised:
+        with self.assertRaises(build.PortalBuildError) as raised:
             build._copy_published(Path(self._tmp.name) / "out2")
         self.assertIn("missing source docs/none.json", str(raised.exception))
 
@@ -227,7 +227,7 @@ class LeakCheck(unittest.TestCase):
             root = Path(tmp)
             _write(root, "a/index.html", _page(body=f"<h1>Crew</h1><p>This paragraph is long enough to be indexed and holds {PLANTED}.</p>"))
             with mock.patch.object(search, "contains_private_name", side_effect=lambda t: PLANTED in t):
-                with self.assertRaises(SystemExit) as raised:
+                with self.assertRaises(build.PortalBuildError) as raised:
                     build.build_search_index(root)
             self.assertIn("a/index.html", str(raised.exception))
             self.assertNotIn(PLANTED, str(raised.exception))
