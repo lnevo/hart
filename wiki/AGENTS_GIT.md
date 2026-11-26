@@ -67,6 +67,7 @@ A fresh clone needs `git config core.hooksPath .githooks` to enable the pre-comm
 | `schematic-builder` | Schematic, panel and device-map code | Edits in a worktree, no commit | Opus |
 | `finding-verifier` | One claimed bug against the code | Read-only | Sonnet |
 | `data-lane` | One ADR-039 data-masters lane outside `tools/schematic/` and `tools/hartlib/` | Edits in a worktree | Opus |
+| `tool-fixer` | Splits with no change in behaviour, and fixes to repo tools and checks where no other agent owns the paths | Edits in a worktree, no commit | Opus |
 
 - The definition holds the standing rules. The brief holds only the goal, the scope and what is already ruled out.
 - The main session commits, pushes, deploys and verifies. `.claude/hooks/subagent_guard.py` blocks those commands in subagents, but `Bash` can still write, so read-only also rests on the agent's instructions.
