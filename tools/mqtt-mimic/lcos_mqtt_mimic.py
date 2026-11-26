@@ -548,29 +548,45 @@ class Bus:
             "-t",
             "track/signalhead/#",
         ]
-        while not self._stop.is_set():
-            try:
-                proc = subprocess.Popen(
-                    cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    text=True,
-                    bufsize=1,
-                )
-                self.connected = True
-                self.emit({"type": "mqtt", "connected": True, "host": self.host})
-                assert proc.stdout is not None
-                for line in proc.stdout:
-                    if self._stop.is_set():
-                        break
-                    self._on_line(line)
-                proc.wait(timeout=2)
-            except (OSError, subprocess.SubprocessError) as e:   # no mosquitto_sub, or it did not stop in time
+        try:
+            while not self._stop.is_set():
+                self._subscribe_once(cmd)
+                if self._stop.is_set():
+                    break
+                time.sleep(1)
+        finally:            # however the thread ends, the page must not keep showing a live connection
+            if self.connected:
                 self.connected = False
-                self.emit({"type": "mqtt", "connected": False, "error": str(e)})
+                self.emit({"type": "mqtt", "connected": False, "error": "the subscriber stopped"})
+
+    def _subscribe_once(self, cmd: list[str]) -> None:
+        """Run mosquitto_sub until it ends; a client that cannot start or stop is a disconnected event."""
+        try:
+            proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+        except (OSError, subprocess.SubprocessError) as e:   # no mosquitto_sub
+            self.connected = False
+            self.emit({"type": "mqtt", "connected": False, "error": str(e)})
+            return
+        self.connected = True
+        self.emit({"type": "mqtt", "connected": True, "host": self.host})
+        assert proc.stdout is not None
+        for line in proc.stdout:
             if self._stop.is_set():
                 break
-            time.sleep(1)
+            self._read_line(line)
+        try:
+            proc.wait(timeout=2)
+        except subprocess.SubprocessError as e:              # it did not stop in time
+            self.connected = False
+            self.emit({"type": "mqtt", "connected": False, "error": str(e)})
+
+    def _read_line(self, line: str) -> None:
+        """One subscriber line; a line that cannot be read is logged and shown as a warning, and reading goes on."""
+        try:
+            self._on_line(line)
+        except Exception as e:  # noqa: BLE001  one bad message must not stop the subscriber; it is shown, not hidden
+            print(f"lcos_mqtt_mimic: cannot read {line.strip()!r}: {e!r}", file=sys.stderr)
+            self.emit({"type": "warning", "line": line.strip(), "error": repr(e)})
 
     def start(self) -> None:
         threading.Thread(target=self.loop_sub, name="mqtt-sub", daemon=True).start()

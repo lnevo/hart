@@ -10,6 +10,7 @@ appearance (what CATS ABS paints / LCOS sees). `held` is CATS ABS Hold.
 """
 from __future__ import annotations
 
+import http.client
 import json
 import os
 import re
@@ -158,7 +159,7 @@ def load_mast_heads(tables: Path | None = None) -> dict[str, tuple[str, ...]]:
 
 # Mast userName -> head system names. MQTT appearance must match JMRI JSON for
 # CATS ABS HOLD_ONLY paint. Mast 6LB reads ("IH432",), its one wired head (ADR-024).
-MAST_HEADS = load_mast_heads()
+MAST_HEADS: dict[str, tuple[str, ...]] = {}     # filled by main() from load_mast_heads()
 
 
 STOP_HEAD = {"Red", "Dark", "Held", None, ""}
@@ -183,7 +184,7 @@ def jmri_snapshot() -> dict[str, MastState]:
         try:
             with urllib.request.urlopen(f"{base}/signalMast", timeout=2) as r:
                 return _mast_table_from_json(json.load(r))
-        except (urllib.error.URLError, OSError, ValueError, KeyError, TypeError) as err:
+        except (urllib.error.URLError, http.client.HTTPException, OSError, ValueError, KeyError, TypeError) as err:
             print(f"JMRI JSON at {base}: {err}", file=sys.stderr)
     print("no JMRI JSON: the aspects come from the MQTT heads", file=sys.stderr)
     return snap_from_mqtt(mqtt_heads())
@@ -423,6 +424,7 @@ def main() -> int:
     try:
         for name in ("mosquitto_pub", "mosquitto_sub"):
             client(name)
+        MAST_HEADS.update(load_mast_heads())
     except QAError as err:
         print(f"run_native_sml_qa: {err}", file=sys.stderr)
         return 2

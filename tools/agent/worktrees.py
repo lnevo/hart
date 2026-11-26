@@ -405,6 +405,8 @@ def sweep(dry_run: bool = False, keep: list[str] | None = None, budget: float | 
                                  os.path.join(sub, ".claude", "worktrees"), SUBMODULE_BRANCH_PREFIX)]
         except subprocess.TimeoutExpired:
             lines.append(f"left this submodule for the next sweep: a git call timed out{tag}")
+        except GitCommandError as err:      # a hung or broken submodule: report it, sweep the others
+            lines.append(f"left this submodule for the next sweep: {err}{tag}")
     return lines
 
 
@@ -476,15 +478,29 @@ def sweep_repo(main: str, trees: list[Worktree], dry_run: bool, keep: list[str],
                         git_run("worktree", "lock", "--reason", tree.lock_reason, tree.path, cwd=main)
                     lines.append(f"kept {tree.path}: {why}")
                     continue
-            git("worktree", "prune", cwd=main)
-            if tree.branch and branch_head(tree.branch, main) == tree.head:
-                git("branch", "-D", tree.branch, cwd=main)
+            cleanup = after_removal(tree, main)
         finally:
             clock.removing += time.monotonic() - began
         why = "PR merged" if tree.branch else f"detached, commit on {base}, untouched {DETACHED_IDLE.days} days"
-        lines.append(f"removed {tree.path} ({label}, {why})")
+        lines.append(f"removed {tree.path} ({label}, {why})" + "".join(f"; {c}" for c in cleanup))
     lines += [f"kept {tree.path} ({tree.branch or tree.head[:8]}): {why}" for tree, why in kept]
     return lines
+
+
+def after_removal(tree: Worktree, main: str) -> list[str]:
+    """Prune the removed worktree's record and delete its branch when it still points at the worktree's commit.
+    The folder is already gone, so a failure here is reported, one note each, and the sweep goes on."""
+    notes = []
+    try:
+        git("worktree", "prune", cwd=main)
+    except GitCommandError as err:
+        notes.append(f"worktree prune failed: {err}")
+    try:
+        if tree.branch and branch_head(tree.branch, main) == tree.head:
+            git("branch", "-D", tree.branch, cwd=main)
+    except GitCommandError as err:
+        notes.append(f"branch delete failed: {err}")
+    return notes
 
 
 def remove_worktree(path: str, main: str) -> str | None:

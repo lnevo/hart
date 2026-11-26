@@ -53,6 +53,7 @@
           ? `MQTT ${ev.host || ""}`
           : `MQTT disconnected ${ev.error || ""}`;
       }
+      if (ev.type === "warning") $("mqtt-label").textContent = `MQTT warning: ${ev.error} in ${ev.line}`;
     }
 
     async function boot() {

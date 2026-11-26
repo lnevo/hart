@@ -42,7 +42,7 @@ Habit = Literal["lost-cause", "dated-note", "source-asserts", "import-exit", "ex
 HABITS: tuple[str, ...] = get_args(Habit)
 Counts = dict[str, dict[str, int]]
 
-DATED_NOTE = re.compile(r"\(\s*owner,\s*20\d\d-\d\d-\d\d\s*\)", re.I)
+DATED_NOTE = re.compile(r"owner,?\s*20\d\d-\d\d-\d\d", re.I)   # "(owner, 2026-...)", "owner 2026-...", "(owner, 2026-...: ...)"
 # Python 2 (Jython) files ast cannot parse: the two habits a line can show
 PY2_LOST_CAUSE = re.compile(r"\braise\b[^\n]*\b(?:str\(\w+\)|\{\w+[^}]*\})[^\n]*\bfrom\s+None\b")
 PY2_EXEC = re.compile(r"^\s*(?:exec\b|.*\bglobals\(\)\.update\()", re.M)
@@ -64,15 +64,15 @@ def _names(node: ast.AST) -> set[str]:
 
 def lost_causes(tree: ast.AST) -> int:
     """Raises `from None` inside `except ... as name` whose new exception reads `name`."""
-    count = 0
+    found: set[int] = set()          # a raise inside nested handlers is one raise
     for handler in ast.walk(tree):
         if not isinstance(handler, ast.ExceptHandler) or not handler.name:
             continue
         for node in (n for stmt in handler.body for n in ast.walk(stmt)):
             if (isinstance(node, ast.Raise) and isinstance(node.cause, ast.Constant) and node.cause.value is None
                     and node.exc is not None and handler.name in _names(node.exc)):
-                count += 1
-    return count
+                found.add(id(node))
+    return len(found)
 
 
 def dated_notes(text: str) -> int:

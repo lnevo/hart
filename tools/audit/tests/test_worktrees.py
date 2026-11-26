@@ -96,6 +96,44 @@ class GitErrors(unittest.TestCase):
         self.assertEqual(err.getvalue(), "error: git worktree list failed in /x: boom\n")
 
 
+class SweepGoesOn(unittest.TestCase):
+    """A broken submodule or a failed cleanup after a removal is one line; the sweep carries on."""
+
+    def test_a_broken_submodule_is_left_and_the_next_is_swept(self) -> None:
+        main = WT.Worktree("/repo", "abc", "main")
+
+        def trees(cwd=None):
+            if cwd == "/repo/sub/a":
+                raise WT.GitCommandError("git worktree list --porcelain failed in /repo/sub/a: fatal: broken")
+            return [main]
+        with mock.patch.object(WT, "worktrees", side_effect=trees), \
+                mock.patch.object(WT.shutil, "which", return_value="/bin/gh"), \
+                mock.patch.object(WT, "submodule_repos", return_value=["/repo/sub/a", "/repo/sub/b"]), \
+                mock.patch.object(WT, "default_branch", return_value="main"), \
+                mock.patch.object(WT, "sweep_repo", side_effect=lambda m, *a: [f"swept {m}"]):
+            lines = WT.sweep()
+        self.assertEqual(lines, [
+            "swept /repo",
+            "left this submodule for the next sweep: git worktree list --porcelain failed in /repo/sub/a: "
+            "fatal: broken [submodule sub/a]",
+            "swept /repo/sub/b [submodule sub/b]",
+        ])
+
+    def test_a_failed_branch_delete_is_a_note_on_the_removed_line(self) -> None:
+        tree = WT.Worktree("/repo/.claude/worktrees/x", "abc", "agent/claude/x")
+
+        def fake_git(*args, cwd=None):
+            if args[:2] == ("branch", "-D"):
+                raise WT.GitCommandError("git branch -D agent/claude/x failed in /repo: error: locked")
+            return ""
+        with mock.patch.object(WT, "git", side_effect=fake_git), mock.patch.object(WT, "branch_head", return_value="abc"):
+            self.assertEqual(WT.after_removal(tree, "/repo"),
+                             ["branch delete failed: git branch -D agent/claude/x failed in /repo: error: locked"])
+        with mock.patch.object(WT, "git", side_effect=WT.GitCommandError("git worktree prune failed in /repo: x")), \
+                mock.patch.object(WT, "branch_head", return_value=None):
+            self.assertEqual(WT.after_removal(tree, "/repo"), ["worktree prune failed: git worktree prune failed in /repo: x"])
+
+
 class Plan(Repo):
     def trees(self):
         return WT.worktrees(self.main)

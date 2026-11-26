@@ -35,6 +35,16 @@ class HabitCounts(unittest.TestCase):
         self.assertEqual(counts(text)["dated-note"], 3)     # a plain string is a string token too
         self.assertEqual(counts("X = 1  # owner said so\n"), {})
 
+    def test_a_raise_in_nested_handlers_counts_once(self) -> None:
+        text = ("try:\n    f()\nexcept OSError as err:\n    try:\n        g()\n    except KeyError as key:\n"
+                "        raise ValueError(f'{err} {key}') from None\n")
+        self.assertEqual(counts(text), {"lost-cause": 1})
+
+    def test_dated_note_without_brackets_or_with_more_text(self) -> None:
+        year = "2026"                          # split, so this file holds no note of its own
+        text = f"# kept, owner {year}-12-01\n# (owner, {year}-12-01: the reason)\n# owner said so in {year}\n"
+        self.assertEqual(counts(text), {"dated-note": 2})
+
     def test_exit_outside_main_counts_only_in_imported_files(self) -> None:
         text = ("import sys\nif not sys.argv:\n    sys.exit(1)\n"
                 "def helper():\n    raise SystemExit('no')\n"

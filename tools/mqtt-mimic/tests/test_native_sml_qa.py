@@ -35,6 +35,7 @@ class NativeSmlQaTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.qa = load_module()
+        cls.qa.MAST_HEADS.update(cls.qa.load_mast_heads())     # as main() does
 
     def test_masts_and_heads_match_tables(self) -> None:
         masts = table_masts()
@@ -102,6 +103,25 @@ class NativeSmlQaTest(unittest.TestCase):
         with mock.patch.object(self.qa, "CLIENT_DIRS", ("/nonexistent",)):
             with self.assertRaisesRegex(self.qa.QAError, "mosquitto_pub is not in PATH"):
                 self.qa.client("mosquitto_pub")
+
+    def test_bad_tables_end_main_with_one_line_and_nothing_driven(self) -> None:
+        import io
+        from unittest import mock
+        err = io.StringIO()
+        with mock.patch.object(self.qa, "client", lambda name: f"/bin/{name}"), \
+                mock.patch.object(self.qa, "load_mast_heads", side_effect=self.qa.QAError("tables.xml head masts x")), \
+                mock.patch.object(self.qa, "capture_baseline", side_effect=AssertionError("ran")), \
+                mock.patch("sys.stderr", err):
+            self.assertEqual(self.qa.main(), 2)
+        self.assertEqual(err.getvalue(), "run_native_sml_qa: tables.xml head masts x\n")
+
+    def test_an_http_error_falls_back_to_the_heads(self) -> None:
+        import http.client
+        import io
+        from unittest import mock
+        with mock.patch.object(self.qa.urllib.request, "urlopen", side_effect=http.client.BadStatusLine("x")), \
+                mock.patch.object(self.qa, "mqtt_heads", lambda: {}), mock.patch("sys.stderr", io.StringIO()):
+            self.assertEqual(set(self.qa.jmri_snapshot()), set(self.qa.MAST_HEADS))
 
     def test_snapshot_names_each_server_that_did_not_answer(self) -> None:
         import io

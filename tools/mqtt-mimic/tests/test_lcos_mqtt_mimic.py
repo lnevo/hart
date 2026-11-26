@@ -192,15 +192,42 @@ class SortAndReconnect(unittest.TestCase):
         self.assertEqual(events, [{"type": "mqtt", "connected": False, "error": "mosquitto_sub"}])
         self.assertFalse(bus.connected)
 
-    def test_a_bug_reading_a_line_is_not_hidden(self) -> None:
+    def test_a_line_that_cannot_be_read_is_a_warning_and_reading_goes_on(self) -> None:
+        import io
+        from unittest import mock
+        bus, events = self.bus()
+        bus.emit = lambda e: (events.append(e), e.get("connected") is False and bus._stop.set())
+        proc = mock.Mock(stdout=iter(["bad line\n", "track/sensor/1 ACTIVE\n"]))
+        read = []
+
+        def on_line(line: str) -> None:
+            if line.startswith("bad"):
+                raise KeyError("addr")
+            read.append(line)
+        err = io.StringIO()
+        with mock.patch.object(self.m.subprocess, "Popen", side_effect=[proc, FileNotFoundError("gone")]), \
+                mock.patch.object(bus, "_on_line", side_effect=on_line), mock.patch.object(self.m.time, "sleep"), \
+                mock.patch.object(self.m.sys, "stderr", err):
+            bus.loop_sub()
+        self.assertEqual(read, ["track/sensor/1 ACTIVE\n"])
+        self.assertIn({"type": "warning", "line": "bad line", "error": "KeyError('addr')"}, events)
+        self.assertIn("cannot read 'bad line'", err.getvalue())
+        self.assertEqual(events[-1], {"type": "mqtt", "connected": False, "error": "gone"})
+
+    def test_a_thread_that_ends_on_an_error_says_disconnected(self) -> None:
         from unittest import mock
         bus, events = self.bus()
         bus.emit = events.append
-        proc = mock.Mock(stdout=iter(["track/sensor/1 ACTIVE\n"]))
-        with mock.patch.object(self.m.subprocess, "Popen", return_value=proc), \
-                mock.patch.object(bus, "_on_line", side_effect=KeyError("addr")):
-            with self.assertRaises(KeyError):
+
+        def broken():
+            raise RuntimeError("pipe")
+            yield ""
+        proc = mock.Mock(stdout=broken())
+        with mock.patch.object(self.m.subprocess, "Popen", return_value=proc):
+            with self.assertRaises(RuntimeError):
                 bus.loop_sub()
+        self.assertFalse(bus.connected)
+        self.assertEqual(events[-1], {"type": "mqtt", "connected": False, "error": "the subscriber stopped"})
 
 if __name__ == "__main__":
     unittest.main()
