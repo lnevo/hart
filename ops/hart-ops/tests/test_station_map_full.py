@@ -51,5 +51,24 @@ class Fonts(unittest.TestCase):
         self.assertEqual(calls[4], (full.GEORGIA_BOLD, 28))
 
 
+class Draw(unittest.TestCase):
+    def test_map_spans_west_stubs_to_the_shenango_octagon(self):
+        a = full.anchors()
+        self.assertEqual(a.xp - a.x112, 200 + full.P_GAP)
+        img = full.draw()
+        self.assertEqual(img.size, (int(a.x_vert + 70), int(full.ME_LOW + 110)))
+        # Main West is drawn in ink across the map at its row.
+        self.assertNotEqual(img.getpixel((int(a.x_stub) + 10, full.Y0)), full.BG)
+
+    def test_industry_names_are_the_crew_master_destinations(self):
+        parts = full._industry_parts()
+        self.assertEqual([p[0] for p in parts], ["Track S-1", "Track S-2", "Track S-3", "Track S-4"])
+        self.assertEqual(len(parts[1][1]), 2)
+
+    def test_ladder_x_interpolates_between_its_ends(self):
+        ladder = full._Ladder((0.0, 0.0), (10.0, 100.0))
+        self.assertEqual(ladder.x_at(50.0), 5.0)
+
+
 if __name__ == "__main__":
     unittest.main()
