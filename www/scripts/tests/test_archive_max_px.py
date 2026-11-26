@@ -11,6 +11,7 @@ from unittest import mock
 SCRIPTS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS))
 import prepare_github_pages as build  # noqa: E402
+import portal_photos as photos  # noqa: E402  (a patch goes on the module that holds the name)
 
 try:
     from PIL import Image
@@ -53,7 +54,7 @@ class VendorArchive(unittest.TestCase):
         data = dest / "data" / "archive.json"
         data.parent.mkdir(parents=True, exist_ok=True)
         data.write_text(json.dumps({"items": [item]}))
-        with mock.patch.object(build, "_source", return_value=self.big):
+        with mock.patch.object(photos, "_source", return_value=self.big):
             build._vendor_archive_images(data, dest)
         out = json.loads(data.read_text())["items"][0]
         sizes = {}

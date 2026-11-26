@@ -11,6 +11,7 @@ SCRIPTS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS))
 import check_portal_build as check  # noqa: E402
 import prepare_github_pages as build  # noqa: E402
+import portal_search_index as search  # noqa: E402  (a patch goes on the module that holds the name)
 
 INTRO = "Everything on the clipboard, readable on a phone, with a page for each job."
 
@@ -101,7 +102,7 @@ class LeakGuard(unittest.TestCase):
 
     def test_private_name_check_runs_over_every_field(self):
         root = _site({"a/index.html": _page()})
-        with mock.patch.object(build, "contains_private_name", side_effect=lambda t: t == "Session paperwork") as m:
+        with mock.patch.object(search, "contains_private_name", side_effect=lambda t: t == "Session paperwork") as m:
             with self.assertRaises(SystemExit) as raised:
                 _index(root)
         self.assertIn("(title)", str(raised.exception))
