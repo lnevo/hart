@@ -18,13 +18,16 @@ What must be in the map:
   list cannot go stale.
 - Entry-file scripts: every tracked .py, .sh or .js file the pipeline's entry files (ENTRY_FILES: the Makefile, the layout
   deploy with its steps, the website deploy) name by path, or as
-  `PYTHONPATH=<dir> python3 -m <module>`. A plain path is read from the repo root, then from the entry file's
+  `PYTHONPATH=<dir>[:<dir>...] python3 -m <module>` (the module from the first entry that holds its top package, as
+  Python takes it). A plain path is read from the repo root, then from the entry file's
   folder. A path behind $ROOT is read from the entry's own ROOT (deploy_hartrailroad.sh's is www/), and one behind a
   variable the file sets from ROOT or REPO (`local sm="$ROOT/.../speedmatch"`) from that folder. A path behind any
   other variable ($dest/x.py, $PI_DROP/...) or a prefix (preference:jython/x.py) is a copy destination or a host
   path, not a call, and is not read; one inside a submodule belongs to that repo, and a module whose top package is
   not in <dir> (unittest) is not a repo script. Any other path that names no file in the checkout (tracked, or new
-  and not ignored) fails: it is a call to a file that is gone. Comments are not read. tools/check.sh is no entry
+  and not ignored) fails: it is a call to a file that is gone. Comments are not read; a comment ends at its line, a
+  trailing backslash in it included (in make's own text, outside a recipe, make carries it on), and an apostrophe
+  in a word (don't) or one never closed on its line opens no quote. tools/check.sh is no entry
   file: it runs its read-only checks from the step manifest (tools/pipeline/checks.toml, ADR-037), and the map
   draws each step's script from there (its manifest lane, tools/pipeline/map_lane.py), so they are boxes by
   construction. What else check.sh runs (unit tests, its stamps and scheduling helpers) is plumbing, not pipeline.
@@ -92,8 +95,11 @@ FAMILIES = {
 # repo path can be told from a host one), not inside a longer word, path or prefix (preference:).
 PATH_RE = re.compile(r"(?<![\w./${}:-])(?:\$\{?(?P<var>\w+)\}?/(?P<vpath>(?:[\w.-]+/)*[\w.-]+\.(?:py|sh|js))"
                      r"|(?P<path>(?:\./)?(?:[\w.-]+/)+[\w.-]+\.(?:py|sh|js)))(?![\w.-])")
-MODULE_RE = re.compile(r"PYTHONPATH=[\"']?(?:\$\{?(?P<var>\w+)\}?/)?(?P<dir>[\w./-]+)(?::[^\s\"']*)?[\"']?"
-                       r"\s+python3?\s+-m\s+(?P<mod>[\w.]+)")
+MODULE_RE = re.compile(r"PYTHONPATH=(?P<q>[\"']?)(?P<value>[^\s\"']*)(?P=q)\s+python3?\s+-m\s+(?P<mod>[\w.]+)")
+# One PYTHONPATH entry: a folder behind a variable ($ROOT/lib, $ROOT) or a plain folder
+PYTHONPATH_DIR_RE = re.compile(r"\$\{?(?P<var>\w+)\}?(?:/(?P<rel>[\w./-]*))?|(?P<dir>[\w./-]+)")
+# An expansion with an operator, such as ${PYTHONPATH:+:$PYTHONPATH}: the caller's path, whose colons separate nothing
+EXPANSION_RE = re.compile(r"\$\{\w+[:+=?#%-][^}]*\}")
 TARGET_RE = re.compile(r"^[\w.-]+:")         # a Makefile target line, where `##` starts its help text
 ROOT_ASSIGN_RE = re.compile(r'^\s*ROOT="\$\(cd "\$\(dirname "\$0"\)(?:/(?P<rel>[\w./]+))?" && pwd\)"')
 VAR_ASSIGN_RE = re.compile(r'^\s*(?:local\s+|export\s+|readonly\s+)?(?P<name>[A-Za-z_]\w*)="(?P<value>.*)"\s*$')
@@ -128,30 +134,74 @@ def entry_files(files: frozenset[str], entries: Iterable[str] = ENTRY_FILES) -> 
     return found
 
 
-def _strip_comment(line: str) -> str:
-    """The line without a trailing shell comment: a # at the start or after a space, outside quotes."""
-    quote = ""
-    for i, ch in enumerate(line):
-        if quote:
-            if ch == quote:
-                quote = ""
-        elif ch in "'\"":
-            quote = ch
-        elif ch == "#" and (i == 0 or line[i - 1].isspace()):
-            return line[:i]
-    return line
+def _strip_comment(line: str, quote: str = "") -> tuple[str, bool, str]:
+    """(code, commented, quote) for one physical line: the code before a shell comment (a # at the start or after a
+    space, outside quotes and not escaped), whether a comment ended the line, and the quote still open at its end.
+    `quote` is the one a continued line left open. A single quote between two letters (don't, it's) is an apostrophe,
+    not a quote (a double quote there still opens one); so is a quote that opens on this line and is still open at its end when the line does not continue (an
+    apostrophe in a heredoc or in make's own text): the line is scanned again with it read as a plain character."""
+    literal: set[int] = set()
+    while True:
+        q, opened, i = quote, -1, 0
+        while i < len(line):
+            ch = line[i]
+            if q:
+                if ch == "\\" and q == '"':
+                    i += 1                  # \" and \\ inside double quotes
+                elif ch == q:
+                    q = ""
+            elif ch == "\\":
+                i += 1                      # an escaped character: \# \' \" are no comment and no quote
+            elif ch in "'\"" and i not in literal and not (ch == "'" and _between_letters(line, i)):
+                q, opened = ch, i
+            elif ch == "#" and (i == 0 or line[i - 1].isspace()):
+                return line[:i], True, ""
+            i += 1
+        if not q or opened < 0 or _continues(line):
+            return line, False, q
+        literal.add(opened)
+
+
+def _between_letters(line: str, i: int) -> bool:
+    return 0 < i < len(line) - 1 and line[i - 1].isalpha() and line[i + 1].isalpha()
+
+
+def _continues(code: str) -> bool:
+    """Whether a line's code ends in an unescaped backslash, which joins the next line to it."""
+    return (len(code) - len(code.rstrip("\\"))) % 2 == 1
 
 
 def _code_lines(text: str, makefile: bool) -> list[str]:
-    """The file's logical lines (backslash continuations joined) without comments, and in a Makefile without the
-    `## help` text after a target."""
-    lines = []
-    for line in text.replace("\\\n", " ").splitlines():
-        if makefile and TARGET_RE.match(line):
-            line = line.split("##", 1)[0]
-        line = _strip_comment(line)
-        if line.strip():
-            lines.append(line)
+    """The file's logical lines without comments, and in a Makefile without the `## help` text after a target.
+
+    A line whose code ends in a backslash joins the next one. A comment ends at the end of its line, as in the shell:
+    a backslash at the end of a comment is part of the comment and joins nothing, so the next line is read as code.
+    In a Makefile that holds for a recipe line (a tab first), which make hands to the shell; a comment in make's own
+    text that ends in a backslash goes on to the next line, as make reads it."""
+    lines: list[str] = []
+    parts: list[str] = []           # the code of the logical line so far
+    quote = ""                      # the quote a continued line left open
+    recipe = False                  # the logical line is a Makefile recipe line
+    make_comment = False            # inside a make comment that a trailing backslash continues
+    for line in text.splitlines():
+        if make_comment:
+            make_comment = _continues(line)
+            continue
+        if not parts:
+            recipe = makefile and line.startswith("\t")
+            if makefile and not recipe and TARGET_RE.match(line):
+                line = line.split("##", 1)[0]
+        code, commented, quote = _strip_comment(line, quote)
+        if not commented and _continues(code):
+            parts.append(code[:-1])
+            continue
+        parts.append(code)
+        make_comment = commented and makefile and not recipe and _continues(line)
+        joined, parts, quote = " ".join(parts), [], ""
+        if joined.strip():
+            lines.append(joined)
+    if parts and " ".join(parts).strip():
+        lines.append(" ".join(parts))   # the file ends in a continued line
     return lines
 
 
@@ -185,8 +235,34 @@ def _join(base: str, rel: str) -> str:
     return "" if joined == "." else joined
 
 
+def _pythonpath_dirs(value: str, known: dict[str, str]) -> list[str | None]:
+    """The folders of a PYTHONPATH value, in its order: a repo folder for each colon-separated entry that is a plain
+    folder or a folder behind a variable `known` names, and None for an entry behind another variable ($dest/x, a
+    host path), whose contents the checkout cannot show. The caller's ${PYTHONPATH:+...} is left out: it comes last."""
+    dirs: list[str | None] = []
+    for part in EXPANSION_RE.sub("", value).split(":"):
+        m = PYTHONPATH_DIR_RE.fullmatch(part)
+        if not m or m["var"] and m["var"] not in known:
+            dirs.append(None)
+            continue
+        dirs.append(_join(known[m["var"]], m["rel"] or "") if m["var"] else _join("", m["dir"]))
+    return dirs
+
+
+def _module_folder(value: str, known: dict[str, str], module: str, files: frozenset[str]) -> str | None:
+    """The repo folder Python takes the module's top package from: the first PYTHONPATH entry that holds it. None when
+    no repo folder holds it (unittest and the like), or when an entry the checkout cannot see comes first, since that
+    one may hold it at run time: such a call is a host's, not read."""
+    for folder in _pythonpath_dirs(value, known):
+        if folder is None:
+            return None
+        if _is_module_from(folder, module, files):
+            return folder
+    return None
+
+
 def _is_module_from(folder: str, module: str, files: frozenset[str]) -> bool:
-    top = f"{folder}/{module.split('.')[0]}"
+    top = _join(folder, module.split(".")[0])
     return f"{top}.py" in files or any(f.startswith(top + "/") for f in files)
 
 
@@ -222,17 +298,15 @@ def scan(files: frozenset[str], submodules: tuple[str, ...], read: Callable[[str
                     problems.append(f"{entry}: {m.group(0)} names no file in the checkout (tried {', '.join(tries)}); "
                                     f"fix the path in {entry}")
             for m in MODULE_RE.finditer(line):
-                if m["var"] and m["var"] not in known:
-                    continue
-                folder = _join(known[m["var"]], m["dir"]) if m["var"] else _join("", m["dir"])
-                if not _is_module_from(folder, m["mod"], files):
-                    continue    # a module from elsewhere (unittest and the like)
-                base = f"{folder}/{m['mod'].replace('.', '/')}"
+                folder = _module_folder(m["value"], known, m["mod"], files)
+                if folder is None:
+                    continue    # a module from elsewhere (unittest and the like), or behind a host path
+                base = _join(folder, m["mod"].replace(".", "/"))
                 hit = next((t for t in (f"{base}.py", f"{base}/__main__.py") if t in files), None)
                 if hit:
                     scripts.setdefault(hit, entry)
                 else:
-                    problems.append(f"{entry}: python3 -m {m['mod']} with PYTHONPATH={folder} finds no "
+                    problems.append(f"{entry}: python3 -m {m['mod']} with PYTHONPATH={folder or '.'} finds no "
                                     f"{base}.py in the checkout; fix the command in {entry}")
             for m in OUT_RE.finditer(line):
                 if m["path"] in files:
