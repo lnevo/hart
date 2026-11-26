@@ -53,7 +53,7 @@ class Routes(unittest.TestCase):
         self.assertEqual(o[-1], "BS Brick-Plane")
 
     def test_unknown_route(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(analyze.UnknownRouteError, "unknown route 'loop9'"):
             analyze.route_loop("loop9")
 
     def test_sr_is_one_block_on_its_detector(self):

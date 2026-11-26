@@ -20,7 +20,8 @@
 # (ruff's undefined-name rule) so a misspelt name fails the check. job_settings stands for the settings.
 if False:
     import time, threading, os, java
-    from jobkit import (HOOK, L, SL, ab, check_guards, claim, end_job, last, request_throttle, scan, set_direction, why)
+    from jobkit import (HOOK, L, SL, ab, check_guards, claim, end_job, last, request_throttle, route_sensor, scan,
+        set_direction, why)
     from job_settings import (AFTER_S, FROM_S, FUNCS, GUARD, MAX_S, ORDER, PATH, P_FWD, P_ID, P_STEP, ROUTE,
         STALL, TO_S)
 seen = {}   # sensor -> True once it lit after the loco was sent off
@@ -38,7 +39,7 @@ def run():
     t = None; tl = None
     try:
         if not claim(): return
-        found = scan(GUARD, [FROM_S], lambda un: un.startswith("BS ") and un not in ("BS W-1", "BS W-2"),
+        found = scan(GUARD, [FROM_S], route_sensor,
                      lambda n, isg, s: SL(n, isg))
         if not check_guards(GUARD, found): return
         for n in (FROM_S, TO_S, AFTER_S):

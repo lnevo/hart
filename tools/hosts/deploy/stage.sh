@@ -71,7 +71,8 @@ stage_package() {
   local sm="$ROOT/jmri/layouts/hart/scripts/speedmatch"
   python3 "$sm/dashboard/publish_live.py" --build-page "$stage/cats/resources/speedmatch-web" >/dev/null
   mkdir -p "$stage/cats/speedmatch-live/scripts/speedmatch/dashboard" "$stage/cats/speedmatch-live/data"
-  cp -f "$sm/analyze.py" "$sm/liverule.py" "$sm/routes.json" "$stage/cats/speedmatch-live/scripts/speedmatch/"
+  cp -f "$sm/analyze.py" "$sm/analyze_records.py" "$sm/liverule.py" "$sm/routes.json" \
+    "$stage/cats/speedmatch-live/scripts/speedmatch/"
   cp -f "$sm/dashboard/dashstate.py" "$sm/dashboard/dashsources.py" "$sm/dashboard/export_site_runs.py" \
     "$sm/dashboard/publish_live.py" "$stage/cats/speedmatch-live/scripts/speedmatch/dashboard/"
   cp -f "$ROOT/jmri/layouts/hart/data/block_lengths.csv" "$ROOT/jmri/layouts/hart/data/block_lengths_measured.csv" \

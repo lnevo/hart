@@ -9,7 +9,9 @@ import sys
 import tempfile
 import types
 import unittest
+from collections.abc import Callable
 from pathlib import Path
+from typing import cast
 
 KIT = Path(__file__).resolve().parents[1] / "speedmatch" / "jython" / "jobkit.py"
 
@@ -107,6 +109,46 @@ class EndJob(unittest.TestCase):
         self.assertEqual(self.msgs(), ["late release failed release broke"])
         tl.notifyThrottleFound(Throttle(set()))
         self.assertEqual(self.msgs()[-1], "late throttle released")
+
+    def test_route_sensor_takes_block_sensors_but_the_brick_yard_spurs(self) -> None:
+        route_sensor = cast(Callable[[str], bool], self.ns["route_sensor"])
+        self.assertTrue(route_sensor("BS Switch 33"))
+        self.assertTrue(route_sensor("BS W-3"))
+        for name in ("BS W-1", "BS W-2", "Track W-1", "", "IS12"):
+            self.assertFalse(route_sensor(name), name)
+
+    def test_scan_with_route_sensor_hears_a_spur_only_as_a_guard(self) -> None:
+        beans = [Bean("BS Switch 33", "IS1"), Bean("BS W-1", "IS2"), Bean("BS W-2", "IS3"), Bean("", "IS4")]
+        manager = types.SimpleNamespace(getNamedBeanSet=lambda: beans)
+        setattr(sys.modules["jmri"], "InstanceManager", types.SimpleNamespace(sensorManagerInstance=lambda: manager))
+        heard: list[tuple[str, bool]] = []
+
+        def listener(name: str, isg: bool, bean: Bean) -> str:
+            heard.append((name, isg))
+            return "listener " + name
+
+        scan = cast(Callable[..., dict[str, Bean]], self.ns["scan"])
+        found = scan(["BS W-2"], [], self.ns["route_sensor"], listener)
+        self.assertEqual(heard, [("BS Switch 33", False), ("BS W-2", True)])
+        self.assertEqual(found, {"BS W-2": beans[2]})
+        self.assertEqual(beans[1].listeners, [])
+
+
+class Bean:
+    """A JMRI sensor as scan() sees it: names and a listener list."""
+
+    def __init__(self, user: str, system: str) -> None:
+        self.user, self.system = user, system
+        self.listeners: list[object] = []
+
+    def getUserName(self) -> str:
+        return self.user
+
+    def getSystemName(self) -> str:
+        return self.system
+
+    def addPropertyChangeListener(self, listener: object) -> None:
+        self.listeners.append(listener)
 
 
 if __name__ == "__main__":

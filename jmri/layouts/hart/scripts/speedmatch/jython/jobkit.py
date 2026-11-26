@@ -12,8 +12,8 @@
 #     made it
 #
 # Names the runner may use: L, NAMES, reg, why, ab, own, hit, claim, scan, check_guards,
-# request_throttle, guard_hit, end_job, _guarded, TL, and for route runners last, state, lock, HOOK, SL,
-# wait, pause.
+# request_throttle, guard_hit, end_job, _guarded, TL, and for route runners route_sensor, last, state, lock, HOOK,
+# SL, wait, pause.
 # Never runs: the names make_job.py puts in front of this file (its settings), listed for pyflakes
 # (ruff's undefined-name rule) so a misspelt name fails the check. job_settings stands for the settings.
 if False:
@@ -90,6 +90,12 @@ def request_throttle(rid):
     if tl.t is None:
         L("NO THROTTLE %s" % tl.err); why[0] = why[0] or "no throttle"; return None, tl
     return tl.t, tl
+# Tracks W-1 and W-2 (the Brick yard spurs off Switch 3) are on no route: a route runner listens to them only
+# as guards (scan always listens to a guard), never as route sensors.
+NOT_ROUTE = ("BS W-1", "BS W-2")
+def route_sensor(un):
+    """True for a block sensor (user name "BS ...") a route runner listens to: any but NOT_ROUTE."""
+    return un.startswith("BS ") and un not in NOT_ROUTE
 # Route sensor listener, shared by the three runners that measure along a route (step_runner,
 # distance_runner, pass_runner); each sets HOOK[0] = fn(name, epoch) for a sensor that just
 # went ACTIVE (it runs under `lock`, so it must not take it). Needs ORDER (the route's sensors).
