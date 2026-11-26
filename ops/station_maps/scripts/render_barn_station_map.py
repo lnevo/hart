@@ -14,12 +14,13 @@ Print size matches the other local sheets: 8 in × 5 in (1600×1000 at 200 dpi).
 from __future__ import annotations
 
 import sys
-import zipfile
-from io import BytesIO
+from functools import partial
 from pathlib import Path
-from xml.etree import ElementTree as ET
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import sheet_kit  # noqa: E402  (sibling module)
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
@@ -66,9 +67,7 @@ SW7_TOP = (2.05 * IN, Y_BARN)
 SW9 = (4.55 * IN, Y_EH3)
 
 
-def _along(origin, dy):
-    """Move `dy` screen-pixels (down positive) along the shared slope."""
-    return (origin[0] + (RUN / RISE) * dy, origin[1] + dy)
+_along = partial(sheet_kit.along, run=RUN, rise=RISE)
 
 
 def _mid(a, b):
@@ -82,31 +81,8 @@ EH1_JOIN = _along(SW13, Y_EH1 - Y_BARN)
 EH2_JOIN = _along(SW9, Y_EH2 - Y_EH3)
 
 
-def _font(size: int, bold: bool = False, black: bool = False):
-    names = []
-    if black:
-        names.append("Arial Black.ttf")
-    if bold:
-        names.append("Arial Bold.ttf")
-    names.append("Arial.ttf")
-    bases = [
-        Path("/System/Library/Fonts/Supplemental"),
-        Path("/Library/Fonts"),
-        Path("/usr/share/fonts/truetype/macos"),
-    ]
-    for name in names:
-        for base in bases:
-            p = base / name
-            if p.is_file():
-                return ImageFont.truetype(str(p), size)
-    return ImageFont.load_default()
-
-
-def _line(d: ImageDraw.ImageDraw, a, b, width=6):
-    d.line([a, b], fill=TRACK, width=width)
-    r = width / 2
-    for x, y in (a, b):
-        d.ellipse([x - r, y - r, x + r, y + r], fill=TRACK)
+_font = sheet_kit.arial
+_line = partial(sheet_kit.capped_line, fill=TRACK)
 
 
 def _arrow(d: ImageDraw.ImageDraw, tip, direction: str, size=14):
@@ -118,32 +94,8 @@ def _arrow(d: ImageDraw.ImageDraw, tip, direction: str, size=14):
     d.polygon(pts, fill=TRACK)
 
 
-def _dot(d, pt, r=DOT_R):
-    x, y = pt
-    d.ellipse([x - r, y - r, x + r, y + r], fill=TRACK)
-
-
-def _badge_near(d, pt, text, font, corner: str = "ne"):
-    """Teal switch pill off the frog, same language as 103 / 110 / 111."""
-    box = d.textbbox((0, 0), text, font=font)
-    tw, th = box[2] - box[0], box[3] - box[1]
-    w = tw + 22
-    h = th + 16
-    cx, cy = pt
-    gap = BADGE_GAP
-    if corner == "ne":
-        x = cx + DOT_R + gap
-        y = cy - DOT_R - h - 2
-    elif corner == "nw":
-        x = cx - DOT_R - w - gap
-        y = cy - DOT_R - h - 2
-    elif corner == "w":
-        x = cx - DOT_R - w - gap
-        y = cy - h / 2
-    else:
-        raise ValueError(corner)
-    d.rounded_rectangle([x, y, x + w, y + h], radius=8, fill=BADGE)
-    d.text((x + w / 2, y + h / 2 - 1), text, font=font, fill=BADGE_INK, anchor="mm")
+_dot = partial(sheet_kit.dot, r=DOT_R, fill=TRACK)
+_badge_near = partial(sheet_kit.badge_near, dot_r=DOT_R, gap=BADGE_GAP, fill=BADGE, ink=BADGE_INK)
 
 
 def _compass(d, cx, cy, r=58):
@@ -232,46 +184,10 @@ def render(out: Path) -> None:
 
 
 def _write_docx(png: Path, dest: Path) -> None:
-    """Clone an SM-series landscape docx and swap the embedded map PNG."""
-    if not DOCX_TEMPLATE.is_file():
-        raise SystemExit(f"missing template {DOCX_TEMPLATE}")
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    png_bytes = png.read_bytes()
-    buf = BytesIO()
-    with zipfile.ZipFile(DOCX_TEMPLATE, "r") as src, zipfile.ZipFile(
-        buf, "w", compression=zipfile.ZIP_DEFLATED
-    ) as out:
-        for item in src.infolist():
-            data = src.read(item.filename)
-            if item.filename == "word/media/image1.png":
-                data = png_bytes
-            elif item.filename == "word/document.xml":
-                data = data.replace(
-                    b"station_map_west_yard.png",
-                    b"station_map_barn.png",
-                )
-            elif item.filename == "docProps/core.xml":
-                data = _patch_core_title(data, "Neville Island Station Map — Barn")
-            out.writestr(item, data)
-    dest.write_bytes(buf.getvalue())
-    print(f"wrote {dest}")
-
-
-def _patch_core_title(xml_bytes: bytes, title: str) -> bytes:
-    ns = {
-        "cp": "http://schemas.openxmlformats.org/package/2006/metadata/core-properties",
-        "dc": "http://purl.org/dc/elements/1.1/",
-    }
-    root = ET.fromstring(xml_bytes)
-    el = root.find("dc:title", ns)
-    if el is not None:
-        el.text = title
-    ET.register_namespace("cp", ns["cp"])
-    ET.register_namespace("dc", ns["dc"])
-    ET.register_namespace("dcterms", "http://purl.org/dc/terms/")
-    ET.register_namespace("dcmitype", "http://purl.org/dc/dcmitype/")
-    ET.register_namespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
-    return ET.tostring(root, encoding="utf-8", xml_declaration=True)
+    """The SM-series landscape docx with the Barn map in it."""
+    sheet_kit.write_sheet_docx(DOCX_TEMPLATE, png, dest,
+                               media_names=("station_map_west_yard.png", "station_map_barn.png"),
+                               title="Neville Island Station Map — Barn")
 
 
 def main() -> None:
