@@ -74,7 +74,7 @@ def tracked_files(root: Path) -> list[str]:
     try:
         return files.tracked_files(root, submodules=False)
     except files.GitError as err:
-        raise MoveError(str(err)) from None
+        raise MoveError(str(err)) from err
 
 
 def clean(path: str) -> str:

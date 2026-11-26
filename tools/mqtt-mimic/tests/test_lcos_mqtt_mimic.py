@@ -3,21 +3,26 @@ from __future__ import annotations
 import importlib.util
 import unittest
 from pathlib import Path
+from types import ModuleType
+from typing import Any, ClassVar
 
 SCRIPTS = Path(__file__).resolve().parents[1]
 
 
-def load_module():
+def load_module() -> ModuleType:
     spec = importlib.util.spec_from_file_location(
         "lcos_mqtt_mimic", SCRIPTS / "lcos_mqtt_mimic.py"
     )
+    assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None
     spec.loader.exec_module(module)
     return module
 
 
 class LcosMimicNamingTest(unittest.TestCase):
+    m: ClassVar[ModuleType]
+    layout: ClassVar[dict[str, Any]]
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.m = load_module()
@@ -72,6 +77,8 @@ class LcosMimicNamingTest(unittest.TestCase):
 
 class LcosMimicNameMapTest(unittest.TestCase):
     """load_cps reads staging's rows of the device master (hartlib.devices.load), cp per user name."""
+
+    m: ClassVar[ModuleType]
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -161,6 +168,75 @@ class LcosMimicNameMapTest(unittest.TestCase):
             self.m.main()
         self.assertEqual(stop.exception.code, f"lcos_mqtt_mimic.py: the device master cannot be used: {err}")
 
+
+
+class SortAndReconnect(unittest.TestCase):
+    """plant_rank orders unknown plants last; the subscriber loop reports a missing client and does not hide bugs.
+    Popen is faked: nothing runs and nothing is published."""
+
+    m: ClassVar[ModuleType]
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.m = load_module()
+
+    def test_unknown_plant_sorts_after_every_listed_one(self) -> None:
+        ranks = [self.m.plant_rank(p) for p in (*self.m.PLANT_ORDER, "Nowhere")]
+        self.assertEqual(ranks, sorted(ranks))
+        self.assertEqual(ranks[-1], len(self.m.PLANT_ORDER))
+
+    def bus(self):
+        from unittest import mock
+        with mock.patch.object(self.m, "_which", lambda name: f"/bin/{name}"):
+            bus = self.m.Bus("broker.invalid")
+        events = []
+        bus.emit = lambda e: (events.append(e), bus._stop.set())
+        return bus, events
+
+    def test_a_client_that_cannot_start_is_a_disconnected_event(self) -> None:
+        from unittest import mock
+        bus, events = self.bus()
+        with mock.patch.object(self.m.subprocess, "Popen", side_effect=FileNotFoundError("mosquitto_sub")):
+            bus.loop_sub()
+        self.assertEqual(events, [{"type": "mqtt", "connected": False, "error": "mosquitto_sub"}])
+        self.assertFalse(bus.connected)
+
+    def test_a_line_that_cannot_be_read_is_a_warning_and_reading_goes_on(self) -> None:
+        import io
+        from unittest import mock
+        bus, events = self.bus()
+        bus.emit = lambda e: (events.append(e), e.get("connected") is False and bus._stop.set())
+        proc = mock.Mock(stdout=iter(["bad line\n", "track/sensor/1 ACTIVE\n"]))
+        read = []
+
+        def on_line(line: str) -> None:
+            if line.startswith("bad"):
+                raise KeyError("addr")
+            read.append(line)
+        err = io.StringIO()
+        with mock.patch.object(self.m.subprocess, "Popen", side_effect=[proc, FileNotFoundError("gone")]), \
+                mock.patch.object(bus, "_on_line", side_effect=on_line), mock.patch.object(self.m.time, "sleep"), \
+                mock.patch.object(self.m.sys, "stderr", err):
+            bus.loop_sub()
+        self.assertEqual(read, ["track/sensor/1 ACTIVE\n"])
+        self.assertIn({"type": "warning", "line": "bad line", "error": "KeyError('addr')"}, events)
+        self.assertIn("cannot read 'bad line'", err.getvalue())
+        self.assertEqual(events[-1], {"type": "mqtt", "connected": False, "error": "gone"})
+
+    def test_a_thread_that_ends_on_an_error_says_disconnected(self) -> None:
+        from unittest import mock
+        bus, events = self.bus()
+        bus.emit = events.append
+
+        def broken():
+            raise RuntimeError("pipe")
+            yield ""
+        proc = mock.Mock(stdout=broken())
+        with mock.patch.object(self.m.subprocess, "Popen", return_value=proc):
+            with self.assertRaises(RuntimeError):
+                bus.loop_sub()
+        self.assertFalse(bus.connected)
+        self.assertEqual(events[-1], {"type": "mqtt", "connected": False, "error": "the subscriber stopped"})
 
 if __name__ == "__main__":
     unittest.main()

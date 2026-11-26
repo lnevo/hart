@@ -184,7 +184,7 @@ class CheckSh(unittest.TestCase):
         lines = done.stdout.splitlines()
         self.assertTrue(lines[0].startswith("Docs-only change (1 changed path, all Markdown docs)"), lines[0])
         self.assertIn("STUB DOCS CHECKS HOPS_PY=python3", lines)
-        # not a pass of check.sh (owner, 2026-11-24): no "ALL PASSED", and no stamp written
+        # not a pass of check.sh: no "ALL PASSED", and no stamp written
         self.assertNotIn("ALL PASSED", done.stdout)
         self.assertEqual("DOCS CHECKS PASSED (the docs-only path; FULL=1 runs check.sh in full)", lines[-1])
 

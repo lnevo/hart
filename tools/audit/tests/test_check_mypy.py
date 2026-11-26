@@ -211,17 +211,30 @@ class Main(Scratch):
     def test_pass_at_the_baseline(self) -> None:
         rc, out = self.main({"a.py": 2}, base={"a.py": 2})
         self.assertEqual(rc, 0)
-        self.assertIn("every file at its baseline count", out)
+        self.assertIn("no file above its baseline count", out)
+        self.assertNotIn("below the baseline", out)
 
-    def test_a_fall_fails_until_update_locks_it_in(self) -> None:
+    def test_a_fall_passes_with_a_note_and_update_locks_it_in(self) -> None:
         rc, out = self.main({"a.py": 1}, base={"a.py": 2, "gone.py": 1})
-        self.assertEqual(rc, 1)
-        self.assertIn("fell: a.py: 2 -> 1", out)
-        self.assertIn("fell: gone.py: 1 -> 0", out)
+        self.assertEqual(rc, 0)
+        self.assertIn("2 file(s) below the baseline; `--update` locks them in", out)
+        self.assertEqual(json.loads((self.root / "base.json").read_text(encoding="utf-8")), {"a.py": 2, "gone.py": 1})
         rc, _ = self.main({"a.py": 1}, "--update")
         self.assertEqual(rc, 0)
-        rc, _ = self.main({"a.py": 1})
+        self.assertEqual(json.loads((self.root / "base.json").read_text(encoding="utf-8")), {"a.py": 1})
+        rc, out = self.main({"a.py": 1})
         self.assertEqual(rc, 0)
+        self.assertNotIn("below the baseline", out)
+
+    def test_a_fall_beside_a_rise_still_fails(self) -> None:
+        rc, out = self.main({"a.py": 1, "b.py": 2}, base={"a.py": 2, "b.py": 1})
+        self.assertEqual(rc, 1)
+        self.assertIn("rose: b.py: 1 -> 2", out)
+
+    def test_a_new_file_with_errors_fails(self) -> None:
+        rc, out = self.main({"new.py": 1}, base={"a.py": 1})
+        self.assertEqual(rc, 1)
+        self.assertIn("rose: new.py: 0 -> 1", out)
 
     def test_rise_fails(self) -> None:
         rc, out = self.main({"a.py": 3}, base={"a.py": 2})

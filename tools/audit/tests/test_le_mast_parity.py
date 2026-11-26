@@ -23,7 +23,7 @@ These checks read the three-level build (levels all, owner 2026-11-16; the all-l
 is retired, owner 2026-11-17). The staging-only drawing (levels staging) ends both helix tracks at end bumpers as live, so there every mast matches exactly, with no exception (test_le_cutover.py).
 
 HELIX_ENTRANCE listed the helix-foot masts 38RA and 40RA as exceptions from the helix-join release (2026-11-17)
-until each helix track became one block (owner, 2026-11-20) and they went: it is empty now.
+until each helix track became one block and they went: it is empty now.
 """
 from __future__ import annotations
 

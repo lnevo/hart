@@ -46,7 +46,7 @@ class Comments(unittest.TestCase):
                                             "IF$shsm:basic:two-searchlight(IH4338)(IH4339) (draft)")
         for name in ("Head 120RB_Top", "Head 120RB_Bottom"):
             self.assertEqual(got[name], "CP 107 | Switch 119 | internal, not wired | not on a node yet")
-        # a mast names the way it faces after its place; its heads do not (owner, 2026-11-22)
+        # a mast names the way it faces after its place; its heads do not
         self.assertEqual(got["Mast 120RB"], "CP 107 | Switch 119 | West | not on a node yet")
         self.assertFalse([c for c in got.values() if "?" in c or c.endswith("planned ")])
 

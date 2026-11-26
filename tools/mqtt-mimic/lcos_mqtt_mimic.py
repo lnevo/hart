@@ -31,6 +31,7 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlparse
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
@@ -86,6 +87,11 @@ PLANT_ORDER = [
 # levels run on virtual JMRI devices (hartlib.level_devices) named in the device map, set in JMRI directly.
 STAGING = "staging"
 LEVELS = {2: "main", 3: "upper"}
+
+
+def plant_rank(plant: str) -> int:
+    """A plant's place in PLANT_ORDER; a plant not listed sorts after every listed one."""
+    return PLANT_ORDER.index(plant) if plant in PLANT_ORDER else len(PLANT_ORDER)
 
 
 def _which(name: str) -> str:
@@ -200,9 +206,9 @@ def load_layout(levels: bool = True) -> dict:
                 "name": rec["systemName"],
             }
         )
-    blocks.sort(key=lambda b: (PLANT_ORDER.index(b["plant"]) if b["plant"] in PLANT_ORDER else 99, b["userName"]))
+    blocks.sort(key=lambda b: (plant_rank(b["plant"]), b["userName"]))
 
-    turnouts = []
+    turnouts: list[dict[str, Any]] = []        # JSON records for the page: text, numbers and None
     turnout_cp = cps.get("turnout") or {}
     for el in root.findall(".//turnout"):
         sn = _txt(el, "systemName")
@@ -240,7 +246,7 @@ def load_layout(levels: bool = True) -> dict:
                 "name": sn,
             }
         )
-    turnouts.sort(key=lambda t: (PLANT_ORDER.index(t["plant"]) if t["plant"] in PLANT_ORDER else 99, t["num"]))
+    turnouts.sort(key=lambda t: (plant_rank(t["plant"]), t["num"]))
 
     heads = []
     mast_cp = cps.get("mast") or {}
@@ -262,7 +268,7 @@ def load_layout(levels: bool = True) -> dict:
                     )
     heads.sort(
         key=lambda h: (
-            PLANT_ORDER.index(h["plant"]) if h["plant"] in PLANT_ORDER else 99,
+            plant_rank(h["plant"]),
             h["mast"],
             h["id"],
         )
@@ -543,29 +549,45 @@ class Bus:
             "-t",
             "track/signalhead/#",
         ]
-        while not self._stop.is_set():
-            try:
-                proc = subprocess.Popen(
-                    cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    text=True,
-                    bufsize=1,
-                )
-                self.connected = True
-                self.emit({"type": "mqtt", "connected": True, "host": self.host})
-                assert proc.stdout is not None
-                for line in proc.stdout:
-                    if self._stop.is_set():
-                        break
-                    self._on_line(line)
-                proc.wait(timeout=2)
-            except Exception as e:
+        try:
+            while not self._stop.is_set():
+                self._subscribe_once(cmd)
+                if self._stop.is_set():
+                    break
+                time.sleep(1)
+        finally:            # however the thread ends, the page must not keep showing a live connection
+            if self.connected:
                 self.connected = False
-                self.emit({"type": "mqtt", "connected": False, "error": str(e)})
+                self.emit({"type": "mqtt", "connected": False, "error": "the subscriber stopped"})
+
+    def _subscribe_once(self, cmd: list[str]) -> None:
+        """Run mosquitto_sub until it ends; a client that cannot start or stop is a disconnected event."""
+        try:
+            proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+        except (OSError, subprocess.SubprocessError) as e:   # no mosquitto_sub
+            self.connected = False
+            self.emit({"type": "mqtt", "connected": False, "error": str(e)})
+            return
+        self.connected = True
+        self.emit({"type": "mqtt", "connected": True, "host": self.host})
+        assert proc.stdout is not None
+        for line in proc.stdout:
             if self._stop.is_set():
                 break
-            time.sleep(1)
+            self._read_line(line)
+        try:
+            proc.wait(timeout=2)
+        except subprocess.SubprocessError as e:              # it did not stop in time
+            self.connected = False
+            self.emit({"type": "mqtt", "connected": False, "error": str(e)})
+
+    def _read_line(self, line: str) -> None:
+        """One subscriber line; a line that cannot be read is logged and shown as a warning, and reading goes on."""
+        try:
+            self._on_line(line)
+        except Exception as e:  # noqa: BLE001  one bad message must not stop the subscriber; it is shown, not hidden
+            print(f"lcos_mqtt_mimic: cannot read {line.strip()!r}: {e!r}", file=sys.stderr)
+            self.emit({"type": "warning", "line": line.strip(), "error": repr(e)})
 
     def start(self) -> None:
         threading.Thread(target=self.loop_sub, name="mqtt-sub", daemon=True).start()

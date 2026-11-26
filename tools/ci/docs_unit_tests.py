@@ -5,7 +5,7 @@
 
 A unit test whose stamp declaration (tools/audit/check_stamps.py: BY_KIND, EXTRA, the manifest checks' fallback,
 RUNS_JOBS) covers a Markdown file under docs/ or wiki/ can break on a docs-only change, so the docs-only path runs it,
-unless LEFT_OUT says why not (owner, 2026-11-24: a short list; whole suites that only partly read docs stay out). Its
+unless LEFT_OUT says why not (a short list: whole suites that only partly read docs stay out). Its
 -k filter, when only one class reads docs, is check_stamps.DOCS_K's. A line is the stamp name with a hyphen
 ("unit-guards-test_name_copies"), then `python3 -m unittest discover -b -q -s DIR -p FILE [-k K]`, the form
 docs_checks.sh reads for the manifest's lines.

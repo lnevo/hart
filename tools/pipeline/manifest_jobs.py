@@ -32,7 +32,7 @@ def _digest(name: str, entry: dict, **more) -> str:
         return hashlib.sha256(json.dumps({"job": name, "step": entry, **more}, sort_keys=True, ensure_ascii=False,
                                          separators=(",", ":")).encode()).hexdigest()
     except (TypeError, ValueError) as err:     # a TOML date or time: no field of a step takes one
-        raise ManifestError(f"step {name!r} holds a value JSON cannot hold (a date or time?): {err}") from None
+        raise ManifestError(f"step {name!r} holds a value JSON cannot hold (a date or time?): {err}") from err
 
 
 def panel_jobs(runner: dict, path: Path, taken) -> dict[str, tuple[dict, PanelStep]]:

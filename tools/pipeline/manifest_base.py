@@ -90,7 +90,7 @@ def tracked_files() -> frozenset[str]:
     try:
         out = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT, capture_output=True, text=True, timeout=60)
     except (OSError, subprocess.SubprocessError) as err:
-        raise ManifestError(f"git ls-files could not run in {ROOT}: {err}") from None
+        raise ManifestError(f"git ls-files could not run in {ROOT}: {err}") from err
     if out.returncode != 0:
         raise ManifestError(f"git ls-files failed in {ROOT}: {out.stderr.strip() or f'exit {out.returncode}'}")
     # a tracked file deleted from the checkout but not yet from the index is gone for the runner: not counted
@@ -107,7 +107,7 @@ def repo() -> Repo:
     try:
         graph = graph_map.read(graph_map.GRAPH)
     except graph_map.GraphError as err:
-        raise ManifestError(f"{_shown(graph_map.GRAPH)}: {err}") from None
+        raise ManifestError(f"{_shown(graph_map.GRAPH)}: {err}") from err
     return repo_from(tracked, graph)
 
 
@@ -156,13 +156,13 @@ def read(path: Path = MANIFEST) -> tuple[dict, str]:
     try:
         text = path.read_text(encoding="utf-8")
     except OSError as err:
-        raise ManifestError(f"{shown}: cannot read it: {err.strerror or err}") from None
+        raise ManifestError(f"{shown}: cannot read it: {err.strerror or err}") from err
     except UnicodeDecodeError as err:
-        raise ManifestError(f"{shown}: not UTF-8 text: {err}") from None
+        raise ManifestError(f"{shown}: not UTF-8 text: {err}") from err
     try:
         return tomllib.loads(text), shown
     except tomllib.TOMLDecodeError as err:
-        raise ManifestError(f"{shown}: not valid TOML: {err}") from None
+        raise ManifestError(f"{shown}: not valid TOML: {err}") from err
 
 
 def _entries(data: dict, shown: str) -> list[dict]:

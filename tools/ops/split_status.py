@@ -54,10 +54,10 @@ hook and `make wt` build it, so it is there to read in every checkout. `check.sh
 ## An entry
 
 - One file, `<section>/<slug>.md`, named from its bold lead or opening words. Its first line is `order: N`, its
-  place in the section (owner, 2026-11-25): the page lists each section by N, so entries on one topic stay together.
+  place in the section: the page lists each section by N, so entries on one topic stay together.
   The numbers go in steps of 10; a new entry takes a free number between its neighbours'. Two entries in one
   section with the same number fail the check.
-- Below that line, the bullet's text without its `- `. At most 60 words (owner, 2026-11-25): the fact, the owner
+- Below that line, the bullet's text without its `- `. At most 60 words: the fact, the owner
   and date, and a link to the detail. The check fails a longer one; move the detail to the linked page or ADR.
 - Links are relative to the entry file (`../../decisions/ADR-038-one-file-per-status-entry.md`), so they work here
   on GitHub; the build rewrites them for `wiki/STATUS.md`.

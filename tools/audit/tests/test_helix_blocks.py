@@ -1,4 +1,4 @@
-"""Each helix track one JMRI block from its staging switch up the helix (owner, 2026-11-20): the plan overrides, the
+"""Each helix track one JMRI block from its staging switch up the helix: the plan overrides, the
 detector pins, the staging map's shared blocks and the Layout Editor build's handling of them."""
 from __future__ import annotations
 
@@ -48,7 +48,7 @@ def copied(edit=None) -> Path:
 
 
 class HelixTracks(unittest.TestCase):
-    """The helix tracks come from the plan overrides (owner, 2026-11-21): each a staging helix end and a main_upper
+    """The helix tracks come from the plan overrides: each a staging helix end and a main_upper
     `helix` entry of one plan name, its block "Track <plan name>" by the ordinary rule, and the label drawn for it
     from the plugin's track_labels preference."""
 

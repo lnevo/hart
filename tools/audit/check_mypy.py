@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """mypy over the repo's CPython code: hartlib with no errors, every other file held to a per-file baseline.
 
-    python3 tools/audit/check_mypy.py            check; exit 1 when hartlib has errors or a file's count moved
+    python3 tools/audit/check_mypy.py            check; exit 1 when hartlib has errors or a file's count rose
     python3 tools/audit/check_mypy.py --update   rewrite the baseline with the current counts (refused on a rise)
+
+A count below the baseline passes with one note; --update locks the lower count in. A new file with errors is a rise
+from 0, so it fails.
     python3 tools/audit/check_mypy.py --list     print the files the check runs mypy on
 
 mypy.ini holds the settings: strict options for hartlib, basic mode for the rest. The files checked are every
@@ -287,11 +290,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"check_mypy: wrote {BASELINE} ({sum(1 for p in now if not p.startswith(STRICT_PREFIX))} files)")
         return 0
     if verdict.fell:
-        # a lower count is locked in by --update, so the file cannot climb back up to its old count unseen
-        print("\n".join(f"  fell: {p}: {b} -> {n}" for p, (b, n) in sorted(verdict.fell.items())))
-        print(f"check_mypy: {len(verdict.fell)} file(s) below {BASELINE}: run --update to lock the lower counts in")
-        return 1
-    print("check_mypy: hartlib clean, every file at its baseline count")
+        # a note, not a failure: with strict up-to-date merges a fall on main would otherwise fail every open branch
+        print(f"check_mypy: {len(verdict.fell)} file(s) below the baseline; `--update` locks them in")
+    print("check_mypy: hartlib clean, no file above its baseline count")
     return 0
 
 

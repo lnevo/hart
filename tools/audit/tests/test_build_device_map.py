@@ -136,7 +136,7 @@ class Output(unittest.TestCase):
             self.assertEqual(kinds, want, s)
 
     def test_no_block_is_a_stop_while_the_stations_are_parked(self):
-        """The Dispatcher stations are parked with the stations topic (owner, 2026-11-22): the helix rows marked a
+        """The Dispatcher stations are parked with the stations topic: the helix rows marked a
         stop at Switch 131A and 131B until then (docs/parked/UNPARK.md)."""
         self.assertEqual([x["user_name"] for x in rows() if x["layer"] == "block" and x["stop"]], [])
         self.assertTrue(all(x["stop"] in ("", "yes") for x in rows()))
@@ -233,7 +233,7 @@ class Output(unittest.TestCase):
 
     def test_the_balloon_loop_is_two_blocks_and_loop_1_keeps_its_detector(self):
         """Two masts facing one loop block into one OS block would be one mast to JMRI (LayoutBlockManager.
-        getFacingBean returns one per block pair), so the loop is two blocks, parted halfway (owner, 2026-11-16).
+        getFacingBean returns one per block pair), so the loop is two blocks, parted halfway.
         Loop 1 keeps the loop's detector (node 33 block 6); Loop 2's is not on a node yet, so no node or input moved."""
         have = {(x["layer"], x["user_name"]): x for x in rows()}
         self.assertNotIn(("block", "Track 107 Loop"), have)
@@ -264,7 +264,7 @@ class Output(unittest.TestCase):
     def test_every_device_has_a_virtual_name_from_its_own_name(self):
         """jmri_name (the JMRI device the panels use) of every turnout, occupancy, head and mast row comes from the
         row's user name alone, never from its draft physical name or the order rows are drawn or numbered in: moving or
-        inserting a block or switch elsewhere changes no other device's virtual name (owner, 2026-11-17)."""
+        inserting a block or switch elsewhere changes no other device's virtual name."""
         from hartlib import level_masts
         have = rows()
         blocks = [x["user_name"] for x in have if x["layer"] == "block"]
@@ -301,7 +301,7 @@ class Output(unittest.TestCase):
 
     def test_apb_intermediates_are_named_from_the_milepost(self):
         """A pair at the turnback of the 107 balloon loop (line A) and of the split Track 227-241 (line B), named from
-        the sheets' milepost count: odd westbound, even eastbound, one head each (owner, 2026-11-19)."""
+        the sheets' milepost count: odd westbound, even eastbound, one head each."""
         got = {x["user_name"]: (x["cp"], x["notes"]) for x in rows()
                if x["layer"] == "mast" and x["comment"].endswith(" | intermediate")}
         self.assertEqual(got, {

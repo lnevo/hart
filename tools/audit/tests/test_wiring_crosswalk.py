@@ -85,7 +85,7 @@ class WiringCrosswalkTest(unittest.TestCase):
         self.assertEqual(check.problems(WIRING, tables()), [])
 
     def test_a_wired_head_reads_its_masts_place_first(self):
-        """The mast's comment without its direction leads the head's (owner, 2026-11-22)."""
+        """The mast's comment without its direction leads the head's."""
         wiring_text = COMMENTS["IH432"]
         good = with_place(tables(), "Mast 6LB", "Plane | Switch 5 | West", "IH432", f"Plane | Switch 5 | {wiring_text}")
         self.assertEqual(check.problems(WIRING, good), [])

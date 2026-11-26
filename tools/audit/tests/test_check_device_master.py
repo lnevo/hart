@@ -84,7 +84,7 @@ class RowRules(Master):
         self.assertEqual(ends["Track 127-221"], {"CP 127", "CP 201"})
         self.assertFalse(hasattr(cdm, "KNOWN_CP"))
         self.assertEqual(cdm.row_problems(self.lines, self.cps, ends_cps=ends, places=self.places), [])
-        # every line block lists its places now (owner, 2026-11-21), so none leans on its end switches
+        # every line block lists its places now, so none leans on its end switches
         self.assertEqual(cdm.row_problems(self.lines, self.cps, ends_cps={}, places=self.places), [])
 
     def test_a_line_blocks_places_are_the_rules_inputs(self):
@@ -234,7 +234,7 @@ class TablesCheck(Master):
                       self.problems({("2", "OS Switch 101"): dict(layout_block="ILB1999")}))
 
     def test_a_station_is_its_comment(self):
-        # the stations are parked (owner, 2026-11-22): no row is a stop and no comment marks one
+        # the stations are parked: no row is a stop and no comment marks one
         self.assertIn("block Track Barn: stop is yes, but its comment in tables.xml does not mark a station",
                       self.problems({("1", "Track Barn"): dict(stop="yes")}))
         self.assertIn("block Track East Ext: stop is yes, but its comment in tables.xml does not mark a station",

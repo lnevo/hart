@@ -68,7 +68,7 @@ def parse(path: Path) -> ET.Element:
     except FileNotFoundError:
         raise RosterError(f"{rel(path)}: missing") from None
     except (ET.ParseError, OSError) as exc:
-        raise RosterError(f"{rel(path)}: does not parse ({exc})") from None
+        raise RosterError(f"{rel(path)}: does not parse ({exc})") from exc
 
 
 def read_roster(folder: Path = ROSTER) -> tuple[list[Entry], list[str]]:

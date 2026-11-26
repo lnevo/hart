@@ -37,7 +37,7 @@ def wiring_file(text: str) -> Path:
 
 
 class CommittedMap(unittest.TestCase):
-    """The committed device master wires Head 6LB to IH432 on its mast row and its head row (owner, 2026-11-18)."""
+    """The committed device master wires Head 6LB to IH432 on its mast row and its head row."""
 
     def test_6lb_is_wired_to_ih432(self):
         rows = sdm.read_device_rows(sdm.DEVICE_MAP)

@@ -186,7 +186,7 @@ class Cutover(unittest.TestCase):
                 c.tail = None
                 got[B.canon(c)] += 1
         self.assertEqual(want - got, Counter())               # each item there, attributes as the file has them
-        self.assertEqual(len(item_elements(self.items)), 15)          # the compass back (owner, 2026-11-18)
+        self.assertEqual(len(item_elements(self.items)), 15)          # the compass back
         self.assertEqual(self.P.items["count"], 15)
 
     def test_what_panel_status_and_signal_coordinator_look_up(self) -> None:
@@ -230,7 +230,7 @@ class Cutover(unittest.TestCase):
 
     def test_the_viewing_trials_are_retired(self) -> None:
         """build() without as_live (the retired viewing trials, owner 2026-11-17) stops, whatever the levels; the
-        trial cut-over copies, their options and the staging guard are retired too (owner, 2026-11-22)."""
+        trial cut-over copies, their options and the staging guard are retired too."""
         for levels in B.LEVELS:
             with self.subTest(levels=levels), self.assertRaisesRegex(B.BuildError, "retired.*as_live"):
                 B.build(levels=levels)
@@ -252,7 +252,7 @@ def three_levels():
 
 class ThreeLevels(unittest.TestCase):
     """levels all: staging drawn at the grid of staging drawn alone, with main and upper drawn below it, on internal
-    turnouts and blocks under the device map's names (owner, 2026-11-16)."""
+    turnouts and blocks under the device map's names."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -263,7 +263,7 @@ class ThreeLevels(unittest.TestCase):
         cls.device = B.device_names()
 
     def test_staging_is_joined_at_the_helix(self) -> None:
-        # The helix-join release (owner, 2026-11-17): the helix bumpers become anchors, their tracks run on
+        # The helix-join release: the helix bumpers become anchors, their tracks run on
         self.assertTrue([j for (b, j) in self.P.join_ends if b == 0])           # the helix joins reach staging
         self.assertEqual(self.names[staging_key(self.bands)]["joins"], "other")               # the build joins the helix
         self.assertEqual(sum(1 for s in self.le.findall("tracksegment") if s.get("hidden") == "yes"), 4)
@@ -305,7 +305,7 @@ class ThreeLevels(unittest.TestCase):
                 rows.setdefault(el.tag == "positionablelabel", []).append(el)
         captions, lamps = rows[True], rows[False]
         self.assertEqual((len(captions), len(lamps)), (4, 4))
-        # right edges in one line as JMRI draws Dialog on the Pi (pi_dialog), 4 px left of the lamps (owner, 2026-11-21)
+        # right edges in one line as JMRI draws Dialog on the Pi (pi_dialog), 4 px left of the lamps
         rights = {box(c)[0] + B.panel_items.pi_dialog.width(c.get("text"), 12) for c in captions}
         self.assertEqual(len(rights), 1)                    # right-justified ...
         self.assertTrue(all(c.get("justification") == "right" for c in captions))
@@ -429,7 +429,7 @@ class ThreeLevels(unittest.TestCase):
         labels = [el for el in self.le.iter("positionablelabel") if el.get("text") == "SW-101"]
         self.assertEqual(len(labels), 1)
         self.assertGreaterEqual(int(labels[0].get("y")), max(float(t.get("ycen")) for t in plain["Switch 101"]))
-        # the OS lamps are parked with the Dispatcher System (owner, 2026-11-17): none on the panel, and the parked
+        # the OS lamps are parked with the Dispatcher System: none on the panel, and the parked
         # file keeps one for every half of a single crossover, each anchored to its half's own OS block
         self.assertFalse([el for el in self.le.iter("sensoricon") if (el.get("sensor") or "").startswith("BS ")])
         lamps = {it["anchor"]["block"] for it in B.panel_items.load(PARKED_LAMPS)["items"]
@@ -524,7 +524,7 @@ class ThreeLevels(unittest.TestCase):
                 self.assertIsNone(el.find("sensorA"))
 
     def test_each_helix_track_is_one_block_through_its_join(self) -> None:
-        # one block from staging up the helix (owner, 2026-11-20): the join anchor is no block boundary, no mast stands
+        # one block from staging up the helix: the join anchor is no block boundary, no mast stands
         # there, and the staging block is bound to the device map's virtual sensor
         ix = B.slots_module().Index(self.le)
         for anchor, block in (("AGE1", "Track Helix Outer"), ("AGE2", "Track Helix Inner")):
@@ -552,9 +552,9 @@ class ThreeLevels(unittest.TestCase):
         self.assertEqual(set(icons) | left_out, T.used_blocks(self.le))
         self.assertEqual(set(icons.values()), {1})
         staging = {b["block"] for b in self.base[1].bcis}
-        self.assertEqual(len(staging), 58)        # 45 blocks and 14 parts (owner, 2026-11-20), less 29-31 (C1)
+        self.assertEqual(len(staging), 58)        # 45 blocks and 14 parts, less 29-31 (C1)
         size = {el.get("blockcontents"): el.get("size") for el in self.le.iter("BlockContentsIcon")}
-        self.assertEqual({size[b] for b in staging}, {"11"})         # candidate C1 (owner, 2026-11-21)
+        self.assertEqual({size[b] for b in staging}, {"11"})         # candidate C1
         # each level's icons at that level's own size (a level with the wrong size must not hide behind another's)
         per_level = defaultdict(set)
         for b in self.P.bcis:

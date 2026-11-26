@@ -97,10 +97,10 @@ def git(*args: str, cwd: str | Path | None = None, timeout: int = GIT_TIMEOUT) -
     cmd = ["git", "-C", str(cwd), *args]
     try:
         done = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
-    except subprocess.TimeoutExpired:
-        raise OrientError(f"git {' '.join(args)} took over {timeout} s (in {cwd})") from None
+    except subprocess.TimeoutExpired as err:
+        raise OrientError(f"git {' '.join(args)} took over {timeout} s (in {cwd})") from err
     except OSError as err:
-        raise OrientError(f"cannot run git: {err}") from None
+        raise OrientError(f"git {' '.join(args)} could not run in {cwd}: {err}") from err
     if done.returncode != 0:
         raise OrientError(f"git {' '.join(args)} failed in {cwd}: {done.stderr.strip() or f'exit {done.returncode}'}")
     return done.stdout.strip()
@@ -127,9 +127,11 @@ def lock_state(wt, tree) -> str:
 
 def read_trees(wt) -> list[Tree]:
     """Every worktree with its lock state, commits ahead of origin/main and last commit time."""
-    raw = wt.worktrees(ROOT)
-    if not raw:  # a repo always has its main checkout: an empty list means git worktree list failed
-        git("worktree", "list", "--porcelain")  # raises with git's own message
+    try:
+        raw = wt.worktrees(ROOT)
+    except wt.GitCommandError as err:
+        raise OrientError(str(err)) from err
+    if not raw:  # a repo always has its main checkout
         raise OrientError("git worktree list printed no worktree")
     known = base_exists()
     trees = [Tree(t.path, t.branch, t.head, lock_state(wt, t)) for t in raw]
@@ -155,7 +157,7 @@ def base_exists() -> bool:
     except subprocess.TimeoutExpired:
         raise OrientError(f"git rev-parse {BASE} took over {GIT_TIMEOUT} s") from None
     except OSError as err:
-        raise OrientError(f"cannot run git: {err}") from None
+        raise OrientError(f"cannot run git: {err}") from err
     if done.returncode == 0:
         return True
     if done.returncode == 1 and not done.stderr.strip():
@@ -193,7 +195,10 @@ def read_claims(trees: list[Tree], wt) -> tuple[list[tuple[Claim, str]], list[st
     for t in trees:
         if not os.path.isdir(t.path):
             if listed is None:
-                listed = {os.path.realpath(w.path) for w in wt.worktrees(ROOT)}
+                try:
+                    listed = {os.path.realpath(w.path) for w in wt.worktrees(ROOT)}
+                except wt.GitCommandError as err:
+                    raise OrientError(str(err)) from err
             if os.path.realpath(t.path) in listed:
                 problems.setdefault(("", t.path), []).append(
                     f"worktree {t.path} is missing on disk (git worktree prune)")
