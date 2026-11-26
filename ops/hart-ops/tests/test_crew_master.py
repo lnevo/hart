@@ -73,6 +73,37 @@ class Schema(unittest.TestCase):
         self.assertIn("job 'd749': a crew job needs steps (its docx prints it)", out)
         self.assertIn("job 'dispatcher': a dispatcher job needs priority (its docx prints it)", out)
 
+    def test_colors_and_timetable_hold_no_docx_object(self):
+        out = self.broken(lambda m: (m["colors"][0].update(docx={"key_label": "x"}),
+                                     m["timetable"].update(docx={"note": "x"})))
+        self.assertIn("color 'blue': a color holds no docx object (the sheet prints the site wording)", out)
+        self.assertIn("timetable: holds no docx object (the sheet prints the site wording)", out)
+
+    def test_legend_extra_rows_need_their_fields(self):
+        def edit(m):
+            cm.job(m, "yardmaster")["legend_extra"][0].update(hex="white")
+            del cm.job(m, "yardmaster")["legend_extra"][0]["dest"]
+        out = self.broken(edit)
+        self.assertIn("job 'yardmaster': legend_extra row 1 has no dest", out)
+        self.assertIn("job 'yardmaster': legend_extra row 1: hex 'white' is not #rgb or #rrggbb", out)
+
+    def test_legend_extra_rows_are_objects_with_known_fields_and_new_labels(self):
+        ym = lambda m: cm.job(m, "yardmaster")
+        self.assertIn("job 'yardmaster': legend_extra row 1 must be an object",
+                      self.broken(lambda m: ym(m).update(legend_extra=["NONE"])))
+        self.assertIn("job 'yardmaster': legend_extra row 1: unknown field 'fill'",
+                      self.broken(lambda m: ym(m)["legend_extra"][0].update(fill="FFFFFF")))
+        self.assertIn("job 'yardmaster': blocking list label 'NONE' is given twice",
+                      self.broken(lambda m: ym(m)["legend_extra"].append(dict(ym(m)["legend_extra"][0]))))
+
+    def test_yardmaster_lists_every_color(self):
+        out = self.broken(lambda m: cm.job(m, "yardmaster")["colors"].remove("black"))
+        self.assertTrue(any("colors must list every color" in p and "missing black" in p for p in out), out)
+
+    def test_only_the_yardmaster_job_holds_legend_extra(self):
+        out = self.broken(lambda m: cm.job(m, "d749").update(legend_extra=[]))
+        self.assertIn("job 'd749': only a yardmaster job holds legend_extra", out)
+
     def test_build_stops_on_a_problem(self):
         bad = copy.deepcopy(MASTER)
         bad["colors"].append(dict(bad["colors"][0]))
@@ -92,6 +123,11 @@ class SiteView(unittest.TestCase):
     def test_docx_fields_are_left_out(self):
         self.assertNotIn('"docx"', json.dumps(self.view()))
         self.assertNotIn("_about", self.view())
+
+    def test_yardmaster_legend_extra_reaches_the_site(self):
+        jobs = {j["id"]: j for j in self.view()["jobs"]}
+        self.assertEqual(jobs["yardmaster"]["legend_extra"], cm.job(MASTER, "yardmaster")["legend_extra"])
+        self.assertEqual(jobs["yardmaster"]["legend_extra"][0]["label"], "NONE")
 
     def test_spot_sheet_takes_name_and_anchor_from_industries(self):
         ind = INDUSTRIES["stucki"]
@@ -129,9 +165,9 @@ class DocxViews(unittest.TestCase):
         self.assertEqual(cm.heading_case("2.1 Preparing the scale"), "2.1 Preparing the Scale")
         self.assertEqual(cm.heading_case("1.1 Pre-scale alignment & approach"), "1.1 Pre-Scale Alignment & Approach")
 
-    def test_color_key_uses_the_short_interchange_names(self):
+    def test_color_key_uses_the_sites_destinations(self):
         offline, island = cm.color_key(MASTER)
-        self.assertEqual(offline, [("0000CD", "Demmler / McKeesport"), ("FFA500", "Scully / McKees Rocks")])
+        self.assertEqual(offline, [("0000CD", "Demmler Yard; McKeesport"), ("FFA500", "Scully Yard; McKees Rocks")])
         self.assertEqual(island[0], ("FFFF00", "Aristech Plastics"))
 
     def test_yard_sequence_ends_in_its_color_names(self):
@@ -143,8 +179,14 @@ class DocxViews(unittest.TestCase):
         ym = cm.job(MASTER, "yardmaster")
         labels = [row[0] for row in cm.block_legend(MASTER)]
         colors = {c["id"]: c["label"] for c in MASTER["colors"]}
-        self.assertEqual(labels, [colors[i] for i in ym["colors"]] + [e["label"] for e in ym["docx"]["legend_extra"]])
+        self.assertEqual(labels, [colors[i] for i in ym["colors"]] + [e["label"] for e in ym["legend_extra"]])
+        self.assertEqual(labels[-1], "NONE")
+        self.assertEqual(cm.block_legend(MASTER)[-1], ("NONE", "FFFFFF", "000000", "No card color", "Yard storage"))
         self.assertEqual(labels[:5], ["YELLOW", "GREEN", "PURPLE", "RED", "PINK"])  # the printed Rev E order
+
+    def test_timetable_back_page_prints_the_site_wording(self):
+        tt = MASTER["timetable"]
+        self.assertEqual(cm.tt23_back_page(MASTER), {"subtitle": tt["subtitle"], "note": tt["note"]})
 
     def test_crew_engine_line_spacing(self):
         d749 = next(c for c in cm.crews(MASTER) if c["train"] == "D749")

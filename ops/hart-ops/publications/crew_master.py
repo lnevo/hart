@@ -11,8 +11,9 @@ TT-23 timetable, the spot sheet, EQ-01 and the station map text. Two kinds of re
   from the title block, which the caller passes in (hartlib.map_revision.fields), so this module imports nothing from
   hartlib and hartlib.map_revision can import it.
 - the rebuild_*.py docx scripts read the jobs, colors and timetable through the functions below. A `docx` object in
-  the master holds what only the printed sheet uses (a photo, the blocking list's extra rows) or wording the sheet prints
-  differently from the site; each such wording is an open owner question (lane L5, 2026-11-25).
+  the master holds what only the printed sheet uses (a photo) or wording the sheet prints differently from the site
+  (a crew job's intro, engine line or steps, a sequence row's action, EQ-01's lead items); each such wording is an open
+  owner question (lane L5, 2026-11-25). Colors and the timetable have none: the sheet prints the site's words.
 
 Standard library only, so the site build and the checks import it without python-docx.
 """
@@ -145,7 +146,7 @@ def hex6(color: str) -> str:
 def color_key(master: dict) -> tuple[list[tuple[str, str]], list[tuple[str, str]]]:
     """(interchange, island) swatches of the abridged color key: (fill, label) in the master's order."""
     def rows(group):
-        return [(hex6(c["hex"]), c.get("docx", {}).get("key_label", c["dest"]))
+        return [(hex6(c["hex"]), c["dest"])
                 for c in master["colors"] if c["group"] == group]
     return rows("interchange"), rows("island")
 
@@ -155,8 +156,9 @@ def tt23_rows(master: dict) -> list[tuple[str, str, str]]:
 
 
 def tt23_back_page(master: dict) -> dict[str, str]:
-    """The subtitle and note the back page of the crew, YM and DS sheets prints under its timetable."""
-    return master["timetable"]["docx"]
+    """The subtitle and note the back page of the crew, YM and DS sheets prints under its timetable (the site's)."""
+    tt = master["timetable"]
+    return {"subtitle": tt["subtitle"], "note": tt["note"]}
 
 
 def publication(j: dict) -> dict[str, str]:
@@ -192,13 +194,13 @@ def crews(master: dict) -> list[dict]:
 
 def block_legend(master: dict) -> list[tuple[str, str, str, str, str]]:
     """YM-01's blocking list: (label, fill, text, destination, block), in the job's color order, which the site shows
-    too (owner, 2026-11-25), then the sheet-only rows of docx.legend_extra."""
+    too (owner, 2026-11-25), then the job's legend_extra rows (colors with no id, such as NONE), which it shows too
+    (owner, 2026-11-26)."""
     ym = job(master, "yardmaster")
     colors = {c["id"]: c for c in master["colors"]}
     rows = [(colors[i]["label"], hex6(colors[i]["hex"]), hex6(colors[i]["ink"]), colors[i]["dest"], colors[i]["train"])
             for i in ym["colors"]]
-    rows += [(e["label"], e["fill"], e["text"], e["dest"], e["block"])
-             for e in ym.get("docx", {}).get("legend_extra", [])]
+    rows += [(e["label"], hex6(e["hex"]), hex6(e["ink"]), e["dest"], e["train"]) for e in ym.get("legend_extra", [])]
     return rows
 
 

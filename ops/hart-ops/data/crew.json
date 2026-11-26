@@ -1,5 +1,5 @@
 {
-  "_about": "Master for the crew jobs, destination colors and their text (ADR-039; key: a job's code, a color's id). www/data/crew.json is built from it and from ops/hart-ops/data/industries.csv by ops/hart-ops/publications/build_crew_json.py, and the rebuild_*.py docx read it through crew_master.py. A \"docx\" object holds what only the printed sheet uses, or wording the sheet prints differently from the site. A job's \"site_note\" is a sentence only the site prints, after the summary.",
+  "_about": "Master for the crew jobs, destination colors and their text (ADR-039; key: a job's code, a color's id). www/data/crew.json is built from it and from ops/hart-ops/data/industries.csv by ops/hart-ops/publications/build_crew_json.py, and the rebuild_*.py docx read it through crew_master.py. A \"docx\" object holds what only the printed sheet uses, or wording the sheet prints differently from the site (none on colors or the timetable). A job's \"site_note\" is a sentence only the site prints, after the summary.",
   "colors": [
     {
       "id": "blue",
@@ -9,10 +9,7 @@
       "dest": "Demmler Yard; McKeesport",
       "train": "CSX (D749)",
       "group": "interchange",
-      "spot": "demmler",
-      "docx": {
-        "key_label": "Demmler / McKeesport"
-      }
+      "spot": "demmler"
     },
     {
       "id": "yellow",
@@ -82,10 +79,7 @@
       "dest": "Scully Yard; McKees Rocks",
       "train": "P&OV (NVL return)",
       "group": "interchange",
-      "spot": "scully",
-      "docx": {
-        "key_label": "Scully / McKees Rocks"
-      }
+      "spot": "scully"
     }
   ],
   "timetable": {
@@ -160,11 +154,7 @@
       "Trains may operate ahead of schedule only by dispatcher authority."
     ],
     "bulletin": "Bulletin notices affecting this timetable must be observed until superseded.",
-    "source": "../docs/ops/TT-23_Route23_NevilleQueen_RevisionB.pptx",
-    "docx": {
-      "subtitle": "Neville Queen  ·  Emp. TT No. 23",
-      "note": "Barn→McKees Rocks, 10 min wait, return to Barn. AM reads down, PM reads up. Station time."
-    }
+    "source": "../docs/ops/TT-23_Route23_NevilleQueen_RevisionB.pptx"
   },
   "spotsheet": {
     "title": "Industry Spot Sheets",
@@ -1276,17 +1266,15 @@
         }
       ],
       "source": "../docs/ops/Neville_Island_Yardmaster_Sequence.docx",
-      "docx": {
-        "legend_extra": [
-          {
-            "label": "NONE",
-            "fill": "FFFFFF",
-            "text": "000000",
-            "dest": "No card color",
-            "block": "Yard storage"
-          }
-        ]
-      }
+      "legend_extra": [
+        {
+          "label": "NONE",
+          "hex": "#FFFFFF",
+          "ink": "#000000",
+          "dest": "No card color",
+          "train": "Yard storage"
+        }
+      ]
     },
     {
       "id": "dispatcher",
