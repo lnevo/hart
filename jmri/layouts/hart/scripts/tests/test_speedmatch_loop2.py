@@ -16,6 +16,8 @@ from test_speedmatch import SM, analyze, make_job  # noqa: E402
 
 sys.path.insert(0, str(SM))
 import correct  # noqa: E402
+
+sys.path.insert(0, str(SM.parents[4] / "tools/hartlib/src"))  # this file run alone (check.sh runs it so)
 from hartlib import railroad_facts  # noqa: E402  switches.csv's rows with their names
 
 sys.path.insert(0, str(SM.parent))

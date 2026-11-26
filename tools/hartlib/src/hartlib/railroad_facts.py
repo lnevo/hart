@@ -8,7 +8,7 @@ from collections import Counter
 from dataclasses import dataclass, field, replace
 from functools import cached_property
 from pathlib import Path
-from typing import Collection, Iterable, Mapping
+from typing import Callable, Collection, Iterable, Mapping
 
 from . import layer_files, level_devices, level_masts, paths, tables, track_names
 
@@ -274,7 +274,7 @@ def switch_names(path: Path) -> Mapping[tuple[str, str], str]:
     for source in (devices.master_path(data), data / devices.ONE_FILE):
         if source.is_file():
             return devices.user_names(source)
-    return devices.user_names()
+    return devices.user_names()            # a copy of switches.csv alone (a test's) names by this repo's master
 
 
 def _no_label_columns(path: Path) -> None:
@@ -290,7 +290,8 @@ def _no_label_columns(path: Path) -> None:
                          "closed_id, thrown_id) and the name store gives their names")
 
 
-def read_switch_rows(path: Path, names: Mapping[tuple[str, str], str] | None = None) -> list[SwitchRow]:
+def read_switch_rows(path: Path, names: Mapping[tuple[str, str], str] | Callable[[], Mapping[tuple[str, str], str]]
+                     | None = None) -> list[SwitchRow]:
     """switches.csv's rows in file order, each held to the shape of its key, not its level (naming-layers step 14):
     a row keyed by its OS block (an os_id: staging's rows today, SwitchRow.by_os) or by its half (main and upper's).
     An OS-keyed row's os_block, closed_leg and thrown_leg are the names of its os_id, closed_id and thrown_id in
@@ -339,12 +340,15 @@ def read_switch_rows(path: Path, names: Mapping[tuple[str, str], str] | None = N
                                  f"{r['closed_id']!r}, {r['thrown_id']!r}")
             if names is None:
                 names = switch_names(path)
+            elif callable(names):               # loaded at the first staging row: main and upper need no master
+                names = names()
             for label, ident in LEG_IDS.items():
                 name = names.get((str(level), r[ident]))
                 if not name:
                     raise FactsError(f"{where}: {ident} {r[ident]} is no level {level} device of the device master "
                                      "(a new export dropped it, or the ID is mistyped: give the device's id)")
                 labels[label] = name
+            # the name is the owner's (a rename in devices_field.csv is allowed): only the ID carries the number
         elif any(r[c] for c in LEG_IDS.values()):
             raise FactsError(f"{where}: closed_id and thrown_id go with an os_id (a row keyed by its OS block); a "
                              "row keyed by its half leaves them blank")

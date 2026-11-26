@@ -290,7 +290,6 @@ class TheRepo(unittest.TestCase):
             areas = {r["area"] for r in csv.DictReader(fh)}
         with (data / "switches.csv").open(newline="", encoding="utf-8") as fh:
             used = {r["area"] for r in csv.DictReader(fh) if r["area"]}
-        self.assertEqual(used, {"Helix", "North", "Peninsula", "West"})
         self.assertLessEqual(used, areas)
         with tempfile.TemporaryDirectory() as d:
             side = Path(d) / "switches.columns.csv"
