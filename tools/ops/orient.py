@@ -45,6 +45,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
+from orient_pages import BRANCH, Claim, parse_page  # this folder is on sys.path when the script runs; the tests add it
+
 ROOT = Path(__file__).resolve().parents[2]
 PROJECTS = Path("wiki/projects")
 BASE = "origin/main"
@@ -52,27 +54,6 @@ GIT_TIMEOUT = 20
 FETCH_TIMEOUT = 20
 NET_TIMEOUT = 40  # gh, the deploy stamps and the ingest checks (their ssh ConnectTimeout is 10 s per host)
 SHORT_LIMIT = 10  # lines per section in --short, then "and N more"
-
-
-def _load_part(stem: str):
-    """A part of this script, by path from its own folder (the tests load orient.py by path, with tools/ops not on
-    sys.path), registered under its own name: its dataclasses look their module up there."""
-    path = Path(__file__).resolve().with_name(f"{stem}.py")
-    if not path.is_file():
-        raise ImportError(f"orient: its part {path} is missing")
-    spec = importlib.util.spec_from_file_location(f"hart_{stem}", path)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    return module
-
-
-_pages = _load_part("orient_pages")
-STATUS, CLAIM, CLAIM_LIKE, BRANCH, FENCE, FORMAT, CODE_SPAN = (
-    _pages.STATUS, _pages.CLAIM, _pages.CLAIM_LIKE, _pages.BRANCH, _pages.FENCE, _pages.FORMAT, _pages.CODE_SPAN)
-Claim, Page = _pages.Claim, _pages.Page
-readable_lines, comment_start, parse_page, claim_problem = (
-    _pages.readable_lines, _pages.comment_start, _pages.parse_page, _pages.claim_problem)
 
 
 class OrientError(Exception):

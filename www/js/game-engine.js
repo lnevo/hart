@@ -15,9 +15,9 @@ function seeded(str){
 const rnd=(a,b,rand)=>a+Math.floor(rand()*(b-a+1)); // a whole number from a to b, both included
 const pick=(a,rand)=>a[Math.floor(rand()*a.length)];
 const shuffle=(a,rand)=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
-/* Minutes after midnight as h:mm. With wrap (play) a shift past midnight reads 0:15; without it (exam) 24:15. */
-const fmt=(m,wrap=true)=>{
-  m=Math.round(m);if(wrap)m=((m%1440)+1440)%1440;
+/* Minutes after midnight as h:mm on a 24-hour face, in both games: a run past midnight reads 0:15, not 24:15. */
+const fmt=m=>{
+  m=Math.round(m);m=((m%1440)+1440)%1440;
   const h=Math.floor(m/60),mm=m%60;return h+":"+String(mm).padStart(2,"0");
 };
 /* localStorage as JSON; a private window or blocked storage reads the default and drops the write. */
@@ -26,6 +26,23 @@ const store={
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 };
 const MAX_MARKS=5; // five marks end a run in both games
+
+/* The rule sources and the C&E study deck's sections, for both games and both answer keys. A question's src starts
+   with a source key ("GC · 6.3") and its sec names a section. DECK_SECTIONS are the deck's eight in its order;
+   SECTIONS adds the P&OV blog, which only play asks from. */
+const SOURCES={SC:"1949 Standard Code",GC:"GCOR",TT:"TT&TO primer",YL:"Yard Limits guide",TW:"Track Warrants guide",
+  SG:"Signals guide",SM:"Semaphores guide",PV:"Mark Connolly's P&OV blog,"};
+const DECK_SECTIONS={def:"Definitions",sup:"Superiority & movement",to:"Train orders",sig:"Signals & whistles",
+  sem:"Semaphores",yl:"Yard limits",twc:"Track warrants",gcor:"GCOR crew & speed"};
+const SECTIONS={...DECK_SECTIONS,pov:"The P&OV jobs"};
+const PLAY_DOTLESS=["GC","YL","PV"]; // Extra East: HART Railroad drops the dot after these; the exam keeps every dot
+const SOURCE_KEY=new RegExp("^("+Object.keys(SOURCES).join("|")+")\\b( ·)?");
+/**
+ * A src with its key written out: "GC · 6.3" reads "GCOR · 6.3". A key in dotless also drops the " ·" after it
+ * (play writes "GCOR 6.3"). A src without a known key is returned as it is.
+ * @param {string} s @param {string[]} [dotless] @returns {string}
+ */
+const srcLabel=(s,dotless=[])=>s.replace(SOURCE_KEY,(m,k,dot)=>SOURCES[k]+(dot&&!dotless.includes(k)?dot:""));
 
 /**
  * The part of a game's run state the engine reads and writes.
@@ -48,7 +65,6 @@ const MAX_MARKS=5; // five marks end a run in both games
  * @property {function(Object):string} srcHtml   the source line under a verdict
  * @property {function(string,boolean):void} finish  ends the run with its last words
  * @property {{endVerdict:string,endText:string,marksText:string,smallTag:string}} words
- * @property {boolean} wrapClock                 show the clock on a 24-hour face (see fmt)
  * @property {boolean} lockGo                    disable Continue once it is pressed
  * @property {function(HTMLElement):void} [afterScene]   after a scene is drawn
  * @property {function(HTMLElement,HTMLElement):void} [afterResult]  after a verdict is drawn
@@ -56,7 +72,7 @@ const MAX_MARKS=5; // five marks end a run in both games
 /** @param {EngineConfig} cfg */
 function createEngine(cfg){
   const $=id=>document.getElementById(id);
-  const clock=m=>fmt(m,cfg.wrapClock);
+  const clock=fmt;
   let queue=[];
   const push=(...fns)=>{queue.push(...fns)};
   const front=(...fns)=>{queue.unshift(...fns)};
@@ -137,7 +153,7 @@ function createEngine(cfg){
   return {push,front,reset,next,log,scene,ask,info};
 }
 
-const api={esc,seeded,rnd,pick,shuffle,fmt,store,MAX_MARKS,createEngine};
+const api={esc,seeded,rnd,pick,shuffle,fmt,store,MAX_MARKS,SOURCES,DECK_SECTIONS,SECTIONS,PLAY_DOTLESS,srcLabel,createEngine};
 root.GameEngine=api;
 if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

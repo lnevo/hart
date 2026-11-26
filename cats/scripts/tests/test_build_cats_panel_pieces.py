@@ -14,6 +14,7 @@ sys.path.insert(0, str(ROOT / "tools/schematic"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import build_cats_panel as B  # noqa: E402
+from cats_panel_dress import Label  # noqa: E402
 from test_build_cats_panel_bindings import block, device, facts, node  # noqa: E402
 
 
@@ -167,9 +168,9 @@ class ControlPointPlates(unittest.TestCase):
                     and s.find("SEC_NAME").get("FONT_NAME") == "FONT_CP"]:
             tp.remove(sec)
         used = {(int(s.get("X")), int(s.get("Y"))): s for s in tp.findall("SECTION")}
-        boxes = [((int(s.get("X")), int(s.get("Y"))),
-                  B.plate_box(self.cats, (int(s.get("X")), int(s.get("Y"))), n.get("LOC_NAME"), n.get("NAME"),
-                              n.get("FONT_NAME")))
+        boxes = [Label((int(s.get("X")), int(s.get("Y"))),
+                       B.plate_box(self.cats, (int(s.get("X")), int(s.get("Y"))), n.get("LOC_NAME"), n.get("NAME"),
+                                   n.get("FONT_NAME")))
                  for s in tp.findall("SECTION") for n in [s.find("SEC_NAME")] if n is not None]
         got = B.station_plates(self.cats, root, [("Princess", ("35", "37", "39"))], dict(used), list(boxes),
                                (53, self.fit[1]))

@@ -76,14 +76,18 @@ def _and(items: list[str]) -> str:
     return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " and " + items[-1]
 
 
+# The loader both split scripts import their modules with (jmri/scripts/jython_siblings.py): shipped beside them.
+SIBLING_LOADER = "jython_siblings.py"
+
+
 def _siblings(root: Path) -> set[str]:
     """The .py files of the modules signal_coordinator.py loads and of the parts panel_status.py runs
-    (hartlib.coordinator): shipped as parts of those scripts."""
+    (hartlib.coordinator), and the loader they share: shipped as parts of those scripts."""
     try:
         return {f"{m}.py" for script in SPLIT_SCRIPTS
-                for m in coordinator.sibling_modules(root / script)}
+                for m in coordinator.sibling_modules(root / script)} | {SIBLING_LOADER}
     except coordinator.CoordinatorError as e:
-        raise PageError(str(e)) from None
+        raise PageError(str(e)) from e
 
 
 def _lcos_range(root: Path) -> tuple[int, int]:

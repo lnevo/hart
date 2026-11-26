@@ -53,12 +53,14 @@ JYTHON_STARTUP_SCRIPTS=(
 )
 
 # What signal_coordinator.py and panel_status.py load, in order (SIBLING_MODULES, PARTS): beside them, not Start Up.
+# jython_siblings.py is the loader both import their siblings with.
 JYTHON_SIBLING_MODULES=(
+  "$ROOT/jmri/scripts/jython_siblings.py"
   "$ROOT/jmri/scripts/sml_beans.py" "$ROOT/jmri/scripts/sml_quit.py" "$ROOT/jmri/scripts/sml_ui.py"
   "$ROOT/jmri/scripts/sml_claims.py" "$ROOT/jmri/scripts/sml_handoff.py" "$ROOT/jmri/scripts/sml_events.py"
 )
 JYTHON_PANEL_STATUS_PARTS=(
-  "$ROOT/jmri/layouts/hart/scripts/panel_status_turnouts.py" "$ROOT/jmri/layouts/hart/scripts/panel_status_clicks.py"
+  "$ROOT/jmri/layouts/hart/scripts/panel_status_clicks.py" "$ROOT/jmri/layouts/hart/scripts/panel_status_turnouts.py"
 )
 
 # load_parked: the features parked out of the active tables (hartlib.parked.PARKED: Entry/Exit, the Dispatcher System,

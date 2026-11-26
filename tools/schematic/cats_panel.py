@@ -13,16 +13,18 @@ One builder for all three levels. A band's level says where its facts come from,
 Every binding is made by the same helpers whatever its level: turnout_routes (a switch's NORMAL leg and its close
 and throw IOSPECs), occupancy_spec (a block's OCCUPIEDSPEC / UNOCCUPIEDSPEC), block_entry (a block's name, station
 plate and discipline) and mast_template (a mast's CATS template). The two sources stay apart until the device
-master holds staging's switch legs and detectors as it holds main and upper's (level unification steps 5 and 6);
-reading them is the only level difference left here. Merged from cats_panel_staging.py and cats_panel_levels.py
- with the desks byte-identical.
+master holds staging's switch legs and detectors as it holds main and upper's; reading them is the only level
+difference left here.
 """
 import copy
 import hashlib
 import re
 import sys
 from collections import defaultdict
+from collections.abc import Collection, Iterable, Mapping
 from pathlib import Path
+from types import ModuleType
+from typing import Any, NamedTuple, NotRequired, Protocol, TypedDict
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_device_map as bdm  # noqa: E402  the device map's naming helpers (base, band_level, natural)
@@ -41,33 +43,75 @@ from cats_panel_shapes import (LEVEL_SENSOR_PREFIX, MAIN_UPPER_DISCIPLINE, STAGI
                                STAGING_SENSOR_PREFIX, STAGING_TURNOUT_PREFIX, _SYSTEM_NAME, block_entry, legs_of,
                                level_band, level_bands, mast_template, occupancy_spec, split_system_name,
                                turnout_routes)
-from cats_panel_bound import (block_bindings, dest, half_label, mast_bindings, os_blocks, os_plates,  # noqa: E402,F401
+from cats_panel_bound import (Band, Bands, BlockBinding, BlockKey, IoSpec, MastBinding,  # noqa: E402,F401
+                              SwitchBinding, block_bindings, dest, half_label, mast_bindings, os_blocks, os_plates,
                               staging_names, switch_bindings, switch_of, track_block)
+from cats_panel_facts import Facts  # noqa: E402
+from hartlib.railroad_facts import DeviceRow  # noqa: E402
+
+
+class DeskPanel(Protocol):
+    """What the bindings read of the plugin's CATS panel (cats.panel): its desk block keys, a union-find over them
+    (find: a key's root) and each root's panel name."""
+    blocks: Collection[BlockKey]
+    names: Mapping[BlockKey, str]
+
+    def find(self, key: BlockKey) -> BlockKey: ...
+
+
+class Unbound(TypedDict):
+    """A device map block with no block of its own on the desk (dark_bindings' report): why, and its planned
+    detector's user name when it has one."""
+    why: str
+    detector: NotRequired[str]
+
+
+class DarkBindings(NamedTuple):
+    """dark_bindings' result: the main and upper block bindings, the log lines, the report of blocks with no desk
+    block of their own, and the staging keys of the helix blocks bound here."""
+    bindings: dict[str, BlockBinding]
+    log: list[str]
+    report: dict[str, Unbound]
+    joined: set[BlockKey]
+
+
+class DeskSignal(TypedDict):
+    """A main or upper mast put in a band's signals (level_signals), in the shape the plugin reads a drawn mast."""
+    mast: str
+    toward: str
+    _toward_node: str
+    _edge: str
+    cm_from_toward: float
+    edge_cm: float
+    dir: str
+    kind: str
+    heads: int
+    source: str
 
 
 # --- main and upper (levels 2 and 3): the device master, internal turnouts, masts.csv --------------------------------------
 
-def xover_corners(name, F) -> list:
+def xover_corners(name: str, F: Facts) -> list[str]:
     """The device map's corner blocks of double crossover OS block `name` ("OS Switch <n>" -> "OS Switch <n>a" to
     "<n>d"), or []. The desk draws each corner as a block of its own and the middle of the X as `name`, which the
     device map has no row for (level_switch_bindings)."""
     return [f"{name}{c}" for c in "abcd" if f"{name}{c}" in F.device.blocks]
 
 
-def loop_half_edge(edge, half) -> str:
+def loop_half_edge(edge: str, half: int) -> str:
     """The edge level_signals gives one half of a balloon loop drawn from plan edge `edge` ("e33" -> "e33~1"): a
     suffix of its own, so it never reads as a connector's or helix's x/y piece (the plugin's mast_piece and
     mileposts read those); the strand keeps its plan edge as `plan_edge`."""
     return f"{edge}~{half}"
 
 
-def plan_edge(strand) -> str:
+def plan_edge(strand: Mapping[str, Any]) -> str:
     """The plan edge a drawn strand comes from: the edge level_signals kept before naming a loop half
     (`plan_edge`), else its own, with a connector's or helix's x/y piece suffix dropped."""
     return re.sub(r"(?<=\d)[xy]$", "", strand.get("plan_edge", strand["edge"]))
 
 
-def placeholder(strand) -> str:
+def placeholder(strand: Mapping[str, Any]) -> str:
     """The device map trial name of a drawn main or upper strand: its switch-and-leg key ("Track 107B-107C #1"), which
     name_loop_halves gives it (`trial`). CatsPanelError on a strand with none: a band name_loop_halves did not key."""
     if "trial" not in strand:
@@ -75,10 +119,10 @@ def placeholder(strand) -> str:
     return strand["trial"]
 
 
-def name_loop_halves(bands, device=None):
+def name_loop_halves(bands: Bands, device: DeviceMap | None = None) -> list[tuple[str, Band, dict]]:
     """A copy of `bands` as the device map holds them. Each main and upper strand carries its trial key (`trial`,
     read by placeholder): the switch-and-leg key of its piece (staging_device_map.band_refs, one grammar for every
-    level, owner 2026-11-20; strand_placeholders, one desk block per strand; CatsPanelError on a connector the plugin's
+    level; strand_placeholders, one desk block per strand; CatsPanelError on a connector the plugin's
     partners do not pair). Each balloon loop is two desk blocks: each half's strand is named by its device map
     block less "Track " (the plugin parts a turnback between two differently named tracks in the middle of its run,
     and labels each half) and marked with its half (`loop_half`). The plugin prints a track's track_labels label
@@ -108,10 +152,10 @@ def name_loop_halves(bands, device=None):
         for sid, half in halves.items():
             band["strands"][sid]["loop_half"] = half
             trial = placeholder(band["strands"][sid])
-            row = keys.row(trial)
-            if row is None or row["layer"] != "block":
+            row, stored_name = keys.row(trial), keys.name(trial)
+            if row is None or stored_name is None or row["layer"] != "block":
                 raise CatsPanelError(f"{title}: balloon loop half {trial} has no block row in {DEVICE_MAP.name}")
-            band["strands"][sid]["name"] = keys.name(trial).removeprefix("Track ")    # the name store's, by its ID
+            band["strands"][sid]["name"] = stored_name.removeprefix("Track ")    # the name store's, by its ID
     return out
 
 
@@ -157,9 +201,9 @@ def _master_state(path: Path) -> MasterState:
     return path.resolve(), digest.hexdigest()
 
 
-def part_blocks(device=None) -> dict[str, tuple[str, str]]:
+def part_blocks(device: DeviceMap | None = None) -> dict[str, tuple[str, str]]:
     """{trial name: (part name, the block it is part of)} of the main and upper parts (the device master's part_of: a
-    link inside an OS block, step 5 part 2), which the device maps leave out: a block of its own on
+    link inside an OS block), which the device maps leave out: a block of its own on
     the desk, bound to its OS block's sensor. Read through drawn_keys, which stops on a key two rows give, from the
     master `device` was read from; a device map made in memory (a test's, no path) holds no part."""
     if device is not None and not getattr(device, "path", None):
@@ -169,7 +213,7 @@ def part_blocks(device=None) -> dict[str, tuple[str, str]]:
             if keys.rows[i]["role"] == "part"}
 
 
-def block_names(device, parts: bool | None = None) -> dict[str, str]:
+def block_names(device: DeviceMap | None, parts: bool | None = None) -> dict[str, str]:
     """{drawing key: block name} of the main and upper block rows of `device` (a Facts.device): read through the one
     reader (drawn_keys: by device ID, the name store's name; parts alone when `parts` is True, none when False, both
     when None), so a block is found by its ID, not by its row's own cells. A device map made
@@ -179,7 +223,7 @@ def block_names(device, parts: bool | None = None) -> dict[str, str]:
     return dict(drawn_keys(device).of("block", parts=parts))
 
 
-def device_name(bands, cats, keys, F, log):
+def device_name(bands: Bands, cats: ModuleType, keys: Iterable[BlockKey], F: Facts, log: list[str]) -> str:
     """The device map's name of the main or upper block made of block keys `keys`: the OS block of switch N for an
     OS block (a crossover's halves are one block; switches whose OS blocks the plugin merges over a track too short
     to part them take the lowest number, logged), else the device map track that holds the block's schematic tracks.
@@ -215,11 +259,11 @@ def device_name(bands, cats, keys, F, log):
             raise CatsPanelError(f"desk block {sorted(keys)}: its tracks {', '.join(sorted(edges))} are parts "
                              f"{', '.join(sorted(held))}; a desk block lies in one")
         return held.pop()
-    numbers = {bdm.base(lb) for lb in ends}
-    if not rows and len(numbers) == 1 and len(ends) > 1:
+    end_numbers = {bdm.base(lb) for lb in ends}
+    if not rows and len(end_numbers) == 1 and len(ends) > 1:
         # the track between a crossover's halves (drawn on two bands, 127 and 131): the device map counts it in the
         # crossover's OS block
-        key = f"OS Switch {numbers.pop()}"
+        key = f"OS Switch {end_numbers.pop()}"
         name = named.get(key) or key
         if name not in F.device.blocks:
             raise CatsPanelError(f"{name}: no block row in {DEVICE_MAP.name}")
@@ -230,7 +274,7 @@ def device_name(bands, cats, keys, F, log):
     return rows[0]
 
 
-def spec(system, user):
+def spec(system: str, user: str) -> dict[str, IoSpec]:
     """The IOSPECs a block bound to sensor `system` (user name `user`) takes, as staging's (occupancy_spec):
     JMRIPREFIX the system prefix (M2S, or IS for an internal sensor), DECADDR the rest of the system name."""
     prefix = STAGING_SENSOR_PREFIX if system.startswith(STAGING_SENSOR_PREFIX) else LEVEL_SENSOR_PREFIX
@@ -239,20 +283,21 @@ def spec(system, user):
     return occupancy_spec(prefix, system[len(prefix):], user)
 
 
-def virtual_sensor(name, F):
+def virtual_sensor(name: str, F: Facts) -> dict[str, IoSpec] | None:
     """The IOSPECs of block `name`'s virtual occupancy sensor (the jmri_name of the device map's occupancy row that
     serves it, by that row's blocks column), or None: the middle of a double crossover's X has none (its corners do)."""
     row = F.device.occupancy.get(name)
     return None if row is None else spec(row.jmri_name, row.user_name)
 
 
-def planned_sensor(name, F):
+def planned_sensor(name: str, F: Facts) -> dict[str, IoSpec] | None:
     """The IOSPECs of block `name`'s planned detector (its occupancy row's system_name, a draft), or None."""
     row = F.device.occupancy.get(name)
     return None if row is None or not row.system_name else spec(row.system_name, row.user_name)
 
 
-def inside_os(bands, P, bound_bi, name, row, drawn=None):
+def inside_os(bands: Bands, P: DeskPanel, bound_bi: int, name: str, row: DeviceRow,
+              drawn: drawing_keys.Keys | None = None) -> str:
     """Why device map block `name` (its DeviceRow `row`) has no block of its own on the desk, checked on the drawing:
     each schematic track it holds (its drawing keys, read by its ID through `drawn`, drawn_keys of the master `row`
     came from; with no `drawn`, a device map made in memory, or a row with no ID, a test's: its trial names) is drawn on main or upper from a switch to a switch (or
@@ -282,21 +327,30 @@ def inside_os(bands, P, bound_bi, name, row, drawn=None):
             "block)")
 
 
-def dark_bindings(bands, cats, P, F, bound_bi, stored):
-    """(bindings, log, report, joined) for the main and upper blocks: device map names, MAIN_UPPER_DISCIPLINE, the
+def _band_of(key: BlockKey) -> int:
+    """The band index of a desk block key ("b<index>:...")."""
+    return int(key[1].split(":", 1)[0][1:])
+
+
+def dark_bindings(bands: Bands, cats: ModuleType, P: DeskPanel, F: Facts, bound_bi: int,
+                  stored: Mapping[str, str]) -> DarkBindings:
+    """DarkBindings for the main and upper blocks: device map names, MAIN_UPPER_DISCIPLINE, the
     station plate, the virtual occupancy sensor bound (the device map's jmri_name) and the planned detector kept as
     _planned_*; the report names each device map block with no block of its own on the desk, why, and its sensor;
     `joined` the staging keys of helix blocks, bound here (helix_block, by the `stored` staging names)."""
-    groups = defaultdict(list)
+    groups: defaultdict[BlockKey, list[BlockKey]] = defaultdict(list)
     for key in P.blocks:
         groups[P.find(key)].append(key)
-    band_of = lambda k: int(k[1].split(":", 1)[0][1:])
-    out, log, seen, missing, joined = {}, [], set(), {}, set()
+    out: dict[str, BlockBinding] = {}
+    log: list[str] = []
+    seen: set[str] = set()
+    missing: dict[str, str] = {}
+    joined: set[BlockKey] = set()
     helix = mr.read_helix_tracks()
     part_of = dict(part_blocks(F.device).values())                  # {part: its OS block}
     for root, keys in sorted(groups.items(), key=lambda kv: P.names[kv[0]]):
         panel_name = P.names[root]
-        dark = [k for k in keys if level_band(bands, band_of(k), bound_bi)]
+        dark = [k for k in keys if level_band(bands, _band_of(k), bound_bi)]
         if not dark:
             continue
         if len(dark) < len(keys):       # a helix track: one block from staging up the helix
@@ -315,7 +369,7 @@ def dark_bindings(bands, cats, P, F, bound_bi, stored):
         else:
             name = device_name(bands, cats, keys, F, log)
         joined.update(k for k in keys if k not in dark)
-        e = block_entry(panel_name, name, MAIN_UPPER_DISCIPLINE)
+        e: BlockBinding = block_entry(panel_name, name, MAIN_UPPER_DISCIPLINE)
         # from the device map alone: build_layout_le.py, which runs after this build in make panels, adds the sensor to
         # the tables, and check_layout_facts.py checks the desk against them
         sensor_of = part_of.get(name, name)                 # a part: its OS block's sensor
@@ -335,17 +389,17 @@ def dark_bindings(bands, cats, P, F, bound_bi, stored):
     for name, row in sorted(F.device.blocks.items()):
         if name not in seen and name not in missing:
             missing[name] = inside_os(bands, P, bound_bi, name, row, drawn)
-    report = {}
+    report: dict[str, Unbound] = {}
     for name, why in sorted(missing.items()):
-        report[name] = {"why": why}
+        report[name] = Unbound(why=why)
         if planned_sensor(name, F):
             report[name]["detector"] = F.device.occupancy[name].user_name
             log.append(f"{name}: not a block of its own on the desk ({why}); its detector "
                        f"{report[name]['detector']} has no block to bind")
-    return out, log, report, joined
+    return DarkBindings(out, log, report, joined)
 
 
-def helix_block(key, helix, stored) -> str | None:
+def helix_block(key: BlockKey, helix: Mapping[str, Mapping[str, str]], stored: Mapping[str, str]) -> str | None:
     """The helix block of staging desk key `key` (`helix`: {plan name: its read_helix_tracks entry}): the name store's
     name of its strand (`stored`, staging_names) is a helix track's; else None. staging_device_map.check_helix holds
     the staging device map to the same block."""
@@ -355,7 +409,7 @@ def helix_block(key, helix, stored) -> str | None:
     return helix.get(name, {}).get("block") if name else None
 
 
-def level_switch_bindings(bands, F, bound_bi, dx_corners=None):
+def level_switch_bindings(bands: Bands, F: Facts, bound_bi: int, dx_corners: Mapping[str, Mapping[str, str]] | None = None) -> dict[str, SwitchBinding]:
     """({switch label: binding}, {label: why not bound}) for the main and upper switches: each switch or crossover
     half drawn commands and reports the turnout tables.xml holds as Switch <n> (its device-master row's bean, by its
     system name: split_system_name), closed on leg B (NORMAL) and thrown on leg C. A crossover's halves, on one band or two,
@@ -371,10 +425,10 @@ def level_switch_bindings(bands, F, bound_bi, dx_corners=None):
         core = schematic_plugin()[2]
     except BuildError as exc:                   # the plugin not found, or not at its pinned commit
         raise CatsPanelError(str(exc)) from exc
-    out = {}
+    out: dict[str, SwitchBinding] = {}
     for _bi, band, _ in level_bands(bands, bound_bi):
         nodes = band["nodes"]
-        why = []
+        why: list[str] = []
         half_legs = {n: got[0] for n, got in core.crossover_halves(nodes, band["strands"], why).items()}
         for n, d in sorted(nodes.items()):
             label = str(d.get("label") or "")
@@ -399,7 +453,7 @@ def level_switch_bindings(bands, F, bound_bi, dx_corners=None):
                                      + (f" ({'; '.join(why)})" if why else ""))
             closed = "C" if thrown == "B" else "B"
             prefix, addr = split_system_name(system)
-            out[label] = {"normal": closed, "routes": turnout_routes(prefix, addr, user, closed, thrown)}
+            out[label] = SwitchBinding(normal=closed, routes=turnout_routes(prefix, addr, user, closed, thrown))
             if d["kind"] == "dx" and dx_corners is not None:
                 if num not in dx_corners:
                     raise CatsPanelError(f"double crossover {label}: no corners found for it")
@@ -407,7 +461,7 @@ def level_switch_bindings(bands, F, bound_bi, dx_corners=None):
     return out
 
 
-def intermediate_signal(bands, F, bound_bi, r, by_trial):
+def intermediate_signal(bands: Bands, F: Facts, bound_bi: int, r: Mapping[str, Any], by_trial: Mapping[str, str]) -> tuple[int, DeskSignal]:
     """(band index, signal) of an APB intermediate (a masts.csv row with no switch): at the turnback where
     the loop or split track's half it faces meets the half it protects, heading the way its row's dir says. The
     piece it stands on is the one that meets the protected half at a turnback, whatever the strands' order; only the
@@ -445,7 +499,7 @@ def intermediate_signal(bands, F, bound_bi, r, by_trial):
                 "source": level_masts.PATH.name}
 
 
-def level_signals(bands, F, bound_bi):
+def level_signals(bands: Bands, F: Facts, bound_bi: int) -> None:
     """Put each main and upper mast (masts.csv) in its band's signals, as the plugin reads a band's drawn
     masts: on the track it faces (the device map block holding the schematic track at that leg of its switch), at
     that switch (its toward end), heading the way its row's dir says, its heads from its row. The two halves of a
@@ -455,7 +509,7 @@ def level_signals(bands, F, bound_bi):
     # each drawing key's block by ID through the one reader (drawn_keys), parts among them: a
     # part (a link inside an OS block) is a block of its own, its sensor its OS block's, so a mast may face it
     by_trial = block_names(F.device)
-    added = defaultdict(list)
+    added: defaultdict[int, list[DeskSignal]] = defaultdict(list)
     for r in F.level_masts:
         if level_masts.is_level_virtual(r["system_name"]):
             continue                                # a hidden destination mast: no desk signal, as on staging
@@ -507,14 +561,14 @@ def level_signals(bands, F, bound_bi):
         opts["signals"] = list(opts.get("signals") or ()) + sorted(sigs, key=lambda sg: sg["mast"])
 
 
-def level_mast_bindings(bands, F, bound_bi):
+def level_mast_bindings(bands: Bands, F: Facts, bound_bi: int) -> dict[str, MastBinding]:
     """{mast: {name, template}} for the main and upper masts level_signals drew: each a mast in tables.xml whose
     system name is its masts.csv row's, with its template by mast_template: its own signal_head_plan.csv
     row when it has one, else the template masts of its appearance type take. A row not drawn stops, but a virtual
     one (hidden, no desk signal)."""
     rows = {r["mast"]: r for r in F.level_masts}
     by_type = template_by_type(F)
-    out = {}
+    out: dict[str, MastBinding] = {}
     for bi, _band, opts in level_bands(bands, bound_bi):
         for sg in opts.get("signals") or ():
             name = opts.get("mast_prefix", "") + sg["mast"]
@@ -528,7 +582,7 @@ def level_mast_bindings(bands, F, bound_bi):
             if template is None:
                 raise CatsPanelError(f"{name} on {bands[bi][0]}: no row of its own and no template for its type "
                                  f"{mast_type(r['system_name'])} in signal_head_plan.csv")
-            out[sg["mast"]] = {"name": name, "template": template}
+            out[sg["mast"]] = MastBinding(name=name, template=template)
     missing = sorted(set(rows) - {e["name"] for e in out.values()}
                      - {m for m, r in rows.items() if level_masts.is_level_virtual(r["system_name"])})
     if missing:

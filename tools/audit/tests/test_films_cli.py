@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import contextlib
+import importlib
 import io
 import subprocess
 import sys
@@ -29,9 +30,22 @@ class Dispatch(unittest.TestCase):
     def test_every_builder_is_a_module_with_main(self) -> None:
         self.assertEqual(sorted(films.FILMS), ["cats", "ctc", "le"])
         for module in films.FILMS.values():
-            src = (HISTORY / f"{module}.py").read_text(encoding="utf-8")
-            self.assertIn("\ndef main() -> None:", src)
-            self.assertNotIn("__main__", src, f"{module}.py is run through films.py, not on its own")
+            mod = importlib.import_module(module)  # importing a builder builds nothing
+            self.assertTrue(callable(mod.main), module)
+            self.assertTrue(mod.FRAMES, module)
+
+    def test_a_film_error_is_printed_and_exits_1(self) -> None:
+        import film_common
+
+        def fail() -> None:
+            raise film_common.FfmpegError(["ffmpeg", "-i", "x", "/out/le.mp4"], 1, "Unknown encoder 'libx264'\n")
+
+        err = io.StringIO()
+        fake = types.SimpleNamespace(main=fail)
+        with mock.patch.object(films.importlib, "import_module", return_value=fake), contextlib.redirect_stderr(err):
+            self.assertEqual(films.main(["le"]), 1)
+        self.assertIn("films.py le: ffmpeg exited 1 writing le.mp4", err.getvalue())
+        self.assertIn("Unknown encoder 'libx264'", err.getvalue())
 
     def test_an_unknown_or_missing_film_is_refused(self) -> None:
         for argv in ([], ["schematic"]):

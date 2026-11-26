@@ -188,6 +188,20 @@ class Symbols(unittest.TestCase):
         with self.assertRaisesRegex(L.LevelsError, "no curve"):
             L.draw([bare], {0: "main"}, set(), "main")
 
+    def test_a_flex_piece_without_its_length_stops(self) -> None:
+        piece = flex(0, 0, 0.0)
+        piece["cm"] = None
+        with self.assertRaisesRegex(L.LevelsError, "T0 has no length"):
+            L.draw([piece], {0: "main"}, set(), "main")
+
+    def test_a_level_draws_each_part_and_counts_it(self) -> None:
+        svg, counts = L.draw([flex(0, 0, 0.0), left_turnout(1, 0.0)], {0: "main", 1: "main"}, set(), "main")
+        self.assertEqual(svg.count('<polyline class="trk"'), 1)
+        self.assertEqual(svg.count('<line class="to"'), 3)
+        self.assertIn('<text class="tl" x="69.7" y="0.3">', svg)
+        self.assertEqual((counts["switches"], counts["flex"], counts["flex_m"], counts["bbox"]),
+                         (1, 1, 1.0, [0.0, 0.0, 100.0, 10.0]))
+
 
 class Cli(unittest.TestCase):
     def test_check_skips_when_the_default_plan_is_not_on_the_machine(self) -> None:

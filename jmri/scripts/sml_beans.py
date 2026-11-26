@@ -1,8 +1,8 @@
 # JMRI jython -- part of signal_coordinator.py: its constants, bean and name helpers, and
 # the Digicon bean roster (SignalMasts with LCOS heads, their SignalMastLogics).
 #
-# signal_coordinator.py loads this from preference:jython and reloads it on every run (see
-# _load_siblings there). JMRI binds `masts`, `signals` and the other manager names in the
+# signal_coordinator.py loads this from preference:jython and reloads it on every run
+# (jython_siblings.py). JMRI binds `masts`, `signals` and the other manager names in the
 # script's globals only, so the manager helpers here use InstanceManager, which holds the
 # same defaults.
 
