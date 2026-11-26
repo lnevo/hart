@@ -13,80 +13,61 @@
 # quietly afterward (do not block on Layout Editor — EditorManager often lags).
 
 import jmri
-from java.awt.event import ActionListener, MouseAdapter, MouseEvent  # noqa: F401 (MouseAdapter, MouseEvent: a part)
+import sys
+from java.awt.event import ActionListener
 from java.beans import PropertyChangeListener
 from java.lang import Runnable
 from javax.swing import SwingUtilities, Timer
 
-# The parts of this script, beside it in preference:jython, in the order they run. They are not modules: each is
-# this script's own text, cut out to keep the file short, and runs in this namespace at the place it was cut from
-# (_run_part below), so every name and global stays the script's and a re-run reads each part afresh. The deploy
-# ships each one beside the script (tools/hosts/tests/test_coordinator_shipping.py holds every host's list to
-# this tuple).
+# This script's sibling modules, beside it in preference:jython, in load order: each comes after every sibling it
+# imports. The script imports them through jython_siblings.py, which reloads each on a re-run. The deploy ships
+# each one beside the script (tools/hosts/tests/test_coordinator_shipping.py holds every host's list to this
+# tuple).
 PARTS = (
-    "panel_status_turnouts",
     "panel_status_clicks",
+    "panel_status_turnouts",
 )
 
 
-class PanelStatusPartError(ImportError):
-    """A part of this script is missing from the jython folder, does not compile, or did not run."""
+def _sibling_loader():
+    """jython_siblings.py from preference:jython, reloaded if an earlier run imported it; returns (module, folder).
 
-
-def _compile_parts(names):
-    """Read and compile every part from preference:jython; returns name -> code.
-
-    JMRI runs this script with no __file__ and not from its folder, so the folder is found as
-    signal_coordinator.py finds its modules (the two scripts live in different repo folders and import nothing
-    from each other, so these few lines are copied, not shared). Every part is found and compiled before any
-    runs, so a missing or broken one stops the script before it changes anything. Each is read as UTF-8 and
-    compiled from that text, as JMRI compiles this script (it reads it as UTF-8, with no coding line).
+    JMRI runs this script with no __file__ and not from its folder, so the folder comes from FileUtil and goes on
+    sys.path. signal_coordinator.py starts the same way: these lines run before the shared loader is imported.
     """
     import os
 
     folder = jmri.util.FileUtil.getExternalFilename("preference:jython")
-    if not folder or not os.path.isdir(folder):
-        raise PanelStatusPartError("panel_status: no jython folder (preference:jython is %r)" % (folder,))
-    codes = {}
-    for name in names:
-        path = os.path.join(folder, name + ".py")
-        if not os.path.isfile(path):
-            raise PanelStatusPartError(
-                "panel_status: %s.py is missing from %s; the deploy ships it beside this script" % (name, folder)
-            )
-        try:
-            with open(path, "rb") as f:
-                text = f.read().decode("utf-8")
-            codes[name] = compile(text, path, "exec")
-        except Exception as exc:
-            raise PanelStatusPartError("panel_status: %s.py in %s does not compile: %s" % (name, folder, exc))
-    print("panel_status: parts %s from %s" % (", ".join(names), folder))
-    return codes
+    if not folder or not os.path.isfile(os.path.join(folder, "jython_siblings.py")):
+        raise ImportError("panel_status: no jython_siblings.py in the jython folder %r "
+                          "(the folder is missing or the deploy left the loader out)"
+                          % (folder,))
+    if folder not in sys.path:
+        sys.path.insert(0, folder)
+    cached = sys.modules.get("jython_siblings")
+    if cached is None:
+        import jython_siblings as cached
+    else:
+        cached = cached.reload_module(cached)
+    return cached, folder
 
 
-_part_code = _compile_parts(PARTS)
+_loader, _folder = _sibling_loader()
+_loader.load("panel_status", _folder, PARTS)
+print("panel_status: parts %s from %s" % (", ".join(PARTS), _folder))
 
+from panel_status_clicks import _lamp_at, _PanelLampClick, _raise_block_labels  # noqa: E402,F401 (_lamp_at: tests)
+from panel_status_clicks import arm_status_lamp_clicks  # noqa: E402
+from panel_status_turnouts import (  # noqa: E402,F401 (_ensure_turnout_fb_head: the tests)
+    TURNOUT_FB_HEAD, _LAMP_AMBER_MS, _after_paint, _ensure_turnout_fb_head, _included_plant_turnouts, _is_plant,
+    _note_plant, _paint_turnout_fb_lamp, sync_turnout_fb_lamp, toggle_turnout_fb_mode,
+)
 
-def _run_part(name):
-    """Run one part here, once, in this script's namespace."""
-    code = _part_code.pop(name, None)
-    if code is None:
-        raise PanelStatusPartError("panel_status: part %s is not in PARTS or has already run" % name)
-    exec(code, globals())
-
-TWOSENSOR = jmri.Turnout.TWOSENSOR
-DIRECT = jmri.Turnout.DIRECT
-
-TURNOUT_FB_HEAD = "IH9990"
 LCOS_SENSOR = "M2S1567"
 SML_MODE_SENSOR = "IS:SML_MODE"
 TRACK_POWER_SENSOR = "IS:TRACK_POWER"
 BRIDGE_CMD_TOPIC = "track/bridge/cmd"
 RESUBSCRIBE_PAYLOAD = "RESUBSCRIBE"
-
-GREEN = jmri.SignalHead.GREEN
-YELLOW = jmri.SignalHead.YELLOW
-RED = jmri.SignalHead.RED
 
 # Lamps: short settle, then arm when plant turnouts exist (no LE gate).
 _ARM_FIRST_MS = 1000
@@ -97,15 +78,8 @@ _CLICK_RETRY_MS = 2000
 _CLICK_MAX_ATTEMPTS = 30
 
 _armed = False
-_clicks_armed = False
-_panel_clicks = {}   # id(editor) -> its _PanelLampClick
-_icon_rebound = False
-_last_fb_appearance = None
 _listener = None
-_click_busy = False
 _plant_count = 0
-# sys name -> feedback mode of each included plant. A full scan fills it; a turnout's own event updates its entry.
-_plant_modes = {}
 
 # Every listener this script attaches carries this attribute, so a second run of the script can find the first
 # run's listeners and remove them (otherwise one click toggles twice). Same approach as mimic_relay.py. Each arm
@@ -157,9 +131,16 @@ def _drop_ours(listeners, remove, keep=None):
     return n
 
 
-_run_part("panel_status_turnouts")
 
-
+def _show_amber_sensor(sys_name):
+    """Pending click feedback on LCOS/Signals (INCONSISTENT → yellow icon)."""
+    try:
+        s = sensors.getSensor(sys_name)
+        if s is None:
+            s = sensors.provideSensor(sys_name)
+        s.setKnownState(jmri.Sensor.INCONSISTENT)
+    except Exception as e:
+        print("panel_status: amber %s failed: %s" % (sys_name, e))
 
 
 def _mqtt_publish(topic, payload):
@@ -432,9 +413,18 @@ class _TurnoutListener(PropertyChangeListener):
             print("panel_status: listener error: %s" % e)
 
 
-_run_part("panel_status_clicks")
 
-
+def _arm_status_lamp_clicks():
+    """Wire the four status lamps' clicks (panel_status_clicks.arm_status_lamp_clicks); True once all are found."""
+    return arm_status_lamp_clicks(
+        {
+            LCOS_SENSOR: ("lcos", publish_lcos_resubscribe),
+            SML_MODE_SENSOR: ("signals", toggle_sml_mode),
+            TRACK_POWER_SENSOR: ("power", toggle_track_power),
+        },
+        {TURNOUT_FB_HEAD: ("turnouts", toggle_turnout_fb_mode)},
+        _drop_ours,
+    )
 
 
 def _arm_listeners():
@@ -520,9 +510,6 @@ class _RetryClicks(ActionListener):
         else:
             print("panel_status: status lamp icons not found on panel")
 
-
-if _part_code:
-    raise PanelStatusPartError("panel_status: parts in PARTS that never ran: %s" % ", ".join(sorted(_part_code)))
 
 print("panel_status: loaded; arming in %dms" % _ARM_FIRST_MS)
 _t0 = Timer(_ARM_FIRST_MS, _ArmAttempt(0))

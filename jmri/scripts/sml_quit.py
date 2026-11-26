@@ -2,7 +2,7 @@
 # ShutDownTask): Hold, Unheld, sml_mode disabled, then the SML pairs off, once.
 #
 # signal_coordinator.py loads this from preference:jython after sml_beans and reloads it on every run
-# (see _load_siblings there). The task itself (DigiconSmlQuitTask) and its registration stay in the
+# (jython_siblings.py). The task itself (DigiconSmlQuitTask) and its registration stay in the
 # script: the task falls back to the script's global `controller`.
 
 from java.lang import Runnable, Thread
