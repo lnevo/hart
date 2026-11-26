@@ -280,7 +280,7 @@ class Readers(Copy):
         self.fails(lambda: R.read_rows(noted, ("mast",), note=True), "noted.csv line 1: the note line")
 
     def test_a_mast_needs_its_facing_block(self) -> None:
-        self.edit("masts", "1,Mast 2L,Brick,1,Track Main West,", "1,Mast 2L,Brick,1,,")
+        self.edit("masts", "1,Mast 2L,st:brick,1,Track Main West,", "1,Mast 2L,st:brick,1,,")
         self.fails(lambda: R.read_masts(self.src.masts), "masts.csv line 2: mast Mast 2L: a visible mast faces a block")
 
     def test_read_masts_gives_the_rows_of_the_levels_asked_for(self) -> None:
@@ -618,7 +618,7 @@ class Invariants(Copy):
                       self.problems("staging-devices"))
 
     def test_a_staging_mast_on_a_block_staging_has_not(self) -> None:
-        self.edit("masts", "1,Mast 2L,Brick,1,Track Main West,", "1,Mast 2L,Brick,1,Track Nowhere,")
+        self.edit("masts", "1,Mast 2L,st:brick,1,Track Main West,", "1,Mast 2L,st:brick,1,Track Nowhere,")
         self.assertIn("masts.csv: Mast 2L: block Track Nowhere is no level 1 block row of the device master",
                       self.problems("masts"))
 
@@ -705,7 +705,7 @@ class Invariants(Copy):
                                  "level 2 turnout Switch 107 as well")
 
     def test_level_masts(self) -> None:
-        self.edit("masts", "Mast 110L,CP 107,109,Track 105-109,", "Mast 110L,CP 107,125,Track Nowhere,")
+        self.edit("masts", "Mast 110L,cp:107,109,Track 105-109,", "Mast 110L,cp:107,125,Track Nowhere,")
         got = self.problems("masts")
         self.assertIn("masts.csv: Mast 110L faces Track Nowhere, which is no device map block", got)
         self.assertIn("masts.csv: Mast 110L protects Switch 125, which is not in CP 107", got)

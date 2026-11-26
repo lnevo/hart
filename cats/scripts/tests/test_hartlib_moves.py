@@ -16,6 +16,7 @@ sys.path.insert(0, str(ROOT / "cats/scripts"))
 
 import cats_turnout_io as tio  # noqa: E402
 import digicon_lib as le  # noqa: E402
+from hartlib import track_names  # noqa: E402  (digicon_lib put tools/hartlib/src on the path)
 
 
 class LookupsMatchOldLoops(unittest.TestCase):
@@ -54,11 +55,13 @@ class LookupsMatchOldLoops(unittest.TestCase):
             if un and occ and occ in addr:
                 want[un] = (addr[occ], occ)
         with le.OCC_CSV.open(newline="", encoding="utf-8") as fh:
-            for row in csv.DictReader(fh):
-                name = row["block_user_name"].strip()
-                sens = row["occupancy_sensor_user_name"].strip()
-                if name not in want and sens in addr:
-                    want[name] = (addr[sens], sens)
+            rows = list(csv.DictReader(fh))
+        names = track_names.names_by_id([row["block_id"] for row in rows])     # the binding names blocks by id
+        for row in rows:
+            name = names[row["block_id"].strip()]
+            sens = row["occupancy_sensor_user_name"].strip()
+            if name not in want and sens in addr:
+                want[name] = (addr[sens], sens)
         self.assertTrue(want)
         self.assertEqual(le.load_occupancy(), want)
 

@@ -1,0 +1,4 @@
+column,description,type,required,key,refs,values
+block_id,"The block the CATS desks bind, by its block id (block:3B-end, os:23:A-1A; ADR-039 lane L4c), never by its public name. hartlib.occupancy_bindings gives the readers its name from the name store.",str,yes,yes,jmri/layouts/hart/data/block_lengths.csv:id,
+occupancy_sensor_user_name,The user name of the block's occupancy sensor in JMRI.,str,yes,,jmri/layouts/hart/data/devices.csv:user_name,
+cats_discipline,"The CATS discipline of the block. digicon_lib.load_disciplines reads YARD, or any value CATS does not know, as CTC.",enum,yes,,,CTC;YARD;ABS;APB;DTC;UNDEFINED

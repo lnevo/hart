@@ -1,0 +1,7 @@
+column,description,type,required,key,refs,values
+cp_id,"The control point's key (ADR-039 lane L4c): cp: and the number of a main or upper control point (CP 107 is cp:107), or a staging one's name in lower-case words joined by - (cp:east-end). Given once and kept when the name changes. A cp cell of the device pair and of masts.csv names a control point by it (hartlib.places). The four staging interlockings carry their station's name, and a staging cp cell names the station (st:), so no cell names them today.",str,yes,yes,,
+level,"1 staging, 2 main, 3 upper.",enum,yes,,,1;2;3
+interlocking,"The control point's name: a staging one by place (Brick), a main or upper one CP and its lowest switch number (owner, 2026-11-15). Unique on its level (hartlib.railroad_facts.read_interlockings).",str,yes,,,
+switches,"Its switch numbers, separated by a comma.",str,yes,,,
+area,"The LCOS node area of a main or upper control point; empty on staging, whose areas are the desk areas of stations.csv.",str,level=2;3,,,
+notes,Text for people.,str,,,,

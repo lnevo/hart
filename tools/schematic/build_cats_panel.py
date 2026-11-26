@@ -4,8 +4,8 @@ Generate the live CATS Designer desks for all three levels (staging, main, upper
 schematic-maps plugin's cats module (the code behind `schematic cats --bindings`): cats/panels/HART_CTC.xml (CTC)
 and its ABS twin HART_ABS.xml, the desks the deploy installs (sync_hart_package.sh LIVE_PANELS) and the launchers
 open (CATS cut-over; ADR-023). This script is their only writer; the hand-wired Designer panel HART_Digicon.xml is not
-read. tools/check.sh validates the desks with cats/scripts/validate_cats_panel.py and checks them against the layout
-facts (tools/audit/check_layout_facts.py).
+read. tools/check.sh compares the desks byte for byte with --check, holds them to their approval fingerprints
+(check_approved.py) and checks them against the layout facts (tools/audit/check_layout_facts.py).
 
 Bands stack in the sheet's order (staging on top). Staging is bound to the live JMRI objects through the bindings
 file cats/panels/HART_CTC.bindings.json, which this script writes from the railroad's facts, never by
