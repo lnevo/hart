@@ -43,8 +43,11 @@ class SwitchFacts(unittest.TestCase):
     StagingMapError, as every other staging map problem does."""
 
     def test_closed_legs_are_the_staging_rows_of_switches_csv(self):
+        # the file gives IDs; their names are the name store's
+        names = devices.user_names()
         with (ROOT / "jmri/layouts/hart/data/switches.csv").open(newline="", encoding="utf-8") as fh:
-            want = {r["os_block"]: r["closed_leg"] for r in csv.DictReader(fh) if r["level"] == "1"}
+            want = {names[("1", r["os_id"])]: names[("1", r["closed_id"])] for r in csv.DictReader(fh)
+                    if r["level"] == "1"}
         self.assertEqual(sdm.closed_legs(), want)
 
     def test_a_facts_error_is_a_staging_map_error(self):

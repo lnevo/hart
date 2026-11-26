@@ -34,7 +34,8 @@ carries no content on to the next step: "check" (a check or comparison reads it)
 "pull" (a Store pull back into the sources), "mirror" (a folder holds a copy), "capture" (a page screenshot),
 "history" (git history of a file). A hovered line's chain on the page stops at runners and does not walk side links;
 both are still drawn, and a click still traces the full reach. This script checks the graph and
-writes one self-contained page from tools/ops/pipeline_map_page.html; the layout (tools/ops/pipeline_map_layout.js) and
+writes one self-contained page from tools/ops/pipeline_map_page.html; the layout (tools/ops/pipeline_map_layout.js and
+tools/ops/pipeline_map_helpers.js) and
 the viewer (tools/ops/pipeline_map_view.js) are inlined into it as one script, so the page can redraw any subset (some
 lanes, or the chain around one file) without build tools.
 """
@@ -56,11 +57,13 @@ GRAPH = ROOT / "docs" / "pipeline-map" / "pipeline_map.json"
 SIDES = ("check", "pointer", "pull", "mirror", "capture", "history")  # an edge's "side": why it carries no content on
 PAGE = ROOT / "docs" / "pipeline-map" / "index.html"
 # the page around the map (placeholders __NAME__, PLACEHOLDERS) and the scripts it inlines, in this order, as one script:
-# the layout (pure functions; node loads it for the unit tests), then the viewer (app(), the page's state and input)
+# the layout (pure functions; node loads it for the unit tests), its helpers (pure; the layout's node exports include
+# them), then the viewer (app(), the page's state and input)
 TEMPLATE = Path(__file__).resolve().with_name("pipeline_map_page.html")
 LAYOUT_JS = Path(__file__).resolve().with_name("pipeline_map_layout.js")
+HELPERS_JS = Path(__file__).resolve().with_name("pipeline_map_helpers.js")
 VIEW_JS = Path(__file__).resolve().with_name("pipeline_map_view.js")
-SCRIPTS = (LAYOUT_JS, VIEW_JS)
+SCRIPTS = (LAYOUT_JS, HELPERS_JS, VIEW_JS)
 # the website copy: its path in the site (under www/ locally, under the build's output folder on a deploy) and the
 # page its back link returns to
 SITE_REL = "library/pipeline-map.html"
