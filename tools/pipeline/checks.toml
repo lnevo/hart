@@ -810,6 +810,9 @@ inputs = [
   { path = "jmri/layouts/hart/data/schematic/preferences.json", label = "title block, via hartlib.map_revision" },
 ]
 outputs = [
+  # also written by the schematic step in tools/pipeline/panels.toml (hartlib.map_revision); both build it with
+  # crew_master.build(), so they agree while the crew master builds (a broken master: map_revision only sets the
+  # revision and date, and this check fails on it)
   "www/data/crew.json",
 ]
 
