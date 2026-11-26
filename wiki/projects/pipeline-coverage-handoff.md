@@ -56,8 +56,8 @@ Agent: `general-purpose`. `/code-review medium`.
 
 ## C. Archive (S)
 
-- The 2026-11-08 speed-matching scripts that made that session's files: `runner/step_runner.py`, `runner/move_to.py`, `analyze_profile.py` and `propose_table.py`. Their README and `RERUN_PLAN.md` links point into `archive/`, and the `ruff.toml` exception for the runner goes. `block_speeds.py` and every data file stay.
-- `docs/jmri/speedmatching/STRR_*.py` (two third-party scripts), with their `ruff.toml` and size-guard exclusions.
+- Done 2026-11-25 (in `archive/code/speedmatching/profile-2026-11-08/`; the ruff and size-guard exceptions are gone, the README and `RERUN_PLAN.md` links point there): the 2026-11-08 speed-matching scripts that made that session's files: `runner/step_runner.py`, `runner/move_to.py`, `analyze_profile.py` and `propose_table.py`. Their README and `RERUN_PLAN.md` links point into `archive/`, and the `ruff.toml` exception for the runner goes. `block_speeds.py` and every data file stay.
+- Done 2026-11-25: `docs/jmri/speedmatching/STRR_*.py` (two third-party scripts) are in `archive/code/speedmatching/`, with their `ruff.toml` and size-guard exclusions gone.
 - `archive/code/benchwork-tools/helix/` and `archive/code/benchwork-tools/main_level/` generators, once the owner says the benchwork build is finished.
 - Archived on 2026-11-25 (owner): `cats/panels/HART_chubb_magnet.xml` (#1163) and `docs/ap/electrical/build_soq.py` and `make_drawings.py`, kept as the frozen SOQ's record.
 - Kept: `cats/scripts/sync_hart_package.sh` (ADR-007 keeps the old command).
@@ -98,7 +98,7 @@ Checked and needed: the two `tables.xml` checks that look like repeats (they cov
 ## Follow-ups
 
 - The entry-file scan in `pipeline_map_coverage.py` (older than lane A), from the #1168 review: a comment line ending in `\` swallows the next line (important); an apostrophe in an unquoted word; only the first `PYTHONPATH` entry is read; reused shell variable names; a cut-off `--help` description; a brittle `hasattr` test.
-- The `--pi --win` deploy for #1149 (stage.sh, the Pi speed-match publisher and its data file) is owed; the coordinator plans it with the owner.
+- ~~The `--pi --win` deploy for #1149 (stage.sh, the Pi speed-match publisher and its data file).~~ Done: every layout deploy since ships main, and the Pi and Windows are at `a1b762caa` (`make deploy-status`, 2026-11-26).
 - `unit-jmri` and the edit hook's budget: row 7 in section E.
 
 ## Open for the owner

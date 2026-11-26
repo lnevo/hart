@@ -1,7 +1,7 @@
 # Cleanup and streamlining: hand-off (2026-11-25)
 
 Status: active
-Coordinator: hart-95 holds the merge queue across sessions (since 2026-11-25 13:18; `coordinate` skill).
+Coordinator: hart-6d holds the merge queue across sessions (since 2026-11-26 01:54; `coordinate` skill).
 
 Two read-only reviews on 2026-11-25 (sessions hart-rc-1 and hart-rc-2: "what is still not ideal in the architecture and pipeline") matched against the work in flight that day. Most findings already belong to an [ADR-037](../decisions/ADR-037-one-step-manifest.md) stage; this page orders the rest. The owner chose the options below on 2026-11-25.
 
@@ -29,10 +29,10 @@ Parallel PRs kept failing after merge (2026-11-25): GitHub does not require a br
 
 ## A. Stale notes (docs, S)
 
-- `wiki/STATUS.md`: the swap entry still says a real `make panelpro-test` with a detector and a head swapped is to run; PR #1113 and #1122 record that it passed in a sandbox.
-- `wiki/projects/naming-layers-handoff.md`: the "Open for step 12" (210LA faces Spur 2), "Open for step 5" (`main_lines.csv` staging names, derived `facing` not followed) and `publish_draft` stamp lines are closed. The step 12 swap made Mast 210LA face Track 209 Spur 1 (`devices_generated.csv`), `main_lines.csv` keys by block ID, `devices.follow_renames` carries renames into `facing` and `protects`, and the stamp is version 4. Mark each closed with its PR.
-- Naming step 11 shipped: its merge (`adddc0d6`) is in the 2026-11-25 11:31 deploy of `67b6d185`; the hand-off table now says so.
-- Ended-session worktrees: the two `layout-docs-*` ones are gone. `naming-step5-tests` (`0f37619b`) matches main file for file, so it is replaced; its worktree holds a submodule, so removing it needs `git worktree remove --force` (the owner's call), then the branch on origin goes.
+- Done 2026-11-26 (the entry is rewritten and now sits in `wiki/status/current/`): `wiki/STATUS.md`: the swap entry still said a real `make panelpro-test` with a detector and a head swapped is to run; PR #1113 and #1122 record that it passed in a sandbox.
+- Done (each is marked "Closed" with its date in the hand-off): `wiki/projects/naming-layers-handoff.md`: the "Open for step 12" (210LA faces Spur 2), "Open for step 5" (`main_lines.csv` staging names, derived `facing` not followed) and `publish_draft` stamp lines are closed. The step 12 swap made Mast 210LA face Track 209 Spur 1 (`devices_generated.csv`), `main_lines.csv` keys by block ID, `devices.follow_renames` carries renames into `facing` and `protects`, and the stamp is version 4. Mark each closed with its PR.
+- Done (the table's step 11 row says so): naming step 11 shipped: its merge (`adddc0d6`) is in the 2026-11-25 11:31 deploy of `67b6d185`; the hand-off table now says so.
+- Ended-session worktrees (checked 2026-11-26: the `naming-step5-tests` worktree and branch are no longer listed locally or on origin; any removal stays the owner's call): the two `layout-docs-*` ones are gone. `naming-step5-tests` (`0f37619b`) matches main file for file, so it is replaced; its worktree holds a submodule, so removing it needs `git worktree remove --force` (the owner's call), then the branch on origin goes.
 
 ## B. ADR-038 migration (S to M)
 
