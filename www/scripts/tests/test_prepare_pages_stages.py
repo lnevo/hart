@@ -348,6 +348,55 @@ class PhotoStages(_Repo):
         self.assertFalse((dest / "assets/archive/h2.jpg").exists())
 
 
+class WithoutPillow(unittest.TestCase):
+    """Every photo step raises PillowMissing, naming the step, instead of returning quietly."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self.dest = Path(self._tmp.name)
+        patcher = mock.patch.dict(sys.modules, {"PIL": None, "PIL.Image": None, "PIL.ImageOps": None})
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def assert_missing(self, step: str, call) -> None:
+        with self.assertRaises(build.PillowMissing) as ctx:
+            call()
+        self.assertIsInstance(ctx.exception, build.PortalBuildError)
+        self.assertIn(step, str(ctx.exception))
+        self.assertIn("python3 -m pip install Pillow", str(ctx.exception))
+
+    def test_each_step_names_itself(self):
+        gallery = _write(self.dest, "data/gallery.json", json.dumps({"items": []}))
+        self.assert_missing("resizing a.png", lambda: build._web_jpeg(self.dest / "a.png", self.dest / "a.jpg", 100))
+        self.assert_missing("thumbnails for gallery.json", lambda: build._gallery_thumbs(gallery, self.dest, "gallery"))
+        self.assert_missing("card thumbnails", lambda: build._card_thumbs(self.dest))
+        self.assert_missing("WebP companions", lambda: build._webp_companions(self.dest))
+
+    def test_archive_without_resizing_drops_mirror_items_and_gives_no_thumbs(self):
+        _write(self.dest, "assets/archive/local.png")
+        _write(self.dest, "media/m.png")
+        path = _write(self.dest, "data/archive.json", json.dumps({"items": [
+            {"id": "m", "src": "../media/m.png"},
+            {"id": "l", "src": "assets/archive/local.png", "origin": "x"},
+        ]}))
+        with mock.patch.object(photos, "_source", side_effect=lambda rel: self.dest / rel.removeprefix("../")):
+            build._vendor_archive_images(path, self.dest, resize=False)
+        self.assertEqual(json.loads(path.read_text())["items"], [{"id": "l", "src": "assets/archive/local.png"}])
+
+    def test_the_photo_stages_warn_once_each_and_drop_mirror_photos(self):
+        _write(self.dest, "data/gallery.json", json.dumps({"items": [{"id": "m", "album": "a", "src": "../media/m.png"}]}))
+        err, out = io.StringIO(), io.StringIO()
+        with mock.patch.object(photos, "_jpeg_cache", return_value=None), \
+                contextlib.redirect_stderr(err), contextlib.redirect_stdout(out):
+            stamp, _, reused = build._photo_early(self.dest, full=False)
+            build._photo_late(self.dest, stamp, set(), full=False)
+        self.assertFalse(reused)
+        self.assertEqual(err.getvalue().count("WARNING: Pillow is not installed"), 2)
+        self.assertIn("photo stages: full run (Pillow is missing)", out.getvalue())
+        self.assertEqual(json.loads((self.dest / "data/gallery.json").read_text())["items"], [])
+
+
 class BuiltPages(unittest.TestCase):
     """_build_pages (stage 1b): the pages built at deploy instead of committed (ADR-036)."""
 
