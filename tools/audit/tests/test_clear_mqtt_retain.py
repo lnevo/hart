@@ -49,8 +49,8 @@ class FakeBroker:
 class ClearRetain(unittest.TestCase):
     def _run(self, broker: FakeBroker) -> tuple[int, str]:
         mod = _load()
-        mod._sub = broker.sub
-        mod._clear = broker.clear
+        setattr(mod, "_sub", broker.sub)       # the broker calls, replaced by the fake
+        setattr(mod, "_clear", broker.clear)
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
             code = mod.main()
