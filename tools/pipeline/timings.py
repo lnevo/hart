@@ -9,13 +9,15 @@ page reads, and check that summary against the step manifests.
 
 tools/check.sh and tools/schematic/build_panels.sh append one line per step run to the log (tools/pipeline/
 step_timings.sh): step-timings.tsv in the shared cache (hartlib.paths.cache_dir, <main checkout>/.cache/hart), or the
-file HART_STEP_TIMINGS_LOG names (set and empty: no log). Each line is tab-separated:
+file HART_STEP_TIMINGS_LOG names (spaces trimmed, ~ expanded; set and empty or spaces: no log). Each line is
+tab-separated:
 
     iso_time  runner  step  seconds  result  mode
 
 runner is panels or check; step is the panels.toml step name (runner panels) or check.sh's job name (runner check:
-a checks.toml step's name, panels-<step> for the jobs the panels step expands into); result ok, failed or skipped;
-mode cold, warm or empty. A line that does not read so is left out and counted.
+a checks.toml step's name, panels-<step> for the jobs the panels step expands into); result ok, failed or skipped
+(its stamp held, or it printed SKIPPED); mode cold (the schematic cache off or empty; make panels FULL=1 ignores only
+the stamps, so it can be warm), warm or empty. A line that does not read so is left out and counted.
 
 The summary holds step names, counts, seconds and dates only, so it is safe to publish:
 
@@ -26,7 +28,8 @@ warm_s and cold_s are the medians (one decimal) of the ok runs in that mode, nul
 runs skipped (two decimals); last the day of the last run; updated the latest last. A step no manifest names any more
 is left out. Keys are sorted, so the same log always gives the same bytes.
 
-With an empty log, summarize keeps a summary already there and otherwise writes SEED: the cold figures of the timed
+With an empty log, or one whose runs are all of steps no manifest names, summarize keeps a summary already there
+and otherwise writes SEED: the cold figures of the timed
 full rebuild in docs/pipeline-map/efficiency-plan.md ("Full rebuild timed"), source "efficiency-plan.md".
 """
 from __future__ import annotations
@@ -234,17 +237,18 @@ def cmd_summarize(log: Optional[Path], out: Path) -> int:
     runs, bad = parse_log(text)
     if bad:
         print(f"timings: left out {bad} line(s) of the log that are not runs", file=sys.stderr)
-    if not runs:
-        if out.exists():
-            print(f"timings: the log has no runs; {paths.rel(out)} kept as it is")
-            return 0
-        summary = seed()
-    else:
+    summary: Optional[Summary] = None
+    if runs:
         known = known_steps()
         summary = summarize(runs, known)
         gone = sorted({r.key for r in runs} - known)
         if gone:
             print(f"timings: left out steps no manifest names: {', '.join(gone)}", file=sys.stderr)
+    if summary is None or not summary["steps"]:
+        if out.exists():
+            print(f"timings: the log has no runs of a manifest step; {paths.rel(out)} kept as it is")
+            return 0
+        summary = seed()
     text = render(summary)
     old = out.read_text(encoding="utf-8") if out.exists() else None
     if old != text:

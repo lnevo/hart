@@ -45,6 +45,7 @@ case "$1" in */manifest.py)
 esac
 echo "$*" >> "$PANELS_LOG"
 case "$1" in *"/$PANELS_FAIL") exit 1 ;; esac
+case "$1" in *"/${PANELS_SAY_SKIPPED:-none}") echo "SKIPPED: the stand-in" ;; esac
 exit 0
 """
 GOOD = {"name": "a", "mode": "step", "cmd": ["python3", "tools/schematic/build_hands.py"], "check_args": ["--check"],
@@ -183,7 +184,7 @@ class Manifest(unittest.TestCase):
 class DryRun(unittest.TestCase):
     """The script itself, with python3 replaced by a recorder that fails for one named script."""
 
-    def run_script(self, *args, fail="", manifest=""):
+    def run_script(self, *args, fail="", manifest="", **extra):
         with tempfile.TemporaryDirectory() as tmp:
             fake = Path(tmp) / "python3"
             fake.write_text(FAKE_PYTHON, encoding="utf-8")
@@ -193,7 +194,8 @@ class DryRun(unittest.TestCase):
             timings = Path(tmp) / "timings" / "step-timings.tsv"     # the stub runs stay out of the real log
             env = dict(os.environ, PATH=f"{tmp}{os.pathsep}{os.environ['PATH']}", PANELS_LOG=str(log),
                        PANELS_FAIL=fail or "none", HART_PANELS_OS="Linux",    # no SML discovery here: SmlDiscovery
-                       REAL_PYTHON=sys.executable, MANIFEST_STUB=manifest, HART_STEP_TIMINGS_LOG=str(timings))
+                       REAL_PYTHON=sys.executable, MANIFEST_STUB=manifest, HART_STEP_TIMINGS_LOG=str(timings),
+                       **extra)
             r = subprocess.run(["bash", str(SCRIPT), *args], cwd=REPO, env=env, capture_output=True, text=True)
             self.timings = timings.read_text(encoding="utf-8").splitlines() if timings.exists() else []
             return r.returncode, r.stdout + r.stderr, log.read_text(encoding="utf-8").splitlines()
@@ -205,8 +207,15 @@ class DryRun(unittest.TestCase):
         self.assertEqual([(c[1], c[2], c[4]) for c in cols],
                          [("panels", n, "ok") for n in NAMES[:NAMES.index("signals")]] + [("panels", "signals", "failed")])
         self.assertTrue(all(len(c) == 6 and c[3].isdigit() and c[5] in ("warm", "cold") for c in cols), cols)
-        self.run_script("--full")
+        self.run_script(SCHEMATIC_CACHE="")
         self.assertEqual({line.split("\t")[5] for line in self.timings}, {"cold"})
+        with tempfile.TemporaryDirectory() as cache:
+            (Path(cache) / "solved").write_text("", encoding="utf-8")
+            self.run_script("--full", SCHEMATIC_CACHE=cache)       # --full ignores the stamps, not the cache
+        self.assertEqual({line.split("\t")[5] for line in self.timings}, {"warm"})
+        self.run_script(PANELS_SAY_SKIPPED="build_signals.py")
+        self.assertEqual([line.split("\t")[4] for line in self.timings if line.split("\t")[2] == "signals"],
+                         ["skipped"])
         self.run_script("--check")
         self.assertEqual(self.timings, [])
 
@@ -305,8 +314,8 @@ class SmlDiscovery(unittest.TestCase):
             env.update(PATH=f"{tmp}{os.pathsep}{os.environ['PATH']}", PANELS_LOG=str(log),
                        DISCOVERED=str(tmp / "discovered"), HART_PANELS_OS=os_name,
                        HART_SML_DISCOVER_CMD=str(discover), HART_OPERATING_FLAG=str(flag),
-                       HART_SML_DISCOVER_LOCK=str(lock), REAL_PYTHON=sys.executable, HART_STEP_TIMINGS_LOG="",
-                       **extra)
+                       HART_SML_DISCOVER_LOCK=str(lock), REAL_PYTHON=sys.executable)
+            env.update({"HART_STEP_TIMINGS_LOG": "", **extra})
             r = subprocess.run(["bash", str(SCRIPT), *args], cwd=REPO, env=env, capture_output=True, text=True)
             self.lock_left = lock.exists()
             return r.returncode, r.stdout + r.stderr, log.read_text(encoding="utf-8").splitlines()
@@ -324,6 +333,14 @@ class SmlDiscovery(unittest.TestCase):
         self.assertEqual(got.count("discover"), 1)
         self.assertIn("sml-discover: ok", out)
         self.assertIn("all current", out)
+
+    def test_a_discovered_retry_logs_sml_current_once(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            timings = Path(tmp) / "step-timings.tsv"
+            code, out, _ran = self.run_script(HART_STEP_TIMINGS_LOG=str(timings))
+            rows = [line.split("\t") for line in timings.read_text(encoding="utf-8").splitlines()]
+        self.assertEqual(code, 0, out)
+        self.assertEqual([r[4] for r in rows if r[2] == "sml-current"], ["ok"])
 
     def test_it_discovers_once_and_stops_when_still_stale(self):
         code, out, ran = self.run_script(SML_ALWAYS_STALE="1")

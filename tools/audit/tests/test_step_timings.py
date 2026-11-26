@@ -8,10 +8,12 @@ import io
 import json
 import os
 import random
+import re
 import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -101,7 +103,11 @@ class Seed(unittest.TestCase):
                 self.assertEqual(out.read_text(), "{}\n")      # an empty log keeps what is there
                 log.write_text(line(step="schematic") + "\n", encoding="utf-8")
                 T.main(["summarize", "--log", str(log), "--out", str(out)])
-            self.assertEqual(list(json.loads(out.read_text())["steps"]), ["panels:schematic"])
+                self.assertEqual(list(json.loads(out.read_text())["steps"]), ["panels:schematic"])
+                kept = out.read_text()
+                log.write_text(line(step="renamed-away") + "\n", encoding="utf-8")
+                T.main(["summarize", "--log", str(log), "--out", str(out)])
+            self.assertEqual(out.read_text(), kept)      # no run of a manifest step: kept, as for an empty log
 
 
 class Check(unittest.TestCase):
@@ -162,27 +168,47 @@ class Shell(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             blocked = Path(tmp) / "file"
             blocked.write_text("", encoding="utf-8")
-            for value in (str(blocked / "sub" / "log.tsv"), ""):
-                r = self.bash('step_timings_open "$PWD"; step_timing panels hands 1 ok warm; echo done',
-                              HART_STEP_TIMINGS_LOG=value)
-                self.assertEqual((r.returncode, r.stdout, r.stderr), (0, "done\n", ""))
+            err = Path(tmp) / "cache" / "step-timings.err"
+            for value, errs in ((str(blocked / "sub" / "log.tsv"), 1), ("", 0), ("   ", 0)):
+                with self.subTest(value=value):
+                    err.unlink(missing_ok=True)
+                    r = self.bash('step_timings_open "$PWD" panels; step_timing panels hands 1 ok warm; echo done',
+                                  HART_STEP_TIMINGS_LOG=value, HART_CACHE_DIR=f"{tmp}/cache")
+                    self.assertEqual((r.returncode, r.stdout, r.stderr), (0, "done\n", ""))
+                    lines = err.read_text(encoding="utf-8").splitlines() if err.exists() else []
+                    self.assertEqual(len(lines), errs, lines)
+                    self.assertTrue(all(line.split("\t")[1] == "panels" for line in lines), lines)
+
+    def test_a_log_named_with_spaces_and_tilde_is_the_file_under_home(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            r = self.bash('step_timings_open "$PWD" panels; step_timing panels hands 2 ok warm',
+                          HART_STEP_TIMINGS_LOG="  ~/logs/t.tsv \t", HOME=tmp, HART_CACHE_DIR=f"{tmp}/cache")
+            self.assertEqual((r.returncode, r.stderr), (0, ""))
+            runs, _ = T.parse_log((Path(tmp) / "logs/t.tsv").read_text(encoding="utf-8"))
+            with mock.patch.dict(os.environ, {"HART_STEP_TIMINGS_LOG": "  ~/logs/t.tsv ", "HOME": tmp}):
+                self.assertEqual(T.default_log(), Path(tmp) / "logs/t.tsv")
+            with mock.patch.dict(os.environ, {"HART_STEP_TIMINGS_LOG": "   "}):
+                self.assertIsNone(T.default_log())
+        self.assertEqual([r.step for r in runs], ["hands"])
 
     def test_check_sh_jobs_are_read_from_its_job_files(self):
         with tempfile.TemporaryDirectory() as tmp:
             jobs, log = Path(tmp) / "jobs", Path(tmp) / "log.tsv"
             jobs.mkdir()
             (jobs / "0.skip").write_text("", encoding="utf-8")
-            for i, rc, secs in ((1, "0", "12"), (2, "1", "3"), (3, "0", "9")):
+            for i, rc, secs in ((1, "0", "12"), (2, "1", "3"), (3, "0", "9"), (4, "0", "2")):
                 (jobs / f"{i}.rc").write_text(rc + "\n", encoding="utf-8")
                 (jobs / f"{i}.time").write_text(secs + "\n", encoding="utf-8")
-            r = self.bash(f'step_timings_jobs "$PWD" "{jobs}" " ruff mypy panels-cats " ruff mypy panels-cats '
-                          f'"unit-jmri test_x"', HART_STEP_TIMINGS_LOG=str(log), FULL="1")
+                (jobs / f"{i}.log").write_text("SKIPPED: no plugin\n" if i == 4 else "fine\n", encoding="utf-8")
+            r = self.bash(f'step_timings_jobs "$PWD" "{jobs}" " ruff mypy panels-cats layout-docs " ruff mypy '
+                          f'panels-cats "unit-jmri test_x" layout-docs', HART_STEP_TIMINGS_LOG=str(log),
+                          SCHEMATIC_CACHE="")
             self.assertEqual(r.returncode, 0, r.stderr)
             runs, bad = T.parse_log(log.read_text(encoding="utf-8"))
         self.assertEqual((bad, len({r.day for r in runs})), (0, 1))
         self.assertEqual([(r.step, r.seconds, r.result, r.mode) for r in runs],
                          [("ruff", 0.0, "skipped", "cold"), ("mypy", 12.0, "ok", "cold"),
-                          ("panels-cats", 3.0, "failed", "cold")])
+                          ("panels-cats", 3.0, "failed", "cold"), ("layout-docs", 2.0, "skipped", "cold")])
 
     def test_a_log_it_cannot_write_leaves_one_err_line_and_the_run_unchanged(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -237,7 +263,7 @@ class Shell(unittest.TestCase):
                 r = subprocess.run(["bash", "tools/schematic/build_panels.sh"], cwd=root, env=env,
                                    capture_output=True, text=True)
                 cache = Path(tmp) / "cache"
-                runs[helper] = (r.returncode, r.stdout, r.stderr,
+                runs[helper] = (r.returncode, re.sub(r"\d+ s\b", "N s", r.stdout), r.stderr,
                                 {p.name: p.read_text(encoding="utf-8") for p in cache.glob("step-timings.*")})
         self.assertEqual(runs["good"][:3], runs["broken"][:3])
         self.assertEqual(runs["good"][0], 0, runs["good"])
@@ -252,9 +278,9 @@ class Shell(unittest.TestCase):
             empty.mkdir()
             full.mkdir()
             (full / "x").write_text("", encoding="utf-8")
-            r = self.bash(f'step_timings_mode 0 "{full}"; step_timings_mode 1 "{full}"; step_timings_mode 0 "{empty}";'
-                          f' step_timings_mode 0 ""; step_timings_mode "" "{tmp}/none"')
-        self.assertEqual(r.stdout.split(), ["warm", "cold", "cold", "cold", "cold"])
+            r = self.bash(f'step_timings_mode "{full}"; step_timings_mode "{empty}"; step_timings_mode ""; '
+                          f'step_timings_mode "{tmp}/none"', FULL="1")
+        self.assertEqual(r.stdout.split(), ["warm", "cold", "cold", "cold"])      # FULL=1 leaves a warm cache warm
 
 
 if __name__ == "__main__":

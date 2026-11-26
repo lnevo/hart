@@ -5,8 +5,9 @@
 # Each line, tab-separated:
 #   iso_time  runner  step  seconds  result  mode
 # runner is panels or check, step the manifest step's name (check.sh's job name: panels-<step> for the panels jobs),
-# result ok, failed or skipped (its stamp said current), mode cold, warm or empty.
-# HART_STEP_TIMINGS_LOG names another log; set and empty, nothing is written (tests that run a runner on stubs).
+# result ok, failed or skipped (its stamp said current, or it printed SKIPPED), mode cold (the schematic cache off or
+# empty), warm or empty. HART_STEP_TIMINGS_LOG names another log (spaces trimmed, a leading ~ expanded); set and
+# empty or spaces, nothing is written (tests that run a runner on stubs).
 # Nothing here can fail a run or change its output: a log that cannot be made or written is left alone, and the
 # failure goes as one line (iso_time  runner  what failed) into step-timings.err beside the default log in the shared
 # cache, once per run; when even that cannot be written, nowhere. Each runner writes that line itself when this file
@@ -33,7 +34,12 @@ step_timings_err() {
 step_timings_open() {
   STEP_TIMINGS_ROOT=$1 STEP_TIMINGS_RUNNER=$2
   if [[ -n "${HART_STEP_TIMINGS_LOG+set}" ]]; then
-    STEP_TIMINGS_LOG="$HART_STEP_TIMINGS_LOG"
+    STEP_TIMINGS_LOG="${HART_STEP_TIMINGS_LOG#"${HART_STEP_TIMINGS_LOG%%[![:space:]]*}"}"
+    STEP_TIMINGS_LOG="${STEP_TIMINGS_LOG%"${STEP_TIMINGS_LOG##*[![:space:]]}"}"
+    case "$STEP_TIMINGS_LOG" in
+      "~") STEP_TIMINGS_LOG="$HOME" ;;
+      "~/"*) STEP_TIMINGS_LOG="$HOME/${STEP_TIMINGS_LOG#\~/}" ;;
+    esac
   elif ! STEP_TIMINGS_LOG="$(hart_cache_dir "$1" step-timings.tsv 2>/dev/null)"; then
     STEP_TIMINGS_LOG=""
     step_timings_err "hart_cache_dir failed (tools/hosts/profile_tables_guard.sh not loaded?)"
@@ -45,10 +51,9 @@ step_timings_open() {
   return 0
 }
 
-# step_timings_mode FULL CACHE: "cold" when FULL is 1 or the schematic cache folder CACHE is off (empty), missing or
-# empty, else "warm".
+# step_timings_mode CACHE: "cold" when the schematic cache folder CACHE is off (empty), missing or empty, else "warm".
 step_timings_mode() {
-  if [[ "$1" == 1 || -z "$2" || ! -d "$2" || -z "$(find "$2" -mindepth 1 -print -quit 2>/dev/null)" ]]; then
+  if [[ -z "$1" || ! -d "$1" || -z "$(find "$1" -mindepth 1 -print -quit 2>/dev/null)" ]]; then
     echo cold
   else
     echo warm
@@ -67,15 +72,16 @@ step_timing() {
 }
 
 # step_timings_jobs ROOT JOBS MANIFEST_JOBS NAME...: check.sh's lines, after its jobs are collected. NAME are its queued
-# jobs in order; job i left $JOBS/i.skip (its stamp was current) or $JOBS/i.rc and $JOBS/i.time. Only the jobs named in
-# MANIFEST_JOBS (space-separated, with a space at each end) are logged, all with the time the run ends. mode is cold
-# with FULL=1 or the schematic cache off (SCHEMATIC_CACHE empty).
+# jobs in order; job i left $JOBS/i.skip (its stamp was current) or $JOBS/i.rc, $JOBS/i.time and $JOBS/i.log (a job
+# that printed SKIPPED, as collect counts it, is logged skipped). Only the jobs named in MANIFEST_JOBS (space-separated,
+# with a space at each end) are logged, all with the time the run ends. mode is read after the jobs ran, so it is cold
+# only when the schematic cache is off or still empty.
 step_timings_jobs() {
   local root=$1 jobs=$2 manifest=$3 mode i=0 name res secs
   shift 3
   step_timings_open "$root" check
   [[ -n "$STEP_TIMINGS_LOG" ]] || return 0
-  mode="$(step_timings_mode "${FULL:-}" "${SCHEMATIC_CACHE:-}")"
+  mode="$(step_timings_mode "${SCHEMATIC_CACHE:-}")"
   STEP_TIMINGS_NOW="$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null)" || return 0
   for name in "$@"; do
     if [[ "$manifest" == *" $name "* ]]; then
@@ -84,6 +90,7 @@ step_timings_jobs() {
       else
         res=failed
         [[ "$(cat "$jobs/$i.rc" 2>/dev/null)" == 0 ]] && res=ok
+        [[ "$res" == ok ]] && grep -q SKIPPED "$jobs/$i.log" 2>/dev/null && res=skipped
         secs="$(cat "$jobs/$i.time" 2>/dev/null)" || secs=""
       fi
       step_timing check "$name" "$secs" "$res" "$mode"
