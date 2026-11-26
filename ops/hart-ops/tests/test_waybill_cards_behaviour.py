@@ -131,9 +131,19 @@ class Parsing(unittest.TestCase):
 
     def test_usage_without_a_load_keyword_is_its_own_load_and_warns(self):
         err = io.StringIO()
-        with mock.patch.object(sys, "stderr", err):
+        with mock.patch.object(sys, "stderr", err), mock.patch.object(wdeck, "_WARNED_USAGES", set()):
             self.assertEqual(wdeck._commodity_from_usage("Mystery", "Test Works"), "Mystery")
-        self.assertIn("'Mystery' at Test Works", err.getvalue())
+            self.assertEqual(wdeck._commodity_from_usage("Mystery", "Test Works"), "Mystery")
+            wdeck._commodity_from_usage("Mystery", "Other Works")
+        self.assertEqual(err.getvalue().count("'Mystery' at Test Works"), 1)
+        self.assertEqual(err.getvalue().count("'Mystery' at Other Works"), 1)
+
+    def test_party_pool_copies_do_not_share_the_table_parties(self):
+        spec = wdata.SPOT_WAYBILL[("Calgon Carbon", "Coal Unload")]
+        pool = wdeck._party_pool("IN", "Coal", spec)
+        self.assertEqual(pool, spec["suppliers"])
+        pool[0]["name"] = "changed"
+        self.assertNotEqual(spec["suppliers"][0]["name"], "changed")
 
 
 class SpotCsv(unittest.TestCase):

@@ -119,6 +119,10 @@ def _format_spots(nums: list[int]) -> str:
     return ", ".join(parts)
 
 
+# (industry, usage) pairs already warned about, so a spot is named once per run.
+_WARNED_USAGES: set[tuple[str, str]] = set()
+
+
 def _commodity_from_usage(usage: str, industry: str = "") -> str:
     """The load a spot usage names, from a keyword in it.
 
@@ -144,6 +148,9 @@ def _commodity_from_usage(usage: str, industry: str = "") -> str:
         return "Steel"
     if "shipping" in u:
         return "Plastic Resins"
+    if (industry, usage) in _WARNED_USAGES:
+        return usage
+    _WARNED_USAGES.add((industry, usage))
     print(
         f"waybill: spot usage {usage!r} at {industry or 'an industry'} names no known load; "
         "the cards show the usage as the load (add it to waybill_data.SPOT_WAYBILL)",
@@ -206,14 +213,14 @@ def _apply_load_summary(card: dict, summary_load: str = "") -> None:
 
 
 def _party_pool(flow: str, load: str, spec: WaybillSpec) -> list[Party]:
-    """The parties a direction's cards are spread over: customers route an inbound empty."""
+    """Copies of the parties a direction's cards are spread over: customers route an inbound empty."""
     if load == EMPTY and flow == "IN":
-        return list(spec["customers"])
+        return [Party(**p) for p in spec["customers"]]
     if load == EMPTY:
         return []
     if flow == "IN":
-        return list(spec["suppliers"])
-    return list(spec["customers"])
+        return [Party(**p) for p in spec["suppliers"]]
+    return [Party(**p) for p in spec["customers"]]
 
 
 def _spread_parties(pool: list[Party], count: int) -> list[Party]:
