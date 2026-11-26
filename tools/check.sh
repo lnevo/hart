@@ -352,10 +352,25 @@ start_jobs() {
       fi
       if [[ -s "$JOBS/$n.stamplog" ]]; then { echo "--- stamps ($name):"; cat "$JOBS/$n.stamplog"; } >>"$JOBS/$n.log"; fi
       echo "$((SECONDS - start))" >"$JOBS/$n.time"
+      echo "$rc" >"$JOBS/$n.rc"   # collect reads this, not wait's status (job_status, below)
       exit "$rc"
     ) &
     pids[$n]=$!
   done
+}
+# job_status I: whether job I passed. The code the job wrote itself counts first; else wait's own status, unless wait
+# answered 127 "pid N is not a child of this shell": bash 3.2 (macOS) can drop a background job from its table
+# under load, finished or still running, and then wait returns at once. A job that is still alive then is waited
+# for by polling until it writes its code or ends; one that ended without writing a code fails.
+job_status() {
+  local rc pid="${pids[$1]}" w=0
+  wait "$pid" 2>/dev/null || w=$?
+  if [[ ! -e "$JOBS/$1.rc" ]]; then
+    (( w != 127 )) && return "$w"
+    while [[ ! -e "$JOBS/$1.rc" ]] && kill -0 "$pid" 2>/dev/null; do sleep 0.2; done
+  fi
+  rc="$(cat "$JOBS/$1.rc" 2>/dev/null)" || return 1
+  [[ "$rc" == 0 ]]
 }
 collect() {
   local i took skipped=0 results=()
@@ -363,7 +378,7 @@ collect() {
     if [[ -e "$JOBS/$i.skip" ]]; then
       skipped=$((skipped + 1))
       results+=("${names[$i]}"$'\tskipped')
-    elif wait "${pids[$i]}"; then
+    elif job_status "$i"; then
       echo "--- ${names[$i]} ($(cat "$JOBS/$i.time")s)"
       results+=("${names[$i]}"$'\tpassed')
     else
