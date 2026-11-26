@@ -1,4 +1,5 @@
 """Per-page share thumbnails: the build names the page's own card, and gaps are reported."""
+import html
 import json
 import sys
 import tempfile
@@ -41,7 +42,7 @@ class HeadTags(unittest.TestCase):
             other = build._head_tags(Path("guides/b.html"), "B")
         finally:
             share_cards.load = orig
-        self.assertIn(f'og:image" content="{build.SITE_URL}assets/share/a.jpg"', own)
+        self.assertIn(f'og:image" content="{build.portal_common.SITE_URL}assets/share/a.jpg"', own)
         self.assertIn('og:image:alt" content="The &quot;A&quot; board"', own)
         self.assertIn("assets/icons/share-card.jpg", other)
 
@@ -51,7 +52,7 @@ class HeadTags(unittest.TestCase):
         self.assertNotIn('name="description"', own)  # the page's own tag stays the only one
         default = build._head_tags(Path("guides/b.html"), "B")
         self.assertIn('name="description"', default)
-        self.assertIn(build.html.escape(build.SHARE_DESCRIPTION, quote=True), default)
+        self.assertIn(html.escape(build.SHARE_DESCRIPTION, quote=True), default)
 
     def test_build_reads_the_page_description_from_its_head(self):
         page = (

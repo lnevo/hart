@@ -10,6 +10,7 @@ from unittest import mock
 SCRIPTS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS))
 import prepare_github_pages as build  # noqa: E402
+import portal_photos as photos  # noqa: E402  (a patch goes on the module that holds the name)
 
 try:
     from PIL import Image
@@ -38,7 +39,7 @@ class WebJpegCache(unittest.TestCase):
         return p
 
     def renders(self, src, out, max_px=100):
-        with mock.patch.object(build, "_render_jpeg", wraps=build._render_jpeg) as spy:
+        with mock.patch.object(photos, "_render_jpeg", wraps=build._render_jpeg) as spy:
             self.assertTrue(build._web_jpeg(src, out, max_px))
         return spy.call_count
 
@@ -56,7 +57,7 @@ class WebJpegCache(unittest.TestCase):
         self.photo("a.png", (10, 20, 30))                      # same name, new picture
         self.assertEqual(self.renders(self.src, self.tmp / "o.jpg"), 1)
         self.assertEqual(self.renders(self.src, self.tmp / "o.jpg", max_px=50), 1)
-        with mock.patch.object(build, "_render_key", return_value=b"other drawing code"):
+        with mock.patch.object(photos, "_render_key", return_value=b"other drawing code"):
             self.assertEqual(self.renders(self.src, self.tmp / "o.jpg"), 1)
         self.assertEqual(len(list(self.cache.glob("*.jpg"))), 4)
 
@@ -75,7 +76,7 @@ class WebJpegCache(unittest.TestCase):
         self.assertIn("cannot use", "".join(c.args[0] for c in err.write.call_args_list))
 
     def test_a_failed_resize_leaves_nothing_in_the_cache(self):
-        with mock.patch.object(build, "_render_jpeg", side_effect=OSError("broken image")):
+        with mock.patch.object(photos, "_render_jpeg", side_effect=OSError("broken image")):
             with self.assertRaises(OSError):
                 build._web_jpeg(self.src, self.tmp / "o.jpg", 100)
         self.assertEqual(list(self.cache.iterdir()), [])

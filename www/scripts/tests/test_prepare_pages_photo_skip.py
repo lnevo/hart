@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import test_prepare_pages_stages as base  # noqa: E402
 
 build = base.build
+photos = base.photos
 Image = base.Image
 real_open = Image.open if Image else None
 
@@ -63,10 +64,10 @@ class PhotoSkip(base.FullBuild):
 
     def test_a_matching_stamp_reuses_the_photos_and_reads_no_original(self):
         self.assertIn("photo stages: full run (no saved run)", self.build())
-        with mock.patch.object(build, "_web_jpeg", side_effect=AssertionError("resized")), \
-                mock.patch.object(build, "_render_jpeg", side_effect=AssertionError("rendered")), \
+        with mock.patch.object(photos, "_web_jpeg", side_effect=AssertionError("resized")), \
+                mock.patch.object(photos, "_render_jpeg", side_effect=AssertionError("rendered")), \
                 mock.patch.object(Image, "open", side_effect=self.no_original_read), \
-                mock.patch.object(build, "_webp_companions", side_effect=AssertionError("webp")):
+                mock.patch.object(photos, "_webp_companions", side_effect=AssertionError("webp")):
             out = self.build()
         self.assertIn("photo stages: reused the saved run", out)
         self.assertIn("WebP companions:", out)
@@ -104,7 +105,7 @@ class PhotoSkip(base.FullBuild):
     def test_a_changed_page_misses_only_the_late_stage(self):
         self.build()
         self.track("docs/photo.html", base._page("Photo — HART", '<h1>Photo again</h1><p>A large photo on a page, shown in the page body for the build.</p><img src="../assets/gallery/night/p1.jpg" alt="p1">'))
-        with mock.patch.object(build, "_render_jpeg", side_effect=AssertionError("rendered")):
+        with mock.patch.object(photos, "_render_jpeg", side_effect=AssertionError("rendered")):
             out = self.build()
         self.assertIn("photo stages: reused", out)
         self.assertIn("<picture>", (self.out / "docs/photo.html").read_text(encoding="utf-8"))
@@ -155,6 +156,23 @@ class PhotoSkip(base.FullBuild):
         self.assertIn("photo stages: reused", out)
         self.assertIn("photo stages, card thumbs and WebP: full run (inputs changed)", out)
 
+    def test_an_edit_to_any_photo_code_file_misses(self):
+        # The key hashes whole files, so a helper the group calls (portal_common._source, _archive_px) counts too.
+        self.assertEqual({p.name for p in photos.PHOTO_CODE_FILES}, {"portal_photos.py", "portal_common.py", "share_cards.py"})
+        copies = []
+        for path in photos.PHOTO_CODE_FILES:
+            copy = Path(self._tmp.name) / f"code-{path.name}"
+            copy.write_bytes(path.read_bytes())
+            copies.append(copy)
+        self.addCleanup(photos._photo_code_key.cache_clear)
+        with mock.patch.object(photos, "PHOTO_CODE_FILES", tuple(copies)):
+            photos._photo_code_key.cache_clear()
+            self.build()
+            self.assertIn("photo stages: reused", self.build())
+            copies[1].write_text(copies[1].read_text(encoding="utf-8") + "\n# an edited helper\n", encoding="utf-8")
+            photos._photo_code_key.cache_clear()
+            self.assertIn("photo stages: full run (inputs changed)", self.build())
+
     def test_reuse_leaves_the_resize_cache_unpruned_and_a_full_run_prunes(self):
         with mock.patch.object(build, "_prune_jpeg_cache") as prune:
             self.build()
@@ -176,7 +194,7 @@ class PhotoSkip(base.FullBuild):
 
     def test_full_ignores_the_stamp_and_saves_a_new_one(self):
         self.build()
-        with mock.patch.object(build, "_web_jpeg", wraps=build._web_jpeg) as spy:
+        with mock.patch.object(photos, "_web_jpeg", wraps=build._web_jpeg) as spy:
             out = self.build("--full")
         self.assertGreater(spy.call_count, 0)
         self.assertIn("photo stages: full run (--full)", out)
