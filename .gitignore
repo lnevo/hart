@@ -127,7 +127,7 @@ tools/mqtt-mimic/qa/native_sml_qa_baseline.json
 # Owner's operations log (names people; site copy is www/ap/log.html)
 docs/ap/operations.log
 
-# MRE Electrical SOQ build scratch (docs/ap/electrical/build_soq.py)
+# MRE Electrical SOQ build scratch (archive/docs/ap/electrical/build_soq.py)
 /docs/ap/electrical/build/
 
 # make panels stamps (tools/schematic/panel_stamps.py), per checkout

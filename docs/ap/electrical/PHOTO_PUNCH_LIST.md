@@ -6,7 +6,7 @@ Status: done (2026-11-15). The SOQ was submitted and is frozen ([`SUBMITTED.md`]
 
 All items are in the SOQ (batch of 2026-11-15). The full-size originals are in `~/Documents/NMRA AP/SOQ photos incoming/`; the copies in `docs/ap/electrical/photos/` are about 1400 px on the long side. To replace one, save the new photo under the same file name there, then rebuild:
 
-    python3 docs/ap/electrical/build_soq.py
+    python3 archive/docs/ap/electrical/build_soq.py
 
 The build checks this table: every pending photo in the document must have its file name here.
 

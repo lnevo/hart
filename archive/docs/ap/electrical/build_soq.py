@@ -11,9 +11,9 @@ Steps:
   4. Put the ticked NMRA form in front, the railroad's wiring records (exported from the
      two wiring decks with Keynote) behind, page numbers in the footer, and bookmarks.
 
-    python3 docs/ap/electrical/build_soq.py            # needs Chrome, Keynote and PyMuPDF
-    python3 docs/ap/electrical/build_soq.py --html-only  # just write build/soq.html and build/plates.html
-    python3 docs/ap/electrical/build_soq.py --member "~/Documents/NMRA AP/soq-member.toml"   # private filled copy
+    python3 archive/docs/ap/electrical/build_soq.py            # needs Chrome, Keynote and PyMuPDF
+    python3 archive/docs/ap/electrical/build_soq.py --html-only  # just write build/soq.html and build/plates.html
+    python3 archive/docs/ap/electrical/build_soq.py --member "~/Documents/NMRA AP/soq-member.toml"   # private filled copy
 
 The form's personal fields stay blank in the repo; --member writes a filled copy outside it.
 """
