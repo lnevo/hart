@@ -16,6 +16,7 @@ ops/hart-ops/card_pipeline/generate_operator_sheet.py,837
 tools/audit/check_layout_facts.py,897
 tools/audit/tests/test_build_layout_le.py,1113
 tools/audit/tests/test_pipeline_map.py,879
+tools/check.sh,585
 tools/hartlib/src/hartlib/devices.py,1237
 tools/hartlib/src/hartlib/railroad_facts.py,1474
 tools/hartlib/src/hartlib/store_split.py,1035
@@ -23,7 +24,11 @@ tools/hartlib/src/hartlib/tables_build.py,1185
 tools/hartlib/tests/test_devices.py,873
 tools/hartlib/tests/test_railroad.py,932
 tools/hartlib/tests/test_tables_build.py,814
+tools/hosts/deploy/common.sh,529
 tools/hosts/tests/test_deploy_gates.py,1069
+tools/ops/pipeline_map_view.js,1417
 tools/promo/tiktok_promo.py,860
 tools/schematic/build_device_map.py,1063
 tools/schematic/tests/test_block_layer.py,869
+www/exam/run.js,1050
+www/js/crew.js,898
