@@ -45,7 +45,7 @@ masts and Signal Mast Logic stay live.
 - Names come from the device master (owner, 2026-11-22). A rebuilt script looks every track, block and mast name up
   in the master, `switches.csv` or `masts.csv` and types none. The parked scripts still hold their own copies, which
   `tools/audit/check_name_copies.py` keeps current but does not remove. On 2026-11-22 the copies typed in quotes were:
-  `reconcile_dispatcher_stations.py` (48, the 12 stations and their icons), `refresh_bean_comments.py` (59 block
+  `reconcile_dispatcher_stations.py` (48, the 12 stations and their icons), `check_bean_comments.py` (59 block
   comments in `BLOCK_COMMENTS`, the same text the master's `jmri_comment` holds), `nx_contract.py` (23),
   `ctc_logic_smoke.py` (23), `gen_ctc_track_plan.py` (18, board positions by block name), `build_ctc_full_15col.py`
   (14), `discover_nx.py` (11) and the `STATIONS` list in `panelpro_smoke_test.py` (12). The live audit reads none of
@@ -99,7 +99,7 @@ way to rebuild it.
 | Script | What it reads or does today | Rebuild against |
 |--------|-----------------------------|-----------------|
 | `jmri/layouts/hart/scripts/run_panelpro_stage1.sh`, `run_dispatcher_stage1.py` | runs stock Stage 1 and Stores to the pulled folder; its header says to decide how Stage 1's output becomes source data before relying on it | sections, transits and traininfo as source data the tables build writes, refreshed by a sandbox Stage 1 run and split back |
-| `jmri/layouts/hart/scripts/refresh_bean_comments.py` (a repair step of the Stage 1 wrapper) | now only checks the staging head comments in the device master; it no longer writes comments | drop the step: `build_tables.py` writes every comment from the device master |
+| `jmri/layouts/hart/scripts/check_bean_comments.py` (a repair step of the Stage 1 wrapper) | now only checks the staging head comments in the device master; it no longer writes comments | drop the step: `build_tables.py` writes every comment from the device master |
 | `jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py` | the 12 stations as a hard-coded `STATIONS` list of block names, cluster icons placed from a reference panel | the stations from the block comments or a `stations.csv` column, the clusters from `staging_panel_lamps.json` through `panel_items.json` |
 | `jmri/layouts/hart/parked/polish_hart_layout_editor.py` | puts Stage 1's lamps and labels back after the Store; finds block sensors by the `BS ` prefix | gone once the lamps and labels are drawn by the build; any reader that stays takes the role from the device master |
 | `jmri/layouts/hart/parked/retarget_dispatcher_traininfo_transits.py`, `repair_dispatcher_traininfo.py`, `fix_traininfo_detection.py`, `run_panelpro_traininfo_repair.sh` | edit the 374 traininfo files, which name the 3bd3ac64 transits and masts; the retarget script defaults to the Pi's `tables.xml` path | traininfo generated from the transits the build writes, with HEAD_AND_TAIL detection set by the generator |
@@ -162,8 +162,8 @@ Windows box). Normal runs print none of these as a warning.
 | 20 | `preferences.json` `staging.le_labels` `lamp_columns` (removed); `test_le_cutover.py` lamp-offset check (retired) | the South Yard lamp column is gone | lamps | give `lamp_columns` back and the lamp-offset check with it |
 | 21 | the station clusters as plugin `extras` (the retired `le_overlay.station_extras`) | without them 14 block contents icons sit elsewhere than they did with the clusters (OS Switch 7, OS Switch 9, Barn, EH-2, EH-3, East Lead, East Lead East, K-1, K-2, McKees Rocks, McKeesport, Scale, W-1, W-2) | lamps, Dispatcher | give the clusters to the plugin again |
 | 22 | `jmri/layouts/hart/scripts/render_le_layout.py:248`, `:344`, `:446` | finds MoveTo sensors and OS blocks by name prefix; kept on purpose (source-data hand-off row 8): it draws any panel file, including old and trial panels whose blocks the device master lacks | Dispatcher | keep the prefix test, or pass roles in when it draws only current panels |
-| 23 | `jmri/layouts/hart/scripts/refresh_bean_comments.py` | check-only since R9c; still a "repair" step in `run_panelpro_stage1.sh:83`, where it no longer restores comments | Dispatcher | drop the step (section 2) |
-| 24 | `wiki/pipelines/public-names.md:23` | lists `refresh_bean_comments.py` as a step that writes comments | Dispatcher | update with the Stage 1 rebuild |
+| 23 | `jmri/layouts/hart/scripts/check_bean_comments.py` | check-only since R9c; still a "repair" step in `run_panelpro_stage1.sh:83`, where it no longer restores comments | Dispatcher | drop the step (section 2) |
+| 24 | `wiki/pipelines/public-names.md:23` | lists `check_bean_comments.py` as a step that writes comments | Dispatcher | update with the Stage 1 rebuild |
 | 25 | `jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md:75` | says the Stage 1 wrapper restores bean comments through `refresh_bean_comments.py` | Dispatcher | update with the Stage 1 rebuild |
 | 26 | `jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md:62`, `:63`, `:140` | Digicon-era OS names "OS K-2", "OS McKeesport", "OS K-1", "OS McKees Rocks"; today OS Switch 37 and OS Switch 39 | USS | rename with the guide when the machine returns |
 | 27 | `docs/ctc/TURNOUT_STATE_SOURCES.md:11`, `:12`, `:43`, `:44`, `:59` | the same Digicon-era OS names for switches 114 and 115 | USS | rename to OS Switch 37 and 39 |
