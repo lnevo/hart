@@ -462,9 +462,12 @@ inputs = [
 outputs = [
   "www/build/track-plan.html",
 ]
-# read through hartlib (the plan graphs: hartlib.layer_files), seen in the 2026-11-25 traced full runs (ADR-037
+# read through hartlib (the plan graphs: hartlib.layer_files; the device master and its places, which give the block
+# lengths their names: hartlib.block_lengths, ADR-039 lane L8), seen in the 2026-11-25 traced full runs (ADR-037
 # stages 4a, 4c)
-quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv", "jmri/layouts/hart/data/schematic/inputs/main.json",
+quiet_inputs = ["jmri/layouts/hart/data/devices_field.csv", "jmri/layouts/hart/data/devices_generated.csv",
+                "jmri/layouts/hart/data/schematic/interlockings.csv", "jmri/layouts/hart/data/schematic/stations.csv",
+                "jmri/layouts/hart/data/schematic/inputs/main.json",
                 "jmri/layouts/hart/data/schematic/inputs/staging.json",
                 "jmri/layouts/hart/data/schematic/plan_generated.json"]
 

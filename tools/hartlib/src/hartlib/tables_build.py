@@ -815,8 +815,7 @@ def base(rows: Iterable[Mapping[str, str]] | None = None, template: Path = TEMPL
     doc = read_template(template)
     rows = devices.load() if rows is None else list(rows)
     try:
-        # the Dispatcher's block length: measured where speed matching found one, else the plan's (ADR-039 L8)
-        lengths = block_lengths.operating_lengths(BLOCK_LENGTHS) if lengths is None else lengths
+        lengths = block_lengths.operating_lengths(BLOCK_LENGTHS) if lengths is None else lengths     # ADR-039 L8
     except railroad.FactsError as exc:
         raise TablesBuildError(str(exc)) from None
     beans = master_beans(rows, lengths)

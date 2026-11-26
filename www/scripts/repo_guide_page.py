@@ -110,6 +110,7 @@ HARTLIB_OTHER = {
     "coordinator": "the signal coordinator script and the modules it loads",
     "places": "the stations and control points by id, as the devices and masts name them",
     "occupancy_bindings": "the CATS desks' occupancy bindings, each block by its ID",
+    "block_lengths": "each block's plan length and measured length, and the operating length the Dispatcher takes",
 }
 
 

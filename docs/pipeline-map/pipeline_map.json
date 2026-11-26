@@ -818,8 +818,17 @@
    "kind": "structured",
    "status": "live",
    "domain": "layout",
-   "desc": "Per-block lengths; plan_in column is written by plan_lengths.py from the AnyRail plan, other columns measured/hand.",
+   "desc": "Each JMRI block's length in the AnyRail plan 5.3c, by level and block id (no names): written only by plan_lengths.py; hartlib.block_lengths gives the plan length and, with block_lengths_measured.csv, the operating length.",
    "path": "jmri/layouts/hart/data/block_lengths.csv"
+  },
+  {
+   "id": "jmri/layouts/hart/data/block_lengths_measured.csv",
+   "label": "block_lengths_measured.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "layout",
+   "desc": "The block lengths speed matching measured (id, measured_in, run, date), written only by infer_block_lengths.py --apply; over block_lengths.csv as the operating length (tables.xml, speed matching).",
+   "path": "jmri/layouts/hart/data/block_lengths_measured.csv"
   },
   {
    "id": "jmri/layouts/hart/data/devices.columns.csv",
@@ -1457,7 +1466,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "Writes block_lengths.csv plan_in from the AnyRail plan, run by hand; make panels only checks it.",
+   "desc": "Writes block_lengths.csv (level, id, plan_in) from the AnyRail plan, run by hand; make panels only checks it. The measured lengths sit beside it in block_lengths_measured.csv (infer_block_lengths.py).",
    "path": "tools/schematic/plan_lengths.py",
    "gen": "manifest"
   },
@@ -2828,7 +2837,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "website",
-   "desc": "Writes behind/layout-docs.html from layout_docs_template.html, with the section list from block_lengths.csv (by level and id) and the track and switch names and DCC addresses from the device master, so a rename in devices_field.csv reaches the page, and the station names from stations.csv; fills the lengths, the siding's 50 ft cars at the plan's scale (plan_overrides.json) and the crossovers its text states; checks drawing D2's section count, plans P3 and P4's lengths, the plans' switch numbers and the drawings' station labels (data-station) against stations.csv; --check. Drawings and photos are its own files (the frozen SOQ is not read).",
+   "desc": "Writes behind/layout-docs.html from layout_docs_template.html, with the section list from block_lengths.csv (by level and id; the measured lengths from block_lengths_measured.csv) and the track and switch names and DCC addresses from the device master, so a rename in devices_field.csv reaches the page, and the station names from stations.csv; fills the lengths, the siding's 50 ft cars at the plan's scale (plan_overrides.json) and the crossovers its text states; checks drawing D2's section count, plans P3 and P4's lengths, the plans' switch numbers and the drawings' station labels (data-station) against stations.csv; --check. Drawings and photos are its own files (the frozen SOQ is not read).",
    "path": "www/scripts/build_layout_docs.py",
    "gen": "manifest"
   },
@@ -4396,7 +4405,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "Speed profile analysis of the runner logs: speed per step over known block lengths (block_lengths.csv, routes.json); writes profile.csv. Also shipped in the Pi publisher.",
+   "desc": "Speed profile analysis of the runner logs: speed per step over known block lengths (block_lengths.csv and block_lengths_measured.csv, routes.json); writes profile.csv. Also shipped in the Pi publisher.",
    "path": "jmri/layouts/hart/scripts/speedmatch/analyze.py"
   },
   {
@@ -4639,7 +4648,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "speedmatch lengths: infers the test-loop block lengths from timed laps (block_events.csv) and the AnyRail plan; writes timed rows of block_lengths.csv.",
+   "desc": "speedmatch lengths: infers the test-loop block lengths from timed laps (block_events.csv) and the AnyRail plan; writes timed rows of block_lengths_measured.csv.",
    "path": "jmri/layouts/hart/scripts/infer_block_lengths.py"
   },
   {
@@ -6458,7 +6467,7 @@
   {
    "from": "jmri/layouts/hart/data/block_lengths.csv",
    "to": "tools/anyrail/levels_page.py",
-   "label": "reads, via hartlib.railroad",
+   "label": "plan lengths, via hartlib.block_lengths",
    "gen": "manifest"
   },
   {
@@ -6476,7 +6485,7 @@
   {
    "from": "jmri/layouts/hart/data/block_lengths.csv",
    "to": "tools/schematic/build_tables.py",
-   "label": "block lengths",
+   "label": "block lengths (operating: hartlib.block_lengths)",
    "gen": "manifest"
   },
   {
@@ -7134,7 +7143,7 @@
   {
    "from": "jmri/layouts/hart/data/block_lengths.csv",
    "to": "jmri/layouts/hart/scripts/export_track_lengths.py",
-   "label": "reads, via hartlib.railroad",
+   "label": "plan lengths, via hartlib.block_lengths",
    "gen": "manifest"
   },
   {
@@ -7146,6 +7155,12 @@
   {
    "from": "jmri/layouts/hart/scripts/export_track_lengths.py",
    "to": "docs/jmri/TRACK_LENGTHS.md",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/block_lengths_measured.csv",
+   "to": "jmri/layouts/hart/scripts/export_track_lengths.py",
+   "label": "measured lengths, via hartlib.block_lengths",
    "gen": "manifest"
   },
   {
@@ -7731,6 +7746,12 @@
    "gen": "manifest"
   },
   {
+   "from": "jmri/layouts/hart/data/block_lengths_measured.csv",
+   "to": "tools/anyrail/levels_page.py",
+   "label": "measured lengths, via hartlib.block_lengths",
+   "gen": "manifest"
+  },
+  {
    "from": "tools/anyrail/levels_svg.py",
    "to": "tools/anyrail/levels",
    "label": "writes",
@@ -8263,7 +8284,7 @@
   {
    "from": "tools/schematic/plan_lengths.py",
    "to": "jmri/layouts/hart/data/block_lengths.csv",
-   "label": "writes plan_in and the user_name labels (--labels: length-labels step); check in panels",
+   "label": "writes plan_in (run by hand with the plan file); check in panels",
    "gen": "manifest"
   },
   {
@@ -9304,7 +9325,12 @@
   {
    "from": "jmri/layouts/hart/data/block_lengths.csv",
    "to": "jmri/layouts/hart/scripts/speedmatch",
-   "label": "block lengths by label (analyze.py on the Pi: no hartlib)"
+   "label": "plan lengths by block id (analyze.py on the Pi: no hartlib)"
+  },
+  {
+   "from": "jmri/layouts/hart/data/block_lengths_measured.csv",
+   "to": "jmri/layouts/hart/scripts/speedmatch",
+   "label": "measured lengths by block id (analyze.py on the Pi)"
   },
   {
    "from": "docs/jmri/speedmatching",
@@ -9802,7 +9828,7 @@
   {
    "from": "jmri/layouts/hart/data/block_lengths.csv",
    "to": "www/scripts/build_layout_docs.py",
-   "label": "reads, via hartlib.railroad",
+   "label": "plan lengths, via hartlib.block_lengths",
    "gen": "manifest"
   },
   {
@@ -9846,6 +9872,12 @@
    "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
    "to": "www/scripts/build_layout_docs.py",
    "label": "scale for the siding's car count, via hartlib.layer_files",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/block_lengths_measured.csv",
+   "to": "www/scripts/build_layout_docs.py",
+   "label": "measured lengths, via hartlib.block_lengths",
    "gen": "manifest"
   },
   {
@@ -9924,18 +9956,6 @@
    "from": "jmri/layouts/hart/data/devices_generated.csv",
    "to": "tools/schematic/build_main_route.py",
    "label": "the names of main_lines.csv's block ids",
-   "gen": "manifest"
-  },
-  {
-   "from": "jmri/layouts/hart/data/devices_field.csv",
-   "to": "tools/schematic/plan_lengths.py",
-   "label": "the owner's names by id (labels)",
-   "gen": "manifest"
-  },
-  {
-   "from": "tools/schematic/build_panels.sh",
-   "to": "tools/schematic/plan_lengths.py",
-   "label": "step length-labels",
    "gen": "manifest"
   },
   {
@@ -10522,6 +10542,13 @@
    "gen": "manifest"
   },
   {
+   "from": "jmri/layouts/hart/data/block_lengths_measured.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
    "from": "ops/hart-ops/data/locos.csv",
    "to": "tools/ops/check_locos.py",
    "label": "master",
@@ -10668,6 +10695,12 @@
    "label": "runs --check"
   },
   {
+   "from": "jmri/layouts/hart/data/block_lengths_measured.csv",
+   "to": "tools/schematic/build_tables.py",
+   "label": "measured lengths (operating)",
+   "gen": "manifest"
+  },
+  {
    "from": "tools/hosts/pi/unpulled_changes.sh",
    "to": "tools/hosts/deploy/common.sh",
    "label": "piped to the Pi before a deploy"
@@ -10754,6 +10787,11 @@
   },
   {
    "from": "jmri/layouts/hart/data/block_lengths.csv",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "speedmatch-live data"
+  },
+  {
+   "from": "jmri/layouts/hart/data/block_lengths_measured.csv",
    "to": "tools/hosts/deploy/stage.sh",
    "label": "speedmatch-live data"
   },
@@ -11518,6 +11556,11 @@
    "label": "DEFAULT_LENGTHS"
   },
   {
+   "from": "jmri/layouts/hart/data/block_lengths_measured.csv",
+   "to": "jmri/layouts/hart/scripts/speedmatch/analyze.py",
+   "label": "DEFAULT_LENGTHS"
+  },
+  {
    "from": "jmri/layouts/hart/scripts/speedmatch/routes.json",
    "to": "jmri/layouts/hart/scripts/speedmatch/analyze.py",
    "label": "ROUTES_JSON"
@@ -11614,6 +11657,11 @@
    "label": "loop lengths"
   },
   {
+   "from": "jmri/layouts/hart/data/block_lengths_measured.csv",
+   "to": "jmri/layouts/hart/scripts/speedmatch/dashboard/dashstate.py",
+   "label": "loop lengths"
+  },
+  {
    "from": "host:pi-speedmatch-logs",
    "to": "jmri/layouts/hart/scripts/speedmatch/dashboard/dashsources.py",
    "label": "ssh ls, stat, tail"
@@ -11646,8 +11694,8 @@
   },
   {
    "from": "jmri/layouts/hart/scripts/infer_block_lengths.py",
-   "to": "jmri/layouts/hart/data/block_lengths.csv",
-   "label": "timed lengths"
+   "to": "jmri/layouts/hart/data/block_lengths_measured.csv",
+   "label": "writes the measured lengths (--apply)"
   },
   {
    "from": "tools/hartlib/src/hartlib/railroad.py",
@@ -11704,7 +11752,12 @@
   {
    "from": "jmri/layouts/hart/data/block_lengths.csv",
    "to": "jmri/layouts/hart/scripts/infer_block_lengths.py",
-   "label": "plan rows"
+   "label": "operating lengths, via hartlib.block_lengths"
+  },
+  {
+   "from": "jmri/layouts/hart/data/block_lengths_measured.csv",
+   "to": "jmri/layouts/hart/scripts/infer_block_lengths.py",
+   "label": "the measured rows it rewrites"
   },
   {
    "from": "host:pi-speedmatch-logs",
