@@ -1,6 +1,6 @@
 # ops/hart-ops/industries
 
-The OPSIG industries list. The industry routing matrix it once fed, its scripts and notes were retired as legacy on 2026-11-25 (owner) and are in [`archive/docs/ops/industries/`](../../../archive/docs/ops/industries/); nothing reads them.
+The OPSIG industries list, which moved to [`archive/ops/hart-ops/industries/industries.txt`](../../../archive/ops/hart-ops/industries/industries.txt) on 2026-11-25 (owner; nothing reads it). The industry routing matrix it once fed, its scripts and notes were retired as legacy on 2026-11-25 (owner) and are in [`archive/docs/ops/industries/`](../../../archive/docs/ops/industries/); nothing reads them.
 
 ## industries.txt
 
@@ -22,8 +22,8 @@ The OPSIG industries database as one tab-separated file, 10,377 rows, no header.
 Subsets are filters of this file, not separate data. The three cut for the Pittsburgh to Washington, PA, line:
 
 ```bash
-awk -F'\t' '$4=="PA"' industries.txt                          # all Pennsylvania, 1,196 rows
-awk -F'\t' '$4=="PA" && $5 ~ /B&O/' industries.txt            # Pennsylvania on the B&O, 88 rows
-awk -F'\t' '$3=="Washington" && $4=="PA"' industries.txt      # Washington, PA, 3 rows
+awk -F'\t' '$4=="PA"' archive/ops/hart-ops/industries/industries.txt                          # all Pennsylvania, 1,196 rows
+awk -F'\t' '$4=="PA" && $5 ~ /B&O/' archive/ops/hart-ops/industries/industries.txt            # Pennsylvania on the B&O, 88 rows
+awk -F'\t' '$3=="Washington" && $4=="PA"' archive/ops/hart-ops/industries/industries.txt      # Washington, PA, 3 rows
 ```
 

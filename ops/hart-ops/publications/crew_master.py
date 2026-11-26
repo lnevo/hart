@@ -3,10 +3,13 @@
 The master holds the crew jobs (key: `code`, the train symbol for a crew job), the destination colors (key: `id`), the
 TT-23 timetable, the spot sheet, EQ-01 and the station map text. Two kinds of reader use it:
 
-- build_crew_json.py writes www/data/crew.json from site_view(): the master less every `docx` object, with the spot
+- build() is the one writer of www/data/crew.json: build_crew_json.py (make publications, check.sh) and
+  hartlib.map_revision (the schematic step of make panels, after a title block change) both call it. Its text is
+  site_view(): the master less every `docx` object, with the spot
   sheet's industry names and anchors from ops/hart-ops/data/industries.csv, a job's `site_note` (a sentence only the
   site prints) and the yardmaster and dispatcher rules appended to their summaries, each lineup row's route put before its action, and the schematic's revision and date
-  from the title block (hartlib.map_revision.fields).
+  from the title block, which the caller passes in (hartlib.map_revision.fields), so this module imports nothing from
+  hartlib and hartlib.map_revision can import it.
 - the rebuild_*.py docx scripts read the jobs, colors and timetable through the functions below. A `docx` object in
   the master holds what only the printed sheet uses (a photo, a legend order) or wording the sheet prints
   differently from the site; each such wording is an open owner question (lane L5, 2026-11-25).
@@ -96,6 +99,39 @@ def site_view(master: dict, industries: dict[str, dict[str, str]], schematic: tu
 def dump(data) -> str:
     """The file text: the format hartlib.map_revision writes too."""
     return json.dumps(data, indent=2, ensure_ascii=False) + "\n"
+
+
+SITE = REPO / "www/data/crew.json"
+
+
+def build(schematic: tuple[str, str], master: Path | None = None, industries: Path | None = None) -> str:
+    """The text of www/data/crew.json; schematic is (revision, effective) from the title block. Raises ValueError
+    starting with the file at fault (the master or industries.csv) and naming the problem: each one
+    crew_schema.problems() finds, a file that is not JSON or CSV with the columns it needs. A missing file raises
+    OSError, which names it."""
+    from crew_schema import problems          # a sibling module: its folder is on sys.path for every caller
+    master, industries = master or MASTER, industries or INDUSTRIES
+    try:
+        m = load(master)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"{_rel(master)}: not JSON ({e})") from None
+    try:
+        ind = read_industries(industries)
+    except (KeyError, csv.Error) as e:
+        raise ValueError(f"{_rel(industries)}: unreadable ({type(e).__name__}: {e})") from None
+    bad = problems(m, ind)
+    if bad:
+        raise ValueError(f"{_rel(master)}: the crew master has problems:\n  " + "\n  ".join(bad))
+    try:
+        view = site_view(m, ind, schematic)
+    except (KeyError, TypeError) as e:
+        raise ValueError(f"{_rel(master)}: does not build ({type(e).__name__}: {e})") from None
+    return dump(view)
+
+
+def _rel(path: Path) -> str:
+    path = Path(path).resolve()
+    return path.relative_to(REPO).as_posix() if path.is_relative_to(REPO) else str(path)
 
 
 # ---- the docx views -------------------------------------------------------------------------------------------

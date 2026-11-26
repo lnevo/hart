@@ -26,7 +26,7 @@ Main is where this branch left origin/main (`git merge-base HEAD origin/main`). 
 (no origin/main, a shallow clone), publishing stops before it writes anything and names the git command that
 brings it in; it also stops if git fails to read a file there. --check and --preview never need it.
 The station map pages are drawn from this sheet, so publishing then copies the title block's revision and date to
-them with hartlib.map_revision (also the command www/scripts/map_revision.py), and --check fails while any of them differs.
+them with hartlib.map_revision (which rebuilds www/data/crew.json from the crew master), and --check fails while any of them differs.
 After a commit that changes the drawing, run tools/schematic/evolution.py.
 
 The plugin's solved-sheet cache (SCHEMATIC_CACHE, default <main checkout>/.cache/hart/schematic, shared by every worktree; HART_CACHE_DIR moves the base; a folder only this user can open)
@@ -417,6 +417,8 @@ def main(argv):
         print(f"station sheets differ: {', '.join(differ)}" if differ else "station sheets are current")
         try:
             pages = [p.relative_to(REPO).as_posix() for p in map_revision.drift(prefs=page_prefs())]
+            pages = [f"{p} (differs from crew_master.build: the crew master or the title block)"
+                     if p == "www/data/crew.json" else p for p in pages]
         except ValueError as e:
             pages = [str(e)]
         print(f"station map pages differ from the title block: {', '.join(pages)}" if pages

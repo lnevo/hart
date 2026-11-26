@@ -173,10 +173,10 @@ class CopyAndSkipLists(_Repo):
 
     def test_a_manifest_entry_on_the_skip_list_is_not_copied(self):
         _write(self.repo, "docs/p.json", "{}")
-        (self.portal / "scripts/published-files.json").write_text(json.dumps({"data/panels.json": "docs/p.json"}))
+        (self.portal / "scripts/published-files.json").write_text(json.dumps({"data/invites.json": "docs/p.json"}))
         dest = Path(self._tmp.name) / "out"
         build._copy_published(dest)
-        self.assertFalse((dest / "data/panels.json").exists())
+        self.assertFalse((dest / "data/invites.json").exists())
 
 
 class DataScrub(unittest.TestCase):
@@ -493,7 +493,7 @@ class FullBuild(_Repo):
         self.track("about/index.html", _page("About — HART", "<h1>About</h1><p>What the layout is and who runs the sessions, in plain words for visitors.</p>"))
         self.track("404.html", _page("Not found — HART", "<h1>Not found</h1>"))
         self.track("docs/page.html", _page("Doc — HART", "<h1>Doc</h1><p>A document published from the docs folder for the public site to show.</p>"))
-        for rel in ("README.md", "docs/note.md", "scripts/tool.py", "review/a.html", "data/panels.json"):
+        for rel in ("README.md", "docs/note.md", "scripts/tool.py", "review/a.html", "data/invites.json"):
             self.track(rel, f"skip me {PLANTED}")
         self.track_json("data/site.json", {"engDesk": "http://localhost:8760", "tools": {"sts": "http://localhost:8980"}, "name": "HART"})
         self.track_json("data/industries.json", {"industries": [{"id": "i", "logo": "../external/logos/a.png", "source": "../external/x.docx"}]})
