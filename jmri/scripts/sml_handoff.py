@@ -223,12 +223,15 @@ class SmlHandoff(object):
         Thread(_Run(), "digicon-sml-enable").start()
 
     def _enter_disabled(self, release):
-        if self._is_busy():
-            return
-        self._busy = True
+        # Under the claim lock, as _enter_enabled: a message thread that checks _is_busy()
+        # and starts a take cannot slip between this check and _busy.
+        with self._claim_lock:
+            if self._is_busy():
+                return
+            self._busy = True
+            abort_gen = self._abort_gen
         self._set_button_busy()
         controller = self
-        abort_gen = self._abort_gen
 
         class _Run(Runnable):
             def run(_self):
@@ -255,11 +258,7 @@ class SmlHandoff(object):
             "mqtt_signalhead: Hold Digicon masts, wait %d ms before SML off / Unheld"
             % HOLD_WAIT_MS
         )
-        for mast in self._masts:
-            try:
-                mast.setHeld(True)
-            except Exception:
-                pass
+        self._set_masts_held(True)
         Thread.sleep(HOLD_WAIT_MS)
         print("mqtt_signalhead: Hold wait done -- disabling SML pairs")
         off = self._try_set_all_digicon_sml(False)
@@ -281,11 +280,7 @@ class SmlHandoff(object):
                 if self._abort_gen != abort_gen:
                     break
                 self._publish_unheld(head)
-        for mast in self._masts:
-            try:
-                mast.setHeld(False)
-            except Exception:
-                pass
+        self._set_masts_held(False)
         self._global_enabled = False
         self._enabling_originator = False
         self._claim = None
@@ -308,11 +303,16 @@ class SmlHandoff(object):
         return ok
 
     def _set_masts_held(self, held):
+        """Hold (or release) every Digicon mast. A mast that refuses is printed by name and
+        the rest still go: one stuck mast must not stop the hand-off of the others."""
         for mast in self._masts:
             try:
                 mast.setHeld(held)
-            except Exception:
-                pass
+            except Exception as exc:
+                print(
+                    "mqtt_signalhead: %s failed on %s: %s"
+                    % ("Hold" if held else "Hold release", _bean_label(mast), _ascii(exc))
+                )
 
     def _stay_owner_after_failed_disable(self, abort_gen):
         """Pairs may still be on: handing off now would make two owners. Keep Digicon.
@@ -422,11 +422,7 @@ class SmlHandoff(object):
             "mqtt_signalhead: Hold Digicon masts, wait %d ms before SML on"
             % HOLD_WAIT_MS
         )
-        for mast in self._masts:
-            try:
-                mast.setHeld(True)
-            except Exception:
-                pass
+        self._set_masts_held(True)
         Thread.sleep(HOLD_WAIT_MS)
         # Commit under the claim lock: a rival claim is handled either before (this claim
         # lost, or kept) or after (this host owns; the rival is compared with an owner).
@@ -445,11 +441,7 @@ class SmlHandoff(object):
             )
             if self._abort_gen != abort_gen:
                 self._enabling_originator = False
-            for mast in self._masts:
-                try:
-                    mast.setHeld(False)
-                except Exception:
-                    pass
+            self._set_masts_held(False)
             return
         print("mqtt_signalhead: Hold wait done -- enabling SML pairs")
         on = self._try_set_all_digicon_sml(True)
@@ -459,21 +451,13 @@ class SmlHandoff(object):
             if self._set_all_digicon_sml_destinations(False) is not True:
                 self._retry_uncheck_loudly("taken over during enable")
             self._snapshot_mast_sml_state()
-            for mast in self._masts:
-                try:
-                    mast.setHeld(False)
-                except Exception:
-                    pass
+            self._set_masts_held(False)
             return
         if not on:
             if self._back_out_failed_enable(abort_gen):
                 return
             self._unheld_heads_of_dark_masts(abort_gen)
-        for mast in self._masts:
-            try:
-                mast.setHeld(False)
-            except Exception:
-                pass
+        self._set_masts_held(False)
         # Ownership announce for the bridge and the other host (not a boot retain republish).
         # Under the lock, so an abort that lands now cannot be followed by our enabled.
         with self._claim_lock:

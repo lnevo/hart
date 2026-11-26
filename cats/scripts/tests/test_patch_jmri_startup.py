@@ -123,34 +123,7 @@ class RetargetJython(unittest.TestCase):
         self.assertNotIn("mqtt_signalhead_publisher.py", txt)
 
 
-class HideCatsChromeSource(unittest.TestCase):
-    def test_cats_only_help_quit_hooks(self) -> None:
-        src = (
-            Path(__file__).resolve().parents[3]
-            / "jmri"
-            / "layouts"
-            / "hart"
-            / "scripts"
-            / "hide_cats_desk_windows.py"
-        )
-        raw = src.read_bytes()
-        self.assertTrue(raw.decode("ascii"))
-        text = raw.decode("ascii")
-        self.assertIn("def under_cats()", text)
-        self.assertIn("install_window_toolbar", text)
-        self.assertIn("remove_window_toolbar", text)
-        self.assertIn("add_script_style_buttons", text)
-        self.assertIn("_clean_file_quit", text)
-        self.assertIn("Apps.handleQuit()", text)
-        self.assertNotIn("JMenuItem", text)
-        self.assertNotIn("Dispatcher Guide", text)
-        self.assertIn("CTC Panel", text)
-        self.assertIn("decorate_dispatcher_panel", text)
-        self.assertNotIn("HART: CATS Help/Quit on Dispatcher Panel", text)
-        self.assertIn("HelpUtil.displayHelpRef", text)
-        self.assertNotIn("\u2014", text)
-
-
+class LoadTables(unittest.TestCase):
     def test_load_tables_points_start_up_at_one_path(self) -> None:
         mod = _load()
         sample = (

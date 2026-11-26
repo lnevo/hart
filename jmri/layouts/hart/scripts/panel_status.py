@@ -1,9 +1,6 @@
 # Drive HART Railroad status lamps and wire clicks on LCOS / Turnouts /
 # Signals / Track Power panel icons. Never setCommandedState on M2T*/MTT*.
 #
-# The Digicon yard-ladder buttons, their internal turnouts and routes
-# IO:AUTO:0201-0210, and their lamp painting are gone (owner, 2026-11-17).
-#
 # Turnouts lamp (Green / Yellow / Red): among M2T* and MTT* that have both FB
 # sensors assigned — all TWOSENSOR → Green; all DIRECT → Red; mixed → Yellow.
 # Click: toggle those plants between TWOSENSOR and DIRECT.
@@ -218,8 +215,8 @@ def publish_lcos_resubscribe():
         s = sensors.getSensor(LCOS_SENSOR)
         if s is not None:
             prev = s.getKnownState()
-    except Exception:
-        pass
+    except Exception as e:
+        print("panel_status: LCOS lamp state unreadable, restoring to INACTIVE: %s" % e)
     _show_amber_sensor(LCOS_SENSOR)
 
     def _do():
@@ -233,30 +230,18 @@ def publish_lcos_resubscribe():
     _after_paint(_do)
 
 
-def _digicon_controller():
-    """Find DigiconMqttSml from INSTANCE / __main__ (same JMRI jython engine)."""
-    try:
-        import __main__
+# While Digicon is busy (a hold or hand-off), the Signals lamp watch polls every
+# _SML_WATCH_MS for up to _SML_WATCH_MAX_ATTEMPTS tries (20 s) before it repaints.
+_SML_WATCH_MS = 500
+_SML_WATCH_MAX_ATTEMPTS = 40
 
-        ctrl = getattr(__main__, "digicon_sml_controller", None)
-        if ctrl is not None:
-            return ctrl
-    except Exception:
-        pass
-    try:
-        for obj in globals().values():
-            cls = getattr(obj, "__class__", None)
-            if cls is not None and getattr(cls, "__name__", "") == "DigiconMqttSml":
-                inst = getattr(cls, "INSTANCE", None)
-                if inst is not None:
-                    return inst
-    except Exception:
-        pass
-    try:
-        cls = DigiconMqttSml  # noqa: F821
-        return getattr(cls, "INSTANCE", None)
-    except NameError:
-        return None
+
+def _digicon_controller():
+    """The running DigiconMqttSml, or None: signal_coordinator.py keeps it on __main__
+    (shared by every script in this JMRI) as digicon_sml_controller."""
+    import __main__
+
+    return getattr(__main__, "digicon_sml_controller", None)
 
 
 def _watch_sml_amber_clear():
@@ -274,8 +259,8 @@ def _watch_sml_amber_clear():
                     return
                 ctrl = _digicon_controller()
                 busy = bool(ctrl is not None and getattr(ctrl, "_busy", False))
-                if busy and self.attempt < 40:
-                    t = Timer(500, _Watch(self.attempt + 1))
+                if busy and self.attempt < _SML_WATCH_MAX_ATTEMPTS:
+                    t = Timer(_SML_WATCH_MS, _Watch(self.attempt + 1))
                     t.setRepeats(False)
                     t.start()
                     return
@@ -283,14 +268,14 @@ def _watch_sml_amber_clear():
                     try:
                         ctrl._sync_sml_mode_sensor()
                         return
-                    except Exception:
-                        pass
-                # Fallback: assume disabled if Digicon missing.
+                    except Exception as e:
+                        print("panel_status: Digicon lamp sync failed, lamp set INACTIVE: %s" % e)
+                # No controller to repaint the lamp: show it Disabled.
                 s.setKnownState(jmri.Sensor.INACTIVE)
             except Exception as e:
                 print("panel_status: SML amber clear failed: %s" % e)
 
-    t = Timer(500, _Watch(0))
+    t = Timer(_SML_WATCH_MS, _Watch(0))
     t.setRepeats(False)
     t.start()
 
@@ -310,8 +295,8 @@ def toggle_sml_mode():
                 sensors.provideSensor(SML_MODE_SENSOR).setKnownState(
                     jmri.Sensor.INACTIVE
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                print("panel_status: Signals lamp reset failed: %s" % e)
             return
         try:
             ctrl.toggle_from_panel()
