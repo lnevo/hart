@@ -143,10 +143,10 @@ Speed matching and the Dispatcher take it.
 
 | Block | Occupancy sensor | Plan in | Measured in | Source | JMRI mm | Note |
 |---|---|---|---|---|---|---|
-| OS Switch 1 | Block 4-2 | 9.2 | 22.6 | timed | 574.0 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.6 in over 33 laps |
+| OS Switch 1 | Block 4-2 | 9.2 | 22.6 | timed | 447.0 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.6 in over 33 laps |
 | OS Switch 3 | Block 4-1 | 9.2 |  | plan | 233.7 |  |
 | OS Switch 5 | Block 4-5 | 11.1 | 24.6 | timed | 624.8 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 33 laps |
-| OS Switch 15 | Block 3-2 | 9.2 | 17.8 | timed | 452.1 | timed passes of 2026-11-13: half of it and half of OS Switch 13 span the 452 mm from Switch 13 to Switch 15; split evenly |
+| OS Switch 15 | Block 3-2 | 9.2 | 17.8 | timed | 111.8 | timed passes of 2026-11-13: half of it and half of OS Switch 13 span the 452 mm from Switch 13 to Switch 15; split evenly |
 | OS Switch 17 | Block 3-3 | 9.2 |  | plan | 233.7 |  |
 | OS Switch 19 | Block 3-5 | 9.2 |  | plan | 233.7 |  |
 | OS Switch 21 | Block 3-7 | 9.2 |  | plan | 233.7 |  |
@@ -157,7 +157,7 @@ Speed matching and the Dispatcher take it.
 | OS Switch 23a | Block 12-4 | 9.2 | 23.5 | timed | 596.9 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.9 in over 33 laps |
 | OS Switch 23b | Block 12-6 | 9.2 |  | plan | 233.7 |  |
 | OS Switch 33 | Block 12-8 | 9.2 | 12.4 | timed | 315.0 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps |
-| OS Switch 35a | Block 1-6 | 9.2 | 15 | timed | 381.0 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.8 in over 33 laps |
+| OS Switch 35a | Block 1-6 | 9.2 | 15 | timed | 190.5 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.8 in over 33 laps |
 | OS Switch 35b | Block 1-5 | 9.2 | 20.5 | timed | 520.7 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps |
 | OS Switch 37 | Block 1-3 | 9.2 | 16.5 | timed | 419.1 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.4 in over 33 laps |
 | OS Switch 39 | Block 1-4 | 9.2 | 9.6 | timed | 243.8 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.6 in over 33 laps |

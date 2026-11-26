@@ -14,6 +14,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
@@ -137,8 +138,8 @@ class Files(unittest.TestCase):
         measured = BL.measured_lengths(self.plan)
         self.assertEqual(set(plan), set(operating))
         for name in plan:
-            want = measured[name].measured_in if name in measured else plan[name]
-            self.assertEqual(operating[name], want, name)
+            if name not in measured:
+                self.assertEqual(operating[name], plan[name], name)
         mw = measured["Track Main West"]
         self.assertEqual((mw.id, mw.measured_in, mw.run, mw.date), ("block:1A-23A", 217.3, "loop1 laps", "2026-11-08"))
         self.assertEqual(plan["Track Main West"], 231.0)
@@ -147,6 +148,29 @@ class Files(unittest.TestCase):
         self.assertEqual(BL.operating_length("block:3B-end", self.plan), 105.2)
         self.assertEqual(BL.plan_cm(self.plan)["Track Main West"], 231.0 * 2.54)
         self.fails(lambda: BL.plan_length("block:nowhere", self.plan), "no row for block:nowhere")
+        # OS Switch 1's detector holds the part Track 1-3 at 1 (5.0 in): the OS block takes the measured rest
+        self.assertEqual((operating["OS Switch 1"], operating["Track 1-3 at 1"]), (17.6, 5.0))
+        self.assertEqual(BL.operating_length("os:1", self.plan), 17.6)
+
+    def test_each_measured_detector_adds_up_to_its_measured_length(self) -> None:
+        """A measured length is the timing of the whole detector: the operating lengths of the detector's JMRI blocks
+        add up to it, so the Dispatcher counts no track twice."""
+        blocks, operating, measured = BL.plan_blocks(self.plan), BL.operating_lengths(self.plan), BL.measured_lengths(self.plan)
+        groups = BL.detector_blocks(blocks)
+        shared = 0
+        for name, m in measured.items():
+            names = groups[(blocks[name].level, blocks[name].occupancy_sensor)]
+            shared += len(names) > 1
+            self.assertAlmostEqual(sum(operating[n] for n in names), m.measured_in, places=6, msg=name)
+        self.assertGreaterEqual(shared, 3)              # OS Switch 1, 15 and 35a carry parts
+
+    def test_a_detector_its_parts_overfill_stops(self) -> None:
+        path = self.tmp / BL.MEASURED_NAME
+        os1 = next(line for line in self.mtext.splitlines() if line.startswith("os:1,"))
+        path.write_text(self.mtext.replace(os1, os1.replace(",22.6,", ",5.0,")), encoding="utf-8")
+        self.fails(lambda: BL.operating_lengths(self.plan), "OS Switch 1: measured 5.0 in .* add up to 5.0 in")
+        path.write_text(self.mtext + "block:1B-3A:1/2,6.0,loop1 laps,2026-11-08,\n", encoding="utf-8")
+        self.fails(lambda: BL.operating_lengths(self.plan), "are all measured")
 
     def test_a_bad_plan_row_stops(self) -> None:
         w1 = next(line for line in self.text.splitlines() if line.startswith("1,block:3B-end,"))
@@ -180,8 +204,24 @@ class Files(unittest.TestCase):
         rows = list(BL.read_measured(plan=self.plan).values())
         BL.write_measured(rows, self.plan)
         self.assertEqual((self.tmp / BL.MEASURED_NAME).read_text(encoding="utf-8"), self.mtext)
-        stray = BL.Measured(0, "block:nowhere", 1.0, "loop1 laps", "2026-11-08", "")
-        self.fails(lambda: BL.write_measured(rows + [stray], self.plan), "block:nowhere is no row")
+        ok = BL.Measured(0, "block:3B-end", 1.0, "loop1 laps", "2026-11-08", "")
+        from dataclasses import replace
+        for bad, why in ((replace(ok, id="block:nowhere"), "'block:nowhere' is no row"),
+                         (replace(ok, id=rows[0].id), "or is given twice"),
+                         (replace(ok, measured_in=0.0), "measured_in 0.0 is not above zero"),
+                         (replace(ok, run=""), "run '' and date"),
+                         (replace(ok, date="Nov 8"), "date 'Nov 8'")):
+            self.fails(lambda: BL.write_measured(rows + [bad], self.plan), why)
+        self.assertEqual((self.tmp / BL.MEASURED_NAME).read_text(encoding="utf-8"), self.mtext)   # nothing written
+
+    def test_two_blocks_with_one_name_stop(self) -> None:
+        from hartlib import devices
+        rows = [dict(r) for r in devices.load()]
+        for r in rows:
+            if r["level"] == "1" and r["id"] == "block:3C-end":
+                r["user_name"] = "Track W-1"
+        with unittest.mock.patch.object(devices, "load", return_value=tuple(rows)):
+            self.fails(lambda: BL.plan_blocks(self.plan), "block:3C-end is named 'Track W-1', as block:3B-end is")
 
 
 class Outputs(unittest.TestCase):
@@ -195,16 +235,20 @@ class Outputs(unittest.TestCase):
         for name, inches in operating.items():
             self.assertAlmostEqual(held[name], round(inches * BL.MM_PER_INCH, 1), places=1, msg=name)
 
-    def test_the_pi_reader_gives_the_operating_length(self) -> None:
-        """speedmatch/analyze.py reads the two files without hartlib (the Pi's copy): its answer, every source
-        trusted, is operating_lengths'."""
+    def test_the_pi_reader_gives_each_sensors_length(self) -> None:
+        """speedmatch/analyze.py reads the two files without hartlib (the Pi's copy), by sensor: a timed detector's
+        length is its whole measured length, the operating lengths of its blocks added up; any other block's is its
+        plan length."""
         sys.path.insert(0, str(paths.LAYOUT_SCRIPTS / "speedmatch"))
         import analyze
-        operating = BL.operating_lengths()
+        blocks, operating, measured = BL.plan_blocks(), BL.operating_lengths(), BL.measured_lengths()
+        groups = BL.detector_blocks(blocks)
         for route, loop in analyze.ROUTES.items():
             got = analyze.load_lengths(trusted=("timed", "plan"), loop=loop)
             for sensor, name in loop:
-                self.assertAlmostEqual(got[sensor], operating[name] * BL.MM_PER_INCH, msg=f"{route} {name}")
+                b = blocks[name]
+                want = sum(operating[n] for n in groups[(b.level, b.occupancy_sensor)]) if name in measured else b.plan_in
+                self.assertAlmostEqual(got[sensor], want * BL.MM_PER_INCH, msg=f"{route} {name}")
 
 
 if __name__ == "__main__":

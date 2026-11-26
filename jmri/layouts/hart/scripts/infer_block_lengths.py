@@ -144,6 +144,8 @@ PLAN_LOOP2_TURNOUT_MM = {
     "Switch 5": 140, "Switch 15": 5909, "Switch 33": 12748, "Switch 35a": 15723,
     "Switch 35b": 22861, "Switch 23a": 27392, "Switch 1": 33492,
 }
+# route -> the run a measured row names (block_lengths_measured.csv `run`)
+RUN = {"loop1": "loop1 laps", "loop2": "loop2 passes"}
 # route -> (plan loop length mm, plan turnout centres by OS sensor)
 PLAN = {"loop1": (PLAN_LOOP_MM, PLAN_TURNOUT_MM), "loop2": (PLAN_LOOP2_MM, PLAN_LOOP2_TURNOUT_MM)}
 
@@ -249,7 +251,7 @@ def pass_centres(events, route, pins, targets=("Switch 7", "Switch 13"), frm="Sw
 
 def measured_rows(result, route=DEFAULT_ROUTE, only=None, date=EVENTS_DATE, plan=block_lengths.PLAN):
     """The measured file's rows with the new lengths, not yet written: each of the route's blocks (only: the sensors
-    to write, default all of the route's) gets its measured length, the run (route laps) and `date`; every other row
+    to write, default all of the route's) gets its measured length, the run (RUN) and `date`; every other row
     is kept. Returns (rows, mm by block name)."""
     have = block_lengths.read_measured(plan=plan)
     sensor_rows = {s: n for s, n in route_rows(route).items() if only is None or s in only}
@@ -259,7 +261,7 @@ def measured_rows(result, route=DEFAULT_ROUTE, only=None, date=EVENTS_DATE, plan
         ident = analyze.BLOCK_IDS[name]
         note = (f"timed share of the AnyRail 5.3b {route} loop, pinned to the plan turnouts either side; "
                 f"+-{spread / MM_PER_IN:.1f} in over {n} laps")
-        have[ident] = block_lengths.Measured(0, ident, round(length / MM_PER_IN, 1), f"{route} laps", date, note)
+        have[ident] = block_lengths.Measured(0, ident, round(length / MM_PER_IN, 1), RUN[route], date, note)
         mm[name] = have[ident].measured_in * MM_PER_IN
     return list(have.values()), mm
 

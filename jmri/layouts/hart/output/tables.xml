@@ -3485,7 +3485,7 @@
       <permissive>no</permissive>
       <occupancysensor>BS Switch 37</occupancysensor>
     </block>
-    <block systemName="IB:AUTO:0033" length="574.0" curve="0">
+    <block systemName="IB:AUTO:0033" length="447.0" curve="0">
       <systemName>IB:AUTO:0033</systemName>
       <userName>OS Switch 1</userName>
       <comment>Block 4-2 / M2S401; Brick CP, Switch 1</comment>
@@ -3541,7 +3541,7 @@
       <permissive>no</permissive>
       <occupancysensor>BS Switch 39</occupancysensor>
     </block>
-    <block systemName="IB:AUTO:0041" length="452.1" curve="0">
+    <block systemName="IB:AUTO:0041" length="111.8" curve="0">
       <systemName>IB:AUTO:0041</systemName>
       <userName>OS Switch 15</userName>
       <comment>Block 3-2 / M2S301; South Yard, Switch 15</comment>
@@ -3576,7 +3576,7 @@
       <permissive>no</permissive>
       <occupancysensor>BS Switch 19</occupancysensor>
     </block>
-    <block systemName="IB:AUTO:0046" length="381.0" curve="0">
+    <block systemName="IB:AUTO:0046" length="190.5" curve="0">
       <systemName>IB:AUTO:0046</systemName>
       <userName>OS Switch 35a</userName>
       <comment>Block 1-6 / M2S105; Princess crossover Switch 35 south/yard leg, with the track to Switch 37 (gap at Switch 37's points)</comment>
