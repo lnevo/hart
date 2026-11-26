@@ -3388,6 +3388,15 @@
    "path": "tools/mqtt/sync_mqtt_turnouts_from_fb.py"
   },
   {
+   "id": "tools/mqtt/turnout_feedback.py",
+   "label": "turnout_feedback.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "wiring",
+   "desc": "Shared read-only turnout feedback helpers (FB N/R state, M2T address, retained turnout read) for the turnout diagnose and sync scripts.",
+   "path": "tools/mqtt/turnout_feedback.py"
+  },
+  {
    "id": "tools/wiring/build_lcos_signal_manager_plan.py",
    "label": "build_lcos_signal_manager_plan.py",
    "kind": "generator",
@@ -6477,6 +6486,16 @@
    "from": "host:panelpro",
    "to": "tools/mqtt/sync_mqtt_turnouts_from_fb.py",
    "label": "FB sensors via JSON"
+  },
+  {
+   "from": "tools/mqtt/turnout_feedback.py",
+   "to": "tools/mqtt/sync_mqtt_turnouts_from_fb.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/mqtt/turnout_feedback.py",
+   "to": "jmri/layouts/hart/scripts/diagnose_turnout_states.py",
+   "label": "imports"
   },
   {
    "from": "host:pi",

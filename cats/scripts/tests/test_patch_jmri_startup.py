@@ -138,5 +138,42 @@ class LoadTables(unittest.TestCase):
             self.assertEqual(mod.load_tables_from(profile, "home:hart/x/tables.xml"), "already")
 
 
+class Errors(unittest.TestCase):
+    """The edits raise StartupPatchError; main() prints it and exits 1, leaving profile.xml as it was."""
+
+    SAMPLE = '<perform name="preference:tables.xml" type="XmlFile" class="x.PerformFileModelXml"/>'
+
+    def setUp(self) -> None:
+        self.mod = _load()
+        self._tmp = tempfile.TemporaryDirectory()
+        self.profile = Path(self._tmp.name) / "profile.xml"
+        self.profile.write_text(self.SAMPLE, encoding="utf-8")
+
+    def tearDown(self) -> None:
+        self._tmp.cleanup()
+
+    def test_insert_after_a_missing_entry(self) -> None:
+        with self.assertRaisesRegex(self.mod.StartupPatchError, "no Start Up entry containing 'nope.py'"):
+            self.mod.insert_after(self.profile, "panel_status.py", "nope.py")
+
+    def test_load_tables_with_no_tables_load(self) -> None:
+        self.profile.write_text("<startup/>", encoding="utf-8")
+        with self.assertRaisesRegex(self.mod.StartupPatchError, "expected one tables load .* found 0"):
+            self.mod.load_tables_from(self.profile, "preference:tables.xml")
+
+    def test_main_prints_the_error_and_exits_1(self) -> None:
+        import contextlib
+        import io
+        import sys
+        from unittest import mock
+        argv = ["patch_jmri_startup.py", "insert", "--profile", str(self.profile),
+                "--script", "panel_status.py", "--after", "nope.py"]
+        err = io.StringIO()
+        with mock.patch.object(sys, "argv", argv), contextlib.redirect_stderr(err):
+            self.assertEqual(self.mod.main(), 1)
+        self.assertIn("no Start Up entry", err.getvalue())
+        self.assertEqual(self.profile.read_text(encoding="utf-8"), self.SAMPLE)
+
+
 if __name__ == "__main__":
     unittest.main()

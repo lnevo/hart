@@ -3,12 +3,12 @@
 against the block lengths in output/tables.xml.
 
     export_track_lengths.py            # write the document
-    export_track_lengths.py --tables   # refused since R9c: tables.xml takes its lengths from build_tables.py
+    export_track_lengths.py --tables   # refused: tables.xml is generated and takes its lengths from build_tables.py
     export_track_lengths.py --check    # exit 1 on drift between the two, or a stale document
 
 The two CSVs are the record (hartlib.block_lengths): each block's AnyRail plan 5.3c length (block_lengths.csv) and,
 for a timed block, its measured length (block_lengths_measured.csv). JMRI's block holds the operating length, in mm:
-the measured one where there is one, else the plan's (owner, 2026-11-25, ADR-039 lane L8). The document prints both
+the measured one where there is one, else the plan's (ADR-039). The document prints both
 lengths and the one JMRI holds, so it reads both sides (tools/hartlib/tests/test_block_lengths.py).
 """
 import sys
@@ -24,8 +24,8 @@ DOC = ROOT / "docs/jmri/TRACK_LENGTHS.md"
 MM = 25.4
 
 
-# The main and upper levels' blocks (internal system names, IB:C3:...) are in the CSV too, with their plan lengths
-# (step 5 part 2, owner 2026-11-20), so every level's JMRI length is checked.
+# The main and upper levels' blocks (internal system names, IB:C3:...) are in the CSV too, with their plan lengths,
+# so every level's JMRI length is checked.
 
 
 def table_lengths():
@@ -46,7 +46,7 @@ def render(rows, measured, operating):
                 f"{'timed' if m else 'plan'} | {operating[b.user_name] * MM:.1f} | {m.note if m else b.note} |")
     head = ("| Block | Occupancy sensor | Plan in | Measured in | Source | JMRI mm | Note |\n"
             "|---|---|---|---|---|---|---|")
-    index = devices.index()         # a block's kind is its device-master role, never its name (hand-off row 8)
+    index = devices.index()         # a block's kind is its device-master role, never its name
     tracks = [b for b in rows.values() if not index.is_os(b.user_name)]
     osb = [b for b in rows.values() if index.is_os(b.user_name)]
     return f"""# Track and spur lengths
@@ -83,32 +83,6 @@ Speed matching and the Dispatcher take it.
 """
 
 
-def set_tables(operating) -> int:
-    """Set each block's length in tables.xml to its operating length (mm); returns how many changed. Stops on a block
-    tables.xml does not hold, or while JMRI runs (a Store would undo it)."""
-    tables_build.refuse_generated(TABLES, Path(__file__).name)
-    try:
-        running = tables.jmri_running()
-    except tables.JmriCheckError as exc:
-        sys.exit(f"{exc}; tables.xml not written")
-    if running:
-        sys.exit("JMRI is running: quit PanelPro and CATS first (a Store would undo this)")
-    t = tables.load(TABLES)
-    full = {tables.user_name(b): b for b in tables.blocks(t.root) if tables.user_name(b)}
-    missing = sorted(set(operating) - set(full))
-    if missing:
-        sys.exit(f"blocks not in {paths.rel(TABLES)}: {missing}")
-    changed = 0
-    for name, inches in operating.items():
-        want = f"{inches * MM:.1f}"
-        if full[name].get("length") != want:
-            full[name].set("length", want)
-            changed += 1
-    if changed:
-        t.save()            # the one tables file (ADR-008) is rewritten only when a length changed
-    return changed
-
-
 def main():
     try:
         rows = block_lengths.plan_blocks()                 # this checkout's files
@@ -117,9 +91,10 @@ def main():
     except railroad.FactsError as exc:          # devices.DevicesError too: a block with no row or no role
         sys.exit(str(exc))
     if "--tables" in sys.argv:
+        # tables.xml is generated (ADR-029): build_tables.py writes the operating lengths into it.
         paths.exit_if_overridden(Path(__file__).name)
-        print(f"set {set_tables(operating)} block lengths in {paths.rel(TABLES)}")
-        return 0
+        tables_build.refuse_generated(TABLES, Path(__file__).name)
+        sys.exit(f"--tables writes nothing: {paths.rel(TABLES)} takes its lengths from tools/schematic/build_tables.py")
     if "--check" not in sys.argv:
         paths.exit_if_overridden(Path(__file__).name)
         DOC.write_text(text, encoding="utf-8")

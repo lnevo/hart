@@ -146,6 +146,71 @@ class SharedView(unittest.TestCase):
         self.assertEqual({name.lstrip("/") for name in mimic.SHARED_FILES}, set(SHARED))
 
 
+# Runs render() under node with a stub DOM and prints every innerHTML it set.
+_RENDER_HARNESS = r"""
+const fs = require("fs"), vm = require("vm");
+const [viewPath, statePath] = process.argv.slice(1);
+const html = [];
+function node(id) {
+  const el = { id, hidden: false, value: "", className: "", dataset: {},
+    appendChild() {}, addEventListener() {}, insertAdjacentHTML() {} };
+  Object.defineProperty(el, "innerHTML", { get() { return ""; }, set(v) { html.push(v); } });
+  return el;
+}
+const els = {};
+const document = { body: node("body"), getElementById: (id) => (els[id] ||= node(id)),
+  createElement: (t) => node(t) };
+const ctx = vm.createContext({ document, location: { hash: "" }, console });
+vm.runInContext(fs.readFileSync(viewPath, "utf8"), ctx);
+const given = JSON.parse(fs.readFileSync(statePath, "utf8"));
+vm.runInContext("Object.assign(state, " + JSON.stringify(given) + "); render();", ctx);
+process.stdout.write(JSON.stringify(html));
+"""
+
+EVIL = '<img src=x onerror=alert(1)>"\''
+
+
+@unittest.skipUnless(shutil.which("node"), "node is not installed")
+class RenderEscapes(unittest.TestCase):
+    """Layout names and the live head aspect from the JSON socket never reach innerHTML as markup."""
+
+    def _render(self, given: dict) -> str:
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "state.json"
+            state_path.write_text(json.dumps(given), encoding="utf-8")
+            out = subprocess.run(
+                ["node", "-e", _RENDER_HARNESS, str(WEB / "mimic_view.js"), str(state_path)],
+                capture_output=True, text=True, check=True,
+            ).stdout
+        return "".join(json.loads(out))
+
+    def test_names_and_aspect_are_escaped(self) -> None:
+        rec = {"level": "staging", "plant": EVIL}
+        given = {
+            "level": "staging",
+            "layout": {
+                "turnouts": [dict(rec, label=EVIL, name=EVIL, addr=EVIL, tip=EVIL, n_addr=EVIL, r_addr=EVIL)],
+                "blocks": [dict(rec, label=EVIL, userName=EVIL, name=EVIL, addr=EVIL)],
+                "heads": [dict(rec, id="IH1", systemName=EVIL, mast=EVIL)],
+            },
+            "heads": {"1": EVIL + ";x"},
+        }
+        html = self._render(given)
+        self.assertNotIn("<img", html)
+        self.assertIn("&lt;img src=x onerror=alert(1)&gt;&quot;&#39;", html)
+        self.assertNotIn('"\'', html)
+
+    def test_plain_names_render_unchanged(self) -> None:
+        given = {
+            "level": "staging",
+            "layout": {"turnouts": [], "blocks": [],
+                       "heads": [{"level": "staging", "plant": "East", "id": "IH7", "systemName": "IH7", "mast": "6LB"}]},
+            "heads": {"7": "Green"},
+        }
+        html = self._render(given)
+        self.assertIn('<i class="lamp Green" title="IH7 Green"></i><span class="lbl" title="6LB">6LB</span>', html)
+
+
 class Install(unittest.TestCase):
     def _run(self, with_layout):
         tmp = Path(tempfile.mkdtemp())

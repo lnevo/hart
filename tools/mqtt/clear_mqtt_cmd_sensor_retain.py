@@ -20,7 +20,9 @@ from __future__ import annotations
 
 import subprocess
 import sys
+from collections.abc import Callable
 from pathlib import Path
+from typing import NamedTuple
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
@@ -59,76 +61,76 @@ def _clear(topic: str) -> None:
     )
 
 
-def main() -> int:
-    cleared: list[str] = []
+def _under(prefix: str) -> Callable[[str, str], bool]:
+    return lambda topic, _payload: topic.startswith(prefix)
 
-    for t, _p in _sub("track/cmd/sensor/#"):
-        if t.startswith("track/cmd/sensor/"):
-            _clear(t)
-            cleared.append(t)
 
+def _leaf(topic: str, prefix: str) -> str | None:
+    return topic[len(prefix):] if topic.startswith(prefix) else None
+
+
+def _root_sensor(topic: str, payload: str) -> bool:
     # Bare numeric root topics with sensor payloads (layout bug artifacts).
-    for t, p in _sub("+"):
-        if t.isdigit() and p.upper() in ("ACTIVE", "INACTIVE"):
-            _clear(t)
-            cleared.append(t)
+    return topic.isdigit() and payload.upper() in ("ACTIVE", "INACTIVE")
 
-    # Discard sink if someone setKnownState with the disabled send template.
-    for t, _p in _sub("_discard/cmd/sensor/#"):
-        if t.startswith("_discard/cmd/sensor/"):
-            _clear(t)
-            cleared.append(t)
 
-    # Legacy Digicon SET leaf (IH in the topic). Live publisher uses packed digits.
-    for t, _p in _sub("track/signalhead/#"):
-        leaf = t[len("track/signalhead/") :] if t.startswith("track/signalhead/") else ""
-        if leaf.upper().startswith("IH") and leaf[2:].isdigit():
-            _clear(t)
-            cleared.append(t)
+def _ih_head_leaf(topic: str, _payload: str) -> bool:
+    # Legacy Digicon SET leaf (IH and digits in the topic). The live publisher uses packed digits.
+    leaf = _leaf(topic, "track/signalhead/")
+    return leaf is not None and leaf.upper().startswith("IH") and leaf[2:].isdigit()
 
+
+def _nondigit_sensor(topic: str, _payload: str) -> bool:
     # JMRI MQTT receive track/sensor/{0} creates M2S{0}. Non-digit leaves are junk
     # (M2SBlock 1-1). Live occupancy is packed digits (M2S100 ↔ track/sensor/100).
-    for t, _p in _sub("track/sensor/#"):
-        if not t.startswith("track/sensor/"):
-            continue
-        leaf = t[len("track/sensor/") :]
-        if leaf and not leaf.isdigit():
+    leaf = _leaf(topic, "track/sensor/")
+    return leaf is not None and leaf != "" and not leaf.isdigit()
+
+
+class Junk(NamedTuple):
+    """One kind of junk retain: the subscription that finds it and the test a topic must pass to be cleared."""
+
+    name: str
+    subscription: str
+    is_junk: Callable[[str, str], bool]
+
+
+# The clear and the leftover count after it use the same test, so a topic counts as left only if it was one to clear.
+JUNK = (
+    Junk("cmd", "track/cmd/sensor/#", _under("track/cmd/sensor/")),
+    Junk("root_numeric", "+", _root_sensor),
+    # Discard sink if someone setKnownState with the disabled send template.
+    Junk("discard", "_discard/cmd/sensor/#", _under("_discard/cmd/sensor/")),
+    Junk("ih_leaf", "track/signalhead/#", _ih_head_leaf),
+    Junk("nondigit_sensor", "track/sensor/#", _nondigit_sensor),
+)
+
+
+def _junk_topics(kind: Junk) -> list[str]:
+    return [t for t, p in _sub(kind.subscription) if kind.is_junk(t, p)]
+
+
+def main() -> int:
+    cleared: list[str] = []
+    for kind in JUNK:
+        for t in _junk_topics(kind):
             _clear(t)
             cleared.append(t)
 
-    left_cmd = [t for t, _ in _sub("track/cmd/sensor/#") if t.startswith("track/cmd/sensor/")]
-    left_root = [
-        t
-        for t, p in _sub("+")
-        if t.isdigit() and p.upper() in ("ACTIVE", "INACTIVE")
-    ]
-    left_discard = [
-        t for t, _ in _sub("_discard/cmd/sensor/#") if t.startswith("_discard/cmd/sensor/")
-    ]
-    left_ih = [
-        t
-        for t, _ in _sub("track/signalhead/#")
-        if t.startswith("track/signalhead/IH") or t.startswith("track/signalhead/ih")
-    ]
-    left_nondigit = [
-        t
-        for t, _ in _sub("track/sensor/#")
-        if t.startswith("track/sensor/") and not t[len("track/sensor/") :].isdigit()
-    ]
+    left = {kind.name: len(_junk_topics(kind)) for kind in JUNK}
     print(
         "cleared=%d remaining_cmd=%d remaining_root_numeric=%d remaining_discard=%d remaining_ih_leaf=%d remaining_nondigit_sensor=%d host=%s"
         % (
             len(cleared),
-            len(left_cmd),
-            len(left_root),
-            len(left_discard),
-            len(left_ih),
-            len(left_nondigit),
+            left["cmd"],
+            left["root_numeric"],
+            left["discard"],
+            left["ih_leaf"],
+            left["nondigit_sensor"],
             MQTT_HOST,
         )
     )
-    leftover = left_cmd or left_root or left_discard or left_ih or left_nondigit
-    return 0 if not leftover else 1
+    return 0 if not any(left.values()) else 1
 
 
 if __name__ == "__main__":
