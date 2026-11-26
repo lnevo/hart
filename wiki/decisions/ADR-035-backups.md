@@ -14,7 +14,7 @@ A read-only review on 2026-11-25 found the repo safe on GitHub, the Mac in Time 
 2. **Mac to Windows, weekly.** A LaunchAgent (`com.hart.backup-win`, Sundays 04:30) runs `tools/hosts/backup_win_push.sh`, mirroring `media/`, `ops/car-cards/`, `docs/wiring/bench/`, the STS copies from the Pi, the Pi snapshots, `~/Documents/Layout` and `~/Documents/NMRA AP` into `~/backups/mac/` inside WSL on the Windows box, keeping the snapshots' hard links. A file changed or deleted on the Mac is moved to `replaced/<time>/` there and kept 90 days.
 3. **Time Machine** stays the Mac's own backup, and so covers everything in 1 and 2 that lands on the Mac.
 4. **No card image** of the Pi (owner): a new card is built from `tools/hosts/pi-os/` (ADR-032), and the live data comes back from the snapshots in 1.
-5. **No off-site copy for now** (owner): the Windows box is a second machine in the same house. Secrets (`~/.config/hart/pi-os`, `~/.ssh`, `.env.local`, the router notes) are only on the Mac and in Time Machine; they are not copied to Windows.
+5. **No off-site copy for now** (owner): the Windows box is a second machine in the same house. Since 2026-11-25 (owner) the weekly copy also takes the secrets, owner-only on the Windows side (folders 700, files 600, replaced copies too): `~/.config/hart/pi-os`, the router notes in `~/dev/net` and `.env.local`. `~/.ssh` is not copied: agents may not read it, so the owner adds it to the job by hand if wanted.
 6. `make backup-status` prints when each job last ran in full and says OVERDUE after 2 days (Pi) or 9 days (Windows). `tools/hosts/backup_launchagents.sh install` sets both jobs up again on a new Mac.
 
 ## Consequences

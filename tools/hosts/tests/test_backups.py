@@ -156,6 +156,35 @@ class WinPush(Base):
         self.assertEqual(self.push(self.a).returncode, 0)
         self.assertEqual((self.target / "media/photo.jpg").stat().st_ino, (self.target / "media/same.jpg").stat().st_ino)
 
+    def test_a_single_file_entry_lands_in_its_own_folder(self) -> None:
+        env = self.tmp / "mac/.env.local"
+        write(env, "KEY=1")
+        r = self.run_script(PUSH, BACKUP_WIN_HOST="", BACKUP_WIN_DIR=str(self.target),
+                            BACKUP_WIN_FOLDERS=f"secrets-env|{env}")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual((self.target / "secrets-env/.env.local").read_text(), "KEY=1")
+        self.assertNotIn("KEY=1", r.stdout + r.stderr)  # a secret's contents are never printed
+
+    def test_secrets_are_owner_only_and_so_are_their_replaced_copies(self) -> None:
+        keys = self.tmp / "mac/pi-os"
+        write(keys / "wifi.txt", "psk")
+        (keys / "wifi.txt").chmod(0o644)
+        keys.chmod(0o755)
+        lines = f"secrets-pi-os|{keys}\nmedia|{self.a}"
+        self.assertEqual(self.run_script(PUSH, BACKUP_WIN_HOST="", BACKUP_WIN_DIR=str(self.target),
+                                         BACKUP_WIN_FOLDERS=lines).returncode, 0)
+        self.assertEqual((self.target / "secrets-pi-os").stat().st_mode & 0o777, 0o700)
+        self.assertEqual((self.target / "secrets-pi-os/wifi.txt").stat().st_mode & 0o777, 0o600)
+        self.assertEqual((self.target / "media/photo.jpg").stat().st_mode & 0o077 != 0, True)  # others unchanged
+        write(keys / "wifi.txt", "psk2")
+        (keys / "wifi.txt").chmod(0o644)
+        self.assertEqual(self.run_script(PUSH, BACKUP_WIN_HOST="", BACKUP_WIN_DIR=str(self.target),
+                                         BACKUP_WIN_FOLDERS=lines).returncode, 0)
+        old = [p for p in (self.target / "replaced").rglob("wifi.txt")]
+        self.assertEqual(len(old), 1)
+        self.assertEqual(old[0].read_text(), "psk")
+        self.assertEqual(old[0].stat().st_mode & 0o077, 0)
+
     def test_a_relative_target_is_refused(self) -> None:
         r = self.run_script(PUSH, BACKUP_WIN_HOST="", BACKUP_WIN_DIR="backups/mac", BACKUP_WIN_FOLDERS=f"m|{self.a}")
         self.assertEqual(r.returncode, 2)

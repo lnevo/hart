@@ -6,7 +6,10 @@
 # Each folder in FOLDERS is mirrored into WSL at $BACKUP_WIN_DIR/<name>/. A file that
 # was changed or deleted on the Mac is moved, not lost, into
 # $BACKUP_WIN_DIR/replaced/<time>/<name>/ (kept BACKUP_WIN_KEEP_DAYS, default 90).
-# A folder missing on the Mac is reported and skipped, never mirrored as empty.
+# A folder missing on the Mac is reported and skipped, never mirrored as empty. An entry may
+# also be one file, copied into $BACKUP_WIN_DIR/<name>/. Entries named secrets-* (owner,
+# 2026-11-25) are copied with owner-only permissions (folders 700, files 600) and their
+# replaced copies are tightened the same way; their contents are never printed.
 # $HART_BACKUP_DIR/win-last-ok holds the time of the last run in which every folder copied.
 #
 #   BACKUP_WIN_HOST  ssh target (default $HART_WIN_SSH); empty copies to a local folder (tests)
@@ -35,6 +38,11 @@ FOLDERS=(
   "pi-snapshots|$ROOT/pi"
   "Layout|$HOME/Documents/Layout"
   "NMRA-AP|$HOME/Documents/NMRA AP"
+  # secrets (owner, 2026-11-25): the Pi image's keys and passwords, the router notes, the
+  # Sheets credentials. ~/.ssh is not here: agents cannot read it; the owner adds it by hand.
+  "secrets-pi-os|$HOME/.config/hart/pi-os"
+  "secrets-net|$HOME/dev/net"
+  "secrets-env|$MAIN/.env.local"
 )
 if [[ -n "${BACKUP_WIN_FOLDERS:-}" ]]; then  # tests: newline-separated name|folder lines
   FOLDERS=()
@@ -74,17 +82,22 @@ for entry in "${FOLDERS[@]}"; do
     echo "backup_win_push: the Windows name '$name' has a space; use one without" >&2
     exit 2
   fi
-  if [[ ! -d "$from" ]]; then
+  if [[ -d "$from" ]]; then
+    src="$from/"  # the trailing slash copies the folder's contents, and follows the folder itself if it is a link
+  elif [[ -f "$from" ]]; then
+    src="$from"   # one file, into its own folder on the Windows side
+  else
     echo "backup_win_push: MISSING $from; $name skipped" >&2
     failed=1
     continue
   fi
-  # The trailing slash copies the folder's contents, and follows the folder itself if it is a link.
   to="$TARGET/$name/"
   dest="${HOST:+$HOST:}$to"
+  extra=()
+  [[ "$name" == secrets-* ]] && extra=("--chmod=D700,F600")  # one argument: rsync takes a comma list
   # --backup-dir is read on the receiving side, relative to the target folder.
   rc=0
-  rsync "${opts[@]}" --backup-dir="../replaced/$STAMP/$name" "$from/" "$dest" < /dev/null || rc=$?
+  rsync "${opts[@]}" ${extra[@]+"${extra[@]}"} --backup-dir="../replaced/$STAMP/$name" "$src" "$dest" < /dev/null || rc=$?
   if [[ "$rc" == 0 ]]; then
     echo "backup_win_push: $name ok"
   elif [[ "$rc" == 24 ]]; then  # a file vanished while it was read; the rest copied
@@ -95,10 +108,12 @@ for entry in "${FOLDERS[@]}"; do
   fi
 done
 
-# Old replaced files go after KEEP_DAYS. The target is made by rsync above.
+# Old replaced files go after KEEP_DAYS. The target is made by rsync above. Secrets, and their
+# replaced copies (rsync's backup keeps the old mode), are owner-only.
 remote <<EOF
 set -e
 [ -d "$TARGET/replaced" ] && find "$TARGET/replaced" -mindepth 1 -maxdepth 1 -type d -mtime +$KEEP_DAYS -exec rm -rf {} + || true
+find "$TARGET" -maxdepth 3 -name 'secrets-*' -exec chmod -R go-rwx {} + 2>/dev/null || true
 EOF
 
 if [[ "$failed" == 0 ]]; then
