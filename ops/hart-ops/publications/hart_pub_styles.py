@@ -1,9 +1,8 @@
 """Text and table styling for the HART letter publications: theme colors, runs, rules, masthead, headings, body
 text, lists, table rows and color swatches.
 
-Split out of hart_pub_helpers.py on 2026-11-26 with no change in behaviour, so each file stays under the size limit
-(tools/audit/check_py_sizes.py). hart_pub_helpers.py imports every name here, and the rebuild scripts keep importing
-from hart_pub_helpers.
+hart_pub_helpers.py imports every name here, and the rebuild scripts import them from hart_pub_helpers. Cell shading
+is hart_ooxml.shade_cell, shared with the card pipeline.
 """
 
 from __future__ import annotations
@@ -13,6 +12,8 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Inches, Pt, RGBColor
+
+from hart_ooxml import shade_cell as set_cell_shading
 
 # Theme accent used by Heading styles in EQ-01 / standards
 ACCENT = RGBColor(0x0F, 0x47, 0x61)
@@ -155,15 +156,6 @@ def add_bullet_items(doc: Document, items: list[str]) -> None:
         p.paragraph_format.left_indent = Inches(0.15)
         r = p.add_run(f"•  {item}")
         _set_run_font(r, size_pt=10, color=BODY, name="Calibri")
-
-
-def set_cell_shading(cell, hex_color: str) -> None:
-    tc = cell._tc
-    tcPr = tc.get_or_add_tcPr()
-    shd = OxmlElement("w:shd")
-    shd.set(qn("w:fill"), hex_color)
-    shd.set(qn("w:val"), "clear")
-    tcPr.append(shd)
 
 
 def style_table(table) -> None:

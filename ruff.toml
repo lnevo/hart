@@ -41,5 +41,4 @@ select = ["F"]
 "jmri/layouts/hart/scripts/panelpro_smoke_test.py" = ["F821"]
 # Re-exports every name of car_paths, card_template_layout and card_template_docx for the card scripts that read
 # them as g.<NAME> (its own comment says so).
-"ops/hart-ops/card_pipeline/generate_card_template.py" = ["F401"]
 # A deliberate star import of main_level_geometry (its own noqa covers F403): the names it uses come from there.

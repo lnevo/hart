@@ -1,6 +1,7 @@
 """Low-level OOXML and text helpers shared by the HART card builders.
 
-Split out of generate_card_template.py, which re-exports every name here.
+The cell shading, width and margin writers come from publications/ooxml.py, which the publications share; the
+card builders call them by their short names here (shade, width, pad).
 """
 
 import re
@@ -9,6 +10,8 @@ from docx.oxml import OxmlElement, parse_xml
 from docx.oxml.ns import qn
 from docx.shared import Pt, RGBColor
 
+import car_paths  # noqa: F401  (puts publications/ on sys.path for hart_ooxml)
+from hart_ooxml import set_cell_margins as pad, set_cell_width as width, shade_cell as shade, tc_pr as _tc_pr  # noqa: F401  (card builders import shade, width from here)
 from card_template_layout import (
     DIVIDER_CLR,
     FONT,
@@ -19,41 +22,6 @@ from card_template_layout import (
 
 
 # ── low-level OOXML helpers ─────────────────────────────────────────────────
-
-def _tc_pr(cell):
-    return cell._tc.get_or_add_tcPr()
-
-
-def shade(cell, color: str) -> None:
-    el = OxmlElement("w:shd")
-    el.set(qn("w:fill"), color)
-    el.set(qn("w:val"), "clear")
-    _tc_pr(cell).append(el)
-
-
-def width(cell, twips: int) -> None:
-    tc_pr = _tc_pr(cell)
-    el = tc_pr.find(qn("w:tcW"))
-    if el is None:
-        el = OxmlElement("w:tcW")
-        tc_pr.append(el)
-    el.set(qn("w:w"), str(twips))
-    el.set(qn("w:type"), "dxa")
-
-
-def pad(cell, top=0, left=0, bottom=0, right=0) -> None:
-    tc_pr = _tc_pr(cell)
-    el = tc_pr.find(qn("w:tcMar"))
-    if el is not None:
-        tc_pr.remove(el)
-    el = OxmlElement("w:tcMar")
-    for side, val in (("top", top), ("left", left), ("bottom", bottom), ("right", right)):
-        s = OxmlElement(f"w:{side}")
-        s.set(qn("w:w"), str(val))
-        s.set(qn("w:type"), "dxa")
-        el.append(s)
-    tc_pr.append(el)
-
 
 def row_h(row, twips: int) -> None:
     tr_pr = row._tr.get_or_add_trPr()
