@@ -58,14 +58,14 @@ class SecondaryOsBlocksTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "switches.csv"
             p.write_text("switch,os_id\n7,os:7\n", encoding="utf-8")
-            with self.assertRaisesRegex(SystemExit, "switches.csv: no column level, half"):
+            with self.assertRaisesRegex(phase02.railroad.FactsError, "switches.csv: no column level, half"):
                 phase02.secondary_os_blocks(p)
 
     def test_a_row_hartlib_refuses_stops_with_its_line(self):
         """The rows are read by hartlib.railroad.read_switch_rows, so a staging row with no OS block ID stops."""
         with tempfile.TemporaryDirectory() as tmp:
             p = switches_file(tmp, {("1", "9")}, lambda line: line.replace(",os:9,", ",,"))
-            with self.assertRaisesRegex(SystemExit, r"switches.csv line 2 \(Switch 9\): a staging row is keyed by "
+            with self.assertRaisesRegex(phase02.railroad.FactsError, r"switches.csv line 2 \(Switch 9\): a staging row is keyed by "
                                                     r"its OS block"):
                 phase02.staging_rows(p)
 
@@ -91,6 +91,18 @@ class HartTablesTest(unittest.TestCase):
             broken.write_text("<layout-config/>", encoding="utf-8")
             done = self.run_with(str(broken))
         self.assertNotEqual(0, done.returncode)
+
+
+class RefusedSwitchesTest(unittest.TestCase):
+    def test_main_fails_with_the_message_when_switches_csv_is_refused(self):
+        import contextlib
+        import io
+        from unittest import mock
+        out = io.StringIO()
+        refused = phase02.railroad.FactsError("switches.csv line 2: bad row")
+        with mock.patch.object(phase02, "staging_rows", side_effect=refused), contextlib.redirect_stdout(out):
+            self.assertEqual(phase02.main(), 1)
+        self.assertEqual(out.getvalue(), "FAIL\n  - switches.csv line 2: bad row\n")
 
 
 if __name__ == "__main__":

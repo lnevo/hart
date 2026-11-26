@@ -40,15 +40,15 @@ from hartlib.railroad_facts import FactsError  # noqa: E402
 ROOT = paths.REPO_ROOT
 HEAD_PLAN = paths.SIGNAL_HEAD_PLAN
 
-SKIP_MAST: set[str] = set()
 
-# Wired heads only (ADR-024, owner 2026-11-19): every other staging mast stands on internal heads
-# (IH:HART:C1:<mast>, masts.csv) until the owner wires it. The wired heads, their nodes and ports, are
-# jmri/layouts/hart/data/wiring.csv's head rows (hartlib.wiring, the physical wiring source; owner 2026-11-20); add a
-# head's row there when it is wired.
-# Masts whose field build has fewer heads than the mast rule gives them: signal_head_plan.csv and the JMRI mast use
-# only the fitted ones; the planned heads stay the mast rule's (masts.csv, ADR-024).
-FITTED_HEADS: dict[str, set[int]] = {}
+class HeadPlanError(ValueError):
+    """wiring.csv puts a lamp on a calibration relay's port, or two lamps on one port."""
+
+
+# Wired heads only (ADR-024): every other staging mast stands on internal heads (IH:HART:C1:<mast>, masts.csv)
+# until it is wired. The wired heads, their nodes and ports, are jmri/layouts/hart/data/wiring.csv's head rows
+# (hartlib.wiring, the physical wiring source); add a head's row there when it is wired. A mast with fewer
+# wired heads than its mast rule gives it uses only the wired ones here; the planned heads stay the mast rule's.
 # One 3-pin STOP/APPROACH/CLEAR object per physical disc. A 2-head mast owns
 # 6 consecutive pins on one board (T then B). Packed = radio*100 + UID.
 # disc: T top, B bottom, S single.
@@ -76,13 +76,6 @@ DISC_SORT = {"T": 0, "S": 1, "B": 2}
 
 PIN_ORDER = (("R", "r_port"), ("Y", "y_port"), ("G", "g_port"))
 
-# The calibration relays' ports (wiring.csv's calibration rows: the relay that resets the DCC power so a node's
-# block detectors calibrate, one on every node with detectors; owner 2026-11-21): never a lamp.
-
-
-def packed(node: int, signal_index: int) -> int:
-    return node * 100 + 32 + signal_index
-
 
 def discs_of(mast: str, rows: list[dict]) -> list[dict]:
     by_packed: dict[int, dict] = {}
@@ -95,10 +88,12 @@ def discs_of(mast: str, rows: list[dict]) -> list[dict]:
 
 
 def build_rows(path: Path | None = None) -> list[dict]:
-    """The pin rows of the wired heads (heads_3pin, from wiring.csv `path`). SystemExit on a lamp on a calibration
+    """The pin rows of the wired heads (heads_3pin, from wiring.csv `path`). HeadPlanError on a lamp on a calibration
     relay's port or two lamps on one port."""
     rows: list[dict] = []
     seen_ports: dict[str, str] = {}
+    # The calibration relays' ports (wiring.csv's calibration rows: the relay that resets the DCC power so a node's
+    # block detectors calibrate, one on every node with detectors) are never a lamp.
     cal_ports = wiring.calibration_ports(path)
     for mast, node, parent, loc, pid, g, y, r, disc, was in heads_3pin(path):
         uid = pid - node * 100
@@ -109,12 +104,12 @@ def build_rows(path: Path | None = None) -> list[dict]:
         for color, _key in PIN_ORDER:
             port = ports[color]
             if port in cal_ports:
-                raise SystemExit(
+                raise HeadPlanError(
                     f"{port} is a calibration relay's port (wiring.csv); "
                     f"cannot assign {mast} {disc} {color}"
                 )
             if port in seen_ports:
-                raise SystemExit(f"duplicate port {port}: {seen_ports[port]} and {mast}")
+                raise HeadPlanError(f"duplicate port {port}: {seen_ports[port]} and {mast}")
             seen_ports[port] = f"{mast} {disc} {color}"
             rows.append(
                 {
@@ -141,23 +136,13 @@ def build_rows(path: Path | None = None) -> list[dict]:
     return rows
 
 
-def fitted_rows(rows: list[dict]) -> list[dict]:
-    """Rows for heads actually fitted in the field (see FITTED_HEADS)."""
-    return [
-        r
-        for r in rows
-        if r["mast_user_name"] not in FITTED_HEADS
-        or r["packed"] in FITTED_HEADS[r["mast_user_name"]]
-    ]
-
-
 def plan_masts(rows: list[dict]) -> list[dict]:
     """One signal_head_plan row per mast, from the given head rows."""
     masts = []
     seen = set()
     for r in rows:
         m = r["mast_user_name"]
-        if m in SKIP_MAST or m in seen:
+        if m in seen:
             continue
         seen.add(m)
         hs = [x for x in rows if x["mast_user_name"] == m]
@@ -203,7 +188,7 @@ PLAN_FIELDS = [
 
 def head_plan_text(rows: list[dict]) -> tuple[str, int]:
     """The head plan CSV text for the given head rows, and its mast count."""
-    masts = plan_masts(fitted_rows(rows))
+    masts = plan_masts(rows)
     out = io.StringIO()
     w = csv.DictWriter(out, fieldnames=PLAN_FIELDS, lineterminator="\n")
     w.writeheader()
@@ -235,7 +220,7 @@ def main() -> int:
     args = ap.parse_args()
     try:
         rows = build_rows()
-    except FactsError as exc:
+    except (FactsError, HeadPlanError) as exc:
         print(f"build_hart_signal_heads.py: {exc}", file=sys.stderr)
         return 2
     if args.check:

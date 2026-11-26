@@ -26,7 +26,7 @@ Plan 5.3c draws these as track and joins staging to the main level through the h
 **Block lengths (owner, 2026-11-20)**
 - Every staging block has its 5.3c length in `block_lengths.csv` (`plan_in`), written by `tools/schematic/plan_lengths.py` from the plan file and `parts.json`: a track block the plan's run between the turnout ends (as AnyRail's export measures it), an OS block its turnout's product length from the points to the frog end, read from the part's end points (a Peco code 83 #6 about 9.2 in, a #8 11.1 in). No hand-kept lengths are left: the old layout's yard and spur lengths, the 10 in OS placeholders and the engine house rule above are gone.
 - The schematic, the Layout Editor panel and the signal rules use the plan length alone, so masts stand where the rules put them on the plan's geometry. Car counts and mileposts use the plugin's plan lengths on every level; staging's copy of the measured lengths in `staging.plan_overrides.json` (`track_lengths_in`) is gone.
-- A timed block keeps its measured length (`measured_in`, `source` `timed`) for speed profiling and for JMRI's block length; JMRI holds the measured length where there is one, else the plan length (`export_track_lengths.py --tables` writes them, `--check` holds `tables.xml` to the file).
+- A timed block keeps its measured length (`measured_in`, `source` `timed`) for speed profiling and for JMRI's block length; JMRI holds the measured length where there is one, else the plan length (`tools/schematic/build_tables.py` writes them into the generated `tables.xml`; `export_track_lengths.py --check` holds `tables.xml` to the file).
 
 **Still from 5.3b**
 - The measured block lengths (`source` `timed` in `TRACK_LENGTHS.md`) are timed shares of the 5.3b loop.

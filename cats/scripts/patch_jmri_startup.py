@@ -7,7 +7,12 @@ from __future__ import annotations
 
 import argparse
 import re
+import sys
 from pathlib import Path
+
+
+class StartupPatchError(ValueError):
+    """profile.xml does not hold the Start Up entry the edit needs, or holds it in a form the edit cannot change."""
 
 
 def _perform_for(sample: str, script_path: str) -> str:
@@ -33,10 +38,10 @@ def insert_after(profile: Path, script_path: str, after: str) -> str:
         return "already"
     idx = txt.find(after)
     if idx < 0:
-        raise SystemExit(f"{profile}: no Start Up entry containing {after!r}")
+        raise StartupPatchError(f"{profile}: no Start Up entry containing {after!r}")
     end = txt.find("/>", idx)
     if end < 0:
-        raise SystemExit(f"{profile}: malformed perform tag at {after!r}")
+        raise StartupPatchError(f"{profile}: malformed perform tag at {after!r}")
     end += 2
     sample = txt[txt.rfind("<perform", 0, idx) : end]
     insert = "\n" + _perform_for(sample, script_path)
@@ -56,7 +61,7 @@ def remove_script(profile: Path, script_path: str) -> str:
         count=1,
     )
     if n != 1:
-        raise SystemExit(f"{profile}: could not remove {needle}")
+        raise StartupPatchError(f"{profile}: could not remove {needle}")
     profile.write_text(new, encoding="utf-8")
     return "removed"
 
@@ -124,14 +129,14 @@ def load_tables_from(profile: Path, path: str) -> str:
         text,
     )
     if count != 1:
-        raise SystemExit(f"expected one tables load in {profile}, found {count}")
+        raise StartupPatchError(f"expected one tables load in {profile}, found {count}")
     if new == text:
         return "already"
     profile.write_text(new, encoding="utf-8")
     return "changed"
 
 
-def main() -> None:
+def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("action", choices=("insert", "remove", "retarget-jython", "load-tables"))
     ap.add_argument("--profile", type=Path, required=True)
@@ -144,23 +149,27 @@ def main() -> None:
     ap.add_argument("--after", help="Existing perform filename to insert after (insert only)")
     ap.add_argument("--tables", help="Tables path for load-tables")
     args = ap.parse_args()
-    if args.action == "load-tables":
-        if not args.tables:
-            raise SystemExit("load-tables requires --tables")
-        print(load_tables_from(args.profile, args.tables))
-        return
-    if not args.script:
-        raise SystemExit("--script is required")
-    if args.action == "insert":
-        if not args.after:
-            raise SystemExit("insert requires --after")
-        print(insert_after(args.profile, args.script[0], args.after))
-    elif args.action == "remove":
-        print(remove_script(args.profile, args.script[0]))
-    else:
-        notes = retarget_to_preference_jython(args.profile, args.script)
-        print("\n".join(notes) if notes else "already")
+    if args.action == "load-tables" and not args.tables:
+        sys.exit("load-tables requires --tables")
+    if args.action != "load-tables" and not args.script:
+        sys.exit("--script is required")
+    if args.action == "insert" and not args.after:
+        sys.exit("insert requires --after")
+    try:
+        if args.action == "load-tables":
+            print(load_tables_from(args.profile, args.tables))
+        elif args.action == "insert":
+            print(insert_after(args.profile, args.script[0], args.after))
+        elif args.action == "remove":
+            print(remove_script(args.profile, args.script[0]))
+        else:
+            notes = retarget_to_preference_jython(args.profile, args.script)
+            print("\n".join(notes) if notes else "already")
+    except StartupPatchError as exc:
+        print(exc, file=sys.stderr)
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
