@@ -32,8 +32,8 @@ def built():
         raise unittest.SkipTest(f"no schematic plugin at {PLUGIN.relative_to(B.pd.REPO)}")
     try:
         plugin = B.pd.plugin()
-    except SystemExit as e:             # there, but not at its pinned commit: a failure, with the plugin's message
-        raise AssertionError(f"schematic plugin: {e.code}") from None
+    except B.pd.PluginMissing as e:     # there, but not at its pinned commit: a failure, with the plugin's message
+        raise AssertionError(f"schematic plugin: {e}") from e
     cats, sheet = B.plugin_modules(plugin)
     F = B.load_facts()
     s = B.pd.solved_sheet(sheet)

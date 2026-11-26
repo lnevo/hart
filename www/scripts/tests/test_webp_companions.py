@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 try:
     from PIL import Image
-except ImportError:  # the step itself warns and does nothing without Pillow
+except ImportError:  # the step raises PillowMissing without Pillow
     Image = None
 
 import prepare_github_pages as pgp

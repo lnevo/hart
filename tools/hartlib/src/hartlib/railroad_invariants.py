@@ -148,7 +148,7 @@ def switch_levels(rr: Railroad) -> dict[str, dict[int, str]]:
     main and upper's in their interlockings and switches.csv (a local switch's area)."""
     out: dict[str, dict[int, str]] = {}
     for n, sw in rr.switches.items():
-        out.setdefault(str(n), {})[int(sw.level)] = rr.sources.switches.name
+        out.setdefault(str(n), {})[sw.level] = rr.sources.switches.name
     for s, mu in rr.main_upper_switches.items():
         src = rr.sources.interlockings.name if mu.cp else rr.sources.switches.name
         out.setdefault(s, {})[mu.level] = src

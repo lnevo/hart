@@ -13,8 +13,9 @@ import audit_panel_contracts as apc  # noqa: E402
 devices = apc.devices
 
 
-def row(name, comment, *, level=apc.railroad_facts.STAGING_LEVEL, layer="block", stop="yes"):
-    return {"level": level, "layer": layer, "user_name": name, "jmri_comment": comment, "stop": stop}
+def row(name, comment, *, level=apc.levels.STAGING, layer="block", stop="yes"):
+    return apc.railroad_facts.DeviceRow(level=level, layer=layer, user_name=name, role="track", jmri_comment=comment,
+                                        stop=stop)
 
 
 class StationComments(unittest.TestCase):
@@ -31,7 +32,7 @@ class StationComments(unittest.TestCase):
             row("Track A", "a; stop"),
             row("Track B", "b", stop=""),               # not marked stop
             row("Track C", "c; stop", stop=""),
-            row("Track Helix Outer", "CP 127", level="2"),  # a main-level helix row
+            row("Track Helix Outer", "CP 127", level=2),  # a main-level helix row
             row("BS A", "a; stop", layer="occupancy"),
         ])
         self.assertEqual(got, {"Track A": "a; stop"})

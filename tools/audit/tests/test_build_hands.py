@@ -88,15 +88,15 @@ class PlanAndOwnerRows(unittest.TestCase):
         self.assertEqual(self.apply(body, {"105": "R"}), HEADER + STAGING + "2,105,105 ,,,,R,plan,West,,,,,\n")
 
     def test_a_plan_label_with_no_row_stops(self):
-        with self.assertRaisesRegex(SystemExit, "plan switch 107 has no row; add one"):
+        with self.assertRaisesRegex(BH.HandsError, "plan switch 107 has no row; add one"):
             self.apply("2,105,105,,,,R,plan,West,,,,,\n", {"105": "R", "107": "L"})
 
     def test_a_plan_row_the_plan_has_no_hand_for_stops(self):
-        with self.assertRaisesRegex(SystemExit, r"line 3 \(105\): hand_source plan, but the plan has no hand"):
+        with self.assertRaisesRegex(BH.HandsError, r"line 3 \(105\): hand_source plan, but the plan has no hand"):
             self.apply("2,105,105,,,,R,plan,West,,,,,\n", {})
 
     def test_a_plan_label_on_a_row_with_no_hand_source_stops(self):
-        with self.assertRaisesRegex(SystemExit, r"line 3 \(105\): the plan has a hand for it \(R\); set hand_source"):
+        with self.assertRaisesRegex(BH.HandsError, r"line 3 \(105\): the plan has a hand for it \(R\); set hand_source"):
             self.apply("2,105,105,,,,,,West,,,,,\n", {"105": "R"})
 
     def test_a_staging_row_is_left_as_it_is(self):
@@ -112,7 +112,7 @@ class PlanAndOwnerRows(unittest.TestCase):
             self.assertEqual(BH.apply(p, {}, names), HEADER + STAGING)
 
     def test_a_staging_id_the_device_master_does_not_have_stops(self):
-        with self.assertRaisesRegex(SystemExit, r"line 2 \(Switch 1\): thrown_id block:9Z-end is no level 1 device"):
+        with self.assertRaisesRegex(BH.HandsError, r"line 2 \(Switch 1\): thrown_id block:9Z-end is no level 1 device"):
             import tempfile
             with tempfile.TemporaryDirectory() as tmp:
                 p = Path(tmp) / "switches.csv"
@@ -120,7 +120,7 @@ class PlanAndOwnerRows(unittest.TestCase):
                 BH.apply(p, {})
 
     def test_a_row_the_reader_refuses_stops_with_its_line(self):
-        with self.assertRaisesRegex(SystemExit, r"switches.csv line 3 \(Switch 105\): a hand needs a hand_source"):
+        with self.assertRaisesRegex(BH.HandsError, r"switches.csv line 3 \(Switch 105\): a hand needs a hand_source"):
             self.apply("2,105,105,,,,R,,West,,,,,\n", {"105": "R"})
 
 
@@ -138,7 +138,7 @@ class Refusals(unittest.TestCase):
             copy.write_text(json.dumps(whole))
             saved, BH.OVERRIDES = BH.OVERRIDES, copy
             try:
-                with self.assertRaises(SystemExit):
+                with self.assertRaises(BH.HandsError):
                     BH.build()
             finally:
                 BH.OVERRIDES = saved
@@ -152,6 +152,15 @@ class Refusals(unittest.TestCase):
     def test_a_move_edit_is_not_read(self):
         # the plan 5.3c holds every hand, so the 5.3b `move` hand override is gone and an edit like it fails loudly
         self.build_with(lambda d: d["edits"].append({"op": "move", "switch": "T300", "hand": "R"}))
+
+
+class MainExit(unittest.TestCase):
+    def test_main_exits_with_the_hands_error(self):
+        from unittest import mock
+        with mock.patch.object(BH, "build", side_effect=BH.HandsError("build_hands.py: bad row")), \
+                self.assertRaises(SystemExit) as stop:
+            BH.main(["--check"])
+        self.assertEqual(stop.exception.code, "build_hands.py: bad row")
 
 
 if __name__ == "__main__":

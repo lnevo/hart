@@ -388,10 +388,13 @@ def _search_thumb_stamp(dest: Path) -> bytes | None:
 
 def _search_thumbs(records: list[dict], dest_root: Path) -> None:
     """Point each record's thumb at a small square copy (assets/search/), so a results list does not pull
-    640 px grid thumbnails. Without Pillow, or if a copy cannot be made, the record keeps the grid thumb."""
+    640 px grid thumbnails. Without Pillow, or if a copy cannot be made, the record keeps the grid thumb and
+    stderr says so."""
     try:
         from PIL import Image, ImageOps
     except ImportError:
+        print("WARNING: Pillow is not installed (python3 -m pip install Pillow), so search results show the grid"
+              " thumbnails", file=sys.stderr)
         return
     out_dir = dest_root / "assets" / "search"
     for rec in records:
@@ -416,8 +419,8 @@ def _search_thumbs(records: list[dict], dest_root: Path) -> None:
                     small = ImageOps.fit(im.convert("RGB"), (SEARCH_THUMB_PX, SEARCH_THUMB_PX))
                     small.save(dest, "JPEG", quality=78, optimize=True, comment=stamp)
             rec["thumb"] = dest.relative_to(dest_root).as_posix()
-        except OSError:
-            continue
+        except OSError as exc:
+            print(f"search index: no small thumbnail for {src} ({exc}); the record keeps its grid thumb", file=sys.stderr)
 
 
 def build_search_index(dest_root: Path) -> dict:

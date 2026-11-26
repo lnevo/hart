@@ -6,13 +6,16 @@ from __future__ import annotations
 import copy
 import sys
 import xml.etree.ElementTree as ET
+from collections.abc import Sequence
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from le_common import BLOCK_SYS, BuildError, DEVICE_MAP  # noqa: E402  (and hartlib on the path)
 from hartlib import block_numbering, devices, paths, tables  # noqa: E402
 from hartlib import tables_build as tb  # noqa: E402  a row's bean name
-from hartlib import level_devices  # noqa: E402  the main and upper levels and the startup LogixNG's names
+from hartlib import level_devices  # noqa: E402  the startup LogixNG's names
+from hartlib.levels import MAIN_UPPER  # noqa: E402
+from hartlib.railroad_facts import MasterRow  # noqa: E402
 
 
 # The main and upper blocks' numbers (IB:C3:<nnnn>, ILB<1000 + n>) are hartlib.block_numbering's: block_numbering.csv
@@ -119,7 +122,7 @@ def canon(el: ET.Element) -> str:
     return ET.tostring(e, encoding="unicode")
 
 
-def level_bean_names(path: Path = DEVICE_MAP, rows: list | None = None) -> set[str]:
+def level_bean_names(path: Path = DEVICE_MAP, rows: Sequence[MasterRow] | None = None) -> set[str]:
     """The system names of every bean the main and upper rows of the device master give (hartlib.tables_build
     master_beans; `rows` in place of reading `path`): each row's bean name (bean_name; an LCC alias names its
     turnout's) and a block row's layout block, and the startup LogixNG with its actions when a row has a start
@@ -133,15 +136,15 @@ def level_bean_names(path: Path = DEVICE_MAP, rows: list | None = None) -> set[s
     out: set[str] = set()
     bad = []
     for r in rows:
-        if r["level"] not in level_devices.LEVELS or r["assignment"] == "none":
+        if r.level not in MAIN_UPPER or r.assignment == "none":
             continue
-        out |= {tb.bean_name(r), r["layout_block"]} - {""}
-        if r["start"]:
-            action = level_devices.clear_action if r["layer"] == "occupancy" else level_devices.turnout_action
+        out |= {tb.bean_name(r), r.layout_block} - {""}
+        if r.start:
+            action = level_devices.clear_action if r.layer == "occupancy" else level_devices.turnout_action
             try:
                 out.add(action(tb.bean_name(r)))
             except ValueError as exc:
-                bad.append(f"{r['layer']} {r['user_name']!r} (level {r['level']}): start {r['start']!r}: {exc}")
+                bad.append(f"{r.layer} {r.user_name!r} (level {r.level}): start {r.start!r}: {exc}")
             out |= {level_devices.CLEAR_LOGIXNG, level_devices.CLEAR_CONDITIONAL, level_devices.CLEAR_MANY}
     if bad:
         raise BuildError(f"{paths.rel(path)}: " + "; ".join(bad))
@@ -175,16 +178,16 @@ def level_block_beans(path: Path = DEVICE_MAP) -> dict[str, tuple[str, str]]:
         raise BuildError(f"{paths.rel(path)}: {exc}") from exc
     out, bad = {}, []
     for r in rows:
-        if r["level"] not in block_numbering.LEVELS or r["layer"] != "block":
+        if r.level not in MAIN_UPPER or r.layer != "block":
             continue
-        jn, lb = r["jmri_name"], r["layout_block"]
+        jn, lb = r.jmri_name, r.layout_block
         if bool(jn) != bool(lb):
-            bad.append(f"{r['user_name']}: jmri_name {jn!r} and layout_block {lb!r}, not both or neither")
+            bad.append(f"{r.user_name}: jmri_name {jn!r} and layout_block {lb!r}, not both or neither")
         elif jn:
-            out[r["user_name"]] = (jn, lb)
+            out[r.user_name] = (jn, lb)
             if jn.startswith(BLOCK_SYS) and (not jn[len(BLOCK_SYS):].isdigit() or
                                              lb != block_numbering.layout_block_name(int(jn[len(BLOCK_SYS):]))):
-                bad.append(f"{r['user_name']}: layout_block {lb!r} is not the pair of jmri_name {jn!r}")
+                bad.append(f"{r.user_name}: layout_block {lb!r} is not the pair of jmri_name {jn!r}")
     if bad:
         raise BuildError(f"{paths.rel(path)}: " + "; ".join(bad))
     stale = stale_block_beans(path)

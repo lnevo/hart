@@ -174,9 +174,9 @@ class Switches(unittest.TestCase):
     def test_fit_comes_from_the_window(self):
         o = desk_options()
         self.assertEqual((o["window"], o["fit"]), ((1920, 1032), (63, 31)))   # (1920 - 20) // 30, (1032 - 100) // 30
-        with self.assertRaisesRegex(SystemExit, "no cats_window"):
+        with self.assertRaisesRegex(B.CatsPanelError, "no cats_window"):
             B.desk_options(plugin_cats(), {}, [])
-        with self.assertRaisesRegex(SystemExit, "the desks need \"one\""):
+        with self.assertRaisesRegex(B.CatsPanelError, "the desks need \"one\""):
             B.desk_options(plugin_cats(), {"cats_window": [1920, 1032], "cats_helix_blocks": "apart"}, [])
 
     def test_legs_disagreeing_with_the_switch_facts_stop(self):
@@ -211,10 +211,10 @@ class StagingTracks(unittest.TestCase):
         # 35a and a JMRI block of its own (owner, 2026-11-20)
         try:                    # the staging tracks need the plugin's solve: skipped without it, as the --check scripts
             B.pd.plugin()
-        except SystemExit as exc:
+        except B.pd.PluginMissing as exc:
             if os.environ.get("SCHEMATIC_REQUIRED") == "1":
                 raise
-            self.skipTest(f"schematic-maps plugin not available: {exc.code}")
+            self.skipTest(f"schematic-maps plugin not available: {exc}")
         tracks = B.StagingTracks(B.staging_tracks())
         self.assertEqual(tracks.block_between("TOR36", "TO113", "t"), "Track 35-37")
 
@@ -898,8 +898,8 @@ def desk_options():
 def plugin_cats():
     try:
         return B.plugin_modules(B.pd.plugin())[0]
-    except SystemExit as e:
-        raise unittest.SkipTest(f"no plugin: {e.code}") from None
+    except B.pd.PluginMissing as e:
+        raise unittest.SkipTest(f"no plugin: {e}") from None
 
 
 class Header(unittest.TestCase):

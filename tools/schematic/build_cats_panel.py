@@ -163,27 +163,29 @@ def bindings(bands, cats, F, o, page):
 
 def desk_options(cats, page, bands):
     """The page's CATS preferences (cats.options), which must hold the desks' window (they fit the dispatcher's) and
-    each helix track one block over both bands (dark_bindings binds it as the main and upper device map gives it)."""
+    each helix track one block over both bands (dark_bindings binds it as the main and upper device map gives it).
+    CatsPanelError when they do not."""
     try:
         o = cats.options(page, bands)
     except cats.SchematicError as e:
-        sys.exit(f"error: {e}")
+        raise CatsPanelError(f"error: {e}") from e
     if o["fit"] is None:
-        sys.exit("error: the page's preferences hold no cats_window; the desks must fit the dispatcher's window")
+        raise CatsPanelError("error: the page's preferences hold no cats_window; the desks must fit the dispatcher's "
+                             "window")
     if o["helix_blocks"] != "one":
-        sys.exit(f"error: cats_helix_blocks is {o['helix_blocks']!r}; the desks need \"one\" (a helix track one block "
-                 "over both bands, as JMRI holds it)")
+        raise CatsPanelError(f"error: cats_helix_blocks is {o['helix_blocks']!r}; the desks need \"one\" (a helix "
+                             "track one block over both bands, as JMRI holds it)")
     return o
 
 
 def check_desk_faults(cats, P, fit):
     """Print the plugin's desk faults for panel P (cats.faults: two blocks landing in one cell, a desk wider than its
     `fit` window), the count first, and stop when there is one. They are what preferences.json[main_upper]'s
-    level_leg pins on 115, 235 and 239 keep away (its _level_leg note)."""
+    level_leg pins on 115, 235 and 239 keep away (its _level_leg note). CatsPanelError on a fault."""
     found = cats.faults(P, fit)
     print(f"CATS desk faults: {len(found)}" + "".join(f"\n  {x}" for x in found))
     if found:
-        sys.exit(f"error: the desk has {len(found)} fault(s), listed above")
+        raise CatsPanelError(f"error: the desk has {len(found)} fault(s), listed above")
 
 
 def desk_plates() -> list[tuple[str, tuple[str, ...]]]:
@@ -198,13 +200,14 @@ def desk_plates() -> list[tuple[str, tuple[str, ...]]]:
 
 
 def generate(plugin, out, bindings_out, out_abs=None):
-    """Build the sheet once and write the bindings and the desks with the same plugin code."""
+    """Build the sheet once and write the bindings and the desks with the same plugin code. CatsPanelError when a
+    fact, the window or the labels do not fit."""
     cats, sheet = plugin_modules(plugin)
     F = load_facts()
     try:
         s = pd.solved_sheet(sheet)
     except pd.host_screen.HostScreenError as exc:       # the desks' window: the page's host_screen
-        sys.exit(f"error: {exc}")
+        raise CatsPanelError(f"error: {exc}") from exc
     bands = name_loop_halves(s.bands, F.device)
     o = desk_options(cats, s.opts, bands)
     window, fit = o["window"], o["fit"]
@@ -222,7 +225,7 @@ def generate(plugin, out, bindings_out, out_abs=None):
                 Path(path).write_text(dress(cats, cats.to_xml(P, "CTC", header, window), header, plate, desk, fit,
                                             desk_plates()), encoding="utf-8")
     except cats.SchematicError as e:
-        sys.exit(f"error: {e}")
+        raise CatsPanelError(f"error: {e}") from e
     cols, rows = cats.shown(P)
     g = cats.GRID_PX
     print(", ".join(t for t, _, _ in bands) + ": " + cats.summary(P) +
@@ -231,8 +234,8 @@ def generate(plugin, out, bindings_out, out_abs=None):
     print("\n".join(P.log))
     clashes = label_clashes(P.log)
     if clashes:     # the desks keep few spare rows (cats_band_gap, cats_title_gap): a lost or clashing label stops
-        sys.exit("error: the desk's labels clash; give them room (cats_band_gap, cats_title_gap) or move them:\n  "
-                 + "\n  ".join(clashes))
+        raise CatsPanelError("error: the desk's labels clash; give them room (cats_band_gap, cats_title_gap) or move "
+                             "them:\n  " + "\n  ".join(clashes))
 
 
 def main(argv):
@@ -249,10 +252,10 @@ def main(argv):
         pd.paths.exit_if_overridden(Path(__file__).name)
     try:
         plugin = pd.plugin()
-    except SystemExit as e:
+    except pd.PluginMissing as e:
         if not check:
-            raise
-        print(f"SKIPPED CATS panel check: {e.code}")
+            sys.exit(str(e))
+        print(f"SKIPPED CATS panel check: {e}")
         return 1 if os.environ.get("SCHEMATIC_REQUIRED") == "1" else 0
     with tempfile.TemporaryDirectory() as tmp:
         fresh = {OUT: Path(tmp) / OUT.name, OUT_ABS: Path(tmp) / OUT_ABS.name, BINDINGS: Path(tmp) / BINDINGS.name}

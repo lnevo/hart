@@ -21,7 +21,28 @@ from pathlib import Path
 
 import portal_common
 import share_cards
-from portal_common import MIRROR_PREFIXES, PORTAL, _manifest, _source
+from portal_common import MIRROR_PREFIXES, PORTAL, PortalBuildError, _manifest, _source
+
+PILLOW_HINT = "Pillow is not installed (python3 -m pip install Pillow)"
+
+
+class PillowMissing(PortalBuildError):
+    """A photo step needs Pillow and it is not installed."""
+
+
+def have_pillow() -> bool:
+    """True when Pillow can be imported."""
+    try:
+        import PIL  # noqa: F401
+    except ImportError:
+        return False
+    return True
+
+
+def _require_pillow(step: str) -> None:
+    """Raise PillowMissing, naming the step, when Pillow is not installed."""
+    if not have_pillow():
+        raise PillowMissing(f"{step}: {PILLOW_HINT}")
 
 
 def _keep_src(src: str, dest_root: Path) -> bool:
@@ -42,9 +63,7 @@ def _missing_mirrors(portal: Path = PORTAL) -> list[str]:
     checkout, so a git worktree builds without them and every such photo drops out.
     """
     missing = []
-    try:
-        import PIL  # noqa: F401
-    except ImportError:
+    if not have_pillow():
         missing.append("Pillow (python3 -m pip install Pillow)")
     for rel in PHOTO_DATA:
         path = portal / rel
@@ -84,8 +103,8 @@ def _vendor_fleet_images(path: Path, dest_root: Path, max_px: int = 1600, subdir
     """Copy ../external/ gallery photos (rolling stock, layout) into the tree as web-sized JPEGs.
 
     The originals (~150 MB of 2200 px PNG/JPEG) live in gitignored mirrors, so this
-    only fills in when the mirrors and Pillow are present; otherwise _filter_gallery
-    drops those items.
+    only fills in when the mirrors are present; otherwise _filter_gallery drops those
+    items. Raises PillowMissing without Pillow.
     """
     if not path.is_file():
         return
@@ -99,8 +118,8 @@ def _vendor_fleet_images(path: Path, dest_root: Path, max_px: int = 1600, subdir
             continue
         album = re.sub(r"[^a-z0-9]+", "-", str(item.get("album") or "misc").lower())
         rel = Path("assets") / subdir / album / f"{src.stem}.jpg"
-        if _web_jpeg(src, dest_root / rel, max_px):
-            item["src"] = rel.as_posix()
+        _web_jpeg(src, dest_root / rel, max_px)
+        item["src"] = rel.as_posix()
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
@@ -146,19 +165,15 @@ def _render_key() -> bytes:
     return f"{_RENDER_SOURCE}|{PIL.__version__}".encode()
 
 
-def _web_jpeg(src: Path, out: Path, max_px: int) -> bool:
-    """Write a resized JPEG; False when Pillow is missing. A photo resized before from the same bytes, size and
-    drawing code is copied from the cache."""
-    try:
-        import PIL  # noqa: F401
-    except ImportError:
-        return False
-
+def _web_jpeg(src: Path, out: Path, max_px: int) -> None:
+    """Write a resized JPEG; raises PillowMissing without Pillow. A photo resized before from the same bytes, size
+    and drawing code is copied from the cache."""
+    _require_pillow(f"resizing {src.name}")
     out.parent.mkdir(parents=True, exist_ok=True)
     cache = _jpeg_cache()
     if cache is None:
         _render_jpeg(src, out, max_px)
-        return True
+        return
     h = hashlib.sha256(_render_key() + f"|{max_px}|".encode())
     with open(src, "rb") as f:
         for chunk in iter(lambda: f.read(1 << 20), b""):
@@ -167,7 +182,7 @@ def _web_jpeg(src: Path, out: Path, max_px: int) -> bool:
     try:
         shutil.copyfile(kept, out)   # a fresh time stamp on the output, so rsync never passes over a changed photo
         os.utime(kept)               # last use, for pruning
-        return True
+        return
     except FileNotFoundError:        # not cached yet, or pruned by a build running at the same time
         pass
     tmp = kept.with_name(f"{kept.stem}.{os.getpid()}.tmp")
@@ -177,7 +192,6 @@ def _web_jpeg(src: Path, out: Path, max_px: int) -> bool:
     finally:
         tmp.unlink(missing_ok=True)
     shutil.copyfile(kept, out)
-    return True
 
 
 def _prune_jpeg_cache(keep_days: int = JPEG_CACHE_KEEP_DAYS) -> None:
@@ -219,14 +233,12 @@ def _gallery_thumbs(path: Path, dest_root: Path, subdir: str, thumb_px: int = 64
     """Give every local gallery image a grid thumbnail (assets/<subdir>/thumbs/) and its full size.
 
     Pages show item["thumb"] in the grid and open item["src"]; width/height let them
-    reserve space before the image loads. Skipped quietly without Pillow.
+    reserve space before the image loads. Raises PillowMissing without Pillow.
     """
     if not path.is_file():
         return
-    try:
-        from PIL import Image
-    except ImportError:
-        return
+    _require_pillow(f"thumbnails for {path.name}")
+    from PIL import Image
 
     data = json.loads(path.read_text(encoding="utf-8"))
     for item in data.get("items") or []:
@@ -241,8 +253,8 @@ def _gallery_thumbs(path: Path, dest_root: Path, subdir: str, thumb_px: int = 64
                 item["width"], item["height"] = im.size
         except OSError:  # not an image Pillow reads (e.g. SVG)
             continue
-        if _web_jpeg(src, dest_root / thumb, thumb_px):
-            item["thumb"] = thumb.as_posix()
+        _web_jpeg(src, dest_root / thumb, thumb_px)
+        item["thumb"] = thumb.as_posix()
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
@@ -264,7 +276,9 @@ def _archive_px(asked, default: int, name: str = "") -> int:
     return used
 
 
-def _vendor_archive_images(path: Path, dest_root: Path, max_px: int = 1600, thumb_px: int = 640) -> None:
+def _vendor_archive_images(
+    path: Path, dest_root: Path, max_px: int = 1600, thumb_px: int = 640, resize: bool = True
+) -> None:
     """Resize historical-archive images from ../external/ mirrors into assets/archive/.
 
     Every item gets a small grid thumbnail; mirror-only originals also get a web-sized
@@ -272,7 +286,8 @@ def _vendor_archive_images(path: Path, dest_root: Path, max_px: int = 1600, thum
     meant to be zoomed into) also gets item["full"], a larger copy that only the lightbox's
     open-full link loads, so pages never fetch it on their own. Items marked "public": false or whose original is missing (no mirrors)
     are dropped, and local-only
-    fields (PDF paths, where the owner found the file) are stripped.
+    fields (PDF paths, where the owner found the file) are stripped. With resize False (no Pillow) mirror-only
+    items are dropped and no item gets a thumbnail.
     """
     if not path.is_file():
         return
@@ -290,15 +305,18 @@ def _vendor_archive_images(path: Path, dest_root: Path, max_px: int = 1600, thum
         slug = re.sub(r"[^a-z0-9]+", "-", str(item.get("id") or src.stem).lower()).strip("-")
         size = _archive_px(item.pop("max_px", None), max_px, slug)
         if src_rel.startswith("../"):
-            rel = Path("assets") / "archive" / f"{slug}.jpg"
-            if not _web_jpeg(src, dest_root / rel, max_px):
+            if not resize:
                 continue
+            rel = Path("assets") / "archive" / f"{slug}.jpg"
+            _web_jpeg(src, dest_root / rel, max_px)
             item["src"] = rel.as_posix()
-            full = Path("assets") / "archive" / "full" / f"{slug}.jpg"
-            if size > max_px and _web_jpeg(src, dest_root / full, size):
+            if size > max_px:
+                full = Path("assets") / "archive" / "full" / f"{slug}.jpg"
+                _web_jpeg(src, dest_root / full, size)
                 item["full"] = full.as_posix()
-        thumb = Path("assets") / "archive" / "thumbs" / f"{slug}.jpg"
-        if _web_jpeg(src, dest_root / thumb, thumb_px):
+        if resize:
+            thumb = Path("assets") / "archive" / "thumbs" / f"{slug}.jpg"
+            _web_jpeg(src, dest_root / thumb, thumb_px)
             item["thumb"] = thumb.as_posix()
         if str(item.get("pdf") or "").startswith("../"):
             item.pop("pdf")
@@ -349,20 +367,19 @@ def _vendor_json_logos(path: Path, dest_root: Path) -> None:
 def _card_thumbs(dest_root: Path) -> None:
     """Hub cards in a grid marked data-card-thumbs show the linked page's share picture.
 
-    The pictures are small copies of the share cards (assets/share/thumbs/). A page is left as it
-    is when a copy cannot be made (no Pillow), so no card points at a missing picture.
+    The pictures are small copies of the share cards (assets/share/thumbs/). Raises PillowMissing without Pillow.
     """
+    _require_pillow("card thumbnails")
     cards, links = share_cards.load(), share_cards.load_links()
     for page in dest_root.rglob("*.html"):
         text = page.read_text(encoding="utf-8")
         if "data-card-thumbs" not in text:
             continue
         new, thumbs = share_cards.add_card_thumbs(text, page.relative_to(dest_root), cards, links)
-        made = all(
-            (dest_root / thumb).is_file() or _web_jpeg(dest_root / image, dest_root / thumb, share_cards.THUMB_PX)
-            for thumb, image in thumbs.items()
-        )
-        if thumbs and made:
+        for thumb, image in thumbs.items():
+            if not (dest_root / thumb).is_file():
+                _web_jpeg(dest_root / image, dest_root / thumb, share_cards.THUMB_PX)
+        if thumbs:
             page.write_text(new, encoding="utf-8")
 
 
@@ -375,12 +392,10 @@ _IMG_SKIP = re.compile(r"""(?<![\w-])(?:srcset|sizes|data-src)=""", re.I)
 def _webp_companions(dest_root: Path) -> int:
     """Serve large JPEGs as WebP where the page names them in a static <img>: write <name>.webp beside the JPEG
     and wrap the tag in <picture> with the JPEG as the fallback. Images a script builds, tags already inside a
-    <picture> and photos where WebP is not at least 15% smaller are left alone. Returns the bytes saved."""
-    try:
-        from PIL import Image, ImageOps
-    except ImportError:
-        print("WARNING: Pillow is not installed, so no WebP companions were made", file=sys.stderr)
-        return 0
+    <picture> and photos where WebP is not at least 15% smaller are left alone. Returns the bytes saved.
+    Raises PillowMissing without Pillow."""
+    _require_pillow("WebP companions")
+    from PIL import Image, ImageOps
     made: dict[Path, int] = {}      # JPEG -> bytes saved (0 when WebP did not pay)
     for page in sorted(dest_root.rglob("*.html")):
         text = page.read_text(encoding="utf-8")
@@ -430,15 +445,26 @@ def _vendor_logos(dest: Path) -> None:
         _vendor_json_logos(lineage, dest)
 
 
-def _vendor_photos(dest: Path) -> None:
-    """Stage 5: vendor, filter and thumbnail the gallery, fleet and archive photos (in this order per file)."""
-    _vendor_fleet_images(dest / "data" / "gallery.json", dest, subdir="gallery")
-    _filter_gallery(dest / "data" / "gallery.json", dest)
-    _gallery_thumbs(dest / "data" / "gallery.json", dest, "gallery")
-    _vendor_fleet_images(dest / "data" / "fleet-gallery.json", dest)
-    _filter_gallery(dest / "data" / "fleet-gallery.json", dest)
-    _gallery_thumbs(dest / "data" / "fleet-gallery.json", dest, "fleet")
-    _vendor_archive_images(dest / "data" / "archive.json", dest)
+def _vendor_photos(dest: Path, resize: bool = True) -> None:
+    """Stage 5: vendor, filter and thumbnail the gallery, fleet and archive photos (in this order per file).
+
+    With resize False (no Pillow) nothing is resized: mirror-only photos drop out and no item gets a thumbnail.
+    """
+    for name, subdir in (("gallery.json", "gallery"), ("fleet-gallery.json", "fleet")):
+        path = dest / "data" / name
+        if resize:
+            _vendor_fleet_images(path, dest, subdir=subdir)
+        _filter_gallery(path, dest)
+        if resize:
+            _gallery_thumbs(path, dest, subdir)
+    _vendor_archive_images(dest / "data" / "archive.json", dest, resize=resize)
+
+
+NO_PILLOW_EARLY = (
+    f"WARNING: {PILLOW_HINT}, so this build has no gallery, fleet or archive thumbnails and no photo from the "
+    "mirrors (a deploy, --require-mirrors, stops on this)"
+)
+NO_PILLOW_LATE = f"WARNING: {PILLOW_HINT}, so no card thumbnails or WebP companions were made"
 
 
 # The photo group (logos, photo vendor/filter/thumbs/archive, card thumbs, WebP) reads every original and re-encodes
@@ -463,9 +489,9 @@ def _photo_code_key() -> str:
     for path in PHOTO_CODE_FILES:
         h.update(f"|{path.name}|".encode())
         h.update(path.read_bytes())
-    try:
+    if have_pillow():
         h.update(_render_key())
-    except ImportError:      # no Pillow: _photo_load says so and every stage runs as it always did
+    else:                    # no Pillow: _photo_load says so and the photo stages run without resizing
         h.update(b"no-pillow")
     return h.hexdigest()
 
@@ -525,9 +551,7 @@ def _photo_store(part: str) -> Path | None:
 
 def _photo_load(part: str, stamp: str, full: bool) -> tuple[Path, dict] | str:
     """The saved output of one part when its stamp matches, else the reason it cannot be reused."""
-    try:
-        import PIL  # noqa: F401
-    except ImportError:
+    if not have_pillow():
         return "Pillow is missing"
     if full:
         return "--full"
@@ -560,11 +584,7 @@ def _photo_restore(store: Path, meta: dict, dest: Path) -> None:
 def _photo_save(part: str, stamp: str, dest: Path, before: dict, extra: dict | None = None) -> None:
     """Keep the files a part added or rewrote in dest, with the stamp, replacing the last saved run."""
     store = _photo_store(part)
-    if store is None:
-        return
-    try:
-        import PIL  # noqa: F401
-    except ImportError:
+    if store is None or not have_pillow():   # a run without Pillow is never saved for reuse
         return
     after = _tree_state(dest)
     changed = sorted(rel for rel, st in after.items() if before.get(rel) != st)
@@ -599,7 +619,10 @@ def _photo_early(dest: Path, full: bool) -> tuple[str, set[str], bool]:
     print(f"photo stages: full run ({got})")
     before = _tree_state(dest)
     _vendor_logos(dest)
-    _vendor_photos(dest)
+    resize = have_pillow()
+    if not resize:
+        print(NO_PILLOW_EARLY, file=sys.stderr)
+    _vendor_photos(dest, resize)
     _photo_save("early", stamp, dest, before)
     after = _tree_state(dest)
     return stamp, {rel for rel, st in after.items() if before.get(rel) != st}, False
@@ -633,7 +656,11 @@ def _photo_late(dest: Path, early_stamp: str, early_files: set[str], full: bool)
         return
     print(f"photo stages, card thumbs and WebP: full run ({got})")
     before = _tree_state(dest)
-    _card_thumbs(dest)
-    saved = _webp_companions(dest)
-    print(f"WebP companions: {saved // 1024} KB smaller than the JPEGs they stand beside")
+    if have_pillow():
+        _card_thumbs(dest)
+        saved = _webp_companions(dest)
+        print(f"WebP companions: {saved // 1024} KB smaller than the JPEGs they stand beside")
+    else:
+        print(NO_PILLOW_LATE, file=sys.stderr)
+        saved = 0
     _photo_save("late", stamp, dest, before, {"saved": saved})

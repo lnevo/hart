@@ -35,8 +35,8 @@ def plugin():
     """The plugin's modules: sheet, le, core (found and checked once)."""
     try:
         folder = pd.plugin()
-    except SystemExit as exc:
-        raise BuildError(str(exc.code)) from exc
+    except pd.PluginMissing as exc:
+        raise BuildError(str(exc)) from exc
     if str(folder) not in sys.path:
         sys.path.insert(0, str(folder))
     return (importlib.import_module("schematic.sheet"), importlib.import_module("schematic.le"),
