@@ -365,6 +365,111 @@ class WinRunStamps(unittest.TestCase):
         self.assertIn("could not make", done.stderr)
         self.assertNotIn("DIR=", done.stdout)
 
+class WinRunLog(unittest.TestCase):
+    """The log block, the Mac's half: every run's whole output saved, its failed jobs and the log's path printed last,
+    the newest WIN_RUN_KEEP_LOGS kept. Run alone with a stand-in remote_script and a stand-in ssh."""
+
+    def setUp(self) -> None:
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.logs = self.tmp / "remote-logs"
+        self.block = self.tmp / "log.sh"
+        self.block.write_text('set -euo pipefail\nremote_script() { echo "the script"; }\n'
+                              f'{block_of(WIN_RUN.read_text(), "log")}\n"$@"\n')
+        self.ssh = self.tmp / "fake-ssh"
+
+    def bash(self, *args: str) -> subprocess.CompletedProcess:
+        return subprocess.run(["/bin/bash", str(self.block), *args], capture_output=True, text=True, timeout=30)
+
+    def fake_ssh(self, body: str) -> None:
+        self.ssh.write_text(f"#!/bin/bash\n{body}\n")
+        self.ssh.chmod(0o755)
+
+    def run_logged(self, log: Path) -> subprocess.CompletedProcess:
+        return self.bash("run_logged", str(log), "header line", str(self.ssh))
+
+    def test_the_whole_stream_and_stderr_go_to_the_log_and_the_exit_code_stays(self) -> None:
+        self.fake_ssh('read -r got; echo "ran: $got"; echo "--- unit-a (3s)"; echo "--- unit-b FAILED (4s)"\n'
+                      'echo "oops" >&2; exit 1')
+        log = self.tmp / "one.log"
+        done = self.run_logged(log)
+        self.assertEqual(done.returncode, 1, done.stderr)
+        text = log.read_text()
+        for line in ("header line", "ran: the script", "--- unit-b FAILED (4s)", "oops", "win_run.sh: exit 1"):
+            self.assertIn(line, text)
+        self.assertIn("--- unit-b FAILED (4s)", done.stdout)       # still shown as it runs
+
+    def test_a_passing_run_exits_0(self) -> None:
+        self.fake_ssh("cat >/dev/null; echo ALL PASSED")
+        done = self.run_logged(self.tmp / "ok.log")
+        self.assertEqual(done.returncode, 0, done.stderr)
+
+    def test_unreachable_keeps_255(self) -> None:
+        self.fake_ssh("cat >/dev/null; exit 255")
+        self.assertEqual(self.run_logged(self.tmp / "gone.log").returncode, 255)
+
+    def test_a_stopped_run_still_ends_with_its_log_line(self) -> None:
+        """TERM mid-run (a superseded run stopped) still prints the failed jobs and the path, as win_run.sh's trap does."""
+        self.fake_ssh('cat >/dev/null; echo "--- unit-a FAILED (1s)"; sleep 4')
+        log = self.tmp / "stopped.log"
+        script = self.tmp / "stop.sh"
+        script.write_text(f'set -euo pipefail\nremote_script() {{ echo s; }}\n{block_of(WIN_RUN.read_text(), "log")}\n'
+                          f'trap \'finish_log "{log}" "{self.tmp}" 20\' EXIT\ntrap "exit 143" TERM\n'
+                          f'run_logged "{log}" header "{self.ssh}"\n')
+        p = subprocess.Popen(["/bin/bash", str(script)], stdout=subprocess.PIPE, text=True)
+        time.sleep(1.5)
+        p.terminate()
+        out, _ = p.communicate(timeout=30)
+        self.assertEqual(p.returncode, 143)
+        self.assertEqual(out.splitlines()[-2:], ["--- unit-a FAILED (1s)", f"log: {log}"])
+
+    def test_end_log_names_the_failed_jobs_then_the_path_last(self) -> None:
+        log = self.tmp / "x.log"
+        log.write_text("--- a (1s)\n--- b FAILED (2s)\nnoise --- c FAILED\n--- d FAILED (killed before it finished, no s)\n")
+        out = self.bash("end_log", str(log)).stdout.splitlines()
+        self.assertEqual(out, ["--- b FAILED (2s)", "--- d FAILED (killed before it finished, no s)", f"log: {log}"])
+
+    def test_end_log_of_a_clean_run_prints_only_the_path(self) -> None:
+        log = self.tmp / "y.log"
+        log.write_text("--- a (1s)\nALL PASSED\n")
+        self.assertEqual(self.bash("end_log", str(log)).stdout.splitlines(), [f"log: {log}"])
+
+    def test_start_log_makes_the_folder_and_an_empty_file(self) -> None:
+        done = self.bash("start_log", str(self.logs), "main-20261125-2300-1")
+        self.assertEqual(done.stdout.strip(), str(self.logs / "main-20261125-2300-1.log"))
+        self.assertEqual((self.logs / "main-20261125-2300-1.log").read_text(), "")
+
+    def test_start_log_that_cannot_write_prints_nothing_and_fails(self) -> None:
+        blocker = self.tmp / "file"
+        blocker.write_text("")
+        done = self.bash("start_log", str(blocker / "sub"), "n")
+        self.assertNotEqual(done.returncode, 0)
+        self.assertEqual(done.stdout, "")
+
+    def test_prune_keeps_the_newest(self) -> None:
+        self.logs.mkdir()
+        for i in range(5):
+            f = self.logs / f"r-{i}.log"
+            f.write_text("x")
+            os.utime(f, (1_000_000 + i, 1_000_000 + i))
+        (self.logs / "notes.txt").write_text("not a log")
+        done = self.bash("prune_logs", str(self.logs), "2")
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertEqual(sorted(p.name for p in self.logs.iterdir()), ["notes.txt", "r-3.log", "r-4.log"])
+
+    def test_prune_with_fewer_logs_than_kept_removes_nothing(self) -> None:
+        self.logs.mkdir()
+        (self.logs / "a.log").write_text("x")
+        self.assertEqual(self.bash("prune_logs", str(self.logs), "20").returncode, 0)
+        self.assertTrue((self.logs / "a.log").exists())
+
+    def test_a_bad_keep_count_is_a_usage_error(self) -> None:
+        env = dict(os.environ, WIN_RUN_KEEP_LOGS="0", HART_WIN_SSH="nobody@example.invalid")
+        done = subprocess.run(["bash", str(WIN_RUN), "--print-script", "--", "true"], cwd=ROOT, env=env,
+                              capture_output=True, text=True, timeout=60)
+        self.assertEqual(done.returncode, 2, done.stderr)
+        self.assertIn("WIN_RUN_KEEP_LOGS", done.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
