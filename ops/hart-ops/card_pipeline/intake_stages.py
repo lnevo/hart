@@ -24,6 +24,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from card_errors import CardPipelineError  # noqa: E402
 from hartlib import paths  # noqa: E402
 HART_ROOT = paths.REPO_ROOT
 BATCH_ROOT = Path(os.environ.get("HART_INTAKE_ROOT", HART_ROOT / "ops/intake"))
@@ -231,7 +232,7 @@ def cmd_review(args, ctx) -> int:
     name = args.batch or date.today().isoformat()
     out = batch_dir(name)
     if (out / "review.csv").exists():
-        raise SystemExit(f"Batch {name} already exists. Use --batch with another name.")
+        raise CardPipelineError(f"Batch {name} already exists. Use --batch with another name.")
     out.mkdir(parents=True, exist_ok=True)
     from process_car_images import load_roster
 
@@ -304,7 +305,7 @@ def cmd_ai_notes(args, _ctx) -> int:
     rows = read_csv(path)
     unknown = apply_ai_notes(rows, json.loads(Path(args.file).read_text(encoding="utf-8")))
     if unknown:
-        raise SystemExit(f"Not in the batch: {' '.join(unknown)}")
+        raise CardPipelineError(f"Not in the batch: {' '.join(unknown)}")
     write_csv(path, REVIEW_COLUMNS, rows)
     contact_sheet(batch_dir(args.batch) / "review.html", rows)
     disagree = [r["photo"] for r in rows if "ai-disagrees" in r["flags"]]
@@ -319,7 +320,7 @@ def cmd_kind(args, ctx) -> int:
     known = {r["photo"] for r in rows}
     unknown = [p for p in args.photos if p not in known]
     if unknown:
-        raise SystemExit(f"Not in the batch: {' '.join(unknown)}")
+        raise CardPipelineError(f"Not in the batch: {' '.join(unknown)}")
     for r in rows:
         if r["photo"] in args.photos and r["status"] == PENDING:
             r["kind"] = args.kind
@@ -340,7 +341,7 @@ def cmd_approve(args, _ctx) -> int:
     rows = read_csv(path)
     unreviewed = [r["photo"] for r in rows if r["status"] == PENDING and not r["ai_note"]]
     if unreviewed and not args.no_ai:
-        raise SystemExit(f"{len(unreviewed)} photos have no AI review yet ({' '.join(unreviewed)}). "
+        raise CardPipelineError(f"{len(unreviewed)} photos have no AI review yet ({' '.join(unreviewed)}). "
                          "Run the AI review (wiki/pipelines/intake-stages.md) or pass --no-ai.")
     count = 0
     for r in rows:
@@ -365,7 +366,7 @@ def cmd_records(args, ctx) -> int:
     todo = [r for r in review if r["status"] == APPROVED]
     waiting = [r["photo"] for r in review if r["status"] == PENDING]
     if waiting and not args.allow_pending:
-        raise SystemExit(f"{len(waiting)} photos are still pending: {' '.join(waiting)}")
+        raise CardPipelineError(f"{len(waiting)} photos are still pending: {' '.join(waiting)}")
     rows, columns = ctx.read_rows()
     queue = ctx.read_queue()
     for r in todo:
@@ -434,7 +435,7 @@ def cmd_fill(args, ctx) -> int:
     for pair in args.set or []:
         key, _, value = pair.partition("=")
         if key not in REVIEW_COLUMNS:
-            raise SystemExit(f"Unknown column {key}")
+            raise CardPipelineError(f"Unknown column {key}")
         for r in rows:
             r[key] = value
     best = best_row([r for r in rows if r["kind"] == "car"] or rows)
@@ -458,10 +459,10 @@ def cmd_sheet_import(args, ctx) -> int:
     path = batch_dir(args.batch) / "review.csv"
     old = read_csv(path)
     if [r["photo"] for r in new] != [r["photo"] for r in old]:
-        raise SystemExit("The downloaded sheet is not for this batch (photos differ).")
+        raise CardPipelineError("The downloaded sheet is not for this batch (photos differ).")
     for r in new:
         if r["status"] not in (PENDING, APPROVED, "rejected"):
-            raise SystemExit(f"{r['photo']}: status must be pending, approved or rejected.")
+            raise CardPipelineError(f"{r['photo']}: status must be pending, approved or rejected.")
     import crop_picker
 
     for r, before in zip(new, old):  # a crop picked on the page re-cuts the card image

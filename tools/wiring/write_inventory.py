@@ -45,6 +45,10 @@ from hartlib import devices, paths, wiring  # noqa: E402
 from hartlib import railroad  # noqa: E402
 from hartlib.railroad import FactsError  # noqa: E402
 
+class InventoryError(FactsError):
+    """The device master and the node file disagree about a port or a block; the message names the row."""
+
+
 ROOT = paths.REPO_ROOT
 WIRING_DOCS = ROOT / "docs/wiring"
 OUT = WIRING_DOCS / "LCOS_Layout_Inventory_v86.xlsx"
@@ -137,7 +141,7 @@ def lamp_names(wired: list[dict]) -> dict[str, str]:
 
 def gather(rows, node_rows, lamps: dict | None = None) -> dict[int, Node]:
     """{node number: Node} of every node in lcos_nodes.csv, with every port the master gives (`rows`, with
-    spare_rows). SystemExit on a row on a node the node file does not list."""
+    spare_rows). InventoryError on a row on a node the node file does not list."""
     nodes = {}
     for r in node_rows:
         source = r.get("source") or ""
@@ -147,7 +151,7 @@ def gather(rows, node_rows, lamps: dict | None = None) -> dict[int, Node]:
 
     def get(num: int) -> Node:
         if num not in nodes:
-            raise SystemExit(f"node {num} is in {DEVICE_MAP.name} but not in {NODES.name}")
+            raise InventoryError(f"node {num} is in {DEVICE_MAP.name} but not in {NODES.name}")
         return nodes[num]
 
     for r in rows:
@@ -245,14 +249,14 @@ def rail(n: Node, board: int) -> str:
 
 def block_name(occ: dict, by_name: dict) -> str | None:
     """The JMRI block an occupancy row detects: the first of its `blocks` column, never read from its name (hand-off
-    row 8); None for a spare input. SystemExit when the row names no block, or one with no block row."""
+    row 8); None for a spare input. InventoryError when the row names no block, or one with no block row."""
     if devices.row_role(occ, devices.index(DEVICE_MAP).where(occ)) == "spare":
         return None
     name = next((b.strip() for b in occ.get("blocks", "").split(devices.LIST) if b.strip()), "")
     if not name:
-        raise SystemExit(f"{DEVICE_MAP.name}: occupancy {occ['user_name']} names no block in its blocks column")
+        raise InventoryError(f"{DEVICE_MAP.name}: occupancy {occ['user_name']} names no block in its blocks column")
     if name not in by_name:
-        raise SystemExit(f"{DEVICE_MAP.name}: occupancy {occ['user_name']} detects {name}, which has no block row")
+        raise InventoryError(f"{DEVICE_MAP.name}: occupancy {occ['user_name']} detects {name}, which has no block row")
     return name
 
 
@@ -490,6 +494,8 @@ def main(argv=None) -> int:
             fresh = Path(tmp) / OUT.name
             build(fresh)
             same = OUT.exists() and values(OUT) == values(fresh)
+    except InventoryError as exc:   # a row the master and the node file disagree on: exit 1 with the bare message
+        raise SystemExit(str(exc)) from exc
     except FactsError as exc:
         print(f"{Path(__file__).name}: {exc}", file=sys.stderr)
         return 2

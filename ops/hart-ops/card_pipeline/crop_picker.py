@@ -20,6 +20,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from card_errors import CardPipelineError
+
 VIEW_DIR = "picker"  # inside the batch folder; gitignored with it
 DATA_FILE = "picker.json"
 VIEW_WIDTH = 1600  # the page needs a preview, not the full photo; box numbers stay full size
@@ -28,14 +30,14 @@ VIEW_WIDTH = 1600  # the page needs a preview, not the full photo; box numbers s
 def parse_box(text: str) -> tuple[int, int, int, int, float]:
     parts = [p for p in text.replace(" ", "").split(",") if p]
     if len(parts) not in (4, 5):
-        raise SystemExit(f"Crop must be X,Y,W,H or X,Y,W,H,ANGLE, not {text!r}")
+        raise CardPipelineError(f"Crop must be X,Y,W,H or X,Y,W,H,ANGLE, not {text!r}")
     try:
         x, y, w, h = (int(round(float(p))) for p in parts[:4])
         angle = float(parts[4]) if len(parts) == 5 else 0.0
     except ValueError as exc:
-        raise SystemExit(f"Crop must be numbers: {text!r}") from exc
+        raise CardPipelineError(f"Crop must be numbers: {text!r}") from exc
     if w < 50 or h < 50:
-        raise SystemExit(f"Crop {text!r} is too small (at least 50 x 50 pixels).")
+        raise CardPipelineError(f"Crop {text!r} is too small (at least 50 x 50 pixels).")
     return x, y, w, h, angle
 
 
@@ -273,7 +275,7 @@ def cmd_crop(args, ctx) -> int:
     batch = st.batch_dir(args.batch)
     path = batch / "review.csv"
     if not path.is_file():
-        raise SystemExit(f"No batch {args.batch} ({path})")
+        raise CardPipelineError(f"No batch {args.batch} ({path})")
     rows = st.read_csv(path)
     for r in rows:
         r.setdefault("crop", "")
@@ -283,10 +285,10 @@ def cmd_crop(args, ctx) -> int:
         print(f"Picker ready for {made} photos. Open {batch / 'review.html'}")
         return 0
     if args.box is None:
-        raise SystemExit("Give the box too: cars.py crop BATCH PHOTO X,Y,W,H[,ANGLE]")
+        raise CardPipelineError("Give the box too: cars.py crop BATCH PHOTO X,Y,W,H[,ANGLE]")
     row = next((r for r in rows if r["photo"] == args.photo), None)
     if row is None:
-        raise SystemExit(f"Not in the batch: {args.photo}")
+        raise CardPipelineError(f"Not in the batch: {args.photo}")
     parse_box(args.box)
     row["crop"] = args.box
     final = apply(row, ctx)

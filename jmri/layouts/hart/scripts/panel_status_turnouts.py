@@ -1,10 +1,42 @@
-# JMRI jython -- part of panel_status.py: the Turnouts lamp (IH9990): which plant turnouts it counts, its
-# colour from their feedback modes, the amber shown while a click is pending, and the click that flips the plants
-# between TWOSENSOR and DIRECT. Never setCommandedState on M2T*/MTT*.
+# -*- coding: utf-8 -*-
+# JMRI jython -- panel_status.py's Turnouts lamp (IH9990): which plant turnouts it counts, its colour from their
+# feedback modes, the amber shown while a click is pending, and the click that flips the plants between TWOSENSOR
+# and DIRECT. Never setCommandedState on M2T*/MTT*.
 #
-# Not a module: panel_status.py runs this text in its own namespace at the place it was cut from (PARTS and
-# _run_part there), so the names it defines and the globals it sets are the script's. Its imports, constants and
-# state are the script's too.
+# A sibling module of panel_status.py: it imports this from preference:jython and reloads it on every run
+# (jython_siblings.py), so a re-run starts from fresh state here. JMRI binds `turnouts` in the script's globals
+# only, so this module asks InstanceManager for the same default manager.
+
+import jmri
+from java.awt.event import ActionListener
+from java.lang import Runnable
+from javax.swing import SwingUtilities, Timer
+
+from panel_status_clicks import _head_sys
+
+TWOSENSOR = jmri.Turnout.TWOSENSOR
+DIRECT = jmri.Turnout.DIRECT
+
+TURNOUT_FB_HEAD = "IH9990"
+# The Turnouts lamp's tooltip on the panel (panel_items.json): the key that finds the icon when it lost its head.
+TURNOUT_FB_TOOLTIP = "Click: toggle TWOSENSOR/DIRECT on 2-sensor M2T/MTT"
+
+GREEN = jmri.SignalHead.GREEN
+YELLOW = jmri.SignalHead.YELLOW
+RED = jmri.SignalHead.RED
+
+# Hold amber long enough to feel like a click landed (FB flip itself is near-instant).
+_LAMP_AMBER_MS = 500
+
+_icon_rebound = False
+_last_fb_appearance = None
+# sys name -> feedback mode of each included plant. A full scan fills it; a turnout's own event updates its entry.
+_plant_modes = {}
+
+
+def _turnouts():
+    """The default TurnoutManager: the one JMRI binds as `turnouts` in a script's globals."""
+    return jmri.InstanceManager.getDefault(jmri.TurnoutManager)
 
 
 def _has_two_fb_sensors(to):
@@ -23,7 +55,7 @@ def _included_plant_turnouts():
     """M2T/MTT (MQTT/LCC plant) turnouts with both feedback sensors assigned."""
     out = []
     try:
-        for to in turnouts.getNamedBeanSet():
+        for to in _turnouts().getNamedBeanSet():
             if _is_plant(to) and _has_two_fb_sensors(to):
                 out.append(to)
     except Exception as e:
@@ -109,14 +141,38 @@ def _set_head_appearance(head, appearance):
         _Set().run()
 
 
+def _tooltip_text(icon):
+    """The text of an icon's tooltip (Positionable.getToolTip), or None when it has none."""
+    tip = icon.getToolTip()
+    if tip is None:
+        return None
+    return tip.getText()
+
+
+_rebind_logged = set()   # rebind messages already printed: the scan repeats on every turnout event until found
+
+
+def _log_once(msg):
+    """Print a rebind message the first time only."""
+    if msg not in _rebind_logged:
+        _rebind_logged.add(msg)
+        print(msg)
+
+
 def _rebind_turnout_fb_icons(head):
-    """Once: if the LE icon loaded before the bean existed, re-point it."""
+    """Once: if the LE icon loaded before the bean existed, re-point it.
+
+    The icon is the SignalHeadIcon that shows TURNOUT_FB_HEAD, or one with no head whose tooltip is
+    TURNOUT_FB_TOOLTIP (the panel XML gives it that tooltip). An icon or editor that cannot be read is logged by
+    name and skipped.
+    """
     global _icon_rebound
     if head is None or _icon_rebound:
         return
     try:
         from jmri.jmrit.display import EditorManager, SignalHeadIcon
-    except Exception:
+    except Exception as e:
+        _log_once("panel_status: Turnouts icon rebind: display imports failed: %s" % e)
         return
     em = jmri.InstanceManager.getDefault(EditorManager)
     if em is None:
@@ -125,36 +181,33 @@ def _rebind_turnout_fb_icons(head):
     for ed in list(em.getAll()):
         try:
             contents = list(ed.getContents())
-        except Exception:
+        except Exception as e:
+            _log_once("panel_status: Turnouts icon rebind: cannot read the contents of %s: %s" % (ed, e))
             continue
         for icon in contents:
+            if not isinstance(icon, SignalHeadIcon):
+                continue
+            if _head_sys(icon) == TURNOUT_FB_HEAD:
+                rebound = True
+                continue
             try:
-                if not isinstance(icon, SignalHeadIcon):
-                    continue
-                hn = _head_sys(icon)
-                if hn == TURNOUT_FB_HEAD:
-                    rebound = True
-                    continue
+                tip = _tooltip_text(icon)
+            except Exception as e:
+                _log_once("panel_status: Turnouts icon rebind: cannot read the tooltip of %s: %s" % (icon, e))
+                continue
+            if tip != TURNOUT_FB_TOOLTIP:
+                continue
+            try:
+                icon.setSignalHead(TURNOUT_FB_HEAD)
+            except Exception as e:
+                print("panel_status: Turnouts icon rebind by name failed (%s); setting the head itself" % e)
                 try:
-                    if abs(int(icon.getX()) - 24) > 8 or abs(int(icon.getY()) - 588) > 8:
-                        continue
-                except Exception:
+                    icon.setSignalHead(head)
+                except Exception as e2:
+                    print("panel_status: Turnouts icon rebind failed on %s: %s" % (ed, e2))
                     continue
-                try:
-                    icon.setSignalHead(TURNOUT_FB_HEAD)
-                    rebound = True
-                    print(
-                        "panel_status: rebound Turnouts icon -> %s"
-                        % TURNOUT_FB_HEAD
-                    )
-                except Exception:
-                    try:
-                        icon.setSignalHead(head)
-                        rebound = True
-                    except Exception:
-                        pass
-            except Exception:
-                pass
+            rebound = True
+            print("panel_status: rebound Turnouts icon -> %s" % TURNOUT_FB_HEAD)
     if rebound:
         _icon_rebound = True
 
@@ -211,17 +264,6 @@ def _show_amber_head():
     _last_fb_appearance = YELLOW
 
 
-def _show_amber_sensor(sys_name):
-    """Pending click feedback on LCOS/Signals (INCONSISTENT → yellow icon)."""
-    try:
-        s = sensors.getSensor(sys_name)
-        if s is None:
-            s = sensors.provideSensor(sys_name)
-        s.setKnownState(jmri.Sensor.INCONSISTENT)
-    except Exception as e:
-        print("panel_status: amber %s failed: %s" % (sys_name, e))
-
-
 def _after_paint(fn, delay_ms=80):
     """Run fn after delay so amber can paint first (EDT redraw)."""
 
@@ -276,10 +318,6 @@ def _toggle_turnout_fb_mode_body():
         % (label, n)
     )
     sync_turnout_fb_lamp()
-
-
-# Hold amber long enough to feel like a click landed (FB flip itself is near-instant).
-_LAMP_AMBER_MS = 500
 
 
 def toggle_turnout_fb_mode():
