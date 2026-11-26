@@ -1,2 +1,0 @@
-order: 30
-**Generated, then the owner's (owner, 2026-11-24, [ADR-033](../../decisions/ADR-033-generated-then-owner.md)):** done 2026-11-25: one flow for every level, names from one `hartlib` store, every device keyed by ID; a turnout swap is one `devices_field.csv` row (proved in a sandbox with PanelPro). Left: the smoke test's detector-swap check and two small items ([hand-off](../../projects/naming-layers-handoff.md#left-after-the-plan), history in [STATUS_LOG](../../STATUS_LOG.md)).

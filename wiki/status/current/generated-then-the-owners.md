@@ -1,0 +1,2 @@
+order: 45
+**Generated, then the owner's (owner, 2026-11-24, [ADR-033](../../decisions/ADR-033-generated-then-owner.md)):** the plan is done (2026-11-25): one flow for every level, names from one `hartlib` store, every device keyed by ID. A turnout, detector or head swap is `devices_field.csv` rows alone; the sandbox swap passed `make panelpro-test`. Nothing is owed ([hand-off](../../projects/naming-layers-handoff.md#left-after-the-plan), history in [STATUS_LOG](../../STATUS_LOG.md)).
