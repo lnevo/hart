@@ -235,7 +235,7 @@ class LayoutFactsTest(unittest.TestCase):
 
         def moved(data=check.facts.DATA):
             out = real(data)
-            out[1] = dataclasses.replace(out[1], level="2")
+            out[1] = dataclasses.replace(out[1], level=2)
             return out
         with mock.patch.object(check.facts, "load_switches", moved):
             out = self.failures(data=data)

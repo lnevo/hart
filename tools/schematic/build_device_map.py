@@ -816,8 +816,8 @@ def master_outputs(bands, joined, runs, rows, parts, files: devices.Files | None
     except device_map_masts.MissingLengths as exc:
         # a new staging block has no plan length yet: write the rows (plan_lengths.py needs them) with staging's
         # last mast and head rows, and stop after the write (main)
-        every += [dict(r) for r in devices.load(f) if r["level"] == str(STAGING_LEVEL)
-                  and r["layer"] in device_map_masts.LAYERS and r["written_by"] == WRITER]
+        every += [dict(r) for r in devices.load(f) if r.level == STAGING_LEVEL
+                  and r.layer in device_map_masts.LAYERS and r.written_by == WRITER]
         held.append(str(exc))
     # what a main or upper bean takes from its row: its start and bean comment
     every = bean_cells(every, startup_thrown(bands))

@@ -98,7 +98,7 @@ class LoaderTest(unittest.TestCase):
         self.assertEqual(switches[9].hand, "L")
         self.assertEqual(switches[13].hand, "L")
         self.assertEqual(switches[23].hand, "R")
-        self.assertEqual([n for n, s in switches.items() if s.level == "1" and not s.hand], [])
+        self.assertEqual([n for n, s in switches.items() if s.level == 1 and not s.hand], [])
 
     def test_a_hand_other_than_l_r_or_blank_is_refused(self) -> None:
         text = (self.data / "switches.csv").read_text().replace("block:9C-end,L,owner", "block:9C-end,left,owner")

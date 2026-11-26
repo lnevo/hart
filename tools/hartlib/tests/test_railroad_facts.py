@@ -292,7 +292,7 @@ class StagingSwitches(SwitchFiles):
     def test_a_switch_of_the_os_keyed_rows_with_its_turnout_row(self) -> None:
         got = rf.read_switches(self.path(), self.tmp / "devices.csv", staging_rows())
         self.assertEqual(list(got), [1, 7])
-        self.assertEqual(got[1], rf.Switch(number=1, level="1", le_ident="TOL1", cats_inverted=False, ctc_is=1,
+        self.assertEqual(got[1], rf.Switch(number=1, level=1, le_ident="TOL1", cats_inverted=False, ctc_is=1,
                                            ctc_signals=True, legs=(rf.Leg("OS Switch 1", "Track A", "Track B", "os:1"),),
                                            hand="L", hardware="M2T1", dcc="100", cp="Brick"))
         s7 = got[7]
@@ -563,6 +563,43 @@ class DeviceRows(unittest.TestCase):
         r = rf.DeviceRow.from_dict({"level": "3", "layer": "turnout", "user_name": "Switch 201", "role": "turnout",
                                     "dcc": 201, "line": 99}, line=7)
         self.assertEqual((r.level, r.dcc, r.line), (3, "201", 7))
+
+    def test_a_row_is_a_mapping_of_the_masters_columns_as_text(self) -> None:
+        r = drow("mast", "Mast 2L", "home", comment="built", line=5, written_by="build_masts.py")
+        self.assertEqual(list(r), list(devices.COLUMNS))
+        self.assertEqual(len(r), len(devices.COLUMNS))
+        self.assertEqual((r["level"], r["layer"], r["written_by"], r.get("dir")), ("2", "mast", "build_masts.py", ""))
+        for not_a_column in ("comment", "line", "swapped"):
+            with self.subTest(not_a_column), self.assertRaises(KeyError):
+                r[not_a_column]
+        self.assertEqual(dict(r) | {"dir": "east"}, r | {"dir": "east"})
+        self.assertEqual(r, dict(r))                    # equal to the same columns as a dict
+        self.assertNotEqual(r, dict(r) | {"dir": "east"})
+        self.assertNotEqual(r, replace(r, line=6))      # two rows also hold line and comment to each other
+        self.assertEqual(hash(r), hash(replace(r)))
+
+    def test_from_master_reads_a_master_rows_text(self) -> None:
+        cells = dict.fromkeys(devices.COLUMNS, "") | dict(level="1", layer="block", role="os", id="os:1",
+                                                         user_name="OS Switch 1")
+        r = rf.MasterRow.from_master(cells, 4, "here")
+        self.assertIsInstance(r, rf.DeviceRow)
+        self.assertEqual((r.level, r.line, r.id, dict(r)), (1, 4, "os:1", cells))
+        store = cells | dict(level="", role="", id="", assignment="field", jmri_name="IS9", system_name="IS9")
+        kept = rf.MasterRow.from_master(store, 5, "here")       # a Store's level-less row: no level, no role
+        self.assertNotIsInstance(kept, rf.DeviceRow)
+        self.assertEqual((kept.level, kept["level"], kept.role), (None, "", ""))
+        with self.assertRaisesRegex(rf.FactsError, "here: level is 1, 2 or 3"):
+            rf.MasterRow.from_master(cells | {"level": "4"}, 6, "here")
+        with self.assertRaisesRegex(rf.FactsError, "here: a device master row has no jmri_bean"):
+            rf.MasterRow.from_master({k: v for k, v in cells.items() if k != "jmri_bean"}, 7, "here")
+        with self.assertRaisesRegex(rf.FactsError, "has role ''"):
+            rf.MasterRow.from_master(cells | {"role": ""}, 8, "here")
+
+    def test_the_merged_view_is_device_rows(self) -> None:
+        rows = devices.load()
+        self.assertTrue(rows and all(isinstance(r, rf.DeviceRow) for r in rows))
+        self.assertEqual([r.line for r in rows[:3]], [2, 3, 4])
+        self.assertEqual(devices.index().lines[0], (2, rows[0]))
 
     def test_the_maps_views(self) -> None:
         t5 = drow("turnout", "Switch 5", "turnout")
