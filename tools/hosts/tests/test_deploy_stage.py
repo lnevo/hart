@@ -9,10 +9,12 @@ from __future__ import annotations
 import filecmp
 import hashlib
 import os
+import re
 import shutil
 import subprocess
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -371,27 +373,35 @@ class StageRsyncsSkipLitter(unittest.TestCase):
     """Every rsync in stage.sh skips Finder litter as it copies, so a .DS_Store that vanishes mid-copy (as
     FinderLitterStaysOut plants and removes them in the checkout) is never read and cannot stop rsync with code 24."""
 
+    def rsync_calls(self, script: str) -> list[str]:
+        """Every rsync call in a deploy step, with backslash continuations joined and comments dropped, wherever
+        rsync sits on the line (after &&, inside if ...; then)."""
+        text = re.sub(r"\\\n\s*", " ", (STEPS / script).read_text(encoding="utf-8"))
+        lines = [line.split("#", 1)[0] if line.lstrip().startswith("#") else line for line in text.splitlines()]
+        return [line.strip() for line in lines if re.search(r"(^|[\s;&|(])rsync\s", line)]
+
     def test_every_rsync_in_stage_sh_carries_the_litter_excludes(self) -> None:
         text = (STEPS / "stage.sh").read_text(encoding="utf-8")
         self.assertIn("LITTER_EXCLUDES=(--exclude '.DS_Store' --exclude '._*')", text)
-        calls = [line.strip() for line in text.splitlines()
-                 if line.strip().startswith("rsync ") and not line.strip().startswith("#")]
+        calls = self.rsync_calls("stage.sh")
         self.assertGreater(len(calls), 0)
         for call in calls:
             self.assertIn('"${LITTER_EXCLUDES[@]}"', call, call)
 
-    def test_a_litter_file_that_vanishes_mid_copy_is_never_read(self) -> None:
-        """rsync with the excludes copies a tree whose .DS_Store is deleted before rsync reaches it, exit 0."""
+    def test_the_mac_deploys_traininfo_rsync_skips_litter(self) -> None:
+        calls = [c for c in self.rsync_calls("ship_mac.sh") if "traininfo" in c]
+        self.assertEqual(len(calls), 1, calls)
+        self.assertIn("--exclude '.DS_Store'", calls[0])
+        self.assertIn("--exclude '._*'", calls[0])
+
+    def test_the_call_finder_sees_chained_and_split_rsyncs(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            src, dst = Path(tmp) / "src", Path(tmp) / "dst"
-            (src / "a").mkdir(parents=True)
-            (src / "a/keep.txt").write_text("x", encoding="utf-8")
-            (src / "a/.DS_Store").write_bytes(b"\0")
-            done = subprocess.run(["rsync", "-a", "--exclude", ".DS_Store", "--exclude", "._*", f"{src}/", f"{dst}/"],
-                                  capture_output=True, text=True, timeout=60)
-            self.assertEqual(done.returncode, 0, done.stderr)
-            self.assertTrue((dst / "a/keep.txt").exists())
-            self.assertFalse((dst / "a/.DS_Store").exists())
+            fake = Path(tmp) / "fake.sh"
+            fake.write_text('[[ -d x ]] && rsync -a "$a/" "$b/"\nif true; then rsync \\\n  -a "$c/" "$d/"; fi\n'
+                            '# rsync -a "$commented/" out\n', encoding="utf-8")
+            with unittest.mock.patch(f"{__name__}.STEPS", Path(tmp)):
+                calls = self.rsync_calls("fake.sh")
+        self.assertEqual(len(calls), 2, calls)
 
 
 class StageOnlyRefusals(unittest.TestCase):
