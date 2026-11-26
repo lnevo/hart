@@ -46,7 +46,7 @@ on); with CV4 = 24 a loco stopped from top speed rolls about 8 to 9 m; the pair 
 
 Method: a runner inside the Pi's JMRI (the `jmri_cmd_watcher` channel) steps one loco through
 the throttle steps around the full loop and times laps from the East Ext block sensor
-(the loop is 35,108.2 mm on AnyRail plan 5.3b, `PLAN_LOOP_MM` in `jmri/layouts/hart/scripts/infer_block_lengths.py`). 2121 and 2738 reach
+(the loop was 35,108.2 mm on AnyRail plan 5.3b; `infer_block_lengths.py` now reads it from plan 5.3c through `plan_routes.py`: 35,108.7 mm). 2121 and 2738 reach
 the same top speed (about 420 to 430 mm/s) but 2738 is 47 to 70% of 2121's speed from step 12
 to 64, because 2738's speed table was switched off (CV25 = 0, CV29 bit 4 clear) and it has no
 momentum (CV3/CV4 = 0/0). The owner chose to match 2738 to 2121, momentum included. Draft:

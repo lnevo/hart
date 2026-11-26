@@ -5,7 +5,7 @@ jmri/layouts/hart/scripts/check_bean_comments.py,929
 jmri/layouts/hart/scripts/gen_ctc_track_plan.py,1375
 jmri/layouts/hart/scripts/tests/test_pom_guard.py,976
 jmri/layouts/hart/scripts/tests/test_signal_coordinator_behaviour.py,2059
-jmri/layouts/hart/scripts/tests/test_speedmatch_distance.py,973
+jmri/layouts/hart/scripts/tests/test_speedmatch_distance.py,971
 ops/hart-ops/card_pipeline/cars.py,1480
 ops/hart-ops/card_pipeline/crop_car_image.py,994
 ops/hart-ops/card_pipeline/generate_operator_sheet.py,837
