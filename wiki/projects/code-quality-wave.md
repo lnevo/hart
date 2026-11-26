@@ -60,9 +60,9 @@ Wave 2 (below) closed every item here except the WSL venv note and the parked `g
 - `docs/jmri/speedmatching/profile-2026-11-08/block_speeds.py` is proposed for the archive.
 - `gen_ctc_track_plan.py` stays as it is, because it is parked.
 
-## Wave 2 (2026-11-26, 14:15 to 18:00)
+## Wave 2 (2026-11-26)
 
-A read-only sweep graded the 362 files that wave 1 had graded from metrics only (3 auditors, `sweep-final.jsonl` in the wave's scratchpad): 12 A, 71 A-, 110 B+, 84 B, 36 B-, 25 C+, 3 C, 2 D, 19 parked. Its bugs and problems fed the tier 3 lanes. Every PR passed the six "no failed PRs" gates (handoff skill, Merge) before it opened.
+A read-only sweep graded the 362 files that wave 1 had graded from metrics only (3 auditors): 12 A, 71 A-, 110 B+, 84 B, 36 B-, 25 C+, 3 C, 2 D, 19 parked. The bugs it found went to the tier 3 lanes. Every PR passed the six "no failed PRs" gates (handoff skill, Merge) before it opened.
 
 | Lane | What | PR | Ships |
 |---|---|---|---|
