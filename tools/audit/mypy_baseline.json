@@ -170,7 +170,7 @@
  "tools/schematic/audit_reads.py": 1,
  "tools/schematic/band_panels.py": 14,
  "tools/schematic/block_layer.py": 5,
- "tools/schematic/build_device_map.py": 6,
+ "tools/schematic/build_device_map.py": 3,
  "tools/schematic/build_main_route.py": 3,
  "tools/schematic/build_masts.py": 3,
  "tools/schematic/build_staging_sets.py": 3,
