@@ -17,41 +17,50 @@
 2026-11-25T22:20:59.3854004Z   CHECK_RECORD_TO: /home/runner/work/hart/hart/.cache/ci/main-stamps
 2026-11-25T22:20:59.3854473Z   CHECK_RESULTS_TO: /home/runner/work/_temp/check-results.tsv
 2026-11-25T22:20:59.3854811Z ##[endgroup]
-2026-11-25T22:25:39.1911747Z --- panels (69s)
-2026-11-25T22:25:39.1932217Z == hands
+2026-11-25T22:25:39.1932217Z --- panels-hands (0s)
 2026-11-25T22:25:39.1990976Z switches.csv plan hands up to date
-2026-11-25T22:25:39.1991572Z    hands: ok, 0 s
-2026-11-25T22:25:39.1991946Z == staging-sets
+2026-11-25T22:25:39.1932217Z --- stamps (panels-hands):
+2026-11-25T22:25:39.1932217Z stamp audit: panels-hands: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-25T22:25:39.1991946Z --- panels-staging-sets (0s)
 2026-11-25T22:25:39.1992468Z staging stations, control points and sheets are current
-2026-11-25T22:25:39.1993076Z    staging-sets: ok, 0 s
-2026-11-25T22:25:39.1993480Z == main-route
+2026-11-25T22:25:39.1991946Z --- stamps (panels-staging-sets):
+2026-11-25T22:25:39.1991946Z stamp audit: panels-staging-sets: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-25T22:25:39.1993480Z --- panels-main-route (0s)
 2026-11-25T22:25:39.1993862Z plugin: submodule at 09bcf066
 2026-11-25T22:25:39.1994360Z main route and staging main lines are current
-2026-11-25T22:25:39.1994884Z    main-route: ok, 0 s
-2026-11-25T22:25:39.1995278Z == device-map
+2026-11-25T22:25:39.1993480Z --- stamps (panels-main-route):
+2026-11-25T22:25:39.1993480Z stamp audit: panels-main-route: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-25T22:25:39.1995278Z --- panels-device-map (1s)
 2026-11-25T22:25:39.1995652Z plugin: submodule at 09bcf066
-2026-11-25T22:25:39.1996092Z    device-map: ok, 1 s
-2026-11-25T22:25:39.1996487Z == length-labels
-2026-11-25T22:25:39.1996879Z    length-labels: ok, 1 s
-2026-11-25T22:25:39.1997288Z == plan-lengths
+2026-11-25T22:25:39.1995278Z --- stamps (panels-device-map):
+2026-11-25T22:25:39.1995278Z stamp audit: panels-device-map: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-25T22:25:39.1996487Z --- panels-length-labels (1s)
+2026-11-25T22:25:39.1996487Z --- stamps (panels-length-labels):
+2026-11-25T22:25:39.1996487Z stamp audit: panels-length-labels: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-25T22:25:39.1997288Z --- panels-plan-lengths (0s)
 2026-11-25T22:25:39.1997681Z plugin: submodule at 09bcf066
 2026-11-25T22:25:39.1998397Z plan lengths: no plan file Lee Nevo Design Version 5.3c.any; the OS rows only are checked
-2026-11-25T22:25:39.1999179Z    plan-lengths: ok, 0 s
-2026-11-25T22:25:39.1999572Z == masts
+2026-11-25T22:25:39.1997288Z --- stamps (panels-plan-lengths):
+2026-11-25T22:25:39.1997288Z stamp audit: panels-plan-lengths: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-25T22:25:39.1999572Z --- panels-masts (1s)
 2026-11-25T22:25:39.1999916Z plugin: submodule at 09bcf066
-2026-11-25T22:25:39.2000528Z    masts: ok, 1 s
-2026-11-25T22:25:39.2001203Z == panel-items
-2026-11-25T22:25:39.2001580Z    panel-items: ok, 1 s
-2026-11-25T22:25:39.2001961Z == signals
+2026-11-25T22:25:39.1999572Z --- stamps (panels-masts):
+2026-11-25T22:25:39.1999572Z stamp audit: panels-masts: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-25T22:25:39.2001203Z --- panels-panel-items (1s)
+2026-11-25T22:25:39.2001203Z --- stamps (panels-panel-items):
+2026-11-25T22:25:39.2001203Z stamp audit: panels-panel-items: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-25T22:25:39.2001961Z --- panels-signals (1s)
 2026-11-25T22:25:39.2002306Z plugin: submodule at 09bcf066
 2026-11-25T22:25:39.2002780Z plugin: submodule at 09bcf066
 2026-11-25T22:25:39.2003240Z signals.json[staging] is current
 2026-11-25T22:25:39.2003716Z signals.json[main_upper] is current
-2026-11-25T22:25:39.2004189Z    signals: ok, 1 s
-2026-11-25T22:25:39.2004554Z == head-plan
+2026-11-25T22:25:39.2001961Z --- stamps (panels-signals):
+2026-11-25T22:25:39.2001961Z stamp audit: panels-signals: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-25T22:25:39.2004554Z --- panels-head-plan (1s)
 2026-11-25T22:25:39.2004932Z signal_head_plan.csv: current
-2026-11-25T22:25:39.2005375Z    head-plan: ok, 1 s
-2026-11-25T22:25:39.2005747Z == schematic
+2026-11-25T22:25:39.2004554Z --- stamps (panels-head-plan):
+2026-11-25T22:25:39.2004554Z stamp audit: panels-head-plan: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-25T22:25:39.2005747Z --- panels-schematic (45s)
 2026-11-25T22:25:39.2006128Z plugin: submodule at 09bcf066
 2026-11-25T22:25:39.2006586Z plugin: submodule at 09bcf066
 2026-11-25T22:25:39.2007034Z Staging level: 0 drawing faults []
@@ -83,10 +92,12 @@
 2026-11-25T22:25:39.2069950Z published draft is current
 2026-11-25T22:25:39.2070545Z station sheets are current
 2026-11-25T22:25:39.2071189Z station map pages carry the title block's revision and date
-2026-11-25T22:25:39.2071834Z    schematic: ok, 45 s
-2026-11-25T22:25:39.2072227Z == sml-current
+2026-11-25T22:25:39.2005747Z --- stamps (panels-schematic):
+2026-11-25T22:25:39.2005747Z stamp audit: panels-schematic: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-25T22:25:39.2072227Z --- panels-sml-current (3s)
 2026-11-25T22:25:39.2072603Z plugin: submodule at 09bcf066
 2026-11-25T22:25:39.2073327Z ok: jmri/layouts/hart/data/schematic/discovered_sml.stamp matches the discovery base
-2026-11-25T22:25:39.2074092Z    sml-current: ok, 3 s
-2026-11-25T22:25:39.2074471Z == tables
+2026-11-25T22:25:39.2072227Z --- stamps (panels-sml-current):
+2026-11-25T22:25:39.2072227Z stamp audit: panels-sml-current: not audited: tools/pipeline/panels.toml's inputs are the map's edges, not every file a step reads, so the reads of its jobs are not audited (ADR-037 stage 6)
+2026-11-25T22:25:39.2074471Z --- panels-tables (0s)
 2026-11-25T22:25:39.2074827Z plugin: submodule at 09bcf066

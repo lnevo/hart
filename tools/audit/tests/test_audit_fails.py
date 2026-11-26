@@ -128,12 +128,12 @@ elif cmd == "record":
     if args[0] == "one":
         print("WARNING: stamp audit: one: 1 read(s) not declared; " + ("this run fails" if fails else "warn only"))
         sys.exit(1 if fails else 0)
-    if args[0] == "panels":     # bash: nothing audited
-        print("stamp audit: panels: (panels: bash, which the trace cannot see, so not audited)")
+    if args[0] == "shell":     # bash: nothing audited
+        print("stamp audit: shell: (shell: bash, which the trace cannot see, so not audited)")
         sys.exit(3 if fails else 0)
     print(f"stamp audit: {args[0]}: every data read is declared")
 '''
-QUIET = "^(one|two|panels|skippy)$"
+QUIET = "^(one|two|panels-tables|shell|skippy)$"
 
 
 class CheckShTest(unittest.TestCase):
@@ -174,8 +174,8 @@ class CheckShTest(unittest.TestCase):
         done = self.run_check(CHECK_AUDIT=str(self.out / "audit"))
         self.assertJobFailedByAudit(done)
         self.assertIn("this run fails", done.stdout)
-        self.assertIn("declaration audit: 2 of 3 passing step-manifest job(s) not audited (bash, or not traced): "
-                      "panels skippy", done.stdout)
+        self.assertIn("declaration audit: 2 of 4 passing step-manifest job(s) not audited (bash, or not traced): "
+                      "shell skippy", done.stdout)
 
     def test_the_weekly_run_fails_the_job(self) -> None:
         """What .github/workflows/check.yml gives check.sh on its schedule: CI, a record folder, CHECK_AUDIT_FAILS."""
@@ -188,7 +188,7 @@ class CheckShTest(unittest.TestCase):
         self.assertNotIn("stamp audit", done.stdout)
 
     def test_a_run_that_audits_no_manifest_job_fails(self) -> None:
-        for only in ("^skippy$", "^panels$"):
+        for only in ("^skippy$", "^shell$"):
             with self.subTest(only=only):
                 done = self.run_check(CHECK_AUDIT=str(self.out / "audit"), CHECK_ONLY=only)
                 self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
