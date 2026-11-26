@@ -76,7 +76,7 @@
   "import-exit": 1
  },
  "jmri/layouts/hart/scripts/speedmatch/make_job.py": {
-  "import-exit": 10
+  "import-exit": 15
  },
  "jmri/layouts/hart/scripts/speedmatch/speedmatch.py": {
   "import-exit": 1
@@ -124,6 +124,9 @@
   "exec-parts": 3
  },
  "jmri/layouts/hart/scripts/tests/test_speedmatch_distance.py": {
+  "exec-parts": 1
+ },
+ "jmri/layouts/hart/scripts/tests/test_speedmatch_jobkit.py": {
   "exec-parts": 1
  },
  "jmri/layouts/hart/scripts/tests/test_speedmatch_loop2.py": {
@@ -492,21 +495,12 @@
  "www/scripts/archive_catalogue.py": {
   "dated-note": 1
  },
- "www/scripts/build_cats_layout_index.py": {
-  "lost-cause": 3
+ "www/scripts/build_helix_page.py": {
+  "import-exit": 1
  },
  "www/scripts/build_layout_docs.py": {
   "dated-note": 3,
   "import-exit": 22,
-  "lost-cause": 1
- },
- "www/scripts/build_layout_index.py": {
-  "lost-cause": 2
- },
- "www/scripts/build_tables_browser.py": {
-  "lost-cause": 2
- },
- "www/scripts/build_wiring_json.py": {
   "lost-cause": 1
  },
  "www/scripts/jmri_additions_page.py": {
@@ -535,14 +529,10 @@
   "lost-cause": 1
  },
  "www/scripts/share_card_recipes/panel_image.py": {
-  "import-exit": 1,
-  "lost-cause": 1
+  "import-exit": 2
  },
  "www/scripts/site_views.py": {
   "lost-cause": 2
- },
- "www/scripts/tables_page.py": {
-  "lost-cause": 3
  },
  "www/scripts/tests/test_industry_ids.py": {
   "dated-note": 1
