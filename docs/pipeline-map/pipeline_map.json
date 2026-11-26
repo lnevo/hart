@@ -5579,6 +5579,42 @@
    "path": "tools/hosts/roster_digest.sh"
   },
   {
+   "id": "docs/ops/session4/facts.py",
+   "label": "facts",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Reads the control points, crew board jobs and colours for the session 4 design drafts.",
+   "path": "docs/ops/session4/facts.py"
+  },
+  {
+   "id": "docs/ops/session4/make_signs.py",
+   "label": "make_signs",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Draws the session 4 draft control point signs and crew boards (SVG and PDF).",
+   "path": "docs/ops/session4/make_signs.py"
+  },
+  {
+   "id": "docs/ops/session4/make_signals.py",
+   "label": "make_signals",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Builds the session 4 draft mock signal STLs, one per colour.",
+   "path": "docs/ops/session4/make_signals.py"
+  },
+  {
+   "id": "docs/ops/session4/out",
+   "label": "session 4 design drafts",
+   "kind": "output",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Draft control point signs, crew boards and mock signals for the owner to choose from; not published.",
+   "path": "docs/ops/session4/out"
+  },
+  {
    "id": ".claude/agents/archive-researcher.md",
    "label": "agent: archive-researcher",
    "kind": "unstructured",
@@ -13171,6 +13207,41 @@
    "label": "check json-schemas",
    "side": "check",
    "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/interlockings.csv",
+   "to": "docs/ops/session4/facts.py",
+   "label": "control points"
+  },
+  {
+   "from": "www/data/briefing.json",
+   "to": "docs/ops/session4/facts.py",
+   "label": "job order"
+  },
+  {
+   "from": "ops/hart-ops/data/crew.json",
+   "to": "docs/ops/session4/facts.py",
+   "label": "job colours"
+  },
+  {
+   "from": "ops/hart-ops/data/trains.csv",
+   "to": "docs/ops/session4/facts.py",
+   "label": "lineup"
+  },
+  {
+   "from": "docs/ops/session4/facts.py",
+   "to": "docs/ops/session4/make_signs.py",
+   "label": "facts"
+  },
+  {
+   "from": "docs/ops/session4/make_signs.py",
+   "to": "docs/ops/session4/out",
+   "label": "signs and boards"
+  },
+  {
+   "from": "docs/ops/session4/make_signals.py",
+   "to": "docs/ops/session4/out",
+   "label": "STL"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

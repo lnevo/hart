@@ -1,6 +1,6 @@
 """Facts for the session 4 designs, read from the repo's source files (never typed in here).
 
-Control points: jmri/layouts/hart/data/schematic/interlockings.csv (all levels).
+Control points: the interlockings of every level, read through hartlib (railroad_facts.read_interlockings).
 Jobs: www/data/briefing.json, section "jobs" (the crew board order the primer prints).
 Job colours and train symbols: ops/hart-ops/data/crew.json and ops/hart-ops/data/trains.csv.
 """
@@ -8,10 +8,10 @@ from __future__ import annotations
 
 import csv
 import json
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-INTERLOCKINGS = ROOT / "jmri/layouts/hart/data/schematic/interlockings.csv"
 BRIEFING = ROOT / "www/data/briefing.json"
 CREW = ROOT / "ops/hart-ops/data/crew.json"
 TRAINS = ROOT / "ops/hart-ops/data/trains.csv"
@@ -21,10 +21,11 @@ ALIAS = {"Yardmaster": "YM-01", "Dispatcher": "DS-01"}
 
 
 def control_points() -> list[dict]:
-    """One dict per interlocking: id, name, level name, switch numbers (strings), in file order."""
-    with INTERLOCKINGS.open(newline="") as f:
-        return [{"id": r["cp_id"], "name": r["interlocking"], "level": LEVEL_NAMES[r["level"]],
-                 "switches": [s.strip() for s in r["switches"].split(",")]} for r in csv.DictReader(f)]
+    """One dict per interlocking: name, level name, switch numbers (strings), in file order (read through hartlib)."""
+    sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+    from hartlib import railroad_facts
+    return [{"name": i.name, "level": LEVEL_NAMES[str(i.level)], "switches": list(i.switches)}
+            for i in railroad_facts.read_interlockings(railroad_facts.Sources.under().interlockings)]
 
 
 def board_jobs() -> list[dict]:
