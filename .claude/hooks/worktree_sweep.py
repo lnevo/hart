@@ -46,19 +46,11 @@ def main() -> int:
     context = merge_drivers(project) if event == "SessionStart" else []
     status = start_status_pages(project, cwd) if event == "SessionStart" else []
     orient = start_orient(project, cwd) if event == "SessionStart" else None
-    script = Path(project) / "tools" / "agent" / "worktrees.py"
-    lines = []
-    if script.exists():
-        try:
-            done = subprocess.run([sys.executable, str(script), "sweep", "--keep", cwd, "--keep", project, "--budget",
-                                   str(BUDGET)], capture_output=True, text=True, timeout=TIMEOUT)
-            lines = [l for l in done.stdout.splitlines() if l.startswith(("removed", "kept", "left"))]
-        except (OSError, subprocess.SubprocessError):
-            pass
+    lines = sweep_lines(project, cwd)
     context += status_lines(status)
     if orient is not None:
         context = orient_lines(*orient) + context
-    context += ["Worktree sweep:", *lines] if lines else []
+    context += lines
     if context and event in ("PostToolUse", "SessionStart"):
         print(json.dumps({"hookSpecificOutput": {
             "hookEventName": event,
@@ -142,9 +134,24 @@ def status_lines(started: list[tuple[Path, subprocess.Popen | str, float]]) -> l
     return out
 
 
-def status_pages(project: str, cwd: str) -> list[str]:
-    """Build wiki/STATUS.md in both checkouts and wait: start_status_pages, then status_lines."""
-    return status_lines(start_status_pages(project, cwd))
+def sweep_lines(project: str, cwd: str) -> list[str]:
+    """Run the sweep, keeping `cwd` and `project`; its removed/kept/left lines under a heading, one line when it
+    failed or ran past TIMEOUT, none when it had nothing to say or the checkout predates it."""
+    script = Path(project) / "tools" / "agent" / "worktrees.py"
+    if not script.exists():
+        return []
+    try:
+        done = subprocess.run([sys.executable, str(script), "sweep", "--keep", cwd, "--keep", project, "--budget",
+                               str(BUDGET)], capture_output=True, text=True, timeout=TIMEOUT)
+    except subprocess.TimeoutExpired:
+        return [f"Worktree sweep took over {TIMEOUT} s and was stopped; run make wt-sweep"]
+    except (OSError, subprocess.SubprocessError) as err:
+        return [f"Worktree sweep did not run ({err}); run make wt-sweep"]
+    lines = [l for l in done.stdout.splitlines() if l.startswith(("removed", "kept", "left"))]
+    if done.returncode != 0:
+        errors = [l.strip() for l in done.stderr.splitlines() if l.strip()]
+        lines.append(f"Worktree sweep failed: {errors[-1] if errors else f'exit {done.returncode}'}; run make wt-sweep")
+    return ["Worktree sweep:", *lines] if lines else []
 
 
 def merge_drivers(project: str) -> list[str]:

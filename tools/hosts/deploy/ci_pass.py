@@ -89,7 +89,7 @@ def git(root: Path, *args: str) -> str:
     try:
         done = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True, timeout=GH_TIMEOUT)
     except (OSError, subprocess.SubprocessError, UnicodeDecodeError) as e:
-        raise CheckoutUnreadable(f"git {args[0]} could not run: {e}") from None
+        raise CheckoutUnreadable(f"git {args[0]} could not run: {e}") from e
     if done.returncode != 0:
         tail = (done.stderr.strip().splitlines() or ["no message"])[-1]
         raise CheckoutUnreadable(f"git {' '.join(args)} failed (exit {done.returncode}): {tail}")
@@ -101,14 +101,14 @@ def run_gh(args: list[str], timeout: int) -> str:
     env = dict(os.environ, GH_PROMPT_DISABLED="1")
     try:
         done = subprocess.run(["gh", *args], cwd=ROOT, capture_output=True, text=True, timeout=timeout, env=env)
-    except FileNotFoundError:
-        raise Unreadable("gh (the GitHub CLI) is not installed") from None
-    except subprocess.TimeoutExpired:
-        raise Unreadable(f"gh {' '.join(args[:2])} took over {timeout} s") from None
+    except FileNotFoundError as e:
+        raise Unreadable("gh (the GitHub CLI) is not installed") from e
+    except subprocess.TimeoutExpired as e:
+        raise Unreadable(f"gh {' '.join(args[:2])} took over {timeout} s") from e
     except OSError as e:
-        raise Unreadable(f"gh could not run: {e}") from None
+        raise Unreadable(f"gh could not run: {e}") from e
     except UnicodeDecodeError as e:
-        raise Unreadable(f"gh {' '.join(args[:2])} answered with bytes that are not UTF-8: {e}") from None
+        raise Unreadable(f"gh {' '.join(args[:2])} answered with bytes that are not UTF-8: {e}") from e
     if done.returncode != 0:
         tail = (done.stderr.strip().splitlines() or ["no message"])[-1]
         raise Unreadable(f"gh {' '.join(args[:2])} failed (exit {done.returncode}): {tail}")
@@ -146,7 +146,7 @@ def _json(text: str, what: str) -> dict:
     try:
         data = json.loads(text)
     except ValueError as e:
-        raise Unreadable(f"{what} is not JSON: {e}") from None
+        raise Unreadable(f"{what} is not JSON: {e}") from e
     if not isinstance(data, dict):
         raise Unreadable(f"{what} is not a JSON object")
     return data
@@ -269,8 +269,8 @@ def check_log(text: str, pin: str) -> None:
         step.append(line)
     try:
         env_at, end_at = step.index("env:"), step.index("##[endgroup]")
-    except ValueError:
-        raise Unreadable("the check.sh step's log has no env block") from None
+    except ValueError as e:
+        raise Unreadable("the check.sh step's log has no env block") from e
     if env_at > end_at:
         raise Unreadable("the check.sh step's env block is out of order")
     env = {}
