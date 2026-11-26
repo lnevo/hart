@@ -181,6 +181,75 @@ def block_of(text: str, marker: str) -> str:
     return text.split(f"# --- {marker}", 1)[1].split(f"# --- end {marker}", 1)[0].split("\n", 1)[1]
 
 
+class WinRunVenv(unittest.TestCase):
+    """The block that brings ~/hart/.venv up to the commit's requirements.txt when the file changed. Rendered with
+    --print-script and run alone in a fake checkout, with a fake uv (the install)."""
+
+    def setUp(self) -> None:
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.wt = self.tmp / "wt"
+        self.wt.mkdir()
+        (self.wt / "requirements.txt").write_text("mypy==1.0\n")
+        (self.tmp / "home/hart/.venv/bin").mkdir(parents=True)
+        self.stamp = self.tmp / "home/hart/.venv/.requirements.sha256"
+        self.bin = self.tmp / "bin"
+        self.bin.mkdir()
+        self.uv_log = self.tmp / "uv.log"
+        if not FLOCK:
+            self.fake("flock", "exit 0")
+        if not shutil.which("sha256sum"):      # the Mac has shasum only
+            self.fake("sha256sum", 'shasum -a 256 "$@"')
+        self.fake("uv", f'echo "$@" >> {self.uv_log}; exit "${{FAKE_UV_RC:-0}}"')
+        env = dict(os.environ, HART_WIN_SSH="nobody@example.invalid")
+        script = subprocess.run(["bash", str(WIN_RUN), "--print-script", "--", "true"], cwd=ROOT, env=env,
+                                capture_output=True, text=True, timeout=60, check=True).stdout
+        block = script.split("# --- venv", 1)[1].split("# --- end venv", 1)[0]
+        self.block = self.tmp / "venv.sh"
+        self.block.write_text(f'set -euo pipefail\ntrap "echo SETUP FAILED >&2; exit 3" ERR\n#{block}\n')
+
+    def fake(self, name: str, body: str) -> None:
+        (self.bin / name).write_text(f"#!/bin/sh\n{body}\n")
+        (self.bin / name).chmod(0o755)
+
+    def run_block(self, **env: str) -> subprocess.CompletedProcess:
+        full = dict(os.environ, HOME=str(self.tmp / "home"), PATH=f"{self.bin}:{os.environ['PATH']}",
+                    **{f"FAKE_{k.upper()}": v for k, v in env.items()})
+        return subprocess.run(["bash", str(self.block)], cwd=self.wt, env=full, capture_output=True, text=True,
+                              timeout=30)
+
+    def installs(self) -> int:
+        return len(self.uv_log.read_text().splitlines()) if self.uv_log.exists() else 0
+
+    def test_a_changed_requirements_file_is_installed_once(self) -> None:
+        for _ in range(2):
+            done = self.run_block()
+            self.assertEqual(0, done.returncode, done.stderr)
+        self.assertEqual(1, self.installs())                  # the second run finds the stamp current
+        want = hashlib.sha256(b"mypy==1.0\n").hexdigest()
+        self.assertEqual(want, self.stamp.read_text().strip())
+        self.assertIn(f"--python {self.tmp}/home/hart/.venv/bin/python -r requirements.txt",
+                      self.uv_log.read_text())
+        (self.wt / "requirements.txt").write_text("mypy==2.0\n")
+        self.assertEqual(0, self.run_block().returncode)
+        self.assertEqual(2, self.installs())
+
+    def test_a_failed_install_warns_records_nothing_and_the_run_goes_on(self) -> None:
+        done = self.run_block(uv_rc="1")
+        self.assertEqual(0, done.returncode, done.stderr)
+        self.assertNotIn("SETUP FAILED", done.stderr)
+        self.assertIn("could not install requirements.txt", done.stderr)
+        self.assertFalse(self.stamp.exists())
+        self.assertEqual(0, self.run_block().returncode)      # so the next run tries again
+        self.assertEqual(2, self.installs())
+
+    def test_a_commit_without_requirements_installs_nothing(self) -> None:
+        (self.wt / "requirements.txt").unlink()
+        done = self.run_block()
+        self.assertEqual(("", 0), (done.stderr, done.returncode))
+        self.assertEqual(0, self.installs())
+
+
 class WinRunStampName(unittest.TestCase):
     """stamp_name, the Mac's half: the name of a ref's stamp folder on Windows. Run alone in a scratch repo."""
 

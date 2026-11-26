@@ -4727,13 +4727,13 @@
    "path": "jmri/layouts/hart/scripts/panelpro_roundtrip.py"
   },
   {
-   "id": "jmri/layouts/hart/scripts/refresh_bean_comments.py",
-   "label": "refresh_bean_comments.py",
+   "id": "jmri/layouts/hart/scripts/check_bean_comments.py",
+   "label": "check_bean_comments.py",
    "kind": "generator",
    "status": "live",
    "domain": "layout",
    "desc": "Checks that the staging heads' wiring comments in the device master are wiring.csv's (check mode, live); its rename rules stay for reference.",
-   "path": "jmri/layouts/hart/scripts/refresh_bean_comments.py"
+   "path": "jmri/layouts/hart/scripts/check_bean_comments.py"
   },
   {
    "id": "jmri/layouts/hart/scripts/infer_block_lengths.py",
@@ -12079,7 +12079,7 @@
   },
   {
    "from": "jmri/layouts/hart/scripts/lcc_turnout_contract.py",
-   "to": "jmri/layouts/hart/scripts/refresh_bean_comments.py",
+   "to": "jmri/layouts/hart/scripts/check_bean_comments.py",
    "label": "imports"
   },
   {
@@ -12089,13 +12089,13 @@
   },
   {
    "from": "jmri/layouts/hart/data/wiring.csv",
-   "to": "jmri/layouts/hart/scripts/refresh_bean_comments.py",
+   "to": "jmri/layouts/hart/scripts/check_bean_comments.py",
    "label": "wiring comments",
    "side": "check"
   },
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
-   "to": "jmri/layouts/hart/scripts/refresh_bean_comments.py",
+   "to": "jmri/layouts/hart/scripts/check_bean_comments.py",
    "label": "device master comments",
    "side": "check"
   },
@@ -12231,7 +12231,7 @@
    "label": "runs after Stage 1"
   },
   {
-   "from": "jmri/layouts/hart/scripts/refresh_bean_comments.py",
+   "from": "jmri/layouts/hart/scripts/check_bean_comments.py",
    "to": "jmri/layouts/hart/scripts/run_panelpro_stage1.sh",
    "label": "runs after Stage 1"
   },

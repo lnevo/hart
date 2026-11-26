@@ -137,7 +137,7 @@ def _needed_sensors() -> list[str]:
 
 
 def ensure_columns(text: str) -> str:
-    from refresh_bean_comments import ctc_comment, ctc_user_name, refresh_comments
+    from check_bean_comments import ctc_comment, ctc_user_name, refresh_comments
 
     missing_sensors = [
         name for name in _needed_sensors() if "<systemName>%s</systemName>" % name not in text

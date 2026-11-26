@@ -914,12 +914,12 @@ def main() -> int:
     try:
         stale = stale_head_comments()
     except (devices.DevicesError, FactsError) as exc:
-        print(f"refresh_bean_comments.py: {exc}", file=sys.stderr)
+        print(f"check_bean_comments.py: {exc}", file=sys.stderr)
         return 2
     for line in stale:
-        print(f"refresh_bean_comments.py: {line}", file=sys.stderr)
+        print(f"check_bean_comments.py: {line}", file=sys.stderr)
     if stale:
-        print("refresh_bean_comments.py: run python3 tools/schematic/build_device_map.py", file=sys.stderr)
+        print("check_bean_comments.py: run python3 tools/schematic/build_device_map.py", file=sys.stderr)
         return 1
     print("device master: head comments current")
     return 0
