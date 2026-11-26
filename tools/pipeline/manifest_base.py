@@ -10,10 +10,14 @@ from __future__ import annotations
 import functools
 import importlib.util
 import re
-import subprocess
+import sys
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
+
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import files  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = ROOT / "tools" / "pipeline" / "checks.toml"
@@ -88,13 +92,11 @@ def repo_from(tracked: frozenset[str] | set[str], graph: dict) -> Repo:
 def tracked_files() -> frozenset[str]:
     """This checkout's tracked files (git ls-files) that are on disk; ManifestError when git fails or lists none."""
     try:
-        out = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT, capture_output=True, text=True, timeout=60)
-    except (OSError, subprocess.SubprocessError) as err:
-        raise ManifestError(f"git ls-files could not run in {ROOT}: {err}") from None
-    if out.returncode != 0:
-        raise ManifestError(f"git ls-files failed in {ROOT}: {out.stderr.strip() or f'exit {out.returncode}'}")
+        listed = files.tracked_files(ROOT)
+    except files.GitError as err:
+        raise ManifestError(str(err)) from None
     # a tracked file deleted from the checkout but not yet from the index is gone for the runner: not counted
-    tracked = frozenset(p for p in out.stdout.split("\0") if p and (ROOT / p).exists())
+    tracked = frozenset(p for p in listed if (ROOT / p).exists())
     if not tracked:
         raise ManifestError(f"git ls-files lists no file in {ROOT}")
     return tracked

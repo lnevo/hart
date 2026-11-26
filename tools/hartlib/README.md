@@ -41,6 +41,14 @@ Why not `pip install -e`:
 
 ## API
 
+### `hartlib.files`
+
+`write_atomic(path, text_or_bytes)` replaces a file through a temporary file in its folder and `os.replace`, so a
+reader or a stopped run sees the old file or the new one. It keeps the old file's mode, writes through a symlink and
+rewrites a hard-linked file in place; `Tables.save` uses it. `tracked_files(root, *pathspecs, submodules=True)` is
+`git ls-files` (with `submodules=False`, submodule entries left out) and raises `GitError` when git cannot list them.
+It never walks the folder instead, which would find untracked and ignored files.
+
 ### `hartlib.film_pace`
 
 `STEP_S` (0.4) and `FINAL_HOLD_S` (2.0), the pace of the four films on `www/behind/panel-evolution.html`; `durations(n)` and `film_length(n)`. Used by `tools/schematic/evolution.py` and `tools/ctc_history/films.py`.

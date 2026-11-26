@@ -310,19 +310,19 @@ class FileAndRepoTest(unittest.TestCase):
             self.load_text(b"\xff\xfe")
 
     def test_git_failures_are_errors_not_tracebacks(self) -> None:
-        failed = subprocess.CompletedProcess(["git"], 128, "", "fatal: not a git repository")
+        failed = subprocess.CompletedProcess(["git"], 128, b"", b"fatal: not a git repository")
         with mock.patch.object(M.subprocess, "run", return_value=failed):
             with self.assertRaisesRegex(M.ManifestError, "git ls-files failed .*not a git repository"):
                 M.repo()
         with mock.patch.object(M.subprocess, "run", side_effect=FileNotFoundError("git")):
             with self.assertRaisesRegex(M.ManifestError, "git ls-files could not run"):
                 M.repo()
-        with mock.patch.object(M.subprocess, "run", return_value=subprocess.CompletedProcess(["git"], 0, "", "")):
+        with mock.patch.object(M.subprocess, "run", return_value=subprocess.CompletedProcess(["git"], 0, b"", b"")):
             with self.assertRaisesRegex(M.ManifestError, "lists no file"):
                 M.repo()
 
     def test_a_tracked_file_gone_from_the_checkout_does_not_count(self) -> None:
-        listed = subprocess.CompletedProcess(["git"], 0, "tools/check.sh\0tools/deleted_not_staged.py\0", "")
+        listed = subprocess.CompletedProcess(["git"], 0, b"tools/check.sh\0tools/deleted_not_staged.py\0", b"")
         with mock.patch.object(M.subprocess, "run", return_value=listed):
             where = M.repo()
         self.assertEqual(where.files, {"tools/check.sh"})
