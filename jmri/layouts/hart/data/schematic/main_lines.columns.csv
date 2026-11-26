@@ -1,0 +1,10 @@
+column,description,type,required,key,refs,values
+sheet,"The schematic sheet the line is on, its section in the layer files: staging or main_upper (hartlib.hand_lists.SHEETS). Not a station detail sheet of sheets.csv.",enum,yes,yes,,staging;main_upper
+line,"The line's name, once per sheet.",str,yes,yes,,
+from,"Where the line starts: a helix end by its helix track's block ID (block:39B-helix) or a switch number. A stop names a track by block ID, never by name: hand_lists.resolve_stop gives it the name store's name, so a rename in devices_field.csv changes no row.",str,yes,,,
+via,"The switches the line must pass, in order, where the shortest way would leave it, separated by ;. The half of a crossover is its number and the block ID of a track that meets it there (35@block:33A-35A).",str,,,,
+to,The switch (or a helix track's block ID) the line ends at.,str,yes,,,
+loop,"main_upper only: the switches of the turnback the line ends in, in order, separated by ;. The line runs from `to` round them and back (a balloon on one switch repeats `to`).",str,,,,
+double,"main_upper only: switch pairs joined by two tracks that are both main (223-225).",str,,,,
+count,"staging only: yes on the line the mileposts run along (milepost_route); blank otherwise. The main and upper mileposts follow main_route.",enum,,,,yes
+notes,Text for people.,str,,,,

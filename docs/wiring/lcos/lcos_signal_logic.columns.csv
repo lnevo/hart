@@ -1,0 +1,6 @@
+column,description,type,required,key,refs,values
+mast,"The mast's user name. With head it keys the row, and the same mast and head must be a wired head in wiring.csv and a row of lcos_signal_plan_notes.csv, or build_lcos_signal_manager_plan.py stops.",str,yes,yes,jmri/layouts/hart/data/schematic/masts.csv:mast,
+head,"The head of the mast, as wiring.csv's disc_role gives it (S for a single head).",str,yes,yes,,
+turnout_polarity,"The Signal Manager's aligned condition, copied to the plan's Turnout polarity: Main (the turnout Normal, closed), Diverged (Reverse, thrown), or — for a head with no plant turnout.",enum,yes,,,Main;Diverged;—
+or_aspect,"The aspect the head shows when not aligned, copied to the plan's OR aspect: Stop, or Approach (the balloon intermediates).",enum,yes,,,Stop;Approach
+notes,Text for people. The build does not read it.,str,,,,

@@ -3937,6 +3937,16 @@
    "gen": "manifest"
   },
   {
+   "id": "tools/ops/check_json.py",
+   "label": "check_json.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Checks plan_overrides.json, preferences.json, panel_items.json and published-files.json against a schema each: the keys, types and values their readers depend on (ADR-039).",
+   "path": "tools/ops/check_json.py",
+   "gen": "manifest"
+  },
+  {
    "id": "cats/scripts/build_hart_trains.py",
    "label": "build_hart_trains.py",
    "kind": "generator",
@@ -10609,6 +10619,55 @@
    "gen": "manifest"
   },
   {
+   "from": "jmri/layouts/hart/data/schematic/block_overrides.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/block_numbering.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/main_lines.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/retired_virtual_masts.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/masts.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "refs",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "docs/wiring/lcos/lcos_signal_logic.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "docs/wiring/lcos/lcos_signal_plan_notes.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
    "from": "jmri/layouts/hart/data/schematic/lcos_nodes.csv",
    "to": "tools/ops/check_data.py",
    "label": "refs (switches.csv area)",
@@ -13014,6 +13073,41 @@
    "from": "ops/hart-ops/publications/build_crew_json.py",
    "to": "ops/hart-ops/publications/crew_master.py",
    "label": "crew_master.build (import)"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
+   "to": "tools/ops/check_json.py",
+   "label": "schema",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/preferences.json",
+   "to": "tools/ops/check_json.py",
+   "label": "schema",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/panel_items.json",
+   "to": "tools/ops/check_json.py",
+   "label": "schema",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "www/scripts/published-files.json",
+   "to": "tools/ops/check_json.py",
+   "label": "schema",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/ops/check_json.py",
+   "to": "tools/check.sh",
+   "label": "check json-schemas",
+   "side": "check",
+   "gen": "manifest"
   },
   {
    "from": ".claude/agents/archive-researcher.md",
