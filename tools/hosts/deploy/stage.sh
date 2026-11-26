@@ -30,6 +30,11 @@ load_parked
 deploy_facts
 tables_facts
 
+# Finder litter is never copied: an rsync that skips it never reads a .DS_Store that vanishes while it copies (a
+# test plants and removes them in the checkout; rsync then stops with code 24). The find -delete below still clears
+# what a cp step brings.
+LITTER_EXCLUDES=(--exclude '.DS_Store' --exclude '._*')
+
 stage_package() {
   local stage="$1"
   rm -rf "$stage"
@@ -58,7 +63,7 @@ stage_package() {
 
   cp -f "$ROOT/jmri/resources/misc/"* "$stage/cats/resources/misc/"
 
-  rsync -a "$ROOT/jmri/resources/jmri-web/" "$stage/cats/resources/jmri-web/"
+  rsync -a "${LITTER_EXCLUDES[@]}" "$ROOT/jmri/resources/jmri-web/" "$stage/cats/resources/jmri-web/"
   python3 "$ROOT/tools/mqtt-mimic/build_mimic_web.py" --out "$stage/cats/resources/jmri-web/mimic"
   # Speed-match live view for the Pi (/web/speedmatch/): the page, and the publisher with the
   # files it reads, laid out as in the repo (scripts/speedmatch, data/block_lengths.csv with
@@ -73,8 +78,8 @@ stage_package() {
     "$ROOT/jmri/layouts/hart/data/speed_by_step_2026-11-08.csv" \
     "$stage/cats/speedmatch-live/data/"
   # Host scripts live in tools/hosts/ but land where the hosts and their shortcuts expect them (ADR-007).
-  rsync -a "$ROOT/tools/hosts/pi/" "$stage/cats/scripts/pi/"
-  rsync -a "$ROOT/tools/hosts/windows/" "$stage/cats/scripts/windows/"
+  rsync -a "${LITTER_EXCLUDES[@]}" "$ROOT/tools/hosts/pi/" "$stage/cats/scripts/pi/"
+  rsync -a "${LITTER_EXCLUDES[@]}" "$ROOT/tools/hosts/windows/" "$stage/cats/scripts/windows/"
   cp -f "$ROOT/cats/scripts/install_jmri_web_override.sh" \
     "$ROOT/cats/scripts/rewrite_button_icon_paths.py" \
     "$ROOT/cats/scripts/patch_jmri_startup.py" \
@@ -96,7 +101,7 @@ stage_package() {
   if ! parked_dir jmri/layouts/hart/dispatcher; then
     mkdir -p "$stage/jmri/layouts/hart/dispatcher"
     if [[ -d "$traininfo" ]]; then
-      rsync -a "$traininfo/" "$stage/jmri/layouts/hart/dispatcher/traininfo/"
+      rsync -a "${LITTER_EXCLUDES[@]}" "$traininfo/" "$stage/jmri/layouts/hart/dispatcher/traininfo/"
     fi
     if [[ -f "$ROOT/jmri/layouts/hart/dispatcher/dispatcheroptions.xml" ]]; then
       cp -f "$ROOT/jmri/layouts/hart/dispatcher/dispatcheroptions.xml" \
@@ -106,7 +111,7 @@ stage_package() {
 
   if ! parked_dir jmri/layouts/hart/ctc && [[ -d "$ROOT/jmri/layouts/hart/ctc/icons" ]]; then
     mkdir -p "$stage/ctc/icons"
-    rsync -a "$ROOT/jmri/layouts/hart/ctc/icons/" "$stage/ctc/icons/"
+    rsync -a "${LITTER_EXCLUDES[@]}" "$ROOT/jmri/layouts/hart/ctc/icons/" "$stage/ctc/icons/"
     [[ -f "$ROOT/jmri/layouts/hart/ctc/GUIObjects.xml" ]] && \
       cp -f "$ROOT/jmri/layouts/hart/ctc/GUIObjects.xml" "$stage/ctc/"
   fi
@@ -138,7 +143,7 @@ stage_hosts() {
   [[ "$DO_PI" -eq 1 ]] || first=win
   stage_package "$dir/$first"
   if [[ "$DO_PI" -eq 1 && "$DO_WIN" -eq 1 ]]; then
-    rsync -a "$dir/pi/" "$dir/win/"
+    rsync -a "${LITTER_EXCLUDES[@]}" "$dir/pi/" "$dir/win/"
   fi
   [[ "$DO_PI" -eq 0 ]] || stage_host_finish "$dir/pi" "$PI_USERFILES" pi
   [[ "$DO_WIN" -eq 0 ]] || stage_host_finish "$dir/win" "$WIN_USERFILES" win

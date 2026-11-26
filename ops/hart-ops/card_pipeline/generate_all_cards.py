@@ -18,6 +18,7 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.table import Table
 
+import car_paths
 import generate_card_template as g
 from engine_lookup import (
     build_locomotive_description,
@@ -138,7 +139,7 @@ def display_road_number(row: dict, car: dict | None, engine_by_key: dict) -> str
     return number if number else "?"
 
 
-FINAL_DIR = BASE / "CarImagesFinal"
+FINAL_DIR = car_paths.FINAL_DIR  # the folder finalize_car_images.py writes
 CARD_FILL_DIR = BASE / "CarImagesCardFill"
 CARD_FILL_PRINT_DIR = BASE / "CarImagesCardFillPrint"
 

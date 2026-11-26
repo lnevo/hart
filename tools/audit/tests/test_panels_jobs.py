@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import check_stamps as cs  # noqa: E402
-from test_check_stamps import RepoCase  # noqa: E402
+from stamps_case import RepoCase  # noqa: E402
 
 M = cs.pm
 REAL_PANELS = M.PANELS.read_text(encoding="utf-8")

@@ -73,7 +73,6 @@ OUTPUT_ROOTS = (
 # Deliberate exceptions: path (a file, or a folder for every file under it) -> why the map leaves it out.
 ALLOWED = {
     # hand-kept files in an output folder
-    "cats/panels/reference_ArmstrongMagnet.xml": "CATS sample panel kept for reference (cats/README.md)",
 }
 # The every-script rule: what it checks, and the folder nodes that stand for every script under them.
 SCRIPT_EXTS = (".py", ".sh")

@@ -8,7 +8,7 @@ Two read-only reviews on 2026-11-25 (sessions hart-rc-1 and hart-rc-2: "what is 
 | # | Item | Owner's choice |
 |---|---|---|
 | 1 | One file per STATUS entry (ADR-038, PR #1126) | Accept, then migrate |
-| 2 | A check that fails when a Python file over 800 lines grows | Add it, plus tests for `railroad_facts.py` |
+| 2 | A check that fails when a Python file over 800 lines grows | Add it, plus tests for `railroad_facts.py`; since 2026-11-25 (size sweep F, PR #1182) it also covers `.js` at 800 lines and `.sh` at 500 and warns at 90 percent of a limit |
 | 3 | Skip-chain gaps in `check_stamps` | Fold into ADR-037 stage 4b |
 | 4 | Naming leftovers listed in the review | Went through them: already done, only the notes were stale (step A) |
 
@@ -50,7 +50,7 @@ Done 2026-11-25: #1136.
 
 Done 2026-11-25: the tests in #1134, the `py-sizes` guard in #1141.
 
-- A check, from the manifest, that fails when a `.py` file over 800 lines grows past its size in a committed list; shrinking updates the list.
+- A check, from the manifest, that fails when a `.py` file over 800 lines grows past its size in a committed list; shrinking updates the list. Since 2026-11-25 it also covers `.js` files at 800 lines and `.sh` files at 500 and warns at 90 percent of a limit; `check.sh` stays one file (docs/pipeline-map/checks-and-remote.md).
 - Growth since 2026-11-22: `railroad_facts.py` 1240 to 1474 lines (no test file of its own), `build_device_map.py` 833 to 1063 (split in health round 2, item 2), `tables_build.py` 963 to 1185, `hartlib` `devices.py` 1057 to 1237.
 - Tests for `railroad_facts.py` first; a split, if any, in a later commit that changes no behaviour.
 
