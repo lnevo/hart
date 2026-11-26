@@ -46,6 +46,7 @@ import os
 import re
 import sys
 from collections import defaultdict
+from collections.abc import Callable
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -93,7 +94,8 @@ HALF = re.compile(r"(\d+)([AB])")
 class Plan:
     """The prepared graph (the plugin's edits applied, no main_route) and what the route needs of it."""
 
-    def __init__(self, g: dict, by_label):
+    def __init__(self, g: dict, by_label: Callable[[dict, str], str]):
+        """`by_label(g, ref)` gives the node a route stop names and raises RouteError when none or several do."""
         self.g, self.by_label = g, by_label
         self.adj, self.run = defaultdict(list), defaultdict(list)
         for e in g["edges"]:
@@ -110,7 +112,7 @@ class Plan:
     def node(self, ref: str) -> str:
         try:
             return self.by_label(self.g, ref)
-        except Exception as exc:     # SchematicError: none or several junctions answer to it
+        except RouteError as exc:    # none or several junctions answer to it
             raise RouteError(f"main line stop {ref!r}: {exc}") from exc
 
     def name(self, n: str) -> str:
@@ -238,11 +240,19 @@ def route(plan: Plan, rows: list[dict]) -> list[list[str]]:
     return hops
 
 
-def prepared(overrides: dict, layer: str = "main_upper", graph: Path = GRAPH):
-    """(the plugin's graph with the overrides applied and no main_route, node_ref: how a route names a junction)."""
+def prepared(overrides: dict, layer: str = "main_upper", graph: Path = GRAPH) -> tuple[dict, Callable[[dict, str], str]]:
+    """(the plugin's graph with the overrides applied and no main_route, node_ref: how a route names a junction,
+    its SchematicError a RouteError)."""
     import build_layout_le as bl
     sheet, _le, _core = bl.plugin()
     from schematic import edits, layers   # the plugin's package: bl.plugin() has put it on the path
+    from schematic.core import SchematicError
+
+    def node_ref(g: dict, ref: str) -> str:
+        try:
+            return edits.node_ref(g, ref)
+        except SchematicError as exc:
+            raise RouteError(str(exc)) from exc
     # the hand preferences name tracks by block ID: the plugin takes the merged view's, which gives their names
     prefs = layer_files.merged(pd.DATA, "preferences").get(layer, {})
     opts = dict(sheet.DEFAULTS, **layers.merge(layers.load(layer, pd.DATA, preferences=False), prefs))
@@ -251,7 +261,7 @@ def prepared(overrides: dict, layer: str = "main_upper", graph: Path = GRAPH):
     opts.update({k: v for k, v in layer_files.merged(pd.DATA, main=False)[layer].items() if not k.startswith("_")})
     opts.pop("main_route", None)
     g = sheet.prepare(json.loads(graph.read_text()), opts, set())
-    return g, edits.node_ref
+    return g, node_ref
 
 
 def generated_main_upper(hops: list) -> dict:

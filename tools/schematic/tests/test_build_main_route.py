@@ -166,9 +166,17 @@ class Ties(unittest.TestCase):
 
         def ref(graph, name):
             if name not in graph["nodes"]:
-                raise ValueError(f"0 junctions answer to {name}")
+                raise M.RouteError(f"0 junctions answer to {name}")
             return name
         return M.Plan(g, ref)
+
+    def test_an_unknown_stop_is_named_and_a_bug_in_the_lookup_is_not_reworded(self):
+        plan = self.plan(11)
+        with self.assertRaisesRegex(M.RouteError, "main line stop 'Z': 0 junctions answer to Z"):
+            plan.node("Z")
+        broken = M.Plan(plan.g, lambda graph, name: graph["missing"][name])
+        with self.assertRaises(KeyError):
+            broken.node("A")
 
     def test_two_equally_short_ways_stop_the_build(self):
         with self.assertRaisesRegex(M.RouteError, "2 equally short ways"):

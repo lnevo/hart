@@ -14,7 +14,7 @@ import portal_photos as photos  # noqa: E402  (a patch goes on the module that h
 
 try:
     from PIL import Image
-except ImportError:                      # CI without Pillow: _web_jpeg returns False before the cache
+except ImportError:                      # CI without Pillow: _web_jpeg raises PillowMissing before the cache
     Image = None
 
 
@@ -40,7 +40,8 @@ class WebJpegCache(unittest.TestCase):
 
     def renders(self, src, out, max_px=100):
         with mock.patch.object(photos, "_render_jpeg", wraps=build._render_jpeg) as spy:
-            self.assertTrue(build._web_jpeg(src, out, max_px))
+            build._web_jpeg(src, out, max_px)
+        self.assertTrue(out.is_file())
         return spy.call_count
 
     def test_a_hit_is_the_same_bytes_without_resizing(self):

@@ -29,7 +29,7 @@ Plan 5.3c draws these as track and joins staging to the main level through the h
 - A timed block keeps its measured length (`measured_in`, `source` `timed`) for speed profiling and for JMRI's block length; JMRI holds the measured length where there is one, else the plan length (`tools/schematic/build_tables.py` writes them into the generated `tables.xml`; `export_track_lengths.py --check` holds `tables.xml` to the file).
 
 **Still from 5.3b**
-- The measured block lengths (`source` `timed` in `TRACK_LENGTHS.md`) are timed shares of the 5.3b loop.
+- The measured block lengths (`source` `timed` in `TRACK_LENGTHS.md`) are timed shares of the 5.3b loop. `infer_block_lengths.py` now reads its loop values from the 5.3c plan (`plan_routes.py`), so the next re-measure gives 5.3c shares.
 - The track plan page on the website is drawn from 5.3b (`tools/anyrail/levels_page.py`).
 
 ## Consequences

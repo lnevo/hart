@@ -23,7 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import layout_facts as facts  # noqa: E402
 from uss_switch_only_columns import ensure_columns  # noqa: E402
 
-from hartlib import paths, tables as hl_tables  # noqa: E402  (layout_facts put hartlib on sys.path)
+from hartlib import levels, paths, tables as hl_tables  # noqa: E402  (layout_facts put hartlib on sys.path)
 ROOT = paths.REPO_ROOT
 
 # The board's grid: the cells of the hand-wired CATS desk, frozen on 2026-11-15 into
@@ -56,15 +56,15 @@ PANEL_W, PANEL_H = 1400, 800
 # The board is one row of columns for one level. How a second level's switches
 # sit on the machine (a wider board, a second panel) is not designed yet, so
 # the generator stops rather than guess.
-USS_LEVELS = {"1"}
+USS_LEVELS: set[levels.Level] = {levels.STAGING}
 
 
 def uss_columns(switches: dict) -> dict:
     """Lever-column tables for the USS board from the switch facts."""
     other = sorted({sw.level for sw in switches.values()} - USS_LEVELS)
     if other:
-        raise SystemExit(f"switches.csv has level(s) {other}: the USS CTC board is only designed "
-                         f"for level(s) {sorted(USS_LEVELS)}; decide its layout first")
+        raise SystemExit(f"switches.csv has level(s) {', '.join(map(str, other))}: the USS CTC board is only designed "
+                         f"for level(s) {', '.join(map(str, sorted(USS_LEVELS)))}; decide its layout first")
     levers = {sw.uss_slot: sw for sw in switches.values()}
     n_slots = max(levers) + 1
     sw_num = {slot: sw.ctc_is for slot, sw in levers.items()}

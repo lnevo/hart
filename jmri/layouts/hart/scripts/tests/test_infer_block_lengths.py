@@ -7,6 +7,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import infer_block_lengths as m  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lengths_fixture import LOOP1  # noqa: E402  loop 1 on the plan 5.3c (test_plan_routes holds it to the plan)
+
 
 def read_rows(path, **kw):
     """The CSV's rows, with the file closed after reading."""
@@ -77,27 +80,27 @@ class Apply(unittest.TestCase):
 class RecordedRuns(unittest.TestCase):
     def test_2026_11_08_lengths_sum_to_plan_loop(self):
         rows = read_rows(m.EVENTS, newline="")
-        out = m.infer(rows)
+        out = m.infer(rows, LOOP1.loop_mm)
         self.assertEqual(set(out), set(m.SENSOR_ROWS))
         total = sum(v[0] for v in out.values())
-        self.assertAlmostEqual(total / m.PLAN_LOOP_MM, 1.0, delta=0.002)
+        self.assertAlmostEqual(total / LOOP1.loop_mm, 1.0, delta=0.002)
         # every block is pinned to within 5 cm across laps
         self.assertTrue(all(v[1] < 50 for v in out.values()), out)
 
 
     def test_pinned_puts_turnouts_on_the_plan_and_keeps_the_loop(self):
         rows = read_rows(m.EVENTS, newline="")
-        out = m.pinned(m.infer(rows))
-        self.assertAlmostEqual(sum(v[0] for v in out.values()), m.PLAN_LOOP_MM, delta=1)
+        out = m.pinned(m.infer(rows, LOOP1.loop_mm), *LOOP1)
+        self.assertAlmostEqual(sum(v[0] for v in out.values()), LOOP1.loop_mm, delta=1)
         # the route starts where Switch 5's section starts, which is before Switch 5's points
-        start = m.PLAN_TURNOUT_MM["Switch 5"] - out["Switch 5"][0] / 2
+        start = LOOP1.turnouts["Switch 5"] - out["Switch 5"][0] / 2
         pos = start
         for s in m.ROUTE_FROM_SW5:
-            if s in m.PLAN_TURNOUT_MM:
-                self.assertAlmostEqual(pos + out[s][0] / 2, m.PLAN_TURNOUT_MM[s], delta=10, msg=s)
+            if s in LOOP1.turnouts:
+                self.assertAlmostEqual(pos + out[s][0] / 2, LOOP1.turnouts[s], delta=10, msg=s)
             pos += out[s][0]
         # pinning only nudges blocks: a wrong plan turnout position would move them by metres
-        raw = m.infer(rows)
+        raw = m.infer(rows, LOOP1.loop_mm)
         for b in raw:
             self.assertLess(abs(out[b][0] - raw[b][0]), 150, b)
         # the barn crossover: Switch 7b's section centre about 4.15 m from Switch 5's points

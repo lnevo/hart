@@ -127,9 +127,6 @@
  "ops/station_maps/scripts/sheet_kit.py": {
   "import-exit": 1
  },
- "tools/agent/worktrees.py": {
-  "import-exit": 2
- },
  "tools/audit/check_layout_facts.py": {
   "import-exit": 1
  },
@@ -228,9 +225,6 @@
  "tools/ops/status_counts.py": {
   "dated-note": 1
  },
- "tools/promo/tiktok_promo.py": {
-  "import-exit": 8
- },
  "tools/schematic/block_layer.py": {
   "dated-note": 3
  },
@@ -239,9 +233,6 @@
  },
  "tools/schematic/build_device_map.py": {
   "dated-note": 8
- },
- "tools/schematic/build_masts.py": {
-  "dated-note": 2
  },
  "tools/schematic/build_staging_sets.py": {
   "dated-note": 2

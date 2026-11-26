@@ -795,7 +795,7 @@ def check_levels(switches: dict[int, facts.Switch], data: Path, rows: list[dict[
         for item in cp["switches"].split(","):
             num = re.match(r"\d+", item.strip())
             sw = switches.get(int(num.group(0))) if num else None
-            if sw and sw.level != cp["level"]:
+            if sw and str(sw.level) != cp["level"]:
                 r.add(f"level:Switch {sw.number}", f"Switch {sw.number}: switches.csv level {sw.level}, "
                                                    f"stations.csv puts {cp['cp_name']} on level {cp['level']}")
     # a line block's cp lists stations and control points of any level (check_device_master holds it); one row's is

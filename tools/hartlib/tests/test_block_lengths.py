@@ -220,7 +220,7 @@ class Files(unittest.TestCase):
         for r in rows:
             if r["level"] == "1" and r["id"] == "block:3C-end":
                 r["user_name"] = "Track W-1"
-        with unittest.mock.patch.object(devices, "load", return_value=tuple(rows)):
+        with unittest.mock.patch.object(devices, "load", return_value=devices.as_device_rows(rows)):
             self.fails(lambda: BL.plan_blocks(self.plan), "block:3C-end is named 'Track W-1', as block:3B-end is")
 
 

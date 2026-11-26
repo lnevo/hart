@@ -1,4 +1,6 @@
 """search-index.json: record shape, which pages are skipped, the leak guard, and the build check's link test."""
+import contextlib
+import io
 import json
 import os
 import sys
@@ -656,3 +658,24 @@ class ReviewFixesStage3(unittest.TestCase):
         (rec,) = build._photo_records(root)
         build._search_thumbs([rec], root)
         self.assertEqual(rec["thumb"], "assets/gallery/thumbs/layout/layout-crew-lounge.jpg")
+
+    def test_a_thumb_that_cannot_be_copied_is_reported(self):
+        try:
+            import PIL  # noqa: F401
+        except ImportError:
+            self.skipTest("Pillow not installed")
+        root = _photos_site(gallery=[_pic()], files=["assets/gallery/thumbs/layout/layout-crew-lounge.jpg"])
+        (rec,) = build._photo_records(root)
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            build._search_thumbs([rec], root)
+        self.assertIn("no small thumbnail for assets/gallery/thumbs/layout/layout-crew-lounge.jpg", err.getvalue())
+
+    def test_without_pillow_the_grid_thumbs_stay_and_stderr_says_so(self):
+        root = _photos_site(gallery=[_pic()], files=["assets/gallery/thumbs/layout/layout-crew-lounge.jpg"])
+        (rec,) = build._photo_records(root)
+        err = io.StringIO()
+        with mock.patch.dict(sys.modules, {"PIL": None}), contextlib.redirect_stderr(err):
+            build._search_thumbs([rec], root)
+        self.assertEqual(rec["thumb"], "assets/gallery/thumbs/layout/layout-crew-lounge.jpg")
+        self.assertIn("Pillow is not installed", err.getvalue())

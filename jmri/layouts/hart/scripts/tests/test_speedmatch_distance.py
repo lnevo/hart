@@ -10,15 +10,17 @@ import re
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from contextlib import redirect_stdout
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from test_speedmatch import SM, analyze, lr, make_job, mover  # noqa: E402
-from lengths_fixture import write_lengths  # noqa: E402
+from lengths_fixture import LOOP2, write_lengths  # noqa: E402  LOOP2: loop 2 on the plan 5.3c
 
 sys.path.insert(0, str(SM.parent))
 import infer_block_lengths as ibl  # noqa: E402
+import lengths_fixture  # noqa: E402
 
 
 def read_rows(path, **kw):
@@ -496,7 +498,7 @@ def pass_log(step, v, order, start_t=1000.0, direction="forward", reverse=False,
 
 class Locate(unittest.TestCase):
     ORDER2 = analyze.route_order("loop2")
-    PINS = ibl.PLAN_LOOP2_TURNOUT_MM
+    PINS = LOOP2.turnouts
 
     def lens(self, sw7=900.0, sw13=700.0):
         """True section lengths: Switch 5 and 15 are 600 mm sections centred on their pins; Scale and
@@ -582,14 +584,10 @@ class Locate(unittest.TestCase):
             lines.append("%.3f PASSDONE reason=passed" % (ev[-1][0] + 1))
             (d / name).write_text("\n".join(lines) + "\n")
         out = io.StringIO()
-        old = sys.argv
-        sys.argv = ["infer_block_lengths.py", "--route", "loop2", "--locate", "--pass-log",
-                    str(d / "a.log"), str(d / "b.log")]
-        try:
-            with redirect_stdout(out):
-                ibl.main()
-        finally:
-            sys.argv = old
+        argv = ["infer_block_lengths.py", "--route", "loop2", "--locate", "--pass-log", str(d / "a.log"), str(d / "b.log")]
+        with redirect_stdout(out), mock.patch.object(sys, "argv", argv), \
+                mock.patch.object(ibl.plan_routes, "plan_routes", return_value=lengths_fixture.PLAN_ROUTES):
+            ibl.main()          # the fixture's 5.3c values: CI has no plan file
         text = out.getvalue()
         self.assertIn("pass 1:", text)
         self.assertIn("pass 2:", text)
@@ -941,7 +939,7 @@ class SimulatedRuns(unittest.TestCase):
         self.assertLess(msgs.index("PASSDONE reason=passed"), msgs.index("STOP passed"))
         got = analyze.parse_pass_log(log.read_text().splitlines(), "p.log")
         self.assertEqual(got[0]["reason"], "passed")
-        res = ibl.pass_centres(got[0]["events"], "loop2", ibl.PLAN_LOOP2_TURNOUT_MM)
+        res = ibl.pass_centres(got[0]["events"], "loop2", LOOP2.turnouts)
         self.assertGreater(res["speed"], 0)
 
     def test_pass_job_stops_at_once_when_the_loco_goes_the_wrong_way(self):
