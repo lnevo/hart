@@ -61,7 +61,7 @@
   "exec-parts": 1
  },
  "jmri/layouts/hart/scripts/speedmatch/analyze.py": {
-  "import-exit": 4
+  "import-exit": 1
  },
  "jmri/layouts/hart/scripts/speedmatch/build_routes.py": {
   "import-exit": 4

@@ -36,8 +36,8 @@
 # (ruff's undefined-name rule) so a misspelt name fails the check. job_settings stands for the settings.
 if False:
     import time, threading, java
-    from jobkit import (HOOK, L, SL, check_guards, claim, end_job, last, lock, request_throttle, scan, set_direction, wait,
-        why)
+    from jobkit import (HOOK, L, SL, check_guards, claim, end_job, last, lock, request_throttle, route_sensor, scan,
+        set_direction, wait, why)
     from liverule import (HIGH_SPAN, LOW_MAX, MAX_READINGS, SETTLE_EVENTS, STALL_CAP, STOP_K, STOP_REL, SpanReader, median,
         next_stall, rel_stdev, should_move_on, span_for_step, stall_action)
     from job_settings import (FUNCS, GUARD, LENGTHS, MID, ORDER, P_FWD, P_ID, REF, ROUTE, STALL0,
@@ -64,7 +64,7 @@ def run():
         if not claim(): return
         # one listener per bean, loop name first, so a guard that is also a loop sensor still
         # feeds the reader under its loop name
-        found = scan(GUARD, [], lambda un: un.startswith("BS ") and un not in ("BS W-1", "BS W-2"),
+        found = scan(GUARD, [], route_sensor,
                      lambda n, isg, s: SL(n, isg))
         if not check_guards(GUARD, found): return
         t, tl = request_throttle(P_ID)
