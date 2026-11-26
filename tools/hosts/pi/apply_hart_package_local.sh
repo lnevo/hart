@@ -120,6 +120,9 @@ JYTHON=(
   "$HART/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
   "$HART/jmri/layouts/hart/scripts/hide_band_panels.py"
   "$HART/jmri/layouts/hart/scripts/panel_status.py"
+  # panel_status.py's PARTS: installed beside it, not Start Up items.
+  "$HART/jmri/layouts/hart/scripts/panel_status_turnouts.py"
+  "$HART/jmri/layouts/hart/scripts/panel_status_clicks.py"
   "$HART/jmri/layouts/hart/scripts/jmri_cmd_watcher.py"
   "$HART/jmri/layouts/hart/scripts/sts_car_sync.py"
   "$HART/jmri/layouts/hart/scripts/mimic_relay.py"

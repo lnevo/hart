@@ -94,6 +94,7 @@ stage_package() {
     [[ -f "$ROOT/$f" ]] && cp -f "$ROOT/$f" "$stage/$(dirname "$f")/"
   done
   cp -f "$ROOT/jmri/scripts/signal_coordinator.py" "${JYTHON_SIBLING_MODULES[@]}" "$stage/jmri/scripts/"
+  cp -f "${JYTHON_PANEL_STATUS_PARTS[@]}" "$stage/jmri/layouts/hart/scripts/"
 
   # A parked feature's folder is left out of the package; the host apply scripts install only what the package
   # holds, so the copies already on a host stay as they are.

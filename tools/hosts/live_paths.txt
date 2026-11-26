@@ -48,6 +48,8 @@ jmri/scripts/sml_events.py
 jmri/scripts/sml_quit.py
 jmri/scripts/sml_ui.py
 jmri/layouts/hart/scripts/panel_status.py
+jmri/layouts/hart/scripts/panel_status_turnouts.py
+jmri/layouts/hart/scripts/panel_status_clicks.py
 jmri/layouts/hart/scripts/discover_sml.py
 jmri/layouts/hart/scripts/hide_cats_desk_windows.py
 jmri/layouts/hart/scripts/hide_band_panels.py

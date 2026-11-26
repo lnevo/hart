@@ -14,8 +14,7 @@
 DEPLOY_STEPS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$DEPLOY_STEPS_DIR/../../.." && pwd)"
 source "$ROOT/tools/hosts/profile_tables_guard.sh"
-# Hosts: environment first, then tools/env/hart.env, then tools/env/defaults.env (via load_env.sh)
-# (the same order the Python tools use through tools/hartlib/src/hartlib/hosts.py).
+# Hosts: environment, then tools/env/hart.env, then defaults.env (load_env.sh; the order of hartlib/hosts.py).
 source "$ROOT/tools/env/load_env.sh"
 WIN_HOST="$HART_WIN_SSH"
 WIN_PORT="$HART_WIN_SSH_PORT"
@@ -53,15 +52,13 @@ JYTHON_STARTUP_SCRIPTS=(
   "$ROOT/jmri/scripts/signal_coordinator.py"
 )
 
-# The modules signal_coordinator.py loads from preference:jython (its SIBLING_MODULES): copied beside it, never
-# Start Up items. tools/hosts/tests/test_coordinator_shipping.py holds every host's list to that tuple.
+# What signal_coordinator.py and panel_status.py load, in order (SIBLING_MODULES, PARTS): beside them, not Start Up.
 JYTHON_SIBLING_MODULES=(
-  "$ROOT/jmri/scripts/sml_beans.py"
-  "$ROOT/jmri/scripts/sml_quit.py"
-  "$ROOT/jmri/scripts/sml_ui.py"
-  "$ROOT/jmri/scripts/sml_claims.py"
-  "$ROOT/jmri/scripts/sml_handoff.py"
-  "$ROOT/jmri/scripts/sml_events.py"
+  "$ROOT/jmri/scripts/sml_beans.py" "$ROOT/jmri/scripts/sml_quit.py" "$ROOT/jmri/scripts/sml_ui.py"
+  "$ROOT/jmri/scripts/sml_claims.py" "$ROOT/jmri/scripts/sml_handoff.py" "$ROOT/jmri/scripts/sml_events.py"
+)
+JYTHON_PANEL_STATUS_PARTS=(
+  "$ROOT/jmri/layouts/hart/scripts/panel_status_turnouts.py" "$ROOT/jmri/layouts/hart/scripts/panel_status_clicks.py"
 )
 
 # load_parked: the features parked out of the active tables (hartlib.parked.PARKED: Entry/Exit, the Dispatcher System,
