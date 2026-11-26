@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Infer the lengths of the test-loop blocks from timed laps and the AnyRail plan.
 
-Part A of docs/jmri/speedmatching/RERUN_PLAN.md. The AnyRail plan (5.3b, staging
-level, which is the built layout) gives the length of the whole test loop along the
-route the locos ran: PLAN_LOOP_MM. It does not say where the block gaps are. The
+Part A of docs/jmri/speedmatching/RERUN_PLAN.md. The AnyRail plan 5.3c (ADR-026, staging
+level) gives the length of the whole test loop along the route the locos ran (plan_routes.py
+reads it from the plan file). It does not say where the block gaps are. The
 2026-11-08 runs do: at one throttle step a loco runs at one speed, so the share of a
 lap's time spent in a block is that block's share of the loop length.
 
-    length(block) = median over laps of (transit(block) / lap time) * PLAN_LOOP_MM
+    length(block) = median over laps of (transit(block) / lap time) * the plan loop length
 
 then pinned(): the loop turnouts are on the plan too, so the timed positions are
 re-fitted piecewise so each turnout's OS centre lands on the plan's turnout centre. Each
@@ -45,18 +45,14 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import block_lengths  # noqa: E402  the measured file's one writer; speed matching's operating lengths
 from hartlib import paths  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import plan_routes  # noqa: E402  the routes' plan lengths and turnout centres, read from the AnyRail plan
+
 REPO = paths.REPO_ROOT
 EVENTS = REPO / "docs/jmri/speedmatching/profile-2026-11-08/block_events.csv"
 EVENTS_DATE = "2026-11-08"      # the run EVENTS holds
 MM_PER_IN = 25.4
 
-
-# Length of the test loop on the AnyRail plan 5.3b, staging level, along the route of
-# the 2026-11-08 runs (Switch 5 -> Switch 33 -> East Lead -> Switch 35 -> 37 -> K loop
-# -> 39 -> 35 -> West Ext -> 23 -> Main West -> 1 -> Brick-Plane -> 5): flex arc
-# lengths plus turnout route lengths. See docs/jmri/speedmatching/ANYRAIL_LENGTHS.md.
-# Both PLAN_ constants are printed by archive/code/anyrail-prototype/loop_route.py (steps in its README).
-PLAN_LOOP_MM = 35108.2
 MIN_STEP = 24
 DEFAULT_ROUTE = "loop1"
 
@@ -113,8 +109,8 @@ def lap_shares(rows, min_step=MIN_STEP, ref=REF_BLOCK, blocks=None):
     return shares
 
 
-def infer(rows, loop_mm=PLAN_LOOP_MM, **kw):
-    """Return {block: (median mm, half-range mm, n laps)}."""
+def infer(rows, loop_mm: float, **kw):
+    """Return {block: (median mm, half-range mm, n laps)}; loop_mm is the route's plan length (plan(route))."""
     out = {}
     for b, s in lap_shares(rows, **kw).items():
         mm = [x * loop_mm for x in s]
@@ -123,33 +119,20 @@ def infer(rows, loop_mm=PLAN_LOOP_MM, **kw):
     return out
 
 
-# Where each turnout on the loop sits on the plan: the centre of its route, in mm along the
-# test route from Switch 5's points (same route as PLAN_LOOP_MM). Keyed by the OS sensor.
-# Switches 37 and 39 are left out: they sit 0.4 m and 0.2 m from the Switch 35 crossover, so
-# pinning both ends of such a short stretch would turn a few cm of gap placement into a large
-# error in the OS lengths between them.
-PLAN_TURNOUT_MM = {
-    "Switch 5": 142, "Switch 33": 12427, "Switch 35a": 15402,
-    "Switch 35b": 22541, "Switch 23a": 27071, "Switch 1": 33172,
-}
 _ORDER = list(SENSOR_ROWS)
 ROUTE_FROM_SW5 = _ORDER[_ORDER.index("Switch 5"):] + _ORDER[:_ORDER.index("Switch 5")]
-
-# Loop 2 (Switch 5 thrown into Scale, Barn, Switch 13, 15, Track S-R, 23b, 31, 33, then as loop 1
-# from East Lead): the plan route is T106 A->C, run T106C, T52 A->B, run T52B, T41 A->B (not
-# built, counted as track), S-R run T41B, T118 B->A, run T118A, T59 B->A, run T59A, T77 B->A, then
-# East Lead onward as loop 1. archive/code/anyrail-prototype/loop_route.py prints both constants.
-# Switches 23b (12000 mm) and 31 (12382) are not pinned: too close to Switch 33 (12748) for a
-# pinned stretch of a few cm to stay meaningful. Switches 7 and 13 are the ones to find.
-PLAN_LOOP2_MM = 35428.7
-PLAN_LOOP2_TURNOUT_MM = {
-    "Switch 5": 140, "Switch 15": 5909, "Switch 33": 12748, "Switch 35a": 15723,
-    "Switch 35b": 22861, "Switch 23a": 27392, "Switch 1": 33492,
-}
 # route -> the run a measured row names (block_lengths_measured.csv `run`)
 RUN = {"loop1": "loop1 laps", "loop2": "loop2 passes"}
-# route -> (plan loop length mm, plan turnout centres by OS sensor)
-PLAN = {"loop1": (PLAN_LOOP_MM, PLAN_TURNOUT_MM), "loop2": (PLAN_LOOP2_MM, PLAN_LOOP2_TURNOUT_MM)}
+
+
+def plan(route: str) -> plan_routes.RoutePlan:
+    """The route's plan length in mm and its pinned turnout centres by OS sensor, read from the AnyRail plan
+    (plan_routes.py; its ROUTE_STEPS says which turnouts are pinned and why). PlanRouteError when the plan file
+    is not on this machine or the route does not walk on it."""
+    routes = plan_routes.plan_routes()
+    if route not in routes:
+        raise plan_routes.PlanRouteError(f"no plan route {route!r}: plan_routes.py has {', '.join(sorted(routes))}")
+    return routes[route]
 
 
 def route_from_sw5(route):
@@ -158,7 +141,7 @@ def route_from_sw5(route):
     return names[i:] + names[:i]
 
 
-def pinned(result, loop_mm=PLAN_LOOP_MM, turnouts=PLAN_TURNOUT_MM, route=ROUTE_FROM_SW5):
+def pinned(result, loop_mm: float, turnouts: dict[str, int], route=ROUTE_FROM_SW5):
     """Re-fit the timed lengths so each turnout's OS centre lands on the plan's turnout centre.
 
     Between two plan turnouts, the timed positions are scaled to the plan distance between
@@ -261,7 +244,7 @@ def measured_rows(result, route=DEFAULT_ROUTE, only=None, date=EVENTS_DATE, plan
     for sensor, name in sensor_rows.items():
         length, spread, n = result[sensor]
         ident = analyze.BLOCK_IDS[name]
-        note = (f"timed share of the AnyRail 5.3b {route} loop, pinned to the plan turnouts either side; "
+        note = (f"timed share of the AnyRail 5.3c {route} loop, pinned to the plan turnouts either side; "
                 f"+-{spread / MM_PER_IN:.1f} in over {n} laps")
         have[ident] = block_lengths.Measured(0, ident, round(length / MM_PER_IN, 1), RUN[route], date, note)
         mm[name] = have[ident].measured_in * MM_PER_IN
@@ -312,7 +295,10 @@ def main():
                     help="print where the OS Switch 7 and 13 section centres fall along the route")
     a = ap.parse_args()
     route = a.route
-    loop_mm, pins = PLAN[route]
+    try:
+        loop_mm, pins = plan(route)
+    except plan_routes.PlanRouteError as exc:
+        raise SystemExit(f"infer_block_lengths: {exc}") from exc
     if a.pass_log:
         if not a.locate or route != "loop2":
             ap.error("--pass-log goes with --locate and --route loop2")
