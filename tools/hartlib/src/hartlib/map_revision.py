@@ -74,32 +74,55 @@ def _dump(data) -> str:
 
 
 def _crew_master():
+    """crew_master, from ops/hart-ops/publications; the folder goes at the end of sys.path, so its bare module names
+    (crew_master, crew_schema) never shadow another module's."""
     if str(CREW_PUB) not in sys.path:
-        sys.path.insert(0, str(CREW_PUB))
+        sys.path.append(str(CREW_PUB))
     import crew_master
     return crew_master
 
 
+def crew_text(crew_path: Path, rev: str, effective: str) -> str:
+    """crew.json's text: crew_master.build() from the repo's crew master. When the master cannot be built (a schema
+    problem, a missing master or industries.csv), the existing file with only the title block's revision and date
+    set, as before the master had one writer, and a one-line warning; check.sh's crew-json job still fails on it."""
+    try:
+        return _crew_master().build((rev, effective))
+    except (ValueError, OSError) as e:
+        if isinstance(e, OSError):            # a missing master or industries.csv: the error names the file
+            problem = f"{e.filename}: {e.strerror or type(e).__name__}"
+        else:                                 # crew_master.build starts the message with the file at fault
+            head, *rest = [line.strip() for line in str(e).splitlines() if line.strip()] or [type(e).__name__]
+            problem = " ".join([head, "; ".join(rest)]) if rest else head
+        print(f"map_revision: warning: the crew master does not build: {problem}. Setting only the revision and date "
+              f"in {crew_path.name}; build_crew_json.py --check (check.sh crew-json) fails until it is fixed",
+              file=sys.stderr)
+        crew = _load(crew_path)
+        crew["schematic"]["revision"], crew["schematic"]["effective"] = rev, effective
+        return _dump(crew)
+
+
 def planned(www: Path, prefs: layer_files.Section | None = None) -> dict[Path, str]:
-    """{file: text it should have} for every file this owns: crew.json as the crew master builds it, the others
-    from the files as they are now."""
+    """{file: text it should have} for every file this owns. crew.json is crew_text(): always a build of the repo's
+    crew master (ops/hart-ops/data/crew.json), whatever `www` is given; the others come from the files under `www`
+    as they are now."""
     rev, effective = fields(prefs)
     crew_path, pubs_path = www / "data/crew.json", www / "data/publications.json"
-    crew_text = _crew_master().build((rev, effective))
-    crew, pubs = json.loads(crew_text), _load(pubs_path)
-    sc = crew["schematic"]
+    text = crew_text(crew_path, rev, effective)
+    crew, pubs = json.loads(text), _load(pubs_path)
+    svg = crew["schematic"]["svg"]
 
     pages = {f"crew/maps/{m['id']}/index.html": m for m in crew["maps"]}
     found = set()
     for item in pubs["items"]:
-        if item.get("page") == sc["svg"] or item.get("page") in pages:
+        if item.get("page") == svg or item.get("page") in pages:
             item["revision"] = rev
             found.add(item["page"])
-    missing = sorted(({sc["svg"]} | set(pages)) - found)
+    missing = sorted(({svg} | set(pages)) - found)
     if missing:
         raise ValueError(f"publications.json lists no entry for {', '.join(missing)}")
 
-    out = {crew_path: crew_text, pubs_path: _dump(pubs)}
+    out = {crew_path: text, pubs_path: _dump(pubs)}
     for rel, m in pages.items():
         page = www / rel
         text = page.read_text(encoding="utf-8")

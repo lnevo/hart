@@ -291,6 +291,8 @@ outputs = [
   { path = "docs/ops/schematic-system-draft.svg", label = "step 9 schematic" },
   { path = "docs/ops/stations/*", label = "station sheets" },
   { path = "www/crew/maps/*/index.html", drawn = false },
+  # also written by the crew-json job in checks.toml; both build it with crew_master.build(), so they agree while the
+  # crew master builds (a broken master: map_revision only sets the revision and date, and crew-json fails on it)
   { path = "www/data/crew.json", label = "rebuilt by map_revision through crew_master.build", drawn = false },
   { path = "www/data/publications.json", label = "map revisions (map_revision)", drawn = false },
   { path = "jmri/layouts/hart/data/schematic/preferences.json", drawn = false },

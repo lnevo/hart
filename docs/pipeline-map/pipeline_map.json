@@ -3978,6 +3978,15 @@
    "gen": "manifest"
   },
   {
+   "id": "ops/hart-ops/publications/crew_master.py",
+   "label": "crew_master.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "The crew master's views; build() is the one writer of www/data/crew.json, called by build_crew_json.py and hartlib.map_revision.",
+   "path": "ops/hart-ops/publications/crew_master.py"
+  },
+  {
    "id": "ops/hart-ops/publications/build_crew_json.py",
    "label": "build_crew_json.py",
    "kind": "generator",
@@ -12809,6 +12818,26 @@
    "from": "jmri/layouts/hart/data/schematic/preferences.json",
    "to": "tools/hartlib/src/hartlib/map_revision.py",
    "label": "revision/date"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/map_revision.py",
+   "to": "ops/hart-ops/publications/crew_master.py",
+   "label": "crew_master.build (import)"
+  },
+  {
+   "from": "ops/hart-ops/data/crew.json",
+   "to": "tools/hartlib/src/hartlib/map_revision.py",
+   "label": "crew master, via crew_master.build"
+  },
+  {
+   "from": "ops/hart-ops/data/industries.csv",
+   "to": "tools/hartlib/src/hartlib/map_revision.py",
+   "label": "spot sheet names, via crew_master.build"
+  },
+  {
+   "from": "ops/hart-ops/publications/build_crew_json.py",
+   "to": "ops/hart-ops/publications/crew_master.py",
+   "label": "crew_master.build (import)"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

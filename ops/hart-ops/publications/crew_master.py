@@ -104,15 +104,34 @@ def dump(data) -> str:
 SITE = REPO / "www/data/crew.json"
 
 
-def build(schematic: tuple[str, str], master: Path = MASTER, industries: Path = INDUSTRIES) -> str:
+def build(schematic: tuple[str, str], master: Path | None = None, industries: Path | None = None) -> str:
     """The text of www/data/crew.json; schematic is (revision, effective) from the title block. Raises ValueError
-    naming each problem crew_schema.problems() finds in the master."""
+    starting with the file at fault (the master or industries.csv) and naming the problem: each one
+    crew_schema.problems() finds, a file that is not JSON or CSV with the columns it needs. A missing file raises
+    OSError, which names it."""
     from crew_schema import problems          # a sibling module: its folder is on sys.path for every caller
-    m, ind = load(master), read_industries(industries)
+    master, industries = master or MASTER, industries or INDUSTRIES
+    try:
+        m = load(master)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"{_rel(master)}: not JSON ({e})") from None
+    try:
+        ind = read_industries(industries)
+    except (KeyError, csv.Error) as e:
+        raise ValueError(f"{_rel(industries)}: unreadable ({type(e).__name__}: {e})") from None
     bad = problems(m, ind)
     if bad:
-        raise ValueError("the crew master has problems:\n  " + "\n  ".join(bad))
-    return dump(site_view(m, ind, schematic))
+        raise ValueError(f"{_rel(master)}: the crew master has problems:\n  " + "\n  ".join(bad))
+    try:
+        view = site_view(m, ind, schematic)
+    except (KeyError, TypeError) as e:
+        raise ValueError(f"{_rel(master)}: does not build ({type(e).__name__}: {e})") from None
+    return dump(view)
+
+
+def _rel(path: Path) -> str:
+    path = Path(path).resolve()
+    return path.relative_to(REPO).as_posix() if path.is_relative_to(REPO) else str(path)
 
 
 # ---- the docx views -------------------------------------------------------------------------------------------

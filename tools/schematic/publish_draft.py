@@ -417,6 +417,8 @@ def main(argv):
         print(f"station sheets differ: {', '.join(differ)}" if differ else "station sheets are current")
         try:
             pages = [p.relative_to(REPO).as_posix() for p in map_revision.drift(prefs=page_prefs())]
+            pages = [f"{p} (differs from crew_master.build: the crew master or the title block)"
+                     if p == "www/data/crew.json" else p for p in pages]
         except ValueError as e:
             pages = [str(e)]
         print(f"station map pages differ from the title block: {', '.join(pages)}" if pages
