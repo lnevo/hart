@@ -3595,6 +3595,15 @@
    "path": "tools/ops/pipeline_map_layout.js"
   },
   {
+   "id": "tools/ops/pipeline_map_helpers.js",
+   "label": "pipeline_map_helpers.js",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "The layout's helpers (pure functions: lane tags, picking, chains, fitting, folding), inlined after it; node loads them through the layout.",
+   "path": "tools/ops/pipeline_map_helpers.js"
+  },
+  {
    "id": "tools/ops/pipeline_map_view.js",
    "label": "pipeline_map_view.js",
    "kind": "unstructured",
@@ -10270,6 +10279,12 @@
   },
   {
    "from": "tools/ops/pipeline_map_view.js",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "inlined",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/ops/pipeline_map_helpers.js",
    "to": "tools/ops/build_pipeline_map.py",
    "label": "inlined",
    "gen": "manifest"
