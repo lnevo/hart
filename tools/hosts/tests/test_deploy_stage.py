@@ -367,6 +367,33 @@ class FinderLitterStaysOut(unittest.TestCase):
             self.assertEqual(litter, [])
 
 
+class StageRsyncsSkipLitter(unittest.TestCase):
+    """Every rsync in stage.sh skips Finder litter as it copies, so a .DS_Store that vanishes mid-copy (as
+    FinderLitterStaysOut plants and removes them in the checkout) is never read and cannot stop rsync with code 24."""
+
+    def test_every_rsync_in_stage_sh_carries_the_litter_excludes(self) -> None:
+        text = (STEPS / "stage.sh").read_text(encoding="utf-8")
+        self.assertIn("LITTER_EXCLUDES=(--exclude '.DS_Store' --exclude '._*')", text)
+        calls = [line.strip() for line in text.splitlines()
+                 if line.strip().startswith("rsync ") and not line.strip().startswith("#")]
+        self.assertGreater(len(calls), 0)
+        for call in calls:
+            self.assertIn('"${LITTER_EXCLUDES[@]}"', call, call)
+
+    def test_a_litter_file_that_vanishes_mid_copy_is_never_read(self) -> None:
+        """rsync with the excludes copies a tree whose .DS_Store is deleted before rsync reaches it, exit 0."""
+        with tempfile.TemporaryDirectory() as tmp:
+            src, dst = Path(tmp) / "src", Path(tmp) / "dst"
+            (src / "a").mkdir(parents=True)
+            (src / "a/keep.txt").write_text("x", encoding="utf-8")
+            (src / "a/.DS_Store").write_bytes(b"\0")
+            done = subprocess.run(["rsync", "-a", "--exclude", ".DS_Store", "--exclude", "._*", f"{src}/", f"{dst}/"],
+                                  capture_output=True, text=True, timeout=60)
+            self.assertEqual(done.returncode, 0, done.stderr)
+            self.assertTrue((dst / "a/keep.txt").exists())
+            self.assertFalse((dst / "a/.DS_Store").exists())
+
+
 class StageOnlyRefusals(unittest.TestCase):
     def test_needs_a_folder(self) -> None:
         done = subprocess.run(["bash", str(SYNC), "--stage-only"], cwd=ROOT, capture_output=True, text=True)
