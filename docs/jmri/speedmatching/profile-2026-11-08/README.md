@@ -12,7 +12,7 @@ correction, decoder preflight) are in
 [`jmri/layouts/hart/scripts/speedmatch/`](../../../../jmri/layouts/hart/scripts/speedmatch/README.md).
 This folder stays as the record of the 2026-11-08 run.
 
-The two extension tracks are named East Ext and West Ext here and in the CSVs. The raw logs of that date (`steprun_*.log`) still use the old names "BS East Main Ext" and "BS West Main Ext"; convert them with `jmri/layouts/hart/scripts/speedmatch/rename_extension_tracks.py` before running `block_speeds.py` on them (the raw logs are not in the repo).
+The two extension tracks are named East Ext and West Ext here and in the CSVs. The raw logs of that date (`steprun_*.log`) still use the old names "BS East Main Ext" and "BS West Main Ext"; convert them with `jmri/layouts/hart/scripts/speedmatch/rename_extension_tracks.py` before running `analyze.py` on them (the raw logs are not in the repo).
 
 ## Method
 
@@ -160,7 +160,7 @@ affected, because both were timed over the same loop.
 
 **To fix.** Measure the real length of at least Main East, East Ext, East Lead and
 the loop total with a tape (or time a loco over a measured distance), correct
-`block_lengths.csv`, and re-run `block_speeds.py`; every figure here recomputes.
+`block_lengths.csv`, and re-run the analysis (`analyze.py`, [`RERUN_PLAN.md`](../RERUN_PLAN.md) step 5); every figure here recomputes.
 
 ## Files
 
@@ -168,13 +168,24 @@ the loop total with a tape (or time a loco over a measured distance), correct
 |---|---|
 | `results.csv` | every timed lap used (lap time, mm/s) |
 | `manual_laps.csv` | the two valid 2121 step-8 laps |
-| [`speed_by_step_2026-11-08.csv`](../../../../jmri/layouts/hart/data/speed_by_step_2026-11-08.csv) | per loco and step: laps, mean lap, mean mm/s, spread, HO mph. One copy, under `jmri/layouts/hart/data/`, which `block_speeds.py` writes and the speed-match dashboard and the Pi bundle read (moved from this folder 2026-11-25) |
+| [`speed_by_step_2026-11-08.csv`](../../../../jmri/layouts/hart/data/speed_by_step_2026-11-08.csv) | per loco and step: laps, mean lap, mean mm/s, spread, HO mph. One copy, under `jmri/layouts/hart/data/`, which the speed-match dashboard and the Pi bundle read. `analyze.py speed-by-step` writes it from `results.csv` and `manual_laps.csv` (command below) |
 | `block_events.csv` | every block transit (637): entry time, transit time, mm/s |
 | `block_summary.csv` | per loco, step, block: mean speed, ratio to loop mean, implied length |
 | `post_programming_sample.csv` | 2738 re-measure after programming, against 2121 |
 | `reverse_2121_laps.csv` | 2121 run in reverse (east): whole-lap times at steps 24, 48, 64 |
 | `momentum_test.csv` | sensor times of the four stop tests (2 locos, steps 32 and 96) |
-| `block_speeds.py`; `analyze_profile.py` and `propose_table.py` in [`archive/`](../../../../archive/code/speedmatching/profile-2026-11-08/) | produce the above |
+| `block_speeds.py`, `analyze_profile.py` and `propose_table.py` in [`archive/`](../../../../archive/code/speedmatching/profile-2026-11-08/) | produced the above (kept for the record, not run again) |
+
+The speed table comes back byte for byte from the laps in this folder, with the loop length of that date:
+
+```bash
+python3 jmri/layouts/hart/scripts/speedmatch/analyze.py speed-by-step \
+    --laps docs/jmri/speedmatching/profile-2026-11-08/results.csv \
+    --laps docs/jmri/speedmatching/profile-2026-11-08/manual_laps.csv \
+    --log-loco "steprun_2121_b.log=CSX 2121" --log-loco "steprun_2121_c.log=CSX 2121" \
+    --log-loco "steprun_2121_d.log=CSX 2121" --log-loco "steprun_2738_b.log=CSX 2738" \
+    --loop-mm 31292.8 --out jmri/layouts/hart/data/speed_by_step_2026-11-08.csv
+```
 
 ## Data quality notes
 

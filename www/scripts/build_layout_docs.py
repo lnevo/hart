@@ -31,6 +31,10 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import block_lengths, devices, layer_files, railroad  # noqa: E402
 from hartlib.railroad_facts import DeviceRow  # noqa: E402
 
+class LayoutDocsError(Exception):
+    """The page's sources disagree with each other or with the template; the message names the file and the fix."""
+
+
 PORTAL = Path(__file__).resolve().parents[1]
 ROOT = PORTAL.parent
 TEMPLATE = PORTAL / "scripts/layout_docs_template.html"
@@ -89,7 +93,7 @@ def car_inches(scale_ratio: float | None = None) -> float:
         try:
             scale_ratio = float(layer_files.merged_section("staging")["scale_ratio"])
         except (KeyError, TypeError, ValueError) as exc:
-            raise SystemExit("build_layout_docs: plan_overrides.json has no staging scale_ratio to count the siding's "
+            raise LayoutDocsError("build_layout_docs: plan_overrides.json has no staging scale_ratio to count the siding's "
                              f"cars by ({exc!r})") from None
     return (CAR_FT + COUPLER_FT) * 12 / scale_ratio
 
@@ -103,7 +107,7 @@ def turnout(master: dict, did: str) -> dict:
     """The device master's row of the staging turnout `did` (switch:<n>)."""
     row = master.get((LEVEL, did))
     if row is None or row["layer"] != "turnout" or row["role"] != "turnout":
-        raise SystemExit(f"build_layout_docs: {did} is no level {LEVEL} turnout of the device master (a switch "
+        raise LayoutDocsError(f"build_layout_docs: {did} is no level {LEVEL} turnout of the device master (a switch "
                          "renumbered in the plan changes its ID; fix the template or build_layout_docs.py)")
     return row
 
@@ -113,7 +117,7 @@ def switch_number(master: dict, did: str) -> str:
     name = turnout(master, did)["user_name"]
     m = SWITCH_NAME.fullmatch(name)
     if not m:
-        raise SystemExit(f"build_layout_docs: turnout {did} is named {name!r}, not Switch <n>; the page and its plans "
+        raise LayoutDocsError(f"build_layout_docs: turnout {did} is named {name!r}, not Switch <n>; the page and its plans "
                          "number the switches")
     return m.group(1)
 
@@ -131,9 +135,9 @@ def station_at(stations: list, did: str) -> str:
     n = did.removeprefix("switch:")
     held = sorted((len(s.switches), s.name) for s in stations if str(s.level) == LEVEL and n in s.switches)
     if not held:
-        raise SystemExit(f"build_layout_docs: no level {LEVEL} station of stations.csv holds the switch of {did}")
+        raise LayoutDocsError(f"build_layout_docs: no level {LEVEL} station of stations.csv holds the switch of {did}")
     if len(held) > 1 and held[0][0] == held[1][0]:
-        raise SystemExit(f"build_layout_docs: {held[0][1]} and {held[1][1]} both hold the switch of {did}; the "
+        raise LayoutDocsError(f"build_layout_docs: {held[0][1]} and {held[1][1]} both hold the switch of {did}; the "
                          "template names one station")
     return held[0][1]
 
@@ -147,7 +151,7 @@ def label(section: dict, master: dict) -> str:
         number = switch_number(master, f"switch:{m.group(1)}")
         half = re.search(r"([ab])$", section["name"]) if m.group(2) else None
         return f"Turnout {number}{' (crossover half ' + half.group(1) + ')' if half else ''}"
-    raise SystemExit(f"build_layout_docs: no label for section {section['id']} ({section['name']}); add it to LABELS")
+    raise LayoutDocsError(f"build_layout_docs: no label for section {section['id']} ({section['name']}); add it to LABELS")
 
 
 def master_rows(files: devices.Files | Path | None = None) -> dict[tuple[str, str], DeviceRow]:
@@ -172,7 +176,7 @@ def detected_sections(lengths=None, master=None, measured=None) -> list[dict]:
             continue
         row = master.get((b.level, b.id))
         if row is None:
-            raise SystemExit(f"build_layout_docs: block_lengths.csv line {b.line}: {b.id} is no level {b.level} "
+            raise LayoutDocsError(f"build_layout_docs: block_lengths.csv line {b.line}: {b.id} is no level {b.level} "
                              "device of the device master")
         s = by_sensor.setdefault(b.occupancy_sensor, {"node": int(m.group(1)), "ch": int(m.group(2)), "id": None,
                                                       "name": None, "plan": 0.0, "measured": None})
@@ -181,7 +185,7 @@ def detected_sections(lengths=None, master=None, measured=None) -> list[dict]:
             s.setdefault("parts", []).append((row["user_name"], row["part_of"]))
             continue
         if s["id"]:
-            raise SystemExit(f"build_layout_docs: {b.occupancy_sensor} has two sections, {s['name']} and "
+            raise LayoutDocsError(f"build_layout_docs: {b.occupancy_sensor} has two sections, {s['name']} and "
                              f"{row['user_name']}")
         s["id"], s["name"] = b.id, row["user_name"]
         if row["user_name"] in measured:
@@ -189,10 +193,10 @@ def detected_sections(lengths=None, master=None, measured=None) -> list[dict]:
     out = []
     for sensor, s in by_sensor.items():
         if not s["id"]:
-            raise SystemExit(f"build_layout_docs: {sensor} has only parts, no section of its own")
+            raise LayoutDocsError(f"build_layout_docs: {sensor} has only parts, no section of its own")
         for piece, owner in s.get("parts", []):
             if owner != s["name"]:
-                raise SystemExit(f"build_layout_docs: {piece} is a part of {owner} but is on {sensor}, "
+                raise LayoutDocsError(f"build_layout_docs: {piece} is a part of {owner} but is on {sensor}, "
                                  f"{s['name']}'s detector")
         timed = s["measured"] is not None
         out.append({"id": s["id"], "name": bare(s["name"]), "node": s["node"], "ch": s["ch"], "estimate": not timed,
@@ -221,7 +225,7 @@ def facts(rows: list[dict], master: dict | None = None) -> dict[str, str]:
     named = {"RS1": [RS1], "SIDING": [SIDING], "YARD": list(YARD)}
     missing = [f"{entry} {bid}" for entry, ids in named.items() for bid in ids if bid not in inches]
     if missing:
-        raise SystemExit(f"build_layout_docs: no detected section for {', '.join(missing)}; the page states its "
+        raise LayoutDocsError(f"build_layout_docs: no detected section for {', '.join(missing)}; the page states its "
                          "length (fix the entry in build_layout_docs.py)")
 
     def about(ids) -> str:
@@ -230,7 +234,7 @@ def facts(rows: list[dict], master: dict | None = None) -> dict[str, str]:
     xings = sorted({switch_number(master, f"switch:{m.group(1)}") for s in rows
                     if (m := OS.fullmatch(s["id"])) and m.group(2)}, key=int)
     if not xings:
-        raise SystemExit("build_layout_docs: no crossover half in the section list; the page names the crossovers")
+        raise LayoutDocsError("build_layout_docs: no crossover half in the section list; the page names the crossovers")
     listed = switches_text(xings)
     return {"SECTION_COUNT": str(len(rows)), "RS1_IN": f"{about([RS1])}{inches[RS1]:.0f}",
             "SIDING_IN": f"{about([SIDING])}{inches[SIDING]:.0f}", "SIDING_CARS": str(round(inches[SIDING] / car_inches())),
@@ -243,7 +247,7 @@ def fill_names(text: str, master: dict) -> str:
     def one(m: re.Match) -> str:
         row = master.get((LEVEL, m.group(1)))
         if row is None:
-            raise SystemExit(f"build_layout_docs: the template names {m.group(1)}, no level {LEVEL} device of the "
+            raise LayoutDocsError(f"build_layout_docs: the template names {m.group(1)}, no level {LEVEL} device of the "
                              "device master")
         return html.escape(bare(row["user_name"]))
     return NAME.sub(one, text)
@@ -263,7 +267,7 @@ def fill_switches(text: str, master: dict, stations: list) -> str:
         if kind == "turnout":
             return html.escape(row["user_name"])
         if not row["dcc"]:
-            raise SystemExit(f"build_layout_docs: turnout {arg} has no DCC address in the device master")
+            raise LayoutDocsError(f"build_layout_docs: turnout {arg} has no DCC address in the device master")
         return html.escape(row["dcc"])
     return SWITCHES.sub(one, text)
 
@@ -271,10 +275,10 @@ def fill_switches(text: str, master: dict, stations: list) -> str:
 def check_d2(count: int) -> None:
     """Drawing D2 says how many sections are wired its way; it must match the section list."""
     if not D2.is_file():
-        raise SystemExit(f"build_layout_docs: {D2.relative_to(ROOT)} is missing; the section count check reads it")
+        raise LayoutDocsError(f"build_layout_docs: {D2.relative_to(ROOT)} is missing; the section count check reads it")
     said = re.search(r"All (\d+) detected sections", D2.read_text())
     if not said or int(said.group(1)) != count:
-        raise SystemExit(f"build_layout_docs: {D2.relative_to(ROOT)} says {said.group(1) if said else 'no'} detected "
+        raise LayoutDocsError(f"build_layout_docs: {D2.relative_to(ROOT)} says {said.group(1) if said else 'no'} detected "
                          f"sections, block_lengths.csv has {count}; edit the drawing")
 
 
@@ -283,7 +287,7 @@ def check_plans(fact: dict[str, str]) -> None:
     for svg, text in PLAN_TEXT.items():
         want = text.format(**fact)
         if want not in svg.read_text():
-            raise SystemExit(f"build_layout_docs: {svg.relative_to(ROOT)} must say {want!r}, as the section list "
+            raise LayoutDocsError(f"build_layout_docs: {svg.relative_to(ROOT)} must say {want!r}, as the section list "
                              "does; edit the drawing")
 
 
@@ -307,7 +311,7 @@ def check_switch_labels(master: dict, plans=PLANS) -> None:
     for svg in plans:
         drawn = drawn_switches(Path(svg).read_text())
         if drawn != live:
-            raise SystemExit(f"build_layout_docs: {Path(svg).name} labels switches {', '.join(drawn)}, the "
+            raise LayoutDocsError(f"build_layout_docs: {Path(svg).name} labels switches {', '.join(drawn)}, the "
                              f"device master has {', '.join(live)}; edit the drawing")
 
 
@@ -328,13 +332,13 @@ def check_station_labels(stations: list, master: dict, drawings=None) -> None:
             turnout(master, did)
             want = station_at(stations, did)
             if body != want:
-                raise SystemExit(f"build_layout_docs: {Path(svg).name} labels the station at {did} {body!r}, "
+                raise LayoutDocsError(f"build_layout_docs: {Path(svg).name} labels the station at {did} {body!r}, "
                                  f"stations.csv has {want!r}; edit the drawing")
         untagged = SVG_TEXT.sub(lambda m: "" if DATA_STATION.search(m.group(2)) else m.group(0), text)
         tspans = [html.unescape(re.sub(r"<[^>]*>", "", t)).strip() for t in TSPAN.findall(untagged)]
         for body in [b for _, b in svg_texts(untagged)] + tspans:
             if body.casefold() in names:
-                raise SystemExit(f"build_layout_docs: {Path(svg).name} names {body} outside a data-station label; "
+                raise LayoutDocsError(f"build_layout_docs: {Path(svg).name} names {body} outside a data-station label; "
                                  "label it <text data-station=\"switch:<n>\"> so the build checks it against "
                                  "stations.csv")
 
@@ -345,7 +349,7 @@ def check_drawings() -> None:
         text = " ".join(re.findall(r"<(?:text|tspan|title|desc)\b[^>]*>([^<]*)", svg.read_text()))
         for word in SOQ_WORDS:
             if word in text:
-                raise SystemExit(f"build_layout_docs: {svg.relative_to(ROOT)} says {word!r}, SOQ wording; edit the drawing")
+                raise LayoutDocsError(f"build_layout_docs: {svg.relative_to(ROOT)} says {word!r}, SOQ wording; edit the drawing")
 
 
 def outputs(files=None, stations: Path | None = None, plans=None, drawings=None) -> dict[Path, str]:
@@ -360,7 +364,7 @@ def outputs(files=None, stations: Path | None = None, plans=None, drawings=None)
     for key, value in fact.items():
         page = page.replace("{{" + key + "}}", value)
     if "{{" in page:
-        raise SystemExit("build_layout_docs: a placeholder is left in the page")
+        raise LayoutDocsError("build_layout_docs: a placeholder is left in the page")
     check_d2(len(rows))
     check_plans(fact)
     check_switch_labels(master, PLANS if plans is None else plans)
@@ -374,7 +378,11 @@ def main() -> int:
     ap.add_argument("--check", action="store_true", help="report stale outputs and exit 1, write nothing")
     a = ap.parse_args()
     stale = []
-    for path, text in outputs().items():
+    try:
+        built = outputs()
+    except LayoutDocsError as exc:
+        raise SystemExit(str(exc)) from exc
+    for path, text in built.items():
         if path.exists() and path.read_text() == text:
             continue
         stale.append(path.relative_to(ROOT))

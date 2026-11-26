@@ -1,6 +1,6 @@
 """The Markdown half of tools/ops/orient.py: the Claimed line's form, and reading a project page's Status and
-Claimed lines outside code fences and HTML comments (parse_page). orient.py loads this file by path and gives
-its names as its own; it imports nothing of the repo."""
+Claimed lines outside code fences and HTML comments (parse_page). orient.py imports it from their shared folder;
+it imports nothing of the repo."""
 from __future__ import annotations
 
 import os

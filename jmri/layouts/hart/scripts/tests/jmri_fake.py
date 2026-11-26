@@ -8,11 +8,22 @@ Timers and threads never run on their own: a test fires them with `fire_timers()
 """
 from __future__ import annotations
 
+import atexit
 import contextlib
+import shutil
 import socket
 import sys
+import tempfile
 import types
 from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[5]
+sys.path.insert(0, str(REPO / "tools/hartlib/src"))
+from hartlib import coordinator  # noqa: E402
+
+# The loader signal_coordinator.py and panel_status.py import their sibling modules with; the deploy installs it
+# in preference:jython beside them.
+SIBLING_LOADER = REPO / "jmri/scripts/jython_siblings.py"
 
 # --- constants (values only need to be distinct) ---------------------------------
 
@@ -425,6 +436,7 @@ class Layout:
     def instance(self, cls):
         return {
             "MqttSystemConnectionMemo": self.memo,
+            "TurnoutManager": self.turnouts,
             "SignalHeadManager": self.heads,
             "SignalMastManager": self.masts,
             "PowerManager": self.power,
@@ -443,6 +455,9 @@ def _modules(layout):
         return type(name, (_Base,), {})
 
     class MqttSystemConnectionMemo:
+        pass
+
+    class TurnoutManager:
         pass
 
     class SignalHeadManager:
@@ -483,7 +498,7 @@ def _modules(layout):
     implementation = mod("jmri.implementation", AbstractShutDownTask=AbstractShutDownTask,
                          VirtualSignalHead=FakeHead)
     jmri = mod("jmri", Turnout=Turnout, Sensor=Sensor, SignalHead=SignalHead, PowerManager=power_cls,
-               InstanceManager=instance_manager, SignalHeadManager=SignalHeadManager,
+               InstanceManager=instance_manager, TurnoutManager=TurnoutManager, SignalHeadManager=SignalHeadManager,
                SignalMastManager=SignalMastManager, SignalMastLogicManager=SignalMastLogicManager,
                ShutDownManager=ShutDownManager, implementation=implementation,
                jmrix=mod("jmri.jmrix", mqtt=mqtt), jmrit=mod("jmri.jmrit", display=display),
@@ -569,12 +584,31 @@ class ScriptGlobals(dict):
 _UNSET = object()
 
 
+def stage_jython(script: Path, folder: Path) -> Path:
+    """Copy `script`, the sibling modules it names (hartlib.coordinator) and SIBLING_LOADER into `folder`, as the
+    deploy installs them in preference:jython; returns the copied script."""
+    folder.mkdir(parents=True, exist_ok=True)
+    for path in [*coordinator.files(script), SIBLING_LOADER]:
+        shutil.copy(path, folder / path.name)
+    return folder / script.name
+
+
+def _staged_folder(script: Path) -> Path:
+    """A new jython folder holding `script` and its siblings, removed when the test process ends."""
+    holder = tempfile.TemporaryDirectory(prefix="jmri_fake_jython_")
+    atexit.register(holder.cleanup)
+    folder = Path(holder.name) / "jython"
+    stage_jython(script, folder)
+    return folder
+
+
 def load_script(path: Path, layout: Layout) -> ScriptGlobals:
     """Run a Jython script against `layout`; returns its globals for the test to drive.
 
     Jython names a Java method `await`, a reserved word in Python 3; it is renamed in the
     loaded copy only (the script on disk is untouched), so sibling modules must not call it.
-    preference:jython is the script's own folder unless the test set `layout.jython_dir`. The
+    preference:jython is the script's own folder unless the test set `layout.jython_dir`; for a script with
+    sibling modules (hartlib.coordinator) it is a new folder staged as the deploy installs it. The
     sys.path entry a script adds for its siblings is taken out again afterwards, and no
     bytecode is written beside them.
     """
@@ -582,7 +616,10 @@ def load_script(path: Path, layout: Layout) -> ScriptGlobals:
     Thread.started.clear()
     path = Path(path)
     if layout.jython_dir is None:
-        layout.jython_dir = path.resolve().parent
+        if path.name in coordinator.TUPLE_NAMES:
+            layout.jython_dir = _staged_folder(path.resolve())
+        else:
+            layout.jython_dir = path.resolve().parent
     source = path.read_text(encoding="utf-8").replace(".await(", ".await_(")
     env = ScriptGlobals(__name__="hart_script_under_test", turnouts=layout.turnouts, sensors=layout.sensors,
                         routes=layout.routes, signals=layout.heads, masts=layout.masts,

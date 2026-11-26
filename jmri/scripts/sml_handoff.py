@@ -3,7 +3,7 @@
 # are painted in sml_events).
 #
 # signal_coordinator.py loads this from preference:jython after sml_beans and sml_claims and
-# reloads it on every run (see _load_siblings there).
+# reloads it on every run (jython_siblings.py).
 
 from java.lang import Runnable, Thread
 from javax.swing import JOptionPane, SwingUtilities

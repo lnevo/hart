@@ -41,6 +41,7 @@ jmri/layouts/hart/data/schematic/interlockings.csv
 jmri/layouts/hart/data/schematic/stations.csv
 jmri/layouts/hart/data/switches.csv
 jmri/scripts/signal_coordinator.py
+jmri/scripts/jython_siblings.py
 jmri/scripts/sml_beans.py
 jmri/scripts/sml_claims.py
 jmri/scripts/sml_handoff.py
@@ -48,8 +49,8 @@ jmri/scripts/sml_events.py
 jmri/scripts/sml_quit.py
 jmri/scripts/sml_ui.py
 jmri/layouts/hart/scripts/panel_status.py
-jmri/layouts/hart/scripts/panel_status_turnouts.py
 jmri/layouts/hart/scripts/panel_status_clicks.py
+jmri/layouts/hart/scripts/panel_status_turnouts.py
 jmri/layouts/hart/scripts/discover_sml.py
 jmri/layouts/hart/scripts/hide_cats_desk_windows.py
 jmri/layouts/hart/scripts/hide_band_panels.py
@@ -58,6 +59,7 @@ jmri/layouts/hart/scripts/jmri_cmd_watcher.py
 jmri/layouts/hart/scripts/sts_car_sync.py
 jmri/layouts/hart/scripts/mimic_relay.py
 jmri/layouts/hart/scripts/speedmatch/analyze.py
+jmri/layouts/hart/scripts/speedmatch/analyze_records.py
 jmri/layouts/hart/scripts/speedmatch/liverule.py
 jmri/layouts/hart/scripts/speedmatch/routes.json
 # The publisher's modules; static/ is the source of the Pi page (publish_live.py --build-page). server.py and
