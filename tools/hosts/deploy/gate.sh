@@ -14,7 +14,7 @@
 #   G0  the HART_TABLES and unrestored-profile refusals, the live paths list, the parked features; a real deploy to
 #       a host ships origin/main itself (HART_ALLOW_UNMERGED=1 overrides)
 #   G1  one ssh no-op to each host named
-#   G2  the Pi's unpulled files (Operations Pro files, a PanelPro Store)
+#   G2  the Pi's unpulled files (Operations Pro files, a PanelPro Store, the DecoderPro roster)
 #   G3  the panel audit          G4  tables.xml is what the generator writes     G5  the Digicon mast check
 #       (G4 is skipped for a real deploy to a host when CI's full check.sh pass covers the commit shipped:
 #       ci_pass.py; it says which way it went)

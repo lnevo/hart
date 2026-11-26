@@ -460,48 +460,47 @@ class IngestTest(unittest.TestCase):
     OK = (0, "", "")
     DOWN = (255, "", "ssh: connect to host pi.example.invalid port 22: Operation timed out\n")
 
-    def lines(self, pi=OK, mac=(0, "nothing\n", ""), roster=(0, "nothing\n", "")):
+    def lines(self, pi=OK, mac=(0, "nothing\n", "")):
         with tempfile.TemporaryDirectory() as tmp, mock.patch.dict(os.environ, {"STS_PI_COPY": tmp}):
-            return dict(line.split(": ", 1) for line in OR.ingest_lines(pi, mac, roster))
+            return dict(line.split(": ", 1) for line in OR.ingest_lines(pi, mac))
 
     def test_nothing_waiting(self):
         got = self.lines()
         self.assertEqual(got["JMRI tables, Pi"], "nothing waiting (make tables-pull-pi)")
         self.assertEqual(got["JMRI tables, Mac"], "nothing waiting (make tables-pull)")
         self.assertEqual(got["Operations Pro, Pi"], "nothing waiting (make ops-pull)")
-        self.assertEqual(got["DecoderPro roster, Pi"], "nothing waiting (./tools/hosts/sync_roster_from_pi.sh)")
+        self.assertEqual(got["DecoderPro roster, Pi"], "nothing waiting (make roster-pull)")
         self.assertEqual(got["STS, Pi"], "not checked: the live database keeps no change marker, only a dump shows a "
                                          "change; no dump pulled to this Mac yet (make sts-pull)")
         self.assertEqual(self.lines(mac=(0, "absent\n", ""))["JMRI tables, Mac"],
                          "nothing waiting (no ~/JMRI_UserFiles/tables.xml) (make tables-pull)")
 
     def test_waiting(self):
-        got = self.lines(pi=(0, "ops\ntables\n", ""), mac=(0, "waiting\n", ""), roster=(0, "waiting 3\n", ""))
+        got = self.lines(pi=(0, "ops\ntables\nroster\n", ""), mac=(0, "waiting\n", ""))
         self.assertEqual(got["JMRI tables, Pi"], "a PanelPro Store not yet split in (pulled or not) (make tables-pull-pi)")
         self.assertEqual(got["JMRI tables, Mac"], "a PanelPro Store not yet split in (pulled or not) (make tables-pull)")
         self.assertEqual(got["Operations Pro, Pi"], "the Pi's session changed the Operations files since the last "
                                                     "deploy or pull (make ops-pull)")
-        self.assertEqual(got["DecoderPro roster, Pi"], "3 files on the Pi differ from the Mac copy or not on it (the sync overwrites the Mac's) "
-                                                       "(./tools/hosts/sync_roster_from_pi.sh)")
+        self.assertEqual(got["DecoderPro roster, Pi"], "DecoderPro changed the roster since the last deploy (a "
+                                                       "programming session or a new loco) (make roster-pull)")
         self.assertEqual(self.lines(pi=(0, "ops\n", ""))["JMRI tables, Pi"], "nothing waiting (make tables-pull-pi)")
-        self.assertIn("1 file on the Pi differs from", self.lines(roster=(0, "waiting 1\n", ""))["DecoderPro roster, Pi"])
+        self.assertEqual("nothing waiting (make roster-pull)", self.lines(pi=(0, "ops\n", ""))["DecoderPro roster, Pi"])
 
     def test_an_unreachable_pi_is_one_line_per_source(self):
-        got = self.lines(pi=self.DOWN, roster=self.DOWN)
+        got = self.lines(pi=self.DOWN)
         down = "Pi unreachable, not checked (ssh: connect to host pi.example.invalid port 22: Operation timed out)"
         self.assertEqual(got["JMRI tables, Pi"], f"{down} (make tables-pull-pi)")
         self.assertEqual(got["Operations Pro, Pi"], f"{down} (make ops-pull)")
-        self.assertEqual(got["DecoderPro roster, Pi"], f"{down} (./tools/hosts/sync_roster_from_pi.sh)")
+        self.assertEqual(got["DecoderPro roster, Pi"], f"{down} (make roster-pull)")
         self.assertEqual(got["JMRI tables, Mac"], "nothing waiting (make tables-pull)")  # the Mac is still read
 
     def test_not_checked(self):
         hung = (None, "", "timed out after 40 s")
-        got = self.lines(pi=hung, mac=(1, "", "Could not check it; nothing pulled.\n"), roster=(0, "huh\n", ""))
+        got = self.lines(pi=hung, mac=(1, "", "Could not check it; nothing pulled.\n"))
         self.assertEqual(got["JMRI tables, Pi"], "Pi check timed out after 40 s, not checked (make tables-pull-pi)")
         self.assertEqual(got["JMRI tables, Mac"],
                          "cannot check (exit 1: Could not check it; nothing pulled.) (make tables-pull)")
-        self.assertEqual(got["DecoderPro roster, Pi"],
-                         "cannot read the check's answer 'huh' (./tools/hosts/sync_roster_from_pi.sh)")
+        self.assertEqual(got["DecoderPro roster, Pi"], "Pi check timed out after 40 s, not checked (make roster-pull)")
         self.assertIn("cannot read the check's answer 'tables junk'",
                       self.lines(pi=(0, "tables junk\n", ""))["Operations Pro, Pi"])
         self.assertTrue(self.lines()["STS, Pi"].startswith("not checked: "))
@@ -532,11 +531,10 @@ class IngestTest(unittest.TestCase):
             return 0, "nothing\n", ""
 
         with mock.patch.object(OR, "run", side_effect=fake):
-            OR.pi_unpulled(), OR.mac_tables(), OR.roster_status()
-        self.assertEqual([c[0][1:] for c in calls], [[], ["--status"], ["--status"]])
+            OR.pi_unpulled(), OR.mac_tables()
+        self.assertEqual([c[0][1:] for c in calls], [[], ["--status"]])
         self.assertEqual([Path(c[0][0]).relative_to(OR.ROOT).as_posix() for c in calls],
-                         ["tools/hosts/deploy/pi_unpulled.sh", "tools/ops/pull_tables.sh",
-                          "tools/hosts/sync_roster_from_pi.sh"])
+                         ["tools/hosts/deploy/pi_unpulled.sh", "tools/ops/pull_tables.sh"])
         self.assertTrue(all(t == OR.NET_TIMEOUT for _, t in calls))
         self.assertTrue(all(os.access(c[0][0], os.X_OK) for c in calls), calls)  # run directly, so executable
 

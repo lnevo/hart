@@ -280,7 +280,11 @@ class PreflightTest(DeployHarness):
         ops = hashlib.sha256(b"".join((ROOT / "jmri/layouts/hart/operations" / n).read_bytes() for n in (
             "Operations.xml", "OperationsCarRoster.xml", "OperationsEngineRoster.xml", "OperationsLocationRoster.xml",
             "OperationsRouteRoster.xml", "OperationsTrainRoster.xml"))).hexdigest()
-        want = f"{PI} bash -s -- '/srv/fake-pi/JMRI_UserFiles' '{generated}' ops:{ops}" + "".join(f" {h}" for h in shas)
+        # and the hash of the DecoderPro roster this checkout ships (roster:, tools/hosts/pi/roster_sha.sh)
+        roster = subprocess.run(["bash", str(ROOT / "tools/hosts/pi/roster_sha.sh"), str(ROOT / "jmri/layouts/hart/roster")],
+                                capture_output=True, text=True, check=True).stdout.strip()
+        want = (f"{PI} bash -s -- '/srv/fake-pi/JMRI_UserFiles' '{generated}' ops:{ops} roster:{roster}"
+                + "".join(f" {h}" for h in shas))
         self.assertTrue(calls[2].endswith(want), calls)
         # Windows' probe is the last gate call; then the first real host step, which the stand-in fails.
         self.assertIn("hart-probe-", calls[3])

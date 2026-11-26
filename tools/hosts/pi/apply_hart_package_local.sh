@@ -18,6 +18,9 @@ mkdir -p "$UF"
 
 # First, so unpulled session state stops the deploy before anything changes.
 bash "$HART/cats/scripts/install_ops_files.sh" "$HART/operations" "$UF/operations" --guard
+# The DecoderPro roster (ADR-039 amendment 2026-11-26): the repo's, with what it replaces backed up. The gate
+# stopped on an unpulled roster before anything was sent (G2), so what it replaces is what the last deploy installed.
+bash "$HART/cats/scripts/pi/install_roster.sh" "$HART/roster" "$UF"
 
 # CATS has no JMRI home: it opens real paths, so its files live here.
 CATS_HOME="$UF/cats"

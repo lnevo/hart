@@ -22,6 +22,7 @@ A spreadsheet, a slide deck or a JSON file for the site is never a master. It is
 ## Masters the owner chose (2026-11-25)
 
 - **Locos:** `ops/hart-ops/data/locos.csv`, extended to every loco that runs. The engine rosters and the `engine` column of the train list are copies.
+- **Decoder settings (2026-11-26):** the DecoderPro roster in `jmri/layouts/hart/roster/` (ADR-039 amendment). `locos.csv`'s `dcc_address` and `long_address` are its copies.
 - **Industries:** a new `ops/hart-ops/data/industries.csv` (`industry_id`, name, public name, slug, and the public `blurb`, added by the owner later the same day). `spot_assignments.csv` stays the master for spots and refers to `industry_id`.
 - **Trains:** a new `ops/hart-ops/data/trains.csv`, keyed on `train_symbol`. `cats/data/hart_trains.csv` is built from it for CATS, and the site reads it.
 - **Crew jobs and their text:** a new `ops/hart-ops/data/crew.json` (crew jobs keyed on `code`, destination colors keyed on `id`, TT-23, the spot sheet, EQ-01 and the station map text). `www/data/crew.json` and the crew, YM-01, DS-01 and EQ-01 docx are built from it; the spot sheet's industry names come from `industries.csv`.

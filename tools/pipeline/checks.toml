@@ -743,6 +743,23 @@ inputs = [
   { path = "cats/data/hart_trains.csv", label = "train list", side = "check" },
 ]
 
+# The DecoderPro roster master (ADR-039 amendment 2026-11-26, lane N8): it parses, roster.xml names exactly the entry
+# files the folder holds, each entry agrees with its index line, every roster id is a locos.csv roster_id, and those
+# rows carry the roster's dcc_address and long_address (check_roster.py --write fills them).
+[[step]]
+name = "roster-locos"
+runner = "check"
+group = "static"
+cmd = ["python3", "tools/ops/check_roster.py"]
+git = ["head", "base"]
+domain = "ops"
+label = "check_roster.py"
+desc = "Checks the DecoderPro roster master (roster.xml and the entry files it names) and that each roster loco is a locos.csv row with the roster's DCC address (ADR-039)."
+inputs = [
+  { path = "jmri/layouts/hart/roster", label = "DecoderPro roster", side = "check" },
+  { path = "ops/hart-ops/data/locos.csv", label = "master", side = "check" },
+]
+
 # The public rolling-stock gallery against the car and loco masters (ADR-039 lane L6): every item is a master
 # row, the albums' counts are right, and every photographed row is shown.
 [[step]]

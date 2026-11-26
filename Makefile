@@ -1,7 +1,7 @@
 # The commands agents and people use most. Each target runs the real script, so
 # these stay short. `make` lists them.
 .DEFAULT_GOAL := help
-.PHONY: help mqtt-clean mqtt-watch wt wt-sweep orient status check static remote portal-check panels desks panelpro-test docs-index map site-data publications waybills submodules tables-pull tables-pull-pi ops-pull sts-pull shot deploy-layout deploy-all deploy-status backup-status redeploy deploy-site speedmatch
+.PHONY: help mqtt-clean mqtt-watch wt wt-sweep orient status check static remote portal-check panels desks panelpro-test docs-index map site-data publications waybills submodules tables-pull tables-pull-pi ops-pull roster-pull sts-pull shot deploy-layout deploy-all deploy-status backup-status redeploy deploy-site speedmatch
 
 help:  ## List the commands
 	@grep -hE '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -61,6 +61,9 @@ tables-pull-pi:  ## Keep a Pi PanelPro Store in media/pulled-stores in the main 
 
 ops-pull:  ## Bring Pi Operations Pro session state into the repo
 	./tools/ops/pull_ops.sh
+
+roster-pull:  ## Bring the Pi's DecoderPro roster into the repo master (jmri/layouts/hart/roster)
+	./tools/ops/pull_roster.sh
 
 sts-pull:  ## Copy the live STS backups and a database dump off the Pi
 	./tools/hosts/pi_sts_pull_backups.sh

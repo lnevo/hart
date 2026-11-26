@@ -60,6 +60,7 @@ LAYOUT_TREE = {
     ("data",): "The device master, switch files, block lengths, control points, the schematic's inputs, "
                "and HART's settings for the STS-to-JMRI refresh",
     ("operations",): "The {ops} Operations Pro files",
+    ("roster",): "The DecoderPro roster: roster.xml and one entry file per loco, which the deploy installs on every host",
     ("scripts",): "{scripts} scripts: most build, repair and check the tables on the Mac, and some run inside JMRI",
     ("ctc", "dispatcher"): "The USS CTC machine's icons and guide; the Dispatcher System's options and train files. "
                            "Parked since the helix-join release (November 2026)",

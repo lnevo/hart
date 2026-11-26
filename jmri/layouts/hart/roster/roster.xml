@@ -1,0 +1,1571 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="/xml/XSLT/roster2array.xsl" type="text/xsl"?>
+<roster-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://jmri.org/xml/schema/roster.xsd">
+  <!--Written by JMRI version 5.16+R909e15189e on Fri Nov 13 18:19:50 EST 2026-->
+  <roster>
+    <locomotive id="BO 2235" fileName="22350.xml" roadNumber="2235" roadName="BO" mfg="Baldwin" owner="" model="AS-16" dccAddress="2235" comment="" developerID="-1" manufacturerID="151" productID="33554588,33554680,33554651" decoderModes="" maxSpeed="100" imageFilePath="preference:resources/roster/2235.jpg" iconFilePath="preference:resources/roster/2235.jpg" URL="" IsShuntingOn="" locoDataEnabled="false">
+      <dateUpdated>2025-05-30T05:17:58.131+00:00</dateUpdated>
+      <decoder model="LokSound 5 DCC" family="ESU LokSound 5" comment="" maxFnNum="31" />
+      <locoaddress>
+        <dcclocoaddress number="2235" longaddress="yes" />
+        <number>2235</number>
+        <protocol>dcc_long</protocol>
+      </locoaddress>
+      <functionlabels>
+        <functionlabel num="0" lockable="true" visible="true" functionImage="" functionImageSelected="">Light</functionlabel>
+        <functionlabel num="1" lockable="true" visible="true" functionImage="" functionImageSelected="">Bell</functionlabel>
+        <functionlabel num="2" lockable="false" visible="true" functionImage="" functionImageSelected="">Horn</functionlabel>
+        <functionlabel num="3" lockable="true" visible="true" functionImage="" functionImageSelected="">Coupler</functionlabel>
+        <functionlabel num="4" lockable="true" visible="true" functionImage="" functionImageSelected="">Dynamic Brake</functionlabel>
+        <functionlabel num="5" lockable="true" visible="true" functionImage="" functionImageSelected="">Aux2 Beacon</functionlabel>
+        <functionlabel num="7" lockable="true" visible="true" functionImage="" functionImageSelected="">Flange Squeal</functionlabel>
+        <functionlabel num="8" lockable="true" visible="true" functionImage="" functionImageSelected="">Startup/Shutdown</functionlabel>
+        <functionlabel num="9" lockable="true" visible="true" functionImage="" functionImageSelected="">Drive Hold</functionlabel>
+        <functionlabel num="10" lockable="true" visible="true" functionImage="" functionImageSelected="">Independent Brake</functionlabel>
+        <functionlabel num="11" lockable="true" visible="true" functionImage="" functionImageSelected="">Radiator Fan</functionlabel>
+        <functionlabel num="12" lockable="true" visible="true" functionImage="" functionImageSelected="">Dimmer</functionlabel>
+        <functionlabel num="14" lockable="true" visible="true" functionImage="" functionImageSelected="">Hand Brake</functionlabel>
+        <functionlabel num="15" lockable="true" visible="true" functionImage="" functionImageSelected="">Isolation Switch</functionlabel>
+        <functionlabel num="17" lockable="true" visible="true" functionImage="" functionImageSelected="">Auto Brake Set/Release</functionlabel>
+        <functionlabel num="18" lockable="true" visible="true" functionImage="" functionImageSelected="">Sanding Valve</functionlabel>
+        <functionlabel num="19" lockable="true" visible="true" functionImage="" functionImageSelected="">Short Air Let Off</functionlabel>
+        <functionlabel num="20" lockable="true" visible="true" functionImage="" functionImageSelected="">Air Compressor</functionlabel>
+        <functionlabel num="21" lockable="true" visible="true" functionImage="" functionImageSelected="">Air Dryer</functionlabel>
+        <functionlabel num="22" lockable="true" visible="true" functionImage="" functionImageSelected="">Cab Door</functionlabel>
+        <functionlabel num="23" lockable="true" visible="true" functionImage="" functionImageSelected="">Engine Hood Door</functionlabel>
+        <functionlabel num="24" lockable="true" visible="true" functionImage="" functionImageSelected="">Reverser Center</functionlabel>
+        <functionlabel num="25" lockable="true" visible="true" functionImage="" functionImageSelected="">Cooling Shutters</functionlabel>
+        <functionlabel num="26" lockable="true" visible="true" functionImage="" functionImageSelected="">Manual Notch - UP</functionlabel>
+        <functionlabel num="27" lockable="true" visible="true" functionImage="" functionImageSelected="">Manual Notch - DOWN</functionlabel>
+        <functionlabel num="28" lockable="true" visible="true" functionImage="" functionImageSelected="">Manual Notching Logic</functionlabel>
+        <functionlabel num="29" lockable="true" visible="true" functionImage="" functionImageSelected="">Load Simulation</functionlabel>
+        <functionlabel num="30" lockable="true" visible="true" functionImage="" functionImageSelected="">Automatic Brake</functionlabel>
+        <functionlabel num="31" lockable="true" visible="true" functionImage="" functionImageSelected="">Fade Out Sound</functionlabel>
+      </functionlabels>
+      <soundlabels>
+        <soundlabel num="33">Automatic brake sound</soundlabel>
+        <soundlabel num="34">Gear shift sound</soundlabel>
+      </soundlabels>
+      <speedprofile>
+        <overRunTimeForward>0.0</overRunTimeForward>
+        <overRunTimeReverse>0.0</overRunTimeReverse>
+        <speeds>
+          <speed>
+            <step>100</step>
+            <forward>40.0</forward>
+            <reverse>40.0</reverse>
+          </speed>
+          <speed>
+            <step>200</step>
+            <forward>80.0</forward>
+            <reverse>80.0</reverse>
+          </speed>
+          <speed>
+            <step>300</step>
+            <forward>120.0</forward>
+            <reverse>120.0</reverse>
+          </speed>
+          <speed>
+            <step>400</step>
+            <forward>160.0</forward>
+            <reverse>160.0</reverse>
+          </speed>
+          <speed>
+            <step>500</step>
+            <forward>200.0</forward>
+            <reverse>200.0</reverse>
+          </speed>
+          <speed>
+            <step>600</step>
+            <forward>240.0</forward>
+            <reverse>240.0</reverse>
+          </speed>
+          <speed>
+            <step>700</step>
+            <forward>280.0</forward>
+            <reverse>280.0</reverse>
+          </speed>
+          <speed>
+            <step>800</step>
+            <forward>320.0</forward>
+            <reverse>320.0</reverse>
+          </speed>
+          <speed>
+            <step>900</step>
+            <forward>360.0</forward>
+            <reverse>360.0</reverse>
+          </speed>
+          <speed>
+            <step>1000</step>
+            <forward>400.0</forward>
+            <reverse>400.0</reverse>
+          </speed>
+        </speeds>
+      </speedprofile>
+    </locomotive>
+    <locomotive id="BO 3545" fileName="35450.xml" roadNumber="3545" roadName="BO" mfg="EMD" owner="" model="GP35" dccAddress="3545" comment="" developerID="-1" manufacturerID="38" productID="" decoderModes="" maxSpeed="100" imageFilePath="preference:resources/roster/3545.jpg" iconFilePath="preference:resources/roster/3545.jpg" URL="" IsShuntingOn="" locoDataEnabled="false">
+      <dateUpdated>2026-11-08T03:34:21.723+00:00</dateUpdated>
+      <decoder model="Diesel" family="Paragon 4" comment="" maxFnNum="28" />
+      <locoaddress>
+        <dcclocoaddress number="3545" longaddress="yes" />
+        <number>3545</number>
+        <protocol>dcc_long</protocol>
+      </locoaddress>
+      <functionlabels>
+        <functionlabel num="0" lockable="true" visible="true" functionImage="" functionImageSelected="">Headlight</functionlabel>
+        <functionlabel num="1" lockable="true" visible="true" functionImage="" functionImageSelected="">Bell</functionlabel>
+        <functionlabel num="2" lockable="false" visible="true" functionImage="" functionImageSelected="">Horn</functionlabel>
+        <functionlabel num="3" lockable="true" visible="true" functionImage="" functionImageSelected="">Coupler</functionlabel>
+        <functionlabel num="4" lockable="true" visible="true" functionImage="" functionImageSelected="">Brake Squeal</functionlabel>
+        <functionlabel num="5" lockable="true" visible="true" functionImage="" functionImageSelected="">Grade Crossing</functionlabel>
+        <functionlabel num="6" lockable="true" visible="true" functionImage="" functionImageSelected="">Radio Chatter</functionlabel>
+        <functionlabel num="7" lockable="true" visible="true" functionImage="" functionImageSelected="">Flange Squeal</functionlabel>
+        <functionlabel num="8" lockable="true" visible="true" functionImage="" functionImageSelected="">Shutdown and Startup</functionlabel>
+        <functionlabel num="9" lockable="true" visible="true" functionImage="" functionImageSelected="">Mute/Master Volume</functionlabel>
+        <functionlabel num="10" lockable="true" visible="true" functionImage="" functionImageSelected="">Cooling Fan</functionlabel>
+        <functionlabel num="11" lockable="true" visible="true" functionImage="" functionImageSelected="">Air Release</functionlabel>
+        <functionlabel num="12" lockable="true" visible="true" functionImage="" functionImageSelected="">Dimmer</functionlabel>
+        <functionlabel num="13" lockable="true" visible="true" functionImage="" functionImageSelected="">Industrial Sounds</functionlabel>
+        <functionlabel num="14" lockable="true" visible="true" functionImage="" functionImageSelected="">Station Sounds</functionlabel>
+        <functionlabel num="15" lockable="true" visible="true" functionImage="" functionImageSelected="">Yard Sounds</functionlabel>
+        <functionlabel num="16" lockable="true" visible="true" functionImage="" functionImageSelected="">Maintenance Sounds</functionlabel>
+        <functionlabel num="17" lockable="true" visible="true" functionImage="" functionImageSelected="">Brake Set/Release</functionlabel>
+        <functionlabel num="18" lockable="true" visible="true" functionImage="" functionImageSelected="">City Sounds</functionlabel>
+        <functionlabel num="19" lockable="true" visible="true" functionImage="" functionImageSelected="">Farm Sounds</functionlabel>
+        <functionlabel num="20" lockable="true" visible="true" functionImage="" functionImageSelected="">Air Compressor</functionlabel>
+        <functionlabel num="21" lockable="true" visible="true" functionImage="" functionImageSelected="">Lumber Sounds</functionlabel>
+        <functionlabel num="22" lockable="true" visible="true" functionImage="" functionImageSelected="">Horn2</functionlabel>
+        <functionlabel num="23" lockable="true" visible="true" functionImage="" functionImageSelected="">Track Sounds</functionlabel>
+        <functionlabel num="24" lockable="true" visible="true" functionImage="" functionImageSelected="">Numberboards</functionlabel>
+        <functionlabel num="25" lockable="true" visible="true" functionImage="" functionImageSelected="">Long Horn</functionlabel>
+        <functionlabel num="26" lockable="true" visible="true" functionImage="" functionImageSelected="">Play Macro</functionlabel>
+        <functionlabel num="27" lockable="true" visible="true" functionImage="" functionImageSelected="">Record Macro</functionlabel>
+        <functionlabel num="28" lockable="true" visible="true" functionImage="" functionImageSelected="">Brake Squeal</functionlabel>
+      </functionlabels>
+      <soundlabels />
+      <attributepairs>
+        <keyvaluepair>
+          <key>LastOperated</key>
+          <value>2025-06-11T01:41:08.148+00:00</value>
+        </keyvaluepair>
+        <keyvaluepair>
+          <key>OperatingDuration</key>
+          <value>28</value>
+        </keyvaluepair>
+      </attributepairs>
+      <speedprofile>
+        <overRunTimeForward>0.0</overRunTimeForward>
+        <overRunTimeReverse>0.0</overRunTimeReverse>
+        <speeds>
+          <speed>
+            <step>100</step>
+            <forward>40.0</forward>
+            <reverse>40.0</reverse>
+          </speed>
+          <speed>
+            <step>200</step>
+            <forward>80.0</forward>
+            <reverse>80.0</reverse>
+          </speed>
+          <speed>
+            <step>300</step>
+            <forward>120.0</forward>
+            <reverse>120.0</reverse>
+          </speed>
+          <speed>
+            <step>400</step>
+            <forward>160.0</forward>
+            <reverse>160.0</reverse>
+          </speed>
+          <speed>
+            <step>500</step>
+            <forward>200.0</forward>
+            <reverse>200.0</reverse>
+          </speed>
+          <speed>
+            <step>600</step>
+            <forward>240.0</forward>
+            <reverse>240.0</reverse>
+          </speed>
+          <speed>
+            <step>700</step>
+            <forward>280.0</forward>
+            <reverse>280.0</reverse>
+          </speed>
+          <speed>
+            <step>800</step>
+            <forward>320.0</forward>
+            <reverse>320.0</reverse>
+          </speed>
+          <speed>
+            <step>900</step>
+            <forward>360.0</forward>
+            <reverse>360.0</reverse>
+          </speed>
+          <speed>
+            <step>1000</step>
+            <forward>400.0</forward>
+            <reverse>400.0</reverse>
+          </speed>
+        </speeds>
+      </speedprofile>
+    </locomotive>
+    <locomotive id="BO 3840" fileName="38400.xml" roadNumber="3840" roadName="BO" mfg="EMD" owner="" model="GP38" dccAddress="3840" comment="" developerID="-1" manufacturerID="151" productID="33554588,33554680,33554651" decoderModes="" maxSpeed="100" imageFilePath="preference:resources/roster/3840.jpg" iconFilePath="preference:resources/roster/3840.jpg" URL="" IsShuntingOn="" locoDataEnabled="false">
+      <dateUpdated>2025-07-18T20:35:37.288+00:00</dateUpdated>
+      <decoder model="LokSound 5 DCC" family="ESU LokSound 5" comment="" maxFnNum="31" />
+      <locoaddress>
+        <dcclocoaddress number="3840" longaddress="yes" />
+        <number>3840</number>
+        <protocol>dcc_long</protocol>
+      </locoaddress>
+      <functionlabels>
+        <functionlabel num="0" lockable="true" visible="true" functionImage="" functionImageSelected="">Light</functionlabel>
+        <functionlabel num="1" lockable="true" visible="true" functionImage="" functionImageSelected="">Bell</functionlabel>
+        <functionlabel num="2" lockable="false" visible="true" functionImage="" functionImageSelected="">Horn</functionlabel>
+        <functionlabel num="3" lockable="false" visible="true" functionImage="" functionImageSelected="">Coupler</functionlabel>
+        <functionlabel num="4" lockable="true" visible="true" functionImage="" functionImageSelected="">Dynamic Brake</functionlabel>
+        <functionlabel num="5" lockable="true" visible="true" functionImage="" functionImageSelected="">Doppler Horn</functionlabel>
+        <functionlabel num="6" lockable="true" visible="true" functionImage="" functionImageSelected="">Ditch Lights</functionlabel>
+        <functionlabel num="7" lockable="true" visible="true" functionImage="" functionImageSelected="">Flange Squeal</functionlabel>
+        <functionlabel num="8" lockable="true" visible="true" functionImage="" functionImageSelected="">Startup/Shutdown</functionlabel>
+        <functionlabel num="9" lockable="true" visible="true" functionImage="" functionImageSelected="">Drive Hold</functionlabel>
+        <functionlabel num="10" lockable="true" visible="true" functionImage="" functionImageSelected="">Independent Brake</functionlabel>
+        <functionlabel num="11" lockable="true" visible="true" functionImage="" functionImageSelected="">Radiator Fan</functionlabel>
+        <functionlabel num="12" lockable="true" visible="true" functionImage="" functionImageSelected="">Dimmer</functionlabel>
+        <functionlabel num="13" lockable="true" visible="true" functionImage="" functionImageSelected="">Rear Headlight</functionlabel>
+        <functionlabel num="14" lockable="true" visible="true" functionImage="" functionImageSelected="">Front Class Lights</functionlabel>
+        <functionlabel num="15" lockable="true" visible="true" functionImage="" functionImageSelected="">Rear Class Lights</functionlabel>
+        <functionlabel num="16" lockable="true" visible="true" functionImage="" functionImageSelected="">Air Dryer on Shutdown</functionlabel>
+        <functionlabel num="17" lockable="true" visible="true" functionImage="" functionImageSelected="">Brake Set/Release</functionlabel>
+        <functionlabel num="18" lockable="true" visible="true" functionImage="" functionImageSelected="">Track/Walkway Lights</functionlabel>
+        <functionlabel num="19" lockable="true" visible="true" functionImage="" functionImageSelected="">Numberboards</functionlabel>
+        <functionlabel num="20" lockable="true" visible="true" functionImage="" functionImageSelected="">Air Compressor</functionlabel>
+        <functionlabel num="21" lockable="true" visible="true" functionImage="" functionImageSelected="">Air Dryer</functionlabel>
+        <functionlabel num="22" lockable="true" visible="true" functionImage="" functionImageSelected="">Easter Egg</functionlabel>
+        <functionlabel num="23" lockable="true" visible="true" functionImage="" functionImageSelected="">Easter Egg</functionlabel>
+        <functionlabel num="24" lockable="true" visible="true" functionImage="" functionImageSelected="">Reverser Center</functionlabel>
+        <functionlabel num="25" lockable="true" visible="true" functionImage="" functionImageSelected="">Easter Egg</functionlabel>
+        <functionlabel num="26" lockable="true" visible="true" functionImage="" functionImageSelected="">Switching Mode</functionlabel>
+        <functionlabel num="27" lockable="true" visible="true" functionImage="" functionImageSelected="">Class Lights</functionlabel>
+        <functionlabel num="28" lockable="true" visible="true" functionImage="" functionImageSelected="">Rotary Beacon</functionlabel>
+        <functionlabel num="29" lockable="true" visible="true" functionImage="" functionImageSelected="">Load Simulation</functionlabel>
+        <functionlabel num="30" lockable="true" visible="true" functionImage="" functionImageSelected="">Automatic Brake</functionlabel>
+        <functionlabel num="31" lockable="true" visible="true" functionImage="" functionImageSelected="">Fade Out Sound</functionlabel>
+      </functionlabels>
+      <soundlabels>
+        <soundlabel num="33">Automatic brake sound</soundlabel>
+        <soundlabel num="34">Gear shift sound</soundlabel>
+      </soundlabels>
+      <attributepairs>
+        <keyvaluepair>
+          <key>LastOperated</key>
+          <value>2025-07-18T20:03:18.710+00:00</value>
+        </keyvaluepair>
+        <keyvaluepair>
+          <key>OperatingDuration</key>
+          <value>385</value>
+        </keyvaluepair>
+      </attributepairs>
+      <speedprofile>
+        <overRunTimeForward>0.0</overRunTimeForward>
+        <overRunTimeReverse>0.0</overRunTimeReverse>
+        <speeds>
+          <speed>
+            <step>100</step>
+            <forward>40.0</forward>
+            <reverse>40.0</reverse>
+          </speed>
+          <speed>
+            <step>200</step>
+            <forward>80.0</forward>
+            <reverse>80.0</reverse>
+          </speed>
+          <speed>
+            <step>300</step>
+            <forward>120.0</forward>
+            <reverse>120.0</reverse>
+          </speed>
+          <speed>
+            <step>400</step>
+            <forward>160.0</forward>
+            <reverse>160.0</reverse>
+          </speed>
+          <speed>
+            <step>500</step>
+            <forward>200.0</forward>
+            <reverse>200.0</reverse>
+          </speed>
+          <speed>
+            <step>600</step>
+            <forward>240.0</forward>
+            <reverse>240.0</reverse>
+          </speed>
+          <speed>
+            <step>700</step>
+            <forward>280.0</forward>
+            <reverse>280.0</reverse>
+          </speed>
+          <speed>
+            <step>800</step>
+            <forward>320.0</forward>
+            <reverse>320.0</reverse>
+          </speed>
+          <speed>
+            <step>900</step>
+            <forward>360.0</forward>
+            <reverse>360.0</reverse>
+          </speed>
+          <speed>
+            <step>1000</step>
+            <forward>400.0</forward>
+            <reverse>400.0</reverse>
+          </speed>
+        </speeds>
+      </speedprofile>
+    </locomotive>
+    <locomotive id="BO 4536" fileName="45360.xml" roadNumber="4536" roadName="BO" mfg="EMC" owner="" model="F7A" dccAddress="4536" comment="" developerID="-1" manufacturerID="151" productID="16777363,16777419" decoderModes="" maxSpeed="100" imageFilePath="" iconFilePath="" URL="" IsShuntingOn="" locoDataEnabled="false">
+      <dateUpdated>2025-05-30T05:10:05.896+00:00</dateUpdated>
+      <decoder model="Essential Sound Unit" family="ESU Miscellaneous decoders" comment="" maxFnNum="28" />
+      <locoaddress>
+        <dcclocoaddress number="4536" longaddress="yes" />
+        <number>4536</number>
+        <protocol>dcc_long</protocol>
+      </locoaddress>
+      <functionlabels>
+        <functionlabel num="0" lockable="true" visible="true" functionImage="" functionImageSelected="">Light</functionlabel>
+        <functionlabel num="1" lockable="true" visible="true" functionImage="" functionImageSelected="">Bell</functionlabel>
+        <functionlabel num="2" lockable="false" visible="true" functionImage="" functionImageSelected="">Horn</functionlabel>
+        <functionlabel num="3" lockable="true" visible="true" functionImage="" functionImageSelected="">Coupler</functionlabel>
+        <functionlabel num="4" lockable="true" visible="true" functionImage="" functionImageSelected="">Dynamic Brake</functionlabel>
+        <functionlabel num="6" lockable="true" visible="true" functionImage="" functionImageSelected="">Ditch Lights</functionlabel>
+        <functionlabel num="7" lockable="true" visible="true" functionImage="" functionImageSelected="">Startup/Shutdown</functionlabel>
+        <functionlabel num="8" lockable="true" visible="true" functionImage="" functionImageSelected="">Drive Hold</functionlabel>
+      </functionlabels>
+      <soundlabels />
+      <speedprofile>
+        <overRunTimeForward>0.0</overRunTimeForward>
+        <overRunTimeReverse>0.0</overRunTimeReverse>
+        <speeds>
+          <speed>
+            <step>100</step>
+            <forward>40.0</forward>
+            <reverse>40.0</reverse>
+          </speed>
+          <speed>
+            <step>200</step>
+            <forward>80.0</forward>
+            <reverse>80.0</reverse>
+          </speed>
+          <speed>
+            <step>300</step>
+            <forward>120.0</forward>
+            <reverse>120.0</reverse>
+          </speed>
+          <speed>
+            <step>400</step>
+            <forward>160.0</forward>
+            <reverse>160.0</reverse>
+          </speed>
+          <speed>
+            <step>500</step>
+            <forward>200.0</forward>
+            <reverse>200.0</reverse>
+          </speed>
+          <speed>
+            <step>600</step>
+            <forward>240.0</forward>
+            <reverse>240.0</reverse>
+          </speed>
+          <speed>
+            <step>700</step>
+            <forward>280.0</forward>
+            <reverse>280.0</reverse>
+          </speed>
+          <speed>
+            <step>800</step>
+            <forward>320.0</forward>
+            <reverse>320.0</reverse>
+          </speed>
+          <speed>
+            <step>900</step>
+            <forward>360.0</forward>
+            <reverse>360.0</reverse>
+          </speed>
+          <speed>
+            <step>1000</step>
+            <forward>400.0</forward>
+            <reverse>400.0</reverse>
+          </speed>
+        </speeds>
+      </speedprofile>
+    </locomotive>
+    <locomotive id="BO 5300" fileName="53000.xml" roadNumber="5300" roadName="BO" mfg="Baldwin" owner="" model="P-7" dccAddress="5300" comment="" developerID="-1" manufacturerID="153" productID="1666" decoderModes="" maxSpeed="100" imageFilePath="" iconFilePath="" URL="" IsShuntingOn="" locoDataEnabled="false">
+      <dateUpdated>2025-05-05T20:04:48.753+00:00</dateUpdated>
+      <decoder model="WOW Steam 101 SS4.6" family="WOW Steam Sound Set 4.6" comment="" maxFnNum="28" />
+      <locoaddress>
+        <dcclocoaddress number="5300" longaddress="yes" />
+        <number>5300</number>
+        <protocol>dcc_long</protocol>
+      </locoaddress>
+      <functionlabels>
+        <functionlabel num="0" lockable="true" visible="true" functionImage="" functionImageSelected="">Headlight</functionlabel>
+        <functionlabel num="1" lockable="true" visible="true" functionImage="" functionImageSelected="">Bell</functionlabel>
+        <functionlabel num="2" lockable="false" visible="true" functionImage="" functionImageSelected="">Whistle Playable</functionlabel>
+        <functionlabel num="3" lockable="true" visible="true" functionImage="" functionImageSelected="">Whistle Short</functionlabel>
+        <functionlabel num="4" lockable="true" visible="true" functionImage="" functionImageSelected="">Whistle Grade X Quill </functionlabel>
+        <functionlabel num="5" lockable="true" visible="true" functionImage="" functionImageSelected="">Cylinder Cocks On/Off</functionlabel>
+        <functionlabel num="6" lockable="true" visible="true" functionImage="" functionImageSelected="">Brake Release</functionlabel>
+        <functionlabel num="7" lockable="true" visible="true" functionImage="" functionImageSelected="">Train Brake</functionlabel>
+        <functionlabel num="8" lockable="true" visible="true" functionImage="" functionImageSelected="">Mute</functionlabel>
+        <functionlabel num="9" lockable="true" visible="true" functionImage="" functionImageSelected="">Rotate Sound Function</functionlabel>
+        <functionlabel num="10" lockable="true" visible="true" functionImage="" functionImageSelected="">Johnson Bar Up</functionlabel>
+        <functionlabel num="11" lockable="true" visible="true" functionImage="" functionImageSelected="">Johnson Bar Down</functionlabel>
+        <functionlabel num="12" lockable="true" visible="true" functionImage="" functionImageSelected="">Injector</functionlabel>
+        <functionlabel num="13" lockable="true" visible="true" functionImage="" functionImageSelected="">Air Pump</functionlabel>
+        <functionlabel num="14" lockable="true" visible="true" functionImage="" functionImageSelected="">Blower</functionlabel>
+        <functionlabel num="15" lockable="true" visible="true" functionImage="" functionImageSelected="">Momentum Mode Selection</functionlabel>
+        <functionlabel num="16" lockable="true" visible="true" functionImage="" functionImageSelected="">Idling Sounds On/Off</functionlabel>
+        <functionlabel num="17" lockable="true" visible="true" functionImage="" functionImageSelected="">Coal Shovelling</functionlabel>
+        <functionlabel num="18" lockable="true" visible="true" functionImage="" functionImageSelected="">Blow Down</functionlabel>
+        <functionlabel num="19" lockable="true" visible="true" functionImage="" functionImageSelected="">Ash Dump</functionlabel>
+        <functionlabel num="20" lockable="true" visible="true" functionImage="" functionImageSelected="">Water Filling</functionlabel>
+        <functionlabel num="26" lockable="true" visible="true" functionImage="" functionImageSelected="">Departing Station Announcements</functionlabel>
+        <functionlabel num="27" lockable="true" visible="true" functionImage="" functionImageSelected="">Arriving Station Announcements</functionlabel>
+      </functionlabels>
+      <soundlabels />
+      <speedprofile>
+        <overRunTimeForward>0.0</overRunTimeForward>
+        <overRunTimeReverse>0.0</overRunTimeReverse>
+        <speeds>
+          <speed>
+            <step>100</step>
+            <forward>40.0</forward>
+            <reverse>40.0</reverse>
+          </speed>
+          <speed>
+            <step>200</step>
+            <forward>80.0</forward>
+            <reverse>80.0</reverse>
+          </speed>
+          <speed>
+            <step>300</step>
+            <forward>120.0</forward>
+            <reverse>120.0</reverse>
+          </speed>
+          <speed>
+            <step>400</step>
+            <forward>160.0</forward>
+            <reverse>160.0</reverse>
+          </speed>
+          <speed>
+            <step>500</step>
+            <forward>200.0</forward>
+            <reverse>200.0</reverse>
+          </speed>
+          <speed>
+            <step>600</step>
+            <forward>240.0</forward>
+            <reverse>240.0</reverse>
+          </speed>
+          <speed>
+            <step>700</step>
+            <forward>280.0</forward>
+            <reverse>280.0</reverse>
+          </speed>
+          <speed>
+            <step>800</step>
+            <forward>320.0</forward>
+            <reverse>320.0</reverse>
+          </speed>
+          <speed>
+            <step>900</step>
+            <forward>360.0</forward>
+            <reverse>360.0</reverse>
+          </speed>
+          <speed>
+            <step>1000</step>
+            <forward>400.0</forward>
+            <reverse>400.0</reverse>
+          </speed>
+        </speeds>
+      </speedprofile>
+    </locomotive>
+    <locomotive id="BO 5496" fileName="54960.xml" roadNumber="5496" roadName="BO" mfg="EMD" owner="" model="F7B" dccAddress="5496" comment="" developerID="-1" manufacturerID="151" productID="16777363,16777419" decoderModes="" maxSpeed="100" imageFilePath="" iconFilePath="" URL="" IsShuntingOn="" locoDataEnabled="false">
+      <dateUpdated>2025-05-30T05:10:43.365+00:00</dateUpdated>
+      <decoder model="Essential Sound Unit" family="ESU Miscellaneous decoders" comment="" maxFnNum="28" />
+      <locoaddress>
+        <dcclocoaddress number="5496" longaddress="yes" />
+        <number>5496</number>
+        <protocol>dcc_long</protocol>
+      </locoaddress>
+      <functionlabels>
+        <functionlabel num="0" lockable="true" visible="true" functionImage="" functionImageSelected="">Light</functionlabel>
+        <functionlabel num="1" lockable="true" visible="true" functionImage="" functionImageSelected="">Bell</functionlabel>
+        <functionlabel num="2" lockable="false" visible="true" functionImage="" functionImageSelected="">Horn</functionlabel>
+        <functionlabel num="3" lockable="true" visible="true" functionImage="" functionImageSelected="">Coupler</functionlabel>
+        <functionlabel num="4" lockable="true" visible="true" functionImage="" functionImageSelected="">Dynamic Brake</functionlabel>
+        <functionlabel num="6" lockable="true" visible="true" functionImage="" functionImageSelected="">Ditch Lights</functionlabel>
+        <functionlabel num="7" lockable="true" visible="true" functionImage="" functionImageSelected="">Air Compressor</functionlabel>
+        <functionlabel num="8" lockable="true" visible="true" functionImage="" functionImageSelected="">Startup/Shutdown</functionlabel>
+        <functionlabel num="9" lockable="true" visible="true" functionImage="" functionImageSelected="">Drive Hold</functionlabel>
+      </functionlabels>
+      <soundlabels />
+      <speedprofile>
+        <overRunTimeForward>0.0</overRunTimeForward>
+        <overRunTimeReverse>0.0</overRunTimeReverse>
+        <speeds>
+          <speed>
+            <step>100</step>
+            <forward>40.0</forward>
+            <reverse>40.0</reverse>
+          </speed>
+          <speed>
+            <step>200</step>
+            <forward>80.0</forward>
+            <reverse>80.0</reverse>
+          </speed>
+          <speed>
+            <step>300</step>
+            <forward>120.0</forward>
+            <reverse>120.0</reverse>
+          </speed>
+          <speed>
+            <step>400</step>
+            <forward>160.0</forward>
+            <reverse>160.0</reverse>
+          </speed>
+          <speed>
+            <step>500</step>
+            <forward>200.0</forward>
+            <reverse>200.0</reverse>
+          </speed>
+          <speed>
+            <step>600</step>
+            <forward>240.0</forward>
+            <reverse>240.0</reverse>
+          </speed>
+          <speed>
+            <step>700</step>
+            <forward>280.0</forward>
+            <reverse>280.0</reverse>
+          </speed>
+          <speed>
+            <step>800</step>
+            <forward>320.0</forward>
+            <reverse>320.0</reverse>
+          </speed>
+          <speed>
+            <step>900</step>
+            <forward>360.0</forward>
+            <reverse>360.0</reverse>
+          </speed>
+          <speed>
+            <step>1000</step>
+            <forward>400.0</forward>
+            <reverse>400.0</reverse>
+          </speed>
+        </speeds>
+      </speedprofile>
+    </locomotive>
+    <locomotive id="BO 572" fileName="5720.xml" roadNumber="572" roadName="BO" mfg="EMD" owner="" model="NW2 Phase V" dccAddress="572" comment="" developerID="-1" manufacturerID="151" productID="16777363,16777419" decoderModes="" maxSpeed="100" imageFilePath="preference:resources/roster/572.jpg" iconFilePath="preference:resources/roster/572.jpg" URL="" IsShuntingOn="" locoDataEnabled="false">
+      <dateUpdated>2025-06-05T01:34:07.560+00:00</dateUpdated>
+      <decoder model="Essential Sound Unit" family="ESU Miscellaneous decoders" comment="" maxFnNum="28" />
+      <locoaddress>
+        <dcclocoaddress number="572" longaddress="yes" />
+        <number>572</number>
+        <protocol>dcc_long</protocol>
+      </locoaddress>
+      <functionlabels>
+        <functionlabel num="0" lockable="true" visible="true" functionImage="" functionImageSelected="">Light</functionlabel>
+        <functionlabel num="1" lockable="true" visible="true" functionImage="" functionImageSelected="">Bell</functionlabel>
+        <functionlabel num="2" lockable="false" visible="true" functionImage="" functionImageSelected="">Horn</functionlabel>
+        <functionlabel num="3" lockable="true" visible="true" functionImage="" functionImageSelected="">Coupler</functionlabel>
+        <functionlabel num="4" lockable="true" visible="true" functionImage="" functionImageSelected="">Dynamic Brake</functionlabel>
+        <functionlabel num="6" lockable="true" visible="true" functionImage="" functionImageSelected="">Ditch Lights</functionlabel>
+        <functionlabel num="7" lockable="true" visible="true" functionImage="" functionImageSelected="">Air Compressor</functionlabel>
+        <functionlabel num="8" lockable="true" visible="true" functionImage="" functionImageSelected="">Startup/Shutdown</functionlabel>
+        <functionlabel num="9" lockable="true" visible="true" functionImage="" functionImageSelected="">Drive Hold</functionlabel>
+      </functionlabels>
+      <soundlabels />
+      <attributepairs>
+        <keyvaluepair>
+          <key>LastOperated</key>
+          <value>2026-11-08T13:59:03.255+00:00</value>
+        </keyvaluepair>
+        <keyvaluepair>
+          <key>OperatingDuration</key>
+          <value>135</value>
+        </keyvaluepair>
+      </attributepairs>
+      <speedprofile>
+        <overRunTimeForward>0.0</overRunTimeForward>
+        <overRunTimeReverse>0.0</overRunTimeReverse>
+        <speeds>
+          <speed>
+            <step>100</step>
+            <forward>40.0</forward>
+            <reverse>40.0</reverse>
+          </speed>
+          <speed>
+            <step>200</step>
+            <forward>80.0</forward>
+            <reverse>80.0</reverse>
+          </speed>
+          <speed>
+            <step>300</step>
+            <forward>120.0</forward>
+            <reverse>120.0</reverse>
+          </speed>
+          <speed>
+            <step>400</step>
+            <forward>160.0</forward>
+            <reverse>160.0</reverse>
+          </speed>
+          <speed>
+            <step>500</step>
+            <forward>200.0</forward>
+            <reverse>200.0</reverse>
+          </speed>
+          <speed>
+            <step>600</step>
+            <forward>240.0</forward>
+            <reverse>240.0</reverse>
+          </speed>
+          <speed>
+            <step>700</step>
+            <forward>280.0</forward>
+            <reverse>280.0</reverse>
+          </speed>
+          <speed>
+            <step>800</step>
+            <forward>320.0</forward>
+            <reverse>320.0</reverse>
+          </speed>
+          <speed>
+            <step>900</step>
+            <forward>360.0</forward>
+            <reverse>360.0</reverse>
+          </speed>
+          <speed>
+            <step>1000</step>
+            <forward>400.0</forward>
+            <reverse>400.0</reverse>
+          </speed>
+        </speeds>
+      </speedprofile>
+    </locomotive>
+    <locomotive id="BO 6944" fileName="69440.xml" roadNumber="6944" roadName="BO" mfg="EMD" owner="" model="GP30" dccAddress="6944" comment="" developerID="-1" manufacturerID="38" productID="" decoderModes="" maxSpeed="100" imageFilePath="preference:resources/roster/6944.jpg" iconFilePath="preference:resources/roster/6944.jpg" URL="" IsShuntingOn="" locoDataEnabled="false">
+      <dateUpdated>2025-06-11T01:58:01.247+00:00</dateUpdated>
+      <decoder model="Diesel" family="Paragon 4" comment="" maxFnNum="28" />
+      <locoaddress>
+        <dcclocoaddress number="6944" longaddress="yes" />
+        <number>6944</number>
+        <protocol>dcc_long</protocol>
+      </locoaddress>
+      <functionlabels>
+        <functionlabel num="0" lockable="true" visible="true" functionImage="" functionImageSelected="">Headlight</functionlabel>
+        <functionlabel num="1" lockable="true" visible="true" functionImage="" functionImageSelected="">Bell</functionlabel>
+        <functionlabel num="2" lockable="false" visible="true" functionImage="" functionImageSelected="">Horn</functionlabel>
+        <functionlabel num="3" lockable="true" visible="true" functionImage="" functionImageSelected="">Coupler</functionlabel>
+        <functionlabel num="4" lockable="true" visible="true" functionImage="" functionImageSelected="">Brake Squeal</functionlabel>
+        <functionlabel num="5" lockable="true" visible="true" functionImage="" functionImageSelected="">Grade Crossing Signal</functionlabel>
+        <functionlabel num="6" lockable="true" visible="true" functionImage="" functionImageSelected="">Radio Chatter</functionlabel>
+        <functionlabel num="7" lockable="true" visible="true" functionImage="" functionImageSelected="">Flange Squeal</functionlabel>
+        <functionlabel num="8" lockable="true" visible="true" functionImage="" functionImageSelected="">Shutdown and Startup</functionlabel>
+        <functionlabel num="9" lockable="true" visible="true" functionImage="" functionImageSelected="">Mute/Master Volume</functionlabel>
+        <functionlabel num="10" lockable="true" visible="true" functionImage="" functionImageSelected="">Cooling Fan</functionlabel>
+        <functionlabel num="11" lockable="true" visible="true" functionImage="" functionImageSelected="">Air Release</functionlabel>
+        <functionlabel num="12" lockable="true" visible="true" functionImage="" functionImageSelected="">Dimmer</functionlabel>
+        <functionlabel num="13" lockable="true" visible="true" functionImage="" functionImageSelected="">Industrial Sounds</functionlabel>
+        <functionlabel num="14" lockable="true" visible="true" functionImage="" functionImageSelected="">Station Sounds</functionlabel>
+        <functionlabel num="15" lockable="true" visible="true" functionImage="" functionImageSelected="">Yard Sounds</functionlabel>
+        <functionlabel num="16" lockable="true" visible="true" functionImage="" functionImageSelected="">Maintenance Sounds</functionlabel>
+        <functionlabel num="17" lockable="true" visible="true" functionImage="" functionImageSelected="">Auto Brake Set/Release</functionlabel>
+        <functionlabel num="18" lockable="true" visible="true" functionImage="" functionImageSelected="">City Sounds</functionlabel>
+        <functionlabel num="19" lockable="true" visible="true" functionImage="" functionImageSelected="">Farm Sounds</functionlabel>
+        <functionlabel num="20" lockable="true" visible="true" functionImage="" functionImageSelected="">Air Compressor</functionlabel>
+        <functionlabel num="21" lockable="true" visible="true" functionImage="" functionImageSelected="">Lumber Sounds</functionlabel>
+        <functionlabel num="22" lockable="true" visible="true" functionImage="" functionImageSelected="">Horn2</functionlabel>
+        <functionlabel num="23" lockable="true" visible="true" functionImage="" functionImageSelected="">Track Sounds</functionlabel>
+        <functionlabel num="24" lockable="true" visible="true" functionImage="" functionImageSelected="">Aux Light Control</functionlabel>
+        <functionlabel num="25" lockable="true" visible="true" functionImage="" functionImageSelected="">Long Horn</functionlabel>
+        <functionlabel num="26" lockable="true" visible="true" functionImage="" functionImageSelected="">RPM Up</functionlabel>
+        <functionlabel num="27" lockable="true" visible="true" functionImage="" functionImageSelected="">RPM Down</functionlabel>
+        <functionlabel num="28" lockable="true" visible="true" functionImage="" functionImageSelected="">Brake Squeal</functionlabel>
+      </functionlabels>
+      <soundlabels />
+      <attributepairs>
+        <keyvaluepair>
+          <key>LastOperated</key>
+          <value>2026-05-22T01:35:33.865+00:00</value>
+        </keyvaluepair>
+        <keyvaluepair>
+          <key>OperatingDuration</key>
+          <value>862</value>
+        </keyvaluepair>
+      </attributepairs>
+      <speedprofile>
+        <overRunTimeForward>0.0</overRunTimeForward>
+        <overRunTimeReverse>0.0</overRunTimeReverse>
+        <speeds>
+          <speed>
+            <step>100</step>
+            <forward>40.0</forward>
+            <reverse>40.0</reverse>
+          </speed>
+          <speed>
+            <step>200</step>
+            <forward>80.0</forward>
+            <reverse>80.0</reverse>
+          </speed>
+          <speed>
+            <step>300</step>
+            <forward>120.0</forward>
+            <reverse>120.0</reverse>
+          </speed>
+          <speed>
+            <step>400</step>
+            <forward>160.0</forward>
+            <reverse>160.0</reverse>
+          </speed>
+          <speed>
+            <step>500</step>
+            <forward>200.0</forward>
+            <reverse>200.0</reverse>
+          </speed>
+          <speed>
+            <step>600</step>
+            <forward>240.0</forward>
+            <reverse>240.0</reverse>
+          </speed>
+          <speed>
+            <step>700</step>
+            <forward>280.0</forward>
+            <reverse>280.0</reverse>
+          </speed>
+          <speed>
+            <step>800</step>
+            <forward>320.0</forward>
+            <reverse>320.0</reverse>
+          </speed>
+          <speed>
+            <step>900</step>
+            <forward>360.0</forward>
+            <reverse>360.0</reverse>
+          </speed>
+          <speed>
+            <step>1000</step>
+            <forward>400.0</forward>
+            <reverse>400.0</reverse>
+          </speed>
+        </speeds>
+      </speedprofile>
+    </locomotive>
+    <locomotive id="BO 9602" fileName="96020.xml" roadNumber="9602" roadName="BO" mfg="EMD" owner="" model="SW1200" dccAddress="9602" comment="" developerID="-1" manufacturerID="113" productID="187" decoderModes="" maxSpeed="100" imageFilePath="preference:resources/roster/9602.jpg" iconFilePath="preference:resources/roster/9602.jpg" URL="" IsShuntingOn="" locoDataEnabled="false">
+      <dateUpdated>2025-07-21T17:58:04.895+00:00</dateUpdated>
+      <decoder model="P2k SW9/1200" family="QSI Diesel Ver. 7" comment="" maxFnNum="28" />
+      <locoaddress>
+        <dcclocoaddress number="9602" longaddress="yes" />
+        <number>9602</number>
+        <protocol>dcc_long</protocol>
+      </locoaddress>
+      <functionlabels>
+        <functionlabel num="0" lockable="true" visible="true" functionImage="" functionImageSelected="">Light</functionlabel>
+        <functionlabel num="1" lockable="true" visible="true" functionImage="" functionImageSelected="">Bell</functionlabel>
+        <functionlabel num="2" lockable="true" visible="true" functionImage="" functionImageSelected="">Horn</functionlabel>
+        <functionlabel num="3" lockable="true" visible="true" functionImage="" functionImageSelected="">Coupler</functionlabel>
+        <functionlabel num="4" lockable="true" visible="true" functionImage="" functionImageSelected="">Fans</functionlabel>
+        <functionlabel num="5" lockable="true" visible="true" functionImage="" functionImageSelected="">Dynamic</functionlabel>
+        <functionlabel num="6" lockable="true" visible="true" functionImage="" functionImageSelected="">Doppler</functionlabel>
+        <functionlabel num="7" lockable="true" visible="true" functionImage="" functionImageSelected="">Squeal</functionlabel>
+        <functionlabel num="8" lockable="true" visible="true" functionImage="" functionImageSelected="">Mute</functionlabel>
+        <functionlabel num="9" lockable="true" visible="true" functionImage="" functionImageSelected="">Heavy Load</functionlabel>
+        <functionlabel num="10" lockable="true" visible="true" functionImage="" functionImageSelected="">Status</functionlabel>
+        <functionlabel num="11" lockable="true" visible="true" functionImage="" functionImageSelected="">Number Board</functionlabel>
+        <functionlabel num="12" lockable="true" visible="true" functionImage="" functionImageSelected="">Cab Light</functionlabel>
+      </functionlabels>
+      <soundlabels />
+      <attributepairs>
+        <keyvaluepair>
+          <key>LastOperated</key>
+          <value>2026-11-08T14:54:11.010+00:00</value>
+        </keyvaluepair>
+        <keyvaluepair>
+          <key>OperatingDuration</key>
+          <value>1698</value>
+        </keyvaluepair>
+      </attributepairs>
+      <speedprofile>
+        <overRunTimeForward>0.0</overRunTimeForward>
+        <overRunTimeReverse>0.0</overRunTimeReverse>
+        <speeds>
+          <speed>
+            <step>100</step>
+            <forward>40.0</forward>
+            <reverse>40.0</reverse>
+          </speed>
+          <speed>
+            <step>200</step>
+            <forward>80.0</forward>
+            <reverse>80.0</reverse>
+          </speed>
+          <speed>
+            <step>300</step>
+            <forward>120.0</forward>
+            <reverse>120.0</reverse>
+          </speed>
+          <speed>
+            <step>400</step>
+            <forward>160.0</forward>
+            <reverse>160.0</reverse>
+          </speed>
+          <speed>
+            <step>500</step>
+            <forward>200.0</forward>
+            <reverse>200.0</reverse>
+          </speed>
+          <speed>
+            <step>600</step>
+            <forward>240.0</forward>
+            <reverse>240.0</reverse>
+          </speed>
+          <speed>
+            <step>700</step>
+            <forward>280.0</forward>
+            <reverse>280.0</reverse>
+          </speed>
+          <speed>
+            <step>800</step>
+            <forward>320.0</forward>
+            <reverse>320.0</reverse>
+          </speed>
+          <speed>
+            <step>900</step>
+            <forward>360.0</forward>
+            <reverse>360.0</reverse>
+          </speed>
+          <speed>
+            <step>1000</step>
+            <forward>400.0</forward>
+            <reverse>400.0</reverse>
+          </speed>
+        </speeds>
+      </speedprofile>
+    </locomotive>
+    <locomotive id="CO 8216" fileName="82160.xml" roadNumber="8216" roadName="CO" mfg="GE" owner="" model="U30B" dccAddress="8216" comment="" developerID="-1" manufacturerID="151" productID="33554588,33554680,33554651" decoderModes="" maxSpeed="100" imageFilePath="preference:resources/roster/8216.jpg" iconFilePath="preference:resources/roster/8216.jpg" URL="" IsShuntingOn="" locoDataEnabled="false">
+      <dateUpdated>2025-06-06T11:32:35.472+00:00</dateUpdated>
+      <decoder model="LokSound 5 DCC" family="ESU LokSound 5" comment="" maxFnNum="31" />
+      <locoaddress>
+        <dcclocoaddress number="8216" longaddress="yes" />
+        <number>8216</number>
+        <protocol>dcc_long</protocol>
+      </locoaddress>
+      <functionlabels>
+        <functionlabel num="0" lockable="true" visible="true" functionImage="" functionImageSelected="">Light</functionlabel>
+        <functionlabel num="1" lockable="true" visible="true" functionImage="" functionImageSelected="">Bell</functionlabel>
+        <functionlabel num="2" lockable="false" visible="true" functionImage="" functionImageSelected="">Horn</functionlabel>
+        <functionlabel num="3" lockable="true" visible="true" functionImage="" functionImageSelected="">Coupler</functionlabel>
+        <functionlabel num="4" lockable="true" visible="true" functionImage="" functionImageSelected="">Dynamic Brake</functionlabel>
+        <functionlabel num="5" lockable="true" visible="true" functionImage="" functionImageSelected="">Low Nose Gyralight FWD</functionlabel>
+        <functionlabel num="6" lockable="true" visible="true" functionImage="" functionImageSelected="">Red Emergency Light FWD</functionlabel>
+        <functionlabel num="7" lockable="true" visible="true" functionImage="" functionImageSelected="">Flange Squeal</functionlabel>
+        <functionlabel num="8" lockable="true" visible="true" functionImage="" functionImageSelected="">Startup Shutdown</functionlabel>
+        <functionlabel num="9" lockable="true" visible="true" functionImage="" functionImageSelected="">Drive Hold</functionlabel>
+        <functionlabel num="10" lockable="true" visible="true" functionImage="" functionImageSelected="">Independent Brake</functionlabel>
+        <functionlabel num="11" lockable="true" visible="true" functionImage="" functionImageSelected="">Radiator Fan</functionlabel>
+        <functionlabel num="12" lockable="true" visible="true" functionImage="" functionImageSelected="">Dimmer</functionlabel>
+        <functionlabel num="13" lockable="true" visible="true" functionImage="" functionImageSelected="">Rear Ditchlights</functionlabel>
+        <functionlabel num="14" lockable="true" visible="true" functionImage="" functionImageSelected="">Hand Brake</functionlabel>
+        <functionlabel num="15" lockable="true" visible="true" functionImage="" functionImageSelected="">Isolation Switch</functionlabel>
+        <functionlabel num="16" lockable="true" visible="true" functionImage="" functionImageSelected="">Air Dryer on Shutdown</functionlabel>
+        <functionlabel num="17" lockable="true" visible="true" functionImage="" functionImageSelected="">Auto Brake Set/Release</functionlabel>
+        <functionlabel num="18" lockable="true" visible="true" functionImage="" functionImageSelected="">Sanding Valve</functionlabel>
+        <functionlabel num="19" lockable="true" visible="true" functionImage="" functionImageSelected="">Short Air Let Off</functionlabel>
+        <functionlabel num="20" lockable="true" visible="true" functionImage="" functionImageSelected="">Air Compressor</functionlabel>
+        <functionlabel num="21" lockable="true" visible="true" functionImage="" functionImageSelected="">Air Dryer</functionlabel>
+        <functionlabel num="22" lockable="true" visible="true" functionImage="" functionImageSelected="">Cab Door</functionlabel>
+        <functionlabel num="23" lockable="true" visible="true" functionImage="" functionImageSelected="">Engine Hood Door</functionlabel>
+        <functionlabel num="24" lockable="true" visible="true" functionImage="" functionImageSelected="">Reverser Center</functionlabel>
+        <functionlabel num="25" lockable="true" visible="true" functionImage="" functionImageSelected="">Cooling Shutters</functionlabel>
+        <functionlabel num="26" lockable="true" visible="true" functionImage="" functionImageSelected="">Manual Notch - UP</functionlabel>
+        <functionlabel num="27" lockable="true" visible="true" functionImage="" functionImageSelected="">Manual Notch - DOWN</functionlabel>
+        <functionlabel num="28" lockable="true" visible="true" functionImage="" functionImageSelected="">Manual Notching Logic</functionlabel>
+        <functionlabel num="29" lockable="true" visible="true" functionImage="" functionImageSelected="">Load Simulation</functionlabel>
+        <functionlabel num="30" lockable="true" visible="true" functionImage="" functionImageSelected="">Automatic Brake</functionlabel>
+        <functionlabel num="31" lockable="true" visible="true" functionImage="" functionImageSelected="">Fade Out Sound</functionlabel>
+      </functionlabels>
+      <soundlabels>
+        <soundlabel num="33">Automatic brake sound</soundlabel>
+        <soundlabel num="34">Gear shift sound</soundlabel>
+      </soundlabels>
+      <attributepairs>
+        <keyvaluepair>
+          <key>LastOperated</key>
+          <value>2025-06-05T05:50:16.843+00:00</value>
+        </keyvaluepair>
+        <keyvaluepair>
+          <key>OperatingDuration</key>
+          <value>44</value>
+        </keyvaluepair>
+      </attributepairs>
+      <speedprofile>
+        <overRunTimeForward>0.0</overRunTimeForward>
+        <overRunTimeReverse>0.0</overRunTimeReverse>
+        <speeds>
+          <speed>
+            <step>100</step>
+            <forward>40.0</forward>
+            <reverse>40.0</reverse>
+          </speed>
+          <speed>
+            <step>200</step>
+            <forward>80.0</forward>
+            <reverse>80.0</reverse>
+          </speed>
+          <speed>
+            <step>300</step>
+            <forward>120.0</forward>
+            <reverse>120.0</reverse>
+          </speed>
+          <speed>
+            <step>400</step>
+            <forward>160.0</forward>
+            <reverse>160.0</reverse>
+          </speed>
+          <speed>
+            <step>500</step>
+            <forward>200.0</forward>
+            <reverse>200.0</reverse>
+          </speed>
+          <speed>
+            <step>600</step>
+            <forward>240.0</forward>
+            <reverse>240.0</reverse>
+          </speed>
+          <speed>
+            <step>700</step>
+            <forward>280.0</forward>
+            <reverse>280.0</reverse>
+          </speed>
+          <speed>
+            <step>800</step>
+            <forward>320.0</forward>
+            <reverse>320.0</reverse>
+          </speed>
+          <speed>
+            <step>900</step>
+            <forward>360.0</forward>
+            <reverse>360.0</reverse>
+          </speed>
+          <speed>
+            <step>1000</step>
+            <forward>400.0</forward>
+            <reverse>400.0</reverse>
+          </speed>
+        </speeds>
+      </speedprofile>
+    </locomotive>
+    <locomotive id="CR 1993" fileName="1993.xml" roadNumber="1993" roadName="CR" mfg="GE" owner="" model="B23-7" dccAddress="1993" comment="" developerID="-1" manufacturerID="151" productID="33554588,33554680,33554651" decoderModes="" maxSpeed="100" imageFilePath="preference:resources/roster/1993.jpg" iconFilePath="preference:resources/roster/1993.jpg" URL="" IsShuntingOn="" locoDataEnabled="false">
+      <dateUpdated>2026-04-25T20:42:54.826+00:00</dateUpdated>
+      <decoder model="LokSound 5 DCC" family="ESU LokSound 5" comment="" maxFnNum="28" />
+      <locoaddress>
+        <dcclocoaddress number="1993" longaddress="yes" />
+        <number>1993</number>
+        <protocol>dcc_long</protocol>
+      </locoaddress>
+      <functionlabels />
+      <soundlabels />
+      <attributepairs>
+        <keyvaluepair>
+          <key>LastOperated</key>
+          <value>2026-11-10T03:52:00.838+00:00</value>
+        </keyvaluepair>
+        <keyvaluepair>
+          <key>OperatingDuration</key>
+          <value>54</value>
+        </keyvaluepair>
+      </attributepairs>
+      <speedprofile>
+        <overRunTimeForward>0.0</overRunTimeForward>
+        <overRunTimeReverse>0.0</overRunTimeReverse>
+        <speeds>
+          <speed>
+            <step>100</step>
+            <forward>40.0</forward>
+            <reverse>40.0</reverse>
+          </speed>
+          <speed>
+            <step>200</step>
+            <forward>80.0</forward>
+            <reverse>80.0</reverse>
+          </speed>
+          <speed>
+            <step>300</step>
+            <forward>120.0</forward>
+            <reverse>120.0</reverse>
+          </speed>
+          <speed>
+            <step>400</step>
+            <forward>160.0</forward>
+            <reverse>160.0</reverse>
+          </speed>
+          <speed>
+            <step>500</step>
+            <forward>200.0</forward>
+            <reverse>200.0</reverse>
+          </speed>
+          <speed>
+            <step>600</step>
+            <forward>240.0</forward>
+            <reverse>240.0</reverse>
+          </speed>
+          <speed>
+            <step>700</step>
+            <forward>280.0</forward>
+            <reverse>280.0</reverse>
+          </speed>
+          <speed>
+            <step>800</step>
+            <forward>320.0</forward>
+            <reverse>320.0</reverse>
+          </speed>
+          <speed>
+            <step>900</step>
+            <forward>360.0</forward>
+            <reverse>360.0</reverse>
+          </speed>
+          <speed>
+            <step>1000</step>
+            <forward>400.0</forward>
+            <reverse>400.0</reverse>
+          </speed>
+        </speeds>
+      </speedprofile>
+    </locomotive>
+    <locomotive id="CSX 1827" fileName="18270.xml" roadNumber="1827" roadName="CSX" mfg="GE" owner="" model="ES44AH" dccAddress="1827" comment="" developerID="-1" manufacturerID="151" productID="33554588,33554680,33554651" decoderModes="" maxSpeed="100" imageFilePath="preference:resources/roster/1827.jpg" iconFilePath="preference:resources/roster/1827.jpg" URL="" IsShuntingOn="" locoDataEnabled="false">
+      <dateUpdated>2026-02-16T20:15:40.136+00:00</dateUpdated>
+      <decoder model="LokSound 5 DCC" family="ESU LokSound 5" comment="" maxFnNum="31" />
+      <locoaddress>
+        <dcclocoaddress number="1827" longaddress="yes" />
+        <number>1827</number>
+        <protocol>dcc_long</protocol>
+      </locoaddress>
+      <functionlabels>
+        <functionlabel num="0" lockable="true" visible="true" functionImage="" functionImageSelected="">Light</functionlabel>
+        <functionlabel num="1" lockable="true" visible="true" functionImage="" functionImageSelected="">Bell</functionlabel>
+        <functionlabel num="2" lockable="false" visible="true" functionImage="" functionImageSelected="">Horn</functionlabel>
+        <functionlabel num="3" lockable="true" visible="true" functionImage="" functionImageSelected="">Coupler</functionlabel>
+        <functionlabel num="4" lockable="true" visible="true" functionImage="" functionImageSelected="">Dynamic Brake</functionlabel>
+        <functionlabel num="5" lockable="true" visible="true" functionImage="" functionImageSelected="">Class Lights</functionlabel>
+        <functionlabel num="6" lockable="true" visible="true" functionImage="" functionImageSelected="">Ditch Lights</functionlabel>
+        <functionlabel num="8" lockable="true" visible="true" functionImage="" functionImageSelected="">Startup/Shutdown</functionlabel>
+        <functionlabel num="9" lockable="true" visible="true" functionImage="" functionImageSelected="">Drive Hold</functionlabel>
+        <functionlabel num="10" lockable="true" visible="true" functionImage="" functionImageSelected="">Independent Brake</functionlabel>
+        <functionlabel num="11" lockable="true" visible="true" functionImage="" functionImageSelected="">Radiator Fan</functionlabel>
+        <functionlabel num="12" lockable="true" visible="true" functionImage="" functionImageSelected="">Dimmer</functionlabel>
+        <functionlabel num="14" lockable="true" visible="true" functionImage="" functionImageSelected="">Hand Brake</functionlabel>
+        <functionlabel num="15" lockable="true" visible="true" functionImage="" functionImageSelected="">Isolation Switch</functionlabel>
+        <functionlabel num="16" lockable="true" visible="true" functionImage="" functionImageSelected="">Air Dryer on Shutdown</functionlabel>
+        <functionlabel num="17" lockable="true" visible="true" functionImage="" functionImageSelected="">Auto Brake Set/Release</functionlabel>
+        <functionlabel num="18" lockable="true" visible="true" functionImage="" functionImageSelected="">Sanding Valve</functionlabel>
+        <functionlabel num="19" lockable="true" visible="true" functionImage="" functionImageSelected="">Short Air Let Off</functionlabel>
+        <functionlabel num="20" lockable="true" visible="true" functionImage="" functionImageSelected="">Air Compressor</functionlabel>
+        <functionlabel num="21" lockable="true" visible="true" functionImage="" functionImageSelected="">Air Dryer</functionlabel>
+        <functionlabel num="22" lockable="true" visible="true" functionImage="" functionImageSelected="">Cab Door</functionlabel>
+        <functionlabel num="23" lockable="true" visible="true" functionImage="" functionImageSelected="">Enginge Hood Door</functionlabel>
+        <functionlabel num="24" lockable="true" visible="true" functionImage="" functionImageSelected="">Reverser Center</functionlabel>
+        <functionlabel num="25" lockable="true" visible="true" functionImage="" functionImageSelected="">Cooling Shutters</functionlabel>
+        <functionlabel num="26" lockable="true" visible="true" functionImage="" functionImageSelected="">Manual Notch - UP</functionlabel>
+        <functionlabel num="27" lockable="true" visible="true" functionImage="" functionImageSelected="">Manual Notch - DOWN</functionlabel>
+        <functionlabel num="28" lockable="true" visible="true" functionImage="" functionImageSelected="">Manual Notching Logic</functionlabel>
+        <functionlabel num="29" lockable="true" visible="true" functionImage="" functionImageSelected="">Load SImulation</functionlabel>
+        <functionlabel num="30" lockable="true" visible="true" functionImage="" functionImageSelected="">Automatic Brake</functionlabel>
+        <functionlabel num="31" lockable="true" visible="true" functionImage="" functionImageSelected="">Fade Out Sound</functionlabel>
+      </functionlabels>
+      <soundlabels>
+        <soundlabel num="33">Automatic brake sound</soundlabel>
+        <soundlabel num="34">Gear shift sound</soundlabel>
+      </soundlabels>
+      <attributepairs>
+        <keyvaluepair>
+          <key>LastOperated</key>
+          <value>2026-05-22T01:33:07.071+00:00</value>
+        </keyvaluepair>
+        <keyvaluepair>
+          <key>OperatingDuration</key>
+          <value>60</value>
+        </keyvaluepair>
+      </attributepairs>
+      <speedprofile>
+        <overRunTimeForward>0.0</overRunTimeForward>
+        <overRunTimeReverse>0.0</overRunTimeReverse>
+        <speeds>
+          <speed>
+            <step>100</step>
+            <forward>40.0</forward>
+            <reverse>40.0</reverse>
+          </speed>
+          <speed>
+            <step>200</step>
+            <forward>80.0</forward>
+            <reverse>80.0</reverse>
+          </speed>
+          <speed>
+            <step>300</step>
+            <forward>120.0</forward>
+            <reverse>120.0</reverse>
+          </speed>
+          <speed>
+            <step>400</step>
+            <forward>160.0</forward>
+            <reverse>160.0</reverse>
+          </speed>
+          <speed>
+            <step>500</step>
+            <forward>200.0</forward>
+            <reverse>200.0</reverse>
+          </speed>
+          <speed>
+            <step>600</step>
+            <forward>240.0</forward>
+            <reverse>240.0</reverse>
+          </speed>
+          <speed>
+            <step>700</step>
+            <forward>280.0</forward>
+            <reverse>280.0</reverse>
+          </speed>
+          <speed>
+            <step>800</step>
+            <forward>320.0</forward>
+            <reverse>320.0</reverse>
+          </speed>
+          <speed>
+            <step>900</step>
+            <forward>360.0</forward>
+            <reverse>360.0</reverse>
+          </speed>
+          <speed>
+            <step>1000</step>
+            <forward>400.0</forward>
+            <reverse>400.0</reverse>
+          </speed>
+        </speeds>
+      </speedprofile>
+    </locomotive>
+    <locomotive id="CSX 2121" fileName="2121.xml" roadNumber="2121" roadName="CSX" mfg="EMD" owner="" model="GP38" dccAddress="2121" comment="" developerID="-1" manufacturerID="141" productID="2111" decoderModes="" maxSpeed="100" imageFilePath="preference:resources/roster/2121.jpg" iconFilePath="preference:resources/roster/2121.jpg" URL="" IsShuntingOn="" locoDataEnabled="false">
+      <dateUpdated>2026-11-08T16:08:19.559+00:00</dateUpdated>
+      <decoder model="TSU-PNP8 EMD Diesels" family="Tsunami2 Diesel" comment="" maxFnNum="28" />
+      <locoaddress>
+        <dcclocoaddress number="2121" longaddress="yes" />
+        <number>2121</number>
+        <protocol>dcc_long</protocol>
+      </locoaddress>
+      <functionlabels>
+        <functionlabel num="0" lockable="true" visible="true" functionImage="" functionImageSelected="">Headlight</functionlabel>
+        <functionlabel num="1" lockable="true" visible="true" functionImage="" functionImageSelected="">Bell</functionlabel>
+        <functionlabel num="2" lockable="false" visible="true" functionImage="" functionImageSelected="">Horn</functionlabel>
+        <functionlabel num="3" lockable="true" visible="true" functionImage="" functionImageSelected="">Short Horn</functionlabel>
+        <functionlabel num="4" lockable="true" visible="true" functionImage="" functionImageSelected="">Dynamic Brake</functionlabel>
+        <functionlabel num="5" lockable="true" visible="true" functionImage="" functionImageSelected="">RPM+</functionlabel>
+        <functionlabel num="6" lockable="true" visible="true" functionImage="" functionImageSelected="">RPM-</functionlabel>
+        <functionlabel num="7" lockable="true" visible="true" functionImage="" functionImageSelected="">Dimmer</functionlabel>
+        <functionlabel num="8" lockable="true" visible="true" functionImage="" functionImageSelected="">Mute</functionlabel>
+        <functionlabel num="9" lockable="true" visible="true" functionImage="" functionImageSelected="">Xing Signal</functionlabel>
+        <functionlabel num="10" lockable="true" visible="true" functionImage="" functionImageSelected="">Straight to Eight</functionlabel>
+        <functionlabel num="11" lockable="true" visible="true" functionImage="" functionImageSelected="">Ind/Train Brake</functionlabel>
+        <functionlabel num="12" lockable="true" visible="true" functionImage="" functionImageSelected="">Brake Select</functionlabel>
+        <functionlabel num="13" lockable="true" visible="true" functionImage="" functionImageSelected="">Coupler</functionlabel>
+        <functionlabel num="14" lockable="true" visible="true" functionImage="" functionImageSelected="">Half Speed</functionlabel>
+        <functionlabel num="15" lockable="true" visible="true" functionImage="" functionImageSelected="">Handbrake</functionlabel>
+        <functionlabel num="16" lockable="true" visible="true" functionImage="" functionImageSelected="">HEP Mode</functionlabel>
+        <functionlabel num="17" lockable="true" visible="true" functionImage="" functionImageSelected="">Fuel Loading</functionlabel>
+        <functionlabel num="18" lockable="true" visible="true" functionImage="" functionImageSelected="">General Service</functionlabel>
+        <functionlabel num="20" lockable="true" visible="true" functionImage="" functionImageSelected="">Steam Generator</functionlabel>
+        <functionlabel num="21" lockable="true" visible="true" functionImage="" functionImageSelected="">Sander Valve</functionlabel>
+        <functionlabel num="22" lockable="true" visible="true" functionImage="" functionImageSelected="">Cab Chatter</functionlabel>
+        <functionlabel num="23" lockable="true" visible="true" functionImage="" functionImageSelected="">All Aboard</functionlabel>
+        <functionlabel num="24" lockable="true" visible="true" functionImage="" functionImageSelected="">FX3 Output</functionlabel>
+        <functionlabel num="25" lockable="true" visible="true" functionImage="" functionImageSelected="">FX4 Output</functionlabel>
+        <functionlabel num="26" lockable="true" visible="true" functionImage="" functionImageSelected="">FX5 Output</functionlabel>
+        <functionlabel num="27" lockable="true" visible="true" functionImage="" functionImageSelected="">FX6 Output</functionlabel>
+        <functionlabel num="28" lockable="true" visible="true" functionImage="" functionImageSelected="">FX7,8 Output</functionlabel>
+      </functionlabels>
+      <soundlabels />
+      <attributepairs>
+        <keyvaluepair>
+          <key>LastOperated</key>
+          <value>2026-11-13T23:17:34.754+00:00</value>
+        </keyvaluepair>
+        <keyvaluepair>
+          <key>OperatingDuration</key>
+          <value>2980</value>
+        </keyvaluepair>
+      </attributepairs>
+      <speedprofile>
+        <overRunTimeForward>0.0</overRunTimeForward>
+        <overRunTimeReverse>0.0</overRunTimeReverse>
+        <speeds>
+          <speed>
+            <step>63</step>
+            <forward>50.6</forward>
+            <reverse>50.9</reverse>
+          </speed>
+          <speed>
+            <step>127</step>
+            <forward>156.3</forward>
+            <reverse>161.9</reverse>
+          </speed>
+          <speed>
+            <step>190</step>
+            <forward>261.7</forward>
+            <reverse>272.8</reverse>
+          </speed>
+          <speed>
+            <step>254</step>
+            <forward>338.8</forward>
+            <reverse>358.7</reverse>
+          </speed>
+          <speed>
+            <step>381</step>
+            <forward>429.0</forward>
+            <reverse>440.5</reverse>
+          </speed>
+          <speed>
+            <step>508</step>
+            <forward>454.1</forward>
+            <reverse>493.7</reverse>
+          </speed>
+          <speed>
+            <step>762</step>
+            <forward>453.4</forward>
+            <reverse>484.6</reverse>
+          </speed>
+          <speed>
+            <step>1000</step>
+            <forward>465.0</forward>
+            <reverse>499.9</reverse>
+          </speed>
+        </speeds>
+      </speedprofile>
+    </locomotive>
+    <locomotive id="CSX 2738" fileName="2738.xml" roadNumber="2738" roadName="CSX" mfg="EMD" owner="" model="GP38-2" dccAddress="2738" comment="" developerID="-1" manufacturerID="141" productID="852004" decoderModes="" maxSpeed="100" imageFilePath="preference:resources/roster/2738.jpg" iconFilePath="preference:resources/roster/2738.jpg" URL="" IsShuntingOn="" locoDataEnabled="false">
+      <dateUpdated>2026-11-08T03:59:51.051+00:00</dateUpdated>
+      <decoder model="MC2H104P9" family="MC Motor Decoders" comment="" maxFnNum="28" />
+      <locoaddress>
+        <dcclocoaddress number="2738" longaddress="yes" />
+        <number>2738</number>
+        <protocol>dcc_long</protocol>
+      </locoaddress>
+      <functionlabels />
+      <soundlabels />
+      <attributepairs>
+        <keyvaluepair>
+          <key>LastOperated</key>
+          <value>2026-11-13T22:55:22.943+00:00</value>
+        </keyvaluepair>
+        <keyvaluepair>
+          <key>OperatingDuration</key>
+          <value>3527</value>
+        </keyvaluepair>
+      </attributepairs>
+      <speedprofile>
+        <overRunTimeForward>0.0</overRunTimeForward>
+        <overRunTimeReverse>0.0</overRunTimeReverse>
+        <speeds>
+          <speed>
+            <step>63</step>
+            <forward>60.3</forward>
+            <reverse>61.4</reverse>
+          </speed>
+          <speed>
+            <step>127</step>
+            <forward>171.8</forward>
+            <reverse>159.6</reverse>
+          </speed>
+          <speed>
+            <step>190</step>
+            <forward>270.0</forward>
+            <reverse>253.2</reverse>
+          </speed>
+          <speed>
+            <step>254</step>
+            <forward>354.1</forward>
+            <reverse>341.9</reverse>
+          </speed>
+          <speed>
+            <step>381</step>
+            <forward>447.6</forward>
+            <reverse>419.4</reverse>
+          </speed>
+          <speed>
+            <step>508</step>
+            <forward>484.5</forward>
+            <reverse>472.0</reverse>
+          </speed>
+          <speed>
+            <step>762</step>
+            <forward>479.3</forward>
+            <reverse>466.1</reverse>
+          </speed>
+          <speed>
+            <step>1000</step>
+            <forward>490.3</forward>
+            <reverse>466.3</reverse>
+          </speed>
+        </speeds>
+      </speedprofile>
+    </locomotive>
+    <locomotive id="NWR 06" fileName="060.xml" roadNumber="06" roadName="NWR" mfg="Avonside" owner="" model="1340" dccAddress="6" comment="" developerID="-1" manufacturerID="999" productID="" decoderModes="" maxSpeed="100" imageFilePath="" iconFilePath="" URL="" IsShuntingOn="" locoDataEnabled="false">
+      <dateUpdated>2026-05-22T01:38:13.876+00:00</dateUpdated>
+      <decoder model="NMRA standard CV definitions" family="NMRA standard CV definitions" comment="" maxFnNum="28" />
+      <locoaddress>
+        <dcclocoaddress number="6" longaddress="yes" />
+        <number>6</number>
+        <protocol>dcc_long</protocol>
+      </locoaddress>
+      <functionlabels />
+      <soundlabels />
+      <attributepairs>
+        <keyvaluepair>
+          <key>LastOperated</key>
+          <value>2026-05-22T01:42:02.831+00:00</value>
+        </keyvaluepair>
+        <keyvaluepair>
+          <key>OperatingDuration</key>
+          <value>174</value>
+        </keyvaluepair>
+      </attributepairs>
+      <speedprofile>
+        <overRunTimeForward>0.0</overRunTimeForward>
+        <overRunTimeReverse>0.0</overRunTimeReverse>
+        <speeds>
+          <speed>
+            <step>100</step>
+            <forward>40.0</forward>
+            <reverse>40.0</reverse>
+          </speed>
+          <speed>
+            <step>200</step>
+            <forward>80.0</forward>
+            <reverse>80.0</reverse>
+          </speed>
+          <speed>
+            <step>300</step>
+            <forward>120.0</forward>
+            <reverse>120.0</reverse>
+          </speed>
+          <speed>
+            <step>400</step>
+            <forward>160.0</forward>
+            <reverse>160.0</reverse>
+          </speed>
+          <speed>
+            <step>500</step>
+            <forward>200.0</forward>
+            <reverse>200.0</reverse>
+          </speed>
+          <speed>
+            <step>600</step>
+            <forward>240.0</forward>
+            <reverse>240.0</reverse>
+          </speed>
+          <speed>
+            <step>700</step>
+            <forward>280.0</forward>
+            <reverse>280.0</reverse>
+          </speed>
+          <speed>
+            <step>800</step>
+            <forward>320.0</forward>
+            <reverse>320.0</reverse>
+          </speed>
+          <speed>
+            <step>900</step>
+            <forward>360.0</forward>
+            <reverse>360.0</reverse>
+          </speed>
+          <speed>
+            <step>1000</step>
+            <forward>400.0</forward>
+            <reverse>400.0</reverse>
+          </speed>
+        </speeds>
+      </speedprofile>
+    </locomotive>
+    <locomotive id="POHC 2091" fileName="20910.xml" roadNumber="2091" roadName="POHC" mfg="EMD" owner="" model="GP20" dccAddress="2091" comment="" developerID="-1" manufacturerID="38" productID="" decoderModes="" maxSpeed="100" imageFilePath="preference:resources/roster/2091.jpg" iconFilePath="preference:resources/roster/2091.jpg" URL="" IsShuntingOn="" locoDataEnabled="false">
+      <dateUpdated>2026-02-16T20:16:10.811+00:00</dateUpdated>
+      <decoder model="Diesel" family="Paragon 4" comment="" maxFnNum="28" />
+      <locoaddress>
+        <dcclocoaddress number="2091" longaddress="yes" />
+        <number>2091</number>
+        <protocol>dcc_long</protocol>
+      </locoaddress>
+      <functionlabels>
+        <functionlabel num="0" lockable="true" visible="true" functionImage="" functionImageSelected="">Headlight</functionlabel>
+        <functionlabel num="1" lockable="true" visible="true" functionImage="" functionImageSelected="">Bell</functionlabel>
+        <functionlabel num="2" lockable="false" visible="true" functionImage="" functionImageSelected="">Horn</functionlabel>
+        <functionlabel num="3" lockable="true" visible="true" functionImage="" functionImageSelected="">Coupler</functionlabel>
+        <functionlabel num="4" lockable="true" visible="true" functionImage="" functionImageSelected="">Compressor</functionlabel>
+        <functionlabel num="5" lockable="true" visible="true" functionImage="" functionImageSelected="">RPM Up</functionlabel>
+        <functionlabel num="6" lockable="true" visible="true" functionImage="" functionImageSelected="">RPM Dn</functionlabel>
+        <functionlabel num="7" lockable="true" visible="true" functionImage="" functionImageSelected="">Smoke Control</functionlabel>
+        <functionlabel num="8" lockable="true" visible="true" functionImage="" functionImageSelected="">Shutdown and Startup</functionlabel>
+        <functionlabel num="9" lockable="true" visible="true" functionImage="" functionImageSelected="">Mute/Master Volume</functionlabel>
+        <functionlabel num="10" lockable="true" visible="true" functionImage="" functionImageSelected="">Cooling Fan</functionlabel>
+        <functionlabel num="11" lockable="true" visible="true" functionImage="" functionImageSelected="">Air Release</functionlabel>
+        <functionlabel num="12" lockable="true" visible="true" functionImage="" functionImageSelected="">Brake Set/Release/Squeal</functionlabel>
+        <functionlabel num="13" lockable="true" visible="true" functionImage="" functionImageSelected="">Horn Grade Crossing</functionlabel>
+        <functionlabel num="14" lockable="true" visible="true" functionImage="" functionImageSelected="">Station Sounds</functionlabel>
+        <functionlabel num="15" lockable="true" visible="true" functionImage="" functionImageSelected="">Yard Sounds</functionlabel>
+        <functionlabel num="16" lockable="true" visible="true" functionImage="" functionImageSelected="">Maintenance Sounds</functionlabel>
+        <functionlabel num="17" lockable="true" visible="true" functionImage="" functionImageSelected="">Radio Chatter</functionlabel>
+        <functionlabel num="18" lockable="true" visible="true" functionImage="" functionImageSelected="">City Sounds</functionlabel>
+        <functionlabel num="19" lockable="true" visible="true" functionImage="" functionImageSelected="">Farm Sounds</functionlabel>
+        <functionlabel num="20" lockable="true" visible="true" functionImage="" functionImageSelected="">Industrial Sounds</functionlabel>
+        <functionlabel num="21" lockable="true" visible="true" functionImage="" functionImageSelected="">Lumber Sounds</functionlabel>
+        <functionlabel num="22" lockable="true" visible="true" functionImage="" functionImageSelected="">Horn2</functionlabel>
+        <functionlabel num="23" lockable="true" visible="true" functionImage="" functionImageSelected="">Track Sounds</functionlabel>
+        <functionlabel num="24" lockable="true" visible="true" functionImage="" functionImageSelected="">Aux Light Control</functionlabel>
+        <functionlabel num="25" lockable="true" visible="true" functionImage="" functionImageSelected="">Long Horn</functionlabel>
+        <functionlabel num="26" lockable="true" visible="true" functionImage="" functionImageSelected="">Play Macro</functionlabel>
+        <functionlabel num="27" lockable="true" visible="true" functionImage="" functionImageSelected="">Record Macro</functionlabel>
+        <functionlabel num="28" lockable="true" visible="true" functionImage="" functionImageSelected="">Brake Squeal</functionlabel>
+      </functionlabels>
+      <soundlabels />
+      <attributepairs>
+        <keyvaluepair>
+          <key>LastOperated</key>
+          <value>2026-11-07T23:47:23.796+00:00</value>
+        </keyvaluepair>
+        <keyvaluepair>
+          <key>OperatingDuration</key>
+          <value>1045</value>
+        </keyvaluepair>
+      </attributepairs>
+      <speedprofile>
+        <overRunTimeForward>0.0</overRunTimeForward>
+        <overRunTimeReverse>0.0</overRunTimeReverse>
+        <speeds>
+          <speed>
+            <step>100</step>
+            <forward>40.0</forward>
+            <reverse>40.0</reverse>
+          </speed>
+          <speed>
+            <step>200</step>
+            <forward>80.0</forward>
+            <reverse>80.0</reverse>
+          </speed>
+          <speed>
+            <step>300</step>
+            <forward>120.0</forward>
+            <reverse>120.0</reverse>
+          </speed>
+          <speed>
+            <step>400</step>
+            <forward>160.0</forward>
+            <reverse>160.0</reverse>
+          </speed>
+          <speed>
+            <step>500</step>
+            <forward>200.0</forward>
+            <reverse>200.0</reverse>
+          </speed>
+          <speed>
+            <step>600</step>
+            <forward>240.0</forward>
+            <reverse>240.0</reverse>
+          </speed>
+          <speed>
+            <step>700</step>
+            <forward>280.0</forward>
+            <reverse>280.0</reverse>
+          </speed>
+          <speed>
+            <step>800</step>
+            <forward>320.0</forward>
+            <reverse>320.0</reverse>
+          </speed>
+          <speed>
+            <step>900</step>
+            <forward>360.0</forward>
+            <reverse>360.0</reverse>
+          </speed>
+          <speed>
+            <step>1000</step>
+            <forward>400.0</forward>
+            <reverse>400.0</reverse>
+          </speed>
+        </speeds>
+      </speedprofile>
+    </locomotive>
+    <locomotive id="PRC 4678" fileName="4678.xml" roadNumber="4678" roadName="PRC" mfg="Pullman" owner="" model="PCC" dccAddress="4678" comment="" developerID="-1" manufacturerID="129" productID="6005" decoderModes="" maxSpeed="100" imageFilePath="preference:resources/roster/4678.jpg" iconFilePath="preference:resources/roster/4678.jpg" URL="" IsShuntingOn="" locoDataEnabled="false">
+      <dateUpdated>2026-07-07T15:42:02.126+00:00</dateUpdated>
+      <decoder model="Con-cor ElectroLiner - HO" family="Digitrax/Con-cor Sound" comment="" maxFnNum="28" />
+      <locoaddress>
+        <dcclocoaddress number="4678" longaddress="yes" />
+        <number>4678</number>
+        <protocol>dcc_long</protocol>
+      </locoaddress>
+      <functionlabels />
+      <soundlabels />
+      <speedprofile>
+        <overRunTimeForward>0.0</overRunTimeForward>
+        <overRunTimeReverse>0.0</overRunTimeReverse>
+        <speeds>
+          <speed>
+            <step>100</step>
+            <forward>40.0</forward>
+            <reverse>40.0</reverse>
+          </speed>
+          <speed>
+            <step>200</step>
+            <forward>80.0</forward>
+            <reverse>80.0</reverse>
+          </speed>
+          <speed>
+            <step>300</step>
+            <forward>120.0</forward>
+            <reverse>120.0</reverse>
+          </speed>
+          <speed>
+            <step>400</step>
+            <forward>160.0</forward>
+            <reverse>160.0</reverse>
+          </speed>
+          <speed>
+            <step>500</step>
+            <forward>200.0</forward>
+            <reverse>200.0</reverse>
+          </speed>
+          <speed>
+            <step>600</step>
+            <forward>240.0</forward>
+            <reverse>240.0</reverse>
+          </speed>
+          <speed>
+            <step>700</step>
+            <forward>280.0</forward>
+            <reverse>280.0</reverse>
+          </speed>
+          <speed>
+            <step>800</step>
+            <forward>320.0</forward>
+            <reverse>320.0</reverse>
+          </speed>
+          <speed>
+            <step>900</step>
+            <forward>360.0</forward>
+            <reverse>360.0</reverse>
+          </speed>
+          <speed>
+            <step>1000</step>
+            <forward>400.0</forward>
+            <reverse>400.0</reverse>
+          </speed>
+        </speeds>
+      </speedprofile>
+    </locomotive>
+  </roster>
+</roster-config>

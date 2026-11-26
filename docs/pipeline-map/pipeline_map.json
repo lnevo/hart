@@ -483,7 +483,7 @@
    "kind": "external",
    "status": "live",
    "domain": "hosts",
-   "desc": "JMRI roster XML and CV data in JMRI_UserFiles on the Pi, not committed to git.",
+   "desc": "JMRI roster XML and CV data in JMRI_UserFiles on the Pi, Mac and Windows; DecoderPro writes it on the Pi. Its master is jmri/layouts/hart/roster (ADR-039 amendment 2026-11-26).",
    "path": ""
   },
   {
@@ -4012,6 +4012,16 @@
    "gen": "manifest"
   },
   {
+   "id": "tools/ops/check_roster.py",
+   "label": "check_roster.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Checks the DecoderPro roster master (roster.xml and the entry files it names) and that each roster loco is a locos.csv row with the roster's DCC address (ADR-039).",
+   "path": "tools/ops/check_roster.py",
+   "gen": "manifest"
+  },
+  {
    "id": "tools/ops/check_fleet_gallery.py",
    "label": "check_fleet_gallery.py",
    "kind": "generator",
@@ -4102,7 +4112,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "hosts",
-   "desc": "Sourced by every deploy step: host settings, ssh helpers, the shipped lists (LIVE_PANELS, the Jython scripts), the stamp facts and the Pi unpulled-changes and auto-pull checks.",
+   "desc": "Sourced by every deploy step: host settings, ssh helpers, the shipped lists (LIVE_PANELS, the Jython scripts), the stamp facts and the Pi unpulled-changes check (Operations files, Store, DecoderPro roster); sources autopull.sh.",
    "path": "tools/hosts/deploy/common.sh"
   },
   {
@@ -5606,6 +5616,51 @@
    "path": "tools/hosts/roster_digest.sh"
   },
   {
+   "id": "jmri/layouts/hart/roster",
+   "label": "hart/roster (DecoderPro roster)",
+   "kind": "structured",
+   "status": "live",
+   "domain": "ops",
+   "desc": "roster.xml and the 17 entry files it names; repo master (ADR-039 amendment 2026-11-26). The deploy installs it on every host; make roster-pull brings a Pi session back.",
+   "path": "jmri/layouts/hart/roster"
+  },
+  {
+   "id": "tools/ops/pull_roster.sh",
+   "label": "pull_roster.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "make roster-pull: copies the Pi's roster.xml and the files it names into the repo master (read-only on the Pi), then fills locos.csv's addresses (check_roster.py --write).",
+   "path": "tools/ops/pull_roster.sh"
+  },
+  {
+   "id": "tools/hosts/pi/roster_sha.sh",
+   "label": "roster_sha.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "The one DecoderPro roster hash: roster.xml and the files it names. The gate, the Pi check, the install and the pull use it.",
+   "path": "tools/hosts/pi/roster_sha.sh"
+  },
+  {
+   "id": "tools/hosts/pi/install_roster.sh",
+   "label": "install_roster.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Installs the roster master into JMRI_UserFiles on the Pi and the Mac, with a backup of what it replaces, and writes .roster_deployed.sha256.",
+   "path": "tools/hosts/pi/install_roster.sh"
+  },
+  {
+   "id": "tools/hosts/deploy/autopull.sh",
+   "label": "autopull.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Sourced by common.sh: the gate's own pulls of a Pi Store, Operations session or DecoderPro roster into this checkout or an ops-pull-* worktree, then the stop.",
+   "path": "tools/hosts/deploy/autopull.sh"
+  },
+  {
    "id": ".claude/agents/archive-researcher.md",
    "label": "agent: archive-researcher",
    "kind": "unstructured",
@@ -5761,7 +5816,7 @@
    "kind": "unstructured",
    "status": "live",
    "domain": "agents",
-   "desc": "Use when a Pi Operations Pro session (moves, car or train state) must be saved into the repo, before any deploy that would replace the Pi's Operations files, or when asked to run make ops-pull.",
+   "desc": "Use when a Pi Operations Pro session (moves, car or train state) or a DecoderPro roster change (a programming session, a new loco) must be saved into the repo, before any deploy that would replace the Pi's Operations files or roster, or when asked to run make ops-pull or make roster-pull.",
    "path": ".claude/skills/ops-pull/SKILL.md",
    "gen": "agent-docs"
   },
@@ -11535,7 +11590,7 @@
   {
    "from": "host:pi",
    "to": "tools/hosts/pi/unpulled_changes.sh",
-   "label": "Operations files, tables.xml",
+   "label": "Operations files, tables.xml, roster",
    "side": "check"
   },
   {
@@ -13230,6 +13285,93 @@
    "label": "check json-schemas",
    "side": "check",
    "gen": "manifest"
+  },
+  {
+   "from": "ext:decoderpro-roster",
+   "to": "tools/ops/pull_roster.sh",
+   "label": "programming session",
+   "side": "pull"
+  },
+  {
+   "from": "tools/ops/pull_roster.sh",
+   "to": "jmri/layouts/hart/roster",
+   "label": "overwrites repo copy"
+  },
+  {
+   "from": "tools/ops/pull_roster.sh",
+   "to": "ops/hart-ops/data/locos.csv",
+   "label": "dcc_address (check_roster.py --write)"
+  },
+  {
+   "from": "tools/hosts/sync_hart_package.sh",
+   "to": "tools/ops/pull_roster.sh",
+   "label": "gate auto-pulls a roster session"
+  },
+  {
+   "from": "jmri/layouts/hart/roster",
+   "to": "tools/hosts/sync_hart_package.sh",
+   "label": "repo master (ADR-039)"
+  },
+  {
+   "from": "jmri/layouts/hart/roster",
+   "to": "tools/hosts/pi/install_roster.sh",
+   "label": "roster.xml and entries"
+  },
+  {
+   "from": "tools/hosts/pi/install_roster.sh",
+   "to": "ext:decoderpro-roster",
+   "label": "installs"
+  },
+  {
+   "from": "tools/hosts/pi/roster_sha.sh",
+   "to": "tools/hosts/pi/unpulled_changes.sh",
+   "label": "roster hash"
+  },
+  {
+   "from": "tools/hosts/pi/roster_sha.sh",
+   "to": "tools/hosts/pi/install_roster.sh",
+   "label": "roster hash"
+  },
+  {
+   "from": "tools/hosts/pi/roster_sha.sh",
+   "to": "tools/ops/pull_roster.sh",
+   "label": "roster hash"
+  },
+  {
+   "from": "jmri/layouts/hart/roster",
+   "to": "tools/ops/check_roster.py",
+   "label": "DecoderPro roster",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/locos.csv",
+   "to": "tools/ops/check_roster.py",
+   "label": "master",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/ops/check_roster.py",
+   "to": "tools/check.sh",
+   "label": "check roster-locos",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/hosts/deploy/autopull.sh",
+   "to": "tools/hosts/deploy/common.sh",
+   "label": "sourced"
+  },
+  {
+   "from": "tools/hosts/deploy/autopull.sh",
+   "to": "tools/ops/pull_roster.sh",
+   "label": "runs (gate auto-pull)"
+  },
+  {
+   "from": "tools/hosts/deploy/common.sh",
+   "to": "tools/ops/pull_roster.sh",
+   "label": "sourced (autopull_target)"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

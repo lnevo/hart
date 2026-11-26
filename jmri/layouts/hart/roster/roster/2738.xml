@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="/xml/XSLT/locomotive.xsl" type="text/xsl"?>
+<!DOCTYPE locomotive-config SYSTEM "/xml/DTD/locomotive-config.dtd">
+<locomotive-config>
+  <!--Written by JMRI version 5.16+R909e15189e on Fri Nov 13 18:19:43 EST 2026-->
+  <locomotive id="CSX 2738" fileName="2738.xml" roadNumber="2738" roadName="CSX" mfg="EMD" owner="" model="GP38-2" dccAddress="2738" comment="" developerID="-1" manufacturerID="141" productID="852004" decoderModes="" maxSpeed="100" imageFilePath="preference:resources/roster/2738.jpg" iconFilePath="preference:resources/roster/2738.jpg" URL="" IsShuntingOn="" locoDataEnabled="false">
+    <dateUpdated>2026-11-08T03:59:51.051+00:00</dateUpdated>
+    <decoder model="MC2H104P9" family="MC Motor Decoders" comment="" maxFnNum="28" />
+    <locoaddress>
+      <dcclocoaddress number="2738" longaddress="yes" />
+      <number>2738</number>
+      <protocol>dcc_long</protocol>
+    </locoaddress>
+    <functionlabels />
+    <soundlabels />
+    <attributepairs>
+      <keyvaluepair>
+        <key>LastOperated</key>
+        <value>2026-11-13T22:55:22.943+00:00</value>
+      </keyvaluepair>
+      <keyvaluepair>
+        <key>OperatingDuration</key>
+        <value>3527</value>
+      </keyvaluepair>
+    </attributepairs>
+    <speedprofile>
+      <overRunTimeForward>0.0</overRunTimeForward>
+      <overRunTimeReverse>0.0</overRunTimeReverse>
+      <speeds>
+        <speed>
+          <step>63</step>
+          <forward>60.3</forward>
+          <reverse>61.4</reverse>
+        </speed>
+        <speed>
+          <step>127</step>
+          <forward>171.8</forward>
+          <reverse>159.6</reverse>
+        </speed>
+        <speed>
+          <step>190</step>
+          <forward>270.0</forward>
+          <reverse>253.2</reverse>
+        </speed>
+        <speed>
+          <step>254</step>
+          <forward>354.1</forward>
+          <reverse>341.9</reverse>
+        </speed>
+        <speed>
+          <step>381</step>
+          <forward>447.6</forward>
+          <reverse>419.4</reverse>
+        </speed>
+        <speed>
+          <step>508</step>
+          <forward>484.5</forward>
+          <reverse>472.0</reverse>
+        </speed>
+        <speed>
+          <step>762</step>
+          <forward>479.3</forward>
+          <reverse>466.1</reverse>
+        </speed>
+        <speed>
+          <step>1000</step>
+          <forward>490.3</forward>
+          <reverse>466.3</reverse>
+        </speed>
+      </speeds>
+    </speedprofile>
+    <values>
+      <decoderDef>
+        <varValue item="Vstart" value="0" />
+        <varValue item="Vhigh" value="0" />
+        <varValue item="Vmid" value="0" />
+        <varValue item="EMF Feedback Cutout" value="0" />
+        <varValue item="Packet Time-out Value" value="0" />
+        <varValue item="Analog Power Conversion" value="1" />
+        <varValue item="Advanced Group 1 Option 1" value="0" />
+        <varValue item="Advanced Group 1 Option 2" value="0" />
+        <varValue item="Speed Table Selection" value="16" />
+        <varValue item="Advanced Group 1 Option 3" value="0" />
+        <varValue item="Advanced Group 1 Option 4" value="0" />
+        <varValue item="Function Map Option 1" value="0" />
+        <varValue item="FL(f) controls output 1" value="1" />
+        <varValue item="FL(f) controls output 2" value="0" />
+        <varValue item="FL(f) controls output 3" value="0" />
+        <varValue item="FL(f) controls output 4" value="0" />
+        <varValue item="FL(f) controls output 5" value="0" />
+        <varValue item="FL(r) controls output 1" value="0" />
+        <varValue item="FL(r) controls output 2" value="1" />
+        <varValue item="FL(r) controls output 3" value="0" />
+        <varValue item="FL(r) controls output 4" value="0" />
+        <varValue item="FL(r) controls output 5" value="0" />
+        <varValue item="F1 controls output 1" value="0" />
+        <varValue item="F1 controls output 2" value="0" />
+        <varValue item="F1 controls output 3" value="0" />
+        <varValue item="F1 controls output 4" value="0" />
+        <varValue item="F1 controls output 5" value="0" />
+        <varValue item="F2 controls output 1" value="0" />
+        <varValue item="F2 controls output 2" value="0" />
+        <varValue item="F2 controls output 3" value="1" />
+        <varValue item="F2 controls output 4" value="0" />
+        <varValue item="F2 controls output 5" value="0" />
+        <varValue item="F3 controls output 4" value="0" />
+        <varValue item="F3 controls output 5" value="0" />
+        <varValue item="F3 controls output 6" value="0" />
+        <varValue item="F4 controls output 4" value="0" />
+        <varValue item="F4 controls output 5" value="0" />
+        <varValue item="F4 controls output 6" value="0" />
+        <varValue item="Headlight F0(f) Effect Selection" value="15" />
+        <varValue item="Headlight F0(f) Phase Selection" value="0" />
+        <varValue item="Headlight F0(f) Grade Crossing Logic" value="0" />
+        <varValue item="Headlight F0(f) Rule 17 Mode" value="0" />
+        <varValue item="Headlight F0(f) Light Type" value="0" />
+        <varValue item="Backup Light F0(r) Effect Selection" value="15" />
+        <varValue item="Backup Light F0(r) Phase Selection" value="0" />
+        <varValue item="Backup Light F0(r) Grade Crossing Logic" value="0" />
+        <varValue item="Backup Light F0(r) Rule 17 Mode" value="0" />
+        <varValue item="Backup Light F0(r) Light Type" value="0" />
+        <varValue item="FX5 Effect Selection" value="15" />
+        <varValue item="FX5 Phase Selection" value="0" />
+        <varValue item="FX5 Grade Crossing Logic" value="0" />
+        <varValue item="FX5 Rule 17 Mode" value="0" />
+        <varValue item="FX5 Light Type" value="0" />
+        <varValue item="FX6 Effect Selection" value="15" />
+        <varValue item="FX6 Phase Selection" value="0" />
+        <varValue item="FX6 Grade Crossing Logic" value="0" />
+        <varValue item="FX6 Rule 17 Mode" value="0" />
+        <varValue item="FX6 Light Type" value="0" />
+        <varValue item="FX5B Effect Selection" value="0" />
+        <varValue item="FX5B Phase Selection" value="0" />
+        <varValue item="FX5B Grade Crossing Logic" value="0" />
+        <varValue item="FX5B Rule 17 Mode" value="0" />
+        <varValue item="FX5B Light Type" value="0" />
+        <varValue item="FX6B Effect Selection" value="0" />
+        <varValue item="FX6B Phase Selection" value="0" />
+        <varValue item="FX6B Grade Crossing Logic" value="0" />
+        <varValue item="FX6B Rule 17 Mode" value="0" />
+        <varValue item="FX6B Light Type" value="0" />
+        <varValue item="FX5 Forward Directional Control" value="1" />
+        <varValue item="FX5 Reverse Directional Control" value="1" />
+        <varValue item="FX5B Forward Directional Control" value="1" />
+        <varValue item="FX5B Reverse Directional Control" value="1" />
+        <varValue item="FX6 Forward Directional Control" value="1" />
+        <varValue item="FX6 Reverse Directional Control" value="1" />
+        <varValue item="FX6B Forward Directional Control" value="1" />
+        <varValue item="FX6B Reverse Directional Control" value="1" />
+        <varValue item="FX5 Lighting Overide" value="0" />
+        <varValue item="FX6 Lighting Overide" value="0" />
+        <varValue item="Hyperlight Flash Rate (0-15)" value="3" />
+        <varValue item="Grade Crossing Hold Time (0-15)" value="4" />
+        <varValue item="Advanced Group 1 Option 6" value="0" />
+        <varValue item="Advanced Group 1 Option 7" value="0" />
+        <varValue item="Radio Power Conversion" value="10" />
+        <varValue item="Zero-1 Power Conversion" value="180" />
+        <varValue item="Forward Trim" value="128" />
+        <varValue item="Reverse Trim" value="128" />
+        <varValue item="EMF Static Config" value="25" />
+        <varValue item="EMF Dynamic Config" value="20" />
+        <varValue item="EMF Option 1" value="255" />
+        <varValue item="EMF Option 2" value="8" />
+        <varValue item="EMF Option 3" value="8" />
+        <varValue item="EMF Option 4" value="140" />
+        <varValue item="Short Address" value="3" />
+        <varValue item="Long Address" value="2738" />
+        <varValue item="Address Format" value="1" />
+        <varValue item="Accel" value="26" />
+        <varValue item="Decel" value="24" />
+        <varValue item="Decoder Version" value="0" />
+        <varValue item="Manufacturer" value="141" />
+        <varValue item="Analog Mode Function Status - F1" value="0" />
+        <varValue item="Analog Mode Function Status - F2" value="0" />
+        <varValue item="Analog Mode Function Status - F3" value="0" />
+        <varValue item="Analog Mode Function Status - F4" value="0" />
+        <varValue item="Analog Mode Function Status - F5" value="0" />
+        <varValue item="Analog Mode Function Status - F6" value="0" />
+        <varValue item="Analog Mode Function Status - F7" value="0" />
+        <varValue item="Analog Mode Function Status - F8" value="0" />
+        <varValue item="Analog Mode Function Status - F0(f)" value="0" />
+        <varValue item="Analog Mode Function Status - F0(r)" value="0" />
+        <varValue item="Analog Mode Function Status - F9" value="0" />
+        <varValue item="Analog Mode Function Status - F10" value="0" />
+        <varValue item="Analog Mode Function Status - F11" value="0" />
+        <varValue item="Analog Mode Function Status - F12" value="0" />
+        <varValue item="Consist Direction" value="0" />
+        <varValue item="Consist Address" value="0" />
+        <varValue item="Consist Address Active For F1" value="0" />
+        <varValue item="Consist Address Active For F2" value="0" />
+        <varValue item="Consist Address Active For F3" value="0" />
+        <varValue item="Consist Address Active For F4" value="0" />
+        <varValue item="Consist Address Active For F5" value="0" />
+        <varValue item="Consist Address Active For F6" value="0" />
+        <varValue item="Consist Address Active For F7" value="0" />
+        <varValue item="Consist Address Active For F8" value="0" />
+        <varValue item="Consist Address Active For FL in Forward" value="0" />
+        <varValue item="Consist Address Active For FL in Reverse" value="0" />
+        <varValue item="Consist Address Active For F9" value="0" />
+        <varValue item="Consist Address Active For F10" value="0" />
+        <varValue item="Consist Address Active For F11" value="0" />
+        <varValue item="Consist Address Active For F12" value="0" />
+        <varValue item="Consist Acceleration Adjustment" value="0" />
+        <varValue item="Consist Acceleration Adjustment Sign" value="0" />
+        <varValue item="Consist Deceleration Adjustment" value="0" />
+        <varValue item="Consist Deceleration Adjustment Sign" value="0" />
+        <varValue item="Locomotive Direction" value="0" />
+        <varValue item="Speed Step Mode" value="1" />
+        <varValue item="Analog (DC) Operation" value="0" />
+        <varValue item="Speed Table Definition" value="1" />
+        <varValue item="F5 controls output 4" value="1" />
+        <varValue item="F5 controls output 5" value="0" />
+        <varValue item="F5 controls output 6" value="0" />
+        <varValue item="F6 controls output 4" value="0" />
+        <varValue item="F6 controls output 5" value="1" />
+        <varValue item="F6 controls output 6" value="0" />
+        <varValue item="F7 controls output 6" value="1" />
+        <varValue item="F7 controls output 7" value="0" />
+        <varValue item="F8 controls output 6" value="0" />
+        <varValue item="F8 controls output 7" value="0" />
+        <varValue item="F9 controls output 6" value="0" />
+        <varValue item="F9 controls output 7" value="0" />
+        <varValue item="F10 controls output 6" value="0" />
+        <varValue item="F10 controls output 7" value="0" />
+        <varValue item="F11 controls output 6" value="0" />
+        <varValue item="F11 controls output 7" value="1" />
+        <varValue item="F12 controls output 6" value="0" />
+        <varValue item="F12 controls output 7" value="0" />
+        <varValue item="F9 controls output 4(alt)" value="1" />
+        <varValue item="F9 controls output 5(alt)" value="0" />
+        <varValue item="F9 controls output 6(alt)" value="0" />
+        <varValue item="F10 controls output 4(alt)" value="0" />
+        <varValue item="F10 controls output 5(alt)" value="1" />
+        <varValue item="F10 controls output 6(alt)" value="0" />
+        <varValue item="F11 controls output 6(alt)" value="1" />
+        <varValue item="F11 controls output 7(alt)" value="0" />
+        <varValue item="F12 controls output 6(alt)" value="0" />
+        <varValue item="F12 controls output 7(alt)" value="0" />
+        <varValue item="F5 controls output 6(alt)" value="0" />
+        <varValue item="F5 controls output 7(alt)" value="0" />
+        <varValue item="F6 controls output 6(alt)" value="0" />
+        <varValue item="F6 controls output 7(alt)" value="0" />
+        <varValue item="F7 controls output 6(alt)" value="0" />
+        <varValue item="F7 controls output 7(alt)" value="1" />
+        <varValue item="F8 controls output 6(alt)" value="0" />
+        <varValue item="F8 controls output 7(alt)" value="0" />
+        <varValue item="Speed Table" value="12,27,50,73,94,115,135,146,155,165,174,179,184,190,191,191,191,191,191,191,191,191,191,191,191,191,191,191" />
+        <varValue item="User Id #1" value="81" />
+        <varValue item="User Id #2" value="1" />
+      </decoderDef>
+      <CVvalue name="2" value="0" />
+      <CVvalue name="5" value="0" />
+      <CVvalue name="6" value="0" />
+      <CVvalue name="10" value="0" />
+      <CVvalue name="11" value="0" />
+      <CVvalue name="12" value="1" />
+      <CVvalue name="15" value="0" />
+      <CVvalue name="16" value="0" />
+      <CVvalue name="25" value="16" />
+      <CVvalue name="30" value="0" />
+      <CVvalue name="33" value="1" />
+      <CVvalue name="34" value="2" />
+      <CVvalue name="35" value="0" />
+      <CVvalue name="36" value="4" />
+      <CVvalue name="37" value="0" />
+      <CVvalue name="38" value="0" />
+      <CVvalue name="49" value="15" />
+      <CVvalue name="50" value="15" />
+      <CVvalue name="51" value="15" />
+      <CVvalue name="52" value="15" />
+      <CVvalue name="53" value="0" />
+      <CVvalue name="54" value="0" />
+      <CVvalue name="57" value="255" />
+      <CVvalue name="58" value="0" />
+      <CVvalue name="59" value="3" />
+      <CVvalue name="60" value="4" />
+      <CVvalue name="61" value="0" />
+      <CVvalue name="63" value="10" />
+      <CVvalue name="64" value="180" />
+      <CVvalue name="66" value="128" />
+      <CVvalue name="95" value="128" />
+      <CVvalue name="209" value="25" />
+      <CVvalue name="210" value="20" />
+      <CVvalue name="212" value="255" />
+      <CVvalue name="213" value="8" />
+      <CVvalue name="214" value="8" />
+      <CVvalue name="216" value="140" />
+      <CVvalue name="1" value="3" />
+      <CVvalue name="17" value="202" />
+      <CVvalue name="18" value="178" />
+      <CVvalue name="29" value="50" />
+      <CVvalue name="3" value="26" />
+      <CVvalue name="4" value="24" />
+      <CVvalue name="7" value="0" />
+      <CVvalue name="8" value="141" />
+      <CVvalue name="13" value="0" />
+      <CVvalue name="14" value="0" />
+      <CVvalue name="19" value="0" />
+      <CVvalue name="21" value="0" />
+      <CVvalue name="22" value="0" />
+      <CVvalue name="23" value="0" />
+      <CVvalue name="24" value="0" />
+      <CVvalue name="39" value="2" />
+      <CVvalue name="40" value="4" />
+      <CVvalue name="41" value="16" />
+      <CVvalue name="42" value="0" />
+      <CVvalue name="43" value="0" />
+      <CVvalue name="44" value="0" />
+      <CVvalue name="45" value="64" />
+      <CVvalue name="46" value="0" />
+      <CVvalue name="67" value="12" />
+      <CVvalue name="68" value="27" />
+      <CVvalue name="69" value="50" />
+      <CVvalue name="70" value="73" />
+      <CVvalue name="71" value="94" />
+      <CVvalue name="72" value="115" />
+      <CVvalue name="73" value="135" />
+      <CVvalue name="74" value="146" />
+      <CVvalue name="75" value="155" />
+      <CVvalue name="76" value="165" />
+      <CVvalue name="77" value="174" />
+      <CVvalue name="78" value="179" />
+      <CVvalue name="79" value="184" />
+      <CVvalue name="80" value="190" />
+      <CVvalue name="81" value="191" />
+      <CVvalue name="82" value="191" />
+      <CVvalue name="83" value="191" />
+      <CVvalue name="84" value="191" />
+      <CVvalue name="85" value="191" />
+      <CVvalue name="86" value="191" />
+      <CVvalue name="87" value="191" />
+      <CVvalue name="88" value="191" />
+      <CVvalue name="89" value="191" />
+      <CVvalue name="90" value="191" />
+      <CVvalue name="91" value="191" />
+      <CVvalue name="92" value="191" />
+      <CVvalue name="93" value="191" />
+      <CVvalue name="94" value="191" />
+      <CVvalue name="105" value="81" />
+      <CVvalue name="106" value="1" />
+    </values>
+  </locomotive>
+</locomotive-config>

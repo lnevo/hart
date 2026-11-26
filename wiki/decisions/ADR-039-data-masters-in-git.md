@@ -13,7 +13,7 @@ Some of the work is done. `docs/pipeline-map/pipeline_map.json` records who writ
 
 The gaps are about kinds of record, not files. A review on 2026-11-25 found:
 
-- **Locos** are in `ops/hart-ops/data/locos.csv`, `jmri/layouts/hart/data/new_locos.json`, `OperationsEngineRoster.xml`, STS and the DecoderPro roster on the Pi. The roster is not in the repo; only the Pi backups hold it.
+- **Locos** are in `ops/hart-ops/data/locos.csv`, `jmri/layouts/hart/data/new_locos.json`, `OperationsEngineRoster.xml`, STS and the DecoderPro roster on the Pi. The roster was then not in the repo; only the Pi backups held it (it is a master since 2026-11-26: see the amendment below).
 - **Industries and spots** are keyed by name. `spot_assignments.csv`, `HART_Spot_Waybills.csv` and `www/data/industries.json` each spell the industry out, and STS and Operations Pro keep their own lists.
 - **Blocks** are referred to by public name in `cats/data/occupancy_bindings.csv`, though public names change (ADR-005) and `block_lengths.csv` has a block `id`.
 - **Trains** (`cats/data/hart_trains.csv`) have no writer in the pipeline map, and no key is defined for them.
@@ -55,4 +55,16 @@ Phase 1 runs as parallel lanes, and a lane owns its files. The [project page](..
 - A wrong reference (a spot naming an industry that is not in the master, a binding naming a block that does not exist) fails `check.sh` instead of surfacing in a session.
 - Renaming an industry, station or block changes one row, not every file that spells it out.
 - Several readers change in the key lanes: `bin/cars`, the card pipeline, the site build scripts and the CATS builders. Each lane updates its readers in the same PR.
-- The DecoderPro roster on the Pi stays outside the repo until phase 2 decides whether it is a copy or a master.
+- The DecoderPro roster stayed outside the repo until phase 2 decided whether it was a copy or a master: a master, by the amendment below.
+
+## Amendment 2026-11-26: the DecoderPro roster is a master (lane N8)
+
+The owner decided on 2026-11-26 that the DecoderPro roster is a repo master, as the Operations Pro files are (ADR-015).
+
+1. `jmri/layouts/hart/roster/` is the master: `roster.xml` and the entry files it names in `roster/`, as the hosts keep them under `JMRI_UserFiles`. It holds no `.bak` files and no entry file `roster.xml` does not name; `tools/ops/check_roster.py` (the `roster-locos` step) fails one.
+2. The deploy installs it on the Mac, the Pi and Windows, backing up what it replaces (`backups/roster/pre_deploy_<time>/` under `JMRI_UserFiles`). Files `roster.xml` does not name, such as the 13 old entry files on the Mac and Windows, are left as they are. The roster photos ship as before.
+3. DecoderPro writes the roster on the Pi (a programming session, a new loco). One hash, `tools/hosts/pi/roster_sha.sh` (`roster.xml` and the files it names), is what the gate, the install and the pull compare. A Pi deploy stops before sending anything when the Pi's roster is neither the repo's nor the one the last deploy installed (`.roster_deployed.sha256`), saves it with `tools/ops/pull_roster.sh` into the same checkout or `ops-pull-*` worktree as an Operations pull, and stops. `HART_DISCARD_PI_CHANGES=1` is the only override. The Mac and Windows have no such check: their rosters are copies, and an edit made there survives only in the backup.
+4. `make roster-pull` (`tools/ops/pull_roster.sh`) brings the Pi's roster into the master. It only reads on the Pi and never marks it as pulled: the Pi counts as pulled once the merged repo holds the same roster.
+5. `locos.csv`'s `dcc_address` and `long_address` are the roster's for every loco the roster has. `check_roster.py --write` writes them (the pull runs it); the check fails a roster id that is not a `locos.csv` `roster_id`, or a row whose address differs. A loco not yet in the roster keeps the address typed for `bin/cars locos publish`.
+
+Consequences: a programming session on the Pi needs `make roster-pull` and a merge before the next Pi deploy. A JMRI left running keeps its loaded roster and can write it back over the installed files, so restart DecoderPro or PanelPro after a deploy that changed the roster. `tools/hosts/sync_roster_from_pi.sh` still copies the Pi's roster to the Mac and Windows; the next deploy replaces those copies with the master's.
