@@ -43,6 +43,7 @@
   /* ---- selection */
   function walk(start, adj, key) { return reach(start, adj, key, Infinity); }
   function clearFocus(user) {
+    if (!svg) return;  // the lane overview has no selection
     svg.classList.remove("focus");
     svg.querySelectorAll(".on,.sel,.upstream,.near,.sn").forEach(el => el.classList.remove("on", "sel", "upstream", "near", "sn"));
     info.style.display = "none";
@@ -96,6 +97,7 @@
     info.innerHTML = `<button class="close" title="Close (Esc)">×</button><h2>${esc(n.label)}</h2>
       <div>${esc(DATA.kinds[n.kind][0])} · ${esc(domainLabel[n.domain])} · ${esc(n.status || "live")}${n.local ? " · not in this checkout's tracked files (gitignored mirror, submodule or host)" : ""}</div>
       <p><code>${esc(n.path || n.id)}</code>${githubUrl(n, DATA.codeLinks) ? ` · <a class="gh" href="${esc(githubUrl(n, DATA.codeLinks))}" target="_blank" rel="noopener" title="Open this file's code on GitHub">GitHub ↗</a>` : ""}</p><p>${esc(n.desc || "")}</p>
+      ${effInfo(n)}
       ${isFocus ? "" : '<p><button id="fgo">Show only this file\'s chain</button></p>'}
       ${view.kindsOff.size ? `<div class="off">Links as drawn: ${[...view.kindsOff].every(dropKind) ? "the hidden boxes left out with their links" : "hidden boxes bridged over, and those where chains stop (hosts lane, hand work, caches) left out with their links"}.</div>` : ""}
       <b>Fed by</b><ul>${((view.kindsOff.size ? ins1 : insAll)[id] || []).map(e => `<li>${link(e.from)}${e.label ? " — " + esc(e.label) : ""}</li>`).join("") || "<li>nothing (a source)</li>"}</ul>
@@ -109,16 +111,16 @@
     if (!isFocus) info.querySelector("#fgo").onclick = () => focusOn(id);
     info.querySelectorAll("a[data-go]").forEach(a => (a.onclick = () => goTo(a.dataset.go)));
   }
-  function folderInfo(id) {  // the info panel for a folder box
+  function folderInfo(id) {  // the info panel for a folder box or a closed lane
     const g = gNodes[id], list = groups.members[id];
     info.innerHTML = `<button class="close" title="Close (Esc)">×</button><h2>${esc(g.label)}</h2>
-      <div>Folder · ${list.length} boxes · ${esc(domainLabel[g.domain])}</div>
-      <p><button id="fopen">Open this folder</button></p>
+      <div>${g.lane ? "Closed lane" : "Folder"} · ${list.length} boxes · ${esc(domainLabel[g.domain])}</div>
+      <p><button id="fopen">${g.lane ? "Open this lane too" : "Open this folder"}</button></p>
       <b>Boxes in it</b><ul>${list.map(m => `<li><a data-go="${esc(m)}">${esc(byId[m].label)}</a></li>`).join("")}</ul>`;
     info.style.display = "block";
     setVB(vb.x, vb.y, vb.width, vb.height);  // clamped again for the narrower free area
     info.querySelector(".close").onclick = () => clearFocus(true);
-    info.querySelector("#fopen").onclick = () => openFolder(g.folder);
+    info.querySelector("#fopen").onclick = () => (g.lane ? openLane(g.lane) : openFolder(g.folder));
     info.querySelectorAll("a[data-go]").forEach(a => (a.onclick = () => goTo(a.dataset.go)));
   }
   function openFolder(folder, then) {
@@ -128,7 +130,9 @@
     writeHash();
   }
   function goTo(id) {
-    if (groups.groupOf[id]) { openFolder(folderOf(byId[id]), id); return; }  // a box inside a closed folder
+    const into = groups.groupOf[id];
+    if (into && gNodes[into].lane) { openLane(gNodes[into].lane, id); return; }  // a box inside a closed lane
+    if (into) { openFolder(folderOf(byId[id]), id); return; }  // a box inside a closed folder
     if (pickable(id)) { pick(id, "pan"); return; }
     view.lanes = new Set(allLanes);
     if (byId[id].status in view) view[byId[id].status] = true;
@@ -143,7 +147,7 @@
     render(false); writeHash();
   }
   wrapEl.addEventListener("click", e => {
-    if (moved) return;
+    if (moved || !lay) return;  // the lane overview takes its own clicks (pipeline_map_view_lanes.js)
     clearTimeout(pending);
     // what the pointer is over, as the hover found it (pointerPick): a click opens what the hover lit
     const at = pointerAt(e.target, e.clientX, e.clientY), got = pointerPick(at);
@@ -175,9 +179,11 @@
   wrapEl.addEventListener("pointerdown", e => (lastPointer = e.pointerType), true);
   wrapEl.addEventListener("dblclick", e => {
     clearTimeout(pending);
-    if (e.target.classList && e.target.classList.contains("eh")) return;  // a double-click on a line is a click on it
+    if (!lay || (e.target.classList && e.target.classList.contains("eh"))) return;  // a double-click on a line is a click on it
     const got = pickHover(e.target, e.clientX, e.clientY), g = got.box ? nodeEl[got.box] : null;
-    if (g && gNodes[g.dataset.id]) openFolder(gNodes[g.dataset.id].folder);
+    const gn = g && gNodes[g.dataset.id];
+    if (gn && gn.lane) openLane(gn.lane);
+    else if (gn) openFolder(gn.folder);
     else if (g) focusOn(g.dataset.id, !view.focus);
   });
 
@@ -185,13 +191,14 @@
   const q = document.getElementById("q"), hits = document.getElementById("hits");
   let found = [], fi = 0;
   function runSearch(keepIndex) {
-    svg.querySelectorAll(".node.hit").forEach(g => g.classList.remove("hit"));
+    if (svg) svg.querySelectorAll(".node.hit").forEach(g => g.classList.remove("hit"));
     const t = q.value.trim().toLowerCase();
     found = !t ? [] : DATA.nodes.filter(n => (n.label + " " + n.id + " " + (n.path || "") + " " + (n.desc || "")).toLowerCase().includes(t)).map(n => n.id);
     const where = id => (visible.has(id) ? id : visible.has(groups.groupOf[id]) ? groups.groupOf[id] : null);
     const shown = found.filter(where);
     shown.forEach(id => nodeEl[where(id)].classList.add("hit"));
-    hits.textContent = !t ? "" : `${shown.length} found` + (found.length > shown.length ? ` (+${found.length - shown.length} not shown)` : "") + (found.length ? " · Enter steps" : "");
+    hits.textContent = !t ? "" : !svg ? `${found.length} found` + (found.length ? " · Enter opens" : "")
+      : `${shown.length} found` + (found.length > shown.length ? ` (+${found.length - shown.length} not shown)` : "") + (found.length ? " · Enter steps" : "");
     if (!keepIndex) fi = 0;
     updateFar();
   }
@@ -333,6 +340,8 @@
      and the ? button runs it again. A visit that opens a shared link (any address after #) is not interrupted. */
   const tour = document.getElementById("tour"), TOUR_KEY = "pipelineMapTourDone";
   const TOUR = [
+    { at: [], title: "The lanes",
+      text: `The map opens on its ${DATA.domains.length} lanes. Each card counts the lane's boxes by kind and its make panels and check.sh steps; the arrows are the links between lanes, thicker for more. Click a lane to open it, or an arrow to open the two lanes it joins. Whole map draws every lane, and Lanes comes back here.` },
     { at: ["#file", "#browse"], title: "Pick a file",
       text: "Type a file's name, or find it by folder under Browse. The map then draws its chain: everything it is built from on the left, everything built from it on the right." },
     { at: ["#startmenu"], title: "Or start from a common chain",
@@ -347,6 +356,8 @@
       text: "Find highlights the boxes whose name, path or description holds the text you type." },
     { at: [], title: "Hover",
       text: "Zoomed out, hover a line to light its chain and grow its boxes to a readable size, or hover a box to do the same for its neighbours. The note by the pointer names where the chain stops. Click a line to open the box it leads to, Cmd-click (Ctrl-click off a Mac) for the box it comes from. Click a lane's name to zoom to that lane, and hold Shift for a magnifier." },
+    { at: ["#effbtn"], title: "Efficiency",
+      text: "Efficiency, or the E key, marks how each step runs: green for a step that is skipped while its inputs are unchanged, blue for a guard that always runs, a bar for its logged time. Each output shows how many scripts write it, red when two or more do and the manifests do not allow it." },
     { at: ["#fit", "#btns"], title: "Move around and share",
       text: "Scroll or pinch to zoom and drag to pan; Fit shows the whole map. Share copies a link that opens this exact view. The ? button runs this tour again." },
   ];
@@ -405,7 +416,7 @@
   const kindsBox = document.getElementById("kindlist");
   /* Every kind but folder can be hidden; boxes where chains stop are then left out rather than bridged over
      (filtered()). */
-  const hideable = k => Object.hasOwn(DATA.kinds, k) && k !== "folder";
+  const hideable = k => Object.hasOwn(DATA.kinds, k) && k !== "folder" && k !== "lane";
   kindsBox.innerHTML = Object.entries(DATA.kinds).filter(([k]) => hideable(k)).map(([k, [label, fill, ink]]) =>
     `<label><input type="checkbox" data-kind="${esc(k)}" checked> <span class="sw" style="background:${esc(fill)};border-color:${esc(ink)}"></span>${esc(label)}</label>` +
     ` <a data-kindonly="${esc(k)}">only</a>`).join("<br>");
@@ -468,7 +479,10 @@
     else if (selected !== null && nodeEl[selected]) select(selected, true);
     writeHash();
   };
-  document.getElementById("labels").onchange = e => { document.getElementById("elabels").classList.toggle("hidden", !e.target.checked); showStatus(sub); };
+  document.getElementById("labels").onchange = e => {
+    if (!svg) { render(false); writeHash(); return; }  // on the lane overview: a changed option opens the map
+    document.getElementById("elabels").classList.toggle("hidden", !e.target.checked); showStatus(sub);
+  };
 
   /* ---- address bar: #focus=<id>&up=all&down=2&lanes=a,b&show=parked,retired&trim=1&hidekind=generator&compact=0
      &folders=1&open=<folder>,<folder>&node=<id>, and with share also at=<x>,<y>,<width>,<aspect> (the zoom, position and lane stretch) */
@@ -476,6 +490,7 @@
     const h = new URLSearchParams();
     const steps = n => (n === Infinity ? "all" : String(n));
     if (view.focus) { h.set("focus", view.focus); h.set("up", steps(view.up)); h.set("down", steps(view.down)); }
+    else if (view.laneOpen.size) h.set("lane", [...view.laneOpen].join(","));
     if (view.lanes.size !== allLanes.length) h.set("lanes", view.lanes.size ? [...view.lanes].join(",") : "none");
     const show = [view.parked && "parked", view.retired && "retired"].filter(Boolean);
     if (show.length) h.set("show", show.join(","));
@@ -488,12 +503,17 @@
     if (withView && view.steps && view.boxCap) h.set("cap", String(+view.boxCap.toFixed(3)));  // with the sharer's box size  // (an older width= link is ignored: it meant wider boxes)
     if (view.group) { h.set("folders", "1"); if (view.open.size) h.set("open", [...view.open].join(",")); }
     if (selected) h.set("node", selected);
-    if (withView) h.set("at", [vb.x, vb.y, vb.width].map(v => Math.round(v)).concat(lay.aspect ? [+lay.aspect.toFixed(4)] : []).join(","));  // with the sharer's lane stretch
+    if (view.eff) h.set("eff", "1");
+    if (!view.overview && [...h.keys()].every(k => ovKeys.includes(k))) h.set("map", "all");  // the whole map: an empty address is the overview
+    if (withView && lay) h.set("at", [vb.x, vb.y, vb.width].map(v => Math.round(v)).concat(lay.aspect ? [+lay.aspect.toFixed(4)] : []).join(","));  // with the sharer's lane stretch
     const s = h.toString();
     history.replaceState(null, "", s ? "#" + s : location.pathname + location.search);
   }
   function readHash() {
     const h = new URLSearchParams(location.hash.slice(1));
+    view.overview = [...h.keys()].every(k => ovKeys.includes(k));  // an address with no view in it opens on the lanes
+    view.laneOpen = new Set((h.get("lane") || "").split(",").filter(l => allLanes.includes(l)));
+    setEff(h.get("eff") === "1", true);
     const focus = h.get("focus");
     view.focus = focus && Object.hasOwn(byId, focus) ? focus : null;
     const steps = v => (v !== null && /^\d+$/.test(v) ? Number(v) : Infinity);

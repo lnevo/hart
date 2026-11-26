@@ -3584,6 +3584,15 @@
    "path": "tools/pipeline/map_lane.py"
   },
   {
+   "id": "tools/ops/pipeline_map_eff.py",
+   "label": "pipeline_map_eff.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Works out what the map page shows beside the graph: how each step runs (stamped or guard), writers per output, one summary per lane with the links between lanes counted, and step times from docs/pipeline-map/timings.json when it exists.",
+   "path": "tools/ops/pipeline_map_eff.py"
+  },
+  {
    "id": "tools/ops/build_pipeline_map.py",
    "label": "build_pipeline_map.py",
    "kind": "generator",
@@ -3635,7 +3644,7 @@
    "kind": "unstructured",
    "status": "live",
    "domain": "extras",
-   "desc": "Viewer script (the page's state, drawing and input) inlined into both pipeline map pages after the layout: the start of app(), which goes on in pipeline_map_view_frame.js and pipeline_map_view_input.js, joined in that order.",
+   "desc": "Viewer script (the page's state, drawing and input) inlined into both pipeline map pages after the layout: the start of app(), which goes on in pipeline_map_view_frame.js, pipeline_map_view_lanes.js and pipeline_map_view_input.js, joined in that order.",
    "path": "tools/ops/pipeline_map_view.js"
   },
   {
@@ -3648,12 +3657,21 @@
    "path": "tools/ops/pipeline_map_view_frame.js"
   },
   {
+   "id": "tools/ops/pipeline_map_view_lanes.js",
+   "label": "pipeline_map_view_lanes.js",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Part of the viewer's app() (the lane overview the page opens on, open lanes, the efficiency overlay), inlined after pipeline_map_view_frame.js and before pipeline_map_view_input.js; not a script on its own.",
+   "path": "tools/ops/pipeline_map_view_lanes.js"
+  },
+  {
    "id": "tools/ops/pipeline_map_view_input.js",
    "label": "pipeline_map_view_input.js",
    "kind": "unstructured",
    "status": "live",
    "domain": "extras",
-   "desc": "The end of the viewer's app() (magnifier, selection, search, filters, menus, tour, share, address), inlined straight after pipeline_map_view_frame.js; it closes app() and calls it.",
+   "desc": "The end of the viewer's app() (magnifier, selection, search, filters, menus, tour, share, address), inlined straight after pipeline_map_view_lanes.js; it closes app() and calls it.",
    "path": "tools/ops/pipeline_map_view_input.js"
   },
   {
@@ -9437,6 +9455,16 @@
   },
   {
    "from": "tools/pipeline/manifest.py",
+   "to": "tools/ops/pipeline_map_eff.py",
+   "label": "load_both: the steps"
+  },
+  {
+   "from": "tools/ops/pipeline_map_eff.py",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "lane summaries, step marks"
+  },
+  {
+   "from": "tools/pipeline/manifest.py",
    "to": "tools/pipeline/map_lane.py",
    "label": "load: the steps"
   },
@@ -10457,6 +10485,12 @@
   },
   {
    "from": "tools/ops/pipeline_map_view_input.js",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "inlined",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/ops/pipeline_map_view_lanes.js",
    "to": "tools/ops/build_pipeline_map.py",
    "label": "inlined",
    "gen": "manifest"

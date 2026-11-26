@@ -18,7 +18,7 @@ SPEC.loader.exec_module(MAP)
 CACHED = (MAP.script_parts, MAP.script_text, MAP.page_template)
 NODE = shutil.which("node")
 NAMES = ("pipeline_map_layout.js", "pipeline_map_helpers.js", "pipeline_map_view.js", "pipeline_map_view_frame.js",
-         "pipeline_map_view_input.js")
+         "pipeline_map_view_lanes.js", "pipeline_map_view_input.js")
 
 
 class PagePartsTest(unittest.TestCase):
@@ -64,16 +64,17 @@ class PagePartsTest(unittest.TestCase):
 
     def test_the_script_is_the_layout_then_the_viewer(self) -> None:
         """One script, layout first, then its helpers: the viewer uses their functions and the "use strict" directive.
-        The viewer is app() cut into three files, joined in order: the first opens app(), the last closes and calls it."""
-        layout, helpers, view, frame, end = (path.read_text(encoding="utf-8") for path in MAP.SCRIPTS)
-        self.assertEqual(MAP.SCRIPTS, (MAP.LAYOUT_JS, MAP.HELPERS_JS, MAP.VIEW_JS, MAP.VIEW_FRAME_JS, MAP.VIEW_INPUT_JS))
-        self.assertEqual(MAP.script_text(), layout + helpers + view + frame + end)
+        The viewer is app() cut into four files, joined in order: the first opens app(), the last closes and calls it."""
+        layout, helpers, view, frame, lanes, end = (path.read_text(encoding="utf-8") for path in MAP.SCRIPTS)
+        self.assertEqual(MAP.SCRIPTS, (MAP.LAYOUT_JS, MAP.HELPERS_JS, MAP.VIEW_JS, MAP.VIEW_FRAME_JS, MAP.VIEW_LANES_JS,
+                                       MAP.VIEW_INPUT_JS))
+        self.assertEqual(MAP.script_text(), layout + helpers + view + frame + lanes + end)
         self.assertEqual([name for name, _ in MAP.script_parts()], list(NAMES))
         self.assertNotIn("app()", helpers)
         self.assertIn("\nfunction app() {\n", view)
-        for part in (view, frame):
+        for part in (view, frame, lanes):
             self.assertNotIn("\napp();", part)
-        view = view + frame + end
+        view = view + frame + lanes + end
         self.assertTrue(re.sub(r"^/\*.*?\*/\s*", "", layout, flags=re.S).startswith('"use strict";'))
         self.assertNotIn('\n"use strict";', view)
         self.assertNotIn("app()", layout)

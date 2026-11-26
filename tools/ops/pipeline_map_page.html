@@ -55,7 +55,32 @@ svg.previewing #edges,svg.previewing #elabels{opacity:.3}
 svg.settling .node{transition:transform .28s ease-out}
 svg.settling #edges,svg.settling #elabels{animation:settlein .28s ease-out}
 @keyframes settlein{from{opacity:.3}to{opacity:1}}
-.node.folder .box{stroke-dasharray:7 4;stroke-width:calc(2 * var(--bsc))}
+.node.folder .box,.node.lane .box{stroke-dasharray:7 4;stroke-width:calc(2 * var(--bsc))}
+#effbtn[aria-pressed=true]{background:#dcfce7;border-color:#15803d;color:#14532d}
+#wrap.ov{overflow-y:auto;overflow-x:hidden;cursor:default}
+#wrap.ov svg{height:auto}
+.lanecard,.bundle{cursor:pointer;outline:none}
+.lanecard .cb{fill:#fff;stroke:#cbd5e1;stroke-width:1.5px}
+.lanecard:hover .cb,.lanecard:focus-visible .cb{stroke:#1d4ed8;stroke-width:3px}
+.lanecard .ct{font-size:17px;font-weight:700}
+.lanecard .cl{font-size:13.5px;fill:#1f2937}
+.ovhint{font-size:13px;fill:#475569}
+.bundle .bl{fill:none;stroke-opacity:.5;stroke-linecap:round}
+.bundle .bh{fill:none;stroke:transparent;stroke-width:14px}
+.bundle .bn{font-size:11px;font-weight:700;fill:#334155;paint-order:stroke;stroke:#fafafa;stroke-width:3px}
+.bundle .ah{fill-opacity:.75}
+.bundle:hover .bl,.bundle:focus-visible .bl,.bundle:hover .ah{stroke-opacity:1;fill-opacity:1}
+.effb{display:none}
+body.eff .effb{display:inline}
+.effb .ring{fill:none;stroke:#64748b;stroke-width:1.5px;stroke-dasharray:4 3}
+.effb .wc{stroke-width:1.5px;fill:#fff;stroke:#475569}
+.effb .wc.bad{fill:#dc2626;stroke:#991b1b} .effb .wc.none{fill:#d1d5db;stroke:#6b7280} .effb .wc.ok{stroke:#15803d}
+.effb .wn{font-size:10.5px;font-weight:700;fill:#1f2937} .effb .wn.bad{fill:#fff}
+.effb .tb.quick{fill:#16a34a} .effb .tb.slow{fill:#d97706} .effb .tb.vslow{fill:#dc2626}
+.effb .tt{font-size:10.5px;font-weight:700;paint-order:stroke;stroke:#fff;stroke-width:3px;fill:#334155}
+.effb .tt.slow{fill:#b45309} .effb .tt.vslow{fill:#b91c1c}
+.ki{vertical-align:-4px;margin:0 2px}
+#legend .ki .effb,#legend .ki *{display:inline}
 span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent;border-radius:3px;vertical-align:-1px;margin-right:4px}
 #legend{position:absolute;bottom:10px;left:10px;max-width:440px;z-index:5;padding:8px 10px;font-size:12px}
 #legend div{margin:2px 0}
@@ -163,6 +188,12 @@ html.dark svg.hovering .edge.he.he{stroke:#c4b5fd}
 html.dark svg.hovering .node.hn .box{stroke:#c4b5fd}
 html.dark #lens{background:#0f172a;border-color:#94a3b8}
 html.dark #nav .vr{fill:rgba(248,113,113,.12);stroke:#f87171}
+html.dark .lanecard .cb{fill:#1e293b;stroke:#475569}
+html.dark .lanecard .cl{fill:#e2e8f0}
+html.dark .ovhint{fill:#cbd5e1}
+html.dark .bundle .bn{fill:#e2e8f0;stroke:#0f172a}
+html.dark #effbtn[aria-pressed=true]{background:#14532d;border-color:#4ade80;color:#dcfce7}
+html.dark .effb .tt{stroke:#0f172a;fill:#e2e8f0}
 @media (max-width:900px){#bar{right:10px;max-width:none}
  #bar h1{font-size:12px}
  #row1 .lbl{display:none}
@@ -211,7 +242,9 @@ try { const d = localStorage.getItem("pipelineMapDark"); if (d === "1" || (d ===
 <label class="inl" title="Retired tools kept for reference"><input type="checkbox" id="retired"> Retired tools</label>
 <div class="foot" hidden><a id="clearf2" title="Every lane and kind, parked and retired hidden; also puts View's boxes and links options back (compact on, no folders, edge labels on); keeps the file and the selected box">Clear filters</a></div>
 </div></details>
-<span id="btns"><button id="showall" hidden title="Back to the full map: all lanes and kinds, no folders. Parked and retired follow their ticks.">Whole map</button>
+<span id="btns"><button id="lanesbtn" hidden title="Back to the lane overview, one card per lane (the file and filters are cleared)">Lanes</button>
+<button id="showall" hidden title="Every lane drawn in full: all lanes and kinds, no folders. Parked and retired follow their ticks.">Whole map</button>
+<button id="effbtn" aria-pressed="false" title="Efficiency overlay (E): how each step runs, how many scripts write each output, logged step times">Efficiency</button>
 <button id="fit" title="Show the whole map (F)">Fit</button><button id="zout" title="Zoom out (scroll or pinch)" aria-label="Zoom out">−</button><button id="zin" title="Zoom in (scroll or pinch)" aria-label="Zoom in">+</button>
 <span class="gap"></span>
 <button id="share" title="Copy a link to this view: the file, filters, selected box, zoom and position">Share</button>
@@ -229,7 +262,17 @@ try { const d = localStorage.getItem("pipelineMapDark"); if (d === "1" || (d ===
 <div id="tour" class="panel" hidden role="dialog" aria-label="Tour of the controls"><div class="tt"></div><div class="tx"></div>
 <div class="tb"><span class="tn"></span><button class="skip">Skip tour</button><button class="back">Back</button><button class="next">Next</button></div></div>
 <div id="nav" class="panel" hidden title="Overview of the whole drawing: click or drag to move the view"></div>
-<details id="legend" class="panel"><summary><b>Legend and help</b></summary><b>Kind</b> (box colour)__LEGEND__
+<details id="legend" class="panel"><summary><b>Legend and help</b></summary><div><b>Lanes:</b> the map opens on the lane
+overview, one card per lane with its boxes counted by kind and its make panels and check.sh steps, and arrows for the
+links between lanes (thicker for more, the number is the link count). Click a lane to open it: the other lanes close to
+one box each that keeps their links, counted. Click an arrow to open the two lanes it joins, or a closed lane's box to
+open it too. <b>Lanes</b> goes back to the overview and <b>Whole map</b> draws every lane in full.</div>
+<div id="effkey"><b>Efficiency overlay</b> (<b>Efficiency</b>, or E): <span id="key-stamp"></span> a stamped step, skipped while
+its inputs are unchanged (make panels and check.sh stamps); <span id="key-guard"></span> a make panels guard, which always
+runs; <span id="key-writers"></span> on an output, the scripts that write it: red for two or more that the step manifests
+do not allow (a shared output shows green), grey for none; <span id="key-time"></span> a step's logged time, amber from 10 s,
+red from 60 s; <span id="key-ring"></span> a step with no logged time.<span id="key-timed"></span></div>
+<b>Kind</b> (box colour)__LEGEND__
 <div style="margin-top:6px"><b>Lane stripe</b> = domain. Dashed box = parked, dotted = retired, dashed line = feeds back
 to an earlier step.</div>
 <div><b>One file:</b> type or pick it in the File box, or find it under <b>Browse ▾</b> by folder (or double-click its box), to draw its

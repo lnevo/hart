@@ -1,16 +1,18 @@
 /* The pipeline map page's viewer: app() holds the page's state, drawing, hover, address and input. It runs only in
    the page, inlined by build_pipeline_map.py after pipeline_map_layout.js in the same script (so the layout's
-   functions and its "use strict" apply here); it is never loaded under node. app() is one function in three files,
+   functions and its "use strict" apply here); it is never loaded under node. app() is one function in four files,
    inlined in this order as one text: this file (the state, which boxes are shown, the drawing),
-   pipeline_map_view_frame.js (overview, headers, dark mode, lane zoom, pan and zoom) and pipeline_map_view_input.js
-   (magnifier, selection, search, filters, menus, tour, share, address; it closes app() and calls it). None of the
-   three is a script on its own. */
+   pipeline_map_view_frame.js (overview in the corner, headers, dark mode, lane zoom, pan and zoom),
+   pipeline_map_view_lanes.js (the lane overview the page opens on, open lanes, the efficiency overlay) and
+   pipeline_map_view_input.js (magnifier, selection, search, filters, menus, tour, share, address; it closes app() and
+   calls it). None of the four is a script on its own. */
 
 function app() {
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const byId = {};
   DATA.nodes.forEach(n => (byId[n.id] = n));
   DATA.kinds.folder ||= ["Folder", "#f8fafc", "#334155"];
+  DATA.kinds.lane ||= ["Closed lane", "#f1f5f9", "#475569"];
   DATA.presets ||= [];
   const insAll = {}, outsAll = {};
   DATA.edges.forEach(e => { (outsAll[e.from] ||= []).push(e); (insAll[e.to] ||= []).push(e); });
@@ -20,7 +22,8 @@ function app() {
   const allLanes = DATA.domains.map(d => d.id);
 
   const view = { lanes: new Set(allLanes), parked: false, retired: false, focus: null, up: Infinity, down: Infinity, trim: false,
-                 kindsOff: new Set(), compact: true, group: false, open: new Set(), hover: true, near: false, steps: 0, spread: 1 };
+                 kindsOff: new Set(), compact: true, group: false, open: new Set(), hover: true, near: false, steps: 0, spread: 1,
+                 overview: true, laneOpen: new Set(), eff: false };  // overview: the lane cards; laneOpen: the lanes drawn open
   let groups = { members: {}, groupOf: {} }, gNodes = {}, lastBox = null;  // folder boxes in the current drawing; the last file box picked
   const nodeOf = id => byId[id] || gNodes[id];
   let selected = null, lay = null, svg = null, vb = null, W = 0, H = 0;
@@ -93,13 +96,17 @@ function app() {
     const ids = new Set(nodes.map(n => n.id));
     const own = view.focus && view.up <= 1 && view.down <= 1;  // only the file's own links, not its neighbours' links
     let edges = g.edges.filter(e => ids.has(e.from) && ids.has(e.to) && (!own || e.from === view.focus || e.to === view.focus));
-    if (view.group && !view.focus) {  // folders: the whole map only; a file's chain is short enough already
+    if (view.laneOpen.size && !view.focus) {  // lanes opened from the overview: the others closed to one box each
+      groups = collapseLanes(nodes, edges, view.laneOpen, closedLaneName);
+      ({ nodes, edges } = groups);
+      nodes.forEach(n => { if (n.kind === "lane") gNodes[n.id] = n; });
+    } else if (view.group && !view.focus) {  // folders: the whole map only; a file's chain is short enough already
       groups = groupByFolder(nodes, edges, view.open);
       ({ nodes, edges } = groups);
       nodes.forEach(n => { if (n.kind === "folder") gNodes[n.id] = n; });
       nodes.forEach(n => { if (n.kind === "folder" && !n.path && n.folder.startsWith("outside the repo: ")) n.label = "outside the repo: " + domainLabel[n.folder.slice(18)]; });
     }
-    if (view.compact) nodes = nodes.map(n => (n.kind === "folder" ? n : { ...n, desc: "", path: "" }));
+    if (view.compact) nodes = nodes.map(n => (gNodes[n.id] ? n : { ...n, desc: "", path: "" }));
     baseIds = new Set(nodes.map(n => n.id));  // what the filters draw before "highlighted only" trims it
     return trimmed() && baseIds.has(selected) ? { ...chainOnly(nodes, edges, selected), trim: true } : { nodes, edges };
   }
@@ -328,7 +335,7 @@ function app() {
       }
       ty += 2;
       for (const line of wrap(n.desc, lay.geo.descWrap || WRAP)) { ty += 13; p.push(`<text class="d" x="14" y="${ty}">${esc(line)}</text>`); }
-      p.push("</g>");
+      p.push(effMarks(byId[n.id] || n, bw, bh), "</g>");
     }
     p.push("</g></svg>");
     return p.join("\n");
@@ -353,6 +360,10 @@ function app() {
     return colsOf;
   }
   function render(keepView, aspect, settled) {
+    // the lane overview while nothing asks for the map: no file, no changed filter (a filter changed there leaves it)
+    if (view.overview && !view.focus && !filtersChanged()) { drawOverview(); return; }
+    view.overview = false;
+    if (ovSvg) { ovSvg = null; wrapEl.classList.remove("ov"); }
     sub = subset();
     const old = vb && keepView ? { x: vb.x, y: vb.y, w: vb.width, h: vb.height } : null;
     const asked = aspect !== undefined;
@@ -370,7 +381,9 @@ function app() {
         aspect = screen * w1 / wk;
       }
     } else if (!asked) aspect = screen;
-    lay = layout(sub.nodes, sub.edges, DATA.domains, aspect, geo);
+    // a lane closed to one box stays a thin strip: the open lanes take the height the screen has to spare
+    const lanes = view.laneOpen.size && !view.focus ? DATA.domains.map(d => (view.laneOpen.has(d.id) ? d : { ...d, thin: true })) : DATA.domains;
+    lay = layout(sub.nodes, sub.edges, lanes, aspect, geo);
     lay.aspect = aspect; lay.screen = screen;
     wrapEl.innerHTML = drawSvg(lay);
     svg = document.getElementById("map");
@@ -401,6 +414,7 @@ function app() {
     if (!old) fit();  // after the info panel is shown or hidden, so the fit leaves room for it
     else setVB(vb.x, vb.y, vb.width, vb.height);  // clamped again against the panel as it is now
     updateNav();
+    announce();
   }
 
   /* Redraw after a change that moves the boxes (compact, folders, a filter) without losing the reader's place: the
@@ -444,6 +458,7 @@ function app() {
     const el = document.getElementById("view");
     const parts = [];
     if (view.focus) parts.push(`<b>${esc(byId[view.focus].label)}</b>`);
+    else if (view.laneOpen.size) parts.push(`${[...view.laneOpen].map(d => `<b>${esc(domainLabel[d])}</b>`).join(" and ")}, the other lanes closed`);
     if (sub.trim) parts.push(selected === view.focus ? "highlighted only" : `only the chain of <b>${esc(nodeOf(selected).label)}</b>`);
     const kindsOn = Object.keys(DATA.kinds).filter(k => hideable(k) && !view.kindsOff.has(k));
     if (view.kindsOff.size && kindsOn.length === 1) parts.push(`only ${esc(DATA.kinds[kindsOn[0]][0].toLowerCase())}`);
@@ -454,21 +469,18 @@ function app() {
     const off = [!view.parked && "parked", !view.retired && "retired"].filter(Boolean);
     if (off.length) parts.push(`${off.join(" and ")} hidden`);
     showDepth();
-    const all = view.focus || sub.trim || view.kindsOff.size || view.group || view.lanes.size !== allLanes.length;
+    const all = view.overview || view.laneOpen.size || view.focus || sub.trim || view.kindsOff.size || view.group || view.lanes.size !== allLanes.length;
     const boxes = sub.nodes.reduce((n, b) => n + (groups.members[b.id] ? groups.members[b.id].length : 1), 0);  // a folder counts its boxes
-    el.innerHTML = parts.length ? `Showing ${parts.join(" · ")} · ${boxes} of ${DATA.nodes.length} boxes`
+    el.innerHTML = view.overview ? `Showing the lane overview · ${DATA.nodes.length} boxes, ${DATA.edges.length} links`
+      : parts.length ? `Showing ${parts.join(" · ")} · ${boxes} of ${DATA.nodes.length} boxes`
       : `${DATA.nodes.length} boxes, ${DATA.edges.length} links`;
     document.getElementById("showall").hidden = !all;
+    document.getElementById("lanesbtn").hidden = view.overview;
     document.getElementById("clearf").hidden = !filtersChanged();
     document.getElementById("clearf2").parentElement.hidden = !filtersChanged();  // its twin at the foot of Filters
-    strip2.hidden = !(view.focus || filtersChanged());  // the second row only while there is a file view or a changed filter
+    strip2.hidden = !(view.focus || view.laneOpen.size || filtersChanged());  // the second row only for a file view, open lanes or a changed filter
   }
   const strip2 = document.getElementById("strip2");
   document.getElementById("clearf").onclick = clearFilters;
   document.getElementById("clearf2").onclick = () => { clearFilters(); document.getElementById("lanes").open = false; };  // the same, in Filters
-  document.getElementById("showall").onclick = () => {
-    view.focus = null; if (view.trim) selected = null; view.lanes = new Set(allLanes);
-    view.kindsOff.clear(); view.group = false; view.open.clear(); fileIn.value = "";
-    syncControls(); render(false); writeHash();
-  };
 
