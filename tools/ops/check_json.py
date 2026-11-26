@@ -108,8 +108,9 @@ def problems(value, node: dict, path: str = "", root: Path = ROOT) -> list[str]:
         if isinstance(value, bool) or not isinstance(value, int):
             return [f"{at}: must be a whole number, not {_kind(value)}"]
         if node["min"] is not None and value < node["min"] or node["max"] is not None and value > node["max"]:
-            out.append(f"{at}: {value} is not from {node['min']} to {node['max']}" if node["max"] is not None
-                       else f"{at}: {value} is below {node['min']}")
+            lo, hi = node["min"], node["max"]
+            out.append(f"{at}: {value} is not from {lo} to {hi}" if lo is not None and hi is not None
+                       else f"{at}: {value} is above {hi}" if hi is not None else f"{at}: {value} is below {lo}")
     elif t == "number":
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             return [f"{at}: must be a number, not {_kind(value)}"]
@@ -167,6 +168,7 @@ def problems(value, node: dict, path: str = "", root: Path = ROOT) -> list[str]:
                 out.append(f"{_step(path, k)}: is not a key here (keys: {allowed})")
     else:
         raise ValueError(f"schema node type {t!r}")
+    # a cross-field rule runs only on a value whose own shape passed (it indexes its keys): fix shape errors first
     if not out and node.get("check"):
         msg = node["check"](value)
         if msg:
@@ -343,8 +345,12 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("files", nargs="*", help="files to check, from the repo root (default: every one in SCHEMAS)")
     args = ap.parse_args(argv)
-    files = [Path(f).resolve().relative_to(ROOT).as_posix() if Path(f).is_absolute() else Path(f).as_posix()
-             for f in args.files] or list(SCHEMAS)
+    def repo_rel(f: str) -> str:            # a path from the cwd (or absolute) as the repo-relative SCHEMAS key
+        try:
+            return Path(f).resolve().relative_to(ROOT.resolve()).as_posix()
+        except ValueError:                  # outside this repo: no schema
+            return f
+    files = [repo_rel(f) for f in args.files] or list(SCHEMAS)
     unknown = [f for f in files if f not in SCHEMAS]
     if unknown:
         print(f"check_json: no schema for {', '.join(unknown)} (schemas: {', '.join(SCHEMAS)})", file=sys.stderr)

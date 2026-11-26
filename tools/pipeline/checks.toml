@@ -716,7 +716,9 @@ name = "json-schemas"
 runner = "check"
 group = "static"
 cmd = ["python3", "tools/ops/check_json.py"]
-git = ["head", "base"]
+# git = []: its trace (2026-11-25) shows one Python process that runs no git and opens nothing under .git, so its
+# read set holds all it reads; HEAD in its key would only rerun it after every commit
+git = []
 domain = "layout"
 label = "check_json.py"
 desc = "Checks plan_overrides.json, preferences.json, panel_items.json and published-files.json against a schema each: the keys, types and values their readers depend on (ADR-039)."
