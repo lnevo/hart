@@ -222,6 +222,45 @@ def _overlap(a: str, b: str) -> bool:
     return a == b or bool(glob_regex(a).fullmatch(b)) or bool(glob_regex(b).fullmatch(a))
 
 
+# A file a step of each manifest declares as an output, on purpose: path -> (its checks.toml step, its panels.toml
+# step, why). Any other file declared in both fails writer_problems: one file, one writer (#1187 found crew.json
+# written by two code paths).
+SHARED_OUTPUTS: dict[str, tuple[str, str, str]] = {
+    "www/data/crew.json": ("crew-json", "schematic", "both write it whole through crew_master.build() (#1187): the "
+                           "crew-json job from the crew master, the schematic step when the title block's revision "
+                           "changes"),
+}
+
+
+def writer_problems(checks, panels, checks_shown: str, panels_shown: str,
+                    shared: dict[str, tuple[str, str, str]] = SHARED_OUTPUTS) -> list[str]:
+    """Why a file is declared as an output of a step of checks.toml and of a step of panels.toml, or []. Two outputs
+    that can name one file (a glob included) are a problem unless they are one path that `shared` lists with those
+    two steps. A `shared` entry without a reason, or one the manifests no longer declare that way, is a problem too,
+    so the list cannot go stale."""
+    out = [f"SHARED_OUTPUTS in tools/pipeline/manifest_panels.py: {path}: give the reason both manifests write it"
+           for path, (_c, _p, why) in shared.items() if not why.strip()]
+    used: set[str] = set()
+    for c in checks:
+        for oc in c.outputs:
+            for p in panels:
+                for op in p.outputs:
+                    if not _overlap(oc.path, op.path):
+                        continue
+                    if oc.path == op.path and shared.get(oc.path, ())[:2] == (c.name, p.name):
+                        used.add(oc.path)
+                        continue
+                    same = oc.path if oc.path == op.path else f"{oc.path} and {op.path}"
+                    out.append(f"{same}: an output of step {c.name!r} in {checks_shown} and of step {p.name!r} in "
+                               f"{panels_shown}; a file has one writer: drop it from one step, or, when both must "
+                               f"write it whole the same way, list it in SHARED_OUTPUTS in "
+                               f"tools/pipeline/manifest_panels.py with the two steps and why")
+    out += [f"SHARED_OUTPUTS in tools/pipeline/manifest_panels.py: {path}: step {c!r} in {checks_shown} and step "
+            f"{p!r} in {panels_shown} no longer both declare it; remove the entry"
+            for path, (c, p, _why) in sorted(shared.items()) if path not in used]
+    return out
+
+
 def panel_order_problems(steps) -> list[str]:
     """Why the steps' file order is not one make panels can run, or []. Each writer of a file a step reads comes
     before it, unless the step updates that file itself or names the writer in the input's written_later; two steps

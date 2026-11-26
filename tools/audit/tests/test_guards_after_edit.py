@@ -134,6 +134,51 @@ class AfterEditMatchingTests(unittest.TestCase):
             self.assertEqual((code, "not run after editing" in err and "TOML. Run ./tools/check.sh." in err), (2, True))
         self.assertEqual(self.ran, [])
 
+    def hook_out(self, rel: str) -> tuple[int, str, str]:
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            code, err = self.hook(rel)
+        return code, err, out.getvalue()
+
+    def slow(self, *names: str, fail: tuple[str, ...] = ()):
+        """A run() that times out for the checks whose argv holds one of `names` and fails for those of `fail`."""
+        def run(argv, **kwargs):
+            self.ran.append(argv)
+            if any(n in argv for n in names):
+                raise subprocess.TimeoutExpired(argv, kwargs["timeout"])
+            return subprocess.CompletedProcess(argv, 1 if any(f in argv for f in fail) else 0, "",
+                                               "boom" if any(f in argv for f in fail) else "")
+        self.after.subprocess = type("FakeSubprocess", (), {
+            "run": staticmethod(run), "TimeoutExpired": subprocess.TimeoutExpired})
+
+    def test_a_check_past_the_budget_is_not_run_not_failed_and_said_plainly(self) -> None:
+        """Row 7 of section E (pipeline-coverage-handoff): unit-jmri under load runs past 20 s on a tables.xml edit."""
+        self.slow("discover")
+        code, err, out = self.hook_out("jmri/layouts/hart/output/tables.xml")
+        line = "check_after_edit: unit-jmri: not run in the edit hook (over the 20 s budget; check.sh runs it)"
+        self.assertEqual((code, err.strip()), (0, line))
+        self.assertNotIn("FAILED", err)
+        context = json.loads(out)["hookSpecificOutput"]
+        self.assertEqual(context, {"hookEventName": "PostToolUse", "additionalContext": line})
+
+    def test_a_budget_used_up_names_each_check_left(self) -> None:
+        clock = iter([0.0, 0.0, 16.0, 16.0])    # start; check one starts at 0; then 16 s are used, 4 left
+        self.after.time = type("FakeTime", (), {"monotonic": staticmethod(lambda: next(clock, 16.0))})
+        code, err, out = self.hook_out("jmri/layouts/hart/output/tables.xml")
+        self.assertEqual(code, 0, err)
+        self.assertEqual(self.ran, [["python3", "t/one.py"]])
+        for name in ("two", "unit-jmri"):
+            self.assertIn(f"check_after_edit: {name}: not run in the edit hook (over the 20 s budget", err)
+        self.assertIn("two: not run", json.loads(out)["hookSpecificOutput"]["additionalContext"])
+
+    def test_a_failure_still_fails_beside_a_check_past_the_budget(self) -> None:
+        self.slow("discover", fail=("t/one.py",))
+        code, err, out = self.hook_out("jmri/layouts/hart/output/tables.xml")
+        self.assertEqual((code, out), (2, ""))
+        self.assertIn("--- one FAILED", err)
+        self.assertIn("unit-jmri: not run in the edit hook (over the 20 s budget", err)
+        self.assertNotIn("unit-jmri FAILED", err)
+
     def test_unwatched_file_runs_nothing(self) -> None:
         self.assertEqual(self.hook("jmri/scripts/README.md"), (0, ""))
         self.assertEqual(self.ran, [])

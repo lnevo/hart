@@ -131,6 +131,9 @@ def stage_env(tmp: Path) -> dict[str, str]:
         HART_OPERATING_FLAG=str(tmp / "no-operating-flag"),
         # the gate's origin/main check (check_on_main) against HEAD itself: passes on any branch, and no fetch
         HART_MAIN_REF="HEAD",
+        # the stage's python3 calls import modules of the tree they run from: their bytecode goes under tmp, not
+        # into __pycache__ folders of the live checkout
+        PYTHONPYCACHEPREFIX=str(tmp / "pycache"),
     )
     return env
 
@@ -312,6 +315,18 @@ class StagedOnce(unittest.TestCase):
                 self.assertEqual(read_stamp(tmp / "stage" / host / "cats/deploy_stamp.txt")["target"], host)
 
 
+def private_clone(tmp: Path) -> tuple[Path, dict[str, str]]:
+    """A clone of HEAD at `tmp`/repo with this checkout's own tools/hosts copied in (uncommitted edits to the deploy
+    scripts are what runs), and stage_env for it, with the deploy audit's plugin taken from this checkout (the clone
+    has no submodule checkout). A test that writes into the tree it stages from uses one, never the live checkout."""
+    repo = tmp / "repo"
+    subprocess.run(["git", "clone", "-q", "--shared", str(ROOT), str(repo)], check=True, capture_output=True)
+    shutil.copytree(ROOT / "tools/hosts", repo / "tools/hosts", dirs_exist_ok=True)
+    env = stage_env(tmp)
+    env["SCHEMATIC_PLUGIN"] = str(ROOT / "external/model-railroad-skills/plugins/schematic-maps")
+    return repo, env
+
+
 class StampNamesWhatWasShipped(unittest.TestCase):
     """The stamp, staged from a private clone of HEAD: other checks write into the live tree while this runs, so
     its dirty flag is read from a tree nothing else touches. The checkout's own tools/hosts is copied in, so
@@ -324,15 +339,10 @@ class StampNamesWhatWasShipped(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.tmp = Path(tempfile.mkdtemp())
         cls.addClassCleanup(shutil.rmtree, cls.tmp, ignore_errors=True)
-        cls.repo = cls.tmp / "repo"
-        subprocess.run(["git", "clone", "-q", "--shared", str(ROOT), str(cls.repo)], check=True, capture_output=True)
-        shutil.copytree(ROOT / "tools/hosts", cls.repo / "tools/hosts", dirs_exist_ok=True)
+        cls.repo, env = private_clone(cls.tmp)
         (cls.repo / cls.MARKER).write_text("untracked\n", encoding="utf-8")
         cls.changes = git("status", "--porcelain", repo=cls.repo).splitlines()
         cls.out = cls.tmp / "stage"
-        env = stage_env(cls.tmp)
-        # the clone has no submodule checkout; the deploy audit needs the plugin, so it uses this checkout's
-        env["SCHEMATIC_PLUGIN"] = str(ROOT / "external/model-railroad-skills/plugins/schematic-maps")
         cls.done = run(cls.repo / "tools/hosts/sync_hart_package.sh", cls.out, env, cwd=cls.repo)
         if cls.done.returncode != 0:
             raise RuntimeError("staging from the clone failed:\n" + cls.done.stderr[-2000:])
@@ -361,31 +371,33 @@ class StampNamesWhatWasShipped(unittest.TestCase):
 
 
 class FinderLitterStaysOut(unittest.TestCase):
-    """A gitignored .DS_Store in a staged folder of the checkout must not reach the package.
+    """A gitignored .DS_Store or ._ file in a staged folder must not reach the package.
 
-    Only .DS_Store is planted: it is gitignored, so a run killed before its cleanup leaves the checkout clean.
+    The litter is planted in a private clone the stage runs from (private_clone), never in the live checkout, where
+    a killed run would leave it and other runs staging at the same time would copy it.
     """
 
     PLANTED = ("jmri/resources/jmri-web/.DS_Store", "jmri/resources/jmri-web/servlet/.DS_Store",
-               "tools/hosts/pi/.DS_Store", "tools/hosts/windows/.DS_Store")
+               "tools/hosts/pi/.DS_Store", "tools/hosts/windows/._apply_hart_package_local.ps1")
 
     def test_package_has_no_finder_files(self) -> None:
-        for rel in self.PLANTED:
-            path = ROOT / rel
-            if not path.exists():
-                path.write_bytes(b"\0")
-                self.addCleanup(path.unlink, missing_ok=True)
-        with tempfile.TemporaryDirectory() as tmp:
-            out = Path(tmp) / "stage"
-            done = run(SYNC, out, stage_env(Path(tmp)))
+        with tempfile.TemporaryDirectory() as name:
+            tmp = Path(name)
+            repo, env = private_clone(tmp)
+            for rel in self.PLANTED:
+                self.assertTrue((repo / rel).parent.is_dir(), rel)     # a folder the stage copies
+                (repo / rel).write_bytes(b"\0")
+            out = tmp / "stage"
+            done = run(repo / "tools/hosts/sync_hart_package.sh", out, env, cwd=repo)
             self.assertEqual(done.returncode, 0, done.stderr[-2000:])
+            self.assertTrue((out / "pi").is_dir() and (out / "win").is_dir(), tree(out)[:20])
             litter = [p for p in tree(out) if Path(p).name == ".DS_Store" or Path(p).name.startswith("._")]
             self.assertEqual(litter, [])
 
 
 class StageRsyncsSkipLitter(unittest.TestCase):
-    """Every rsync in stage.sh skips Finder litter as it copies, so a .DS_Store that vanishes mid-copy (as
-    FinderLitterStaysOut plants and removes them in the checkout) is never read and cannot stop rsync with code 24."""
+    """Every rsync in stage.sh skips Finder litter as it copies, so a .DS_Store that vanishes mid-copy (Finder
+    writes and removes them in the checkout) is never read and cannot stop rsync with code 24."""
 
     def rsync_calls(self, script: str) -> list[str]:
         """Every rsync call in a deploy step, with backslash continuations joined and comments dropped, wherever
