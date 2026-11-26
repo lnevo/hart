@@ -263,7 +263,7 @@ def collect_sections(cars: dict[str, dict[str, str]], source_root: ET.Element) -
 
 
 def write_roster(cars: dict[str, dict[str, str]], skipped: list[str]) -> None:
-    source_root = ET.parse(SOURCE_ROSTER).getroot()
+    source_root = operations.root(SOURCE_ROSTER)
     sections = collect_sections(cars, source_root)
     sorted_cars = [cars[cid] for cid in sorted(cars, key=lambda i: car_sort_key(cars[i]))]
 

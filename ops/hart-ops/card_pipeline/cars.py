@@ -618,7 +618,7 @@ def merge_ops(
     root = tree.getroot()
     cars_el = root.find("cars")
     have = {c.get("id") for c in cars_el.findall("car")}
-    source = {c.get("id"): c for c in ET.parse(MERGED).getroot().findall("./cars/car")}
+    source = {c.get("id"): c for c in operations.cars(MERGED)}
     added = []
     for roster_id in wanted:
         if roster_id in have:

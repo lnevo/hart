@@ -7,8 +7,8 @@
 The repo's Operations Pro files live in jmri/layouts/hart/operations/ (ADR-015, the copy the hosts load) and, for
 the car pipeline, ops/hart-ops/data/; callers name the file. Each reader returns the elements of its section in file
 order (./cars/car, ./engines/engine, ./trains/train), so a <car> elsewhere in the file is never counted. A missing
-file raises FileNotFoundError and a broken one ET.ParseError, both naming the file. Nothing here writes: the tools
-that change a roster keep JMRI's header and layout themselves.
+file raises FileNotFoundError and a broken one ET.ParseError, both naming the file (the ParseError keeps its
+code and position). Nothing here writes: the tools that change a roster keep JMRI's header and layout themselves.
 """
 from __future__ import annotations
 
@@ -23,9 +23,8 @@ ROSTERS = {
     "cars": OPERATIONS_DIR / "OperationsCarRoster.xml",
     "engines": OPERATIONS_DIR / "OperationsEngineRoster.xml",
     "trains": OPERATIONS_DIR / "OperationsTrainRoster.xml",
-    "locations": OPERATIONS_DIR / "OperationsLocationRoster.xml",
 }
-SECTIONS = {"cars": "car", "engines": "engine", "trains": "train", "locations": "location"}
+SECTIONS = {"cars": "car", "engines": "engine", "trains": "train"}
 
 
 def root(path: Path | str) -> ET.Element:
@@ -33,7 +32,9 @@ def root(path: Path | str) -> ET.Element:
     try:
         return ET.parse(path).getroot()
     except ET.ParseError as err:
-        raise ET.ParseError(f"{path}: {err}") from None
+        named = ET.ParseError(f"{path}: {err}")
+        named.code, named.position = err.code, err.position   # where the damage is, as the parser said
+        raise named from err
 
 
 def section(path: Path | str, name: str) -> list[ET.Element]:
