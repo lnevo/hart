@@ -19,7 +19,6 @@ PAGE_HEAD and SECTIONS below. The session-start hook and `make wt` build the pag
 from __future__ import annotations
 
 import argparse
-import os
 import posixpath
 import re
 import subprocess
@@ -28,7 +27,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import parked, paths, tables as hl_tables  # noqa: E402
+from hartlib import files, parked, paths, tables as hl_tables  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 TABLES = paths.TABLES_XML
@@ -233,17 +232,6 @@ def build(folder: Path = FOLDER, tables: Path = TABLES, traininfo: Path = TRAINI
     return text, problems, sum(e.text != COUNTS_TOKEN for e in entries)
 
 
-def write_atomic(out: Path, text: str) -> None:
-    """Write `out` through a temp file in its own folder and os.replace, so a stopped build (the session-start hook's
-    timeout) leaves the old page or the new one, never a cut-off page."""
-    tmp = out.with_name(f".{out.name}.{os.getpid()}.tmp")
-    try:
-        tmp.write_text(text, encoding="utf-8")
-        os.replace(tmp, out)
-    finally:
-        tmp.unlink(missing_ok=True)
-
-
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--check", action="store_true", help="build in memory, write nothing; exit 1 on a problem")
@@ -259,7 +247,7 @@ def main(argv: list[str]) -> int:
     if not args.check:
         out = args.out or STATUS
         if not out.exists() or out.read_text(encoding="utf-8") != text:
-            write_atomic(out, text)
+            files.write_atomic(out, text, follow_links=False)  # a stopped build leaves the old page or the new one
         if not args.quiet:
             print(f"wrote {out.relative_to(ROOT) if out.is_relative_to(ROOT) else out} "
                   f"from wiki/status/ ({n} entries and the Counts line)")
