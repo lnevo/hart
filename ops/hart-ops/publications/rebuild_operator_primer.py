@@ -57,10 +57,19 @@ PRIMER_BLOCK_TRAIN: dict[str, str] = {
     "blue": "D749", "yellow": "NVL", "green": "NVL", "purple": "NVL", "red": "NVL", "pink": "NVL",
     "black": "CK1", "orange": "NVL return",
 }
-BLOCK_LEGEND: list[tuple[str, str, str, str, str]] = [
-    (sw.label, sw.fill, sw.ink, sw.dest, PRIMER_BLOCK_TRAIN[color_id])
-    for color_id, sw in crew_master.swatches(crew_master.load()).items()
-]
+
+
+def _block_legend() -> list[tuple[str, str, str, str, str]]:
+    """(label, fill, ink, destination, train) per master colour; a colour with no primer train stops the build."""
+    rows = []
+    for color_id, sw in crew_master.swatches(crew_master.load()).items():
+        if color_id not in PRIMER_BLOCK_TRAIN:
+            raise ValueError(f"{crew_master.MASTER.name}: colour {color_id!r} has no train in PRIMER_BLOCK_TRAIN")
+        rows.append((sw.label, sw.fill, sw.ink, sw.dest, PRIMER_BLOCK_TRAIN[color_id]))
+    return rows
+
+
+BLOCK_LEGEND = _block_legend()
 
 JOBS: list[tuple[str, str, str]] = [
     (
