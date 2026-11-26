@@ -13,6 +13,7 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
 spec = importlib.util.spec_from_file_location("check_habits", ROOT / "tools/audit/check_habits.py")
+assert spec is not None and spec.loader is not None
 H = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(H)
 

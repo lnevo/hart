@@ -42,13 +42,27 @@ import subprocess
 import sys
 from collections.abc import Mapping
 from pathlib import Path
+from types import ModuleType
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
-_spec = importlib.util.spec_from_file_location("build_pipeline_map", Path(__file__).resolve().with_name("build_pipeline_map.py"))
-MAP = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(MAP)
 
-Graph = MAP.Graph
+
+def _load_map() -> ModuleType:
+    """build_pipeline_map.py, loaded by path."""
+    path = Path(__file__).resolve().with_name("build_pipeline_map.py")
+    spec = importlib.util.spec_from_file_location("build_pipeline_map", path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"cannot load {path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+MAP = _load_map()
+# The driver merges every top-level key and list by its name, so it holds a side as plain JSON data; the graph's
+# own record types (build_pipeline_map.Graph, from map_lane.py) name the keys the build reads.
+Graph = dict[str, Any]
 SCRIPT = "tools/ops/merge_pipeline_map.py"
 
 
@@ -98,7 +112,7 @@ class Conflict:
         self.where, self.ours, self.theirs, self.inline = where, ours, theirs, inline
 
 
-def key_of(name: str, entry: Mapping[str, object]) -> str | tuple[str, str]:
+def key_of(name: str, entry: Mapping[str, Any]) -> str | tuple[str, str]:
     if name == "nodes":
         return MAP.node_key(entry)
     if name == "edges":
@@ -185,7 +199,7 @@ def merge_list(name: str, base: Graph, ours: Graph, theirs: Graph, conflicts: li
             conflicts.append(value)
         if value is not ABSENT:
             merged[k] = value
-    order, both_reordered = merge_order(*seqs, set(merged))
+    order, both_reordered = merge_order(seqs[0], seqs[1], seqs[2], set(merged))
     if both_reordered:
         conflicts.append(Conflict(f"the order of {name!r} (both sides reordered it; this file keeps ours)",
                                   ABSENT, ABSENT, inline=False))

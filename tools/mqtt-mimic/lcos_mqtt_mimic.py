@@ -31,6 +31,7 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlparse
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
@@ -207,7 +208,7 @@ def load_layout(levels: bool = True) -> dict:
         )
     blocks.sort(key=lambda b: (plant_rank(b["plant"]), b["userName"]))
 
-    turnouts = []
+    turnouts: list[dict[str, Any]] = []        # JSON records for the page: text, numbers and None
     turnout_cp = cps.get("turnout") or {}
     for el in root.findall(".//turnout"):
         sn = _txt(el, "systemName")

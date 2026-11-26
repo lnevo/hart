@@ -51,7 +51,10 @@ import re
 import shlex
 import subprocess
 import sys
+from collections.abc import Callable, Hashable, Mapping
 from pathlib import Path
+from types import ModuleType
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 ROOT = Path(__file__).resolve().parents[2]
 GRAPH = ROOT / "docs" / "pipeline-map" / "pipeline_map.json"
@@ -95,14 +98,23 @@ class GraphError(Exception):
     pass
 
 
-_agent_spec = importlib.util.spec_from_file_location("agent_docs_map", Path(__file__).resolve().with_name("agent_docs_map.py"))
-AGENT_DOCS = importlib.util.module_from_spec(_agent_spec)
-_agent_spec.loader.exec_module(AGENT_DOCS)
-_lane_spec = importlib.util.spec_from_file_location("map_lane", ROOT / "tools" / "pipeline" / "map_lane.py")
-MANIFEST_LANE = importlib.util.module_from_spec(_lane_spec)
-_lane_spec.loader.exec_module(MANIFEST_LANE)
+def _load(name: str, path: Path) -> ModuleType:
+    """The module at path, loaded under name."""
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"cannot load {path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+AGENT_DOCS = _load("agent_docs_map", Path(__file__).resolve().with_name("agent_docs_map.py"))
+MANIFEST_LANE = _load("map_lane", ROOT / "tools" / "pipeline" / "map_lane.py")
 # the graph's record types and fixed sets live in map_lane.py
-Node, Edge, Graph = MANIFEST_LANE.Node, MANIFEST_LANE.Edge, MANIFEST_LANE.Graph
+if TYPE_CHECKING:
+    from tools.pipeline.map_lane import Edge, Graph, Node
+else:
+    Node, Edge, Graph = MANIFEST_LANE.Node, MANIFEST_LANE.Edge, MANIFEST_LANE.Graph
 SIDES = MANIFEST_LANE.SIDES                     # an edge's "side": why it carries no content on the main flow
 STATUSES = MANIFEST_LANE.STATUSES
 if tuple(KINDS) != MANIFEST_LANE.NODE_KINDS:
@@ -117,7 +129,7 @@ STALE_SHOWN = 12        # entries a stale-graph message names before it counts t
 def tracked_paths() -> frozenset[str]:
     """Every git-tracked file in the repo and every folder that holds one, so the check is the same on any clone."""
     out = subprocess.check_output(["git", "ls-files", "-z"], cwd=ROOT, text=True)
-    paths = set()
+    paths: set[str] = set()
     for f in filter(None, out.split("\0")):
         parts = f.split("/")
         paths.update("/".join(parts[:k]) for k in range(1, len(parts) + 1))
@@ -143,7 +155,7 @@ def read(path: Path) -> Graph:
     bad_paths = [n for n in data["nodes"] if not isinstance(n.get("path", ""), str)]
     if bad_paths:
         raise GraphError(f"a node's path must be text: {bad_paths[0]!r}")
-    return data
+    return cast(Graph, data)    # JSON: the lists are checked here, their entries by validate()
 
 
 def node_key(n: Node) -> str:
@@ -174,7 +186,7 @@ def regenerate(data: Graph) -> Graph:
         raise GraphError(f"manifest lane: {err}") from err
 
 
-def _lane_of(*entries: Node | Edge | None) -> str:
+def _lane_of(*entries: Mapping[str, Any] | None) -> str:
     gens = sorted({e["gen"] for e in entries if isinstance(e, dict) and e.get("gen")})
     return f" ({', '.join(gens)} lane)" if gens else " (hand-kept)"
 
@@ -182,9 +194,10 @@ def _lane_of(*entries: Node | Edge | None) -> str:
 def differences(old: Graph, new: Graph) -> list[str]:
     """Each node and edge that `new` adds, drops or changes against `old`, named with its lane, then any other change
     (order, the top-level keys). Both are graphs as read() gives them."""
-    out = []
-    for name, key, show in (("nodes", node_key, "node {!r}".format),
-                            ("edges", edge_key, lambda k: f"edge {k[0]} -> {k[1]}")):
+    out: list[str] = []
+    lists: tuple[tuple[Literal["nodes", "edges"], Callable[[Any], Hashable], Callable[[Any], str]], ...] = (
+        ("nodes", node_key, "node {!r}".format), ("edges", edge_key, lambda k: f"edge {k[0]} -> {k[1]}"))
+    for name, key, show in lists:
         before = {key(e): e for e in old.get(name, []) if isinstance(e, dict)}
         after = {key(e): e for e in new.get(name, []) if isinstance(e, dict)}
         for k in dict.fromkeys([*before, *after]):
@@ -264,10 +277,10 @@ def validate(data: Graph, tracked: bool = True) -> Graph:
         for end in ("from", "to"):
             if e[end] not in ids:
                 problems.append(f"edge {e['from']} -> {e['to']}: {end} end is not a node")
-        key = edge_key(e)
-        if key in seen_edges:
+        ends = edge_key(e)
+        if ends in seen_edges:
             problems.append(f"edge {e['from']} -> {e['to']} is listed twice")
-        seen_edges.add(key)
+        seen_edges.add(ends)
         if e["from"] == e["to"]:
             problems.append(f"edge {e['from']} points at itself")
         if "side" in e and e["side"] not in SIDES:
@@ -479,7 +492,8 @@ def check_page(page: str, data: Graph, site: bool) -> None:
     except json.JSONDecodeError as err:
         raise GraphError(f"the page's graph data is not valid JSON: {err}") from err
     try:
-        keys = {"nodes": lambda e: e["id"], "edges": lambda e: (e["from"], e["to"])}
+        keys: dict[Literal["nodes", "edges"], Callable[[Any], Hashable]] = {
+            "nodes": lambda e: e["id"], "edges": lambda e: (e["from"], e["to"])}
         for key, ident in keys.items():
             got, want = [ident(e) for e in shown.get(key, ())], [ident(e) for e in data[key]]
             if len(got) != len(want) or set(got) != set(want):

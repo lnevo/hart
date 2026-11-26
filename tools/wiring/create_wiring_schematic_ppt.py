@@ -18,6 +18,7 @@ import sys
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 from pptx import Presentation
 from pptx.dml.color import RGBColor
@@ -76,10 +77,12 @@ class TurnoutRow:
     signals: list[str]
 
 
-Record = dict[str, object]
+# openpyxl and python-pptx ship no types mypy reads here (no_site_packages): their sheets, cell values, slides and
+# decks are Any
+Record = dict[str, Any]
 
 
-def records(ws: object, sheet: str, needed: Sequence[str]) -> list[Record]:
+def records(ws: Any, sheet: str, needed: Sequence[str]) -> list[Record]:
     """A sheet's data rows as {header: value}; WiringDeckError when a needed header is missing."""
     rows = list(ws.iter_rows(values_only=True))
     headers = list(rows[0]) if rows else []
@@ -102,11 +105,11 @@ def split_port(port: object) -> tuple[str, int] | None:
     return f"{parts[0]}-{parts[1]}", int(parts[2])
 
 
-def _count(value: object) -> int:
+def _count(value: Any) -> int:
     return int(value) if value else 0
 
 
-def collect_nodes(wb: object) -> tuple[list[NodeSummary], dict[str, NodeBoards]]:
+def collect_nodes(wb: Any) -> tuple[list[NodeSummary], dict[str, NodeBoards]]:
     """The client nodes in node-number order, and each one's boards and blocks."""
     summaries: dict[str, NodeSummary] = {}
     boards: dict[str, NodeBoards] = {}
@@ -132,7 +135,7 @@ def collect_nodes(wb: object) -> tuple[list[NodeSummary], dict[str, NodeBoards]]
     return [summaries[n] for n in order], boards
 
 
-def collect_turnouts(wb: object) -> list[TurnoutRow] | None:
+def collect_turnouts(wb: Any) -> list[TurnoutRow] | None:
     """One row per JMRI turnout, sorted by node number then turnout; a crossover's two half rows (one JMRI turnout,
     labelled by OS block) are one row with both halves' signals. None when the inventory has no TurnoutSummary."""
     if "TurnoutSummary" not in wb.sheetnames:
@@ -161,14 +164,14 @@ def collect_turnouts(wb: object) -> list[TurnoutRow] | None:
 
 # ---------------------------------------------------------------- slides
 
-def title(slide: object, text: str, top: float, height: float, size: int) -> None:
+def title(slide: Any, text: str, top: float, height: float, size: int) -> None:
     frame = slide.shapes.add_textbox(Inches(0.5), Inches(top), Inches(9), Inches(height)).text_frame
     frame.text = text
     frame.paragraphs[0].font.size = Pt(size)
     frame.paragraphs[0].font.bold = True
 
 
-def grid(slide: object, headers: Sequence[str], rows: Sequence[Sequence[str]], x: float, y: float, w: float, h: float,
+def grid(slide: Any, headers: Sequence[str], rows: Sequence[Sequence[str]], x: float, y: float, w: float, h: float,
          header_pt: int, body_pt: int, widths: Sequence[float] = ()) -> None:
     """A table with a blue header row and striped data rows."""
     table = slide.shapes.add_table(len(rows) + 1, len(headers), Inches(x), Inches(y), Inches(w), Inches(h)).table
@@ -194,7 +197,7 @@ def grid(slide: object, headers: Sequence[str], rows: Sequence[Sequence[str]], x
                 cell.fill.fore_color.rgb = STRIPE_FILL
 
 
-def summary_slide(prs: object, nodes: Sequence[NodeSummary], boards: dict[str, NodeBoards]) -> None:
+def summary_slide(prs: Any, nodes: Sequence[NodeSummary], boards: dict[str, NodeBoards]) -> None:
     slide = prs.slides.add_slide(prs.slide_layouts[BLANK])
     title(slide, "Wiring Schematic - Node Summary", 0.3, 0.8, 32)
     rows = [(n.node_id, n.location, n.address, str(n.boards_12v), str(n.boards_5v),
@@ -202,7 +205,7 @@ def summary_slide(prs: object, nodes: Sequence[NodeSummary], boards: dict[str, N
     grid(slide, SUMMARY_HEADERS, rows, 0.5, 1.5, 9, 5.5, 12, 10)
 
 
-def turnout_slide(prs: object, turnouts: Sequence[TurnoutRow]) -> None:
+def turnout_slide(prs: Any, turnouts: Sequence[TurnoutRow]) -> None:
     slide = prs.slides.add_slide(prs.slide_layouts[BLANK])
     title(slide, "Turnout Summary", 0.3, 0.8, 32)
     rows = [(t.turnout, t.node, t.button, t.feedback, ", ".join(t.signals)) for t in turnouts]
@@ -211,7 +214,7 @@ def turnout_slide(prs: object, turnouts: Sequence[TurnoutRow]) -> None:
         grid(slide, TURNOUT_HEADERS, part, x, 1.41, 4.5, 5.5, 9, 8, TURNOUT_WIDTHS)
 
 
-def port_table(slide: object, place: tuple[float, float], heading: str, fill: RGBColor,
+def port_table(slide: Any, place: tuple[float, float], heading: str, fill: RGBColor,
                rows: Sequence[tuple[str, str]], body_rows: int) -> None:
     """A two-column table under a merged coloured heading row, with `body_rows` rows below it."""
     table = slide.shapes.add_table(body_rows + 1, 2, Inches(place[0]), Inches(place[1]),
@@ -243,7 +246,7 @@ def board_rows(board_id: str, ports: dict[int, str]) -> list[tuple[str, str]]:
     return [(f"{board_id}-{p}", ports.get(p, "")) for p in range(1, PORTS_PER_BOARD + 1)]
 
 
-def node_slide(prs: object, node: NodeSummary, boards: NodeBoards, continued: bool) -> None:
+def node_slide(prs: Any, node: NodeSummary, boards: NodeBoards, continued: bool) -> None:
     """Titles use the radio-address node ID only; the inventory's Legacy Node ID column is not printed."""
     slide = prs.slides.add_slide(prs.slide_layouts[BLANK])
     title(slide, f"Node {node.node_id} - {node.location}" + (" (cont'd)" if continued else ""), 0.2, 0.6, 28)
@@ -260,7 +263,7 @@ def node_slide(prs: object, node: NodeSummary, boards: NodeBoards, continued: bo
 
 
 def build_deck(nodes: Sequence[NodeSummary], boards: dict[str, NodeBoards],
-               turnouts: Sequence[TurnoutRow] | None) -> object:
+               turnouts: Sequence[TurnoutRow] | None) -> Any:
     prs = Presentation()
     prs.slide_width = Inches(10)
     prs.slide_height = Inches(7.5)

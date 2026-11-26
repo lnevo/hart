@@ -12,6 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 spec = importlib.util.spec_from_file_location("check_tracked_policy", ROOT / "tools/audit/check_tracked_policy.py")
+assert spec is not None and spec.loader is not None
 POLICY = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(POLICY)
 

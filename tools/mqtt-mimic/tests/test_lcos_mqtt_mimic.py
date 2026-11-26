@@ -3,21 +3,26 @@ from __future__ import annotations
 import importlib.util
 import unittest
 from pathlib import Path
+from types import ModuleType
+from typing import Any, ClassVar
 
 SCRIPTS = Path(__file__).resolve().parents[1]
 
 
-def load_module():
+def load_module() -> ModuleType:
     spec = importlib.util.spec_from_file_location(
         "lcos_mqtt_mimic", SCRIPTS / "lcos_mqtt_mimic.py"
     )
+    assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None
     spec.loader.exec_module(module)
     return module
 
 
 class LcosMimicNamingTest(unittest.TestCase):
+    m: ClassVar[ModuleType]
+    layout: ClassVar[dict[str, Any]]
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.m = load_module()
@@ -72,6 +77,8 @@ class LcosMimicNamingTest(unittest.TestCase):
 
 class LcosMimicNameMapTest(unittest.TestCase):
     """load_cps reads staging's rows of the device master (hartlib.devices.load), cp per user name."""
+
+    m: ClassVar[ModuleType]
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -166,6 +173,8 @@ class LcosMimicNameMapTest(unittest.TestCase):
 class SortAndReconnect(unittest.TestCase):
     """plant_rank orders unknown plants last; the subscriber loop reports a missing client and does not hide bugs.
     Popen is faked: nothing runs and nothing is published."""
+
+    m: ClassVar[ModuleType]
 
     @classmethod
     def setUpClass(cls) -> None:

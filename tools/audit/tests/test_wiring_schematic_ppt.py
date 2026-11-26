@@ -11,6 +11,8 @@ import tempfile
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
+from types import ModuleType
+from typing import ClassVar
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -84,10 +86,13 @@ class FakeBook(dict):
 class Steps(unittest.TestCase):
     """The deck's reading steps, on small sheets."""
 
+    D: ClassVar[ModuleType]
+
     @classmethod
     def setUpClass(cls) -> None:
         sys.path.insert(0, str(WIRING))
         spec = importlib.util.spec_from_file_location("wiring_deck", SCRIPT)
+        assert spec is not None and spec.loader is not None
         cls.D = sys.modules["wiring_deck"] = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(cls.D)
 

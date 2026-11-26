@@ -40,11 +40,17 @@ import json
 import sys
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import Literal, NamedTuple, Required, TypedDict, TypeVar, get_args
+from typing import TYPE_CHECKING, Literal, NamedTuple, Required, TypedDict, TypeVar, get_args
+
+if TYPE_CHECKING:
+    from tools.pipeline.manifest_checks import Step
+    from tools.pipeline.manifest_panels import PanelStep
 
 ROOT = Path(__file__).resolve().parents[2]
 if "pipeline_manifest" not in sys.modules:      # once per process: check_stamps.py and the tests load it by this name
     _spec = importlib.util.spec_from_file_location("pipeline_manifest", ROOT / "tools/pipeline/manifest.py")
+    if _spec is None or _spec.loader is None:
+        raise ImportError(f"cannot load {ROOT / 'tools/pipeline/manifest.py'}")
     sys.modules["pipeline_manifest"] = importlib.util.module_from_spec(_spec)    # its dataclasses look it up there
     _spec.loader.exec_module(sys.modules["pipeline_manifest"])
 MANIFEST = sys.modules["pipeline_manifest"]
@@ -112,7 +118,7 @@ def _key(e: Edge) -> EdgeKey:
     return (e["from"], e["to"])
 
 
-def _edge(a: str, b: str, label: str, side: str) -> Edge:
+def _edge(a: str, b: str, label: str, side: Side | Literal[""]) -> Edge:
     e: Edge = {"from": a, "to": b}
     if label:
         e["label"] = label
@@ -122,7 +128,7 @@ def _edge(a: str, b: str, label: str, side: str) -> Edge:
     return e
 
 
-def lane(steps: Sequence["MANIFEST.Step"], path_ids: dict[str, str], runner_id: str) -> Lane:
+def lane(steps: Sequence["Step"], path_ids: dict[str, str], runner_id: str) -> Lane:
     """The generated boxes, links, each box's id in manifest order, and each link's own script (the step that lists
     it: a link between two steps' scripts belongs to the one whose input or output it is). path_ids maps each box path
     of the graph (without a trailing /) to its id, the lane's own boxes included."""
@@ -179,7 +185,7 @@ def _glob_boxes(path: str, path_ids: dict[str, str], named: set[str]) -> list[st
     return None
 
 
-def panels_lane(steps: Sequence["MANIFEST.PanelStep"], path_ids: dict[str, str], runner_id: str) -> Lane:
+def panels_lane(steps: Sequence["PanelStep"], path_ids: dict[str, str], runner_id: str) -> Lane:
     """lane() for the panels manifest's steps: a box per box name, its links, and the links to and from the runner
     box. path_ids maps each box path to its id, the lane's own boxes included (a script to its step's box)."""
     nodes: list[Node] = []
@@ -262,8 +268,8 @@ def _place(old: list[Entry], fresh: dict, owned: Callable[[Entry], bool], key: C
     return out
 
 
-def regenerate(data: Graph, steps: Sequence["MANIFEST.Step"] | None = None,
-               panels: Sequence["MANIFEST.PanelStep"] | None = None) -> Graph:
+def regenerate(data: Graph, steps: Sequence["Step"] | None = None,
+               panels: Sequence["PanelStep"] | None = None) -> Graph:
     """The graph with its manifest lane replaced by a fresh one from the manifests (or from `steps` and `panels`, the
     panels steps; none when only `steps` is given)."""
     if steps is None:
@@ -321,7 +327,8 @@ def regenerate(data: Graph, steps: Sequence["MANIFEST.Step"] | None = None,
     for n in nodes:
         if n["path"] == MANIFEST.PANELS_RUNNER:     # it only runs other steps: a hovered chain stops there
             n.pop("gen")
-            n.update(runner=True, gen=GEN)
+            n["runner"] = True
+            n["gen"] = GEN
     held = {_key(e): e for e in data["edges"] if e.get("gen") != GEN}
     fresh_edges: dict[EdgeKey, Edge] = {}
     problems: list[str] = []

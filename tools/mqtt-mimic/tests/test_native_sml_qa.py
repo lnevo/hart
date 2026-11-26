@@ -5,6 +5,8 @@ import sys
 import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from types import ModuleType
+from typing import ClassVar
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
@@ -15,8 +17,9 @@ SCRIPT = ROOT / "tools/mqtt-mimic/qa/run_native_sml_qa.py"
 TABLES = paths.TABLES_XML
 
 
-def load_module():
+def load_module() -> ModuleType:
     spec = importlib.util.spec_from_file_location("run_native_sml_qa", SCRIPT)
+    assert spec is not None and spec.loader is not None
     mod = sys.modules["run_native_sml_qa"] = importlib.util.module_from_spec(spec)   # its dataclasses look it up
     spec.loader.exec_module(mod)
     return mod
@@ -32,6 +35,8 @@ def table_masts() -> dict[str, tuple[str, ...]]:
 
 
 class NativeSmlQaTest(unittest.TestCase):
+    qa: ClassVar[ModuleType]
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.qa = load_module()
@@ -86,10 +91,15 @@ class NativeSmlQaTest(unittest.TestCase):
                               after=(self.qa.occupancy("K-1", "INACTIVE"),)),
                  self.qa.Step("t2", "d", {"Mast A": "nonstop"}))
         run = self.qa.Run()
+
+        def snapshot() -> dict:
+            seen.append(1)
+            return snap
+
         with mock.patch.object(self.qa, "set_to", lambda sw, st: applied.append(("to", sw, st))), \
                 mock.patch.object(self.qa, "set_occ", lambda b, st: applied.append(("occ", b, st))), \
                 mock.patch.object(self.qa, "pub", side_effect=AssertionError("published")), \
-                mock.patch.object(self.qa, "jmri_snapshot", lambda: seen.append(1) or snap), \
+                mock.patch.object(self.qa, "jmri_snapshot", snapshot), \
                 mock.patch.object(self.qa, "mqtt_heads", lambda: {}), mock.patch.object(self.qa, "SETTLE", 0), \
                 mock.patch("sys.stdout"):
             self.qa.run_scenario(run, steps)
