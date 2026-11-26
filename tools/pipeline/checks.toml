@@ -864,7 +864,7 @@ inputs = [
 # the tracked text files it reads (check_name_copies.SCAN_GLOBS: one glob per suffix, less .mjs and .yaml, which no
 # tracked file has: a glob here must match one)
 quiet_inputs = ["**/*.py", "**/*.sh", "**/*.js", "**/*.csv", "**/*.json", "**/*.xml", "**/*.html", "**/*.svg",
-                "**/*.txt", "**/*.cmd", "**/*.yml"]
+                "**/*.txt", "**/*.yml"]
 
 [[step]]
 name = "ai-speak"

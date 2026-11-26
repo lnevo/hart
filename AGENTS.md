@@ -56,7 +56,7 @@ Habits the 2026-11-26 review found, to avoid: copying a helper instead of reusin
 - Stop a run with `pkill -f` on a shared script name; use its PID or your worktree path.
 - Spell out what HART stands for in any file, commit or page: the repo and site are public.
 - Normalize **P&CV** and **P&OV** to each other. They are different names on purpose.
-- Leave the LCOS bridge (`serial_to_mqtt`) running detached: start it only for a lab test, stop it before the turn ends, and ask the user to restart it.
+- Leave the LCOS bridge (`serial_to_mqtt`) stopped, or start a second one. It runs on the Pi as the `lcos-bridge` systemd service (`~/lcos-bridge`, `./bridge start|stop|status|log`); a lab test that needs the Nano's port stops it first and starts it before the turn ends.
 - Edit `external/lcos-bridge/lcos/` or `reference/` (vendor source) without explicit instruction.
 - Commit `.env.local`, credentials or `tools/cats/src-repo/`. Stage files by name, never `git add -A`.
 
