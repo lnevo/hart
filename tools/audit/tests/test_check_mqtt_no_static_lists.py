@@ -4,17 +4,29 @@ from __future__ import annotations
 
 import contextlib
 import importlib.util
+import sys
 import io
 import shutil
 import tempfile
 import unittest
 from pathlib import Path
+from types import ModuleType
 
 ROOT = Path(__file__).resolve().parents[3]
-_spec = importlib.util.spec_from_file_location("check_mqtt_no_static_lists",
-                                               ROOT / "tools/audit/check_mqtt_no_static_lists.py")
-CHECK = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(CHECK)
+
+
+def _load(name: str, path: Path) -> ModuleType:
+    """The module at `path`, loaded by path under `name`."""
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"cannot load {path}")
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[name] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+CHECK = _load("check_mqtt_no_static_lists", ROOT / "tools/audit/check_mqtt_no_static_lists.py")
 
 
 class StaticLists(unittest.TestCase):

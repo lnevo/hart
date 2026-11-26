@@ -6,13 +6,25 @@ import importlib.util
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
+from types import ModuleType
 
 ROOT = Path(__file__).resolve().parents[3]
-_spec = importlib.util.spec_from_file_location("worktree_sweep_hook_test", ROOT / ".claude/hooks/worktree_sweep.py")
-HOOK = importlib.util.module_from_spec(_spec)
-sys.modules[_spec.name] = HOOK
-_spec.loader.exec_module(HOOK)
+
+
+def _load(name: str, path: Path) -> ModuleType:
+    """The module at `path`, loaded by path under `name`."""
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"cannot load {path}")
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[name] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+HOOK = _load("worktree_sweep_hook_test", ROOT / ".claude/hooks/worktree_sweep.py")
 
 
 class SweepLines(unittest.TestCase):
@@ -45,10 +57,9 @@ class SweepLines(unittest.TestCase):
 
     def test_a_timeout_is_one_line(self) -> None:
         project = self.project("time.sleep(5)")
-        old = HOOK.TIMEOUT
-        HOOK.TIMEOUT = 0.5
-        self.addCleanup(setattr, HOOK, "TIMEOUT", old)
-        self.assertEqual(HOOK.sweep_lines(project, project),
+        with mock.patch.object(HOOK, "TIMEOUT", 0.5):
+            lines = HOOK.sweep_lines(project, project)
+        self.assertEqual(lines,
                          ["Worktree sweep took over 0.5 s and was stopped; run make wt-sweep"])
 
     def test_a_checkout_without_the_script_has_nothing(self) -> None:

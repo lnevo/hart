@@ -66,10 +66,13 @@ class WindowsStartUpStrip(unittest.TestCase):
         self.assertIn("Join-Path $_.FullName 'profile.xml'", block)
 
     def test_the_pattern_removes_only_the_retired_entry(self) -> None:
-        names = re.search(r"\$retiredStartup = @\(([^)]*)\)", self.text).group(1)
+        found = re.search(r"\$retiredStartup = @\(([^)]*)\)", self.text)
+        assert found is not None, "no $retiredStartup list"
+        names = found.group(1)
         self.assertEqual(sorted(re.findall(r"'([^']+)'", names)), sorted(STARTUP_STRIP))
         pattern = re.search(r"\[regex\]::Replace\(\$txt, \('([^']+)' \+ \[regex\]::Escape\(\$name\) \+ '([^']+)'\)",
                             self.text)
+        assert pattern is not None, "no [regex]::Replace of the Start Up entries"
         out = DIRTY
         for name in STARTUP_STRIP:
             out = re.sub(pattern.group(1) + re.escape(name) + pattern.group(2), "", out)
