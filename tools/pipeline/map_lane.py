@@ -209,9 +209,10 @@ def regenerate(data: dict, steps=None, panels=None) -> dict:
     if steps is None:
         try:
             where = MANIFEST.repo_from(MANIFEST.tracked_files(), data)
-            steps = MANIFEST.load(where=where)
-            if panels is None:
-                panels = MANIFEST.load_panels(where=where)
+            if panels is None:      # both manifests, checked against each other too (no file with two writers)
+                steps, panels = MANIFEST.load_both(where=where)
+            else:
+                steps = MANIFEST.load(where=where)
         except MANIFEST.ManifestError as err:
             raise MapLaneError(str(err)) from None
     panels = panels or ()
