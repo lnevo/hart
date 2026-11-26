@@ -13439,6 +13439,31 @@
    "label": "imports"
   },
   {
+   "from": "jmri/layouts/hart/scripts/speedmatch/analyze_records.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/analyze.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/analyze_records.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "publisher files"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/analyze.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/speed_table.py",
+   "label": "speed-by-step"
+  },
+  {
+   "from": "docs/jmri/speedmatching",
+   "to": "jmri/layouts/hart/scripts/speedmatch/speed_table.py",
+   "label": "results.csv, manual_laps.csv"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/speed_table.py",
+   "to": "jmri/layouts/hart/data/speed_by_step_2026-11-08.csv",
+   "label": "--out"
+  },
+  {
    "from": ".claude/agents/archive-researcher.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -14165,31 +14190,6 @@
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"
-  },
-  {
-   "from": "jmri/layouts/hart/scripts/speedmatch/analyze_records.py",
-   "to": "jmri/layouts/hart/scripts/speedmatch/analyze.py",
-   "label": "imports"
-  },
-  {
-   "from": "jmri/layouts/hart/scripts/speedmatch/analyze_records.py",
-   "to": "tools/hosts/deploy/stage.sh",
-   "label": "publisher files"
-  },
-  {
-   "from": "jmri/layouts/hart/scripts/speedmatch/analyze.py",
-   "to": "jmri/layouts/hart/scripts/speedmatch/speed_table.py",
-   "label": "speed-by-step"
-  },
-  {
-   "from": "docs/jmri/speedmatching",
-   "to": "jmri/layouts/hart/scripts/speedmatch/speed_table.py",
-   "label": "results.csv, manual_laps.csv"
-  },
-  {
-   "from": "jmri/layouts/hart/scripts/speedmatch/speed_table.py",
-   "to": "jmri/layouts/hart/data/speed_by_step_2026-11-08.csv",
-   "label": "--out"
   }
  ]
 }
