@@ -34,11 +34,15 @@ carries no content on to the next step: "check" (a check or comparison reads it)
 "pull" (a Store pull back into the sources), "mirror" (a folder holds a copy), "capture" (a page screenshot),
 "history" (git history of a file). A hovered line's chain on the page stops at runners and does not walk side links;
 both are still drawn, and a click still traces the full reach. This script checks the graph and
-writes one self-contained page from tools/ops/pipeline_map_page.html; the layout (tools/ops/pipeline_map_layout.js and
-tools/ops/pipeline_map_helpers.js) and
-the viewer (tools/ops/pipeline_map_view.js, pipeline_map_view_frame.js and pipeline_map_view_input.js: one function,
-app(), cut into three files that only work joined in that order) are inlined into it as one script, so the page can
-redraw any subset (some lanes, or the chain around one file) without build tools.
+writes one self-contained page from tools/ops/pipeline_map_page.html; the layout (tools/ops/pipeline_map_layout.js,
+tools/ops/pipeline_map_helpers.js and tools/ops/pipeline_map_facets.js, the filters and search) and
+the viewer (tools/ops/pipeline_map_view.js, pipeline_map_view_frame.js, pipeline_map_view_lanes.js,
+pipeline_map_view_rail.js, pipeline_map_view_nav.js and pipeline_map_view_input.js: one function, app(), cut into six
+files that only work joined in that order) are inlined
+into it as one script, so the page can redraw any subset (some lanes, or the chain around one file) without build
+tools. The page opens on a lane overview drawn from summaries worked out here (tools/ops/pipeline_map_eff.py: how each
+step runs, writers per output, the links between lanes, step times from docs/pipeline-map/timings.json when it
+exists), so it needs no layout of the whole map to open.
 """
 from __future__ import annotations
 
@@ -66,10 +70,15 @@ TEMPLATE = Path(__file__).resolve().with_name("pipeline_map_page.html")
 LAYOUT_JS = Path(__file__).resolve().with_name("pipeline_map_layout.js")
 HELPERS_JS = Path(__file__).resolve().with_name("pipeline_map_helpers.js")
 VIEW_JS = Path(__file__).resolve().with_name("pipeline_map_view.js")
-# app()'s body goes on in these two, in this order; none of the three view files is a script on its own
+# app()'s body goes on in these five, in this order; none of the six view files is a script on its own
 VIEW_FRAME_JS = Path(__file__).resolve().with_name("pipeline_map_view_frame.js")
+VIEW_LANES_JS = Path(__file__).resolve().with_name("pipeline_map_view_lanes.js")
+VIEW_RAIL_JS = Path(__file__).resolve().with_name("pipeline_map_view_rail.js")
+VIEW_NAV_JS = Path(__file__).resolve().with_name("pipeline_map_view_nav.js")
 VIEW_INPUT_JS = Path(__file__).resolve().with_name("pipeline_map_view_input.js")
-SCRIPTS = (LAYOUT_JS, HELPERS_JS, VIEW_JS, VIEW_FRAME_JS, VIEW_INPUT_JS)
+# the filters, search, trail and status line as pure functions (node loads it for the unit tests), after the helpers
+FACETS_JS = Path(__file__).resolve().with_name("pipeline_map_facets.js")
+SCRIPTS = (LAYOUT_JS, HELPERS_JS, FACETS_JS, VIEW_JS, VIEW_FRAME_JS, VIEW_LANES_JS, VIEW_RAIL_JS, VIEW_NAV_JS, VIEW_INPUT_JS)
 # the website copy: its path in the site (under www/ locally, under the build's output folder on a deploy) and the
 # page its back link returns to
 SITE_REL = "library/pipeline-map.html"
@@ -110,6 +119,8 @@ def _load(name: str, path: Path) -> ModuleType:
 
 AGENT_DOCS = _load("agent_docs_map", Path(__file__).resolve().with_name("agent_docs_map.py"))
 MANIFEST_LANE = _load("map_lane", ROOT / "tools" / "pipeline" / "map_lane.py")
+# what the page shows beside the graph: how each step runs, writers per output, lane summaries, step times
+EFF = _load("pipeline_map_eff", Path(__file__).resolve().with_name("pipeline_map_eff.py"))
 # the graph's record types and fixed sets live in map_lane.py
 if TYPE_CHECKING:
     from tools.pipeline.map_lane import Edge, Graph, Node
@@ -326,7 +337,7 @@ body{display:flex;flex-direction:column;font:14px/1.4 var(--font-body);backgroun
 #bar button{cursor:pointer}
 #bar button:hover,.menu>summary:hover{border-color:var(--brand-2)}
 #strip2{border-top-color:var(--rule);color:var(--ink-soft)}
-#back,#lanelist a,#info a,#tree a{color:var(--brand-2)}
+#back,#crumbs .crumb,#rail .only,#info a,#tree a{color:var(--brand-2)}
 #view{color:var(--ink-soft)}
 #info h2{font:700 1.3rem/1.1 var(--font-display);letter-spacing:.03em;color:var(--brand)}
 #info .off{color:var(--muted)}
@@ -404,22 +415,48 @@ def code_links() -> dict:
     return links
 
 
+@functools.cache
+def manifest_steps() -> tuple[Any, ...]:
+    """The steps of both manifests as the page needs them (pipeline_map_eff.StepRef), loaded once."""
+    try:
+        return EFF.manifest_steps(MANIFEST_LANE.MANIFEST)
+    except MANIFEST_LANE.MANIFEST.ManifestError as err:
+        raise GraphError(f"the step manifests: {err}") from err
+
+
+def page_extras(data: Graph) -> dict[str, Any]:
+    """pipeline_map_eff.page_extras for this graph, from this checkout's manifests and its timings file, if any."""
+    try:
+        timings = EFF.read_timings()
+    except EFF.TimingsError as err:
+        raise GraphError(f"docs/pipeline-map/{err}") from err
+    return EFF.page_extras(data, manifest_steps(), timings, frozenset(MANIFEST_LANE.MANIFEST.SHARED_OUTPUTS))
+
+
 def render(data: Graph, back: str = "", site: bool = False) -> str:
     legend = "".join(
         f'<div><span class="sw" style="background:{fill};border-color:{ink}"></span>{esc(label)}</div>'
         for label, fill, ink in KINDS.values()
     )
+    extras = page_extras(data)
+
+    def shown_node(n: Node) -> dict[str, Any]:
+        out: dict[str, Any] = {k: n[k] for k in ("id", "label", "kind", "status", "domain", "desc", "path", "local",
+                                                 "runner") if k in n}
+        for key in ("eff", "w"):
+            if n["id"] in extras[key]:
+                out[key] = extras[key][n["id"]]
+        return out
+
     page_data = {
-        "nodes": [
-            {k: n[k] for k in ("id", "label", "kind", "status", "domain", "desc", "path", "local", "runner") if k in n}
-            for n in data["nodes"]
-        ],
+        "nodes": [shown_node(n) for n in data["nodes"]],
         "edges": [{k: e[k] for k in ("from", "to", "label", "side") if k in e} for e in data["edges"]],
         "kinds": {k: list(v) for k, v in KINDS.items()},
         "presets": data.get("presets", []),
         "domains": [{"id": d["id"], "label": d["label"], "color": d["color"]} for d in data["domains"]],
         "domainColor": {d["id"]: d["color"] for d in data["domains"]},
         "codeLinks": code_links(),
+        "lanes": extras["lanes"], "bundles": extras["bundles"], "timed": extras["timed"],
     }
     counts = f'{len(data["nodes"])} boxes, {len(data["edges"])} links'
     back_link = f'<a id="back" href="{esc(back)}" title="Back to Inside the repository">←</a>' if back else ""
@@ -501,6 +538,10 @@ def check_page(page: str, data: Graph, site: bool) -> None:
                 raise GraphError(f"the page holds {len(got)} {key}, the graph {len(want)}"
                                  + (f"; missing {', '.join(missing[:5])}" if missing else "")
                                  + (f"; not in the graph {', '.join(extra[:5])}" if extra else ""))
+        lanes = {lane["id"]: lane["n"] for lane in shown.get("lanes", ())}
+        if list(lanes) != [d["id"] for d in data["domains"]] or sum(lanes.values()) != len(data["nodes"]):
+            raise GraphError(f"the page's lane summaries ({', '.join(f'{k} {v}' for k, v in lanes.items())}) do not "
+                             f"cover the graph's {len(data['domains'])} lanes and {len(data['nodes'])} boxes")
     except (KeyError, TypeError) as err:
         raise GraphError(f"the page's graph data has a malformed entry ({err!r})") from err
     missing = [name for name, text in script_parts() if text not in page]
