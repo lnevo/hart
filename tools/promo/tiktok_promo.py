@@ -669,7 +669,6 @@ def add_voice(voice: str, video: Path, seconds: float, tmp: Path, music: bool) -
 CUTS: dict[str, Callable[[Fonts, Mapping[str, Path], Format], list[Segment]]] = {"build": build_cut, "site": site_cut}
 CUT_NAMES = ("build", "site", "diverging")
 
-# ---------------------------------------------------------------- render
 
 def encoder_cmd(out: Path, fmt: Format) -> list[str]:
     """ffmpeg reading raw RGB frames on stdin and writing an H.264 MP4 with a silent audio track."""
@@ -683,27 +682,22 @@ def encoder_cmd(out: Path, fmt: Format) -> list[str]:
 
 def render(segs: Sequence[Segment], fonts: Fonts, out: Path, fmt: Format, cmd: Sequence[str] | None = None) -> None:
     """Draw every segment's frames, captions faded in, and pipe them to ffmpeg (`cmd`, encoder_cmd by default).
-    PromoError, with ffmpeg's own error output, when the encoder fails."""
-    # ffmpeg's stderr goes to a file, not a pipe: a full pipe would stall the encoder while frames are written to it
+    PromoError, with ffmpeg's error output, when it fails. Its stderr is a file: a full pipe would stall it."""
     with tempfile.TemporaryFile() as errors:
         enc = subprocess.Popen(list(cmd or encoder_cmd(out, fmt)), stdin=subprocess.PIPE, stderr=errors)
         assert enc.stdin
-        stopped_early = False
+        early = False
         try:
             _write_frames(segs, fonts, fmt, enc.stdin)
+            enc.stdin.close()
         except BrokenPipeError:       # the encoder stopped reading before the last frame
-            stopped_early = True
-        finally:
-            try:
-                enc.stdin.close()
-            except BrokenPipeError:
-                stopped_early = True
+            early = True
         code = enc.wait()
         errors.seek(0)
         said = errors.read().decode("utf-8", "replace").strip()
-    if code or stopped_early:
-        why = f"exit {code}" if code else "it stopped reading frames early"
-        raise PromoError(f"ffmpeg failed ({why}) writing {out}" + (f":\n{said}" if said else ""))
+    if code or early:
+        raise PromoError(f"ffmpeg failed ({f'exit {code}' if code else 'it stopped reading frames early'}) writing {out}"
+                         + (f":\n{said}" if said else ""))
     if said:
         print(said, file=sys.stderr)
 
