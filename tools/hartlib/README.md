@@ -41,6 +41,16 @@ Why not `pip install -e`:
 
 ## API
 
+### `hartlib.files`
+
+`write_atomic(path, text_or_bytes)` replaces a file through a temporary file in its folder and `os.replace`, so a
+reader or a stopped run sees the old file or the new one. It keeps the old file's mode. By default (`Tables.save`) it
+writes through a symlink and rewrites a hard-linked file in place, which is not atomic; `follow_links=False` replaces
+the path itself and leaves other links on the old file. `tracked_files(root, *pathspecs, submodules=True)` is
+`git ls-files` (with `submodules=False`, submodule entries left out; `manifest_base.py` keeps its own copy, as the
+manifest loads no module from outside its folder) and raises `GitError` when git cannot list them.
+It never walks the folder instead, which would find untracked and ignored files.
+
 ### `hartlib.film_pace`
 
 `STEP_S` (0.4) and `FINAL_HOLD_S` (2.0), the pace of the four films on `www/behind/panel-evolution.html`; `durations(n)` and `film_length(n)`. Used by `tools/schematic/evolution.py` and `tools/ctc_history/films.py`.
@@ -410,8 +420,12 @@ that every deploy list ships each module (`tools/hosts/tests/test_coordinator_sh
 The station maps carry the system schematic's revision and date (the title block in `page_prefs()`). `fields(prefs)`
 reads them, `planned(www, prefs)` gives the text each file it owns should have (`www/data/crew.json`,
 `www/data/publications.json`, each current `www/crew/maps/<id>/index.html`), `drift()` names the files that differ
-and `apply()` writes them. `tools/schematic/publish_draft.py` applies it after a publish and checks it in `--check`;
-`www/scripts/map_revision.py` is the command for it.
+and `apply()` writes them. It writes `crew.json` whole through `crew_master.build()` in `ops/hart-ops/publications/`,
+the file's one writer, which `build_crew_json.py` calls too; `crew_master` imports nothing from hartlib, so there is no
+cycle. When the crew master does not build (a schema problem, a missing master or `industries.csv`), it only sets the
+revision and date in the existing `crew.json` and prints a one-line warning naming the file; the crew-json job of
+`check.sh` fails until the master is fixed. `tools/schematic/publish_draft.py` applies it after a publish and checks
+it in `--check`.
 
 ## The tables.xml traps the lookups exist for
 

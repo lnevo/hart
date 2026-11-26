@@ -32,6 +32,10 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import files  # noqa: E402
+
 HISTORY_PREFIXES = ("archive/",)
 HISTORY_FILES = ("wiki/STATUS_LOG.md",)
 LINK_SUFFIXES = (".md", ".html", ".htm")
@@ -67,14 +71,10 @@ def repo_root(start: Path) -> Path:
 
 def tracked_files(root: Path) -> list[str]:
     """Tracked paths that are files in this checkout (submodule entries and their contents left out)."""
-    out = []
-    for line in git(root, "ls-files", "-s", "-z").split("\0"):
-        if not line:
-            continue
-        meta, path = line.split("\t", 1)
-        if meta.split()[0] != "160000":
-            out.append(path)
-    return out
+    try:
+        return files.tracked_files(root, submodules=False)
+    except files.GitError as err:
+        raise MoveError(str(err)) from None
 
 
 def clean(path: str) -> str:
