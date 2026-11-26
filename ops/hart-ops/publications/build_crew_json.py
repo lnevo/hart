@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Write www/data/crew.json from the crew master ops/hart-ops/data/crew.json (ADR-039, lane L5).
+"""Write www/data/crew.json from the crew master ops/hart-ops/data/crew.json (ADR-039).
 
     python3 ops/hart-ops/publications/build_crew_json.py           write www/data/crew.json
     python3 ops/hart-ops/publications/build_crew_json.py --check   write nothing; exit 1 when it differs from a build
@@ -29,7 +29,7 @@ def build() -> str:
     try:
         return crew_master.build(fields())
     except ValueError as e:
-        raise SystemExit(f"build_crew_json: {e}") from None
+        raise SystemExit(f"build_crew_json: {e}") from e
 
 
 def main(argv: list[str] | None = None) -> int:

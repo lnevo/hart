@@ -1,4 +1,4 @@
-"""The crew master, ops/hart-ops/data/crew.json, and the views built from it (ADR-039, lane L5).
+"""The crew master, ops/hart-ops/data/crew.json, and the views built from it (ADR-039).
 
 The master holds the crew jobs (key: `code`, the train symbol for a crew job), the destination colors (key: `id`), the
 TT-23 timetable, the spot sheet, EQ-01 and the station map text. Two kinds of reader use it:
@@ -13,7 +13,7 @@ TT-23 timetable, the spot sheet, EQ-01 and the station map text. Two kinds of re
 - the rebuild_*.py docx scripts read the jobs, colors and timetable through the functions below. A `docx` object in
   the master holds what only the printed sheet uses (a photo) or wording the sheet prints differently from the site
   (a crew job's intro, engine line or steps, a sequence row's action, EQ-01's lead items); each such wording is an open
-  owner question (lane L5, 2026-11-25). Colors and the timetable have none: the sheet prints the site's words.
+  owner question. Colors and the timetable have none: the sheet prints the site's words.
 
 Standard library only, so the site build and the checks import it without python-docx.
 """
@@ -23,6 +23,7 @@ import csv
 import json
 import re
 from pathlib import Path
+from typing import NamedTuple
 
 PUB = Path(__file__).resolve().parent
 REPO = PUB.parents[2]
@@ -115,18 +116,18 @@ def build(schematic: tuple[str, str], master: Path | None = None, industries: Pa
     try:
         m = load(master)
     except json.JSONDecodeError as e:
-        raise ValueError(f"{_rel(master)}: not JSON ({e})") from None
+        raise ValueError(f"{_rel(master)}: not JSON ({e})") from e
     try:
         ind = read_industries(industries)
     except (KeyError, csv.Error) as e:
-        raise ValueError(f"{_rel(industries)}: unreadable ({type(e).__name__}: {e})") from None
+        raise ValueError(f"{_rel(industries)}: unreadable ({type(e).__name__}: {e})") from e
     bad = problems(m, ind)
     if bad:
         raise ValueError(f"{_rel(master)}: the crew master has problems:\n  " + "\n  ".join(bad))
     try:
         view = site_view(m, ind, schematic)
     except (KeyError, TypeError) as e:
-        raise ValueError(f"{_rel(master)}: does not build ({type(e).__name__}: {e})") from None
+        raise ValueError(f"{_rel(master)}: does not build ({type(e).__name__}: {e})") from e
     return dump(view)
 
 
@@ -141,6 +142,27 @@ def hex6(color: str) -> str:
     """'#0000CD' -> '0000CD', '#fff' -> 'FFFFFF'."""
     h = color.lstrip("#").upper()
     return "".join(c * 2 for c in h) if len(h) == 3 else h
+
+
+class Swatch(NamedTuple):
+    """One destination colour of the master: its printed label, fill and ink as RRGGBB hex, and destination."""
+    label: str
+    fill: str
+    ink: str
+    dest: str
+
+
+def swatches(master: dict) -> dict[str, Swatch]:
+    """The master's destination colours by id ('pink', 'blue', ...), in its order."""
+    return {c["id"]: Swatch(c["label"], hex6(c["hex"]), hex6(c["ink"]), c["dest"]) for c in master["colors"]}
+
+
+def fill_hex(master: dict, color_id: str) -> str:
+    """The RRGGBB fill of one master colour; a KeyError names the colour and the master when it has none."""
+    try:
+        return swatches(master)[color_id].fill
+    except KeyError as exc:
+        raise KeyError(f"{MASTER.name}: no color {color_id!r}") from exc
 
 
 def color_key(master: dict) -> tuple[list[tuple[str, str]], list[tuple[str, str]]]:
@@ -194,8 +216,7 @@ def crews(master: dict) -> list[dict]:
 
 def block_legend(master: dict) -> list[tuple[str, str, str, str, str]]:
     """YM-01's blocking list: (label, fill, text, destination, block), in the job's color order, which the site shows
-    too (owner, 2026-11-25), then the job's legend_extra rows (colors with no id, such as NONE), which it shows too
-    (owner, 2026-11-26)."""
+    too, then the job's legend_extra rows (colors with no id, such as NONE), which it shows too."""
     ym = job(master, "yardmaster")
     colors = {c["id"]: c for c in master["colors"]}
     rows = [(colors[i]["label"], hex6(colors[i]["hex"]), hex6(colors[i]["ink"]), colors[i]["dest"], colors[i]["train"])

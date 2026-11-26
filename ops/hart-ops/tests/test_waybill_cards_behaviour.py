@@ -25,6 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from docx import Document  # noqa: E402
 
+import car_paths  # noqa: E402
 import generate_card_template as gct  # noqa: E402
 import generate_waybill_cards as gwc  # noqa: E402
 from golden_support import check_golden, docx_summary  # noqa: E402
@@ -387,8 +388,8 @@ class MainRun(SeededCase):
         csv_out = out_dir / "waybills.csv"
         self.seed(20260101)
         buf = io.StringIO()
-        with mock.patch.object(gct, "STICKER_SHEET", sheet), \
-                mock.patch.object(gct, "require_sticker_sheet", lambda: sheet), \
+        with mock.patch.object(car_paths, "STICKER_SHEET", sheet), \
+                mock.patch.object(car_paths, "require_sticker_sheet", lambda: sheet), \
                 mock.patch.multiple(gct, LOGO=NO_FILE, ICON_ROAD_NAME=NO_FILE,
                                     ICON_ROAD_NUM=NO_FILE, ICON_DESC=NO_FILE), \
                 mock.patch.object(gwc, "SPOT_CSV", spot_csv(tmp, csv_text)), \

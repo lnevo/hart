@@ -25,6 +25,9 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.table import Table
 
+import car_paths
+import card_template_layout
+import card_template_sheet
 import generate_card_template as g
 
 BASE = Path(__file__).resolve().parent.parent
@@ -251,18 +254,18 @@ def _append_grid(doc: Document, grid_xml) -> Table:
     body = doc.element.body
     tbl = deepcopy(grid_xml)
     _set_page_break_before_table(tbl)
-    g._insert_before_sect(body, tbl)
-    g._ensure_sect_pr_last(body)
+    card_template_sheet.insert_before_sect(body, tbl)
+    card_template_sheet.ensure_sect_pr_last(body)
     table = Table(body.findall(qn("w:tbl"))[-1], doc)
-    g.strip_grid_guides(table)
+    card_template_sheet.strip_grid_guides(table)
     return table
 
 
 def _blank_sticker_grid():
     scratch_path = BASE / ".scratch_cc_waybill.docx"
-    shutil.copy2(g.STICKER_SHEET, scratch_path)
+    shutil.copy2(car_paths.STICKER_SHEET, scratch_path)
     scratch = Document(scratch_path)
-    g.keep_sticker_grid(scratch)
+    card_template_sheet.keep_sticker_grid(scratch)
     grid = deepcopy(scratch.tables[0]._tbl)
     scratch_path.unlink(missing_ok=True)
     return grid
@@ -270,7 +273,7 @@ def _blank_sticker_grid():
 
 def _fill_page(sheet: Table, batch: list[dict], page_idx: int) -> None:
     for i, record in enumerate(batch):
-        r, c = g.CARD_SLOTS[i]
+        r, c = card_template_layout.CARD_SLOTS[i]
         g.build_cc_waybill_label(
             sheet.rows[r].cells[c],
             idx=page_idx * CARDS_PER_PAGE + i,
@@ -279,15 +282,15 @@ def _fill_page(sheet: Table, batch: list[dict], page_idx: int) -> None:
 
 
 def generate(labels: list[dict], output: Path = OUTPUT) -> None:
-    g.require_sticker_sheet()
+    car_paths.require_sticker_sheet()
 
     deck = _pad_to_page(labels)
     blank_grid = _blank_sticker_grid()
     temp_path = output.with_suffix(".tmp.docx")
     output.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(g.STICKER_SHEET, temp_path)
+    shutil.copy2(car_paths.STICKER_SHEET, temp_path)
     doc = Document(temp_path)
-    g.keep_sticker_grid(doc)
+    card_template_sheet.keep_sticker_grid(doc)
 
     pages = [deck[i : i + CARDS_PER_PAGE] for i in range(0, len(deck), CARDS_PER_PAGE)]
     sheet = doc.tables[0]
@@ -296,7 +299,7 @@ def generate(labels: list[dict], output: Path = OUTPUT) -> None:
         sheet = _append_grid(doc, blank_grid)
         _fill_page(sheet, batch, page_idx)
 
-    g._add_document_tail(doc.element.body)
+    card_template_sheet.add_document_tail(doc.element.body)
     doc.save(temp_path)
     os.replace(temp_path, output)
 

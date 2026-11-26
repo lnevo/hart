@@ -1,6 +1,5 @@
 """Sticker-sheet assembly for the HART card templates: the page-4 grid and the body tail.
 
-Split out of generate_card_template.py, which re-exports every name here.
 """
 
 from docx import Document
@@ -20,7 +19,7 @@ from card_template_layout import (
 
 # ── sticker-sheet assembly ────────────────────────────────────────────────────
 
-def _ensure_sect_pr_last(body) -> None:
+def ensure_sect_pr_last(body) -> None:
     """sectPr must be the final body child; mid-document sectPr causes blank pages."""
     sect = body.find(qn("w:sectPr"))
     if sect is not None:
@@ -28,7 +27,7 @@ def _ensure_sect_pr_last(body) -> None:
         body.append(sect)
 
 
-def _insert_before_sect(body, element) -> None:
+def insert_before_sect(body, element) -> None:
     sect = body.find(qn("w:sectPr"))
     if sect is not None:
         sect.addprevious(element)
@@ -55,9 +54,9 @@ def _minimal_body_paragraph() -> OxmlElement:
     return p
 
 
-def _add_document_tail(body) -> None:
+def add_document_tail(body) -> None:
     """One minimal paragraph before sectPr — no page break (avoids blank trailing page)."""
-    _ensure_sect_pr_last(body)
+    ensure_sect_pr_last(body)
     sect = body.find(qn("w:sectPr"))
     if sect is None:
         return
@@ -70,7 +69,7 @@ def _add_document_tail(body) -> None:
                     parent.remove(br)
         return
     sect.addprevious(_minimal_body_paragraph())
-    _ensure_sect_pr_last(body)
+    ensure_sect_pr_last(body)
 
 
 def _page4_grid(body):
@@ -165,4 +164,4 @@ def keep_sticker_grid(doc: Document) -> None:
     strip_grid_guides(doc.tables[0])
     if body.find(qn("w:sectPr")) is None:
         body.append(OxmlElement("w:sectPr"))
-    _ensure_sect_pr_last(body)
+    ensure_sect_pr_last(body)
