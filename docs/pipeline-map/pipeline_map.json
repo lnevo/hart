@@ -3626,8 +3626,26 @@
    "kind": "unstructured",
    "status": "live",
    "domain": "extras",
-   "desc": "Viewer script (the page's state, drawing and input) inlined into both pipeline map pages after the layout.",
+   "desc": "Viewer script (the page's state, drawing and input) inlined into both pipeline map pages after the layout: the start of app(), which goes on in pipeline_map_view_frame.js and pipeline_map_view_input.js, joined in that order.",
    "path": "tools/ops/pipeline_map_view.js"
+  },
+  {
+   "id": "tools/ops/pipeline_map_view_frame.js",
+   "label": "pipeline_map_view_frame.js",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "The middle of the viewer's app() (overview, headers, dark mode, lane zoom, pan and zoom), inlined straight after pipeline_map_view.js; not a script on its own.",
+   "path": "tools/ops/pipeline_map_view_frame.js"
+  },
+  {
+   "id": "tools/ops/pipeline_map_view_input.js",
+   "label": "pipeline_map_view_input.js",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "The end of the viewer's app() (magnifier, selection, search, filters, menus, tour, share, address), inlined straight after pipeline_map_view_frame.js; it closes app() and calls it.",
+   "path": "tools/ops/pipeline_map_view_input.js"
   },
   {
    "id": "docs/pipeline-map/pipeline_map.json",
@@ -10329,6 +10347,18 @@
   },
   {
    "from": "tools/ops/pipeline_map_helpers.js",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "inlined",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/ops/pipeline_map_view_frame.js",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "inlined",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/ops/pipeline_map_view_input.js",
    "to": "tools/ops/build_pipeline_map.py",
    "label": "inlined",
    "gen": "manifest"

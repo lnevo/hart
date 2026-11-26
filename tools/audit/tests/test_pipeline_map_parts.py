@@ -1,4 +1,4 @@
-"""The files the pipeline map page is made from (tools/ops/build_pipeline_map.py): the page template and the two viewer
+"""The files the pipeline map page is made from (tools/ops/build_pipeline_map.py): the page template and the viewer
 scripts, read and checked before a page is drawn. The pages themselves are tested in test_pipeline_map.py."""
 from __future__ import annotations
 
@@ -17,6 +17,8 @@ MAP = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MAP)
 CACHED = (MAP.script_parts, MAP.script_text, MAP.page_template)
 NODE = shutil.which("node")
+NAMES = ("pipeline_map_layout.js", "pipeline_map_helpers.js", "pipeline_map_view.js", "pipeline_map_view_frame.js",
+         "pipeline_map_view_input.js")
 
 
 class PagePartsTest(unittest.TestCase):
@@ -37,7 +39,7 @@ class PagePartsTest(unittest.TestCase):
         return path
 
     def test_a_missing_or_empty_viewer_script_stops_the_build_naming_it(self) -> None:
-        for index, name in enumerate(("pipeline_map_layout.js", "pipeline_map_helpers.js", "pipeline_map_view.js")):
+        for index, name in enumerate(NAMES):
             for content, why in ((None, f"cannot read the viewer script {name}: "), ("  \n", f"the viewer script {name} is empty")):
                 scripts = list(MAP.SCRIPTS)
                 scripts[index] = self.broken(name, content)
@@ -61,13 +63,17 @@ class PagePartsTest(unittest.TestCase):
         self.assertEqual({p: text.count(p) for p in MAP.PLACEHOLDERS}, dict.fromkeys(MAP.PLACEHOLDERS, 1))
 
     def test_the_script_is_the_layout_then_the_viewer(self) -> None:
-        """One script, layout first, then its helpers: the viewer uses their functions and the "use strict" directive."""
-        layout, helpers, view = (path.read_text(encoding="utf-8") for path in (MAP.LAYOUT_JS, MAP.HELPERS_JS, MAP.VIEW_JS))
-        self.assertEqual(MAP.SCRIPTS, (MAP.LAYOUT_JS, MAP.HELPERS_JS, MAP.VIEW_JS))
-        self.assertEqual(MAP.script_text(), layout + helpers + view)
-        self.assertEqual([name for name, _ in MAP.script_parts()],
-                         ["pipeline_map_layout.js", "pipeline_map_helpers.js", "pipeline_map_view.js"])
+        """One script, layout first, then its helpers: the viewer uses their functions and the "use strict" directive.
+        The viewer is app() cut into three files, joined in order: the first opens app(), the last closes and calls it."""
+        layout, helpers, view, frame, end = (path.read_text(encoding="utf-8") for path in MAP.SCRIPTS)
+        self.assertEqual(MAP.SCRIPTS, (MAP.LAYOUT_JS, MAP.HELPERS_JS, MAP.VIEW_JS, MAP.VIEW_FRAME_JS, MAP.VIEW_INPUT_JS))
+        self.assertEqual(MAP.script_text(), layout + helpers + view + frame + end)
+        self.assertEqual([name for name, _ in MAP.script_parts()], list(NAMES))
         self.assertNotIn("app()", helpers)
+        self.assertIn("\nfunction app() {\n", view)
+        for part in (view, frame):
+            self.assertNotIn("\napp();", part)
+        view = view + frame + end
         self.assertTrue(re.sub(r"^/\*.*?\*/\s*", "", layout, flags=re.S).startswith('"use strict";'))
         self.assertNotIn('\n"use strict";', view)
         self.assertNotIn("app()", layout)
@@ -79,6 +85,21 @@ class PagePartsTest(unittest.TestCase):
         out = subprocess.run([NODE, "-e", "const m = require(process.argv[1]); console.log(typeof m.layout, typeof app)",
                               str(MAP.LAYOUT_JS)], capture_output=True, text=True, check=True)
         self.assertEqual(out.stdout.split(), ["function", "undefined"])
+
+    @unittest.skipUnless(NODE, "node is not installed")
+    def test_the_joined_script_parses_and_needs_app_s_first_and_last_part(self) -> None:
+        """The inlined script, the view parts joined, is valid JavaScript; without the part that opens app() or the one
+        that closes it, it is not. (A middle part left out can still parse: the build stops on a missing part instead,
+        test_a_missing_or_empty_viewer_script_stops_the_build_naming_it.)"""
+        def parses(text: str) -> bool:
+            path = self.tmp / "joined.js"
+            path.write_text(text, encoding="utf-8")
+            return subprocess.run([NODE, "--check", str(path)], capture_output=True, text=True).returncode == 0
+        parts = MAP.script_parts()
+        self.assertTrue(parses(MAP.script_text()))
+        for index in (2, len(parts) - 1):
+            with self.subTest(left_out=parts[index][0]):
+                self.assertFalse(parses("".join(text for i, (_, text) in enumerate(parts) if i != index)))
 
 
 if __name__ == "__main__":
