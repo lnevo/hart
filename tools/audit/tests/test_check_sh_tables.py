@@ -80,16 +80,17 @@ class CheckShTables(unittest.TestCase):
                               capture_output=True, text=True, timeout=30)
 
     def test_ci_keys_the_schematic_cache_on_the_plugin_pin_and_warms_it_first(self) -> None:
-        """A run restores a cache solved with its own plugin pin before main's latest, and a run on another pin
-        solves the sheet once (build_panels.sh --check) before check.sh's parallel jobs start."""
+        """A run restores a cache solved with its own plugin pin before main's latest, and a run whose exact key missed
+        (another pin, or changed builders or data) solves the sheet once (build_panels.sh --check) before check.sh's
+        parallel jobs start: since ADR-037 stage 6 every panels step is one of them."""
         text = (ROOT / ".github/workflows/check.yml").read_text(encoding="utf-8")
         self.assertIn("key: schematic-${{ steps.pin.outputs.pin }}-", text)
         self.assertIn("            schematic-${{ steps.pin.outputs.pin }}-\n            schematic-\n", text)
-        warm = text.index("name: Warm the schematic cache for a new plugin pin")
+        warm = text.index("name: Warm the schematic cache when its exact key missed")
         self.assertIn("bash tools/schematic/build_panels.sh --check --full", text[warm:])
-        # only for a new pin whose exact cache missed, never on the docs-only path: no time added to other runs
-        self.assertIn("if: steps.kind.outputs.kind != 'docs' && steps.schematic-cache.outputs.cache-hit != 'true' "
-                      "&& steps.pin.outputs.changed == 'true'", text[warm:])
+        # only when the exact cache missed, never on the docs-only path: no time added to a run whose key hit
+        self.assertIn("if: steps.kind.outputs.kind != 'docs' && steps.schematic-cache.outputs.cache-hit != 'true'\n",
+                      text[warm:])
         self.assertLess(warm, text.index("run: ./tools/check.sh"))
 
     def test_check_sh_turns_on_the_builds_schematic_cache(self) -> None:
@@ -148,8 +149,8 @@ class CheckShTables(unittest.TestCase):
 
 
 class StaticPanelChecks(unittest.TestCase):
-    """The panels check covers the panel outputs through build_panels.sh --check, one list for check.sh and make
-    panels, and check.sh's run_check puts that bash run into its job's trace as a program the hook cannot see."""
+    """The panels checks are the steps of tools/pipeline/panels.toml, one list for check.sh (one job each, stage 6)
+    and make panels; check.sh's run_check puts a bash check into its job's trace as a program the hook cannot see."""
 
     @staticmethod
     def static_steps() -> list:
@@ -175,14 +176,20 @@ class StaticPanelChecks(unittest.TestCase):
         text = CHECK.read_text(encoding="utf-8")
         return text[text.index("\nrun_line() {\n"):text.index("\n# The longest jobs start first")]
 
-    def test_static_checks_the_panel_outputs_once_through_their_pipeline(self) -> None:
+    def test_static_checks_the_panel_outputs_once_one_job_per_step(self) -> None:
         steps = self.static_steps()
         self.assertIn(("panels", ("bash", "tools/schematic/build_panels.sh", "--check")),
                       [(s.name, s.cmd) for s in steps])
         panel = self.panel_scripts()
         self.assertGreaterEqual(len(panel), 16, "tools/pipeline/panels.toml's steps were not found")
         scripts = {s.script for s in steps}
-        self.assertEqual([], sorted(set(panel) & scripts), "a panel step checked twice: build_panels.sh --check runs it")
+        self.assertEqual([], sorted(set(panel) & scripts), "a panel step checked twice: its panels job runs it")
+        done = subprocess.run([sys.executable, str(ROOT / "tools/pipeline/manifest.py"), "jobs", "check", "--group",
+                               "static"], capture_output=True, text=True, timeout=60, check=True)
+        jobs = [line for line in done.stdout.splitlines() if line.startswith("panels")]
+        self.assertEqual(len(jobs), len(panel), "one panels-<step> job per step of tools/pipeline/panels.toml")
+        self.assertTrue(all(line.startswith("panels-") for line in jobs), jobs)
+        self.assertIn("panels-tables python3 tools/schematic/build_tables.py --check", jobs)
 
     @staticmethod
     def caller_block() -> str:
@@ -233,8 +240,7 @@ class StaticPanelChecks(unittest.TestCase):
 
 
     def test_bash_runs_with_the_callers_pythonpath_and_outside_the_jobs_trace(self) -> None:
-        """build_panels.sh's stamps key on PYTHONPATH: with the job's hook on it, check.sh and make panels would
-        overwrite each other's stamps."""
+        """A bash check runs outside the job's hooks (when build_panels.sh was one, its stamps keyed on PYTHONPATH)."""
         with tempfile.TemporaryDirectory() as d:
             log = Path(d) / "trace.log"
             # the job puts its hook on PYTHONPATH after check.sh read the caller's
@@ -282,7 +288,7 @@ class T(unittest.TestCase):
 
 class ScratchCheckSh(unittest.TestCase):
     """check.sh itself in a scratch repo (test_pipeline_manifest.scratch_check_sh: a stand-in manifest, and a panels
-    script that prints what it was run with), for what its queueing does: the Layout Editor job, panels' --full."""
+    script that prints what it was run with), for what its queueing does: the Layout Editor job, the panels jobs."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -321,19 +327,18 @@ class ScratchCheckSh(unittest.TestCase):
                                                                 "test_le_mast_parity")}, "one process, one build")
             self.assertNotEqual(pid["built"], pid["test_other"])
 
-    def test_panels_gets_full_in_every_run_that_skips_no_job(self) -> None:
-        """CI, FULL=1 and an audit run (CHECK_AUDIT) skip no job, so the panels check skips no panel step; a local
-        run with stamps does not pass --full."""
-        full, plain = "ran panels --check --full\n", "ran panels --check\n"
-        with tempfile.TemporaryDirectory() as d:
-            for env, want in (({"FULL": "1"}, full), ({"CI": "true"}, full),
-                              ({"CHECK_AUDIT": str(Path(d) / "audit")}, full), ({}, plain)):
-                with self.subTest(env=env):
-                    done = self.run_check(CHECK_ONLY="^panels$", **env)
-                    # the scratch repo has no stamp helper: an audit run audits nothing, so it fails (test_audit_fails)
-                    self.assertEqual(1 if "CHECK_AUDIT" in env else 0, done.returncode, done.stdout + done.stderr)
-                    self.assertIn(want, done.stdout)
-                    self.assertEqual(1, done.stdout.count("ran panels"), "the panels job queued once")
+    def test_the_panels_jobs_are_queued_first_and_take_their_line_as_it_is(self) -> None:
+        """Stage 6: one job per panels step, queued ahead of the Layout Editor job; no --full in any run."""
+        for env in ({"FULL": "1"}, {"CI": "true"}, {}):
+            with self.subTest(env=env):
+                with tempfile.TemporaryDirectory() as d:
+                    done = self.run_check(CHECK_ONLY="^(panels-tables|one|unit-guards layout-editor.*)$",
+                                          STUB_LE_LOG=str(Path(d) / "le.log"), **env)
+                self.assertEqual(0, done.returncode, done.stdout + done.stderr)
+                heads = [line.split(" (")[0] for line in done.stdout.splitlines() if line.startswith("--- ")]
+                self.assertEqual(heads[0], "--- panels-tables", heads)
+                self.assertEqual(1, done.stdout.count("ran panels-tables"), "the panels job queued once")
+                self.assertNotIn("--full", done.stdout)
 
 
 class LayoutIndexSource(unittest.TestCase):

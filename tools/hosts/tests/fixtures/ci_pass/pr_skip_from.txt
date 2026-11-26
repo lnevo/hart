@@ -17,7 +17,7 @@
 2026-11-25T22:20:59.3854004Z   CHECK_RECORD_TO: 
 2026-11-25T22:20:59.3854473Z   CHECK_RESULTS_TO: /home/runner/work/_temp/check-results.tsv
 2026-11-25T22:20:59.3854811Z ##[endgroup]
-2026-11-25T22:25:39.1911747Z panels: current on main 2307fe1a2a2b, skipped
+2026-11-25T22:25:39.1911747Z panels-tables: current on main 2307fe1a2a2b, skipped
 2026-11-25T22:25:39.2189257Z --- unit-guards layout-editor (test_build_layout_le test_le_cutover test_le_mast_parity) (13s)
 2026-11-25T22:25:39.2220370Z ----------------------------------------------------------------------
 2026-11-25T22:25:39.2221031Z Ran 99 tests in 11.943s

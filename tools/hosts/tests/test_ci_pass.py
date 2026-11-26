@@ -2,7 +2,9 @@
 
 Each test builds a throwaway git repo (its origin a GitHub URL) and answers gh with canned GitHub API replies; nothing
 reaches GitHub. The API replies follow the shapes of a real main push run (2026-11-24, run 45488560774); the job
-log is a real one (fixtures/ci_pass/main_pass.txt, run 45712383076) and edited copies of it, one failure each.
+log (fixtures/ci_pass/main_pass.txt) is a real one, run 45712383076, with its one panels job rewritten by hand into
+the shape check.sh prints since ADR-037 stage 6 (one panels-<step> job per panels step, the lines each step printed
+kept), until main has a run of that shape to take a fresh copy from; the others are edited copies, one failure each.
 """
 from __future__ import annotations
 
@@ -46,8 +48,8 @@ PIN = "09bcf066d71545fb2081e89fce5bb7e75bac1e79"
 
 def fixture(name: str) -> str:
     """A job log as GitHub serves it. main_pass.txt is check.yml run 45712383076 (job 139549798008, push of 85a4c80d to
-    main, 2026-11-25), trimmed to the check.sh step's env block, the panels job and a few after it, and the step's
-    last lines; the others are edited copies of it, one failure each."""
+    main, 2026-11-25), trimmed to the check.sh step's env block, the panels jobs and a few after them, and the step's
+    last lines, its panels job rewritten into stage 6's panels-<step> jobs; the others are edited copies of it."""
     return (FIXTURES / name).read_text(encoding="utf-8")
 
 
@@ -202,22 +204,21 @@ class CiPassTest(unittest.TestCase):
                 self.assert_runs_g4(text)
 
     def test_a_run_that_did_not_run_g4s_tables_check_does_not_count(self) -> None:
-        """G4 is build_tables.py --check with the plugin at its pin: the panels job's tables step must show it ran
-        and passed. Each fixture is the real log with one thing wrong."""
+        """G4 is build_tables.py --check with the plugin at its pin: the panels-tables job must show it ran and
+        passed. Each fixture is the main log with one thing wrong."""
         cases = (
-            (fixture("panels_missing.txt"), "0 '--- panels (Ns)' job headings, not one"),
-            (fixture("panels_current_on_main.txt"), "skipped the panels job (current on older stamps)"),
-            (fixture("tables_step_skipped.txt"), "tables step was skipped or failed: tables: current, skipped"),
-            (fixture("tables_plugin_skipped.txt"), "tables step was skipped or failed: SKIPPED tables check"),
+            (fixture("panels_missing.txt"), "0 '--- panels-tables (Ns)' job headings, not one"),
+            (fixture("panels_current_on_main.txt"), "skipped the panels-tables job (current on older stamps)"),
+            (fixture("tables_step_skipped.txt"), "skipped the panels-tables job (current on older stamps)"),
+            (fixture("tables_plugin_skipped.txt"), "panels-tables job was skipped or failed: SKIPPED tables check"),
             (fixture("tables_other_plugin.txt"), "did not draw with the commit's plugin pin 09bcf066 (it printed "
                                                  "'plugin: /tmp/other-plugin (SCHEMATIC_PLUGIN)')"),
             (fixture("truncated.txt"), "does not end ALL PASSED (last line 'plugin: submodule at 09bcf066')"),
             (edited("ALL PASSED", "FAILED"), "does not end ALL PASSED (last line 'FAILED')"),
-            (edited("--- panels (69s)", "--- panels FAILED (69s)"), "its panels job FAILED"),
-            (edited("--- panels (69s)", "--- panels (69s)\n--- panels (1s)"), "2 '--- panels (Ns)' job headings"),
-            (edited("all current\n", "stale or failed: cats\n"), "did not end 'all current'"),
-            (edited("== tables\n", "== tables-renamed\n"), "0 '== tables' steps, not one"),
-            (edited("   tables: ok, 3 s", "   tables: done"), "did not end 'tables: ok'"),
+            (edited("--- panels-tables (3s)", "--- panels-tables FAILED (3s)"), "its panels-tables job FAILED"),
+            (edited("--- panels-tables (3s)", "--- panels-tables (3s)\n--- panels-tables (1s)"),
+             "2 '--- panels-tables (Ns)' job headings"),
+            (edited("--- panels-tables (3s)", "--- tables-renamed (3s)"), "0 '--- panels-tables (Ns)' job headings"),
             (edited("ok: jmri/layouts/hart/output/tables.xml current (", "STALE ("),
              "did not print that tables.xml is current"),
         )
@@ -225,6 +226,19 @@ class CiPassTest(unittest.TestCase):
             with self.subTest(text=text):
                 self.gh.log = log
                 self.assert_runs_g4(text)
+
+    def test_the_tables_proof_is_the_tables_jobs_own_lines(self) -> None:
+        """Another job's lines (the stamps block after it, the next job) prove nothing for G4, and a log of the shape
+        before stage 6 (one panels job, "== tables" in it) is no pass."""
+        log = fixture("main_pass.txt")
+        mine = log[log.index("--- panels-tables (3s)"):log.index("--- stamps (panels-tables):")]
+        ok = next(line for line in mine.splitlines() if "ok: jmri/layouts/hart/output/tables.xml current (" in line)
+        self.gh.log = log.replace(ok + "\n", "")
+        self.assert_runs_g4("did not print that tables.xml is current")
+        old = fixture("main_pass.txt").replace("--- panels-tables (3s)", "== tables").replace(
+            "--- panels-hands (0s)", "--- panels (69s)")
+        self.gh.log = old
+        self.assert_runs_g4("0 '--- panels-tables (Ns)' job headings, not one")
 
     def test_a_commit_with_another_plugin_pin_does_not_count(self) -> None:
         """CI drew with 09bcf066; a commit pinning another plugin is not what that log checked."""

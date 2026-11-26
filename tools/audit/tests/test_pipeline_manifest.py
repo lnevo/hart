@@ -1,7 +1,7 @@
 """tools/pipeline/manifest.py: what the loader refuses and how it says so, the shell lines it prints, the per-job
 digests and git refs the stamps key on, and tools/check.sh and tools/ci/docs_checks.sh running what it lists (in
 scratch repos with a stand-in manifest.py): a manifest that fails or lists nothing stops them, each step is a job of
-its own, and check.sh's own conditions (panels' --full, when the portal job runs) still apply."""
+its own, and check.sh's own conditions (the panels jobs first, when the portal job runs) still apply."""
 from __future__ import annotations
 
 import importlib.util
@@ -280,13 +280,15 @@ class DeclarationsTest(unittest.TestCase):
         d = M.declarations()
         self.assertEqual(set(d), set(M.job_keys()))
         steps = {s.name: s for s in M.load()}
+        panels = {M.PANEL_JOB_PREFIX + s.name: s for s in M.panel_steps()}
         for job, decls in d.items():
             for s in decls:
                 with self.subTest(step=s.name):
-                    full = steps[s.name]
+                    full = steps.get(s.name) or panels[s.name]
                     self.assertEqual(s.script, full.script)
                     self.assertEqual(set(s.patterns), {e.path for e in (*full.inputs, *full.outputs)}
-                                     | set(full.quiet_inputs) | {p for _, g in full.programs for p in g})
+                                     | set(getattr(full, "quiet_inputs", ())) | {p for _, g in full.programs for p in g})
+                    self.assertEqual(s.unaudited, M.PANELS_UNAUDITED if s.name in panels else "")
 
 
 class FileAndRepoTest(unittest.TestCase):
@@ -453,11 +455,16 @@ class JobKeyTest(unittest.TestCase):
                     self.keys(text)
 
     def test_this_repo(self) -> None:
+        """Every step is a job, except the panels step: one job per panels.toml step in its place (stage 6)."""
         keys = M.job_keys()
         steps = M.load()
-        self.assertEqual(list(keys), [s.name for s in steps])
-        self.assertEqual({k: v.git for k, v in keys.items()}, {s.name: s.git for s in steps})
+        panels = [M.PANEL_JOB_PREFIX + s.name for s in M.panel_steps()]
+        want = [n for s in steps for n in (panels if M.runs_panels(s.cmd) else [s.name])]
+        self.assertEqual(list(keys), want)
+        self.assertEqual({k: v.git for k, v in keys.items() if k not in panels},
+                         {s.name: s.git for s in steps if not M.runs_panels(s.cmd)})
         self.assertNotIn("static", keys)
+        self.assertNotIn("panels", keys)
 
 
 def scratch_check_sh(base: Path):
@@ -469,7 +476,7 @@ def scratch_check_sh(base: Path):
     s.write("tools/pipeline/manifest.py", STUB_MANIFEST)
     s.write("tools/a.py", "import os, sys\nprint('ran', *sys.argv[1:], 'PYTHONPATH=' + os.environ.get('PYTHONPATH', ''))\n")
     s.write("lib/src/pkg/mod.py", "import os\nprint('ran mod PYTHONPATH=' + os.environ.get('PYTHONPATH', ''))\n")
-    s.write("tools/p.sh", 'echo "ran panels $*"\n')
+    s.write("tools/p.sh", 'echo "ran shell $*"\n')
     s.commit("stubs")
     git_update = ["git", "-C", str(s.repo), "update-ref", "refs/remotes/origin/main", "HEAD"]
     subprocess.run(git_update, check=True)          # no change on the branch: check.sh takes the full path
@@ -484,8 +491,8 @@ print(os.environ.get(var, ""), end="")
 '''
 STATIC = "\n".join(("one python3 tools/a.py --check",
                     'two env PYTHONPATH="lib/src${PYTHONPATH:+:$PYTHONPATH}" python3 -m pkg.mod',
-                    "panels bash tools/p.sh --check")) + "\n"
-STATIC_ONLY = "^(one|two|panels|gone|odd)$"         # the static jobs these tests queue
+                    "panels-tables python3 tools/a.py panels-tables", "shell bash tools/p.sh --check")) + "\n"
+STATIC_ONLY = "^(one|two|panels-tables|shell|gone|odd)$"         # the static jobs these tests queue
 OWN = "solo python3 tools/a.py solo\nportal python3 tools/a.py portal\n"
 
 
@@ -524,26 +531,30 @@ class CheckShTest(unittest.TestCase):
                            'printed "Not a line"')
 
     def test_the_steps_check_sh_adds_to_must_be_listed(self) -> None:
-        self.assertStopped(self.run_check(STUB_STATIC=STATIC.replace("panels bash", "pan bash")),
-                           "no panels step in the static group")
+        self.assertStopped(self.run_check(STUB_STATIC=STATIC.replace("panels-tables python3", "pan python3")),
+                           "no panels-tables job")
         self.assertStopped(self.run_check(STUB_OWN="solo python3 tools/a.py\n"), "no portal step")
 
     def test_each_static_line_is_a_job_of_its_own_panels_first_with_the_callers_pythonpath(self) -> None:
         done = self.run_check(PYTHONPATH="/caller")
         self.assertEqual(0, done.returncode, done.stdout + done.stderr)
         jobs = [line for line in done.stdout.splitlines() if line.startswith("--- ")]
-        self.assertEqual([j.split(" (")[0] for j in jobs], ["--- panels", "--- one", "--- two"])
+        self.assertEqual([j.split(" (")[0] for j in jobs], ["--- panels-tables", "--- one", "--- two", "--- shell"])
         ran = [line for line in done.stdout.splitlines() if line.startswith("ran ")]
-        self.assertEqual(ran, ["ran panels --check --full", "ran --check PYTHONPATH=/caller",
-                               "ran mod PYTHONPATH=lib/src:/caller"])
+        self.assertEqual(ran, ["ran panels-tables PYTHONPATH=/caller", "ran --check PYTHONPATH=/caller",
+                               "ran mod PYTHONPATH=lib/src:/caller", "ran shell --check"])
         self.assertEqual("ALL PASSED", done.stdout.splitlines()[-1])
         done = self.run_check(PYTHONPATH="")
         self.assertIn("ran mod PYTHONPATH=lib/src\n", done.stdout)
 
-    def test_panels_gets_full_only_when_no_job_is_skipped(self) -> None:
-        done = self.run_check(FULL="")
-        self.assertEqual(0, done.returncode, done.stdout + done.stderr)
-        self.assertIn("ran panels --check\n", done.stdout)
+    def test_a_panels_job_runs_its_line_as_it_is_in_every_run(self) -> None:
+        """Stage 6: no --full (that was build_panels.sh's); each panels job is a Python check like any other."""
+        for env in ({"FULL": ""}, {"FULL": "1"}, {"CI": "true", "FULL": ""}):
+            with self.subTest(env=env):
+                done = self.run_check(**env)
+                self.assertEqual(0, done.returncode, done.stdout + done.stderr)
+                self.assertRegex(done.stdout, r"(?m)^ran panels-tables PYTHONPATH=")
+                self.assertNotIn("--full", done.stdout)
 
     def test_a_line_the_shell_cannot_parse_stops_the_run(self) -> None:
         for env in ({"STUB_STATIC": STATIC + "bad python3 'unclosed\n"}, {"STUB_OWN": "bad python3 'unclosed\n" + OWN}):
@@ -570,7 +581,7 @@ class CheckShTest(unittest.TestCase):
             out = Path(d) / "results.tsv"
             done = self.run_check(STUB_STATIC=STATIC + "gone python3 tools/none.py\n", CHECK_RESULTS_TO=str(out))
             self.assertEqual(1, done.returncode)
-            self.assertEqual(out.read_text(), "panels\tpassed\none\tpassed\ntwo\tpassed\ngone\tfailed\n")
+            self.assertEqual(out.read_text(), "panels-tables\tpassed\none\tpassed\ntwo\tpassed\nshell\tpassed\ngone\tfailed\n")
             done = self.run_check(CHECK_ONLY="^nothing-by-this-name$", CHECK_RESULTS_TO=str(out))
             self.assertEqual(1, done.returncode)
             self.assertEqual(out.read_text(), "", "no job: an empty file, which the gate refuses, not a blank line")
@@ -672,11 +683,10 @@ CHECK_SH_MACHINERY = {"tools/ci/changed_kind.py", "tools/hosts/profile_tables_gu
                       "tools/audit/test_classes.py", "tools/audit/portal_inputs.py"}
 SCRIPT_RE = re.compile(r"[\w$\"{}./*-]*/[\w*.-]*\.(?:py|sh)\b")
 TEST_GLOB_RE = re.compile(r'(?:"\$JMRI_TESTS"|[\w/]+/tests)/test\*\.py')
-# the only `later` calls with a command of their own: unit()'s, the manifest's static lines (run_line, the panels one
-# with its --full), its own lines and the placeholders that run nothing (true)
+# the only `later` calls with a command of their own: unit()'s, the manifest's static lines (run_line, the panels
+# jobs first), its own lines and the placeholders that run nothing (true)
 LATER_OK = re.compile(r'later "\$name" env -u HART_TABLES "\$@"$|eval "later \$line"$'
                       r'|later "\$\{line%% \*\}" run_line "\$line"$'
-                      r'|later panels run_line "\$line" \$\{panels_full\[@\]\+"\$\{panels_full\[@\]\}"\}$'
                       r'|later "[^"]* skipped[^"]*" true$')
 RUN_OK = re.compile(r"""eval "run_check \$line"' \$\{1\+"\$@"\}'$""")
 
