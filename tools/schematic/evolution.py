@@ -7,9 +7,15 @@ closed spike branch (origin/agent/claude/schematic-spike), then every committed 
 draft, docs/ops/schematic-system-draft.svg, after the spike copies (commit 60ce2ef3). The current branch's
 history is read, so run it from the branch that has the drawing commit:
 frames that already exist are kept, new ones are added, and the GIF is rebuilt. macOS only (renders
-the SVG with Chrome, or sips without it); needs Pillow, which the repo's root .venv has:
+the SVG with Chrome, or sips when Chrome is not installed); needs Pillow, which the repo's root .venv has:
 
     .venv/bin/python tools/schematic/evolution.py
+
+When Chrome is installed but makes no image, the run stops with EvolutionError on purpose: it no longer falls back
+to sips without a word, since that silently put a blurrier frame among the sharp ones. Install or fix Chrome, or
+remove it from the path, to use sips.
+
+The repo root (REPO) is hartlib.paths.REPO_ROOT, which honours HART_REPO_ROOT.
 
 Default folder: media/schematic-evolution under the repo root (media/ is gitignored, and a worktree has it linked;
 frames are large). With no media/ (a fresh clone without the mirror) it stops with a message and makes nothing.

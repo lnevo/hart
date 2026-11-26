@@ -330,6 +330,31 @@ class TestDeskErrors(unittest.TestCase):
             field.write_text("a,b\n", encoding="utf-8")
             self.assertNotEqual(before, cp._master_state(field))
 
+    def test_same_size_and_time_new_content_is_read_again_and_only_the_latest_is_kept(self):
+        import os
+        import tempfile
+        from types import SimpleNamespace
+        from unittest import mock
+        cp = sys.modules["cats_panel"]
+        with tempfile.TemporaryDirectory() as tmp:
+            field = Path(tmp) / "devices_field.csv"
+            field.write_text("aa\n", encoding="utf-8")
+            st = field.stat()
+            before = cp._master_state(field)
+            field.write_text("bb\n", encoding="utf-8")               # the same size
+            os.utime(field, ns=(st.st_atime_ns, st.st_mtime_ns))     # and the same change time
+            self.assertNotEqual(before, cp._master_state(field))
+            cp._DRAWN_KEYS.clear()
+            master = SimpleNamespace(path=field)
+            with mock.patch.object(cp.drawing_keys, "read", side_effect=lambda *_a: object()) as read:
+                first = cp.drawn_keys(master)
+                self.assertIs(cp.drawn_keys(master), first)
+                field.write_text("cc\n", encoding="utf-8")
+                os.utime(field, ns=(st.st_atime_ns, st.st_mtime_ns))
+                self.assertIsNot(cp.drawn_keys(master), first)
+            self.assertEqual(read.call_count, 2)
+            self.assertEqual(list(cp._DRAWN_KEYS), [field.resolve()])   # one entry per master: the latest read
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -18,6 +18,7 @@ reading them is the only level difference left here. Merged from cats_panel_stag
  with the desks byte-identical.
 """
 import copy
+import hashlib
 import re
 import sys
 from collections import defaultdict
@@ -119,8 +120,8 @@ def drawn_keys(device: DeviceMap | None = None) -> drawing_keys.Keys:
     merged view, the name store) of the master `device` was read from (a Facts.device; None: the committed master).
     CatsPanelError on a device made in memory (no path: its rows hold no parts and no ids, so the desk would mix it with
     the committed master), and naming the file on keys that do not read as one device per piece. A device map's
-    master is read once per state of its files (_master_state: the desk build asks for every block); the committed
-    master is read each call."""
+    master is read once per content of its files (_master_state: the desk build asks for every block), and only the
+    latest read of each master is kept; the committed master is read each call."""
     if device is None:
         path = DEVICE_MAP
     elif getattr(device, "path", None):
@@ -129,26 +130,31 @@ def drawn_keys(device: DeviceMap | None = None) -> drawing_keys.Keys:
         raise CatsPanelError("cats_panel.drawn_keys: the device map was made in memory and names no master to read the "
                          "drawing keys of")
     state = None if device is None else _master_state(Path(path))
-    if state is not None and state in _DRAWN_KEYS:
-        return _DRAWN_KEYS[state]
+    if state is not None and state[0] in _DRAWN_KEYS and _DRAWN_KEYS[state[0]][0] == state[1]:
+        return _DRAWN_KEYS[state[0]][1]
     try:
         keys = drawing_keys.read(level_devices.LEVELS, path)
     except (drawing_keys.DrawingKeyError, FactsError) as exc:
         raise CatsPanelError(f"{paths.rel(path)}: {exc}") from exc
     if state is not None:
-        _DRAWN_KEYS[state] = keys
+        _DRAWN_KEYS[state[0]] = (state[1], keys)       # replaces the master's older read
     return keys
 
 
-MasterState = tuple[Path, tuple[tuple[str, int, int], ...]]
-_DRAWN_KEYS: dict[MasterState, drawing_keys.Keys] = {}      # drawn_keys' reads of device maps' masters
+MasterState = tuple[Path, str]
+_DRAWN_KEYS: dict[Path, tuple[str, drawing_keys.Keys]] = {}   # master path -> (content hash, its keys): the latest only
 
 
 def _master_state(path: Path) -> MasterState:
-    """The master at `path` and the name, size and change time of each file of it (the two files hartlib.devices
-    merges, in the master's folder): a key that changes when either file is written."""
-    files = [path.parent / name for name in (devices.FIELD_FILE, devices.GENERATED_FILE)]
-    return path.resolve(), tuple((f.name, f.stat().st_size, f.stat().st_mtime_ns) for f in files if f.exists())
+    """The master at `path` and a SHA-256 of the name and bytes of each file of it (the two files hartlib.devices
+    merges, in the master's folder): a key that changes when either file's content does, whatever its size or time."""
+    digest = hashlib.sha256()
+    for f in (path.parent / name for name in (devices.FIELD_FILE, devices.GENERATED_FILE)):
+        if f.exists():
+            data = f.read_bytes()
+            digest.update(f"{f.name}\0{len(data)}\0".encode())
+            digest.update(data)
+    return path.resolve(), digest.hexdigest()
 
 
 def part_blocks(device=None) -> dict[str, tuple[str, str]]:

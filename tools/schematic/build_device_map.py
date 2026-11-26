@@ -338,7 +338,7 @@ class Nodes:
         node, k = self.pins.pop(block)
         return node, k, node * 100 + UID["block"] + k
 
-    def detector(self, block: str, level: int, area: str, prefer: str, pin_level: dict[str, int]) -> tuple[int, ...]:
+    def detector(self, block: str, level: int, area: str, prefer: str, pin_level: dict[str, int]) -> tuple[str, int, int]:
         """(node, index, packed id) of `block`'s detector: its pin, else the next free block input of the node `pick`
         gives (`prefer` first). MapError on a pin of another level (`pin_level`: {block: level} of the pins)."""
         pinned = self.take_pinned(block)

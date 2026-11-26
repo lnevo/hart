@@ -4,8 +4,8 @@ tracks() lists each track of a band between its ends (switch, helix or bumper), 
 <a>-<b>", "Track <n> Spur", "Track <n> Loop", " 1"/" 2" for parallel tracks, in plan_order), and masts() places a home signal where a
 track from outside a control point meets one of its switches, unless no route it governs reaches another signal
 (reaches_signal; build_device_map.py's module text has the naming and head rules). band_level() maps a band title
-to its level by the `level` of its entry in a plan-overrides file (band_levels). The rules that replaced hand lists
-: running_tracks (passing sidings between interlockings), signalled_spurs (exit dwarfs off a main track); read_block_splits reads the owner's block
+to its level by the `level` of its entry in a plan-overrides file (band_levels).
+The rules that replaced hand lists: running_tracks (passing sidings between interlockings), signalled_spurs (exit dwarfs off a main track); read_block_splits reads the owner's block
 splits (block_overrides.csv kind split), which are a choice, not a rule; hartlib.hand_lists.read_block_overrides is that file's one reader. mast_plan.py runs them all as the one mast process of every level.
 """
 from __future__ import annotations
@@ -29,6 +29,10 @@ LONG_CM = 150.0                       # a track inside a control point longer th
 
 class MapError(RuntimeError):
     pass
+
+
+class MastOrderError(MapError):
+    """Two masts on one (band, node, leg): the key that orders a switch's A and B masts would be shared."""
 
 
 def band_places(overrides: dict) -> dict[str, tuple[int, float | None]]:
@@ -522,7 +526,7 @@ def masts(bands, cps, found, cp_of, corner_blocks=None, running_extra=frozenset(
                     sid = d["ins"].get(p) or d["outs"].get(p)
                     out.append(home_mast(lv, cp or "", num, TAU[p] * rail[n] == 1, "", 1, srow.get(sid, 0),
                                          t["name"], bi, 0, n, p, sid, False))
-                    order[(bi, n, p)] = letter_order(t, 0, p)
+                    put_order(order, (bi, n, p), letter_order(t, 0, p))
                     continue
                 loop = kind == "sw" and far == num and t["loop"]   # comes back to this switch
                 inside = kind == "sw" and cp_of.get(far) == cp and not loop
@@ -545,7 +549,7 @@ def masts(bands, cps, found, cp_of, corner_blocks=None, running_extra=frozenset(
                                      (f"{t['name']} {LOOP_HALF[p]}" if t["loop"] else
                                       f"{t['name']} {split_half}" if split_half else t["name"]),
                                      bi, LOOP_HALF[p] if t["loop"] else 0, n, p, sid, running))
-                order[(bi, n, p)] = letter_order(t, LOOP_HALF[p] if t["loop"] else 0, p)
+                put_order(order, (bi, n, p), letter_order(t, LOOP_HALF[p] if t["loop"] else 0, p))
     # a home mast governs something only when a route it would clear reaches another signal (no
     # hand-made exceptions); one whose every route ends at a bumper or in dark track is left out, and again until none
     # is: a mast kept only by a mast the rule leaves out reaches no signal either
@@ -569,6 +573,15 @@ def masts(bands, cps, found, cp_of, corner_blocks=None, running_extra=frozenset(
         for i, m in enumerate(ms):
             m["name"] = f"{number}{letter}" + ("AB"[i] if len(ms) == 2 else "")
     return out
+
+
+def put_order(order: dict[tuple[int, str, str], tuple], key: tuple[int, str, str], value: tuple) -> None:
+    """Record a mast's letter order under its (band, node, leg); MastOrderError when that leg already has a mast, so
+    two masts on one leg cannot share the key that sorts them into A and B."""
+    if key in order:
+        raise MastOrderError(f"two masts on band {key[0]}, node {key[1]}, leg {key[2]}: (band, node, leg) {key} "
+                             f"already has a letter order")
+    order[key] = value
 
 
 def home_mast(level: int, cp: str, switch: str, eastward: bool, protects: str, heads: int, row: int, track: str,

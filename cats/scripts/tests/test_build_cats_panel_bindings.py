@@ -101,13 +101,13 @@ class OsBlocks(unittest.TestCase):
     def test_two_nodes_on_one_row_stop(self):
         b = band()
         b["strands"]["e"]["name"] = "Main"        # both halves touch Track Main
-        with self.assertRaisesRegex(SystemExit, "would both be OS Switch 2a"):
+        with self.assertRaisesRegex(B.CatsPanelError, "would both be OS Switch 2a"):
             B.os_blocks(b, facts(), named(b))
 
     def test_a_switch_not_in_the_facts_stops(self):
         b = band()
         b["nodes"]["N1"]["label"] = "9"
-        with self.assertRaisesRegex(SystemExit, "not in switches.csv"):
+        with self.assertRaisesRegex(B.CatsPanelError, "not in switches.csv"):
             B.os_blocks(b, facts(), named(b))
 
 
@@ -123,7 +123,7 @@ class Dest(unittest.TestCase):
         b = band()
         os_of = B.os_blocks(b, facts(), named(b))
         b["strands"]["loop1"]["name"] = ""
-        with self.assertRaisesRegex(SystemExit, "reaches no named track or switch"):
+        with self.assertRaisesRegex(B.CatsPanelError, "reaches no named track or switch"):
             B.dest(b, os_of, "N2b", "A", None, named(b))
 
     def test_a_turnback_loop_stops_instead_of_hanging(self):
@@ -131,7 +131,7 @@ class Dest(unittest.TestCase):
         os_of = B.os_blocks(b, facts(), named(b))
         b["strands"]["loop1"] = strand(("turn", 1), ("turn", 0))
         b["nodes"]["turn"]["outs"] = {0: "loop0", 1: "loop1"}
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(B.CatsPanelError):
             B.dest(b, os_of, "N2b", "A", None, named(b))
 
 
@@ -166,7 +166,7 @@ class Switches(unittest.TestCase):
                                                      Leg("OS Switch 7b", "Track B", "OS Barn West", "os:7:A-5B")))
         self.assertEqual(B.os_plates(facts(switches={7: sw}, half_letters=letters)),
                          {"OS Barn West": "7a", "OS Switch 7b": "7b"})
-        with self.assertRaisesRegex(SystemExit, "no crossover_half row"):
+        with self.assertRaisesRegex(B.CatsPanelError, "no crossover_half row"):
             B.half_label(sw, sw.legs[0], {("1", "os:7:A-5B"): "b"})
         one = Switch(19, "1", "TO19", False, 19, True, (Leg("OS South 19", "Track A", "Track B", "os:19"),))
         self.assertEqual(B.os_plates(facts(switches={19: one})), {"OS South 19": "19"})   # a renamed OS block
@@ -183,7 +183,7 @@ class Switches(unittest.TestCase):
         f = facts()
         f.switches[1] = Switch(1, "1", "TO1", False, 1, True, (Leg("OS Switch 1", "Track Main", "Track Yard"),))
         b = band()
-        with self.assertRaisesRegex(SystemExit, "switches.csv says"):
+        with self.assertRaisesRegex(B.CatsPanelError, "switches.csv says"):
             B.switch_bindings(b, f, B.os_blocks(b, f, named(b)), named(b))
 
 
@@ -193,17 +193,17 @@ class StagingTracks(unittest.TestCase):
 
     def test_no_track_two_tracks_or_a_bumper_stop(self):
         tracks = B.StagingTracks(CHAINS)
-        with self.assertRaisesRegex(SystemExit, "no staging tracks join TO2 and TO9"):
+        with self.assertRaisesRegex(B.CatsPanelError, "no staging tracks join TO2 and TO9"):
             tracks.block_between("TO2", "TO9", "t")
-        with self.assertRaisesRegex(SystemExit, "no staging tracks join"):
+        with self.assertRaisesRegex(B.CatsPanelError, "no staging tracks join"):
             tracks.block_between("TO1", "END", "t")               # a track to a bumper joins no two switches
         twice = B.StagingTracks(CHAINS + [{"ends": [("TO2", "C"), ("TO1", "D")], "blocks": ["X"]}])
-        with self.assertRaisesRegex(SystemExit, "2 staging tracks join"):
+        with self.assertRaisesRegex(B.CatsPanelError, "2 staging tracks join"):
             twice.block_between("TO1", "TO2", "t")
 
     def test_a_track_of_several_blocks_stops(self):
         # one desk cell takes one block: the device map must give the track to the block its gap leaves it in
-        with self.assertRaisesRegex(SystemExit, "holds blocks OS Switch 1, OS Switch 2a; give it to the one"):
+        with self.assertRaisesRegex(B.CatsPanelError, "holds blocks OS Switch 1, OS Switch 2a; give it to the one"):
             B.StagingTracks(CHAINS).block_between("TO1", "TO2", "t")
 
     def test_the_35_37_track_is_its_own_part_block_on_the_staging_track(self):
@@ -223,7 +223,7 @@ class Blocks(unittest.TestCase):
     def test_jmri_blocks_and_the_short_track_rule(self):
         b = band()
         names = {("os", "b0:N1"): "OS Switch 1", ("track", "b0:w"): "West", ("track", "b0:s12"): "1-2"}
-        with self.assertRaisesRegex(SystemExit, "block 1-2: .* holds blocks OS Switch 1, OS Switch 2a"):
+        with self.assertRaisesRegex(B.CatsPanelError, "block 1-2: .* holds blocks OS Switch 1, OS Switch 2a"):
             B.block_bindings(b, facts(), names, named(b))       # the staging track holds two blocks
         F = facts()
         F.layout = B.StagingTracks([{"ends": [("TO1", "C"), ("TO2", "A")], "blocks": ["OS Switch 1"]}])
@@ -238,7 +238,7 @@ class Blocks(unittest.TestCase):
         block JMRI holds with no sensor stops the build rather than draw a block that never shows occupied."""
         F = facts()
         F.occupancy.pop("Track West")
-        with self.assertRaisesRegex(SystemExit, "block West: no JMRI block West or Track West"):
+        with self.assertRaisesRegex(B.CatsPanelError, "block West: no JMRI block West or Track West"):
             B.block_bindings(band(), F, {("track", "b0:w"): "West"}, named(band()))
 
     def test_a_helix_track_takes_its_helix_block(self):
@@ -258,7 +258,7 @@ class Blocks(unittest.TestCase):
                       {("os", "b0:N1"): "OS 1"}):                      # an OS block JMRI does not have
             with self.subTest(names=names):
                 b["strands"]["m"]["name"] = "Mainline"
-                with self.assertRaisesRegex(SystemExit, "not a short unnamed track between two switches"):
+                with self.assertRaisesRegex(B.CatsPanelError, "not a short unnamed track between two switches"):
                     B.block_bindings(b, facts(), names, named(b))
 
 
@@ -267,9 +267,9 @@ class Masts(unittest.TestCase):
         sig = {"mast": "1L", "kind": "field"}
         opts = {"mast_prefix": "Mast ", "signals": [sig, {"mast": "9V", "kind": "virtual"}]}
         self.assertEqual(B.mast_bindings(opts, facts()), {"1L": {"name": "Mast 1L", "template": "single"}})
-        with self.assertRaisesRegex(SystemExit, "listed twice"):
+        with self.assertRaisesRegex(B.CatsPanelError, "listed twice"):
             B.mast_bindings(dict(opts, signals=[sig, dict(sig)]), facts())
-        with self.assertRaisesRegex(SystemExit, "not a JMRI mast"):
+        with self.assertRaisesRegex(B.CatsPanelError, "not a JMRI mast"):
             B.mast_bindings(dict(opts, signals=[{"mast": "2R", "kind": "planned"}]), facts())
 
 
@@ -330,7 +330,7 @@ class MainAndUpper(unittest.TestCase):
         f = facts(device=device())
         self.assertEqual(B.device_name(dark_bands(), StubCats, [("track", "b1:e24")], f, []), "Track 101-111")
         self.assertEqual(B.device_name(dark_bands(), StubCats, [("track", "b1:e34x")], f, []), "Track 135-H1")
-        with self.assertRaisesRegex(SystemExit, "in no device map block rows"):
+        with self.assertRaisesRegex(B.CatsPanelError, "in no device map block rows"):
             B.device_name(dark_bands(), StubCats, [("track", "b1:e99")], f, [])
 
     def test_the_track_between_crossover_halves_is_the_crossovers_os_block(self):
@@ -387,19 +387,19 @@ class MainAndUpper(unittest.TestCase):
         self.assertIn("398.1 cm, too short at one cell per grid unit",
                       B.inside_os(bands, FakeP({("track", "b1:e24"): None}), 0, "Track 101-111",
                                   row("Track 101BC-103AB")))
-        with self.assertRaisesRegex(SystemExit, "Track X: its schematic track e28 is a desk block"):
+        with self.assertRaisesRegex(B.CatsPanelError, "Track X: its schematic track e28 is a desk block"):
             B.inside_os(bands, FakeP({("track", "b1:e28"): None}), 0, "Track X", row("Track 101AC-103AA"))
-        with self.assertRaisesRegex(SystemExit, "Track Y: its schematic track e99 has no desk block and does not run "
+        with self.assertRaisesRegex(B.CatsPanelError, "Track Y: its schematic track e99 has no desk block and does not run "
                                     "between switches"):
             B.inside_os(bands, FakeP({}), 0, "Track Y", row("Track 101AB-end #3"))      # e99 ends at a bumper
-        with self.assertRaisesRegex(SystemExit, "Track Z: the device map's tracks .* are not all drawn"):
+        with self.assertRaisesRegex(B.CatsPanelError, "Track Z: the device map's tracks .* are not all drawn"):
             B.inside_os(bands, FakeP({}), 0, "Track Z", row("Track 101AC-103AA", "Track 500A-501A"))
 
     def test_staging_and_dark_blocks_never_take_one_name(self):
         B.check_apart({"West": {"name": "Track West"}}, {"OS 101": {"name": "OS Switch 101"}})
-        with self.assertRaisesRegex(SystemExit, "share panel names West"):
+        with self.assertRaisesRegex(B.CatsPanelError, "share panel names West"):
             B.check_apart({"West": {}}, {"West": {"name": "Track 1-2"}})
-        with self.assertRaisesRegex(SystemExit, "would both be Track West"):
+        with self.assertRaisesRegex(B.CatsPanelError, "would both be Track West"):
             B.check_apart({"West": {"name": "Track West"}}, {"1-2": {"name": "Track West"}})
 
     def test_the_loop_halves_and_225s_corners_on_the_desk(self):
@@ -535,7 +535,7 @@ class LevelSwitches(unittest.TestCase):
                                                  "D": "OS Switch 225b", "X": "OS Switch 225"})
         self.assertNotIn("corners", out["109"])
         self.assertNotIn("corners", B.level_switch_bindings(level_bands(), level_facts(), 0)["225"])
-        with self.assertRaisesRegex(SystemExit, "double crossover 225: no corners found"):
+        with self.assertRaisesRegex(B.CatsPanelError, "double crossover 225: no corners found"):
             B.level_switch_bindings(level_bands(), level_facts(), 0, {})
 
     def test_a_switch_binds_the_turnout_tables_xml_holds_and_stops_on_none(self):
@@ -546,13 +546,13 @@ class LevelSwitches(unittest.TestCase):
         cmd = B.level_switch_bindings(level_bands(), f, 0)["109"]["routes"]["B"]["ROUTECOMMAND"]
         self.assertEqual(("M2T", "1300"), (cmd["JMRIPREFIX"], cmd["DECADDR"]))
         f.turnouts = {k: v for k, v in f.turnouts.items() if k != "Switch 109"}
-        with self.assertRaisesRegex(SystemExit, "tables.xml has no turnout Switch 109"):
+        with self.assertRaisesRegex(B.CatsPanelError, "tables.xml has no turnout Switch 109"):
             B.level_switch_bindings(level_bands(), f, 0)
 
     def test_a_crossover_half_whose_thrown_leg_goes_elsewhere_stops(self):
         bands = level_bands()
         bands[1][1]["strands"]["e9"]["dst"] = ("S109", "C")
-        with self.assertRaisesRegex(SystemExit, "switch 119A: a crossover half the plugin pairs with no other half"):
+        with self.assertRaisesRegex(B.CatsPanelError, "switch 119A: a crossover half the plugin pairs with no other half"):
             B.level_switch_bindings(bands, level_facts(), 0)
 
     def test_a_half_with_an_added_branch_is_still_a_half(self):
@@ -560,7 +560,7 @@ class LevelSwitches(unittest.TestCase):
         bands = level_bands()
         bands[1][1]["nodes"]["X1"]["label"] = "119A*"
         bands[1][1]["strands"]["e9"]["dst"] = ("S109", "C")
-        with self.assertRaisesRegex(SystemExit, r"switch 119A\*: a crossover half the plugin pairs with no other half"):
+        with self.assertRaisesRegex(B.CatsPanelError, r"switch 119A\*: a crossover half the plugin pairs with no other half"):
             B.level_switch_bindings(bands, level_facts(), 0)
 
     def test_a_half_joined_by_its_leg_b_is_closed_on_leg_c(self):
@@ -581,7 +581,7 @@ class LevelSwitches(unittest.TestCase):
         band = bands[1][1]
         band["nodes"]["X2"] = node("119B", "T4", {"A": "e7", "B": "e10"}, {"C": "e9"})
         band["strands"]["e10"] = dict(strand(("X1", "B"), ("X2", "B")), edge="e10", cm=10.0)
-        with self.assertRaisesRegex(SystemExit, "switch 119A: a crossover half the plugin pairs with no other half"
+        with self.assertRaisesRegex(B.CatsPanelError, "switch 119A: a crossover half the plugin pairs with no other half"
                                                 ".*joined by 2 tracks"):
             B.level_switch_bindings(bands, level_facts(), 0)
 
@@ -627,7 +627,7 @@ class LevelMasts(unittest.TestCase):
     def test_a_mast_at_no_leg_or_two_stops(self):
         f = level_facts()
         f.level_masts[2] = dict(f.level_masts[2], facing="Track 105-109")
-        with self.assertRaisesRegex(SystemExit, "Mast 108R: Switch 107 has 0 legs on track Track 105-109"):
+        with self.assertRaisesRegex(B.CatsPanelError, "Mast 108R: Switch 107 has 0 legs on track Track 105-109"):
             B.level_signals(level_bands(), f, 0)
 
     def test_templates_by_appearance_type_and_the_tables_mast(self):
@@ -638,7 +638,7 @@ class LevelMasts(unittest.TestCase):
                           "108LB": {"name": "Mast 108LB", "template": "single"},
                           "108R": {"name": "Mast 108R", "template": "double"}})
         f.mast_system["Mast 108R"] = "IF$shsm:basic:one-low(IH1)"
-        with self.assertRaisesRegex(SystemExit, "Mast 108R: tables.xml has IF.shsm:basic:one-low.IH1."):
+        with self.assertRaisesRegex(B.CatsPanelError, "Mast 108R: tables.xml has IF.shsm:basic:one-low.IH1."):
             B.level_mast_bindings(bands, f, 0)
         # signal_head_plan.csv's templates win; the stock basic types fall back by head count (one single, two double)
         with mock.patch.object(cats_panel_facts, "appearance_templates", return_value={"one-low": "double"}):
@@ -646,7 +646,7 @@ class LevelMasts(unittest.TestCase):
                                                      "two-searchlight": "double", "two-low": "double"})
         clash = ValueError("signal_head_plan.csv gives one-low masts two templates, single and double")
         with mock.patch.object(cats_panel_facts, "appearance_templates", side_effect=clash):
-            with self.assertRaisesRegex(SystemExit, "gives one-low masts two templates"):
+            with self.assertRaisesRegex(B.CatsPanelError, "gives one-low masts two templates"):
                 B.template_by_type(f)
 
     def test_a_level_mast_with_its_own_plan_row_takes_that_template(self):
@@ -662,7 +662,7 @@ class LevelMasts(unittest.TestCase):
         odd = "IF$shsm:basic:three-odd(IH:HART:C3:108R_Top)"
         f.templates, f.mast_system["Mast 108R"] = {}, odd
         next(r for r in f.level_masts if r["mast"] == "Mast 108R")["system_name"] = odd
-        with self.assertRaisesRegex(SystemExit, "Mast 108R on Main level: no row of its own and no template for "
+        with self.assertRaisesRegex(B.CatsPanelError, "Mast 108R on Main level: no row of its own and no template for "
                                                 "its type three-odd in signal_head_plan.csv"):
             B.level_mast_bindings(bands, f, 0)
 
@@ -670,7 +670,7 @@ class LevelMasts(unittest.TestCase):
         bands, f = level_bands(), level_facts()
         B.level_signals(bands, f, 0)
         bands[1][2]["signals"] = [s for s in bands[1][2]["signals"] if s["mast"] != "108LB"]
-        with self.assertRaisesRegex(SystemExit, "main and upper masts not on the desk: Mast 108LB"):
+        with self.assertRaisesRegex(B.CatsPanelError, "main and upper masts not on the desk: Mast 108LB"):
             B.level_mast_bindings(bands, f, 0)
 
 
@@ -755,7 +755,7 @@ class IntermediateMasts(unittest.TestCase):
     def test_a_half_that_meets_the_protected_half_at_no_turnback_stops(self):
         f = intermediate_facts()
         f.level_masts = [dict(f.level_masts[0], protects="Track 111 Loop 1")]
-        with self.assertRaisesRegex(SystemExit, "Mast A83: Track 107 Loop 2 meets Track 111 Loop 1 at no turnback"):
+        with self.assertRaisesRegex(B.CatsPanelError, "Mast A83: Track 107 Loop 2 meets Track 111 Loop 1 at no turnback"):
             B.level_signals(intermediate_bands(), f, 0)
 
     def test_a_facing_piece_at_a_level_link_is_passed_over(self):
@@ -789,13 +789,13 @@ class IntermediateMasts(unittest.TestCase):
         # met at two turnbacks, one per band: ambiguous, so it stops
         two = intermediate_bands()
         bands[1] = ("Main level", two[1][1], {"mast_prefix": "Mast "})
-        with self.assertRaisesRegex(SystemExit, "Mast A83: .* at 2 turnbacks on the desk"):
+        with self.assertRaisesRegex(B.CatsPanelError, "Mast A83: .* at 2 turnbacks on the desk"):
             B.level_signals(bands, intermediate_facts(blocks), 0)
 
     def test_a_track_no_band_draws_stops(self):
         f = intermediate_facts()
         f.level_masts = [dict(f.level_masts[0], facing="Track 999")]
-        with self.assertRaisesRegex(SystemExit, "Mast A83: no desk band draws Track 999"):
+        with self.assertRaisesRegex(B.CatsPanelError, "Mast A83: no desk band draws Track 999"):
             B.level_signals(intermediate_bands(), f, 0)
 
 
@@ -942,7 +942,7 @@ class Header(unittest.TestCase):
         self.assertNotIn("PLUGIN", [c.get("COLORKEY") for c in out.findall("COLORDEFINITION")])
         odd = self.doc((2, "STAGING"))
         odd.insert(1, ET.Element("MYSTERY"))
-        with self.assertRaisesRegex(SystemExit, "elements MYSTERY, which ORDER does not place"):
+        with self.assertRaisesRegex(B.CatsPanelError, "elements MYSTERY, which ORDER does not place"):
             B.dress(cats, odd, header, plate, "CTC", fit())
 
     def test_a_header_without_signal_templates_or_jmri_names_stops(self):
@@ -954,15 +954,15 @@ class Header(unittest.TestCase):
                 root.remove(el)
             path = tmp / f"no_{tag}.xml"
             ET.ElementTree(root).write(path)
-            with self.subTest(tag=tag), self.assertRaisesRegex(SystemExit, f"no {tag} elements"):
+            with self.subTest(tag=tag), self.assertRaisesRegex(B.CatsPanelError, f"no {tag} elements"):
                 B.frozen_header(path)
 
     def test_a_plate_label_on_a_used_cell_or_over_another_label_stops(self):
         cats = plugin_cats()
         header, plate = B.frozen_header()
-        with self.assertRaisesRegex(SystemExit, "a cell the desk uses"):
+        with self.assertRaisesRegex(B.CatsPanelError, "a cell the desk uses"):
             B.dress(cats, self.doc((15, "X")), header, plate, "CTC", fit())
-        with self.assertRaisesRegex(SystemExit, "runs into the label"):
+        with self.assertRaisesRegex(B.CatsPanelError, "runs into the label"):
             B.dress(cats, self.doc((2, "A VERY LONG TITLE THAT RUNS FAR TO THE RIGHT")), header, plate, "CTC", fit())
 
 
