@@ -1,7 +1,7 @@
 # Night plunge: loose ends in one hand-off (2026-11-26)
 
 Status: active
-Coordinator: hart-95, since 2026-11-26 01:50
+Coordinator: hart-6d, since 2026-11-26 01:54 (from hart-95; the owner chose a split: hart-95 keeps lanes N1 to N4 until their PRs are open)
 
 The owner's call on 2026-11-26 at 01:45: every loose end from the what's-left list goes on this page and runs tonight, except the items that stay in `wiki/STATUS.md`. Those are the main and upper station maps, finalize wiring, the owner's parts of the session #4 punch list, the benchwork-finished question (pipeline-coverage lane C), the future goals, and the dated items (the agent re-count on 2026-12-05, the old Pi card until 2026-12-23).
 
@@ -29,7 +29,7 @@ N1 to N5 run at once; N6 starts when one of them ends. The cap is 8 sessions wit
 
 ## Rules
 
-- Merges go through hart-95's queue: "ready #N", merge only on "go #N" (`coordinate` skill). The coordinator runs every deploy.
+- Merges go through hart-6d's queue: "ready #N", merge only on "go #N" (`coordinate` skill). The coordinator runs every deploy.
 - Lane agents write status lines to `.claude/progress/night-<lane>.md`; this page changes only in the coordinator's commits.
 
 ## Done when
