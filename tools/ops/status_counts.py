@@ -247,7 +247,7 @@ def main(argv: list[str]) -> int:
     if not args.check:
         out = args.out or STATUS
         if not out.exists() or out.read_text(encoding="utf-8") != text:
-            files.write_atomic(out, text)  # a stopped build leaves the old page or the new one
+            files.write_atomic(out, text, follow_links=False)  # a stopped build leaves the old page or the new one
         if not args.quiet:
             print(f"wrote {out.relative_to(ROOT) if out.is_relative_to(ROOT) else out} "
                   f"from wiki/status/ ({n} entries and the Counts line)")

@@ -671,7 +671,7 @@ def write_atomic(tree: ET.ElementTree, destination: Path) -> None:
     ET.indent(tree, space="  ")
     destination.parent.mkdir(parents=True, exist_ok=True)
     data = ET.tostring(tree.getroot(), encoding="UTF-8", xml_declaration=True, short_empty_elements=True)
-    files.write_atomic(destination, data)
+    files.write_atomic(destination, data, follow_links=False)
 
 
 def safe_panel_path(path: Path) -> Path:

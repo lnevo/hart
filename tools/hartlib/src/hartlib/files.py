@@ -17,16 +17,19 @@ class GitError(RuntimeError):
     """git could not list the tracked files; the message says where and why."""
 
 
-def write_atomic(target: Path | str, data: bytes | str, encoding: str = "utf-8") -> None:
-    """Replace the file the path names through a temporary file in its folder and os.replace, so a reader or a
-    stopped run sees the old file or the new one, never a cut-off one. Text is written in `encoding`. The new file
-    keeps the old one's mode (0644 for a new file). A symlink stays a symlink (its target is written); a hard-linked
-    file is rewritten in place, so every link sees the new bytes. The folder must exist."""
+def write_atomic(target: Path | str, data: bytes | str, encoding: str = "utf-8", follow_links: bool = True) -> None:
+    """Replace a file through a temporary file in its folder and os.replace, so a reader or a stopped run sees the
+    old file or the new one, never a cut-off one. Text is written in `encoding`. The new file keeps the old one's
+    mode (0644 for a new file). The folder must exist.
+
+    follow_links=True (Tables.save): a symlink stays a symlink (its target is written), and a hard-linked file is
+    rewritten in place so every link sees the new bytes; that in-place write is not atomic. follow_links=False:
+    the path itself is replaced, and any other link keeps the old file."""
     if isinstance(data, str):
         data = data.encode(encoding)
-    target = Path(os.path.realpath(target))
+    target = Path(os.path.realpath(target)) if follow_links else Path(os.path.abspath(target))
     try:
-        hard_linked = target.stat().st_nlink > 1
+        hard_linked = follow_links and target.stat().st_nlink > 1
     except OSError:
         hard_linked = False
     if hard_linked:
@@ -64,7 +67,7 @@ def tracked_files(root: Path | str, *pathspecs: str, submodules: bool = True, ti
     if done.returncode != 0:
         detail = done.stderr.decode("utf-8", "replace").strip() or f"exit {done.returncode}"
         raise GitError(f"git ls-files failed in {root}: {detail}")
-    entries = [e for e in done.stdout.decode("utf-8").split("\0") if e]
+    entries = [e for e in os.fsdecode(done.stdout).split("\0") if e]  # any byte in a name survives
     if submodules:
         return entries
     out = []

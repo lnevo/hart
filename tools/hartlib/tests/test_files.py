@@ -56,6 +56,19 @@ class WriteAtomicTest(unittest.TestCase):
         files.write_atomic(a, "new")
         self.assertEqual(b.read_text(), "new")
 
+    def test_without_follow_links_the_path_itself_is_replaced(self):
+        real = self.dir / "real"
+        real.write_text("old")
+        link = self.dir / "link"
+        link.symlink_to(real)
+        files.write_atomic(link, "new", follow_links=False)
+        self.assertFalse(link.is_symlink())
+        self.assertEqual((link.read_text(), real.read_text()), ("new", "old"))
+        other = self.dir / "other"
+        os.link(real, other)
+        files.write_atomic(real, "fresh", follow_links=False)
+        self.assertEqual((real.read_text(), other.read_text()), ("fresh", "old"))
+
     def test_failed_write_keeps_the_old_file_and_no_temp(self):
         target = self.dir / "t"
         target.write_text("old")
