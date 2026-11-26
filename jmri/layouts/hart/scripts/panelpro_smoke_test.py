@@ -137,10 +137,6 @@ def bean_count(manager):
     return int(manager.getNamedBeanSet().size())
 
 
-class _Done(Exception):
-    """The checks of a parked Dispatcher System are done (no traininfo to read)."""
-
-
 def parked_errors():
     """What a parked feature must not leave loaded: its windows, panels and Entry/Exit pairs."""
     errors = []
@@ -195,6 +191,93 @@ def band_panel_errors(wait):
     errors.extend("band panel %s window shown again after it was hidden" % t for t in sorted(shown))
     return errors
 
+def station_sensor_errors(sensor_manager):
+    """Each station's two Dispatcher sensors: loaded unless the Dispatcher System is parked, absent if it is."""
+    errors = []
+    for station in STATIONS:
+        key = station_key(station)
+        for user_name in ("MoveTo%s_stored" % key, "MoveInProgress%s" % key):
+            present = sensor_manager.getByUserName(user_name) is not None
+            if "dispatcher" in PARKED and present:
+                errors.append("parked Dispatcher sensor %s loaded" % user_name)
+            elif "dispatcher" not in PARKED and not present:
+                errors.append("missing sensor %s" % user_name)
+    return errors
+
+
+def count_errors(mast_manager, section_manager, transit_manager):
+    """The mast, section and transit counts against MASTS, SECTIONS and TRANSITS."""
+    errors = []
+    for what, manager, want in (("signal masts", mast_manager, MASTS), ("sections", section_manager, SECTIONS),
+                                ("transits", transit_manager, TRANSITS)):
+        got = bean_count(manager)
+        if got != want:
+            errors.append("%s=%s expected=%s" % (what, got, want))
+    return errors
+
+
+def ordered_route(internal_names, start_name, destination_name):
+    """True when the transit's blocks hold the start block and, after it, the destination."""
+    for start_index, block_name in enumerate(internal_names):
+        if block_name == start_name and destination_name in internal_names[start_index + 1:]:
+            return True
+    return False
+
+
+def traininfo_errors(transit_manager):
+    """Every runtime TrainInfo file: TRAININFO of them, each readable, on a transit that exists, with its start
+    block before its destination and its block sequence inside the transit."""
+    errors = []
+    traininfo_dir = jmri.util.FileUtil.getExternalFilename("preference:dispatcher/traininfo/")
+    traininfo_files = sorted(name for name in os.listdir(traininfo_dir) if name.endswith(".xml"))
+    if len(traininfo_files) != TRAININFO:
+        errors.append("runtime TrainInfo files=%s expected=%s" % (len(traininfo_files), TRAININFO))
+    for name in traininfo_files:
+        info = jmri.jmrit.dispatcher.TrainInfoFile().readTrainInfo(name)
+        if info is None:
+            errors.append("unreadable TrainInfo %s" % name)
+            continue
+        transit = transit_manager.getByUserName(info.getTransitName())
+        if transit is None:
+            errors.append("TrainInfo %s references missing transit %s" % (name, info.getTransitName()))
+            continue
+        internal_names = [block.getUserName() for block in transit.getInternalBlocksList()]
+        start_name = info.getStartBlockName()
+        destination_name = info.getDestinationBlockName()
+        if not ordered_route(internal_names, start_name, destination_name):
+            errors.append("TrainInfo %s transit lacks ordered route %s -> %s" % (name, start_name, destination_name))
+            continue
+        start_sequence = info.getStartBlockSeq()
+        destination_sequence = info.getDestinationBlockSeq()
+        if (
+            start_sequence < 1
+            or destination_sequence < start_sequence
+            or destination_sequence > transit.getMaxSequence()
+        ):
+            errors.append("TrainInfo %s has invalid sequence %s..%s for %s"
+                          % (name, start_sequence, destination_sequence, transit.getMaxSequence()))
+    return errors
+
+
+def _line(text):
+    if isinstance(text, unicode):
+        return text.encode("utf-8")
+    return str(text)
+
+
+def marker_text(errors, level_line):
+    """What the marker file says: "fail" and each error, or "ok" and what was checked."""
+    if errors:
+        return "fail\n" + "\n".join(_line(item) for item in errors)
+    if "dispatcher" in PARKED:
+        return ("ok\n%s masts; %s; parked %s: no section, transit, Dispatcher sensor or parked window; "
+                "band panels %s loaded and hidden\n"
+                % (MASTS, level_line, " ".join(sorted(PARKED)), ", ".join(BAND_PANELS)))
+    return ("ok\n%s masts; %s; 24 station sensors; %s sections; %s transits; "
+            "%s ordered TrainInfo routes; band panels %s loaded and hidden\n"
+            % (MASTS, level_line, SECTIONS, TRANSITS, TRAININFO, ", ".join(BAND_PANELS)))
+
+
 class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
     def handle(self):
         self.level_line = "main and upper block sensors not checked"
@@ -208,166 +291,69 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
             mast_manager = jmri.InstanceManager.getDefault(jmri.SignalMastManager)
             section_manager = jmri.InstanceManager.getDefault(jmri.SectionManager)
             transit_manager = jmri.InstanceManager.getDefault(jmri.TransitManager)
-
-            while time.time() < deadline:
-                transits = list(transit_manager.getNamedBeanSet())
-                if (
-                    bean_count(mast_manager) == MASTS
-                    and bean_count(section_manager) == SECTIONS
-                    and len(transits) == TRANSITS
-                    and all(
-                        len(transit.getInternalBlocksList()) > 0
-                        for transit in transits
-                    )
-                    # the panels load after the masts: wait for the Layout Editor panel too, so the parked
-                    # window and NX checks below see every panel the tables open
-                    and jmri.util.JmriJFrame.getFrame("HART Railroad") is not None
-                ):
-                    self.waitMsec(2000)
-                    break
-                self.waitMsec(1000)
-
-            for station in STATIONS:
-                key = station_key(station)
-                for user_name in (
-                    "MoveTo%s_stored" % key,
-                    "MoveInProgress%s" % key,
-                ):
-                    present = sensor_manager.getByUserName(user_name) is not None
-                    if "dispatcher" in PARKED and present:
-                        errors.append("parked Dispatcher sensor %s loaded" % user_name)
-                    elif "dispatcher" not in PARKED and not present:
-                        errors.append("missing sensor %s" % user_name)
-
-            if bean_count(mast_manager) != MASTS:
-                errors.append(
-                    "signal masts=%s expected=%s" % (bean_count(mast_manager), MASTS)
-                )
-            if bean_count(section_manager) != SECTIONS:
-                errors.append(
-                    "sections=%s expected=%s" % (bean_count(section_manager), SECTIONS)
-                )
-            if bean_count(transit_manager) != TRANSITS:
-                errors.append(
-                    "transits=%s expected=%s" % (bean_count(transit_manager), TRANSITS)
-                )
+            self._wait_for_load(mast_manager, section_manager, transit_manager, deadline)
+            errors.extend(station_sensor_errors(sensor_manager))
+            errors.extend(count_errors(mast_manager, section_manager, transit_manager))
             errors.extend(parked_errors())
             errors.extend(band_panel_errors(self.waitMsec))
-            block_manager = jmri.InstanceManager.getDefault(jmri.BlockManager)
-            errors.extend(level_block_errors(block_manager, sensor_manager))
-            # the LogixNG runs on its own thread after load, and each sensor it sets updates the blocks and
-            # masts: wait for it (and only for it) a while past the deadline
-            while (level_uncleared(sensor_manager) or level_unset_turnouts()) and time.time() < deadline + 60:
-                self.waitMsec(1000)
-            unset = level_unset_turnouts()
-            if unset:
-                errors.append("main and upper turnouts still Unknown after load: %s" % ", ".join(unset))
-            left = level_uncleared(sensor_manager)
-            if left:
-                errors.append("main and upper block sensors not clear after load (%s of %s): %s"
-                              % (len(left), len(level_sensors(sensor_manager)), ", ".join(left)))
-            turnouts = [t for t in jmri.InstanceManager.getDefault(jmri.TurnoutManager).getNamedBeanSet()
-                        if t.getSystemName().startswith(LEVEL_TURNOUT_PREFIX)]
-            thrown = len([t for t in turnouts if t.getKnownState() == jmri.Turnout.THROWN])
-            closed = len([t for t in turnouts if t.getKnownState() == jmri.Turnout.CLOSED])
-            self.level_line = ("%s main and upper block sensors clear; main and upper turnouts %s closed, %s thrown, "
-                               "%s unknown" % (len(level_sensors(sensor_manager)), closed, thrown, len(unset)))
-            if "dispatcher" in PARKED:
-                raise _Done()
-
-            traininfo_dir = jmri.util.FileUtil.getExternalFilename(
-                "preference:dispatcher/traininfo/"
-            )
-            traininfo_files = sorted(
-                name for name in os.listdir(traininfo_dir) if name.endswith(".xml")
-            )
-            if len(traininfo_files) != TRAININFO:
-                errors.append(
-                    "runtime TrainInfo files=%s expected=%s"
-                    % (len(traininfo_files), TRAININFO)
-                )
-            for name in traininfo_files:
-                info = jmri.jmrit.dispatcher.TrainInfoFile().readTrainInfo(name)
-                if info is None:
-                    errors.append("unreadable TrainInfo %s" % name)
-                    continue
-                transit = transit_manager.getByUserName(info.getTransitName())
-                if transit is None:
-                    errors.append(
-                        "TrainInfo %s references missing transit %s"
-                        % (name, info.getTransitName())
-                    )
-                    continue
-                internal_names = [
-                    block.getUserName()
-                    for block in transit.getInternalBlocksList()
-                ]
-                start_name = info.getStartBlockName()
-                destination_name = info.getDestinationBlockName()
-                ordered = False
-                for start_index, block_name in enumerate(internal_names):
-                    if block_name != start_name:
-                        continue
-                    if destination_name in internal_names[start_index + 1 :]:
-                        ordered = True
-                        break
-                if not ordered:
-                    errors.append(
-                        "TrainInfo %s transit lacks ordered route %s -> %s"
-                        % (name, start_name, destination_name)
-                    )
-                    continue
-
-                start_sequence = info.getStartBlockSeq()
-                destination_sequence = info.getDestinationBlockSeq()
-                if (
-                    start_sequence < 1
-                    or destination_sequence < start_sequence
-                    or destination_sequence > transit.getMaxSequence()
-                ):
-                    errors.append(
-                        "TrainInfo %s has invalid sequence %s..%s for %s"
-                        % (
-                            name,
-                            start_sequence,
-                            destination_sequence,
-                            transit.getMaxSequence(),
-                        )
-                    )
-        except _Done:
-            pass
+            errors.extend(self._level_errors(sensor_manager, deadline))
+            if "dispatcher" not in PARKED:
+                errors.extend(traininfo_errors(transit_manager))
         except Exception:
             errors.append(traceback.format_exc())
 
-        def _line(text):
-            if isinstance(text, unicode):
-                return text.encode("utf-8")
-            return str(text)
-
         handle = open(marker, "w")
         try:
-            if errors:
-                handle.write("fail\n")
-                handle.write("\n".join(_line(item) for item in errors))
-            else:
-                handle.write("ok\n")
-                if "dispatcher" in PARKED:
-                    handle.write(
-                        "%s masts; %s; parked %s: no section, transit, Dispatcher sensor or parked window; "
-                        "band panels %s loaded and hidden\n"
-                        % (MASTS, self.level_line, " ".join(sorted(PARKED)), ", ".join(BAND_PANELS))
-                    )
-                else:
-                    handle.write(
-                        "%s masts; %s; 24 station sensors; %s sections; %s transits; "
-                        "%s ordered TrainInfo routes; band panels %s loaded and hidden\n"
-                        % (MASTS, self.level_line, SECTIONS, TRANSITS, TRAININFO, ", ".join(BAND_PANELS))
-                    )
+            handle.write(marker_text(errors, self.level_line))
         finally:
             handle.close()
 
         java.lang.System.exit(1 if errors else 0)
         return False
+
+    def _wait_for_load(self, mast_manager, section_manager, transit_manager, deadline):
+        """Until `deadline`: wait for every mast, section and transit (each transit with its blocks) and the HART
+        Railroad panel, then 2 s more."""
+        while time.time() < deadline:
+            transits = list(transit_manager.getNamedBeanSet())
+            if (
+                bean_count(mast_manager) == MASTS
+                and bean_count(section_manager) == SECTIONS
+                and len(transits) == TRANSITS
+                and all(
+                    len(transit.getInternalBlocksList()) > 0
+                    for transit in transits
+                )
+                # the panels load after the masts: wait for the Layout Editor panel too, so the parked
+                # window and NX checks below see every panel the tables open
+                and jmri.util.JmriJFrame.getFrame("HART Railroad") is not None
+            ):
+                self.waitMsec(2000)
+                return
+            self.waitMsec(1000)
+
+    def _level_errors(self, sensor_manager, deadline):
+        """The main and upper blocks, their sensors and turnouts after the start-up LogixNG; sets level_line."""
+        block_manager = jmri.InstanceManager.getDefault(jmri.BlockManager)
+        errors = list(level_block_errors(block_manager, sensor_manager))
+        # the LogixNG runs on its own thread after load, and each sensor it sets updates the blocks and
+        # masts: wait for it (and only for it) a while past the deadline
+        while (level_uncleared(sensor_manager) or level_unset_turnouts()) and time.time() < deadline + 60:
+            self.waitMsec(1000)
+        unset = level_unset_turnouts()
+        if unset:
+            errors.append("main and upper turnouts still Unknown after load: %s" % ", ".join(unset))
+        left = level_uncleared(sensor_manager)
+        if left:
+            errors.append("main and upper block sensors not clear after load (%s of %s): %s"
+                          % (len(left), len(level_sensors(sensor_manager)), ", ".join(left)))
+        turnouts = [t for t in jmri.InstanceManager.getDefault(jmri.TurnoutManager).getNamedBeanSet()
+                    if t.getSystemName().startswith(LEVEL_TURNOUT_PREFIX)]
+        thrown = len([t for t in turnouts if t.getKnownState() == jmri.Turnout.THROWN])
+        closed = len([t for t in turnouts if t.getKnownState() == jmri.Turnout.CLOSED])
+        self.level_line = ("%s main and upper block sensors clear; main and upper turnouts %s closed, %s thrown, "
+                           "%s unknown" % (len(level_sensors(sensor_manager)), closed, thrown, len(unset)))
+        return errors
 
 
 HartSmoke().start()

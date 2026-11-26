@@ -506,13 +506,7 @@ class DigiconMqttSml(
         if topic == SML_CLAIM_TOPIC or topic.endswith("bridge/sml_claim"):
             self._on_sml_claim(message)
             return
-        if (
-            topic == SML_MODE_TOPIC
-            or topic.endswith("/bridge/sml_mode")
-            or topic.endswith("bridge/sml_mode")
-            or topic == "bridge/sml_mode"
-            or topic.endswith("sml_mode")
-        ):
+        if topic.endswith("sml_mode"):
             self._on_sml_mode(message)
             return
         # SET/Unheld: never enroll from signalhead (publisher also publishes SET).
