@@ -25,12 +25,6 @@ import pkgutil
 import tempfile
 from pathlib import Path
 
-import mlx.core as mx
-import numpy as np
-import soundfile as sf
-from f5_tts_mlx.cfm import F5TTS
-from f5_tts_mlx.utils import convert_char_to_pinyin
-
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 SR, HOP = 24000, 256
@@ -44,7 +38,33 @@ def lines_for(voice: str) -> list[tuple[str, str]]:
     return out
 
 
+class VoiceoverError(Exception):
+    """The lines cannot be spoken: the message says what is wrong with the input."""
+
+
+def check_reference(sr: int, shape: tuple[int, ...]) -> None:
+    """VoiceoverError unless the reference clip (its sample rate and array shape) is 24 kHz mono."""
+    if sr != SR or len(shape) != 1:
+        channels = 1 if len(shape) == 1 else shape[1]
+        raise VoiceoverError(f"reference must be 24 kHz mono (got {sr} Hz, {channels} channels)")
+
+
 def main() -> None:
+    """Speak the lines; a VoiceoverError exits with its message."""
+    try:
+        _main()
+    except VoiceoverError as exc:
+        raise SystemExit(str(exc)) from exc
+
+
+def _main() -> None:
+    # mlx and the model load here, so the checks above import without the f5 venv
+    import mlx.core as mx
+    import numpy as np
+    import soundfile as sf
+    from f5_tts_mlx.cfm import F5TTS
+    from f5_tts_mlx.utils import convert_char_to_pinyin
+
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--voice", choices=("owner", "generic"), required=True)
     ap.add_argument("--ref", type=Path, help="reference clip for --voice owner")
@@ -74,8 +94,7 @@ def main() -> None:
         ref_path, ref_text = Path(tmpdir.name) / "ref.wav", GENERIC_TEXT
         ref_path.write_bytes(pkgutil.get_data("f5_tts_mlx", "tests/test_en_1_ref_short.wav"))
     audio, sr = sf.read(ref_path)
-    if sr != SR or audio.ndim != 1:
-        raise SystemExit(f"reference must be 24 kHz mono (got {sr} Hz, {1 if audio.ndim == 1 else audio.shape[1]} channels)")
+    check_reference(sr, audio.shape)
     audio = mx.array(audio)
     rms = mx.sqrt(mx.mean(mx.square(audio)))
     # A quiet reference is raised to RMS 0.1 for the model; each line is lowered by the same factor

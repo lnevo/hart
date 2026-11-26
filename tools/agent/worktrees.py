@@ -151,6 +151,10 @@ class GitCommandError(RuntimeError):
     """A git command failed, could not run or timed out; the message names the command, the folder and git's stderr."""
 
 
+class WorktreeError(ValueError):
+    """A worktree cannot be made as asked: a topic that is no branch word, or a folder already there."""
+
+
 def git(*args: str, cwd: str | Path | None = None) -> str:
     """git's stripped output, run in `cwd` (default the repo). GitCommandError when it fails, cannot run or hangs;
     a caller that expects a failure (an unset ref, an offline fetch) catches it."""
@@ -582,13 +586,15 @@ def exclude_mirrors(main: Path) -> None:
 
 
 def new(topic: str, agent: str) -> Path:
+    """A worktree for `topic` on the branch agent/<agent>/<topic>, from origin/main, its mirrors linked.
+    WorktreeError on a bad topic or a folder already there; GitCommandError when git fails."""
     if not TOPIC.fullmatch(topic):
-        raise SystemExit(f"topic must be lower-case letters and digits, words joined by - or _: {topic!r}")
+        raise WorktreeError(f"topic must be lower-case letters and digits, words joined by - or _: {topic!r}")
     main = Path(worktrees()[0].path)
     path = main / ".claude" / "worktrees" / topic
     branch = f"agent/{agent}/{topic}"
     if path.exists():
-        raise SystemExit(f"{path} already exists")
+        raise WorktreeError(f"{path} already exists")
     try:
         git("fetch", "-q", "origin", "main", cwd=main)
     except GitCommandError as err:
@@ -722,7 +728,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         return run(args)
-    except GitCommandError as err:
+    except (GitCommandError, WorktreeError) as err:
         print(f"error: {err}", file=sys.stderr)
         return 1
 

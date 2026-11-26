@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""masts.csv, every level's signal masts, the level a column (owner, 2026-11-18/19/20/21), from the device master's
+"""masts.csv, every level's signal masts, the level a column, from the device master's
 mast and head rows.
 
     python3 tools/schematic/build_masts.py           # write masts.csv
@@ -9,8 +9,8 @@ mast and head rows.
 When the plugin submodule is not checked out or not at its pinned commit, --check prints SKIPPED and exits 0 (1 with
 SCHEMATIC_REQUIRED=1, set in CI), as the other schematic checks do; a write or --show names the fault and exits 2.
 
-Every level's mast and head rows are build_device_map.py's (one writer, naming-layers step 12, builder merge step 6):
-staging's by the rule in device_map_masts.py (part 1 of this script until then), main and upper's in
+Every level's mast and head rows are build_device_map.py's (one writer):
+staging's by the rule in device_map_masts.py, main and upper's in
 build_device_map.build, both through the one mast process (mast_plan.plan). This script writes masts.csv from those
 rows (file_rows, one transform; the file's rules are hartlib.level_masts), with the plan facts
 (level_masts.PLAN_FIELDS: where the drawing puts each mast) of staging's masts, which it reads from the same plan
@@ -29,7 +29,9 @@ import io
 import os
 import re
 import sys
+from collections.abc import Mapping
 from pathlib import Path
+from typing import NamedTuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_device_map as bdm  # noqa: E402
@@ -60,80 +62,124 @@ def csv_text(rows: list[dict], columns, path: Path | None = None) -> str:
     return buf.getvalue()
 
 
-def file_rows(master: list[dict], plan: dict) -> list[dict]:
-    """masts.csv's rows, every level alike, from the mast and head rows of the device master (`master`, its rows as
-    they will be written) and `plan` ({(level, mast): its PLAN_FIELDS}, the plan facts of staging's masts; every
-    other row's are empty): one row per mast, in level, number and name order. system_name and head_system_names are
-    the JMRI names (the master's jmri_name), device_system_name the master's system_name (the same on staging, the
-    planned physical mast on main and upper). A mast protects the OS block of its switch unless its row names one
-    (an anchor mast, an intermediate, a double crossover's corner). RuleError, naming the level and mast, on a virtual
-    mast out of its level's thousand or at a switch or protecting a block; a visible mast protecting more than one
-    block, or none at no switch; a home mast at no switch (an anchor mast, by one rule on every level: owner,
-    2026-11-23) that does not protect an OS block of its level (a home signal that lost its switch?); a name out of the grammar
-    (level_masts.MAST_USER, virtual masts too), a system name that is not a SignalHeadSignalMast over its heads; a head
-    with no head row of its level, or neither its level's internal name nor, on a head row whose assignment is field,
-    a wired LCOS head (level_masts.head_problem); a planned physical mast whose heads are not the JMRI mast's; two
-    masts on one block pair that are not an A and a B (level_masts.LEGS); a mast named twice; and a plan fact for a
-    mast the master does not have. A row on no level (a device a Store added, not yet placed: hartlib.devices
-    is_unplaced) is on no level's map, and left out."""
-    levels = {str(lv) for lv in level_masts.LEVELS}
-    master = [r for r in master if r["level"] in levels]
-    heads = {(r["level"], r["jmri_name"]): r for r in master if r["layer"] == "head"}
-    physical = {(r["level"], r["system_name"]): r for r in master if r["layer"] == "head" and r["system_name"]}
-    blocks = {(r["level"], r["user_name"]): r for r in master if r["layer"] == "block"}   # a protected block's role
-    os_of = {(r["level"], r["id"]): r["user_name"] for r in master if r["layer"] == "block" and r["id"].startswith("os:")}
+class _Master(NamedTuple):
+    """The device master's rows on a level, indexed the ways file_rows looks them up."""
+    masts: list[dict]                       # the mast rows, in master order
+    heads: dict[tuple[str, str], dict]      # (level, jmri_name) -> head row
+    physical: dict[tuple[str, str], dict]   # (level, system_name) -> head row that names a planned physical part
+    blocks: dict[tuple[str, str], dict]     # (level, user_name) -> block row (a protected block's role)
+    os_of: dict[tuple[str, str], str]       # (level, "os:<switch>") -> the OS block's user name
 
-    out, bad = [], []
-    for r in (r for r in master if r["layer"] == "mast"):
-        level, name, jmri, switch = r["level"], r["user_name"], r["jmri_name"], r["switch"]
-        where = f"{DEVICE_MAP.name}: level {level} mast {name}"
-        if not level_masts.MAST_USER.fullmatch(name):
-            bad.append(f"{where}: the name is not Mast <number>[L|R][letter] or Mast <A|B><milepost number>")
-            continue
-        protects = railroad.device_list(r["protects"])
-        row = dict(level=level, mast=name, cp=r["cp"], switch=switch, facing=r["facing"], dir=r["dir"], leg="",
-                   system_name=jmri, device_system_name=r["system_name"],
-                   **{**dict.fromkeys(level_masts.PLAN_FIELDS, ""), **plan.get((int(level), name), {})})
-        if jmri.startswith("IF$vsm:"):          # a hidden destination mast at a buffer stop (mast_plan)
-            if level_masts.virtual_level(jmri) != int(level) or r["system_name"] != jmri or switch or protects:
-                bad.append(f"{where}: {jmri!r} is a VirtualSignalMast of its level's thousand (its system_name the "
-                           "same) at a buffer stop: no switch, nothing protected")
-            out.append(dict(row, protects="", head_system_names=""))
-            continue
-        if len(protects) > 1 or not (switch or protects):     # an intermediate: no switch, between two blocks
-            bad.append(f"{where}: protects {protects or 'nothing'} and stands at "
-                       f"{'Switch ' + switch if switch else 'no switch'}: a home signal is at a switch or protects "
-                       "its OS block, an intermediate protects one block")
-            continue
-        if not switch and r["role"] == "home" and (level, protects[0]) not in blocks:
-            bad.append(f"{where} is an anchor mast protecting {protects[0]}, which is no level {level} block row")
-        elif not switch and r["role"] == "home" and not devices.is_os(blocks[(level, protects[0])], DEVICE_MAP.name):
-            bad.append(f"{where} is a home mast at no switch, so an anchor mast, but protects {protects[0]}, no OS "
-                       "block: a home signal lost its switch?")
-        m = level_masts.SHSM.fullmatch(jmri)
-        if not m:
-            bad.append(f"{where}: jmri_name {jmri!r} is not a SignalHeadSignalMast over its heads")
-            continue
-        names = level_masts.mast_heads(jmri)
-        missing = [h for h in names if (level, h) not in heads]
-        if missing:
-            bad.append(f"{where}: heads {missing} have no head row")
-            continue
-        bad += [f"{where}: {p}" for p in (level_masts.head_problem(h, heads[(level, h)]["user_name"], int(level),
-                                                                   heads[(level, h)]["assignment"] == "field")
-                                          for h in names) if p]
-        if r["system_name"] and r["system_name"] != jmri:      # the planned physical mast: over the same heads
-            planned = level_masts.SHSM.fullmatch(r["system_name"])
-            got = [physical.get((level, h), {}).get("jmri_name") for h in level_masts.mast_heads(r["system_name"])]
-            if not planned or planned.group(1, 2) != m.group(1, 2) or got != names:
-                bad.append(f"{where}: system_name {r['system_name']!r} is not the planned physical mast of "
-                           f"{jmri!r} (its heads' rows give {got})")
-        # the OS block of its switch by its id (os:<n>), so an owner's name for it is the one written here
-        own = protects[0] if protects else os_of.get((level, f"os:{switch}"), f"OS Switch {switch}")
-        out.append(dict(row, protects=own,
-                        head_system_names=level_masts.LIST.join(f"{h}={heads[(level, h)]['user_name']}"
-                                                                for h in names)))
-    pairs = {}
+
+def _index_master(master: list[dict]) -> _Master:
+    """The master's rows on a level (a row on no level, a device a Store added and not yet placed, is left out)."""
+    levels = {str(lv) for lv in level_masts.LEVELS}
+    rows = [r for r in master if r["level"] in levels]
+    return _Master(
+        masts=[r for r in rows if r["layer"] == "mast"],
+        heads={(r["level"], r["jmri_name"]): r for r in rows if r["layer"] == "head"},
+        physical={(r["level"], r["system_name"]): r for r in rows if r["layer"] == "head" and r["system_name"]},
+        blocks={(r["level"], r["user_name"]): r for r in rows if r["layer"] == "block"},
+        os_of={(r["level"], r["id"]): r["user_name"] for r in rows if r["layer"] == "block" and r["id"].startswith("os:")},
+    )
+
+
+def _base_row(r: dict, plan: Mapping[tuple[int, str], dict]) -> dict:
+    """A mast's masts.csv row before protects and head_system_names are known, its leg empty."""
+    return dict(level=r["level"], mast=r["user_name"], cp=r["cp"], switch=r["switch"], facing=r["facing"],
+                dir=r["dir"], leg="", system_name=r["jmri_name"], device_system_name=r["system_name"],
+                **{**dict.fromkeys(level_masts.PLAN_FIELDS, ""), **plan.get((int(r["level"]), r["user_name"]), {})})
+
+
+def _virtual_problem(r: dict, protects: list[str], where: str) -> str | None:
+    """A hidden destination mast at a buffer stop (mast_plan) is its level's VirtualSignalMast, at no switch,
+    protecting nothing."""
+    jmri = r["jmri_name"]
+    if level_masts.virtual_level(jmri) != int(r["level"]) or r["system_name"] != jmri or r["switch"] or protects:
+        return (f"{where}: {jmri!r} is a VirtualSignalMast of its level's thousand (its system_name the "
+                "same) at a buffer stop: no switch, nothing protected")
+    return None
+
+
+def _anchor_problem(r: dict, protects: list[str], where: str, idx: _Master) -> str | None:
+    """A home mast at no switch is an anchor mast (one rule on every level): it protects an OS block of its level,
+    else a home signal lost its switch."""
+    if r["switch"] or r["role"] != "home":
+        return None
+    level = r["level"]
+    if (level, protects[0]) not in idx.blocks:
+        return f"{where} is an anchor mast protecting {protects[0]}, which is no level {level} block row"
+    if not devices.is_os(idx.blocks[(level, protects[0])], DEVICE_MAP.name):
+        return (f"{where} is a home mast at no switch, so an anchor mast, but protects {protects[0]}, no OS "
+                "block: a home signal lost its switch?")
+    return None
+
+
+def _head_names(r: dict, where: str, idx: _Master, bad: list[str]) -> list[str] | None:
+    """The heads a SignalHeadSignalMast jmri_name names, each checked against its head row (problems go to `bad`);
+    None, with the reason in `bad`, when the name is no such mast or a head has no row."""
+    level, jmri = r["level"], r["jmri_name"]
+    if not level_masts.SHSM.fullmatch(jmri):
+        bad.append(f"{where}: jmri_name {jmri!r} is not a SignalHeadSignalMast over its heads")
+        return None
+    names = level_masts.mast_heads(jmri)
+    missing = [h for h in names if (level, h) not in idx.heads]
+    if missing:
+        bad.append(f"{where}: heads {missing} have no head row")
+        return None
+    bad += [f"{where}: {p}" for p in (level_masts.head_problem(h, idx.heads[(level, h)]["user_name"], int(level),
+                                                               idx.heads[(level, h)]["assignment"] == "field")
+                                      for h in names) if p]
+    return names
+
+
+def _physical_problem(r: dict, names: list[str], where: str, idx: _Master) -> str | None:
+    """A planned physical mast (a system_name other than the JMRI name) is the same signal over the same heads."""
+    jmri, system = r["jmri_name"], r["system_name"]
+    if not system or system == jmri:
+        return None
+    planned, m = level_masts.SHSM.fullmatch(system), level_masts.SHSM.fullmatch(jmri)
+    got = [idx.physical.get((r["level"], h), {}).get("jmri_name") for h in level_masts.mast_heads(system)]
+    if not planned or not m or planned.group(1, 2) != m.group(1, 2) or got != names:
+        return (f"{where}: system_name {system!r} is not the planned physical mast of "
+                f"{jmri!r} (its heads' rows give {got})")
+    return None
+
+
+def _mast_row(r: dict, idx: _Master, plan: Mapping[tuple[int, str], dict], bad: list[str]) -> dict | None:
+    """One mast's masts.csv row, its problems added to `bad`; None when a problem leaves no row to write."""
+    level, name, switch = r["level"], r["user_name"], r["switch"]
+    where = f"{DEVICE_MAP.name}: level {level} mast {name}"
+    if not level_masts.MAST_USER.fullmatch(name):
+        bad.append(f"{where}: the name is not Mast <number>[L|R][letter] or Mast <A|B><milepost number>")
+        return None
+    protects = railroad.device_list(r["protects"])
+    row = _base_row(r, plan)
+    if r["jmri_name"].startswith("IF$vsm:"):
+        if problem := _virtual_problem(r, protects, where):
+            bad.append(problem)
+        return dict(row, protects="", head_system_names="")
+    if len(protects) > 1 or not (switch or protects):     # an intermediate: no switch, between two blocks
+        bad.append(f"{where}: protects {protects or 'nothing'} and stands at "
+                   f"{'Switch ' + switch if switch else 'no switch'}: a home signal is at a switch or protects "
+                   "its OS block, an intermediate protects one block")
+        return None
+    if problem := _anchor_problem(r, protects, where, idx):
+        bad.append(problem)
+    names = _head_names(r, where, idx, bad)
+    if names is None:
+        return None
+    if problem := _physical_problem(r, names, where, idx):
+        bad.append(problem)
+    # the OS block of its switch by its id (os:<n>), so an owner's name for it is the one written here
+    own = protects[0] if protects else idx.os_of.get((level, f"os:{switch}"), f"OS Switch {switch}")
+    return dict(row, protects=own,
+                head_system_names=level_masts.LIST.join(f"{h}={idx.heads[(level, h)]['user_name']}" for h in names))
+
+
+def _assign_legs(out: list[dict], bad: list[str]) -> None:
+    """Two masts facing into one block are an A and a B, on the switch's normal and diverging legs: set their leg."""
+    pairs: dict[tuple[str, str], list[dict]] = {}
     for r in out:
         if r["protects"]:
             pairs.setdefault((r["facing"], r["protects"]), []).append(r)
@@ -147,13 +193,53 @@ def file_rows(master: list[dict], plan: dict) -> list[dict]:
             continue
         for letter, r in letters.items():
             r["leg"] = level_masts.LEGS[letter]
+
+
+def _naming_problems(out: list[dict], plan: Mapping[tuple[int, str], dict]) -> list[str]:
+    """A mast named twice, and plan facts for a mast the master has no row for."""
     taken = [r["mast"] for r in out]
-    bad += [f"{DEVICE_MAP.name}: mast {x} is named twice" for x in sorted({x for x in taken if taken.count(x) > 1})]
+    bad = [f"{DEVICE_MAP.name}: mast {x} is named twice" for x in sorted({x for x in taken if taken.count(x) > 1})]
     bad += [f"plan facts for level {lv} mast {x}, which the master has no mast row for"
             for lv, x in sorted(set(plan) - {(int(r["level"]), r["mast"]) for r in out})]
+    return bad
+
+
+def _mast_number(name: str) -> int:
+    """The first number in a mast name; MAST_USER, checked before, gives every name one."""
+    m = re.search(r"\d+", name)
+    if m is None:
+        raise RuleError(f"mast {name!r} has no number")
+    return int(m.group())
+
+
+def file_rows(master: list[dict], plan: Mapping[tuple[int, str], dict]) -> list[dict]:
+    """masts.csv's rows, every level alike, from the mast and head rows of the device master (`master`, its rows as
+    they will be written) and `plan` ({(level, mast): its PLAN_FIELDS}, the plan facts of staging's masts; every
+    other row's are empty): one row per mast, in level, number and name order. system_name and head_system_names are
+    the JMRI names (the master's jmri_name), device_system_name the master's system_name (the same on staging, the
+    planned physical mast on main and upper). A mast protects the OS block of its switch unless its row names one
+    (an anchor mast, an intermediate, a double crossover's corner). RuleError, naming the level and mast, on a virtual
+    mast out of its level's thousand or at a switch or protecting a block; a visible mast protecting more than one
+    block, or none at no switch; a home mast at no switch (an anchor mast, by one rule on every level) that does not
+    protect an OS block of its level (a home signal that lost its switch?); a name out of the grammar
+    (level_masts.MAST_USER, virtual masts too), a system name that is not a SignalHeadSignalMast over its heads; a head
+    with no head row of its level, or neither its level's internal name nor, on a head row whose assignment is field,
+    a wired LCOS head (level_masts.head_problem); a planned physical mast whose heads are not the JMRI mast's; two
+    masts on one block pair that are not an A and a B (level_masts.LEGS); a mast named twice; and a plan fact for a
+    mast the master does not have. A row on no level (a device a Store added, not yet placed: hartlib.devices
+    is_unplaced) is on no level's map, and left out."""
+    idx = _index_master(master)
+    out: list[dict] = []
+    bad: list[str] = []
+    for r in idx.masts:
+        row = _mast_row(r, idx, plan, bad)
+        if row is not None:
+            out.append(row)
+    _assign_legs(out, bad)
+    bad += _naming_problems(out, plan)
     if bad:
         raise RuleError("; ".join(bad))
-    return sorted(out, key=lambda r: (int(r["level"]), int(re.search(r"\d+", r["mast"]).group()), r["mast"]))
+    return sorted(out, key=lambda r: (int(r["level"]), _mast_number(r["mast"]), r["mast"]))
 
 
 def current(master: list, made: list[dict]) -> None:

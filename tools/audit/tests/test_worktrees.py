@@ -95,6 +95,13 @@ class GitErrors(unittest.TestCase):
             self.assertEqual(WT.main(["sweep", "--dry-run"]), 1)
         self.assertEqual(err.getvalue(), "error: git worktree list failed in /x: boom\n")
 
+    def test_main_reports_a_bad_topic_in_one_line(self) -> None:
+        err = io.StringIO()
+        with redirect_stderr(err):
+            self.assertEqual(WT.main(["new", "Bad Topic"]), 1)
+        self.assertEqual(err.getvalue(),
+                         "error: topic must be lower-case letters and digits, words joined by - or _: 'Bad Topic'\n")
+
 
 class SweepGoesOn(unittest.TestCase):
     """A broken submodule or a failed cleanup after a removal is one line; the sweep carries on."""
@@ -378,7 +385,7 @@ class Sweep(Repo):
 
     def test_topic_must_be_a_valid_branch_word(self) -> None:
         for bad in ("fix..ids", "x.lock", "x.", "Bad", "a b", "-x"):
-            with self.assertRaises(SystemExit, msg=bad):
+            with self.assertRaises(WT.WorktreeError, msg=bad):
                 WT.new(bad, "claude")
 
 
@@ -392,7 +399,7 @@ class New(Repo):
         WT.ROOT = Path(self.main)
         try:
             path = WT.new("probe", "claude")
-            with self.assertRaises(SystemExit):
+            with self.assertRaises(WT.WorktreeError):
                 WT.new("Bad Topic", "claude")
         finally:
             WT.ROOT = saved

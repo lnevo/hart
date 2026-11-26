@@ -10,16 +10,27 @@ import io
 import json
 import sys
 import tempfile
+import types
 import unittest
 import wave
 from pathlib import Path
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
-spec = importlib.util.spec_from_file_location("tiktok_promo_test", ROOT / "tools/promo/tiktok_promo.py")
-TP = importlib.util.module_from_spec(spec)
-sys.modules["tiktok_promo_test"] = TP  # dataclasses look the module up by name
-spec.loader.exec_module(TP)
+
+
+def _load(name: str, rel: str) -> types.ModuleType:
+    """The script at ROOT/rel as module `name`, registered in sys.modules (dataclasses look the module up by name)."""
+    spec = importlib.util.spec_from_file_location(name, ROOT / rel)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+TP = _load("tiktok_promo_test", "tools/promo/tiktok_promo.py")
+VO = _load("voiceover_test", "tools/promo/voiceover.py")    # imports without mlx: the model loads in main
 
 
 def silent_wav(path: Path, seconds: float, rate: int = 24000) -> None:
@@ -62,15 +73,75 @@ class VoiceLines(unittest.TestCase):
 
     def test_a_word_not_heard_stops_with_the_line_to_redo(self) -> None:
         line = TP.load_vo("owner")[0]
-        with self.assertRaises(SystemExit) as e:
+        with self.assertRaises(TP.PromoError) as e:
             line.at("helix")
         self.assertIn(line.wav.name, str(e.exception))
 
     def test_a_missing_line_names_the_command_to_run(self) -> None:
         next((self.vo / "owner").glob("03-*.wav")).unlink()
-        with self.assertRaises(SystemExit) as e:
+        with self.assertRaises(TP.PromoError) as e:
             TP.load_vo("owner")
         self.assertIn("voiceover.py --voice owner", str(e.exception))
+
+
+class Render(unittest.TestCase):
+    """render() pipes frames to the encoder; a failed encoder is a PromoError carrying what it wrote on stderr."""
+
+    FMT = TP.Format("tiny", 4, 2, (0, 0, 4, 2))
+
+    def segs(self, seconds: float = 1.0) -> list:
+        def frames(n: int):
+            for _ in range(n):
+                yield TP.Image.new("RGB", (4, 2), (1, 2, 3))
+        return [TP.Segment(frames, seconds)]
+
+    def encoder(self, body: str) -> list[str]:
+        return [sys.executable, "-c", body]
+
+    def test_the_frames_reach_the_encoder(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "got.raw"
+            cmd = self.encoder(f"import sys; open({str(out)!r}, 'wb').write(sys.stdin.buffer.read())")
+            TP.render(self.segs(), None, out, self.FMT, cmd)
+            self.assertEqual(out.read_bytes(), bytes((1, 2, 3)) * 8 * TP.FPS)
+
+    def test_a_failed_encoder_names_its_exit_code_and_stderr(self) -> None:
+        cmd = self.encoder("import sys; sys.stdin.buffer.read(); sys.stderr.write('Unknown encoder libx264'); sys.exit(3)")
+        with self.assertRaises(TP.PromoError) as e:
+            TP.render(self.segs(), None, Path("x.mp4"), self.FMT, cmd)
+        self.assertIn("exit 3", str(e.exception))
+        self.assertIn("Unknown encoder libx264", str(e.exception))
+
+    def test_an_encoder_that_stops_early_is_reported_not_a_broken_pipe(self) -> None:
+        cmd = self.encoder("import sys; sys.stderr.write('Invalid argument'); sys.exit(1)")
+        with self.assertRaises(TP.PromoError) as e:
+            TP.render(self.segs(400.0), None, Path("x.mp4"), self.FMT, cmd)
+        self.assertIn("Invalid argument", str(e.exception))
+
+    def test_main_exits_with_the_message(self) -> None:
+        with mock.patch.object(TP, "_main", side_effect=TP.PromoError("ffmpeg not found")), \
+                self.assertRaises(SystemExit) as e:
+            TP.main()
+        self.assertEqual(str(e.exception.code), "tiktok_promo.py: ffmpeg not found")
+
+
+class VoiceoverReference(unittest.TestCase):
+    """voiceover.py takes a 24 kHz mono reference clip; anything else is a VoiceoverError, which main() exits with."""
+
+    def test_mono_24_khz_passes(self) -> None:
+        VO.check_reference(24000, (48000,))
+
+    def test_stereo_or_another_rate_names_what_it_got(self) -> None:
+        with self.assertRaisesRegex(VO.VoiceoverError, r"got 24000 Hz, 2 channels"):
+            VO.check_reference(24000, (48000, 2))
+        with self.assertRaisesRegex(VO.VoiceoverError, r"got 44100 Hz, 1 channels"):
+            VO.check_reference(44100, (48000,))
+
+    def test_main_exits_with_the_message(self) -> None:
+        with mock.patch.object(VO, "_main", side_effect=VO.VoiceoverError("reference must be 24 kHz mono")), \
+                self.assertRaises(SystemExit) as e:
+            VO.main()
+        self.assertEqual(str(e.exception.code), "reference must be 24 kHz mono")
 
 
 class Timing(unittest.TestCase):

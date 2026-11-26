@@ -37,12 +37,13 @@ import tempfile
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from typing import IO
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 
 if str(Path(__file__).resolve().parent) not in sys.path:     # promo_shots and soundtrack sit beside this file
     sys.path.insert(0, str(Path(__file__).resolve().parent))
-from promo_shots import BUILD_QUICK, CUT_PAGES, PAGES, SITE_SECTIONS  # noqa: E402
+from promo_shots import BUILD_QUICK, CUT_PAGES, SITE_SECTIONS, PromoError, capture_pages  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 PHOTOS = ROOT / "media" / "photos-layout"
@@ -50,8 +51,6 @@ EVOLUTION = ROOT / "www" / "assets" / "behind" / "panel-evolution"
 LOGO = ROOT / "www" / "assets" / "media" / "hart-logo.png"
 FONTS = Path(__file__).resolve().parent / "fonts"
 OUT = ROOT / "media" / "promo"
-SITE_URL = "https://www.hartrailroad.com/"
-CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
 FPS = 30
 
@@ -234,7 +233,7 @@ def video_frames(path: Path, vf: str, size: tuple[int, int], start: float = 0.0,
             break
         yield Image.frombytes("RGB", size, buf)
     if proc.wait():
-        raise SystemExit(f"ffmpeg could not decode {path}")
+        raise PromoError(f"ffmpeg could not decode {path}")
 
 
 def schematic(fmt: Format) -> Frames:
@@ -254,7 +253,7 @@ def _schematic(fmt: Format, n: int) -> Iterator[Image.Image]:
           f"scale={fw}:{fh}:flags=lanczos")
     frames = list(video_frames(src, vf, (fw, fh)))
     if not frames:
-        raise SystemExit(f"no frames from {src}")
+        raise PromoError(f"no frames from {src}")
     last = frames[-1]
     for i in range(n):
         im = frames[i] if i < len(frames) else last
@@ -280,7 +279,7 @@ def _ctc_pan(fmt: Format, n: int) -> Iterator[Image.Image]:
     vf = f"fps={FPS},crop=1200:652:0:62,scale={pw}:{ph}:flags=lanczos"
     frames = list(video_frames(src, vf, (pw, ph)))
     if not frames:
-        raise SystemExit(f"no frames from {src}")
+        raise PromoError(f"no frames from {src}")
     bg = (34, 34, 42)
     for i in range(n):
         t = i / max(n - 1, 1)
@@ -480,7 +479,7 @@ class VoLine:
             if w["start"] + self.start >= after and \
                     w["w"].lower().strip(".,!?:;'\"") .startswith(want):
                 return self.start + max(0.0, w["start"] - 0.08)
-        raise SystemExit(f"'{word}' not heard in {self.wav.name}; regenerate that line")
+        raise PromoError(f"'{word}' not heard in {self.wav.name}; regenerate that line")
 
 
 def vo_voices() -> list[str]:
@@ -501,7 +500,7 @@ def load_vo(voice: str) -> list[VoLine]:
     for k, (key, caption) in enumerate(spec):
         wav = VO_DIR / voice / f"{k:02d}-{key}.wav"
         if not wav.exists():
-            raise SystemExit(f"{wav} missing: run tools/promo/voiceover.py --voice {voice}")
+            raise PromoError(f"{wav} missing: run tools/promo/voiceover.py --voice {voice}")
         with wave.open(str(wav)) as w:
             secs = w.getnframes() / w.getframerate()
         words = json.loads(wav.with_suffix(".json").read_text())["words"]
@@ -611,7 +610,7 @@ def diverging_cut(fonts: Fonts, shots: Mapping[str, Path], voice: str, fmt: Form
     ]
     times = [p[0] for p in plan]
     if times != sorted(times):
-        raise SystemExit("voiceover word timings out of order; check the line JSON files")
+        raise PromoError("voiceover word timings out of order; check the line JSON files")
     return timed(plan, end)
 
 
@@ -672,47 +671,39 @@ CUT_NAMES = ("build", "site", "diverging")
 
 # ---------------------------------------------------------------- render
 
-def find_chrome() -> str:
-    for name in (CHROME, "google-chrome", "chromium"):
-        found = shutil.which(name)
-        if found:
-            return found
-    raise SystemExit("Google Chrome not found")
+def encoder_cmd(out: Path, fmt: Format) -> list[str]:
+    """ffmpeg reading raw RGB frames on stdin and writing an H.264 MP4 with a silent audio track."""
+    return ["ffmpeg", "-v", "error", "-y",
+            "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{fmt.w}x{fmt.h}", "-r", str(FPS), "-i", "-",
+            "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo", "-shortest",
+            "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p",
+            "-profile:v", "high", "-movflags", "+faststart", "-c:a", "aac", "-b:a", "128k",
+            str(out)]
 
 
-def capture_pages(out: Path, stems: set[str]) -> dict[str, Path]:
-    """Phone-width captures of the live pages in PAGES, reusing files in out.
-
-    Headless Chrome on macOS lays out no narrower than about 500 CSS px, so a
-    390 px window clips the page; 500 px at 2.16x gives a clean 1080 px image.
-    """
-    out.mkdir(parents=True, exist_ok=True)
-    shots = {}
-    for path, stem in PAGES.items():
-        if stem not in stems:
-            continue
-        shot = out / f"{stem}.png"
-        if not shot.exists():
-            with tempfile.TemporaryDirectory() as profile:  # never touch the owner's Chrome
-                subprocess.run([find_chrome(), "--headless=new", "--disable-gpu",
-                                "--hide-scrollbars", f"--user-data-dir={profile}",
-                                "--virtual-time-budget=6000", "--force-device-scale-factor=2.16",
-                                "--window-size=500,3600", f"--screenshot={shot}",
-                                SITE_URL + path],
-                               check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        shots[stem] = shot
-    return shots
+def render(segs: Sequence[Segment], fonts: Fonts, out: Path, fmt: Format, cmd: Sequence[str] | None = None) -> None:
+    """Draw every segment's frames, captions faded in, and pipe them to ffmpeg (`cmd`, encoder_cmd by default).
+    PromoError, with ffmpeg's own error output, when the encoder fails."""
+    # ffmpeg's stderr goes to a file, not a pipe: a full pipe would stall the encoder while frames are written to it
+    with tempfile.TemporaryFile() as errors:
+        enc = subprocess.Popen(list(cmd or encoder_cmd(out, fmt)), stdin=subprocess.PIPE, stderr=errors)
+        assert enc.stdin
+        try:
+            _write_frames(segs, fonts, fmt, enc.stdin)
+            enc.stdin.close()
+        except BrokenPipeError:       # the encoder stopped early; its exit code and stderr say why
+            pass
+        code = enc.wait()
+        errors.seek(0)
+        said = errors.read().decode("utf-8", "replace").strip()
+    if code:
+        raise PromoError(f"ffmpeg failed (exit {code}) writing {out}" + (f":\n{said}" if said else ""))
+    if said:
+        print(said, file=sys.stderr)
 
 
-def render(segs: Sequence[Segment], fonts: Fonts, out: Path, fmt: Format) -> None:
-    enc = subprocess.Popen(
-        ["ffmpeg", "-v", "error", "-y",
-         "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{fmt.w}x{fmt.h}", "-r", str(FPS), "-i", "-",
-         "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo", "-shortest",
-         "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p",
-         "-profile:v", "high", "-movflags", "+faststart", "-c:a", "aac", "-b:a", "128k",
-         str(out)], stdin=subprocess.PIPE)
-    assert enc.stdin
+def _write_frames(segs: Sequence[Segment], fonts: Fonts, fmt: Format, sink: IO[bytes]) -> None:
+    """Every frame of `segs`, its caption layer composited (faded in when the caption changes), to `sink`."""
     prev = None
     cache: dict[tuple, Image.Image] = {}
     for seg in segs:
@@ -732,11 +723,8 @@ def render(segs: Sequence[Segment], fonts: Fonts, out: Path, fmt: Format) -> Non
                 frame = frame.convert("RGBA")
                 frame.alpha_composite(a)
                 frame = frame.convert("RGB")
-            enc.stdin.write(frame.tobytes())
+            sink.write(frame.tobytes())
         prev = key
-    enc.stdin.close()
-    if enc.wait():
-        raise SystemExit("ffmpeg failed")
 
 
 def add_music(cut: str, video: Path, seconds: float, tmp: Path) -> None:
@@ -756,6 +744,14 @@ def add_music(cut: str, video: Path, seconds: float, tmp: Path) -> None:
 
 
 def main() -> None:
+    """Parse the arguments and render the cuts; a PromoError exits with its message."""
+    try:
+        _main()
+    except PromoError as exc:
+        raise SystemExit(f"tiktok_promo.py: {exc}") from exc
+
+
+def _main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--out", type=Path, default=OUT, help="output directory (media/promo)")
     ap.add_argument("--font-dir", type=Path, default=FONTS,
@@ -783,7 +779,7 @@ def main() -> None:
             # route_card and timed() place text for the 1080x1920 frame only.
             ap.error("the diverging cut is drawn for the vertical format only; drop --format landscape")
     if not shutil.which("ffmpeg"):
-        raise SystemExit("ffmpeg not found")
+        raise PromoError("ffmpeg not found")
     args.out.mkdir(parents=True, exist_ok=True)
     fonts = Fonts(args.font_dir)
     fmt = FORMATS[args.format]
