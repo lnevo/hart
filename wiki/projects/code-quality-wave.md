@@ -1,6 +1,7 @@
 # Code-quality wave (2026-11-26)
 
-Status: done (2026-11-26)
+Status: active (wave 2, from 2026-11-26 14:15)
+Coordinator: hart-bb, since 2026-11-26 14:15 (holds the merge queue and the deploys; a background wave 2 coordinator runs the lanes)
 
 A read-only review on 2026-11-26 graded the repo's 781 scripts at B- overall. The code was decent, with recurring AI habits:
 - helpers copied between files until the copies drift

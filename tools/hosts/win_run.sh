@@ -217,6 +217,24 @@ if [[ -f tools/audit/check_ruff.py ]]; then
   fi
 fi
 # --- end ruff
+# --- venv (tests run this block alone)
+# ~/hart/.venv follows the requirements.txt of the commit being run: when that file's sha256 differs from the one the
+# venv last took, uv installs it (under a lock, so two runs never install at once) and records the sha256. A failed
+# install is a warning, not a setup failure: the job that needs a missing package then says which one.
+if [[ -f requirements.txt ]]; then
+  want_req="\$(sha256sum requirements.txt | cut -d' ' -f1)"
+  req_stamp="\$HOME/hart/.venv/.requirements.sha256"
+  if [[ "\$(cat "\$req_stamp" 2>/dev/null || true)" != "\$want_req" ]]; then
+    mkdir -p "\$HOME/.cache/hart"
+    if ( flock 8 && uv pip install -q --python "\$HOME/hart/.venv/bin/python" -r requirements.txt \
+           && echo "\$want_req" > "\$req_stamp" ) 8>"\$HOME/.cache/hart/venv.lock" >&2; then
+      echo "win_run.sh: ~/hart/.venv now has this commit's requirements.txt" >&2
+    else
+      echo "win_run.sh: warning: could not install requirements.txt into ~/hart/.venv; a job that needs a new package will fail" >&2
+    fi
+  fi
+fi
+# --- end venv
 # --- slots (tests run this block alone)
 # At most $slots runs at once, each with its share of the CPUs: more runs only slow each other down (2026-11-21:
 # four checks at once each took three times as long). A run waits here for a free slot; the slot is held on fd 9

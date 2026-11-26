@@ -80,7 +80,7 @@ repair python3 "$SCRIPTS/fix_traininfo_detection.py" "$REPO_TRAININFO"
 repair python3 "$SCRIPTS/reconcile_dispatcher_stations.py" --panel "$REPO_OUTPUT" --no-sync \
   --reference "$BEFORE_TABLES"
 # Stage 1 drops generated bean comments (SML section notes, Dispatcher sensors).
-repair python3 "$SCRIPTS/refresh_bean_comments.py"
+repair python3 "$SCRIPTS/check_bean_comments.py"
 # Stage 1 Store writes BlockContentsIcons at level 0 (behind the track), moves
 # train-name labels and puts its occupancy lamps back on the turnouts.
 repair python3 "$ROOT/jmri/layouts/hart/parked/polish_hart_layout_editor.py" --panel "$REPO_OUTPUT" --reference "$BEFORE_TABLES"

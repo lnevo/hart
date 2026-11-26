@@ -5,7 +5,7 @@ caller is tools/audit/check_layout_facts.py (in tools/check.sh), which imports i
 The other callers are tests: test_uss_switch_levers.py (rebuild of the committed files, byte-identical),
 test_ctc_signal_heads.py, test_uss_board_cells.py, parked/tests/test_occupancy_lamps_display_only.py, and
 cats/scripts/tests/test_generated_desk_from_scratch.py (runs it with --xml-only and expects the files unchanged).
-refresh_bean_comments.py only lists the file as a path it edits. These tests cover the importer's parts and the rest
+check_bean_comments.py only lists the file as a path it edits. These tests cover the importer's parts and the rest
 of the generator, so it keeps working until the machine is unparked.
 
 The input is a small fixture, not the live board: the module's data tables (PLANTS, SIGNALS, the lever columns) are

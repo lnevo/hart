@@ -19,7 +19,7 @@ P = "jmri/layouts/hart/parked/"  # scripts that only serve a parked feature
 WRITERS = (
     (P + "polish_hart_layout_editor.py", []),
     (S + "reconcile_dispatcher_stations.py", ["--no-sync"]),
-    (S + "disable_digicon_sml_in_tables.py", []), (S + "refresh_bean_comments.py", []),
+    (S + "disable_digicon_sml_in_tables.py", []), (S + "check_bean_comments.py", []),
     (P + "apply_nx_layer.py", []),
     (S + "cleanup_uss_ctc_leftovers.py", ["--apply"]),
     (S + "uss_switch_only_columns.py", ["--apply"]), (P + "retarget_dispatcher_traininfo_transits.py", []),

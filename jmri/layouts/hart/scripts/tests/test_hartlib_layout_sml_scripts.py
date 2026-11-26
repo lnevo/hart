@@ -61,7 +61,7 @@ class PathsTest(unittest.TestCase):
             "polish_hart_layout_editor": {"ROOT": REPO, "DEFAULT_PANEL": TABLES},
             "reconcile_dispatcher_stations": {
                 "ROOT": REPO, "DEFAULT_PANEL": TABLES, "SYNC_PANEL": TABLES},
-            "refresh_bean_comments": {
+            "check_bean_comments": {
                 "ROOT": REPO, "TABLES": TABLES,
                 "DEVICES": REPO / "jmri/layouts/hart/data" / devices.MASTER_FILE},
             "layout_facts": {"DATA": REPO / "jmri/layouts/hart/data"},
