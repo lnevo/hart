@@ -16,8 +16,12 @@ from __future__ import annotations
 import csv
 import os
 import re
-import xml.etree.ElementTree as ET
+import sys
 from pathlib import Path
+
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import operations  # noqa: E402
 
 import numpy as np
 import pytesseract
@@ -142,9 +146,8 @@ def _valid_marks(marks: str) -> bool:
 
 
 def load_roster() -> list[dict]:
-    root = ET.parse(ROSTER_XML).getroot()
     cars = []
-    for el in root.findall("./cars/car"):
+    for el in operations.cars(ROSTER_XML):
         cars.append(
             {
                 "roster_id": el.get("id", ""),
