@@ -5300,6 +5300,15 @@
    "path": "tools/audit/traced.py"
   },
   {
+   "id": "tools/audit/traced_read.py",
+   "label": "traced_read.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "traced.py's reading half: parses a trace log, makes the read set and the stamp, and compares a stamp with the checkout.",
+   "path": "tools/audit/traced_read.py"
+  },
+  {
    "id": "tools/audit/trace_hook/sitecustomize.py",
    "label": "sitecustomize.py",
    "kind": "generator",
@@ -12511,6 +12520,11 @@
    "from": "tools/audit/trace_hook/sitecustomize.py",
    "to": "tools/audit/traced.py",
    "label": "starts the hook"
+  },
+  {
+   "from": "tools/audit/traced_read.py",
+   "to": "tools/audit/traced.py",
+   "label": "re-exported"
   },
   {
    "from": "tools/audit/stamp_audit/sitecustomize.py",

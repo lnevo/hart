@@ -63,6 +63,7 @@ MACHINERY = (
     "tools/audit/stamps_cache.py",          # its parts (check_stamps.FILES)
     "tools/audit/stamps_audit.py",
     "tools/audit/traced.py",
+    "tools/audit/traced_read.py",           # its parts (traced.HOOK_FILES)
     "tools/audit/trace_hook/",
     "tools/schematic/panel_stamps.py",
     "tools/hosts/profile_tables_guard.sh",

@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import textwrap
+import types
 import unittest
 import unittest.mock
 from pathlib import Path
@@ -443,6 +444,33 @@ class KeepTest(unittest.TestCase):
         self.assertFalse(traced.git_reads_only(["git", "-c", "a=b", "commit", "-m", "x"]))
         self.assertTrue(traced.git_reads_only(["git", "worktree", "list"]))
         self.assertFalse(traced.git_reads_only(["git", "worktree", "add", "x"]))
+
+
+class LoadTest(unittest.TestCase):
+    def test_traced_and_its_parts_load_by_path_from_any_cwd(self) -> None:
+        """As the hook and panel_stamps load it: by path, isolated (-I: nothing of the repo on sys.path), from
+        another folder; the parts' names are traced's own and every part is in HOOK_FILES."""
+        probe = ("import importlib.util, json, sys\n"
+                 "spec = importlib.util.spec_from_file_location('_hart_traced', sys.argv[1])\n"
+                 "t = importlib.util.module_from_spec(spec)\n"
+                 "spec.loader.exec_module(t)\n"
+                 "print(json.dumps([t.HOOK_FILES, callable(t.parse), callable(t.listing), t.VERSION,\n"
+                 "                  t.Trace.__name__, 'traced_read' in sys.modules]))\n")
+        with tempfile.TemporaryDirectory() as cwd:
+            done = subprocess.run([sys.executable, "-I", "-c", probe, traced.__file__], cwd=cwd,
+                                  capture_output=True, text=True, timeout=60)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        files, parse, listing, version, trace, registered = __import__("json").loads(done.stdout)
+        self.assertEqual(files, list(traced.HOOK_FILES))
+        self.assertIn("tools/audit/traced_read.py", files)
+        self.assertEqual((parse, listing, version, trace, registered), (True, True, traced.VERSION, "Trace", False))
+
+    def test_a_part_that_repeats_a_name_is_refused(self) -> None:
+        part = types.ModuleType("traced_x")
+        part.__file__, part.install, part.fresh = "traced_x.py", object(), object()
+        with self.assertRaisesRegex(ImportError, "traced_x.py defines names traced.py defines too: install$"):
+            traced._take_names(part)
+        self.assertFalse(hasattr(traced, "fresh"))      # nothing is taken from a refused part
 
 
 if __name__ == "__main__":
