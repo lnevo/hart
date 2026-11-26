@@ -50,9 +50,9 @@ class ExamAnswers(unittest.TestCase):
             for field in (q["title"], q["body"], q["right"], *(w["t"] for w in q["wrong"])):
                 self.assertNotRegex(field, r"\[\w+\.[\w.\[\]]*\]|NaN|\[object", f"run.js line {q['line']}")
 
-    # A minimal run.js: the pools, the modern-run markers, the source names and a figure helper.
+    # A minimal run.js: the pools, the modern-run markers and a figure helper.
     FRAME = (
-        'const SRC={SC:"1949 Standard Code",GC:"GCOR"};function semSvg(a){return "<svg>"+a+"</svg>"}'
+        'function semSvg(a){return "<svg>"+a+"</svg>"}'
         "const ROAD_TTO=[];const STN_TTO=[];const ROAD_TWC=[];{BODY}const TW_SEL={};{MODERN}function startSIG(){}function startYARD(){{YARD}}function finish(){}"
     )
 
@@ -202,9 +202,10 @@ class SectionNames(unittest.TestCase):
     def test_guide_game_and_cards_share_sections(self):
         index = INDEX.read_text()
         cards = re.search(r"const SECTIONS=(\{[^}]*\})", (WWW / "exam" / "deck-data.js").read_text()).group(1)
-        game = re.search(r"const SEC=(\{[^}]*\})", RUN.read_text()).group(1)
         pairs = lambda text: re.findall(r'(\w+):"([^"]+)"', text)  # the source may wrap the literal
-        self.assertEqual(pairs(cards), pairs(game), "run.js SEC must match the deck's SECTIONS")
+        engine = WWW / "js" / "game-engine.js"  # both games take their section names from it
+        game = json.loads(node(f"console.log(JSON.stringify(Object.entries(require({json.dumps(str(engine))}).DECK_SECTIONS)))"))
+        self.assertEqual(pairs(cards), [tuple(p) for p in game], "game-engine.js DECK_SECTIONS must match the deck's SECTIONS")
         names = dict(pairs(cards))
         guide = re.findall(r'<article id="learn-(\w+)" data-sec="\1" data-short="([^"]+)">\s*<h3>\d+\. ([^<]+)</h3>', index)
         self.assertEqual([k for k, _, _ in guide], list(names), "study guide sections follow the card order")

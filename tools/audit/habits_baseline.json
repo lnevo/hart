@@ -292,13 +292,10 @@
   "import-exit": 7
  },
  "tools/schematic/build_device_map.py": {
-  "dated-note": 10
+  "dated-note": 8
  },
  "tools/schematic/build_hands.py": {
   "import-exit": 7
- },
- "tools/schematic/build_layout_le.py": {
-  "dated-note": 1
  },
  "tools/schematic/build_masts.py": {
   "dated-note": 2
@@ -402,13 +399,6 @@
  },
  "www/scripts/share_card_recipes/composites.py": {
   "import-exit": 3
- },
- "www/scripts/share_card_recipes/page_figures.py": {
-  "import-exit": 3,
-  "lost-cause": 1
- },
- "www/scripts/share_card_recipes/panel_image.py": {
-  "import-exit": 2
  },
  "www/scripts/site_views.py": {
   "lost-cause": 2
