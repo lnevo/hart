@@ -376,21 +376,23 @@ outputs = [
   { path = "wiki/STATUS.md", label = "built page" },
 ]
 
-# Every output drawn from the schematic, checked by its own pipeline (make panels CHECK=1): each step of
-# tools/schematic/build_panels.sh (tools/pipeline/panels.toml) with --check, in build order, from the hands to the
-# approved fingerprints, with
-# tables.xml among them (an output, ADR-029: a Store is never copied over it; make tables-pull and split_store.py).
-# One list of panel checks for check.sh, CI and make panels. Its own stamps (shared with make panels) skip the steps
-# current here; CI, FULL=1 and an audit run pass --full and run them all, and so does a run with HART_TABLES (stamps
-# off; the table steps read that file). Fails when the schematic-maps plugin submodule is not checked out, even with
-# SCHEMATIC_REQUIRED=0: its schematic step (publish_draft.py --check) has no SKIPPED path.
+# Every output drawn from the schematic, checked by the steps of make panels (tools/pipeline/panels.toml), from the
+# hands to the approved fingerprints, with tables.xml among them (an output, ADR-029: a Store is never copied over
+# it; make tables-pull and split_store.py). check.sh does not run this command: this step stands for one job per step
+# of panels.toml, panels-<step>, which runs that step's check (its cmd and check_args) under check.sh's own trace and
+# stamps (ADR-037 stage 6; tools/pipeline/manifest_jobs.py panel_jobs). A check writes nothing, so the jobs run side
+# by side in any order; make panels CHECK=1 (this command) still runs them in build order with make panels' stamps.
+# Each job's key holds its panels.toml entry and this one, the step's outputs and make panels' code
+# (panel_stamps.CODE) whole, and the merge base for a step that publishes; with HART_TABLES set nothing is skipped.
+# A step fails when the schematic-maps plugin submodule is not checked out (SCHEMATIC_REQUIRED=1, as in CI).
 [[step]]
 name = "panels"
 runner = "check"
 group = "static"
-# check.sh adds --full when its stamps are off (CI, FULL=1, an audit run): the panel steps skip nothing then
 cmd = ["bash", "tools/schematic/build_panels.sh", "--check"]
-git = ["head", "base"]
+# git = []: the jobs' traces replay the git commands the steps run, as make panels' stamps do; a step that publishes
+# reads main's files through git and its job holds "base" (manifest_jobs.job_keys)
+git = []
 domain = "layout"
 label = "build_panels.sh (make panels)"
 desc = "make panels: runs the schematic builders and guards in order (hands to CATS: head-plan and panel-items steps and the sml-current guard included), skipping a step whose stamped inputs are unchanged (FULL=1 runs all)."
