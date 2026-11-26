@@ -10,10 +10,13 @@ import shutil
 
 from docx import Document
 
+import car_paths
+import card_template_layout
+import card_template_sheet
 import generate_card_template as g
 
-OUTPUT = g.OUTPUT_DIR / "HART_Card_NW32800.docx"
-IMAGE = g.ASSETS / "NW32800.png"
+OUTPUT = car_paths.OUTPUT_DIR / "HART_Card_NW32800.docx"
+IMAGE = car_paths.ASSETS / "NW32800.png"
 
 # Matched from OperationsCarRoster.xml: NW 32800, Flatcar, 52 ft.
 # Color read from the photo (black); feet abbreviated with an apostrophe.
@@ -26,12 +29,12 @@ RECORD = {
 
 
 def main() -> None:
-    shutil.copy2(g.require_sticker_sheet(), OUTPUT)
+    shutil.copy2(car_paths.require_sticker_sheet(), OUTPUT)
     doc = Document(OUTPUT)
-    g.keep_sticker_grid(doc)
+    card_template_sheet.keep_sticker_grid(doc)
 
     sheet = doc.tables[0]
-    r, c = g.CARD_SLOTS[0]
+    r, c = card_template_layout.CARD_SLOTS[0]
     g.build_card(
         sheet.rows[r].cells[c],
         advance_record=False,

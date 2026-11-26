@@ -23,6 +23,8 @@ from docx.oxml.ns import qn
 from docx.table import Table
 
 import car_paths
+import card_template_layout
+import card_template_sheet
 import generate_card_template as g
 from engine_lookup import (
     build_locomotive_description,
@@ -32,14 +34,14 @@ from engine_lookup import (
 )
 from card_description import build_freight_description, normalize_car_type, format_type_label as format_type
 
-BASE = g.BASE
-DATA = g.DATA
-OUTPUT_DIR = g.OUTPUT_DIR
-ASSETS = g.ASSETS
+BASE = car_paths.ROOT
+DATA = car_paths.DATA
+OUTPUT_DIR = car_paths.OUTPUT_DIR
+ASSETS = car_paths.ASSETS
 METADATA_CSV = DATA / "image_metadata.csv"
 ROSTER_XML = DATA / "OperationsCarRoster.xml"
 OUTPUT = OUTPUT_DIR / "HART_All_Car_Cards.docx"
-CARDS_PER_PAGE = len(g.CARD_SLOTS)
+CARDS_PER_PAGE = len(card_template_layout.CARD_SLOTS)
 
 # Omit from print sheet — unidentified / decorative cars kept in manifest for review only.
 EXCLUDE_FROM_DOC: frozenset[str] = frozenset({"IMG_9152.png"})
@@ -216,19 +218,19 @@ def _append_grid(doc: Document, grid_xml) -> Table:
     body = doc.element.body
     tbl = deepcopy(grid_xml)
     _set_page_break_before_table(tbl)
-    g._insert_before_sect(body, tbl)
-    g._ensure_sect_pr_last(body)
+    card_template_sheet.insert_before_sect(body, tbl)
+    card_template_sheet.ensure_sect_pr_last(body)
     table = Table(body.findall(qn("w:tbl"))[-1], doc)
-    g.strip_grid_guides(table)
+    card_template_sheet.strip_grid_guides(table)
     return table
 
 
 def _blank_sticker_grid():
     """Return OOXML for an empty 3×3 sticker grid cloned from the template."""
     scratch_path = BASE / ".scratch_sticker.docx"
-    shutil.copy2(g.STICKER_SHEET, scratch_path)
+    shutil.copy2(car_paths.STICKER_SHEET, scratch_path)
     scratch = Document(scratch_path)
-    g.keep_sticker_grid(scratch)
+    card_template_sheet.keep_sticker_grid(scratch)
     grid = deepcopy(scratch.tables[0]._tbl)
     scratch_path.unlink(missing_ok=True)
     return grid
@@ -236,7 +238,7 @@ def _blank_sticker_grid():
 
 def _fill_page(sheet: Table, batch: list[tuple[dict, Path | None, dict]], page_idx: int) -> None:
     for i, (record, image, _row) in enumerate(batch):
-        r, c = g.CARD_SLOTS[i]
+        r, c = card_template_layout.CARD_SLOTS[i]
         g.build_card(
             sheet.rows[r].cells[c],
             advance_record=False,
@@ -247,14 +249,14 @@ def _fill_page(sheet: Table, batch: list[tuple[dict, Path | None, dict]], page_i
 
 
 def generate(cards: list[tuple[dict, Path | None, dict]]) -> None:
-    g.require_sticker_sheet()
+    car_paths.require_sticker_sheet()
     if not METADATA_CSV.exists():
         raise FileNotFoundError(METADATA_CSV)
 
     blank_grid = _blank_sticker_grid()
-    shutil.copy2(g.STICKER_SHEET, OUTPUT)
+    shutil.copy2(car_paths.STICKER_SHEET, OUTPUT)
     doc = Document(OUTPUT)
-    g.keep_sticker_grid(doc)
+    card_template_sheet.keep_sticker_grid(doc)
 
     pages = [
         cards[i : i + CARDS_PER_PAGE]
@@ -268,7 +270,7 @@ def generate(cards: list[tuple[dict, Path | None, dict]]) -> None:
         sheet = _append_grid(doc, blank_grid)
         _fill_page(sheet, batch, page_idx)
 
-    g._add_document_tail(doc.element.body)
+    card_template_sheet.add_document_tail(doc.element.body)
     doc.save(OUTPUT)
 
 

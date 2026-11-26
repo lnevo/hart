@@ -39,7 +39,9 @@ Quality (code only): 1 clear domain errors, not raw exceptions; 2 no silent fall
   walks (shortest level first, cycles), Markdown parsing (wrapped paragraphs, code
   fences, HTML comments, multi-line list items, lines that start with bold), links
   copied into another file without rewriting, and checks that compare more than they
-  claim. Test the ones that apply.
+  claim. Test the ones that apply. Also the AGENTS.md "Scripts" habits: no copied
+  helpers, `from exc` not `from None`, no dated history in comments, behaviour tests
+  not source greps, typed records, annotations that pass mypy.
 Checks: single tests while iterating; make static (about 20 s) before each push;
   the full ./tools/check.sh once, through make remote CMD="./tools/check.sh" after
   pushing. Take timings from logs, not re-runs. Rules the static checks enforce, to

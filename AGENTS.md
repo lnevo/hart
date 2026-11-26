@@ -44,6 +44,8 @@ Hooks in `.claude/hooks/` (Cursor: `.cursor/hooks.json`) block commits in the ma
 
 CPython tools import `hartlib` (`tools/hartlib/README.md`); Jython scripts inside JMRI never do. When a task changes a script of about 500 lines or more, or one with no tests, leave it safer in the same PR: a test for what changed, and for a feature, tests for what it depends on. Running a script owes nothing, but say so if something live relied on untested behaviour. Name a bigger cleanup in the report instead of starting it.
 
+Habits the 2026-11-26 review found, to avoid: copying a helper instead of reusing it; `str(exc) from None` (chain `from exc`); `sys.exit` in library code; dates or edit history in comments (decisions go in `wiki/`); tests that search source instead of running it; bare dicts or tuples for records (dataclass, TypedDict, NamedTuple, `Literal`); annotations mypy would reject; `exec` or `globals()` parts instead of real modules.
+
 ## Do not
 
 - Deploy before saving what the Pi wrote live (Operations Pro files, a Store); `HART_DISCARD_PI_CHANGES=1` is the owner's call.

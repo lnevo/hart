@@ -16,11 +16,13 @@ from docx.table import Table
 
 # generate_waybill_cards loads generate_card_template, waybill_data and waybill_deck by path
 # before this module, so these names resolve to the sibling files in this checkout.
+import card_template_layout
+import card_template_sheet
 import generate_card_template as g
 from waybill_data import EMPTY
 from waybill_deck import _apply_route, _party_pool, _spread_parties, _waybill_spec
 
-CARDS_PER_PAGE = len(g.CARD_SLOTS)
+CARDS_PER_PAGE = len(card_template_layout.CARD_SLOTS)
 
 
 
@@ -70,17 +72,17 @@ def _append_grid(doc: Document, grid_xml) -> Table:
     body = doc.element.body
     tbl = deepcopy(grid_xml)
     _set_page_break_before_table(tbl)
-    g._insert_before_sect(body, tbl)
-    g._ensure_sect_pr_last(body)
+    card_template_sheet.insert_before_sect(body, tbl)
+    card_template_sheet.ensure_sect_pr_last(body)
     table = Table(body.findall(qn("w:tbl"))[-1], doc)
-    g.strip_grid_guides(table)
+    card_template_sheet.strip_grid_guides(table)
     return table
 
 
 
 def _fill_page(sheet: Table, batch: list[dict], page_idx: int) -> None:
     for i, record in enumerate(batch):
-        r, c = g.CARD_SLOTS[i]
+        r, c = card_template_layout.CARD_SLOTS[i]
         g.build_waybill_card(
             sheet.rows[r].cells[c],
             idx=page_idx * CARDS_PER_PAGE + i,

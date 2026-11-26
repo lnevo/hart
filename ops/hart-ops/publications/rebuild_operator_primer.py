@@ -28,6 +28,7 @@ DOCS = ROOT.parents[1] / "docs/ops"
 PUB = Path(__file__).resolve().parent
 sys.path.insert(0, str(PUB))
 
+import crew_master  # noqa: E402
 from hart_pub_helpers import (  # noqa: E402
     ACCENT,
     BODY,
@@ -51,16 +52,24 @@ PUBLICATION = {
     "effective": "15 October 2026",
 }
 
-BLOCK_LEGEND: list[tuple[str, str, str, str, str]] = [
-    ("BLUE", "0000CD", "FFFFFF", "Demmler Yard; McKeesport", "D749"),
-    ("YELLOW", "FFFF00", "000000", "Aristech Plastics", "NVL"),
-    ("GREEN", "008000", "FFFFFF", "A. Stucki Co.", "NVL"),
-    ("PURPLE", "800080", "FFFFFF", "Calgon Carbon", "NVL"),
-    ("RED", "FF0000", "FFFFFF", "Ferrellgas", "NVL"),
-    ("PINK", "FFC0CB", "000000", "Kosmos Cement", "NVL"),
-    ("BLACK", "000000", "FFFFFF", "Shenango Coke Works", "CK1"),
-    ("ORANGE", "FFA500", "000000", "Scully Yard; McKees Rocks", "NVL return"),
-]
+# The primer's short train name for each master colour; the colours and destinations come from the master.
+PRIMER_BLOCK_TRAIN: dict[str, str] = {
+    "blue": "D749", "yellow": "NVL", "green": "NVL", "purple": "NVL", "red": "NVL", "pink": "NVL",
+    "black": "CK1", "orange": "NVL return",
+}
+
+
+def _block_legend() -> list[tuple[str, str, str, str, str]]:
+    """(label, fill, ink, destination, train) per master colour; a colour with no primer train stops the build."""
+    rows = []
+    for color_id, sw in crew_master.swatches(crew_master.load()).items():
+        if color_id not in PRIMER_BLOCK_TRAIN:
+            raise ValueError(f"{crew_master.MASTER.name}: colour {color_id!r} has no train in PRIMER_BLOCK_TRAIN")
+        rows.append((sw.label, sw.fill, sw.ink, sw.dest, PRIMER_BLOCK_TRAIN[color_id]))
+    return rows
+
+
+BLOCK_LEGEND = _block_legend()
 
 JOBS: list[tuple[str, str, str]] = [
     (
