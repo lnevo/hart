@@ -10,6 +10,14 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Inches, Pt, RGBColor
 
+import sys as _sys
+
+_sys.path.insert(0, str(Path(__file__).resolve().parent))
+import crew_master  # noqa: E402
+
+# The timetable and the destination colors come from the crew master (ops/hart-ops/data/crew.json, ADR-039).
+_MASTER = crew_master.load()
+
 # Theme accent used by Heading styles in EQ-01 / standards
 ACCENT = RGBColor(0x0F, 0x47, 0x61)
 RULE = RGBColor(0x2A, 0x2A, 0x2A)
@@ -181,21 +189,11 @@ def add_station_map_page(
     pic.add_run().add_picture(str(map_path), height=Inches(7.0))
 
 
-# TT-23 page 2 schedule (AM | STATION | PM) for YM/DS companion column.
+# TT-23 page 2 schedule (AM | STATION | PM) for YM/DS companion column, from the master's timetable rows.
 # Each trip is a round trip: Barn to McKees Rocks, 10-minute wait, back to Barn.
 # AM reads down, PM reads up (descending), like the old East/West columns.
-TT23_SCHEDULE_ROWS: list[tuple[str, str, str]] = [
-    ("9:00", "Barn", "5:00"),
-    ("9:06", "Scale", "4:54"),
-    ("9:12", "Brick", "4:48"),
-    ("9:18", "East End", "4:42"),
-    ("9:25", "McKees Rocks", "4:35"),
-    ("9:35", "McKees Rocks", "4:25"),
-    ("9:42", "East End", "4:18"),
-    ("9:48", "Brick", "4:12"),
-    ("9:54", "Scale", "4:06"),
-    ("10:00", "Barn", "4:00"),
-]
+TT23_SCHEDULE_ROWS: list[tuple[str, str, str]] = crew_master.tt23_rows(_MASTER)
+TT23_BACK_PAGE: dict[str, str] = crew_master.tt23_back_page(_MASTER)
 
 
 def add_diagram_and_timetable_page(
@@ -290,7 +288,7 @@ def add_diagram_and_timetable_page(
     sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
     sub.paragraph_format.space_before = Pt(0)
     sub.paragraph_format.space_after = Pt(4)
-    r = sub.add_run("Neville Queen  ·  Emp. TT No. 23")
+    r = sub.add_run(TT23_BACK_PAGE["subtitle"])
     _set_run_font(r, size_pt=6.5, color=MUTED, name="Georgia")
 
     sched = doc.add_table(rows=1 + len(TT23_SCHEDULE_ROWS), cols=3)
@@ -333,25 +331,12 @@ def add_diagram_and_timetable_page(
     note.alignment = WD_ALIGN_PARAGRAPH.LEFT
     note.paragraph_format.space_before = Pt(6)
     note.paragraph_format.space_after = Pt(0)
-    r = note.add_run(
-        "Barn→McKees Rocks, 10 min wait, return to Barn. AM reads down, PM reads up. Station time."
-    )
+    r = note.add_run(TT23_BACK_PAGE["note"])
     _set_run_font(r, size_pt=5.5, color=MUTED, name="Calibri")
 
 
-# Abridged destination color key (swatches only — no color names).
-OFFLINE_DESTS: list[tuple[str, str]] = [
-    ("0000CD", "Demmler / McKeesport"),
-    ("FFA500", "Scully / McKees Rocks"),
-]
-ISLAND_DESTS: list[tuple[str, str]] = [
-    ("FFFF00", "Aristech Plastics"),
-    ("008000", "A. Stucki Co."),
-    ("800080", "Calgon Carbon"),
-    ("FF0000", "Ferrellgas"),
-    ("FFC0CB", "Kosmos Cement"),
-    ("000000", "Shenango Coke Works"),
-]
+# Abridged destination color key (swatches only — no color names): (fill, label) by the master's color groups.
+OFFLINE_DESTS, ISLAND_DESTS = crew_master.color_key(_MASTER)
 
 
 def abridged_color_key_height_in(*, compact: bool = False, pin_title: bool = True) -> float:

@@ -5,7 +5,9 @@ Jobs: D749 (CI-D749), NVL (CI-NVL), CK1 (CI-CK1).
 Page 2 is the station map + Route 23 timetable (same back page as YM/DS).
 Publication identity lives in the footer.
 
-Usage (from repo root):
+The jobs and their text are read from the crew master, ops/hart-ops/data/crew.json (crew_master.crews).
+
+Usage (from ops/hart-ops):
   .venv/bin/python publications/rebuild_crew_instructions.py
 
 Writes:
@@ -47,78 +49,18 @@ from hart_pub_helpers import (  # noqa: E402
     set_page_size,
 )
 
-PUBLICATION = {
-    "title": "Crew Instructions",
-    "revision": "D",
-    "effective": "21 July 2026",
-}
+import crew_master  # noqa: E402
 
+# The jobs, their text and the publication line come from the crew master (ops/hart-ops/data/crew.json, ADR-039).
+_MASTER = crew_master.load()
 CREWS: list[dict] = [
-    {
-        "train": "D749",
-        "pub_id": "CI-D749",
-        "out": DOCS / "Neville_Island_Crew_D749.docx",
-        "subtitle": "CSX Neville Island Switcher",
-        "engine": "CR 1993  ·  GE B23-7",
-        "photo": ROSTER_PHOTOS / "1993.jpg",
-        "intro": (
-            "CSX turn between Demmler / McKeesport and Neville Island. The train starts "
-            "tied down in West Yard. Deliver the Demmler inbound to South Yard, hostle "
-            "the engine to the engine terminal, then return for the Demmler / McKeesport "
-            "outbound block, depart westbound, and terminate again in West Yard."
-        ),
-        "steps": [
-            "Find the train tied down in West Yard with the inbound Demmler block.",
-            "Obtain dispatcher clearance and run the inbound to South Yard.",
-            "Set out the Demmler / McKeesport inbound at South Yard.",
-            "Take the engine light to the engine terminal. Top off fuel and sand if needed.",
-            "When called for the outbound, interchange with the Yardmaster. Build and lift "
-            "the Demmler / McKeesport outbound block.",
-            "With clearance, depart toward McKeesport with the outbound block.",
-            "On return, follow Yardmaster instructions and tie down in West Yard. Secure the engine.",
-        ],
-    },
-    {
-        "train": "NVL",
-        "pub_id": "CI-NVL",
-        "out": DOCS / "Neville_Island_Crew_NVL.docx",
-        "subtitle": "Neville Island Turn",
-        "engine": "POHC 2091  ·  EMD GP20",
-        "photo": ROSTER_PHOTOS / "2091.jpg",
-        "intro": (
-            "Neville Island turn from Scully Yard. Interchange at South Yard, "
-            "work Neville Island industries, then return to McKees Rocks / Scully with the "
-            "outbound block."
-        ),
-        "steps": [
-            "Assign on the train at Scully Yard with the inbound Scully block.",
-            "Obtain dispatcher clearance and run to South Yard.",
-            "Interchange with the Yardmaster. Lift the local industry cut.",
-            "Work Neville Island industries: Aristech, A. Stucki, Calgon Carbon, Ferrellgas, Kosmos Cement, and Shenango Coke Works.",
-            "Return to South Yard for final interchange. Lift the Scully / McKees Rocks outbound block.",
-            "With dispatcher clearance, depart for McKees Rocks / Scully Yard and secure.",
-        ],
-    },
-    {
-        "train": "CK1",
-        "pub_id": "CI-CK1",
-        "out": DOCS / "Neville_Island_Crew_CK1.docx",
-        "subtitle": "Coke Transfer",
-        "engine": "Unassigned",
-        "photo": None,
-        "intro": (
-            "Shenango Coke Works pickup and delivery, scale calibration, weigh, and sort. "
-            "Power is assigned by the Yardmaster."
-        ),
-        "steps": [
-            "Report to the Yardmaster for the assigned engine before going to work.",
-            "Calibrate the track scale with the scale test car (see EQ-01 Scale Operating Instructions).",
-            "Handle Shenango Coke Works pickup and delivery as directed by the Yardmaster.",
-            "Weigh the coke pull on the South Yard west-lead scale at a steady stretch; do not apply brakes under weigh.",
-            "Sort and set out weighed cars in South Yard for classification.",
-        ],
-    },
+    {**c, "out": DOCS / c["file"], "photo": ROSTER_PHOTOS / c["photo"] if c["photo"] else None}
+    for c in crew_master.crews(_MASTER)
 ]
+# one publication line for the three sheets (title, revision, effective)
+PUBLICATION = {k: CREWS[0]["publication"][k] for k in ("title", "revision", "effective")}
+if any({k: c["publication"][k] for k in PUBLICATION} != PUBLICATION for c in CREWS):
+    raise SystemExit("rebuild_crew_instructions: the crew jobs in the crew master disagree on title, revision or effective")
 
 
 def _clear_table_borders(table) -> None:
