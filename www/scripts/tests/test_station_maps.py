@@ -3,19 +3,24 @@ published sheets, the schematic is published, no page links the removed preview 
 the schematic's revision and date."""
 from __future__ import annotations
 
+import contextlib
 import datetime
+import io
 import json
 import shutil
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(ROOT / "www/scripts"))
-import map_revision  # noqa: E402
+sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+sys.path.insert(0, str(ROOT / "ops/hart-ops/publications"))
+import build_crew_json  # noqa: E402
+import crew_master  # noqa: E402
 
-from hartlib import layer_files  # noqa: E402  (map_revision put tools/hartlib/src on the path)
+from hartlib import layer_files, map_revision  # noqa: E402
 
 PREFS = map_revision.page_prefs()           # the main_upper section of preferences.json
 PUBLISHED = json.loads((ROOT / "www/scripts/published-files.json").read_text())
@@ -129,6 +134,56 @@ class MapRevisionCopy(unittest.TestCase):
         self.assertEqual((crew["schematic"]["revision"], crew["schematic"]["effective"]), ("99", "1 December 2026"))
         self.assertEqual(crew["maps"][0]["revision"], CREW["maps"][0]["revision"])   # archive field untouched
         self.assertEqual((self.www / "crew/maps/archive/west-yard/index.html").read_text(), archive)
+
+    def test_apply_writes_crew_json_as_build_crew_json_does(self):
+        """crew.json has one writer: after a revision bump, apply() leaves it as build_crew_json would write it."""
+        (self.www / "data/crew.json").write_text("{}\n")              # whatever was there is replaced, not patched
+        map_revision.apply(self.www, self.prefs)
+        built = self.built()
+        self.assertEqual((self.www / "data/crew.json").read_text(encoding="utf-8"), built)
+        self.assertIn('"revision": "99"', built)
+
+    def built(self):
+        """What build_crew_json.py would write with the temp title block."""
+        with mock.patch.object(build_crew_json, "fields", lambda: map_revision.fields(self.prefs)):
+            return build_crew_json.build()
+
+    def test_apply_recreates_a_missing_crew_json(self):
+        (self.www / "data/crew.json").unlink()
+        self.assertIn(self.www / "data/crew.json", map_revision.apply(self.www, self.prefs))
+        self.assertEqual((self.www / "data/crew.json").read_text(encoding="utf-8"), self.built())
+
+    def fallback(self, **patch):
+        """planned() with crew_master's MASTER or INDUSTRIES patched: (crew.json's planned text, the warning)."""
+        before = json.loads((self.www / "data/crew.json").read_text())
+        err = io.StringIO()
+        with mock.patch.multiple(crew_master, **patch), contextlib.redirect_stderr(err):
+            changed = map_revision.apply(self.www, self.prefs)     # the schematic step still publishes
+        self.assertEqual(len(changed), 2 + len(CREW["maps"]))
+        crew = json.loads((self.www / "data/crew.json").read_text())
+        before["schematic"].update(revision="99", effective="1 December 2026")
+        self.assertEqual(crew, before)                               # only the revision and date set
+        return err.getvalue()
+
+    def test_a_broken_master_falls_back_to_the_revision_and_date(self):
+        bad = json.loads(crew_master.MASTER.read_text())
+        bad["colors"].append(dict(bad["colors"][0]))                 # a duplicate color id: a schema problem
+        master = self.www.parent / "crew-master.json"
+        master.write_text(json.dumps(bad))
+        warning = self.fallback(MASTER=master)
+        self.assertIn("map_revision: warning: the crew master does not build: " + str(master.resolve()), warning)
+        self.assertIn("the crew master has problems", warning)
+        self.assertIn("crew-json", warning)
+        self.assertEqual(warning.count("\n"), 1)                    # one line
+
+    def test_a_master_that_is_not_json_falls_back(self):
+        master = self.www.parent / "crew-master.json"
+        master.write_text("{")
+        self.assertIn(f"{master.resolve()}: not JSON", self.fallback(MASTER=master))
+
+    def test_a_missing_industries_csv_falls_back(self):
+        missing = self.www.parent / "industries.csv"
+        self.assertIn(f"does not build: {missing}: No such file", self.fallback(INDUSTRIES=missing))
 
     def test_missing_publication_entry_stops(self):
         path = self.www / "data/publications.json"
