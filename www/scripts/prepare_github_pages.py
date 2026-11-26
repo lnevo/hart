@@ -74,8 +74,6 @@ SKIP_FILES = {
     Path("README.md"),
     Path("guides/digicon-system.html"),
     Path("data/invites.json"),  # invitation drafts; author reference only
-    Path("data/panels.json"),
-    Path("library/updated-history.txt"),
     Path("assets/media/hart-logo.png"),  # favicon source; the built icons are in assets/icons/
     Path("helix/build-status.html"),  # the helix build status is a working file, not published
     Path("helix/files/HART_Neville_Helix_BUILD_STATUS.md"),
