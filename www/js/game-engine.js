@@ -35,13 +35,13 @@ const SOURCES={SC:"1949 Standard Code",GC:"GCOR",TT:"TT&TO primer",YL:"Yard Limi
 const DECK_SECTIONS={def:"Definitions",sup:"Superiority & movement",to:"Train orders",sig:"Signals & whistles",
   sem:"Semaphores",yl:"Yard limits",twc:"Track warrants",gcor:"GCOR crew & speed"};
 const SECTIONS={...DECK_SECTIONS,pov:"The P&OV jobs"};
+const PLAY_DOTLESS=["GC","YL","PV"]; // Extra East: HART Railroad drops the dot after these; the exam keeps every dot
 const SOURCE_KEY=new RegExp("^("+Object.keys(SOURCES).join("|")+")\\b( ·)?");
 /**
  * A src with its key written out: "GC · 6.3" reads "GCOR · 6.3". A key in dotless also drops the " ·" after it
  * (play writes "GCOR 6.3"). A src without a known key is returned as it is.
  * @param {string} s @param {string[]} [dotless] @returns {string}
  */
-const PLAY_DOTLESS=["GC","YL","PV"]; // Extra East: HART Railroad drops the dot after these; the exam keeps every dot
 const srcLabel=(s,dotless=[])=>s.replace(SOURCE_KEY,(m,k,dot)=>SOURCES[k]+(dot&&!dotless.includes(k)?dot:""));
 
 /**

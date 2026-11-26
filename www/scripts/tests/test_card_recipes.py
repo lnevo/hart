@@ -5,7 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import make_share_cards  # noqa: E402,F401  (loads the kit before the recipes, as the package does)
-from share_card_recipes.editor_view import SHOWN_FUNCTION, function_lines  # noqa: E402
+from share_card_recipes.editor_view import SHOWN_FUNCTION, function_lines, shown_lines  # noqa: E402
 from share_card_recipes import CardError  # noqa: E402
 from share_card_recipes.panel_image import ROSTER_ROWS, roster_rows  # noqa: E402
 
@@ -43,6 +43,14 @@ class FunctionLines(unittest.TestCase):
     def test_unclosed_function_is_a_card_error(self) -> None:
         with self.assertRaisesRegex(CardError, "no closing brace"):
             function_lines(SOURCE[:9], SHOWN_FUNCTION)
+
+
+class ShownLines(unittest.TestCase):
+    def test_a_function_longer_than_the_code_area_is_cut_at_its_last_row(self):
+        self.assertEqual(shown_lines(SOURCE, SHOWN_FUNCTION, rows=5), (4, 8))
+
+    def test_a_function_that_fits_is_shown_whole(self):
+        self.assertEqual(shown_lines(SOURCE, SHOWN_FUNCTION, rows=25), (4, 12))
 
 
 class RosterRows(unittest.TestCase):

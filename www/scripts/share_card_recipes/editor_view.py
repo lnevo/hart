@@ -33,6 +33,7 @@ def _highlight(line: str) -> str:
 
 BRIDGE_SOURCE = "external/lcos-bridge/lcos_mqtt_bridge.cpp"
 SHOWN_FUNCTION = "appearanceToLcosAspect"  # the signal colour to aspect function
+CODE_ROWS = 25  # rows the code area holds: (630 - 46 - 24) px at 22 px a row
 
 
 def function_lines(src: list[str], name: str) -> tuple[int, int]:
@@ -53,6 +54,13 @@ def function_lines(src: list[str], name: str) -> tuple[int, int]:
     return first + 1, end + 1
 
 
+def shown_lines(src: list[str], name: str, rows: int = CODE_ROWS) -> tuple[int, int]:
+    """function_lines of `name`, cut to the `rows` the code area holds: a longer function runs off the bottom edge,
+    as it would in an editor, instead of drawing under the status bar."""
+    first, last = function_lines(src, name)
+    return first, min(last, first + rows - 1)
+
+
 def ai_electronics():
     """ai-electronics: lines of external/lcos-bridge/lcos_mqtt_bridge.cpp (the signal colour to
     aspect function) drawn as an editor view. Needs the lcos-bridge submodule."""
@@ -60,7 +68,7 @@ def ai_electronics():
     if not path.is_file():
         raise CardError(f"ai-electronics: {BRIDGE_SOURCE} is missing; run git submodule update --init external/lcos-bridge")
     src = path.read_text(encoding="utf-8").splitlines()
-    first, last = function_lines(src, SHOWN_FUNCTION)
+    first, last = shown_lines(src, SHOWN_FUNCTION)
     at = next(n for n in range(first, last + 1) if SHOWN_FUNCTION in src[n - 1])  # the cursor, on the definition
     rows = "".join(f"<div class=l><span class=g>{n}</span>{_highlight(src[n - 1]) or ' '}</div>" for n in range(first, last + 1))
     files = ["lcos-bridge.ino", "lcos_mqtt_bridge.cpp", "lcos_mqtt_bridge.h", "mqtt_serial.cpp", "mqtt_serial.h",
