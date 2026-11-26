@@ -45,6 +45,10 @@ install_jython_scripts() {
         --profile "$profxml" \
         --script preference:jython/sts_car_sync.py \
         --after panel_status.py
+      # A Start Up entry for a retired script stays in an old profile.xml until it is stripped.
+      python3 "$patch_startup" remove \
+        --profile "$profxml" \
+        --script prepare_nx_sml_paths.py || true
       echo "Start Up retargeted -> preference:jython ($profxml)"
     fi
   }

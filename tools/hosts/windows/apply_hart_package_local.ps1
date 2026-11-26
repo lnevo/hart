@@ -290,6 +290,24 @@ foreach ($p in @(
     }
   }
 }
+# Start Up entries for retired scripts stay in an old profile.xml until stripped: the shared one and each
+# per-computer profile\<node id>\profile.xml, which JMRI reads first.
+$retiredStartup = @('apply_maintain_mqtt.py', 'apply_mqtt_retain_at_startup.py', 'prepare_nx_sml_paths.py')
+foreach ($r in ($profileRoots | Select-Object -Unique)) {
+  $profiles = @(Join-Path $r 'profile\profile.xml') + @(Get-ChildItem (Join-Path $r 'profile') -Directory -ErrorAction SilentlyContinue | ForEach-Object { Join-Path $_.FullName 'profile.xml' })
+  foreach ($px in $profiles) {
+    if (-not (Test-Path -LiteralPath $px)) { continue }
+    $txt = Get-Content -Raw -Encoding UTF8 -LiteralPath $px
+    $orig = $txt
+    foreach ($name in $retiredStartup) {
+      $txt = [regex]::Replace($txt, ('\r?\n[ \t]*<perform\b[^>]*' + [regex]::Escape($name) + '[^>]*/>'), '')
+    }
+    if ($txt -ne $orig) {
+      Set-Content -LiteralPath $px -Value $txt -Encoding UTF8 -NoNewline
+      Write-Host ("startup: removed retired Start Up scripts -> {0}" -f $px)
+    }
+  }
+}
 foreach ($r in ($profileRoots | Select-Object -Unique)) {
   $prof = Join-Path $r 'profile\profile.xml'
   if (-not (Test-Path $prof)) { continue }

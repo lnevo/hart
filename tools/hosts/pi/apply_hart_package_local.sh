@@ -162,6 +162,10 @@ if [[ -f "$PATCH" ]]; then
     --profile "$HOME/.jmri/TCS_MQTT.jmri/profile/profile.xml" \
     --script preference:jython/mimic_relay.py \
     --after sts_car_sync.py
+  # A Start Up entry for a retired script stays in an old profile.xml until it is stripped.
+  python3 "$PATCH" remove \
+    --profile "$HOME/.jmri/TCS_MQTT.jmri/profile/profile.xml" \
+    --script prepare_nx_sml_paths.py 2>/dev/null || true
   echo "Pi Dispatcher compatibility scripts + preference:jython Start Up updated"
 fi
 
