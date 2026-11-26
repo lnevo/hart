@@ -1,4 +1,5 @@
 """The drawn share thumbnails: every recipe has a card entry, and the pure drawing helpers hold."""
+import io
 import sys
 import unittest
 from unittest import mock
@@ -157,6 +158,6 @@ class MainExitTest(unittest.TestCase):
         boom = mock.Mock(side_effect=gen.ShareCardError("Google Chrome not found"))
         with mock.patch.dict(gen.CARDS, {name: boom}), mock.patch.object(gen, "serving"), \
                 mock.patch.object(sys, "argv", ["make_share_cards.py", name, "--out", "/nonexistent-dir-f2"]), \
-                mock.patch.object(gen.Path, "mkdir"), self.assertRaises(SystemExit) as cm:
-            gen.main()
-        self.assertEqual(cm.exception.code, "Google Chrome not found")
+                mock.patch.object(gen.Path, "mkdir"), mock.patch("sys.stderr", new_callable=io.StringIO) as err:
+            self.assertEqual(gen.main(), 1)
+        self.assertIn("make_share_cards: Google Chrome not found", err.getvalue())
