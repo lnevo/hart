@@ -2057,9 +2057,9 @@
    "id": "ops/hart-ops/industries",
    "label": "industries/ OPSIG list",
    "kind": "structured",
-   "status": "live",
+   "status": "retired",
    "domain": "ops",
-   "desc": "industries.txt, the OPSIG industries list. The routing matrix and its scripts were retired on 2026-11-25 (archive/docs/ops/industries/).",
+   "desc": "The OPSIG industries list (industries.txt) moved to archive/ops/hart-ops/industries/ on 2026-11-25; nothing reads it. The routing matrix and its scripts were retired the same day (archive/docs/ops/industries/).",
    "path": "ops/hart-ops/industries"
   },
   {
@@ -2516,15 +2516,6 @@
    "desc": "Generated layout hotspot/device index read by roster and layout explorer; not committed (ADR-036): the site build writes its own copy and the local preview builds this one (www/scripts/site_views.py, make site-data).",
    "path": "www/data/layout-index.json",
    "local": true
-  },
-  {
-   "id": "www/data/panels.json",
-   "label": "panels.json",
-   "kind": "structured",
-   "status": "live",
-   "domain": "website",
-   "desc": "Panel data skipped from the public build.",
-   "path": "www/data/panels.json"
   },
   {
    "id": "www/data/plants-lineage.json",
@@ -6426,10 +6417,6 @@
   },
   {
    "from": "human:www-authoring",
-   "to": "www/data/panels.json"
-  },
-  {
-   "from": "human:www-authoring",
    "to": "www/data/plants-lineage.json"
   },
   {
@@ -8572,11 +8559,6 @@
   {
    "from": "www/data/layout-index.json",
    "to": "www/scripts/make_share_cards.py"
-  },
-  {
-   "from": "www/data/panels.json",
-   "to": "www/scripts/prepare_github_pages.py",
-   "label": "skipped"
   },
   {
    "from": "www/data/plants-lineage.json",
