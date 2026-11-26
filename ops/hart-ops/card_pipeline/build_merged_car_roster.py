@@ -18,20 +18,6 @@ SOURCE_ROSTER = DATA / "OperationsCarRoster.xml"
 MANIFEST_CSV = DATA / "image_metadata.csv"
 OUTPUT_ROSTER = DATA / "HART_MergedCarRoster.xml"
 
-# Wrong roster ids mapped to the right ones (see apply_visual_review corrections).
-ROSTER_TYPO_IDS = {
-    "BO446063": "BO466063",
-    "UTLX32638": "UTLX32642",
-    "UTLX39084": "UTLX39042",
-    "CO37700": "CO377700",
-    "CO306585": "CO306607",
-    "PRR474261": "PRR474563",
-    "SHPX22425": "SHPX22329",
-    "GATX31028": "GATX31090",
-    "MSTL52763": "MSTL52673",
-    "BO371604": "PRR371604",  # wrong road, not a misread number
-}
-
 JMRI_COLORS = [
     "Black",
     "Blue",
@@ -243,8 +229,6 @@ def merge_roster() -> tuple[dict[str, dict[str, str]], list[str]]:
         for el in root.findall("./cars/car"):
             attrs = attrs_from_element(el)
             cid = attrs["id"]
-            if cid in ROSTER_TYPO_IDS:
-                continue
             if cid not in cars:
                 cars[cid] = attrs
             else:
@@ -253,10 +237,6 @@ def merge_roster() -> tuple[dict[str, dict[str, str]], list[str]]:
                 for flag in ("caboose", "passenger"):
                     if flag in attrs and flag not in cars[cid]:
                         cars[cid][flag] = attrs[flag]
-
-    for cid in list(cars):
-        if cid in ROSTER_TYPO_IDS:
-            del cars[cid]
 
     return cars, skipped
 

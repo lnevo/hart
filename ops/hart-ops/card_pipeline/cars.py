@@ -179,7 +179,7 @@ def ask(row: dict, values: dict[str, str], assume_yes: bool) -> None:
 
 def finish_row(row: dict, columns: list[str]) -> str:
     """Fill the derived fields and return the roster id."""
-    from build_merged_car_roster import ROSTER_TYPO_IDS, default_weights
+    from build_merged_car_roster import default_weights
     from roster_id import assign_freight_roster_id
 
     row["road_name"] = row.get("road_name") or row.get("reporting_marks", "")
@@ -189,8 +189,6 @@ def finish_row(row: dict, columns: list[str]) -> str:
     roster_id = row.get("roster_id", "")
     if not roster_id:
         raise SystemExit("A car needs reporting marks and a road number.")
-    if roster_id in ROSTER_TYPO_IDS:
-        raise SystemExit(f"{roster_id} is a recorded misread road number; check the car.")
     length = row.get("roster_length_ft", "")
     if length and not (row.get("roster_weight_oz") and row.get("roster_weight_tons")):
         row["roster_weight_oz"], row["roster_weight_tons"] = default_weights(length)
@@ -610,12 +608,10 @@ def ops_out_of_service(path: Path) -> set[str]:
 def merge_ops(
     live_path: Path,
     wanted: list[str],
-    renames: dict[str, str] | None = None,
     out_of_service: set[str] | None = None,
 ) -> list[str]:
     """Add cars to the Operations Pro roster, leaving every other car alone.
 
-    Renames correct a car's identity in place, so its location and moves survive.
     When out_of_service is given, every car's flag is set to match it.
     """
     tree = ET.parse(live_path)
@@ -623,20 +619,6 @@ def merge_ops(
     cars_el = root.find("cars")
     have = {c.get("id") for c in cars_el.findall("car")}
     source = {c.get("id"): c for c in ET.parse(MERGED).getroot().findall("./cars/car")}
-    for car in cars_el.findall("car"):
-        new_id = (renames or {}).get(car.get("id"))
-        if not new_id:
-            continue
-        if new_id in have:
-            raise SystemExit(f"{car.get('id')} and {new_id} are both in the roster; check by hand.")
-        if new_id not in source:
-            raise SystemExit(f"{new_id} is missing from {MERGED.name}")
-        for attr in ("id", "roadName", "roadNumber", "color"):
-            if source[new_id].get(attr):
-                car.set(attr, source[new_id].get(attr))
-        add_to_sections(root, car)
-        have.discard(car.get("id"))
-        have.add(new_id)
     added = []
     for roster_id in wanted:
         if roster_id in have:
@@ -779,20 +761,20 @@ def cmd_service(args: argparse.Namespace) -> int:
 def cmd_fix_ops(args: argparse.Namespace) -> int:
     """Bring the Operations Pro roster up to the repository. Leaves STS and the queue alone."""
     from build_car_roster_sor import main as build_roster
-    from build_merged_car_roster import ROSTER_TYPO_IDS
 
     build_roster()
     rows, _ = read_rows()
     live = Path(args.ops_live)
-    current = ops_ids(live)
-    renames = {old: new for old, new in ROSTER_TYPO_IDS.items() if old in current}
     wanted = sorted(
         row_id(r) for r in rows
         if row_id(r) and (r.get("car_type") or "") not in ("Locomotive", "Streetcar")
     )
-    added = merge_ops(live, wanted, renames, out_of_service_ids(rows))
-    print(f"Renamed {len(renames)}: {' '.join(f'{o}>{n}' for o, n in renames.items())}")
+    unknown = sorted(ops_ids(live) - {row_id(r) for r in rows})
+    added = merge_ops(live, wanted, out_of_service_ids(rows))
     print(f"Added {len(added)}: {' '.join(added)}")
+    if unknown:
+        # fix-ops renames nothing: a car kept under a wrong id would now sit beside its added right id.
+        print(f"Not in the repository, left as they are (check each by hand): {' '.join(unknown)}")
     print(DEPLOY_NOTE)
     return 0
 
@@ -1148,8 +1130,6 @@ def print_live_sts(rows: list[dict], show_all: bool, fetch=fetch_live_cars, oper
 
 
 def cmd_compare(args: argparse.Namespace) -> int:
-    from build_merged_car_roster import ROSTER_TYPO_IDS
-
     rows, _ = read_rows()
     master = {row_id(r) for r in rows if row_id(r)}
     locos = {
@@ -1163,12 +1143,9 @@ def cmd_compare(args: argparse.Namespace) -> int:
     for name, ids in targets.items():
         missing = sorted(master - locos - ids)
         extra = sorted(ids - master)
-        typos = [i for i in extra if i in ROSTER_TYPO_IDS]
         print(f"\n{name}: {len(ids)} cars")
         print(f"  Missing there: {len(missing)} {' '.join(missing)}")
         print(f"  Not in repository: {len(extra)} {' '.join(extra)}")
-        if typos:
-            print(f"  Recorded misreads: {' '.join(typos)}")
     print("\nSTS seed copies:")
     print("\n".join(seed_copy_report(SEED_INPUTS, SEED_COPIES)))
     marks = seed_marks()
