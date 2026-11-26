@@ -432,6 +432,15 @@
    "path": "tools/promo/soundtrack.py"
   },
   {
+   "id": "tools/promo/promo_shots.py",
+   "label": "promo_shots.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "The promo cuts' tables: site pages captured, build-cut photos and site-cut page regions in capture pixels.",
+   "path": "tools/promo/promo_shots.py"
+  },
+  {
    "id": "tools/promo/tiktok_promo.py",
    "label": "tiktok_promo.py",
    "kind": "generator",
@@ -5573,6 +5582,15 @@
    "path": "tools/ctc_history/film_le.py"
   },
   {
+   "id": "tools/ctc_history/film_common.py",
+   "label": "film_common.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "The films' shared font loader, ffmpeg concat list and ffmpeg runner; FfmpegError carries ffmpeg's stderr.",
+   "path": "tools/ctc_history/film_common.py"
+  },
+  {
    "id": "www/scripts/png_stamp.py",
    "label": "png_stamp.py",
    "kind": "generator",
@@ -8429,6 +8447,11 @@
    "from": "tools/promo/soundtrack.py",
    "to": "tools/promo/tiktok_promo.py",
    "label": "music bed"
+  },
+  {
+   "from": "tools/promo/promo_shots.py",
+   "to": "tools/promo/tiktok_promo.py",
+   "label": "shot tables"
   },
   {
    "from": "tools/promo/tiktok_promo.py",
@@ -13009,6 +13032,21 @@
    "from": "media/screenshots",
    "to": "tools/ctc_history/film_ctc.py",
    "label": "history screenshots"
+  },
+  {
+   "from": "tools/ctc_history/film_common.py",
+   "to": "tools/ctc_history/film_ctc.py",
+   "label": "shared helpers"
+  },
+  {
+   "from": "tools/ctc_history/film_common.py",
+   "to": "tools/ctc_history/film_cats.py",
+   "label": "shared helpers"
+  },
+  {
+   "from": "tools/ctc_history/film_common.py",
+   "to": "tools/ctc_history/film_le.py",
+   "label": "shared helpers"
   },
   {
    "from": "www/scripts/png_stamp.py",
