@@ -148,7 +148,7 @@ class BuildPass(unittest.TestCase):
             self.assertNotIn("ld+json", (root / "crew/old.html").read_text())
             self.assertNotIn("ld+json", (root / "404.html").read_text())
             sitemap = (root / "sitemap.xml").read_text()
-            self.assertIn(f"{pgp.SITE_URL}crew/</loc>", sitemap)
+            self.assertIn(f"{pgp.portal_common.SITE_URL}crew/</loc>", sitemap)
             self.assertNotIn("old.html", sitemap)
             self.assertIn("- [Crew](", (root / "llms.txt").read_text())
             self.assertTrue((root / "robots.txt").is_file())

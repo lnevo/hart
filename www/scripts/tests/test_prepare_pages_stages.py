@@ -44,6 +44,11 @@ JPEGs of 5 and 10. 12 and 13 need the final tree. Stages 3 to 9, 12 and 13 touch
 
 Split point noted while writing these tests: stage 3 is inline in main(), so it is tested through
 main() on a fixture tree (FullBuild below); the rest are called directly. The .cache/hart/web-jpeg path and SITE_URL are module state, patched here.
+
+The stages 4, 5, 10 and 11 and the photo cache live in portal_photos.py, 8 and 9 in portal_head.py, 13 in
+portal_search_index.py, and PORTAL, SITE_URL and the manifest lookups in portal_common.py; prepare_github_pages.py
+re-exports them. A patch goes on the module that holds the name (PORTAL on both prepare_github_pages and
+portal_common, which each read it).
 """
 import contextlib
 import io
@@ -59,6 +64,9 @@ from unittest import mock
 SCRIPTS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS))
 import prepare_github_pages as build  # noqa: E402
+import portal_common  # noqa: E402
+import portal_photos as photos  # noqa: E402
+import portal_search_index as search  # noqa: E402
 
 try:
     from PIL import Image
@@ -108,7 +116,8 @@ class _Repo(unittest.TestCase):
         subprocess.run(["git", "-C", str(self.repo), "init", "-q"], check=True, env=_clean_env())
         for patch in (
             mock.patch.object(build, "PORTAL", self.portal),
-            mock.patch.object(build, "SITE_URL", "https://example.invalid/"),
+            mock.patch.object(portal_common, "PORTAL", self.portal),
+            mock.patch.object(portal_common, "SITE_URL", "https://example.invalid/"),
             mock.patch.dict(os.environ, {build.JPEG_CACHE_ENV: str(Path(self._tmp.name) / "cache")}),
         ):
             patch.start()
@@ -217,7 +226,7 @@ class LeakCheck(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             _write(root, "a/index.html", _page(body=f"<h1>Crew</h1><p>This paragraph is long enough to be indexed and holds {PLANTED}.</p>"))
-            with mock.patch.object(build, "contains_private_name", side_effect=lambda t: PLANTED in t):
+            with mock.patch.object(search, "contains_private_name", side_effect=lambda t: PLANTED in t):
                 with self.assertRaises(SystemExit) as raised:
                     build.build_search_index(root)
             self.assertIn("a/index.html", str(raised.exception))
@@ -236,7 +245,7 @@ class SearchRecordsFromData(unittest.TestCase):
             ]}))
             _write(root, "data/gallery.json", json.dumps({"items": [{"id": "p1", "title": "Staging", "album": "session-night", "caption": "Night"}]}))
             _write(root, "photos/index.html", _page(body="<h1>Photos</h1>") + ' layout: { subs: { "session-night": "session-night" } }')
-            with mock.patch.object(build, "tab_subs", return_value={"s": "session-night"}):
+            with mock.patch.object(search, "tab_subs", return_value={"s": "session-night"}):
                 index = build.build_search_index(root)
             by_url = {r["url"]: r for r in index["records"]}
             self.assertEqual(by_url["photos/index.html#rolling-stock/loco-1"]["kind"], "locomotive")
@@ -301,13 +310,13 @@ class PhotoStages(_Repo):
 
     def test_a_second_build_copies_from_the_cache_and_resizes_nothing(self):
         dest, path = self.gallery()
-        with mock.patch.object(build, "_render_jpeg", wraps=build._render_jpeg) as spy:
+        with mock.patch.object(photos, "_render_jpeg", wraps=build._render_jpeg) as spy:
             self.run_gallery(dest, path)
             first = spy.call_count
         self.assertEqual(first, 2)  # the 1600 px copy and the 640 px thumb
         dest2 = Path(self._tmp.name) / "out2"
         path2 = _write(dest2, "data/gallery.json", json.dumps({"items": [{"id": "p1", "album": "night", "src": "../media/p1.png"}]}))
-        with mock.patch.object(build, "_render_jpeg", wraps=build._render_jpeg) as spy:
+        with mock.patch.object(photos, "_render_jpeg", wraps=build._render_jpeg) as spy:
             self.run_gallery(dest2, path2)
             self.assertEqual(spy.call_count, 0)
         self.assertTrue((dest2 / "assets/gallery/night/p1.jpg").is_file())
@@ -318,7 +327,7 @@ class PhotoStages(_Repo):
         _png(self.repo / "media/p1.png", colour=(1, 2, 3))
         dest2 = Path(self._tmp.name) / "out2"
         path2 = _write(dest2, "data/gallery.json", json.dumps({"items": [{"id": "p1", "album": "night", "src": "../media/p1.png"}]}))
-        with mock.patch.object(build, "_render_jpeg", wraps=build._render_jpeg) as spy:
+        with mock.patch.object(photos, "_render_jpeg", wraps=build._render_jpeg) as spy:
             self.run_gallery(dest2, path2)
             self.assertEqual(spy.call_count, 2)
 
@@ -518,7 +527,7 @@ class FullBuild(_Repo):
 
     def test_a_second_run_gives_the_same_files_and_resizes_nothing(self):
         self.assertEqual(self.run_main()[0], 0)
-        with mock.patch.object(build, "_render_jpeg", wraps=build._render_jpeg) as spy:
+        with mock.patch.object(photos, "_render_jpeg", wraps=build._render_jpeg) as spy:
             self.assertEqual(self.run_main()[0], 0)
             self.assertEqual(spy.call_count, 0)
         self.assertEqual(self.tree(), self.EXPECTED)
@@ -564,7 +573,7 @@ class FullBuild(_Repo):
 
     def test_a_planted_private_name_in_a_page_stops_the_build(self):
         self.track("about/index.html", _page("About — HART", f"<h1>About</h1><p>This paragraph is long enough to be indexed and holds {PLANTED} in it.</p>"))
-        with mock.patch.object(build, "contains_private_name", side_effect=lambda t: PLANTED in t):
+        with mock.patch.object(search, "contains_private_name", side_effect=lambda t: PLANTED in t):
             with self.assertRaises(SystemExit) as raised:
                 self.run_main()
         self.assertIn("search index holds text that must not publish", str(raised.exception))
