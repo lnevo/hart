@@ -108,6 +108,7 @@ HARTLIB_OTHER = {
     "drawing_keys": "which device each piece of the drawing is, keyed by device ID",
     "film_pace": "the pace of the panel and schematic films",
     "files": "an atomic file write and the list of tracked files",
+    "operations": "the Operations Pro rosters' cars, engines and trains",
     "coordinator": "the signal coordinator script and the modules it loads",
     "places": "the stations and control points by id, as the devices and masts name them",
     "occupancy_bindings": "the CATS desks' occupancy bindings, each block by its ID",

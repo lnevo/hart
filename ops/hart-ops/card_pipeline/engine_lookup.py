@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 import re
-import xml.etree.ElementTree as ET
+import sys
 from pathlib import Path
+
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import operations  # noqa: E402
 
 BASE = Path(__file__).resolve().parent.parent  # Car Cards project root (scripts live in card_pipeline/)
 ENGINE_ROSTER_XML = BASE / "data" / "OperationsEngineRoster.xml"
@@ -113,10 +117,9 @@ def manufacturer_for_model(model: str) -> str:
 
 
 def load_engine_roster() -> tuple[dict[str, dict], dict[tuple[str, str], dict]]:
-    root = ET.parse(ENGINE_ROSTER_XML).getroot()
     by_id: dict[str, dict] = {}
     by_key: dict[tuple[str, str], dict] = {}
-    for el in root.findall("./engines/engine"):
+    for el in operations.engines(ENGINE_ROSTER_XML):
         rid = el.get("id", "")
         road = el.get("roadName", "")
         num = el.get("roadNumber", "")
