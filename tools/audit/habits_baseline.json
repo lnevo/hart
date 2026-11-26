@@ -290,196 +290,87 @@
  "tools/promo/tiktok_promo.py": {
   "import-exit": 8
  },
- "tools/schematic/approval.py": {
-  "dated-note": 1,
-  "lost-cause": 4
- },
- "tools/schematic/band_panels.py": {
+ "tools/schematic/block_layer.py": {
   "dated-note": 3
  },
- "tools/schematic/block_layer.py": {
-  "dated-note": 7,
-  "lost-cause": 5
- },
  "tools/schematic/build_cats_panel.py": {
-  "dated-note": 7,
-  "import-exit": 12,
-  "lost-cause": 2
+  "dated-note": 3,
+  "import-exit": 7
  },
  "tools/schematic/build_device_map.py": {
-  "dated-note": 23,
-  "lost-cause": 5
+  "dated-note": 10
  },
  "tools/schematic/build_hands.py": {
-  "import-exit": 7,
-  "lost-cause": 2
+  "import-exit": 7
  },
  "tools/schematic/build_layout_le.py": {
-  "dated-note": 12,
-  "lost-cause": 10
- },
- "tools/schematic/build_main_route.py": {
-  "lost-cause": 3
+  "dated-note": 1
  },
  "tools/schematic/build_masts.py": {
   "dated-note": 2
  },
  "tools/schematic/build_signals.py": {
-  "dated-note": 1,
   "import-exit": 10
  },
  "tools/schematic/build_staging_sets.py": {
-  "dated-note": 3,
-  "lost-cause": 5
+  "dated-note": 2
  },
  "tools/schematic/cats_panel.py": {
-  "dated-note": 4,
-  "import-exit": 31,
-  "lost-cause": 4
- },
- "tools/schematic/cats_panel_bound.py": {
-  "dated-note": 1,
-  "import-exit": 11,
-  "lost-cause": 1
- },
- "tools/schematic/cats_panel_dress.py": {
-  "import-exit": 10
- },
- "tools/schematic/cats_panel_facts.py": {
-  "import-exit": 6,
-  "lost-cause": 4
- },
- "tools/schematic/cats_panel_shapes.py": {
-  "dated-note": 1,
-  "import-exit": 2
- },
- "tools/schematic/check_device_master.py": {
-  "dated-note": 2,
-  "lost-cause": 7
+  "dated-note": 1
  },
  "tools/schematic/device_map_inputs.py": {
-  "dated-note": 2,
-  "lost-cause": 4
+  "dated-note": 1
  },
  "tools/schematic/device_map_masts.py": {
-  "dated-note": 7,
-  "lost-cause": 4
+  "dated-note": 4
  },
  "tools/schematic/device_map_rows.py": {
   "dated-note": 1
  },
- "tools/schematic/device_map_schematic.py": {
-  "dated-note": 1
- },
- "tools/schematic/device_map_staging.py": {
-  "dated-note": 6,
-  "lost-cause": 5
- },
  "tools/schematic/evolution.py": {
-  "import-exit": 6
- },
- "tools/schematic/le_checks.py": {
-  "lost-cause": 1
- },
- "tools/schematic/le_common.py": {
-  "dated-note": 1,
-  "lost-cause": 11
+  "import-exit": 5
  },
  "tools/schematic/le_names.py": {
-  "dated-note": 4,
-  "exec-parts": 1,
-  "lost-cause": 9
+  "dated-note": 1,
+  "exec-parts": 1
  },
  "tools/schematic/le_tables.py": {
-  "dated-note": 1,
-  "exec-parts": 1,
-  "lost-cause": 5
- },
- "tools/schematic/mast_plan.py": {
-  "dated-note": 3,
-  "lost-cause": 1
+  "exec-parts": 1
  },
  "tools/schematic/mast_rule.py": {
-  "dated-note": 17,
-  "lost-cause": 3
- },
- "tools/schematic/panel_items.py": {
-  "lost-cause": 4
- },
- "tools/schematic/panel_stamps.py": {
-  "lost-cause": 1
- },
- "tools/schematic/plan_lengths.py": {
-  "dated-note": 1,
-  "lost-cause": 1
+  "dated-note": 2
  },
  "tools/schematic/publish_draft.py": {
-  "import-exit": 11,
-  "lost-cause": 1
- },
- "tools/schematic/split_store.py": {
-  "lost-cause": 3
- },
- "tools/schematic/staging_device_map.py": {
-  "dated-note": 8,
-  "lost-cause": 12
+  "import-exit": 11
  },
  "tools/schematic/sync_signals.py": {
   "import-exit": 2
  },
- "tools/schematic/tests/test_approval.py": {
-  "dated-note": 1
- },
- "tools/schematic/tests/test_band_find.py": {
-  "dated-note": 2
- },
  "tools/schematic/tests/test_band_panels.py": {
   "dated-note": 1
  },
- "tools/schematic/tests/test_bean_goldens.py": {
-  "dated-note": 1
- },
  "tools/schematic/tests/test_block_layer.py": {
-  "dated-note": 8
+  "dated-note": 2
  },
  "tools/schematic/tests/test_blocks_every_level.py": {
-  "dated-note": 8
- },
- "tools/schematic/tests/test_build_masts.py": {
-  "dated-note": 1
- },
- "tools/schematic/tests/test_build_panels.py": {
-  "dated-note": 1
- },
- "tools/schematic/tests/test_build_tables.py": {
   "dated-note": 1
  },
  "tools/schematic/tests/test_builders_read_field.py": {
   "dated-note": 1
  },
  "tools/schematic/tests/test_cats_panel.py": {
-  "dated-note": 1,
   "lost-cause": 1
  },
  "tools/schematic/tests/test_device_map_helpers.py": {
   "dated-note": 1
  },
  "tools/schematic/tests/test_device_map_masts.py": {
-  "dated-note": 2
+  "dated-note": 1
  },
  "tools/schematic/tests/test_mast_plan.py": {
-  "dated-note": 3
- },
- "tools/schematic/tests/test_masts_every_level.py": {
-  "dated-note": 3
+  "dated-note": 1
  },
  "tools/schematic/tests/test_masts_file.py": {
-  "dated-note": 2
- },
- "tools/schematic/tests/test_plan_lengths.py": {
-  "dated-note": 2
- },
- "tools/schematic/tests/test_wiring_freeze.py": {
   "dated-note": 1
  },
  "tools/wiring/build_lcos_signal_manager_plan.py": {
