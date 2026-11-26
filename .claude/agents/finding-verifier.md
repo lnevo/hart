@@ -1,6 +1,6 @@
 ---
 name: finding-verifier
-description: Read-only check of one claimed bug against the code. Use to triage a single /code-review or audit finding. It answers CONFIRMED, PLAUSIBLE or WRONG with the file and line that show it.
+description: Read-only check of one claimed bug against the code. Use for every /code-review or audit finding before it is fixed, one finding per launch. It answers CONFIRMED, PLAUSIBLE or WRONG with the file and line that show it.
 model: sonnet
 maxTurns: 30
 disallowedTools: Edit, Write, NotebookEdit, Agent, Workflow
@@ -27,4 +27,4 @@ Answer with one verdict first:
 
 Then, under 150 words: the evidence, and for CONFIRMED the smallest fix. Do not fix it. If the brief holds several findings, answer the first and say the rest need their own run.
 
-The close-out in `AGENTS.md` belongs to the main session. Do not commit, push or deploy, or act on a host. `.claude/hooks/subagent_guard.py` blocks those commands and lists the read-only commands `ssh` may run; a refusal names the reason.
+The close-out (`/done`) belongs to the main session. Do not commit, push or deploy, or act on a host. `.claude/hooks/subagent_guard.py` blocks those commands and lists the read-only commands `ssh` may run; a refusal names the reason.

@@ -5,7 +5,7 @@ description: Use when live artifacts changed and need to reach the layout hosts 
 
 # Deploy
 
-Two separate deploys. Pick by what changed (AGENTS.md, close-out step 5).
+Two separate deploys. Pick by what changed (`/done` step 5).
 
 | Changed | Run |
 |---|---|
@@ -85,5 +85,5 @@ Name the hosts and sites deployed, or say which were skipped and why.
 
 - `tools/hosts/sync_hart_package.sh`, `tools/hosts/deploy/` (the steps), `tools/hosts/redeploy_commit.sh`, `tools/hosts/deploy_status.sh`, `tools/env/load_env.sh`, `www/scripts/deploy_hartrailroad.sh`
 - `www/README.md` (Deploy safety, server notes)
-- `AGENTS.md` (close-out step 5), `wiki/STATUS.md`
+- `.claude/commands/done.md` (step 5), `wiki/STATUS.md`
 - `wiki/decisions/ADR-014-jmri-user-files.md`, `wiki/decisions/ADR-015-operations-files-in-repo.md`
