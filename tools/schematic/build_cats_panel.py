@@ -14,7 +14,7 @@ hand:
                                   or 23B, from its OS block's letter), which leg is closed and which thrown,
                                   and whether CATS normal is JMRI thrown (cats_inverted); Switch 9 and 13 follow them
   The device master + tables.xml          each switch's M2T turnout (cats_turnout_io.load_turnouts)
-  occupancy_bindings.csv + tables.xml  each block's M2S sensor and discipline (digicon_lib.load_occupancy: the
+  cats_discipline blocks + tables.xml   each block's M2S sensor and discipline (digicon_lib.load_occupancy: the
                                   layout block table and the sensors, not a Layout Editor panel)
   signals.json[staging] + signal_head_plan.csv the masts drawn on staging (field and planned) and their templates
   The device master (level 1)   the block of a short unnamed track between two switches that has no JMRI block of its own:

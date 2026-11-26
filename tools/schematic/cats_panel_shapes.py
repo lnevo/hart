@@ -13,7 +13,7 @@ from cats_panel_facts import mast_type  # noqa: E402
 
 # Main and upper: CTC on the CTC desk, CATS holds their signals and releases them (owner, 2026-11-17); ABS on the twin
 MAIN_UPPER_DISCIPLINE = "CTC"
-# The discipline of a staging block occupancy_bindings.csv gives none
+# The discipline of a staging block with no cats_discipline in the device master (hartlib.occupancy_bindings)
 STAGING_DISCIPLINE = "CTC"
 # The staging turnouts and detectors: LCOS over MQTT (M2T, M2S)
 STAGING_TURNOUT_PREFIX = "M2T"

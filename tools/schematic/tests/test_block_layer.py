@@ -659,7 +659,7 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         new, old = got[("block", "Track Barn")], want[("block", "Track Barn")]
         # its layout block may come back as it was: the next free number can be the one the owner's row held
         self.assertEqual({c for c in new if new[c] != old[c]} - {"layout_block"},
-                         {"assignment", "system_name", "jmri_name", "jmri_comment"})
+                         {"assignment", "system_name", "jmri_name", "jmri_comment", "cats_discipline"})
         self.assertEqual((new["assignment"], new["system_name"], new["jmri_comment"]),
                          ("virtual", "", "Track Barn; occupancy Block 13-1 / M2S1300"))
         self.assertRegex(new["jmri_name"] + " " + new["layout_block"], r"^IB:AUTO:00(\d\d) ILB\1$")

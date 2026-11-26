@@ -80,7 +80,6 @@ MASTS = railroad.Sources.under().masts     # masts.csv: each mast's level, facin
 # the staging level (its field masts and turnouts), and the main and upper levels (on virtual heads and turnouts)
 STAGING_LEVELS = (int(railroad.STAGING_LEVEL),)
 ADDED_LEVELS = tuple(lv for lv in level_masts.LEVELS if lv not in STAGING_LEVELS)
-OCCUPANCY = ROOT / "cats/data/occupancy_bindings.csv"
 DEVICE_MAP = railroad.Sources.under().devices     # the device master: the main and upper block names
 
 CLOSED, THROWN = "2", "4"
@@ -606,9 +605,10 @@ def check_level_desk(path: Path, t: Tables, r: Report) -> None:
 
 # ---------------------------------------------------------------- USS CTC
 
-def occupancy_sensors(path: Path) -> dict[str, str]:
-    """{block name: occupancy sensor} of occupancy_bindings.csv (hartlib.occupancy_bindings names each block_id)."""
-    return {row["block_user_name"]: row["occupancy_sensor_user_name"] for row in occupancy_bindings.rows(path)}
+def occupancy_sensors(device_map: Path) -> dict[str, str]:
+    """{block name: occupancy sensor} of the CATS desks' blocks in the master at `device_map` (occupancy_bindings)."""
+    return {row["block_user_name"]: row["occupancy_sensor_user_name"]
+            for row in occupancy_bindings.rows(device_map)}
 
 
 def check_ctc_buttons(switches: dict[int, facts.Switch], t: Tables, occ: dict[str, str], r: Report) -> None:
@@ -832,7 +832,7 @@ def check_levels(switches: dict[int, facts.Switch], data: Path, rows: list[dict[
 
 
 def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path = GUI,
-        occupancy: Path = OCCUPANCY, device_map: Path = DEVICE_MAP) -> Report:
+        device_map: Path = DEVICE_MAP) -> Report:
     """`device_map`: the master that goes with `tables` (its parts, part_map)."""
     import gen_ctc_track_plan as gen
 
@@ -859,7 +859,7 @@ def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path =
         uss = Tables(tables, root=uss_root, parts=parts)
         pe = next(iter(uss_root.iter("paneleditor")), None)       # only the USS panel is read from the text
         uss_text = ET.tostring(pe, encoding="unicode") if pe is not None else ""
-    check_ctc_buttons(switches, uss, occupancy_sensors(occupancy), r)
+    check_ctc_buttons(switches, uss, occupancy_sensors(device_map), r)
     cells = facts.load_uss_cells(data)  # the board's grid, frozen from the hand-wired desk (uss_board_cells.csv)
     gui_text = Path(gui).read_text(encoding="utf-8")
     for label, text in (("GUIObjects.xml", gui_text), ("tables.xml USS panel", uss_text)):

@@ -1,5 +1,5 @@
-"""hartlib.places and hartlib.occupancy_bindings (ADR-039 lane L4c): place ids in the cp cells, block ids in the
-occupancy bindings, each read back to the names the builders used before."""
+"""hartlib.places (ADR-039 lane L4c): place ids in the cp cells, each read back to the names the builders used
+before. hartlib.occupancy_bindings has its own test (test_occupancy_bindings.py)."""
 from __future__ import annotations
 
 import csv
@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from hartlib import devices, level_masts, occupancy_bindings, places, track_names  # noqa: E402
+from hartlib import devices, level_masts, places  # noqa: E402
 from hartlib.railroad_facts import FactsError  # noqa: E402
 
 CP_FILES = (devices.FIELD, devices.MASTER, level_masts.PATH)
@@ -75,28 +75,6 @@ class PlacesTest(unittest.TestCase):
             bad.write_text("station_id,level,station\nst:a,1,A\nst:a,1,B\n", encoding="utf-8")
             with self.assertRaises(FactsError):
                 places._table(bad.read_bytes(), places.INTERLOCKINGS.read_bytes())
-
-
-class OccupancyBindingsTest(unittest.TestCase):
-    def test_every_block_id_is_named(self):
-        rows = occupancy_bindings.rows()
-        self.assertEqual(len(rows), 45)
-        names = track_names.names_by_id([r["block_id"] for r in rows])
-        self.assertEqual({r["block_id"]: r["block_user_name"] for r in rows}, names)
-        self.assertIn("Track W-1", names.values())
-
-    def test_a_bad_file_stops(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            p = Path(tmp) / "occupancy_bindings.csv"
-            p.write_text("block_user_name,occupancy_sensor_user_name,cats_discipline\nTrack W-1,BS W-1,CTC\n")
-            with self.assertRaises(FactsError):
-                occupancy_bindings.rows(p)
-            p.write_text("block_id,occupancy_sensor_user_name,cats_discipline\nblock:nowhere,BS X,CTC\n")
-            with self.assertRaises(FactsError):
-                occupancy_bindings.rows(p)
-            p.write_text("block_id,occupancy_sensor_user_name,cats_discipline\nos:1,a,CTC\nos:1,b,CTC\n")
-            with self.assertRaises(FactsError):
-                occupancy_bindings.rows(p)
 
 
 if __name__ == "__main__":

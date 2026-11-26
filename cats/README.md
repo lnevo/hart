@@ -28,7 +28,6 @@ The layout deploy and the Pi and Windows host scripts live in [`tools/hosts/`](.
 
 | File | Use in Designer |
 |------|-----------------|
-| [`data/occupancy_bindings.csv`](data/occupancy_bindings.csv) | Block → occupancy sensor userName |
 
 ## Decisions (Accepted)
 

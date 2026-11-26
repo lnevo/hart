@@ -369,9 +369,10 @@ table, say), never a second copy of a known one. Errors are `SplitError`.
 `places`: the stations of `schematic/stations.csv` by `station_id` (`st:barn`) and the control points of
 `schematic/interlockings.csv` by `cp_id` (`cp:107`). The `cp` cells of the device pair and of `masts.csv` hold these
 ids; `hartlib.devices` and `level_masts.read` give readers the names (`places.names`), and the writers put the ids
-back (`places.ids`, a station's id before an interlocking's of the same name). `occupancy_bindings.rows()`: the rows
-of `cats/data/occupancy_bindings.csv`, each block given by its `block_id` and named from the name store
-(`block_user_name`). Both stop with `FactsError`.
+back (`places.ids`, a station's id before an interlocking's of the same name). `occupancy_bindings.rows(files=None)`: the
+blocks the CATS desks bind, the block rows of the device master with a `cats_discipline` (CTC or YARD, the owner's
+cell in `devices_field.csv`; `cats/data/occupancy_bindings.csv` until 2026-11-25), each with its level, `block_id`,
+`block_user_name` and occupancy sensor's user name. Both stop with `FactsError`.
 
 ### `hartlib.level_masts`
 
