@@ -10,7 +10,7 @@
     {
       "id": "freight",
       "label": "Freight cars",
-      "count": 78
+      "count": 77
     },
     {
       "id": "mow",
@@ -339,13 +339,13 @@
       "type": "Boxcar"
     },
     {
-      "id": "b-o-371604",
+      "id": "prr-371604",
       "album": "freight",
       "src": "../ops/car-cards/car-images/CarImagesFinal/IMG_9127.png",
-      "title": "B&O 371604",
-      "caption": "B&O · Gondola · PRR gondola relettered B&O",
+      "title": "PRR 371604",
+      "caption": "PRR · Gondola · PRR gondola",
       "credit": "HART car roster",
-      "road": "B&O",
+      "road": "PRR",
       "number": "371604",
       "type": "Gondola"
     },
@@ -865,18 +865,6 @@
       "road": "REX",
       "number": "350",
       "type": "Reefer"
-    },
-    {
-      "id": "prr-371604",
-      "album": "freight",
-      "src": "../external/sts-docker-data/Rolling Stock photos/21.jpg",
-      "title": "PRR 371604",
-      "caption": "B&O · Gondola 50ft · PRR gondola relettered B&O",
-      "credit": "HART car roster",
-      "road": "PRR",
-      "number": "371604",
-      "type": "Gondola",
-      "roster_id": "PRR371604"
     },
     {
       "id": "mow-0017",

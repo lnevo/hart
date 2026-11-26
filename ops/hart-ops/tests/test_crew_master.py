@@ -52,6 +52,10 @@ class Schema(unittest.TestCase):
         out = self.broken(lambda m: m["spotsheet"]["industries"][0].update(name="Aristech"))
         self.assertIn("spot sheet industry 'aristech': name must come from industries.csv, not the crew master", out)
 
+    def test_site_note_must_be_a_sentence(self):
+        self.assertEqual(self.broken(lambda m: m["jobs"][0].update(site_note=" ")),
+                         ["job 'd749': site_note must be a non-empty sentence"])
+
     def test_docx_object_holds_only_known_fields(self):
         out = self.broken(lambda m: cm.job(m, "d749").setdefault("docx", {}).update(intorduction="x"))
         self.assertTrue(any("job 'd749': docx holds intorduction" in p for p in out), out)
@@ -102,6 +106,14 @@ class SiteView(unittest.TestCase):
         self.assertNotIn("rules", jobs["yardmaster"])
         row = cm.job(MASTER, "dispatcher")["lineup"][0]
         self.assertEqual(jobs["dispatcher"]["lineup"][0]["action"], f"{row['route']} {row['action']}")
+
+    def test_site_note_joins_the_site_summary_but_not_the_sheet(self):
+        site = {j["id"]: j for j in self.view()["jobs"]}
+        d749 = cm.job(MASTER, "d749")
+        self.assertEqual(site["d749"]["summary"], f"{d749['summary']} {d749['site_note']}")
+        self.assertNotIn("site_note", site["d749"])
+        sheet = next(c for c in cm.crews(MASTER) if c["train"] == "D749")
+        self.assertEqual(sheet["intro"], d749["summary"])
 
     def test_schematic_fields_come_from_the_title_block(self):
         sc = self.view()["schematic"]
