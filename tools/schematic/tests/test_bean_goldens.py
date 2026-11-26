@@ -19,6 +19,7 @@ intermediateSignal property) is left out: those change on a rediscovery, not in 
 from __future__ import annotations
 
 import copy
+import dataclasses
 import difflib
 import sys
 import unittest
@@ -180,8 +181,8 @@ class MainUpperBeans(unittest.TestCase):
     def test_a_main_or_upper_bean_is_found_by_its_row_not_its_name(self) -> None:
         """is_level_bean reads the rows: a turnout row bound to a physical name (a swap, ADR-028) is still a main or
         upper bean, and a staging bean is not one."""
-        rows = [dict(r, jmri_name="M2T3308", assignment="field", start="")
-                if r["id"] == "switch:107" and r["level"] == "2" else r for r in devices.load()]
+        rows = [dataclasses.replace(r, jmri_name="M2T3308", assignment="field", start="")
+                if r.id == "switch:107" and r.level == 2 else r for r in devices.load()]
         names = lt.level_bean_names(rows=rows)
         turnout = ET.fromstring("<turnout><systemName>M2T3308</systemName><userName>Switch 107</userName></turnout>")
         self.assertTrue(lt.is_level_bean(turnout, names))

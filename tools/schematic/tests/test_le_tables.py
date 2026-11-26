@@ -3,6 +3,7 @@
 main and upper blocks drawn against block_numbering.csv, every name a band binds a bean), which beans are main and
 upper ones (by the rows), and what the mast checks stop on.
 """
+import dataclasses
 import os
 import sys
 import tempfile
@@ -17,6 +18,7 @@ import le_checks  # noqa: E402
 import le_common  # noqa: E402
 import le_tables  # noqa: E402
 from hartlib import level_devices  # noqa: E402
+from hartlib.railroad_facts import DeviceRow  # noqa: E402
 from le_common import BuildError  # noqa: E402
 
 STAGING = "Staging"     # the made-up staging band's key in these tables (the build finds its own by level)
@@ -94,12 +96,14 @@ class CheckLevelBlocks(unittest.TestCase):
     def test_the_rows_names_are_checked_against_the_numbering(self):
         """level_block_beans stops on a row whose layout block is not its block's pair, and on rows a
         block_numbering.csv edit left stale (stale_block_beans: build_device_map.py was not run since)."""
-        row = dict(level="2", layer="block", user_name="Track 105-109", jmri_name="IB:C3:0003", layout_block="ILB1004")
-        with mock.patch.object(le_tables.devices, "load", return_value=[row]), \
+        row = DeviceRow(level=2, layer="block", user_name="Track 105-109", role="track", jmri_name="IB:C3:0003",
+                        layout_block="ILB1004")
+        rows = [row]
+        with mock.patch.object(le_tables.devices, "load", return_value=rows), \
                 mock.patch.object(le_tables, "stale_block_beans", return_value=[]):
             with self.assertRaisesRegex(BuildError, "layout_block 'ILB1004' is not the pair of jmri_name 'IB:C3:0003'"):
                 le_tables.level_block_beans()
-            row["layout_block"] = "ILB1003"
+            rows[0] = dataclasses.replace(row, layout_block="ILB1003")
             self.assertEqual(le_tables.level_block_beans(), {"Track 105-109": ("IB:C3:0003", "ILB1003")})
         self.assertEqual(le_tables.stale_block_beans(), [])             # the committed rows and file agree
         d = Path(tempfile.mkdtemp())
@@ -172,16 +176,16 @@ class IsLevelBean(unittest.TestCase):
     """A main or upper bean is one whose system name a main or upper row gives (level_bean_names), not one whose name
     follows a rule."""
 
-    ROWS = [dict(level="2", layer="turnout", assignment="virtual", system_name="M2T3408", jmri_name="IT:HART:C3:105",
-                 layout_block="", start="closed"),
-            dict(level="2", layer="block", assignment="virtual", system_name="", jmri_name="IB:C3:0001",
-                 layout_block="ILB1001", start=""),
-            dict(level="2", layer="occupancy", assignment="virtual", system_name="", jmri_name="IS:HART:C3:B:OS105",
-                 layout_block="", start="inactive"),
-            dict(level="2", layer="fb", assignment="none", system_name="M2S3467", jmri_name="", layout_block="",
-                 start=""),
-            dict(level="1", layer="turnout", assignment="field", system_name="M2T408", jmri_name="M2T408",
-                 layout_block="", start="")]
+    ROWS = [DeviceRow(level=2, layer="turnout", user_name="Switch 105", role="turnout", assignment="virtual",
+                      system_name="M2T3408", jmri_name="IT:HART:C3:105", layout_block="", start="closed"),
+            DeviceRow(level=2, layer="block", user_name="Track 105-109", role="track", assignment="virtual",
+                      system_name="", jmri_name="IB:C3:0001", layout_block="ILB1001", start=""),
+            DeviceRow(level=2, layer="occupancy", user_name="BS Switch 105", role="os", assignment="virtual",
+                      system_name="", jmri_name="IS:HART:C3:B:OS105", layout_block="", start="inactive"),
+            DeviceRow(level=2, layer="fb", user_name="FB Switch 105 N", role="fb", assignment="none",
+                      system_name="M2S3467", jmri_name="", layout_block="", start=""),
+            DeviceRow(level=1, layer="turnout", user_name="Switch 8", role="turnout", assignment="field",
+                      system_name="M2T408", jmri_name="M2T408", layout_block="", start="")]
 
     @staticmethod
     def el(tag, sysname, user=""):
@@ -200,12 +204,12 @@ class IsLevelBean(unittest.TestCase):
         self.assertFalse(le_tables.is_level_bean(self.el("sensor", "M2S3467"), names))     # no bean: assignment none
 
     def test_a_start_with_no_action_name_stops_naming_the_row(self):
-        rows = [dict(self.ROWS[0], jmri_name="IT:ODD:105", user_name="Switch 105")]
+        rows = [dataclasses.replace(self.ROWS[0], jmri_name="IT:ODD:105", user_name="Switch 105")]
         with self.assertRaisesRegex(BuildError, r"turnout 'Switch 105' \(level 2\): start 'closed': .*IT:ODD:105"):
             le_tables.level_bean_names(rows=rows)
 
     def test_a_swapped_turnout_is_still_a_main_or_upper_bean(self):
-        rows = [dict(self.ROWS[0], jmri_name="M2T3408", assignment="field", start="")]
+        rows = [dataclasses.replace(self.ROWS[0], jmri_name="M2T3408", assignment="field", start="")]
         names = le_tables.level_bean_names(rows=rows)
         self.assertEqual(names, {"M2T3408"})
         self.assertTrue(le_tables.is_level_bean(self.el("turnout", "M2T3408", "Switch 105"), names))

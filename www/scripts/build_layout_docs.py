@@ -29,6 +29,7 @@ from pathlib import Path
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import block_lengths, devices, layer_files, railroad  # noqa: E402
+from hartlib.railroad_facts import DeviceRow  # noqa: E402
 
 PORTAL = Path(__file__).resolve().parents[1]
 ROOT = PORTAL.parent
@@ -149,9 +150,9 @@ def label(section: dict, master: dict) -> str:
     raise SystemExit(f"build_layout_docs: no label for section {section['id']} ({section['name']}); add it to LABELS")
 
 
-def master_rows(files=None) -> dict[tuple[str, str], dict]:
+def master_rows(files: devices.Files | Path | None = None) -> dict[tuple[str, str], DeviceRow]:
     """{(level, id): merged device-master row} (hartlib.devices.load: the owner's name wins). `files` a test's copy."""
-    return {(r["level"], r["id"]): r for r in devices.load(files) if r["level"] and r["id"]}
+    return {(r["level"], r.id): r for r in devices.load(files) if isinstance(r, DeviceRow) and r.id}
 
 
 def detected_sections(lengths=None, master=None, measured=None) -> list[dict]:

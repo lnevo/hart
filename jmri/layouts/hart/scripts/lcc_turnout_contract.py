@@ -67,24 +67,24 @@ def field_plants(csv_path: Path) -> tuple[dict[str, Plant], set[str], list[str]]
     read."""
     ix = devices.index(csv_path)               # built once; a row's location text only when a message needs it
     rows = [r for _n, r in ix.lines]
-    aliases = {pair_key(r): r for r in rows if r["role"] == "lcc_alias" and r["assignment"] == "field"}
+    aliases = {pair_key(r): r for r in rows if r.role == "lcc_alias" and r.assignment == "field"}
     out, refused, bad = {}, set(), []
     for r in rows:
-        if r["role"] != "turnout" or r["assignment"] != "field":
+        if r.role != "turnout" or r.assignment != "field":
             continue
         a = aliases.pop(pair_key(r), None)
-        problem = ("a field turnout with no dcc" if not r["dcc"] else
-                   f"no LCC alias row DCC {r['user_name']}" if a is None else
-                   f"its alias DCC {r['user_name']} is {a['system_name']}, not MTT{r['dcc']} (its dcc)"
-                   if a["system_name"] != f"MTT{r['dcc']}" else "")
-        if problem:
-            bad.append(f"{ix.where(r)} ({r['system_name']}): {problem}")
-            refused.add(r["system_name"])
+        problem = ("a field turnout with no dcc" if not r.dcc else
+                   f"no LCC alias row DCC {r.user_name}" if a is None else
+                   f"its alias DCC {r.user_name} is {a.system_name}, not MTT{r.dcc} (its dcc)"
+                   if a.system_name != f"MTT{r.dcc}" else "")
+        if problem or a is None:
+            bad.append(f"{ix.where(r)} ({r.system_name}): {problem}")
+            refused.add(r.system_name)
         else:
-            out[r["system_name"]] = Plant(devices.name_key(r), r["user_name"], r["system_name"], r["dcc"],
-                                          a["system_name"], a["user_name"], devices.comment_of(a), ix)
-    bad += [f"{ix.where(a)}: alias {a['user_name']} ({a['system_name']}) has no field turnout row "
-            f"{a['user_name'].removeprefix('DCC ')}" for _k, a in sorted(aliases.items())]
+            out[r.system_name] = Plant(devices.name_key(r), r.user_name, r.system_name, r.dcc,
+                                       a.system_name, a.user_name, devices.comment_of(a), ix)
+    bad += [f"{ix.where(a)}: alias {a.user_name} ({a.system_name}) has no field turnout row "
+            f"{a.user_name.removeprefix('DCC ')}" for _k, a in sorted(aliases.items())]
     return out, refused, bad
 
 
