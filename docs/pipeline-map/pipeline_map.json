@@ -5237,6 +5237,15 @@
    "path": "tools/ops/orient.py"
   },
   {
+   "id": "tools/ops/orient_pages.py",
+   "label": "orient_pages.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "orient.py's Markdown half: the Claimed line's form and reading a project page's Status and Claimed lines.",
+   "path": "tools/ops/orient_pages.py"
+  },
+  {
    "id": "tools/ops/screenshot.py",
    "label": "screenshot.py",
    "kind": "generator",
@@ -12778,6 +12787,11 @@
    "from": "tools/hosts/deploy/pi_unpulled.sh",
    "to": "tools/ops/orient.py",
    "label": "waiting to ingest"
+  },
+  {
+   "from": "tools/ops/orient_pages.py",
+   "to": "tools/ops/orient.py",
+   "label": "re-exported"
   },
   {
    "from": "tools/hosts/roster_digest.sh",
