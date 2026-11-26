@@ -58,7 +58,7 @@ Exceptions are made only on purpose, each with its reason beside it:
 
 ## Changing a mast
 
-- **Rename** (as 32L to 16R, PR #441): rename it in PanelPro and Store (`make tables-pull`), change its row's `user_name` in the device master and apply it (ADR-005, `wiki/pipelines/public-names.md`). If it is on the CATS desk, change its `mast` in `mast_cells.csv`, then run `make desks` and `gen_ctc_track_plan.py`. Then rebuild the derived files that `check.sh` names as stale: `capture_public_name_baseline.py`, `www/scripts/build_tables_browser.py`, `www/scripts/build_layout_index.py`, then `www/scripts/build_cats_layout_index.py`.
+- **Rename** (as 32L to 16R, PR #441): rename it in PanelPro and Store (`make tables-pull`), change its row's `user_name` in the device master and apply it (ADR-005, `wiki/pipelines/public-names.md`). If it is on the CATS desk, change its `mast` in `mast_cells.csv`, then run `make desks` and `gen_ctc_track_plan.py`. Then rebuild the derived files that `check.sh` names as stale: `www/scripts/build_tables_browser.py`, `www/scripts/build_layout_index.py`, then `www/scripts/build_cats_layout_index.py`.
 - **Move on the desk:** change its `x`, `y` or `edge` in `mast_cells.csv` (these cells fed the archived hand-wired desks and the USS board; the generated desks place masts from the schematic), then run `gen_ctc_track_plan.py`. The check fails if either desk has another lamp in that cell or the mast's heads in `tables.xml` do not fit its `uss_kind`.
 
 ## Rename checklist (a track, block or mast)
