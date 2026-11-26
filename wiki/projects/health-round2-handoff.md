@@ -42,6 +42,8 @@ Size: M. Done when the file is under 1,200 lines, the tests pass unchanged, and 
 
 Done 2026-11-22 (PR #933, deployed `--pi --win` at f0e6ac0c): the script is 1,187 lines, with `sml_beans.py`, `sml_claims.py` and `sml_handoff.py` beside it, loaded from `preference:jython` and reloaded on a re-run. A real PanelPro load on the Mac (a copy of the profile on a private broker) matched main's log line for line. On the hosts the Pi loaded the modules, a Windows force claim made it stand down, an operator Enable took Digicon back, and the quit released (Hold, Unheld, disabled) before a clean boot take; Windows stayed Disabled. The boot race was not staged (owner, 2026-11-22: hard to reproduce and covered by the claim tests). Rollback: `make redeploy COMMIT=59811d92`.
 
+The later split (group D: `sml_events`, `sml_quit`, `sml_ui`, `panel_status_clicks`, `panel_status_turnouts`): accepted by the owner without a live test on 2026-11-26 (step 4 not run: no `make panelpro-test`, lamp clicks, SML button or quit release). A failure found later is debugged then.
+
 ## 2. `build_device_map.py` into three modules
 
 1. Check `test_build_device_map*` and the device-map guard tests cover the readers and the staging layer. Add tests where a moved function has none.
