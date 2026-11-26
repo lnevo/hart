@@ -24,7 +24,7 @@ Run `./tools/check.sh` before any commit that changes tables or signals. CI runs
 
 ## make remote
 
-`make remote CMD="./tools/check.sh"` (or `tools/hosts/win_run.sh -- <cmd>`) runs a pushed branch on the Windows box's WSL. `.wslconfig` there caps it at 8 of the box's 16 threads, and each run gets its own worktree, so several at once are fine.
+`make remote CMD="./tools/check.sh"` (or `tools/hosts/win_run.sh -- <cmd>`) runs a pushed branch on the Windows box's WSL. `.wslconfig` there caps it at 8 of the box's 16 threads, and each run gets its own worktree, so several at once are fine. Every run's whole output, stderr included, is saved on the Mac in `<main checkout>/.cache/hart/remote-logs/<ref>-<time>.log` (the newest 20 kept, `WIN_RUN_KEEP_LOGS`), and the run ends with each `--- <job> FAILED` line and then `log: <path>`, so a caller that keeps only the tail still sees which jobs failed and where the rest is.
 
 - Use it for a full `check.sh`, test suites and panel rebuilds. Iterate on single tests locally.
 - **Stamps per ref.** A run of `main` uses the box's shared stamp folder (`~/hart/.cache/hart/check-stamps`); any other branch gets `check-stamps-by-ref/<branch, sanitised>-<hash>` beside it (a detached commit: its sha), copied from the shared folder on its first run, so parallel runs of different branches no longer overwrite each other's stamps. A copied stamp is skipped only when its key and every read-set hash match the run's checkout, and a folder untouched for 14 days is removed at the start of a run.

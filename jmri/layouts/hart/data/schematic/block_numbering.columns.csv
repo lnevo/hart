@@ -1,0 +1,6 @@
+column,description,type,required,key,refs,values
+id,"A live main or upper block's device ID (block:107B-107C#1, os:225:C), named by the name store on level 2 or 3, so a rename changes no row (hartlib.block_numbering.read). Blank on a retired row. Each block is listed once.",str,retired=,retired=,jmri/layouts/hart/data/devices.csv:id,
+numbered_as,"The name whose place in the sort order (block_sort: OS blocks first, then by the number at the end of the name) the block takes, so a renamed block keeps its JMRI number. A name no block has now. Give exactly one of numbered_as and append_order on a live row.",str,,,,
+append_order,"1, 2, 3 ... without a gap or repeat: the order in which blocks added after the cut-over take the next numbers at the end, so no main or upper system name shifts (owner, 2026-11-16).",int,,,,
+retired,"A block gone from the levels: the name it had (it has no ID any more). Its number stays taken, unused, so no block after it is renumbered. A retired row gives no id, numbered_as or append_order.",str,id=,id=,,
+notes,Text for people.,str,,,,

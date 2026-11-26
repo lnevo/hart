@@ -9,6 +9,8 @@
 # the Windows clone (~/hart in WSL) fetches from GitHub. Each run gets its own worktree under
 # ~/wt there, with the gitignored mirrors (media, ops/car-cards, ops/hart-ops/.venv) linked and
 # every submodule checked out, so runs from several agents do not collide.
+# Every run's whole output is saved on the Mac in <cache>/remote-logs (the newest WIN_RUN_KEEP_LOGS, default 20),
+# with the remote's stderr merged into stdout; the run ends with its failed jobs, then "log: <path>".
 # --keep leaves that worktree for a look afterwards. Python is ~/hart/.venv (3.13, requirements.txt).
 #
 # Not for: make panelpro-test, screenshots, deploys, or anything that reads the Mac's
@@ -30,7 +32,7 @@ while [[ $# -gt 0 ]]; do
     --keep) keep=1; shift ;;
     --print-script) print_script=1; shift ;;   # print what would run on Windows (sha = this HEAD) and stop: for tests
     --) shift; break ;;
-    -h|--help) sed -n '2,17p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,19p' "$0"; exit 0 ;;
     -*) echo "win_run.sh: unknown option $1" >&2; exit 2 ;;
     *) break ;;
   esac
@@ -93,6 +95,9 @@ run_id="$(date +%Y%m%d-%H%M%S)-$$"
 # Concurrent runs allowed on the Windows box (WIN_RUN_SLOTS, default 2); each gets nproc/slots check.sh jobs.
 slots="${WIN_RUN_SLOTS:-2}"
 [[ "$slots" =~ ^[1-9][0-9]*$ ]] || { echo "win_run.sh: WIN_RUN_SLOTS must be a whole number above 0, got $slots" >&2; exit 2; }
+# The newest remote-run logs kept on the Mac (the log block, below).
+keep_logs="${WIN_RUN_KEEP_LOGS:-20}"
+[[ "$keep_logs" =~ ^[1-9][0-9]*$ ]] || { echo "win_run.sh: WIN_RUN_KEEP_LOGS must be a whole number above 0, got $keep_logs" >&2; exit 2; }
 
 # The remote script goes over stdin to bash inside WSL, so no quoting passes through Windows' shell; the command
 # itself reads /dev/null, or it would eat the rest of the script. Exit codes: a setup failure there is 3 (use the
@@ -242,9 +247,61 @@ EOF
 }
 
 if [[ $print_script -eq 1 ]]; then remote_script; exit 0; fi
+# --- log (tests run this block alone)
+# Every run's whole output (its stderr too) is saved, so a failed run never has to be repeated to see which job failed
+# (2026-11-25: a caller kept only `| tail -6`): <cache>/remote-logs/<stamp name>-<YYYYmmdd-HHMMSS>-<pid>.log, the
+# newest WIN_RUN_KEEP_LOGS (default 20) kept. The run ends with every "--- <job> FAILED" line and, last, "log: <path>",
+# so even a caller's tail shows where to look. A log that cannot be written is a warning; the run goes on.
+start_log() {   # <folder> <name>: prints the log's path, or nothing when it cannot be made
+  mkdir -p "$1" 2>/dev/null && : >"$1/$2.log" 2>/dev/null && echo "$1/$2.log"
+}
+prune_logs() {   # <folder> <keep>: remove all but the newest <keep> .log files (names sort by time per ref; mtime here)
+  local -a old=()
+  local f
+  while IFS= read -r f; do old+=("$f"); done < <(ls -1t "$1"/*.log 2>/dev/null | tail -n +"$(( $2 + 1 ))")
+  if (( ${#old[@]} )); then rm -f -- "${old[@]}" || echo "win_run.sh: warning: could not prune old logs in $1" >&2; fi
+}
+end_log() {   # <log>: the failed jobs it holds, then where it is
+  grep -E '^--- .* FAILED' "$1" || true
+  echo "log: $1"
+}
+finish_log() {   # <log> <folder> <keep>: on every exit of a logged run, a stopped one too
+  end_log "$1"
+  prune_logs "$2" "$3"
+}
+run_logged() {   # <log> <header> COMMAND...: remote_script into COMMAND, its stdout and stderr shown and appended to <log>;
+  # returns COMMAND's exit code
+  local rcs
+  { set +e   # a subshell (the pipeline's left side): the failed command's code is reported, not acted on
+    echo "$2"
+    remote_script | "${@:3}" 2>&1
+    r=${PIPESTATUS[1]}   # COMMAND's: read before any other command resets PIPESTATUS
+    echo "win_run.sh: exit $r"
+    exit "$r"
+  } | tee -a "$1"
+  rcs=("${PIPESTATUS[@]}")
+  return "${rcs[0]}"
+}
+# --- end log
+logs="$(hart_cache_dir "$ROOT" remote-logs)"
+log="$(start_log "$logs" "$stamps-$run_id")" || log=""
+if [[ -n "$log" ]]; then
+  # on every exit, a stopped or cut-off run too (Ctrl-C, a superseded run's TERM): the failed jobs, the path, the prune
+  trap 'finish_log "$log" "$logs" "$keep_logs"' EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+else
+  echo "win_run.sh: warning: could not write a log in $logs; this run's output is not saved" >&2
+fi
 set +e
-remote_script | ssh -o ConnectTimeout=8 -o LogLevel=ERROR -p "$PORT" "$WIN" "wsl.exe -d $DISTRO -- bash -s"
-rc=$?
+if [[ -n "$log" ]]; then
+  run_logged "$log" "win_run.sh: $ref ($sha) on $WIN: $cmd" \
+    ssh -o ConnectTimeout=8 -o LogLevel=ERROR -p "$PORT" "$WIN" "wsl.exe -d $DISTRO -- bash -s"
+  rc=$?
+else
+  remote_script | ssh -o ConnectTimeout=8 -o LogLevel=ERROR -p "$PORT" "$WIN" "wsl.exe -d $DISTRO -- bash -s"
+  rc=$?
+fi
 set -e
 if [[ $rc -eq 255 ]]; then
   echo "win_run.sh: could not reach $WIN; run the command on the Mac." >&2

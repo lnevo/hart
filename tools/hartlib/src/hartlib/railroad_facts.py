@@ -8,7 +8,7 @@ from collections import Counter
 from dataclasses import dataclass, field, replace
 from functools import cached_property
 from pathlib import Path
-from typing import Collection, Iterable
+from typing import Callable, Collection, Iterable, Mapping
 
 from . import layer_files, level_devices, level_masts, paths, tables, track_names
 
@@ -211,12 +211,14 @@ def read_staging_devices(path: Path, rows: list[tuple[int, dict[str, str]]] | No
 
 # ---------------------------------------------------------------- inputs: switches.csv, every level's switches (ADR-021)
 
-SWITCH_COLUMNS = ("level", "switch", "half", "os_block", "closed_leg", "thrown_leg", "os_id", "closed_id", "thrown_id",
+SWITCH_COLUMNS = ("level", "switch", "half", "os_id", "closed_id", "thrown_id",
                   "hand", "hand_source", "area", "le_ident", "cats_inverted", "ctc_is", "ctc_signals", "notes")
-# A staging row's OS block and legs are keyed by their device IDs (os_id, closed_id, thrown_id; naming-layers step 5);
-# os_block, closed_leg and thrown_leg are their labels, the name store's, which build_hands.py (the hands step of make
-# panels) writes, so a rename in devices_field.csv relabels the row and every reader by name follows it.
+# A staging row's OS block and legs are given by their device IDs only (os_id, closed_id, thrown_id; naming-layers
+# step 5). SwitchRow's os_block, closed_leg and thrown_leg are the name store's names of those IDs, which
+# read_switch_rows looks up (hartlib.devices.user_names), so a rename in devices_field.csv reaches every reader with no
+# switches.csv edit. The file holds no copy of a name: a LABEL_COLUMNS column in its header stops the read.
 LEG_IDS = {"os_block": "os_id", "closed_leg": "closed_id", "thrown_leg": "thrown_id"}
+LABEL_COLUMNS = tuple(LEG_IDS)
 HAND_SOURCES = ("plan", "owner")        # plan: build_hands.py writes it from the plan graph; owner: hand-kept
 # Columns that hold a fact of the whole switch: given on its first row only (a crossover's later rows leave them blank)
 SWITCH_WIDE = ("area", "le_ident", "cats_inverted", "ctc_is", "ctc_signals", "notes")
@@ -230,7 +232,9 @@ HALF_OS_ID = re.compile(r"os:\d+:A-\w+")      # a staging crossover half's OS bl
 class SwitchRow:
     """A row of switches.csv: one OS block of a staging switch (keyed by os_block), or one half of a main or upper
     switch (keyed by half, the label the drawings print: 107, or a crossover half 101A). switches.columns.csv says
-    what each column holds."""
+    what each column holds. os_block, closed_leg and thrown_leg are no columns: on a row keyed by its OS block they
+    are the name store's names of os_id, closed_id and thrown_id (read_switch_rows); a row keyed by its half has
+    none."""
     line: int
     level: int
     switch: int
@@ -261,20 +265,48 @@ class SwitchRow:
         return self.os_block if self.by_os else self.half
 
 
-def read_switch_rows(path: Path) -> list[SwitchRow]:
+def switch_names(path: Path) -> Mapping[tuple[str, str], str]:
+    """The name store's {(level, id): user name} for switches.csv at `path`: the device master beside it (a pair's
+    devices_generated.csv, else a one-file copy's devices.csv: a test's copy), else the repo's
+    (hartlib.devices.user_names). FactsError (a DevicesError) on a master that does not load."""
+    from . import devices          # devices imports this module, so the import waits for the call
+    data = Path(path).parent
+    for source in (devices.master_path(data), data / devices.ONE_FILE):
+        if source.is_file():
+            return devices.user_names(source)
+    return devices.user_names()            # a copy of switches.csv alone (a test's) names by this repo's master
+
+
+def _no_label_columns(path: Path) -> None:
+    """FactsError when switches.csv's header has a name column (LABEL_COLUMNS): the name store holds the names."""
+    try:
+        with path.open(newline="", encoding="utf-8") as fh:
+            header = next(csv.reader(fh), [])
+    except OSError:
+        return                                  # read_rows says why it cannot be read
+    given = [c.strip() for c in header if c.strip() in LABEL_COLUMNS]
+    if given:
+        raise FactsError(f"{path.name}: {', '.join(given)} are no columns: a row gives the device IDs (os_id, "
+                         "closed_id, thrown_id) and the name store gives their names")
+
+
+def read_switch_rows(path: Path, names: Mapping[tuple[str, str], str] | Callable[[], Mapping[tuple[str, str], str]]
+                     | None = None) -> list[SwitchRow]:
     """switches.csv's rows in file order, each held to the shape of its key, not its level (naming-layers step 14):
     a row keyed by its OS block (an os_id: staging's rows today, SwitchRow.by_os) or by its half (main and upper's).
-    Stops with FactsError naming the file and line on: a missing column, a level that is not 1, 2 or 3, a switch
-    number on two levels or on rows that are not together, a key (an os_block, or a half) given twice, an os_block
-    that is not an OS Switch block of the row's number, one leg without the other or legs without an os_block, an
-    os_id that is not os:<n> or os:<n>:<half>, an OS-keyed row without its os_block, legs and their IDs or with a
-    half or a plan hand_source, a half-keyed row with a leg ID, a column of the live bindings (STAGING_ONLY) or a half
-    that is not its number (107) or its number and A or B (101A), a half-keyed switch whose rows are not either one
-    half {n} or both {n}A and {n}B, a hand that is not L, R or blank, a hand with no hand_source (plan or owner) or an
-    owner hand_source with no hand (a plan row's blank hand is build_hands.py's to fill), and a whole-switch column
-    (SWITCH_WIDE; on an OS-keyed switch the hand too) on a switch's later row. A half-keyed row's os_block and legs
-    are optional: none is given yet; station_group_rows reads an os_block on any row, and only OS-keyed rows' legs
-    are read so far (staging_switches)."""
+    An OS-keyed row's os_block, closed_leg and thrown_leg are the names of its os_id, closed_id and thrown_id in
+    `names` ({(level, id): user name}; switch_names of `path` by default, read when the first such row is met).
+    Stops with FactsError naming the file and line on: a missing column, a name column (LABEL_COLUMNS: the file
+    holds IDs, not copies of names), a level that is not 1, 2 or 3, a switch number on two levels or on rows that are
+    not together, a key (an os_block, or a half) given twice, an os_id that is not os:<n> or os:<n>:<half>, an
+    OS-keyed row without its legs' IDs, an ID the name store has no device for, an OS-keyed row with a half or a plan
+    hand_source, a half-keyed row with a leg ID, a column of the live bindings (STAGING_ONLY) or a half that is not
+    its number (107) or its number and A or B (101A), a half-keyed switch whose rows are not either one half {n} or
+    both {n}A and {n}B, a hand that is not L, R or blank, a hand with no hand_source (plan or owner) or an owner
+    hand_source with no hand (a plan row's blank hand is build_hands.py's to fill), and a whole-switch column
+    (SWITCH_WIDE; on an OS-keyed switch the hand too) on a switch's later row. A half-keyed row has no OS block or
+    legs."""
+    _no_label_columns(path)
     out: list[SwitchRow] = []
     keys: dict[str, int] = {}
     first_of: dict[int, tuple[int, int]] = {}          # switch -> (level, line of its first row)
@@ -300,25 +332,26 @@ def read_switch_rows(path: Path) -> list[SwitchRow]:
             raise FactsError(f"{where}: a staging row is keyed by its OS block and gives the device IDs of it (os_id "
                              f"os:{n}, or os:{n}:<half>) and of its legs (closed_id, thrown_id); a main or upper row "
                              f"is keyed by its half until its switches are bound; not os_id {r['os_id']!r}")
+        labels = dict.fromkeys(LEG_IDS, "")             # a half-keyed row has no OS block or legs
         if by_os:
             if not re.fullmatch(rf"os:{n}(:[A-Z0-9-]+)?", r["os_id"]) or not r["closed_id"] or not r["thrown_id"]:
                 raise FactsError(f"{where}: a row keyed by its OS block gives the device IDs of it (os_id os:{n}, "
                                  f"or os:{n}:<half>) and of its legs (closed_id, thrown_id), not {r['os_id']!r}, "
                                  f"{r['closed_id']!r}, {r['thrown_id']!r}")
-            if not r["os_block"]:
-                raise FactsError(f"{where}: os_block is empty; build_hands.py writes the label of {r['os_id']}")
-        elif r["os_block"]:
-            m = OS_BLOCK.fullmatch(r["os_block"])
-            if not m or int(m.group(1)) != n:
-                raise FactsError(f"{where}: os_block is OS Switch {n} or a half of it (OS Switch {n}b), "
-                                 f"not {r['os_block']!r}")
-        if not by_os and any(r[c] for c in LEG_IDS.values()):
+            if names is None:
+                names = switch_names(path)
+            elif callable(names):               # loaded at the first staging row: main and upper need no master
+                names = names()
+            for label, ident in LEG_IDS.items():
+                name = names.get((str(level), r[ident]))
+                if not name:
+                    raise FactsError(f"{where}: {ident} {r[ident]} is no level {level} device of the device master "
+                                     "(a new export dropped it, or the ID is mistyped: give the device's id)")
+                labels[label] = name
+            # the name is the owner's (a rename in devices_field.csv is allowed): only the ID carries the number
+        elif any(r[c] for c in LEG_IDS.values()):
             raise FactsError(f"{where}: closed_id and thrown_id go with an os_id (a row keyed by its OS block); a "
                              "row keyed by its half leaves them blank")
-        if (bool(r["closed_leg"]) != bool(r["thrown_leg"]) or (r["closed_leg"] and not r["os_block"])
-                or (by_os and not r["closed_leg"])):
-            raise FactsError(f"{where}: a row gives both legs (closed_leg, thrown_leg) with its os_block, or neither; "
-                             "a row keyed by its OS block gives them")
         if by_os:
             if r["half"]:
                 raise FactsError(f"{where}: a row keyed by its OS block has no half (its os_block is its key), not "
@@ -346,7 +379,7 @@ def read_switch_rows(path: Path) -> list[SwitchRow]:
         if repeated:
             raise FactsError(f"{where}: {', '.join(repeated)} hold a fact of the whole switch: give them on its first "
                              f"row (line {first_of[n][1]}) only")
-        row = SwitchRow(line, level, n, **{c: r[c] for c in SWITCH_COLUMNS[2:]})
+        row = SwitchRow(line, level, n, **labels, **{c: r[c] for c in SWITCH_COLUMNS[2:]})
         if row.key in keys:
             raise FactsError(f"{path.name} lines {keys[row.key]} and {line}: both are {row.key}")
         keys[row.key] = line
