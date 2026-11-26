@@ -115,6 +115,11 @@ HARTLIB_OTHER = {
     "places": "the stations and control points by id, as the devices and masts name them",
     "occupancy_bindings": "the CATS desks' occupancy bindings, each block by its ID",
     "block_lengths": "each block's plan length and measured length, and the operating length the Dispatcher takes",
+    "errors": "the error classes every hartlib reader raises",
+    "levels": "the layout's levels (1, 2, 3) and their one parser",
+    "store_keys": "the typed keys that pair a Store's items with the template's",
+    "device_row_checks": "the device master's row checks",
+    "switch_rows": "the switch list's rows, read and checked",
 }
 
 

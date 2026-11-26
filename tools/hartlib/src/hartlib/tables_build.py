@@ -10,7 +10,7 @@ tables.xml is an output. tools/schematic/build_tables.py writes it from:
                                                       blockrouting, logicDelay, the timebase), the memories, the clock
                                                       sensor, and the "Hide windows on start" LogixNG with its thread,
                                                       initialisation table and clipboard
-    The device master                every level's rows (naming-layers step 11): turnouts, sensors,
+    The device master                every level's rows: turnouts, sensors,
                                                       heads, masts, blocks and layout blocks, and the startup LogixNG
                                                       that sets each virtual detector and turnout when the tables load
                                                       (base); the Layout Editor build adds only the panels on top
@@ -45,9 +45,10 @@ import struct
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Iterable, Mapping
+from collections.abc import Iterable, Mapping
 
 from . import block_lengths, devices, level_devices, paths, railroad, tables
+from .errors import HartlibError
 
 TEMPLATE = paths.LAYOUT_DATA / "tables_template.xml"
 DISCOVERED = paths.LAYOUT_DATA / "schematic" / "discovered_sml.xml"
@@ -99,7 +100,7 @@ HELIX_LEVEL = railroad.STAGING_LEVEL   # the helix blocks' beans are staging's; 
 _LCOS_HEAD = re.compile(r"\(IH\d+\)")
 
 
-class TablesBuildError(ValueError):
+class TablesBuildError(HartlibError, ValueError):
     """The template, the master rows, the discovered logic or the result cannot make a tables file."""
 
 
@@ -149,9 +150,9 @@ def read_template(path: Path = TEMPLATE) -> tables.Tables:
     try:
         doc = tables.load(path)
     except OSError as exc:
-        raise TablesBuildError(f"{paths.rel(path)}: cannot read it ({exc.strerror})") from None
+        raise TablesBuildError(f"{paths.rel(path)}: cannot read it ({exc.strerror})") from exc
     except ET.ParseError as exc:
-        raise TablesBuildError(f"{paths.rel(path)}: not XML ({exc})") from None
+        raise TablesBuildError(f"{paths.rel(path)}: not XML ({exc})") from exc
     where = paths.rel(path)
     if doc.prolog != PROLOG or doc.epilog != EPILOG:
         raise TablesBuildError(f"{where}: the declaration and stylesheet lines, or the final newline, are not the "
@@ -212,7 +213,7 @@ def strip_envelope(root: ET.Element) -> None:
             m.attrib.pop("value", None)
 
 
-# What a PanelPro Store rewrites in a Layout Editor panel without changing it (the round trip of 2026-11-20; owner
+# What a PanelPro Store rewrites in a Layout Editor panel without changing it (the owner's
 # decision: compare past these rewrites, never make the generated panel Store-shaped). normalise_panel applies them to
 # both sides of a comparison:
 # - PANEL_WINDOW_ATTRS: the window's place and state on the host that stored it (where it stood on that screen, its
@@ -237,8 +238,11 @@ def _float32(text: str) -> str:
     return repr(struct.unpack("f", struct.pack("f", float(text)))[0])
 
 
-def _f32(text: str) -> float:
-    return struct.unpack("f", struct.pack("f", float(text)))[0]
+def _f32(text: str | None) -> float:
+    """text as a Java float (a 32-bit float, worked as a double); TypeError when there is no text."""
+    if text is None:
+        raise TypeError("no coordinate")
+    return float(struct.unpack("f", struct.pack("f", float(text)))[0])
 
 
 XOVER_TYPES = ("RH_XOVER", "LH_XOVER", "DOUBLE_XOVER")
@@ -298,8 +302,8 @@ def normalise_panel(panel: ET.Element) -> None:
 
 def normalise_store(root: ET.Element) -> None:
     """Tables `root` as compared after a Store (edited in place; used on both sides of a round trip, and by the pull):
-    the envelope out (strip_envelope), the block paths JMRI derives from the panel when it loads the file (ADR-029;
-    the round trip of 2026-11-20 rebuilt them on every staging block), and each Layout Editor panel normalised
+    the envelope out (strip_envelope), the block paths JMRI derives from the panel when it loads the file (ADR-029:
+    a Store rebuilds them on every staging block), and each Layout Editor panel normalised
     (normalise_panel). Idempotent: a generated file normalises to the same bytes as a Store of it."""
     strip_envelope(root)
     for block in tables.blocks(root):
@@ -310,7 +314,7 @@ def normalise_store(root: ET.Element) -> None:
     finish(root)
 
 
-def _sort_group(el: ET.Element) -> str:
+def sort_group(el: ET.Element) -> str:
     """The run of beans a JMRI manager writes and sorts on its own: a block's names-only pass apart from its full pass
     (BlockManagerXml writes every block twice), one group for every other bean of a section."""
     if el.tag == "block":
@@ -321,16 +325,16 @@ def _sort_group(el: ET.Element) -> str:
 def jmri_sort(root: ET.Element) -> None:
     """Put every section's beans in the order a JMRI 5.16 Store writes them (edited in place): each manager keeps its
     beans in a set ordered by system name (NamedBean.compareTo, AlphanumComparator: jmri_order), so within each
-    group of a section (_sort_group) the beans take the group's places in that order; settings and other children
+    group of a section (sort_group) the beans take the group's places in that order; settings and other children
     (Thread, InitializationTable, Clipboard, defaultspeed ...) keep their places. Checked against a PanelPro Store of
-    the generated file (2026-11-20). Signal Mast Logic carries no system name and keeps discovery's order."""
+    the generated file. Signal Mast Logic carries no system name and keeps discovery's order."""
     key = functools.cmp_to_key(_alphanum)
     for sec in tables.elements(root):
         kids = list(sec)
         groups: dict[str, list[int]] = {}
         for i, el in enumerate(kids):
             if isinstance(el.tag, str) and tables.system_name(el):
-                groups.setdefault(_sort_group(el), []).append(i)
+                groups.setdefault(sort_group(el), []).append(i)
         if not groups:
             continue
         for slots in groups.values():
@@ -350,7 +354,7 @@ def bean_names(root: ET.Element) -> set[str]:
 
 # ---------------------------------------------------------------- the master's beans
 
-def _sub(el: ET.Element, tag: str, text: str | None = None, **attrs) -> ET.Element:
+def _sub(el: ET.Element, tag: str, text: str | None = None, **attrs: str) -> ET.Element:
     child = ET.SubElement(el, tag, attrs)
     if text is not None:
         child.text = text
@@ -363,8 +367,7 @@ _HEADS_OF_MAST = re.compile(r"\(([^()]+)\)")
 
 
 def with_direction(comment: str, direction: str) -> str:
-    """A mast's comment (its place) with the way it faces ("East" or "West", from the dir column) after it (owner,
-    2026-11-22): "Brick | Switch 1 | West". A main or upper mast's planned device follows (device_map_rows.bean_cells)."""
+    """A mast's comment (its place) with the way it faces ("East" or "West", from the dir column) after it: "Brick | Switch 1 | West". A main or upper mast's planned device follows (device_map_rows.bean_cells)."""
     word = DIRECTION_WORD.get(direction)
     if not word:
         return comment
@@ -375,7 +378,7 @@ def with_direction(comment: str, direction: str) -> str:
 
 
 def occupancy_first(comment: str) -> str:
-    """A block's comment with its detector first, without the word occupancy (owner, 2026-11-22):
+    """A block's comment with its detector first, without the word occupancy:
     "Princess balloon, Track K-1; occupancy Block 1-1 / M2S100; stop" -> "Block 1-1 / M2S100; Princess balloon,
     Track K-1; stop". A comment with no detector text is as it was."""
     m = _OCCUPANCY.search(comment)
@@ -433,7 +436,7 @@ def bean_comment(r: Mapping[str, str], places: Mapping[str, str] | None = None) 
     return comment
 
 
-def _route(name: str, table, what: str) -> tuple[str, str]:
+def _route(name: str, table: Iterable[tuple[str, tuple[str, str]]], what: str) -> tuple[str, str]:
     for prefix, key in table:
         if name.startswith(prefix):
             return key
@@ -452,7 +455,7 @@ def _named(tag: str, attrs: dict, system: str, user: str, comment: str) -> ET.El
 # ---------------------------------------------------------------- a device not on the layout yet (jmri_bean)
 #
 # A device the owner adds in PanelPro (a test turnout, a DCC accessory) has a device-master row with no level, cp or role
-# until its details are known (owner, 2026-11-20), and the beans exactly as the Store wrote them in its jmri_bean
+# until its details are known, and the beans exactly as the Store wrote them in its jmri_bean
 # column, as compact JSON:
 #     {"beans": [{"section": [tag, class], "element": NODE}, ...]}
 #     NODE = {"tag": ..., "attrs": {...}, "text": ... (only when not blank), "children": [NODE, ...]}
@@ -512,15 +515,16 @@ def row_beans(row: Mapping[str, str]) -> list[tuple[tuple[str, str | None], ET.E
     try:
         doc = json.loads(row["jmri_bean"])
     except json.JSONDecodeError as exc:
-        raise TablesBuildError(f"{where}: jmri_bean is not JSON ({exc.msg})") from None
+        raise TablesBuildError(f"{where}: jmri_bean is not JSON ({exc.msg})") from exc
     beans = doc.get("beans") if isinstance(doc, dict) else None
     if not isinstance(beans, list) or not beans:
         raise TablesBuildError(f"{where}: jmri_bean is not {{\"beans\": [...]}} with at least one bean")
-    out = []
+    out: list[tuple[tuple[str, str | None], ET.Element]] = []
     for b in beans:
-        sec = tuple(b.get("section") or ()) if isinstance(b, dict) else ()
-        if sec not in MASTER_SECTIONS:
-            raise TablesBuildError(f"{where}: jmri_bean section {list(sec)} is not one a device master row gives")
+        given = tuple(b.get("section") or ()) if isinstance(b, dict) else ()
+        sec = next((k for k in MASTER_SECTIONS if k == given), None)
+        if sec is None:
+            raise TablesBuildError(f"{where}: jmri_bean section {list(given)} is not one a device master row gives")
         el = _element(b.get("element"), row, where)
         if not tables.system_name(el):
             raise TablesBuildError(f"{where}: a <{el.tag}> in jmri_bean has no system name")
@@ -538,7 +542,7 @@ def kept_beans(rows: Iterable[Mapping[str, str]]) -> dict[tuple, list[ET.Element
             continue
         try:
             for sec, el in row_beans(r):
-                key = ("blocks-names",) + BLOCKS if sec == BLOCKS and _sort_group(el) == "block-names" else sec
+                key = ("blocks-names",) + BLOCKS if sec == BLOCKS and sort_group(el) == "block-names" else sec
                 out.setdefault(key, []).append(el)
         except TablesBuildError as exc:
             bad.append(str(exc).removeprefix("the device master: "))
@@ -549,11 +553,10 @@ def kept_beans(rows: Iterable[Mapping[str, str]]) -> dict[tuple, list[ET.Element
 
 # ---------------------------------------------------------------- a bean's shape, by its row's columns
 #
-# master_beans makes every level's beans from their rows' columns alone (builder merge steps 4 and 5, naming-layers
-# steps 10 and 11): the bean's name (bean_name), its comment (row_comment), a
+# master_beans makes every level's beans from their rows' columns alone: the bean's name (bean_name), its comment (row_comment), a
 # turnout's feedback (turnout_feedback), whether an LCC alias is a bean of its own (alias_is_turnout), and the state a
 # virtual bean is set to when the tables load (start_actions). Which beans a row gives is its layer's (LAYER_BEANS);
-# on the main and upper rows they give the row-to-bean map of naming-layers step 1. The startup LogixNG around the
+# on the main and upper rows they give the row-to-bean map. The startup LogixNG around the
 # actions is start_logixng's.
 
 LAYER_BEANS = {"turnout": "one turnout (an LCC alias none when it names its turnout's bean)",
@@ -583,7 +586,7 @@ def level_turnouts(rows: Iterable[Mapping[str, str]]) -> dict[str, str]:
 
 
 def row_comment(r: Mapping[str, str], places: Mapping[str, str] | None = None) -> str:
-    """A bean's comment: its row's bean_comment where set (the main and upper rows, naming-layers step 9), else the
+    """A bean's comment: its row's bean_comment where set (the main and upper rows), else the
     one its wiring columns give (bean_comment)."""
     return r["bean_comment"] or bean_comment(r, places)
 
@@ -613,7 +616,9 @@ def turnout_feedback(r: Mapping[str, str], by_id: Mapping[str, Mapping[str, str]
     if lost:
         raise TablesBuildError(f"the device master: {at}: no feedback bean {', '.join(lost)}; a field turnout has "
                                "two, a virtual one two or none")
-    return {"feedback": "TWOSENSOR", "sensor1": fb[0]["user_name"], "sensor2": fb[1]["user_name"],
+    first, second = fb
+    assert first is not None and second is not None     # neither is lost
+    return {"feedback": "TWOSENSOR", "sensor1": first["user_name"], "sensor2": second["user_name"],
             "inverted": "false", "automate": "Off"}
 
 
@@ -750,7 +755,7 @@ def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, float]
     out: dict[tuple, list[ET.Element]] = {}
     bad: list[str] = []
 
-    def add(key, el):
+    def add(key: tuple[str, ...], el: ET.Element) -> None:     # a section key, or ("blocks-names",) + BLOCKS
         out.setdefault(key, []).append(el)
 
     for r in rows:
@@ -808,7 +813,7 @@ def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, float]
 
 def base(rows: Iterable[Mapping[str, str]] | None = None, template: Path = TEMPLATE,
          lengths: Mapping[str, float] | None = None) -> tables.Tables:
-    """The template with every level's master beans in it (master_beans, naming-layers step 11) and the startup
+    """The template with every level's master beans in it (master_beans) and the startup
     LogixNG around their startup actions (start_logixng), each section's beans in JMRI order: what the Layout Editor
     build draws its panels on, adding no bean. TablesBuildError when a master bean's system or user name is the
     template's too, or two beans of one kind share a name (check_names)."""
@@ -817,7 +822,7 @@ def base(rows: Iterable[Mapping[str, str]] | None = None, template: Path = TEMPL
     try:
         lengths = block_lengths.operating_lengths(BLOCK_LENGTHS) if lengths is None else lengths     # ADR-039 L8
     except railroad.FactsError as exc:
-        raise TablesBuildError(str(exc)) from None
+        raise TablesBuildError(str(exc)) from exc
     beans = master_beans(rows, lengths)
     actions = beans.pop(START_ACTIONS, [])
     made = {n for els in beans.values() for el in els for n in (tables.system_name(el), tables.user_name(el)) if n}
@@ -863,18 +868,19 @@ def start_logixng(root: ET.Element, actions: list[ET.Element]) -> None:
     (hartlib.level_devices: LogixNG CLEAR_LOGIXNG after the template's LogixNGs, its ConditionalNG CLEAR_CONDITIONAL
     with one socket naming the DigitalMany CLEAR_MANY, whose sockets A1, A2, ... name the actions in their order, the
     DigitalMany and the actions after the template's digital actions). A ConditionalNG executes at startup unless told
-    not to (DefaultLogixNG.execute), so the masts are not held at Stop by UNKNOWN blocks (owner, 2026-11-17).
+    not to (DefaultLogixNG.execute), so the masts are not held at Stop by UNKNOWN blocks.
     TablesBuildError when the template lacks a LogixNG section or holds these names."""
     secs = {key: next((s for s in tables.elements(root) if section_key(s) == key), None)
             for key in (LOGIXNGS, CONDITIONALNGS, DIGITAL_ACTIONS)}
-    gone = [k[0] for k, v in secs.items() if v is None]
+    found = {k: v for k, v in secs.items() if v is not None}
+    gone = [k[0] for k in secs if k not in found]
     if gone:
         raise TablesBuildError(f"the template has no {', '.join(gone)} section for the startup LogixNG")
-    if any(level_devices.CLEAR_PREFIX.match(tables.system_name(e) or "") for v in secs.values()
+    if any(level_devices.CLEAR_PREFIX.match(tables.system_name(e) or "") for v in found.values()
            for e in tables.elements(v)):
         raise TablesBuildError("the template holds the startup LogixNG's names (hartlib.level_devices CLEAR_*); "
                                "the device master's start column makes it")
-    logixngs, conditionals, digital = secs.values()
+    logixngs, conditionals, digital = found[LOGIXNGS], found[CONDITIONALNGS], found[DIGITAL_ACTIONS]
     lx = ET.Element("LogixNG", {"enabled": "yes", "inline": "no"})
     _sub(lx, "systemName", level_devices.CLEAR_LOGIXNG)
     _sub(lx, "userName", level_devices.CLEAR_USER)
@@ -977,9 +983,9 @@ def read_discovered(path: Path = DISCOVERED) -> tuple[list[ET.Element], dict[str
         root = tables.read(path)
     except OSError as exc:
         raise TablesBuildError(f"{paths.rel(path)}: cannot read it ({exc.strerror}); run "
-                               "jmri/layouts/hart/scripts/run_sml_discover.sh") from None
+                               "jmri/layouts/hart/scripts/run_sml_discover.sh") from exc
     except ET.ParseError as exc:
-        raise TablesBuildError(f"{paths.rel(path)}: not XML ({exc})") from None
+        raise TablesBuildError(f"{paths.rel(path)}: not XML ({exc})") from exc
     return read_discovered_root(root, paths.rel(path))
 
 
@@ -1036,7 +1042,7 @@ def merge_discovered(root: ET.Element, logics: list[ET.Element], props: Mapping[
 def missing_logic(root: ET.Element) -> list[str]:
     """The masts of `root` without the discovered logic the rule expects: a head mast (<signalmast>) that is no
     logic's source, or a virtual mast (a buffer-stop destination) that no logic names. Stock discovery gives every
-    one of them logic (data/schematic/discovered_sml.xml, 2026-11-20), so a gap means a mast added or renamed since
+    one of them logic (data/schematic/discovered_sml.xml), so a gap means a mast added or renamed since
     discovery ran."""
     sources = {logic.get("source") for logic in tables.mast_logics(root)}
     named = sources | {d.get("destination") for logic in tables.mast_logics(root)
@@ -1060,7 +1066,7 @@ def digicon_masts(root: ET.Element, wiring: Path = paths.WIRING) -> set[str]:
     try:
         planned = {r["mast_user_name"] for r in wiring_source.digicon_rows(wiring)}
     except FactsError as exc:
-        raise TablesBuildError(str(exc)) from None
+        raise TablesBuildError(str(exc)) from exc
     wired = {tables.user_name(m) for m in tables.masts(root) if _LCOS_HEAD.search(tables.system_name(m))}
     return planned & wired
 
@@ -1086,7 +1092,7 @@ def disable_digicon(root: ET.Element, masts: set[str]) -> tuple[int, int]:
 
 def enabled_digicon(root: ET.Element, masts: set[str]) -> list[tuple[str, str]]:
     """(source, destination) of each Digicon destination still enabled."""
-    return [(logic.get("source"), d.get("destination")) for logic in tables.mast_logics(root)
+    return [(logic.get("source") or "", d.get("destination") or "") for logic in tables.mast_logics(root)
             if logic.get("source") in masts for d in logic.findall("destinationMast")
             if (d.findtext("enabled") or "") != "no"]
 

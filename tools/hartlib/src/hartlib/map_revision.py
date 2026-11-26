@@ -22,10 +22,13 @@ in ops/hart-ops/publications, loaded from there when planned() runs.
 from __future__ import annotations
 
 import datetime
+import importlib
 import json
 import re
 import sys
 from pathlib import Path
+from types import ModuleType
+from typing import Any
 
 from . import layer_files, paths
 
@@ -56,8 +59,8 @@ def fields(prefs: layer_files.Section | None = None) -> tuple[str, str]:
         raise ValueError(f"{prefs.name}: no revision in the title block")
     try:
         day = datetime.date.fromisoformat(str(date))
-    except ValueError:
-        raise ValueError(f"{prefs.name}: date {date!r} is not YYYY-MM-DD") from None
+    except ValueError as exc:
+        raise ValueError(f"{prefs.name}: date {date!r} is not YYYY-MM-DD") from exc
     return str(rev).strip(), f"{day.day} {day:%B %Y}"
 
 
@@ -65,29 +68,28 @@ def pub_line(pub: str, rev: str, effective: str) -> str:
     return f"Publication {pub} · Revision {rev} · Effective {effective}"
 
 
-def _load(path: Path):
+def _load(path: Path) -> Any:   # JSON as json.loads returns it
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _dump(data) -> str:
+def _dump(data: object) -> str:
     return json.dumps(data, indent=2, ensure_ascii=False) + "\n"
 
 
-def _crew_master():
+def _crew_master() -> ModuleType:
     """crew_master, from ops/hart-ops/publications; the folder goes at the end of sys.path, so its bare module names
     (crew_master, crew_schema) never shadow another module's."""
     if str(CREW_PUB) not in sys.path:
         sys.path.append(str(CREW_PUB))
-    import crew_master
-    return crew_master
+    return importlib.import_module("crew_master")
 
 
 def crew_text(crew_path: Path, rev: str, effective: str) -> str:
     """crew.json's text: crew_master.build() from the repo's crew master. When the master cannot be built (a schema
     problem, a missing master or industries.csv), the existing file with only the title block's revision and date
-    set, as before the master had one writer, and a one-line warning; check.sh's crew-json job still fails on it."""
+    set, and a one-line warning; check.sh's crew-json job still fails on it."""
     try:
-        return _crew_master().build((rev, effective))
+        return str(_crew_master().build((rev, effective)))
     except (ValueError, OSError) as e:
         if isinstance(e, OSError):            # a missing master or industries.csv: the error names the file
             problem = f"{e.filename}: {e.strerror or type(e).__name__}"

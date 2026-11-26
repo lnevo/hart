@@ -18,7 +18,7 @@ stale copy of its own output. Each file is read the first time it is asked for, 
                 upper hands are the hands layer), staging's rows of the device master,
                 schematic/interlockings.csv (every level's), lcos_nodes.csv (every level),
                 the helix tracks (plan_overrides.json's helix ends and map, preferences.json's track_labels: each
-                helix track one block, Track <plan name>, from staging up the helix, owner 2026-11-20/21),
+                helix track one block, Track <plan name>, from staging up the helix),
                 plan_overrides.json's main_upper section (its edits; build_device_map.py rewrites only its
                 control_points and stations keys), block_lengths.csv
     hands       the hand of switches.csv's plan rows      build_hands.py
@@ -37,12 +37,15 @@ import argparse
 import sys
 from collections import Counter, defaultdict
 from functools import cached_property
-from typing import Callable  # noqa: F401
+from typing import TYPE_CHECKING, Callable  # noqa: F401
 
 from . import level_devices, level_masts, paths, tables  # noqa: F401  re-exported: callers use railroad.tables
 # The fact readers and the invariants moved to railroad_facts and railroad_invariants; every name stays importable
 # from hartlib.railroad (`from hartlib.railroad import X`, `railroad.X`).
 from .railroad_facts import *  # noqa: F401,F403
+
+if TYPE_CHECKING:
+    from . import block_lengths as block_lengths_mod
 from .railroad_facts import _int, _level, _where, _yes  # noqa: F401
 from .railroad_facts import (LAYERS, LEVEL_NUMBERS, WRITERS, DeviceMap, FactsError, Hand, HelixTrack, LayerError,  # noqa: F401  re-exported (railroad.read_switches, railroad.read_masts)
                              Interlocking, LcosNode, LocalSwitch, MainUpperSwitch, PlanOverrides, StagingDevices,
@@ -123,7 +126,7 @@ class Railroad:
         return read_plan_overrides(self.sources.plan_overrides)
 
     @cached_property
-    def block_lengths(self):
+    def block_lengths(self) -> dict[str, block_lengths_mod.Block]:
         """{user name: hartlib.block_lengths.Block} of the plan file: each block's plan length and names."""
         from . import block_lengths
         return block_lengths.plan_blocks(self.sources.block_lengths, self.sources.devices)
@@ -154,7 +157,7 @@ class Railroad:
         try:
             return level_masts.read(self.sources.masts)
         except (OSError, ValueError) as exc:
-            raise FactsError(str(exc)) from None
+            raise FactsError(str(exc)) from exc
 
     @cached_property
     def tables(self) -> TablesNames:
@@ -172,9 +175,8 @@ class Railroad:
 
 # ---------------------------------------------------------------- the check command
 
-# Problems already reported to the owner, each by its exact message (str(Problem)) -> why it is left. Empty since
-# 2026-11-17: the owner decided the throat blocks (live rows added) and the BS unused aliases (they point at the
-# free detectors' live names). Add an entry only for a problem the owner has been told about and chose to leave.
+# Problems already reported to the owner, each by its exact message (str(Problem)) -> why it is left. Empty: the
+# owner decided the throat blocks and the BS unused aliases. Add an entry only for a problem the owner has been told about and chose to leave.
 KNOWN: dict[str, str] = {}
 
 
@@ -211,7 +213,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"KNOWN {line}")
     for line in fails:
         print(f"FAIL {line}", file=sys.stderr)
-    counts = defaultdict(int)
+    counts: defaultdict[str, int] = defaultdict(int)
     for inv in INVARIANTS:
         counts["run" if rr.has(inv.layer) else "skipped"] += 1
     print(f"railroad facts: {counts['run']} invariants up to {args.upto}, {len(fails)} failure(s), "

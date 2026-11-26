@@ -1,8 +1,7 @@
 """The schematic's layer files: one file per kind, a section per sheet.
 
-jmri/layouts/hart/data/schematic/ holds plan_overrides.json, preferences.json and signals.json (level-unification
-step 3). Each is a JSON object with "_sections": true, a "_note", and one section per sheet, keyed by the sheet's
-input name (`staging`, `main_upper`: publish_draft.INPUTS); a section holds what the old <sheet>.<kind>.json held.
+jmri/layouts/hart/data/schematic/ holds plan_overrides.json, preferences.json and signals.json. Each is a JSON object with "_sections": true, a "_note", and one section per sheet, keyed by the sheet's
+input name (`staging`, `main_upper`: publish_draft.INPUTS).
 The schematic-maps plugin (0.1.49 and later) reads the same files by itself; every hart script that reads or writes a
 section goes through this module, so the JSON formatting and the checks are in one place.
 
@@ -26,7 +25,7 @@ and never touch the hand file.
 
 preferences.json is split the same way: build_staging_sets.py writes staging's `detail_sheets` (from sheets.csv) to
 preferences_generated.json (GENERATED_OF), merged under preferences.json by the same rule. preferences.json names
-tracks by block ID (naming-layers step 5b); `merged(data, "preferences")` gives that view with each track key's
+tracks by block ID; `merged(data, "preferences")` gives that view with each track key's
 names (prefs_named: hartlib.track_names.pref_section), and stops on a hand section that names a track
 (track_names.pref_problems). `view` puts both merged files in the plugin's folder.
 """
@@ -36,10 +35,12 @@ import hashlib
 import json
 import os
 from collections.abc import Mapping
+from typing import Any
 from dataclasses import dataclass
 from pathlib import Path
 
 from . import paths, track_names
+from .errors import HartlibError
 
 SCHEMATIC = paths.LAYOUT_DATA / "schematic"
 KINDS = ("plan_overrides", "preferences", "signals")
@@ -50,7 +51,7 @@ NAME_MAIN = track_names.NAME_MAIN   # staging's generated key: the runs of its m
 SECTIONS = "_sections"        # the key a combined file holds, true (the plugin's layers.SECTIONS)
 
 
-class LayerFileError(ValueError):
+class LayerFileError(HartlibError, ValueError):
     """A layer file or section cannot be read or written as asked; the message names the file and section."""
 
 
@@ -71,7 +72,7 @@ def parse(text: str, kind: str, where: str) -> dict:
     try:
         whole = json.loads(text)
     except ValueError as exc:
-        raise LayerFileError(f"{where}: not JSON ({exc})") from None
+        raise LayerFileError(f"{where}: not JSON ({exc})") from exc
     if not isinstance(whole, dict) or whole.get(SECTIONS) is not True:
         raise LayerFileError(f'{where}: not a layer file of sections (it needs "{SECTIONS}": true)')
     bad = sorted(k for k, v in whole.items() if not k.startswith("_") and not isinstance(v, dict))
@@ -93,7 +94,7 @@ def read_file(kind: str, data: Path = SCHEMATIC) -> dict:
     try:
         text = p.read_text(encoding="utf-8")
     except OSError as exc:
-        raise LayerFileError(f"{p}: cannot be read ({exc.strerror or exc})") from None
+        raise LayerFileError(f"{p}: cannot be read ({exc.strerror or exc})") from exc
     return parse(text, kind, str(p))
 
 
@@ -102,13 +103,16 @@ def sheets(kind: str, data: Path = SCHEMATIC) -> list[str]:
     return [k for k in read_file(kind, data) if not k.startswith("_")]
 
 
-def section_of(whole: dict, sheet: str, where: str) -> dict:
+def section_of(whole: Mapping[str, Any], sheet: str, where: str) -> dict[str, Any]:
     if not isinstance(sheet, str) or not sheet or sheet.startswith("_"):
         raise LayerFileError(f"{where}: {sheet!r} is no sheet name (a name starting with _ is a note)")
     if sheet not in whole:
         have = [k for k in whole if not k.startswith("_")]
         raise LayerFileError(f"{where}: no section {sheet!r} (it has {', '.join(have) or 'none'})")
-    return whole[sheet]
+    section = whole[sheet]
+    if not isinstance(section, dict):
+        raise LayerFileError(f"{where}: section {sheet!r} is {type(section).__name__}, not an object")
+    return section
 
 
 def read(kind: str, sheet: str, data: Path = SCHEMATIC) -> dict:
@@ -181,7 +185,7 @@ def named(whole: dict, generated: dict, data: Path = SCHEMATIC, main: bool = Tru
         try:
             out[sheet] = track_names.plugin_section(sheet, out[sheet], runs, data=data)
         except (track_names.TrackNameError, OSError, KeyError) as exc:
-            raise LayerFileError(f"the track names of {PLAN_OVERRIDES_FILE}[{sheet}]: {exc}") from None
+            raise LayerFileError(f"the track names of {PLAN_OVERRIDES_FILE}[{sheet}]: {exc}") from exc
     return out
 
 
@@ -227,7 +231,7 @@ def prefs_named(whole: dict, hand: dict, data: Path = SCHEMATIC, missing: str = 
         try:
             out[sheet] = track_names.pref_section(sheet, section, data=data, missing=missing)
         except (track_names.TrackNameError, OSError) as exc:
-            raise LayerFileError(f"the track names of {PREFERENCES_FILE}[{sheet}]: {exc}") from None
+            raise LayerFileError(f"the track names of {PREFERENCES_FILE}[{sheet}]: {exc}") from exc
     return out
 
 

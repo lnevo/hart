@@ -23,7 +23,7 @@ Four staging interlockings (Brick, Barn, East End and Princess) have the name of
 the desk area, which is a station, so such a name is written as the station's id (st:brick). No cp cell names one of
 those four interlockings today; tests/test_places.py fails when a file's cells stop reading back as they are.
 
-A turnout row of the device pair has no `cp` cell (owner, 2026-11-25): the switch lists of the two files are the one
+A turnout row of the device pair has no `cp` cell: the switch lists of the two files are the one
 place for the switch-to-place link, and `switch_place` gives a switch's place from them. On staging (level 1) it is
 the desk area that holds the switch (railroad_facts.read_desk_areas), written as the id of the station that names the
 area: Switches 1 and 3 are st:brick (Switch 3 also lies in West Yard, a station of the Brick desk area), 5 is
@@ -48,9 +48,13 @@ import re
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
+from typing import TYPE_CHECKING
 
 from . import paths
+
+if TYPE_CHECKING:
+    from . import devices as devices_mod
 
 SCHEMATIC = paths.LAYOUT_DATA / "schematic"
 STATIONS = SCHEMATIC / "stations.csv"
@@ -108,7 +112,7 @@ def _rows(name: str, data: bytes, id_col: str, name_col: str) -> list[tuple[int,
     try:
         text = data.decode("utf-8")
     except UnicodeDecodeError as exc:
-        raise _error(f"{name}: not UTF-8 text ({exc.reason} at byte {exc.start})") from None
+        raise _error(f"{name}: not UTF-8 text ({exc.reason} at byte {exc.start})") from exc
     reader = csv.DictReader(io.StringIO(text, newline=""))
     missing = [c for c in (id_col, "level", name_col) if c not in (reader.fieldnames or [])]
     if missing:
@@ -157,7 +161,7 @@ def _bytes(path: Path) -> bytes:
     try:
         return path.read_bytes()
     except OSError as exc:
-        raise _error(f"{path}: cannot read it ({exc.strerror})") from None
+        raise _error(f"{path}: cannot read it ({exc.strerror})") from exc
 
 
 def table(schematic: Path | None = None) -> Table:
@@ -167,7 +171,7 @@ def table(schematic: Path | None = None) -> Table:
     return _table(_bytes(st), _bytes(il))
 
 
-def _map(cell: str, fn) -> str:
+def _map(cell: str, fn: Callable[[str], str]) -> str:
     return LIST.join(fn(p) if p else p for p in cell.split(LIST)) if cell else cell
 
 
@@ -190,7 +194,7 @@ def _stamp(path: Path) -> tuple[str, int, int]:
     try:
         st = path.stat()
     except OSError as exc:
-        raise _error(f"{path}: cannot read it ({exc.strerror})") from None
+        raise _error(f"{path}: cannot read it ({exc.strerror})") from exc
     return str(path), st.st_mtime_ns, st.st_size
 
 
@@ -241,14 +245,14 @@ def switch_place(level: str | int, switch: str | int, schematic: Path | None = N
     return switch_places(schematic).get((str(level), str(switch)), "")
 
 
-def lists_beside(source) -> Path | None:
+def lists_beside(source: devices_mod.Files | Path | str | None) -> Path | None:
     """The schematic folder a file `source` goes with, when it holds its own stations.csv and is not the repo's: the
     file's own folder when that is a schematic folder (masts.csv), else the schematic folder of its data folder (a
     device master: a devices.Files, the master's path, or a data folder). None (the repo's lists) otherwise, so a
     copy with no lists of its own reads the repo's."""
     if source is None:
         return None
-    path = Path(getattr(source, "master", source))
+    path = Path(source) if isinstance(source, (str, Path)) else Path(source.master)
     data = path if path.is_dir() else path.parent
     folder = data if data.name == SCHEMATIC.name else data / SCHEMATIC.name
     if (folder / STATIONS.name).is_file() and folder.resolve() != SCHEMATIC.resolve():
@@ -260,7 +264,7 @@ SWITCH_ID = re.compile(r"(?:switch|dcc):([1-9]\d*)")   # a turnout row's id: Swi
 
 
 def of(row: Mapping[str, str], schematic: Path | None = None) -> str:
-    """The place a device row sits in, by name. A turnout row has no cp cell (owner, 2026-11-25): its place is its
+    """The place a device row sits in, by name. A turnout row has no cp cell: its place is its
     switch's (switch_place, from the lists in `schematic`, default the repo's; lists_beside finds a copy's), "" for a
     local switch or a level-less row. Any other row's place is its cp cell. FactsError on a turnout row with a level
     whose id is not switch:<n> or dcc:<n> (devices.check_rows refuses one too)."""

@@ -1,5 +1,5 @@
 """Which device each piece of the drawing is, keyed by device ID: the one reader of the device master's drawing keys
-for every level (naming-layers step 13, builder merge step 7).
+for every level.
 
 A turnout or block row of the device master lists the pieces of the solved schematic it holds in `trial_name`, in the
 switch-and-leg grammar every level shares (tools/schematic/staging_device_map.py: "Switch 101A", "OS Switch 7",
@@ -11,7 +11,7 @@ store's answer for that ID (devices.user_names): the owner's if set, else the ge
 by its ID.
 
 A part (role part: a piece of track inside another block, its `part_of` naming that block) is read too: each is a JMRI
-block of its own (owner, 2026-11-20). An LCC alias (role lcc_alias) holds no piece. `read` stops (DrawingKeyError,
+block of its own. An LCC alias (role lcc_alias) holds no piece. `read` stops (DrawingKeyError,
 listing every problem) on a turnout or block row with no key or no id, a key two rows give, an id given twice on one
 level, an LCC alias with a key, a part whose `part_of` names no block row of its own level, or a staging key with
 the plan's trailing "*" (staging's keys are written exactly; only a main or upper plan label carries one, 223).
@@ -20,10 +20,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Iterable, Mapping
+from collections.abc import Iterable, Mapping
+from pathlib import Path
 
 from . import devices
 from .railroad_facts import STAGING_LEVEL
+from .errors import HartlibError
 
 LAYERS = ("turnout", "block")       # the rows that hold pieces of the drawing
 LIST = ","                          # between the keys of a trial_name cell
@@ -31,7 +33,7 @@ LIST = ","                          # between the keys of a trial_name cell
 Key = tuple[str, str]               # (level, device ID): hartlib.devices.KEY
 
 
-class DrawingKeyError(ValueError):
+class DrawingKeyError(HartlibError, ValueError):
     """The rows' drawing keys cannot be read as one device per piece."""
 
 
@@ -91,7 +93,7 @@ class Keys:
         return {r["user_name"]: r["part_of"] for r in self.rows.values() if r["role"] == "part"}
 
 
-def read(levels: Iterable[str], source=None, rows: Iterable[Mapping[str, str]] | None = None) -> Keys:
+def read(levels: Iterable[str], source: devices.Files | Path | str | None = None, rows: Iterable[Mapping[str, str]] | None = None) -> Keys:
     """The Keys of the turnout and block rows of `levels` ("1", "2", "3") of the merged master (`source`: a master's
     path or Files, as devices.load takes it), or of `rows` (master rows a builder is writing). DrawingKeyError on the
     problems the module names; DevicesError when the master cannot be read."""

@@ -44,14 +44,17 @@ import threading
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator
+from enum import Enum
+from typing import Literal
 
 from . import files, paths
+from .errors import HartlibError
 
 # Names the main Layout Editor panel has had; the first is the live one.
 MAIN_PANEL_NAMES = ("HART Railroad", "HART", "My Layout")
 DISPATCHER_PANEL_NAME = "Dispatcher System"
-# The hidden reference panels, one per band, by the level of the band (tools/schematic/band_panels.py, owner 2026-11-22)
+# The hidden reference panels, one per band, by the level of the band (tools/schematic/band_panels.py)
 BAND_PANEL_NAMES = {1: "Staging Level", 2: "Main Level", 3: "Upper Level"}
 
 # jmri.Turnout constants, as Layout Editor stores continuingSense in ``continuing``.
@@ -62,6 +65,20 @@ MAST_TAGS = ("signalmast", "virtualsignalmast")
 # Same pattern as .claude/hooks/main_guard.py: PanelPro, DecoderPro, DispatcherPro or CATS.
 # One line, so tools/audit/tests/test_jmri_process_patterns.py can read it.
 _JMRI_PROCESS = r"java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.gui3\.dp3\.DecoderPro3|apps\.DecoderPro|apps\.DispatcherPro)"  # noqa: E501
+
+Escapes = Literal["jdom", "elementtree"]   # whose character escapes a file uses: JDOM's (JMRI) or ElementTree's
+
+
+class JmriState(Enum):
+    """What the process check found: a JMRI program runs, none runs, or the check itself could not run."""
+    RUNNING = "running"
+    STOPPED = "stopped"
+    UNKNOWN = "unknown"
+
+
+class JmriCheckError(HartlibError, RuntimeError):
+    """The check for a running PanelPro, DecoderPro, DispatcherPro or CATS could not run (no pgrep, no user id)."""
+
 
 _PROLOG_SKIP = re.compile(rb"\s+|<\?.*?\?>|<!--.*?-->|<!DOCTYPE[^\[>]*(\[.*?\])?\s*>", re.S)
 
@@ -78,7 +95,7 @@ class Tables:
     prolog: bytes = b""
     epilog: bytes = b""
     original: bytes = field(default=b"", repr=False)
-    escapes: str = "jdom"  # "jdom" or "elementtree": whose character escapes to write
+    escapes: Escapes = "jdom"  # whose character escapes to write
 
     def tobytes(self) -> bytes:
         """The file as it would be saved now."""
@@ -118,7 +135,7 @@ def loads(data: bytes, path: Path | None = None) -> Tables:
     root = _parse(data)
     start = _root_start(data)
     end = _root_end(data, root, start)
-    escapes = "elementtree" if _ET_ESCAPES.search(data) and not _JDOM_ESCAPES.search(data) else "jdom"
+    escapes: Escapes = "elementtree" if _ET_ESCAPES.search(data) and not _JDOM_ESCAPES.search(data) else "jdom"
     return Tables(root=root, path=path, prolog=data[:start], epilog=data[end:], original=data,
                   escapes=escapes)
 
@@ -152,20 +169,31 @@ def _parse(data: bytes) -> ET.Element:
     return root
 
 
-def jmri_running() -> bool:
-    """True when PanelPro, DecoderPro, DispatcherPro or CATS runs for this user.
+def jmri_state() -> JmriState:
+    """Whether PanelPro, DecoderPro, DispatcherPro or CATS runs for this user: UNKNOWN when pgrep cannot run or
+    answers with an error of its own (exit 2 or more).
 
     ``HART_GUARD_JMRI_RUNNING=0`` or ``=1`` overrides the check, as for the repo hook.
     """
     forced = os.environ.get("HART_GUARD_JMRI_RUNNING")
     if forced in ("0", "1"):
-        return forced == "1"
+        return JmriState.RUNNING if forced == "1" else JmriState.STOPPED
     try:
         done = subprocess.run(["pgrep", "-u", str(os.getuid()), "-f", _JMRI_PROCESS],
                               capture_output=True, timeout=5)
-    except (OSError, subprocess.SubprocessError, AttributeError):
-        return False
-    return done.returncode == 0
+    except (OSError, subprocess.SubprocessError, AttributeError):   # AttributeError: no os.getuid (Windows)
+        return JmriState.UNKNOWN
+    return {0: JmriState.RUNNING, 1: JmriState.STOPPED}.get(done.returncode, JmriState.UNKNOWN)
+
+
+def jmri_running() -> bool:
+    """True when PanelPro, DecoderPro, DispatcherPro or CATS runs for this user (jmri_state). JmriCheckError when the
+    check cannot say: a caller that refuses to write while JMRI runs must not read that as "not running"."""
+    state = jmri_state()
+    if state is JmriState.UNKNOWN:
+        raise JmriCheckError("cannot tell whether PanelPro, DecoderPro or CATS is running: pgrep did not answer "
+                             "(set HART_GUARD_JMRI_RUNNING=0 or 1 to give the answer)")
+    return state is JmriState.RUNNING
 
 
 def _override_protected(target: Path) -> bool:
@@ -190,8 +218,8 @@ def _jdom_cdata(text: str) -> str:
     try:
         return (text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
                 .replace("\r", "&#xD;"))
-    except (TypeError, AttributeError):
-        raise TypeError(f"cannot serialize {text!r} (type {type(text).__name__})") from None
+    except (TypeError, AttributeError) as exc:
+        raise TypeError(f"cannot serialize {text!r} (type {type(text).__name__})") from exc
 
 
 def _jdom_attrib(text: str) -> str:
@@ -200,8 +228,8 @@ def _jdom_attrib(text: str) -> str:
         return (text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
                 .replace('"', "&quot;").replace("\r", "&#xD;").replace("\t", "&#x9;")
                 .replace("\n", "&#xA;"))
-    except (TypeError, AttributeError):
-        raise TypeError(f"cannot serialize {text!r} (type {type(text).__name__})") from None
+    except (TypeError, AttributeError) as exc:
+        raise TypeError(f"cannot serialize {text!r} (type {type(text).__name__})") from exc
 
 
 def _serialize(root: ET.Element, escapes: str) -> bytes:
@@ -215,12 +243,13 @@ def _serialize(root: ET.Element, escapes: str) -> bytes:
         if escapes == "elementtree":
             return ET.tostring(root, encoding="unicode").encode("utf-8")
         with _SERIALIZE_LOCK:
-            saved = ET._escape_cdata, ET._escape_attrib
-            ET._escape_cdata, ET._escape_attrib = _jdom_cdata, _jdom_attrib
+            # ElementTree's private escapers are the one hook for JDOM's escapes; typeshed does not list them
+            saved = ET._escape_cdata, ET._escape_attrib  # type: ignore[attr-defined]
+            ET._escape_cdata, ET._escape_attrib = _jdom_cdata, _jdom_attrib  # type: ignore[attr-defined]
             try:
                 return ET.tostring(root, encoding="unicode").encode("utf-8")
             finally:
-                ET._escape_cdata, ET._escape_attrib = saved
+                ET._escape_cdata, ET._escape_attrib = saved  # type: ignore[attr-defined]
     finally:
         root.tail = tail
 
@@ -282,7 +311,7 @@ REFERENCE_TEXTS = frozenset({"sourceSignalMast", "destinationSignalMast", "block
 REFERENCE_ATTRS = frozenset({"source", "destination", "block", "systemName"})
 
 
-def names_any(el: ET.Element, names: Iterable[str] = (), match=None, *, references_only: bool = True,
+def names_any(el: ET.Element, names: Iterable[str] = (), match: Callable[[str], object] | None = None, *, references_only: bool = True,
               deep: bool = True) -> bool:
     """Whether ``el`` (and, with ``deep``, anything in it) names one of ``names`` or a value ``match`` accepts.
     ``references_only``: only where JMRI stores a bean reference (REFERENCE_TEXTS, REFERENCE_ATTRS), so a comment or
@@ -469,7 +498,7 @@ def generated_panel(panel: ET.Element | None) -> bool:
 
 
 def without_track_word(text: str) -> str:
-    """What a generated panel's station button shows for `text`: no leading "Track " (owner, 2026-11-16: "EH-1" fits
+    """What a generated panel's station button shows for `text`: no leading "Track " ("EH-1" fits
     the loco marker). Read by reconcile_dispatcher_stations.station_display."""
     return text.removeprefix("Track ")
 
@@ -482,7 +511,7 @@ def require_generated(panel: ET.Element | None, what: str) -> ET.Element:
     try:
         generated = generated_panel(panel)
     except ValueError as exc:
-        raise ValueError(f"{what}: {exc}") from None
+        raise ValueError(f"{what}: {exc}") from exc
     if not generated:
         raise ValueError(f"{what}: the {panel.get('name')!r} panel is not a generated one "
                          "(tools/schematic/build_tables.py writes it)")
