@@ -1312,7 +1312,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make tables-pull: same for a Store on the Mac, saved as mac-<date>.xml.",
+   "desc": "make tables-pull: same for a Store on the Mac, saved as mac-<date>.xml. --status (make orient) only says whether one is waiting.",
    "path": "tools/ops/pull_tables.sh"
   },
   {
@@ -2149,7 +2149,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "ops",
-   "desc": "Pulls DecoderPro roster from the Pi to Mac and Windows JMRI_UserFiles for visibility and backup; not committed.",
+   "desc": "Pulls DecoderPro roster from the Pi to Mac and Windows JMRI_UserFiles for visibility and backup; not committed. --status (make orient) only compares the Pi with the Mac copy.",
    "path": "tools/hosts/sync_roster_from_pi.sh"
   },
   {
@@ -5352,6 +5352,24 @@
    "domain": "extras",
    "desc": "Lists the unit tests a docs-only change runs, from check_stamps.py's declarations of what reads docs/ or wiki/; docs_checks.sh runs them.",
    "path": "tools/ci/docs_unit_tests.py"
+  },
+  {
+   "id": "tools/hosts/deploy/pi_unpulled.sh",
+   "label": "pi_unpulled.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Read-only: what the Pi holds that a deploy would replace (ops, tables), as the deploy gate sees it; make orient's waiting-to-ingest lines run it.",
+   "path": "tools/hosts/deploy/pi_unpulled.sh"
+  },
+  {
+   "id": "tools/hosts/roster_digest.sh",
+   "label": "roster_digest.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Prints a sha256 line per DecoderPro roster file in a user files folder; sync_roster_from_pi.sh --status runs it on the Pi and the Mac.",
+   "path": "tools/hosts/roster_digest.sh"
   },
   {
    "id": ".claude/agents/archive-researcher.md",
@@ -12573,6 +12591,32 @@
    "from": "tools/ci/docs_unit_tests.py",
    "to": "tools/ci/docs_checks.sh",
    "label": "unit test lines"
+  },
+  {
+   "from": "tools/hosts/deploy/common.sh",
+   "to": "tools/hosts/deploy/pi_unpulled.sh",
+   "label": "sourced (pi_unpulled_words)"
+  },
+  {
+   "from": "tools/hosts/pi/unpulled_changes.sh",
+   "to": "tools/hosts/deploy/pi_unpulled.sh",
+   "label": "piped to the Pi"
+  },
+  {
+   "from": "tools/hosts/deploy/pi_unpulled.sh",
+   "to": "tools/ops/orient.py",
+   "label": "waiting to ingest"
+  },
+  {
+   "from": "tools/hosts/roster_digest.sh",
+   "to": "tools/hosts/sync_roster_from_pi.sh",
+   "label": "--status digests"
+  },
+  {
+   "from": "ext:decoderpro-roster",
+   "to": "tools/hosts/roster_digest.sh",
+   "label": "roster files",
+   "side": "check"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

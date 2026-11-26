@@ -352,6 +352,21 @@ ops_repo_sha() {
   done | shasum -a 256 | cut -d' ' -f1
 }
 
+# pi_unpulled_words: the words tools/hosts/pi/unpulled_changes.sh prints for the Pi (ops, tables; nothing when both
+# are clean), against what this checkout would ship, over one ssh call with the Pi's ssh options. It only reads;
+# its status is ssh's when the check could not run (255: the Pi did not answer). check_pi_unpulled and
+# pi_unpulled.sh (make orient's "waiting to ingest" lines) both ask it.
+pi_unpulled_words() {
+  local generated_sha split_shas
+  # the generated tables.xml is the reference when the Pi has none (no stamp, no pull): a file unlike it may be a Store
+  generated_sha="$(shasum -a 256 "$ROOT/jmri/layouts/hart/output/tables.xml" 2>/dev/null | cut -d' ' -f1)"
+  split_shas="$(hart_split_shas "$ROOT" | tr '\n' ' ' | sed 's/ *$//')"
+  # The Operations files this checkout would ship count as taken: a Pi session equal to them (an auto-pulled one,
+  # once it is committed and merged, and this deploy runs from that) is not "changed" (unpulled_changes.sh, ops:<sha>)
+  split_shas="ops:$(ops_repo_sha)${split_shas:+ $split_shas}"
+  ssh_pi "bash -s -- '$PI_USERFILES' '$generated_sha'${split_shas:+ $split_shas}" < "$ROOT/tools/hosts/pi/unpulled_changes.sh"
+}
+
 # check_pi_unpulled: what the owner changed on the Pi since the last deploy or pull would be replaced: Operations
 # Pro saves its files as the session runs, and a PanelPro Store rewrites tables.xml. Nothing is sent. Unless
 # HART_NO_AUTOPULL=1 the gate first saves what it found (autopull_pi_changes), then stops anyway: the person
@@ -359,14 +374,8 @@ ops_repo_sha() {
 # HART_DISCARD_PI_CHANGES=1 skips the check and replaces them (the owner's call).
 check_pi_unpulled() {
   [[ "${HART_DISCARD_PI_CHANGES:-0}" != "1" ]] || return 0
-  local generated_sha split_shas unpulled msg
-  # the generated tables.xml is the reference when the Pi has none (no stamp, no pull): a file unlike it may be a Store
-  generated_sha="$(shasum -a 256 "$ROOT/jmri/layouts/hart/output/tables.xml" 2>/dev/null | cut -d' ' -f1)"
-  split_shas="$(hart_split_shas "$ROOT" | tr '\n' ' ' | sed 's/ *$//')"
-  # The Operations files this checkout would ship count as taken: a Pi session equal to them (an auto-pulled one,
-  # once it is committed and merged, and this deploy runs from that) is not "changed" (unpulled_changes.sh, ops:<sha>)
-  split_shas="ops:$(ops_repo_sha)${split_shas:+ $split_shas}"
-  if ! unpulled="$(ssh_pi "bash -s -- '$PI_USERFILES' '$generated_sha'${split_shas:+ $split_shas}" < "$ROOT/tools/hosts/pi/unpulled_changes.sh")"; then
+  local unpulled msg
+  if ! unpulled="$(pi_unpulled_words)"; then
     pi_stop "STOP: could not check the Pi for unpulled changes. HART_DISCARD_PI_CHANGES=1 deploys without the check."
   fi
   if [[ -n "$unpulled" ]]; then
