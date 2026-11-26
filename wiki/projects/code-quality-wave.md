@@ -1,8 +1,7 @@
 # Code-quality wave (2026-11-26)
 
-Status: active (wave 2, from 2026-11-26 14:15)
-Coordinator: hart-bb, since 2026-11-26 14:15 (holds the merge queue and the deploys; a background wave 2 coordinator runs the lanes)
-Dashboard: https://claude.ai/artifact/XbLG38xfSzSdbE4eoutFQ7 (lanes, events and agents, kept live by the wave 2 coordinator)
+Status: done
+Dashboard: https://claude.ai/artifact/XbLG38xfSzSdbE4eoutFQ7 (wave 2's lanes, events and agents)
 
 A read-only review on 2026-11-26 graded the repo's 781 scripts at B- overall. The code was decent, with recurring AI habits:
 - helpers copied between files until the copies drift
@@ -90,8 +89,11 @@ Decisions found only in comments, recorded here:
 - The step runners never treat BS W-1 and W-2 (the Brick yard spurs off Switch 3) as route sensors (`jobkit.NOT_ROUTE`).
 - `generated_desk_header.xml` was frozen from the live desk on 2026-11-15 (was in `cats_panel_dress.py`).
 
+Report card after wave 2 (https://claude.ai/artifact/2feCxg41LpAFfoP3e6Z8nE): the line-weighted average went from 2.86 at the start to 3.03 after wave 1 and 3.12 after wave 2 (B). C and D files went 64, 33, 16, with none at D. A-range files went 8, 18, 133. Reviewers have now read 469 of 489 source files.
+
 ### Left after wave 2
 
+- The 16 C files: the card-pipeline generators, the three station-map renderers, two publication rebuilds, two share-card recipes, `render_cats_panel`, `cs105_consist` and `export_track_lengths`.
 - mypy strict: tools/ops (96 errors in 17 files) and tools/schematic (442 in 42), one folder at a time.
 - `paths.exit_if_overridden` and `tables_build.refuse_generated` still exit (about 20 callers, some parked); `hartlib.hosts` still exits, because the MQTT tools and the mimic read it at import (each entry script must catch a named error first); `evolution.py`; `render_le_layout.py` is at its size limit.
 - About 100 callers still read device rows by key through `DeviceRow`'s mapping view.
