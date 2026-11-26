@@ -26,10 +26,14 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import operations  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[2]
 MASTER = ROOT / "ops/hart-ops/data/trains.csv"
 CREW = ROOT / "ops/hart-ops/data/crew.json"  # the crew master (ADR-039, lane L5)
-ROSTER = ROOT / "jmri/layouts/hart/operations/OperationsTrainRoster.xml"
+ROSTER = operations.ROSTERS["trains"]
 HEADER = ROOT / "cats/data/generated_desk_header.xml"
 
 # Operations Pro trains that are not in the master yet, with the reason. Each is an open owner question: a name here
@@ -49,10 +53,6 @@ def crew_problems(trains: list[dict[str, str]], crew: dict) -> list[str]:
     return [f"{CREW.relative_to(ROOT)}: crew job {job.get('id')!r} has code {job.get('code')!r}, which is no "
             f"train_symbol of {MASTER.relative_to(ROOT)}"
             for job in crew.get("jobs", []) if job.get("kind") == "crew" and job.get("code") not in symbols]
-
-
-def roster_names(root: ET.Element) -> list[str]:
-    return [t.get("name", "") for t in root.iter("train")]
 
 
 def roster_problems(trains: list[dict[str, str]], names: list[str]) -> list[str]:
@@ -106,7 +106,7 @@ def header_problems(trains: list[dict[str, str]], root: ET.Element) -> list[str]
 def main() -> int:
     trains = read_master()
     problems = crew_problems(trains, json.loads(CREW.read_text(encoding="utf-8")))
-    problems += roster_problems(trains, roster_names(ET.parse(ROSTER).getroot()))
+    problems += roster_problems(trains, [t.get("name", "") for t in operations.trains(ROSTER)])
     problems += header_problems(trains, ET.parse(HEADER).getroot())
     for p in problems:
         print(p)
