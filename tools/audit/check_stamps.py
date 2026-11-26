@@ -858,7 +858,8 @@ def audit_trace(name: str, trace_log, root: Path = ROOT, fails: bool = False) ->
 
 
 def record_cmd(args: list[str], root: Path = ROOT, store: Path = STORE) -> int:
-    """`record NAME FILE --trace LOG [--skipped N] [--audit-fails]`: 0, or 1 when --audit-fails and the audit warns."""
+    """`record NAME FILE --trace LOG [--skipped N] [--audit-fails]` (flags in that order): 0; with --audit-fails, 1
+    when the audit warned (nothing recorded) and 3 when it audited nothing (not stampable now, bash, a unit job)."""
     fails, args = (True, args[:-1]) if args[-1:] == ["--audit-fails"] else (False, args)
     if len(args) not in (4, 6) or args[2] != "--trace" or args[4:5] not in ([], ["--skipped"]):
         print(__doc__.split("\n\n")[0], file=sys.stderr)
@@ -868,16 +869,13 @@ def record_cmd(args: list[str], root: Path = ROOT, store: Path = STORE) -> int:
         print(f"check_stamps.py record: --skipped takes a count, not {skipped!r}; not stamped")
         return 2
     if not_stampable(name) is not None:
-        return 0
+        return 3 if fails else 0
     report, audit, bad = audit_trace(name, trace, root, fails=fails)
-    if fails and bad:       # the job fails: no stamp, so the next run runs it and reports it again
-        _file(name, store).unlink(missing_ok=True)
-        reason = "the declaration audit below failed"
-    else:
-        reason = record(name, trace, root, store, Path(snap).read_text().strip(), int(skipped), audit)
+    reason = ("the declaration audit below failed" if fails and bad     # the job fails; any older stamp stays
+              else record(name, trace, root, store, Path(snap).read_text().strip(), int(skipped), audit))
     if reason or report:
         print("\n".join([*([f"not stamped: {reason}"] if reason else []), *report]))
-    return 1 if fails and bad else 0
+    return 0 if not fails else 1 if bad else 0 if audit is not None and not audit.get("bash") else 3
 
 
 def main(argv: list[str] | None = None) -> int:

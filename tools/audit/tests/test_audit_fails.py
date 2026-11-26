@@ -46,15 +46,19 @@ class RecordTest(RepoCase):
 
     def test_an_undeclared_read_fails_with_the_flag_and_records_nothing(self) -> None:
         log = self.run_job(READS, script="tools/a.py")
-        self.assertEqual(self.record_cmd("a", log)[0], 0)          # an old stamp, which the failure drops
-        self.assertIsNotNone(self.stamp())
+        self.assertEqual(self.record_cmd("a", log)[0], 0)          # an older stamp, which the failure leaves alone
+        old = self.stamp()
+        self.assertIsNotNone(old)
+        (self.root / "jmri/layouts/hart/data/switches.csv").write_text("v2\n")
+        log = self.run_job(READS, script="tools/a.py")
         rc, out = self.record_cmd("a", log, "--audit-fails")
         self.assertEqual(rc, 1, out)
         self.assertIn("WARNING: stamp audit: a: 1 read(s) not declared", out)
         self.assertIn("this run fails on it (ADR-037 stage 4c", out)
         self.assertIn("    a: jmri/layouts/hart/data/switches.csv", out)
         self.assertIn("not stamped: the declaration audit below failed", out)
-        self.assertIsNone(self.stamp(), "a failed audit left a stamp: the next run would skip the job")
+        self.assertEqual(self.stamp(), old, "the failed audit recorded this run, or dropped the older stamp")
+        self.assertFalse(self.current("a"), "the older stamp holds for the changed input")
 
     def test_a_plain_run_warns_and_records(self) -> None:
         rc, out = self.record_cmd("a", self.run_job(READS, script="tools/a.py"))
@@ -86,10 +90,21 @@ class RecordTest(RepoCase):
         self.assertEqual(rc, 0, out)
         self.assertIn("(the job passes; warn only in this run", out)
 
-    def test_a_unit_job_is_not_audited_and_passes_with_the_flag(self) -> None:
+    def test_what_audits_nothing_says_so_with_the_flag(self) -> None:
+        """3: a unit job, a bash step, a job not stampable now. check.sh lets the job pass and names it unaudited."""
         rc, out = self.record_cmd("unit-hartlib", self.run_job(), "--audit-fails")
-        self.assertEqual((rc, out), (0, ""))
+        self.assertEqual((rc, out), (3, ""))
         self.assertIsNotNone(self.stamp("unit-hartlib"))
+        path = self.root / cs.MANIFEST
+        path.write_text(path.read_text().replace('cmd = ["python3", "tools/b.py"]', 'cmd = ["bash", "tools/b.sh"]'))
+        log = self.tmp / "bash.trace"
+        log.write_text(f"0\tt\t1\n0\tx\tcheck.sh-run\t{self.root}\tbash\ttools/b.sh\n")
+        rc, out = self.record_cmd("b", log, "--audit-fails")
+        self.assertEqual(rc, 3, out)
+        self.assertIn("(b: bash, which the trace cannot see, so not audited)", out)
+        self.assertEqual(self.record_cmd("b", log)[0], 0)
+        with unittest.mock.patch.object(cs.ps, "unstampable", return_value="HART_TABLES is set"):
+            self.assertEqual(self.record_cmd("a", self.run_job(READS, script="tools/a.py"), "--audit-fails"), (3, ""))
 
     def test_a_call_of_another_shape_is_refused(self) -> None:
         err = io.StringIO()
@@ -113,6 +128,9 @@ elif cmd == "record":
     if args[0] == "one":
         print("WARNING: stamp audit: one: 1 read(s) not declared; " + ("this run fails" if fails else "warn only"))
         sys.exit(1 if fails else 0)
+    if args[0] == "panels":     # bash: nothing audited
+        print("stamp audit: panels: (panels: bash, which the trace cannot see, so not audited)")
+        sys.exit(3 if fails else 0)
     print(f"stamp audit: {args[0]}: every data read is declared")
 '''
 QUIET = "^(one|two|panels|skippy)$"
@@ -156,8 +174,8 @@ class CheckShTest(unittest.TestCase):
         done = self.run_check(CHECK_AUDIT=str(self.out / "audit"))
         self.assertJobFailedByAudit(done)
         self.assertIn("this run fails", done.stdout)
-        self.assertIn("declaration audit: 1 of 3 passing step-manifest job(s) not audited (not traced): skippy",
-                      done.stdout)
+        self.assertIn("declaration audit: 2 of 3 passing step-manifest job(s) not audited (bash, or not traced): "
+                      "panels skippy", done.stdout)
 
     def test_the_weekly_run_fails_the_job(self) -> None:
         """What .github/workflows/check.yml gives check.sh on its schedule: CI, a record folder, CHECK_AUDIT_FAILS."""
@@ -170,9 +188,11 @@ class CheckShTest(unittest.TestCase):
         self.assertNotIn("stamp audit", done.stdout)
 
     def test_a_run_that_audits_no_manifest_job_fails(self) -> None:
-        done = self.run_check(CHECK_AUDIT=str(self.out / "audit"), CHECK_ONLY="^skippy$")
-        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn("declaration audit: no step-manifest job was audited", done.stdout)
+        for only in ("^skippy$", "^panels$"):
+            with self.subTest(only=only):
+                done = self.run_check(CHECK_AUDIT=str(self.out / "audit"), CHECK_ONLY=only)
+                self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+                self.assertIn("declaration audit: no step-manifest job was audited", done.stdout)
 
     def test_a_failing_audit_that_cannot_audit_is_refused_before_any_job(self) -> None:
         for env, said in (({"CI": "true", "FULL": "", "CHECK_AUDIT_FAILS": "1"}, "records no stamp"),
@@ -186,20 +206,15 @@ class CheckShTest(unittest.TestCase):
 
 
 class WorkflowTest(unittest.TestCase):
-    def step_env(self) -> dict[str, str]:
-        start = WORKFLOW.index("        id: checks\n        run: ./tools/check.sh\n")
-        block = WORKFLOW[start:WORKFLOW.index("\n      - ", start)]
-        return dict(re.findall(r"(?m)^          (\w+): (.+)$", block))
-
     def test_only_the_weekly_run_fails_on_the_audit_and_it_records_somewhere_unsaved(self) -> None:
-        env = self.step_env()
+        keys = re.findall(r"(?m)^ +(CHECK_AUDIT\w*|CHECK_RECORD_TO): (.*)$", WORKFLOW)
+        self.assertEqual([k for k, _ in keys], ["CHECK_RECORD_TO", "CHECK_AUDIT_FAILS"],
+                         "the workflow sets the audit variables in another place, or CHECK_AUDIT itself")
+        env = dict(keys)
         self.assertEqual(env["CHECK_AUDIT_FAILS"], "${{ github.event_name == 'schedule' && '1' || '' }}")
         self.assertIn("github.event_name == 'schedule' && format('{0}/weekly-stamps', runner.temp)",
                       env["CHECK_RECORD_TO"])
-        self.assertNotIn("weekly-stamps", WORKFLOW.replace(env["CHECK_RECORD_TO"], ""),
-                         "the weekly run's stamps are saved or read somewhere")
-        self.assertEqual(WORKFLOW.count("CHECK_AUDIT"), WORKFLOW.count("CHECK_AUDIT_FAILS"),
-                         "the workflow sets CHECK_AUDIT, which would fail pull request runs too")
+        self.assertEqual(WORKFLOW.count("weekly-stamps"), 1, "the weekly run's stamps are saved or read somewhere")
 
 
 if __name__ == "__main__":

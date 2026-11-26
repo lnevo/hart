@@ -334,13 +334,18 @@ start_jobs() {
       if (( stampable )); then
         # with the environment the stamp check had (PYTHONPATH is in the key), untraced
         if [[ -n "$pp_set" ]]; then ppenv=(PYTHONPATH="$pp"); else ppenv=(-u PYTHONPATH); fi
-        # its exit counts only when the audit fails jobs (AUDIT_FAILS): 1 then is an undeclared read or an audit
-        # that could not run, and the job fails; elsewhere the audit only warns and the job's own result stands
-        if env -u HART_TRACE_LOG -u HART_TRACE_SPAWN -u HART_TRACE_PATH -u CHECK_AUDIT_LOG "${ppenv[@]}" ${STAMP_ENV[@]+"${STAMP_ENV[@]}"} python3 tools/audit/check_stamps.py record "$name" "$JOBS/$n.stamp" --trace "$HART_TRACE_LOG" ${skip_count[@]+"${skip_count[@]}"} ${AUDIT_FAILS[@]+"${AUDIT_FAILS[@]}"} >>"$JOBS/$n.stamplog" 2>&1; then
-          : >"$JOBS/$n.audited"
-        elif (( ${#AUDIT_FAILS[@]} )); then
-          echo "$name: FAILED by the declaration audit above (ADR-037 stage 4c; check_stamps.py record exited non-zero)" >>"$JOBS/$n.stamplog"
-          rc=1
+        # its exit counts only when the audit fails jobs (AUDIT_FAILS): 0 audited, 3 nothing to audit (bash, a unit
+        # job, not stampable now), anything else fails the job (an undeclared read, an audit that could not run);
+        # elsewhere the audit only warns and the job's own result stands
+        env -u HART_TRACE_LOG -u HART_TRACE_SPAWN -u HART_TRACE_PATH -u CHECK_AUDIT_LOG "${ppenv[@]}" ${STAMP_ENV[@]+"${STAMP_ENV[@]}"} python3 tools/audit/check_stamps.py record "$name" "$JOBS/$n.stamp" --trace "$HART_TRACE_LOG" ${skip_count[@]+"${skip_count[@]}"} ${AUDIT_FAILS[@]+"${AUDIT_FAILS[@]}"} >>"$JOBS/$n.stamplog" 2>&1
+        audit_rc=$?
+        if (( ${#AUDIT_FAILS[@]} )); then
+          if (( audit_rc == 0 )); then
+            : >"$JOBS/$n.audited"
+          elif (( audit_rc != 3 )); then
+            echo "$name: FAILED by the declaration audit above (ADR-037 stage 4c; check_stamps.py record exited $audit_rc)" >>"$JOBS/$n.stamplog"
+            rc=1
+          fi
         fi
       fi
       if [[ -s "$JOBS/$n.stamplog" ]]; then { echo "--- stamps ($name):"; cat "$JOBS/$n.stamplog"; } >>"$JOBS/$n.log"; fi
@@ -381,8 +386,8 @@ collect() {
   if (( ${#said[@]} > 0 )); then
     echo "${#said[@]} job(s) printed SKIPPED and checked only part of their inputs: ${said[*]}"
   fi
-  # A run whose audit fails jobs names the step-manifest jobs that passed unaudited (not traced: SKIPPED in their
-  # output, not stampable now, or a failed stamp batch), and fails when it audited none of them.
+  # A run whose audit fails jobs names the step-manifest jobs that passed unaudited (bash, or not traced: SKIPPED in
+  # their output, not stampable now, a failed stamp batch), and fails when it audited none of them.
   if (( ${#AUDIT_FAILS[@]} )); then
     local i3 audited=0 passed=0 unaudited=()
     for i3 in "${!names[@]}"; do
@@ -391,7 +396,7 @@ collect() {
       if [[ -e "$JOBS/$i3.audited" ]]; then audited=$((audited + 1)); else unaudited+=("${names[$i3]}"); fi
     done
     if (( ${#unaudited[@]} > 0 )); then
-      echo "declaration audit: ${#unaudited[@]} of $passed passing step-manifest job(s) not audited (not traced): ${unaudited[*]}"
+      echo "declaration audit: ${#unaudited[@]} of $passed passing step-manifest job(s) not audited (bash, or not traced): ${unaudited[*]}"
     fi
     if (( passed > 0 && audited == 0 )); then
       echo "declaration audit: no step-manifest job was audited, so this run does not show the declarations hold"
