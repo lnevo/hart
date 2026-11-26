@@ -66,7 +66,7 @@ class TheMerge(unittest.TestCase):
             D.merge([generated()], [field(written_by="build_device_map.py")])
 
     def test_a_keyed_field_row_with_no_generated_row_is_refused(self):
-        with self.assertRaisesRegex(D.DevicesError, r"Switch 9 \(level 1, turnout\): id 'test:turnout:Switch 9' has "
+        with self.assertRaisesRegex(D.DevicesError, r"Switch 9 \(level 1, turnout\): id 'switch:9' has "
                                                     r"no row in devices_generated\.csv .*move the row's cells to the "
                                                     r"device's new id, or remove the row"):
             D.merge([generated()], [field(), field("Switch 9")])
@@ -225,8 +225,8 @@ class ThePair(unittest.TestCase):
 
     def test_field_index_is_the_field_files_keyed_rows(self):
         got = D.field_index(self.files)
-        self.assertEqual(list(got), [("1", "test:turnout:Switch 1")])        # keyed by (level, id)
-        self.assertEqual(got["1", "test:turnout:Switch 1"]["dcc"], "100")
+        self.assertEqual(list(got), [("1", "switch:1")])        # keyed by (level, id)
+        self.assertEqual(got["1", "switch:1"]["dcc"], "100")
 
     def test_allocated_names_are_the_generated_rows(self):
         got = D.allocated_names(("1",), "mast", files=self.files)

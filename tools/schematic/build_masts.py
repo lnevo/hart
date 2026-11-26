@@ -50,12 +50,13 @@ def device_files() -> devices.Files:
     return devices.Files.under(DEVICE_MAP.parent)
 
 
-def csv_text(rows: list[dict], columns) -> str:
-    """masts.csv's text of `rows`, the cp cells as place ids (hartlib.places; level_masts.read names them)."""
+def csv_text(rows: list[dict], columns, path: Path | None = None) -> str:
+    """masts.csv's text of `rows`, the cp cells as place ids by the lists beside `path` (the file it goes to;
+    places.lists_beside, the repo's lists when None or when it has none), the lists level_masts.read names them by."""
     buf = io.StringIO()
     w = csv.DictWriter(buf, fieldnames=list(columns), lineterminator="\n")
     w.writeheader()
-    w.writerows(places.with_ids(rows))
+    w.writerows(places.with_ids(rows, places.lists_beside(path)))
     return buf.getvalue()
 
 
@@ -188,7 +189,7 @@ def build(check: bool = False):
         raise RuleError(f"the rule's signal kind of {drift} is not the one their heads give")
     gen = [m for m in placed if m["role"] != "hidden"]
     vgen = [m for m in placed if m["role"] == "hidden"]
-    return {MASTS: csv_text(rows, level_masts.FIELDS)}, gen, vgen
+    return {MASTS: csv_text(rows, level_masts.FIELDS, MASTS)}, gen, vgen
 
 
 def main(argv=None) -> int:

@@ -172,7 +172,7 @@ class ThroughTheWriter(unittest.TestCase):
     def test_an_owner_rename_reaches_the_merged_view_and_is_said_when_the_builder_gives_it(self):
         """A staging device: the owner renames it in its field row (keyed by id), the builder takes the name from
         there, and the write says so."""
-        self.files.field.write_text(D.master_text([field(user_name="Switch One", id="test:turnout:Switch 1")]), encoding="utf-8")
+        self.files.field.write_text(D.master_text([field(user_name="Switch One", id="switch:1")]), encoding="utf-8")
         self.assertEqual(D.load(self.files)[0]["user_name"], "Switch One")
         said = []
         mine = [dict(D.load(self.files)[0])]

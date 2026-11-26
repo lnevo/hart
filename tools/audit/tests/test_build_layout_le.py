@@ -21,7 +21,7 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
-from hartlib import level_devices, paths, tables  # noqa: E402
+from hartlib import device_ids, level_devices, paths, tables  # noqa: E402
 from hartlib import railroad as T_railroad  # noqa: E402  the device map's columns
 
 TABLES = paths.TABLES_XML       # the generated tables.xml (build_tables.py), which the build no longer reads
@@ -528,9 +528,15 @@ class DeviceNames(unittest.TestCase):
         from hartlib import devices
         text = self.HEAD + rows.replace("\n", "," * len(T_railroad.DEVICE_FACTS) + "\n")
         old = list(csv.DictReader(io.StringIO(text)))
-        # each with a test id, which check_rows wants on every row with a level
+        # each with an id, which check_rows wants on every row with a level: a turnout's names its switch
+        # (switch:<n>, dcc:<n>: check_rows holds it to that), any other row's is a test id
+        def ident(r):
+            if r["layer"] != "turnout":
+                return f"test:{r['layer']}:{r['user_name']}"
+            n = r["user_name"].split()[-1]
+            return device_ids.dcc_id(n) if r["user_name"].startswith("DCC ") else device_ids.switch_id(n)
         mine = [devices.master_row(dict(r, role=(roles or {}).get(r["user_name"]) or self.LAYER_ROLES[r["layer"]],
-                                        id=f"test:{r['layer']}:{r['user_name']}"), "build_device_map.py")
+                                        id=ident(r)), "build_device_map.py")
                 for r in old]
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / devices.ONE_FILE

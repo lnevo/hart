@@ -214,9 +214,11 @@ class LayoutFactsTest(unittest.TestCase):
         stations = data / "schematic" / "stations.csv"
         stations.write_text("".join(line for line in stations.read_text().splitlines(True)
                                     if not line.startswith("st:engine-house,1,Engine House,")))
-        out = self.failures(data=data)
-        self.assertIn("Engine House: a cp of a staging row of the device master with no desk area (and no level) in "
-                      "stations.csv", out)
+        # the copy's master reads its cp cells by the copy's lists (hartlib.places.lists_beside), so the load stops
+        # on the id no row of them has, naming the file and line
+        with self.assertRaisesRegex(devices.DevicesError, r"devices_generated.csv line \d+: st:engine-house is no "
+                                                          "station_id of stations.csv"):
+            self.failures(data=data)
 
     def test_a_block_in_no_place_takes_the_level_of_the_blocks_it_joins(self) -> None:
         # every staging line block lists the places it joins (cp, owner 2026-11-21), so Track Main West's is emptied

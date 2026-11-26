@@ -16,8 +16,8 @@ runs its script with the arguments as given, so each script's own --help and beh
 
 pom replaces the hand procedure that POM_GUARD.md used to give. It checks the proposal with pom_guard.py on the
 Mac, then writes one drop file: the settings pom_write.py reads, the files it needs on the Pi (pom_guard.py,
-pom_guard_cli.py, cs105_consist.py and the proposal, unpacked into /tmp/speedmatch before the writer starts), and
-pom_write.py itself. Nothing reaches the Pi unless --send is given, and then only through drop_job.sh, with its
+pom_guard_roster.py, pom_guard_cli.py, cs105_consist.py and the proposal, unpacked into /tmp/speedmatch before the
+writer starts), and pom_write.py itself. Nothing reaches the Pi unless --send is given, and then only through drop_job.sh, with its
 gates: no job while the owner is operating, the operating flag set for the run, nothing while another command
 waits, a runner is active (/tmp/speedrun.active) or a kill flag is left (/tmp/speedrun.kill). Never --force.
 The Pi's home folder (ledger, rollback files) is the parent of HART_PI_USERFILES, read as tools/env/load_env.sh
@@ -51,9 +51,9 @@ COMPARE = {
     "preflight": (sys.executable, HERE / "preflight_compare.py"),
     "stoptest": (sys.executable, HERE / "stoptest_compare.py"),
 }
-# What the Pi needs next to the writer: the guard (and its command line, for the ledger steps a STOPPED line names)
-# and the consist query.
-POM_FILES = (GUARD, HERE / "pom_guard_cli.py", SCRIPTS / "cs105_consist.py")
+# What the Pi needs next to the writer: the guard and its part pom_guard_roster.py (the guard imports it), the
+# guard's command line (for the ledger steps a STOPPED line names) and the consist query.
+POM_FILES = (GUARD, HERE / "pom_guard_roster.py", HERE / "pom_guard_cli.py", SCRIPTS / "cs105_consist.py")
 PI_DIR = "/tmp/speedmatch"   # the Pi's /tmp, as drop_job.sh and the runners use it
 POM_LOG = "/tmp/pom_write.log"
 # The line drop_job.sh looks for (grep speedrun.active) before it runs its runner checks on a job.

@@ -1,7 +1,7 @@
 # Night plunge: loose ends in one hand-off (2026-11-26)
 
 Status: active
-Coordinator: hart-95, since 2026-11-26 01:50
+Coordinator: hart-6d, since 2026-11-26 01:54 (from hart-95; the owner chose a split: hart-95 keeps lanes N1 to N4 until their PRs are open)
 
 The owner's call on 2026-11-26 at 01:45: every loose end from the what's-left list goes on this page and runs tonight, except the items that stay in `wiki/STATUS.md`. Those are the main and upper station maps, finalize wiring, the owner's parts of the session #4 punch list, the benchwork-finished question (pipeline-coverage lane C), the future goals, and the dated items (the agent re-count on 2026-12-05, the old Pi card until 2026-12-23).
 
@@ -16,20 +16,21 @@ The owner's call on 2026-11-26 at 01:45: every loose end from the what's-left li
 | N5 Archive and stale notes | archive the 2026-11-08 speed-matching scripts (`runner/step_runner.py`, `runner/move_to.py`, `analyze_profile.py`, `propose_table.py`) and the two `STRR_*.py` with their exclusions, through `move_path.py`; correct the stale lines: STATUS "Generated, then the owner's" (its left items are done on [naming-layers](naming-layers-handoff.md)), cleanup-streamline section A, the #1149 deploy owed on pipeline-coverage (shipped by every deploy since) | `docs/jmri/speedmatching/`, `archive/`, `wiki/status/`, those project pages | [pipeline-coverage](pipeline-coverage-handoff.md) lane C, [cleanup-streamline](cleanup-streamline-handoff.md) A | `general-purpose`, sonnet; docs and moves, no review |
 | N6 Punch list designs | drafts of item 4 (control point signs sized for a stick in the benchwork), item 5 (the big crew board in sign-up order) and item 6 (mock signals for the interlocking gaps) for the owner to choose from | new files under `docs/ops/session4/` | [punch list](../../docs/ops/SESSION4_PUNCH_LIST.md) items 4 to 6 | `general-purpose`, sonnet; owner approves each look before anything is published |
 
+Merged on 2026-11-26: N5 #1209, N4 #1211, N3 #1213, N2 #1214, N1 #1216, and hart-c4's #1215. The site was deployed at 02:31, and the Pi and Windows got 9424352cc at 02:38 (both stamps clean). N6 is draft #1212, waiting on the owner's picks.
+
 N1 to N5 run at once; N6 starts when one of them ends. The cap is 8 sessions with subagents. Heavy checks run through `make remote`, one or two at a time.
 
 ## Owner's parts
 
-- Group D (the split signal and panel-status scripts): the coordinator runs `make panelpro-test` on the Mac; the live try of the lamp clicks, the SML button and a quit release needs the owner ([health round 2](health-round2-handoff.md) section 1, step 4).
-- L7 roster typo ids: the owner's yes on the Mac STS copy ([data-masters](data-masters.md)).
+Settled on 2026-11-26: group D is taken as good without the live try (owner, in hart-95, about 02:35); L7 was done by #1173 on 2026-11-25 with no STS write; the owner removed the leftover worktrees.
+
 - The data-masters questions still on working values ([data-masters](data-masters.md), Open for the owner).
-- Worktree removals: `naming-step5-tests` needs `git worktree remove --force` (cleanup-streamline A); `data-masters-coord` holds an uncommitted claim line on `data-masters.md`.
 - 3D station maps: the Barn frame measurements ([`docs/benchwork/station_maps_3d/`](../../docs/benchwork/station_maps_3d/README.md)).
 - N6: pick a design for each of items 4 to 6.
 
 ## Rules
 
-- Merges go through hart-95's queue: "ready #N", merge only on "go #N" (`coordinate` skill). The coordinator runs every deploy.
+- Merges go through hart-6d's queue: "ready #N", merge only on "go #N" (`coordinate` skill). The coordinator runs every deploy.
 - Lane agents write status lines to `.claude/progress/night-<lane>.md`; this page changes only in the coordinator's commits.
 
 ## Done when

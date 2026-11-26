@@ -3626,8 +3626,26 @@
    "kind": "unstructured",
    "status": "live",
    "domain": "extras",
-   "desc": "Viewer script (the page's state, drawing and input) inlined into both pipeline map pages after the layout.",
+   "desc": "Viewer script (the page's state, drawing and input) inlined into both pipeline map pages after the layout: the start of app(), which goes on in pipeline_map_view_frame.js and pipeline_map_view_input.js, joined in that order.",
    "path": "tools/ops/pipeline_map_view.js"
+  },
+  {
+   "id": "tools/ops/pipeline_map_view_frame.js",
+   "label": "pipeline_map_view_frame.js",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "The middle of the viewer's app() (overview, headers, dark mode, lane zoom, pan and zoom), inlined straight after pipeline_map_view.js; not a script on its own.",
+   "path": "tools/ops/pipeline_map_view_frame.js"
+  },
+  {
+   "id": "tools/ops/pipeline_map_view_input.js",
+   "label": "pipeline_map_view_input.js",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "The end of the viewer's app() (magnifier, selection, search, filters, menus, tour, share, address), inlined straight after pipeline_map_view_frame.js; it closes app() and calls it.",
+   "path": "tools/ops/pipeline_map_view_input.js"
   },
   {
    "id": "docs/pipeline-map/pipeline_map.json",
@@ -4470,6 +4488,15 @@
    "domain": "layout",
    "desc": "Command line of pom_guard.py: the Mac dry run of a proposal and the ledger upkeep.",
    "path": "jmri/layouts/hart/scripts/speedmatch/pom_guard_cli.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/pom_guard_roster.py",
+   "label": "pom_guard_roster.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Part of pom_guard.py: the address, roster and consist checks; runs in CPython and the Pi's Jython.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/pom_guard_roster.py"
   },
   {
    "id": "jmri/layouts/hart/scripts/speedmatch/pom_write.py",
@@ -5692,6 +5719,16 @@
    "domain": "agents",
    "desc": "Read-only review of the public website through a lens named in the brief: UX, first-time reader, historian, designer, writer or security. Use for audits of www/ and hartrailroad.com.",
    "path": ".claude/agents/site-reviewer.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": ".claude/agents/tool-fixer.md",
+   "label": "agent: tool-fixer",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Refactors that change no behaviour (a script split under its size limit, a module move) and fixes to repo tools and checks (tools/ops/, tools/audit/, tools/pipeline/, tools/hosts/ tests, hooks, the speed-match scripts in jmri/layouts/hart/scripts/speedmatch/ and the other Jython scripts under jmri/). Use when no other named agent owns the paths. Give it one bounded job; it always runs in a worktree.",
+   "path": ".claude/agents/tool-fixer.md",
    "gen": "agent-docs"
   },
   {
@@ -10361,6 +10398,18 @@
    "gen": "manifest"
   },
   {
+   "from": "tools/ops/pipeline_map_view_frame.js",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "inlined",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/ops/pipeline_map_view_input.js",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "inlined",
+   "gen": "manifest"
+  },
+  {
    "from": "jmri/layouts/hart/data/wiring.csv",
    "to": "tools/wiring/check_wiring_frozen.py",
    "label": "audits, via hartlib.wiring",
@@ -11609,6 +11658,16 @@
    "from": "jmri/layouts/hart/scripts/speedmatch/pom_guard_cli.py",
    "to": "jmri/layouts/hart/scripts/speedmatch/speedmatch.py",
    "label": "packed for pom"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/pom_guard_roster.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/speedmatch.py",
+   "label": "packed for pom"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/pom_guard_roster.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/pom_guard.py",
+   "label": "imports"
   },
   {
    "from": "jmri/layouts/hart/scripts/cs105_consist.py",
@@ -13307,6 +13366,13 @@
    "side": "check"
   },
   {
+   "from": ".claude/agents/tool-fixer.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs",
+   "side": "check"
+  },
+  {
    "from": ".claude/agents/voice-reviewer.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -13743,6 +13809,13 @@
   {
    "from": "wiki/AGENTS_GIT.md",
    "to": ".claude/agents/site-reviewer.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/AGENTS_GIT.md",
+   "to": ".claude/agents/tool-fixer.md",
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"

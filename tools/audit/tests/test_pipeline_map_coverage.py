@@ -99,6 +99,48 @@ class ScanTest(unittest.TestCase):
         with self.assertRaisesRegex(COV.CoverageError, "pkg.gone with PYTHONPATH=lib/src"):
             scan({"tools/check.sh": "env PYTHONPATH=lib/src:$PYTHONPATH \\\n  python3 -m pkg.gone\n"})
 
+    def test_a_comment_ending_in_a_backslash_ends_at_its_line(self) -> None:
+        """Review finding (#1168): the shell ends a comment at its line, so the call after `# ... \\` is read."""
+        scripts, _ = scan({"tools/check.sh": "# see tools/gone.py \\\npython3 tools/a.py\n"})
+        self.assertEqual(set(scripts), {"tools/a.py"})
+        with self.assertRaisesRegex(COV.CoverageError, "tools/gone.py names no file"):
+            scan({"tools/check.sh": "x=1  # trailing \\\npython3 tools/gone.py\n"})
+        # a Makefile recipe line is the shell's; a comment in make's own text goes on, as make reads it
+        scripts, _ = scan({"Makefile": "x:\n\t# note \\\n\tpython3 tools/a.py\n# make text \\\n  tools/gone.py\n"},
+                          ("Makefile",))
+        self.assertEqual(set(scripts), {"tools/a.py"})
+        # a continued line of code still joins, a quoted # included
+        scripts, _ = scan({"tools/check.sh": 'echo "# kept \\\n  tools/b.sh" \\\n  tools/a.py\n'})
+        self.assertEqual(set(scripts), {"tools/a.py", "tools/b.sh"})
+
+    def test_an_apostrophe_in_a_word_opens_no_quote(self) -> None:
+        """Review finding (#1168): `don't` in a heredoc or make's text hid the comment after it, so a path in it failed."""
+        text = ("cat <<EOF\nDon't run it  # was tools/gone.py\nEOF\npython3 tools/a.py\n"
+                "echo done' here  # tools/gone.py\n")
+        scripts, _ = scan({"tools/check.sh": text})
+        self.assertEqual(set(scripts), {"tools/a.py"})
+        # a real quote still keeps its # and its path, and an escaped quote opens none
+        scripts, _ = scan({"tools/check.sh": "echo 'a # b' tools/a.py\necho \\' tools/b.sh # tools/gone.py\n"})
+        self.assertEqual(set(scripts), {"tools/a.py", "tools/b.sh"})
+        # review finding: only a single quote is an apostrophe; a double quote between letters still opens a quote
+        scripts, _ = scan({"tools/check.sh": 'echo a"b # tools/a.py"c\n'})
+        self.assertEqual(set(scripts), {"tools/a.py"})
+
+    def test_every_pythonpath_entry_is_read_and_the_first_holder_wins(self) -> None:
+        """Review finding (#1168): only the first PYTHONPATH entry was read."""
+        scripts, _ = scan({"tools/check.sh": "PYTHONPATH=tools:lib/src python3 -m pkg.mod\n"
+                                             'X="$(PYTHONPATH="$ROOT/out:$ROOT/lib/src${PYTHONPATH:+:$PYTHONPATH}" '
+                                             'python3 -m pkg.mod)"\n'})
+        self.assertEqual(set(scripts), {"lib/src/pkg/mod.py"})
+        with self.assertRaisesRegex(COV.CoverageError, "pkg.gone with PYTHONPATH=lib/src finds no lib/src/pkg/gone.py"):
+            scan({"tools/check.sh": "PYTHONPATH=tools:lib/src:$dest/x python3 -m pkg.gone\n"})
+        # review finding: an entry the checkout cannot see may hold pkg at run time, so a call behind one is a host's
+        self.assertEqual(scan({"tools/check.sh": "PYTHONPATH=$dest/x:lib/src python3 -m pkg.gone\n"}), ({}, {}))
+        # Python takes pkg from the first entry that holds it: a later entry's pkg.mod does not stand in
+        files = FILES | {"alt/pkg/__init__.py"}
+        with self.assertRaisesRegex(COV.CoverageError, "PYTHONPATH=alt finds no alt/pkg/mod.py"):
+            scan({"tools/check.sh": "PYTHONPATH=alt:lib/src python3 -m pkg.mod\n"}, files=files)
+
     def test_outputs_from_out_and_output_roots(self) -> None:
         _, outputs = scan({"tools/check.sh": "python3 tools/a.py --out site/page.html --out /tmp/x\n"}, roots=("out",))
         self.assertEqual(outputs, {"site/page.html": "tools/check.sh --out", "out/x.xml": "under out",
