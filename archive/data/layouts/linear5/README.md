@@ -136,3 +136,22 @@ python3 jmri/scripts/process_linear5_new_panel.py jmri/layouts/linear6/linear5_n
 ```bash
 export JMRI_LAYOUT=linear5
 ```
+
+## Duplicates removed (2026-11-26)
+
+These files were byte-identical to another archived file and were deleted. Use the copy named on the right.
+
+| Removed | Same bytes as |
+|---|---|
+| `authoritative/linear5.xml` | `anyrail/linear5.xml` |
+| `working/linear5_spread_4.0_arc.xml` | `anyrail/linear5.xml` |
+| `working/linear5_spread_4.00.xml` | `working/linear5_spread_4.0.xml` |
+| `reference/linear5_manual_save.xml` | `output/linear5_blocked.xml` |
+| `reference/linear5_jmri_backup_20260606164623.xml` | `output/linear5_blocked_generated.xml` |
+| `reference/linear5_manual_save_20260606223113.xml, linear5_manual_save_pre_refresh_20260606223113.xml, linear5_blocked_pre_prod_merge_20260606223359.xml, linear5_manual_save_pre_prod_merge_20260606223359.xml` | `reference/linear5_blocked_20260606223116.xml` |
+| `reference/linear5_manual_save_pre_prod_import_<stamp>.xml (four files)` | `reference/linear5_blocked_pre_prod_import_<stamp>.xml with the same stamp` |
+| `dispatcher/export_options.json` | `archive/data/layouts/linear4/dispatcher/export_options.json` |
+| `dispatcher/google_sheets.json` | `archive/data/layouts/linear4/dispatcher/google_sheets.json` |
+| `data/block_merges.txt` | `archive/data/layouts/linear4/data/block_merges.txt` |
+| `../linear6/linear5_new.xml` | `archive/data/layouts/linear6_baseline.xml` |
+| `../linear6/linear5_new_pre_block_rename_20260806214753.xml` | `output/linear5_new.xml` |

@@ -45,3 +45,13 @@ python3 dispatcher/scripts/jmri_layout_to_nexttrain_xlsx.py --whole-layout
 ```
 
 **Connectivity note:** `F30-S-0` links F51-S-0 and F26-S-0 via anchors A51/A3 — do not remove. See [`docs/F30_connectivity_investigation.md`](docs/F30_connectivity_investigation.md).
+
+## Duplicates removed (2026-11-26)
+
+These files were byte-identical to another archived file and were deleted. Use the copy named on the right.
+
+| Removed | Same bytes as |
+|---|---|
+| `dispatcher/NextTrainDispatcherApp.xlsx` | `archive/code/nexttrain-dispatcher/exports/NextTrainDispatcherApp.xlsx` |
+| `dispatcher/export_options.json` | `archive/data/layouts/mac/dispatcher/export_options.json` |
+| `../linear3.xml` | `anyrail/linear3.xml` |

@@ -124,4 +124,13 @@ See also [`data/README.md`](data/README.md), [`assets/README.md`](assets/README.
 | `merge_linear4_prod_panel.py` | Merge LogixNG stack from `tables.xml` into prod panel |
 | `generate_linear4_panel_background.py` | Regenerate `assets/linear4_panel_bg.png` |
 
-Shared JMRI tools: `prepare_tables_from_anyrail.py`, `build_blocks_excel.py`, `apply_blocks_to_panel.py` (see [`jmri/docs/PROJECT_OVERVIEW.md`](../../history/docs/PROJECT_OVERVIEW.md)).
+Shared JMRI tools: `prepare_tables_from_anyrail.py`, `build_blocks_excel.py`, `apply_blocks_to_panel.py` (see [`jmri/docs/PROJECT_OVERVIEW.md`](../../../history/docs/jmri/PROJECT_OVERVIEW.md)).
+
+## Duplicates removed (2026-11-26)
+
+These files were byte-identical to another archived file and were deleted. Use the copy named on the right.
+
+| Removed | Same bytes as |
+|---|---|
+| `dispatcher/tables.xml` | `output/linear4_blocked.xml` |
+| `../linear4.xml` | `anyrail/linear4.xml` |
