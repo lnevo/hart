@@ -394,12 +394,12 @@
       (all ? "Destination colors" : "Your colors") + "</h2>" +
       (all ? "" : '<p class="muted small">Your blocks are bright; the rest are dimmed.</p>') +
       '<ul class="cc-list">' +
-      (all ? mine.map(colorById) : data.colors) // a job with every color lists them in its own order (YM-01)
+      (all ? mine.map(colorById).concat(job.legend_extra || []) : data.colors) // every color in the job's order, then its rows with no id or spot (YM-01's NONE)
         .map(function (c) {
-          var on = mine.indexOf(c.id) !== -1;
+          var on = !c.id || mine.indexOf(c.id) !== -1;
           return (
             '<li class="' + (on ? "is-mine" : "is-other") + '">' + chip(c, { dim: !on }) +
-            '<a href="' + spotHref(c.spot) + '">' + esc(c.dest) + "</a><small>" + esc(c.train) + "</small></li>"
+            (c.spot ? '<a href="' + spotHref(c.spot) + '">' + esc(c.dest) + "</a>" : "<strong>" + esc(c.dest) + "</strong>") + "<small>" + esc(c.train) + "</small></li>"
           );
         })
         .join("") +
