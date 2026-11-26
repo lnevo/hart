@@ -1,7 +1,6 @@
 """Digicon turnout IO: switch facts → SWITCHPOINTS SELECTEDREPORT / ROUTECOMMAND.
 
-Plant cells come from jmri/layouts/hart/data/uss_board_plants.csv (layout_facts.load_uss_plants);
-the Layout Editor turnout, its
+The Layout Editor turnout, its
 hardware, the closed and thrown legs and the invert polarity are switch facts in
 jmri/layouts/hart/data/ (switches.csv, the device master).
 This module only binds JMRI M2T addresses.

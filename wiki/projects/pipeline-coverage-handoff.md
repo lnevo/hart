@@ -35,7 +35,7 @@ Two read-only studies on 2026-11-25 found 237 tracked scripts that are not nodes
 - Add the 105 missing nodes with their read and write edges. These include the deploy stack (`tools/hosts/deploy/*`, `apply_hart_package_local.sh`, `pack_roster_stage.sh`), the PanelPro control scripts, the Layout Editor and CATS desk build modules, the Jython scripts, the `cats/scripts` helpers, `.claude/hooks/*` and `.cursor/hooks/main_guard.py`, and each speed-matching script, plus the Pi unit `hart-speedmatch-live.service` and its data and runtime stores.
 - The writers of files a host loads come first: `ship_*.sh`, `stage.sh`, `apply_hart_package_local.sh`, `pack_roster_stage.sh`, `panelpro_profile.py` and `le_tables.py`.
 - Map the parked scripts in `jmri/layouts/hart/scripts/` as parked, including `apply_dispatcher_roster_profiles.py`. `refresh_bean_comments.py` is live: it has a live `check` mode.
-- `www/data/invites.json`, `www/data/panels.json` and `www/scripts/serve_portal.sh` lose `status: parked`. They are only left out of the public build.
+- `www/data/invites.json`, `archive/www/data/panels.json` and `www/scripts/serve_portal.sh` lose `status: parked`. They are only left out of the public build.
 - Agent: `general-purpose`, opus. No code review for the JSON; `/code-review medium` for the coverage check.
 
 ## B. One-off scripts become CLIs (M)

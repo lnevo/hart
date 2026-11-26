@@ -70,8 +70,6 @@ Fallback if Cursor is still blocked: `CATS_LAUNCH_VIA=terminal`.
 
 `readelf` warnings on macOS from `cats.csh` are harmless ARM probes.
 
-Also: sample `panels/reference_ArmstrongMagnet.xml`.
-
 ## Authority rule
 
 **CATS** commands turnouts/routes in CTC sessions. Layout Editor stays view / local (no dual-command).
