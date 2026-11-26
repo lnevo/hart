@@ -72,6 +72,11 @@ def names(e: ET.Element) -> list[str]:
     return [e.findtext("systemName", ""), e.findtext("userName", "") or ""]
 
 
+def named(e: ET.Element) -> list[Cell]:
+    """names(e) as the start of a row, which may go on with counts."""
+    return list(names(e))
+
+
 def yes(v: str | None) -> str:
     return "yes" if (v or "").strip().lower() == "yes" else "no"
 
@@ -96,7 +101,7 @@ def load(src: Path | str = SRC) -> tuple[bytes, ET.Element]:
 
 def sensor_rows(r: ET.Element) -> list[Row]:
     """Sensors: MQTT or internal, from the system name prefix."""
-    return [names(e) + ["MQTT" if names(e)[0].startswith("M2S") else "Internal", note(e)] for e in tables.sensors(r)]
+    return [named(e) + ["MQTT" if names(e)[0].startswith("M2S") else "Internal", note(e)] for e in tables.sensors(r)]
 
 
 def turnout_rows(r: ET.Element) -> list[Row]:
@@ -104,19 +109,19 @@ def turnout_rows(r: ET.Element) -> list[Row]:
     for e in tables.turnouts(r):
         fb = FEEDBACK.get(e.get("feedback", ""), e.get("feedback", ""))
         sens = ", ".join(x for x in (e.get("sensor1"), e.get("sensor2")) if x)
-        rows.append(names(e) + [fb, sens, note(e)])
+        rows.append(named(e) + [fb, sens, note(e)])
     return rows
 
 
 def memory_rows(r: ET.Element) -> list[Row]:
-    return [names(e) + [note(e)] for e in tables.section(r, "memories", "memory")]
+    return [named(e) + [note(e)] for e in tables.section(r, "memories", "memory")]
 
 
 def head_rows(r: ET.Element) -> list[Row]:
     rows: list[Row] = []
     for e in tables.signal_heads(r):
         cls = e.get("class", "").rsplit(".", 1)[-1]
-        rows.append(names(e) + ["Virtual" if cls.startswith("Virtual") else cls.replace("Xml", ""), note(e)])
+        rows.append(named(e) + ["Virtual" if cls.startswith("Virtual") else cls.replace("Xml", ""), note(e)])
     return rows
 
 
@@ -126,31 +131,31 @@ def mast_rows(r: ET.Element) -> list[Row]:
         s = names(e)[0]
         m = MAST_RE.search(s)
         kind = ("On heads" if m.group(1) == "shsm" else "Virtual") if m else ""
-        rows.append(names(e) + [kind, m.group(2) if m else "", m.group(3) if m else "", note(e)])
+        rows.append(named(e) + [kind, m.group(2) if m else "", m.group(3) if m else "", note(e)])
     return rows
 
 
 def block_rows(r: ET.Element) -> list[Row]:
     """Blocks: the second, full pass only (the first pass lists names)."""
-    return [names(e) + [e.get("length", ""), e.findtext("occupancysensor", "") or "", len(e.findall("path")), note(e)]
+    return [named(e) + [e.get("length", ""), e.findtext("occupancysensor", "") or "", len(e.findall("path")), note(e)]
             for e in tables.blocks(r)]
 
 
 def layout_block_rows(r: ET.Element) -> list[Row]:
-    return [names(e) + [e.get("occupancysensor", "")] for e in tables.layout_blocks(r)]
+    return [named(e) + [e.get("occupancysensor", "")] for e in tables.layout_blocks(r)]
 
 
 def section_rows(r: ET.Element) -> list[Row]:
-    return [names(e) + [SECTION_MADE.get(e.get("creationtype", ""), e.get("creationtype", "")),
+    return [named(e) + [SECTION_MADE.get(e.get("creationtype", ""), e.get("creationtype", "")),
                         len(e.findall("blockentry"))] for e in tables.section(r, "sections", "section")]
 
 
 def transit_rows(r: ET.Element) -> list[Row]:
-    return [names(e) + [len(e.findall("transitsection"))] for e in tables.section(r, "transits", "transit")]
+    return [named(e) + [len(e.findall("transitsection"))] for e in tables.section(r, "transits", "transit")]
 
 
 def route_rows(r: ET.Element) -> list[Row]:
-    return [names(e) + [e.get("controlTurnout", ""), len(e.findall("routeOutputTurnout")), note(e)]
+    return [named(e) + [e.get("controlTurnout", ""), len(e.findall("routeOutputTurnout")), note(e)]
             for e in tables.section(r, "routes", "route")]
 
 
@@ -166,7 +171,7 @@ def entry_exit_rows(r: ET.Element) -> list[Row]:
 
 
 def logix_rows(r: ET.Element) -> list[Row]:
-    return [names(e) + [yes(e.get("enabled")), len(e.findall("logixConditional"))]
+    return [named(e) + [yes(e.get("enabled")), len(e.findall("logixConditional"))]
             for e in tables.section(r, "logixs", "logix")]
 
 
@@ -174,7 +179,7 @@ def logixng_rows(r: ET.Element) -> list[Row]:
     rows: list[Row] = []
     for e in tables.section(r, "LogixNGs", "LogixNG"):
         cn = e.find("ConditionalNGs")
-        rows.append(names(e) + [yes(e.get("enabled")), len(cn.findall("systemName")) if cn is not None else 0])
+        rows.append(named(e) + [yes(e.get("enabled")), len(cn.findall("systemName")) if cn is not None else 0])
     return rows
 
 

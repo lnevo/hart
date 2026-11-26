@@ -55,8 +55,8 @@ class LayoutIndexError(Exception):
     """The layout index cannot be built, or what was built fails a check; the message says why."""
 
 
-class NameRecord(TypedDict):
-    """A staging row of the device master, as the index joins it."""
+class NameRecord(TypedDict, total=False):
+    """A staging row of the device master, as the index joins it ({} when a device has none)."""
     current: str
     proposed: str
     cp: str
@@ -64,8 +64,8 @@ class NameRecord(TypedDict):
     comment: str
 
 
-class Device(TypedDict):
-    """A layout device read from tables.xml."""
+class Device(TypedDict, total=False):
+    """A layout device read from tables.xml ({} when a name has none)."""
     kind: str
     userName: str
     mqtt: str            # its MQTT address, "" for internal hardware
@@ -99,11 +99,12 @@ def load_render_mod() -> ModuleType:
 def load_names(path: Path) -> tuple[dict[str, NameRecord], dict[str, NameRecord]]:
     """({system name: record}, {user name: record}) of staging's rows of the device master: its user name (current and
     proposed, as the page keys them), cp, system name (hardware) and JMRI comment (hartlib.devices.comment_of)."""
-    by_hw, by_name = {}, {}
+    by_hw: dict[str, NameRecord] = {}
+    by_name: dict[str, NameRecord] = {}
     for row in device_master.load(path):
         if row["level"] != railroad_facts.STAGING_LEVEL:
             continue
-        rec = {
+        rec: NameRecord = {
             "current": row["user_name"],
             "proposed": row["user_name"],
             "cp": device_master.place(row),
@@ -126,8 +127,8 @@ def load_devices(path: Path = PANEL, master_files: device_master.Files | None = 
     """
     root = tables.read(path)
     master = device_master.index(master_files)
-    out = {}
-    pair = {}  # DCC mirror turnout -> its "Node: n Turnout: k" text, to sit beside its MQTT turnout
+    out: dict[str, Device] = {}
+    pair: dict[str, str] = {}  # DCC mirror turnout -> its "Node: n Turnout: k" text, to sit beside its MQTT turnout
     address = re.compile(r"^(?:M2[ST]|IH)(\d+)$")  # hardware systems whose number is an MQTT address
 
     def node_comment(el: ET.Element) -> bool:
@@ -295,18 +296,18 @@ def turnout_items(turnouts: Sequence[dict], ov: Overview, src: Sources, on_panel
     out = []
     for i, t in enumerate(turnouts):
         tn = t.get("tn") or ""
-        rec = src.by_hw.get(tn) or {}
+        rec: NameRecord = src.by_hw.get(tn) or {}
         dsn = tn if tn in src.devices else src.by_user.get(tn, "")
         on_panel.add(dsn)
+        dev: Device = src.devices.get(dsn) or {}
         if not rec:
-            un = (src.devices.get(dsn) or {}).get("userName") or ""
+            un = dev.get("userName") or ""
             rec = src.by_name.get(un) or {}
-        public = rec.get("proposed") or rec.get("current") or tn or t.get("ident")
+        public = rec.get("proposed") or rec.get("current") or tn or t.get("ident") or ""
         block = t.get("block") or ""
         cp = cp_for(public, src.cps, rec.get("cp") or "")
         if not cp and block.startswith("OS "):
             cp = block
-        dev = src.devices.get(dsn) or {}
         out.append(item(f"to-{t.get('ident') or i}", "turnout", (ov.x(t["cen"][0]), ov.y(t["cen"][1])), tn, public, cp,
                         rec.get("hardware") or tn, str(dev.get("mqtt") or ""),
                         rec.get("comment") or (dev.get("comment") or ""), block))
@@ -318,7 +319,7 @@ def signal_items(signals: Sequence[dict], ov: Overview, src: Sources, on_panel: 
     for i, s in enumerate(signals):
         mast = s.get("name") or ""
         on_panel.add(mast if mast in src.devices else src.by_user.get(mast, ""))
-        rec = src.by_name.get(mast) or src.by_hw.get(mast) or {}
+        rec: NameRecord = src.by_name.get(mast) or src.by_hw.get(mast) or {}
         out.append(item(f"sig-{i}", "signal", (ov.x(s["x"]), ov.y(s["y"])), mast,
                         rec.get("proposed") or rec.get("current") or mast, rec.get("cp") or "",
                         rec.get("hardware") or "", "", rec.get("comment") or "", ""))
@@ -344,7 +345,7 @@ def device_items(src: Sources, on_panel: set[str]) -> list[Item]:
         if sn in on_panel:
             continue
         un = (dev.get("userName") or sn).strip()
-        rec = src.by_hw.get(sn) or src.by_name.get(un) or {}
+        rec: NameRecord = src.by_hw.get(sn) or src.by_name.get(un) or {}
         out.append(item(f"dev-{sn}", item_kind(dev.get("kind") or ""), None, sn,
                         rec.get("proposed") or rec.get("current") or un, rec.get("cp") or "",
                         rec.get("hardware") or sn, str(dev.get("mqtt") or ""),

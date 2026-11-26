@@ -34,7 +34,9 @@ class Fixture(NamedTuple):
     note: str
 
 
-# (group, [(files, script, note)]): a plain literal, which tools/audit/tests/test_helix_stl_index.py reads
+# (group, [(files, script, note)]): a plain literal, which tools/audit/tests/test_helix_stl_index.py reads (so the type
+# is declared on its own line, and the literal stays an ast.Assign)
+GROUPS: list[tuple[str, list[tuple[list[str], str | None, str]]]]
 GROUPS = [
     ('Router templates', [
         (['roadbed_halflap_template_A.3mf', 'roadbed_halflap_template_A.stl', 'roadbed_halflap_template_A_CORE100.stl',
