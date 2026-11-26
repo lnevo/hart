@@ -261,6 +261,15 @@
    "gen": "manifest"
   },
   {
+   "id": "tools/audit/layout_facts_xml.py",
+   "label": "layout_facts_xml.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "check_layout_facts.py's XML readers: desks, GUIObjects.xml and tables.xml parsed once per file version, and the elements and attributes the checks need.",
+   "path": "tools/audit/layout_facts_xml.py"
+  },
+  {
    "id": "tools/audit/check_mqtt_no_static_lists.py",
    "label": "check_mqtt_no_static_lists",
    "kind": "generator",
@@ -4824,6 +4833,15 @@
    "domain": "layout",
    "desc": "speedmatch lengths: infers the test-loop block lengths from timed laps (block_events.csv) and the AnyRail plan; writes timed rows of block_lengths_measured.csv.",
    "path": "jmri/layouts/hart/scripts/infer_block_lengths.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/plan_routes.py",
+   "label": "plan_routes.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "speedmatch lengths: walks the two test routes on the AnyRail plan 5.3c with the plugin's plan reader; each route's length and its pinned turnout centres, for infer_block_lengths.py.",
+   "path": "jmri/layouts/hart/scripts/plan_routes.py"
   },
   {
    "id": "jmri/layouts/hart/scripts/diagnose_turnout_states.py",
@@ -11891,6 +11909,26 @@
    "label": "runs"
   },
   {
+   "from": "ext:anyrail-plan",
+   "to": "jmri/layouts/hart/scripts/plan_routes.py",
+   "label": "reads the test routes"
+  },
+  {
+   "from": "external/model-railroad-skills/plugins/schematic-maps",
+   "to": "jmri/layouts/hart/scripts/plan_routes.py",
+   "label": "plan reader (anyplan)"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
+   "to": "jmri/layouts/hart/scripts/plan_routes.py",
+   "label": "switch numbers (relabel), via hartlib.layer_files"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/plan_routes.py",
+   "to": "jmri/layouts/hart/scripts/infer_block_lengths.py",
+   "label": "route lengths and turnout centres"
+  },
+  {
    "from": "jmri/layouts/hart/scripts/speedmatch/speedmatch.py",
    "to": "jmri/layouts/hart/scripts/infer_block_lengths.py",
    "label": "runs (lengths)"
@@ -13133,6 +13171,11 @@
    "from": "tools/audit/traced_read.py",
    "to": "tools/audit/traced.py",
    "label": "re-exported"
+  },
+  {
+   "from": "tools/audit/layout_facts_xml.py",
+   "to": "tools/audit/check_layout_facts.py",
+   "label": "imported"
   },
   {
    "from": "tools/audit/stamp_audit/sitecustomize.py",

@@ -47,7 +47,7 @@ from portal_common import (  # noqa: E402,F401
 )
 from portal_head import _add_head_tags, _add_provenance, _head_tags, _own_description  # noqa: E402,F401
 from portal_photos import (  # noqa: E402,F401
-    ARCHIVE_MAX_PX, JPEG_CACHE_ENV, JPEG_CACHE_KEEP_DAYS, PHOTO_CODE_VERSION, PHOTO_STORE, _archive_px,
+    ARCHIVE_MAX_PX, JPEG_CACHE_ENV, JPEG_CACHE_KEEP_DAYS, PHOTO_CODE_VERSION, PHOTO_STORE, PillowMissing, _archive_px,
     _card_thumbs, _filter_gallery, _gallery_thumbs, _jpeg_cache, _jpeg_cache_at, _missing_mirrors, _photo_code_key,
     _photo_early, _photo_late, _prune_jpeg_cache, _render_jpeg, _render_key, _vendor_archive_images,
     _vendor_fleet_images, _vendor_json_logos, _vendor_logo, _vendor_logos, _vendor_photos, _web_jpeg,

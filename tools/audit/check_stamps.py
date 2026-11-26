@@ -62,7 +62,9 @@ import json
 import os
 import re
 import sys
+from collections.abc import Iterable, Sequence
 from pathlib import Path
+from typing import cast
 
 HERE = Path(__file__).resolve().parent
 # The parts (FILES) import each other by name, from any cwd and under any load name (check.sh runs this file by path;
@@ -351,7 +353,7 @@ def not_stampable(name: str, ck: Checker | None = None) -> str | None:
     if declared(name) is None:
         return f"{name} is not a stampable job"
     # also while HART_TABLES is set, for every job: the unit jobs run without it
-    return ck.unstampable() if ck else ps.unstampable(ROOT)
+    return ck.unstampable() if ck else cast("str | None", ps.unstampable(ROOT))
 
 
 # check.sh, the loader that makes the manifest's job lines (manifest.py and its parts, pm.FILES), and the hook: an edit
@@ -366,12 +368,13 @@ def _patterns(name: str, programs: list[str], ck: Checker) -> tuple[str, ...]:
     return (*base, *(declared(name) or ())) if programs else base
 
 
-def skip_list(skips) -> list[list[str]]:
+def skip_list(skips: Iterable[Sequence[object]]) -> list[list[str]]:
     """The skipped tests a stamp holds: [test id, reason] pairs, sorted, each once."""
     return [list(s) for s in sorted({(str(i), str(r)) for i, r in skips})]
 
 
-def key(name: str, ck: Checker, programs: list[str], gits: list, skips=()) -> str:
+def key(name: str, ck: Checker, programs: list[str], gits: list[list[str]],
+        skips: Iterable[Sequence[object]] = ()) -> str:
     """The stamp key: job, check.sh and the hook, interpreter, plugin, outside state and git output now, for a job
     that ran an untraceable program every file its declaration names, and the tests its passing run skipped (their
     ids and reasons): what they skipped on is in the rest of the key and the read set."""
@@ -380,8 +383,9 @@ def key(name: str, ck: Checker, programs: list[str], gits: list, skips=()) -> st
              + f"\ngit={','.join(ck.replay(gits))}")
     if skips:
         extra += "\nskips=" + json.dumps(skip_list(skips))
-    return ps.digest(f"check:{name}", (), pats, ck.root, hasher=ck.cache, files=ck.walk(pats), extra=extra,
-                     plugin=ck.plugin())
+    digest: str = ps.digest(f"check:{name}", (), pats, ck.root, hasher=ck.cache, files=ck.walk(pats), extra=extra,
+                            plugin=ck.plugin())
+    return digest
 
 
 def why_not_current(name: str, root: Path = ROOT, store: Path = STORE, checker: Checker | None = None) -> str | None:
@@ -392,7 +396,7 @@ def why_not_current(name: str, root: Path = ROOT, store: Path = STORE, checker: 
         if not stamp:
             return "no stamp"
         k = key(name, ck, stamp.get("programs", []), stamp.get("git", []), stamp.get("skips", []))
-        return traced.mismatch(stamp, k, str(ck.root), hasher=lambda p: ck.cache(Path(p)))
+        return cast("str | None", traced.mismatch(stamp, k, str(ck.root), hasher=lambda p: ck.cache(Path(p))))
     finally:
         if checker is None:
             ck.cache.save()
@@ -406,7 +410,8 @@ def snapshot(name: str, root: Path = ROOT, store: Path = STORE, checker: Checker
     """traced.snapshot with the plugin's and `name`'s outside state: saved before the job, compared at record."""
     ck = checker or Checker(root, store)
     try:
-        return ck.snapshot(outside_state(name, ck, True))
+        state: str = ck.snapshot(outside_state(name, ck, True))   # stamps_cache is imported by name: Any to mypy
+        return state
     finally:
         if checker is None:
             ck.cache.save()
@@ -487,14 +492,14 @@ def current_batch(names: list[str], out: Path, why: bool, root: Path = ROOT, sto
     return verdicts
 
 
-def record(name: str, trace_log, root: Path = ROOT, store: Path = STORE, before: str | None = None,
+def record(name: str, trace_log: str | Path, root: Path = ROOT, store: Path = STORE, before: str | None = None,
            skipped: int = 0, audit: dict | None = None) -> str | None:
     """Record `name`'s stamp from `trace_log`; None when recorded, else why not (any old stamp is dropped).
     `before` is the snapshot() taken before the job: a different one now records nothing. `skipped` is the number of
     skipped tests the job's output shows: the trace must hold at least that many skips, with their ids and reasons.
     `audit` (a manifest job's step_reads) is kept in the stamp for `check_stamps.py audit`; it is not in the key."""
     t = traced.parse(trace_log)
-    reason = traced.problem(t)
+    reason: str | None = traced.problem(t)
     ck = Checker(root, store)
     try:
         if reason is None and before is not None and before != snapshot(name, checker=ck):
@@ -544,7 +549,7 @@ def uncovered(name: str, files: set[str], dirs: set[str]) -> list[str]:
     return bad
 
 
-def audit_trace(name: str, trace_log, root: Path = ROOT, fails: bool = False) -> tuple[list[str], dict | None, int]:
+def audit_trace(name: str, trace_log: str | Path, root: Path = ROOT, fails: bool = False) -> tuple[list[str], dict | None, int]:
     """`record`'s audit: (lines, the step_reads for the stamp or None, warnings: 1 for an audit that cannot run, which
     says so in one STAMP AUDIT FAILED line). `fails`: the lines say this run fails on a warning."""
     if not from_manifest(name):
@@ -623,7 +628,8 @@ def _main(argv: list[str]) -> int:
     if argv[:1] == ["record"]:
         return record_cmd(argv[1:])
     if argv[:1] == ["audit"]:
-        return audit_stamp(argv[1:], ROOT, STORE)
+        rc: int = audit_stamp(argv[1:], ROOT, STORE)
+        return rc
     if len(argv) == 2 and argv[0] == "declared":
         print("\n".join(declared(argv[1]) or ()))
         return 0

@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from hartlib.railroad_facts import Leg, Switch  # noqa: E402
 from hartlib.railroad_facts import half_text  # noqa: E402
 from hartlib.cats import station_plate  # noqa: E402
+from hartlib.levels import level_text  # noqa: E402
 
 from cats_panel_facts import CatsPanelError, Facts, template_by_type  # noqa: E402
 from cats_panel_shapes import (STAGING_DISCIPLINE, STAGING_SENSOR_PREFIX, STAGING_TURNOUT_PREFIX,  # noqa: E402
@@ -152,7 +153,7 @@ def half_label(sw: Switch, leg: Leg, letters: Mapping[tuple[str, str], str]) -> 
     upper case (23A, 23B), by its OS block's device ID (leg.os_id) from `letters` ({(level, id): letter},
     hartlib.hand_lists.half_letters: block_overrides.csv's crossover_half rows), never from its name, so the owner may
     rename the half (devices_field.csv). CatsPanelError on a half with no letter there."""
-    own = letters.get((sw.level, leg.os_id))
+    own = letters.get((level_text(sw.level), leg.os_id))
     if own is None:
         raise CatsPanelError(f"Switch {sw.number}: {leg.os_block} ({leg.os_id or 'no OS block ID'}) has no crossover_half "
                          "row in block_overrides.csv to give its half letter")

@@ -22,8 +22,8 @@ from pathlib import Path
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths  # noqa: E402
-from hartlib import devices  # noqa: E402
-from hartlib.railroad_facts import STAGING_LEVEL, FactsError  # noqa: E402
+from hartlib import devices, levels  # noqa: E402
+from hartlib.railroad_facts import FactsError  # noqa: E402
 from hartlib.names import jmri_comment  # noqa: E402
 
 ROOT = paths.REPO_ROOT
@@ -263,9 +263,9 @@ def stale_head_comments(files: devices.Files | None = None, path: Path | None = 
         if not need.is_file():
             raise FactsError(f"{paths.rel(need)} is missing: the staging head check reads it")
     comments = load_wiring_head_comments(wiring_path)
-    heads = {r["user_name"]: r for r in devices.load(files) if r["level"] == STAGING_LEVEL and r["layer"] == "head"}
-    out = [f"{name}: wiring.csv gives {want!r}, the device master has {heads[name]['wiring']!r}"
-           for name, want in sorted(comments.items()) if name in heads and heads[name]["wiring"] != want]
+    heads = {r.user_name: r for r in devices.load(files) if r.level == levels.STAGING and r.layer == "head"}
+    out = [f"{name}: wiring.csv gives {want!r}, the device master has {heads[name].wiring!r}"
+           for name, want in sorted(comments.items()) if name in heads and heads[name].wiring != want]
     out += [f"{name}: in wiring.csv but no staging head row of the device master" for name in sorted(set(comments) - set(heads))]
     return out
 
@@ -742,14 +742,14 @@ def load_device_map_comments() -> tuple[dict[str, str], dict[tuple[str, str], st
         "block": "block",
     }
     for row in devices.load(path):
-        layer, user = row["layer"], row["user_name"]
-        if row["level"] != STAGING_LEVEL or layer not in layer_kind:
+        layer, user = row.layer, row.user_name
+        if row.level != levels.STAGING or layer not in layer_kind:
             continue
         comment = public_comment(layer, user, devices.comment_of(row))
         if not comment:
             continue
-        if layer != "mast" and row["system_name"].startswith(("M2T", "M2S", "IH", "MTT")):
-            by_sys[row["system_name"]] = comment     # a mast's system name holds its heads', whose rows give theirs
+        if layer != "mast" and row.system_name.startswith(("M2T", "M2S", "IH", "MTT")):
+            by_sys[row.system_name] = comment     # a mast's system name holds its heads', whose rows give theirs
         xml_kind = layer_kind[layer]
         by_user[(xml_kind, user)] = comment
         if xml_kind == "signalmast":

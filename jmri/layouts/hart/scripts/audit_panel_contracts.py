@@ -17,7 +17,7 @@ from typing import Iterable
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import (devices, level_devices, level_masts, occupancy_bindings, parked, paths,  # noqa: E402
-                     railroad_facts, tables, tables_build)
+                     levels, railroad_facts, tables, tables_build)
 
 REPO_ROOT = paths.REPO_ROOT
 DEFAULT_SOURCES = (("deployment", paths.TABLES_XML),)
@@ -36,16 +36,16 @@ from lcc_turnout_contract import contract_violations
 from nx_contract import EXPECTED_NX_PAIRS, ISNX_SYSTEM, LAYOUT_PANEL, NXTYPE_SML
 
 
-def station_comments(rows=None) -> dict[str, str]:
+def station_comments(rows: Iterable[railroad_facts.MasterRow] | None = None) -> dict[str, str]:
     """{block: its JMRI comment} of the Dispatcher stations: the device master's staging block rows marked `stop` (the
     Dispatcher stations are parked with the stations topic since 2026-11-22, so the master marks none and the audit
     holds tables.xml to no block comment marking a stop; the 12 former stations are in docs/parked/UNPARK.md). The master is the one copy of the station list and the comments (the parked scripts' own copies are listed in
     docs/parked/UNPARK.md)."""
     out: dict[str, str] = {}
     for row in devices.load() if rows is None else rows:
-        if row["level"] != railroad_facts.STAGING_LEVEL or row["layer"] != "block" or row.get("stop") != "yes":
+        if row.level != levels.STAGING or row.layer != "block" or row.stop != "yes":
             continue
-        name, comment = row["user_name"], row["jmri_comment"]
+        name, comment = row.user_name, row.jmri_comment
         if not (comment == "stop" or comment.endswith("; stop")):
             raise devices.DevicesError(f"station {name!r} is marked stop in the device master but its comment "
                                        f"{comment!r} does not end in 'stop'")
@@ -165,8 +165,8 @@ def dispatcher_virtuals(expected: set[str], devices_csv: Path = devices.MASTER) 
     """The expected masts that are hidden virtual masts for Dispatcher Stage 1, not field
     masts: staging's hidden masts in the device master (role hidden, a virtual signal mast IF$vsm:...($10nn))."""
     virtual = {
-        row["user_name"] for row in devices.load(devices_csv)
-        if row["level"] == railroad_facts.STAGING_LEVEL and row["layer"] == "mast" and row["role"] == "hidden"
+        row.user_name for row in devices.load(devices_csv)
+        if row.level == levels.STAGING and row.layer == "mast" and row.role == "hidden"
     }
     return expected & virtual
 

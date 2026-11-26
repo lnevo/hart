@@ -9,11 +9,12 @@ from dataclasses import dataclass, field, replace
 from functools import cached_property
 from pathlib import Path
 from collections.abc import Callable, Collection, Iterable, Mapping
-from typing import Any, cast
+from typing import Any
 
 from . import layer_files, level_devices, level_masts, paths, tables, track_names
 from .errors import FactsError, HartlibError
-from .levels import ALL_LEVELS, MAIN_UPPER, Level, LevelText, level_text, parse_level
+from .device_rows import DEVICE_LIST, MASTER_COLUMNS, DeviceRow, MasterRow, device_list  # noqa: F401  re-exported
+from .levels import ALL_LEVELS, MAIN_UPPER, Level, parse_level
 
 LAYERS = ("inputs", "hands", "device_map", "masts", "tables")
 WRITERS = {
@@ -40,7 +41,6 @@ DEVICE_COLUMNS = ("level", "cp", "layer", "user_name", "system_name", "jmri_name
 #   dir        mast rows: the way the mast looks, "east" or "west", set where the direction is known (mast_rule for a
 #              home mast, build_device_map.intermediates for an APB one); the name's L/R or odd/even only labels it
 DEVICE_FACTS = DEVICE_COLUMNS[11:]
-DEVICE_LIST = ";"
 MAST_DIRS = ("east", "west")
 DETECTORS = ("wired", "planned", "not_wired", "none")
 UNIQUE_HARDWARE = ("turnout", "fb", "occupancy", "head")   # layers whose hardware is one device's alone
@@ -334,7 +334,7 @@ class Switch:
     row's legs) with, from its turnout row in the device master (staging's "Switch <n>"), its hardware (system_name), DCC
     address and control point."""
     number: int
-    level: LevelText    # text: callers compare it with "1"
+    level: Level
     le_ident: str
     cats_inverted: bool
     ctc_is: int
@@ -409,7 +409,7 @@ def staging_switches(rows: list[SwitchRow], path: Path, devices_csv: Path,
                              f"both use USS lever IS{ctc_is}")
         lever[ctc_is] = (first.line, n)
         nm = names.get(n, {})
-        out[n] = Switch(number=n, level=level_text(first.level), le_ident=first.le_ident,
+        out[n] = Switch(number=n, level=first.level, le_ident=first.le_ident,
                         cats_inverted=_yes(first.cats_inverted, where), ctc_is=ctc_is,
                         ctc_signals=_yes(first.ctc_signals, where),
                         legs=tuple(Leg(r.os_block, r.closed_leg, r.thrown_leg, r.os_id) for r in rs), hand=first.hand,
@@ -993,70 +993,6 @@ def read_hands(path: Path) -> dict[str, Hand]:
 
 # ---------------------------------------------------------------- the device map (build_device_map.py)
 
-@dataclass(frozen=True)
-class DeviceRow:
-    """A main or upper row of the device master: a JMRI device (jmri_name, virtual) and its planned physical part
-    (system_name, a draft). `role` is what the device is (devices.ROLES), given by the row or its writer; readers test
-    it, not the name."""
-    level: Level
-    layer: str
-    user_name: str
-    role: str
-    cp: str = ""
-    system_name: str = ""
-    jmri_name: str = ""
-    node: str = ""
-    dcc: str = ""
-    comment: str = ""
-    trial_name: str = ""
-    notes: str = ""
-    blocks: str = ""
-    detector: str = ""
-    stop: str = ""
-    switch: str = ""
-    facing: str = ""
-    protects: str = ""
-    dir: str = ""
-    id: str = ""        # its device ID (hartlib.device_ids); empty on a row made without one (a test's)
-    assignment: str = ""    # the master's assignment (devices.ASSIGNMENTS): field for a device swapped in (ADR-028);
-                            # empty on a row made without one (a test's), read as virtual
-    line: int = 0
-
-    @property
-    def swapped(self) -> bool:
-        """Whether the row is a field device (assignment field: swapped in by its row, ADR-028): its jmri_name is
-        the device's, held to no virtual-name rule (a column test, not a level test)."""
-        return self.assignment == "field"
-
-    def __post_init__(self) -> None:
-        from . import devices
-        if self.role not in devices.ROLES:      # no role is read off a name (hand-off row 8)
-            raise FactsError(f"level {self.level} {self.layer} {self.user_name!r} has role {self.role!r}, not one of "
-                             f"{', '.join(devices.ROLES)}")
-
-    @property
-    def served(self) -> list[str]:
-        """An occupancy row's blocks, in order."""
-        return device_list(self.blocks)
-
-    @property
-    def protected(self) -> list[str]:
-        """A mast row's protected blocks, in order."""
-        return device_list(self.protects)
-
-    @property
-    def trial(self) -> frozenset[str]:
-        """The schematic tracks a block row holds, by switch and leg ("Track 127AB-131AB", "Track 107B-107C #1")."""
-        return frozenset(t.strip() for t in self.trial_name.split(",") if t.strip())
-
-    @classmethod
-    def from_dict(cls, row: dict, line: int = 0) -> "DeviceRow":
-        """A row as build_device_map.py makes it (str or int level); its role is the row's own (a row with none stops)."""
-        row = {"role": "", **row}           # a row with no role stops in __post_init__, naming it
-        cells = {k: str(v) for k, v in row.items() if k not in ("line", "level")}
-        return cls(line=line, level=cast(Level, int(row["level"])), **cells)
-
-
 DEVICE_LAYERS = NAME_LAYERS             # the device map's layers are staging's
 
 
@@ -1100,11 +1036,6 @@ class DeviceMap:
     def heads_by_system(self) -> dict[str, DeviceRow]:
         """Planned physical head (IH<packed>) -> its head row."""
         return {r.system_name: r for r in self.of("head")}
-
-
-def device_list(cell: str) -> list[str]:
-    """A DEVICE_LIST cell's items, in order."""
-    return [x.strip() for x in (cell or "").split(DEVICE_LIST) if x.strip()]
 
 
 def device_facts(r: dict) -> list[str]:

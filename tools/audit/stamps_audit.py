@@ -8,7 +8,13 @@ from __future__ import annotations
 
 import os
 import sys
+from collections.abc import Sequence
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    # pm is tools/pipeline/manifest.py loaded by path (stamps_cache); this import gives mypy its types only
+    from tools.pipeline.manifest_jobs import Declared
 
 HERE = Path(__file__).resolve().parent
 # Loaded by path from any cwd (check_stamps.py does so): its sibling comes from this folder, on sys.path only while
@@ -33,7 +39,8 @@ def read_audit(folder: Path) -> dict[str, tuple[set[str], set[str]]]:
     """job name -> (files read, folders listed), from a CHECK_AUDIT folder: N.name and N.log per job."""
     jobs = {}
     for namef in sorted(folder.glob("*.name")):
-        files, dirs = set(), set()
+        files: set[str] = set()
+        dirs: set[str] = set()
         logf = namef.with_suffix(".log")
         if logf.is_file():
             for line in logf.read_text(errors="replace").splitlines():
@@ -71,7 +78,7 @@ AUDIT_HOW = "warn only in this run; a CHECK_AUDIT run and the weekly full run fa
 AUDIT_FAILS = "this run fails on it (ADR-037 stage 4c: a CHECK_AUDIT run or CHECK_AUDIT_FAILS=1)"
 
 
-def step_reads(name: str, trace_log, root: Path, steps) -> dict:
+def step_reads(name: str, trace_log: str | Path, root: Path, steps: Sequence[Declared]) -> dict:
     """Job `name`'s data reads, from its trace: {"steps": {step: [files]}, "unowned": {}, "absent": [], "bash": [the
     step, when bash runs it, whose reads the trace cannot see]}. Every job of the manifest is one step (stage 4b), so
     every process in its trace is that step's. Files are the repo paths its processes read as data ("r" lines; an open
@@ -105,7 +112,7 @@ def step_reads(name: str, trace_log, root: Path, steps) -> dict:
     return {"steps": {step.name: sorted(reads)}, "unowned": {}, "absent": [], "bash": []}
 
 
-def audit_lines(name: str, audit: dict, steps, full: bool = False, how: str = AUDIT_HOW) -> tuple[list[str], int]:
+def audit_lines(name: str, audit: dict, steps: Sequence[Declared], full: bool = False, how: str = AUDIT_HOW) -> tuple[list[str], int]:
     """The audit's report for job `name` from its step_reads and the manifest's steps now, and the number of
     warnings. A job with none gets one line. `full` lists every file (the `audit` command); else at most 8 a step."""
     by_name = {s.name: s for s in steps}
@@ -143,10 +150,10 @@ def audit_lines(name: str, audit: dict, steps, full: bool = False, how: str = AU
              f"    again: python3 tools/audit/check_stamps.py audit {name}"], count)
 
 
-def manifest_steps(name: str, root: Path) -> tuple:
+def manifest_steps(name: str, root: Path) -> tuple[Declared, ...]:
     """Job `name`'s steps as the audit sees them (manifest.declarations). Raises AuditError for a job that is not a
     manifest job, manifest.ManifestError for a manifest that will not read."""
-    decls = pm.declarations(root / MANIFEST)
+    decls: dict[str, tuple[Declared, ...]] = pm.declarations(root / MANIFEST)
     if name not in decls:
         raise AuditError(f"{name!r} is no job of {MANIFEST.as_posix()} (its jobs: {', '.join(decls)})")
     return decls[name]

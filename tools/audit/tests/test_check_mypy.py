@@ -27,7 +27,21 @@ exit "${FAKE_RC:-0}"
 """
 
 MYPY_INI = """[mypy]
+mypy_path = src
 exclude = (?x)(^skip/ | ^jy/dual\\.py$)
+
+[mypy-pkg.*]
+disallow_untyped_defs = True
+
+[mypy-pkg.tests.*]
+disallow_untyped_defs = False
+
+[mypy-tools.*]
+disallow_untyped_defs = True
+warn_return_any = True
+
+[mypy-loose.*]
+warn_return_any = True
 """
 
 RUFF = """extend-exclude = ["vendor", "old/one.py"]
@@ -48,7 +62,7 @@ class Scratch(unittest.TestCase):
         self.write("mypy.ini", MYPY_INI)
         self.write("ruff.toml", RUFF)
         for rel in ("a.py", "tools/x.py", "other/a.py", "vendor/v.py", "old/one.py", "old/two.py", "skip/s.py",
-                    "jy/dual.py", "jy/inside.py"):
+                    "jy/dual.py", "jy/inside.py", "src/pkg/m.py", "src/pkg/tests/t.py"):
             self.write(rel, "x = 1\n")
         self.write("jy/imports.py", "import os\nfrom java.lang import Thread\n")
         self.write("untracked.py", "x = 1\n")
@@ -74,7 +88,8 @@ class Scratch(unittest.TestCase):
 
 class Files(Scratch):
     def test_excludes_ruff_lists_jython_and_mypy_exclude(self) -> None:
-        self.assertEqual(sorted(cm.checked_files(self.root)), ["a.py", "old/two.py", "other/a.py", "tools/x.py"])
+        self.assertEqual(sorted(cm.checked_files(self.root)),
+                         ["a.py", "old/two.py", "other/a.py", "src/pkg/m.py", "src/pkg/tests/t.py", "tools/x.py"])
 
     def test_under_matches_whole_segments(self) -> None:
         self.assertTrue(cm.under("vendor/v.py", ["vendor"]))
@@ -116,6 +131,43 @@ class Files(Scratch):
         got = cm.batches(["a/x.py", "b/x.py", "a/y.py", "c/x.py", "b/y.py"])
         self.assertEqual(got, [["a/x.py", "a/y.py"], ["b/x.py", "b/y.py"], ["c/x.py"]])
         self.assertEqual(cm.batches([]), [])
+
+
+class Strict(Scratch):
+    def test_scope_from_package_sections(self) -> None:
+        scope = cm.strict_scope(self.root)
+        self.assertEqual(scope, cm.StrictScope(("src/pkg", "tools"), ("src/pkg/tests",)))
+        self.assertTrue(scope.holds("src/pkg/m.py"))
+        self.assertTrue(scope.holds("tools/deep/y.py"))
+        self.assertFalse(scope.holds("src/pkg/tests/t.py"))
+        self.assertFalse(scope.holds("src/pkgx/m.py"))
+        self.assertFalse(scope.holds("a.py"))
+
+    def test_package_found_under_mypy_path_before_root(self) -> None:
+        self.write("pkg/other.py", "x = 1\n")
+        self.assertEqual(cm.package_folder(self.root, "pkg", ["src"]), "src/pkg")
+        self.assertEqual(cm.package_folder(self.root, "pkg", []), "pkg")
+
+    def test_section_with_no_folder(self) -> None:
+        self.write("mypy.ini", "[mypy]\n[mypy-gone.*]\ndisallow_untyped_defs = True\n")
+        with self.assertRaisesRegex(cm.MypySetupError, r"\[mypy-gone\.\*\] names no folder"):
+            cm.strict_scope(self.root)
+
+    def test_strict_option_on_one_module_or_not_a_boolean(self) -> None:
+        self.write("mypy.ini", "[mypy]\n[mypy-tools.x]\ndisallow_untyped_defs = True\n")
+        with self.assertRaisesRegex(cm.MypySetupError, "set it on a whole package"):
+            cm.strict_scope(self.root)
+        self.write("mypy.ini", "[mypy]\n[mypy-tools.*]\ndisallow_untyped_defs = maybe\n")
+        with self.assertRaisesRegex(cm.MypySetupError, "disallow_untyped_defs"):
+            cm.strict_scope(self.root)
+
+    def test_repo_scope(self) -> None:
+        scope = cm.strict_scope(ROOT)
+        for path in ("tools/hartlib/src/hartlib/paths.py", "tools/audit/check_mypy.py"):
+            self.assertTrue(scope.holds(path), path)
+        for path in ("tools/hartlib/tests/test_paths.py", "tools/audit/tests/test_check_mypy.py",
+                     "tools/schematic/build.py"):
+            self.assertFalse(scope.holds(path), path)
 
 
 class Pin(Scratch):
@@ -180,20 +232,21 @@ class Baseline(Scratch):
                 cm.read_baseline(path)
 
     def test_compare(self) -> None:
-        now = {"a.py": 3, "b.py": 1, "new.py": 2, "tools/hartlib/src/hartlib/x.py": 1}
-        base = {"a.py": 2, "b.py": 4, "gone.py": 5}
-        v = cm.compare(now, base)
-        self.assertEqual(v.strict, {"tools/hartlib/src/hartlib/x.py": 1})
+        now = {"a.py": 3, "b.py": 1, "new.py": 2, "src/pkg/x.py": 1, "src/pkg/tests/t.py": 1}
+        base = {"a.py": 2, "b.py": 4, "gone.py": 5, "src/pkg/tests/t.py": 1}
+        v = cm.compare(now, base, cm.strict_scope(self.root))
+        self.assertEqual(v.strict, {"src/pkg/x.py": 1})
         self.assertEqual(v.rose, {"a.py": (2, 3), "new.py": (0, 2)})
         self.assertEqual(v.fell, {"b.py": (4, 1), "gone.py": (5, 0)})
         self.assertFalse(v.ok)
-        self.assertTrue(cm.compare({"b.py": 1}, base).ok)
+        self.assertTrue(cm.compare({"b.py": 1}, base, cm.strict_scope(self.root)).ok)
 
-    def test_write_leaves_hartlib_out_and_sorts(self) -> None:
+    def test_write_leaves_strict_folders_out_and_sorts(self) -> None:
         path = self.root / "b.json"
-        cm.write_baseline(path, {"z.py": 1, "a.py": 2, "tools/hartlib/src/hartlib/x.py": 1})
-        self.assertEqual(list(json.loads(path.read_text(encoding="utf-8"))), ["a.py", "z.py"])
-        self.assertEqual(cm.read_baseline(path), {"a.py": 2, "z.py": 1})
+        cm.write_baseline(path, {"z.py": 1, "a.py": 2, "src/pkg/x.py": 1, "src/pkg/tests/t.py": 1},
+                          cm.strict_scope(self.root))
+        self.assertEqual(list(json.loads(path.read_text(encoding="utf-8"))), ["a.py", "src/pkg/tests/t.py", "z.py"])
+        self.assertEqual(cm.read_baseline(path), {"a.py": 2, "src/pkg/tests/t.py": 1, "z.py": 1})
 
 
 class Main(Scratch):
@@ -241,10 +294,18 @@ class Main(Scratch):
         self.assertEqual(rc, 1)
         self.assertIn("rose: a.py: 2 -> 3", out)
 
-    def test_hartlib_error_fails(self) -> None:
-        rc, out = self.main({"tools/hartlib/src/hartlib/x.py": 1}, base={})
+    def test_strict_folder_error_fails(self) -> None:
+        rc, out = self.main({"src/pkg/x.py": 1}, base={})
         self.assertEqual(rc, 1)
-        self.assertIn("hartlib must have none", out)
+        self.assertIn("strict: src/pkg/x.py: 1 error(s)", out)
+        rc, out = self.main({"src/pkg/x.py": 1}, base={"src/pkg/x.py": 1})
+        self.assertEqual(rc, 1, "a baseline row does not excuse a strict file")
+
+    def test_bad_strict_section_is_exit_2(self) -> None:
+        self.write("mypy.ini", "[mypy]\n[mypy-gone.*]\ndisallow_untyped_defs = True\n")
+        rc, out = self.main({})
+        self.assertEqual(rc, 2)
+        self.assertIn("names no folder", out)
 
     def test_update_writes_and_refuses_a_rise(self) -> None:
         rc, _ = self.main({"a.py": 1}, "--update", base={"a.py": 2})

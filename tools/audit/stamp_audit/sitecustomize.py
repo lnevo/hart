@@ -12,7 +12,7 @@ if _log and _root:
     _fd = os.open(_log, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o644)
     _prefix = _root.rstrip("/") + "/"
 
-    def _note(kind, path):
+    def _note(kind: str, path: object) -> None:
         try:
             p = os.fsdecode(path) if isinstance(path, (str, bytes, os.PathLike)) else None
         except Exception:
@@ -31,7 +31,7 @@ if _log and _root:
         if p.startswith(_prefix):
             os.write(_fd, f"{kind}\t{p[len(_prefix):]}\n".encode())
 
-    def _hook(event, args):
+    def _hook(event: str, args: tuple[object, ...]) -> None:
         if event == "open":
             path, mode, flags = args
             if isinstance(mode, str):

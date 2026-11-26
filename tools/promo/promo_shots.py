@@ -1,11 +1,24 @@
-"""What the promo cuts in tiktok_promo.py show: the site pages captured, the layout photos and the page regions.
+"""What the promo cuts in tiktok_promo.py show: the site pages captured, the layout photos and the page regions,
+and the headless Chrome captures of those pages. PromoError is the promo scripts' one error.
 
 The page regions are pixel offsets into the 1080 px wide phone captures in media/promo/shots/. After the site
 changes, delete the old capture, let tiktok_promo.py take a new one, and check these offsets against it.
 """
 from __future__ import annotations
 
+import shutil
+import subprocess
+import tempfile
+from pathlib import Path
 from typing import NamedTuple
+
+SITE_URL = "https://www.hartrailroad.com/"
+CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+
+
+class PromoError(Exception):
+    """A promo cannot be rendered: a missing input, a tool that failed, or voice timings that do not fit."""
+
 
 # Site pages captured live at phone width: path under the site -> file stem in media/promo/shots/.
 PAGES: dict[str, str] = {
@@ -115,3 +128,36 @@ SITE_SECTIONS: tuple[Section, ...] = (
         Region("ai", 7150, 7700, 0, 1080, -2),
     )),
 )
+
+
+def find_chrome() -> str:
+    """Google Chrome or Chromium on this machine; PromoError when there is neither."""
+    for name in (CHROME, "google-chrome", "chromium"):
+        found = shutil.which(name)
+        if found:
+            return found
+    raise PromoError("Google Chrome not found")
+
+
+def capture_pages(out: Path, stems: set[str]) -> dict[str, Path]:
+    """Phone-width captures of the live pages in PAGES, reusing files in out.
+
+    Headless Chrome on macOS lays out no narrower than about 500 CSS px, so a
+    390 px window clips the page; 500 px at 2.16x gives a clean 1080 px image.
+    """
+    out.mkdir(parents=True, exist_ok=True)
+    shots = {}
+    for path, stem in PAGES.items():
+        if stem not in stems:
+            continue
+        shot = out / f"{stem}.png"
+        if not shot.exists():
+            with tempfile.TemporaryDirectory() as profile:  # never touch the owner's Chrome
+                subprocess.run([find_chrome(), "--headless=new", "--disable-gpu",
+                                "--hide-scrollbars", f"--user-data-dir={profile}",
+                                "--virtual-time-budget=6000", "--force-device-scale-factor=2.16",
+                                "--window-size=500,3600", f"--screenshot={shot}",
+                                SITE_URL + path],
+                               check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        shots[stem] = shot
+    return shots

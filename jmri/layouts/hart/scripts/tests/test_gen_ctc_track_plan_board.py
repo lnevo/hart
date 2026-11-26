@@ -374,7 +374,7 @@ class LeverColumns(unittest.TestCase):
         return mock.Mock(level=level, uss_slot=slot, ctc_is=ctc_is, ctc_signals=signals)
 
     def test_columns_from_switch_rows(self):
-        cols = gen.uss_columns({"1": self.sw("1", 0, 1, True), "5": self.sw("1", 2, 5, False)})
+        cols = gen.uss_columns({"1": self.sw(1, 0, 1, True), "5": self.sw(1, 2, 5, False)})
         self.assertEqual(cols["n_slots"], 3)
         self.assertEqual(cols["blank"], {1})
         self.assertEqual(cols["switch_only"], {2})
@@ -383,8 +383,8 @@ class LeverColumns(unittest.TestCase):
         self.assertEqual(cols["uid_slot"], {1: 0, 2: 0, 5: 2, 6: 2})
 
     def test_a_level_outside_the_board_stops_naming_it(self):
-        with self.assertRaisesRegex(SystemExit, r"level\(s\) \['2'\]"):
-            gen.uss_columns({"1": self.sw("1", 0, 1, True), "9": self.sw("2", 1, 3, True)})
+        with self.assertRaisesRegex(SystemExit, r"level\(s\) 2: "):
+            gen.uss_columns({"1": self.sw(1, 0, 1, True), "9": self.sw(2, 1, 3, True)})
 
 
 class ImportersCall(unittest.TestCase):

@@ -5,7 +5,7 @@ jmri/layouts/hart/scripts/check_bean_comments.py,929
 jmri/layouts/hart/scripts/gen_ctc_track_plan.py,1375
 jmri/layouts/hart/scripts/tests/test_pom_guard.py,976
 jmri/layouts/hart/scripts/tests/test_signal_coordinator_behaviour.py,2059
-jmri/layouts/hart/scripts/tests/test_speedmatch_distance.py,973
+jmri/layouts/hart/scripts/tests/test_speedmatch_distance.py,971
 ops/hart-ops/card_pipeline/cars.py,1480
 ops/hart-ops/card_pipeline/crop_car_image.py,994
 ops/hart-ops/card_pipeline/generate_operator_sheet.py,837
@@ -14,14 +14,14 @@ tools/audit/tests/test_build_layout_le.py,1119
 tools/audit/tests/test_pipeline_map.py,861
 tools/check.sh,604
 tools/hartlib/src/hartlib/devices.py,1154
-tools/hartlib/src/hartlib/railroad_facts.py,1355
+tools/hartlib/src/hartlib/railroad_facts.py,1286
 tools/hartlib/src/hartlib/store_split.py,1028
 tools/hartlib/src/hartlib/tables_build.py,1185
 tools/hartlib/tests/test_devices.py,874
 tools/hartlib/tests/test_railroad.py,892
 tools/hartlib/tests/test_tables_build.py,812
 tools/hosts/tests/test_deploy_gates.py,1069
-tools/promo/tiktok_promo.py,812
+tools/promo/tiktok_promo.py,808
 tools/schematic/build_device_map.py,979
 tools/schematic/tests/test_block_layer.py,869
 www/js/crew.js,898
