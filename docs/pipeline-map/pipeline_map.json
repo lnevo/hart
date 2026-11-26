@@ -3487,13 +3487,31 @@
    "path": "tools/ops/merge_pipeline_map.py"
   },
   {
-   "id": "tools/ops/pipeline_map.js",
-   "label": "pipeline_map.js",
+   "id": "tools/ops/pipeline_map_page.html",
+   "label": "pipeline_map_page.html",
    "kind": "unstructured",
    "status": "live",
    "domain": "extras",
-   "desc": "Layout and viewer script inlined into both pipeline map pages.",
-   "path": "tools/ops/pipeline_map.js"
+   "desc": "Page template for both pipeline map pages: the toolbar, panels and styles around the map.",
+   "path": "tools/ops/pipeline_map_page.html"
+  },
+  {
+   "id": "tools/ops/pipeline_map_layout.js",
+   "label": "pipeline_map_layout.js",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Layout script (pure functions) inlined into both pipeline map pages; the unit tests run it under node.",
+   "path": "tools/ops/pipeline_map_layout.js"
+  },
+  {
+   "id": "tools/ops/pipeline_map_view.js",
+   "label": "pipeline_map_view.js",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Viewer script (the page's state, drawing and input) inlined into both pipeline map pages after the layout.",
+   "path": "tools/ops/pipeline_map_view.js"
   },
   {
    "id": "docs/pipeline-map/pipeline_map.json",
@@ -9128,12 +9146,6 @@
    "gen": "manifest"
   },
   {
-   "from": "tools/ops/pipeline_map.js",
-   "to": "tools/ops/build_pipeline_map.py",
-   "label": "inlined",
-   "gen": "manifest"
-  },
-  {
    "from": "tools/ops/build_pipeline_map.py",
    "to": "docs/pipeline-map/index.html",
    "label": "make map",
@@ -10107,6 +10119,24 @@
    "from": "tools/pipeline/panels.toml",
    "to": "tools/ops/build_pipeline_map.py",
    "label": "manifest lane",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/ops/pipeline_map_page.html",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "template",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/ops/pipeline_map_layout.js",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "inlined",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/ops/pipeline_map_view.js",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "inlined",
    "gen": "manifest"
   },
   {
