@@ -28,9 +28,9 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import operations  # noqa: E402
+from hartlib import operations, paths  # noqa: E402
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = paths.REPO_ROOT
 MASTER = ROOT / "ops/hart-ops/data/trains.csv"
 CREW = ROOT / "ops/hart-ops/data/crew.json"  # the crew master (ADR-039, lane L5)
 ROSTER = operations.ROSTERS["trains"]
