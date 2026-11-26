@@ -12,7 +12,6 @@
  "jmri/layouts/hart/scripts/layout_facts.py": 1,
  "jmri/layouts/hart/scripts/lcc_turnout_contract.py": 3,
  "jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py": 10,
- "jmri/layouts/hart/scripts/render_le_layout.py": 4,
  "jmri/layouts/hart/scripts/speedmatch/make_job.py": 1,
  "jmri/layouts/hart/scripts/tests/jmri_fake.py": 3,
  "jmri/layouts/hart/scripts/tests/test_apply_nx_layer.py": 3,
