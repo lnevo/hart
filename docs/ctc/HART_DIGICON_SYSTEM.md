@@ -182,7 +182,7 @@ No aspects are disabled; Basic has no Advanced Approach to disable.
 
 **Counts:** 90 masts in `tables.xml`: 64 real (24 `two-searchlight`, 40 `one-low`) and 26 virtual.
 
-**Mast 6LB (interim):** a one-low dwarf on `IH432` (C4-OU2-1..3), the only head wired so far. `IH433` stays defined but unwired and on no mast. It returns to two-searchlight when the second head is wired (`FITTED_HEADS` in `build_hart_signal_heads.py`; the wiring docs still show that two-head plan).
+**Mast 6LB (interim):** a one-low dwarf on `IH432` (C4-OU2-1..3), the only head wired so far. `IH433` stays defined but unwired and on no mast. It returns to two-searchlight when the second head's rows are added to `jmri/layouts/hart/data/wiring.csv`; `build_hart_signal_heads.py` builds each mast from its wired heads only. The wiring docs still show that two-head plan.
 
 Mast icons use the Basic `default` image set (JMRI draws it with its stock AAR-1946 schematic GIFs): scale 1.0 on the Layout Editor panel (45 icons). The USS CTC panel (0.5, 11 icons) is parked.
 
@@ -214,7 +214,7 @@ make panels
 make panels CHECK=1
 ```
 
-Head IH numbers in `tables.xml` follow the wiring plan (packed = radio address × 100 + slot); `tools/audit/check_wiring_crosswalk.py` fails in `./tools/check.sh` when a head on a physical mast differs from `wiring.csv`. The full run (no flag) refuses to rewrite `tables.xml`, because its generated block would drop the virtual masts, IH9990 and the mast comments. Change heads and masts in `tables.xml` directly (PanelPro and CATS closed), then run `make panels` and check that `git diff` shows only what you meant. Interim builds with fewer heads than planned (Mast 6LB) are listed in `FITTED_HEADS` in the script.
+Head IH numbers in `tables.xml` follow the wiring plan (packed = radio address × 100 + slot); `tools/audit/check_wiring_crosswalk.py` fails in `./tools/check.sh` when a head on a physical mast differs from `wiring.csv`. `build_hart_signal_heads.py` writes only `signal_head_plan.csv`; it never writes `tables.xml`. Change heads and masts in `tables.xml` directly (PanelPro and CATS closed), then run `make panels` and check that `git diff` shows only what you meant. An interim build with fewer heads than planned (Mast 6LB) has only its wired heads' rows in `wiring.csv`, and the head plan follows them.
 
 LE `signalmasticon`s use the stock Basic `default` image set (no custom imagelinks). Digicon binds by userName either way.
 

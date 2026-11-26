@@ -123,5 +123,36 @@ class BuildHartSignalHeadsTest(unittest.TestCase):
                 )
 
 
+class PortErrorsTest(unittest.TestCase):
+    """build_rows raises HeadPlanError, which main() reports with exit 2, for a lamp it cannot place."""
+
+    HEAD = ("Mast 9", 4, "C4", "", 432, "C4-OU2-3", "C4-OU2-2", "C4-OU2-1", "S", "")
+
+    def setUp(self) -> None:
+        self.m = load_module()
+
+    def _rows(self, heads: list[tuple], cal_ports: set[str]) -> list[dict]:
+        with unittest.mock.patch.object(self.m, "heads_3pin", return_value=heads), \
+                unittest.mock.patch.object(self.m.wiring, "calibration_ports", return_value=cal_ports):
+            return self.m.build_rows()
+
+    def test_a_lamp_on_a_calibration_port_is_refused(self) -> None:
+        with self.assertRaisesRegex(self.m.HeadPlanError, "C4-OU2-1 is a calibration relay's port"):
+            self._rows([self.HEAD], {"C4-OU2-1"})
+
+    def test_two_lamps_on_one_port_are_refused(self) -> None:
+        other = ("Mast 10",) + self.HEAD[1:4] + (433,) + self.HEAD[5:]
+        with self.assertRaisesRegex(self.m.HeadPlanError, "duplicate port C4-OU2-1: Mast 9 S R and Mast 10"):
+            self._rows([self.HEAD, other], set())
+
+    def test_main_reports_the_error_and_exits_2(self) -> None:
+        err = StringIO()
+        with unittest.mock.patch.object(self.m, "build_rows", side_effect=self.m.HeadPlanError("duplicate port X")), \
+                unittest.mock.patch.object(sys, "argv", ["build_hart_signal_heads.py", "--check"]), \
+                unittest.mock.patch("sys.stderr", err):
+            self.assertEqual(self.m.main(), 2)
+        self.assertIn("duplicate port X", err.getvalue())
+
+
 if __name__ == "__main__":
     unittest.main()
