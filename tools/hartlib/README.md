@@ -427,7 +427,7 @@ folder it runs in. `sibling_modules()` reads that tuple from the script's source
 and stops with `CoordinatorError` (a `ValueError`) when the tuple is missing, given twice, not literal, empty, holds a
 name that is not a module name or a module with no `.py` beside the script. `files()` is the script then each module,
 and `source()` their text joined in that order, for the checks that read the code as text
-(`check_mqtt_no_static_lists.py`, `le_names.lcos_rule`, `cats/scripts/tests/test_signal_coordinator.py`) and the test
+(`check_mqtt_no_static_lists.py`, `le_names.lcos_rule`) and the test
 that every deploy list ships each module (`tools/hosts/tests/test_coordinator_shipping.py`).
 `jmri/layouts/hart/scripts/panel_status.py` lists its parts the same way in `PARTS` (each runs in the script's own
 namespace, not as a module): `sibling_modules(PANEL_STATUS)`, or `panel_status_parts()`, reads that tuple, and

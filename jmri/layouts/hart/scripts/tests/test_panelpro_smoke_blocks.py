@@ -22,15 +22,16 @@ PLAIN = ("LEVEL_BLOCK_PREFIX", "LEVEL_SENSOR_PREFIX", "field_detected", "block_s
          "level_block_errors")
 
 
-def plain_parts() -> dict:
-    """The script's prefixes and its plain functions, run in a namespace of their own."""
+def plain_parts(names: tuple[str, ...] = PLAIN, ns: dict | None = None) -> dict:
+    """The script's named constants and plain functions, run in a namespace of their own (`ns`, which may hold
+    what they use: Jython's builtins or the script's other globals)."""
     tree = ast.parse(SCRIPT.read_text(encoding="utf-8"))
     keep = [n for n in tree.body
-            if (isinstance(n, ast.FunctionDef) and n.name in PLAIN)
-            or (isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "") in PLAIN)]
-    ns: dict = {"os": os}
+            if (isinstance(n, ast.FunctionDef) and n.name in names)
+            or (isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "") in names)]
+    ns = {"os": os, **(ns or {})}
     exec(compile(ast.Module(body=keep, type_ignores=[]), str(SCRIPT), "exec"), ns)
-    missing = [name for name in PLAIN if name not in ns]
+    missing = [name for name in names if name not in ns]
     if missing:
         raise AssertionError(f"{SCRIPT.name} has no {missing}")
     return ns

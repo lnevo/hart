@@ -155,7 +155,7 @@ class Parts(unittest.TestCase):
 
 
 class PartText(unittest.TestCase):
-    """What test_panel_status_contract.py holds the script to, each part is held to as well."""
+    """The rules the script keeps (no plant turnout commands, no yard-ladder paint) hold for each part too."""
 
     def test_no_part_commands_a_plant_turnout_or_paints_yard_ladders(self) -> None:
         for path in FILES[1:]:
