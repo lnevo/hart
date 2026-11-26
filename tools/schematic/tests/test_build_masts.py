@@ -40,6 +40,21 @@ class CsvText(unittest.TestCase):
         self.assertEqual(text, 'a,b\n1,"x,y"\n,"say ""hi"""\n')
         self.assertEqual(bsm.csv_text([], ("a", "b")), "a,b\n")
 
+    def test_cp_cells_take_the_ids_of_the_lists_beside_the_file(self):
+        """A masts.csv copy beside its own stations.csv is written by those lists, the ones level_masts.read
+        names it by; the repo's file by the repo's."""
+        from hartlib import places
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp) / places.SCHEMATIC.name
+            folder.mkdir()
+            (folder / places.INTERLOCKINGS.name).write_bytes(places.INTERLOCKINGS.read_bytes())
+            (folder / places.STATIONS.name).write_text(
+                places.STATIONS.read_text(encoding="utf-8").replace(",Engine House,", ",Roundhouse,"),
+                encoding="utf-8")
+            row = [dict(cp="Barn;Roundhouse")]
+            self.assertEqual(bsm.csv_text(row, ("cp",), folder / "masts.csv"), "cp\nst:barn;st:engine-house\n")
+            self.assertEqual(bsm.csv_text(row, ("cp",), level_masts.PATH), "cp\nst:barn;Roundhouse\n")  # the repo has no Roundhouse
+
     def test_the_rule_error_is_device_map_masts(self):
         self.assertIs(bsm.RuleError, dmm.RuleError)
 

@@ -11,12 +11,28 @@ fails the test at once (AssertionError), rather than changing nothing.
 """
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
+from typing import Mapping
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from hartlib import devices  # noqa: E402
+from hartlib import device_ids, devices  # noqa: E402
+
+_NUMBER_AT_END = re.compile(r"(\d+)$")
+
+
+def fixture_id(row: Mapping[str, str]) -> str:
+    """A test row's id when the test gives none (check_rows wants one on every row with a level): a turnout's as
+    hartlib.device_ids gives it from the number its name ends in (dcc:<n> for an LCC alias, "DCC Switch <n>",
+    switch:<n> otherwise; check_rows holds a turnout id to that grammar), any other row's test:<layer>:<name>. A
+    turnout name with no number gets the test form, which check_rows refuses: such a test gives its own id."""
+    m = _NUMBER_AT_END.search(row["user_name"]) if row["layer"] == "turnout" else None
+    if m is None:
+        return f"test:{row['layer']}:{row['user_name']}"
+    alias = row["role"] == "lcc_alias" or row["user_name"].startswith("DCC ")
+    return (device_ids.dcc_id if alias else device_ids.switch_id)(m.group(1))
 
 
 def _rows(path: Path) -> list[dict]:
@@ -66,7 +82,7 @@ def add(path: Path, **columns: str) -> None:
     assert not unknown, f"not master columns: {sorted(unknown)}"
     row.update(columns)
     if row["level"] and "id" not in columns:        # check_rows wants one on every row with a level
-        row["id"] = f"test:{row['layer']}:{row['user_name']}"
+        row["id"] = fixture_id(row)
     rows.append(row)
     _write(path, rows)
 

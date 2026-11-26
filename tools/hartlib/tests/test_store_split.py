@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from hartlib import devices as D, tables  # noqa: E402
 from hartlib import store_split as ss  # noqa: E402
 from hartlib import tables_build as tb  # noqa: E402
+from master_edit import fixture_id  # noqa: E402
 
 TURNOUTS = 'class="jmri.jmrix.openlcb.configurexml.OlcbTurnoutManagerXml"'
 MEMORIES = 'class="jmri.managers.configurexml.DefaultMemoryManagerXml"'
@@ -27,7 +28,7 @@ def blank(**cells) -> dict:
     row = {c: "" for c in D.COLUMNS}
     row.update({"level": "1", "description": "A device.", **cells})
     if row["level"] and "id" not in cells:          # check_rows wants one on every row with a level
-        row["id"] = f"test:{row['layer']}:{row['user_name']}"
+        row["id"] = fixture_id(row)
     return row
 
 
@@ -447,7 +448,7 @@ class Choices(unittest.TestCase):
     def test_edits_find_their_row_by_key_wherever_it_is(self) -> None:
         """A rename and its jmri_name edit name the row by its key: both land, whatever the row's place."""
         rows = list(reversed(ROWS))
-        key = ("1", "test:turnout:Switch 1")         # a field row is keyed by (level, id)
+        key = ("1", "switch:1")                      # a field row is keyed by (level, id)
         got = ss.edited_rows(rows, [ss.Edit(key, "user_name", "Switch 1", "Switch 1X"),
                                     ss.Edit(key, "jmri_name", "Switch 1", "Switch 1X")])
         row = next(r for r in got if r["system_name"] == "M2T408")

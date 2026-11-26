@@ -83,10 +83,17 @@ class LccMqttTurnoutAliasContractTest(unittest.TestCase):
         self.assertEqual((refused, bad), (set(), []))
         self.assertEqual((plants["M2T408"].user, plants["M2T408"].alias), ("Switch Brick West", "MTT100"))
 
-    def test_rows_with_test_ids_pair_by_name(self) -> None:
-        plants, _refused, bad = contract.field_plants(master([dict(TURNOUT, id=""), dict(ALIAS, id="")],
-                                                             self.tmp / devices.ONE_FILE))
-        self.assertEqual((bad, plants["M2T408"].alias), ([], "MTT100"))
+    def test_a_turnout_id_that_names_no_switch_stops(self) -> None:
+        """The master refuses a turnout row whose id is not switch:<n> or dcc:<n> (check_rows), so no pair falls
+        back to its name; pair_key refuses one that did not come through a load."""
+        with self.assertRaisesRegex(devices.DevicesError, r"Switch 1 \(level 1, turnout\): id 'test:turnout:Switch 1' "
+                                                          "is not switch:<switch number>"):
+            contract.field_plants(master([dict(TURNOUT, id=""), ALIAS], self.tmp / devices.ONE_FILE))
+        with self.assertRaisesRegex(devices.DevicesError, "id 'switch:1a' is not switch:<n> or dcc:<n>"):
+            contract.pair_key(dict(TURNOUT, id="switch:1a"))
+        self.assertEqual(contract.pair_key(dict(TURNOUT, level="", id="")), ("", "Switch 1"))
+        self.assertEqual(contract.pair_key(dict(ALIAS, level="", id="")), ("", "Switch 1"))
+        self.assertEqual(contract.pair_key(ALIAS), contract.pair_key(TURNOUT))
 
     def test_the_alias_is_the_rows_dcc_not_the_comments(self) -> None:
         """The address comes from the turnout row's dcc column; a comment that says otherwise does not move it."""

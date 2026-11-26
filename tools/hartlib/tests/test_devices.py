@@ -11,6 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from hartlib import devices as D  # noqa: E402
+from master_edit import fixture_id  # noqa: E402
 
 REAL = D.Files.here()
 # A second writer for the writer rules' fixtures: build_masts.py held the staging masts until naming-layers step 12,
@@ -39,7 +40,7 @@ def blank(**cells) -> dict:
     row = {c: "" for c in D.COLUMNS}
     row.update(cells)
     if row["level"] and "id" not in cells:
-        row["id"] = f"test:{row['layer']}:{row['user_name']}"
+        row["id"] = fixture_id(row)
     return row
 
 
@@ -424,7 +425,7 @@ class TheRowForms(unittest.TestCase):
                dir="", role="turnout")
 
     def test_a_field_turnouts_dcc_group_is_split_out_and_put_back(self):
-        r = D.master_row(self.OLD, "")
+        r = D.master_row(dict(self.OLD, id="switch:1"), "")
         self.assertEqual((r["wiring"], r["dcc"], r["jmri_comment"]), ("Node: 4 Turnout: 0 | OU: 1 Ports: 1,2", "100", ""))
         self.assertEqual(dict(D.device_map_row(r), role=r["role"]), self.OLD)
 
@@ -438,7 +439,7 @@ class TheRowForms(unittest.TestCase):
 
     def test_a_comment_that_cannot_be_split_back_fails(self):
         with self.assertRaisesRegex(D.DevicesError, "does not survive the split"):
-            D.master_row(dict(self.OLD, comment="Node: 4 Turnout: 0 | OU: 1 Ports: 1,2"), "")    # no DCC group, field
+            D.master_row(dict(self.OLD, id="switch:1", comment="Node: 4 Turnout: 0 | OU: 1 Ports: 1,2"), "")  # no DCC group
 
     def test_a_dcc_text_that_is_not_a_second_group_fails(self):
         with self.assertRaises(ValueError):
@@ -611,7 +612,7 @@ class TheWriters(unittest.TestCase):
 
     def test_a_writer_that_gives_a_row_a_hand_kept_row_has_is_refused(self):
         hand = hand_keep(self.files)
-        stray = dict(D.device_map_row(hand), role=hand["role"])
+        stray = dict(D.device_map_row(hand), role=hand["role"], id=hand["id"])
         with self.assertRaisesRegex(D.DevicesError, "would rewrite row"):
             D.outputs_after(OTHER, [stray], self.files)
 

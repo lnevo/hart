@@ -16,7 +16,7 @@ import build_device_map as bdm  # noqa: E402
 import freeze_wiring as fw  # noqa: E402
 from unittest import mock  # noqa: E402
 
-from hartlib import places, railroad, wiring  # noqa: E402
+from hartlib import railroad, wiring  # noqa: E402
 
 HEAD = ",".join(wiring.COLUMNS) + "\n"
 
@@ -213,8 +213,10 @@ class TheCommand(unittest.TestCase):
 
     def setUp(self):
         # a turnout row has no cp: its place is its switch's in the switch lists (devices.place), here CP 9's
-        patch = mock.patch.object(places, "switch_place",
-                                  lambda level, s, schematic=None: "CP 9" if (str(level), str(s)) == ("2", "9") else "")
+        # (places.of stops on a place that is no id of the lists, so the stand-in is devices.place itself)
+        patch = mock.patch.object(fw.devices, "place",
+                                  lambda r, schematic=None: r["cp"] if r["layer"] != "turnout" else
+                                  "CP 9" if (r["level"], r["id"].split(":")[1]) == ("2", "9") else "")
         patch.start()
         self.addCleanup(patch.stop)
 
