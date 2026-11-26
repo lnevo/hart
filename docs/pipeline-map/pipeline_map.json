@@ -5125,7 +5125,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "agents",
-   "desc": "make orient: claims, worktrees in progress, the operating flag, last deploys and open PRs on one screen.",
+   "desc": "make orient: claims, worktrees in progress, the operating flag, last deploys, open PRs and what waits to be pulled in from the hosts, on one screen.",
    "path": "tools/ops/orient.py"
   },
   {
