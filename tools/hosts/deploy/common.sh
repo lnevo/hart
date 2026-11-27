@@ -71,7 +71,7 @@ HARTLIB_HOST_MODULES=(__init__.py errors.py files.py jmri_profile.py)
 # the USS CTC machine). Their files outside tables.xml stay in the repo but are not shipped: the Dispatcher traininfo
 # and options (jmri/layouts/hart/dispatcher) and the USS CTC icons and GUIObjects.xml (jmri/layouts/hart/ctc), and
 # the jython that only serves them. Nothing here or in the host apply scripts removes copies already installed on a
-# host: they stay until removed by hand (owner, 2026-11-17). Unparking a feature ships them again.
+# host: they stay until removed by hand. Unparking a feature ships them again.
 # Sets PARKED_DIRS, PARKED_JYTHON and HART_JYTHON_SCRIPTS; exits 1 when the list cannot be read.
 load_parked() {
   PARKED_DIRS="$(PYTHONPATH="$ROOT/tools/hartlib/src" python3 -m hartlib.parked dirs)" \
@@ -222,7 +222,7 @@ SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15)
 # run, the rest reuse it, and the step that made the folder closes each master and removes it. The folder is passed
 # to the other steps in HART_SSH_MUX_DIR, so one run keeps one connection per host. ControlPersist bounds
 # a master left by a killed run. HART_SSH_MUX=0 turns reuse off for both hosts; HART_WIN_SSH_MUX=0
-# turns it off for Windows only (OpenSSH for Windows, shared connections approved 2026-11-20).
+# turns it off for Windows only (OpenSSH for Windows).
 PI_SSH_OPTS=()
 WIN_SSH_OPTS=()
 ssh_opts_init() {
@@ -360,7 +360,7 @@ ops_repo_sha() {
   done | shasum -a 256 | cut -d' ' -f1
 }
 
-# The repo master of the DecoderPro roster (ADR-039 amendment 2026-11-26): roster.xml and roster/*.xml, installed
+# The repo master of the DecoderPro roster (ADR-039): roster.xml and roster/*.xml, installed
 # into JMRI_UserFiles on every host the deploy reaches (tools/hosts/pi/install_roster.sh).
 ROSTER_MASTER="$ROOT/jmri/layouts/hart/roster"
 

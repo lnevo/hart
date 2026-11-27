@@ -52,6 +52,7 @@ SETTLE = 4.5
 # the topic of each kind of retained state the QA drives (LCOS status topics, never a command topic)
 TURNOUT_TOPIC = "track/turnout/{}"
 SENSOR_TOPIC = "track/sensor/{}"
+HEAD_TOPICS = "track/signalhead/#"      # every signal head's appearance, read only
 
 
 class QAError(Exception):
@@ -65,6 +66,26 @@ def client(name: str) -> str:
     if found is None:
         raise QAError(f"{name} is not in PATH or /opt/local/bin; install the mosquitto clients")
     return found
+
+
+class SubscribeError(QAError):
+    """mosquitto_sub exited with an error (the broker refused or did not answer), not with its -W timeout."""
+
+
+# mosquitto_sub's exit codes that end a read normally: 0, and 27 when the -W timeout ends it ("Timed out waiting for
+# message", man mosquitto_sub, EXIT STATUS): a topic with no retained message, or the timeout ending a wildcard read.
+SUB_DONE = (0, 27)
+
+
+def subscribe(topic: str, *options: str) -> str:
+    """mosquitto_sub's output for one topic filter (-v: "topic payload" lines); SubscribeError naming the topic, the
+    exit code and what the client said when it exits with any code but SUB_DONE."""
+    p = subprocess.run([client("mosquitto_sub"), "-h", HOST, "-t", topic, *options, "-W", "2", "-v"],
+                       capture_output=True, text=True)
+    if p.returncode not in SUB_DONE:
+        said = p.stderr.strip() or "nothing on stderr"
+        raise SubscribeError(f"mosquitto_sub -h {HOST} on {topic} exited {p.returncode}: {said}")
+    return p.stdout
 
 
 STOPLIKE = {"Stop", "Unlit", "Dark", "Held", None, ""}
@@ -116,15 +137,10 @@ def touched_topics(drives: Mapping[str, sml_qa.Drive]) -> list[str]:
 
 
 def capture_baseline(topics: Sequence[str]) -> dict:
-    """Read current retained value of every topic we will touch."""
+    """Read current retained value of every topic we will touch (none for a topic with no retained message)."""
     base: dict[str, str] = {}
     for topic in topics:
-        p = subprocess.run(
-            [client("mosquitto_sub"), "-h", HOST, "-t", topic, "-C", "1", "-W", "2", "-v"],
-            capture_output=True,
-            text=True,
-        )
-        line = p.stdout.strip()
+        line = subscribe(topic, "-C", "1").strip()
         if line:
             t, _, payload = line.partition(" ")
             base[t] = payload
@@ -186,13 +202,9 @@ def jmri_snapshot() -> dict[str, MastState]:
 
 
 def mqtt_heads() -> dict[str, str]:
-    p = subprocess.run(
-        [client("mosquitto_sub"), "-h", HOST, "-t", "track/signalhead/#", "-v", "-W", "2"],
-        capture_output=True,
-        text=True,
-    )
+    """Each signal head's retained colour, by head system name: what arrives before subscribe's 2-second timeout."""
     out = {}
-    for line in p.stdout.splitlines():
+    for line in subscribe(HEAD_TOPICS).splitlines():
         if " " not in line:
             continue
         topic, payload = line.split(" ", 1)
@@ -349,18 +361,26 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 2
     OUT.mkdir(parents=True, exist_ok=True)
     print("capturing retained baseline…", flush=True)
-    baseline = capture_baseline(touched_topics(drives))
+    try:
+        baseline = capture_baseline(touched_topics(drives))
+    except SubscribeError as err:       # nothing published yet
+        print(f"run_native_sml_qa: baseline not captured, nothing driven: {err}", file=sys.stderr)
+        return 2
     (OUT / "native_sml_qa_baseline.json").write_text(json.dumps(baseline, indent=1))
     print(f"captured {len(baseline)} retained topics")
     run = Run()
     try:
-        run_scenario(run, steps, drives)
-    finally:
-        print("restoring retained baseline…")
-        for topic, payload in baseline.items():
-            pub(topic, payload)
-        time.sleep(SETTLE)
-        observe(run, "qa99_restored", "Retained baseline restored.")
+        try:
+            run_scenario(run, steps, drives)
+        finally:
+            print("restoring retained baseline…")
+            for topic, payload in baseline.items():
+                pub(topic, payload)
+            time.sleep(SETTLE)
+            observe(run, "qa99_restored", "Retained baseline restored.")
+    except SubscribeError as err:       # the baseline was published back before this
+        print(f"run_native_sml_qa: {err}", file=sys.stderr)
+        return 2
     (OUT / "native_sml_qa_notes.md").write_text("\n".join(run.notes))
     print("wrote", OUT / "native_sml_qa_notes.md")
     if run.failures:

@@ -222,5 +222,89 @@ class NativeSmlQaTest(unittest.TestCase):
             self.assertEqual(self.qa.aspect_from_heads(colors), aspect, colors)
 
 
+class SubscribeExitTest(unittest.TestCase):
+    """mosquitto_sub's exit code, with a fake client first and alone on CLIENT_DIRS: it prints nothing to stdout and
+    exits with the code a test gives it. No broker is reached and nothing is published (pub is refused)."""
+
+    qa: ClassVar[ModuleType]
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.qa = load_module()
+        cls.qa.MAST_HEADS.update(cls.qa.load_mast_heads())
+
+    def setUp(self) -> None:
+        import tempfile
+        from unittest import mock
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.bin = Path(tmp.name)
+        self.fake("mosquitto_pub", 99, "the fake publisher ran")
+        for patch in (mock.patch.object(self.qa, "CLIENT_DIRS", (str(self.bin),)),
+                      mock.patch.object(self.qa, "OUT", self.bin / "out"),
+                      mock.patch.object(self.qa, "SETTLE", 0)):
+            patch.start()
+            self.addCleanup(patch.stop)
+
+    def fake(self, name: str, code: int, stderr: str = "") -> None:
+        path = self.bin / name
+        path.write_text(f"#!/bin/sh\nprintf '%s' '{stderr}' >&2\nexit {code}\n")
+        path.chmod(0o755)
+
+    def test_the_timeout_exit_is_a_normal_end(self) -> None:
+        self.fake("mosquitto_sub", 27)
+        self.assertEqual(self.qa.capture_baseline(["a/b"]), {})
+        self.assertEqual(self.qa.mqtt_heads(), {})
+
+    def test_a_retained_value_is_read_on_exit_zero(self) -> None:
+        import subprocess
+        from unittest import mock
+        self.fake("mosquitto_sub", 0)
+        done = subprocess.CompletedProcess([], 0, stdout="a/b ACTIVE\n", stderr="")
+        with mock.patch.object(self.qa.subprocess, "run", return_value=done) as run:
+            self.assertEqual(self.qa.capture_baseline(["a/b"]), {"a/b": "ACTIVE"})
+        argv = run.call_args.args[0]
+        self.assertEqual(argv[argv.index("-t") + 1], "a/b")
+        self.assertEqual(argv[argv.index("-C") + 1], "1")
+
+    def test_an_error_exit_is_a_subscribe_error_naming_the_code(self) -> None:
+        self.fake("mosquitto_sub", 14, "Error: Connection refused")
+        for read in (lambda: self.qa.capture_baseline(["a/b"]), self.qa.mqtt_heads):
+            with self.subTest(read=read), self.assertRaises(self.qa.SubscribeError) as ctx:
+                read()
+            self.assertRegex(str(ctx.exception), r"^mosquitto_sub -h \S+ on \S+ exited 14: Error: Connection refused$")
+            self.assertIsInstance(ctx.exception, self.qa.QAError)
+        self.fake("mosquitto_sub", 5)
+        with self.assertRaisesRegex(self.qa.SubscribeError, "exited 5: nothing on stderr$"):
+            self.qa.mqtt_heads()
+
+    def test_a_failed_baseline_ends_main_with_nothing_driven(self) -> None:
+        import io
+        from unittest import mock
+        self.fake("mosquitto_sub", 14, "Error: Connection refused")
+        err = io.StringIO()
+        with mock.patch.object(self.qa, "pub", side_effect=AssertionError("published")), \
+                mock.patch.object(self.qa, "run_scenario", side_effect=AssertionError("ran")), \
+                mock.patch("sys.stdout", io.StringIO()), mock.patch("sys.stderr", err):
+            self.assertEqual(self.qa.main([]), 2)
+        self.assertRegex(err.getvalue(), r"^run_native_sml_qa: baseline not captured, nothing driven: mosquitto_sub "
+                                         r".* exited 14: Error: Connection refused\n$")
+        self.assertFalse((self.bin / "out/native_sml_qa_baseline.json").exists())
+
+    def test_a_failed_read_mid_run_restores_the_baseline_and_ends_main(self) -> None:
+        import io
+        from unittest import mock
+        self.fake("mosquitto_sub", 14, "Error: Connection refused")
+        published: list[tuple[str, str]] = []
+        with mock.patch.object(self.qa, "capture_baseline", return_value={"a/b": "ACTIVE"}), \
+                mock.patch.object(self.qa, "pub", lambda t, p: published.append((t, p))), \
+                mock.patch.object(self.qa, "jmri_snapshot", dict), \
+                mock.patch("sys.stdout", io.StringIO()), mock.patch("sys.stderr", io.StringIO()) as err:
+            self.assertEqual(self.qa.main([]), 2)
+        self.assertEqual(published[-1], ("a/b", "ACTIVE"))
+        self.assertIn("exited 14: Error: Connection refused", err.getvalue())
+        self.assertFalse((self.bin / "out/native_sml_qa_notes.md").exists())
+
+
 if __name__ == "__main__":
     unittest.main()
