@@ -11,6 +11,7 @@ import sys
 import tempfile
 import tokenize
 import unittest
+from dataclasses import replace
 from unittest import mock
 from pathlib import Path
 
@@ -19,6 +20,11 @@ sys.path.insert(0, str(SCRIPTS))
 import build_layout_docs as ld  # noqa: E402
 
 devices = ld.devices
+
+
+def staging_row(layer: str, user_name: str, role: str, **cells: str) -> ld.DeviceRow:
+    """A staging row of the device master, as master_rows holds it."""
+    return ld.DeviceRow(level=1, layer=layer, user_name=user_name, role=role, **cells)
 
 
 class LayoutDocs(unittest.TestCase):
@@ -57,14 +63,14 @@ class LayoutDocs(unittest.TestCase):
         lengths = [length("os:1", "Block 4-2", 9.2, 22.6), length("block:1B-3A:1/2", "Block 4-2", 5.0),
                    length("os:9", "Block 13-8", 9.2), length("block:9A-11C", "Block 13-8", 10.3),
                    length("block:109-111", "BS Switch 109", 5.4)]
-        master = {("1", "os:1"): {"user_name": "OS Switch 1", "role": "", "part_of": ""},
-                  ("1", "block:1B-3A:1/2"): {"user_name": "Track 1-3 at 1", "role": "part", "part_of": "OS Switch 1"},
-                  ("1", "os:9"): {"user_name": "OS Switch 9", "role": "", "part_of": ""},
-                  ("1", "block:9A-11C"): {"user_name": "Track 9-11", "role": "part", "part_of": "OS Switch 9"}}
+        master = {("1", "os:1"): staging_row("block", "OS Switch 1", "os"),
+                  ("1", "block:1B-3A:1/2"): staging_row("block", "Track 1-3 at 1", "part", part_of="OS Switch 1"),
+                  ("1", "os:9"): staging_row("block", "OS Switch 9", "os"),
+                  ("1", "block:9A-11C"): staging_row("block", "Track 9-11", "part", part_of="OS Switch 9")}
         got = ld.detected_sections({r.id: r for r in lengths}, master, {"OS Switch 1": timed["os:1"]})
         self.assertEqual([(s["id"], s["name"], s["inches"], s["estimate"]) for s in got],
                          [("os:1", "OS Switch 1", 22.6, False), ("os:9", "OS Switch 9", 19.5, True)])
-        master[("1", "block:9A-11C")] = {**master[("1", "block:9A-11C")], "part_of": "OS Switch 1"}   # wrong block
+        master[("1", "block:9A-11C")] = replace(master[("1", "block:9A-11C")], part_of="OS Switch 1")   # wrong block
         with self.assertRaises(ld.LayoutDocsError):
             ld.detected_sections({r.id: r for r in lengths}, master, {"OS Switch 1": timed["os:1"]})
 
@@ -73,7 +79,7 @@ class LayoutDocs(unittest.TestCase):
         ld.check_switch_labels(master)
         key = (ld.LEVEL, "switch:5")
         with self.assertRaises(ld.LayoutDocsError):
-            ld.check_switch_labels({**master, key: {**master[key], "user_name": "Switch 6"}})
+            ld.check_switch_labels({**master, key: replace(master[key], user_name="Switch 6")})
 
     def test_only_switch_labels_count(self):
         svg = ('<text x="1" font-weight="bold" fill="#5f6e7a">5</text><text class="lb">Sw 3</text>'
@@ -82,7 +88,7 @@ class LayoutDocs(unittest.TestCase):
     def test_the_dcc_address_is_the_turnouts(self):
         # "DCC Switch N" follows switch number N, not DCC address N: the page states both, from the turnout's row
         row = ld.master_rows()[(ld.LEVEL, "switch:3")]
-        self.assertIn(f"{row['user_name']} (DCC address {row['dcc']}) set normal", ld.PAGE.read_text())
+        self.assertIn(f"{row.user_name} (DCC address {row.dcc}) set normal", ld.PAGE.read_text())
 
     def test_the_station_at_a_switch_is_the_smallest_holding_it(self):
         st = ld.railroad.Station
@@ -152,7 +158,7 @@ class LayoutDocs(unittest.TestCase):
         return ld.facts(rows + [{"id": i, "inches": 9.0, "estimate": True} for i in os_ids])
 
     def test_crossovers_are_in_switch_number_order(self):
-        master = {(ld.LEVEL, f"switch:{n}"): {"layer": "turnout", "role": "turnout", "user_name": f"Switch {u}"}
+        master = {(ld.LEVEL, f"switch:{n}"): staging_row("turnout", f"Switch {u}", "turnout")
                   for n, u in ((7, 107), (23, 9), (35, 35))}
         rows = [{"id": i, "inches": 100.0, "estimate": False} for i in (ld.RS1, ld.SIDING, *ld.YARD)]
         rows += [{"id": i, "inches": 9.0, "estimate": True} for i in ("os:7:A-5B", "os:23:A-1A", "os:35:A-33A")]
@@ -202,9 +208,9 @@ class RenameReachesThePage(unittest.TestCase):
         cls.page = ld.outputs(cls.files, plans=cls.plans)[ld.PAGE]
         cls.live = ld.outputs()[ld.PAGE]                      # the same build on the real device master
         master = ld.master_rows()
-        cls.old = {k: ld.bare(master[k]["user_name"]) for k in cls.RENAMES}
+        cls.old = {k: ld.bare(master[k].user_name) for k in cls.RENAMES}
         cls.new = {k: ld.bare(v) for k, v in cls.RENAMES.items()}
-        cls.yard = [cls.new.get(("1", bid)) or ld.bare(master[("1", bid)]["user_name"]) for bid in ld.YARD]
+        cls.yard = [cls.new.get(("1", bid)) or ld.bare(master[("1", bid)].user_name) for bid in ld.YARD]
 
     @classmethod
     def tearDownClass(cls):

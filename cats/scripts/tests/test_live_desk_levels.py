@@ -48,7 +48,7 @@ class LiveDeskLevels(unittest.TestCase):
         cls.desk = ET.parse(cls.DESK).getroot()
 
     def test_main_and_upper_bind_only_their_rows_turnouts_and_masts(self) -> None:
-        turnouts = tables_build.level_turnouts(devices.load())       # {user name: bean name}, by the rows
+        turnouts = tables_build.level_turnouts([r.cells() for r in devices.load()])   # {user name: bean name}
         level = [i for i in self.desk.iter("IOSPEC") if i.get("USER_NAME") in turnouts]
         self.assertEqual({i.get("USER_NAME") for i in level}, set(turnouts))
         on_routes = {id(i) for ri in self.desk.iter("ROUTEINFO") for c in ri for i in c.iter("IOSPEC")}

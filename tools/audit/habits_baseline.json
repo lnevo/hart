@@ -202,10 +202,6 @@
  "tools/jmri/mqtt_overlay/install_overlay.py": {
   "import-exit": 1
  },
- "tools/mqtt-mimic/lcos_mqtt_mimic.py": {
-  "import-exit": 5,
-  "lost-cause": 1
- },
  "tools/ops/status_counts.py": {
   "dated-note": 1
  },

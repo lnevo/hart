@@ -1,4 +1,5 @@
-"""pi_quit_panelpro.sh answers only JMRI's store-on-quit request, and only with No."""
+"""pi_quit_panelpro.sh answers only JMRI's store-on-quit request, and only with No; it and pi_start_panelpro.sh
+find a JMRI app on the profile through pi/jmri_profile_match.sh."""
 from __future__ import annotations
 
 import os
@@ -7,6 +8,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from typing import NamedTuple
 
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "tools/hosts/pi_quit_panelpro.sh"
@@ -81,9 +83,6 @@ class PiQuitPanelProTest(unittest.TestCase):
     def test_remote_checks_are_safe(self) -> None:
         text = SCRIPT.read_text(encoding="utf-8")
         remote = text[text.index("<<'REMOTE'"):]
-        # pgrep must not match the shell that runs it.
-        self.assertNotRegex(remote, r"pgrep -f \"org")
-        self.assertIn('pgrep -f "[o]rg.jmri.profile=$profile"', remote)
         # A ready file left from an earlier PanelPro does not count.
         self.assertIn('stat -c %Y "$READY") < started', remote)
         # An unread quit is never left for the next start.
@@ -107,6 +106,119 @@ class PiQuitPanelProTest(unittest.TestCase):
                     folder = want.split(".")[0]
                     self.assertTrue(f" {want} " in f" {calls[0]} " or f"~/.jmri/{folder}.jmri/" in calls[0],
                                     calls[0])
+
+
+class PiHostRun:
+    """pi_start_panelpro.sh or pi_quit_panelpro.sh with a stand-in ssh that runs what it is sent with bash on this
+    machine: HOME is a temporary folder, ps lists the command lines a test gives (or fails), setsid runs its
+    command, and ~/JMRI/PanelPro is a stand-in that adds a PanelPro JVM to that list and writes JMRI's start line.
+    Nothing reaches a host."""
+
+    def __init__(self, tmp: Path, processes: list[str], ps_fails: bool = False) -> None:
+        self.tmp = tmp
+        self.home = tmp / "home"
+        self.procs = tmp / "processes.txt"
+        self.starts = tmp / "starts.log"
+        stub = tmp / "bin"
+        for folder in (stub, self.home / "JMRI"):
+            folder.mkdir(parents=True)
+        self.procs.write_text("".join(f"{p}\n" for p in processes), encoding="utf-8")
+        tools = {
+            "ssh": 'while [ "$1" = -o ]; do shift 2; done\nshift\nexec "$@"',
+            "ps": ("exit 1" if ps_fails else
+                   f'n=100; while IFS= read -r l; do n=$((n + 1)); echo "$n $l"; done <"{self.procs}"'),
+            "setsid": 'exec "$@"',
+        }
+        for name, body in tools.items():
+            (stub / name).write_text(f"#!/bin/bash\n{body}\n", encoding="utf-8")
+            (stub / name).chmod(0o755)
+        panelpro = self.home / "JMRI/PanelPro"
+        panelpro.write_text(
+            "#!/bin/bash\n"
+            f'echo "$*" >>"{self.starts}"\n'
+            'sleep 1.2    # the start line is newer than the marker the script made before it\n'
+            'mkdir -p "$HOME/.jmri/log"\n'
+            'echo "PanelPro version 5.16.0 starts" >"$HOME/.jmri/log/session.log"\n'
+            f'echo "java -Dorg.jmri.profile=$2 -cp .:jmri.jar apps.PanelPro.PanelPro" >>"{self.procs}"\n',
+            encoding="utf-8")
+        panelpro.chmod(0o755)
+        self.marker = self.home / ".hart_panelpro_quit_for_deploy"
+        self.marker.write_text("quit", encoding="utf-8")
+        self.path = f"{stub}:/usr/bin:/bin"
+
+    def run(self, name: str) -> subprocess.CompletedProcess[str]:
+        env = {"HOME": str(self.home), "PATH": self.path, "HART_PI_SSH": "pi.example.invalid",
+               "HART_ENV_FILE": str(self.tmp / "hart.env")}
+        return subprocess.run(["bash", str(ROOT / "tools/hosts" / name)], env=env, capture_output=True, text=True,
+                              cwd=self.tmp, timeout=60)
+
+    def started(self) -> list[str]:
+        return self.starts.read_text(encoding="utf-8").splitlines() if self.starts.exists() else []
+
+
+JVM = "java -Djava.awt.headless=false {word} -cp .:jmri.jar apps.PanelPro.PanelPro"
+CATS_SH = "/bin/bash ./cats.csh -Dcats.folder=/home/pi/JMRI_UserFiles/cats/panels --profile={id} HART_CTC.xml"
+
+
+class Started(NamedTuple):
+    """One pi_start_panelpro.sh run: its result, the stand-in PanelPro's arguments per start, and whether the
+    quit-for-deploy marker is still there."""
+    done: subprocess.CompletedProcess[str]
+    started_lines: list[str]
+    marker_left: bool
+
+
+class PiStartSeesTheProfile(unittest.TestCase):
+    def start(self, processes: list[str], ps_fails: bool = False) -> Started:
+        with tempfile.TemporaryDirectory() as name:
+            pi = PiHostRun(Path(name), processes, ps_fails)
+            done = pi.run("pi_start_panelpro.sh")
+            return Started(done, pi.started(), pi.marker.exists())
+
+    def test_a_jmri_app_on_the_profile_in_any_form_refuses_the_start(self) -> None:
+        for line in (JVM.format(word=f"-Dorg.jmri.profile={DEFAULT_PROFILE}"), CATS_SH.format(id=DEFAULT_PROFILE),
+                     JVM.format(word="")):
+            with self.subTest(line=line):
+                pi = self.start([line])
+                done = pi.done
+                self.assertEqual(done.returncode, 3, done.stderr)
+                self.assertIn("already running on the Pi; nothing started", done.stderr)
+                self.assertEqual(pi.started_lines, [])
+                self.assertFalse(pi.marker_left)
+
+    def test_a_profile_that_only_starts_the_same_does_not_stop_it(self) -> None:
+        pi = self.start([JVM.format(word="-Dorg.jmri.profile=TCS_MQTT_test"), CATS_SH.format(id="TCS_MQTT_x")])
+        done = pi.done
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertIn(f"PanelPro started on the Pi (profile {DEFAULT_PROFILE})", done.stdout)
+        self.assertEqual(pi.started_lines, [f"-p {DEFAULT_PROFILE}"])
+        self.assertFalse(pi.marker_left)
+
+    def test_a_process_list_it_cannot_read_starts_nothing(self) -> None:
+        pi = self.start([], ps_fails=True)
+        done = pi.done
+        self.assertEqual(done.returncode, 1, done.stderr)
+        self.assertIn("Cannot tell whether JMRI runs on the Pi", done.stderr)
+        self.assertEqual(pi.started_lines, [])
+        self.assertTrue(pi.marker_left)
+
+
+class PiQuitSeesTheProfile(unittest.TestCase):
+    """Only the paths that end before the quit is dropped: the drop goes to this machine's /tmp, where a PanelPro of
+    its own could run it."""
+
+    def test_a_profile_that_only_starts_the_same_is_not_quit(self) -> None:
+        with tempfile.TemporaryDirectory() as name:
+            pi = PiHostRun(Path(name), [JVM.format(word="-Dorg.jmri.profile=TCS_MQTT_test.0badf00d")])
+            done = pi.run("pi_quit_panelpro.sh")
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertIn("PanelPro is not running on the Pi; nothing to quit.", done.stdout)
+
+    def test_a_process_list_it_cannot_read_is_exit_5(self) -> None:
+        with tempfile.TemporaryDirectory() as name:
+            done = PiHostRun(Path(name), [], ps_fails=True).run("pi_quit_panelpro.sh")
+        self.assertEqual(done.returncode, 5, done.stderr)
+        self.assertIn("Cannot tell whether PanelPro runs on the Pi", done.stderr)
 
 if __name__ == "__main__":
     unittest.main()

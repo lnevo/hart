@@ -155,9 +155,26 @@ MANIFEST_CHECK = EVERYTHING
 # one job until ADR-037 stage 4b) and "panels" (build_panels.sh --check as one job until stage 6).
 RETIRED = ("static", "panels")
 
+# The masters outside CODE that the data checks' tests read on the real checkout: those with a sidecar
+# (tools/ops/check_data.py master_files), and docs/data/entities.csv with the CSV masters it names
+# (hartlib.hand_tables.master_files). tests/test_unit_declarations.py checks each list against its source.
+SIDECAR_MASTERS = ("docs/wiring/lcos/lcos_signal_logic.csv", "docs/wiring/lcos/lcos_signal_plan_notes.csv",
+                   "ops/hart-ops/data/HART_Spot_Waybills.csv", "ops/hart-ops/data/industries.csv",
+                   "ops/hart-ops/data/industry_notes.csv", "ops/hart-ops/data/industry_sheet.csv",
+                   "ops/hart-ops/data/loco_models.csv", "ops/hart-ops/data/locos.csv", "ops/hart-ops/data/roads.csv",
+                   "ops/hart-ops/data/spot_assignments.csv", "ops/hart-ops/data/spot_usages.csv",
+                   "ops/hart-ops/data/trains.csv", "www/scripts/archive_catalogue.csv")
+ENTITY_MASTERS = ("docs/data/entities.csv", "docs/wiring/lcos/lcos_signal_logic.csv",
+                  "docs/wiring/lcos/lcos_signal_plan_notes.csv", "ops/hart-ops/data/HART_Spot_Waybills.csv",
+                  "ops/hart-ops/data/image_metadata.csv", "ops/hart-ops/data/industries.csv",
+                  "ops/hart-ops/data/industry_sheet.csv", "ops/hart-ops/data/loco_models.csv",
+                  "ops/hart-ops/data/locos.csv", "ops/hart-ops/data/roads.csv",
+                  "ops/hart-ops/data/spot_assignments.csv", "ops/hart-ops/data/spot_usages.csv",
+                  "ops/hart-ops/data/trains.csv", "ops/hart-ops/docs/print/waybills/HART_CC_Waybill_Inventory.csv",
+                  "www/scripts/archive_catalogue.csv")
+
 # "kind test" (the test file, before any ".Class") -> patterns added to its kind's: the files that read the site.
 EXTRA: dict[str, tuple[str, ...]] = {
-    "unit-guards test_name_copies": EVERYTHING,
     # cs105_roster_sync.sh (bash) refuses when the submodule is not checked out, and the test skips on that answer
     "unit-hosts test_pi_ssh_scripts": ("external/jmri-cs105-roster-sync/**/*",),
     # build_layout_index.py --check (the PNG stamp of the schematic) and check.sh's start, whose verdict
@@ -220,14 +237,42 @@ EXTRA: dict[str, tuple[str, ...]] = {
                                        "www/data/**/*", "www/crew/**/*"),
     "unit-guards test_site_device_names": ("www/assets/layout/*.png", "www/scripts/**/*"),  # the PNG stamp, ADR-036
     "unit-guards test_write_inventory": ("docs/wiring/LCOS_Layout_Inventory_v*.xlsx",),  # write_inventory.OUT
+    # TheRepo checks every sidecar git lists (check_data.SCAN_GLOBS) against its master, and builds the map's step
+    "unit-guards test_check_data": ("**/*.columns.csv", *SIDECAR_MASTERS, "docs/pipeline-map/pipeline_map.json"),
+    # Repo runs check_hand_tables.py on the checkout: entities.csv and the CSV masters it names
+    "unit-guards test_check_hand_tables": ENTITY_MASTERS,
+    # the gallery against the loco master and the photo metadata
+    "unit-guards test_check_fleet_gallery": ("ops/hart-ops/data/locos.csv", "ops/hart-ops/data/image_metadata.csv",
+                                             "www/data/fleet-gallery.json"),
+    # check_locos.py on the checkout, and publish on copies of the master and the queue
+    "unit-guards test_check_locos": ("ops/hart-ops/data/locos.csv", "ops/hart-ops/data/locos.columns.csv",
+                                     "ops/hart-ops/data/loco_queue.csv"),
+    "unit-guards test_check_roster": ("ops/hart-ops/data/locos.csv",),
+    "unit-guards test_check_json": ("www/scripts/published-files.json",),
+    # the step manifest's writers against the map's boxes (manifest.repo())
+    "unit-guards test_manifest_writers": ("docs/pipeline-map/pipeline_map.json",),
+    # the map's lines, facets and step times on the committed map and docs/pipeline-map/timings.json
+    "unit-guards test_pipeline_map_eff": ("docs/pipeline-map/pipeline_map.json", "docs/pipeline-map/timings.json"),
+    "unit-guards test_pipeline_map_facets": ("docs/pipeline-map/pipeline_map.json", "docs/pipeline-map/timings.json"),
+    "unit-guards test_pipeline_map_line": ("docs/pipeline-map/pipeline_map.json",),
+    "unit-guards test_step_timings": ("docs/pipeline-map/timings.json",),
+    # its run of orient.py's short form on the checkout lists wiki/projects/ and reads each page's status
+    "unit-guards test_orient": ("wiki/projects/*.md",),
     # it runs check_data_readers.py over every tracked .py (docs/, ops/ and www/ included)
     "unit-guards test_check_data_readers": ("**/*.py",),
     # the card pipeline's car tools and the host packages' files it compares with the hosts' copies
     "unit-hosts test_host_copies": ("ops/hart-ops/card_pipeline/**/*", "ops/packages/**/*"),
+    # the roster master's link to the loco master
+    "unit-hosts test_roster_master": ("ops/hart-ops/data/locos.csv",),
     # test_docs_index, test_live_paths and test_pull_tables run their tools in scratch trees only: no line here
     "unit-jmri test_infer_block_lengths": ("docs/jmri/speedmatching/profile-2026-11-08/block_events.csv",),
     "unit-jmri test_speedmatch": ("docs/jmri/speedmatching/profile-2026-11-08/block_events.csv",),
     "unit-jmri test_speedmatch_distance": ("docs/jmri/speedmatching/RUNBOOK.md",),
+    # the speed table from the 2026-11-08 profile's laps and results
+    "unit-jmri test_speedmatch_speed_table": ("docs/jmri/speedmatching/profile-2026-11-08/manual_laps.csv",
+                                              "docs/jmri/speedmatching/profile-2026-11-08/results.csv"),
+    # the committed track-length page it compares
+    "unit-jmri test_export_track_lengths": ("docs/jmri/TRACK_LENGTHS.md",),
     # the website page shares the live page's ids; its node run reads stdin only
     "unit-jmri test_speedmatch_site_export": ("www/ai/speed-runs.html",),
 }

@@ -87,8 +87,8 @@ class Facts(unittest.TestCase):
         # the occupancy sensor of the OS block it is part of (devices.csv part_of), so each such OS block's sensor is
         # shared, and no other
         from hartlib import devices
-        parts = [r for r in devices.load(devices.master_path(btb.SRC.parents[1] / "data")) if r["role"] == "part"]
-        self.assertEqual(self.f["sharedCount"], len({r["part_of"] for r in parts}))
+        parts = [r for r in devices.load(devices.master_path(btb.SRC.parents[1] / "data")) if r.role == "part"]
+        self.assertEqual(self.f["sharedCount"], len({r.part_of for r in parts}))
         self.assertEqual(self.f["sharedExamples"], [])
 
 

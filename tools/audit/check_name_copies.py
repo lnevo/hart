@@ -72,6 +72,8 @@ TEXT_SUFFIXES = (".py", ".sh", ".js", ".mjs", ".csv", ".json", ".xml", ".html", 
 # The tracked files it lists, as git globs: one per suffix (readable() then leaves out SKIP_PREFIXES and tests). The
 # step's quiet_inputs in tools/pipeline/checks.toml are these (tools/audit/tests/test_manifest_scans.py).
 SCAN_GLOBS = tuple(f"**/*{s}" for s in TEXT_SUFFIXES)
+# Fewer files than this holding a name means the file list went wrong (several hundred hold one); main() fails then.
+MIN_NAME_FILES = 50
 
 # Dated records that keep a name that is no longer current: file -> (names, reason);
 # names None allows any. Keep this short: a copy still in use belongs on the data.
@@ -129,8 +131,8 @@ class Hit:
 def load_names(devices_csv: Path) -> tuple[set[str], set[str]]:
     """(current names, every name the master holds: the same set, as it keeps no alias rows) of staging's blocks and
     masts, the user names of their rows in the device master. DevicesError when it cannot be read."""
-    names = {row["user_name"].strip() for row in devices.load(devices_csv)
-             if row["level"] == railroad.STAGING_LEVEL and row["layer"] in LAYERS}
+    names = {row.user_name.strip() for row in devices.load(devices_csv)
+             if row.level_cell == railroad.STAGING_LEVEL and row.layer in LAYERS}
     return names, set(names)
 
 
@@ -260,6 +262,10 @@ def main(argv: list[str] | None = None) -> int:
     if hits or unused:
         print(f"FAIL: {len(hits)} stale name copies. Change each to the current name, look it up from "
               "the data, or (dated records only) add it to ALLOW with its reason.")
+        return 1
+    if len(counts) < MIN_NAME_FILES:
+        print(f"FAIL: only {len(counts)} files hold a name (at least {MIN_NAME_FILES} expected): the scan read "
+              "almost nothing; is the file list right?")
         return 1
     print(f"OK: every track, OS block and mast name in {len(counts)} hand-kept files is current")
     return 0

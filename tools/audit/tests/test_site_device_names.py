@@ -46,7 +46,7 @@ class BlockKindFromTheMaster(unittest.TestCase):
         row["jmri_bean"] = tables_build.bean_json([(tables_build.BLOCKS, el)], row)
         with tempfile.TemporaryDirectory() as d:
             files = devices.Files(Path(d) / devices.MASTER_FILE, devices.Files.here().dictionary)
-            devices.write_one_file(list(devices.load()) + [row], files)
+            devices.write_one_file([r.cells() for r in devices.load()] + [row], files)
             doc = ET.parse(paths.TABLES_XML)
             section = next(s for s in doc.getroot().iter("blocks"))
             section.append(el)

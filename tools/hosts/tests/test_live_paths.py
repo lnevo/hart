@@ -251,6 +251,9 @@ class RealList(unittest.TestCase):
     def test_mimic_builder_inputs_are_listed(self) -> None:
         files = self.run_builder("tools/mqtt-mimic/build_mimic_web.py", "--out", "OUT")
         self.assertIn("jmri/layouts/hart/output/signal_head_plan.csv", files)
+        # lcos_mqtt_mimic.py's parts: load_layout's module imports them, so a change to one is a deploy input
+        for part in ("mimic_records.py", "mimic_bus.py", "mimic_http.py"):
+            self.assertIn(f"tools/mqtt-mimic/{part}", files)
         from hartlib import devices         # the CATS bindings read the device master (hartlib.occupancy_bindings)
         for master in (devices.MASTER, devices.FIELD):
             self.assertIn(master.relative_to(ROOT).as_posix(), files)

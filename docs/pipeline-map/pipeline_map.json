@@ -3024,6 +3024,24 @@
    "gen": "manifest"
   },
   {
+   "id": "www/scripts/wiring_inventory.py",
+   "label": "wiring_inventory.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Wiring viewer part: Inventory reads the LCOS inventory sheets into the viewer's nodes, signal heads, masts, turnouts and block sensors, and warns where the sheets disagree.",
+   "path": "www/scripts/wiring_inventory.py"
+  },
+  {
+   "id": "www/scripts/wiring_sheet.py",
+   "label": "wiring_sheet.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Wiring viewer part: one sheet's cells as the viewer reads them (header tables, notes without rename history, port ids, pin kinds).",
+   "path": "www/scripts/wiring_sheet.py"
+  },
+  {
    "id": "www/scripts/check_portal_build.py",
    "label": "check_portal_build.py",
    "kind": "generator",
@@ -3580,6 +3598,33 @@
    "domain": "wiring",
    "desc": "Mac mimic web server showing staging via MQTT; load_layout reads the device master, occupancy bindings and head plan. Launch agent disabled.",
    "path": "tools/mqtt-mimic/lcos_mqtt_mimic.py"
+  },
+  {
+   "id": "tools/mqtt-mimic/mimic_records.py",
+   "label": "mimic_records.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "wiring",
+   "desc": "Mimic part: the records of the page's layout JSON (blocks, turnouts, heads).",
+   "path": "tools/mqtt-mimic/mimic_records.py"
+  },
+  {
+   "id": "tools/mqtt-mimic/mimic_bus.py",
+   "label": "mimic_bus.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "wiring",
+   "desc": "Mimic part: the mosquitto clients the Mac mimic runs and the sensor, turnout and head state it hears from the broker.",
+   "path": "tools/mqtt-mimic/mimic_bus.py"
+  },
+  {
+   "id": "tools/mqtt-mimic/mimic_http.py",
+   "label": "mimic_http.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "wiring",
+   "desc": "Mimic part: the Mac mimic's page, shared files and JSON API over one Bus.",
+   "path": "tools/mqtt-mimic/mimic_http.py"
   },
   {
    "id": "tools/mqtt-mimic/qa/run_native_sml_qa.py",
@@ -4698,6 +4743,15 @@
    "domain": "hosts",
    "desc": "Runs on the Pi after a deploy: says whether PanelPro was quit for the deploy and should start again.",
    "path": "tools/hosts/pi/panelpro_restart_due.sh"
+  },
+  {
+   "id": "tools/hosts/pi/jmri_profile_match.sh",
+   "label": "jmri_profile_match.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "The one test of which processes run a JMRI app, and which run one on a JMRI profile (either profile word, whole id), for the Pi scripts and the Mac PanelPro runs.",
+   "path": "tools/hosts/pi/jmri_profile_match.sh"
   },
   {
    "id": "tools/hosts/pi/tables_base.sh",
@@ -8889,7 +8943,7 @@
    "label": "deploy step"
   },
   {
-   "from": "tools/mqtt-mimic/lcos_mqtt_mimic.py",
+   "from": "tools/mqtt-mimic/mimic_bus.py",
    "to": "host:mosquitto",
    "label": "subscribes"
   },
@@ -14073,6 +14127,31 @@
    "label": "roster hash"
   },
   {
+   "from": "tools/hosts/pi/jmri_profile_match.sh",
+   "to": "tools/hosts/pi/panelpro_restart_due.sh",
+   "label": "JMRI running check"
+  },
+  {
+   "from": "tools/hosts/pi/jmri_profile_match.sh",
+   "to": "tools/hosts/pi/apply_hart_package_local.sh",
+   "label": "JMRI running check"
+  },
+  {
+   "from": "tools/hosts/pi/jmri_profile_match.sh",
+   "to": "tools/hosts/pi_start_panelpro.sh",
+   "label": "JMRI running check"
+  },
+  {
+   "from": "tools/hosts/pi/jmri_profile_match.sh",
+   "to": "tools/hosts/pi_quit_panelpro.sh",
+   "label": "JMRI running check"
+  },
+  {
+   "from": "tools/hosts/pi/jmri_profile_match.sh",
+   "to": "tools/hosts/panelpro_session.sh",
+   "label": "profile match"
+  },
+  {
    "from": "tools/hosts/pi/roster_sha.sh",
    "to": "tools/hosts/pi/install_roster.sh",
    "label": "roster hash"
@@ -14293,6 +14372,31 @@
   {
    "from": ".claude/skills/dashboard/SKILL.md",
    "to": ".claude/skills/dashboard/sampler.sh"
+  },
+  {
+   "from": "www/scripts/wiring_sheet.py",
+   "to": "www/scripts/wiring_inventory.py",
+   "label": "imports"
+  },
+  {
+   "from": "www/scripts/wiring_inventory.py",
+   "to": "www/scripts/build_wiring_json.py",
+   "label": "Inventory"
+  },
+  {
+   "from": "tools/mqtt-mimic/mimic_records.py",
+   "to": "tools/mqtt-mimic/lcos_mqtt_mimic.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/mqtt-mimic/mimic_bus.py",
+   "to": "tools/mqtt-mimic/lcos_mqtt_mimic.py",
+   "label": "Bus"
+  },
+  {
+   "from": "tools/mqtt-mimic/mimic_http.py",
+   "to": "tools/mqtt-mimic/lcos_mqtt_mimic.py",
+   "label": "make_handler"
   },
   {
    "from": "tools/schematic/map_error.py",
