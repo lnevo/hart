@@ -10,6 +10,10 @@ from collections.abc import Mapping
 from typing import TypedDict, cast
 
 from card_template_records import WaybillCardRecord
+import hartlib_path  # noqa: E402
+
+hartlib_path.ensure_on_path()
+from hartlib import operations  # noqa: E402
 
 CARDS_PER_DIRECTION = 3
 INTERCHANGE_PAGES = 2
@@ -126,13 +130,10 @@ OUTBOUND_EMPTY_RETURN: dict[str, dict[str, str]] = {
 
 SKIP_USAGES = frozenset({"off spot", "storage"})
 
-INDUSTRY_ORDER = {
-    "Aristech Plastics": 0,
-    "A Stucki Co": 1,
-    "Calgon Carbon": 2,
-    "Ferrel Gas": 3,
-    "Kosmos Cement": 4,
-}
+# The waybill decks' industries in their order: industry_sheet.csv's waybill_order (hartlib.operations).
+INDUSTRY_ORDER: dict[str, int] = dict(sorted(
+    ((r.sheet_name, r.waybill_order) for r in operations.read_industry_sheet() if r.waybill_order is not None),
+    key=lambda pair: pair[1]))
 
 # Per spot usage: loads plus named suppliers/customers from the HART routing matrix.
 # Unload spots: loaded in, empty out. Load/shipping spots: empty in, loaded out.
