@@ -6,9 +6,10 @@ from __future__ import annotations
 
 import html
 import json
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple
 
 import make_share_cards as kit
+import share_cards
 from make_share_cards import H, PAPER, SOURCES, W, site_views
 from share_card_recipes import CardError
 
@@ -26,9 +27,14 @@ BRICK_TO_EAST_END = (250, 70, 1450, 700)  # the panel from Brick to East End, th
 PANEL_BLUE_AT = (300, 600)            # a pixel of plain panel background, for the lamps' box
 TITLE_EDGE = (560, 0, 900, 14)        # on the card: the bottom edge of the panel's title, painted over
 BRICK_CORNER = (228, 165, 528, 345)   # the Brick corner, for the roster card
-# The device viewer rows the roster card shows: (kind, public name)
-ROSTER_ROWS = (("turnout", "Switch 1"), ("turnout", "Switch 3"), ("signal", "Mast 2L"), ("signal", "Mast 4RA"),
-               ("occupancy", "OS Switch 1"), ("occupancy", "OS Switch 3"))
+ROSTER_PAGE = "roster/index.html"     # the roster card's entry in share-cards.json; its "rows" are the rows it shows
+
+
+class RosterRow(NamedTuple):
+    """A device viewer row the roster card shows, as share-cards.json names it."""
+    kind: str
+    name: str             # the public name, the layout index's publicName
+
 
 def _panel() -> PILImage:
     from PIL import Image
@@ -61,17 +67,40 @@ def jmri_additions() -> PILImage:
     return out.convert("RGB")
 
 
-def roster_rows(items: list[dict[str, str]]) -> str:
-    """The table rows of ROSTER_ROWS from the layout index's items (JSON: kind, publicName, cp, hardware).
+def roster_picks(cards: dict[str, dict] | None = None) -> list[RosterRow]:
+    """The rows the roster card shows: the "rows" of its share-cards.json entry ({"kind", "name"} each), in order.
+    `cards` is share_cards.load()'s result, None the repo's. CardError when the entry or its rows are missing, a row
+    is not a kind and a name, or a row is given twice."""
+    cards = share_cards.load() if cards is None else cards
+    where = f"roster-index: share-cards.json {ROSTER_PAGE}"
+    if ROSTER_PAGE not in cards:
+        raise CardError(f"{where}: no such card")
+    rows = cards[ROSTER_PAGE].get("rows")
+    if not isinstance(rows, list) or not rows:
+        raise CardError(f'{where}: no "rows" list of the device viewer rows to show')
+    out: list[RosterRow] = []
+    for n, row in enumerate(rows, 1):
+        if not (isinstance(row, dict) and set(row) == {"kind", "name"}
+                and all(isinstance(v, str) and v.strip() for v in row.values())):
+            raise CardError(f"{where}: row {n} is {row!r}, not a kind and a name")
+        pick = RosterRow(row["kind"], row["name"])
+        if pick in out:
+            raise CardError(f"{where}: row {n} gives {pick.kind} {pick.name} twice")
+        out.append(pick)
+    return out
+
+
+def roster_rows(items: list[dict[str, str]], picks: list[RosterRow]) -> str:
+    """The table rows of `picks` (roster_picks) from the layout index's items (JSON: kind, publicName, cp, hardware).
     Raises CardError naming every row the index no longer has."""
     by_name = {(i["kind"], i.get("publicName")): i for i in items}
-    gone = [f"{kind} {name}" for kind, name in ROSTER_ROWS if (kind, name) not in by_name]
+    gone = [f"{kind} {name}" for kind, name in picks if (kind, name) not in by_name]
     if gone:
         raise CardError(f"roster-index: the layout index has no {', '.join(gone)}; pick other rows for the card")
     return "".join(
         f"<tr><td>{kind}</td><td><b>{html.escape(name)}</b></td><td>{html.escape(by_name[kind, name].get('cp') or '')}</td>"
         f"<td>{html.escape(by_name[kind, name].get('hardware') or '')}</td></tr>"
-        for kind, name in ROSTER_ROWS
+        for kind, name in picks
     )
 
 
@@ -79,13 +108,14 @@ def roster() -> PILImage:
     """roster-index: the Brick corner of the panel beside six Brick rows of the device viewer."""
     from PIL import Image
 
+    picks = roster_picks()
     brick = _panel().crop(BRICK_CORNER)
     brick.resize((brick.width * 3, brick.height * 3), Image.LANCZOS).save(kit._tmp / "brick.png")
     try:  # the published index is built, not committed (ADR-036): build it as the site does
         items = json.loads(site_views.build("data/layout-index.json"))["items"]
     except site_views.ViewError as err:
         raise CardError(f"roster-index: {err}") from err
-    tr = roster_rows(items)
+    tr = roster_rows(items, picks)
     style = (
         f"body{{background:{PAPER}}}"
         ".pn{position:absolute;left:36px;top:150px;width:500px;height:300px;border:4px solid var(--brand);border-radius:12px;"

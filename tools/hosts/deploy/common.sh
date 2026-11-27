@@ -43,10 +43,11 @@ LIVE_PANELS=(
   HART_ABS.xml
 )
 
-# The jython the Mac and the Pi install (tools/hosts/pi/jython_scripts.txt; the Pi apply step reads the same file
+# The jython the Mac, the Pi and Windows install (tools/hosts/pi/jython_scripts.txt; the Pi apply step reads the same file
 # from the package): the Start Up scripts, then what signal_coordinator.py and panel_status.py load, in order
-# (SIBLING_MODULES after the loader jython_siblings.py, and PARTS), beside them and not Start Up items. A "pi" row is
-# a Start Up script on the Pi only; the package carries it through HART_JYTHON_SCRIPTS (load_parked).
+# (SIBLING_MODULES after the loader jython_siblings.py, and PARTS), beside them and not Start Up items. A "macpi"
+# row is a Start Up script here as a "startup" one is (Windows leaves it out). A "pi" row is a Start Up script on the
+# Pi only; the package carries it through HART_JYTHON_SCRIPTS (load_parked).
 source "$ROOT/tools/hosts/pi/jython_list.sh"
 JYTHON_STARTUP_SCRIPTS=()
 JYTHON_SIBLING_MODULES=()
@@ -54,7 +55,7 @@ JYTHON_PANEL_STATUS_PARTS=()
 _jython_rows="$(jython_list "$ROOT/tools/hosts/pi/jython_scripts.txt")" || exit 1
 while read -r _role _rel; do
   case "$_role" in
-    startup) JYTHON_STARTUP_SCRIPTS+=("$ROOT/$_rel") ;;
+    startup|macpi) JYTHON_STARTUP_SCRIPTS+=("$ROOT/$_rel") ;;
     sibling) JYTHON_SIBLING_MODULES+=("$ROOT/$_rel") ;;
     part) JYTHON_PANEL_STATUS_PARTS+=("$ROOT/$_rel") ;;
   esac

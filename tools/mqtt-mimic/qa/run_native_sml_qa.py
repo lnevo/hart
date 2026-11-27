@@ -4,12 +4,19 @@
 Covers the masts in LIVE_MASTS. Writes native_sml_qa_notes.md and the baseline here (gitignored run output).
 Never publishes track/cmd/*. Captures retained baseline and restores it.
 
+    python3 tools/mqtt-mimic/qa/run_native_sml_qa.py           run the steps (the broker and JMRI JSON)
+    python3 tools/mqtt-mimic/qa/run_native_sml_qa.py --list    print the steps and their messages; publish nothing
+
+The steps are jmri/layouts/hart/data/native_sml_qa.csv, read through hartlib.sml_qa: each names the staging devices
+it drives by device ID, and their LCOS MQTT addresses and feedback sensors come from the device master.
+
 Live CATS ABS is HOLD_ONLY on the same JMRI masts (ADR-005 names).
 CATS-prefixed twin masts are gone, so this compares SML aspect vs MQTT head
 appearance (what CATS ABS paints / LCOS sees). `held` is CATS ABS Hold.
 """
 from __future__ import annotations
 
+import argparse
 import http.client
 import json
 import os
@@ -20,17 +27,16 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Literal
 
 OUT = Path(__file__).resolve().parent
 # where the mosquitto clients are looked for: PATH, then MacPorts' bin folder (the Mac's install)
 CLIENT_DIRS = (*os.environ.get("PATH", "").split(os.pathsep), "/opt/local/bin")
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import level_masts, paths, railroad, tables as tables_mod  # noqa: E402
+from hartlib import devices, level_masts, paths, railroad, sml_qa, tables as tables_mod  # noqa: E402
 from hartlib.hosts import jmri_json_url, mqtt_broker  # noqa: E402
 
 ROOT = paths.REPO_ROOT
@@ -43,43 +49,14 @@ LOCAL_JMRI_JSON = "http://127.0.0.1:12080/json"
 
 TABLES = paths.TABLES_XML
 SETTLE = 4.5
+# the topic of each kind of retained state the QA drives (LCOS status topics, never a command topic)
+TURNOUT_TOPIC = "track/turnout/{}"
+SENSOR_TOPIC = "track/sensor/{}"
 
-# switch -> (turnout MQTT addr, FB-normal sensor, FB-reverse sensor); None = DIRECT
-TO = {
-    "113": ("108", "167", "168"),
-    "114": ("109", "169", "170"),
-    "115": ("110", "171", "172"),
-    "100": ("408", "470", "471"),
-    "102": ("410", "474", "475"),
-    "110": ("1211", "1273", "1274"),
-    "111": ("1212", "1275", "1276"),
-    "112": ("1213", "1277", "1278"),
-    "117": ("1308", None, None),
-}
-
-# block name -> occupancy sensor MQTT addr
-OCC = {
-    "K-1": "100",
-    "K-2": "101",
-    "OS 114/McKeesport": "102",
-    "OS 115/McKees Rocks": "103",
-    "OS 113b": "104",
-    "OS 113a": "105",
-    "East Lead": "106",
-    "West Ext": "107",
-    "Main West": "200",
-    "Main East": "202",
-    "OS 100": "401",
-    "OS 102": "404",
-    "East Ext": "406",
-    "OS 110": "1206",
-    "OS 111a": "1203",
-    "OS 111b": "1205",
-    "OS 112": "1207",
-}
 
 class QAError(Exception):
-    """The QA cannot start: a mosquitto client is missing or tables.xml has a head mast it cannot read."""
+    """The QA cannot start: a mosquitto client is missing, tables.xml has a head mast it cannot read, or the steps
+    file or a device it names is not in its shape (hartlib.sml_qa.QAError)."""
 
 
 def client(name: str) -> str:
@@ -90,13 +67,9 @@ def client(name: str) -> str:
     return found
 
 
-TOUCHED_TOPICS = (
-    [f"track/turnout/{a}" for a, _, _ in TO.values()]
-    + [f"track/sensor/{fb}" for _, n, r in TO.values() for fb in (n, r) if fb]
-    + [f"track/sensor/{a}" for a in OCC.values()]
-)
-
 STOPLIKE = {"Stop", "Unlit", "Dark", "Held", None, ""}
+
+Write = tuple[str, str]      # (topic, payload) of one retained message
 
 
 def pub(topic: str, payload: str) -> None:
@@ -107,23 +80,45 @@ def pub(topic: str, payload: str) -> None:
     )
 
 
-def set_occ(block: str, state: str) -> None:
-    pub(f"track/sensor/{OCC[block]}", state)
+def load_steps(path: Path = sml_qa.PATH) -> tuple[tuple[sml_qa.Step, ...], dict[str, sml_qa.Drive]]:
+    """The steps (hartlib.sml_qa) and the devices they drive, by ID from the device master; QAError on a bad file,
+    row or device."""
+    try:
+        steps = sml_qa.read(path)
+        return steps, sml_qa.drives(steps, path=path)
+    except (sml_qa.QAError, devices.DevicesError) as exc:
+        raise QAError(str(exc)) from exc
 
 
-def set_to(sw: str, state: str) -> None:
-    addr, n, r = TO[sw]
-    thrown = state == "THROWN"
-    if n and r:
-        pub(f"track/sensor/{n}", "INACTIVE" if thrown else "ACTIVE")
-        pub(f"track/sensor/{r}", "ACTIVE" if thrown else "INACTIVE")
-    pub(f"track/turnout/{addr}", state)
+def writes(change: sml_qa.Change, drives: Mapping[str, sml_qa.Drive]) -> list[Write]:
+    """The retained messages that set one change: an occupancy sensor's state; for a turnout, its feedback sensors
+    first (normal ACTIVE when closed, reverse ACTIVE when thrown) when it has them, then its status."""
+    d = drives[change.device]
+    if d.layer == "occupancy":
+        return [(SENSOR_TOPIC.format(d.address), change.state)]
+    out: list[Write] = []
+    if d.feedback:
+        thrown = change.state == "THROWN"
+        normal, reverse = d.feedback
+        out += [(SENSOR_TOPIC.format(normal), "INACTIVE" if thrown else "ACTIVE"),
+                (SENSOR_TOPIC.format(reverse), "ACTIVE" if thrown else "INACTIVE")]
+    return out + [(TURNOUT_TOPIC.format(d.address), change.state)]
 
 
-def capture_baseline() -> dict:
+def touched_topics(drives: Mapping[str, sml_qa.Drive]) -> list[str]:
+    """Every topic the steps write, in the order the baseline captures and restores them: the turnouts by address,
+    their feedback sensors in the same order, then the occupancy sensors in the order the steps first name them
+    (`drives` keeps that order)."""
+    turnouts = sorted((d for d in drives.values() if d.layer == "turnout"), key=lambda d: int(d.address))
+    return ([TURNOUT_TOPIC.format(d.address) for d in turnouts]
+            + [SENSOR_TOPIC.format(a) for d in turnouts for a in d.feedback or ()]
+            + [SENSOR_TOPIC.format(d.address) for d in drives.values() if d.layer == "occupancy"])
+
+
+def capture_baseline(topics: Sequence[str]) -> dict:
     """Read current retained value of every topic we will touch."""
     base: dict[str, str] = {}
-    for topic in TOUCHED_TOPICS:
+    for topic in topics:
         p = subprocess.run(
             [client("mosquitto_sub"), "-h", HOST, "-t", topic, "-C", "1", "-W", "2", "-v"],
             capture_output=True,
@@ -267,8 +262,8 @@ class Run:
         self.failures.append(line)
 
 
-def check(run: Run, snap: Mapping[str, object], tag: str, expect: Mapping[str, Want]) -> None:
-    for mast, want in expect.items():
+def check(run: Run, snap: Mapping[str, object], tag: str, expect: Iterable[tuple[str, Want]]) -> None:
+    for mast, want in expect:
         aspect = aspect_of(snap, mast)
         is_stop = aspect in STOPLIKE
         if want == "stop":
@@ -299,129 +294,53 @@ def check_mqtt_heads(run: Run, snap: Mapping[str, object], heads_mqtt: Mapping[s
             run.fail(f"[FAIL] {tag}: {mast} SML={aspect!r} but MQTT all stop-like {dict(zip(wired, colors))}")
 
 
-def observe(run: Run, tag: str, desc: str, expect: Mapping[str, Want] | None = None) -> None:
+def observe(run: Run, tag: str, desc: str, expect: Iterable[tuple[str, Want]] = ()) -> None:
     time.sleep(SETTLE)
     snap = jmri_snapshot()
     heads_mqtt = mqtt_heads()
     blob = f"## {tag}\n{desc}\n{render(snap, heads_mqtt)}\n"
     run.notes.append(blob)
     print(blob)
-    if expect:
-        check(run, snap, tag, expect)
+    check(run, snap, tag, expect)
     check_mqtt_heads(run, snap, heads_mqtt, tag)
 
 
-@dataclass(frozen=True)
-class Set:
-    """One retained state the QA drives: a switch (TO) or an occupancy block (OCC)."""
-    what: Literal["turnout", "occupancy"]
-    name: str
-    state: str
+def apply(change: sml_qa.Change, drives: Mapping[str, sml_qa.Drive]) -> None:
+    for topic, payload in writes(change, drives):
+        pub(topic, payload)
 
 
-def turnout(sw: str, state: str) -> Set:
-    return Set("turnout", sw, state)
-
-
-def occupancy(block: str, state: str) -> Set:
-    return Set("occupancy", block, state)
-
-
-def apply(change: Set) -> None:
-    (set_to if change.what == "turnout" else set_occ)(change.name, change.state)
-
-
-@dataclass(frozen=True)
-class Step:
-    """Drive `before`, wait, read the masts and check `expect`, then drive `after`."""
-    tag: str
-    desc: str
-    expect: Mapping[str, Want]
-    before: tuple[Set, ...] = ()
-    after: tuple[Set, ...] = ()
-
-
-REST = (tuple(turnout(sw, st) for sw, st in (
-    ("113", "CLOSED"), ("114", "CLOSED"), ("115", "CLOSED"), ("110", "CLOSED"), ("111", "CLOSED"),
-    ("112", "THROWN"), ("117", "CLOSED"), ("100", "CLOSED"), ("102", "CLOSED")))
-    + tuple(occupancy(blk, "INACTIVE") for blk in OCC))
-
-SCENARIO = (
-    Step("qa00_rest", "All occ clear; 113/114/115/110/111/117/100/102 CLOSED, 112 THROWN (field rest).", {
-        "Mast 68": "nonstop",
-        "Mast 67": "nonstop",
-        "Mast 40LB": "nonstop",      # dest Mast 24L: Sw115+Sw111 closed
-        "Mast 38LA": "nonstop",      # dest Mast 34L: Sw113/114 closed
-        "Mast 40LA": "stop",         # needs Sw115 thrown
-        "Mast 38LB": "stop",         # needs Sw114 thrown
-        "Mast 32R": "stop",          # needs Sw110 thrown
-        "Mast 8LB": "nonstop",       # dest Mast 6LB: Sw117 closed
-    }, before=REST),
-    # Princess 115 / McKees Rocks / K-1 leg
-    Step("qa01_115_thrown", "115 THROWN: main runs via K-1 balloon; McKees Rocks cut off.", {
-        "Mast 40LB": "stop",
-        "Mast 40LA": "Diverging Clear",   # diverging route (115 thrown), dest Mast 24L non-Stop: bottom head green
-        "Mast 67": "nonstop",             # dest Mast 40LA after Discover
-        "Mast 36RA": "nonstop",           # dest Mast 67 via 113C+115T
-    }, before=(turnout("115", "THROWN"),)),
-    Step("qa02_115T_wme_occ", "115 THROWN + West Ext occupied: Rocks-main path fouled.", {"Mast 40LA": "stop"},
-         before=(occupancy("West Ext", "ACTIVE"),),
-         after=(occupancy("West Ext", "INACTIVE"), turnout("115", "CLOSED"))),
-    # Princess 114 / McKeesport / K-2 leg + A48 balloon
-    Step("qa03_114_thrown", "114 THROWN: main runs via K-2 balloon; McKeesport cut off.", {
-        "Mast 38LB": "nonstop",
-        "Mast 36RB": "nonstop",           # dest Mast 68 via 113C+114T
-    }, before=(turnout("114", "THROWN"),)),
-    Step("qa04_114T_mckeesport_occ", "114 THROWN + K-2 balloon occupied (A48 boundary test).", {
-        "Mast 68": "stop",
-        "Mast 36RB": "stop",
-    }, before=(occupancy("K-2", "ACTIVE"),), after=(occupancy("K-2", "INACTIVE"), turnout("114", "CLOSED"))),
-    # McKeesport occupancy path
-    Step("qa05_east_lead_occ", "East Lead occupied: McKeesport's route to East Lead mast fouled; McKees Rocks "
-         "(via 111a) unaffected.", {
-             "Mast 38LA": "stop",
-             "Mast 40LB": "nonstop",
-         }, before=(occupancy("East Lead", "ACTIVE"),), after=(occupancy("East Lead", "INACTIVE"),)),
-    # OS 110 dwarf ('always red' regression)
-    Step("qa06_110T_112C", "110 THROWN + 112 CLOSED: ladder move OS110 -> East Lead -> 113a lined.",
-         {"Mast 32R": "nonstop"}, before=(turnout("112", "CLOSED"), turnout("110", "THROWN"))),
-    Step("qa07_110_closed", "110 CLOSED again: OS 110 dwarf back to Stop.", {"Mast 32R": "stop"},
-         before=(turnout("110", "CLOSED"),), after=(turnout("112", "THROWN"),)),
-    # 117 / 117b
-    Step("qa08_eme_occ", "East Ext occupied: 117b's route to Plane East Ext fouled.", {"Mast 8LB": "stop"},
-         before=(occupancy("East Ext", "ACTIVE"),), after=(occupancy("East Ext", "INACTIVE"),)),
-    Step("qa09_117_thrown", "117 THROWN: T6 mast routes to Plane East Ext; 117b cut off.", {
-        "Mast 8LA": "nonstop",
-        "Mast 8LB": "stop",
-    }, before=(turnout("117", "THROWN"),), after=(turnout("117", "CLOSED"),)),
-    # Brick/Plane 100 & 102
-    Step("qa10_100_thrown", "100 THROWN + 102 CLOSED: Plane East Ext lined to EE West Main West.", {
-        "Mast 6LB": "nonstop",
-        "Mast 2L": "nonstop",             # dest Mast 8RB via 100T+102C
-        "Mast 24L": "Clear",
-    }, before=(turnout("100", "THROWN"),)),
-    Step("qa11_100T_main_west_occ", "100 THROWN + Main West occupied: Plane East Ext route fouled.",
-         {"Mast 6LB": "stop"}, before=(occupancy("Main West", "ACTIVE"),),
-         after=(occupancy("Main West", "INACTIVE"), turnout("100", "CLOSED"))),
-    Step("qa12_back_to_rest", "Everything back at field rest.", {
-        "Mast 40LB": "nonstop",
-        "Mast 38LA": "nonstop",
-        "Mast 8LB": "nonstop",
-    }),
-)
-
-
-def run_scenario(run: Run, steps: Sequence[Step] = SCENARIO) -> None:
+def run_scenario(run: Run, steps: Sequence[sml_qa.Step], drives: Mapping[str, sml_qa.Drive]) -> None:
     for st in steps:
         for change in st.before:
-            apply(change)
+            apply(change, drives)
         observe(run, st.tag, st.desc, st.expect)
         for change in st.after:
-            apply(change)
+            apply(change, drives)
 
 
-def main() -> int:
+def step_list(steps: Sequence[sml_qa.Step], drives: Mapping[str, sml_qa.Drive]) -> list[str]:
+    """The lines --list prints: the topics the run captures and restores, then each step's description, the masts
+    it checks and the retained messages it writes before and after the check."""
+    topics = touched_topics(drives)
+    lines = [f"touched {len(topics)}", *(f"  {t}" for t in topics)]
+    for st in steps:
+        lines += [f"## {st.tag}", st.desc, *(f"  expect {mast} = {want}" for mast, want in st.expect)]
+        for label, changes in (("before", st.before), ("after", st.after)):
+            lines += [f"  {label} {topic} {payload}" for change in changes for topic, payload in writes(change, drives)]
+    return lines
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=(__doc__ or "").split("\n\n")[0])
+    ap.add_argument("--list", action="store_true",
+                    help="print the steps and the retained messages each writes; nothing is published or read")
+    args = ap.parse_args(argv)
     try:
+        steps, drives = load_steps()
+        if args.list:
+            print("\n".join(step_list(steps, drives)))
+            return 0
         for name in ("mosquitto_pub", "mosquitto_sub"):
             client(name)
         MAST_HEADS.update(load_mast_heads())
@@ -430,12 +349,12 @@ def main() -> int:
         return 2
     OUT.mkdir(parents=True, exist_ok=True)
     print("capturing retained baseline…", flush=True)
-    baseline = capture_baseline()
+    baseline = capture_baseline(touched_topics(drives))
     (OUT / "native_sml_qa_baseline.json").write_text(json.dumps(baseline, indent=1))
     print(f"captured {len(baseline)} retained topics")
     run = Run()
     try:
-        run_scenario(run)
+        run_scenario(run, steps, drives)
     finally:
         print("restoring retained baseline…")
         for topic, payload in baseline.items():

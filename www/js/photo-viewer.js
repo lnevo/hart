@@ -1,6 +1,6 @@
-// The parts the Photos viewers share (js/archive.js and js/gallery.js): the Grid / List / Gallery view bar and the
+// The parts the Photos viewers share (js/archive.js, js/gallery.js and js/fleet.js): the Grid / List / Gallery view bar and the
 // view each browser remembers, the Gallery view's stage controls, the photo lightbox, the toast and the JSON POST to
-// the local review server. Load it after nav.js and before either viewer. Tests: scripts/tests/photo_viewer_test.js.
+// the local review server. Load it after nav.js and before the viewers. Tests: scripts/tests/photo_viewer_test.js.
 (function () {
   var VIEWS = [
     { id: "grid", label: "Grid" },

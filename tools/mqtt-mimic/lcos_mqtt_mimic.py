@@ -28,13 +28,15 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 from collections.abc import Mapping
+from functools import lru_cache
 from http.server import ThreadingHTTPServer
 from pathlib import Path
 from typing import NamedTuple
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import devices, level_devices, occupancy_bindings, paths, railroad, tables  # noqa: E402
+from hartlib import devices, level_devices, occupancy_bindings, paths, places, railroad, tables  # noqa: E402
+from hartlib.errors import FactsError  # noqa: E402
 from hartlib.levels import STAGING as STAGING_LEVEL  # noqa: E402
 from hartlib.hosts import default as host_default, mqtt_broker, mqtt_port  # noqa: E402
 
@@ -65,18 +67,10 @@ SWITCH_TIPS = {
     39: "THROWN = Track K-1 (TOP); CLOSED = Track Helix Outer (RIGHT)",
 }
 
-# West → east along the modeled line. Empty map `cp` falls through to infer_plant.
-PLANT_ORDER = [
-    "Brick",
-    "Plane",
-    "Barn",
-    "Engine House",
-    "South Yard",
-    "East End",
-    "Princess",
-    "Main",
-    "Other",
-]
+# West → east along the modeled line: staging's stations by station_id (schematic/stations.csv names them), then the
+# two groups infer_plant gives that are no station. Empty map `cp` falls through to infer_plant.
+PLANT_STATIONS = ("st:brick", "st:plane", "st:barn", "st:engine-house", "st:south-yard", "st:east-end", "st:princess")
+OTHER_PLANTS = ("Main", "Other")
 
 # Tabs on the page. Staging runs on LCOS MQTT devices (M2T/M2S), set through MQTT feedback; the main and upper
 # levels run on virtual JMRI devices (hartlib.level_devices) named in the device map, set in JMRI directly.
@@ -84,9 +78,24 @@ STAGING = "staging"
 LEVELS = {2: "main", 3: "upper"}
 
 
+@lru_cache(maxsize=1)
+def plant_order() -> tuple[str, ...]:
+    """The plants in drawing order: PLANT_STATIONS named by the station master (hartlib.places), then OTHER_PLANTS.
+    MimicError when the master cannot be read or has no row for one of the ids."""
+    try:
+        table = places.table()
+    except FactsError as exc:
+        raise MimicError(f"the station master cannot be used: {exc}") from exc
+    missing = [ident for ident in PLANT_STATIONS if ident not in table.by_id]
+    if missing:
+        raise MimicError(f"{paths.rel(places.STATIONS)} has no station {', '.join(missing)} (PLANT_STATIONS)")
+    return tuple(table.by_id[ident] for ident in PLANT_STATIONS) + OTHER_PLANTS
+
+
 def plant_rank(plant: str) -> int:
-    """A plant's place in PLANT_ORDER; a plant not listed sorts after every listed one."""
-    return PLANT_ORDER.index(plant) if plant in PLANT_ORDER else len(PLANT_ORDER)
+    """A plant's place in plant_order(); a plant not listed sorts after every listed one."""
+    order = plant_order()
+    return order.index(plant) if plant in order else len(order)
 
 
 class MimicError(Exception):

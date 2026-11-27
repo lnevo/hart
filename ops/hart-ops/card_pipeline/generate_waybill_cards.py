@@ -13,8 +13,11 @@ Rules:
     tracks (via matches that spot's outbound customer routing). Outbound ``EMPTY`` cards
     are consolidated — one generic empty per spot not already covered by an
     inbound-empty load track.
-  - Two additional pages of CSX ↔ NS interchange cards (POHC / through
-    traffic). Header reads INTERCHANGE — not individual industry names.
+  - The interchange cards are the interchange rows of HART_Spot_Waybills.csv
+    (through traffic). Header reads INTERCHANGE — not individual industry names.
+
+The loads, parties and empty returns come from waybill_loads.csv, waybill_parties.csv
+and waybill_empty_returns.csv (waybill_data.py, through hartlib.waybills).
 """
 
 
@@ -34,7 +37,7 @@ from docx.table import _Cell
 from card_errors import CardPipelineError
 
 if TYPE_CHECKING:
-    from waybill_data import DeckCard, FlowKey, Party, SpotGroupKey as GroupKey
+    from waybill_data import DeckCard, FlowKey, InterchangeCard, Party, SpotGroupKey as GroupKey
     from waybill_deck import SpotGroup
 
 _HERE = Path(__file__).resolve().parent
@@ -75,7 +78,9 @@ DATA = car_paths.DATA
 OUTPUT_DIR = car_paths.OUTPUT_DIR
 SPOT_CSV = DATA / "spot_assignments.csv"
 OUTPUT = OUTPUT_DIR / "HART_Spot_Waybills.docx"
-WAYBILL_CSV = DATA / "HART_Spot_Waybills.csv"
+# the printed deck, one row per card; never the master HART_Spot_Waybills.csv, which the deck is read from:
+# a run renumbers card_id from 1 and draws the parties, so writing the master would rewrite it
+WAYBILL_CSV = OUTPUT_DIR / "HART_Spot_Waybills_deck.csv"
 
 
 class SpotCsvMissingError(CardPipelineError, FileNotFoundError):
@@ -92,6 +97,7 @@ class WaybillDeck(NamedTuple):
     inbound_empty_count: int
     outbound_empties: list[DeckCard]
     interchange: list[DeckCard]
+    interchange_rows: list[InterchangeCard]  # the master rows the interchange cards come from
     cards: list[DeckCard]  # every card in print order, before the page fillers
 
 
@@ -132,9 +138,11 @@ def build_deck(groups: list[SpotGroup]) -> WaybillDeck:
     inbound_empty_count = sum(1 for c in copies if wdeck.card_kind(c) == "inbound_empty")
     outbound_empties = wdeck.build_industry_empty_cards(groups)
     copies = wdeck.sort_deck_by_industry(copies)
-    interchange = wdeck.build_interchange_deck()
+    interchange_rows = wdata.interchange_rows()
+    interchange = wdeck.build_interchange_deck(interchange_rows)
     cards = wdeck.sort_deck_by_industry(copies + interchange + outbound_empties)
-    return WaybillDeck(groups, waybills, group_order, inbound_empty_count, outbound_empties, interchange, cards)
+    return WaybillDeck(groups, waybills, group_order, inbound_empty_count, outbound_empties, interchange,
+                       interchange_rows, cards)
 
 
 def _fill_slot(cell: _Cell, idx: int, record: DeckCard) -> None:
@@ -220,12 +228,15 @@ def print_routing(deck: WaybillDeck) -> None:
     def spot_count(flow: str, road: str) -> int:
         return sum(1 for c in loaded if c.get("Flow") == flow and c["RouteChain"] == road)
 
+    def interchange_count(flow: str, road: str) -> int:
+        return sum(1 for r in deck.interchange_rows if r.flow == flow and r.via == road)
+
     in_csx, in_pohc = spot_count("IN", "CSX"), spot_count("IN", "POHC")
     out_csx, out_pohc = spot_count("OUT", "CSX"), spot_count("OUT", "POHC")
-    tot_in_csx = in_csx + len(wdata.INTERCHANGE_IN_VIA_CSX) + len(wdata.INTERCHANGE_NS_TO_CSX)
-    tot_in_pohc = in_pohc + len(wdata.INTERCHANGE_IN_VIA_POHC)
-    tot_out_csx = out_csx + len(wdata.INTERCHANGE_OUT_VIA_CSX)
-    tot_out_pohc = out_pohc + len(wdata.INTERCHANGE_OUT_VIA_POHC) + len(wdata.INTERCHANGE_CSX_TO_NS)
+    tot_in_csx = in_csx + interchange_count("IN", "CSX")
+    tot_in_pohc = in_pohc + interchange_count("IN", "POHC")
+    tot_out_csx = out_csx + interchange_count("OUT", "CSX")
+    tot_out_pohc = out_pohc + interchange_count("OUT", "POHC")
     print(
         f"  loaded routing balance — IN: CSX {tot_in_csx} · POHC {tot_in_pohc} | "
         f"OUT: CSX {tot_out_csx} · POHC {tot_out_pohc}"

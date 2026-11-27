@@ -11,7 +11,7 @@ Wrote <tmp>/out/waybills.csv
     Test Works spot 8: IN EMPTY (Boxcar, Flatcar) 3× · via routing: Various customers (CSX) | OUT Plastic Resins (Boxcar, Flatcar) 1 each + 1 extra · customers: Various customers (CSX)
     Test Works spot 9: IN General Freight (Gondola) 3× · suppliers: Various local shippers | OUT General Freight (Gondola) 3× · customers: Various local receivers (CSX)
   interchange: 14 Via CSX · 16 Via POHC (4 pages)
-  loaded routing balance — IN: CSX 14 · POHC 11 | OUT: CSX 12 · POHC 9
+  loaded routing balance — IN: CSX 14 · POHC 11 | OUT: CSX 11 · POHC 10
     (spot only — IN: CSX 6 · POHC 4 | OUT: CSX 5 · POHC 1)
 
   Industry summary:

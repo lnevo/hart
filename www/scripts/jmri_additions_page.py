@@ -49,19 +49,14 @@ SPLIT_SCRIPTS = (COORDINATOR, PANEL_STATUS)   # the Jython scripts whose code is
 HEAD_IN_MAST = re.compile(r"\(IH(\d+)\)")   # signal_coordinator._HEAD_IN_MAST, without the brackets
 WORDS = "zero one two three four five six seven eight nine ten eleven twelve".split()
 
-# The Pi and the Mac install the jython of one list (tools/hosts/pi/jython_scripts.txt, read by jython_list.sh): the
-# rows of these roles are each host's scripts; the sibling and part rows are parts of the split scripts.
+# Every host installs the jython of one list (tools/hosts/pi/jython_scripts.txt, read by jython_list.sh; Windows reads
+# it with tools/hosts/windows/jython_list.ps1): the rows of these roles are each host's scripts; the sibling and part
+# rows are parts of the split scripts.
 JYTHON_LIST = "tools/hosts/pi/jython_scripts.txt"
 JYTHON_READER = "tools/hosts/pi/jython_list.sh"
-LIST_ROLES = {"Pi": ("startup", "pi"), "Mac": ("startup",)}
-# Where each other host's Jython list lives: (file, the line that opens the list). Each list runs to its closing
-# bracket. The list closes with ")" on a line of its own.
-HOST_LISTS = {
-    "Windows": ("tools/hosts/windows/apply_hart_package_local.ps1", "$jythonSrc = @("),
-}
+LIST_ROLES = {"Pi": ("startup", "macpi", "pi"), "Windows": ("startup",), "Mac": ("startup", "macpi")}
 HOST_ORDER = ("Pi", "Windows", "Mac")
 HOST_NAMES = {"Pi": "the Pi", "Windows": "Windows", "Mac": "the Mac"}
-LIST_END = re.compile(r"^\s*\)\s*$", re.M)
 SCRIPTS = ("signal_coordinator.py", "panel_status.py", "hide_cats_desk_windows.py", "hide_band_panels.py",
            "jmri_cmd_watcher.py",
            "sts_car_sync.py", "mimic_relay.py")
@@ -100,7 +95,7 @@ def _lcos_range(root: Path) -> tuple[int, int]:
     try:
         src = coordinator.source(root / COORDINATOR)
     except coordinator.CoordinatorError as e:
-        raise PageError(str(e)) from None
+        raise PageError(str(e)) from e
     got = {k: int(v) for k, v in re.findall(r"^_LCOS_SIGNAL_UID_(MIN|MAX)\s*=\s*(\d+)", src, re.M)}
     if set(got) != {"MIN", "MAX"}:
         raise PageError("signal_coordinator.py no longer sets _LCOS_SIGNAL_UID_MIN and _MAX; update this script")
@@ -135,13 +130,6 @@ def host_lists(root: Path = ROOT) -> dict[str, set[str]]:
     rows = jython_rows(root)
     out = {host: {Path(path).name for role, path in rows if role in roles} - parts
            for host, roles in LIST_ROLES.items()}
-    for host, (rel, opener) in HOST_LISTS.items():
-        text = (root / rel).read_text(encoding="utf-8")
-        start = text.find(opener)
-        end = LIST_END.search(text, start + len(opener)) if start >= 0 else None
-        if end is None:
-            raise PageError("%s: no %r list of Jython scripts closed by a line holding only ')'" % (rel, opener))
-        out[host] = set(re.findall(r"([a-z_]+\.py)", text[start + len(opener):end.start()])) - parts
     unknown = set().union(*out.values()) - set(SCRIPTS)
     if unknown:
         raise PageError("hosts install Jython scripts the page does not list: %s" % sorted(unknown))
@@ -205,7 +193,7 @@ def _parts(root: Path) -> dict[str, tuple[str, ...]]:
     try:
         return {Path(script).name: coordinator.sibling_modules(root / script) for script in SPLIT_SCRIPTS}
     except coordinator.CoordinatorError as e:
-        raise PageError(str(e)) from None
+        raise PageError(str(e)) from e
 
 
 def _parts_sentence(parts: tuple[str, ...]) -> str:

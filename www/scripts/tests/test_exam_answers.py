@@ -1,5 +1,6 @@
-"""Extra East answer key: answers.html is current with run.html, every question is read, and the game and the
-study deck use the same section names. Runs build_exam_answers.js with node; skipped when node is missing."""
+"""Extra East answer key: answers.html is current with run.html, every question is read without running the game's
+code, the game and the key share one data module, and the game and the study deck use the same section names. Runs
+build_exam_answers.js with node; skipped when node is missing."""
 import json
 import re
 import shutil
@@ -10,7 +11,7 @@ from pathlib import Path
 WWW = Path(__file__).resolve().parents[2]
 SCRIPT = WWW / "scripts" / "build_exam_answers.js"
 RUN = WWW / "exam" / "run.js"          # the game's core; the runs and pools are in RUN_FILES
-RUN_FILES = [RUN] + [WWW / "exam" / f for f in ("run-1949.js", "run-modern.js", "run-signals.js", "run-yard.js")]
+RUN_FILES = [RUN] + [WWW / "exam" / f for f in ("run-tto.js", "run-1949.js", "run-modern.js", "run-signals.js", "run-yard.js")]
 
 
 def run_source() -> str:
@@ -18,6 +19,7 @@ def run_source() -> str:
     return "\n".join(f.read_text() for f in RUN_FILES)
 RUN_PAGE = WWW / "exam" / "run.html"
 INDEX = WWW / "exam" / "index.html"
+DATA = WWW / "exam" / "run-data.js"
 
 
 def node(code):
@@ -51,9 +53,9 @@ class ExamAnswers(unittest.TestCase):
                 self.assertNotRegex(field, r"\[\w+\.[\w.\[\]]*\]|NaN|\[object", f"{q['file']} line {q['line']}")
 
     def files(self, body="", modern="", yard="", pool=""):
-        """Minimal scripts for extract: run.js with a figure helper, the pools, and one file per run."""
+        """Minimal scripts for extract: run.js, the pools, and one file per run."""
         return [
-            {"file": "run.js", "where": "1949 run", "src": 'function semSvg(a){return "<svg>"+a+"</svg>"}' + body},
+            {"file": "run.js", "where": "1949 run", "src": body},
             {"file": "run-1949.js", "where": "1949 run", "src": "const ROAD_TTO=[];const STN_TTO=[];"},
             {"file": "run-modern.js", "where": "Modern run", "src": modern + "const ROAD_TWC=[" + pool + "];"},
             {"file": "run-yard.js", "where": "Yard job", "src": yard},
@@ -88,12 +90,57 @@ class ExamAnswers(unittest.TestCase):
         q = self.mini(self.Q % "", self.Q % ',extra:semSvg(0)', self.Q % "", "()=>" + self.Q % "")
         self.assertEqual([x["where"] for x in q], ["1949 run", "Modern run", "Modern run, on the road", "Yard job"])
         self.assertEqual(q[0]["src"], "GCOR · 6.13")
-        self.assertEqual(q[1]["extra"], "<svg>0</svg>")
+        # the figure is drawn by the data module's semSvg, the one the game draws with
+        self.assertIn('aria-label="Semaphore, blade at 0 degrees"', q[1]["extra"])
         self.assertEqual([(x["file"], x["line"]) for x in q][:2], [("run.js", 1), ("run-modern.js", 1)])
 
     def test_bad_question_names_its_file(self):
         with self.assertRaisesRegex(AssertionError, "run-yard.js line 2: question has no why"):
             self.mini(yard='\nask({sec:"def",title:"t",body:"b",right:"r",wrong:[["w"]]});')
+
+    def test_getters_and_play_time_values_read_as_slots(self):
+        q = self.mini('ask({sec:"def",src:"SC",title:"Too close to "+p.tr.name,get body(){return `at ${STATIONS[j].n}`;},'
+                      'right:`${Math.max(0,p.by)} min`,wrong:[[fmt(t)],["b",{marks:1},"c"]],why:"y",'
+                      'after:o=>{s.x=o.replace(/[)}"`]/g,"")}});')[0]
+        self.assertEqual((q["title"], q["body"], q["right"]), ("Too close to [train]", "at [station]", "[n] min"))
+        self.assertEqual(q["wrong"], [{"t": "[time]", "why": ""}, {"t": "b", "why": "c"}])
+
+    def test_code_in_a_shown_field_stops_the_build(self):
+        cases = {
+            'body:(()=>"b")()': "a function",
+            'body:"b".toUpperCase()': "cannot read .toUpperCase of a value",
+            "body:String(x)": "uses String",
+            'body:"a"-1': 'cannot read "-"',
+            "get body(){x();return 1}": "a getter that does more than return one value",
+            "...extra,body:1": "a spread or a computed key",
+            'body:"a",body:"b"': "body is set twice",
+            "body:Math.random()": "Math.random",
+        }
+        for field, err in cases.items():
+            src = 'ask({sec:"def",src:"SC",title:"t",%s,right:"r",wrong:[["w"]],why:"y"});' % field
+            with self.subTest(field), self.assertRaisesRegex(AssertionError, re.escape(err)):
+                self.mini(src)
+        # a call on a play-time name is itself a play-time value
+        self.assertEqual(self.mini(self.Q.replace('body:"b"', "body:run(1)") % "")[0]["body"], "[…]")
+
+    def test_object_prototype_names_are_not_literals(self):
+        # toString and constructor are not the key's literals: they stop the build like any global the key does not run,
+        # and no longer come back as the function itself.
+        for name in ("toString", "constructor", "hasOwnProperty"):
+            src = self.Q.replace('body:"b"', f"body:{name}") % ""
+            with self.subTest(name), self.assertRaisesRegex(AssertionError, f"uses {name}, which the key does not run"):
+                self.mini(src)
+
+    def test_slash_after_increment_is_division(self):
+        # i++/2 must not start a regex literal that runs to a later slash or fails as unclosed
+        q = self.mini(self.Q % ",after:o=>{s.a=i++/2}")
+        self.assertEqual(len(q), 1)
+
+    def test_unclosed_question_names_its_line(self):
+        with self.assertRaisesRegex(AssertionError, "run.js line 2: no closing bracket"):
+            self.mini('\nask({sec:"def",title:"t"')
+        with self.assertRaisesRegex(AssertionError, "run.js line 1: string not closed"):
+            self.mini('ask({sec:"def,title:"t"});')
 
     def test_pool_declared_twice_stops_the_build(self):
         with self.assertRaisesRegex(AssertionError, "pool ROAD_TWC is declared in 2 scripts, not one"):
@@ -121,7 +168,7 @@ class ExamAnswers(unittest.TestCase):
         out = node(
             f"const m=require({json.dumps(str(SCRIPT))});"
             "const src=m.readRun();"
-            "const R=m.references(src);"
+            "const R=m.references();"
             "console.log(JSON.stringify({qs:m.extract(src).filter(q=>q.ref).map(q=>[q.title,q.ref]),"
             "refs:Object.fromEntries(Object.entries(R).map(([k,v])=>[k,v.html]))}))"
         )
@@ -144,19 +191,53 @@ class ExamAnswers(unittest.TestCase):
         for k, v in html.items():
             self.assertNotRegex(v, r"\{\w+\}", k)
 
-    def special(self, src):
+    def special(self, notes):
         return node(f"const m=require({json.dumps(str(SCRIPT))});"
-                    f"console.log(m.specialInstructions({{file:'run.js',src:{json.dumps(src)}}}))").strip()
+                    f"console.log(m.specialInstructions({notes}))").strip()
 
     def test_special_instructions_come_from_the_sheet_notes(self):
-        self.assertEqual(self.special('const SHEET_NOTES={tto:["One.","Two (Rule 5)."]};'),
-                         "<li>One.</li><li>Two (Rule 5).</li>")
+        self.assertEqual(self.special('{tto:["One.","Two (Rule 5)."]}'), "<li>One.</li><li>Two (Rule 5).</li>")
         with self.assertRaisesRegex(AssertionError, "SHEET_NOTES.tto is not a list of special instructions"):
-            self.special('const SHEET_NOTES={tto:[]};')
+            self.special("{tto:[]}")
         with self.assertRaisesRegex(AssertionError, "SHEET_NOTES.tto is not a list"):
-            self.special('const SHEET_NOTES={twc:["x"]};')
-        with self.assertRaisesRegex(AssertionError, "const SHEET_NOTES= not found"):
-            self.special('const NOTES={};')
+            self.special('{twc:["x"]}')
+        with self.assertRaisesRegex(AssertionError, "no SHEET_NOTES"):
+            self.special("undefined")
+
+    def test_key_and_game_read_one_data_module(self):
+        """The key's references come from run-data.js, and the page loads it before every run file."""
+        out = json.loads(node(
+            f"const m=require({json.dumps(str(SCRIPT))}),d=require({json.dumps(str(DATA))});"
+            "const R=m.references();console.log(JSON.stringify({same:m.DATA===d,n:d.STATIONS.length,"
+            "rows:(R.tt.html.match(/<tr><td>/g)||[]).length}))"
+        ))
+        self.assertTrue(out["same"])
+        self.assertEqual(out["rows"], out["n"], "one time-table row per station in run-data.js")
+        scripts = re.findall(r'<script src="([^"]+)"', RUN_PAGE.read_text())
+        data_at = scripts.index("run-data.js")
+        for f in RUN_FILES:
+            self.assertLess(data_at, scripts.index(f.name), f"run.html loads run-data.js after {f.name}")
+        self.assertLess(scripts.index("../js/game-engine.js"), data_at)
+
+    def test_a_question_outside_the_run_files_stops_the_build(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            for f in ("run.js", "run-data.js", "run-title.js", "run-tto.js"):
+                (Path(tmp) / f).write_text("// no questions\n")
+            check = f"require({json.dumps(str(SCRIPT))}).checkRunFiles({json.dumps(tmp)})"
+            node(check)
+            (Path(tmp) / "run.js").write_text('ask({sec:"def"});\n')
+            with self.assertRaisesRegex(AssertionError, "run.js asks a question"):
+                node(check)
+            (Path(tmp) / "run.js").write_text("// no questions\n")
+            (Path(tmp) / "run-new.js").write_text("// a new run\n")
+            with self.assertRaisesRegex(AssertionError, "run-new.js: a run file the answer key does not know"):
+                node(check)
+
+    def test_broken_data_stops_the_build(self):
+        with self.assertRaisesRegex(AssertionError, "run-data.js: STATIONS is not a list.*; TWC_PLAN has no box5Lead"):
+            node(f"const m=require({json.dumps(str(SCRIPT))});"
+                 "m.references({...m.DATA,STATIONS:[{n:'A'}],TWC_PLAN:{warrants:{}}})")
 
     def test_warrant_box_value_count_must_match_its_blanks(self):
         with self.assertRaisesRegex(AssertionError, "box 5 has 2 values for 1 blanks"):
@@ -221,14 +302,32 @@ class ExamAnswers(unittest.TestCase):
         self.assertNotIn("ahead1", json.loads(out))
 
     def test_speed_run_can_show_every_aspect(self):
-        run = (WWW / "exam" / "run-signals.js").read_text()
-        body = run[run.index("function startSIG("):]
-        used = set(re.findall(r'"(2[89][0-9][A-C]?)"', body))  # every quoted rule number in startSIG
-        signals = (WWW / "exam" / "signals.js").read_text()
-        rules = set(re.findall(r'\{r:"([0-9]{3}[A-C]?)"', signals))
-        # every aspect the run names exists, and every one is named (289 Permissive on the Cobb to Dunmore manual block)
-        self.assertLessEqual(used, rules, f"unknown aspects: {used - rules}")
-        self.assertEqual(rules - used, set())
+        """Plays startSIG("speed") 300 times on a seeded stream, the run files' helpers stubbed, and collects the rule
+        of every signal it draws: every aspect in signals.js shows up (289 Permissive on the Cobb to Dunmore manual
+        block), and no other."""
+        load = "".join(
+            f"vm.runInContext(fs.readFileSync({json.dumps(str(WWW / f))},'utf8'),c,{{filename:{json.dumps(f)}}});"
+            for f in ("js/game-engine.js", "exam/run-data.js", "exam/signals.js"))
+        fakes = (
+            "const G=window.GameEngine,D=window.ExtraEastData,asked=[],noop=()=>{},scene=()=>noop;"
+            "const S={fmt:G.fmt,randSetup:()=>Math.random(),rnd:(a,b)=>G.rnd(a,b,Math.random),pick:a=>G.pick(a,Math.random),"
+            "shuffle:a=>G.shuffle(a,Math.random),STATIONS:D.STATIONS,LAST:D.STATIONS.length-1,state:{},addTime:noop,"
+            "renderMap:noop,leg:scene,finish:noop,push:noop,next:noop,log:noop,ask:o=>{asked.push(o);return noop},info:scene};"
+            "window.ExtraEast={take:(f,names)=>Object.fromEntries(names.map(n=>{if(!(n in S))throw new Error(f+' takes '+n);"
+            "return [n,S[n]]})),give:(f,o)=>Object.assign(window.ExtraEast,o)};"
+            "let s=3;Math.random=()=>(s=(s*16807)%2147483647)/2147483647;this.asked=asked;"
+        )
+        out = node(
+            "const vm=require('vm'),fs=require('fs');const c={};c.window=c;vm.createContext(c);" + load +
+            f"vm.runInContext({json.dumps(fakes)},c);"
+            f"vm.runInContext(fs.readFileSync({json.dumps(str(WWW / 'exam' / 'run-signals.js'))},'utf8'),c);"
+            "for(let n=0;n<300;n++)c.window.ExtraEast.startSIG('speed');"
+            "console.log(JSON.stringify({used:[...new Set(c.asked.filter(o=>o.gen==='speed').map(o=>o.src))],"
+            "rules:vm.runInContext('ASPECTS.map(a=>a.r)',c)}))"
+        )
+        d = json.loads(out)
+        used = {s.removeprefix("SC · Rule ") for s in d["used"]}
+        self.assertEqual(used, set(d["rules"]))
 
     def test_game_and_deck_load_the_shared_signals(self):
         for page in (RUN_PAGE, INDEX):
@@ -244,12 +343,15 @@ class ExamAnswers(unittest.TestCase):
 class SectionNames(unittest.TestCase):
     def test_guide_game_and_cards_share_sections(self):
         index = INDEX.read_text()
-        cards = re.search(r"const SECTIONS=(\{[^}]*\})", (WWW / "exam" / "deck-data.js").read_text()).group(1)
-        pairs = lambda text: re.findall(r'(\w+):"([^"]+)"', text)  # the source may wrap the literal
         engine = WWW / "js" / "game-engine.js"  # both games take their section names from it
-        game = json.loads(node(f"console.log(JSON.stringify(Object.entries(require({json.dumps(str(engine))}).DECK_SECTIONS)))"))
-        self.assertEqual(pairs(cards), [tuple(p) for p in game], "game-engine.js DECK_SECTIONS must match the deck's SECTIONS")
-        names = dict(pairs(cards))
+        got = json.loads(node(
+            "const vm=require('vm'),fs=require('fs');const c={};vm.createContext(c);"
+            f"vm.runInContext(fs.readFileSync({json.dumps(str(WWW / 'exam' / 'signals.js'))},'utf8'),c);"
+            f"vm.runInContext(fs.readFileSync({json.dumps(str(WWW / 'exam' / 'deck-data.js'))},'utf8')+';this.S=SECTIONS',c);"
+            f"console.log(JSON.stringify({{deck:Object.entries(c.S),game:Object.entries(require({json.dumps(str(engine))}).DECK_SECTIONS)}}))"
+        ))
+        self.assertEqual(got["deck"], got["game"], "game-engine.js DECK_SECTIONS must match the deck's SECTIONS")
+        names = dict(got["deck"])
         guide = re.findall(r'<article id="learn-(\w+)" data-sec="\1" data-short="([^"]+)">\s*<h3>\d+\. ([^<]+)</h3>', index)
         self.assertEqual([k for k, _, _ in guide], list(names), "study guide sections follow the card order")
         for k, short, h3 in guide:

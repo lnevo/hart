@@ -8,7 +8,7 @@ import functools
 import re
 import sys
 from collections import defaultdict
-from collections.abc import Callable, Iterable, Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
 from typing import Any, NamedTuple
 
@@ -129,36 +129,14 @@ def read_level_masts(path: Path = MASTS) -> list[dict[str, Any]]:
 
 
 @functools.lru_cache(maxsize=None)
-def lcos_rule() -> tuple[Callable[[str], bool], re.Pattern[str]]:
+def lcos_rule() -> coordinator.LcosRule:
     """signal_coordinator.py's own test for an LCOS head's system name (_is_lcos_ih_sys) and the pattern it finds
-    heads in a mast's system name by (_HEAD_IN_MAST), read from its source and its sibling modules' (hartlib.coordinator;
-    it is Jython and imports jmri): the functions and constants they use, run here in CPython."""
+    heads in a mast's system name by (_HEAD_IN_MAST): its module sml_lcos.py, imported here in CPython
+    (hartlib.coordinator.lcos_rule)."""
     try:
-        src = coordinator.source()
+        return coordinator.lcos_rule()
     except coordinator.CoordinatorError as exc:
         raise BuildError(str(exc)) from exc
-    patterns = [(name, rf"^{name} = .*$", re.M)
-                for name in ("_LCOS_SIGNAL_UID_MIN", "_LCOS_SIGNAL_UID_MAX", "_HEAD_IN_MAST")]
-    patterns += [(name, rf"^def {name}\(.*?(?=^\S)", re.M | re.S)     # a whole top-level def, to the next top level
-                 for name in ("_packed_is_lcos_signal", "_is_lcos_ih_sys")]
-    parts: list[str] = []
-    lost: list[str] = []
-    for name, pattern, flags in patterns:
-        m = re.search(pattern, src, flags)
-        if m:
-            parts.append(m.group(0))
-        else:
-            lost.append(name)
-    if lost:
-        raise BuildError("signal_coordinator.py and its sibling modules no longer define its LCOS head test as "
-                         f"lcos_rule reads it: no {', '.join(lost)}")
-    ns: dict[str, Any] = {"re": re}
-    # the module is Jython (it imports jmri, and Java names CPython cannot parse), so only these pieces are run
-    exec(compile("\n".join(parts), "signal_coordinator.py", "exec"), ns)  # noqa: S102
-    is_lcos, in_mast = ns["_is_lcos_ih_sys"], ns["_HEAD_IN_MAST"]
-    if not callable(is_lcos) or not isinstance(in_mast, re.Pattern):
-        raise BuildError("signal_coordinator.py's _is_lcos_ih_sys is no function or its _HEAD_IN_MAST no pattern")
-    return is_lcos, in_mast
 
 
 def lcos_named(names: list[str]) -> list[str]:

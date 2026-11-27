@@ -256,7 +256,7 @@ def compute(plan: Path | None) -> tuple[dict, bool]:
     """({block: inches} of every staging block, whether the track lengths are in it: False when `plan` is None)."""
     with pd.cache_on():
         band, _opts, _core = sdm.staging_band()
-    names = sdm.load(band, with_masts=False, turnout_idents=False)
+    names = sdm.load(band, sdm.LoadOptions(with_masts=False, turnout_idents=False))
     graph = json.loads(GRAPH.read_text(encoding="utf-8"))
     parts = json.loads(PARTS.read_text(encoding="utf-8"))
     out = os_lengths(band, names, graph, parts)

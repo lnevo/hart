@@ -56,14 +56,7 @@ ops/hart-ops/card_pipeline/intake_stages.py,EDIT_FIELDS,12,keep,its values are u
 ops/hart-ops/card_pipeline/locos.py,QUESTIONS,12,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 ops/hart-ops/card_pipeline/operator_sheet_data.py,YARD_PAGES,4,keep,"the operator sheet's own yard and desk pages, prose for this one script (owner, wave 4)"
 ops/hart-ops/card_pipeline/process_car_images.py,INVALID_MARKS,21,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
-ops/hart-ops/card_pipeline/train_cards.py,TRAINS,6,move,"8 railroad names (car, loco, train); first sort: copy of a master"
-ops/hart-ops/card_pipeline/waybill_data.py,INTERCHANGE_IN_VIA_CSX,6,move,holds sentences: page or card text?; the owner marked it move; held: the owner decides which file is the waybill master
-ops/hart-ops/card_pipeline/waybill_data.py,INTERCHANGE_IN_VIA_POHC,7,move,holds sentences: page or card text?; the owner marked it move; held: the owner decides which file is the waybill master
-ops/hart-ops/card_pipeline/waybill_data.py,INTERCHANGE_OUT_VIA_CSX,7,move,2 railroad names (loco); first sort: fact with no master; held: the owner decides which file is the waybill master
-ops/hart-ops/card_pipeline/waybill_data.py,INTERCHANGE_OUT_VIA_POHC,5,move,holds sentences: page or card text?; the owner marked it move; held: the owner decides which file is the waybill master
-ops/hart-ops/card_pipeline/waybill_data.py,OUTBOUND_EMPTY_RETURN,5,move,"7 railroad names (industry, loco, spot); first sort: fact with no master; held: the owner decides which file is the waybill master"
-ops/hart-ops/card_pipeline/waybill_data.py,_PROCESS_CHEMICAL_DETAILS,9,move,rows of values the rule cannot place; the owner marked it move; held: the owner decides which file is the waybill master
-ops/hart-ops/card_pipeline/waybill_data.py,_SPOT_WAYBILL_RAW,11,move,"7 railroad names (industry, loco, spot); first sort: fact with no master; held: the owner decides which file is the waybill master"
+ops/hart-ops/card_pipeline/train_cards.py,CARD_TEXT,6,keep,"card wording only (type, description, orders), keyed by train_symbol; road and number come from trains.csv (road_name, card_number); the EXTRA card has no train and keeps its own (lane LE-L9)"
 ops/hart-ops/publications/local_station_maps/east_end.py,LADDER_SWITCHES,4,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 ops/hart-ops/publications/local_station_maps/east_end.py,TRACK_INDUSTRIES,4,keep,"the East End ladder's tracks, colours and load lines for this one map; its track names are checked against the masters by test_station_map_names (owner, wave 4)"
 ops/hart-ops/publications/local_station_maps/kit.py,SWNUM,16,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
@@ -84,9 +77,9 @@ tools/audit/check_name_copies.py,ALLOW,11,keep,its values are used only by this 
 tools/audit/check_name_copies.py,SKIP_PREFIXES,16,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 tools/audit/check_stamps.py,AUDIT_SAMPLE,8,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 tools/audit/check_stamps.py,BY_KIND,14,keep,"stamp declarations built from Python constants; the shared job names are already checked by docs_unit_tests (Fable, pattern 4) (marked by claude (Fable's review))"
-tools/audit/check_stamps.py,ENTITY_MASTERS,15,keep,"stamp declarations built from Python constants; masters the unit tests read, traced (wave 5 5-L2)"
+tools/audit/check_stamps.py,ENTITY_MASTERS,18,keep,"stamp declarations built from Python constants; masters the unit tests read, traced (wave 5 5-L2); 18 for the three waybill rule files, new masters a test checks the list against"
 tools/audit/check_stamps.py,EXTRA,46,keep,"stamp declarations built from Python constants; the shared job names are already checked by docs_unit_tests (Fable, pattern 4) (marked by claude (Fable's review))"
-tools/audit/check_stamps.py,SIDECAR_MASTERS,13,keep,"stamp declarations built from Python constants; masters the unit tests read, traced (wave 5 5-L2)"
+tools/audit/check_stamps.py,SIDECAR_MASTERS,17,keep,"stamp declarations built from Python constants; masters the unit tests read, traced (wave 5 5-L2); 17 for the three waybill rule files and the layout docs labels, new masters a test checks the list against"
 tools/audit/portal_inputs.py,SITE_TOOLS,14,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 tools/ci/docs_unit_tests.py,KIND_DIRS,4,keep,"exception list keyed by check_stamps job names, already checked against them (Fable, pattern 4) (marked by claude (Fable's review))"
 tools/ci/docs_unit_tests.py,LEFT_OUT,27,keep,"exception list keyed by check_stamps job names, already checked against them (Fable, pattern 4) (marked by claude (Fable's review))"
@@ -101,11 +94,7 @@ tools/hartlib/src/hartlib/track_names.py,LABEL_TRACK_KEYS,6,keep,a code setting 
 tools/hartlib/src/hartlib/wiring.py,CAP,4,keep,a code setting (marked by owner)
 tools/hartlib/src/hartlib/wiring.py,LCOS,7,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 tools/hosts/panelpro_profile.py,_ESCAPES,4,keep,a code setting (marked by owner)
-tools/mqtt-mimic/lcos_mqtt_mimic.py,PLANT_ORDER,9,move,7 railroad names (station); first sort: copy of a master
 tools/mqtt-mimic/lcos_mqtt_mimic.py,SWITCH_TIPS,5,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
-tools/mqtt-mimic/qa/run_native_sml_qa.py,OCC,17,move,"4 railroad names (occupancy sensor, switch); first sort: copy of a master"
-tools/mqtt-mimic/qa/run_native_sml_qa.py,SCENARIO,13,move,"16 railroad names (occupancy sensor, switch); first sort: fact with no master"
-tools/mqtt-mimic/qa/run_native_sml_qa.py,TO,9,move,"5 railroad names (occupancy sensor, switch); first sort: copy of a master"
 tools/mqtt/clear_mqtt_cmd_sensor_retain.py,JUNK,5,keep,"topic filters and matchers for the cleanup tool, not railroad data (marked by owner)"
 tools/ops/agent_docs_map.py,DOCS,5,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 tools/ops/agent_docs_map.py,FOLDERS,5,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
@@ -129,7 +118,6 @@ tools/schematic/device_map_inputs.py,UID,4,keep,"shared in code, so already one 
 tools/schematic/device_map_nodes.py,CAP,4,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 tools/schematic/mast_rule.py,TAU,4,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 tools/schematic/panel_items.py,POINTS,9,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
-tools/schematic/panel_items.py,STATUS_BEANS,4,move,4 railroad names (occupancy sensor); first sort: code setting
 tools/schematic/panel_stamps.py,CODE,9,keep,"shared in code, so already one source: check_stamps.py and manifest_jobs.py import it (review fix after the code review)"
 tools/schematic/pi_dialog.py,DIALOG,6,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 tools/schematic/template_edit.py,SPEEDS,11,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
@@ -143,6 +131,8 @@ www/exam/deck-data.js,SECTIONS,8,keep,"8 rulebook sections; the copy is guarded 
 www/exam/deck-data.js,SRC,7,keep,"the study deck's own chapter labels (§1.0 Standard Code ...), not a copy of game-engine.js SOURCES though they share keys (owner, wave 4)"
 www/exam/run-1949.js,ROAD_TTO,27,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
 www/exam/run-1949.js,STN_TTO,32,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
+www/exam/run-data.js,SHEET_NOTES,4,keep,"game text: the special instructions on each run's train sheet, the exam's fictional line; run.js prints them and build_exam_answers.js reads the 1949 list for the answer key (moved from run.js with the game's other tables)"
+www/exam/run-data.js,STATIONS,9,keep,"the exam's fictional line, not the Chartiers stations: one source in run-data.js, which the game (run.js shares it with the run files) and build_exam_answers.js both read"
 www/exam/run-modern.js,ROAD_TWC,29,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
 www/exam/run-modern.js,TW_SEL,7,keep,"the exam warrant form's choices; its two railroad-name hits are warrant numbers (101, 103) that equal switch numbers, not switches (wave 4 review)"
 www/exam/run-signals.js,PLATE_DELAY,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
@@ -150,8 +140,6 @@ www/exam/run-signals.js,RDELAY,18,keep,"game text or schema: exam and play are s
 www/exam/run-signals.js,ROUTE_DELAY,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/exam/run-yard.js,YLOC,8,keep,"shared in code, so already one source: put on window.ExtraEast for the other exam runs (review fix after the code review)"
 www/exam/run.js,RUNS,5,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
-www/exam/run.js,SHEET_NOTES,4,keep,"game text: the special instructions on each run's train sheet, the exam's fictional line; build_exam_answers.js reads the 1949 list for the answer key (marked by claude)"
-www/exam/run.js,STATIONS,9,keep,"shared in code, so already one source: put on window.ExtraEast; run-modern.js and run-signals.js read it (the exam's fictional line, not the Chartiers stations) (review fix after the code review)"
 www/exam/signals.js,ASPECTS,18,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
 www/exam/signals.js,PLATES,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/exam/signals.js,ROUTE,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
@@ -187,10 +175,10 @@ www/play/warrant.js,TW_SEL,7,keep,"the warrant game's form choices; its station 
 www/play/warrant.js,api,12,keep,"shared in code, so already one source: the warrant game's exported functions and tables, read by its tests (review fix after the code review)"
 www/scripts/build_cats_layout_index.py,SIG_LOC,17,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4); LEFTCENT added by owner ruling 2026-11-27"
 www/scripts/build_exam_answers.js,ENT,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+www/scripts/build_exam_answers.js,ESCAPES,9,keep,"JavaScript's string escapes, which the key's reader of the ask({...}) calls applies; not railroad data"
 www/scripts/build_exam_answers.js,FRIENDLY,8,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/scripts/build_exam_answers.js,RUN_FILES,5,keep,"the game's script files with the run each one's questions belong to, for the answer key's labels; not railroad data (marked by claude)"
 www/scripts/build_helix_page.py,GROUPS,6,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
-www/scripts/build_layout_docs.py,LABELS,14,move,10 railroad names (block); first sort: page text
 www/scripts/build_layout_docs.py,SOQ_WORDS,11,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 www/scripts/build_tables_browser.py,FEEDBACK,7,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 www/scripts/build_tables_browser.py,TABLES,14,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
@@ -199,10 +187,9 @@ www/scripts/make_share_cards.py,CARDS,32,keep,"shared in code, so already one so
 www/scripts/provenance.py,_BLOCKS,11,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/scripts/provenance.py,_SCHEMA,4,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/scripts/repo_guide_page.py,FOLDERS,10,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
-www/scripts/repo_guide_page.py,HARTLIB_OTHER,31,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
+www/scripts/repo_guide_page.py,HARTLIB_OTHER,33,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4); 33 for waybills and sml_qa, hartlib modules the page must describe"
 www/scripts/repo_guide_page.py,LAYOUT_TREE,8,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 www/scripts/repo_guide_page.py,SUBMODULES,6,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
-www/scripts/share_card_recipes/panel_image.py,ROSTER_ROWS,6,move,6 railroad names (occupancy sensor); first sort: per-item tweak
 www/scripts/tables_page.py,GROUPS,23,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 www/scripts/tables_page.py,GROUP_HEADS,4,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 www/scripts/tables_page.py,PANELS,6,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"

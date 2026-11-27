@@ -5,10 +5,28 @@
 # signal_coordinator.py loads this from preference:jython after sml_quit and reloads it on every run
 # (jython_siblings.py).
 
-from java.lang import Runnable, Thread
+from java.lang import InterruptedException, Runnable, RuntimeException, Thread
+from java.lang.reflect import InvocationTargetException
 from javax.swing import JButton, JOptionPane, SwingUtilities
 
 from sml_beans import _ascii, _log_once
+
+# Retries of the main-window button: the strip appears some time after Start Up runs.
+_BUTTON_ATTEMPTS = 12
+_BUTTON_RETRY_MS = 500
+# What a JMRI dialog can raise before the plain Swing one is shown instead: ImportError or AttributeError
+# from a JMRI without JmriJOptionPane or the method, a Java RuntimeException (HeadlessException) from Swing.
+_DIALOG_ERRORS = (ImportError, AttributeError, RuntimeException)
+
+
+class _Call(Runnable):
+    """A Runnable that calls fn(): the Swing thread's work and the retry thread's."""
+
+    def __init__(self, fn):
+        self._fn = fn
+
+    def run(self):
+        self._fn()
 
 
 class SmlUi(object):
@@ -25,7 +43,7 @@ class SmlUi(object):
             n += c
             try:
                 name = mast.getUserName() or mast.getSystemName()
-            except Exception as exc:
+            except RuntimeException as exc:  # a Java bean getter that fails
                 _log_once("mqtt_signalhead: cannot read the name of mast %s: %s" % (_ascii(mast), _ascii(exc)))
                 name = "?"
             names.append(_ascii(name))
@@ -65,7 +83,7 @@ class SmlUi(object):
                         "Digicon SML stored Enabled",
                         JmriJOptionPane.WARNING_MESSAGE,
                     )
-                except Exception as exc:
+                except _DIALOG_ERRORS as exc:
                     print("mqtt_signalhead: JMRI dialog failed (%s) -- plain Swing dialog" % _ascii(exc))
                     JOptionPane.showMessageDialog(
                         None,
@@ -90,72 +108,80 @@ class SmlUi(object):
                 if c.getText() in ("SML Enabled", "SML Disabled"):
                     space.remove(c)
                     print("mqtt_signalhead: removed SML button left by an earlier run")
-            except Exception as exc:
+            except RuntimeException as exc:  # a Swing component that cannot be read or removed
                 _log_once("mqtt_signalhead: cannot read button-strip component %s: %s" % (_ascii(c), _ascii(exc)))
         return False
 
     def _add_toggle_button(self, attempt=0):
-        """PanelPro main-window strip — kept in addition to the LE Signals lamp."""
-        max_attempts = 12
-        delay_ms = 500
+        """PanelPro main-window strip — kept in addition to the LE Signals lamp. The first
+        attempt runs on the Swing thread; each retry waits _BUTTON_RETRY_MS on its own thread."""
+        if attempt == 0:
+            if self._button is None:
+                self._button = self._new_toggle_button()
+            SwingUtilities.invokeLater(_Call(lambda: self._attach_or_retry(attempt)))
+        else:
+            Thread(_Call(lambda: self._retry_attach(attempt)), "mqtt-sml-button").start()
 
-        def _try_attach():
-            try:
-                from apps import Apps
+    def _new_toggle_button(self):
+        """The SML button, its click the toggle."""
+        button = JButton("SML Disabled")
+        button.addActionListener(lambda e: self._on_toggle())
+        return button
 
-                space = Apps.buttonSpace()
-                if space is None:
-                    raise RuntimeError("Apps.buttonSpace() is None")
-                if self._button_on_strip(space):  # already there (a retry)
-                    space.revalidate()
-                    space.repaint()
-                    return True
-                if self._button is None:
-                    self._button = JButton("SML Disabled")
-                    self._button.addActionListener(lambda e: self._on_toggle())
-                space.add(self._button)
+    def _retry_attach(self, attempt):
+        """On the retry thread: wait, then attach on the Swing thread unless detached meanwhile."""
+        Thread.sleep(_BUTTON_RETRY_MS)
+        if not self._shutting_down:
+            SwingUtilities.invokeLater(_Call(lambda: self._attach_or_retry(attempt)))
+
+    def _attach_or_retry(self, attempt):
+        """On the Swing thread: put the button on the strip, else schedule the next attempt
+        until _BUTTON_ATTEMPTS."""
+        # Detached by a re-run (or quitting): leave the strip to the new one.
+        if self._shutting_down:
+            return
+        if self._try_attach(attempt):
+            self._set_button_label()
+            return
+        if attempt + 1 >= _BUTTON_ATTEMPTS:
+            print(
+                "mqtt_signalhead: giving up on main-window SML button "
+                "(panel Signals lamp still works)"
+            )
+            return
+        self._add_toggle_button(attempt + 1)
+
+    def _try_attach(self, attempt):
+        """Put this run's button on the PanelPro strip; True when it is there."""
+        try:
+            from apps import Apps
+
+            space = Apps.buttonSpace()
+            if space is None:
+                self._attach_failed(attempt, "Apps.buttonSpace() is None")
+                return False
+            if self._button_on_strip(space):  # already there (a retry)
                 space.revalidate()
                 space.repaint()
-                print("mqtt_signalhead: SML toggle on PanelPro button strip")
                 return True
-            except Exception as exc:
-                print(
-                    "mqtt_signalhead: buttonSpace attempt %d failed: %s"
-                    % (attempt + 1, _ascii(exc))
-                )
-                return False
+            if self._button is None:
+                self._button = self._new_toggle_button()
+            space.add(self._button)
+            space.revalidate()
+            space.repaint()
+            print("mqtt_signalhead: SML toggle on PanelPro button strip")
+            return True
+        # not PanelPro (no apps), an older JMRI without Apps.buttonSpace, or a Swing failure: the retry goes on;
+        # a TypeError is a bug in this script and is raised
+        except (ImportError, AttributeError, RuntimeException) as exc:
+            self._attach_failed(attempt, _ascii(exc))
+            return False
 
-        class _Attach(Runnable):
-            def run(_self):
-                # Detached by a re-run (or quitting): leave the strip to the new one.
-                if self._shutting_down:
-                    return
-                if _try_attach():
-                    self._set_button_label()
-                    return
-                if attempt + 1 >= max_attempts:
-                    print(
-                        "mqtt_signalhead: giving up on main-window SML button "
-                        "(panel Signals lamp still works)"
-                    )
-                    return
-                self._add_toggle_button(attempt + 1)
-
-        if attempt == 0 and self._button is None:
-            self._button = JButton("SML Disabled")
-            self._button.addActionListener(lambda e: self._on_toggle())
-
-        if attempt == 0:
-            SwingUtilities.invokeLater(_Attach())
-        else:
-
-            class _Retry(Runnable):
-                def run(_self):
-                    Thread.sleep(delay_ms)
-                    if not self._shutting_down:
-                        SwingUtilities.invokeLater(_Attach())
-
-            Thread(_Retry(), "mqtt-sml-button").start()
+    def _attach_failed(self, attempt, why):
+        print(
+            "mqtt_signalhead: buttonSpace attempt %d failed: %s"
+            % (attempt + 1, why)
+        )
 
     def _set_button_busy(self):
         """Grey the button while a worker runs (on the Swing thread)."""
@@ -203,7 +229,7 @@ class SmlUi(object):
                         JmriJOptionPane.YES_NO_OPTION,
                         JmriJOptionPane.WARNING_MESSAGE,
                     )
-                except Exception as exc:
+                except _DIALOG_ERRORS as exc:
                     print("mqtt_signalhead: JMRI dialog failed (%s) -- plain Swing dialog" % _ascii(exc))
                     holder[0] = JOptionPane.showConfirmDialog(
                         None,
@@ -218,7 +244,11 @@ class SmlUi(object):
                 _Ask().run()
             else:
                 SwingUtilities.invokeAndWait(_Ask())
-        except Exception as exc:
+        # invokeAndWait wraps what the dialog raised (InvocationTargetException) or is interrupted; on the
+        # Swing thread the plain dialog's own RuntimeException arrives unwrapped. Each counts as No.
+        except (InvocationTargetException, InterruptedException, RuntimeException) as exc:
+            if isinstance(exc, InterruptedException):
+                Thread.currentThread().interrupt()  # keep the interrupt for the code that waits on this thread
             print("mqtt_signalhead: override dialog failed: " + _ascii(exc))
             return False
         return holder[0] == JOptionPane.YES_OPTION

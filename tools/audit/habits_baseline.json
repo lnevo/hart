@@ -3,7 +3,6 @@
   "import-exit": 1
  },
  "cats/scripts/tests/test_build_cats_panel_bindings.py": {
-  "dated-note": 11,
   "lost-cause": 1
  },
  "jmri/layouts/hart/scripts/gen_ctc_track_plan.py": {
@@ -41,6 +40,9 @@
   "import-exit": 1
  },
  "jmri/layouts/hart/scripts/tests/jmri_fake.py": {
+  "exec-parts": 1
+ },
+ "jmri/layouts/hart/scripts/tests/speedmatch_jython_fake.py": {
   "exec-parts": 1
  },
  "jmri/layouts/hart/scripts/tests/test_apply_nx_layer.py": {
@@ -146,7 +148,7 @@
   "dated-note": 1
  },
  "tools/hartlib/tests/test_devices.py": {
-  "dated-note": 5
+  "dated-note": 1
  },
  "tools/hartlib/tests/test_railroad.py": {
   "dated-note": 1
@@ -163,9 +165,6 @@
  "tools/hartlib/tests/test_wiring.py": {
   "dated-note": 1
  },
- "tools/hosts/panelpro_profile.py": {
-  "import-exit": 22
- },
  "tools/hosts/tests/test_deploy_gates.py": {
   "dated-note": 1
  },
@@ -180,9 +179,6 @@
  },
  "tools/schematic/evolution.py": {
   "import-exit": 5
- },
- "tools/schematic/le_names.py": {
-  "exec-parts": 1
  },
  "tools/schematic/tests/test_band_panels.py": {
   "dated-note": 1
@@ -202,19 +198,7 @@
  "www/scripts/archive_catalogue.py": {
   "dated-note": 1
  },
- "www/scripts/jmri_additions_page.py": {
-  "lost-cause": 2
- },
- "www/scripts/png_stamp.py": {
-  "lost-cause": 2
- },
- "www/scripts/site_views.py": {
-  "lost-cause": 2
- },
  "www/scripts/tests/test_industry_ids.py": {
-  "dated-note": 1
- },
- "www/scripts/tests/test_layout_docs.py": {
   "dated-note": 1
  },
  "www/scripts/tests/test_tables_page.py": {

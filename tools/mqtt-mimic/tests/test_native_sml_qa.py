@@ -10,7 +10,7 @@ from typing import ClassVar
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import level_masts, paths  # noqa: E402
+from hartlib import level_masts, paths, sml_qa  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 SCRIPT = ROOT / "tools/mqtt-mimic/qa/run_native_sml_qa.py"
@@ -74,36 +74,95 @@ class NativeSmlQaTest(unittest.TestCase):
         self.assertIn("Mast B", str(ctx.exception))
 
     def test_expected_mast_names_exist(self) -> None:
-        named = {mast for st in self.qa.SCENARIO for mast in st.expect}
+        steps, _ = self.qa.load_steps()
+        named = {mast for st in steps for mast, _ in st.expect}
         self.assertIn("Mast 40LA", named)
         self.assertLessEqual(named, set(table_masts()))
 
-    def test_scenario_drives_known_switches_and_blocks(self) -> None:
-        for st in self.qa.SCENARIO:
-            for change in (*st.before, *st.after):
-                self.assertIn(change.name, self.qa.TO if change.what == "turnout" else self.qa.OCC, st.tag)
+    def test_every_driven_device_has_an_lcos_address(self) -> None:
+        steps, drives = self.qa.load_steps()
+        driven = {c.device for st in steps for c in (*st.before, *st.after)}
+        self.assertEqual(set(drives), driven)
+        for d in drives.values():
+            self.assertTrue(d.address.isdigit(), d)
+        self.assertEqual(drives["switch:35"].feedback, ("167", "168"))      # FB Switch 35 N and R
+
+    def test_writes_set_feedback_before_the_turnout(self) -> None:
+        drives = {"switch:1": sml_qa.Drive("switch:1", "Switch 1", "turnout", "408", ("470", "471")),
+                  "switch:7": sml_qa.Drive("switch:7", "Switch 7", "turnout", "1308", None),
+                  "det:os:1": sml_qa.Drive("det:os:1", "BS Switch 1", "occupancy", "401", None)}
+        change = sml_qa.Change
+        self.assertEqual(self.qa.writes(change("switch:1", "THROWN", 2), drives),
+                         [("track/sensor/470", "INACTIVE"), ("track/sensor/471", "ACTIVE"),
+                          ("track/turnout/408", "THROWN")])
+        self.assertEqual(self.qa.writes(change("switch:1", "CLOSED", 2), drives),
+                         [("track/sensor/470", "ACTIVE"), ("track/sensor/471", "INACTIVE"),
+                          ("track/turnout/408", "CLOSED")])
+        self.assertEqual(self.qa.writes(change("switch:7", "CLOSED", 2), drives), [("track/turnout/1308", "CLOSED")])
+        self.assertEqual(self.qa.writes(change("det:os:1", "ACTIVE", 2), drives), [("track/sensor/401", "ACTIVE")])
+        self.assertEqual(self.qa.touched_topics(drives), ["track/turnout/408", "track/turnout/1308",
+                                                          "track/sensor/470", "track/sensor/471", "track/sensor/401"])
+
+    def test_list_prints_the_steps_and_publishes_nothing(self) -> None:
+        import io
+        from unittest import mock
+        out = io.StringIO()
+        with mock.patch.object(self.qa, "pub", side_effect=AssertionError("published")), \
+                mock.patch.object(self.qa.subprocess, "run", side_effect=AssertionError("ran a client")), \
+                mock.patch.object(self.qa.subprocess, "check_call", side_effect=AssertionError("ran a client")), \
+                mock.patch("sys.stdout", out):
+            self.assertEqual(self.qa.main(["--list"]), 0)
+        steps, drives = self.qa.load_steps()
+        lines = out.getvalue().splitlines()
+        self.assertEqual(lines, self.qa.step_list(steps, drives))
+        self.assertEqual([ln[3:] for ln in lines if ln.startswith("## ")], [st.tag for st in steps])
+        self.assertEqual(lines[0], f"touched {len(self.qa.touched_topics(drives))}")
+        self.assertIn("  before track/turnout/110 THROWN", lines)       # qa01: Switch 39 thrown
+        self.assertNotIn("cmd", out.getvalue())
+
+    def test_a_bad_steps_file_ends_main_with_one_line(self) -> None:
+        import functools
+        import io
+        import tempfile
+        from unittest import mock
+        err = io.StringIO()
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "steps.csv"
+            path.write_text("tag,n,part\n", encoding="utf-8")
+            with mock.patch.object(self.qa, "load_steps", functools.partial(self.qa.load_steps, path)), \
+                    mock.patch("sys.stderr", err):
+                self.assertEqual(self.qa.main(["--list"]), 2)
+        self.assertRegex(err.getvalue(), r"^run_native_sml_qa: steps.csv: no column device")
+        self.assertEqual(len(err.getvalue().splitlines()), 1)
+
+    def test_every_turnout_takes_its_feedback_from_the_master(self) -> None:
+        """Switch 7 included: the master gives it fb:7:N and fb:7:R (M2S1367, M2S1368), and tables.xml has it
+        TWOSENSOR."""
+        _, drives = self.qa.load_steps()
+        self.assertEqual(drives["switch:7"].feedback, ("1367", "1368"))
+        self.assertEqual([d for d, v in drives.items() if v.layer == "turnout" and v.feedback is None], [])
 
     def test_run_drives_and_checks_each_step_with_no_broker(self) -> None:
         from unittest import mock
-        applied, seen = [], []
+        published, seen = [], []
         snap = {"Mast A": {"aspect": "Stop", "held": None}}
-        steps = (self.qa.Step("t1", "d", {"Mast A": "stop"}, before=(self.qa.turnout("113", "THROWN"),),
-                              after=(self.qa.occupancy("K-1", "INACTIVE"),)),
-                 self.qa.Step("t2", "d", {"Mast A": "nonstop"}))
+        drives = {"switch:35": sml_qa.Drive("switch:35", "Switch 35", "turnout", "108", None),
+                  "det:os:1": sml_qa.Drive("det:os:1", "BS Switch 1", "occupancy", "401", None)}
+        steps = (sml_qa.Step("t1", "d", (("Mast A", "stop"),), before=(sml_qa.Change("switch:35", "THROWN", 2),),
+                             after=(sml_qa.Change("det:os:1", "INACTIVE", 3),)),
+                 sml_qa.Step("t2", "d", (("Mast A", "nonstop"),), (), ()))
         run = self.qa.Run()
 
         def snapshot() -> dict:
             seen.append(1)
             return snap
 
-        with mock.patch.object(self.qa, "set_to", lambda sw, st: applied.append(("to", sw, st))), \
-                mock.patch.object(self.qa, "set_occ", lambda b, st: applied.append(("occ", b, st))), \
-                mock.patch.object(self.qa, "pub", side_effect=AssertionError("published")), \
+        with mock.patch.object(self.qa, "pub", lambda t, p: published.append((t, p))), \
                 mock.patch.object(self.qa, "jmri_snapshot", snapshot), \
                 mock.patch.object(self.qa, "mqtt_heads", lambda: {}), mock.patch.object(self.qa, "SETTLE", 0), \
                 mock.patch("sys.stdout"):
-            self.qa.run_scenario(run, steps)
-        self.assertEqual(applied, [("to", "113", "THROWN"), ("occ", "K-1", "INACTIVE")])
+            self.qa.run_scenario(run, steps, drives)
+        self.assertEqual(published, [("track/turnout/108", "THROWN"), ("track/sensor/401", "INACTIVE")])
         self.assertEqual(len(seen), 2)
         self.assertEqual(run.failures, ["[FAIL] t2: Mast A = 'Stop' (expected nonstop)"])
         self.assertEqual(len(run.notes), 2)
@@ -122,7 +181,7 @@ class NativeSmlQaTest(unittest.TestCase):
                 mock.patch.object(self.qa, "load_mast_heads", side_effect=self.qa.QAError("tables.xml head masts x")), \
                 mock.patch.object(self.qa, "capture_baseline", side_effect=AssertionError("ran")), \
                 mock.patch("sys.stderr", err):
-            self.assertEqual(self.qa.main(), 2)
+            self.assertEqual(self.qa.main([]), 2)
         self.assertEqual(err.getvalue(), "run_native_sml_qa: tables.xml head masts x\n")
 
     def test_an_http_error_falls_back_to_the_heads(self) -> None:

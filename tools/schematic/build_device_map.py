@@ -370,8 +370,7 @@ def master_outputs(bands: Bands, joined: Joined, runs: Runs, rows: Iterable[Devi
     FactsError) as those stop."""
     held = [] if held is None else held
     f = files or device_files()
-    drawn: dict[str, str] = {}
-    staging = staging_rows(bands, joined, runs, f, drawn=drawn)
+    staging, drawn = staging_rows(bands, joined, runs, f)
     wired = staging_wired_rows(f)
     check_switch_ids(staging + wired)
     main, made = owned_rows(rows, parts, f)
