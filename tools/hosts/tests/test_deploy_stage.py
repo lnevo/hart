@@ -16,6 +16,7 @@ import tempfile
 import unittest
 import unittest.mock
 from pathlib import Path
+from typing import ClassVar
 
 ROOT = Path(__file__).resolve().parents[3]
 SYNC = ROOT / "tools/hosts/sync_hart_package.sh"
@@ -166,6 +167,11 @@ def git(*args: str, repo: Path = ROOT, raw: bool = False):
 
 
 class StageOnly(unittest.TestCase):
+    tmp: ClassVar[Path]
+    env: ClassVar[dict[str, str]]
+    out: ClassVar[Path]
+    done: ClassVar[subprocess.CompletedProcess[str]]
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.tmp = Path(tempfile.mkdtemp())
@@ -188,6 +194,15 @@ class StageOnly(unittest.TestCase):
             self.assertTrue((pkg / "tables.xml").is_file(), host)
             self.assertTrue((pkg / "cats/panels/HART_CTC.xml").is_file(), host)
             self.assertTrue((pkg / "operations/Operations.xml").is_file(), host)
+
+    def test_profile_resources_are_staged_where_the_apply_steps_read_them(self) -> None:
+        """The panel background and the USS sensor icons tables.xml loads through preference: sit under cats/ in
+        both packages, unchanged (test_package_contents.py installs them from there)."""
+        for host in ("pi", "win"):
+            for rel in ("resources/misc/hart_panel_bg_plain.jpg", "resources/icons/USS/sensor/yellow-on.gif"):
+                staged = self.out / host / "cats" / rel
+                self.assertTrue(staged.is_file(), f"{host}: {rel}")
+                self.assertTrue(filecmp.cmp(ROOT / "jmri" / rel, staged, shallow=False), f"{host}: {rel}")
 
     def test_signal_coordinator_ships_with_its_modules(self) -> None:
         """The script and every sibling module it loads (hartlib.coordinator) land, unchanged, in both packages."""

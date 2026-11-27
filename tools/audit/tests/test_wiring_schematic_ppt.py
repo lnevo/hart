@@ -2,11 +2,11 @@
 memory), never from LCOS_Layout_Inventory_v86.xlsx, which is an output only (ADR-039)."""
 from __future__ import annotations
 
-import ast
 import importlib.util
 import io
 import runpy
 import sys
+import builtins
 import tempfile
 import unittest
 from contextlib import redirect_stdout
@@ -21,18 +21,18 @@ SCRIPT = WIRING / "create_wiring_schematic_ppt.py"
 HAS_PPTX = importlib.util.find_spec("pptx") is not None
 
 
-class ReadsTheModel(unittest.TestCase):
-    def test_the_source_takes_the_workbook_from_the_model_and_names_no_xlsx(self):
-        source = SCRIPT.read_text(encoding="utf-8")
-        tree = ast.parse(source)
-        calls = {ast.unparse(n.func) for n in ast.walk(tree) if isinstance(n, ast.Call)}
-        self.assertIn("write_inventory.workbook", calls)
-        self.assertFalse({c for c in calls if c.endswith("load_workbook")}, "the script opens a workbook file")
-        docs = {id(n.value) for n in ast.walk(tree) if isinstance(n, ast.Expr)}      # docstrings may name it
-        strings = [n.value for n in ast.walk(tree)
-                   if isinstance(n, ast.Constant) and isinstance(n.value, str) and id(n) not in docs]
-        self.assertFalse([s for s in strings if ".xlsx" in s], "the script names a workbook file")
+REAL_OPEN = builtins.open
 
+
+def no_xlsx_open(file: object, *args: object, **kwargs: object) -> object:
+    """open() that refuses an .xlsx path, so any library that reads a workbook file (openpyxl through zipfile, or
+    anything else) fails the test. The arguments are open()'s own, passed through unchanged."""
+    if str(file).lower().endswith(".xlsx"):
+        raise AssertionError(f"a workbook file was opened: {file}")
+    return REAL_OPEN(file, *args, **kwargs)  # type: ignore[call-overload]
+
+
+class ReadsTheModel(unittest.TestCase):
     @unittest.skipUnless(HAS_PPTX, "python-pptx is not installed (requirements.txt)")
     def test_it_builds_a_slide_per_client_node_without_opening_any_workbook(self):
         from pptx import Presentation
@@ -44,10 +44,13 @@ class ReadsTheModel(unittest.TestCase):
         ids = [r[0].value for r in write_inventory.workbook()["Nodes"].iter_rows(min_row=2)
                if str(r[0].value).startswith("C")]
         never = mock.Mock(side_effect=AssertionError("a workbook file was opened"))
+        model = mock.Mock(wraps=write_inventory.workbook)
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "deck.pptx"
             with mock.patch("openpyxl.load_workbook", never), mock.patch("openpyxl.reader.excel.load_workbook", never), \
                     mock.patch.object(write_inventory, "load_workbook", never), \
+                    mock.patch.object(write_inventory, "workbook", model), mock.patch("builtins.open", no_xlsx_open), \
+                    mock.patch("io.open", no_xlsx_open), \
                     mock.patch.object(sys, "argv", [str(SCRIPT), "--out", str(out)]), redirect_stdout(io.StringIO()), \
                     self.assertRaises(SystemExit) as done:
                 runpy.run_path(str(SCRIPT), run_name="__main__")
@@ -55,6 +58,7 @@ class ReadsTheModel(unittest.TestCase):
             slides = Presentation(out).slides
             text = [" ".join(sh.text_frame.text for sh in s.shapes if sh.has_text_frame) for s in slides]
         never.assert_not_called()
+        model.assert_called_once_with()                   # the deck's sheets are the model's, built in memory
         bad = mock.Mock(side_effect=write_inventory.FactsError("node 99 is not in lcos_nodes.csv"))
         err = io.StringIO()
         with mock.patch.object(write_inventory, "workbook", bad), redirect_stdout(io.StringIO()), \

@@ -1,4 +1,5 @@
-"""tools/ctc_history/film_common.py: the concat list, the ffmpeg commands and the ffmpeg errors, with a fake subprocess."""
+"""tools/ctc_history/film_common.py: the concat list, the ffmpeg commands and errors, and the frame loop (build_film),
+with a fake subprocess."""
 from __future__ import annotations
 
 import subprocess
@@ -106,6 +107,58 @@ class Inputs(unittest.TestCase):
     def test_load_font_falls_back_to_the_built_in_font(self) -> None:
         font = film_common.load_font(22, files=("/nonexistent/font.ttf",))
         self.assertIsNotNone(font.getbbox("A"))
+
+
+class BuildFilm(unittest.TestCase):
+    """The frame loop of the poster films, with small frames and a fake ffmpeg."""
+
+    def test_frames_are_saved_in_order_the_last_is_the_poster_and_ffmpeg_reads_the_list(self) -> None:
+        from PIL import Image
+
+        colours = [(10, 0, 0), (0, 20, 0), (0, 0, 30)]
+        fake = FakeRun()
+        with tempfile.TemporaryDirectory() as tmp:
+            out, poster = Path(tmp) / "film.mp4", Path(tmp) / "poster.jpg"
+            seen: list[list[str]] = []
+
+            def keep_list(cmd: list[str], **kw: Any) -> subprocess.CompletedProcess[str]:
+                lst = Path(cmd[cmd.index("-i") + 1])
+                frames = [Path(line[6:-1]) for line in lst.read_text().splitlines() if line.startswith("file ")]
+                seen.append([str(Image.open(f).getpixel((0, 0))) for f in frames])
+                self.assertTrue(lst.parent.name.startswith("t_evo_"))
+                return fake(cmd, **kw)
+
+            film_common.build_film([lambda c=c: Image.new("RGB", (4, 4), c) for c in colours], out, poster, "t_evo_",
+                                   runner=keep_list)
+            self.assertEqual(Image.open(poster).format, "JPEG")
+            self.assertEqual(Image.open(poster).size, (4, 4))
+        self.assertEqual(seen, [[str(c) for c in [*colours, colours[-1]]]])
+        cmd = fake.calls[0][0]
+        self.assertEqual(cmd[-7:], [*film_common.POSTER_FILM_CODEC, str(out)])
+        self.assertEqual(cmd[cmd.index("-t") + 1], str(film_pace.film_length(3)))
+
+    def test_fewer_than_two_frames_is_refused_before_any_is_composed(self) -> None:
+        from PIL import Image
+
+        made: list[int] = []
+
+        def frame() -> Image.Image:
+            made.append(1)
+            return Image.new("RGB", (2, 2))
+
+        one = [frame]
+        for frames in ([], one):
+            refused = rf"{len(frames)} frame\(s\) for .*film\.mp4: a film needs two"
+            with tempfile.TemporaryDirectory() as tmp, self.assertRaisesRegex(film_common.FilmError, refused):
+                film_common.build_film(frames, Path(tmp) / "film.mp4", Path(tmp) / "p.jpg", "t_", runner=FakeRun())
+        self.assertEqual(made, [])
+
+    def test_an_ffmpeg_failure_is_a_film_error(self) -> None:
+        from PIL import Image
+
+        with tempfile.TemporaryDirectory() as tmp, self.assertRaises(film_common.FfmpegError):
+            film_common.build_film([lambda: Image.new("RGB", (2, 2))] * 2, Path(tmp) / "f.mp4", Path(tmp) / "p.jpg",
+                                   "t_", runner=FakeRun(returncode=1))
 
 
 if __name__ == "__main__":

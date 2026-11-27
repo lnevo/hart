@@ -15,7 +15,9 @@ import sys
 import tempfile
 import tomllib
 import unittest
+from collections.abc import Mapping
 from pathlib import Path
+from typing import NamedTuple
 from unittest import mock
 
 HERE = Path(__file__).resolve().parents[1]
@@ -52,6 +54,29 @@ GOOD = {"name": "a", "mode": "step", "cmd": ["python3", "tools/schematic/build_h
         "domain": "layout", "label": "a", "desc": "A."}
 
 
+class Ran(NamedTuple):
+    """One run of build_panels.sh: its exit code, stdout and stderr together, and the lines the stand-in logged."""
+    code: int
+    out: str
+    ran: list[str]
+
+
+def run_panels(tmp: Path, python: str, args: tuple[str, ...], env: Mapping[str, str],
+               base: Mapping[str, str] | None = None) -> Ran:
+    """build_panels.sh run from the repo with the shell script `python` as python3 on PATH. The stand-in logs to
+    PANELS_LOG and finds the real interpreter in REAL_PYTHON; `env` goes over those, on `base` (default os.environ)."""
+    fake = tmp / "python3"
+    fake.write_text(python, encoding="utf-8")
+    fake.chmod(fake.stat().st_mode | stat.S_IXUSR)
+    log = tmp / "log"
+    log.touch()
+    full = dict(os.environ if base is None else base, PATH=f"{tmp}{os.pathsep}{os.environ['PATH']}",
+                PANELS_LOG=str(log), REAL_PYTHON=sys.executable)
+    full.update(env)
+    r = subprocess.run(["bash", str(SCRIPT), *args], cwd=REPO, env=full, capture_output=True, text=True)
+    return Ran(r.returncode, r.stdout + r.stderr, log.read_text(encoding="utf-8").splitlines())
+
+
 def entry(**fields):
     """A step for a stand-in manifest: GOOD with `fields` over it (None drops a field)."""
     out = {**GOOD, **fields}
@@ -77,7 +102,7 @@ class Manifest(unittest.TestCase):
         self.assertEqual(full[-1].name, "approved-live")
 
     def test_the_masts_step_only_reads_the_device_master(self):
-        # build_masts.py writes masts.csv alone since naming-layers step 12 (hartlib.devices.WRITERS)
+        # build_masts.py writes masts.csv alone (hartlib.devices.WRITERS)
         sys.path.insert(0, str(REPO / "tools/hartlib/src"))
         from hartlib import devices
         masts = next(s for s in M.panel_steps() if s.name == "masts")
@@ -184,21 +209,14 @@ class Manifest(unittest.TestCase):
 class DryRun(unittest.TestCase):
     """The script itself, with python3 replaced by a recorder that fails for one named script."""
 
-    def run_script(self, *args, fail="", manifest="", **extra):
+    def run_script(self, *args: str, fail: str = "", manifest: str = "", **extra: str) -> Ran:
         with tempfile.TemporaryDirectory() as tmp:
-            fake = Path(tmp) / "python3"
-            fake.write_text(FAKE_PYTHON, encoding="utf-8")
-            fake.chmod(fake.stat().st_mode | stat.S_IXUSR)
-            log = Path(tmp) / "log"
-            log.touch()
             timings = Path(tmp) / "timings" / "step-timings.tsv"     # the stub runs stay out of the real log
-            env = dict(os.environ, PATH=f"{tmp}{os.pathsep}{os.environ['PATH']}", PANELS_LOG=str(log),
-                       PANELS_FAIL=fail or "none", HART_PANELS_OS="Linux",    # no SML discovery here: SmlDiscovery
-                       REAL_PYTHON=sys.executable, MANIFEST_STUB=manifest, HART_STEP_TIMINGS_LOG=str(timings),
-                       **extra)
-            r = subprocess.run(["bash", str(SCRIPT), *args], cwd=REPO, env=env, capture_output=True, text=True)
+            got = run_panels(Path(tmp), FAKE_PYTHON, args, {
+                "PANELS_FAIL": fail or "none", "HART_PANELS_OS": "Linux",    # no SML discovery here: SmlDiscovery
+                "MANIFEST_STUB": manifest, "HART_STEP_TIMINGS_LOG": str(timings), **extra})
             self.timings = timings.read_text(encoding="utf-8").splitlines() if timings.exists() else []
-            return r.returncode, r.stdout + r.stderr, log.read_text(encoding="utf-8").splitlines()
+            return got
 
     def test_a_write_logs_each_step_it_runs_and_a_check_logs_none(self):
         code, out, _ran = self.run_script(fail="build_signals.py")
@@ -289,19 +307,15 @@ exit 0
 
 
 class SmlDiscovery(unittest.TestCase):
-    """A write on the Mac discovers when sml-current says stale, then checks again and goes on to tables
-   . Off the Mac, in CI, while operating, in --check or on a build error it stops as before."""
+    """A write on the Mac discovers when sml-current says stale, then checks again and goes on to tables. Off the
+    Mac, in CI, while operating, in --check or on a build error it does not discover: the stale step stops the run."""
 
-    def run_script(self, *args, os_name="Darwin", operating=False, lock_pid=None, **extra):
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            fake = tmp / "python3"
-            fake.write_text(SML_PYTHON, encoding="utf-8")
-            fake.chmod(fake.stat().st_mode | stat.S_IXUSR)
+    def run_script(self, *args: str, os_name: str = "Darwin", operating: bool = False, lock_pid: int | str | None = None,
+                   **extra: str) -> Ran:
+        with tempfile.TemporaryDirectory() as name:
+            tmp = Path(name)
             discover = tmp / "discover.sh"
             discover.write_text(FAKE_DISCOVER, encoding="utf-8")
-            log = tmp / "log"
-            log.touch()
             flag = tmp / "operating"
             if operating:
                 flag.write_text("by=owner\nsince=now\nreason=test\n", encoding="utf-8")
@@ -311,14 +325,12 @@ class SmlDiscovery(unittest.TestCase):
                 lock.mkdir()
                 if lock_pid != "":
                     (lock / "pid").write_text(f"{lock_pid}\n", encoding="utf-8")
-            env.update(PATH=f"{tmp}{os.pathsep}{os.environ['PATH']}", PANELS_LOG=str(log),
-                       DISCOVERED=str(tmp / "discovered"), HART_PANELS_OS=os_name,
-                       HART_SML_DISCOVER_CMD=str(discover), HART_OPERATING_FLAG=str(flag),
-                       HART_SML_DISCOVER_LOCK=str(lock), REAL_PYTHON=sys.executable)
-            env.update({"HART_STEP_TIMINGS_LOG": "", **extra})
-            r = subprocess.run(["bash", str(SCRIPT), *args], cwd=REPO, env=env, capture_output=True, text=True)
+            got = run_panels(tmp, SML_PYTHON, args, {
+                "DISCOVERED": str(tmp / "discovered"), "HART_PANELS_OS": os_name,
+                "HART_SML_DISCOVER_CMD": str(discover), "HART_OPERATING_FLAG": str(flag),
+                "HART_SML_DISCOVER_LOCK": str(lock), "HART_STEP_TIMINGS_LOG": "", **extra}, base=env)
             self.lock_left = lock.exists()
-            return r.returncode, r.stdout + r.stderr, log.read_text(encoding="utf-8").splitlines()
+            return got
 
     def scripts(self, ran):
         return [line.split()[0].rsplit("/", 1)[-1] for line in ran]
@@ -430,25 +442,18 @@ class StaleMastsCsv(unittest.TestCase):
     """build_panels.sh with the real sync_signals.py --check and a masts.csv missing its last mast,
     so tables.xml holds a staging mast the file does not: the check fails, and the run says so in both modes."""
 
-    def run_script(self, *args, whole=False):
+    def run_script(self, *args: str, whole: bool = False) -> Ran:
         import staging_device_map as sdm
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
+        with tempfile.TemporaryDirectory() as name:
+            tmp = Path(name)
             current = sdm.MASTS
             lines = current.read_text(encoding="utf-8").splitlines(keepends=True)
             stale = tmp / "masts.csv"
             stale.write_text("".join(lines[:-1]), encoding="utf-8")
             (tmp / "runner.py").write_text(STALE_RUNNER, encoding="utf-8")
-            fake = tmp / "python3"
-            fake.write_text(STALE_SYNC_PYTHON, encoding="utf-8")
-            fake.chmod(fake.stat().st_mode | stat.S_IXUSR)
-            log = tmp / "log"
-            log.touch()
-            env = dict(os.environ, PATH=f"{tmp}{os.pathsep}{os.environ['PATH']}", PANELS_LOG=str(log),
-                       REAL_PYTHON=sys.executable, STALE_RUNNER=str(tmp / "runner.py"), SCHEMATIC_DIR=str(HERE),
-                       STALE_CSV=str(current if whole else stale), HART_STEP_TIMINGS_LOG="")
-            r = subprocess.run(["bash", str(SCRIPT), *args], cwd=REPO, env=env, capture_output=True, text=True)
-            return r.returncode, r.stdout + r.stderr, log.read_text(encoding="utf-8").splitlines()
+            return run_panels(tmp, STALE_SYNC_PYTHON, args, {
+                "STALE_RUNNER": str(tmp / "runner.py"), "SCHEMATIC_DIR": str(HERE),
+                "STALE_CSV": str(current if whole else stale), "HART_STEP_TIMINGS_LOG": ""})
 
     def test_the_unmodified_file_passes_so_the_dropped_row_is_the_cause(self):
         code, out, _ran = self.run_script("--check", whole=True)

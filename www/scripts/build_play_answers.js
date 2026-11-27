@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /* Builds www/play/answers.html, the answer key for Extra East: HART Railroad, from the island shifts in www/play/runs.js
-   and the road runs in www/play/road.js, passenger.js, pcy.js and pir.js (with the shared road-engine.js and warrant.js). Each run's build() is run many times with a
-   seeded random stream and a stand-in for the game's helpers, so every branch a draw can take is seen. Each run lists
+   and the road runs in www/play/road.js, passenger.js, pcy.js and pir.js (with the shared road-engine.js and warrant.js).
+   Each run's build() runs DRAWS times, each time with its own seeded random stream and a stand-in for the game's
+   helpers, so every branch a draw can take is seen. Each run lists
    every question it can ask; words a draw changes (a time, a count) show as [varies]. Questions asked from inside an
    after() or info callback are not seen; none are today. A road run lists the questions that depend on the path
    through H.key(question), which the game ignores.
