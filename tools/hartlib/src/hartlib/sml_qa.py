@@ -13,10 +13,7 @@ order of `n`. native_sml_qa.columns.csv beside it gives the column rules check_d
 
 A turnout state (CLOSED, THROWN) drives a turnout row (role turnout) and an occupancy state (ACTIVE, INACTIVE) an
 occupancy row. A turnout drives its feedback sensors too when the master has both of its fb rows (fb:<n>:N and
-fb:<n>:R), and none when it has neither. `feedback` none on a turnout's rows is a named exception: the turnout is
-driven without the feedback sensors the master gives it (Switch 7, which the QA drove as DIRECT before its fb rows
-were in the master; an owner question). Every row of that turnout says so, and the exception stops once the master has
-no fb rows for it. QAError names the file and line, or the device, on any other shape.
+fb:<n>:R), and none when it has neither. QAError names the file and line, or the device, on any other shape.
 """
 from __future__ import annotations
 
@@ -32,13 +29,11 @@ from .levels import STAGING
 from .railroad_facts import FactsError, read_rows
 
 PATH = paths.LAYOUT_DATA / "native_sml_qa.csv"
-COLUMNS = ("tag", "n", "part", "device", "state", "feedback", "mast", "want", "text")
+COLUMNS = ("tag", "n", "part", "device", "state", "mast", "want", "text")
 PARTS = ("about", "before", "expect", "after")
-# the cells each part must fill; every other cell but text (a note for people) and a before or after row's feedback
-# stays empty
+# the cells each part must fill; every other cell but text (a note for people) stays empty
 PART_CELLS = {"about": ("text",), "before": ("device", "state"), "after": ("device", "state"),
               "expect": ("mast", "want")}
-NO_FEEDBACK = "none"      # the one value of `feedback`: drive the turnout without its feedback sensors
 STATE_LAYER = {"CLOSED": "turnout", "THROWN": "turnout", "ACTIVE": "occupancy", "INACTIVE": "occupancy"}
 # the LCOS MQTT system name prefix of each layer the QA drives: the address is what follows it
 PREFIX = {"turnout": "M2T", "occupancy": "M2S", "fb": "M2S"}
@@ -51,12 +46,10 @@ class QAError(HartlibError, ValueError):
 
 
 class Change(NamedTuple):
-    """One retained state a step drives: a device ID of staging and its state; `no_feedback`: the row's feedback is
-    none."""
+    """One retained state a step drives: a device ID of staging and its state."""
     device: str
     state: str
     line: int
-    no_feedback: bool = False
 
 
 class Step(NamedTuple):
@@ -86,14 +79,11 @@ def _row_problem(row: Mapping[str, str]) -> str:
     missing = [c for c in need if not row[c]]
     if missing:
         return f"a {part} row needs {' and '.join(missing)}"
-    optional = ("text", "feedback") if part in ("before", "after") else ("text",)
-    extra = [c for c in COLUMNS[3:] if c not in optional and c not in need and row[c]]
+    extra = [c for c in COLUMNS[3:] if c != "text" and c not in need and row[c]]
     if extra:
         return f"a {part} row has no {' or '.join(extra)}"
     if row["state"] and row["state"] not in STATE_LAYER:
         return f"state {row['state']!r} is not one of {', '.join(STATE_LAYER)}"
-    if row["feedback"] and (row["feedback"] != NO_FEEDBACK or STATE_LAYER[row["state"]] != "turnout"):
-        return f"feedback {row['feedback']!r}: only {NO_FEEDBACK}, on a turnout state"
     return ""
 
 
@@ -140,8 +130,7 @@ def _step(path: Path, tag: str, rows: list[tuple[int, int, dict[str, str]]]) -> 
             expect[r["mast"]] = r["want"]
 
     def changes(part: str) -> tuple[Change, ...]:
-        return tuple(Change(r["device"], r["state"], line, r["feedback"] == NO_FEEDBACK)
-                     for _, line, r in rows if r["part"] == part)
+        return tuple(Change(r["device"], r["state"], line) for _, line, r in rows if r["part"] == part)
     return Step(tag, about[0], tuple(expect.items()), changes("before"), changes("after"))
 
 
@@ -157,10 +146,9 @@ def drives(steps: Iterable[Step], rows: Iterable[MasterRow] | None = None, path:
     """{device id: Drive} of every device the steps drive, in the order they first name it, from the staging rows of
     the device master (`rows`, default hartlib.devices.load()). QAError on an ID with no staging row, a state its
     row's layer or role does not take, a system name that is not an LCOS MQTT one, and a turnout with one of its two
-    fb rows; on a `feedback` none that not every row of its turnout gives, or that names a turnout with no fb rows."""
+    fb rows."""
     by_id = {r.id: r for r in (devices.load() if rows is None else rows) if r.level == STAGING and r.id}
     out: dict[str, Drive] = {}
-    skip: dict[str, bool] = {}          # device id -> its first row's feedback none
     for step in steps:
         for change in (*step.before, *step.after):
             where = f"{path}:{change.line}"
@@ -171,19 +159,9 @@ def drives(steps: Iterable[Step], rows: Iterable[MasterRow] | None = None, path:
             if row.layer != layer or (layer == "turnout" and row.role != "turnout"):
                 raise QAError(f"{where}: {change.state} drives a {layer} row; {row.user_name} ({change.device}) is a "
                               f"{row.layer} row (role {row.role or 'none'})")
-            if change.device in out:
-                if change.no_feedback != skip[change.device]:
-                    raise QAError(f"{where}: {change.device} has feedback {NO_FEEDBACK} on some of its rows only; "
-                                  "give it on every row of the turnout or on none")
-                continue
-            skip[change.device] = change.no_feedback
-            feedback = _feedback(row, change.device, by_id) if layer == "turnout" else None
-            if change.no_feedback:
-                if feedback is None:
-                    raise QAError(f"{where}: {change.device} has feedback {NO_FEEDBACK}, but the device master gives "
-                                  "it no fb rows: drop the exception")
-                feedback = None
-            out[change.device] = Drive(change.device, row.user_name, layer, _address(row, change.device), feedback)
+            if change.device not in out:
+                out[change.device] = Drive(change.device, row.user_name, layer, _address(row, change.device),
+                                           _feedback(row, change.device, by_id) if layer == "turnout" else None)
     return out
 
 

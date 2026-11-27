@@ -464,8 +464,7 @@ number from it.
 The native SML QA's steps, `jmri/layouts/hart/data/native_sml_qa.csv` (sidecar beside it): `read(path)` gives the
 `Step`s in run order (tag, description, `(mast, want)` checks, `Change`s before and after), and `drives(steps, rows)`
 the staging devices they drive, by device ID from the device master: each one's user name, LCOS MQTT address and, for
-a turnout, its feedback sensors' addresses from its `fb:<n>:N` and `fb:<n>:R` rows. A row's `feedback` none drives a
-turnout without the sensors the master gives it, on every row of that turnout or none. `QAError` names the file and
+a turnout, its feedback sensors' addresses from its `fb:<n>:N` and `fb:<n>:R` rows. `QAError` names the file and
 line, or the device. `tools/mqtt-mimic/qa/run_native_sml_qa.py` reads it; `--list` prints the steps and publishes
 nothing.
 

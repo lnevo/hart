@@ -1,93 +1,93 @@
-tag,n,part,device,state,feedback,mast,want,text
-qa00_rest,1,about,,,,,,"All occ clear; 113/114/115/110/111/117/100/102 CLOSED, 112 THROWN (field rest)."
-qa00_rest,2,before,switch:35,CLOSED,,,,
-qa00_rest,3,before,switch:37,CLOSED,,,,
-qa00_rest,4,before,switch:39,CLOSED,,,,
-qa00_rest,5,before,switch:31,CLOSED,,,,
-qa00_rest,6,before,switch:23,CLOSED,,,,
-qa00_rest,7,before,switch:33,THROWN,,,,
-qa00_rest,8,before,switch:7,CLOSED,none,,,
-qa00_rest,9,before,switch:1,CLOSED,,,,
-qa00_rest,10,before,switch:5,CLOSED,,,,
-qa00_rest,11,before,det:block:37C-39C#2,INACTIVE,,,,
-qa00_rest,12,before,det:block:37C-39C#1,INACTIVE,,,,
-qa00_rest,13,before,det:os:37,INACTIVE,,,,
-qa00_rest,14,before,det:os:39,INACTIVE,,,,
-qa00_rest,15,before,det:os:35:A-39A,INACTIVE,,,,
-qa00_rest,16,before,det:os:35:A-33A,INACTIVE,,,,
-qa00_rest,17,before,det:block:33A-35A,INACTIVE,,,,
-qa00_rest,18,before,det:block:23B-35B,INACTIVE,,,,
-qa00_rest,19,before,det:block:1A-23A,INACTIVE,,,,
-qa00_rest,20,before,det:block:7B-33C,INACTIVE,,,,
-qa00_rest,21,before,det:os:1,INACTIVE,,,,
-qa00_rest,22,before,det:os:5,INACTIVE,,,,
-qa00_rest,23,before,det:block:5B-7A,INACTIVE,,,,
-qa00_rest,24,before,det:os:31,INACTIVE,,,,
-qa00_rest,25,before,det:os:23:A-1A,INACTIVE,,,,
-qa00_rest,26,before,det:os:23:A-31B,INACTIVE,,,,
-qa00_rest,27,before,det:os:33,INACTIVE,,,,
-qa00_rest,28,expect,,,,Mast 68,nonstop,
-qa00_rest,29,expect,,,,Mast 67,nonstop,
-qa00_rest,30,expect,,,,Mast 40LB,nonstop,dest Mast 24L: Switches 39 and 23 closed
-qa00_rest,31,expect,,,,Mast 38LA,nonstop,dest Mast 34L: Switches 35 and 37 closed
-qa00_rest,32,expect,,,,Mast 40LA,stop,needs Switch 39 thrown
-qa00_rest,33,expect,,,,Mast 38LB,stop,needs Switch 37 thrown
-qa00_rest,34,expect,,,,Mast 32R,stop,needs Switch 31 thrown
-qa00_rest,35,expect,,,,Mast 8LB,nonstop,dest Mast 6LB: Switch 7 closed
-qa01_115_thrown,1,about,,,,,,115 THROWN: main runs via K-1 balloon; McKees Rocks cut off.
-qa01_115_thrown,2,before,switch:39,THROWN,,,,
-qa01_115_thrown,3,expect,,,,Mast 40LB,stop,
-qa01_115_thrown,4,expect,,,,Mast 40LA,Diverging Clear,"diverging route (Switch 39 thrown), dest Mast 24L not Stop: bottom head green"
-qa01_115_thrown,5,expect,,,,Mast 67,nonstop,dest Mast 40LA after discovery
-qa01_115_thrown,6,expect,,,,Mast 36RA,nonstop,dest Mast 67 via Switch 35 closed and Switch 39 thrown
-qa02_115T_wme_occ,1,about,,,,,,115 THROWN + West Ext occupied: Rocks-main path fouled.
-qa02_115T_wme_occ,2,before,det:block:23B-35B,ACTIVE,,,,
-qa02_115T_wme_occ,3,expect,,,,Mast 40LA,stop,
-qa02_115T_wme_occ,4,after,det:block:23B-35B,INACTIVE,,,,
-qa02_115T_wme_occ,5,after,switch:39,CLOSED,,,,
-qa03_114_thrown,1,about,,,,,,114 THROWN: main runs via K-2 balloon; McKeesport cut off.
-qa03_114_thrown,2,before,switch:37,THROWN,,,,
-qa03_114_thrown,3,expect,,,,Mast 38LB,nonstop,
-qa03_114_thrown,4,expect,,,,Mast 36RB,nonstop,dest Mast 68 via Switch 35 closed and Switch 37 thrown
-qa04_114T_mckeesport_occ,1,about,,,,,,114 THROWN + K-2 balloon occupied (A48 boundary test).
-qa04_114T_mckeesport_occ,2,before,det:block:37C-39C#1,ACTIVE,,,,
-qa04_114T_mckeesport_occ,3,expect,,,,Mast 68,stop,
-qa04_114T_mckeesport_occ,4,expect,,,,Mast 36RB,stop,
-qa04_114T_mckeesport_occ,5,after,det:block:37C-39C#1,INACTIVE,,,,
-qa04_114T_mckeesport_occ,6,after,switch:37,CLOSED,,,,
-qa05_east_lead_occ,1,about,,,,,,East Lead occupied: McKeesport's route to East Lead mast fouled; McKees Rocks (via 111a) unaffected.
-qa05_east_lead_occ,2,before,det:block:33A-35A,ACTIVE,,,,
-qa05_east_lead_occ,3,expect,,,,Mast 38LA,stop,
-qa05_east_lead_occ,4,expect,,,,Mast 40LB,nonstop,
-qa05_east_lead_occ,5,after,det:block:33A-35A,INACTIVE,,,,
-qa06_110T_112C,1,about,,,,,,110 THROWN + 112 CLOSED: ladder move OS110 -> East Lead -> 113a lined.
-qa06_110T_112C,2,before,switch:33,CLOSED,,,,
-qa06_110T_112C,3,before,switch:31,THROWN,,,,
-qa06_110T_112C,4,expect,,,,Mast 32R,nonstop,
-qa07_110_closed,1,about,,,,,,110 CLOSED again: OS 110 dwarf back to Stop.
-qa07_110_closed,2,before,switch:31,CLOSED,,,,
-qa07_110_closed,3,expect,,,,Mast 32R,stop,
-qa07_110_closed,4,after,switch:33,THROWN,,,,
-qa08_eme_occ,1,about,,,,,,East Ext occupied: 117b's route to Plane East Ext fouled.
-qa08_eme_occ,2,before,det:block:5B-7A,ACTIVE,,,,
-qa08_eme_occ,3,expect,,,,Mast 8LB,stop,
-qa08_eme_occ,4,after,det:block:5B-7A,INACTIVE,,,,
-qa09_117_thrown,1,about,,,,,,117 THROWN: T6 mast routes to Plane East Ext; 117b cut off.
-qa09_117_thrown,2,before,switch:7,THROWN,none,,,
-qa09_117_thrown,3,expect,,,,Mast 8LA,nonstop,
-qa09_117_thrown,4,expect,,,,Mast 8LB,stop,
-qa09_117_thrown,5,after,switch:7,CLOSED,none,,,
-qa10_100_thrown,1,about,,,,,,100 THROWN + 102 CLOSED: Plane East Ext lined to EE West Main West.
-qa10_100_thrown,2,before,switch:1,THROWN,,,,
-qa10_100_thrown,3,expect,,,,Mast 6LB,nonstop,
-qa10_100_thrown,4,expect,,,,Mast 2L,nonstop,dest Mast 8RB via Switch 1 thrown and Switch 5 closed
-qa10_100_thrown,5,expect,,,,Mast 24L,Clear,
-qa11_100T_main_west_occ,1,about,,,,,,100 THROWN + Main West occupied: Plane East Ext route fouled.
-qa11_100T_main_west_occ,2,before,det:block:1A-23A,ACTIVE,,,,
-qa11_100T_main_west_occ,3,expect,,,,Mast 6LB,stop,
-qa11_100T_main_west_occ,4,after,det:block:1A-23A,INACTIVE,,,,
-qa11_100T_main_west_occ,5,after,switch:1,CLOSED,,,,
-qa12_back_to_rest,1,about,,,,,,Everything back at field rest.
-qa12_back_to_rest,2,expect,,,,Mast 40LB,nonstop,
-qa12_back_to_rest,3,expect,,,,Mast 38LA,nonstop,
-qa12_back_to_rest,4,expect,,,,Mast 8LB,nonstop,
+tag,n,part,device,state,mast,want,text
+qa00_rest,1,about,,,,,"All occ clear; 113/114/115/110/111/117/100/102 CLOSED, 112 THROWN (field rest)."
+qa00_rest,2,before,switch:35,CLOSED,,,
+qa00_rest,3,before,switch:37,CLOSED,,,
+qa00_rest,4,before,switch:39,CLOSED,,,
+qa00_rest,5,before,switch:31,CLOSED,,,
+qa00_rest,6,before,switch:23,CLOSED,,,
+qa00_rest,7,before,switch:33,THROWN,,,
+qa00_rest,8,before,switch:7,CLOSED,,,
+qa00_rest,9,before,switch:1,CLOSED,,,
+qa00_rest,10,before,switch:5,CLOSED,,,
+qa00_rest,11,before,det:block:37C-39C#2,INACTIVE,,,
+qa00_rest,12,before,det:block:37C-39C#1,INACTIVE,,,
+qa00_rest,13,before,det:os:37,INACTIVE,,,
+qa00_rest,14,before,det:os:39,INACTIVE,,,
+qa00_rest,15,before,det:os:35:A-39A,INACTIVE,,,
+qa00_rest,16,before,det:os:35:A-33A,INACTIVE,,,
+qa00_rest,17,before,det:block:33A-35A,INACTIVE,,,
+qa00_rest,18,before,det:block:23B-35B,INACTIVE,,,
+qa00_rest,19,before,det:block:1A-23A,INACTIVE,,,
+qa00_rest,20,before,det:block:7B-33C,INACTIVE,,,
+qa00_rest,21,before,det:os:1,INACTIVE,,,
+qa00_rest,22,before,det:os:5,INACTIVE,,,
+qa00_rest,23,before,det:block:5B-7A,INACTIVE,,,
+qa00_rest,24,before,det:os:31,INACTIVE,,,
+qa00_rest,25,before,det:os:23:A-1A,INACTIVE,,,
+qa00_rest,26,before,det:os:23:A-31B,INACTIVE,,,
+qa00_rest,27,before,det:os:33,INACTIVE,,,
+qa00_rest,28,expect,,,Mast 68,nonstop,
+qa00_rest,29,expect,,,Mast 67,nonstop,
+qa00_rest,30,expect,,,Mast 40LB,nonstop,dest Mast 24L: Switches 39 and 23 closed
+qa00_rest,31,expect,,,Mast 38LA,nonstop,dest Mast 34L: Switches 35 and 37 closed
+qa00_rest,32,expect,,,Mast 40LA,stop,needs Switch 39 thrown
+qa00_rest,33,expect,,,Mast 38LB,stop,needs Switch 37 thrown
+qa00_rest,34,expect,,,Mast 32R,stop,needs Switch 31 thrown
+qa00_rest,35,expect,,,Mast 8LB,nonstop,dest Mast 6LB: Switch 7 closed
+qa01_115_thrown,1,about,,,,,115 THROWN: main runs via K-1 balloon; McKees Rocks cut off.
+qa01_115_thrown,2,before,switch:39,THROWN,,,
+qa01_115_thrown,3,expect,,,Mast 40LB,stop,
+qa01_115_thrown,4,expect,,,Mast 40LA,Diverging Clear,"diverging route (Switch 39 thrown), dest Mast 24L not Stop: bottom head green"
+qa01_115_thrown,5,expect,,,Mast 67,nonstop,dest Mast 40LA after discovery
+qa01_115_thrown,6,expect,,,Mast 36RA,nonstop,dest Mast 67 via Switch 35 closed and Switch 39 thrown
+qa02_115T_wme_occ,1,about,,,,,115 THROWN + West Ext occupied: Rocks-main path fouled.
+qa02_115T_wme_occ,2,before,det:block:23B-35B,ACTIVE,,,
+qa02_115T_wme_occ,3,expect,,,Mast 40LA,stop,
+qa02_115T_wme_occ,4,after,det:block:23B-35B,INACTIVE,,,
+qa02_115T_wme_occ,5,after,switch:39,CLOSED,,,
+qa03_114_thrown,1,about,,,,,114 THROWN: main runs via K-2 balloon; McKeesport cut off.
+qa03_114_thrown,2,before,switch:37,THROWN,,,
+qa03_114_thrown,3,expect,,,Mast 38LB,nonstop,
+qa03_114_thrown,4,expect,,,Mast 36RB,nonstop,dest Mast 68 via Switch 35 closed and Switch 37 thrown
+qa04_114T_mckeesport_occ,1,about,,,,,114 THROWN + K-2 balloon occupied (A48 boundary test).
+qa04_114T_mckeesport_occ,2,before,det:block:37C-39C#1,ACTIVE,,,
+qa04_114T_mckeesport_occ,3,expect,,,Mast 68,stop,
+qa04_114T_mckeesport_occ,4,expect,,,Mast 36RB,stop,
+qa04_114T_mckeesport_occ,5,after,det:block:37C-39C#1,INACTIVE,,,
+qa04_114T_mckeesport_occ,6,after,switch:37,CLOSED,,,
+qa05_east_lead_occ,1,about,,,,,East Lead occupied: McKeesport's route to East Lead mast fouled; McKees Rocks (via 111a) unaffected.
+qa05_east_lead_occ,2,before,det:block:33A-35A,ACTIVE,,,
+qa05_east_lead_occ,3,expect,,,Mast 38LA,stop,
+qa05_east_lead_occ,4,expect,,,Mast 40LB,nonstop,
+qa05_east_lead_occ,5,after,det:block:33A-35A,INACTIVE,,,
+qa06_110T_112C,1,about,,,,,110 THROWN + 112 CLOSED: ladder move OS110 -> East Lead -> 113a lined.
+qa06_110T_112C,2,before,switch:33,CLOSED,,,
+qa06_110T_112C,3,before,switch:31,THROWN,,,
+qa06_110T_112C,4,expect,,,Mast 32R,nonstop,
+qa07_110_closed,1,about,,,,,110 CLOSED again: OS 110 dwarf back to Stop.
+qa07_110_closed,2,before,switch:31,CLOSED,,,
+qa07_110_closed,3,expect,,,Mast 32R,stop,
+qa07_110_closed,4,after,switch:33,THROWN,,,
+qa08_eme_occ,1,about,,,,,East Ext occupied: 117b's route to Plane East Ext fouled.
+qa08_eme_occ,2,before,det:block:5B-7A,ACTIVE,,,
+qa08_eme_occ,3,expect,,,Mast 8LB,stop,
+qa08_eme_occ,4,after,det:block:5B-7A,INACTIVE,,,
+qa09_117_thrown,1,about,,,,,117 THROWN: T6 mast routes to Plane East Ext; 117b cut off.
+qa09_117_thrown,2,before,switch:7,THROWN,,,
+qa09_117_thrown,3,expect,,,Mast 8LA,nonstop,
+qa09_117_thrown,4,expect,,,Mast 8LB,stop,
+qa09_117_thrown,5,after,switch:7,CLOSED,,,
+qa10_100_thrown,1,about,,,,,100 THROWN + 102 CLOSED: Plane East Ext lined to EE West Main West.
+qa10_100_thrown,2,before,switch:1,THROWN,,,
+qa10_100_thrown,3,expect,,,Mast 6LB,nonstop,
+qa10_100_thrown,4,expect,,,Mast 2L,nonstop,dest Mast 8RB via Switch 1 thrown and Switch 5 closed
+qa10_100_thrown,5,expect,,,Mast 24L,Clear,
+qa11_100T_main_west_occ,1,about,,,,,100 THROWN + Main West occupied: Plane East Ext route fouled.
+qa11_100T_main_west_occ,2,before,det:block:1A-23A,ACTIVE,,,
+qa11_100T_main_west_occ,3,expect,,,Mast 6LB,stop,
+qa11_100T_main_west_occ,4,after,det:block:1A-23A,INACTIVE,,,
+qa11_100T_main_west_occ,5,after,switch:1,CLOSED,,,
+qa12_back_to_rest,1,about,,,,,Everything back at field rest.
+qa12_back_to_rest,2,expect,,,Mast 40LB,nonstop,
+qa12_back_to_rest,3,expect,,,Mast 38LA,nonstop,
+qa12_back_to_rest,4,expect,,,Mast 8LB,nonstop,

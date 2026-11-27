@@ -135,12 +135,12 @@ class NativeSmlQaTest(unittest.TestCase):
         self.assertRegex(err.getvalue(), r"^run_native_sml_qa: steps.csv: no column device")
         self.assertEqual(len(err.getvalue().splitlines()), 1)
 
-    def test_switch_7_keeps_its_named_exception(self) -> None:
-        """The steps drive Switch 7 without the feedback sensors the master gives it (feedback none, an owner
-        question); every other turnout takes its feedback from the master."""
+    def test_every_turnout_takes_its_feedback_from_the_master(self) -> None:
+        """Switch 7 included: the master gives it fb:7:N and fb:7:R (M2S1367, M2S1368), and tables.xml has it
+        TWOSENSOR."""
         _, drives = self.qa.load_steps()
-        self.assertIsNone(drives["switch:7"].feedback)
-        self.assertEqual([d for d, v in drives.items() if v.layer == "turnout" and v.feedback is None], ["switch:7"])
+        self.assertEqual(drives["switch:7"].feedback, ("1367", "1368"))
+        self.assertEqual([d for d, v in drives.items() if v.layer == "turnout" and v.feedback is None], [])
 
     def test_run_drives_and_checks_each_step_with_no_broker(self) -> None:
         from unittest import mock
