@@ -96,6 +96,14 @@ class LayoutIndexCheckTest(unittest.TestCase):
                 self.assertIn("was drawn from other inputs", err)
                 self.assertIn(f"run python3 www/scripts/{Path(mod.__file__).name}", err)
 
+    def test_the_stamp_hashes_every_part_of_the_renderer(self) -> None:
+        self.assertEqual((le_index.RENDER, *le_index.RENDER_PARTS), le_index.load_render_mod().SOURCES)
+        part = self.tmp() / le_index.RENDER_PARTS[1].name
+        part.write_bytes(le_index.RENDER_PARTS[1].read_bytes() + b"\n# changed\n")
+        rc, _, err = self.check(le_index, RENDER_PARTS=(le_index.RENDER_PARTS[0], part))
+        self.assertEqual(rc, 1)
+        self.assertIn("was drawn from other inputs", err)
+
     def test_a_png_without_a_stamp_fails(self) -> None:
         for mod in (le_index, cats_index):
             with self.subTest(index=mod.OUT_JSON.name):

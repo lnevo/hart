@@ -1,4 +1,5 @@
-"""render_le_layout.load_geometry skips hidden track segments and draws circle arcs as JMRI does."""
+"""render_le_layout and its parts: load_geometry skips hidden track segments, draws circle arcs as JMRI does and stops
+on numbers it cannot read; the drawing steps; --kinds; the command's errors."""
 import contextlib
 import io
 import sys
@@ -8,7 +9,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 try:
-    import render_le_layout  # noqa: E402
+    import render_le_layout  # noqa: E402  first: it puts hartlib on the path for its parts
+    import render_le_draw  # noqa: E402
 except ModuleNotFoundError as exc:  # CI has no Pillow
     raise unittest.SkipTest(f"render_le_layout needs {exc.name}")
 
@@ -135,28 +137,28 @@ class MastKinds(unittest.TestCase):
         self.assertTrue(staging and main_upper)
         self.assertNotEqual(staging, main_upper)
         self.assertTrue(all(name.startswith("Mast ") for name in [*staging, *main_upper]))
-        with self.assertRaisesRegex(SystemExit, "no section 'upper'"):
+        with self.assertRaisesRegex(render_le_layout.MastKindsError, "no section 'upper'"):
             render_le_layout.mast_kinds(render_le_layout.KINDS_FILE, "upper")
 
     def test_a_sheet_for_a_plain_file_stops(self):
         path = self.write('{"signals": [{"mast": "2L", "kind": "field"}]}')
-        with self.assertRaisesRegex(SystemExit, "--kinds-sheet main_upper: .* has no sections"):
+        with self.assertRaisesRegex(render_le_layout.MastKindsError, "--kinds-sheet main_upper: .* has no sections"):
             render_le_layout.mast_kinds(path, "main_upper")
 
     def test_a_sectioned_file_without_plan_overrides_beside_it_takes_mast(self):
         path = self.write('{"_sections": true, "staging": {"signals": [{"mast": "2L", "kind": "field"}]}}')
         self.assertEqual(render_le_layout.mast_kinds(path), {"Mast 2L": "field"})
-        with self.assertRaisesRegex(SystemExit, "no section 'main_upper'"):
+        with self.assertRaisesRegex(render_le_layout.MastKindsError, "no section 'main_upper'"):
             render_le_layout.mast_kinds(path, "main_upper")
 
     def test_a_file_it_cannot_use_stops(self):
         for text in ("not json", '{"masts": []}', '{"signals": [{"mast": "2L", "kind": "phantom"}]}',
                      '{"signals": [{"kind": "field"}]}', '{"signals": ["2L"]}'):
-            with self.subTest(text=text), self.assertRaises(SystemExit):
+            with self.subTest(text=text), self.assertRaises(render_le_layout.MastKindsError):
                 render_le_layout.mast_kinds(self.write(text))
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(render_le_layout.MastKindsError):
             render_le_layout.mast_kinds("/nonexistent/signals.json")
-        with self.assertRaises(SystemExit):                       # one mast, two kinds
+        with self.assertRaises(render_le_layout.MastKindsError):                       # one mast, two kinds
             render_le_layout.mast_kinds(self.write('{"signals": [{"mast": "4LA", "kind": "virtual"}, '
                                                    '{"mast": "4LA", "kind": "planned"}]}'))
 
@@ -173,22 +175,22 @@ class ViewSteps(unittest.TestCase):
 
     def test_crossover_diagonals_are_the_pair_that_crosses(self):
         a, b, c, dd = (0.0, 0.0), (10.0, 0.0), (10.0, 5.0), (0.0, 5.0)
-        self.assertEqual(render_le_layout._xover_diagonals(a, b, c, dd, "LH_XOVER"), (a, c, b, dd))
+        self.assertEqual(render_le_draw._xover_diagonals(a, b, c, dd, "LH_XOVER"), (a, c, b, dd))
         # legs stored mirrored: A-D and B-C cross, whatever the type says
-        self.assertEqual(render_le_layout._xover_diagonals(a, b, dd, c, "LH_XOVER"), (a, c, b, dd))
+        self.assertEqual(render_le_draw._xover_diagonals(a, b, dd, c, "LH_XOVER"), (a, c, b, dd))
         flat = (0.0, 0.0), (1.0, 0.0), (2.0, 0.0), (3.0, 0.0)   # all on one line: only a touch counts
-        self.assertTrue(render_le_layout._crosses(*flat[:2], (1.0, 0.0), (4.0, 0.0)))
+        self.assertTrue(render_le_draw._crosses(*flat[:2], (1.0, 0.0), (4.0, 0.0)))
         far = (0.0, 0.0), (10.0, 0.0), (5.0, 10.0), (5.0, 1.0)   # D inside A-B-C: neither pair crosses
-        self.assertEqual(render_le_layout._xover_diagonals(*far, "RH_XOVER"), (far[0], far[3], far[1], far[2]))
-        self.assertEqual(render_le_layout._xover_diagonals(*far, "LH_XOVER"), (far[0], far[2], far[1], far[3]))
+        self.assertEqual(render_le_draw._xover_diagonals(*far, "RH_XOVER"), (far[0], far[3], far[1], far[2]))
+        self.assertEqual(render_le_draw._xover_diagonals(*far, "LH_XOVER"), (far[0], far[2], far[1], far[3]))
 
     def test_frame_maps_panel_points_inside_the_margins(self):
-        f = render_le_layout._frame([(100.0, 50.0), (300.0, 150.0)], 2000, None)
+        f = render_le_draw._frame([(100.0, 50.0), (300.0, 150.0)], 2000, None)
         pad, top = render_le_layout.PAD, render_le_layout.TOP
         self.assertEqual(f.pt((100.0 - pad, 50.0 - pad)), (pad, top))
         self.assertEqual(f.width, round((200 + 2 * pad) * f.scale + 2 * pad))
-        self.assertEqual(render_le_layout._frame([(0.0, 0.0), (5000.0, 0.0)], 2000, None).scale, 1.0)  # never below 1
-        self.assertEqual(render_le_layout._frame([(0.0, 0.0), (10.0, 0.0)], 2000, 0.5).scale, 0.5)
+        self.assertEqual(render_le_draw._frame([(0.0, 0.0), (5000.0, 0.0)], 2000, None).scale, 1.0)  # never below 1
+        self.assertEqual(render_le_draw._frame([(0.0, 0.0), (10.0, 0.0)], 2000, 0.5).scale, 0.5)
 
     def test_an_empty_window_writes_nothing_and_half_a_window_is_refused(self):
         with tempfile.TemporaryDirectory() as d:
@@ -200,6 +202,60 @@ class ViewSteps(unittest.TestCase):
             self.assertFalse(out.exists())
             with self.assertRaisesRegex(ValueError, "xmin given without xmax"):
                 render_le_layout.render_view(*geometry, out, "t", "", 0.0, None)
+
+
+class PanelErrors(unittest.TestCase):
+    """A panel item whose numbers do not read, or a file without the panel, is a RenderError naming it; the command
+    says so and returns 1."""
+
+    def load(self, text, **kw):
+        with tempfile.TemporaryDirectory() as d:
+            src = Path(d) / "panel.xml"
+            src.write_text(text, encoding="utf-8")
+            return render_le_layout.load_geometry(src, **kw)
+
+    def test_a_mast_icon_with_a_bad_number_stops(self):
+        bad = PANEL.replace("</LayoutEditor>", '<signalmasticon signalmast="Mast 2L" x="ten" y="0"/></LayoutEditor>')
+        with self.assertRaisesRegex(render_le_layout.RenderError, r'signalmast="Mast 2L".*x=\'ten\' is not a number'):
+            self.load(bad)
+
+    def test_a_station_icon_with_a_bad_number_stops(self):
+        bad = PANEL.replace("</LayoutEditor>", '<sensoricon sensor="MoveToA_stored" x="1" y="?"/></LayoutEditor>')
+        with self.assertRaisesRegex(render_le_layout.RenderError, r'sensor="MoveToA_stored".*y=\'\?\''):
+            self.load(bad)
+
+    def test_an_anchor_with_no_x_stops(self):
+        with self.assertRaisesRegex(render_le_layout.RenderError, r'ident="A1"\>: no x'):
+            self.load(PANEL.replace('ident="A1" type="ANCHOR" x="0.0"', 'ident="A1" type="ANCHOR"'))
+
+    def test_icons_read_with_their_defaults(self):
+        good = PANEL.replace("</LayoutEditor>", '<signalmasticon signalmast="Mast 2L" x="3" y="4" degrees="450"/>'
+                             '<sensoricon sensor="MoveToYard_stored" x="5" y="6"/></LayoutEditor>')
+        _pp, _legs, _t, _segs, signals, stations = self.load(good)
+        self.assertEqual((signals[0]["x"], signals[0]["degrees"]), (3.0, 90))
+        self.assertEqual(stations, [{"name": "Yard", "x": 5.0, "y": 6.0}])
+
+    def test_a_file_without_the_panel_stops(self):
+        with self.assertRaisesRegex(render_le_layout.RenderError, "no Layout Editor panel named Other"):
+            self.load(PANEL, panel="Other")
+
+    def test_the_command_reports_and_returns_one(self):
+        with tempfile.TemporaryDirectory() as d:
+            src = Path(d) / "panel.xml"
+            src.write_text(PANEL, encoding="utf-8")
+            err = io.StringIO()
+            with contextlib.redirect_stderr(err):
+                rc = render_le_layout.main([str(src), str(Path(d) / "o.png"), "--panel", "Other"])
+            self.assertEqual(rc, 1)
+            self.assertIn("no Layout Editor panel named Other", err.getvalue())
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(render_le_layout.main([str(src), str(Path(d) / "o.png")]), 0)
+            self.assertTrue((Path(d) / "o.png").is_file())
+
+    def test_the_sources_are_the_three_parts(self):
+        self.assertEqual([p.name for p in render_le_layout.SOURCES],
+                         ["render_le_layout.py", "render_le_geometry.py", "render_le_draw.py"])
+        self.assertTrue(all(p.is_file() for p in render_le_layout.SOURCES))
 
 
 if __name__ == "__main__":
