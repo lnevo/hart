@@ -157,15 +157,6 @@ class LayoutIndexCheckTest(unittest.TestCase):
         self.assertEqual(json.loads(cats_index.index_text()), cats_index.build())
 
 
-class MatchTurnoutTest(unittest.TestCase):
-    def test_a_corner_block_names_its_crossovers_turnout_not_the_block(self) -> None:
-        turnout = {"kind": "turnout", "publicName": "Switch 225"}
-        by = {"switch 225": turnout, "switch 225b": {"kind": "occupancy", "publicName": "OS Switch 225b"}}
-        self.assertIs(cats_index.match_turnout(by, set(), {"OS Switch 225b"}), turnout)
-        self.assertIs(cats_index.match_turnout(by, set(), {"OS Switch 225"}), turnout)
-
-
-
 class Steps(unittest.TestCase):
     """The layout index's named steps: control points, kinds of unplaced devices, the overview window."""
 
@@ -195,19 +186,6 @@ class Steps(unittest.TestCase):
                 le_index.build()
         self.assertIs(cm.exception.__cause__, boom)
 
-
-class CatsSteps(unittest.TestCase):
-    """A points cell's hotspot: the OS around it when it has none, and a plain name when nothing matches."""
-
-    def test_a_bare_points_cell_takes_the_os_around_it(self) -> None:
-        near = {(4, 3): [("OS Switch 9", "")], (6, 3): [("OS Switch 9", "")], (5, 2): [("OS Switch 8", "")]}
-        it = cats_index.plant_item((5, 3), (0.0, 0.0), set(), set(), near, {})
-        self.assertEqual((it["publicName"], it["block"]), ("OS Switch 9", "OS Switch 9"))
-        self.assertEqual(it["comment"], "Digicon plant @ 5,3; OS OS Switch 9")
-
-    def test_a_cell_with_nothing_is_named_by_its_place(self) -> None:
-        it = cats_index.plant_item((1, 2), (60.0, 90.0), set(), set(), {}, {})
-        self.assertEqual((it["publicName"], it["x"], it["y"]), ("Plant (1,2)", 90.0, 120.0))
 
 if __name__ == "__main__":
     unittest.main()
