@@ -5,6 +5,13 @@
                                 exit 1 and print "ran G4: <why>" when one does not (the gate then runs G4 as before);
                                 exit 2 for a bad call, 3 for a failure of this script itself (the gate runs G4
                                 for both)
+    ci_pass.py --main-red --commit SHA
+                                the gate's G0c before any ssh, and the site deploy before it builds: exit 4 and print
+                                a STOP line naming the run when the newest push run of check.yml on main for SHA
+                                finished failure, cancelled or timed_out (main is red: fix forward or revert first).
+                                Exit 0 and print why not in every other case (the run passed, is still running, ended
+                                another way, there is no run yet, or GitHub could not be asked): not blocking, the
+                                owner's ruling. Exit 2 and 3 as above (the deploy goes on for both)
 
 The gate (tools/hosts/deploy/gate.sh) asks this only for a real deploy to the Pi or Windows, after check_on_main
 (common.sh) has held the commit to origin/main. A skip needs all of these, read in this order; the first that fails
@@ -60,6 +67,11 @@ GITHUB_URL = re.compile(r"(?:https://github\.com/|git@github\.com:|ssh://git@git
 LOG_TIME = re.compile(r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z ?")
 ANSI = re.compile(r"\x1b\[[0-9;]*m")
 GH_TIMEOUT = 30
+# The conclusions of a finished push run that make main red: a deploy of that commit stops (--main-red, exit 4).
+RED = ("failure", "cancelled", "timed_out")
+MAIN_RED = 4
+# A run still going, no run yet and GitHub not answering never stop a deploy: the owner's ruling, which the line names.
+NOT_BLOCKING = "not blocking (owner ruling 2026-11-27)"
 LOG_TIMEOUT = 90
 
 
@@ -116,6 +128,12 @@ def run_gh(args: list[str], timeout: int) -> str:
 
 
 def repo_slug(root: Path) -> str:
+    """owner/name of origin on GitHub; HART_CI_REPO names it instead (the tests, whose origin is a local folder)."""
+    override = os.environ.get("HART_CI_REPO", "")
+    if override:
+        if not re.fullmatch(r"[\w.-]+/[\w.-]+", override):
+            raise Unreadable(f"HART_CI_REPO is not owner/name ({override!r})")
+        return override
     url = git(root, "remote", "get-url", "origin").strip()
     m = GITHUB_URL.fullmatch(url)
     if not m:
@@ -159,8 +177,8 @@ def _field(obj: dict, key: str, kind: type, what: str):
     return value
 
 
-def find_run(slug: str, sha: str, gh: Gh) -> int:
-    """The id of the newest push run of check.yml on main for `sha`, which must have passed."""
+def newest_run(slug: str, sha: str, gh: Gh) -> dict:
+    """The newest push run of check.yml on main for `sha`; NoPass when GitHub has none."""
     what = "the check.yml runs"
     data = _json(gh(["api", "-X", "GET", f"repos/{slug}/actions/workflows/check.yml/runs", "-f", f"head_sha={sha}",
                      "-f", "event=push", "-f", "branch=main", "-f", "per_page=100"], GH_TIMEOUT), what)
@@ -177,7 +195,12 @@ def find_run(slug: str, sha: str, gh: Gh) -> int:
             mine.append(run)
     if not mine:
         raise NoPass(f"CI has no push run of {WORKFLOW} on main for it (not merged yet, or another commit)")
-    run = max(mine, key=lambda r: _field(r, "run_number", int, "a check.yml run"))
+    return max(mine, key=lambda r: _field(r, "run_number", int, "a check.yml run"))
+
+
+def find_run(slug: str, sha: str, gh: Gh) -> int:
+    """The id of the newest push run of check.yml on main for `sha`, which must have passed."""
+    run = newest_run(slug, sha, gh)
     run_id = _field(run, "id", int, "a check.yml run")
     status = _field(run, "status", str, f"run {run_id}")
     if status != "completed":
@@ -305,13 +328,57 @@ def decide(sha: str, root: Path = ROOT, gh: Gh = run_gh) -> int:
     return run_id
 
 
+def run_url(slug: str, run: dict) -> str:
+    """The run's page on GitHub: its html_url, else the page its id names."""
+    url = run.get("html_url")
+    if isinstance(url, str) and url.startswith("https://"):
+        return url
+    return f"https://github.com/{slug}/actions/runs/{run.get('id')}"
+
+
+def main_red(sha: str, root: Path = ROOT, gh: Gh = run_gh) -> tuple[bool, str]:
+    """Whether main's newest push run of check.yml for `sha` finished red, and the gate's line either way. Only a
+    finished run with a conclusion in RED stops the deploy; every other case leaves the gate as it was."""
+    try:
+        slug = repo_slug(root)
+        run = newest_run(slug, sha, gh)
+        status = _field(run, "status", str, "a check.yml run")
+    except NoPass:
+        return False, f"main red check: no push run of check.yml on main for {sha[:12]} yet; {NOT_BLOCKING}"
+    except CiPassError as e:
+        return False, f"main red check: could not ask GitHub ({e}); {NOT_BLOCKING}"
+    url = run_url(slug, run)
+    conclusion = run.get("conclusion")
+    if status != "completed":
+        return False, (f"main red check: main's push run for {sha[:12]} is {status} ({url}); not waiting for it, "
+                       f"{NOT_BLOCKING}")
+    if conclusion in RED:
+        return True, (f"STOP: main is red: the push run of {WORKFLOW} on main for {sha[:12]} ended {conclusion} "
+                      f"({url}). Fix forward or revert first, then deploy the fixed main. Nothing was sent to any "
+                      "host.")
+    if conclusion == "success":
+        return False, f"main red check: main's push run for {sha[:12]} passed ({url})"
+    return False, (f"main red check: main's push run for {sha[:12]} ended {conclusion} ({url}), not "
+                   f"{', '.join(RED)}; {NOT_BLOCKING}")
+
+
 def main(argv: list[str] | None = None, root: Path = ROOT, gh: Gh = run_gh) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--commit", required=True, help="the 40-character commit the deploy ships")
+    ap.add_argument("--main-red", action="store_true",
+                    help="exit 4 when main's push run for the commit finished red (failure, cancelled, timed_out)")
     a = ap.parse_args(argv)
     if not SHA.fullmatch(a.commit):
         print(f"ci_pass.py: --commit must be a full 40-character commit sha, not {a.commit!r}", file=sys.stderr)
         return 2
+    if a.main_red:
+        try:
+            red, line = main_red(a.commit, root, gh)
+        except Exception as e:  # a bug here: say so (exit 3), and the gate goes on
+            print(f"main red check: failed for {a.commit[:12]}: {type(e).__name__}: {e}")
+            return 3
+        print(line)
+        return MAIN_RED if red else 0
     try:
         run_id = decide(a.commit, root, gh)
     except CiPassError as e:

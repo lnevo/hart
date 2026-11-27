@@ -13,6 +13,8 @@ MAP, in the order it runs (entry point = tools/hosts/sync_hart_package.sh):
   gate.sh        nothing is sent or installed by any of it
     G0           refuse_hart_tables, refuse_unrestored_profile, the parked features (hartlib.parked), the live
                  paths list (not for --check-only/--dry-run)                     needs: env, local files, python3
+    G0b, G0c     the commit is origin/main (check_on_main); main's push run for it is not red (ci_pass.py
+                 --main-red; a dry run asks too)                                 needs: git, gh
     G1           preflight_hosts: one ssh no-op to each host named               needs: ssh (skipped by --dry-run, --stage-only)
     G2           the Pi's unpulled check (Operations Pro files, Store); pi_stop starts PanelPro again; only with
                  --pi; HART_DISCARD_PI_CHANGES=1 skips it. --check-only stops after it.
@@ -322,17 +324,6 @@ class G4TrustsCiPass(GateHarness):
         self.assertIn("ran G4: the CI pass check said no and gave no reason (exit 1)", done.stdout)
         self.assertIn("STOP: tables.xml is not what", done.stderr)
         self.assert_nothing_shipped(done)
-
-    def test_dry_staging_and_mac_only_runs_do_not_ask_ci(self) -> None:
-        for marker in ("ci_pass_skip", "tables_stale"):
-            (self.tmp / marker).touch()
-        for flags in (("--pi", "--win", "--dry-run"), ("--pi", "--win", "--stage-only", str(self.tmp / "stage")), ()):
-            with self.subTest(flags=flags):
-                done = self.deploy(*flags)
-                self.assertIn("ran G4: a dry run, a staging run or the Mac alone does not ask CI", done.stdout)
-                self.assertIn("STOP: tables.xml is not what", done.stderr)
-                self.assertFalse((self.tmp / "ci_pass.log").exists())
-                self.assertFalse((self.tmp / "gh.log").exists())
 
 
 class OnlyMergedCommitsShip(GateHarness):

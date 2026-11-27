@@ -6,7 +6,8 @@
 # since the last deploy (--force overrides). ADR-040: one deploy at a time (a lock in the
 # shared git dir), never from a checkout behind origin/main (--allow-behind overrides), and
 # the last deploy's commit, branch, dirty flag, worktree and time are kept in the manifest
-# (make orient shows them; --status prints them).
+# (make orient shows them; --status prints them). It stops before the build when main's push run of check.yml for
+# HEAD ended red (tools/hosts/deploy/ci_pass.py --main-red).
 # robots.txt, llms.txt and sitemap.xml come from the build (they replace the panel's robots.txt).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -103,6 +104,16 @@ elif ! git -C "$ROOT" merge-base --is-ancestor origin/main HEAD; then
 fi
 BRANCH="$(git -C "$ROOT" symbolic-ref --quiet --short HEAD || echo detached)"
 COMMIT="$(git -C "$ROOT" rev-parse HEAD)"
+# Main is not red (the owner's rule), as the layout deploy's G0c (tools/hosts/deploy/gate.sh): a finished push run of
+# check.yml on main for HEAD that ended failure, cancelled or timed_out stops here, before the build and the upload.
+# A run still going, a pass, any other ending, no run yet (a branch) or GitHub not answering do not block.
+main_red_rc=0
+main_red_line="$(python3 "$REPO/tools/hosts/deploy/ci_pass.py" --main-red --commit "$COMMIT")" || main_red_rc=$?
+case "$main_red_rc" in
+  0) echo "$main_red_line" ;;
+  4) echo "$main_red_line" >&2; exit 1 ;;
+  *) echo "main red check: could not check ${COMMIT:0:12} (exit $main_red_rc)${main_red_line:+: $main_red_line}; not blocking (owner ruling 2026-11-27)" >&2 ;;
+esac
 DIRTY=no
 # Work-in-progress deploys are deliberate, so these only warn.
 if [[ -n "$(git -C "$ROOT" status --porcelain -- .)" ]]; then
