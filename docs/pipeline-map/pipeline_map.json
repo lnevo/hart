@@ -6071,7 +6071,7 @@
    "kind": "unstructured",
    "status": "live",
    "domain": "agents",
-   "desc": "Use when coordinating more than one lane, agent or session (a wave, a hand-off, a merge queue), when the owner asks for status or an ETA, when a lane, PR, merge, deploy or report card changes state, when the dashboard looks stale, or before a /clear while a wave runs.",
+   "desc": "Use when coordinating more than one lane, agent or session, when the owner asks for status or an ETA, when a lane, PR, deploy or report card changes state, or before a /clear.",
    "path": ".claude/skills/dashboard/SKILL.md",
    "gen": "agent-docs"
   },
