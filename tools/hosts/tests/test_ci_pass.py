@@ -340,10 +340,10 @@ class CiPassTest(GhRepoCase):
 
 class MainRedTest(GhRepoCase):
     """--main-red (the gate's G0c): exit 4 only for a finished push run on main that ended failure, cancelled or
-    timed_out; exit 0 with the reason for every other case: not blocking (owner ruling 2026-11-27)."""
+    timed_out; exit 0 with the reason for every other case, a bad commit and a bug here included."""
 
     URL = f"https://github.com/{SLUG}/actions/runs/{RUN_ID}"
-    NOT_BLOCKING = "not blocking (owner ruling 2026-11-27)"
+    NOT_BLOCKING = ci_pass.NOT_BLOCKING
 
     def red(self, sha: str | None = None) -> tuple[int, str]:
         out = io.StringIO()
@@ -400,7 +400,7 @@ class MainRedTest(GhRepoCase):
                               f"{self.NOT_BLOCKING}", out)
 
     def test_no_run_yet_for_the_commit_does_not_block(self) -> None:
-        """Not queued yet, a branch or a pull request's run only: the owner ruled none of them blocks."""
+        """Not queued yet, a branch or a pull request's run only: none of them blocks."""
         for runs in ([], [self.gh.run(event="pull_request", conclusion="failure")],
                      [self.gh.run(head_branch="feature", conclusion="failure")]):
             with self.subTest(runs=runs):
@@ -457,17 +457,19 @@ class MainRedTest(GhRepoCase):
         self.gh.runs = {"total_count": 1, "workflow_runs": [self.gh.run(conclusion="failure")]}
         self.assertEqual(4, self.red(other)[0])
 
-    def test_a_bug_is_exit_3_with_its_reason(self) -> None:
+    def test_a_bug_does_not_block_and_names_itself(self) -> None:
         def boom(args, timeout):
             raise KeyError("a bug")
         self.gh = boom  # type: ignore[assignment]
         rc, out = self.red()
-        self.assertEqual(3, rc, out)
-        self.assertIn(f"main red check: failed for {self.sha[:12]}: KeyError", out)
+        self.assertEqual(0, rc, out)
+        self.assertEqual(f"main red check: failed for {self.sha[:12]}: KeyError: 'a bug'; {self.NOT_BLOCKING}\n", out)
 
-    def test_a_bad_commit_is_exit_2(self) -> None:
+    def test_a_bad_commit_does_not_block(self) -> None:
         rc, out = self.red("HEAD")
-        self.assertEqual(2, rc)
+        self.assertEqual(0, rc)
+        self.assertEqual("main red check: --commit must be a full 40-character commit sha, not 'HEAD'; "
+                         f"{self.NOT_BLOCKING}\n", out)
         self.assertEqual([], self.gh.calls)
 
 

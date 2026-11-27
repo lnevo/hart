@@ -70,21 +70,14 @@ if [[ ( "$DO_PI" -eq 1 || "$DO_WIN" -eq 1 ) && "$DRY_RUN" -eq 0 && "$CHECK_ONLY"
   check_on_main || exit 1
 fi
 
-# G0c: main is not red (the owner's rule). With strict off on main's branch protection, main can go red between
-# merges, and no deploy ships a red main. A deploy or dry run to the Pi or Windows asks ci_pass.py --main-red about
-# the commit's push run of check.yml on main: a finished run that ended failure, cancelled or timed_out stops here,
-# before any ssh. A run still going, a pass, any other ending, no run yet (a branch, a test commit) or GitHub not
-# answering do not block (the owner's ruling); the line says which. The site deploy
-# (www/scripts/deploy_hartrailroad.sh) asks the same before it builds. A redeploy (a rollback, the way back from a red main),
-# --check-only, --stage-only and the Mac alone do not ask.
+# G0c: main is not red. ci_pass.py --main-red decides and prints the line; only its exit 4 (the commit's push run of
+# check.yml on main finished red) stops the deploy, before any ssh. Any other exit, a crash included, goes on. A
+# deploy or dry run to the Pi or Windows asks; a redeploy, --check-only, --stage-only and the Mac alone do not.
 main_not_red() {
   local line rc=0
   line="$(python3 "$DEPLOY_STEPS_DIR/ci_pass.py" --main-red --commit "$DEPLOY_COMMIT")" || rc=$?
-  case "$rc" in
-    0) echo "$line" ;;
-    4) echo "$line" >&2; return 1 ;;
-    *) echo "main red check: could not check ${DEPLOY_COMMIT:0:12} (exit $rc)${line:+: $line}; not blocking (owner ruling 2026-11-27)" ;;
-  esac
+  if [[ "$rc" -eq 4 ]]; then echo "$line" >&2; return 1; fi
+  [[ -z "$line" ]] || echo "$line"
 }
 if [[ ( "$DO_PI" -eq 1 || "$DO_WIN" -eq 1 ) && "$CHECK_ONLY" -eq 0 && "$STAGE_ONLY" -eq 0 && -z "${HART_REDEPLOY_FROM:-}" ]]; then
   main_not_red || exit 1
