@@ -44,6 +44,8 @@ A docs-only PR (Markdown under `wiki/`, `docs/`, `.claude/skills/` or `.claude/a
 
 Batch small related lanes into one PR: each merge costs a merge of main and a CI cycle, because `strict` is on.
 
+**Main red (owner, 2026-11-27):** while main's push run of `check` is red (failure, cancelled or timed out), the queue holder gives no "go". The PR that broke it fixes forward, or one PR reverts it. Nothing deploys: the deploy gate stops a red main itself (G0c, `ci_pass.py --main-red`).
+
 **A merge out of turn:** tell the coordinator at once, giving the merge commit, what the PR changed and whether it ships. Then go back to the queue.
 
 ## Hand-over

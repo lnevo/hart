@@ -94,7 +94,9 @@ class FakeGitHub:
         raise AssertionError(f"unexpected gh call: {args}")
 
 
-class CiPassTest(unittest.TestCase):
+class GhRepoCase(unittest.TestCase):
+    """A throwaway repo pinning the plugin, its origin on GitHub, and a FakeGitHub for its one commit."""
+
     def setUp(self) -> None:
         self.repo = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.repo, True)
@@ -106,6 +108,8 @@ class CiPassTest(unittest.TestCase):
         self.sha = git(self.repo, "rev-parse", "HEAD")
         self.gh = FakeGitHub(self.sha)
 
+
+class CiPassTest(GhRepoCase):
     def verdict(self, sha: str | None = None) -> tuple[int, str]:
         out, err = io.StringIO(), io.StringIO()
         with redirect_stdout(out), redirect_stderr(err):
@@ -331,6 +335,118 @@ class CiPassTest(unittest.TestCase):
                 rc, out = self.verdict(bad)
                 self.assertEqual(2, rc)
                 self.assertIn("--commit must be a full 40-character commit sha", out)
+        self.assertEqual([], self.gh.calls)
+
+
+class MainRedTest(GhRepoCase):
+    """--main-red (the gate's G0c): exit 4 only for a finished push run on main that ended failure, cancelled or
+    timed_out; exit 0 with the reason for every other case, so the gate goes on as before."""
+
+    URL = f"https://github.com/{SLUG}/actions/runs/{RUN_ID}"
+
+    def red(self, sha: str | None = None) -> tuple[int, str]:
+        out = io.StringIO()
+        with redirect_stdout(out), redirect_stderr(out):
+            rc = ci_pass.main(["--main-red", "--commit", sha or self.sha], root=self.repo, gh=self.gh)
+        return rc, out.getvalue()
+
+    def newest(self, **over) -> None:
+        """The newest run for the commit takes `over`; an older passing run stands beside it."""
+        self.gh.runs = {"total_count": 2, "workflow_runs": [self.gh.run(id=100, run_number=6), self.gh.run(**over)]}
+
+    def test_a_red_run_stops_and_names_it(self) -> None:
+        for conclusion in ci_pass.RED:
+            with self.subTest(conclusion=conclusion):
+                self.newest(conclusion=conclusion, html_url=self.URL)
+                rc, out = self.red()
+                self.assertEqual(4, rc, out)
+                self.assertEqual(f"STOP: main is red: the push run of .github/workflows/check.yml on main for "
+                                 f"{self.sha[:12]} ended {conclusion} ({self.URL}). Fix forward or revert first, then "
+                                 "deploy the fixed main. Nothing was sent to any host.\n", out)
+
+    def test_the_url_falls_back_to_the_run_id(self) -> None:
+        self.newest(conclusion="failure")
+        rc, out = self.red()
+        self.assertEqual(4, rc)
+        self.assertIn(f"({self.URL})", out)
+
+    def test_a_green_run_passes(self) -> None:
+        self.newest(html_url=self.URL)
+        self.assertEqual((0, f"main red check: main's push run for {self.sha[:12]} passed ({self.URL})\n"), self.red())
+        self.assertEqual(1, len(self.gh.calls), "asked more than the runs list")
+
+    def test_a_run_still_going_is_not_waited_for(self) -> None:
+        for status in ("queued", "in_progress", "waiting"):
+            with self.subTest(status=status):
+                self.newest(status=status, conclusion=None)
+                rc, out = self.red()
+                self.assertEqual(0, rc, out)
+                self.assertIn(f"is {status} ({self.URL}); the gate does not wait for it and goes on as before", out)
+
+    def test_an_older_red_run_does_not_count_when_the_newest_passed(self) -> None:
+        self.gh.runs = {"total_count": 2, "workflow_runs": [self.gh.run(), self.gh.run(id=100, run_number=6,
+                                                                                         conclusion="failure")]}
+        self.assertEqual(0, self.red()[0])
+
+    def test_another_ending_goes_on(self) -> None:
+        for conclusion in ("startup_failure", "neutral", "skipped", "action_required", "stale", None):
+            with self.subTest(conclusion=conclusion):
+                self.newest(conclusion=conclusion)
+                rc, out = self.red()
+                self.assertEqual(0, rc, out)
+                self.assertIn(f"ended {conclusion} ({self.URL}), not failure, cancelled, timed_out", out)
+
+    def test_no_run_for_the_commit_goes_on(self) -> None:
+        for runs in ([], [self.gh.run(event="pull_request", conclusion="failure")],
+                     [self.gh.run(head_branch="feature", conclusion="failure")]):
+            with self.subTest(runs=runs):
+                self.gh.runs = {"total_count": len(runs), "workflow_runs": runs}
+                rc, out = self.red()
+                self.assertEqual(0, rc, out)
+                self.assertIn("main red check: CI has no push run of .github/workflows/check.yml on main", out)
+
+    def test_unreadable_github_goes_on(self) -> None:
+        self.gh.fail = {"/workflows/check.yml/runs": ci_pass.Unreadable("gh api -X failed (exit 1): HTTP 401")}
+        rc, out = self.red()
+        self.assertEqual(0, rc, out)
+        self.assertIn(f"main red check: CI stamps unreadable for {self.sha[:12]}: gh api -X failed (exit 1): HTTP 401; "
+                      "the gate goes on as before", out)
+        for reply, text in (("<html>", "is not JSON"), ({"total_count": 1, "workflow_runs": [{"head_sha": self.sha,
+                            "event": "push", "head_branch": "main", "path": ".github/workflows/check.yml",
+                            "run_number": 1}]}, "has no str 'status'")):
+            with self.subTest(text=text):
+                self.gh = FakeGitHub(self.sha)
+                self.gh.runs = reply  # type: ignore[assignment]
+                rc, out = self.red()
+                self.assertEqual(0, rc, out)
+                self.assertIn(text, out)
+
+    def test_an_origin_off_github_goes_on(self) -> None:
+        git(self.repo, "remote", "set-url", "origin", "https://example.invalid/owner/repo.git")
+        rc, out = self.red()
+        self.assertEqual(0, rc, out)
+        self.assertIn("origin is not a GitHub repository", out)
+        self.assertEqual([], self.gh.calls)
+
+    def test_it_reads_no_checkout_state(self) -> None:
+        """A dirty checkout or another HEAD does not hide a red main: the question is about the commit's run."""
+        (self.repo / "tables.xml").write_text("edited\n", encoding="utf-8")
+        other = "e" * 40
+        self.gh = FakeGitHub(other)
+        self.gh.runs = {"total_count": 1, "workflow_runs": [self.gh.run(conclusion="failure")]}
+        self.assertEqual(4, self.red(other)[0])
+
+    def test_a_bug_is_exit_3_with_its_reason(self) -> None:
+        def boom(args, timeout):
+            raise KeyError("a bug")
+        self.gh = boom  # type: ignore[assignment]
+        rc, out = self.red()
+        self.assertEqual(3, rc, out)
+        self.assertIn(f"main red check: failed for {self.sha[:12]}: KeyError", out)
+
+    def test_a_bad_commit_is_exit_2(self) -> None:
+        rc, out = self.red("HEAD")
+        self.assertEqual(2, rc)
         self.assertEqual([], self.gh.calls)
 
 
