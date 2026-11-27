@@ -23,6 +23,9 @@ from urllib.parse import urlparse
 from mimic_bus import Bus
 from mimic_records import Layout
 
+# the paths do_POST answers; any other is a 404 before the body is read
+POST_PATHS = frozenset({"/api/occupancy", "/api/turnout", "/api/occupancy/clear"})
+
 
 def make_handler(layout: Layout, bus: Bus, html: bytes, shared_web: Path,
                  shared_files: Mapping[str, str]) -> type[BaseHTTPRequestHandler]:
@@ -105,27 +108,25 @@ def make_handler(layout: Layout, bus: Bus, html: bytes, shared_web: Path,
             self.send_error(404)
 
         def do_POST(self) -> None:
+            """A known path reads its JSON body and acts on it; an unknown path is a 404 whatever its body."""
             path = urlparse(self.path).path
+            if path not in POST_PATHS:
+                self.send_error(404)
+                return
             try:
                 body = self._read_json()
                 if path == "/api/occupancy":
                     bus.set_occupancy(str(body["addr"]), str(body["state"]))
-                    self._json(200, {"ok": True})
-                    return
-                if path == "/api/turnout":
+                elif path == "/api/turnout":
                     bus.set_turnout(layout, str(body["addr"]), str(body["state"]))
-                    self._json(200, {"ok": True})
-                    return
-                if path == "/api/occupancy/clear":
+                else:
                     bus.clear_occupancy(layout)
-                    self._json(200, {"ok": True})
-                    return
             except (KeyError, ValueError, json.JSONDecodeError, subprocess.CalledProcessError) as e:
                 self._json(400, {"ok": False, "error": str(e)})
                 return
             except OSError as e:            # the client could not be run (mosquitto_pub gone): the page shows it
                 self._json(503, {"ok": False, "error": str(e)})
                 return
-            self.send_error(404)
+            self._json(200, {"ok": True})
 
     return Handler
