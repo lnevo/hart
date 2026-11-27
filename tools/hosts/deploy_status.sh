@@ -96,14 +96,14 @@ for t in "${TARGETS[@]}"; do
     continue
   fi
   printf '%s\n' "$out" | grep -v '^#' | sed 's/^/  /'
-  printf '%s\n' "$out" | grep -q '^dirty=yes' && echo "  WARNING: shipped from a checkout with uncommitted changes."
-  printf '%s\n' "$out" | grep -q '^tables_modified_by_deploy=yes' &&
+  grep -q '^dirty=yes' <<<"$out" && echo "  WARNING: shipped from a checkout with uncommitted changes."
+  grep -q '^tables_modified_by_deploy=yes' <<<"$out" &&
     echo "  WARNING: the tables.xml shipped is not the committed one (uncommitted, or rewritten by the deploy gates)."
-  if printf '%s\n' "$out" | grep -q '^source=redeploy'; then
+  if grep -q '^source=redeploy' <<<"$out"; then
     echo "  NOTE: a redeploy of an older commit (tools/hosts/redeploy_commit.sh); deploy from main to go forward."
-  elif printf '%s\n' "$out" | grep -q '^branch=HEAD$'; then
+  elif grep -q '^branch=HEAD$' <<<"$out"; then
     echo "  NOTE: shipped from a detached checkout (a redeploy of a commit older than source=, or by hand)."
   fi
-  compare "$(printf '%s\n' "$out" | sed -n 's/^commit=//p' | head -1)"
+  compare "$(sed -n '/^commit=/{s///;p;q;}' <<<"$out")"
 done
 exit "$rc"

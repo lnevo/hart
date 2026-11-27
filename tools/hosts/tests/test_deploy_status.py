@@ -64,6 +64,15 @@ class DeployStatus(unittest.TestCase):
         self.assertIn("WARNING: shipped from a checkout with uncommitted changes.", done.stdout)
         self.assertIn("not in this checkout", done.stdout)
 
+    def test_dirty_warning_is_stable_across_runs(self) -> None:
+        # A grep -q fed by a pipe can end the pipeline early (SIGPIPE under pipefail)
+        # and drop the warning on some runs; the stamp is read without a pipe.
+        self.fake_ssh(self.stamp("0" * 40, dirty="yes"))
+        for i in range(50):
+            done = self.run_status("--pi")
+            self.assertIn("WARNING: shipped from a checkout with uncommitted changes.",
+                          done.stdout, f"iteration {i}")
+
     def test_tables_modified_warns(self) -> None:
         self.fake_ssh(self.stamp(head()) + "tables_modified_by_deploy=yes\n")
         done = self.run_status("--pi")
