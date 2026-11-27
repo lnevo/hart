@@ -35,7 +35,8 @@ tables_facts
 # what a cp step brings.
 LITTER_EXCLUDES=(--exclude '.DS_Store' --exclude '._*')
 
-stage_package() {
+# stage_dirs STAGE: STAGE emptied, with the folders the copies below write into.
+stage_dirs() {
   local stage="$1"
   rm -rf "$stage"
   mkdir -p \
@@ -47,8 +48,11 @@ stage_package() {
     "$stage/cats/scripts" \
     "$stage/jmri/layouts/hart/scripts" \
     "$stage/jmri/scripts"
+}
 
-  local f
+# stage_resources STAGE: the panel images, the JMRI web override and the mimic page, under cats/resources.
+stage_resources() {
+  local stage="$1" f
   for f in "$ROOT/jmri/resources/buttons/"lamp_*.png \
            "$ROOT/jmri/resources/buttons/"triangle_*.png; do
     [[ -f "$f" ]] && cp -f "$f" "$stage/cats/resources/buttons/"
@@ -65,10 +69,13 @@ stage_package() {
 
   rsync -a "${LITTER_EXCLUDES[@]}" "$ROOT/jmri/resources/jmri-web/" "$stage/cats/resources/jmri-web/"
   python3 "$ROOT/tools/mqtt-mimic/build_mimic_web.py" --out "$stage/cats/resources/jmri-web/mimic"
-  # Speed-match live view for the Pi (/web/speedmatch/): the page, and the publisher with the
-  # files it reads, laid out as in the repo (scripts/speedmatch, data/block_lengths.csv with
-  # block_lengths_measured.csv beside it, and the 2026-11-08 reference speeds).
-  local sm="$ROOT/jmri/layouts/hart/scripts/speedmatch"
+}
+
+# stage_speedmatch STAGE: the speed-match live view for the Pi (/web/speedmatch/): the page, and the publisher with
+# the files it reads, laid out as in the repo (scripts/speedmatch, data/block_lengths.csv with
+# block_lengths_measured.csv beside it, and the 2026-11-08 reference speeds).
+stage_speedmatch() {
+  local stage="$1" sm="$ROOT/jmri/layouts/hart/scripts/speedmatch"
   python3 "$sm/dashboard/publish_live.py" --build-page "$stage/cats/resources/speedmatch-web" >/dev/null
   mkdir -p "$stage/cats/speedmatch-live/scripts/speedmatch/dashboard" "$stage/cats/speedmatch-live/data"
   cp -f "$sm/analyze.py" "$sm/analyze_records.py" "$sm/liverule.py" "$sm/routes.json" \
@@ -78,6 +85,11 @@ stage_package() {
   cp -f "$ROOT/jmri/layouts/hart/data/block_lengths.csv" "$ROOT/jmri/layouts/hart/data/block_lengths_measured.csv" \
     "$ROOT/jmri/layouts/hart/data/speed_by_step_2026-11-08.csv" \
     "$stage/cats/speedmatch-live/data/"
+}
+
+# stage_host_scripts STAGE: the host scripts, the hartlib modules they import and JMRI's MQTT race overlay.
+stage_host_scripts() {
+  local stage="$1"
   # Host scripts live in tools/hosts/ but land where the hosts and their shortcuts expect them (ADR-007).
   rsync -a "${LITTER_EXCLUDES[@]}" "$ROOT/tools/hosts/pi/" "$stage/cats/scripts/pi/"
   rsync -a "${LITTER_EXCLUDES[@]}" "$ROOT/tools/hosts/windows/" "$stage/cats/scripts/windows/"
@@ -95,14 +107,19 @@ stage_package() {
   mkdir -p "$stage/jmri/mqtt_overlay"
   cp -f "$ROOT/tools/jmri/mqtt_overlay/hart-mqtt-race-fix.jar" \
     "$ROOT/tools/jmri/mqtt_overlay/install_overlay.py" "$stage/jmri/mqtt_overlay/"
+}
 
+# stage_jython STAGE: the jython, each file at its repo path, then a check that STAGE holds every row of
+# jython_scripts.txt.
+stage_jython() {
+  local stage="$1" f
   for f in "${HART_JYTHON_SCRIPTS[@]}"; do
     [[ -f "$ROOT/$f" ]] && cp -f "$ROOT/$f" "$stage/$(dirname "$f")/"
   done
   cp -f "$ROOT/jmri/scripts/signal_coordinator.py" "${JYTHON_SIBLING_MODULES[@]}" "$stage/jmri/scripts/"
   cp -f "${JYTHON_PANEL_STATUS_PARTS[@]}" "$stage/jmri/layouts/hart/scripts/"
-  # The Pi apply step installs every row of jython_scripts.txt from the package and stops on one it lacks: a row
-  # the copies above leave out (a new row, a parked or missing script) stops here, before any host changes.
+  # The Pi and Windows apply steps read jython_scripts.txt from the package and stop on a row whose script it lacks:
+  # a row the copies above leave out (a new row, a parked or missing script) stops here, before any host changes.
   local jython_rows row_role row_rel jython_missing=()
   jython_rows="$(jython_list "$ROOT/tools/hosts/pi/jython_scripts.txt")" || exit 1
   while read -r row_role row_rel; do
@@ -110,14 +127,17 @@ stage_package() {
   done <<<"$jython_rows"
   if [[ ${#jython_missing[@]} -gt 0 ]]; then
     echo "stage: the package lacks jython that tools/hosts/pi/jython_scripts.txt lists (a parked, missing or" \
-      "unstaged script; HART_JYTHON_SCRIPTS in common.sh ships the startup and pi rows):" \
+      "unstaged script; HART_JYTHON_SCRIPTS in common.sh ships the startup, macpi and pi rows):" \
       "${jython_missing[*]}" >&2
     exit 1
   fi
+}
 
-  # A parked feature's folder is left out of the package; the host apply scripts install only what the package
-  # holds, so the copies already on a host stay as they are.
-  local traininfo="$ROOT/jmri/layouts/hart/dispatcher/traininfo"
+# stage_unparked STAGE: the Dispatcher traininfo and the USS CTC icons, each unless its feature is parked. A parked
+# feature's folder is left out of the package; the host apply scripts install only what the package holds, so the
+# copies already on a host stay as they are.
+stage_unparked() {
+  local stage="$1" traininfo="$ROOT/jmri/layouts/hart/dispatcher/traininfo"
   if ! parked_dir jmri/layouts/hart/dispatcher; then
     mkdir -p "$stage/jmri/layouts/hart/dispatcher"
     if [[ -d "$traininfo" ]]; then
@@ -128,22 +148,30 @@ stage_package() {
         "$stage/jmri/layouts/hart/dispatcher/"
     fi
   fi
-
   if ! parked_dir jmri/layouts/hart/ctc && [[ -d "$ROOT/jmri/layouts/hart/ctc/icons" ]]; then
     mkdir -p "$stage/ctc/icons"
     rsync -a "${LITTER_EXCLUDES[@]}" "$ROOT/jmri/layouts/hart/ctc/icons/" "$stage/ctc/icons/"
-    [[ -f "$ROOT/jmri/layouts/hart/ctc/GUIObjects.xml" ]] && \
+    if [[ -f "$ROOT/jmri/layouts/hart/ctc/GUIObjects.xml" ]]; then
       cp -f "$ROOT/jmri/layouts/hart/ctc/GUIObjects.xml" "$stage/ctc/"
+    fi
   fi
+}
+
+# stage_tables_ops STAGE: tables.xml (when tables_facts set TABLES) and the Operations Pro files.
+stage_tables_ops() {
+  local stage="$1"
   if [[ -n "$TABLES" ]]; then
     cp -f "$TABLES" "$stage/tables.xml"
   fi
   mkdir -p "$stage/operations"
   cp -f "$ROOT/jmri/layouts/hart/operations/"*.xml "$stage/operations/"
-  # The DecoderPro roster (ADR-039 amendment 2026-11-26): roster.xml and the entry files it names, as the hosts keep
-  # them under JMRI_UserFiles (tools/hosts/pi/install_roster.sh and the Windows apply install it). A master that
-  # names a file it lacks stops the staging, so the gate's trial staging (G7) stops the deploy.
-  local roster_names name
+}
+
+# stage_roster STAGE: the DecoderPro roster (ADR-039 amendment 2026-11-26), roster.xml and the entry files it names,
+# as the hosts keep them under JMRI_UserFiles (tools/hosts/pi/install_roster.sh and the Windows apply install it). A
+# master that names a file it lacks stops the staging, so the gate's trial staging (G7) stops the deploy.
+stage_roster() {
+  local stage="$1" roster_names name
   roster_names="$(source "$ROOT/tools/hosts/pi/roster_sha.sh" && roster_files "$ROSTER_MASTER")" \
     || { echo "stage.sh: cannot read the DecoderPro roster master $ROSTER_MASTER/roster.xml" >&2; exit 1; }
   [[ -n "$roster_names" ]] || { echo "stage.sh: $ROSTER_MASTER/roster.xml names no locomotive file" >&2; exit 1; }
@@ -154,10 +182,28 @@ stage_package() {
       || { echo "stage.sh: $ROSTER_MASTER/roster.xml names roster/$name, which is not there" >&2; exit 1; }
     cp -f "$ROSTER_MASTER/roster/$name" "$stage/roster/roster/"
   done <<<"$roster_names"
+}
+
+# stage_tidy STAGE: the shell scripts made executable, and no Finder litter (.DS_Store, AppleDouble) from a
+# gitignored corner of the checkout, whichever copy step brought it.
+stage_tidy() {
+  local stage="$1"
   chmod +x "$stage/cats/scripts/pi/"*.sh "$stage/cats/scripts/"*.sh 2>/dev/null || true
-  # Finder litter (.DS_Store, AppleDouble) from a gitignored corner of the checkout must not reach the package,
-  # whichever copy step brought it.
   find "$stage" \( -name '.DS_Store' -o -name '._*' \) -type f -delete
+}
+
+# stage_package STAGE: what both hosts get, in STAGE; stage_host_finish adds each host's panels and stamp.
+stage_package() {
+  local stage="$1"
+  stage_dirs "$stage"
+  stage_resources "$stage"
+  stage_speedmatch "$stage"
+  stage_host_scripts "$stage"
+  stage_jython "$stage"
+  stage_unparked "$stage"
+  stage_tables_ops "$stage"
+  stage_roster "$stage"
+  stage_tidy "$stage"
 }
 
 # stage_host_finish STAGE USER_FILES TARGET: the panels rewritten for the host, then its stamp.

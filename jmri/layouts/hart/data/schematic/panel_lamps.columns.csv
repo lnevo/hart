@@ -1,0 +1,8 @@
+column,description,type,required,key,refs,values
+system_name,"The lamp's JMRI system name, which is also its jmri_name in the device master. Listed once. Its device ID is panel:<item>:<system_name>, the item being the panel_items.json item whose icon shows it (hartlib.device_ids.panel_id).",str,yes,yes,,
+layer,"sensor for a sensor lamp, head for a signal head lamp: the device master's layer.",enum,yes,,,sensor;head
+user_name,"The JMRI user name, which panel_status.py finds the lamp by. Unique in the file.",str,yes,,,
+assignment,"field for a bean on the layout's buses, virtual for an internal one (IS:).",enum,yes,,,field;virtual
+icon,"The icon attribute that names the lamp in panel_items.json: sensor (a sensoricon naming its user name) for a sensor, signalhead (a signalheadicon naming its system name) for a head.",enum,yes,,,sensor;signalhead
+jmri_comment,The JMRI comment the tables give the bean.,str,yes,,,
+description,The device master's description of the row: what the lamp shows.,str,yes,,,

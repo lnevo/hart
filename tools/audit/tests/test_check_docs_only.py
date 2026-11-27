@@ -280,6 +280,8 @@ class CheckSh(unittest.TestCase):
 
 class OneList(unittest.TestCase):
     def test_ci_and_check_sh_run_the_same_docs_checks_script(self) -> None:
+        # Source text on purpose: which commands the CI workflow lists is visible only in check.yml (no CI run and
+        # no YAML parser here), and the check is that no docs check is spelled out there instead of in docs_checks.sh.
         workflow = (ROOT / ".github/workflows/check.yml").read_text(encoding="utf-8")
         step = workflow[workflow.index("      - name: Quick docs checks\n"):]
         step = step[:step.index("\n      - ", 1)]
@@ -334,7 +336,8 @@ class OneList(unittest.TestCase):
 
 
 def check_sh_list(name: str) -> set[str]:
-    """The names in one of check.sh's space-separated lists (SLOW, BY_CLASS, LE_TESTS), every assignment added up."""
+    """The names in one of check.sh's space-separated lists (SLOW, BY_CLASS, LE_TESTS), every assignment added up.
+    Read from the shell source: check.sh has no mode that prints its job plan without running the jobs."""
     text = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
     found = re.findall(rf'^\s*(?:\[\[[^\]]*\]\]\s*\|\|\s*)?{name}\+?="([^"]*)"', text, re.M)
     if not found:
@@ -352,7 +355,7 @@ class DocsUnitTests(unittest.TestCase):
         self.assertIn("unit-guards test_agent_docs_map", stamps)
         self.assertIn(("unit-jmri test_speedmatch_distance", "jmri/layouts/hart/scripts/tests",
                        "test_speedmatch_distance.py", "RunnerSource."), tests)
-        check_sh = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
+        check_sh = (ROOT / "tools/check.sh").read_text(encoding="utf-8")  # the folders it discovers are in its text
         for stamp, folder, file, _k in tests:
             with self.subTest(stamp):
                 self.assertIn(folder, check_sh)

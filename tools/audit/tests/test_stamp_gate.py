@@ -83,7 +83,7 @@ class DecideTest(unittest.TestCase):
         for p in ("tools/check.sh", ".github/workflows/check.yml", "tools/ci/stamp_gate.py", "tools/ci/changed_kind.py",
                   "tools/audit/check_stamps.py", "tools/audit/traced.py", "tools/audit/trace_hook/sitecustomize.py",
                   "tools/schematic/panel_stamps.py", "tools/hartlib/src/hartlib/paths.py",
-                  "tools/audit/stamp_audit/sitecustomize.py", "./tools/check.sh"):
+                  "tools/audit/stamp_audit/sitecustomize.py", "tools/audit/trace_hook/hook_chain.py", "./tools/check.sh"):
             with self.subTest(p):
                 self.assertIn("machinery", self.decide(changed=[*DATA, p]))
         for p in ("tools/check.sh.bak", "tools/cia.py", ".github/workflows/other.yml", "tools/audit/tracedx.py"):
@@ -129,15 +129,16 @@ class DecideTest(unittest.TestCase):
                 self.assertIn("machinery", self.decide(changed=[*DATA, p]))
 
     def test_each_part_of_the_trace_hook_forces_full(self) -> None:
-        """traced.HOOK_FILES (traced.py, its traced_*.py parts and the hook) are each MACHINERY: a split part of the
-        trace code is no way around it."""
+        """traced.HOOK_FILES (traced.py, its traced_*.py parts, the hook and its hook_chain.py) are each MACHINERY: a
+        split part of the trace code is no way around it."""
         spec = importlib.util.spec_from_file_location("stamp_gate_test_traced", ROOT / "tools/audit/traced.py")
         traced = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(traced)
         on_disk = {p.relative_to(ROOT).as_posix() for p in (ROOT / "tools/audit").glob("traced_*.py")}
         self.assertTrue(on_disk)
         self.assertEqual(set(traced.HOOK_FILES),
-                         {"tools/audit/traced.py", "tools/audit/trace_hook/sitecustomize.py", *on_disk})
+                         {"tools/audit/traced.py", "tools/audit/trace_hook/sitecustomize.py",
+                          "tools/audit/trace_hook/hook_chain.py", *on_disk})
         for p in traced.HOOK_FILES:
             with self.subTest(p):
                 folder = "tools/audit/trace_hook/"
