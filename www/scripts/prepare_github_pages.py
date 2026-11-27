@@ -183,7 +183,10 @@ def _refresh_tables_page(dest_root: Path) -> None:
     repository guide's lists and counts from the checkout, so the published copies always describe
     the current files even when the committed ones are stale."""
     if (dest_root / build_tables_browser.PAGE_REL).is_file():
-        build_tables_browser.write_page(dest_root)
+        try:
+            build_tables_browser.write_page(dest_root)
+        except build_tables_browser.BrowserDataError as exc:       # the page and tables.xml disagree: stop the build
+            raise PortalBuildError(str(exc)) from exc
     if (dest_root / repo_guide_page.PAGE_REL).is_file():
         # A repo change the guide does not describe yet must not stop a website deploy: keep the committed page and
         # say why. tools/check.sh (repo-guide) fails on the same thing, so it is fixed before the next merge.

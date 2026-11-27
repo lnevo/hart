@@ -1,12 +1,13 @@
 /* Extra East: the game's core: helpers, the railroad, the map, the 1949 run, the end screen and
    the start screen. The 1949 event pools and the modern, signals and yard runs are in run-1949.js,
    run-modern.js, run-signals.js and run-yard.js; the title screen's pixel art in run-title.js.
-   Each of run.js, run-1949.js, run-modern.js, run-signals.js and run-yard.js runs inside its own function; they
-   share window.ExtraEast, which run.js fills with its helpers and the run's state and each later file adds to
-   (see "the interface with the run files" at the end). run.html loads them in that order. */
+   Each of run.js, run-1949.js, run-modern.js, run-signals.js and run-yard.js runs inside its own function. run.js
+   puts its helpers and the run's state on window.ExtraEast; each later file takes the names it uses with X.take and
+   hands back its own with X.give (see "the interface with the run files" at the end). run.html loads them in that
+   order. */
 (function(){
 "use strict";
-const X=window.ExtraEast={}; // the names the five files share; the later files add theirs
+const X=window.ExtraEast={}; // the names the five files share; the later files give theirs
 /* ---------- helpers ---------- */
 const {esc,store,MAX_MARKS,srcLabel,DECK_SECTIONS:SEC}=window.GameEngine; // shared with play (js/game-engine.js)
 const fmt=m=>window.GameEngine.fmt(m); // a 24-hour clock: a minute past midnight reads 0:01, as in play
@@ -121,6 +122,16 @@ function animateTo(idx,done){
   }
   renderMap();requestAnimationFrame(step);
   setTimeout(end,dur+400); // animation frames pause in hidden tabs; the run must not
+}
+/* A stretch from station `from` to `to` for the runs that go a station at a time (modern, signals): the scenes that
+   events() returns as the train leaves, then the run to `to`, its running time and the log. */
+function leg(from,to,events){
+  return ()=>{
+    state.moving=STATIONS[from].n+" and "+STATIONS[to].n;state.inSiding=false;
+    front(...events(),()=>animateTo(to,
+      ()=>{addTime(runTime(from,to));state.pos=to;state.moving=null;log("At "+STATIONS[to].n);next()}));
+    next();
+  };
 }
 
 /* ---------- status ---------- */
@@ -474,16 +485,19 @@ function arriveTTO(j,notes){
 /* The time order an open office gives on a westward regular train still ahead: the range its number is drawn from, the
    minutes late it may name, and its words. The answer key shows it with the first of each. */
 const TIME_ORDER={no:[11,19],late:[20,25,30,35],words:(train,L)=>`${train} run ${L} mins late Ironton to Ashby`};
-function orderBoard(j){
-  const out=[];
-  out.push(ask({sec:"to",src:"SC · Rule 221",where:STATIONS[j].n,title:"The train order board",
+/* Coming into the open office at j: the train order board shows stop (Rule 221). */
+function boardAsk(j){
+  return ask({sec:"to",src:"SC · Rule 221",where:STATIONS[j].n,title:"The train order board",
     body:`Coming into ${STATIONS[j].n}, the semaphore at the open office shows its blade horizontal.`,extra:semSvg(0),
     right:"Stop: an operator is on duty, and you must not leave without a Clearance Form A",
     wrong:[["Slow down and take orders on the fly"],["Proceed: it is only a block signal"],
     ["Whistle — — and keep going"]],
     why:"Rule 221: the train order signal shows stop while an operator is on duty, and trains must not "+
-      "leave without a Clearance Form A. The semaphore guide adds that a horizontal blade is always stop."}));
-  // build the orders: a time order on a regular train still ahead of us, and sometimes a meet with an extra
+      "leave without a Clearance Form A. The semaphore guide adds that a horizontal blade is always stop."});
+}
+/* The orders the office at j holds: a time order on a regular train still ahead of us, and sometimes a meet with an
+   extra at Granite. Each is {no, text, apply}, plus tr and L for a time order; apply puts it into effect. */
+function drawOrders(j){
   const n1=rnd(TIME_ORDER.no[0],TIME_ORDER.no[1],randOrders);
   const cand=state.tt.trains.filter(tr=>tr.dir==="W"&&!tr.hidden&&tr.act[j]>state.clock+10);
   const orders=[];
@@ -500,41 +514,55 @@ function orderBoard(j){
     const tr={id:"530",name:"Extra 530 West",dir:"W",cls:"Extra",t:t.slice(),act:t,meetOnly:true,meetAt:6,late:0};
     state.tt.trains.push(tr);state.meet={at:6,tr};
   }});
-  const nums=orders.map(o=>o.no);
-  const wrongClear=randOrders()<.5;
-  const shown=wrongClear?nums.map((x,i)=>i===nums.length-1?x+3:x):nums;
+  return orders;
+}
+/* The scene where the operator hands up the orders and Clearance Form A, which lists the numbers `shown`. */
+function ordersScene(j,orders,shown){
   const clearTxt=`CLEARANCE FORM A\nTo KV Extra 812 East  at ${STATIONS[j].n.toUpperCase()}\nI have ${shown.length} `+
       `order${shown.length>1?"s":""} for your train.\nNos ${shown.join(", ")}\nOK  ${fmt(state.clock+3)}  `+
       `RK, dispatcher`;
   const ordTxt=orders.map(o=>`<span class="no">Order No ${o.no}</span>\n${esc(o.text)}`).join("\n\n");
-  out.push(info(STATIONS[j].n,"Orders",
+  return info(STATIONS[j].n,"Orders",
     "<p>The operator hands up the orders and the clearance.</p><div class='xw-tele'>"+ordTxt+"</div><div class='xw-clear'>"+esc(clearTxt)+"</div>",
-    "Check them"));
-  if(wrongClear){
-    out.push(ask({sec:"to",src:"SC · Rule 211",title:"Check the clearance",
-      body:`The clearance lists Nos ${shown.join(", ")}, but you hold Nos ${nums.join(", ")}. What do you do?`,
-      right:"Do not leave; have the operator correct it with the dispatcher",
-      wrong:[["Leave; the orders in hand are what count"],["Cross out the number and write the right one in"],
-      ["Leave and report it from the next office"]],
-      why:"Rule 211: Clearance Form A is filled out without erasure or alteration, and conductors, enginemen "+
-        "and firemen must see that its information matches the orders received.",
-          after:()=>{addTime(6);state.clearFix=6;log("Clearance corrected (+6 min)")}}));
-  }else{
-    out.push(ask({sec:"to",src:"SC · Rule 211",title:"Check the clearance",
-      body:`The clearance lists Nos ${shown.join(", ")} and you hold Nos ${nums.join(", ")}. Who on your crew `+
-        `must check that they match?`,right:"The conductor, the engineman and the fireman",
-          wrong:[["Only the conductor"],["Only the engineman"],["The operator alone"]],
-          why:"Rule 211: conductors, enginemen and firemen, and trainmen when practicable, must see that the "+
-        "information on Clearance Form A matches the train orders received."}));
-  }
-  const time=orders.find(o=>o.L);
-  if(time)out.push(ask({sec:"to",src:"SC · Form E",ref:"order",title:"Order No "+time.no,
+    "Check them");
+}
+/* The clearance check (Rule 211): a clearance with a wrong number holds the train while the operator corrects it. */
+function clearanceAsk(wrongClear,nums,shown){
+  if(wrongClear)return ask({sec:"to",src:"SC · Rule 211",title:"Check the clearance",
+    body:`The clearance lists Nos ${shown.join(", ")}, but you hold Nos ${nums.join(", ")}. What do you do?`,
+    right:"Do not leave; have the operator correct it with the dispatcher",
+    wrong:[["Leave; the orders in hand are what count"],["Cross out the number and write the right one in"],
+    ["Leave and report it from the next office"]],
+    why:"Rule 211: Clearance Form A is filled out without erasure or alteration, and conductors, enginemen "+
+      "and firemen must see that its information matches the orders received.",
+        after:()=>{addTime(6);state.clearFix=6;log("Clearance corrected (+6 min)")}});
+  return ask({sec:"to",src:"SC · Rule 211",title:"Check the clearance",
+    body:`The clearance lists Nos ${shown.join(", ")} and you hold Nos ${nums.join(", ")}. Who on your crew `+
+      `must check that they match?`,right:"The conductor, the engineman and the fireman",
+        wrong:[["Only the conductor"],["Only the engineman"],["The operator alone"]],
+        why:"Rule 211: conductors, enginemen and firemen, and trainmen when practicable, must see that the "+
+      "information on Clearance Form A matches the train orders received."});
+}
+/* What the time order means for us (Form E). */
+function timeOrderAsk(j,time){
+  return ask({sec:"to",src:"SC · Form E",ref:"order",title:"Order No "+time.no,
     body:`“${esc(time.text)}.” What does this order do for you?`,
     right:`Run with respect to ${time.tr.name}'s schedule ${time.L} minutes later`,
     wrong:[[`Ignore ${time.tr.name} until Ironton`],[`Wait at ${STATIONS[j].n} for ${time.tr.name}`],
     [`You now have right over ${time.tr.name}`]],
     why:"Form E, a time order: any train receiving it runs with respect to the later time exactly as it "+
-      "would to the regular schedule. The time-table on the right now shows the new times in red."}));
+      "would to the regular schedule. The time-table on the right now shows the new times in red."});
+}
+/* The scenes at an open office with orders for us: the board, the orders, the clearance check and the time order. */
+function orderBoard(j){
+  const out=[boardAsk(j)];
+  const orders=drawOrders(j);
+  const nums=orders.map(o=>o.no);
+  const wrongClear=randOrders()<.5;
+  const shown=wrongClear?nums.map((x,i)=>i===nums.length-1?x+3:x):nums;
+  out.push(ordersScene(j,orders,shown),clearanceAsk(wrongClear,nums,shown));
+  const time=orders.find(o=>o.L);
+  if(time)out.push(timeOrderAsk(j,time));
   out.push(()=>{orders.forEach(o=>{o.apply();state.orders.push(o)});log("Orders "+nums.join(", ")+" received");next()});
   return out;
 }
@@ -610,76 +638,83 @@ function finish(text,failed){
 }
 
 /* ---------- the time-table and orders panel ---------- */
+/* The special instructions on each run's sheet, one list item each. The speed signals run puts the manual block first
+   (sheetSignals). build_exam_answers.js reads this literal and prints the 1949 list with the time-table. */
+const SHEET_NOTES={
+  tto:["Westward trains are superior to eastward trains of the same class.",
+    "One time shown is the leaving time (Rule 5).","Ashby and Ironton are inside yard limits.",
+    "Extras clear opposing regular trains by 5 minutes (Rule S-87).",
+    "Double track Hollis to Ironton: D- rules apply there."],
+  twc:["Main track between the yard limits is governed by track warrant (GCOR 14).",
+    "Ashby and Ironton yard limits: GCOR 6.13.","Double track Hollis to Ironton: Main 1 eastward, Main 2 westward.",
+    "Dispatcher: RK."],
+  yard:["Ironton yard limits include Main 1 and Main 2 (GCOR 6.13).",
+    "Main 1 eastward, Main 2 westward (current of traffic).",
+    "Yard tracks and the Kestrel Feed spur are not main track: GCOR 6.28.","East of CP Ironton East: CTC."],
+  signals:["Interlocking at Granite, where the line crosses another railroad.",
+    "River bridge: high water detector, P plate signal.","The grade below Granite: G plate signal.",
+    "Double track Hollis to Ironton."]};
+const notesHtml=items=>`<div class="xw-si"><b>Special instructions</b><ul>${items.map(t=>`<li>${t}</li>`).join("")}</ul></div>`;
+/* A sheet's list box: a heading and one line per item, or `none` when there are none. */
+const listHtml=(head,items,none)=>`<div class="xw-orders"><b>${head}</b>`+
+  `${items.length?items.map(t=>`<div class="ord">${t}</div>`).join(""):none}</div>`;
+const SHEET_HEAD="<h3>Kestrel Valley · Second Subdivision</h3>";
+const hereRow=i=>i===state.pos&&!state.moving?"here":"";
+
+function sheetSignals(){
+  const sp=state.era==="sigs";
+  const manual=sp?["Automatic block signals, except manual block "+STATIONS[2].n+" to "+STATIONS[3].n+", worked by "+
+    "the operators.","Block signals govern trains in the same direction (Rule 251)."]:[];
+  return SHEET_HEAD+`<div class="sub">${sp?"Automatic block signals · Standard Code speed signals":
+      "Route signals · CP Hollis worked by a control operator"}</div>`+
+    listHtml("Signals passed",state.passed.slice(-8).map(esc),'<div class="ord">None yet</div>')+
+    notesHtml([...manual,...SHEET_NOTES.signals]);
+}
+function sheetYard(){
+  return `<h3>Ironton yard job</h3><div class="sub">Engine KV 1502 · yardmaster on duty</div>`+
+    listHtml("Work list",state.jobs.map(j=>`${j.done?"✓ ":""}${esc(j.t)}`),"")+notesHtml(SHEET_NOTES.yard);
+}
+/* The 1949 time-table: the regular trains (westward first), the meet's extra once ordered, and the extra's running
+   times. A train an order made late shows its new time in red. */
+function sheetTTO(){
+  const tr=state.tt.trains.filter(t=>!t.hidden&&!t.meetOnly);
+  const cols=[...tr.filter(t=>t.dir==="W"),...tr.filter(t=>t.dir==="E")];
+  if(state.meet&&!state.meet.tr.hidden)cols.push(state.meet.tr);
+  const short={"First class":"1st","Second class":"2nd","Extra":"extra"};
+  const cell=(t,i)=>{
+    if(t.meetOnly)return `<td>${i===6?"meet":""}</td>`;
+    const known=state.orders.some(o=>o.tr===t);
+    return `<td>${known&&t.late&&t.lateAt&&t.lateAt[i]?
+      `<span class="late"><s>${fmt(t.t[i])}</s><b>${fmt(t.t[i]+t.late)}</b></span>`:fmt(t.t[i])}</td>`;
+  };
+  const rows=STATIONS.map((st,i)=>`<tr class="${hereRow(i)}"><td class="stn">${esc(st.n)}<small>MP `+
+      `${st.mp.toFixed(1)}${st.off?" · D":""}${st.sd?"":" · no siding"}</small></td>`+
+      cols.map(t=>cell(t,i)).join("")+`<td class="pencil">${i<LAST?state.tt.leg[i]:""}</td></tr>`).join("");
+  let h=SHEET_HEAD+`<div class="sub">Time-table No 12 · single track, double Hollis to Ironton · D = open `+
+      `office</div><div class="xw-tt" tabindex="0"><table><thead><tr><th>Station</th>`+
+    cols.map(t=>`<th>${esc(t.name)}<small>${t.dir==="W"?"West":"East"} · ${esc(short[t.cls]||t.cls)}</small></th>`).join("")+
+    `<th>X 812 E<small>run min</small></th></tr></thead><tbody>${rows}</tbody></table></div>`+notesHtml(SHEET_NOTES.tto);
+  if(state.orders.length)h+=listHtml("Orders held",
+    state.orders.map(o=>`No ${o.no}: ${esc(o.text)}<span class="ok">OK</span>`),"");
+  return h;
+}
+/* The modern run's station list: sidings, notes and the train's running times. */
+function sheetTWC(){
+  const note=(st,i)=>st.yl?"yard limits":i===4?"tunnel":i===7?"double track east":"";
+  const rows=STATIONS.map((st,i)=>`<tr class="${hereRow(i)}"><td class="stn">${esc(st.n)}<small>MP `+
+    `${st.mp.toFixed(1)}</small></td><td>${st.sd?"yes":"no"}</td><td>${note(st,i)}</td><td `+
+    `class="pencil">${i<LAST?state.tt.leg[i]:""}</td></tr>`).join("");
+  return SHEET_HEAD+`<div class="sub">Track warrant control · dark territory · double track Hollis to Ironton</div>`+
+    `<div class="xw-tt" tabindex="0"><table><thead><tr><th>Station</th><th>Siding</th><th>Notes</th><th>KV 812 `+
+    `E<small>run min</small></th></tr></thead><tbody>${rows}</tbody></table></div>`+notesHtml(SHEET_NOTES.twc);
+}
+const SHEETS={tto:sheetTTO,twc:sheetTWC,yard:sheetYard,sigs:sheetSignals,sigr:sheetSignals};
 function renderSheet(){
   const el=$("xwSheet");
   if(!state.tt){el.innerHTML="";return}
-  if(state.era==="sigs"||state.era==="sigr"){
-    const sp=state.era==="sigs";
-    el.innerHTML=`<h3>Kestrel Valley · Second Subdivision</h3><div `+
-        `class="sub">${sp?"Automatic block signals · Standard Code speed signals":"Route signals · CP Hollis worked by a control operator"}</div><div `+
-        `class="xw-orders"><b>Signals `+
-        `passed</b>${state.passed.length?state.passed.slice(-8).map(t=>`<div class="ord">${esc(t)}</div>`).join(""):"<div class=\"ord\">None yet</div>"}</div><div `+
-        `class="xw-si"><b>Special `+
-        `instructions</b><ul>${sp?"<li>Automatic block signals, except manual block "+STATIONS[2].n+" to "+STATIONS[3].n+", worked by the operators.</li><li>Block signals govern trains in the same direction (Rule 251).</li>":""}<li>Interlocking `+
-        `at Granite, where the line crosses another railroad.</li><li>River bridge: high water detector, P `+
-        `plate signal.</li><li>The grade below Granite: G plate signal.</li><li>Double track Hollis to `+
-        `Ironton.</li></ul></div>`;
-    return;
-  }
-  if(state.era==="yard"){
-    el.innerHTML=`<h3>Ironton yard job</h3><div class="sub">Engine KV 1502 · yardmaster on duty</div><div `+
-        `class="xw-orders"><b>Work `+
-        `list</b>${state.jobs.map(j=>`<div class="ord">${j.done?"✓ ":""}${esc(j.t)}</div>`).join("")}</div><div `+
-        `class="xw-si"><b>Special instructions</b><ul><li>Ironton yard limits include Main 1 and Main 2 `+
-        `(GCOR 6.13).</li><li>Main 1 eastward, Main 2 westward (current of traffic).</li><li>Yard tracks and `+
-        `the Kestrel Feed spur are not main track: GCOR 6.28.</li><li>East of CP Ironton East: `+
-        `CTC.</li></ul></div>`;
-    return;
-  }
-  if(state.era==="tto"){
-    const tr=state.tt.trains.filter(t=>!t.hidden&&!t.meetOnly);
-    const cols=[...tr.filter(t=>t.dir==="W"),...tr.filter(t=>t.dir==="E")];
-    if(state.meet&&!state.meet.tr.hidden)cols.push(state.meet.tr);
-    let h=`<h3>Kestrel Valley · Second Subdivision</h3><div class="sub">Time-table No 12 · single track, `+
-        `double Hollis to Ironton · D = open office</div><div class="xw-tt" `+
-        `tabindex="0"><table><thead><tr><th>Station</th>`;
-    const short={"First class":"1st","Second class":"2nd","Extra":"extra"};
-    cols.forEach(t=>h+=`<th>${esc(t.name)}<small>${t.dir==="W"?"West":"East"} · ${esc(short[t.cls]||t.cls)}</small></th>`);
-    h+=`<th>X 812 E<small>run min</small></th></tr></thead><tbody>`;
-    STATIONS.forEach((st,i)=>{
-      h+=`<tr class="${i===state.pos&&!state.moving?"here":""}"><td class="stn">${esc(st.n)}<small>MP `+
-          `${st.mp.toFixed(1)}${st.off?" · D":""}${st.sd?"":" · no siding"}</small></td>`;
-      cols.forEach(t=>{
-        if(t.meetOnly){h+=`<td>${i===6?"meet":""}</td>`;return}
-        const known=state.orders.some(o=>o.tr===t);
-        const v=known&&t.late&&t.lateAt&&t.lateAt[i]?`<span class="late"><s>${fmt(t.t[i])}</s><b>${fmt(t.t[i]+t.late)}</b></span>`:fmt(t.t[i]);
-        h+=`<td>${v}</td>`;
-      });
-      h+=`<td class="pencil">${i<LAST?state.tt.leg[i]:""}</td></tr>`;
-    });
-    h+=`</tbody></table></div><div class="xw-si"><b>Special instructions</b><ul><li>Westward trains are `+
-        `superior to eastward trains of the same class.</li><li>One time shown is the leaving time (Rule `+
-        `5).</li><li>Ashby and Ironton are inside yard limits.</li><li>Extras clear opposing regular trains `+
-        `by 5 minutes (Rule S-87).</li><li>Double track Hollis to Ironton: D- rules apply `+
-        `there.</li></ul></div>`;
-    if(state.orders.length)h+=`<div class="xw-orders"><b>Orders `+
-        `held</b>${state.orders.map(o=>`<div class="ord">No ${o.no}: ${esc(o.text)}<span class="ok">OK</span></div>`).join("")}</div>`;
-    el.innerHTML=h;
-  }else{
-    let h=`<h3>Kestrel Valley · Second Subdivision</h3><div class="sub">Track warrant control · dark `+
-        `territory · double track Hollis to Ironton</div><div class="xw-tt" `+
-        `tabindex="0"><table><thead><tr><th>Station</th><th>Siding</th><th>Notes</th><th>KV 812 E<small>run `+
-        `min</small></th></tr></thead><tbody>`;
-    STATIONS.forEach((st,
-      i)=>{h+=`<tr class="${i===state.pos&&!state.moving?"here":""}"><td class="stn">${esc(st.n)}<small>MP `+
-        `${st.mp.toFixed(1)}</small></td><td>${st.sd?"yes":"no"}</td><td>${st.yl?"yard limits":i===4?"tunnel":i===7?"double track east":""}</td><td `+
-        `class="pencil">${i<LAST?state.tt.leg[i]:""}</td></tr>`});
-    h+=`</tbody></table></div><div class="xw-si"><b>Special instructions</b><ul><li>Main track between the `+
-        `yard limits is governed by track warrant (GCOR 14).</li><li>Ashby and Ironton yard limits: GCOR `+
-        `6.13.</li><li>Double track Hollis to Ironton: Main 1 eastward, Main 2 westward.</li><li>Dispatcher: `+
-        `RK.</li></ul></div>`;
-    el.innerHTML=h;
-  }
+  const sheet=SHEETS[state.era];
+  if(!sheet)throw new Error("Extra East: no train sheet for run "+state.era);
+  el.innerHTML=sheet();
 }
 
 /* ---------- start ---------- */
@@ -711,11 +746,12 @@ document.querySelectorAll("[data-era]").forEach(b=>b.onclick=()=>begin(b.dataset
 showStart();
 
 /* ---------- the interface with the run files ---------- */
-/* SHARED: what run.js shares. run-modern.js takes its names with X.take (an unshared name stops the page); the other
-   run files still read them off window.ExtraEast. GIVES: what run.js reads back from a file that uses X.give. */
+/* SHARED: what run.js shares. Each run file takes its names with X.take (an unshared name stops the page). GIVES:
+   what run.js reads back from each run file, which hands them over with X.give. */
 const SHARED={state,$,fmt,esc,rnd,pick,shuffle,randSetup:()=>randSetup(),reduced,STATIONS,LAST,addTime,renderMap,
-  animateTo,renderStatus,renderSheet,runTime,drawRoad,drawStation,semSvg,finish,push,front,next,log,scene,ask,info};
-const GIVES={"run-modern.js":["startTWC","ROAD_TWC","warrantForm"]};
+  animateTo,leg,renderStatus,renderSheet,runTime,drawRoad,drawStation,semSvg,finish,push,front,next,log,scene,ask,info};
+const GIVES={"run-1949.js":["ROAD_TTO","STN_TTO"],"run-modern.js":["startTWC","ROAD_TWC","warrantForm"],
+  "run-signals.js":["startSIG"],"run-yard.js":["YLOC","renderYardMap","startYARD"]};
 function take(file,names){
   const missing=names.filter(n=>!Object.hasOwn(SHARED,n));
   if(missing.length)throw new Error(`${file} takes ${missing.join(", ")}, which run.js does not share`);
