@@ -114,7 +114,6 @@
  "tools/hosts/tests/test_ci_pass.py": 3,
  "tools/hosts/tests/test_deploy_stage.py": 21,
  "tools/hosts/tests/test_hart_tables_refused.py": 1,
- "tools/hosts/tests/test_panelpro_profile.py": 1,
  "tools/hosts/tests/test_panelpro_wrappers.py": 1,
  "tools/hosts/tests/test_patch_windows_mqtt.py": 1,
  "tools/hosts/tests/test_pi_quit_panelpro.py": 3,
