@@ -19,11 +19,6 @@ from mast_routes import LONG_CM, reaches_signal
 from plan_bands import Band, Bands, Levels, band_level
 from plan_tracks import Joined, Leg, LegKey, Track, TrackEnd, by_leg, leg_ends, letter_order
 
-# hartlib/tests/test_hand_lists.py and test_rename_by_id.py read these as mast_rule's (the block_overrides.csv
-# wrappers moved to block_override_rows.py); hartlib is another lane's, so the names stay here until those tests move.
-from block_override_rows import OVERRIDES_NAME, os_block_name, read_block_overrides  # noqa: F401
-from hartlib.hand_lists import key_problem  # noqa: F401
-
 base = railroad.switch_number
 natural = railroad.natural
 

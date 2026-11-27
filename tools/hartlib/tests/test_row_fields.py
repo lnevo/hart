@@ -1,32 +1,16 @@
-"""hartlib's readers of the device master take a MasterRow's fields, and its writers and checks take MasterRow.cells():
-none of them reads a row through its Mapping view (row["layer"], dict(row), len(row)), which only the callers outside
-hartlib still use."""
+"""hartlib's readers of the device master take a MasterRow's fields, and its writers and checks take MasterRow.cells().
+A row is no Mapping (row["layer"], dict(row) and len(row) raise), so each reader below runs on the real rows only
+when it reads them by field."""
 from __future__ import annotations
 
 import sys
 import unittest
-from collections.abc import Callable, Iterator
-from contextlib import ExitStack, contextmanager
+from collections.abc import Mapping
 from pathlib import Path
-from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from hartlib import (block_lengths, device_rows, devices, drawing_keys, occupancy_bindings, railroad,  # noqa: E402
                      railroad_facts, railroad_invariants, tables_build, wiring)
-
-
-@contextmanager
-def no_mapping_view() -> Iterator[None]:
-    """MasterRow's Mapping methods raise while the block runs, naming the method."""
-    def refuse(name: str) -> Callable[..., object]:
-        def call(self: object, *args: object, **kwargs: object) -> object:
-            raise AssertionError(f"a hartlib reader used MasterRow.{name}")
-        return call
-    names = ("__getitem__", "__iter__", "__len__", "__contains__", "get", "keys", "items", "values", "__or__")
-    with ExitStack() as stack:
-        for n in names:
-            stack.enter_context(mock.patch.object(device_rows.MasterRow, n, refuse(n)))
-        yield
 
 
 BEAN = ('{"beans":[{"section":["turnouts","jmri.jmrix.openlcb.configurexml.OlcbTurnoutManagerXml"],'
@@ -78,37 +62,56 @@ class TheReadersTakeFields(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.rows = devices.load()          # read (and cached) before the view is refused
+        cls.rows = devices.load()
+
+    def test_a_row_is_no_mapping(self) -> None:
+        r = self.rows[0]
+        self.assertNotIsInstance(r, Mapping)
+        for read in (lambda: r["layer"], lambda: dict(r), lambda: len(r), lambda: "layer" in r):  # type: ignore
+            with self.assertRaises(TypeError):
+                read()
+        self.assertFalse(hasattr(r, "get"))
+        self.assertNotEqual(r, r.cells())        # a row equals a row, not its cells
 
     def test_the_devices_readers(self) -> None:
-        with no_mapping_view():
-            index = devices.index()
-            self.assertTrue(devices.device_map_lines(("1", "2", "3")))
-            self.assertTrue(devices.user_names())
-            devices.part_lines(("1", "2", "3"))
-            self.assertTrue(index.names("block", roles=devices.LINE_ROLES))
-            self.assertTrue(index.names("turnout", levels=("2",)))
-            for r in self.rows[:40]:
-                index.where(r)
-                index.role(r.layer, r.user_name)
-                self.assertEqual(index.is_unplaced(r.layer, r.user_name), r.level is None)
-                devices.row_text(r)
-                devices.key_of(r)
-            self.assertEqual(devices.stale(), [])
+        index = devices.index()
+        self.assertTrue(devices.device_map_lines(("1", "2", "3")))
+        self.assertTrue(devices.user_names())
+        devices.part_lines(("1", "2", "3"))
+        self.assertTrue(index.names("block", roles=devices.LINE_ROLES))
+        self.assertTrue(index.names("turnout", levels=("2",)))
+        for r in self.rows[:40]:
+            index.where(r)
+            index.role(r.layer, r.user_name)
+            self.assertEqual(index.is_unplaced(r.layer, r.user_name), r.level is None)
+            devices.row_text(r)
+            devices.key_of(r)
+        self.assertEqual(devices.stale(), [])
 
     def test_the_other_readers(self) -> None:
-        with no_mapping_view():
-            self.assertTrue(occupancy_bindings.rows())
-            self.assertTrue(block_lengths.plan_blocks())
-            self.assertTrue(drawing_keys.read(("1", "2", "3")).ids)
-            wiring.field_heads()
-            self.assertTrue(railroad_facts.read_staging_rows(devices.MASTER))
-            self.assertTrue(railroad_facts.read_device_map(devices.MASTER).rows)
-            self.assertTrue(railroad_invariants.master_rows(railroad.Railroad(upto="inputs")))
+        self.assertTrue(occupancy_bindings.rows())
+        self.assertTrue(block_lengths.plan_blocks())
+        self.assertTrue(drawing_keys.read(("1", "2", "3")).ids)
+        wiring.field_heads()
+        self.assertTrue(railroad_facts.read_staging_rows(devices.MASTER))
+        self.assertTrue(railroad_facts.read_device_map(devices.MASTER).rows)
+        self.assertTrue(railroad_invariants.master_rows(railroad.Railroad(upto="inputs")))
 
     def test_the_tables_build_reads_the_cells(self) -> None:
-        with no_mapping_view():
-            self.assertTrue(tables_build.base().root is not None)
+        self.assertTrue(tables_build.base().root is not None)
+
+
+class TheRank(unittest.TestCase):
+    def test_row_rank_is_the_masters_order(self) -> None:
+        """By level (a level-less row last), then layer, then hand-kept rows before each writer's in WRITERS order."""
+        def row(level: str, layer: str, writer: str = "") -> dict[str, str]:
+            return dict.fromkeys(devices.COLUMNS, "") | dict(level=level, layer=layer, written_by=writer)
+        last, first = devices.WRITERS[-1], devices.WRITERS[0]
+        rows = [row("", "turnout"), row("2", "mast", last), row("1", "mast", last), row("1", "mast", first),
+                row("1", "mast"), row("1", "turnout")]
+        self.assertEqual([(r["level"], r["layer"], r["written_by"]) for r in sorted(rows, key=devices.row_rank)],
+                         [("1", "turnout", ""), ("1", "mast", ""), ("1", "mast", first), ("1", "mast", last),
+                          ("2", "mast", last), ("", "turnout", "")])
 
 
 class TheReExport(unittest.TestCase):

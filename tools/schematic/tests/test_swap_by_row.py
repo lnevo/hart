@@ -47,7 +47,7 @@ def swap_rows(rows: list[dict]) -> list[dict]:
         row.update(level=level, id=ident, layer=layer[(level, ident)], assignment="field", system_name=name,
                    jmri_name=name)
         out.append(row)
-    return sorted(out, key=devices._rank)
+    return sorted(out, key=devices.row_rank)
 
 
 class SwapByRow(RepoReadOnly, unittest.TestCase):
@@ -68,17 +68,17 @@ class SwapByRow(RepoReadOnly, unittest.TestCase):
         cls.runs = staticmethod(runs)
         rr = railroad.Railroad(bdm.sources(), upto="inputs")
         _cp, main_rows, parts = bdm.build(cls.bands, cls.joined, runs, bdm.MapInputs.of(rr), corners)
-        cls.before = {devices.key_of(r): dict(r) for r in devices.load()}
+        cls.before = {devices.key_of(r): r.cells() for r in devices.load()}
         cls.files = devices.pair_copy(cls.tmp / "data")
         cls.files.field.write_text(devices.master_text(swap_rows(list(devices.field_rows(cls.files)))),
                                    encoding="utf-8")
         devices.write_all(cls.files, bdm.master_outputs(cls.bands, cls.joined, runs, main_rows, parts, cls.files,
                                                         warn=lambda line: None))
-        cls.rows = list(devices.load(cls.files))
+        cls.rows = [r.cells() for r in devices.load(cls.files)]
         cls.after = {devices.key_of(r): dict(r) for r in cls.rows}
         cls.tables_path = cls.tmp / "swapped_tables.xml"
         cls.tables_path.write_bytes(tables_build.base(cls.rows).tobytes())
-        cls.committed_tables = tables_build.base(list(devices.load()))
+        cls.committed_tables = tables_build.base([r.cells() for r in devices.load()])
         cls.rr = railroad.Railroad(railroad.Sources.under().but(devices=cls.files.master, tables=cls.tables_path))
 
     # ---- the device master

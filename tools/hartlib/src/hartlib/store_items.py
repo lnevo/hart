@@ -10,8 +10,8 @@ from collections.abc import Iterable, Mapping
 from . import devices, level_devices, parked, tables
 from . import tables_build as tb
 from .errors import HartlibError
-from .store_keys import (BY_CONTENT, BY_ID, AttrsKey, BeanKey, ByContent, ById, LogicKey, PanelKey, SecKey,
-                         SectionKey, SettingKey, canon)
+from .store_keys import (BY_CONTENT, BY_ID, AttrsKey, BeanKey, ByContent, ById, ItemKey, LogicKey, PanelKey,
+                         SecKey, SectionKey, SettingKey, canon)
 
 PANEL = "LayoutEditor"
 LOGIC = "signalmastlogic"
@@ -114,16 +114,16 @@ def _setting_keys(sec: ET.Element, sk: SecKey, repeated: frozenset[tuple]) -> li
     return out
 
 
-def index(root: ET.Element, what: str, by_content: frozenset[tuple] = frozenset()) -> dict[tuple, ET.Element]:
+def index(root: ET.Element, what: str, by_content: frozenset[tuple] = frozenset()) -> dict[ItemKey, ET.Element]:
     """{item key: element} of normalised tables (the module docstring's items). Keys:
     ("panel", name), ("section", tag, class) for a whole section outside tables_build.SECTIONS,
     ("attrs", section) for a known section's own attributes (an element with no children),
     ("logic", source mast), ("bean", section, tag, block pass, system name), and a setting's key (_setting_keys;
     `by_content` from repeated_settings over every file compared, so all of them key a tag the same way).
     SplitError on a key given twice (JMRI would load only one)."""
-    out: dict[tuple, ET.Element] = {}
+    out: dict[ItemKey, ET.Element] = {}
 
-    def put(key: tuple, el: ET.Element) -> None:
+    def put(key: ItemKey, el: ET.Element) -> None:
         if key in out:
             raise SplitError(f"{what}: {label(key)} is given twice")
         out[key] = el
@@ -148,9 +148,10 @@ def index(root: ET.Element, what: str, by_content: frozenset[tuple] = frozenset(
     return out
 
 
-def index_section(sec: ET.Element, sk: SecKey, by_content: frozenset[tuple] = frozenset()) -> dict[tuple, ET.Element]:
+def index_section(sec: ET.Element, sk: SecKey, by_content: frozenset[tuple] = frozenset()
+                  ) -> dict[ItemKey, ET.Element]:
     """index() of one known section's children."""
-    out: dict[tuple, ET.Element] = {}
+    out: dict[ItemKey, ET.Element] = {}
     for el in tables.elements(sec):
         name = tables.system_name(el)
         if name:
@@ -158,7 +159,7 @@ def index_section(sec: ET.Element, sk: SecKey, by_content: frozenset[tuple] = fr
     out.update(_setting_keys(sec, sk, by_content))
     return out
 
-def label(key: tuple) -> str:
+def label(key: ItemKey) -> str:
     """An item key as words: "turnout M2T408", "<timebase> settings", "panel 'HART Railroad'"."""
     kind = key[0]
     if kind == "panel":
@@ -267,42 +268,43 @@ def row_index(rows: Iterable[Mapping[str, str]]) -> dict[tuple[str, str], list[i
     return out
 
 
-def rows_of(rindex: Mapping[tuple[str, str], list[int]], key: tuple, el: ET.Element) -> list[int]:
+def rows_of(rindex: Mapping[tuple[str, str], list[int]], key: BeanKey, el: ET.Element) -> list[int]:
     """The device-master rows the bean `key` (element `el`, the repo's or the base's) comes from."""
-    tag = key[1][0]
-    got = rindex.get((tag, key[4]), [])
+    tag = key.section[0]
+    got = rindex.get((tag, key.name), [])
     if not got and tag == "layoutblocks":
         got = rindex.get((tag, "user:" + tables.user_name(el)), [])
     return list(got)
 
 
-def claimed_by(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) -> str | None:
+def claimed_by(key: ItemKey, el: ET.Element, rows: Iterable[Mapping[str, str]]) -> str | None:
     """What claims a new item of the Store, so it cannot go into the template; None when nothing does. A bean in a
     section the device master gives (tables_build.MASTER_SECTIONS), Signal Mast Logic, a panel, a parked feature's section
     or name, the build's names, the main and upper naming rule or a device-master row's name."""
-    kind = key[0]
-    if kind in ("panel", "logic"):
-        return "the build" if kind == "logic" else "the schematic (the Layout Editor build)"
-    if kind == "section":
-        if key[1] in NEVER_TEMPLATE or key[1].lower().endswith("editor"):
+    if isinstance(key, LogicKey):
+        return "the build"
+    if isinstance(key, PanelKey):
+        return "the schematic (the Layout Editor build)"
+    if isinstance(key, SectionKey):
+        if key.tag in NEVER_TEMPLATE or key.tag.lower().endswith("editor"):
             return "the schematic (a panel is never in the template)"
-        if key[1] in {t for t, _ in tb.SECTIONS}:
+        if key.tag in {t for t, _ in tb.SECTIONS}:
             return "the device master and the build (a section of a known kind with another connection)"
         for feature, tags in parked.WHOLE.items():
-            if key[1] in tags:
+            if key.tag in tags:
                 return f"the parked {parked.FEATURES[feature]}"
         return None
-    if kind != "bean":
+    if not isinstance(key, BeanKey):
         return None
-    if key[1] in tb.MASTER_SECTIONS:
+    if key.section in tb.MASTER_SECTIONS:
         return f"the device master (a device needs a row in {devices.FIELD_FILE} with its level, cp and role)"
     return claimed_name(key, el, rows)
 
 
-def claimed_name(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) -> str | None:
+def claimed_name(key: BeanKey, el: ET.Element, rows: Iterable[Mapping[str, str]]) -> str | None:
     """What claims a bean by its system or user name (claimed_by's checks after the section's): the build's names,
     the main and upper naming rule, a parked feature or a device-master row's name; None when nothing does."""
-    names = [n for n in (key[4], tables.user_name(el)) if n]
+    names = [n for n in (key.name, tables.user_name(el)) if n]
     for name in names:
         if name.startswith(BUILD_PREFIXES) or level_devices.is_level_name(name):
             return "the build's names (the device master's main and upper rows and hartlib.level_devices)"
@@ -319,11 +321,11 @@ def claimed_name(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) 
     return None
 
 
-def name_holder(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) -> str | None:
+def name_holder(key: BeanKey, el: ET.Element, rows: Iterable[Mapping[str, str]]) -> str | None:
     """Why a bean the Store added cannot be a new row because a device-master row holds one of its names, with what to do;
     None when no row does."""
     names = [(n, what, cols) for n, what, cols in (
-        (key[4], "system name", ("system_name", "jmri_name", "user_name")),
+        (key.name, "system name", ("system_name", "jmri_name", "user_name")),
         (tables.user_name(el), "user name", ("user_name", "jmri_name", "system_name"))) if n]
     for r in rows:
         for name, what, cols in names:

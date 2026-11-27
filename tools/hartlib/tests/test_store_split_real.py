@@ -44,7 +44,7 @@ class Scenario(NamedTuple):
 def load_real() -> Real:
     repo = ss.normalised(paths.REPO_TABLES_XML.read_bytes(), "tables.xml")
     template = ss.normalised(tb.read_template(tb.TEMPLATE).tobytes(), "the template")
-    return Real(repo, template, [dict(r) for r in devices.load(devices.Files.here())])
+    return Real(repo, template, [r.cells() for r in devices.load(devices.Files.here())])
 
 
 def section(root: ET.Element, sk: tuple[str, str | None]) -> ET.Element:
@@ -192,8 +192,14 @@ def dump(p: ss.Plan) -> dict[str, object]:
     }
 
 
-def kind_of(p: ss.Plan) -> Mapping[tuple, str]:
-    out: dict[tuple, str] = {}
+def bean_name(k: ss.ItemKey) -> str:
+    """A device item's bean key's system name (a device item is always a bean's)."""
+    assert isinstance(k, ss.BeanKey), k
+    return k.name
+
+
+def kind_of(p: ss.Plan) -> Mapping[ss.ItemKey, str]:
+    out: dict[ss.ItemKey, str] = {}
     for i in p.items:
         out.setdefault(i.key, i.kind)
     return out
@@ -208,7 +214,7 @@ class RealTables(unittest.TestCase):
         cls.real = load_real()
         cls.plans = {s.name: plan_of(cls.real, s) for s in scenarios(cls.real)}
 
-    def keys(self, name: str, kind: str) -> list[tuple]:
+    def keys(self, name: str, kind: str) -> list[ss.ItemKey]:
         return [i.key for i in self.plans[name].of(kind)]
 
     def test_a_store_of_the_tables_plans_nothing(self) -> None:
@@ -235,9 +241,9 @@ class RealTables(unittest.TestCase):
 
     def test_the_build_items_are_dropped(self) -> None:
         dropped = self.keys("base", ss.DROPPED)
-        self.assertTrue(any(k[0] == "panel" for k in dropped))
-        self.assertTrue(any(k[0] == "logic" for k in dropped))
-        self.assertIn(LONE_LAYOUT_BLOCK, [k[4] for k in dropped if k[0] == "bean"])
+        self.assertTrue(any(isinstance(k, ss.PanelKey) for k in dropped))
+        self.assertTrue(any(isinstance(k, ss.LogicKey) for k in dropped))
+        self.assertIn(LONE_LAYOUT_BLOCK, [k.name for k in dropped if isinstance(k, ss.BeanKey)])
 
     def test_every_edited_bean_gives_one_item(self) -> None:
         kinds = kind_of(self.plans["base"])
@@ -262,13 +268,13 @@ class RealTables(unittest.TestCase):
 
     def test_the_added_turnout_and_block_are_rows_to_add(self) -> None:
         adds = [i for i in self.plans["base"].of(ss.DEVICE) if i.part == ss.ROW]
-        self.assertEqual({NEW_TURNOUT, NEW_BLOCK}, {i.key[4] for i in adds})
-        block = next(i for i in adds if i.key[4] == NEW_BLOCK)
-        self.assertEqual([NEW_BLOCK, NEW_LAYOUT_BLOCK], [k[4] for k, _ in block.also])     # its other pass too
+        self.assertEqual({NEW_TURNOUT, NEW_BLOCK}, {bean_name(i.key) for i in adds})
+        block = next(i for i in adds if bean_name(i.key) == NEW_BLOCK)
+        self.assertEqual([NEW_BLOCK, NEW_LAYOUT_BLOCK], [bean_name(k) for k, _ in block.also])     # its other pass too
 
     def test_a_level_less_device_changed_or_deleted_rewrites_or_deletes_its_row(self) -> None:
         rewrites = self.plans["unplaced"].of(ss.DEVICE)
-        self.assertEqual({NEW_TURNOUT, NEW_BLOCK}, {i.key[4] for i in rewrites})
+        self.assertEqual({NEW_TURNOUT, NEW_BLOCK}, {bean_name(i.key) for i in rewrites})
         self.assertTrue(all(isinstance(e, ss.Edit) for i in rewrites for e in i.edits))
         deleted = self.plans["unplaced-delete"].of(ss.DEVICE)
         self.assertEqual([[ss.RowDelete]], [[type(e) for e in i.edits] for i in deleted])

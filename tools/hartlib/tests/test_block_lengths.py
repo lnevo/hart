@@ -216,7 +216,7 @@ class Files(unittest.TestCase):
 
     def test_two_blocks_with_one_name_stop(self) -> None:
         from hartlib import devices
-        rows = [dict(r) for r in devices.load()]
+        rows = [r.cells() for r in devices.load()]
         for r in rows:
             if r["level"] == "1" and r["id"] == "block:3C-end":
                 r["user_name"] = "Track W-1"

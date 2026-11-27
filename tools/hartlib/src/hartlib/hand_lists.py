@@ -12,7 +12,7 @@ HandListError naming the file and line (every read of layout data goes through h
 
 - block_overrides.csv (schematic/): read_block_overrides. Every level's rows, keyed by switch numbers, so a new
   export moves a row with its track; a track row's `block` is an OS block's device ID, named here from the plan and
-  the name store (os_block_name). The panel builders (tools/schematic: mast_rule, block_layer) read it here.
+  the name store (os_block_name). The panel builders (tools/schematic: block_override_rows, block_layer) read it here.
 - main_lines.csv (schematic/): read_main_lines. Each stop's tracks are block IDs and come back by the name store's
   names (resolve_stop), so a rename in devices_field.csv changes no row. build_main_route.py reads it here.
 - mast_cells.csv, uss_board_cells.csv, uss_board_plants.csv: the parked USS CTC machine's board (its grid frozen
@@ -78,12 +78,13 @@ def key_problem(row: dict) -> str:
 def read_block_overrides(path: Path = SCHEMATIC / OVERRIDES_NAME, kinds: tuple[str, ...] = OVERRIDE_KINDS,
                          names: Mapping[tuple[str, str], str] | None = None) -> list[dict]:
     """The rows of `kinds` of block_overrides.csv (OVERRIDE_COLUMNS), the owner's hand facts about blocks, each with
-    its `line` and its `cm` a number (None when blank); a short row's missing trailing fields are empty. Every row of every kind is checked for its shape, whichever
-    kinds are asked for, so a bad row stops every reader of the file; resolving a row against the drawing is the
-    reader's (mast_rule.read_block_splits, block_layer.read_exceptions). A row of any level (1 staging, 2 main, 3
-    upper), keyed by switch numbers so a new export moves it with its track:
+    its `line` and its `cm` a number (None when blank); a short row's missing trailing fields are empty. Every row of
+    every kind is checked for its shape, whichever kinds are asked for, so a bad row stops every reader of the file;
+    resolving a row against the drawing is the reader's (block_override_rows.read_block_splits,
+    block_layer.read_exceptions). A row of any level (1 staging, 2 main, 3 upper), keyed by switch numbers so a new
+    export moves it with its track:
     - split: the track switch_a to switch_b (lower first; parallel where two tracks run between them,
-      mast_rule.resolve_track) is two blocks parted at its turnback. The OWNER'S CHOICE, not a rule (a rule
+      block_override_rows.resolve_track) is two blocks parted at its turnback. The OWNER'S CHOICE, not a rule (a rule
       would catch every intermediate loop). No end, block, cm or inside.
     - track: the track switch_a to switch_b (as for split), or with `end` one of them the piece of it at that end, is
       part of `block`, an OS block by its device ID (os:15, a crossover half's os:35:A-39A),

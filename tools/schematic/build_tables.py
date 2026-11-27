@@ -147,7 +147,7 @@ def check(root) -> None:
         raise tb.TablesBuildError(f"the output holds {', '.join(held)}")
     tb.check_names(root)
     names = {tables.system_name(el) for sec in tables.elements(root) for el in tables.elements(sec)}
-    want = {tb.bean_name(r) for r in devices.load() if r.level and r.assignment != "none"}
+    want = {tb.bean_name(r.cells()) for r in devices.load() if r.level and r.assignment != "none"}
     lost = sorted(want - names)
     if lost:
         raise tb.TablesBuildError(f"beans of the device master missing from the output: {', '.join(lost[:8])}")

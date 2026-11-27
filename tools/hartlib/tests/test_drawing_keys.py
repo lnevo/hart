@@ -31,8 +31,8 @@ class Committed(unittest.TestCase):
         self.assertIn("Track 101-103", main_upper.parts())
         self.assertFalse(any(r["role"] == "lcc_alias" for r in main_upper.rows.values()))
         # every turnout and block row of the master is read, by its id
-        want = {(r["level"], r["id"]) for r in devices.load()
-                if r["level"] and r["layer"] in drawing_keys.LAYERS and r["role"] != "lcc_alias"}
+        want = {(r.level_cell, r.id) for r in devices.load()
+                if r.level and r.layer in drawing_keys.LAYERS and r.role != "lcc_alias"}
         got = {i for k in (staging, main_upper) for i in k.rows}
         self.assertEqual(got, want)
 

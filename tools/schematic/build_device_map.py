@@ -396,7 +396,7 @@ def master_outputs(bands: Bands, joined: Joined, runs: Runs, rows: Iterable[Devi
 
 def last_staging_masts(files: devices.Files) -> list[MasterCells]:
     """Staging's mast and head rows as this script last wrote them into the master of `files`."""
-    return [dict(r) for r in devices.load(files) if r.level == STAGING_LEVEL
+    return [r.cells() for r in devices.load(files) if r.level == STAGING_LEVEL
             and r.layer in device_map_masts.LAYERS and r.written_by == WRITER]
 
 

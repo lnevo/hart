@@ -58,7 +58,7 @@ class OneRowPath(RepoReadOnly, unittest.TestCase):
                                  warn=said.append)
         devices.write_all(files, out)
         self.said = said
-        return {devices.key_of(r): dict(r) for r in devices.load(files)}
+        return {devices.key_of(r): r.cells() for r in devices.load(files)}
 
     def generated(self, files: devices.Files, level: str, ident: str) -> dict:
         return next(dict(r) for r in devices.generated_rows(files) if (r["level"], r["id"]) == (level, ident))
@@ -80,7 +80,7 @@ class OneRowPath(RepoReadOnly, unittest.TestCase):
         held = []
         with unittest.mock.patch.object(dmm, "block_cm", short):
             with self.assertRaisesRegex(dmm.MissingLengths, r"no plan length for \['Track Barn'\]"):
-                dmm.staging_masts(self.bands, self.joined, self.runs, list(devices.load(files)), files)
+                dmm.staging_masts(self.bands, self.joined, self.runs, [r.cells() for r in devices.load(files)], files)
             out = bdm.master_outputs(self.bands, self.joined, self.runs, self.main_rows, self.parts, files,
                                      warn=lambda line: None, held=held)
         self.assertEqual(out[files.master], devices.master_text(devices.generated_rows(files)))
@@ -154,8 +154,8 @@ class OneRowPath(RepoReadOnly, unittest.TestCase):
         main = [dict(r, facing="Track East Ext") if r["user_name"] == "Mast 132RA" else r for r in self.main_rows]
         out = bdm.master_outputs(self.bands, self.joined, self.runs, main, self.parts, files, warn=lambda line: None)
         devices.write_all(files, out)
-        mast = next(r for r in devices.load(files) if r["level"] == "2" and r["user_name"] == "Mast 132RA")
-        self.assertEqual(mast["facing"], "Track East Spur")
+        mast = next(r for r in devices.load(files) if r.level == 2 and r.user_name == "Mast 132RA")
+        self.assertEqual(mast.facing, "Track East Spur")
 
     def test_a_main_or_upper_device_takes_the_owners_name(self):
         """A field row naming main's Track 103 Spur (block:103BB-end) "Track Coal Spur": the builder takes the name
@@ -194,8 +194,8 @@ class OneRowPath(RepoReadOnly, unittest.TestCase):
         rows = [devices.master_row(o, bdm.WRITER) for o in self.main_rows] + [dict(p) for p in self.parts]
         now = {(r["level"], r["id"]): (r["jmri_name"], r["layout_block"]) for r in bdm.block_beans(rows)
                if r["layer"] == "block"}
-        committed = {(r["level"], r["id"]): (r["jmri_name"], r["layout_block"]) for r in devices.load()
-                     if r["level"] in bn.LEVELS and r["layer"] == "block"}
+        committed = {(r.level_cell, r.id): (r.jmri_name, r.layout_block) for r in devices.load()
+                     if r.level_cell in bn.LEVELS and r.layer == "block"}
         self.assertEqual(now, committed)
         self.assertEqual(now[("2", "block:107B-107C#1")], ("IB:C3:0041", "ILB1041"))
         self.assertEqual({v for k, v in now.items() if k[1] in ("block:131AA-helix", "block:131BB-helix")}, {("", "")})

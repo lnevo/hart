@@ -53,8 +53,8 @@ class Copy(unittest.TestCase):
     def key(self, layer: str, user: str, levels: tuple[str, ...] = ("2", "3")) -> tuple[str, str, str]:
         """(level, layer, user_name) of the master row of a main or upper device (or of `levels`)."""
         from hartlib import devices
-        hit = [(r["level"], layer, user) for r in devices.load(self.src.devices)
-               if r["layer"] == layer and r["user_name"] == user and r["level"] in levels]
+        hit = [(r.level_cell, layer, user) for r in devices.load(self.src.devices)
+               if r.layer == layer and r.user_name == user and r.level_cell in levels]
         self.assertEqual(len(hit), 1, f"{layer} {user}: {len(hit)} rows")
         return hit[0]
 

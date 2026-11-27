@@ -212,22 +212,22 @@ class CommittedData(RepoReadOnly, unittest.TestCase):
 
     def test_the_masters_staging_masts_are_the_rules(self):
         """build() stops when build_device_map.py's rows are not the rule's now (current)."""
-        master = list(devices.load(bsm.device_files()))
+        master = [r.cells() for r in devices.load(bsm.device_files())]
         some = [r for r in master if r["level"] == "1" and r["layer"] == "mast"][:1]
         with self.assertRaisesRegex(bsm.RuleError, "run tools/schematic/build_device_map.py first"):
-            bsm.current(master, [dict(r, user_name="Mast 99L") for r in some])
+            bsm.current(master, [r | {"user_name": "Mast 99L"} for r in some])
 
     def test_an_anchor_mast_on_any_level_protects_an_os_block(self):
         """One anchor rule on every level: a home mast at no switch is an anchor mast, on main and
         upper too, and it must protect an OS block of its level."""
-        master = list(devices.load(bsm.device_files()))
+        master = [r.cells() for r in devices.load(bsm.device_files())]
         home = next(r for r in master if r["level"] == "2" and r["layer"] == "mast" and r["role"] == "home")
         os_ = next(r for r in master if r["level"] == "2" and r["layer"] == "block" and r["role"] == "os")
         track = next(r for r in master if r["level"] == "2" and r["layer"] == "block" and r["role"] == "track")
-        anchor = dict(home, switch="", protects=os_["user_name"])
+        anchor = home | {"switch": "", "protects": os_["user_name"]}
         rows = bsm.file_rows([anchor if r is home else r for r in master], {})
         self.assertEqual(next(r for r in rows if r["mast"] == home["user_name"])["protects"], os_["user_name"])
-        lost = dict(home, switch="", protects=track["user_name"])
+        lost = home | {"switch": "", "protects": track["user_name"]}
         with self.assertRaisesRegex(bsm.RuleError, "a home signal lost its switch"):
             bsm.file_rows([lost if r is home else r for r in master], {})
 

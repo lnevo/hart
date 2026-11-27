@@ -20,14 +20,14 @@ its `left_end` and its `helix` names are made here from the store, when hartlib.
 plugin reads. A renamed track is one edited user name; nothing in plan_overrides.json changes.
 
 A block ID comes from the plan: each end of its track is the switch label (after the `relabel` edit) and leg it ends
-at, or "end" (a bumper) or "helix" (staging_device_map.end_key, mast_rule.end_leg), so a track is found in the AnyRail
+at, or "end" (a bumper) or "helix" (staging_device_map.end_key, plan_tracks.end_leg), so a track is found in the AnyRail
 plan graph (inputs/<graph>.json) with no drawing. The pieces of a run the drawing parts at a turnback ("#1", "#2",
 from the lower end) are named in order: one name for every piece is one plan name, different names a list (the
 owner's split, K-1 and K-2). The `main` flags of the `name` edit are build_main_route.py's (plan_generated.json
 `name_main`, the runs of the staging main lines): a run on a main line gets an entry even when it has no name.
 
 Generated names (the end-switch rule, "Track 17-19") are not drawn on the schematic, so they are not written here:
-block_layer.name_tracks makes them from the plan's track ends (mast_rule.plan_order for parallel tracks).
+block_layer.name_tracks makes them from the plan's track ends (plan_tracks.plan_order for parallel tracks).
 
 The readers by ID: block_layer (name_tracks, the halves), cats_panel.py, device_map_masts.py and
 staging_device_map.check_helix take a drawn strand's track name from piece_names, by the strand's ID part

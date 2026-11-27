@@ -209,19 +209,19 @@ class ThePair(unittest.TestCase):
 
     def test_load_merges_the_two_files(self):
         rows = D.load(self.files)
-        self.assertEqual([r["user_name"] for r in rows], ["Switch 1", "Mast 2L", "Test 999"])
-        self.assertEqual(rows[0]["dcc"], "100")
+        self.assertEqual([r.user_name for r in rows], ["Switch 1", "Mast 2L", "Test 999"])
+        self.assertEqual(rows[0].dcc, "100")
         self.assertEqual(D.index(self.files).role("turnout", "Switch 1"), "turnout")
 
     def test_a_path_finds_the_field_file_beside_it(self):
         self.assertEqual(D.load(self.files.master), D.load(self.files))
 
     def test_the_cache_is_keyed_on_both_files(self):
-        self.assertEqual(D.load(self.files)[0]["notes"], "")
+        self.assertEqual(D.load(self.files)[0].notes, "")
         self.files.field.write_text(D.master_text([field(notes="new"), unplaced()]), encoding="utf-8")
-        self.assertEqual(D.load(self.files)[0]["notes"], "new")
+        self.assertEqual(D.load(self.files)[0].notes, "new")
         self.files.master.write_text(D.master_text([generated(trial_name="T"), mast()]), encoding="utf-8")
-        self.assertEqual(D.load(self.files)[0]["trial_name"], "T")
+        self.assertEqual(D.load(self.files)[0].trial_name, "T")
 
     def test_field_index_is_the_field_files_keyed_rows(self):
         got = D.field_index(self.files)
@@ -233,13 +233,13 @@ class ThePair(unittest.TestCase):
         self.assertEqual(got["Mast 2L"]["jmri_name"], "IF$vsm:basic:one-low($1)")
 
     def test_a_writer_writes_the_generated_file_with_the_field_cells_left_empty(self):
-        mine = [dict(r) for r in D.load(self.files) if r["written_by"] == "build_device_map.py"]
+        mine = [r.cells() for r in D.load(self.files) if r.written_by == "build_device_map.py"]
         out = D.outputs_after_rows("build_device_map.py", mine, self.files)
         self.assertEqual(list(out), [self.files.master])
         self.assertEqual(out[self.files.master], self.files.master.read_text(encoding="utf-8"))   # unchanged
 
     def test_a_writer_that_overrides_a_field_cell_is_refused(self):
-        mine = [dict(r, dcc="7") for r in D.load(self.files) if r["written_by"] == "build_device_map.py"]
+        mine = [r.cells() | {"dcc": "7"} for r in D.load(self.files) if r.written_by == "build_device_map.py"]
         with self.assertRaisesRegex(D.DevicesError, "devices_field.csv holds '100'"):
             D.outputs_after_rows("build_device_map.py", mine, self.files)
 
@@ -252,7 +252,7 @@ class ThePair(unittest.TestCase):
             D.outputs_after_rows(OTHER, [], self.files, warn=lambda line: None)
 
     def test_another_writers_rows_are_kept_as_written(self):
-        mine = [dict(r, notes="moved") for r in D.load(self.files) if r["written_by"] == OTHER]
+        mine = [r.cells() | {"notes": "moved"} for r in D.load(self.files) if r.written_by == OTHER]
         text = D.outputs_after_rows(OTHER, mine, self.files)[self.files.master]
         self.assertIn(D.master_text([generated()]).splitlines()[1], text.splitlines())
 
@@ -262,7 +262,7 @@ class ThePair(unittest.TestCase):
         with self.assertRaisesRegex(D.DevicesError, "has no row in"):
             D.write_generated([mast()], self.files)
         D.write_field([field(notes="kept")], self.files)
-        self.assertEqual(D.load(self.files)[0]["notes"], "kept")
+        self.assertEqual(D.load(self.files)[0].notes, "kept")
         self.assertEqual(len(D.load(self.files)), 2)              # the Store row went with the rewrite
 
     def test_a_generated_path_with_no_field_file_beside_it_is_refused(self):

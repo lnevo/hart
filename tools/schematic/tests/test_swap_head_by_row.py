@@ -41,7 +41,7 @@ def swap_rows(rows: list[dict]) -> list[dict]:
         row = dict.fromkeys(devices.COLUMNS, "")
         row.update(level=level, id=ident, layer="head", assignment="field", system_name=name, jmri_name=name)
         out.append(row)
-    return sorted(out, key=devices._rank)
+    return sorted(out, key=devices.row_rank)
 
 
 class HeadSwapByRow(RepoReadOnly, unittest.TestCase):
@@ -60,13 +60,13 @@ class HeadSwapByRow(RepoReadOnly, unittest.TestCase):
             skip_or_fail(exc)
         rr = railroad.Railroad(bdm.sources(), upto="inputs")
         _cp, main_rows, parts = bdm.build(cls.bands, cls.joined, runs, bdm.MapInputs.of(rr), corners)
-        cls.before = {devices.key_of(r): dict(r) for r in devices.load()}
+        cls.before = {devices.key_of(r): r.cells() for r in devices.load()}
         cls.files = devices.pair_copy(cls.tmp / "data")
         cls.files.field.write_text(devices.master_text(swap_rows(list(devices.field_rows(cls.files)))),
                                    encoding="utf-8")
         devices.write_all(cls.files, bdm.master_outputs(cls.bands, cls.joined, runs, main_rows, parts, cls.files,
                                                         warn=lambda line: None))
-        cls.rows = list(devices.load(cls.files))
+        cls.rows = [r.cells() for r in devices.load(cls.files)]
         cls.after = {devices.key_of(r): dict(r) for r in cls.rows}
         with unittest.mock.patch.object(bm, "DEVICE_MAP", cls.files.master):
             text, _gen, _vgen = bm.build()
@@ -75,7 +75,7 @@ class HeadSwapByRow(RepoReadOnly, unittest.TestCase):
         cls.committed_masts = bm.MASTS.read_text(encoding="utf-8")
         cls.tables_path = cls.tmp / "swapped_tables.xml"
         cls.tables_path.write_bytes(tables_build.base(cls.rows).tobytes())
-        cls.committed_tables = tables_build.base(list(devices.load()))
+        cls.committed_tables = tables_build.base([r.cells() for r in devices.load()])
         # the wiring file beside the copy's device master, so the Digicon heads read the copy's rows
         cls.wiring_path = cls.files.master.parent / paths.WIRING.name
         shutil.copy2(paths.WIRING, cls.wiring_path)

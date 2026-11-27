@@ -1,6 +1,6 @@
 """hartlib.hand_lists, the one reader of block_overrides.csv, main_lines.csv, mast_cells.csv and the USS board's grid
 (naming-layers step 6): each reads the committed file as its old reader did, stops on a bad row naming the file and
-line, and the old readers (mast_rule, build_main_route, layout_facts) are its wrappers."""
+line, and the old readers (block_override_rows, build_main_route, layout_facts) are its wrappers."""
 from __future__ import annotations
 
 import shutil
@@ -47,15 +47,14 @@ class BlockOverrides(Temp):
         with self.assertRaisesRegex(ValueError, "no kind nope"):
             hand_lists.read_block_overrides(OVERRIDES, ("nope",))
 
-    def test_mast_rule_wraps_it_with_its_own_error(self):
-        import mast_rule
-        self.assertEqual(mast_rule.read_block_overrides(OVERRIDES), hand_lists.read_block_overrides(OVERRIDES))
+    def test_block_override_rows_wraps_it_with_its_own_error(self):
+        import block_override_rows as bor
+        self.assertEqual(bor.read_block_overrides(OVERRIDES), hand_lists.read_block_overrides(OVERRIDES))
         path = self.copy(OVERRIDES, lambda t: t.replace("level,kind", "lvl,kind", 1))
-        with self.assertRaisesRegex(mast_rule.MapError, "block_overrides.csv: columns"):
-            mast_rule.read_block_overrides(path)
-        with self.assertRaisesRegex(mast_rule.MapError, "no OS block ID"):
-            mast_rule.os_block_name("1", "OS Switch 7", {})
-        self.assertIs(mast_rule.key_problem, hand_lists.key_problem)
+        with self.assertRaisesRegex(bor.MapError, "block_overrides.csv: columns"):
+            bor.read_block_overrides(path)
+        with self.assertRaisesRegex(bor.MapError, "no OS block ID"):
+            bor.os_block_name("1", "OS Switch 7", {})
 
 
 class MainLines(Temp):
@@ -137,13 +136,13 @@ class RetiredMasts(Temp):
         self.assertTrue(retired)
         self.assertTrue(all(m.startswith("Mast ") for m in retired))
         import mast_plan
-        import mast_rule
+        from map_error import MapError
         self.assertEqual(mast_plan.read_retired(), retired)
         self.assertEqual(mast_plan.RETIRED, hand_lists.RETIRED_MASTS)
         path = self.copy(hand_lists.RETIRED_MASTS, lambda t: t.replace("system_name", "sysname", 1))
         with self.assertRaisesRegex(hand_lists.HandListError, f"{hand_lists.RETIRED_MASTS.name}: columns"):
             hand_lists.read_retired_masts(path)
-        with self.assertRaisesRegex(mast_rule.MapError, f"{hand_lists.RETIRED_MASTS.name}: columns"):
+        with self.assertRaisesRegex(MapError, f"{hand_lists.RETIRED_MASTS.name}: columns"):
             mast_plan.read_retired(path)
 
     def test_an_ordinal_given_twice_stops_naming_the_line(self):

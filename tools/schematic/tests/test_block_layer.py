@@ -648,8 +648,8 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
 
     def test_the_committed_rows_come_back_as_they_are(self):
         got = self.rows()
-        want = [r for r in devices.load() if r["level"] == "1" and r["layer"] in ("block", "occupancy")]
-        self.assertEqual(got, [dict(r) for r in want])
+        want = [r.cells() for r in devices.load() if r.level == 1 and r.layer in ("block", "occupancy")]
+        self.assertEqual(got, want)
 
     def test_a_block_with_no_field_rows_is_generated(self):
         """Naming-layers step 7: Track Barn's block and detector rows taken out of the field file are generated, as
@@ -732,7 +732,7 @@ class StagingWiredRows(RepoReadOnly, unittest.TestCase):
 
     def test_the_committed_rows_come_back_as_they_are(self):
         got = self.rows()
-        want = [r for r in devices.load() if r["level"] == "1" and r["layer"] in ("turnout", "fb")]
+        want = [r.cells() for r in devices.load() if r.level == 1 and r.layer in ("turnout", "fb")]
         self.assertEqual(got, want)
         self.assertEqual(len(got), 80)
 

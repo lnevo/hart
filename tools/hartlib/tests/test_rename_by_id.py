@@ -74,9 +74,9 @@ class RenameById(unittest.TestCase):
         rows = devices.load(self.files)
         for key, name in RENAMES.items():
             self.assertEqual(self.names[key], name)
-        part = next(r for r in rows if r["level"] == "1" and r["user_name"] == "Track 19-21")
-        self.assertEqual(part["part_of"], "OS South 19")
-        cells = [r[c] for r in rows for c in devices.BLOCK_REFS if r["level"] == "1"]
+        part = next(r for r in rows if r.level == 1 and r.user_name == "Track 19-21")
+        self.assertEqual(part.part_of, "OS South 19")
+        cells = [r.cells()[c] for r in rows for c in devices.BLOCK_REFS if r.level == 1]
         self.assertFalse([c for c in cells if set(c.split(devices.LIST)) & OLD])
 
     def test_wiring_names_its_devices_by_id(self) -> None:
@@ -235,11 +235,11 @@ class RenameCrossoverHalf(unittest.TestCase):
     def test_the_merged_master_follows_the_rename(self) -> None:
         rows = devices.load(self.files)
         self.assertEqual(self.names[("1", self.ID)], self.NEW)
-        det = next(r for r in rows if (r["level"], r["id"]) == ("1", "det:" + self.ID))
-        self.assertEqual((det["user_name"], det["blocks"]), ("BS Switch 23a", self.NEW))
-        cells = [r[c] for r in rows for c in devices.BLOCK_REFS if r["level"] == "1"]
+        det = next(r for r in rows if (r.level, r.id) == (1, "det:" + self.ID))
+        self.assertEqual((det.user_name, det.blocks), ("BS Switch 23a", self.NEW))
+        cells = [r.cells()[c] for r in rows for c in devices.BLOCK_REFS if r.level == 1]
         self.assertFalse([c for c in cells if self.OLD in c.split(devices.LIST)])
-        self.assertIn(self.NEW, [r["protects"] for r in rows if r["id"].startswith("mast:23:A-1A:")])
+        self.assertIn(self.NEW, [r.protects for r in rows if r.id.startswith("mast:23:A-1A:")])
 
     def test_the_letter_comes_from_the_overrides_by_id(self) -> None:
         from hartlib import hand_lists
@@ -276,7 +276,7 @@ class RenameCrossoverHalf(unittest.TestCase):
     def test_the_staging_beans_take_the_new_name(self) -> None:
         from hartlib import block_lengths, tables_build
         lengths = block_lengths.operating_lengths(self.data / "block_lengths.csv", self.files)
-        beans = tables_build.master_beans(devices.load(self.files), lengths, ("1",))
+        beans = tables_build.master_beans([r.cells() for r in devices.load(self.files)], lengths, ("1",))
         names = {(e.tag, e.findtext("userName")) for section in beans.values() for e in section}
         self.assertIn(("block", self.NEW), names)
         self.assertFalse([n for n in names if n[1] == self.OLD])
@@ -311,23 +311,23 @@ class OtherKeys(unittest.TestCase):
     """block_overrides.csv and block_numbering.csv name blocks by ID and come back by name."""
 
     def test_a_track_row_names_its_os_block_by_id(self) -> None:
-        import mast_rule
-        rows = mast_rule.read_block_overrides(paths.LAYOUT_DATA / "schematic" / mast_rule.OVERRIDES_NAME, ("track",))
+        import block_override_rows as bor
+        rows = bor.read_block_overrides(paths.LAYOUT_DATA / "schematic" / bor.OVERRIDES_NAME, ("track",))
         got = {r["id"]: r["block"] for r in rows}
         self.assertEqual(got["os:15"], "OS Switch 15")
         self.assertEqual(got["os:35:A-39A"], "OS Switch 35b")        # a half by its crossover_half row
-        self.assertEqual(mast_rule.os_block_name("1", "os:7:A-5B", {("1", "7", "5"): "OS Switch 7b"}), "OS Switch 7b")
-        with self.assertRaisesRegex(mast_rule.MapError, "no crossover_half row"):
-            mast_rule.os_block_name("1", "os:7:A-9B", {})
-        with self.assertRaisesRegex(mast_rule.MapError, "no OS block ID"):
-            mast_rule.os_block_name("1", "OS Switch 7", {})
+        self.assertEqual(bor.os_block_name("1", "os:7:A-5B", {("1", "7", "5"): "OS Switch 7b"}), "OS Switch 7b")
+        with self.assertRaisesRegex(bor.MapError, "no crossover_half row"):
+            bor.os_block_name("1", "os:7:A-9B", {})
+        with self.assertRaisesRegex(bor.MapError, "no OS block ID"):
+            bor.os_block_name("1", "OS Switch 7", {})
 
     def test_a_double_crossover_corner_is_named_by_the_master(self) -> None:
-        import mast_rule
-        self.assertEqual(mast_rule.os_block_name("3", "os:225:C", {}, {("3", "os:225:C"): "OS Switch 225a"}),
+        import block_override_rows as bor
+        self.assertEqual(bor.os_block_name("3", "os:225:C", {}, {("3", "os:225:C"): "OS Switch 225a"}),
                          "OS Switch 225a")
-        with self.assertRaisesRegex(mast_rule.MapError, "no level 3 OS block"):
-            mast_rule.os_block_name("3", "os:225:D", {}, {})
+        with self.assertRaisesRegex(bor.MapError, "no level 3 OS block"):
+            bor.os_block_name("3", "os:225:D", {}, {})
 
     def test_le_tables_reads_its_numbering_on_first_use_not_at_import(self) -> None:
         import importlib

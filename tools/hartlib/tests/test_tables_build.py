@@ -75,7 +75,7 @@ class Template(unittest.TestCase):
         self.assertIn("IQ:AUTO:0001", held)
 
     def test_the_template_holds_no_bean_of_the_master(self) -> None:
-        master = {n for r in D.load() for n in (r["user_name"], r["jmri_name"], r["system_name"]) if n}
+        master = {n for r in D.load() for n in (r.user_name, r.jmri_name, r.system_name) if n}
         self.assertEqual(set(), tb.bean_names(tb.read_template().root) & master)
 
     def test_a_missing_section_stops_naming_it(self) -> None:
@@ -228,7 +228,7 @@ class MasterBeans(unittest.TestCase):
             p = Path(tmp) / "devices.csv"
             p.write_text(D.master_text([dict(rows()[0], role="nonsense")]), encoding="utf-8")
             with self.assertRaisesRegex(D.DevicesError, "role 'nonsense'"):
-                tb.base(D.load(p), lengths=LENGTHS)
+                tb.base([r.cells() for r in D.load(p)], lengths=LENGTHS)
 
     def test_the_committed_master_reads_into_a_base(self) -> None:
         """Every level's blocks (naming-layers step 11): staging's 45 and its 14 parts (owner, 2026-11-20), and main

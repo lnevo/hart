@@ -19,7 +19,7 @@ from . import devices, tables
 from . import tables_build as tb
 from .store_items import (LAYER_OF, VERSION, SplitError, change_text, claimed_by, claimed_name, index, label,
                           name_holder, newer_jmri, parts, repeated_settings, row_at, row_index, rows_of, value)
-from .store_keys import BeanKey, canon
+from .store_keys import BeanKey, ItemKey, SecKey, canon
 
 Kind = Literal["kept", "clash", "device", "dropped"]
 KEPT: Final = "kept"
@@ -61,14 +61,14 @@ class RowDelete:
 DeviceEdit = Edit | RowAdd | RowDelete
 # The other beans a DEVICE item's edits come from (a block's other pass, its layout block), each with its Store
 # version (None: deleted in the Store).
-Also = tuple[tuple[tuple, ET.Element | None], ...]
+Also = tuple[tuple[ItemKey, ET.Element | None], ...]
 
 
 @dataclass(frozen=True)
 class Item:
     id: str             # K1, C1, D1, G1: stable for one (base, repo, Store)
     kind: Kind
-    key: tuple
+    key: ItemKey
     what: str           # the owner's change: "userName 'Switch 1' -> 'Switch 1X'"
     note: str           # where it goes, or for DROPPED what to change instead
     store: ET.Element | None = field(default=None, compare=False, repr=False)   # the Store's version (None: deleted)
@@ -110,7 +110,7 @@ class Sides(NamedTuple):
 class Draft:
     """An item of the plan before its id: _grouped adds to `also`, _numbered gives the ids."""
     kind: Kind
-    key: tuple
+    key: ItemKey
     sides: Sides
     what: str
     note: str
@@ -125,14 +125,14 @@ class Draft:
 
 class Added(NamedTuple):
     """A bean of a device the Store added, with no row yet."""
-    key: tuple
+    key: BeanKey
     base: ET.Element | None
     store: ET.Element
 
 
 class Touched(NamedTuple):
     """A bean of a level-less row that the Store changed or deleted."""
-    key: tuple
+    key: BeanKey
     sides: Sides
 
 
@@ -147,10 +147,10 @@ class LevelLess:
 @dataclass(frozen=True)
 class Compared:
     """The four files indexed, and what the steps of plan() read of them."""
-    base: dict[tuple, ET.Element]           # the repo's when there is no base
-    repo: dict[tuple, ET.Element]
-    store: dict[tuple, ET.Element]
-    template: dict[tuple, ET.Element]
+    base: dict[ItemKey, ET.Element]           # the repo's when there is no base
+    repo: dict[ItemKey, ET.Element]
+    store: dict[ItemKey, ET.Element]
+    template: dict[ItemKey, ET.Element]
     rows: list[Mapping[str, str]]
     rindex: Mapping[tuple[str, str], list[int]]
     has_base: bool
@@ -195,7 +195,7 @@ def compare(base: ET.Element | None, repo: ET.Element, store: ET.Element, templa
         has_base=base is not None, newer=newer_jmri(store, repo), older=newer_jmri(repo, store), by_content=by_content)
 
 
-def _drafts(c: Compared, key: tuple, sides: Sides, level_less: LevelLess) -> list[Draft]:
+def _drafts(c: Compared, key: ItemKey, sides: Sides, level_less: LevelLess) -> list[Draft]:
     """The drafts of one item key; none when the owner changed nothing or the repo has the change already."""
     b, g, s = sides
     if key[0] == "attrs" and s is None:
@@ -211,7 +211,7 @@ def _drafts(c: Compared, key: tuple, sides: Sides, level_less: LevelLess) -> lis
     return _build_drafts(c, key, sides, el, level_less)
 
 
-def _version_drafts(c: Compared, key: tuple, sides: Sides) -> list[Draft]:
+def _version_drafts(c: Compared, key: ItemKey, sides: Sides) -> list[Draft]:
     """<jmriversion>: KEPT from a newer JMRI, DROPPED from an older one, nothing from the same one."""
     if canon(sides.store) == canon(sides.repo):
         return []
@@ -224,7 +224,7 @@ def _version_drafts(c: Compared, key: tuple, sides: Sides) -> list[Draft]:
     return []
 
 
-def _owner(c: Compared, key: tuple, el: ET.Element) -> Literal["template", "build"]:
+def _owner(c: Compared, key: ItemKey, el: ET.Element) -> Literal["template", "build"]:
     """The template owns what it holds, and an item of the Store's or the base's that nothing claims (claimed_by);
     the build owns the rest."""
     if key in c.template:
@@ -234,7 +234,7 @@ def _owner(c: Compared, key: tuple, el: ET.Element) -> Literal["template", "buil
     return "template"
 
 
-def _template_draft(c: Compared, key: tuple, sides: Sides) -> Draft:
+def _template_draft(c: Compared, key: ItemKey, sides: Sides) -> Draft:
     b, g, s = sides
     if c.has_base and canon(g) == canon(b):
         return Draft(KEPT, key, sides, change_text(b, s), "the template takes it")
@@ -242,33 +242,35 @@ def _template_draft(c: Compared, key: tuple, sides: Sides) -> Draft:
     return Draft(CLASH, key, sides, change_text(g, s), f"{why}; merge takes the Store's, drop keeps the repo's")
 
 
-def _build_drafts(c: Compared, key: tuple, sides: Sides, el: ET.Element, level_less: LevelLess) -> list[Draft]:
+def _build_drafts(c: Compared, key: ItemKey, sides: Sides, el: ET.Element, level_less: LevelLess
+                  ) -> list[Draft]:
     """The drafts of an item the build owns: a level-less device's bean goes to `level_less` instead."""
     b, g, s = sides
-    if key[0] == "bean" and key[1] in tb.MASTER_SECTIONS:
+    if isinstance(key, BeanKey) and key.section in tb.MASTER_SECTIONS:
         found = rows_of(c.rindex, key, g if g is not None else b if b is not None else el)
         mine = [i for i in found if devices.is_unplaced(c.rows[i])]
         if mine:
             level_less.changed.setdefault(mine[0], []).append(Touched(key, sides))
             return []
         if g is None and b is None and s is not None and not claimed_name(key, s, c.rows):
-            name = tables.user_name(s) if key[1] in (tb.BLOCKS, tb.LAYOUT_BLOCKS) else ""
-            level_less.added.setdefault((LAYER_OF[key[1][0]], name or key[4]), []).append(Added(key, b, s))
+            name = tables.user_name(s) if key.section in (tb.BLOCKS, tb.LAYOUT_BLOCKS) else ""
+            level_less.added.setdefault((LAYER_OF[key.section[0]], name or key.name), []).append(Added(key, b, s))
             return []
     if s is None:
         return [Draft(DROPPED, key, sides, "deleted in the Store", f"delete it in its source ({_source(key)}) and "
                                                                    "rebuild")]
     if g is None:
         new = b is None
-        holder = name_holder(key, s, c.rows) if new and key[0] == "bean" else None
+        holder = name_holder(key, s, c.rows) if new and isinstance(key, BeanKey) else None
         if holder:
             return [Draft(DROPPED, key, sides, "added in the Store", holder)]
-        why = (claimed_name(key, s, c.rows) if key[0] == "bean" else None) or claimed_by(key, s, c.rows) or "the build"
+        why = ((claimed_name(key, s, c.rows) if isinstance(key, BeanKey) else None) or claimed_by(key, s, c.rows)
+               or "the build")
         return [Draft(DROPPED, key, sides, "added in the Store" if new else "the repo no longer makes it",
                       f"{why} makes it")]
     since_base = parts(b, s) if b is not None else None
     owner_parts = [p for p in parts(g, s) if since_base is None or p in since_base]
-    cands, rest = _device_items(key, g, s, owner_parts, c) if key[0] == "bean" else ([], owner_parts)
+    cands, rest = _device_items(key, g, s, owner_parts, c) if isinstance(key, BeanKey) else ([], owner_parts)
     out = []
     for cand in cands:
         what = f"{cand.part} {value(g, cand.part)!r} -> {value(s, cand.part)!r}"
@@ -332,7 +334,7 @@ def _only(el: ET.Element, keep: list[str]) -> ET.Element:
     return c
 
 
-def _source(key: tuple) -> str:
+def _source(key: ItemKey) -> str:
     kind = key[0]
     if kind == "panel":
         return "the schematic sources (wiki/pipelines/schematic-panels.md)"
@@ -346,7 +348,7 @@ def _source(key: tuple) -> str:
 # ---------------------------------------------------------------- a build bean's rename or comment
 
 
-def _device_items(key: tuple, g: ET.Element, s: ET.Element, owner_parts: list[str], c: Compared
+def _device_items(key: BeanKey, g: ET.Element, s: ET.Element, owner_parts: list[str], c: Compared
                   ) -> tuple[list[Candidate], list[str]]:
     """(a Candidate for each rename or comment the owner made to a build bean, the other parts for DROPPED)."""
     out: list[Candidate] = []
@@ -442,7 +444,8 @@ def _comment(r: Mapping[str, str], new: str) -> Candidate:
 # ---------------------------------------------------------------- level-less devices
 
 
-def unplaced_row(beans: list[tuple[tuple, ET.Element]], old: Mapping[str, str] | None = None) -> dict[str, str]:
+def unplaced_row(beans: list[tuple[SecKey, ET.Element]], old: Mapping[str, str] | None = None
+                 ) -> dict[str, str]:
     """The level-less device-master row of a device's Store beans ((section key, element)): its names and comment
     from the main bean (a block's full pass, else the one bean), the rest of the beans in jmri_bean. `old`, the row
     as it was, keeps its description."""
@@ -472,7 +475,7 @@ def _added_drafts(added: Mapping[tuple[str, str], list[Added]], rows: list[Mappi
     for got in added.values():
         first = got[0]
         sides = Sides(first.base, None, first.store)
-        beans = [(a.key[1], a.store) for a in got]
+        beans = [(a.key.section, a.store) for a in got]
         if all(sk == tb.LAYOUT_BLOCKS for sk, _ in beans):
             out.append(Draft(DROPPED, first.key, sides, "added in the Store", (
                 "a layout block with no block of the same user name added with it; add the block, or name the "
@@ -524,7 +527,7 @@ def _changed_drafts(changed: Mapping[int, list[Touched]], rows: list[Mapping[str
     return out
 
 
-def _row_side(old: Mapping[str, str], got: list[Touched], *, store: bool) -> list[tuple[tuple, ET.Element]]:
+def _row_side(old: Mapping[str, str], got: list[Touched], *, store: bool) -> list[tuple[SecKey, ET.Element]]:
     """A level-less row's beans with the Store's (`store`) or the base's version of each one the Store touched, and
     the touched beans the repo lacks."""
     by_key = {t.key: t.sides for t in got}
@@ -541,5 +544,5 @@ def _row_side(old: Mapping[str, str], got: list[Touched], *, store: bool) -> lis
     for t in got:
         v = pick(t.sides)
         if t.sides.repo is None and v is not None:
-            out.append((t.key[1], v))
+            out.append((t.key.section, v))
     return out
