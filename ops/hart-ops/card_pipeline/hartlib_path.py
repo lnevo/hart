@@ -1,8 +1,8 @@
 """Puts this checkout's tools/hartlib/src on sys.path, for the card pipeline modules that import hartlib.
 
 A module that needs hartlib imports this one and calls ensure_on_path() before ``from hartlib import ...``. When no
-folder above the card pipeline holds tools/hartlib/src, the call raises HartlibNotFoundError; the command's main()
-turns a CardPipelineError into its exit message.
+folder above the card pipeline holds tools/hartlib/src (the folder was copied out of the repo), the call raises
+HartlibNotFoundError at import time, before any main() runs, so it ends the command with a traceback.
 """
 from __future__ import annotations
 
