@@ -33,6 +33,7 @@ import argparse
 import ast
 import re
 import sys
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -119,7 +120,7 @@ def _unquote(tok: str) -> str:
     return re.sub(r"\\(.)", r"\1", tok[1:-1])
 
 
-def js_tokens(src: str, pos: int):
+def js_tokens(src: str, pos: int) -> Iterator[tuple[str, str]]:
     """(kind, text) of the tokens of `src` from `pos`: str, key (a bare object key), num, word, op and regex, with
     whitespace and comments dropped."""
     prev = "="
