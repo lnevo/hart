@@ -1,7 +1,7 @@
 # The commands agents and people use most. Each target runs the real script, so
 # these stay short. `make` lists them.
 .DEFAULT_GOAL := help
-.PHONY: help mqtt-clean mqtt-watch wt wt-sweep orient status check static remote portal-check panels desks panelpro-test timings docs-index map site-data publications waybills submodules tables-pull tables-pull-pi ops-pull roster-pull sts-pull shot deploy-layout deploy-all deploy-status backup-status redeploy deploy-site speedmatch
+.PHONY: help mqtt-clean mqtt-watch wt wt-sweep orient status check static pr-kind remote portal-check panels desks panelpro-test timings docs-index map site-data publications waybills submodules tables-pull tables-pull-pi ops-pull roster-pull sts-pull shot deploy-layout deploy-all deploy-status backup-status redeploy deploy-site speedmatch
 
 help:  ## List the commands
 	@grep -hE '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -23,6 +23,9 @@ check:  ## Run every repo check
 
 static:  ## Quick local checks before a push or make remote: check.sh's static group, less the panels-* jobs (about 20 s warm)
 	CHECK_ONLY="^($$(python3 tools/pipeline/manifest.py jobs check --group static | awk '{print $$1}' | grep -v '^panels-' | paste -sd'|' -))$$" ./tools/check.sh
+
+pr-kind:  ## Does this branch need make remote? Prints docs, light (make static and the light checks, no make remote) or full, with the reason
+	@python3 tools/ci/changed_kind.py --git
 
 remote:  ## Run a command on the Windows box's WSL (pushed branch): make remote CMD="./tools/check.sh"
 	@test -n "$(CMD)" || { echo 'make remote: set CMD="..."' >&2; exit 2; }
