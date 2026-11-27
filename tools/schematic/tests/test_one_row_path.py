@@ -41,8 +41,7 @@ class OneRowPath(RepoReadOnly, unittest.TestCase):
             skip_or_fail(exc)
         cls.runs = staticmethod(runs)
         rr = bdm.railroad.Railroad(bdm.sources(), upto="inputs")
-        _cp, cls.main_rows, cls.parts = bdm.build(cls.bands, cls.joined, runs, rr.plan_overrides.data,
-                                                  rr.level_control_points, rr.lcos_nodes, rr.local_switches, corners)
+        _cp, cls.main_rows, cls.parts = bdm.build(cls.bands, cls.joined, runs, bdm.MapInputs.of(rr), corners)
 
     def copy(self, edit=None) -> devices.Files:
         """A copy of the master's files in a temporary folder, its field rows passed through `edit` (written as

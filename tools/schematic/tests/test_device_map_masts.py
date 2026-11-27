@@ -380,6 +380,12 @@ class MainUpperMemory(unittest.TestCase):
         with self.assertRaisesRegex(bdm.MapError, "Mast 210LA: the virtual mast of id mast:block:gone:west"):
             bdm.virtual_memory(virtual, old)
 
+    def test_an_old_name_out_of_the_levels_thousands_stops(self):
+        """An old system name whose ordinal is in no main or upper thousand is named, not filed under no level."""
+        old = {"mast:block:209B-end:west": ("Mast 210LA", self.V.format(5003))}
+        with self.assertRaisesRegex(bdm.MapError, r"Mast 210LA: IF\$vsm:basic:one-low\(\$5003\) \(id mast:block:209B-end"):
+            bdm.virtual_memory([], old)
+
 
 class CommittedData(unittest.TestCase):
     """Data checks, not rule tests: staging_masts over the repo's committed plan and master (built once). A failure
