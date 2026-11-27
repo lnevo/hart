@@ -42,6 +42,9 @@
  "jmri/layouts/hart/scripts/tests/jmri_fake.py": {
   "exec-parts": 1
  },
+ "jmri/layouts/hart/scripts/tests/speedmatch_jython_fake.py": {
+  "exec-parts": 1
+ },
  "jmri/layouts/hart/scripts/tests/test_apply_nx_layer.py": {
   "dated-note": 1
  },

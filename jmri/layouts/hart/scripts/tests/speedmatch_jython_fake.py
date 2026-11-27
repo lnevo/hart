@@ -258,5 +258,5 @@ def run_job(text: str, world: World) -> Result:
 
     scope = dict(vars(builtins), __import__=fake_import, open=world.files.open)
     ns: dict[str, Any] = {"__builtins__": scope}
-    eval(compile(text, "job", "exec"), ns)   # a code object run in its own fresh namespace, not parts loaded into ours
+    exec(compile(text, "job", "exec"), ns)  # noqa: S102  the Jython job text, run in its own fresh namespace
     return Result(ns, world.files.written(ns["LOGF"]).splitlines(), world)
