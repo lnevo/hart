@@ -243,7 +243,8 @@ class RealList(unittest.TestCase):
                               capture_output=True, text=True, env=env, cwd=ROOT, timeout=120)
         self.assertEqual(done.returncode, 0, done.stderr)
         # the check.sh hooks (the stamps' trace, the audit) load in every Python there: they are no builder input
-        hooks = ("tools/audit/traced.py", "tools/audit/traced_read.py", "tools/audit/trace_hook/", "tools/audit/stamp_audit/")
+        hooks = ("tools/audit/traced.py", "tools/audit/traced_read.py", "tools/audit/hook_chain.py",
+                 "tools/audit/trace_hook/", "tools/audit/stamp_audit/")
         return {p for p in json.loads(done.stdout.strip().splitlines()[-1]) if not p.startswith(hooks)}
 
     def assert_inputs_listed(self, files: set[str]) -> None:

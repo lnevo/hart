@@ -376,11 +376,12 @@ def _note_probe(path: object, dir_fd: int | None, st: os.stat_result | None) -> 
 
 
 HOOK_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "trace_hook")
-# This file, its parts and the hook that loads it, from the repo root. Each is in the stamps' key (check_stamps
-# ALWAYS, panel_stamps CODE) and in tools/ci/stamp_gate.MACHINERY, so editing a part reruns what editing this does.
+# This file, its parts, the hook that loads it and the hook's hook_chain.py, from the repo root. Each is in the
+# stamps' key (check_stamps ALWAYS, panel_stamps CODE) and in tools/ci/stamp_gate.MACHINERY, so editing a part reruns
+# what editing this does.
 PARTS = ("traced_read",)
 HOOK_FILES = ("tools/audit/traced.py", *(f"tools/audit/{p}.py" for p in PARTS),
-              "tools/audit/trace_hook/sitecustomize.py")
+              "tools/audit/trace_hook/sitecustomize.py", "tools/audit/hook_chain.py")
 
 
 def _import_part(stem: str) -> None:
