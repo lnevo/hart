@@ -13,7 +13,9 @@ import tempfile
 import unittest
 from collections.abc import Sequence
 from pathlib import Path
+from types import ModuleType
 from typing import TypedDict
+from unittest import mock
 
 SCRIPTS = Path(__file__).resolve().parents[1]
 ROOT = SCRIPTS.parents[1]
@@ -37,14 +39,53 @@ def _load(name):
 
 
 class BuildLayout(unittest.TestCase):
-    def test_matches_the_mac_mimic_layout(self):
+    def test_matches_the_mac_mimic_layout(self) -> None:
         build = _load("build_mimic_web")
         with tempfile.TemporaryDirectory() as tmp:
-            path = build.write(Path(tmp) / "mimic")
+            path = build.write(Path(tmp) / "mimic", build.load_layout())
             self.assertEqual(path.name, "mimic_layout.json")
             written = json.loads(path.read_text(encoding="utf-8"))
         self.assertEqual(written, json.loads(json.dumps(_load("lcos_mqtt_mimic").load_layout())))
         self.assertTrue(written["turnouts"] and written["blocks"] and written["heads"])
+
+    def _main(self, build: ModuleType, out: Path) -> str:
+        """Run build.main() with --out out; the message SystemExit carries."""
+        with mock.patch.object(sys, "argv", ["build_mimic_web.py", "--out", str(out)]), \
+                self.assertRaises(SystemExit) as stop:
+            build.main()
+        return str(stop.exception.code)
+
+    def test_main_prints_the_counts_of_what_it_wrote(self) -> None:
+        build = _load("build_mimic_web")
+        with tempfile.TemporaryDirectory() as tmp, mock.patch("builtins.print") as said:
+            with mock.patch.object(sys, "argv", ["build_mimic_web.py", "--out", tmp]):
+                self.assertEqual(build.main(), 0)
+            written = json.loads((Path(tmp) / build.FILENAME).read_text(encoding="utf-8"))
+        line = said.call_args.args[0]
+        self.assertTrue(line.endswith(f": {len(written['turnouts'])} turnouts, {len(written['blocks'])} blocks, "
+                                      f"{len(written['heads'])} heads"), line)
+
+    def test_a_bad_master_ends_main_with_one_line_and_writes_nothing(self) -> None:
+        build = _load("build_mimic_web")
+        err = build.devices.DevicesError("devices.csv: line 7 (2 mast 'Mast 1L'): description is empty")
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(build, "load_layout", side_effect=err):
+            msg = self._main(build, Path(tmp) / "mimic")
+            self.assertFalse((Path(tmp) / "mimic").exists())
+        self.assertEqual(msg, f"build_mimic_web.py: the device master cannot be used: {err}")
+
+    def test_a_mimic_error_ends_main_on_its_message(self) -> None:
+        build = _load("build_mimic_web")
+        with tempfile.TemporaryDirectory() as tmp, \
+                mock.patch.object(build, "load_layout", side_effect=build.MimicError("missing tables.xml")):
+            self.assertEqual(self._main(build, Path(tmp)), "missing tables.xml")
+
+    def test_an_out_folder_that_cannot_be_made_ends_main_with_one_line(self) -> None:
+        build = _load("build_mimic_web")
+        with tempfile.TemporaryDirectory() as tmp:
+            blocker = Path(tmp) / "file"
+            blocker.write_text("", encoding="utf-8")
+            msg = self._main(build, blocker / "mimic")
+        self.assertTrue(msg.startswith(f"build_mimic_web.py: cannot write {blocker / 'mimic' / build.FILENAME}: "), msg)
 
 
 class Levels(unittest.TestCase):
@@ -115,6 +156,33 @@ class Page(unittest.TestCase):
 
     def test_no_mac_mimic_endpoints(self):
         self.assertNotIn("/api/", self.script)
+
+
+_STATUS_HARNESS = r"""
+const els = { "mqtt-dot": {}, "mqtt-label": {} };
+const $ = (id) => els[id];
+eval(process.argv[1]);
+const out = JSON.parse(process.argv[2]).map((m) => { showMqtt(m); return [els["mqtt-dot"].className, els["mqtt-label"].textContent]; });
+console.log(JSON.stringify(out));
+"""
+
+
+@unittest.skipUnless(shutil.which("node"), "node is not installed")
+class MacMimicStatus(unittest.TestCase):
+    """The Mac mimic page's MQTT line: connected, waiting (a neutral dot) or down with its reason."""
+
+    def test_waiting_is_neutral_and_only_an_error_is_bad(self) -> None:
+        text = (SCRIPTS / "lcos_mqtt_mimic.html").read_text(encoding="utf-8")
+        fn = text[text.index("    function showMqtt("):]
+        fn = fn[:fn.index("\n    }\n") + 6]
+        states = [{"connected": True, "host": "pi"}, {"connected": False, "waiting": True, "host": "pi"},
+                  {"connected": False, "error": "mosquitto_sub exited (1)"},
+                  {"connected": False, "waiting": False, "error": "", "host": "pi"}]
+        done = subprocess.run(["node", "-e", _STATUS_HARNESS, fn, json.dumps(states)],
+                              capture_output=True, text=True, check=True)
+        self.assertEqual(json.loads(done.stdout), [["dot ok", "MQTT pi"], ["dot ", "MQTT pi (waiting)"],
+                                                   ["dot bad", "MQTT disconnected mosquitto_sub exited (1)"],
+                                                   ["dot ", "MQTT pi (waiting)"]])
 
 
 class SharedView(unittest.TestCase):

@@ -29,6 +29,8 @@ _MOSQUITTO = (
     r"C:\Program Files (x86)\mosquitto",
 )
 SUBSCRIBED = ("track/sensor/#", "track/turnout/#", "track/signalhead/#")
+WAIT_GRACE = 2.0    # seconds a started subscriber must keep running before the page shows it waiting for traffic
+_TOPIC_PREFIXES = tuple(t.removesuffix("#") for t in SUBSCRIBED)
 
 Event = dict[str, object]     # one message to the page's event stream (JSON)
 
@@ -40,6 +42,8 @@ class BusError(Exception):
 class Connection(TypedDict):
     host: str
     connected: bool
+    waiting: bool       # the subscriber runs but has passed on no message yet (a quiet broker): neither up nor down
+    error: str          # why it is down, "" when it is not
 
 
 class State(TypedDict):
@@ -73,6 +77,13 @@ def _which(name: str) -> str:
     raise BusError(f"{name} not found. Install mosquitto clients.")
 
 
+def is_message(line: str) -> bool:
+    """Whether a mosquitto_sub -v line is a message on one of SUBSCRIBED (not the client's own output, such as an
+    error): its first word is a subscribed topic, with or without a payload (a cleared retained topic has none)."""
+    words = line.split(maxsplit=1)
+    return bool(words) and words[0].startswith(_TOPIC_PREFIXES)
+
+
 def probe(host: str, port: int) -> bool:
     """Whether something accepts a TCP connection on host:port within 0.8 s."""
     try:
@@ -94,7 +105,9 @@ class Bus:
         self.sensors: dict[str, str] = {}
         self.turnouts: dict[str, str] = {}
         self.heads: dict[str, str] = {}
-        self.connected = False
+        self.connected = False      # True only once the running subscriber has passed on a message
+        self.waiting = False        # True while a running subscriber has passed on nothing yet (WAIT_GRACE)
+        self._error = ""            # why the subscriber is not connected, as last shown on the page
         self.subs: list[queue.Queue[str]] = []
         self.lock = threading.Lock()
         self._stop = threading.Event()
@@ -102,7 +115,8 @@ class Bus:
     def snapshot(self) -> State:
         with self.lock:
             return {
-                "mqtt": {"host": self.host, "connected": self.connected},
+                "mqtt": {"host": self.host, "connected": self.connected, "waiting": self.waiting,
+                         "error": self._error},
                 "sensors": dict(self.sensors),
                 "turnouts": dict(self.turnouts),
                 "heads": dict(self.heads),
@@ -193,6 +207,29 @@ class Bus:
         topics = [w for t in SUBSCRIBED for w in ("-t", t)]
         return [self.sub_bin, "-h", self.host, "-p", str(self.port), "-v", *topics]
 
+    def _set_connected(self, connected: bool, error: str = "") -> None:
+        """Record the subscriber's state and send it to the page when it changes, or when the reason it is down does."""
+        with self.lock:
+            changed = (connected != self.connected or self.waiting
+                       or (not connected and error != self._error))
+            self.connected, self.waiting, self._error = connected, False, error
+        if not changed:
+            return
+        if connected:
+            self.emit({"type": "mqtt", "connected": True, "host": self.host})
+        else:
+            self.emit({"type": "mqtt", "connected": False, "error": error})
+
+    def _set_waiting(self) -> None:
+        """The subscriber has run WAIT_GRACE without a message or an exit: the broker took it and is quiet. The page
+        shows it waiting (neither up nor down) until the first message or the exit."""
+        with self.lock:
+            changed = not (self.connected or self.waiting)
+            if changed:
+                self.waiting, self._error = True, ""
+        if changed:
+            self.emit({"type": "mqtt", "connected": False, "waiting": True, "host": self.host})
+
     def loop_sub(self) -> None:
         """Run the subscriber until stop(), starting it again a second after it ends."""
         cmd = self.sub_command()
@@ -202,31 +239,55 @@ class Bus:
                 if self._stop.is_set():
                     break
                 time.sleep(1)
-        finally:            # however the thread ends, the page must not keep showing a live connection
-            if self.connected:
-                self.connected = False
-                self.emit({"type": "mqtt", "connected": False, "error": "the subscriber stopped"})
+        finally:            # a thread that ends without stop() must not leave the page showing a live connection
+            if not self._stop.is_set():
+                self._set_connected(False, "the subscriber stopped")
 
     def _subscribe_once(self, cmd: list[str]) -> None:
-        """Run mosquitto_sub until it ends; a client that cannot start or stop is a disconnected event."""
+        """Run mosquitto_sub until it ends. It counts as connected from its first message; when it exits, the page is
+        told so with its exit code and the last thing it printed that was not a message (its error, if any)."""
         try:
             proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
         except (OSError, subprocess.SubprocessError) as e:   # no mosquitto_sub
-            self.connected = False
-            self.emit({"type": "mqtt", "connected": False, "error": str(e)})
+            self._set_connected(False, str(e))
             return
-        self.connected = True
-        self.emit({"type": "mqtt", "connected": True, "host": self.host})
         assert proc.stdout is not None
-        for line in proc.stdout:
-            if self._stop.is_set():
-                break
-            self._read_line(line)
+        said = ""
+        # A subscriber the broker refuses exits at once and keeps its error shown; one that keeps running is waiting.
+        def still_running() -> None:
+            if proc.poll() is None:
+                self._set_waiting()
+        quiet = threading.Timer(WAIT_GRACE, still_running)
+        quiet.daemon = True
+        quiet.start()
+        code: int | None = None
+        at_end = False      # its output closed: it is exiting by itself, with its own exit code
         try:
-            proc.wait(timeout=2)
-        except subprocess.SubprocessError as e:              # it did not stop in time
-            self.connected = False
-            self.emit({"type": "mqtt", "connected": False, "error": str(e)})
+            for line in proc.stdout:
+                if self._stop.is_set():
+                    break
+                if is_message(line):
+                    if not self.connected:
+                        self._set_connected(True)
+                elif line.strip():
+                    said = line.strip()
+                self._read_line(line)
+            else:
+                at_end = True
+        finally:            # however the reading ends (stop, exit or an error), the client ends too, so only one runs
+            quiet.cancel()
+            if not at_end and proc.poll() is None:
+                proc.terminate()
+            try:
+                code = proc.wait(timeout=2)
+            except subprocess.TimeoutExpired as e:          # it did not stop in time: kill it
+                proc.kill()
+                self._set_connected(False, str(e))
+        if code is None:
+            return
+        if not self._stop.is_set():
+            self._set_connected(False, f"mosquitto_sub exited ({code}): {said}" if said
+                                else f"mosquitto_sub exited ({code})")
 
     def _read_line(self, line: str) -> None:
         """One subscriber line; a line that cannot be read is logged and shown as a warning, and reading goes on."""

@@ -47,13 +47,15 @@
       if (ev.type === "sensor") state.sensors[ev.addr] = ev.payload;
       if (ev.type === "turnout") state.turnouts[ev.addr] = ev.payload;
       if (ev.type === "head") state.heads[ev.addr] = ev.payload;
-      if (ev.type === "mqtt") {
-        $("mqtt-dot").className = "dot " + (ev.connected ? "ok" : "bad");
-        $("mqtt-label").textContent = ev.connected
-          ? `MQTT ${ev.host || ""}`
-          : `MQTT disconnected ${ev.error || ""}`;
-      }
+      if (ev.type === "mqtt") showMqtt(ev);
       if (ev.type === "warning") $("mqtt-label").textContent = `MQTT warning: ${ev.error} in ${ev.line}`;
+    }
+
+    // Connected, waiting (running, no traffic yet: a neutral dot) or disconnected with its reason.
+    function showMqtt(m) {
+      $("mqtt-dot").className = "dot " + (m.connected ? "ok" : m.waiting || !m.error ? "" : "bad");
+      $("mqtt-label").textContent = m.connected ? `MQTT ${m.host || ""}`
+        : m.error ? `MQTT disconnected ${m.error}` : `MQTT ${m.host || ""} (waiting)`;
     }
 
     async function boot() {
@@ -65,10 +67,8 @@
       Object.assign(state.sensors, snap.sensors || {});
       Object.assign(state.turnouts, snap.turnouts || {});
       Object.assign(state.heads, snap.heads || {});
-      $("mqtt-dot").className = "dot " + (snap.mqtt && snap.mqtt.connected ? "ok" : "");
-      $("mqtt-label").textContent = snap.mqtt
-        ? `MQTT ${snap.mqtt.host}${snap.mqtt.connected ? "" : " (waiting)"}`
-        : "MQTT unknown";
+      if (snap.mqtt) showMqtt(snap.mqtt);
+      else $("mqtt-label").textContent = "MQTT unknown";
       render();
       const es = new EventSource("/api/events");
       let renderTimer = 0;
