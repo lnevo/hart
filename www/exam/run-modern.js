@@ -1,115 +1,177 @@
 /* Extra East: the modern run under track warrants: the warrant form, the run and its road events.
-   Runs inside its own function; the names it shares with run.js are on window.ExtraEast (see run.js). The form's
-   boxes and the dispatcher's words come from js/track-warrant.js, which run.html loads first. */
+   Runs inside its own function. It takes the names it uses from run.js with ExtraEast.take and hands back its own with
+   ExtraEast.give (see run.js, GIVES). The form's boxes and the dispatcher's words come from js/track-warrant.js, which
+   run.html loads first. */
 (function(){
 "use strict";
 const X=window.ExtraEast;
-const {fmt,$,randSetup,rnd,reduced,STATIONS,LAST,state,addTime,renderMap,animateTo,renderStatus,runTime,
-  drawRoad,finish,esc,push,front,next,log,scene,ask,info}=X;
+const {fmt,$,esc,reduced,randSetup,rnd,STATIONS,LAST,state,addTime,renderMap,animateTo,renderStatus,runTime,drawRoad,
+  finish,push,front,next,log,scene,ask,info}=X.take("run-modern.js",["fmt","$","esc","reduced","randSetup","rnd",
+  "STATIONS","LAST","state","addTime","renderMap","animateTo","renderStatus","runTime","drawRoad","finish","push","front",
+  "next","log","scene","ask","info"]);
 /* ---------- modern: track warrant control ---------- */
+/* The choices in the form's blanks: stations, tracks, warrant numbers, trains, times, speeds and the "other specific
+   instructions". time grows by the Box 5 time when the crew calls (setBox5). */
 const TW_SEL={s:STATIONS.map(x=>x.n),t:["Main","Main 1","Main 2"],w:["101","102","103","104"],
   train:["2211 West","640 East","844 East"],time:["6:15","6:20","6:25","7:00","8:00","9:00"],mph:["10","20","30","40"],
   txt:["Joint with work train 292 between Birchwood and Cobb","Joint with 640 East between Hollis and Ironton",
   "Joint with 2211 West between Dunmore and Elk Gap"]};
 /* The form's boxes and the dispatcher's words: www/js/track-warrant.js. */
 const {BOXES,SAY}=window.TrackWarrant;
-X.warrantForm={BOXES,SAY};   // the form and its spoken lines, for the exam test
 
+/* The run's three warrants. boxes are on the warrant every run. Each draw is a pair of box sets, the first taken when
+   the run draws true: box12 (Box 12, men or equipment; else Boxes 11 and 17, joint with work train 292) and hold (Box 8;
+   else Box 10). Box 5 of 101 is null until the crew calls: setBox5 sets it box5Lead minutes on, rounded up to 5.
+   build_exam_answers.js reads this literal for the answer key. */
+const TWC_PLAN={box5Lead:12,warrants:{
+  w1:{no:"101",at:"Ashby",boxes:{2:["Ashby","Dunmore","Main"],5:null,10:[],15:[]},
+    draws:{box12:[{12:["Birchwood","Cobb"]},
+      {11:["Birchwood","Cobb"],17:["Joint with work train 292 between Birchwood and Cobb"]}]}},
+  w2:{no:"102",at:"Dunmore",boxes:{2:["Dunmore","Granite","Main"],6:["9:00"],7:["2211 West","Dunmore"]},
+    draws:{hold:[{8:[]},{10:[]}]}},
+  w3:{no:"103",at:"Granite",boxes:{1:["102"],2:["Granite","Hollis","Main"],3:["Hollis","Ironton","Main 2"],
+    13:["40","Granite","Hollis"],14:["30","Hollis","Ironton"],16:[]}}}};
+
+/* One warrant of TWC_PLAN for this run: its boxes, with each draw's box set chosen by drawn[name]. */
+function drawWarrant(name,drawn){
+  const plan=TWC_PLAN.warrants[name];
+  const boxes={...plan.boxes};
+  for(const [k,[yes,no]] of Object.entries(plan.draws||{})){
+    if(typeof drawn[k]!=="boolean")throw new Error(`warrant ${plan.no}: the run has no draw ${k}`);
+    Object.assign(boxes,drawn[k]?yes:no);
+  }
+  return {no:plan.no,at:plan.at,boxes};
+}
+
+/* The dispatcher's words for warrant w, a line at a time. Every box must have its values by now. */
+function dispatcherLines(w){
+  const nums=Object.keys(w.boxes).map(Number).sort((a,b)=>a-b);
+  const unset=nums.filter(b=>!Array.isArray(w.boxes[b]));
+  if(unset.length)throw new Error(`warrant ${w.no}: box ${unset.join(", ")} read out before it was filled`);
+  return [`Track warrant number ${w.no.split("").join(" ")}, to KV 812 East at ${w.at}.`,
+    ...nums.map(b=>`Box ${b}. ${SAY[b](w.boxes[b])}.`),"Dispatcher RK. Read it back."];
+}
+/* The blank form: each box with a checkbox and a list of TW_SEL's choices for each blank. */
+function formHtml(){
+  return BOXES.map(([n,txt])=>{
+    let k=0;
+    const blank=(_,t)=>{
+      const id=`b${n}_${k++}`;
+      return `<select id="${id}" aria-label="Box ${n} blank ${k}"><option value="">—</option>`+
+        `${TW_SEL[t].map(v=>`<option>${esc(v)}</option>`).join("")}</select>`;
+    };
+    const body=esc(txt).replace(/\{(\w+)\}/g,blank);
+    return `<label class="box" id="row${n}"><input type="checkbox" id="c${n}"><span class="n">${n}</span><span>${body}</span></label>`;
+  }).join("");
+}
+/* The form as the player filled it: {box: {on, v}}, on for the checkbox and v the blanks' values in order. */
+function readForm(){
+  return Object.fromEntries(BOXES.map(([n])=>[n,{on:$("c"+n).checked,
+    v:[...$("row"+n).querySelectorAll("select")].map(s=>s.value)}]));
+}
+/* The boxes copied wrong: checked when not given, not checked when given, or with a blank that differs. */
+function wrongBoxes(w,got){
+  return BOXES.map(([n])=>n).filter(n=>{
+    const want=w.boxes[n];
+    if(!!want!==got[n].on)return true;
+    return !!want&&got[n].v.some((v,i)=>v!==want[i]);
+  });
+}
+
+/* The copy scene: the dispatcher reads warrant w, the player fills the form and repeats it back. A wrong copy costs
+   2 minutes and, the first time, a miss (GCOR 14.9); a right one puts the OK time on the warrant. */
 function warrantCopy(w){
   return ()=>{
     state.attempts=0;
-    const lines=[`Track warrant number ${w.no.split("").join(" ")}, to KV 812 East at ${w.at}.`];
-    Object.keys(w.boxes).map(Number).sort((a,b)=>a-b).forEach(b=>lines.push(`Box ${b}. ${SAY[b](w.boxes[b])}.`));
-    lines.push("Dispatcher RK. Read it back.");
-    const form=BOXES.map(([n,txt])=>{
-      let k=0;
-      const body=esc(txt).replace(/\{(\w+)\}/g,
-        (_,t)=>{const id=`b${n}_${k++}`;
-        return `<select id="${id}" aria-label="Box ${n} blank ${k}"><option value="">—</option>${TW_SEL[t].map(v=>`<option>${esc(v)}</option>`).join("")}</select>`});
-      return `<label class="box" id="row${n}"><input type="checkbox" id="c${n}"><span class="n">${n}</span><span>${body}</span></label>`;
-    }).join("");
-    const el=scene(w.at,"Copy track warrant "+w.no,
+    const lines=dispatcherLines(w);
+    scene(w.at,"Copy track warrant "+w.no,
       `<p>The dispatcher reads the warrant at copying speed. Check each box he gives and fill in its blanks, then repeat it back.</p><div class="xw-dict" id="dict"></div>
-      <div class="xw-tw"><div class="hd">TRACK WARRANT No ${esc(w.no)} · ${new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"})} 1997<br><span style="font-weight:400">To KV 812 East at ${esc(w.at)}</span></div>${form}<div class="okline">OK ____  Dispatcher ____</div></div>
+      <div class="xw-tw"><div class="hd">TRACK WARRANT No ${esc(w.no)} · ${new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"})} 1997<br><span style="font-weight:400">To KV 812 East at ${esc(w.at)}</span></div>${formHtml()}<div class="okline">OK ____  Dispatcher ____</div></div>
       <div class="choices"><button class="xw-btn primary" id="rb">Repeat it to the dispatcher</button></div><div class="result" hidden></div>`);
     // read it out a line at a time
     const d=$("dict");let i=0;
-    const tick=()=>{if(!d.isConnected)return;
-      if(i<lines.length){d.textContent+=(i?"\n":"")+lines[i++];if(!reduced)setTimeout(tick,650);else tick()}};
+    const tick=()=>{
+      if(!d.isConnected)return;
+      if(i<lines.length){d.textContent+=(i?"\n":"")+lines[i++];if(!reduced)setTimeout(tick,650);else tick()}
+    };
     tick();
     $("rb").onclick=()=>{
-      const bad=[];
-      BOXES.forEach(([n])=>{
-        const want=w.boxes[n],got=$("c"+n).checked;
-        const row=$("row"+n);row.classList.remove("bad");
-        if(!!want!==got){bad.push(n);row.classList.add("bad");return}
-        if(want){const sels=row.querySelectorAll("select");
-          if([...sels].some((s,i)=>s.value!==want[i])){bad.push(n);row.classList.add("bad")}}
-      });
+      const bad=wrongBoxes(w,readForm());
+      BOXES.forEach(([n])=>{const row=$("row"+n);row.classList.remove("bad");if(bad.includes(n))row.classList.add("bad")});
       const r=document.querySelector("#xwScene .result");r.hidden=false;
-      if(bad.length){
-        state.attempts++;addTime(2);renderStatus();
-        r.innerHTML=`<div class="verdict no">“That's not what I gave you.” <small `+
-            `style="font-size:14px;font-family:var(--mono)">+2 min</small></div><p>The dispatcher corrects `+
-            `box${bad.length>1?"es":""} ${bad.join(", ")}. Fix the shaded rows and repeat it again.</p>`+(state.attempts>=2?`<p class="src">The dispatcher's words are in the blue panel above. Each box he names is checked, `+
-            `with its blanks in the order he reads them.</p>`:"");
-        log("Warrant "+w.no+" read back with errors in "+bad.join(", "));
-        if(state.attempts===1)state.misses.push({title:"Copying track warrant "+w.no,
-          why:"GCOR 14.9: the employee writes all the information and repeats it, preprinted and written words, "+
-            "to the dispatcher, who checks it before giving the OK.",src:"GC · 14.9",sec:"twc"});
-      }else{
-        const ok=fmt(state.clock+1);w.ok=ok;
-        document.querySelector(".xw-tw .okline").innerHTML=`OK <b>${ok}</b>  Dispatcher <b>RK</b>`;
-        $("rb").disabled=true;
-        r.innerHTML=`<div class="verdict ok">“That is correct. OK ${ok}, RK.”</div><div><button class="xw-btn primary" `+
-            `id="xwGo">Continue</button></div>`;
-        log("Warrant "+w.no+" OK "+ok);
-        addTime(1);renderStatus();
-        $("xwGo").onclick=()=>{$("xwGo").disabled=true;next()};
-      }
+      if(bad.length)copiedWrong(w,bad,r);
+      else copiedRight(w,r);
     };
   };
 }
+function copiedWrong(w,bad,r){
+  state.attempts++;addTime(2);renderStatus();
+  r.innerHTML=`<div class="verdict no">“That's not what I gave you.” <small `+
+      `style="font-size:14px;font-family:var(--mono)">+2 min</small></div><p>The dispatcher corrects `+
+      `box${bad.length>1?"es":""} ${bad.join(", ")}. Fix the shaded rows and repeat it again.</p>`+(state.attempts>=2?`<p class="src">The dispatcher's words are in the blue panel above. Each box he names is checked, `+
+      `with its blanks in the order he reads them.</p>`:"");
+  log("Warrant "+w.no+" read back with errors in "+bad.join(", "));
+  if(state.attempts===1)state.misses.push({title:"Copying track warrant "+w.no,
+    why:"GCOR 14.9: the employee writes all the information and repeats it, preprinted and written words, "+
+      "to the dispatcher, who checks it before giving the OK.",src:"GC · 14.9",sec:"twc"});
+}
+function copiedRight(w,r){
+  const ok=fmt(state.clock+1);w.ok=ok;
+  document.querySelector(".xw-tw .okline").innerHTML=`OK <b>${ok}</b>  Dispatcher <b>RK</b>`;
+  $("rb").disabled=true;
+  r.innerHTML=`<div class="verdict ok">“That is correct. OK ${ok}, RK.”</div><div><button class="xw-btn primary" `+
+      `id="xwGo">Continue</button></div>`;
+  log("Warrant "+w.no+" OK "+ok);
+  addTime(1);renderStatus();
+  $("xwGo").onclick=()=>{$("xwGo").disabled=true;next()};
+}
 
+/* A stretch from station `from` to `to`: the events given, or one drawn from the road pool. */
 function legTWC(from,to,events){
   return ()=>{
     state.moving=STATIONS[from].n+" and "+STATIONS[to].n;state.inSiding=false;
     const ev=events||[];
     if(!ev.length){const r=drawRoad();if(r)ev.push(r)}
-    front(...ev,
-      ()=>{animateTo(to,
-      ()=>{addTime(runTime(from,to));state.pos=to;state.moving=null;log("At "+STATIONS[to].n);next()})});
+    front(...ev,()=>animateTo(to,arrive(from,to)));
     next();
   };
 }
-/* The modern run: draws its warrants (w1 to w3; Box 12 or 11 and 17, Box 8 or 10, the wait for 2211 West), then
-   queues the run a stretch at a time. build_exam_answers.js reads w1 and w2 from here for the answer key. */
+/* At station `to` after the run from `from`: the running time, the position and the log. */
+function arrive(from,to){
+  return ()=>{addTime(runTime(from,to));state.pos=to;state.moving=null;log("At "+STATIONS[to].n);next()};
+}
+/* The modern run: draws its warrants from TWC_PLAN and the wait for 2211 West, then queues the run a stretch at a
+   time. */
 function startTWC(){
   state.tt={leg:[]};for(let i=0;i<LAST;i++)state.tt.leg[i]=Math.round((STATIONS[i+1].mp-STATIONS[i].mp)*2.6)+rnd(-1,2);
   const box12=randSetup()<.6;
-  const w1={no:"101",at:"Ashby",boxes:{2:["Ashby","Dunmore","Main"],5:["6:20"],10:[],15:[]}};
-  const setBox5=()=>{const t=Math.ceil((state.clock+12)/5)*5;state.box5=t;w1.boxes[5]=[fmt(t)];
-    if(!TW_SEL.time.includes(fmt(t)))TW_SEL.time.splice(2,0,fmt(t));
-    state.par=t+state.tt.leg.reduce((a,b)=>a+b,0)+wait+3+8;next()};
-  if(box12)w1.boxes[12]=["Birchwood","Cobb"];
-  else{w1.boxes[11]=["Birchwood","Cobb"];w1.boxes[17]=["Joint with work train 292 between Birchwood and Cobb"]}
   const hold=randSetup()<.5;
-  const w2={no:"102",at:"Dunmore",boxes:{2:["Dunmore","Granite","Main"],7:["2211 West","Dunmore"]}};
-  if(hold)w2.boxes[8]=[];else w2.boxes[10]=[];
-  w2.boxes[6]=["9:00"];
-  const w3={no:"103",at:"Granite",
-    boxes:{1:["102"],2:["Granite","Hollis","Main"],3:["Hollis","Ironton","Main 2"],13:["40","Granite","Hollis"],
-    14:["30","Hollis","Ironton"],16:[]}};
+  const w1=drawWarrant("w1",{box12}),w2=drawWarrant("w2",{hold}),w3=drawWarrant("w3",{});
   state.inSiding=false;
   const wait=rnd(10,18);
   TW_SEL.time=["6:15","6:20","6:25","7:00","8:00","9:00"];
+  /* When the crew calls: Box 5 takes its time, the time list offers it, and the par time counts from it. */
+  const setBox5=()=>{
+    const t=Math.ceil((state.clock+TWC_PLAN.box5Lead)/5)*5;
+    state.box5=t;w1.boxes[5]=[fmt(t)];
+    if(!TW_SEL.time.includes(fmt(t)))TW_SEL.time.splice(2,0,fmt(t));
+    state.par=t+state.tt.leg.reduce((a,b)=>a+b,0)+wait+3+8;
+    next();
+  };
 
   const run={w1,w2,w3,box12,hold,wait,setBox5};
   push(...ashby(run),...birchwoodToCobb(run),...dunmore(run),...granite(run),...ironton());
   next();
 }
+/* After the Box 5 question: a crew ready before the Box 5 time waits for it. */
+function waitForBox5(){
+  if(state.clock<state.box5){
+    log("Waited for "+fmt(state.box5));
+    state.clock=state.box5;
+  }
+}
 /* Ashby: on duty, warrant 101 and its boxes, then out to Birchwood. */
-function ashby({w1,setBox5}){
+function ashby({setBox5,w1}){
   return [
     info("Ashby","On duty at Ashby, 6:00",
       "<p>You are the conductor of KV 812 East, a freight from Ashby to Ironton through dark territory. "+
@@ -153,7 +215,7 @@ function ashby({w1,setBox5}){
       [`Yes, at restricted speed until ${fmt(state.box5)}`],["Yes, if no train is in sight"]]},
       why:"Box 5: Not in effect until the time shown. Box 6 is the other timing box: This authority expires "+
         "at the time shown.",
-          after:()=>{if(state.clock<state.box5){log("Waited for "+fmt(state.box5));state.clock=state.box5}}}),
+      after:waitForBox5}),
     ask({sec:"twc",src:"GC · 14.0 form",title:"Box 15",
       body:"Box 15 is checked on warrant 101: “Flag protection not required against following trains on the "+
         "same track.” What does that tell you?",
@@ -571,5 +633,6 @@ const ROAD_TWC=[
     why:"GCOR: a train is one or more engines coupled, with or without cars, displaying a marker, and "+
       "authorized to operate on a main track."})
 ];
-Object.assign(X,{startTWC,ROAD_TWC});
+X.give("run-modern.js",{startTWC,ROAD_TWC,
+  warrantForm:{BOXES,SAY,wrongBoxes}}); // the form, its spoken lines and its check, for the exam test
 })();
