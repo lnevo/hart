@@ -191,7 +191,7 @@ The wave 3 card was wrong. Its merge script applied an older sweep grade over th
 - `crop_span.py` (C+): `_core_body_span` keeps its thresholds inline.
 - Size limits close: `mast_rule.py` 786 of 800, `build_wiring_json.py` 785, `lcos_mqtt_mimic.py` 782.
 - Host scripts: no shared whole-word profile match for `pi_start_panelpro`, `pi_quit_panelpro` and `panelpro_session`; `panelpro_restart_due.sh` keeps its own JVM pattern; CATS starts with `--profile`, so the apply step cannot see it before it edits `user-interface.xml`; the Windows retired-entry regex and `insert_after` match substrings; `profile.xml` is not written atomically.
-- Small: `check_json` schema nodes as `dict[str, Any]`; `crew_schema` does not require `spotsheet.desk` or per-map tracks; a fixture still carries an owner tag; `test_package_contents` lost the `apply_dispatcher_roster_profiles.py` check; `store_split` calls the private `devices._rank` and keys items by bare tuples; `repo_guide_page.py` keeps bare dicts.
+- Small: `check_json` schema nodes as `dict[str, Any]`; `crew_schema` does not require `spotsheet.desk` or per-map tracks; a fixture still carries an owner tag; `test_package_contents` lost the `apply_dispatcher_roster_profiles.py` check; `repo_guide_page.py` keeps bare dicts.
 - Unverified: the site pages `behind/tables-file.html` and `library/repository-guide.html` may be stale; each PanelPro quit for a deploy logs a WiThrottle "readLine failure limit exceeded" line; the mimic page has not been loaded in a real browser since #1287; `mosquitto_cli` timeout handling has not run against a live broker.
 
 ## Wave 5 (2026-11-27)

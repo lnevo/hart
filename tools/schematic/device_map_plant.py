@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import cast
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import mast_rule  # noqa: E402  OVERRIDES_NAME, LOOP_HALF, MapError
+import mast_rule  # noqa: E402  LOOP_HALF
 import block_override_rows  # noqa: E402
 from device_map_inputs import PINS, UID, loop_placeholder  # noqa: E402
 from device_map_nodes import DetectorInput  # noqa: E402

@@ -148,7 +148,7 @@ class Committed(unittest.TestCase):
             if r.level and r.layer in ("block", "mast", "head") and r.role not in D.OS_ROLES:
                 bare = re.sub(r"^(Track|Mast|Head) ", "", r.user_name)
                 if bare in r.id:
-                    bad.append((r["user_name"], r["id"]))
+                    bad.append((r.user_name, r.id))
         self.assertEqual(bad, [])
 
 
