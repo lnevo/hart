@@ -346,7 +346,7 @@ class DocsUnitTests(unittest.TestCase):
     def test_the_real_list_runs_as_check_sh_names_its_tests(self) -> None:
         tests = docs_unit_tests.tests()
         stamps = [stamp for stamp, *_ in tests]
-        self.assertIn("unit-guards test_name_copies", stamps)
+        self.assertIn("unit-guards test_agent_docs_map", stamps)
         self.assertIn(("unit-jmri test_speedmatch_distance", "jmri/layouts/hart/scripts/tests",
                        "test_speedmatch_distance.py", "RunnerSource."), tests)
         check_sh = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
@@ -465,10 +465,11 @@ class Kinds(unittest.TestCase):
         self.assertEqual(kind_of(["wiki/STATUS.md", "docs/INDEX.md", "tools/README.md", "www/notes.md"]), "docs")
 
     def test_only_markdown_counts(self):
-        # other file types under wiki/ or docs/ are read by full-run checks (tracked-policy, page builders)
+        # other file types under wiki/ or docs/ are not docs: an image is full, and a data file no unit job declares is
+        # light, as make static's checks (tracked-policy among them) read it
         self.assertEqual(kind_of(["wiki/img/a.png"]), "full")
-        self.assertEqual(kind_of(["docs/wiring/bench/x.csv"]), "full")
-        self.assertEqual(kind_of(["docs/x.json", "wiki/a.md"]), "full")
+        self.assertEqual(kind_of(["docs/wiring/bench/x.csv"]), "light")
+        self.assertEqual(kind_of(["docs/x.json", "wiki/a.md"]), "light")
 
     def test_mixed_is_full(self):
         self.assertEqual(kind_of(["wiki/STATUS.md", "tools/check.sh"]), "full")

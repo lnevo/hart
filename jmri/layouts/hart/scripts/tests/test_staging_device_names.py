@@ -28,8 +28,8 @@ HARDWARE_RE = re.compile(r"^(?:M2T\d+|M2S\d+|IH\d+|MTT\d+)$")
 
 def load_csv_rows() -> list[dict[str, str]]:
     """Staging's rows of devices.csv in the device layers, each with its JMRI comment (hartlib.devices.comment_of)."""
-    return [dict(row, comment=devices.comment_of(row)) for row in devices.load(CSV_PATH)
-            if row["level"] == railroad.STAGING_LEVEL and row["layer"] != "sensor"]
+    return [{**row.cells(), "comment": devices.comment_of(row)} for row in devices.load(CSV_PATH)
+            if row.level_cell == railroad.STAGING_LEVEL and row.layer != "sensor"]
 
 
 def parse_tables_names() -> tuple[set[str], set[str]]:

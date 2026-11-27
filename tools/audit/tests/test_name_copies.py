@@ -1,16 +1,22 @@
-"""check_name_copies.py passes on the repo and catches a hand-kept copy left behind by a rename.
+"""check_name_copies.py catches a hand-kept copy left behind by a rename.
 
 The 16R rename (PR #441) touched 13 files. Each test below renames in a temporary copy
 of devices.csv the way ADR-005 does it (the row takes the new name; the master keeps no alias row, so the
-old name is simply no longer anything's) and expects every copy of the old name to fail.
+old name is simply no longer anything's) and expects every copy of the old name to fail. Every test runs on a scratch
+tree: the check of the real checkout is the name-copies job of tools/pipeline/checks.toml, so this suite reads only the
+device master, tables.xml and code (tools/audit/check_stamps.py declares nothing more for it).
 """
 from __future__ import annotations
 
+import io
+import os
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/audit"))
@@ -20,13 +26,12 @@ sys.path.insert(0, str(ROOT / "tools/hartlib/tests"))
 from master_edit import drop  # noqa: E402
 from hartlib import devices  # noqa: E402
 
-MAP = ROOT / check.DEVICES_REL
 TABLES = ROOT / check.TABLES_REL
 
 
 def renamed_map(path: Path, renames: dict[str, str]) -> str:
     """The text of the master at `path` after renaming each old user name to its new one (ADR-005)."""
-    rows = [dict(r, user_name=renames.get(r["user_name"], r["user_name"])) for r in devices.load(path)]
+    rows = [dict(r.cells(), user_name=renames.get(r.user_name, r.user_name)) for r in devices.load(path)]
     return devices.master_text(rows)
 
 
@@ -60,12 +65,6 @@ class NameCopiesTest(unittest.TestCase):
         hits, _counts, _used = check.run(self.tmp, files, allow=allow or {}, devices_csv=self.map)
         return [str(h) for h in hits]
 
-    def test_repo_is_clean(self):
-        hits, counts, used = check.run(ROOT)
-        self.assertEqual([], [str(h) for h in hits])
-        self.assertEqual([], check.unused_allow(check.ALLOW, used))
-        self.assertGreater(len(counts), 50, "the scan read almost nothing; is the file list right?")
-
     def test_current_names_pass(self):
         f = self.write("tools/x.py", 'M = "Mast 32R"\nT = ("Track Scale", "Track S-R", "OS Switch 23a")\n')
         self.assertEqual([], self.stale([f]))
@@ -81,23 +80,37 @@ class NameCopiesTest(unittest.TestCase):
         self.assertEqual([], self.stale([g]))
 
     def test_rename_in_a_copy_of_the_repo_names_the_hand_kept_copies(self):
-        """Step 3 of the hand-off: rename one mast and one track; every copy is found."""
-        renamed = self.tmp / "renamed.csv"
-        renamed.write_text(renamed_map(MAP, {"Mast 24RB": "Mast 24RBX", "Track Scale": "Track Weigh"}),
-                           encoding="utf-8")
-        # PanelPro renames the block in tables.xml too (then make tables-pull).
-        tables_xml = self.tmp / "tables.xml"
-        text = TABLES.read_text(encoding="utf-8")
-        self.assertIn(">Track Scale<", text)
-        tables_xml.write_text(text.replace(">Track Scale<", ">Track Weigh<"), encoding="utf-8")
-        hits, _counts, _used = check.run(ROOT, devices_csv=renamed, tables_xml=tables_xml)
-        files = {h.path for h in hits}
-        # No hand-kept copy of a mast name is left: masts.csv, which held the staging masts' copies as
-        # staging_masts.csv did, is generated (build_masts.py --check names a stale one). (A renamed track's old name
-        # is no longer matched, the master having no alias rows.)
-        self.assertEqual(set(), {h.name for h in hits}, files)
-        # Generated files under their own --check and the map itself are not read.
-        self.assertFalse(any(f.startswith(check.SKIP_PREFIXES) for f in files), files)
+        """Step 3 of the hand-off: rename one mast and one track in a checkout; every hand-kept copy of the mast is
+        found, and no generated file, test, Markdown page or untracked file is read."""
+        mast, track = "Mast 24RB", "Track Scale"
+        sch = "jmri/layouts/hart/data/schematic/"
+        hand = {"tools/x.py": f'M = "{mast}"\n', "jmri/layouts/hart/data/block_lengths.csv": f"mast\n{mast}\n",
+                "tools/y.py": f'T = "{track}"\n'}
+        # masts.csv held the staging masts' copies as staging_masts.csv did; it is generated now (build_masts.py
+        # --check names a stale one), as are signals.json and www/data/
+        not_read = {sch + "masts.csv": f"mast\n{mast}\n", sch + "signals.json": f'{{"m": "{mast}"}}\n',
+                    "www/data/x.json": f'{{"m": "{mast}"}}\n', "tools/tests/test_x.py": f'M = "{mast}"\n',
+                    "wiki/x.md": f"{mast} was renamed.\n"}
+        for rel, text in (*hand.items(), *not_read.items()):
+            self.write(rel, text)
+        env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}  # a hook's GIT_DIR must not leak in
+        subprocess.run(["git", "init", "-q", str(self.tmp)], check=True, env=env)
+        subprocess.run(["git", "-C", str(self.tmp), "add", "--", *hand, *not_read, check.TABLES_REL],
+                       check=True, env=env)
+        self.write("tools/untracked.py", f'M = "{mast}"\n')        # not in git: never read
+
+        def stale() -> list[str]:
+            with mock.patch.dict(os.environ, env, clear=True):   # tracked_files' git ls-files too
+                hits, _counts, _used = check.run(self.tmp, devices_csv=self.map)
+            return sorted(str(h) for h in hits)
+
+        self.assertEqual([], stale(), "both names are current before the rename")
+        self.assertIn(f"<userName>{track}</userName>", self.tables.read_text(encoding="utf-8"))
+        self.rename(mast=(mast, "Mast 24RBX"), track=(track, "Track Weigh"))   # PanelPro renames the block too
+        # The master keeps no alias rows, so the renamed track's old name is no longer matched (tools/y.py); a mast
+        # is matched by its shape. tables.xml, a source, is tracked here and not read.
+        self.assertEqual([f"jmri/layouts/hart/data/block_lengths.csv:2: '{mast}' is not a current name",
+                          f"tools/x.py:1: '{mast}' is not a current name"], stale())
 
     def test_a_block_with_no_identity_row_is_current_through_tables_xml(self):
         """A block with no identity row in the map (as the hidden yard throats had until 2026-11-17) is current while
@@ -130,6 +143,21 @@ class NameCopiesTest(unittest.TestCase):
             self.assertFalse(check.readable(sch + rel), rel)
         hand = self.write(sch + "staging_le/masts.csv", "mast\nMast 32L\n")
         self.assertEqual([f"{hand}:2: 'Mast 32L' is not a current name"], self.stale([hand]))
+
+    def test_main_fails_a_scan_that_found_almost_no_names(self):
+        """The name-copies job runs main() on the checkout: it fails on a stale copy, and on a scan that found names in
+        fewer files than MIN_NAME_FILES (a broken file list), not only on a hit."""
+        hit = check.Hit("tools/x.py", 1, "Mast 99X")
+        many = {f"tools/f{i}.py": 1 for i in range(check.MIN_NAME_FILES)}
+        used = {(k, n) for k, (names, _r) in check.ALLOW.items() for n in (names or {"x"})}
+        cases = (([], many, 0, "OK: every track"), ([hit], many, 1, "1 stale name copies"),
+                 ([], dict(list(many.items())[:-1]), 1, "the scan read almost nothing"),
+                 ([hit], {"tools/x.py": 1}, 1, "1 stale name copies"))   # a stale copy is named first
+        for hits, counts, code, line in cases:
+            with self.subTest(line), mock.patch.object(check, "run", return_value=(hits, counts, used)), \
+                    mock.patch("sys.stdout", new_callable=io.StringIO) as out:
+                self.assertEqual(code, check.main([]))
+                self.assertIn(line, out.getvalue())
 
     def test_a_master_that_cannot_be_read_stops_the_check(self):
         with self.assertRaisesRegex(devices.DevicesError, "cannot read it"):

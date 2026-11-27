@@ -28,7 +28,8 @@ def cells(path: Path) -> dict[tuple[int, int], ET.Element]:
 def plants(path: Path) -> tuple[dict[tuple[int, int], ET.Element], dict[str, tuple[int, int]]]:
     """(cells, OS block -> plant cell) for every bound plant of a desk (the dark main and upper plants bind nothing)."""
     c = cells(path)
-    return c, trace.desk_plants(c, bound=True, level_turnouts=tables_build.level_turnouts(devices.load()))
+    return c, trace.desk_plants(c, bound=True, level_turnouts=tables_build.level_turnouts(
+        [r.cells() for r in devices.load()]))
 
 
 def routes(path: Path, os_block: str) -> dict[str, tuple[str | None, bool]]:

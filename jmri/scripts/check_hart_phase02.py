@@ -109,9 +109,9 @@ def _check() -> int:
     # Expected OS public names present on layout turnouts
     # the staging (level 1) OS blocks of the device master: role os, or xover_corner for a crossover's
     expected_os = {
-        row["user_name"]
+        row.user_name
         for row in devices.load(DEVICES)
-        if row["level"] == "1" and row["layer"] == "block" and row["role"] in ("os", "xover_corner")
+        if row.level_cell == "1" and row.layer == "block" and row.role in ("os", "xover_corner")
     }
     found = {t.get("blockname") for t in root.iter("layoutturnout")}
     missing = sorted(expected_os - found)
