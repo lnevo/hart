@@ -12,10 +12,9 @@ import block_layer  # noqa: E402  the block layer
 from device_map_inputs import Places  # noqa: E402
 from device_map_nodes import Nodes  # noqa: E402
 from hartlib import railroad  # noqa: E402
-from mast_plan import Band, Bands  # noqa: E402  the plugin's solved bands
-from mast_rule import Joined, Track  # noqa: E402  the plugin's connector partners; a named track
+from mast_plan import Band, Bands, Intermediate, VirtualMast  # noqa: E402  the plugin's solved bands; the plan's masts
+from mast_rule import HomeMast, Joined, Track  # noqa: E402  a home mast; the plugin's connector partners; a named track
 
-MastKind = Literal["home", "intermediate", "virtual"]    # mast_plan's three lists of masts
 Layer = Literal["turnout", "fb", "block", "occupancy", "mast", "head"]     # a device-map row's layer
 
 
@@ -50,7 +49,19 @@ MasterCells = dict[str, str]    # a master row as hartlib.devices.master_row ret
 Runs = Callable[[Band], Sequence[Any]]
 Corners = Mapping[str, Mapping[str, str]]       # dx_corners: {switch number: {schematic leg: Layout Editor corner}}
 VirtualNames = dict[str, tuple[str, str]]       # {mast id: (user name, system name)} of the virtual masts
-MastEntry = dict[str, Any]      # a mast mast_plan.plan places (the plugin's JSON shape, read and extended by key)
+
+
+class LineMast(Intermediate):
+    """An intermediate mast as the device map places it (device_map_level_masts.line_mast): one searchlight head and
+    no switch, `intermediate` telling it from a home mast. Its `id` is filled when the masts are named."""
+    heads: int
+    kind: str
+    switch: str
+    intermediate: Literal[True]
+
+
+VisibleMast = HomeMast | LineMast               # a mast with heads on a node
+PlacedMast = HomeMast | LineMast | VirtualMast  # any mast of mast_plan.MastPlan as the device map places it
 
 
 def cells(row: DeviceMapRow) -> Mapping[str, str]:
