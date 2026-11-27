@@ -138,6 +138,42 @@ class Drawing(unittest.TestCase):
         self.assertEqual(img.getpixel((500, 2400 - 160)), rsm.BG)
 
 
+class Outputs(unittest.TestCase):
+    def setUp(self):
+        for patcher in stand_in_fonts():
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.dir = Path(tmp.name)
+
+    def test_rebuild_png_writes_the_four_pngs_where_it_is_told(self):
+        from PIL import Image
+
+        d = self.dir / "assets"
+        out = rsm.rebuild_png(d / "map.png", plain=d / "plain.png", diagram=d / "diagram.png",
+                              compass=d / "rose.png")
+        self.assertEqual(out, d / "map.png")
+        sizes = {p.name: Image.open(p).size for p in d.iterdir()}
+        self.assertEqual(sizes, {"map.png": (1400, 2450), "plain.png": (1400, 2450),
+                                 "diagram.png": (1000, 2400), "rose.png": (220, 220)})
+
+    def test_rebuild_docx_embeds_the_png_under_the_masthead(self):
+        import zipfile
+
+        from docx import Document
+
+        png = self.dir / "map.png"
+        rsm.draw_subdivision_map(width=140, height=245).save(png, "PNG")
+        out = rsm.rebuild_docx(png, self.dir / "sm01.docx")
+        texts = [p.text for p in Document(str(out)).paragraphs if p.text]
+        self.assertEqual(texts[:3], [rsm.TEXT["masthead"]["railroad"], rsm.TEXT["masthead"]["division"],
+                                     rsm.PUBLICATION["title"]])
+        with zipfile.ZipFile(out) as z:
+            media = [n for n in z.namelist() if n.startswith("word/media/")]
+            self.assertEqual([z.read(n) for n in media], [png.read_bytes()])
+
+
 class CompassFontLoader(unittest.TestCase):
     def test_paste_compass_uses_the_given_loader(self):
         from PIL import Image

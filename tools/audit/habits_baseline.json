@@ -118,9 +118,6 @@
  "ops/hart-ops/tests/test_crew_master.py": {
   "dated-note": 1
  },
- "ops/station_maps/scripts/sheet_kit.py": {
-  "import-exit": 1
- },
  "tools/audit/check_layout_facts.py": {
   "import-exit": 1
  },
