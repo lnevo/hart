@@ -118,7 +118,8 @@ BY_KIND: dict[str, tuple[str, ...]] = {
     "unit-hart-ops": (*CODE, *SITE),
     "unit-schematic": (*CODE, "docs/ops/**/*", "wiki/pipelines/**/*", "www/crew/**/*", "www/data/**/*", "ops/**/*"),
     "unit-anyrail": (*CODE, "www/build/**/*", "docs/**/*"),
-    "unit-hartlib": (*CODE, "**/*.py"),             # test_devices_one_path reads every tracked .py
+    # test_devices_one_path reads every tracked .py; test_roads reads the car pipeline's roads and models
+    "unit-hartlib": (*CODE, "**/*.py", "ops/hart-ops/data/roads.csv", "ops/hart-ops/data/loco_models.csv"),
     "unit-mimic": CODE,
     "unit-cats": CODE,
     "unit-jmri-scripts": CODE,

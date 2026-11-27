@@ -37,7 +37,8 @@ class Roads(unittest.TestCase):
     def test_bad_rows_name_the_line(self):
         for body, said in (("BO,B&O,,,\nBO,,,,\n", ":3: road BO is listed twice"),
                            (",B&O,,,\n", ":2: road is empty"),
-                           ("BO,,B&O,,\nCO,,B&O,,\n", ":3: car_spellings 'B&O' is already road BO's")):
+                           ("BO,,B&O,,\nCO,,B&O,,\n", ":3: car_spellings 'B&O' is already road BO's"),
+                           ("ATSF,,Santa Fe,,\n", ":2: car_spellings 'Santa Fe' must be in capitals ('SANTA FE')")):
             with self.assertRaises(RoadsError) as cm:
                 roads.read_roads(self.write("roads.csv", HEADER + body))
             self.assertIn(said, str(cm.exception))

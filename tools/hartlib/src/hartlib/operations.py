@@ -28,13 +28,11 @@ one road only. loco_models.csv maps a model (as Operations Pro names it) to its 
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
-from pathlib import Path
-
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from . import paths
 from .errors import HartlibError
-from .railroad_facts import FactsError, read_rows
 
 OPERATIONS_DIR = paths.REPO_ROOT / "jmri" / "layouts" / "hart" / "operations"
 HART_OPS_DATA = paths.REPO_ROOT / "ops" / "hart-ops" / "data"
@@ -86,7 +84,8 @@ ROAD_COLUMNS = ["road", "marks", "car_spellings", "engine_spellings"]
 
 
 class RoadsError(HartlibError, ValueError):
-    """roads.csv or loco_models.csv cannot be read or is not in its shape; the message names the file and line."""
+    """roads.csv or loco_models.csv cannot be read or is not in its shape; the message names the file, and the line
+    for a bad row."""
 
 
 @dataclass(frozen=True)
@@ -98,6 +97,7 @@ class Roads:
 
 
 def _rows(path: Path, required: list[str]) -> list[tuple[int, dict[str, str]]]:
+    from .railroad_facts import FactsError, read_rows   # here, so reading a roster loads no layout modules
     try:
         return read_rows(path, required, optional=["notes"])
     except FactsError as exc:
@@ -124,6 +124,8 @@ def read_roads(path: Path = ROADS_CSV) -> Roads:
             display[code] = row["marks"]
         for col, table in aliases.items():
             for s in _spellings(row[col]):
+                if s != s.upper():   # the matchers upper-case what they look up, so a lower-case spelling never matches
+                    raise RoadsError(f"{path}:{line}: {col} {s!r} must be in capitals ({s.upper()!r})")
                 if table.get(s, code) != code:
                     raise RoadsError(f"{path}:{line}: {col} {s!r} is already road {table[s]}'s")
                 table[s] = code
