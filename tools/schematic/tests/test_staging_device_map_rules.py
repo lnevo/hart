@@ -68,9 +68,13 @@ class DrawnNames(unittest.TestCase):
         self.assertIn("trial names for track 9B-end, which the staging drawing does not have", text)
         self.assertIn("trial names the staging drawing does not have: ['OS Switch 7', 'Track 1B-3A 2/2']", text)
 
-    def test_load_takes_its_files_by_keyword(self):
+    def test_load_takes_one_options_record(self):
         with self.assertRaises(TypeError):
-            sdm.load({}, sdm.DEVICE_MAP, sdm.MASTS)     # type: ignore[misc]
+            sdm.load({}, sdm.DEVICE_MAP, sdm.MASTS)     # type: ignore[call-arg]
+        with self.assertRaisesRegex(TypeError, r"options must be a LoadOptions, not \w*Path"):
+            sdm.load({}, sdm.DEVICE_MAP)                # type: ignore[arg-type]
+        self.assertEqual(sdm.DEFAULT_LOAD, sdm.LoadOptions(sdm.DEVICE_MAP, sdm.MASTS, sdm.STATIONS,
+                                                           sdm.INTERLOCKINGS, None, True, True, True))
 
     def test_os_layer_gives_a_parts_pieces_to_its_block(self):
         names = staging_records.StagingNames(turnouts={}, os={}, blocks={"s1": ["P", "T"]})

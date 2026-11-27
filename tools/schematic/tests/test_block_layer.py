@@ -467,7 +467,7 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         text = bdm.WIRING.read_text(encoding="utf-8")
         pf = temp_file("wiring.csv", pins(text) if pins else text)
         self.addCleanup(remove, pf)
-        return bdm.staging_rows(self.bands, self.joined, self.runs, self.files, exceptions=ex, pins=pf, places=places)
+        return bdm.staging_rows(self.bands, self.joined, self.runs, self.files, ex, pf, places).rows
 
     @staticmethod
     def by(got):
