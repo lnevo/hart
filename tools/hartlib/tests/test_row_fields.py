@@ -6,7 +6,7 @@ from __future__ import annotations
 import sys
 import unittest
 from collections.abc import Callable, Iterator
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from pathlib import Path
 from unittest import mock
 
@@ -23,7 +23,9 @@ def no_mapping_view() -> Iterator[None]:
             raise AssertionError(f"a hartlib reader used MasterRow.{name}")
         return call
     names = ("__getitem__", "__iter__", "__len__", "__contains__", "get", "keys", "items", "values", "__or__")
-    with mock.patch.multiple(device_rows.MasterRow, **{n: refuse(n) for n in names}):
+    with ExitStack() as stack:
+        for n in names:
+            stack.enter_context(mock.patch.object(device_rows.MasterRow, n, refuse(n)))
         yield
 
 
@@ -72,6 +74,8 @@ class TheTwoRowForms(unittest.TestCase):
 
 
 class TheReadersTakeFields(unittest.TestCase):
+    rows: tuple[device_rows.MasterRow, ...]
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.rows = devices.load()          # read (and cached) before the view is refused
