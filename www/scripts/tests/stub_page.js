@@ -1,7 +1,8 @@
 // A stub page for running one www/js viewer (archive.js, gallery.js, wiring.js) in node: nav.js and the viewer run in
 // a vm against stub elements that keep what the script writes. Elements do not parse their HTML: querySelectorAll
-// finds nothing and querySelector hands back one stub per selector, so a test drives the page through its URL, its
-// stored view, its public API and the listeners on the named elements and the document.
+// finds what a test put in el.all (nothing by default) and querySelector hands back one stub per selector, so a test
+// drives the page through its URL, its stored view, its public API and the listeners on the named elements and the
+// document.
 "use strict";
 const assert = require("assert");
 const fs = require("fs");
@@ -23,6 +24,7 @@ class StubEl {
     this.attrs = {};
     this.listeners = {};
     this.found = {};
+    this.all = {}; // selector -> the elements querySelectorAll hands back, set by a test
     this.children = [];
     const cls = new Set();
     this.classList = {
@@ -39,7 +41,7 @@ class StubEl {
   removeAttribute(k) { delete this.attrs[k]; }
   appendChild(c) { this.children.push(c); return c; }
   querySelector(sel) { return (this.found[sel] = this.found[sel] || new StubEl("div", "")); }
-  querySelectorAll() { return []; }
+  querySelectorAll(sel) { return this.all[sel] || []; }
   closest() { return null; }
   focus() {}
   // What the script left on this element, for a snapshot.
@@ -56,7 +58,8 @@ class StubEl {
 
 // opts: ids (elements the page has), json ({rel: data} for HARTOps.loadJson), search, hash, stored (localStorage),
 // localStorage (in place of the stub store), fetch (the fetch the viewer sees; default: every request fails), site
-// (HARTOps.loadSite's answer).
+// (HARTOps.loadSite's answer), before (scripts the page loads after nav.js and before the viewer, such as
+// js/photo-viewer.js).
 function loadPage(script, opts) {
   const els = {};
   for (const id of opts.ids) els[id] = new StubEl("div", id);
@@ -95,7 +98,7 @@ function loadPage(script, opts) {
     },
     loadSite: async () => opts.site || { public: true },
   });
-  vm.runInContext(fs.readFileSync(script, "utf8"), ctx, { filename: path.basename(script) });
+  for (const s of (opts.before || []).concat([script])) vm.runInContext(fs.readFileSync(s, "utf8"), ctx, { filename: path.basename(s) });
   const fire = (type, e) => (docListeners[type] || []).forEach((fn) => fn(Object.assign({ preventDefault() {}, stopPropagation() {} }, e)));
   const snapshot = () => {
     const out = { title: document.title, urls: urls.slice(), stored: Object.fromEntries(store), els: {}, created: [] };
