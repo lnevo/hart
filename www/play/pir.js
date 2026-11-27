@@ -232,5 +232,7 @@ function sheet(S){
   return h;
 }
 
+/* The points' names, for the play test's check that they are spelled as road-engine.js ST spells its stations. */
+RE.pirPoints=Object.freeze(POINTS.map(p=>p.n));
 window.NevilleRuns=Object.assign(window.NevilleRuns||{},{pir:run});
 })();
