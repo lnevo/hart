@@ -112,9 +112,10 @@ SITE = ("www/**/*", "ops/**/*", "docs/**/*", "wiki/**/*", "media/**/*", "archive
 EVERYTHING = ("**/*",)
 # The files of ops/hart-ops/data/ that unit-hart-ops reads (a trace of the whole suite, the sts-helpers tests
 # included): the rest of that folder (trains.csv, locos.csv, the queues, the sidecars) is not its input.
-UNIT_HART_OPS_DATA = ("HART_MergedCarRoster.xml", "OperationsCarRoster.xml", "OperationsEngineRoster.xml",
-                      "crew.json", "image_metadata.csv", "industries.csv", "industry_notes.csv", "industry_sheet.csv",
-                      "loco_models.csv", "roads.csv", "spot_assignments.csv", "spot_usages.csv")
+UNIT_HART_OPS_DATA = ("HART_MergedCarRoster.xml", "HART_Spot_Waybills.csv", "OperationsCarRoster.xml",
+                      "OperationsEngineRoster.xml", "crew.json", "image_metadata.csv", "industries.csv",
+                      "industry_notes.csv", "industry_sheet.csv", "loco_models.csv", "roads.csv", "spot_assignments.csv",
+                      "spot_usages.csv", "waybill_empty_returns.csv", "waybill_loads.csv", "waybill_parties.csv")
 
 # job-name prefix -> patterns (tools/check.sh is always added): what a CHECK_AUDIT run saw each unit job read
 # (`check_stamps.py audit-report DIR`), widened to whole folders. Other manifest jobs fall back to MANIFEST_CHECK.

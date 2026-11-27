@@ -398,6 +398,7 @@ class DeckBuilding(SeededCase):
             wdeck.build_interchange_deck([row])
         self.assertIn(f"interchange card {row.card_id}", str(caught.exception))
         self.assertIn("Calgon Carbon", str(caught.exception))
+        self.assertIsInstance(caught.exception, car_paths.CardPipelineError)   # main exits with the message
 
     def test_a_broken_rule_file_is_a_card_pipeline_error(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -528,6 +529,18 @@ class MainRun(SeededCase):
             rows = read_rows(csv_out)
         self.assertTrue(rows)
         self.assertEqual({r["card_kind"] for r in rows}, {"interchange"})
+
+    def test_main_writes_its_deck_list_to_the_output_folder_never_the_master(self):
+        written = []
+        self.seed(20260101)
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.object(gwc.wdeck, "export_waybill_csv", lambda cards, path: written.append(path)), \
+                    mock.patch.object(gwc, "generate", lambda printed: None), \
+                    mock.patch.object(gwc, "SPOT_CSV", spot_csv(Path(tmp))), \
+                    mock.patch("sys.stdout", io.StringIO()):
+                gwc.main()
+        self.assertEqual(written, [car_paths.OUTPUT_DIR / "HART_Spot_Waybills_deck.csv"])
+        self.assertNotEqual(written[0].resolve(), wdata.waybills.SPOT_WAYBILLS.resolve())
 
     def test_main_fails_loudly_on_a_missing_csv(self):
         with tempfile.TemporaryDirectory() as tmp:

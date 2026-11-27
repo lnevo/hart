@@ -28,8 +28,8 @@ PROCESS_CHEMICALS = "Process Chemicals"
 GENERAL_FREIGHT = "General Freight"
 
 
-class WaybillDataError(ValueError):
-    """A waybill table entry or spot usage the deck cannot be built from."""
+class WaybillDataError(CardPipelineError, ValueError):
+    """A waybill table entry or spot usage the deck cannot be built from: the run stops with the message."""
 
 
 class WaybillRulesFileError(CardPipelineError, ValueError):

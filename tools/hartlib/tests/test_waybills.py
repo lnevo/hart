@@ -110,6 +110,14 @@ class EmptyReturns(Files):
                     self.write("r.csv", RETURNS + "calgon,Scully Yard,POHC\ncalgon,Demmler Yard,CSX\n"))
         self.raises("via 'NS' is not one of CSX, POHC", waybills.read_empty_returns,
                     self.write("r.csv", RETURNS + "calgon,Scully Yard,NS\n"))
+        self.raises("route_to 'Glenwood Yard' is not one of Demmler Yard, Scully Yard", waybills.read_empty_returns,
+                    self.write("r.csv", RETURNS + "calgon,Glenwood Yard,POHC\n"))
+
+    def test_the_yards_are_the_sidecars(self):
+        sidecar = waybills.WAYBILL_EMPTY_RETURNS.with_name("waybill_empty_returns.columns.csv")
+        with sidecar.open(newline="", encoding="utf-8") as f:
+            values = {r["column"]: r["values"] for r in csv.DictReader(f)}
+        self.assertEqual(tuple(values["route_to"].split(";")), waybills.RETURN_YARDS)
 
 
 class Interchange(Files):

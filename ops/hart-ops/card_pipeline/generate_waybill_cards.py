@@ -78,7 +78,9 @@ DATA = car_paths.DATA
 OUTPUT_DIR = car_paths.OUTPUT_DIR
 SPOT_CSV = DATA / "spot_assignments.csv"
 OUTPUT = OUTPUT_DIR / "HART_Spot_Waybills.docx"
-WAYBILL_CSV = DATA / "HART_Spot_Waybills.csv"
+# the printed deck, one row per card; never the master HART_Spot_Waybills.csv, which the deck is read from:
+# a run renumbers card_id from 1 and draws the parties, so writing the master would rewrite it
+WAYBILL_CSV = OUTPUT_DIR / "HART_Spot_Waybills_deck.csv"
 
 
 class SpotCsvMissingError(CardPipelineError, FileNotFoundError):

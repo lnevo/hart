@@ -8490,7 +8490,7 @@
   {
    "from": "ops/hart-ops/card_pipeline/generate_waybill_cards.py",
    "to": "ops/hart-ops/card_pipeline/output",
-   "label": "HART_Spot_Waybills.docx"
+   "label": "HART_Spot_Waybills.docx and _deck.csv"
   },
   {
    "from": "ops/hart-ops/card_pipeline/intake_stages.py",

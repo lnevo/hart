@@ -1,5 +1,5 @@
 column,description,type,required,key,refs,values
-card_id,"The waybill card's key, assigned once and never reused: a retired card leaves a gap (36). generate_waybill_cards.py renumbers the cards from 1 when it runs, so it is not run against this file until the owner decides (docs/data/sidecars.md).",int,yes,yes,,
+card_id,"The waybill card's key, assigned once and never reused: a retired card leaves a gap (36). generate_waybill_cards.py numbers its printed deck from 1 in its own output list and never writes this file (docs/data/sidecars.md).",int,yes,yes,,
 industry_id,"The industry the card is for (ADR-039). Empty on interchange traffic, which belongs to no industry.",str,traffic=industry,,ops/hart-ops/data/industries.csv:industry_id,
 traffic,"industry for a card to or from an island industry; interchange for a car going straight between Scully Yard and Demmler Yard (the orange and blue waybills to CSX and POHC).",enum,yes,,,industry;interchange
 industry,"The name across the top of the card: the industry's name with the old spellings A Stucki Co and Ferrel Gas, or INTERCHANGE. Kept because external/sts-helpers reads it; www/scripts/tests/test_industry_ids.py checks it against the id through its alias list.",str,yes,,,

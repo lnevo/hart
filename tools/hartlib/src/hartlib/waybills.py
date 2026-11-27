@@ -45,6 +45,7 @@ ROLES: tuple[Role, ...] = ("supplier", "customer")
 FLOWS: tuple[Flow, ...] = ("IN", "OUT")
 CUSTOMER_ROADS = ("CSX", "NS", "POHC")   # a customer's via
 ENTRY_ROADS = ("CSX", "POHC")            # a supplier's entry, an empty's return road, an interchange card's via
+RETURN_YARDS = ("Demmler Yard", "Scully Yard")   # an empty's route_to: waybill_empty_returns.columns.csv's values
 
 LOAD_COLUMNS = ["industry_id", "usage", "inbound_load", "outbound_load"]
 PARTY_COLUMNS = ["industry_id", "usage", "role", "party", "name", "via", "entry", "commodity"]
@@ -172,6 +173,7 @@ def read_empty_returns(path: Path = WAYBILL_EMPTY_RETURNS) -> dict[str, EmptyRet
     out: dict[str, EmptyReturn] = {}
     for line, row in _rows(path, RETURN_COLUMNS):
         _need(path, line, row, RETURN_COLUMNS)
+        _one_of(path, line, "route_to", row["route_to"], RETURN_YARDS)
         _one_of(path, line, "via", row["via"], ENTRY_ROADS)
         if row["industry_id"] in out:
             raise WaybillRulesError(f"{path}:{line}: {row['industry_id']} is listed twice")
