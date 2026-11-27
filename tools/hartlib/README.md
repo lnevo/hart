@@ -228,6 +228,10 @@ anything else fails, and a `KNOWN` entry that no longer happens fails.
 
 ### `hartlib.devices`
 
+Tests and tools reach the devices files only through `hartlib.devices` (`MASTER_FILE`, `FIELD_FILE`,
+`master_path()`, `field_path()`, `load`, `index`, `field_index`, `write_field`), never by file name; the static check
+`tools/audit/check_devices_one_path.py` fails any tracked `.py` outside hartlib that names one or opens the master.
+
 The device master for all three levels (ADR-029) is two files since 2026-11-21 (the amendment):
 `devices_generated.csv`, every row the builders make, and `devices_field.csv`, the owner's cells (`FIELD_COLUMNS`),
 each row keyed by its device ID on its level (`KEY`: level, id; naming-layers step 4) and holding its layer, plus a

@@ -156,7 +156,7 @@ BY_KIND: dict[str, tuple[str, ...]] = {
                        "ops/hart-ops/publications/**/*"),
     # test_levels_page compares the article it builds; nothing under docs/ is read
     "unit-anyrail": (*CODE, "www/build/**/*"),
-    # test_devices_one_path reads every tracked .py; test_roads reads the car pipeline's roads and models
+    # test_block_lengths reads every tracked .py; test_roads reads the car pipeline's roads and models
     "unit-hartlib": (*CODE, "**/*.py", "ops/hart-ops/data/roads.csv", "ops/hart-ops/data/loco_models.csv"),
     "unit-mimic": CODE,
     "unit-cats": CODE,
