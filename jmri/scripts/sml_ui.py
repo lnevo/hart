@@ -85,6 +85,8 @@ class SmlUi(object):
             try:
                 if c is self._button:
                     return True
+                if not hasattr(c, "getText"):  # a panel or separator: not a button
+                    continue
                 if c.getText() in ("SML Enabled", "SML Disabled"):
                     space.remove(c)
                     print("mqtt_signalhead: removed SML button left by an earlier run")

@@ -61,6 +61,33 @@ class Failures(unittest.TestCase):
         self.assertEqual(f("Gare é"), "Gare ?")
         self.assertEqual(f(42), "42")
 
+    def test_ascii_of_a_bean_whose_text_throws_still_gives_a_line(self) -> None:
+        f = sys.modules["sml_beans"]._ascii
+
+        class Broken:
+            def __str__(self) -> str:
+                raise RuntimeError("toString failed")
+
+        class Worse(Broken):
+            def __repr__(self) -> str:
+                raise RuntimeError("repr failed")
+
+        self.assertIn("Broken", f(Broken()))
+        self.assertEqual(f(Worse()), "?")
+
+    def test_a_logic_whose_mast_cannot_be_named_still_gets_a_label(self) -> None:
+        beans = sys.modules["sml_beans"]
+
+        class NamelessMast:
+            getUserName = getSystemName = staticmethod(_fail("name gone"))
+
+            def __str__(self) -> str:
+                raise RuntimeError("toString failed")
+
+        out = self.run_out(lambda: beans._logic_label(base.FakeLogic(NamelessMast(), "Mast 8RA")), times=1)
+        self.assertIn("cannot read getUserName", out)
+        self.assertIn("NamelessMast", beans._logic_label(base.FakeLogic(NamelessMast(), "Mast 8RA")))
+
     def test_a_bean_name_that_cannot_be_read_falls_to_the_next_and_is_printed_once(self) -> None:
         beans = sys.modules["sml_beans"]
         mast = jf.FakeMast("IF$shsm:x(IH440)")
@@ -155,6 +182,19 @@ class Failures(unittest.TestCase):
         self.assertEqual(out.count("removed SML button left by an earlier run"), 1)
         self.c._button = broken
         self.assertTrue(self.c._button_on_strip(space))
+
+    def test_a_strip_component_with_no_text_is_skipped_quietly(self) -> None:
+        space = base._Space()
+
+        class Panel:
+            pass
+
+        stale = jf.FakeButton("SML Disabled")
+        space.add(Panel())
+        space.add(stale)
+        out = self.run_out(lambda: self.c._button_on_strip(space), times=1)
+        self.assertNotIn("cannot read button-strip component", out)
+        self.assertEqual(out.count("removed SML button left by an earlier run"), 1)
 
 
 if __name__ == "__main__":

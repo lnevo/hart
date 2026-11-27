@@ -60,18 +60,27 @@ def _log_once(msg):
 
 def _ascii(s):
     """Text of s for a print line, non-ASCII replaced; repr(s) when its text is not ASCII-safe
-    (Jython 2: str() of non-ASCII unicode, or a byte string that is not ASCII)."""
+    (Jython 2: str() of non-ASCII unicode, or a byte string that is not ASCII). Never raises:
+    it builds the failure lines, so a bean whose toString() throws still gets a line."""
     if s is None:
         return ""
     if not isinstance(s, str):
         try:
             s = str(s)
-        except UnicodeError:
-            return repr(s)
+        except Exception:  # toString() of a Java bean may throw anything
+            return _repr_or_placeholder(s)
     try:
         return s.encode("ascii", "replace").decode("ascii")
     except UnicodeError:
+        return _repr_or_placeholder(s)
+
+
+def _repr_or_placeholder(s):
+    """repr(s), or "?" when repr() itself throws."""
+    try:
         return repr(s)
+    except Exception:
+        return "?"
 
 
 def _topic_suffix(sys_name):
