@@ -20,7 +20,7 @@ data file fails unless JYTHON_ALLOWED lists it by name (one today, loco_roster_i
 
 Limits. A message sentence that names a file holds whitespace, so it is allowed; a path built from pieces ("block_" +
 "lengths.csv") or read from a config is not seen; a script that names a file only to pass it to a hartlib reader is
-still listed, as the check cannot see where the path goes (reason THROUGH). tools/hartlib/tests/test_devices_one_path.py
+still listed, as the check cannot see where the path goes (reason THROUGH). tools/audit/check_devices_one_path.py
 also holds the device master's two files to hartlib.devices.
 """
 from __future__ import annotations

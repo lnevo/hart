@@ -38,6 +38,7 @@ SCANS = {
     "ai-speak": lambda: load("check_ai_speak", "tools/audit/check_ai_speak.py").DEFAULT_GLOBS,
     "agent-docs": lambda: load("check_agent_docs", "tools/audit/check_agent_docs.py").SCAN_GLOBS,
     "habits": lambda: load("check_habits", "tools/audit/check_habits.py").SCAN_GLOBS,
+    "devices-one-path": lambda: load("check_devices_one_path", "tools/audit/check_devices_one_path.py").SCAN_GLOBS,
     "data-readers": lambda: load("check_data_readers", "tools/audit/check_data_readers.py").SCAN_GLOBS,
     "data-schemas": lambda: load("check_data", "tools/ops/check_data.py").SCAN_GLOBS,
     "py-sizes": lambda: load("check_py_sizes", "tools/audit/check_py_sizes.py").SCAN_GLOBS,
