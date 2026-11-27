@@ -16,5 +16,6 @@ Scripts and tools that were taken out of use. Nothing here runs, and the paths i
 | `roster-sync/` | The DecoderPro roster copy from the Pi to the Mac and Windows and its helpers, from `tools/hosts/`; retired once the repo held the roster master (ADR-039) |
 | `schematic-experiments/` | A one-band schematic solver experiment |
 | `speedmatching/` | Speed-match and profile scripts, from `docs/jmri/speedmatching/` |
+| `status-split/` | The one-time STATUS.md to `wiki/status/` split (ADR-038) and its test, from `tools/ops/` |
 | `tables-scripts/` | Two old tables.xml scripts |
 | `wiring-refresh/` | The wiring workbook refresh scripts, from `tools/wiring/` |

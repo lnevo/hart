@@ -129,9 +129,6 @@
  "tools/audit/tests/test_pipeline_map_coverage.py": {
   "dated-note": 1
  },
- "tools/audit/tests/test_split_status.py": {
-  "dated-note": 3
- },
  "tools/audit/tests/test_staging_wired_heads.py": {
   "dated-note": 2
  },

@@ -6048,13 +6048,13 @@
    "path": "tools/ops/screenshot.py"
   },
   {
-   "id": "tools/ops/split_status.py",
+   "id": "archive/code/status-split/split_status.py",
    "label": "split_status.py",
    "kind": "generator",
    "status": "live",
    "domain": "agents",
    "desc": "Splits a one-file wiki/STATUS.md into entry files under wiki/status/ (ADR-038) and checks the result.",
-   "path": "tools/ops/split_status.py"
+   "path": "archive/code/status-split/split_status.py"
   },
   {
    "id": "tools/ops/agent_launch_count.py",
@@ -13896,11 +13896,11 @@
   },
   {
    "from": "wiki/STATUS.md",
-   "to": "tools/ops/split_status.py",
+   "to": "archive/code/status-split/split_status.py",
    "label": "one-file page"
   },
   {
-   "from": "tools/ops/split_status.py",
+   "from": "archive/code/status-split/split_status.py",
    "to": "wiki/status",
    "label": "entry files"
   },
