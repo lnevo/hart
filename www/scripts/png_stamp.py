@@ -45,7 +45,7 @@ def _read(path: Path) -> list[tuple[bytes, bytes]]:
     try:
         data = Path(path).read_bytes()
     except OSError as err:
-        raise PngError(f"cannot read {path}: {err.strerror or err}") from None
+        raise PngError(f"cannot read {path}: {err.strerror or err}") from err
     return _chunks(data, Path(path))
 
 
@@ -77,6 +77,6 @@ def write_stamp(path: Path, value: str) -> None:
         tmp.write_bytes(data)
         os.replace(tmp, path)
     except OSError as err:
-        raise PngError(f"cannot write {path}: {err.strerror or err}") from None
+        raise PngError(f"cannot write {path}: {err.strerror or err}") from err
     if stamp(path) != value:
         raise PngError(f"{path} reads back without the stamp just written")
