@@ -85,7 +85,6 @@
  "tools/audit/tests/test_public_text.py": 3,
  "tools/audit/tests/test_publish_draft.py": 14,
  "tools/audit/tests/test_site_device_names.py": 9,
- "tools/audit/tests/test_split_status.py": 3,
  "tools/audit/tests/test_stamp_gate.py": 25,
  "tools/audit/tests/test_stamps_audit.py": 1,
  "tools/audit/tests/test_stamps_keys.py": 1,

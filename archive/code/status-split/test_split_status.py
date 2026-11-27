@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-SPEC = importlib.util.spec_from_file_location("split_status", ROOT / "tools/ops/split_status.py")
+SPEC = importlib.util.spec_from_file_location("split_status", ROOT / "archive/code/status-split/split_status.py")
 ss = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(ss)
 sc = ss.sc
