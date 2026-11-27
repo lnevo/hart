@@ -378,7 +378,11 @@ takes it), CLASH (the repo changed it too, or there is no base: reviewed), DEVIC
 device-master row: reviewed, `Edit`s to write) and DROPPED (the build's: the repo wins, with what to change instead).
 `new_template()` writes the chosen template items, `edited_rows()` the merged cells, and `verify()` checks a
 rebuild gives exactly what the plan promised. `read_template()` accepts an extra section a split kept (a Route
-table, say), never a second copy of a known one. Errors are `SplitError`.
+table, say), never a second copy of a known one. Errors are `SplitError`. The code is in three modules, and
+`store_split` imports the names callers use from the other two: `store_items` (`index`, `label`, `change_text`, who
+claims an item, the JMRI version), `store_plan` (`plan()` and its records; each item is a typed `Draft` before it has
+its id) and `store_split` (choices, `new_template()`, `edited_rows()`, `verify()`, `report()`).
+`tests/test_store_split_real.py` runs the plan on Stores made from this checkout's `tables.xml` by known edits.
 
 ### `hartlib.places` and `hartlib.occupancy_bindings`
 

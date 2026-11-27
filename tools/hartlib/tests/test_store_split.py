@@ -11,6 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from hartlib import devices as D, tables  # noqa: E402
+from hartlib import store_plan as sp  # noqa: E402
 from hartlib import store_split as ss  # noqa: E402
 from hartlib import tables_build as tb  # noqa: E402
 from master_edit import fixture_id  # noqa: E402
@@ -636,6 +637,30 @@ class RepeatedSettings(unittest.TestCase):
         self.assertEqual(["Main", "Late"], [t.findtext("name") for t in new.iter("Thread")])
         rebuilt = with_threads(doc(), "Main", "Late")
         self.assertEqual([], ss.verify(p, ss.Choices(), base, rebuilt, new))
+
+
+class Invariants(unittest.TestCase):
+    """The checks plan and verify make on their own records."""
+
+    KEY = ss.BeanKey("bean", tb.LCC_TURNOUTS, "turnout", "bean", "M2T408")
+
+    def test_a_device_draft_with_no_edits_stops(self) -> None:
+        draft = sp.Draft(ss.DEVICE, self.KEY, sp.Sides(None, None, None), "userName", "merge writes nothing")
+        with self.assertRaisesRegex(ss.SplitError, "device item .* has 0 edits"):
+            sp._numbered([draft])
+
+    def test_a_dropped_draft_with_edits_stops(self) -> None:
+        edit = ss.Edit(("1", "x"), "user_name", "a", "b")
+        draft = sp.Draft(ss.DROPPED, self.KEY, sp.Sides(None, None, None), "userName", "dropped", edits=(edit,))
+        with self.assertRaisesRegex(ss.SplitError, "dropped item .* has 1 edits"):
+            sp._numbered([draft])
+
+    def test_a_merged_rename_of_a_bean_the_store_lacks_stops_verify(self) -> None:
+        item = ss.Item("D1", ss.DEVICE, self.KEY, "userName", "merge writes", store=None,
+                       edits=(ss.Edit(("1", "x"), "user_name", "a", "b"),), part="userName")
+        p = ss.Plan([item], True, "f")
+        with self.assertRaisesRegex(ss.SplitError, "D1 turnout M2T408: the plan merges a userName"):
+            ss.verify(p, ss.Choices(merge=frozenset({"D1"})), doc(), doc(), doc(template=True))
 
 
 if __name__ == "__main__":
