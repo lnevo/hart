@@ -23,6 +23,7 @@ from hartlib import coordinator  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from pi_drop import applied  # noqa: E402
+from win_jython import windows_jython  # noqa: E402
 
 DEPLOY = ROOT / "tools/hosts/deploy"
 PI_APPLY = ROOT / "tools/hosts/pi/apply_hart_package_local.sh"
@@ -95,8 +96,7 @@ class CoordinatorShipping(unittest.TestCase):
         self.assert_lists_siblings(names, "Pi apply")
 
     def test_windows_list(self) -> None:
-        text = block(read(WIN_APPLY), "$jythonSrc = @(", "Windows apply")
-        self.assert_lists_siblings(named_modules(text, "\\"), "Windows apply")
+        self.assert_lists_siblings(named_modules("\n".join(windows_jython()), "/"), "Windows apply")
 
     def test_live_paths(self) -> None:
         lines = {ln.strip() for ln in read(LIVE_PATHS).splitlines()}
@@ -193,8 +193,7 @@ class PanelStatusShipping(unittest.TestCase):
         self.assert_lists_parts([n for n in pi_jython() if n.startswith("panel_status")], "Pi apply")
 
     def test_windows_list(self) -> None:
-        text = block(read(WIN_APPLY), "$jythonSrc = @(", "Windows apply")
-        self.assert_lists_parts(named_parts(text, "\\"), "Windows apply")
+        self.assert_lists_parts(named_parts("\n".join(windows_jython()), "/"), "Windows apply")
 
     def test_live_paths(self) -> None:
         lines = {ln.strip() for ln in read(LIVE_PATHS).splitlines()}

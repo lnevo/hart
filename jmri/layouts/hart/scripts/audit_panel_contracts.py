@@ -25,9 +25,10 @@ from hartlib import devices, level_masts, levels, parked, paths, railroad_facts,
 # Sibling modules in this script's folder (paths.LAYOUT_SCRIPTS), also when another tool loads this file by path.
 sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
 from audit_panel_base import SHOWN, Audit, text  # noqa: E402
-from audit_panel_graph import (  # noqa: E402,F401 (EXPECTED_*, TRAININFO and the SML reads: tests and tools)
-    EXPECTED_GRAPH, EXPECTED_SML, EXPECTED_TRAININFO, TRAININFO, audit_generated_dispatcher, audit_nx, audit_sml,
-    band_panels_in, carried_destinations, expected_bundle, sml_destinations,
+from audit_panel_graph import (  # noqa: E402,F401 (expected_*, TRAININFO and the SML reads: tests and tools)
+    TRAININFO, PanelCountsError, audit_generated_dispatcher, audit_nx, audit_sml, band_panels_in,
+    carried_destinations, expected_bundle, expected_graph, expected_sml, expected_traininfo, panel_counts,
+    sml_destinations,
 )
 from audit_panel_tables import (  # noqa: E402,F401 (continuing_closed_idents: tests)
     audit_block_contents_visible, audit_forbidden_mqtt_sensors, audit_generated_settings, audit_lcc_mqtt_turnout_aliases,
@@ -510,6 +511,11 @@ def main(argv: list[str] | None = None) -> int:
         staging = load_staging_masts()
     except (OSError, KeyError, ValueError, railroad_facts.FactsError) as exc:
         print(f"ERROR: cannot load the staging masts: {exc}")
+        return 1
+    try:
+        panel_counts()
+    except PanelCountsError as exc:
+        print(f"ERROR: {exc}")
         return 1
     sources = (("deployment", args.tables),) if args.tables else DEFAULT_SOURCES
     try:
