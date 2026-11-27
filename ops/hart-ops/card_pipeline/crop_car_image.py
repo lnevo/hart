@@ -15,8 +15,10 @@ from typing import Literal, TypedDict
 import numpy as np
 from PIL import Image, ImageOps
 
-# Sibling modules, on sys.path with this one. CROP, _backdrop_color, _level_image and
-# match_lightbox_white_balance are also imported from here by finalize_car_images and crop_picker.
+from card_errors import CardPipelineError  # sibling modules, on sys.path with this one
+
+# CROP, _backdrop_color, _level_image and match_lightbox_white_balance are also imported
+# from here by finalize_car_images and crop_picker.
 from crop_level import _backdrop_color, _level_image, match_lightbox_white_balance  # noqa: F401
 from crop_runs import _span, _trim_foreground
 from crop_settings import CROP
@@ -31,7 +33,6 @@ class Crop(TypedDict):
 
     source: str
     bbox: Box
-    bbox_size: tuple[int, int]
     output_size: tuple[int, int]
     ratio: float
     rotation_deg: float
@@ -54,23 +55,23 @@ def _estimate_tie_pitch(
     y1 = max(y0 + 1, min(y1, H))
     strip = gray[y0:y1, x0:x1]
     if strip.size == 0:
-        return 28.0
+        raise CardPipelineError(f"no track strip to read ties from in a {W}x{H} image")
+    frame = CROP.frame
     col = (strip < CROP.tone.track_thresh).mean(axis=0)
-    sm = np.convolve(col, np.ones(5) / 5, mode="same")
-    peaks: list[int] = []
-    for i in range(2, len(sm) - 2):
-        if sm[i] > sm[i - 1] and sm[i] > sm[i + 1] and sm[i] > 0.12:
-            peaks.append(i)
-    if len(peaks) >= 4:
-        peak_pitch = float(np.median(np.diff(peaks)))
-        cw = x1 - x0
-        cw_pitch = float(np.clip(cw / 52.0, 18.0, 40.0))
-        blended = (peak_pitch + cw_pitch) / 2.0
-        pitch = max(blended, cw_pitch * 0.82)
-        return float(np.clip(pitch, CROP.frame.tie_pitch_min, CROP.frame.tie_pitch_max))
-    cw = x1 - x0
-    cw_pitch = float(np.clip(cw / 52.0, 18.0, 40.0))
-    return cw_pitch
+    sm = np.convolve(col, np.ones(frame.tie_pitch_smooth) / frame.tie_pitch_smooth, mode="same")
+    edge = frame.tie_pitch_smooth // 2  # columns at each end the moving average does not cover
+    peaks = [
+        i
+        for i in range(edge, len(sm) - edge)
+        if sm[i] > sm[i - 1] and sm[i] > sm[i + 1] and sm[i] > frame.tie_peak_min
+    ]
+    lo, hi = frame.tie_pitch_width_range
+    cw_pitch = float(np.clip((x1 - x0) / frame.ties_per_car_width, lo, hi))
+    if len(peaks) < frame.tie_peaks_min_count:
+        return cw_pitch
+    blended = (float(np.median(np.diff(peaks))) + cw_pitch) / 2.0
+    pitch = max(blended, cw_pitch * frame.tie_pitch_floor_share)
+    return float(np.clip(pitch, frame.tie_pitch_min, frame.tie_pitch_max))
 
 
 def _columns(region: np.ndarray, band: tuple[float, float]) -> np.ndarray:
@@ -175,15 +176,16 @@ def _centered_crop_box(
 ) -> tuple[int, int, int, int]:
     """Symmetric tie margins past coupler tips, centered on the car."""
     H, W = gray.shape
+    frame = CROP.frame
     cw, ch = bx1 - bx0, by1 - by0
-    track_y0 = by0 + int(ch * 0.62)
-    track_y1 = min(H, by1 + int(ch * 0.08))
+    track_y0 = by0 + int(ch * frame.tie_strip_top)
+    track_y1 = min(H, by1 + int(ch * frame.tie_strip_below))
     pitch = _estimate_tie_pitch(gray, bx0, bx1, track_y0, track_y1)
-    pad_x = max(8, int(CROP.frame.tie_margin_count * pitch))
-    if cw >= W * CROP.frame.long_car_min_frac:
-        pad_x = min(pad_x, max(8, int(cw * CROP.frame.long_car_pad_x)))
-    pad_top = int(ch * CROP.frame.pad_top)
-    pad_bottom = int(ch * CROP.frame.pad_bottom)
+    pad_x = max(frame.pad_x_min_px, int(frame.tie_margin_count * pitch))
+    if cw >= W * frame.long_car_min_frac:
+        pad_x = min(pad_x, max(frame.pad_x_min_px, int(cw * frame.long_car_pad_x)))
+    pad_top = int(ch * frame.pad_top)
+    pad_bottom = int(ch * frame.pad_bottom)
 
     cx = (bx0 + bx1) / 2.0
     half_w = cw / 2.0 + pad_x
@@ -203,7 +205,7 @@ def _centered_crop_box(
     if shift:
         nleft = max(0, src_left + shift)
         nright = min(W, src_right + shift)
-        if nright - nleft >= want_w - 2:
+        if nright - nleft >= want_w - frame.recentre_slack_px:
             src_left, src_right = nleft, nright
 
     src_top = max(0, by0 - pad_top)
@@ -274,7 +276,6 @@ def process_image(src: Path, dst: Path | None = None) -> Crop:
     return {
         "source": src.name,
         "bbox": (bx0, by0, bx1, by1),
-        "bbox_size": (out_w, out_h),
         "output_size": (out_w, out_h),
         "ratio": out_w / max(out_h, 1),
         "rotation_deg": rotation,
