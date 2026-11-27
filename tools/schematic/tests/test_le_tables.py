@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import le_checks  # noqa: E402
 import le_common  # noqa: E402
 import le_tables  # noqa: E402
-from hartlib import level_devices  # noqa: E402
+from hartlib import block_numbering, level_devices  # noqa: E402
 from hartlib.railroad_facts import DeviceRow  # noqa: E402
 from le_common import BuildError  # noqa: E402
 
@@ -67,8 +67,8 @@ class CheckLevelBlocks(unittest.TestCase):
 
     def run_it(self, drawn=None, beans=None, numbered_as=None, retired=(), unbound=()):
         P = SimpleNamespace(blocks=set(drawn if drawn is not None else LEVEL_BLOCKS + ["Track Helix Outer"]))
-        with mock.patch.multiple(le_tables, BLOCK_NUMBERED_AS=numbered_as or {}, APPENDED_BLOCKS=(),
-                                 RETIRED_BLOCKS=tuple(retired)), \
+        made_up = block_numbering.Numbering(numbered_as or {}, (), tuple(retired))
+        with mock.patch.object(le_tables, "numbering", return_value=made_up), \
                 mock.patch.object(le_tables, "level_block_beans", return_value=BEANS if beans is None else beans):
             le_tables.check_level_blocks(base_root(unbound), P, {STAGING}, NAMES)
 

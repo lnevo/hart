@@ -8,18 +8,23 @@ import functools
 import re
 import sys
 from collections import defaultdict
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from pathlib import Path
+from typing import Any, NamedTuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402,F401  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 from hartlib import coordinator, devices, drawing_keys, level_devices, paths, railroad, tables  # noqa: E402
 from hartlib import level_masts as level_masts_lib  # noqa: E402  masts.csv and its virtual names
+# a run of tracks joined through turnbacks: start (node, port), [(strand id, reversed)], end (node, port)
+Run = tuple[tuple[str, str], list[tuple[str, bool]], tuple[str, str]]
+
 from le_common import (  # noqa: E402
     band_key, band_levels, bare, STAGING_LEVELS, BuildError, DEVICE_MAP, main_upper_device_map,
 )
 
 
-def crossover_strands(band) -> set:
+def crossover_strands(band: Mapping[str, Any]) -> set[str]:
     """Tracks joining two switches of one number C to C: inside a single crossover, as the plugin draws it."""
     nodes = band["nodes"]
     out = set()
@@ -31,13 +36,15 @@ def crossover_strands(band) -> set:
     return out
 
 
-def runs(band, skip=()):
+def runs(band: Mapping[str, Any], skip: Iterable[str] = ()) -> list[Run]:
     """Tracks joined through turnbacks: [(start (node, port), [(strand id, reversed)], end (node, port))]."""
     nodes, strands = band["nodes"], band["strands"]
     turn = lambda n: nodes[n]["kind"].startswith("turn")      # noqa: E731
-    done, out = set(), []
+    done: set[str] = set()
+    out: list[Run] = []
+    skip = set(skip)
 
-    def beyond(cur, node):
+    def beyond(cur: str, node: str) -> str:
         nxt = next((k for k in strands if k != cur and node in (strands[k]["src"][0], strands[k]["dst"][0])), None)
         if nxt is None:
             raise BuildError(f"turnback {node}: only track {cur} reaches it")
@@ -71,7 +78,7 @@ def runs(band, skip=()):
     return out
 
 
-def staging_lengths(names: dict, plan_inches: dict | None = None) -> dict:
+def staging_lengths(names: Mapping[str, Any], plan_inches: Mapping[str, float] | None = None) -> dict[str, float]:
     """{block: inches} of every staging block the schematic draws, from block_lengths.csv's plan_in (the AnyRail plan
     5.3c, tools/schematic/plan_lengths.py): the plugin cuts a track of several blocks at their
     plan shares (the Scale track ends in OS Switch 7, which is drawn its turnout's length). BuildError on a drawn
@@ -85,7 +92,7 @@ def staging_lengths(names: dict, plan_inches: dict | None = None) -> dict:
 
 
 @functools.lru_cache(maxsize=1)
-def plan_lengths() -> dict:
+def plan_lengths() -> dict[str, float]:
     """{block: plan inches} of block_lengths.csv (hartlib.block_lengths, the plan side); read once. BuildError on a
     file hartlib cannot read."""
     from hartlib import block_lengths, railroad
@@ -101,7 +108,7 @@ MASTS = level_masts_lib.PATH      # masts.csv, every level's (build_masts.py)
 ADDED_LEVELS = tuple(lv for lv in level_masts_lib.LEVELS if lv not in STAGING_LEVELS)
 
 
-def read_level_masts(path: Path = MASTS) -> list[dict]:
+def read_level_masts(path: Path = MASTS) -> list[dict[str, Any]]:
     """masts.csv's rows of the levels the build adds (ADDED_LEVELS; hartlib.level_masts.read: each with `heads` as
     [(internal system name, user name)]), checked again against signal_coordinator.py's own test: no mast or head on
     a name it would enrol or publish (lcos_named), but a head swapped in by its device row (the row's planned physical
@@ -122,7 +129,7 @@ def read_level_masts(path: Path = MASTS) -> list[dict]:
 
 
 @functools.lru_cache(maxsize=None)
-def lcos_rule():
+def lcos_rule() -> tuple[Callable[[str], bool], re.Pattern[str]]:
     """signal_coordinator.py's own test for an LCOS head's system name (_is_lcos_ih_sys) and the pattern it finds
     heads in a mast's system name by (_HEAD_IN_MAST), read from its source and its sibling modules' (hartlib.coordinator;
     it is Jython and imports jmri): the functions and constants they use, run here in CPython."""
@@ -130,20 +137,28 @@ def lcos_rule():
         src = coordinator.source()
     except coordinator.CoordinatorError as exc:
         raise BuildError(str(exc)) from exc
-    parts = []
-    for name in ("_LCOS_SIGNAL_UID_MIN", "_LCOS_SIGNAL_UID_MAX", "_HEAD_IN_MAST"):
-        m = re.search(rf"^{name} = .*$", src, re.M)
-        parts.append(m.group(0) if m else None)
-    for name in ("_packed_is_lcos_signal", "_is_lcos_ih_sys"):    # a whole top-level def, to the next top level
-        m = re.search(rf"^def {name}\(.*?(?=^\S)", src, re.M | re.S)
-        parts.append(m.group(0) if m else None)
-    if None in parts:
+    patterns = [(name, rf"^{name} = .*$", re.M)
+                for name in ("_LCOS_SIGNAL_UID_MIN", "_LCOS_SIGNAL_UID_MAX", "_HEAD_IN_MAST")]
+    patterns += [(name, rf"^def {name}\(.*?(?=^\S)", re.M | re.S)     # a whole top-level def, to the next top level
+                 for name in ("_packed_is_lcos_signal", "_is_lcos_ih_sys")]
+    parts: list[str] = []
+    lost: list[str] = []
+    for name, pattern, flags in patterns:
+        m = re.search(pattern, src, flags)
+        if m:
+            parts.append(m.group(0))
+        else:
+            lost.append(name)
+    if lost:
         raise BuildError("signal_coordinator.py and its sibling modules no longer define its LCOS head test as "
-                         "lcos_rule reads it")
-    ns = {"re": re}
+                         f"lcos_rule reads it: no {', '.join(lost)}")
+    ns: dict[str, Any] = {"re": re}
     # the module is Jython (it imports jmri, and Java names CPython cannot parse), so only these pieces are run
     exec(compile("\n".join(parts), "signal_coordinator.py", "exec"), ns)  # noqa: S102
-    return ns["_is_lcos_ih_sys"], ns["_HEAD_IN_MAST"]
+    is_lcos, in_mast = ns["_is_lcos_ih_sys"], ns["_HEAD_IN_MAST"]
+    if not callable(is_lcos) or not isinstance(in_mast, re.Pattern):
+        raise BuildError("signal_coordinator.py's _is_lcos_ih_sys is no function or its _HEAD_IN_MAST no pattern")
+    return is_lcos, in_mast
 
 
 def lcos_named(names: list[str]) -> list[str]:
@@ -158,7 +173,7 @@ def lcos_named(names: list[str]) -> list[str]:
     return sorted(out)
 
 
-def level_masts(names: dict, rows: list[dict], skip: set) -> None:
+def level_masts(names: dict[str, dict[str, Any]], rows: Sequence[Mapping[str, Any]], skip: set[str]) -> None:
     """Give each main and upper band in `names` (every key but `skip`: the bands of a level the base holds,
     le_common.base_keys) its masts (masts.csv rows) for the plugin: each in the
     band whose drawing has its facing track and its protected OS block (127-221 and Helix Inner meet Switches 127 and 131
@@ -204,7 +219,56 @@ def level_masts(names: dict, rows: list[dict], skip: set) -> None:
 
 # ---------------------------------------------------------------- main and upper placeholders
 
-def placeholder_names(bands, le_mod, page=None) -> tuple[dict, dict]:
+class Placeholders(NamedTuple):
+    """placeholder_names' result: {band key: names} and {block: length mm}."""
+    names: dict[str, dict[str, Any]]
+    lengths: dict[str, float]
+
+
+class LevelNames(NamedTuple):
+    """level_names' result: {band key: names} with the device-map names, and {block: plan length mm}."""
+    names: dict[str, dict[str, Any]]
+    lengths: dict[str, float]
+
+
+def _switch_names(title: str, key: str, band: Mapping[str, Any], le_mod: Any, page: Mapping[str, Any] | None,
+                  bdm: Any) -> dict[str, Any]:
+    """One band's turnouts, OS blocks and double crossovers' corner blocks, by node; `blocks` left empty."""
+    names: dict[str, Any] = dict(turnouts={}, os={}, blocks={}, xover_blocks={})
+    for n, d in sorted(band["nodes"].items()):
+        if d["kind"] == "dx":
+            names["turnouts"][n] = f"Switch {bare(d['label'])}"
+            try:
+                corners = le_mod.double_corners(band, n, key in (page or {}).get("rotate_bands", ()))
+                names["xover_blocks"][n] = bdm.xover_corners(bdm.base(d["label"]), corners)
+            except (bdm.MapError, le_mod.SchematicError) as exc:
+                raise BuildError(f"{title}: {exc}") from exc
+        elif d["kind"] == "switch":
+            names["turnouts"][n] = f"Switch {bare(d['label'])}"
+            names["os"][n] = "OS Switch " + re.sub(r"[AB]$", "", bare(d["label"]))
+    return names
+
+
+def _end_label(bands: Sequence[Any], joined: Mapping[tuple[int, str], tuple[int, str]], bi: int, n: str) -> str:
+    """The switch label at track end `n` of band `bi`: the switch beyond a connector `joined` pairs, else the node's
+    own label when it is a switch or double crossover, else ""."""
+    nodes = bands[bi][1]["nodes"]
+    if nodes[n].get("sub") == "link" and (bi, n) in joined:      # the far side of the connector
+        bj, m = joined[(bi, n)]
+        other = bands[bj][1]
+        sid = next(iter(list(other["nodes"][m]["ins"].values()) + list(other["nodes"][m]["outs"].values())))
+        s = other["strands"][sid]
+        n2 = s["dst"][0] if s["src"][0] == m else s["src"][0]
+        return bare(other["nodes"][n2].get("label"))
+    return bare(nodes[n].get("label")) if nodes[n]["kind"] in ("switch", "dx") else ""
+
+
+def inside_crossover(a: str, b: str) -> bool:
+    """Whether a track between switch labels `a` and `b` lies inside one crossover (101A to 101B)."""
+    return bool(a and b and a[-1:] in "AB" and b[-1:] in "AB" and a[:-1] == b[:-1] and a[:-1].isdigit())
+
+
+def placeholder_names(bands: Sequence[Any], le_mod: Any, page: Mapping[str, Any] | None = None) -> Placeholders:
     """({band key: names}, {block: length mm}) for every band but staging's (not STAGING_LEVELS: the
     staging band, whose names are the staging device map's, by its level). `bands` are the solved sheet's, titles
     unchanged (build_layout_le passes the plugin's drawn_bands, which keep them): each band's level is found by its
@@ -212,57 +276,33 @@ def placeholder_names(bands, le_mod, page=None) -> tuple[dict, dict]:
     A balloon loop is two blocks (the device map's loop_halves) and a double crossover four, one per corner
     (`xover_blocks`, named by the corner each leg reaches as the plugin draws it: the device map's xover_corners;
     `page`: the sheet's options, for rotate_bands). A track's placeholder is its switch-and-leg key
-    (staging_device_map.band_refs); BuildError on a connector the plugin's partners do not pair, which has no switch
-    and leg beyond it to key a track by."""
-    joined = le_mod.partners(bands)
+    (staging_device_map.band_refs: the grammar of every level's trial names; a balloon loop's halves are its pieces
+    #1 and #2); BuildError on a connector the plugin's partners do not pair, which has no switch and leg beyond it
+    to key a track by."""
     import build_device_map as bdm
-    out, lengths, counted = {}, defaultdict(float), set()
+    import staging_device_map as sdm
+    joined = le_mod.partners(bands)
+    out: dict[str, dict[str, Any]] = {}
+    lengths: defaultdict[str, float] = defaultdict(float)
+    counted: set[tuple[str, Any]] = set()
     for bi, ((title, band, _), level) in enumerate(zip(bands, band_levels(bands))):
         if level in STAGING_LEVELS:
             continue
         key = band_key(title)
-        nodes, strands = band["nodes"], band["strands"]
         try:
             loop_half = bdm.loop_halves(band, runs)      # a balloon loop is two blocks, parted at its turnback
         except bdm.MapError as exc:
             raise BuildError(f"{title}: {exc}") from exc
-        names = dict(turnouts={}, os={}, blocks={}, xover_blocks={})
-        for n, d in sorted(nodes.items()):
-            if d["kind"] == "dx":
-                names["turnouts"][n] = f"Switch {bare(d['label'])}"
-                try:
-                    corners = le_mod.double_corners(band, n, key in (page or {}).get("rotate_bands", ()))
-                    names["xover_blocks"][n] = bdm.xover_corners(bdm.base(d["label"]), corners)
-                except (bdm.MapError, le_mod.SchematicError) as exc:
-                    raise BuildError(f"{title}: {exc}") from exc
-            elif d["kind"] == "switch":
-                names["turnouts"][n] = f"Switch {bare(d['label'])}"
-                names["os"][n] = "OS Switch " + re.sub(r"[AB]$", "", bare(d["label"]))
-        # a track's placeholder is its switch-and-leg key, the grammar of every level's trial names (owner,
-        # 2026-11-20: staging_device_map.band_refs and strand_placeholders; a balloon loop's halves are its pieces #1
-        # and #2). A connector that `joined` does not pair stops the build here (band_refs)
-        import staging_device_map as sdm
+        names = _switch_names(title, key, band, le_mod, page, bdm)
         try:
             refs = sdm.band_refs(bands, joined, bi)
         except sdm.StagingMapError as exc:
             raise BuildError(f"{title}: {exc}") from exc
         for start, chain, end in runs(band):
-            labels = []
-            for n, _ in (start, end):
-                if nodes[n].get("sub") == "link" and (bi, n) in joined:      # the far side of the connector
-                    bj, m = joined[(bi, n)]
-                    other = bands[bj][1]
-                    sid = next(iter(list(other["nodes"][m]["ins"].values()) + list(other["nodes"][m]["outs"].values())))
-                    s = other["strands"][sid]
-                    n2 = s["dst"][0] if s["src"][0] == m else s["src"][0]
-                    labels.append(bare(other["nodes"][n2].get("label")))
-                else:
-                    labels.append(bare(nodes[n].get("label")) if nodes[n]["kind"] in ("switch", "dx") else "")
-            a, b = labels
-            inside_xover = (a and b and a[-1:] in "AB" and b[-1:] in "AB" and a[:-1] == b[:-1] and a[:-1].isdigit())
+            a, b = (_end_label(bands, joined, bi, n) for n, _ in (start, end))
             for sid, _ in chain:
-                s = strands[sid]
-                block = f"OS Switch {a[:-1]}" if inside_xover else sdm.strand_placeholders(refs[sid])[0]
+                s = band["strands"][sid]
+                block = f"OS Switch {a[:-1]}" if inside_crossover(a, b) else sdm.strand_placeholders(refs[sid])[0]
                 names["blocks"][sid] = [block]
                 # a turnback's two tracks each carry their whole edge's length (count it once, or half each for a
                 # balloon loop's two blocks); a connector or helix cut leaves a piece on each band (e36x, e36y):
@@ -273,10 +313,10 @@ def placeholder_names(bands, le_mod, page=None) -> tuple[dict, dict]:
         for n in list(names["os"].values()) + [b for v in names["xover_blocks"].values() for b in v.values()]:
             lengths[n] += 0.0
         out[key] = names
-    return out, dict(lengths)
+    return Placeholders(out, dict(lengths))
 
 
-def device_names(path: Path = DEVICE_MAP) -> dict:
+def device_names(path: Path = DEVICE_MAP) -> dict[str, str]:
     """{placeholder: device-map user name} for the main and upper turnouts and blocks, parts among them: the one
     reader of the drawing keys (hartlib.drawing_keys, keyed by device ID) over levels 2 and 3,
     each key named by its ID's row in the merged view (the owner's name, else the generated). A crossover's two halves
@@ -308,22 +348,24 @@ def device_names(path: Path = DEVICE_MAP) -> dict:
     return out
 
 
-def level_names(bands, le_mod, device: dict | None = None, page=None) -> tuple[dict, dict]:
+def level_names(bands: Sequence[Any], le_mod: Any, device: dict[str, str] | None = None,
+                page: Mapping[str, Any] | None = None) -> LevelNames:
     """placeholder_names with every placeholder replaced by its device-map name (device_names): ({band key: names},
     {block: length mm}, each block its block_lengths.csv plan length). Stops on a placeholder the device map does not name, or a device-map name the drawing does
     not use."""
     device = device_names() if device is None else device
     names, lengths = placeholder_names(bands, le_mod, page)
-    used, missing = set(), set()
+    used: set[str] = set()
+    missing: set[str] = set()
 
-    def to(ph):
+    def to(ph: str) -> str:
         if ph not in device:
             missing.add(ph)
             return ph
         used.add(ph)
         return device[ph]
 
-    out = {}
+    out: dict[str, dict[str, Any]] = {}
     for key, nm in names.items():
         out[key] = dict(turnouts={n: to(t) for n, t in nm["turnouts"].items()},
                         os={n: to(b) for n, b in nm["os"].items()},
@@ -335,21 +377,21 @@ def level_names(bands, le_mod, device: dict | None = None, page=None) -> tuple[d
     unused = sorted(set(device) - used)
     if unused:
         raise BuildError(f"{paths.rel(DEVICE_MAP)} trial names the drawing does not have: {unused}")
-    plan = plan_lengths()           # block_lengths.csv's plan_in, every level (owner, 2026-11-20, step 5 part 2)
+    plan = plan_lengths()           # block_lengths.csv's plan_in, every level
     no_length = sorted(b for b in drawn if b not in plan)
     if no_length:
         raise BuildError(f"block_lengths.csv has no plan length for main and upper blocks {no_length}: run "
                          "python3 tools/schematic/plan_lengths.py")
-    return out, {b: plan[b] * MM_PER_INCH for b in drawn}
+    return LevelNames(out, {b: plan[b] * MM_PER_INCH for b in drawn})
 
 
-def shared_turnouts(names: dict, skip: set) -> None:
+def shared_turnouts(names: Mapping[str, dict[str, Any]], skip: set[str]) -> None:
     """Give each main and upper band's names (every key of `names` but `skip`: the bands of a level the base holds,
     le_common.base_keys) the turnouts it shares with another band (`shared_turnouts`): a
     crossover whose halves stand on two levels (the helix-top 127 and 131) is one device-map turnout drawn as two
     Layout Editor turnouts, which JMRI throws together. A crossover whose halves stand on one level is the plugin's
     own (schematic.core.crossover_halves pairs halves joined C to C or B to C, 121 and 125 among them)."""
-    bands_of = defaultdict(set)
+    bands_of: defaultdict[str, set[str]] = defaultdict(set)
     for key, nm in names.items():
         if key not in skip:
             for t in nm["turnouts"].values():
@@ -371,7 +413,8 @@ def block_roles(path: Path = DEVICE_MAP) -> dict[str, str]:
     return out
 
 
-def named_bands(bands, names: dict, roles: dict[str, str] | None = None):
+def named_bands(bands: Sequence[Any], names: Mapping[str, Mapping[str, Any]],
+                roles: dict[str, str] | None = None) -> list[Any]:
     """A copy of `bands` in which each main and upper track block is named on one of its tracks (the longest; its
     name the block's without "Track "), so the plugin's label layer writes the device-map track names there; every
     other main and upper track is unnamed, but a helix track keeps its plan name (Helix Outer, Helix Inner): the

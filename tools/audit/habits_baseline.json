@@ -25,9 +25,6 @@
  "jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py": {
   "dated-note": 4
  },
- "jmri/layouts/hart/scripts/render_le_layout.py": {
-  "import-exit": 5
- },
  "jmri/layouts/hart/scripts/run_dispatcher_stage1.py": {
   "exec-parts": 1
  },
@@ -197,10 +194,6 @@
   "import-exit": 5
  },
  "tools/schematic/le_names.py": {
-  "dated-note": 1,
-  "exec-parts": 1
- },
- "tools/schematic/le_tables.py": {
   "exec-parts": 1
  },
  "tools/schematic/tests/test_band_panels.py": {
