@@ -2,7 +2,7 @@
 # A PanelPro round trip of this checkout's generated tables.xml (ADR-029 gate 2): PanelPro loads it, JMRI
 # derives the block paths from the panel, the configuration and panels are stored to a temporary file as the
 # PanelPro menu "Store Configuration and Panels" does, PanelPro quits, and the Store and the generated file
-# must be the same bytes once both are normalised (hartlib.tables_build.normalise_store: the envelope and the
+# must be the same bytes once both are normalised (hartlib.tables_normal.normalise_store: the envelope and the
 # derived block paths out, the panel past what a Store rewrites). Every staging block must have a derived path.
 # It prints PASS or FAIL, then runs tools/audit/check_layout_facts.py --tables on the Store, the one place the
 # stored-path leg check runs since tables.xml stores no paths; the run fails if either fails.
@@ -62,7 +62,7 @@ if [[ ! -s "$STORE" || ! -s "$COUNTS" ]]; then
   exit 1
 fi
 echo "Store kept as $STORE"
-PYTHONPATH="$ROOT/tools/hartlib/src" python3 -m hartlib.tables_build roundtrip \
+PYTHONPATH="$ROOT/tools/hartlib/src" python3 -m hartlib.tables_roundtrip roundtrip \
   --store "$STORE" --paths "$COUNTS" --generated "$TABLES"
 # The Store holds the block paths JMRI derived, so the stored-path leg check of check_layout_facts.py, which the
 # generated file (no stored paths) cannot run, runs here.
