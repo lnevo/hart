@@ -13,7 +13,7 @@ from typing import Any
 
 from . import layer_files, level_devices, level_masts, paths, tables, track_names
 from .errors import FactsError, HartlibError
-from .device_rows import DEVICE_LIST, MASTER_COLUMNS, DeviceRow, MasterRow, device_list  # noqa: F401  re-exported
+from .device_rows import DEVICE_LIST, MASTER_COLUMNS, DeviceRow, MasterRow, device_list, row_cells  # noqa: F401
 from .levels import ALL_LEVELS, MAIN_UPPER, Level, parse_level
 
 LAYERS = ("inputs", "hands", "device_map", "masts", "tables")
@@ -188,9 +188,9 @@ def read_staging_rows(path: Path) -> list[tuple[int, dict[str, str]]]:
     unchecked beyond the master's own checks (read_staging_devices checks them); a turnout's cp is places.of's."""
     from . import devices, places
     lists = places.lists_beside(path)          # a copy's turnouts take the copy's switch lists
-    return [(n, {c: (devices.place(r, lists) if c == "cp" else r[c]).strip() for c in STAGING_COLUMNS}) for n, r in
-            enumerate(devices.load(path), 2)
-            if r["level"] == STAGING_LEVEL and r["layer"] in NAME_LAYERS]
+    rows = [(n, r.cells() | {"cp": devices.place(r, lists)}) for n, r in enumerate(devices.load(path), 2)
+            if r.level_cell == STAGING_LEVEL and r.layer in NAME_LAYERS]
+    return [(n, {c: cells[c].strip() for c in STAGING_COLUMNS}) for n, cells in rows]
 
 
 def read_staging_devices(path: Path, rows: list[tuple[int, dict[str, str]]] | None = None) -> StagingDevices:
@@ -1081,7 +1081,7 @@ def read_device_map(path: Path) -> DeviceMap:
     master = devices.load(path)         # device_map_lines numbers its rows by their place here, from 2
     block_ids: dict[tuple[str, str], str] = {}
     for line, r in ((n, {c: v.strip() for c, v in row.items()}) for n, row in devices.device_map_lines(("2", "3"), path)):
-        r["id"], r["assignment"] = master[line - 2]["id"], master[line - 2]["assignment"]
+        r["id"], r["assignment"] = master[line - 2].id, master[line - 2].assignment
         where = master_at(path, r["user_name"], r["level"], r["layer"])
         if r["layer"] not in DEVICE_LAYERS or not r["user_name"]:
             raise FactsError(f"{where}: layer is one of {', '.join(DEVICE_LAYERS)} and user_name is given")

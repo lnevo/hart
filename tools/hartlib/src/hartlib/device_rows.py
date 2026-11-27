@@ -1,8 +1,9 @@
 """The device master's row as a record: MasterRow (any row of the merged view) and DeviceRow (a row with a level).
 
 hartlib.devices.load() returns these rows, and hartlib.railroad_facts.DeviceMap holds DeviceRow records of main and
-upper. Each row is also a read-only Mapping of the master's columns to their text, so code that takes a row by its
-column names reads the same text as the file. railroad_facts re-exports every name here.
+upper. A reader takes a row's fields; a writer or a check that works on the master's text takes MasterRow.cells(),
+the row as the file holds it. Each row is also a read-only Mapping of those cells, for the callers outside hartlib
+that still read it so. railroad_facts re-exports every name here.
 """
 from __future__ import annotations
 
@@ -36,10 +37,10 @@ class MasterRow(Mapping[str, str]):
     name. `level` is None only on a Store's level-less row (devices.is_unplaced), which has no role either; every
     row with a level is a DeviceRow, whose level is a Level.
 
-    The row is also a read-only Mapping of the master's columns (MASTER_COLUMNS) to their text, the level as "1",
-    "2", "3" or "": devices.load() returns these rows, and a reader that still takes a row by its column names
-    (row["layer"]) reads the same text as the file. `comment` (the device-map form's built comment) and `line` are
-    not columns of the master and are not in the Mapping."""
+    A reader takes the fields. A writer or a check that works on the master's text takes cells(): the row as the
+    file holds it, {column: text} in MASTER_COLUMNS order, the level as "1", "2", "3" or "" (level_cell). The row is
+    also a read-only Mapping of those cells (row["layer"]), which the callers outside hartlib still read. `comment`
+    (the device-map form's built comment) and `line` are not columns of the master and are not among the cells."""
     level: Level | None
     layer: str
     user_name: str
@@ -88,13 +89,25 @@ class MasterRow(Mapping[str, str]):
             raise FactsError(f"level {self.level} {self.layer} {self.user_name!r} has role {self.role!r}, not one of "
                              f"{', '.join(devices.ROLES)}")
 
+    @property
+    def level_cell(self) -> str:
+        """The level as the master's level column holds it: "1", "2", "3", or "" for a Store's level-less row."""
+        return "" if self.level is None else level_text(self.level)
+
+    def cells(self) -> dict[str, str]:
+        """The row as the master's text: {column: cell} of every MASTER_COLUMNS column, in file order, the level as
+        level_cell. A new dict each call, so a writer may change it; the text a file of this row holds."""
+        out: dict[str, str] = {c: getattr(self, c) for c in MASTER_COLUMNS}
+        out["level"] = self.level_cell
+        return out
+
     # ------------------------------------------------ the Mapping of the master's columns
 
     def __getitem__(self, column: str) -> str:
         if column not in _MASTER_CELLS:
             raise KeyError(column)
         if column == "level":
-            return "" if self.level is None else level_text(self.level)
+            return self.level_cell
         value: str = getattr(self, column)
         return value
 
@@ -106,21 +119,21 @@ class MasterRow(Mapping[str, str]):
 
     def __or__(self, other: Mapping[str, str]) -> dict[str, str]:
         """The row's cells with `other`'s over them, as a dict (as a mappingproxy's | gives)."""
-        return {**self, **other}
+        return {**self.cells(), **other}
 
-    def _cells(self) -> tuple[object, ...]:
+    def _values(self) -> tuple[object, ...]:
         return tuple(getattr(self, f) for f in _DEVICE_ROW_FIELDS)
 
     def __eq__(self, other: object) -> bool:
         """Equal to a row with the same fields (line and comment too), or to a Mapping with the same columns."""
         if isinstance(other, MasterRow):
-            return self._cells() == other._cells()
+            return self._values() == other._values()
         if isinstance(other, Mapping):
-            return dict(self) == dict(other)
+            return self.cells() == dict(other)
         return NotImplemented
 
     def __hash__(self) -> int:
-        return hash(self._cells())
+        return hash(self._values())
 
     @staticmethod
     def from_master(row: Mapping[str, str], line: int, where: str) -> "MasterRow":
@@ -166,3 +179,9 @@ class DeviceRow(MasterRow):
 
 
 _DEVICE_ROW_FIELDS = tuple(f.name for f in fields(MasterRow))
+
+
+def row_cells(row: MasterRow | Mapping[str, str]) -> Mapping[str, str]:
+    """A row as the master's text, for a helper that takes either form (a message's name, a row's place): a
+    MasterRow's cells(), any other row (a writer's dict, a file's row) as it is."""
+    return row.cells() if isinstance(row, MasterRow) else row

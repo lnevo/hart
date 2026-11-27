@@ -17,23 +17,24 @@ Every failure is a railroad_facts.FactsError (devices.DevicesError for the maste
 """
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Iterable
 from pathlib import Path
 
 from . import devices, level_devices
-from .railroad_facts import FactsError, device_list
+from .levels import STAGING
+from .railroad_facts import FactsError, MasterRow, device_list
 
 COLUMNS = ("level", "block_id", "block_user_name", "occupancy_sensor_user_name", "cats_discipline")
 
 
-def sensors(master: tuple[Mapping[str, str], ...]) -> dict[tuple[str, str], str]:
+def sensors(master: Iterable[MasterRow]) -> dict[tuple[str, str], str]:
     """{(level, block user name): occupancy sensor user name} of the occupancy rows of `master` (the first occupancy
     row that names a block wins, as hartlib.block_lengths takes it)."""
     out: dict[tuple[str, str], str] = {}
     for r in master:
-        if r["level"] and r["layer"] == "occupancy":
-            for b in device_list(r["blocks"]):
-                out.setdefault((r["level"], b), r["user_name"])
+        if r.level is not None and r.layer == "occupancy":
+            for b in device_list(r.blocks):
+                out.setdefault((r.level_cell, b), r.user_name)
     return out
 
 
@@ -44,18 +45,18 @@ def rows(files: devices.Files | Path | str | None = None) -> list[dict[str, str]
     by_sensor = sensors(master)
     out = []
     for r in master:
-        if not (r["level"] and r["layer"] == "block" and r["cats_discipline"]):
+        if not (r.level is not None and r.layer == "block" and r.cats_discipline):
             continue
-        if r["level"] != "1":                 # the desks bind staging's blocks; a name is unique within a level only
-            raise FactsError(f"{r['id']}: cats_discipline is for staging (level 1) blocks, not level {r['level']}")
-        name = r["user_name"]
-        sensor = (by_sensor.get((r["level"], name))
-                  or (by_sensor.get((r["level"], r["part_of"])) if r["part_of"] else None))
+        level = r.level_cell
+        if r.level != STAGING:          # the desks bind staging's blocks; a name is unique within a level only
+            raise FactsError(f"{r.id}: cats_discipline is for staging (level 1) blocks, not level {level}")
+        name = r.user_name
+        sensor = by_sensor.get((level, name)) or (by_sensor.get((level, r.part_of)) if r.part_of else None)
         if sensor is None:
-            if not r["id"].endswith("-helix"):
-                raise FactsError(f"{r['id']} ({name}): a block with a cats_discipline needs an occupancy row whose "
+            if not r.id.endswith("-helix"):
+                raise FactsError(f"{r.id} ({name}): a block with a cats_discipline needs an occupancy row whose "
                                  "blocks cell names it (only a helix block takes the main levels' virtual sensor)")
             sensor = level_devices.occupancy_user(name)
-        out.append({"level": r["level"], "block_id": r["id"], "block_user_name": name,
-                    "occupancy_sensor_user_name": sensor, "cats_discipline": r["cats_discipline"]})
+        out.append({"level": level, "block_id": r.id, "block_user_name": name,
+                    "occupancy_sensor_user_name": sensor, "cats_discipline": r.cats_discipline})
     return out

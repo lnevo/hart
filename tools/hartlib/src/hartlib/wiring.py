@@ -477,23 +477,23 @@ def field_heads(files: devices_mod.Files | None = None) -> list[Wire]:
     that text gives."""
     from . import devices
     rows = list(devices.load(files))
-    masts = {(r["level"], r["id"]): r["user_name"] for r in rows if r["layer"] == "mast"}
+    masts = {(r.level_cell, r.id): r.user_name for r in rows if r.layer == "mast"}
     out, bad = [], []
     for r in rows:
-        if r["layer"] != "head" or r["level"] == STAGING_LEVEL or r["assignment"] != "field":
+        if r.layer != "head" or r.level_cell == STAGING_LEVEL or r.assignment != "field":
             continue
-        m = _HEAD_TEXT.fullmatch(r["wiring"])
+        m = _HEAD_TEXT.fullmatch(r.wiring)
         if not m:
-            bad.append(f"level {r['level']} head {r['user_name']}: wiring {r['wiring']!r} is not "
+            bad.append(f"level {r.level_cell} head {r.user_name}: wiring {r.wiring!r} is not "
                        "Node: <n> Signal: <i> | OU: <b> Ports: <p,p,p>")
             continue
         pins = [(f"OU{b}", int(p)) for b, ps in _HEAD_PORTS.findall(m.group(3)) for p in ps.split(",")]
-        level = parse_level(r["level"], f"head {r['user_name']}")
-        w = Wire(0, level, "head", r["user_name"], "", "", "", "", int(m.group(1)), int(m.group(2)),
-                 pins[0][0], tuple(p for _b, p in pins), "wired", r["notes"], tuple(b for b, _p in pins), r["id"],
-                 masts.get((r["level"], r["id"].rsplit(":", 1)[0]), ""))
-        if w.address != r["jmri_name"]:
-            bad.append(f"level {r['level']} head {r['user_name']}: jmri_name {r['jmri_name']!r} is not the LCOS head "
+        level = parse_level(r.level_cell, f"head {r.user_name}")      # a level-less row stops here
+        w = Wire(0, level, "head", r.user_name, "", "", "", "", int(m.group(1)), int(m.group(2)),
+                 pins[0][0], tuple(p for _b, p in pins), "wired", r.notes, tuple(b for b, _p in pins), r.id,
+                 masts.get((r.level_cell, r.id.rsplit(":", 1)[0]), ""))
+        if w.address != r.jmri_name:
+            bad.append(f"level {r.level_cell} head {r.user_name}: jmri_name {r.jmri_name!r} is not the LCOS head "
                        f"{w.address} its wiring gives")
             continue
         out.append(w)

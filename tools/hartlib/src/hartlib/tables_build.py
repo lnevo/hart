@@ -809,10 +809,10 @@ def base(rows: Iterable[Mapping[str, str]] | None = None, template: Path = TEMPL
          lengths: Mapping[str, float] | None = None) -> tables.Tables:
     """The template with every level's master beans in it (master_beans) and the startup
     LogixNG around their startup actions (start_logixng), each section's beans in JMRI order: what the Layout Editor
-    build draws its panels on, adding no bean. TablesBuildError when a master bean's system or user name is the
-    template's too, or two beans of one kind share a name (check_names)."""
+    build draws its panels on, adding no bean, from `rows` of the master's text (default its cells). TablesBuildError
+    when a master bean's system or user name is the template's too, or two beans of one kind share a name."""
     doc = read_template(template)
-    rows = devices.load() if rows is None else list(rows)
+    rows = [r.cells() for r in devices.load()] if rows is None else list(rows)
     try:
         lengths = block_lengths.operating_lengths(BLOCK_LENGTHS) if lengths is None else lengths     # ADR-039 L8
     except railroad.FactsError as exc:
@@ -1140,9 +1140,9 @@ def roundtrip_report(store: Path, counts: Path, generated: Path) -> tuple[bool, 
         paths_of = read_path_counts(counts)
     except OSError as exc:
         return False, [f"cannot read {exc.filename}: {exc.strerror}"]
-    staging = [r["jmri_name"] for r in devices.load()
-               if r["level"] == railroad.STAGING_LEVEL and r["layer"] == "block" and r["assignment"] != "none"
-               and not r["part_of"]]
+    staging = [r.jmri_name for r in devices.load()
+               if r.level_cell == railroad.STAGING_LEVEL and r.layer == "block" and r.assignment != "none"
+               and not r.part_of]
     none = [b for b in staging if paths_of.get(b, ("", 0))[1] == 0]
     total = sum(n for _u, n in paths_of.values())
     lines.append(f"block paths JMRI derived: {total} on {len(paths_of)} blocks "

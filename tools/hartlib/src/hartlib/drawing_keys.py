@@ -96,11 +96,15 @@ class Keys:
 def read(levels: Iterable[str], source: devices.Files | Path | str | None = None,
          rows: Iterable[Mapping[str, str]] | None = None) -> Keys:
     """The Keys of the turnout and block rows of `levels` ("1", "2", "3") of the merged master (`source`: a master's
-    path or Files, as devices.load takes it), or of `rows` (master rows a builder is writing). DrawingKeyError on the
-    problems the module names; DevicesError when the master cannot be read."""
+    path or Files, as devices.load takes it), or of `rows` (master rows a builder is writing). Either way the rows
+    are read and kept as the master's text (MasterRow.cells for the merged view's). DrawingKeyError on the problems
+    the module names; DevicesError when the master cannot be read."""
     levels = tuple(str(lv) for lv in levels)
-    every = list(devices.load(source) if rows is None else rows)
-    mine = [r for r in every if r["level"] in levels and r["layer"] in LAYERS]
+    mine: list[Mapping[str, str]]
+    if rows is None:
+        mine = [r.cells() for r in devices.load(source) if r.level_cell in levels and r.layer in LAYERS]
+    else:
+        mine = [r for r in rows if r["level"] in levels and r["layer"] in LAYERS]
     ids: dict[str, Key] = {}
     by_id: dict[Key, Mapping[str, str]] = {}
     bad = []
