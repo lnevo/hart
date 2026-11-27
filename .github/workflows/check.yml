@@ -30,9 +30,9 @@ jobs:
       - run: 'git -c url.https://github.com/.insteadOf=git@github.com: submodule update --init external/model-railroad-skills'
       # Docs-only pull requests (tools/ci/changed_kind.py) run the quick docs checks and skip the full check.sh, the
       # schematic cache and its hand-off. Light pull requests (docs, or data that only static checks read) run
-      # tools/ci/light_checks.sh instead of the full check.sh, with the schematic cache but no stamp gate. This stays
-      # one job named "check", the required status check, so either still gets a passing "check". A push to main
-      # always takes the full path (it saves the cache).
+      # tools/ci/light_checks.sh instead of the full check.sh, with the schematic cache restored but not warmed and
+      # no stamp gate. This stays one job named "check", the required status check, so either still gets a passing
+      # "check". A push to main always takes the full path (it saves the cache).
       - name: What changed
         id: kind
         run: |
@@ -176,11 +176,12 @@ jobs:
       # A run whose exact cache key missed (the plugin pin, the builders or their data changed) restores a cache
       # solved from other inputs: it misses the entries for the new ones, and check.sh's parallel jobs (one per panels
       # step since ADR-037 stage 6, beside the Layout Editor job) would each solve the sheet cold at once (12-34 min
-      # runs with a new pin). A run whose key hit skips this step (no added time), and so does the docs-only path.
+      # runs with a new pin). A run whose key hit skips this step (no added time), and so do the docs-only and light
+      # paths: neither runs check.sh's full job set, and the warm-up alone is the whole panels pipeline.
       # The panels pipeline in --check mode solves it once, one step after another (the first step solves, the rest
       # read the cache), so the jobs after it start warm. Its verdict is not this step's: check.sh runs the same checks.
       - name: Warm the schematic cache when its exact key missed
-        if: steps.kind.outputs.kind != 'docs' && steps.schematic-cache.outputs.cache-hit != 'true'
+        if: steps.kind.outputs.kind == 'full' && steps.schematic-cache.outputs.cache-hit != 'true'
         env:
           SCHEMATIC_REQUIRED: "1"
         run: |
@@ -192,7 +193,7 @@ jobs:
         if: steps.kind.outputs.kind == 'light'
         env:
           SCHEMATIC_REQUIRED: "1"
-        # after the cache warm-up above; the script tools/check.sh's light path runs, on the changed paths above
+        # with the restored cache (no warm-up); the script tools/check.sh's light path runs, on the changed paths above
         run: git diff --no-renames --name-only HEAD^1 HEAD | bash tools/ci/light_checks.sh --compare HEAD^1
       # CHECK_RESULTS_TO: each job's result (passed, failed or skipped), for the skip record and the weekly guard below.
       # The weekly run fails a job that read a file its step does not declare in tools/pipeline/checks.toml

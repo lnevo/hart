@@ -30,81 +30,11 @@ class EngineRecord(TypedDict, total=False):
 # (roster road, road number), the key of an engine table.
 EngineKey = tuple[str, str]
 
-# JMRI roster road codes -> display reporting marks, for every card and roster.
-ROAD_DISPLAY = {
-    "NW": "N&W",
-    "BO": "B&O",
-    "PRR": "PRR",
-    "NYC": "NYC",
-    "ATSF": "ATSF",
-    "CBQ": "CB&Q",
-    "GN": "GN",
-    "MILW": "MILW",
-    "WP": "WP",
-    "WM": "WM",
-    "RDG": "RDG",
-    "EL": "EL",
-    "CO": "C&O",
-    "KSMX": "KSMX",
-    "GATX": "GATX",
-    "UTLX": "UTLX",
-    "URTX": "URTX",
-    "SHPX": "SHPX",
-    "REX": "REX",
-    "URR": "URR",
-    "WLE": "WLE",
-    "MSTL": "MSTL",
-    "MOW": "MOW",
-    "CSX": "CSX",
-    "CWRY": "Ohio Central",
-}
-
-ENGINE_ROAD_ALIASES = {
-    "OC": "CWRY",
-    "OHIO CENTRAL": "CWRY",
-    "B&O": "BO",
-    "C&O": "CO",
-    "CR": "CR",
-    "CONRAIL": "CR",
-    "CSX": "CSX",
-}
-
-# Model -> manufacturer (EMD, GE, ALCO, etc.)
-MODEL_MANUFACTURER: dict[str, str] = {
-    "GP20": "EMD",
-    "GP30": "EMD",
-    "GP35": "EMD",
-    "GP38": "EMD",
-    "GP40": "EMD",
-    "GP40-2": "EMD",
-    "SW1200": "EMD",
-    "SW1500": "EMD",
-    "SW8": "EMD",
-    "NW2": "EMD",
-    "NW2 Phase V": "EMD",
-    "F3": "EMD",
-    "F7": "EMD",
-    "F7A": "EMD",
-    "F7B": "EMD",
-    "F9": "EMD",
-    "FT": "EMD",
-    "SD26": "EMD",
-    "SD45": "EMD",
-    "E8": "EMD",
-    "U30B": "GE",
-    "U28B": "GE",
-    "B23-7": "GE",
-    "ES44AH": "GE",
-    "AS-16": "ALCO",
-    "RS1": "ALCO",
-    "RS2": "ALCO",
-    "RS3": "ALCO",
-    "RS11": "ALCO",
-    "RS18": "ALCO",
-    "RS27": "ALCO",
-    "RSD4": "ALCO",
-    "P-7": "EMD",
-}
+# The roads and models the cards name: ops/hart-ops/data/roads.csv and loco_models.csv (hartlib.operations).
+_ROADS = operations.read_roads()
+ROAD_DISPLAY: dict[str, str] = _ROADS.display               # JMRI roster road code -> the marks a card shows
+ENGINE_ROAD_ALIASES: dict[str, str] = _ROADS.engine_aliases  # a loco row's road spelling -> the roster road code
+MODEL_MANUFACTURER: dict[str, str] = operations.read_loco_models()  # model -> builder (EMD, GE, ALCO), in file order
 
 # Locomotives not in OperationsEngineRoster.xml
 MANUAL_ENGINES: dict[EngineKey, EngineRecord] = {

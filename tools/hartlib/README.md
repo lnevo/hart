@@ -421,6 +421,14 @@ form, `ids(elements)` their ids. `ROSTERS` names the repo's files in `jmri/layou
 the car pipeline passes its own copies in `ops/hart-ops/data/`. A broken file raises `ET.ParseError` naming it.
 It only reads: the tools that change a roster keep JMRI's header and layout themselves.
 
+It is also the one reader of the roads and models the rosters and the car pipeline name, kept by hand in
+`ops/hart-ops/data/`: `read_roads(path)` gives `Roads` from `roads.csv` (`codes`; `display`, road code to the marks a
+card shows; `car_aliases` and `engine_aliases`, a spelling to its road code), and `read_loco_models(path)` gives
+`{model: builder}` from `loco_models.csv` in file order. A bad file or row stops with `RoadsError` (a `ValueError`)
+naming the file, and the line for a bad row; a spelling must be in capitals, as the matchers look it up.
+`engine_lookup.py` and `process_car_images.py` read them; `locos.csv`'s `road_name` refers to `roads.csv` (its
+sidecar).
+
 ### `hartlib.parked`
 
 The features parked out of the active tables (`PARKED`: Entry/Exit, the Dispatcher System, the USS CTC machine;

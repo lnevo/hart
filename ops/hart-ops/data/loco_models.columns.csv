@@ -1,0 +1,3 @@
+column,description,type,required,key,refs,values
+model,"A locomotive model as Operations Pro names it (GP38, SW1200). The key. engine_lookup.manufacturer_for_model reads the rows in order: an exact match first, then the first row whose model is part of the asked one or holds it.",str,yes,yes,,
+mfg,"The builder (EMD, GE, ALCO). A loco whose mfg in locos.csv is empty gets it from here.",str,yes,,,
