@@ -1,6 +1,6 @@
 """Waybill deck logic for generate_waybill_cards.py: spot parsing, routing and deck order.
 
-Pure functions over the tables in waybill_data.py. The CSV reader (load_spot_groups) stays in
+Pure functions over the rules waybill_data.py reads. The CSV reader (load_spot_groups) stays in
 generate_waybill_cards.py because tests patch SPOT_CSV there. A deck card is a waybill_data.DeckCard: the
 fields of card_template_records.WaybillCardRecord, plus the build keys GroupKey, DirectionKey and PartyPool.
 """
@@ -20,27 +20,22 @@ from typing import TypedDict
 # generate_waybill_cards loads waybill_data by path before this module, so this name
 # resolves to the sibling file in this checkout.
 from waybill_data import (
-    INTERCHANGE_CSX_TO_NS,
-    INTERCHANGE_IN_VIA_CSX,
-    INTERCHANGE_IN_VIA_POHC,
-    INTERCHANGE_NS_TO_CSX,
-    INTERCHANGE_OUT_VIA_CSX,
-    INTERCHANGE_OUT_VIA_POHC,
     _LAYOUT_PARTY_NAMES,
-    _PROCESS_CHEMICAL_DETAILS,
     CARDS_PER_DIRECTION,
     EMPTY,
     DeckCard,
     FlowKey,
     INDUSTRY_ORDER,
-    OUTBOUND_EMPTY_RETURN,
-    PROCESS_CHEMICALS,
-    SPOT_WAYBILL,
+    InterchangeCard,
     Party,
     SpotGroupKey,
+    WaybillDataError,
     WaybillSpec,
+    interchange_card,
     norm,
     normalize_spec,
+    outbound_empty_return,
+    spot_waybill,
 )
 
 class SpotGroup(TypedDict):
@@ -78,26 +73,17 @@ def _is_layout_party(name: str) -> bool:
 
 
 
-def build_interchange_deck() -> list[DeckCard]:
-    """CSX ↔ POHC interchange and through-traffic cards."""
-    raw = (
-        INTERCHANGE_IN_VIA_CSX
-        + INTERCHANGE_IN_VIA_POHC
-        + INTERCHANGE_OUT_VIA_POHC
-        + INTERCHANGE_OUT_VIA_CSX
-        + INTERCHANGE_CSX_TO_NS
-        + INTERCHANGE_NS_TO_CSX
-    )
+def build_interchange_deck(rows: Sequence[InterchangeCard]) -> list[DeckCard]:
+    """The through cards, one per master interchange row, in row order. A row that names an island industry as
+    its shipper or receiver is a spot waybill's move, not interchange, and stops the build."""
     deck: list[DeckCard] = []
-    for card in raw:
-        if _is_layout_party(card.get("RouteFrom", "")) or _is_layout_party(
-            card.get("RouteTo", "")
-        ):
-            continue
-        _apply_load_summary(card)
-        deck.append(card)
+    for row in rows:
+        for end in (row.route_from, row.route_to):
+            if _is_layout_party(end):
+                raise WaybillDataError(f"interchange card {row.card_id} names the island industry {end!r}: "
+                                       "its move belongs on a spot waybill")
+        deck.append(interchange_card(row))
     return deck
-
 
 
 def parse_spot_num(raw: str) -> int:
@@ -156,7 +142,7 @@ def _commodity_from_usage(usage: str, industry: str = "") -> str:
     """The load a spot usage names, from a keyword in it.
 
     With no keyword the usage text itself is the load, and a warning names the spot: give such
-    a spot its own SPOT_WAYBILL entry to set a real load.
+    a spot its own rows in waybill_loads.csv and waybill_parties.csv to set a real load.
     """
     u = usage.lower()
     if "coal" in u:
@@ -182,7 +168,7 @@ def _commodity_from_usage(usage: str, industry: str = "") -> str:
     _WARNED_USAGES.add((industry, usage))
     print(
         f"waybill: spot usage {usage!r} at {industry or 'an industry'} names no known load; "
-        "the cards show the usage as the load (add it to waybill_data.SPOT_WAYBILL)",
+        "the cards show the usage as the load (add it to waybill_loads.csv)",
         file=sys.stderr,
     )
     return usage
@@ -190,7 +176,7 @@ def _commodity_from_usage(usage: str, industry: str = "") -> str:
 
 def waybill_spec(industry: str, usage: str) -> WaybillSpec:
     """The table entry for a spot, else a generic one built from the usage text."""
-    spec = SPOT_WAYBILL.get((industry, usage))
+    spec = spot_waybill().get((industry, usage))
     if spec:
         return spec
     where = f"default spec for ({industry!r}, {usage!r})"
@@ -227,18 +213,15 @@ def inbound_commodity_label(spec: WaybillSpec) -> str:
     return load
 
 
-def _apply_load_summary(card: DeckCard, summary_load: str = "") -> None:
-    """Set LoadSummary when center commodity differs from the documented load label."""
+def _apply_load_summary(card: DeckCard, summary_load: str) -> None:
+    """Set LoadSummary to the spot's documented load when the card's own commodity differs from it."""
     if card.get("LoadSummary"):
         return
     commodity = card.get("Commodity", "")
     if not commodity or commodity == EMPTY:
         return
-    summary = summary_load or (
-        PROCESS_CHEMICALS if commodity in _PROCESS_CHEMICAL_DETAILS else ""
-    )
-    if summary and summary != EMPTY and commodity != summary:
-        card["LoadSummary"] = summary
+    if summary_load and summary_load != EMPTY and commodity != summary_load:
+        card["LoadSummary"] = summary_load
 
 
 def party_pool(flow: str, load: str, spec: WaybillSpec) -> list[Party]:
@@ -366,9 +349,10 @@ def _spot_count(spots: str) -> int:
 def build_industry_empty_cards(groups: Sequence[SpotGroup]) -> list[DeckCard]:
     """One generic outbound EMPTY per spot not covered by an inbound-empty load track."""
     counts = industry_outbound_empty_counts(groups)
+    returns = outbound_empty_return()
     cards: list[DeckCard] = []
     for industry in sorted(counts, key=lambda name: INDUSTRY_ORDER.get(name, 99)):
-        routing = OUTBOUND_EMPTY_RETURN.get(industry, {})
+        routing = returns.get(industry)
         for _ in range(counts[industry]):
             cards.append(
                 {
@@ -380,8 +364,8 @@ def build_industry_empty_cards(groups: Sequence[SpotGroup]) -> list[DeckCard]:
                     "Flow": "OUT",
                     "Commodity": EMPTY,
                     "RouteFrom": "",
-                    "RouteTo": routing.get("RouteTo", ""),
-                    "RouteChain": routing.get("RouteChain", ""),
+                    "RouteTo": routing.route_to if routing else "",
+                    "RouteChain": routing.via if routing else "",
                 }
             )
     return cards

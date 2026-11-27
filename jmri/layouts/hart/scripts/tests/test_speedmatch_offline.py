@@ -3,23 +3,29 @@ test job and its comparison. Shares helpers with test_speedmatch.py.
 """
 from __future__ import annotations
 
+import ast
 import csv
 import json
 import re
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lengths_fixture import write_lengths  # noqa: E402
-from test_speedmatch import FORBIDDEN_EVERYWHERE, SM, analyze, make_job, mover  # noqa: E402
+from speedmatch_jython_fake import FakeProfile, FakeRosterEntry, World, run_job  # noqa: E402
+from test_speedmatch import FORBIDDEN_EVERYWHERE, SM, ROOT, analyze, make_job, mover  # noqa: E402
+
+sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+from hartlib.paths import REPO_TABLES_XML  # noqa: E402
 
 sys.path.insert(0, str(SM))
 import profile_to_roster as p2r  # noqa: E402
 import stoptest_compare as stc  # noqa: E402
 
-TABLES = SM.parents[1] / "output" / "tables.xml"
+TABLES = REPO_TABLES_XML
 
 
 class DefaultGuard(unittest.TestCase):
@@ -57,6 +63,11 @@ class DefaultGuard(unittest.TestCase):
         ns: dict = {}
         exec(compile((d / "m.py").read_text().split(make_job.RUNNER_MARK)[0], "job", "exec"), ns)
         self.assertEqual(ns["GUARD"], make_job.DEFAULT_GUARD)
+
+
+def say(log):
+    """The log lines without their time stamps."""
+    return [line.split(" ", 1)[1] for line in log]
 
 
 def rows_for(loco, direction, run, steps, complete=True, reason="settled"):
@@ -140,7 +151,10 @@ class ProfileToRoster(unittest.TestCase):
         self.assertEqual(pl["sources"][0]["forward_run"], 1)
 
     def test_the_csv_is_read_by_correct_read_profile(self):
-        self.assertIn("correct.read_profile", (SM / "profile_to_roster.py").read_text())
+        csv_path = as_csv(rows_for("A", "forward", 1, [16]) + rows_for("A", "reverse", 2, [16]))
+        with mock.patch.object(p2r.correct, "read_profile", wraps=p2r.correct.read_profile) as spy:
+            p2r.build_payload(csv_path, "A")
+        self.assertEqual([c.args[1:3] for c in spy.call_args_list], [("A", "forward"), ("A", "reverse")])
 
     def test_cli_reads_the_analysis_csv_and_refuses_with_a_message(self):
         d = Path(tempfile.mkdtemp())
@@ -231,17 +245,76 @@ class ProfileJob(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "share a throttle key"):
             make_job.main(["profile", "--payload", str(d / "p.json"), "--out", str(d / "j.py")])
 
-    def test_script_only_touches_the_roster_entry(self):
+    def run_profile(self, *extra, points=None, entry=True, fail_on_update=False, marker=False, leak=False):
+        """The generated job, run against a fake roster that offers nothing but the roster entry. leak: os.remove
+        does nothing, as a job that forgot its marker would leave it."""
+        d = self.payload()
+        make_job.main(["profile", "--payload", str(d / "p.json"), "--out", str(d / "j.py"), *extra])
+        world = World()
+        if leak:
+            world.files.remove = lambda name: None  # type: ignore[method-assign]
+        world.files.names |= {"/tmp/speedrun.active"} if marker else set()
+        if entry:
+            profile = None if points is None else FakeProfile(points, world.calls)
+            world.entries["CSX 2121"] = FakeRosterEntry(profile, world.calls, fail_on_update)
+        return run_job((d / "j.py").read_text(), world)
+
+    def test_a_dry_run_logs_old_and_new_and_changes_nothing(self):
+        res = self.run_profile(points={500: (200.0, 210.0)})
+        self.assertEqual(res.world.entries["CSX 2121"].profile.points, {500: (200.0, 210.0)})
+        self.assertEqual(res.world.calls, [])
+        log = " | ".join(say(res.log))
+        for want in ("PROFILE loco=CSX 2121 apply=False", "OLD 1 points", "NEW 2 points",
+                     "STOP dry run: nothing changed", "END"):
+            self.assertIn(want, log)
+        self.assertEqual(res.world.files.markers(), set())  # the marker is gone again
+
+    def test_apply_clears_sets_the_points_then_saves_the_entry_and_the_roster(self):
+        res = self.run_profile("--apply", points={500: (200.0, 210.0)})
+        self.assertEqual(res.world.entries["CSX 2121"].profile.points, {16: (8.0, 9.0), 1000: (430.0, 425.0)})
+        self.assertEqual(res.world.calls, ["clearCurrentProfile", "setSpeed", "setSpeed", "updateFile", "writeRoster"])
+        self.assertIn("STOP written", say(res.log))
+        self.assertEqual(res.world.files.markers(), set())
+
+    def test_apply_on_an_entry_without_a_profile_makes_one(self):
+        res = self.run_profile("--apply")
+        self.assertIn("STOP written", say(res.log))
+        self.assertEqual(res.world.entries["CSX 2121"].profile.points, {16: (8.0, 9.0), 1000: (430.0, 425.0)})
+
+    def test_a_missing_entry_stops_before_any_write(self):
+        res = self.run_profile("--apply", entry=False)
+        self.assertIn("STOP roster entry not found: CSX 2121", say(res.log))
+        self.assertEqual(res.world.calls, [])
+
+    def test_a_marker_the_job_leaves_behind_is_seen(self):
+        res = self.run_profile(points={500: (200.0, 210.0)}, leak=True)
+        self.assertEqual(res.world.files.markers(), {"/tmp/speedrun.active"})
+
+    def test_the_job_names_no_forbidden_call(self):
+        # a policy scan kept as text on purpose: a forbidden call on a branch no test runs must still fail
         src = (SM / "jython" / "write_profile.py").read_text()
         for bad in FORBIDDEN_EVERYWHERE + ["Throttle", "setSpeedSetting", "readCV", "writeCV", "Programmer",
                                            "emergency", "OpsMode"]:
             self.assertNotIn(bad, src, bad)
-        for need in ["clearCurrentProfile", "updateFile()", "writeRoster()", "APPLY is not True",
-                     "/tmp/speedrun.active", "os.remove", 'L("END")', "java.lang.Throwable", "except Exception as e",
-                     'show("OLD"', 'show("NEW"']:
-            self.assertIn(need, src, need)
-        self.assertLess(src.index("APPLY is not True"), src.index("clearCurrentProfile"))
-        self.assertNotRegex(src, r"\bf[\"']")
+
+    def test_another_runner_holds_the_marker_and_keeps_it(self):
+        res = self.run_profile("--apply", points={}, marker=True)
+        self.assertEqual(say(res.log)[-2:], ["STOP another runner is active", "END"])
+        self.assertEqual(res.world.calls, [])
+        self.assertEqual(res.world.files.markers(), {"/tmp/speedrun.active"})
+
+    def test_a_failed_save_is_logged_and_the_marker_removed(self):
+        res = self.run_profile("--apply", points={}, fail_on_update=True)
+        self.assertTrue("ERROR disk full" in say(res.log))
+        self.assertIn("STOP error", say(res.log))
+        self.assertEqual(say(res.log)[-1], "END")
+        self.assertEqual(res.world.files.markers(), set())
+        self.assertNotIn("writeRoster", res.world.calls)
+
+    def test_the_job_uses_nothing_but_the_roster(self):
+        # the fake JMRI has no throttle, power, turnout or CV classes: a job that reached for one logs ERROR
+        res = self.run_profile("--apply", points={})
+        self.assertFalse([m for m in say(res.log) if m.startswith("ERROR")])
 
 
 class StopTestJob(unittest.TestCase):
@@ -274,21 +347,84 @@ class StopTestJob(unittest.TestCase):
         with self.assertRaises(SystemExit):
             make_job.main(base + ["--trigger", "BS W-1", "--guard", "none"])
 
-    def test_script_stops_with_its_own_throttle_and_arms_after_go(self):
-        src = (SM / "jython" / "stop_test.py").read_text()
-        kit = mover("stop_test.py")
-        for bad in FORBIDDEN_EVERYWHERE + ["readCV", "writeCV", "Programmer", "emergency", "OpsMode"]:
-            self.assertNotIn(bad, kit, bad)
-        for need in ["/tmp/speedrun.kill", "trigger already ACTIVE", "STOPCMD", "SETTLE_S", "QUIET_S",
-                     "settled, then guard", "trigger ACTIVE when armed", "lit before arming, ignored"]:
-            self.assertIn(need, src, need)
-        # the throttle is given to the stop only after the loco was sent off
-        self.assertLess(src.index("t.setSpeedSetting(P_STEP / 126.0)"), src.index('box["t"] = t; box["armed"] = True'))
-        self.assertLess(src.index('box["armed"] = True'), src.index("trigger ACTIVE when armed"))
-        # the trigger and the guards are compared as beans, and the log uses the resolved name
-        self.assertIn("found[g] == trig", src)
-        self.assertIn("trig.getUserName() or trig.getSystemName()", src)
-        self.assertNotRegex(kit, r"\bf[\"']")
+    def drive(self, on_go=None, guard="none", sensors_active=(), world=None, replace=None):
+        """Run the generated stop test against the fake JMRI: trigger BS Switch 33, guard sensor BS W-1,
+        a loop sensor BS K-2. on_go(world, sensors) runs when the throttle gets its first speed."""
+        text, _ = self.build("--guard", guard)
+        if replace:
+            text = text.replace(*replace)
+        world = world or World()
+        world.entries["CSX 2121"] = object()
+        names = (("BS Switch 33", "IS33"), ("BS W-1", "IS1"), ("BS K-2", "IS2"))
+        s = {n: world.sensor(n, sysn, 2 if n in sensors_active else 4) for n, sysn in names}
+        if on_go:
+            world.throttle.on_speed = lambda v: on_go(world, s) if v > 0 else None
+        return run_job(text, world), s
+
+    def test_the_loco_runs_to_the_trigger_and_is_stopped_with_its_own_throttle(self):
+        def go(world, s):
+            world.clock.after(5.0, lambda: s["BS Switch 33"].fire(2))
+            world.clock.after(6.0, lambda: s["BS K-2"].fire(2))
+        res, _ = self.drive(go)
+        log = say(res.log)
+        stop_at = log.index("STOPCMD trigger BS Switch 33")
+        self.assertIn("SENS BS K-2 ACTIVE", log[stop_at:])
+        self.assertIn("STOP quiet", log)
+        self.assertEqual(res.world.throttle.speeds(), [96 / 126.0, 0.0, 0.0])  # go, the trigger's stop, the end
+        self.assertTrue(res.world.throttle.released())
+        self.assertEqual(res.world.files.markers(), set())
+        self.assertFalse([m for m in log if m.startswith(("ERROR", "LISTENER ERROR"))])
+        self.assertEqual([s.listeners for s in res.world.sensors], [[], [], []])  # listeners removed at the end
+
+    def test_a_trigger_lit_before_the_loco_was_sent_off_is_ignored_and_ends_the_run(self):
+        res, _ = self.drive(lambda world, s: s["BS Switch 33"].fire(2))
+        log = say(res.log)
+        self.assertIn("TRIGGER BS Switch 33 lit before arming, ignored", log)
+        self.assertIn("STOP trigger ACTIVE when armed: BS Switch 33", log)
+        self.assertFalse([m for m in log if m.startswith("STOPCMD")])
+        self.assertEqual(res.world.throttle.speeds(), [96 / 126.0, 0.0])
+
+    def test_a_guard_lighting_ends_the_run_with_speed_zero(self):
+        res, _ = self.drive(lambda world, s: world.clock.after(3.0, lambda: s["BS W-1"].fire(2)), guard="BS W-1")
+        self.assertIn("STOP guard BS W-1", say(res.log))
+        self.assertEqual(res.world.throttle.speeds(), [96 / 126.0, 0.0])
+
+    def test_the_kill_file_ends_the_run(self):
+        res, _ = self.drive(lambda world, s: world.clock.after(2.0, lambda: world.files.names.add("/tmp/speedrun.kill")))
+        self.assertIn("STOP killed", say(res.log))
+        self.assertEqual(res.world.throttle.speeds()[-1], 0.0)
+
+    def test_the_trigger_never_lighting_ends_the_run_at_max_s(self):
+        res, _ = self.drive(lambda world, s: None)
+        self.assertTrue(any(m.startswith("STOP time: trigger not reached") for m in say(res.log)))
+        self.assertEqual(res.world.throttle.speeds(), [96 / 126.0, 0.0])
+
+    def test_nothing_moves_when_the_trigger_or_a_guard_is_not_ready(self):
+        cases = (
+            ({"sensors_active": ("BS Switch 33",)}, "STOP trigger already ACTIVE: BS Switch 33"),
+            ({"guard": "BS W-1", "sensors_active": ("BS W-1",)}, "STOP guard already ACTIVE: BS W-1"),
+            ({"guard": "BS Nowhere"}, "STOP guard sensor not found: BS Nowhere"),
+            ({"guard": "BS W-1", "replace": ("GUARD = ['BS W-1']", "GUARD = ['IS33']")},
+             "STOP trigger is also a guard: IS33"),
+        )
+        for kwargs, stop in cases:
+            res, _ = self.drive(**kwargs)
+            self.assertIn(stop, say(res.log), kwargs)
+            self.assertEqual(res.world.throttle_requests, [], kwargs)
+            self.assertEqual(res.world.throttle.calls, [], kwargs)
+            self.assertEqual(res.world.files.markers(), set(), kwargs)
+
+    def test_no_throttle_is_a_reason_and_no_speed_is_sent(self):
+        world = World()
+        world.answer_throttle = False
+        res, _ = self.drive(world=world)
+        self.assertIn("STOP no throttle", say(res.log))
+        self.assertEqual(world.throttle.calls, [])
+
+    def test_the_job_calls_only_the_throttle_methods_a_stop_test_may(self):
+        # the fake throttle raises on any other call (e-stop, power, CV); the job would log it as ERROR
+        res, _ = self.drive(lambda world, s: world.clock.after(5.0, lambda: s["BS Switch 33"].fire(2)))
+        self.assertFalse([m for m in say(res.log) if "ERROR" in m or "failed" in m])
 
     def test_trigger_must_be_a_loop_sensor_by_user_name(self):
         d = Path(tempfile.mkdtemp())
@@ -302,10 +438,19 @@ class StopTestJob(unittest.TestCase):
         make_job.main(base + ["--trigger", "BS Switch 33"])
 
 
+class StopTestPolicy(unittest.TestCase):
+    def test_the_mover_names_no_forbidden_call(self):
+        # a policy scan kept as text on purpose: a forbidden call on a branch no test runs must still fail
+        kit = mover("stop_test.py")
+        for bad in FORBIDDEN_EVERYWHERE + ["readCV", "writeCV", "Programmer", "emergency", "OpsMode"]:
+            self.assertNotIn(bad, kit, bad)
+
+
 class Jobkit(unittest.TestCase):
     MOVERS = ("step_runner.py", "move_to.py", "stop_test.py")
 
     def test_each_job_has_the_kit_once_and_the_runners_keep_no_copy(self):
+        # Structure of the generated text and of the runner sources: no run shows a second copy.
         d = Path(tempfile.mkdtemp())
         csvp = d / "bl.csv"
         write_lengths(csvp, {"Track Main West": (231, 220)})
@@ -318,22 +463,51 @@ class Jobkit(unittest.TestCase):
         for name in ("a.py", "b.py", "c.py"):
             text = (d / name).read_text()
             self.assertEqual(text.count("# jobkit.py - "), 1, name)
-            self.assertEqual(text.count("def end_job("), 1, name)
-            self.assertEqual(text.count("class TL("), 1, name)
+            defined = [n.name for n in ast.walk(ast.parse(text)) if isinstance(n, (ast.FunctionDef, ast.ClassDef))]
+            self.assertEqual(defined.count("end_job"), 1, name)
+            self.assertEqual(defined.count("TL"), 1, name)
+        kit = {n.name for n in ast.parse((SM / "jython" / "jobkit.py").read_text()).body
+               if isinstance(n, (ast.FunctionDef, ast.ClassDef))}
         for name in self.MOVERS:
-            src = (SM / "jython" / name).read_text()
-            for dup in ("class TL(", "def L(", "requestThrottle", "/tmp/speedrun.active\", \"w\"", "getNamedBeanSet",
-                        "removePropertyChangeListener", "throttle released", "NAMES = "):
-                self.assertNotIn(dup, src, "%s keeps its own copy of %s" % (name, dup))
+            tree = ast.parse((SM / "jython" / name).read_text())
+            own = {n.name for n in tree.body if isinstance(n, (ast.FunctionDef, ast.ClassDef))}
+            assigned = {t.id for n in tree.body if isinstance(n, ast.Assign) for t in n.targets if isinstance(t, ast.Name)}
+            self.assertEqual(own & kit - {"SL"}, set(), "%s keeps its own copy of a kit function" % name)
+            self.assertEqual(assigned & {"NAMES", "reg", "why", "ab", "own", "hit"}, set(), name)
+
+    def kit(self):
+        world = World()
+        world.entries["X"] = object()
+        res = run_job("LOGF = '/kit.log'\nORDER = []\n" + (SM / "jython" / "jobkit.py").read_text(), world)
+        return res.ns, world
+
+    def test_a_throttle_that_arrives_is_returned(self):
+        ns, world = self.kit()
+        t, _ = ns["request_throttle"]("X")
+        self.assertIs(t, world.throttle)
 
     def test_throttle_timeout_is_a_reason_and_a_late_throttle_is_released(self):
-        kit = (SM / "jython" / "jobkit.py").read_text()
-        self.assertIn('why[0] or "no throttle"', kit)
-        self.assertIn("gave_up", kit)
-        late = kit.split("def notifyThrottleFound")[1].split("def notifyFailed")[0]
-        self.assertIn("t.release(self)", late)
-        self.assertIn("late = self.gave_up", late)
-        self.assertNotRegex(kit, r"\bf[\"']")
+        ns, world = self.kit()
+        world.answer_throttle = False
+        t, tl = ns["request_throttle"]("X")
+        self.assertIsNone(t)
+        self.assertEqual(ns["why"][0], "no throttle")
+        tl.notifyThrottleFound(world.throttle)  # it arrives after the caller gave up
+        self.assertTrue(world.throttle.released())
+        self.assertIsNone(tl.t)
+        self.assertIn("late throttle released", say(world.files.written("/kit.log").splitlines()))
+
+    def test_an_unknown_roster_entry_is_a_reason(self):
+        ns, world = self.kit()
+        self.assertEqual(ns["request_throttle"]("Y"), (None, None))
+        self.assertEqual(ns["why"][0], "roster entry not found: Y")
+        self.assertEqual(world.throttle_requests, [])
+
+    def test_the_jython_sources_have_no_f_strings(self):
+        # Jython 2.7 cannot parse them, and only the source shows it: the jobs are never run under Jython here
+        for path in sorted((SM / "jython").glob("*.py")):
+            nodes = ast.walk(ast.parse(path.read_text()))
+            self.assertFalse([n for n in nodes if isinstance(n, ast.JoinedStr)], path.name)
 
 
 def stop_log(shift, enters, rest_active, never_stopped=False):

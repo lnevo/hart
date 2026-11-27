@@ -1,0 +1,12 @@
+industry_id,usage,inbound_load,outbound_load
+calgon,Coal Unload,Coal,EMPTY
+calgon,Carbon Load,EMPTY,Activated Carbon
+calgon,Chemical Unload,Process Chemicals,EMPTY
+kosmos,Cement Unload,Cement,EMPTY
+kosmos,Aggregate Unload,Aggregate,EMPTY
+ferrellgas,LPG Unload,LPG,EMPTY
+aristech,Pellet Unload,Plastic Pellets,EMPTY
+aristech,Chemical Unload,Process Chemicals,EMPTY
+aristech,Shipping Door,EMPTY,Plastic Resins
+stucki,Crane Track,Steel,EMPTY
+stucki,Team Track,General Freight,General Freight

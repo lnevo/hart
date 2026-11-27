@@ -3,18 +3,24 @@ the audit, and the PanelPro smoke test (Jython) reads the same file from the pat
 Both take the same counts from it and both refuse a file they cannot trust, naming the file and the key."""
 from __future__ import annotations
 
+import io
 import json
 import os
 import subprocess
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from unittest import mock
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))   # test_panelpro_smoke_steps, beside it
 import audit_panel_contracts as apc  # noqa: E402
-from audit_panel_graph import COUNTS, PANEL_COUNTS, PanelCounts, StoredCounts, load_panel_counts  # noqa: E402
+import audit_panel_graph as apg  # noqa: E402
+from audit_panel_graph import (  # noqa: E402
+    PANEL_COUNTS, PanelCounts, PanelCountsError, StoredCounts, load_panel_counts, panel_counts,
+)
 from hartlib.errors import FactsError  # noqa: E402
 from test_panelpro_smoke_steps import steps  # noqa: E402
 
@@ -55,10 +61,13 @@ class AuditReader(Files):
                          PanelCounts(3, StoredCounts(4, 5, 6), StoredCounts(7, 8, 9), 10))
 
     def test_the_audit_holds_the_tables_to_the_files_counts(self) -> None:
-        self.assertEqual(COUNTS, load_panel_counts(PANEL_COUNTS))
-        self.assertEqual(apc.EXPECTED_SML, {False: COUNTS.hand_drawn.sml, True: COUNTS.generated.sml})
-        self.assertEqual(apc.EXPECTED_GRAPH, {False: COUNTS.hand_drawn[1:], True: COUNTS.generated[1:]})
-        self.assertEqual(apc.EXPECTED_TRAININFO, COUNTS.traininfo)
+        counts = panel_counts()
+        self.assertEqual(counts, load_panel_counts(PANEL_COUNTS))
+        self.assertEqual({g: apc.expected_sml(g) for g in (False, True)},
+                         {False: counts.hand_drawn.sml, True: counts.generated.sml})
+        self.assertEqual({g: apc.expected_graph(g) for g in (False, True)},
+                         {False: counts.hand_drawn[1:], True: counts.generated[1:]})
+        self.assertEqual(apc.expected_traininfo(), counts.traininfo)
 
     def test_refuses_a_file_it_cannot_trust(self) -> None:
         for case, data, message in self.bad_files():
@@ -73,14 +82,54 @@ class AuditReader(Files):
             load_panel_counts(ROOT / "no/such/panel_counts.json")
 
 
+class FirstUse(Files):
+    """The audit reads the counts file on first use, not on import: a broken file stops the audit with
+    PanelCountsError naming the file, and the counts are read once."""
+
+    def setUp(self) -> None:
+        panel_counts.cache_clear()
+        self.addCleanup(panel_counts.cache_clear)
+
+    def broken(self) -> Path:
+        path = self.write("{")
+        patcher = mock.patch.object(apg, "PANEL_COUNTS", path)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        return path
+
+    def test_a_broken_file_is_the_audits_error_on_first_use(self) -> None:
+        path = self.broken()
+        with self.assertRaisesRegex(PanelCountsError, "cannot read the panel counts") as caught:
+            apc.expected_sml(True)
+        self.assertIn(path.name, str(caught.exception))
+
+    def test_the_audit_stops_naming_the_file(self) -> None:
+        path = self.broken()
+        out = io.StringIO()
+        with mock.patch.object(apc, "load_staging_masts", return_value=[]), redirect_stdout(out):
+            code = apc.main([])
+        self.assertEqual(code, 1)
+        self.assertIn("ERROR: ", out.getvalue())
+        self.assertIn(path.name, out.getvalue())
+        self.assertIn("cannot read the panel counts", out.getvalue())
+
+    def test_the_file_is_read_once(self) -> None:
+        path = self.write(GOOD)
+        with mock.patch.object(apg, "PANEL_COUNTS", path):
+            self.assertEqual(apc.expected_traininfo(), 10)
+            path.write_text("{", encoding="utf-8")
+            self.assertEqual(apc.expected_sml(True), 7)
+
+
 class SmokeReader(Files):
     def setUp(self) -> None:
         self.ns = steps()
 
     def test_takes_the_same_counts_as_the_audit(self) -> None:
         got = self.ns["expected_counts"](str(PANEL_COUNTS), set())
-        self.assertEqual(tuple(got), (COUNTS.masts, COUNTS.generated.sections, COUNTS.generated.transits,
-                                      COUNTS.traininfo))
+        counts = panel_counts()
+        self.assertEqual(tuple(got), (counts.masts, counts.generated.sections, counts.generated.transits,
+                                      counts.traininfo))
 
     def test_expects_no_section_or_transit_while_the_dispatcher_is_parked(self) -> None:
         got = steps("dispatcher")["expected_counts"](str(self.write(GOOD)), {"dispatcher"})

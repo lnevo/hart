@@ -54,7 +54,7 @@ JYTHON_READER = ROOT / "tools/hosts/pi/jython_list.sh"
 
 
 class JythonRow(NamedTuple):
-    """One row of jython_scripts.txt: its role (startup, pi, sibling, part) and its path in the repo and package."""
+    """One row of jython_scripts.txt: its role (startup, macpi, pi, sibling, part) and its path in the repo and package."""
     role: str
     path: str
 

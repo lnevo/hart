@@ -25,6 +25,6 @@ From `ops/hart-ops/`:
 .venv/bin/python card_pipeline/generate_cc_waybill_labels.py
 ```
 
-Do not run `generate_waybill_cards.py` against the master until the owner decides: it rewrites `data/HART_Spot_Waybills.csv` and renumbers `card_id` from 1 (owner, 2026-11-25; live waybills and the print queue are in STS).
+`generate_waybill_cards.py` writes its deck list to `card_pipeline/output/HART_Spot_Waybills_deck.csv`, never to `data/HART_Spot_Waybills.csv`: the master is an input of the deck, and a run renumbers `card_id` from 1 and draws the parties at random, so it cannot write the master back unchanged. Live waybills and the print queue are in STS.
 
-Commodity / supplier / customer / via tables in `card_pipeline/waybill_data.py` and the rules that apply them in `card_pipeline/waybill_deck.py` (both read by `generate_waybill_cards.py`) are the paper SoR; keep the CSV in sync with STS seed inputs under `sts-docker-helpers/seed/inputs/`.
+The rules are in `data/waybill_loads.csv`, `data/waybill_parties.csv` and `data/waybill_empty_returns.csv`, and the interchange cards are the interchange rows of `data/HART_Spot_Waybills.csv`; `card_pipeline/waybill_data.py` reads them through `hartlib.waybills` and `card_pipeline/waybill_deck.py` applies them. Keep the CSV in sync with STS seed inputs under `sts-docker-helpers/seed/inputs/`.
