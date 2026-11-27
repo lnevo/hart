@@ -2,11 +2,11 @@
 # and the hand-off of each Digicon head between SML (SET) and the field (Unheld; the mast reports
 # are painted in sml_events).
 #
-# signal_coordinator.py loads this from preference:jython after sml_beans and sml_claims and
-# reloads it on every run (jython_siblings.py).
+# The reads of the SML table it acts on (_dest_states and the counts built on it) are in
+# sml_beans. signal_coordinator.py loads this from preference:jython after sml_beans and
+# sml_claims and reloads it on every run (jython_siblings.py).
 
 from java.lang import Runnable, Thread
-from javax.swing import JOptionPane, SwingUtilities
 
 from sml_beans import (
     BOOT_MODE_WAIT_MS,
@@ -17,8 +17,7 @@ from sml_beans import (
     TOPIC_PREFIX,
     _ascii,
     _bean_label,
-    _head_manager,
-    _head_names_on_mast,
+    _logic_label,
     _topic_suffix,
 )
 
@@ -96,47 +95,6 @@ class SmlHandoff(object):
             self._enter_disabled(release=True)
         else:
             self._enter_enabled(force=False, from_boot=False)
-
-    def _ask_force_override_edt(self):
-        """Show override confirm on the EDT. Return True if Yes."""
-        holder = [JOptionPane.NO_OPTION]
-        msg = (
-            "track/bridge/sml_mode is already enabled "
-            "(another Digicon session or stale retain).\n"
-            "Force override Digicon control?"
-        )
-        title = "SML Enabled"
-
-        class _Ask(Runnable):
-            def run(_self):
-                try:
-                    from jmri.util.swing import JmriJOptionPane
-
-                    holder[0] = JmriJOptionPane.showConfirmDialog(
-                        None,
-                        msg,
-                        title,
-                        JmriJOptionPane.YES_NO_OPTION,
-                        JmriJOptionPane.WARNING_MESSAGE,
-                    )
-                except Exception:
-                    holder[0] = JOptionPane.showConfirmDialog(
-                        None,
-                        msg,
-                        title,
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.WARNING_MESSAGE,
-                    )
-
-        try:
-            if SwingUtilities.isEventDispatchThread():
-                _Ask().run()
-            else:
-                SwingUtilities.invokeAndWait(_Ask())
-        except Exception as exc:
-            print("mqtt_signalhead: override dialog failed: " + _ascii(exc))
-            return False
-        return holder[0] == JOptionPane.YES_OPTION
 
     def _probe_and_confirm_override(self):
         """If sml_mode is already enabled elsewhere, ask before taking control.
@@ -276,10 +234,7 @@ class SmlHandoff(object):
                 "mqtt_signalhead: publishing Unheld for %d MQTT head(s)"
                 % len(self._heads)
             )
-            for head in self._heads:
-                if self._abort_gen != abort_gen:
-                    break
-                self._publish_unheld(head)
+            self._unheld_all_heads(abort_gen)
         self._set_masts_held(False)
         self._global_enabled = False
         self._enabling_originator = False
@@ -301,6 +256,21 @@ class SmlHandoff(object):
             )
             ok = False
         return ok
+
+    def _unheld_all_heads(self, abort_gen):
+        """Unheld every MQTT head, stopping at an abort: then another agent owns them."""
+        for head in self._heads:
+            if self._abort_gen != abort_gen:
+                return
+            self._publish_unheld(head)
+
+    def _pairs_off_after_takeover(self, why):
+        """Taken over while the pairs went on: the abort's uncheck may have run first, so turn
+        them off again, then release the Holds."""
+        if self._set_all_digicon_sml_destinations(False) is not True:
+            self._retry_uncheck_loudly(why)
+        self._snapshot_mast_sml_state()
+        self._set_masts_held(False)
 
     def _set_masts_held(self, held):
         """Hold (or release) every Digicon mast. A mast that refuses is printed by name and
@@ -329,10 +299,7 @@ class SmlHandoff(object):
         on = self._try_set_all_digicon_sml(True)
         if self._abort_gen != abort_gen:
             print("mqtt_signalhead: taken over during the failed Disable -- pairs off, no enabled")
-            if self._set_all_digicon_sml_destinations(False) is not True:
-                self._retry_uncheck_loudly("taken over during the failed Disable")
-            self._snapshot_mast_sml_state()
-            self._set_masts_held(False)
+            self._pairs_off_after_takeover("taken over during the failed Disable")
             self._sync_sml_mode_sensor()
             return
         print(
@@ -369,16 +336,9 @@ class SmlHandoff(object):
         """'source -> dest' for every Digicon pair still Enabled, for failure lines."""
         out = []
         for sml in self._smls:
-            try:
-                it = sml.getDestinationList().iterator()
-                while it.hasNext():
-                    dest = it.next()
-                    if sml.isEnabled(dest):
-                        out.append(
-                            "%s -> %s" % (_bean_label(sml.getSourceMast()), _bean_label(dest))
-                        )
-            except Exception:
-                continue
+            for d in self._dest_states(sml):
+                if d.enabled:
+                    out.append("%s -> %s" % (_logic_label(sml), _bean_label(d.dest)))
         return ", ".join(out) or "none listed"
 
     def _retry_uncheck_loudly(self, why):
@@ -405,6 +365,7 @@ class SmlHandoff(object):
         )
 
     def _hand_off_enabled(self, abort_gen=None):
+        """Hold, wait, commit the claim, turn the pairs on, then announce enabled."""
         if self._shutting_down:
             print("mqtt_signalhead: enable skipped (shutting down)")
             return
@@ -424,8 +385,21 @@ class SmlHandoff(object):
         )
         self._set_masts_held(True)
         Thread.sleep(HOLD_WAIT_MS)
-        # Commit under the claim lock: a rival claim is handled either before (this claim
-        # lost, or kept) or after (this host owns; the rival is compared with an owner).
+        if not self._commit_enable(abort_gen):
+            return
+        print("mqtt_signalhead: Hold wait done -- enabling SML pairs")
+        if not self._pairs_on_for_enable(abort_gen):
+            return
+        self._set_masts_held(False)
+        self._announce_enabled(abort_gen)
+
+    def _commit_enable(self, abort_gen):
+        """After the Hold: set _global_enabled if this claim still stands (True).
+
+        Under the claim lock: a rival claim is handled either before (this claim lost, or
+        kept) or after (this host owns; the rival is compared with an owner). A lost claim
+        releases the Holds and leaves the dests as they are (False).
+        """
         with self._claim_lock:
             lost = (
                 self._shutting_down
@@ -442,30 +416,31 @@ class SmlHandoff(object):
             if self._abort_gen != abort_gen:
                 self._enabling_originator = False
             self._set_masts_held(False)
-            return
-        print("mqtt_signalhead: Hold wait done -- enabling SML pairs")
+        return not lost
+
+    def _pairs_on_for_enable(self, abort_gen):
+        """Turn every pair on. False when the enable stops here: taken over meanwhile (pairs
+        off again), or the pairs failed and _back_out_failed_enable handed off."""
         on = self._try_set_all_digicon_sml(True)
         if self._abort_gen != abort_gen:
-            # Taken over while the pairs went on: the abort's uncheck may have run first.
             print("mqtt_signalhead: taken over during enable -- pairs off, no enabled")
-            if self._set_all_digicon_sml_destinations(False) is not True:
-                self._retry_uncheck_loudly("taken over during enable")
-            self._snapshot_mast_sml_state()
-            self._set_masts_held(False)
-            return
+            self._pairs_off_after_takeover("taken over during enable")
+            return False
         if not on:
             if self._back_out_failed_enable(abort_gen):
-                return
+                return False
             self._unheld_heads_of_dark_masts(abort_gen)
-        self._set_masts_held(False)
-        # Ownership announce for the bridge and the other host (not a boot retain republish).
+        return True
+
+    def _announce_enabled(self, abort_gen):
+        """Ownership announce for the bridge and the other host (not a boot retain
+        republish), then push current appearances once Digicon owns SET again."""
         # Under the lock, so an abort that lands now cannot be followed by our enabled.
         with self._claim_lock:
             if self._abort_gen == abort_gen and self._claim is not None:
                 self._publish_mode("enabled")
             self._enabling_originator = False
         self._sync_sml_mode_sensor()
-        # Push current appearances once Digicon owns SET again.
         for head in self._heads:
             if self._mast_logic_enabled(self._mast_for_head(head)):
                 self._publish_head_set(head, force=True)
@@ -489,10 +464,7 @@ class SmlHandoff(object):
             "mqtt_signalhead: SML pairs off again -- publishing Unheld for %d MQTT head(s)"
             % len(self._heads)
         )
-        for head in self._heads:
-            if self._abort_gen != abort_gen:
-                break
-            self._publish_unheld(head)
+        self._unheld_all_heads(abort_gen)
         self._set_masts_held(False)
         with self._claim_lock:
             self._global_enabled = False
@@ -502,64 +474,6 @@ class SmlHandoff(object):
                 self._publish_mode("disabled")
         self._sync_sml_mode_sensor()
         return True
-
-    def _mast_for_head(self, head):
-        if head is None:
-            return None
-        return self._head_to_mast.get(head.getSystemName())
-
-    def _sml_for_mast(self, mast):
-        if mast is None:
-            return None
-        return self._sml_by_mast.get(mast)
-
-    def _mast_logic_enabled(self, mast):
-        """True if Digicon source mast has any destination Enabled in the SML table."""
-        return self._enabled_dest_count(mast) > 0
-
-    def _enabled_dest_count(self, mast):
-        if mast is None:
-            return 0
-        sml = self._sml_for_mast(mast)
-        if sml is None:
-            return 0
-        n = 0
-        try:
-            dests = sml.getDestinationList()
-            if dests is None or dests.isEmpty():
-                return 0
-            it = dests.iterator()
-            while it.hasNext():
-                dest = it.next()
-                try:
-                    if sml.isEnabled(dest):
-                        n += 1
-                except Exception:
-                    continue
-        except Exception:
-            return 0
-        return n
-
-    def _dest_enable_map(self, sml):
-        """dest systemName -> isEnabled for one source logic."""
-        out = {}
-        if sml is None:
-            return out
-        try:
-            dests = sml.getDestinationList()
-            if dests is None or dests.isEmpty():
-                return out
-            it = dests.iterator()
-            while it.hasNext():
-                dest = it.next()
-                try:
-                    key = dest.getSystemName()
-                    out[key] = bool(sml.isEnabled(dest))
-                except Exception:
-                    continue
-        except Exception:
-            return out
-        return out
 
     def _field_owns_mast(self, mast):
         """Field owns heads when global SML is off or this source was unchecked."""
@@ -583,19 +497,6 @@ class SmlHandoff(object):
             return
         self._last_mqtt_appearance[sys_name] = "Unheld"
         self._publish(topic, "Unheld", retain=True)
-
-    def _mqtt_heads_on_mast(self, mast):
-        heads = []
-        hm = _head_manager()
-        if hm is None or mast is None:
-            return heads
-        for sys_name in _head_names_on_mast(mast):
-            if sys_name not in self.mqtt_wanted:
-                continue
-            head = hm.getSignalHead(sys_name)
-            if head is not None:
-                heads.append(head)
-        return heads
 
     def _hand_source_to_field(self, mast):
         """Uncheck Enable: Unheld this source's heads; field owns until re-enabled."""
