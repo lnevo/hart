@@ -14,26 +14,37 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+# lcos_mqtt_mimic puts tools/hartlib/src on sys.path, so hartlib imports after it
 from lcos_mqtt_mimic import MimicError, load_layout  # noqa: E402
+from mimic_records import Layout  # noqa: E402
+
+from hartlib import devices  # noqa: E402
 
 FILENAME = "mimic_layout.json"
 
 
-def write(out_dir: Path) -> Path:
+def write(out_dir: Path, layout: Layout) -> Path:
+    """Write layout to out_dir/FILENAME and return that path."""
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / FILENAME
-    path.write_text(json.dumps(load_layout(), indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(layout, indent=1, sort_keys=True) + "\n", encoding="utf-8")
     return path
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--out", required=True, type=Path, help="folder that holds index.html")
+    out = ap.parse_args().out
     try:
-        path = write(ap.parse_args().out)
+        layout = load_layout()
     except MimicError as exc:      # tables.xml is missing, or a device-map row the page cannot place
         raise SystemExit(str(exc)) from exc
-    layout = json.loads(path.read_text(encoding="utf-8"))
+    except devices.DevicesError as exc:      # a bad row in the device master, naming file, line and row
+        raise SystemExit(f"build_mimic_web.py: the device master cannot be used: {exc}") from exc
+    try:
+        path = write(out, layout)
+    except OSError as exc:      # the folder cannot be made or the file cannot be written
+        raise SystemExit(f"build_mimic_web.py: cannot write {out / FILENAME}: {exc}") from exc
     print(f"{path}: {len(layout['turnouts'])} turnouts, {len(layout['blocks'])} blocks, {len(layout['heads'])} heads")
     return 0
 

@@ -151,7 +151,6 @@
  "tools/schematic/tests/test_split_store.py": 2,
  "tools/wiring/node_grid_svg.py": 1,
  "tools/wiring/write_inventory.py": 11,
- "www/scripts/build_cats_layout_index.py": 6,
  "www/scripts/check_portal_build.py": 4,
  "www/scripts/make_share_cards.py": 1,
  "www/scripts/provenance.py": 5,
