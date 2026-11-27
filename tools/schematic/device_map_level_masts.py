@@ -10,7 +10,7 @@ from __future__ import annotations
 import sys
 from collections.abc import Iterable, Iterator, Mapping, Sequence
 from pathlib import Path
-from typing import NamedTuple, TypeIs
+from typing import NamedTuple, NotRequired, TypedDict, TypeIs
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import le_common  # noqa: E402  bare: a switch label as the plan prints it
@@ -67,7 +67,14 @@ def owner_mast_names(files: devices.Files) -> dict[str, str]:
             if f["level"] in LEVELS and f["layer"] == "mast" and f["user_name"]}
 
 
-def virtual_memory(virtual: Iterable[VirtualMast], old: Mapping[str, tuple[str, str]]
+class NamedMast(TypedDict):
+    """What virtual_memory reads of a planned virtual mast: its ID and its final name (no "Mast "); a
+    mast_plan.VirtualMast is one, its `id` filled by the device map's build."""
+    id: NotRequired[str]
+    name: str
+
+
+def virtual_memory(virtual: Iterable[NamedMast], old: Mapping[str, tuple[str, str]]
                    ) -> dict[int, dict[str, str]]:
     """{level: {"Mast <name>": system name}} of the virtual masts' old system names (`old`: master_virtual_names,
     by ID), each under its mast's name now (`virtual`: the planned virtual masts, each with its `id` and final
@@ -80,7 +87,7 @@ def virtual_memory(virtual: Iterable[VirtualMast], old: Mapping[str, tuple[str, 
         key = now.get(ident, user)
         level = level_masts.virtual_level(system)
         if level is None:
-            raise MapError(f"{user}: {system} (id {ident}) is not a main or upper virtual mast's system name")
+            raise MapError(f"{user}: {system} (id {ident}) is no level's virtual mast system name")
         mine = out.setdefault(level, {})
         if key in mine or (ident not in now and key in now.values()):
             bad.append(f"{key}: the virtual mast of id {ident} had that name, and another mast now has it: add "

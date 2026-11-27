@@ -34,8 +34,8 @@ NARROWED = ("unit-guards test_check_stamps", "unit-hosts test_deploy_stage", "un
 NARROWED_READS: dict[str, tuple[set[str], set[str]]] = {   # job -> (files read, folders listed)
     "unit-guards test_hart_tables_writers": ({"wiki/status/current/backups.md", "www/scripts/build_layout_index.py"},
                                              {"www/scripts"}),
-    "unit-portal": ({"docs/ops/stations/barn.md", "docs/wiring/inventory.md", "www/scripts/tests/test_x.py",
-                     "www/play/runs.js", "www/index.html"},
+    "unit-portal": ({"docs/ops/stations/barn.md", "docs/wiring/LCOS_Layout_Inventory_v86.xlsx",
+                     "www/scripts/tests/test_x.py", "www/play/runs.js", "www/index.html"},
                     {"docs/ops/stations", "docs/wiring", "ops/hart-ops/card_pipeline", "www/crew/maps/barn",
                      "www/scripts/tests"}),
     # the files the deploy's bash copies (stage.sh), which no hook sees; the reference CSV moved to jmri/ on 2026-11-25
