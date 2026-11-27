@@ -47,9 +47,6 @@ ops/hart-ops/card_pipeline/build_merged_car_roster.py,LENGTH_WEIGHT,13,keep,its 
 ops/hart-ops/card_pipeline/car_repo.py,QUESTIONS,11,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 ops/hart-ops/card_pipeline/card_template_cc_label.py,_STS_NAME_TO_MASTER_ID,8,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 ops/hart-ops/card_pipeline/card_template_layout.py,CARD_SLOTS,9,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
-ops/hart-ops/card_pipeline/engine_lookup.py,ENGINE_ROAD_ALIASES,7,move,"3 railroad names (car, loco); first sort: fact with no master"
-ops/hart-ops/card_pipeline/engine_lookup.py,MODEL_MANUFACTURER,33,move,rows of values the rule cannot place; the owner marked it move
-ops/hart-ops/card_pipeline/engine_lookup.py,ROAD_DISPLAY,25,move,"21 railroad names (car, loco); first sort: fact with no master"
 ops/hart-ops/card_pipeline/finalize_car_images.py,SAMPLE_STEMS,8,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 ops/hart-ops/card_pipeline/finalize_car_images.py,TIE_PAN_ADJUSTMENTS,10,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
 ops/hart-ops/card_pipeline/finalize_car_images.py,WIDTH_TIE_EXTRA,7,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
@@ -63,7 +60,6 @@ ops/hart-ops/card_pipeline/operator_sheet_data.py,INDUSTRY_SUMMARIES,6,move,"6 r
 ops/hart-ops/card_pipeline/operator_sheet_data.py,SHEET_INDUSTRY_ORDER,6,move,"6 railroad names (industry, spot); first sort: copy of a master"
 ops/hart-ops/card_pipeline/operator_sheet_data.py,YARD_PAGES,4,move,holds sentences: page or card text?; the owner marked it move
 ops/hart-ops/card_pipeline/process_car_images.py,INVALID_MARKS,21,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
-ops/hart-ops/card_pipeline/process_car_images.py,ROAD_ALIASES,49,move,19 railroad names (car); first sort: fact with no master
 ops/hart-ops/card_pipeline/train_cards.py,TRAINS,6,move,"8 railroad names (car, loco, train); first sort: copy of a master"
 ops/hart-ops/card_pipeline/waybill_data.py,INDUSTRY_ORDER,5,move,"5 railroad names (industry, spot); first sort: copy of a master"
 ops/hart-ops/card_pipeline/waybill_data.py,INTERCHANGE_IN_VIA_CSX,6,move,holds sentences: page or card text?; the owner marked it move
