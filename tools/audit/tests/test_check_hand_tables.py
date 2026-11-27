@@ -53,7 +53,7 @@ class Checkout(unittest.TestCase):
         self.write("tools/stops.py", NAMES_PY)
         code, out = self.run_check()
         self.assertEqual(code, 1)
-        self.assertIn("tools/stops.py:1: STOPS is a railroad table (3 railroad names", out)
+        self.assertIn("tools/stops.py:1: STOPS is a railroad table (3 railroad names (station))", out)
 
     def test_code_words_pass_and_sentences_need_a_row(self):
         self.write("tools/cols.py", WORDS_PY)
@@ -88,11 +88,13 @@ class Checkout(unittest.TestCase):
         self.write("www/play/game.js", 'const STN = [\n  "South Yard", // a comment, with commas\n  "East End",'
                                        ' `Barn`, "x", "y", "z", 1, 2];\nfunction f() { return {a: 1}; }\n')
         self.write("archive/old.py", NAMES_PY)
+        self.write("jmri/layouts/hart/parked/nx.py", NAMES_PY)
         self.write("tools/tests/test_x.py", NAMES_PY)
         code, out = self.run_check()
         self.assertEqual(code, 1)
         self.assertIn("www/play/game.js:1: STN is a railroad table", out)
         self.assertNotIn("archive/", out)
+        self.assertNotIn("parked/", out)
         self.assertNotIn("tests/", out)
 
     def test_a_name_assigned_twice_keeps_its_largest_copy(self):

@@ -7,7 +7,8 @@ anything kept by hand goes in a CSV read through hartlib).
     python3 tools/audit/check_hand_tables.py --list     # every table it finds, with its class and why
     python3 tools/audit/check_hand_tables.py --update   # drop rows for tables gone, lower entries that fell
 
-What it reads. Every tracked .py outside archive/, external/ and reference/ (vendor and retired code) and every
+What it reads. Every tracked .py outside archive/, external/ and reference/ (vendor and retired code) and the
+parked features' folder (jmri/layouts/hart/parked/), and every
 tracked .js under www/, less tests (a tests/ folder, test_*.py) and minified or vendor files. A table is a top-level
 assignment of a dict, list, tuple or set literal (also one wrapped in a call, such as frozenset({...})) with at least
 MIN_ENTRIES entries and MIN_LITERALS string or number literals in it. Smaller lookups and tables inside functions
@@ -39,12 +40,13 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import files, hand_tables, paths  # noqa: E402
+from hartlib import files, hand_tables, parked, paths  # noqa: E402
 from hartlib.hand_tables import HandTablesError, Listed  # noqa: E402
 
 REPO = paths.REPO_ROOT
 SCAN_GLOBS = ("**/*.py", "www/**/*.js")
-SKIP = ("archive/", "external/", "reference/")
+# vendor and retired code, and the parked features' own folder (wiki/not-pending.md: parked code is not listed)
+SKIP = ("archive/", "external/", "reference/", parked.FOLDER.relative_to(paths.REPO_ROOT).as_posix() + "/")
 ENTITIES = "docs/data/entities.csv"
 LISTED = "tools/audit/hand_tables.csv"
 MIN_ENTRIES = 4
@@ -197,9 +199,9 @@ def classify(table: Table, names: dict[str, str], tops: frozenset[str] = frozens
     folders `tops` (top_dirs)."""
     hits = sorted({s for s in table.strings if s in names})
     if len(hits) >= MIN_HITS:
-        shown = ", ".join(hits[:3]) + (f" and {len(hits) - 3} more" if len(hits) > 3 else "")
+        # kinds, not the names: a reason that copied them would be one more hand copy (check_name_copies)
         kinds = sorted({names[h].split(" (")[0] for h in hits})
-        return "railroad", f"{len(hits)} railroad names ({shown}; {', '.join(kinds)})"
+        return "railroad", f"{len(hits)} railroad names ({', '.join(kinds)})"
     if any(is_repo_path(s, tops) for s in table.strings):
         return "unclear", "names repo files: an exception list?"
     if table.strings and not table.numbers and all(ONE_WORD.fullmatch(s) for s in table.strings):

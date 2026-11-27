@@ -10726,6 +10726,12 @@
    "gen": "manifest"
   },
   {
+   "from": "docs/pipeline-map/timings.json",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "step times",
+   "gen": "manifest"
+  },
+  {
    "from": "jmri/layouts/hart/data/wiring.csv",
    "to": "tools/wiring/check_wiring_frozen.py",
    "label": "audits, via hartlib.wiring",
