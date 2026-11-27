@@ -190,7 +190,7 @@ function fmt(m){ const d=((Math.round(m)%1440)+1440)%1440, h=Math.floor(d/60), m
 function nowMin(){ const n=new Date(); const v=n.getHours()*60+n.getMinutes(); return v < waveStart()-60 ? v+1440 : v; }
 function midnightMark(svg, x, lo, hi, y1, y2){ for(let d=1440; d<=hi; d+=1440){ if(d<=lo) continue; const px=x(d);
   svg.append('line').attr('x1',px).attr('x2',px).attr('y1',y1).attr('y2',y2).style('stroke','var(--cds-chart-reference)').style('stroke-width',1.5);
-  svg.append('text').attr('x',px+3).attr('y',y1+10).text('midnight').style('fill','var(--cds-text-secondary)').style('font-size','11px'); } }
+  svg.append('title').text('midnight'); } }
 function shortName(x){ if(x.short) return String(x.short); const n=String(x.lane||x.id||''); return n.startsWith('lnevo-5f ') ? n.slice(9) : n.split(' ')[0]; }
 document.querySelectorAll('.w2 .chip[data-tl]').forEach((b)=>{
   b.addEventListener('click', ()=>{
@@ -242,7 +242,7 @@ dash.draw('timeline', (el)=>{
     grp.append('circle').attr('cx',px).attr('cy',axisY).attr('r',5)
       .style('stroke', p.x.status==='blocked'||p.x.status==='failed' ? 'var(--cds-chart-status-critical)' : dash.colors[0]).style('stroke-width',2)
       .style('fill', p.done ? dash.colors[0] : 'var(--color-panel)');
-    grp.on('mouseenter', ()=>{ tip.textContent = `${p.x.lane} · ${p.x.status}${p.x.pr?' · '+p.x.pr:''} · ${p.done?'done':'ETA'} ${fmt(p.t)} · ${p.x.stage||''}`; tip.hidden=false; tip.style.left=Math.max(0,Math.min(px, W-260))+'px'; tip.style.top=(axisY+8)+'px'; })
+    grp.on('mouseenter', ()=>{ tip.textContent = `${p.x.lane} · ${p.x.status}${p.x.pr?' · '+p.x.pr:''} · ${p.done?'done':'ETA'} ${fmt(p.t)}${p.t>=1440?' (next day)':''} · ${p.x.stage||''}`; tip.hidden=false; tip.style.left=Math.max(0,Math.min(px, W-260))+'px'; tip.style.top=(axisY+8)+'px'; })
        .on('mouseleave', ()=>{ tip.hidden=true; });
   });
 });
