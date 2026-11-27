@@ -27,11 +27,10 @@ import argparse
 import csv
 import io
 import os
-import re
 import sys
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
-from typing import NamedTuple
+from typing import NamedTuple, TypedDict
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_device_map as bdm  # noqa: E402
@@ -45,6 +44,44 @@ DATA = pd.DATA
 MASTS, DEVICE_MAP = level_masts.PATH, sdm.DEVICE_MAP     # masts.csv, every level; the device master
 WRITER = Path(__file__).name
 RuleError = dmm.RuleError
+MasterCells = Mapping[str, str]          # a device master row (hartlib.devices.load), its cells by column
+Facts = Mapping[tuple[int, str], dmm.PlanFacts]     # {(level, mast): its plan facts}, staging's (dmm.plan_facts)
+NO_FACTS = dmm.PlanFacts(**dict.fromkeys(level_masts.PLAN_FIELDS, ""))    # a mast the drawing does not place
+
+
+class MastsRow(TypedDict):
+    """One row of masts.csv (level_masts.FIELDS), each cell text: the mast's device facts, its JMRI names and, on
+    staging, its plan facts (level_masts.PLAN_FIELDS; empty on main and upper)."""
+    level: str
+    mast: str
+    cp: str
+    switch: str
+    facing: str
+    protects: str
+    dir: str
+    leg: str
+    system_name: str
+    head_system_names: str
+    device_system_name: str
+    toward: str
+    run: str
+    names: str
+    edge_cm: str
+    cm_from_toward: str
+    schematic_edge: str
+    schematic_toward_node: str
+
+
+def cells(r: MastsRow) -> dict[str, str]:
+    """A masts.csv row as the cells csv_text writes (every one is text)."""
+    return {k: str(v) for k, v in r.items()}
+
+
+class Built(NamedTuple):
+    """build()'s result: {masts.csv: its text}, staging's visible masts and its virtual masts by the rule."""
+    files: dict[Path, str]
+    visible: list[dmm.StagingMast]
+    virtual: list[dmm.StagingMast]
 
 
 def device_files() -> devices.Files:
@@ -52,7 +89,7 @@ def device_files() -> devices.Files:
     return devices.Files.under(DEVICE_MAP.parent)
 
 
-def csv_text(rows: list[dict], columns, path: Path | None = None) -> str:
+def csv_text(rows: Sequence[Mapping[str, str]], columns: Iterable[str], path: Path | None = None) -> str:
     """masts.csv's text of `rows`, the cp cells as place ids by the lists beside `path` (the file it goes to;
     places.lists_beside, the repo's lists when None or when it has none), the lists level_masts.read names them by."""
     buf = io.StringIO()
@@ -64,14 +101,14 @@ def csv_text(rows: list[dict], columns, path: Path | None = None) -> str:
 
 class _Master(NamedTuple):
     """The device master's rows on a level, indexed the ways file_rows looks them up."""
-    masts: list[dict]                       # the mast rows, in master order
-    heads: dict[tuple[str, str], dict]      # (level, jmri_name) -> head row
-    physical: dict[tuple[str, str], dict]   # (level, system_name) -> head row that names a planned physical part
-    blocks: dict[tuple[str, str], dict]     # (level, user_name) -> block row (a protected block's role)
-    os_of: dict[tuple[str, str], str]       # (level, "os:<switch>") -> the OS block's user name
+    masts: list[MasterCells]                        # the mast rows, in master order
+    heads: dict[tuple[str, str], MasterCells]       # (level, jmri_name) -> head row
+    physical: dict[tuple[str, str], MasterCells]    # (level, system_name) -> head row that names a planned physical part
+    blocks: dict[tuple[str, str], MasterCells]      # (level, user_name) -> block row (a protected block's role)
+    os_of: dict[tuple[str, str], str]               # (level, "os:<switch>") -> the OS block's user name
 
 
-def _index_master(master: list[dict]) -> _Master:
+def _index_master(master: Iterable[MasterCells]) -> _Master:
     """The master's rows on a level (a row on no level, a device a Store added and not yet placed, is left out)."""
     levels = {str(lv) for lv in level_masts.LEVELS}
     rows = [r for r in master if r["level"] in levels]
@@ -84,14 +121,17 @@ def _index_master(master: list[dict]) -> _Master:
     )
 
 
-def _base_row(r: dict, plan: Mapping[tuple[int, str], dict]) -> dict:
-    """A mast's masts.csv row before protects and head_system_names are known, its leg empty."""
-    return dict(level=r["level"], mast=r["user_name"], cp=r["cp"], switch=r["switch"], facing=r["facing"],
-                dir=r["dir"], leg="", system_name=r["jmri_name"], device_system_name=r["system_name"],
-                **{**dict.fromkeys(level_masts.PLAN_FIELDS, ""), **plan.get((int(r["level"]), r["user_name"]), {})})
+def _base_row(r: MasterCells, plan: Facts) -> MastsRow:
+    """A mast's masts.csv row before protects and head_system_names are known (both empty), its leg empty."""
+    f = plan.get((int(r["level"]), r["user_name"]), NO_FACTS)
+    return MastsRow(level=r["level"], mast=r["user_name"], cp=r["cp"], switch=r["switch"], facing=r["facing"],
+                    protects="", dir=r["dir"], leg="", system_name=r["jmri_name"], head_system_names="",
+                    device_system_name=r["system_name"], toward=f["toward"], run=f["run"], names=f["names"],
+                    edge_cm=f["edge_cm"], cm_from_toward=f["cm_from_toward"], schematic_edge=f["schematic_edge"],
+                    schematic_toward_node=f["schematic_toward_node"])
 
 
-def _virtual_problem(r: dict, protects: list[str], where: str) -> str | None:
+def _virtual_problem(r: MasterCells, protects: list[str], where: str) -> str | None:
     """A hidden destination mast at a buffer stop (mast_plan) is its level's VirtualSignalMast, at no switch,
     protecting nothing."""
     jmri = r["jmri_name"]
@@ -101,7 +141,7 @@ def _virtual_problem(r: dict, protects: list[str], where: str) -> str | None:
     return None
 
 
-def _anchor_problem(r: dict, protects: list[str], where: str, idx: _Master) -> str | None:
+def _anchor_problem(r: MasterCells, protects: list[str], where: str, idx: _Master) -> str | None:
     """A home mast at no switch is an anchor mast (one rule on every level): it protects an OS block of its level,
     else a home signal lost its switch."""
     if r["switch"] or r["role"] != "home":
@@ -115,7 +155,7 @@ def _anchor_problem(r: dict, protects: list[str], where: str, idx: _Master) -> s
     return None
 
 
-def _head_names(r: dict, where: str, idx: _Master, bad: list[str]) -> list[str] | None:
+def _head_names(r: MasterCells, where: str, idx: _Master, bad: list[str]) -> list[str] | None:
     """The heads a SignalHeadSignalMast jmri_name names, each checked against its head row (problems go to `bad`);
     None, with the reason in `bad`, when the name is no such mast or a head has no row."""
     level, jmri = r["level"], r["jmri_name"]
@@ -133,20 +173,21 @@ def _head_names(r: dict, where: str, idx: _Master, bad: list[str]) -> list[str] 
     return names
 
 
-def _physical_problem(r: dict, names: list[str], where: str, idx: _Master) -> str | None:
+def _physical_problem(r: MasterCells, names: list[str], where: str, idx: _Master) -> str | None:
     """A planned physical mast (a system_name other than the JMRI name) is the same signal over the same heads."""
     jmri, system = r["jmri_name"], r["system_name"]
     if not system or system == jmri:
         return None
     planned, m = level_masts.SHSM.fullmatch(system), level_masts.SHSM.fullmatch(jmri)
-    got = [idx.physical.get((r["level"], h), {}).get("jmri_name") for h in level_masts.mast_heads(system)]
+    got = [p["jmri_name"] if (p := idx.physical.get((r["level"], h))) else None
+           for h in level_masts.mast_heads(system)]
     if not planned or not m or planned.group(1, 2) != m.group(1, 2) or got != names:
         return (f"{where}: system_name {system!r} is not the planned physical mast of "
                 f"{jmri!r} (its heads' rows give {got})")
     return None
 
 
-def _mast_row(r: dict, idx: _Master, plan: Mapping[tuple[int, str], dict], bad: list[str]) -> dict | None:
+def _mast_row(r: MasterCells, idx: _Master, plan: Facts, bad: list[str]) -> MastsRow | None:
     """One mast's masts.csv row, its problems added to `bad`; None when a problem leaves no row to write."""
     level, name, switch = r["level"], r["user_name"], r["switch"]
     where = f"{DEVICE_MAP.name}: level {level} mast {name}"
@@ -158,7 +199,7 @@ def _mast_row(r: dict, idx: _Master, plan: Mapping[tuple[int, str], dict], bad: 
     if r["jmri_name"].startswith("IF$vsm:"):
         if problem := _virtual_problem(r, protects, where):
             bad.append(problem)
-        return dict(row, protects="", head_system_names="")
+        return row
     if len(protects) > 1 or not (switch or protects):     # an intermediate: no switch, between two blocks
         bad.append(f"{where}: protects {protects or 'nothing'} and stands at "
                    f"{'Switch ' + switch if switch else 'no switch'}: a home signal is at a switch or protects "
@@ -173,13 +214,14 @@ def _mast_row(r: dict, idx: _Master, plan: Mapping[tuple[int, str], dict], bad: 
         bad.append(problem)
     # the OS block of its switch by its id (os:<n>), so an owner's name for it is the one written here
     own = protects[0] if protects else idx.os_of.get((level, f"os:{switch}"), f"OS Switch {switch}")
-    return dict(row, protects=own,
-                head_system_names=level_masts.LIST.join(f"{h}={idx.heads[(level, h)]['user_name']}" for h in names))
+    row["protects"] = own
+    row["head_system_names"] = level_masts.LIST.join(f"{h}={idx.heads[(level, h)]['user_name']}" for h in names)
+    return row
 
 
-def _assign_legs(out: list[dict], bad: list[str]) -> None:
+def _assign_legs(out: list[MastsRow], bad: list[str]) -> None:
     """Two masts facing into one block are an A and a B, on the switch's normal and diverging legs: set their leg."""
-    pairs: dict[tuple[str, str], list[dict]] = {}
+    pairs: dict[tuple[str, str], list[MastsRow]] = {}
     for r in out:
         if r["protects"]:
             pairs.setdefault((r["facing"], r["protects"]), []).append(r)
@@ -195,7 +237,7 @@ def _assign_legs(out: list[dict], bad: list[str]) -> None:
             r["leg"] = level_masts.LEGS[letter]
 
 
-def _naming_problems(out: list[dict], plan: Mapping[tuple[int, str], dict]) -> list[str]:
+def _naming_problems(out: list[MastsRow], plan: Facts) -> list[str]:
     """A mast named twice, and plan facts for a mast the master has no row for."""
     taken = [r["mast"] for r in out]
     bad = [f"{DEVICE_MAP.name}: mast {x} is named twice" for x in sorted({x for x in taken if taken.count(x) > 1})]
@@ -204,15 +246,7 @@ def _naming_problems(out: list[dict], plan: Mapping[tuple[int, str], dict]) -> l
     return bad
 
 
-def _mast_number(name: str) -> int:
-    """The first number in a mast name; MAST_USER, checked before, gives every name one."""
-    m = re.search(r"\d+", name)
-    if m is None:
-        raise RuleError(f"mast {name!r} has no number")
-    return int(m.group())
-
-
-def file_rows(master: list[dict], plan: Mapping[tuple[int, str], dict]) -> list[dict]:
+def file_rows(master: Iterable[MasterCells], plan: Facts) -> list[MastsRow]:
     """masts.csv's rows, every level alike, from the mast and head rows of the device master (`master`, its rows as
     they will be written) and `plan` ({(level, mast): its PLAN_FIELDS}, the plan facts of staging's masts; every
     other row's are empty): one row per mast, in level, number and name order. system_name and head_system_names are
@@ -229,7 +263,7 @@ def file_rows(master: list[dict], plan: Mapping[tuple[int, str], dict]) -> list[
     mast the master does not have. A row on no level (a device a Store added, not yet placed: hartlib.devices
     is_unplaced) is on no level's map, and left out."""
     idx = _index_master(master)
-    out: list[dict] = []
+    out: list[MastsRow] = []
     bad: list[str] = []
     for r in idx.masts:
         row = _mast_row(r, idx, plan, bad)
@@ -239,13 +273,13 @@ def file_rows(master: list[dict], plan: Mapping[tuple[int, str], dict]) -> list[
     bad += _naming_problems(out, plan)
     if bad:
         raise RuleError("; ".join(bad))
-    return sorted(out, key=lambda r: (int(r["level"]), _mast_number(r["mast"]), r["mast"]))
+    return sorted(out, key=lambda r: (int(r["level"]), dmm.mast_number(r["mast"]), r["mast"]))
 
 
-def current(master: list, made: list[dict]) -> None:
+def current(master: Iterable[MasterCells], made: Iterable[MasterCells]) -> None:
     """RuleError when the master's staging mast and head rows are not the rule's (`made`: device_map_masts
     .staging_masts' rows): build_device_map.py writes them, and masts.csv must follow the rows it reads."""
-    def key(r):
+    def key(r: MasterCells) -> tuple[str, str, str, str]:
         return (r["layer"], r["id"], r["user_name"], r["system_name"])
     have = sorted(key(r) for r in master if r["level"] == str(dmm.LEVEL) and r["layer"] in dmm.LAYERS
                   and r["written_by"] == dmm.WRITER)
@@ -256,8 +290,9 @@ def current(master: list, made: list[dict]) -> None:
                         "tools/schematic/build_device_map.py first")
 
 
-def build(check: bool = False):
-    """({masts.csv: text}, the visible masts, the virtual masts by rule). `check`: a run that writes nothing."""
+def build(check: bool = False) -> Built:
+    """masts.csv's text with staging's visible and virtual masts by the rule (Built). `check`: a run that writes
+    nothing."""
     with pd.cache_on():
         bands, joined, runs, _corners = bdm.solve()
     files = device_files()
@@ -269,16 +304,17 @@ def build(check: bool = False):
     current(master, got["rows"])
     rows = file_rows(master, got["facts"])
     placed = got["placed"]
-    kinds = {m["mast"]: level_masts.signal_kind(m) for m in rows if m["mast"] in {g["mast"] for g in placed}}
+    names = {g["mast"] for g in placed}
+    kinds = {m["mast"]: level_masts.signal_kind(dict(m)) for m in rows if m["mast"] in names}
     drift = sorted(m["mast"] for m in placed if kinds[m["mast"]] != m["signal_kind"])
     if drift:       # the file holds no kind: it must follow from the row as the rule gives it
         raise RuleError(f"the rule's signal kind of {drift} is not the one their heads give")
     gen = [m for m in placed if m["role"] != "hidden"]
     vgen = [m for m in placed if m["role"] == "hidden"]
-    return {MASTS: csv_text(rows, level_masts.FIELDS, MASTS)}, gen, vgen
+    return Built({MASTS: csv_text([cells(r) for r in rows], level_masts.FIELDS, MASTS)}, gen, vgen)
 
 
-def main(argv=None) -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--check", action="store_true", help="exit 1 if a file is stale")

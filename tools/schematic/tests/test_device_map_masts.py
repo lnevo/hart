@@ -328,6 +328,27 @@ class Rows(unittest.TestCase):
         self.assertEqual(got, {"Mast 4LA": "IF$vsm:basic:one-low($1002)", "Mast 4LB": "IF$vsm:basic:one-low($1001)"})
 
 
+class OneNameSource(unittest.TestCase):
+    """Staging names its virtual masts and mast system names by the main and upper rules (device_map_level_masts)."""
+
+    def test_an_old_virtual_name_out_of_every_levels_thousand_is_a_rule_error(self):
+        old = [dict(layer="mast", id="mast:block:3B-end:west", user_name="Mast 4LA",
+                    system_name="IF$vsm:basic:one-low($5001)")]
+        with self.assertRaisesRegex(dmm.RuleError, r"\$5001\) \(id mast:block:3B-end:west"):
+            dmm.virtual_names([dict(mast="Mast 4LA")], {"Mast 4LA": "mast:block:3B-end:west"}, old)
+
+    def test_a_new_virtual_mast_takes_the_next_ordinal(self):
+        got = dmm.virtual_names([dict(mast="Mast 4LA")], {"Mast 4LA": "mast:block:3B-end:west"}, [])
+        self.assertEqual(list(got), ["Mast 4LA"])        # an ordinal of staging's thousand past the retired ones
+        self.assertEqual(level_masts.virtual_level(got["Mast 4LA"]), 1)
+
+    def test_mast_numbers_and_system_names(self):
+        self.assertEqual(dmm.mast_number("Mast 24RA"), 24)
+        with self.assertRaisesRegex(dmm.RuleError, "has no number"):
+            dmm.mast_number("Mast X")
+        self.assertEqual(dmm.mast_system_name("one-low", ["IH:HART:C1:2R"]), "IF$shsm:basic:one-low(IH:HART:C1:2R)")
+
+
 class ReviewFixes(unittest.TestCase):
     """Code review of naming-layers step 12."""
     V = "IF$vsm:basic:one-low(${})"

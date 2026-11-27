@@ -35,14 +35,20 @@ retired_virtual_masts.csv. The ordinals are the builder's one read-back of its o
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
+from typing import Any, Literal, NotRequired, TypedDict, cast
 
+import device_map_level_masts as dmlm
 import le_names as ln
 import mast_plan
 import mast_rule
 import publish_draft as pd
 import staging_device_map as sdm
+from device_map_level_masts import mast_system_name
 from hartlib import device_ids, devices, level_masts, railroad, wiring
+from mast_plan import Band, Intermediate, MastPlan, VirtualMast
+from mast_rule import HomeMast, Leg
 
 WRITER = "build_device_map.py"              # the one writer of every level's mast and head rows
 LEVEL = sdm.LEVEL                           # staging
@@ -58,7 +64,70 @@ LAYERS = ("mast", "head")
 
 
 class RuleError(mast_rule.MapError):
-    pass
+    """A staging mast or head the rule cannot place or name; the message names it."""
+
+
+Role = Literal["home", "intermediate", "hidden"]
+BlockNames = Mapping[str, Any]      # staging_device_map.load's names of the staging band: os, blocks, ...
+DeviceCells = dict[str, str]        # a mast or head row of the device map, its cells by column
+
+
+class StagingMast(TypedDict):
+    """One staging mast as generate and virtual_masts place it, in the columns the files take: `run` is
+    "<toward>;<far switch>", `edge` and `node` the plan graph's edge and the node it is measured from. A home mast
+    has its leg, strand and running; an intermediate its milepost; device_rows sets signal_kind and owner_names
+    `generated` (the rule's name when the owner's differs)."""
+    mast: str
+    cp: str
+    switch: str
+    facing: str
+    protects: str
+    kind: str
+    heads: int
+    dir: str
+    toward: str
+    run: str
+    names: list[str]
+    edge_cm: float
+    cm_from_toward: float
+    edge: str
+    node: str
+    role: Role
+    leg: NotRequired[str]
+    strand: NotRequired[str]
+    running: NotRequired[bool]
+    milepost: NotRequired[float]
+    signal_kind: NotRequired[str]
+    generated: NotRequired[str]
+
+
+class WiredHead(TypedDict):
+    """A wired head's values from wiring.csv (wired_heads): its address as system and JMRI name, node, wiring text
+    (comment) and notes."""
+    system_name: str
+    jmri_name: str
+    node: str
+    comment: str
+    notes: str
+
+
+class PlanFacts(TypedDict):
+    """A staging mast's plan facts as masts.csv writes them (level_masts.PLAN_FIELDS), each cell text."""
+    toward: str
+    run: str
+    names: str
+    edge_cm: str
+    cm_from_toward: str
+    schematic_edge: str
+    schematic_toward_node: str
+
+
+class StagingMasts(TypedDict):
+    """staging_masts' result: the masts placed (final names, number then name order), their mast and head rows and
+    their plan facts by (level, mast)."""
+    placed: list[StagingMast]
+    rows: list[DeviceCells]
+    facts: dict[tuple[int, str], PlanFacts]
 
 
 class MissingLengths(RuleError):
@@ -67,14 +136,14 @@ class MissingLengths(RuleError):
     plan_lengths.py can add the lengths of a new block."""
 
 
-def levels() -> dict:
+def levels() -> dict[str, int]:
     """{band title: level} of staging's plan overrides, read on first use (not on import)."""
     if not _LEVELS:
         _LEVELS.update(mast_rule.band_levels(sdm.overrides()))
     return _LEVELS
 
 
-_LEVELS: dict = {}
+_LEVELS: dict[str, int] = {}
 
 
 def internal_head(user: str, level: int = LEVEL) -> str:
@@ -100,7 +169,8 @@ def field_by_id(files: devices.Files) -> dict[str, dict]:
             if f["level"] == str(LEVEL) and f["layer"] in LAYERS}
 
 
-def wired_heads(field: dict, path: Path | None = None, files: devices.Files | None = None) -> dict[str, dict]:
+def wired_heads(field: Mapping[str, Mapping[str, str]], path: Path | None = None, files: devices.Files | None = None
+                ) -> dict[str, WiredHead]:
     """{head id: its wired values} of wiring.csv's level 1 head rows (`path`, default the committed file), the
     physical wiring source: system_name and jmri_name (the address), node and comment (its wiring text) from there,
     notes from the head's field row (`field`, field_by_id), else wiring.csv's, else "wired". RuleError on a wired
@@ -114,14 +184,14 @@ def wired_heads(field: dict, path: Path | None = None, files: devices.Files | No
         raise RuleError(str(exc)) from exc
     bad = [f"{wiring.PATH.name} line {w.line}: {w.device} is on node {w.node}, no staging node "
            f"({', '.join(map(str, sorted(nodes)))})" for w in heads if w.node not in nodes]
-    out = {}
+    out: dict[str, WiredHead] = {}
     for w in heads:
         if not w.mast.startswith("Mast ") or not w.place:
             bad.append(f"{wiring.PATH.name} line {w.line}: {w.id!r} is no head of a staging mast")
             continue
         f = field.get(w.id)
-        out[w.id] = dict(system_name=w.address, jmri_name=w.address, node=str(w.node), comment=w.wiring_text,
-                         notes=(f or {}).get("notes") or w.notes or "wired")
+        out[w.id] = WiredHead(system_name=w.address, jmri_name=w.address, node=str(w.node), comment=w.wiring_text,
+                              notes=(f or {}).get("notes") or w.notes or "wired")
     for ident in sorted(i for i, f in field.items() if f["layer"] == "head" and i not in out):
         bad.append(f"{devices.FIELD_FILE}: head {ident} has no head row in {wiring.PATH.name}: add its wiring there, "
                    "or remove the field row")
@@ -130,7 +200,7 @@ def wired_heads(field: dict, path: Path | None = None, files: devices.Files | No
     return out
 
 
-def block_cm(rows: list, path: Path | None = None) -> dict:
+def block_cm(rows: Iterable[Mapping[str, str]], path: Path | None = None) -> dict[str, float]:
     """{block: cm} of the plan lengths in block_lengths.csv (`path`, default the repo's; hartlib.block_lengths), each
     found by its (level, id) and named by its row in `rows` (the master's rows as the builder writes them), not by
     the device master the last run wrote."""
@@ -141,7 +211,7 @@ def block_cm(rows: list, path: Path | None = None) -> dict:
             if r["level"] == str(LEVEL) and r["layer"] == "block" and (r["level"], r["id"]) in by_id}
 
 
-def with_lengths(runs: list, cm: dict) -> list:
+def with_lengths(runs: list[mast_plan.Run], cm: Mapping[str, float]) -> list[mast_plan.Run]:
     """`runs` (mast_plan.run_blocks) when `cm` gives every block on them a length; RuleError naming the blocks it does
     not (a block with no plan length has no place to put a mast)."""
     missing = sorted({b for _start, seq, _end in runs for b in seq} - set(cm))
@@ -150,7 +220,7 @@ def with_lengths(runs: list, cm: dict) -> list:
     return runs
 
 
-def plan_edge(band, sids, stored: dict) -> tuple[str, list[str]]:
+def plan_edge(band: Band, sids: Iterable[str], stored: Mapping[str, str]) -> tuple[str, list[str]]:
     """(the plan graph edge a run's strands come from, every track name the name store gives a strand of that edge:
     `stored`, {strand: name}, staging_device_map.staging_names), as build_signals.py checks a mast's schematic run:
     one edge, a strand's own suffix (".0", ".1") dropped."""
@@ -163,73 +233,96 @@ def plan_edge(band, sids, stored: dict) -> tuple[str, list[str]]:
     return edges[0], names
 
 
-def run_strands(band) -> dict:
+def run_strands(band: Band) -> dict[Leg, list[str]]:
     """{(node, port): [strand ids]} of the run that leaves each switch leg (le_names.runs, crossover insides left out)."""
-    out = {}
+    out: dict[Leg, list[str]] = {}
     for start, chain, end in ln.runs(band, ln.crossover_strands(band)):
         sids = [sid for sid, _rev in chain]
-        out[tuple(start)] = out[tuple(end)] = sids
+        out[(start[0], start[1])] = out[(end[0], end[1])] = sids
     return out
 
 
-def generate(band, names: dict, planned: dict, cm: dict, parts: dict, stored: dict) -> list[dict]:
-    """The visible staging masts in the columns the files take, from mast_plan.plan's home masts and intermediates on
-    the staging band (`names`: the block layer, `cm`: block_cm): [{mast, cp, switch, facing, protects, kind, heads,
-    dir, toward, run, names, edge_cm, cm_from_toward, edge, node, role}], in name order; role (hartlib.devices.ROLES)
-    is home or intermediate, as the plan places the mast. A home mast stands at its switch's leg when the block
-    boundary is there (a turnout mast), else on the anchor where the switch's own OS block ends (an anchor mast, no
-    switch); a part of the OS block (a JMRI block of its own) is inside it, as mast_plan reads the
-    layer (staging_device_map.os_layer). It faces the JMRI block next to that boundary (Mast 32R: Track 29-31), and
-    its lengths are the JMRI blocks' (block_lengths.csv), as build_signals.check_lengths reads them. A mast's `names`
-    are the name store's for its run's plan edge (`stored`: staging_device_map.staging_names of `band`, plan_edge)."""
-    seqs = {}                      # (node, leg) -> the JMRI blocks from that switch leg along its run
+Seqs = dict[Leg, tuple[list[str], Leg]]     # (node, leg) -> the JMRI blocks from that switch leg along its run, its far end
+
+
+def run_seqs(band: Band, names: BlockNames, cm: Mapping[str, float]) -> Seqs:
+    """{(node, leg): (the JMRI blocks from that switch leg along its run, the run's far end)} of every run of the
+    band (mast_plan.run_blocks), each block with a length in `cm` (with_lengths)."""
+    seqs: Seqs = {}
     for start, seq, end in with_lengths(mast_plan.run_blocks(band, names), cm):
-        seqs[tuple(start)] = (seq, tuple(end))
-        seqs[tuple(end)] = (seq[::-1], tuple(start))
+        seqs[(start[0], start[1])] = (seq, (end[0], end[1]))
+        seqs[(end[0], end[1])] = (seq[::-1], (start[0], start[1]))
+    return seqs
+
+
+def home_entry(band: Band, m: HomeMast, names: BlockNames, seqs: Seqs, chains: Mapping[Leg, list[str]],
+               cm: Mapping[str, float], parts: Mapping[str, str], stored: Mapping[str, str]) -> StagingMast:
+    """One home mast of the plan (`m`) in generate's columns: at its switch's leg when the block boundary is there,
+    else at the anchor where its OS block ends; RuleError when it has no block to face."""
     strands, nodes = band["strands"], band["nodes"]
+    n, p = m["node"], m["leg"]
+    seq, far = seqs[(n, p)]
+    own = names["os"][n]
+
+    def inside(b: str) -> bool:          # the OS block or a part of it
+        return parts.get(b, b) == own
+    at_turnout = not seq or not inside(seq[0])
+    facing = next((b for b in seq if not inside(b)), None)
+    if facing is None:
+        far_node = nodes[far[0]]
+        facing = names["os"].get(far[0]) if far_node["kind"] == "switch" else None
+    if facing is None:
+        raise RuleError(f"switch {m['switch']} leg {p}: no block to face")
+    edge, names_ = plan_edge(band, chains[(n, p)], stored)
+    track_cm = sum(cm[b] for b in seq)
+    back = 0.0
+    if not at_turnout:
+        # the boundary from this switch by block lengths, or from the track's far end when the timed blocks (which
+        # count the switches' own length) put it past the track the plan draws: build_signals.check_lengths takes
+        # either end, and the plugin draws the mast at that distance from its toward end (draw.mast_piece)
+        back = sum(cm[b] for b in seq[:seq.index(facing)])
+        drawn = sum(strands[s]["cm"] for s in chains[(n, p)])
+        if back > drawn:
+            back = track_cm - back
+    far_label = nodes[far[0]].get("label") if nodes[far[0]]["kind"] == "switch" else ""
+    return StagingMast(mast=f"Mast {m['name']}", cp=m["cp"], switch=m["switch"] if at_turnout else "",
+                       facing=facing, protects=own, kind=m["kind"], heads=m["heads"],
+                       dir=m["dir"], toward=m["switch"],
+                       run=f"{m['switch']};{mast_rule.base(far_label) if far_label else ''}", names=names_,
+                       edge_cm=round(track_cm, 1), cm_from_toward=round(back, 1), edge=edge, node=n,
+                       leg=p, strand=m["strand"], running=m["running"], role="home")
+
+
+def intermediate_entry(band: Band, x: Intermediate, chains: Mapping[Leg, list[str]], stored: Mapping[str, str]
+                       ) -> StagingMast:
+    """One intermediate of the plan (`x`) in generate's columns: one searchlight head, at no switch."""
+    edge, track_names = plan_edge(band, chains[(x["start"][0], x["start"][1])], stored)
+    return StagingMast(mast=f"Mast {x['name']}", cp=x["cp"], switch="", facing=x["facing"],
+                       protects=x["protects"], kind="one-searchlight", heads=1, dir=x["dir"],
+                       toward=x["toward"], run=f"{x['toward']};{x['other']}", names=track_names,
+                       edge_cm=x["total"], cm_from_toward=x["dist"], edge=edge, node=x["to"][0],
+                       milepost=x["milepost"], role="intermediate")
+
+
+def generate(band: Band, names: BlockNames, planned: MastPlan, cm: Mapping[str, float], parts: Mapping[str, str],
+             stored: Mapping[str, str]) -> list[StagingMast]:
+    """The visible staging masts in the columns the files take, from mast_plan.plan's home masts and intermediates on
+    the staging band (`names`: the block layer, `cm`: block_cm): StagingMast entries in the plan's order; role
+    (hartlib.devices.ROLES) is home or intermediate, as the plan places the mast. A home mast stands at its switch's
+    leg when the block boundary is there (a turnout mast), else on the anchor where the switch's own OS block ends (an
+    anchor mast, no switch); a part of the OS block (a JMRI block of its own, `parts`) is inside it, as mast_plan
+    reads the layer (staging_device_map.os_layer). It faces the JMRI block next to that boundary (Mast 32R: Track
+    29-31), and its lengths are the JMRI blocks' (block_lengths.csv), as build_signals.check_lengths reads them. A
+    mast's `names` are the name store's for its run's plan edge (`stored`: staging_device_map.staging_names of
+    `band`, plan_edge)."""
+    seqs = run_seqs(band, names, cm)
     chains = run_strands(band)
-    out = []
-    for m in planned["home"]:
-        n, p = m["node"], m["leg"]
-        seq, far = seqs[(n, p)]
-        own = names["os"][n]
-        inside = lambda b, own=own: parts.get(b, b) == own        # noqa: E731  the OS block or a part of it
-        at_turnout = not seq or not inside(seq[0])
-        facing = next((b for b in seq if not inside(b)), None)
-        if facing is None:
-            far_node = nodes[far[0]]
-            facing = names["os"].get(far[0]) if far_node["kind"] == "switch" else None
-        if facing is None:
-            raise RuleError(f"switch {m['switch']} leg {p}: no block to face")
-        edge, names_ = plan_edge(band, chains[(n, p)], stored)
-        track_cm = sum(cm[b] for b in seq)
-        back = 0.0
-        if not at_turnout:
-            # the boundary from this switch by block lengths, or from the track's far end when the timed blocks (which
-            # count the switches' own length) put it past the track the plan draws: build_signals.check_lengths takes
-            # either end, and the plugin draws the mast at that distance from its toward end (draw.mast_piece)
-            back = sum(cm[b] for b in seq[:seq.index(facing)])
-            drawn = sum(strands[s]["cm"] for s in chains[(n, p)])
-            if back > drawn:
-                back = track_cm - back
-        far_label = nodes[far[0]].get("label") if nodes[far[0]]["kind"] == "switch" else ""
-        out.append(dict(mast=f"Mast {m['name']}", cp=m["cp"], switch=m["switch"] if at_turnout else "",
-                        facing=facing, protects=own, kind=m["kind"], heads=m["heads"],
-                        dir=m["dir"], toward=m["switch"],
-                        run=f"{m['switch']};{mast_rule.base(far_label) if far_label else ''}", names=names_,
-                        edge_cm=round(track_cm, 1), cm_from_toward=round(back, 1), edge=edge, node=n,
-                        leg=p, strand=m["strand"], running=m["running"], role="home"))
-    for x in planned["intermediates"]:
-        edge, track_names = plan_edge(band, chains[tuple(x["start"])], stored)
-        out.append(dict(mast=f"Mast {x['name']}", cp=x["cp"], switch="", facing=x["facing"],
-                        protects=x["protects"], kind="one-searchlight", heads=1, dir=x["dir"],
-                        toward=x["toward"], run=f"{x['toward']};{x['other']}", names=track_names,
-                        edge_cm=x["total"], cm_from_toward=x["dist"], edge=edge, node=x["to"][0],
-                        milepost=x["milepost"], role="intermediate"))
-    return out
+    return ([home_entry(band, m, names, seqs, chains, cm, parts, stored) for m in planned["home"]]
+            + [intermediate_entry(band, x, chains, stored) for x in planned["intermediates"]])
 
 
-def virtual_masts(band, planned: dict, cps: dict, stored: dict) -> list[dict]:
+def virtual_masts(band: Band, planned: MastPlan, cps: Mapping[str, str], stored: Mapping[str, str]
+                  ) -> list[StagingMast]:
     """Staging's hidden routing masts in the columns generate() gives, from mast_plan.plan's virtual masts (only where
     a visible mast's route reaches a buffer stop first, owner 2026-11-20: 4LA, 4LB, 10LA, 10LB, 12L), `cps` naming
     each switch's control point (the drawings'), `stored` the name store's strand names (generate)."""
@@ -237,21 +330,22 @@ def virtual_masts(band, planned: dict, cps: dict, stored: dict) -> list[dict]:
     out = []
     for m in planned["virtual"]:
         edge, track_names = plan_edge(band, chains[(m["node"], m["leg"])], stored)
-        out.append(dict(mast=f"Mast {m['name']}", cp=cps[m["switch"]], kind=VIRTUAL_KIND, heads=1,
-                        toward=m["switch"], run=f"{m['switch']};", names=track_names, edge_cm=m["total"],
-                        edge=edge, node=m["node"], signal_kind="virtual", switch="", facing=m["facing"],
-                        protects="", cm_from_toward=m["total"], dir=m["dir"], role="hidden"))
+        out.append(StagingMast(mast=f"Mast {m['name']}", cp=cps[m["switch"]], kind=VIRTUAL_KIND, heads=1,
+                               toward=m["switch"], run=f"{m['switch']};", names=track_names, edge_cm=m["total"],
+                               edge=edge, node=m["node"], signal_kind="virtual", switch="", facing=m["facing"],
+                               protects="", cm_from_toward=m["total"], dir=m["dir"], role="hidden"))
     return out
 
 
-def interlockings(switches: set, path: Path = INTERLOCKINGS) -> dict:
+def interlockings(switches: set[str], path: Path = INTERLOCKINGS) -> dict[str, str]:
     """{switch: interlocking} of staging's interlockings (interlockings.csv, level 1; hartlib.railroad
     .read_interlockings checks the whole file). Stops on a switch that is not a staging switch."""
     try:
         rows = railroad.read_interlockings(path, (1,))
     except railroad.FactsError as exc:
         raise RuleError(str(exc)) from exc
-    out, bad = {}, []
+    out: dict[str, str] = {}
+    bad: list[str] = []
     for r in rows:
         for s in r.switches:
             if s not in switches:
@@ -262,7 +356,7 @@ def interlockings(switches: set, path: Path = INTERLOCKINGS) -> dict:
     return out
 
 
-def mast_ids(band, placed: list[dict], block_ids: dict) -> list[str]:
+def mast_ids(band: Band, placed: Sequence[Mapping[str, Any]], block_ids: Mapping[str, str]) -> list[str]:
     """The device ID of each mast of `placed` (generate's and virtual_masts', in order; hartlib.device_ids): a home
     mast's by the label of the switch node it stands at, its leg and the way it looks (an anchor mast too: the plan
     puts it at that leg), at a single crossover's half with the half its OS block's ID gives (mast:7:A-13C:B:east:
@@ -270,7 +364,8 @@ def mast_ids(band, placed: list[dict], block_ids: dict) -> list[str]:
     (`block_ids`: {block user name: device ID} of staging's block rows) and the way it looks. RuleError on a facing
     block with no ID, or two masts with one ID."""
     halves = {n: ident.split(":", 2)[2] for n, (_ph, ident) in sdm.os_keys(band).items() if ident.count(":") == 2}
-    out, bad = [], []
+    out: list[str] = []
+    bad: list[str] = []
     for m in placed:
         try:
             if m["role"] == "home":
@@ -293,7 +388,7 @@ def mast_ids(band, placed: list[dict], block_ids: dict) -> list[str]:
     return out
 
 
-def owner_names(placed: list[dict], ids: list[str], field: dict) -> None:
+def owner_names(placed: Sequence[StagingMast], ids: Sequence[str], field: Mapping[str, Mapping[str, str]]) -> None:
     """Give each mast of `placed` the owner's name, its field row's user_name by its ID (`field`, field_by_id), in
     place: the owner's name wins, and its heads are named from it. RuleError on a name out of
     the grammar (level_masts.MAST_USER) or one two masts would take."""
@@ -312,33 +407,27 @@ def owner_names(placed: list[dict], ids: list[str], field: dict) -> None:
         raise RuleError("; ".join(bad))
 
 
-def virtual_names(vgen: list[dict], ids: dict, old_rows: list[dict]) -> dict[str, str]:
+def virtual_names(vgen: Sequence[Mapping[str, Any]], ids: Mapping[str, str], old_rows: Iterable[Mapping[str, str]]
+                  ) -> dict[str, str]:
     """{mast: system name} of the virtual masts: each keeps the system name its row had by its ID (a
     VirtualSignalMast's ordinal, $1001 ...; `old_rows`: staging's mast rows as last written, allocated_names), and a
     new one takes the next ordinal of staging's thousand (mast_plan.virtual_system_names), so no system name shifts.
-    An old row whose ID the rule no longer places keeps its old name, so mast_plan asks for it in
-    retired_virtual_masts.csv. RuleError when that old name is now another mast's."""
-    name_of = {ids[m["mast"]]: m["mast"] for m in vgen}
-    old, bad = {}, []
-    for r in old_rows:
-        if r["layer"] != "mast" or not level_masts.virtual_ordinal(r["system_name"]):
-            continue
-        key = name_of.get(r["id"], r["user_name"])
-        if key in old or (r["id"] not in name_of and key in name_of.values()):
-            bad.append(f"{key}: the virtual mast of id {r['id']} had that name, and another mast now has it: add "
-                       f"{r['user_name']} ({r['system_name']}) to retired_virtual_masts.csv under another name, or "
-                       "give the mast its old ID back")
-        old[key] = r["system_name"]
-    if bad:
-        raise RuleError("; ".join(bad))
+    The memory is every level's one rule (device_map_level_masts.virtual_memory): an old row whose ID the rule no
+    longer places keeps its old name, so mast_plan asks for it in retired_virtual_masts.csv. RuleError when that old
+    name is now another mast's, or an old name is no virtual mast's of a level."""
+    old = {r["id"]: (r["user_name"], r["system_name"]) for r in old_rows
+           if r["layer"] == "mast" and level_masts.virtual_ordinal(r["system_name"])}
+    # virtual_memory reads only each mast's id and its name now (no "Mast ")
+    now = cast("list[VirtualMast]", [{"id": ids[m["mast"]], "name": m["mast"].removeprefix("Mast ")} for m in vgen])
     try:
+        memory = {k: v for by_name in dmlm.virtual_memory(now, old).values() for k, v in by_name.items()}
         return {f"Mast {k}": v for k, v in mast_plan.virtual_system_names(
-            [m["mast"].removeprefix("Mast ") for m in vgen], LEVEL, old).items()}
+            [m["name"] for m in now], LEVEL, memory).items()}
     except mast_rule.MapError as exc:
         raise RuleError(str(exc)) from exc
 
 
-def mast_node(mast: str, field_row: dict | None, heads: list[dict]) -> str:
+def mast_node(mast: str, field_row: Mapping[str, str] | None, heads: Sequence[WiredHead]) -> str:
     """The node of a mast row: none on an internal mast; on a wired one its field row's node, or, when that is blank
     (a newly wired mast), the node its wired heads share. RuleError when they name different nodes or none."""
     if not heads:
@@ -353,15 +442,36 @@ def mast_node(mast: str, field_row: dict | None, heads: list[dict]) -> str:
     return nodes[0]
 
 
-def device_rows(placed: list[dict], ids: dict, wired: dict, field: dict, virtual: dict) -> list[dict]:
+def head_rows(m: StagingMast, mid: str, wired: Mapping[str, WiredHead], where: str
+              ) -> tuple[list[DeviceCells], list[WiredHead]]:
+    """The head rows of visible mast `m` (device ID `mid`), top first, and the wired heads among them: a head in
+    `wired` takes its address, node, comment and notes from there, the rest are internal; `where` is the mast's
+    comment, the comment of a head with no wiring text."""
+    rows: list[DeviceCells] = []
+    on = []
+    for i, user in enumerate(head_users(m["mast"], m["heads"])):
+        hid = device_ids.head_id(mid, device_ids.head_place(i, m["heads"]))
+        w = wired.get(hid)
+        if w:
+            on.append(w)
+        h = w["jmri_name"] if w else internal_head(user)
+        rows.append(dict(level=str(LEVEL), cp=m["cp"], layer="head", role="head", id=hid, user_name=user,
+                         system_name=h, jmri_name=h, node=w["node"] if w else "", dcc="",
+                         comment=w["comment"] if w and WIRING_TEXT.match(w["comment"]) else where,
+                         trial_name="", notes=w["notes"] if w else INTERNAL_HEAD_NOTE,
+                         **dict.fromkeys(FACTS, "")))
+    return rows, on
+
+
+def device_rows(placed: list[StagingMast], ids: Mapping[str, str], wired: Mapping[str, WiredHead],
+                field: Mapping[str, Mapping[str, str]], virtual: Mapping[str, str]) -> list[DeviceCells]:
     """Staging's mast and head rows, in the device-map form with role and id (devices.master_row makes the master's):
     one mast row per mast of `placed` (generate's and virtual_masts', each with its final name) and one head row per
-    head of a visible mast, every name its JMRI name; `ids` {mast: device ID} (mast_ids), a head's ID its mast's and
-    its place, top first. A head in `wired` (wired_heads, by ID) takes its address, node, comment and notes from
-    there, and its mast is a field signal with the node mast_node gives; the rest are internal. `virtual`: {mast:
-    system name} of the hidden masts (virtual_names). Masts then heads, each in name order. RuleError on a wired head
-    the rule does not place."""
-    masts, heads, placed_heads = [], [], set()
+    head of a visible mast (head_rows), every name its JMRI name; `ids` {mast: device ID} (mast_ids), a head's ID its
+    mast's and its place, top first. A mast with a wired head (wired_heads, by ID) is a field signal with the node
+    mast_node gives; the rest are internal. `virtual`: {mast: system name} of the hidden masts (virtual_names). Masts
+    then heads, each in name order. RuleError on a wired head the rule does not place."""
+    masts, heads = [], []
     for m in placed:
         mid = ids[m["mast"]]
         # a hidden buffer-stop mast stands at no switch; its comment names the switch its track leaves (toward), as
@@ -372,35 +482,24 @@ def device_rows(placed: list[dict], ids: dict, wired: dict, field: dict, virtual
         if m["role"] == "hidden":
             system, node = virtual[m["mast"]], ""
         else:
-            users = head_users(m["mast"], m["heads"])
-            hids = [device_ids.head_id(mid, device_ids.head_place(i, m["heads"])) for i in range(m["heads"])]
-            placed_heads |= set(hids)
-            on = [wired[h] for h in hids if h in wired]
-            names = []
-            for user, hid in zip(users, hids):
-                w = wired.get(hid)
-                h = w["jmri_name"] if w else internal_head(user)
-                names.append(h)
-                heads.append(dict(level=str(LEVEL), cp=m["cp"], layer="head", role="head", id=hid, user_name=user,
-                                  system_name=h, jmri_name=h, node=w["node"] if w else "", dcc="",
-                                  comment=w["comment"] if w and WIRING_TEXT.match(w["comment"]) else where,
-                                  trial_name="", notes=w["notes"] if w else INTERNAL_HEAD_NOTE,
-                                  **dict.fromkeys(FACTS, "")))
-            system = f"IF$shsm:basic:{m['kind']}(" + ")(".join(names) + ")"
+            rows, on = head_rows(m, mid, wired, where)
+            heads += rows
+            system = mast_system_name(m["kind"], [r["jmri_name"] for r in rows])
             node = mast_node(m["mast"], field.get(mid), on)
             m["signal_kind"] = "field" if on else "planned"
         masts.append(dict(level=str(LEVEL), cp=m["cp"], layer="mast", role=m["role"], id=mid, user_name=m["mast"],
                           system_name=system, jmri_name=system, node=node, dcc="", comment=where, trial_name="",
                           notes=note, **{**dict.fromkeys(FACTS, ""), "switch": m["switch"], "facing": m["facing"],
                                          "protects": m["protects"], "dir": m["dir"]}))
-    lost = sorted(set(wired) - placed_heads)
+    lost = sorted(set(wired) - {r["id"] for r in heads})
     if lost:
         raise RuleError(f"wiring.csv wires head(s) {', '.join(lost)}, which the rule does not place (its mast is not "
                         "placed, or the rule gives it other heads)")
     return sorted(masts, key=lambda r: r["user_name"]) + sorted(heads, key=lambda r: r["user_name"])
 
 
-def plan(band, bands, joined, runs, names: dict, locks: dict, cm: dict) -> dict:
+def plan(band: Band, bands, joined, runs, names: BlockNames, locks: Mapping[str, str], cm: Mapping[str, float]
+         ) -> MastPlan:
     """mast_plan.plan over the staging level: its tracks by mast_rule (a helix end tagged H, no helix blocks), its
     interlockings (`locks`), its block layer (`names`, of `band`, the staging band of `bands`) and block lengths
     (`cm`), the owner's block splits. RuleError when `band` is not the staging band `bands` holds."""
@@ -414,16 +513,24 @@ def plan(band, bands, joined, runs, names: dict, locks: dict, cm: dict) -> dict:
                           split=mast_rule.read_block_splits(dms.block_overrides(), found, levels()))
 
 
-def plan_facts(placed: list[dict]) -> dict:
+def plan_facts(placed: Iterable[StagingMast]) -> dict[tuple[int, str], PlanFacts]:
     """{(level, mast): its plan facts (level_masts.PLAN_FIELDS)} of the masts placed: where the drawing puts each (its
     run, lengths and plan graph edge and node). The signal's name, kind and heads are not facts of their own: they
     follow from the row (level_masts.signal_name, signal_kind, head_count)."""
-    return {(LEVEL, m["mast"]): dict(toward=m["toward"], run=m["run"], names=level_masts.LIST.join(m["names"]),
-                                     edge_cm=f"{m['edge_cm']:.1f}", cm_from_toward=f"{m['cm_from_toward']:.1f}",
-                                     schematic_edge=m["edge"], schematic_toward_node=m["node"]) for m in placed}
+    return {(LEVEL, m["mast"]): PlanFacts(toward=m["toward"], run=m["run"], names=level_masts.LIST.join(m["names"]),
+                                          edge_cm=f"{m['edge_cm']:.1f}", cm_from_toward=f"{m['cm_from_toward']:.1f}",
+                                          schematic_edge=m["edge"], schematic_toward_node=m["node"]) for m in placed}
 
 
-def staging_masts(bands, joined, runs, rows: list, files: devices.Files) -> dict:
+def mast_number(name: str) -> int:
+    """The first number in a mast name (level_masts.MAST_USER gives every name one); RuleError on a name with none."""
+    m = re.search(r"\d+", name)
+    if m is None:
+        raise RuleError(f"mast {name!r} has no number")
+    return int(m.group())
+
+
+def staging_masts(bands, joined, runs, rows: Sequence[Mapping[str, str]], files: devices.Files) -> StagingMasts:
     """Staging's masts by the rule over `rows` (the device master's rows as the builder writes them: its block layer,
     parts and block IDs; `bands`, `joined`, `runs` the solved sheet) and `files`' field file and its last generated
     rows (the virtual ordinals): {"placed": generate's and virtual_masts' masts, final names, in the rule's order,
@@ -457,5 +564,5 @@ def staging_masts(bands, joined, runs, rows: list, files: devices.Files) -> dict
     taken = [r["system_name"] for r in made if r["layer"] == "mast"]
     if len(set(taken)) != len(taken):
         raise RuleError(f"two masts share a system name: {sorted({x for x in taken if taken.count(x) > 1})}")
-    placed.sort(key=lambda m: (int(re.search(r"\d+", m["mast"]).group()), m["mast"]))
-    return {"placed": placed, "rows": made, "facts": plan_facts(placed)}
+    placed.sort(key=lambda m: (mast_number(m["mast"]), m["mast"]))
+    return StagingMasts(placed=placed, rows=made, facts=plan_facts(placed))
