@@ -186,13 +186,13 @@
   },
   {
    "label": "Agent docs",
-   "focus": "AGENTS.md",
-   "up": 0,
-   "down": 2,
+   "focus": "wiki/decisions",
+   "up": 1,
+   "down": 1,
    "line": [
     "AGENTS.md",
     "wiki/decisions",
-    "wiki/STATUS.md"
+    "docs/INDEX.md"
    ]
   }
  ],
