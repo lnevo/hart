@@ -56,7 +56,7 @@ ops/hart-ops/card_pipeline/intake_stages.py,EDIT_FIELDS,12,keep,its values are u
 ops/hart-ops/card_pipeline/locos.py,QUESTIONS,12,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 ops/hart-ops/card_pipeline/operator_sheet_data.py,YARD_PAGES,4,keep,"the operator sheet's own yard and desk pages, prose for this one script (owner, wave 4)"
 ops/hart-ops/card_pipeline/process_car_images.py,INVALID_MARKS,21,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
-ops/hart-ops/card_pipeline/train_cards.py,TRAINS,6,move,"8 railroad names (car, loco, train); first sort: copy of a master"
+ops/hart-ops/card_pipeline/train_cards.py,CARD_TEXT,6,keep,"card wording only (type, description, orders), keyed by train_symbol; road and number come from trains.csv (road_name, card_number); the EXTRA card has no train and keeps its own (lane LE-L9)"
 ops/hart-ops/card_pipeline/waybill_data.py,INTERCHANGE_IN_VIA_CSX,6,move,holds sentences: page or card text?; the owner marked it move; held: the owner decides which file is the waybill master
 ops/hart-ops/card_pipeline/waybill_data.py,INTERCHANGE_IN_VIA_POHC,7,move,holds sentences: page or card text?; the owner marked it move; held: the owner decides which file is the waybill master
 ops/hart-ops/card_pipeline/waybill_data.py,INTERCHANGE_OUT_VIA_CSX,7,move,2 railroad names (loco); first sort: fact with no master; held: the owner decides which file is the waybill master
@@ -101,11 +101,7 @@ tools/hartlib/src/hartlib/track_names.py,LABEL_TRACK_KEYS,6,keep,a code setting 
 tools/hartlib/src/hartlib/wiring.py,CAP,4,keep,a code setting (marked by owner)
 tools/hartlib/src/hartlib/wiring.py,LCOS,7,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 tools/hosts/panelpro_profile.py,_ESCAPES,4,keep,a code setting (marked by owner)
-tools/mqtt-mimic/lcos_mqtt_mimic.py,PLANT_ORDER,9,move,7 railroad names (station); first sort: copy of a master
 tools/mqtt-mimic/lcos_mqtt_mimic.py,SWITCH_TIPS,5,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
-tools/mqtt-mimic/qa/run_native_sml_qa.py,OCC,17,move,"4 railroad names (occupancy sensor, switch); first sort: copy of a master"
-tools/mqtt-mimic/qa/run_native_sml_qa.py,SCENARIO,13,move,"16 railroad names (occupancy sensor, switch); first sort: fact with no master"
-tools/mqtt-mimic/qa/run_native_sml_qa.py,TO,9,move,"5 railroad names (occupancy sensor, switch); first sort: copy of a master"
 tools/mqtt/clear_mqtt_cmd_sensor_retain.py,JUNK,5,keep,"topic filters and matchers for the cleanup tool, not railroad data (marked by owner)"
 tools/ops/agent_docs_map.py,DOCS,5,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 tools/ops/agent_docs_map.py,FOLDERS,5,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
@@ -199,7 +195,7 @@ www/scripts/make_share_cards.py,CARDS,32,keep,"shared in code, so already one so
 www/scripts/provenance.py,_BLOCKS,11,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/scripts/provenance.py,_SCHEMA,4,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/scripts/repo_guide_page.py,FOLDERS,10,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
-www/scripts/repo_guide_page.py,HARTLIB_OTHER,31,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
+www/scripts/repo_guide_page.py,HARTLIB_OTHER,32,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 www/scripts/repo_guide_page.py,LAYOUT_TREE,8,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 www/scripts/repo_guide_page.py,SUBMODULES,6,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 www/scripts/share_card_recipes/panel_image.py,ROSTER_ROWS,6,move,6 railroad names (occupancy sensor); first sort: per-item tweak
