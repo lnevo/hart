@@ -2316,7 +2316,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "ops",
-   "desc": "The roster road codes the car pipeline names: the marks a card shows and the spellings the car photo and loco matchers turn into the code (hartlib.operations). locos.csv's road_name refers to it.",
+   "desc": "The roster road codes the car pipeline names: the marks a card shows and the spellings the car photo and loco matchers turn into the code (hartlib.operations). locos.csv's and trains.csv's road_name refer to it.",
    "path": "ops/hart-ops/data/roads.csv"
   },
   {
@@ -11626,7 +11626,7 @@
   {
    "from": "ops/hart-ops/data/roads.csv",
    "to": "tools/ops/check_data.py",
-   "label": "rules; locos.csv road_name refers to it",
+   "label": "rules; locos.csv and trains.csv road_name refer to it",
    "side": "check",
    "gen": "manifest"
   },

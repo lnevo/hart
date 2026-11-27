@@ -755,7 +755,7 @@ inputs = [
   { path = "ops/hart-ops/data/spot_assignments.csv", label = "rules", side = "check" },
   { path = "ops/hart-ops/data/HART_Spot_Waybills.csv", label = "rules", side = "check" },
   { path = "ops/hart-ops/data/locos.csv", label = "rules", side = "check" },
-  { path = "ops/hart-ops/data/roads.csv", label = "rules; locos.csv road_name refers to it", side = "check" },
+  { path = "ops/hart-ops/data/roads.csv", label = "rules; locos.csv and trains.csv road_name refer to it", side = "check" },
   { path = "ops/hart-ops/data/loco_models.csv", label = "rules", side = "check" },
   { path = "ops/hart-ops/data/industry_sheet.csv", label = "rules; refers to industries.csv", side = "check" },
   { path = "ops/hart-ops/data/industry_notes.csv", label = "rules; refers to industries.csv", side = "check" },
