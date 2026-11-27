@@ -187,10 +187,10 @@ def _draw_engine_terminal(draw: ImageDraw.ImageDraw, g: _Yard, et_font: ImageFon
     _label(draw, (stub_end - 4, et3_y), "ET-3", et_font, anchor="rm", fill=INK)
 
 
-def draw_south_yard(meta: dict, hooks: Hooks) -> Image.Image:
-    """The South Yard sheet: ladder, Main West, yard tracks, Main East, Barn, engine terminal, compass."""
+def draw_south_yard(title: str, hooks: Hooks) -> Image.Image:
+    """The South Yard sheet titled ``title``: ladder, Main West, yard tracks, Main East, Barn, engine terminal, compass."""
     img, draw = hooks.canvas(SHEET_W, SHEET_H)
-    _title(draw, SHEET_W // 2, meta["title"], hooks)
+    _title(draw, SHEET_W // 2, title, hooks)
     fonts = _Fonts(
         track=hooks.font(ARIAL_BOLD, 22),
         note=hooks.font(GEORGIA, 18),

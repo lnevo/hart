@@ -7,12 +7,17 @@ is hart_ooxml.shade_cell, shared with the card pipeline.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from docx import Document
+from docx.document import Document as DocxDocument
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docx.shared import Inches, Pt, RGBColor
+from docx.shared import Inches, Length, Pt, RGBColor
+from docx.table import Table, _Row
 
+from hart_ooxml import set_cell_margins, set_row_height
 from hart_ooxml import shade_cell as set_cell_shading
 
 # Theme accent used by Heading styles in EQ-01 / standards
@@ -20,6 +25,7 @@ ACCENT = RGBColor(0x0F, 0x47, 0x61)
 RULE = RGBColor(0x2A, 0x2A, 0x2A)
 BODY = RGBColor(0x1A, 0x1A, 0x1A)
 MUTED = RGBColor(0x4A, 0x4A, 0x4A)
+WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 
 
 def _set_run_font(run, *, size_pt: float, bold: bool = False, color: RGBColor | None = None, name: str = "Georgia") -> None:
@@ -189,7 +195,7 @@ def style_table(table) -> None:
                         run,
                         size_pt=8.5 if ri > 0 else 9,
                         bold=(ri == 0),
-                        color=RGBColor(0xFF, 0xFF, 0xFF) if ri == 0 else BODY,
+                        color=WHITE if ri == 0 else BODY,
                         name="Calibri",
                     )
             if ri == 0:
@@ -202,7 +208,7 @@ def fill_header_row(row, texts: list[str]) -> None:
         cell.text = ""
         p = cell.paragraphs[0]
         r = p.add_run(text)
-        _set_run_font(r, size_pt=9, bold=True, color=RGBColor(0xFF, 0xFF, 0xFF), name="Calibri")
+        _set_run_font(r, size_pt=9, bold=True, color=WHITE, name="Calibri")
 
 
 def fill_row(row, texts: list[str]) -> None:
@@ -233,3 +239,54 @@ def fill_swatch_cell(
         int(text_hex[4:6], 16),
     )
     _set_run_font(r, size_pt=9, bold=True, color=rgb, name="Calibri")
+
+
+# Pieces of the compact crew sheets (DS-01, YM-01): section headings, quiet spacers and tables with
+# exact row heights.
+
+
+def add_section_heading(doc: DocxDocument, text: str, *, space_before: float, size_pt: float) -> None:
+    """A numbered section heading in upper case, accent colour, 2 pt after."""
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(space_before)
+    p.paragraph_format.space_after = Pt(2)
+    r = p.add_run(text.upper())
+    _set_run_font(r, size_pt=size_pt, bold=True, color=ACCENT)
+
+
+def add_soft_pad(doc: DocxDocument, *, before: float, after: float) -> None:
+    """One empty paragraph used as a small gap between page-1 blocks."""
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(before)
+    p.paragraph_format.space_after = Pt(after)
+
+
+def paint_header_row(row: _Row, *, size_pt: float) -> None:
+    """White bold Calibri on every run of a header row, with no paragraph spacing.
+
+    style_table rewrites the run fonts, so the crew sheets paint their header again after it.
+    """
+    for cell in row.cells:
+        for p in cell.paragraphs:
+            p.paragraph_format.space_before = Pt(0)
+            p.paragraph_format.space_after = Pt(0)
+            for run in p.runs:
+                _set_run_font(run, size_pt=size_pt, bold=True, color=WHITE, name="Calibri")
+
+
+def fix_table_rows(table: Table, *, header_pt: float, body_pt: float, margin: int, side_margin: int) -> None:
+    """Exact row heights (header, then body), cell margins in twips and no paragraph spacing."""
+    for ri, row in enumerate(table.rows):
+        set_row_height(row, header_pt if ri == 0 else body_pt)
+        for cell in row.cells:
+            set_cell_margins(cell, top=margin, left=side_margin, bottom=margin, right=side_margin)
+            for p in cell.paragraphs:
+                p.paragraph_format.space_before = Pt(0)
+                p.paragraph_format.space_after = Pt(0)
+
+
+def set_column_widths(table: Table, widths: Sequence[Length]) -> None:
+    """Give each cell of every row the width of its column."""
+    for row in table.rows:
+        for cell, w in zip(row.cells, widths):
+            cell.width = w

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """South Yard station map — Switch 7 / 13 / 15 / 17 / 19 / 21.
 
-Starts from the published SM-03 sheet and restamps the frogs with the
-live switch userNames (not Digicon CP / DCC 103–106). Switch 7 is the
-three-dot Barn xover. The compact ET stub is replaced with a shrunken
-Barn engine-house plant (EH-1 / EH-2 / EH-3). Switch 13 sits on Scale
-at that throat; the Barn block is the rail between 7 and 13.
+Starts from the published SM-03 sheet, whose ladder frogs carry the Digicon
+CP / DCC 103–106 numbers, and restamps them with the live switch userNames.
+Switch 7 is the three-dot Barn xover. The sheet's compact ET stub is covered
+by a shrunken Barn engine-house plant (EH-1 / EH-2 / EH-3). Switch 13 sits on
+Scale at that throat; the Barn block is the rail between 7 and 13.
 
     python3 ops/station_maps/scripts/render_south_yard_station_map.py
 """
@@ -20,6 +20,7 @@ from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import sheet_kit  # noqa: E402  (sibling module)
+from sheet_kit import Corner, Point  # noqa: E402
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
@@ -38,7 +39,7 @@ BADGE_GAP = 18
 # Same slope as the Barn sheet (and East End 111 / 110–107).
 RUN, RISE = 0.50, 1.00
 
-# Ladder frogs on the published sheet (was CP 103–106 → Switch 15/17/19/21).
+# Ladder frogs on the published sheet (CP 103–106 there), stamped Switch 15/17/19/21.
 SW15 = (850, 222)
 SW17 = (883, 368)
 SW19 = (917, 514)
@@ -78,8 +79,11 @@ OLD_EH_STUB = (
     (318, 120, 340, 92),
     (618, 200, 24, 16),
 )
-# "Track S-1" .. "Track S-5" baked into the published sheet (right edge). The
-# tracks are now S-R, S-1 .. S-4 (S-1 became S-R, the rest renumbered).
+# The published sheet names its five yard tracks at the right edge; each name is covered
+# and written again with the track's current name.
+TRACK_NAME_COVER_X = (1452, 1598)  # left and right of the white box over each old name
+TRACK_NAME_HALF_H = 16
+TRACK_NAME_X = 1456
 TRACK_NAMES = (
     (225, "Track S-R"),
     (371, "Track S-1"),
@@ -91,6 +95,28 @@ OLD_LABELS = (
     (201, 199, 108, 16),  # West Lead
     (350, 392, 88, 32),  # Barn (under Main East)
 )
+# Cover padding around each kind of old mark.
+PAD_BADGE, PAD_EH_STUB, PAD_LABEL = 8, 2, 3
+
+FROGS = (SW7_TOP, SW7_MID, SW7_BOT, SW13, SW15, SW17, SW19, SW21)
+BADGES: tuple[tuple[Point, str, Corner], ...] = (
+    (SW7_MID, "7", "w"),
+    (SW13, "13", "e"),
+    (SW15, "15", "ne"),
+    (SW17, "17", "ne"),
+    (SW19, "19", "ne"),
+    (SW21, "21", "ne"),
+)
+EH_LABEL_DX = 72  # EH-1..3 names sit this far east of the EH west ends
+EH_LABEL_GAP = 6
+X_SCALE_LABEL = 254
+TRACK_LABEL_GAP = 12
+
+Box = tuple[int, int, int, int]  # x, y, width, height
+
+
+class SourceSheetMissing(FileNotFoundError):
+    """The published SM-03 sheet this map is drawn over is not in the checkout."""
 
 
 _font = sheet_kit.arial
@@ -99,30 +125,30 @@ _dot = partial(sheet_kit.dot, r=DOT_R, fill=TRACK)
 _badge_near = partial(sheet_kit.badge_near, dot_r=DOT_R, gap=BADGE_GAP, fill=BADGE, ink=BADGE_INK)
 
 
-def _cover(d, box, pad=6):
+def _cover(d: ImageDraw.ImageDraw, box: Box, pad: int) -> None:
+    """Paint white over ``box`` and ``pad`` px around it."""
     x, y, w, h = box
     d.rectangle([x - pad, y - pad, x + w + pad, y + h + pad], fill=WHITE)
 
 
-def render(out: Path) -> None:
-    if not SRC.is_file():
-        raise SystemExit(f"missing source sheet {SRC}")
-    img = Image.open(SRC).convert("RGB")
-    d = ImageDraw.Draw(img)
-    f_num = _font(20, bold=True)
-
+def cover_old_marks(d: ImageDraw.ImageDraw) -> None:
+    """White out the published sheet's switch numbers, ET stub, labels and track names, and rename the tracks."""
     for box in OLD_BADGES:
-        _cover(d, box, pad=8)
+        _cover(d, box, pad=PAD_BADGE)
     for box in OLD_EH_STUB:
-        _cover(d, box, pad=2)
+        _cover(d, box, pad=PAD_EH_STUB)
     for box in OLD_LABELS:
-        _cover(d, box, pad=3)
+        _cover(d, box, pad=PAD_LABEL)
     f_name = _font(22, bold=True)
+    x0, x1 = TRACK_NAME_COVER_X
     for y, _name in TRACK_NAMES:
-        d.rectangle([1452, y - 16, 1598, y + 16], fill=WHITE)
+        d.rectangle([x0, y - TRACK_NAME_HALF_H, x1, y + TRACK_NAME_HALF_H], fill=WHITE)
     for y, name in TRACK_NAMES:
-        d.text((1456, y), name, font=f_name, fill=INK, anchor="lm")
+        d.text((TRACK_NAME_X, y), name, font=f_name, fill=INK, anchor="lm")
 
+
+def draw_engine_house(d: ImageDraw.ImageDraw) -> None:
+    """The shrunken Barn EH plant above Scale and the Scale / Barn names on the West Lead rail."""
     _line(d, (X_EH, Y_EH1), EH1_JOIN)
     _line(d, (X_EH, Y_EH2), EH2_JOIN)
     _line(d, (X_EH, Y_EH3), SW11)
@@ -131,22 +157,33 @@ def render(out: Path) -> None:
 
     f_eh = _font(13, bold=True)
     f_track = _font(18, bold=True)
-    gap = 6
-    d.text((X_EH + 72, Y_EH1 - gap), "EH-1", font=f_eh, fill=INK, anchor="ms")
-    d.text((X_EH + 72, Y_EH2 - gap), "EH-2", font=f_eh, fill=INK, anchor="ms")
-    d.text((X_EH + 72, Y_EH3 - gap), "EH-3", font=f_eh, fill=INK, anchor="ms")
-    d.text((254, Y_WL - 12), "Scale", font=f_track, fill=INK, anchor="ms")
-    d.text(((SW7_TOP[0] + SW13[0]) / 2, Y_WL - 12), "Barn", font=f_track, fill=INK, anchor="ms")
+    for name, y in (("EH-1", Y_EH1), ("EH-2", Y_EH2), ("EH-3", Y_EH3)):
+        d.text((X_EH + EH_LABEL_DX, y - EH_LABEL_GAP), name, font=f_eh, fill=INK, anchor="ms")
+    d.text((X_SCALE_LABEL, Y_WL - TRACK_LABEL_GAP), "Scale", font=f_track, fill=INK, anchor="ms")
+    d.text(((SW7_TOP[0] + SW13[0]) / 2, Y_WL - TRACK_LABEL_GAP), "Barn", font=f_track, fill=INK, anchor="ms")
 
-    for pt in (SW7_TOP, SW7_MID, SW7_BOT, SW13, SW15, SW17, SW19, SW21):
+
+def stamp_switches(d: ImageDraw.ImageDraw) -> None:
+    """Frog dots and switch pills with the live switch numbers."""
+    f_num = _font(20, bold=True)
+    for pt in FROGS:
         _dot(d, pt)
+    for frog, number, corner in BADGES:
+        _badge_near(d, frog, number, f_num, corner)
 
-    _badge_near(d, SW7_MID, "7", f_num, "w")
-    _badge_near(d, SW13, "13", f_num, "e")
-    _badge_near(d, SW15, "15", f_num, "ne")
-    _badge_near(d, SW17, "17", f_num, "ne")
-    _badge_near(d, SW19, "19", f_num, "ne")
-    _badge_near(d, SW21, "21", f_num, "ne")
+
+def render(out: Path, src: Path = SRC) -> None:
+    """Draw the new South Yard map over the published sheet ``src`` and write it to ``out`` as PNG.
+
+    Raises SourceSheetMissing when ``src`` is not a file.
+    """
+    if not src.is_file():
+        raise SourceSheetMissing(f"missing source sheet {src}")
+    img = Image.open(src).convert("RGB")
+    d = ImageDraw.Draw(img)
+    cover_old_marks(d)
+    draw_engine_house(d)
+    stamp_switches(d)
 
     out.parent.mkdir(parents=True, exist_ok=True)
     img.save(out, "PNG")
