@@ -88,9 +88,11 @@ SUBMODULES = {
 }
 
 # hartlib modules. The four main parts have their own paragraphs on the page; every other module is named in the
-# sentence before them with a short phrase. railroad_facts, railroad_invariants and device_rows are parts of railroad.
+# sentence before them with a short phrase. railroad_facts, railroad_invariants and device_rows are parts of railroad,
+# and store_items and store_plan of store_split.
 HARTLIB_MAIN = ("paths", "tables", "hosts", "railroad")
-HARTLIB_PARTS = {"railroad_facts": "railroad", "railroad_invariants": "railroad", "device_rows": "railroad"}
+HARTLIB_PARTS = {"railroad_facts": "railroad", "railroad_invariants": "railroad", "device_rows": "railroad",
+                 "store_items": "store_split", "store_plan": "store_split"}
 HARTLIB_OTHER = {
     "names": "the DCC group of a JMRI comment",
     "devices": "the device master, its dictionary and its checks",
