@@ -42,7 +42,10 @@ jmri_cmd_names_profile() {
   [[ -n "$id" ]] || return 1
   read -r -a words <<<"$1"
   for word in ${words[@]+"${words[@]}"}; do
-    value="$(_jmri_profile_value "$word")" || continue
+    case "$word" in             # _jmri_profile_value without its subshell: this runs for every word of every process
+      -Dorg.jmri.profile=*|--profile=*) value="${word#*=}" ;;
+      *) continue ;;
+    esac
     _jmri_value_is "$value" "$id" && return 0
   done
   return 1
@@ -60,25 +63,57 @@ jmri_cmd_names_a_profile() {
 
 # jmri_cmd_on_profile CMD ID: true when CMD names the profile ID, or is a JMRI app JVM that names no profile.
 jmri_cmd_on_profile() {
+  [[ $1 == *profile=* || $1 =~ $HART_JMRI_APP ]] || return 1    # most processes: no word to read
   jmri_cmd_names_profile "$1" "$2" && return 0
   [[ $1 =~ $HART_JMRI_APP ]] && ! jmri_cmd_names_a_profile "$1"
 }
 
-# jmri_profile_pids ID: print the pid of each process of this user on the profile ID (jmri_cmd_on_profile), in ps
-# order. Exit 0 when one was found, 1 when none, 2 when ps could not list the processes.
-jmri_profile_pids() {
+# jmri_profile_procs ID: print "pid command line" of each process of this user on the profile ID
+# (jmri_cmd_on_profile), in ps order. Exit 0 when one was found, 1 when none, 2 when ps could not list the processes.
+jmri_profile_procs() {
   local id="$1" listing pid cmd found=1
   listing="$(ps -u "$(id -u)" -o pid=,args=)" || return 2
   while read -r pid cmd; do
     [[ -n "$pid" ]] || continue
     if jmri_cmd_on_profile "$cmd" "$id"; then
-      echo "$pid"
+      echo "$pid $cmd"
       found=0
     fi
   done <<EOF
 $listing
 EOF
   return "$found"
+}
+
+# jmri_profile_pids ID: the pids of jmri_profile_procs ID, with its exit status.
+jmri_profile_pids() {
+  local procs state=0 pid rest
+  procs="$(jmri_profile_procs "$1")" || state=$?
+  while read -r pid rest; do
+    [[ -n "$pid" ]] && echo "$pid"
+  done <<EOF
+$procs
+EOF
+  return "$state"
+}
+
+# jmri_profile_panelpro_pid ID: the pid of the PanelPro JVM on the profile ID; when none of the processes on it is
+# one (CATS, its cats.csh shell, DecoderPro), the first of them. Exit status as jmri_profile_procs.
+jmri_profile_panelpro_pid() {
+  local procs state=0 pid cmd first="" re='^java .*apps\.PanelPro\.PanelPro'
+  procs="$(jmri_profile_procs "$1")" || state=$?
+  while read -r pid cmd; do
+    [[ -n "$pid" ]] || continue
+    [[ -n "$first" ]] || first="$pid"
+    if [[ $cmd =~ $re ]]; then
+      echo "$pid"
+      return "$state"
+    fi
+  done <<EOF
+$procs
+EOF
+  [[ -z "$first" ]] || echo "$first"
+  return "$state"
 }
 
 # jmri_profile_running ID: exit 0 when a process of this user runs on the profile ID, 1 when none does, 2 when ps

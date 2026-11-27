@@ -122,12 +122,11 @@ set -euo pipefail
 profile="$1"; wait_s="$2"; jython_b64="$3"; for_deploy="$4"
 CMD=/tmp/jmri_cmd.py OUT=/tmp/jmri_cmd.out READY=/tmp/jmri_watcher.ready LOG=/tmp/pi_quit_panelpro.log
 state=0
-pids="$(jmri_profile_pids "$profile")" || state=$?
+pid="$(jmri_profile_panelpro_pid "$profile")" || state=$?
 if [[ "$state" -gt 1 ]]; then
   echo "Cannot tell whether PanelPro runs on the Pi (ps could not list its processes)." >&2
   exit 5
 fi
-pid="$(printf '%s\n' "$pids" | head -1)"
 if [[ -z "$pid" ]]; then
   echo "PanelPro is not running on the Pi; nothing to quit."
   exit 0

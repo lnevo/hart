@@ -111,6 +111,19 @@ class ProcessList(unittest.TestCase):
         uid = str(os.getuid())
         self.assertEqual(self.calls.read_text(encoding="utf-8").split(), ["ps", "-u", uid, "-o", "pid=,args="])
 
+    def test_the_panelpro_jvm_is_picked_over_a_cats_shell_with_a_lower_pid(self) -> None:
+        self.fake("ps", "printf '%s\\n' '  101 /bin/bash ./cats.csh --profile=TCS_MQTT.3f32a166 CTC.xml' "
+                        "'  102 python3 tool.py' "
+                        "'  103 java -Dorg.jmri.profile=TCS_MQTT.3f32a166 -cp jmri.jar apps.PanelPro.PanelPro'")
+        done = self.run_helper('jmri_profile_panelpro_pid "$1"', "TCS_MQTT")
+        self.assertEqual((done.returncode, done.stdout.split()), (0, ["103"]), done.stderr)
+        self.fake("ps", "echo '  101 /bin/bash ./cats.csh --profile=TCS_MQTT.3f32a166 CTC.xml'")
+        done = self.run_helper('jmri_profile_panelpro_pid "$1"', "TCS_MQTT")
+        self.assertEqual((done.returncode, done.stdout.split()), (0, ["101"]), done.stderr)
+        self.fake("ps", "echo '  7 java -Dorg.jmri.profile=Other -cp jmri.jar apps.PanelPro.PanelPro'")
+        done = self.run_helper('jmri_profile_panelpro_pid "$1" || echo "rc=$?"', "TCS_MQTT")
+        self.assertEqual(done.stdout.split(), ["rc=1"], done.stderr)
+
     def test_none_on_the_profile_is_exit_1_and_a_failed_ps_is_exit_2(self) -> None:
         self.fake("ps", "echo '  7 java -Dorg.jmri.profile=Other -cp jmri.jar apps.PanelPro.PanelPro'")
         done = self.run_helper('jmri_profile_pids "$1" || echo "rc=$?"', "TCS_MQTT")
