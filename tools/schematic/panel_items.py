@@ -269,18 +269,8 @@ def place(panel: ET.Element, data: dict, le_mod, slots_mod, fit: tuple[int, int]
 
 WRITER = "panel_items.json"      # the device master written_by of the status beans, one of hartlib.devices.WRITERS
 ITEMS = hand_lists.PANEL_ITEMS   # the items file, kept by hand
-# The beans the status cluster's icons show (panel_status.py finds them by name): (layer, user name, system name,
-# assignment, JMRI comment, the icon attribute that names it, what the row says).
-STATUS_BEANS = (
-    ("sensor", "Bridge HBLOOP", "M2S1567", "field", "LCOS lamp; ACTIVE=link up", "sensor",
-     "Panel lamp sensor Bridge HBLOOP: lit when the link is up."),
-    ("sensor", "SML Mode", "IS:SML_MODE", "virtual", "Signals lamp; ACTIVE=SML on", "sensor",
-     "Panel lamp sensor SML Mode: lit when signal mast logic is on."),
-    ("sensor", "Track Power", "IS:TRACK_POWER", "virtual", "Track Power lamp; ACTIVE=on", "sensor",
-     "Panel lamp sensor Track Power: lit when track power is on."),
-    ("head", "Turnout FB status", "IH9990", "field", "Turnouts lamp: green feedback; red direct", "signalhead",
-     "Panel lamp head: green shows turnout feedback, red shows a direct turnout."),
-)
+# The beans the status cluster's icons show (panel_status.py finds them by name), kept by hand
+LAMPS = hand_lists.PANEL_LAMPS
 
 
 def _devices():
@@ -295,11 +285,13 @@ def _devices():
     return devices
 
 
-def status_rows(data: dict) -> list[dict]:
-    """The device master rows (hartlib.devices.COLUMNS) of the status beans STATUS_BEANS, each held by this file
-    (written_by panel_items.json). ItemsError when no item of `data` (load()) has an icon naming one of them: the
-    file and the rows would disagree about what the panel shows."""
+def status_rows(data: dict, lamps_path: Path = LAMPS) -> list[dict]:
+    """The device master rows (hartlib.devices.COLUMNS) of the status beans of `lamps_path` (panel_lamps.csv,
+    hartlib.hand_lists.read_panel_lamps), each held by this file (written_by panel_items.json). HandListError on a
+    bad lamps file; ItemsError when no item of `data` (load()) has an icon naming one of them: the two files would
+    disagree about what the panel shows."""
     devices = _devices()
+    lamps = hand_lists.read_panel_lamps(lamps_path)
     from hartlib import device_ids
     named = {}                  # (icon tag, the bean it names) -> the key of the item it is in
     for it in data["items"]:
@@ -310,15 +302,17 @@ def status_rows(data: dict) -> list[dict]:
                     raise ItemsError(f"{k[0]} {k[1]!r} is in items {named[k]!r} and {it['id']!r}; a status bean "
                                      "is in one item, which its device ID names")
     rows = []
-    for layer, user, system, assignment, comment, attr, text in STATUS_BEANS:
-        tag, name = ("sensoricon", user) if attr == "sensor" else ("signalheadicon", system)
+    for lamp in lamps:
+        system = lamp.system_name
+        tag, name = ("sensoricon", lamp.user_name) if lamp.icon == "sensor" else ("signalheadicon", system)
         if (tag, name) not in named:
-            raise ItemsError(f"status bean {user!r} ({system}) has no {tag} naming {name!r} in the items file")
+            raise ItemsError(f"status bean {lamp.user_name!r} ({system}) has no {tag} naming {name!r} in the items "
+                             "file")
         row = {c: "" for c in devices.COLUMNS}
         # its device ID: the item its icon is in and the bean's system name (hartlib.device_ids.panel_id)
-        row.update(level="1", layer=layer, role="panel_status", id=device_ids.panel_id(named[(tag, name)], system),
-                   user_name=user, assignment=assignment, system_name=system, jmri_name=system, jmri_comment=comment,
-                   written_by=WRITER, description=text)
+        row.update(level="1", layer=lamp.layer, role="panel_status",
+                   id=device_ids.panel_id(named[(tag, name)], system), user_name=lamp.user_name, assignment=lamp.assignment, system_name=system, jmri_name=system,
+                   jmri_comment=lamp.jmri_comment, written_by=WRITER, description=lamp.description)
         rows.append(row)
     return rows
 

@@ -1196,6 +1196,15 @@
    "path": "jmri/layouts/hart/data/schematic/retired_virtual_masts.csv"
   },
   {
+   "id": "jmri/layouts/hart/data/schematic/panel_lamps.csv",
+   "label": "panel_lamps.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "layout",
+   "desc": "The Layout Editor panel's status lamps (Bridge HBLOOP, SML Mode, Track Power, IH9990); panel_items.py writes their device master rows.",
+   "path": "jmri/layouts/hart/data/schematic/panel_lamps.csv"
+  },
+  {
    "id": "jmri/layouts/hart/data/schematic/sheets.csv",
    "label": "sheets.csv",
    "kind": "structured",
@@ -3869,7 +3878,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "Reads panel_items.json (fixed icons, labels, status cluster, panel attributes) for build_layout_le.py and writes the status beans' rows of devices_generated.csv (make panels' panel-items step, before tables); --check in check.sh.",
+   "desc": "Reads panel_items.json (fixed icons, labels, status cluster, panel attributes) for build_layout_le.py and writes the status beans' rows of devices_generated.csv from panel_lamps.csv (make panels' panel-items step, before tables); --check in check.sh.",
    "path": "tools/schematic/panel_items.py",
    "gen": "manifest"
   },
@@ -11686,6 +11695,13 @@
    "gen": "manifest"
   },
   {
+   "from": "jmri/layouts/hart/data/schematic/panel_lamps.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
    "from": "ops/hart-ops/data/locos.csv",
    "to": "tools/ops/check_locos.py",
    "label": "master",
@@ -13310,6 +13326,12 @@
    "from": "tools/schematic/pi_dialog.py",
    "to": "tools/schematic/panel_items.py",
    "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/panel_lamps.csv",
+   "to": "tools/schematic/panel_items.py",
+   "label": "the status lamps, via hartlib.hand_lists",
+   "gen": "manifest"
   },
   {
    "from": "tools/schematic/staging_device_map.py",
