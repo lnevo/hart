@@ -23,6 +23,7 @@ class FakeBus:
 
     def __init__(self) -> None:
         self.calls: list[tuple[str, ...]] = []
+        self.client_gone = False
 
     def snapshot(self) -> dict[str, object]:
         return {"mqtt": {"host": "fake", "connected": False}, "sensors": {}, "turnouts": {}, "heads": {}}
@@ -34,6 +35,8 @@ class FakeBus:
         raise ValueError("turnout must be CLOSED or THROWN")
 
     def clear_occupancy(self, layout: object) -> None:
+        if self.client_gone:
+            raise FileNotFoundError("mosquitto_pub")
         self.calls.append(("clear",))
 
 
@@ -86,6 +89,19 @@ class Api(unittest.TestCase):
         self.assertEqual(self.post("/api/occupancy", ["not", "an", "object"]),
                          (400, {"ok": False, "error": "the request body is not a JSON object"}))
         self.assertEqual(self.post("/api/nothing", {})[0], 404)
+
+    def test_a_client_that_cannot_run_is_a_json_503(self) -> None:
+        self.bus.client_gone = True
+        status, body = self.post_any("/api/occupancy/clear", {})
+        self.assertEqual((status, body), (503, {"ok": False, "error": "mosquitto_pub"}))
+
+    def post_any(self, path: str, body: object) -> tuple[int, object]:
+        req = urllib.request.Request(self.base + path, data=json.dumps(body).encode(), method="POST")
+        try:
+            with urllib.request.urlopen(req, timeout=5) as r:
+                return r.status, json.loads(r.read())
+        except urllib.error.HTTPError as e:
+            return e.code, json.loads(e.read() or b"null")
 
 
 if __name__ == "__main__":

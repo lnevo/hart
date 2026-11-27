@@ -123,6 +123,9 @@ def make_handler(layout: Layout, bus: Bus, html: bytes, shared_web: Path,
             except (KeyError, ValueError, json.JSONDecodeError, subprocess.CalledProcessError) as e:
                 self._json(400, {"ok": False, "error": str(e)})
                 return
+            except OSError as e:            # the client could not be run (mosquitto_pub gone): the page shows it
+                self._json(503, {"ok": False, "error": str(e)})
+                return
             self.send_error(404)
 
     return Handler

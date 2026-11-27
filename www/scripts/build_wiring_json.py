@@ -17,9 +17,9 @@ make site-data), and --check builds it in memory and runs its checks (problems()
 
 The sheets are read into viewer data by wiring_inventory.Inventory (its cell helpers are in wiring_sheet.py); this
 script cleans the cells first, then checks and writes what Inventory built. Data problems found along the way are
-printed as warnings; they do not stop the build. Network details (IP
-addresses, hostnames, serial ports, machine paths, credentials) are scrubbed from every cell before it reaches the
-JSON, and problems() fails a built JSON that still holds one.
+printed as warnings; they do not stop the build. Network details (IP addresses, hostnames, serial ports, machine
+paths, credentials) are scrubbed from every cell before it reaches the JSON, and problems() fails a built JSON that
+still holds one.
 """
 
 from __future__ import annotations
