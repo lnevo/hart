@@ -5300,6 +5300,33 @@
    "path": "tools/schematic/device_map_records.py"
   },
   {
+   "id": "tools/schematic/device_map_plant.py",
+   "label": "device_map_plant.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of build_device_map.py: the switch, OS block, part and track rows of the plant.",
+   "path": "tools/schematic/device_map_plant.py"
+  },
+  {
+   "id": "tools/schematic/device_map_level_masts.py",
+   "label": "device_map_level_masts.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of build_device_map.py: main and upper mast naming and their mast and head rows.",
+   "path": "tools/schematic/device_map_level_masts.py"
+  },
+  {
+   "id": "tools/schematic/device_map_master.py",
+   "label": "device_map_master.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of build_device_map.py: the devices master's form, bean names and checks.",
+   "path": "tools/schematic/device_map_master.py"
+  },
+  {
    "id": "tools/schematic/device_map_masts.py",
    "label": "device_map_masts.py",
    "kind": "generator",
@@ -12834,6 +12861,21 @@
   },
   {
    "from": "tools/schematic/device_map_records.py",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/device_map_plant.py",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/device_map_level_masts.py",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/device_map_master.py",
    "to": "tools/schematic/build_device_map.py",
    "label": "imports"
   },

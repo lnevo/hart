@@ -392,6 +392,26 @@ class DeckBuilding(SeededCase):
         exactly = [dict(base[0]) for _ in range(9)]
         self.assertEqual(len(wsheet.fill_deck_to_page(exactly)), 9)
 
+    def test_fill_deck_to_page_names_a_filler_with_no_parties(self):
+        self.seed(7)
+        card = {"Industry": "Calgon Carbon", "Commodity": "Coal", "Flow": "IN", "Usage": "Coal Unload",
+                "Spots": "1", "CarType": "Hopper"}
+        spec = dict(wdeck.waybill_spec("Calgon Carbon", "Coal Unload"), suppliers=[])
+        with mock.patch.object(wsheet, "waybill_spec", return_value=spec):
+            with self.assertRaises(wsheet.EmptyPartyPoolError) as caught:
+                wsheet.fill_deck_to_page([card])
+        self.assertIsInstance(caught.exception, car_paths.CardPipelineError)
+        self.assertIn("Calgon Carbon 'Coal Unload' (IN Coal)", str(caught.exception))
+        self.assertIn("no suppliers", str(caught.exception))
+
+    def test_fill_deck_to_page_copies_an_outbound_empty_with_a_blank_party(self):
+        self.seed(7)
+        card = {"Industry": "Calgon Carbon", "Commodity": "EMPTY", "Flow": "OUT", "Usage": "Coal Unload",
+                "Spots": "1", "CarType": "Hopper", "RouteTo": "Somewhere", "RouteChain": "CSX"}
+        full = wsheet.fill_deck_to_page([card])
+        self.assertEqual(len(full), wsheet.CARDS_PER_PAGE)
+        self.assertEqual({(c["RouteTo"], c["RouteChain"]) for c in full[1:]}, {("", "")})
+
     def test_summarize_deck(self):
         rows = wdeck.summarize_deck([
             {"Industry": "Calgon Carbon", "Commodity": "Coal", "Flow": "IN", "Spots": "1",

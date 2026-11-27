@@ -7,7 +7,9 @@ wiki/pipelines/waybills.md); the deck logic is in waybill_deck.py.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import TypedDict
+from typing import TypedDict, cast
+
+from card_template_records import WaybillCardRecord
 
 CARDS_PER_DIRECTION = 3
 INTERCHANGE_PAGES = 2
@@ -27,6 +29,22 @@ class Party(TypedDict):
     via: str  # the road a customer is reached by (CSX, NS, POHC)
     entry: str  # the road a supplier's load enters by (CSX, POHC)
     commodity: str  # the per-card load, when it differs from the spot's load
+
+
+SpotGroupKey = tuple[str, str, str]  # (industry, spots, usage)
+FlowKey = tuple[SpotGroupKey, str]  # (group, "IN" or "OUT")
+
+
+class DeckCard(WaybillCardRecord, total=False):
+    """A card of the waybill deck: the printed fields, plus the build keys build_waybill_records adds to a design.
+
+    GroupKey, DirectionKey and PartyPool group the designs and carry their parties; expand_copies drops them before
+    a card reaches the deck.
+    """
+
+    GroupKey: SpotGroupKey
+    DirectionKey: FlowKey
+    PartyPool: list[Party]
 
 
 class WaybillSpec(TypedDict):
@@ -67,14 +85,17 @@ def normalize_spec(raw: Mapping[str, object], where: str) -> WaybillSpec:
     """A WaybillSpec from a table entry, with every party normalized; ``where`` names it in errors."""
     if set(raw) != _SPEC_FIELDS:
         raise WaybillDataError(f"{where}: fields {sorted(raw)}, expected {sorted(_SPEC_FIELDS)}")
-    loads = raw["inbound_load"], raw["outbound_load"]
-    if not all(isinstance(load, str) and load for load in loads):
+    inbound, outbound = raw["inbound_load"], raw["outbound_load"]
+    if not (isinstance(inbound, str) and inbound and isinstance(outbound, str) and outbound):
         raise WaybillDataError(f"{where}: inbound_load and outbound_load must be non-blank text")
+    suppliers, customers = raw["suppliers"], raw["customers"]
+    if not (isinstance(suppliers, list | tuple) and isinstance(customers, list | tuple)):
+        raise WaybillDataError(f"{where}: suppliers and customers must be lists")
     return {
-        "inbound_load": raw["inbound_load"],
-        "outbound_load": raw["outbound_load"],
-        "suppliers": [normalize_party(p) for p in raw["suppliers"]],  # type: ignore[union-attr]
-        "customers": [normalize_party(p) for p in raw["customers"]],  # type: ignore[union-attr]
+        "inbound_load": inbound,
+        "outbound_load": outbound,
+        "suppliers": [normalize_party(p) for p in suppliers],
+        "customers": [normalize_party(p) for p in customers],
     }
 
 
@@ -295,8 +316,9 @@ _LAYOUT_PARTY_NAMES = frozenset(
 
 
 
-def _ix_card(**fields) -> dict:
-    return {
+def _ix_card(**fields: str) -> DeckCard:
+    """An interchange card; fields are DeckCard text keys (Commodity, CarType, RouteFrom ...)."""
+    return cast(DeckCard, {
         "Industry": INTERCHANGE_HEADER,
         "CardKind": "interchange",
         "Spots": "—",
@@ -304,7 +326,7 @@ def _ix_card(**fields) -> dict:
         "RouteTo": "",
         "RouteChain": "",
         **fields,
-    }
+    })
 
 
 # Off-layout POHC-side industries (through interchange only — not spot cards).
@@ -314,7 +336,7 @@ GE_BRIDGEVILLE = "GE (Bridgeville, PA)"
 
 # Through + POHC-industry interchange (RouteChain = CSX or POHC for Via … Interchange).
 # Car types: coils → Coil Car; slabs/billets/plate/bar/forgings → Flat Car; scrap → Gondola.
-INTERCHANGE_IN_VIA_CSX: list[dict] = [
+INTERCHANGE_IN_VIA_CSX: list[DeckCard] = [
     _ix_card(Commodity="Steel Billets", CarType="Flat Car",
              RouteFrom="Republic Steel (Cleveland, OH)",
              RouteTo=STANDARD_FORGED,
@@ -341,7 +363,7 @@ INTERCHANGE_IN_VIA_CSX: list[dict] = [
              RouteChain="CSX"),
 ]
 
-INTERCHANGE_IN_VIA_POHC: list[dict] = [
+INTERCHANGE_IN_VIA_POHC: list[DeckCard] = [
     _ix_card(Commodity="Stainless Slab", CarType="Flat Car",
              RouteFrom="Weirton Steel (Weirton, WV)",
              RouteTo="Armco Steel (Middletown, OH)",
@@ -372,7 +394,7 @@ INTERCHANGE_IN_VIA_POHC: list[dict] = [
              RouteChain="POHC"),
 ]
 
-INTERCHANGE_OUT_VIA_POHC: list[dict] = [
+INTERCHANGE_OUT_VIA_POHC: list[DeckCard] = [
     _ix_card(Commodity="Forged Components", CarType="Flat Car",
              RouteFrom=STANDARD_FORGED,
              RouteTo="Caterpillar (Peoria, IL)",
@@ -395,7 +417,7 @@ INTERCHANGE_OUT_VIA_POHC: list[dict] = [
              RouteChain="POHC"),
 ]
 
-INTERCHANGE_OUT_VIA_CSX: list[dict] = [
+INTERCHANGE_OUT_VIA_CSX: list[DeckCard] = [
     _ix_card(Commodity="Coal", CarType="Hopper",
              RouteFrom="Consol Energy (Pittsburgh, PA)",
              RouteTo="American Electric Power (Columbus, OH)",
@@ -426,7 +448,7 @@ INTERCHANGE_OUT_VIA_CSX: list[dict] = [
              RouteChain="CSX"),
 ]
 
-INTERCHANGE_CSX_TO_NS: list[dict] = [
+INTERCHANGE_CSX_TO_NS: list[DeckCard] = [
     _ix_card(Commodity="Tin Plate", LoadSummary=GENERAL_FREIGHT, CarType="Coil Car",
              RouteFrom="Wheeling-Pittsburgh Steel (Wheeling, WV)",
              RouteTo="Heinz (Pittsburgh, PA)",
@@ -441,7 +463,7 @@ INTERCHANGE_CSX_TO_NS: list[dict] = [
              RouteChain="POHC"),
 ]
 
-INTERCHANGE_NS_TO_CSX: list[dict] = [
+INTERCHANGE_NS_TO_CSX: list[DeckCard] = [
     _ix_card(Commodity="Steel Coils", LoadSummary=GENERAL_FREIGHT, CarType="Coil Car",
              RouteFrom="Weirton Steel (Weirton, WV)",
              RouteTo="Ryerson Steel Service (Pittsburgh, PA)",

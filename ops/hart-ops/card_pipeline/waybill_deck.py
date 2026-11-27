@@ -1,8 +1,8 @@
 """Waybill deck logic for generate_waybill_cards.py: spot parsing, routing and deck order.
 
 Pure functions over the tables in waybill_data.py. The CSV reader (load_spot_groups) stays in
-generate_waybill_cards.py because tests patch SPOT_CSV there. A deck card is a plain dict keyed as
-card_template_records.WaybillCardRecord is, plus the build keys GroupKey, DirectionKey and PartyPool.
+generate_waybill_cards.py because tests patch SPOT_CSV there. A deck card is a waybill_data.DeckCard: the
+fields of card_template_records.WaybillCardRecord, plus the build keys GroupKey, DirectionKey and PartyPool.
 """
 
 from __future__ import annotations
@@ -30,11 +30,14 @@ from waybill_data import (
     _PROCESS_CHEMICAL_DETAILS,
     CARDS_PER_DIRECTION,
     EMPTY,
+    DeckCard,
+    FlowKey,
     INDUSTRY_ORDER,
     OUTBOUND_EMPTY_RETURN,
     PROCESS_CHEMICALS,
     SPOT_WAYBILL,
     Party,
+    SpotGroupKey,
     WaybillSpec,
     norm,
     normalize_spec,
@@ -75,7 +78,7 @@ def _is_layout_party(name: str) -> bool:
 
 
 
-def build_interchange_deck() -> list[dict]:
+def build_interchange_deck() -> list[DeckCard]:
     """CSX ↔ POHC interchange and through-traffic cards."""
     raw = (
         INTERCHANGE_IN_VIA_CSX
@@ -85,7 +88,7 @@ def build_interchange_deck() -> list[dict]:
         + INTERCHANGE_CSX_TO_NS
         + INTERCHANGE_NS_TO_CSX
     )
-    deck: list[dict] = []
+    deck: list[DeckCard] = []
     for card in raw:
         if _is_layout_party(card.get("RouteFrom", "")) or _is_layout_party(
             card.get("RouteTo", "")
@@ -224,7 +227,7 @@ def inbound_commodity_label(spec: WaybillSpec) -> str:
     return load
 
 
-def _apply_load_summary(card: dict, summary_load: str = "") -> None:
+def _apply_load_summary(card: DeckCard, summary_load: str = "") -> None:
     """Set LoadSummary when center commodity differs from the documented load label."""
     if card.get("LoadSummary"):
         return
@@ -269,7 +272,7 @@ def spread_parties(pool: list[Party], count: int) -> list[Party]:
 
 
 def apply_route(
-    card: dict, flow: str, load: str, party: Party, industry: str = ""
+    card: DeckCard, flow: str, load: str, party: Party, industry: str = ""
 ) -> None:
     if card.get("CardKind") == "interchange":
         return
@@ -360,10 +363,10 @@ def _spot_count(spots: str) -> int:
     return len(_spots_from_label(spots)) or 1
 
 
-def build_industry_empty_cards(groups: Sequence[SpotGroup]) -> list[dict]:
+def build_industry_empty_cards(groups: Sequence[SpotGroup]) -> list[DeckCard]:
     """One generic outbound EMPTY per spot not covered by an inbound-empty load track."""
     counts = industry_outbound_empty_counts(groups)
-    cards: list[dict] = []
+    cards: list[DeckCard] = []
     for industry in sorted(counts, key=lambda name: INDUSTRY_ORDER.get(name, 99)):
         routing = OUTBOUND_EMPTY_RETURN.get(industry, {})
         for _ in range(counts[industry]):
@@ -384,7 +387,7 @@ def build_industry_empty_cards(groups: Sequence[SpotGroup]) -> list[dict]:
     return cards
 
 
-def _pad_designs(designs: list[dict], count: int = CARDS_PER_DIRECTION) -> list[dict]:
+def _pad_designs(designs: list[DeckCard], count: int = CARDS_PER_DIRECTION) -> list[DeckCard]:
     n = len(designs)
     if n == 1:
         return [deepcopy(designs[0]) for _ in range(count)]
@@ -393,14 +396,14 @@ def _pad_designs(designs: list[dict], count: int = CARDS_PER_DIRECTION) -> list[
     return [deepcopy(designs[i % n]) for i in range(count)]
 
 
-def build_waybill_records(groups: Sequence[SpotGroup]) -> tuple[list[dict], list[tuple]]:
+def build_waybill_records(groups: Sequence[SpotGroup]) -> tuple[list[DeckCard], list[SpotGroupKey]]:
     """IN + OUT waybill per car type for each spot group."""
-    records: list[dict] = []
-    group_order: list[tuple] = []
+    records: list[DeckCard] = []
+    group_order: list[SpotGroupKey] = []
 
     for group in groups:
         spec = waybill_spec(group["Industry"], group["Usage"])
-        group_key = (group["Industry"], group["Spots"], group["Usage"])
+        group_key: SpotGroupKey = (group["Industry"], group["Spots"], group["Usage"])
         if group_key not in group_order:
             group_order.append(group_key)
 
@@ -448,24 +451,26 @@ def build_waybill_records(groups: Sequence[SpotGroup]) -> tuple[list[dict], list
     return records, group_order
 
 
-def expand_copies(waybills: list[dict], group_order: list[tuple]) -> list[dict]:
+def _design(record: DeckCard) -> DeckCard:
+    """A copy of a design without the build keys, its other keys in the same order."""
+    design = DeckCard(**record)
+    design.pop("GroupKey", None)
+    design.pop("DirectionKey", None)
+    design.pop("PartyPool", None)
+    return design
+
+
+def expand_copies(waybills: list[DeckCard], group_order: list[SpotGroupKey]) -> list[DeckCard]:
     """Loaded and inbound empty: three per direction."""
-    by_direction: dict[tuple, list[dict]] = defaultdict(list)
+    by_direction: dict[FlowKey, list[DeckCard]] = defaultdict(list)
     for record in waybills:
         by_direction[record["DirectionKey"]].append(record)
 
-    deck: list[dict] = []
+    deck: list[DeckCard] = []
     for group_key in group_order:
         for flow in ("IN", "OUT"):
-            direction_key = (group_key, flow)
-            designs = [
-                {
-                    k: v
-                    for k, v in r.items()
-                    if k not in ("GroupKey", "DirectionKey", "PartyPool")
-                }
-                for r in by_direction[direction_key]
-            ]
+            direction_key: FlowKey = (group_key, flow)
+            designs = [_design(r) for r in by_direction[direction_key]]
             if not designs:
                 continue
 
@@ -500,7 +505,7 @@ def expand_copies(waybills: list[dict], group_order: list[tuple]) -> list[dict]:
     return deck
 
 
-def card_kind(card: dict) -> str:
+def card_kind(card: DeckCard) -> str:
     kind = card.get("CardKind")
     if kind in ("interchange", "outbound_empty", "inbound_empty"):
         return kind
@@ -511,7 +516,7 @@ def card_kind(card: dict) -> str:
     return "loaded"
 
 
-def _deck_sort_key(card: dict) -> tuple:
+def _deck_sort_key(card: DeckCard) -> tuple[int, int, str, int, int, int, str, str, str]:
     industry = card.get("Industry", "")
     kind = card_kind(card)
     if kind == "outbound_empty":
@@ -542,12 +547,12 @@ def _deck_sort_key(card: dict) -> tuple:
     )
 
 
-def sort_deck_by_industry(deck: list[dict]) -> list[dict]:
+def sort_deck_by_industry(deck: list[DeckCard]) -> list[DeckCard]:
     """Order cards by industry, then kind, spot, flow, usage."""
     return sorted(deck, key=_deck_sort_key)
 
 
-def _card_to_csv_row(card: dict, card_id: int) -> dict[str, str]:
+def _card_to_csv_row(card: DeckCard, card_id: int) -> dict[str, str]:
     return {
         "card_id": str(card_id),
         "industry": card.get("Industry", ""),
@@ -564,7 +569,7 @@ def _card_to_csv_row(card: dict, card_id: int) -> dict[str, str]:
     }
 
 
-def export_waybill_csv(deck: list[dict], path: Path) -> None:
+def export_waybill_csv(deck: list[DeckCard], path: Path) -> None:
     """Write one row per card for editing outside the Word file."""
     fieldnames = [
         "card_id",
@@ -587,9 +592,9 @@ def export_waybill_csv(deck: list[dict], path: Path) -> None:
             writer.writerow(_card_to_csv_row(card, i))
 
 
-def summarize_deck(deck: list[dict]) -> list[DeckSummaryRow]:
+def summarize_deck(deck: list[DeckCard]) -> list[DeckSummaryRow]:
     """Aggregate card attributes per industry for reporting."""
-    by_industry: dict[str, list[dict]] = defaultdict(list)
+    by_industry: dict[str, list[DeckCard]] = defaultdict(list)
     for card in deck:
         by_industry[card.get("Industry", "")].append(card)
 

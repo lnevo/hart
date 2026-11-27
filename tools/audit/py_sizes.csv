@@ -7,7 +7,6 @@ jmri/layouts/hart/scripts/tests/test_pom_guard.py,976
 jmri/layouts/hart/scripts/tests/test_signal_coordinator_behaviour.py,2059
 jmri/layouts/hart/scripts/tests/test_speedmatch_distance.py,971
 ops/hart-ops/card_pipeline/crop_car_image.py,994
-ops/hart-ops/card_pipeline/generate_operator_sheet.py,837
 tools/audit/check_layout_facts.py,895
 tools/audit/tests/test_build_layout_le.py,1119
 tools/audit/tests/test_pipeline_map.py,861
@@ -21,6 +20,6 @@ tools/hartlib/tests/test_railroad.py,892
 tools/hartlib/tests/test_tables_build.py,812
 tools/hosts/tests/test_deploy_gates.py,1069
 tools/promo/tiktok_promo.py,808
-tools/schematic/build_device_map.py,979
+tools/schematic/build_device_map.py,968
 tools/schematic/tests/test_block_layer.py,869
 www/js/crew.js,898
