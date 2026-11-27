@@ -1,0 +1,26 @@
+# The jython the Mac and the Pi install into JMRI_UserFiles/jython (preference:jython): one "ROLE PATH" per line.
+# PATH is relative to the repo, and to the deploy package, which holds each file at the same path (stage.sh).
+# ROLE:
+#   startup  a Start Up script on the Mac and the Pi
+#   pi       a Start Up script on the Pi only
+#   sibling  a module signal_coordinator.py loads (SIBLING_MODULES, in load order, after the loader jython_siblings.py)
+#   part     a module panel_status.py loads (PARTS, in order)
+# Read with jython_list.sh: by tools/hosts/deploy/common.sh (the Mac and the package) and, from the package
+# (cats/scripts/pi/), by apply_hart_package_local.sh on the Pi. The Windows apply keeps its own list
+# (tools/hosts/windows/apply_hart_package_local.ps1, $jythonSrc).
+startup jmri/layouts/hart/scripts/hide_cats_desk_windows.py
+startup jmri/layouts/hart/scripts/hide_band_panels.py
+startup jmri/layouts/hart/scripts/panel_status.py
+startup jmri/layouts/hart/scripts/jmri_cmd_watcher.py
+startup jmri/layouts/hart/scripts/sts_car_sync.py
+startup jmri/scripts/signal_coordinator.py
+pi jmri/layouts/hart/scripts/mimic_relay.py
+sibling jmri/scripts/jython_siblings.py
+sibling jmri/scripts/sml_beans.py
+sibling jmri/scripts/sml_quit.py
+sibling jmri/scripts/sml_ui.py
+sibling jmri/scripts/sml_claims.py
+sibling jmri/scripts/sml_handoff.py
+sibling jmri/scripts/sml_events.py
+part jmri/layouts/hart/scripts/panel_status_clicks.py
+part jmri/layouts/hart/scripts/panel_status_turnouts.py

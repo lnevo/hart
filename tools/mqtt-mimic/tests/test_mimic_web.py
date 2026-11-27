@@ -430,7 +430,9 @@ class Deploy(unittest.TestCase):
         self.assertIn("jmri/layouts/hart/scripts/mimic_relay.py", self.sync)
 
     def test_pi_installs_and_starts_relay(self):
-        self.assertIn('"$HART/jmri/layouts/hart/scripts/mimic_relay.py"', self.pi)
+        # the Pi installs the rows of the one jython list; "pi" marks a Start Up script on the Pi only
+        rows = (ROOT / "tools/hosts/pi/jython_scripts.txt").read_text(encoding="utf-8").splitlines()
+        self.assertIn("pi jmri/layouts/hart/scripts/mimic_relay.py", rows)
         self.assertIn("--script preference:jython/mimic_relay.py", self.pi)
 
 

@@ -51,13 +51,33 @@ class JmriAdditions(unittest.TestCase):
         self.addCleanup(shutil.rmtree, tmp)
         coordinator = [p.relative_to(ja.ROOT).as_posix() for script in (ja.COORDINATOR, ja.PANEL_STATUS)
                        for p in ja.coordinator.files(ja.ROOT / script)]
-        for rel in [r for r, _ in ja.HOST_LISTS.values()] + coordinator:
+        for rel in [r for r, _ in ja.HOST_LISTS.values()] + coordinator + [ja.JYTHON_LIST, ja.JYTHON_READER]:
             (tmp / rel).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(ja.ROOT / rel, tmp / rel)
-        pi = tmp / ja.HOST_LISTS["Pi"][0]
-        text = pi.read_text(encoding="utf-8")
-        pi.write_text(text.replace("JYTHON=(", "JYTHON=(  # (see the README)", 1), encoding="utf-8")
+        win = tmp / ja.HOST_LISTS["Windows"][0]
+        text = win.read_text(encoding="utf-8")
+        win.write_text(text.replace("$jythonSrc = @(", "$jythonSrc = @(  # (see the README)", 1), encoding="utf-8")
         self.assertEqual(ja.host_lists(tmp), self.facts["hosts"])   # a comment's bracket does not end the list
+
+    def test_the_pi_and_the_mac_follow_the_one_jython_list(self):
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        coordinator = [p.relative_to(ja.ROOT).as_posix() for script in (ja.COORDINATOR, ja.PANEL_STATUS)
+                       for p in ja.coordinator.files(ja.ROOT / script)]
+        for rel in [r for r, _ in ja.HOST_LISTS.values()] + coordinator + [ja.JYTHON_LIST, ja.JYTHON_READER]:
+            (tmp / rel).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(ja.ROOT / rel, tmp / rel)
+        listing = tmp / ja.JYTHON_LIST
+        text = listing.read_text(encoding="utf-8")
+        listing.write_text(text.replace("pi jmri/layouts/hart/scripts/mimic_relay.py",
+                                        "startup jmri/layouts/hart/scripts/mimic_relay.py"), encoding="utf-8")
+        hosts = ja.host_lists(tmp)
+        self.assertIn("mimic_relay.py", hosts["Mac"])        # a startup row is the Mac's too
+        self.assertIn("mimic_relay.py", hosts["Pi"])
+        self.assertNotIn("sml_beans.py", hosts["Pi"])        # a sibling row is a part, not a script
+        listing.write_text(text + "module jmri/scripts/x.py\n", encoding="utf-8")
+        with self.assertRaisesRegex(ja.PageError, "unknown role 'module'"):
+            ja.host_lists(tmp)
 
     def test_coordinator_modules_are_parts_not_scripts(self):
         parts = ja._siblings(ja.ROOT)

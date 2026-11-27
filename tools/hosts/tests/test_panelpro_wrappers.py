@@ -391,7 +391,8 @@ class Rehearsal(WrapperCase):
 
 class Deploy(WrapperCase):
     def test_deploy_and_cats_launch_refuse_while_a_backup_is_left(self) -> None:
-        for rel in ("tools/hosts/sync_hart_package.sh", "tools/hosts/redeploy_commit.sh", "cats/scripts/launch_cats.sh"):
+        for rel in ("tools/hosts/sync_hart_package.sh", "tools/hosts/redeploy_commit.sh", "cats/scripts/launch_cats.sh",
+                    "tools/hosts/pi/jython_list.sh", "tools/hosts/pi/jython_scripts.txt"):   # the last two: common.sh's
             dest = self.box.root / rel
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / rel, dest)
