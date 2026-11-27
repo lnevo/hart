@@ -1,8 +1,8 @@
 """The unit jobs' stamp declarations (tools/audit/check_stamps.py BY_KIND and EXTRA) name the files each suite reads,
 not whole folders, so a data edit no suite reads is light (tools/ci/changed_kind.py). For each narrowed declaration:
 a file the suite reads is still covered and makes the change full, and a file beside it that the suite does not read
-is not covered,
-and with that job's declaration the only one, the file beside them is not full on its account.
+is not covered. With that job's declaration the only one loaded, an edit to the file beside it is not full because of
+that job.
 
 unit-guards test_name_copies still reads every tracked text file (its rename test scans the real checkout), and other
 unit-guards tests read data masters their declarations do not name yet, so with the real declarations every data
@@ -100,9 +100,10 @@ class NarrowedDeclarations(unittest.TestCase):
             for path in data:
                 with self.subTest(job=job, path=path):
                     v = changed_kind.verdict([path], load=lambda _root: d)
-                    if "may be read by" in v.why:
-                        self.assertIn(f"may be read by {job}", v.why)
                     self.assertEqual("full", v.kind, v.why)
+                    # a file full on its suffix or as the map is full before any declaration is read
+                    if path.endswith(changed_kind.DATA_SUFFIXES) and path != changed_kind.MAP:
+                        self.assertIn(f"may be read by {job}", v.why)
             for path in unread:
                 with self.subTest(job=job, path=path):
                     v = changed_kind.verdict([path], load=lambda _root: d)

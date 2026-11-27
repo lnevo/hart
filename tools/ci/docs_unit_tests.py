@@ -36,8 +36,8 @@ LEFT_OUT = {
     "manifest checks": "the ones a docs-only change can break are docs_only steps, run from docs_checks.sh's list",
     "public-text": "check_public_text.py is in docs_checks.sh's list",
     "portal": "the portal build stays with the website deploy, as in CI (owner, 2026-11-24)",
-    "unit-portal": "whole suite of site builders (39 s); reads docs/INDEX.md and the wiki only "
-                   "for the repo guide and the map lanes, which the repo-guide and pipeline-map checks build",
+    "unit-portal": "whole suite of site builders (39 s); its declaration names docs/INDEX.md, read only for "
+                   "the repo guide, which the repo-guide check builds (the wiki it also reads is left off on purpose)",
     "unit-hart-ops": "whole suite (car cards, publications); reads docs only in part",
     "unit-schematic": "whole suite; reads wiki/pipelines/ only in part",
     "unit-guards test_check_stamps": "the stamp machinery's own tests (38 s); declared on its sample jobs' "

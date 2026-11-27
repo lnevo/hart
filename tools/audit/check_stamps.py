@@ -219,7 +219,7 @@ EXTRA: dict[str, tuple[str, ...]] = {
     "unit-guards test_publish_draft": ("docs/ops/**/*", "ops/hart-ops/data/crew.json", "ops/hart-ops/publications/**/*",
                                        "www/data/**/*", "www/crew/**/*"),
     "unit-guards test_site_device_names": ("www/assets/layout/*.png", "www/scripts/**/*"),  # the PNG stamp, ADR-036
-    "unit-guards test_write_inventory": ("docs/wiring/LCOS_Layout_Inventory_v86.xlsx",),  # write_inventory.OUT
+    "unit-guards test_write_inventory": ("docs/wiring/LCOS_Layout_Inventory_v*.xlsx",),  # write_inventory.OUT
     # it runs check_data_readers.py over every tracked .py (docs/, ops/ and www/ included)
     "unit-guards test_check_data_readers": ("**/*.py",),
     # the card pipeline's car tools and the host packages' files it compares with the hosts' copies
