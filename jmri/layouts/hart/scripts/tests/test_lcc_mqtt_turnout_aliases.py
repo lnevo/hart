@@ -14,8 +14,8 @@ TABLES = HART_ROOT / "output" / "tables.xml"
 
 def load_module(name: str, path: Path):
     spec = importlib.util.spec_from_file_location(name, path)
+    assert spec is not None and spec.loader is not None, path
     module = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None
     import sys
 
     sys.modules[name] = module
@@ -25,6 +25,7 @@ def load_module(name: str, path: Path):
 
 contract = load_module("lcc_turnout_contract", SCRIPTS / "lcc_turnout_contract.py")
 devices = contract.devices
+from hartlib.device_rows import MasterRow  # noqa: E402  (on the path the contract module puts hartlib)
 CSV_PATH = HART_ROOT / "data" / devices.MASTER_FILE
 cleanup = load_module(
     "cleanup_uss_ctc_leftovers", SCRIPTS / "cleanup_uss_ctc_leftovers.py"
@@ -39,6 +40,11 @@ def master(rows: list[dict], path: Path) -> Path:
     full = [dict(r, id=r["id"] or (f"test:{r['layer']}:{r['user_name']}" if r["level"] else "")) for r in full]
     path.write_text(contract.devices.master_text(full), encoding="utf-8")
     return path
+
+
+def master_row(cells: dict) -> MasterRow:
+    """A row of the master as devices.load gives it, from `cells` (blank but for the columns given)."""
+    return MasterRow.from_master(dict(dict.fromkeys(devices.COLUMNS, ""), **cells), 0, "a test row")
 
 
 TURNOUT = dict(level="1", layer="turnout", role="turnout", id="switch:1", user_name="Switch 1", assignment="field",
@@ -90,10 +96,11 @@ class LccMqttTurnoutAliasContractTest(unittest.TestCase):
                                                           "is not switch:<switch number>"):
             contract.field_plants(master([dict(TURNOUT, id=""), ALIAS], self.tmp / devices.ONE_FILE))
         with self.assertRaisesRegex(devices.DevicesError, "id 'switch:1a' is not switch:<n> or dcc:<n>"):
-            contract.pair_key(dict(TURNOUT, id="switch:1a"))
-        self.assertEqual(contract.pair_key(dict(TURNOUT, level="", id="")), ("", "Switch 1"))
-        self.assertEqual(contract.pair_key(dict(ALIAS, level="", id="")), ("", "Switch 1"))
-        self.assertEqual(contract.pair_key(ALIAS), contract.pair_key(TURNOUT))
+            contract.pair_key(master_row(dict(TURNOUT, id="switch:1a")))
+        self.assertEqual(contract.pair_key(master_row(dict(TURNOUT, level="", id=""))), ("", "Switch 1"))
+        self.assertEqual(contract.pair_key(master_row(dict(ALIAS, level="", id=""))), ("", "Switch 1"))
+        self.assertEqual(contract.pair_key(master_row(ALIAS)), contract.pair_key(master_row(TURNOUT)))
+        self.assertEqual(contract.pair_key(master_row(TURNOUT)), ("1", "1"))
 
     def test_the_alias_is_the_rows_dcc_not_the_comments(self) -> None:
         """The address comes from the turnout row's dcc column; a comment that says otherwise does not move it."""

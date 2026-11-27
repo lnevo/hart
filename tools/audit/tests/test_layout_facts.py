@@ -124,7 +124,7 @@ class LayoutFactsTest(unittest.TestCase):
         given = check.Tables(check.TABLES, parts={"Track X": "OS Switch 1"})
         self.assertEqual(given.os_of("Track X"), "OS Switch 1")
         # run() takes the parts from the master it is given: a master with no part rows leaves Switch 1's leg a part
-        rows = [r for r in check.devices.load(check.DEVICE_MAP) if r["role"] != "part"]
+        rows = [r.cells() for r in check.devices.load(check.DEVICE_MAP) if r.role != "part"]
         master = self.tmp / devices.ONE_FILE
         master.write_text(check.devices.master_text(rows), encoding="utf-8")
         self.assertEqual(check.part_map(master), {})

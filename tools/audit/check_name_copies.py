@@ -131,8 +131,8 @@ class Hit:
 def load_names(devices_csv: Path) -> tuple[set[str], set[str]]:
     """(current names, every name the master holds: the same set, as it keeps no alias rows) of staging's blocks and
     masts, the user names of their rows in the device master. DevicesError when it cannot be read."""
-    names = {row["user_name"].strip() for row in devices.load(devices_csv)
-             if row["level"] == railroad.STAGING_LEVEL and row["layer"] in LAYERS}
+    names = {row.user_name.strip() for row in devices.load(devices_csv)
+             if row.level_cell == railroad.STAGING_LEVEL and row.layer in LAYERS}
     return names, set(names)
 
 

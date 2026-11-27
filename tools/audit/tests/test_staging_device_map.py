@@ -292,7 +292,7 @@ class Files(unittest.TestCase):
     def _copy(self, edit):
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)
-        rows = [dict(r) for r in sdm.devices.load(sdm.DEVICE_MAP)]        # the master's rows, whole
+        rows = [r.cells() for r in sdm.devices.load(sdm.DEVICE_MAP)]        # the master's rows, whole
         edit(rows)
         out = tmp / devices.ONE_FILE
         out.write_text(sdm.devices.master_text(rows), encoding="utf-8")
