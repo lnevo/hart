@@ -133,6 +133,28 @@ def height_text(cm: float) -> str:
     return "%g in (%.1f cm)" % (round(inches(abs(cm)), 2), abs(cm))
 
 
+NUMBER = (int, float)
+LEVEL_TYPES: dict[str, type | tuple[type, ...]] = {
+    "bbox": list, "crossovers": int, "threeways": int, "flex_m": NUMBER, "ramp_m": NUMBER, "height_cm": NUMBER,
+    "switches": int, "labels": list,
+}
+HELIX_TYPES: dict[str, type | tuple[type, ...]] = {"foot": str, "top": str, "cm": NUMBER, "below_cut_cm": NUMBER}
+RAMP_TYPES: dict[str, type | tuple[type, ...]] = {"foot": str, "top": str, "flex_m": NUMBER}
+
+
+def _expect(path: Path, what: str, value: object, want: type | tuple[type, ...]) -> None:
+    """Raise LevelsPageError naming `path` and `what` unless `value` is a `want` (a bool is never a number)."""
+    ok = isinstance(value, want) and not isinstance(value, bool)
+    if not ok:
+        names = want if isinstance(want, tuple) else (want,)
+        raise LevelsPageError(f"{path}: {what} is {type(value).__name__}, expected {' or '.join(t.__name__ for t in names)}; rerun levels_svg.py")
+
+
+def _expect_all(path: Path, what: str, values: list[object], want: type | tuple[type, ...]) -> None:
+    for i, v in enumerate(values):
+        _expect(path, f"{what}[{i}]", v, want)
+
+
 def read_meta(levels: Path) -> Meta:
     """levels_meta.json in `levels`, with every key the page reads."""
     path = levels / "levels_meta.json"
@@ -147,13 +169,30 @@ def read_meta(levels: Path) -> Meta:
     for need in META_KEYS:
         if need not in meta:
             raise LevelsPageError(f"{path} has no {need!r}; rerun levels_svg.py")
+    _expect(path, "plan", meta["plan"], str)
+    _expect(path, "max_grade_pct", meta["max_grade_pct"], NUMBER)
+    _expect(path, "cut_cm", meta["cut_cm"], NUMBER)
+    _expect(path, "levels", meta["levels"], dict)
     for level in LEVEL_NAMES:
         lv = meta["levels"].get(level)
         if lv is None:
             raise LevelsPageError(f"{path} has no {level} level; rerun levels_svg.py")
+        _expect(path, level + " level", lv, dict)
         missing = [k for k in LEVEL_KEYS if k not in lv]
         if missing:
             raise LevelsPageError(f"{path}: the {level} level has no {', '.join(missing)}; rerun levels_svg.py")
+        for key, want in LEVEL_TYPES.items():
+            _expect(path, f"{level} level {key!r}", lv[key], want)
+        _expect_all(path, f"{level} level 'bbox'", lv["bbox"], NUMBER)
+        _expect_all(path, f"{level} level 'labels'", lv["labels"], str)
+    for key, rows in (("helix", HELIX_TYPES), ("ramps", RAMP_TYPES)):
+        _expect(path, key, meta[key], list)
+        for i, row in enumerate(meta[key]):
+            _expect(path, f"{key}[{i}]", row, dict)
+            for k, want in rows.items():
+                if k not in row:
+                    raise LevelsPageError(f"{path}: {key}[{i}] has no {k!r}; rerun levels_svg.py")
+                _expect(path, f"{key}[{i}] {k!r}", row[k], want)
     return cast(Meta, meta)     # its keys are checked above
 
 
