@@ -10,7 +10,7 @@ const assert = require("assert");
 
 const WWW = path.join(__dirname, "..", "..");
 const ctx = vm.createContext({ window: {} });
-for (const f of ["play/road-engine.js", "play/warrant.js"]) vm.runInContext(fs.readFileSync(path.join(WWW, f), "utf8"), ctx, { filename: f });
+for (const f of ["js/track-warrant.js", "play/road-engine.js", "play/warrant.js"]) vm.runInContext(fs.readFileSync(path.join(WWW, f), "utf8"), ctx, { filename: f });
 const { BOXES, SAY } = ctx.window.RoadEngine.twc;
 const compare = (w, g) => [...ctx.window.RoadEngine.twc.compare(w, g)]; // a plain array, from this realm
 
