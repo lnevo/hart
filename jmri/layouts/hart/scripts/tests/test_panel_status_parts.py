@@ -14,6 +14,8 @@ import tempfile
 import types
 import unittest
 from pathlib import Path
+from typing import Any
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import jmri_fake as jf  # noqa: E402
@@ -265,6 +267,141 @@ class TurnoutsLamp(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()) as out:
             self.assertEqual(self.lamp(), jf.SignalHead.YELLOW)      # no plant counted
         self.assertIn("cannot read the feedback sensors of M2T1: no sensors", out.getvalue())
+
+
+class ClickFailures(unittest.TestCase):
+    """panel_status_clicks prints each icon or editor it cannot read and goes on; nothing fails in silence."""
+
+    def setUp(self) -> None:
+        self.layout = jf.Layout(mqtt=False)
+        jf.load_script(coordinator.PANEL_STATUS, self.layout)
+        self.clicks = sys.modules["panel_status_clicks"]
+        running = jf.running(self.layout)
+        running.__enter__()
+        self.addCleanup(running.__exit__, None, None, None)
+        self.display = sys.modules["jmri.jmrit.display"]
+
+    def editor(self, contents=None, fail=None, title="HART"):
+        def get_contents():
+            if fail:
+                raise RuntimeError(fail)
+            return list(contents or ())
+        ed = types.SimpleNamespace(getContents=get_contents, getTitle=lambda: title, getTargetFrame=lambda: None)
+        self.layout.editors.append(ed)
+        return ed
+
+    def test_a_lamp_icon_with_unreadable_bounds_is_printed_and_the_others_still_hit(self) -> None:
+        class Icon:
+            def __init__(self, fail=False): self.fail = fail
+            def getX(self):
+                if self.fail:
+                    raise RuntimeError("no bounds")
+                return 0
+            def getY(self): return 0
+            def getWidth(self): return 20
+            def getHeight(self): return 20
+            def getDisplayLevel(self): return 10
+
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(self.clicks._lamp_at([(Icon(fail=True), "bad"), (Icon(), "good")], 1.0, 5, 5), "good")
+        self.assertIn("cannot read the bounds of lamp icon", out.getvalue())
+        self.assertIn("no bounds", out.getvalue())
+
+    def test_an_icon_that_refuses_its_click_settings_is_printed(self) -> None:
+        class Icon:
+            def setControlling(self, value): raise RuntimeError("locked")
+            def setClickMode(self, value): raise RuntimeError("no mode")
+
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            self.clicks._disable_icon_control(Icon())
+        self.assertIn("cannot turn off the click control", out.getvalue())
+        self.assertIn("cannot clear the click mode", out.getvalue())
+
+    def test_an_unreadable_editor_is_printed_when_arming_and_raising_labels(self) -> None:
+        self.editor(fail="contents gone")
+        label = type("Label", (self.display.BlockContentsIcon,), {
+            "getDisplayLevel": lambda self: 0, "setDisplayLevel": lambda self, n: setattr(self, "level", n)})()
+        self.editor([label])
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertFalse(self.clicks.arm_status_lamp_clicks({"IS1": ("LCOS", lambda: None)}, {}, lambda *a: None))
+            self.assertEqual(self.clicks._raise_block_labels(), 1)
+        self.assertIn("cannot read the contents of", out.getvalue())
+        self.assertIn("for lamp clicks: contents gone", out.getvalue())
+        self.assertIn("to raise BlockContentsIcon labels: contents gone", out.getvalue())
+        self.assertEqual(label.level, self.clicks._BCI_LEVEL)
+
+    def test_no_editor_manager_is_printed(self) -> None:
+        im = self.clicks.jmri.InstanceManager      # the one panel_status_turnouts imported too
+        with mock.patch.object(self.clicks, "_clicks_armed", False), \
+                mock.patch.object(self.clicks, "_bci_raised", False), \
+                mock.patch.object(im, "getNullableDefault", lambda cls: None), \
+                contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertFalse(self.clicks.arm_status_lamp_clicks({}, {}, lambda *a: None))
+            self.assertEqual(self.clicks._raise_block_labels(), 0)
+            sys.modules["panel_status_turnouts"]._rebind_turnout_fb_icons(object())
+        self.assertIn("no EditorManager yet, status lamp clicks not armed", out.getvalue())
+        self.assertIn("no EditorManager yet, BlockContentsIcon labels not raised", out.getvalue())
+        self.assertIn("Turnouts icon rebind: no EditorManager yet", out.getvalue())
+
+
+class TurnoutsHeadCalls(unittest.TestCase):
+    """Each call on the Turnouts lamp head runs on its own: one that fails is printed once and the rest still run."""
+
+    def setUp(self) -> None:
+        self.layout = jf.Layout(mqtt=False)
+        jf.load_script(coordinator.PANEL_STATUS, self.layout)
+        self.turnouts = sys.modules["panel_status_turnouts"]
+        running = jf.running(self.layout)
+        running.__enter__()
+        self.addCleanup(running.__exit__, None, None, None)
+
+    def test_a_failing_held_or_lit_call_still_sets_the_appearance(self) -> None:
+        set_to = []
+
+        class Head:
+            def setHeld(self, value): raise RuntimeError("held stuck")
+            def setLit(self, value): raise RuntimeError("lit stuck")
+            def setAppearance(self, value): set_to.append(value)
+
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            for _ in range(2):
+                self.turnouts._set_head_appearance(Head(), jf.SignalHead.GREEN)
+            jf.fire_timers()
+        self.assertEqual(set_to, [jf.SignalHead.GREEN] * 2)
+        self.assertEqual(out.getvalue().count("Turnouts lamp setHeld(False) failed: held stuck"), 1)
+        self.assertEqual(out.getvalue().count("Turnouts lamp setLit(True) failed: lit stuck"), 1)
+
+    def test_a_failing_appearance_is_printed(self) -> None:
+        class Head:
+            def setHeld(self, value): pass
+            def setLit(self, value): pass
+            def setAppearance(self, value): raise RuntimeError("no such appearance")
+
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            self.turnouts._set_head_appearance(Head(), jf.SignalHead.RED)
+            jf.fire_timers()
+        self.assertIn("Turnouts lamp setAppearance(%s) failed: no such appearance" % jf.SignalHead.RED,
+                      out.getvalue())
+
+    def test_an_icon_whose_head_cannot_be_read_is_printed_and_skipped(self) -> None:
+        icon_class: Any = sys.modules["jmri.jmrit.display"].SignalHeadIcon
+        set_to = []
+
+        class Broken(icon_class):
+            def getSignalHead(self): raise RuntimeError("head gone")
+
+        class Lamp(icon_class):
+            def getSignalHead(self): return None
+            def getToolTip(self): return types.SimpleNamespace(getText=lambda: sys.modules[
+                "panel_status_turnouts"].TURNOUT_FB_TOOLTIP)
+            def setSignalHead(self, value): set_to.append(value)
+
+        self.layout.editors.append(types.SimpleNamespace(getContents=lambda: [Broken(), Lamp()]))
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            self.turnouts._rebind_turnout_fb_icons(object())
+        self.assertIn("cannot read the head of", out.getvalue())
+        self.assertIn("head gone", out.getvalue())
+        self.assertEqual(set_to, [self.turnouts.TURNOUT_FB_HEAD])
 
 
 class PartText(unittest.TestCase):

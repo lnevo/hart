@@ -10,7 +10,7 @@ from typing import Literal, NamedTuple
 
 from device_map_inputs import NODES, PINS, UID
 from hartlib import railroad, wiring
-from mast_rule import MapError
+from map_error import MapError
 
 Input = Literal["turnout", "block", "signal", "sensor"]     # what a node hands out, each numbered from 0
 Pin = tuple[int, int]                 # a pinned detector's (node, block input index from 0): read_pins' value

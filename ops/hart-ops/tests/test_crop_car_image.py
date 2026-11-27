@@ -116,6 +116,70 @@ class Process(unittest.TestCase):
         self.assertEqual(img.getpixel((500, 100)), BODY)  # photo x 500 sits at window x 500
 
 
+class RowBandQuirk(unittest.TestCase):
+    """detect_car_bbox tests index arrays with .any(): a body found only in row 0 counts as none.
+
+    Kept as main has it so crop boxes stay the same; these tests pin it.
+    """
+
+    def test_center_body_only_in_row_0_falls_back_to_the_track_rows(self):
+        region = np.full((50, 200), 205, dtype=np.uint8)
+        region[40:46, 0:40] = 30  # track, outside the centre band
+        region[0, 50:150] = 100  # the only centre body row is row 0 (body grey, not track dark)
+        self.assertEqual(crop._row_band(region), (40, 46))
+
+    def test_left_band_body_only_in_row_0_does_not_raise_the_top(self):
+        region = np.full((50, 200), 205, dtype=np.uint8)
+        region[0, 16:64] = 60  # left band, row 0 only
+        self.assertEqual(crop._left_end_top(region, 5), 5)
+        region[1, 16:64] = 60  # a match past row 0 is taken
+        self.assertEqual(crop._left_end_top(region, 5), 0)
+
+
+class TiePitch(unittest.TestCase):
+    def gray_with_ties(self, pitch: int) -> np.ndarray:
+        """Ties every ``pitch`` columns, darkest at the tie centre so the smoothed profile peaks there."""
+        gray = np.full((40, 1040), 205, dtype=np.uint8)
+        for offset, rows in ((0, 40), (1, 20), (-1, 20), (2, 10), (-2, 10)):
+            gray[:rows, pitch + offset :: pitch] = 30
+        return gray
+
+    def test_pitch_blends_the_tie_peaks_with_the_car_width(self):
+        # Peaks every 30 px, width pitch 1040 / 52 = 20: blend 25, over the floor 0.82 x 20.
+        self.assertEqual(crop._estimate_tie_pitch(self.gray_with_ties(30), 0, 1040, 0, 40), 25.0)
+
+    def test_without_enough_peaks_the_pitch_is_the_clipped_width_pitch(self):
+        plain = np.full((40, 1040), 205, dtype=np.uint8)
+        self.assertEqual(crop._estimate_tie_pitch(plain, 0, 1040, 0, 40), 20.0)
+        self.assertEqual(crop._estimate_tie_pitch(plain, 0, 100, 0, 40), CROP.frame.tie_pitch_width_range[0])
+
+    def test_an_empty_image_is_an_error(self):
+        with self.assertRaises(crop.CardPipelineError):
+            crop._estimate_tie_pitch(np.zeros((0, 0), dtype=np.uint8), 0, 10, 0, 10)
+
+
+class CenteredCropBox(unittest.TestCase):
+    def test_box_is_centred_on_the_car_with_tie_margins(self):
+        gray = np.full((800, 1200), 205, dtype=np.uint8)
+        left, top, right, bottom = crop._centered_crop_box(gray, 400, 400, 800, 600)
+        self.assertEqual((left + right) / 2, 600)
+        pad = int(CROP.frame.tie_margin_count * CROP.frame.tie_pitch_width_range[0])
+        self.assertEqual((left, right), (400 - pad, 800 + pad))
+        self.assertEqual((top, bottom), (400 - int(200 * CROP.frame.pad_top), 600 + int(200 * CROP.frame.pad_bottom)))
+
+    def test_long_car_side_margin_is_capped(self):
+        gray = np.full((800, 1200), 205, dtype=np.uint8)
+        left, _, right, _ = crop._centered_crop_box(gray, 200, 400, 1000, 600)
+        pad = int(800 * CROP.frame.long_car_pad_x)
+        self.assertEqual((left, right), (200 - pad, 1000 + pad))
+
+    def test_box_at_the_photo_edge_is_clamped(self):
+        gray = np.full((800, 1200), 205, dtype=np.uint8)
+        left, _, right, _ = crop._centered_crop_box(gray, 0, 400, 300, 600)
+        self.assertEqual(left, 0)
+        self.assertLessEqual(right, 1200)
+
+
 class Settings(unittest.TestCase):
     def test_top_edge_bands_are_ordered_fractions(self):
         top = CROP.top

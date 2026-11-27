@@ -14,9 +14,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 
 import mast_plan as mp  # noqa: E402
 import mast_rule as mr  # noqa: E402
+import block_override_rows  # noqa: E402
+from map_error import MapError  # noqa: E402
+import mast_routes  # noqa: E402
+import plan_tracks  # noqa: E402
 from plugin_needed import skip_or_fail  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402
-from hartlib import track_names  # noqa: E402
+from hartlib import hand_lists, track_names  # noqa: E402
 
 CM_PER_SCALE_MILE = 63360 * 2.54 / 87.1
 
@@ -62,12 +66,12 @@ class Numbers(unittest.TestCase):
 
     def test_with_no_line_code_names_stop_under_100(self):
         self.assertEqual(mp.signal_number(9.8, False), 98)
-        with self.assertRaisesRegex(mr.MapError, "gives intermediate number 99; names with no line code stop at 98"):
+        with self.assertRaisesRegex(MapError, "gives intermediate number 99; names with no line code stop at 98"):
             mp.signal_number(9.8, True)
         self.assertEqual(mp.signal_number(9.8, True, "A"), 99)
         for m in (9.9, 10.0, 12.34):
             for west in (True, False):
-                with self.assertRaisesRegex(mr.MapError, "names with no line code stop at 98"):
+                with self.assertRaisesRegex(MapError, "names with no line code stop at 98"):
                     mp.signal_number(m, west)
 
     def test_with_a_line_code_there_is_no_stop(self):
@@ -133,7 +137,7 @@ class AssignNumbers(unittest.TestCase):
         self.assertEqual(got, ["67", "A69", "A67"])
 
     def test_a_shift_past_98_with_no_line_code_stops_the_build(self):
-        with self.assertRaisesRegex(mr.MapError, "intermediate 97 is held by MP 9.600 and the next free number 99 "
+        with self.assertRaisesRegex(MapError, "intermediate 97 is held by MP 9.600 and the next free number 99 "
                                                  "is over 98"):
             self.names(self.masts(9.6, 9.7))
         got, _ = self.names(self.masts(9.6, 9.7, code="B"))
@@ -144,7 +148,7 @@ class AssignNumbers(unittest.TestCase):
 
 class LetterOrder(unittest.TestCase):
     """Two masts of one number and direction are lettered A and B in the plan order of the tracks they face
-    (mast_rule.letter_order), as parallel track numbers are (plan_order), not by drawn row."""
+    (plan_tracks.letter_order), as parallel track numbers are (plan_order), not by drawn row."""
 
     @staticmethod
     def t(*ends, trial="Track e1"):
@@ -157,19 +161,19 @@ class LetterOrder(unittest.TestCase):
     def test_spurs_follow_their_numbers(self):
         """Mast 210LA faces Track 209 Spur 1 (from 209B), 210LB Spur 2 (from 209C)."""
         one, two = self.t("209B", "end"), self.t("209C", "end", trial="Track e2")
-        self.assertLess(mr.letter_order(one, 0, "B"), mr.letter_order(two, 0, "C"))
+        self.assertLess(plan_tracks.letter_order(one, 0, "B"), plan_tracks.letter_order(two, 0, "C"))
 
     def test_the_lower_plan_end_first_whatever_the_leg(self):
         """At Switch 203 the A mast faces Track 203-211 (from leg B), the B mast Track 203-207 (from leg C); at a
         crossover's halves the half letter of the lower end decides (217AB before 217BA)."""
-        self.assertLess(mr.letter_order(self.t("203B", "211BB"), 0, "B"),
-                        mr.letter_order(self.t("203C", "207A"), 0, "C"))
-        self.assertLess(mr.letter_order(self.t("217AB", "221BB"), 0, "B"),
-                        mr.letter_order(self.t("217BA", "219C"), 0, "A"))
+        self.assertLess(plan_tracks.letter_order(self.t("203B", "211BB"), 0, "B"),
+                        plan_tracks.letter_order(self.t("203C", "207A"), 0, "C"))
+        self.assertLess(plan_tracks.letter_order(self.t("217AB", "221BB"), 0, "B"),
+                        plan_tracks.letter_order(self.t("217BA", "219C"), 0, "A"))
 
     def test_a_balloon_loops_halves_by_half(self):
         loop = self.t("107B", "107C")
-        self.assertLess(mr.letter_order(loop, 1, "B"), mr.letter_order(loop, 2, "C"))
+        self.assertLess(plan_tracks.letter_order(loop, 1, "B"), plan_tracks.letter_order(loop, 2, "C"))
 
 
 class Running(unittest.TestCase):
@@ -235,7 +239,7 @@ class Spurs(unittest.TestCase):
         self.assertEqual(mr.signalled_spurs(self.found(main=False), {}), set())
 
 
-HEAD = ",".join(mr.OVERRIDE_COLUMNS) + "\n"
+HEAD = ",".join(block_override_rows.OVERRIDE_COLUMNS) + "\n"
 
 
 def split(level, a, b, parallel="", notes=""):
@@ -244,7 +248,7 @@ def split(level, a, b, parallel="", notes=""):
 
 
 class BlockSplits(unittest.TestCase):
-    """mast_rule.read_block_splits: the owner's block splits (block_overrides.csv kind split), by level and end
+    """block_override_rows.read_block_splits: the owner's block splits (block_overrides.csv kind split), by level and end
     switches."""
 
     FOUND = [track("Track 227-241", [("A", "B"), ("B", "C")], (("sw", "227"), ("sw", "241")), level=3),
@@ -254,7 +258,7 @@ class BlockSplits(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             path = Path(d) / "block_overrides.csv"
             path.write_text(text, encoding="utf-8")
-            return mr.read_block_splits(path, self.FOUND, levels or {"Upper": 3})
+            return block_override_rows.read_block_splits(path, self.FOUND, levels or {"Upper": 3})
 
     def test_a_row_names_its_track(self):
         self.assertEqual(self.read(HEAD + split(3, 227, 241, notes="x")), {"Track 227-241"})
@@ -272,23 +276,23 @@ class BlockSplits(unittest.TestCase):
                           (HEAD + split(3, 241, 227), "lower first"),
                           (HEAD + split(3, 5, 7), "no track runs Switch 5 to Switch 7"),
                           (HEAD + split(3, 227, 241) * 2, "already split on line 2")):
-            with self.assertRaisesRegex(mr.MapError, msg):
+            with self.assertRaisesRegex(MapError, msg):
                 self.read(text)
 
     def test_a_missing_file_is_a_map_error(self):
-        with self.assertRaisesRegex(mr.MapError, "cannot read"):
-            mr.read_block_splits(Path("/nonexistent/block_overrides.csv"), self.FOUND, {"Upper": 3})
+        with self.assertRaisesRegex(MapError, "cannot read"):
+            block_override_rows.read_block_splits(Path("/nonexistent/block_overrides.csv"), self.FOUND, {"Upper": 3})
 
 
 class BlockOverrides(unittest.TestCase):
-    """mast_rule.read_block_overrides: the one reader of block_overrides.csv, which checks every row's shape for its
+    """block_override_rows.read_block_overrides: the one reader of block_overrides.csv, which checks every row's shape for its
     kind whichever kinds the caller asks for, and names the file and line of a bad one."""
 
-    def read(self, text, kinds=mr.OVERRIDE_KINDS):
+    def read(self, text, kinds=block_override_rows.OVERRIDE_KINDS):
         with tempfile.TemporaryDirectory() as d:
             path = Path(d) / "block_overrides.csv"
             path.write_text(text, encoding="utf-8")
-            return mr.read_block_overrides(path, kinds)
+            return block_override_rows.read_block_overrides(path, kinds)
 
     def test_rows_of_the_kinds_asked_for_with_their_lines(self):
         text = (HEAD + split(3, 227, 241, notes="the owner's choice") + "1,track,1,3,,1,os:1,12.5,,a\n"
@@ -307,7 +311,7 @@ class BlockOverrides(unittest.TestCase):
 
     def test_a_bad_row_of_another_kind_still_stops(self):
         text = HEAD + split(3, 227, 241) + "1,track,1,3,,1,Track 1-3,,,\n"
-        with self.assertRaisesRegex(mr.MapError, r"block_overrides.csv: line 3 \(level 1, kind track\): block "
+        with self.assertRaisesRegex(MapError, r"block_overrides.csv: line 3 \(level 1, kind track\): block "
                                                  "'Track 1-3' is no OS block ID"):
             self.read(text, ("split",))
 
@@ -330,7 +334,7 @@ class BlockOverrides(unittest.TestCase):
                          ("1,track,9,11,,,os:9:A-13C,,,\n", "no crossover_half row of Switch 9 whose leg A runs to "
                                                               "Switch 13"),
                          ("1,track,9,11,,,os:9,,,a,extra\n", "more fields than the header's 10")):
-            with self.subTest(row=row), self.assertRaisesRegex(mr.MapError, f"block_overrides.csv: line 2.*{msg}"):
+            with self.subTest(row=row), self.assertRaisesRegex(MapError, f"block_overrides.csv: line 2.*{msg}"):
                 self.read(HEAD + row)
 
     def test_a_short_row_reads_its_trailing_fields_as_empty(self):
@@ -339,22 +343,22 @@ class BlockOverrides(unittest.TestCase):
                          [("crossover_half", "OS Switch 7b", "", None), ("split", "", "", None)])
 
     def test_a_crossover_half_letter_is_given_once(self):
-        with self.assertRaisesRegex(mr.MapError, "line 3: Switch 7's half a is given on line 2 too"):
+        with self.assertRaisesRegex(MapError, "line 3: Switch 7's half a is given on line 2 too"):
             self.read(HEAD + "1,crossover_half,7,13,1,,os:7:A-13C\n1,crossover_half,7,5,1,,os:7:A-5B\n")
         with tempfile.TemporaryDirectory() as d:
-            path = Path(d) / mr.OVERRIDES_NAME
+            path = Path(d) / block_override_rows.OVERRIDES_NAME
             path.write_text(HEAD + "1,crossover_half,7,13,1,,os:7:A-13C\n1,crossover_half,7,5,2,,os:7:A-5B\n")
-            self.assertEqual(mr.hand_lists.half_letters(path),
+            self.assertEqual(hand_lists.half_letters(path),
                              {("1", "os:7:A-13C"): "a", ("1", "os:7:A-5B"): "b"})
 
     def test_an_unknown_kind_asked_for_stops(self):
-        with self.assertRaisesRegex(mr.MapError, "no kind helix"):
+        with self.assertRaisesRegex(MapError, "no kind helix"):
             self.read(HEAD, ("helix",))
 
     def test_the_committed_file_reads(self):
         import build_device_map as bdm
-        rows = mr.read_block_overrides(bdm.block_overrides())
-        self.assertEqual({r["kind"] for r in rows}, set(mr.OVERRIDE_KINDS))
+        rows = block_override_rows.read_block_overrides(bdm.block_overrides())
+        self.assertEqual({r["kind"] for r in rows}, set(block_override_rows.OVERRIDE_KINDS))
         splits = [r for r in rows if r["kind"] == "split"]
         self.assertTrue(splits and all(r["notes"].startswith("OWNER'S CHOICE, not a rule") for r in splits))
 
@@ -366,7 +370,7 @@ class HomeMasts(unittest.TestCase):
         patch = unittest.mock.patch.object
         with patch(mr, "masts", lambda *a, **k: [dict(m) for m in homes]), \
                 patch(mr, "signalled_spurs", lambda found, cp_of: set()), \
-                patch(mr, "facing_on_route", lambda band, n, p, cps: ["9"] if (n, p) in facing else []):
+                patch(mast_routes, "facing_on_route", lambda band, n, p, cps: ["9"] if (n, p) in facing else []):
             got = mp.home_masts([("Staging level", {}, {})], {}, [], {}, set(), levels={"Staging level": 1})
         return [(m["name"], m["kind"], m["heads"]) for m in got]
 
@@ -424,12 +428,12 @@ class Intermediates(unittest.TestCase):
         self.assertEqual((east["name"], east["toward"]), ("66", "39"))
 
     def test_both_blocks_must_hold_a_train(self):
-        self.assertEqual(mr.LONG_CM, 150.0)
+        self.assertEqual(mast_routes.LONG_CM, 150.0)
         self.assertEqual(self.pairs(cm=dict(self.CM, **{"Track K-2": 150.0})), [])
         self.assertEqual(len(self.pairs(cm=dict(self.CM, **{"Track K-2": 150.1}))), 2)
 
     def test_a_block_with_no_length_stops(self):
-        with self.assertRaisesRegex(mr.MapError, r"no length for block\(s\) \['OS Switch 37', 'OS Switch 39', "
+        with self.assertRaisesRegex(MapError, r"no length for block\(s\) \['OS Switch 37', 'OS Switch 39', "
                                                  r"'Track K-2'\]"):
             self.pairs(cm={"Track K-1": 300.0})
 
@@ -448,7 +452,7 @@ class Intermediates(unittest.TestCase):
         self.assertEqual(self.pairs(run=(("N39", "B"), ["OS Switch 39", "Track K-1", "OS Switch 37"], ("N37", "A"))), [])
 
     def test_a_switch_off_the_milepost_count_stops(self):
-        with self.assertRaisesRegex(mr.MapError, r"Track K-1\|Track K-2 cannot be numbered: switch 37 is not on"):
+        with self.assertRaisesRegex(MapError, r"Track K-1\|Track K-2 cannot be numbered: switch 37 is not on"):
             self.pairs(self.bands(on_count=("N39",)))
 
     def test_the_line_code_comes_first(self):
@@ -504,11 +508,11 @@ class Virtual(unittest.TestCase):
         self.assertIn("120RC", {m["name"] for m in self.virtual(taken=("120RA", "120RB"))})
 
     def test_a_visible_mast_with_the_bare_name_stops(self):
-        with self.assertRaisesRegex(mr.MapError, "Mast 120R stands already"):
+        with self.assertRaisesRegex(MapError, "Mast 120R stands already"):
             self.virtual(taken=("120R",))
 
     def test_more_than_four_of_one_number_and_letter_stops(self):
-        with self.assertRaisesRegex(mr.MapError, "Mast 120R: 5 masts of one number and letter"):
+        with self.assertRaisesRegex(MapError, "Mast 120R: 5 masts of one number and letter"):
             self.virtual(taken=("120RA", "120RB", "120RC", "120RD"))
 
     def test_a_route_that_meets_a_visible_mast_needs_none_beyond_it(self):
@@ -518,12 +522,12 @@ class Virtual(unittest.TestCase):
 
     def test_a_buffer_stop_no_track_from_a_switch_reaches_stops(self):
         runs = {0: [r for r in self.RUNS[0] if r[2][0] != "E3"]}
-        with self.assertRaisesRegex(mr.MapError, "end at buffer stop E3 on 'Main level', which no track from a switch"):
+        with self.assertRaisesRegex(MapError, "end at buffer stop E3 on 'Main level', which no track from a switch"):
             self.virtual(runs=runs)
 
     def test_a_block_with_no_length_stops(self):
         runs = {0: [(("N5", "C"), ["Track X"], ("E3", "E"))] + self.RUNS[0][:2]}
-        with self.assertRaisesRegex(mr.MapError, r"no length for block\(s\) \['Track X'\]"):
+        with self.assertRaisesRegex(MapError, r"no length for block\(s\) \['Track X'\]"):
             self.virtual(runs=runs)
 
 
@@ -547,19 +551,19 @@ class SystemNames(unittest.TestCase):
 
     def test_errors(self):
         r = {"Mast 10RA": "IF$vsm:basic:one-low($1021)"}
-        with self.assertRaisesRegex(mr.MapError, "lists Mast 10RA, which the rule places again"):
+        with self.assertRaisesRegex(MapError, "lists Mast 10RA, which the rule places again"):
             mp.virtual_system_names(["10RA"], 1, {}, r)
-        with self.assertRaisesRegex(mr.MapError, "gives Mast 10RA another system name"):
+        with self.assertRaisesRegex(MapError, "gives Mast 10RA another system name"):
             mp.virtual_system_names([], 1, {"Mast 10RA": "IF$vsm:basic:one-low($1030)"}, r)
-        with self.assertRaisesRegex(mr.MapError, r"Mast 102RA of level 2 have ordinals outside 2001 to 2999"):
+        with self.assertRaisesRegex(MapError, r"Mast 102RA of level 2 have ordinals outside 2001 to 2999"):
             mp.virtual_system_names(["102RA"], 2, {"Mast 102RA": "IF$vsm:basic:one-low($1040)"}, {})
-        with self.assertRaisesRegex(mr.MapError, "level 3 has no virtual mast ordinal left"):
+        with self.assertRaisesRegex(MapError, "level 3 has no virtual mast ordinal left"):
             mp.virtual_system_names(["X"], 3, {"Mast Y": "IF$vsm:basic:one-low($3999)"},
                                     {"Mast Y": "IF$vsm:basic:one-low($3999)"})
-        with self.assertRaisesRegex(mr.MapError, "no longer places Mast 104R: add each to retired_virtual_masts.csv"):
+        with self.assertRaisesRegex(MapError, "no longer places Mast 104R: add each to retired_virtual_masts.csv"):
             mp.virtual_system_names(["102RA"], 2, {"Mast 102RA": "IF$vsm:basic:one-low($2001)",
                                                    "Mast 104R": "IF$vsm:basic:one-low($2003)"}, {})
-        with self.assertRaisesRegex(mr.MapError, "'IH:HART:C1:8LC' is not a virtual mast system name"):
+        with self.assertRaisesRegex(MapError, "'IH:HART:C1:8LC' is not a virtual mast system name"):
             mp.virtual_system_names(["10RA"], 1, {}, {"Mast 8LC": "IH:HART:C1:8LC"})
 
     def test_read_retired(self):
@@ -571,12 +575,12 @@ class SystemNames(unittest.TestCase):
                          "Mast 8LD,IF$vsm:basic:one-low($1018),,\n",
                          "mast,system_name,dropped,notes\nMast 8LC,IH:HART:C1:8LC,,\n"):
                 path.write_text(text)
-                with self.assertRaisesRegex(mr.MapError, "line \\d+"):
+                with self.assertRaisesRegex(MapError, "line \\d+"):
                     mp.read_retired(path)
             path.write_text("mast,system_name\n")
-            with self.assertRaisesRegex(mr.MapError, "columns"):
+            with self.assertRaisesRegex(MapError, "columns"):
                 mp.read_retired(path)
-        with self.assertRaisesRegex(mr.MapError, "cannot read"):
+        with self.assertRaisesRegex(MapError, "cannot read"):
             mp.read_retired(Path("/nonexistent/retired.csv"))
 
 
@@ -586,7 +590,7 @@ class Plan(unittest.TestCase):
     BANDS = [("Staging level", {"nodes": {}, "strands": {}}, {})]
 
     def test_a_band_with_no_block_layer_stops(self):
-        with self.assertRaisesRegex(mr.MapError, r"no block layer for band\(s\) \['Staging level'\]"):
+        with self.assertRaisesRegex(MapError, r"no block layer for band\(s\) \['Staging level'\]"):
             mp.plan(self.BANDS, {}, [], levels={"Staging level": 1}, cp_of={}, layer={}, cm={})
 
     def test_a_name_given_twice_stops(self):
@@ -595,7 +599,7 @@ class Plan(unittest.TestCase):
                 patch(mp, "home_masts", lambda *a, **k: [dict(name="67")]), \
                 patch(mp, "intermediates", lambda *a: [dict(name="67")]), \
                 patch(mp, "virtual_masts", lambda *a: []), \
-                self.assertRaisesRegex(mr.MapError, "mast names given twice: 67"):
+                self.assertRaisesRegex(MapError, "mast names given twice: 67"):
             mp.plan(self.BANDS, {}, [], levels={"Staging level": 1}, cp_of={}, layer={0: {}}, cm={})
 
 
@@ -621,8 +625,8 @@ class CommittedPlan(RepoReadOnly, unittest.TestCase):
         cls.bands = bands
         cls.found = bdm.named_tracks(bands, joined, runs, rr.plan_overrides.data)
         cls.cp_of = {s: i.name for i in rr.level_control_points for s in i.switches}
-        cls.staging = mr.tracks(bands, runs, joined, {1: "H"}, levels={"Staging level": 1})
-        mr.track_names(cls.staging)
+        cls.staging = plan_tracks.tracks(bands, runs, joined, {1: "H"}, levels={"Staging level": 1})
+        plan_tracks.track_names(cls.staging)
         cls.staging_cp = {s: i.name for i in rr.interlockings if i.level == 1 for s in i.switches}
         cls.splits = bdm.block_overrides()
 
@@ -631,7 +635,7 @@ class CommittedPlan(RepoReadOnly, unittest.TestCase):
                          {"Track 119-121", "Track 121-123", "Track 211-217 1", "Track 217-219"})
 
     def test_running_track_on_staging_is_scale(self):
-        # staging's own rule names its two 5-7 tracks in plan order (mast_rule.plan_order): East Ext (5B-7A) is 1,
+        # staging's own rule names its two 5-7 tracks in plan order (plan_tracks.plan_order): East Ext (5B-7A) is 1,
         # Scale (5C-7B) is 2
         self.assertEqual(mr.running_tracks(self.bands, self.staging, self.staging_cp), {"Track 5-7 2"})
 
@@ -640,9 +644,9 @@ class CommittedPlan(RepoReadOnly, unittest.TestCase):
         self.assertEqual(mr.signalled_spurs(self.staging, self.staging_cp), set())
 
     def test_the_owners_block_splits(self):
-        self.assertEqual(mr.read_block_splits(self.splits, self.found, self.levels), {"Track 227-241"})
+        self.assertEqual(block_override_rows.read_block_splits(self.splits, self.found, self.levels), {"Track 227-241"})
         # staging's: the Princess balloon, K-2 and K-1 (a level 1 row since step 5 part 1)
-        self.assertEqual(mr.read_block_splits(self.splits, self.staging, {"Staging level": 1}), {"Track 37-39"})
+        self.assertEqual(block_override_rows.read_block_splits(self.splits, self.staging, {"Staging level": 1}), {"Track 37-39"})
 
 
 if __name__ == "__main__":
