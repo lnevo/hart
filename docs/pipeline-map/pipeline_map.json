@@ -2244,7 +2244,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "ops",
-   "desc": "Commodity, supplier, customer and via tables and rules for waybills (paper source of record).",
+   "desc": "The waybill card types and the rules the deck is built from, read through hartlib.waybills: loads, parties and empty returns from the rule CSVs, the interchange cards from the master's interchange rows.",
    "path": "ops/hart-ops/card_pipeline/waybill_data.py"
   },
   {
@@ -2345,6 +2345,33 @@
    "domain": "ops",
    "desc": "The operator sheet's island industries by industry_id: the name the sheet and the waybill decks key them by, their sheet and waybill order, and their logo (hartlib.operations).",
    "path": "ops/hart-ops/data/industry_sheet.csv"
+  },
+  {
+   "id": "ops/hart-ops/data/waybill_loads.csv",
+   "label": "waybill_loads.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Each spot usage's waybill loads in and out, by industry_id and usage (hartlib.waybills).",
+   "path": "ops/hart-ops/data/waybill_loads.csv"
+  },
+  {
+   "id": "ops/hart-ops/data/waybill_parties.csv",
+   "label": "waybill_parties.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "ops",
+   "desc": "The suppliers and customers each spot usage's waybills draw from, with their roads and per-card loads (hartlib.waybills).",
+   "path": "ops/hart-ops/data/waybill_parties.csv"
+  },
+  {
+   "id": "ops/hart-ops/data/waybill_empty_returns.csv",
+   "label": "waybill_empty_returns.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "ops",
+   "desc": "The yard and road each industry's outbound empty waybills return by (hartlib.waybills).",
+   "path": "ops/hart-ops/data/waybill_empty_returns.csv"
   },
   {
    "id": "ops/hart-ops/data/industry_notes.csv",
@@ -8490,7 +8517,7 @@
   {
    "from": "ops/hart-ops/card_pipeline/generate_waybill_cards.py",
    "to": "ops/hart-ops/card_pipeline/output",
-   "label": "HART_Spot_Waybills.docx"
+   "label": "HART_Spot_Waybills.docx and _deck.csv"
   },
   {
    "from": "ops/hart-ops/card_pipeline/intake_stages.py",
@@ -8522,6 +8549,26 @@
    "from": "ops/hart-ops/card_pipeline/train_cards.py",
    "to": "ops/car-cards/print",
    "label": "--trains"
+  },
+  {
+   "from": "ops/hart-ops/data/waybill_loads.csv",
+   "to": "ops/hart-ops/card_pipeline/waybill_data.py",
+   "label": "spot loads"
+  },
+  {
+   "from": "ops/hart-ops/data/waybill_parties.csv",
+   "to": "ops/hart-ops/card_pipeline/waybill_data.py",
+   "label": "suppliers and customers"
+  },
+  {
+   "from": "ops/hart-ops/data/waybill_empty_returns.csv",
+   "to": "ops/hart-ops/card_pipeline/waybill_data.py",
+   "label": "empty returns"
+  },
+  {
+   "from": "ops/hart-ops/data/HART_Spot_Waybills.csv",
+   "to": "ops/hart-ops/card_pipeline/waybill_data.py",
+   "label": "interchange cards"
   },
   {
    "from": "ops/hart-ops/card_pipeline/waybill_data.py",
@@ -11707,6 +11754,27 @@
   },
   {
    "from": "ops/hart-ops/data/spot_usages.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/waybill_loads.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/waybill_parties.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/waybill_empty_returns.csv",
    "to": "tools/ops/check_data.py",
    "label": "rules",
    "side": "check",

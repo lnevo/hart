@@ -112,9 +112,10 @@ SITE = ("www/**/*", "ops/**/*", "docs/**/*", "wiki/**/*", "media/**/*", "archive
 EVERYTHING = ("**/*",)
 # The files of ops/hart-ops/data/ that unit-hart-ops reads (a trace of the whole suite, the sts-helpers tests
 # included): the rest of that folder (trains.csv, locos.csv, the queues, the sidecars) is not its input.
-UNIT_HART_OPS_DATA = ("HART_MergedCarRoster.xml", "OperationsCarRoster.xml", "OperationsEngineRoster.xml",
-                      "crew.json", "image_metadata.csv", "industries.csv", "industry_notes.csv", "industry_sheet.csv",
-                      "loco_models.csv", "roads.csv", "spot_assignments.csv", "spot_usages.csv")
+UNIT_HART_OPS_DATA = ("HART_MergedCarRoster.xml", "HART_Spot_Waybills.csv", "OperationsCarRoster.xml",
+                      "OperationsEngineRoster.xml", "crew.json", "image_metadata.csv", "industries.csv",
+                      "industry_notes.csv", "industry_sheet.csv", "loco_models.csv", "roads.csv", "spot_assignments.csv",
+                      "spot_usages.csv", "waybill_empty_returns.csv", "waybill_loads.csv", "waybill_parties.csv")
 
 # job-name prefix -> patterns (tools/check.sh is always added): what a CHECK_AUDIT run saw each unit job read
 # (`check_stamps.py audit-report DIR`), widened to whole folders. Other manifest jobs fall back to MANIFEST_CHECK.
@@ -156,8 +157,10 @@ BY_KIND: dict[str, tuple[str, ...]] = {
                        "ops/hart-ops/publications/**/*"),
     # test_levels_page compares the article it builds; nothing under docs/ is read
     "unit-anyrail": (*CODE, "www/build/**/*"),
-    # test_devices_one_path reads every tracked .py; test_roads reads the car pipeline's roads and models
-    "unit-hartlib": (*CODE, "**/*.py", "ops/hart-ops/data/roads.csv", "ops/hart-ops/data/loco_models.csv"),
+    # test_devices_one_path reads every tracked .py; test_roads reads the car pipeline's roads and models;
+    # test_waybills reads the waybill rule files and the card master
+    "unit-hartlib": (*CODE, "**/*.py", "ops/hart-ops/data/roads.csv", "ops/hart-ops/data/loco_models.csv",
+                     "ops/hart-ops/data/HART_Spot_Waybills.csv", "ops/hart-ops/data/waybill_*.csv"),
     "unit-mimic": CODE,
     "unit-cats": CODE,
     "unit-jmri-scripts": CODE,
@@ -180,15 +183,18 @@ SIDECAR_MASTERS = ("docs/wiring/lcos/lcos_signal_logic.csv", "docs/wiring/lcos/l
                    "ops/hart-ops/data/industry_notes.csv", "ops/hart-ops/data/industry_sheet.csv",
                    "ops/hart-ops/data/loco_models.csv", "ops/hart-ops/data/locos.csv", "ops/hart-ops/data/roads.csv",
                    "ops/hart-ops/data/spot_assignments.csv", "ops/hart-ops/data/spot_usages.csv",
-                   "ops/hart-ops/data/trains.csv", "www/scripts/archive_catalogue.csv")
+                   "ops/hart-ops/data/trains.csv", "ops/hart-ops/data/waybill_empty_returns.csv",
+                   "ops/hart-ops/data/waybill_loads.csv", "ops/hart-ops/data/waybill_parties.csv",
+                   "www/scripts/archive_catalogue.csv")
 ENTITY_MASTERS = ("docs/data/entities.csv", "docs/wiring/lcos/lcos_signal_logic.csv",
                   "docs/wiring/lcos/lcos_signal_plan_notes.csv", "ops/hart-ops/data/HART_Spot_Waybills.csv",
                   "ops/hart-ops/data/image_metadata.csv", "ops/hart-ops/data/industries.csv",
                   "ops/hart-ops/data/industry_sheet.csv", "ops/hart-ops/data/loco_models.csv",
                   "ops/hart-ops/data/locos.csv", "ops/hart-ops/data/roads.csv",
                   "ops/hart-ops/data/spot_assignments.csv", "ops/hart-ops/data/spot_usages.csv",
-                  "ops/hart-ops/data/trains.csv", "ops/hart-ops/docs/print/waybills/HART_CC_Waybill_Inventory.csv",
-                  "www/scripts/archive_catalogue.csv")
+                  "ops/hart-ops/data/trains.csv", "ops/hart-ops/data/waybill_empty_returns.csv",
+                  "ops/hart-ops/data/waybill_loads.csv", "ops/hart-ops/data/waybill_parties.csv",
+                  "ops/hart-ops/docs/print/waybills/HART_CC_Waybill_Inventory.csv", "www/scripts/archive_catalogue.csv")
 
 # "kind test" (the test file, before any ".Class") -> patterns added to its kind's: the files that read the site.
 EXTRA: dict[str, tuple[str, ...]] = {

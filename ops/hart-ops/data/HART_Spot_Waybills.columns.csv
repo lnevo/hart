@@ -1,5 +1,5 @@
 column,description,type,required,key,refs,values
-card_id,"The waybill card's key, assigned once and never reused: a retired card leaves a gap (36). generate_waybill_cards.py renumbers the cards from 1 when it runs, so it is not run against this file until the owner decides (docs/data/sidecars.md).",int,yes,yes,,
+card_id,"The waybill card's key, assigned once and never reused: a retired card leaves a gap (36). generate_waybill_cards.py numbers its printed deck from 1 in its own output list and never writes this file (docs/data/sidecars.md).",int,yes,yes,,
 industry_id,"The industry the card is for (ADR-039). Empty on interchange traffic, which belongs to no industry.",str,traffic=industry,,ops/hart-ops/data/industries.csv:industry_id,
 traffic,"industry for a card to or from an island industry; interchange for a car going straight between Scully Yard and Demmler Yard (the orange and blue waybills to CSX and POHC).",enum,yes,,,industry;interchange
 industry,"The name across the top of the card: the industry's name with the old spellings A Stucki Co and Ferrel Gas, or INTERCHANGE. Kept because external/sts-helpers reads it; www/scripts/tests/test_industry_ids.py checks it against the id through its alias list.",str,yes,,,
@@ -8,8 +8,9 @@ usage,"The spot usage the card goes to, as spot_assignments.csv names it. Empty 
 spots,"The industry's spot numbers the card serves: one (6), a range (1-3) or two ranges. — on interchange cards, empty on outbound empties.",str,card_kind=loaded;inbound_empty,,,
 flow,"IN to the island or OUT. Empty on interchange cards.",enum,card_kind=loaded;inbound_empty;outbound_empty,,,IN;OUT
 commodity,"The load, or EMPTY.",str,yes,,,
-load_summary,"The group the lower table of the card prints for a load named in detail.",enum,,,,Process Chemicals;General Freight
+load_summary,"The group the lower table of the card prints for a load named in detail. On an industry card the generator writes it from the usage's load in waybill_loads.csv; on an interchange card this cell is the fact, and the generator reads it.",enum,,,,Process Chemicals;General Freight
 car_type,"The car type. Empty on outbound empties, which take any car.",enum,card_kind=loaded;inbound_empty;interchange,,,Boxcar;Coil Car;Covered Hopper;Flat Car;Gondola;Hopper;Reefer;Tank Car
 route_from,"The shipper, for an inbound load or an interchange card.",str,,,,
 route_to,"The receiver, or the yard an outbound empty returns to.",str,,,,
 via,"The connection the car moves over.",enum,yes,,,CSX;POHC
+interchange_flow,"On interchange traffic: IN or OUT, the side of the deck's loaded routing balance the card counts on (generate_waybill_cards.py counts it with the card's via). Empty on industry traffic. The card does not print it.",enum,traffic=interchange,,,IN;OUT

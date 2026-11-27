@@ -39,3 +39,6 @@ road,road,ops/hart-ops/data/roads.csv,ops/hart-ops/data/locos.csv (road_name ref
 loco model,model,ops/hart-ops/data/loco_models.csv,ops/hart-ops/data/locos.csv (mfg empty: from the model's row),Operations Pro engine models,repo
 operator sheet industry,industry_id,ops/hart-ops/data/industry_sheet.csv,ops/hart-ops/data/industry_notes.csv (the history paragraphs; refers to industry_id),,repo
 spot usage,usage,ops/hart-ops/data/spot_usages.csv,ops/hart-ops/data/spot_assignments.csv (Usage; the operator sheet prints the label),,repo
+waybill load rule,industry_id + usage,ops/hart-ops/data/waybill_loads.csv,ops/hart-ops/data/HART_Spot_Waybills.csv (the commodity and load_summary of each industry card: generate_waybill_cards.py writes them from the rule),,repo
+waybill party,industry_id + usage + role + party,ops/hart-ops/data/waybill_parties.csv,ops/hart-ops/data/HART_Spot_Waybills.csv (route_from or route_to of each loaded card: tools/hartlib/tests/test_waybills.py checks each names a party of its rule),STS locations (the shippers and receivers),repo
+waybill empty return,industry_id,ops/hart-ops/data/waybill_empty_returns.csv,ops/hart-ops/data/HART_Spot_Waybills.csv (route_to and via of each outbound_empty card: tools/hartlib/tests/test_waybills.py checks them),,repo

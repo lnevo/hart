@@ -1,0 +1,4 @@
+column,description,type,required,key,refs,values
+industry_id,"The industry whose outbound empty cards these are. The key.",str,yes,yes,ops/hart-ops/data/industries.csv:industry_id,
+route_to,"The yard the empty car returns to.",enum,yes,,,Demmler Yard;Scully Yard
+via,"The road the empty car returns by.",enum,yes,,,CSX;POHC
