@@ -39,49 +39,61 @@
  ],
  "presets": [
   {
-   "label": "Where does tables.xml come from?",
+   "label": "Schematic",
+   "focus": "docs/ops/schematic-system-draft.svg",
+   "up": 3,
+   "down": 1
+  },
+  {
+   "label": "Layout Editor",
+   "focus": "tools/schematic/build_layout_le.py",
+   "up": 1,
+   "down": 2
+  },
+  {
+   "label": "tables.xml",
    "focus": "jmri/layouts/hart/output/tables.xml",
    "up": 2,
    "down": 1
   },
   {
-   "label": "How is the CTC desk panel made?",
+   "label": "CTC desk",
    "focus": "cats/panels/HART_CTC.xml",
    "up": 2,
    "down": 1
   },
   {
-   "label": "What builds the device master, and what reads it?",
+   "label": "Device master",
    "focus": "jmri/layouts/hart/data/devices_generated.csv",
    "up": 1,
    "down": 1
   },
   {
-   "label": "What writes and reads the wiring list?",
+   "label": "Wiring",
    "focus": "jmri/layouts/hart/data/wiring.csv",
    "up": 1,
    "down": 1
   },
   {
-   "label": "What writes and reads the Operations Pro files?",
+   "label": "Operations Pro",
    "focus": "jmri/layouts/hart/operations",
    "up": 1,
    "down": 1
   },
   {
-   "label": "Where do the printed car cards come from?",
+   "label": "Car cards",
    "focus": "ops/car-cards/print",
    "up": 2,
    "down": 0
   },
   {
-   "label": "What goes into the website build?",
+   "label": "Website build",
    "focus": "ext:site-dist",
    "up": 1,
    "down": 1
   },
   {
-   "label": "Where do the agent instructions lead?",
+   "label": "Agent docs",
    "focus": "AGENTS.md",
    "up": 0,
    "down": 2
@@ -327,6 +339,24 @@
    "domain": "extras",
    "desc": "The line count each .py or .js file over 800 lines, or .sh file over 500, may not pass (owner, 2026-11-25); check_py_sizes.py --update tightens it, --accept raises a row by name.",
    "path": "tools/audit/py_sizes.csv"
+  },
+  {
+   "id": "tools/audit/hand_tables.csv",
+   "label": "hand_tables.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "The tables in code that hold railroad data, each with its entries, a status (move, unreviewed or keep) and the reason (owner, 2026-11-26: anything kept by hand goes in a CSV); check_hand_tables.py --update drops rows of tables gone and lowers entries, never adds one.",
+   "path": "tools/audit/hand_tables.csv"
+  },
+  {
+   "id": "docs/data/entities.csv",
+   "label": "entities.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Each kind of record on the layout, its key and the one repo file that is its master (ADR-039); hartlib.hand_tables reads the CSV masters it names for the railroad's names.",
+   "path": "docs/data/entities.csv"
   },
   {
    "id": "tools/audit/habits_baseline.json",
@@ -4020,6 +4050,16 @@
    "domain": "extras",
    "desc": "Audit: no script outside hartlib names a layout data file (jmri/layouts/hart/data/) but the pairs it allows, each with its reason; Jython inside JMRI reads only generated outputs.",
    "path": "tools/audit/check_data_readers.py",
+   "gen": "manifest"
+  },
+  {
+   "id": "tools/audit/check_hand_tables.py",
+   "label": "check_hand_tables",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Audit: a top-level table in a .py or www .js file that holds railroad names (from the CSV masters in entities.csv), or that it cannot tell from a code setting, fails unless tools/audit/hand_tables.csv lists it; a listed table may not grow and a row for a table gone fails, so the list only shrinks.",
+   "path": "tools/audit/check_hand_tables.py",
    "gen": "manifest"
   },
   {
@@ -10679,6 +10719,12 @@
    "gen": "manifest"
   },
   {
+   "from": "docs/pipeline-map/timings.json",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "step times",
+   "gen": "manifest"
+  },
+  {
    "from": "jmri/layouts/hart/data/wiring.csv",
    "to": "tools/wiring/check_wiring_frozen.py",
    "label": "audits, via hartlib.wiring",
@@ -13780,6 +13826,25 @@
    "from": "tools/hosts/panel_window_sizes.py",
    "to": "host:panelpro",
    "label": "saved panel window sizes"
+  },
+  {
+   "from": "tools/audit/hand_tables.csv",
+   "to": "tools/audit/check_hand_tables.py",
+   "label": "listed tables",
+   "gen": "manifest"
+  },
+  {
+   "from": "docs/data/entities.csv",
+   "to": "tools/audit/check_hand_tables.py",
+   "label": "masters",
+   "gen": "manifest"
+  },
+  {
+   "from": "tools/audit/check_hand_tables.py",
+   "to": "tools/check.sh",
+   "label": "check hand-tables",
+   "side": "check",
+   "gen": "manifest"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

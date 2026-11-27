@@ -108,6 +108,7 @@ HARTLIB_OTHER = {
     "wiring": "the physical wiring source (wiring.csv)",
     "block_numbering": "the main and upper blocks' JMRI numbers, from block_numbering.csv",
     "hand_lists":"the owner's hand lists: block overrides, main lines and the parked USS board",
+    "hand_tables":"the railroad names in the data masters and the list of tables in code that hold railroad data",
     "drawing_keys": "which device each piece of the drawing is, keyed by device ID",
     "film_pace": "the pace of the panel and schematic films",
     "files": "an atomic file write and the list of tracked files",
