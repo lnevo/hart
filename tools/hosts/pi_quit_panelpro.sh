@@ -147,7 +147,7 @@ mv "$CMD.tmp" "$CMD"
 status=1
 for _ in $(seq 1 "$wait_s"); do
   sleep 1
-  if [[ -f "$OUT" ]] && head -1 "$OUT" | grep -q '^error'; then status=3; break; fi
+  if [[ -f "$OUT" ]] && grep -q '^error' <<<"$(head -1 "$OUT")"; then status=3; break; fi
   if grep -qs '^QUIT FAILED' "$LOG"; then status=3; break; fi
   if grep -qs '^OTHER DIALOG' "$LOG"; then status=4; break; fi
   state=0
