@@ -10,6 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from hartlib import (jmri_bean, startup_logixng, tables, tables_build, tables_normal, tables_roundtrip,  # noqa: E402
                      tables_sections as ts, tables_sml)
+from xml_need import need  # noqa: E402
 
 
 class Order(unittest.TestCase):
@@ -30,14 +31,14 @@ class Order(unittest.TestCase):
                              "</turnouts></layout-config>")
         ts.jmri_sort(root)
         self.assertEqual(["operations", "IT9", "defaultclosedspeed", "IT10"],
-                         [tables.system_name(e) or e.tag for e in tables.elements(root.find("turnouts"))])
-        self.assertEqual(("turnouts", "c"), ts.section_key(root.find("turnouts")))
+                         [tables.system_name(e) or e.tag for e in tables.elements(need(root, "turnouts"))])
+        self.assertEqual(("turnouts", "c"), ts.section_key(need(root, "turnouts")))
 
     def test_sub_sets_text_only_when_given(self) -> None:
         el = ET.Element("x")
         self.assertIsNone(ts.sub(el, "a", k="v").text)
         self.assertEqual("t", ts.sub(el, "b", "t").text)
-        self.assertEqual({"k": "v"}, el.find("a").attrib)
+        self.assertEqual({"k": "v"}, need(el, "a").attrib)
 
 
 class SplitNames(unittest.TestCase):

@@ -15,12 +15,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from hartlib import paths, tables, tables_normal as tn, tables_roundtrip as rt  # noqa: E402
 from hartlib.tables_sections import finish  # noqa: E402
+from xml_need import need  # noqa: E402
 
 
 def store_of(data: bytes) -> bytes:
     """A Store as JMRI writes one: file history, the "Written by" comment, a clock time, derived block paths."""
     doc = tables.loads(data)
-    doc.root.find("timebase").set("time", "Fri Nov 20 17:36:00 EST 2026")
+    need(doc.root, "timebase").set("time", "Fri Nov 20 17:36:00 EST 2026")
     for b in tables.blocks(doc.root):
         ET.SubElement(b, "path", block="IB1")
     ET.SubElement(doc.root, "filehistory")

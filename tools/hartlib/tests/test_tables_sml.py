@@ -12,6 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from hartlib import tables, tables_sml as sml  # noqa: E402
 from hartlib.tables_sections import TablesBuildError  # noqa: E402
+from xml_need import need  # noqa: E402
 
 STORE = """<layout-config>
   <signalmasts>
@@ -30,10 +31,10 @@ STORE = """<layout-config>
 def bare() -> ET.Element:
     """STORE with its logic and mast properties taken out: what the build merges the discovered file into."""
     root = ET.fromstring(STORE)
-    box = root.find("signalmastlogics")
-    box.remove(box.find("signalmastlogic"))
-    mast = root.find("signalmasts/signalmast")
-    mast.remove(mast.find("properties"))
+    box = need(root, "signalmastlogics")
+    box.remove(need(box, "signalmastlogic"))
+    mast = need(root, "signalmasts/signalmast")
+    mast.remove(need(mast, "properties"))
     return root
 
 
@@ -51,7 +52,7 @@ class Discovered(unittest.TestCase):
         sml.merge_discovered(root, logics, props)
         self.assertEqual([], sml.missing_logic(root))
         self.assertEqual(["systemName", "userName", "properties", "unlit"],
-                         [c.tag for c in tables.elements(root.find("signalmasts/signalmast"))])
+                         [c.tag for c in tables.elements(need(root, "signalmasts/signalmast"))])
 
     def test_merging_twice_stops(self) -> None:
         logics, props = sml.read_discovered_root(sml.discovered_from_store(ET.fromstring(STORE)), "d.xml")
@@ -75,8 +76,8 @@ class Digicon(unittest.TestCase):
 
     def test_a_destination_without_enabled_stops(self) -> None:
         root = ET.fromstring(STORE)
-        dest = root.find("signalmastlogics/signalmastlogic/destinationMast")
-        dest.remove(dest.find("enabled"))
+        dest = need(root, "signalmastlogics/signalmastlogic/destinationMast")
+        dest.remove(need(dest, "enabled"))
         with self.assertRaisesRegex(TablesBuildError, "Mast 6LB -> Mast 4LA has no <enabled>"):
             sml.disable_digicon(root, {"Mast 6LB"})
 
