@@ -2028,7 +2028,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "ops",
-   "desc": "crop_car_image, crop_picker, loco_backdrop, sharpen_card_fill_images, finalize_car_images: photo to card-ready image.",
+   "desc": "crop_car_image (with crop_runs, crop_span, crop_level, crop_settings), crop_picker, loco_backdrop, sharpen_card_fill_images, finalize_car_images: photo to card-ready image.",
    "path": "ops/hart-ops/card_pipeline/crop_car_image.py"
   },
   {
@@ -2219,6 +2219,33 @@
    "domain": "ops",
    "desc": "Each locomotive model and its builder, in the order engine_lookup.manufacturer_for_model reads them (hartlib.operations).",
    "path": "ops/hart-ops/data/loco_models.csv"
+  },
+  {
+   "id": "ops/hart-ops/data/industry_sheet.csv",
+   "label": "industry_sheet.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "ops",
+   "desc": "The operator sheet's island industries by industry_id: the name the sheet and the waybill decks key them by, their sheet and waybill order, and their logo (hartlib.operations).",
+   "path": "ops/hart-ops/data/industry_sheet.csv"
+  },
+  {
+   "id": "ops/hart-ops/data/industry_notes.csv",
+   "label": "industry_notes.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "ops",
+   "desc": "The operator sheet's history paragraphs for each industry, by industry_id and line (hartlib.operations).",
+   "path": "ops/hart-ops/data/industry_notes.csv"
+  },
+  {
+   "id": "ops/hart-ops/data/spot_usages.csv",
+   "label": "spot_usages.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "ops",
+   "desc": "The label the operator sheet prints for each spot usage of spot_assignments.csv (hartlib.operations).",
+   "path": "ops/hart-ops/data/spot_usages.csv"
   },
   {
    "id": "ops/hart-ops/data/trains.csv",
@@ -8250,6 +8277,36 @@
    "to": "ops/hart-ops/card_pipeline/generate_waybill_cards.py"
   },
   {
+   "from": "ops/hart-ops/data/industry_sheet.csv",
+   "to": "ops/hart-ops/card_pipeline/generate_waybill_cards.py",
+   "label": "industry order"
+  },
+  {
+   "from": "ops/hart-ops/data/industry_sheet.csv",
+   "to": "ops/hart-ops/card_pipeline",
+   "label": "operator sheet industries"
+  },
+  {
+   "from": "ops/hart-ops/data/industry_notes.csv",
+   "to": "ops/hart-ops/card_pipeline",
+   "label": "operator sheet notes"
+  },
+  {
+   "from": "ops/hart-ops/data/spot_usages.csv",
+   "to": "ops/hart-ops/card_pipeline",
+   "label": "operator sheet usage labels"
+  },
+  {
+   "from": "ops/hart-ops/data/roads.csv",
+   "to": "ops/hart-ops/card_pipeline/generate_all_cards.py",
+   "label": "road marks and spellings"
+  },
+  {
+   "from": "ops/hart-ops/data/loco_models.csv",
+   "to": "ops/hart-ops/card_pipeline/generate_all_cards.py",
+   "label": "loco builders"
+  },
+  {
    "from": "ops/hart-ops/industries",
    "to": "ops/hart-ops/data/HART_Spot_Waybills.csv",
    "label": "manual sync when lanes change"
@@ -11255,6 +11312,27 @@
   },
   {
    "from": "ops/hart-ops/data/loco_models.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/industry_sheet.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules; refers to industries.csv",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/industry_notes.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules; refers to industries.csv",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/spot_usages.csv",
    "to": "tools/ops/check_data.py",
    "label": "rules",
    "side": "check",

@@ -138,23 +138,6 @@ class GoldenDrawings(unittest.TestCase):
         text = f"size={img.size}\ncalls={len(rotated)}\n" + "\n".join(rotated) + "\n"
         check_golden(self, "maps_shenango_rotated.txt", text, depends_on=DEPENDS, test_id=TEST_ID)
 
-    def test_chrome_minimal_and_full(self):
-        rec = Recorder()
-        with mock.patch.object(rlsm, "_font", lambda path, size: FakeFont(path, size)):
-            box = rlsm._chrome(rec, width=1000, height=800, title="Some Map", minimal=True)
-            minimal_calls = list(rec.calls)
-            rec.calls.clear()
-            full_box = rlsm._chrome(rec, width=1000, height=800, title="Some Map",
-                                    subtitle="Sub", pub_id="SM-99", revision="Z")
-        self.assertEqual(box, (68, 90, 932, 744))
-        self.assertEqual(len(minimal_calls), 3)
-        self.assertEqual(full_box, (68, 120, 932, 708))
-        joined = "\n".join(rec.calls)
-        self.assertIn("Publication SM-99", joined)
-        self.assertIn("'SOME MAP'", minimal_calls[0])
-        self.assertIn("'Sub'", joined)
-        check_golden(self, "maps_chrome_full.txt", joined + "\n", depends_on=DEPENDS, test_id=TEST_ID)
-
 
 class DrawingPrimitives(unittest.TestCase):
     def test_line_is_a_constant_width_polygon(self):

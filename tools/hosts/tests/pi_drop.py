@@ -2,7 +2,8 @@
 
 The drop holds the files the apply step needs to finish plus the ones a test names; the Pi's JMRI_UserFiles, home
 and JMRI profile are folders in a temporary directory. ssh, scp, sudo, systemctl and loginctl on PATH log their call
-and fail, so nothing reaches a host. pgrep on PATH answers that JMRI is not running unless a test says it is.
+and fail, so nothing reaches a host. pgrep on PATH matches its pattern (grep -E) against the process command lines a
+test gives; with none, nothing runs.
 install_ops_files.sh and install_roster.sh in the drop only log their call: their own tests cover them.
 """
 from __future__ import annotations
@@ -13,7 +14,7 @@ import shlex
 import shutil
 import subprocess
 import tempfile
-from collections.abc import Iterator, Mapping
+from collections.abc import Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
@@ -39,6 +40,8 @@ HARTLIB_HOST_MODULES = common_sh_array("HARTLIB_HOST_MODULES")
 PROFILE = Path(".jmri/TCS_MQTT.jmri/profile/profile.xml")
 NETWORK = ("ssh", "scp", "sudo", "systemctl", "loginctl")
 LOGGER = '#!/bin/bash\necho "$(basename "$0") $*" >>"$PI_DROP_LOG"\n'
+# pgrep [options] PATTERN: exit 0 when a line of the process list matches PATTERN, 1 when none does.
+PGREP = LOGGER + 'grep -Eq -- "${@: -1}" "$PI_DROP_PROCESSES"\n'
 # The drop's files the apply step reads on every run, whatever a test adds.
 REQUIRED: dict[str, str] = {
     "cats/scripts/install_ops_files.sh": LOGGER,
@@ -105,17 +108,18 @@ def _env(drop: Path, home: Path, user_files: Path, bin_dir: Path, log: Path) -> 
     env = {k: v for k, v in os.environ.items() if not k.startswith(("HART", "JMRI_", "XDG_", "DBUS_"))}
     env.update(PATH=f"{bin_dir}{os.pathsep}{os.environ['PATH']}", HART=str(drop), HOME=str(home),
                JMRI_USERFILES=str(user_files), JMRI_HOME=str(home / "JMRI"), PI_DROP_LOG=str(log),
+               PI_DROP_PROCESSES=str(log.parent / "processes.txt"),
                PYTHONDONTWRITEBYTECODE="1")
     return env
 
 
 @contextmanager
 def applied(package: Mapping[str, str | bytes], installed: Mapping[str, str | bytes] | None = None,
-            profile: str | None = None, jmri_running: bool = False,
+            profile: str | None = None, processes: Sequence[str] = (),
             env: Mapping[str, str] | None = None) -> Iterator[PiHost]:
     """Run the apply step on a drop holding REQUIRED and `package` (paths inside the package). `installed` is what
-    the Pi holds before, by path under its home; `profile`, when given, is its JMRI profile.xml. `jmri_running`: pgrep
-    finds a JMRI on the profile. `env`: more variables for the apply step (as ship_pi.sh passes HART_PI_PROFILE)."""
+    the Pi holds before, by path under its home; `profile`, when given, is its JMRI profile.xml. `processes`: the command
+    lines of the processes running, which pgrep searches. `env`: more variables for the apply step (as ship_pi.sh passes HART_PI_PROFILE)."""
     with tempfile.TemporaryDirectory() as name:
         tmp = Path(name)
         # the apply step refuses a drop outside /tmp/hart-deploy.*, and removes the drop when it ends
@@ -131,9 +135,11 @@ def applied(package: Mapping[str, str | bytes], installed: Mapping[str, str | by
             for tool in NETWORK:
                 (bin_dir / tool).write_text(LOGGER + "exit 99\n", encoding="utf-8")
                 (bin_dir / tool).chmod(0o755)
-            (bin_dir / "pgrep").write_text(LOGGER + f"exit {0 if jmri_running else 1}\n", encoding="utf-8")
+            (bin_dir / "pgrep").write_text(PGREP, encoding="utf-8")
             (bin_dir / "pgrep").chmod(0o755)
             log.touch()
+            procs = tmp / "processes.txt"
+            procs.write_text("".join(f"{line}\n" for line in processes), encoding="utf-8")
             done = subprocess.run(["bash", str(APPLY)],
                                   env={**_env(drop, home, user_files, bin_dir, log), **dict(env or {})},
                                   capture_output=True, text=True, timeout=120)

@@ -193,6 +193,7 @@ def render(out: Path, src: Path = SRC) -> None:
 def _write_docx(png: Path, dest: Path) -> None:
     """The published SM-03 docx with the new South Yard map in it."""
     sheet_kit.write_sheet_docx(DOCX_TEMPLATE, png, dest)
+    print(f"wrote {dest}")
 
 
 def main() -> None:
