@@ -193,12 +193,6 @@
  "tools/schematic/build_staging_sets.py": {
   "dated-note": 2
  },
- "tools/schematic/device_map_masts.py": {
-  "dated-note": 3
- },
- "tools/schematic/device_map_rows.py": {
-  "dated-note": 1
- },
  "tools/schematic/evolution.py": {
   "import-exit": 5
  },
@@ -210,12 +204,6 @@
   "exec-parts": 1
  },
  "tools/schematic/tests/test_band_panels.py": {
-  "dated-note": 1
- },
- "tools/schematic/tests/test_block_layer.py": {
-  "dated-note": 2
- },
- "tools/schematic/tests/test_blocks_every_level.py": {
   "dated-note": 1
  },
  "tools/schematic/tests/test_builders_read_field.py": {
