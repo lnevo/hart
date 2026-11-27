@@ -124,6 +124,38 @@ class DeskSteps(unittest.TestCase):
             b.solved(SimpleNamespace(), SimpleNamespace(device=None))
         self.assertIs(stop.exception.__cause__, bad)
 
+    def stopped_in_bindings(self, cats):
+        """generate()'s steps up to bindings() replaced by stand-ins, and bindings() stopping as the plugin does."""
+        stop = cats.SchematicError("switch 7 has no leg C")
+        steps = dict(plugin_modules=unittest.mock.DEFAULT, load_facts=unittest.mock.DEFAULT,
+                     level_signals=unittest.mock.DEFAULT, bound_index=unittest.mock.DEFAULT)
+        return stop, unittest.mock.patch.multiple(
+            b, **steps, solved=unittest.mock.Mock(return_value=b.Solved([], {})),
+            desk_options=unittest.mock.Mock(return_value=OPTIONS), bindings=unittest.mock.Mock(side_effect=stop))
+
+    def test_a_plugin_stop_in_the_bindings_is_a_named_error_and_writes_nothing(self):
+        cats = self.cats()
+        stop, patched = self.stopped_in_bindings(cats)
+        with tempfile.TemporaryDirectory() as tmp, patched as steps:
+            steps["plugin_modules"].return_value = (cats, SimpleNamespace())
+            out, bound = Path(tmp) / "ctc.xml", Path(tmp) / "bindings.json"
+            with self.assertRaisesRegex(b.CatsPanelError, "^error: switch 7 has no leg C$") as named:
+                b.generate(Path("plugin"), out, bound)
+            self.assertIs(named.exception.__cause__, stop)
+            self.assertEqual(list(Path(tmp).iterdir()), [])
+        self.assertEqual(cats.calls, [])        # the desk's panel was never asked for
+
+    def test_main_turns_a_bindings_stop_into_exit_1_with_its_message(self):
+        cats = self.cats()
+        _stop, patched = self.stopped_in_bindings(cats)
+        err = io.StringIO()
+        with patched as steps, unittest.mock.patch.object(b.pd, "plugin", return_value=Path("plugin")), \
+                unittest.mock.patch.object(b, "compare") as compare, contextlib.redirect_stderr(err):
+            steps["plugin_modules"].return_value = (cats, SimpleNamespace())
+            self.assertEqual(b.main(["--check"]), 1)
+        self.assertEqual(err.getvalue(), "error: switch 7 has no leg C\n")
+        compare.assert_not_called()
+
     def test_only_the_desks_given_a_path_are_written(self):
         with tempfile.TemporaryDirectory() as tmp, \
                 unittest.mock.patch.object(b, "dress", side_effect=lambda cats, xml, header, plate, desk, fit, plates:
