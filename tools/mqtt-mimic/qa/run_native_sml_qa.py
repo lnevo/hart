@@ -379,17 +379,25 @@ def main(argv: Sequence[str] | None = None) -> int:
             time.sleep(SETTLE)
             observe(run, "qa99_restored", "Retained baseline restored.")
     except SubscribeError as err:       # the baseline was published back before this
+        run.notes.append(f"## stopped\nA read failed, so the run stopped here: {err}\n")
+        report(run)
         print(f"run_native_sml_qa: {err}", file=sys.stderr)
         return 2
+    if report(run):
+        return 1
+    print("\nALL CHECKS PASSED")
+    return 0
+
+
+def report(run: Run) -> bool:
+    """Write the notes file and print the failed checks; True when any check failed."""
     (OUT / "native_sml_qa_notes.md").write_text("\n".join(run.notes))
     print("wrote", OUT / "native_sml_qa_notes.md")
     if run.failures:
         print("\n%d FAILURE(S):" % len(run.failures))
         for f in run.failures:
             print(" ", f)
-        return 1
-    print("\nALL CHECKS PASSED")
-    return 0
+    return bool(run.failures)
 
 
 if __name__ == "__main__":

@@ -38,7 +38,8 @@ class RecordTest(RepoCase):
         snap.write_text(cs.snapshot(name, self.root, self.store) + "\n")
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
-            rc = cs.record_cmd([name, str(snap), "--trace", str(log), *flags], self.root, self.store)
+            args = cs.build_parser().parse_args(["record", name, str(snap), "--trace", str(log), *flags])
+            rc = cs.record_cmd(args, self.root, self.store)
         return rc, out.getvalue()
 
     def stamp(self, name: str = "a"):
@@ -107,12 +108,16 @@ class RecordTest(RepoCase):
             self.assertEqual(self.record_cmd("a", self.run_job(READS, script="tools/a.py"), "--audit-fails"), (3, ""))
 
     def test_a_call_of_another_shape_is_refused(self) -> None:
-        err = io.StringIO()
-        with contextlib.redirect_stderr(err):
-            self.assertEqual(cs.record_cmd(["a", "snap", "--trace"], self.root, self.store), 2)
-            self.assertEqual(cs.record_cmd(["a", "snap", "--trace", "log", "--audit-fails", "x"], self.root,
-                                           self.store), 2)
-        self.assertIn("Traced stamps", err.getvalue())
+        for argv, says in ((["record", "a", "snap", "--trace"], "--trace: expected one argument"),
+                           (["record", "a", "snap", "--trace", "log", "--audit-fails", "x"],
+                            "unrecognized arguments: x")):
+            err = io.StringIO()
+            with self.subTest(argv=argv), contextlib.redirect_stderr(err), \
+                    unittest.mock.patch.object(cs, "record_cmd") as record:
+                self.assertEqual(cs.main(argv), 2)
+                record.assert_not_called()
+            self.assertIn("usage: check_stamps.py", err.getvalue())
+            self.assertIn(says, err.getvalue())
 
 
 # The stand-in stamp helper: every job runs and may record; job "one" read a file its step does not declare.

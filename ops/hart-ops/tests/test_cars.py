@@ -1,4 +1,5 @@
 """Car queue and Operations Pro merge rules."""
+import argparse
 import contextlib
 import io
 import sys
@@ -283,10 +284,6 @@ class FieldDifferenceTests(unittest.TestCase):
         self.assertIn("NW2 length: repo='52' tool='50'", out.getvalue())
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 def queued(roster_id):
     return {"roster_id": roster_id, "reason": "new car", "queued": "d", "card_built": "",
             "card_printed": "", "sts": "", "ops": ""}
@@ -295,36 +292,39 @@ def queued(roster_id):
 class PublishStsFailureTests(unittest.TestCase):
     """A failed STS step makes publish fail, naming the step; the STS tools are stubbed, never run."""
 
-    def publish(self, codes):
-        """Run cmd_publish with each STS tool exiting with codes[tool name]; return the final queue."""
+    def stubbed(self, codes: dict[str, int]) -> contextlib.ExitStack:
+        """Stub the rebuild, the queue files, the Operations Pro merge and the STS tools; each STS tool exits with
+        codes[tool name]. Records the tools run in self.ran and the last queue written in self.final."""
         queue = [queued("A1")]
-        written = []
-        ran = []
+        self.ran: list[str] = []
+        self.final: list[dict[str, str]] = []
 
         def fake_run(cmd, **_kw):
             name = Path(cmd[1]).name
-            ran.append(name)
+            self.ran.append(name)
             return SimpleNamespace(returncode=codes[name])
 
-        patches = [
+        def write_queue(q):
+            self.final = [dict(x) for x in q]
+
+        stack = contextlib.ExitStack()
+        for patch in (
             unittest.mock.patch.object(cars, "publish_gate"),
             unittest.mock.patch("build_car_roster_sor.main"),
             unittest.mock.patch.object(cars, "read_queue", return_value=queue),
-            unittest.mock.patch.object(cars, "write_queue",
-                                       side_effect=lambda q: written.append([dict(x) for x in q])),
+            unittest.mock.patch.object(cars, "write_queue", side_effect=write_queue),
             unittest.mock.patch.object(cars, "read_rows", return_value=([], [])),
             unittest.mock.patch.object(cars, "merge_ops", return_value=["A1"]),
             unittest.mock.patch.object(cars, "sync_seed_copies"),
             unittest.mock.patch.object(cars.subprocess, "run", side_effect=fake_run),
-        ]
-        with contextlib.ExitStack() as stack, contextlib.redirect_stdout(io.StringIO()):
-            for patch in patches:
-                stack.enter_context(patch)
-            try:
-                cars.cmd_publish(SimpleNamespace(only=None, skip_check=[], ops_live="/nonexistent"))
-            finally:
-                self.ran = ran
-                self.final = written[-1] if written else None
+            contextlib.redirect_stdout(io.StringIO()),
+        ):
+            stack.enter_context(patch)
+        return stack
+
+    def publish(self, codes: dict[str, int]) -> None:
+        with self.stubbed(codes):
+            cars.cmd_publish(argparse.Namespace(only=None, skip_check=[], ops_live="/nonexistent"))
 
     def test_both_steps_pass(self):
         self.publish({"add_hart_cars.py": 0, "sync_hart_status.py": 0})
@@ -355,18 +355,13 @@ class PublishStsFailureTests(unittest.TestCase):
     def test_main_exits_non_zero_with_the_message(self):
         """main() turns the failure into a non-zero exit carrying the message."""
         with unittest.mock.patch.object(sys, "argv", ["cars.py", "publish"]), \
-             contextlib.redirect_stdout(io.StringIO()), \
-             self.assertRaises(SystemExit) as ctx:
-            with unittest.mock.patch.object(cars.subprocess, "run",
-                                            side_effect=lambda cmd, **_kw: SimpleNamespace(returncode=1)), \
-                 unittest.mock.patch.object(cars, "publish_gate"), \
-                 unittest.mock.patch("build_car_roster_sor.main"), \
-                 unittest.mock.patch.object(cars, "read_queue", return_value=[queued("A1")]), \
-                 unittest.mock.patch.object(cars, "write_queue"), \
-                 unittest.mock.patch.object(cars, "read_rows", return_value=([], [])), \
-                 unittest.mock.patch.object(cars, "merge_ops", return_value=["A1"]), \
-                 unittest.mock.patch.object(cars, "sync_seed_copies"):
-                cars.main()
+                self.stubbed({"add_hart_cars.py": 1, "sync_hart_status.py": 1}), \
+                self.assertRaises(SystemExit) as ctx:
+            cars.main()
         self.assertIn("add_hart_cars.py exited 1", str(ctx.exception.code))
         self.assertIn("sync_hart_status.py (out-of-service sync) exited 1", str(ctx.exception.code))
         self.assertIsInstance(ctx.exception.__cause__, cars.CardPipelineError)
+
+
+if __name__ == "__main__":
+    unittest.main()

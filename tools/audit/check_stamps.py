@@ -768,7 +768,8 @@ def _main(args: argparse.Namespace) -> int:
     if args.command == "declared":
         print("\n".join(declared(args.name) or ()))
         return 0
-    assert args.command == "audit-report", args.command
+    if args.command != "audit-report":
+        raise AssertionError(f"check_stamps.py: build_parser takes {args.command!r} but _main has no branch for it")
     if not args.dir.is_dir():
         print(f"check_stamps.py audit-report: {args.dir} is not a folder (CHECK_AUDIT=DIR FULL=1 tools/check.sh "
               "writes one)", file=sys.stderr)

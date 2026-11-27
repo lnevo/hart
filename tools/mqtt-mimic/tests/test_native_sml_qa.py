@@ -291,7 +291,7 @@ class SubscribeExitTest(unittest.TestCase):
                                          r".* exited 14: Error: Connection refused\n$")
         self.assertFalse((self.bin / "out/native_sml_qa_baseline.json").exists())
 
-    def test_a_failed_read_mid_run_restores_the_baseline_and_ends_main(self) -> None:
+    def test_a_failed_read_mid_run_restores_the_baseline_keeps_the_notes_and_ends_main(self) -> None:
         import io
         from unittest import mock
         self.fake("mosquitto_sub", 14, "Error: Connection refused")
@@ -303,7 +303,8 @@ class SubscribeExitTest(unittest.TestCase):
             self.assertEqual(self.qa.main([]), 2)
         self.assertEqual(published[-1], ("a/b", "ACTIVE"))
         self.assertIn("exited 14: Error: Connection refused", err.getvalue())
-        self.assertFalse((self.bin / "out/native_sml_qa_notes.md").exists())
+        notes = (self.bin / "out/native_sml_qa_notes.md").read_text()
+        self.assertRegex(notes, r"## stopped\nA read failed, so the run stopped here: mosquitto_sub .* exited 14")
 
 
 if __name__ == "__main__":

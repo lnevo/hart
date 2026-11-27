@@ -307,6 +307,11 @@ class CommandLineTest(unittest.TestCase):
                 self.assertIn(says, err)
                 self.assertNotIn("Traceback", err)
 
+    def test_a_parsed_command_with_no_branch_is_refused(self) -> None:
+        import argparse
+        with self.assertRaisesRegex(AssertionError, "'new-command' but _main has no branch"):
+            cs._main(argparse.Namespace(command="new-command"))
+
     def test_every_command_parses_its_documented_form(self) -> None:
         parse = cs.build_parser().parse_args
         args = parse(["current", "unit-mimic", "--save", "s", "--why"])
