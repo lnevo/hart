@@ -192,6 +192,20 @@ class Run(unittest.TestCase):
                 self.assertIn(want, lines)
                 self.assertTrue(pom_guard_roster.parse_consist_log("\n".join(lines))["errors"], lines)
 
+    def test_a_stray_reply_beside_a_good_count_is_no_error(self):
+        cs = FakeCs105({A: []})
+        real = cs.put
+
+        def put(msg, _):
+            if list(msg[1])[:2] == [0x30, 0x03] and len(msg[1]) == 2:   # a late answer of another kind first
+                for h in cs.handlers:
+                    h.handleTractionControlReply(Reply(A, [0x30, 0x01], bad="length"), None)
+            real(msg, _)
+        cs.put = put
+        _, lines = self.run_script(cs, ACTION="query", NODES=[A])
+        self.assertEqual(lines, [A + " listeners: 0", "END"])
+        self.assertEqual(pom_guard_roster.parse_consist_log("\n".join(lines))["errors"], [])
+
     def test_no_can_connection_logs_the_error_ends_the_log_and_raises(self):
         with self.assertRaisesRegex(RuntimeError, "no LCC"), mock.patch.dict(sys.modules, fake_modules(None)):
             runpy.run_path(str(SRC), init_globals={"ACTION": "query", "NODES": [A], "LOGF": str(self.logf)})

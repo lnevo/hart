@@ -115,11 +115,16 @@ def listener_count(node):
     send(node, [0x30, 0x03])
     time.sleep(QUERY_WAIT)
     n = None
+    errors = []
     for m in replies_from(node):
         try:
             n = m.getConsistLength()
         except Exception as e:
-            L("%s count decode error %s" % (node, e))
+            errors.append(e)
+    # A stray reply of another kind from the same node (a late attach or detach answer) does not
+    # read as a count; it is an error, and the POM guard refuses on it, only when no reply gave one.
+    if n is None and errors:
+        L("%s count decode error %s" % (node, errors[-1]))
     return n
 
 
