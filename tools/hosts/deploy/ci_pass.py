@@ -6,12 +6,12 @@
                                 exit 2 for a bad call, 3 for a failure of this script itself (the gate runs G4
                                 for both)
     ci_pass.py --main-red --commit SHA
-                                the gate's G0c, before any ssh: exit 4 and print a STOP line naming the run when the
-                                newest push run of check.yml on main for SHA finished failure, cancelled or timed_out
-                                (main is red: fix forward or revert first). Exit 0 and print why not in every other
-                                case (the run passed, is still running, ended another way, there is no such run, or
-                                GitHub could not be read): the gate goes on as before. Exit 2 and 3 as above (the gate
-                                goes on for both)
+                                the gate's G0c before any ssh, and the site deploy before it builds: exit 4 and print
+                                a STOP line naming the run when the newest push run of check.yml on main for SHA
+                                finished failure, cancelled or timed_out (main is red: fix forward or revert first).
+                                Exit 0 and print why not in every other case (the run passed, is still running, ended
+                                another way, there is no run yet, or GitHub could not be asked): not blocking, the
+                                owner's ruling. Exit 2 and 3 as above (the deploy goes on for both)
 
 The gate (tools/hosts/deploy/gate.sh) asks this only for a real deploy to the Pi or Windows, after check_on_main
 (common.sh) has held the commit to origin/main. A skip needs all of these, read in this order; the first that fails
@@ -70,6 +70,8 @@ GH_TIMEOUT = 30
 # The conclusions of a finished push run that make main red: a deploy of that commit stops (--main-red, exit 4).
 RED = ("failure", "cancelled", "timed_out")
 MAIN_RED = 4
+# A run still going, no run yet and GitHub not answering never stop a deploy: the owner's ruling, which the line names.
+NOT_BLOCKING = "not blocking (owner ruling 2026-11-27)"
 LOG_TIMEOUT = 90
 
 
@@ -126,6 +128,12 @@ def run_gh(args: list[str], timeout: int) -> str:
 
 
 def repo_slug(root: Path) -> str:
+    """owner/name of origin on GitHub; HART_CI_REPO names it instead (the tests, whose origin is a local folder)."""
+    override = os.environ.get("HART_CI_REPO", "")
+    if override:
+        if not re.fullmatch(r"[\w.-]+/[\w.-]+", override):
+            raise Unreadable(f"HART_CI_REPO is not owner/name ({override!r})")
+        return override
     url = git(root, "remote", "get-url", "origin").strip()
     m = GITHUB_URL.fullmatch(url)
     if not m:
@@ -335,15 +343,15 @@ def main_red(sha: str, root: Path = ROOT, gh: Gh = run_gh) -> tuple[bool, str]:
         slug = repo_slug(root)
         run = newest_run(slug, sha, gh)
         status = _field(run, "status", str, "a check.yml run")
-    except NoPass as e:
-        return False, f"main red check: {e}; the gate goes on as before"
+    except NoPass:
+        return False, f"main red check: no push run of check.yml on main for {sha[:12]} yet; {NOT_BLOCKING}"
     except CiPassError as e:
-        return False, f"main red check: {e.lead} for {sha[:12]}: {e}; the gate goes on as before"
+        return False, f"main red check: could not ask GitHub ({e}); {NOT_BLOCKING}"
     url = run_url(slug, run)
     conclusion = run.get("conclusion")
     if status != "completed":
-        return False, (f"main red check: main's push run for {sha[:12]} is {status} ({url}); the gate does not wait "
-                       "for it and goes on as before")
+        return False, (f"main red check: main's push run for {sha[:12]} is {status} ({url}); not waiting for it, "
+                       f"{NOT_BLOCKING}")
     if conclusion in RED:
         return True, (f"STOP: main is red: the push run of {WORKFLOW} on main for {sha[:12]} ended {conclusion} "
                       f"({url}). Fix forward or revert first, then deploy the fixed main. Nothing was sent to any "
@@ -351,7 +359,7 @@ def main_red(sha: str, root: Path = ROOT, gh: Gh = run_gh) -> tuple[bool, str]:
     if conclusion == "success":
         return False, f"main red check: main's push run for {sha[:12]} passed ({url})"
     return False, (f"main red check: main's push run for {sha[:12]} ended {conclusion} ({url}), not "
-                   f"{', '.join(RED)}; the gate goes on as before")
+                   f"{', '.join(RED)}; {NOT_BLOCKING}")
 
 
 def main(argv: list[str] | None = None, root: Path = ROOT, gh: Gh = run_gh) -> int:

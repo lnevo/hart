@@ -340,9 +340,10 @@ class CiPassTest(GhRepoCase):
 
 class MainRedTest(GhRepoCase):
     """--main-red (the gate's G0c): exit 4 only for a finished push run on main that ended failure, cancelled or
-    timed_out; exit 0 with the reason for every other case, so the gate goes on as before."""
+    timed_out; exit 0 with the reason for every other case: not blocking (owner ruling 2026-11-27)."""
 
     URL = f"https://github.com/{SLUG}/actions/runs/{RUN_ID}"
+    NOT_BLOCKING = "not blocking (owner ruling 2026-11-27)"
 
     def red(self, sha: str | None = None) -> tuple[int, str]:
         out = io.StringIO()
@@ -381,7 +382,8 @@ class MainRedTest(GhRepoCase):
                 self.newest(status=status, conclusion=None)
                 rc, out = self.red()
                 self.assertEqual(0, rc, out)
-                self.assertIn(f"is {status} ({self.URL}); the gate does not wait for it and goes on as before", out)
+                self.assertEqual(f"main red check: main's push run for {self.sha[:12]} is {status} ({self.URL}); "
+                                 f"not waiting for it, {self.NOT_BLOCKING}\n", out)
 
     def test_an_older_red_run_does_not_count_when_the_newest_passed(self) -> None:
         self.gh.runs = {"total_count": 2, "workflow_runs": [self.gh.run(), self.gh.run(id=100, run_number=6,
@@ -394,23 +396,28 @@ class MainRedTest(GhRepoCase):
                 self.newest(conclusion=conclusion)
                 rc, out = self.red()
                 self.assertEqual(0, rc, out)
-                self.assertIn(f"ended {conclusion} ({self.URL}), not failure, cancelled, timed_out", out)
+                self.assertIn(f"ended {conclusion} ({self.URL}), not failure, cancelled, timed_out; "
+                              f"{self.NOT_BLOCKING}", out)
 
-    def test_no_run_for_the_commit_goes_on(self) -> None:
+    def test_no_run_yet_for_the_commit_does_not_block(self) -> None:
+        """Not queued yet, a branch or a pull request's run only: the owner ruled none of them blocks."""
         for runs in ([], [self.gh.run(event="pull_request", conclusion="failure")],
                      [self.gh.run(head_branch="feature", conclusion="failure")]):
             with self.subTest(runs=runs):
                 self.gh.runs = {"total_count": len(runs), "workflow_runs": runs}
                 rc, out = self.red()
                 self.assertEqual(0, rc, out)
-                self.assertIn("main red check: CI has no push run of .github/workflows/check.yml on main", out)
+                self.assertEqual(f"main red check: no push run of check.yml on main for {self.sha[:12]} yet; "
+                                 f"{self.NOT_BLOCKING}\n", out)
 
-    def test_unreadable_github_goes_on(self) -> None:
-        self.gh.fail = {"/workflows/check.yml/runs": ci_pass.Unreadable("gh api -X failed (exit 1): HTTP 401")}
-        rc, out = self.red()
-        self.assertEqual(0, rc, out)
-        self.assertIn(f"main red check: CI stamps unreadable for {self.sha[:12]}: gh api -X failed (exit 1): HTTP 401; "
-                      "the gate goes on as before", out)
+    def test_a_github_error_does_not_block_and_is_named(self) -> None:
+        for err in ("gh (the GitHub CLI) is not installed", "gh api -X failed (exit 1): HTTP 401: Bad credentials",
+                    "gh api -X took over 30 s"):
+            with self.subTest(err=err):
+                self.gh.fail = {"/workflows/check.yml/runs": ci_pass.Unreadable(err)}
+                rc, out = self.red()
+                self.assertEqual(0, rc, out)
+                self.assertEqual(f"main red check: could not ask GitHub ({err}); {self.NOT_BLOCKING}\n", out)
         for reply, text in (("<html>", "is not JSON"), ({"total_count": 1, "workflow_runs": [{"head_sha": self.sha,
                             "event": "push", "head_branch": "main", "path": ".github/workflows/check.yml",
                             "run_number": 1}]}, "has no str 'status'")):
@@ -420,13 +427,27 @@ class MainRedTest(GhRepoCase):
                 rc, out = self.red()
                 self.assertEqual(0, rc, out)
                 self.assertIn(text, out)
+                self.assertTrue(out.startswith("main red check: could not ask GitHub ("), out)
 
-    def test_an_origin_off_github_goes_on(self) -> None:
+    def test_an_origin_off_github_does_not_block(self) -> None:
         git(self.repo, "remote", "set-url", "origin", "https://example.invalid/owner/repo.git")
         rc, out = self.red()
         self.assertEqual(0, rc, out)
-        self.assertIn("origin is not a GitHub repository", out)
+        self.assertIn("could not ask GitHub (origin is not a GitHub repository", out)
         self.assertEqual([], self.gh.calls)
+
+    def test_hart_ci_repo_names_the_repository(self) -> None:
+        """The site deploy's tests run in a repo whose origin is a local folder: HART_CI_REPO names the one to ask."""
+        git(self.repo, "remote", "set-url", "origin", "/tmp/not-github.git")
+        self.addCleanup(os.environ.pop, "HART_CI_REPO", None)
+        os.environ["HART_CI_REPO"] = SLUG
+        self.newest(conclusion="failure")
+        self.assertEqual(4, self.red()[0])
+        self.assertIn(f"repos/{SLUG}/actions/workflows/check.yml/runs", self.gh.calls[-1])
+        os.environ["HART_CI_REPO"] = "not a slug"
+        rc, out = self.red()
+        self.assertEqual(0, rc)
+        self.assertIn("HART_CI_REPO is not owner/name", out)
 
     def test_it_reads_no_checkout_state(self) -> None:
         """A dirty checkout or another HEAD does not hide a red main: the question is about the commit's run."""

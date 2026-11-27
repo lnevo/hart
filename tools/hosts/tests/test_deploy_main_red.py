@@ -1,5 +1,5 @@
 """G0c of the deploy gate (tools/hosts/deploy/gate.sh, ci_pass.py --main-red): a deploy or dry run to a host stops
-before any ssh when main's push run of check.yml for the commit finished red, and every other case goes on as before.
+before any ssh when main's push run of check.yml for the commit finished red; every other case does not block.
 
 The harness is test_deploy_gates.GateHarness: sync_hart_package.sh runs on this checkout with ssh, scp, rsync to a host
 and tar as recorders, and gh is a stand-in, so nothing reaches a host or GitHub and nothing publishes MQTT. The
@@ -16,6 +16,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from test_deploy_gates import GateHarness  # noqa: E402
 from test_deploy_preflight import ROOT  # noqa: E402
+
+NOT_BLOCKING = "not blocking (owner ruling 2026-11-27)"
 
 
 class OffHostRunsDoNotAskForG4(GateHarness):
@@ -114,17 +116,21 @@ exit 4
             with self.subTest(status=status):
                 self.main_run(status=status, conclusion=None)
                 done = self.deploy("--pi", "--win")
-                self.assertIn(f"is {status} ({self.URL}); the gate does not wait for it", done.stdout)
+                self.assertIn(f"is {status} ({self.URL}); not waiting for it, {NOT_BLOCKING}", done.stdout)
                 self.assertIn("ran G4: no CI pass", done.stdout)
                 self.assertIn("STOP: tables.xml is not what", done.stderr)
                 self.assertNotIn("main is red", done.stderr)
 
     def test_every_other_case_runs_g4_as_before(self) -> None:
+        """No run yet and a gh error do not block (owner ruling 2026-11-27); the line says which."""
         (self.tmp / "tables_stale").touch()
         cases = {
-            "no run": ({"total_count": 0, "workflow_runs": []}, "CI has no push run of .github/workflows/check.yml"),
-            "another ending": (None, "ended startup_failure"),
-            "gh fails": ("", "CI stamps unreadable"),
+            "no run yet": ({"total_count": 0, "workflow_runs": []},
+                           f"main red check: no push run of check.yml on main for {self.sha[:12]} yet; {NOT_BLOCKING}"),
+            "another ending": (None, f"ended startup_failure ({self.URL}), not failure, cancelled, timed_out; "
+                                     f"{NOT_BLOCKING}"),
+            "gh fails": ("", "main red check: could not ask GitHub (gh api -X failed (exit 4): stand-in: no GitHub in "
+                             f"the tests); {NOT_BLOCKING}"),
         }
         for name, (reply, text) in cases.items():
             with self.subTest(case=name):
