@@ -98,11 +98,12 @@ def quiet_startup(profile: Path, run_script: str) -> list[str]:
     text = "".join(out) + text[last:]
     text, removed = re.subn(r'\n?[ \t]*<perform\b[^>]*\bname="(?:[^"]*[/:])?' + re.escape(run_base) + r'"[^>]*/>',
                             "", text)
-    loads = [t for t in _TAG.findall(text) if "PerformFileModelXml" in t and (_attr(t, "name") or "").endswith("tables.xml")]
+    loads = [name for t in _TAG.findall(text)
+             if "PerformFileModelXml" in t and (name := _attr(t, "name")) is not None and name.endswith("tables.xml")]
     if len(loads) != 1:
         raise SystemExit(f"{profile}: expected one tables load in Start Up, found {len(loads)}")
     profile.write_text(text, encoding="utf-8")
-    jmri_profile.insert_after(profile, run_script, _attr(loads[0], "name") or "")   # a load named tables.xml
+    jmri_profile.insert_after(profile, run_script, loads[0])
     text = profile.read_text(encoding="utf-8")
     still = [t for t in _TAG.findall(text)
              if 'enabled="no"' not in t and not _allowed(t) and _basename(_attr(t, "name") or "") != run_base]

@@ -9,14 +9,15 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 SRC = Path(__file__).resolve().parents[1] / "src"
 sys.path.insert(0, str(SRC))
 from hartlib import jmri_profile, paths  # noqa: E402
 from hartlib.errors import HartlibError  # noqa: E402
 
-# The modules the deploy packages carry (HARTLIB_HOST_MODULES in tools/hosts/deploy/common.sh).
-HOST_MODULES = ("__init__.py", "errors.py", "jmri_profile.py")
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "hosts/tests"))
+from pi_drop import HARTLIB_HOST_MODULES as HOST_MODULES, common_sh_array  # noqa: E402
 TABLES = """<?xml version="1.0" encoding="UTF-8"?>
 <layout-config>
   <LayoutEditor class="x" name="HART Railroad" windowwidth="1920" windowheight="1032"/>
@@ -80,6 +81,68 @@ class Write(Files):
         ui = self.write("user-interface.xml", UI)
         self.assertIsNone(jmri_profile.write_user_interface(ui, "<windowDetails/>"))
         self.assertEqual(sorted(p.name for p in self.dir.iterdir()), ["user-interface.xml"])
+
+
+class WriteSafety(Files):
+    def test_the_write_goes_through_write_atomic(self) -> None:
+        ui = self.write("user-interface.xml", UI)
+        seen = []
+        real = jmri_profile.write_atomic
+        def spy(path, text):
+            seen.append((Path(path), text))
+            real(path, text)
+        with mock.patch.object(jmri_profile, "write_atomic", spy):
+            jmri_profile.write_user_interface(ui, "<windowDetails/>")
+        self.assertEqual(seen, [(ui, "<windowDetails/>")])
+
+    def test_a_failed_write_keeps_the_old_file_and_leaves_no_temporary_file(self) -> None:
+        ui = self.write("user-interface.xml", UI)
+        with mock.patch("os.replace", side_effect=OSError("disk full")), \
+                self.assertRaisesRegex(jmri_profile.WindowSizesError, "cannot write"):
+            jmri_profile.write_user_interface(ui, "<windowDetails/>")
+        self.assertEqual(ui.read_text(encoding="utf-8"), UI)
+        self.assertEqual([p.name for p in self.dir.iterdir()], ["user-interface.xml"])
+
+    def test_only_the_newest_backups_are_kept(self) -> None:
+        ui = self.write("user-interface.xml", UI)
+        for n in range(8):
+            (self.dir / f"user-interface.xml.hart-20260101-00000{n}.bak").write_text("old", encoding="utf-8")
+        other = self.write("user-interface.xml.keep", "not a backup")
+        copy = jmri_profile.write_user_interface(ui, "<windowDetails/>", backup=True)
+        assert copy is not None
+        kept = [p.name for p in jmri_profile.backups(ui)]
+        self.assertEqual(len(kept), jmri_profile.BACKUPS_KEPT)
+        self.assertEqual(kept[-1], copy.name)
+        self.assertEqual(kept[:-1], [f"user-interface.xml.hart-20260101-00000{n}.bak" for n in (4, 5, 6, 7)])
+        self.assertTrue(other.exists())
+
+    def test_a_failed_prune_has_its_own_message(self) -> None:
+        ui = self.write("user-interface.xml", UI)
+        for n in range(6):
+            (self.dir / f"user-interface.xml.hart-20260101-00000{n}.bak").write_text("old", encoding="utf-8")
+        with mock.patch.object(Path, "unlink", side_effect=OSError("busy")), \
+                self.assertRaisesRegex(jmri_profile.WindowSizesError, "cannot remove old backups") as cm:
+            jmri_profile.write_user_interface(ui, "<windowDetails/>", backup=True)
+        self.assertNotIn("cannot back up", str(cm.exception))
+
+
+class Checks(Files):
+    def test_insert_after_refuses_an_empty_after(self) -> None:
+        profile = self.write("profile.xml", "<startup/>")
+        with self.assertRaisesRegex(jmri_profile.StartupPatchError, "no Start Up entry given"):
+            jmri_profile.insert_after(profile, "run.py", "")
+        self.assertEqual(profile.read_text(encoding="utf-8"), "<startup/>")
+
+    def test_a_size_that_is_not_a_positive_number_is_refused(self) -> None:
+        for bad in ("abc", "0", "-5", "nan", "inf", "12px"):
+            tables = self.write("t.xml", f'<layout-config><LayoutEditor name="P" windowwidth="{bad}" '
+                                         'windowheight="400"/></layout-config>')
+            with self.subTest(bad=bad), self.assertRaisesRegex(jmri_profile.WindowSizesError, "not a size"):
+                jmri_profile.panel_sizes(tables)
+
+    def test_the_host_module_list_is_the_one_in_common_sh(self) -> None:
+        self.assertEqual(HOST_MODULES, common_sh_array("HARTLIB_HOST_MODULES"))
+        self.assertIn("files.py", HOST_MODULES)
 
 
 class Errors(Files):

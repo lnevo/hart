@@ -42,6 +42,28 @@ class PiTablesTest(unittest.TestCase):
         self.assertLess(after.index("$LASTEXITCODE"), after.index("Start Up retargeted"),
                         "a failed retarget must not report success")
 
+    def test_windows_scripts_find_jmri_by_command_line_from_one_shared_file(self) -> None:
+        """No PowerShell on the Mac: the scripts are read as text. A bare java process (the STS or another tool) must
+        not block the deploy, so both steps ask jmri_processes.ps1, which holds kill_cats.ps1's patterns."""
+        win = SCRIPT.parent.parent / "windows"
+        apply = (win / "apply_hart_package_local.ps1").read_text(encoding="utf-8")
+        kill = (win / "kill_cats.ps1").read_text(encoding="utf-8")
+        shared = (win / "jmri_processes.ps1").read_text(encoding="utf-8")
+        self.assertNotIn("Get-Process java", apply)
+        self.assertEqual(apply.count("Get-JmriProcesses"), 4)    # the Operations step and the window-size step
+        self.assertIn(". (Join-Path $hart 'cats\\scripts\\windows\\jmri_processes.ps1')", apply)
+        self.assertIn(". (Join-Path $PSScriptRoot 'jmri_processes.ps1')", kill)
+        self.assertNotIn("$rx", kill)
+        self.assertIn("Get-CimInstance Win32_Process", shared)
+        self.assertIn("cats\\.apps\\.Crandic", shared)
+        self.assertIn("Format-JmriProcesses", apply)    # the skip messages name what was found
+        self.assertIn("'jmri_processes.ps1'", (win / "create_cats_desktop.ps1").read_text(encoding="utf-8"))
+
+    def test_windows_window_size_step_takes_an_empty_result_as_an_empty_array(self) -> None:
+        source = (SCRIPT.parent.parent / "windows/apply_hart_package_local.ps1").read_text(encoding="utf-8")
+        self.assertIn("$uis = @(@(foreach ($root in $uiRoots) {", source)
+        self.assertIn("}) | Select-Object -Unique)", source)
+
     def test_windows_apply_python_order_and_missing_python(self) -> None:
         """py -3, then python, then python3; Store stubs skipped; no Python warns and skips."""
         source = (SCRIPT.parent.parent / "windows/apply_hart_package_local.ps1").read_text(encoding="utf-8")

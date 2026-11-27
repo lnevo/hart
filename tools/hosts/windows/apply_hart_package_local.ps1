@@ -35,6 +35,8 @@ function Find-Python {
   return $null
 }
 $python = Find-Python
+# Get-JmriProcesses: the JMRI and CATS Java processes by command line, as kill_cats.ps1 finds them
+. (Join-Path $hart 'cats\scripts\windows\jmri_processes.ps1')
 
 $src = Join-Path $hart 'tables.xml'
 if (Test-Path $src) {
@@ -54,8 +56,9 @@ if (Test-Path $src) {
 $opsSrc = Join-Path $hart 'operations'
 if (Test-Path $opsSrc) {
   $opsDest = Join-Path $UserFiles 'operations'
-  if ($OverwriteOps -ne '1' -and (Get-Process java -ErrorAction SilentlyContinue)) {
-    Write-Host 'SKIP Operations files: JMRI is running and would overwrite them. Deploy again with it closed.'
+  $jmriNow = if ($OverwriteOps -ne '1') { @(Get-JmriProcesses) } else { @() }
+  if ($jmriNow.Count -gt 0) {
+    Write-Host ('SKIP Operations files: JMRI is running ({0}) and would overwrite them. Deploy again with it closed.' -f (Format-JmriProcesses $jmriNow))
   } else {
     New-Item -ItemType Directory -Force -Path $opsDest | Out-Null
     Get-ChildItem $opsDest -Filter 'Operations*.xml' -File -ErrorAction SilentlyContinue |
@@ -337,8 +340,8 @@ if ((Test-Path $sizesPy) -and (Test-Path $installedTables)) {
   $idFile = Join-Path $hart 'jmri_profile_id.txt'
   if (-not $python) {
     Write-Host 'Panel window sizes NOT set: no Python 3 found (py -3, python, python3)'
-  } elseif (Get-Process java, javaw -ErrorAction SilentlyContinue) {
-    Write-Host 'Panel window sizes NOT set: JMRI is running and would overwrite user-interface.xml. Close PanelPro and deploy again.'
+  } elseif (@(Get-JmriProcesses).Count -gt 0) {
+    Write-Host ('Panel window sizes NOT set: JMRI is running ({0}) and would overwrite user-interface.xml. Close PanelPro and deploy again.' -f (Format-JmriProcesses (Get-JmriProcesses)))
   } else {
     & (Join-Path $hart 'cats\scripts\windows\resolve_jmri_profile.ps1') -OutFile $idFile
     # it writes the file only once it found the profile; it ends with exit 2 when it did not
@@ -348,13 +351,13 @@ if ((Test-Path $sizesPy) -and (Test-Path $installedTables)) {
       $profileName = ((Get-Content -Raw $idFile).Trim() -split '\.')[0]
       $uiRoots = @((Join-Path $env:APPDATA 'JMRI'), (Join-Path $env:USERPROFILE 'JMRI'),
         (Join-Path $env:USERPROFILE 'Documents\JMRI'), (Join-Path $env:USERPROFILE '.jmri'))
-      $uis = @(foreach ($root in $uiRoots) {
+      $uis = @(@(foreach ($root in $uiRoots) {
         $dir = Join-Path $root ($profileName + '.jmri\profile')
         if (Test-Path $dir) {
           Get-ChildItem $dir -Directory | ForEach-Object { Join-Path $_.FullName 'user-interface.xml' } |
             Where-Object { Test-Path -LiteralPath $_ }
         }
-      }) | Select-Object -Unique
+      }) | Select-Object -Unique)
       if (@($uis).Count -eq 0) {
         Write-Host ("Panel window sizes: no user-interface.xml in the {0} profile; JMRI opens each panel at the tables' size" -f $profileName)
       }

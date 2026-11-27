@@ -9,8 +9,8 @@ tables.xml (tools/hosts/pi/apply_hart_package_local.sh, tools/hosts/windows/appl
 cats/scripts/ in the package with the part of hartlib it needs (tools/hosts/deploy/stage.sh).
 
 --check: change nothing; exit 1 when a saved size differs from the tables'.
---backup: before writing, keep the file as it was in <file>.hart-<stamp>.bak beside it. Nothing is written, and no
-copy kept, when every size already matches.
+--backup: before writing, keep the file as it was in <file>.hart-<stamp>.bak beside it; the newest 5 copies are kept.
+Nothing is written, and no copy kept, when every size already matches.
 Exit 2, with the reason on stderr, when a file cannot be read or written.
 """
 from __future__ import annotations

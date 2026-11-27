@@ -13772,7 +13772,7 @@
    "label": "runs (panel window sizes)"
   },
   {
-   "from": "tools/hosts/pi",
+   "from": "tools/hosts/windows",
    "to": "tools/hosts/panel_window_sizes.py",
    "label": "apply_hart_package_local.ps1 runs (panel window sizes)"
   },

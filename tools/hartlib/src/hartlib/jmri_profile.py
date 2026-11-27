@@ -12,13 +12,15 @@ panel in the tables is read, so a new panel needs no change here. A panel with n
 opens it at the tables' size anyway). Only the width and height attributes are edited, so the rest of the file stays
 as JMRI wrote it. JMRI rewrites the file when a window moves and when it quits: edit it with JMRI closed.
 
-The deploy ships this module to the hosts with errors.py and __init__.py only (tools/hosts/deploy/stage.sh), where
-there is no checkout for hartlib.paths to find, so it imports nothing else from hartlib and reads tables.xml with
-ElementTree directly. The command lines are cats/scripts/patch_jmri_startup.py and tools/hosts/panel_window_sizes.py.
+The deploy ships this module to the hosts with errors.py, files.py and __init__.py only (HARTLIB_HOST_MODULES in
+tools/hosts/deploy/common.sh), where there is no checkout for hartlib.paths to find, so it imports nothing else from
+hartlib (files.py imports only errors.py) and reads tables.xml with ElementTree directly. The command lines are
+cats/scripts/patch_jmri_startup.py and tools/hosts/panel_window_sizes.py.
 """
 from __future__ import annotations
 
 import html
+import math
 import re
 import shutil
 import time
@@ -27,10 +29,12 @@ from pathlib import Path
 from typing import NamedTuple
 
 from .errors import HartlibError
+from .files import write_atomic
 
 PANEL_WINDOW_PREFIX = "jmri.jmrit.display.layoutEditor.LayoutEditor:"
 _WINDOW = re.compile(r'<window\b[^>]*\bclass="' + re.escape(PANEL_WINDOW_PREFIX) + r'(?P<name>[^"]*)"[^>]*>')
 BACKUP_STAMP = "%Y%m%d-%H%M%S"
+BACKUPS_KEPT = 5    # write_user_interface keeps this many <name>.hart-<stamp>.bak copies beside the file
 
 
 class StartupPatchError(HartlibError, ValueError):
@@ -69,6 +73,8 @@ def _script_basename(path: str) -> str:
 def insert_after(profile: Path, script_path: str, after: str) -> str:
     """Add a Start Up entry running `script_path` after the entry naming `after`: "inserted", or "already" when the
     profile names the script."""
+    if not after:
+        raise StartupPatchError(f"{profile}: no Start Up entry given to insert {script_path} after")
     txt = profile.read_text(encoding="utf-8")
     needle = _script_basename(script_path)
     if needle in txt:
@@ -188,10 +194,22 @@ def panel_sizes(tables_path: Path) -> dict[str, tuple[str, str]]:
         width, height = panel.get("windowwidth"), panel.get("windowheight")
         if not name or not width or not height:
             raise WindowSizesError(f"{tables_path}: Layout Editor panel {name or '(no name)'} has no window size")
+        for attr, value in (("windowwidth", width), ("windowheight", height)):
+            if not _is_size(value):
+                raise WindowSizesError(f"{tables_path}: Layout Editor panel {name} has {attr}={value!r}, not a size")
         out[name] = (width, height)
     if not out:
         raise WindowSizesError(f"{tables_path}: no Layout Editor panel")
     return out
+
+
+def _is_size(value: str) -> bool:
+    """True when `value` is a positive finite number, as a window size must be."""
+    try:
+        number = float(value)
+    except ValueError:
+        return False
+    return math.isfinite(number) and number > 0
 
 
 def read_user_interface(path: Path) -> str:
@@ -245,9 +263,16 @@ def saved_windows(text: str) -> list[str]:
     return [html.unescape(m.group("name")) for m in _WINDOW.finditer(text)]
 
 
+def backups(path: Path) -> list[Path]:
+    """The <path>.hart-<stamp>.bak copies beside `path`, oldest first (the stamp sorts by time)."""
+    pattern = re.compile(re.escape(path.name) + r"\.hart-\d{8}-\d{6}\.bak")
+    return sorted(p for p in path.parent.iterdir() if pattern.fullmatch(p.name))
+
+
 def write_user_interface(path: Path, text: str, *, backup: bool = False) -> Path | None:
-    """Write `text` to `path`. With `backup`, first copy the file there to <path>.hart-<stamp>.bak beside it and
-    return that copy's path; None without."""
+    """Write `text` to `path` through a temporary file (hartlib.files.write_atomic), so JMRI never reads half a file.
+    With `backup`, first copy the file there to <path>.hart-<stamp>.bak beside it, keep the newest BACKUPS_KEPT of
+    those copies, and return the new copy's path; None without."""
     copy = None
     if backup:
         copy = path.with_name(f"{path.name}.hart-{time.strftime(BACKUP_STAMP)}.bak")
@@ -255,8 +280,13 @@ def write_user_interface(path: Path, text: str, *, backup: bool = False) -> Path
             shutil.copy2(path, copy)
         except OSError as exc:
             raise WindowSizesError(f"cannot back up {path} to {copy}: {exc}") from exc
+        try:
+            for old in backups(path)[:-BACKUPS_KEPT]:
+                old.unlink()
+        except OSError as exc:
+            raise WindowSizesError(f"cannot remove old backups of {path} (kept {copy}): {exc}") from exc
     try:
-        path.write_text(text, encoding="utf-8")
+        write_atomic(path, text)
     except OSError as exc:
         raise WindowSizesError(f"cannot write {path}: {exc}") from exc
     return copy

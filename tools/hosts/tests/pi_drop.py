@@ -8,6 +8,8 @@ install_ops_files.sh and install_roster.sh in the drop only log their call: thei
 from __future__ import annotations
 
 import os
+import re
+import shlex
 import shutil
 import subprocess
 import tempfile
@@ -20,8 +22,19 @@ ROOT = Path(__file__).resolve().parents[3]
 APPLY = ROOT / "tools/hosts/pi/apply_hart_package_local.sh"
 PATCH = ROOT / "cats/scripts/patch_jmri_startup.py"
 WINDOW_SIZES = ROOT / "tools/hosts/panel_window_sizes.py"
-# The hartlib modules the package carries for the two profile scripts (HARTLIB_HOST_MODULES, deploy/common.sh).
-HARTLIB_HOST_MODULES = ("__init__.py", "errors.py", "jmri_profile.py")
+COMMON_SH = ROOT / "tools/hosts/deploy/common.sh"
+
+
+def common_sh_array(name: str) -> tuple[str, ...]:
+    """The words of the one-line bash array `name=(...)` in tools/hosts/deploy/common.sh, the list stage.sh ships."""
+    found = re.findall(rf"^{re.escape(name)}=\(([^)]*)\)$", COMMON_SH.read_text(encoding="utf-8"), re.MULTILINE)
+    if len(found) != 1:
+        raise ValueError(f"{COMMON_SH}: expected one line {name}=(...), found {len(found)}")
+    return tuple(shlex.split(found[0]))
+
+
+# The hartlib modules the package carries for the two profile scripts.
+HARTLIB_HOST_MODULES = common_sh_array("HARTLIB_HOST_MODULES")
 # The Pi's JMRI profile, as the apply step names it under $HOME.
 PROFILE = Path(".jmri/TCS_MQTT.jmri/profile/profile.xml")
 NETWORK = ("ssh", "scp", "sudo", "systemctl", "loginctl")

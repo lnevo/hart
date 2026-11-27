@@ -105,6 +105,14 @@ class PanelWindowSizes(unittest.TestCase):
         self.assertTrue(any(line.startswith("HART Railroad: ") for line in lines) or
                         "every saved panel window already has the tables' size" in lines, lines)
 
+    def test_a_non_numeric_size_exits_2(self):
+        t, u = self.files()
+        t.write_text('<layout-config><LayoutEditor name="P" windowwidth="wide" windowheight="400"/></layout-config>')
+        before = u.read_text()
+        self.assertEqual(self.run_main(str(u), "--tables", str(t))[0], 2)
+        self.assertIn("not a size", self.err)
+        self.assertEqual(u.read_text(), before)
+
 
 if __name__ == "__main__":
     unittest.main()
