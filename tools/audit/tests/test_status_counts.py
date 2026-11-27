@@ -46,15 +46,15 @@ class StatusCounts(unittest.TestCase):
             c = sc.counts(d / "t.xml", d / "ti")
         # the fixture has no CTC data: the USS CTC machine counts as parked while it is (hartlib.parked)
         uss = frozenset({"uss"}) & sc.parked.PARKED
-        self.assertEqual(c, {"masts": 3, "real": 2, "virtual": 1, "sections": 1, "transits": 2,
-                             "nx": 2, "sml": 1, "dest": 2, "traininfo": 2, "parked": uss})
+        self.assertEqual(c, sc.Counts(masts=3, real=2, virtual=1, sections=1, transits=2,
+                                      nx=2, sml=1, dest=2, traininfo=2, parked=uss))
         self.assertEqual(sc.line(c), "- **Counts:** 3 masts (2 real, 1 virtual), 1 sections, 2 transits, "
                          "2 NX pairs, 1 SML sources with 2 destinations, 2 traininfo files"
                          + (", USS CTC machine parked." if uss else "."))
 
     def test_line_names_what_is_parked(self):
-        c = {"masts": 3, "real": 2, "virtual": 1, "sections": 0, "transits": 0, "nx": 0, "sml": 1, "dest": 2,
-             "traininfo": 2, "parked": frozenset({"nx", "dispatcher", "uss"})}
+        c = sc.Counts(masts=3, real=2, virtual=1, sections=0, transits=0, nx=0, sml=1, dest=2,
+                      traininfo=2, parked=frozenset({"nx", "dispatcher", "uss"}))
         self.assertEqual(sc.line(c), "- **Counts:** 3 masts (2 real, 1 virtual), sections and transits parked, "
                          "NX pairs parked, 1 SML sources with 2 destinations, 2 traininfo files kept in the repo, "
                          "USS CTC machine parked.")
@@ -142,6 +142,24 @@ class Build(unittest.TestCase):
         _text, problems = self.build({"current/a.md": "order: 10\n**A:** one\n"})
         self.assertEqual(1, len(problems), problems)
         self.assertIn("needs one file whose text is", problems[0])
+
+    def test_read_entry_keeps_an_entry_that_breaks_only_a_text_rule(self):
+        with tempfile.TemporaryDirectory() as d:
+            d = Path(d)
+            (d / "dash.md").write_text("order: 30\n- **D:** x\n")
+            (d / "bad.md").write_text("**N:** none\n")
+            (d / "counts.md").write_text("order: 5\n" + sc.COUNTS_TOKEN + "\n")
+            problems: list[str] = []
+            self.assertEqual(sc.Entry("now", d / "dash.md", "- **D:** x", 30), sc.read_entry("now", d / "dash.md", problems))
+            self.assertIsNone(sc.read_entry("now", d / "bad.md", problems))
+            self.assertIsNone(sc.read_entry("now", d / "counts.md", problems))
+            self.assertEqual(sc.Entry("current", d / "counts.md", sc.COUNTS_TOKEN, 5),
+                             sc.read_entry("current", d / "counts.md", problems))
+        want = ["wiki/status/now/dash.md: the file holds", "wiki/status/now/bad.md: an entry opens",
+                "wiki/status/now/counts.md: the Counts line stands in current/ only"]
+        self.assertEqual(len(want), len(problems), problems)
+        for p, w in zip(problems, want):
+            self.assertTrue(p.startswith(w), (w, p))
 
     def test_two_files_for_one_entry_are_found(self):
         _text, problems = self.build({**COUNTS_FILE, "current/a.md": "order: 10\n**Same:** one\n",

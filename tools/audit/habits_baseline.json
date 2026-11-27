@@ -139,9 +139,6 @@
  "tools/audit/tests/test_write_inventory.py": {
   "dated-note": 1
  },
- "tools/ci/docs_unit_tests.py": {
-  "dated-note": 1
- },
  "tools/ci/stamp_gate.py": {
   "import-exit": 1
  },
