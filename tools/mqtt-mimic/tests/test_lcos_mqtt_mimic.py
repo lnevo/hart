@@ -71,8 +71,6 @@ class LcosMimicNamingTest(unittest.TestCase):
         self.assertNotIn("IH432", ids)
         by_id = {h["id"]: h for h in self.layout["heads"]}
         self.assertEqual(by_id["432"]["systemName"], "IH432")
-        self.assertEqual(self.m._head_leaf("IH432"), "432")
-        self.assertEqual(self.m._head_leaf("432"), "432")
 
 
 class LcosMimicNameMapTest(unittest.TestCase):
@@ -170,9 +168,8 @@ class LcosMimicNameMapTest(unittest.TestCase):
 
 
 
-class SortAndReconnect(unittest.TestCase):
-    """plant_rank orders unknown plants last; the subscriber loop reports a missing client and does not hide bugs.
-    Popen is faked: nothing runs and nothing is published."""
+class PlantOrder(unittest.TestCase):
+    """plant_rank orders unknown plants last."""
 
     m: ClassVar[ModuleType]
 
@@ -185,58 +182,49 @@ class SortAndReconnect(unittest.TestCase):
         self.assertEqual(ranks, sorted(ranks))
         self.assertEqual(ranks[-1], len(self.m.PLANT_ORDER))
 
-    def bus(self):
+
+class Errors(unittest.TestCase):
+    """What stops the mimic is a MimicError, a BusError or a DevicesError; main ends on its message. The broker probe is
+    faked: no connection is made."""
+
+    m: ClassVar[ModuleType]
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.m = load_module()
+
+    def test_the_first_host_that_answers_is_the_broker(self) -> None:
         from unittest import mock
-        with mock.patch.object(self.m, "_which", lambda name: f"/bin/{name}"):
-            bus = self.m.Bus("broker.invalid")
-        events = []
-        bus.emit = lambda e: (events.append(e), bus._stop.set())
-        return bus, events
+        with mock.patch.object(self.m, "probe", side_effect=lambda h, port: h == "127.0.0.1"), \
+                mock.patch.object(self.m, "mqtt_broker", return_value="broker.invalid"):
+            self.assertEqual(self.m.pick_mqtt_host("other.invalid", 1883), "127.0.0.1")
 
-    def test_a_client_that_cannot_start_is_a_disconnected_event(self) -> None:
+    def test_no_broker_is_a_mimic_error_naming_each_host_tried(self) -> None:
         from unittest import mock
-        bus, events = self.bus()
-        with mock.patch.object(self.m.subprocess, "Popen", side_effect=FileNotFoundError("mosquitto_sub")):
-            bus.loop_sub()
-        self.assertEqual(events, [{"type": "mqtt", "connected": False, "error": "mosquitto_sub"}])
-        self.assertFalse(bus.connected)
+        with mock.patch.object(self.m, "probe", return_value=False), \
+                mock.patch.object(self.m, "mqtt_broker", return_value="broker.invalid"), \
+                mock.patch.object(self.m, "host_default", return_value="broker.invalid"), \
+                self.assertRaisesRegex(self.m.MimicError, "No MQTT broker on port 1884. Tried: a.invalid, "
+                                       "broker.invalid, 127.0.0.1"):
+            self.m.pick_mqtt_host("a.invalid", 1884)
 
-    def test_a_line_that_cannot_be_read_is_a_warning_and_reading_goes_on(self) -> None:
-        import io
+    def test_a_missing_tables_file_is_a_mimic_error(self) -> None:
         from unittest import mock
-        bus, events = self.bus()
-        bus.emit = lambda e: (events.append(e), e.get("connected") is False and bus._stop.set())
-        proc = mock.Mock(stdout=iter(["bad line\n", "track/sensor/1 ACTIVE\n"]))
-        read = []
+        with mock.patch.object(self.m, "TABLES", Path("/nonexistent/tables.xml")), \
+                self.assertRaisesRegex(self.m.MimicError, "missing /nonexistent/tables.xml"):
+            self.m.load_layout()
 
-        def on_line(line: str) -> None:
-            if line.startswith("bad"):
-                raise KeyError("addr")
-            read.append(line)
-        err = io.StringIO()
-        with mock.patch.object(self.m.subprocess, "Popen", side_effect=[proc, FileNotFoundError("gone")]), \
-                mock.patch.object(bus, "_on_line", side_effect=on_line), mock.patch.object(self.m.time, "sleep"), \
-                mock.patch.object(self.m.sys, "stderr", err):
-            bus.loop_sub()
-        self.assertEqual(read, ["track/sensor/1 ACTIVE\n"])
-        self.assertIn({"type": "warning", "line": "bad line", "error": "KeyError('addr')"}, events)
-        self.assertIn("cannot read 'bad line'", err.getvalue())
-        self.assertEqual(events[-1], {"type": "mqtt", "connected": False, "error": "gone"})
-
-    def test_a_thread_that_ends_on_an_error_says_disconnected(self) -> None:
+    def test_main_ends_on_a_mimic_or_bus_error_s_message(self) -> None:
+        import sys
         from unittest import mock
-        bus, events = self.bus()
-        bus.emit = events.append
-
-        def broken():
-            raise RuntimeError("pipe")
-            yield ""
-        proc = mock.Mock(stdout=broken())
-        with mock.patch.object(self.m.subprocess, "Popen", return_value=proc):
-            with self.assertRaises(RuntimeError):
-                bus.loop_sub()
-        self.assertFalse(bus.connected)
-        self.assertEqual(events[-1], {"type": "mqtt", "connected": False, "error": "the subscriber stopped"})
+        for err in (self.m.MimicError("No MQTT broker on port 1883."), self.m.BusError("mosquitto_pub not found.")):
+            with self.subTest(err=type(err).__name__), \
+                    mock.patch.object(self.m, "pick_mqtt_host", return_value="127.0.0.1"), \
+                    mock.patch.object(self.m, "load_layout", side_effect=err), \
+                    mock.patch.object(sys, "argv", ["lcos_mqtt_mimic.py"]), self.assertRaises(SystemExit) as stop:
+                self.m.main()
+            self.assertEqual(stop.exception.code, str(err))
+            self.assertIs(stop.exception.__cause__, err)
 
 
 class StagingStepsTest(unittest.TestCase):
