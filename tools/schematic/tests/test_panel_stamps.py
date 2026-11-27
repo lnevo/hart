@@ -54,7 +54,7 @@ class DeclarationTest(unittest.TestCase):
             self.assertTrue((REPO / f).is_file(), f)
 
     def test_the_coordinator_and_its_modules_are_code_of_every_step(self) -> None:
-        # le_names.lcos_rule runs the LCOS head rule read from these files (hartlib.coordinator)
+        # le_names.lcos_rule imports sml_lcos.py, one of these files (hartlib.coordinator.lcos_rule)
         sys.path.insert(0, str(REPO / "tools/hartlib/src"))
         from hartlib import coordinator
         for path in coordinator.files():

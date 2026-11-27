@@ -21,7 +21,7 @@ class Coordinator(unittest.TestCase):
 
     def test_the_real_script(self) -> None:
         names = coordinator.sibling_modules()
-        self.assertEqual(names[0], "sml_beans")              # everything else imports it
+        self.assertEqual(names[:2], ("sml_lcos", "sml_beans"))   # sml_beans imports sml_lcos; the rest, both
         got = coordinator.files()
         self.assertEqual(got[0], coordinator.SCRIPT)
         self.assertEqual([p.stem for p in got[1:]], list(names))
@@ -95,6 +95,56 @@ class Coordinator(unittest.TestCase):
         path.rename(other)
         with self.assertRaisesRegex(coordinator.CoordinatorError, "not a script with parts"):
             coordinator.sibling_modules(other)
+
+
+class LcosRule(unittest.TestCase):
+    """coordinator.lcos_rule: signal_coordinator.py's sml_lcos.py, imported in CPython."""
+
+    def setUp(self) -> None:
+        saved = sys.modules.pop(coordinator._LCOS_MODULE, None)
+        if saved is not None:
+            self.addCleanup(sys.modules.__setitem__, coordinator._LCOS_MODULE, saved)
+
+    def module(self, body: str) -> Path:
+        holder = tempfile.TemporaryDirectory()
+        self.addCleanup(holder.cleanup)
+        path = Path(holder.name) / "sml_lcos.py"
+        path.write_text(body, encoding="utf-8")
+        return path
+
+    def test_the_real_module(self) -> None:
+        self.assertEqual(coordinator.LCOS_RULE.name, "sml_lcos.py")
+        self.assertIn(coordinator.LCOS_RULE.stem, coordinator.sibling_modules())
+        rule = coordinator.lcos_rule()
+        self.assertEqual([rule.is_head(n) for n in ("IH3332", "IH3347", "IH3331", "IH3348", "IH832", "IH", None)],
+                         [True, True, False, False, False, False, False])
+        self.assertEqual(rule.in_mast.findall("IF$shsm:basic:one-low(IH3332)(IH:HART:1)"), ["(IH3332)"])
+        self.assertIn(coordinator._LCOS_MODULE, sys.modules)
+        self.assertNotIn(coordinator._LCOS_MODULE, coordinator.sibling_modules())
+
+    def test_missing_file(self) -> None:
+        with self.assertRaisesRegex(coordinator.CoordinatorError, "missing"):
+            coordinator.lcos_rule(Path(tempfile.gettempdir()) / "no-such-dir" / "sml_lcos.py")
+
+    def test_a_module_that_does_not_import(self) -> None:
+        # not "import jmri": other suites in one discover run leave a fake jmri in sys.modules
+        with self.assertRaisesRegex(coordinator.CoordinatorError, "does not import: .*hart_no_such_module"):
+            coordinator.lcos_rule(self.module("import hart_no_such_module\n"))
+        self.assertNotIn(coordinator._LCOS_MODULE, sys.modules)
+
+    def test_a_module_without_the_rule(self) -> None:
+        for body in ("import re\n_HEAD_IN_MAST = re.compile('x')\n",
+                     "_HEAD_IN_MAST = 'x'\ndef _is_lcos_ih_sys(n):\n    return False\n"):
+            with self.subTest(body=body), self.assertRaisesRegex(coordinator.CoordinatorError, "no longer defines"):
+                coordinator.lcos_rule(self.module(body))
+            self.assertNotIn(coordinator._LCOS_MODULE, sys.modules)
+
+    def test_a_failed_load_keeps_the_good_one(self) -> None:
+        coordinator.lcos_rule()
+        good = sys.modules[coordinator._LCOS_MODULE]
+        with self.assertRaises(coordinator.CoordinatorError):
+            coordinator.lcos_rule(self.module("import hart_no_such_module\n"))
+        self.assertIs(sys.modules[coordinator._LCOS_MODULE], good)
 
 
 if __name__ == "__main__":

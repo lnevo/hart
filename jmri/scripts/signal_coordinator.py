@@ -73,6 +73,7 @@ from jmri.jmrix.mqtt import MqttEventListener
 # each on a re-run. The deploy ships each one beside it
 # (tools/hosts/tests/test_coordinator_shipping.py holds every host's list to this tuple).
 SIBLING_MODULES = (
+    "sml_lcos",
     "sml_beans",
     "sml_quit",
     "sml_ui",
