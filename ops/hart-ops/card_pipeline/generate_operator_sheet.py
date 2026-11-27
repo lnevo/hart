@@ -24,6 +24,10 @@ from docx.table import Table, _Cell, _Row
 from docx.text.paragraph import Paragraph
 
 import generate_waybill_cards as gw
+import hartlib_path  # noqa: E402
+
+hartlib_path.ensure_on_path()
+from hartlib import operations  # noqa: E402
 import car_paths  # noqa: E402  (loaded by generate_waybill_cards)
 import car_repo  # noqa: E402
 import waybill_data as wdata  # noqa: E402
@@ -34,6 +38,7 @@ from hart_ooxml import shade_cell
 from operator_sheet_data import (
     INDUSTRY_LOGOS,
     INDUSTRY_SUMMARIES,
+    SHEET_INDUSTRY_IDS,
     SHEET_INDUSTRY_ORDER,
     SHENANGO_TRACK_ROWS,
     YARD_PAGES,
@@ -99,20 +104,11 @@ COLOR_PANEL = "FAFAFA"
 TABLE_COLS_IN = (0.32, 0.88, 0.82, 0.95, 0.95)
 TABLE_COLS_TRACK = (1.05, 0.55, 1.15, 1.15)  # Track, Cars, In, Out (no spots)
 
-USAGE_LABELS: dict[str, str] = {
-    "pellet unload": "Pellet Unloading",
-    "chemical unload": "Chemical Unloading",
-    "shipping door": "Shipping",
-    "coal unload": "Coal Unloading",
-    "carbon load": "Carbon Loading",
-    "cement unload": "Cement Unloading",
-    "aggregate unload": "Aggregate Unloading",
-    "lpg unload": "LPG Unloading",
-    "crane track": "Steel Unloading",
-    "team track": "Team Track",
-    "off spot": "Off Spot",
-    "storage": "Storage",
-}
+# The label the sheet prints for each spot usage: ops/hart-ops/data/spot_usages.csv (hartlib.operations).
+USAGE_LABELS: dict[str, str] = operations.read_spot_usages()
+# The coke works has track tables, not numbered spots: its page is built from SHENANGO_TRACK_ROWS (by industry_id, so
+# a new sheet_name in industry_sheet.csv keeps the page).
+SHENANGO = "shenango"
 
 # Spur colour names from layout `spurs` (STS location colour names) → the accent band and the text colour. The
 # accent is the crew master's fill for the colours it has (mediumblue is its blue); lightblue and lightgrey are
@@ -448,7 +444,7 @@ def _add_industry_section(
     for i, line in enumerate(summary_lines):
         _add_body_paragraph(doc, line, keep=i < len(summary_lines) - 1)
 
-    if industry == "Shenango Coke Works":
+    if SHEET_INDUSTRY_IDS.get(industry) == SHENANGO:
         _add_section_label(doc, "Tracks")
         _add_track_table(doc, SHENANGO_TRACK_ROWS, style["accent"])
         note = doc.add_paragraph()
@@ -588,8 +584,8 @@ def generate(output: Path = OUTPUT, spur_file: Path = SPUR_FILE) -> int:
     page_count = 0
 
     for industry in ordered:
-        rows = [] if industry == "Shenango Coke Works" else by_industry.get(industry, [])
-        if rows or industry == "Shenango Coke Works":
+        rows = [] if SHEET_INDUSTRY_IDS.get(industry) == SHENANGO else by_industry.get(industry, [])
+        if rows or SHEET_INDUSTRY_IDS.get(industry) == SHENANGO:
             style = _style_for(styles, industry, spur_file)
             _add_industry_section(doc, industry, rows, style, page_break=page_count > 0)
             page_count += 1

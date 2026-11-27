@@ -31,10 +31,10 @@ class FakeApiError(RuntimeError):
 class FakeApi:
     ApiError = FakeApiError
 
-    def __init__(self, remarks="Flatcar 50ft", backup_fails=False, stale_readback=False, envelope=False):
+    def __init__(self, backups, remarks="Flatcar 50ft", backup_fails=False, stale_readback=False, envelope=False):
         self.car = {"id": 11, "reporting_marks": "NW2", "remarks": remarks, "position": 5, "status": "Loaded"}
         self.backup_fails, self.stale_readback, self.envelope = backup_fails, stale_readback, envelope
-        self.backups = Path(tempfile.mkdtemp())
+        self.backups = backups
         self.timeout_on_patch = False
         self.calls = []
 
@@ -65,11 +65,14 @@ class FakeApi:
 
 class SyncTests(unittest.TestCase):
     def setUp(self):
-        self.tmp = Path(tempfile.mkdtemp())
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.tmp = Path(tmp.name)
         self.ops = self.tmp / "ops.xml"
         self.ops.write_text(OPS_OLD)
         self.gen = types.SimpleNamespace(PASSENGER_TYPES=set())
-        self.api = FakeApi()
+        (self.tmp / "backups").mkdir()
+        self.api = FakeApi(self.tmp / "backups")
         self.stack = contextlib.ExitStack()
         self.addCleanup(self.stack.close)
         env = self.stack.enter_context(unittest.mock.patch.dict(os.environ, {}))

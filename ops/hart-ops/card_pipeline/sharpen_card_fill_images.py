@@ -10,8 +10,9 @@ Both folders sit under HART_CAR_CARDS_ROOT (car_paths). The originals are not ch
 
 from __future__ import annotations
 
-import sys
+import argparse
 from pathlib import Path
+from typing import NamedTuple
 
 from PIL import Image, ImageEnhance, ImageFilter
 
@@ -20,15 +21,26 @@ import car_paths
 BRIGHTNESS = 1.14
 CONTRAST = 1.04
 SHARPNESS = 1.12
-UNSHARP = dict(radius=0.9, percent=115, threshold=2)
+
+
+class Unsharp(NamedTuple):
+    """The unsharp mask applied last (PIL ImageFilter.UnsharpMask arguments)."""
+
+    radius: float
+    percent: int
+    threshold: int
+
+
+UNSHARP = Unsharp(radius=0.9, percent=115, threshold=2)
 
 
 def sharpen_for_print(img: Image.Image) -> Image.Image:
+    """An RGB copy of ``img``, brightened, given more contrast and sharpened for printing."""
     rgb = img.convert("RGB")
     rgb = ImageEnhance.Brightness(rgb).enhance(BRIGHTNESS)
     rgb = ImageEnhance.Contrast(rgb).enhance(CONTRAST)
     rgb = ImageEnhance.Sharpness(rgb).enhance(SHARPNESS)
-    return rgb.filter(ImageFilter.UnsharpMask(**UNSHARP))
+    return rgb.filter(ImageFilter.UnsharpMask(*UNSHARP))
 
 
 def _folders(src_dir: Path | None, out_dir: Path | None) -> tuple[Path, Path]:
@@ -47,7 +59,8 @@ def sharpen_one(stem: str, src_dir: Path | None = None, out_dir: Path | None = N
         return False
     out_dir.mkdir(parents=True, exist_ok=True)
     out = out_dir / src.name
-    sharpen_for_print(Image.open(src)).save(out)
+    with Image.open(src) as img:
+        sharpen_for_print(img).save(out)
     if verbose:
         print(f"{src.name}: {src.stat().st_size // 1024}KB -> {out.stat().st_size // 1024}KB")
     return True
@@ -65,10 +78,18 @@ def sharpen_all(src_dir: Path | None = None, out_dir: Path | None = None, verbos
     return 0
 
 
+def _parser() -> argparse.ArgumentParser:
+    ap = argparse.ArgumentParser(description="Print-ready sharpened copies of the card-fill images.")
+    group = ap.add_mutually_exclusive_group()
+    group.add_argument("image", nargs="?", help="one image, by stem or file name (IMG_1234 or IMG_1234.png)")
+    group.add_argument("--all", action="store_true", help="every IMG_*.png in the card-fill folder (the default)")
+    return ap
+
+
 def main(argv: list[str] | None = None, src_dir: Path | None = None, out_dir: Path | None = None) -> int:
-    args = sys.argv[1:] if argv is None else argv
-    if args and args[0] != "--all":
-        return 0 if sharpen_one(Path(args[0]).stem, src_dir, out_dir) else 1
+    args = _parser().parse_args(argv)
+    if args.image:
+        return 0 if sharpen_one(Path(args.image).stem, src_dir, out_dir) else 1
     return sharpen_all(src_dir, out_dir)
 
 

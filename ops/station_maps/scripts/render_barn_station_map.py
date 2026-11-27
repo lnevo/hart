@@ -192,12 +192,16 @@ def _write_docx(png: Path, dest: Path) -> None:
     sheet_kit.write_sheet_docx(DOCX_TEMPLATE, png, dest,
                                media_names=("station_map_west_yard.png", "station_map_barn.png"),
                                title="Neville Island Station Map — Barn")
+    print(f"wrote {dest}")
 
 
 def main() -> None:
     render(OUT_CATS)
     if HOPS.is_dir():
-        _write_docx(OUT_CATS, ROOT / "docs/ops" / DOCX_NAME)
+        try:
+            _write_docx(OUT_CATS, ROOT / "docs/ops" / DOCX_NAME)
+        except sheet_kit.SheetTemplateMissing as exc:
+            raise SystemExit(f"render_barn_station_map: {exc}") from exc
 
 
 if __name__ == "__main__":

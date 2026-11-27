@@ -65,6 +65,21 @@ class Draw(unittest.TestCase):
         self.assertEqual([p[0] for p in parts], ["Track S-1", "Track S-2", "Track S-3", "Track S-4"])
         self.assertEqual(len(parts[1][1]), 2)
 
+    def test_an_industry_colour_missing_from_the_crew_master_names_the_track(self):
+        import crew_master
+        master = crew_master.load()
+        master = dict(master, colors=[c for c in master["colors"] if c["id"] != "pink"])
+        with self.assertRaisesRegex(full.FullMapError, "Track S-3: colour pink"):
+            full._industry_parts(master)
+
+    def test_brick_lead_off_the_west_lead_row_is_refused(self):
+        from unittest import mock
+        from PIL import ImageDraw, Image
+        pen = full._Pen(ImageDraw.Draw(Image.new("RGB", (10, 10))), None)
+        with mock.patch.object(full, "VERT", full.VERT + 1):
+            with self.assertRaisesRegex(full.FullMapError, "not on the West Lead row"):
+                full._draw_west_yard(pen, full.anchors())
+
     def test_ladder_x_interpolates_between_its_ends(self):
         ladder = full._Ladder((0.0, 0.0), (10.0, 100.0))
         self.assertEqual(ladder.x_at(50.0), 5.0)
