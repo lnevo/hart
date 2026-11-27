@@ -209,9 +209,6 @@
  "tools/hosts/tests/test_deploy_gates.py": {
   "dated-note": 1
  },
- "tools/hosts/tests/test_package_contents.py": {
-  "dated-note": 1
- },
  "tools/jmri/mqtt_overlay/install_overlay.py": {
   "import-exit": 1
  },
@@ -225,11 +222,8 @@
  "tools/schematic/block_layer.py": {
   "dated-note": 3
  },
- "tools/schematic/build_cats_panel.py": {
-  "dated-note": 3
- },
  "tools/schematic/build_device_map.py": {
-  "dated-note": 8
+  "dated-note": 3
  },
  "tools/schematic/build_staging_sets.py": {
   "dated-note": 2
