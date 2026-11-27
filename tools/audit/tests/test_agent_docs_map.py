@@ -279,5 +279,70 @@ class CoverageTest(unittest.TestCase):
         self.assertEqual(COV.agent_doc_gaps(GEN.glob_files(), paths, "g"), [])
 
 
+
+# ---- the subagents' front matter
+
+AGENTS = ROOT / ".claude/agents"
+GUARD = '"$CLAUDE_PROJECT_DIR/.claude/hooks/subagent_guard.py"'
+# The guard's hook entry as every agent writes it (Claude Code reads it as YAML; the lines are compared as text).
+GUARD_BLOCK = ("hooks:", "  PreToolUse:", "    - matcher: Bash", "      hooks:", "        - type: command",
+               f"          command: {GUARD}")
+FRONT_MATTER = re.compile(r"\A---\n(?P<body>.*?)\n---\n", re.S)
+
+
+def front_matter(path: Path) -> list[str]:
+    m = FRONT_MATTER.match(path.read_text(encoding="utf-8"))
+    if m is None:
+        raise AssertionError(f"{path.name}: no front matter between --- lines at the top")
+    return m.group("body").splitlines()
+
+
+def field(lines: list[str], key: str) -> str | None:
+    for line in lines:
+        if line.startswith(f"{key}:"):
+            return line.partition(":")[2].strip()
+    return None
+
+
+class AgentFrontMatter(unittest.TestCase):
+    """The subagents' front matter (.claude/agents/*.md): each one wires the Bash guard and cannot start agents, and
+    one that may edit runs in a worktree. A change to these files alone is docs (tools/ci/changed_kind.py
+    CLAUDE_DOCS), so the docs path runs this class (check_stamps.DOCS_K)."""
+
+    def setUp(self) -> None:
+        self.files = sorted(AGENTS.glob("*.md"))
+        self.assertTrue(self.files, f"no agents in {AGENTS}")
+
+    def test_each_agent_wires_the_guard(self) -> None:
+        for path in self.files:
+            with self.subTest(path.name):
+                lines = front_matter(path)
+                start = lines.index("hooks:") if "hooks:" in lines else -1
+                self.assertEqual(GUARD_BLOCK, tuple(lines[start:start + len(GUARD_BLOCK)]) if start >= 0 else (),
+                                 "the PreToolUse Bash hook to subagent_guard.py")
+
+    def test_each_agent_is_named_after_its_file_and_starts_no_agents(self) -> None:
+        for path in self.files:
+            with self.subTest(path.name):
+                lines = front_matter(path)
+                self.assertEqual(path.stem, field(lines, "name"))
+                tools = {t.strip() for t in (field(lines, "disallowedTools") or "").split(",")}
+                self.assertLessEqual({"Agent", "Workflow"}, tools)
+
+    def test_an_agent_that_may_edit_runs_in_a_worktree(self) -> None:
+        for path in self.files:
+            with self.subTest(path.name):
+                lines = front_matter(path)
+                tools = {t.strip() for t in (field(lines, "disallowedTools") or "").split(",")}
+                if not {"Edit", "Write"} <= tools:
+                    self.assertEqual("worktree", field(lines, "isolation"))
+
+    def test_the_rules_fail_on_a_dropped_guard(self) -> None:
+        lines = ["name: x", "disallowedTools: Agent, Workflow", *GUARD_BLOCK[:-1]]
+        start = lines.index("hooks:")
+        self.assertNotEqual(GUARD_BLOCK, tuple(lines[start:start + len(GUARD_BLOCK)]))
+        self.assertIsNone(field(lines, "isolation"))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -35,18 +35,16 @@ if [[ ! -f "$PANEL" ]]; then
 fi
 PANEL="$(cd "$(dirname "$PANEL")" && pwd)/$(basename "$PANEL")"
 
-jmri_already_running() {
-  # Match the JVM only — not this script, ssh, or grep command lines.
-  pgrep -u "$(id -u)" -f 'java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.gui3\.dp3\.DecoderPro3|apps\.DecoderPro|apps\.DispatcherPro)' >/dev/null 2>&1
-}
-
-if [[ "${CATS_FORCE_LAUNCH:-}" != "1" ]] && jmri_already_running; then
+# A JMRI or CATS JVM of this user (not this script, ssh or grep). The Pi runs this file without the repo, so the
+# pattern is a copy of hartlib.tables._JMRI_PROCESS; cats/scripts/tests/test_launch_cats.py holds it to that.
+JMRI_PROCESS='java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.gui3\.dp3\.DecoderPro3|apps\.DecoderPro|apps\.DispatcherPro)'
+if [[ "${CATS_FORCE_LAUNCH:-}" != "1" ]] && pgrep -u "$(id -u)" -f "$JMRI_PROCESS" >/dev/null 2>&1; then
   alert "PanelPro or CATS is already running on this Pi.
 
 Quit PanelPro first (use it only to edit/store JMRI tables), then click CATS again.
 
-Do not run both at once — they share profile TCS_MQTT and the MQTT client id."
-  pgrep -lf 'java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.gui3\.dp3\.DecoderPro3|apps\.DecoderPro|apps\.DispatcherPro)' | head -5 >&2 || true
+Do not run both at once — they share profile ${JMRI_PROFILE%%.*} and the MQTT client id."
+  pgrep -lf "$JMRI_PROCESS" | head -5 >&2 || true
   exit 1
 fi
 
