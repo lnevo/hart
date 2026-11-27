@@ -67,6 +67,17 @@ Report: PR URL, files changed, checks and where they ran, what was skipped, fail
   left or not checked.
 ```
 
+Traps every code brief names (waves 1 and 2):
+- A dataclass in a module loaded by path without `sys.modules` fails: use a NamedTuple or TypedDict, or register the module.
+- Tests that read source text break when code moves: test behaviour.
+- Tests name layout data files through the hartlib constants, never literally.
+- When code changes from SystemExit to a named error, update every test that asserts SystemExit (grep every test folder).
+- A `checks.toml` `quiet_inputs` list keeps the order `test_manifest_scans` expects.
+- The Windows box's venv does not follow `requirements.txt` by itself; a new package is installed there by hand.
+- A new worktree may need `git submodule update --init`.
+- Run a test that reads the private AnyRail plan once with `ANYRAIL_PLAN` set to a missing path before the push; it must skip, not fail.
+- Review agents report to their coordinator, not to `main`.
+
 Agents defined in `.claude/agents/` cannot commit, push or open PRs (`subagent_guard.py`). For them, replace Close with: leave changes uncommitted and list the files to stage; the main session commits and opens the PR.
 
 ## While they run
@@ -78,6 +89,12 @@ Set each brief's interval by the job's expected length: under about 10 minutes, 
 The main session merges, never with `--admin`. `main` requires the branch to be up to date (`strict` is on) and `check` to pass on its head. When another session runs, merges go through its merge queue (`coordinate` skill): no auto-merge, one at a time. Alone, queue auto-merge (`gh pr merge <n> --merge --auto`) once a PR's reviews are done, never before, or a fast CI merges ahead of the findings. Either way, merge `origin/main` into the branch before it merges and regenerate what it owns. CI on `main` after each merge catches what two PRs break together.
 
 `docs/pipeline-map/pipeline_map.json` merges itself locally (`tools/ops/merge_pipeline_map.py`, a git merge driver that `make wt` and the session-start hook set up); it stops only on two different edits to one box or link, or a link left pointing at a deleted box. GitHub never runs it, so a PR that shows a conflict there needs `origin/main` merged into the branch locally, then `python3 tools/ops/build_pipeline_map.py --check`. A branch from before ADR-036 that still changes `docs/pipeline-map/index.html` or `www/library/pipeline-map.html` gets a modify/delete conflict on them when it merges main: `git rm` them.
+
+No failed PRs: a branch becomes a PR only after these pass on it, in order. (1) `git fetch && git merge origin/main`, then regenerate what the branch owns. (2) The ratchets, `--update` then without: `check_mypy.py`, `check_habits.py`, `check_py_sizes.py`, and `check_ruff.py`; the lane fixes any rise; a baseline changes only to add a new file. (3) `git add` new files, then `build_pipeline_map.py`, `manifest.py check` and `build_pipeline_map.py --check`. (4) `make static`. (5) Push without a PR, run `make remote CMD="./tools/check.sh"` with the log saved, and open the PR only on ALL PASSED. (6) Right before merging, merge `origin/main` again if it moved and rerun 2 to 4, then watch `check` and merge. The remote box holds private files that GitHub CI lacks, such as the AnyRail plan. A remote pass does not prove CI will pass. Run plan-reading tests without the plan too.
+
+Owner decisions on the gates:
+- A docs-only PR skips the full remote run before it opens. It is docs-only when every changed file is Markdown under `wiki/` or `docs/`, Markdown under `.claude/skills/` or `.claude/agents/`, or `AGENTS.md`, and no code, tables, `www/`, `checks.toml` or generated file changes. It still passes `make static` locally and the required CI before merging. Anything else gets the full `make remote`.
+- Group related work into fewer PRs: one branch per lane, and small related lanes batched into one PR rather than a PR per step. Each merge costs a merge of main and a CI cycle under the up-to-date rule.
 
 1. Code PRs are reviewed once, by their own agent (brief, Review). The main session does not review them again: it checks that each confirmed finding was fixed, and runs `/code-review low` only when those fixes changed code beyond the finding's own lines. When the agent could not run a review, the main session runs the `/done` step 3 review. Send each finding through `finding-verifier` first; fix what it confirms, check each PLAUSIBLE one against the code, and leave performance and style for later unless trivial. Add a finding that recurs to the list in the brief's Quality line. After a review, check `git branch --show-current` before committing; it can leave a detached HEAD.
 2. Queue PRs that others build on first. When one merges, merge `origin/main` into each remaining one (no rebase: force-push is blocked) and regenerate its committed generated files.

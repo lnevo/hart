@@ -24,12 +24,66 @@
 .w2 .events li { display:grid; grid-template-columns:5ch 1fr; gap:var(--cds-gap-sm); font-size:var(--cds-font-size-body); }
 .w2 .events time { color:var(--color-fg-muted); font-variant-numeric:tabular-nums; }
 .w2 .muted { color:var(--color-fg-muted); font-size:var(--cds-font-size-caption); }
+.w2 .tl { position:relative; min-height:150px; background:var(--color-panel); border:1px solid var(--color-border-line); border-radius:var(--cds-radius); padding:var(--cds-pad-md); }
+.w2 .tl svg { display:block; width:100%; overflow:visible; }
+.w2 .tl text { font-size:var(--cds-font-size-caption); fill:var(--color-fg); }
+.w2 .tl .axis text { fill:var(--cds-text-secondary); }
+.w2 .tl .axis path, .w2 .tl .axis line { stroke:var(--cds-chart-axis); }
+.w2 .tl .tip { position:absolute; pointer-events:none; background:var(--cds-surface-popover); border:1px solid var(--cds-border); box-shadow:var(--cds-shadow-popover); border-radius:var(--cds-radius); padding:var(--cds-pad-sm) var(--cds-pad-md); font-size:var(--cds-font-size-caption); max-width:260px; }
+.w2 .chips { display:flex; flex-wrap:wrap; gap:var(--cds-gap-xs); margin-bottom:var(--cds-gap-sm); }
+.w2 .chip { font:inherit; font-size:var(--cds-font-size-caption); padding:2px 10px; border-radius:999px; border:1px solid var(--color-border-line); background:var(--color-bg); color:var(--color-fg); cursor:pointer; }
+.w2 .chip[aria-pressed="true"] { border-color:var(--color-fg); background:var(--color-panel); font-weight:var(--cds-font-weight-medium); }
+.w2 .chip:focus-visible { outline:2px solid var(--color-fg); outline-offset:2px; }
+.w2 .charts { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:var(--cds-gap-md); }
+.w2 .chart { position:relative; min-height:200px; background:var(--color-panel); border:1px solid var(--color-border-line); border-radius:var(--cds-radius); padding:var(--cds-pad-md); min-width:0; }
+.w2 .chart h3 { font-size:var(--cds-font-size-body); font-weight:var(--cds-font-weight-medium); margin:0 0 var(--cds-gap-xs); }
+.w2 .chart svg { display:block; width:100%; overflow:visible; }
+.w2 .chart .axis text { fill:var(--cds-text-secondary); font-size:var(--cds-font-size-caption); }
+.w2 .chart .axis path, .w2 .chart .axis line { stroke:var(--cds-chart-axis); }
+.w2 .chart .legend { display:flex; flex-wrap:wrap; gap:var(--cds-gap-sm); font-size:var(--cds-font-size-caption); color:var(--color-fg-muted); margin-top:var(--cds-gap-xs); }
+.w2 .chart .legend i { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:4px; vertical-align:-1px; }
+#dash-root { --dash-gutter: 0; }
+.w2 { background:var(--color-bg); color:var(--color-fg); padding:var(--cds-pad-lg); border-radius:var(--cds-radius); }
+.w2.theme-dark { --color-bg:#141917; --color-panel:#1c2320; --color-fg:#e4ebe6; --color-fg-muted:#9aa69f; --color-border-line:#2f3934;
+  --color-ok:#7fd3a4; --color-warn:#e5bb6a; --color-bad:#f0937d;
+  --cds-text-secondary:#9aa69f; --cds-chart-axis:#4a5650; --cds-chart-grid:#2f3934; --cds-chart-reference:#8b968f;
+  --cds-chart-status-critical:#f0937d; --cds-surface-popover:#222a26; --cds-border:#3a4640; --cds-shadow-popover:0 4px 14px rgba(0,0,0,.5);
+  color-scheme:dark; }
+@media (prefers-color-scheme: dark) { .w2.theme-auto { --color-bg:#141917; --color-panel:#1c2320; --color-fg:#e4ebe6; --color-fg-muted:#9aa69f; --color-border-line:#2f3934;
+  --color-ok:#7fd3a4; --color-warn:#e5bb6a; --color-bad:#f0937d;
+  --cds-text-secondary:#9aa69f; --cds-chart-axis:#4a5650; --cds-chart-grid:#2f3934; --cds-chart-reference:#8b968f;
+  --cds-chart-status-critical:#f0937d; --cds-surface-popover:#222a26; --cds-border:#3a4640; --cds-shadow-popover:0 4px 14px rgba(0,0,0,.5);
+  color-scheme:dark; } }
+.w2 .proj { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:var(--cds-gap-md); border-bottom:1px solid var(--color-border-line); padding-bottom:var(--cds-pad-md); }
+.w2 .proj .eyebrow { font-size:var(--cds-font-size-caption); letter-spacing:.06em; text-transform:uppercase; color:var(--color-fg-muted); margin:0 0 4px; }
+.w2 .proj .sub { font-size:var(--cds-font-size-heading); margin:2px 0 0; }
+.w2 .proj .meta { display:flex; flex-wrap:wrap; gap:var(--cds-gap-xs) var(--cds-gap-sm); margin-top:var(--cds-gap-xs); font-size:var(--cds-font-size-caption); color:var(--color-fg-muted); }
+.w2 .proj .meta a { color:var(--color-fg); }
+.w2 .theme { display:flex; gap:2px; border:1px solid var(--color-border-line); border-radius:999px; padding:2px; }
+.w2 .theme button { font:inherit; font-size:var(--cds-font-size-caption); border:0; background:transparent; color:var(--color-fg-muted); padding:2px 10px; border-radius:999px; cursor:pointer; }
+.w2 .theme button[aria-pressed="true"] { background:var(--color-panel); color:var(--color-fg); }
+.w2 .theme button:focus-visible { outline:2px solid var(--color-fg); outline-offset:1px; }
 </style>
-<div class="w2">
-  <header id="top">
-    <h1>Wave dashboard</h1>
-    <p class="lead"><span data-draw="lead" class="dash-skeleton">—</span></p>
+<div class="w2 theme-auto">
+  <header id="top" class="proj">
+    <div>
+      <p class="eyebrow">lnevo/hart</p>
+      <h1>HART Railroad</h1>
+      <p class="sub">Code-quality wave 2</p>
+      <div class="meta">
+        <span><span class="pill running">active</span></span>
+        <span>Coordinator: hart-bb (merge queue and deploys); lanes run by a background wave 2 coordinator</span>
+        <span>Started 14:15 on 2026-11-26</span>
+        <a href="https://github.com/lnevo/hart/blob/main/wiki/projects/code-quality-wave.md">Wave page</a>
+      </div>
+    </div>
+    <div class="theme" role="group" aria-label="Theme">
+      <button type="button" data-theme="auto" aria-pressed="true">Auto</button>
+      <button type="button" data-theme="light">Light</button>
+      <button type="button" data-theme="dark">Dark</button>
+    </div>
   </header>
+  <p class="lead"><span data-draw="lead" class="dash-skeleton">—</span></p>
 
   <section class="tiles" id="tiles" data-source="lanes">
     <div class="tile"><span class="n" data-draw="t-merged">—</span><span class="l">Lanes merged or done</span></div>
@@ -37,6 +91,28 @@
     <div class="tile"><span class="n" data-draw="t-queued">—</span><span class="l">Lanes waiting to start</span></div>
     <div class="tile"><span class="n" data-draw="t-blocked">—</span><span class="l">Lanes blocked</span></div>
     <div class="tile"><span class="n" data-draw="t-eta">—</span><span class="l">Latest ETA across lanes</span></div>
+  </section>
+
+  <section id="timeline-section">
+    <h2>Timeline</h2>
+    <div class="chips" role="group" aria-label="Show on the timeline">
+      <button type="button" class="chip" data-tl="all" aria-pressed="true">All</button>
+      <button type="button" class="chip" data-tl="wave">Wave 2</button>
+      <button type="button" class="chip" data-tl="other">Other sessions</button>
+      <button type="button" class="chip" data-tl="done">Done</button>
+      <button type="button" class="chip" data-tl="planned">Planned</button>
+    </div>
+    <div class="tl" data-draw="timeline" data-source="lanes"></div>
+    <p class="muted">A filled dot is done or merged, at the time it finished. A hollow dot is planned, at its ETA. The line marks now.</p>
+  </section>
+
+  <section id="hosts-section">
+    <h2>Hosts and agents</h2>
+    <div class="charts">
+      <div class="chart" id="load-chart"><h3>Load (1-minute average)</h3><div data-draw="load" data-source="samples"></div></div>
+      <div class="chart" id="agents-chart"><h3>Claude sessions and agents running</h3><div data-draw="agents" data-source="samples"></div></div>
+    </div>
+    <p class="muted">Sampled every 2 minutes from the Mac and the Windows box; agent counts every 10 minutes. Dashed lines: each host's CPU count, and the cap of 8 Claude sessions.</p>
   </section>
 
   <section id="lanes-section">
@@ -97,4 +173,98 @@ dash.draw('events', (ul)=>{
     const li=document.createElement('li'); const t=document.createElement('time'); t.textContent=String(x.at||'').slice(-5); const s=document.createElement('span'); s.textContent=x.text||''; li.append(t,s); ul.append(li);
   });
 });
+
+function hm(s){ const m=/^(\d{1,2}):(\d{2})$/.exec(String(s||'').trim()); return m ? (+m[1])*60+(+m[2]) : null; }
+function fmt(m){ const h=Math.floor(m/60), mi=Math.round(m%60); return String(h).padStart(2,'0')+':'+String(mi).padStart(2,'0'); }
+function shortName(x){ if(x.short) return String(x.short); const n=String(x.lane||x.id||''); return n.startsWith('lnevo-5f ') ? n.slice(9) : n.split(' ')[0]; }
+document.querySelectorAll('.w2 .chip[data-tl]').forEach((b)=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('.w2 .chip[data-tl]').forEach((o)=> o.setAttribute('aria-pressed', String(o===b)));
+    dash.setParams({tl: b.dataset.tl});
+  });
+});
+dash.draw('timeline', (el)=>{
+  const r=laneRows();
+  el.replaceChildren();
+  if(!r){ el.textContent = dash.data('lanes').status==='error' ? 'The timeline did not load.' : '—'; return; }
+  const now=new Date(); const nowM=now.getHours()*60+now.getMinutes();
+  const pts=r.map(x=>{ const done=isDone(x.status); const t = done ? (hm(x.updated)??hm(x.eta)) : (hm(x.eta)??hm(x.updated)); return t==null?null:{x, t, done, label: shortName(x)}; }).filter(Boolean).sort((a,b)=>a.t-b.t);
+  const want=(dash.params().tl)||'all';
+  const keep=(p)=> want==='all' || (want==='done' && p.done) || (want==='planned' && !p.done)
+      || (want==='other' && /^x\d/.test(p.x.id)) || (want==='wave' && !/^x\d/.test(p.x.id));
+  pts.splice(0, pts.length, ...pts.filter(keep));
+  if(!pts.length){ el.textContent='Nothing to show for this filter.'; return; }
+  const W=Math.max(320, el.clientWidth - 24), levels=5, lh=17, top=8, axisY=top+(levels+1)*lh+10, H=axisY+26;
+  const lo=Math.min(nowM, pts[0].t)-10, hi=Math.max(nowM, pts[pts.length-1].t)+15;
+  const x=d3.scaleLinear().domain([lo,hi]).range([28, W-28]);
+  const svg=d3.select(el).append('svg').attr('viewBox',`0 0 ${W} ${H}`).attr('height',H).attr('role','img')
+    .attr('aria-label', `Timeline from ${fmt(lo)} to ${fmt(hi)}: ${pts.filter(p=>p.done).length} milestones done, ${pts.filter(p=>!p.done).length} planned`);
+  const ticks=x.ticks(Math.max(3, Math.floor(W/90)));
+  const g=svg.append('g').attr('class','axis').attr('transform',`translate(0,${axisY})`);
+  g.call(d3.axisBottom(x).tickValues(ticks).tickFormat(fmt).tickSizeOuter(0));
+  svg.append('rect').attr('x',x(lo)).attr('y',axisY-3).attr('width',Math.max(0,x(nowM)-x(lo))).attr('height',3).style('fill',dash.colors[0]).style('opacity',0.5);
+  svg.append('line').attr('x1',x(nowM)).attr('x2',x(nowM)).attr('y1',top).attr('y2',axisY+4).style('stroke','var(--cds-chart-reference)').style('stroke-dasharray','3 3');
+  // level 0 holds only the "now" label; milestone labels take levels 1..levels
+  const nowText=svg.append('text').attr('y',top+10).text('now '+fmt(nowM)).style('fill','var(--cds-text-secondary)');
+  const nw=nowText.node().getComputedTextLength() || 60;
+  const nx=Math.min(x(nowM)+4, W-nw-2); nowText.attr('x', nx);
+  const used=Array.from({length:levels+1},()=>[]); used[0].push([nx-2, nx+nw+2]);
+  const free=(lv,a,b)=>used[lv].every(([u,v])=> b < u || a > v);
+  const tip=document.createElement('div'); tip.className='tip'; tip.hidden=true; el.append(tip);
+  pts.forEach(p=>{
+    const px=x(p.t);
+    const grp=svg.append('g');
+    const label=grp.append('text').text(p.label);
+    const w=label.node().getComputedTextLength() || p.label.length*7;
+    let lx=Math.min(px+4, W-w-2), lv=1;
+    while(lv<levels && !free(lv, lx-3, lx+w+3)) lv++;
+    if(!free(lv, lx-3, lx+w+3)){                  // every level busy: shorten to fit or drop the text, keep the dot
+      label.remove();
+    } else { used[lv].push([lx-3, lx+w+3]); label.attr('x',lx).attr('y',top+10+lv*lh); }
+    const y=top+10+lv*lh;
+    grp.insert('line','text').attr('x1',px).attr('x2',px).attr('y1',y+3).attr('y2',axisY).style('stroke','var(--cds-chart-grid)');
+    grp.append('circle').attr('cx',px).attr('cy',axisY).attr('r',5)
+      .style('stroke', p.x.status==='blocked'||p.x.status==='failed' ? 'var(--cds-chart-status-critical)' : dash.colors[0]).style('stroke-width',2)
+      .style('fill', p.done ? dash.colors[0] : 'var(--color-panel)');
+    grp.on('mouseenter', ()=>{ tip.textContent = `${p.x.lane} · ${p.x.status}${p.x.pr?' · '+p.x.pr:''} · ${p.done?'done':'ETA'} ${fmt(p.t)} · ${p.x.stage||''}`; tip.hidden=false; tip.style.left=Math.max(0,Math.min(px, W-260))+'px'; tip.style.top=(axisY+8)+'px'; })
+       .on('mouseleave', ()=>{ tip.hidden=true; });
+  });
+});
+
+function sampleRows(){ const r=rows('samples'); if(!r) return null; return r.map(s=>({...s, m:hm(s.at)})).filter(s=>s.m!=null).sort((a,b)=>a.m-b.m); }
+function lineChart(el, series, refs, yLabel){
+  const r=sampleRows(); el.replaceChildren();
+  if(!r || r.length<2){ el.textContent = r ? 'Collecting samples…' : (dash.data('samples').status==='error' ? 'Samples did not load.' : '—'); return; }
+  const W=Math.max(280, el.clientWidth), H=170, m={l:30,r:10,t:8,b:22};
+  const x=d3.scaleLinear().domain(d3.extent(r,s=>s.m)).range([m.l,W-m.r]);
+  const ymax=d3.max([...series.flatMap(s=>r.map(v=>+v[s.key]||0)), ...refs.map(f=>f.value(r))])||1;
+  const y=d3.scaleLinear().domain([0, ymax*1.1]).nice().range([H-m.b,m.t]);
+  const svg=d3.select(el).append('svg').attr('viewBox',`0 0 ${W} ${H}`).attr('height',H).attr('role','img').attr('aria-label', yLabel);
+  svg.append('g').attr('class','axis').attr('transform',`translate(0,${H-m.b})`).call(d3.axisBottom(x).ticks(Math.max(2,Math.floor(W/90))).tickFormat(fmt).tickSizeOuter(0));
+  svg.append('g').attr('class','axis').attr('transform',`translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickSizeOuter(0));
+  refs.forEach(f=>{ const v=f.value(r); svg.append('line').attr('x1',m.l).attr('x2',W-m.r).attr('y1',y(v)).attr('y2',y(v)).style('stroke',f.color).style('stroke-dasharray','4 3'); });
+  series.forEach(s=>{ const pts=r.filter(v=>v[s.key]!=null && v[s.key]!==''); svg.append('path').datum(pts).attr('d', d3.line().x(v=>x(v.m)).y(v=>y(+v[s.key]))).style('fill', s.area ? s.color : 'none').style('fill-opacity', s.area?0.25:null).style('stroke',s.color).style('stroke-width',2); });
+  const tip=document.createElement('div'); tip.className='tip'; tip.hidden=true; el.append(tip);
+  const ov=svg.append('rect').attr('x',m.l).attr('y',m.t).attr('width',W-m.l-m.r).attr('height',H-m.t-m.b).style('fill','transparent');
+  ov.on('mousemove',(ev)=>{ const [px]=d3.pointer(ev); const t=x.invert(px); const s=r.reduce((a,b)=>Math.abs(b.m-t)<Math.abs(a.m-t)?b:a); tip.textContent = s.at+' · '+series.map(q=>q.label+' '+(s[q.key]??'–')).join(' · '); tip.hidden=false; tip.style.left=Math.min(px, W-220)+'px'; tip.style.top='10px'; }).on('mouseleave',()=>{ tip.hidden=true; });
+  const lg=document.createElement('div'); lg.className='legend';
+  [...series.map(s=>[s.label,s.color]), ...refs.map(f=>[f.label,f.color])].forEach(([l,c])=>{ const sp=document.createElement('span'); const i=document.createElement('i'); i.style.background=c; sp.append(i, document.createTextNode(l)); lg.append(sp); });
+  el.append(lg);
+}
+dash.draw('load', (el)=> lineChart(el,
+  [{key:'mac_load1',label:'Mac',color:dash.colors[0]},{key:'win_load1',label:'Windows (WSL)',color:dash.colors[1]}],
+  [{label:'Mac CPUs', color:dash.colors[0], value:(r)=>+(r[r.length-1].mac_cpus||0)},{label:'Windows CPUs', color:dash.colors[1], value:(r)=>+(r[r.length-1].win_cpus||0)}],
+  'Mac and Windows load over time with each CPU count'));
+dash.draw('agents', (el)=> lineChart(el,
+  [{key:'claude_total',label:'Sessions and agents',color:dash.colors[2]||dash.colors[0],area:true},{key:'win_remote_runs',label:'Remote checks on Windows',color:dash.colors[3]||dash.colors[1]}],
+  [{label:'Cap of 8', color:'var(--cds-chart-status-critical)', value:()=>8}],
+  'Claude sessions plus agents running over time against the cap of 8, and remote checks'));
+
+(function(){
+  let pick='auto'; try { pick = localStorage.getItem('w2-theme') || 'auto'; } catch(e) {}
+  const apply=(t)=>{ document.querySelectorAll('.w2').forEach((w)=>{ w.classList.remove('theme-auto','theme-light','theme-dark'); w.classList.add('theme-'+t); });
+    document.querySelectorAll('.w2 .theme button').forEach((b)=> b.setAttribute('aria-pressed', String(b.dataset.theme===t))); };
+  apply(pick);
+  document.querySelectorAll('.w2 .theme button').forEach((b)=> b.addEventListener('click', ()=>{ apply(b.dataset.theme); try { localStorage.setItem('w2-theme', b.dataset.theme); } catch(e) {} }));
+})();
 </script>
